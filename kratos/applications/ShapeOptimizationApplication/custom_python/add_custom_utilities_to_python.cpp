@@ -70,58 +70,59 @@ namespace Python
 {
 
 
-  void  AddCustomUtilitiesToPython()
-  {
-      using namespace boost::python;
+void  AddCustomUtilitiesToPython()
+{
+    using namespace boost::python;
 
-      // ========================================================================
-      // Optimization based on Vertex Morphing
-      // ========================================================================
-      class_<VertexMorphingUtilities, bases<Process> >("VertexMorphingUtilities", init<ModelPart&,
-                                                                                       const int,
-                                                                                       boost::python::dict,
-                                                                                       boost::python::dict,
-                                                                                       double,
-                                                                                       const int>())
+    // ========================================================================
+    // Optimization based on Vertex Morphing
+    // ========================================================================
+    class_<VertexMorphingUtilities, bases<Process> >("VertexMorphingUtilities", init<ModelPart&,
+                                                     const int,
+                                                     boost::python::dict,
+                                                     boost::python::dict,
+                                                     double,
+                                                     const int>())
 
-              // ================================================================
-              // General geometrical operations
-              // ================================================================
-              .def("compute_unit_surface_normals", &VertexMorphingUtilities::compute_unit_surface_normals)
-              .def("project_grad_on_unit_surface_normal", &VertexMorphingUtilities::project_grad_on_unit_surface_normal)
+            // ================================================================
+            // General geometrical operations
+            // ================================================================
+            .def("compute_unit_surface_normals", &VertexMorphingUtilities::compute_unit_surface_normals)
+            .def("project_grad_on_unit_surface_normal", &VertexMorphingUtilities::project_grad_on_unit_surface_normal)
 
-              // ================================================================
-              // For perfoming Vertex Morphing
-              // ================================================================
-              .def("filter_gradients", &VertexMorphingUtilities::filter_gradients)
+            // ================================================================
+            // For perfoming Vertex Morphing
+            // ================================================================
+            .def("compute_mapping_matrix", &VertexMorphingUtilities::compute_mapping_matrix)
+            .def("map_sensitivities_to_design_space", &VertexMorphingUtilities::map_sensitivities_to_design_space)
+            .def("map_design_update_to_geometry_space", &VertexMorphingUtilities::map_design_update_to_geometry_space)
 
-              // ================================================================
-              // General optimization operations
-              // ================================================================
-              .def("update_design_variable", &VertexMorphingUtilities::update_design_variable)
-              .def("update_shape", &VertexMorphingUtilities::update_shape)
+            // ================================================================
+            // General optimization operations
+            // ================================================================
+            .def("compute_design_update", &VertexMorphingUtilities::compute_design_update)
 
-              // ================================================================
-              // For running unconstrained descent methods
-              // ================================================================
-              .def("compute_search_direction_steepest_descent", &VertexMorphingUtilities::compute_search_direction_steepest_descent)
+            // ================================================================
+            // For running unconstrained descent methods
+            // ================================================================
+            .def("compute_search_direction_steepest_descent", &VertexMorphingUtilities::compute_search_direction_steepest_descent)
 
-              // ================================================================
-              // For running augmented Lagrange method
-              // ================================================================
-              .def("initialize_augmented_lagrange", &VertexMorphingUtilities::initialize_augmented_lagrange)
-              .def("compute_search_direction_augmented_lagrange", &VertexMorphingUtilities::compute_search_direction_augmented_lagrange)
-              .def("udpate_augmented_lagrange_parameters", &VertexMorphingUtilities::udpate_augmented_lagrange_parameters)
-              .def("get_penalty_fac", &VertexMorphingUtilities::get_penalty_fac)
-              .def("get_lambda", &VertexMorphingUtilities::get_lambda)
-              .def("get_value_of_augmented_lagrangian", &VertexMorphingUtilities::get_value_of_augmented_lagrangian)
+            // ================================================================
+            // For running augmented Lagrange method
+            // ================================================================
+            .def("initialize_augmented_lagrange", &VertexMorphingUtilities::initialize_augmented_lagrange)
+            .def("compute_search_direction_augmented_lagrange", &VertexMorphingUtilities::compute_search_direction_augmented_lagrange)
+            .def("udpate_augmented_lagrange_parameters", &VertexMorphingUtilities::udpate_augmented_lagrange_parameters)
+            .def("get_penalty_fac", &VertexMorphingUtilities::get_penalty_fac)
+            .def("get_lambda", &VertexMorphingUtilities::get_lambda)
+            .def("get_value_of_augmented_lagrangian", &VertexMorphingUtilities::get_value_of_augmented_lagrangian)
 
-              // ================================================================
-              // For running penalized projection method
-              // ================================================================
-              .def("compute_search_direction_penalized_projection", &VertexMorphingUtilities::compute_search_direction_penalized_projection)
-              ;
-  }
+            // ================================================================
+            // For running penalized projection method
+            // ================================================================
+            .def("compute_search_direction_penalized_projection", &VertexMorphingUtilities::compute_search_direction_penalized_projection)
+            ;
+}
 
 
 }  // namespace Python.
