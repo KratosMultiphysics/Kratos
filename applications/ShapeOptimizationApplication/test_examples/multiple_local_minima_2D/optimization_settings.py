@@ -7,6 +7,7 @@ class KratosShapeSettings:
     design_output_mode = "relative"
     design_surface_name = "Line_40"
     domain_size = 2
+    weighting_function = "gaussian"
     filter_size = 10 # E.g. 10.0 for target 1 or 0.5 for other
     optimization_algorithm = "steepest_descent"
     max_opt_iterations = 200

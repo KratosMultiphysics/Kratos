@@ -44,8 +44,8 @@
 //
 // ==============================================================================
 
-#ifndef VERTEX_MORPHING_UTILITIES_H
-#define VERTEX_MORPHING_UTILITIES_H
+#ifndef OPTIMIZATION_UTILITIES_H
+#define OPTIMIZATION_UTILITIES_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -72,13 +72,8 @@
 #include "../../kratos/includes/element.h"
 #include "../../kratos/includes/model_part.h"
 #include "../../kratos/includes/kratos_flags.h"
-#include "../../kratos/spatial_containers/spatial_containers.h"
 #include "../../kratos/utilities/timer.h"
-#include "../../kratos/processes/node_erase_process.h"
-#include "../../kratos/utilities/binbased_fast_point_locator.h"
-#include "../../kratos/utilities/normal_calculation_utils.h"
 #include "shape_optimization_application.h"
-#include "../../kratos/spaces/ublas_space.h"
 
 // ==============================================================================
 
@@ -110,7 +105,7 @@ namespace Kratos
 
 */
 
-class VertexMorphingUtilities
+class OptimizationUtilities
 {
 public:
     ///@name Type Definitions
@@ -128,48 +123,22 @@ public:
     typedef std::vector<double>::iterator DistanceIterator;
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
-    // ==========================================================================
-    // Type definitions for linear algebra including sparse systems
-    // ==========================================================================
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef typename SparseSpaceType::MatrixType SparseMatrixType;
 
-    /// Pointer definition of VertexMorphingUtilities
-    KRATOS_CLASS_POINTER_DEFINITION(VertexMorphingUtilities);
+    /// Pointer definition of OptimizationUtilities
+    KRATOS_CLASS_POINTER_DEFINITION(OptimizationUtilities);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    VertexMorphingUtilities( ModelPart& model_part,
-                             const int domain_size,
-                             boost::python::dict py_objectives,
-                             boost::python::dict py_constraints,
-                             double filter_size,
-                             const int max_nodes_affected )
-        : mr_opt_model_part(model_part),
-          m_domain_size(domain_size),
-          m_filter_size(filter_size),
-          m_number_of_design_variables(model_part.Nodes().size()),
-          m_max_nodes_affected(max_nodes_affected)
+    OptimizationUtilities( ModelPart& model_part,
+                           boost::python::dict py_objectives,
+                           boost::python::dict py_constraints )
+        : mr_opt_model_part(model_part)
     {
         // Set precision for output
         std::cout.precision(12);
-
-        // Initialize filter matrix
-        m_mapping_matrix.resize(m_number_of_design_variables*3,m_number_of_design_variables);
-
-        // Create map to obtain local mapping matrix Id from global node Id
-        unsigned int i = 0;
-        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
-        {
-            // Store local mapping matrix Id on the node
-            node_i->SetValue(MAPPING_MATRIX_ID,i);
-
-            // iterator design variable iterator i
-            i++;
-        }
 
         // Create a map between python dict string ids and C++ map integer ids
 
@@ -191,7 +160,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~VertexMorphingUtilities()
+    virtual ~OptimizationUtilities()
     {
     }
 
@@ -204,335 +173,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    // ==============================================================================
-    // General geometrical operations
-    // ==============================================================================
-    void compute_unit_surface_normals()
-    {
-        KRATOS_TRY;
-
-        // Compute nodal are normal using given Kratos utilities (sets the variable "NORMAL")
-        NormalCalculationUtils normal_util = NormalCalculationUtils();
-        normal_util.CalculateOnSimplex(mr_opt_model_part,m_domain_size);
-
-        // Take into account boundary conditions, normalize area normal and store in respective variable
-        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
-        {
-            // Normalize normal and assign to solution step value
-            array_3d area_normal = node_i->FastGetSolutionStepValue(NORMAL);
-            array_3d normalized_normal = area_normal / norm_2(area_normal);
-            noalias(node_i->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)) = normalized_normal;
-        }
-
-        KRATOS_CATCH("");
-    }
-
-    // --------------------------------------------------------------------------
-    void project_grad_on_unit_surface_normal( bool constraint_given )
-    {
-        KRATOS_TRY;
-
-        // We loop over all nodes and compute the part of the sensitivity which is in direction to the surface normal
-        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
-        {
-            // We compute dFdX_n = (dFdX \cdot n) * n
-            array_3d node_sens = node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
-            array_3d node_normal = node_i->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
-            double surface_sens = inner_prod(node_sens,node_normal);
-            array_3d normal_node_sens = surface_sens * node_normal;
-
-            // Assign resulting sensitivities back to node
-            node_i->GetSolutionStepValue(OBJECTIVE_SURFACE_SENSITIVITY) = surface_sens;
-            noalias(node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY)) = normal_node_sens;
-
-            // Repeat for constraint
-            if(constraint_given)
-            {
-                // We compute dFdX_n = (dFdX \cdot n) * n
-                node_sens = node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY);
-                node_normal = node_i->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
-                surface_sens = inner_prod(node_sens,node_normal);
-                normal_node_sens =  surface_sens * node_normal;
-
-                // Assign resulting sensitivities back to node
-                node_i->GetSolutionStepValue(CONSTRAINT_SURFACE_SENSITIVITY) = surface_sens;
-                noalias(node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY)) = normal_node_sens;
-            }
-        }
-
-        KRATOS_CATCH("");
-    }
-
-    // ==============================================================================
-    // For perfoming Vertex Morphing
-    // ==============================================================================
-    void compute_mapping_matrix()
-    {
-        KRATOS_TRY;
-
-        // Measure time of mapping
-        boost::timer mapping_time;
-        std::cout << "> Start computing mapping matrix..." << std::endl;
-
-        // Creating an auxiliary list for the nodes to be searched on
-        PointVector list_of_nodes;
-
-        // Start constructing and computing the kdtree
-        typedef Bucket< 3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
-        typedef Tree< KDTreePartition<BucketType> > tree;
-
-        // starting calculating time of construction of the kdtree
-        for (ModelPart::NodesContainerType::iterator node_it = mr_opt_model_part.NodesBegin(); node_it != mr_opt_model_part.NodesEnd(); ++node_it)
-        {
-            PointTypePointer pnode = *(node_it.base());
-
-            // Putting the nodes of interest in an auxiliary list
-            list_of_nodes.push_back(pnode);
-        }
-
-        // Arrays needed for spatial search
-        PointVector nodes_affected(m_max_nodes_affected);
-        DistanceVector resulting_squared_distances(m_max_nodes_affected);
-
-        // Compute tree with the node positions
-        tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), m_max_nodes_affected);
-
-        // Loop over all design variables
-        for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
-        {
-        	// Get node information
-            int i_ID = node_itr->Id();
-            ModelPart::NodeType& node_i = mr_opt_model_part.Nodes()[i_ID];
-            array_3d i_coord = node_i.Coordinates();
-
-            // Get tID of the node in the mapping matrix
-            int i = node_i.GetValue(MAPPING_MATRIX_ID);
-
-            // Perform spatial search for current node
-            unsigned int number_of_nodes_affected;
-            number_of_nodes_affected = nodes_tree.SearchInRadius(node_i, m_filter_size, nodes_affected.begin(),resulting_squared_distances.begin(), m_max_nodes_affected);
-
-            // Store results to reuse later in the forward mapping
-            m_listOf_nodesAffected[i_ID] = nodes_affected;
-            m_number_of_nodes_affected[i_ID] = number_of_nodes_affected;
-
-            // Compute and assign weights in the mapping matrix
-            double sum_weights = 0.0;
-            for(unsigned int j_itr = 0 ; j_itr<number_of_nodes_affected ; j_itr++)
-            {
-            	// Get node information
-                int j_ID = nodes_affected[j_itr]->Id();
-                ModelPart::NodeType& node_j = mr_opt_model_part.Nodes()[j_ID];
-                array_3d j_coord(3,0.0);
-                j_coord[0] = node_j.X();
-                j_coord[1] = node_j.Y();
-                j_coord[2] = node_j.Z();
-
-                // Get the id of the node in the mapping matrix
-                int j = node_j.GetValue(MAPPING_MATRIX_ID);
-
-                array_3d dist_vector = i_coord - j_coord;
-                double squared_scalar_distance = dist_vector[0] * dist_vector[0] + dist_vector[1] * dist_vector[1] + dist_vector[2] * dist_vector[2];
-
-                // Computation of weight according specified weighting function
-                // Note that we did not compute the square root of the distances to save this expensive computation (it is not needed here)
-                double Aij = exp(-squared_scalar_distance/(2*m_filter_size*m_filter_size/9.0));
-
-                // Multiplication by the node normal (nodal director)
-                // In this way we implicitly preserve the in-plane mesh quality (pure Heuristic)
-                m_mapping_matrix(3*i+0,j) = Aij*node_j.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)[0];
-                m_mapping_matrix(3*i+1,j) = Aij*node_j.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)[1];
-                m_mapping_matrix(3*i+2,j) = Aij*node_j.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)[2];
-
-                // Computed for integration of weighting function later using post-scaling
-                sum_weights += Aij;
-            }
-
-            // Here we perform the post scaling by the sum of all weights
-            for(unsigned int j_itr = 0 ; j_itr<number_of_nodes_affected ; j_itr++)
-            {
-            	// Get node information
-                int j_ID = nodes_affected[j_itr]->Id();
-                ModelPart::NodeType& node_j = mr_opt_model_part.Nodes()[j_ID];
-
-                // Get the id of the node in the mapping matrix
-                int j = node_j.GetValue(MAPPING_MATRIX_ID);
-
-                // Scaling of the weights
-                m_mapping_matrix(3*i+0,j) /= sum_weights;
-                m_mapping_matrix(3*i+1,j) /= sum_weights;
-                m_mapping_matrix(3*i+2,j) /= sum_weights;
-            }
-        }
-
-        // Console output for information
-        std::cout << "> Finished computing mapping matrix!" << std::endl;
-        std::cout << "> Time needed for computation of mapping matrix: " << mapping_time.elapsed() << std::endl;
-
-        KRATOS_CATCH("");
-    }
-
-    // --------------------------------------------------------------------------
-    void map_sensitivities_to_design_space( bool constraint_given )
-    {
-    	KRATOS_TRY;
-
-    	// Measure time of mapping
-    	boost::timer mapping_time;
-    	std::cout << "\n> Start mapping sensitivities to design space..." << std::endl;
-
-    	// Loop over all design variables
-    	for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
-    	{
-    		// Get node information
-    		int i_ID = node_i->Id();
-
-    		// Get the id of the node in the mapping matrix
-    		int i = node_i->GetValue(MAPPING_MATRIX_ID);
-
-    		//Instead of performing spatial search again, we read the results obtained from the computation of the mapping matrix
-    		unsigned int number_of_nodes_affected = m_number_of_nodes_affected[i_ID];
-    		PointVector nodes_affected(number_of_nodes_affected);
-    		nodes_affected = m_listOf_nodesAffected[i_ID];
-
-    		// Mapping gradients to design space - looping only over neighbor nodes
-    		double dFds_i = 0.0;
-    		for(unsigned int j_itr = 0 ; j_itr<number_of_nodes_affected ; j_itr++)
-    		{
-    			// Get node information
-    			int j_ID = nodes_affected[j_itr]->Id();
-    			ModelPart::NodeType& node_j = mr_opt_model_part.Nodes()[j_ID];
-
-    			// Get the id of the node in the mapping matrix
-    			unsigned int j = node_j.GetValue(MAPPING_MATRIX_ID);
-
-    			// Ask for the sensitiviteis
-                array_3d node_sens = node_j.FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
-
-    			// Compute dot-product
-    			dFds_i += m_mapping_matrix(j*3+0,i) * node_sens[0]
-						+ m_mapping_matrix(j*3+1,i) * node_sens[1]
-						+ m_mapping_matrix(j*3+2,i) * node_sens[2];
-    		}
-            node_i->FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY) = dFds_i;
-
-    		// If constrainted optimization, then also compute filtered gradients for the constraints (dCds)
-    		if(constraint_given)
-    		{
-    			// Mapping sensitivities to design space - looping only over neighbor nodes
-    			double dCds_i = 0.0;
-    			for(unsigned int j_itr = 0 ; j_itr<number_of_nodes_affected ; j_itr++)
-    			{
-    				// Get node information
-    				int j_ID = nodes_affected[j_itr]->Id();
-    				ModelPart::NodeType& node_j = mr_opt_model_part.Nodes()[j_ID];
-
-    				// Get the id of the node in the mapping matrix
-    				unsigned int j = node_j.GetValue(MAPPING_MATRIX_ID);
-
-    				// Ask for the sensitiviteis
-    				array_3d node_sens = node_j.FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY);
-
-    				// Compute dot-product - Here we use the transpose of the mapping matrix (exchanged indices)
-    				dCds_i += m_mapping_matrix(j*3+0,i) * node_sens[0]
-							+ m_mapping_matrix(j*3+1,i) * node_sens[1]
-							+ m_mapping_matrix(j*3+2,i) * node_sens[2];
-    			}
-                node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY) = dCds_i;
-    		}
-    	}
-
-    	// Console output for information
-    	std::cout << "> Finished mapping sensitivities to design space!" << std::endl;
-    	std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << std::endl;
-
-    	KRATOS_CATCH("");
-    }
-
-    // --------------------------------------------------------------------------
-    void map_design_update_to_geometry_space()
-    {
-    	KRATOS_TRY;
-
-    	// Measure time of mapping
-    	boost::timer mapping_time;
-    	std::cout << "\n> Start mapping design update to geometry space..." << std::endl;
-
-    	// Loop over all design variables
-    	for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
-    	{
-    		// Get node information
-    		int i_ID = node_i->Id();
-
-    		// Get the id of the node in the mapping matrix
-    		int i = node_i->GetValue(MAPPING_MATRIX_ID);
-
-    		// Instead of performing spatial search again, we read the results obtained from the computation of the mapping matrix
-    		unsigned int number_of_nodes_affected = m_number_of_nodes_affected[i_ID];
-    		PointVector nodes_affected(number_of_nodes_affected);
-    		nodes_affected = m_listOf_nodesAffected[i_ID];
-
-    		// Mapping of design variable update to geometry space
-    		// - looping only over neighbor nodes and summ all shape update contributions form neighbor nodes
-    		array_3d shape_update(3,0.0);
-    		for(unsigned int j_itr = 0 ; j_itr<number_of_nodes_affected ; j_itr++)
-    		{
-    			// Get node information
-    			int j_ID = nodes_affected[j_itr]->Id();
-    			ModelPart::NodeType& node_j = mr_opt_model_part.Nodes()[j_ID];
-
-    			// Get the id of the node in the mapping matrix
-    			int j = node_j.GetValue(MAPPING_MATRIX_ID);
-
-    			// Store shape update contribution in global node list to update after all updates have been computed
-                shape_update[0] += m_mapping_matrix(3*i+0,j) * node_j.FastGetSolutionStepValue(DESIGN_UPDATE);
-                shape_update[1] += m_mapping_matrix(3*i+1,j) * node_j.FastGetSolutionStepValue(DESIGN_UPDATE);
-                shape_update[2] += m_mapping_matrix(3*i+2,j) * node_j.FastGetSolutionStepValue(DESIGN_UPDATE);
-    		}
-
-    		// Store shape update
-    		noalias(node_i->FastGetSolutionStepValue(SHAPE_UPDATE)) = shape_update;
-    	}
-
-    	// Update of coordinates and absolute values AFTER shape update is modified according to special conditions
-    	for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
-    	{
-    		// If shape update deactivated, set it to zero
-    		if(node_i->FastGetSolutionStepValue(SHAPE_UPDATES_DEACTIVATED))
-    		{
-    			array_3d zero_array(3,0.0);
-    			noalias(node_i->FastGetSolutionStepValue(SHAPE_UPDATE)) = zero_array;
-    		}
-    		// In case it is not deactivated, it is checked if it is on a specified boundary beyond which no update is wanted
-    		else
-    		{
-    			// Project shape update at boundary on specified boundary plane (Remove component that is normal to the boundary plane)
-    			if(node_i->FastGetSolutionStepValue(IS_ON_BOUNDARY))
-    			{
-    				array_3d boundary_plane = node_i->FastGetSolutionStepValue(BOUNDARY_PLANE);
-    				array_3d original_update = node_i->FastGetSolutionStepValue(SHAPE_UPDATE);
-    				array_3d projected_update = original_update - (inner_prod(original_update,boundary_plane))*boundary_plane/norm_2(boundary_plane);
-    				noalias(node_i->FastGetSolutionStepValue(SHAPE_UPDATE)) = projected_update;
-    			}
-    		}
-
-    		// Update coordinates
-    		array_3d shape_update = node_i->FastGetSolutionStepValue(SHAPE_UPDATE);
-    		node_i->X() += shape_update[0];
-    		node_i->Y() += shape_update[1];
-    		node_i->Z() += shape_update[2];
-
-    		// Add final shape update to previous updates
-    		noalias(node_i->FastGetSolutionStepValue(SHAPE_CHANGE_ABSOLUTE)) += shape_update;
-    	}
-
-    	// Console output for information
-    	std::cout << "> Finished mapping design update to geometry space!" << std::endl;
-    	std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << std::endl;
-
-    	KRATOS_CATCH("");
-    }
 
     // ==============================================================================
     // General optimization operations
@@ -859,13 +499,13 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "VertexMorphingUtilities";
+        return "OptimizationUtilities";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "VertexMorphingUtilities";
+        rOStream << "OptimizationUtilities";
     }
 
     /// Print object's data.
@@ -931,20 +571,8 @@ private:
     // Initialized by class constructor
     // ==============================================================================
     ModelPart& mr_opt_model_part;
-    const int m_domain_size;
     std::map<const char*,unsigned int> py2cpp_F_id;
     std::map<const char*,unsigned int> py2cpp_C_id;
-    const double m_filter_size;
-    const unsigned int m_number_of_design_variables;
-    const int m_max_nodes_affected;
-
-    // ==============================================================================
-    // General working arrays
-    // ==============================================================================
-    std::map<int,PointVector> m_listOf_nodesAffected;
-    std::map<int,unsigned int> m_number_of_nodes_affected;
-    SparseMatrixType m_mapping_matrix;
-
 
     // ==============================================================================
     // For running augmented Lagrange method
@@ -979,15 +607,15 @@ private:
     ///@{
 
     /// Assignment operator.
-//      VertexMorphingUtilities& operator=(VertexMorphingUtilities const& rOther);
+//      OptimizationUtilities& operator=(OptimizationUtilities const& rOther);
 
     /// Copy constructor.
-//      VertexMorphingUtilities(VertexMorphingUtilities const& rOther);
+//      OptimizationUtilities(OptimizationUtilities const& rOther);
 
 
     ///@}
 
-}; // Class VertexMorphingUtilities
+}; // Class OptimizationUtilities
 
 ///@}
 
@@ -1004,4 +632,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // VERTEX_MORPHING_UTILITIES_H
+#endif // OPTIMIZATION_UTILITIES_H
