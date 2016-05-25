@@ -35,8 +35,11 @@ def AddingExtraProcessInfoVariables(pp, fluid_model_part, dem_model_part):
     dem_model_part.ProcessInfo.SetValue(DRAG_LAW_SLOPE, pp.CFD_DEM.drag_law_slope)
     dem_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, pp.CFD_DEM.power_law_tol)
     dem_model_part.ProcessInfo.SetValue(DRAG_POROSITY_CORRECTION_TYPE, pp.CFD_DEM.drag_porosity_correction_type)
-    dem_model_part.ProcessInfo.SetValue(NUMBER_OF_INIT_BASSET_STEPS, pp.CFD_DEM.n_init_basset_steps)
 
+    if pp.CFD_DEM.basset_force_type > 0:
+        dem_model_part.ProcessInfo.SetValue(NUMBER_OF_INIT_BASSET_STEPS, pp.CFD_DEM.n_init_basset_steps)
+        dem_model_part.ProcessInfo.SetValue(DELTA_TIME_QUADRATURE, pp.CFD_DEM.delta_time_quadrature)
+        dem_model_part.ProcessInfo.SetValue(LAST_TIME_APPENDING, 0.0)
 
 # constructing lists of variables to add
 # * Performing modifications to the input parameters for concistency (provisional until interface does it)
