@@ -127,7 +127,10 @@ namespace Kratos
         void ComputeParticleRotationReynoldsNumber(double r_norm_of_slip_rot, double& r_reynolds);
         void ComputeParticleAccelerationNumber(const array_1d<double, 3>& slip_acc, double& acc_number);
         double GetDaitcheCoefficient(int order, unsigned int n, unsigned int j);
+        double GetDaitcheCoefficient(int order, unsigned int n, unsigned int j, const double last_h_over_h);
         void CalculateFractionalDerivative(array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, Vector& historic_integrands);
+        void CalculateFractionalDerivative(array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, Vector& historic_integrands, const double last_h_over_h);
+        void CalculateExplicitFractionalDerivative(array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, Vector& historic_integrands, const double last_h_over_h);
         void MemberDeclarationFirstStep(const ProcessInfo& r_current_process_info);
         void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_current_process_info);
 
@@ -219,7 +222,9 @@ namespace Kratos
       double mNormOfSlipVel;
       double mLastTimeStep;
       double mInitialTime;
+      double mOldDaitchePresentCoefficient;
       array_1d<double, 3> mSlipVel;
+      array_1d<double, 3> mOldBassetTerm;
 
       ///@}
       ///@name Private Operators
