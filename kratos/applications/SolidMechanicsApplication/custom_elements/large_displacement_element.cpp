@@ -700,7 +700,7 @@ void LargeDisplacementElement::CalculateElementalSystem( LocalSystemComponents& 
         }
 	
 	//for debugging purposes
-	//this->PrintElementCalculation(Variables);
+	//this->PrintElementCalculation(rLocalSystem,Variables);
 
     }
 
@@ -768,7 +768,7 @@ void LargeDisplacementElement::CalculateDynamicSystem( LocalSystemComponents& rL
         }
 	
 	//for debugging purposes
-	//this->PrintElementCalculation(Variables);
+	//this->PrintElementCalculation(rLocalSystem,Variables);
 
     }
 
