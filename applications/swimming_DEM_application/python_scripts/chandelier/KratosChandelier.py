@@ -84,6 +84,7 @@ pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 1
 pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
 pp.CFD_DEM.n_init_basset_steps = 100
+pp.CFD_DEM.delta_time_quadrature = 0.01
 #Z
 
 # Import utilities from models
@@ -186,6 +187,8 @@ elif DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method':
     scheme = NewmarkBetaScheme(0.5, 0.25)
 elif DEM_parameters.IntegrationScheme == 'Verlet_Velocity':
     scheme = VerletVelocityScheme()
+elif DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
+    scheme = HybridBashforthScheme()    
 else:
     KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
 
