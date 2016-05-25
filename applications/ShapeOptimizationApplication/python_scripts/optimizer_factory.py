@@ -239,17 +239,20 @@ class VertexMorphingMethod:
             # Project received gradients on unit surface normal at each node to obtain normal gradients
             self.vm_utils.project_grad_on_unit_surface_normal( constraints_given )
 
-            # Compute filtered gradients (do backward mapping)
-            self.vm_utils.filter_gradients( constraints_given )
+            # Compute mapping matrix
+            self.vm_utils.compute_mapping_matrix()
+
+            # Map sensitivities to design space
+            self.vm_utils.map_sensitivities_to_design_space( constraints_given )
 
             # Compute search direction
             self.vm_utils.compute_search_direction_steepest_descent()
 
             # Compute design variable update (do one step in the optimization algorithm)
-            self.vm_utils.update_design_variable( self.config.step_size_0 )
+            self.vm_utils.compute_design_update( self.config.step_size_0 )
 
-            # Compute shape update (do forward mapping)
-            self.vm_utils.update_shape()
+            # Map design update to geometry space
+            self.vm_utils.map_design_update_to_geometry_space()
 
             # Compute and output some measures to track changes in the objective function
             delta_f_absolute = 0.0
@@ -413,17 +416,20 @@ class VertexMorphingMethod:
                 # Project received gradients on unit surface normal at each node to obtain normal gradients
                 dJdX_n = self.vm_utils.project_grad_on_unit_surface_normal( constraints_given )
 
-                # Compute filtered gradients (do backward mapping)
-                self.vm_utils.filter_gradients( constraints_given )
+                # Compute mapping matrix
+                self.vm_utils.compute_mapping_matrix()
+
+                # Map sensitivities to design space
+                self.vm_utils.map_sensitivities_to_design_space( constraints_given )
 
                 # Compute search direction
                 self.vm_utils.compute_search_direction_augmented_lagrange( self.constraints, response )
 
                 # Compute design variable update (do one step in the optimization algorithm)
-                self.vm_utils.update_design_variable( self.config.step_size_0 )
-
-                # Compute shape update (do forward mapping)
-                self.vm_utils.update_shape()
+                self.vm_utils.compute_design_update( self.config.step_size_0 )
+    
+                # Map design update to geometry space
+                self.vm_utils.map_design_update_to_geometry_space()
 
                 # Compute and output some measures to track changes in the objective function
                 delta_f_absolute = 0.0
@@ -530,7 +536,7 @@ class VertexMorphingMethod:
             row.append("\tf")
             row.append("\tdf_absolute[%]")
             row.append("\tdf_relative[%]")
-            row.append("\tC["+str(only_C_id)+"]: "+str(self.constraints[only_C_id]["type"])+"\t")           
+            row.append("\tc["+str(only_C_id)+"]: "+str(self.constraints[only_C_id]["type"])+"\t")           
             historyWriter.writerow(row)    
         
         # Define initial design (initial design corresponds to a zero shape update)
@@ -597,8 +603,11 @@ class VertexMorphingMethod:
             # Project received gradients on unit surface normal at each node to obtain normal gradients
             self.vm_utils.project_grad_on_unit_surface_normal( constraints_given )
 
-            # Compute filtered gradients (do backward mapping)
-            self.vm_utils.filter_gradients( constraints_given )
+            # Compute mapping matrix
+            self.vm_utils.compute_mapping_matrix()
+
+            # Map sensitivities to design space
+            self.vm_utils.map_sensitivities_to_design_space( constraints_given )
 
             # Compute search direction
             if(constraints_given):
@@ -607,10 +616,10 @@ class VertexMorphingMethod:
                 self.vm_utils.compute_search_direction_steepest_descent()
 
             # Compute design variable update (do one step in the optimization algorithm)
-            self.vm_utils.update_design_variable( self.config.step_size_0 )
+            self.vm_utils.compute_design_update( self.config.step_size_0 )
 
-            # Compute shape update (do forward mapping)
-            self.vm_utils.update_shape()
+            # Map design update to geometry space
+            self.vm_utils.map_design_update_to_geometry_space()
 
             # Compute and output some measures to track changes in the objective function
             delta_f_absolute = 0.0
@@ -621,7 +630,7 @@ class VertexMorphingMethod:
                 delta_f_relative = 100*(response[only_F_id]["func"]-previous_f)/initial_f
                 print("\n> Absolut change of objective function = ",round(delta_f_absolute,6)," [%]")
                 print("\n> Relative change of objective function = ",round(delta_f_relative,6)," [%]")           
-                print("\n> Current value of constraint function = ",round(response[only_C_id]["func"],12))
+                print("\n> Current value of constraint function = ",round(response[only_C_id]["func"]/self.config.constraint_scaling,12))
 
             # Write design history to file
             with open(self.config.design_history_file, 'a') as csvfile:

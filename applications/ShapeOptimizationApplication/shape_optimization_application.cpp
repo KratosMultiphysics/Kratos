@@ -88,6 +88,8 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE(double,IS_ON_BOUNDARY);
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(BOUNDARY_PLANE);
 
+    // To create and process mapping matrix
+    KRATOS_CREATE_VARIABLE(int,MAPPING_MATRIX_ID);
 
     // Eof variables
 
@@ -121,6 +123,9 @@ namespace Kratos
         // For boundary treatment
         KRATOS_REGISTER_VARIABLE(IS_ON_BOUNDARY);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(BOUNDARY_PLANE);
+
+        // To create and process mapping matrix
+        KRATOS_REGISTER_VARIABLE(MAPPING_MATRIX_ID);
 
         // Register conditions
         KRATOS_REGISTER_CONDITION( "ShapeOptimizationCondition3D3N", mShapeOptimizationCondition3D3N );

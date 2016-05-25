@@ -95,6 +95,9 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE(double,IS_ON_BOUNDARY);
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(BOUNDARY_PLANE);
 
+    // To create and process mapping matrix
+    KRATOS_DEFINE_VARIABLE(int,MAPPING_MATRIX_ID);
+
 
 	///@} 
 	///@name Type Definitions
