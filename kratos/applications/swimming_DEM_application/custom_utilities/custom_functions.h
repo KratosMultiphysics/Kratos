@@ -181,6 +181,8 @@ void FillDaitcheVectors(int N, int order)
 
 void AppendIntegrands(ModelPart& r_model_part)
 {
+    r_model_part.GetProcessInfo()[LAST_TIME_APPENDING] = r_model_part.GetProcessInfo()[TIME];
+
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
         vector<double>& historic_integrands             = inode->GetValue(BASSET_HISTORIC_INTEGRANDS);
         const array_1d<double, 3>& fluid_vel_projected  = inode->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
@@ -201,6 +203,8 @@ void AppendIntegrands(ModelPart& r_model_part)
 
 void AppendIntegrandsImplicit(ModelPart& r_model_part)
 {
+    r_model_part.GetProcessInfo()[LAST_TIME_APPENDING] = r_model_part.GetProcessInfo()[TIME];
+
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
         vector<double>& historic_integrands             = inode->GetValue(BASSET_HISTORIC_INTEGRANDS);
         const array_1d<double, 3>& fluid_vel_projected  = inode->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
