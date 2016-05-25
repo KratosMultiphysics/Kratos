@@ -85,8 +85,12 @@ class VertexMorphingMethod:
         opt_model_part.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
         opt_model_part.AddNodalSolutionStepVariable(OBJECTIVE_SENSITIVITY)
         opt_model_part.AddNodalSolutionStepVariable(OBJECTIVE_SURFACE_SENSITIVITY)
+        opt_model_part.AddNodalSolutionStepVariable(MAPPED_OBJECTIVE_SENSITIVITY)
         opt_model_part.AddNodalSolutionStepVariable(CONSTRAINT_SENSITIVITY) 
         opt_model_part.AddNodalSolutionStepVariable(CONSTRAINT_SURFACE_SENSITIVITY)
+        opt_model_part.AddNodalSolutionStepVariable(MAPPED_CONSTRAINT_SENSITIVITY) 
+        opt_model_part.AddNodalSolutionStepVariable(DESIGN_UPDATE) 
+        opt_model_part.AddNodalSolutionStepVariable(SEARCH_DIRECTION) 
         opt_model_part.AddNodalSolutionStepVariable(SHAPE_UPDATE) 
         opt_model_part.AddNodalSolutionStepVariable(SHAPE_CHANGE_ABSOLUTE)
         opt_model_part.AddNodalSolutionStepVariable(IS_ON_BOUNDARY)
@@ -640,7 +644,7 @@ class VertexMorphingMethod:
                 row.append("\t"+str("%.12f"%(response[only_F_id]["func"]))+"\t")
                 row.append("\t"+str("%.2f"%(delta_f_absolute))+"\t")
                 row.append("\t"+str("%.6f"%(delta_f_relative))+"\t")
-                row.append("\t"+str("%.12f"%(response[only_C_id]["func"]))+"\t")
+                row.append("\t"+str("%.12f"%(response[only_C_id]["func"]/self.config.constraint_scaling))+"\t")
                 historyWriter.writerow(row)
 
             # Write design in GID format
