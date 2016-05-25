@@ -137,9 +137,10 @@ gid_output.ExecuteInitialize()
 
 # restart write included in gid IO ??
 
-#### output settings start ####
+#### output settings end ####
 
-
+print(" ")
+print("::[KSM Simulation]:: Analysis -START- ")
 
 ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
 solver.Initialize()
