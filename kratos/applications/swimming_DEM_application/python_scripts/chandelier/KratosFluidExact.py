@@ -87,6 +87,8 @@ pp.CFD_DEM.basset_force_type = 1
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
 pp.CFD_DEM.basset_force_integration_type = 1
 pp.CFD_DEM.n_init_basset_steps = 4
+pp.CFD_DEM.delta_time_quadrature = 0.005
+quadrature_order = 2
 #Z
 
 # Import utilities from models
@@ -330,6 +332,7 @@ fluid_solver = solver_module.CreateSolver(
     fluid_model_part, SolverSettings)
 
 Dt_DEM = DEM_parameters.MaxTimeStep
+Dt_quadrature = pp.CFD_DEM.delta_time_quadrature
 
 # activate turbulence model
 if(pp.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmaras"):
@@ -572,6 +575,7 @@ stationarity_counter         = swim_proc.Counter(DEM_parameters.time_steps_per_s
 print_counter                = swim_proc.Counter(1, 1, out >= output_time)
 debug_info_counter           = swim_proc.Counter(DEM_parameters.debug_tool_cycle, 1, DEM_parameters.print_debug_info_option)
 particles_results_counter    = swim_proc.Counter(DEM_parameters.print_particles_results_cycle , 1, DEM_parameters.print_particles_results_option)
+quadrature_counter           = swim_proc.Counter(max(int(Dt_quadrature / Dt_DEM), 1) , 1)
 #G
 
 ##############################################################################
@@ -649,7 +653,7 @@ results_creator = swim_proc.ResultsFileCreator(spheres_model_part, node_to_follo
 # NODE HISTORY RESULTS END 
 # CHANDELLIER END
 N_steps = int(final_time / Dt_DEM) + 20
-custom_functions_tool.FillDaitcheVectors(N_steps, 2)
+custom_functions_tool.FillDaitcheVectors(N_steps, quadrature_order)
 node.SetSolutionStepValue(VELOCITY_Y, 0.2)
 node.SetSolutionStepValue(VELOCITY_Z, 2. / 9 * 9.8 * ch_pp.a ** 2 / (ch_pp.nu * ch_pp.rho_f) * (ch_pp.rho_f - ch_pp.rho_p))
 node.Fix(VELOCITY_Z)
@@ -792,7 +796,8 @@ while (time <= final_time):
                     vp_z = node.GetSolutionStepValue(VELOCITY_Z) 
                     integrands.append([vx - vp_x, vy - vp_y, 0.])                                                                          
                     #print("\nintegrands",integrands)
-                    custom_functions_tool.AppendIntegrandsImplicit(spheres_model_part)       
+                    if quadrature_counter.Tick():
+                        custom_functions_tool.AppendIntegrandsImplicit(spheres_model_part)       
 
                     H_old[:] = H[:]
                     if len(times) < 10:                        
