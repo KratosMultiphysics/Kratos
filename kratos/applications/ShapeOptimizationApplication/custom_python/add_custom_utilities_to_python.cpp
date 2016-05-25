@@ -59,7 +59,9 @@
 #include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_utilities/vertex_morphing_utilities.h"
+#include "custom_utilities/optimization_utilities.h"
+#include "custom_utilities/geometry_utilities.h"
+#include "custom_utilities/vertex_morphing_mapper.h"
 
 // ==============================================================================
 
@@ -74,53 +76,54 @@ void  AddCustomUtilitiesToPython()
 {
     using namespace boost::python;
 
+    // ================================================================
+    // For perfoming the mapping according to Vertex Morphing
+    // ================================================================
+    class_<VertexMorphingMapper, bases<Process> >("VertexMorphingMapper", init<ModelPart&, std::string, double, const int>())
+
+            .def("compute_mapping_matrix", &VertexMorphingMapper::compute_mapping_matrix)
+            .def("map_sensitivities_to_design_space", &VertexMorphingMapper::map_sensitivities_to_design_space)
+            .def("map_design_update_to_geometry_space", &VertexMorphingMapper::map_design_update_to_geometry_space)
+            ;
+
     // ========================================================================
-    // Optimization based on Vertex Morphing
+    // For performing individual steps of an optimization algorithm
     // ========================================================================
-    class_<VertexMorphingUtilities, bases<Process> >("VertexMorphingUtilities", init<ModelPart&,
-                                                     const int,
-                                                     boost::python::dict,
-                                                     boost::python::dict,
-                                                     double,
-                                                     const int>())
+    class_<OptimizationUtilities, bases<Process> >("OptimizationUtilities", init<ModelPart&, boost::python::dict, boost::python::dict>())
 
-            // ================================================================
-            // General geometrical operations
-            // ================================================================
-            .def("compute_unit_surface_normals", &VertexMorphingUtilities::compute_unit_surface_normals)
-            .def("project_grad_on_unit_surface_normal", &VertexMorphingUtilities::project_grad_on_unit_surface_normal)
-
-            // ================================================================
-            // For perfoming Vertex Morphing
-            // ================================================================
-            .def("compute_mapping_matrix", &VertexMorphingUtilities::compute_mapping_matrix)
-            .def("map_sensitivities_to_design_space", &VertexMorphingUtilities::map_sensitivities_to_design_space)
-            .def("map_design_update_to_geometry_space", &VertexMorphingUtilities::map_design_update_to_geometry_space)
-
-            // ================================================================
-            // General optimization operations
-            // ================================================================
-            .def("compute_design_update", &VertexMorphingUtilities::compute_design_update)
-
-            // ================================================================
+            // ----------------------------------------------------------------
             // For running unconstrained descent methods
-            // ================================================================
-            .def("compute_search_direction_steepest_descent", &VertexMorphingUtilities::compute_search_direction_steepest_descent)
+            // ----------------------------------------------------------------
+            .def("compute_search_direction_steepest_descent", &OptimizationUtilities::compute_search_direction_steepest_descent)
 
-            // ================================================================
+            // ----------------------------------------------------------------
             // For running augmented Lagrange method
-            // ================================================================
-            .def("initialize_augmented_lagrange", &VertexMorphingUtilities::initialize_augmented_lagrange)
-            .def("compute_search_direction_augmented_lagrange", &VertexMorphingUtilities::compute_search_direction_augmented_lagrange)
-            .def("udpate_augmented_lagrange_parameters", &VertexMorphingUtilities::udpate_augmented_lagrange_parameters)
-            .def("get_penalty_fac", &VertexMorphingUtilities::get_penalty_fac)
-            .def("get_lambda", &VertexMorphingUtilities::get_lambda)
-            .def("get_value_of_augmented_lagrangian", &VertexMorphingUtilities::get_value_of_augmented_lagrangian)
+            // ----------------------------------------------------------------
+            .def("initialize_augmented_lagrange", &OptimizationUtilities::initialize_augmented_lagrange)
+            .def("compute_search_direction_augmented_lagrange", &OptimizationUtilities::compute_search_direction_augmented_lagrange)
+            .def("udpate_augmented_lagrange_parameters", &OptimizationUtilities::udpate_augmented_lagrange_parameters)
+            .def("get_penalty_fac", &OptimizationUtilities::get_penalty_fac)
+            .def("get_lambda", &OptimizationUtilities::get_lambda)
+            .def("get_value_of_augmented_lagrangian", &OptimizationUtilities::get_value_of_augmented_lagrangian)
 
-            // ================================================================
+            // ----------------------------------------------------------------
             // For running penalized projection method
-            // ================================================================
-            .def("compute_search_direction_penalized_projection", &VertexMorphingUtilities::compute_search_direction_penalized_projection)
+            // ----------------------------------------------------------------
+            .def("compute_search_direction_penalized_projection", &OptimizationUtilities::compute_search_direction_penalized_projection)
+
+            // ----------------------------------------------------------------
+            // General optimization operations
+            // ----------------------------------------------------------------
+            .def("compute_design_update", &OptimizationUtilities::compute_design_update)
+            ;
+
+    // ========================================================================
+    // For pre- and post-processing of geometry data
+    // ========================================================================
+    class_<GeometryUtilities, bases<Process> >("GeometryUtilities", init<ModelPart&, const int>())
+
+            .def("compute_unit_surface_normals", &GeometryUtilities::compute_unit_surface_normals)
+            .def("project_grad_on_unit_surface_normal", &GeometryUtilities::project_grad_on_unit_surface_normal)
             ;
 }
 

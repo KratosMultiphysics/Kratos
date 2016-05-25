@@ -28,14 +28,16 @@ class KratosShapeSettings:
     design_control = "vertex_morphing" 
     # options: "vertex_morphing"
 
+    domain_size = 3
     design_output_mode = "relative"
     # options: "relative"   - X is defined relative to previous design
     #          "total"      - X is defined relative to initial design
     #          "absolute"   - X is defined as absolute values (coordinates)
 
-    # Case: shape_control = "vertex_morphing"
+    # Case: design_control = "vertex_morphing"
     design_surface_name = "path/to/your/mpda/some_mesh_name"
-    domain_size = 3
+    filter_type = "gaussian"
+    # options: "gaussian"
     filter_size = 0.3
 
     # Optimization algorithm -----------------------------------------------------------------------------------------

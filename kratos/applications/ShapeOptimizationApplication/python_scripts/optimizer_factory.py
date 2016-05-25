@@ -130,15 +130,22 @@ class VertexMorphingMethod:
         # Model parameters 
         self.opt_model_part = opt_model_part
 
-        # Add toolbox for vertex morphing    
+        # Create mapper according to map between geometry and design space 
         max_nodes_affected = 10000 # Specification required by spatial (tree) search 
                                    # Defines maximum nodes that may be considered within the filter radius
-        self.vm_utils = VertexMorphingUtilities( self.opt_model_part,
-                                                 self.config.domain_size,
-                                                 self.objectives,
-                                                 self.constraints,
-                                                 config.filter_size,
-                                                 max_nodes_affected)
+        self.mapper = VertexMorphingMapper( self.opt_model_part,
+                                            config.weighting_function,
+                                            config.filter_size,
+                                            max_nodes_affected )
+
+        # Toolbox to perform optimization
+        self.opt_utils = OptimizationUtilities( self.opt_model_part,
+                                                self.objectives,
+                                                self.constraints )
+
+        # Toolbox to pre & post process geometry data
+        self.geom_utils = GeometryUtilities( self.opt_model_part,
+                                             self.config.domain_size )
 
     # --------------------------------------------------------------------------
     def optimize(self):
@@ -238,25 +245,25 @@ class VertexMorphingMethod:
             self.store_grads_on_nodes( response[only_F_id]["grad"] )
 
             # Compute unit surface normals at each node of current design
-            self.vm_utils.compute_unit_surface_normals()
+            self.geom_utils.compute_unit_surface_normals()
 
             # Project received gradients on unit surface normal at each node to obtain normal gradients
-            self.vm_utils.project_grad_on_unit_surface_normal( constraints_given )
+            self.geom_utils.project_grad_on_unit_surface_normal( constraints_given )
 
             # Compute mapping matrix
-            self.vm_utils.compute_mapping_matrix()
+            self.mapper.compute_mapping_matrix()
 
             # Map sensitivities to design space
-            self.vm_utils.map_sensitivities_to_design_space( constraints_given )
+            self.mapper.map_sensitivities_to_design_space( constraints_given )
 
             # Compute search direction
-            self.vm_utils.compute_search_direction_steepest_descent()
+            self.opt_utils.compute_search_direction_steepest_descent()
 
             # Compute design variable update (do one step in the optimization algorithm)
-            self.vm_utils.compute_design_update( self.config.step_size_0 )
+            self.opt_utils.compute_design_update( self.config.step_size_0 )
 
             # Map design update to geometry space
-            self.vm_utils.map_design_update_to_geometry_space()
+            self.mapper.map_design_update_to_geometry_space()
 
             # Compute and output some measures to track changes in the objective function
             delta_f_absolute = 0.0
@@ -409,31 +416,31 @@ class VertexMorphingMethod:
                 self.analyzer( X, self.controller.get_controls(), iterator, response )
 
                 # Evaluate Lagrange function
-                l = self.vm_utils.get_value_of_augmented_lagrangian( only_F_id, self.constraints, response )
+                l = self.opt_utils.get_value_of_augmented_lagrangian( only_F_id, self.constraints, response )
 
                 # Store gradients on the nodes of the model_part
                 self.store_grads_on_nodes( response[only_F_id]["grad"], response[only_C_id]["grad"] )
 
                 # Compute unit surface normals at each node of current design
-                self.vm_utils.compute_unit_surface_normals()
+                self.geom_utils.compute_unit_surface_normals()
 
                 # Project received gradients on unit surface normal at each node to obtain normal gradients
-                dJdX_n = self.vm_utils.project_grad_on_unit_surface_normal( constraints_given )
+                self.geom_utils.project_grad_on_unit_surface_normal( constraints_given )
 
                 # Compute mapping matrix
-                self.vm_utils.compute_mapping_matrix()
+                self.mapper.compute_mapping_matrix()
 
                 # Map sensitivities to design space
-                self.vm_utils.map_sensitivities_to_design_space( constraints_given )
+                self.mapper.map_sensitivities_to_design_space( constraints_given )
 
                 # Compute search direction
-                self.vm_utils.compute_search_direction_augmented_lagrange( self.constraints, response )
+                self.opt_utils.compute_search_direction_augmented_lagrange( self.constraints, response )
 
                 # Compute design variable update (do one step in the optimization algorithm)
-                self.vm_utils.compute_design_update( self.config.step_size_0 )
+                self.opt_utils.compute_design_update( self.config.step_size_0 )
     
                 # Map design update to geometry space
-                self.vm_utils.map_design_update_to_geometry_space()
+                self.mapper.map_design_update_to_geometry_space()
 
                 # Compute and output some measures to track changes in the objective function
                 delta_f_absolute = 0.0
@@ -602,28 +609,28 @@ class VertexMorphingMethod:
             self.store_grads_on_nodes( response[only_F_id]["grad"], response[only_C_id]["grad"] )
 
             # Compute unit surface normals at each node of current design
-            self.vm_utils.compute_unit_surface_normals()
+            self.geom_utils.compute_unit_surface_normals()
 
             # Project received gradients on unit surface normal at each node to obtain normal gradients
-            self.vm_utils.project_grad_on_unit_surface_normal( constraints_given )
+            self.geom_utils.project_grad_on_unit_surface_normal( constraints_given )
 
             # Compute mapping matrix
-            self.vm_utils.compute_mapping_matrix()
+            self.mapper.compute_mapping_matrix()
 
             # Map sensitivities to design space
-            self.vm_utils.map_sensitivities_to_design_space( constraints_given )
+            self.mapper.map_sensitivities_to_design_space( constraints_given )
 
             # Compute search direction
             if(constraints_given):
-                self.vm_utils.compute_search_direction_penalized_projection( response[only_C_id]["func"] )
+                self.opt_utils.compute_search_direction_penalized_projection( response[only_C_id]["func"] )
             else:
-                self.vm_utils.compute_search_direction_steepest_descent()
+                self.opt_utils.compute_search_direction_steepest_descent()
 
             # Compute design variable update (do one step in the optimization algorithm)
-            self.vm_utils.compute_design_update( self.config.step_size_0 )
+            self.opt_utils.compute_design_update( self.config.step_size_0 )
 
             # Map design update to geometry space
-            self.vm_utils.map_design_update_to_geometry_space()
+            self.mapper.map_design_update_to_geometry_space()
 
             # Compute and output some measures to track changes in the objective function
             delta_f_absolute = 0.0
