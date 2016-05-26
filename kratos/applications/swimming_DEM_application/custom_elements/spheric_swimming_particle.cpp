@@ -1,19 +1,13 @@
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: G.Casas $
-//   Date:                $Date: 2006-11-27 16:07:33 $
+//   Last Modified by:    $Author: G.Casas, gcasas@cimne.upc.edu $
+//   Date:                $Date: 2013-11-27 16:07:33 $
 //   Revision:            $Revision: 1.1.1.1 $
 //
 //
-
-
 // System includes
 #include <string>
 #include <iostream>
-
-
-// External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -74,24 +68,14 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
     // The decomposition of forces that is considered here follows Jackson (The Dynamics of Fluidized Particles, 2000);
     // so that the role of f_n1 therein is played by non_contact_force here
     TBaseElement::ComputeAdditionalForces(weight, non_contact_moment, r_current_process_info, gravity); // Could add domething else than weight
-    ComputeBuoyancy(buoyancy, gravity, r_current_process_info);
-    ComputeDragForce(drag_force, r_current_process_info);
-    ComputeVirtualMassForce(added_mass_coefficient, virtual_mass_force, r_current_process_info);
-    ComputeSaffmanLiftForce(saffman_lift_force, r_current_process_info);
-    ComputeMagnusLiftForce(magnus_lift_force, r_current_process_info);
-    ComputeHydrodynamicTorque(non_contact_moment, r_current_process_info);
-    ComputeBrownianMotionForce(brownian_motion_force, r_current_process_info);
-
-    if (r_current_process_info[TIME_STEPS] >= r_current_process_info[NUMBER_OF_INIT_BASSET_STEPS]){
-        ComputeBassetForce(added_mass_coefficient, basset_force, r_current_process_info);
-    }
-
-    else {
-        const double basset_force_coeff = 6.0 * mRadius * mRadius * mFluidDensity * std::sqrt(KRATOS_M_PI * mKinematicViscosity);
-        basset_force = node.FastGetSolutionStepValue(BASSET_FORCE);
-        mOldDaitchePresentCoefficient = 0.0;
-        mOldBassetTerm = r_current_process_info[DELTA_TIME] * basset_force_coeff * basset_force;
-    }
+    ComputeBuoyancy(node, buoyancy, gravity, r_current_process_info);
+    ComputeDragForce(node, drag_force, r_current_process_info);
+    ComputeVirtualMassForce(node, added_mass_coefficient, virtual_mass_force, r_current_process_info);
+    ComputeSaffmanLiftForce(node, saffman_lift_force, r_current_process_info);
+    ComputeMagnusLiftForce(node, magnus_lift_force, r_current_process_info);
+    ComputeHydrodynamicTorque(node, non_contact_moment, r_current_process_info);
+    ComputeBrownianMotionForce(node, brownian_motion_force, r_current_process_info);
+    ComputeBassetForce(node, added_mass_coefficient, basset_force, r_current_process_info);
 
     // Adding all forces except Basset's
     noalias(non_contact_force) += drag_force
@@ -104,8 +88,8 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
 
     double force_reduction_coeff = mRealMass / (mRealMass + added_mass_coefficient);
     array_1d<double, 3> non_contact_force_not_altered = non_contact_force;
-    //ApplyNumericalAveragingWithOldForces(non_contact_force, r_current_process_info);
-    UpdateNodalValues(non_contact_force_not_altered, non_contact_moment, weight, buoyancy, drag_force, virtual_mass_force, basset_force, saffman_lift_force, magnus_lift_force, force_reduction_coeff, r_current_process_info);
+    ApplyNumericalAveragingWithOldForces(node, non_contact_force, r_current_process_info);
+    UpdateNodalValues(node, non_contact_force_not_altered, non_contact_moment, weight, buoyancy, drag_force, virtual_mass_force, basset_force, saffman_lift_force, magnus_lift_force, force_reduction_coeff, r_current_process_info);
     // The basset force has a different temporal treatment, so first we apply the scheme to the rest of the forces
     // And then we add the Basset force (minus the term proportional to the current acceleration, which is treted inplicityly)
     noalias(non_contact_force) += basset_force;
@@ -117,7 +101,8 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
 //**************************************************************************************************************************************************
 // Here nodal values are modified to record DEM forces that we want to print. In Kratos this is an exception since nodal values are meant to be modified only outside the element. Here it was not possible.
 template < class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::UpdateNodalValues(const array_1d<double, 3>& non_contact_force,
+void SphericSwimmingParticle<TBaseElement>::UpdateNodalValues(NodeType& node,
+                                                              const array_1d<double, 3>& non_contact_or_basset_force,
                                                               const array_1d<double, 3>& non_contact_moment,
                                                               const array_1d<double, 3>& weight,
                                                               const array_1d<double, 3>& buoyancy,
@@ -129,8 +114,7 @@ void SphericSwimmingParticle<TBaseElement>::UpdateNodalValues(const array_1d<dou
                                                               const double& force_reduction_coeff,
                                                               const ProcessInfo& r_current_process_info)
 {
-    NodeType& node = GetGeometry()[0];
-    noalias(node.FastGetSolutionStepValue(HYDRODYNAMIC_FORCE))       = force_reduction_coeff * (non_contact_force + basset_force - buoyancy - weight);
+    noalias(node.FastGetSolutionStepValue(HYDRODYNAMIC_FORCE))       = force_reduction_coeff * (non_contact_or_basset_force + basset_force - buoyancy - weight);
     noalias(node.FastGetSolutionStepValue(BUOYANCY))                 = buoyancy;
     array_1d<double, 3>& total_force = node.FastGetSolutionStepValue(TOTAL_FORCES);
     total_force *= force_reduction_coeff;
@@ -147,10 +131,12 @@ void SphericSwimmingParticle<TBaseElement>::UpdateNodalValues(const array_1d<dou
         noalias(node.FastGetSolutionStepValue(VIRTUAL_MASS_FORCE))   = virtual_mass_force;
     }
 
-    if (mHasBassetForceNodalVar & false){
+    if (mHasBassetForceNodalVar){
         noalias(node.FastGetSolutionStepValue(BASSET_FORCE))         = basset_force;
-        noalias(node.FastGetSolutionStepValue(ADDITIONAL_FORCE_OLD)) = non_contact_force;
-        //noalias(node.FastGetSolutionStepValue(VELOCITY_OLD))         = node.FastGetSolutionStepValue(VELOCITY);
+    }
+
+    if (mHasOldAdditionalForceVar){
+        noalias(node.FastGetSolutionStepValue(ADDITIONAL_FORCE_OLD)) = non_contact_or_basset_force;
     }
 
     if (mHasLiftForceNodalVar){
@@ -165,16 +151,16 @@ void SphericSwimmingParticle<TBaseElement>::UpdateNodalValues(const array_1d<dou
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::ApplyNumericalAveragingWithOldForces(array_1d<double, 3>& non_basset_force, const ProcessInfo& r_current_process_info)
+void SphericSwimmingParticle<TBaseElement>::ApplyNumericalAveragingWithOldForces(NodeType& node, array_1d<double, 3>& non_contact_or_basset_force, const ProcessInfo& r_current_process_info)
 {
-    non_basset_force = 0.5 * (3 * non_basset_force - GetGeometry()[0].FastGetSolutionStepValue(ADDITIONAL_FORCE_OLD));
+    non_contact_or_basset_force = 0.5 * (3 * non_contact_or_basset_force - node.FastGetSolutionStepValue(ADDITIONAL_FORCE_OLD));
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::ComputeBuoyancy(array_1d<double, 3>& buoyancy, const array_1d<double, 3>& gravity, const ProcessInfo& r_current_process_info)
+void SphericSwimmingParticle<TBaseElement>::ComputeBuoyancy(NodeType& node, array_1d<double, 3>& buoyancy, const array_1d<double, 3>& gravity, const ProcessInfo& r_current_process_info)
 {
-    if (mBuoyancyForceType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){ // case of identically null buoyancy
+    if (mBuoyancyForceType == 0 || node.IsNot(INSIDE) || node.Is(BLOCKED)){ // case of identically null buoyancy
         noalias(buoyancy) = ZeroVector(3);
         return;
     }
@@ -187,7 +173,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBuoyancy(array_1d<double, 3>&
         }
 
         else {
-            const array_1d<double, 3>& pressure_grad = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE_GRAD_PROJECTED);
+            const array_1d<double, 3>& pressure_grad = node.FastGetSolutionStepValue(PRESSURE_GRAD_PROJECTED);
             noalias(buoyancy) = - volume * pressure_grad;
         }
     }
@@ -195,9 +181,9 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBuoyancy(array_1d<double, 3>&
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::ComputeDragForce(array_1d<double, 3>& drag_force, const ProcessInfo& r_current_process_info)
+void SphericSwimmingParticle<TBaseElement>::ComputeDragForce(NodeType& node, array_1d<double, 3>& drag_force, const ProcessInfo& r_current_process_info)
 {
-    if (mDragForceType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){ // case of identically null drag force
+    if (mDragForceType == 0 || node.IsNot(INSIDE) || node.Is(BLOCKED)){ // case of identically null drag force
         noalias(drag_force) = ZeroVector(3);
         return;
     }
@@ -214,20 +200,20 @@ void SphericSwimmingParticle<TBaseElement>::ComputeDragForce(array_1d<double, 3>
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(double& added_mass_coefficient, array_1d<double, 3>& virtual_mass_force, const ProcessInfo& r_current_process_info)
+void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(NodeType& node, double& added_mass_coefficient, array_1d<double, 3>& virtual_mass_force, const ProcessInfo& r_current_process_info)
 {
-    if (mVirtualMassForceType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){ // case of identically null virtual mass force
+    if (mVirtualMassForceType == 0 || node.IsNot(INSIDE) || node.Is(BLOCKED)){ // case of identically null virtual mass force
         noalias(virtual_mass_force) = ZeroVector(3);
         return;
     }
 
     else {
         const double volume                     = CalculateVolume();
-        const array_1d<double, 3>& fluid_acc    = GetGeometry()[0].FastGetSolutionStepValue(FLUID_ACCEL_PROJECTED);
-        const array_1d<double, 3>& particle_acc = 1 / GetMass() * GetForce();
+        const array_1d<double, 3>& fluid_acc    = node.FastGetSolutionStepValue(FLUID_ACCEL_PROJECTED);
         array_1d<double, 3> slip_acc;
 
     if (mFluidModelType == 0){ // fluid velocity is modified as a post-process
+        const array_1d<double, 3>& particle_acc = 1 / GetMass() * GetForce();
         noalias(slip_acc) = fluid_acc / mFluidFraction - particle_acc;
     }
 
@@ -238,7 +224,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(double& adde
         added_mass_coefficient += 0.5 * mFluidDensity * volume;
 
         if (mDragForceType == 11) {
-            const array_1d<double, 3>& fluid_vel_laplacian_rate = GetGeometry()[0].FastGetSolutionStepValue(FLUID_VEL_LAPL_RATE_PROJECTED);
+            const array_1d<double, 3>& fluid_vel_laplacian_rate = node.FastGetSolutionStepValue(FLUID_VEL_LAPL_RATE_PROJECTED);
             noalias(slip_acc) -= 0.1 * mRadius * mRadius * fluid_vel_laplacian_rate; // add Faxen term
         }
     }
@@ -432,181 +418,38 @@ double SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(int order, u
 template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(int order, unsigned int n, unsigned int j, const double last_h_over_h)
 {
+    double result = GetDaitcheCoefficient(order, n, j);
+
     if (order == 1){
-        if (j < n){
-            return SphericSwimmingParticle<TBaseElement>::mAjs[j];
-        }
-        else {
-            return SphericSwimmingParticle<TBaseElement>::mBns[n];
-        }
+        return result;
     }
 
     else if (order == 2){
-        double sqrt_alpha = sqrt(last_h_over_h);
-        double sqrt_alpha_cubed = SWIMMING_POW_3(sqrt_alpha);
-        double sqrt_alpha_5 = SWIMMING_POW_5(sqrt_alpha);
-        long double sqrt_2_over_15 = std::sqrt(static_cast<long double>(2)) / 15;
-
-        if (n > 3){
-            if (j < n - 1){
-                if (j == n - 2){
-                    return mAjs[j] + sqrt_2_over_15 * (2 * sqrt_alpha_5 / (last_h_over_h + 1) - 1.0);
-                }
-                return SphericSwimmingParticle<TBaseElement>::mAjs[j];
-            }
-            else if (j == n - 1){
-                return SphericSwimmingParticle<TBaseElement>::mBns[n] + sqrt_2_over_15 * (2 * sqrt_alpha_cubed + 5 * sqrt_alpha - 7);
-            }
-            else {
-                return SphericSwimmingParticle<TBaseElement>::mCns[n] + sqrt_2_over_15 * ((8 * last_h_over_h + 10) * sqrt_alpha / (last_h_over_h + 1) - 9);
-            }
+        if (j < n - 1){
+            return result;
         }
         else {
-            if (n == 2){
-                if (j == 0){
-                    return 12 * sqrt_2_over_15;
-                }
-                else if (j == 1){
-                    return 16 * sqrt_2_over_15;
-                }
-                else {
-                    return 2 * sqrt_2_over_15;
-                }
+            double sqrt_alpha = sqrt(last_h_over_h);
+            double sqrt_alpha_cubed = SWIMMING_POW_3(sqrt_alpha);
+            long double sqrt_2_over_15 = std::sqrt(static_cast<long double>(2)) / 15;
+            if (j == n - 1){
+                return result + sqrt_2_over_15 * (2 * sqrt_alpha_cubed + 5 * sqrt_alpha - 7);
             }
             else {
-                long double sqrt_2_over_5 = std::sqrt(static_cast<long double>(2)) / 5;
-                long double sqrt_3_over_5 = std::sqrt(static_cast<long double>(3)) / 5;
-
-                if (j == 0){
-                    return 4 * sqrt_2_over_5;
-                }
-                else if (j == 1){
-                    return 14 * sqrt_3_over_5 - 12 * sqrt_2_over_5;
-                }
-                else if (j == 2){
-                    return - 8 * sqrt_3_over_5 + 12 * sqrt_2_over_5;
-                }
-                else {
-                    return 4 * sqrt_3_over_5 - 4 * sqrt_2_over_5;
-                }
+                return result + sqrt_2_over_15 * ((8 * last_h_over_h + 10) * sqrt_alpha / (last_h_over_h + 1) - 9);
             }
         }
     }
 
     else {
-        if (n > 6){
-            if (j < n - 3){
-                return SphericSwimmingParticle<TBaseElement>::mAjs[j];
-            }
-            else if (j == n - 3){
-                return SphericSwimmingParticle<TBaseElement>::mBns[n];
-            }
-            else if (j == n - 2){
-                return SphericSwimmingParticle<TBaseElement>::mCns[n];
-            }
-            else if (j == n - 1){
-                return SphericSwimmingParticle<TBaseElement>::mDns[n];
-            }
-            else {
-                return SphericSwimmingParticle<TBaseElement>::mEns[n];
-            }
-        }
-        else {
-            if (n == 3){
-                long double sqrt_3_over_105 = std::sqrt(static_cast<long double>(3)) / 105;
-                if (j == 0){
-                    return 68 * sqrt_3_over_105;
-                }
-                else if (j == 1){
-                    return 90 * sqrt_3_over_105;
-                }
-                else if (j == 2){
-                    return 36 * sqrt_3_over_105;
-                }
-                else {
-                    return 16 * sqrt_3_over_105;
-                }
-            }
-            else if (n == 4){
-                long double sqrt_2_over_315 = std::sqrt(static_cast<long double>(2)) / 315;
-                long double OneOver315 = 1.0 / 315;
-
-                if (j == 0){
-                    return 244 * sqrt_2_over_315;
-                }
-                else if (j == 1){
-                    return 1888 * OneOver315 - 976 * sqrt_2_over_315;
-                }
-                else if (j == 2){
-                    return - 656 * OneOver315 + 1464 * sqrt_2_over_315;
-                }
-                else if (j == 3){
-                    return 1632 - 976 * OneOver315;
-                }
-                else {
-                    return - 292 * OneOver315 + 244 * sqrt_2_over_315;
-                }
-            }
-            else if (n == 5){
-                long double sqrt_2_over_315 = std::sqrt(static_cast<long double>(2)) / 315;
-                long double sqrt_3_over_105 = std::sqrt(static_cast<long double>(3)) / 105;
-                long double sqrt_5_over_63  = std::sqrt(static_cast<long double>(5)) / 63;
-
-                if (j == 0){
-                    return 244 * sqrt_2_over_315;
-                }
-                else if (j == 1){
-                    return 362 * sqrt_3_over_105 - 976 * sqrt_2_over_315;
-                }
-                else if (j == 2){
-                    return 500 * sqrt_5_over_63 - 1448 * sqrt_3_over_105 + 1464 * sqrt_2_over_315;
-                }
-                else if (j == 3){
-                    return - 870 * sqrt_5_over_63 + 2172 * sqrt_3_over_105 - 976 * sqrt_2_over_315;
-                }
-                else if (j == 4){
-                    return 660 * sqrt_5_over_63 - 1448 * sqrt_3_over_105 + 244 * sqrt_2_over_315;
-                }
-                else {
-                    return - 164 * sqrt_5_over_63 + 362 * sqrt_3_over_105;
-                }
-            }
-            else {
-                long double sqrt_2_over_315 = std::sqrt(static_cast<long double>(2)) / 315;
-                long double sqrt_3_over_105 = std::sqrt(static_cast<long double>(3)) / 105;
-                long double sqrt_6_over_105 = std::sqrt(static_cast<long double>(6)) / 105;
-                long double OneOver315 = 1.0 / 315;
-
-                if (j == 0){
-                    return 244 * sqrt_2_over_315;
-                }
-                else if (j == 1){
-                    return 362 * sqrt_3_over_105 - 976 * sqrt_2_over_315;
-                }
-                else if (j == 2){
-                    return 5584 * OneOver315 - 1448 * sqrt_3_over_105 + 1464 * sqrt_2_over_315;
-                }
-                else if (j == 3){
-                    return 1720 * sqrt_6_over_105 - 22336 * OneOver315 + 2172 * sqrt_3_over_105 - 976 * sqrt_2_over_315;
-                }
-                else if (j == 4){
-                    return - 3564 * sqrt_6_over_105 + 33504 * OneOver315 - 1448 * sqrt_3_over_105 + 244 * sqrt_2_over_315;
-                }
-                else if (j == 5){
-                    return 2808 * sqrt_6_over_105 - 22336 * OneOver315 + 362 * sqrt_3_over_105;
-                }
-                else {
-                    return - 754 * sqrt_6_over_105 + 5584 * OneOver315;
-                }
-            }
-        }
+        return result;
     }
     return 0.0;
 }
 //***************************************************************************************************************************************************
 //***************************************************************************************************************************************************
 template < class TBaseElement >\
-void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivative(array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, vector<double>& historic_integrands)
+void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, vector<double>& historic_integrands)
 {
     fractional_derivative = ZeroVector(3);
     const int N = historic_integrands.size() - 9;
@@ -623,7 +466,7 @@ void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivative(array
         }
         fractional_derivative += (coefficient - old_coefficient) * integrand;
     }
-    const array_1d<double, 3>& fluid_vel = GetGeometry()[0].FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
+    const array_1d<double, 3>& fluid_vel = node.FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
     for (int i_comp = 0; i_comp < 3; i_comp++){
         integrand[i_comp] = historic_integrands[N + 3 + i_comp];
     }
@@ -633,7 +476,7 @@ void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivative(array
 //***************************************************************************************************************************************************
 //***************************************************************************************************************************************************
 template < class TBaseElement >\
-void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivative(array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, vector<double>& historic_integrands, const double last_h_over_h)
+void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, vector<double>& historic_integrands, const double last_h_over_h)
 {
     fractional_derivative = ZeroVector(3);
     const int N = historic_integrands.size() - 9;
@@ -650,7 +493,7 @@ void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivative(array
         }
         fractional_derivative += (coefficient - old_coefficient) * integrand;
     }
-    const array_1d<double, 3>& fluid_vel = GetGeometry()[0].FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
+    const array_1d<double, 3>& fluid_vel = node.FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
     for (int i_comp = 0; i_comp < 3; i_comp++){
         integrand[i_comp] = historic_integrands[N + 3 + i_comp];
     }
@@ -660,7 +503,7 @@ void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivative(array
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >\
-void SphericSwimmingParticle<TBaseElement>:: CalculateExplicitFractionalDerivative(array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, vector<double>& historic_integrands, const double last_h_over_h)
+void SphericSwimmingParticle<TBaseElement>:: CalculateExplicitFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, vector<double>& historic_integrands, const double last_h_over_h)
 {
     fractional_derivative = ZeroVector(3);
     const int N = historic_integrands.size() - 9;
@@ -676,8 +519,8 @@ void SphericSwimmingParticle<TBaseElement>:: CalculateExplicitFractionalDerivati
         }
         fractional_derivative += coefficient * integrand;
     }
-    const array_1d<double, 3>& vel = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-    const array_1d<double, 3>& fluid_vel = GetGeometry()[0].FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
+    const array_1d<double, 3>& vel = node.FastGetSolutionStepValue(VELOCITY);
+    const array_1d<double, 3>& fluid_vel = node.FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
 
     present_coefficient = GetDaitcheCoefficient(order, n + 1, 0, last_h_over_h);
     fractional_derivative += present_coefficient * (fluid_vel - vel);
@@ -685,57 +528,66 @@ void SphericSwimmingParticle<TBaseElement>:: CalculateExplicitFractionalDerivati
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(double &added_mass_coefficient, array_1d<double, 3>& basset_force, const ProcessInfo& r_current_process_info)
+void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(NodeType& node, double &added_mass_coefficient, array_1d<double, 3>& basset_force, const ProcessInfo& r_current_process_info)
 {
-    if (mBassetForceType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){ // case of identically null virtual mass force
+    if (mBassetForceType == 0 || node.IsNot(INSIDE) || node.Is(BLOCKED)){ // case of identically null virtual mass force
         noalias(basset_force) = ZeroVector(3);
         return;
     }
 
     else {
-        vector<double>& historic_integrands = GetGeometry()[0].GetValue(BASSET_HISTORIC_INTEGRANDS);
-        double delta_time = r_current_process_info[DELTA_TIME];
-        double quadrature_delta_time = r_current_process_info[DELTA_TIME_QUADRATURE];
-        double current_delta_time = r_current_process_info[TIME] - r_current_process_info[LAST_TIME_APPENDING];
-        array_1d<double, 3> fractional_derivative_of_slip_vel;
-        double present_coefficient;
         const double basset_force_coeff = 6.0 * mRadius * mRadius * mFluidDensity * std::sqrt(KRATOS_M_PI * mKinematicViscosity);
-        const double sqrt_of_quad_h_q = std::sqrt(quadrature_delta_time);
-//        const double sqrt_of_current_h = std::sqrt(current_delta_time);
-        const double last_h_over_h = current_delta_time / quadrature_delta_time;
 
-        if (fabs(quadrature_delta_time - delta_time) < delta_time){ // they are equal
-            CalculateFractionalDerivative(fractional_derivative_of_slip_vel, present_coefficient, quadrature_delta_time, historic_integrands);
+        if (r_current_process_info[TIME_STEPS] >= r_current_process_info[NUMBER_OF_INIT_BASSET_STEPS]){
+            vector<double>& historic_integrands = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
+            double delta_time = r_current_process_info[DELTA_TIME];
+            double quadrature_delta_time = r_current_process_info[DELTA_TIME_QUADRATURE];
+            double current_delta_time = r_current_process_info[TIME] - r_current_process_info[LAST_TIME_APPENDING];
+            array_1d<double, 3> fractional_derivative_of_slip_vel;
+            double present_coefficient;
+            const double sqrt_of_quad_h_q = std::sqrt(quadrature_delta_time);
+    //        const double sqrt_of_current_h = std::sqrt(current_delta_time);
+            const double last_h_over_h = current_delta_time / quadrature_delta_time;
+
+            if (fabs(quadrature_delta_time - delta_time) < delta_time){ // they are equal
+                CalculateFractionalDerivative(node, fractional_derivative_of_slip_vel, present_coefficient, quadrature_delta_time, historic_integrands);
+            }
+            else {
+                CalculateExplicitFractionalDerivative(node, fractional_derivative_of_slip_vel, present_coefficient, quadrature_delta_time, historic_integrands, last_h_over_h);
+                array_1d<double, 3> basset_term = fractional_derivative_of_slip_vel;
+                const array_1d<double, 3>& vel     = node.FastGetSolutionStepValue(VELOCITY);
+                const array_1d<double, 3>& old_vel = node.FastGetSolutionStepValue(VELOCITY_OLD);
+                fractional_derivative_of_slip_vel -= mOldBassetTerm + mOldDaitchePresentCoefficient * (old_vel - vel); // the second term is the part that was treated implicitly in the last step
+                mOldBassetTerm = basset_term;
+                mOldDaitchePresentCoefficient = present_coefficient;
+            }
+
+            added_mass_coefficient += basset_force_coeff * sqrt_of_quad_h_q * present_coefficient;
+            noalias(basset_force) = basset_force_coeff * sqrt_of_quad_h_q / delta_time * fractional_derivative_of_slip_vel;
         }
+
         else {
-            CalculateExplicitFractionalDerivative(fractional_derivative_of_slip_vel, present_coefficient, quadrature_delta_time, historic_integrands, last_h_over_h);
-            array_1d<double, 3> basset_term = fractional_derivative_of_slip_vel;
-            const array_1d<double, 3>& vel     = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-            const array_1d<double, 3>& old_vel = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_OLD);
-            fractional_derivative_of_slip_vel -= mOldBassetTerm + mOldDaitchePresentCoefficient * (old_vel - vel); // the second term is the part that was treated implicitly in the last step
-            mOldBassetTerm = basset_term;
-            mOldDaitchePresentCoefficient = present_coefficient;
+            basset_force = node.FastGetSolutionStepValue(BASSET_FORCE);
+            mOldDaitchePresentCoefficient = 0.0;
+            mOldBassetTerm = r_current_process_info[DELTA_TIME] * basset_force_coeff * basset_force;
         }
-
-        added_mass_coefficient += basset_force_coeff * sqrt_of_quad_h_q * present_coefficient;
-        noalias(basset_force) = basset_force_coeff * sqrt_of_quad_h_q / delta_time * fractional_derivative_of_slip_vel;
     }
 }
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::ComputeSaffmanLiftForce(array_1d<double, 3>& lift_force, const ProcessInfo& r_current_process_info)
+void SphericSwimmingParticle<TBaseElement>::ComputeSaffmanLiftForce(NodeType& node, array_1d<double, 3>& lift_force, const ProcessInfo& r_current_process_info)
 {
-    if (mSaffmanForceType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){ // case of identically null lift force
+    if (mSaffmanForceType == 0 || node.IsNot(INSIDE) || node.Is(BLOCKED)){ // case of identically null lift force
         noalias(lift_force) = ZeroVector(3);
 
         return;
     }
 
     else if (mSaffmanForceType >= 1){
-        const double& shear_rate                       = GetGeometry()[0].FastGetSolutionStepValue(SHEAR_RATE_PROJECTED);
-        const array_1d<double, 3>& vorticity           = GetGeometry()[0].FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED);
+        const double& shear_rate                       = node.FastGetSolutionStepValue(SHEAR_RATE_PROJECTED);
+        const array_1d<double, 3>& vorticity           = node.FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED);
         array_1d<double, 3> vort_cross_slip_vel;
         SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(mSlipVel, vorticity, vort_cross_slip_vel)
         const double vorticity_norm                    = SWIMMING_MODULUS_3(vorticity);
@@ -767,14 +619,14 @@ void SphericSwimmingParticle<TBaseElement>::ComputeSaffmanLiftForce(array_1d<dou
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::ComputeMagnusLiftForce(array_1d<double, 3>& lift_force, const ProcessInfo& r_current_process_info)
+void SphericSwimmingParticle<TBaseElement>::ComputeMagnusLiftForce(NodeType& node, array_1d<double, 3>& lift_force, const ProcessInfo& r_current_process_info)
 {
-    if (mMagnusForceType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){
+    if (mMagnusForceType == 0 || node.IsNot(INSIDE) || node.Is(BLOCKED)){
         noalias(lift_force) = ZeroVector(3);
         return;
     }
 
-    const array_1d<double, 3> slip_rot = 0.5 * GetGeometry()[0].FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED) - GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+    const array_1d<double, 3> slip_rot = 0.5 * node.FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED) - node.FastGetSolutionStepValue(ANGULAR_VELOCITY);
     array_1d<double, 3> slip_rot_cross_slip_vel;
     SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(slip_rot, mSlipVel, slip_rot_cross_slip_vel)
 
@@ -808,15 +660,15 @@ void SphericSwimmingParticle<TBaseElement>::ComputeMagnusLiftForce(array_1d<doub
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::ComputeHydrodynamicTorque(array_1d<double, 3>& hydro_torque, const ProcessInfo& r_current_process_info)
+void SphericSwimmingParticle<TBaseElement>::ComputeHydrodynamicTorque(NodeType& node, array_1d<double, 3>& hydro_torque, const ProcessInfo& r_current_process_info)
 {
-    if (mHydrodynamicTorqueType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){
+    if (mHydrodynamicTorqueType == 0 || node.IsNot(INSIDE) || node.Is(BLOCKED)){
         noalias(hydro_torque) = ZeroVector(3);
         return;
     }
 
     else if (mHydrodynamicTorqueType == 1){
-        const array_1d<double, 3> slip_rot = 0.5 * GetGeometry()[0].FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED) - GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+        const array_1d<double, 3> slip_rot = 0.5 * node.FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED) - node.FastGetSolutionStepValue(ANGULAR_VELOCITY);
         const double norm_of_slip_rot = SWIMMING_MODULUS_3(slip_rot);
         double rot_reynolds;
         ComputeParticleRotationReynoldsNumber(norm_of_slip_rot, rot_reynolds);
@@ -843,9 +695,9 @@ void SphericSwimmingParticle<TBaseElement>::ComputeHydrodynamicTorque(array_1d<d
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::ComputeBrownianMotionForce(array_1d<double, 3>& brownian_motion_force, const ProcessInfo& r_current_process_info)
+void SphericSwimmingParticle<TBaseElement>::ComputeBrownianMotionForce(NodeType& node, array_1d<double, 3>& brownian_motion_force, const ProcessInfo& r_current_process_info)
 {
-    if (mBrownianMotionType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){
+    if (mBrownianMotionType == 0 || node.IsNot(INSIDE) || node.Is(BLOCKED)){
         noalias(brownian_motion_force) = ZeroVector(3);
         return;
     }
@@ -1396,6 +1248,7 @@ void SphericSwimmingParticle<TBaseElement>::Initialize(const ProcessInfo& r_proc
     mHasLiftForceNodalVar        = GetGeometry()[0].SolutionStepsDataHas(LIFT_FORCE);
     mSphericity                  = GetGeometry()[0].SolutionStepsDataHas(PARTICLE_SPHERICITY);
     mHasDragCoefficientVar       = GetGeometry()[0].SolutionStepsDataHas(DRAG_COEFFICIENT);
+    mHasOldAdditionalForceVar    = GetGeometry()[0].SolutionStepsDataHas(ADDITIONAL_FORCE_OLD);
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************

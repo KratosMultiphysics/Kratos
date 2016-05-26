@@ -1,24 +1,16 @@
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: Nelson $
-//   Date:                $Date: 2006-11-27 16:07:33 $
+//   Last Modified by:    $Author: G.Casas, gcasas@cimne.upc.edu $
+//   Date:                $Date: 2013-11-27 16:07:33 $
 //   Revision:            $Revision: 1.1.1.1 $
 //
 //
-
-
 #if !defined(KRATOS_SPHERIC_SWIMMING_PARTICLE_H_INCLUDED)
 #define  KRATOS_SPHERIC_SWIMMING_PARTICLE_H_INCLUDED
-
-
 
 // System includes
 #include <string>
 #include <iostream>
-
-
-// External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -115,22 +107,17 @@ namespace Kratos
 
     protected:
         
-        void ComputeBuoyancy(array_1d<double, 3>& buoyancy, const array_1d<double,3>& gravity, const ProcessInfo& r_current_process_info);
-        void ComputeDragForce(array_1d<double, 3>& drag_force, const ProcessInfo& r_current_process_info);
-        void ComputeVirtualMassForce(double & added_mass_coefficient, array_1d<double, 3>& virtual_mass_force, const ProcessInfo& r_current_process_info);
-        void ComputeBassetForce(double & added_mass_coefficient, array_1d<double, 3>& basset_force, const ProcessInfo& r_current_process_info);
-        void ComputeSaffmanLiftForce(array_1d<double, 3>& lift_force, const ProcessInfo& r_current_process_info);
-        void ComputeMagnusLiftForce(array_1d<double, 3>& lift_force, const ProcessInfo& r_current_process_info);
-        void ComputeHydrodynamicTorque(array_1d<double, 3>& hydro_torque, const ProcessInfo& r_current_process_info);
-        void ComputeBrownianMotionForce(array_1d<double, 3>& brownian_motion_force, const ProcessInfo& r_current_process_info);
+        void ComputeBuoyancy(NodeType& node, array_1d<double, 3>& buoyancy, const array_1d<double,3>& gravity, const ProcessInfo& r_current_process_info);
+        void ComputeDragForce(NodeType& node, array_1d<double, 3>& drag_force, const ProcessInfo& r_current_process_info);
+        void ComputeVirtualMassForce(NodeType& node, double & added_mass_coefficient, array_1d<double, 3>& virtual_mass_force, const ProcessInfo& r_current_process_info);
+        void ComputeBassetForce(NodeType& node, double & added_mass_coefficient, array_1d<double, 3>& basset_force, const ProcessInfo& r_current_process_info);
+        void ComputeSaffmanLiftForce(NodeType& node, array_1d<double, 3>& lift_force, const ProcessInfo& r_current_process_info);
+        void ComputeMagnusLiftForce(NodeType& node, array_1d<double, 3>& lift_force, const ProcessInfo& r_current_process_info);
+        void ComputeHydrodynamicTorque(NodeType& node, array_1d<double, 3>& hydro_torque, const ProcessInfo& r_current_process_info);
+        void ComputeBrownianMotionForce(NodeType& node, array_1d<double, 3>& brownian_motion_force, const ProcessInfo& r_current_process_info);
         void ComputeParticleReynoldsNumber(double& r_reynolds);
         void ComputeParticleRotationReynoldsNumber(double r_norm_of_slip_rot, double& r_reynolds);
         void ComputeParticleAccelerationNumber(const array_1d<double, 3>& slip_acc, double& acc_number);
-        double GetDaitcheCoefficient(int order, unsigned int n, unsigned int j);
-        double GetDaitcheCoefficient(int order, unsigned int n, unsigned int j, const double last_h_over_h);
-        void CalculateFractionalDerivative(array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, Vector& historic_integrands);
-        void CalculateFractionalDerivative(array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, Vector& historic_integrands, const double last_h_over_h);
-        void CalculateExplicitFractionalDerivative(array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, Vector& historic_integrands, const double last_h_over_h);
         void MemberDeclarationFirstStep(const ProcessInfo& r_current_process_info);
         void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_current_process_info);
 
@@ -171,8 +158,8 @@ namespace Kratos
       ///@}
 
     private:
-        void UpdateNodalValues(const array_1d<double, 3>& hydrodynamic_force, const array_1d<double, 3>& hydrodynamic_moment, const array_1d<double, 3>& weight, const array_1d<double, 3>& buoyancy, const array_1d<double, 3>& drag_force, const array_1d<double, 3>& virtual_mass_force, const array_1d<double, 3>& basset_force, const array_1d<double, 3>& saffman_lift_force, const array_1d<double, 3>& magnus_lift_force, const double &force_reduction_coeff, const ProcessInfo& r_current_process_info);
-        void ApplyNumericalAveragingWithOldForces(array_1d<double, 3>& additionally_applied_force, const ProcessInfo& r_current_process_info);
+        void UpdateNodalValues(NodeType& node, const array_1d<double, 3>& hydrodynamic_force, const array_1d<double, 3>& hydrodynamic_moment, const array_1d<double, 3>& weight, const array_1d<double, 3>& buoyancy, const array_1d<double, 3>& drag_force, const array_1d<double, 3>& virtual_mass_force, const array_1d<double, 3>& basset_force, const array_1d<double, 3>& saffman_lift_force, const array_1d<double, 3>& magnus_lift_force, const double &force_reduction_coeff, const ProcessInfo& r_current_process_info);
+        void ApplyNumericalAveragingWithOldForces(NodeType& node, array_1d<double, 3>& additionally_applied_force, const ProcessInfo& r_current_process_info);
         double ComputeDragCoefficient(const ProcessInfo& r_current_process_info);
         double ComputeStokesDragCoefficient();
         double ComputeWeatherfordDragCoefficient(const ProcessInfo& r_current_process_info);
@@ -189,6 +176,11 @@ namespace Kratos
         void ApplyDragPorosityModification(double& drag_coeff);
         double ComputeElSamniLiftCoefficient(const double norm_of_shear_rate, const double vorticity_norm, const ProcessInfo& r_current_process_info);
         double ComputeMeiLiftCoefficient(const double reynolds, const double reynolds_shear);
+        double GetDaitcheCoefficient(int order, unsigned int n, unsigned int j);
+        double GetDaitcheCoefficient(int order, unsigned int n, unsigned int j, const double last_h_over_h);
+        void CalculateFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, Vector& historic_integrands);
+        void CalculateFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, Vector& historic_integrands, const double last_h_over_h);
+        void CalculateExplicitFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, Vector& historic_integrands, const double last_h_over_h);
         void Initialize(const ProcessInfo& r_process_info);
         ///@name Static Member Variables
       ///@{
@@ -204,6 +196,7 @@ namespace Kratos
       bool mHasBassetForceNodalVar;
       bool mHasLiftForceNodalVar;
       bool mHasDragCoefficientVar;
+      bool mHasOldAdditionalForceVar;
       int mCouplingType;
       int mBuoyancyForceType;
       int mDragForceType;
