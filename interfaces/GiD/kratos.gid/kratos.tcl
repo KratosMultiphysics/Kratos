@@ -82,7 +82,7 @@ proc Kratos::InitGIDProject { dir } {
     if { [GidUtils::VersionCmp $kratos_private(MinimumGiDVersion)] < 0 } {
         WarnWin [_ "Error: %s Interface requires GiD %s or later." $kratos_private(Name) $kratos_private(MinimumGiDVersion)]
     }
-    if {[GiD_Info GiDVersion] ne "13.0-rc2"} { WarnWin "The minimum GiD version is 13.0-rc2.\n Ask the GiD Team for it."; return ""}
+    if {[GiD_Info GiDVersion] eq "13.0-rc1"} { WarnWin "The minimum GiD version is 13.0-rc2.\n Ask the GiD Team for it."; return ""}
         
     #append to auto_path only folders that must include tcl packages (loaded on demand with package require mechanism)
     if { [lsearch -exact $::auto_path [file join $dir scripts]] == -1 } {
