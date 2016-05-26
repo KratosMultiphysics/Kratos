@@ -55,6 +55,11 @@ proc SaveGIDProject { filespd } {
     Kratos::RegisterEnvironment
 }
 
+proc BeforeTransformProblemType { file oldproblemtype newproblemtype } {
+
+return "-cancel-"
+}
+
 proc AfterTransformProblemType { filename oldproblemtype newproblemtype } {
     set spd_file [file join $filename.gid [file tail $filename].spd]
     return [gid_groups_conds::transform_problemtype $spd_file]
