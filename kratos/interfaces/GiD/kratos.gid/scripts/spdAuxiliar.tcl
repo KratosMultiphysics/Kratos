@@ -122,8 +122,13 @@ proc spdAux::activeApp { appid } {
     parseRoutes
     #apps::ExecuteOnCurrent init MultiAppEvent
     catch {apps::ExecuteOnCurrent init MultiAppEvent}
-    if {[[$root selectNodes "value\[@n='nDim'\]"] getAttribute v] ne "undefined"} {
-        [$root selectNodes "value\[@n='nDim'\]"] setAttribute v $::Model::SpatialDimension
+    
+    set nd ""
+    catch {set nd [$root selectNodes "value\[@n='nDim'\]"]} 
+    if {$nd eq ""} {catch {set nd [$root selectNodes "hiddenfield\[@n='nDim'\]"]}}
+    
+    if {[$nd getAttribute v] ne "undefined"} {
+        $nd setAttribute v $::Model::SpatialDimension
         destroy $initwind
         #gid_groups_conds::open_conditions menu
         #gid_groups_conds::actualize_conditions_window
@@ -198,8 +203,9 @@ proc spdAux::CreateDimensionWindow { } {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     
-    
-    set nd [ [$root selectNodes "value\[@n='nDim'\]"] getAttribute v]
+    set nd ""
+    catch {set nd [ [$root selectNodes "value\[@n='nDim'\]"] getAttribute v]} 
+    if {$nd eq ""} {catch {set nd [ [$root selectNodes "hiddenfield\[@n='nDim'\]"] getAttribute v]}}
     if { $nd ne "undefined" } {
         spdAux::SwitchDimAndCreateWindow $nd
     } {
@@ -253,7 +259,12 @@ proc spdAux::SwitchDimAndCreateWindow { ndim } {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     set ::Model::SpatialDimension $ndim
-    [$root selectNodes "value\[@n='nDim'\]"] setAttribute v $::Model::SpatialDimension
+    
+    set nd ""
+    catch {set nd [$root selectNodes "value\[@n='nDim'\]"]} 
+    if {$nd eq ""} {catch {set nd [$root selectNodes "hiddenfield\[@n='nDim'\]"] }}
+    
+    $nd setAttribute v $::Model::SpatialDimension
     spdAux::DestroyWindow
     after 100 [list gid_groups_conds::open_conditions menu ]
     spdAux::TryRefreshTree
