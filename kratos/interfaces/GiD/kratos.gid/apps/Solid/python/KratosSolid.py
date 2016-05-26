@@ -139,18 +139,17 @@ gid_output.ExecuteInitialize()
 
 #### output settings end ####
 
-print(" ")
-print("::[KSM Simulation]:: Analysis -START- ")
-
 ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
 solver.Initialize()
 
-## Set results when are written in a single file
-gid_output.ExecuteBeforeSolutionLoop()
-
+print(" ")
+print("::[KSM Simulation]:: Analysis -START- ")
 
 for process in list_of_processes:
     process.ExecuteBeforeSolutionLoop()
+
+## Set results when are written in a single file
+gid_output.ExecuteBeforeSolutionLoop()
 
 ## Stepping and time settings (get from process info or solving info)
 #delta time

@@ -138,12 +138,13 @@ gid_output.ExecuteInitialize()
 
 # restart write included in gid IO ??
 
-#### output settings start ####
-
-
+#### output settings end ####
 
 ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
 solver.Initialize()
+
+print(" ")
+print("::[KSM Simulation]:: Analysis -START- ")
 
 for process in list_of_processes:
     process.ExecuteBeforeSolutionLoop()
