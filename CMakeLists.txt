@@ -2,8 +2,8 @@ cmake_minimum_required (VERSION 2.8.6)
 project (KratosMultiphysics)
 
 #set here the version number **** only update upon tagging a release!
-set (KratosMultiphysics_VERSION_MAJOR 3)
-set (KratosMultiphysics_VERSION_MINOR 3)
+set (KratosMultiphysics_VERSION_MAJOR 5)
+set (KratosMultiphysics_VERSION_MINOR 0)
 
 #get subversion data. This is done automagically by the cmakes
 include (GenerateExportHeader)
