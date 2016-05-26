@@ -532,6 +532,8 @@ proc write::tcl2json { value } {
     if {$value eq ""} {return [json::write array {*}[lmap v $value {tcl2json $v}]]}
     switch $type {
 	string {
+        if {$value eq "false"} {return [expr "false"]}
+        if {$value eq "true"} {return [expr "true"]}
 	    return [json::write string $value]
 	}
 	dict {
@@ -799,10 +801,10 @@ proc write::GetResultsList { un } {
     set xp1 "[spdAux::getRoute $un]/value"
     set resultxml [$root selectNodes $xp1]
     foreach res $resultxml {
-	if {[get_domnode_attribute $res v] in [list "Yes" "True" "1"] && [get_domnode_attribute $res state] ne "hidden"} {
-	    set name [get_domnode_attribute $res n]
-	    lappend result $name
-	}
+        if {[get_domnode_attribute $res v] in [list "Yes" "True" "1"] && [get_domnode_attribute $res state] ne "hidden"} {
+            set name [get_domnode_attribute $res n]
+            lappend result $name
+        }
     }
     return $result
 }
