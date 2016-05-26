@@ -103,7 +103,7 @@
   <ConditionItem n="LineLoad2D" pn="Load on lines" ImplementedInFile="process_factory"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Line" ProcessName="ApplyConstantVectorValueProcess" help="Load on lines, load vector referred to global axes"
+	ElementType="Line" ProcessName="ApplyVectorOnConditionsProcess" help="Load on lines, load vector referred to global axes"
 	units="N/m" unit_magnitude="F/L" VariableName="LINE_LOAD">
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="LineLoadCondition2D2N"/>
