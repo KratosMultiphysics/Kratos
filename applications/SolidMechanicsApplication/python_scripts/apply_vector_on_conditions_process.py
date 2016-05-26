@@ -1,6 +1,8 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 
+import math
+
 def Factory(settings, Model):
     if(type(settings) != Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
@@ -18,8 +20,17 @@ class ApplyVectorOnConditionsProcess(Process):
         #check if variable type is a vector
         if type(self.var) != type(DISPLACEMENT):
             raise Exception("Variable type is incorrect. Must be a three-component vector.")
+    
+        self.factor = settings["factor"].GetDouble();
+
+        self.direction = [settings["direction"][0].GetDouble(),settings["direction"][1].GetDouble(),settings["direction"][2].GetDouble()]
+
+        self.norm = math.sqrt(self.direction[0]*self.direction[0]+self.direction[1]*self.direction[1]+self.direction[2]*self.direction[2])
         
-        self.value = [settings["value"][0].GetDouble(),settings["value"][1].GetDouble(),settings["value"][2].GetDouble()]
+        if( self.norm != 0.0 ):
+            self.value = [self.direction[0]*(self.factor/self.norm),self.direction[1]*(self.factor/self.norm),self.direction[2]*(self.factor/self.norm)]
+        else:
+            self.value = [0.0,0.0,0.0]
         
     def ExecuteInitialize(self):
         for cond in self.model_part.Conditions:
