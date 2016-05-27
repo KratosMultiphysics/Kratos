@@ -82,15 +82,20 @@ pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
 pp.CFD_DEM.basset_force_type = 0
 pp.CFD_DEM.print_BASSET_FORCE_option = 0
 pp.CFD_DEM.basset_force_integration_type = 0
+pp.CFD_DEM.n_init_basset_steps = 4
+pp.CFD_DEM.delta_time_quadrature = 0.001
+pp.CFD_DEM.PostCationConcentration = False
+quadrature_order = 2
 #Z
 
 # NANO BEGIN
-if pp.CFD_DEM.drag_force_type == 9:
+if pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
     pp.CFD_DEM.PostCationConcentration = True
     pp.initial_concentration = 1.0
     pp.final_concentration = 0.01
     pp.fluid_speed = 1e-14
     pp.cation_concentration_frequence = 1
+    concentration = pp.initial_concentration
 # NANO END
 
 # Import utilities from models
