@@ -83,7 +83,7 @@ pp.CFD_DEM.basset_force_integration_type = 1
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 1
 pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
-pp.CFD_DEM.n_init_basset_steps = 100
+pp.CFD_DEM.n_init_basset_steps = 0
 pp.CFD_DEM.delta_time_quadrature = 0.01
 #Z
 
@@ -628,7 +628,8 @@ post_utils.Writeresults(time)
 coors = [None] * 3
 
 sim.CalculatePosition(coors, 0.0)            
-
+times = [0.]
+radii = []
 while (time <= final_time):
 
     time = time + Dt
@@ -751,6 +752,12 @@ while (time <= final_time):
                 node.X = coors[0] * ch_pp.R
                 node.Y = coors[1] * ch_pp.R
                 node.Z = coors[2] * ch_pp.R
+                x = node.X
+                y = node.Y
+                z = node.Z
+                r = math.sqrt(x ** 2 + y ** 2)
+                times.append(time_dem)
+                radii.append(r)      
 
                 node.SetSolutionStepValue(DISPLACEMENT_X, coors[0] * ch_pp.R - ch_pp.x0)
                 node.SetSolutionStepValue(DISPLACEMENT_Y, coors[1] * ch_pp.R - ch_pp.y0)
@@ -822,6 +829,10 @@ print("Elapsed time: " + "%.5f"%(simulation_elapsed_time) + " s ")
 print("per fluid time step: " + "%.5f"%(simulation_elapsed_time/ step) + " s ")
 print("per DEM time step: " + "%.5f"%(simulation_elapsed_time/ DEM_step) + " s")
 sys.stdout.flush()
+
+with open('exact_radii.txt','w') as f: 
+    for i in range(len(radii)):
+        f.write(str(times[i]) + ' ' + str(radii[i]) + '\n')
 
 for i in drag_file_output_list:
     i.close()
