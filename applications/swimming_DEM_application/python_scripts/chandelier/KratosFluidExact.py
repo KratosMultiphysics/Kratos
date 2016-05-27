@@ -85,9 +85,9 @@ pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
 pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
 pp.CFD_DEM.basset_force_type = 1
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
-pp.CFD_DEM.basset_force_integration_type = 1
+pp.CFD_DEM.basset_force_integration_type = 0
 pp.CFD_DEM.n_init_basset_steps = 4
-pp.CFD_DEM.delta_time_quadrature = 0.005
+pp.CFD_DEM.delta_time_quadrature = 10
 quadrature_order = 2
 #Z
 
@@ -654,13 +654,14 @@ results_creator = swim_proc.ResultsFileCreator(spheres_model_part, node_to_follo
 # CHANDELLIER END
 N_steps = int(final_time / Dt_DEM) + 20
 custom_functions_tool.FillDaitcheVectors(N_steps, quadrature_order)
-node.SetSolutionStepValue(VELOCITY_Y, 0.2)
+node.SetSolutionStepValue(VELOCITY_Y, ch_pp.v0)
 node.SetSolutionStepValue(VELOCITY_Z, 2. / 9 * 9.8 * ch_pp.a ** 2 / (ch_pp.nu * ch_pp.rho_f) * (ch_pp.rho_f - ch_pp.rho_p))
 node.Fix(VELOCITY_Z)
-node.SetSolutionStepValue(VELOCITY_OLD_Y, 0.2)
+node.SetSolutionStepValue(VELOCITY_OLD_Y, ch_pp.v0)
 node.SetSolutionStepValue(VELOCITY_OLD_Z, 2. / 9 * 9.8 * ch_pp.a ** 2 / (ch_pp.nu * ch_pp.rho_f) * (ch_pp.rho_f - ch_pp.rho_p))
 node.Fix(VELOCITY_OLD_Z)
 stop = False
+radii = []
 
 while (time <= final_time):
 
@@ -791,6 +792,7 @@ while (time <= final_time):
                     node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_Y, ay)
                     node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_Z, 0.0)                           
                     times.append(time_dem)
+                    radii.append(r)                    
                     vp_x = node.GetSolutionStepValue(VELOCITY_X)
                     vp_y = node.GetSolutionStepValue(VELOCITY_Y)
                     vp_z = node.GetSolutionStepValue(VELOCITY_Z) 
@@ -930,6 +932,12 @@ print("Elapsed time: " + "%.5f"%(simulation_elapsed_time) + " s ")
 print("per fluid time step: " + "%.5f"%(simulation_elapsed_time/ step) + " s ")
 print("per DEM time step: " + "%.5f"%(simulation_elapsed_time/ DEM_step) + " s")
 sys.stdout.flush()
+
+dt_quad_over_dt = pp.CFD_DEM.delta_time_quadrature / pp.CFD_DEM.MaxTimeStep
+
+with open('radii' + str(int(dt_quad_over_dt)) + '.txt','w') as f: 
+    for i in range(len(radii)):
+        f.write(str(times[i]) + ' ' + str(radii[i]) + '\n')
 
 for i in drag_file_output_list:
     i.close()
