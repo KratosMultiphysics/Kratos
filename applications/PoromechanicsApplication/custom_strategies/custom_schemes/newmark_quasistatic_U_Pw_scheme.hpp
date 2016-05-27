@@ -30,24 +30,19 @@ public:
 
     typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
     typedef typename BaseType::DofsArrayType                 DofsArrayType;
-    typedef typename Element::DofsVectorType                DofsVectorType;
     typedef typename BaseType::TSystemMatrixType         TSystemMatrixType;
     typedef typename BaseType::TSystemVectorType         TSystemVectorType;
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-    typedef ModelPart::ElementsContainerType             ElementsArrayType;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     //Constructor
     NewmarkQuasistaticUPwScheme(ModelPart& r_model_part, double beta, double gamma, double theta) : Scheme<TSparseSpace,TDenseSpace>()
     {   
-        mDeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
         mBeta = beta;
         mGamma = gamma;
         mTheta = theta;
-        r_model_part.GetProcessInfo()[NEWMARK_COEFFICIENT_U] = gamma/(beta*mDeltaTime);
-        r_model_part.GetProcessInfo()[NEWMARK_COEFFICIENT_P] = 1.0/(theta*mDeltaTime);
     }
 
     //------------------------------------------------------------------------------------
@@ -68,11 +63,14 @@ public:
             KRATOS_THROW_ERROR( std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered", "" )
         if(ACCELERATION.Key() == 0)
             KRATOS_THROW_ERROR( std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered", "" )
-            
         if(WATER_PRESSURE.Key() == 0)
             KRATOS_THROW_ERROR( std::invalid_argument, "WATER_PRESSURE has Key zero! (check if the application is correctly registered", "" )
         if(DT_WATER_PRESSURE.Key() == 0)
             KRATOS_THROW_ERROR( std::invalid_argument, "DT_WATER_PRESSURE has Key zero! (check if the application is correctly registered", "" )
+        if ( NEWMARK_COEFFICIENT_U.Key() == 0 )
+            KRATOS_THROW_ERROR( std::invalid_argument, "NEWMARK_COEFFICIENT_U has Key zero! (check if the application is correctly registered", "" )
+        if ( NEWMARK_COEFFICIENT_P.Key() == 0 )
+            KRATOS_THROW_ERROR( std::invalid_argument, "NEWMARK_COEFFICIENT_P has Key zero! (check if the application is correctly registered", "" )
 
         //check that variables are correctly allocated
         for(ModelPart::NodesContainerType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); it++)
@@ -80,9 +78,9 @@ public:
             if(it->SolutionStepsDataHas(DISPLACEMENT) == false)
                 KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
             if(it->SolutionStepsDataHas(VELOCITY) == false)
-                KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
+                KRATOS_THROW_ERROR( std::logic_error, "VELOCITY variable is not allocated for node ", it->Id() )
             if(it->SolutionStepsDataHas(ACCELERATION) == false)
-                KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
+                KRATOS_THROW_ERROR( std::logic_error, "ACCELERATION variable is not allocated for node ", it->Id() )
             if(it->SolutionStepsDataHas(WATER_PRESSURE) == false)
                 KRATOS_THROW_ERROR( std::logic_error, "WATER_PRESSURE variable is not allocated for node ", it->Id() )
             if(it->SolutionStepsDataHas(DT_WATER_PRESSURE) == false)
@@ -103,7 +101,7 @@ public:
             KRATOS_THROW_ERROR( std::logic_error, "insufficient buffer size. Buffer size should be greater than 2. Current size is", r_model_part.GetBufferSize() )
         
         // Check DeltaTime
-        if (mDeltaTime < 1.0e-25)
+        if (r_model_part.GetProcessInfo()[DELTA_TIME] < 1.0e-25)
             KRATOS_THROW_ERROR( std::logic_error, "Detected DELTA_TIME < 1e-25 in the Solution Scheme. DELTA_TIME should be greater than 0.0", "" )
         
         // Check beta, gamma and theta
@@ -113,6 +111,21 @@ public:
         return 0;
         
         KRATOS_CATCH( "" )
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void Initialize(ModelPart& r_model_part)
+    {
+        KRATOS_TRY
+        
+        mDeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
+        r_model_part.GetProcessInfo()[NEWMARK_COEFFICIENT_U] = mGamma/(mBeta*mDeltaTime);
+        r_model_part.GetProcessInfo()[NEWMARK_COEFFICIENT_P] = 1.0/(mTheta*mDeltaTime);
+        
+        BaseType::mSchemeIsInitialized = true;
+        
+        KRATOS_CATCH("")
     }
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -128,7 +141,7 @@ public:
     {
         KRATOS_TRY
         
-#pragma omp parallel
+        #pragma omp parallel
         {
             ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
             
@@ -143,7 +156,7 @@ public:
         }
         
         /*
-#pragma omp parallel
+        #pragma omp parallel
         {
             ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
             
@@ -167,7 +180,7 @@ public:
     {
         KRATOS_TRY
         
-#pragma omp parallel
+        #pragma omp parallel
         {
             ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
             
@@ -182,7 +195,7 @@ public:
         }
         
         /*
-#pragma omp parallel
+        #pragma omp parallel
         {
             ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
             
@@ -238,7 +251,7 @@ public:
         OpenMPUtils::PartitionVector DofSetPartition;
         OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
 
-#pragma omp parallel
+        #pragma omp parallel
         {
             int k = OpenMPUtils::ThisThread();
 
@@ -305,7 +318,7 @@ protected:
 
         //Update Acceleration, Velocity and DtPressure
         
-#pragma omp parallel
+        #pragma omp parallel
         {
             array_1d<double,3> DeltaDisplacement;
             array_1d<double,3> PreviousAcceleration;

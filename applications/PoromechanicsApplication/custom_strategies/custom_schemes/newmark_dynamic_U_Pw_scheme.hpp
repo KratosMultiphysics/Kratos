@@ -25,32 +25,20 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( NewmarkDynamicUPwScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
-    typedef typename BaseType::DofsArrayType                 DofsArrayType;
-    typedef typename Element::DofsVectorType                DofsVectorType;
-    typedef typename BaseType::TSystemMatrixType         TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType         TSystemVectorType;
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-    typedef ModelPart::ElementsContainerType             ElementsArrayType;
     using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mDeltaTime;
     using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mBeta;
     using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mGamma;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mTheta;
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     //Constructor
     NewmarkDynamicUPwScheme(ModelPart& r_model_part, double beta, double gamma, double theta,
                             double rayleigh_m, double rayleigh_k) : NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(r_model_part, beta, gamma, theta)
     {
-        mDeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
-        mBeta = beta;
-        mGamma = gamma;
-        mTheta = theta;
-        r_model_part.GetProcessInfo()[NEWMARK_COEFFICIENT_U] = gamma/(beta*mDeltaTime);
-        r_model_part.GetProcessInfo()[NEWMARK_COEFFICIENT_P] = 1.0/(theta*mDeltaTime);
-        r_model_part.GetProcessInfo()[RAYLEIGH_ALPHA] = rayleigh_m;
-        r_model_part.GetProcessInfo()[RAYLEIGH_BETA] = rayleigh_k;
-        
+        mRayleighAlpha = rayleigh_m;
+        mRayleighBeta = rayleigh_k;
+                
         //Allocate auxiliary memory
         int NumThreads = OpenMPUtils::GetNumThreads();
         mMassMatrix.resize(NumThreads);
@@ -72,14 +60,33 @@ public:
         
         int err = NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::Check(r_model_part);
         if(err != 0) return err;
-        
+
+        if ( RAYLEIGH_ALPHA.Key() == 0 )
+            KRATOS_THROW_ERROR( std::invalid_argument, "RAYLEIGH_ALPHA has Key zero! (check if the application is correctly registered", "" )
+        if ( RAYLEIGH_BETA.Key() == 0 )
+            KRATOS_THROW_ERROR( std::invalid_argument, "RAYLEIGH_BETA has Key zero! (check if the application is correctly registered", "" )
+            
         // Check rayleigh coefficients
-        if( r_model_part.GetProcessInfo()[RAYLEIGH_ALPHA]<0.0 || r_model_part.GetProcessInfo()[RAYLEIGH_BETA]<0.0 )
+        if( mRayleighAlpha < 0.0 || mRayleighBeta < 0.0 )
             KRATOS_THROW_ERROR( std::invalid_argument,"Some of the rayleigh coefficients has an invalid value ", "" )
             
         return err;
         
         KRATOS_CATCH( "" )
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void Initialize(ModelPart& r_model_part)
+    {
+        KRATOS_TRY
+        
+        NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::Initialize(r_model_part);
+        
+        r_model_part.GetProcessInfo()[RAYLEIGH_ALPHA] = mRayleighAlpha;
+        r_model_part.GetProcessInfo()[RAYLEIGH_BETA] = mRayleighBeta;
+        
+        KRATOS_CATCH("")
     }
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -134,12 +141,12 @@ protected:
     
     // Member Variables
     
+    double mRayleighAlpha;
+    double mRayleighBeta;
+    
     std::vector< Matrix > mMassMatrix;
-
     std::vector< Vector > mAccelerationVector;
-
     std::vector< Matrix > mDampingMatrix;
-
     std::vector< Vector > mVelocityVector;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
