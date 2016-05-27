@@ -9,9 +9,7 @@
 #define KRATOS_RAMM_ARC_LENGTH_STRATEGY
 
 // Project includes
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "custom_strategies/newton_raphson_strategy.hpp"
 
 // Application includes
 #include "poromechanics_application_variables.h"
@@ -21,7 +19,7 @@ namespace Kratos
 
 template<class TSparseSpace,class TDenseSpace,class TLinearSolver>
 
-class RammArcLengthStrategy : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+class RammArcLengthStrategy : public NewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 
 public:
@@ -37,6 +35,19 @@ public:
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
+    typedef NewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> MotherType;
+    using MotherType::mpA; //Tangent matrix
+    using MotherType::mpb; //Residual vector of iteration i
+    using MotherType::mpDx; //Delta x of iteration i
+    using MotherType::mpTotalx; //Total accumulated x
+    using MotherType::mpScheme;
+    using MotherType::mpBuilderAndSolver;
+    using MotherType::mDofs_Relative_Tolerance;
+    using MotherType::mResidual_Relative_Tolerance;
+    using MotherType::mMaxIterationNumber;
+    using MotherType::mReformDofSetAtEachStep;
+    using MotherType::mCalculateReactionsFlag;
+    using MotherType::mNormb0;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -52,37 +63,16 @@ public:
                           double MinRadius,
                           bool CalculateReactions,
                           bool ReformDofSetAtEachStep,
-                          bool MoveMeshFlag) : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
+                          bool MoveMeshFlag) : NewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
+                                                                    pNewBuilderAndSolver,Dofs_Relative_Tolerance,Residual_Relative_Tolerance,
+                                                                    MaxIterations,CalculateReactions,ReformDofSetAtEachStep,MoveMeshFlag)
     {
         KRATOS_TRY
 
-        //saving the scheme
-        mpScheme = pScheme;
-
-        //setting up the default builder and solver
-        mpBuilderAndSolver = pNewBuilderAndSolver;
-
         //set flags to default values
-        mDofs_Relative_Tolerance = Dofs_Relative_Tolerance;
-        mResidual_Relative_Tolerance = Residual_Relative_Tolerance;
-
-        mMaxIterationNumber = MaxIterations;
         mDesiredIterations = DesiredIterations;
-
         mMaxRadiusFactor = MaxRadius;
         mMinRadiusFactor = MinRadius;
-
-        mCalculateReactionsFlag = CalculateReactions;
-        mReformDofSetAtEachStep = ReformDofSetAtEachStep;
-
-        //tells to the builder and solver if the reactions have to be Calculated or not
-        mpBuilderAndSolver->SetCalculateReactionsFlag(mCalculateReactionsFlag);
-
-        //tells to the Builder And Solver if the system matrix and vectors need to be reshaped at each step or not
-        mpBuilderAndSolver->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
-
-        //Initialize ProcessInfo variables
-        model_part.GetProcessInfo()[NO_CONVERGENCE] = 0;
         
         KRATOS_CATCH( "" )
     }
@@ -94,23 +84,41 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void SetEchoLevel(int Level)
-    {
-        BaseType::mEchoLevel = Level;
-        mpBuilderAndSolver->SetEchoLevel(Level);
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     int Check()
     {
         KRATOS_TRY
+        
+        int err = MotherType::Check();
+        if(err != 0) return err;
+                
+        //check for variables keys (verify that the variables are correctly initialized)
+        if(FORCE.Key() == 0)
+            KRATOS_THROW_ERROR( std::invalid_argument,"FORCE has Key zero! (check if the application is correctly registered", "" )
+        if(FACE_LOAD.Key() == 0)
+            KRATOS_THROW_ERROR( std::invalid_argument,"FACE_LOAD has Key zero! (check if the application is correctly registered", "" )
+        if(NORMAL_CONTACT_STRESS.Key() == 0)
+            KRATOS_THROW_ERROR( std::invalid_argument,"NORMAL_CONTACT_STRESS has Key zero! (check if the application is correctly registered", "" )
+        if(TANGENTIAL_CONTACT_STRESS.Key() == 0)
+            KRATOS_THROW_ERROR( std::invalid_argument,"TANGENTIAL_CONTACT_STRESS has Key zero! (check if the application is correctly registered", "" )
+        if(NORMAL_FLUID_FLUX.Key() == 0)
+            KRATOS_THROW_ERROR( std::invalid_argument,"NORMAL_FLUID_FLUX has Key zero! (check if the application is correctly registered", "" )
 
-        BaseType::Check();
+        //check that variables are correctly allocated
+        for(ModelPart::NodesContainerType::iterator it=BaseType::GetModelPart().NodesBegin(); it!=BaseType::GetModelPart().NodesEnd(); it++)
+        {
+            if(it->SolutionStepsDataHas(FORCE) == false)
+                KRATOS_THROW_ERROR( std::logic_error, "FORCE variable is not allocated for node ", it->Id() )
+            if(it->SolutionStepsDataHas(FACE_LOAD) == false)
+                KRATOS_THROW_ERROR( std::logic_error, "FACE_LOAD variable is not allocated for node ", it->Id() )
+            if(it->SolutionStepsDataHas(NORMAL_CONTACT_STRESS) == false)
+                KRATOS_THROW_ERROR( std::logic_error, "NORMAL_CONTACT_STRESS variable is not allocated for node ", it->Id() )
+            if(it->SolutionStepsDataHas(TANGENTIAL_CONTACT_STRESS) == false)
+                KRATOS_THROW_ERROR( std::logic_error, "TANGENTIAL_CONTACT_STRESS variable is not allocated for node ", it->Id() )
+            if(it->SolutionStepsDataHas(NORMAL_FLUID_FLUX) == false)
+                KRATOS_THROW_ERROR( std::logic_error, "NORMAL_FLUID_FLUX variable is not allocated for node ", it->Id() )
+        }
 
-        mpScheme->Check(BaseType::GetModelPart());
-
-        return 0;
+        return err;
 
         KRATOS_CATCH( "" )
     }
@@ -123,6 +131,9 @@ public:
 
         std::cout << "Initializing Ramm's Arc Length Strategy" << std::endl;
 
+        //Initialize ProcessInfo variables
+        BaseType::GetModelPart().GetProcessInfo()[NO_CONVERGENCE] = 0;
+        
         //Initialize Scheme
         if(mpScheme->SchemeIsInitialized() == false)
             mpScheme->Initialize(BaseType::GetModelPart());
@@ -165,8 +176,8 @@ public:
 
         mpBuilderAndSolver->BuildAndSolve(mpScheme, BaseType::GetModelPart(), mA, mTotalx, mf);
 
-        double Normf = TSparseSpace::TwoNorm(mf);
-        if(Normf < 1.0e-20)
+        mNormb0 = TSparseSpace::TwoNorm(mf);
+        if(mNormb0 < 1.0e-20)
             KRATOS_THROW_ERROR( std::logic_error, "Norm of the initial residual < 1.0e-20. One must initialize the strategy with some external load applied", "" )
             
         mRadius_0 = TSparseSpace::TwoNorm(mTotalx);
@@ -245,7 +256,6 @@ public:
         double residual_ratio = 1000.0;
         bool possible_convergence = true;
         double NormDx, Normx;
-        const double Normf = TSparseSpace::TwoNorm(mf);
 
         while ((dofs_ratio > mDofs_Relative_Tolerance || residual_ratio > mResidual_Relative_Tolerance) && iteration_number < mMaxIterationNumber && possible_convergence == true)
         {
@@ -273,7 +283,7 @@ public:
             Normx = TSparseSpace::TwoNorm(mTotalx-mDxStep);
             if(Normx > 1e-10)
             {
-                if( (NormDx/Normx) > 5e2 || (fabs(DLambda)/fabs(mLambda-DLambdaStep)) > 5e2 || (TSparseSpace::TwoNorm(mb)/Normf) > 5e2 )
+                if( (NormDx/Normx) > 5e2 || (fabs(DLambda)/fabs(mLambda-DLambdaStep)) > 5e2 || (TSparseSpace::TwoNorm(mb)/mNormb0) > 5e2 )
                 {
                     possible_convergence = false;
                     break;
@@ -303,7 +313,7 @@ public:
 
             TSparseSpace::SetToZero(mb);
             mpBuilderAndSolver->BuildRHS(mpScheme, BaseType::GetModelPart(), mb);
-            residual_ratio = TSparseSpace::TwoNorm(mb)/Normf;
+            residual_ratio = TSparseSpace::TwoNorm(mb)/mNormb0;
             std::cout << "        Residual Ratio = " << residual_ratio << std::endl;
         } //while
 
@@ -366,27 +376,6 @@ public:
     
     //------------------------------------------------------------------------------------
 
-    void Predict()
-    {
-        KRATOS_TRY
-
-        DofsArrayType& rDofSet = mpBuilderAndSolver->GetDofSet();
-
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mb = *mpb;
-        TSystemVectorType& mDx = *mpDx;
-
-        mpScheme->Predict(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-
-        //move the mesh if needed
-        if (this->MoveMeshFlag() == true)
-            BaseType::MoveMesh();
-
-        KRATOS_CATCH( "" )
-    }
-
-    //------------------------------------------------------------------------------------
-
     void FinalizeSolutionStep(unsigned int iteration_number, bool possible_convergence, double DLambdaStep)
     {
         KRATOS_TRY
@@ -428,11 +417,8 @@ public:
             BaseType::GetModelPart().GetProcessInfo()[NO_CONVERGENCE] = 1;
         }
 
-        mpScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
-
-        mpBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
-        mpScheme->Clean();
-
+        MotherType::FinalizeSolutionStep();
+        
         KRATOS_CATCH( "" )
     }
 
@@ -441,43 +427,27 @@ public:
     void Clear()
     {
         KRATOS_TRY
-
-        SparseSpaceType::Clear(mpA);
-        SparseSpaceType::Clear(mpb);
-        SparseSpaceType::Clear(mpDx);
+        
         SparseSpaceType::Clear(mpDxf);
         SparseSpaceType::Clear(mpDxb);
         SparseSpaceType::Clear(mpDxPred);
         SparseSpaceType::Clear(mpDxStep);
-        SparseSpaceType::Clear(mpTotalx);
         SparseSpaceType::Clear(mpf);
 
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mb = *mpb;
-        TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mDxf = *mpDxf;
         TSystemVectorType& mDxb = *mpDxb;
         TSystemVectorType& mDxPred = *mpDxPred;
         TSystemVectorType& mDxStep = *mpDxStep;
-        TSystemVectorType& mTotalx = *mpTotalx;
         TSystemVectorType& mf = *mpf;
 
-        SparseSpaceType::Resize(mA, 0, 0);
-        SparseSpaceType::Resize(mb, 0);
-        SparseSpaceType::Resize(mDx, 0);
         SparseSpaceType::Resize(mDxf, 0);
         SparseSpaceType::Resize(mDxb, 0);
         SparseSpaceType::Resize(mDxPred, 0);
         SparseSpaceType::Resize(mDxStep, 0);
-        SparseSpaceType::Resize(mTotalx, 0);
         SparseSpaceType::Resize(mf, 0);
-
-        //setting to zero the internal flag to ensure that the dof sets are recalculated
-        mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
-        mpBuilderAndSolver->Clear();
-
-        mpScheme->Clear();
-
+        
+        MotherType::Clear();
+        
         KRATOS_CATCH( "" )
     }
 
@@ -487,23 +457,6 @@ protected:
 
     // Member Variables
 
-    TSystemMatrixPointerType mpA; //Tangent matrix
-
-    TSystemVectorPointerType mpb; //Residual vector of iteration i
-    TSystemVectorPointerType mpDx; //Delta x of iteration i
-    TSystemVectorPointerType mpTotalx; //Total accumulated x
-
-    typename TSchemeType::Pointer mpScheme;
-
-    typename TBuilderAndSolverType::Pointer mpBuilderAndSolver;
-
-    double mDofs_Relative_Tolerance, mResidual_Relative_Tolerance;
-
-    unsigned int mMaxIterationNumber;
-
-    bool mReformDofSetAtEachStep, mCalculateReactionsFlag;
-
-    // Arc Length Variables
     unsigned int mDesiredIterations; //This is used to calculate the radius of the next step
     double mMaxRadiusFactor, mMinRadiusFactor; //Used to limit the radius of the arc length strategy
     double mRadius, mRadius_0; //Radius of the arc length strategy
@@ -512,25 +465,7 @@ protected:
     TSystemVectorPointerType mpDxf; //Delta x of A*Dxf=f
     TSystemVectorPointerType mpDxb; //Delta x of A*Dxb=b
     TSystemVectorPointerType mpDxPred; //Delta x of prediction phase
-
-    // Recovery Variables
     TSystemVectorPointerType mpDxStep; //Delta x of the current step
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void InitializeSystemVector(TSystemVectorPointerType& pv)
-    {
-        if (pv == NULL)
-        {
-            TSystemVectorPointerType pNewv = TSystemVectorPointerType(new TSystemVectorType(0));
-            pv.swap(pNewv);
-        }
-
-        TSystemVectorType& v = *pv;
-
-        if (v.size() != mpBuilderAndSolver->GetEquationSystemSize())
-            v.resize(mpBuilderAndSolver->GetEquationSystemSize(), false);
-    }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -621,35 +556,22 @@ protected:
     {
         KRATOS_TRY
 
-        SparseSpaceType::Clear(mpA);
-        SparseSpaceType::Clear(mpb);
-        SparseSpaceType::Clear(mpDx);
         SparseSpaceType::Clear(mpDxf);
         SparseSpaceType::Clear(mpDxb);
         SparseSpaceType::Clear(mpDxPred);
         SparseSpaceType::Clear(mpDxStep);
 
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mb = *mpb;
-        TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mDxf = *mpDxf;
         TSystemVectorType& mDxb = *mpDxb;
         TSystemVectorType& mDxPred = *mpDxPred;
         TSystemVectorType& mDxStep = *mpDxStep;
 
-        SparseSpaceType::Resize(mA, 0, 0);
-        SparseSpaceType::Resize(mb, 0);
-        SparseSpaceType::Resize(mDx, 0);
         SparseSpaceType::Resize(mDxf, 0);
         SparseSpaceType::Resize(mDxb, 0);
         SparseSpaceType::Resize(mDxPred, 0);
         SparseSpaceType::Resize(mDxStep, 0);
 
-        //setting to zero the internal flag to ensure that the dof sets are recalculated
-        mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
-        mpBuilderAndSolver->Clear();
-
-        mpScheme->Clear();
+        MotherType::ClearStep();
 
         KRATOS_CATCH("");
     }
