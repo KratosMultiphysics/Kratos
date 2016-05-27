@@ -56,7 +56,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
 
     mNormOfSlipVel = SWIMMING_MODULUS_3(mSlipVel);
     double added_mass_coefficient = 0.0; // it is to be modified by those forces that have a contribution proportional to the particle acceleration
-    array_1d<double, 3> weight;
+    array_1d<double, 3> weight = ZeroVector(3);
     array_1d<double, 3> buoyancy;
     array_1d<double, 3> drag_force;
     array_1d<double, 3> virtual_mass_force;
