@@ -27,8 +27,8 @@ namespace Kratos {
             const double force_reduction_factor,
             const double mass,
             const double delta_t,
-            const bool Fix_vel[3]) {
-
+            const bool Fix_vel[3])
+    {
         const array_1d<double, 3 >& fluid_vel = i.FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
         array_1d<double, 3 > slip_vel;
         array_1d<double, 3 > contact_force ;
@@ -49,7 +49,6 @@ namespace Kratos {
                 coor[k] = initial_coor[k] + displ[k];
             }
         } // dimensions
-
     }
 
     void TerminalVelocityScheme::UpdateRotationalVariables(
