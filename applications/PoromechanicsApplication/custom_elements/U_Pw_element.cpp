@@ -75,11 +75,15 @@ int UPwElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo )
     }
 
     // Verify ProcessInfo variables
-    if ( NEWMARK_COEFFICIENT_U.Key() == 0 || rCurrentProcessInfo[NEWMARK_COEFFICIENT_U]<= 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"NEWMARK_COEFFICIENT_U has Key zero or invalid value at element", this->Id() )
-    if ( NEWMARK_COEFFICIENT_P.Key() == 0 || rCurrentProcessInfo[NEWMARK_COEFFICIENT_P]<= 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"NEWMARK_COEFFICIENT_P has Key zero or invalid value at element", this->Id() )
-    
+    if ( NEWMARK_COEFFICIENT_U.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"NEWMARK_COEFFICIENT_U has Key zero at element", this->Id() )
+    if ( NEWMARK_COEFFICIENT_P.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"NEWMARK_COEFFICIENT_P has Key zero at element", this->Id() )
+    if ( RAYLEIGH_ALPHA.Key() == 0)
+        KRATOS_THROW_ERROR( std::invalid_argument,"RAYLEIGH_ALPHA has Key zero at element", this->Id() )
+    if ( RAYLEIGH_BETA.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"RAYLEIGH_BETA has Key zero at element", this->Id() )
+
     // Verify properties
     if ( DENSITY_SOLID.Key() == 0 || Prop.Has( DENSITY_SOLID ) == false || Prop[DENSITY_SOLID] < 0.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY_SOLID has Key zero, is not defined or has an invalid value at element", this->Id() )
