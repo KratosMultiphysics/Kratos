@@ -158,7 +158,7 @@ def ConstructListsOfResultsToPrint(pp):
         pp.dem_nodal_results += ["TOTAL_FORCES"]
 
     if DEM_parameters.ElementType == "SwimmingNanoParticle":
-        if (DEM_parameters.PostCationConcentration):
+        if DEM_parameters.PostCationConcentration:
             pp.dem_nodal_results += ["CATION_CONCENTRATION"]
         
     if pp.CFD_DEM.coupling_level_type > 0:
