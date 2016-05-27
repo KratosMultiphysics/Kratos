@@ -179,11 +179,11 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::FinalizeNonLinearIteration(Proces
         noalias(GradNpT) = DN_DXContainer[GPoint];
         this->CalculateBMatrix(B, GradNpT);
         
-        // Compute Stress
+        // Compute ConstitutiveTensor
         noalias(StrainVector) = prod(B,DisplacementVector);
-        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-        ConstitutiveParameters.Reset(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Reset(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
         
         // Compute DtStress
         noalias(StrainVector) = prod(B,VelocityVector);
