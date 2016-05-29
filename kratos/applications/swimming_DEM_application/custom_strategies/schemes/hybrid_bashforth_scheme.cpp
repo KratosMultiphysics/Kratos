@@ -27,22 +27,33 @@ namespace Kratos {
             const double mass,
             const double delta_t,
             const bool Fix_vel[3])
-    {
-        array_1d<double, 3 >& old_vel = i.FastGetSolutionStepValue(VELOCITY_OLD);
-        array_1d<double, 3 > current_vel = vel;
+    {   
         for (int k = 0; k < 3; k++) {
             if (Fix_vel[k] == false) {
                 vel[k] += delta_t * force_reduction_factor * force[k] / mass;
-                delta_displ[k] = 0.5 * delta_t * (3 * current_vel[k] - old_vel[k]);
-                displ[k] += delta_displ[k];
-                coor[k] = initial_coor[k] + displ[k];
             } else {
                 delta_displ[k] = delta_t * vel[k];
                 displ[k] += delta_displ[k];
                 coor[k] = initial_coor[k] + displ[k];
             }
         } // dimensions
-        noalias(old_vel) = current_vel;
+
+//        array_1d<double, 3 >& slip_vel = i.FastGetSolutionStepValue(SLIP_VELOCITY);
+//        array_1d<double, 3 >& old_vel = i.FastGetSolutionStepValue(VELOCITY_OLD);
+//        array_1d<double, 3 > current_vel = vel;
+//        for (int k = 0; k < 3; k++) {
+//            if (Fix_vel[k] == false) {
+//                vel[k] += delta_t * force_reduction_factor * force[k] / mass;
+//                delta_displ[k] = 0.5 * delta_t * (3 * current_vel[k] - old_vel[k]);
+//                displ[k] += delta_displ[k];
+//                coor[k] = initial_coor[k] + displ[k];
+//            } else {
+//                delta_displ[k] = delta_t * vel[k];
+//                displ[k] += delta_displ[k];
+//                coor[k] = initial_coor[k] + displ[k];
+//            }
+//        } // dimensions
+//        noalias(old_vel) = current_vel;
     }
 
     void HybridBashforthScheme::UpdateRotationalVariables(
