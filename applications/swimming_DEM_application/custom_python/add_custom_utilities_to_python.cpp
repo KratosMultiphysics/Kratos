@@ -267,6 +267,7 @@ using namespace boost::python;
 
     class_<BinBasedDEMFluidCoupledMapping <3,SphericParticle> >
             ("BinBasedDEMFluidCoupledMapping3D", init<double, int, int, int>())
+        .def("InterpolateVelocity", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateVelocity)
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateFromFluidMesh)
         .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateFromNewestFluidMesh)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateFromDEMMesh)
