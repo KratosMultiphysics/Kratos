@@ -111,7 +111,7 @@ void FillDaitcheVectors(int N, int order)
 //        Cns[2] = 10 * OneFifteenth * sqrt_2_over_5;
 //        Cns[3] = 4 * sqrt_3_over_5 - 4 * sqrt_2_over_5;
 
-        for (int j = 4; j < N; ++j){
+        for (int j = 3; j < N; ++j){
             long double sqrt_j_minus_2 = std::sqrt(static_cast<long double>(j - 2));
             long double sqrt_j_minus   = std::sqrt(static_cast<long double>(j - 1));
             long double sqrt_j         = std::sqrt(static_cast<long double>(j));
