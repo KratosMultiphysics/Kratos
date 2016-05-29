@@ -459,19 +459,19 @@ void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivative(NodeT
 
     for (int j = 0; j < n + 1; j++){
         double coefficient     = GetDaitcheCoefficient(order, n + 1, j + 1);
-        double old_coefficient = GetDaitcheCoefficient(order, n, j);
+        double old_coefficient = GetDaitcheCoefficient(order, n    , j);
         for (int i_comp = 0; i_comp < 3; i_comp++){
             unsigned int integrand_position = N - 3 * j + i_comp;
             integrand[i_comp] = historic_integrands[integrand_position];
         }
         fractional_derivative += (coefficient - old_coefficient) * integrand;
     }
-    const array_1d<double, 3>& fluid_vel = node.FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
+    const array_1d<double, 3>& fluid_vel = node.FastGetSolutionStepValue(SLIP_VELOCITY);
     for (int i_comp = 0; i_comp < 3; i_comp++){
-        integrand[i_comp] = historic_integrands[N + 3 + i_comp];
+        integrand[i_comp] = historic_integrands[N + 6 + i_comp];
     }
     present_coefficient = GetDaitcheCoefficient(order, n + 1, 0);
-    fractional_derivative += present_coefficient * (fluid_vel - integrand);
+    fractional_derivative += present_coefficient * (fluid_vel - node.FastGetSolutionStepValue(VELOCITY));
 }
 //***************************************************************************************************************************************************
 //***************************************************************************************************************************************************
@@ -486,16 +486,16 @@ void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivative(NodeT
 
     for (int j = 0; j < n + 1; j++){
         double coefficient     = GetDaitcheCoefficient(order, n + 1, j + 1, last_h_over_h);
-        double old_coefficient = GetDaitcheCoefficient(order, n, j, last_h_over_h);
+        double old_coefficient = GetDaitcheCoefficient(order, n,     j,     last_h_over_h);
         for (int i_comp = 0; i_comp < 3; i_comp++){
             unsigned int integrand_position = N - 3 * j + i_comp;
             integrand[i_comp] = historic_integrands[integrand_position];
         }
         fractional_derivative += (coefficient - old_coefficient) * integrand;
     }
-    const array_1d<double, 3>& fluid_vel = node.FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
+    const array_1d<double, 3>& fluid_vel = node.FastGetSolutionStepValue(SLIP_VELOCITY);
     for (int i_comp = 0; i_comp < 3; i_comp++){
-        integrand[i_comp] = historic_integrands[N + 3 + i_comp];
+        integrand[i_comp] = historic_integrands[N + 6 + i_comp];
     }
     present_coefficient = GetDaitcheCoefficient(order, n + 1, 0, last_h_over_h);
     fractional_derivative += present_coefficient * (fluid_vel - integrand);
@@ -512,14 +512,14 @@ void SphericSwimmingParticle<TBaseElement>:: CalculateExplicitFractionalDerivati
     array_1d<double, 3> integrand;
 
     for (int j = 0; j < n + 1; j++){
-        double coefficient     = GetDaitcheCoefficient(order, n + 1, j + 1, last_h_over_h);
+        double coefficient = GetDaitcheCoefficient(order, n + 1, j + 1, last_h_over_h);
         for (int i_comp = 0; i_comp < 3; i_comp++){
             unsigned int integrand_position = N - 3 * j + i_comp;
             integrand[i_comp] = historic_integrands[integrand_position];
         }
         fractional_derivative += coefficient * integrand;
     }
-    const array_1d<double, 3>& vel = node.FastGetSolutionStepValue(VELOCITY);
+    const array_1d<double, 3>& vel = node.FastGetSolutionStepValue(SLIP_VELOCITY);
     const array_1d<double, 3>& fluid_vel = node.FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
 
     present_coefficient = GetDaitcheCoefficient(order, n + 1, 0, last_h_over_h);
