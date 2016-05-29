@@ -85,11 +85,12 @@ pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
 pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
 pp.CFD_DEM.basset_force_type = 1
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
-pp.CFD_DEM.basset_force_integration_type = 0
+pp.CFD_DEM.basset_force_integration_type = 1
 pp.CFD_DEM.n_init_basset_steps = 4
-pp.CFD_DEM.delta_time_quadrature = 10
+pp.CFD_DEM.delta_time_quadrature = 0.01
 quadrature_order = 2
 #Z
+dem_fem_search = DEM_FEM_Search()
 
 # Import utilities from models
 procedures    = DEM_procedures.Procedures(DEM_parameters)
@@ -662,6 +663,13 @@ node.SetSolutionStepValue(VELOCITY_OLD_Z, 2. / 9 * 9.8 * ch_pp.a ** 2 / (ch_pp.n
 node.Fix(VELOCITY_OLD_Z)
 stop = False
 radii = []
+node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, ch_pp.u0)
+node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, ch_pp.v0)
+node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, 0.0)   
+vx = ch_pp.u0
+vy = ch_pp.v0
+vx_old = vx
+vy_old = vy
 
 while (time <= final_time):
 
@@ -768,8 +776,12 @@ while (time <= final_time):
                 projection_module.ProjectFromNewestFluid()
 
             else:
+                #if scheme = "Hybrid_Bashforth":
+                    #solver.Solve()
+          
                 projection_module.ProjectFromFluid((time_final_DEM_substepping - time_dem) / Dt)     
-
+        
+                
                 for node in spheres_model_part.Nodes:
                     x = node.X
                     y = node.Y
@@ -790,7 +802,37 @@ while (time <= final_time):
                     node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Z, 0.0)      
                     node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_X, ax)
                     node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_Y, ay)
-                    node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_Z, 0.0)                           
+                    node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_Z, 0.0)       
+                    
+                    
+                    vel_x = node.GetSolutionStepValue(VELOCITY_X)
+                    vel_y = node.GetSolutionStepValue(VELOCITY_Y)
+                    vel_old_x = node.GetSolutionStepValue(VELOCITY_OLD_X)
+                    vel_old_y = node.GetSolutionStepValue(VELOCITY_OLD_Y)   
+                    node.SetSolutionStepValue(VELOCITY_OLD_X, vel_x)
+                    node.SetSolutionStepValue(VELOCITY_OLD_Y, vel_y)
+                    disp_x = node.GetSolutionStepValue(DISPLACEMENT_X)
+                    disp_y = node.GetSolutionStepValue(DISPLACEMENT_Y)
+                    delta_disp_x = 0.5 * Dt_DEM * (3 * vel_x - vel_old_x)
+                    delta_disp_y = 0.5 * Dt_DEM * (3 * vel_y - vel_old_y)
+                    disp_x += delta_disp_x
+                    disp_y += delta_disp_y
+                    node.SetSolutionStepValue(DISPLACEMENT_X, disp_x)
+                    node.SetSolutionStepValue(DISPLACEMENT_Y, disp_y)
+                    node.X = node.X0 + disp_x
+                    node.Y = node.Y0 + disp_y
+                    x = node.X
+                    y = node.Y
+                    r = math.sqrt(x ** 2 + y ** 2)
+                    sin = y / r
+                    cos = x / r
+                    new_vx = - omega * r * sin
+                    new_vy =   omega * r * cos
+                    node.SetSolutionStepValue(SLIP_VELOCITY_X, new_vx)
+                    node.SetSolutionStepValue(SLIP_VELOCITY_Y, new_vy)
+                    #projection_module.InterpolateVelocity()       
+                    
+                    
                     times.append(time_dem)
                     radii.append(r)                    
                     vp_x = node.GetSolutionStepValue(VELOCITY_X)
@@ -802,7 +844,7 @@ while (time <= final_time):
                         custom_functions_tool.AppendIntegrandsImplicit(spheres_model_part)       
 
                     H_old[:] = H[:]
-                    if len(times) < 10:                        
+                    if len(times) < pp.CFD_DEM.n_init_basset_steps:                        
                         sim.CalculateBassetForce(basset_force, time_dem * ch_pp.omega)
                         node.SetSolutionStepValue(BASSET_FORCE_X, basset_force[0])
                         node.SetSolutionStepValue(BASSET_FORCE_Y, basset_force[1])    
@@ -866,7 +908,7 @@ while (time <= final_time):
             solver.Solve()        
             #if stop:
                 #para
-            results_creator.Record(spheres_model_part, node_to_follow_id, time_dem)    
+            #results_creator.Record(spheres_model_part, node_to_follow_id, time_dem)    
                 
         # Walls movement:
         mesh_motion.MoveAllMeshes(rigid_face_model_part, time, Dt)
