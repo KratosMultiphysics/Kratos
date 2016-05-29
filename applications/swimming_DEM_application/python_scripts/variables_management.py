@@ -99,9 +99,11 @@ def ConstructListsOfVariables(pp):
     pp.dem_vars += pp.coupling_dem_vars
     pp.dem_vars += [BUOYANCY]
     pp.dem_vars += [VELOCITY_OLD]
+
     if pp.CFD_DEM.IntegrationScheme == 'Hybrid_Bashforth':
         pp.dem_vars += [VELOCITY_OLD]
         pp.dem_vars += [ADDITIONAL_FORCE_OLD]
+        pp.dem_vars += [SLIP_VELOCITY]
 
     if pp.CFD_DEM.drag_force_type > 0 and  pp.CFD_DEM.add_each_hydro_force_option:
         pp.dem_vars += [DRAG_FORCE]
@@ -117,11 +119,6 @@ def ConstructListsOfVariables(pp):
 
     if pp.CFD_DEM.basset_force_type > 0 and  pp.CFD_DEM.add_each_hydro_force_option:
         pp.dem_vars += [BASSET_FORCE]
-        #pp.dem_vars += [BASSET_HISTORIC_INTEGRANDS]
-
-        if pp.CFD_DEM.basset_force_integration_type == 1:
-            pass
-            #pp.dem_vars += [HINSBERG_TAIL_CONTRIBUTIONS]
 
     # clusters variables
     pp.clusters_vars = []
