@@ -274,6 +274,44 @@ void InterpolateFromFluidMesh(
 
 //***************************************************************************************************************
 //***************************************************************************************************************
+void InterpolateVelocity(
+    ModelPart& r_fluid_model_part,
+    ModelPart& r_dem_model_part,
+    BinBasedFastPointLocator<TDim>& bin_of_objects_fluid)
+{
+    KRATOS_TRY
+
+    // setting interpolated variables to their default values
+    ResetDEMVariables(r_dem_model_part);
+
+    array_1d<double, TDim + 1> N;
+    const int max_results = 10000;
+    typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+
+    #pragma omp parallel for firstprivate(results, N)
+    for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); i++){
+        NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
+        Node<3>::Pointer p_particle = *(i_particle.base());
+
+        if (p_particle->IsNot(BLOCKED)){
+            Element::Pointer p_element;
+
+            // looking for the fluid element in which the DEM node falls
+            bool is_found = bin_of_objects_fluid.FindPointOnMesh(p_particle->Coordinates(), N, p_element, results.begin(), max_results);
+
+            // interpolating the variables
+
+            if (is_found){
+                p_particle->Set(INSIDE, true);
+                Interpolate(p_element, N, p_particle, VELOCITY, SLIP_VELOCITY);
+            }
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
 
 void UpdateOldVelocity(ModelPart& r_dem_model_part)
 {
