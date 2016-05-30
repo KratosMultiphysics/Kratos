@@ -50,74 +50,55 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 //
 
-
 // System includes 
-
 
 // External includes 
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/timer.hpp> 
-
-
-// Project includes
-#include "includes/define.h"
-#include "custom_python/add_custom_strategies_to_python.h"
-
 #include "spaces/ublas_space.h"
 
-//strategies
+// Project includes
+#include "custom_python/add_custom_strategies_to_python.h"
 
+//strategies
+#include "../DEM_application/custom_strategies/strategies/explicit_solver_strategy.h"
+#include "custom_strategies/strategies/adams_bashforth_strategy.h"
 
 //linear solvers
-
-
 //convergence criteria
 
-
 //schemes
-#include "solving_strategies/schemes/scheme.h"
-//#include "../DEM_application/DEM_application.h"
 #include "../DEM_application/custom_strategies/schemes/dem_integration_scheme.h"
+#include "solving_strategies/schemes/scheme.h"
+#include "add_custom_utilities_to_python.h"
 #include "custom_strategies/schemes/hybrid_bashforth_scheme.h"
 #include "custom_strategies/schemes/terminal_velocity_scheme.h"
+#include "custom_strategies/schemes/symplectic_euler_old_velocity_scheme.h"
 
 //parallel strategies
-//#include "custom_strategies/strategies/mpi_explicit_solver_strategy.h" //MPI CARLOS descomentar aixo
-
 //parallel schemes
-//#include "custom_strategies/schemes/mpi_foward_euler_scheme.h" //MPI CARLOS descomentar aixo
-
 //builder_and_solvers
-
 
 namespace Kratos
 {
-
 	namespace Python
 	{		
 		using namespace boost::python;
 
 		void  AddCustomStrategiesToPython()
 		{
-            class_< HybridBashforthScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
+            class_< HybridBashforthScheme, bases<DEMIntegrationScheme>, boost::noncopyable>
             ("HybridBashforthScheme", init<>());
 
-            class_< TerminalVelocityScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
+            class_< TerminalVelocityScheme, bases<DEMIntegrationScheme>, boost::noncopyable>
             ("TerminalVelocityScheme", init<>());
+
+            class_< SymplecticEulerOldVelocityScheme, bases<SymplecticEulerScheme>, boost::noncopyable>
+            ("SymplecticEulerOldVelocityScheme", init<>());
 		  
-           //MPI CARLOS decomentar de aqui....
-		  /*
-           typedef MpiExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > MpiExplicitSolverStrategyType;  
-           class_< MpiExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
-           (
-           "MpiExplicitSolverStrategy", init< ModelPart&, ModelPart&, int, double, double, double, double, double, double, bool, bool, bool, IntegrationScheme::Pointer>())
-                   .def("Initialize", &MpiExplicitSolverStrategyType::Initialized)
-                   .def("InitialCriticalTime", &MpiExplicitSolverStrategyType::InitialCriticalTime)
-           ;
-		  */
-		  // MPI CARLOS.... a aqui
-	   
+            class_< AdamsBashforthStrategy, bases<ExplicitSolverStrategy>, boost::noncopyable>
+            ("AdamsBashforthStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer, DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>());
 		}
 
 	}  // namespace Python.
