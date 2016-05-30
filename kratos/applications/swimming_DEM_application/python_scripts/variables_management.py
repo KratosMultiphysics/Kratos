@@ -38,8 +38,9 @@ def AddingExtraProcessInfoVariables(pp, fluid_model_part, dem_model_part):
 
     if pp.CFD_DEM.basset_force_type > 0:
         dem_model_part.ProcessInfo.SetValue(NUMBER_OF_INIT_BASSET_STEPS, pp.CFD_DEM.n_init_basset_steps)
-        dem_model_part.ProcessInfo.SetValue(DELTA_TIME_QUADRATURE, pp.CFD_DEM.delta_time_quadrature)
+        dem_model_part.ProcessInfo.SetValue(TIME_STEPS_PER_QUADRATURE_STEP, pp.CFD_DEM.time_steps_per_quadrature_step)
         dem_model_part.ProcessInfo.SetValue(LAST_TIME_APPENDING, 0.0)
+        dem_model_part.ProcessInfo.SetValue(QUADRATURE_ORDER, pp.CFD_DEM.quadrature_order)
 
 # constructing lists of variables to add
 # * Performing modifications to the input parameters for concistency (provisional until interface does it)
@@ -100,7 +101,7 @@ def ConstructListsOfVariables(pp):
     pp.dem_vars += [BUOYANCY]
     pp.dem_vars += [VELOCITY_OLD]
 
-    if pp.CFD_DEM.IntegrationScheme == 'Hybrid_Bashforth':
+    if pp.CFD_DEM.IntegrationScheme == 'Hybrid_Bashforth' or pp.CFD_DEM.basset_force_type > 0:
         pp.dem_vars += [VELOCITY_OLD]
         pp.dem_vars += [ADDITIONAL_FORCE_OLD]
         pp.dem_vars += [SLIP_VELOCITY]
