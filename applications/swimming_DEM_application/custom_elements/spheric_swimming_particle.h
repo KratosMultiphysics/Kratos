@@ -178,9 +178,9 @@ namespace Kratos
         double ComputeMeiLiftCoefficient(const double reynolds, const double reynolds_shear);
         double GetDaitcheCoefficient(int order, unsigned int n, unsigned int j);
         double GetDaitcheCoefficient(int order, unsigned int n, unsigned int j, const double last_h_over_h);
-        void CalculateFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, Vector& historic_integrands);
-        void CalculateFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, Vector& historic_integrands, const double last_h_over_h);
-        void CalculateExplicitFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, Vector& historic_integrands, const double last_h_over_h);
+        void CalculateFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, Vector& historic_integrands);
+        void CalculateFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, Vector& historic_integrands, const double last_h_over_h);
+        void CalculateExplicitFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, Vector& historic_integrands, const double last_h_over_h);
         void Initialize(const ProcessInfo& r_process_info);
         ///@name Static Member Variables
       ///@{
