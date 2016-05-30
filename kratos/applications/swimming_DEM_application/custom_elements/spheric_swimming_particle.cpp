@@ -425,18 +425,16 @@ double SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(int order, u
     }
 
     else if (order == 2){
-        if (j < n - 1){
+        if (j > 1){
             return result;
         }
-        else {
-            double sqrt_alpha = sqrt(last_h_over_h);
-            double sqrt_alpha_cubed = SWIMMING_POW_3(sqrt_alpha);
-            long double sqrt_2_over_15 = std::sqrt(static_cast<long double>(2)) / 15;
-            if (j == n - 1){
-                return result + sqrt_2_over_15 * (2 * sqrt_alpha_cubed + 5 * sqrt_alpha - 7);
+        else { // we need to correct for the last shorter interval (this only affects the last three integrands, i.e., the first three coeffs)
+
+            if (j == 1){
+                return result + 4 * pow(1 + last_h_over_h, 2.5) / (15 * last_h_over_h) - 16 * sqrt(2) / 15;
             }
             else {
-                return result + sqrt_2_over_15 * ((8 * last_h_over_h + 10) * sqrt_alpha / (last_h_over_h + 1) - 9);
+                return result + 4 * sqrt(last_h_over_h) * (5 + 4 * last_h_over_h) / (15 * (1 + last_h_over_h)) - 6.0 / 5;
             }
         }
     }
@@ -519,8 +517,8 @@ void SphericSwimmingParticle<TBaseElement>:: CalculateExplicitFractionalDerivati
         }
         fractional_derivative += coefficient * integrand;
     }
-    const array_1d<double, 3>& vel = node.FastGetSolutionStepValue(SLIP_VELOCITY);
-    const array_1d<double, 3>& fluid_vel = node.FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
+    const array_1d<double, 3>& vel = node.FastGetSolutionStepValue(VELOCITY);
+    const array_1d<double, 3>& fluid_vel = node.FastGetSolutionStepValue(SLIP_VELOCITY);
 
     present_coefficient = GetDaitcheCoefficient(order, n + 1, 0, last_h_over_h);
     fractional_derivative += present_coefficient * (fluid_vel - vel);
@@ -537,12 +535,12 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(NodeType& node, d
 
     else {
         const double basset_force_coeff = 6.0 * mRadius * mRadius * mFluidDensity * std::sqrt(KRATOS_M_PI * mKinematicViscosity);
+        double quadrature_delta_time = r_current_process_info[DELTA_TIME_QUADRATURE];
 
         if (r_current_process_info[TIME_STEPS] >= r_current_process_info[NUMBER_OF_INIT_BASSET_STEPS]){
             vector<double>& historic_integrands = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
             double delta_time = r_current_process_info[DELTA_TIME];
-            double quadrature_delta_time = r_current_process_info[DELTA_TIME_QUADRATURE];
-            double current_delta_time = r_current_process_info[TIME] - r_current_process_info[LAST_TIME_APPENDING];
+            double current_delta_time = r_current_process_info[TIME] + delta_time - r_current_process_info[LAST_TIME_APPENDING];
             array_1d<double, 3> fractional_derivative_of_slip_vel;
             double present_coefficient;
             const double sqrt_of_quad_h_q = std::sqrt(quadrature_delta_time);
@@ -554,10 +552,10 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(NodeType& node, d
             }
             else {
                 CalculateExplicitFractionalDerivative(node, fractional_derivative_of_slip_vel, present_coefficient, quadrature_delta_time, historic_integrands, last_h_over_h);
-                array_1d<double, 3> basset_term = fractional_derivative_of_slip_vel;
+                array_1d<double, 3> basset_term    = fractional_derivative_of_slip_vel;
                 const array_1d<double, 3>& vel     = node.FastGetSolutionStepValue(VELOCITY);
                 const array_1d<double, 3>& old_vel = node.FastGetSolutionStepValue(VELOCITY_OLD);
-                fractional_derivative_of_slip_vel -= mOldBassetTerm + mOldDaitchePresentCoefficient * (old_vel - vel); // the second term is the part that was treated implicitly in the last step
+                fractional_derivative_of_slip_vel -= mOldBassetTerm + mOldDaitchePresentCoefficient * (old_vel - vel); // the second term corresponds to the part that was treated implicitly in the last step minus a part that was added but did not correspond to the basset term
                 mOldBassetTerm = basset_term;
                 mOldDaitchePresentCoefficient = present_coefficient;
             }
@@ -569,7 +567,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(NodeType& node, d
         else {
             basset_force = node.FastGetSolutionStepValue(BASSET_FORCE);
             mOldDaitchePresentCoefficient = 0.0;
-            mOldBassetTerm = r_current_process_info[DELTA_TIME] * basset_force_coeff * basset_force;
+            mOldBassetTerm = sqrt(quadrature_delta_time) / basset_force_coeff * basset_force;
         }
     }
 }
