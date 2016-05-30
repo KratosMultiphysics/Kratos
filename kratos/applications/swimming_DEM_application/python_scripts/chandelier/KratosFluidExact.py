@@ -87,7 +87,7 @@ pp.CFD_DEM.basset_force_type = 1
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
 pp.CFD_DEM.basset_force_integration_type = 1
 pp.CFD_DEM.n_init_basset_steps = 4
-pp.CFD_DEM.delta_time_quadrature = 0.01
+pp.CFD_DEM.delta_time_quadrature = 0.02
 quadrature_order = 2
 #Z
 dem_fem_search = DEM_FEM_Search()
@@ -670,7 +670,8 @@ vx = ch_pp.u0
 vy = ch_pp.v0
 vx_old = vx
 vy_old = vy
-
+vel_x = vx
+vel_y = vy
 while (time <= final_time):
 
     time = time + Dt
@@ -804,13 +805,13 @@ while (time <= final_time):
                     node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_Y, ay)
                     node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_Z, 0.0)       
                     
-                    
+                    node.SetSolutionStepValue(VELOCITY_OLD_X, vel_x)
+                    node.SetSolutionStepValue(VELOCITY_OLD_Y, vel_y)
                     vel_x = node.GetSolutionStepValue(VELOCITY_X)
                     vel_y = node.GetSolutionStepValue(VELOCITY_Y)
                     vel_old_x = node.GetSolutionStepValue(VELOCITY_OLD_X)
                     vel_old_y = node.GetSolutionStepValue(VELOCITY_OLD_Y)   
-                    node.SetSolutionStepValue(VELOCITY_OLD_X, vel_x)
-                    node.SetSolutionStepValue(VELOCITY_OLD_Y, vel_y)
+
                     disp_x = node.GetSolutionStepValue(DISPLACEMENT_X)
                     disp_y = node.GetSolutionStepValue(DISPLACEMENT_Y)
                     delta_disp_x = 0.5 * Dt_DEM * (3 * vel_x - vel_old_x)
