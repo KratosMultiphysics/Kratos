@@ -64,7 +64,7 @@ else:
 # TO_DO: Ugly fix. Change it. I don't like this to be in the main...
 # Strategy object
 
-import sphere_strategy as SolverStrategy
+import swimming_sphere_strategy as SolverStrategy
 
 pp.CFD_DEM = DEM_parameters
 
@@ -87,10 +87,10 @@ pp.CFD_DEM.basset_force_type = 1
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
 pp.CFD_DEM.basset_force_integration_type = 1
 pp.CFD_DEM.n_init_basset_steps = 4
-pp.CFD_DEM.delta_time_quadrature = 0.02
-quadrature_order = 2
+pp.CFD_DEM.time_steps_per_quadrature_step = 2
+pp.CFD_DEM.delta_time_quadrature = pp.CFD_DEM.time_steps_per_quadrature_step * pp.CFD_DEM.MaxTimeStep
+pp.CFD_DEM.quadrature_order = 2
 #Z
-dem_fem_search = DEM_FEM_Search()
 
 # Import utilities from models
 procedures    = DEM_procedures.Procedures(DEM_parameters)
@@ -185,7 +185,10 @@ dem_fem_search = DEM_FEM_Search()
 if DEM_parameters.IntegrationScheme == 'Forward_Euler':
     scheme = ForwardEulerScheme()
 elif DEM_parameters.IntegrationScheme == 'Symplectic_Euler':
-    scheme = SymplecticEulerScheme()
+    if pp.CFD_DEM.basset_force_type > 0:
+        scheme = SymplecticEulerOldVelocityScheme() 
+    else:
+        scheme = SymplecticEulerScheme()
 elif DEM_parameters.IntegrationScheme == 'Taylor_Scheme':
     scheme = TaylorScheme()
 elif DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method':
@@ -201,7 +204,7 @@ if DEM_parameters.ElementType == "SwimmingNanoParticle":
     scheme = TerminalVelocityScheme()
 
 # Creating a solver object and set the search strategy
-solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
+solver = SolverStrategy.SwimmingStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
 
 # Add variables
 procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
@@ -333,7 +336,6 @@ fluid_solver = solver_module.CreateSolver(
     fluid_model_part, SolverSettings)
 
 Dt_DEM = DEM_parameters.MaxTimeStep
-Dt_quadrature = pp.CFD_DEM.delta_time_quadrature
 
 # activate turbulence model
 if(pp.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmaras"):
@@ -469,7 +471,7 @@ dem_physics_calculator = SphericElementGlobalPhysicsCalculator(spheres_model_par
 
 if DEM_parameters.coupling_level_type:
 
-    if DEM_parameters.meso_scale_length  <= 0.0 and spheres_model_part.NumberOfElements(0) > 0:
+    if DEM_parameters.meso_scale_length <= 0.0 and spheres_model_part.NumberOfElements(0) > 0:
         biggest_size = 2 * dem_physics_calculator.CalculateMaxNodalVariable(spheres_model_part, RADIUS)
         DEM_parameters.meso_scale_length  = 20 * biggest_size
 
@@ -576,7 +578,7 @@ stationarity_counter         = swim_proc.Counter(DEM_parameters.time_steps_per_s
 print_counter                = swim_proc.Counter(1, 1, out >= output_time)
 debug_info_counter           = swim_proc.Counter(DEM_parameters.debug_tool_cycle, 1, DEM_parameters.print_debug_info_option)
 particles_results_counter    = swim_proc.Counter(DEM_parameters.print_particles_results_cycle , 1, DEM_parameters.print_particles_results_option)
-quadrature_counter           = swim_proc.Counter(max(int(Dt_quadrature / Dt_DEM), 1) , 1)
+quadrature_counter           = swim_proc.Counter(pp.CFD_DEM.time_steps_per_quadrature_step, 1)
 #G
 
 ##############################################################################
@@ -654,7 +656,7 @@ results_creator = swim_proc.ResultsFileCreator(spheres_model_part, node_to_follo
 # NODE HISTORY RESULTS END 
 # CHANDELLIER END
 N_steps = int(final_time / Dt_DEM) + 20
-custom_functions_tool.FillDaitcheVectors(N_steps, quadrature_order)
+custom_functions_tool.FillDaitcheVectors(N_steps, pp.CFD_DEM.quadrature_order)
 node.SetSolutionStepValue(VELOCITY_Y, ch_pp.v0)
 node.SetSolutionStepValue(VELOCITY_Z, 2. / 9 * 9.8 * ch_pp.a ** 2 / (ch_pp.nu * ch_pp.rho_f) * (ch_pp.rho_f - ch_pp.rho_p))
 node.Fix(VELOCITY_Z)
@@ -666,12 +668,7 @@ radii = []
 node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, ch_pp.u0)
 node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, ch_pp.v0)
 node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, 0.0)   
-vx = ch_pp.u0
-vy = ch_pp.v0
-vx_old = vx
-vy_old = vy
-vel_x = vx
-vel_y = vy
+
 while (time <= final_time):
 
     time = time + Dt
@@ -776,12 +773,8 @@ while (time <= final_time):
             if DEM_parameters.coupling_scheme_type == "UpdatedDEM":
                 projection_module.ProjectFromNewestFluid()
 
-            else:
-                #if scheme = "Hybrid_Bashforth":
-                    #solver.Solve()
-          
-                projection_module.ProjectFromFluid((time_final_DEM_substepping - time_dem) / Dt)     
-        
+            else:         
+                projection_module.ProjectFromFluid((time_final_DEM_substepping - time_dem) / Dt)             
                 
                 for node in spheres_model_part.Nodes:
                     x = node.X
@@ -804,43 +797,32 @@ while (time <= final_time):
                     node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_X, ax)
                     node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_Y, ay)
                     node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_Z, 0.0)       
-                    
-                    node.SetSolutionStepValue(VELOCITY_OLD_X, vel_x)
-                    node.SetSolutionStepValue(VELOCITY_OLD_Y, vel_y)
-                    vel_x = node.GetSolutionStepValue(VELOCITY_X)
-                    vel_y = node.GetSolutionStepValue(VELOCITY_Y)
-                    vel_old_x = node.GetSolutionStepValue(VELOCITY_OLD_X)
-                    vel_old_y = node.GetSolutionStepValue(VELOCITY_OLD_Y)   
 
-                    disp_x = node.GetSolutionStepValue(DISPLACEMENT_X)
-                    disp_y = node.GetSolutionStepValue(DISPLACEMENT_Y)
-                    delta_disp_x = 0.5 * Dt_DEM * (3 * vel_x - vel_old_x)
-                    delta_disp_y = 0.5 * Dt_DEM * (3 * vel_y - vel_old_y)
-                    disp_x += delta_disp_x
-                    disp_y += delta_disp_y
-                    node.SetSolutionStepValue(DISPLACEMENT_X, disp_x)
-                    node.SetSolutionStepValue(DISPLACEMENT_Y, disp_y)
-                    node.X = node.X0 + disp_x
-                    node.Y = node.Y0 + disp_y
-                    x = node.X
-                    y = node.Y
-                    r = math.sqrt(x ** 2 + y ** 2)
-                    sin = y / r
-                    cos = x / r
-                    new_vx = - omega * r * sin
-                    new_vy =   omega * r * cos
-                    node.SetSolutionStepValue(SLIP_VELOCITY_X, new_vx)
-                    node.SetSolutionStepValue(SLIP_VELOCITY_Y, new_vy)
-                    #projection_module.InterpolateVelocity()       
-                    
-                    
+                    if DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
+                        solver.Solve() # only advance in space
+                        #projection_module.InterpolateVelocity()  
+                        x = node.X
+                        y = node.Y
+                        r = math.sqrt(x ** 2 + y ** 2)
+                        sin = y / r
+                        cos = x / r
+                        new_vx = - omega * r * sin
+                        new_vy =   omega * r * cos
+                        node.SetSolutionStepValue(SLIP_VELOCITY_X, new_vx)
+                        node.SetSolutionStepValue(SLIP_VELOCITY_Y, new_vy)       
+                    else:
+                        if pp.CFD_DEM.basset_force_type > 0:
+                            node.SetSolutionStepValue(SLIP_VELOCITY_X, vx)
+                            node.SetSolutionStepValue(SLIP_VELOCITY_Y, vy) 
+                        
                     times.append(time_dem)
-                    radii.append(r)                    
+                    radii.append(r)      
+                    
                     vp_x = node.GetSolutionStepValue(VELOCITY_X)
                     vp_y = node.GetSolutionStepValue(VELOCITY_Y)
                     vp_z = node.GetSolutionStepValue(VELOCITY_Z) 
                     integrands.append([vx - vp_x, vy - vp_y, 0.])                                                                          
-                    #print("\nintegrands",integrands)
+
                     if quadrature_counter.Tick():
                         custom_functions_tool.AppendIntegrandsImplicit(spheres_model_part)       
 
@@ -897,7 +879,6 @@ while (time <= final_time):
                         #print("Delta_H",Delta_H)
                         #print("present_coefficient", present_coefficient)
                         #print("my n",len(times) - 2)
-                        stop = True
                 
         # performing the time integration of the DEM part
 
@@ -907,8 +888,6 @@ while (time <= final_time):
 
         if not DEM_parameters.flow_in_porous_DEM_medium_option: # in porous flow particles remain static      
             solver.Solve()        
-            #if stop:
-                #para
             #results_creator.Record(spheres_model_part, node_to_follow_id, time_dem)    
                 
         # Walls movement:
