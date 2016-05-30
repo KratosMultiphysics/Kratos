@@ -208,6 +208,7 @@ namespace Kratos
       int mPorosityCorrectionType;
       int mHydrodynamicTorqueType;
       int mBrownianMotionType;
+      int mQuadratureOrder;
       double mFluidDensity;
       double mFluidFraction;
       double mKinematicViscosity;
