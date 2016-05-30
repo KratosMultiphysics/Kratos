@@ -19,7 +19,7 @@
 
 namespace Kratos {
 
-    class SymplecticEulerScheme : public DEMIntegrationScheme {
+    class KRATOS_API(DEM_APPLICATION) SymplecticEulerScheme : public DEMIntegrationScheme {
     public:
 
         typedef ModelPart::NodesContainerType NodesArrayType;

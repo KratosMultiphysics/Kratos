@@ -84,7 +84,7 @@ namespace Kratos {
         ModelPart::Pointer inlet_model_part;
     };
     
-    class ExplicitSolverStrategy {
+    class KRATOS_API(DEM_APPLICATION) ExplicitSolverStrategy {
     public:
 
         typedef ModelPart::NodesContainerType NodesArrayType;
