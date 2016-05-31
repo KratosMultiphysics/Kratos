@@ -83,13 +83,15 @@ pp.CFD_DEM.material_acceleration_calculation_type = 0
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
 pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
-pp.CFD_DEM.basset_force_type = 1
+pp.CFD_DEM.basset_force_type = 3
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
 pp.CFD_DEM.basset_force_integration_type = 1
 pp.CFD_DEM.n_init_basset_steps = 4
 pp.CFD_DEM.time_steps_per_quadrature_step = 2
 pp.CFD_DEM.delta_time_quadrature = pp.CFD_DEM.time_steps_per_quadrature_step * pp.CFD_DEM.MaxTimeStep
 pp.CFD_DEM.quadrature_order = 2
+pp.CFD_DEM.time_window = 2.0
+pp.CFD_DEM.number_of_exponentials = 1
 #Z
 
 # Import utilities from models
@@ -672,7 +674,11 @@ results_creator = swim_proc.ResultsFileCreator(spheres_model_part, node_to_follo
 # NODE HISTORY RESULTS END 
 # CHANDELLIER END
 N_steps = int(final_time / Dt_DEM) + 20
+
 custom_functions_tool.FillDaitcheVectors(N_steps, pp.CFD_DEM.quadrature_order)
+if pp.CFD_DEM.basset_force_type == 3:
+    custom_functions_tool.FillHinsbergVectors(spheres_model_part, pp.CFD_DEM.number_of_exponentials, pp.CFD_DEM.time_window)
+    
 node.SetSolutionStepValue(VELOCITY_Y, ch_pp.v0)
 node.SetSolutionStepValue(VELOCITY_Z, 2. / 9 * 9.8 * ch_pp.a ** 2 / (ch_pp.nu * ch_pp.rho_f) * (ch_pp.rho_f - ch_pp.rho_p))
 node.Fix(VELOCITY_Z)
@@ -840,7 +846,10 @@ while (time <= final_time):
                     integrands.append([vx - vp_x, vy - vp_y, 0.])                                                                          
 
                     if quadrature_counter.Tick():
-                        custom_functions_tool.AppendIntegrandsImplicit(spheres_model_part)       
+                        if pp.CFD_DEM.basset_force_type == 1 or pp.CFD_DEM.basset_force_type == 3:
+                            custom_functions_tool.AppendIntegrandsWindow(spheres_model_part) 
+                        elif pp.CFD_DEM.basset_force_type == 2:
+                            custom_functions_tool.AppendIntegrands(spheres_model_part)     
 
                     H_old[:] = H[:]
                     if len(times) < pp.CFD_DEM.n_init_basset_steps:                        
