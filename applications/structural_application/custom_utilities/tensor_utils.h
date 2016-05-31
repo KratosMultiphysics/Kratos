@@ -427,7 +427,7 @@ public:
             {
                 for (unsigned int k=0; k<size; k++)
                 {
-                    for (unsigned int l =0; j<size; l++)
+                    for (unsigned int l =0; l<size; l++)
                     {
                         Result_Tensor[i](j)= Result_Tensor[i](j) + Fourth_Tensor[i][j](k,l)*Second_Tensor[k](l);
                     }
