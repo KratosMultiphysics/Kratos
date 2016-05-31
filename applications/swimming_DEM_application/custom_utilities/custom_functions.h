@@ -178,6 +178,149 @@ void FillDaitcheVectors(int N, int order)
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
+void FillHinsbergVectors(ModelPart& r_model_part, int m, const double time_window)
+{
+    if (!m){
+        return;
+    }
+
+    std::cout << "\nFilling up vectors of coefficients for Hinsberg method with m = " << m << " ...";
+    double & t_win = SphericSwimmingParticle<SphericParticle>::mTimeWindow;
+    std::vector<double>& As = SphericSwimmingParticle<SphericParticle>::mAs;
+    std::vector<double>& Ts = SphericSwimmingParticle<SphericParticle>::mTs;
+    std::vector<double>& Alphas = SphericSwimmingParticle<SphericParticle>::mAlphas;
+    std::vector<double>& Betas = SphericSwimmingParticle<SphericParticle>::mBetas;
+
+    t_win = time_window;
+    As.resize(m);
+    Ts.resize(m);
+    Alphas.resize(m);
+    Betas.resize(m);
+
+    // Filling up common vectors
+
+    if (m == 1){
+        As[0] = 1.055699152;
+        Ts[0] = 1.656571537;
+    }
+
+    else if (m == 2){
+        As[0] = 0.595936548;
+        Ts[0] = 0.758737731;
+        As[1] = 0.765862627;
+        Ts[1] = 8.130844515;
+    }
+
+    else if (m == 2){
+        As[0] = 0.457076294;
+        Ts[0] = 0.523735503;
+        As[1] = 0.52049493;
+        Ts[1] = 3.463557465;
+        As[2] = 0.730234918;
+        Ts[2] = 35.209010652;
+    }
+
+    else if (m == 2){
+        As[0] = 0.378123792;
+        Ts[0] = 0.377168054;
+        As[1] = 0.420250984;
+        Ts[1] = 1.883663548;
+        As[2] = 0.515234662;
+        Ts[2] = 12.085534613;
+        As[3] = 0.747882647;
+        Ts[3] = 127.522988007;
+    }
+
+    else if (m == 2){
+        As[0] = 0.377585589;
+        Ts[0] = 0.361079805;
+        As[1] = 0.389837358;
+        Ts[1] = 1.758926107;
+        As[2] = 0.414949491;
+        Ts[2] = 8.640539541;
+        As[3] = 0.503856364;
+        Ts[3] = 57.10122954;
+        As[4] = 0.607332741;
+        Ts[4] = 448.083463993;
+    }
+
+    else if (m == 2){
+        As[0] = 0.338300743;
+        Ts[0] = 0.346126312;
+        As[1] = 0.345524197;
+        Ts[1] = 1.386290002;
+        As[2] = 0.368960284;
+        Ts[2] = 5.934710427;
+        As[3] = 0.368902685;
+        Ts[3] = 27.706980453;
+        As[4] = 0.432603065;
+        Ts[4] = 132.567423265;
+        As[5] = 0.771632072;
+        Ts[5] = 1371.238854372;
+    }
+
+    else if (m == 2){
+        As[0] = 0.28596607;
+        Ts[0] = 0.222165932;
+        As[1] = 0.296473585;
+        Ts[1] = 0.730394698;
+        As[2] = 0.323588913;
+        Ts[2] = 2.617417995;
+        As[3] = 0.360741831;
+        Ts[3] = 10.658764953;
+        As[4] = 0.417056856;
+        Ts[4] = 52.200869695;
+        As[5] = 0.514260513;
+        Ts[5] = 340.581473772;
+        As[6] = 0.746597256;
+        Ts[6] = 3862.218173227;
+    }
+
+    else if (m == 2){
+        As[0] = 0.2696042712;
+        Ts[0] = 0.1998261277;
+        As[1] = 0.275174292;
+        Ts[1] = 0.6095050731;
+        As[2] = 0.2954251215;
+        Ts[2] = 1.9749864724;
+        As[3] = 0.3228225133;
+        Ts[3] = 7.0542458787;
+        As[4] = 0.3602769943;
+        Ts[4] = 28.7011577713;
+        As[5] = 0.4159412411;
+        Ts[5] = 140.2284577358;
+        As[6] = 0.5121587415;
+        Ts[6] = 911.5441865997;
+        As[7] = 0.7402444628;
+        Ts[7] = 10266.8313490027;
+    }
+
+    else {
+        KRATOS_THROW_ERROR(std::invalid_argument, "Hinsberg's method is only implemented up to a number of exponentials m = 7.", m);
+    }
+
+    const double e = std::exp(1);
+
+    for (int i = 0; i < m; i++){
+        Alphas[i] = std::sqrt(e / Ts[i]);
+        Betas[i] = - 0.5 / Ts[i];
+    }
+
+    // Filling up the particles' individual vectors
+
+    for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+        vector<double>& hinsberg_tail_contributions = inode->GetValue(HINSBERG_TAIL_CONTRIBUTIONS);
+        hinsberg_tail_contributions.resize(3 * m);
+        for (int i = 0; i < 3 * m; i++){
+            hinsberg_tail_contributions[i] = 0.0;
+        }
+    }
+
+    std::cout << "...Finished filling up vectors of coefficients.\n";
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
 
 void AppendIntegrands(ModelPart& r_model_part)
 {
@@ -197,6 +340,8 @@ void AppendIntegrands(ModelPart& r_model_part)
         historic_integrands.insert_element(n + 2, 0.0);
     }
 }
+
+
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -244,7 +389,46 @@ void AppendIntegrandsImplicit(ModelPart& r_model_part)
         }
     }
 }
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
 
+void AppendIntegrandsWindow(ModelPart& r_model_part)
+{
+    ProcessInfo& process_info = r_model_part.GetProcessInfo();
+    double time = process_info[TIME];
+    const double t_win = SphericSwimmingParticle<SphericParticle>::mTimeWindow;
+    process_info[LAST_TIME_APPENDING] = time;
+
+    for (ElementIterator iparticle = r_model_part.ElementsBegin(); iparticle != r_model_part.ElementsEnd(); iparticle++){
+        Node<3>& node = iparticle->GetGeometry()[0];
+        vector<double>& historic_integrands             = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
+        const array_1d<double, 3>& fluid_vel_projected  = node.FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
+        const array_1d<double, 3>& particle_vel         = node.FastGetSolutionStepValue(VELOCITY);
+        array_1d<double, 3> slip_vel;
+        noalias(slip_vel)                               = fluid_vel_projected - particle_vel;
+        int n = historic_integrands.size();
+        double initial_time;
+        iparticle->Calculate(TIME, initial_time, process_info);
+        if (time - initial_time <= t_win){ // list of integrands still growing
+            historic_integrands.resize(n + 3);
+            historic_integrands.insert_element(n,     slip_vel[0]);
+            historic_integrands.insert_element(n + 1, slip_vel[1]);
+            historic_integrands.insert_element(n + 2, 0.0);
+        }
+
+        else { // forget oldest integrand
+            for (int i = 0; i < n / 3 - 1; i++){
+                historic_integrands[3 * i]     = historic_integrands[3 * (i + 1)];
+                historic_integrands[3 * i + 1] = historic_integrands[3 * (i + 1) + 1];
+                historic_integrands[3 * i + 2] = historic_integrands[3 * (i + 1) + 2];
+            }
+
+            historic_integrands.insert_element(n - 3, slip_vel[0]);
+            historic_integrands.insert_element(n - 2, slip_vel[1]);
+            historic_integrands.insert_element(n - 1, 0.0);
+        }
+    }
+}
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
