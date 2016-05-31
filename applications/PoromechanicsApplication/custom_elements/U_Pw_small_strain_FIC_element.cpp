@@ -119,11 +119,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::InitializeNonLinearIteration(Proc
         
         // Compute DtStress
         noalias(StrainVector) = prod(B,VelocityVector);
-        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
-        ConstitutiveParameters.Set(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY);
-        mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-        ConstitutiveParameters.Reset(ConstitutiveLaw::COMPUTE_STRESS);
-        ConstitutiveParameters.Reset(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY);
+        noalias(StressVector) = prod(ConstitutiveMatrix,StrainVector);
         this->SaveGPDtStress(DtStressContainer,StressVector,GPoint);
     }
     
@@ -187,11 +183,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::FinalizeNonLinearIteration(Proces
         
         // Compute DtStress
         noalias(StrainVector) = prod(B,VelocityVector);
-        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
-        ConstitutiveParameters.Set(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY);
-        mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-        ConstitutiveParameters.Reset(ConstitutiveLaw::COMPUTE_STRESS);
-        ConstitutiveParameters.Reset(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY);
+        noalias(StressVector) = prod(ConstitutiveMatrix,StrainVector);
         this->SaveGPDtStress(DtStressContainer,StressVector,GPoint);
     }
     
