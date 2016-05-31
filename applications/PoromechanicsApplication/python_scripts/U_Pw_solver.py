@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #importing the Kratos Library
 from KratosMultiphysics import *
+from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.PoromechanicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 #check that KratosMultiphysics was imported in the main script
@@ -75,11 +76,11 @@ def CreateSolver(model_part, config):
     beta = 0.25
     gamma = 0.5
     theta = 0.5 #(0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
+    rayleigh_m = 0.0
+    rayleigh_k = 0.0
     if(config.analysis_type == "Quasi-Static"):
         solution_scheme = NewmarkQuasistaticUPwScheme(model_part,beta,gamma,theta)
     elif(config.analysis_type == "Dynamic"):
-        rayleigh_m = 0.0
-        rayleigh_k = 0.0
         solution_scheme = NewmarkDynamicUPwScheme(model_part,beta,gamma,theta,rayleigh_m,rayleigh_k)
     
     #Setting the builder_and_solver
