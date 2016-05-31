@@ -4,7 +4,6 @@ domain_size = *GenData(Domain_Size,INT)
 NumberofThreads = *GenData(Number_of_threads,INT)
 delta_time = *GenData(Delta_Time)
 ending_time = *GenData(Ending_Time)
-fic_stabilization = *GenData(FIC_Stabilization)
 
 
 ## Solver Data ----------------------------------------------------------------------------------------------------------------
@@ -19,6 +18,7 @@ class SolverSettings:
     direct_solver = "*GenData(Direct_Solver_Type)"
     iterative_solver = "*GenData(Iterative_Solver_Type)"
     compute_reactions = *GenData(Write_Reactions)
+    fic_stabilization = *GenData(FIC_Stabilization)
 
 
 ## Boundary Conditions Data ---------------------------------------------------------------------------------------------------
