@@ -228,7 +228,9 @@ using namespace boost::python;
     // WARNING!!: function RecoverSuperconvergentGradient uses an algorithm under a GPL 3.0 licence which CANNOT be included in comercial products.
     class_<CustomFunctionsCalculator <3> > ("CustomFunctionsCalculator3D", init<>())
         .def("FillDaitcheVectors", &CustomFunctionsCalculator <3>::FillDaitcheVectors)
+        .def("FillHinsbergVectors", &CustomFunctionsCalculator <3>::FillHinsbergVectors)
         .def("AppendIntegrands", &CustomFunctionsCalculator <3>::AppendIntegrands)
+        .def("AppendIntegrandsWindow", &CustomFunctionsCalculator <3>::AppendIntegrandsWindow)
         .def("AppendIntegrandsImplicit", &CustomFunctionsCalculator <3>::AppendIntegrandsImplicit)
         .def("CalculatePressureGradient", &CustomFunctionsCalculator <3>::CalculatePressureGradient)
         .def("CalculateGradient", &CustomFunctionsCalculator <3>::CalculateGradient)
