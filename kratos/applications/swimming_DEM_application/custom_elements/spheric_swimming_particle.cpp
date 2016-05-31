@@ -452,7 +452,7 @@ template < class TBaseElement >\
 void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, vector<double>& historic_integrands)
 {
     fractional_derivative = ZeroVector(3);
-    const int N = historic_integrands.size() - 9;
+    const int N = historic_integrands.size() - 3;
     const int n = (int)N / 3;
     array_1d<double, 3> integrand;
 
@@ -466,9 +466,9 @@ void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivative(NodeT
         fractional_derivative += (coefficient - old_coefficient) * integrand;
     }
     const array_1d<double, 3>& fluid_vel = node.FastGetSolutionStepValue(SLIP_VELOCITY);
-    for (int i_comp = 0; i_comp < 3; i_comp++){
-        integrand[i_comp] = historic_integrands[N + 6 + i_comp];
-    }
+//    for (int i_comp = 0; i_comp < 3; i_comp++){
+//        integrand[i_comp] = historic_integrands[N + 6 + i_comp];
+//    }
     present_coefficient = GetDaitcheCoefficient(mQuadratureOrder, n + 1, 0);
     fractional_derivative += present_coefficient * (fluid_vel - node.FastGetSolutionStepValue(VELOCITY));
 }
@@ -478,7 +478,7 @@ template < class TBaseElement >\
 void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, vector<double>& historic_integrands, const double last_h_over_h)
 {
     fractional_derivative = ZeroVector(3);
-    const int N = historic_integrands.size() - 9;
+    const int N = historic_integrands.size() - 3;
     const int n = (int)N / 3;
     array_1d<double, 3> integrand;
 
@@ -492,9 +492,9 @@ void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivative(NodeT
         fractional_derivative += (coefficient - old_coefficient) * integrand;
     }
     const array_1d<double, 3>& fluid_vel = node.FastGetSolutionStepValue(SLIP_VELOCITY);
-    for (int i_comp = 0; i_comp < 3; i_comp++){
-        integrand[i_comp] = historic_integrands[N + 6 + i_comp];
-    }
+//    for (int i_comp = 0; i_comp < 3; i_comp++){
+//        integrand[i_comp] = historic_integrands[N + 6 + i_comp];
+//    }
     present_coefficient = GetDaitcheCoefficient(mQuadratureOrder, n + 1, 0, last_h_over_h);
     fractional_derivative += present_coefficient * (fluid_vel - integrand);
 }
@@ -504,7 +504,7 @@ template < class TBaseElement >\
 void SphericSwimmingParticle<TBaseElement>::CalculateExplicitFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, vector<double>& historic_integrands, const double last_h_over_h)
 {
     fractional_derivative = ZeroVector(3);
-    const int N = historic_integrands.size() - 9;
+    const int N = historic_integrands.size() - 3;
     const int n = (int)N / 3;
     array_1d<double, 3> integrand;
 
@@ -524,6 +524,82 @@ void SphericSwimmingParticle<TBaseElement>::CalculateExplicitFractionalDerivativ
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
+template < class TBaseElement >
+double SphericSwimmingParticle<TBaseElement>::Phi(const double x)
+{
+    if (fabs(x) < 1e-10){
+        return (std::exp(x) - 1) / x;
+    }
+    else {
+        return 1 + 0.5 * x + 1.0 / 6 * x * x;
+    }
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+template < class TBaseElement >
+void SphericSwimmingParticle<TBaseElement>::AddFdi(int order, array_1d<double, 3>& F, const double ti, const double beta, const double delta_time, vector<double>& historic_integrands)
+{
+    const double t_win = SphericSwimmingParticle<SphericParticle>::mTimeWindow;
+    double normalized_delta_time = 0.5 * delta_time / ti;
+
+    if (order == 2){
+        const double coeff = 2 * std::sqrt(std::exp(1) * ti) * std::exp(beta * t_win);
+        F[0] +=  coeff * (historic_integrands[0] * (1 - Phi(- normalized_delta_time)) + historic_integrands[3] * std::exp(- normalized_delta_time * (Phi(- normalized_delta_time) - 1)));
+        F[1] +=  coeff * (historic_integrands[1] * (1 - Phi(- normalized_delta_time)) + historic_integrands[4] * std::exp(- normalized_delta_time * (Phi(- normalized_delta_time) - 1)));
+        F[2] +=  coeff * (historic_integrands[2] * (1 - Phi(- normalized_delta_time)) + historic_integrands[5] * std::exp(- normalized_delta_time * (Phi(- normalized_delta_time) - 1)));
+    }
+
+    else if (order == 3){
+        return;
+    }
+
+    else {
+        return;
+    }
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+template < class TBaseElement >
+void SphericSwimmingParticle<TBaseElement>::AddFre(array_1d<double, 3>& old_Fi, const double beta, const double delta_time)
+{
+    const double exp_coeff = std::exp(beta * delta_time);
+    old_Fi[0] += exp_coeff * old_Fi[0];
+    old_Fi[1] += exp_coeff * old_Fi[1];
+    old_Fi[2] += exp_coeff * old_Fi[2];
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+template < class TBaseElement >
+void SphericSwimmingParticle<TBaseElement>::AddHinsbergTailContribution(NodeType& node, array_1d<double, 3>& basset_term, const double delta_time, vector<double>& historic_integrands)
+{
+    vector<double>& hinsberg_tail_contributions = node.GetValue(HINSBERG_TAIL_CONTRIBUTIONS);
+    array_1d<double, 3> F_tail = ZeroVector(3);
+    array_1d<double, 3> Fi = ZeroVector(3);
+    int m = hinsberg_tail_contributions.size() / 3;
+    const double sqrt_delta_time_inv = 1.0 / delta_time;
+
+    for (int i = 0; i < m; i++){
+        double ai = SphericSwimmingParticle<TBaseElement>::mAs[i];
+        double ti = SphericSwimmingParticle<TBaseElement>::mTs[i];
+        double beta = SphericSwimmingParticle<TBaseElement>::mBetas[i];
+        Fi[0] = hinsberg_tail_contributions[3 * i];
+        Fi[1] = hinsberg_tail_contributions[3 * i + 1];
+        Fi[2] = hinsberg_tail_contributions[3 * i + 2];
+        AddFre(Fi, beta, delta_time);
+        AddFdi(mQuadratureOrder, Fi, ti, beta, delta_time, historic_integrands);
+        hinsberg_tail_contributions[3 * i]     = Fi[0];
+        hinsberg_tail_contributions[3 * i + 1] = Fi[1];
+        hinsberg_tail_contributions[3 * i + 1] = Fi[2];
+        noalias(F_tail) += ai * Fi;
+    }
+
+    noalias(basset_term) += sqrt_delta_time_inv * F_tail;
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
 template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(NodeType& node, double &added_mass_coefficient, array_1d<double, 3>& basset_force, const ProcessInfo& r_current_process_info)
 {
@@ -555,6 +631,14 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(NodeType& node, d
                 const array_1d<double, 3>& vel     = node.FastGetSolutionStepValue(VELOCITY);
                 const array_1d<double, 3>& old_vel = node.FastGetSolutionStepValue(VELOCITY_OLD);
                 fractional_derivative_of_slip_vel -= mOldBassetTerm + mOldDaitchePresentCoefficient * (old_vel - vel); // the second term corresponds to the part that was treated implicitly in the last step minus a part that was added but did not correspond to the basset term
+
+                if (mBassetForceType == 3){
+                    KRATOS_WATCH('antes')
+                    KRATOS_WATCH(basset_term)
+                    AddHinsbergTailContribution(node, basset_term, quadrature_delta_time, historic_integrands);
+                    KRATOS_WATCH(basset_term)
+                }
+
                 mOldBassetTerm = basset_term;
                 mOldDaitchePresentCoefficient = present_coefficient;
             }
@@ -770,6 +854,10 @@ void SphericSwimmingParticle<TBaseElement>::AdditionalCalculate(const Variable<d
 
     else if (rVariable == DRAG_COEFFICIENT){
         Output = ComputeDragCoefficient(r_current_process_info);
+    }
+
+    else if (rVariable == TIME){
+        Output = mInitialTime;
     }
 }
 //**************************************************************************************************************************************************
@@ -1283,5 +1371,15 @@ template <typename TBaseElement>
 std::vector<double> SphericSwimmingParticle<TBaseElement>::mDns;
 template <typename TBaseElement>
 std::vector<double> SphericSwimmingParticle<TBaseElement>::mEns;
+template <typename TBaseElement>
+std::vector<double> SphericSwimmingParticle<TBaseElement>::mAs;
+template <typename TBaseElement>
+std::vector<double> SphericSwimmingParticle<TBaseElement>::mTs;
+template <typename TBaseElement>
+std::vector<double> SphericSwimmingParticle<TBaseElement>::mAlphas;
+template <typename TBaseElement>
+std::vector<double> SphericSwimmingParticle<TBaseElement>::mBetas;
+template <typename TBaseElement>
+double SphericSwimmingParticle<TBaseElement>::mTimeWindow;
 }  // namespace Kratos.
 

@@ -98,12 +98,19 @@ namespace Kratos
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const {}
+      // variables for Daitche's method
       static std::vector<double> mAjs;
       static std::vector<double> mBns;
       static std::vector<double> mCns;
       static std::vector<double> mDns;
       static std::vector<double> mEns;
       static bool mDaitcheVectorsAreFull;
+      // variables for Hinsberg's method
+      static double mTimeWindow;
+      static std::vector<double> mAs;
+      static std::vector<double> mTs;
+      static std::vector<double> mAlphas;
+      static std::vector<double> mBetas;
 
     protected:
         
@@ -181,6 +188,10 @@ namespace Kratos
         void CalculateFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, Vector& historic_integrands);
         void CalculateFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, Vector& historic_integrands, const double last_h_over_h);
         void CalculateExplicitFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, Vector& historic_integrands, const double last_h_over_h);
+        void AddHinsbergTailContribution(NodeType& node, array_1d<double, 3>& basset_term, const double delta_time, vector<double>& historic_integrands);
+        void AddFdi(int order, array_1d<double, 3>& F, const double ti, const double beta, const double delta_time, vector<double>& historic_integrands);
+        void AddFre(array_1d<double, 3>& old_Fi, const double beta, const double delta_time);
+        double Phi(const double x);
         void Initialize(const ProcessInfo& r_process_info);
         ///@name Static Member Variables
       ///@{
