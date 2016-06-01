@@ -577,7 +577,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(NodeType& node, d
                 CalculateExplicitFractionalDerivative(node, fractional_derivative_of_slip_vel, present_coefficient, historic_integrands, last_h_over_h);
 
                 if (mBassetForceType == 3){
-                    KRATOS_WATCH('antes')
+                    KRATOS_WATCH("antes")
                     KRATOS_WATCH(fractional_derivative_of_slip_vel)
                     AddHinsbergTailContribution(node, fractional_derivative_of_slip_vel, quadrature_delta_time, historic_integrands);
                     KRATOS_WATCH(fractional_derivative_of_slip_vel)
