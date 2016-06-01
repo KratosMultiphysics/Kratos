@@ -143,6 +143,11 @@ class ApplicationGenerator(TemplateRule):
 
         # Replace the tokens in the app files
         for root, subfolder, files in os.walk(appdir):
+
+            # This is important for some versions of python
+            if '.svn' in subfolder:
+                subfolder.remove('.svn')
+
             for f in files:
                 src = os.path.join(root, f)
                 fileName = src.split(".")
