@@ -83,7 +83,7 @@ pp.CFD_DEM.material_acceleration_calculation_type = 0
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
 pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
-pp.CFD_DEM.basset_force_type = 3
+pp.CFD_DEM.basset_force_type = 2
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
 pp.CFD_DEM.basset_force_integration_type = 1
 pp.CFD_DEM.n_init_basset_steps = 4
@@ -486,6 +486,10 @@ if DEM_parameters.coupling_level_type:
 # creating a custom functions calculator for the implementation of additional custom functions
 custom_functions_tool = swim_proc.FunctionsCalculator(pp)
 
+# creating a basset_force tool to perform the operations associated with the calculation of this force along the path of each particle
+if pp.CFD_DEM.basset_force_type > 0:
+    basset_force_tool = swim_proc.BassetForceTools()
+
 # creating a stationarity assessment tool
 stationarity_tool = swim_proc.StationarityAssessmentTool(DEM_parameters.max_pressure_variation_rate_tol , custom_functions_tool)
 
@@ -675,9 +679,9 @@ results_creator = swim_proc.ResultsFileCreator(spheres_model_part, node_to_follo
 # CHANDELLIER END
 N_steps = int(final_time / Dt_DEM) + 20
 
-custom_functions_tool.FillDaitcheVectors(N_steps, pp.CFD_DEM.quadrature_order)
+basset_force_tool.FillDaitcheVectors(N_steps, pp.CFD_DEM.quadrature_order)
 if pp.CFD_DEM.basset_force_type == 3:
-    custom_functions_tool.FillHinsbergVectors(spheres_model_part, pp.CFD_DEM.number_of_exponentials, pp.CFD_DEM.time_window)
+    basset_force_tool.FillHinsbergVectors(spheres_model_part, pp.CFD_DEM.number_of_exponentials, pp.CFD_DEM.time_window)
     
 node.SetSolutionStepValue(VELOCITY_Y, ch_pp.v0)
 node.SetSolutionStepValue(VELOCITY_Z, 2. / 9 * 9.8 * ch_pp.a ** 2 / (ch_pp.nu * ch_pp.rho_f) * (ch_pp.rho_f - ch_pp.rho_p))
@@ -847,9 +851,9 @@ while (time <= final_time):
 
                     if quadrature_counter.Tick():
                         if pp.CFD_DEM.basset_force_type == 1 or pp.CFD_DEM.basset_force_type == 3:
-                            custom_functions_tool.AppendIntegrandsWindow(spheres_model_part) 
+                            basset_force_tool.AppendIntegrandsWindow(spheres_model_part) 
                         elif pp.CFD_DEM.basset_force_type == 2:
-                            custom_functions_tool.AppendIntegrands(spheres_model_part)     
+                            basset_force_tool.AppendIntegrands(spheres_model_part)     
 
                     H_old[:] = H[:]
                     if len(times) < pp.CFD_DEM.n_init_basset_steps:                        
