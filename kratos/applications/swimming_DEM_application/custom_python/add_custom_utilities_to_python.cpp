@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/space_time_rule.h"
 #include "custom_utilities/space_time_set.h"
 #include "custom_utilities/field_utility.h"
+#include "custom_utilities/basset_force_tools.h"
 
 namespace Kratos{
 
@@ -212,7 +213,6 @@ using namespace boost::python;
         ;
 
     class_<CustomFunctionsCalculator <2> > ("CustomFunctionsCalculator2D", init<>())
-        .def("FillDaitcheVectors", &CustomFunctionsCalculator <2>::FillDaitcheVectors)
         .def("CalculatePressureGradient", &CustomFunctionsCalculator <2>::CalculatePressureGradient)
         .def("CalculateGradient", &CustomFunctionsCalculator <2>::CalculateGradient)
         .def("CalculateVectorLaplacian", &CustomFunctionsCalculator <2>::CalculateVectorLaplacian)
@@ -227,11 +227,6 @@ using namespace boost::python;
     //**********************************************************************************************************************************************
     // WARNING!!: function RecoverSuperconvergentGradient uses an algorithm under a GPL 3.0 licence which CANNOT be included in comercial products.
     class_<CustomFunctionsCalculator <3> > ("CustomFunctionsCalculator3D", init<>())
-        .def("FillDaitcheVectors", &CustomFunctionsCalculator <3>::FillDaitcheVectors)
-        .def("FillHinsbergVectors", &CustomFunctionsCalculator <3>::FillHinsbergVectors)
-        .def("AppendIntegrands", &CustomFunctionsCalculator <3>::AppendIntegrands)
-        .def("AppendIntegrandsWindow", &CustomFunctionsCalculator <3>::AppendIntegrandsWindow)
-        .def("AppendIntegrandsImplicit", &CustomFunctionsCalculator <3>::AppendIntegrandsImplicit)
         .def("CalculatePressureGradient", &CustomFunctionsCalculator <3>::CalculatePressureGradient)
         .def("CalculateGradient", &CustomFunctionsCalculator <3>::CalculateGradient)
         .def("CalculateVectorMaterialDerivative", &CustomFunctionsCalculator <3>::CalculateVectorMaterialDerivative)
@@ -245,6 +240,15 @@ using namespace boost::python;
         .def("CalculateTotalHydrodynamicForceOnFluid", &CustomFunctionsCalculator <3>::CalculateTotalHydrodynamicForceOnFluid)
         .def("CalculateGlobalFluidVolume", &CustomFunctionsCalculator <3>::CalculateGlobalFluidVolume)
         ;
+    //**********************************************************************************************************************************************
+
+    class_<BassetForceTools> ("BassetForceTools", init<>())
+        .def("FillDaitcheVectors", &BassetForceTools::FillDaitcheVectors)
+        .def("FillHinsbergVectors", &BassetForceTools::FillHinsbergVectors)
+        .def("AppendIntegrands", &BassetForceTools::AppendIntegrands)
+        .def("AppendIntegrandsWindow", &BassetForceTools::AppendIntegrandsWindow)
+        .def("AppendIntegrandsImplicit", &BassetForceTools::AppendIntegrandsImplicit)
+        ;
 
     class_<BinBasedDEMFluidCoupledMapping <2, SphericParticle> >
             ("BinBasedDEMFluidCoupledMapping2D", init<double, int, int, int, int>())
@@ -255,7 +259,6 @@ using namespace boost::python;
         .def("AddDEMCouplingVariable", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::AddDEMCouplingVariable)
         .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::AddFluidCouplingVariable)
         ;
-    //**********************************************************************************************************************************************
 
     class_<BinBasedDEMFluidCoupledMapping <2, NanoParticle> >
             ("BinBasedNanoDEMFluidCoupledMapping2D", init<double, int, int, int, int>())
