@@ -321,10 +321,52 @@ void FillHinsbergVectors(ModelPart& r_model_part, int m, const double time_windo
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
+double Phi(const double x)
+{
+    if (fabs(x) < 1e-10){
+        return (std::exp(x) - 1) / x;
+    }
+    else {
+        return 1 + 0.5 * x + 1.0 / 6 * x * x;
+    }
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+void AddFdi(int order, array_1d<double, 3>& F, const double t_win, const double ti, const double beta, const double delta_time, vector<double>& historic_integrands)
+{
+    double normalized_delta_time = 0.5 * delta_time / ti;
+
+    if (order == 2){
+        const double coeff = 2 * std::sqrt(std::exp(1) * ti) * std::exp(beta * t_win);
+        F[0] +=  coeff * (historic_integrands[0] * (1 - Phi(- normalized_delta_time)) + historic_integrands[3] * std::exp(- normalized_delta_time) * (Phi(normalized_delta_time) - 1));
+        F[1] +=  coeff * (historic_integrands[1] * (1 - Phi(- normalized_delta_time)) + historic_integrands[4] * std::exp(- normalized_delta_time) * (Phi(normalized_delta_time) - 1));
+        F[2] +=  coeff * (historic_integrands[2] * (1 - Phi(- normalized_delta_time)) + historic_integrands[5] * std::exp(- normalized_delta_time) * (Phi(normalized_delta_time) - 1));
+    }
+
+    else if (order == 3){
+        return;
+    }
+
+    else {
+        return;
+    }
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+void AddFre(array_1d<double, 3>& old_Fi, const double beta, const double delta_time)
+{
+    const double exp_coeff = std::exp(beta * delta_time);
+    old_Fi[0] = exp_coeff * old_Fi[0];
+    old_Fi[1] = exp_coeff * old_Fi[1];
+    old_Fi[2] = exp_coeff * old_Fi[2];
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
 
 void AppendIntegrands(ModelPart& r_model_part)
 {
-    r_model_part.GetProcessInfo()[LAST_TIME_APPENDING] = r_model_part.GetProcessInfo()[TIME];
+    ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+    r_process_info[LAST_TIME_APPENDING] = r_model_part.GetProcessInfo()[TIME];
 
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
         vector<double>& historic_integrands             = inode->GetValue(BASSET_HISTORIC_INTEGRANDS);
@@ -341,14 +383,13 @@ void AppendIntegrands(ModelPart& r_model_part)
     }
 }
 
-
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
 void AppendIntegrandsImplicit(ModelPart& r_model_part)
 {
-    r_model_part.GetProcessInfo()[LAST_TIME_APPENDING] = r_model_part.GetProcessInfo()[TIME];
+    ProcessInfo& process_info = r_model_part.GetProcessInfo();
+    process_info[LAST_TIME_APPENDING] = r_model_part.GetProcessInfo()[TIME];
 
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
         vector<double>& historic_integrands             = inode->GetValue(BASSET_HISTORIC_INTEGRANDS);
@@ -394,10 +435,11 @@ void AppendIntegrandsImplicit(ModelPart& r_model_part)
 
 void AppendIntegrandsWindow(ModelPart& r_model_part)
 {
-    ProcessInfo& process_info = r_model_part.GetProcessInfo();
-    double time = process_info[TIME];
+    ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+    double time = r_process_info[TIME];
+    const double delta_time = time - r_process_info[LAST_TIME_APPENDING];
+    r_process_info[LAST_TIME_APPENDING] = time;
     const double t_win = SphericSwimmingParticle<SphericParticle>::mTimeWindow;
-    process_info[LAST_TIME_APPENDING] = time;
 
     for (ElementIterator iparticle = r_model_part.ElementsBegin(); iparticle != r_model_part.ElementsEnd(); iparticle++){
         Node<3>& node = iparticle->GetGeometry()[0];
@@ -408,7 +450,7 @@ void AppendIntegrandsWindow(ModelPart& r_model_part)
         noalias(slip_vel)                               = fluid_vel_projected - particle_vel;
         int n = historic_integrands.size();
         double initial_time;
-        iparticle->Calculate(TIME, initial_time, process_info);
+        iparticle->Calculate(TIME, initial_time, r_process_info);
         if (time - initial_time <= t_win){ // list of integrands still growing
             historic_integrands.resize(n + 3);
             historic_integrands.insert_element(n,     slip_vel[0]);
@@ -426,6 +468,41 @@ void AppendIntegrandsWindow(ModelPart& r_model_part)
             historic_integrands.insert_element(n - 3, slip_vel[0]);
             historic_integrands.insert_element(n - 2, slip_vel[1]);
             historic_integrands.insert_element(n - 1, 0.0);
+        }
+    }
+
+    if (r_process_info[BASSET_FORCE_TYPE] == 3){
+        const std::vector<double>& Ts    = SphericSwimmingParticle<SphericParticle>::mTs;
+        const std::vector<double>& Betas = SphericSwimmingParticle<SphericParticle>::mBetas;
+        const double t_win               = SphericSwimmingParticle<SphericParticle>::mTimeWindow;
+
+        const int order = r_process_info[QUADRATURE_ORDER];
+
+        for (ElementIterator iparticle = r_model_part.ElementsBegin(); iparticle != r_model_part.ElementsEnd(); iparticle++){
+            Node<3>& node = iparticle->GetGeometry()[0];
+            double initial_time;
+            iparticle->Calculate(TIME, initial_time, r_process_info);
+
+            if (time - initial_time > t_win){
+                vector<double>& historic_integrands         = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
+                vector<double>& hinsberg_tail_contributions = node.GetValue(HINSBERG_TAIL_CONTRIBUTIONS);
+                int m = hinsberg_tail_contributions.size() / 3;
+                array_1d<double, 3> F_tail = ZeroVector(3);
+                array_1d<double, 3> Fi = ZeroVector(3);
+
+                for (int i = 0; i < m; i++){
+                    double ti = Ts[i];
+                    double beta = Betas[i];
+                    Fi[0] = hinsberg_tail_contributions[3 * i];
+                    Fi[1] = hinsberg_tail_contributions[3 * i + 1];
+                    Fi[2] = hinsberg_tail_contributions[3 * i + 2];
+                    AddFre(Fi, beta, delta_time);
+                    AddFdi(order, Fi, t_win, ti, beta, delta_time, historic_integrands);
+                    hinsberg_tail_contributions[3 * i]     = Fi[0];
+                    hinsberg_tail_contributions[3 * i + 1] = Fi[1];
+                    hinsberg_tail_contributions[3 * i + 2] = Fi[2];
+                }
+            }
         }
     }
 }
