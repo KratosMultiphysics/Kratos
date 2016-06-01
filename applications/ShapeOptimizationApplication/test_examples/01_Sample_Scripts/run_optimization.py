@@ -1,7 +1,7 @@
 # Import necessary Kratos libraries
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
-import optimization_settings as settings
+import optimization_settings as opt_settings
 
 print("\n> ==============================================================================================================")
 print("> Initializing optimizer")
@@ -94,7 +94,7 @@ def analyzer(X,controls,iterator,response):
 design_surface = ModelPart("design_surface")
 
 # Create an optimizer object 
-optimizer = optimizer_factory.CreateOptimizer(design_surface,settings.KratosShapeSettings,analyzer)
+optimizer = optimizer_factory.CreateOptimizer(design_surface,opt_settings,analyzer)
 
 print("\n> ==============================================================================================================")
 print("> Starting optimization")

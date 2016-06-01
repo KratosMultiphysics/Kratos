@@ -130,11 +130,11 @@ class VertexMorphingMethod:
         # Model parameters 
         self.opt_model_part = opt_model_part
 
-        # Create mapper according to map between geometry and design space 
+        # Create mapper to map between geometry and design space 
         max_nodes_affected = 10000 # Specification required by spatial (tree) search 
                                    # Defines maximum nodes that may be considered within the filter radius
         self.mapper = VertexMorphingMapper( self.opt_model_part,
-                                            config.weighting_function,
+                                            config.filter_function,
                                             config.filter_size,
                                             max_nodes_affected )
 

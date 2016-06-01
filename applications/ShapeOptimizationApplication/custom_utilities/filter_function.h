@@ -44,8 +44,8 @@
 //
 // ==============================================================================
 
-#ifndef WEIGHTING_FUNCTION_H
-#define WEIGHTING_FUNCTION_H
+#ifndef FILTER_FUNCTION_H
+#define FILTER_FUNCTION_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -104,7 +104,7 @@ namespace Kratos
 
 */
 
-class WeightingFunction
+class FilterFunction
 {
 public:
     ///@name Type Definitions
@@ -115,15 +115,15 @@ public:
     // ==========================================================================
     typedef array_1d<double,3> array_3d;
 
-    /// Pointer definition of WeightingFunction
-    KRATOS_CLASS_POINTER_DEFINITION(WeightingFunction);
+    /// Pointer definition of FilterFunction
+    KRATOS_CLASS_POINTER_DEFINITION(FilterFunction);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    WeightingFunction( std::string weighting_function_type, double filter_size )
+    FilterFunction( std::string filter_function_type, double filter_size )
         :m_filter_size(filter_size)
     {
         // Set precision for output
@@ -133,12 +133,12 @@ public:
 
         // Type 1: Gaussian function
         std::string gaussian("gaussian");
-        if(weighting_function_type.compare(gaussian)==0)
-            m_weighting_function_type = 1;
+        if(filter_function_type.compare(gaussian)==0)
+            m_filter_function_type = 1;
     }
 
     /// Destructor.
-    virtual ~WeightingFunction()
+    virtual ~FilterFunction()
     {
     }
 
@@ -163,7 +163,7 @@ public:
 
         // Depending on which weighting function is chosen, compute weight
         double weight_ij = 0.0;
-        switch(m_weighting_function_type)
+        switch(m_filter_function_type)
         {
 
         case 1:
@@ -203,13 +203,13 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "WeightingFunction";
+        return "FilterFunction";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "WeightingFunction";
+        rOStream << "FilterFunction";
     }
 
     /// Print object's data.
@@ -272,7 +272,7 @@ private:
     ///@{
 
     double m_filter_size;
-    unsigned int m_weighting_function_type;
+    unsigned int m_filter_function_type;
 
     ///@}
     ///@name Private Operators
@@ -299,15 +299,15 @@ private:
     ///@{
 
     /// Assignment operator.
-//      WeightingFunction& operator=(WeightingFunction const& rOther);
+//      FilterFunction& operator=(FilterFunction const& rOther);
 
     /// Copy constructor.
-//      WeightingFunction(WeightingFunction const& rOther);
+//      FilterFunction(FilterFunction const& rOther);
 
 
     ///@}
 
-}; // Class WeightingFunction
+}; // Class FilterFunction
 
 ///@}
 
@@ -324,4 +324,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // WEIGHTING_FUNCTION_H
+#endif // FILTER_FUNCTION_H
