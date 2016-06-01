@@ -17,6 +17,7 @@
 // External includes
 
 // Project includes
+#include "includes/model_part.h"
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
@@ -79,9 +80,12 @@ KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( LOCAL_POINT_MOMENT )
 /* Torque conditions */
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( POINT_TORQUE )
 /* Mortar method */
-KRATOS_DEFINE_VARIABLE( Condition::Pointer, CONTACT_POINTER_MASTER )  // A pointer to the master surfaces
-KRATOS_DEFINE_VARIABLE( Condition::Pointer, CONTACT_POINTER_SLAVE  )  // A pointer to the slave surfaces
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( CONTACT_MESH_TYING_FORCE ) // The "force" resulting from contact
+KRATOS_DEFINE_VARIABLE( Vector3, CONTACT_NORMAL )                            // The normal of the condition 
+KRATOS_DEFINE_VARIABLE( double, CONTACT_AREA )                               // The projected area between the two conditions
+KRATOS_DEFINE_VARIABLE( double, CONTACT_GAP )                                // The gap between the conditions
+KRATOS_DEFINE_VARIABLE( Element::Pointer, ELEMENT_POINTER )                  // A pointer to the element belonging to this condition
+KRATOS_DEFINE_VARIABLE( std::vector<Condition*>*, SEGMENT_CONTACT_POINTERS ) // A vector of pointers to the conditions
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( CONTACT_MESH_TYING_FORCE )        // The "force" resulting from contact
 
 // Adding the SPRISM EAS variables
 KRATOS_DEFINE_VARIABLE(double, ALPHA_EAS);
