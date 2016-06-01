@@ -1,6 +1,6 @@
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author:  $
+//   Last Modified by:    $Author: Guillermo Casas, gcasas@cimne.upc.edu $
 //   Date:                $Date:  $
 //   Revision:            $Revision: 1.3 $
 //
