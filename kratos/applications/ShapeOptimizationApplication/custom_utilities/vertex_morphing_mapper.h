@@ -78,7 +78,7 @@
 #include "../../kratos/utilities/binbased_fast_point_locator.h"
 #include "../../kratos/utilities/normal_calculation_utils.h"
 #include "shape_optimization_application.h"
-#include "weighting_function.h"
+#include "filter_function.h"
 #include "../../kratos/spaces/ublas_space.h"
 
 // ==============================================================================
@@ -144,11 +144,11 @@ public:
 
     /// Default constructor.
     VertexMorphingMapper( ModelPart& model_part,
-                             std::string weighting_function_type,
+                             std::string filter_function_type,
                              double filter_size,
                              const int max_nodes_affected )
         : mr_opt_model_part(model_part),
-          m_weighting_function_type(weighting_function_type),
+          m_filter_function_type(filter_function_type),
           m_filter_size(filter_size),
           m_max_nodes_affected(max_nodes_affected),
           m_number_of_design_variables(model_part.Nodes().size())
@@ -219,7 +219,7 @@ public:
         tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), m_max_nodes_affected);
 
         // Prepare Weighting function to be used in the mapping
-        WeightingFunction weighting_function( m_weighting_function_type, m_filter_size );
+       FilterFunction filter_function( m_filter_function_type, m_filter_size );
 
         // Loop over all design variables
         for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
@@ -254,7 +254,7 @@ public:
 
                 // Computation of weight according specified weighting function
                 // Note that we did not compute the square root of the distances to save this expensive computation (it is not needed here)
-                double Aij = weighting_function.compute_weight(i_coord,j_coord);
+                double Aij = filter_function.compute_weight(i_coord,j_coord);
 
                 // Multiplication by the node normal (nodal director)
                 // In this way we implicitly preserve the in-plane mesh quality (pure Heuristic)
@@ -542,7 +542,7 @@ private:
     // Initialized by class constructor
     // ==============================================================================
     ModelPart& mr_opt_model_part;
-    std::string m_weighting_function_type;
+    std::string m_filter_function_type;
     const double m_filter_size;
     const int m_max_nodes_affected;
     const unsigned int m_number_of_design_variables;

@@ -1,6 +1,6 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
-import optimization_settings as settings
+import optimization_settings as opt_settings
 import sys
 
 # This test example is from M. Hojjat, E. Stavropoulou, 
@@ -61,6 +61,6 @@ def Analyzer(X, controls, iterator, response):
 
 import optimizer_factory
 
-optimizer = optimizer_factory.CreateOptimizer(design_surface,settings.KratosShapeSettings,Analyzer)
+optimizer = optimizer_factory.CreateOptimizer(design_surface,opt_settings,Analyzer)
 
 optimizer.optimize()
