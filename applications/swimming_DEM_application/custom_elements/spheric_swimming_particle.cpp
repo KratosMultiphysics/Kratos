@@ -1308,27 +1308,38 @@ void SphericSwimmingParticle<TBaseElement>::MemberDeclarationFirstStep(const Pro
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template class SphericSwimmingParticle<SphericParticle>; //Explicit Instantiation
-template class SphericSwimmingParticle<NanoParticle>; //Explicit Instantiation
-template <typename TBaseElement>
-std::vector<double> SphericSwimmingParticle<TBaseElement>::mAjs;
-template <typename TBaseElement>
-std::vector<double> SphericSwimmingParticle<TBaseElement>::mBns;
-template <typename TBaseElement>
-std::vector<double> SphericSwimmingParticle<TBaseElement>::mCns;
-template <typename TBaseElement>
-std::vector<double> SphericSwimmingParticle<TBaseElement>::mDns;
-template <typename TBaseElement>
-std::vector<double> SphericSwimmingParticle<TBaseElement>::mEns;
-template <typename TBaseElement>
-std::vector<double> SphericSwimmingParticle<TBaseElement>::mAs;
-template <typename TBaseElement>
-std::vector<double> SphericSwimmingParticle<TBaseElement>::mTs;
-template <typename TBaseElement>
-std::vector<double> SphericSwimmingParticle<TBaseElement>::mAlphas;
-template <typename TBaseElement>
-std::vector<double> SphericSwimmingParticle<TBaseElement>::mBetas;
-template <typename TBaseElement>
-double SphericSwimmingParticle<TBaseElement>::mTimeWindow;
-}  // namespace Kratos.
+template class SphericSwimmingParticle<SphericParticle>;  //Explicit Instantiation
+template class SphericSwimmingParticle<NanoParticle>;     //Explicit Instantiation
 
+// Definition ( this probably neds to me moved to the .h file )
+template <typename T> std::vector<double> SphericSwimmingParticle<T>::mAjs;
+template <typename T> std::vector<double> SphericSwimmingParticle<T>::mBns;
+template <typename T> std::vector<double> SphericSwimmingParticle<T>::mCns;
+template <typename T> std::vector<double> SphericSwimmingParticle<T>::mDns;
+template <typename T> std::vector<double> SphericSwimmingParticle<T>::mEns;
+template <typename T> std::vector<double> SphericSwimmingParticle<T>::mAs;
+template <typename T> std::vector<double> SphericSwimmingParticle<T>::mTs;
+template <typename T> std::vector<double> SphericSwimmingParticle<T>::mAlphas;
+template <typename T> std::vector<double> SphericSwimmingParticle<T>::mBetas;
+template <typename T> double SphericSwimmingParticle<T>::mTimeWindow;
+
+// Instantiation
+#define INSTANTIATE_SPHERIC_SWIMMING(_T)                          \
+template std::vector<double> SphericSwimmingParticle<_T>::mAjs;   \
+template std::vector<double> SphericSwimmingParticle<_T>::mBns;   \
+template std::vector<double> SphericSwimmingParticle<_T>::mCns;   \
+template std::vector<double> SphericSwimmingParticle<_T>::mDns;   \
+template std::vector<double> SphericSwimmingParticle<_T>::mEns;   \
+template std::vector<double> SphericSwimmingParticle<_T>::mAs;    \
+template std::vector<double> SphericSwimmingParticle<_T>::mTs;    \
+template std::vector<double> SphericSwimmingParticle<_T>::mAlphas;\
+template std::vector<double> SphericSwimmingParticle<_T>::mBetas; \
+template double SphericSwimmingParticle<_T>::mTimeWindow;
+
+INSTANTIATE_SPHERIC_SWIMMING(SphericParticle)
+INSTANTIATE_SPHERIC_SWIMMING(NanoParticle)
+
+#undef INSTANTIATE_SPHERIC_SWIMMING
+
+
+}  // namespace Kratos.
