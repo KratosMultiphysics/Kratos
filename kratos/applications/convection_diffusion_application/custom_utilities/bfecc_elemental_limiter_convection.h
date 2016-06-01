@@ -212,7 +212,7 @@ public:
             array_1d<double,3> fwdPos = i_element->GetGeometry().Center();
             array_1d<double,3> vel = ZeroVector(3);
 
-			for(int j = 0 ; j < element_geometry.size(); j++){
+			for(unsigned int j = 0 ; j < element_geometry.size(); j++){
 				for(int k = 0 ; k < 3; k++){
 					vel[k] += element_geometry[j].GetSolutionStepValue(conv_var)[k] / element_geometry.size();
 				}
@@ -221,7 +221,7 @@ public:
             bool is_found = ConvectBySubstepping(dt,fwdPos,vel, N, pelement, result_begin, max_results, 1.0, substeps);//seeking forwards
 			double e1 = 0.00f;
 			
-			for(int j = 0 ; j < element_geometry.size(); j++){ 
+			for(unsigned int j = 0 ; j < element_geometry.size(); j++){ 
 				e1 += element_geometry[j].GetValue(ERROR_1);
 			}
 			e1 /= element_geometry.size(); 
@@ -236,7 +236,7 @@ public:
                 }
 				double solution_in_center = 0;
 				//Computing error2 as e2 = rVar(n)-(phi2+e1)
-				for(int j = 0 ; j < element_geometry.size(); j++){
+				for(unsigned int j = 0 ; j < element_geometry.size(); j++){
 					solution_in_center += i_element->GetGeometry()[j].FastGetSolutionStepValue(rVar,1);
 				}
 				solution_in_center /= element_geometry.size(); 
@@ -244,7 +244,7 @@ public:
 				e2 = solution_in_center - (phi2 + e1);
 
 				if(std::abs(e2) > std::abs(e1)){
-					for(int j = 0 ; j < element_geometry.size(); j++){
+					for(unsigned int j = 0 ; j < element_geometry.size(); j++){
 						element_geometry[j].GetValue(ERROR) = minmod(e1,element_geometry[j].GetValue(ERROR_1));
 					}
 				}
