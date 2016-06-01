@@ -181,6 +181,7 @@ public:
         //resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
 
+#ifndef _OPENMP
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
@@ -192,7 +193,6 @@ public:
         //double StartTime = GetTickCount();
 
         // assemble all elements
-#ifndef _OPENMP
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
@@ -668,13 +668,13 @@ public:
         //creating an array of lock variables of the size of the system vector
         unsigned int b_size = b.size();
         std::vector< omp_lock_t > lock_array(b_size);
-        for (int i = 0; i < b_size; i++)
+        for (unsigned int i = 0; i < b_size; i++)
             omp_init_lock(&lock_array[i]);
         
         //creating an array of lock variables of the size of the reactions vector
         unsigned int reactions_size = (*(BaseType::mpReactionsVector)).size();
         std::vector< omp_lock_t > lock_array_reactions(reactions_size);
-        for (int i = 0; i < reactions_size; i++)
+        for (unsigned int i = 0; i < reactions_size; i++)
             omp_init_lock(&lock_array_reactions[i]);
 
         //create a partition of the element array
@@ -746,10 +746,10 @@ public:
         if (this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
             std::cout << "time: " << stop_prod - start_prod << std::endl;
 
-        for (int i = 0; i < b_size; i++)
+        for (unsigned int i = 0; i < b_size; i++)
             omp_destroy_lock(&lock_array[i]);
 
-        for (int i = 0; i < reactions_size; i++)
+        for (unsigned int i = 0; i < reactions_size; i++)
             omp_destroy_lock(&lock_array_reactions[i]);
         
         if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
