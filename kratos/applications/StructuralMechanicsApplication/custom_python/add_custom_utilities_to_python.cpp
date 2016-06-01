@@ -24,7 +24,7 @@
 
 //Utilities
 #include "custom_utilities/sprism_neighbours.hpp"
-//#include "custom_utilities/local_sprism_refine_mesh.hpp"
+#include "custom_utilities/tree_contact_search.h"
 
 namespace Kratos
 {
@@ -33,7 +33,6 @@ namespace Python
 void  AddCustomUtilitiesToPython()
 {
     using namespace boost::python;
-
 
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -44,10 +43,21 @@ void  AddCustomUtilitiesToPython()
     .def("ClearNeighbours",&SprismNeighbours::ClearNeighbours)
     ;
     
-//    class_<Local_Refine_SPrism_Mesh, boost::noncopyable >
-//    ("LocalRefineSPrismMesh", init<ModelPart&>())
-//    .def("LocalRefineMesh", &Local_Refine_SPrism_Mesh::Local_Refine_Mesh)
-//    ;
+    class_<TreeContactSearch>("TreeContactSearch", init<ModelPart&, ModelPart&, const unsigned int>())
+    .def("InitializeNTNConditions",&TreeContactSearch::InitializeNTNConditions)
+    .def("InitializeNTSConditions",&TreeContactSearch::InitializeNTSConditions)
+    .def("InitializeMortarConditions",&TreeContactSearch::InitializeMortarConditions)
+    .def("ClearNTNConditions",&TreeContactSearch::ClearNTNConditions)
+    .def("ClearNTSConditions",&TreeContactSearch::ClearNTSConditions)
+    .def("ClearMortarConditions",&TreeContactSearch::ClearMortarConditions)
+    .def("CreatePointListNTN",&TreeContactSearch::CreatePointListNTN)
+    .def("CreatePointListNTS",&TreeContactSearch::CreatePointListNTS)
+    .def("CreatePointListMortar",&TreeContactSearch::CreatePointListMortar)
+    .def("CreateNTNConditions",&TreeContactSearch::CreateNTNConditions)
+    .def("CreateNTSConditions",&TreeContactSearch::CreateNTSConditions)
+    .def("CreateMortarConditions",&TreeContactSearch::CreateMortarConditions)
+    ;
+  
 }
 
 }  // namespace Python.

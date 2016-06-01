@@ -12,6 +12,8 @@
 #if !defined(KRATOS_NODAL_CONCENTRATED_ELEMENT_H_INCLUDED )
 #define  KRATOS_NODAL_CONCENTRATED_ELEMENT_H_INCLUDED
 
+// TODO: Add rotational stiffness
+
 // System includes
 
 // External includes
