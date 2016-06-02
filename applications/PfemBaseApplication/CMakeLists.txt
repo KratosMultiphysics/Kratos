@@ -13,7 +13,7 @@ endif(NOT DEFINED ${INCLUDE_TRIANGLE})
 
 if(NOT DEFINED ${INCLUDE_TETGEN})
   set(INCLUDE_TETGEN ON)
-  set(TETGEN_INSTALL_DIR ${CMAKE_SOURCE_DIR}/external_libraries/tetgen/tetgen1.5.0/)
+  set(TETGEN_INSTALL_DIR ${CMAKE_SOURCE_DIR}/external_libraries/tetgen/tetgen1.4.3/)
 endif(NOT DEFINED ${INCLUDE_TETGEN})
 
 if(${INCLUDE_TRIANGLE} MATCHES ON)
