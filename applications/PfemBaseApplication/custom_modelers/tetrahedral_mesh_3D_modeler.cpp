@@ -140,7 +140,7 @@ namespace Kratos
     //if refine true: REFINE_ELEMENTS, REFINE_ADD_NODES
 
 
-    this->StartEcho(rModelPart,"Trigen PFEM DT Mesher",MeshId);
+    this->StartEcho(rModelPart,"Tetgen PFEM DT Mesher",MeshId);
 
     //int step_data_size = rModelPart.GetNodalSolutionStepDataSize();
 
@@ -427,7 +427,7 @@ namespace Kratos
     //execution Options: SET_DOF, NEIGHBOURS_SEARCH(temp), SELECT_ELEMENTS, PASS_ALPHA_SHAPE
     //execution Refinine Options: REFINE_ADD_NODES, REFINE_ELEMENTS, CRITERION_ENERGY
 
-    this->StartEcho(rModelPart,"Trigen PFEM RDT Mesher",MeshId);
+    this->StartEcho(rModelPart,"Tetgen PFEM RDT Mesher",MeshId);
 	    
     //remove_nodes:
     //REMOVE_NODES, CRITERION_ERROR, REMOVE_ON_BOUNDARY, CRITERION_DISTANCE, ENGAGED_NODES(nodes)
@@ -815,7 +815,7 @@ namespace Kratos
 	  in.pointlist[base+2] = (nodes_begin + i)->Z();
 	}
 	   
-	//std::cout<<(nodes_begin + i)->X()<<", "<<(nodes_begin + i)->Y()<<") ";
+	//std::cout<<(nodes_begin + i)->X()<<", "<<(nodes_begin + i)->Y()<<", "<<(nodes_begin + i)->Z()<<") ";
 	    
 	if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::SET_DOF))
 	  {
@@ -831,7 +831,6 @@ namespace Kratos
 	// }
 	//std::cout<<" node: (local:"<<(nodes_begin + i)->Id()<<", global: "<<rMeshingVariables.NodalPreIds[(nodes_begin + i)->Id()]<<") "<<std::endl;
       }
-
 
     // std::cout<<"), "<<std::endl;
     //std::cout<<"    SET NODES ]; "<<std::endl;
@@ -1044,12 +1043,12 @@ namespace Kratos
 	else{ 
 
 	  if(MeshingOptions.Is(ModelerUtilities::BOUNDARIES_SEARCH)){  //to get conectivities, boundaries and neighbours only
-	    strcpy (meshing_options, "ncEBQFu0");
+	    strcpy (meshing_options, "nEBQFu0");
 	    meshing_info = "Boundaries-Neighbours remeshing executed";
 	  }
 	  else{
 	    //to get conectivities and neighbours only
-	    strcpy (meshing_options, "rcEBQ");
+	    strcpy (meshing_options, "nMJFV"); //"QJFu0"; //"pq1.414a0.1"
 	    meshing_info = "Neighbours remeshing executed";
 	  }
 	}
@@ -1064,6 +1063,8 @@ namespace Kratos
 
     if( this->GetEchoLevel() > 0 )
       std::cout<<" [ REMESH: (in POINTS "<<in.numberofpoints<<") "<<std::endl;
+
+    this->WritePoints(in);
 
     //perform the meshing
     try {
@@ -1088,6 +1089,9 @@ namespace Kratos
 	}
     }
     
+    this->WritePoints(out);
+    this->WriteTetrahedra(out);
+
     if(MeshingOptions.IsNot(ModelerUtilities::REFINE) && in.numberofpoints<out.numberofpoints){
       fail=3;
       std::cout<<"  fail error: [NODES ADDED] something is wrong with the geometry "<<std::endl;
@@ -1377,8 +1381,8 @@ namespace Kratos
 	    int  numfreesurf =0;
 	    int  numboundary =0;
 
-	    // std::cout<<" num nodes "<<rNodes.size()<<std::endl;
-	    // std::cout<<" selected vertices [ "<<out.tetrahedronlist[el*4]<<", "<<out.tetrahedronlist[el*4+1]<<", "<<out.tetrahedronlist[el*4+2]<<", "<<out.tetrahedronlist[el*4+3]<<"] "<<std::endl;
+	    //std::cout<<" num nodes "<<rNodes.size()<<std::endl;
+	    std::cout<<" selected vertices [ "<<out.tetrahedronlist[el*4]<<", "<<out.tetrahedronlist[el*4+1]<<", "<<out.tetrahedronlist[el*4+2]<<", "<<out.tetrahedronlist[el*4+3]<<"] "<<el<<std::endl;
 	    box_side_element = false;
 	    for(int pn=0; pn<4; pn++)
 	      {
@@ -1397,8 +1401,10 @@ namespace Kratos
 		  break;
 		}
 
+		std::cout<<" before to push back a node "<<out.tetrahedronlist[el*4+pn]<<std::endl;
 		//vertices.push_back( *((rNodes).find( out.tetrahedronlist[el*4+pn] ).base() ) );
 		vertices.push_back(rNodes(out.tetrahedronlist[el*4+pn]));
+		std::cout<<" after to push back a node "<<std::endl;
 
 		//check flags on nodes
 		if(vertices.back().Is(FREE_SURFACE))
@@ -1420,6 +1426,7 @@ namespace Kratos
 
 	      }
 
+	    std::cout<<" A "<<std::endl;
 	    if(box_side_element || wrong_added_node){
 	      //std::cout<<" Box_Side_Element "<<std::endl;
 	      continue;
@@ -1481,11 +1488,11 @@ namespace Kratos
 
 	      if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONTACT_SEARCH))
 		{
-		  accepted=ModelerUtils.ShrankAlphaShape(Alpha,vertices,rMeshingVariables.OffsetFactor,2);
+		  accepted=ModelerUtils.ShrankAlphaShape(Alpha,vertices,rMeshingVariables.OffsetFactor,3);
 		}
 	      else
 		{
-		  accepted=ModelerUtils.AlphaShape(Alpha,vertices,2);
+		  accepted=ModelerUtils.AlphaShape(Alpha,vertices,3);
 		}
 	    }
 	    else{
@@ -1494,6 +1501,7 @@ namespace Kratos
 
 	    }
 
+	    std::cout<<" B "<<std::endl;
 	    //3.- to control all nodes from the same subdomain (problem, domain is not already set for new inserted particles on mesher)
 	    // if(accepted)
 	    // {
@@ -1525,6 +1533,7 @@ namespace Kratos
 	    // }
 	      
 
+	    std::cout<<" C "<<std::endl;
 	    if(accepted)
 	      {
 		//std::cout<<" Element ACCEPTED after cheking Center "<<number<<std::endl;
@@ -1543,7 +1552,7 @@ namespace Kratos
 
       }
 
-    //std::cout<<" Number of Preserved Elements "<<rMeshingVariables.Refine.NumberOfElements<<std::endl;
+    std::cout<<" Number of Preserved Elements "<<rMeshingVariables.Info->NumberOfElements<<std::endl;
 
     if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::ENGAGED_NODES)){
 
@@ -2099,6 +2108,7 @@ namespace Kratos
   { 
     KRATOS_TRY
 
+    std::cout<<" Write Tetrahedra "<<std::endl;
     for(int el = 0; el< tr.numberoftetrahedra; el++)
       {
 	std::cout<<"   TETRAHEDRON "<<el<<" : [ _";
