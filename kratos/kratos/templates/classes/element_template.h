@@ -24,7 +24,7 @@
 
 // Project includes
 #include "includes/element.h"
-#include "@{APP_NAME_LOW}_application.h"
+#include "@{APP_NAME_LOW}_application_variables.h"
 
 
 namespace Kratos

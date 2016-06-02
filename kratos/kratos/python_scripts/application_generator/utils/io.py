@@ -18,6 +18,9 @@ def TestCamel(s):
     expr = re.compile(r'^(?:[A-Z][a-z]+)+$')
     return expr.match(s)
 
+def RemoveSubstring(s, d):
+    return s.replace(d,'')
+
 def Formatc(stringList, where):
 
     string = ""

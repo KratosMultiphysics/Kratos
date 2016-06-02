@@ -4,7 +4,8 @@ from utils.constants import ctab
 
 
 class ConditionCreator(ClassCreator):
-    ''' Extends KratosClassCreator for a Kratos condition
+    ''' Extends KratosClassCreator for a Kratos Condition. It expects a condition_template.cpp and
+        condition_template.h as base file.
 
         Input
         -----
@@ -18,10 +19,10 @@ class ConditionCreator(ClassCreator):
             not yet implemented.
 
         - members: list of KratosClassMember
-            class memebers to be added. TO BE REMOVED!
+            class memebers to be added.
 
         - procedures: list of KratosClassProcedures
-            class procedures to be added. TO BE REMOVED!
+            class procedures to be added. NYI
 
         Output
         ------

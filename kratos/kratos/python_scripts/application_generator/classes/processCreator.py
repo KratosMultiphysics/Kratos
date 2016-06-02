@@ -4,6 +4,8 @@ from classes.classCreator import ClassCreator
 
 
 class ProcessCreator(ClassCreator):
+    ''' TO BE IMPLEMENTED '''
+
     def __init__(
         self, name, base='Process', template=None,
         members=None, procedures=None, author='KratosAppGenerator'
