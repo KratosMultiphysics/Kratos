@@ -19,15 +19,10 @@
 
 // Project includes
 #include "@{APP_NAME_LOW}_application.h"
+#include "@{APP_NAME_LOW}_application_variables.h"
 
 
 namespace Kratos {
-
-@{KRATOS_APP_CREATE_VARIABLE_LIST}
-// 	KRATOS_CREATE_VARIABLE(double, AUX_MESH_VAR)
-//	KRATOS_CREATE_VARIABLE(double, IS_INTERFACE);
-//	KRATOS_CREATE_VARIABLE(double, NODAL_AREA);
-//
 
 Kratos@{APP_NAME_CAMEL}Application::Kratos@{APP_NAME_CAMEL}Application() {}
 
@@ -37,8 +32,5 @@ void Kratos@{APP_NAME_CAMEL}Application::Register() {
  	std::cout << "Initializing Kratos@{APP_NAME_CAMEL}Application... " << std::endl;
 
 @{KRATOS_APP_REGISTER_VARIABLE_LIST}
-	// KRATOS_REGISTER_VARIABLE( AUX_MESH_VAR )
-	// KRATOS_REGISTER_VARIABLE(IS_INTERFACE);
-	// KRATOS_REGISTER_VARIABLE(NODAL_AREA);
 }
 }  // namespace Kratos.

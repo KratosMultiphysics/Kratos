@@ -1,0 +1,6 @@
+#include "@{APP_NAME_LOW}_application_variables.h"
+
+namespace Kratos
+{
+@{KRATOS_APP_CREATE_VARIABLE_LIST}
+}
