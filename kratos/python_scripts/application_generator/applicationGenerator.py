@@ -53,6 +53,8 @@ class ApplicationGenerator(TemplateRule):
             'Variables': [
                 self._nameLower+'_application.h',
                 self._nameLower+'_application.cpp',
+                self._nameLower+'_application_variables.h',
+                self._nameLower+'_application_variables.cpp',
                 'custom_python/' + self._nameLower+'_python_application.cpp',
             ]
         }
@@ -61,7 +63,7 @@ class ApplicationGenerator(TemplateRule):
         self._classTemplatePath = {
             'Elements': ['classes', 'custom_elements'],
             'Conditions': ['classes', 'custom_conditions'],
-            'Processes': ['classes', 'custom_process']
+            'Processes': ['classes', 'custom_processes']
         }
 
     def GenerateFile(self, src, dst, subsMap, removeOriginal=True):
@@ -115,6 +117,10 @@ class ApplicationGenerator(TemplateRule):
                 self._nameLower + "_application.cpp.in",
             "template_application.h.in":
                 self._nameLower + "_application.h.in",
+            "template_application_variables.cpp.in":
+                self._nameLower + "_application_variables.cpp.in",
+            "template_application_variables.h.in":
+                self._nameLower + "_application_variables.h.in",
             "TemplateApplication.py.in":
                 self._nameCamel + "Application.py.in",
             "tests/test_TemplateApplication.py.in":

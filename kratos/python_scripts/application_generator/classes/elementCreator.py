@@ -4,7 +4,8 @@ from utils.constants import ctab
 
 
 class ElementCreator(ClassCreator):
-    ''' Extends KratosClassCreator for a Kratos element
+    ''' Extends KratosClassCreator for a Kratos Element. It expects a element_template.cpp and
+        element_template.h as base file.
 
         Input
         -----
@@ -18,10 +19,10 @@ class ElementCreator(ClassCreator):
             not yet implemented.
 
         - members: list of KratosClassMember
-            class memebers to be added. TO BE REMOVED!
+            class memebers to be added.
 
         - procedures: list of KratosClassProcedures
-            class procedures to be added. TO BE REMOVED!
+            class procedures to be added. NYI
 
         Output
         ------

@@ -24,19 +24,20 @@ debugApp.AddVariables([
 debugApp.AddElements([
     ElementCreator('MyLaplacianElement')
     .AddDofs(['TEMPERATURE'])
+    .AddDofs(['MY_SCALAR'])
     .AddFlags([])
     .AddClassMemberVariables([])
 ])
 
-debugApp.AddConditions([
-    ConditionCreator('MyFaceCondition')
-	.AddDofs(['TEMPERATURE'])
-    .AddFlags([])
-])
-
-debugApp.AddProcesses([
-    ProcessCreator('DoSomethingProcess')
-])
+# debugApp.AddConditions([
+#     ConditionCreator('MyFaceCondition')
+# 	.AddDofs(['TEMPERATURE'])
+#     .AddFlags([])
+# ])
+#
+# debugApp.AddProcesses([
+#     ProcessCreator('DoSomethingProcess')
+# ])
 
 debugApp.Generate()
 
