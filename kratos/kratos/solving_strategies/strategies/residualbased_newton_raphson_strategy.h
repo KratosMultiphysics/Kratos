@@ -60,6 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "utilities/openmp_utils.h"
 
 //default builder and solver
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
@@ -527,16 +528,22 @@ public:
                 mReformDofSetAtEachStep == true)
         {
             //setting up the list of the DOFs to be solved
-            boost::timer setup_dofs_time;
+			double setup_dofs_begintime = OpenMPUtils::GetCurrentTime();
             pBuilderAndSolver->SetUpDofSet(pScheme, BaseType::GetModelPart());
-            if (this->GetEchoLevel() > 0 && rank == 0)
-                std::cout << "setup_dofs_time : " << setup_dofs_time.elapsed() << std::endl;
+			if (this->GetEchoLevel() > 0 && rank == 0)
+			{
+				double setup_dofs_endtime = OpenMPUtils::GetCurrentTime();
+				std::cout << "setup_dofs_time : " << setup_dofs_endtime- setup_dofs_begintime << std::endl;
+			}
 
             //shaping correctly the system
-            boost::timer setup_system_time;
+			double setup_system_begin = OpenMPUtils::GetCurrentTime();
             pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
             if (this->GetEchoLevel() > 0 && rank == 0)
-                std::cout << rank << ": setup_system_time : " << setup_system_time.elapsed() << std::endl;
+			{ 
+				double setup_system_end = OpenMPUtils::GetCurrentTime();
+                std::cout << rank << ": setup_system_time : " << setup_system_end- setup_system_begin << std::endl;
+			}
         }
 
         //prints informations about the current time
@@ -553,11 +560,13 @@ public:
 			int rank = BaseType::GetModelPart().GetCommunicator().MyPID();*/
 
 			//setting up the Vectors involved to the correct size
-			boost::timer system_matrix_resize_time;
+			double system_matrix_resize_begin = OpenMPUtils::GetCurrentTime();
 			pBuilderAndSolver->ResizeAndInitializeVectors(mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
 			if (this->GetEchoLevel() > 0 && rank == 0)
-				std::cout << rank << ": system_matrix_resize_time : " << system_matrix_resize_time.elapsed() << std::endl;
-
+			{
+				double system_matrix_resize_end = OpenMPUtils::GetCurrentTime();
+				std::cout << rank << ": system_matrix_resize_time : " << system_matrix_resize_end- system_matrix_resize_begin << std::endl;
+			}
 			TSystemMatrixType& mA = *mpA;
 			TSystemVectorType& mDx = *mpDx;
 			TSystemVectorType& mb = *mpb;
