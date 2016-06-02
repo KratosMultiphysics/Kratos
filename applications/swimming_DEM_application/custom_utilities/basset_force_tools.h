@@ -56,8 +56,8 @@ virtual ~BassetForceTools(){}
 
 /// Default calculator
 
-void FillDaitcheVectors(int N, int order);
-void FillHinsbergVectors(ModelPart& r_model_part, int m, const double time_window);
+void FillDaitcheVectors(const int N, const int order);
+void FillHinsbergVectors(ModelPart& r_model_part, const int m, const double time_window);
 void AppendIntegrands(ModelPart& r_model_part);
 void AppendIntegrandsImplicit(ModelPart& r_model_part);
 void AppendIntegrandsWindow(ModelPart& r_model_part);
@@ -82,7 +82,7 @@ vector<unsigned int> mElementsPartition;
 ///@{
 
 double Phi(const double x);
-void AddFdi(int order, array_1d<double, 3>& F, const double t_win, const double ti, const double beta, const double delta_time, vector<double>& historic_integrands);
+void AddFdi(const int order, array_1d<double, 3>& F, const double t_win, const double ti, const double beta, const double delta_time, const vector<double>& historic_integrands);
 void AddFre(array_1d<double, 3>& old_Fi, const double beta, const double delta_time);
 
 vector<unsigned int>& GetElementPartition()
