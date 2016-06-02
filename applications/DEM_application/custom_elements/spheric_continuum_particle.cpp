@@ -500,8 +500,7 @@ namespace Kratos {
             
             bool neigh_is_skin = (bool)r_continuum_ini_neighbour->mSkinSphere;
             if ((mSkinSphere && neigh_is_skin) || (!mSkinSphere && !neigh_is_skin)) { //both skin or both inner.
-                double mean_area =  5.0 * (mContIniNeighArea[i] + r_continuum_ini_neighbour->mContIniNeighArea[index_of_the_neighbour_that_is_me]);
-                //double mean_area =  0.5 * (mContIniNeighArea[i] + r_continuum_ini_neighbour->mContIniNeighArea[index_of_the_neighbour_that_is_me]);
+                double mean_area =  0.5 * (mContIniNeighArea[i] + r_continuum_ini_neighbour->mContIniNeighArea[index_of_the_neighbour_that_is_me]);
                 mContIniNeighArea[i] = mean_area;
                 r_continuum_ini_neighbour->mContIniNeighArea[index_of_the_neighbour_that_is_me] = mean_area;                
             }
