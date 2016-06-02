@@ -17,7 +17,7 @@ namespace Kratos {
 
     void TerminalVelocityScheme::UpdateTranslationalVariables(
             int StepFlag,
-            const Node < 3 > & i,
+            Node < 3 > & i,
             array_1d<double, 3 >& coor,
             array_1d<double, 3 >& displ,
             array_1d<double, 3 >& delta_displ,

@@ -46,11 +46,11 @@ namespace Kratos {
             const double force_reduction_factor,
             const double mass,
             const double delta_t,
-            const bool Fix_vel[3]);
+            const bool Fix_vel[3]) override;
 
         /// Turn back information as a string.
 
-        virtual std::string Info() const {
+        virtual std::string Info() const override{
             std::stringstream buffer;
             buffer << "SymplecticEulerOldVelocityScheme";
             return buffer.str();
@@ -58,13 +58,13 @@ namespace Kratos {
 
         /// Print information about this object.
 
-        virtual void PrintInfo(std::ostream& rOStream) const {
+        virtual void PrintInfo(std::ostream& rOStream) const override{
             rOStream << "SymplecticEulerOldVelocityScheme";
         }
 
         /// Print object's data.
 
-        virtual void PrintData(std::ostream& rOStream) const {
+        virtual void PrintData(std::ostream& rOStream) const override{
         }
 
 
