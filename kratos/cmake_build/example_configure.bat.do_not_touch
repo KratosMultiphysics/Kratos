@@ -7,9 +7,6 @@ cls
 :: you may want to decomment this the first time you compile
 del CMakeCache.txt
 
-<<<<<<< .mine
-del CMakeCache.txt
-
 cmake -G "Visual Studio 14 2015 Win64"                                              ^
 -DCMAKE_BUILD_TYPE=Release                                                          ^
 -DCMAKE_CXX_FLAGS=" -D_SCL_SECURE_NO_WARNINGS "                                     ^
