@@ -631,14 +631,14 @@ public:
         //resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
 
+#ifndef _OPENMP
+
         //contributions to the system
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
         //vector containing the localization in the system of the different
         //terms
         Element::EquationIdVectorType EquationId;
-
-#ifndef _OPENMP
 
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
         
