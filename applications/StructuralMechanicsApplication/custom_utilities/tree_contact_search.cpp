@@ -162,7 +162,7 @@ void TreeContactSearch::ClearMortarConditions()
             
             std::vector<Condition*> * ConditionPointersDestination = cond_it->GetValue(SEGMENT_CONTACT_POINTERS);
             
-            for (int i =0; i< ConditionPointersDestination->size();i++)
+            for (unsigned int i =0; i< ConditionPointersDestination->size();i++)
             {
                 delete(&ConditionPointersDestination[i]);
             } 
@@ -188,7 +188,7 @@ void TreeContactSearch::ClearMortarConditions()
             
             std::vector<Condition*> * ConditionPointersOrigin = cond_it->GetValue(SEGMENT_CONTACT_POINTERS);
             
-            for (int i =0; i< ConditionPointersOrigin->size();i++)
+            for (unsigned int i =0; i< ConditionPointersOrigin->size();i++)
             {
                 delete(&ConditionPointersOrigin[i]);
             } 
