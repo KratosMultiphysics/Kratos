@@ -281,19 +281,36 @@ double BassetForceTools::Phi(const double x)
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-void BassetForceTools::AddFdi(const int order, array_1d<double, 3>& F, const double t_win, const double ti, const double beta, const double delta_time, const vector<double>& historic_integrands)
+void BassetForceTools::AddFdi(const int order, array_1d<double, 3>& F, const double t_win, const double ti, const double beta, const double dt, const vector<double>& historic_integrands)
 {
-    double normalized_delta_time = 0.5 * delta_time / ti;
+    double normalized_dt = 0.5 * dt / ti;
 
     if (order == 2){
-        const double coeff = 2 * std::sqrt(std::exp(1) * ti) * std::exp(beta * t_win);
-        F[0] +=  coeff * (historic_integrands[0] * (1 - Phi(- normalized_delta_time)) + historic_integrands[3] * std::exp(- normalized_delta_time) * (Phi(normalized_delta_time) - 1));
-        F[1] +=  coeff * (historic_integrands[1] * (1 - Phi(- normalized_delta_time)) + historic_integrands[4] * std::exp(- normalized_delta_time) * (Phi(normalized_delta_time) - 1));
-        F[2] +=  coeff * (historic_integrands[2] * (1 - Phi(- normalized_delta_time)) + historic_integrands[5] * std::exp(- normalized_delta_time) * (Phi(normalized_delta_time) - 1));
+        const double coeff = 2 * std::sqrt(ti) * std::exp(beta * t_win + 0.5);
+        F[0] +=  coeff * (historic_integrands[0] * (1 - Phi(- normalized_dt)) + historic_integrands[3] * std::exp(- normalized_dt) * (Phi(normalized_dt) - 1));
+        F[1] +=  coeff * (historic_integrands[1] * (1 - Phi(- normalized_dt)) + historic_integrands[4] * std::exp(- normalized_dt) * (Phi(normalized_dt) - 1));
+        F[2] +=  coeff * (historic_integrands[2] * (1 - Phi(- normalized_dt)) + historic_integrands[5] * std::exp(- normalized_dt) * (Phi(normalized_dt) - 1));
     }
 
     else if (order == 3){
-        return;
+        const double coeff = 0.5 * std::sqrt(1.0 / ti) / SWIMMING_POW_3(beta) / SWIMMING_POW_2(dt);
+        const double exp_1 = exp((t_win + dt) * beta + 0.5);
+        const double exp_2 = exp(t_win * beta + 0.5);
+        const double f00 = historic_integrands[0];
+        const double f01 = historic_integrands[1];
+        const double f02 = historic_integrands[2];
+        const double f10 = historic_integrands[3];
+        const double f11 = historic_integrands[4];
+        const double f12 = historic_integrands[5];
+        const double f20 = historic_integrands[6];
+        const double f21 = historic_integrands[7];
+        const double f22 = historic_integrands[8];
+        F[0] += coeff * (exp_1 * (2 * (2 * f10 + f20) + f00 * (2 + dt * beta) - dt * beta * (f20 + 2 * dt * f10 * beta))\
+                       - exp_2 * (4 * f10 + 2 * f20 + dt * beta * (4 * f10 + f20) + f00 * (2 + dt * beta * (3 + 2 * dt * beta))));
+        F[1] += coeff * (exp_1 * (2 * (2 * f11 + f21) + f01 * (2 + dt * beta) - dt * beta * (f21 + 2 * dt * f11 * beta))\
+                       - exp_2 * (4 * f11 + 2 * f21 + dt * beta * (4 * f11 + f21) + f01 * (2 + dt * beta * (3 + 2 * dt * beta))));
+        F[2] += coeff * (exp_1 * (2 * (2 * f12 + f22) + f02 * (2 + dt * beta) - dt * beta * (f22 + 2 * dt * f12 * beta))\
+                       - exp_2 * (4 * f12 + 2 * f22 + dt * beta * (4 * f12 + f22) + f02 * (2 + dt * beta * (3 + 2 * dt * beta))));
     }
 
     else {
@@ -302,9 +319,9 @@ void BassetForceTools::AddFdi(const int order, array_1d<double, 3>& F, const dou
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-void BassetForceTools::AddFre(array_1d<double, 3>& old_Fi, const double beta, const double delta_time)
+void BassetForceTools::AddFre(array_1d<double, 3>& old_Fi, const double beta, const double dt)
 {
-    const double exp_coeff = std::exp(beta * delta_time);
+    const double exp_coeff = std::exp(beta * dt);
     old_Fi[0] = exp_coeff * old_Fi[0];
     old_Fi[1] = exp_coeff * old_Fi[1];
     old_Fi[2] = exp_coeff * old_Fi[2];
