@@ -42,7 +42,7 @@ namespace Kratos
             
      /// Its the same to do a loop`in nodes or element??? Need to be compared.  
      /// Need to check if the velocity or the dispalcement are the degree of freedon. Talk to M. Celigueta
-     void Calculate(ModelPart& model_part, int StepFlag = -1)
+     void Calculate(ModelPart& model_part, int StepFlag = -1)  override
      {
         KRATOS_TRY
         
@@ -171,7 +171,7 @@ namespace Kratos
     
      
       /// Turn back information as a string.
-      virtual std::string Info() const
+      virtual std::string Info() const override
       {
 	std::stringstream buffer;
         buffer << "ConstAverageAccelerationScheme" ;
@@ -179,10 +179,10 @@ namespace Kratos
       }
       
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "ConstAverageAccelerationScheme";}
+      virtual void PrintInfo(std::ostream& rOStream) const override{rOStream << "ConstAverageAccelerationScheme";}
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const {}
+      virtual void PrintData(std::ostream& rOStream) const override{}
       
             
       ///@}      

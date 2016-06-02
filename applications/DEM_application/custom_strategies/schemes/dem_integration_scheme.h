@@ -44,20 +44,6 @@ namespace Kratos {
                 
         virtual void UpdateTranslationalVariables(
                             int StepFlag, 
-                            const Node < 3 > & i,
-                            array_1d<double, 3 >& coor,
-                            array_1d<double, 3 >& displ,
-                            array_1d<double, 3 >& delta_displ,
-                            array_1d<double, 3 >& vel,
-                            const array_1d<double, 3 >& initial_coor,
-                            const array_1d<double, 3 >& force,
-                            const double force_reduction_factor,
-                            const double mass,
-                            const double delta_t,
-                            const bool Fix_vel[3]);
-
-        virtual void UpdateTranslationalVariables(
-                            int StepFlag,
                             Node < 3 > & i,
                             array_1d<double, 3 >& coor,
                             array_1d<double, 3 >& displ,
@@ -68,7 +54,7 @@ namespace Kratos {
                             const double force_reduction_factor,
                             const double mass,
                             const double delta_t,
-                            const bool Fix_vel[3]);
+                            const bool Fix_vel[3]);        
 
         virtual void CalculateTranslationalMotion(ModelPart& model_part, NodesArrayType& pNodes, int StepFlag );
         
