@@ -88,13 +88,13 @@ namespace Kratos
 
       void SchemePredict()
       {
-          BaseType::GetScheme()->Calculate(BaseType::GetModelPart(),1);
+          BaseType::GetScheme()->Calculate(BaseType::GetModelPart(),1); //TODO: better call Predict function (would be empty in general)
           BaseType::GetScheme()->Calculate(BaseType::GetClusterModelPart(),1);
       }
 
       void SchemeCorrect()
       {
-        BaseType::GetScheme()->Calculate(BaseType::GetModelPart(),2);
+        BaseType::GetScheme()->Calculate(BaseType::GetModelPart(),2); //TODO: better call Correct function (normal operations would be in that method)
         BaseType::GetScheme()->Calculate(BaseType::GetClusterModelPart(),2);
       }
 
