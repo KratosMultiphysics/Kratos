@@ -44,10 +44,12 @@ namespace Kratos
     #define SWIMMING_MODULUS_3(a)                            sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2])
     #define SWIMMING_INNER_PRODUCT_3(a, b)                       (a[0] * b[0] + a[1] * b[1] + a[2] * b[2])
     #define SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(a, b, c)    c[0] = a[1] * b[2] - a[2] * b[1]; c[1] = a[2] * b[0] - a[0] * b[2]; c[2] = a[0] * b[1] - a[1] * b[0];
-    #define SWIMMING_POW_2(a)                                a * a
-    #define SWIMMING_POW_3(a)                                a * a * a
-    #define SWIMMING_POW_4(a)                                a * a * a * a
-    #define SWIMMING_POW_5(a)                                a * a * a * a * a
+    #define SWIMMING_POW_2(a)                                (a * a)
+    #define SWIMMING_POW_3(a)                                (a * a * a)
+    #define SWIMMING_POW_4(a)                                (a * a * a * a)
+    #define SWIMMING_POW_5(a)                                (a * a * a * a * a)
+    #define SWIMMING_POW_6(a)                                (a * a * a * a * a * a)
+    #define SWIMMING_POW_7(a)                                (a * a * a * a * a * a * a)
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)
   
 
