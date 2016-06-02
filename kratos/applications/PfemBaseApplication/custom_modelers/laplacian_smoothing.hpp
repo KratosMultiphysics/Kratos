@@ -965,6 +965,8 @@ namespace Kratos
 			    std::vector<Geometry<Node<3> > >& list_of_element_vertices,
 			    ModelPart::IndexType MeshId=0)
     {
+
+      std::cout<<" ApplyMeshSmoothing for Tetrahedra not implemented yet "<<std::endl;
     }
 
 

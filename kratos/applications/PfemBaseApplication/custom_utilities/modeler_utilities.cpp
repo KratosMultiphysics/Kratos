@@ -300,9 +300,11 @@ namespace Kratos
       
     int samesbd=0;
       
-    for(int pn=1; pn<3; pn++)
+    const unsigned int size = rGeometry.size();
+    
+    for(unsigned int i=0; i<size; i++)
       {
-	if(DomainLabel!=rGeometry[pn].GetValue(DOMAIN_LABEL))
+	if(DomainLabel!=rGeometry[i].GetValue(DOMAIN_LABEL))
 	  {
 	    samesbd++;
 	  }
@@ -1292,7 +1294,7 @@ namespace Kratos
 	ContactFace = 0;
         AuxContactFace = 0;
 	if( rRigidWalls[i]->IsInside( Point, rCurrentProcessInfo[TIME], AuxContactFace ) ){
-      ContactFace = AuxContactFace;  // OBS: in the case of circles, ContactFace = 2 and IsInside = false/true. Then, it does not break but it continues.
+	  ContactFace = AuxContactFace;  // OBS: in the case of circles, ContactFace = 2 and IsInside = false/true. Then, it does not break but it continues.
 	  // tip_radius = rRigidWalls[i]->GetRadius();
 	  // tip_center = rRigidWalls[i]->GetCenter();
 	  break;
