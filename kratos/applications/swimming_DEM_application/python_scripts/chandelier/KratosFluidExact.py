@@ -83,15 +83,15 @@ pp.CFD_DEM.material_acceleration_calculation_type = 0
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
 pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
-pp.CFD_DEM.basset_force_type = 2
+pp.CFD_DEM.basset_force_type = 3
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
 pp.CFD_DEM.basset_force_integration_type = 1
 pp.CFD_DEM.n_init_basset_steps = 4
-pp.CFD_DEM.time_steps_per_quadrature_step = 2
+pp.CFD_DEM.time_steps_per_quadrature_step = 10
 pp.CFD_DEM.delta_time_quadrature = pp.CFD_DEM.time_steps_per_quadrature_step * pp.CFD_DEM.MaxTimeStep
 pp.CFD_DEM.quadrature_order = 2
-pp.CFD_DEM.time_window = 2.0
-pp.CFD_DEM.number_of_exponentials = 1
+pp.CFD_DEM.time_window = 0.5
+pp.CFD_DEM.number_of_exponentials = 5
 #Z
 
 # Import utilities from models
