@@ -12,6 +12,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
+#include "swimming_DEM_application.h"
 #include "spheric_swimming_particle.h"
 #include "../applications/DEM_application/custom_utilities/GeometryFunctions.h"
 #include "../applications/DEM_application/custom_utilities/AuxiliaryFunctions.h"
@@ -567,7 +568,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(NodeType& node, d
             const double sqrt_of_quad_h_q = std::sqrt(quadrature_delta_time);
             const double last_h_over_h = latest_quadrature_time_step / quadrature_delta_time;
 
-            if (n_steps_per_quad_step == 1){ // quadrature time step coincides with the general time step of the scheme
+            if (n_steps_per_quad_step == 1 && mBassetForceType < 3){ // quadrature time step coincides with the general time step of the scheme
                 CalculateFractionalDerivative(node, fractional_derivative_of_slip_vel, present_coefficient, historic_integrands);
                 if (mBassetForceType == 3){
                     AddHinsbergTailContribution(node, fractional_derivative_of_slip_vel, quadrature_delta_time, historic_integrands);
