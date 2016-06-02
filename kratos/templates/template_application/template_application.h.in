@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand@{KRATOS_APP_AUTHOR}
+//  Main authors:    @{KRATOS_APP_AUTHOR}
 //
 
 
@@ -33,12 +33,6 @@ namespace Kratos {
 
 ///@name Kratos Globals
 ///@{
-
-// Variables definition
-@{KRATOS_APP_DEFINE_VARIABLE_LIST}
-// KRATOS_DEFINE_VARIABLE(double, AUX_MESH_VAR )
-// KRATOS_DEFINE_VARIABLE(double, IS_INTERFACE)
-// KRATOS_DEFINE_VARIABLE(double, NODAL_AREA)
 
 ///@}
 ///@name Type Definitions
