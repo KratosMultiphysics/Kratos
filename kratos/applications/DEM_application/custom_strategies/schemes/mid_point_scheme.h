@@ -42,20 +42,20 @@ namespace Kratos {
         virtual ~MidPointScheme() {
         }
 
-        void AddSpheresVariables(ModelPart & r_model_part) {
+        void AddSpheresVariables(ModelPart & r_model_part)  override {
 
             DEMIntegrationScheme::AddSpheresVariables(r_model_part);
 
         }
 
-        void AddClustersVariables(ModelPart & r_model_part) {
+        void AddClustersVariables(ModelPart & r_model_part)  override {
 
             DEMIntegrationScheme::AddClustersVariables(r_model_part);
 
         }
 
         void UpdateTranslationalVariables(
-                const Node < 3 > & i,
+                Node < 3 > & i,
                 array_1d<double, 3 >& coor,
                 array_1d<double, 3 >& displ,
                 array_1d<double, 3 >& delta_displ,
@@ -65,7 +65,7 @@ namespace Kratos {
                 const double force_reduction_factor,
                 const double mass,
                 const double delta_t,
-                const bool Fix_vel[3]) {
+                const bool Fix_vel[3])  override {
 
             for (int k = 0; k < 3; k++) {
                 if (Fix_vel[k] == false) {
@@ -89,7 +89,7 @@ namespace Kratos {
                 array_1d<double, 3 >& angular_velocity,
                 array_1d<double, 3 >& angular_acceleration,
                 const double delta_t,
-                const bool Fix_Ang_vel[3]) {
+                const bool Fix_Ang_vel[3])  override {
 
             for (int k = 0; k < 3; k++) {
                 if (Fix_Ang_vel[k] == false) {
@@ -108,7 +108,7 @@ namespace Kratos {
                 const double moment_of_inertia,
                 const array_1d<double, 3 >& torque,
                 const double moment_reduction_factor,
-                array_1d<double, 3 >& angular_acceleration) {
+                array_1d<double, 3 >& angular_acceleration)  override {
 
             for (int j = 0; j < 3; j++) {
                 angular_acceleration[j] = moment_reduction_factor * torque[j] / moment_of_inertia;
@@ -121,7 +121,7 @@ namespace Kratos {
                 const array_1d<double, 3 >& moments_of_inertia,
                 const array_1d<double, 3 >& local_torque,
                 const double moment_reduction_factor,
-                array_1d<double, 3 >& local_angular_acceleration) {
+                array_1d<double, 3 >& local_angular_acceleration)  override {
 
             for (int j = 0; j < 3; j++) {
                 local_angular_acceleration[j] = (local_torque[j] - (local_angular_velocity[(j + 1) % 3] * moments_of_inertia[(j + 2) % 3] * local_angular_velocity[(j + 2) % 3] - local_angular_velocity[(j + 2) % 3] * moments_of_inertia[(j + 1) % 3] * local_angular_velocity[(j + 1) % 3])) / moments_of_inertia[j];
@@ -129,7 +129,7 @@ namespace Kratos {
             }
         }
 
-        virtual std::string Info() const {
+        virtual std::string Info() const override{
             std::stringstream buffer;
             buffer << "MidPointScheme";
             return buffer.str();
@@ -137,13 +137,13 @@ namespace Kratos {
 
         /// Print information about this object.
 
-        virtual void PrintInfo(std::ostream& rOStream) const {
+        virtual void PrintInfo(std::ostream& rOStream) const override{
             rOStream << "MidPointScheme";
         }
 
         /// Print object's data.
 
-        virtual void PrintData(std::ostream& rOStream) const {
+        virtual void PrintData(std::ostream& rOStream) const override{
         }
 
 
