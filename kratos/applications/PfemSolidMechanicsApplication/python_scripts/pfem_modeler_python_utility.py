@@ -207,9 +207,10 @@ class ModelerUtility:
         for parameters in configuration.mesh_conditions:
 
             # set mesh modeler
-            mesh_modeler = TriangularMesh2DModeler()
-            #if(self.domain_size == 3):
-            #    mesh_modeler = TetrahedronMesh3DModeler()
+            if(self.domain_size == 2):
+                mesh_modeler = TriangularMesh2DModeler()
+            elif(self.domain_size == 3):
+                mesh_modeler = TetrahedralMesh3DModeler()
                 
             
             mesh_modeler.Initialize()
@@ -336,7 +337,7 @@ class ModelerUtility:
             self.MeshingParameters.SetReferenceElement(parameters["MeshElement"])
             self.MeshingParameters.SetReferenceCondition("CompositeCondition2D2N")
                 
-
+            ################################################
             #Pre Meshing Processes
 
             # A:
@@ -362,6 +363,7 @@ class ModelerUtility:
             mesh_modeler.SetPreMeshingProcess(remove_mesh_nodes)
 
 
+            ################################################
             #Post Meshing Processes
             rebuild_mesh_boundary = ReconstructMeshBoundary(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
 
