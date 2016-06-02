@@ -292,8 +292,8 @@ void BassetForceTools::AddFdi(const int order, array_1d<double, 3>& F, const dou
         F[2] +=  coeff * (historic_integrands[2] * (1 - Phi(- normalized_dt)) + historic_integrands[5] * std::exp(- normalized_dt) * (Phi(normalized_dt) - 1));
     }
 
-    else if (order == 3){
-        const double coeff = 0.5 * std::sqrt(1.0 / ti) / SWIMMING_POW_3(beta) / SWIMMING_POW_2(dt);
+    else if (order == 1){
+        const double coeff = 0.5 * std::sqrt(1.0 / ti) / (SWIMMING_POW_3(beta) * SWIMMING_POW_2(dt));
         const double exp_1 = exp((t_win + dt) * beta + 0.5);
         const double exp_2 = exp(t_win * beta + 0.5);
         const double f00 = historic_integrands[0];
