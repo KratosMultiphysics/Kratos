@@ -8,7 +8,7 @@
 #include "basset_force_tools.h"
 namespace Kratos
 {
-void BassetForceTools::FillDaitcheVectors(int N, int order)
+void BassetForceTools::FillDaitcheVectors(const int N, const int order)
 {
     std::cout << "\nFilling up vectors of coefficients for Daitche quadrature...";
 
@@ -127,7 +127,7 @@ void BassetForceTools::FillDaitcheVectors(int N, int order)
 // This method precalculates values needed for the implementation of the method described by Von Hinsberg (2011)
 // The method requires the determination of m numbers ai and another numbers ti which deteermine m exponentials.
 // In the following particular values of these numbers are presented u to m = 8. These numbers were obtained by Casas and Ferrer (2016)
-void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, int m, const double time_window)
+void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m, const double time_window)
 {
     if (!m){
         return;
@@ -281,7 +281,7 @@ double BassetForceTools::Phi(const double x)
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-void BassetForceTools::AddFdi(int order, array_1d<double, 3>& F, const double t_win, const double ti, const double beta, const double delta_time, vector<double>& historic_integrands)
+void BassetForceTools::AddFdi(const int order, array_1d<double, 3>& F, const double t_win, const double ti, const double beta, const double delta_time, const vector<double>& historic_integrands)
 {
     double normalized_delta_time = 0.5 * delta_time / ti;
 
@@ -390,6 +390,40 @@ void BassetForceTools::AppendIntegrandsWindow(ModelPart& r_model_part)
     r_process_info[LAST_TIME_APPENDING] = time;
     const double t_win = SphericSwimmingParticle<SphericParticle>::mTimeWindow;
 
+    if (r_process_info[BASSET_FORCE_TYPE] == 3){
+        const std::vector<double>& Ts    = SphericSwimmingParticle<SphericParticle>::mTs;
+        const std::vector<double>& Betas = SphericSwimmingParticle<SphericParticle>::mBetas;
+        const double t_win               = SphericSwimmingParticle<SphericParticle>::mTimeWindow;
+
+        const int order = r_process_info[QUADRATURE_ORDER];
+
+        for (ElementIterator iparticle = r_model_part.ElementsBegin(); iparticle != r_model_part.ElementsEnd(); iparticle++){
+            Node<3>& node = iparticle->GetGeometry()[0];
+            double initial_time;
+            iparticle->Calculate(TIME, initial_time, r_process_info);
+
+            if (time - initial_time > t_win){
+                vector<double>& historic_integrands         = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
+                vector<double>& hinsberg_tail_contributions = node.GetValue(HINSBERG_TAIL_CONTRIBUTIONS);
+                int m = hinsberg_tail_contributions.size() / 3;
+                array_1d<double, 3> Fi = ZeroVector(3);
+
+                for (int i = 0; i < m; i++){
+                    double ti = Ts[i];
+                    double beta = Betas[i];
+                    Fi[0] = hinsberg_tail_contributions[3 * i];
+                    Fi[1] = hinsberg_tail_contributions[3 * i + 1];
+                    Fi[2] = hinsberg_tail_contributions[3 * i + 2];
+                    AddFre(Fi, beta, delta_time);
+                    AddFdi(order, Fi, t_win, ti, beta, delta_time, historic_integrands);
+                    hinsberg_tail_contributions[3 * i]     = Fi[0];
+                    hinsberg_tail_contributions[3 * i + 1] = Fi[1];
+                    hinsberg_tail_contributions[3 * i + 2] = Fi[2];
+                }
+            }
+        }
+    }
+
     for (ElementIterator iparticle = r_model_part.ElementsBegin(); iparticle != r_model_part.ElementsEnd(); iparticle++){
         Node<3>& node = iparticle->GetGeometry()[0];
         vector<double>& historic_integrands             = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
@@ -417,41 +451,6 @@ void BassetForceTools::AppendIntegrandsWindow(ModelPart& r_model_part)
             historic_integrands.insert_element(n - 3, slip_vel[0]);
             historic_integrands.insert_element(n - 2, slip_vel[1]);
             historic_integrands.insert_element(n - 1, 0.0);
-        }
-    }
-
-    if (r_process_info[BASSET_FORCE_TYPE] == 3){
-        const std::vector<double>& Ts    = SphericSwimmingParticle<SphericParticle>::mTs;
-        const std::vector<double>& Betas = SphericSwimmingParticle<SphericParticle>::mBetas;
-        const double t_win               = SphericSwimmingParticle<SphericParticle>::mTimeWindow;
-
-        const int order = r_process_info[QUADRATURE_ORDER];
-
-        for (ElementIterator iparticle = r_model_part.ElementsBegin(); iparticle != r_model_part.ElementsEnd(); iparticle++){
-            Node<3>& node = iparticle->GetGeometry()[0];
-            double initial_time;
-            iparticle->Calculate(TIME, initial_time, r_process_info);
-
-            if (time - initial_time > t_win){
-                vector<double>& historic_integrands         = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
-                vector<double>& hinsberg_tail_contributions = node.GetValue(HINSBERG_TAIL_CONTRIBUTIONS);
-                int m = hinsberg_tail_contributions.size() / 3;
-                array_1d<double, 3> F_tail = ZeroVector(3);
-                array_1d<double, 3> Fi = ZeroVector(3);
-
-                for (int i = 0; i < m; i++){
-                    double ti = Ts[i];
-                    double beta = Betas[i];
-                    Fi[0] = hinsberg_tail_contributions[3 * i];
-                    Fi[1] = hinsberg_tail_contributions[3 * i + 1];
-                    Fi[2] = hinsberg_tail_contributions[3 * i + 2];
-                    AddFre(Fi, beta, delta_time);
-                    AddFdi(order, Fi, t_win, ti, beta, delta_time, historic_integrands);
-                    hinsberg_tail_contributions[3 * i]     = Fi[0];
-                    hinsberg_tail_contributions[3 * i + 1] = Fi[1];
-                    hinsberg_tail_contributions[3 * i + 2] = Fi[2];
-                }
-            }
         }
     }
 }
