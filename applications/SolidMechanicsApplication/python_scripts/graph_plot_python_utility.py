@@ -47,8 +47,6 @@ class GraphPlotUtility:
     #
     def Initialize(self, x_variable, y_variable, mesh_id):
 
-        clf()
-
         self.SetPlotVariables(x_variable, y_variable, mesh_id)
 
         figure_path = os.path.join(self.problem_path, str(self.x_var) + "_vs_" + str(self.y_var) + ".post.csv")
@@ -139,7 +137,9 @@ class GraphPlotUtility:
         for var in variable:
             modulus = modulus + var * var
 
-        return sqrt(modulus)
+        import math
+
+        return math.sqrt(modulus)
 
     #
     def SetStepResult(self):
@@ -176,6 +176,13 @@ class GraphPlotUtility:
     
     # matplot needed
     #def PlotMP(self, write_id): 
+
+    #    import matplotlib
+    #    import collections
+        
+    #    from numpy import
+    #    from pylab import
+
     #    clf()
     #    plot(self.Time, self.Y, 'g-o')
     #    # plot(self.Time,self.Y,'g-o',self.Time,self.Y_x,'b-s', self.Time,self.Y_y,'r-^')
