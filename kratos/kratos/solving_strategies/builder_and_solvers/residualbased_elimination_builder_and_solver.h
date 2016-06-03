@@ -181,7 +181,6 @@ public:
         //resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
 
-#ifndef _OPENMP
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
@@ -193,6 +192,7 @@ public:
         //double StartTime = GetTickCount();
 
         // assemble all elements
+#ifndef _OPENMP
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
@@ -628,20 +628,19 @@ public:
         //getting the array of the conditions
         ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
 
+        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+
         //resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
 
-#ifndef _OPENMP
-
         //contributions to the system
+        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
         //vector containing the localization in the system of the different
         //terms
         Element::EquationIdVectorType EquationId;
 
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-        
         // assemble all elements
         for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
         {
@@ -652,6 +651,7 @@ public:
             AssembleRHS(b, RHS_Contribution, EquationId);
         }
 
+        LHS_Contribution.resize(0, 0, false);
         RHS_Contribution.resize(0, false);
 
         // assemble all conditions
@@ -664,102 +664,8 @@ public:
             AssembleRHS(b, RHS_Contribution, EquationId);
         }
 
-#else
-        //creating an array of lock variables of the size of the system vector
-        unsigned int b_size = b.size();
-        std::vector< omp_lock_t > lock_array(b_size);
-        for (unsigned int i = 0; i < b_size; i++)
-            omp_init_lock(&lock_array[i]);
-        
-        //creating an array of lock variables of the size of the reactions vector
-        unsigned int reactions_size = (*(BaseType::mpReactionsVector)).size();
-        std::vector< omp_lock_t > lock_array_reactions(reactions_size);
-        for (unsigned int i = 0; i < reactions_size; i++)
-            omp_init_lock(&lock_array_reactions[i]);
-
-        //create a partition of the element array
-        int number_of_threads = omp_get_max_threads();
-
-        vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, pElements.size(), element_partition);
-        
-        if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
-        {
-            KRATOS_WATCH(number_of_threads);
-            KRATOS_WATCH(element_partition);
-        }
-
-        double start_prod = omp_get_wtime();
-
-        #pragma omp parallel for
-        for (int k = 0; k < number_of_threads; k++)
-        {
-            //contributions to the system
-            LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-
-            //vector containing the localization in the system of the different
-            //terms
-            Element::EquationIdVectorType EquationId;
-            ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-            typename ElementsArrayType::ptr_iterator it_begin = pElements.ptr_begin() + element_partition[k];
-            typename ElementsArrayType::ptr_iterator it_end = pElements.ptr_begin() + element_partition[k + 1];
-
-            // assemble all elements
-            for (typename ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
-            {
-                //calculate elemental contribution
-                pScheme->Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
-
-                //assemble the elemental contribution
-                ParallelAssembleRHS(b, RHS_Contribution, EquationId, lock_array, lock_array_reactions);
-            }
-        }
-
-        vector<unsigned int> condition_partition;
-        CreatePartition(number_of_threads, ConditionsArray.size(), condition_partition);
-
-        #pragma omp parallel for
-        for (int k = 0; k < number_of_threads; k++)
-        {
-            //contributions to the system
-            LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-
-            Condition::EquationIdVectorType EquationId;
-
-            ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-
-            typename ConditionsArrayType::ptr_iterator it_begin = ConditionsArray.ptr_begin() + condition_partition[k];
-            typename ConditionsArrayType::ptr_iterator it_end = ConditionsArray.ptr_begin() + condition_partition[k + 1];
-
-            // assemble all elements
-            for (typename ConditionsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
-            {
-                //calculate elemental contribution
-                pScheme->Condition_Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
-
-                //assemble the elemental contribution
-                ParallelAssembleRHS(b, RHS_Contribution, EquationId, lock_array, lock_array_reactions);
-            }
-        }
-
-        double stop_prod = omp_get_wtime();
-        if (this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
-            std::cout << "time: " << stop_prod - start_prod << std::endl;
-
-        for (unsigned int i = 0; i < b_size; i++)
-            omp_destroy_lock(&lock_array[i]);
-
-        for (unsigned int i = 0; i < reactions_size; i++)
-            omp_destroy_lock(&lock_array_reactions[i]);
-        
-        if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
-        {
-            KRATOS_WATCH("finished parallel building");
-        }
-
-#endif
-
         KRATOS_CATCH("")
+
     }
     //**************************************************************************
     //**************************************************************************
@@ -1422,64 +1328,6 @@ private:
             //note that computation of reactions is not performed here!
         }
     }
-    
-    //**************************************************************************
-    
-    void ParallelAssembleRHS(
-        TSystemVectorType& b,
-        const LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        std::vector< omp_lock_t >& lock_array,
-        std::vector< omp_lock_t >& lock_array_reactions
-    )
-    {   
-        unsigned int local_size = RHS_Contribution.size();
-
-        if (BaseType::mCalculateReactionsFlag == false) //if we don't need to calculate reactions
-        {
-            for (unsigned int i_local = 0; i_local < local_size; i_local++)
-            {
-                unsigned int i_global = EquationId[i_local];
-                if (i_global < BaseType::mEquationSystemSize) //on "free" DOFs
-                {
-                    omp_set_lock(&lock_array[i_global]);
-                    
-                    // ASSEMBLING THE SYSTEM VECTOR
-                    b[i_global] += RHS_Contribution[i_local];
-                    
-                    omp_unset_lock(&lock_array[i_global]);
-                }
-            }
-        }
-        else   //when the calculation of reactions is needed
-        {
-            TSystemVectorType& ReactionsVector = *BaseType::mpReactionsVector;
-            for (unsigned int i_local = 0; i_local < local_size; i_local++)
-            {
-                unsigned int i_global = EquationId[i_local];
-                if (i_global < BaseType::mEquationSystemSize) //on "free" DOFs
-                {
-                    omp_set_lock(&lock_array[i_global]);
-                    
-                    // ASSEMBLING THE SYSTEM VECTOR
-                    b[i_global] += RHS_Contribution[i_local];
-                    
-                    omp_unset_lock(&lock_array[i_global]);
-                }
-                else   //on "fixed" DOFs
-                {
-                    omp_set_lock(&lock_array_reactions[i_global - BaseType::mEquationSystemSize]);
-                    
-                    // Assembling the Vector of REACTIONS
-                    ReactionsVector[i_global - BaseType::mEquationSystemSize] -= RHS_Contribution[i_local];
-                    
-                    omp_unset_lock(&lock_array_reactions[i_global - BaseType::mEquationSystemSize]);
-                }
-            }
-        }
-        
-    }
-
 #endif
 
     /*@} */
