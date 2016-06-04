@@ -426,7 +426,7 @@ void TreeContactSearch::CreateMortarConditions(
             
             std::vector<Condition*> * ConditionPointersOrigin = pCondOrigin->GetValue(SEGMENT_CONTACT_POINTERS);
             
-            KRATOS_WATCH(NumberPointsFound); 
+//             KRATOS_WATCH(NumberPointsFound); 
             for(unsigned int i = 0; i < NumberPointsFound; i++)
             {   
                 Condition::Pointer pCondDestination = PointsFound[i]->GetCondition();
@@ -503,15 +503,18 @@ void TreeContactSearch::CreateMortarConditions(
                 for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
                 {
                     Point<3> GaussPoint;
+                    Point<3> GaussPointLocalCoordinates;
                     Point<3> ProjectedGaussPoint;
-                    GaussPoint.Coordinate(1) = integration_points[PointNumber].X();
-                    GaussPoint.Coordinate(2) = integration_points[PointNumber].Y();
-                    GaussPoint.Coordinate(3) = integration_points[PointNumber].Z();
+                    GaussPointLocalCoordinates.Coordinate(1) = integration_points[PointNumber].X();
+                    GaussPointLocalCoordinates.Coordinate(2) = integration_points[PointNumber].Y();
+                    GaussPointLocalCoordinates.Coordinate(3) = integration_points[PointNumber].Z(); // This is supposed to be 0 always, in 1D and 2D
                     
+                    array_1d<double, 3> result;
+                    GaussPoint = pCondDestination->GetGeometry().GlobalCoordinates(result, GaussPointLocalCoordinates);
+                
                     double dist_aux;
                     Project(mPointListOrigin[cond_it]->GetPoint(), GaussPoint, ProjectedGaussPoint, dist_aux, contact_normal_dest);
                     
-                    array_1d<double, 3> result;
                     bool inside = pCondDestination->GetGeometry().IsInside(ProjectedGaussPoint, result);
                     
                     if (inside == true)
