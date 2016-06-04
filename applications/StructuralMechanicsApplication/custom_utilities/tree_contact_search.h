@@ -29,14 +29,6 @@
 #include "utilities/math_utils.h"                  // Cross Product
 #include "custom_utilities/structural_mechanics_math_utilities.hpp"
 
-// TODO: Extend to the other contact conditions
-// #include "custom_conditions/NTN_contact_2D_condition.hpp"
-// #include "custom_conditions/NTN_contact_3D_condition.hpp"
-// #include "custom_conditions/NTS_contact_2D_condition.hpp"
-// #include "custom_conditions/NTS_contact_3D_condition.hpp"
-#include "custom_conditions/mortar_contact_2D_condition.hpp"
-#include "custom_conditions/mortar_contact_3D_condition.hpp"
-
 // TODO: Add parallelization
 
 namespace Kratos
