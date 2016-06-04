@@ -142,18 +142,18 @@ public:
     ///@name Life Cycle
     ///@{
 
-//     Line2D2( const PointType& FirstPoint, const PointType& SecondPoint )
+//     Line2D2( const PointType& point0, const PointType& point1 )
 //         : BaseType( PointsArrayType(), &msGeometryData )
 //     {
-//         BaseType::Points().push_back( typename PointType::Pointer( new PointType( FirstPoint ) ) );
-//         BaseType::Points().push_back( typename PointType::Pointer( new PointType( SecondPoint ) ) );
+//         BaseType::Points().push_back( typename PointType::Pointer( new PointType( point0 ) ) );
+//         BaseType::Points().push_back( typename PointType::Pointer( new PointType( point1 ) ) );
 //     }
 
-    Line2D2( typename PointType::Pointer pFirstPoint, typename PointType::Pointer pSecondPoint )
+    Line2D2( typename PointType::Pointer ppoint0, typename PointType::Pointer ppoint1 )
         : BaseType( PointsArrayType(), &msGeometryData )
     {
-        BaseType::Points().push_back( pFirstPoint );
-        BaseType::Points().push_back( pSecondPoint );
+        BaseType::Points().push_back( ppoint0 );
+        BaseType::Points().push_back( ppoint1 );
     }
 
     Line2D2( const PointsArrayType& ThisPoints )
@@ -421,7 +421,7 @@ public:
     {
         Matrix jacobian( 2, 1 );
         jacobian( 0, 0 ) = ( (BaseType::GetPoint( 1 ).X() - DeltaPosition(1,0)) - (BaseType::GetPoint( 0 ).X() - DeltaPosition(0,0)) ) * 0.5; //on the Gauss points (J is constant at each element)
-	jacobian( 1, 0 ) = ( (BaseType::GetPoint( 1 ).Y() - DeltaPosition(1,1)) - (BaseType::GetPoint( 0 ).Y() - DeltaPosition(0,1)) ) * 0.5;
+        jacobian( 1, 0 ) = ( (BaseType::GetPoint( 1 ).Y() - DeltaPosition(1,1)) - (BaseType::GetPoint( 0 ).Y() - DeltaPosition(0,1)) ) * 0.5;
 
         if ( rResult.size() != BaseType::IntegrationPointsNumber( ThisMethod ) )
         {
@@ -613,6 +613,19 @@ public:
     ///@name Shape Function
     ///@{
 
+    virtual Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const
+    {
+        if(rResult.size() != 2)
+        {
+            rResult.resize(2,false);
+        }
+
+        rResult[0] =  0.5 * ( 1.0 - rCoordinates[0]);
+        rResult[1] =  0.5 * ( 1.0 + rCoordinates[0]);
+
+        return rResult;
+    }
+
     virtual double ShapeFunctionValue( IndexType ShapeFunctionIndex,
                                        const CoordinatesArrayType& rPoint ) const
     {
@@ -751,12 +764,77 @@ public:
         rResult.resize( 2, 1 );
         noalias( rResult ) = ZeroMatrix( 2, 1 );
 
-        rResult( 0, 0 ) = -0.5;
-        rResult( 1, 0 ) = 0.5;
+        rResult( 0, 0 ) = - 0.5;
+        rResult( 1, 0 ) =   0.5;
         return rResult;
     }
 
+    /**
+    * Returns whether given arbitrary point is inside the Geometry and the respective
+        * local point for the given global point
+    */
+    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult )
+    {
+        PointLocalCoordinates( rResult, rPoint );
 
+        double tol = 1.0e-18;
+
+        if ( rResult[0] >= (-1.0 - tol) && rResult[0] <= (1.0 + tol) )
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+    * Returns the local coordinates of a given arbitrary point
+    */
+    // TODO: Check if correct
+    virtual CoordinatesArrayType& PointLocalCoordinates(
+            CoordinatesArrayType& rResult,
+            const CoordinatesArrayType& rPoint )
+    {
+        // Assuming that we work in the plane XY
+        if ( rResult.size() != 1 )
+        {
+            rResult.resize( 1 );
+        }
+
+        rResult = ZeroVector( 1 );
+
+        const TPointType& point0 = BaseType::GetPoint(0);
+        const TPointType& point1 = BaseType::GetPoint(1);
+
+        // Project point
+        double tol = 1e-18; // Tolerance
+        double a = (point1[1] - point0[1])/((point1[0] - point0[0]) + tol);
+        double b = point0[1] - a * point0[0];
+
+        array_1d<double,2> Point_projected = ZeroVector(2);
+        Point_projected[0] = (rPoint[1] + rPoint[0]/(a + tol)-b)/(a + 1.0/(a + tol));
+        Point_projected[1] = a * Point_projected[0] + b;
+
+        double dist_proy = (rPoint[0] - Point_projected[0]) * (rPoint[0] - Point_projected[0])
+                         + (rPoint[1] - Point_projected[1]) * (rPoint[1] - Point_projected[1]);
+        dist_proy = std::sqrt(dist_proy);
+
+        if (dist_proy < tol)
+        {
+            double L  = Length();
+            double l1 = (Point_projected[0] - point0[0]) * (Point_projected[0] - point0[0])
+                      + (Point_projected[1] - point0[1]) * (Point_projected[1] - point0[1]);
+            l1 = std::sqrt(l1);
+
+            rResult[0] = 2.0 * (L - l1)/(L + tol) - 1.0;
+        }
+        else
+        {
+            rResult[0] = 1000.0; // Out of the line!!!
+        }
+
+        return( rResult );
+    }
 
     ///@}
     ///@name Friends
