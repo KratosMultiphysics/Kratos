@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Time control
 import time
 print (time.ctime())
-start_time = time.clock()
+start_time = time.perf_counter()
 
 
 ## Necessary modules -----------------------------------------------------------------------------------------
@@ -136,4 +136,4 @@ gid_output_util.finalize_results()
 
 # Time control
 print (time.ctime())
-print("Analysis Completed, Elapsed Time = ", time.clock() - start_time," seconds")
+print("Analysis Completed, Elapsed Time = ", time.perf_counter() - start_time," seconds")
