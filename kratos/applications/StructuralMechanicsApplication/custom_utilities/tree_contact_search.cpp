@@ -453,16 +453,19 @@ void TreeContactSearch::CreateMortarConditions(
                     for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
                     {
                         Point<3> GaussPoint;
+                        Point<3> GaussPointLocalCoordinates;
                         Point<3> ProjectedGaussPoint;
-                        GaussPoint.Coordinate(1) = integration_points[PointNumber].X();
-                        GaussPoint.Coordinate(2) = integration_points[PointNumber].Y();
-                        GaussPoint.Coordinate(3) = integration_points[PointNumber].Z();
+                        GaussPointLocalCoordinates.Coordinate(1) = integration_points[PointNumber].X();
+                        GaussPointLocalCoordinates.Coordinate(2) = integration_points[PointNumber].Y();
+                        GaussPointLocalCoordinates.Coordinate(3) = integration_points[PointNumber].Z(); // This is supposed to be 0 always, in 1D and 2D
+                        
+                        array_1d<double, 3> result;
+                        GaussPoint = pCondDestination->GetGeometry().GlobalCoordinates(result, GaussPointLocalCoordinates);
                         
                         double dist_aux;
                         Project(PointsFound[i]->GetPoint(), GaussPoint, ProjectedGaussPoint, dist_aux, contact_normal_orig);
                         
-                        array_1d<double, 3> result;
-                        bool inside = pCondOrigin->GetGeometry().IsInside(ProjectedGaussPoint, result);
+                        bool inside = pCondDestination->GetGeometry().IsInside(ProjectedGaussPoint, result);
                         
                         if (inside == true)
                         {
@@ -515,7 +518,14 @@ void TreeContactSearch::CreateMortarConditions(
                     double dist_aux;
                     Project(mPointListOrigin[cond_it]->GetPoint(), GaussPoint, ProjectedGaussPoint, dist_aux, contact_normal_dest);
                     
-                    bool inside = pCondDestination->GetGeometry().IsInside(ProjectedGaussPoint, result);
+                    bool inside = pCondOrigin->GetGeometry().IsInside(ProjectedGaussPoint, result);
+                    
+//                     KRATOS_WATCH("----------------------------------")
+//                     KRATOS_WATCH(inside);
+//                     KRATOS_WATCH(result);
+//                     KRATOS_WATCH(pCondOrigin->GetGeometry());
+//                     KRATOS_WATCH(GaussPoint);
+//                     KRATOS_WATCH(ProjectedGaussPoint);
                     
                     if (inside == true)
                     {
@@ -544,8 +554,10 @@ void TreeContactSearch::Project(
      vector_points[0] = PointDestiny.Coordinate(1) - PointOrigin.Coordinate(1);
      vector_points[1] = PointDestiny.Coordinate(2) - PointOrigin.Coordinate(2);
      vector_points[2] = PointDestiny.Coordinate(3) - PointOrigin.Coordinate(3);
-     
-     dist = std::sqrt(inner_prod(vector_points, Normal));
+    
+     dist = vector_points[0] * Normal[0]
+          + vector_points[1] * Normal[1]
+          + vector_points[2] * Normal[2];
      
      PointProjected.Coordinate(1) = PointDestiny.Coordinate(1) - Normal[0] * dist;
      PointProjected.Coordinate(2) = PointDestiny.Coordinate(2) - Normal[1] * dist;
@@ -570,14 +582,14 @@ void TreeContactSearch::CenterAndRadius(
     {
         array_1d<double,3> v1,v2;
 
-        v1[0] = pCond->GetGeometry()[1].X() - pCond->GetGeometry()[0].X();
-        v1[1] = pCond->GetGeometry()[1].Y() - pCond->GetGeometry()[0].Y();
-        v1[2] = pCond->GetGeometry()[1].Z() - pCond->GetGeometry()[0].Z();
-        
         // Assuming plane X-Y
-        v2[0] = 0.0;
-        v2[1] = 0.0;
-        v2[2] = 1.0;
+        v1[0] = 0.0;
+        v1[1] = 0.0;
+        v1[2] = 1.0;
+        
+        v2[0] = pCond->GetGeometry()[1].X() - pCond->GetGeometry()[0].X();
+        v2[1] = pCond->GetGeometry()[1].Y() - pCond->GetGeometry()[0].Y();
+        v2[2] = pCond->GetGeometry()[1].Z() - pCond->GetGeometry()[0].Z();
         
         MathUtils<double>::CrossProduct(Normal,v1,v2);
 
