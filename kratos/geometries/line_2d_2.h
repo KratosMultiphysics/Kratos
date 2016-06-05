@@ -807,7 +807,7 @@ public:
         const TPointType& point1 = BaseType::GetPoint(1);
 
         // Project point
-        double tol = 1e-18; // Tolerance
+        double tol = 1e-12; // Tolerance
         double a = (point1[1] - point0[1])/((point1[0] - point0[0]) + tol);
         double b = point0[1] - a * point0[0];
 
@@ -822,11 +822,23 @@ public:
         if (dist_proy < tol)
         {
             double L  = Length();
+            
             double l1 = (Point_projected[0] - point0[0]) * (Point_projected[0] - point0[0])
                       + (Point_projected[1] - point0[1]) * (Point_projected[1] - point0[1]);
             l1 = std::sqrt(l1);
-
-            rResult[0] = 2.0 * (L - l1)/(L + tol) - 1.0;
+            
+            double l2 = (Point_projected[0] - point1[0]) * (Point_projected[0] - point1[0])
+                      + (Point_projected[1] - point1[1]) * (Point_projected[1] - point1[1]);
+            l2 = std::sqrt(l2);
+            
+            if (l1 <= L  and l2 <= L)
+            {
+                rResult[0] = 2.0 * l1/(L + tol) - 1.0;
+            }
+            else 
+            {
+                rResult[0] = 1000.0; // Out of the line!!!
+            }
         }
         else
         {
