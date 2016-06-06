@@ -19,11 +19,11 @@
         <Item n="State" v="0"/>
         <Item n="Active" v="0"/>
         <Item n="Visited" v="0"/>
-        <Item n="DENSITY" pn="Density" v="1000" type="double" mxp="container[@un='FLParts']/group/DENSITY"/>
-        <Item n="VISCOSITY" pn="Kinematic viscosity" v="1e-6" type="double" mxp="container[@un='FLParts']/group/VISCOSITY"/>
-        <Item n="YIELD_STRESS" pn="Yield stress (τ)" v="0." type="double" mxp="container[@un='FLParts']/group/YIELD_STRESS"/>
-        <Item n="POWER_LAW_K" pn="Consistency index (k)" v="0." type="double" mxp="container[@un='FLParts']/group/POWER_LAW_K"/>
-        <Item n="POWER_LAW_N" pn="Flow index (n)" v="0." type="double" mxp="container[@un='FLParts']/group/POWER_LAW_N"/>
+        <Item n="DENSITY" pn="Density" v="1000" type="double" mxp="container[@un='FLParts']/group/value[@n='DENSITY']"/>
+        <Item n="VISCOSITY" pn="Kinematic viscosity" v="1e-6" type="double" mxp="container[@un='FLParts']/group/value[@n='VISCOSITY']"/>
+        <Item n="YIELD_STRESS" pn="Yield stress (τ)" v="0." type="double" mxp="container[@un='FLParts']/group/value[@n='YIELD_STRESS']"/>
+        <Item n="POWER_LAW_K" pn="Consistency index (k)" v="0." type="double" mxp="container[@un='FLParts']/group/value[@n='POWER_LAW_K']"/>
+        <Item n="POWER_LAW_N" pn="Flow index (n)" v="0." type="double" mxp="container[@un='FLParts']/group/value[@n='POWER_LAW_N']"/>
       </Data>
     </Step>
 	  <Step id="Fluid">
@@ -31,8 +31,8 @@
         <Item n="State" v="0"/>
         <Item n="Active" v="0"/>
         <Item n="Visited" v="0"/>
-		<Item n="Inlet" pn="Inlet velocity" v="0.3" mxp="container[@un='FLBC']/group/Inlet3D"/>
-		<Item n="Outlet" pn="Outlet pressure" v="0.0" mxp="container[@un='FLBC']/group/Outlet3D"/>
+		<Item n="Inlet" pn="Inlet velocity" v="0.3" mxp="container[@un='FLBC']/group/value[@n='Inlet3D']"/>
+		<Item n="Outlet" pn="Outlet pressure" v="0.0" mxp="container[@un='FLBC']/group/value[@n='Outlet3D']"/>
       </Data>
     </Step>
     <Step id="Simulation">
@@ -40,9 +40,9 @@
         <Item n="State" v="0"/>
         <Item n="Active" v="0"/>
         <Item n="Visited" v="0"/>
-		  <Item n="InitialTime" pn="Initial time" v="0" parent="Dynamic" mxp="container[@un='FLTimeParameters']/InitialTime"/>
-		  <Item n="EndTime" pn="Initial time" v="10" parent="Dynamic" mxp="container[@un='FLTimeParameters']/EndTime"/>
-		  <Item n="DeltaTime" pn="Delta time" v="0.5" parent="Dynamic" mxp="container[@un='FLTimeParameters']/DeltaTime"/>
+		  <Item n="InitialTime" pn="Initial time" v="0" parent="Dynamic" mxp="container[@un='FLTimeParameters']/value[@n='InitialTime']"/>
+		  <Item n="EndTime" pn="Initial time" v="10" parent="Dynamic" mxp="container[@un='FLTimeParameters']/value[@n='EndTime']"/>
+		  <Item n="DeltaTime" pn="Delta time" v="0.5" parent="Dynamic" mxp="container[@un='FLTimeParameters']/value[@n='DeltaTime']"/>
       </Data>
     </Step>
   </Steps>
