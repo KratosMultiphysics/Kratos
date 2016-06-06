@@ -87,6 +87,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::InitializeNonLinearIteration(Proc
     Matrix F = identity_matrix<double>(TDim);
     double detF = 1.0;
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,this->GetProperties(),rCurrentProcessInfo);
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
     ConstitutiveParameters.SetStressVector(StressVector);
     ConstitutiveParameters.SetStrainVector(StrainVector);
@@ -112,9 +113,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::InitializeNonLinearIteration(Proc
         
         // Compute ConstitutiveTensor
         noalias(StrainVector) = prod(B,DisplacementVector);
-        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-        ConstitutiveParameters.Reset(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
         this->SaveGPConstitutiveTensor(ConstitutiveTensorContainer,ConstitutiveMatrix,GPoint);
         
         // Compute DtStress
@@ -157,6 +156,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::FinalizeNonLinearIteration(Proces
     Matrix F = identity_matrix<double>(TDim);
     double detF = 1.0;
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,this->GetProperties(),rCurrentProcessInfo);
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
     ConstitutiveParameters.SetStressVector(StressVector);
     ConstitutiveParameters.SetStrainVector(StrainVector);
@@ -177,9 +177,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::FinalizeNonLinearIteration(Proces
         
         // Compute ConstitutiveTensor
         noalias(StrainVector) = prod(B,DisplacementVector);
-        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-        ConstitutiveParameters.Reset(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
         
         // Compute DtStress
         noalias(StrainVector) = prod(B,VelocityVector);
