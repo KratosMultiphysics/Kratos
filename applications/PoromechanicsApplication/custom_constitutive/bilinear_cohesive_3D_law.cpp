@@ -97,16 +97,17 @@ void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues
     double EffectiveDisplacement;
     
     //Material properties
+    Flags& Options = rValues.GetOptions();
     const Properties& MaterialProperties = rValues.GetMaterialProperties();
     const double& CriticalDisplacement = MaterialProperties[CRITICAL_DISPLACEMENT];
     const double& DamageThreshold = MaterialProperties[DAMAGE_THRESHOLD];
     const double& ResidualStress = MaterialProperties[RESIDUAL_STRESS];
         
-    if( rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY) ) // No contact between interfaces
+    if( Options.Is(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY) ) // No contact between interfaces
     {
         this->ComputeEffectiveDisplacement(EffectiveDisplacement,rStrainVector,CriticalDisplacement);
 
-        if( rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) ) //Computation of ConstitutiveMatrix and StressVector. WARNING: it is not general
+        if( Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) ) //Computation of ConstitutiveMatrix and StressVector. WARNING: it is not general
         {
             Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
                         
@@ -140,7 +141,7 @@ void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues
         
         this->ComputeEffectiveDisplacementContact(EffectiveDisplacement,rStrainVector,CriticalDisplacement);
         
-        if( rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) ) //Computation of ConstitutiveMatrix and StressVector. WARNING: it is not general
+        if( Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) ) //Computation of ConstitutiveMatrix and StressVector. WARNING: it is not general
         {
             Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
             
