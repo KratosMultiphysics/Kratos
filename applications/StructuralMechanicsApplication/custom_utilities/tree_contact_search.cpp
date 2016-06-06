@@ -38,7 +38,7 @@ TreeContactSearch::TreeContactSearch(
     mdimension(rOriginModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension()),
     mallocation(allocation_size)
 {
-
+    
 }
 
 /************************************* DESTRUCTOR **********************************/
@@ -74,7 +74,7 @@ void TreeContactSearch::InitializeMortarConditions()
     
     for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
     {
-        cond_it->GetValue(SEGMENT_CONTACT_POINTERS) = new std::vector<Condition *>(mallocation); // TODO:Add the size as an input
+        cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>(mallocation);  
     }
     
     ConditionsArrayType& pCondOrigin = mrOriginModelPart.Conditions();
@@ -83,7 +83,7 @@ void TreeContactSearch::InitializeMortarConditions()
     
     for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
     {
-        cond_it->GetValue(SEGMENT_CONTACT_POINTERS) = new std::vector<Condition *>(mallocation); // TODO:Add the size as an input
+        cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>(mallocation); 
     }
 }
 
@@ -91,28 +91,8 @@ void TreeContactSearch::InitializeMortarConditions()
 /***********************************************************************************/
 
 void TreeContactSearch::ClearNTNConditions()
-{
-//     NodesArrayType& pNodeDestination  = mrDestinationModelPart.Nodes();
-//     NodesArrayType::iterator it_begin = pNodeDestination.ptr_begin();
-//     NodesArrayType::iterator it_end   = pNodeDestination.ptr_end();
-//     
-//     for(NodesArrayType::iterator node_it = it_begin; node_it!=it_end; node_it++)
-//     {
-//         std::vector<Node*> * NodePointersDestination = node_it->GetValue(NODE_CONTACT_POINTERS);
-//         delete NodePointersDestination;
-//         NodePointersDestination = new std::vector<Node *>(); // TODO:Add the size as an input
-//     }
-//     
-//     NodesArrayType& pNodeOrigin = mrOriginModelPart.Nodes();
-//     it_begin = pNodeOrigin.ptr_begin();
-//     it_end   = pNodeOrigin.ptr_end();
-//     
-//     for(NodesArrayType::iterator node_it = it_begin; node_it!=it_end; node_it++)
-//     {
-//         std::vector<Node*> * NodePointersOrigin = node_it->GetValue(NODE_CONTACT_POINTERS);
-//         delete NodePointersOrigin;
-//         NodePointersOrigin = new std::vector<Node *>(); // TODO:Add the size as an input
-//     }
+{    
+    // TODO: Add this in the future
 }
 
 /***********************************************************************************/
@@ -120,27 +100,7 @@ void TreeContactSearch::ClearNTNConditions()
 
 void TreeContactSearch::ClearNTSConditions()
 {
-//     NodesArrayType& pNodeDestination  = mrDestinationModelPart.Nodes();
-//     NodesArrayType::iterator it_begin = pNodeDestination.ptr_begin();
-//     NodesArrayType::iterator it_end   = pNodeDestination.ptr_end();
-//     
-//     for(NodesArrayType::iterator node_it = it_begin; node_it!=it_end; node_it++)
-//     {
-//         std::vector<Node*> * NodePointersDestination = node_it->GetValue(NODE_CONTACT_POINTERS);
-//         delete NodePointersDestination;
-//         NodePointersDestination = new std::vector<Node *>(); // TODO:Add the size as an input
-//     }
-//     
-//     ConditionsArrayType& pCondOrigin = mrOriginModelPart.Conditions();
-//     ConditionsArrayType::iterator it_begin = pCondOrigin.ptr_begin();
-//     ConditionsArrayType::iterator it_end   = pCondOrigin.ptr_end();
-//     
-//     for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
-//     {
-//         std::vector<Condition*> * ConditionPointersOrigin = cond_it->GetValue(SEGMENT_CONTACT_POINTERS);
-//         delete ConditionPointersOrigin;
-//         ConditionPointersOrigin = new std::vector<Condition *>(); // TODO:Add the size as an input
-//     }
+    // TODO: Add this in the future
 }
 
 /***********************************************************************************/
@@ -160,17 +120,18 @@ void TreeContactSearch::ClearMortarConditions()
             cond_it->Set(MASTER, false);
             cond_it->Set(SLAVE, false);   
             
-            std::vector<Condition*> * ConditionPointersDestination = cond_it->GetValue(SEGMENT_CONTACT_POINTERS);
+            std::vector<contact_container> * ConditionPointersDestination = cond_it->GetValue(CONTACT_CONTAINERS);
             
             for (unsigned int i =0; i< ConditionPointersDestination->size();i++)
             {
-                delete(&ConditionPointersDestination[i]);
+                delete(&((*ConditionPointersDestination)[i].condition));
+                
             } 
             
             ConditionPointersDestination->clear();
             
-            delete cond_it->GetValue(SEGMENT_CONTACT_POINTERS); 
-            cond_it->GetValue(SEGMENT_CONTACT_POINTERS) = new std::vector<Condition *>(mallocation); // TODO:Add the size as an input
+            delete cond_it->GetValue(CONTACT_CONTAINERS); 
+            cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>(mallocation); 
         }
     }
     
@@ -186,17 +147,17 @@ void TreeContactSearch::ClearMortarConditions()
             cond_it->Set(MASTER, false);
             cond_it->Set(SLAVE, false);   
             
-            std::vector<Condition*> * ConditionPointersOrigin = cond_it->GetValue(SEGMENT_CONTACT_POINTERS);
+            std::vector<contact_container> * ConditionPointersOrigin = cond_it->GetValue(CONTACT_CONTAINERS);
             
             for (unsigned int i =0; i< ConditionPointersOrigin->size();i++)
             {
-                delete(&ConditionPointersOrigin[i]);
+                delete(&((*ConditionPointersOrigin)[i].condition));
             } 
             
             ConditionPointersOrigin->clear();
             
-            delete cond_it->GetValue(SEGMENT_CONTACT_POINTERS); 
-            cond_it->GetValue(SEGMENT_CONTACT_POINTERS) = new std::vector<Condition *>(mallocation); // TODO:Add the size as an input
+            delete cond_it->GetValue(CONTACT_CONTAINERS); 
+            cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>(mallocation); 
         }
     }
 }
@@ -421,33 +382,32 @@ void TreeContactSearch::CreateMortarConditions(
                 pCondOrigin->Set(MASTER, true);
                 pCondOrigin->Set(SLAVE, false); // NOTE: It is supposed to be already false, just in case
             }
-//                 // Illegal way to procede
-//             MortarContact2DCondition *pCondMortarOrigin = dynamic_cast<MortarContact2DCondition* >(&* pCondOrigin); 
-            
-            std::vector<Condition*> * ConditionPointersOrigin = pCondOrigin->GetValue(SEGMENT_CONTACT_POINTERS);
+
+            std::vector<contact_container> * ConditionPointersOrigin = pCondOrigin->GetValue(CONTACT_CONTAINERS);
             
 //             KRATOS_WATCH(NumberPointsFound); 
             for(unsigned int i = 0; i < NumberPointsFound; i++)
             {   
                 Condition::Pointer pCondDestination = PointsFound[i]->GetCondition();
-                std::vector<Condition*> * ConditionPointersDestination = pCondDestination->GetValue(SEGMENT_CONTACT_POINTERS);
+                std::vector<contact_container> * ConditionPointersDestination = pCondDestination->GetValue(CONTACT_CONTAINERS);
                 
                 if (bidirectional == true)
-                {
-                    ConditionPointersOrigin->push_back(&* pCondDestination);
+                {                                        
+                    contact_container contact_container_origin;
+                    
+                    contact_container_origin.condition = &* pCondDestination;
                     
                     // Define the normal to the contact
                     array_1d<double, 3> & contact_normal_orig = pCondOrigin->GetValue(CONTACT_NORMAL);
                     contact_normal_orig = mPointListOrigin[cond_it]->GetNormal();
                     
                     // Define the contact gap
-                    double & contact_gap_orig                 = pCondOrigin->GetValue(CONTACT_GAP);
                     Point<3> ProjectedPointDestination;
-                    Project(PointsFound[i]->GetPoint(), mPointListOrigin[cond_it]->GetPoint(), ProjectedPointDestination, contact_gap_orig, contact_normal_orig);
+                    Project(PointsFound[i]->GetPoint(), mPointListOrigin[cond_it]->GetPoint(), ProjectedPointDestination, contact_container_origin.contact_gap, contact_normal_orig);
                     
                     // Define the contact area
-                    double & contact_area_orig                = pCondOrigin->GetValue(CONTACT_AREA);
-                    contact_area_orig = 0.0;
+                    contact_container_origin.contact_area = 0.0;
+                    double aux_int = 0.0;
                     /* Reading integration points */
                     const GeometryType::IntegrationPointsArrayType& integration_points = pCondOrigin->GetGeometry().IntegrationPoints( IntegrationOrder );
                     for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
@@ -467,40 +427,48 @@ void TreeContactSearch::CreateMortarConditions(
                         
                         bool inside = pCondDestination->GetGeometry().IsInside(ProjectedGaussPoint, result);
                         
+                        // Integration weigth
+                        double IntegrationWeight = integration_points[PointNumber].Weight();
+                        aux_int += IntegrationWeight;
+                        
                         if (inside == true)
                         {
-                            // Integration weigth
-                            double IntegrationWeight = integration_points[PointNumber].Weight();
-                            contact_area_orig += IntegrationWeight;
+                            contact_container_origin.contact_area += IntegrationWeight;
                         }
                     }
+                    
+                    contact_container_origin.contact_area /= aux_int;
+                        
+                    ConditionPointersOrigin->push_back(contact_container_origin);
                 }
                 
                 // Set the corresponding flags
                 pCondDestination->Set(ACTIVE, true);
                 pCondDestination->Set(MASTER, false); // NOTE: It is supposed to be already false, just in case
                 pCondDestination->Set(SLAVE, true);
-
-                ConditionPointersDestination->push_back(&* pCondOrigin);
                 
-//                 // Illegal way to procede
-//                 MortarContact2DCondition *pCondMortarDestination = dynamic_cast<MortarContact2DCondition* >(&* pCondDestination); 
-                
-//                 pCondMortarOrigin->SetConditionsPointer(&* pCondDestination);
-//                 pCondMortarDestination->SetConditionsPointer(&* pCondOrigin);
+                contact_container contact_container_destination;
+                    
+                contact_container_destination.condition = &* pCondOrigin;
                 
                 // Define the normal to the contact
                 array_1d<double, 3> & contact_normal_dest = pCondDestination->GetValue(CONTACT_NORMAL);
                 contact_normal_dest = PointsFound[i]->GetNormal();
                 
                 // Define the contact gap
-                double & contact_gap_dest                 = pCondDestination->GetValue(CONTACT_GAP);
                 Point<3> ProjectedPointOrigin;
-                Project(mPointListOrigin[cond_it]->GetPoint(), PointsFound[i]->GetPoint(), ProjectedPointOrigin, contact_gap_dest, contact_normal_dest);
+                Project(mPointListOrigin[cond_it]->GetPoint(), PointsFound[i]->GetPoint(), ProjectedPointOrigin, contact_container_destination.contact_gap, contact_normal_dest);
                 
                 // Define the contact area
-                double & contact_area_dest                = pCondDestination->GetValue(CONTACT_AREA);
-                contact_area_dest = 0.0;
+                contact_container_destination.contact_area = 0.0;
+                double aux_int = 0.0;
+                
+//                 KRATOS_WATCH("-----------------------------------------------------------------------------------------------------------------")
+//                 KRATOS_WATCH(pCondDestination->Id());
+//                 KRATOS_WATCH(pCondDestination->GetGeometry());
+//                 KRATOS_WATCH(pCondOrigin->Id());
+//                 KRATOS_WATCH(pCondOrigin->GetGeometry());
+                
                 /* Reading integration points */
                 const GeometryType::IntegrationPointsArrayType& integration_points = pCondDestination->GetGeometry().IntegrationPoints( IntegrationOrder );
                 for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
@@ -523,17 +491,23 @@ void TreeContactSearch::CreateMortarConditions(
 //                     KRATOS_WATCH("----------------------------------")
 //                     KRATOS_WATCH(inside);
 //                     KRATOS_WATCH(result);
-//                     KRATOS_WATCH(pCondOrigin->GetGeometry());
 //                     KRATOS_WATCH(GaussPoint);
 //                     KRATOS_WATCH(ProjectedGaussPoint);
                     
+                    // Integration weigth
+                    double IntegrationWeight = integration_points[PointNumber].Weight();
+                    aux_int += IntegrationWeight;
+                    
                     if (inside == true)
                     {
-                        // Integration weigth
-                        double IntegrationWeight = integration_points[PointNumber].Weight();
-                        contact_area_dest += IntegrationWeight;
+                        contact_container_destination.contact_area += IntegrationWeight;
                     }
+//                     KRATOS_WATCH(contact_container_destination.contact_area/2.00); // Divided by two for the line
                 }
+                
+                contact_container_destination.contact_area /= aux_int;
+                
+                ConditionPointersDestination->push_back(contact_container_destination);
             }
         }
     }

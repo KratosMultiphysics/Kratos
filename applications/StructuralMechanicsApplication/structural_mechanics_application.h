@@ -286,7 +286,6 @@ private:
 
 ///@}
 
-
 ///@name Type Definitions
 ///@{
 
