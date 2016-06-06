@@ -90,20 +90,20 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( double, MATERIAL )
 
     Kratos::Variable<double> LAST_AIR( "LAST AIR" );
-    Kratos::Variable<double> PRESSURES( "PRESSURES (N/m2)" );
-    Kratos::Variable<Kratos::array_1d<double, 3> > VELOCITIES( "VELOCITIES (m/s)", Kratos::zero_vector<double>( 3 ) );
-    Kratos::Variable<double> TEMPERATURES( "TEMPERATURES (C)" );
+    Kratos::Variable<double> PRESSURES( "PRESSURES" );
+    Kratos::Variable<Kratos::array_1d<double, 3> > VELOCITIES( "VELOCITIES", Kratos::zero_vector<double>( 3 ) );
+    Kratos::Variable<double> TEMPERATURES( "TEMPERATURES" );
     /*const*/
     Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > >
-    VELOCITIES_X( "X-VELOCITIES (m/s)", Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >( VELOCITIES, 0 ) );
+    VELOCITIES_X( "X-VELOCITIES", Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >( VELOCITIES, 0 ) );
 
     /*const*/
     Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > >
-    VELOCITIES_Y( "Y-VELOCITIES (m/s)", Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >( VELOCITIES, 1 ) );
+    VELOCITIES_Y( "Y-VELOCITIES)", Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >( VELOCITIES, 1 ) );
 
     /*const*/
     Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > >
-    VELOCITIES_Z( "Z-VELOCITIES (m/s)", Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >( VELOCITIES, 2 ) );
+    VELOCITIES_Z( "Z-VELOCITIES", Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >( VELOCITIES, 2 ) );
 
     // for Vulcan application virtual mould properties
     KRATOS_CREATE_VARIABLE(double,  MOULD_DENSITY)
@@ -125,21 +125,28 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE(bool, IS_ESCAPED)
     KRATOS_CREATE_VARIABLE(int, IS_SOLIDIFIED)
     Kratos::Variable<double> SOLIDFRACTION( "SOLID FRACTION" );
-    Kratos::Variable<double> SOLIDIF_TIME( "SOLIDIF TIME (s)" );
-    Kratos::Variable<double> SOLIDIF_MODULUS( "SOLIDIF MODULUS (cm)" );
-    Kratos::Variable<double> FILLTIME( "FILLTIME (s)" );
+    Kratos::Variable<double> SOLIDIF_TIME( "SOLIDIF TIME" );
+    Kratos::Variable<double> SOLIDIF_MODULUS( "SOLIDIF MODULUS" );
+    Kratos::Variable<double> FILLTIME( "FILLTIME" );
     KRATOS_CREATE_VARIABLE(double, MACRO_POROSITY )
-    Kratos::Variable<double> SHRINKAGE_POROSITY( "SHRINKAGE_POROSITY (m^3)" );
-    Kratos::Variable<double> MAX_VEL( "MAX VEL (m/s)" );
+    Kratos::Variable<double> SHRINKAGE_POROSITY( "SHRINKAGE_POROSITY" );
+    Kratos::Variable<double> MAX_VEL( "MAX VEL" );
     KRATOS_CREATE_VARIABLE(int, IS_GRAVITY_FILLING)
     KRATOS_CREATE_VARIABLE(double, VOLUME_FRACTION )
     KRATOS_CREATE_VARIABLE(double, KAPPA )
     KRATOS_CREATE_VARIABLE(double, EPSILON )
-    Kratos::Variable<double> SHRINKAGE_POROSITY_US( "SHRINKAGE_POROSITY (in^3)" );
-    Kratos::Variable<double> SOLIDIF_MODULUS_US( "SOLIDIF MODULUS (in)" );
-    Kratos::Variable<double> TEMPERATURES_US( "TEMPERATURES (F)" );
+    Kratos::Variable<double> SHRINKAGE_POROSITY_US( "SHRINKAGE_POROSITY" );
+    Kratos::Variable<double> SOLIDIF_MODULUS_US( "SOLIDIF MODULUS" );
+    Kratos::Variable<double> TEMPERATURES_US( "TEMPERATURES" );
     KRATOS_CREATE_VARIABLE(double,FRONT_MEETING)
-    KRATOS_CREATE_VARIABLE( double, MOULD_AVERAGE_TEMPERATURE )   
+    KRATOS_CREATE_VARIABLE( double, MOULD_AVERAGE_TEMPERATURE )  
+	Kratos::Variable<double> LIQUID_TIME("TIME TO START SOLIDIFICATION");
+	Kratos::Variable<double>  FLOW_LENGTH ("FLOW LENGTH ESTIMATION 1");
+	Kratos::Variable<double>  FLOW_LENGTH2("FLOW LENGTH ESTIMATION 2" );
+	Kratos::Variable<double> COOLING_RATE("COOLING RATE");
+	Kratos::Variable<double> LIQUID_TO_SOLID_TIME("TIME TO COMPLETE SOLIDIF.");
+	KRATOS_CREATE_VARIABLE( double, TIME_CRT )
+	KRATOS_CREATE_VARIABLE(double, SINKMARK)
 
   void KratosApplication::RegisterC2CVariables()
   {
@@ -194,7 +201,13 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( SOLIDIF_MODULUS_US)
         KRATOS_REGISTER_VARIABLE( TEMPERATURES_US)
         KRATOS_REGISTER_VARIABLE( FRONT_MEETING)
-
+		KRATOS_REGISTER_VARIABLE( LIQUID_TIME)
+		KRATOS_REGISTER_VARIABLE( FLOW_LENGTH )
+		KRATOS_REGISTER_VARIABLE( FLOW_LENGTH2 )
+		KRATOS_REGISTER_VARIABLE( COOLING_RATE)
+		KRATOS_REGISTER_VARIABLE (LIQUID_TO_SOLID_TIME)
+		KRATOS_REGISTER_VARIABLE (TIME_CRT)
+		KRATOS_REGISTER_VARIABLE(SINKMARK)
   }
 
 
