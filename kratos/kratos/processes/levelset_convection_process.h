@@ -461,7 +461,7 @@ protected:
         int nsteps = static_cast<unsigned int>(max_cfl_found/mmax_allowed_cfl); 
         if(nsteps < 1) nsteps=1;
         
-        KRATOS_WATCH(nsteps)
+        //KRATOS_WATCH(nsteps)
         
         
         return nsteps;
