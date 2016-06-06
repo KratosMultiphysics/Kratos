@@ -212,6 +212,13 @@ public:
     }
 
 
+
+       virtual Condition::Pointer Create(IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
+        {
+			return Condition::Pointer(new WallConditionDiscontinuous(NewId, pGeom, pProperties));
+		}
+
+
     /// Calculate wall stress term for all nodes with IS_STRUCTURE != 0.0
     /**
       @param rDampMatrix Left-hand side matrix
