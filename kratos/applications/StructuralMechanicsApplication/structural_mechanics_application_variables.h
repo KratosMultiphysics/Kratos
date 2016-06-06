@@ -29,6 +29,29 @@ namespace Kratos
 {
 typedef array_1d<double,3> Vector3;
 
+struct contact_container 
+{
+    Condition* condition;
+    double  contact_area;
+    double   contact_gap;
+  
+    void save( Serializer& rSerializer ) const
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, contact_container );
+        rSerializer.save("condition",condition);
+        rSerializer.save("contact_area",contact_area);
+        rSerializer.save("contact_gap",contact_gap);
+    }
+
+    void load( Serializer& rSerializer )
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, contact_container );
+        rSerializer.load("condition",condition);
+        rSerializer.load("contact_area",contact_area);
+        rSerializer.load("contact_gap",contact_gap);
+    }
+};
+
 // Geometrical
 KRATOS_DEFINE_VARIABLE( double, AREA )
 KRATOS_DEFINE_VARIABLE( double, IX )
@@ -80,12 +103,10 @@ KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( LOCAL_POINT_MOMENT )
 /* Torque conditions */
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( POINT_TORQUE )
 /* Mortar method */
-KRATOS_DEFINE_VARIABLE( Vector3, CONTACT_NORMAL )                            // The normal of the condition 
-KRATOS_DEFINE_VARIABLE( double, CONTACT_AREA )                               // The projected area between the two conditions
-KRATOS_DEFINE_VARIABLE( double, CONTACT_GAP )                                // The gap between the conditions
-KRATOS_DEFINE_VARIABLE( Element::Pointer, ELEMENT_POINTER )                  // A pointer to the element belonging to this condition
-KRATOS_DEFINE_VARIABLE( std::vector<Condition*>*, SEGMENT_CONTACT_POINTERS ) // A vector of pointers to the conditions
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( CONTACT_MESH_TYING_FORCE )        // The "force" resulting from contact
+KRATOS_DEFINE_VARIABLE( Vector3, CONTACT_NORMAL )                             // The normal of the condition 
+KRATOS_DEFINE_VARIABLE( std::vector<contact_container>*, CONTACT_CONTAINERS ) // A vector of which contains the structure which defines the contact conditions
+KRATOS_DEFINE_VARIABLE( Element::Pointer, ELEMENT_POINTER )                   // A pointer to the element belonging to this condition
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( CONTACT_MESH_TYING_FORCE )         // The "force" resulting from contact
 
 // Adding the SPRISM EAS variables
 KRATOS_DEFINE_VARIABLE(double, ALPHA_EAS);

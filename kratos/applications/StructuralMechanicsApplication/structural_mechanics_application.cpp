@@ -116,11 +116,9 @@ void KratosStructuralMechanicsApplication::Register()
     /* Torque condition */
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_TORQUE )
     /* Mortar method */
-    KRATOS_REGISTER_VARIABLE( CONTACT_NORMAL )                                // The normal of the condition
-    KRATOS_REGISTER_VARIABLE( CONTACT_AREA )                                // The projected area between the two conditions
-    KRATOS_REGISTER_VARIABLE( CONTACT_GAP )                                 // The gap between the conditions
+    KRATOS_REGISTER_VARIABLE( CONTACT_NORMAL )                              // The normal of the condition
+    KRATOS_REGISTER_VARIABLE( CONTACT_CONTAINERS )                          // A vector of which contains the structure which defines the contact conditions
     KRATOS_REGISTER_VARIABLE( ELEMENT_POINTER )                             // A pointer to the element belonging to this condition
-    KRATOS_REGISTER_VARIABLE( SEGMENT_CONTACT_POINTERS )                     // A vector of pointers to the conditions
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( CONTACT_MESH_TYING_FORCE ) // The "force" resulting from contact
 
 //    // Orthotropy
