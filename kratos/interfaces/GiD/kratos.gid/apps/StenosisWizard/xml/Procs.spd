@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="procs" pn="procs" includeContainer="No">
+    	<proc n='Fixity' args='args'>
+	  <![CDATA[
+		return "normal"
+	  ]]>
+	</proc>
+		<proc n='MaxGroups' args='args'>
+	  <![CDATA[
+		set childs [$domNode getElementsByTagName group]
+		if {[llength $childs] > 1} {
+			foreach group [lrange $childs 1 end] {$group delete}
+			gid_groups_conds::actualize_conditions_window
+			error "You can only set one part"
+		}
+	  ]]>
+	</proc>
+	<proc n='CheckIdOnMyParent' args='args'>
+	  <![CDATA[
+		set r "hidden"
+		set parent [$domNode parent]
+		set wantedname [lindex $args 0]
+		set wantedvalue [lindex $args 1]
+		#W "wantedname $wantedname wantedvalue $wantedvalue"
+		foreach v [$parent getElementsByTagName value] {
+			if {[$v @n] eq $wantedname} {
+				if {[$v @v] eq $wantedvalue} {
+					set r "normal"
+					break
+				} else {
+					set r "hidden"
+				}
+			}
+		}
+		return $r
+	  ]]>
+	</proc>
+</container>

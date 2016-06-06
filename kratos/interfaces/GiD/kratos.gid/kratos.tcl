@@ -33,8 +33,10 @@ proc InitGIDPostProcess {} {
 
 proc EndGIDPostProcess {} {
     gid_groups_conds::close_all_windows
-    gid_groups_conds::open_conditions check_default
-    gid_groups_conds::open_conditions menu
+    if {$::spdAux::TreeVisibility} {
+        gid_groups_conds::open_conditions check_default
+        gid_groups_conds::open_conditions menu
+    }
 }
  
 # Load GiD project files (initialise XML Tdom structure)
@@ -94,7 +96,7 @@ proc Kratos::InitGIDProject { dir } {
         lappend ::auto_path [file join $dir scripts]
     }
     # JG Sources will be in a different proc
-    foreach filename {Applications.tcl Writing.tcl spdAuxiliar.tcl } {
+    foreach filename {Applications.tcl Writing.tcl spdAuxiliar.tcl} {
         uplevel 1 [list source [file join $dir scripts $filename]]
     }
 
@@ -120,6 +122,11 @@ proc Kratos::InitGIDProject { dir } {
     spdAux::parseRoutes
     after 100 [list gid_groups_conds::close_all_windows]
     after 500 [list spdAux::CreateWindow]
+}
+
+proc Kratos::LoadWizardFiles { } {
+    set dir $::Kratos::kratos_private(Path)
+    uplevel #0 [list source [file join $dir scripts Wizard.tcl]]
 }
 
 proc Kratos::ChangeMenus { } {
@@ -375,4 +382,13 @@ proc Kratos::_AddDataItemsToMenuItemD { group domNode } {
     set xpath [gid_groups_conds::nice_xpath $domNode]
     # W $xpath
     gid_groups_conds::open_conditions $what -select_xpath $xpath
+}
+
+proc Kratos::ResetModel { } {
+    foreach layer [GiD_Info layers] {
+        GiD_Process 'Layers Delete $layer Yes escape escape
+    }
+    foreach group [GiD_Groups list] {
+        GiD_Groups delete $group
+    }
 }
