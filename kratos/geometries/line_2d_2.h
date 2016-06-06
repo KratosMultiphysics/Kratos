@@ -831,7 +831,7 @@ public:
                       + (Point_projected[1] - point1[1]) * (Point_projected[1] - point1[1]);
             l2 = std::sqrt(l2);
             
-            if (l1 <= L  and l2 <= L)
+            if (l1 <= L  && l2 <= L)
             {
                 rResult[0] = 2.0 * l1/(L + tol) - 1.0;
             }
