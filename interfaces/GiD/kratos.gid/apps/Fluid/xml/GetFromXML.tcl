@@ -10,7 +10,7 @@ proc Fluid::xml::Init { } {
     
     Model::getSolutionStrategies Strategies.xml
     Model::getElements Elements.xml
-     Model::getNodalConditions NodalConditions.xml
+    Model::getNodalConditions NodalConditions.xml
     Model::getConstitutiveLaws ConstitutiveLaws.xml
     Model::getProcesses Processes.xml
     Model::getConditions Conditions.xml

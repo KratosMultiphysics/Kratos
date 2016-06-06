@@ -1,6 +1,7 @@
 # Project Parameters
-proc Fluid::write::writeParametersEvent { } {
+proc ::Fluid::write::getParametersDict { } {
     variable BCUN
+    
     set projectParametersDict [dict create]
     
     # First section -> Problem data
@@ -56,7 +57,12 @@ proc Fluid::write::writeParametersEvent { } {
     dict set projectParametersDict initial_conditions_process_list [write::getConditionsParametersDict "FLNodalConditions" "Nodal"]
     dict set projectParametersDict boundary_conditions_process_list [write::getConditionsParametersDict $BCUN]
     dict set projectParametersDict gravity [list [getGravityProcessDict] ]
-    
+ 
+    return $projectParametersDict   
+}
+
+proc Fluid::write::writeParametersEvent { } {
+    set projectParametersDict [getParametersDict]
     write::WriteJSON $projectParametersDict
 }
 

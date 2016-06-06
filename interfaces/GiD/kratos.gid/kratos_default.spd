@@ -11,6 +11,8 @@
   <appLink n="Solid" pn="Solid" active="0" appid="Solid" prefix="SL"/>
   <appLink n="Fluid" pn="Fluid" active="0" appid="Fluid" prefix="FL"  release="1"/>
   <appLink n="Pfem" pn="Pfem" active="0" appid="Pfem" prefix="PFEM_"/>
+  <appLink n="StenosisWizard" pn="Stenosis Wizard" active="0" appid="StenosisWizard" prefix="StenosisWizard"/>
+  
   <blockdata n="units" pn="Units" icon="units">
     <value n='units_mesh' pn='Mesh units' unit_mesh_definition="1"/>
     <value n='units_system' pn='Units system' units_system_definition="1">

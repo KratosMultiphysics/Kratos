@@ -196,7 +196,7 @@ oo::class create App {
     
     method getName { } {variable name; return $name}
     
-    method getIcon { } {return [my getImagePath logo.gif]}
+    method getIcon { } {return [my getImagePath logo.png]}
     method getImagePath { imgName } {variable imagepath; return [file nativename [file join $imagepath $imgName] ]}
     
     method getWriteModelPartEvent { } {variable writeModelPartEvent; return $writeModelPartEvent}

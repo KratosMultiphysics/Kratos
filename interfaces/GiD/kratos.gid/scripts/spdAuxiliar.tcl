@@ -11,6 +11,8 @@ namespace eval spdAux {
     
     variable currentexternalfile
     variable refreshTreeTurn
+    
+    variable TreeVisibility
 }
 
 proc spdAux::Init { } {
@@ -19,12 +21,14 @@ proc spdAux::Init { } {
     variable initwind
     variable currentexternalfile
     variable refreshTreeTurn
+    variable TreeVisibility
     
     set uniqueNames ""
     dict set uniqueNames "dummy" 0
     set initwind ""
     set  currentexternalfile ""
     set refreshTreeTurn 0
+    set TreeVisibility 1
     #spdAux::TryRefreshTree
 }
 
@@ -255,7 +259,7 @@ proc spdAux::CreateDimensionWindow { } {
     }
 }
 
-proc spdAux::SwitchDimAndCreateWindow { ndim } {
+proc spdAux::SetSpatialDimmension {ndim} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     set ::Model::SpatialDimension $ndim
@@ -265,9 +269,17 @@ proc spdAux::SwitchDimAndCreateWindow { ndim } {
     if {$nd eq ""} {catch {set nd [$root selectNodes "hiddenfield\[@n='nDim'\]"] }}
     
     $nd setAttribute v $::Model::SpatialDimension
+}
+
+proc spdAux::SwitchDimAndCreateWindow { ndim } {
+    variable TreeVisibility
+    SetSpatialDimmension $ndim
     spdAux::DestroyWindow
-    after 100 [list gid_groups_conds::open_conditions menu ]
-    spdAux::TryRefreshTree
+    
+    if {$TreeVisibility} {
+        after 100 [list gid_groups_conds::open_conditions menu ]
+        spdAux::TryRefreshTree
+    }
     
 }
 
@@ -986,6 +998,7 @@ spdAux::Init
 
 proc spdAux::ProcGetElements { domNode args } {
     set sol_stratUN [apps::getCurrentUniqueName SolStrat]
+    
     set schemeUN [apps::getCurrentUniqueName Scheme]
     if {[get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] v] eq ""} {
         get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] values
