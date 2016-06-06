@@ -140,7 +140,7 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_WATCH(rVariable);
+        //KRATOS_WATCH(rVariable);
         ModelPart::ElementsContainerType::iterator el_begin = rmodel_part.ElementsBegin();
         ModelPart::ConditionsContainerType::iterator cond_begin = rmodel_part.ConditionsBegin();
         
