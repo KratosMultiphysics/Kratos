@@ -631,6 +631,47 @@ public:
         mData.push_back(RecordType(X,a));
     }
 
+	 // Get the derivative for the given argument using piecewise linear
+    result_type GetDerivative(argument_type const& X) const
+    {
+        std::size_t size = mData.size();
+
+        if(size == 0)
+            KRATOS_THROW_ERROR(std::invalid_argument, "Get value from empty table", "");
+
+        if(size==1) // constant table. Returning the only value we have.
+            return 0.0;
+
+        result_type result;
+        if(X <= mData[0].first)
+            //return Interpolate(X, mData[0].first, mData[0].second[0], mData[1].first, mData[1].second[0], result);
+			return 0.0;
+
+        for(std::size_t i = 1 ; i < size ; i++)
+            if(X <= mData[i].first)
+                return InterpolateDerivative( mData[i-1].first, mData[i-1].second[0], mData[i].first, mData[i].second[0], result);
+
+        // If it lies outside the table values we will return 0.0.
+        return 0.0;
+    }
+	 result_type& InterpolateDerivative( argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2, result_type& Result) const
+    {
+        const double epsilon = 1e-12;
+        argument_type dx = X2 - X1;
+        result_type dy = Y2 - Y1;
+		if (dx < epsilon)
+		{
+			dx=epsilon;
+			std::cout << "******************************************* " <<std::endl;
+			std::cout << "*** ATTENTION: SMALL dX WHEN COMPUTING  *** " <<std::endl;
+			std::cout << "*** DERIVATIVE FROM TABLE. SET TO 1E-12 *** " <<std::endl;
+			std::cout << "******************************************* " <<std::endl;
+		}
+        Result= dy/dx;
+        return Result;
+    }
+
+
     ///@}
     ///@name Access
     ///@{
