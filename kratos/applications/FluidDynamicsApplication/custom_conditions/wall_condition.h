@@ -214,6 +214,13 @@ namespace Kratos
         }
 
 
+        virtual Condition::Pointer Create(IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
+        {
+	  		return Condition::Pointer(new WallCondition(NewId, pGeom, pProperties));
+        }
+
+
+
         virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                            ProcessInfo& rCurrentProcessInfo)
         {
