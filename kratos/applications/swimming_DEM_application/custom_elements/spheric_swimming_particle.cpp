@@ -539,7 +539,7 @@ void SphericSwimmingParticle<TBaseElement>::AddHinsbergTailContribution(NodeType
         F_tail[2] += ai * hinsberg_tail_contributions[3 * i + 2];
     }
 
-    const double sqrt_delta_time_inv = 1.0 / std::sqrt(delta_time);
+    const double sqrt_delta_time_inv = 1.0 / std::sqrt(delta_time); // since the multiplication by sqrt(delta_time) corresponding to the F_win part is done to F_win + F_tail outside
     noalias(fractional_derivative_of_slip_vel) += sqrt_delta_time_inv * F_tail;
 }
 
