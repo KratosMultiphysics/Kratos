@@ -239,7 +239,7 @@ proc spdAux::CreateDimensionWindow { } {
         set i 0
         foreach dim $::Model::ValidSpatialDimensions {
             set imagepath [getImagePathDim $dim]
-            if {![file exists $imagepath]} {set imagepath [file nativename [file join $dir images "$dim.gif"]]}
+            if {![file exists $imagepath]} {set imagepath [file nativename [file join $dir images "$dim.png"]]}
             set img [gid_themes::GetImageModule $imagepath ""]
             #W [file extension $imagepath]
             set but [ttk::button $w.information.img$dim -image $img -command [list spdAux::SwitchDimAndCreateWindow $dim] ]
