@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "python/vector_python_interface.h"
 
 #include "custom_processes/metis_divide_heterogeneous_input_process.h"
+#include "custom_processes/metis_divide_heterogeneous_input_in_memory_process.h"
 #include "custom_processes/morton_divide_input_to_partitions_process.h"
 #include "custom_processes/set_mpi_communicator_process.h"
 
@@ -121,6 +122,13 @@ void AddProcessesToPython()
             .def(init<IO&, unsigned int, int, int, bool>())
             ;
 
+    class_<MetisDivideHeterogeneousInputInMemoryProcess, bases<Process> >("MetisDivideHeterogeneousInputInMemoryProcess",
+                                                                   init<IO&, unsigned int>())
+            .def(init<IO&, unsigned int, int>())
+            .def(init<IO&, unsigned int, int, int>())
+            .def(init<IO&, unsigned int, int, int, bool>())
+            ;
+
     class_<MortonDivideInputToPartitionsProcess, bases<Process> >("MetisDivideNodalInputToPartitionsProcess",
                                                                    init<IO&, unsigned int, unsigned int>())
             .def(init<IO&, unsigned int>())
@@ -135,4 +143,3 @@ void AddProcessesToPython()
 } // namespace Python.
 
 } // Namespace Kratos
-
