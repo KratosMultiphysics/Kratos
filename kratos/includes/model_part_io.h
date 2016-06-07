@@ -74,7 +74,7 @@ public:
     typedef BaseType::ConditionsContainerType     ConditionsContainerType;
     typedef BaseType::ConnectivitiesContainerType ConnectivitiesContainerType;
 
-    typedef std::vector<std::ofstream*>           OutputFilesContainerType;
+    typedef std::vector<std::ostream*>            OutputFilesContainerType;
     typedef std::size_t                           SizeType;
 
     ///@}
@@ -174,6 +174,17 @@ public:
                                          PartitionIndicesContainerType const& NodesAllPartitions,
                                          PartitionIndicesContainerType const& ElementsAllPartitions,
                                          PartitionIndicesContainerType const& ConditionsAllPartitions);
+
+    virtual void DivideInputToPartitions(boost::shared_ptr<std::iostream> * Streams,
+                                         SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
+                                         PartitionIndicesType const& NodesPartitions,
+                                         PartitionIndicesType const& ElementsPartitions,
+                                         PartitionIndicesType const& ConditionsPartitions,
+                                         PartitionIndicesContainerType const& NodesAllPartitions,
+                                         PartitionIndicesContainerType const& ElementsAllPartitions,
+                                         PartitionIndicesContainerType const& ConditionsAllPartitions);
+
+    void SwapStreamSource(boost::shared_ptr<std::iostream> newStream);
 
 
     ///@}

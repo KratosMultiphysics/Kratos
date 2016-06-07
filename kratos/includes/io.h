@@ -187,8 +187,8 @@ public:
     virtual void ReadInitialValues(ModelPart& rThisModelPart)
     {
         KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
-    }    
-    
+    }
+
     virtual void ReadInitialValues(NodesContainerType& rThisNodes, ElementsContainerType& rThisElements, ConditionsContainerType& rThisConditions)
     {
         KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
@@ -212,6 +212,18 @@ public:
     }
 
     virtual void DivideInputToPartitions(SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
+                                         PartitionIndicesType const& NodesPartitions,
+                                         PartitionIndicesType const& ElementsPartitions,
+                                         PartitionIndicesType const& ConditionsPartitions,
+                                         PartitionIndicesContainerType const& NodesAllPartitions,
+                                         PartitionIndicesContainerType const& ElementsAllPartitions,
+                                         PartitionIndicesContainerType const& ConditionsAllPartitions)
+    {
+        KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
+    }
+
+    virtual void DivideInputToPartitions(boost::shared_ptr<std::iostream> * Streams,
+                                         SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
                                          PartitionIndicesType const& NodesPartitions,
                                          PartitionIndicesType const& ElementsPartitions,
                                          PartitionIndicesType const& ConditionsPartitions,
@@ -374,4 +386,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_IO_H_INCLUDED  defined 
+#endif // KRATOS_IO_H_INCLUDED  defined
