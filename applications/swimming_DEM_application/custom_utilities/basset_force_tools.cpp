@@ -121,7 +121,6 @@ void BassetForceTools::FillDaitcheVectors(const int N, const int order)
 
     std::cout << "...Finished filling up vectors of coefficients.\n";
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 // This method precalculates values needed for the implementation of the method described by Von Hinsberg (2011)
@@ -251,6 +250,7 @@ void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m,
     const double e = std::exp(1);
 
     for (int i = 0; i < m; i++){
+        Ts[i] *= t_win;  // here we recover the dimensional tis from the non-dimensional tis (which are idependent of the time_window)
         Alphas[i] = std::sqrt(e / Ts[i]);
         Betas[i] = - 0.5 / Ts[i];
     }
@@ -267,7 +267,6 @@ void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m,
 
     std::cout << "...Finished filling up vectors of coefficients.\n";
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 double BassetForceTools::Phi(const double x)
@@ -287,12 +286,14 @@ void BassetForceTools::AddFdi(const int order, array_1d<double, 3>& F, const dou
 
     if (order == 2){
         const double coeff = 2 * std::sqrt(ti) * std::exp(beta * t_win + 0.5);
-        F[0] +=  coeff * (historic_integrands[0] * (1 - Phi(- normalized_dt)) + historic_integrands[3] * std::exp(- normalized_dt) * (Phi(normalized_dt) - 1));
-        F[1] +=  coeff * (historic_integrands[1] * (1 - Phi(- normalized_dt)) + historic_integrands[4] * std::exp(- normalized_dt) * (Phi(normalized_dt) - 1));
-        F[2] +=  coeff * (historic_integrands[2] * (1 - Phi(- normalized_dt)) + historic_integrands[5] * std::exp(- normalized_dt) * (Phi(normalized_dt) - 1));
+        const double coeff_N = 1 - Phi(- normalized_dt);
+        const double coeff_N_plus_1 = std::exp(- normalized_dt) * (Phi(normalized_dt) - 1);
+        F[0] +=  coeff * (coeff_N * historic_integrands[0] + coeff_N_plus_1 * historic_integrands[3]);
+        F[1] +=  coeff * (coeff_N * historic_integrands[1] + coeff_N_plus_1 * historic_integrands[4]);
+        F[2] +=  coeff * (coeff_N * historic_integrands[2] + coeff_N_plus_1 * historic_integrands[5]);
     }
 
-    else if (order == 1){
+    else if (order == 3){
         const double coeff = 0.5 * std::sqrt(1.0 / ti) / (SWIMMING_POW_3(beta) * SWIMMING_POW_2(dt));
         const double exp_1 = exp((t_win + dt) * beta + 0.5);
         const double exp_2 = exp(t_win * beta + 0.5);
@@ -328,7 +329,6 @@ void BassetForceTools::AddFre(array_1d<double, 3>& old_Fi, const double beta, co
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-
 void BassetForceTools::AppendIntegrands(ModelPart& r_model_part)
 {
     ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
@@ -351,7 +351,6 @@ void BassetForceTools::AppendIntegrands(ModelPart& r_model_part)
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-
 void BassetForceTools::AppendIntegrandsImplicit(ModelPart& r_model_part)
 {
     ProcessInfo& process_info = r_model_part.GetProcessInfo();
@@ -409,7 +408,6 @@ void BassetForceTools::AppendIntegrandsWindow(ModelPart& r_model_part)
 
     if (r_process_info[BASSET_FORCE_TYPE] == 3){
         const std::vector<double>& Ts    = SphericSwimmingParticle<SphericParticle>::mTs;
-        const std::vector<double>& Betas = SphericSwimmingParticle<SphericParticle>::mBetas;
         const double t_win               = SphericSwimmingParticle<SphericParticle>::mTimeWindow;
 
         const int order = r_process_info[QUADRATURE_ORDER];
@@ -427,7 +425,7 @@ void BassetForceTools::AppendIntegrandsWindow(ModelPart& r_model_part)
 
                 for (int i = 0; i < m; i++){
                     double ti = Ts[i];
-                    double beta = Betas[i];
+                    double beta = - 0.5 / ti;
                     Fi[0] = hinsberg_tail_contributions[3 * i];
                     Fi[1] = hinsberg_tail_contributions[3 * i + 1];
                     Fi[2] = hinsberg_tail_contributions[3 * i + 2];
