@@ -49,7 +49,7 @@ typedef ModelPart::NodesContainerType               NodesArrayType;
 
 KRATOS_CLASS_POINTER_DEFINITION(BassetForceTools);
 
-BassetForceTools(): mFirstTimeAppending(true){}
+BassetForceTools(): mFirstTimeAppending(true), mNumberOfQuadratureStepsInWindow(0), mTimeWindow(0.0){}
 /// Calculator
 
 virtual ~BassetForceTools(){}
@@ -57,7 +57,7 @@ virtual ~BassetForceTools(){}
 /// Default calculator
 
 void FillDaitcheVectors(const int N, const int order);
-void FillHinsbergVectors(ModelPart& r_model_part, const int m, const double time_window);
+void FillHinsbergVectors(ModelPart& r_model_part, const int m, const int n_quad_delta_times_window);
 void AppendIntegrands(ModelPart& r_model_part);
 void AppendIntegrandsImplicit(ModelPart& r_model_part);
 void AppendIntegrandsWindow(ModelPart& r_model_part);
@@ -68,6 +68,8 @@ void AppendIntegrandsWindow(ModelPart& r_model_part);
 private:
 
 bool mFirstTimeAppending;
+int mNumberOfQuadratureStepsInWindow;
+double mTimeWindow;
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
