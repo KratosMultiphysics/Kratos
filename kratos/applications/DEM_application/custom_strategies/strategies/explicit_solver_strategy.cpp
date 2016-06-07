@@ -189,6 +189,7 @@ namespace Kratos {
         double critical_timestep = beta * KRATOS_M_PI / critical_period;
 
         r_process_info[DELTA_TIME] = critical_timestep;
+        std::cout << " Applied timestep is " << DELTA_TIME << ". " << "\n" << std::endl;
         KRATOS_CATCH("")
     }
 

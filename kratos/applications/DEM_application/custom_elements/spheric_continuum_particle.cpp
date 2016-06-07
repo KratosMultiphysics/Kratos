@@ -124,34 +124,70 @@ namespace Kratos {
     void SphericContinuumParticle::ContactAreaWeighting() //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbors of my neighbors.
     {
         double alpha = 1.0;
-        double external_sphere_area = 4 * KRATOS_M_PI * GetRadius()*GetRadius();
+        //double external_sphere_area = 4 * KRATOS_M_PI * GetRadius()*GetRadius();
+        double effectiveVolumeRadius = EffectiveVolumeRadius();  //calculateEffectiveVolumeRadius
+        double external_sphere_area = 4 * KRATOS_M_PI * effectiveVolumeRadius*effectiveVolumeRadius;
         double total_equiv_area = 0.0;
-
+        double total_mContIniNeighArea = 0.0;
         int cont_ini_neighbours_size = mContinuumInitialNeighborsSize;
 
         for (int i = 0; i < cont_ini_neighbours_size; i++) {
             SphericParticle* ini_cont_neighbour_iterator = mNeighbourElements[i];
             double other_radius = ini_cont_neighbour_iterator->GetRadius();
-            double area = mContinuumConstitutiveLawArray[i]->CalculateContactArea(GetRadius(), other_radius, mContIniNeighArea); //This call fills the vector of areas only if the Constitutive Law wants.
+            double area = mContinuumConstitutiveLawArray[i]->CalculateContactArea(GetRadius(), other_radius, mContIniNeighArea); //This call fills the vector of areas only if the Constitutive Law wants.          
             total_equiv_area += area;
-        } 
 
-        if (cont_ini_neighbours_size >= 4) { //more than 3 neighbors
+        } 
+        std::ofstream outputfile("external_sphere_area-total_equiv_area.txt", std::ios_base::out | std::ios_base::app);
+        outputfile << external_sphere_area << "  " << total_equiv_area << "\n";
+        outputfile.close();
+
+        if (cont_ini_neighbours_size >= 4) { // more than 3 neighbors
             if (!*mSkinSphere) {
                 AuxiliaryFunctions::CalculateAlphaFactor3D(cont_ini_neighbours_size, external_sphere_area, total_equiv_area, alpha);
+                std::ofstream outputfile("alpha.txt", std::ios_base::out | std::ios_base::app);
+                outputfile << alpha << "\n";
+                outputfile.close();
+                //alpha = 1.0;
                 for (unsigned int i = 0; i < mContIniNeighArea.size(); i++) {
-                    mContIniNeighArea[i] = alpha * mContIniNeighArea[i];                   
+                    mContIniNeighArea[i] = alpha * mContIniNeighArea[i];
+                    total_mContIniNeighArea += mContIniNeighArea[i];
                 } //for every neighbor
+
+                std::ofstream outputfile2("total_mContIniNeighArea-total_equiv_area.txt", std::ios_base::out | std::ios_base::app);
+                outputfile2 << total_mContIniNeighArea << "  " << total_equiv_area << "\n";
+                outputfile2.close();
             }
 
             else {//skin sphere             
                 for (unsigned int i = 0; i < mContIniNeighArea.size(); i++) {
-                    alpha = 1.00 * (1.40727)*(external_sphere_area / total_equiv_area)*((double(cont_ini_neighbours_size)) / 11.0);
+                    alpha = 1.00 * (1.40727)*(external_sphere_area / total_equiv_area)*((double(cont_ini_neighbours_size)) / 11.0);           
                     mContIniNeighArea[i] = alpha * mContIniNeighArea[i];
-                } //for every neighbor
+                } //for every neighbor               
             }
         }//if more than 3 neighbors
     } 
+
+    double SphericContinuumParticle::EffectiveVolumeRadius(){
+
+        int cont_ini_neighbours_size = mContinuumInitialNeighborsSize;
+        double effectiveVolumeRadiusSum = 0.0;
+        for (int i = 0; i < cont_ini_neighbours_size; i++) {
+            SphericParticle* ini_cont_neighbour_iterator = mNeighbourElements[i];
+            double other_radius = ini_cont_neighbour_iterator->GetRadius();
+
+            SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
+            array_1d<double, 3> other_to_me_vect;
+            noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
+            double distance = DEM_MODULUS_3(other_to_me_vect);
+            effectiveVolumeRadiusSum += (distance)/2;}
+            // alternativa teorica: effectiveVolumeRadiusSum += (-GetInitialDelta(i))/2;}  ja que initial_delta = radius_sum - distance;
+
+       double effectiveVolumeRadius = effectiveVolumeRadiusSum / cont_ini_neighbours_size;
+
+       return effectiveVolumeRadius;
+    }
+
     
     void SphericContinuumParticle::ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
                                                                  array_1d<double, 3>& rContactForce,
@@ -216,10 +252,12 @@ namespace Kratos {
             double equiv_young = 2.0 * myYoung * other_young / (myYoung + other_young);
             double calculation_area = 0.0;
             
+            //KRATOS_WATCH(mContIniNeighArea[i])
             if (i < mContinuumInitialNeighborsSize) {
                 mContinuumConstitutiveLawArray[i]->GetContactArea(GetRadius(), other_radius, mContIniNeighArea, i, calculation_area); //some Constitutive Laws get a value, some others calculate the value.
                 mContinuumConstitutiveLawArray[i]->CalculateElasticConstants(kn_el, kt_el, initial_dist, equiv_young, equiv_poisson, calculation_area);
             } 
+            //KRATOS_WATCH(calculation_area)
              
             EvaluateDeltaDisplacement(DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator, distance);
 
@@ -497,7 +535,6 @@ namespace Kratos {
             for (unsigned int j = 0; j <  r_continuum_ini_neighbour->mContinuumInitialNeighborsSize; j++) {
                 if (this == r_continuum_ini_neighbour->mNeighbourElements[j]) index_of_the_neighbour_that_is_me = (int)j;
             }
-            
             bool neigh_is_skin = (bool)r_continuum_ini_neighbour->mSkinSphere;
             if ((mSkinSphere && neigh_is_skin) || (!mSkinSphere && !neigh_is_skin)) { //both skin or both inner.
                 double mean_area =  0.5 * (mContIniNeighArea[i] + r_continuum_ini_neighbour->mContIniNeighArea[index_of_the_neighbour_that_is_me]);
@@ -509,7 +546,8 @@ namespace Kratos {
             }
             else {
                 mContIniNeighArea[i] = r_continuum_ini_neighbour->mContIniNeighArea[index_of_the_neighbour_that_is_me];
-            }            
+            }
+
         } //loop neighbors
 
         return;
