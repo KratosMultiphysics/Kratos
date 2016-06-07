@@ -110,6 +110,11 @@ oo::class create SolStrat {
 }
 }
 
+proc Model::ForgetSolutionStrategies { } {
+    variable SolutionStrategies
+    set SolutionStrategies [list ]
+}
+
 # Parsing
 proc Model::ParseSolutionStrategies { doc } {
     variable SolutionStrategies
