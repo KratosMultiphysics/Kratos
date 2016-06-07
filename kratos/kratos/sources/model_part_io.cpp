@@ -525,6 +525,68 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
+    void ModelPartIO::DivideInputToPartitions(
+        boost::shared_ptr<std::iostream> * Streams,
+        SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
+        PartitionIndicesType const& NodesPartitions,
+        PartitionIndicesType const& ElementsPartitions,
+        PartitionIndicesType const& ConditionsPartitions,
+        PartitionIndicesContainerType const& NodesAllPartitions,
+        PartitionIndicesContainerType const& ElementsAllPartitions,
+        PartitionIndicesContainerType const& ConditionsAllPartitions) {
+
+      KRATOS_TRY
+      ResetInput();
+      std::string word;
+      OutputFilesContainerType output_files;
+
+      for(SizeType i = 0 ; i < NumberOfPartitions ; i++)
+      {
+          output_files.push_back(static_cast<std::ostream *>(&*Streams[i]));
+      }
+
+      while(true)
+      {
+          ReadWord(word);
+          if(mpStream->eof())
+              break;
+          ReadBlockName(word);
+          if(word == "ModelPartData")
+              DivideModelPartDataBlock(output_files);
+          else if(word == "Table")
+              DivideTableBlock(output_files);
+          else if(word == "Properties")
+              DividePropertiesBlock(output_files);
+          else if(word == "Nodes")
+              DivideNodesBlock(output_files, NodesAllPartitions);
+          else if(word == "Elements")
+              DivideElementsBlock(output_files, ElementsAllPartitions);
+          else if(word == "Conditions")
+              DivideConditionsBlock(output_files, ConditionsAllPartitions);
+          else if(word == "NodalData")
+              DivideNodalDataBlock(output_files, NodesAllPartitions);
+          else if(word == "ElementalData")
+              DivideElementalDataBlock(output_files, ElementsAllPartitions);
+          else if(word == "ConditionalData")
+              DivideConditionalDataBlock(output_files, ConditionsAllPartitions);
+          else if (word == "Mesh")
+              DivideMeshBlock(output_files, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
+          else if (word == "SubModelPart")
+              DivideSubModelPartBlock(output_files, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
+
+      }
+
+      WritePartitionIndices(output_files, NodesPartitions, NodesAllPartitions);
+
+      WriteCommunicatorData(output_files, NumberOfPartitions, DomainsColoredGraph, NodesPartitions, ElementsPartitions, ConditionsPartitions, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
+      std::cout << "  [Total Lines Read : " << mNumberOfLines<<"]";
+      std::cout << std::endl;
+
+      // for(SizeType i = 0 ; i < NumberOfPartitions ; i++)
+      //     delete output_files[i];
+      KRATOS_CATCH("")
+    }
+
     std::string& ModelPartIO::ReadBlockName(std::string& rBlockName)
     {
         KRATOS_TRY
@@ -890,10 +952,10 @@ namespace Kratos
             const array_1d<double,3>& coords = it->second;
             rModelPart.CreateNewNode(node_id,coords[0],coords[1],coords[2]);
         }
-	
+
 	std::cout << number_of_nodes_read << " nodes read]" << std::endl;
 	if(rModelPart.Nodes().size() - old_size != number_of_nodes_read)
-            std::cout << "attention! we read " << number_of_nodes_read << " but there are only " << rModelPart.Nodes().size() - old_size<< " non repeated nodes" << std::endl;        
+            std::cout << "attention! we read " << number_of_nodes_read << " but there are only " << rModelPart.Nodes().size() - old_size<< " non repeated nodes" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -3961,6 +4023,11 @@ namespace Kratos
         mpStream->clear();
         mpStream->seekg(0, std::ios_base::beg);
         mNumberOfLines = 1;
+    }
+
+    void ModelPartIO::SwapStreamSource(boost::shared_ptr<std::iostream> newStream)
+    {
+        mpStream.swap(newStream);
     }
 
     inline void ModelPartIO::CreatePartition(unsigned int number_of_threads,const int number_of_rows, vector<unsigned int>& partitions)
