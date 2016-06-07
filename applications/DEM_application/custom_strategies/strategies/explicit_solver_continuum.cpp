@@ -488,9 +488,12 @@ namespace Kratos {
 
         unsigned int total_contacts = 0;
         const int number_of_particles = (int) mListOfSphericParticles.size();
+        std::vector<int> sum;
+        double total_sum = 0.0;
 
         mNumberOfThreads = OpenMPUtils::GetNumThreads();
         mNeighbourCounter.resize(mNumberOfThreads);
+        sum.resize(mNumberOfThreads);
 
         #pragma omp parallel
         {
@@ -498,10 +501,12 @@ namespace Kratos {
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
                 mNeighbourCounter[OpenMPUtils::ThisThread()] += mListOfSphericParticles[i]->mNeighbourElements.size();
+                sum[OpenMPUtils::ThisThread()] += (mListOfSphericParticles[i]->mNeighbourElements.size() - 10.0 )*(mListOfSphericParticles[i]->mNeighbourElements.size() - 10.0 );
             }
         }
         for (int i = 0; i < mNumberOfThreads; i++) {
             total_contacts += mNeighbourCounter[i];
+            total_sum += sum[i];
         }
 
         int global_total_contacts = total_contacts;
@@ -510,6 +515,10 @@ namespace Kratos {
         r_model_part.GetCommunicator().SumAll(global_number_of_elements);
 
         double coord_number = double(global_total_contacts) / double(global_number_of_elements);
+
+        double standard_dev = sqrt(total_sum / number_of_particles);
+        //if (coord_number > 9.9){
+        //std::cout << "Standard deviation for achieved coordination number reached is " << standard_dev << ". " << "\n" << std::endl;}
 
         return coord_number;
 

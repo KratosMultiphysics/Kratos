@@ -74,6 +74,7 @@ namespace Kratos
                                                 double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps);
            
         virtual void ContactAreaWeighting();
+        virtual double EffectiveVolumeRadius();
         virtual double GetInitialDelta(int index);
 
         /// Turn back information as a string
