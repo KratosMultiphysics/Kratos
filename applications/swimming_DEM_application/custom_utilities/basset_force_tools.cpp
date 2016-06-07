@@ -126,12 +126,13 @@ void BassetForceTools::FillDaitcheVectors(const int N, const int order)
 // This method precalculates values needed for the implementation of the method described by Von Hinsberg (2011)
 // The method requires the determination of m numbers ai and another numbers ti which deteermine m exponentials.
 // In the following particular values of these numbers are presented u to m = 8. These numbers were obtained by Casas and Ferrer (2016)
-void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m, const double time_window)
+void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m, const int n_quad_delta_times_window)
 {
     if (!m){
         return;
     }
 
+    mNumberOfQuadratureStepsInWindow = n_quad_delta_times_window;
     std::cout << "\nFilling up vectors of coefficients for Hinsberg method with m = " << m << " ...";
     double & t_win = SphericSwimmingParticle<SphericParticle>::mTimeWindow;
     std::vector<double>& As = SphericSwimmingParticle<SphericParticle>::mAs;
@@ -139,7 +140,9 @@ void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m,
     std::vector<double>& Alphas = SphericSwimmingParticle<SphericParticle>::mAlphas;
     std::vector<double>& Betas = SphericSwimmingParticle<SphericParticle>::mBetas;
 
-    t_win = time_window;
+    mTimeWindow = mNumberOfQuadratureStepsInWindow * r_model_part.GetProcessInfo()[TIME_STEPS_PER_QUADRATURE_STEP] * r_model_part.GetProcessInfo()[DELTA_TIME];
+    t_win = mTimeWindow;
+
     As.resize(m);
     Ts.resize(m);
     Alphas.resize(m);
@@ -250,7 +253,7 @@ void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m,
     const double e = std::exp(1);
 
     for (int i = 0; i < m; i++){
-        Ts[i] *= t_win;  // here we recover the dimensional tis from the non-dimensional tis (which are idependent of the time_window)
+        Ts[i] *= mTimeWindow;  // here we recover the dimensional tis from the non-dimensional tis (which are idependent of the time_window)
         Alphas[i] = std::sqrt(e / Ts[i]);
         Betas[i] = - 0.5 / Ts[i];
     }
@@ -284,34 +287,34 @@ void BassetForceTools::AddFdi(const int order, array_1d<double, 3>& F, const dou
 {
     double normalized_dt = 0.5 * dt / ti;
 
-    if (order == 2){
+    if (order == 1){
         const double coeff = 2 * std::sqrt(ti) * std::exp(beta * t_win + 0.5);
         const double coeff_N = 1 - Phi(- normalized_dt);
         const double coeff_N_plus_1 = std::exp(- normalized_dt) * (Phi(normalized_dt) - 1);
-        F[0] +=  coeff * (coeff_N * historic_integrands[0] + coeff_N_plus_1 * historic_integrands[3]);
-        F[1] +=  coeff * (coeff_N * historic_integrands[1] + coeff_N_plus_1 * historic_integrands[4]);
-        F[2] +=  coeff * (coeff_N * historic_integrands[2] + coeff_N_plus_1 * historic_integrands[5]);
+        F[0] +=  coeff * (coeff_N * historic_integrands[3] + coeff_N_plus_1 * historic_integrands[0]);
+        F[1] +=  coeff * (coeff_N * historic_integrands[4] + coeff_N_plus_1 * historic_integrands[1]);
+        F[2] +=  coeff * (coeff_N * historic_integrands[5] + coeff_N_plus_1 * historic_integrands[2]);
     }
 
-    else if (order == 3){
+    else if (order == 2){
         const double coeff = 0.5 * std::sqrt(1.0 / ti) / (SWIMMING_POW_3(beta) * SWIMMING_POW_2(dt));
-        const double exp_1 = exp((t_win + dt) * beta + 0.5);
-        const double exp_2 = exp(t_win * beta + 0.5);
-        const double f00 = historic_integrands[0];
-        const double f01 = historic_integrands[1];
-        const double f02 = historic_integrands[2];
+        const double exp_1 = exp(t_win * beta + 0.5);
+        const double exp_2 = exp(   dt * beta);
+        const double f00 = historic_integrands[6];
+        const double f01 = historic_integrands[7];
+        const double f02 = historic_integrands[8];
         const double f10 = historic_integrands[3];
         const double f11 = historic_integrands[4];
         const double f12 = historic_integrands[5];
-        const double f20 = historic_integrands[6];
-        const double f21 = historic_integrands[7];
-        const double f22 = historic_integrands[8];
-        F[0] += coeff * (exp_1 * (2 * (2 * f10 + f20) + f00 * (2 + dt * beta) - dt * beta * (f20 + 2 * dt * f10 * beta))\
-                       - exp_2 * (4 * f10 + 2 * f20 + dt * beta * (4 * f10 + f20) + f00 * (2 + dt * beta * (3 + 2 * dt * beta))));
-        F[1] += coeff * (exp_1 * (2 * (2 * f11 + f21) + f01 * (2 + dt * beta) - dt * beta * (f21 + 2 * dt * f11 * beta))\
-                       - exp_2 * (4 * f11 + 2 * f21 + dt * beta * (4 * f11 + f21) + f01 * (2 + dt * beta * (3 + 2 * dt * beta))));
-        F[2] += coeff * (exp_1 * (2 * (2 * f12 + f22) + f02 * (2 + dt * beta) - dt * beta * (f22 + 2 * dt * f12 * beta))\
-                       - exp_2 * (4 * f12 + 2 * f22 + dt * beta * (4 * f12 + f22) + f02 * (2 + dt * beta * (3 + 2 * dt * beta))));
+        const double f20 = historic_integrands[0];
+        const double f21 = historic_integrands[1];
+        const double f22 = historic_integrands[2];
+        F[0] += coeff * exp_1 * (4 * f10 - 2 * f20 + dt * beta * (f20 - 2 * dt * beta * f10) - f00 * (2 + dt * beta + exp_2 * (dt * beta - 2))\
+                        + exp_2 * (4 * f10 * (dt * beta - 1) + f20 * (2 + dt * beta * (2 * dt * beta - 3))));
+        F[1] += coeff * exp_1 * (4 * f11 - 2 * f21 + dt * beta * (f21 - 2 * dt * beta * f11) - f01 * (2 + dt * beta + exp_2 * (dt * beta - 2))\
+                        + exp_2 * (4 * f11 * (dt * beta - 1) + f21 * (2 + dt * beta * (2 * dt * beta - 3))));
+        F[2] += coeff * exp_1 * (4 * f12 - 2 * f22 + dt * beta * (f22 - 2 * dt * beta * f12) - f02 * (2 + dt * beta + exp_2 * (dt * beta - 2))\
+                        + exp_2 * (4 * f12 * (dt * beta - 1) + f22 * (2 + dt * beta * (2 * dt * beta - 3))));
     }
 
     else {
@@ -401,24 +404,23 @@ void BassetForceTools::AppendIntegrandsImplicit(ModelPart& r_model_part)
 void BassetForceTools::AppendIntegrandsWindow(ModelPart& r_model_part)
 {
     ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-    double time = r_process_info[TIME];
+    double time = r_process_info[TIME] + r_process_info[DELTA_TIME];
     const double delta_time = time - r_process_info[LAST_TIME_APPENDING];
     r_process_info[LAST_TIME_APPENDING] = time;
-    const double t_win = SphericSwimmingParticle<SphericParticle>::mTimeWindow;
+    const double t_win = mTimeWindow;
 
     if (r_process_info[BASSET_FORCE_TYPE] == 3){
         const std::vector<double>& Ts    = SphericSwimmingParticle<SphericParticle>::mTs;
-        const double t_win               = SphericSwimmingParticle<SphericParticle>::mTimeWindow;
 
         const int order = r_process_info[QUADRATURE_ORDER];
 
         for (ElementIterator iparticle = r_model_part.ElementsBegin(); iparticle != r_model_part.ElementsEnd(); iparticle++){
             Node<3>& node = iparticle->GetGeometry()[0];
-            double initial_time;
-            iparticle->Calculate(TIME, initial_time, r_process_info);
+//            double initial_time;
+//            iparticle->Calculate(TIME, initial_time, r_process_info);
+            vector<double>& historic_integrands         = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
 
-            if (time - initial_time > t_win){
-                vector<double>& historic_integrands         = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
+            if (int(historic_integrands.size()) >= 3 * mNumberOfQuadratureStepsInWindow){
                 vector<double>& hinsberg_tail_contributions = node.GetValue(HINSBERG_TAIL_CONTRIBUTIONS);
                 int m = hinsberg_tail_contributions.size() / 3;
                 array_1d<double, 3> Fi = ZeroVector(3);
@@ -447,9 +449,8 @@ void BassetForceTools::AppendIntegrandsWindow(ModelPart& r_model_part)
         array_1d<double, 3> slip_vel;
         noalias(slip_vel)                               = fluid_vel_projected - particle_vel;
         int n = historic_integrands.size();
-        double initial_time;
-        iparticle->Calculate(TIME, initial_time, r_process_info);
-        if (time - initial_time <= t_win){ // list of integrands still growing
+
+        if (n < 3 * mNumberOfQuadratureStepsInWindow){ // list of integrands still growing
             historic_integrands.resize(n + 3);
             historic_integrands.insert_element(n,     slip_vel[0]);
             historic_integrands.insert_element(n + 1, slip_vel[1]);
