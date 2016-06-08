@@ -1178,10 +1178,8 @@ proc spdAux::ProcPartParamValue { domNode args } {
     
     set nodename [get_domnode_attribute $domNode n]
     set matname [get_domnode_attribute $domNode v]
-    W "Part tal $nodename $matname"
     set node [[$domNode parent] selectNode "../value\[@n='$nodename'\]" ]
     set nodevalue [$node @v]
-    W "Current $nodevalue"
     return [spdAux::CheckPartParamValue $node $matname]
 }
 proc spdAux::ProcPartParamState { domNode args } {

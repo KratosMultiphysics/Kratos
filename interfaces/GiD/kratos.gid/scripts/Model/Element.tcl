@@ -177,6 +177,12 @@ proc Model::ParseNodalConditionsNode { node } {
     set el [::Model::NodalCondition new $name]
     $el setPublicName [$node getAttribute pn]
     
+    catch {
+        set ov [$node getAttribute ov]
+        $el setOv $ov
+    }
+    
+    
     foreach att [$node attributes] {
         $el setAttribute $att [split [$node getAttribute $att] ","]
         #W "$att : [$el getAttribute $att]"
