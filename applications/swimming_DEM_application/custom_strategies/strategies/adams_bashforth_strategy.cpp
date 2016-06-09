@@ -9,7 +9,7 @@ namespace Kratos {
 double AdamsBashforthStrategy::Solve() {
     KRATOS_TRY
     ModelPart& r_model_part = GetModelPart();
-    //int step = r_model_part.GetProcessInfo()[FRACTIONAL_STEP]
+
     if (mFirstStep){
         mFirstStep = false;
         PerformTimeIntegrationOfMotion(1);
