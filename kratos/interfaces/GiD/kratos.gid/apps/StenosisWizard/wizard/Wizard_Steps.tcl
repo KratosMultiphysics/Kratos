@@ -158,6 +158,13 @@ proc StenosisWizard::Wizard::DrawGeometry {} {
     GidUtils::UpdateWindow GROUPS
     
     GiD_Process 'Zoom Frame escape
+    
+    # Partimos las superficies para refinar el mallado en el centro
+    GiD_Process Mescape Geometry Edit DivideSurf NumDivisions 2 USense 3 escape escape
+    GiD_Process Mescape Geometry Edit DivideSurf NumDivisions 1 USense 3 escape escape
+    GiD_Process Mescape Meshing AssignSizes Surfaces 1 6 9 escape escape 
+
+
 }
 
 proc ValidateDraw { } {

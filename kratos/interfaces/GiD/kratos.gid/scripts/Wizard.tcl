@@ -93,22 +93,6 @@ proc Wizard::CreateWindow {} {
         ::gid_wizard::wizardstep $stepId -title [= "Step $i: $stepId"] -layout basic -body "::${wizardid}::Wizard::$stepId \$win"
     }
     
-    #    
-    ## Geometría
-    #::gid_wizard::wizardstep ::kwiz::step1  -title [= "Step 1: Geometry definition"] -layout basic -body {::kwiz::bodystep1 $win}
-    #
-    ## Material parameters
-    #::gid_wizard::wizardstep ::kwiz::step2  -title [= "Step 2: Material parameters"] -layout basic -body {::kwiz::bodystep2 $win}
-    #
-    ## Particulas
-    #::gid_wizard::wizardstep ::kwiz::step3  -title [= "Step 3: Cuttings definition"] -layout basic -body {::kwiz::bodystep3 $win}
-    #
-    ## General setting
-    #::gid_wizard::wizardstep ::kwiz::step4  -title [= "Step 4: Simulation settings"] -layout basic -body {::kwiz::bodystep4 $win}
-    #
-    ## General setting
-    #::gid_wizard::wizardstep ::kwiz::step5  -title [= "Step 5: Mesh and Run"] -layout basic -body {::kwiz::bodystep5 $win}
-    #
     # Render the wizard
     # W "lista a enviar $nssteplist"
     ::gid_wizard::wizard $wizwindow.w -steps $nssteplist
