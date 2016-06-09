@@ -84,7 +84,12 @@ pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 1
 pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
 pp.CFD_DEM.n_init_basset_steps = 0
-pp.CFD_DEM.delta_time_quadrature = 0.01
+pp.CFD_DEM.time_steps_per_quadrature_step = 1
+pp.CFD_DEM.delta_time_quadrature = pp.CFD_DEM.time_steps_per_quadrature_step * pp.CFD_DEM.MaxTimeStep
+pp.CFD_DEM.quadrature_order = 2
+pp.CFD_DEM.time_window = 0.5
+pp.CFD_DEM.number_of_exponentials = 8
+pp.CFD_DEM.number_of_quadrature_steps_in_window = 10
 #Z
 
 # Import utilities from models
@@ -628,7 +633,7 @@ post_utils.Writeresults(time)
 coors = [None] * 3
 
 sim.CalculatePosition(coors, 0.0)            
-times = [0.]
+times = []
 radii = []
 while (time <= final_time):
 
@@ -744,11 +749,11 @@ while (time <= final_time):
         cluster_model_part.ProcessInfo[TIME]    = time_dem
 
         if not DEM_parameters.flow_in_porous_DEM_medium_option: # in porous flow particles remain static                        
-            #solver.Solve()
-            coors = [None] * 3
-            sim.CalculatePosition(coors, time_dem * ch_pp.omega)            
+            #solver.Solve()         
 
             for node in spheres_model_part.Nodes:
+                coors = [None] * 3
+                sim.CalculatePosition(coors, time_dem * ch_pp.omega)                   
                 node.X = coors[0] * ch_pp.R
                 node.Y = coors[1] * ch_pp.R
                 node.Z = coors[2] * ch_pp.R
