@@ -335,7 +335,8 @@ void BassetForceTools::AddFre(array_1d<double, 3>& old_Fi, const double beta, co
 void BassetForceTools::AppendIntegrands(ModelPart& r_model_part)
 {
     ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-    r_process_info[LAST_TIME_APPENDING] = r_model_part.GetProcessInfo()[TIME];
+    double time = r_process_info[TIME] + r_process_info[DELTA_TIME];
+    r_process_info[LAST_TIME_APPENDING] = time;
 
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
         vector<double>& historic_integrands             = inode->GetValue(BASSET_HISTORIC_INTEGRANDS);
