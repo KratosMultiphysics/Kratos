@@ -467,6 +467,13 @@ public:
         array_1d<double,3> & Normal
         );
     
+    /**
+     * It computes the mean of the normal in the condition in all the nodes
+     * @return The modelparts with the normal computed
+     */
+    
+    void ComputeNodesMeanNormal();
+    
     ///@}
     ///@name Access
     ///@{

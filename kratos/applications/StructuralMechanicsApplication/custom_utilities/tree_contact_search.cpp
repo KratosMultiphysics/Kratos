@@ -38,7 +38,27 @@ TreeContactSearch::TreeContactSearch(
     mdimension(rOriginModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension()),
     mallocation(allocation_size)
 {
+    ConditionsArrayType& pCondDestination  = mrDestinationModelPart.Conditions();
+    ConditionsArrayType::iterator it_begin = pCondDestination.ptr_begin();
+    ConditionsArrayType::iterator it_end   = pCondDestination.ptr_end();
     
+    for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
+    {
+        cond_it->Set( ACTIVE, false ); // NOTE: It is supposed to be already false, just in case
+        cond_it->Set( MASTER, false ); // NOTE: It is supposed to be already false, just in case
+        cond_it->Set( SLAVE,  true  );      
+    }
+    
+    ConditionsArrayType& pCondOrigin = mrOriginModelPart.Conditions();
+    it_begin = pCondOrigin.ptr_begin();
+    it_end   = pCondOrigin.ptr_end();
+    
+    for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
+    {
+        cond_it->Set( ACTIVE, false ); // NOTE: It is supposed to be already false, just in case
+        cond_it->Set( MASTER, true  );
+        cond_it->Set( SLAVE,  false ); // NOTE: It is supposed to be already false, just in case   
+    }
 }
 
 /************************************* DESTRUCTOR **********************************/
@@ -117,8 +137,6 @@ void TreeContactSearch::ClearMortarConditions()
         if (cond_it->Is(ACTIVE))
         {
             cond_it->Set(ACTIVE, false);
-            cond_it->Set(MASTER, false);
-            cond_it->Set(SLAVE, false);   
             
             std::vector<contact_container> * ConditionPointersDestination = cond_it->GetValue(CONTACT_CONTAINERS);
             
@@ -143,9 +161,7 @@ void TreeContactSearch::ClearMortarConditions()
     {
         if (cond_it->Is(ACTIVE))
         {
-            cond_it->Set(ACTIVE, false);
-            cond_it->Set(MASTER, false);
-            cond_it->Set(SLAVE, false);   
+            cond_it->Set(ACTIVE, false); 
             
             std::vector<contact_container> * ConditionPointersOrigin = cond_it->GetValue(CONTACT_CONTAINERS);
             
@@ -375,13 +391,8 @@ void TreeContactSearch::CreateMortarConditions(
         {
             Condition::Pointer pCondOrigin = mPointListOrigin[cond_it]->GetCondition();
 
-            if (bidirectional == true)
-            {
-                // Set the corresponding flags
-                pCondOrigin->Set(ACTIVE, true);
-                pCondOrigin->Set(MASTER, true);
-                pCondOrigin->Set(SLAVE, false); // NOTE: It is supposed to be already false, just in case
-            }
+            // Set the corresponding flags
+            pCondOrigin->Set(ACTIVE, true);
 
             std::vector<contact_container> * ConditionPointersOrigin = pCondOrigin->GetValue(CONTACT_CONTAINERS);
             
@@ -398,7 +409,7 @@ void TreeContactSearch::CreateMortarConditions(
                     contact_container_origin.condition = &* pCondDestination;
                     
                     // Define the normal to the contact
-                    array_1d<double, 3> & contact_normal_orig = pCondOrigin->GetValue(CONTACT_NORMAL);
+                    array_1d<double, 3> & contact_normal_orig = pCondOrigin->GetValue(NORMAL);
                     contact_normal_orig = mPointListOrigin[cond_it]->GetNormal();
                     
                     // Define the contact gap
@@ -444,15 +455,13 @@ void TreeContactSearch::CreateMortarConditions(
                 
                 // Set the corresponding flags
                 pCondDestination->Set(ACTIVE, true);
-                pCondDestination->Set(MASTER, false); // NOTE: It is supposed to be already false, just in case
-                pCondDestination->Set(SLAVE, true);
-                
+
                 contact_container contact_container_destination;
                     
                 contact_container_destination.condition = &* pCondOrigin;
                 
                 // Define the normal to the contact
-                array_1d<double, 3> & contact_normal_dest = pCondDestination->GetValue(CONTACT_NORMAL);
+                array_1d<double, 3> & contact_normal_dest = pCondDestination->GetValue(NORMAL);
                 contact_normal_dest = PointsFound[i]->GetNormal();
                 
                 // Define the contact gap
@@ -511,6 +520,9 @@ void TreeContactSearch::CreateMortarConditions(
             }
         }
     }
+    
+    // Calculate the mean of the normal in all the nodes
+    ComputeNodesMeanNormal();
 }
 
 /***********************************************************************************/
@@ -537,6 +549,7 @@ void TreeContactSearch::Project(
      PointProjected.Coordinate(2) = PointDestiny.Coordinate(2) - Normal[1] * dist;
      PointProjected.Coordinate(3) = PointDestiny.Coordinate(3) - Normal[2] * dist;
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -661,6 +674,101 @@ void TreeContactSearch::CenterAndRadius(
     }
 
     Radius = std::sqrt(Radius);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+// TODO: Add the bidirectional as an input if the normals are needed in just one side
+void TreeContactSearch::ComputeNodesMeanNormal()
+{
+    double tol = 1.0e-12;
+    // Initialize normal vectors
+    NodesArrayType& pNodeDestination  = mrDestinationModelPart.Nodes();
+    NodesArrayType::iterator it_node_begin = pNodeDestination.ptr_begin();
+    NodesArrayType::iterator it_node_end   = pNodeDestination.ptr_end();
+    
+    for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
+    {
+        array_1d<double, 3> & Normal = node_it->FastGetSolutionStepValue(NORMAL);
+        Normal = ZeroVector(3);
+    }
+    
+    NodesArrayType& pNodeOrigin  = mrOriginModelPart.Nodes();
+    it_node_begin = pNodeOrigin.ptr_begin();
+    it_node_end   = pNodeOrigin.ptr_end();
+    
+    for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
+    {
+        array_1d<double, 3> & Normal = node_it->FastGetSolutionStepValue(NORMAL);
+        Normal = ZeroVector(3);
+    }
+    
+    // Sum all the nodes normals
+    ConditionsArrayType& pCondDestination  = mrDestinationModelPart.Conditions();
+    ConditionsArrayType::iterator it_cond_begin = pCondDestination.ptr_begin();
+    ConditionsArrayType::iterator it_cond_end   = pCondDestination.ptr_end();
+    
+    for(ConditionsArrayType::iterator cond_it = it_cond_begin; cond_it!=it_cond_end; cond_it++)
+    {
+        if (cond_it->Is(ACTIVE))
+        {
+            const array_1d<double, 3> & Normal_cond = cond_it->GetValue(NORMAL);
+            for (unsigned int i = 0; i < cond_it->GetGeometry().PointsNumber(); i++)
+            {
+                array_1d<double, 3> & Normal = cond_it->GetGeometry()[i].FastGetSolutionStepValue(NORMAL);
+                Normal += Normal_cond;
+            }
+        }
+    }
+    
+    ConditionsArrayType& pCondOrigin = mrOriginModelPart.Conditions();
+    it_cond_begin = pCondOrigin.ptr_begin();
+    it_cond_end   = pCondOrigin.ptr_end();
+    
+    for(ConditionsArrayType::iterator cond_it = it_cond_begin; cond_it!=it_cond_end; cond_it++)
+    {
+        if (cond_it->Is(ACTIVE))
+        {
+            const array_1d<double, 3> & Normal_cond = cond_it->GetValue(NORMAL);
+            for (unsigned int i = 0; i < cond_it->GetGeometry().PointsNumber(); i++)
+            {
+                array_1d<double, 3> & Normal = cond_it->GetGeometry()[i].FastGetSolutionStepValue(NORMAL);
+                Normal += Normal_cond;
+            }
+        }
+    }
+    
+    // Normalize normal vectors
+    it_node_begin = pNodeDestination.ptr_begin();
+    it_node_end   = pNodeDestination.ptr_end();
+    
+    for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
+    {
+        array_1d<double, 3> & Normal = node_it->FastGetSolutionStepValue(NORMAL);
+        double norm = norm_2(Normal);
+        if (norm > tol)
+        {
+            Normal /= norm;
+        }
+        
+//         KRATOS_WATCH(Normal);
+    }
+    
+    it_node_begin = pNodeOrigin.ptr_begin();
+    it_node_end   = pNodeOrigin.ptr_end();
+    
+    for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
+    {
+        array_1d<double, 3> & Normal = node_it->FastGetSolutionStepValue(NORMAL);
+        double norm = norm_2(Normal);
+        if (norm > tol)
+        {
+            Normal /= norm;
+        }
+        
+//         KRATOS_WATCH(Normal);
+    }
 }
 
 /************************************** ACCESS *************************************/

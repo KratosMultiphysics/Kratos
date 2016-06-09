@@ -116,10 +116,15 @@ void KratosStructuralMechanicsApplication::Register()
     /* Torque condition */
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_TORQUE )
     /* Mortar method */
-    KRATOS_REGISTER_VARIABLE( CONTACT_NORMAL )                              // The normal of the condition
     KRATOS_REGISTER_VARIABLE( CONTACT_CONTAINERS )                          // A vector of which contains the structure which defines the contact conditions
     KRATOS_REGISTER_VARIABLE( ELEMENT_POINTER )                             // A pointer to the element belonging to this condition
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( CONTACT_MESH_TYING_FORCE ) // The "force" resulting from contact
+	KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LAGRANGE_MULTIPLIER )      // The lagrange multiplier used to enforce the mortar constraint
+	KRATOS_REGISTER_VARIABLE( CONTACT_STIFFNESS_MATRIX )		// LHS contribution
+	KRATOS_REGISTER_VARIABLE( GAP_DERIVATIVES_MATRIX )		// LHS contribution
+	KRATOS_REGISTER_VARIABLE( CONTACT_FORCES_VECTOR )			// RHS contribution
+	KRATOS_REGISTER_VARIABLE( NORMAL_GAPS_VECTOR )			// RHS contribution
+
 
 //    // Orthotropy
 //    KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_X )
