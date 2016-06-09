@@ -684,16 +684,28 @@ proc spdAux::injectNodalConditions { basenode } {
                 lassign [split $v ","] v1 v2 v3
                 if {$fix ne 0} {
                     append node "
-                        <value n='FixX' pn='$fix X' v='1' values='1,0' help=''/>
-                        <value n='FixY' pn='$fix Y' v='1' values='1,0' help=''/>
-                        <value n='FixZ' pn='$fix Z' v='1' values='1,0' help='' state='\[CheckDimension 3D\]'/>"
+                        <value n='FixX' pn='X $fix' v='1' values='1,0' help=''/>
+                        <value n='FixY' pn='Y $fix' v='1' values='1,0' help=''/>
+                        <value n='FixZ' pn='Z $fix' v='1' values='1,0' help='' state='\[CheckDimension 3D\]'/>"
                 }
                 append node "
-                    <value n='${inName}X' wn='[concat $n "_X"]' pn='${pn} X' v='$v1' help='$help'/>
-                    <value n='${inName}Y' wn='[concat $n "_Y"]' pn='${pn} Y' v='$v2' help='$help'/>
-                    <value n='${inName}Z' wn='[concat $n "_Z"]' pn='${pn} Z' v='$v3' help='$help' state='\[CheckDimension 3D\]'/>
+                    <value n='${inName}X' wn='[concat $n "_X"]' pn='${pn} X' v='$v1' help='$help' />
+                    <value n='${inName}Y' wn='[concat $n "_Y"]' pn='${pn} Y' v='$v2' help='$help' />
+                    <value n='${inName}Z' wn='[concat $n "_Z"]' pn='${pn} Z' v='$v3' help='$help'  state='\[CheckDimension 3D\]'/>
                     "
-            } {
+            } elseif { $type eq "combo" } {
+                set values [join [$in getValues] ","]
+                if {$fix ne 0} {
+                    append node "<value n='Fix' pn='$fix' v='1' values='1,0' help=''/>"
+                }
+                append node "<value n='$inName' pn='$pn' v='$v' values='$values' units='$units'  unit_magnitude='$um'  help='$help'/>"
+            } elseif { $type eq "bool" } {
+                set values "true,false"
+                if {$fix ne 0} {
+                    append node "<value n='Fix' pn='$fix' v='1' values='1,0' help=''/>"
+                }
+                append node "<value n='$inName' pn='$pn' v='$v' values='$values' units='$units'  unit_magnitude='$um'  help='$help'/>"
+            } else {
                 if {$fix ne 0} {
                     append node "<value n='Fix' pn='$fix' v='1' values='1,0' help=''/>"
                 }
@@ -746,7 +758,19 @@ proc spdAux::injectConditions { basenode } {
                     <value n='${inName}Y' wn='[concat $n "_Y"]' pn='${pn} Y' v='$v2' help='$help' />
                     <value n='${inName}Z' wn='[concat $n "_Z"]' pn='${pn} Z' v='$v3' help='$help'  state='\[CheckDimension 3D\]'/>
                     "
-            } {
+            } elseif { $type eq "combo" } {
+                set values [join [$in getValues] ","]
+                if {$fix ne 0} {
+                    append node "<value n='Fix' pn='$fix' v='1' values='1,0' help=''/>"
+                }
+                append node "<value n='$inName' pn='$pn' v='$v' values='$values' units='$units'  unit_magnitude='$um'  help='$help'/>"
+            } elseif { $type eq "bool" } {
+                set values "true,false"
+                if {$fix ne 0} {
+                    append node "<value n='Fix' pn='$fix' v='1' values='1,0' help=''/>"
+                }
+                append node "<value n='$inName' pn='$pn' v='$v' values='$values' units='$units'  unit_magnitude='$um'  help='$help'/>"
+            } else {
                 if {$fix ne 0} {
                     append node "<value n='Fix' pn='$fix' v='1' values='1,0' help=''/>"
                 }
