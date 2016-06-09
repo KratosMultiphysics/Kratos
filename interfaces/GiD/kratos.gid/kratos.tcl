@@ -14,7 +14,7 @@ proc InitGIDProject { dir } {
 }
 
 proc EndGIDProject {} {
-    spdAux::DestroyWindow
+    Kratos::DestroyWindows
     spdAux::EndRefreshTree
     Kratos::RegisterEnvironment
     Model::DestroyEverything
@@ -109,6 +109,7 @@ proc Kratos::InitGIDProject { dir } {
     #foreach filename {anigif.tcl} {
     #    uplevel 1 [list source [file join $dir libs $filename]]
     #}
+    set kratos_private(UseWizard) 0
      
     Kratos::load_gid_groups_conds
     Kratos::LoadEnvironment
@@ -120,13 +121,24 @@ proc Kratos::InitGIDProject { dir } {
 
     spdAux::processIncludes
     spdAux::parseRoutes
+    
+    
     after 100 [list gid_groups_conds::close_all_windows]
     after 500 [list spdAux::CreateWindow]
 }
 
+proc Kratos::DestroyWindows {} {
+    spdAux::DestroyWindow
+    if {$::Kratos::kratos_private(UseWizard)} {
+        Wizard::DestroyWindow
+    }
+}
+
 proc Kratos::LoadWizardFiles { } {
+    set ::Kratos::kratos_private(UseWizard) 1
     set dir $::Kratos::kratos_private(Path)
     uplevel #0 [list source [file join $dir scripts Wizard.tcl]]
+    Kratos::ChangeMenus
 }
 
 proc Kratos::ChangeMenus { } {
@@ -141,8 +153,11 @@ proc Kratos::ChangeMenus { } {
     GiDMenu::InsertOption "Kratos" [list "---"] 1 PRE "" "" "" replace =
     GiDMenu::InsertOption "Kratos" [list "You are in $fromode" ] 2 PRE [list ] "" "" replace =
     GiDMenu::InsertOption "Kratos" [list "Switch to $tomode" ] 3 PRE [list Kratos::SwitchMode] "" "" replace =
-    #GiDMenu::InsertOption "Kratos" [list "---"] 4 PRE "" "" "" replace =
-    #GiDMenu::InsertOption "Kratos" [list "Local axes" ] 5 PRE [list gid_groups_conds::local_axes_menu %W] "" "" replace =
+
+    if {$::Kratos::kratos_private(UseWizard)} {
+        GiDMenu::InsertOption "Kratos" [list "---"] 4 PRE "" "" "" replace =
+        GiDMenu::InsertOption "Kratos" [list "Wizard window" ] 5 PRE [list Wizard::CreateWindow] "" "" replace =
+    }
     GidChangeDataLabel "Data units" ""
     GidChangeDataLabel "Interval" ""
     GidChangeDataLabel "Conditions" ""
