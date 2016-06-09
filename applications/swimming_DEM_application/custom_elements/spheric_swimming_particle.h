@@ -189,6 +189,7 @@ namespace Kratos
       bool mHasLiftForceNodalVar;
       bool mHasDragCoefficientVar;
       bool mHasOldAdditionalForceVar;
+      bool mFirstStep;
       int mCouplingType;
       int mBuoyancyForceType;
       int mDragForceType;
