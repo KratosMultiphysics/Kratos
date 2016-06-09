@@ -89,15 +89,17 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
 
     double force_reduction_coeff = mRealMass / (mRealMass + added_mass_coefficient);
     array_1d<double, 3> non_contact_force_not_altered = non_contact_force;
-    if (mHasOldAdditionalForceVar){
+
+    if (mHasOldAdditionalForceVar && !mFirstStep){
         ApplyNumericalAveragingWithOldForces(node, non_contact_force, r_current_process_info);
     }
+
     UpdateNodalValues(node, non_contact_force_not_altered, non_contact_moment, weight, buoyancy, drag_force, virtual_mass_force, basset_force, saffman_lift_force, magnus_lift_force, force_reduction_coeff, r_current_process_info);
     // The basset force has a different temporal treatment, so first we apply the scheme to the rest of the forces
     // And then we add the Basset force (minus the term proportional to the current acceleration, which is treted inplicityly)
     noalias(non_contact_force) += basset_force;
     non_contact_force *= force_reduction_coeff;
-
+    mFirstStep = false;
     KRATOS_CATCH( "" )
 }
 //**************************************************************************************************************************************************
@@ -156,7 +158,7 @@ void SphericSwimmingParticle<TBaseElement>::UpdateNodalValues(NodeType& node,
 template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::ApplyNumericalAveragingWithOldForces(NodeType& node, array_1d<double, 3>& non_contact_or_basset_force, const ProcessInfo& r_current_process_info)
 {
-    non_contact_or_basset_force = 0.5 * (3 * non_contact_or_basset_force - node.FastGetSolutionStepValue(ADDITIONAL_FORCE_OLD));
+    noalias(non_contact_or_basset_force) = 0.5 * (3 * non_contact_or_basset_force - node.FastGetSolutionStepValue(ADDITIONAL_FORCE_OLD));
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -211,39 +213,38 @@ void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(NodeType& no
     }
 
     else {
-        const double volume                     = CalculateVolume();
-        const array_1d<double, 3>& fluid_acc    = node.FastGetSolutionStepValue(FLUID_ACCEL_PROJECTED);
+        const array_1d<double, 3>& fluid_acc = node.FastGetSolutionStepValue(FLUID_ACCEL_PROJECTED);
         array_1d<double, 3> slip_acc;
 
-    if (mFluidModelType == 0){ // fluid velocity is modified as a post-process
-        const array_1d<double, 3>& particle_acc = 1 / GetMass() * GetForce();
-        noalias(slip_acc) = fluid_acc / mFluidFraction - particle_acc;
-    }
-
-    else {
-        //noalias(slip_acc) = fluid_acc - particle_acc;
-        noalias(slip_acc) = fluid_acc; // the particle acceleration is treated implicitly through the added_mass_coefficient
-        double volume = CalculateVolume();
-        added_mass_coefficient += 0.5 * mFluidDensity * volume;
-
-        if (mDragForceType == 11) {
-            const array_1d<double, 3>& fluid_vel_laplacian_rate = node.FastGetSolutionStepValue(FLUID_VEL_LAPL_RATE_PROJECTED);
-            noalias(slip_acc) -= 0.1 * mRadius * mRadius * fluid_vel_laplacian_rate; // add Faxen term
+        if (mFluidModelType == 0){ // fluid velocity is modified as a post-process
+            const array_1d<double, 3>& particle_acc = 1 / GetMass() * GetForce();
+            noalias(slip_acc) = fluid_acc / mFluidFraction - particle_acc;
         }
-    }
 
-    double virtual_mass_coeff = 0.5; // inviscid case
+        else {
+            noalias(slip_acc) = fluid_acc; // the particle acceleration is treated implicitly through the added_mass_coefficient
 
-    if (mVirtualMassForceType == 2 || mVirtualMassForceType == 4) { // Zuber (1964) (moderate values of solid fraction)
-        virtual_mass_coeff += 1.5 * (1 - mFluidFraction);
-    }
+            if (mDragForceType == 11) {
+                const array_1d<double, 3>& fluid_vel_laplacian_rate = node.FastGetSolutionStepValue(FLUID_VEL_LAPL_RATE_PROJECTED);
+                noalias(slip_acc) -= 0.1 * mRadius * mRadius * fluid_vel_laplacian_rate; // add Faxen term
+            }
+        }
 
-    else if (mVirtualMassForceType == 3 || mVirtualMassForceType == 4){ // Odar and Hamilton, 1964
-        double acc_number;
-        ComputeParticleAccelerationNumber(slip_acc, acc_number);
-        virtual_mass_coeff *= 2.1 - 0.132 / (SWIMMING_POW_2(acc_number) + 0.12);
-    }
-    noalias(virtual_mass_force) = mFluidDensity * volume * (virtual_mass_coeff * slip_acc + fluid_acc); // here we add the part of buoyancy due to the acceleration of the fluid
+        double virtual_mass_coeff = 0.5; // inviscid case
+
+        if (mVirtualMassForceType == 2 || mVirtualMassForceType == 4) { // Zuber (1964) (moderate values of solid fraction)
+            virtual_mass_coeff += 1.5 * (1 - mFluidFraction);
+        }
+
+        else if (mVirtualMassForceType == 3 || mVirtualMassForceType == 4){ // Odar and Hamilton, 1964
+            double acc_number;
+            ComputeParticleAccelerationNumber(slip_acc, acc_number);
+            virtual_mass_coeff *= 2.1 - 0.132 / (SWIMMING_POW_2(acc_number) + 0.12);
+        }
+
+        const double volume = CalculateVolume();
+        added_mass_coefficient += virtual_mass_coeff * mFluidDensity * volume;
+        noalias(virtual_mass_force) = mFluidDensity * volume * (virtual_mass_coeff * slip_acc + fluid_acc); // here we add the part of buoyancy due to the acceleration of the fluid (pressure drag)
     }
 }
 //**************************************************************************************************************************************************
@@ -1275,6 +1276,7 @@ void SphericSwimmingParticle<TBaseElement>::Initialize(const ProcessInfo& r_proc
 {
     TBaseElement::Initialize(r_process_info);
     NodeType& node = GetGeometry()[0];
+    mFirstStep                   = true;
     mHasDragForceNodalVar        = node.SolutionStepsDataHas(DRAG_FORCE);
     mHasHydroMomentNodalVar      = node.SolutionStepsDataHas(HYDRODYNAMIC_MOMENT);
     mHasVirtualMassForceNodalVar = node.SolutionStepsDataHas(VIRTUAL_MASS_FORCE);
