@@ -26,7 +26,6 @@
 #include "includes/condition.h"
 #include "utilities/math_utils.h"
 #include "includes/kratos_flags.h"
-// #include "custom_utilities/tree_contact_search.h"
 
 namespace Kratos
 {
@@ -380,7 +379,7 @@ public:
         ) const;
 
 
-    /******************************************************************/
+   /******************************************************************/
     /*********************** COMPUTING  METHODS ***********************/
     /******************************************************************/
 
@@ -485,7 +484,7 @@ public:
         GeneralVariables& rVariables,
         double& rIntegrationWeight,
         const unsigned int& rPointNumber,
-        const bool& rCalculateSlaveContributions 
+        const bool& rCalculateSlaveContributions
         );
 
     /*
@@ -527,7 +526,8 @@ public:
     void CalculateDeltaJSlave( 
         GeneralVariables& rVariables,
         double& rIntegrationWeight,
-        const IndexType& rPointNumber 
+        const bool& rCalculateSlaveContributions,
+        const IndexType& rPointNumber
         );
 
     /*
@@ -535,30 +535,52 @@ public:
     */
     void CalculateDeltaPhi( 
         GeneralVariables& rVariables,
-        double& rIntegrationWeight 
+        double& rIntegrationWeight,
+        const bool& rCalculateSlaveContributions
         );
 
     /*
-    * Calculate the normal gap between a given integration point on the
-    * slave element and its projected position on the master element
-    */
-    void CalculateNormalGapAtIntegrationPoint( 
+     * Calculate the normal gap between a given integration point on the
+     * slave element and its projected position on the master element
+     */
+    void CalculateNormalGapAtIntegrationPoint(
         GeneralVariables& rVariables,
-        const IndexType& rPointNumber 
-        );
+        const IndexType& rPointNumber );
 
-
-    void CalculateDeltaNodalNormal( const IndexType& rPointNumber );
-
-
-    void CalculateDeltaDiscreteGap( const IndexType& rPointNumber );
 
     /*
-    * Calcualte Mortar Projection Operator tranpose - P' = ( D_{AA}^{-1} * M_{A} )'
-    * and appends it to the vector of projection operators
-    * This is the LHS contribution related to all Lagrange multipliers DOFs in the contact surfaces
-    * This is only applicable for DUAL LAGRANGE MULTIPLIERS
-    */
+     * Calculates the linearization of the discrete gap function
+     * g_h = normal_vector * ( x_gauss_point - x_gauss_point_projection )
+     */
+    void CalculateDeltaDiscreteGap(
+        GeneralVariables& rVariables,
+        const IndexType& rPointNumber );
+
+
+    void CalculateDeltaIntegrationPointNormal(
+        GeneralVariables& rVariables,
+        const IndexType& rPointNumber,
+        const unsigned int& rIndexSlave,
+        MatrixType& rDeltaIntPtNormal );
+
+
+    void CalculateDeltaNodalNormal(
+        GeneralVariables& rVariables,
+        const IndexType& rPointNumber,
+        MatrixType& rDeltaNodalNormal );
+
+
+    void CalculateDeltaElementalNormal(
+        GeneralVariables& rVariables,
+        const IndexType& rPointNumber,
+        MatrixType& rDeltaElementalNormal );
+
+    /*
+     * Calcualte Mortar Projection Operator tranpose - P' = ( D_{AA}^{-1} * M_{A} )'
+     * and appends it to the vector of projection operators
+     * This is the LHS contribution related to all Lagrange multipliers DOFs in the contact surfaces
+     * This is only applicable for DUAL LAGRANGE MULTIPLIERS
+     */
     void CalculateAndAppendMortarProjectionMatrixTranspose( GeneralVariables& rVariables );
 
     /*******************************************************************************/
