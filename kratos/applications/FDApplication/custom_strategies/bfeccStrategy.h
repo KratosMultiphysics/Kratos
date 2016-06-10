@@ -126,8 +126,8 @@ public:
     double bbSize[3];
 
     // Parse the ConditionModelpart setting the size and conditions
-    for(auto elem: mConditionsModelPart.Conditions()) {
-      for(auto point: elem.GetGeometry().Points()) {
+    for(auto & elem: mConditionsModelPart.Conditions()) {
+      for(auto & point: elem.GetGeometry()) {
         for(std::size_t i = 0; i < 3 ; i++) {
           bbMin[i] = point[i] < bbMin[i] ? point[i] : bbMin[i];
           bbMax[i] = point[i] > bbMax[i] ? point[i] : bbMax[i];
@@ -154,7 +154,7 @@ public:
 
       // std::cout << "Condition: " << elem.Id() << std::endl;
 
-      for(auto point: elem.GetGeometry().Points()) {
+      for(auto & point: elem.GetGeometry()) {
         for(std::size_t i = 0; i < 3 ; i++) {
           fixedPressure    = fixedPressure    | point.IsFixed(PRESSURE);
           fixedVelocity[0] = fixedVelocity[0] | point.IsFixed(VELOCITY_X);
