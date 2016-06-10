@@ -19,30 +19,17 @@
 #include "fd_application.h"
 #include "includes/variables.h"
 
-namespace Kratos
-{
-	//Example
-// 	KRATOS_CREATE_VARIABLE(double, AUX_MESH_VAR)
-//	KRATOS_CREATE_VARIABLE(double, IS_INTERFACE);
-//	KRATOS_CREATE_VARIABLE(double, NODAL_AREA);
-//
+namespace Kratos {
 
-	KratosFDApplication::KratosFDApplication()
-	{}
+	KratosFDApplication::KratosFDApplication() {}
 
-	void KratosFDApplication::Register()
-	{
-		// calling base class register to register Kratos components
+	void KratosFDApplication::Register() {
 		KratosApplication::Register();
 		std::cout << "Initializing KratosFDApplication... " << std::endl;
 
-		// KRATOS_REGISTER_VARIABLE( AUX_MESH_VAR )
-		// KRATOS_REGISTER_VARIABLE(IS_INTERFACE);
-		// KRATOS_REGISTER_VARIABLE(NODAL_AREA);
-		//
-		// KRATOS_REGISTER_ELEMENT("Elem2D", mElem2D);
-		// KRATOS_REGISTER_ELEMENT("Elemt3D", mElem3D);
+    using Kratos::Testing::Tester;
 
+    Tester::GetInstance().RunAllTests();
 	}
 
 }  // namespace Kratos.
