@@ -15,9 +15,6 @@
 #if !defined(KRATOS_TEST_CASE_H_INCLUDED )
 #define  KRATOS_TEST_CASE_H_INCLUDED
 
-
-
-// System includes
 #include <string>
 #include <iostream>
 
@@ -39,13 +36,12 @@ namespace Kratos
 				RegisterThisTest()
 				{
 					Tester::AddTestCase(new TestType);
-
 				}
 			};
 
 		}
 
-		///@addtogroup Kratos Core
+		///@addtogroup KratosCore
 		///@{
 
 		///@name Kratos Classes
@@ -237,15 +233,15 @@ namespace Kratos
 //	void TestModelPartConstruction::TestFunction()
 //
 #define KRATOS_TEST_CASE(TestCaseName) \
-class KRATOS_API(KRATOS_CORE) KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) : public TestCase \
+class KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) : public TestCase \
  {\
  public:\
   KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)() : TestCase(KRATOS_TESTING_CONVERT_TO_STRING(Test##TestCaseName)) {}\
  private: \
   void TestFunction() override; \
-  static Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > mDummy; \
+  static const Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > mDummy; \
 }; \
-Kratos::Testing::Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > \
+const Kratos::Testing::Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > \
 		KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mDummy; \
 \
 void KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::TestFunction()
