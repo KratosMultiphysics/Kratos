@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StrategyList>
+  <StrategyItem n="DirichletNeumann" pn="Dirichlet-Neumann" 
+		ImplementedInFile="residual_definitions.py"
+		ImplementedInApplication="FSIApplication"
+		ImplementedInPythonFile="residual_definitions"
+		MinimumKratosVersion="8500"
+		ProductionReady="ProductionReady"
+		help="">
+    
+    <!-- list of options to be filled -->
+    <parameter_list>
+        <parameter n="nl_tol" pn="Non-linear tolerance" type="double" v="1e-5" help="Interface residual tolerance."/>
+        <parameter n="nl_max_it" pn="Non-linear max. iterations" type="integer" v="50" help="Maximum number of non-linear iterations."/>
+    </parameter_list>
+    
+    <linearSolvers>
+      <linearSolverItem n="coupling_strategy" pn="Coupling strategy" default="MVQN">
+        <filterFeatures>
+            <filter field="n" value="Relaxation"/>
+            <filter field="n" value="JFNK"/>
+            <filter field="n" value="MVQN"/>    
+        </filterFeatures>
+		<defaults>
+		</defaults>
+      </linearSolverItem>
+
+    </linearSolvers>
+	
+<!--
+	<schemes>
+	  <scheme n="FS" pn="Fractional step generic scheme" help="FilterElements">
+	     <parameter_list>
+		  </parameter_list>
+  		  <element_filters>
+			 <filter field="n" value="FractionalStep2D,FractionalStep3D"/>
+		  </element_filters>
+	  </scheme>
+	</schemes>
+-->
+  
+  </StrategyItem>
+  
+  
+  <StrategyItem n="NeumannNeumann" pn="Neumann-Neumann" 
+		ImplementedInFile="residual_definitions.py"
+		ImplementedInApplication="FSIApplication"
+		ImplementedInPythonFile="residual_definitions"
+		MinimumKratosVersion="8500"
+		ProductionReady="ProductionReady"
+		help="">
+    
+    <!-- list of options to be filled -->
+    <parameter_list>
+        <parameter n="nl_tol" pn="Non-linear tolerance" type="double" v="1e-5" help="Interface residual tolerance."/>
+        <parameter n="nl_max_it" pn="Non-linear max. iterations" type="integer" v="50" help="Maximum number of non-linear iterations."/>
+    </parameter_list>
+    
+    <linearSolvers>
+      <linearSolverItem n="coupling_strategy" pn="Coupling strategy" default="MVQN" >
+        <filterFeatures>
+            <filter field="n" value="JFNK"/>
+            <filter field="n" value="MVQN"/>
+        </filterFeatures>
+		<defaults>
+		</defaults>
+      </linearSolverItem>     
+    </linearSolvers>
+	
+<!--
+	<schemes>
+	  <scheme n="MN" pn="Monolitic generic scheme" help="FilterElements" ProductionReady="ProductionReady">
+	     <parameter_list>
+		  </parameter_list>
+  		  <element_filters>
+			 <filter field="n" value="Monolithic2D,Monolithic3D"/>
+		  </element_filters>
+	  </scheme>
+	</schemes>
+-->
+  
+  </StrategyItem>
+    
+</StrategyList>
