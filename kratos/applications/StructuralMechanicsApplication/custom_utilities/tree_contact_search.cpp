@@ -412,9 +412,17 @@ void TreeContactSearch::CreateMortarConditions(
                     array_1d<double, 3> & contact_normal_orig = pCondOrigin->GetValue(NORMAL);
                     contact_normal_orig = mPointListOrigin[cond_it]->GetNormal();
                     
-                    // Define the contact gap
+                    // Define the discrete contact gap
                     Point<3> ProjectedPointDestination;
-                    Project(PointsFound[i]->GetPoint(), mPointListOrigin[cond_it]->GetPoint(), ProjectedPointDestination, contact_container_origin.contact_gap, contact_normal_orig);
+                    const unsigned int number_nodes = pCondOrigin->GetGeometry().PointsNumber();
+                    contact_container_origin.contact_gap.resize(number_nodes);
+                    
+                    for (unsigned int i = 0; i < number_nodes; i++)
+                    {
+                        Project(pCondOrigin->GetGeometry()[i], mPointListOrigin[cond_it]->GetPoint(), ProjectedPointDestination, contact_container_origin.contact_gap[i], contact_normal_orig);
+                    }
+                    
+//                     Project(PointsFound[i]->GetPoint(), mPointListOrigin[cond_it]->GetPoint(), ProjectedPointDestination, contact_container_origin.contact_gap, contact_normal_orig);
                     
                     // Define the contact area
                     contact_container_origin.contact_area = 0.0;
@@ -466,7 +474,15 @@ void TreeContactSearch::CreateMortarConditions(
                 
                 // Define the contact gap
                 Point<3> ProjectedPointOrigin;
-                Project(mPointListOrigin[cond_it]->GetPoint(), PointsFound[i]->GetPoint(), ProjectedPointOrigin, contact_container_destination.contact_gap, contact_normal_dest);
+                const unsigned int number_nodes = pCondDestination->GetGeometry().PointsNumber();
+                contact_container_destination.contact_gap.resize(number_nodes);
+                
+                for (unsigned int i = 0; i < number_nodes; i++)
+                {
+                    Project(pCondDestination->GetGeometry()[i], PointsFound[i]->GetPoint(), ProjectedPointOrigin, contact_container_destination.contact_gap[i], contact_normal_dest);
+                }
+                
+//                 Project(mPointListOrigin[cond_it]->GetPoint(), PointsFound[i]->GetPoint(), ProjectedPointOrigin, contact_container_destination.contact_gap, contact_normal_dest);
                 
                 // Define the contact area
                 contact_container_destination.contact_area = 0.0;

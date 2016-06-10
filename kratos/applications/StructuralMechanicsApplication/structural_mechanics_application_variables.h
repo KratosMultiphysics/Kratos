@@ -22,6 +22,7 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 #include "solid_mechanics_application.h"
+#include "structural_mechanics_application.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/shell_cross_section.hpp"
 
@@ -31,9 +32,10 @@ typedef array_1d<double,3> Vector3;
 
 struct contact_container 
 {
-    Condition* condition;
-    double  contact_area;
-    double   contact_gap;
+    Condition*            condition;
+    double             contact_area;
+    std::vector<double> contact_gap;
+//    double              contact_gap;
   
     void save( Serializer& rSerializer ) const
     {
