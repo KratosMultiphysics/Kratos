@@ -30,6 +30,9 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 
+#include "testing/tester.h"
+#include "testing/test_case.h"
+
 namespace Kratos
 {
 	///@name Kratos Globals

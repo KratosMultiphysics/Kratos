@@ -12,6 +12,7 @@ set( KRATOS_FD_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/fd_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/grid_printer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/bfecc.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/tests/test.cpp
 )
 
 ###############################################################
