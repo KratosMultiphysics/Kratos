@@ -2,15 +2,15 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
 //
-	           
+//
+
 
 #if !defined(KRATOS_TEST_CASE_H_INCLUDED )
 #define  KRATOS_TEST_CASE_H_INCLUDED
@@ -19,14 +19,14 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
-
+#include "testing/tester.h"
 
 namespace Kratos
 {
@@ -54,15 +54,15 @@ namespace Kratos
 		/// The test case base class.
 		/** Defines the interface for all the test cases and also fixtures
 		*/
-		class TestCase
+		class KRATOS_API(KRATOS_CORE) TestCase
 		{
 		public:
 			///@name Type Definitions
 			///@{
 
 			///@}
-			///@name Life Cycle 
-			///@{ 
+			///@name Life Cycle
+			///@{
 
 			/// TestCase cannot be created without a name
 			TestCase() = delete;
@@ -102,7 +102,7 @@ namespace Kratos
 
 			///@}
 			///@name Access
-			///@{ 
+			///@{
 
 			const std::string& Name();
 
@@ -115,7 +115,7 @@ namespace Kratos
 			bool IsDisabled();
 
 
-			///@}      
+			///@}
 			///@name Input and output
 			///@{
 
@@ -129,7 +129,7 @@ namespace Kratos
 			virtual void PrintData(std::ostream& rOStream) const;
 
 
-			///@}      
+			///@}
 			///@name Friends
 			///@{
 
@@ -137,50 +137,50 @@ namespace Kratos
 			///@}
 
 		protected:
-			///@name Protected static Member Variables 
-			///@{ 
+			///@name Protected static Member Variables
+			///@{
 
 
-			///@} 
-			///@name Protected member Variables 
-			///@{ 
+			///@}
+			///@name Protected member Variables
+			///@{
 
 
-			///@} 
+			///@}
 			///@name Protected Operators
-			///@{ 
+			///@{
 
 
-			///@} 
+			///@}
 			///@name Protected Operations
-			///@{ 
+			///@{
 
 
-			///@} 
-			///@name Protected  Access 
-			///@{ 
+			///@}
+			///@name Protected  Access
+			///@{
 
 
-			///@}      
-			///@name Protected Inquiry 
-			///@{ 
+			///@}
+			///@name Protected Inquiry
+			///@{
 
 
-			///@}    
-			///@name Protected LifeCycle 
-			///@{ 
+			///@}
+			///@name Protected LifeCycle
+			///@{
 
 
 			///@}
 
 		private:
-			///@name Static Member Variables 
-			///@{ 
+			///@name Static Member Variables
+			///@{
 
 
-			///@} 
-			///@name Member Variables 
-			///@{ 
+			///@}
+			///@name Member Variables
+			///@{
 
 			const std::string mName;
 
@@ -192,15 +192,15 @@ namespace Kratos
 
 			virtual void TestFunction() = 0;
 
-			///@} 
+			///@}
 
 
-		}; // Class TestCase 
+		}; // Class TestCase
 
-	  ///@} 
+	  ///@}
 
-	  ///@name Input and output 
-	  ///@{ 
+	  ///@name Input and output
+	  ///@{
 
 		/// output stream function
 		inline std::ostream& operator << (std::ostream& rOStream,
@@ -214,7 +214,7 @@ namespace Kratos
 		}
 		///@}
 		///@name macros
-		///@{ 
+		///@{
 
 
 #define KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) \
@@ -232,12 +232,12 @@ namespace Kratos
 //		void TestFunction() override;
 //		static Internals::RegisterThisTest<TestModelPartConstruction> mDummy;
 //	};
-//	Kratos::Testing::Internals::RegisterThisTest<TestModelPartConstruction> 
+//	Kratos::Testing::Internals::RegisterThisTest<TestModelPartConstruction>
 //		TestModelPartConstruction::mDummy;
 //	void TestModelPartConstruction::TestFunction()
 //
 #define KRATOS_TEST_CASE(TestCaseName) \
-class KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) : public TestCase \
+class KRATOS_API(KRATOS_CORE) KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) : public TestCase \
  {\
  public:\
   KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)() : TestCase(KRATOS_TESTING_CONVERT_TO_STRING(Test##TestCaseName)) {}\
@@ -257,6 +257,4 @@ void KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::TestFunction()
 	} // manespace Testing.
 }  // namespace Kratos.
 
-#endif // KRATOS_TEST_CASE_H_INCLUDED  defined 
-
-
+#endif // KRATOS_TEST_CASE_H_INCLUDED  defined

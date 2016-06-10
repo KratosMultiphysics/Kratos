@@ -2,15 +2,15 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
 //
-	           
+//
+
 
 #if !defined(KRATOS_TESTER_H_INCLUDED )
 #define  KRATOS_TESTER_H_INCLUDED
@@ -19,14 +19,15 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <map>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
+#include "includes/define.h"
 
 
 namespace Kratos
@@ -43,11 +44,11 @@ namespace Kratos
 		class TestCase;
 
 		/// Tester class manages all tests and provide interface to run them.
-		/** Tester is a singletone class which registers the test cases and  
-		    test suits and gives interface to register test cases and run all 
+		/** Tester is a singletone class which registers the test cases and
+		    test suits and gives interface to register test cases and run all
 			or some of them.
 		*/
-		class Tester
+		class KRATOS_API(KRATOS_CORE) Tester
 		{
 		public:
 			///@name Type Definitions
@@ -56,8 +57,8 @@ namespace Kratos
 			typedef std::map<std::string, TestCase*> TestCasesContainerType;
 
 			///@}
-			///@name Life Cycle 
-			///@{ 
+			///@name Life Cycle
+			///@{
 
 			/// The Tester cannot be copied to avoid duplications
 			Tester(Tester const& rOther) = delete;
@@ -87,7 +88,7 @@ namespace Kratos
 
 			///@}
 			///@name Access
-			///@{ 
+			///@{
 
 			static Tester& GetInstance();
 
@@ -99,7 +100,7 @@ namespace Kratos
 			///@{
 
 
-			///@}      
+			///@}
 			///@name Input and output
 			///@{
 
@@ -113,29 +114,29 @@ namespace Kratos
 			virtual void PrintData(std::ostream& rOStream) const;
 
 
-			///@}      
+			///@}
 
 		private:
-			///@name Life Cycle 
-			///@{ 
+			///@name Life Cycle
+			///@{
 
 			/// Tester cannot be created from outside. To ensure that the one created by instance is the only one.
 			Tester();
 
 			///@}
-			///@name Static Member Variables 
-			///@{ 
+			///@name Static Member Variables
+			///@{
 
 			TestCasesContainerType mTestCases;
 
 			///@}
 
-		}; // Class Tester 
+		}; // Class Tester
 
-	  ///@} 
+	  ///@}
 
-	  ///@name Input and output 
-	  ///@{ 
+	  ///@name Input and output
+	  ///@{
 
 		/// output stream function
 		inline std::ostream& operator << (std::ostream& rOStream,
@@ -149,7 +150,7 @@ namespace Kratos
 		}
 		///@}
 		///@name macros
-		///@{ 
+		///@{
 
 
 		///@}
@@ -158,6 +159,4 @@ namespace Kratos
 	} // manespace Testing.
 }  // namespace Kratos.
 
-#endif // KRATOS_TESTER_H_INCLUDED  defined 
-
-
+#endif // KRATOS_TESTER_H_INCLUDED  defined
