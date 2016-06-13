@@ -177,7 +177,7 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
         }
       
     }
-    else if(  Options.IsNot( ConstitutiveLaw::COMPUTE_STRESS ) && Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
+    else if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
 
         Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
@@ -362,7 +362,7 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
 	}
       
       }
-      else if(  Options.IsNot( ConstitutiveLaw::COMPUTE_STRESS ) && Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
+      else if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
 	{
 
 	  Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
@@ -429,12 +429,12 @@ void LinearElastic3DLaw::CalculateLinearElasticMatrix( Matrix& rConstitutiveMatr
 {
     rConstitutiveMatrix.clear();
 
-    //plane strain constitutive matrix: 
+    // 3D linear elastic constitutive matrix
     rConstitutiveMatrix ( 0 , 0 ) = (rYoungModulus*(1.0-rPoissonCoefficient)/((1.0+rPoissonCoefficient)*(1.0-2.0*rPoissonCoefficient)));
     rConstitutiveMatrix ( 1 , 1 ) = rConstitutiveMatrix ( 0 , 0 );
     rConstitutiveMatrix ( 2 , 2 ) = rConstitutiveMatrix ( 0 , 0 );
 
-    rConstitutiveMatrix ( 3 , 3 ) = rConstitutiveMatrix ( 0 , 0 )*(1-2*rPoissonCoefficient)/(2.0*(1.0-rPoissonCoefficient));
+    rConstitutiveMatrix ( 3 , 3 ) = rConstitutiveMatrix ( 0 , 0 )*(1.0-2.0*rPoissonCoefficient)/(2.0*(1.0-rPoissonCoefficient));
     rConstitutiveMatrix ( 4 , 4 ) = rConstitutiveMatrix ( 3 , 3 );
     rConstitutiveMatrix ( 5 , 5 ) = rConstitutiveMatrix ( 3 , 3 );
 
