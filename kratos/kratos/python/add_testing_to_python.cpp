@@ -34,7 +34,7 @@ void  AddTestingToPython()
 	using namespace boost::python;
 
 
-	def("RunAllTestCases", &Testing::Tester::RunAllTests);
+	def("RunAllTestCases", &Testing::Tester::RunAllTestCases);
 	def("ListOfAllTestCases", ListOfAllTestCases);
 }
 }  // namespace Python.
