@@ -129,6 +129,7 @@ public:
     /**
      * Calculation of the Deformation Matrix  BL
      */
+    using UpdatedLagrangianUwPElement::CalculateDeformationMatrix; //We put this because the compiler complains: AxisymUpdatedLagrangianUwPElement::CalculateDeformationMatrix' hides overloaded virtual function
     virtual void CalculateDeformationMatrix(Matrix& rB,
                                             Matrix& rF,
                                             Vector& rN,
