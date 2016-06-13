@@ -516,7 +516,7 @@ namespace Kratos {
 
         double coord_number = double(global_total_contacts) / double(global_number_of_elements);
 
-        double standard_dev = sqrt(total_sum / number_of_particles);
+        //double standard_dev = sqrt(total_sum / number_of_particles);
         //if (coord_number > 9.9){
         //std::cout << "Standard deviation for achieved coordination number reached is " << standard_dev << ". " << "\n" << std::endl;}
 

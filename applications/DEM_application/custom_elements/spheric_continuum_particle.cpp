@@ -173,8 +173,8 @@ namespace Kratos {
         int cont_ini_neighbours_size = mContinuumInitialNeighborsSize;
         double effectiveVolumeRadiusSum = 0.0;
         for (int i = 0; i < cont_ini_neighbours_size; i++) {
-            SphericParticle* ini_cont_neighbour_iterator = mNeighbourElements[i];
-            double other_radius = ini_cont_neighbour_iterator->GetRadius();
+            //SphericParticle* ini_cont_neighbour_iterator = mNeighbourElements[i];
+            //double other_radius = ini_cont_neighbour_iterator->GetRadius();
 
             SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
             array_1d<double, 3> other_to_me_vect;
