@@ -170,8 +170,8 @@ proc ValidateDraw { } {
 }
 
 proc StenosisWizard::Wizard::Material { win } {
-     Wizard::SetWindowSize 250 350
-     set entrywidth 8
+     Wizard::SetWindowSize 300 400
+     set entrywidth 16
      
      set properties [Wizard::GetStepProperties Material]
      #W $properties
@@ -198,7 +198,14 @@ proc StenosisWizard::Wizard::Material { win } {
             lappend listids $j
             set txt [= $prop]
             set lab$j [ttk::label $labfr1.l$j -text "${txt}:"]
-            set ent$j [ttk::entry $labfr1.e$j -textvariable ::Wizard::wprops(Material,$prop,value) -width $entrywidth]
+            set type [Wizard::GetProperty Material $prop,type]
+            if {$type eq "combo"} {
+               set values [Wizard::GetProperty Material $prop,values]
+               set ent$j [ttk::combobox $labfr1.e$j -values $values -textvariable ::Wizard::wprops(Material,$prop,value) -width $entrywidth -state readonly]
+               bind $labfr1.e$j <<ComboboxSelected>> [list StenosisWizard::Wizard::ChangeFluidType %d] 
+            } {
+               set ent$j [ttk::entry $labfr1.e$j -textvariable ::Wizard::wprops(Material,$prop,value) -width $entrywidth]
+            }
             wcb::callback $labfr1.e$j before insert wcb::checkEntryForReal
             #wcb::callback $labfr1.e$j after insert "StenosisWizard::Wizard::callbackCheckGeom"
             #wcb::callback $labfr1.e$j after delete "StenosisWizard::Wizard::callbackCheckGeom"
@@ -240,6 +247,8 @@ proc StenosisWizard::Wizard::Material { win } {
 }
 proc StenosisWizard::Wizard::NextMaterial { } {
      # Quitar parts existentes
+     gid_groups_conds::delete {container[@n='StenosisWizard']/condition[@n='Parts']/group}
+
      # Crear una part con los datos que toquen
      gid_groups_conds::addF {container[@n='StenosisWizard']/condition[@n='Parts']} group {n Fluid}
      gid_groups_conds::addF {container[@n='StenosisWizard']/condition[@n='Parts']/group[@n='Fluid']} value {n Element pn Element dict {[GetElements]} actualize_tree 1 values FractionalStep3D state hidden v FractionalStep3D}
@@ -250,6 +259,11 @@ proc StenosisWizard::Wizard::NextMaterial { } {
      gid_groups_conds::addF {container[@n='StenosisWizard']/condition[@n='Parts']/group[@n='Fluid']} value {n POWER_LAW_K pn {Consistency index (k)} state {[PartParamState]} unit_magnitude {} help {} v 1}
      gid_groups_conds::addF {container[@n='StenosisWizard']/condition[@n='Parts']/group[@n='Fluid']} value {n POWER_LAW_N pn {Flow index (n)} state {[PartParamState]} unit_magnitude {} help {} v 1}
 
+     spdAux::RequestRefresh
+}
+
+proc StenosisWizard::Wizard::ChangeFluidType {win} {
+     W "Hey $win"
 }
 
 

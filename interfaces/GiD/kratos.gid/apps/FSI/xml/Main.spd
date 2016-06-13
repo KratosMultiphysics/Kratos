@@ -17,7 +17,7 @@
             <include n="Intervals" active="0" path="apps/Solid/xml/Intervals.spd"/>
             <include n="TimeFunctions" active="0" path="apps/Solid/xml/Functions.spd"/>
             <include n="Fields" active="0" path="apps/Solid/xml/Fields.spd"/>
-            <include n="BoundaryConditions" active="1" path="apps/Solid/xml/BoundaryConditions.spd"/>
+            <include n="BoundaryConditions" active="1" path="apps/Structural/xml/BoundaryConditions.spd"/>
             <include n="Loads" active="1" path="apps/Solid/xml/Loads.spd"/>
             <include n="Processes" active="0" path="apps/Solid/xml/Processes.spd"/>
             <include n="SolutionStrategy" active="1" path="apps/Solid/xml/SolutionStrategy.spd"/>

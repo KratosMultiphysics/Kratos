@@ -28,8 +28,10 @@ oo::class create Condition {
          
         if {$c} {
             set ptdim $::Model::SpatialDimension
-            set eldim [split [my getAttribute "WorkingSpaceDimension"] ","]
-            if {$ptdim ni $eldim} {set c 0}
+            if {[my getAttribute "WorkingSpaceDimension"] ne ""} {
+                set eldim [split [my getAttribute "WorkingSpaceDimension"] ","]
+                if {$ptdim ni $eldim} {set c 0}
+            }
         }
         
         return $c
@@ -80,23 +82,15 @@ oo::class create Condition {
 }
 proc Model::GetConditions {args} { 
     variable Conditions
+    if {$args eq ""} {
+        return $Conditions
+    }
     
     set cumplen [list ]
     foreach elem $Conditions {
-        if {[$elem cumple $args]} { lappend cumplen $elem}
+        if {[$elem cumple {*}$args]} { lappend cumplen $elem}
     }
     return $cumplen
-}
-
-
-proc Model::getAllConditions {} {
-    variable Conditions
-    
-    set conds [dict create]
-    foreach cond $Conditions {
-        dict set conds [$cond getName] $cond
-    }
-    return $conds
 }
 
 

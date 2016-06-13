@@ -67,6 +67,7 @@
   <Process n="ApplyScalarOnConditionsProcess" pn="Apply a scalar value over a condition" implemented_in_file="apply_scalar_on_conditions_process"
 		implemented_in_module="KratosMultiphysics.SolidMechanicsApplication" help="This process sets a scalar variable value over a condition" > 
     <inputs>
+        <parameter n="Modified" pn="Modified" type="bool" v="true" />
         <parameter n="value" pn="Value" type="double" v="0.0" />
     </inputs>
   </Process>

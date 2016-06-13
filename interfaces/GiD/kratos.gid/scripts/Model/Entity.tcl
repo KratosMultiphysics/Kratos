@@ -105,7 +105,8 @@ oo::class create Entity {
     }
     
     
-    method cumple {filtros} {
+    method cumple {args} {
+        #W "Cumplimos con los filtros: $args"
         set c 1
         if {$::Kratos::kratos_private(DevMode) ne "release"} {
             
@@ -113,14 +114,24 @@ oo::class create Entity {
             #W "[my getName] no paso - [my getAttribute "ProductionReady"] "
             return 0
         }
-        foreach {k listfiltervalues} $filtros {
-            set listattributesvalues [my getAttribute $k]
-            set b1 [string first $listfiltervalues $listattributesvalues]
-            set b2 [string first $listattributesvalues $listfiltervalues] 
-            set b3 1
-            if {$b1 eq -1 && $b2 eq -1} {
-                set c 0
-                break
+        if {$args ne ""} {
+            foreach {k listfiltervalues} {*}$args {
+                set listfiltervalues [string map {, " "} $listfiltervalues]
+                #W "k: $k vs : $listfiltervalues"
+                set listattributesvalues [my getAttribute $k]
+                #W "My value $listattributesvalues"
+                set b1 0
+                foreach possiblevalue $listfiltervalues {
+                    if {$possiblevalue in $listattributesvalues} {
+                        set b1 1
+                        break
+                    }
+                }
+               
+                if {$b1 eq 0} {
+                    set c 0
+                    break
+                }
             }
         }
         #if {$c eq 1 } {W "[my getName] Cumples"} {W "[my getName] No Cumples"}

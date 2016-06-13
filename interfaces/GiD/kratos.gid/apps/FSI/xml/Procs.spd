@@ -35,4 +35,88 @@
 		return $r
 	  ]]>
 	</proc>
+	
+	
+		 	<proc n='GetSolutionStrategiesSolid' args='args'>
+	  <![CDATA[
+	  
+		set names ""
+		set pnames ""
+		set solutionType [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute SLSoluType]] v]
+		set Sols [::Model::GetSolutionStrategies [list "SolutionType" $solutionType] ]
+		foreach ss $Sols {
+			lappend ids [$ss getName]
+			append names [$ss getName] ","
+			append pnames [$ss getName] "," [$ss getPublicName] ","
+		}
+		set names [string range $names 0 end-1]
+		set pnames [string range $pnames 0 end-1]
+		
+		$domNode setAttribute values $names
+		if {[$domNode getAttribute v] eq ""} {$domNode setAttribute v [lindex $ids 0]}
+		spdAux::RequestRefresh
+		return $pnames
+	  
+	  ]]>
+	</proc>
+		  			
+		  <proc n='CheckNodalConditionState' args='args'>
+	  <![CDATA[
+	  # Overwritten the base function to add Solution Type restrictions
+		set parts_un [apps::getCurrentUniqueName Parts]
+	    if {[spdAux::getRoute $parts_un] ne ""} {
+			set conditionId [$domNode @n]
+			set elems [$domNode selectNodes "[spdAux::getRoute $parts_un]/group/value\[@n='Element'\]"]
+			set elemnames [list ]
+			foreach elem $elems { lappend elemnames [$elem @v]}
+			set elemnames [lsort -unique $elemnames]
+			
+			set solutionType [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute SLSoluType]] v]
+			set params [list analysis_type $solutionType]
+			if {[::Model::CheckElementsNodalCondition $conditionId $elemnames $params]} {return "normal"} else {return "hidden"}
+		} {return "normal"}
+	  ]]>
+	</proc>		
+	  <proc n='getIntervals' args='args'>
+	  <![CDATA[
+		set lista [::spdAux::getIntervals]
+		if {[$domNode @v] eq "" || [$domNode @v] ni $lista} {
+			$domNode setAttribute v [lindex $lista 0]
+		}
+		set res [spdAux::ListToValues $lista]
+		return $res
+	  ]]>
+	</proc>
+	  <proc n='getTimeFunctions' args='args'>
+	  <![CDATA[
+		set lista [::spdAux::getTimeFunctions]
+		if {[$domNode @v] eq "" || [$domNode @v] ni $lista} {
+			$domNode setAttribute v [lindex $lista 0]
+		}
+		set res [spdAux::ListToValues $lista]
+		return $res
+	  ]]>
+	</proc>
+	  <proc n='getFields' args='args'>
+	  <![CDATA[
+		set lista [::spdAux::getFields]
+		if {[$domNode @v] eq "" || [$domNode @v] ni $lista} {
+			$domNode setAttribute v [lindex $lista 0]
+		}
+		set res [spdAux::ListToValues $lista]
+		return $res
+	  ]]>
+	</proc>
+	  <proc n="loads_function_time" args="load_name">
+		<![CDATA[
+      return [spdAux::chk_loads_function_time $domNode $load_name]
+	  ]]>
+    </proc>
+	  
+	          <proc n='CheckGeometryStructural' args='args'>
+          <![CDATA[                
+                if {$::Model::SpatialDimension eq "3D"} {return surface,volume} {return surface}                
+          ]]>
+        </proc>
+
 </container>

@@ -1,5 +1,5 @@
 # Project Parameters
-proc ::Dam::write::getParametersDict { } {
+proc Dam::write::getParameterDict { } {
     
     set projectParametersDict [dict create]
     
@@ -58,15 +58,44 @@ proc ::Dam::write::getParametersDict { } {
     set modelDict [dict create]
     dict set modelDict input_type "mdpa"
     dict set modelDict input_filename $model_name
-    dict set projectParametersDict model_import_settings $modelDict
+    dict set mechanicalSolverSettingsDict model_import_settings $modelDict
+    
+    ## Solution strategy parameters and Solvers
+    #set solverSettingsDict [dict merge $solverSettingsDict [write::getSolutionStrategyParametersDict] ]
+    #set solverSettingsDict [dict merge $solverSettingsDict [write::getSolversParametersDict] ]
+    
+    #dict set solverSettingsDict problem_domain_sub_model_part_list [getSubModelPartNames "SLParts"]
+    #dict set solverSettingsDict processes_sub_model_part_list [getSubModelPartNames "SLNodalConditions" "SLLoads"]
+    
+    #dict set projectParametersDict solver_settings $solverSettingsDict
+    
+    ## Lists of processes
+    #dict set projectParametersDict constraints_process_list [write::getConditionsParametersDict SLNodalConditions "Nodal"]
+    
+    #dict set projectParametersDict loads_process_list [write::getConditionsParametersDict SLLoads]
 
+    ## GiD output configuration
+    #dict set projectParametersDict output_configuration [write::GetDefaultOutputDict]
+    
+    ## restart options
+    #set restartDict [dict create ]
+    #dict set restartDict SaveRestart false
+    #dict set restartDict RestartFrequency 0
+    #dict set restartDict LoadRestart false
+    #dict set restartDict Restart_Step 0
+    #dict set projectParametersDict restart_options $restartDict
+    
+    ## Constraints data
+    #set contraintsDict [dict create ]
+    #dict set contraintsDict incremental_load false
+    #dict set contraintsDict incremental_displacement false
+    #dict set projectParametersDict constraints_data $contraintsDict
     
     return $projectParametersDict
 }
 
 proc Dam::write::writeParametersEvent { } {
-    set projectParametersDict [getParametersDict]
-    write::WriteJSON $projectParametersDict
+    write::WriteJSON [getParametersDict]
 }
 
 proc Dam::write::getSubModelPartNames { args } {
