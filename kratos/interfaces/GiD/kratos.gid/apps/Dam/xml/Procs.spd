@@ -18,7 +18,7 @@
 		set ids [list ]
 		set type_of_problem [lindex $args 0]
 		if {$type_of_problem eq "Mechanic"} {set n "NewtonRaphson"} {set n "Generic"}
-		set Sols [::Model::GetSolutionStrategies n $n]
+		set Sols [::Model::GetSolutionStrategies [list n $n] ]
 		foreach ss $Sols {
 			lappend ids [$ss getName]
 			append names [$ss getName] ","

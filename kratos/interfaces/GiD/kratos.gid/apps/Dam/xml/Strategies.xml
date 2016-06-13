@@ -5,7 +5,7 @@
                 ImplementedInApplication="PoromechanicsApplication"
                 ImplementedInPythonFile="solid_mechanics_implicit_dynamic_solver"
                 MinimumKratosVersion="8500"
-                ProductionReady=""
+                ProductionReady="" App="Dam"
                 help="">
     
     <!-- list of options to be filled -->
@@ -56,7 +56,7 @@
                 ImplementedInApplication="SolidMechanicsApplication"
                 ImplementedInPythonFile="solid_mechanics_implicit_dynamic_solver"
                 MinimumKratosVersion="8500"
-                ProductionReady=""
+                ProductionReady="" App="Dam"
                 help="">
     
     <!-- list of options to be filled -->
