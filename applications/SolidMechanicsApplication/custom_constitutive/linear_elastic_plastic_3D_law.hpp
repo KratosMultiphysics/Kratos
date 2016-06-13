@@ -177,13 +177,13 @@ protected:
 
 
     /**
-     * Calculates the constitutive matrix: the secant or the tangent
+     * Calculates the constitutive tensor: the secant or the tangent
      * @param rConstitutiveMatrix
      * @param rReturnMappingVariables, plastic variables
      * @param LinearElasticMatrix
      */
 
-    virtual void CalculateConstitutiveMatrix( Matrix& rConstitutiveMatrix, FlowRule::RadialReturnVariables& rReturnMappingVariables, const Matrix& LinearElasticMatrix );
+    virtual void CalculateConstitutiveTensor( Matrix& rConstitutiveMatrix, FlowRule::RadialReturnVariables& rReturnMappingVariables, const Matrix& LinearElasticMatrix );
 
 
     /**
@@ -194,7 +194,7 @@ protected:
      * @param StrainVector     
      */
 
-    virtual void UpdateInternalVariables( FlowRule::RadialReturnVariables& rReturnMappingVariables, Vector& rStressVector,
+    virtual void UpdateInternalStateVariables( FlowRule::RadialReturnVariables& rReturnMappingVariables, Vector& rStressVector,
                                             const Matrix& LinearElasticMatrix, const Vector& StrainVector );
                                   
     ///@}
