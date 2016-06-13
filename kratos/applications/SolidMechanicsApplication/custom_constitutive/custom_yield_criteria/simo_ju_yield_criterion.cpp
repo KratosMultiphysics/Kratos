@@ -82,35 +82,53 @@ SimoJuYieldCriterion::~SimoJuYieldCriterion()
 
 double& SimoJuYieldCriterion::CalculateYieldCondition(double & rStateFunction, const Parameters& rVariables)
 {
-    const Properties& MaterialProperties = mpHardeningLaw->GetProperties();
-    const double& StrengthRatio = MaterialProperties[STRENGTH_RATIO];
+    // Compute Theta parameter
+    double Theta;
     
-    const Matrix& StrainMatrix = rVariables.GetStrainMatrix();
     const Matrix& StressMatrix = rVariables.GetStressMatrix();
-
-    Vector PrincipalStresses = SolidMechanicsMathUtilities<double>::EigenValues(StressMatrix,1e-10,1e-10);
-
-    double Macaulay_PrincipalStress,Absolute_PrincipalStress;
-    double Theta = 0.0,Theta_den = 0.0;
-
-    for(unsigned int i=0;i<PrincipalStresses.size();i++)
-    {
-        Macaulay_PrincipalStress = PrincipalStresses[i];
-        Absolute_PrincipalStress = PrincipalStresses[i];
-        if(Macaulay_PrincipalStress<0.0) Macaulay_PrincipalStress = 0.0;
-        if(Absolute_PrincipalStress<0.0) Absolute_PrincipalStress = -Absolute_PrincipalStress;
-        Theta += Macaulay_PrincipalStress;
-        Theta_den += Absolute_PrincipalStress;
+    const unsigned int Dim = StressMatrix.size1();
+    
+    Vector PrincipalStresses(Dim);
+    noalias(PrincipalStresses) = SolidMechanicsMathUtilities<double>::EigenValues(StressMatrix,1.0e-10,1.0e-10);
+    
+    double Macaulay_PrincipalStress = 0.0, Absolute_PrincipalStress = 0.0;
+    
+    for(unsigned int i = 0; i < Dim; i++)
+    { 
+        if(PrincipalStresses[i] > 0.0)
+        {
+            Macaulay_PrincipalStress += PrincipalStresses[i];
+            Absolute_PrincipalStress += PrincipalStresses[i];
+        }
+        else
+        {
+            Absolute_PrincipalStress -= PrincipalStresses[i];
+        }
     }
 
-    if(Theta_den > 1e-20) Theta = Theta/Theta_den;
-    else Theta = 0.5;
-
-    Matrix Auxiliar = prod(StrainMatrix,StressMatrix);
+    if(Absolute_PrincipalStress > 1.0e-20)
+    {
+        Theta = Macaulay_PrincipalStress/Absolute_PrincipalStress;
+    }
+    else
+    {
+        Theta = 0.5;
+    }
+    
+    // Compute Equivalent Strain (rStateFunction)
+    const Matrix& StrainMatrix = rVariables.GetStrainMatrix();
+    Matrix Auxiliar(Dim,Dim);
+    noalias(Auxiliar) = prod(StrainMatrix,StressMatrix);
+    
     double StressNorm = 0.0;
-    for(unsigned int i=0; i<Auxiliar.size1(); i++)
+    
+    for(unsigned int i = 0; i < Dim; i++) 
+    {
         StressNorm += Auxiliar(i,i);
-
+    }
+    
+    const double& StrengthRatio = mpHardeningLaw->GetProperties()[STRENGTH_RATIO];
+    
     rStateFunction = (Theta+(1.0-Theta)/StrengthRatio)*sqrt(StressNorm);
     
     return rStateFunction;
