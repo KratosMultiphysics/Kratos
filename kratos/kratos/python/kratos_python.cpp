@@ -66,6 +66,7 @@
 
 #include "add_search_strategies_to_python.h"
 #include "add_kratos_parameters_to_python.h"
+#include "add_testing_to_python.h"
 
 namespace Kratos
 {
@@ -129,6 +130,7 @@ BOOST_PYTHON_MODULE(Kratos)
     AddKratosParametersToPython();
     
     AddSearchStrategiesToPython();
+	AddTestingToPython();
 
     def("Hello", greet);
 }
