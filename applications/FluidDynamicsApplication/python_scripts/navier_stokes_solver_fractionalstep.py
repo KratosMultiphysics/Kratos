@@ -1,10 +1,10 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-from KratosMultiphysics import *
-from KratosMultiphysics.FluidDynamicsApplication import *
+import KratosMultiphysics
+import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
+KratosMultiphysics.CheckForPreviousImport()
 
 def CreateSolver(main_model_part, custom_settings):
     return NavierStokesSolver_FractionalStep(main_model_part, custom_settings)
@@ -24,7 +24,7 @@ class NavierStokesSolver_FractionalStep:
         self.main_model_part = main_model_part    
         
         ##settings string in json format
-        default_settings = Parameters("""
+        default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "navier_stokes_solver_fractionalstep",
             "model_import_settings": {
@@ -82,62 +82,62 @@ class NavierStokesSolver_FractionalStep:
         self.pressure_linear_solver = linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_settings"])
         self.velocity_linear_solver = linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
 
-        print("Construction of NavierStokesSolver_FractionalStep finished")
+        print("Construction of NavierStokesSolver_FractionalStep finished.")
         
     def GetMinimumBufferSize(self):
         return 3;
 
     def AddVariables(self):
-        self.main_model_part.AddNodalSolutionStepVariable(VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(FRACT_VEL)
-        self.main_model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(PRESSURE_OLD_IT)
-        self.main_model_part.AddNodalSolutionStepVariable(PRESS_PROJ)
-        self.main_model_part.AddNodalSolutionStepVariable(CONV_PROJ)
-        self.main_model_part.AddNodalSolutionStepVariable(DIVPROJ)
-        self.main_model_part.AddNodalSolutionStepVariable(NODAL_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(BODY_FORCE)
-        self.main_model_part.AddNodalSolutionStepVariable(DENSITY)
-        self.main_model_part.AddNodalSolutionStepVariable(VISCOSITY)
-        self.main_model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE)
-        self.main_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-        self.main_model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
-        self.main_model_part.AddNodalSolutionStepVariable(REACTION)
-        self.main_model_part.AddNodalSolutionStepVariable(Y_WALL)
-        self.main_model_part.AddNodalSolutionStepVariable(NORMAL)
-        self.main_model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE) #TODO: verify if it is actually used
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FRACT_VEL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE_OLD_IT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESS_PROJ)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONV_PROJ)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DIVPROJ)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.Y_WALL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE) #TODO: verify if it is actually used
         # Stokes needs it (in case periodic conditions are required)
-        self.main_model_part.AddNodalSolutionStepVariable(PATCH_INDEX)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
         
-        print("variables for the vms fluid solver added correctly")
+        print("Variables for the VMS fluid solver added correctly.")
 
     def ImportModelPart(self):
         
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             #here it would be the place to import restart data if required
-            ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
+            KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
             
             #here we replace the dummy elements we read with proper elements
             self.settings.AddEmptyValue("element_replace_settings")
-            if(self.main_model_part.ProcessInfo[DOMAIN_SIZE] == 3):
-                self.settings["element_replace_settings"] = Parameters("""
+            if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
+                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     {
                     "element_name":"FractionalStep3D4N",
                     "condition_name": "WallCondition3D3N"
                     }
                     """)
-            elif(self.main_model_part.ProcessInfo[DOMAIN_SIZE] == 2):
-                self.settings["element_replace_settings"] = Parameters("""
+            elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
+                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     {
                     "element_name":"FractionalStep2D3N",
                     "condition_name": "WallCondition2D2N"
                     }
                     """)
             else:
-                raise Exception("domain size is not 2 or 3")
+                raise Exception("Domain size is not 2 or 3.")
         
-            ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
+            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
             
             ##here we shall check that the input read has the shape we like
             self.settings.AddEmptyValue("prepare_model_part_settings")
@@ -147,35 +147,40 @@ class NavierStokesSolver_FractionalStep:
             import check_and_preparemodel_process
             check_and_preparemodel_process.CheckAndPrepareModelProcess(self.main_model_part, self.settings["prepare_model_part_settings"]).Execute()
             
-            #here we read the VISCOSITY and DENSITY and we apply it to the nodes
+            #here we read the KINEMATIC VISCOSITY and DENSITY and we apply it to the nodes
             for el in self.main_model_part.Elements:
-                rho = el.Properties.GetValue(DENSITY)
-                kin_viscosity = el.Properties.GetValue(VISCOSITY)
+                rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
+                kin_viscosity = el.Properties.GetValue(KratosMultiphysics.VISCOSITY)
                 break
             
-            VariableUtils().SetScalarVar(DENSITY, rho, self.main_model_part.Nodes)              # Set density
-            VariableUtils().SetScalarVar(VISCOSITY, kin_viscosity, self.main_model_part.Nodes)  # Set kinematic viscosity
-
+            KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
+            KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
+            
+            
+            #if needed here we shall generate the constitutive laws
+            #import constitutive_law_python_utility as constitutive_law_utils
+            #constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(main_model_part, self.settings["DomainSize"]);
+            #constitutive_law.Initialize();
         else:
-            raise Exception("other input options are not yet implemented")
+            raise Exception("Other input options are not yet implemented.")
         
         current_buffer_size = self.main_model_part.GetBufferSize()
         if(self.GetMinimumBufferSize() > current_buffer_size):
             self.main_model_part.SetBufferSize( self.GetMinimumBufferSize() )
                 
-        print ("model reading finished")
+        print ("Model reading finished.")
 
 
     def AddDofs(self):
 
         for node in self.main_model_part.Nodes:
             # adding dofs
-            node.AddDof(PRESSURE, REACTION_WATER_PRESSURE)
-            node.AddDof(VELOCITY_X, REACTION_X)
-            node.AddDof(VELOCITY_Y, REACTION_Y)
-            node.AddDof(VELOCITY_Z, REACTION_Z)
+            node.AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE)
+            node.AddDof(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.REACTION_X)
+            node.AddDof(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.REACTION_Y)
+            node.AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z)
 
-        print("dofs for the vms fluid solver added correctly")
+        print("DOFs for the VMS fluid solver added correctly")
 
     
     def Initialize(self):
@@ -189,54 +194,48 @@ class NavierStokesSolver_FractionalStep:
 
         #TODO: next part would be much cleaner if we passed directly the parameters to the c++
         if self.settings["consider_periodic_conditions"] == True:
-            self.solver_settings = FractionalStepSettingsPeriodic(compute_model_part,
-                                                                  compute_model_part.ProcessInfo[DOMAIN_SIZE],
-                                                                  self.settings.GetInt(),
-                                                                  self.use_slip_conditions,
-                                                                  MoveMeshFlag,
-                                                                  self.settings["reform_dofs_at_each_iteration]"].GetBool(),
-                                                                  PATCH_INDEX
-                                                                  )
+            self.solver_settings = KratosCFD.FractionalStepSettingsPeriodic(compute_model_part,
+                                                                            compute_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+                                                                            self.settings.GetInt(),
+                                                                            self.use_slip_conditions,
+                                                                            MoveMeshFlag,
+                                                                            self.settings["reform_dofs_at_each_iteration]"].GetBool(),
+                                                                            KratosCFD.PATCH_INDEX)
                                                                   
         else:
-            self.solver_settings = FractionalStepSettings(compute_model_part,
-                                                          compute_model_part.ProcessInfo[DOMAIN_SIZE],
-                                                          self.settings["time_order"].GetInt(),
-                                                          self.use_slip_conditions,
-                                                          MoveMeshFlag,
-                                                          self.settings["reform_dofs_at_each_iteration"].GetBool()
-                                                          )
+            self.solver_settings = KratosCFD.FractionalStepSettings(compute_model_part,
+                                                                    compute_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+                                                                    self.settings["time_order"].GetInt(),
+                                                                    self.use_slip_conditions,
+                                                                    MoveMeshFlag,
+                                                                    self.settings["reform_dofs_at_each_iteration"].GetBool())
                                                               
         self.solver_settings.SetEchoLevel(self.settings["echo_level"].GetInt())
 
-        self.solver_settings.SetStrategy(StrategyLabel.Velocity,
+        self.solver_settings.SetStrategy(KratosCFD.StrategyLabel.Velocity,
                                          self.velocity_linear_solver,
                                          self.settings["velocity_tolerance"].GetDouble(),
-                                         self.settings["maximum_velocity_iterations"].GetInt()
-                                         )
+                                         self.settings["maximum_velocity_iterations"].GetInt())
 
-        self.solver_settings.SetStrategy(StrategyLabel.Pressure,
+        self.solver_settings.SetStrategy(KratosCFD.StrategyLabel.Pressure,
                                          self.pressure_linear_solver,
                                          self.settings["pressure_tolerance"].GetDouble(),
-                                         self.settings["maximum_pressure_iterations"].GetInt()
-                                         )
+                                         self.settings["maximum_pressure_iterations"].GetInt())
 
 
         if self.settings["consider_periodic_conditions"].GetBool() == True:
-            self.solver = FSStrategy(compute_model_part,
-                                     self.solver_settings, 
-                                     self.settings["predictor_corrector"].GetBool(),
-                                     PATCH_INDEX
-                                     )
+            self.solver = KratosCFD.FSStrategy(compute_model_part,
+                                               self.solver_settings, 
+                                               self.settings["predictor_corrector"].GetBool(),
+                                               KratosCFD.PATCH_INDEX)
         else:
-            self.solver = FSStrategy(compute_model_part,
-                                     self.solver_settings, 
-                                     self.settings["predictor_corrector"].GetBool()
-                                     )
+            self.solver = KratosCFD.FSStrategy(compute_model_part,
+                                               self.solver_settings, 
+                                               self.settings["predictor_corrector"].GetBool())
 
         self.solver.Check()
         
-        print ("Initialization NavierStokesSolver_FractionalStep Finished")
+        print ("Initialization NavierStokesSolver_FractionalStep finished.")
         
     def GetComputeModelPart(self):
         # Get as computational model part the "volume_model_part_name" in the ProjectParameters Json string
@@ -265,5 +264,3 @@ class NavierStokesSolver_FractionalStep:
         
     def Check(self):
         self.solver.Check()
-
-
