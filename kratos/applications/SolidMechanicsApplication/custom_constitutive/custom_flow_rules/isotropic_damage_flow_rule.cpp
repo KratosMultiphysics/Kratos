@@ -79,18 +79,14 @@ IsotropicDamageFlowRule::~IsotropicDamageFlowRule()
 
 //*************************** INITIALIZE MATERIAL ************************************
 //************************************************************************************
+
 void IsotropicDamageFlowRule::InitializeMaterial (YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rMaterialProperties)
 {
-    //set yield criterion
-    mpYieldCriterion = pYieldCriterion;
-    mpYieldCriterion->InitializeMaterial(pHardeningLaw, rMaterialProperties);	
-
-    //initialize material variables
-    mInternalVariables.clear();
-    mThermalVariables.clear();
-    
+    FlowRule::InitializeMaterial(pYieldCriterion,pHardeningLaw,rMaterialProperties);
+        
     //EquivalentPlasticStrain is the maximum historical equivalent strain, and DAMAGE_THRESHOLD is the minimum default value
     mInternalVariables.EquivalentPlasticStrain = rMaterialProperties[DAMAGE_THRESHOLD];
+    mInternalVariables.EquivalentPlasticStrainOld = mInternalVariables.EquivalentPlasticStrain;
 }
 
 
@@ -99,34 +95,13 @@ void IsotropicDamageFlowRule::InitializeMaterial (YieldCriterionPointer& pYieldC
 
 bool IsotropicDamageFlowRule::CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix )
 {
-    //Compute the new equivalent strain
-    double NewEquivalentStrain;
-    YieldCriterion::Parameters YieldCriterionParameters;
-    YieldCriterionParameters.SetStrainMatrix(rReturnMappingVariables.StrainMatrix);
-    YieldCriterionParameters.SetStressMatrix(rReturnMappingVariables.TrialIsoStressMatrix);
-    mpYieldCriterion->CalculateYieldCondition(NewEquivalentStrain, YieldCriterionParameters);
-
-    //Update maximum historical equivalent strain
-    if(NewEquivalentStrain >= mInternalVariables.EquivalentPlasticStrain)
-    {
-        mInternalVariables.EquivalentPlasticStrain = NewEquivalentStrain;
-        
-        rReturnMappingVariables.Options.Set(PLASTIC_REGION,true); //loading with growing damage
-    }
-    else
-    {
-        rReturnMappingVariables.Options.Set(PLASTIC_REGION,false); //elastic loading or unloading
-    }
+    //Compute Damage variable
+    bool Tangent = this->CalculateInternalVariables( rReturnMappingVariables );
     
-    //Compute Damage variable from the internal historical variable (the maximum equivalent strain)
-    YieldCriterionParameters.SetCharacteristicSize(rReturnMappingVariables.CharacteristicSize);
-    YieldCriterionParameters.SetDeltaGamma(mInternalVariables.EquivalentPlasticStrain); //internal historical variable
-    mpYieldCriterion->CalculateStateFunction(rReturnMappingVariables.TrialStateFunction, YieldCriterionParameters);
-
     //Compute Damaged Stresses
-    noalias(rIsoStressMatrix) = (1-rReturnMappingVariables.TrialStateFunction)*rReturnMappingVariables.TrialIsoStressMatrix;
+    noalias(rIsoStressMatrix) = (1.0-rReturnMappingVariables.TrialStateFunction)*rReturnMappingVariables.TrialIsoStressMatrix; // S = (1-d)*Se
     
-	return true;
+	return Tangent;
 }
 
 
@@ -136,11 +111,13 @@ bool IsotropicDamageFlowRule::CalculateReturnMapping( RadialReturnVariables& rRe
 void IsotropicDamageFlowRule::ComputeElastoPlasticTangentMatrix( const RadialReturnVariables& rReturnMappingVariables, const Matrix& rElasticLeftCauchyGreen, 
                                                                  const double& rAlpha, Matrix& rElastoPlasticMatrix)
 {   
-    Vector StrainVector = MathUtils<double>::StrainTensorToVector( rReturnMappingVariables.StrainMatrix, 0 ); //For plane state or 3D cases
-    Vector StressVector = MathUtils<double>::StressTensorToVector( rReturnMappingVariables.TrialIsoStressMatrix, 0 ); //For plane state or 3D cases
+    const unsigned int VoigtSize = rElasticLeftCauchyGreen.size1();
     
-    Vector EquivalentStrainDerivative = ZeroVector(StrainVector.size());
-    this->CalculateEquivalentStrainDerivative(EquivalentStrainDerivative, StrainVector, rElasticLeftCauchyGreen);
+    Vector EffectiveStressVector(VoigtSize);
+    noalias(EffectiveStressVector) = MathUtils<double>::StressTensorToVector( rReturnMappingVariables.TrialIsoStressMatrix, 0 );
+    
+    Vector EquivalentStrainDerivative(VoigtSize);
+    this->CalculateEquivalentStrainDerivative(EquivalentStrainDerivative, rReturnMappingVariables, rElasticLeftCauchyGreen);
     
     double DamageDerivative;
     YieldCriterion::Parameters YieldCriterionParameters;
@@ -148,70 +125,148 @@ void IsotropicDamageFlowRule::ComputeElastoPlasticTangentMatrix( const RadialRet
     YieldCriterionParameters.SetDeltaGamma(mInternalVariables.EquivalentPlasticStrain); //Maximum historical equivalent strain
     mpYieldCriterion->CalculateDeltaStateFunction(DamageDerivative, YieldCriterionParameters); //Compute damage derivative
     
-    noalias(rElastoPlasticMatrix) = - rAlpha*DamageDerivative*outer_prod(StressVector,EquivalentStrainDerivative);
+    noalias(rElastoPlasticMatrix) += - rAlpha*DamageDerivative*outer_prod(EffectiveStressVector,EquivalentStrainDerivative);
 }
 
 
-//*************************** UPDATE DAMAGE VARIABLE *********************************
+//*************************** UPDATE INTERNAL VARIABLES ******************************
 //************************************************************************************
 
 bool IsotropicDamageFlowRule::UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables )
 {
+    bool Restore;
+    YieldCriterion::Parameters YieldCriterionParameters;
+    
+    // Updates internal variables depending on the convergence of the solution
+    if( rReturnMappingVariables.Options.IsNot(RETURN_MAPPING_COMPUTED) ) // Convergence was achieved
+    {
+        //Compute the new equivalent strain
+        double NewEquivalentStrain;
+        YieldCriterionParameters.SetStrainMatrix(rReturnMappingVariables.StrainMatrix);
+        YieldCriterionParameters.SetStressMatrix(rReturnMappingVariables.TrialIsoStressMatrix);
+        mpYieldCriterion->CalculateYieldCondition(NewEquivalentStrain, YieldCriterionParameters);
+        
+        //Update maximum historical equivalent strain
+        if(NewEquivalentStrain >= mInternalVariables.EquivalentPlasticStrain)
+        {
+            mInternalVariables.EquivalentPlasticStrain = NewEquivalentStrain;
+        }
+        mInternalVariables.EquivalentPlasticStrainOld = mInternalVariables.EquivalentPlasticStrain;
+        
+        Restore = false;
+    }
+    else // There was no convergence
+    {
+        mInternalVariables.EquivalentPlasticStrain = mInternalVariables.EquivalentPlasticStrainOld;
+        
+        Restore = true;
+    }
+
+    //Compute Damage variable from the internal historical variable (the maximum equivalent strain)
+    YieldCriterionParameters.SetCharacteristicSize(rReturnMappingVariables.CharacteristicSize);
+    YieldCriterionParameters.SetDeltaGamma(mInternalVariables.EquivalentPlasticStrain); //internal historical variable
+    mpYieldCriterion->CalculateStateFunction(rReturnMappingVariables.TrialStateFunction, YieldCriterionParameters);
+    
     //mInternalVariables.DeltaPlasticStrain is the damage variable that will be printed in post-process
     mInternalVariables.DeltaPlasticStrain = rReturnMappingVariables.TrialStateFunction;
     
-	return true;
+    return Restore;
+}
+
+
+//************************** CALCULATE INTERNAL VARIABLES ****************************
+//************************************************************************************
+
+bool IsotropicDamageFlowRule::CalculateInternalVariables(RadialReturnVariables& rReturnMappingVariables)
+{
+    //Compute the new equivalent strain
+    double NewEquivalentStrain;
+    YieldCriterion::Parameters YieldCriterionParameters;
+    YieldCriterionParameters.SetStrainMatrix(rReturnMappingVariables.StrainMatrix);
+    YieldCriterionParameters.SetStressMatrix(rReturnMappingVariables.TrialIsoStressMatrix);
+    mpYieldCriterion->CalculateYieldCondition(NewEquivalentStrain, YieldCriterionParameters);
+    
+    //Update maximum historical equivalent strain and set whether the tangent matrix needs to be computed
+    bool Tangent;
+    if(NewEquivalentStrain >= mInternalVariables.EquivalentPlasticStrain)
+    {
+        mInternalVariables.EquivalentPlasticStrain = NewEquivalentStrain;
+        rReturnMappingVariables.Options.Set(PLASTIC_REGION,true); //loading with growing damage
+        Tangent = true;
+    }
+    else
+    {
+        rReturnMappingVariables.Options.Set(PLASTIC_REGION,false); //elastic loading or unloading
+        Tangent = false;
+    }
+    
+    //Compute Damage variable from the internal historical variable (the maximum equivalent strain)
+    YieldCriterionParameters.SetCharacteristicSize(rReturnMappingVariables.CharacteristicSize);
+    YieldCriterionParameters.SetDeltaGamma(mInternalVariables.EquivalentPlasticStrain); //internal historical variable
+    mpYieldCriterion->CalculateStateFunction(rReturnMappingVariables.TrialStateFunction, YieldCriterionParameters);
+    
+    //mInternalVariables.DeltaPlasticStrain is the damage variable that will be printed in post-process
+    mInternalVariables.DeltaPlasticStrain = rReturnMappingVariables.TrialStateFunction;
+    
+    return Tangent;
 }
 
 
 //************************ CALCULATE EQUIVALENT STRAIN DERIVATIVE ********************
 //************************************************************************************
 
-
-void IsotropicDamageFlowRule::CalculateEquivalentStrainDerivative(Vector& rEquivalentStrainDerivative, const Vector& rStrainVector, const Matrix& rLinearElasticMatrix)
+void IsotropicDamageFlowRule::CalculateEquivalentStrainDerivative(Vector& rEquivalentStrainDerivative, const RadialReturnVariables& ReturnMappingVariables, 
+                                                                    const Matrix& LinearElasticMatrix)
 {
     //The derivative of the equivalent strain with respect to the strain vector is obtained through the perturbation method
     
-    Vector StrainVector_p = ZeroVector(rStrainVector.size());
-    Vector StressVector_p = ZeroVector(rStrainVector.size());
-    Matrix StrainMatrix_p, StressMatrix_p;
+    const unsigned int VoigtSize = LinearElasticMatrix.size1();
+    unsigned int Dim = ReturnMappingVariables.StrainMatrix.size1();
+    
+    if(rEquivalentStrainDerivative.size() != VoigtSize)
+        rEquivalentStrainDerivative.resize(VoigtSize,false);
+    
+    // Necessary variables
+    Vector StrainVector(VoigtSize);
+    noalias(StrainVector) = MathUtils<double>::StrainTensorToVector( ReturnMappingVariables.StrainMatrix, 0 );
+    Vector StrainVector_p(VoigtSize);
+    Vector StressVector_p(VoigtSize);
+    Matrix StrainMatrix_p(Dim,Dim);
+    Matrix StressMatrix_p(Dim,Dim);
     double EquivalentStrain_f, EquivalentStrain_b;
     YieldCriterion::Parameters YieldCriterionParameters;
+    YieldCriterionParameters.SetStrainMatrix(StrainMatrix_p); // YieldCriterionParameters stores the direction of StrainMatrix_p (const Matrix* mpStrainMatrix)
+    YieldCriterionParameters.SetStressMatrix(StressMatrix_p); // YieldCriterionParameters stores the direction of StressMatrix_p (const Matrix* mpStressMatrix)
     
     //Compute the strains perturbations in each direction of the vector
-    IsotropicDamageUtilities DamageUtilities;
-    Vector PerturbationStrainVector = DamageUtilities.PerturbationVector(rStrainVector);
+    Vector PerturbationStrainVector(VoigtSize);
+    IsotropicDamageUtilities::ComputePerturbationVector(PerturbationStrainVector,StrainVector);
 
-    for(unsigned int i=0;i<rStrainVector.size();i++)
+    for(unsigned int i = 0; i < VoigtSize; i++)
     {
         //Forward perturbed equivalent strain
-        noalias(StrainVector_p) = rStrainVector;
-        StrainVector_p[i]       = StrainVector_p[i] + PerturbationStrainVector[i];
-        noalias(StressVector_p) = prod(rLinearElasticMatrix, StrainVector_p);
-        StrainMatrix_p = MathUtils<double>::StrainVectorToTensor(StrainVector_p);
-        StressMatrix_p = MathUtils<double>::StressVectorToTensor(StressVector_p);
-        YieldCriterionParameters.SetStrainMatrix(StrainMatrix_p);
-        YieldCriterionParameters.SetStressMatrix(StressMatrix_p);
+        noalias(StrainVector_p) = StrainVector;
+        StrainVector_p[i] = StrainVector_p[i] + PerturbationStrainVector[i];
+        noalias(StrainMatrix_p) = MathUtils<double>::StrainVectorToTensor(StrainVector_p);
+        noalias(StressVector_p) = prod(LinearElasticMatrix, StrainVector_p);
+        noalias(StressMatrix_p) = MathUtils<double>::StressVectorToTensor(StressVector_p);
         mpYieldCriterion->CalculateYieldCondition(EquivalentStrain_f, YieldCriterionParameters);
         
         //Backward perturbed equivalent strain
-        noalias(StrainVector_p) = rStrainVector;
-        StrainVector_p[i]       = StrainVector_p[i] - PerturbationStrainVector[i];
-        noalias(StressVector_p) = prod(rLinearElasticMatrix, StrainVector_p);
-        StrainMatrix_p = MathUtils<double>::StrainVectorToTensor(StrainVector_p);
-        StressMatrix_p = MathUtils<double>::StressVectorToTensor(StressVector_p);
-        YieldCriterionParameters.SetStrainMatrix(StrainMatrix_p);
-        YieldCriterionParameters.SetStressMatrix(StressMatrix_p);
+        noalias(StrainVector_p) = StrainVector;
+        StrainVector_p[i] = StrainVector_p[i] - PerturbationStrainVector[i];
+        noalias(StrainMatrix_p) = MathUtils<double>::StrainVectorToTensor(StrainVector_p);
+        noalias(StressVector_p) = prod(LinearElasticMatrix, StrainVector_p);
+        noalias(StressMatrix_p) = MathUtils<double>::StressVectorToTensor(StressVector_p);
         mpYieldCriterion->CalculateYieldCondition(EquivalentStrain_b, YieldCriterionParameters);
         
-        rEquivalentStrainDerivative[i] = (EquivalentStrain_f - EquivalentStrain_b)/(2*PerturbationStrainVector[i]);
+        rEquivalentStrainDerivative[i] = (EquivalentStrain_f - EquivalentStrain_b)/(2.0*PerturbationStrainVector[i]);
     }
 }
 
 
 //************************************************************************************
 //************************************************************************************
-
 
 void IsotropicDamageFlowRule::save( Serializer& rSerializer ) const
 {
