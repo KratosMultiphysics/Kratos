@@ -105,7 +105,7 @@ namespace Kratos
       return rValue;
    }
 
-   void BorjaHenckyCamClayPlasticAxisym2DLaw::SetValue(const Variable<Vector>& rThisVariable, const Vector& rValue, ProcessInfo& rCurrentProcessInfo)
+   void BorjaHenckyCamClayPlasticAxisym2DLaw::SetValue(const Variable<Vector>& rThisVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
    {
 
       if ( rThisVariable == ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS)
