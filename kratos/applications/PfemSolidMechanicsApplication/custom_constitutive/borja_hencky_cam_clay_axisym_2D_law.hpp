@@ -113,7 +113,7 @@ public:
 
     virtual double& GetValue( const Variable<double>& rThisVariable, double& rValue );
 
-    virtual void SetValue( const Variable<Vector>& rThisVariable, const Vector& rVector, ProcessInfo& rCurrentProcessInfo);
+    virtual void SetValue( const Variable<Vector>& rThisVariable, const Vector& rVector, const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Input and output
