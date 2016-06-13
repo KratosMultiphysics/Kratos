@@ -874,13 +874,13 @@ public:
     }
 
     //Connectivities of faces required
-    virtual void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const
+    virtual void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& rNumberNodesInFaces) const
     {
         KRATOS_THROW_ERROR( std::logic_error,
                             "Calling base class NumberNodesInFaces method instead of derived class one. Please check the definition of derived class." , *this );
     }
 
-    virtual void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const
+    virtual void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& rNodesInFaces) const
     {
         KRATOS_THROW_ERROR( std::logic_error,
                             "Calling base class NodesInFaces method instead of derived class one. Please check the definition of derived class." , *this );
