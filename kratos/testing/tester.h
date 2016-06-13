@@ -27,15 +27,14 @@
 
 
 // Project includes
-#include "includes/define.h"
-
+#include "includes/kratos_export_api.h"
 
 namespace Kratos
 {
 	namespace Testing
 	{
 
-		///@addtogroup Kratos Core
+		///@addtogroup KratosCore
 		///@{
 
 		///@name Kratos Classes
@@ -78,9 +77,15 @@ namespace Kratos
 			///@name Operations
 			///@{
 
-			static void RunAllTests();
+			static void ResetAllTestCasesResults();
 
-			static void ProfileAllTests();
+			static void RunAllTestCases();
+
+			static void ProfileAllTestCases();
+
+			static std::size_t NumberOfEnabledTestCases();
+
+			static std::size_t NumberOfFailedTestCases();
 
 			/// This method assumes that the given test case is allocated
 			/// via new. So it will delete it at the end of the program
@@ -130,6 +135,9 @@ namespace Kratos
 			TestCasesContainerType mTestCases;
 
 			///@}
+			static bool IsTestCaseNotAddedBefore(TestCase* pHeapAllocatedTestCase);
+
+			static void ReportFailures(std::ostream& rOStream);
 
 		}; // Class Tester
 

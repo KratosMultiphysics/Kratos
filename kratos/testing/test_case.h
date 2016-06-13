@@ -24,6 +24,7 @@
 
 // Project includes
 #include "testing/tester.h"
+#include "testing/test_case_result.h"
 
 namespace Kratos
 {
@@ -84,6 +85,10 @@ namespace Kratos
 			///@name Operations
 			///@{
 
+			virtual void Reset();
+
+			virtual void ResetResult();
+
 			virtual void Setup();
 
 			virtual void Run();
@@ -101,6 +106,10 @@ namespace Kratos
 			///@{
 
 			const std::string& Name();
+
+			const TestCaseResult& GetResult() const;
+
+			void SetResult(TestCaseResult const& TheResult);
 
 
 			///@}
@@ -180,7 +189,9 @@ namespace Kratos
 
 			const std::string mName;
 
-			bool mIsEnambled;
+			bool mIsEnabled;
+
+			TestCaseResult mResult;
 
 			///@}
 			///@name Operations
