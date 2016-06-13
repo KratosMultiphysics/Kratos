@@ -2,15 +2,15 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
 //
-	           
+//
+
 
 #if !defined(KRATOS_EXCEPTION_H_INCLUDED )
 #define  KRATOS_EXCEPTION_H_INCLUDED
@@ -33,9 +33,9 @@ namespace Kratos
 
   ///@name Kratos Classes
   ///@{
-  
+
   /// Extends the std::exception class with more information about error location
-  /** This class extends the std::exception providing the where method which gives the location of the error. 
+  /** This class extends the std::exception providing the where method which gives the location of the error.
 	  In order to have such information it is recommended to use it via KRATOS_ERROR macro.
   */
   class KRATOS_API(KRATOS_CORE) Exception : public std::exception
@@ -43,30 +43,30 @@ namespace Kratos
     public:
       ///@name Type Definitions
       ///@{
-      
- 
+
+
       ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
+      ///@name Life Cycle
+      ///@{
+
       /// Default constructor.
 	  Exception();
 
 	  Exception(const std::string& rWhat );
 
       Exception(const std::string& rWhat, const CodeLocation& Location);
-	  
+
 	  /// Copy constructor.
       Exception(Exception const& Other);
 
       /// Destructor.
       virtual ~Exception() noexcept;
-      
+
 
       ///@}
-      ///@name Operators 
+      ///@name Operators
       ///@{
-      
+
 	  /// Code Location stream function to add callers to call stack
 	  Exception& operator << (CodeLocation const& TheLocation);
 
@@ -91,20 +91,20 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-	  void Exception::append_message(std::string const& rMessage);
+	  void append_message(std::string const& rMessage);
 
 	  void add_to_call_stack(CodeLocation const& TheLocation);
-      
-      
+
+
       ///@}
       ///@name Access
-      ///@{ 
+      ///@{
 
 	  /// The overide of the base class what method
 	  /** This method returns the entire message with where information
 	  */
 
-      const char* what() const noexcept; 
+      const char* what() const noexcept;
 
 	  const std::string& message() const;
 
@@ -112,62 +112,62 @@ namespace Kratos
 
 
 
-      
+
       ///@}
       ///@name Inquiry
       ///@{
-      
-      
-      ///@}      
+
+
+      ///@}
       ///@name Input and output
       ///@{
 
       /// Turn back information as a string.
       virtual std::string Info() const;
-      
+
       /// Print information about this object.
       virtual void PrintInfo(std::ostream& rOStream) const;
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const;
-      
-            
-      ///@}      
-      
+
+
+      ///@}
+
     private:
-      ///@name Member Variables 
-      ///@{ 
+      ///@name Member Variables
+      ///@{
 
 		std::string mMessage;
 		std::vector<CodeLocation> mCallStack;
 
-        
-      ///@} 
-      ///@name Un accessible methods 
-      ///@{ 
-      
+
+      ///@}
+      ///@name Un accessible methods
+      ///@{
+
       /// Assignment operator.
       Exception& operator=(Exception const& rOther);
 
-        
-      ///@}    
-        
-    }; // Class Exception 
 
-  ///@} 
-  
+      ///@}
+
+    }; // Class Exception
+
+  ///@}
+
   ///@name Kratos Macros
-  ///@{ 
+  ///@{
 
 #define KRATOS_ERROR throw Exception("Error: ", KRATOS_CODE_LOCATION)
 
   ///@}
-  ///@name Input and output 
-  ///@{ 
-        
- 
+  ///@name Input and output
+  ///@{
+
+
   /// input stream function
-  std::istream& operator >> (std::istream& rIStream, 
+  std::istream& operator >> (std::istream& rIStream,
   				    Exception& rThis);
 
 
@@ -177,6 +177,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_EXCEPTION_H_INCLUDED  defined 
-
-
+#endif // KRATOS_EXCEPTION_H_INCLUDED  defined
