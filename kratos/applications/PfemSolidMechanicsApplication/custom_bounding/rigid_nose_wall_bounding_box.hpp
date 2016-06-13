@@ -260,10 +260,10 @@ public:
        return Center(rPoint);
     }
 
-    void SetRadius(double& rRadius)
-    {
-      //used to set a comparisson radius
-    }  
+//    void SetRadius(double& rRadius)
+//    {
+//      //used to set a comparisson radius
+//    }  
 
     bool CheckValidAngle( double& rAngle )
     {

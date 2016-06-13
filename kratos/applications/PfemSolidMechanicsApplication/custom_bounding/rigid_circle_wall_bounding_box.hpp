@@ -145,10 +145,10 @@ public:
         return mBox.Radius;
     }
 
-    void SetRadius(double& rRadius)
-    {
-      //used to set a comparisson radius
-    }  
+//    void SetRadius(double& rRadius)
+//    {
+//      //used to set a comparisson radius
+//    }  
 
     virtual void UpdatePosition(double & rTime)
     {
