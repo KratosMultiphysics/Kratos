@@ -354,12 +354,12 @@ namespace Kratos
     std::cout << "            | | | |  _| | |\\/| | |_) / _` |/ __| |/ /      "    << std::endl;
     std::cout << "            | |_| | |___| |  | |  __/ (_| | (__|   <       "     << std::endl;
     std::cout << "            |____/|_____|_|  |_|_|   \\__,_|\\___|_|\\_\\      " << std::endl << std::endl;
-    std::cout << "Initializing DEMApplication..."                                  << std::endl;
+    std::cout << "Importing DEMApplication... ";
    
 #ifdef KRATOS_BUILD_TYPE
 #define ____CONVERT_INNER_VALUE_TO_STRING(S) ____CONVERT_TO_STRING(S)
 #define ____CONVERT_TO_STRING(S) #S
-    std::cout << "( compiled in mode \""<<____CONVERT_INNER_VALUE_TO_STRING(KRATOS_BUILD_TYPE)<<"\" )"<< std::endl << std::endl;
+    std::cout << "( compiled in mode \""<<____CONVERT_INNER_VALUE_TO_STRING(KRATOS_BUILD_TYPE)<<"\" )";
 #undef ____CONVERT_INNER_VALUE_TO_STRING
 #undef ____CONVERT_TO_STRING
 #endif
@@ -679,6 +679,8 @@ namespace Kratos
     Serializer::Register("PropertiesProxy", PropertiesProxy());
     Serializer::Register("DEM_Dempack", DEM_Dempack());
     Serializer::Register("DEM_Dempack2D", DEM_Dempack2D());
+    
+    std::cout << " done."                                  << std::endl;
   }
 }  // namespace Kratos.
 
