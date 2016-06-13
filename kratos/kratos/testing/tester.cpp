@@ -1,21 +1,21 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \
+//    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
 //
-	           
+//
+
 
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -32,7 +32,7 @@ namespace Kratos
 		Tester::Tester() : mTestCases()
 			 {}
 
-		Tester::~Tester() 
+		Tester::~Tester()
 		{
 			for (TestCasesContainerType::iterator i_test = GetInstance().mTestCases.begin();
 			i_test != GetInstance().mTestCases.end(); i_test++)
@@ -169,5 +169,3 @@ namespace Kratos
 
 	} // manespace Testing.
 }  // namespace Kratos.
-
-
