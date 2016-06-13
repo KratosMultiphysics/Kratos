@@ -11,6 +11,11 @@ proc ::FSI::Init { } {
     #W "Sourced FSI"
     set dir [apps::getMyDir "FSI"]
     set prefix FSI
+    
+    
+    apps::LoadAppById "Fluid"
+    apps::LoadAppById "Structural"
+    
     set ::Model::ValidSpatialDimensions [list 2D 3D]
     ::spdAux::CreateDimensionWindow
 }

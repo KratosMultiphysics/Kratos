@@ -4,7 +4,7 @@
                 ImplementedInFile="mechanical_strategy.cpp"
                 ImplementedInApplication="SolidMechanicsApplication"
                 ImplementedInPythonFile="solid_mechanics_implicit_dynamic_solver"
-                MinimumKratosVersion="8500"
+                MinimumKratosVersion="8500" App="Solid"
                 ProductionReady="ProductionReady"
                 help="">
     
@@ -63,6 +63,7 @@
 			</parameter_list>
             <element_filters>
                 <filter field="ElementType" value="Solid,Shell,Beam"/>
+				<filter field="ImplementedInApplication" value="SolidMechanicsApplication,StructuralMechanicsApplication"/>
 			 <!-- <forceIn field="n" value="MembraneElement"/>
 			 <forceOut field="n" value="SmallDisplacementElement2D"/> -->
             </element_filters>
@@ -73,6 +74,7 @@
 			</parameter_list>
             <element_filters>
                 <filter field="ElementType" value="Solid,Shell,Beam"/>
+				<filter field="ImplementedInApplication" value="SolidMechanicsApplication,StructuralMechanicsApplication"/>
             </element_filters>
 	  </scheme>
 	</schemes>
@@ -82,7 +84,7 @@
                 ImplementedInFile="mechanical_strategy.cpp"
                 ImplementedInApplication="SolidMechanicsApplication"
                 ImplementedInPythonFile="solid_mechanics_explicit_dynamic_solver"
-                MinimumKratosVersion="8500"
+                MinimumKratosVersion="8500" App="Solid"
                 ProductionReady="ProductionReady"
                 help="Default solver Super LU">
     
@@ -134,6 +136,7 @@
 		  </parameter_list>
 		  <element_filters>
 			 <filter field="ElementType" value="Solid"/>
+			 <filter field="ImplementedInApplication" value="SolidMechanicsApplication,StructuralMechanicsApplication"/>
 		  </element_filters>
 	  </scheme>
 	</schemes>
@@ -143,7 +146,7 @@
                 ImplementedInFile="mechanical_strategy.cpp"
                 ImplementedInApplication="SolidMechanicsApplication"
                 ImplementedInPythonFile="solid_mechanics_static_solver"
-                MinimumKratosVersion="8500"
+                MinimumKratosVersion="8500" App="Solid"
                 ProductionReady="ProductionReady"
                 help="Default solver Super LU">
     
@@ -204,7 +207,7 @@
           <parameter_list>
 		  </parameter_list>
 		  <element_filters>
-			 <!--<filter field="ElementType" value="Solid"/>-->
+			 <filter field="ImplementedInApplication" value="SolidMechanicsApplication,StructuralMechanicsApplication"/>
 		  </element_filters>
 	  </scheme>
 	</schemes>

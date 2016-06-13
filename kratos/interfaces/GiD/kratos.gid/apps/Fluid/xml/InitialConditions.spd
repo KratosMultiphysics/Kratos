@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="InitialConditions" pn="Initial Conditions" un="FLNodalConditions" state="[ShowInMode Developer]">
-	  <dynamicnode command="injectNodalConditions" args=""/>
+	  <dynamicnode command="injectNodalConditions" args="App Fluid"/>
 </container>

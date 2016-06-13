@@ -17,4 +17,12 @@ proc FSI::xml::getUniqueName {name} {
     return ${::FSI::prefix}${name}
 }
 
+
+proc ::FSI::xml::MultiAppEvent {args} {
+   if {$args eq "init"} {
+     spdAux::parseRoutes
+     spdAux::ConvertAllUniqueNames SL ST
+   }
+}
+
 FSI::xml::Init

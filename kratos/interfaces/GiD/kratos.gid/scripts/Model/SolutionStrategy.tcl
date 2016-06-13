@@ -212,11 +212,12 @@ proc Model::ParseElementFilter {st ef {forced ""}} {
 # Getters
 proc Model::GetSolutionStrategies { args } {
     variable SolutionStrategies
-    
-    if {$args eq ""} {return $SolutionStrategies}
+#W "MGAS $args"
+    if {$args eq "{}"} {return $SolutionStrategies}
     set cumplen [list ]
     foreach ss $SolutionStrategies {
-        if {[$ss cumple $args]} { lappend cumplen $ss}
+        #W "checking [$ss getName]"
+        if {[$ss cumple {*}$args]} {lappend cumplen $ss}
     }
     return $cumplen
 }
@@ -232,6 +233,7 @@ proc Model::GetSolutionStrategy { id } {
 
 
 proc Model::GetAvailableSchemes {solstrat} {
+    #W "GAS $solstrat"
     set solst [Model::GetSolutionStrategy $solstrat]
     
     return [$solst getSchemes]
@@ -283,7 +285,7 @@ proc Model::GetAllSchemeParams {} {
 proc Model::GetAvailableElements {solutionStrategyId schemeId} { 
     variable Elements
     variable SolutionStrategies
-    
+    #W "GetAvailableElements ss $solutionStrategyId sch $schemeId"
     set cumplen [list ]
     set solst [Model::GetSolutionStrategy $solutionStrategyId]
     set scheme [$solst getScheme $schemeId]
@@ -291,9 +293,10 @@ proc Model::GetAvailableElements {solutionStrategyId schemeId} {
         set filters [$scheme getElementFilters]
         set include [$scheme getElementForceIn]
         set exclude [$scheme getElementForceOut]
-        
+        #W "$solutionStrategyId $schemeId $filters"
         foreach elem $Elements {
             set f [$elem cumple $filters]
+            #W "[$elem getName] ? $f"
             set i [$elem cumple $include]
             set i 0
             if {[llength $include]} {set i [$elem cumple $include]}

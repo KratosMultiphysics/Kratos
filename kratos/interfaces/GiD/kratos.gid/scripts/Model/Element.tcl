@@ -127,7 +127,7 @@ proc Model::ParseElements { doc } {
 }
 proc Model::ParseNodalConditions { doc } {
     variable NodalConditions
-    
+
     set NCList [$doc getElementsByTagName NodalConditionItem]
     foreach Node $NCList {
         lappend NodalConditions [ParseNodalConditionsNode $Node]
@@ -174,6 +174,7 @@ proc Model::ParseElemNode { node } {
 }
 proc Model::ParseNodalConditionsNode { node } {
     set name [$node getAttribute n]
+    #W "Parsing $name"
     set el [::Model::NodalCondition new $name]
     $el setPublicName [$node getAttribute pn]
     
@@ -218,6 +219,7 @@ proc Model::ParseNodalConditionsNode { node } {
             }
         }
     }
+    #W "[$el getName]"
     return $el
 }
 
@@ -290,8 +292,21 @@ proc Model::GetAllElemInputs {} {
 
 proc Model::getAllNodalConditions {} {
     variable NodalConditions
-    
+    #W "all"
     return $NodalConditions
+}
+
+proc Model::GetNodalConditions {args} {
+    #return [Model::getAllNodalConditions]
+    variable NodalConditions
+    set validlist [list ]
+    
+    foreach nc $NodalConditions {
+        #W "ASK [$nc cumple {*}$args]"
+        if {[$nc cumple {*}$args]} {lappend validlist $nc}
+    }
+    #W "validas $validlist"
+    return $validlist
 }
 
 proc Model::getNodalConditionbyId {ncid} {

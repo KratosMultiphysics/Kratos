@@ -19,6 +19,7 @@
         <Item n="State" v="0"/>
         <Item n="Active" v="0"/>
         <Item n="Visited" v="0"/>
+        <Item n="ConstitutiveLaw" pn="Fluid type" v="Newtonian" type="combo" values="Newtonian,HerschelBulkley" mxp="container[@un='FLParts']/group/value[@n='ConstitutiveLaw']"/>
         <Item n="DENSITY" pn="Density" v="1000" type="double" mxp="container[@un='FLParts']/group/value[@n='DENSITY']"/>
         <Item n="VISCOSITY" pn="Kinematic viscosity" v="1e-6" type="double" mxp="container[@un='FLParts']/group/value[@n='VISCOSITY']"/>
         <Item n="YIELD_STRESS" pn="Yield stress (τ)" v="0.1" type="double" mxp="container[@un='FLParts']/group/value[@n='YIELD_STRESS']"/>

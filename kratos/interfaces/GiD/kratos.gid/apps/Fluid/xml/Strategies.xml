@@ -4,7 +4,7 @@
 		ImplementedInFile="navier_stokes_solver_fractionalstep.py"
 		ImplementedInApplication="FluidDynamicsApplication"
 		ImplementedInPythonFile="navier_stokes_solver_fractionalstep"
-		MinimumKratosVersion="8500"
+		MinimumKratosVersion="8500" App="Fluid"
 		ProductionReady="ProductionReady"
 		help="">
     
@@ -58,7 +58,7 @@
 		ImplementedInFile="navier_stokes_solver_vmsmonolithic.py"
 		ImplementedInApplication="FluidDynamicsApplication"
 		ImplementedInPythonFile="navier_stokes_solver_vmsmonolithic"
-		MinimumKratosVersion="8500"
+		MinimumKratosVersion="8500" App="Fluid"
 		ProductionReady="ProductionReady"
 		help="">
     

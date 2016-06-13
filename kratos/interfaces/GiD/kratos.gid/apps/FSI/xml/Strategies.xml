@@ -4,7 +4,7 @@
 		ImplementedInFile="residual_definitions.py"
 		ImplementedInApplication="FSIApplication"
 		ImplementedInPythonFile="residual_definitions"
-		MinimumKratosVersion="8500"
+		MinimumKratosVersion="8500" App="FSI"
 		ProductionReady="ProductionReady"
 		help="">
     
@@ -46,7 +46,7 @@
 		ImplementedInFile="residual_definitions.py"
 		ImplementedInApplication="FSIApplication"
 		ImplementedInPythonFile="residual_definitions"
-		MinimumKratosVersion="8500"
+		MinimumKratosVersion="8500" App="FSI"
 		ProductionReady="ProductionReady"
 		help="">
     
