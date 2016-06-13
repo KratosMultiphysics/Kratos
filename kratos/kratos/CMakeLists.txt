@@ -37,6 +37,9 @@ set( KRATOS_CORE_SOURCES
 	#${CMAKE_CURRENT_SOURCE_DIR}/processes/mesh_smoothing_process.cpp;
 	#${CMAKE_CURRENT_SOURCE_DIR}/processes/measure_mesh_quality_process.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/testing/test_case.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/testing/test_case_result.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/testing/tester.cpp;
      )
 
 set( KRATOS_PYTHON_SOURCES
@@ -85,6 +88,7 @@ set( KRATOS_PYTHON_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_table_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_search_strategies_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_kratos_parameters_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/python/add_testing_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/kratos_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/mpi_connectivity_preserve_modeler.cpp;
 	# ${CMAKE_CURRENT_SOURCE_DIR}/processes/mdpa_reorder_consecutive_process.cpp;
