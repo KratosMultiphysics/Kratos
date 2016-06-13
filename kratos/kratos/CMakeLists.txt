@@ -40,6 +40,8 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/testing/test_case.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/testing/test_case_result.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/testing/tester.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/exception.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/code_location.cpp;
      )
 
 set( KRATOS_PYTHON_SOURCES
