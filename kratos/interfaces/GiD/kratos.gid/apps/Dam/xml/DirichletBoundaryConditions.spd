@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="DirichletBoundaryConditions" pn="Dirichlet boundary conditions" icon="constraints16" un="DamNodalConditions" >
+	  <dynamicnode command="injectNodalConditions" args=""/>
+</container>

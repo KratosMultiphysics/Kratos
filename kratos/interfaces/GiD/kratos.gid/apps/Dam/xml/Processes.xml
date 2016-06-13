@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ProcessList>
+   <!---  NODAL PROCESSES --> 
+   <!---  Nodal Displacement, Acceleration -->
+  <Process n="ImposeVectorValueByComponentsProcess" pn="Impose vector value by components process" implemented_in_file="impose_vector_value_by_components_process"
+		implemented_in_module="KratosMultiphysics" help="This process fixes the selected components of a given vector variable">
+    <inputs>
+        <parameter n="value" pn="Value" type="vector" fixity="Fix" v="0.0,0.0,0.0"/>
+    </inputs>
+  </Process>
+  
+   <!---  Uniform tempereature -->
+  <Process n="ImposeScalarValueProcess" pn="Impose vector value by components process" implemented_in_file="impose_scalar_value_process"
+		implemented_in_module="KratosMultiphysics" help="This process fixes the given scalar variable">
+    <inputs>
+        <parameter n="Modified" pn="Modified" type="bool" v="true" />
+        <parameter n="value" pn="Value" type="double" v="0.0" fixity="Fix" />
+    </inputs>
+  </Process>   
+   
+  <!---  Bofang Temperature -->   
+  <Process n="BofangImposeScalarValueProcess" pn="Impose Bofang scalar field value" implemented_in_file="impose_scalar_value_process"
+		implemented_in_module="KratosMultiphysics" help="This process fixes the given scalar variable">
+    <inputs>
+        <parameter n="Modified" pn="Modified by Reservoir Information" type="bool" v="true" />
+        <parameter n="Gravity_Direction" pn="Gravity Direction" type="combo" v="Y" values="X,Y,Z" fixity="Fix" />
+        <parameter n="Reservoir_Bottom_Coordinate_in_Gravity_Direction" pn="Reservoir Bottom Coordinate in Gravity Direction" type="double" v="0.0"/>
+        <parameter n="Surface_Temp" pn="Surface Temperature" type="double" v="0.0"/>
+        <parameter n="Bottom_Temp" pn="Bottom Temperature" type="double" v="0.0"/>
+        <parameter n="Height_Dam" pn="Height Dam" type="double" v="0.0"/>
+        <parameter n="Temperature_Amplitude" pn="Temperature Amplitude" type="double" v="0.0"/>
+        <parameter n="Day_Ambient_Temp" pn="Day" type="integer" v="0.0"/>
+    </inputs>
+  </Process>
+    
+   <!---  Thermal Parameters -->
+    <Process n="ThermalParametersScalarValueProcess" pn="Impose thermal parameters for solving the thermal problem" implemented_in_file="impose_scalar_value_process"
+		implemented_in_module="KratosMultiphysics" help="This process fixes the given scalar variable">
+    <inputs>
+        <parameter n="ThermalDensity" pn="Density" type="double" v="2400" />
+        <parameter n="Conductivity" pn="Conductivity" type="double" v="1.0" />
+        <parameter n="SpecificHeat" pn="Specific Heat" type="double" v="1000.0" />
+    </inputs>
+  </Process>  
+
+<!---  CONDITION PROCESSES --> 
+<!---  Point Loads -->       
+  <Process n="ApplyConstantVectorValueProcess" pn="Constant vector value" implemented_in_file="process_factory"
+		implemented_in_module="KratosMultiphysics" check="DirectorVectorNonZero direction"
+		help="This process ">
+    <inputs>
+      <parameter n="factor" pn="Factor" type="double" v="1.0"/>
+      <parameter n="direction" pn="Direction" type="vector" v="0.0,0.0,-1.0" />
+    </inputs>
+  </Process>
+  
+<!---  Line Loads & Surface Loads -->   
+  <Process n="ApplyVectorOnConditionsProcess" pn="Apply a vector value over a condition" implemented_in_file="apply_vector_on_conditions_process"
+		implemented_in_module="KratosMultiphysics.SolidMechanicsApplication" help="This process sets a vector variable value over a condition" check="DirectorVectorNonZero direction"> 
+    <inputs>
+      <parameter n="factor" pn="Modulus" type="double"  v="1.0"/>
+      <parameter n="direction" pn="Direction" type="vector" v="0.0,0.0,0.0" unit_magnitude="0" units="0" />
+    </inputs>
+  </Process>
+  
+<!--- Normal Loads -->   
+  <Process n="ApplyScalarOnConditionsProcess" pn="Apply a scalar value over a condition" implemented_in_file="apply_scalar_on_conditions_process"
+		implemented_in_module="KratosMultiphysics.SolidMechanicsApplication" help="This process sets a scalar variable value over a condition" > 
+    <inputs>
+        <parameter n="value" pn="Value" type="double" v="0.0" />
+    </inputs>
+  </Process>
+  
+<!--- Hydrostatic Loads -->   
+  <Process n="HydrostaticConditionsProcess" pn="Apply a scalar value over a condition" implemented_in_file="apply_scalar_on_conditions_process"
+		implemented_in_module="KratosMultiphysics.SolidMechanicsApplication" help="This process sets a scalar variable value over a condition" > 
+    <inputs>
+        <parameter n="Modified" pn="Modified by Reservoir Information" type="bool" v="true" />
+                <parameter n="Gravity_Direction" pn="Gravity Direction" type="string" v="Y" values="X,Y,Z" />
+        <parameter n="Reservoir_Bottom_Coordinate_in_Gravity_Direction" pn="Reservoir Bottom Coordinate in Gravity Direction" type="double" v="0.0"/>
+        <parameter n="Spe_weight" pn="Specific Weight" type="double" v="10000"/>
+    </inputs>
+  </Process>  
+  
+<!--- Uplift Loads -->   
+  <Process n="UpliftConditionsProcess" pn="Apply a scalar value over a condition" implemented_in_file="apply_scalar_on_conditions_process"
+		implemented_in_module="KratosMultiphysics.SolidMechanicsApplication" help="This process sets a scalar variable value over a condition" > 
+    <inputs>
+        <parameter n="Modified" pn="Modified by Reservoir Information" type="bool" v="true" />
+        <parameter n="Gravity_Direction" pn="Gravity Direction" type="combo" v="Y" values="X,Y,Z" />
+        <parameter n="Reservoir_Bottom_Coordinate_in_Gravity_Direction" pn="Reservoir Bottom Coordinate in Gravity Direction" type="double" v="0.0"/>
+        <parameter n="Uplift_Direction" pn="Uplift Direction" type="combo" v="X" values="X,Y,Z"/>
+        <parameter n="Upstream_Coordinate_at_Base_Dam_in_Uplift_Direction" pn="Upstream Coordinate at Base Dam in Uplift Direction" type="double" v="0.0"/>
+        <parameter n="Base_of_dam" pn="Base of Dam" type="double" v="0.0"/>
+        <parameter n="Spe_weight" pn="Specific Weight" type="double" v="10000"/>
+    </inputs>
+  </Process>    
+  
+  </ProcessList>
+

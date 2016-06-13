@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StrategyList>
+  <StrategyItem n="NewtonRaphson" pn="Newton Raphson"
+                ImplementedInFile="mechanical_strategy.cpp"
+                ImplementedInApplication="PoromechanicsApplication"
+                ImplementedInPythonFile="solid_mechanics_implicit_dynamic_solver"
+                MinimumKratosVersion="8500"
+                ProductionReady=""
+                help="">
+    
+    <!-- list of options to be filled -->
+    <parameter_list>
+            <parameter n="MaxIter" pn="Max Iterations" v="30" type="integer" help="Maximum number of iterations" />
+            <parameter n="DofsTol" pn="DOFs Relative Tolerance" v="0.0001" type="double" help="Tolerance for Newthon-Raphson Strategy" />
+            <parameter n="RelTol" pn="Residual Relative Tolerance" v="0.001" type="double" help="Tolerance for Newthon-Raphson Strategy" />
+    </parameter_list>
+    
+    <linearSolvers>
+      <linearSolverItem n="linear_solver_settings" pn="Linear Solver" help="Default solver Super LU" >
+        <filterFeatures>
+	  <!--<filter field="n" value="BiConjugate"/>
+	      <filter field="symmetric" value="false"/>
+          <filter field="solver_type" value="Iterative"/>    -->
+        </filterFeatures>
+		<defaults>
+		  <solver n="AMGCL">
+			<!--Not ready yet-->
+			<!--<parameter n="verbosity" v="3"/>-->
+		  </solver>
+		</defaults>
+      </linearSolverItem>     
+    </linearSolvers>
+	
+	<schemes>
+	  <scheme n="Newmark" pn="Newmark" help="Scheme for dynamic problems" ProductionReady="ProductionReady">
+            <parameter_list>
+			</parameter_list>
+            <element_filters>
+			 <!-- <forceIn field="n" value="MembraneElement"/>
+			 <forceOut field="n" value="SmallDisplacementElement2D"/> -->
+            </element_filters>
+	  </scheme>
+	  <scheme n="Bossak" pn="Bossak" help="Scheme for dynamic problems with high frequency accelerations damping" ProductionReady="ProductionReady">
+            <parameter_list>
+
+			</parameter_list>
+            <element_filters>
+            </element_filters>
+	  </scheme>
+	</schemes>
+  
+  </StrategyItem>
+  
+  <StrategyItem n="Generic" pn="Generic"
+                ImplementedInFile="mechanical_strategy.cpp"
+                ImplementedInApplication="SolidMechanicsApplication"
+                ImplementedInPythonFile="solid_mechanics_implicit_dynamic_solver"
+                MinimumKratosVersion="8500"
+                ProductionReady=""
+                help="">
+    
+    <!-- list of options to be filled -->
+    <parameter_list>
+    </parameter_list>
+    
+    <linearSolvers>   
+    </linearSolvers>
+	
+	<schemes>
+	  <scheme n="Backward-Euler" pn="Backward-Euler" help="" ProductionReady="ProductionReady">
+            <parameter_list>
+			</parameter_list>
+            <element_filters>
+			 <!-- <forceIn field="n" value="MembraneElement"/>
+			 <forceOut field="n" value="SmallDisplacementElement2D"/> -->
+            </element_filters>
+	  </scheme>
+	  <scheme n="Crank-Nicolson" pn="Crank-Nicolson" help="" ProductionReady="ProductionReady">
+            <parameter_list>
+
+			</parameter_list>
+            <element_filters>
+            </element_filters>
+	  </scheme>
+	  <scheme n="Forward-Euler" pn="Forward-Euler" help="" ProductionReady="ProductionReady">
+            <parameter_list>
+
+			</parameter_list>
+            <element_filters>
+            </element_filters>
+	  </scheme>
+	</schemes>
+  
+  </StrategyItem>
+  
+</StrategyList>
