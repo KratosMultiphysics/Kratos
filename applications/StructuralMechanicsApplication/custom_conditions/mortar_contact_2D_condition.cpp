@@ -873,7 +873,7 @@ void MortarContact2DCondition::CalculateDeltaDiscreteGap(
     //Matrix& Delta_gh = mThisMortarConditionMatrices.DeltaDiscreteGap;
 
     Matrix sum_Delta_normal_gp = ZeroMatrix( dimension, dimension * ( num_master_nodes + num_slave_nodes ) );
-    for (int i_slave = 0; i_slave < num_slave_nodes; ++i_slave)
+    for (int i_slave = 0; i_slave < (int) num_slave_nodes; ++i_slave)
     {
         Matrix Delta_normal_gp = ZeroMatrix( dimension, dimension * ( num_master_nodes + num_slave_nodes ) );
         CalculateDeltaIntegrationPointNormal( rVariables, rPointNumber, i_slave, Delta_normal_gp );
