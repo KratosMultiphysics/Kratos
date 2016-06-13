@@ -138,7 +138,10 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    virtual void CalculateEquivalentStrainDerivative(Vector& rEquivalentStrainDerivative, const Vector& rStrainVector, const Matrix& rLinearElasticMatrix);
+    virtual bool CalculateInternalVariables(RadialReturnVariables& rReturnMappingVariables);
+
+    virtual void CalculateEquivalentStrainDerivative(Vector& rEquivalentStrainDerivative, const RadialReturnVariables& ReturnMappingVariables, 
+                                                        const Matrix& LinearElasticMatrix);
 
     ///@}
     ///@name Protected  Access
