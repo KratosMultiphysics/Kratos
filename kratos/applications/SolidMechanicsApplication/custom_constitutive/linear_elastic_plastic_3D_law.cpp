@@ -166,7 +166,7 @@ void  LinearElasticPlastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValu
 
             this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,EffectiveStressVector,LinearElasticMatrix,rStrainVector);
 
-            this->CalculateConstitutiveMatrix(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
+            this->CalculateConstitutiveTensor(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
         }
         else
         {
@@ -176,7 +176,7 @@ void  LinearElasticPlastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValu
             
             this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
             
-            this->CalculateConstitutiveMatrix(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
+            this->CalculateConstitutiveTensor(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
         }
     }
     else if(Options.Is(ConstitutiveLaw::COMPUTE_STRESS) && Options.IsNot( ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE ))
@@ -191,7 +191,7 @@ void  LinearElasticPlastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValu
     {
         Vector& rStressVector = rValues.GetStressVector();
         
-        this->UpdateInternalVariables(ReturnMappingVariables,rStressVector,LinearElasticMatrix,rStrainVector);
+        this->UpdateInternalStateVariables(ReturnMappingVariables,rStressVector,LinearElasticMatrix,rStrainVector);
     }
 }
 
@@ -270,7 +270,7 @@ void LinearElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
 
             this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,EffectiveStressVector,LinearElasticMatrix,rStrainVector);
 
-            this->CalculateConstitutiveMatrix(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
+            this->CalculateConstitutiveTensor(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
         }
         else
         {
@@ -280,7 +280,7 @@ void LinearElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
             
             this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
             
-            this->CalculateConstitutiveMatrix(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
+            this->CalculateConstitutiveTensor(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
         }
     }
     else if(Options.Is(ConstitutiveLaw::COMPUTE_STRESS) && Options.IsNot( ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE ))
@@ -295,7 +295,7 @@ void LinearElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     {
         Vector& rStressVector = rValues.GetStressVector();
         
-        this->UpdateInternalVariables(ReturnMappingVariables,rStressVector,LinearElasticMatrix,rStrainVector);
+        this->UpdateInternalStateVariables(ReturnMappingVariables,rStressVector,LinearElasticMatrix,rStrainVector);
     }
 }
 
@@ -355,7 +355,7 @@ void LinearElasticPlastic3DLaw::CalculateReturnMapping( FlowRule::RadialReturnVa
 //*************************** COMPUTE CONSTITUTIVE MATRIX ****************************
 //************************************************************************************
 
-void LinearElasticPlastic3DLaw::CalculateConstitutiveMatrix( Matrix& rConstitutiveMatrix, FlowRule::RadialReturnVariables& rReturnMappingVariables,
+void LinearElasticPlastic3DLaw::CalculateConstitutiveTensor( Matrix& rConstitutiveMatrix, FlowRule::RadialReturnVariables& rReturnMappingVariables,
                                                                 const Matrix& LinearElasticMatrix )
 {
     // Calculate secant component of the constitutive matrix
@@ -374,7 +374,7 @@ void LinearElasticPlastic3DLaw::CalculateConstitutiveMatrix( Matrix& rConstituti
 //**************************** UPDATE INTERNAL VARIABLES *****************************
 //************************************************************************************
 
-void LinearElasticPlastic3DLaw::UpdateInternalVariables( FlowRule::RadialReturnVariables& rReturnMappingVariables,Vector& rStressVector,
+void LinearElasticPlastic3DLaw::UpdateInternalStateVariables( FlowRule::RadialReturnVariables& rReturnMappingVariables,Vector& rStressVector,
                                                             const Matrix& LinearElasticMatrix, const Vector& StrainVector )
 {    
     noalias(rStressVector) = prod(LinearElasticMatrix, StrainVector);

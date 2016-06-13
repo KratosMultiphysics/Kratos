@@ -331,7 +331,7 @@ public:
         if (mCalculateReactionsFlag == true && possible_convergence == true)
             mpBuilderAndSolver->CalculateReactions(mpScheme, BaseType::GetModelPart(), mA, mDx, mb);
 
-        this->FinalizeSolutionStep(iteration_number, possible_convergence, DLambdaStep);
+        this->FinalizeArcLengthSolutionStep(iteration_number, possible_convergence, DLambdaStep);
 
         //Deallocate the system vectors and matrix
         if (mReformDofSetAtEachStep == true)
@@ -374,54 +374,6 @@ public:
         KRATOS_CATCH( "" )
     }
     
-    //------------------------------------------------------------------------------------
-
-    void FinalizeSolutionStep(unsigned int iteration_number, bool possible_convergence, double DLambdaStep)
-    {
-        KRATOS_TRY
-
-        mRadius = mRadius*sqrt(double(mDesiredIterations)/double(iteration_number));
-
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb = *mpb;
-
-        if (possible_convergence == true)
-        {
-            if (mRadius > mMaxRadiusFactor*mRadius_0)
-                mRadius = mMaxRadiusFactor*mRadius_0;
-            else if(mRadius < mMinRadiusFactor*mRadius_0)
-                mRadius = mMinRadiusFactor*mRadius_0;
-
-            BaseType::GetModelPart().GetProcessInfo()[NO_CONVERGENCE] = 0;
-        }
-        else
-        {
-            std::cout << "************ IMPOSSIBLE CONVERGENCE: redressing equilibrium path ************" << std::endl;
-
-            TSystemVectorType& mDxStep = *mpDxStep;
-            TSystemVectorType& mTotalx = *mpTotalx;
-
-            mLambda -= DLambdaStep;
-            mTotalx -= mDxStep;
-
-            mDx = -mDxStep;
-
-            //update results
-            this->Update(mA, mDx, mb);
-
-            //move the mesh if needed
-            if(BaseType::MoveMeshFlag() == true)
-                BaseType::MoveMesh();
-
-            BaseType::GetModelPart().GetProcessInfo()[NO_CONVERGENCE] = 1;
-        }
-
-        MotherType::FinalizeSolutionStep();
-        
-        KRATOS_CATCH( "" )
-    }
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void Clear()
@@ -547,6 +499,54 @@ protected:
         
         mLambda_old = mLambda;
 
+        KRATOS_CATCH( "" )
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void FinalizeArcLengthSolutionStep(unsigned int iteration_number, bool possible_convergence, double DLambdaStep)
+    {
+        KRATOS_TRY
+
+        mRadius = mRadius*sqrt(double(mDesiredIterations)/double(iteration_number));
+
+        TSystemMatrixType& mA = *mpA;
+        TSystemVectorType& mDx = *mpDx;
+        TSystemVectorType& mb = *mpb;
+
+        if (possible_convergence == true)
+        {
+            if (mRadius > mMaxRadiusFactor*mRadius_0)
+                mRadius = mMaxRadiusFactor*mRadius_0;
+            else if(mRadius < mMinRadiusFactor*mRadius_0)
+                mRadius = mMinRadiusFactor*mRadius_0;
+
+            BaseType::GetModelPart().GetProcessInfo()[NO_CONVERGENCE] = 0;
+        }
+        else
+        {
+            std::cout << "************ IMPOSSIBLE CONVERGENCE: redressing equilibrium path ************" << std::endl;
+
+            TSystemVectorType& mDxStep = *mpDxStep;
+            TSystemVectorType& mTotalx = *mpTotalx;
+
+            mLambda -= DLambdaStep;
+            mTotalx -= mDxStep;
+
+            mDx = -mDxStep;
+
+            //update results
+            this->Update(mA, mDx, mb);
+
+            //move the mesh if needed
+            if(BaseType::MoveMeshFlag() == true)
+                BaseType::MoveMesh();
+
+            BaseType::GetModelPart().GetProcessInfo()[NO_CONVERGENCE] = 1;
+        }
+
+        MotherType::FinalizeSolutionStep();
+        
         KRATOS_CATCH( "" )
     }
 
