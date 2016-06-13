@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/linear_elastic_plastic_3D_law.hpp"
+#include "custom_constitutive/linear_elastic_plastic_plane_strain_2D_law.hpp"
 
 
 
@@ -23,7 +23,7 @@ namespace Kratos
 {
 
 
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) LinearElasticPlasticPlaneStress2DLaw : public LinearElasticPlastic3DLaw
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) LinearElasticPlasticPlaneStress2DLaw : public LinearElasticPlasticPlaneStrain2DLaw
 {
 public:
     /**
@@ -124,23 +124,6 @@ protected:
     ///@{
 
     /**
-     * Calculates the GreenLagrange strains
-     * @param rRightCauchyGreen
-     * @param rStrainVector
-     */
-    virtual void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
-            Vector& rStrainVector );
-
-
-    /**
-     * Calculates the Almansi strains
-     * @param rRightCauchyGreen
-     * @param rStrainVector
-     */
-    virtual void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
-                                         Vector& rStrainVector );
-
-    /**
      * calculates the linear elastic constitutive matrix in terms of Young's modulus and
      * Poisson ratio
      * @param E the Young's modulus
@@ -149,9 +132,9 @@ protected:
      */
 
 
-    void CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix,
-                                    const double &rYoungModulus,
-                                    const double &rPoissonCoefficient );
+    void CalculateLinearElasticMatrix( Matrix& rLinearElasticMatrix,
+                                    const double& YoungModulus,
+                                    const double& PoissonCoefficient );
 
     ///@}
 
@@ -189,12 +172,12 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LinearElasticPlastic3DLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LinearElasticPlasticPlaneStrain2DLaw )
     }
 
     virtual void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearElasticPlastic3DLaw )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearElasticPlasticPlaneStrain2DLaw )
     }
 
 

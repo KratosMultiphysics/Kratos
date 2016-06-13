@@ -102,15 +102,10 @@ void  LinearElasticPlastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValu
     CheckParameters(rValues);
 
     //b.- Get Values to compute the constitutive law:
-    Flags &Options=rValues.GetOptions();
-
-    const ProcessInfo&  CurProcessInfo    = rValues.GetProcessInfo();
-    const Properties& MaterialProperties  = rValues.GetMaterialProperties();    
-    const GeometryType& DomainGeometry   = rValues.GetElementGeometry();
-    
-    Vector& StrainVector                  = rValues.GetStrainVector();
-    Vector& StressVector                  = rValues.GetStressVector();
-    Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
+    Flags& Options                        = rValues.GetOptions();
+    const ProcessInfo& CurrentProcessInfo = rValues.GetProcessInfo();
+    const Properties& MaterialProperties  = rValues.GetMaterialProperties();   
+    Vector& rStrainVector                 = rValues.GetStrainVector();
     
     //-----------------------------//
 
@@ -119,16 +114,31 @@ void  LinearElasticPlastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValu
     ReturnMappingVariables.initialize(); //it has to be called at the start
 
     // Initialize variables from the process information
-    ReturnMappingVariables.DeltaTime = CurProcessInfo[DELTA_TIME];
+    ReturnMappingVariables.DeltaTime = CurrentProcessInfo[DELTA_TIME];
     
-    if(CurProcessInfo[IMPLEX] == 1)	
+    if(CurrentProcessInfo[IMPLEX] == 1)	
         ReturnMappingVariables.Options.Set(FlowRule::IMPLEX_ACTIVE,true);
     else
         ReturnMappingVariables.Options.Set(FlowRule::IMPLEX_ACTIVE,false);
 
+    // Strain and Stress matrices
+    Matrix AuxMatrix = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+    const unsigned int Dim = AuxMatrix.size1();
+    ReturnMappingVariables.StrainMatrix.resize(Dim,Dim,false);
+    noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
+    ReturnMappingVariables.TrialIsoStressMatrix.resize(Dim,Dim,false);
+    
+    // CharacteristicSize
+    double CharacteristicSize = 1.0;
+    this->CalculateCharacteristicSize(CharacteristicSize,rValues.GetElementGeometry());
+    ReturnMappingVariables.CharacteristicSize = CharacteristicSize;
+
     //1.- Lame constants
-    const double& YoungModulus          = MaterialProperties[YOUNG_MODULUS];
-    const double& PoissonCoefficient    = MaterialProperties[POISSON_RATIO];
+    const double& YoungModulus = MaterialProperties[YOUNG_MODULUS];
+    const double& PoissonCoefficient = MaterialProperties[POISSON_RATIO];
+    const unsigned int VoigtSize = rStrainVector.size();
+    Matrix LinearElasticMatrix (VoigtSize,VoigtSize);
+    this->CalculateLinearElasticMatrix(LinearElasticMatrix,YoungModulus,PoissonCoefficient);
 
     if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
     {
@@ -140,35 +150,49 @@ void  LinearElasticPlastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValu
         Matrix RightCauchyGreen = prod(trans(DeformationGradientF),DeformationGradientF);
 
         //3.-Green-Lagrange Strain: E= 0.5*(FT*F-1)
-        this->CalculateGreenLagrangeStrain(RightCauchyGreen,StrainVector);
+        this->CalculateGreenLagrangeStrain(RightCauchyGreen,rStrainVector);
 
     }
 
     //2.-Calculate Total PK2 stress
     
-    Matrix LinearElasticMatrix = ZeroMatrix(StressVector.size(), StressVector.size());
-    
-    if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
+    if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
     {
-        this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
-        LinearElasticMatrix = ConstitutiveMatrix;
-        
-        this->CalculateStress( StressVector,LinearElasticMatrix,StrainVector,DomainGeometry,ReturnMappingVariables );
-    }
+        if(Options.IsNot(ConstitutiveLaw::COMPUTE_STRESS))
+        {
+            // COMPUTE_CONSTITUTIVE_TENSOR
+            Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+            Vector EffectiveStressVector(VoigtSize);
 
-    if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
+            this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,EffectiveStressVector,LinearElasticMatrix,rStrainVector);
+
+            this->CalculateConstitutiveMatrix(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
+        }
+        else
+        {
+            // COMPUTE_CONSTITUTIVE_TENSOR && COMPUTE_STRESS
+            Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+            Vector& rStressVector = rValues.GetStressVector();
+            
+            this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
+            
+            this->CalculateConstitutiveMatrix(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
+        }
+    }
+    else if(Options.Is(ConstitutiveLaw::COMPUTE_STRESS) && Options.IsNot( ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE ))
     {
-        this->CalculateSecantConstitutiveMatrix( ConstitutiveMatrix, ReturnMappingVariables );
+        // COMPUTE_STRESS
+        Vector& rStressVector = rValues.GetStressVector();
         
-        if(ReturnMappingVariables.Options.Is(FlowRule::PLASTIC_REGION))
-            this->CalculateTangentConstitutiveMatrix( ConstitutiveMatrix, LinearElasticMatrix, ReturnMappingVariables );
+        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
     }
 
     if( Options.Is( ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE ) )
     {
-        mpFlowRule->UpdateInternalVariables( ReturnMappingVariables );
+        Vector& rStressVector = rValues.GetStressVector();
+        
+        this->UpdateInternalVariables(ReturnMappingVariables,rStressVector,LinearElasticMatrix,rStrainVector);
     }
-
 }
 
 //************************************************************************************
@@ -183,15 +207,10 @@ void LinearElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     CheckParameters(rValues);
 
     //b.- Get Values to compute the constitutive law:
-    Flags &Options=rValues.GetOptions();
-
-    const ProcessInfo&  CurProcessInfo   = rValues.GetProcessInfo();
-    const Properties& MaterialProperties = rValues.GetMaterialProperties();   
-    const GeometryType& DomainGeometry   = rValues.GetElementGeometry();
-
-    Vector& StrainVector                 = rValues.GetStrainVector();
-    Vector& StressVector                 = rValues.GetStressVector();
-    Matrix& ConstitutiveMatrix           = rValues.GetConstitutiveMatrix();
+    Flags& Options                        = rValues.GetOptions();
+    const ProcessInfo& CurrentProcessInfo = rValues.GetProcessInfo();
+    const Properties& MaterialProperties  = rValues.GetMaterialProperties();   
+    Vector& rStrainVector                 = rValues.GetStrainVector();
 
     //-----------------------------//
 
@@ -200,16 +219,32 @@ void LinearElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     ReturnMappingVariables.initialize(); //it has to be called at the start
 
     // Initialize variables from the process information
-    ReturnMappingVariables.DeltaTime = CurProcessInfo[DELTA_TIME];
+    ReturnMappingVariables.DeltaTime = CurrentProcessInfo[DELTA_TIME];
     
-    if(CurProcessInfo[IMPLEX] == 1)	
+    if(CurrentProcessInfo[IMPLEX] == 1)	
         ReturnMappingVariables.Options.Set(FlowRule::IMPLEX_ACTIVE,true);
     else
         ReturnMappingVariables.Options.Set(FlowRule::IMPLEX_ACTIVE,false);
 
+    // Strain and Stress matrices
+    Matrix AuxMatrix = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+    const unsigned int Dim = AuxMatrix.size1();
+    ReturnMappingVariables.StrainMatrix.resize(Dim,Dim,false);
+    noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
+    ReturnMappingVariables.TrialIsoStressMatrix.resize(Dim,Dim,false);
+    
+    // CharacteristicSize
+    double CharacteristicSize = 1.0;
+    this->CalculateCharacteristicSize(CharacteristicSize,rValues.GetElementGeometry());
+    ReturnMappingVariables.CharacteristicSize = CharacteristicSize;
+
     //1.- Lame constants
-    const double& YoungModulus          = MaterialProperties[YOUNG_MODULUS];
-    const double& PoissonCoefficient    = MaterialProperties[POISSON_RATIO];
+    const double& YoungModulus = MaterialProperties[YOUNG_MODULUS];
+    const double& PoissonCoefficient = MaterialProperties[POISSON_RATIO];
+    const unsigned int VoigtSize = rStrainVector.size();
+    Matrix LinearElasticMatrix (VoigtSize,VoigtSize);
+    this->CalculateLinearElasticMatrix(LinearElasticMatrix,YoungModulus,PoissonCoefficient);
+
 
     if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
     {
@@ -220,33 +255,57 @@ void LinearElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
         Matrix LeftCauchyGreenMatrix = prod(DeformationGradientF,trans(DeformationGradientF));
 
         //3.-Almansi Strain: e= 0.5*(1-invFT*invF)
-        this->CalculateAlmansiStrain(LeftCauchyGreenMatrix,StrainVector);
+        this->CalculateAlmansiStrain(LeftCauchyGreenMatrix,rStrainVector);
     }
 
     //2.-Calculate Total Kirchhoff stress
     
-    Matrix LinearElasticMatrix = ZeroMatrix(StressVector.size(),StressVector.size());
-    
-    if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
+    if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
     {
-        this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
-        LinearElasticMatrix = ConstitutiveMatrix;
-        
-        this->CalculateStress( StressVector,LinearElasticMatrix,StrainVector,DomainGeometry,ReturnMappingVariables );
-    }
+        if(Options.IsNot(ConstitutiveLaw::COMPUTE_STRESS))
+        {
+            // COMPUTE_CONSTITUTIVE_TENSOR
+            Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+            Vector EffectiveStressVector(VoigtSize);
 
-    if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
+            this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,EffectiveStressVector,LinearElasticMatrix,rStrainVector);
+
+            this->CalculateConstitutiveMatrix(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
+        }
+        else
+        {
+            // COMPUTE_CONSTITUTIVE_TENSOR && COMPUTE_STRESS
+            Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+            Vector& rStressVector = rValues.GetStressVector();
+            
+            this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
+            
+            this->CalculateConstitutiveMatrix(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
+        }
+    }
+    else if(Options.Is(ConstitutiveLaw::COMPUTE_STRESS) && Options.IsNot( ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE ))
     {
-        this->CalculateSecantConstitutiveMatrix( ConstitutiveMatrix, ReturnMappingVariables );
+        // COMPUTE_STRESS
+        Vector& rStressVector = rValues.GetStressVector();
         
-        if(ReturnMappingVariables.Options.Is(FlowRule::PLASTIC_REGION))
-            this->CalculateTangentConstitutiveMatrix( ConstitutiveMatrix, LinearElasticMatrix, ReturnMappingVariables );
+        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
     }
 
     if( Options.Is( ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE ) )
     {
-        mpFlowRule->UpdateInternalVariables( ReturnMappingVariables );
+        Vector& rStressVector = rValues.GetStressVector();
+        
+        this->UpdateInternalVariables(ReturnMappingVariables,rStressVector,LinearElasticMatrix,rStrainVector);
     }
+}
+
+
+//********************** COMPUTE ELEMENT CHARACTERISTIC SIZE *************************
+//************************************************************************************
+
+void LinearElasticPlastic3DLaw::CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& DomainGeometry )
+{
+    
 }
 
 
@@ -254,86 +313,74 @@ void LinearElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
 //************************************************************************************
 
 
-void LinearElasticPlastic3DLaw::CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix,const double &rYoungModulus,const double &rPoissonCoefficient )
+void LinearElasticPlastic3DLaw::CalculateLinearElasticMatrix( Matrix& rLinearElasticMatrix,const double& YoungModulus,const double& PoissonCoefficient )
 {
-    rConstitutiveMatrix.clear();
+    rLinearElasticMatrix.clear();
+    
+    // 3D linear elastic constitutive matrix
+    rLinearElasticMatrix ( 0 , 0 ) = (YoungModulus*(1.0-PoissonCoefficient)/((1.0+PoissonCoefficient)*(1.0-2.0*PoissonCoefficient)));
+    rLinearElasticMatrix ( 1 , 1 ) = rLinearElasticMatrix ( 0 , 0 );
+    rLinearElasticMatrix ( 2 , 2 ) = rLinearElasticMatrix ( 0 , 0 );
 
-    rConstitutiveMatrix ( 0 , 0 ) = (rYoungModulus*(1.0-rPoissonCoefficient)/((1.0+rPoissonCoefficient)*(1.0-2.0*rPoissonCoefficient)));
-    rConstitutiveMatrix ( 1 , 1 ) = rConstitutiveMatrix ( 0 , 0 );
-    rConstitutiveMatrix ( 2 , 2 ) = rConstitutiveMatrix ( 0 , 0 );
+    rLinearElasticMatrix ( 3 , 3 ) = rLinearElasticMatrix ( 0 , 0 )*(1.0-2.0*PoissonCoefficient)/(2.0*(1.0-PoissonCoefficient));
+    rLinearElasticMatrix ( 4 , 4 ) = rLinearElasticMatrix ( 3 , 3 );
+    rLinearElasticMatrix ( 5 , 5 ) = rLinearElasticMatrix ( 3 , 3 );
 
-    rConstitutiveMatrix ( 3 , 3 ) = rConstitutiveMatrix ( 0 , 0 )*(1-2*rPoissonCoefficient)/(2.0*(1.0-rPoissonCoefficient));
-    rConstitutiveMatrix ( 4 , 4 ) = rConstitutiveMatrix ( 3 , 3 );
-    rConstitutiveMatrix ( 5 , 5 ) = rConstitutiveMatrix ( 3 , 3 );
+    rLinearElasticMatrix ( 0 , 1 ) = rLinearElasticMatrix ( 0 , 0 )*PoissonCoefficient/(1.0-PoissonCoefficient);
+    rLinearElasticMatrix ( 1 , 0 ) = rLinearElasticMatrix ( 0 , 1 );
 
-    rConstitutiveMatrix ( 0 , 1 ) = rConstitutiveMatrix ( 0 , 0 )*rPoissonCoefficient/(1.0-rPoissonCoefficient);
-    rConstitutiveMatrix ( 1 , 0 ) = rConstitutiveMatrix ( 0 , 1 );
+    rLinearElasticMatrix ( 0 , 2 ) = rLinearElasticMatrix ( 0 , 1 );
+    rLinearElasticMatrix ( 2 , 0 ) = rLinearElasticMatrix ( 0 , 1 );
 
-    rConstitutiveMatrix ( 0 , 2 ) = rConstitutiveMatrix ( 0 , 1 );
-    rConstitutiveMatrix ( 2 , 0 ) = rConstitutiveMatrix ( 0 , 1 );
-
-    rConstitutiveMatrix ( 1 , 2 ) = rConstitutiveMatrix ( 0 , 1 );
-    rConstitutiveMatrix ( 2 , 1 ) = rConstitutiveMatrix ( 0 , 1 );
+    rLinearElasticMatrix ( 1 , 2 ) = rLinearElasticMatrix ( 0 , 1 );
+    rLinearElasticMatrix ( 2 , 1 ) = rLinearElasticMatrix ( 0 , 1 );
 }
 
 
-//******************************* COMPUTE STRESS *************************************
+//********************************* RETURN MAPPING ***********************************
 //************************************************************************************
 
-void LinearElasticPlastic3DLaw::CalculateStress( Vector& rStressVector, const Matrix& rLinearElasticMatrix, const Vector& rStrainVector,
-                                                 const GeometryType& rDomainGeometry, FlowRule::RadialReturnVariables& rReturnMappingVariables )
-{
-
-    //1.-2nd Piola Kirchhoff StressVector or Cauchy StressVector
-
-    noalias(rStressVector) = prod(rLinearElasticMatrix, rStrainVector);
-    Matrix StressMatrix = MathUtils<double>::StressVectorToTensor(rStressVector);
-    rReturnMappingVariables.TrialIsoStressMatrix = StressMatrix;
+void LinearElasticPlastic3DLaw::CalculateReturnMapping( FlowRule::RadialReturnVariables& rReturnMappingVariables, Matrix& rStressMatrix, 
+                                                        Vector& rStressVector, const Matrix& LinearElasticMatrix, const Vector& StrainVector )
+{    
+    noalias(rStressVector) = prod(LinearElasticMatrix, StrainVector);
+    noalias(rReturnMappingVariables.TrialIsoStressMatrix) = MathUtils<double>::StressVectorToTensor(rStressVector);
     
-    Matrix StrainMatrix = MathUtils<double>::StrainVectorToTensor(rStrainVector);
-    rReturnMappingVariables.StrainMatrix = StrainMatrix;
+    mpFlowRule->CalculateReturnMapping( rReturnMappingVariables, rStressMatrix );
     
-    //Element characteristic size
-    double CharacteristicSize = 1.0;
-    this->CalculateCharacteristicSize(CharacteristicSize,rDomainGeometry);
-    rReturnMappingVariables.CharacteristicSize = CharacteristicSize;
-    
-    mpFlowRule->CalculateReturnMapping( rReturnMappingVariables, StressMatrix );
-    
-    rStressVector = MathUtils<double>::StressTensorToVector( StressMatrix, rStressVector.size() );
+    noalias(rStressVector) = MathUtils<double>::StressTensorToVector( rStressMatrix, StrainVector.size() );
 }
 
 
-//********************** COMPUTE ELEMENT CHARACTERISTIC SIZE *************************
+//*************************** COMPUTE CONSTITUTIVE MATRIX ****************************
 //************************************************************************************
 
-void LinearElasticPlastic3DLaw::CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& rDomainGeometry )
+void LinearElasticPlastic3DLaw::CalculateConstitutiveMatrix( Matrix& rConstitutiveMatrix, FlowRule::RadialReturnVariables& rReturnMappingVariables,
+                                                                const Matrix& LinearElasticMatrix )
 {
+    // Calculate secant component of the constitutive matrix
+    noalias(rConstitutiveMatrix) = (1.0 - rReturnMappingVariables.TrialStateFunction)*LinearElasticMatrix; // Csec = (1-d)*Ce
 
+    // Calculate tangent component if necessary
+    if(rReturnMappingVariables.Options.Is(FlowRule::PLASTIC_REGION))
+    {
+        double Alpha = 1.0;
+
+        mpFlowRule->ComputeElastoPlasticTangentMatrix(rReturnMappingVariables, LinearElasticMatrix, Alpha, rConstitutiveMatrix);
+    }
 }
 
 
-//********************** COMPUTE SECANT CONSTITUTIVE MATRIX **************************
+//**************************** UPDATE INTERNAL VARIABLES *****************************
 //************************************************************************************
 
-void LinearElasticPlastic3DLaw::CalculateSecantConstitutiveMatrix( Matrix& rConstitutiveMatrix, FlowRule::RadialReturnVariables& rReturnMappingVariables )
-{
-
-}
-
-
-//********************** COMPUTE TANGENT CONSTITUTIVE MATRIX **************************
-//************************************************************************************
-
-void LinearElasticPlastic3DLaw::CalculateTangentConstitutiveMatrix( Matrix& rConstitutiveMatrix, const Matrix& rLinearElasticMatrix, 
-                                                                    FlowRule::RadialReturnVariables& rReturnMappingVariables )
-{
-    double Alpha = 1.0;
-    Matrix TangentConstitutiveMatrix = ZeroMatrix(rConstitutiveMatrix.size1(), rConstitutiveMatrix.size2());
+void LinearElasticPlastic3DLaw::UpdateInternalVariables( FlowRule::RadialReturnVariables& rReturnMappingVariables,Vector& rStressVector,
+                                                            const Matrix& LinearElasticMatrix, const Vector& StrainVector )
+{    
+    noalias(rStressVector) = prod(LinearElasticMatrix, StrainVector);
+    noalias(rReturnMappingVariables.TrialIsoStressMatrix) = MathUtils<double>::StressVectorToTensor(rStressVector);
     
-    mpFlowRule->ComputeElastoPlasticTangentMatrix(rReturnMappingVariables, rLinearElasticMatrix, Alpha, TangentConstitutiveMatrix);
-    
-    noalias(rConstitutiveMatrix) += TangentConstitutiveMatrix;
+    mpFlowRule->UpdateInternalVariables( rReturnMappingVariables );
 }
 
 
