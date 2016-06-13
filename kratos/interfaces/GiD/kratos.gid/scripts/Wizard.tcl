@@ -68,13 +68,7 @@ proc Wizard::CreateWindow {} {
     wm deiconify $wizwindow
 
     # Tamaños !
-    if {[gid_themes::GetCurrentTheme] == "GiD_black"} {     
-         wm minsize $wizwindow 750 640 
-         wm maxsize $wizwindow 750 640 
-    } else {
-         wm minsize $wizwindow 750 580 
-         wm maxsize $wizwindow 750 580 
-    }
+    SetWindowSize 700 500
     
     # First destroy all defined command (snit step data type)
     #foreach cmdid [info commands ::Wizard::*] {
@@ -89,7 +83,6 @@ proc Wizard::CreateWindow {} {
         catch {$stepId destroy}
         lappend nssteplist ::Wizard::${stepId}
         
-        #::gid_wizard::wizardstep $stepId -title [= "Step $i: $stepId"] -layout basic -body [list ::WizardSolid::Wizard::$stepId $win]
         ::gid_wizard::wizardstep $stepId -title [= "Step $i: $stepId"] -layout basic -body "::${wizardid}::Wizard::$stepId \$win"
     }
     
@@ -99,6 +92,8 @@ proc Wizard::CreateWindow {} {
          
     # Start the wizard
     $wizwindow.w start
+    
+    bind $wizwindow <<WizNext>> [list Wizard::NextEvent %d]
 }
 
 proc Wizard::DestroyWindow {} {
@@ -106,6 +101,13 @@ proc Wizard::DestroyWindow {} {
     
     catch {destroy $wizwindow}
     return ""
+}
+
+proc Wizard::NextEvent {step} {
+    variable wizardid
+    variable stepidlist
+    set stepId [lindex $stepidlist $step]
+    ::${wizardid}::Wizard::Next$stepId
 }
 
 
@@ -157,6 +159,13 @@ proc Wizard::GetStepProperties { stepid } {
         if {[lindex [split $key ","] 0] eq $stepid} {if {[lindex [split $key ","] 1] ni $lista} {lappend lista [lindex [split $key ","] 1]}}
     }
     return $lista
+}
+
+proc Wizard::SetWindowSize {x y} {
+    variable wizwindow
+    wm minsize $wizwindow $x $y
+    wm maxsize $wizwindow $x $y
+    
 }
 
 Wizard::Init
