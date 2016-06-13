@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import *
 
-class TestModelPart(KratosUnittest.TestCase):
+class TestGeometry(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
@@ -18,10 +18,6 @@ class TestModelPart(KratosUnittest.TestCase):
     def test_tetrahedra_2D6N(self):
         tester = GeometryTesterUtility()
         self.assertTrue( tester.TestTriangle2D6N( ) )
-
-    def test_tetrahedra_3D4N(self):
-        tester = GeometryTesterUtility()
-        self.assertTrue( tester.TestTetrahedra3D4N( ) )
 
     def test_tetrahedra_3D10N(self):
         tester = GeometryTesterUtility()
