@@ -1,13 +1,13 @@
-from KratosMultiphysics import *
-from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.StructuralMechanicsApplication import *
+import KratosMultiphysics
+import KratosMultiphysics.SolidMechanicsApplication 
+import KratosMultiphysics.StructuralMechanicsApplication 
       
 def Factory(settings, Model):
-    if(type(settings) != Parameters):
+    if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return SPRISMProcess(Model, settings["Parameters"])
 
-class SPRISMProcess(Process, KratosUnittest.TestCase):
+class SPRISMProcess(KratosMultiphysics.Process):
   
     def __init__(self,model_part,params):
 
@@ -15,7 +15,7 @@ class SPRISMProcess(Process, KratosUnittest.TestCase):
         self.params = params
         
     def ExecuteInitialize(self):
-        sprism_neighbour_search = SprismNeighbours(self.model_part)
+        sprism_neighbour_search = KratosMultiphysics.StructuralMechanicsApplication.SprismNeighbours(self.model_part)
         sprism_neighbour_search.Execute()
     
     def ExecuteBeforeSolutionLoop(self):

@@ -1,24 +1,24 @@
  
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# Importing the Kratos Library // TODO: Remove this libraies
-from KratosMultiphysics import *
-from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.StructuralMechanicsApplication import *
+# Importing the Kratos Library 
+import KratosMultiphysics 
+import KratosMultiphysics.SolidMechanicsApplication
+import KratosMultiphysics.StructuralMechanicsApplication
 
-CheckForPreviousImport()
+KratosMultiphysics.CheckForPreviousImport()
 
 def Factory(settings, Model):
-    if(type(settings) != Parameters):
+    if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return ContactProcess(Model, settings["Parameters"])
 
-class ContactProcess(Process):
+class ContactProcess(KratosMultiphysics.Process):
   
     def __init__(self,model_part,params):
         
                 
         ##settings string in json format
-        default_parameters = Parameters("""
+        default_parameters = KratosMultiphysics.Parameters("""
         {
             "origin_model_part_name"      : "",
             "destination_model_part_name" : "",
@@ -50,16 +50,16 @@ class ContactProcess(Process):
     def ExecuteInitialize(self):
         
         for node in self.o_model_part.Nodes:
-            node.Set(INTERFACE,True)
+            node.Set(KratosMultiphysics.INTERFACE,True)
         del(node)
         
         for node in self.d_model_part.Nodes:
-            node.Set(INTERFACE,True)
+            node.Set(KratosMultiphysics.INTERFACE,True)
         del(node)
         
-        self.Preprocess  = InterfacePreprocessCondition()
-        self.o_interface = ModelPart("origin_interface")
-        self.d_interface = ModelPart("destination_interface")
+        self.Preprocess  = KratosMultiphysics.StructuralMechanicsApplication.InterfacePreprocessCondition()
+        self.o_interface = KratosMultiphysics.ModelPart("origin_interface")
+        self.d_interface = KratosMultiphysics.ModelPart("destination_interface")
         
         if self.params["contact_type"].GetString() == "MortarMethod":
             condition_name = "MortarContact"
@@ -71,7 +71,7 @@ class ContactProcess(Process):
         self.Preprocess.GenerateInterfacePart(self.o_model_part, self.o_interface, condition_name) #It should create the conditions automatically
         self.Preprocess.GenerateInterfacePart(self.d_model_part, self.d_interface, condition_name)
         
-        self.contact_search = TreeContactSearch(self.o_interface, self.d_interface, self.allocation_size)
+        self.contact_search = KratosMultiphysics.StructuralMechanicsApplication.TreeContactSearch(self.o_interface, self.d_interface, self.allocation_size)
         
         if self.params["contact_type"].GetString() == "MortarMethod":
             self.contact_search.CreatePointListMortar()
