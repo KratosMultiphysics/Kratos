@@ -9,10 +9,8 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanical_solver",
-        "solution_type"                      : "Dynamic",
-        "time_integration_method"            : "Implicit",
-        "scheme_type"                        : "QuasiStatic",
+        "solver_type"                        : "structural_mechanics_static_solver",
+        "solution_type"                      : "Static",
         "echo_level"      					 : 0,
         "model_import_settings"              : {
             "input_type"     : "mdpa",
@@ -32,9 +30,9 @@
             "tolerance": 1e-9,
             "scaling": false,
             "verbosity": 1
-        },
-        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1"]
+    },
+    "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
+    "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1"]
     },
     "constraints_process_list" : [],
     "loads_process_list" : [],

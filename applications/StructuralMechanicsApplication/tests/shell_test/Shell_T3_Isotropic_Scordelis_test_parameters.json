@@ -9,7 +9,7 @@
         "echo_level"      : 3
     },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanical_solver",
+        "solver_type"                        : "structural_mechanics_static_solver",
         "solution_type"                      : "Static",
         "echo_level"      					 : 0,
         "model_import_settings"              : {
