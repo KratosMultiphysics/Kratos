@@ -96,7 +96,7 @@ void MortarContact2DCondition::Initialize( )
 
     // TODO Add content
     
-    std::vector<contact_container> * ContactContainer = this->GetValue(CONTACT_CONTAINERS);
+    //std::vector<contact_container> * ContactContainer = this->GetValue(CONTACT_CONTAINERS);
 
     KRATOS_CATCH( "" );
 }
@@ -637,7 +637,7 @@ void MortarContact2DCondition::CalculateDAndM(
     )
 {
     const unsigned int dimension = 2;
-    const unsigned int num_slave_nodes  = GetGeometry( ).PointsNumber( );
+    //const unsigned int num_slave_nodes  = GetGeometry( ).PointsNumber( );
     const unsigned int num_master_nodes = rVariables.GetMasterElement( ).PointsNumber( );
 
     const Vector& N_s = rVariables.N_Slave;
@@ -747,7 +747,7 @@ void MortarContact2DCondition::CalculateDeltaJSlave(
     {
         // Prerequisites
         const unsigned int dimension = 2;
-        const unsigned int num_active_nodes = mThisActiveSlaveNodes.size( );
+        //const unsigned int num_active_nodes = mThisActiveSlaveNodes.size( );
 
         const double& J_s = rVariables.DetJSlave;
         const MatrixType& DN_De_s = rVariables.DN_De_Slave;
@@ -858,19 +858,19 @@ void MortarContact2DCondition::CalculateDeltaDiscreteGap(
     const unsigned int dimension = 2;
     const unsigned int num_slave_nodes    = GetGeometry( ).PointsNumber( );
     const unsigned int num_master_nodes   = rVariables.GetMasterElement( ).PointsNumber( );
-    const unsigned int num_inactive_nodes = mThisInactiveSlaveNodes.size( );
-    const unsigned int num_active_nodes   = mThisActiveSlaveNodes.size( );
+    //const unsigned int num_inactive_nodes = mThisInactiveSlaveNodes.size( );
+    //const unsigned int num_active_nodes   = mThisActiveSlaveNodes.size( );
 
-    const unsigned int i_master_elem = rVariables.GetMasterElementIndex( );
+    //const unsigned int i_master_elem = rVariables.GetMasterElementIndex( );
     const std::vector< contact_container > all_containers = *GetValue( CONTACT_CONTAINERS );
 
     const Vector& N_s = rVariables.N_Slave;
-    const Vector& N_m = rVariables.N_Master;
+    //const Vector& N_m = rVariables.N_Master;
 
-    const double& gap_gp    = rVariables.IntegrationPointNormalGap;
-    const Vector& normal_gp = rVariables.IntegrationPointNormalVector;
+    //const double& gap_gp    = rVariables.IntegrationPointNormalGap;
+    //const Vector& normal_gp = rVariables.IntegrationPointNormalVector;
 
-    Matrix& Delta_gh = mThisMortarConditionMatrices.DeltaDiscreteGap;
+    //Matrix& Delta_gh = mThisMortarConditionMatrices.DeltaDiscreteGap;
 
     Matrix sum_Delta_normal_gp = ZeroMatrix( dimension, dimension * ( num_master_nodes + num_slave_nodes ) );
     for (int i_slave = 0; i_slave < num_slave_nodes; ++i_slave)
@@ -933,7 +933,7 @@ void MortarContact2DCondition::CalculateDeltaIntegrationPointNormal(
     const unsigned int dimension = 2;
     const unsigned int num_slave_nodes  = GetGeometry( ).PointsNumber( );
     const unsigned int num_master_nodes = rVariables.GetMasterElement( ).PointsNumber( );
-    const unsigned int num_total_nodes = num_slave_nodes + num_master_nodes;
+    //const unsigned int num_total_nodes = num_slave_nodes + num_master_nodes;
 
     // Obtain the averaged nodal normal and its norm
     array_1d<double, 3> nodal_normal = GetGeometry()[rIndexSlave].FastGetSolutionStepValue(NORMAL);
@@ -1072,7 +1072,7 @@ void MortarContact2DCondition::CalculateNormalGapAtIntegrationPoint(
     )
 {
     // TODO: Put in common with Mohamed, duplicated work respect the mapper
-    const unsigned int dimension = 2;
+    //const unsigned int dimension = 2;
     const unsigned int num_slave_nodes = GetGeometry( ).PointsNumber( );
 
     // Calculate the normal at the integration point
