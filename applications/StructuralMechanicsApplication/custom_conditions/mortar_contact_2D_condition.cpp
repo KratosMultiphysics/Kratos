@@ -1200,7 +1200,7 @@ void MortarContact2DCondition::AssembleContactPairLHSToConditionSystem(
     unsigned int index_begin = 0;
     unsigned int index_end = 0;
 
-    for (int i_master_elem = 0; i_master_elem < rMasterElementIndex - 1; ++i_master_elem)
+    for (unsigned int i_master_elem = 0; i_master_elem < rMasterElementIndex - 1; ++i_master_elem)
     {
         index_begin += mThisMasterElements[i_master_elem]->PointsNumber( );
     }
@@ -1317,7 +1317,7 @@ void MortarContact2DCondition::AssembleContactPairRHSToConditionSystem(
     unsigned int index_begin = 0;
     unsigned int index_end = 0;
 
-    for (int i_master_elem = 0; i_master_elem < rMasterElementIndex - 1; ++i_master_elem)
+    for (unsigned int i_master_elem = 0; i_master_elem < rMasterElementIndex - 1; ++i_master_elem)
     {
         index_begin += mThisMasterElements[i_master_elem]->PointsNumber( );
     }
@@ -1522,14 +1522,14 @@ void MortarContact2DCondition::EquationIdVector(
     EquationIdVectorType& rResult,
     ProcessInfo& CurrentProcessInfo )
 {
-    KRATOS_TRY
+    KRATOS_TRY;
 
     rResult.resize( 0, false );
 
     /* ORDER - [ MASTER, SLAVE_I, SLAVE_A ] */
 
     // Master Nodes Equation IDs
-    for (int i_master_elem = 0; i_master_elem < mThisMasterElements.size( ); ++i_master_elem)
+    for (unsigned int i_master_elem = 0; i_master_elem < mThisMasterElements.size( ); ++i_master_elem)
     {
         const unsigned num_master_nodes = mThisMasterElements[i_master_elem]->PointsNumber( );
         for ( unsigned int iNode = 0; iNode < num_master_nodes; iNode++ )
@@ -1541,7 +1541,7 @@ void MortarContact2DCondition::EquationIdVector(
     }
 
     // Inactive Nodes Equation IDs
-    for (int i_inactive = 0; i_inactive < mThisInactiveSlaveNodes.size( ); ++i_inactive)
+    for (unsigned int i_inactive = 0; i_inactive < mThisInactiveSlaveNodes.size( ); ++i_inactive)
     {
         const unsigned int iNode = mThisInactiveSlaveNodes[i_inactive];
         NodeType& slave_node = GetGeometry( )[iNode];
@@ -1553,7 +1553,7 @@ void MortarContact2DCondition::EquationIdVector(
     }
 
     // Active Nodes Equation IDs
-    for (int i_active = 0; i_active < mThisInactiveSlaveNodes.size( ); ++i_active)
+    for (unsigned int i_active = 0; i_active < mThisInactiveSlaveNodes.size( ); ++i_active)
     {
         const unsigned int iNode = mThisInactiveSlaveNodes[i_active];
         NodeType& slave_node = GetGeometry( )[iNode];
@@ -1564,7 +1564,7 @@ void MortarContact2DCondition::EquationIdVector(
         }
     }
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH( "" );
 }
 
 /***********************************************************************************/
@@ -1574,7 +1574,7 @@ void MortarContact2DCondition::GetDofList(
     DofsVectorType& rConditionalDofList,
     ProcessInfo& rCurrentProcessInfo )
 {
-    KRATOS_TRY
+    KRATOS_TRY;
 
     rConditionalDofList.resize( 0 );
 
@@ -1593,7 +1593,7 @@ void MortarContact2DCondition::GetDofList(
     }
 
     // Inactive Nodes Equation IDs
-    for (int i_inactive = 0; i_inactive < mThisInactiveSlaveNodes.size( ); ++i_inactive)
+    for (unsigned int i_inactive = 0; i_inactive < mThisInactiveSlaveNodes.size( ); ++i_inactive)
     {
         const unsigned int iNode = mThisInactiveSlaveNodes[i_inactive];
         NodeType& slave_node = GetGeometry( )[iNode];
@@ -1605,7 +1605,7 @@ void MortarContact2DCondition::GetDofList(
     }
 
     // Active Nodes Equation IDs
-    for (int i_active = 0; i_active < mThisInactiveSlaveNodes.size( ); ++i_active)
+    for (unsigned int i_active = 0; i_active < mThisInactiveSlaveNodes.size( ); ++i_active)
     {
         const unsigned int iNode = mThisInactiveSlaveNodes[i_active];
         NodeType& slave_node = GetGeometry( )[iNode];
@@ -1616,7 +1616,7 @@ void MortarContact2DCondition::GetDofList(
         }
     }
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH( "" );
 }
 
 /***********************************************************************************/

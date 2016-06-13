@@ -416,10 +416,21 @@ void TreeContactSearch::CreateMortarConditions(
                     Point<3> ProjectedPointDestination;
                     const unsigned int number_nodes = pCondOrigin->GetGeometry().PointsNumber();
                     contact_container_origin.contact_gap.resize(number_nodes);
+                    contact_container_origin.active_nodes.resize(number_nodes);
                     
-                    for (unsigned int i = 0; i < number_nodes; i++)
+                    for (unsigned int j = 0; j < number_nodes; j++)
                     {
-                        Project(pCondOrigin->GetGeometry()[i], mPointListOrigin[cond_it]->GetPoint(), ProjectedPointDestination, contact_container_origin.contact_gap[i], contact_normal_orig);
+                        Project(pCondOrigin->GetGeometry()[j], mPointListOrigin[cond_it]->GetPoint(), ProjectedPointDestination, contact_container_origin.contact_gap[j], contact_normal_orig);
+                        array_1d<double, 3> result;
+                        bool inside = pCondOrigin->GetGeometry().IsInside(ProjectedPointDestination, result);
+                        if (inside == true)
+                        {
+                            contact_container_origin.active_nodes[j] = true;
+                        }
+                        else
+                        {
+                            contact_container_origin.active_nodes[j] = false;
+                        }
                     }
                     
 //                     Project(PointsFound[i]->GetPoint(), mPointListOrigin[cond_it]->GetPoint(), ProjectedPointDestination, contact_container_origin.contact_gap, contact_normal_orig);
@@ -476,10 +487,21 @@ void TreeContactSearch::CreateMortarConditions(
                 Point<3> ProjectedPointOrigin;
                 const unsigned int number_nodes = pCondDestination->GetGeometry().PointsNumber();
                 contact_container_destination.contact_gap.resize(number_nodes);
+                contact_container_destination.active_nodes.resize(number_nodes);
                 
-                for (unsigned int i = 0; i < number_nodes; i++)
+                for (unsigned int j = 0; j < number_nodes; j++)
                 {
-                    Project(pCondDestination->GetGeometry()[i], PointsFound[i]->GetPoint(), ProjectedPointOrigin, contact_container_destination.contact_gap[i], contact_normal_dest);
+                    Project(pCondDestination->GetGeometry()[j], PointsFound[i]->GetPoint(), ProjectedPointOrigin, contact_container_destination.contact_gap[j], contact_normal_dest);
+                    array_1d<double, 3> result;
+                    bool inside = pCondDestination->GetGeometry().IsInside(ProjectedPointOrigin, result);
+                    if (inside == true)
+                    {
+                        contact_container_destination.active_nodes[j] = true;
+                    }
+                    else
+                    {
+                        contact_container_destination.active_nodes[j] = false;
+                    }
                 }
                 
 //                 Project(mPointListOrigin[cond_it]->GetPoint(), PointsFound[i]->GetPoint(), ProjectedPointOrigin, contact_container_destination.contact_gap, contact_normal_dest);

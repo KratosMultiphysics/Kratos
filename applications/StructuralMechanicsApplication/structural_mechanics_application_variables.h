@@ -36,21 +36,16 @@ struct contact_container
     double             contact_area;
     std::vector<double> contact_gap;
 //    double              contact_gap;
+    std::vector<bool>  active_nodes;
   
     void save( Serializer& rSerializer ) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, contact_container );
-        rSerializer.save("condition",condition);
-        rSerializer.save("contact_area",contact_area);
-        rSerializer.save("contact_gap",contact_gap);
     }
 
     void load( Serializer& rSerializer )
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, contact_container );
-        rSerializer.load("condition",condition);
-        rSerializer.load("contact_area",contact_area);
-        rSerializer.load("contact_gap",contact_gap);
     }
 };
 
@@ -108,11 +103,11 @@ KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( POINT_TORQUE )
 KRATOS_DEFINE_VARIABLE( std::vector<contact_container>*, CONTACT_CONTAINERS ) // A vector of which contains the structure which defines the contact conditions
 KRATOS_DEFINE_VARIABLE( Element::Pointer, ELEMENT_POINTER )                   // A pointer to the element belonging to this condition
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( CONTACT_MESH_TYING_FORCE )         // The "force" resulting from contact
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( LAGRANGE_MULTIPLIER )        	 // The lagrange multiplier used to enforce the mortar constraint
-KRATOS_DEFINE_VARIABLE( Matrix, CONTACT_STIFFNESS_MATRIX )		// LHS contribution
-KRATOS_DEFINE_VARIABLE( Matrix, GAP_DERIVATIVES_MATRIX )		// LHS contribution
-KRATOS_DEFINE_VARIABLE( Vector, CONTACT_FORCES_VECTOR )			// RHS contribution
-KRATOS_DEFINE_VARIABLE( Vector, NORMAL_GAPS_VECTOR )			// RHS contribution
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( LAGRANGE_MULTIPLIER )              // The lagrange multiplier used to enforce the mortar constraint
+KRATOS_DEFINE_VARIABLE( Matrix, CONTACT_STIFFNESS_MATRIX )                    // LHS contribution
+KRATOS_DEFINE_VARIABLE( Matrix, GAP_DERIVATIVES_MATRIX )                      // LHS contribution
+KRATOS_DEFINE_VARIABLE( Vector, CONTACT_FORCES_VECTOR )                       // RHS contribution
+KRATOS_DEFINE_VARIABLE( Vector, NORMAL_GAPS_VECTOR )                          // RHS contribution
 
 // Adding the SPRISM EAS variables
 KRATOS_DEFINE_VARIABLE(double, ALPHA_EAS);
