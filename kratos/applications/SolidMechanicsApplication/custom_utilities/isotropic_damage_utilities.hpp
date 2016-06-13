@@ -14,58 +14,15 @@
 /* System includes */
 #include <cmath>
 
-/* Project includes */
-
 namespace Kratos
 {
-
-/**@name Kratos Globals */
-/*@{ */
-
-
-/*@} */
-/**@name Type Definitions */
-/*@{ */
-
-/*@} */
-
-
-/**@name  Enum's */
-/*@{ */
-
-
-/*@} */
-/**@name  Functions */
-/*@{ */
-
-
-
-/*@} */
-/**@name Kratos Classes */
-/*@{ */
-
 
 class IsotropicDamageUtilities
 {
 public:
-    /**@name Type Definitions */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Life Cycle
-     */
-    /*@{ */
-
-    /** Constructor.
-     */
-    IsotropicDamageUtilities() {};
-
-    /** Destructor.
-     */
-    ~IsotropicDamageUtilities() {};
-
-    /** Operators.
+    /**
+     * @name type definitions
+     * @{
      */
 
     /**
@@ -73,162 +30,60 @@ public:
      */
     /**
      * Calculates perturbations in each direction of a given vector.
-     * @param v1 the given vector used to obtain the perturbations.
+     * @param InputVector the given vector used to obtain the perturbations.
      */
     
-    Vector PerturbationVector( Vector v1, double min_tol = 1e-10, double max_tol = 1e-5 )
-    {
-        Vector PerturbationVector = ZeroVector(v1.size());
+    static inline void ComputePerturbationVector( Vector& rPerturbationVector, const Vector& InputVector )
+    {        
+        const unsigned int VSize = InputVector.size();
+        if(rPerturbationVector.size() != VSize)
+            rPerturbationVector.resize(VSize,false);
+        
+        const double MinTol = 1.0e-10;
+        const double MaxTol = 1.0e-5;
         
         //Maximum and minimum vector components
-        double max_component = fabs(v1[0]) , min_component = fabs(v1[0]);
+        double max_component = fabs(InputVector[0]) , min_component = fabs(InputVector[0]);
 
-        for( unsigned int i=1; i<v1.size(); i++ )
+        for( unsigned int i=1; i<VSize; i++ )
         {
-            if( fabs(v1[i]) < min_component )
+            if( fabs(InputVector[i]) < min_component )
             {
-                min_component = fabs(v1[i]);
+                min_component = fabs(InputVector[i]);
             }   
-            else if( fabs(v1[i]) > max_component )
+            else if( fabs(InputVector[i]) > max_component )
             {
-                max_component = fabs(v1[i]);
+                max_component = fabs(InputVector[i]);
             }
         }
 
-        double aux = min_component*max_tol;
+        double aux = min_component*MaxTol;
 
-        if( aux < (max_component*min_tol) )
+        if( aux < (max_component*MinTol) )
         {
-            aux = max_component*min_tol;
+            aux = max_component*MinTol;
         }
         
         //PerturbationVector
-        for( unsigned int i=0; i<v1.size(); i++ )
+        for( unsigned int i=0; i<VSize; i++ )
         {
-            if( fabs(v1[i]) > 1e-20 ) // different from zero
+            if( fabs(InputVector[i]) > 1.0e-20 ) // different from zero
             {
-                PerturbationVector[i] = v1[i]*max_tol;
+                rPerturbationVector[i] = InputVector[i]*MaxTol;
             }
-            else if( v1[i] >= 0.0 )
+            else if( InputVector[i] >= 0.0 )
             {
-                PerturbationVector[i] = aux;
+                rPerturbationVector[i] = aux;
             }
             else
             {
-                PerturbationVector[i] = -aux;
+                rPerturbationVector[i] = -aux;
             }
         }
-        
-        return PerturbationVector;
     }
 
-    
-    /*@} */
-    /**@name Operations */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Access */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Friends */
-    /*@{ */
-
-
-    /*@} */
-
-protected:
-    /**@name Protected static Member Variables */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected member Variables */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected Operators*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected Operations*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected  Access */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected LifeCycle */
-    /*@{ */
-
-
-
-    /*@} */
-
-private:
-    /**@name Static Member Variables */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
-
-    /*@} */
-    /**@name Private Operators*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private Operations*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private  Access */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Un accessible methods */
-    /*@{ */
-
-
-    /*@} */
 
 }; /* Class IsotropicDamageUtilities */
-
-/*@} */
-
-/**@name Type Definitions */
-/*@{ */
-
-
-/*@} */
-
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_ISOTROPIC_DAMAGE_UTILITIES defined */
