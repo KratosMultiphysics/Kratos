@@ -95,7 +95,7 @@ proc Dam_Application::QuadrilateralInterface2D4Conectivities { ElemId } {
     set lx [expr { sqrt( (0.5*($N2(x)+$N3(x)-$N1(x)-$N4(x)))**2 + (0.5*($N2(y)+$N3(y)-$N1(y)-$N4(y)))**2 ) }]
     set ly [expr { sqrt( (0.5*($N3(x)+$N4(x)-$N1(x)-$N2(x)))**2 + (0.5*($N3(y)+$N4(y)-$N1(y)-$N2(y)))**2 ) }]
     
-    if {$ly < $lx} {
+    if {$ly <= $lx} {
         set Conectivities "$N1(Id) $N2(Id) $N3(Id) $N4(Id)"
     } else {
         set Conectivities "$N4(Id) $N1(Id) $N2(Id) $N3(Id)"
@@ -158,16 +158,16 @@ proc Dam_Application::HexaedraInterface3D8Conectivities { ElemId } {
     set ly [expr { sqrt( (0.25*($N3(x)+$N4(x)+$N7(x)+$N8(x)-$N1(x)-$N2(x)-$N5(x)-$N6(x)))**2 + (0.25*($N3(y)+$N4(y)+$N7(y)+$N8(y)-$N1(y)-$N2(y)-$N5(y)-$N6(y)))**2 + (0.25*($N3(z)+$N4(z)+$N7(z)+$N8(z)-$N1(z)-$N2(z)-$N5(z)-$N6(z)))**2 ) }]
     set lz [expr { sqrt( (0.25*($N5(x)+$N6(x)+$N7(x)+$N8(x)-$N1(x)-$N2(x)-$N3(x)-$N4(x)))**2 + (0.25*($N5(y)+$N6(y)+$N7(y)+$N8(y)-$N1(y)-$N2(y)-$N3(y)-$N4(y)))**2 + (0.25*($N5(z)+$N6(z)+$N7(z)+$N8(z)-$N1(z)-$N2(z)-$N3(z)-$N4(z)))**2 ) }]
     
-    if {$lz < $lx} {
-        if {$lz < $ly} {
-            # lz < lx && lz < ly
+    if {$lz <= $lx} {
+        if {$lz <= $ly} {
+            # lz <= lx && lz <= ly
             set Conectivities "$N1(Id) $N2(Id) $N3(Id) $N4(Id) $N5(Id) $N6(Id) $N7(Id) $N8(Id)"
         } else {
-            # ly < lz < lx
+            # ly < lz <= lx
             set Conectivities "$N1(Id) $N4(Id) $N8(Id) $N5(Id) $N2(Id) $N3(Id) $N7(Id) $N6(Id)"
         }
-    } elseif {$ly < $lx} {
-        # ly < lx < lz
+    } elseif {$ly <= $lx} {
+        # ly <= lx < lz
         set Conectivities "$N1(Id) $N4(Id) $N8(Id) $N5(Id) $N2(Id) $N3(Id) $N7(Id) $N6(Id)"
     } else {
         # lx < lz && lx < ly
