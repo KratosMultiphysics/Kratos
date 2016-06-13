@@ -79,18 +79,24 @@ double& ExponentialDamageHardeningLaw::CalculateHardening(double &rHardening, co
     const double& FractureEnergy  = MaterialProperties[FRACTURE_ENERGY];
     const double& DamageThreshold = MaterialProperties[DAMAGE_THRESHOLD];
 
-    const double& CharacteristicLength = rValues.GetCharacteristicSize();
-    const double& InternalVariable = rValues.GetDeltaGamma();
+    const double& CharacteristicSize = rValues.GetCharacteristicSize();
+    const double& StateVariable = rValues.GetDeltaGamma();
 
-    double A = 1.0/(FractureEnergy/(CharacteristicLength*DamageThreshold*DamageThreshold)-0.5);
+    double A = 1.0/(FractureEnergy/(CharacteristicSize*DamageThreshold*DamageThreshold)-0.5);
 
     if(A < 0.0) A = 0.0;
     
     //Compute Damage variable from the internal historical variable
-    rHardening = 1.0-DamageThreshold/InternalVariable*exp(A*(1.0-InternalVariable/DamageThreshold));
+    rHardening = 1.0-DamageThreshold/StateVariable*exp(A*(1.0-StateVariable/DamageThreshold));
 
-    if(rHardening < 0.0) rHardening = 0.0;
-    if(rHardening > 1.0) rHardening = 1.0;
+    if(rHardening < 0.0)
+    {
+        rHardening = 0.0;
+    }
+    else if(rHardening > 1.0)
+    {
+        rHardening = 1.0;
+    }
     
 	return rHardening;
 }
@@ -105,15 +111,15 @@ double& ExponentialDamageHardeningLaw::CalculateDeltaHardening(double &rDeltaHar
     const double& FractureEnergy  = MaterialProperties[FRACTURE_ENERGY];
     const double& DamageThreshold = MaterialProperties[DAMAGE_THRESHOLD];
 
-    const double& CharacteristicLength = rValues.GetCharacteristicSize();
-    const double& InternalVariable = rValues.GetDeltaGamma();
+    const double& CharacteristicSize = rValues.GetCharacteristicSize();
+    const double& StateVariable = rValues.GetDeltaGamma();
 
-    double A = 1.0/(FractureEnergy/(CharacteristicLength*DamageThreshold*DamageThreshold)-0.5);
+    double A = 1.0/(FractureEnergy/(CharacteristicSize*DamageThreshold*DamageThreshold)-0.5);
 
     if(A < 0.0) A = 0.0;
     
     //Damage derivative with respect to the internal historical variable
-    rDeltaHardening = (DamageThreshold + A*InternalVariable)/(InternalVariable*InternalVariable)*exp(A*(1.0 - InternalVariable/DamageThreshold));
+    rDeltaHardening = (DamageThreshold + A*StateVariable)/(StateVariable*StateVariable)*exp(A*(1.0-StateVariable/DamageThreshold));
 
     if(rDeltaHardening < 0.0) rDeltaHardening = 0.0;
     
