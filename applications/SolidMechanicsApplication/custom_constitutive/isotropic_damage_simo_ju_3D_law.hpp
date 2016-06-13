@@ -95,7 +95,7 @@ public:
      * @param rCurrentProcessInfo
      * @return
      */
-    //int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo);
+    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo);
 
 
 
@@ -133,19 +133,11 @@ protected:
      * Calculates the characteristic size of the element.
      * It is the diameter of a sphere with the same volume as the element
      * @param rCharacteristicSize, the diameter of the sphere
-     * @param rDomainGeometry geometric information of the element
+     * @param DomainGeometry geometric information of the element
      */
      
-    void CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& rDomainGeometry );
+    void CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& DomainGeometry );
     
-    /**
-     * Calculates the secant component of the constitutive matrix from the computed damage
-     * @param rConstitutiveMatrix
-     * @param rReturnMappingVariables, plastic variables
-     */
-
-    void CalculateSecantConstitutiveMatrix( Matrix& rConstitutiveMatrix, FlowRule::RadialReturnVariables& rReturnMappingVariables );
-
     ///@}
 
 private:

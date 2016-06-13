@@ -80,20 +80,32 @@ IsotropicDamageSimoJu3DLaw::~IsotropicDamageSimoJu3DLaw()
 //************************** CALCULATE CHARACTERISTIC SIZE ***************************
 //************************************************************************************
 
-void IsotropicDamageSimoJu3DLaw::CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& rDomainGeometry )
+void IsotropicDamageSimoJu3DLaw::CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& DomainGeometry )
 {   
     //rCharacteristicSize is the diameter of a sphere with the same volume as the element
-    rCharacteristicSize = pow((6*rDomainGeometry.Volume()/KRATOS_M_PI),(1.0/3.0));
+    rCharacteristicSize = pow((6.0*DomainGeometry.Volume()/KRATOS_M_PI),0.33333333333333);
 }
 
 
-//********************** COMPUTE SECANT CONSTITUTIVE MATRIX **************************
+//******************CHECK CONSISTENCY IN THE CONSTITUTIVE LAW*************************
 //************************************************************************************
 
-void IsotropicDamageSimoJu3DLaw::CalculateSecantConstitutiveMatrix( Matrix& rConstitutiveMatrix, FlowRule::RadialReturnVariables& rReturnMappingVariables )
-{   
-    // Csec = (1-d)*Ce
-    rConstitutiveMatrix = (1-rReturnMappingVariables.TrialStateFunction)*rConstitutiveMatrix;
+int IsotropicDamageSimoJu3DLaw::Check(const Properties& rMaterialProperties,
+                             const GeometryType& rElementGeometry,
+                             const ProcessInfo& rCurrentProcessInfo)
+{
+
+    int ierr = HyperElasticPlastic3DLaw::Check(rMaterialProperties,rElementGeometry,rCurrentProcessInfo);
+    if(ierr != 0) return ierr;
+
+    if(DAMAGE_THRESHOLD.Key() == 0 || rMaterialProperties.Has( DAMAGE_THRESHOLD ) == false || rMaterialProperties[DAMAGE_THRESHOLD] <= 0.0)
+        KRATOS_THROW_ERROR( std::invalid_argument,"DAMAGE_THRESHOLD has Key zero, is not defined or has an invalid value for property", rMaterialProperties.Id() )
+    if(STRENGTH_RATIO.Key() == 0 || rMaterialProperties.Has( STRENGTH_RATIO ) == false || rMaterialProperties[STRENGTH_RATIO] <= 0.0)
+        KRATOS_THROW_ERROR( std::invalid_argument,"STRENGTH_RATIO has Key zero, is not defined or has an invalid value for property", rMaterialProperties.Id() )
+    if(FRACTURE_ENERGY.Key() == 0 || rMaterialProperties.Has( FRACTURE_ENERGY ) == false || rMaterialProperties[FRACTURE_ENERGY] <= 0.0)
+        KRATOS_THROW_ERROR( std::invalid_argument,"FRACTURE_ENERGY has Key zero, is not defined or has an invalid value for property", rMaterialProperties.Id() )
+    
+    return ierr;
 }
 
 } // Namespace Kratos

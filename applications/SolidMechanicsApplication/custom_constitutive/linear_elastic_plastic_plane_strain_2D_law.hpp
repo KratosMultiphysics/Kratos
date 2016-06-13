@@ -88,6 +88,22 @@ public:
      */
 
     /**
+     * Dimension of the law:
+     */
+    SizeType WorkingSpaceDimension()
+    {
+        return 2;
+    };
+
+    /**
+     * Voigt tensor size:
+     */
+    SizeType GetStrainSize()
+    {
+        return 3;
+    };
+
+    /**
      * This function is designed to be called once to check compatibility with element
      * @param rFeatures
      */
@@ -128,7 +144,7 @@ protected:
      * @param rRightCauchyGreen
      * @param rStrainVector
      */
-    virtual void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
+    void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
             Vector& rStrainVector );
 
 
@@ -137,7 +153,7 @@ protected:
      * @param rRightCauchyGreen
      * @param rStrainVector
      */
-    virtual void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
+    void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
                                          Vector& rStrainVector );
 
     /**
@@ -149,9 +165,9 @@ protected:
      */
 
 
-    void CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix,
-                                    const double &rYoungModulus,
-                                    const double &rPoissonCoefficient );
+    void CalculateLinearElasticMatrix( Matrix& rLinearElasticMatrix,
+                                    const double& YoungModulus,
+                                    const double& PoissonCoefficient );
 
     ///@}
 

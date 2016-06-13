@@ -142,57 +142,61 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-     
+    
     /**
-     * calculates the linear elastic constitutive matrix in terms of Young's modulus and
+     * Calculates the characteristic size of the element
+     * @param rCharacteristicSize
+     * @param DomainGeometry geometric information of the element
+     */
+
+    virtual void CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& DomainGeometry );
+    
+    
+    /**
+     * Calculates the linear elastic constitutive matrix in terms of Young's modulus and
      * Poisson ratio
      * @param E the Young's modulus
      * @param NU the Poisson ratio
      * @return the linear elastic constitutive matrix
      */
 
-    virtual void CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix,const double &rYoungModulus,const double &rPoissonCoefficient );
+    virtual void CalculateLinearElasticMatrix( Matrix& rLinearElasticMatrix,const double& YoungModulus,const double& PoissonCoefficient );
 
 
     /**
-     * Calculates the stress vector from the linear elastic matrix and the strain vector
-     * @param rLinearElasticMatrix
-     * @param rStrainVector
-     * @param rDomainGeometry geometric information of the element
+     * Calculates the internal state variables and the stress vector
      * @param rReturnMappingVariables, plastic variables
+     * @param rStressMatrix
+     * @param rStressVector (same but in Voigt notation)
+     * @param LinearElasticMatrix
+     * @param StrainVector
      */
-
-    virtual void CalculateStress( Vector& rStressVector, const Matrix& rLinearElasticMatrix, const Vector& rStrainVector,
-                                  const GeometryType& rDomainGeometry, FlowRule::RadialReturnVariables& rReturnMappingVariables );
+    
+    virtual void CalculateReturnMapping( FlowRule::RadialReturnVariables& rReturnMappingVariables, Matrix& rStressMatrix,
+                                            Vector& rStressVector, const Matrix& LinearElasticMatrix, const Vector& StrainVector );
 
 
     /**
-     * Calculates the characteristic size of the element
-     * @param rCharacteristicSize
-     * @param rDomainGeometry geometric information of the element
-     */
-
-    virtual void CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& rDomainGeometry );
-
-
-    /**
-     * Calculates the secant component of the constitutive matrix
+     * Calculates the constitutive matrix: the secant or the tangent
      * @param rConstitutiveMatrix
      * @param rReturnMappingVariables, plastic variables
+     * @param LinearElasticMatrix
      */
 
-    virtual void CalculateSecantConstitutiveMatrix( Matrix& rConstitutiveMatrix, FlowRule::RadialReturnVariables& rReturnMappingVariables );
+    virtual void CalculateConstitutiveMatrix( Matrix& rConstitutiveMatrix, FlowRule::RadialReturnVariables& rReturnMappingVariables, const Matrix& LinearElasticMatrix );
+
 
     /**
-     * Calculates the tangent component of the constitutive matrix
-     * @param rConstitutiveMatrix
-     * @param rLinearElasticMatrix
+     * Updates the internal state variables (to finalize the step)
      * @param rReturnMappingVariables, plastic variables
+     * @param rStressVector
+     * @param LinearElasticMatrix
+     * @param StrainVector     
      */
 
-    virtual void CalculateTangentConstitutiveMatrix( Matrix& rConstitutiveMatrix, const Matrix& rLinearElasticMatrix, FlowRule::RadialReturnVariables& rReturnMappingVariables );
-
-
+    virtual void UpdateInternalVariables( FlowRule::RadialReturnVariables& rReturnMappingVariables, Vector& rStressVector,
+                                            const Matrix& LinearElasticMatrix, const Vector& StrainVector );
+                                  
     ///@}
 
 private:

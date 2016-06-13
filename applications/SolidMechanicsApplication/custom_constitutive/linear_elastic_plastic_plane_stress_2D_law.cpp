@@ -26,7 +26,7 @@ namespace Kratos
 //************************************************************************************
 
 LinearElasticPlasticPlaneStress2DLaw::LinearElasticPlasticPlaneStress2DLaw()
-    : LinearElasticPlastic3DLaw()
+    : LinearElasticPlasticPlaneStrain2DLaw()
 {
 
 }
@@ -36,7 +36,7 @@ LinearElasticPlasticPlaneStress2DLaw::LinearElasticPlasticPlaneStress2DLaw()
 //************************************************************************************
 
 LinearElasticPlasticPlaneStress2DLaw::LinearElasticPlasticPlaneStress2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
- : LinearElasticPlastic3DLaw(pFlowRule,pYieldCriterion,pHardeningLaw)
+ : LinearElasticPlasticPlaneStrain2DLaw(pFlowRule,pYieldCriterion,pHardeningLaw)
 {
 
 }
@@ -45,7 +45,7 @@ LinearElasticPlasticPlaneStress2DLaw::LinearElasticPlasticPlaneStress2DLaw(FlowR
 //************************************************************************************
 
 LinearElasticPlasticPlaneStress2DLaw::LinearElasticPlasticPlaneStress2DLaw(const LinearElasticPlasticPlaneStress2DLaw& rOther)
-    : LinearElasticPlastic3DLaw(rOther)
+    : LinearElasticPlasticPlaneStrain2DLaw(rOther)
 {
 
 }
@@ -71,59 +71,23 @@ LinearElasticPlasticPlaneStress2DLaw::~LinearElasticPlasticPlaneStress2DLaw()
 //************************************************************************************
 //************************************************************************************
 
-//***********************COMPUTE TOTAL STRAIN*****************************************
-//************************************************************************************
-
-void LinearElasticPlasticPlaneStress2DLaw::CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
-        Vector& rStrainVector )
-{
-
-    //E= 0.5*(FT*F-1)
-    rStrainVector[0] = 0.5 * ( rRightCauchyGreen( 0, 0 ) - 1.00 );
-    rStrainVector[1] = 0.5 * ( rRightCauchyGreen( 1, 1 ) - 1.00 );
-    rStrainVector[2] = rRightCauchyGreen( 0, 1 );
-
-}
-
-
-//***********************COMPUTE TOTAL STRAIN*****************************************
-//************************************************************************************
-
-void LinearElasticPlasticPlaneStress2DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
-        Vector& rStrainVector )
-{
-
-    // e= 0.5*(1-invbT*invb)
-    Matrix InverseLeftCauchyGreen ( rLeftCauchyGreen.size1() , rLeftCauchyGreen.size2() );
-    double det_b=0;
-    MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
-
-    rStrainVector.clear();
-    rStrainVector[0] = 0.5 * ( 1.0 - InverseLeftCauchyGreen( 0, 0 ) );
-    rStrainVector[1] = 0.5 * ( 1.0 - InverseLeftCauchyGreen( 1, 1 ) );
-    rStrainVector[2] = -InverseLeftCauchyGreen( 0, 1 );
-
-
-}
-
-
 //********************* COMPUTE LINEAR ELASTIC CONSTITUTIVE MATRIX *******************
 //************************************************************************************
 
-
-void LinearElasticPlasticPlaneStress2DLaw::CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix,
-        const double &rYoungModulus,
-        const double &rPoissonCoefficient )
+void LinearElasticPlasticPlaneStress2DLaw::CalculateLinearElasticMatrix( Matrix& rLinearElasticMatrix,
+        const double& YoungModulus,
+        const double& PoissonCoefficient )
 {
-    rConstitutiveMatrix.clear();
+    rLinearElasticMatrix.clear();
+    
+    // Plane stress constitutive matrix
+    rLinearElasticMatrix ( 0 , 0 ) = (YoungModulus)/(1.0-PoissonCoefficient*PoissonCoefficient);
+    rLinearElasticMatrix ( 1 , 1 ) = rLinearElasticMatrix ( 0 , 0 );
 
-    rConstitutiveMatrix ( 0 , 0 ) = (rYoungModulus)/(1.0-rPoissonCoefficient*rPoissonCoefficient);
-    rConstitutiveMatrix ( 1 , 1 ) = rConstitutiveMatrix ( 0 , 0 );
+    rLinearElasticMatrix ( 2 , 2 ) = rLinearElasticMatrix ( 0 , 0 )*(1.0-PoissonCoefficient)*0.5;
 
-    rConstitutiveMatrix ( 2 , 2 ) = rConstitutiveMatrix ( 0 , 0 )*(1-rPoissonCoefficient)*0.5;
-
-    rConstitutiveMatrix ( 0 , 1 ) = rConstitutiveMatrix ( 0 , 0 )*rPoissonCoefficient;
-    rConstitutiveMatrix ( 1 , 0 ) = rConstitutiveMatrix ( 0 , 1 );
+    rLinearElasticMatrix ( 0 , 1 ) = rLinearElasticMatrix ( 0 , 0 )*PoissonCoefficient;
+    rLinearElasticMatrix ( 1 , 0 ) = rLinearElasticMatrix ( 0 , 1 );
 }
 
 
