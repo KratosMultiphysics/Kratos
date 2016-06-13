@@ -20,6 +20,7 @@
 
 // Project includes
 #include "testing/test_case.h"
+#include "includes/exception.h"
 
 
 namespace Kratos
@@ -27,9 +28,20 @@ namespace Kratos
 	namespace Testing
 	{
 		TestCase::TestCase(std::string Name)
-			:mName(Name), mIsEnambled(true) {}
+			:mName(Name), mIsEnabled(true) {}
 
 		TestCase::~TestCase() {}
+
+		void TestCase::Reset()
+		{
+			mResult.Reset();
+			mIsEnabled = true;
+		}
+
+		void TestCase::ResetResult()
+		{
+			mResult.Reset();
+		}
 
 		void TestCase::Setup() {}
 
@@ -39,9 +51,18 @@ namespace Kratos
 				Setup();
 				TestFunction();
 				TearDown();
+				mResult.SetToSucceed();
+			}
+			catch (Exception& e) {
+				std::stringstream buffer;
+				buffer << e.what() << " in " << e.where() << std::endl;
+				mResult.SetErrorMessage(buffer.str());
+			}
+			catch (std::exception& e) {
+				mResult.SetErrorMessage(e.what());
 			}
 			catch (...) {
-				std::cout << "Test " << Name() << " Failed!" << std::endl;
+				mResult.SetErrorMessage("Unknown error");
 			}
 		}
 
@@ -61,12 +82,12 @@ namespace Kratos
 
 		void TestCase::Enable()
 		{
-			mIsEnambled = true;
+			mIsEnabled = true;
 		}
 
 		void TestCase::Disable() 
 		{
-			mIsEnambled = false;
+			mIsEnabled = false;
 		}
 
 		const std::string& TestCase::Name()
@@ -74,14 +95,24 @@ namespace Kratos
 			return mName;
 		}
 
+		const TestCaseResult& TestCase::GetResult() const
+		{
+			return mResult;
+		}
+
+		void TestCase::SetResult(TestCaseResult const& TheResult)
+		{
+			mResult = TheResult;
+		}
+
 		bool TestCase::IsEnabled()
 		{
-			return mIsEnambled;
+			return mIsEnabled;
 		}
 
 		bool TestCase::IsDisabled()
 		{
-			return !mIsEnambled;
+			return !mIsEnabled;
 		}
 
 		std::string TestCase::Info() const

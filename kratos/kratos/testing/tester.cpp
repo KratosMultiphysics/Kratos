@@ -21,6 +21,8 @@
 // Project includes
 #include "testing/tester.h"
 #include "testing/test_case.h"
+//#include "includes/checks.h"
+//#include "utilities/logger.h"
 
 
 namespace Kratos
@@ -37,23 +39,80 @@ namespace Kratos
 				delete i_test->second;
 		}
 
-		void Tester::RunAllTests()
+		void Tester::ResetAllTestCasesResults()
 		{
-			for (TestCasesContainerType::iterator i_test = GetInstance().mTestCases.begin(); 
+			for (TestCasesContainerType::iterator i_test = GetInstance().mTestCases.begin();
 			i_test != GetInstance().mTestCases.end(); i_test++)
-				i_test->second->Run();
+				i_test->second->ResetResult();
 		}
 
-		void Tester::ProfileAllTests()
+		void Tester::RunAllTestCases()
 		{
-			for (TestCasesContainerType::iterator i_test = GetInstance().mTestCases.begin(); 
+			ResetAllTestCasesResults();
+			std::size_t number_of_run_tests = NumberOfEnabledTestCases();
+
+			for (TestCasesContainerType::iterator i_test = GetInstance().mTestCases.begin();
+			i_test != GetInstance().mTestCases.end(); i_test++)
+				i_test->second->Run();
+
+			std::size_t number_of_failed_tests = NumberOfFailedTestCases();
+			if (number_of_failed_tests == 0)
+				std::cout << number_of_run_tests << " Test cases run. OK.";
+			else
+			{
+				std::cout << number_of_run_tests << " Test cases run. " << number_of_failed_tests << " failed:" << std::endl;
+				ReportFailures(std::cout);
+			}
+
+		}
+
+		void Tester::ProfileAllTestCases()
+		{
+			ResetAllTestCasesResults();
+			std::size_t number_of_run_tests = NumberOfEnabledTestCases();
+
+			for (TestCasesContainerType::iterator i_test = GetInstance().mTestCases.begin();
 			i_test != GetInstance().mTestCases.end(); i_test++)
 				i_test->second->Profile();
+
+			std::size_t number_of_failed_tests = NumberOfFailedTestCases();
+			if (number_of_failed_tests == 0)
+				std::cout << number_of_run_tests << " Test cases run. OK.";
+			else
+			{
+				std::cout << number_of_run_tests << " Test cases run. " << number_of_failed_tests << " failed:" << std::endl;
+				ReportFailures(std::cout);
+			}
+		}
+
+		std::size_t Tester::NumberOfEnabledTestCases()
+		{
+			std::size_t result = 0;
+			for (TestCasesContainerType::iterator i_test = GetInstance().mTestCases.begin();
+			i_test != GetInstance().mTestCases.end(); i_test++)
+				if (i_test->second->IsEnabled())
+					result++;
+
+			return result;
+		}
+
+		std::size_t Tester::NumberOfFailedTestCases()
+		{
+			std::size_t result = 0;
+			for (TestCasesContainerType::iterator i_test = GetInstance().mTestCases.begin();
+			i_test != GetInstance().mTestCases.end(); i_test++)
+			{
+				TestCaseResult const& test_case_result = i_test->second->GetResult();
+				if (test_case_result.IsFailed())
+					result++;
+			}
+
+			return result;
 		}
 
 		void Tester::AddTestCase(TestCase* pHeapAllocatedTestCase)
 		{
-		// TODO: Check if test cases already added.
+			//KRATOS_CHECK(IsTestCaseNotAddedBefore(pHeapAllocatedTestCase)) << "A duplicated test case found! The test case \"" << pHeapAllocatedTestCase->Name() << "\" is already added." << std::endl;
 			GetInstance().mTestCases[pHeapAllocatedTestCase->Name()] = pHeapAllocatedTestCase;
 		}
 
@@ -82,7 +141,30 @@ namespace Kratos
 			rOStream << "    Total of " << GetInstance().mTestCases.size() << " Test cases";
 		}
 
+		bool Tester::IsTestCaseNotAddedBefore(TestCase* pHeapAllocatedTestCase)
+		{
+			return (GetInstance().mTestCases.find(pHeapAllocatedTestCase->Name()) == GetInstance().mTestCases.end());
+		}
 
+		void Tester::ReportFailures(std::ostream& rOStream)
+		{
+			for (TestCasesContainerType::iterator i_test = GetInstance().mTestCases.begin();
+			i_test != GetInstance().mTestCases.end(); i_test++)
+			{
+				TestCaseResult const& test_case_result = i_test->second->GetResult();
+				if (test_case_result.IsFailed())
+				{
+					rOStream << "    " << i_test->first << " Failed";
+					if (test_case_result.GetErrorMessage().size() == 0)
+						rOStream << std::endl;
+					else
+					{
+						rOStream << " with message: " << std::endl;
+						rOStream << "        " << test_case_result.GetErrorMessage() << std::endl;
+					}
+				}
+			}
+		}
 
 
 	} // manespace Testing.
