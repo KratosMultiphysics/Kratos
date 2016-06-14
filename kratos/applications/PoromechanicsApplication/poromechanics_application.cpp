@@ -173,6 +173,10 @@ void KratosPoromechanicsApplication::Register()
     Serializer::Register("BilinearCohesive3DLaw",mBilinearCohesive3DLaw);
     Serializer::Register("BilinearCohesive2DLaw",mBilinearCohesive2DLaw);
 
+    Serializer::Register("RestoreSimoJu3DLaw",mRestoreSimoJu3DLaw);
+    Serializer::Register("RestoreSimoJuPlaneStrain2DLaw",mRestoreSimoJuPlaneStrain2DLaw);
+    Serializer::Register("RestoreSimoJuPlaneStress2DLaw",mRestoreSimoJuPlaneStress2DLaw);
+
     //Register Variables
     KRATOS_REGISTER_VARIABLE( NEWMARK_COEFFICIENT_U )
     KRATOS_REGISTER_VARIABLE( NEWMARK_COEFFICIENT_P )
