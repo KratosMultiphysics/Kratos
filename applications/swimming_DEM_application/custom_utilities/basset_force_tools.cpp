@@ -41,9 +41,9 @@ void BassetForceTools::FillDaitcheVectors(const int N, const int order, const in
         for (int j = 2; j < N; ++j){
             for (int i = 0; i < n_steps_per_quad_step; ++i){
                 long double alpha = static_cast<long double>(i + 1) / n_steps_per_quad_step;
-                long double sqrt_j             = sqrt(j - 1 + alpha);
-                long double sqrt_j_minus       = sqrt(j - 2 + alpha);
-                long double sqrt_j_plus        = sqrt(j + alpha);
+                long double sqrt_j             = std::sqrt(j - 1 + alpha);
+                long double sqrt_j_minus       = std::sqrt(j - 2 + alpha);
+                long double sqrt_j_plus        = std::sqrt(j + alpha);
                 long double sqrt_j_cubed       = SWIMMING_POW_3(sqrt_j);
                 long double sqrt_j_minus_cubed = SWIMMING_POW_3(sqrt_j_minus);
                 long double sqrt_j_plus_cubed  = SWIMMING_POW_3(sqrt_j_plus);
@@ -56,17 +56,21 @@ void BassetForceTools::FillDaitcheVectors(const int N, const int order, const in
 
     else if (order == 2){
         long double OneFifteenth = 1.0 / 15;
-        long double sqrt_2_over_5 = std::sqrt(static_cast<long double>(2)) / 5;
-        long double sqrt_3_over_5 = std::sqrt(static_cast<long double>(3)) / 5;
         Ajs.resize(n_steps_per_quad_step * N);
         Bns.resize(n_steps_per_quad_step * N);
         Cns.resize(n_steps_per_quad_step * N);
 
         for (int i = 0; i < n_steps_per_quad_step; ++i){
             long double alpha = static_cast<long double>(i + 1) / n_steps_per_quad_step;
-            Ajs[i]                             = 4 * sqrt_2_over_5 + (- 4.0 * pow(alpha, 2.5) / (1 + alpha) + 2.0) * OneFifteenth;
-            Ajs[n_steps_per_quad_step + i]     = 14 * sqrt_3_over_5 - 12 * sqrt_2_over_5 + (2 * sqrt(alpha) * (5 + 2 * alpha) - 14.0) * OneFifteenth;
-            Ajs[2 * n_steps_per_quad_step + i] = 176 * OneFifteenth - 42 * sqrt_3_over_5 + 12 * sqrt_2_over_5 + (4 * sqrt(alpha) * (5 + 4 * alpha) / (1 + alpha) - 18.0) * OneFifteenth;
+            long double OneOverFifteenAlphas = OneFifteenth / alpha;
+            long double sqrt_alpha_plus_1       = std::sqrt(alpha + 1);
+            long double sqrt_alpha_plus_2       = std::sqrt(alpha + 2);
+            long double sqrt_alpha_plus_3       = std::sqrt(alpha + 3);
+            Ajs[i]                             = 4 * sqrt_alpha_plus_1 * (4 * alpha - 1) * OneOverFifteenAlphas;
+            Ajs[n_steps_per_quad_step + i]     = 4 * SWIMMING_POW_5(sqrt_alpha_plus_1) * OneOverFifteenAlphas + 2 * (sqrt_alpha_plus_2 * (6 + 11.0 * alpha + 4 * alpha * alpha) - sqrt_alpha_plus_1 * (9 + 13 * alpha + 4 * alpha * alpha)) * OneFifteenth;
+            Ajs[2 * n_steps_per_quad_step + i] = 2 * OneFifteenth * (2 * sqrt_alpha_plus_1 * (-2 +  7 * alpha + 4 * alpha * alpha)
+                                                                   - 3 * sqrt_alpha_plus_2 * ( 6 + 11 * alpha + 4 * alpha * alpha)
+                                                                       + sqrt_alpha_plus_3 * (21 + 19 * alpha + 4 * alpha * alpha));
         }
 
         for (int j = 3; j < N; ++j){
