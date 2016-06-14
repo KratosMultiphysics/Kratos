@@ -56,7 +56,7 @@ virtual ~BassetForceTools(){}
 
 /// Default calculator
 
-void FillDaitcheVectors(const int N, const int order);
+void FillDaitcheVectors(const int N, const int order, const int n_steps_per_quad_step);
 void FillHinsbergVectors(ModelPart& r_model_part, const int m, const int n_quad_delta_times_window);
 void AppendIntegrands(ModelPart& r_model_part);
 void AppendIntegrandsImplicit(ModelPart& r_model_part);

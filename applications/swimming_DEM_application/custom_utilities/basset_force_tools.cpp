@@ -8,7 +8,7 @@
 #include "basset_force_tools.h"
 namespace Kratos
 {
-void BassetForceTools::FillDaitcheVectors(const int N, const int order)
+void BassetForceTools::FillDaitcheVectors(const int N, const int order, const int n_steps_per_quad_step)
 {
     std::cout << "\nFilling up vectors of coefficients for Daitche quadrature...";
 
@@ -24,21 +24,33 @@ void BassetForceTools::FillDaitcheVectors(const int N, const int order)
     if (order == 1){
         long double FourThirds = 4.0 / 3;
 
-        Ajs.resize(N);
-        Bns.resize(N);
-        Ajs[0] = FourThirds;
-        Bns[0] = FourThirds;
+        Ajs.resize(n_steps_per_quad_step * N);
+        Bns.resize(n_steps_per_quad_step * N);
 
-        for (int j = 1; j < N; ++j){
-            long double sqrt_j       = std::sqrt(static_cast<long double>(j));
-            long double sqrt_j_minus = std::sqrt(static_cast<long double>(j - 1));
-            long double sqrt_j_plus  = std::sqrt(static_cast<long double>(j + 1));
-            long double sqrt_j_cubed       = sqrt_j * sqrt_j * sqrt_j;
-            long double sqrt_j_minus_cubed = sqrt_j_minus * sqrt_j_minus * sqrt_j_minus;
-            long double sqrt_j_plus_cubed  = sqrt_j_plus * sqrt_j_plus * sqrt_j_plus;
+        for (int i = 0; i < n_steps_per_quad_step; ++i){
+            long double alpha = static_cast<long double>(i + 1) / n_steps_per_quad_step;
+            long double sqrt_alpha            = std::sqrt(alpha);
+            long double sqrt_alpha_plus       = std::sqrt(alpha + 1);
+            Ajs[i] = static_cast<double>(FourThirds * sqrt_alpha);
+            Bns[i] = static_cast<double>(FourThirds * sqrt_alpha);
 
-            Ajs[j] = static_cast<double>(FourThirds * (sqrt_j_minus_cubed + sqrt_j_plus_cubed - 2 * sqrt_j_cubed));
-            Bns[j] = static_cast<double>(FourThirds * (sqrt_j_minus_cubed - sqrt_j_cubed + 1.5 * sqrt_j));
+            Ajs[n_steps_per_quad_step + i] = static_cast<double>(FourThirds * ((1 + alpha) * (sqrt_alpha_plus - sqrt_alpha)));
+            Bns[n_steps_per_quad_step + i] = static_cast<double>(FourThirds * ((1 + alpha) * (sqrt_alpha_plus - sqrt_alpha)));
+        }
+
+        for (int j = 2; j < N; ++j){
+            for (int i = 0; i < n_steps_per_quad_step; ++i){
+                long double alpha = static_cast<long double>(i + 1) / n_steps_per_quad_step;
+                long double sqrt_j             = sqrt(j - 1 + alpha);
+                long double sqrt_j_minus       = sqrt(j - 2 + alpha);
+                long double sqrt_j_plus        = sqrt(j + alpha);
+                long double sqrt_j_cubed       = SWIMMING_POW_3(sqrt_j);
+                long double sqrt_j_minus_cubed = SWIMMING_POW_3(sqrt_j_minus);
+                long double sqrt_j_plus_cubed  = SWIMMING_POW_3(sqrt_j_plus);
+
+                Ajs[n_steps_per_quad_step * j + i] = static_cast<double>(FourThirds * (sqrt_j_minus_cubed + sqrt_j_plus_cubed - 2 * sqrt_j_cubed));
+                Bns[n_steps_per_quad_step * j + i] = static_cast<double>(FourThirds * (sqrt_j_minus_cubed - sqrt_j_cubed + 1.5 * sqrt_j));
+            }
         }
     }
 
@@ -46,33 +58,37 @@ void BassetForceTools::FillDaitcheVectors(const int N, const int order)
         long double OneFifteenth = 1.0 / 15;
         long double sqrt_2_over_5 = std::sqrt(static_cast<long double>(2)) / 5;
         long double sqrt_3_over_5 = std::sqrt(static_cast<long double>(3)) / 5;
-        Ajs.resize(N);
-        Bns.resize(N);
-        Cns.resize(N);
-        Ajs[0] = 4 * sqrt_2_over_5;
-        Ajs[1] = 14 * sqrt_3_over_5 - 12 * sqrt_2_over_5;
-        Ajs[2] = 176 * OneFifteenth - 42 * sqrt_3_over_5 + 12 * sqrt_2_over_5;
-//        Bns[1] = 48 * sqrt_2_over_5;
-//        Bns[2] = - 8 * sqrt_3_over_5 + 12 * sqrt_2_over_5;
-//        Cns[2] = 10 * OneFifteenth * sqrt_2_over_5;
-//        Cns[3] = 4 * sqrt_3_over_5 - 4 * sqrt_2_over_5;
+        Ajs.resize(n_steps_per_quad_step * N);
+        Bns.resize(n_steps_per_quad_step * N);
+        Cns.resize(n_steps_per_quad_step * N);
+
+        for (int i = 0; i < n_steps_per_quad_step; ++i){
+            long double alpha = static_cast<long double>(i + 1) / n_steps_per_quad_step;
+            Ajs[i]                             = 4 * sqrt_2_over_5 + (- 4.0 * pow(alpha, 2.5) / (1 + alpha) + 2.0) * OneFifteenth;
+            Ajs[n_steps_per_quad_step + i]     = 14 * sqrt_3_over_5 - 12 * sqrt_2_over_5 + (2 * sqrt(alpha) * (5 + 2 * alpha) - 14.0) * OneFifteenth;
+            Ajs[2 * n_steps_per_quad_step + i] = 176 * OneFifteenth - 42 * sqrt_3_over_5 + 12 * sqrt_2_over_5 + (4 * sqrt(alpha) * (5 + 4 * alpha) / (1 + alpha) - 18.0) * OneFifteenth;
+        }
 
         for (int j = 3; j < N; ++j){
-            long double sqrt_j_minus_2 = std::sqrt(static_cast<long double>(j - 2));
-            long double sqrt_j_minus   = std::sqrt(static_cast<long double>(j - 1));
-            long double sqrt_j         = std::sqrt(static_cast<long double>(j));
-            long double sqrt_j_plus    = std::sqrt(static_cast<long double>(j + 1));
-            long double sqrt_j_plus_2  = std::sqrt(static_cast<long double>(j + 2));
+            for (int i = 0; i < n_steps_per_quad_step; ++i){
+                long double alpha = static_cast<long double>(i + 1) / n_steps_per_quad_step;
+                long double sqrt_j_minus_2 = std::sqrt(j + alpha - 3);
+                long double sqrt_j_minus   = std::sqrt(j + alpha - 2);
+                long double sqrt_j         = std::sqrt(j + alpha - 1);
+                long double sqrt_j_plus    = std::sqrt(j + alpha);
+                long double sqrt_j_plus_2  = std::sqrt(j + alpha + 1);
 
-            Ajs[j] = static_cast<double>(
-                      8 * OneFifteenth * (      SWIMMING_POW_5(sqrt_j_plus_2) - 3 * SWIMMING_POW_5(sqrt_j_plus) + 3 * SWIMMING_POW_5(sqrt_j) - SWIMMING_POW_5(sqrt_j_minus))
-                   + 10 * OneFifteenth * (    - SWIMMING_POW_3(sqrt_j_plus_2) + 3 * SWIMMING_POW_3(sqrt_j_plus) - 3 * SWIMMING_POW_3(sqrt_j) + SWIMMING_POW_3(sqrt_j_minus)));
-            Bns[j] = static_cast<double>(
-                      8 * OneFifteenth * (- 2 * SWIMMING_POW_5(sqrt_j)        + 3 * SWIMMING_POW_5(sqrt_j_minus)    - SWIMMING_POW_5(sqrt_j_minus_2))
-                   + 10 * OneFifteenth * (  4 * SWIMMING_POW_3(sqrt_j)        - 3 * SWIMMING_POW_3(sqrt_j_minus)    + SWIMMING_POW_3(sqrt_j_minus_2)));
-            Cns[j] = static_cast<double>(
-                      8 * OneFifteenth * (      SWIMMING_POW_5(sqrt_j)            - SWIMMING_POW_5(sqrt_j_minus))
-                   + 10 * OneFifteenth * (- 3 * SWIMMING_POW_3(sqrt_j)            + SWIMMING_POW_3(sqrt_j_minus)) + 2 * sqrt_j);
+                Ajs[n_steps_per_quad_step * j + i] = static_cast<double>(
+                          8 * OneFifteenth * (      SWIMMING_POW_5(sqrt_j_plus_2) - 3 * SWIMMING_POW_5(sqrt_j_plus) + 3 * SWIMMING_POW_5(sqrt_j) - SWIMMING_POW_5(sqrt_j_minus))
+                       + 10 * OneFifteenth * (    - SWIMMING_POW_3(sqrt_j_plus_2) + 3 * SWIMMING_POW_3(sqrt_j_plus) - 3 * SWIMMING_POW_3(sqrt_j) + SWIMMING_POW_3(sqrt_j_minus)));
+                Bns[n_steps_per_quad_step * j + i] = static_cast<double>(
+                          8 * OneFifteenth * (- 2 * SWIMMING_POW_5(sqrt_j)        + 3 * SWIMMING_POW_5(sqrt_j_minus)    - SWIMMING_POW_5(sqrt_j_minus_2))
+                       + 10 * OneFifteenth * (  4 * SWIMMING_POW_3(sqrt_j)        - 3 * SWIMMING_POW_3(sqrt_j_minus)    + SWIMMING_POW_3(sqrt_j_minus_2)));
+                Cns[n_steps_per_quad_step * j + i] = static_cast<double>(
+                          8 * OneFifteenth * (      SWIMMING_POW_5(sqrt_j)            - SWIMMING_POW_5(sqrt_j_minus))
+                       + 10 * OneFifteenth * (- 3 * SWIMMING_POW_3(sqrt_j)            + SWIMMING_POW_3(sqrt_j_minus)) + 2 * sqrt_j);
+
+            }
         }
     }
 
