@@ -17,14 +17,14 @@
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "custom_strategies/newton_raphson_strategy.hpp"
-#include "custom_strategies/ramm_arc_length_strategy.hpp"
+#include "custom_strategies/strategies/newton_raphson_strategy.hpp"
+#include "custom_strategies/strategies/ramm_arc_length_strategy.hpp"
 
 //builders and solvers
 
 //schemes
-#include "custom_strategies/custom_schemes/newmark_quasistatic_U_Pw_scheme.hpp"
-#include "custom_strategies/custom_schemes/newmark_dynamic_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
