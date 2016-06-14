@@ -35,7 +35,6 @@ namespace Kratos {
         using BaseType::mListOfGhostSphericParticles;
         using BaseType::SearchNeighbours;
         using BaseType::SetSearchRadiiOnAllParticles;
-        using BaseType::mNeighbourCounter;
 
         /// Pointer definition of ExplicitSolverStrategy
         KRATOS_CLASS_POINTER_DEFINITION(ContinuumExplicitSolverStrategy);

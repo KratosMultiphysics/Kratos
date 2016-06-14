@@ -264,7 +264,6 @@ namespace Kratos {
         double& GetMaxTimeStep() { return (mMaxTimeStep);}
         double& GetSafetyFactor() { return (mSafetyFactor);}
         int& GetDeltaOption() { return (mDeltaOption);}
-        vector<unsigned int>& GetNeighbourCounter() { return (mNeighbourCounter);}
         int& GetNumberOfElementsOldRadiusList() { return (mNumberOfElementsOldRadiusList);}
         vector<unsigned int>& GetElementPartition() { return (mElementPartition);}
         typename ParticleCreatorDestructor::Pointer& GetParticleCreatorDestructor() { return (mpParticleCreatorDestructor);}
@@ -289,7 +288,6 @@ namespace Kratos {
         double mMaxTimeStep;
         double mSafetyFactor;
         int mDeltaOption;
-        vector<unsigned int> mNeighbourCounter;
         vector<unsigned int> mElementPartition;
         typename ParticleCreatorDestructor::Pointer mpParticleCreatorDestructor;
         typename DEM_FEM_Search::Pointer mpDemFemSearch;

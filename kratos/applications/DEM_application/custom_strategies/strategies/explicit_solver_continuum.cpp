@@ -32,7 +32,6 @@ namespace Kratos {
 
         r_process_info[SEARCH_CONTROL_VECTOR].resize(mNumberOfThreads);
         for (int i = 0; i < mNumberOfThreads; i++) r_process_info[SEARCH_CONTROL_VECTOR][i] = 0;
-        BaseType::GetNeighbourCounter().resize(mNumberOfThreads);
 
         CreatePropertiesProxies(BaseType::mFastProperties, r_model_part, *mpInlet_model_part, *mpCluster_model_part);
 
@@ -488,24 +487,26 @@ namespace Kratos {
 
         unsigned int total_contacts = 0;
         const int number_of_particles = (int) mListOfSphericParticles.size();
+        std::vector<int> neighbour_counter;
         std::vector<int> sum;
         double total_sum = 0.0;
 
         mNumberOfThreads = OpenMPUtils::GetNumThreads();
-        mNeighbourCounter.resize(mNumberOfThreads);
+        neighbour_counter.resize(mNumberOfThreads);
         sum.resize(mNumberOfThreads);
 
         #pragma omp parallel
         {
-            mNeighbourCounter[OpenMPUtils::ThisThread()] = 0;
+            neighbour_counter[OpenMPUtils::ThisThread()] = 0;
+            sum[OpenMPUtils::ThisThread()] = 0;
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
-                mNeighbourCounter[OpenMPUtils::ThisThread()] += mListOfSphericParticles[i]->mNeighbourElements.size();
+                neighbour_counter[OpenMPUtils::ThisThread()] += mListOfSphericParticles[i]->mNeighbourElements.size();
                 sum[OpenMPUtils::ThisThread()] += (mListOfSphericParticles[i]->mNeighbourElements.size() - 10.0 )*(mListOfSphericParticles[i]->mNeighbourElements.size() - 10.0 );
             }
         }
         for (int i = 0; i < mNumberOfThreads; i++) {
-            total_contacts += mNeighbourCounter[i];
+            total_contacts += neighbour_counter[i];
             total_sum += sum[i];
         }
 
