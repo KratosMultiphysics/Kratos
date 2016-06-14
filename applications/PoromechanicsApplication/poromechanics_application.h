@@ -41,6 +41,9 @@
 
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
+#include "custom_constitutive/restore_simo_ju_3D_law.hpp"
+#include "custom_constitutive/restore_simo_ju_plane_strain_2D_law.hpp"
+#include "custom_constitutive/restore_simo_ju_plane_stress_2D_law.hpp"
 
 namespace Kratos
 {
@@ -156,6 +159,10 @@ const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrde
 
 const BilinearCohesive3DLaw mBilinearCohesive3DLaw;
 const BilinearCohesive2DLaw mBilinearCohesive2DLaw;
+
+const RestoreSimoJu3DLaw mRestoreSimoJu3DLaw;
+const RestoreSimoJuPlaneStrain2DLaw mRestoreSimoJuPlaneStrain2DLaw;
+const RestoreSimoJuPlaneStress2DLaw mRestoreSimoJuPlaneStress2DLaw;
 
 // Assignment operator.
 KratosPoromechanicsApplication& operator=(KratosPoromechanicsApplication const& rOther);
