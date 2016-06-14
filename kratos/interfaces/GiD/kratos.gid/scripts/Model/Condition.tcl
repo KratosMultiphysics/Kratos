@@ -23,20 +23,6 @@ oo::class create Condition {
         set processName ""
     }
     
-    method cumple {filtros} {
-        set c [next $filtros]
-         
-        if {$c} {
-            set ptdim $::Model::SpatialDimension
-            if {[my getAttribute "WorkingSpaceDimension"] ne ""} {
-                set eldim [split [my getAttribute "WorkingSpaceDimension"] ","]
-                if {$ptdim ni $eldim} {set c 0}
-            }
-        }
-        
-        return $c
-    }
-    
     method addTopologyFeature {top} {
         variable TopologyFeatures
         lappend TopologyFeatures $top
@@ -190,7 +176,17 @@ proc Model::CheckConditionState {node} {
     set cumple 1
     foreach cond $Conditions {
         if {[$cond getName] eq $condid} {
-            if {![$cond cumple ""]} {set cumple 0; break}
+            if {![$cond cumple ""]} {
+                set cumple 0
+                break
+            } {
+                set ptdim $::Model::SpatialDimension
+                if {[$cond getAttribute "WorkingSpaceDimension"] ne ""} {
+                    set eldim [split [$cond getAttribute "WorkingSpaceDimension"] ","]
+                    if {$ptdim ni $eldim} {set cumple 0; break}
+                }
+             
+            }
         }
     }
     return $cumple
