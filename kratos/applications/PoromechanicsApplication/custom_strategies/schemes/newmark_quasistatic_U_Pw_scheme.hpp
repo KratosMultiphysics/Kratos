@@ -37,7 +37,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    //Constructor
+    ///Constructor
     NewmarkQuasistaticUPwScheme(ModelPart& r_model_part, double beta, double gamma, double theta) : Scheme<TSparseSpace,TDenseSpace>()
     {   
         mBeta = beta;
@@ -47,7 +47,7 @@ public:
 
     //------------------------------------------------------------------------------------
     
-    //Destructor
+    ///Destructor
     virtual ~NewmarkQuasistaticUPwScheme() {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -303,7 +303,7 @@ public:
 
 protected:
     
-    // Member Variables
+    /// Member Variables
         
     double mBeta;
     double mGamma;
