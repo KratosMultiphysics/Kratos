@@ -138,6 +138,7 @@ void SphericSwimmingParticle<TBaseElement>::UpdateNodalValues(NodeType& node,
 
     if (mHasBassetForceNodalVar){
         noalias(node.FastGetSolutionStepValue(BASSET_FORCE))         = basset_force;
+        KRATOS_WATCH(basset_force)
     }
 
     if (mHasOldAdditionalForceVar){
@@ -274,7 +275,11 @@ double SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(int order, u
             }
         }
         else {
-            if (n == 2){
+            if (n == 1){ // use formula for the alphas of first order
+                SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(1, n, j);
+            }
+
+            else if (n == 2){
                 long double sqrt_2_over_15 = std::sqrt(static_cast<long double>(2)) / 15;
 
                 if (j == 0){
@@ -326,7 +331,11 @@ double SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(int order, u
             }
         }
         else {
-            if (n == 3){
+            if (n == 2){ // use formula for the betas of second order
+                SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(2, n, j);
+            }
+
+            else if (n == 3){
                 long double sqrt_3_over_105 = std::sqrt(static_cast<long double>(3)) / 105;
                 if (j == 0){
                     return 68 * sqrt_3_over_105;
@@ -420,38 +429,107 @@ double SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(int order, u
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
-double SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(int order, unsigned int n, unsigned int j, const double last_h_over_h)
+double SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(int order, unsigned int n, unsigned int j, const double last_h_over_h, const int n_steps_per_quad_step)
 {
     double result = GetDaitcheCoefficient(order, n, j);
+    const int l = floor(last_h_over_h * n_steps_per_quad_step + 0.5) - 1;
 
     if (order == 1){
-        return result;
+        if (j < n){
+            return SphericSwimmingParticle<TBaseElement>::mAjs[n_steps_per_quad_step * j + l];
+        }
+        else {
+            return SphericSwimmingParticle<TBaseElement>::mBns[n_steps_per_quad_step * j + l];
+        }
     }
+
 
     else if (order == 2){
-        if (j > 1){
-            return result;
-        }
-        else { // we need to correct for the last shorter interval (this only affects the last three integrands, i.e., the first three coeffs)
-
-            if (j == 1){
-                return result + 4 * pow(1 + last_h_over_h, 2.5) / (15 * last_h_over_h) - 16 * sqrt(2) / 15;
+        if (n > 3){
+            if (j < n - 1){
+                return SphericSwimmingParticle<TBaseElement>::mAjs[n_steps_per_quad_step * j + l];
+            }
+            else if (j == n - 1){
+                return SphericSwimmingParticle<TBaseElement>::mBns[n_steps_per_quad_step * j + l];
             }
             else {
-                return result + 4 * sqrt(last_h_over_h) * (5 + 4 * last_h_over_h) / (15 * (1 + last_h_over_h)) - 6.0 / 5;
+                return SphericSwimmingParticle<TBaseElement>::mCns[n_steps_per_quad_step * j + l];
+            }
+        }
+        else {
+            if (n == 1){ // use formula for the alphas of first order
+                SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(1, n, j, last_h_over_h, n_steps_per_quad_step);
+            }
+
+            else if (n == 2){
+                long double sqrt_2_over_15 = std::sqrt(static_cast<long double>(2)) / 15;
+
+                if (j == 0){
+                    return 12 * sqrt_2_over_15;
+                }
+                else if (j == 1){
+                    return 16 * sqrt_2_over_15;
+                }
+                else {
+                    return 2 * sqrt_2_over_15;
+                }
+            }
+            else {
+                long double sqrt_2_over_5 = std::sqrt(static_cast<long double>(2)) / 5;
+                long double sqrt_3_over_5 = std::sqrt(static_cast<long double>(3)) / 5;
+
+                if (j == 0){
+                    return 4 * sqrt_2_over_5;
+                }
+                else if (j == 1){
+                    return 14 * sqrt_3_over_5 - 12 * sqrt_2_over_5;
+                }
+                else if (j == 2){
+                    return - 8 * sqrt_3_over_5 + 12 * sqrt_2_over_5;
+                }
+                else {
+                    return 4 * sqrt_3_over_5 - 4 * sqrt_2_over_5;
+                }
             }
         }
     }
 
-    else {
-        return result;
+//    else if (order == 2){
+//        if (n == 1){ // use formula for the alphas of first order
+//            SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(1, n, j, last_h_over_h, n_steps_per_quad_step);
+//        }
+//        else if (j > 2){
+//            return result;
+//        }
+//        else { // we need to correct for the last shorter interval (this only affects the last three integrands, i.e., the first three coeffs)
+//            double one_fifteenth = 1.0 / 15;
+
+//            if (j == 2){
+//                return result + (- 4.0 * pow(last_h_over_h, 2.5) / (1 + last_h_over_h) + 2.0) * one_fifteenth;
+//            }
+//            else if (j == 1){
+//                return result + (2 * sqrt(last_h_over_h) * (5 + 2 * last_h_over_h) - 14.0) * one_fifteenth;
+//            }
+//            else {
+//                return result + (4 * sqrt(last_h_over_h) * (5 + 4 * last_h_over_h) / (1 + last_h_over_h) - 18.0) * one_fifteenth;
+//            }
+//        }
+//    }
+
+    else { // not implemented yet
+        if (n == 2){ // use formula for the betas of second order
+            SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(2, n, j, last_h_over_h, n_steps_per_quad_step);
+        }
+        else {
+            return result;
+        }
     }
     return 0.0;
 }
 //***************************************************************************************************************************************************
 //***************************************************************************************************************************************************
 template < class TBaseElement >\
-void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, vector<double>& historic_integrands)
+void SphericSwimmingParticle<TBaseElement>::CalculateFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, vector<double>& historic_integrands)
 {
     fractional_derivative = ZeroVector(3);
     const int N = historic_integrands.size() - 3;
@@ -477,7 +555,7 @@ void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivative(NodeT
 //***************************************************************************************************************************************************
 //***************************************************************************************************************************************************
 template < class TBaseElement >\
-void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, vector<double>& historic_integrands, const double last_h_over_h)
+void SphericSwimmingParticle<TBaseElement>::CalculateFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, vector<double>& historic_integrands, const double last_h_over_h, const int n_steps_per_quad_step)
 {
     fractional_derivative = ZeroVector(3);
     const int N = historic_integrands.size() - 3;
@@ -485,8 +563,8 @@ void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivative(NodeT
     array_1d<double, 3> integrand;
 
     for (int j = 0; j < n + 1; j++){
-        double coefficient     = GetDaitcheCoefficient(mQuadratureOrder, n + 1, j + 1, last_h_over_h);
-        double old_coefficient = GetDaitcheCoefficient(mQuadratureOrder, n,     j,     last_h_over_h);
+        double coefficient     = GetDaitcheCoefficient(mQuadratureOrder, n + 1, j + 1, last_h_over_h, n_steps_per_quad_step);
+        double old_coefficient = GetDaitcheCoefficient(mQuadratureOrder, n,     j,     last_h_over_h, n_steps_per_quad_step);
         for (int i_comp = 0; i_comp < 3; i_comp++){
             unsigned int integrand_position = N - 3 * j + i_comp;
             integrand[i_comp] = historic_integrands[integrand_position];
@@ -497,13 +575,13 @@ void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivative(NodeT
 //    for (int i_comp = 0; i_comp < 3; i_comp++){
 //        integrand[i_comp] = historic_integrands[N + 6 + i_comp];
 //    }
-    present_coefficient = GetDaitcheCoefficient(mQuadratureOrder, n + 1, 0, last_h_over_h);
+    present_coefficient = GetDaitcheCoefficient(mQuadratureOrder, n + 1, 0, last_h_over_h, n_steps_per_quad_step);
     fractional_derivative += present_coefficient * (fluid_vel - integrand);
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >\
-void SphericSwimmingParticle<TBaseElement>::CalculateExplicitFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, vector<double>& historic_integrands, const double last_h_over_h)
+void SphericSwimmingParticle<TBaseElement>::CalculateExplicitFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, vector<double>& historic_integrands, const double last_h_over_h, const int n_steps_per_quad_step)
 {
     fractional_derivative = ZeroVector(3);
     const int N = historic_integrands.size() - 3;
@@ -511,7 +589,7 @@ void SphericSwimmingParticle<TBaseElement>::CalculateExplicitFractionalDerivativ
     array_1d<double, 3> integrand;
 
     for (int j = 0; j < n + 1; j++){
-        double coefficient = GetDaitcheCoefficient(mQuadratureOrder, n + 1, j + 1, last_h_over_h);
+        double coefficient = GetDaitcheCoefficient(mQuadratureOrder, n + 1, j + 1, last_h_over_h, n_steps_per_quad_step);
         for (int i_comp = 0; i_comp < 3; i_comp++){
             unsigned int integrand_position = N - 3 * j + i_comp;
             integrand[i_comp] = historic_integrands[integrand_position];
@@ -521,7 +599,7 @@ void SphericSwimmingParticle<TBaseElement>::CalculateExplicitFractionalDerivativ
 
     integrand = node.FastGetSolutionStepValue(SLIP_VELOCITY) - node.FastGetSolutionStepValue(VELOCITY);
 
-    present_coefficient = GetDaitcheCoefficient(mQuadratureOrder, n + 1, 0, last_h_over_h);
+    present_coefficient = GetDaitcheCoefficient(mQuadratureOrder, n + 1, 0, last_h_over_h, n_steps_per_quad_step);
     fractional_derivative += present_coefficient * integrand;
 }
 //**************************************************************************************************************************************************
@@ -564,19 +642,17 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(NodeType& node, d
         if (r_current_process_info[TIME_STEPS] >= r_current_process_info[NUMBER_OF_INIT_BASSET_STEPS]){
             vector<double>& historic_integrands = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
             const double latest_quadrature_time_step = r_current_process_info[TIME] + delta_time - r_current_process_info[LAST_TIME_APPENDING];
+            KRATOS_WATCH(latest_quadrature_time_step)
             array_1d<double, 3> fractional_derivative_of_slip_vel;
             double present_coefficient;
             const double sqrt_of_quad_h_q = std::sqrt(quadrature_delta_time);
             const double last_h_over_h = latest_quadrature_time_step / quadrature_delta_time;
-
-            if (n_steps_per_quad_step == 1 && mBassetForceType < 3){ // quadrature time step coincides with the general time step of the scheme
+            KRATOS_WATCH(last_h_over_h)
+            if (n_steps_per_quad_step == 1 && mBassetForceType < 3 && false){ // quadrature time step coincides with the general time step of the scheme
                 CalculateFractionalDerivative(node, fractional_derivative_of_slip_vel, present_coefficient, historic_integrands);
-                if (mBassetForceType == 3){
-                    AddHinsbergTailContribution(node, fractional_derivative_of_slip_vel, quadrature_delta_time, historic_integrands);
-                }
             }
             else {
-                CalculateExplicitFractionalDerivative(node, fractional_derivative_of_slip_vel, present_coefficient, historic_integrands, last_h_over_h);
+                CalculateExplicitFractionalDerivative(node, fractional_derivative_of_slip_vel, present_coefficient, historic_integrands, last_h_over_h, n_steps_per_quad_step);
 
                 if (mBassetForceType == 3){
                     AddHinsbergTailContribution(node, fractional_derivative_of_slip_vel, quadrature_delta_time, historic_integrands);
@@ -586,7 +662,8 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(NodeType& node, d
                 const array_1d<double, 3>& vel     = node.FastGetSolutionStepValue(VELOCITY);
                 const array_1d<double, 3>& old_vel = node.FastGetSolutionStepValue(VELOCITY_OLD);
                 fractional_derivative_of_slip_vel -= mOldBassetTerm + mOldDaitchePresentCoefficient * (old_vel - vel); // the second term corresponds to the part that was treated implicitly in the last step minus a part that was added but did not correspond to the basset term
-
+                KRATOS_WATCH(mOldDaitchePresentCoefficient)
+                KRATOS_WATCH(present_coefficient)
                 mOldBassetTerm = basset_term;
                 mOldDaitchePresentCoefficient = present_coefficient;
             }
@@ -1292,19 +1369,21 @@ template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::MemberDeclarationFirstStep(const ProcessInfo& r_process_info)
 {
     TBaseElement::MemberDeclarationFirstStep(r_process_info);
-    mCouplingType           = r_process_info[COUPLING_TYPE];
-    mBuoyancyForceType      = r_process_info[BUOYANCY_FORCE_TYPE];
-    mDragForceType          = r_process_info[DRAG_FORCE_TYPE];
-    mVirtualMassForceType   = r_process_info[VIRTUAL_MASS_FORCE_TYPE];
-    mBassetForceType        = r_process_info[BASSET_FORCE_TYPE];
-    mSaffmanForceType       = r_process_info[LIFT_FORCE_TYPE];
-    mMagnusForceType        = r_process_info[MAGNUS_FORCE_TYPE];
-    mFluidModelType         = r_process_info[FLUID_MODEL_TYPE];
-    mPorosityCorrectionType = r_process_info[DRAG_POROSITY_CORRECTION_TYPE];
-    mHydrodynamicTorqueType = r_process_info[HYDRO_TORQUE_TYPE];
-    mBrownianMotionType     = 0;
-    mInitialTime            = r_process_info[TIME];
-    mQuadratureOrder        = r_process_info[QUADRATURE_ORDER];
+    mCouplingType                 = r_process_info[COUPLING_TYPE];
+    mBuoyancyForceType            = r_process_info[BUOYANCY_FORCE_TYPE];
+    mDragForceType                = r_process_info[DRAG_FORCE_TYPE];
+    mVirtualMassForceType         = r_process_info[VIRTUAL_MASS_FORCE_TYPE];
+    mBassetForceType              = r_process_info[BASSET_FORCE_TYPE];
+    mSaffmanForceType             = r_process_info[LIFT_FORCE_TYPE];
+    mMagnusForceType              = r_process_info[MAGNUS_FORCE_TYPE];
+    mFluidModelType               = r_process_info[FLUID_MODEL_TYPE];
+    mPorosityCorrectionType       = r_process_info[DRAG_POROSITY_CORRECTION_TYPE];
+    mHydrodynamicTorqueType       = r_process_info[HYDRO_TORQUE_TYPE];
+    mBrownianMotionType           = 0;
+    mInitialTime                  = r_process_info[TIME];
+    mQuadratureOrder              = r_process_info[QUADRATURE_ORDER];
+    mOldBassetTerm                = ZeroVector(3);
+    mOldDaitchePresentCoefficient = 0.0;
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
