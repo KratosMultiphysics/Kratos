@@ -32,7 +32,7 @@ public:
     using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mGamma;
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    //Constructor
+    ///Constructor
     NewmarkDynamicUPwScheme(ModelPart& r_model_part, double beta, double gamma, double theta,
                             double rayleigh_m, double rayleigh_k) : NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(r_model_part, beta, gamma, theta)
     {
@@ -49,7 +49,7 @@ public:
 
     //------------------------------------------------------------------------------------
     
-    //Destructor
+    ///Destructor
     virtual ~NewmarkDynamicUPwScheme() {}
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -58,8 +58,8 @@ public:
     {
         KRATOS_TRY
         
-        int err = NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::Check(r_model_part);
-        if(err != 0) return err;
+        int ierr = NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::Check(r_model_part);
+        if(ierr != 0) return ierr;
 
         if ( RAYLEIGH_ALPHA.Key() == 0 )
             KRATOS_THROW_ERROR( std::invalid_argument, "RAYLEIGH_ALPHA has Key zero! (check if the application is correctly registered", "" )
@@ -70,7 +70,7 @@ public:
         if( mRayleighAlpha < 0.0 || mRayleighBeta < 0.0 )
             KRATOS_THROW_ERROR( std::invalid_argument,"Some of the rayleigh coefficients has an invalid value ", "" )
             
-        return err;
+        return ierr;
         
         KRATOS_CATCH( "" )
     }
@@ -139,7 +139,7 @@ public:
 
 protected:
     
-    // Member Variables
+    /// Member Variables
     
     double mRayleighAlpha;
     double mRayleighBeta;
