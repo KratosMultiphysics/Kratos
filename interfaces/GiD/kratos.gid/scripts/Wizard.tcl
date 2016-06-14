@@ -133,12 +133,14 @@ proc Wizard::ImportWizardData {} {
             # For nodes with no children
             if {([$node nodeName] eq "Item") && (![$node hasChildNodes])} {
                 set n [$node getAttribute n ""]
+                set pn [$node getAttribute pn $n]
                 set v [$node getAttribute v ""]
                 set t [$node getAttribute type ""]
                 #W "::kwiz::wprops($stepId,$n,value)= $v -> $i"
                 set wprops($stepId,$n,value) $v
                 set wprops($stepId,$n,order) $i
                 set wprops($stepId,$n,type) $t
+                set wprops($stepId,$n,name) $pn
                 
                 if {$t eq "combo"} {
                     set vs [split [$node getAttribute values ""] ","]
