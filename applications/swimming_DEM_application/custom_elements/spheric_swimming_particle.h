@@ -168,10 +168,10 @@ namespace Kratos
         double ComputeElSamniLiftCoefficient(const double norm_of_shear_rate, const double vorticity_norm, const ProcessInfo& r_current_process_info);
         double ComputeMeiLiftCoefficient(const double reynolds, const double reynolds_shear);
         double GetDaitcheCoefficient(int order, unsigned int n, unsigned int j);
-        double GetDaitcheCoefficient(int order, unsigned int n, unsigned int j, const double last_h_over_h);
+        double GetDaitcheCoefficient(int order, unsigned int n, unsigned int j, const double last_h_over_h, const int n_steps_per_quad_step);
         void CalculateFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, Vector& historic_integrands);
-        void CalculateFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, Vector& historic_integrands, const double last_h_over_h);
-        void CalculateExplicitFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, Vector& historic_integrands, const double last_h_over_h);
+        void CalculateFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, Vector& historic_integrands, const double last_h_over_h, const int n_steps_per_quad_step);
+        void CalculateExplicitFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, Vector& historic_integrands, const double last_h_over_h, const int n_steps_per_quad_step);
         void AddHinsbergTailContribution(NodeType& node, array_1d<double, 3>& basset_term, const double delta_time, vector<double>& historic_integrands);
         void Initialize(const ProcessInfo& r_process_info);
         ///@name Static Member Variables
