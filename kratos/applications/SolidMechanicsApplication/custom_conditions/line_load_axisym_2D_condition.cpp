@@ -166,10 +166,11 @@ void LineLoadAxisym2DCondition::CalculateRadius(double & rCurrentRadius,
 void LineLoadAxisym2DCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
 
-  double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
+    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
 
-    if( GetProperties()[THICKNESS] > 0 )
-      rIntegrationWeight /=  GetProperties()[THICKNESS];
+    if ( this->GetProperties().Has( THICKNESS ) == true )
+      if( GetProperties()[THICKNESS] > 0 )
+	rIntegrationWeight /= double( GetProperties()[THICKNESS] );
 
     //contributions to stiffness matrix calculated on the reference config
 
@@ -186,8 +187,9 @@ void LineLoadAxisym2DCondition::CalculateAndAddRHS(LocalSystemComponents& rLocal
 {
   double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
 
-    if( GetProperties()[THICKNESS] > 0 )
-      IntegrationWeight /=  GetProperties()[THICKNESS];
+    if ( this->GetProperties().Has( THICKNESS ) == true )
+      if( GetProperties()[THICKNESS] > 0 )
+	rIntegrationWeight /= double( GetProperties()[THICKNESS] );
 
     //contribution to external forces
 
