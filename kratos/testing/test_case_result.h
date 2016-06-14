@@ -84,6 +84,23 @@ namespace Kratos
 
 			const std::string& GetErrorMessage() const;
 
+			void SetSetupElapsedTime(double ElapsedTime);
+
+			double GetSetupElapsedTime() const;
+
+			void SetRunElapsedTime(double ElapsedTime);
+
+			double GetRunElapsedTime() const;
+
+			void SetTearDownElapsedTime(double ElapsedTime);
+
+			double GetTearDownElapsedTime() const;
+			
+			void SetElapsedTime(double ElapsedTime);
+
+			double GetElapsedTime() const;
+
+
 
 			///@}
 			///@name Inquiry
@@ -127,6 +144,10 @@ namespace Kratos
 			bool mSucceed;
 			std::string mOutput;
 			std::string mErrorMessage;
+			double mSetupElapsedTime;
+			double mRunElapsedTime;
+			double mTearDownElapsedTime;
+			double mElapsedTime;
 
 
 			///@}

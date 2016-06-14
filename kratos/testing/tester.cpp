@@ -13,7 +13,7 @@
 
 
 // System includes
-
+#include <chrono>
 
 // External includes
 
@@ -48,6 +48,7 @@ namespace Kratos
 
 		void Tester::RunAllTestCases()
 		{
+			auto start = std::chrono::steady_clock::now();
 			ResetAllTestCasesResults();
 			std::size_t number_of_run_tests = NumberOfEnabledTestCases();
 
@@ -56,11 +57,14 @@ namespace Kratos
 				i_test->second->Run();
 
 			std::size_t number_of_failed_tests = NumberOfFailedTestCases();
+			auto end = std::chrono::steady_clock::now();
+			std::chrono::duration<double> elapsed = end - start;
+
 			if (number_of_failed_tests == 0)
-				std::cout << number_of_run_tests << " Test cases run. OK.";
+				std::cout << number_of_run_tests << " Test cases run in " << elapsed.count() << "s. OK.";
 			else
 			{
-				std::cout << number_of_run_tests << " Test cases run. " << number_of_failed_tests << " failed:" << std::endl;
+				std::cout << number_of_run_tests << " Test cases run in " << elapsed.count() << "s. " << number_of_failed_tests << " failed:" << std::endl;
 				ReportFailures(std::cout);
 			}
 
@@ -68,6 +72,7 @@ namespace Kratos
 
 		void Tester::ProfileAllTestCases()
 		{
+			auto start = std::chrono::steady_clock::now();
 			ResetAllTestCasesResults();
 			std::size_t number_of_run_tests = NumberOfEnabledTestCases();
 
@@ -76,11 +81,14 @@ namespace Kratos
 				i_test->second->Profile();
 
 			std::size_t number_of_failed_tests = NumberOfFailedTestCases();
+			auto end = std::chrono::steady_clock::now();
+			std::chrono::duration<double> elapsed = end - start;
+
 			if (number_of_failed_tests == 0)
-				std::cout << number_of_run_tests << " Test cases run. OK.";
+				std::cout << number_of_run_tests << " Test cases run in " << elapsed.count() << "s. OK.";
 			else
 			{
-				std::cout << number_of_run_tests << " Test cases run. " << number_of_failed_tests << " failed:" << std::endl;
+				std::cout << number_of_run_tests << " Test cases run in " << elapsed.count() << "s. " << number_of_failed_tests << " failed:" << std::endl;
 				ReportFailures(std::cout);
 			}
 		}
