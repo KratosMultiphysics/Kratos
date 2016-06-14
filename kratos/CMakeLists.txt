@@ -102,9 +102,16 @@ set( KRATOS_PYTHON_SOURCES
 
      )
 
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+ set( KRATOS_TESTING_SOURCES
+	 	${CMAKE_CURRENT_SOURCE_DIR}/tests/sources/test_checks.cpp;
+ )
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
+
 ###############################################################
 ## define library KratosCore to be included in all of the others
-add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES})
+add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_TESTING_SOURCES})
 target_link_libraries(KratosCore ${Boost_PYTHON_LIBRARIES} ${PYTHON_LIBRARIES} gidpost )
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
 install(TARGETS KratosCore DESTINATION libs )
