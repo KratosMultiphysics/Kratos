@@ -444,7 +444,8 @@ void ForceLoadCondition::CalculateConditionSystem(LocalSystemComponents& rLocalS
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
     //force terms
-    Vector VectorForce;
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    Vector VectorForce = ZeroVector(dimension);
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
@@ -816,11 +817,11 @@ void ForceLoadCondition::CalculateAndAddExternalForces(VectorType& rRightHandSid
 	//current displacements to compute energy
 	CurrentValueVector = GetCurrentValue( DISPLACEMENT, CurrentValueVector, i );
 
-	Displacements += rVariables.N[i] * Displacements;
+	Displacements += rVariables.N[i] * CurrentValueVector;
       }
     //------
 
-    Vector ForceVector = ZeroVector(3);
+    Vector ForceVector = ZeroVector(dimension);
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         int index = dimension * i;

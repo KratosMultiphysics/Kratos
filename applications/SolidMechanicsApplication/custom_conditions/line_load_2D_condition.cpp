@@ -135,10 +135,11 @@ void LineLoad2DCondition::CalculateKinematics(GeneralVariables& rVariables,
 
 double& LineLoad2DCondition::CalculateIntegrationWeight(double& rIntegrationWeight)
 {
-    if( GetProperties()[THICKNESS] > 0 )
-      rIntegrationWeight *=  GetProperties()[THICKNESS];
+    if ( this->GetProperties().Has( THICKNESS ) == true )
+      if( GetProperties()[THICKNESS] > 0 )
+	rIntegrationWeight *=  GetProperties()[THICKNESS];
 
-  return rIntegrationWeight;
+    return rIntegrationWeight;
 }
 
 //***********************************************************************************

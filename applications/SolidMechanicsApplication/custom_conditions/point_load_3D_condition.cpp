@@ -104,7 +104,9 @@ Vector& PointLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, General
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-    rVectorForce.resize(dimension,false);
+    if( rVectorForce.size() != dimension )
+      rVectorForce.resize(dimension,false);
+
     rVectorForce = ZeroVector(dimension);
    
     //FORCE CONDITION:
@@ -163,7 +165,8 @@ void PointLoad3DCondition::CalculateConditionSystem(LocalSystemComponents& rLoca
     //reading integration points
 
     //force terms
-    Vector VectorForce;
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    Vector VectorForce = ZeroVector(dimension);
 
     for ( unsigned int PointNumber = 0; PointNumber < 1; PointNumber++ )
     {

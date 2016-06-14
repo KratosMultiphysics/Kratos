@@ -126,8 +126,9 @@ void PointLoadAxisym2DCondition::CalculateAndAddLHS(LocalSystemComponents& rLoca
 {
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
 
-    if( GetProperties()[THICKNESS] > 0 )
-      IntegrationWeight /=  GetProperties()[THICKNESS];
+    if ( this->GetProperties().Has( THICKNESS ) == true )
+      if( GetProperties()[THICKNESS] > 0 )
+	rIntegrationWeight /= double( GetProperties()[THICKNESS] );
 
 
     //contributions to stiffness matrix calculated on the reference config
@@ -144,8 +145,9 @@ void PointLoadAxisym2DCondition::CalculateAndAddRHS(LocalSystemComponents& rLoca
 {
   double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
 
-    if( GetProperties()[THICKNESS] > 0 )
-      IntegrationWeight /=  GetProperties()[THICKNESS];
+    if ( this->GetProperties().Has( THICKNESS ) == true )
+      if( GetProperties()[THICKNESS] > 0 )
+	rIntegrationWeight /= double( GetProperties()[THICKNESS] );
 
     //contribution to external forces
 

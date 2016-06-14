@@ -204,7 +204,9 @@ Vector& SurfaceLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, Gener
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     
-    rVectorForce.resize(dimension,false);
+    if( rVectorForce.size() != dimension )
+      rVectorForce.resize(dimension,false);
+
     rVectorForce = ZeroVector(dimension);
     
     //PRESSURE CONDITION:
