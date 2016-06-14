@@ -267,12 +267,35 @@ proc Model::GetAllSolStratParams {} {
     }
     return $inputs
 }
+proc Model::GetSolStratParams {args} {
+    #W "GSSP $args"
+    set solution_strategies [GetSolutionStrategies {*}$args]
+    set inputs [dict create ]
+    foreach st $solution_strategies {
+        foreach {k v} [$st getInputs] {
+            dict set inputs $k $v
+        }
+    }
+    #W $inputs
+    return $inputs
+}
 
 proc Model::GetAllSchemeParams {} {
     variable SolutionStrategies
     
     set inputs [dict create ]
     foreach st $SolutionStrategies {
+        foreach sc [$st getSchemes] {
+            foreach {k v} [$sc getInputs] {
+                dict set inputs $k $v
+            }
+        }
+    }
+    return $inputs
+}
+proc Model::GetSchemesParams {args} {    
+    set inputs [dict create ]
+    foreach st [GetSolutionStrategies {*}$args] {
         foreach sc [$st getSchemes] {
             foreach {k v} [$sc getInputs] {
                 dict set inputs $k $v

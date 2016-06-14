@@ -44,9 +44,7 @@
     <linearSolvers>
       <linearSolverItem n="linear_solver_settings" pn="Linear Solver" help="Default solver Super LU" >
         <filterFeatures>
-	  <!--<filter field="n" value="BiConjugate"/>
-	      <filter field="symmetric" value="false"/>
-          <filter field="solver_type" value="Iterative"/>    -->
+	   <filter field="SolverType" value="Standard"/>
         </filterFeatures>
 		<defaults>
 		  <solver n="Super_LU">
@@ -115,9 +113,7 @@
     <linearSolvers>
       <linearSolverItem n="linear_solver_settings" pn="Linear Solver" >
         <filterFeatures>
-	  <!--<filter field="n" value="BiConjugate"/>
-	      <filter field="symmetric" value="false"/>
-              <filter field="solver_type" value="Iterative"/>    -->
+	   <filter field="SolverType" value="Standard"/>
         </filterFeatures>
 		<defaults>
 		  <solver n="Super_LU">
@@ -192,6 +188,7 @@
     <linearSolvers>
       <linearSolverItem n="linear_solver_settings" pn="Linear Solver" >
         <filterFeatures>
+		   <filter field="SolverType" value="Standard"/>
         </filterFeatures>
 		<defaults>
 		  <solver n="Super_LU">

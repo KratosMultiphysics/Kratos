@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Solvers>
-    <solver n="Super_LU" pn="Super LU">
+    <solver n="Super_LU" pn="Super LU" SolverType="Standard">
         <inputs>
             <parameter n="scaling" pn="Scaling" type="bool" v="False"  help=""/>
             <parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
         </inputs>
     </solver>
-    <solver n="Conjugate_gradient" pn="Conjugate Gradient">
+    <solver n="Conjugate_gradient" pn="Conjugate Gradient" SolverType="Standard">
         <inputs>
             <parameter n="max_iteration" pn="Max iterations" type="integer" v="500" help=""/>
             <parameter n="tolerance" pn="Tolerance" type="integer"  v="1e-9" help=""/>
@@ -15,7 +15,7 @@
 			<parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
         </inputs>
     </solver>
-    <solver n="GMRES" pn="GMRES">
+    <solver n="GMRES" pn="GMRES" SolverType="Standard">
         <inputs>
             <parameter n="max_iteration" pn="Max iterations" type="integer" v="500" help=""/>
             <parameter n="tolerance" pn="Tolerance" type="integer"  v="1e-9" help=""/>
@@ -24,7 +24,7 @@
             <parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
         </inputs>
     </solver>
-    <solver n="BiConjugate_gradient_stabilized" pn="BiCGS">
+    <solver n="BiConjugate_gradient_stabilized" pn="BiCGS" SolverType="Standard">
         <inputs>
             <parameter n="max_iteration" pn="Max iterations" type="integer" v="500" help=""/>
             <parameter n="tolerance" pn="Tolerance" type="integer"  v="1e-9" help=""/>
@@ -32,7 +32,7 @@
             <parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
         </inputs>
     </solver>
-    <solver n="AMGCL" pn="AMGCL">
+    <solver n="AMGCL" pn="AMGCL" SolverType="Standard">
         <inputs>
             <parameter n="max_iteration" pn="Max iterations" type="integer" v="500" help=""/>
             <parameter n="tolerance" pn="Tolerance" type="integer"  v="1e-9" help=""/>
@@ -44,14 +44,14 @@
             <parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
         </inputs>
     </solver>
-    <solver n="Pastix_Direct" pn="Pastix Direct">
+    <solver n="Pastix_Direct" pn="Pastix Direct" SolverType="Standard">
         <inputs>
 	    <parameter n="is_symmetric" pn="Symmetric" type="bool" v="True"  help=""/>
             <parameter n="scaling" pn="Scaling" type="bool" v="False"  help=""/>
             <parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
         </inputs>
     </solver>
-    <solver n="Pastix_Iterative" pn="Pastix Iterative">
+    <solver n="Pastix_Iterative" pn="Pastix Iterative" SolverType="Standard">
         <inputs>
 		<parameter n="is_symmetric" pn="Symmetric" type="bool" v="True"  help=""/>
 		<parameter n="gmres_krylov_space_dimension" pn="krylovDimension" type="integer" v="100" help=""/>

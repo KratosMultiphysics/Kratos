@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="SolStratST" pn="Solution" un="SLStratSection" help="Solution Strategy">
+	  <container n="StratParams" pn="Strategy parameters" un="SLStratParams" icon="groupsTreeNew.gif"  state="normal" >
+			<dynamicnode command="injectSolStratParams" args="ImplementedInApplication SolidMechanicsApplication,StructuralMechanicsApplication"/>
+	  </container>
+	  <dynamicnode command="injectSolvers" args="ImplementedInApplication SolidMechanicsApplication,StructuralMechanicsApplication"/>
+    </container>

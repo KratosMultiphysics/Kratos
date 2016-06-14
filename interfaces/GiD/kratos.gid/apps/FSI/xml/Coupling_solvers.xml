@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Solvers>
-    <solver n="Relaxation" pn="Relaxation">
+    <solver n="Relaxation" pn="Relaxation" SolverType="FSICoupling">
         <inputs>
             <parameter n="acceleration_type" pn="Acceleration type" type="combo" values="Aitken,Fixed,Full" v="Aitken" help="Type of acceleration."/>
             <parameter n="w_0" pn="Relaxation parameter (w)" type="double" v="0.825" help="Initial relaxation parameter."/>
         </inputs>
     </solver>
     
-    <solver n="JFNK" pn="Jacobian Free Newton-Krylov">
+    <solver n="JFNK" pn="Jacobian Free Newton-Krylov"  SolverType="FSICoupling">
         <inputs>
             <parameter n="linear_solver" pn="Linear solver" type="combo" values="GMRES" v="GMRES" help="Linear solver to compute the linearised correction."/>
             <parameter n="lin_solv_tol" pn="Linear solver tolerance" type="double" v="1e-5" help="Linear solver tolerance."/>
@@ -16,9 +16,9 @@
         </inputs>
     </solver>
     
-    <solver n="MVQN" pn="MultiVector Quasi-Newton">
+    <solver n="MVQN" pn="MultiVector Quasi-Newton" SolverType="FSICoupling">
         <inputs>
-            <parameter n="w_0" pn="Ititial relaxation parameter" type="double" v="0.825" help="Relaxation parameter for the first fixed point iteration."/>
+            <parameter n="w_0" pn="Initial relaxation parameter" type="double" v="0.825" help="Relaxation parameter for the first fixed point iteration."/>
         </inputs>
     </solver>
 
