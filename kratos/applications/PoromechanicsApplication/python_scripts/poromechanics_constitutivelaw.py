@@ -9,13 +9,19 @@ CheckForPreviousImport()
 def SetConstitutiveLaw(model_part):
     for prop in model_part.Properties:
         ConstitutiveLawName=prop.GetValue(CONSTITUTIVE_LAW_NAME)
-        if(ConstitutiveLawName == "LinearElastic2DPlaneStress"):
-            prop.SetValue(CONSTITUTIVE_LAW_POINTER, LinearElasticPlaneStress2DLaw() )
-        elif(ConstitutiveLawName == "LinearElastic2DPlaneStrain"):
+        if(ConstitutiveLawName == "LinearElastic2DPlaneStrain"):
             prop.SetValue(CONSTITUTIVE_LAW_POINTER, LinearElasticPlaneStrain2DLaw() )
+        elif(ConstitutiveLawName == "LinearElastic2DPlaneStress"):
+            prop.SetValue(CONSTITUTIVE_LAW_POINTER, LinearElasticPlaneStress2DLaw() )
         elif(ConstitutiveLawName == "LinearElastic3D"):
             prop.SetValue(CONSTITUTIVE_LAW_POINTER, LinearElastic3DLaw() )
-        elif(ConstitutiveLawName == "BilinearCohesive3D"):
-            prop.SetValue(CONSTITUTIVE_LAW_POINTER, BilinearCohesive3DLaw() )
         elif(ConstitutiveLawName == "BilinearCohesive2D"):
             prop.SetValue(CONSTITUTIVE_LAW_POINTER, BilinearCohesive2DLaw() )
+        elif(ConstitutiveLawName == "BilinearCohesive3D"):
+            prop.SetValue(CONSTITUTIVE_LAW_POINTER, BilinearCohesive3DLaw() )
+        elif(ConstitutiveLawName == "SimoJuDamage2DPlaneStrain"):
+            prop.SetValue(CONSTITUTIVE_LAW_POINTER, RestoreSimoJuPlaneStrain2DLaw() )
+        elif(ConstitutiveLawName == "SimoJuDamage2DPlaneStress"):
+            prop.SetValue(CONSTITUTIVE_LAW_POINTER, RestoreSimoJuPlaneStress2DLaw() )
+        elif(ConstitutiveLawName == "SimoJuDamage3D"):
+            prop.SetValue(CONSTITUTIVE_LAW_POINTER, RestoreSimoJu3DLaw() )
