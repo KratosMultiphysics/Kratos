@@ -117,7 +117,7 @@ DYNAMIC_VISCOSITY      *MatProp(Dynamic_Viscosity,real)
 THICKNESS              *MatProp(Thickness,real)
 End Properties
 
-*elseif(strcmp(MatProp(Element_Type),"Standard")==0 && (strcmp(MatProp(Standard_Constitutive_Law),"LinearElastic3D")==0))
+*elseif(strcmp(MatProp(Element_Type),"Standard")==0 && strcmp(MatProp(Standard_Constitutive_Law),"LinearElastic3D")==0)
 Begin Properties  *MatNum
 CONSTITUTIVE_LAW_NAME  LinearElastic3D
 YOUNG_MODULUS          *MatProp(Young_Modulus,real)
@@ -134,6 +134,48 @@ PERMEABILITY_XY        *MatProp(Intrinsic_Permeability_XY,real)
 PERMEABILITY_YZ        *MatProp(Intrinsic_Permeability_YZ,real)
 PERMEABILITY_ZX        *MatProp(Intrinsic_Permeability_ZX,real)
 DYNAMIC_VISCOSITY      *MatProp(Dynamic_Viscosity,real)
+End Properties
+
+*elseif(strcmp(MatProp(Element_Type),"Standard")==0 && (strcmp(MatProp(Standard_Constitutive_Law),"SimoJuDamage2DPlaneStrain")==0 || strcmp(MatProp(Standard_Constitutive_Law),"SimoJuDamage2DPlaneStress")==0))
+Begin Properties  *MatNum
+CONSTITUTIVE_LAW_NAME  *MatProp(Standard_Constitutive_Law)
+YOUNG_MODULUS          *MatProp(Young_Modulus,real)
+POISSON_RATIO          *MatProp(Poisson_Ratio,real)
+DENSITY_SOLID          *MatProp(Solid_Density,real)
+DENSITY_WATER          *MatProp(Fluid_Density,real)
+POROSITY               *MatProp(Porosity,real)
+BULK_MODULUS_SOLID     *MatProp(Solid_Bulk_Modulus,real)
+BULK_MODULUS_FLUID     *MatProp(Fluid_Bulk_Modulus,real)
+PERMEABILITY_XX        *MatProp(Intrinsic_Permeability_XX,real)
+PERMEABILITY_YY        *MatProp(Intrinsic_Permeability_YY,real)
+PERMEABILITY_XY        *MatProp(Intrinsic_Permeability_XY,real)
+DYNAMIC_VISCOSITY      *MatProp(Dynamic_Viscosity,real)
+DAMAGE_THRESHOLD       *MatProp(Damage_Threshold,real)
+STRENGTH_RATIO         *MatProp(Strength_Ratio,real)
+FRACTURE_ENERGY        *MatProp(Fracture_Energy,real)
+THICKNESS              *MatProp(Thickness,real)
+End Properties
+
+*elseif(strcmp(MatProp(Element_Type),"Standard")==0 && strcmp(MatProp(Standard_Constitutive_Law),"SimoJuDamage3D")==0)
+Begin Properties  *MatNum
+CONSTITUTIVE_LAW_NAME  SimoJuDamage3D
+YOUNG_MODULUS          *MatProp(Young_Modulus,real)
+POISSON_RATIO          *MatProp(Poisson_Ratio,real)
+DENSITY_SOLID          *MatProp(Solid_Density,real)
+DENSITY_WATER          *MatProp(Fluid_Density,real)
+POROSITY               *MatProp(Porosity,real)
+BULK_MODULUS_SOLID     *MatProp(Solid_Bulk_Modulus,real)
+BULK_MODULUS_FLUID     *MatProp(Fluid_Bulk_Modulus,real)
+PERMEABILITY_XX        *MatProp(Intrinsic_Permeability_XX,real)
+PERMEABILITY_YY        *MatProp(Intrinsic_Permeability_YY,real)
+PERMEABILITY_ZZ        *MatProp(Intrinsic_Permeability_ZZ,real)
+PERMEABILITY_XY        *MatProp(Intrinsic_Permeability_XY,real)
+PERMEABILITY_YZ        *MatProp(Intrinsic_Permeability_YZ,real)
+PERMEABILITY_ZX        *MatProp(Intrinsic_Permeability_ZX,real)
+DYNAMIC_VISCOSITY      *MatProp(Dynamic_Viscosity,real)
+DAMAGE_THRESHOLD       *MatProp(Damage_Threshold,real)
+STRENGTH_RATIO         *MatProp(Strength_Ratio,real)
+FRACTURE_ENERGY        *MatProp(Fracture_Energy,real)
 End Properties
 
 *elseif(strcmp(MatProp(Element_Type),"Interface")==0 && (strcmp(MatProp(Interface_Constitutive_Law),"BilinearCohesive2DPlaneStrain")==0 || strcmp(MatProp(Interface_Constitutive_Law),"BilinearCohesive2DPlaneStress")==0))
