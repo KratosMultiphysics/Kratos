@@ -19,6 +19,10 @@
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
 
+#include "custom_constitutive/restore_simo_ju_3D_law.hpp"
+#include "custom_constitutive/restore_simo_ju_plane_strain_2D_law.hpp"
+#include "custom_constitutive/restore_simo_ju_plane_stress_2D_law.hpp"
+
 namespace Kratos
 {
 
@@ -30,8 +34,11 @@ using namespace boost::python;
 void  AddCustomConstitutiveLawsToPython()
 {        
     class_< BilinearCohesive3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "BilinearCohesive3DLaw",init<>() );
-    
     class_< BilinearCohesive2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "BilinearCohesive2DLaw",init<>() );
+    
+    class_< RestoreSimoJu3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "RestoreSimoJu3DLaw",init<>() );
+    class_< RestoreSimoJuPlaneStrain2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "RestoreSimoJuPlaneStrain2DLaw",init<>() );
+    class_< RestoreSimoJuPlaneStress2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "RestoreSimoJuPlaneStress2DLaw",init<>() );
 }
 
 }  // namespace Python.
