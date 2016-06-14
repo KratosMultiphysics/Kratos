@@ -1,10 +1,10 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
-from KratosMultiphysics import *
-from KratosMultiphysics.SolidMechanicsApplication import *
+import KratosMultiphysics
+import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
 # Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
+KratosMultiphysics.CheckForPreviousImport()
 
 # Import the implicit solver (the explicit one is derived from it)
 import solid_mechanics_implicit_dynamic_solver
@@ -27,7 +27,7 @@ class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMec
         self.main_model_part = main_model_part    
         
         ##settings string in json format
-        default_settings = Parameters("""
+        default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "solid_mechanics_static_solver",
             "echo_level": 0,
@@ -106,7 +106,7 @@ class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMec
                                      self.settings["line_search"].GetBool())
 
         # Set the stabilization factor
-        self.main_model_part.ProcessInfo[STABILIZATION_FACTOR] = self.settings["stabilization_factor"].GetDouble()
+        self.main_model_part.ProcessInfo[KratosMultiphysics.STABILIZATION_FACTOR] = self.settings["stabilization_factor"].GetDouble()
 
         # Set echo_level
         self.mechanical_solver.SetEchoLevel(self.settings["echo_level"].GetInt())
@@ -121,7 +121,7 @@ class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMec
     def _GetSolutionScheme(self, analysis_type, component_wise, compute_contact_forces):
 
         if(analysis_type == "Linear"):
-            mechanical_scheme = ResidualBasedIncrementalUpdateStaticScheme()
+            mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
             
         if(analysis_type == "Non-Linear" ):
             self.settings.AddEmptyValue("damp_factor_m")  
@@ -130,60 +130,60 @@ class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMec
             self.settings["dynamic_factor"].SetDouble(0.0) # Quasi-static scheme
             
             if component_wise:
-                mechanical_scheme = ComponentWiseBossakScheme(self.settings["damp_factor_m"].GetDouble(), 
-                                                              self.settings["dynamic_factor"].GetDouble())
+                mechanical_scheme = KratosSolid.ComponentWiseBossakScheme(self.settings["damp_factor_m"].GetDouble(), 
+                                                                          self.settings["dynamic_factor"].GetDouble())
             else:
                 if compute_contact_forces:
                     raise Exception("TODO: change for one that works with contact change")
                     #mechanical_scheme = ResidualBasedContactBossakScheme(self.settings["damp_factor_m"].GetDouble(), 
                                                                          #self.settings["dynamic_factor"].GetDouble())
                 else:
-                    mechanical_scheme = ResidualBasedIncrementalUpdateStaticScheme()
+                    mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
                                 
         return mechanical_scheme
         
     def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search):
         
         if(component_wise):
-            self.mechanical_solver = ComponentWiseNewtonRaphsonStrategy(self.compute_model_part, 
-                                                                        mechanical_scheme, 
-                                                                        self.linear_solver, 
-                                                                        mechanical_convergence_criterion, 
-                                                                        builder_and_solver, 
-                                                                        max_iters, 
-                                                                        compute_reactions, 
-                                                                        reform_step_dofs, 
-                                                                        move_mesh_flag)
+            self.mechanical_solver = KratosSolid.ComponentWiseNewtonRaphsonStrategy(self.compute_model_part, 
+                                                                                    mechanical_scheme, 
+                                                                                    self.linear_solver, 
+                                                                                    mechanical_convergence_criterion, 
+                                                                                    builder_and_solver, 
+                                                                                    max_iters, 
+                                                                                    compute_reactions, 
+                                                                                    reform_step_dofs, 
+                                                                                    move_mesh_flag)
         else:
             if(line_search):
-                self.mechanical_solver = ResidualBasedNewtonRaphsonLineSearchStrategy(self.compute_model_part, 
-                                                                                      mechanical_scheme, 
-                                                                                      self.linear_solver, 
-                                                                                      mechanical_convergence_criterion, 
-                                                                                      builder_and_solver, 
-                                                                                      max_iters, 
-                                                                                      compute_reactions, 
-                                                                                      reform_step_dofs, 
-                                                                                      move_mesh_flag)
+                self.mechanical_solver = KratosSolid.ResidualBasedNewtonRaphsonLineSearchStrategy(self.compute_model_part, 
+                                                                                                  mechanical_scheme, 
+                                                                                                  self.linear_solver, 
+                                                                                                  mechanical_convergence_criterion, 
+                                                                                                  builder_and_solver, 
+                                                                                                  max_iters, 
+                                                                                                  compute_reactions, 
+                                                                                                  reform_step_dofs, 
+                                                                                                  move_mesh_flag)
 
             else:
                 if self.settings["analysis_type"].GetString() == "Linear":
-                    self.mechanical_solver = ResidualBasedLinearStrategy(self.compute_model_part, 
-                                                                         mechanical_scheme, 
-                                                                         self.linear_solver, 
-                                                                         builder_and_solver, 
-                                                                         compute_reactions, 
-                                                                         reform_step_dofs, 
-                                                                         False, 
-                                                                         move_mesh_flag)
+                    self.mechanical_solver = KratosMultiphysics.ResidualBasedLinearStrategy(self.compute_model_part, 
+                                                                                            mechanical_scheme, 
+                                                                                            self.linear_solver, 
+                                                                                            builder_and_solver, 
+                                                                                            compute_reactions, 
+                                                                                            reform_step_dofs, 
+                                                                                            False, 
+                                                                                            move_mesh_flag)
                 
                 else:
-                    self.mechanical_solver = ResidualBasedNewtonRaphsonStrategy(self.compute_model_part, 
-                                                                                mechanical_scheme, 
-                                                                                self.linear_solver, 
-                                                                                mechanical_convergence_criterion, 
-                                                                                builder_and_solver, 
-                                                                                max_iters, 
-                                                                                compute_reactions, 
-                                                                                reform_step_dofs, 
-                                                                                move_mesh_flag)
+                    self.mechanical_solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.compute_model_part, 
+                                                                                                   mechanical_scheme, 
+                                                                                                   self.linear_solver, 
+                                                                                                   mechanical_convergence_criterion, 
+                                                                                                   builder_and_solver, 
+                                                                                                   max_iters, 
+                                                                                                   compute_reactions, 
+                                                                                                   reform_step_dofs, 
+                                                                                                   move_mesh_flag)
