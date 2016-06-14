@@ -104,7 +104,6 @@ namespace Kratos {
         // Omp initializations
 
         mNumberOfThreads = OpenMPUtils::GetNumThreads();
-        mNeighbourCounter.resize(mNumberOfThreads);
 
         RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
         RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
