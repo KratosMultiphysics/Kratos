@@ -13,6 +13,7 @@ proc Dam::write::getParametersDict { } {
     dict set generalDataDict model_part_name "MainModelPart"
     set nDim [expr [string range [write::getValue nDim] 0 0] ]
     dict set generalDataDict domain_size $nDim
+    dict set generalDataDict NumberofThreads [write::getValue DamNumThreads ]
     dict set generalDataDict time_scale [write::getValue DamTimeParameters TimeScale]
     dict set generalDataDict evolution_type [write::getValue DamEvolutionType] 
     dict set generalDataDict delta_time [write::getValue DamTimeParameters DeltaTime]
