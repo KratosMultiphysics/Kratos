@@ -700,7 +700,6 @@ namespace Kratos {
             double aux = sin(thetaMag)/thetaMag;
             Orientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
         }
-        Orientation.normalize();
         Orientation.ToEulerAngles(EulerAngles);
     }
     
@@ -722,8 +721,6 @@ namespace Kratos {
             double aux = sin(thetaMag)/thetaMag;
             DeltaOrientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
         }
-
-        DeltaOrientation.normalize();
         Orientation = DeltaOrientation * Orientation;
         Orientation.ToEulerAngles(EulerAngles);
     }
