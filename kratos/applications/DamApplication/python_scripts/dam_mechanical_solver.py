@@ -3,7 +3,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.PoromechanicsApplication import *
 from KratosMultiphysics.DamApplication import *
 #check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
@@ -84,8 +83,8 @@ def CreateSolver(model_part, config):
         builder_and_solver = ResidualBasedBlockBuilderAndSolver(linear_solver)        
 
     if(config.strategy_type == "Newton-Raphson"):
-        dam_mechanical_solver.strategy = NewtonRaphsonStrategy(model_part,solution_scheme,builder_and_solver,dofs_rel_tol,residual_rel_tol,max_iters,compute_react,
-                                                     dam_mechanical_solver.reform_step_dofs,dam_mechanical_solver.move_mesh_flag)
+        dam_mechanical_solver.strategy = DamNewtonRaphsonStrategy(model_part,solution_scheme,builder_and_solver,dofs_rel_tol,residual_rel_tol,max_iters,compute_react,
+                                                                dam_mechanical_solver.reform_step_dofs,dam_mechanical_solver.move_mesh_flag)
 
 
 
