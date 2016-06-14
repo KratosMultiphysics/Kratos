@@ -20,7 +20,7 @@ proc Dam::write::Init { } {
 proc Dam::write::writeCustomFilesEvent { } {
     
     write::CopyFileIntoModel "python/dam_thermo_mechanic_script.py"
-    write::RenameFileInModel "dam_thermo_mechanic_script.py" "MainKratos.py"
+    #write::RenameFileInModel "dam_thermo_mechanic_script.py" "MainKratos.py"
     
     #write::RenameFileInModel "ProjectParameters.json" "ProjectParameters.py"
 }
@@ -65,7 +65,7 @@ proc Dam::write::writeLoads { } {
     variable ConditionsDictGroupIterators
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    set xp1 "[spdAux::getRoute "SLLoads"]/condition/group"
+    set xp1 "[spdAux::getRoute "DamLoads"]/condition/group"
     foreach group [$root selectNodes $xp1] {
         set groupid [$group @n]
         #W "Writing mesh of Load $groupid"
