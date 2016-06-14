@@ -9,7 +9,7 @@
 #define  KRATOS_NEWMARK_DYNAMIC_U_PW_SCHEME
 
 // Application includes
-#include "custom_strategies/custom_schemes/newmark_quasistatic_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos

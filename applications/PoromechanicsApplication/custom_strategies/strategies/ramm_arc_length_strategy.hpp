@@ -9,7 +9,7 @@
 #define KRATOS_RAMM_ARC_LENGTH_STRATEGY
 
 // Project includes
-#include "custom_strategies/newton_raphson_strategy.hpp"
+#include "custom_strategies/strategies/newton_raphson_strategy.hpp"
 
 // Application includes
 #include "poromechanics_application_variables.h"
