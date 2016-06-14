@@ -633,8 +633,8 @@ post_utils.Writeresults(time)
 coors = [None] * 3
 
 sim.CalculatePosition(coors, 0.0)            
-times = []
-radii = []
+times = [0.0]
+radii = [1.0]
 while (time <= final_time):
 
     time = time + Dt
