@@ -6,6 +6,6 @@
         <value n="EndingTime" pn="Ending Time" un="DamEndingTime" v="10" type="double" help="Units: provided by time scale"/>
     </container>
      <value n="EvolutionType" pn="Evolution Type" un="DamEvolutionType" v="Exact" values="Exact,Interpolation" help="Type of Evolution" />    
-     <value n="NumThreads" pn="Number of Threads" v="1" type="integer" help="Number of threads for carrying out the simulation" />
+     <value n="NumThreads" pn="Number of Threads" un="DamNumThreads" v="1" type="integer" help="Number of threads for carrying out the simulation" />
 </container>
     

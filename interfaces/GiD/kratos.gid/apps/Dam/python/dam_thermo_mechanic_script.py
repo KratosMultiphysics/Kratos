@@ -17,9 +17,9 @@ from KratosMultiphysics.ConvectionDiffusionApplication import *
 from KratosMultiphysics.PoromechanicsApplication import *
 from KratosMultiphysics.DamApplication import *
 
-
-# Import parameters
-import ProjectParameters
+#import define_output
+parameter_file = open("ProjectParameters.json",'r')
+ProjectParameters = Parameters( parameter_file.read())
 
 #Import solver constructors
 import dam_mechanical_solver as mechanical_solver
@@ -36,14 +36,15 @@ import cleaning_utility
 
 # Number of threads
 parallel=OpenMPUtils()
-parallel.SetNumThreads(int(ProjectParameters.NumberofThreads))
+parallel.SetNumThreads(int(ProjectParameters["general_data"]["NumberofThreads"].GetInt()))
 
 # Problem parameters
-problem_name = os.path.join(str(ProjectParameters.problem_path),str(ProjectParameters.problem_name))
-delta_time = ProjectParameters.delta_time
-ending_time = ProjectParameters.ending_time
-time_converter = ProjectParameters.time_scale
-evolution_type = ProjectParameters.evolution_type
+problem_name = ProjectParameters["general_data"]["NumberofThreads"].GetString()
+delta_time = ProjectParameters["general_data"]["delta_time"].GetDouble()
+ending_time = ProjectParameters["general_data"]["ending_time"].GetDouble()
+time_converter = ProjectParameters["general_data"]["time_scale"].GetString()
+evolution_type = ProjectParameters["general_data"]["evolution_type"].GetString()
+print(evolution_type)
 current_step = 0
 current_time = 0.0
 current_id = 1
