@@ -13,7 +13,7 @@
 
 
 // System includes
-
+#include <chrono>
 
 // External includes
 
@@ -47,6 +47,7 @@ namespace Kratos
 
 		void TestCase::Run()
 		{
+			
 			try {
 				Setup();
 				TestFunction();
@@ -69,12 +70,34 @@ namespace Kratos
 		void TestCase::Profile()
 		{
 			try {
+				auto start = std::chrono::steady_clock::now();
 				Setup();
+				auto end_setup = std::chrono::steady_clock::now();
 				TestFunction();
+				auto end_run = std::chrono::steady_clock::now();
 				TearDown();
+				auto end_tear_down = std::chrono::steady_clock::now();
+				mResult.SetToSucceed();
+				auto end = std::chrono::steady_clock::now();
+				std::chrono::duration<double> setup_elapsed = end_setup - start;
+				std::chrono::duration<double> run_elapsed = end_run - end_setup;
+				std::chrono::duration<double> tear_down_elapsed = end_tear_down - end_run;
+				std::chrono::duration<double> elapsed = end - start;
+				mResult.SetSetupElapsedTime(setup_elapsed.count());
+				mResult.SetRunElapsedTime(run_elapsed.count());
+				mResult.SetTearDownElapsedTime(tear_down_elapsed.count());
+				mResult.SetElapsedTime(elapsed.count());
+			}
+			catch (Exception& e) {
+				std::stringstream buffer;
+				buffer << e.what() << " in " << e.where() << std::endl;
+				mResult.SetErrorMessage(buffer.str());
+			}
+			catch (std::exception& e) {
+				mResult.SetErrorMessage(e.what());
 			}
 			catch (...) {
-				std::cout << "Test " << Name() << " Failed!" << std::endl;
+				mResult.SetErrorMessage("Unknown error");
 			}
 		}
 

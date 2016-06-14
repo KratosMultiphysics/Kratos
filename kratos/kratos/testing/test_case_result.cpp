@@ -26,10 +26,13 @@ namespace Kratos
 {
 	namespace Testing
 	{
-		TestCaseResult::TestCaseResult() : mSucceed(false), mOutput(""), mErrorMessage("") {}
+		TestCaseResult::TestCaseResult() : mSucceed(false), mOutput(""), mErrorMessage("")
+			, mSetupElapsedTime(0.00), mRunElapsedTime(0.00), mTearDownElapsedTime(0.00), mElapsedTime(0.00) {}
 
 		TestCaseResult::TestCaseResult(TestCaseResult const& rOther)
-			: mSucceed(rOther.mSucceed), mOutput(rOther.mOutput), mErrorMessage(rOther.mErrorMessage) {}
+			: mSucceed(rOther.mSucceed), mOutput(rOther.mOutput), mErrorMessage(rOther.mErrorMessage)
+			, mSetupElapsedTime(rOther.mSetupElapsedTime), mRunElapsedTime(rOther.mRunElapsedTime)
+			, mTearDownElapsedTime(rOther.mTearDownElapsedTime), mElapsedTime(rOther.mElapsedTime) {}
 
 		TestCaseResult::~TestCaseResult() {}
 
@@ -38,6 +41,11 @@ namespace Kratos
 			mSucceed = rOther.mSucceed;
 			mOutput = rOther.mOutput;
 			mErrorMessage = rOther.mErrorMessage;
+			mSetupElapsedTime = rOther.mSetupElapsedTime;
+			mRunElapsedTime = rOther.mRunElapsedTime;
+			mTearDownElapsedTime = rOther.mTearDownElapsedTime;
+			mElapsedTime = rOther.mElapsedTime;
+
 			return *this;
 		}
 
@@ -46,6 +54,10 @@ namespace Kratos
 			mSucceed = false;
 			mOutput = "";
 			mErrorMessage = "";
+			mSetupElapsedTime = 0.00;
+			mRunElapsedTime = 0.00;
+			mTearDownElapsedTime = 0.00;
+			mElapsedTime = 0.00;
 		}
 
 		void TestCaseResult::SetToSucceed()
@@ -78,6 +90,46 @@ namespace Kratos
 			return mErrorMessage;
 		}
 
+		void TestCaseResult::SetSetupElapsedTime(double ElapsedTime)
+		{
+			mSetupElapsedTime = ElapsedTime;
+		}
+
+
+		double TestCaseResult::GetSetupElapsedTime() const
+		{
+			return mSetupElapsedTime;
+		}
+
+		void TestCaseResult::SetRunElapsedTime(double ElapsedTime)
+		{
+			mRunElapsedTime = ElapsedTime;
+		}
+
+		double TestCaseResult::GetRunElapsedTime() const
+		{
+			return mRunElapsedTime;
+		}
+
+		void TestCaseResult::SetTearDownElapsedTime(double ElapsedTime)
+		{
+			mTearDownElapsedTime = ElapsedTime;
+		}
+
+		double TestCaseResult::GetTearDownElapsedTime() const
+		{
+			return mTearDownElapsedTime;
+		}
+
+		void TestCaseResult::SetElapsedTime(double ElapsedTime)
+		{
+			mElapsedTime = ElapsedTime;
+		}
+
+		double TestCaseResult::GetElapsedTime() const
+		{
+			return mElapsedTime;
+		}
 
 		bool TestCaseResult::IsSucceed() const
 		{
