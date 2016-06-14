@@ -419,9 +419,10 @@ proc spdAux::insertDependenciesSoft { originxpath relativepath n attn attv} {
 }
 
 proc spdAux::CheckSolverEntryState {domNode} {
-    set kw [apps::getCurrentUniqueName SolStrat]
+    set appid [GetAppIdFromNode $domNode]
+    set kw [apps::getAppUniqueName $appid SolStrat]
     set nodo [$domNode selectNodes [getRoute $kw]]
-    get_domnode_attribute $nodo values
+    get_domnode_attribute $nodo dict
     set currentSolStrat [get_domnode_attribute $nodo v]
     set mySolStrat [get_domnode_attribute $domNode solstratname]
     return [expr [string compare $currentSolStrat $mySolStrat] == 0]
@@ -547,7 +548,7 @@ proc spdAux::injectSolvers {basenode args} {
     
     # Get All SolversEntry
     set ses [list ]
-    foreach st [::Model::GetSolutionStrategies] {
+    foreach st [::Model::GetSolutionStrategies {*}$args] {
         lappend ses $st [$st getSolversEntries]
     }
     
@@ -558,7 +559,8 @@ proc spdAux::injectSolvers {basenode args} {
             set n [$se getName]
             set pn [$se getPublicName]
             set help [$se getHelp]
-            set un [apps::getCurrentUniqueName "$stn$n"]
+            set appid [GetAppIdFromNode [$basenode parent]]
+            set un [apps::getAppUniqueName $appid "$stn$n"]
             set container "<container help='$help' n='$n' pn='$pn' un='$un' state='\[SolverEntryState\]' solstratname='$stn' >"
             set defsolver [lindex [$se getDefaultSolvers] 0]
             append container "<value n='Solver' pn='Solver' v='$defsolver' values='\[GetSolvers\]' actualize='1' update_proc='Updateme'/>"
@@ -574,7 +576,7 @@ proc spdAux::injectSolvers {basenode args} {
 
 proc spdAux::injectSolStratParams {basenode args} {
     set contnode [$basenode parent]
-    set params [::Model::GetAllSolStratParams]
+    set params [::Model::GetSolStratParams {*}$args]
     foreach {parname par} $params {
         if {[$contnode find n $parname] eq ""} {
             set pn [$par getPublicName]
@@ -611,7 +613,7 @@ proc spdAux::injectSolStratParams {basenode args} {
         }
     }
     
-    set params [::Model::GetAllSchemeParams]
+    set params [::Model::GetSchemesParams {*}$args]
     
     foreach {parname par} $params {
         if {[$contnode find n $parname] eq ""} {
@@ -960,12 +962,15 @@ proc spdAux::CheckElementOutputState {outnode} {
 proc spdAux::SolStratParamState {outnode} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    set solstrat_un [apps::getCurrentUniqueName SolStrat]
-    #W $solstrat_un
-    if {[get_domnode_attribute [$root selectNodes [spdAux::getRoute $solstrat_un]] v] eq ""} {
-        get_domnode_attribute [$root selectNodes [spdAux::getRoute $solstrat_un]] dict
+    set nodeApp [GetAppIdFromNode $outnode]
+    
+    set sol_stratUN [apps::getAppUniqueName $nodeApp SolStrat]
+    
+    if {[get_domnode_attribute [$root selectNodes [spdAux::getRoute $sol_stratUN]] v] eq ""} {
+        get_domnode_attribute [$root selectNodes [spdAux::getRoute $sol_stratUN]] dict
     }
-    set SolStrat [get_domnode_attribute [$root selectNodes [spdAux::getRoute $solstrat_un]] v]
+    set SolStrat [::write::getValue $sol_stratUN]
+    
     set paramName [$outnode @n]
     set ret [::Model::CheckSolStratInputState $SolStrat $paramName]
     if {$ret} {
@@ -985,13 +990,19 @@ proc spdAux::SolStratParamState {outnode} {
 proc spdAux::SchemeParamState {outnode} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
+    set nodeApp [GetAppIdFromNode $outnode]
     
-    set solstrat_un [apps::getCurrentUniqueName SolStrat]
-    set schemet_un [apps::getCurrentUniqueName SolStrat]
-    set xp1 "[spdAux::getRoute $solstrat_un]"
-    set SolStrat [[$root selectNodes $xp1 ] @v]
-    set xp1 "[spdAux::getRoute $schemet_un]"
-    set Scheme [[$root selectNodes $xp1 ] @v]
+    set sol_stratUN [apps::getAppUniqueName $nodeApp SolStrat]
+    set schemeUN [apps::getAppUniqueName $nodeApp Scheme]
+    
+    if {[get_domnode_attribute [$root selectNodes [spdAux::getRoute $sol_stratUN]] v] eq ""} {
+        get_domnode_attribute [$root selectNodes [spdAux::getRoute $sol_stratUN]] dict
+    }
+    if {[get_domnode_attribute [$root selectNodes [spdAux::getRoute $schemeUN]] v] eq ""} {
+         get_domnode_attribute [$root selectNodes [spdAux::getRoute $schemeUN]] dict
+    }
+    set SolStrat [::write::getValue $sol_stratUN]
+    set Scheme [write::getValue $schemeUN]
     
     set paramName [$outnode @n]
     return [::Model::CheckSchemeInputState $SolStrat $Scheme $paramName]
@@ -1086,6 +1097,7 @@ proc spdAux::ProcGetSolutionStrategies {domNode args} {
     set pnames ""
     
     set Sols [::Model::GetSolutionStrategies {*}$args]
+    #W $Sols
     set ids [list ]
     foreach ss $Sols {
         lappend ids [$ss getName]
@@ -1106,10 +1118,11 @@ proc spdAux::ProcGetSolutionStrategies {domNode args} {
 
 proc spdAux::ProcGetSchemes {domNode args} {
     set nodeApp [GetAppIdFromNode $domNode]
+    #W $nodeApp
     set sol_stratUN [apps::getAppUniqueName $nodeApp SolStrat]
     #W "GS sol $sol_stratUN"
     if {[get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] v] eq ""} {
-        W "entra"
+        #W "entra"
         get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] dict
     }
     set solStratName [::write::getValue $sol_stratUN]

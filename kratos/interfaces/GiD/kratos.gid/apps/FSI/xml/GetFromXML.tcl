@@ -10,6 +10,9 @@ proc FSI::xml::Init { } {
     
     Model::getSolutionStrategies Strategies.xml
     Model::getElements Elements.xml
+    
+    Model::ForgetSolvers
+    Model::getSolvers "../../Common/xml/Solvers.xml"
     Model::getSolvers Coupling_solvers.xml
 }
 

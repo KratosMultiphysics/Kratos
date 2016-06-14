@@ -25,10 +25,10 @@
     </parameter_list>
     
     <linearSolvers>
-      <linearSolverItem n="velocity_linear_solver_settings" pn="Velocity linear solver" default="AMGCL">
+      <linearSolverItem n="velocity_linear_solver_settings" pn="Velocity linear solver">
         <filterFeatures>
-	  <!--<filter field="n" value="BiConjugate"/>
-	      <filter field="symmetric" value="false"/>
+		   <filter field="SolverType" value="Standard"/>
+	      <!--<filter field="symmetric" value="false"/>
               <filter field="solver_type" value="Iterative"/>    -->
         </filterFeatures>
 		<defaults>
@@ -37,6 +37,7 @@
 	  
       <linearSolverItem n="pressure_linear_solver_settings" pn="Pressure linear solver" >
         <filterFeatures>
+		   <filter field="SolverType" value="Standard"/>
         </filterFeatures>
 		<defaults>
 		</defaults>
@@ -83,9 +84,7 @@
     <linearSolvers>
       <linearSolverItem n="linear_solver_settings" pn="Linear Solver" >
         <filterFeatures>
-	  <!--<filter field="n" value="BiConjugate"/>
-	      <filter field="symmetric" value="false"/>
-              <filter field="solver_type" value="Iterative"/>    -->
+		  <filter field="SolverType" value="Standard"/>
         </filterFeatures>
 		<defaults>
 		</defaults>

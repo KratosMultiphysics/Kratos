@@ -33,6 +33,12 @@ oo::class create SolverEntry {
 }
 }
 
+
+proc Model::ForgetSolvers { } {
+    variable Solvers
+    set Solvers [list ]
+}
+
 proc Model::GetSolver { id } {
     variable Solvers
     

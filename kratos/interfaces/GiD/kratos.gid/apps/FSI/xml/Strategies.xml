@@ -5,7 +5,7 @@
 		ImplementedInApplication="FSIApplication"
 		ImplementedInPythonFile="residual_definitions"
 		MinimumKratosVersion="8500" App="FSI"
-		ProductionReady="ProductionReady"
+		ProductionReady="Developer"
 		help="">
     
     <!-- list of options to be filled -->
@@ -17,27 +17,24 @@
     <linearSolvers>
       <linearSolverItem n="coupling_strategy" pn="Coupling strategy" default="MVQN">
         <filterFeatures>
-            <filter field="n" value="Relaxation"/>
-            <filter field="n" value="JFNK"/>
-            <filter field="n" value="MVQN"/>    
+            <filter field="SolverType" value="FSICoupling"/>  
         </filterFeatures>
 		<defaults>
 		</defaults>
       </linearSolverItem>
 
     </linearSolvers>
-	
-<!--
+
 	<schemes>
-	  <scheme n="FS" pn="Fractional step generic scheme" help="FilterElements">
+	  <scheme n="GenericDN" pn="Partitioned scheme" help="">
 	     <parameter_list>
 		  </parameter_list>
   		  <element_filters>
-			 <filter field="n" value="FractionalStep2D,FractionalStep3D"/>
+			 <filter field="n" value="Interface2D,Interface3D"/>
 		  </element_filters>
 	  </scheme>
 	</schemes>
--->
+
   
   </StrategyItem>
   
@@ -47,7 +44,7 @@
 		ImplementedInApplication="FSIApplication"
 		ImplementedInPythonFile="residual_definitions"
 		MinimumKratosVersion="8500" App="FSI"
-		ProductionReady="ProductionReady"
+		ProductionReady="Developer"
 		help="">
     
     <!-- list of options to be filled -->
@@ -59,26 +56,22 @@
     <linearSolvers>
       <linearSolverItem n="coupling_strategy" pn="Coupling strategy" default="MVQN" >
         <filterFeatures>
-            <filter field="n" value="JFNK"/>
-            <filter field="n" value="MVQN"/>
+            <filter field="n" value="MVQN,JFNK"/>
         </filterFeatures>
 		<defaults>
 		</defaults>
       </linearSolverItem>     
     </linearSolvers>
 	
-<!--
 	<schemes>
-	  <scheme n="MN" pn="Monolitic generic scheme" help="FilterElements" ProductionReady="ProductionReady">
+	  <scheme n="GenericNN" pn="Partitioned scheme" help="FilterElements" ProductionReady="ProductionReady">
 	     <parameter_list>
 		  </parameter_list>
   		  <element_filters>
-			 <filter field="n" value="Monolithic2D,Monolithic3D"/>
+			 <filter field="n" value="Interface2D,Interface3D"/>
 		  </element_filters>
 	  </scheme>
 	</schemes>
--->
-  
   </StrategyItem>
     
 </StrategyList>
