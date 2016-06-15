@@ -142,19 +142,22 @@ public:
     ///@name Life Cycle
     ///@{
 
-//     Line2D2( const PointType& point0, const PointType& point1 )
+
+
+//     Line2D2( const PointType& FirstPoint, const PointType& SecondPoint )
 //         : BaseType( PointsArrayType(), &msGeometryData )
 //     {
-//         BaseType::Points().push_back( typename PointType::Pointer( new PointType( point0 ) ) );
-//         BaseType::Points().push_back( typename PointType::Pointer( new PointType( point1 ) ) );
+//         BaseType::Points().push_back( typename PointType::Pointer( new PointType( FirstPoint ) ) );
+//         BaseType::Points().push_back( typename PointType::Pointer( new PointType( SecondPoint ) ) );
 //     }
 
-    Line2D2( typename PointType::Pointer ppoint0, typename PointType::Pointer ppoint1 )
+    Line2D2( typename PointType::Pointer pFirstPoint, typename PointType::Pointer pSecondPoint )
         : BaseType( PointsArrayType(), &msGeometryData )
     {
-        BaseType::Points().push_back( ppoint0 );
-        BaseType::Points().push_back( ppoint1 );
+        BaseType::Points().push_back( pFirstPoint );
+        BaseType::Points().push_back( pSecondPoint );
     }
+
 
     Line2D2( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
