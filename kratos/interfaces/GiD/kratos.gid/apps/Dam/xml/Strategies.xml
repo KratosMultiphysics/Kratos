@@ -2,7 +2,7 @@
 <StrategyList>
   <StrategyItem n="NewtonRaphson" pn="Newton Raphson"
                 ImplementedInFile="residualbased_newton_raphson_strategy.h"
-                ImplementedInApplication="kratos"
+                ImplementedInApplication="Dam"
                 ImplementedInPythonFile="solid_mechanics_implicit_dynamic_solver"
                 MinimumKratosVersion="8500"
                 ProductionReady=""
