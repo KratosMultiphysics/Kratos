@@ -31,6 +31,7 @@ class ImplicitMechanicalSolver:
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
+            "buffer_size": 2,
             "echo_level": 0,
             "time_integration_method": "Implicit",
             "analysis_type": "nonlinear",
@@ -138,6 +139,8 @@ class ImplicitMechanicalSolver:
             
         else:
             raise Exception("Other input options are not yet implemented.")
+        
+        self.main_model_part.SetBufferSize( self.settings["buffer_size"].GetInt() )
         
         current_buffer_size = self.main_model_part.GetBufferSize()
         if(self.GetMinimumBufferSize() > current_buffer_size):

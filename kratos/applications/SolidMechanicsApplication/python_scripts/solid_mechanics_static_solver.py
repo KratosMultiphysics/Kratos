@@ -31,6 +31,7 @@ class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMec
         {
             "solver_type": "solid_mechanics_static_solver",
             "echo_level": 0,
+            "buffer_size": 2,
             "solution_type": "Static",
             "analysis_type": "Non-Linear",
             "model_import_settings": {
@@ -123,7 +124,7 @@ class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMec
         if(analysis_type == "Linear"):
             mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
             
-        if(analysis_type == "Non-Linear" ):
+        elif(analysis_type == "Non-Linear" ):
             self.settings.AddEmptyValue("damp_factor_m")  
             self.settings.AddEmptyValue("dynamic_factor")
             self.settings["damp_factor_m"].SetDouble(0.0)
