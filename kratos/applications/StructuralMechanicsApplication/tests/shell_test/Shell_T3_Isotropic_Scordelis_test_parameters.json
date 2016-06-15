@@ -6,7 +6,7 @@
         "time_step"       : 1,
         "start_time"      : 0.001,
         "end_time"        : 1.0,
-        "echo_level"      : 3
+        "echo_level"      : 0
     },
     "solver_settings"          : {
         "solver_type"                        : "structural_mechanics_static_solver",
