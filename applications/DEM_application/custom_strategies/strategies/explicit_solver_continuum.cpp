@@ -185,9 +185,8 @@ namespace Kratos {
 
                     BoundingBoxUtility();
                 } else {
-                    ParticleCreatorDestructor::Pointer& p_creator_destructor = BaseType::GetParticleCreatorDestructor();
-                    p_creator_destructor->DestroyParticles(r_model_part);
-                    p_creator_destructor->DestroyContactElements(*mpContact_model_part);
+                    GetParticleCreatorDestructor()->DestroyParticles(r_model_part);
+                    GetParticleCreatorDestructor()->DestroyContactElements(*mpContact_model_part);
                 }
 
                 RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles); //These lists are necessary for the loop in SearchNeighbours
