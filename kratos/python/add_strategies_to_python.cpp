@@ -352,6 +352,7 @@ namespace Kratos
                     .def("FinalizeNonLinearIteration", &ConvergenceCriteria<SparseSpaceType, LocalSpaceType >::FinalizeNonLinearIteration)
                     .def("FinalizeSolutionStep", &ConvergenceCriteria<SparseSpaceType, LocalSpaceType >::FinalizeSolutionStep)
                     .def("Check", &ConvergenceCriteria<SparseSpaceType, LocalSpaceType >::Check)
+                    .def("SetEchoLevel", &ConvergenceCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
                     ;
 
             class_< DisplacementCriteria<SparseSpaceType, LocalSpaceType >,
@@ -363,12 +364,14 @@ namespace Kratos
 	    class_< IncrementalDisplacementCriteria<SparseSpaceType, LocalSpaceType >,
                     bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
                     boost::noncopyable >
-                    ("IncrementalDisplacementCriteria", init< double, double>());
+                    ("IncrementalDisplacementCriteria", init< double, double>())
+                    .def("SetEchoLevel", &IncrementalDisplacementCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel);
 
             class_<ResidualCriteria<SparseSpaceType, LocalSpaceType >,
                     bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
                     boost::noncopyable >
-                    ("ResidualCriteria", init< double, double>());
+                    ("ResidualCriteria", init< double, double>())
+                    .def("SetEchoLevel", &ResidualCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel);
 
             /*			class_< ResidualCriteria< SparseSpaceType >,
                                              bases<ConvergenceCriteria< SparseSpaceType > >,
