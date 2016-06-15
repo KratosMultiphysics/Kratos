@@ -301,9 +301,12 @@ public:
         KRATOS_TRY;
 
         //std::cout<<std::fixed<<std::setw(15)<<std::scientific<<std::setprecision(9);
-        std::cout<<"************************************************************************"<<std::endl;
-        std::cout<<"Begininning Arc Lenght Method.A Pseudo-Line Searches Included. Please Wait...."<<std::endl;
-        std::cout<<"************************************************************************"<<std::endl;
+        if (this->GetEchoLevel() > 0)
+        {
+            std::cout<<"************************************************************************"<<std::endl;
+            std::cout<<"Begininning Arc Lenght Method.A Pseudo-Line Searches Included. Please Wait...."<<std::endl;
+            std::cout<<"************************************************************************"<<std::endl;
+        }
 
         TSystemVectorPointerType  pq;               //  Fext
         TSystemVectorPointerType  pSigma_q;         //  Displacement conditions
@@ -339,7 +342,7 @@ public:
         bool local_converged_h        = false; // Orthogonal residual
         bool local_converged_l        = false; // Lambda
         bool is_converged             = false;
-        unsigned int recursive                 = 0;
+        unsigned int recursive        = 0;
 
         //vector<RealType> Parameters;
         RealType old_residual = 0.00;
@@ -367,11 +370,14 @@ public:
         InitializeAuxiliaryModelParts(BaseType::GetModelPart());
         mstep = BaseType::GetModelPart().GetProcessInfo()[TIME_STEPS];
 	
-        std::cout<<" STEP NUMBER                   = " << mstep << std::endl;
-        std::cout<<" DESIRED ITERATIONS            = " << mIde  << std::endl;
-        std::cout<<" MAX. ITERATIONS               = " << mMaxIterationNumber << std::endl;
-        std::cout<<" MAX. RECURSIVE ITERATIONS     = " << mMaxRecursive << std::endl;
-        std::cout<<" CURRENT TIME                  = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
+        if (this->GetEchoLevel() > 0)
+        {
+            std::cout<<" STEP NUMBER                   = " << mstep << std::endl;
+            std::cout<<" DESIRED ITERATIONS            = " << mIde  << std::endl;
+            std::cout<<" MAX. ITERATIONS               = " << mMaxIterationNumber << std::endl;
+            std::cout<<" MAX. RECURSIVE ITERATIONS     = " << mMaxRecursive << std::endl;
+            std::cout<<" CURRENT TIME                  = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
+        }
 
         // Initialisation of the convergence criteria and variables of arc lenght
         if(mInitializeWasPerformed == false)
@@ -496,7 +502,11 @@ public:
             while(  is_converged == false && mIterationNumber++ < mMaxIterationNumber)
             {
                 // Setting the number of iteration
-                std::cout<<"\n STEP NUMBER       = " << mstep <<"  ITERATIONS NUMBER = " << mIterationNumber << "  RECURSIVE NUMBER = " << recursive << std::endl;
+
+                if (this->GetEchoLevel() > 0)
+                {
+                    std::cout<<"\n STEP NUMBER       = " << mstep <<"  ITERATIONS NUMBER = " << mIterationNumber << "  RECURSIVE NUMBER = " << recursive << std::endl;
+                }
                 BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = mIterationNumber;
               
                 // Setting variables in the begining of the iteraction
@@ -509,7 +519,7 @@ public:
                     mInit            = true;
                     mlambda_old      = 0.00;
                     Ao               = TSparseSpace::Dot(Sigma_q, Sigma_q);        // Ao = inner_prod (Sigma_q, Sigma_q);
-                    mdelta_l         = sqrt(2.00*Ao*mdelta_lambda*mdelta_lambda);
+                    mdelta_l         = sqrt(2.00 * Ao * mdelta_lambda * mdelta_lambda);
                     mdelta_lold      = mdelta_l;
                     mdelta_lmax      = mdelta_l*mfactor_delta_lmax;                // Maximum size of the arc-length
                     TSparseSpace::Assign(mDelta_p, mdelta_lambda,Sigma_q);         // mDelta_p = mdelta_lambda*Sigma_q;
@@ -543,7 +553,7 @@ public:
 
                     //KRATOS_WATCH(miu);
                     //KRATOS_WATCH(Ao);
-                    miu = (miu>=1.00) ? 1.00: miu;
+                    miu = (miu >= 1.00) ? 1.00: miu;
 
                     TSparseSpace::Assign(mDelta_p, miu, mDelta_pold);            // mDelta_p     = miu*mDelta_pold;
                     mdelta_lambda = miu * mdelta_lambda_old;
@@ -715,7 +725,10 @@ public:
                     TSparseSpace::SetToZero(mDx);
                     TSparseSpace::SetToZero(mb);
                     TSparseSpace::SetToZero(mA);
-                    std::cout << " Rebuilding Tangent Matrix " << std::endl;
+                    if (this->GetEchoLevel() > 0)
+                    {
+                        std::cout << " Rebuilding Tangent Matrix " << std::endl;
+                    }
                     pBuilderAndSolver->Build(pScheme,mAuxElementModelPart,mA,mb);
                     TSparseSpace::Copy(Aux_q, q_Inc_Aux); /// q = Aux_q
                     pBuilderAndSolver->SystemSolve(mA, Sigma_q, q_Inc_Aux);
@@ -747,7 +760,10 @@ public:
                     pBuilderAndSolver->SystemSolve(mA, Sigma_q, q_Inc_Aux);
                     TSparseSpace::Copy(Aux_q, q_Inc_Aux); /// q = Aux_q
 
-                    std::cout << "Arc lenght modified  = " << mdelta_l  <<std::endl;
+                    if (this->GetEchoLevel() > 0)
+                    {
+                        std::cout << "Arc lenght modified  = " << mdelta_l  <<std::endl;
+                    }
                 }
             }
     } // end while
@@ -847,7 +863,10 @@ public:
     void Clear()
     {
         KRATOS_TRY;
-        std::cout << "Arc Length Strategy  Clear function used" << std::endl;
+        if (this->GetEchoLevel() > 0)
+        {
+            std::cout << "Arc Length Strategy  Clear function used" << std::endl;
+        }
 
         TSystemMatrixType& mA          = *mpA;
         TSystemVectorType& mDx         = *mpDx;
@@ -1035,7 +1054,7 @@ public:
         }
         else
         {
-            std::cout << "WARNING: No real roots was found " << std::endl;
+            std::cout << "WARNING: No real roots were found " << std::endl;
             std::cout << "Introducting a pseudo-line search to avoid complex roots " << std::endl;
             if (this->GetEchoLevel() > 1)
             {
@@ -1043,7 +1062,7 @@ public:
                 Calculate_eta(Ao, pSigma_q, pSigma_h, g, imag);
             }
 
-            if (imag==false)
+            if (imag == false)
             {
                 if (this->GetEchoLevel() > 1)
                 {
@@ -1054,7 +1073,7 @@ public:
             }
             else
             {
-                std::cout << "WARNING: No real roots was found. Avoid " << std::endl;
+                std::cout << "WARNING: No real roots were found. Avoid " << std::endl;
                 TSystemVectorPointerType pDelta_pcr;
                 InitializeAuxVectors(pDelta_pcr);
                 TSystemVectorType& Delta_pcr = *pDelta_pcr;
@@ -1244,7 +1263,10 @@ private:
     {
         KRATOS_TRY;
 
-        std::cout<< "Initializing Solution Step " << std::endl;
+        if (this->GetEchoLevel() > 0)
+        {
+            std::cout<< "Initializing Solution Step " << std::endl;
+        }
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
         typename TSchemeType::Pointer pScheme = GetScheme();
         typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
