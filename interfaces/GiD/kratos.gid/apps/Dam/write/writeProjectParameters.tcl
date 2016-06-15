@@ -43,7 +43,7 @@ proc Dam::write::getParametersDict { } {
     dict set mechanicalSolverSettingsDict solution_type [write::getValue DamSoluType]
     dict set mechanicalSolverSettingsDict analysis_type [write::getValue DamAnalysisType]
     dict set mechanicalSolverSettingsDict strategy_type "Newton-Raphson"
-    #set mechanicalSolverSettingsDict [dict merge $mechanicalSolverSettingsDict [write::getSolutionStrategyParametersDict] ]
+    set mechanicalSolverSettingsDict [dict merge $mechanicalSolverSettingsDict [write::getSolutionStrategyParametersDict] ]
     #dict set mechanicalSolverSettingsDict max_iteration [write::getValue DamSolStrat DamMaxIter]
     #dict set mechanicalSolverSettingsDict dofs_relative_tolerance [write::getValue DofsTol]
     #dict set mechanicalSolverSettingsDict residual_relative_tolerance  [write::getValue RelTol]
