@@ -86,7 +86,8 @@ class Kratos_Execute_Test:
         # solving the problem (time integration)
         while(time <= end_time):
             time = time + delta_time
-            step = step + 1
+            step += 1
+            self.main_model_part.ProcessInfo[TIME_STEPS] = step
             self.main_model_part.CloneTimeStep(time)
 
             for process in self.list_of_processes:
