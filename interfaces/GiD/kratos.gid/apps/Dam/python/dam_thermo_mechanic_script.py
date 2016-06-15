@@ -39,12 +39,12 @@ parallel=OpenMPUtils()
 parallel.SetNumThreads(int(ProjectParameters["general_data"]["NumberofThreads"].GetInt()))
 
 # Problem parameters
-problem_name = ProjectParameters["general_data"]["NumberofThreads"].GetString()
+problem_path = os.getcwd()
+problem_name = ProjectParameters["general_data"]["problem_name"].GetString()
 delta_time = ProjectParameters["general_data"]["delta_time"].GetDouble()
 ending_time = ProjectParameters["general_data"]["ending_time"].GetDouble()
 time_converter = ProjectParameters["general_data"]["time_scale"].GetString()
 evolution_type = ProjectParameters["general_data"]["evolution_type"].GetString()
-print(evolution_type)
 current_step = 0
 current_time = 0.0
 current_id = 1
@@ -65,9 +65,8 @@ delta_time = delta_time * time_unit_converter
 ending_time = ending_time * time_unit_converter
 
 # List of variables to write
-nodal_res = ProjectParameters.nodal_results
-gp_res = ProjectParameters.gauss_points_results
-
+nodal_res = ProjectParameters["output_configuration"]["result_file_configuration"]["nodal_results"]
+gp_res = ProjectParameters["output_configuration"]["result_file_configuration"]["gauss_point_results"]
 
 ## Model part ------------------------------------------------------------------------------------------------
 
@@ -75,7 +74,7 @@ gp_res = ProjectParameters.gauss_points_results
 model_part = ModelPart("SolidDomain")
 
 # Setting thermal variables
-diffusion_solver.AddVariables(model_part,ProjectParameters.DiffusionSolverSettings) 
+diffusion_solver.AddVariables(model_part,ProjectParameters["diffusion_settings"]) 
 
 # Set mechanical variables
 mechanical_solver.AddVariables(model_part)
@@ -89,7 +88,8 @@ buffer_size = 2
 model_part.SetBufferSize(buffer_size)
 
 # Set thermal degrees of freedom
-diffusion_solver.AddDofs(model_part)
+# TODO: fix the problems with convection-diffusion solver
+#diffusion_solver.AddDofs(model_part)  
 
 # Set mechanical degrees of freedom
 mechanical_solver.AddDofs(model_part)
@@ -97,7 +97,15 @@ mechanical_solver.AddDofs(model_part)
 # Set ProcessInfo variables and fill the previous steps of the buffer with the initial conditions
 current_time = -(buffer_size-1)*delta_time
 model_part.ProcessInfo[TIME] = current_time #current_time and TIME = 0 after filling the buffer
-model_part.ProcessInfo[REFERENCE_TEMPERATURE] = model_part.GetTable(18).GetNearestValue(0.0)      # To start computations at time = 0  / Table 5 = Reference Temperature Values
+
+#Type of reference temperature
+reference_temperature = ProjectParameters["diffusion_settings"]["reference_temperature"]
+if (reference_temperature =="Reservoir Information"):
+    model_part.ProcessInfo[REFERENCE_TEMPERATURE] = 10.0  #TODO: for working
+#model_part.ProcessInfo[REFERENCE_TEMPERATURE] = model_part.GetTable(18).GetNearestValue(0.0)      To start computations at time = 0  / Table 5 = Reference Temperature Values
+else:
+    model_part.ProcessInfo[REFERENCE_TEMPERATURE] = 10.0 # TODO: Here we have to solve the thermal problem until arrives a stationary    
+
 for step in range(buffer_size-1):
     current_time = current_time + delta_time
     model_part.CloneTimeStep(current_time)
@@ -106,9 +114,10 @@ for step in range(buffer_size-1):
 ## Initialize ------------------------------------------------------------------------------------------------
 
 # Definition of utilities
-gid_output_util = gid_print_utility.GidPrintUtility(ProjectParameters.GidOutputConfiguration,problem_name,current_time,ending_time,delta_time,time_unit_converter)
-cleaning_util = cleaning_utility.CleaningUtility(ProjectParameters.problem_path)
-conditions_util = conditions_utility.ConditionsUtility(delta_time,ProjectParameters.ConditionsOptions, model_part, time_unit_converter,evolution_type)
+# TODO: Problems with inputs in gid_output_util, now we dont have Conditions options (think about it) 
+#gid_output_util = gid_print_utility.GidPrintUtility(ProjectParameters["output_configuration"],problem_name,current_time,ending_time,delta_time,time_unit_converter)
+cleaning_util = cleaning_utility.CleaningUtility(problem_path)
+#conditions_util = conditions_utility.ConditionsUtility(delta_time,ProjectParameters.ConditionsOptions, model_part, time_unit_converter,evolution_type)
 
 # Erasing previous results files
 cleaning_util.CleanPreviousFiles()
@@ -117,8 +126,18 @@ cleaning_util.CleanPreviousFiles()
 constitutive_law_utility.SetConstitutiveLaw(model_part)
 
 # Define and initialize the diffusion solver
-thermal_diffusion_solver = diffusion_solver.CreateSolver(model_part, ProjectParameters)
-model_part.ProcessInfo[THETA] = 1.0 #Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
+# TODO: Problems with the solver, domain_size is not found. 
+#thermal_diffusion_solver = diffusion_solver.CreateSolver(model_part, ProjectParameters)
+
+#Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
+thermal_scheme = ProjectParameters["diffusion_settings"]["temporal_scheme"]
+if(thermal_scheme=="Backward-Euler"):
+    model_part.ProcessInfo[THETA] = 1.0
+elif(thermal_scheme=="Crank-Nicolson"):   
+    model_part.ProcessInfo[THETA] = 0.5
+else:
+    model_part.ProcessInfo[THETA] = 0.0
+    
 thermal_diffusion_solver.Initialize()
 thermal_diffusion_solver.SetEchoLevel(0)
 
