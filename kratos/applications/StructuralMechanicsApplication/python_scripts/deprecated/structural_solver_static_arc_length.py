@@ -128,9 +128,17 @@ class StaticArcLengthStructuralSolver:
         self.SetConvergenceCriterion()
 
         # Creating the solver
-        self.solver = ResidualBasedArcLengthStrategy(self.model_part,  self.time_scheme, self.linear_solver, 
-            self.mechanical_convergence_criterion,  self.Ide,  self.max_iteration, self.max_recursive,  
-            self.factor_delta_lmax,  self.CalculateReactionFlag, self.ReformDofSetAtEachStep,  self.MoveMeshFlag )
+        self.solver = ResidualBasedArcLengthStrategy(self.model_part,  
+                                                     self.time_scheme, 
+                                                     self.linear_solver, 
+                                                     self.mechanical_convergence_criterion, 
+                                                     self.Ide,  
+                                                     self.max_iteration, 
+                                                     self.max_recursive,  
+                                                     self.factor_delta_lmax,  
+                                                     self.CalculateReactionFlag,
+                                                     self.ReformDofSetAtEachStep,
+                                                     self.MoveMeshFlag )
     #
     def Solve(self):
         
