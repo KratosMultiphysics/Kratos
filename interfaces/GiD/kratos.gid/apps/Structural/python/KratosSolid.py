@@ -180,6 +180,7 @@ while(time <= end_time):
 
     time = time + delta_time
     step = step + 1
+    main_model_part.ProcessInfo[TIME_STEPS] = step
     main_model_part.CloneTimeStep(time)
 
     # print process info
