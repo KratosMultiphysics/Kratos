@@ -18,10 +18,13 @@ proc Structural::write::writeModelPartEvent { } {
 }
 
 # Project Parameters
-proc Structural::write::writeParametersEvent { } {
+proc Structural::write::getParametersEvent { } {
     set project_parameters_dict [::Solid::write::getParametersDict]
     dict set project_parameters_dict solver_settings rotation_dofs [UsingRotationDofElements]
-    write::WriteJSON $project_parameters_dict
+    return $project_parameters_dict
+}
+proc Structural::write::writeParametersEvent { } {
+    write::WriteJSON [getParametersEvent]
 }
 
 proc Structural::write::UsingRotationDofElements { } {

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ConstitutiveLaws>
     <!--linear elastic laws-->
-	<CLaw n="Newtonian" pn="Newtonian" ProductionReady="ProductionReady" help="Newtonian fluid" App="Fluid">
+	<CLaw n="Newtonian" pn="Newtonian" ProductionReady="ProductionReady" help="Newtonian fluid" App="Fluid" ImplementedInApplication="FluidDynamicsApplication">
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="1000"/>
             <parameter n="VISCOSITY" pn="Kinematic viscosity" unit_magnitude="L^2/T" units="m^2/s" v="1e-6" help="Set the kinematic viscosity."/>
@@ -9,7 +9,7 @@
         <outputs>
         </outputs>
     </CLaw>
-    <CLaw n="HerschelBulkley" pn="Herschel Bulkley" ProductionReady="ProductionReady" help="Herschel–Bulkley fluid -> tau = tau0 + k * gamma^n"  App="Fluid">
+    <CLaw n="HerschelBulkley" pn="Herschel Bulkley" ProductionReady="ProductionReady" help="Herschel–Bulkley fluid -> tau = tau0 + k * gamma^n" App="Fluid" ImplementedInApplication="FluidDynamicsApplication">
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="1000"/>
             <parameter n="VISCOSITY" pn="Kinematic viscosity" unit_magnitude="L^2/T" units="m^2/s" v="1e-6" help="Fluidized viscosity."/>
