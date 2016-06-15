@@ -460,8 +460,11 @@ proc StenosisWizard::Wizard::Simulation { win } {
 }
 
 proc StenosisWizard::Wizard::Mesh { } {
-     GiD_Process Mescape Meshing reset Yes 
-     catch {GiD_Process Mescape Meshing CancelMesh PreserveFrozen Yes }
+     if {[lindex [GiD_Info Mesh] 0]>0} {
+          #GiD_Process Mescape Meshing reset Yes
+          GiD_Process Mescape Meshing CancelMesh PreserveFrozen Yes
+     }
+     
      set mesh [Wizard::GetProperty Simulation MeshSize,value]
      set meshinner [Wizard::GetProperty Simulation CentralMesh,value]
      GiD_Process Mescape Meshing AssignSizes Surfaces $meshinner 6 9 escape escape

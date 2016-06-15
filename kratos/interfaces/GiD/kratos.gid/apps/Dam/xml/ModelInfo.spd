@@ -7,8 +7,8 @@
     <container n="MechanicalProblem" pn="Mechanical Problem"  state="normal" actualize_tree="1">
         <value n="SolStratCombo" pn="Solution strategy" un="DamSolStrat,DamSolStratMech" v="" values="[GetSolutionStrategies Mechanic]" actualize_tree="1" state="disabled"/>
         <value n="MechanicalScheme" pn="Scheme" un="DamScheme,DamMechanicalScheme" v="" values="[GetSchemes Mechanic]" actualize_tree="1"/>
-        <container n="SolStrat" pn="Solution strategy: Newton-Raphson"  state="normal">
-            <dynamicnode command="injectSolStratParams" args="Mech"/>
+        <container n="SolStrat" pn="Solution strategy: Newton-Raphson"  state="normal" un="DamStratParams">
+            <dynamicnode command="injectSolStratParams" args="ImplementedInApplication Dam"/>
         </container>
         <value n="TypeofSolver" pn="Type of Solver" un="DamTypeofsolver" v="Iterative" values="Direct,Iterative">
             <dependencies node="../value[@n='DirectSolver']" actualize="1"/>
