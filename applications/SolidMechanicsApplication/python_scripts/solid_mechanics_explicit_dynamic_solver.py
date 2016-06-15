@@ -31,6 +31,7 @@ class ExplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
         {
             "solver_type": "solid_mechanics_explicit_dynamic_solver",
             "echo_level": 0,
+            "buffer_size": 2,
             "solution_type": "Dynamic",
             "time_integration_method": "Explicit",
             "scheme_type": "CentralDifferences",
