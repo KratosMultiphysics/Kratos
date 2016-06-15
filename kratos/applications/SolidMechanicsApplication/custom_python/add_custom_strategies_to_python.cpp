@@ -223,16 +223,22 @@ void  AddCustomStrategiesToPython()
     class_< DisplacementConvergenceCriterionType,
             bases< ConvergenceCriteriaType >, boost::noncopyable >
             (
-                "DisplacementConvergenceCriterion", init<double, double >()
-            );
+            "DisplacementConvergenceCriterion", 
+            init<double, double >())
+            .def(init<double, double >())
+            .def("SetEchoLevel", &DisplacementConvergenceCriterionType::SetEchoLevel)
+            ;
 
 
     // Component Wise Residual Convergence Criterion
     class_< ComponentWiseResidualConvergenceCriterionType,
             bases< ConvergenceCriteriaType >, boost::noncopyable >
             (
-                "ComponentWiseResidualConvergenceCriterion", init<double, double >()
-            );
+            "ComponentWiseResidualConvergenceCriterion", 
+            init<double, double >())
+            .def(init<double, double >())
+            .def("SetEchoLevel", &ComponentWiseResidualConvergenceCriterionType::SetEchoLevel)
+            ;
 
 
 
