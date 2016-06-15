@@ -35,6 +35,18 @@ proc apps::getActiveApp { } {
     variable activeApp;
     return $activeApp
 }
+proc apps::setActiveAppSoft { appid } {
+    variable activeApp
+    variable appList
+    #W "set active app $appid in $appList"
+    foreach app $appList {
+        #W [$app getName]
+        if {[$app getName] eq $appid} {
+            set activeApp $app
+            break
+        }
+    }
+}
 
 proc apps::getActiveAppId { } {
     variable activeApp;

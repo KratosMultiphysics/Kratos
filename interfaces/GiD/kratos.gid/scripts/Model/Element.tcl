@@ -85,8 +85,8 @@ oo::class create Element {
         }
         return $ret
     }
-    method cumple {filtros} {
-        set c [next $filtros]
+    method cumple {args} {
+        set c [next {*}$args]
          
         if {$c} {
             set ptdim $::Model::SpatialDimension
@@ -224,15 +224,16 @@ proc Model::ParseNodalConditionsNode { node } {
 }
 
 # Se usa?
-#proc Model::GetElements {args} { 
-#    variable Elements
-#    #W "Get elements $args"
-#    set cumplen [list ]
-#    foreach elem $Elements {
-#        if {[$elem cumple $args]} { lappend cumplen $elem}
-#    }
-#    return $cumplen
-#}
+proc Model::GetElements {args} { 
+    variable Elements
+    #W "Get elements $args"
+    set cumplen [list ]
+    foreach elem $Elements {
+        if {[$elem cumple {*}$args]} { lappend cumplen $elem}
+    }
+    #W "Elementos buenos $cumplen"
+    return $cumplen
+}
 
 proc Model::getElement {eid} { 
     variable Elements
@@ -266,11 +267,9 @@ proc Model::GetAvailableConstitutiveLaws {elementId} {
     return $cumplen
 }
 
-proc Model::GetAllElemOutputs {} {
-    variable Elements
-    
+proc Model::GetAllElemOutputs {args} {
     set outputs [dict create]
-    foreach el $Elements {
+    foreach el [GetElements {*}$args] {
         foreach in [dict keys [$el getOutputs]] {
             dict set outputs $in [$el getOutputPn $in]
         }
