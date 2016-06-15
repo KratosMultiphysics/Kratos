@@ -435,10 +435,7 @@ proc spdAux::chk_loads_function_time { domNode load_name } {
 }
 
 proc spdAux::ViewDoc {} {
-    set doc $gid_groups_conds::doc
-    set root [$doc documentElement]
-    
-    W [$root asXML]
+    W [[$gid_groups_conds::doc documentElement] asXML]
 }
 
 proc spdAux::CheckPartParamValue {node material_name} {
@@ -682,14 +679,15 @@ proc spdAux::injectNodalConditions { basenode args} {
     } {
         set nodal_conditions [::Model::GetNodalConditions {*}$args]
     }
-    #W "Habemos $nodal_conditions"
     foreach nc $nodal_conditions {
         set inputs [list ]
         set n [$nc getName]
         set pn [$nc getPublicName]
         set help [$nc getHelp]
         set ov  [$nc getOv]
-        set node "<condition n='$n' pn='$pn' ov='$ov'  ovm='' icon='shells16' help='$help' state='\[CheckNodalConditionState\]' update_proc='RefreshTree'>"
+        set estado [$nc getAttribute state]
+        if {$estado eq ""} {set estado CheckNodalConditionState}
+        set node "<condition n='$n' pn='$pn' ov='$ov'  ovm='' icon='shells16' help='$help' state='\[$estado\]' update_proc='RefreshTree'>"
         #set inputs [$nc getInputs]
         set process [::Model::GetProcess [$nc getProcessName]]
         set units [$nc getAttribute "units"]
@@ -851,9 +849,9 @@ proc spdAux::injectConstitutiveLawInputs { basenode  args} {
     $basenode delete
 }
 
-proc spdAux::injectElementOutputs { basenode  args} {
+proc spdAux::injectElementOutputs { basenode args} {
     set parts [$basenode parent]
-    set outputs [::Model::GetAllElemOutputs]
+    set outputs [::Model::GetAllElemOutputs {*}$args]
     foreach in [dict keys $outputs] {
         set pn [[dict get $outputs $in] getPublicName]
         set v [GetBooleanForTree [[dict get $outputs $in] getDv]]
@@ -864,9 +862,14 @@ proc spdAux::injectElementOutputs { basenode  args} {
     $basenode delete
 }
 
-proc spdAux::injectNodalConditionsOutputs { basenode  args} {
+proc spdAux::injectNodalConditionsOutputs { basenode args} {
     set parts [$basenode parent]
-    set nodal_conditions [::Model::getAllNodalConditions]
+    
+    if {$args eq "{}"} {
+        set nodal_conditions [::Model::getAllNodalConditions]
+    } {
+        set nodal_conditions [::Model::GetNodalConditions {*}$args]
+    }
     foreach nc $nodal_conditions {
         set n [$nc getName]
         set pn [$nc getPublicName]
@@ -893,7 +896,8 @@ proc spdAux::GetBooleanForTree {raw} {
 
 proc spdAux::injectConstitutiveLawOutputs { basenode  args} {
     set parts [$basenode parent]
-    set outputs [::Model::GetAllCLOutputs]
+    set outputs [::Model::GetAllCLOutputs {*}$args]
+    
     foreach in [dict keys $outputs] {
         if {[$parts find n $in] eq ""} {
             set pn [[dict get $outputs $in] getPublicName]
@@ -932,7 +936,8 @@ proc spdAux::CheckConstLawOutputState {outnode} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     
-    set parts_un [apps::getCurrentUniqueName Parts]
+    set nodeApp [GetAppIdFromNode $outnode]
+    set parts_un [apps::getAppUniqueName $nodeApp Parts]
     set parts_path [getRoute $parts_un]
     set xp1 "$parts_path/group/value\[@n='ConstitutiveLaw'\]"
     set constlawactive [list ]
@@ -948,7 +953,8 @@ proc spdAux::CheckElementOutputState {outnode} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     
-    set parts_un [apps::getCurrentUniqueName Parts]
+    set nodeApp [GetAppIdFromNode $outnode]
+    set parts_un [apps::getAppUniqueName $nodeApp Parts]
     set parts_path [getRoute $parts_un]
     set xp1 "$parts_path/group/value\[@n='Element'\]"
     set elemsactive [list ]
@@ -1193,7 +1199,9 @@ proc spdAux::ProcGetSolvers { domNode args } {
 }
 proc spdAux::ProcCheckNodalConditionState { domNode args } {
     
-    set parts_un [apps::getCurrentUniqueName Parts]
+    set nodeApp [GetAppIdFromNode $domNode]
+    set parts_un [apps::getAppUniqueName $nodeApp Parts]
+    #W $parts_un
     if {[spdAux::getRoute $parts_un] ne ""} {
         set conditionId [$domNode @n]
         set elems [$domNode selectNodes "[spdAux::getRoute $parts_un]/group/value\[@n='Element'\]"]
@@ -1206,7 +1214,8 @@ proc spdAux::ProcCheckNodalConditionState { domNode args } {
 }
 proc spdAux::ProcCheckNodalConditionOutputState { domNode args } {
     
-    set NC_un [apps::getCurrentUniqueName NodalConditions]
+    set nodeApp [GetAppIdFromNode $domNode]
+    set NC_un [apps::getAppUniqueName $nodeApp NodalConditions]
     if {[spdAux::getRoute $NC_un] ne ""} {
         set ncs [$domNode selectNodes "[spdAux::getRoute $NC_un]/condition/group"]
         set ncslist [list ]
@@ -1291,7 +1300,7 @@ proc spdAux::ProcgetStateFromXPathValue { domNode args } {
     set xpath {*}[lindex $arglist 0]
     set checkvalue [lindex $arglist 1]
     set pst [$domNode selectNodes $xpath]
-    # W "xpath $xpath checkvalue $checkvalue pst $pst"
+    #W "xpath $xpath checkvalue $checkvalue pst $pst"
     if {$pst == $checkvalue} { return "normal"} else {return "hidden"}
 }
 
@@ -1325,7 +1334,8 @@ proc spdAux::ProcElementOutputState { domNode args } {
 proc spdAux::ProcActiveIfAnyPartState { domNode args } {
     
     set parts ""
-    set parts_un [apps::getCurrentUniqueName Parts]
+    set nodeApp [GetAppIdFromNode $outnode]
+    set parts_un [apps::getAppUniqueName $nodeApp Parts]
     catch {
         set parts [$domNode selectNodes "[spdAux::getRoute $parts_un]/group"]
     }

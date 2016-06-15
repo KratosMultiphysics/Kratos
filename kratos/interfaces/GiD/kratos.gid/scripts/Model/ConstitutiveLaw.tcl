@@ -14,8 +14,8 @@ oo::class create CLaw {
         next $n
     }
     
-    method cumple {filtros} {
-        set c [next $filtros]
+    method cumple {args} {
+        set c [next {*}$args]
          
         if {$c} {
             set ptdim $::Model::SpatialDimension
@@ -67,7 +67,7 @@ proc Model::GetConstitutiveLaws { args } {
     variable ConstitutiveLaws
     set cumplen [list ]
     foreach cl $ConstitutiveLaws {
-        if {[$cl cumple $args]} { lappend cumplen $cl}
+        if {[$cl cumple {*}$args]} { lappend cumplen $cl}
     }
     return $cumplen
 }
@@ -92,11 +92,9 @@ proc Model::GetAllCLInputs {} {
     return $inputs
 }
 
-proc Model::GetAllCLOutputs {} {
-    variable ConstitutiveLaws
-    
+proc Model::GetAllCLOutputs {args} {
     set outputs [dict create]
-    foreach cl $ConstitutiveLaws {
+    foreach cl [GetConstitutiveLaws {*}$args] {
         foreach in [dict keys [$cl getOutputs]] {
             dict set outputs $in [$cl getOutputPn $in]
         }

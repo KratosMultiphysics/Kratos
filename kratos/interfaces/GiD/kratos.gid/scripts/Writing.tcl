@@ -50,21 +50,10 @@ proc write::writeEvent { filename } {
     set errcode 0
     #set inittime [clock seconds]
     set activeapp [::apps::getActiveApp]
+    set appid [::apps::getActiveAppId]
     
     #### MDPA Write ####
-    set wevent [$activeapp getWriteModelPartEvent]
-    
-    set filename "[file tail [GiD_Info project ModelName]].mdpa"
-    
-    catch {CloseFile}
-    OpenFile $filename
-    eval $wevent
-    # Delegate in app
-    #if { [catch {eval $wevent} fid] } {
-    #    W "Problem Writing MDPA block:\n$fid\nEnd problems"
-    #    set errcode 1
-    #}
-    catch {CloseFile}
+    set errcode [writeAppMDPA $appid]
 	
     #### Project Parameters Write ####
     set wevent [$activeapp getWriteParametersEvent]
@@ -93,6 +82,26 @@ proc write::writeEvent { filename } {
     # set endtime [clock seconds]
     # set ttime [expr {$endtime-$inittime}]
     # W "Total time: [Duration $ttime]"
+}
+
+proc write::writeAppMDPA {appid} {
+    set errcode 0
+    set activeapp [::apps::getAppById $appid]
+    
+    #### MDPA Write ####
+    set wevent [$activeapp getWriteModelPartEvent]
+    set filename "[file tail [GiD_Info project ModelName]].mdpa"
+    
+    catch {CloseFile}
+    OpenFile $filename
+    eval $wevent
+    # Delegate in app
+    #if { [catch {eval $wevent} fid] } {
+    #    W "Problem Writing MDPA block:\n$fid\nEnd problems"
+    #    set errcode 1
+    #}
+    catch {CloseFile}
+    return $errcode
 }
 
 proc write::writeModelPartData { } {
