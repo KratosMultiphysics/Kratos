@@ -33,7 +33,7 @@ proc write::initWriteData {partes mats} {
     set parts $partes
     set matun $mats
     
-    set meshes [dict create]
+    #set meshes [dict create]
     processMaterials
 }
 
@@ -124,8 +124,7 @@ proc write::writeTables { } {
 
 proc write::writeMaterials { } {
     variable mat_dict
-    W "Hey"
-    W $mat_dict
+    
     set exclusionList [list "MID" "ConstitutiveLaw" "Material"]
     # We print all the material data directly from the saved dictionary
     foreach material [dict keys $mat_dict] {
@@ -317,7 +316,7 @@ proc write::getMeshId {cid group} {
 proc write::writeGroupMesh { cid group {what "Elements"} {iniend ""} } {
     variable meshes
     variable groups_type_name
-    W "$cid $group $what"
+    #W "$cid $group $what"
     set gtn $groups_type_name
     if {![dict exists $meshes [list $cid ${group}]]} {
 	set mid [expr [llength [dict keys $meshes]] +1]

@@ -16,8 +16,8 @@ proc FSI::write::writeModelPartEvent { } {
 }
 
 proc FSI::write::writeCustomFilesEvent { } {
-    write::CopyFileIntoModel "python/MAIN_FILE_FSI.py"
-    write::RenameFileInModel "MAIN_FILE_FSI.py" "MainKratos.py"
+    write::CopyFileIntoModel "python/KratosFSI.py"
+    write::RenameFileInModel "KratosFSI.py" "MainKratos.py"
 }
 
 
