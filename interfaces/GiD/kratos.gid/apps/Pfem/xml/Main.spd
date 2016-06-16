@@ -7,6 +7,9 @@
                 <value n="ImposedMotion" pn="Imposed Motion" un="PFEM_fixed_solid" v="Yes" values="Yes,No">
                     <dependencies node="../value" actualize="1"/>
                 </value>
+                <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements ElementType Solid]" state="normal">
+                  <dependencies node="../value" actualize="1" />
+                </value>
                 <value n="MeshingDomain" pn="Meshing domain" v="" values="[GetMeshingDomains]" state="normal"/>
                 <value n="VelocityX" pn="Velocity X" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} Yes]"/>
                 <value n="VelocityY" pn="Velocity Y" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} Yes]"/>
@@ -16,7 +19,9 @@
                 <value n="CenterOfGravityY" pn="center of gravity Y" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
             </condition>
             <condition n="Deformable" pn="Deformable" un="PFEM_Deformable2DParts" ov="surface" ovm="" help="" open="0">
-                <value n="Element" pn="Element" values="A,B"/>
+                <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements ElementType Solid]" state="normal">
+                  <dependencies node="../value" actualize="1" />
+                </value>
                 <value n="Material" pn="Material" editable='0' help="Choose a material from the database"
                          values_tree='[give_materials_list]' value="Air" actualize_tree="1" state="normal">
                         <edit_command n="Edit materials" pn="Edit materials" icon="material16" proc='edit_database_list'/>
@@ -30,6 +35,9 @@
                 <value n="ImposedMotion" pn="Imposed Motion" un="PFEM_fixed_solid" v="Yes" values="Yes,No" >
                     <dependencies node="../value" actualize="1"/>
                 </value>
+                  <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements ElementType Solid]" state="normal">
+                <dependencies node="../value" actualize="1" />
+              </value>
                 <value n="VelocityX" pn="Velocity X" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} Yes]"/>
                 <value n="VelocityY" pn="Velocity Y" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} Yes]"/>
                 <value n="VelocityZ" pn="Velocity Z" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} Yes]"/>
@@ -46,7 +54,9 @@
                 <value n="PrincipalMomentOfInertia3" pn="Principal Moment Of Inertia 3" v="1.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
             </condition>
             <condition n="Deformable" pn="Deformable"  ov="volume" un="PFEM_Deformable3DParts" ovm="" help="" open="0">
-                <value n="Element" pn="Element" values="A,B"/>
+                <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements ElementType Solid]" state="normal">
+              <dependencies node="../value" actualize="1" />
+            </value>
                 <value n="Material" pn="Material" editable='0' help="Choose a material from the database"
                          values_tree='[give_materials_list]' value="Air" actualize_tree="1" state="normal">
                         <edit_command n="Edit materials" pn="Edit materials" icon="material16" proc='edit_database_list'/>
@@ -56,7 +66,7 @@
             </condition>
         </container>
         <condition n="Fluids2D" pn="Fluids" ov="surface" un="PFEM_Fluid2DParts" ovm="Triangle,Quadrilateral" help="" open="0" state="[checkStateByUniqueName nDim 2D nDim 2Da]">
-            <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements]" state="normal">
+            <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements ElementType Fluid]" state="normal">
               <dependencies node="../value" actualize="1" />
             </value>
             <value n="Material" pn="Material" editable='0' help="Choose a material from the database"
@@ -67,7 +77,7 @@
             <value n="MeshingDomain" pn="Meshing domain" v="" values="[GetMeshingDomains]" state="normal"/>
         </condition>
         <condition n="Fluids3D" pn="Fluids" ov="volume" un="PFEM_Fluid3DParts" ovm="Tetrahedra,Hexahedra" help="" open="0" state="[checkStateByUniqueName nDim 3D]">
-            <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements]" state="normal">
+            <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements ElementType Fluid]" state="normal">
               <dependencies node="../value" actualize="1" />
             </value>
             <value n="Material" pn="Material" editable='0' help="Choose a material from the database"
