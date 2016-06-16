@@ -7,6 +7,8 @@
 
 // Project includes
 #include "DEM_application.h"
+#include "includes/kratos_flags.h"
+#include "containers/flags.h"
 #include "geometries/point_3d.h"
 #include "geometries/line_3d_2.h"
 #include "geometries/quadrilateral_3d_4.h"
@@ -14,6 +16,21 @@
 #include "geometries/sphere_3d_1.h"
 #include "utilities/quaternion.h"
 #include "custom_utilities/cluster_information.h"
+
+#include "custom_constitutive/DEM_Dempack_CL.h"
+#include "custom_constitutive/DEM_Dempack_2D_CL.h"
+#include "custom_constitutive/DEM_Dempack_torque_CL.h"
+#include "custom_constitutive/dem_kdem_2d_cl.h"
+#include "custom_constitutive/dem_kdem_fabric_2d_cl.h"
+#include "custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.h"
+#include "custom_constitutive/DEM_D_Linear_viscous_Coulomb_2D_CL.h"
+#include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_CL.h"
+#include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_2D_CL.h"
+#include "custom_constitutive/DEM_D_JKR_cohesive_law.h"
+#include "custom_constitutive/DEM_D_Bentonite_Colloid_CL.h"
+#include "custom_constitutive/DEM_D_DMT_cohesive_law.h"
+#include "custom_constitutive/DEM_KDEM_fabric_CL.h"
+#include "custom_constitutive/DEM_ExponentialHC_CL.h"
 
 namespace Kratos
 {
@@ -677,8 +694,22 @@ namespace Kratos
     // SERIALIZER
     Serializer::Register("VariablesList", mVariablesList);
     Serializer::Register("PropertiesProxy", PropertiesProxy());
+
+    Serializer::Register("DEM_D_Linear_viscous_Coulomb", DEM_D_Linear_viscous_Coulomb());
+    Serializer::Register("DEM_D_Linear_viscous_Coulomb2D", DEM_D_Linear_viscous_Coulomb2D());
+    Serializer::Register("DEM_D_Hertz_viscous_Coulomb", DEM_D_Hertz_viscous_Coulomb());
+    Serializer::Register("DEM_D_Hertz_viscous_Coulomb2D", DEM_D_Hertz_viscous_Coulomb2D());
+    Serializer::Register("DEM_D_JKR_Cohesive_Law", DEM_D_JKR_Cohesive_Law());    
+    Serializer::Register("DEM_D_Bentonite_Colloid", DEM_D_Bentonite_Colloid());
+    Serializer::Register("DEM_D_DMT_Cohesive_Law", DEM_D_DMT_Cohesive_Law());
+    
     Serializer::Register("DEM_Dempack", DEM_Dempack());
-    Serializer::Register("DEM_Dempack2D", DEM_Dempack2D());
+    Serializer::Register("DEM_Dempack2D", DEM_Dempack2D());    
+    Serializer::Register("DEM_KDEM", DEM_KDEM());
+    Serializer::Register("DEM_KDEMFabric", DEM_KDEMFabric());
+    Serializer::Register("DEM_Dempack_torque", DEM_Dempack_torque());
+    Serializer::Register("DEM_KDEM2D", DEM_KDEM2D());
+    Serializer::Register("DEM_ExponentialHC", DEM_ExponentialHC());
     
     std::cout << " done."                                  << std::endl;
   }
