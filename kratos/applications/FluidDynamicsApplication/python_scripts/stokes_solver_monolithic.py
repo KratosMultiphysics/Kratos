@@ -144,7 +144,7 @@ class StokesSolver:
         
         time_scheme = kratoscore.ResidualBasedIncrementalUpdateStaticScheme() 
         
-        convergence_criteria = KratosMultiphysics.IncompressibleFluidApplication.VelPrCriteria(self.settings["velocity_tolerance"].GetDouble(),
+        convergence_criteria = KratosMultiphysics.FluidDynamicsApplication.VelPrCriteria(self.settings["velocity_tolerance"].GetDouble(),
                                                                     self.settings["absolute_velocity_tolerance"].GetDouble(),
                                                                     self.settings["pressure_tolerance"].GetDouble(),
                                                                     self.settings["absolute_pressure_tolerance"].GetDouble()
