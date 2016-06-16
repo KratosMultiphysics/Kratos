@@ -50,6 +50,12 @@ class ModelerUtility:
 
         self.reference_element = "Element2D3N"
         self.contact_condition = "ContactDomainLM2DCondition"
+        
+        self.reference_mesh_element = "Element2D3N"
+        self.reference_mesh_condition = "CompositeCondition2D2N"
+        if( domain_size == 3 ):
+            self.reference_mesh_element = "Element3D4N"
+            self.reference_mesh_condition = "CompositeCondition3D3N"
 
         # time step meshing control parameters
 
@@ -334,8 +340,10 @@ class ModelerUtility:
             self.MeshingParameters.SetOffsetFactor(self.offset_factor)
             self.MeshingParameters.SetAlphaParameter(self.alpha_shape)
                 
-            self.MeshingParameters.SetReferenceElement(parameters["MeshElement"])
-            self.MeshingParameters.SetReferenceCondition("CompositeCondition2D2N")
+            self.reference_mesh_element = parameters["MeshElement"]
+            
+            self.MeshingParameters.SetReferenceElement(self.reference_mesh_element)
+            self.MeshingParameters.SetReferenceCondition(self.reference_mesh_condition)
                 
             ################################################
             #Pre Meshing Processes
