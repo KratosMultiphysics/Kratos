@@ -87,12 +87,12 @@ pp.CFD_DEM.basset_force_type = 3
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
 pp.CFD_DEM.basset_force_integration_type = 1
 pp.CFD_DEM.n_init_basset_steps = 0
-pp.CFD_DEM.time_steps_per_quadrature_step = 5
+pp.CFD_DEM.time_steps_per_quadrature_step = 1
 pp.CFD_DEM.delta_time_quadrature = pp.CFD_DEM.time_steps_per_quadrature_step * pp.CFD_DEM.MaxTimeStep
 pp.CFD_DEM.quadrature_order = 1
-pp.CFD_DEM.time_window = 0.5
-pp.CFD_DEM.number_of_exponentials = 8
-pp.CFD_DEM.number_of_quadrature_steps_in_window = 10
+pp.CFD_DEM.time_window = 0.05
+pp.CFD_DEM.number_of_exponentials = 10
+pp.CFD_DEM.number_of_quadrature_steps_in_window = int(pp.CFD_DEM.time_window / pp.CFD_DEM.delta_time_quadrature)
 #Z
 
 # Import utilities from models
@@ -683,7 +683,7 @@ N_steps = int(final_time / Dt_DEM) + 20
 
 if pp.CFD_DEM.basset_force_type > 0:
     basset_force_tool.FillDaitcheVectors(N_steps, pp.CFD_DEM.quadrature_order, pp.CFD_DEM.time_steps_per_quadrature_step)
-if pp.CFD_DEM.basset_force_type == 3:
+if pp.CFD_DEM.basset_force_type == 3 or pp.CFD_DEM.basset_force_type == 1:
     basset_force_tool.FillHinsbergVectors(spheres_model_part, pp.CFD_DEM.number_of_exponentials, pp.CFD_DEM.number_of_quadrature_steps_in_window)
 
 for node in spheres_model_part.Nodes:
