@@ -74,7 +74,6 @@ namespace Kratos {
         using BaseType::mListOfGhostSphericParticles;
         using BaseType::SearchNeighbours;
         using BaseType::SetSearchRadiiOnAllParticles;
-        using BaseType::mNeighbourCounter;
         /// Pointer definition of AdamsBashforthStrategy
         KRATOS_CLASS_POINTER_DEFINITION(AdamsBashforthStrategy);
 
