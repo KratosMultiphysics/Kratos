@@ -261,7 +261,7 @@ namespace Kratos
 	base+=3;
       }
     //*********************************************************************
-
+   
     ////////////////////////////////////////////////////////////
     BuildMeshElements(rModelPart,rMeshingVariables,out,MeshId);
     ////////////////////////////////////////////////////////////
@@ -281,9 +281,9 @@ namespace Kratos
     //rModelPart.Elements().Sort();
 
     //free memory
-    DeletePointsList(in);
-    delete [] in.tetrahedronlist;
-    DeleteTetrahedraList(out);
+    //delete [] in.pointlist;
+    //delete [] in.tetrahedronlist;
+    //DeleteTetrahedraList(out);
 
     this->EndEcho(rModelPart,"Tetgen PFEM DT Mesher",MeshId);
 
@@ -748,8 +748,12 @@ namespace Kratos
     ClearTetrahedraList(in);
     ClearTetrahedraList(out);
 
+
     //*********************************************************************
     //input mesh: NODES
+    in.firstnumber    = 1;
+    in.mesh_dim       = 3;
+
     in.numberofpoints = rModelPart.Nodes(MeshId).size();
     in.pointlist      = new REAL[in.numberofpoints * 3];
 
@@ -814,9 +818,12 @@ namespace Kratos
 	  in.pointlist[base+1] = (nodes_begin + i)->Y();
 	  in.pointlist[base+2] = (nodes_begin + i)->Z();
 	}
-	   
-	//std::cout<<(nodes_begin + i)->X()<<", "<<(nodes_begin + i)->Y()<<", "<<(nodes_begin + i)->Z()<<") ";
-	    
+	
+	// std::cout<<" POINT "<<(nodes_begin + i)->Id()<<std::endl;
+	// std::cout<<"["<<(nodes_begin + i)->X()<<", "<<(nodes_begin + i)->Y()<<", "<<(nodes_begin + i)->Z()<<"] ";
+
+	// std::cout<<"["<<in.pointlist[base]<<", "<<in.pointlist[base+1]<<", "<<in.pointlist[base+2]<<"] "<<std::endl;	    
+
 	if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::SET_DOF))
 	  {
 	    Node<3>::DofsContainerType& node_dofs = (nodes_begin + i)->GetDofs();
@@ -1048,7 +1055,12 @@ namespace Kratos
 	  }
 	  else{
 	    //to get conectivities and neighbours only
-	    strcpy (meshing_options, "nMJFV"); //"QJFu0"; //"pq1.414a0.1"
+
+	    //n :neighbours
+	    //J :do not eliminate points detected as coincident
+
+	    strcpy (meshing_options, "nVVJFM"); //"QJFu0"; //"pq1.414a0.1"
+	    std::cout<<"SET MESHING FLAGS "<<std::endl;
 	    meshing_info = "Neighbours remeshing executed";
 	  }
 	}
@@ -1064,7 +1076,7 @@ namespace Kratos
     if( this->GetEchoLevel() > 0 )
       std::cout<<" [ REMESH: (in POINTS "<<in.numberofpoints<<") "<<std::endl;
 
-    this->WritePoints(in);
+    //this->WritePoints(in);
 
     //perform the meshing
     try {
@@ -1089,8 +1101,9 @@ namespace Kratos
 	}
     }
     
-    this->WritePoints(out);
-    this->WriteTetrahedra(out);
+    this->CheckInOutPoints(in, out);
+    //this->WritePoints(out);
+    //this->WriteTetrahedra(out);
 
     if(MeshingOptions.IsNot(ModelerUtilities::REFINE) && in.numberofpoints<out.numberofpoints){
       fail=3;
@@ -1186,6 +1199,8 @@ namespace Kratos
 	
 	    for(int pn=0; pn<4; pn++)
 	      {
+
+		//std::cout<<" Nodes "<<out.tetrahedronlist[el*4+pn]<<" "<<out.pointlist[ out.tetrahedronlist[el*4+pn] ]<<std::endl;
 		//note that out.tetrahedronlist, starts from node 1, not from node 0, it can be directly assigned to rMeshingVariables.NodalPreIds.
 		//vertices.push_back( *((model_nodes).find( rMeshingVariables.NodalPreIds[out.tetrahedronlist[el*4+pn]] ).base() ) );
 		vertices.push_back(*(nodes_begin + out.tetrahedronlist[el*4+pn]-1).base());
@@ -1227,7 +1242,7 @@ namespace Kratos
 	    rMeshingVariables.NeighbourList.push_back(neighbours);
 		
 		
-	    //std::cout<<" neigbours ["<<id<<"]: ("<<neighbours[0]<<", "<<neighbours[1]<<", "<<neighbours[2]<<") "<<std::endl;
+	    //std::cout<<" neigbours ["<<id<<"]: ("<<neighbours[0]<<", "<<neighbours[1]<<", "<<neighbours[2]<<", "<<neighbours[3]<<") "<<std::endl;
 		
 
 	    //*******************************************************************
@@ -1382,7 +1397,7 @@ namespace Kratos
 	    int  numboundary =0;
 
 	    //std::cout<<" num nodes "<<rNodes.size()<<std::endl;
-	    std::cout<<" selected vertices [ "<<out.tetrahedronlist[el*4]<<", "<<out.tetrahedronlist[el*4+1]<<", "<<out.tetrahedronlist[el*4+2]<<", "<<out.tetrahedronlist[el*4+3]<<"] "<<el<<std::endl;
+	    //std::cout<<" selected vertices [ "<<out.tetrahedronlist[el*4]<<", "<<out.tetrahedronlist[el*4+1]<<", "<<out.tetrahedronlist[el*4+2]<<", "<<out.tetrahedronlist[el*4+3]<<"] "<<el<<std::endl;
 	    box_side_element = false;
 	    for(int pn=0; pn<4; pn++)
 	      {
@@ -1401,10 +1416,10 @@ namespace Kratos
 		  break;
 		}
 
-		std::cout<<" before to push back a node "<<out.tetrahedronlist[el*4+pn]<<std::endl;
+		//std::cout<<" before to push back a node "<<out.tetrahedronlist[el*4+pn]<<std::endl;
 		//vertices.push_back( *((rNodes).find( out.tetrahedronlist[el*4+pn] ).base() ) );
 		vertices.push_back(rNodes(out.tetrahedronlist[el*4+pn]));
-		std::cout<<" after to push back a node "<<std::endl;
+		//std::cout<<" after to push back a node "<<std::endl;
 
 		//check flags on nodes
 		if(vertices.back().Is(FREE_SURFACE))
@@ -1426,7 +1441,7 @@ namespace Kratos
 
 	      }
 
-	    std::cout<<" A "<<std::endl;
+	    //std::cout<<" A "<<std::endl;
 	    if(box_side_element || wrong_added_node){
 	      //std::cout<<" Box_Side_Element "<<std::endl;
 	      continue;
@@ -1464,6 +1479,7 @@ namespace Kratos
 	    //std::cout<<" ******** ELEMENT "<<el+1<<" ********** "<<std::endl;
 
 	    double Alpha =  rMeshingVariables.AlphaParameter;
+
 	    if(numboundary>=3)
 	      Alpha*=1.8;
 	
@@ -1501,7 +1517,7 @@ namespace Kratos
 
 	    }
 
-	    std::cout<<" B "<<std::endl;
+	    //std::cout<<" B "<<std::endl;
 	    //3.- to control all nodes from the same subdomain (problem, domain is not already set for new inserted particles on mesher)
 	    // if(accepted)
 	    // {
@@ -1533,7 +1549,7 @@ namespace Kratos
 	    // }
 	      
 
-	    std::cout<<" C "<<std::endl;
+	    //std::cout<<" C "<<std::endl;
 	    if(accepted)
 	      {
 		//std::cout<<" Element ACCEPTED after cheking Center "<<number<<std::endl;
@@ -2116,7 +2132,7 @@ namespace Kratos
 	  {
 	    std::cout<<tr.tetrahedronlist[el*4+pn]<<"_";
 	  }
-	std::cout<<" ]   Volume: "<<tr.tetrahedronvolumelist[el]<<std::endl;
+	std::cout<<" ] "<<std::endl; //  Volume: "<<tr.tetrahedronvolumelist[el]<<std::endl;
       }   
 
     KRATOS_CATCH(" ")
@@ -2140,6 +2156,39 @@ namespace Kratos
     KRATOS_CATCH(" ")
   }
 
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void TetrahedralMesh3DModeler::CheckInOutPoints(tetgenio& in,tetgenio& out)
+  { 
+    KRATOS_TRY
+
+    if( in.numberofpoints != out.numberofpoints )
+      std::cout<<"  Input and Output points amount is not the same : [in:"<<in.numberofpoints<<",out:"<<out.numberofpoints<<"]"<<std::endl;
+    
+    int base=0;
+    bool coincide = true;
+    for(int nd = 0; nd< in.numberofpoints; nd++)
+      {
+	// std::cout<<"   Point "<<nd+1<<" : [ ";
+	// std::cout<<in.pointlist[base]<<" "<<in.pointlist[base+1]<<" "<<in.pointlist[base+2]<<" ]"<<std::endl;
+	// std::cout<<" ["<<out.pointlist[base]<<" "<<out.pointlist[base+1]<<" "<<out.pointlist[base+2]<<" ]"<<std::endl;
+
+	if( fabs(in.pointlist[base]-out.pointlist[base])>1e-8 )
+	  coincide = false;
+	if( fabs(in.pointlist[base+1]-out.pointlist[base+1])>1e-8 )
+	  coincide = false;
+	if( fabs(in.pointlist[base+2]-out.pointlist[base+2])>1e-8 )
+	  coincide = false;
+	
+	base+=3;
+      }
+
+    if(coincide == false)
+      std::cout<<"  Input and Output points not coincide "<<std::endl;
+
+    KRATOS_CATCH(" ")
+  }
 
   //*******************************************************************************************
   //*******************************************************************************************

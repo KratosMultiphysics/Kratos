@@ -125,7 +125,7 @@ namespace Kratos
 
       boost::timer auxiliary;
 	
-      if( mEchoLevel >= 1 )
+      if( mEchoLevel >= -1 )
 	std::cout<<" [ Skin Search on Mesh["<<mMeshId<<"] ]"<<std::endl;
 
       success=UniqueSkinSearch(mMeshId);
@@ -518,7 +518,7 @@ namespace Kratos
     bool UniqueSkinSearch( int MeshId = 0 )
     {
 
-      if( mEchoLevel > 0 ){
+      if( mEchoLevel >= 0 ){
 	std::cout<<" [ SET BOUNDARY CONDITIONS : "<<std::endl;
 	std::cout<<"   Initial Conditions : "<<mrModelPart.Conditions(MeshId).size()<<" [MESH:"<<MeshId<<"]"<<std::endl;
       }
@@ -766,15 +766,21 @@ namespace Kratos
 		      else
 			{
 		  
-			  if( mEchoLevel > 0 )
-			    std::cout<<"   NOT FOUND CONDITION :: CREATED-> ["<<ConditionId<<"] ("<<FaceNodes[0].Id()<<","<<FaceNodes[1].Id()<<")"<<std::endl;
-			  
+			  if( mEchoLevel >= 0 ){
+			    std::cout<<"   NOT FOUND CONDITION :: CREATED-> ["<<ConditionId<<"] (";
+			    for(unsigned int f=0; f<FaceNodes.size(); f++)
+			      std::cout<<FaceNodes[f].Id()<<",";
+			    
+			    std::cout<<")"<<std::endl;				
+			  }
+
+			  // something not implemented in geometry or condition PrintData
 			  //std::cout<<" ReferenceCondition "<<rReferenceCondition<<std::endl;
 
 			  p_cond = rReferenceCondition.Create(ConditionId, FaceNodes, properties);
 		      
 			  //if a condition is created new nodes must be labeled TO_REFINE
-			  for(unsigned int j=0; j<NumberNodesInFace; j++)
+			  for(unsigned int j=0; j<FaceNodes.size(); j++)
 			    {
 			      FaceNodes[j].Set(TO_REFINE);
 			    }
