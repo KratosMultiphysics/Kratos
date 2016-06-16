@@ -435,7 +435,7 @@ public:
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
         //set block size
-        KRATOS_WATCH(mndof)
+        //KRATOS_WATCH(mndof)
 //         mprm.put("precond.coarse_enough",500);
         mprm.put("precond.coarsening.aggr.eps_strong",0.0);
         mprm.put("precond.coarsening.aggr.block_size",mndof);
