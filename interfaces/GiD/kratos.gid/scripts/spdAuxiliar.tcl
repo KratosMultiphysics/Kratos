@@ -1062,10 +1062,8 @@ spdAux::Init
 
 proc spdAux::ProcGetElements { domNode args } {
     set nodeApp [GetAppIdFromNode $domNode]
-    
     set sol_stratUN [apps::getAppUniqueName $nodeApp SolStrat]
     set schemeUN [apps::getAppUniqueName $nodeApp Scheme]
-    
     if {[get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] v] eq ""} {
         get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] dict
     }

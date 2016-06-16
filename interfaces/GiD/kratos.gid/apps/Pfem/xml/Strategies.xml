@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StrategyList>
+  <StrategyItem n="TwoStepVPStrategy" pn="Two Step VP Strategy" 
+		ImplementedInFile="two_step_v_p_solver.py"
+		ImplementedInApplication="PfemFluidDynamicsApplication"
+		ImplementedInPythonFile="two_step_v_p_solver"
+		MinimumKratosVersion="9000" App="Pfem"
+		ProductionReady="No"
+		help="">
+    
+    <!-- list of options to be filled -->
+    <parameter_list>
+	  <parameter n="predictor_corrector" pn="Predictor corrector" type="bool" v="False" help=""/>  
+	  <parameter n="maximum_velocity_iterations" pn="Maximum velocity iterations" type="integer" v="4" help=""/>  
+	  <parameter n="maximum_pressure_iterations" pn="Maximum pressure iterations" type="integer" v="4" help=""/>  
+	  <parameter n="velocity_tolerance" pn="Velocity tolerance" type="double" v="1e-3" help=""/>  
+	  <parameter n="pressure_tolerance" pn="Pressure tolerance " type="double" v="1e-3" help=""/>  
+	  <parameter n="echo_level" pn="Echo level" type="int" v="1" help=""/>  
+	  <parameter n="consider_periodic_conditions" pn="Consider periodic conditions" type="bool" v="false" help=""/>  
+      <parameter n="time_order" pn="Time order " type="int" v="2" help=""/>  
+      <parameter n="dynamic_tau" pn="Dynamic tau" type="double" v="0.001" help=""/>  
+	  <parameter n="compute_reactions" pn="Compute reactions" type="bool" v="false" help=""/>  
+      <parameter n="divergence_clearance_steps" pn="Divergence clearance steps" type="int" v="0" help=""/>  
+      <parameter n="reform_dofs_at_each_iteration" pn="Reform DOFs at each iteration " type="bool" v="false" help=""/>
+    </parameter_list>
+    
+    <linearSolvers>
+      <linearSolverItem n="velocity_linear_solver_settings" pn="Velocity linear solver">
+        <filterFeatures>
+		   <filter field="SolverType" value="Standard"/>
+	      <!--<filter field="symmetric" value="false"/>
+              <filter field="solver_type" value="Iterative"/>    -->
+        </filterFeatures>
+		<defaults>
+		</defaults>
+      </linearSolverItem>
+	  
+      <linearSolverItem n="pressure_linear_solver_settings" pn="Pressure linear solver" >
+        <filterFeatures>
+		   <filter field="SolverType" value="Standard"/>
+        </filterFeatures>
+		<defaults>
+		</defaults>
+      </linearSolverItem> 
+    </linearSolvers>
+	
+	<schemes>
+	  <scheme n="FluidResidualBasedUwPStaticScheme" pn="Fluid Residual Based UwP Static Scheme" help="FilterElements">
+	     <parameter_list>
+		  </parameter_list>
+  		  <element_filters>
+			 <filter field="ImplementedInApplication" value="PfemFluidDynamicsApplication"/>
+		  </element_filters>
+	  </scheme>
+	</schemes>
+  
+  </StrategyItem>
+</StrategyList>

@@ -408,3 +408,24 @@ proc Kratos::ResetModel { } {
         GiD_Groups delete $group
     }
 }
+
+proc Kratos::PrintArray {a {pattern *}} {
+    # ABSTRACT:
+    # Print the content of array a to WarnWinText window
+    
+    upvar 1 $a array  
+    if {![array exists array]} {
+	error "\"$a\" isn't an array"
+    }
+    set maxl 0
+    foreach name [lsort [array names array $pattern]] {
+	if {[string length $name] > $maxl} {
+	    set maxl [string length $name]
+	}
+    }
+    set maxl [expr {$maxl + [string length $a] + 2}]
+    foreach name [lsort [array names array $pattern]] {
+	set nameString [format %s(%s) $a $name]
+	WarnWinText "[format "%-*s = %s" $maxl $nameString $array($name)]"
+    }
+}
