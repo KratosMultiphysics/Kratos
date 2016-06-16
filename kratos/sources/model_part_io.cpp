@@ -811,15 +811,8 @@ namespace Kratos
 
     void ModelPartIO::ReadNodesBlock(NodesContainerType& rThisNodes)
     {
-        KRATOS_THROW_ERROR(std::logic_error,"it should not call this block","")
-    }
-/*    {
-        KRATOS_TRY
-//         KRATOS_THROW_ERROR(std::runtime_error, "this function shall be removed ReadNodesBlock(NodesContainerType& rThisNodes)","")
-
-        NodeType temp_node;
         SizeType temp_id;
-
+        double x,y,z;
         std::string word;
 
         SizeType number_of_nodes_read = 0;
@@ -827,24 +820,22 @@ namespace Kratos
         std::cout << "  [Reading Nodes    : ";
 
         while(!mpStream->eof())
-        {
+        {                                    
             ReadWord(word);
             if(CheckEndBlock("Nodes", word))
                 break;
 
-            ExtractValue(word, temp_id);
-            temp_node.SetId(ReorderedNodeId(temp_id));
+            ExtractValue(word, temp_id);            
             ReadWord(word);
-            ExtractValue(word, temp_node.X());
+            ExtractValue(word, x);
             ReadWord(word);
-            ExtractValue(word, temp_node.Y());
+            ExtractValue(word, y);
             ReadWord(word);
-            ExtractValue(word, temp_node.Z());
-
-            temp_node.X0() = temp_node.X();
-            temp_node.Y0() = temp_node.Y();
-            temp_node.Z0() = temp_node.Z();
-
+            ExtractValue(word, z);
+            NodeType::Pointer temp_node = boost::make_shared< NodeType >( ReorderedNodeId(temp_id), x, y, z);
+            temp_node->X0() = temp_node->X();
+            temp_node->Y0() = temp_node->Y();
+            temp_node->Z0() = temp_node->Z();
 
             rThisNodes.push_back(temp_node);
             number_of_nodes_read++;
@@ -858,7 +849,7 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
-*/
+
     void ModelPartIO::ReadNodesBlock(ModelPart& rModelPart)
     {
         KRATOS_TRY
