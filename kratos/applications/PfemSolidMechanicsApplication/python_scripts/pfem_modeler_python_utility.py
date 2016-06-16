@@ -327,6 +327,7 @@ class ModelerUtility:
 
             meshing_options.Set(ModelerUtilities.REMESH, parameters["Remesh"])
             meshing_options.Set(ModelerUtilities.CONSTRAINED, parameters["Constrained"])
+            meshing_options.Set(ModelerUtilities.TRANSFER, parameters["Transfer"])
             meshing_options.Set(ModelerUtilities.REFINE, parameters["Refine"])
             meshing_options.Set(ModelerUtilities.MESH_SMOOTHING, parameters["MeshSmoothing"])
             meshing_options.Set(ModelerUtilities.VARIABLES_SMOOTHING, parameters["JacobiSmoothing"])

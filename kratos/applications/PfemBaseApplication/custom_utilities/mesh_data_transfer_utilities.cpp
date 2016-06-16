@@ -572,6 +572,7 @@ namespace Kratos
       //*******************************************************************************************
       //*******************************************************************************************
 	
+      //KRATOS MESH INPUT
       void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferParameters& rTransferVariables,
 								    const Variable<double>& rCriticalVariable,
 								    const double& rCriticalValue,
@@ -806,6 +807,8 @@ namespace Kratos
 
 	//*******************************************************************************************
 	//*******************************************************************************************
+
+        //KRATOS MESH INPUT
         void MeshDataTransferUtilities::TransferElementalValuesToNodes( const TransferParameters& rTransferVariables,
 									ModelPart& rModelPart,
 									ModelPart::IndexType MeshId)
@@ -1027,6 +1030,9 @@ namespace Kratos
 
 	//*******************************************************************************************
 	//*******************************************************************************************
+
+
+        //CENTERS AND NODES INPUT
 	void MeshDataTransferUtilities::TransferNodalValuesToElements(ModelPart& rModelPart,
 								      const Element & rReferenceElement,
 								      PointPointerVector &list_of_new_centers,
@@ -1046,6 +1052,8 @@ namespace Kratos
 
 	//*******************************************************************************************
 	//*******************************************************************************************
+
+        //CENTERS AND NODES INPUT
 	void MeshDataTransferUtilities::TransferElementalValuesToNodes(ModelPart& rModelPart,
 								       const Element & rReferenceElement,
 								       PointPointerVector &list_of_new_centers,
@@ -1065,6 +1073,9 @@ namespace Kratos
 
 	//*******************************************************************************************
 	//*******************************************************************************************
+
+
+        //CENTERS AND NODES INPUT
 	void MeshDataTransferUtilities::TransferElementalValuesToElements(ModelPart& rModelPart,
 									  const Element & rReferenceElement,
 									  PointPointerVector &list_of_new_centers,
@@ -1096,18 +1107,33 @@ namespace Kratos
 	    	    
 
 	    //find the center and "radius" of the element
-	    double xc,  yc, zc=0, radius;
+	    double xc=0;
+	    double yc=0;
+	    double zc=0;
+	    double radius=0;
 
-	    int moved_transfers = 0;
-
+	    // CREATE LIST OF PREVIOUS ELEMENT CENTERS
 	    for(ElementsContainerType::iterator ie = rPreElements.begin(); ie != rPreElements.end(); ie++)
 	    {
 		PointsArrayType& vertices=ie->GetGeometry().Points();
 
-		CalculateCenterAndSearchRadius( vertices[0].X(), vertices[0].Y(),
-						vertices[1].X(), vertices[1].Y(),
-						vertices[2].X(), vertices[2].Y(),
-						xc,yc,radius);
+		if( vertices.size() == 3 ){
+		  CalculateCenterAndSearchRadius( vertices[0].X(), vertices[0].Y(),
+						  vertices[1].X(), vertices[1].Y(),
+						  vertices[2].X(), vertices[2].Y(),
+						  xc,yc,radius);
+		}
+		else if( vertices.size() == 4 ){
+		  CalculateCenterAndSearchRadius( vertices[0].X(), vertices[0].Y(), vertices[0].Z(),
+						  vertices[1].X(), vertices[1].Y(), vertices[1].Z(),
+						  vertices[2].X(), vertices[2].Y(), vertices[2].Z(),
+						  vertices[3].X(), vertices[3].Y(), vertices[3].Z(),
+						  xc,yc,zc,radius);
+		}
+		else{
+		  KRATOS_THROW_ERROR( std::logic_error, "Wrong Number of Nodes for the Element in Transfer",*this );
+		}
+
 		int id= ie->Id();
 		PointPointerType p_center = PointPointerType( new PointType(id,xc,yc,zc) );
 
@@ -1123,73 +1149,236 @@ namespace Kratos
 	    }
 
 	    //std::cout<<" list of pre centers "<<list_of_pre_centers.size()<<" list of new centers "<<list_of_new_centers.size()<<std::endl;
+	    
+
+	    // SEARCH PREVIOUS CENTER NEARER TO THE NEW CENTER
 
 	    //creating an auxiliary list for the pre integration points
-	    unsigned int   bucket_size = 20;
+	    unsigned int   bucket_size = 40;
 	    KdtreeType     nodes_tree(list_of_pre_centers.begin(),list_of_pre_centers.end(),bucket_size);	
-
-	    PointType work_point(0,0.0,0.0,0.0);
-	    double  ResultDistance;
+	    PointType      work_point(0,0.0,0.0,0.0);
+	    double         ResultDistance;
 
 	    //make a loop on temporal elements
-
 	    ElementsContainerType temporal_elements;
-	    temporal_elements.reserve(rModelPart.Elements(MeshId).size());
-	    
+	    temporal_elements.reserve(rModelPart.Elements(MeshId).size());    
 	    temporal_elements.swap(rModelPart.Elements(MeshId));
 
+
 	    int count=0;
-	    for(PointPointerVector::iterator i_center = list_of_new_centers.begin() ; i_center != list_of_new_centers.end() ; i_center++)
-	    {
-	      count++;
-	      //std::cout<<" NUM "<<count<<std::endl;
-	      //find the nearest integration point to the new integration point (work_point)
-	      PointType& work_point= (**i_center);
+	    int moved_transfers = 0;
+	    
+	    unsigned int on_distance = 0;
+	    unsigned int on_connectivities = 0;
+	    unsigned int same_selection = 0;
 
-
-	      //std::cout<<" point post "<<work_point.Id()<<" "<<xc<<" "<<yc<<std::endl;
-	      PointPointerType result_point = nodes_tree.SearchNearestPoint(work_point,ResultDistance);
-
-	      ElementsContainerType::iterator pe = temporal_elements.find( result_point->Id() );
-	      
-
-	      Element::Pointer PreviousElement = Element::Pointer( *pe.base() );
-
-	      PointsArrayType& vertices=PreviousElement->GetGeometry().Points();
-
-
-
-	      if(ResultDistance>1e-20 || ResultDistance == 0){
-		// std::cout<<"Id: "<<(*i_center)->Id()<<" Connectivities : ["<<list_of_new_vertices[(*i_center)->Id()-1][0].Coordinates()<<", "<<list_of_new_vertices[(*i_center)->Id()-1][1].Coordinates()<<", "<<list_of_new_vertices[(*i_center)->Id()-1][2].Coordinates()<<"] "<<std::endl;
-
+	    for(PointIterator i_center = list_of_new_centers.begin() ; i_center != list_of_new_centers.end() ; i_center++)
+	      {
+		count++;
 		
-		// std::cout<<"Pre Id: "<<PreviousElement->Id()<<" Connectivities : ["<<vertices[0].Coordinates()<<", "<<vertices[1].Coordinates()<<", "<<vertices[2].Coordinates()<<"] "<<std::endl;
-		  
-		// std::cout<<"New Center :"<<work_point<<", Old Center :"<<*result_point<<"[Distance: "<<ResultDistance<<"]"<<std::endl;
+		//std::cout<<" INTEGRATION POINT  "<<count<<std::endl;
 
-		 moved_transfers ++;
-	      }
-	      
-	      // std::cout<<" Result distance "<<ResultDistance<<" point Id "<<result_point->Id()<<" center Id "<<(*i_center)->Id()<<std::endl;
+		//find the nearest integration point to the new integration point (work_point)
+		PointType& work_point= (**i_center);
 
 
-	      //get transfer variables
+		// find integration point (Element) which values will be transferred
+		PointPointerType result_point = nodes_tree.SearchNearestPoint(work_point,ResultDistance);
 
-	      
-	      //Inside of the loop create the element, set the variables, and push_back to the model part.
-	      Element::Pointer new_element = PreviousElement->Clone((*i_center)->Id(), list_of_new_vertices[(*i_center)->Id()-1]);	
-	      
-	      //set transfer variables
-	      new_element->SetValue(DOMAIN_LABEL,vertices[0].GetValue(DOMAIN_LABEL)); //DOMAIN_LABEL set as a variable
-	      new_element->AssignFlags(*PreviousElement);	
+		ElementsContainerType::iterator pe; //element corresponding to the result point
 
-	      //check
-	      //new_element->PrintInfo(std::cout);
+		bool extra_search = false;
+		if(list_of_new_vertices[(*i_center)->Id()-1].size() == 4 && extra_search) //try no improve transfer in 3D trying to find another result point
+		  { 
+		    // find integration points in radius (Candidate Elements)
+		    xc = 0;
+		    yc = 0;
+		    zc = 0;
+		    radius = 0;
+		    if( list_of_new_vertices[(*i_center)->Id()-1].size() == 3 ){
+		      CalculateCenterAndSearchRadius( list_of_new_vertices[(*i_center)->Id()-1][0].X(), list_of_new_vertices[(*i_center)->Id()-1][0].Y(),
+						      list_of_new_vertices[(*i_center)->Id()-1][1].X(), list_of_new_vertices[(*i_center)->Id()-1][1].Y(),
+						      list_of_new_vertices[(*i_center)->Id()-1][2].X(), list_of_new_vertices[(*i_center)->Id()-1][2].Y(),
+						      xc,yc,radius);
+		    }
+		    else if( list_of_new_vertices[(*i_center)->Id()-1].size() == 4 ){
+		      CalculateCenterAndSearchRadius( list_of_new_vertices[(*i_center)->Id()-1][0].X(), list_of_new_vertices[(*i_center)->Id()-1][0].Y(), list_of_new_vertices[(*i_center)->Id()-1][0].Z(),
+						      list_of_new_vertices[(*i_center)->Id()-1][1].X(), list_of_new_vertices[(*i_center)->Id()-1][1].Y(), list_of_new_vertices[(*i_center)->Id()-1][1].Z(),
+						      list_of_new_vertices[(*i_center)->Id()-1][2].X(), list_of_new_vertices[(*i_center)->Id()-1][2].Y(), list_of_new_vertices[(*i_center)->Id()-1][2].Z(),
+						      list_of_new_vertices[(*i_center)->Id()-1][3].X(), list_of_new_vertices[(*i_center)->Id()-1][3].Y(), list_of_new_vertices[(*i_center)->Id()-1][3].Z(),
+						      xc,yc,zc,radius);
+		    }
+		    else{
+		      KRATOS_THROW_ERROR( std::logic_error, "Wrong Number of Nodes for the Element in Transfer",*this );
+		    }
 
-	      //setting new elements
-	      (rModelPart.Elements(MeshId)).push_back(new_element);
+		    //std::cout<<" Radius "<<radius<<std::endl;
 
+		    unsigned int max_points = 50;
+		    unsigned int num_points_in_radius = 0;
+		    PointPointerVector list_of_points_in_radius(max_points);
+		    DistanceVector list_of_distances(max_points);
+
+		    num_points_in_radius = nodes_tree.SearchInRadius(work_point,radius,list_of_points_in_radius.begin(),list_of_distances.begin(),max_points);
 		
+		    std::vector<int> coincident_nodes;
+		    int coincident_node = 0;
+
+		    for(PointIterator i_candidate = list_of_points_in_radius.begin(); i_candidate!=list_of_points_in_radius.begin()+ num_points_in_radius; i_candidate++)
+		      {
+			ElementsContainerType::iterator ce = temporal_elements.find( (*i_candidate)->Id() );
+			PointsArrayType& vertices          = ( *ce.base() )->GetGeometry().Points();
+			coincident_node = 0;
+			for(unsigned int i=0; i<list_of_new_vertices[(*i_center)->Id()-1].size(); i++)
+			  {
+			    for(unsigned int j=0; j<vertices.size(); j++)
+			      {
+				if( list_of_new_vertices[(*i_center)->Id()-1][i].Id() == vertices[j].Id() )
+				  {
+				    coincident_node+=1;
+				  }
+			      }
+			  }
+
+			coincident_nodes.push_back(coincident_node);
+		      }
+		
+		    //check if there is an element with more coincident connectivities
+		    int coincident = 0;
+		    int candidate = 0;
+		    for(unsigned int j=0; j<coincident_nodes.size(); j++)
+		      {
+			if(coincident_nodes[j]>coincident){
+			  candidate = j;
+			  coincident = coincident_nodes[j];
+			}
+
+		      }
+
+		    //check if is the only one
+		    //std::sort(coincident_nodes.begin(), coincident_nodes.end(), std::greater<int>());
+		    int num_candidates = 0;
+		    std::vector<int> coincident_candidates;
+		    for(unsigned int j=0; j<coincident_nodes.size(); j++)
+		      {
+			if( coincident == coincident_nodes[j] ){
+			  num_candidates += 1;
+			  coincident_candidates.push_back(j);
+			}		    
+		      }
+		
+		    if(num_candidates > 1){
+		      int distance_candidates = list_of_distances[coincident_candidates[0]];
+		      candidate = coincident_candidates[0];
+		      for(unsigned int j=1; j<coincident_candidates.size(); j++)
+			{
+			  if(list_of_distances[coincident_candidates[j]] < distance_candidates)
+			    candidate = coincident_candidates[j];
+			}
+		    }
+		
+		    unsigned int result_id = result_point->Id();
+
+		    //select point
+		    if( result_point->Id() == (*(list_of_points_in_radius.begin()+candidate))->Id() ){
+		      same_selection += 1;
+		    }
+		    else{
+		      
+		      // standart case not radius is needed
+		      // if( ResultDistance > list_of_distances[candidate] ){
+		      // 	result_id = (*(list_of_points_in_radius.begin()+candidate))->Id();
+		      // 	on_connectivities += 1;
+		      // }
+		      // else{
+		      // 	result_id = result_point->Id();
+		      // 	on_distance += 1;
+		      // }
+
+		      // alternative case if connectivities coincides have a bigger weight
+		      if( num_candidates > 1 ){
+		        result_id = result_point->Id();
+		        on_distance += 1;
+		      }
+		      else{
+		        result_id = (*(list_of_points_in_radius.begin()+candidate))->Id();
+		        on_connectivities += 1;
+		      }
+		      
+		    }
+		    
+
+		    //element selected
+		    pe = temporal_elements.find( result_id );
+
+		    //std::cout<<" ResultPointDistance "<<result_point->Id()<<" ResultPointConnectivities "<<(*(list_of_points_in_radius.begin()+candidate))->Id()<<std::endl;
+
+		  }
+		else{
+
+		  //result point is a previous center
+		  pe = temporal_elements.find( result_point->Id() );
+		}
+
+		Element::Pointer PreviousElement   = Element::Pointer( *pe.base() );
+		PointsArrayType& vertices          = PreviousElement->GetGeometry().Points();
+
+		if( fabs(ResultDistance) > 1e-30 ){
+
+		  // // Connectivities Ids
+		  // std::cout<<" New Id: "<<(*i_center)->Id()<<" Connectivities : ["<<list_of_new_vertices[(*i_center)->Id()-1][0].Id();
+		  // for(unsigned int pn=1; pn<list_of_new_vertices[(*i_center)->Id()-1].size(); pn++){
+		  //   std::cout<<", "<<list_of_new_vertices[(*i_center)->Id()-1][pn].Id();
+		  // }
+		  // std::cout<<"] "<<std::endl;
+
+		  // std::cout<<" Pre Id: "<<PreviousElement->Id()<<" Connectivities : ["<<vertices[0].Id();
+		  // for(unsigned int pn=1; pn<vertices.size(); pn++){
+		  //   std::cout<<", "<<vertices[pn].Id();
+		  // }
+		  // std::cout<<"] "<<std::endl;
+
+		  // // Connectivities coordinates
+		  // // std::cout<<" New Id: "<<(*i_center)->Id()<<" Connectivities : ["<<list_of_new_vertices[(*i_center)->Id()-1][0].Coordinates();
+		  // // for(unsigned int pn=1; pn<vertices.size(); pn++){
+		  // //   std::cout<<", "<<list_of_new_vertices[(*i_center)->Id()-1][pn].Coordinates();
+		  // // }
+		  // // std::cout<<"] "<<std::endl;
+
+		  // // std::cout<<" Pre Id: "<<PreviousElement->Id()<<" Connectivities : ["<<vertices[0].Coordinates();
+		  // // for(unsigned int pn=1; pn<vertices.size(); pn++){
+		  // //   std::cout<<", "<<vertices[pn].Coordinates();
+		  // // }
+		  // // std::cout<<"] "<<std::endl;
+
+		  // std::cout<<" New Center :"<<work_point<<std::endl;
+		  // std::cout<<" Old Center :"<<*result_point<<std::endl;
+		  // std::cout<<" [Distance: "<<ResultDistance<<"]"<<std::endl;
+
+		  moved_transfers ++;
+		}
+	      
+
+		//***************************************************
+		// CREATE ELEMENT WITH THE TRANSFERED VALUES :: START
+
+		// inside of the loop create the element, set the variables, and push_back the new element to the model part
+		Element::Pointer new_element = PreviousElement->Clone((*i_center)->Id(), list_of_new_vertices[(*i_center)->Id()-1]);	
+	      
+		//set transfer variables
+		new_element->SetValue(DOMAIN_LABEL,vertices[0].GetValue(DOMAIN_LABEL)); //DOMAIN_LABEL set as a variable
+		new_element->AssignFlags(*PreviousElement);	
+
+		//check
+		//new_element->PrintInfo(std::cout);
+
+		//setting new elements
+		(rModelPart.Elements(MeshId)).push_back(new_element);
+
+		// CREATE ELEMENT WITH THE TRANSFERED VALUES :: END
+		//***************************************************
+
+
 		//ELEMENT TRANSFER CHECK//
 		// std::cout<<" Write Stress [element: "<<new_element->Id()<<"]: ";
 		// std::cout.flush();
@@ -1201,9 +1390,9 @@ namespace Kratos
 		// new_element->GetValueOnIntegrationPoints(CAUCHY_STRESS_TENSOR,StressMatrix,CurrentProcessInfo);
 		// std::cout<<StressMatrix[0]<<std::endl;
 		//ELEMENT TRANSFER CHECK//
-	    }
+	      }
 
-
+	    //std::cout<<" on distances "<<on_distance<<" on connectitivies "<<on_connectivities<<" same selection "<<same_selection<<std::endl;
 	    //std::cout<<" [ MOVED TRANSFERS: "<<moved_transfers<<" ]"<<std::endl;
 	    //std::cout<<" [ Finished ELEMENT to ELEMENT Transfer ]"<<std::endl;
 
@@ -1212,70 +1401,6 @@ namespace Kratos
 	}
 	
 
-	//*******************************************************************************************
-	//*******************************************************************************************
-
-	// inline void MeshDataTransferUtilities::CalculateCenterAndSearchRadius(const double x0, const double y0,
-	// 							     const double x1, const double y1,
-	// 							     const double x2, const double y2,
-	// 							     double& xc, double& yc, double& R)
-
-	// {
-	//     xc = 0.3333333333333333333*(x0+x1+x2);
-	//     yc = 0.3333333333333333333*(y0+y1+y2);
-
-	//     double R1 = (xc-x0)*(xc-x0) + (yc-y0)*(yc-y0);
-	//     double R2 = (xc-x1)*(xc-x1) + (yc-y1)*(yc-y1);
-	//     double R3 = (xc-x2)*(xc-x2) + (yc-y2)*(yc-y2);
-
-	//     R = R1;
-	//     if(R2 > R) R = R2;
-	//     if(R3 > R) R = R3;
-
-	//     R = sqrt(R);
-	// }
-
-
-	//*******************************************************************************************
-	//*******************************************************************************************
-
-	// inline double MeshDataTransferUtilities::CalculateVol(const double x0, const double y0,
-	// 					     const double x1, const double y1,
-	// 					     const double x2, const double y2)
-	// {
-	//     return 0.5*( (x1-x0)*(y2-y0)- (y1-y0)*(x2-x0) );
-	// }
-
-
-	//*******************************************************************************************
-	//*******************************************************************************************
-
-	// inline bool MeshDataTransferUtilities::CalculatePosition(const double x0, const double y0,
-	// 						const double x1, const double y1,
-	// 						const double x2, const double y2,
-	// 						const double xc, const double yc,
-	// 						array_1d<double,3>& N)
-	// {
-	//     double area = CalculateVol(x0,y0,x1,y1,x2,y2);
-
-	//     if(area < 1e-20)
-	//     {
-	// 	KRATOS_THROW_ERROR( std::logic_error,"element with zero area found", "" )
-	//     }
-
-	//     N[0] = CalculateVol(x1,y1,x2,y2,xc,yc)  / area;
-	//     N[1] = CalculateVol(x2,y2,x0,y0,xc,yc)  / area;
-	//     N[2] = CalculateVol(x0,y0,x1,y1,xc,yc)  / area;
-
-	//     double tol = 1e-4;
-	//     double upper_limit = 1.0+tol;
-	//     double lower_limit = -tol;
-
-	//     if(N[0] >= lower_limit && N[1] >= lower_limit && N[2] >= lower_limit && N[0] <= upper_limit && N[1] <= upper_limit && N[2] <= upper_limit) //if the xc yc is inside the triangle
-	// 	return true;
-
-	//     return false;
-	// }
 
 
         //*******************************************************************************************

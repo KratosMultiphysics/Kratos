@@ -113,7 +113,7 @@ namespace Kratos
     //*********************************************************************
 
     //free memory
-    DeletePointsList(in);
+    //DeletePointsList(in);
     //delete [] in.tetrahedronlist;
 
     this->EndEcho(rModelPart,"Tetgen PFEM Transfer Only",MeshId);
@@ -1427,7 +1427,6 @@ namespace Kratos
 
 		if(vertices.back().Is(BOUNDARY))
 		  numboundary++;
-
 		// if(VertexPa[pn].match(_wall_))
 		// 	numfixed++;
 
@@ -1480,7 +1479,7 @@ namespace Kratos
 
 	    double Alpha =  rMeshingVariables.AlphaParameter;
 
-	    if(numboundary>=3)
+	    if(numboundary>=2)
 	      Alpha*=1.8;
 	
 	    // std::cout<<" vertices for the contact element "<<std::endl;
@@ -1568,7 +1567,7 @@ namespace Kratos
 
       }
 
-    std::cout<<" Number of Preserved Elements "<<rMeshingVariables.Info->NumberOfElements<<std::endl;
+    std::cout<<"   Number of Preserved Elements "<<rMeshingVariables.Info->NumberOfElements<<std::endl;
 
     if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::ENGAGED_NODES)){
 

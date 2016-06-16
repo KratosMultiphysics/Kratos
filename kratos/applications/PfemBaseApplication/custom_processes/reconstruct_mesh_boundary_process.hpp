@@ -766,10 +766,11 @@ namespace Kratos
 		      else
 			{
 		  
-			  if( mEchoLevel >= 0 ){
+			  if( mEchoLevel > 1 ){
 			    std::cout<<"   NOT FOUND CONDITION :: CREATED-> ["<<ConditionId<<"] (";
-			    for(unsigned int f=0; f<FaceNodes.size(); f++)
-			      std::cout<<FaceNodes[f].Id()<<",";
+			    std::cout<<FaceNodes[0].Id();
+			    for(unsigned int f=1; f<FaceNodes.size(); f++)
+			      std::cout<<", "<<FaceNodes[f].Id();
 			    
 			    std::cout<<")"<<std::endl;				
 			  }

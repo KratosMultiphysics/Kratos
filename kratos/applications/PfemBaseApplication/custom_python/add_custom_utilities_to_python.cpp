@@ -109,6 +109,7 @@ namespace Kratos
 	.def_readonly("REMESH",&ModelerUtilities::REMESH)
 	.def_readonly("REFINE",&ModelerUtilities::REFINE)
 	.def_readonly("RECONNECT",&ModelerUtilities::RECONNECT)
+	.def_readonly("TRANSFER",&ModelerUtilities::TRANSFER)
 	.def_readonly("CONSTRAINED",&ModelerUtilities::CONSTRAINED)
 	.def_readonly("CONSTACT_SEARCH",&ModelerUtilities::CONTACT_SEARCH)
 	.def_readonly("MESH_SMOOTHING",&ModelerUtilities::MESH_SMOOTHING)

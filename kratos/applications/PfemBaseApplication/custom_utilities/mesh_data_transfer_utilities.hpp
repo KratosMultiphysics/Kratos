@@ -308,39 +308,6 @@ namespace Kratos
       R = sqrt(R);
     }
 
-    inline double CalculateVol(const double x0, const double y0,
-			       const double x1, const double y1,
-			       const double x2, const double y2)
-    {
-      return 0.5*( (x1-x0)*(y2-y0)- (y1-y0)*(x2-x0) );
-    }
-
-    inline bool CalculatePosition(const double x0, const double y0,
-				  const double x1, const double y1,
-				  const double x2, const double y2,
-				  const double xc, const double yc,
-				  array_1d<double,3>& N)
-    {
-      double area = CalculateVol(x0,y0,x1,y1,x2,y2);
-
-      if(area < 1e-20)
-	{
-	  KRATOS_THROW_ERROR( std::logic_error,"element with zero area found", "" )
-	    }
-
-      N[0] = CalculateVol(x1,y1,x2,y2,xc,yc)  / area;
-      N[1] = CalculateVol(x2,y2,x0,y0,xc,yc)  / area;
-      N[2] = CalculateVol(x0,y0,x1,y1,xc,yc)  / area;
-
-      double tol = 1e-4;
-      double upper_limit = 1.0+tol;
-      double lower_limit = -tol;
-
-      if(N[0] >= lower_limit && N[1] >= lower_limit && N[2] >= lower_limit && N[0] <= upper_limit && N[1] <= upper_limit && N[2] <= upper_limit) //if the xc yc is inside the triangle
-	return true;
-
-      return false;
-    }
 
     //*******************************************************************************************
     //*******************************************************************************************

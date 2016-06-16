@@ -29,15 +29,16 @@ namespace Kratos
   KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, REMESH,               0 );
   KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, REFINE,               1 );
   KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, RECONNECT,            2 );
-  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, CONSTRAINED,          3 );
-  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, CONTACT_SEARCH,       4 );
-  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, MESH_SMOOTHING,       5 );
-  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, VARIABLES_SMOOTHING,  6 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, TRANSFER,             3 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, CONSTRAINED,          4 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, CONTACT_SEARCH,       5 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, MESH_SMOOTHING,       6 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, VARIABLES_SMOOTHING,  7 );
 
   //execution options (tessellation)
-  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, NEIGHBOURS_SEARCH,    7 );
-  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, BOUNDARIES_SEARCH,    8 );
-  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, SET_DOF,              9 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, NEIGHBOURS_SEARCH,    8 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, BOUNDARIES_SEARCH,    9 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, SET_DOF,              10 );
 
   //removing options
 
