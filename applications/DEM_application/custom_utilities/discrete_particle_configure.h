@@ -174,10 +174,13 @@ public:
         noalias(rHighPoint) = rObject->GetGeometry()[0];
         noalias(rLowPoint)  = rObject->GetGeometry()[0];
         
+        SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*rObject);        
+        double radius = p_particle->GetSearchRadius();   
+        
         for(std::size_t i = 0; i < 3; i++)
         {
-            rLowPoint[i]  += -Radius;
-            rHighPoint[i] += Radius;
+            rLowPoint[i]  += -radius;
+            rHighPoint[i] += radius;
         }
     }
         
@@ -253,7 +256,10 @@ public:
     {
         const array_1d<double, 3>& center_of_particle = rObject->GetGeometry()[0];
 
-        double radius = Radius;//Cambien el radi del objecte de cerca per el gran, aixi no tindria que petar res
+        //double radius = Radius;//Cambien el radi del objecte de cerca per el gran, aixi no tindria que petar res
+        SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*rObject);
+        const double& radius = p_particle->GetSearchRadius();
+        
         bool intersect = (
             floatle(rLowPoint[0]  - radius,center_of_particle[0]) &&
             floatle(rLowPoint[1]  - radius,center_of_particle[1]) &&
@@ -283,6 +289,12 @@ public:
         double rObj_2_to_rObj_1[3];
         PeriodicSubtract(rObj_1->GetGeometry()[0], rObj_2->GetGeometry()[0], rObj_2_to_rObj_1);
         distance = DEM_MODULUS_3(rObj_2_to_rObj_1);
+    }
+    
+    static inline double GetObjectRadius(const PointerType& rObject, const double& Radius)
+    {
+        SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*rObject);
+        return p_particle->GetSearchRadius();        
     }
 
     static double mDomainPeriods[3];
