@@ -251,187 +251,8 @@ void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(NodeType& no
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
-double SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(int order, unsigned int n, unsigned int j)
-{
-    if (order == 1){
-        if (j < n){
-            return SphericSwimmingParticle<TBaseElement>::mAjs[j];
-        }
-        else {
-            return SphericSwimmingParticle<TBaseElement>::mBns[n];
-        }
-    }
-
-    else if (order == 2){
-        if (n > 3){
-            if (j < n - 1){
-                return SphericSwimmingParticle<TBaseElement>::mAjs[j];
-            }
-            else if (j == n - 1){
-                return SphericSwimmingParticle<TBaseElement>::mBns[n];
-            }
-            else {
-                return SphericSwimmingParticle<TBaseElement>::mCns[n];
-            }
-        }
-        else {
-            if (n == 1){ // use formula for the alphas of first order
-                SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(1, n, j);
-            }
-
-            else if (n == 2){
-                long double sqrt_2_over_15 = std::sqrt(static_cast<long double>(2)) / 15;
-
-                if (j == 0){
-                    return 12 * sqrt_2_over_15;
-                }
-                else if (j == 1){
-                    return 16 * sqrt_2_over_15;
-                }
-                else {
-                    return 2 * sqrt_2_over_15;
-                }
-            }
-            else {
-                long double sqrt_2_over_5 = std::sqrt(static_cast<long double>(2)) / 5;
-                long double sqrt_3_over_5 = std::sqrt(static_cast<long double>(3)) / 5;
-
-                if (j == 0){
-                    return 4 * sqrt_2_over_5;
-                }
-                else if (j == 1){
-                    return 14 * sqrt_3_over_5 - 12 * sqrt_2_over_5;
-                }
-                else if (j == 2){
-                    return - 8 * sqrt_3_over_5 + 12 * sqrt_2_over_5;
-                }
-                else {
-                    return 4 * sqrt_3_over_5 - 4 * sqrt_2_over_5;
-                }
-            }
-        }
-    }
-
-    else {
-        if (n > 6){
-            if (j < n - 3){
-                return SphericSwimmingParticle<TBaseElement>::mAjs[j];
-            }
-            else if (j == n - 3){
-                return SphericSwimmingParticle<TBaseElement>::mBns[n];
-            }
-            else if (j == n - 2){
-                return SphericSwimmingParticle<TBaseElement>::mCns[n];
-            }
-            else if (j == n - 1){
-                return SphericSwimmingParticle<TBaseElement>::mDns[n];
-            }
-            else {
-                return SphericSwimmingParticle<TBaseElement>::mEns[n];
-            }
-        }
-        else {
-            if (n == 2){ // use formula for the betas of second order
-                SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(2, n, j);
-            }
-
-            else if (n == 3){
-                long double sqrt_3_over_105 = std::sqrt(static_cast<long double>(3)) / 105;
-                if (j == 0){
-                    return 68 * sqrt_3_over_105;
-                }
-                else if (j == 1){
-                    return 90 * sqrt_3_over_105;
-                }
-                else if (j == 2){
-                    return 36 * sqrt_3_over_105;
-                }
-                else {
-                    return 16 * sqrt_3_over_105;
-                }
-            }
-            else if (n == 4){
-                long double sqrt_2_over_315 = std::sqrt(static_cast<long double>(2)) / 315;
-                long double OneOver315 = 1.0 / 315;
-
-                if (j == 0){
-                    return 244 * sqrt_2_over_315;
-                }
-                else if (j == 1){
-                    return 1888 * OneOver315 - 976 * sqrt_2_over_315;
-                }
-                else if (j == 2){
-                    return - 656 * OneOver315 + 1464 * sqrt_2_over_315;
-                }
-                else if (j == 3){
-                    return 1632 - 976 * OneOver315;
-                }
-                else {
-                    return - 292 * OneOver315 + 244 * sqrt_2_over_315;
-                }
-            }
-            else if (n == 5){
-                long double sqrt_2_over_315 = std::sqrt(static_cast<long double>(2)) / 315;
-                long double sqrt_3_over_105 = std::sqrt(static_cast<long double>(3)) / 105;
-                long double sqrt_5_over_63  = std::sqrt(static_cast<long double>(5)) / 63;
-
-                if (j == 0){
-                    return 244 * sqrt_2_over_315;
-                }
-                else if (j == 1){
-                    return 362 * sqrt_3_over_105 - 976 * sqrt_2_over_315;
-                }
-                else if (j == 2){
-                    return 500 * sqrt_5_over_63 - 1448 * sqrt_3_over_105 + 1464 * sqrt_2_over_315;
-                }
-                else if (j == 3){
-                    return - 870 * sqrt_5_over_63 + 2172 * sqrt_3_over_105 - 976 * sqrt_2_over_315;
-                }
-                else if (j == 4){
-                    return 660 * sqrt_5_over_63 - 1448 * sqrt_3_over_105 + 244 * sqrt_2_over_315;
-                }
-                else {
-                    return - 164 * sqrt_5_over_63 + 362 * sqrt_3_over_105;
-                }
-            }
-            else {
-                long double sqrt_2_over_315 = std::sqrt(static_cast<long double>(2)) / 315;
-                long double sqrt_3_over_105 = std::sqrt(static_cast<long double>(3)) / 105;
-                long double sqrt_6_over_105 = std::sqrt(static_cast<long double>(6)) / 105;
-                long double OneOver315 = 1.0 / 315;
-
-                if (j == 0){
-                    return 244 * sqrt_2_over_315;
-                }
-                else if (j == 1){
-                    return 362 * sqrt_3_over_105 - 976 * sqrt_2_over_315;
-                }
-                else if (j == 2){
-                    return 5584 * OneOver315 - 1448 * sqrt_3_over_105 + 1464 * sqrt_2_over_315;
-                }
-                else if (j == 3){
-                    return 1720 * sqrt_6_over_105 - 22336 * OneOver315 + 2172 * sqrt_3_over_105 - 976 * sqrt_2_over_315;
-                }
-                else if (j == 4){
-                    return - 3564 * sqrt_6_over_105 + 33504 * OneOver315 - 1448 * sqrt_3_over_105 + 244 * sqrt_2_over_315;
-                }
-                else if (j == 5){
-                    return 2808 * sqrt_6_over_105 - 22336 * OneOver315 + 362 * sqrt_3_over_105;
-                }
-                else {
-                    return - 754 * sqrt_6_over_105 + 5584 * OneOver315;
-                }
-            }
-        }
-    }
-    return 0.0;
-}
-//**************************************************************************************************************************************************
-//**************************************************************************************************************************************************
-template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(int order, unsigned int n, unsigned int j, const double last_h_over_h, const int n_steps_per_quad_step)
 {
-    double result = GetDaitcheCoefficient(order, n, j);
     const int l = floor(last_h_over_h * n_steps_per_quad_step + 0.5) - 1;
 
     if (order == 1){
@@ -462,121 +283,151 @@ double SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(int order, u
             }
 
             else if (n == 2){
-                long double sqrt_2_over_15 = std::sqrt(static_cast<long double>(2)) / 15;
+
+                const double sqrt_alpha_plus_1 = std::sqrt(1 + last_h_over_h);
 
                 if (j == 0){
-                    return 12 * sqrt_2_over_15;
+                    return 4 * sqrt_alpha_plus_1 * (4 * last_h_over_h - 1) / (15 * last_h_over_h);
                 }
                 else if (j == 1){
-                    return 16 * sqrt_2_over_15;
+                    return 4 * SWIMMING_POW_5(sqrt_alpha_plus_1) / (15 * last_h_over_h);
                 }
                 else {
-                    return 2 * sqrt_2_over_15;
+                    return 2 * sqrt_alpha_plus_1 * (3 - 2 * last_h_over_h) / 15;
                 }
             }
             else {
-                long double sqrt_2_over_5 = std::sqrt(static_cast<long double>(2)) / 5;
-                long double sqrt_3_over_5 = std::sqrt(static_cast<long double>(3)) / 5;
+                const double sqrt_alpha_plus_1 = std::sqrt(1 + last_h_over_h);
+                const double sqrt_alpha_plus_2 = std::sqrt(2 + last_h_over_h);
 
                 if (j == 0){
-                    return 4 * sqrt_2_over_5;
+                    return 4 * sqrt_alpha_plus_1 * (4 * last_h_over_h - 1) / (15 * last_h_over_h);
                 }
                 else if (j == 1){
-                    return 14 * sqrt_3_over_5 - 12 * sqrt_2_over_5;
+                    return 4 * SWIMMING_POW_5(sqrt_alpha_plus_1) / (15 * last_h_over_h) + 2 * (4 * SWIMMING_POW_3(sqrt_alpha_plus_2) * (3 + 4 * last_h_over_h) - SWIMMING_POW_3(sqrt_alpha_plus_1) * (9 + 4 * last_h_over_h)) / 15;
                 }
                 else if (j == 2){
-                    return - 8 * sqrt_3_over_5 + 12 * sqrt_2_over_5;
+                    return 2 * sqrt_alpha_plus_1 * (3 - 2 * last_h_over_h) / 15 + 2 * (4 * SWIMMING_POW_3(sqrt_alpha_plus_2) * (2 * last_h_over_h - 1) + sqrt_alpha_plus_1 * (8 * last_h_over_h * (2 + last_h_over_h) - 7)) / 15;
                 }
                 else {
-                    return 4 * sqrt_3_over_5 - 4 * sqrt_2_over_5;
+                    return 2 * (sqrt_alpha_plus_1 * (1 - 3 * last_h_over_h - 4 * last_h_over_h * last_h_over_h) + sqrt_alpha_plus_2 * (1 + last_h_over_h + 4 * last_h_over_h * last_h_over_h)) / 15;
                 }
             }
         }
     }
 
-//    else if (order == 2){
-//        if (n == 1){ // use formula for the alphas of first order
-//            SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(1, n, j, last_h_over_h, n_steps_per_quad_step);
-//        }
-//        else if (j > 2){
-//            return result;
-//        }
-//        else { // we need to correct for the last shorter interval (this only affects the last three integrands, i.e., the first three coeffs)
-//            double one_fifteenth = 1.0 / 15;
+    else { // not implemented with substeping yet
+        if (n > 6){
+            if (j < n - 3){
+                return SphericSwimmingParticle<TBaseElement>::mAjs[j];
+            }
+            else if (j == n - 3){
+                return SphericSwimmingParticle<TBaseElement>::mBns[n];
+            }
+            else if (j == n - 2){
+                return SphericSwimmingParticle<TBaseElement>::mCns[n];
+            }
+            else if (j == n - 1){
+                return SphericSwimmingParticle<TBaseElement>::mDns[n];
+            }
+            else {
+                return SphericSwimmingParticle<TBaseElement>::mEns[n];
+            }
+        }
 
-//            if (j == 2){
-//                return result + (- 4.0 * pow(last_h_over_h, 2.5) / (1 + last_h_over_h) + 2.0) * one_fifteenth;
-//            }
-//            else if (j == 1){
-//                return result + (2 * sqrt(last_h_over_h) * (5 + 2 * last_h_over_h) - 14.0) * one_fifteenth;
-//            }
-//            else {
-//                return result + (4 * sqrt(last_h_over_h) * (5 + 4 * last_h_over_h) / (1 + last_h_over_h) - 18.0) * one_fifteenth;
-//            }
-//        }
-//    }
-
-    else { // not implemented yet
-        if (n == 2){ // use formula for the betas of second order
+        else if (n == 2){ // use formula for the betas of second order
             SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(2, n, j, last_h_over_h, n_steps_per_quad_step);
         }
+
+        else if (n == 3){
+            long double sqrt_3_over_105 = std::sqrt(static_cast<long double>(3)) / 105;
+            if (j == 0){
+                return 68 * sqrt_3_over_105;
+            }
+            else if (j == 1){
+                return 90 * sqrt_3_over_105;
+            }
+            else if (j == 2){
+                return 36 * sqrt_3_over_105;
+            }
+            else {
+                return 16 * sqrt_3_over_105;
+            }
+        }
+        else if (n == 4){
+            long double sqrt_2_over_315 = std::sqrt(static_cast<long double>(2)) / 315;
+            long double OneOver315 = 1.0 / 315;
+
+            if (j == 0){
+                return 244 * sqrt_2_over_315;
+            }
+            else if (j == 1){
+                return 1888 * OneOver315 - 976 * sqrt_2_over_315;
+            }
+            else if (j == 2){
+                return - 656 * OneOver315 + 1464 * sqrt_2_over_315;
+            }
+            else if (j == 3){
+                return 1632 - 976 * OneOver315;
+            }
+            else {
+                return - 292 * OneOver315 + 244 * sqrt_2_over_315;
+            }
+        }
+        else if (n == 5){
+            long double sqrt_2_over_315 = std::sqrt(static_cast<long double>(2)) / 315;
+            long double sqrt_3_over_105 = std::sqrt(static_cast<long double>(3)) / 105;
+            long double sqrt_5_over_63  = std::sqrt(static_cast<long double>(5)) / 63;
+
+            if (j == 0){
+                return 244 * sqrt_2_over_315;
+            }
+            else if (j == 1){
+                return 362 * sqrt_3_over_105 - 976 * sqrt_2_over_315;
+            }
+            else if (j == 2){
+                return 500 * sqrt_5_over_63 - 1448 * sqrt_3_over_105 + 1464 * sqrt_2_over_315;
+            }
+            else if (j == 3){
+                return - 870 * sqrt_5_over_63 + 2172 * sqrt_3_over_105 - 976 * sqrt_2_over_315;
+            }
+            else if (j == 4){
+                return 660 * sqrt_5_over_63 - 1448 * sqrt_3_over_105 + 244 * sqrt_2_over_315;
+            }
+            else {
+                return - 164 * sqrt_5_over_63 + 362 * sqrt_3_over_105;
+            }
+        }
         else {
-            return result;
+            long double sqrt_2_over_315 = std::sqrt(static_cast<long double>(2)) / 315;
+            long double sqrt_3_over_105 = std::sqrt(static_cast<long double>(3)) / 105;
+            long double sqrt_6_over_105 = std::sqrt(static_cast<long double>(6)) / 105;
+            long double OneOver315 = 1.0 / 315;
+
+            if (j == 0){
+                return 244 * sqrt_2_over_315;
+            }
+            else if (j == 1){
+                return 362 * sqrt_3_over_105 - 976 * sqrt_2_over_315;
+            }
+            else if (j == 2){
+                return 5584 * OneOver315 - 1448 * sqrt_3_over_105 + 1464 * sqrt_2_over_315;
+            }
+            else if (j == 3){
+                return 1720 * sqrt_6_over_105 - 22336 * OneOver315 + 2172 * sqrt_3_over_105 - 976 * sqrt_2_over_315;
+            }
+            else if (j == 4){
+                return - 3564 * sqrt_6_over_105 + 33504 * OneOver315 - 1448 * sqrt_3_over_105 + 244 * sqrt_2_over_315;
+            }
+            else if (j == 5){
+                return 2808 * sqrt_6_over_105 - 22336 * OneOver315 + 362 * sqrt_3_over_105;
+            }
+            else {
+                return - 754 * sqrt_6_over_105 + 5584 * OneOver315;
+            }
         }
     }
     return 0.0;
-}
-//***************************************************************************************************************************************************
-//***************************************************************************************************************************************************
-template < class TBaseElement >\
-void SphericSwimmingParticle<TBaseElement>::CalculateFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, vector<double>& historic_integrands)
-{
-    fractional_derivative = ZeroVector(3);
-    const int N = historic_integrands.size() - 3;
-    const int n = (int)N / 3;
-    array_1d<double, 3> integrand;
-
-    for (int j = 0; j < n + 1; j++){
-        double coefficient     = GetDaitcheCoefficient(mQuadratureOrder, n + 1, j + 1);
-        double old_coefficient = GetDaitcheCoefficient(mQuadratureOrder, n    , j);
-        for (int i_comp = 0; i_comp < 3; i_comp++){
-            unsigned int integrand_position = N - 3 * j + i_comp;
-            integrand[i_comp] = historic_integrands[integrand_position];
-        }
-        fractional_derivative += (coefficient - old_coefficient) * integrand;
-    }
-    const array_1d<double, 3>& fluid_vel = node.FastGetSolutionStepValue(SLIP_VELOCITY);
-//    for (int i_comp = 0; i_comp < 3; i_comp++){
-//        integrand[i_comp] = historic_integrands[N + 6 + i_comp];
-//    }
-    present_coefficient = GetDaitcheCoefficient(mQuadratureOrder, n + 1, 0);
-    fractional_derivative += present_coefficient * (fluid_vel - node.FastGetSolutionStepValue(VELOCITY));
-}
-//***************************************************************************************************************************************************
-//***************************************************************************************************************************************************
-template < class TBaseElement >\
-void SphericSwimmingParticle<TBaseElement>::CalculateFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, vector<double>& historic_integrands, const double last_h_over_h, const int n_steps_per_quad_step)
-{
-    fractional_derivative = ZeroVector(3);
-    const int N = historic_integrands.size() - 3;
-    const int n = (int)N / 3;
-    array_1d<double, 3> integrand;
-
-    for (int j = 0; j < n + 1; j++){
-        double coefficient     = GetDaitcheCoefficient(mQuadratureOrder, n + 1, j + 1, last_h_over_h, n_steps_per_quad_step);
-        double old_coefficient = GetDaitcheCoefficient(mQuadratureOrder, n,     j,     last_h_over_h, n_steps_per_quad_step);
-        for (int i_comp = 0; i_comp < 3; i_comp++){
-            unsigned int integrand_position = N - 3 * j + i_comp;
-            integrand[i_comp] = historic_integrands[integrand_position];
-        }
-        fractional_derivative += (coefficient - old_coefficient) * integrand;
-    }
-    const array_1d<double, 3>& fluid_vel = node.FastGetSolutionStepValue(SLIP_VELOCITY);
-//    for (int i_comp = 0; i_comp < 3; i_comp++){
-//        integrand[i_comp] = historic_integrands[N + 6 + i_comp];
-//    }
-    present_coefficient = GetDaitcheCoefficient(mQuadratureOrder, n + 1, 0, last_h_over_h, n_steps_per_quad_step);
-    fractional_derivative += present_coefficient * (fluid_vel - integrand);
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -642,31 +493,22 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(NodeType& node, d
         if (r_current_process_info[TIME_STEPS] >= r_current_process_info[NUMBER_OF_INIT_BASSET_STEPS]){
             vector<double>& historic_integrands = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
             const double latest_quadrature_time_step = r_current_process_info[TIME] + delta_time - r_current_process_info[LAST_TIME_APPENDING];
-            KRATOS_WATCH(latest_quadrature_time_step)
             array_1d<double, 3> fractional_derivative_of_slip_vel;
             double present_coefficient;
             const double sqrt_of_quad_h_q = std::sqrt(quadrature_delta_time);
             const double last_h_over_h = latest_quadrature_time_step / quadrature_delta_time;
-            KRATOS_WATCH(last_h_over_h)
-            if (n_steps_per_quad_step == 1 && mBassetForceType < 3 && false){ // quadrature time step coincides with the general time step of the scheme
-                CalculateFractionalDerivative(node, fractional_derivative_of_slip_vel, present_coefficient, historic_integrands);
-            }
-            else {
-                CalculateExplicitFractionalDerivative(node, fractional_derivative_of_slip_vel, present_coefficient, historic_integrands, last_h_over_h, n_steps_per_quad_step);
+            CalculateExplicitFractionalDerivative(node, fractional_derivative_of_slip_vel, present_coefficient, historic_integrands, last_h_over_h, n_steps_per_quad_step);
 
-                if (mBassetForceType == 3){
-                    AddHinsbergTailContribution(node, fractional_derivative_of_slip_vel, quadrature_delta_time, historic_integrands);
-                }
-
-                array_1d<double, 3> basset_term    = fractional_derivative_of_slip_vel;
-                const array_1d<double, 3>& vel     = node.FastGetSolutionStepValue(VELOCITY);
-                const array_1d<double, 3>& old_vel = node.FastGetSolutionStepValue(VELOCITY_OLD);
-                fractional_derivative_of_slip_vel -= mOldBassetTerm + mOldDaitchePresentCoefficient * (old_vel - vel); // the second term corresponds to the part that was treated implicitly in the last step minus a part that was added but did not correspond to the basset term
-                KRATOS_WATCH(mOldDaitchePresentCoefficient)
-                KRATOS_WATCH(present_coefficient)
-                mOldBassetTerm = basset_term;
-                mOldDaitchePresentCoefficient = present_coefficient;
+            if (mBassetForceType == 3){
+                AddHinsbergTailContribution(node, fractional_derivative_of_slip_vel, quadrature_delta_time, historic_integrands);
             }
+
+            array_1d<double, 3> basset_term    = fractional_derivative_of_slip_vel;
+            const array_1d<double, 3>& vel     = node.FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double, 3>& old_vel = node.FastGetSolutionStepValue(VELOCITY_OLD);
+            fractional_derivative_of_slip_vel -= mOldBassetTerm + mOldDaitchePresentCoefficient * (old_vel - vel); // the second term corresponds to the part that was treated implicitly in the last step minus a part that was added but did not correspond to the basset term
+            mOldBassetTerm = basset_term;
+            mOldDaitchePresentCoefficient = present_coefficient;
 
             added_mass_coefficient += basset_force_coeff * sqrt_of_quad_h_q * present_coefficient;
             noalias(basset_force) = basset_force_coeff * sqrt_of_quad_h_q / delta_time * fractional_derivative_of_slip_vel;
