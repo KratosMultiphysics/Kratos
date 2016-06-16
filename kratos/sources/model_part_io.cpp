@@ -811,6 +811,8 @@ namespace Kratos
 
     void ModelPartIO::ReadNodesBlock(NodesContainerType& rThisNodes)
     {
+	KRATOS_TRY
+
         SizeType temp_id;
         double x,y,z;
         std::string word;
