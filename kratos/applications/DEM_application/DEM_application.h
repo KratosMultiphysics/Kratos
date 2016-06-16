@@ -15,8 +15,6 @@
 // External includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-#include "includes/kratos_flags.h"
-#include "containers/flags.h"
 #include "includes/variables.h"
 #include "custom_elements/cylinder_particle.h"
 #include "custom_elements/cylinder_continuum_particle.h"
@@ -38,11 +36,6 @@
 #include "custom_conditions/SolidFace.h"
 #include "custom_conditions/RigidFace.h"
 #include "custom_conditions/RigidEdge.h"
-#include "custom_constitutive/DEM_Dempack_CL.h"
-#include "custom_constitutive/DEM_Dempack_2D_CL.h"
-#include "custom_constitutive/DEM_Dempack_torque_CL.h"
-#include "custom_constitutive/dem_kdem_2d_cl.h"
-#include "custom_constitutive/dem_kdem_fabric_2d_cl.h"
 
 namespace Kratos
 {
