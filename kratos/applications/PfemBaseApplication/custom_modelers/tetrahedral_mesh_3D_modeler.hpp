@@ -344,6 +344,7 @@ private:
     //*******************************************************************************************
     //*******************************************************************************************
 
+    void CheckInOutPoints    ( tetgenio& in, tetgenio& out );
     void WriteTetrahedra     ( tetgenio& tr );
     void WritePoints         ( tetgenio& tr );
  

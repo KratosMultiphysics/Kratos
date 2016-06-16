@@ -473,10 +473,10 @@ namespace Kratos
 	int Id= iii->Id() - 1;
 	//std::cout<<" Id ELNEIG "<<Id<<std::endl;
 
-	(iii->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
-	WeakPointerVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
 
 	int number_of_faces = iii->GetGeometry().FacesNumber(); //defined for triangles and tetrahedra
+	(iii->GetValue(NEIGHBOUR_ELEMENTS)).resize(number_of_faces);
+	WeakPointerVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
 
 	for(int i = 0; i<number_of_faces; i++)
 	  {
