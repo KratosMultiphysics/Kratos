@@ -20,15 +20,16 @@ if "OMPI_COMM_WORLD_SIZE" in os.environ:
     from KratosMultiphysics.MetisApplication import *
     from KratosMultiphysics.MPISearchApplication import *
     from KratosMultiphysics.mpi import *
-
     # DEM Application MPI
     import DEM_procedures_mpi as DEM_procedures
     import DEM_material_test_script_mpi as DEM_material_test_script
     print("Running under MPI...........")
+    model_part_reader = ReorderConsecutiveModelPartIO
 else:
     # DEM Application
     import DEM_procedures
     import DEM_material_test_script
+    model_part_reader = ModelPartIO
     print("Running under OpenMP........")
 
 # TODO: Ugly fix. Change it. I don't like this to be in the main...
@@ -63,7 +64,7 @@ materialTest  = DEM_procedures.MaterialTest()
 KRATOSprint   = procedures.KRATOSprint
 
 # Preprocess the model
-procedures.PreProcessModel(DEM_parameters)
+#procedures.PreProcessModel(DEM_parameters)
 
 # Prepare modelparts
 spheres_model_part    = ModelPart("SpheresPart")
@@ -114,7 +115,7 @@ procedures.AddMpiVariables(rigid_face_model_part)
 
 # Reading the model_part
 spheres_mp_filename   = DEM_parameters.problem_name + "DEM"
-model_part_io_spheres = ModelPartIO(spheres_mp_filename)
+model_part_io_spheres = model_part_reader(spheres_mp_filename)
 
 # Perform the initial partition
 [model_part_io_spheres, spheres_model_part, MPICommSetup] = parallelutils.PerformInitialPartition(spheres_model_part, model_part_io_spheres, spheres_mp_filename)
@@ -122,15 +123,15 @@ model_part_io_spheres = ModelPartIO(spheres_mp_filename)
 model_part_io_spheres.ReadModelPart(spheres_model_part)
 
 rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
-model_part_io_fem = ModelPartIO(rigidFace_mp_filename)
+model_part_io_fem = model_part_reader(rigidFace_mp_filename)
 model_part_io_fem.ReadModelPart(rigid_face_model_part)
 
 clusters_mp_filename = DEM_parameters.problem_name + "DEM_Clusters"
-model_part_io_clusters = ModelPartIO(clusters_mp_filename)
+model_part_io_clusters = model_part_reader(clusters_mp_filename)
 model_part_io_clusters.ReadModelPart(cluster_model_part)
 
 DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"  
-model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
+model_part_io_demInlet = model_part_reader(DEM_Inlet_filename)
 model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
 
 # Setting up the buffer size
