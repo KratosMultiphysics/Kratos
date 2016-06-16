@@ -386,7 +386,7 @@ public:
                         IteratorType itrObject = const_cast<typename ElementsContainerType::ContainerType& >(ThisObjects.GetContainer()).begin() + j;
 
                         SendObjectToProcess[i].push_back(*itrObject);
-                        SendRadiusToProcess[i][k] = Radius[j];
+                        SendRadiusToProcess[i][k] = TConfigure::GetObjectRadius(*itrObject, Radius[j]);
 
                         k++;
                     }
