@@ -124,7 +124,8 @@ proc write::writeTables { } {
 
 proc write::writeMaterials { } {
     variable mat_dict
-    
+    W "Hey"
+    W $mat_dict
     set exclusionList [list "MID" "ConstitutiveLaw" "Material"]
     # We print all the material data directly from the saved dictionary
     foreach material [dict keys $mat_dict] {
@@ -185,17 +186,17 @@ proc write::processMaterials {  } {
             set us [join [list $s1 $s2]]
             
             foreach valueNode $us {
-            set name [$valueNode getAttribute n]
-            set state [get_domnode_attribute $valueNode state]
-            if {$state eq "normal" && $name ne "Element"} {
-                # All the introduced values are translated to 'm' and 'kg' with the help of this function
-                set value [gid_groups_conds::convert_value_to_default $valueNode]
-                
-                if {[string is double $value]} {
-                    set value [format "%13.5E" $value]
+                set name [$valueNode getAttribute n]
+                set state [get_domnode_attribute $valueNode state]
+                if {$state eq "normal" && $name ne "Element"} {
+                    # All the introduced values are translated to 'm' and 'kg' with the help of this function
+                    set value [gid_groups_conds::convert_value_to_default $valueNode]
+                    
+                    if {[string is double $value]} {
+                        set value [format "%13.5E" $value]
+                    }
+                    dict set mat_dict $group $name $value
                 }
-                dict set mat_dict $group $name $value
-            }
             }
         } 
     }
@@ -316,7 +317,7 @@ proc write::getMeshId {cid group} {
 proc write::writeGroupMesh { cid group {what "Elements"} {iniend ""} } {
     variable meshes
     variable groups_type_name
-    
+    W "$cid $group $what"
     set gtn $groups_type_name
     if {![dict exists $meshes [list $cid ${group}]]} {
 	set mid [expr [llength [dict keys $meshes]] +1]
@@ -828,6 +829,22 @@ proc write::GetResultsList { un } {
     return $result
 }
 
+proc write::getAllMaterialParametersDict {matname} {
+    variable matun
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    
+    set md [dict create]
+    
+    set xp3 [spdAux::getRoute $matun]
+    append xp3 [format_xpath {/blockdata[@n="material" and @name=%s]/value} $matname]
+
+    set props [$root selectNodes $xp3]
+    foreach prop $props {
+        dict set md [$prop @n] [get_domnode_attribute $prop v]
+    }
+    return $md
+}
 
 # Auxiliar
 proc write::Duration { int_time } {

@@ -49,7 +49,7 @@
 	     <parameter_list>
 		  </parameter_list>
   		  <element_filters>
-			 <filter field="ImplementedInApplication" value="PfemFluidDynamicsApplication"/>
+			 <filter field="ImplementedInApplication" value="PfemFluidDynamicsApplication,PfemSolidMechanicsApplication"/>
 		  </element_filters>
 	  </scheme>
 	</schemes>

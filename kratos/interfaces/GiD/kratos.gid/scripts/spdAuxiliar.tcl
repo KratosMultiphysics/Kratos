@@ -1081,10 +1081,12 @@ proc spdAux::ProcGetElements { domNode args } {
     #W "************************************************************************"
     set names [list ]
     set pnames [list ]
-    foreach cl $elems {
-        lappend names [$cl getName]
-        lappend pnames [$cl getName] 
-        lappend pnames [$cl getPublicName]
+    foreach elem $elems {
+        if {[$elem cumple {*}$args]} {
+            lappend names [$elem getName]
+            lappend pnames [$elem getName] 
+            lappend pnames [$elem getPublicName]
+        }
     }
     set diction [join $pnames ","]
     set values [join $names ","]

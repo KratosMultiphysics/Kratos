@@ -66,8 +66,14 @@ proc Pfem::write::GetNodalDataDict { } {
                 if {$state ne "hidden"} {
                     set paramName [$att @n]
                     set paramValue [get_domnode_attribute $att v]
-                    if {[write::isBoolean $paramValue]} {set paramValue [expr $paramValue]}
-                    dict set params $paramName $paramValue
+                    if {$paramName eq "Material"} {
+                        set matdict [::write::getAllMaterialParametersDict $paramValue]
+                        dict set matdict Name $paramValue
+                        dict set params $paramName $matdict
+                    } {
+                        if {[write::isBoolean $paramValue]} {set paramValue [expr $paramValue]}
+                        dict set params $paramName $paramValue
+                    }
                 }
             }
             dict set params "model_part_name" [::write::getMeshId $partid $groupid]
@@ -88,18 +94,27 @@ proc Pfem::write::writeModelPartEvent { } {
     write::WriteString "End ModelPartData"
     write::WriteString "Begin Properties 0"
     write::WriteString "End Properties"
-    
-    
+       
     write::writeNodalCoordinates
     
-     # Solo Solidos
-    write::writeNodalConditions "PFEM_Rigid2DParts"
-    write::writeNodalConditions "PFEM_Rigid3DParts"
+    # Element connectivities
+    set parts [list "PFEM_Rigid2DParts" "PFEM_Rigid3DParts" "PFEM_Deformable2DParts" "PFEM_Deformable3DParts" "PFEM_Fluid2DParts" "PFEM_Fluid3DParts"]
     
-    # Solo Fluidos
-    write::writeNodalConditions "PFEM_Fluid2DParts"
-    write::writeNodalConditions "PFEM_Fluid3DParts"
-    
+    foreach part $parts {
+        write::initWriteData $part "PFEM_Materials"
+        write::writeElementConnectivities
+        
+        write::writePartMeshes
+    }
+    #
+    # # Solo Solidos
+    #write::writeNodalConditions "PFEM_Rigid2DParts"
+    #write::writeNodalConditions "PFEM_Rigid3DParts"
+    #
+    ## Solo Fluidos
+    #write::writeNodalConditions "PFEM_Fluid2DParts"
+    #write::writeNodalConditions "PFEM_Fluid3DParts"
+    #
     writeMeshingDomains
 }
 
@@ -127,9 +142,10 @@ proc Pfem::write::writeMeshingDomains { } {
         GiD_Groups create $gname
         foreach group $meshing_domains($domain) {
             GiD_EntitiesGroups assign $gname nodes [GiD_EntitiesGroups get $group nodes]
+            GiD_EntitiesGroups assign $gname elements [GiD_EntitiesGroups get $group elements]
         }
         set domname [string map {" " "_"} "$domain"]
-        write::writeGroupMesh "$domname" $gname nodes
+        write::writeGroupMesh "$domname" $gname
         GiD_Groups delete $gname
     }
 }
