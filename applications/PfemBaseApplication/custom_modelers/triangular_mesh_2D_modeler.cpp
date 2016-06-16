@@ -2025,11 +2025,12 @@ namespace Kratos
 	      {
 		//if((*it_found)->IsNot(STRUCTURE)){
 		bool is_inside = false;
-		is_inside = mpDataTransferUtilities->CalculatePosition( x1[0], x1[1],
-								      x2[0], x2[1],
-								      x3[0], x3[1],
-								      (*it_found)->X(), (*it_found)->Y(), N );
-
+		ModelerUtilities ModelerUtils;
+		is_inside = ModelerUtils.CalculatePosition( x1[0], x1[1],
+							    x2[0], x2[1],
+							    x3[0], x3[1],
+							    (*it_found)->X(), (*it_found)->Y(), N );
+		
 
 		if(is_inside == true)
 		  {

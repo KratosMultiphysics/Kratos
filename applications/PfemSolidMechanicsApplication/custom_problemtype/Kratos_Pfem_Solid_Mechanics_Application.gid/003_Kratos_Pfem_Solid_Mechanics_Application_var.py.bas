@@ -124,7 +124,7 @@ DomainTypes.append(Domain*ndomains)
 *set var refine = 0
 *Set cond group_DeformableBodies *groups
 *loop groups *OnlyInCond
-*if(strcmp(cond(Remesh),"True")==0)
+*if(strcmp(cond(Remesh),"True")==0 || strcmp(cond(Transfer),"True")==0 )
 *set var remesh = 1
 *else
 *set var remesh = 0
@@ -155,7 +155,7 @@ string = "*cond(Center_box)"
 BoxCenter*ndomains = [float(s) for s in string.split()]
 string = "*cond(Velocity_box)" 
 BoxVelocity*ndomains = [float(s) for s in string.split()]
-Conditions*ndomains = {"Subdomain":*cond(Group_ID), "StructuralType":"*cond(StructuralType)", "Remesh":*cond(Remesh), "Constrained":*cond(Constrained), "Refine":*cond(Refine), "MeshSmoothing":*cond(MeshSmoothing), "JacobiSmoothing":*cond(JacobiSmoothing), "MeshElement":"*cond(MeshingElement)", "CriticalMeshSize": *cond(Critical_Mesh_Size), "DissipationVariable": "*cond(Dissipation_Variable)", "CriticalDissipation": *cond(Critical_Dissipation), "ErrorVariable": "*cond(Error_Variable)", "CriticalError": *cond(Critical_Error), "TipRadiusRefine": *cond(Tip_Radius_Refine), "CriticalTipRadius": *cond(Critical_Tip_Radius), "RefineOnBoxOnly":*cond(Refine_on_box_only), "BoxCenter": BoxCenter*ndomains, "BoxVelocity": BoxVelocity*ndomains, "BoxRadius": *cond(Radius_box), "RemeshFrequency": *cond(Meshing_Frequency), "LSInterpolation": *cond(LSInterpolation) }
+Conditions*ndomains = {"Subdomain":*cond(Group_ID), "StructuralType":"*cond(StructuralType)", "Remesh":*cond(Remesh), "Transfer":*cond(Transfer), "Constrained":*cond(Constrained), "Refine":*cond(Refine), "MeshSmoothing":*cond(MeshSmoothing), "JacobiSmoothing":*cond(JacobiSmoothing), "MeshElement":"*cond(MeshingElement)", "CriticalMeshSize": *cond(Critical_Mesh_Size), "DissipationVariable": "*cond(Dissipation_Variable)", "CriticalDissipation": *cond(Critical_Dissipation), "ErrorVariable": "*cond(Error_Variable)", "CriticalError": *cond(Critical_Error), "TipRadiusRefine": *cond(Tip_Radius_Refine), "CriticalTipRadius": *cond(Critical_Tip_Radius), "RefineOnBoxOnly":*cond(Refine_on_box_only), "BoxCenter": BoxCenter*ndomains, "BoxVelocity": BoxVelocity*ndomains, "BoxRadius": *cond(Radius_box), "RemeshFrequency": *cond(Meshing_Frequency), "LSInterpolation": *cond(LSInterpolation) }
 MeshConditions.append(Conditions*ndomains)
 *end groups
 

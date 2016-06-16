@@ -82,6 +82,7 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG ( REMESH );
     KRATOS_DEFINE_LOCAL_FLAG ( REFINE );
     KRATOS_DEFINE_LOCAL_FLAG ( RECONNECT );
+    KRATOS_DEFINE_LOCAL_FLAG ( TRANSFER );
     KRATOS_DEFINE_LOCAL_FLAG ( CONSTRAINED );
     KRATOS_DEFINE_LOCAL_FLAG ( CONTACT_SEARCH );
     KRATOS_DEFINE_LOCAL_FLAG ( MESH_SMOOTHING );
@@ -699,10 +700,24 @@ public:
 					 const double xc, const double yc, const double zc,
 					 array_1d<double,3>& N)
     {
-      //double volume = ModelerUtilities::CalculateTetrahedronVolume(x0,y0,z0,x1,y1,z1,x2,y2,z2);
+      double volume = CalculateTetrahedronVolume(x0,y0,z0,x1,y1,z1,x2,y2,z2,x3,y3,z3);
 
-      //To implement 3D
+      if(volume < 1e-15)
+	{
+	  std::cout<<" ERROR LS: element with zero area found: "<<volume<<" position ("<<x0<<", "<<y0<<", "<<z0<<") ("<<x1<<", "<<y1<<", "<<z1<<") ("<<x2<<", "<<y2<<", "<<z2<<") ("<<x3<<", "<<y3<<", "<<z3<<") "<<std::endl;
+	}
 
+      N[0] = CalculateTetrahedronVolume(x1,y1,z1,x2,y2,z2,x3,y3,z3,xc,yc,zc) / volume;
+      N[1] = CalculateTetrahedronVolume(x2,y2,z2,x3,y3,z3,x0,y0,z0,xc,yc,zc) / volume;
+      N[2] = CalculateTetrahedronVolume(x3,y3,z3,x0,y0,z0,x1,y1,z1,xc,yc,zc) / volume;
+      N[3] = CalculateTetrahedronVolume(x0,y0,z0,x1,y1,z1,x2,y2,z2,xc,yc,zc) / volume;
+
+      double tol = 1e-5;
+      double upper_limit = 1.0+tol;
+      double lower_limit = -tol;
+
+      if(N[0] >= lower_limit && N[1] >= lower_limit && N[2] >= lower_limit  && N[3] >= lower_limit && N[0] <= upper_limit && N[1] <= upper_limit && N[2] <= upper_limit && N[3] <= upper_limit ) //if the xc yc zc is inside the tetrahedron
+	return true;
       return false;
     }
 
@@ -718,9 +733,7 @@ public:
 					 array_1d<double,3>& N)
     {
       double area = CalculateTriangleArea(x0,y0,x1,y1,x2,y2);
-
-      //std::cout<<" Area "<<area<<std::endl;
-	    
+      
       if(area < 1e-15)
 	{
 	  //KRATOS_THROW_ERROR( std::logic_error,"element with zero area found", "" );

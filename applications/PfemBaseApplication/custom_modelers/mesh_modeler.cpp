@@ -122,8 +122,12 @@ namespace Kratos
     if( mpMeshingVariables->Options.Is(ModelerUtilities::REFINE) )
       Refine = true;
 
+    bool Transfer = false;
+    if( mpMeshingVariables->Options.Is(ModelerUtilities::TRANSFER) )
+      Transfer = true;
+
     if( mEchoLevel > 0 )
-      std::cout<<" SetRemeshData ["<<MeshId<<"]: [ RefineFlag: "<<Refine<<" RemeshFlag : "<<Remesh<<" ] "<<std::endl;
+      std::cout<<" SetRemeshData ["<<MeshId<<"]: [ RefineFlag: "<<Refine<<" RemeshFlag : "<<Remesh<<" TransferFlag : "<<Transfer<<" ] "<<std::endl;
 
     KRATOS_CATCH(" ")
   }
@@ -266,6 +270,9 @@ namespace Kratos
     
     if(mpMeshingVariables->Options.Is(ModelerUtilities::CONSTRAINED))
       rModelPart.GetMesh(MeshId).Set( ModelerUtilities::CONSTRAINED );
+
+    if(mpMeshingVariables->Options.Is(ModelerUtilities::TRANSFER))
+      rModelPart.GetMesh(MeshId).Set( ModelerUtilities::TRANSFER );
 	  
 	
     // check mesh size introduced :: warning must be shown
@@ -319,7 +326,7 @@ namespace Kratos
 
       if(Meshes[MeshId].Is( ModelerUtilities::CONSTRAINED ))
 	{
-	  if(Meshes[MeshId].Is( ModelerUtilities::REFINE )){
+	  if(Meshes[MeshId].Is( ModelerUtilities::REFINE )){ //Remesh Constrained and Refine
 	    //Constrained Delaunay Triangulation
 	    if( GetEchoLevel() > 0 )
 	      std::cout<<" [ MESH: "<<MeshId<<" REFINE RCDT START]:"<<std::endl;
@@ -327,7 +334,7 @@ namespace Kratos
 	    if( GetEchoLevel() > 0 )
 	      std::cout<<" [ MESH: "<<MeshId<<" REFINE RCDT END]"<<std::endl;	  
 	  }
-	  else{ 	
+	  else{ 	                                     //Remesh Constrained
 	    //Generate Constrained Delaunay Triangulation
 	    if( GetEchoLevel() > 0 )
 	      std::cout<<" [ MESH: "<<MeshId<<" REMESH CDT ]:"<<std::endl;
@@ -338,7 +345,7 @@ namespace Kratos
 	}
       else
 	{
-	  if(Meshes[MeshId].Is( ModelerUtilities::REFINE )){ 
+	  if(Meshes[MeshId].Is( ModelerUtilities::REFINE )){ //Remesh Non-Constrained and Refine
 	    //Constrained Delaunay Triangulation
 	    if( GetEchoLevel() > 0 )
 	      std::cout<<" [ MESH: "<<MeshId<<" REFINE RDT START]:"<<std::endl;
@@ -346,7 +353,7 @@ namespace Kratos
 	    if( GetEchoLevel() > 0 )
 	      std::cout<<" [ MESH: "<<MeshId<<" REFINE RDT END]"<<std::endl;	  
 	  }
-	  else{
+	  else{                                              //Remesh Non-Constrained
 	    //Generate Delaunay Triangulation
 	    if( GetEchoLevel() > 0 )
 	      std::cout<<" [ MESH: "<<MeshId<<" REMESH DT START ]:"<<std::endl;
@@ -364,33 +371,41 @@ namespace Kratos
       
       //remesh_performed=true;
     }
-    else{
+    else if(mpMeshingVariables->Options.Is(ModelerUtilities::TRANSFER)){
       
-      if(mpMeshingVariables->Options.Is(ModelerUtilities::MESH_SMOOTHING)){
+      if( GetEchoLevel() > 0 )
+	std::cout<<" [ MESH: "<<MeshId<<" TRANSFER START ]:"<<std::endl;
+		
+      this->PerformTransferOnly(rModelPart,*(mpMeshingVariables),MeshId);
 	
-	if( GetEchoLevel() > 0 )
-	  std::cout<<" [ MESH: "<<MeshId<<" TRANSFER START ]:"<<std::endl;
+      //remesh_performed=true;
 	
-	//transfer only is done if the remesh option is active
-	rModelPart.GetMesh(MeshId).Set( ModelerUtilities::REMESH );  
-	//and if there is a minimum of inserted or removed nodes
-	mpMeshingVariables->Info->InsertedNodes = mpMeshingVariables->Info->NumberOfNewNodes;
-	
-	this->PerformTransferOnly(rModelPart,*(mpMeshingVariables),MeshId);
-	
-	//remesh_performed=true;
-	
-	if( GetEchoLevel() > 0 )
-	  std::cout<<" [ MESH: "<<MeshId<<" TRANSFER END ]"<<std::endl;
-      }
-      else{
-	if( GetEchoLevel() > 0 )
-	  std::cout<<" [ MESH: "<<MeshId<<" NO REMESH ]"<<std::endl;
-      }
-      
+      if( GetEchoLevel() > 0 )
+	std::cout<<" [ MESH: "<<MeshId<<" TRANSFER END ]"<<std::endl;
+
     }
-
-
+    else if(mpMeshingVariables->Options.Is(ModelerUtilities::MESH_SMOOTHING)){
+	
+      if( GetEchoLevel() > 0 )
+	std::cout<<" [ MESH: "<<MeshId<<" TRANSFER START ]:"<<std::endl;
+	
+      //transfer only is done if the remesh option is active
+      rModelPart.GetMesh(MeshId).Set( ModelerUtilities::REMESH );  
+      //and if there is a minimum of inserted or removed nodes
+      mpMeshingVariables->Info->InsertedNodes = mpMeshingVariables->Info->NumberOfNewNodes;
+	
+      this->PerformTransferOnly(rModelPart,*(mpMeshingVariables),MeshId);
+	
+      //remesh_performed=true;
+	
+      if( GetEchoLevel() > 0 )
+	std::cout<<" [ MESH: "<<MeshId<<" TRANSFER END ]"<<std::endl;
+    }
+    else{
+      if( GetEchoLevel() > 0 )
+	std::cout<<" [ MESH: "<<MeshId<<" NO REMESH ]"<<std::endl;
+    }
+      
     // VARIABLES SMOOTHING, transfer to elements
     if(mpMeshingVariables->Options.Is(ModelerUtilities::VARIABLES_SMOOTHING)){
 
