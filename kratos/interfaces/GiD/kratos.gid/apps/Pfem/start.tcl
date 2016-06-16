@@ -8,7 +8,7 @@ proc ::Pfem::Init { } {
     variable dir
     
     set dir [apps::getMyDir "Pfem"]
-    set ::Model::ValidSpatialDimensions [list 2D 3D]
+    set ::Model::ValidSpatialDimensions [list 2D 2Da 3D]
     ::spdAux::CreateDimensionWindow
 }
 

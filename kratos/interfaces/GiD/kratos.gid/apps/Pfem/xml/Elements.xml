@@ -2,39 +2,27 @@
 <ElementList>
   <!--solid elements-->
   <!--small displacements-->
-  <ElementItem n="DummyElement" pn="Dummy Element" ImplementedInFile="none.cpp"
-	       ImplementedInApplication="NoneApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	       WorkingSpaceDimension="3D" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False"
-	       ElementType="Solid" help="This element it implements a Updated Lagrangian approach to large deformation kinematics">
+  <ElementItem n="TwoStepUpdatedLagrangianVPFluidElement2D" pn="TwoStepUpdatedLagrangianVPFluidElement2D" ImplementedInFile="none.cpp"
+	       ImplementedInApplication="PfemFluidDynamicsApplication" MinimumKratosVersion="9000" ProductionReady="No"
+	       WorkingSpaceDimension="2D" LocalSpaceDimension="2" ElementType="Fluid" help="To be written by...">
 
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
-      <item GeometryType="Triangle"      nodes="3" KratosName="DummyElement2D3N"/>
-      <item GeometryType="Triangle"      nodes="6" KratosName="DummyElement2D6N"/>
-      <item GeometryType="Quadrilateral" nodes="4" KratosName="DummyElement2D4N"/>
-      <item GeometryType="Quadrilateral" nodes="8" KratosName="DummyElement2D8N"/>
-      <item GeometryType="Quadrilateral" nodes="9" KratosName="DummyElement2D9N"/>
+      <item GeometryType="Triangle"      nodes="3" KratosName="TwoStepUpdatedLagrangianVPFluidElement2D"/>
     </TopologyFeatures>
 
     <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
-      <filter field="n" value="DummyConstitutiveLaw"/>
     </ConstitutiveLaw_FilterFeatures>
 
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyConstantVectorValueProcess"  unit_magnitude="L" units="m" reaction="REACTION"/>
+     
     </NodalConditions>
 
-    <inputs>      
-      <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
+    <inputs>
     </inputs>
     <outputs>
-      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
-      <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
-      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
-      <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
-      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" />
     </outputs>
   </ElementItem>
   

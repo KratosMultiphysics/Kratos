@@ -305,10 +305,11 @@ proc write::GetListsOfNodes {elems nnodes {ignore 0} } {
 proc write::getMeshId {cid group} {
     variable meshes
     
-    if {[dict exists $meshes [list $cid ${group}]]} {
-	return [dict get $meshes [list $cid ${group}]]
+    set find [list $cid ${group}]
+    if {[dict exists $meshes $find]} {
+        return [dict get $meshes [list $cid ${group}]]
     } {
-	return 0
+        return 0
     }
 }
 
@@ -359,10 +360,15 @@ proc write::writeNodalConditions { keyword } {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     set xp1 "[spdAux::getRoute $keyword]/condition/group"
-    foreach group [$root selectNodes $xp1] {
-	set cid [[$group parent] @n]
-	set groupid [$group @n]
-	::write::writeGroupMesh $cid $groupid "nodal"
+    set groups [$root selectNodes $xp1]
+    if {$groups eq ""} {
+        set xp1 "[spdAux::getRoute $keyword]/group"
+        set groups [$root selectNodes $xp1]
+    }
+    foreach group $groups {
+        set cid [[$group parent] @n]
+        set groupid [$group @n]
+        ::write::writeGroupMesh $cid $groupid "nodal"
     }
 }
 
@@ -723,7 +729,11 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
     set bcCondsDict [list ]
     
     set xp1 "[spdAux::getRoute $un]/condition/group"
-    set groups [$root selectNodes $xp1]    
+    set groups [$root selectNodes $xp1]
+    if {$groups eq ""} {
+        set xp1 "[spdAux::getRoute $un]/group"
+        set groups [$root selectNodes $xp1]
+    }
     foreach group $groups {
 	set groupName [$group @n]
 	#W "GROUP $groupName"
@@ -853,10 +863,15 @@ proc write::getValue { name { it "" } } {
     # W "name: $name it: $it v: $v"
     return $v
  }
+ 
+ proc write::isBoolean {value} {
+    set goodList [list "Yes" "1" "yes" "ok" "YES" "Ok" "OK" "True" "TRUE" "true" "No" "0" "no" "NO" "False" "FALSE" "false"]
+    if {$value in $goodList} {return 1} {return 0}
+ }
 
 proc write::getStringBinaryValue { name { it "" } } {
     set v [getValue $name $it]
-    set goodList [list "Yes" "1" "yes" "ok" "YES" "Ok" "True" "TRUE" "true"]
+    set goodList [list "Yes" "1" "yes" "ok" "YES" "Ok" "OK" "True" "TRUE" "true"]
     if {$v in $goodList} {return "True" } {return "False"}
 }
  
