@@ -56,7 +56,7 @@ class Procedures(DEM_procedures.Procedures):
 
         mpi.world.barrier()
 
-        return [post_path,list_path,data_and_results,graphs_path,MPI_results]
+        return [post_path, data_and_results, graphs_path, MPI_results]
 
     def PreProcessModel(self, DEM_parameters):
         if (mpi.rank == 0):
@@ -153,7 +153,7 @@ class ParallelUtils(DEM_procedures.ParallelUtils):
     def CalculateModelNewIds(self, balls_model_part):
         self.mpi_utilities.CalculateModelNewIds(balls_model_part, 40000)
 
-    def PerformInitialPartition(self, model_part, model_part_io_solid, input_file_name):
+    def PerformInitialPartition(self, spheres_model_part, model_part_io_spheres, spheres_mp_filename):
         domain_size = 3
 
         print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "before performing the division")
@@ -161,22 +161,22 @@ class ParallelUtils(DEM_procedures.ParallelUtils):
         
         if mpi.rank == 0:
             print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "start partition process")
-            partitioner = MetisDivideNodalInputToPartitionsProcess(model_part_io_solid, number_of_partitions, domain_size);
-            partitioner.Execute()
+            partitioner = MetisDivideNodalInputToPartitionsProcess(model_part_io_spheres, number_of_partitions, domain_size);
+            partitioner.Execute() 
 
         print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "division performed")
         mpi.world.barrier()
 
-        MPICommSetup = SetMPICommunicatorProcess(model_part)
+        MPICommSetup = SetMPICommunicatorProcess(spheres_model_part)
         MPICommSetup.Execute()
 
         print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "Communicator Set")
-        print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "Reading: "+input_file_name+"_"+str(mpi.rank))
+        print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "Reading: "+spheres_mp_filename+"_"+str(mpi.rank))
 
-        my_input_filename = input_file_name + "_" + str(mpi.rank)
-        model_part_io_solid = ModelPartIO(my_input_filename, True)
+        my_input_filename = spheres_mp_filename + "_" + str(mpi.rank)
+        model_part_io_spheres = ModelPartIO(my_input_filename)
 
-        return [model_part_io_solid, model_part, MPICommSetup]
+        return [model_part_io_spheres, spheres_model_part, MPICommSetup]
 
     def GetSearchStrategy(self, solver, model_part):
         return MPI_DEMSearch(model_part.GetCommunicator())
