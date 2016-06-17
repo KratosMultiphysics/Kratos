@@ -144,8 +144,8 @@ class NavierStokesSolver_FractionalStep:
             self.settings["prepare_model_part_settings"].AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
             self.settings["prepare_model_part_settings"].AddValue("skin_parts",self.settings["skin_parts"])
 
-            import check_and_preparemodel_process
-            check_and_preparemodel_process.CheckAndPrepareModelProcess(self.main_model_part, self.settings["prepare_model_part_settings"]).Execute()
+            import check_and_prepare_model_process_fluid
+            check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, self.settings["prepare_model_part_settings"]).Execute()
             
             #here we read the KINEMATIC VISCOSITY and DENSITY and we apply it to the nodes
             for el in self.main_model_part.Elements:

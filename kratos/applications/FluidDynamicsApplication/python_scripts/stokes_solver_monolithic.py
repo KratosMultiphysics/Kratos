@@ -116,8 +116,8 @@ class StokesSolver:
             aux_params = kratoscore.Parameters("{}")
             aux_params.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
             aux_params.AddValue("skin_parts",self.settings["skin_parts"])
-            import check_and_preparemodel_process
-            check_and_preparemodel_process.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
+            import check_and_prepare_model_process_fluid
+            check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
             
 
             ##here we must construct correctly the constitutive law
