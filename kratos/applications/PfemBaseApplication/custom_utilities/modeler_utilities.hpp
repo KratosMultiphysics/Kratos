@@ -692,13 +692,45 @@ public:
 
     //*******************************************************************************************
     //*******************************************************************************************
+    //*******************************************************************************************
+    //*******************************************************************************************
+    static inline bool CalculatePosition(const std::vector<std::vector<double> >& rPointCoordinates,
+					 const std::vector<double>& rCenter, std::vector<double>& rShapeFunctionsN)
+    {
 
-    static inline bool CalculatePosition(const double x0, const double y0, const double z0,
-					 const double x1, const double y1, const double z1,
-					 const double x2, const double y2, const double z2,
-					 const double x3, const double y3, const double z3,
-					 const double xc, const double yc, const double zc,
-					 array_1d<double,3>& N)
+      if( rPointCoordinates.size() == 3 ){
+	
+	return CalculatePosition( rPointCoordinates[0][0], rPointCoordinates[0][1],
+				  rPointCoordinates[1][0], rPointCoordinates[1][1],
+				  rPointCoordinates[2][0], rPointCoordinates[2][1],
+				  rCenter[0], rCenter[1], rShapeFunctionsN );
+      }
+      else if( rPointCoordinates.size() == 3 ){
+	
+	return CalculatePosition( rPointCoordinates[0][0], rPointCoordinates[0][1], rPointCoordinates[0][2],
+				   rPointCoordinates[1][0], rPointCoordinates[1][1], rPointCoordinates[1][2],
+				   rPointCoordinates[2][0], rPointCoordinates[2][1], rPointCoordinates[2][2],
+				   rPointCoordinates[3][0], rPointCoordinates[3][1], rPointCoordinates[3][2],
+				   rCenter[0], rCenter[1], rCenter[2], rShapeFunctionsN );
+      }
+      else{
+	 KRATOS_THROW_ERROR( std::logic_error,"Number of points supplied out of range ERROR", "" )
+	   
+      }
+	   
+      return false;
+      
+    }
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+
+    static inline bool CalculatePosition(const double& x0, const double& y0, const double& z0,
+					 const double& x1, const double& y1, const double& z1,
+					 const double& x2, const double& y2, const double& z2,
+					 const double& x3, const double& y3, const double& z3,
+					 const double& xc, const double& yc, const double& zc,
+					 std::vector<double>& rShapeFunctionsN)
     {
       double volume = CalculateTetrahedronVolume(x0,y0,z0,x1,y1,z1,x2,y2,z2,x3,y3,z3);
 
@@ -707,16 +739,17 @@ public:
 	  std::cout<<" ERROR LS: element with zero area found: "<<volume<<" position ("<<x0<<", "<<y0<<", "<<z0<<") ("<<x1<<", "<<y1<<", "<<z1<<") ("<<x2<<", "<<y2<<", "<<z2<<") ("<<x3<<", "<<y3<<", "<<z3<<") "<<std::endl;
 	}
 
-      N[0] = CalculateTetrahedronVolume(x1,y1,z1,x2,y2,z2,x3,y3,z3,xc,yc,zc) / volume;
-      N[1] = CalculateTetrahedronVolume(x2,y2,z2,x3,y3,z3,x0,y0,z0,xc,yc,zc) / volume;
-      N[2] = CalculateTetrahedronVolume(x3,y3,z3,x0,y0,z0,x1,y1,z1,xc,yc,zc) / volume;
-      N[3] = CalculateTetrahedronVolume(x0,y0,z0,x1,y1,z1,x2,y2,z2,xc,yc,zc) / volume;
+      rShapeFunctionsN[0] = CalculateTetrahedronVolume(x1,y1,z1,x2,y2,z2,x3,y3,z3,xc,yc,zc) / volume;
+      rShapeFunctionsN[1] = CalculateTetrahedronVolume(x2,y2,z2,x3,y3,z3,x0,y0,z0,xc,yc,zc) / volume;
+      rShapeFunctionsN[2] = CalculateTetrahedronVolume(x3,y3,z3,x0,y0,z0,x1,y1,z1,xc,yc,zc) / volume;
+      rShapeFunctionsN[3] = CalculateTetrahedronVolume(x0,y0,z0,x1,y1,z1,x2,y2,z2,xc,yc,zc) / volume;
 
       double tol = 1e-5;
       double upper_limit = 1.0+tol;
       double lower_limit = -tol;
 
-      if(N[0] >= lower_limit && N[1] >= lower_limit && N[2] >= lower_limit  && N[3] >= lower_limit && N[0] <= upper_limit && N[1] <= upper_limit && N[2] <= upper_limit && N[3] <= upper_limit ) //if the xc yc zc is inside the tetrahedron
+      if(rShapeFunctionsN[0] >= lower_limit && rShapeFunctionsN[1] >= lower_limit && rShapeFunctionsN[2] >= lower_limit && rShapeFunctionsN[3] >= lower_limit && 
+	 rShapeFunctionsN[0] <= upper_limit && rShapeFunctionsN[1] <= upper_limit && rShapeFunctionsN[2] <= upper_limit && rShapeFunctionsN[3] <= upper_limit ) //if the xc yc zc is inside the tetrahedron
 	return true;
       return false;
     }
@@ -726,11 +759,11 @@ public:
     //*******************************************************************************************
 
 
-    static inline bool CalculatePosition(const double x0, const double y0,
-					 const double x1, const double y1,
-					 const double x2, const double y2,
-					 const double xc, const double yc,
-					 array_1d<double,3>& N)
+    static inline bool CalculatePosition(const double& x0, const double& y0,
+					 const double& x1, const double& y1,
+					 const double& x2, const double& y2,
+					 const double& xc, const double& yc,
+					 std::vector<double>& rShapeFunctionsN)
     {
       double area = CalculateTriangleArea(x0,y0,x1,y1,x2,y2);
       
@@ -740,15 +773,15 @@ public:
 	  std::cout<<" ERROR LS: element with zero area found: "<<area<<" position ("<<x0<<", "<<y0<<") ("<<x1<<", "<<y1<<") ("<<x2<<", "<<y2<<") "<<std::endl;
 	}
 
-      N[0] = CalculateTriangleArea(x1,y1,x2,y2,xc,yc) / area;
-      N[1] = CalculateTriangleArea(x2,y2,x0,y0,xc,yc) / area;
-      N[2] = CalculateTriangleArea(x0,y0,x1,y1,xc,yc) / area;
+      rShapeFunctionsN[0] = CalculateTriangleArea(x1,y1,x2,y2,xc,yc) / area;
+      rShapeFunctionsN[1] = CalculateTriangleArea(x2,y2,x0,y0,xc,yc) / area;
+      rShapeFunctionsN[2] = CalculateTriangleArea(x0,y0,x1,y1,xc,yc) / area;
 
       double tol = 1e-5;
       double upper_limit = 1.0+tol;
       double lower_limit = -tol;
 
-      if(N[0] >= lower_limit && N[1] >= lower_limit && N[2] >= lower_limit && N[0] <= upper_limit && N[1] <= upper_limit && N[2] <= upper_limit) //if the xc yc is inside the triangle
+      if(rShapeFunctionsN[0] >= lower_limit && rShapeFunctionsN[1] >= lower_limit && rShapeFunctionsN[2] >= lower_limit && rShapeFunctionsN[0] <= upper_limit && rShapeFunctionsN[1] <= upper_limit && rShapeFunctionsN[2] <= upper_limit) //if the xc yc is inside the triangle
 	return true;
 
       return false;

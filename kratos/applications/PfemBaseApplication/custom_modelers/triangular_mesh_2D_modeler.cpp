@@ -1210,10 +1210,10 @@ namespace Kratos
 	    //1) Store Preserved elements in an array of vertices (Geometry<Node<3> > vertices;)
 
 	    mpDataTransferUtilities->CalculateCenterAndSearchRadius( vertices[0].X(), vertices[0].Y(),
-								   vertices[1].X(), vertices[1].Y(),
-								   vertices[2].X(), vertices[2].Y(),
-								   xc, yc, radius );
-
+								     vertices[1].X(), vertices[1].Y(),
+								     vertices[2].X(), vertices[2].Y(),
+								     xc, yc, radius );
+	    
 	    //std::cout<<" XC ["<<id<<"]: ("<<xc<<" "<<yc<<") "<<std::endl;
 	    //std::cout<<" vertices "<<vertices[0].X()<<" "<<vertices[2].X()<<std::endl;
 	    //*******************************************************************
@@ -1574,6 +1574,272 @@ namespace Kratos
 
   }
 
+
+  //Select elements after the Delaunay Tesselation
+  void TriangularMesh2DModeler::SelectMeshElements(ModelPart::NodesContainerType& rNodes,
+						   MeshingParametersType& rMeshingVariables,
+						   const int* pElementList,
+						   const int& rNumberOfElements)
+  {
+    KRATOS_TRY
+
+    if( this->GetEchoLevel() > 0 )
+      std::cout<<" [ SELECT MESH ELEMENTS: ("<<(rNumberOfElements)<<") "<<std::endl;
+
+    rMeshingVariables.PreservedElements.clear();
+    rMeshingVariables.PreservedElements.resize(rNumberOfElements);
+    std::fill( rMeshingVariables.PreservedElements.begin(), rMeshingVariables.PreservedElements.end(), 0 );
+	
+    rMeshingVariables.Info->NumberOfElements=0;
+    
+    bool box_side_element = false;
+    bool wrong_added_node = false;
+    if(rMeshingVariables.ExecutionOptions.IsNot(ModelerUtilities::SELECT_ELEMENTS))
+      {
+
+	for(int el=0; el<rNumberOfElements; el++)
+	  {
+	    rMeshingVariables.PreservedElements[el]=1;
+	    rMeshingVariables.Info->NumberOfElements+=1;
+	  }
+      }
+    else
+      {
+	if( this->GetEchoLevel() > 0 )
+	  std::cout<<"   Start Element Selection "<<rNumberOfElements<<std::endl;
+
+	int el;
+	int number=0;
+	//#pragma omp parallel for reduction(+:number) private(el)
+	for(el=0; el<rNumberOfElements; el++)
+	  {
+	    Geometry<Node<3> > vertices;
+	    //double Alpha   = 0;
+	    //double nodal_h = 0;
+	    //double param   = 0.3333333;
+
+	    // int  numflying=0;
+	    // int  numlayer =0;
+	    //int  numfixed =0;
+
+	    int  numfreesurf =0;
+	    int  numboundary =0;
+
+	    // std::cout<<" num nodes "<<rNodes.size()<<std::endl;
+	    // std::cout<<" selected vertices [ "<<pElementList[el*3]<<", "<<pElementList[el*3+1]<<", "<<pElementList[el*3+2]<<"] "<<std::endl;
+	    box_side_element = false;
+	    for(int pn=0; pn<3; pn++)
+	      {
+		//set vertices
+		if(rMeshingVariables.NodalPreIds[pElementList[el*3+pn]]<0){
+		  if(rMeshingVariables.ExecutionOptions.IsNot(ModelerUtilities::CONTACT_SEARCH))
+		    std::cout<<" ERROR: something is wrong: nodal id < 0 "<<std::endl;
+		  box_side_element = true;
+		  break;
+		}
+		
+
+		if( (unsigned int)pElementList[el*3+pn] > rMeshingVariables.NodalPreIds.size() ){
+		  wrong_added_node = true;
+		  std::cout<<" ERROR: something is wrong: node out of bounds "<<std::endl;
+		  break;
+		}
+		
+		//vertices.push_back( *((rNodes).find( pElementList[el*3+pn] ).base() ) );
+		vertices.push_back(rNodes(pElementList[el*3+pn]));
+
+		//check flags on nodes
+		if(vertices.back().Is(FREE_SURFACE))
+		  numfreesurf++;
+
+		if(vertices.back().Is(BOUNDARY))
+		  numboundary++;
+
+		// if(VertexPa[pn].match(_wall_))
+		// 	numfixed++;
+
+		// if(VertexPa[pn].match(_flying_))
+		// 	numflying++;
+
+		// if(VertexPa[pn].match(_layer_))
+		// 	numlayer++;
+
+		//nodal_h+=vertices.back().FastGetSolutionStepValue(NODAL_H);
+
+	      }
+
+	    
+
+	    if(box_side_element || wrong_added_node){
+	      //std::cout<<" Box_Side_Element "<<std::endl;
+	      continue;
+	    }
+
+	    //1.- to not consider wall elements
+	    // if(numfixed==3)
+	    //   Alpha=0;
+
+	    //2.- alpha shape:
+	    //Alpha  = nodal_h * param;
+	    //Alpha *= rMeshingVariables.AlphaParameter; //1.4; 1.35;
+
+	    //2.1.- correction to avoid big elements on boundaries
+	    // if(numflying>0){
+	    //   Alpha*=0.8;
+	    // }
+	    // else{
+	    //   if(numfixed+numsurf<=2){
+	    //     //2.2.- correction to avoid voids in the fixed boundaries
+	    //     if(numfixed>0)
+	    // 	Alpha*=1.4;
+
+	    //     //2.3.- correction to avoid voids on the free surface
+	    //     if(numsurf>0)
+	    // 	Alpha*=1.3;
+
+	    //     //2.4.- correction to avoid voids in the next layer after fixed boundaries
+	    //     if(numlayer>0 && !numsurf)
+	    // 	Alpha*=1.2;
+	    //   }
+
+	    // }
+
+	    //std::cout<<" ******** ELEMENT "<<el+1<<" ********** "<<std::endl;
+
+	    double Alpha =  rMeshingVariables.AlphaParameter;
+	    if(numboundary>=2)
+	      Alpha*=1.8;
+	
+	    // std::cout<<" vertices for the contact element "<<std::endl;
+	    // std::cout<<" (1): ["<<rMeshingVariables.NodalPreIds[vertices[0].Id()]<<"] "<<vertices[0]<<std::endl;
+	    // std::cout<<" (2): ["<<rMeshingVariables.NodalPreIds[vertices[1].Id()]<<"] "<<vertices[1]<<std::endl;
+	    // std::cout<<" (3): ["<<rMeshingVariables.NodalPreIds[vertices[2].Id()]<<"] "<<vertices[2]<<std::endl;
+
+	    // std::cout<<" vertices for the subdomain element "<<std::endl;
+	    // std::cout<<" (1): ["<<vertices[0].Id()<<"] "<<vertices[0]<<std::endl;
+	    // std::cout<<" (2): ["<<vertices[1].Id()<<"] "<<vertices[1]<<std::endl;
+	    // std::cout<<" (3): ["<<vertices[2].Id()<<"] "<<vertices[2]<<std::endl;
+
+	    // std::cout<<" Element "<<el<<" with alpha "<<rMeshingVariables.AlphaParameter<<"("<<Alpha<<")"<<std::endl;
+
+	    bool accepted=false;
+	    
+	    ModelerUtilities ModelerUtils;
+	    if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::PASS_ALPHA_SHAPE)){
+
+	      if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONTACT_SEARCH))
+		{
+		  accepted=ModelerUtils.ShrankAlphaShape(Alpha,vertices,rMeshingVariables.OffsetFactor,2);
+		}
+	      else
+		{
+		  accepted=ModelerUtils.AlphaShape(Alpha,vertices,2);
+		}
+
+	    }
+	    else{
+
+	      accepted = true;
+
+	    }
+	      	   
+	    //3.- to control all nodes from the same subdomain (problem, domain is not already set for new inserted particles on mesher)
+	    // if(accepted)
+	    // {
+	    //   std::cout<<" Element passed Alpha Shape "<<std::endl;
+	    //     if(rMeshingVariables.Refine->Options.IsNot(ModelerUtilities::CONTACT_SEARCH))
+	    //   	accepted=ModelerUtilities::CheckSubdomain(vertices);
+	    // }
+
+	    //3.1.-
+	    bool self_contact = false;
+	    if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONTACT_SEARCH))
+	      self_contact = ModelerUtils.CheckSubdomain(vertices);
+	    	    
+	    //4.- to control that the element is inside of the domain boundaries
+	    if(accepted)
+	      {
+		if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONTACT_SEARCH))
+		  {
+		    accepted=ModelerUtils.CheckOuterCentre(vertices,rMeshingVariables.OffsetFactor, self_contact);
+		  }
+		else
+		  {
+		    accepted=ModelerUtils.CheckInnerCentre(vertices);
+		  }
+	      }
+	    // else{
+	      
+	    //   std::cout<<" Element DID NOT pass Alpha Shape ("<<Alpha<<") "<<std::endl;
+	    // }
+	      
+
+	    if(accepted)
+	      {
+		//std::cout<<" Element ACCEPTED after cheking Center "<<number<<std::endl;
+		rMeshingVariables.PreservedElements[el] = 1;
+		number+=1;
+	      }
+	    // else{
+	      
+	    //   std::cout<<" Element DID NOT pass INNER/OUTER check "<<std::endl;
+	    // }
+
+
+	  }
+
+	rMeshingVariables.Info->NumberOfElements=number;
+
+      }
+
+    //std::cout<<"   Number of Preserved Elements "<<rMeshingVariables.Info->NumberOfElements<<std::endl;
+
+    if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::ENGAGED_NODES)){
+
+      //check engaged nodes
+      for(int el=0; el<rNumberOfElements; el++)
+	{
+	  if( rMeshingVariables.PreservedElements[el]){
+	    for(int pn=0; pn<3; pn++)
+	      {
+		//set vertices
+		rNodes[pElementList[el*3+pn]].Set(ModelerUtilities::ENGAGED_NODES);
+	      }
+	  }
+	    
+	}
+
+      int count_release = 0;
+      for(ModelPart::NodesContainerType::iterator i_node = rNodes.begin() ; i_node != rNodes.end() ; i_node++)
+	{
+	  if( i_node->IsNot(ModelerUtilities::ENGAGED_NODES)  ){
+	    if(!(i_node->Is(FREE_SURFACE) || i_node->Is(RIGID))){
+	      i_node->Set(TO_ERASE);
+	      if( this->GetEchoLevel() > 0 )
+		std::cout<<" NODE "<<i_node->Id()<<" RELEASE "<<std::endl;
+	      if( i_node->IsNot(ModelerUtilities::ENGAGED_NODES) )
+		std::cout<<" ERROR: node "<<i_node->Id()<<" IS BOUNDARY RELEASE "<<std::endl;
+	      count_release++;
+	    }
+	  }
+	      
+	  i_node->Reset(ModelerUtilities::ENGAGED_NODES);
+	}
+	  
+      if( this->GetEchoLevel() > 0 )
+	std::cout<<"   NUMBER OF RELEASED NODES "<<count_release<<std::endl;
+
+    }
+
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<"   Generated_Elements :"<<rNumberOfElements<<std::endl;
+      std::cout<<"   Passed_AlphaShape  :"<<rMeshingVariables.Info->NumberOfElements<<std::endl;
+      std::cout<<"   SELECT MESH ELEMENTS ]; "<<std::endl;
+    }
+
+    KRATOS_CATCH( "" )
+
+  }
 
   //*******************************************************************************************
   //METHODS CALLED BEFORE REFINING THE TESSELLATION
@@ -1961,7 +2227,7 @@ namespace Kratos
     //     }
     // }
 
-    array_1d<double,3> N;
+    std::vector<double> N(3);
     array_1d<double,3> x1,x2,x3,xc;
 
     int point_base;

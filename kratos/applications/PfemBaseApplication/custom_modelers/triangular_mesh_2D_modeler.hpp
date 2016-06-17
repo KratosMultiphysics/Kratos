@@ -245,6 +245,11 @@ protected:
 			    struct triangulateio& out);
 
 
+    //Select elements after the Delaunay Tesselation
+    void SelectMeshElements(ModelPart::NodesContainerType& rNodes,
+			    MeshingParametersType& rMeshingVariables,
+			    const int* rElementList,
+			    const int& rNumberOfElements);
 
     //Generate the Delaunay Tesselation
     int  GenerateTriangulation(Flags& MeshingOptions,

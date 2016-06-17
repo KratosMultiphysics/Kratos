@@ -262,6 +262,34 @@ namespace Kratos
 	
 
 
+    //*******************************************************************************************
+    //*******************************************************************************************
+
+    inline void CalculateCenterAndSearchRadius(const std::vector<std::vector<double> >& rPointCoordinates,
+					       std::vector<double>& rCenter, double& rRadius)
+    {
+
+      if( rPointCoordinates.size() == 3 ){
+	
+	CalculateCenterAndSearchRadius( rPointCoordinates[0][0], rPointCoordinates[0][1],
+					rPointCoordinates[1][0], rPointCoordinates[1][1],
+					rPointCoordinates[2][0], rPointCoordinates[2][1],
+					rCenter[0], rCenter[1], rRadius);
+      }
+      else if( rPointCoordinates.size() == 3 ){
+	
+	CalculateCenterAndSearchRadius( rPointCoordinates[0][0], rPointCoordinates[0][1], rPointCoordinates[0][2],
+					rPointCoordinates[1][0], rPointCoordinates[1][1], rPointCoordinates[1][2],
+					rPointCoordinates[2][0], rPointCoordinates[2][1], rPointCoordinates[2][2],
+					rPointCoordinates[3][0], rPointCoordinates[3][1], rPointCoordinates[3][2],
+					rCenter[0], rCenter[1], rCenter[2], rRadius);
+      }
+      else{
+	 KRATOS_THROW_ERROR( std::logic_error,"Number of points supplied out of range ERROR", "" )
+      }
+	   
+      
+    }
 
     //*******************************************************************************************
     //*******************************************************************************************
@@ -317,31 +345,31 @@ namespace Kratos
 			 Node<3>::Pointer pnode);
 
     void Interpolate2Nodes( Geometry<Node<3> > &geom,
-			    const Vector& N,
+			    const std::vector<double>& N,
 			    VariablesList& rVariablesList,
 			    Node<3>& pnode);
 
     void Interpolate( Geometry<Node<3> >& geom,
-		      const array_1d<double,3>& N,
+		      const std::vector<double>& N,
 		      VariablesList& rVariablesList,
 		      Node<3>::Pointer pnode,
 		      double& alpha);
 	
     VariablesListDataValueContainer InterpolateVariables( Geometry<Node<3> >& geom,
-							  const array_1d<double,3>& N,
+							  const std::vector<double>& N,
 							  VariablesList& rVariablesList,
 							  Node<3>::Pointer pnode,
 							  double& alpha);
     
     void InterpolateData( Geometry<Node<3> >& geom,
-			  const array_1d<double,3>& N,
+			  const std::vector<double>& N,
 			  unsigned int step_data_size,
 			  Node<3>::Pointer pnode,
 			  double& alpha);
 	
 
     VariablesListDataValueContainer InterpolateVariablesData( Geometry<Node<3> >& geom,
-							      const array_1d<double,3>& N,
+							      const std::vector<double>& N,
 							      unsigned int step_data_size,
 							      Node<3>::Pointer pnode,
 							      double& alpha);
