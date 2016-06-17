@@ -56,6 +56,12 @@ namespace Kratos
 			typedef std::map<std::string, TestCase*> TestCasesContainerType;
 
 			///@}
+			///@name Enums
+			///@{
+
+			enum class Verbosity {QUITE, PROGRESS, TESTS_LIST, FAILED_TESTS_OUTPUTS, TESTS_OUTPUTS};
+
+			///@}
 			///@name Life Cycle
 			///@{
 
@@ -97,6 +103,7 @@ namespace Kratos
 
 			static Tester& GetInstance();
 
+			static void SetVerbosity(Verbosity TheVerbosity);
 
 
 
@@ -129,15 +136,23 @@ namespace Kratos
 			Tester();
 
 			///@}
-			///@name Static Member Variables
+			///@name Member Variables
 			///@{
 
 			TestCasesContainerType mTestCases;
 
+			Verbosity mVerbosity;
+
 			///@}
 			static bool IsTestCaseNotAddedBefore(TestCase* pHeapAllocatedTestCase);
 
+			static void ShowProgress(std::size_t Current, std::size_t Total, const TestCase* const pTheTestCase);
+
+			static void ReportResults(std::ostream& rOStream, std::size_t NumberOfRunTests, double ElapsedTime);
+
 			static void ReportFailures(std::ostream& rOStream);
+
+
 
 		}; // Class Tester
 

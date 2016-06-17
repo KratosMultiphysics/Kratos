@@ -105,7 +105,7 @@ namespace Kratos
 			///@name Access
 			///@{
 
-			const std::string& Name();
+			const std::string& Name() const;
 
 			const TestCaseResult& GetResult() const;
 

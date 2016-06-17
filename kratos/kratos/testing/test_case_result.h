@@ -78,7 +78,7 @@ namespace Kratos
 
 			void SetOutput(const std::string& TheOutput);
 
-			const std::string& GetOutput();
+			const std::string& GetOutput() const;
 
 			void SetErrorMessage(const std::string& TheMessage);
 

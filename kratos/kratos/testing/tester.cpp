@@ -21,7 +21,7 @@
 // Project includes
 #include "testing/tester.h"
 #include "testing/test_case.h"
-//#include "includes/checks.h"
+#include "includes/checks.h"
 //#include "utilities/logger.h"
 
 
@@ -29,19 +29,19 @@ namespace Kratos
 {
 	namespace Testing
 	{
-		Tester::Tester() : mTestCases()
+		Tester::Tester() : mTestCases(), mVerbosity(Verbosity::QUITE)
 			 {}
 
 		Tester::~Tester()
 		{
-			for (TestCasesContainerType::iterator i_test = GetInstance().mTestCases.begin();
+			for (auto i_test = GetInstance().mTestCases.begin();
 			i_test != GetInstance().mTestCases.end(); i_test++)
 				delete i_test->second;
 		}
 
 		void Tester::ResetAllTestCasesResults()
 		{
-			for (TestCasesContainerType::iterator i_test = GetInstance().mTestCases.begin();
+			for (auto i_test = GetInstance().mTestCases.begin();
 			i_test != GetInstance().mTestCases.end(); i_test++)
 				i_test->second->ResetResult();
 		}
@@ -50,23 +50,21 @@ namespace Kratos
 		{
 			auto start = std::chrono::steady_clock::now();
 			ResetAllTestCasesResults();
-			std::size_t number_of_run_tests = NumberOfEnabledTestCases();
+			auto number_of_run_tests = NumberOfEnabledTestCases();
 
-			for (TestCasesContainerType::iterator i_test = GetInstance().mTestCases.begin();
+			std::size_t test_number = 0;
+			for (auto i_test = GetInstance().mTestCases.begin();
 			i_test != GetInstance().mTestCases.end(); i_test++)
+			{
 				i_test->second->Run();
+				ShowProgress(++test_number, number_of_run_tests, i_test->second);
+			}
 
-			std::size_t number_of_failed_tests = NumberOfFailedTestCases();
+			
 			auto end = std::chrono::steady_clock::now();
 			std::chrono::duration<double> elapsed = end - start;
 
-			if (number_of_failed_tests == 0)
-				std::cout << number_of_run_tests << " Test cases run in " << elapsed.count() << "s. OK." << std::endl;
-			else
-			{
-				std::cout << number_of_run_tests << " Test cases run in " << elapsed.count() << "s. " << number_of_failed_tests << " failed:" << std::endl;
-				ReportFailures(std::cout);
-			}
+			ReportResults(std::cout, number_of_run_tests, elapsed.count());
 
 		}
 
@@ -74,9 +72,9 @@ namespace Kratos
 		{
 			auto start = std::chrono::steady_clock::now();
 			ResetAllTestCasesResults();
-			std::size_t number_of_run_tests = NumberOfEnabledTestCases();
+			auto number_of_run_tests = NumberOfEnabledTestCases();
 
-			for (TestCasesContainerType::iterator i_test = GetInstance().mTestCases.begin();
+			for (auto i_test = GetInstance().mTestCases.begin();
 			i_test != GetInstance().mTestCases.end(); i_test++)
 				i_test->second->Profile();
 
@@ -84,13 +82,7 @@ namespace Kratos
 			auto end = std::chrono::steady_clock::now();
 			std::chrono::duration<double> elapsed = end - start;
 
-			if (number_of_failed_tests == 0)
-				std::cout << number_of_run_tests << " Test cases run in " << elapsed.count() << "s. OK." << std::endl;
-			else
-			{
-				std::cout << number_of_run_tests << " Test cases run in " << elapsed.count() << "s. " << number_of_failed_tests << " failed:" << std::endl;
-				ReportFailures(std::cout);
-			}
+			ReportResults(std::cout, number_of_run_tests, elapsed.count());
 		}
 
 		std::size_t Tester::NumberOfEnabledTestCases()
@@ -107,7 +99,7 @@ namespace Kratos
 		std::size_t Tester::NumberOfFailedTestCases()
 		{
 			std::size_t result = 0;
-			for (TestCasesContainerType::iterator i_test = GetInstance().mTestCases.begin();
+			for (auto i_test = GetInstance().mTestCases.begin();
 			i_test != GetInstance().mTestCases.end(); i_test++)
 			{
 				TestCaseResult const& test_case_result = i_test->second->GetResult();
@@ -120,7 +112,7 @@ namespace Kratos
 
 		void Tester::AddTestCase(TestCase* pHeapAllocatedTestCase)
 		{
-			//KRATOS_CHECK(IsTestCaseNotAddedBefore(pHeapAllocatedTestCase)) << "A duplicated test case found! The test case \"" << pHeapAllocatedTestCase->Name() << "\" is already added." << std::endl;
+			KRATOS_CHECK(IsTestCaseNotAddedBefore(pHeapAllocatedTestCase)) << "A duplicated test case found! The test case \"" << pHeapAllocatedTestCase->Name() << "\" is already added." << std::endl;
 			GetInstance().mTestCases[pHeapAllocatedTestCase->Name()] = pHeapAllocatedTestCase;
 		}
 
@@ -128,6 +120,11 @@ namespace Kratos
 		{
 			static Tester instance;
 			return instance;
+		}
+
+		void Tester::SetVerbosity(Verbosity TheVerbosity)
+		{
+			GetInstance().mVerbosity = TheVerbosity;
 		}
 
 		std::string Tester::Info() const
@@ -154,9 +151,53 @@ namespace Kratos
 			return (GetInstance().mTestCases.find(pHeapAllocatedTestCase->Name()) == GetInstance().mTestCases.end());
 		}
 
+		void Tester::ShowProgress(std::size_t Current, std::size_t Total, const TestCase* const pTheTestCase)
+		{
+			if (GetInstance().mVerbosity == Verbosity::PROGRESS)
+				if (pTheTestCase->GetResult().IsSucceed())
+					std::cout << ".";
+				else
+					std::cout << "F";
+			else if (GetInstance().mVerbosity >= Verbosity::TESTS_LIST)
+			{
+				if (pTheTestCase->GetResult().IsSucceed())
+				{
+					std::cout << "OK.     : "<< pTheTestCase->Name() << std::endl;
+					if (GetInstance().mVerbosity == Verbosity::TESTS_OUTPUTS)
+						std::cout << pTheTestCase->GetResult().GetOutput() << std::endl;
+				}
+				else
+				{
+					std::cout << "FAILED! : "<< pTheTestCase->Name()  << std::endl;
+					if(GetInstance().mVerbosity >= Verbosity::FAILED_TESTS_OUTPUTS)
+						std::cout << pTheTestCase->GetResult().GetOutput() << std::endl;
+				}
+			}
+		}
+
+		void Tester::ReportResults(std::ostream& rOStream, std::size_t NumberOfRunTests,double ElapsedTime)
+		{
+			if (GetInstance().mVerbosity == Verbosity::PROGRESS)
+				rOStream << std::endl;
+			std::size_t number_of_failed_tests = NumberOfFailedTestCases();
+			std::string test_cases = " Test Case";
+			if (NumberOfRunTests > 1)
+				test_cases += "s";
+
+			if (number_of_failed_tests == 0)
+				rOStream << NumberOfRunTests << test_cases << " run in " << ElapsedTime << "s. OK." << std::endl;
+			else
+			{
+				rOStream << NumberOfRunTests << test_cases << " run in " << ElapsedTime << "s. " << number_of_failed_tests << " failed:" << std::endl;
+				ReportFailures(rOStream);
+			}
+
+		}
+			
+			
 		void Tester::ReportFailures(std::ostream& rOStream)
 		{
-			for (TestCasesContainerType::iterator i_test = GetInstance().mTestCases.begin();
+			for (auto i_test = GetInstance().mTestCases.begin();
 			i_test != GetInstance().mTestCases.end(); i_test++)
 			{
 				TestCaseResult const& test_case_result = i_test->second->GetResult();
