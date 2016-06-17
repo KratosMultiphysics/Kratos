@@ -125,7 +125,7 @@ proc write::writeTables { } {
 proc write::writeMaterials { } {
     variable mat_dict
     
-    set exclusionList [list "MID" "ConstitutiveLaw" "Material"]
+    set exclusionList [list "MID" "APPID" "ConstitutiveLaw" "Material"]
     # We print all the material data directly from the saved dictionary
     foreach material [dict keys $mat_dict] {
 	WriteString "Begin Properties [dict get $mat_dict $material MID]"
