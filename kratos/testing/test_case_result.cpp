@@ -60,33 +60,27 @@ namespace Kratos
 			mElapsedTime = 0.00;
 		}
 
-		void TestCaseResult::SetToSucceed()
-		{
+		void TestCaseResult::SetToSucceed()	{
 			mSucceed = true;
 		}
 
-		void TestCaseResult::SetToFailed()
-		{
+		void TestCaseResult::SetToFailed() {
 			mSucceed = false;
 		}
 
-		void TestCaseResult::SetOutput(const std::string& TheOutput)
-		{
+		void TestCaseResult::SetOutput(const std::string& TheOutput) {
 			mOutput = TheOutput;
 		}
 
-		const std::string& TestCaseResult::GetOutput()
-		{
+		const std::string& TestCaseResult::GetOutput() const {
 			return mOutput;
 		}
 
-		void TestCaseResult::SetErrorMessage(const std::string& TheMessage)
-		{
+		void TestCaseResult::SetErrorMessage(const std::string& TheMessage)	{
 			mErrorMessage = TheMessage;
 		}
 
-		const std::string& TestCaseResult::GetErrorMessage() const
-		{
+		const std::string& TestCaseResult::GetErrorMessage() const {
 			return mErrorMessage;
 		}
 
