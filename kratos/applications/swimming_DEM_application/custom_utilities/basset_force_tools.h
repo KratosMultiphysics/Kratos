@@ -69,6 +69,7 @@ private:
 
 bool mFirstTimeAppending;
 int mNumberOfQuadratureStepsInWindow;
+int mNumberOfExponentials;
 double mTimeWindow;
 
 //**************************************************************************************************************************************************
@@ -82,10 +83,6 @@ vector<unsigned int> mElementsPartition;
 ///@}
 ///@name Un accessible methods
 ///@{
-
-double Phi(const double x);
-void AddFdi(const int order, array_1d<double, 3>& F, const double t_win, const double ti, const double beta, const double delta_time, const vector<double>& historic_integrands);
-void AddFre(array_1d<double, 3>& old_Fi, const double beta, const double delta_time);
 
 vector<unsigned int>& GetElementPartition()
 {

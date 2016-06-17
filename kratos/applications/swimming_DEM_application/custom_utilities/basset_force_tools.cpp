@@ -150,6 +150,7 @@ void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m,
 {
     KRATOS_TRY
     mNumberOfQuadratureStepsInWindow = n_quad_delta_times_window;
+    mNumberOfExponentials = m;
 
     if (!m){
         return;
@@ -358,74 +359,14 @@ void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m,
 
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
         vector<double>& hinsberg_tail_contributions = inode->GetValue(HINSBERG_TAIL_CONTRIBUTIONS);
-        hinsberg_tail_contributions.resize(3 * m);
-        for (int i = 0; i < 3 * m; i++){
+        hinsberg_tail_contributions.resize(3 * m + 3); //  the extra contribution will contain the oldest integrand that has been discarded from the integrands vector
+        for (int i = 0; i < 3 * m + 3; i++){
             hinsberg_tail_contributions[i] = 0.0;
         }
     }
 
     std::cout << "...Finished filling up vectors of coefficients.\n";
     KRATOS_CATCH("")
-}
-//**************************************************************************************************************************************************
-//**************************************************************************************************************************************************
-double BassetForceTools::Phi(const double x)
-{
-    if (fabs(x) < 1e-10){
-        return (std::exp(x) - 1) / x;
-    }
-    else {
-        return 1 + 0.5 * x + 1.0 / 6 * x * x;
-    }
-}
-//**************************************************************************************************************************************************
-//**************************************************************************************************************************************************
-void BassetForceTools::AddFdi(const int order, array_1d<double, 3>& F, const double t_win, const double ti, const double beta, const double dt, const vector<double>& historic_integrands)
-{
-    double normalized_dt = 0.5 * dt / ti;
-
-    if (order == 1){
-        const double coeff = 2 * std::sqrt(ti) * std::exp(beta * t_win + 0.5);
-        const double coeff_N = 1 - Phi(- normalized_dt);
-        const double coeff_N_plus_1 = std::exp(- normalized_dt) * (Phi(normalized_dt) - 1);
-        F[0] +=  coeff * (coeff_N * historic_integrands[3] + coeff_N_plus_1 * historic_integrands[0]);
-        F[1] +=  coeff * (coeff_N * historic_integrands[4] + coeff_N_plus_1 * historic_integrands[1]);
-        F[2] +=  coeff * (coeff_N * historic_integrands[5] + coeff_N_plus_1 * historic_integrands[2]);
-    }
-
-    else if (order == 2){
-        const double coeff = 0.5 * std::sqrt(1.0 / ti) / (SWIMMING_POW_3(beta) * SWIMMING_POW_2(dt));
-        const double exp_1 = std::exp(t_win * beta + 0.5);
-        const double exp_2 = std::exp(   dt * beta);
-        const double f00 = historic_integrands[6];
-        const double f01 = historic_integrands[7];
-        const double f02 = historic_integrands[8];
-        const double f10 = historic_integrands[3];
-        const double f11 = historic_integrands[4];
-        const double f12 = historic_integrands[5];
-        const double f20 = historic_integrands[0];
-        const double f21 = historic_integrands[1];
-        const double f22 = historic_integrands[2];
-        F[0] += coeff * exp_1 * (4 * f10 - 2 * f20 + dt * beta * (f20 - 2 * dt * beta * f10) - f00 * (2 + dt * beta + exp_2 * (dt * beta - 2))\
-                        + exp_2 * (4 * f10 * (dt * beta - 1) + f20 * (2 + dt * beta * (2 * dt * beta - 3))));
-        F[1] += coeff * exp_1 * (4 * f11 - 2 * f21 + dt * beta * (f21 - 2 * dt * beta * f11) - f01 * (2 + dt * beta + exp_2 * (dt * beta - 2))\
-                        + exp_2 * (4 * f11 * (dt * beta - 1) + f21 * (2 + dt * beta * (2 * dt * beta - 3))));
-        F[2] += coeff * exp_1 * (4 * f12 - 2 * f22 + dt * beta * (f22 - 2 * dt * beta * f12) - f02 * (2 + dt * beta + exp_2 * (dt * beta - 2))\
-                        + exp_2 * (4 * f12 * (dt * beta - 1) + f22 * (2 + dt * beta * (2 * dt * beta - 3))));
-    }
-
-    else {
-        return;
-    }
-}
-//**************************************************************************************************************************************************
-//**************************************************************************************************************************************************
-void BassetForceTools::AddFre(array_1d<double, 3>& old_Fi, const double beta, const double dt)
-{
-    const double exp_coeff = std::exp(beta * dt);
-    old_Fi[0] = exp_coeff * old_Fi[0];
-    old_Fi[1] = exp_coeff * old_Fi[1];
-    old_Fi[2] = exp_coeff * old_Fi[2];
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -503,38 +444,19 @@ void BassetForceTools::AppendIntegrandsWindow(ModelPart& r_model_part)
 {
     ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
     double time = r_process_info[TIME] + r_process_info[DELTA_TIME];
-    const double delta_time = time - r_process_info[LAST_TIME_APPENDING];
     r_process_info[LAST_TIME_APPENDING] = time;
-    const double t_win = mTimeWindow;
 
     if (r_process_info[BASSET_FORCE_TYPE] == 3){
-        const std::vector<double>& Ts    = SphericSwimmingParticle<SphericParticle>::mTs;
-
-        const int order = r_process_info[QUADRATURE_ORDER];
 
         for (ElementIterator iparticle = r_model_part.ElementsBegin(); iparticle != r_model_part.ElementsEnd(); iparticle++){
             Node<3>& node = iparticle->GetGeometry()[0];
-//            double initial_time;
-//            iparticle->Calculate(TIME, initial_time, r_process_info);
-            vector<double>& historic_integrands         = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
+            vector<double>& historic_integrands = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
 
             if (int(historic_integrands.size()) >= 3 * mNumberOfQuadratureStepsInWindow){
                 vector<double>& hinsberg_tail_contributions = node.GetValue(HINSBERG_TAIL_CONTRIBUTIONS);
-                int m = hinsberg_tail_contributions.size() / 3;
-                array_1d<double, 3> Fi = ZeroVector(3);
-
-                for (int i = 0; i < m; i++){
-                    double ti = Ts[i];
-                    double beta = - 0.5 / ti;
-                    Fi[0] = hinsberg_tail_contributions[3 * i];
-                    Fi[1] = hinsberg_tail_contributions[3 * i + 1];
-                    Fi[2] = hinsberg_tail_contributions[3 * i + 2];
-                    AddFre(Fi, beta, delta_time);
-                    AddFdi(order, Fi, t_win, ti, beta, delta_time, historic_integrands);
-                    hinsberg_tail_contributions[3 * i]     = Fi[0];
-                    hinsberg_tail_contributions[3 * i + 1] = Fi[1];
-                    hinsberg_tail_contributions[3 * i + 2] = Fi[2];
-                }
+                hinsberg_tail_contributions[3 * mNumberOfExponentials]     = historic_integrands[0];
+                hinsberg_tail_contributions[3 * mNumberOfExponentials + 1] = historic_integrands[1];
+                hinsberg_tail_contributions[3 * mNumberOfExponentials + 2] = historic_integrands[2];
             }
         }
     }
@@ -568,4 +490,7 @@ void BassetForceTools::AppendIntegrandsWindow(ModelPart& r_model_part)
         }
     }
 }
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
 } // namespace Kratos
