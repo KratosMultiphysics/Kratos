@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ElementList>
-  <!--solid elements-->
-  <!--small displacements-->
+
+
   <ElementItem n="TwoStepUpdatedLagrangianVPFluidElement2D" pn="TwoStepUpdatedLagrangianVPFluidElement2D" ImplementedInFile="none.cpp"
 	       ImplementedInApplication="PfemFluidDynamicsApplication" MinimumKratosVersion="9000" ProductionReady="No"
 	       WorkingSpaceDimension="2D" LocalSpaceDimension="2" ElementType="Fluid" help="To be written by...">
@@ -10,66 +10,117 @@
     <TopologyFeatures>
       <item GeometryType="Triangle"      nodes="3" KratosName="TwoStepUpdatedLagrangianVPFluidElement2D"/>
     </TopologyFeatures>
-
     <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
     </ConstitutiveLaw_FilterFeatures>
-
     <!--define list of NodalConditions-->
-    <NodalConditions>
-     
+    <NodalConditions>     
     </NodalConditions>
-
     <inputs>
     </inputs>
     <outputs>
     </outputs>
   </ElementItem>
   
-  <ElementItem n="Dummy2D" pn="Dummy Element" ImplementedInFile="none.cpp"
-	       ImplementedInApplication="PfemSolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="No"
-	       WorkingSpaceDimension="2D" LocalSpaceDimension="2" ElementType="Solid" help="To be written by...">
-
+  
+  <ElementItem n="Element2D2N" pn="Rigid Element 2D 2N" ImplementedInFile="none.cpp"
+	       ImplementedInApplication="KratosCore" MinimumKratosVersion="9000" ProductionReady="No"
+	       WorkingSpaceDimension="2D" LocalSpaceDimension="1" ElementType="Rigid" help="To be written by...">
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
-      <item GeometryType="Line"      nodes="2" KratosName="Dummy2D2N"/>
+      <item GeometryType="Line"      nodes="2" KratosName="Element2D2N"/>
     </TopologyFeatures>
     <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
     </ConstitutiveLaw_FilterFeatures>
-
     <!--define list of NodalConditions-->
-    <NodalConditions>
-     
+    <NodalConditions>     
     </NodalConditions>
-
     <inputs>
     </inputs>
     <outputs>
     </outputs>
   </ElementItem>
+  
+  
+  <ElementItem n="Element2D3N" pn="Rigid Element 2D 3N" ImplementedInFile="none.cpp"
+               ImplementedInApplication="KratosCore" MinimumKratosVersion="9000" ProductionReady="No"
+               WorkingSpaceDimension="2D" LocalSpaceDimension="2" ElementType="Rigid" help="To be written by...">
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Triangle"      nodes="3" KratosName="Element2D3N"/>
+    </TopologyFeatures>
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+    </ConstitutiveLaw_FilterFeatures>
+    <!--define list of NodalConditions-->
+    <NodalConditions>     
+    </NodalConditions>
+    <inputs>
+    </inputs>
+    <outputs>
+    </outputs>
+  </ElementItem>
+  
+  
+  <ElementItem n="Element3D3N" pn="Rigid Element 3D 3N" ImplementedInFile="none.cpp"
+               ImplementedInApplication="KratosCore" MinimumKratosVersion="9000" ProductionReady="No"
+               WorkingSpaceDimension="3D" LocalSpaceDimension="2" ElementType="Rigid" help="To be written by...">
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Triangle"      nodes="3" KratosName="Element3D3N"/>
+    </TopologyFeatures>
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+    </ConstitutiveLaw_FilterFeatures>
+    <!--define list of NodalConditions-->
+    <NodalConditions>     
+    </NodalConditions>
+    <inputs>
+    </inputs>
+    <outputs>
+    </outputs>
+  </ElementItem>
+  
+  
+  <ElementItem n="Element3D4N" pn="Rigid Element 3D 4N" ImplementedInFile="none.cpp"
+               ImplementedInApplication="KratosCore" MinimumKratosVersion="9000" ProductionReady="No"
+               WorkingSpaceDimension="3D" LocalSpaceDimension="3" ElementType="Rigid" help="To be written by...">
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Tetrahedron"      nodes="4" KratosName="Element3D3N"/>
+    </TopologyFeatures>
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+    </ConstitutiveLaw_FilterFeatures>
+    <!--define list of NodalConditions-->
+    <NodalConditions>     
+    </NodalConditions>
+    <inputs>
+    </inputs>
+    <outputs>
+    </outputs>
+  </ElementItem>
+  
+  
   <ElementItem n="TotalUpdatedLagrangianElement2D" pn="Total Updated Lagrangian Element" ImplementedInFile="none.cpp"
 	       ImplementedInApplication="PfemSolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="No"
 	       WorkingSpaceDimension="2D" LocalSpaceDimension="2" ElementType="Solid" help="To be written by...">
-
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
       <item GeometryType="Triangle"      nodes="3" KratosName="TotalUpdatedLagrangianElement2D3N"/>
     </TopologyFeatures>
-
     <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
     </ConstitutiveLaw_FilterFeatures>
-
     <!--define list of NodalConditions-->
-    <NodalConditions>
-     
+    <NodalConditions>     
     </NodalConditions>
-
     <inputs>
     </inputs>
     <outputs>
     </outputs>
   </ElementItem>
+  
   
 </ElementList>
