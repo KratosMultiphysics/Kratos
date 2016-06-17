@@ -39,6 +39,10 @@ proc EndGIDPostProcess {} {
         gid_groups_conds::open_conditions menu
     }
 }
+
+proc AfterMeshGeneration {fail} {
+    catch {write::Init}
+}
  
 # Load GiD project files (initialise XML Tdom structure)
 proc LoadGIDProject { filespd } {

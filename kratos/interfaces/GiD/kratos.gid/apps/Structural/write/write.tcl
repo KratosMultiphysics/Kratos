@@ -3,7 +3,7 @@ namespace eval Structural::write {
 }
 
 proc Structural::write::Init { } {
-    
+    Solid::write::AddValidApps "Structural"
 }
 
 
