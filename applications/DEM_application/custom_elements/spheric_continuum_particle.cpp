@@ -261,7 +261,7 @@ namespace Kratos {
              
             EvaluateDeltaDisplacement(DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator, distance);
 
-            if (this->Is(DEMFlags::HAS_ROTATION) && i < mContinuumInitialNeighborsSize) {
+            if (this->Is(DEMFlags::HAS_ROTATION) ) {
                 RelativeDisplacementAndVelocityOfContactPointDueToRotationMatrix(DeltDisp, RelVel, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
             }
             
