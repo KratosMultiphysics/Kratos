@@ -60,7 +60,7 @@ namespace Kratos
 				ShowProgress(++test_number, number_of_run_tests, i_test->second);
 			}
 
-			
+
 			auto end = std::chrono::steady_clock::now();
 			std::chrono::duration<double> elapsed = end - start;
 
@@ -78,7 +78,6 @@ namespace Kratos
 			i_test != GetInstance().mTestCases.end(); i_test++)
 				i_test->second->Profile();
 
-			std::size_t number_of_failed_tests = NumberOfFailedTestCases();
 			auto end = std::chrono::steady_clock::now();
 			std::chrono::duration<double> elapsed = end - start;
 
@@ -193,8 +192,8 @@ namespace Kratos
 			}
 
 		}
-			
-			
+
+
 		void Tester::ReportFailures(std::ostream& rOStream)
 		{
 			for (auto i_test = GetInstance().mTestCases.begin();
