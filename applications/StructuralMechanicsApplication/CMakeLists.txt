@@ -3,46 +3,51 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosStructuralMechanicsApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/SolidMechanicsApplication ) 
-include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication ) 
+include_directories( ${CMAKE_SOURCE_DIR}/applications/SolidMechanicsApplication )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/MeshingApplication )
 
 ## generate variables with the sources
-set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES     
-        ## MAIN FILES
-	${CMAKE_CURRENT_SOURCE_DIR}/structural_mechanics_application.cpp 
-        ${CMAKE_CURRENT_SOURCE_DIR}/structural_mechanics_application_variables.cpp 
+set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
+  ## MAIN FILES
+	${CMAKE_CURRENT_SOURCE_DIR}/structural_mechanics_application.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/structural_mechanics_application_variables.cpp
 
-        ## CUSTOM PYTHON
+  ## CUSTOM PYTHON
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/structural_mechanics_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_cross_sections_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_mappers_to_python.cpp
 
-        ## UTILITIES
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/tree_contact_search.cpp
-        
-        ## ELEMENTS
-        # Adding the beam element
+  ## UTILITIES
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/tree_contact_search.cpp
+
+  ## ELEMENTS
+  # Adding the beam element
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_beam_element_3D2N.cpp
+
 	# Adding shells and membranes elements
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/isotropic_shell_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thick_element_3D4N.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thin_element_3D3N.cpp
-        # Adding the SPRISM element
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/SprismElement3D6N.cpp
-        # Adding the nodal concentrated element
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/nodal_concentrated_element.cpp
 
-        ## CONDITIONS
-        # Beam's moment conditions
+  # Adding the SPRISM element
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/SprismElement3D6N.cpp
+
+  # Adding the nodal concentrated element
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/nodal_concentrated_element.cpp
+
+  ## CONDITIONS
+  # Beam's moment conditions
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_moment_3D_condition.cpp
-        # Torques conditions
+
+  # Torques conditions
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_torque_3D_condition.cpp
-	# Mortar condition
+
+  # Mortar condition
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mortar_contact_2D_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mortar_contact_3D_condition.cpp
 )
@@ -59,15 +64,20 @@ install(TARGETS KratosStructuralMechanicsApplication DESTINATION libs )
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
 
-# changing the .dll suffix to .pyd 
+# changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosStructuralMechanicsApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-# changing the .dylib suffix to .so 
+# changing the .dylib suffix to .so
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosStructuralMechanicsApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+if(${INSTALL_TESTING_FILES} MATCHES ON)
+  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
+endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
