@@ -7,7 +7,7 @@
                 <value n="ImposedMotion" pn="Imposed Motion" un="PFEM_fixed_solid" v="Yes" values="Yes,No">
                     <dependencies node="../value" actualize="1"/>
                 </value>
-                <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements ElementType Solid]" state="normal">
+                <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements ElementType Rigid]" state="normal">
                   <dependencies node="../value" actualize="1" />
                 </value>
                 <value n="MeshingDomain" pn="Meshing domain" v="" values="[GetMeshingDomains]" state="normal"/>
@@ -35,7 +35,7 @@
                 <value n="ImposedMotion" pn="Imposed Motion" un="PFEM_fixed_solid" v="Yes" values="Yes,No" >
                     <dependencies node="../value" actualize="1"/>
                 </value>
-                  <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements ElementType Solid]" state="normal">
+                  <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements ElementType Rigid]" state="normal">
                 <dependencies node="../value" actualize="1" />
               </value>
                 <value n="VelocityX" pn="Velocity X" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} Yes]"/>
