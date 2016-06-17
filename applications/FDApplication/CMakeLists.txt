@@ -4,16 +4,8 @@ message("**** configuring KratosFDApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
-## generate variables with the sources
-set( KRATOS_FD_APPLICATION_SOURCES
-	${CMAKE_CURRENT_SOURCE_DIR}/fd_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/fd_python_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/grid_printer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/bfecc.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/tests/test.cpp
-)
+# Locate all files in the source directory
+file(GLOB_RECURSE KRATOS_FD_APPLICATION_SOURCES ${CMAKE_CURRENT_SOURCE_DIR} *.cpp)
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
