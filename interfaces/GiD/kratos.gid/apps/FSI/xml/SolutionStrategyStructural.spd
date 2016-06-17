@@ -1,7 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="SolStratST" pn="Solution" un="SLStratSection" help="Solution Strategy">
-	  <container n="StratParams" pn="Strategy parameters" un="SLStratParams" icon="groupsTreeNew.gif"  state="normal" >
-			<dynamicnode command="injectSolStratParams" args="ImplementedInApplication SolidMechanicsApplication,StructuralMechanicsApplication"/>
-	  </container>
-	  <dynamicnode command="injectSolvers" args="ImplementedInApplication SolidMechanicsApplication,StructuralMechanicsApplication"/>
+    
+    <include n="Parallelism" active="1" path="apps/Common/xml/Parallelism.spd"/> 
+    
+    <dynamicnode command="injectSolvers" args="ImplementedInApplication SolidMechanicsApplication,StructuralMechanicsApplication"/>
+    
+    <container n="StratParams" pn="Strategy parameters" un="SLStratParams" icon="groupsTreeNew.gif"  state="normal" >
+        <dynamicnode command="injectSolStratParams" args="ImplementedInApplication SolidMechanicsApplication,StructuralMechanicsApplication"/>
     </container>
+    
+    <container n="TimeParameters" pn="Time parameters" un="SLTimeParameters" help="Problem parameters" state="[checkStateByUniqueName SLSoluType Dynamic]" >
+        <value n="StartTime" pn="Start time" v="0.0" help=""/>
+        <value n="EndTime" pn="End time" v="1.0" help=""/>
+        <value n="DeltaTime"  pn="Delta time" v="0.1" help=""/>
+        <!--<value n="UseAutomaticDeltaTime" pn="Automatic Delta time" v="Fixed"  values="Fixed,Automatic" help="Select the Delta time option to be used"/>-->
+    </container>
+    
+</container>
