@@ -554,6 +554,8 @@ void TreeContactSearch::CreateMortarConditions(
                 
                 contact_container_destination.contact_area /= aux_int;
                 
+                contact_container_destination.print();
+                
                 ConditionPointersDestination->push_back(contact_container_destination);
             }
         }

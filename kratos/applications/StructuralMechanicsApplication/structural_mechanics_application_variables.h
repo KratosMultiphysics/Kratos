@@ -38,6 +38,21 @@ struct contact_container
 //    double              contact_gap;
     std::vector<bool>  active_nodes;
   
+    void print()
+    {
+       KRATOS_WATCH(condition);
+       KRATOS_WATCH(contact_area);
+       for (unsigned int i = 0; i < contact_gap.size(); i++)
+       {
+            std::cout << "contact_gap_" << i << " " << contact_gap[i] << std::endl;
+       }
+       
+       for (unsigned int i = 0; i < active_nodes.size(); i++)
+       {
+            std::cout << "active_nodes_" << i << " " << active_nodes[i] << std::endl;
+       }
+    }
+    
     void save( Serializer& rSerializer ) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, contact_container );
@@ -104,6 +119,7 @@ KRATOS_DEFINE_VARIABLE( std::vector<contact_container>*, CONTACT_CONTAINERS ) //
 KRATOS_DEFINE_VARIABLE( Element::Pointer, ELEMENT_POINTER )                   // A pointer to the element belonging to this condition
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( CONTACT_MESH_TYING_FORCE )         // The "force" resulting from contact
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( LAGRANGE_MULTIPLIER )              // The lagrange multiplier used to enforce the mortar constraint
+KRATOS_DEFINE_VARIABLE( Matrix, MORTAR_CONTACT_OPERATOR )                     // Mortar Contact Operator
 KRATOS_DEFINE_VARIABLE( Matrix, CONTACT_STIFFNESS_MATRIX )                    // LHS contribution
 KRATOS_DEFINE_VARIABLE( Matrix, GAP_DERIVATIVES_MATRIX )                      // LHS contribution
 KRATOS_DEFINE_VARIABLE( Vector, CONTACT_FORCES_VECTOR )                       // RHS contribution
@@ -114,7 +130,7 @@ KRATOS_DEFINE_VARIABLE(double, ALPHA_EAS);
 KRATOS_DEFINE_VARIABLE(bool, EAS_IMP);
 
 // Adding the SPRISM additional variables
-KRATOS_DEFINE_VARIABLE(double, ANG_ROT);
+KRATOS_DEFINE_VARIABLE(double, ANG_ROT); // TODO: Convertir en un vector
 
 // Adding the Sprism number of transversal integration points
 KRATOS_DEFINE_VARIABLE(int, NINT_TRANS);
