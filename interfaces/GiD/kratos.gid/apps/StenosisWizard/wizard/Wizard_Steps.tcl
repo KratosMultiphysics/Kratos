@@ -350,7 +350,7 @@ proc StenosisWizard::Wizard::NextFluid { } {
      gid_groups_conds::delete {container[@n='StenosisWizard']/container[@n='BoundaryConditions']/condition[@n='Inlet3D']/group}
      gid_groups_conds::addF {container[@n='StenosisWizard']/container[@n='BoundaryConditions']/condition[@n='Inlet3D']} group {n Inlet}
      set group {container[@n='StenosisWizard']/container[@n='BoundaryConditions']/condition[@n='Inlet3D']/group[@n='Inlet']}
-     set in [Wizard::GetProperty Fluid Inlet,value]
+     set in [expr [Wizard::GetProperty Fluid Inlet,value] *1000]
      gid_groups_conds::addF -resolve_parametric 1 $group value "n factor pn Modulus unit_magnitude Velocity help {} state {} v {$in} units {m/s}"
      gid_groups_conds::addF $group value {n directionX wn {Inlet3D _X} pn {Direction X} help {} state {} v 1.0}
      gid_groups_conds::addF $group value {n directionY wn {Inlet3D _Y} pn {Direction Y} help {} state {} v 0.0}

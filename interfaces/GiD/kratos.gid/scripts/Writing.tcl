@@ -128,14 +128,14 @@ proc write::writeMaterials { } {
     set exclusionList [list "MID" "APPID" "ConstitutiveLaw" "Material"]
     # We print all the material data directly from the saved dictionary
     foreach material [dict keys $mat_dict] {
-	WriteString "Begin Properties [dict get $mat_dict $material MID]"
-	foreach prop [dict keys [dict get $mat_dict $material] ] {
-	    if {$prop ni $exclusionList} {
-		WriteString "    $prop [dict get $mat_dict $material $prop] "
-	    }
-	}
-	WriteString "End Properties"
-	WriteString ""
+        WriteString "Begin Properties [dict get $mat_dict $material MID]"
+        foreach prop [dict keys [dict get $mat_dict $material] ] {
+            if {$prop ni $exclusionList} {
+            WriteString "    $prop [dict get $mat_dict $material $prop] "
+            }
+        }
+        WriteString "End Properties"
+        WriteString ""
     }
 
 }

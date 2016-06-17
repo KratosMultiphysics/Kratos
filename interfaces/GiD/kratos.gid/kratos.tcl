@@ -40,9 +40,6 @@ proc EndGIDPostProcess {} {
     }
 }
 
-proc AfterMeshGeneration {fail} {
-    catch {write::Init}
-}
  
 # Load GiD project files (initialise XML Tdom structure)
 proc LoadGIDProject { filespd } {
@@ -73,6 +70,7 @@ proc AfterTransformProblemType { filename oldproblemtype newproblemtype } {
 }
 
 proc AfterWriteCalcFileGIDProject { filename errorflag } {
+    catch {write::Init}
     set errcode [::write::writeEvent $filename]
     if {$errcode} {return "-cancel-"}
 }
