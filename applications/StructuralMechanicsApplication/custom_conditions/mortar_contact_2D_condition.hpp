@@ -27,8 +27,8 @@
 #include "utilities/math_utils.h"
 #include "includes/kratos_flags.h"
 
-namespace Kratos
-{
+
+namespace Kratos {
 
 ///@name Kratos Globals
 ///@{
@@ -57,33 +57,29 @@ namespace Kratos
 class MortarContact2DCondition:
                 public Condition {
 public:
-    ///@name Type Definitions
-    ///@{
-
-    /// Counted pointer of MortarContact2DCondition
-    KRATOS_CLASS_POINTER_DEFINITION( MortarContact2DCondition );
+        ///@name Type Definitions
+        ///@{
+    
+        typedef Point<3>                                  PointType;
+        typedef Node<3>                                    NodeType;
+        typedef Geometry<NodeType>                     GeometryType;
+        
+        /// Counted pointer of MortarContact2DCondition
+        KRATOS_CLASS_POINTER_DEFINITION( MortarContact2DCondition );
 
 protected:
-
-     /**
-     * Flags related to the element computation
-     */
-
-     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
-     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
-     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR_WITH_COMPONENTS );
-     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
 
     /**
     * Parameters to be used in the Condition as they are.
     */
-
     struct GeneralVariables
     {
     private:
         // Contact pair information
-        GeometryType* pMasterElement;   // Points to the slave contact segment only
+        GeometryType* pMasterElement;   // Points to the master contact segment only
         unsigned int mMasterElementIndex;
+        std::vector< unsigned int > mThisActiveSlaveNodes;
+        std::vector< unsigned int > mThisInactiveSlaveNodes;
 
     public:
         // Shape functions for contact pair
@@ -97,9 +93,8 @@ protected:
         Matrix DPhi_De_LagrangeMultipliers;
 
         // Gap function and its derivative variables
-        double IntegrationPointNormalGap;
+        Vector IntegrationPointNormalGap;
         Vector IntegrationPointNormalVector;
-        Matrix DeltaDiscreteGap;
 
         // determinant of slave cell's jacobian
         double DetJSlave;
@@ -138,9 +133,7 @@ protected:
             DPhi_De_LagrangeMultipliers  = ZeroMatrix( rNumberOfSlaveNodes ,  rLocalDimensionSlave );
 
             // Gap function
-            // fully populated BLOCKS
-            DeltaDiscreteGap             = ZeroMatrix( rNumberOfSlaveNodes, rDimension * ( rNumberOfSlaveNodes + rNumberOfMasterNodes ) );
-            IntegrationPointNormalGap    = 0.0;
+            IntegrationPointNormalGap    = ZeroVector( rDimension );
             IntegrationPointNormalVector = ZeroVector( rDimension );
 
             // Jacobian of slave
@@ -151,29 +144,49 @@ protected:
             j_Slave[0] = ZeroMatrix( rDimension );
         }
 
-        /*
-        * Setters and getters for the master element info
-        */
-        void SetMasterElement( GeometryType& rSlaveElement )
-        {
+        /* Setters and getters for the master element */
+        void SetMasterElement( GeometryType& rSlaveElement ) 
+        { 
             pMasterElement = &rSlaveElement;
         }
-
-        GeometryType& GetMasterElement( )
-        {
+        
+        GeometryType& GetMasterElement( ) 
+        { 
             return *pMasterElement;
         }
 
-        void SetMasterElementIndex( const unsigned int& index )
-        {
-            mMasterElementIndex = index;
+        /* Setters and getters for the master element index */
+        void SetMasterElementIndex( const unsigned int& index ) 
+        { 
+            mMasterElementIndex = index; 
         }
-
-        const unsigned int& GetMasterElementIndex( )
-        {
-            return mMasterElementIndex;
+        
+        const unsigned int& GetMasterElementIndex( ) 
+        { 
+            return mMasterElementIndex; 
         }
-
+      
+        /* Setters and getters for the active set */
+        void SetActiveSet( const std::vector< unsigned int >& rActiveNodes ) 
+        {
+            mThisActiveSlaveNodes = rActiveNodes; 
+        }
+        
+        const std::vector< unsigned int >& GetActiveSet( ) 
+        {
+            return mThisActiveSlaveNodes;
+        }
+      
+        /* Setters and getters for the active set */
+        void SetInactiveSet( const std::vector< unsigned int >& rInactiveNodes ) 
+        {
+            mThisInactiveSlaveNodes = rInactiveNodes; 
+        }
+        
+        const std::vector< unsigned int >& GetInactiveSet( )
+        { 
+            return mThisInactiveSlaveNodes;
+        }
     };
 
    /**
@@ -182,7 +195,6 @@ protected:
     * private pointers can only be accessed by means of set and get functions
     * this allows to set and not copy the local system variables
     */
-
     struct LocalSystemComponents
     {
     private:
@@ -244,13 +256,6 @@ protected:
         Matrix D;
         Matrix M;
 
-        // Directional derivatives
-        Matrix DeltaD;
-        Matrix DeltaM;
-        Matrix DeltaJSlave;
-        Matrix DeltaPhiLagrangeMultipliers;
-        Matrix DeltaDiscreteGap;
-
        /*
         * Struct Methods
         */
@@ -266,29 +271,10 @@ protected:
         {
             if( rCalculateSlaveContributions )
             {
-                D                       = ZeroMatrix( rDimension * rNumberOfSlaveNodes, rDimension * rNumberOfSlaveNodes );
-                DeltaD                  = ZeroMatrix( rDimension * rNumberOfSlaveNodes, rDimension * rNumberOfSlaveNodes );
-                DeltaJSlave             = ZeroMatrix( rNumberOfSlaveNodes, rDimension * rNumberOfSlaveNodes );
+                D = ZeroMatrix( rDimension * rNumberOfSlaveNodes, rDimension * rNumberOfSlaveNodes );
             }
 
-            M                           = ZeroMatrix( rDimension * rNumberOfSlaveNodes, rDimension * rNumberOfMasterNodes );
-            DeltaM                      = ZeroMatrix( rDimension * rNumberOfSlaveNodes, rDimension * rNumberOfMasterNodes );
-
-            DeltaPhiLagrangeMultipliers = ZeroMatrix( rNumberOfSlaveNodes,  rDimension * rNumberOfSlaveNodes );
-            DeltaDiscreteGap            = ZeroMatrix( rNumberOfSlaveNodes, rDimension * ( rNumberOfSlaveNodes + rNumberOfMasterNodes ) );
-        }
-
-       /*
-        * Accessors for MortarProjectionMatrices
-        */
-        void AppendMortarProjectionMatrixTranspose( const MatrixType& P_transpose )
-        {
-                MortarProjectionMatricesTranspose.push_back( P_transpose );
-        }
-
-        const MatrixType& GetMortarProjectionMatrixTranspose( const unsigned int& rMatrixIndex )
-        {
-                return MortarProjectionMatricesTranspose[rMatrixIndex];
+            M = ZeroMatrix( rDimension * rNumberOfSlaveNodes, rDimension * rNumberOfMasterNodes );
         }
     };
 
@@ -307,15 +293,14 @@ public:
     /// Destructor.
     virtual ~MortarContact2DCondition();
 
-    ///@}
-    ///@name Operators
-    ///@{
+    /**
+     * Flags related to the element computation
+     */
 
-    ///@}
-    ///@name Operations
-    ///@{
-
-    //************* STARTING - ENDING  METHODS
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR_WITH_COMPONENTS );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
 
     /**
     * Called at the beginning of each solution step
@@ -341,14 +326,7 @@ public:
         Flags& rCalculationFlags
         );
 
-    /*
-    * This fucntion loops over the slave nodes to determine the
-    * active set of nodes and the inactive set of nodes
-    * pointers to those nodes are stored in private arrays
-    */
-    void DetermineActiveNodes( );
-
-    /*
+    /**
     * Evaluation methods for Lagrange multipliers shape functions
     * and its local derivatives
     */
@@ -358,12 +336,6 @@ public:
         );
 
     const Matrix LagrangeMultiplierShapeFunctionLocalGradient( const IndexType& rPointNumber );
-
-    /*
-    * Loops over all master elements in the condition and
-    * sum up their nodes - used to size the system matrices
-    */
-    const unsigned int CalculateTotalNumberOfMasterNodes( );
 
     /**
     * Creates a new element pointer
@@ -379,12 +351,12 @@ public:
         ) const;
 
 
-   /******************************************************************/
+    /******************************************************************/
     /*********************** COMPUTING  METHODS ***********************/
     /******************************************************************/
 
     /**
-    * this is called during the assembling process in order
+    * This is called during the assembling process in order
     * to calculate all condition contributions to the global system
     * matrix and the right hand side
     * @param rLeftHandSideMatrix: the condition left hand side matrix
@@ -398,7 +370,7 @@ public:
         );
 
     /**
-    * this function provides a more general interface to the condition.
+    * This function provides a more general interface to the condition.
     * it is designed so that rLHSvariables and rRHSvariables are passed TO the condition
     * thus telling what is the desired output
     * @param rLeftHandSideMatrices: container with the output left hand side matrices
@@ -415,7 +387,7 @@ public:
         );
 
     /**
-    * this is called during the assembling process in order
+    * This is called during the assembling process in order
     * to calculate the condition right hand side vector only
     * @param rRightHandSideVector: the condition right hand side vector
     * @param rCurrentProcessInfo: the current process info instance
@@ -426,7 +398,7 @@ public:
         );
 
     /**
-    * this function provides a more general interface to the condition.
+    * This function provides a more general interface to the condition.
     * it is designed so that rRHSvariables are passed TO the condition
     * thus telling what is the desired output
     * @param rRightHandSideVectors: container for the desired RHS output
@@ -439,7 +411,7 @@ public:
         );
 
     /**
-    * this is called during the assembling process in order
+    * This is called during the assembling process in order
     * to calculate the condition left hand side matrix only
     * @param rLeftHandSideMatrix: the condition left hand side matrix
     * @param rCurrentProcessInfo: the current process info instance
@@ -450,7 +422,7 @@ public:
         );
 
     /**
-    * this function provides a more general interface to the condition.
+    * This function provides a more general interface to the condition.
     * it is designed so that rRHSvariables are passed TO the condition
     * thus telling what is the desired output
     * @param rRightHandSideVectors: container for the desired LHS output
@@ -462,7 +434,7 @@ public:
         ProcessInfo& rCurrentProcessInfo 
         );
 
-    /*
+    /**
     * Calculates the condition contribution
     */
     virtual void CalculateConditionSystem( 
@@ -477,8 +449,34 @@ public:
         GeneralVariables& rVariables,
         const unsigned int& rMasterElementIndex 
         );
+
     /**
-    * Initialize General Variables
+    * This function assigns the active and the inactive sets of the current condition
+    */
+    void InitializeActiveSet( GeneralVariables& rVariables );
+                  
+    /*
+    * This fucntion loops over the slave nodes to determine the
+    * active set of nodes and the inactive set of nodes
+    * pointers to those nodes are stored in private arrays
+    */                  
+        void DetermineActiveAndInactiveSets(
+        std::vector<unsigned int>& rActiveNodes,
+        std::vector<unsigned int>& rInactiveNodes,
+        const unsigned int& rCondIndex
+        );
+
+    /**
+    * 
+    */
+    void CalculateNormalGapAtIntegrationPoint(
+    GeneralVariables& rVariables,
+    const unsigned int& rPointNumber
+    );
+    
+    /**
+    * Initialize the mortar condition matrices
+    * D and M matrices and the directional derivatives matrices
     */
     virtual void InitializeConditionMatrices( 
         GeneralVariables& rVariables,
@@ -486,8 +484,26 @@ public:
         const unsigned int& rPointNumber,
         const bool& rCalculateSlaveContributions
         );
+                  
+    /**
+    * This function loops over all conditions and calculates the overall number of DOFs
+    * total_dofs = SUM( master_u_dofs + slave_u_dofs + active_slave_lambda_dofs )
+    */
+    const unsigned int& CalculateConditionSize( );
 
-    /*
+    /**
+    * Loops over all master elements in the condition and
+    * sum up their nodes - used to size the system matrices
+    */
+    const unsigned int& CalculateTotalNumberOfMasterNodes( );
+    
+    /**
+    * This method loops over the vector of active nodes stored in the container
+    * correspoding to rPairIndex and counts the number of active nodes there
+    */
+    const unsigned int& CalculateNumberOfActiveNodesInContactPair( const unsigned int& rPairIndex );
+
+    /**
     * Calculate condition kinematics
     */
     void CalculateKinematics( 
@@ -510,78 +526,6 @@ public:
         double& rIntegrationWeight,
         const bool& rCalculateSlaveContributions 
         );
-
-    /*
-    * Calculate mortar matrices directional derivatives
-    */
-    void CalculateDeltaDAndDeltaM( 
-        GeneralVariables& rVariables,
-        double& rIntegrationWeight,
-        const bool& rCalculateSlaveContributions 
-        );
-
-    /*
-    * Calculate slave element's Jacobian directional derivative
-    */
-    void CalculateDeltaJSlave( 
-        GeneralVariables& rVariables,
-        double& rIntegrationWeight,
-        const bool& rCalculateSlaveContributions,
-        const IndexType& rPointNumber
-        );
-
-    /*
-    * Calculate Lagrange multiplier shape functions directional derivative
-    */
-    void CalculateDeltaPhi( 
-        GeneralVariables& rVariables,
-        double& rIntegrationWeight,
-        const bool& rCalculateSlaveContributions
-        );
-
-    /*
-     * Calculate the normal gap between a given integration point on the
-     * slave element and its projected position on the master element
-     */
-    void CalculateNormalGapAtIntegrationPoint(
-        GeneralVariables& rVariables,
-        const IndexType& rPointNumber );
-
-
-    /*
-     * Calculates the linearization of the discrete gap function
-     * g_h = normal_vector * ( x_gauss_point - x_gauss_point_projection )
-     */
-    void CalculateDeltaDiscreteGap(
-        GeneralVariables& rVariables,
-        const IndexType& rPointNumber );
-
-
-    void CalculateDeltaIntegrationPointNormal(
-        GeneralVariables& rVariables,
-        const IndexType& rPointNumber,
-        const unsigned int& rIndexSlave,
-        MatrixType& rDeltaIntPtNormal );
-
-
-    void CalculateDeltaNodalNormal(
-        GeneralVariables& rVariables,
-        const IndexType& rPointNumber,
-        MatrixType& rDeltaNodalNormal );
-
-
-    void CalculateDeltaElementalNormal(
-        GeneralVariables& rVariables,
-        const IndexType& rPointNumber,
-        MatrixType& rDeltaElementalNormal );
-
-    /*
-     * Calcualte Mortar Projection Operator tranpose - P' = ( D_{AA}^{-1} * M_{A} )'
-     * and appends it to the vector of projection operators
-     * This is the LHS contribution related to all Lagrange multipliers DOFs in the contact surfaces
-     * This is only applicable for DUAL LAGRANGE MULTIPLIERS
-     */
-    void CalculateAndAppendMortarProjectionMatrixTranspose( GeneralVariables& rVariables );
 
     /*******************************************************************************/
     /*******************************************************************************/
@@ -612,12 +556,21 @@ public:
         GeneralVariables& rVariables,
         double& rIntegrationWeight 
         );
-
+                  
+    /*
+    * 
+    */
+    void CalculateAndAddInternalForces(
+        VectorType& rRightHandSideVector,
+        GeneralVariables & rVariables,
+        double& rIntegrationWeight
+        );
+    
     /*
     * Assmbles the contact pair RHS block into the condition's RHS
     */
     void AssembleContactPairRHSToConditionSystem( 
-        const unsigned int rMasterElementIndex,
+        const unsigned int rPairIndex,
         VectorType& rPairRHS,
         VectorType& rConditionRHS 
         );
@@ -627,49 +580,15 @@ public:
     /***********************************************************************************/
 
     /*
-    * Calculate contact stiffness - contribution of the mortar condition to the system stiffness matrix
-    * This is the LHS contribution related to all displacement DOFs in the contact surfaces
+    * Calculates B_co = [ -M, D ], where D and M are the mortar condition matrices
     */
-    void CalculateAndAddKco( 
+    void CalculateAndAddMortarContactOperator( 
         MatrixType& rLeftHandSideMatrix,
         GeneralVariables& rVariables,
         double& rIntegrationWeight 
     );
-
-    /*
-    * Calculate weighted gap derivatives
-    * This is the contributions of the derivatives of the weighted gap functions to the system stiffness matrix
-    * These contributions are related to the displacemenet DOFs of the nodes of the contact surfaces
-    */
-    void CalculateAndAddGapDerivatives( 
-        MatrixType& rLeftHandSideMatrix,
-        GeneralVariables& rVariables,
-        double& rIntegrationWeight 
-        );
-
-
-    /**************************************************************************/
-    /********** AUXILLIARY METHODS FOR CONDITION CONTRIBUTION TO RHS **********/
-    /**************************************************************************/
-
-    /*
-    * Add the contact forces from the previous solution step to the RHS vector
-    */
-    void CalculateAndAddContactForces( 
-        VectorType& rRightHandSideVector,
-        GeneralVariables& rVariables,
-        double& rIntegrationWeight 
-        );
+        
     
-    /*
-    * Add the nodal gaps to the RHS vector
-    */
-    void CalculateAndAddGapsVector( 
-        VectorType& rRightHandSideVector,
-        GeneralVariables& rVariables,
-        double& rIntegrationWeight 
-        );
-
     /******************************************************************/
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
     /******************************************************************/
@@ -710,13 +629,6 @@ public:
         DofsVectorType& rConditionalDofList,
         ProcessInfo& rCurrentProcessInfo 
         );
-
-    /*
-    * This is an interface function to access the P matrices stored in the matrices struct
-    * the builder will require these matrices to assemble the stiffness matrix of the non-contact elements
-    * and the residuals vector in the RHS
-    */
-    void GetMortarProjectionMatricesTranspose( std::vector< MatrixType >& rMortarProjectionMatricesTranspose );
 
     /**
     * Get on rVariable a double Value
@@ -793,9 +705,8 @@ private:
 
     IntegrationMethod mThisIntegrationMethod;
 
-    std::vector<GeometryType::Pointer> mThisMasterElements;
-    std::vector< unsigned int > mThisInactiveSlaveNodes;
-    std::vector< unsigned int > mThisActiveSlaveNodes;
+    // might be a good idea to move those three vectors to the contact container
+    std::vector<Condition*> mThisMasterElements;
 
     MortarConditionMatrices mThisMortarConditionMatrices;
 

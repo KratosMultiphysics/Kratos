@@ -87,12 +87,25 @@ class ContactProcess(KratosMultiphysics.Process):
         pass
     
     def ExecuteInitializeSolutionStep(self):
+        #pass
+        
         if self.params["contact_type"].GetString() == "MortarMethod":
             self.contact_search.CreateMortarConditions(self.search_factor,self.max_number_results,self.type_search, self.bidirectional, self.integration_order)
         elif self.params["contact_type"].GetString() == "NTN":
             self.contact_search.CreateNTNConditions(self.search_factor,self.max_number_results,self.type_search, self.bidirectional, self.integration_order)
         elif self.params["contact_type"].GetString() == "NTS":
             self.contact_search.CreateNTSConditions(self.search_factor,self.max_number_results,self.type_search, self.bidirectional, self.integration_order)
+            
+        # TO CHECK
+        #for condition in  self.o_interface.Conditions:
+            #condition.Set(KratosMultiphysics.ACTIVE, True)
+ 
+        #del condition 
+        
+        #for condition in  self.d_interface.Conditions:
+            #condition.Set(KratosMultiphysics.ACTIVE, True)
+            
+        #del condition
  
     def ExecuteFinalizeSolutionStep(self):
         pass
