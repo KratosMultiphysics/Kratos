@@ -42,11 +42,17 @@ solver.AddDofs()
 
 ## Initialize GiD  I/O
 from gid_output_process import GiDOutputProcess
-gid_output = GiDOutputProcess(solver.GetComputeModelPart(),
-                              ProjectParameters["problem_data"]["problem_name"].GetString() ,
-                              ProjectParameters["output_configuration"])
 
-gid_output.ExecuteInitialize()
+gid_output_structure = GiDOutputProcess(solver.structure_solver.GetComputeModelPart(),
+                                    ProjectParameters["structure_solver_settings"]["problem_data"]["problem_name"].GetString()+"_structure",
+                                    ProjectParameters["structure_solver_settings"]["output_configuration"])
+
+gid_output_fluid = GiDOutputProcess(solver.fluid_solver.GetComputeModelPart(),
+                                    ProjectParameters["fluid_solver_settings"]["problem_data"]["problem_name"].GetString()+"_fluid",
+                                    ProjectParameters["fluid_solver_settings"]["output_configuration"])
+
+gid_output_structure.ExecuteInitialize()
+gid_output_fluid.ExecuteInitialize()
 
 ##here all of the allocation of the strategies etc is done
 solver.Initialize()
