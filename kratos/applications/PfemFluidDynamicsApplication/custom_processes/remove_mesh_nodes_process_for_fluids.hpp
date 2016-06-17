@@ -922,7 +922,7 @@ private:
 
 		      Geometry<Node<3> > geom( PointsArray );
 
-		      Vector N = ZeroVector(2);
+		      std::vector<double> N(2);
 		      N[0] = 0.5;
 		      N[1] = 0.5;
 
