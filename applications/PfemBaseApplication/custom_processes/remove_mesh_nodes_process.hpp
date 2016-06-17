@@ -915,12 +915,13 @@ private:
 
 		      Geometry<Node<3> > geom( PointsArray );
 
-		      Vector N = ZeroVector(2);
-		      N[0] = 0.5;
-		      N[1] = 0.5;
+		      std::vector<double> ShapeFunctionsN(2);
+		      std::fill( ShapeFunctionsN.begin(), ShapeFunctionsN.end(), 0.0 );
+		      ShapeFunctionsN[0] = 0.5;
+		      ShapeFunctionsN[1] = 0.5;
 
 		      MeshDataTransferUtilities DataTransferUtilities;
-		      DataTransferUtilities.Interpolate2Nodes( geom, N, variables_list, Node0);
+		      DataTransferUtilities.Interpolate2Nodes( geom, ShapeFunctionsN, variables_list, Node0);
 
 		      // unsigned int buffer_size = Node0.GetBufferSize();
 		      // unsigned int step_data_size = mrModelPart.GetNodalSolutionStepDataSize();

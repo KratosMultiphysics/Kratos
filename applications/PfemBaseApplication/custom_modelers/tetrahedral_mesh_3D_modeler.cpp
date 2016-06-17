@@ -1477,7 +1477,7 @@ namespace Kratos
 
 	    //std::cout<<" ******** ELEMENT "<<el+1<<" ********** "<<std::endl;
 
-	    double Alpha =  rMeshingVariables.AlphaParameter;
+	    double Alpha =  rMeshingVariables.AlphaParameter * 2.8;
 
 	    if(numboundary>=2)
 	      Alpha*=1.8;
@@ -2001,7 +2001,7 @@ namespace Kratos
     //     }
     // }
 
-    array_1d<double,3> N;
+    std::vector<double> N(4);
     array_1d<double,3> x1,x2,x3,x4;
 
     int point_base;
