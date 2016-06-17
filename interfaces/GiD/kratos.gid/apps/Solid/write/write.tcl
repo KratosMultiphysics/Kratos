@@ -1,6 +1,6 @@
 namespace eval Solid::write {
     variable nodalwrite
-    
+    variable validApps
     variable ConditionsDictGroupIterators
     variable NodalConditionsGroup
 }
@@ -14,8 +14,16 @@ proc Solid::write::Init { } {
     variable NodalConditionsGroup
     set ConditionsDictGroupIterators [dict create]
     set NodalConditionsGroup [list ]
+    
+    variable validApps
+    set validApps [list "Solid"]
 }
 
+proc Solid::write::AddValidApps {appList} {
+    variable validApps
+    set validApps [list "Solid"]
+    lappend validApps $appList
+}
 
 proc Solid::write::writeCustomFilesEvent { } {
     WriteMaterialsFile
@@ -88,7 +96,7 @@ proc Solid::write::writeCustomBlock { } {
 
 # Custom files
 proc Solid::write::WriteMaterialsFile { } {
-    # Materials.py
+    variable validApps
     
     write::OpenFile "materials.py"
     
@@ -104,15 +112,16 @@ def AssignMaterial(Properties):
     # material for solid material
 "
     foreach {part mat} [write::getMatDict] {
-        append str "
+        if {[dict get $mat APPID] in $validApps} {
+            append str "
     prop_id = [dict get $mat MID];
     prop = Properties\[prop_id\]
     mat = [dict get $mat ConstitutiveLaw]()
     prop.SetValue(CONSTITUTIVE_LAW, mat.Clone())
         "
+            write::WriteString $str
+        }
     }
-    write::WriteString $str
-    
     write::CloseFile
     
 }

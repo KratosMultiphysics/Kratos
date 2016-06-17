@@ -153,20 +153,20 @@ proc write::writeNodalCoordinates { } {
     WriteString "\n"
 }
 
-proc write::processMaterials {  } {
+proc write::processMaterials { } {
     variable parts
     variable matun
+    variable mat_dict
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     
-    variable mat_dict
     set xp1 "[spdAux::getRoute $parts]/group"
     set xp2 ".//value\[@n='Material']"
     
-    set mat_dict ""
-    set material_number 0 
+    set material_number [llength [dict keys $mat_dict] ] 
     
     foreach gNode [$root selectNodes $xp1] {
+        set nodeApp [spdAux::GetAppIdFromNode $gNode]
         set group [$gNode getAttribute n]
         #set valueNode [$gNode selectNodes $xp2]
         #set material_name [get_domnode_attribute $valueNode v] 
@@ -179,6 +179,7 @@ proc write::processMaterials {  } {
             append xp3 [format_xpath {/blockdata[@n="material" and @name=%s]/value} $material_name]
         
             dict set mat_dict $group MID $material_number 
+            dict set mat_dict $group APPID $nodeApp
             
             set s1 [$gNode selectNodes ".//value"]
             set s2 [$root selectNodes $xp3]
