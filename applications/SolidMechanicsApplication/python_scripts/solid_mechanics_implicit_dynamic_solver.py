@@ -127,8 +127,8 @@ class ImplicitMechanicalSolver:
             aux_params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
             
             # CheckAndPrepareModelProcess creates the solid_computational_model_part
-            import check_and_preparemodel_process
-            check_and_preparemodel_process.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
+            import check_and_preparemodel_process_solid
+            check_and_preparemodel_process_solid.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
             
             # Constitutive law import
             import constitutive_law_python_utility as constitutive_law_utils
