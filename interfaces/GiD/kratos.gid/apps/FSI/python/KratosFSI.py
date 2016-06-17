@@ -1,10 +1,11 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 from KratosMultiphysics import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
-from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.ExternalSolversApplication import *
-from KratosMultiphysics.MeshingApplication import *
+#~ from KratosMultiphysics.IncompressibleFluidApplication import *
+#~ from KratosMultiphysics.FluidDynamicsApplication import *
+from KratosMultiphysics.FSIApplication import *
+#~ from KratosMultiphysics.ExternalSolversApplication import *
+#~ from KratosMultiphysics.MeshingApplication import *
 
 ######################################################################################
 ######################################################################################
@@ -16,17 +17,20 @@ parameter_file = open("ProjectParameters.json",'r')
 ProjectParameters = Parameters( parameter_file.read())
 
 
-## Fluid-Structure full model part definition 
-main_model_part = ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
-main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
+## Fluid-Structure model parts definition 
+structure_main_model_part = ModelPart(ProjectParameters["structure_solver_settings"]["problem_data"]["model_part_name"].GetString())
+structure_main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["structure_solver_settings"]["problem_data"]["domain_size"].GetInt())
+
+fluid_main_model_part = ModelPart(ProjectParameters["fluid_solver_settings"]["problem_data"]["model_part_name"].GetString())
+fluid_main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["fluid_solver_settings"]["problem_data"]["domain_size"].GetInt())
 
 ###TODO replace this "model" for real one once available
-Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main_model_part}
+FluidModel = {ProjectParameters["structure_solver_settings"]["problem_data"]["model_part_name"].GetString() : structure_main_model_part}
+SolidModel = {ProjectParameters["fluid_solver_settings"]["problem_data"]["model_part_name"].GetString() : fluid_main_model_part}
 
 ## Solver construction
-#~ solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
 solver_module = __import__("partitioned_fsi_solver") # Currently there is only one FSI solver up to date
-solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_settings"])
+solver = solver_module.CreateSolver(structure_main_model_part, fluid_main_model_part, ProjectParameters)
 
 solver.AddVariables()
 
