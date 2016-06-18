@@ -130,6 +130,7 @@ proc spdAux::activeApp { appid } {
     parseRoutes
     #apps::ExecuteOnCurrent init MultiAppEvent
     catch {apps::ExecuteOnCurrent init MultiAppEvent}
+    catch {apps::ExecuteOnCurrent "" CustomTree}
     
     set nd ""
     catch {set nd [$root selectNodes "value\[@n='nDim'\]"]} 
@@ -500,6 +501,23 @@ proc spdAux::ConvertAllUniqueNames {oldPrefix newPrefix} {
     }
     
     spdAux::parseRoutes
+}
+
+proc spdAux::SetValueOnTreeItem { field value name {it "" } } {
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    #W "$field $value $name $it"
+    set node ""
+    catch {
+        set xp [getRoute $name]
+        set node [$root selectNodes $xp]
+        if {$it ne ""} {set node [$node find n $it]}
+    }
+    if {$node ne ""} {
+        gid_groups_conds::setAttributes [$node toXPath] {state hidden}
+    } {
+        W "$name $it not found"
+    }
 }
 
 proc spdAux::ListToValues {lista} {
@@ -1334,7 +1352,7 @@ proc spdAux::ProcElementOutputState { domNode args } {
 proc spdAux::ProcActiveIfAnyPartState { domNode args } {
     
     set parts ""
-    set nodeApp [GetAppIdFromNode $outnode]
+    set nodeApp [GetAppIdFromNode $domNode]
     set parts_un [apps::getAppUniqueName $nodeApp Parts]
     catch {
         set parts [$domNode selectNodes "[spdAux::getRoute $parts_un]/group"]

@@ -872,7 +872,7 @@ proc write::getValue { name { it "" } } {
     if {$it ne ""} {set node [$node find n $it]}
     
     if {[get_domnode_attribute $node v] eq ""} {
-	catch {get_domnode_attribute $node values}
+	catch {get_domnode_attribute $node dict}
     }
     set v ""
     catch {set v [expr [get_domnode_attribute $node v]]}
