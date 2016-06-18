@@ -439,6 +439,22 @@ public:
     );
     
     /**
+     * Fills
+     * @param 
+     * @return 
+     */
+    
+    void MortarContainerFiller(
+        const PointType::Pointer PointOfList,
+        const PointType::Pointer PointFound,
+        const Condition::Pointer & pCond_1,
+        const Condition::Pointer & pCond_2,
+        std::vector<contact_container> *& ConditionPointers,
+        const IntegrationMethod & IntegrationOrder,
+        const bool orig_dest
+        );
+    
+    /**
      * Project
      * @param 
      * @return 
@@ -448,8 +464,8 @@ public:
         const Point<3>& PointOrigin,
         const Point<3>& PointDestiny,
         Point<3>& PointProjected,
-        double & dist,
-        const array_1d<double,3> & Normal
+        double& dist,
+        const array_1d<double,3>& Normal
         );
     
     /**
