@@ -304,14 +304,14 @@ public:
     */
     virtual double Length() const
     {
-        const TPointType& point0 = BaseType::GetPoint(0);
-        const TPointType& point1 = BaseType::GetPoint(1);
-        const double lx = point0.X() - point1.X();
-        const double ly = point0.Y() - point1.Y();
+        const TPointType& FirstPoint  = BaseType::GetPoint(0);
+        const TPointType& SecondPoint = BaseType::GetPoint(1);
+        const double lx = FirstPoint.X() - SecondPoint.X();
+        const double ly = FirstPoint.Y() - SecondPoint.Y();
         
         const double length = lx * lx + ly * ly;
         
-        return sqrt( length );
+        return std::sqrt( length );
     }
 
     /** This method calculate and return area or surface area of
@@ -343,18 +343,15 @@ public:
     */
     virtual double DomainSize() const
     {
-        const TPointType& point0 = BaseType::GetPoint(0);
-        const TPointType& point1 = BaseType::GetPoint(1);
-        const double lx = point0.X() - point1.X();
-        const double ly = point0.Y() - point1.Y();
+        const TPointType& FirstPoint = BaseType::GetPoint(0);
+        const TPointType& SecondPoint = BaseType::GetPoint(1);
+        const double lx = FirstPoint.X() - SecondPoint.X();
+        const double ly = FirstPoint.Y() - SecondPoint.Y();
         
         const double length = lx * lx + ly * ly;
         
-        return sqrt( length );
+        return std::sqrt( length );
     }
-
-
-
 
 //      virtual void Bounding_Box(BoundingBox<TPointType, BaseType>& rResult) const
 //              {
@@ -780,7 +777,7 @@ public:
     {
         PointLocalCoordinates( rResult, rPoint );
 
-        double tol = 1.0e-18;
+        double tol = 1.0e-14;
 
         if ( rResult[0] >= (-1.0 - tol) && rResult[0] <= (1.0 + tol) )
         {
@@ -806,32 +803,42 @@ public:
 
         rResult = ZeroVector( 1 );
 
-        const TPointType& point0 = BaseType::GetPoint(0);
-        const TPointType& point1 = BaseType::GetPoint(1);
+        const TPointType& FirstPoint  = BaseType::GetPoint(0);
+        const TPointType& SecondPoint = BaseType::GetPoint(1);
 
         // Project point
-        double tol = 1e-12; // Tolerance
-        double a = (point1[1] - point0[1])/((point1[0] - point0[0]) + tol);
-        double b = point0[1] - a * point0[0];
+        double tol = 1e-14; // Tolerance
+        
+        // Normal
+        array_1d<double,2> Normal = ZeroVector(2);
+        Normal[0] = SecondPoint[1] -  FirstPoint[1];
+        Normal[1] =  FirstPoint[0] - SecondPoint[0];
+        double norm = std::sqrt(Normal[0] * Normal[0] + Normal[1] * Normal[1]);
+        Normal /= norm;
+        
+        // Vector point and distance
+        array_1d<double,2> VectorPoint = ZeroVector(2);
+        VectorPoint[0] = rPoint[0] - FirstPoint[0];
+        VectorPoint[1] = rPoint[1] - FirstPoint[1];
+        double dist_proy = VectorPoint[0] * Normal[0] + VectorPoint[1] * Normal[1];
 
         array_1d<double,2> Point_projected = ZeroVector(2);
-        Point_projected[0] = (rPoint[1] + rPoint[0]/(a + tol)-b)/(a + 1.0/(a + tol));
-        Point_projected[1] = a * Point_projected[0] + b;
-
-        double dist_proy = (rPoint[0] - Point_projected[0]) * (rPoint[0] - Point_projected[0])
-                         + (rPoint[1] - Point_projected[1]) * (rPoint[1] - Point_projected[1]);
-        dist_proy = std::sqrt(dist_proy);
+        Point_projected[0] = rPoint[0] - dist_proy * Normal[0];
+        Point_projected[1] = rPoint[1] - dist_proy * Normal[1];
+        
+        // KRATOS_WATCH(Point_projected);
+        // KRATOS_WATCH(dist_proy);
 
         if (dist_proy < tol)
         {
             double L  = Length();
             
-            double l1 = (Point_projected[0] - point0[0]) * (Point_projected[0] - point0[0])
-                      + (Point_projected[1] - point0[1]) * (Point_projected[1] - point0[1]);
+            double l1 = (Point_projected[0] - FirstPoint[0]) * (Point_projected[0] - FirstPoint[0])
+                      + (Point_projected[1] - FirstPoint[1]) * (Point_projected[1] - FirstPoint[1]);
             l1 = std::sqrt(l1);
             
-            double l2 = (Point_projected[0] - point1[0]) * (Point_projected[0] - point1[0])
-                      + (Point_projected[1] - point1[1]) * (Point_projected[1] - point1[1]);
+            double l2 = (Point_projected[0] - SecondPoint[0]) * (Point_projected[0] - SecondPoint[0])
+                      + (Point_projected[1] - SecondPoint[1]) * (Point_projected[1] - SecondPoint[1]);
             l2 = std::sqrt(l2);
             
             if (l1 <= L  && l2 <= L)
@@ -840,12 +847,12 @@ public:
             }
             else 
             {
-                rResult[0] = 1000.0; // Out of the line!!!
+                rResult[0] = 2.0; // Out of the line!!! TODO: Check if this value gives problems
             }
         }
         else
         {
-            rResult[0] = 1000.0; // Out of the line!!!
+            rResult[0] = 2.0; // Out of the line!!!
         }
 
         return( rResult );
