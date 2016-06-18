@@ -82,204 +82,6 @@ public:
      * @param rOriginPart: The original model part
      * @return InterfacePart: The interface model part
      */
-        
-//     void GenerateInterfacePart(
-//             const ModelPart& rOriginPart,
-//             ModelPart& InterfacePart,
-//             std::string ConditionType
-//             )
-//     {
-//         KRATOS_TRY;
-//         
-//         if (ConditionType.find("2N") != std::string::npos) 
-//         {
-//             GenerateLine2NInterfacePart(rOriginPart, InterfacePart, ConditionType);
-//         }
-//         else if ((ConditionType.find("3N") != std::string::npos) or (ConditionType.find("Condition3D") != std::string::npos)) // It will be assumed that the quadratic lines can not be created with this due to the confusion with th triangle
-//         {
-//             GenerateTriangle3NInterfacePart(rOriginPart, InterfacePart, ConditionType);
-//         }
-//         else if (ConditionType.find("6N") != std::string::npos) 
-//         {
-//             GenerateTriangle6NInterfacePart(rOriginPart, InterfacePart, ConditionType);
-//         }
-//         else if (ConditionType.find("4N") != std::string::npos) 
-//         {
-//             GenerateQuadrilateral4NInterfacePart(rOriginPart, InterfacePart, ConditionType);
-//         }
-//         else if (ConditionType.find("8N") != std::string::npos) 
-//         {
-//             GenerateQuadrilateral8NInterfacePart(rOriginPart, InterfacePart, ConditionType);
-//         }
-//         else if (ConditionType.find("9N") != std::string::npos) 
-//         {
-//             GenerateQuadrilateral9NInterfacePart(rOriginPart, InterfacePart, ConditionType);
-//         }
-//         else
-//         {
-//             KRATOS_THROW_ERROR( std::logic_error, "The custom name condition can not be identified", "" );
-//         }   
-//       
-//         KRATOS_CATCH("");
-//     }
-    
-//     void GenerateInterfacePart(
-//             const ModelPart& rOriginPart,
-//             ModelPart& InterfacePart,
-//             std::string ConditionType
-//             )
-//     {
-//         KRATOS_TRY;
-//         
-//         const unsigned int dimension = rOriginPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-//         
-//         // Store pointers to all interface nodes
-//         unsigned int NodesCounter = 0;
-//         for (ModelPart::NodesContainerType::const_iterator node_it = rOriginPart.NodesBegin(); node_it != rOriginPart.NodesEnd(); node_it++)
-//         {
-//             if (node_it->Is(INTERFACE) == true)
-//             {
-//                 InterfacePart.Nodes().push_back( *(node_it.base()) );
-//                 NodesCounter ++;
-//             }
-//         }
-//         
-//         ModelPart::ConditionsContainerType aux;
-//         unsigned int CondCounter = 0;
-//         Condition::IndexType CondId = rOriginPart.ConditionsEnd()->Id(); // Id 
-//         
-//         if (dimension == 2)
-//         {
-//             // Generate Conditions from original the edges that can be considered interface
-//             for (ModelPart::ElementsContainerType::const_iterator elem_it = rOriginPart.ElementsBegin(); elem_it != rOriginPart.ElementsEnd(); elem_it++)
-//             {
-//                 for (unsigned int it_edge = 0; it_edge < (*elem_it).GetGeometry().EdgesNumber(); it_edge++)
-//                 {
-//                     bool interface = true;
-//                     unsigned int number_points = (*elem_it).GetGeometry().Edges()[it_edge].PointsNumber();
-//                     for (unsigned int node_it = 0; node_it < number_points; node_it++)
-//                     {
-//                         if ((*elem_it).GetGeometry().Edges()[it_edge][node_it].Is(INTERFACE) == false)  
-//                         {
-//                             interface = false;
-//                         }
-//                     }
-//                     
-//                     if (interface == true)
-//                     {
-//                         std::string EdgeConditionType;
-//                         if (number_points == 2)
-//                         {
-//                             EdgeConditionType = "Condition2D2N";
-//                         }
-//                         else
-//                         {
-//                             EdgeConditionType = "Condition2D3N"; 
-//                         }
-//                         
-//                         const Condition& rCondition = KratosComponents<Condition>::Get(EdgeConditionType); 
-//                         aux.push_back( rCondition.Create(CondId++, (*elem_it).GetGeometry().Edges()[it_edge], (*elem_it).pGetProperties()));
-//                         CondCounter ++;
-//                     }
-//                 }
-//             }
-//         }
-//         else
-//         {
-//             // Generate Conditions from original the faces that can be considered interface
-//             for (ModelPart::ElementsContainerType::const_iterator elem_it = rOriginPart.ElementsBegin(); elem_it != rOriginPart.ElementsEnd(); elem_it++)
-//             {
-//                 for (unsigned int it_face = 0; it_face < (*elem_it).GetGeometry().FacesNumber(); it_face++)
-//                 {
-//                     bool interface = true;
-//                     unsigned int number_points = (*elem_it).GetGeometry().Faces()[it_face].PointsNumber();
-//                     for (unsigned int node_it = 0; node_it < number_points; node_it++)
-//                     {
-//                         if ((*elem_it).GetGeometry().Faces()[it_face][node_it].Is(INTERFACE) == false)  
-//                         {
-//                             interface = false;
-//                         }
-//                     }
-//                     
-//                     if (interface == true)
-//                     {
-//                         std::string FaceConditionType;
-//                         if (number_points == 3)
-//                         {
-//                             FaceConditionType = "Condition3D";
-//                         }
-//                         else if (number_points == 4)
-//                         {
-//                             FaceConditionType = "Condition3D4N";
-//                         }
-//                         else if (number_points == 6)
-//                         {
-//                             FaceConditionType = "Condition3D6N";
-//                         }
-//                         else if (number_points == 8)
-//                         {
-//                             FaceConditionType = "Condition3D8N";
-//                         }
-//                         else // Assuming it will not be a very weird geometry
-//                         {
-//                             FaceConditionType = "Condition3D9N";
-//                         }
-//                         
-//                         const Condition& rCondition = KratosComponents<Condition>::Get(FaceConditionType); 
-//                         aux.push_back( rCondition.Create(CondId++, (*elem_it).GetGeometry().Faces()[it_face], (*elem_it).pGetProperties()));
-//                         CondCounter ++;
-//                     }
-//                 }
-//             }
-//         }
-//         
-//         PrintNodesAndConditions(NodesCounter, CondCounter);
-//         
-//         if (dimension == 2)
-//         {
-//             if (ConditionType.find("2N") != std::string::npos) 
-//             {
-//                 GenerateLine2D2NConditions(aux, InterfacePart.Conditions(), ConditionType);
-//             }
-//             else if ((ConditionType.find("3N") != std::string::npos)) 
-//             {
-//                 GenerateTriangular3D3NConditions(aux, InterfacePart.Conditions(), ConditionType);
-//             }
-//             else
-//             {
-//                 KRATOS_THROW_ERROR( std::logic_error, "The custom name condition can not be identified", "" );
-//             }   
-//         }
-//         else
-//         {
-//             if ((ConditionType.find("3N") != std::string::npos) or (ConditionType.find("Condition3D") != std::string::npos)) // It will be assumed that the quadratic lines can not be created with this due to the confusion with th triangle
-//             {
-//                 GenerateTriangular3D3NConditions(aux, InterfacePart.Conditions(), ConditionType);
-//             }
-//             else if (ConditionType.find("6N") != std::string::npos) 
-//             {
-//                 GenerateTriangular3D6NConditions(aux, InterfacePart.Conditions(), ConditionType);
-//             }
-//             else if (ConditionType.find("4N") != std::string::npos) 
-//             {
-//                 GenerateQuadrilateral3D4NConditions(aux, InterfacePart.Conditions(), ConditionType);
-//             }
-//             else if (ConditionType.find("8N") != std::string::npos) 
-//             {
-//                 GenerateQuadrilateral3D8NConditions(aux, InterfacePart.Conditions(), ConditionType);
-//             }
-//             else if (ConditionType.find("9N") != std::string::npos) 
-//             {
-//                 GenerateQuadrilateral3D9NConditions(aux, InterfacePart.Conditions(), ConditionType);
-//             }
-//             else
-//             {
-//                 KRATOS_THROW_ERROR( std::logic_error, "The custom name condition can not be identified", "" );
-//             }   
-//         }
-//       
-//         KRATOS_CATCH("");
-//     }
     
     void GenerateInterfacePart(
             const ModelPart& rOriginPart,
@@ -334,12 +136,13 @@ public:
                             EdgeConditionType.append("Condition2D3N"); 
                         }
                         
-                        Condition rCondition = KratosComponents<Condition>::Get(EdgeConditionType); // TODO: Añadir el elemento
+                        Condition rCondition = KratosComponents<Condition>::Get(EdgeConditionType);
                         InterfacePart.Conditions().push_back( rCondition.Create(CondId++, (*elem_it).GetGeometry().Edges()[it_edge], (*elem_it).pGetProperties()));
                         if (ConditionType.find("Mortar") != std::string::npos)
                         {
                              Element::Pointer & pElem = rCondition.GetValue(ELEMENT_POINTER);
                              pElem = *(elem_it.base());
+                             // KRATOS_WATCH(pElem->Id());
                         }
                         CondCounter ++;
                     }
@@ -393,6 +196,7 @@ public:
                         {
                              Element::Pointer & pElem = rCondition.GetValue(ELEMENT_POINTER);
                              pElem = *(elem_it.base());
+                             // KRATOS_WATCH(pElem->Id());
                         }
                         CondCounter ++;
                     }
@@ -404,6 +208,9 @@ public:
       
         KRATOS_CATCH("");
     }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
     
     /**
      * Generate a new ModelPart containing only the interface. It will contain only linear linear conditions 
