@@ -471,10 +471,10 @@ template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::AddFdi(const int order, array_1d<double, 3>& F, const double t_win, const double ti, const double beta, const double alpha, const double dt, const vector<double>& historic_integrands, const array_1d<double, 3>& oldest_integrand)
 {
     if (order == 1){
-        const double normalized_dt = 0.5 * dt / ti;
-        const double coeff = 2 * std::sqrt(ti) * std::exp(beta * (t_win + dt - dt * alpha) + 0.5);
-        const double coeff_N = 1 - Phi(- normalized_dt);
-        const double coeff_N_plus_1 = std::exp(- normalized_dt) * (Phi(normalized_dt) - 1);
+        const double beta_dt = beta * dt;
+        const double coeff = 2 * std::sqrt(ti) * std::exp(beta * (t_win - dt + dt * alpha) + 0.5);
+        const double coeff_N = 1 - Phi(beta_dt);
+        const double coeff_N_plus_1 = std::exp(beta_dt) * (Phi(- beta_dt) - 1);
 
         F[0] +=  coeff * (coeff_N * historic_integrands[0] + coeff_N_plus_1 * oldest_integrand[0]);
         F[1] +=  coeff * (coeff_N * historic_integrands[1] + coeff_N_plus_1 * oldest_integrand[1]);
@@ -483,25 +483,22 @@ void SphericSwimmingParticle<TBaseElement>::AddFdi(const int order, array_1d<dou
 
     else if (order == 2){
         const double coeff = 0.5 * std::sqrt(1.0 / ti) / (SWIMMING_POW_3(beta) * SWIMMING_POW_2(dt));
-        const double exp_1 = std::exp(t_win * beta + 0.5);
-        const double exp_2 = std::exp(   dt * beta);
-        const double f00 = historic_integrands[3];
-        const double f01 = historic_integrands[4];
-        const double f02 = historic_integrands[5];
-        const double f10 = historic_integrands[0];
-        const double f11 = historic_integrands[1];
-        const double f12 = historic_integrands[2];
+        const double exp_1 = std::exp(beta * (t_win - dt + dt * alpha) + 0.5);
+        const double exp_2 = std::exp(beta * dt);
         const double f20 = oldest_integrand[0];
         const double f21 = oldest_integrand[1];
         const double f22 = oldest_integrand[2];
-        F[0] += coeff * exp_1 * (4 * f10 - 2 * f20 + dt * beta * (f20 - 2 * dt * beta * f10) - f00 * (2 + dt * beta + exp_2 * (dt * beta - 2))\
-                        + exp_2 * (4 * f10 * (dt * beta - 1) + f20 * (2 + dt * beta * (2 * dt * beta - 3))));
-        F[1] += coeff * exp_1 * (4 * f11 - 2 * f21 + dt * beta * (f21 - 2 * dt * beta * f11) - f01 * (2 + dt * beta + exp_2 * (dt * beta - 2))\
-                        + exp_2 * (4 * f11 * (dt * beta - 1) + f21 * (2 + dt * beta * (2 * dt * beta - 3))));
-        F[2] += coeff * exp_1 * (4 * f12 - 2 * f22 + dt * beta * (f22 - 2 * dt * beta * f12) - f02 * (2 + dt * beta + exp_2 * (dt * beta - 2))\
-                        + exp_2 * (4 * f12 * (dt * beta - 1) + f22 * (2 + dt * beta * (2 * dt * beta - 3))));
+        const double f10 = historic_integrands[0];
+        const double f11 = historic_integrands[1];
+        const double f12 = historic_integrands[2];
+        const double f00 = historic_integrands[3];
+        const double f01 = historic_integrands[4];
+        const double f02 = historic_integrands[5];
+        KRATOS_WATCH(coeff)
+        F[0] += coeff * exp_1 * (4 * f10 - 2 * f20 + dt * beta * (f20 - 2 * dt * beta * f10) - f00 * (2 + dt * beta * exp_2 * (dt * beta - 2)) + exp_2 * (4 * f10 * (dt * beta - 1) + f20 * (2 + dt * beta * (2 * dt * beta - 3))));
+        F[1] += coeff * exp_1 * (4 * f11 - 2 * f21 + dt * beta * (f21 - 2 * dt * beta * f11) - f01 * (2 + dt * beta * exp_2 * (dt * beta - 2)) + exp_2 * (4 * f11 * (dt * beta - 1) + f21 * (2 + dt * beta * (2 * dt * beta - 3))));
+        F[2] += coeff * exp_1 * (4 * f12 - 2 * f22 + dt * beta * (f22 - 2 * dt * beta * f12) - f02 * (2 + dt * beta * exp_2 * (dt * beta - 2)) + exp_2 * (4 * f12 * (dt * beta - 1) + f22 * (2 + dt * beta * (2 * dt * beta - 3))));
     }
-
     else {
         return;
     }
@@ -522,10 +519,10 @@ template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::AddHinsbergTailContribution(NodeType& node, array_1d<double, 3>& fractional_derivative_of_slip_vel, const int order, const int n_steps_per_quad_step, const double time, const double quadrature_delta_time, const double last_h_over_h, vector<double>& historic_integrands)
 {
     vector<double>& hinsberg_tail_contributions = node.GetValue(HINSBERG_TAIL_CONTRIBUTIONS);
-    int m = hinsberg_tail_contributions.size() / 3 - 1; // number of exponentials: the last three slots hold the oldest historic integrand
+    int m = hinsberg_tail_contributions.size() / 3 - 1; // number of exponentials: the last three slots hold the components of the oldest historic integrand
     const double t_win = SphericSwimmingParticle<TBaseElement>::mTimeWindow;
 
-    if (2 * n_steps_per_quad_step * (time - t_win) > quadrature_delta_time){ // first calculation after appending and already later than t_win
+    if (n_steps_per_quad_step * last_h_over_h < 1.5 && 2 * n_steps_per_quad_step * (time - t_win) > quadrature_delta_time){ // first calculation after appending and already later than t_win
         array_1d<double, 3> oldest_integrand;
         oldest_integrand[0] = hinsberg_tail_contributions[3 * m];
         oldest_integrand[1] = hinsberg_tail_contributions[3 * m + 1];
@@ -540,12 +537,10 @@ void SphericSwimmingParticle<TBaseElement>::AddHinsbergTailContribution(NodeType
             Fi[1] = hinsberg_tail_contributions[3 * i + 1];
             Fi[2] = hinsberg_tail_contributions[3 * i + 2];
             AddFre(Fi, beta, quadrature_delta_time);
-            AddFdi(order, Fi, t_win, ti, beta, last_h_over_h, quadrature_delta_time, historic_integrands, oldest_integrand);
-            if (n_steps_per_quad_step * last_h_over_h < 1.5){
-                hinsberg_tail_contributions[3 * i]     = Fi[0];
-                hinsberg_tail_contributions[3 * i + 1] = Fi[1];
-                hinsberg_tail_contributions[3 * i + 2] = Fi[2];
-            }
+            AddFdi(order, Fi, t_win, ti, beta, 1.0, quadrature_delta_time, historic_integrands, oldest_integrand);
+            hinsberg_tail_contributions[3 * i]     = Fi[0];
+            hinsberg_tail_contributions[3 * i + 1] = Fi[1];
+            hinsberg_tail_contributions[3 * i + 2] = Fi[2];
         }
     }
 
@@ -561,7 +556,68 @@ void SphericSwimmingParticle<TBaseElement>::AddHinsbergTailContribution(NodeType
     const double sqrt_delta_time_inv = 1.0 / std::sqrt(quadrature_delta_time); // since the multiplication by sqrt(delta_time) corresponding to the F_win part is done to F_win + F_tail outside
     noalias(fractional_derivative_of_slip_vel) += sqrt_delta_time_inv * F_tail;
 }
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+template < class TBaseElement >
+void SphericSwimmingParticle<TBaseElement>::AddHinsbergTailContributionStrict(NodeType& node, array_1d<double, 3>& fractional_derivative_of_slip_vel, const int order, const int n_steps_per_quad_step, const double time, const double quadrature_delta_time, const double last_h_over_h, vector<double>& historic_integrands)
+{
+    vector<double>& hinsberg_tail_contributions = node.GetValue(HINSBERG_TAIL_CONTRIBUTIONS);
+    int m = hinsberg_tail_contributions.size() / 3 - 1; // number of exponentials: the last three slots hold the components of the oldest historic integrand
+    const double t_win = SphericSwimmingParticle<TBaseElement>::mTimeWindow;
+    const std::vector<double>& Ts = SphericSwimmingParticle<SphericParticle>::mTs;
+    const double delta_time = quadrature_delta_time / n_steps_per_quad_step;
 
+    if (m < 1){ // trivial, 0-exponentials case (there is no tail contribution)
+        return;
+    }
+
+    if (n_steps_per_quad_step * last_h_over_h < 1.5 && 2 * n_steps_per_quad_step * (time - t_win) > quadrature_delta_time){ // calculation right after last append (but at least later than t = t_win, so there is some tail)
+        array_1d<double, 3> oldest_integrand;
+        oldest_integrand[0] = hinsberg_tail_contributions[3 * m];
+        oldest_integrand[1] = hinsberg_tail_contributions[3 * m + 1];
+        oldest_integrand[2] = hinsberg_tail_contributions[3 * m + 2];
+        array_1d<double, 3> Fi;
+        KRATOS_WATCH(historic_integrands.size())
+
+        for (int i = 0; i < m; i++){
+            const double ti = Ts[i];
+            const double beta = - 0.5 / ti;
+            Fi[0] = hinsberg_tail_contributions[3 * i];
+            Fi[1] = hinsberg_tail_contributions[3 * i + 1];
+            Fi[2] = hinsberg_tail_contributions[3 * i + 2];
+            AddFre(Fi, beta, delta_time);
+            AddFdi(order, Fi, t_win, ti, beta, last_h_over_h, quadrature_delta_time, historic_integrands, oldest_integrand);
+            hinsberg_tail_contributions[3 * i]     = Fi[0];
+            hinsberg_tail_contributions[3 * i + 1] = Fi[1];
+            hinsberg_tail_contributions[3 * i + 2] = Fi[2];
+        }
+    }
+
+    else { // intermediate step: the time assigned to the tail has not changed (only an exponential factor is needed to correct fot the changing current time, which affects the approximate kernel)
+
+        for (int i = 0; i < m; i++){
+            const double ti = Ts[i];
+            const double beta = - 0.5 / ti;
+            const double exp_beta_dt = std::exp(beta * delta_time);
+            hinsberg_tail_contributions[3 * i]     *= exp_beta_dt;
+            hinsberg_tail_contributions[3 * i + 1] *= exp_beta_dt;
+            hinsberg_tail_contributions[3 * i + 2] *= exp_beta_dt;
+        }
+    }
+
+    array_1d<double, 3> F_tail = ZeroVector(3);
+    const std::vector<double>& As = SphericSwimmingParticle<TBaseElement>::mAs;
+
+    for (int i = 0; i < m; i++){
+        const double ai = As[i];
+        F_tail[0] += ai * hinsberg_tail_contributions[3 * i];
+        F_tail[1] += ai * hinsberg_tail_contributions[3 * i + 1];
+        F_tail[2] += ai * hinsberg_tail_contributions[3 * i + 2];
+    }
+
+    const double sqrt_delta_time_inv = 1.0 / std::sqrt(quadrature_delta_time); // since the multiplication by sqrt(delta_time) corresponding to the F_win part is done to F_win + F_tail outside
+    noalias(fractional_derivative_of_slip_vel) += sqrt_delta_time_inv * F_tail;
+}
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
@@ -590,6 +646,10 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(NodeType& node, d
 
             if (mBassetForceType == 3){
                 AddHinsbergTailContribution(node, fractional_derivative_of_slip_vel, mQuadratureOrder, n_steps_per_quad_step, time, quadrature_delta_time, last_h_over_h, historic_integrands);
+            }
+
+            if (mBassetForceType == 4){
+                AddHinsbergTailContributionStrict(node, fractional_derivative_of_slip_vel, mQuadratureOrder, n_steps_per_quad_step, time, quadrature_delta_time, last_h_over_h, historic_integrands);
             }
 
             array_1d<double, 3> basset_term    = fractional_derivative_of_slip_vel;
