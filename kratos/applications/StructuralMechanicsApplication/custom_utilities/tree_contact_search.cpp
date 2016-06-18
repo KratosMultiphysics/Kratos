@@ -391,8 +391,11 @@ void TreeContactSearch::CreateMortarConditions(
         {
             Condition::Pointer pCondOrigin = mPointListOrigin[cond_it]->GetCondition();
 
-            // Set the corresponding flags
-            pCondOrigin->Set(ACTIVE, true);
+            if (bidirectional == true)
+            {
+                // Set the corresponding flags
+                pCondOrigin->Set(ACTIVE, true);
+            }
 
             std::vector<contact_container> * ConditionPointersOrigin = pCondOrigin->GetValue(CONTACT_CONTAINERS);
             
@@ -403,160 +406,14 @@ void TreeContactSearch::CreateMortarConditions(
                 std::vector<contact_container> * ConditionPointersDestination = pCondDestination->GetValue(CONTACT_CONTAINERS);
                 
                 if (bidirectional == true)
-                {                                        
-                    contact_container contact_container_origin;
-                    
-                    contact_container_origin.condition = &* pCondDestination;
-                    
-                    // Define the normal to the contact
-                    array_1d<double, 3> & contact_normal_orig = pCondOrigin->GetValue(NORMAL);
-                    contact_normal_orig = mPointListOrigin[cond_it]->GetNormal();
-                    
-                    // Define the discrete contact gap
-                    Point<3> ProjectedPointDestination;
-                    const unsigned int number_nodes = pCondOrigin->GetGeometry().PointsNumber();
-                    contact_container_origin.contact_gap.resize(number_nodes);
-                    contact_container_origin.active_nodes.resize(number_nodes);
-                    
-                    for (unsigned int j = 0; j < number_nodes; j++)
-                    {
-                        Project(pCondOrigin->GetGeometry()[j], mPointListOrigin[cond_it]->GetPoint(), ProjectedPointDestination, contact_container_origin.contact_gap[j], contact_normal_orig);
-                        array_1d<double, 3> result;
-                        bool inside = pCondOrigin->GetGeometry().IsInside(ProjectedPointDestination, result);
-                        if (inside == true)
-                        {
-                            contact_container_origin.active_nodes[j] = true;
-                        }
-                        else
-                        {
-                            contact_container_origin.active_nodes[j] = false;
-                        }
-                    }
-                    
-//                     Project(PointsFound[i]->GetPoint(), mPointListOrigin[cond_it]->GetPoint(), ProjectedPointDestination, contact_container_origin.contact_gap, contact_normal_orig);
-                    
-                    // Define the contact area
-                    contact_container_origin.contact_area = 0.0;
-                    double aux_int = 0.0;
-                    /* Reading integration points */
-                    const GeometryType::IntegrationPointsArrayType& integration_points = pCondOrigin->GetGeometry().IntegrationPoints( IntegrationOrder );
-                    for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
-                    {
-                        Point<3> GaussPoint;
-                        Point<3> GaussPointLocalCoordinates;
-                        Point<3> ProjectedGaussPoint;
-                        GaussPointLocalCoordinates.Coordinate(1) = integration_points[PointNumber].X();
-                        GaussPointLocalCoordinates.Coordinate(2) = integration_points[PointNumber].Y();
-                        GaussPointLocalCoordinates.Coordinate(3) = integration_points[PointNumber].Z(); // This is supposed to be 0 always, in 1D and 2D
-                        
-                        array_1d<double, 3> result;
-                        GaussPoint = pCondDestination->GetGeometry().GlobalCoordinates(result, GaussPointLocalCoordinates);
-                        
-                        double dist_aux;
-                        Project(PointsFound[i]->GetPoint(), GaussPoint, ProjectedGaussPoint, dist_aux, contact_normal_orig);
-                        
-                        bool inside = pCondDestination->GetGeometry().IsInside(ProjectedGaussPoint, result);
-                        
-                        // Integration weigth
-                        double IntegrationWeight = integration_points[PointNumber].Weight();
-                        aux_int += IntegrationWeight;
-                        
-                        if (inside == true)
-                        {
-                            contact_container_origin.contact_area += IntegrationWeight;
-                        }
-                    }
-                    
-                    contact_container_origin.contact_area /= aux_int;
-                        
-                    ConditionPointersOrigin->push_back(contact_container_origin);
+                {
+                    MortarContainerFiller(mPointListOrigin[cond_it], PointsFound[i], pCondOrigin, pCondDestination, ConditionPointersOrigin, IntegrationOrder, true);
                 }
                 
                 // Set the corresponding flags
                 pCondDestination->Set(ACTIVE, true);
 
-                contact_container contact_container_destination;
-                    
-                contact_container_destination.condition = &* pCondOrigin;
-                
-                // Define the normal to the contact
-                array_1d<double, 3> & contact_normal_dest = pCondDestination->GetValue(NORMAL);
-                contact_normal_dest = PointsFound[i]->GetNormal();
-                
-                // Define the contact gap
-                Point<3> ProjectedPointOrigin;
-                const unsigned int number_nodes = pCondDestination->GetGeometry().PointsNumber();
-                contact_container_destination.contact_gap.resize(number_nodes);
-                contact_container_destination.active_nodes.resize(number_nodes);
-                
-                for (unsigned int j = 0; j < number_nodes; j++)
-                {
-                    Project(pCondDestination->GetGeometry()[j], PointsFound[i]->GetPoint(), ProjectedPointOrigin, contact_container_destination.contact_gap[j], contact_normal_dest);
-                    array_1d<double, 3> result;
-                    bool inside = pCondDestination->GetGeometry().IsInside(ProjectedPointOrigin, result);
-                    if (inside == true)
-                    {
-                        contact_container_destination.active_nodes[j] = true;
-                    }
-                    else
-                    {
-                        contact_container_destination.active_nodes[j] = false;
-                    }
-                }
-                
-//                 Project(mPointListOrigin[cond_it]->GetPoint(), PointsFound[i]->GetPoint(), ProjectedPointOrigin, contact_container_destination.contact_gap, contact_normal_dest);
-                
-                // Define the contact area
-                contact_container_destination.contact_area = 0.0;
-                double aux_int = 0.0;
-                
-//                 KRATOS_WATCH("-----------------------------------------------------------------------------------------------------------------")
-//                 KRATOS_WATCH(pCondDestination->Id());
-//                 KRATOS_WATCH(pCondDestination->GetGeometry());
-//                 KRATOS_WATCH(pCondOrigin->Id());
-//                 KRATOS_WATCH(pCondOrigin->GetGeometry());
-                
-                /* Reading integration points */
-                const GeometryType::IntegrationPointsArrayType& integration_points = pCondDestination->GetGeometry().IntegrationPoints( IntegrationOrder );
-                for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
-                {
-                    Point<3> GaussPoint;
-                    Point<3> GaussPointLocalCoordinates;
-                    Point<3> ProjectedGaussPoint;
-                    GaussPointLocalCoordinates.Coordinate(1) = integration_points[PointNumber].X();
-                    GaussPointLocalCoordinates.Coordinate(2) = integration_points[PointNumber].Y();
-                    GaussPointLocalCoordinates.Coordinate(3) = integration_points[PointNumber].Z(); // This is supposed to be 0 always, in 1D and 2D
-                    
-                    array_1d<double, 3> result;
-                    GaussPoint = pCondDestination->GetGeometry().GlobalCoordinates(result, GaussPointLocalCoordinates);
-                
-                    double dist_aux;
-                    Project(mPointListOrigin[cond_it]->GetPoint(), GaussPoint, ProjectedGaussPoint, dist_aux, contact_normal_dest);
-                    
-                    bool inside = pCondOrigin->GetGeometry().IsInside(ProjectedGaussPoint, result);
-                    
-//                     KRATOS_WATCH("----------------------------------")
-//                     KRATOS_WATCH(inside);
-//                     KRATOS_WATCH(result);
-//                     KRATOS_WATCH(GaussPoint);
-//                     KRATOS_WATCH(ProjectedGaussPoint);
-                    
-                    // Integration weigth
-                    double IntegrationWeight = integration_points[PointNumber].Weight();
-                    aux_int += IntegrationWeight;
-                    
-                    if (inside == true)
-                    {
-                        contact_container_destination.contact_area += IntegrationWeight;
-                    }
-//                     KRATOS_WATCH(contact_container_destination.contact_area/2.00); // Divided by two for the line
-                }
-                
-                contact_container_destination.contact_area /= aux_int;
-                
-                contact_container_destination.print();
-                
-                ConditionPointersDestination->push_back(contact_container_destination);
+                MortarContainerFiller(mPointListOrigin[cond_it], PointsFound[i], pCondDestination, pCondOrigin, ConditionPointersDestination, IntegrationOrder, false);
             }
         }
     }
@@ -568,12 +425,127 @@ void TreeContactSearch::CreateMortarConditions(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void TreeContactSearch::MortarContainerFiller(
+        const PointType::Pointer PointOfList,
+        const PointType::Pointer PointFound,
+        const Condition::Pointer & pCond_1,
+        const Condition::Pointer & pCond_2,
+        std::vector<contact_container> *& ConditionPointers,
+        const IntegrationMethod & IntegrationOrder,
+        const bool orig_dest
+        )
+{
+    contact_container contact_container;
+    
+    contact_container.condition = &* pCond_2;
+    
+    // Define the normal to the contact
+    array_1d<double, 3> & contact_normal = pCond_1->GetValue(NORMAL);
+    if (orig_dest == true)
+    {
+        contact_normal = PointOfList->GetNormal();
+    }
+    else
+    {
+        contact_normal = PointFound->GetNormal();
+    }
+    
+    // Define the discrete contact gap
+    Point<3> ProjectedPoint;
+    const unsigned int number_nodes = pCond_1->GetGeometry().PointsNumber();
+    contact_container.contact_gap.resize(number_nodes);
+    contact_container.active_nodes.resize(number_nodes);
+    
+    for (unsigned int j_index = 0; j_index < number_nodes; j_index++)
+    {
+        if (orig_dest == true)
+        {
+            Project(PointFound->GetPoint(),  pCond_1->GetGeometry()[j_index], ProjectedPoint, contact_container.contact_gap[j_index], contact_normal);
+        }
+        else
+        {
+            Project(PointOfList->GetPoint(), pCond_1->GetGeometry()[j_index], ProjectedPoint, contact_container.contact_gap[j_index], contact_normal);
+        }
+        
+        array_1d<double, 3> result;
+        bool inside = pCond_2->GetGeometry().IsInside(ProjectedPoint, result);
+        if (inside == true)
+        {
+            contact_container.active_nodes[j_index] = true;
+        }
+        else
+        {
+            contact_container.active_nodes[j_index] = false;
+        }
+    }
+    
+    // Define the contact area
+    contact_container.contact_area = 0.0;
+    
+//     KRATOS_WATCH("-----------------------------------------------------------------------------------------------------------------")
+//     KRATOS_WATCH(pCond_1->Id());
+//     KRATOS_WATCH(pCond_1->GetGeometry());
+//     KRATOS_WATCH(pCond_2->Id());
+//     KRATOS_WATCH(pCond_2->GetGeometry());
+    
+    double aux_int = 0.0;
+    /* Reading integration points */
+    const GeometryType::IntegrationPointsArrayType& integration_points = pCond_1->GetGeometry().IntegrationPoints( IntegrationOrder );
+    for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
+    {
+        Point<3> GaussPoint;
+        Point<3> GaussPointLocalCoordinates;
+        Point<3> ProjectedGaussPoint;
+        GaussPointLocalCoordinates.Coordinate(1) = integration_points[PointNumber].X();
+        GaussPointLocalCoordinates.Coordinate(2) = integration_points[PointNumber].Y();
+        GaussPointLocalCoordinates.Coordinate(3) = integration_points[PointNumber].Z(); // This is supposed to be 0 always, in 1D and 2D
+        
+        array_1d<double, 3> result;
+        GaussPoint = pCond_1->GetGeometry().GlobalCoordinates(result, GaussPointLocalCoordinates);
+        
+        double dist_aux;
+        if (orig_dest == true)
+        {
+            Project(PointFound->GetPoint(), GaussPoint,  ProjectedGaussPoint, dist_aux, contact_normal);
+        }
+        else
+        {
+            Project(PointOfList->GetPoint(), GaussPoint, ProjectedGaussPoint, dist_aux, contact_normal);
+        }
+        
+        bool inside = pCond_2->GetGeometry().IsInside(ProjectedGaussPoint, result);
+        
+//         KRATOS_WATCH(inside);
+//         KRATOS_WATCH(result);
+//         KRATOS_WATCH(GaussPoint);
+//         KRATOS_WATCH(ProjectedGaussPoint);
+        
+        // Integration weigth
+        double IntegrationWeight = integration_points[PointNumber].Weight();
+        aux_int += IntegrationWeight;
+        
+        if (inside == true)
+        {
+            contact_container.contact_area += IntegrationWeight;
+        }
+    }
+    
+    contact_container.contact_area /= aux_int;
+    
+//     contact_container.print();
+        
+    ConditionPointers->push_back(contact_container);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void TreeContactSearch::Project(
         const Point<3>& PointOrigin,
         const Point<3>& PointDestiny,
         Point<3>& PointProjected,
-        double & dist,
-        const array_1d<double,3> & Normal
+        double& dist,
+        const array_1d<double,3>& Normal
         )
 {
      array_1d<double,3> vector_points;
