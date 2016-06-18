@@ -35,7 +35,6 @@ struct contact_container
     Condition*            condition;
     double             contact_area;
     std::vector<double> contact_gap;
-//    double              contact_gap;
     std::vector<bool>  active_nodes;
   
     void print()
