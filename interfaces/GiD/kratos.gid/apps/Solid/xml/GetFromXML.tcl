@@ -20,4 +20,9 @@ proc Solid::xml::getUniqueName {name} {
     return SL$name
 }
 
+proc Solid::xml::CustomTree { args } {
+    # Hide Results Cut planes
+    spdAux::SetValueOnTreeItem state hidden Results CutPlanes
+}
+
 Solid::xml::Init

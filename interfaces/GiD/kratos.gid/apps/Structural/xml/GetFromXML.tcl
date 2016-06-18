@@ -35,4 +35,8 @@ proc ::Structural::xml::MultiAppEvent {args} {
    }
 }
 
+proc Structural::xml::CustomTree { args } {
+    Solid::xml::CustomTree $args
+}
+
 Structural::xml::Init
