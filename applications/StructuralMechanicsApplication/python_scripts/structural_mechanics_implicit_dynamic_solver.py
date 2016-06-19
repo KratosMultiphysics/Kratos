@@ -42,6 +42,7 @@ class ImplicitStructuralSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
             "line_search": false,
             "compute_reactions": true,
             "compute_contact_forces": false,
+            "compute_mortar_contact": false,
             "block_builder": false,
             "component_wise": false,
             "move_mesh_flag": true,
@@ -84,6 +85,8 @@ class ImplicitStructuralSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         # Add reactions for the displacements
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+        # Add normal
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         # Add nodal force variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FORCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_FORCE)
@@ -107,5 +110,11 @@ class ImplicitStructuralSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
             # Add specific variables for the problem (pressure dofs)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SolidMechanicsApplication.PRESSURE_REACTION)
+            
+        if  self.settings["compute_mortar_contact"].GetBool():
+            # Add normal
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+            # Add lagrange multiplier
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.StructuralMechanicsApplication.LAGRANGE_MULTIPLIER)
    
         print("::[Mechanical Solver]:: Variables ADDED")

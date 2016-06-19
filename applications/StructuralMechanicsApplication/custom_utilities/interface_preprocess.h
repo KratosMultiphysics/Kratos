@@ -80,6 +80,7 @@ public:
     /**
      * Generate a new ModelPart containing only the interface. It will contain the conditions addressed in the call 
      * @param rOriginPart: The original model part
+     * @param ConditionType: Name of the condition to be created
      * @return InterfacePart: The interface model part
      */
     
@@ -207,6 +208,35 @@ public:
         PrintNodesAndConditions(NodesCounter, CondCounter);
       
         KRATOS_CATCH("");
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    
+    /**
+     * This function append the IterfacePart to the general model_part, for being computable
+     * @return rOriginPart: The original model part
+     * @param InterfacePart: The interface model part
+     */
+    
+    void AppendInterfacePart(
+            ModelPart& rOriginPart,
+            const ModelPart& InterfacePart
+            )
+    {
+        /* Adding news elements to the model part */
+        for (ModelPart::ConditionsContainerType::const_iterator it = InterfacePart.ConditionsBegin(); it != InterfacePart.ConditionsEnd(); it++)
+        {
+            rOriginPart.Conditions().push_back(*(it.base()));
+        }
+
+        /* Renumber */
+        unsigned int my_index = 1;
+        for (ModelPart::ConditionsContainerType::iterator it = rOriginPart.ConditionsBegin(); it != rOriginPart.ConditionsEnd(); it++)
+        {
+            it->SetId(my_index++);
+        }
     }
     
     /***********************************************************************************/

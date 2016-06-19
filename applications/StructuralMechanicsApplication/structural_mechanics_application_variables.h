@@ -113,7 +113,7 @@ KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( POINT_MOMENT )
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( LOCAL_POINT_MOMENT )
 /* Torque conditions */
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( POINT_TORQUE )
-/* Mortar method */
+/* Mortar method */ // TODO: Remove unnecessary variables
 KRATOS_DEFINE_VARIABLE( std::vector<contact_container>*, CONTACT_CONTAINERS ) // A vector of which contains the structure which defines the contact conditions
 KRATOS_DEFINE_VARIABLE( Element::Pointer, ELEMENT_POINTER )                   // A pointer to the element belonging to this condition
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( CONTACT_MESH_TYING_FORCE )         // The "force" resulting from contact
@@ -129,7 +129,7 @@ KRATOS_DEFINE_VARIABLE(double, ALPHA_EAS);
 KRATOS_DEFINE_VARIABLE(bool, EAS_IMP);
 
 // Adding the SPRISM additional variables
-KRATOS_DEFINE_VARIABLE(double, ANG_ROT); // TODO: Convertir en un vector
+KRATOS_DEFINE_VARIABLE(double, ANG_ROT); // TODO: Transform into a vector
 
 // Adding the Sprism number of transversal integration points
 KRATOS_DEFINE_VARIABLE(int, NINT_TRANS);

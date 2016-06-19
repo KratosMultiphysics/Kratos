@@ -77,6 +77,7 @@ class StaticStructuralSolver(solid_mechanics_static_solver.StaticMechanicalSolve
             "line_search": false,
             "compute_reactions": true,
             "compute_contact_forces": false,
+            "compute_mortar_contact": false,
             "block_builder": false,
             "component_wise": false,
             "move_mesh_flag": true,
@@ -156,7 +157,13 @@ class StaticStructuralSolver(solid_mechanics_static_solver.StaticMechanicalSolve
             # Add specific variables for the problem (pressure dofs)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SolidMechanicsApplication.PRESSURE_REACTION)
-        
+            
+        if  self.settings["compute_mortar_contact"].GetBool():
+            # Add normal
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+            # Add lagrange multiplier
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.StructuralMechanicsApplication.LAGRANGE_MULTIPLIER)
+            
         if self.settings["analysis_type"].GetString() == "Arc-Length":
             self.main_model_part.ProcessInfo[KratosMultiphysics.StructuralMechanicsApplication.LAMBDA] = 0.00;
    
@@ -255,8 +262,7 @@ class StaticStructuralSolver(solid_mechanics_static_solver.StaticMechanicalSolve
                                                                             move_mesh_flag)
 
                 else:
-                    # TODO: Use the core Newtonrapson (Remove echo!!!!!)
-                    self.mechanical_solver = KratosMultiphysics.SolidMechanicsApplication.ResidualBasedNewtonRaphsonStrategy(
+                    self.mechanical_solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
                                                                             self.compute_model_part, 
                                                                             mechanical_scheme, 
                                                                             self.linear_solver, 
