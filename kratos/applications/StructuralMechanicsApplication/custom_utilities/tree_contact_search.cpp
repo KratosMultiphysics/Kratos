@@ -418,8 +418,9 @@ void TreeContactSearch::CreateMortarConditions(
         }
     }
     
+    // FIXME
     // Calculate the mean of the normal in all the nodes
-    ComputeNodesMeanNormal();
+    ComputeNodesMeanNormal(bidirectional);
 }
 
 /***********************************************************************************/
@@ -574,7 +575,7 @@ void TreeContactSearch::CenterAndRadius(
 {
     Radius = 0.0;
     Center = pCond->GetGeometry().Center();
-    Normal = ZeroVector(3);
+    noalias(Normal) = ZeroVector(3);
     
     // TODO: To calculate the normal I am going to use the Newell's method for quadrilateral, I recommend to find some way to compute in a way that it is possible to have the normal in the nodes and use the Nagata Patch
     if (pCond->GetGeometry().PointsNumber() == 2) // A linear line
@@ -691,29 +692,33 @@ void TreeContactSearch::CenterAndRadius(
 /***********************************************************************************/
 /***********************************************************************************/
 
-// TODO: Add the bidirectional as an input if the normals are needed in just one side
-void TreeContactSearch::ComputeNodesMeanNormal()
+void TreeContactSearch::ComputeNodesMeanNormal(const bool bidirectional)
 {
-    double tol = 1.0e-12;
+    // Tolerance
+    const double tol = 1.0e-14;
+    
     // Initialize normal vectors
+    const array_1d<double,3> ZeroNormal = ZeroVector(3);
+    
     NodesArrayType& pNodeDestination  = mrDestinationModelPart.Nodes();
     NodesArrayType::iterator it_node_begin = pNodeDestination.ptr_begin();
     NodesArrayType::iterator it_node_end   = pNodeDestination.ptr_end();
     
     for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
     {
-        array_1d<double, 3> & Normal = node_it->FastGetSolutionStepValue(NORMAL);
-        Normal = ZeroVector(3);
+        noalias(node_it->FastGetSolutionStepValue(NORMAL)) = ZeroNormal;
     }
-    
+   
     NodesArrayType& pNodeOrigin  = mrOriginModelPart.Nodes();
-    it_node_begin = pNodeOrigin.ptr_begin();
-    it_node_end   = pNodeOrigin.ptr_end();
-    
-    for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
+    if (bidirectional)
     {
-        array_1d<double, 3> & Normal = node_it->FastGetSolutionStepValue(NORMAL);
-        Normal = ZeroVector(3);
+        it_node_begin = pNodeOrigin.ptr_begin();
+        it_node_end   = pNodeOrigin.ptr_end();
+        
+        for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
+        {
+            noalias(node_it->FastGetSolutionStepValue(NORMAL)) = ZeroNormal;
+        }
     }
     
     // Sum all the nodes normals
@@ -725,28 +730,29 @@ void TreeContactSearch::ComputeNodesMeanNormal()
     {
         if (cond_it->Is(ACTIVE))
         {
-            const array_1d<double, 3> & Normal_cond = cond_it->GetValue(NORMAL);
+            const array_1d<double, 3> & rNormal = cond_it->GetValue(NORMAL);
             for (unsigned int i = 0; i < cond_it->GetGeometry().PointsNumber(); i++)
             {
-                array_1d<double, 3> & Normal = cond_it->GetGeometry()[i].FastGetSolutionStepValue(NORMAL);
-                Normal += Normal_cond;
+                noalias( cond_it->GetGeometry()[i].FastGetSolutionStepValue(NORMAL) ) += rNormal;
             }
         }
     }
     
-    ConditionsArrayType& pCondOrigin = mrOriginModelPart.Conditions();
-    it_cond_begin = pCondOrigin.ptr_begin();
-    it_cond_end   = pCondOrigin.ptr_end();
-    
-    for(ConditionsArrayType::iterator cond_it = it_cond_begin; cond_it!=it_cond_end; cond_it++)
+    if (bidirectional)
     {
-        if (cond_it->Is(ACTIVE))
+        ConditionsArrayType& pCondOrigin = mrOriginModelPart.Conditions();
+        it_cond_begin = pCondOrigin.ptr_begin();
+        it_cond_end   = pCondOrigin.ptr_end();
+        
+        for(ConditionsArrayType::iterator cond_it = it_cond_begin; cond_it!=it_cond_end; cond_it++)
         {
-            const array_1d<double, 3> & Normal_cond = cond_it->GetValue(NORMAL);
-            for (unsigned int i = 0; i < cond_it->GetGeometry().PointsNumber(); i++)
+            if (cond_it->Is(ACTIVE))
             {
-                array_1d<double, 3> & Normal = cond_it->GetGeometry()[i].FastGetSolutionStepValue(NORMAL);
-                Normal += Normal_cond;
+                const array_1d<double, 3> & rNormal = cond_it->GetValue(NORMAL);
+                for (unsigned int i = 0; i < cond_it->GetGeometry().PointsNumber(); i++)
+                {
+                    noalias( cond_it->GetGeometry()[i].FastGetSolutionStepValue(NORMAL) ) += rNormal;
+                }
             }
         }
     }
@@ -757,29 +763,28 @@ void TreeContactSearch::ComputeNodesMeanNormal()
     
     for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
     {
-        array_1d<double, 3> & Normal = node_it->FastGetSolutionStepValue(NORMAL);
-        double norm = norm_2(Normal);
+        const double norm = norm_2(node_it->FastGetSolutionStepValue(NORMAL));
         if (norm > tol)
         {
-            Normal /= norm;
+            node_it->FastGetSolutionStepValue(NORMAL)  /= norm;
         }
-        
-//         KRATOS_WATCH(Normal);
+        // KRATOS_WATCH(Normal);
     }
     
-    it_node_begin = pNodeOrigin.ptr_begin();
-    it_node_end   = pNodeOrigin.ptr_end();
-    
-    for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
+    if (bidirectional)
     {
-        array_1d<double, 3> & Normal = node_it->FastGetSolutionStepValue(NORMAL);
-        double norm = norm_2(Normal);
-        if (norm > tol)
-        {
-            Normal /= norm;
-        }
+        it_node_begin = pNodeOrigin.ptr_begin();
+        it_node_end   = pNodeOrigin.ptr_end();
         
-//         KRATOS_WATCH(Normal);
+        for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
+        {
+            const double norm = norm_2(node_it->FastGetSolutionStepValue(NORMAL));
+            if (norm > tol)
+            {
+                node_it->FastGetSolutionStepValue(NORMAL)  /= norm;
+            }
+            // KRATOS_WATCH(Normal);
+        }
     }
 }
 

@@ -51,7 +51,7 @@ class ImplicitMechanicalSolver:
             "displacement_relative_tolerance": 1.0e-4,
             "displacement_absolute_tolerance": 1.0e-9,
             "residual_relative_tolerance": 1.0e-4,
-            "residual_absolute_tolerance": 1.0e-4,
+            "residual_absolute_tolerance": 1.0e-9,
             "max_iteration": 10,
             "linear_solver_settings":{
                 "solver_type": "Super LU",

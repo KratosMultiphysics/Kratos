@@ -20,6 +20,7 @@ class ContactProcess(KratosMultiphysics.Process):
         ##settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {
+            "model_part_name"             : "",
             "origin_model_part_name"      : "",
             "destination_model_part_name" : "",
             "origin_interface_nodes"         : "",
@@ -38,6 +39,8 @@ class ContactProcess(KratosMultiphysics.Process):
         self.params = params
         self.params.ValidateAndAssignDefaults(default_parameters)
         
+        self.main_model_part = model_part[self.params["model_part_name"].GetString()].GetSubModelPart("solid_computational_model_part")
+
         self.o_model_part = model_part[self.params["origin_model_part_name"].GetString()]
         self.d_model_part = model_part[self.params["destination_model_part_name"].GetString()]
         
@@ -73,13 +76,28 @@ class ContactProcess(KratosMultiphysics.Process):
         elif self.params["contact_type"].GetString() == "NTS":
             condition_name = "NTSContact"
         
-        self.Preprocess.GenerateInterfacePart(self.o_model_part, self.o_interface, condition_name) #It should create the conditions automatically
-        self.Preprocess.GenerateInterfacePart(self.d_model_part, self.d_interface, condition_name)
+        print("MODEL PART BEFORE CREATING INTERFACE")
+        print(self.main_model_part) 
         
-        print("ORIGIN MODEL PART")
-        print(self.o_interface) 
-        print("DESTINY MODEL PART")
-        print(self.d_interface) 
+        # It should create the conditions automatically
+        self.Preprocess.GenerateInterfacePart(self.o_model_part, self.o_interface, condition_name) 
+        #self.Preprocess.AppendInterfacePart(self.o_model_part, self.o_interface) 
+        self.Preprocess.GenerateInterfacePart(self.d_model_part, self.d_interface, condition_name)
+        #self.Preprocess.AppendInterfacePart(self.d_model_part, self.d_interface)
+        #self.Preprocess.GenerateInterfacePart(self.main_model_part, self.o_interface, condition_name) 
+        self.Preprocess.AppendInterfacePart(self.main_model_part, self.o_interface) 
+        #self.Preprocess.GenerateInterfacePart(self.main_model_part, self.d_interface, condition_name)
+        self.Preprocess.AppendInterfacePart(self.main_model_part, self.d_interface)
+        
+        #print("ORIGIN MODEL PART")
+        #print(self.o_model_part) 
+        ##print(self.o_interface) 
+        #print("DESTINY MODEL PART")
+        #print(self.d_model_part) 
+        ##print(self.d_interface) 
+        
+        print("MODEL PART AFTER CREATING INTERFACE")
+        print(self.main_model_part) 
         
         self.contact_search = KratosMultiphysics.StructuralMechanicsApplication.TreeContactSearch(self.o_interface, self.d_interface, self.allocation_size)
         
@@ -103,7 +121,11 @@ class ContactProcess(KratosMultiphysics.Process):
             self.contact_search.CreateNTNConditions(self.search_factor,self.max_number_results,self.type_search, self.bidirectional, self.integration_order)
         elif self.params["contact_type"].GetString() == "NTS":
             self.contact_search.CreateNTSConditions(self.search_factor,self.max_number_results,self.type_search, self.bidirectional, self.integration_order)
- 
+
+        #for condition in self.main_model_part.Conditions:
+            #condition.Set(KratosMultiphysics.ACTIVE, False)
+        #pass
+            
     def ExecuteFinalizeSolutionStep(self):
         pass
               

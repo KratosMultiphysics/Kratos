@@ -488,7 +488,7 @@ public:
      * @return The modelparts with the normal computed
      */
     
-    void ComputeNodesMeanNormal();
+    void ComputeNodesMeanNormal(const bool bidirectional);
     
     ///@}
     ///@name Access
