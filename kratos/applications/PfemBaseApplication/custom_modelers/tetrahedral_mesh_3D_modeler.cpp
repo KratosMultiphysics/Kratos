@@ -1059,7 +1059,7 @@ namespace Kratos
 	    //n :neighbours
 	    //J :do not eliminate points detected as coincident
 
-	    strcpy (meshing_options, "nVVJFM"); //"QJFu0"; //"pq1.414a0.1"
+	    strcpy (meshing_options, "nVV"); //"nVVJFM" //"QJFu0"; //"pq1.414a0.1"
 	    std::cout<<"SET MESHING FLAGS "<<std::endl;
 	    meshing_info = "Neighbours remeshing executed";
 	  }
@@ -2145,6 +2145,7 @@ namespace Kratos
     KRATOS_TRY
 
     int base=0;
+    std::cout<<" numberofpoints "<<tr.numberofpoints<<" dimension "<<tr.mesh_dim<<std::endl;
     for(int nd = 0; nd< tr.numberofpoints; nd++)
       {
 	std::cout<<"   Point "<<nd+1<<" : [ ";
