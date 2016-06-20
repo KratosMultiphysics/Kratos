@@ -338,7 +338,7 @@ public:
     const Matrix LagrangeMultiplierShapeFunctionLocalGradient( const IndexType& rPointNumber );
 
     /**
-    * Creates a new element pointer
+    * Creates a new element pointer from an arry of nodes
     * @param NewId: the ID of the new element
     * @param ThisNodes: the nodes of the new element
     * @param pProperties: the properties assigned to the new element
@@ -346,10 +346,21 @@ public:
     */
     Condition::Pointer Create( 
         IndexType NewId,
-        NodesArrayType const& ThisNodes,
+        NodesArrayType const& rThisNodes,
         PropertiesType::Pointer pProperties 
         ) const;
-
+    
+    /**
+    * Creates a new element pointer from an existing geometry
+    * @param NewId: the ID of the new element
+    * @param pGeom: the  geometry taken to create the condition
+    * @param pProperties: the properties assigned to the new element
+    * @return a Pointer to the new element
+    */
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const;
 
     /******************************************************************/
     /*********************** COMPUTING  METHODS ***********************/
@@ -489,19 +500,19 @@ public:
     * This function loops over all conditions and calculates the overall number of DOFs
     * total_dofs = SUM( master_u_dofs + slave_u_dofs + active_slave_lambda_dofs )
     */
-    const unsigned int& CalculateConditionSize( );
+    const unsigned int CalculateConditionSize( );
 
     /**
     * Loops over all master elements in the condition and
     * sum up their nodes - used to size the system matrices
     */
-    const unsigned int& CalculateTotalNumberOfMasterNodes( );
+    const unsigned int CalculateTotalNumberOfMasterNodes( );
     
     /**
     * This method loops over the vector of active nodes stored in the container
     * correspoding to rPairIndex and counts the number of active nodes there
     */
-    const unsigned int& CalculateNumberOfActiveNodesInContactPair( const unsigned int& rPairIndex );
+    const unsigned int CalculateNumberOfActiveNodesInContactPair( const unsigned int& rPairIndex );
 
     /**
     * Calculate condition kinematics
