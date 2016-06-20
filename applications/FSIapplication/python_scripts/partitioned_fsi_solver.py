@@ -219,7 +219,14 @@ class PartitionedFSISolver:
         
         
     def Solve(self):
-        pass
+        
+        ## INITIAL TEST SOLVING THE FLUID AND THE STRUCTURE SEPARATELY
+        # Initialize structure solver
+        self.structure_solver.Solve()
+        # Initialize fluid solver
+        self.fluid_solver.Solve()
+        # Initialize coupling solver
+        
         # This solve must contain the current step resolution, that is to say the non-linear loop.
         
         #~ self.mechanical_solver.Solve()
