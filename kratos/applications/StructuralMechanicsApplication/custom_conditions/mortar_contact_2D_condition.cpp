@@ -78,6 +78,9 @@ Condition::Pointer MortarContact2DCondition::Create(
     return Condition::Pointer( new MortarContact2DCondition( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 Condition::Pointer MortarContact2DCondition::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
@@ -105,15 +108,6 @@ void MortarContact2DCondition::Initialize( ) // FIXME: This is not computing the
     // TODO Add content
     
     //std::vector<contact_container> * ContactContainer = this->GetValue(CONTACT_CONTAINERS);
-    
-    KRATOS_WATCH("Holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    KRATOS_WATCH("Holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    KRATOS_WATCH("Holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    KRATOS_WATCH("Holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    KRATOS_WATCH("Holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    KRATOS_WATCH("Holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    KRATOS_WATCH("Holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    KRATOS_WATCH("Holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 
     KRATOS_CATCH( "" );
 }
@@ -134,15 +128,6 @@ void MortarContact2DCondition::InitializeSolutionStep( ProcessInfo& rCurrentProc
     {
         mThisMasterElements[i_cond] = (*all_containers)[i_cond].condition;
     }
-
-    KRATOS_WATCH("Holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    KRATOS_WATCH("Holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    KRATOS_WATCH("Holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    KRATOS_WATCH("Holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    KRATOS_WATCH("Holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    KRATOS_WATCH("Holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    KRATOS_WATCH("Holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    KRATOS_WATCH("Holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     
     KRATOS_CATCH( "" );
 }
@@ -158,15 +143,6 @@ void MortarContact2DCondition::InitializeNonLinearIteration( ProcessInfo& rCurre
     // TODO GetMasterElements
     
     // NOTE: Maybe is a good idea to add the tree_contact_search initialization here instead of the calling from python
-    
-    KRATOS_WATCH("Holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    KRATOS_WATCH("Holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    KRATOS_WATCH("Holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    KRATOS_WATCH("Holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    KRATOS_WATCH("Holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    KRATOS_WATCH("Holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    KRATOS_WATCH("Holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    KRATOS_WATCH("Holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     
     KRATOS_CATCH( "" );
 }
