@@ -5,7 +5,7 @@ message("**** configuring KratosFDApplication ****")
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 # Locate all files in the source directory
-file(GLOB_RECURSE KRATOS_FD_APPLICATION_SOURCES ${CMAKE_CURRENT_SOURCE_DIR} *.cpp)
+file(GLOB_RECURSE KRATOS_FD_APPLICATION_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
