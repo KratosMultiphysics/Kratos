@@ -137,11 +137,11 @@ public:
                             EdgeConditionType.append("Condition2D3N"); 
                         }
                         
-                        Condition rCondition = KratosComponents<Condition>::Get(EdgeConditionType);
+                        Condition const & rCondition = KratosComponents<Condition>::Get(EdgeConditionType);
                         InterfacePart.Conditions().push_back( rCondition.Create(CondId++, (*elem_it).GetGeometry().Edges()[it_edge], (*elem_it).pGetProperties()));
                         if (ConditionType.find("Mortar") != std::string::npos)
                         {
-                             Element::Pointer & pElem = rCondition.GetValue(ELEMENT_POINTER);
+                             Element::Pointer & pElem = const_cast<Condition &>(rCondition).GetValue(ELEMENT_POINTER);
                              pElem = *(elem_it.base());
                              // KRATOS_WATCH(pElem->Id());
                         }
@@ -190,12 +190,12 @@ public:
                         {
                             FaceConditionType.append("Condition3D9N");
                         }
-                        
-                        Condition rCondition = KratosComponents<Condition>::Get(FaceConditionType); 
+  
+                        Condition const & rCondition = KratosComponents<Condition>::Get(FaceConditionType); 
                         InterfacePart.Conditions().push_back( rCondition.Create(CondId++, (*elem_it).GetGeometry().Faces()[it_face], (*elem_it).pGetProperties()));
                         if (ConditionType.find("Mortar") != std::string::npos)
                         {
-                             Element::Pointer & pElem = rCondition.GetValue(ELEMENT_POINTER);
+                             Element::Pointer & pElem = const_cast<Condition &>(rCondition).GetValue(ELEMENT_POINTER);
                              pElem = *(elem_it.base());
                              // KRATOS_WATCH(pElem->Id());
                         }
