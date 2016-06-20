@@ -87,7 +87,7 @@ void PointLoad3DCondition::InitializeGeneralVariables(GeneralVariables& rVariabl
     rVariables.Initialize(dimension, local_dimension, number_of_nodes);
    
     //Only one node:
-    rVariables.N[0] = 1;
+    rVariables.N[0] = 1.0;
 
     KRATOS_CATCH( "" )
 
@@ -127,8 +127,13 @@ Vector& PointLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, General
 	  array_1d<double, 3 > & PointLoad = GetGeometry()[i].FastGetSolutionStepValue( POINT_LOAD );
 	  for( unsigned int k = 0; k < dimension; k++ )
 	    rVectorForce[k] += rVariables.N[i] * PointLoad[k];
+
+	  std::cout<<" PointLoad "<<PointLoad<<" N "<<rVariables.N[0]<<std::endl;
+ 
 	}
       }
+
+    std::cout<<" rVerctorForce "<<rVectorForce<<std::endl;
 
     return rVectorForce;
 
