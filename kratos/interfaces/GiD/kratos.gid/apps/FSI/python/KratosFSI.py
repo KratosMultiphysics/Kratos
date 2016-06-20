@@ -62,22 +62,22 @@ solver.Initialize()
 ## Get the list of the skin submodel parts in the object Model (FLUID)
 for i in range(ProjectParameters["fluid_solver_settings"]["solver_settings"]["skin_parts"].size()):
     skin_part_name = ProjectParameters["fluid_solver_settings"]["solver_settings"]["skin_parts"][i].GetString()
-    FluidModel.update({skin_part_name: main_model_part.GetSubModelPart(skin_part_name)})
+    FluidModel.update({skin_part_name: fluid_main_model_part.GetSubModelPart(skin_part_name)})
 
 ## Get the list of the initial conditions submodel parts in the object Model (FLUID)
 for i in range(ProjectParameters["fluid_solver_settings"]["initial_conditions_process_list"].size()):
     initial_cond_part_name = ProjectParameters["fluid_solver_settings"]["initial_conditions_process_list"][i]["Parameters"]["model_part_name"].GetString()
-    FluidModel.update({initial_cond_part_name: main_model_part.GetSubModelPart(initial_cond_part_name)})
+    FluidModel.update({initial_cond_part_name: fluid_main_model_part.GetSubModelPart(initial_cond_part_name)})
     
 ## Get the gravity submodel part in the object Model (FLUID)
 for i in range(ProjectParameters["fluid_solver_settings"]["gravity"].size()):   
     gravity_part_name = ProjectParameters["fluid_solver_settings"]["gravity"][i]["Parameters"]["model_part_name"].GetString()
-    FluidModel.update({gravity_part_name: main_model_part.GetSubModelPart(gravity_part_name)})
+    FluidModel.update({gravity_part_name: fluid_main_model_part.GetSubModelPart(gravity_part_name)})
 
 ## Get the list of the submodel part in the object Model (STRUCTURE)
 for i in range(ProjectParameters["structure_solver_settings"]["solver_settings"]["processes_sub_model_part_list"].size()):
     part_name = ProjectParameters["structure_solver_settings"]["solver_settings"]["processes_sub_model_part_list"][i].GetString()
-    SolidModel.update({part_name: main_model_part.GetSubModelPart(part_name)})
+    SolidModel.update({part_name: structure_main_model_part.GetSubModelPart(part_name)})
 
 
 ## Processes construction    
@@ -104,7 +104,7 @@ for process in list_of_processes:
 
 ## Stepping and time settings
 Dt = ProjectParameters["fluid_solver_settings"]["problem_data"]["time_step"].GetDouble()
-end_time = ProjectParameters["fluid_solver_settings"]"problem_data"]["end_time"].GetDouble()
+end_time = ProjectParameters["fluid_solver_settings"]["problem_data"]["end_time"].GetDouble()
 
 time = 0.0
 step = 0
