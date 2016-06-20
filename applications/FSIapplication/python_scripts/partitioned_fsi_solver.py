@@ -220,7 +220,6 @@ class PartitionedFSISolver:
         
     def Solve(self):
         
-        ## INITIAL TEST SOLVING THE FLUID AND THE STRUCTURE SEPARATELY
         # Initialize structure solver
         self.structure_solver.Solve()
         # Initialize fluid solver
