@@ -21,6 +21,9 @@ proc Structural::write::writeModelPartEvent { } {
 proc Structural::write::getParametersEvent { } {
     set project_parameters_dict [::Solid::write::getParametersDict]
     dict set project_parameters_dict solver_settings rotation_dofs [UsingRotationDofElements]
+    set solverSettingsDict [dict get $project_parameters_dict solver_settings]
+    set solverSettingsDict [dict merge $solverSettingsDict [write::getSolversParametersDict Structural] ]
+    dict set project_parameters_dict solver_settings $solverSettingsDict
     return $project_parameters_dict
 }
 proc Structural::write::writeParametersEvent { } {

@@ -64,7 +64,7 @@ proc Solid::write::getParametersDict { } {
     
     # Solution strategy parameters and Solvers
     set solverSettingsDict [dict merge $solverSettingsDict [write::getSolutionStrategyParametersDict] ]
-    set solverSettingsDict [dict merge $solverSettingsDict [write::getSolversParametersDict] ]
+    set solverSettingsDict [dict merge $solverSettingsDict [write::getSolversParametersDict Solid] ]
     
     dict set solverSettingsDict problem_domain_sub_model_part_list [getSubModelPartNames "SLParts"]
     dict set solverSettingsDict processes_sub_model_part_list [getSubModelPartNames "SLNodalConditions" "SLLoads"]
