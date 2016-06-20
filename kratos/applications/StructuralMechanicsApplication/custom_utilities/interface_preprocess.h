@@ -80,14 +80,14 @@ public:
     /**
      * Generate a new ModelPart containing only the interface. It will contain the conditions addressed in the call 
      * @param rOriginPart: The original model part
-     * @param ConditionType: Name of the condition to be created
+     * @param ConditionName: Name of the condition to be created
      * @return InterfacePart: The interface model part
      */
     
     void GenerateInterfacePart(
             const ModelPart& rOriginPart,
             ModelPart& InterfacePart,
-            std::string ConditionType
+            std::string ConditionName
             )
     {
         KRATOS_TRY;
@@ -127,19 +127,19 @@ public:
                     
                     if (interface == true)
                     {
-                        std::string EdgeConditionType = ConditionType;
+                        std::string EdgeConditionName = ConditionName;
                         if (number_points == 2)
                         {
-                            EdgeConditionType.append("Condition2D2N");
+                            EdgeConditionName.append("Condition2D2N");
                         }
                         else
                         {
-                            EdgeConditionType.append("Condition2D3N"); 
+                            EdgeConditionName.append("Condition2D3N"); 
                         }
                         
-                        Condition const & rCondition = KratosComponents<Condition>::Get(EdgeConditionType);
+                        Condition const & rCondition = KratosComponents<Condition>::Get(EdgeConditionName);
                         InterfacePart.Conditions().push_back( rCondition.Create(CondId++, (*elem_it).GetGeometry().Edges()[it_edge], (*elem_it).pGetProperties()));
-                        if (ConditionType.find("Mortar") != std::string::npos)
+                        if (ConditionName.find("Mortar") != std::string::npos)
                         {
                              Element::Pointer & pElem = const_cast<Condition &>(rCondition).GetValue(ELEMENT_POINTER);
                              pElem = *(elem_it.base());
@@ -169,31 +169,31 @@ public:
                     
                     if (interface == true)
                     {
-                        std::string FaceConditionType = ConditionType;
+                        std::string FaceConditionName = ConditionName;
                         if (number_points == 3)
                         {
-                            FaceConditionType.append("Condition3D3N");
+                            FaceConditionName.append("Condition3D3N");
                         }
                         else if (number_points == 4)
                         {
-                            FaceConditionType.append("Condition3D4N");
+                            FaceConditionName.append("Condition3D4N");
                         }
                         else if (number_points == 6)
                         {
-                            FaceConditionType.append("Condition3D6N");
+                            FaceConditionName.append("Condition3D6N");
                         }
                         else if (number_points == 8)
                         {
-                            FaceConditionType.append("Condition3D8N");
+                            FaceConditionName.append("Condition3D8N");
                         }
                         else // Assuming it will not be a very weird geometry
                         {
-                            FaceConditionType.append("Condition3D9N");
+                            FaceConditionName.append("Condition3D9N");
                         }
   
-                        Condition const & rCondition = KratosComponents<Condition>::Get(FaceConditionType); 
+                        Condition const & rCondition = KratosComponents<Condition>::Get(FaceConditionName); 
                         InterfacePart.Conditions().push_back( rCondition.Create(CondId++, (*elem_it).GetGeometry().Faces()[it_face], (*elem_it).pGetProperties()));
-                        if (ConditionType.find("Mortar") != std::string::npos)
+                        if (ConditionName.find("Mortar") != std::string::npos)
                         {
                              Element::Pointer & pElem = const_cast<Condition &>(rCondition).GetValue(ELEMENT_POINTER);
                              pElem = *(elem_it.base());
@@ -251,7 +251,7 @@ public:
     void GenerateLine2NInterfacePart(
             const ModelPart& rOriginPart,
             ModelPart& InterfacePart,
-            std::string ConditionType
+            std::string ConditionName
             )
     {
         KRATOS_TRY;
@@ -288,11 +288,11 @@ public:
 
         if (dimension == 2) // By default, but someone can be interested in project values to a BEAM for example
         {
-            GenerateLine2D2NConditions(aux, InterfacePart.Conditions(), ConditionType);
+            GenerateLine2D2NConditions(aux, InterfacePart.Conditions(), ConditionName);
         }
         else
         {
-            GenerateLine3D2NConditions(aux, InterfacePart.Conditions(), ConditionType);
+            GenerateLine3D2NConditions(aux, InterfacePart.Conditions(), ConditionName);
         }
 
         KRATOS_CATCH("");
@@ -310,7 +310,7 @@ public:
     void GenerateLine3NInterfacePart(
             const ModelPart& rOriginPart,
             ModelPart& InterfacePart,
-            std::string ConditionType
+            std::string ConditionName
             )
     {
         KRATOS_TRY;
@@ -348,11 +348,11 @@ public:
 
         if (dimension == 2) // By default, but someone can be interested in project values to a BEAM for example
         {
-            GenerateLine2D3NConditions(aux, InterfacePart.Conditions(), ConditionType);
+            GenerateLine2D3NConditions(aux, InterfacePart.Conditions(), ConditionName);
         }
         else
         {
-            GenerateLine3D3NConditions(aux, InterfacePart.Conditions(), ConditionType);
+            GenerateLine3D3NConditions(aux, InterfacePart.Conditions(), ConditionName);
         }
 
         KRATOS_CATCH("");
@@ -370,7 +370,7 @@ public:
     void GenerateTriangle3NInterfacePart(
             const ModelPart& rOriginPart,
             ModelPart& InterfacePart,
-            std::string ConditionType
+            std::string ConditionName
             )
     {
         KRATOS_TRY;
@@ -404,7 +404,7 @@ public:
 
         PrintNodesAndConditions(NodesCounter, CondCounter);
 
-        GenerateTriangular3D3NConditions(aux, InterfacePart.Conditions(), ConditionType);
+        GenerateTriangular3D3NConditions(aux, InterfacePart.Conditions(), ConditionName);
 
         KRATOS_CATCH("");
     }
@@ -421,7 +421,7 @@ public:
     void GenerateTriangle6NInterfacePart(
             const ModelPart& rOriginPart,
             ModelPart& InterfacePart,
-            std::string ConditionType
+            std::string ConditionName
             )
     {
         KRATOS_TRY;
@@ -458,7 +458,7 @@ public:
 
         PrintNodesAndConditions(NodesCounter, CondCounter);
 
-        GenerateTriangular3D6NConditions(aux, InterfacePart.Conditions(), ConditionType);
+        GenerateTriangular3D6NConditions(aux, InterfacePart.Conditions(), ConditionName);
 
         KRATOS_CATCH("");
     }
@@ -475,7 +475,7 @@ public:
     void GenerateQuadrilateral4NInterfacePart(
             const ModelPart& rOriginPart,
             ModelPart& InterfacePart,
-            std::string ConditionType
+            std::string ConditionName
             )
     {
         KRATOS_TRY;
@@ -510,7 +510,7 @@ public:
 
         PrintNodesAndConditions(NodesCounter, CondCounter);
 
-        GenerateQuadrilateral3D4NConditions(aux, InterfacePart.Conditions(), ConditionType);
+        GenerateQuadrilateral3D4NConditions(aux, InterfacePart.Conditions(), ConditionName);
 
         KRATOS_CATCH("");
     }
@@ -527,7 +527,7 @@ public:
     void GenerateQuadrilateral8NInterfacePart(
             const ModelPart& rOriginPart,
             ModelPart& InterfacePart,
-            std::string ConditionType
+            std::string ConditionName
             )
     {
         KRATOS_TRY;
@@ -566,7 +566,7 @@ public:
 
         PrintNodesAndConditions(NodesCounter, CondCounter);
 
-        GenerateQuadrilateral3D8NConditions(aux, InterfacePart.Conditions(), ConditionType);
+        GenerateQuadrilateral3D8NConditions(aux, InterfacePart.Conditions(), ConditionName);
 
         KRATOS_CATCH("");
     }
@@ -583,7 +583,7 @@ public:
     void GenerateQuadrilateral9NInterfacePart(
             const ModelPart& rOriginPart,
             ModelPart& InterfacePart,
-            std::string ConditionType
+            std::string ConditionName
             )
     {
         KRATOS_TRY;
@@ -623,7 +623,7 @@ public:
 
         PrintNodesAndConditions(NodesCounter, CondCounter);
 
-        GenerateQuadrilateral3D9NConditions(aux, InterfacePart.Conditions(), ConditionType);
+        GenerateQuadrilateral3D9NConditions(aux, InterfacePart.Conditions(), ConditionName);
 
         KRATOS_CATCH("");
     }
@@ -640,11 +640,11 @@ public:
     void GenerateLine2D2NConditions(
             const ModelPart::ConditionsContainerType& rOriginConds,
             ModelPart::ConditionsContainerType& rLinConds,
-            std::string ConditionType
+            std::string ConditionName
             )
     {
         // Define a condition to use as reference for all new triangle conditions
-        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionType); // The custom condition will be considered
+        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionName); // The custom condition will be considered
 //         const Condition& rCondition = KratosComponents<Condition>::Get("Condition2D2N"); 
 
         // Required information for new conditions: Id, geometry and properties
@@ -684,11 +684,11 @@ public:
     void GenerateLine3D2NConditions(
             const ModelPart::ConditionsContainerType& rOriginConds,
             ModelPart::ConditionsContainerType& rLinConds,
-            std::string ConditionType
+            std::string ConditionName
             )
     {
         // Define a condition to use as reference for all new triangle conditions
-        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionType); // The custom condition will be considered
+        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionName); // The custom condition will be considered
 //         const Condition& rCondition = KratosComponents<Condition>::Get("Condition3D2N");
 
         // Required information for new conditions: Id, geometry and properties
@@ -728,11 +728,11 @@ public:
     void GenerateLine2D3NConditions(
             const ModelPart::ConditionsContainerType& rOriginConds,
             ModelPart::ConditionsContainerType& rLinConds,
-            std::string ConditionType
+            std::string ConditionName
             )
     {
         // Define a condition to use as reference for all new triangle conditions
-        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionType); // The custom condition will be considered
+        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionName); // The custom condition will be considered
 //         const Condition& rCondition = KratosComponents<Condition>::Get("Condition2D3N");
 
         // Required information for new conditions: Id, geometry and properties
@@ -764,11 +764,11 @@ public:
     void GenerateLine3D3NConditions(
             const ModelPart::ConditionsContainerType& rOriginConds,
             ModelPart::ConditionsContainerType& rLinConds,
-            std::string ConditionType
+            std::string ConditionName
             )
     {
         // Define a condition to use as reference for all new triangle conditions
-        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionType); // The custom condition will be considered
+        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionName); // The custom condition will be considered
 //         const Condition& rCondition = KratosComponents<Condition>::Get("Condition3D3N");
 
         // Required information for new conditions: Id, geometry and properties
@@ -800,11 +800,11 @@ public:
     void GenerateTriangular3D3NConditions(
             const ModelPart::ConditionsContainerType& rOriginConds,
             ModelPart::ConditionsContainerType& rTriConds,
-            std::string ConditionType
+            std::string ConditionName
             )
     {
         // Define a condition to use as reference for all new triangle conditions
-        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionType); // The custom condition will be considered
+        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionName); // The custom condition will be considered
 //         const Condition& rCondition = KratosComponents<Condition>::Get("Condition3D"); 
 
         // Required information for new conditions: Id, geometry and properties
@@ -892,11 +892,11 @@ public:
     void GenerateTriangular3D6NConditions(
             const ModelPart::ConditionsContainerType& rOriginConds,
             ModelPart::ConditionsContainerType& rTriConds,
-            std::string ConditionType
+            std::string ConditionName
             )
     {
         // Define a condition to use as reference for all new triangle conditions
-        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionType); // The custom condition will be considered
+        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionName); // The custom condition will be considered
 //         const Condition& rCondition = KratosComponents<Condition>::Get("Condition3D6N"); 
 
         // Required information for new conditions: Id, geometry and properties
@@ -936,11 +936,11 @@ public:
     void GenerateQuadrilateral3D4NConditions(
             const ModelPart::ConditionsContainerType& rOriginConds,
             ModelPart::ConditionsContainerType& rQuadConds,
-            std::string ConditionType
+            std::string ConditionName
             )
     {
         // Define a condition to use as reference for all new triangle conditions
-        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionType); // The custom condition will be considered
+        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionName); // The custom condition will be considered
 //         const Condition& rCondition = KratosComponents<Condition>::Get("Condition3D4N"); 
 
         // Required information for new conditions: Id, geometry and properties
@@ -985,11 +985,11 @@ public:
     void GenerateQuadrilateral3D8NConditions(
             const ModelPart::ConditionsContainerType& rOriginConds,
             ModelPart::ConditionsContainerType& rQuadConds,
-            std::string ConditionType
+            std::string ConditionName
             )
     {
         // Define a condition to use as reference for all new triangle conditions
-        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionType); // The custom condition will be considered
+        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionName); // The custom condition will be considered
 //         const Condition& rCondition = KratosComponents<Condition>::Get("Condition3D8N"); 
 
         // Required information for new conditions: Id, geometry and properties
@@ -1021,11 +1021,11 @@ public:
     void GenerateQuadrilateral3D9NConditions(
             const ModelPart::ConditionsContainerType& rOriginConds,
             ModelPart::ConditionsContainerType& rQuadConds,
-            std::string ConditionType
+            std::string ConditionName
             )
     {
         // Define a condition to use as reference for all new triangle conditions
-        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionType); // The custom condition will be considered
+        const Condition& rCondition = KratosComponents<Condition>::Get(ConditionName); // The custom condition will be considered
 //         const Condition& rCondition = KratosComponents<Condition>::Get("Condition3D9N"); 
 
         // Required information for new conditions: Id, geometry and properties
