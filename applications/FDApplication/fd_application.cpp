@@ -26,10 +26,6 @@ namespace Kratos {
 	void KratosFDApplication::Register() {
 		KratosApplication::Register();
 		std::cout << "Initializing KratosFDApplication... " << std::endl;
-
-    using Kratos::Testing::Tester;
-
-    Tester::GetInstance().RunAllTests();
 	}
 
 }  // namespace Kratos.
