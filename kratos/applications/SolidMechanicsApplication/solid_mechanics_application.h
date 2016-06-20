@@ -425,18 +425,18 @@ typedef array_1d<double,6> Vector6;
    const IsotropicDamageSimoJuPlaneStress2DLaw   mIsotropicDamageSimoJuPlaneStress2DLaw;
 
    //Flow Rules
-   //const NonLinearAssociativePlasticFlowRule     mNonLinearAssociativePlasticFlowRule;
-   //const LinearAssociativePlasticFlowRule        mLinearAssociativePlasticFlowRule;
-   //const IsotropicDamageFlowRule                 mIsotropicDamageFlowRule;
+   const NonLinearAssociativePlasticFlowRule     mNonLinearAssociativePlasticFlowRule;
+   const LinearAssociativePlasticFlowRule        mLinearAssociativePlasticFlowRule;
+   const IsotropicDamageFlowRule                 mIsotropicDamageFlowRule;
     
    //Yield Criteria
-   //const MisesHuberYieldCriterion                mMisesHuberYieldCriterion;
-   //const SimoJuYieldCriterion                    mSimoJuYieldCriterion;
+   const MisesHuberYieldCriterion                mMisesHuberYieldCriterion;
+   const SimoJuYieldCriterion                    mSimoJuYieldCriterion;
     
    //Hardening Laws
-   //const NonLinearIsotropicKinematicHardeningLaw mNonLinearIsotropicKinematicHardeningLaw;
-   //const LinearIsotropicKinematicHardeningLaw    mLinearIsotropicKinematicHardeningLaw;
-   //const ExponentialDamageHardeningLaw           mExponentialDamageHardeningLaw;
+   const NonLinearIsotropicKinematicHardeningLaw mNonLinearIsotropicKinematicHardeningLaw;
+   const LinearIsotropicKinematicHardeningLaw    mLinearIsotropicKinematicHardeningLaw;
+   const ExponentialDamageHardeningLaw           mExponentialDamageHardeningLaw;
 
    ///@}
    ///@name Private Operators
