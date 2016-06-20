@@ -28,7 +28,7 @@ namespace Kratos
 {
 	namespace Testing
 	{
-		TestCase::TestCase(std::string Name)
+		TestCase::TestCase(std::string const& Name)
 			:mName(Name), mIsEnabled(true) {}
 
 		TestCase::~TestCase() {}

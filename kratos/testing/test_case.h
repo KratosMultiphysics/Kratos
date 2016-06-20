@@ -68,7 +68,7 @@ namespace Kratos
 			TestCase(TestCase const& rOther) = delete;
 
 
-			TestCase(std::string Name);
+			TestCase(std::string const& Name);
 
 			/// Destructor.
 			virtual ~TestCase();
@@ -257,8 +257,49 @@ const Kratos::Testing::Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_
 \
 void KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::TestFunction()
 
+// This macro creates a fixture sub class of TestCase for given FixtureName
+// For example if the FixtureName is "ModelPartFixture" then the result is:
+// class ModelPartFixture : public TestCase
+// {
+//	public:
+//		ModelPartFixture(std::string const& Name) : TestCase(Name) {}
+//	private:
+//		void Setup() override;
+//		void TearDown() override;
+//	};
+//
+#define KRATOS_TEST_FIXTURE(TestFixtureName) \
+class TestFixtureName : public TestCase \
+ {\
+ public:\
+  TestFixtureName(std::string const& Name) : TestCase(Name) {}\
+ private: \
+  void Setup() override; \
+  void TearDown() override; \
+}; 
 
-		///@}
+#define KRATOS_TEST_FIXTURE_SETUP(TestFixtureName) \
+void TestFixtureName::Setup()
+
+#define KRATOS_TEST_FIXTURE_TEAR_DOWN(TestFixtureName) \
+void TestFixtureName::TearDown()
+
+#define KRATOS_TEST_CASE_WITH_FIXTURE(TestCaseName,TestFixtureName) \
+class KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) : public TestFixtureName \
+ {\
+ public:\
+  KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)() : TestFixtureName(KRATOS_TESTING_CONVERT_TO_STRING(Test##TestCaseName)) {}\
+ private: \
+  void TestFunction() override; \
+  static const Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > mDummy; \
+}; \
+const Kratos::Testing::Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > \
+		KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mDummy; \
+\
+void KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::TestFunction()
+
+
+///@}
 
 		///@} addtogroup block
 	} // manespace Testing.
