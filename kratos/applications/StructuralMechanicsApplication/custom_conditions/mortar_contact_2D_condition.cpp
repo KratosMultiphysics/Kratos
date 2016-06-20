@@ -72,10 +72,18 @@ MortarContact2DCondition::MortarContact2DCondition(
 
 Condition::Pointer MortarContact2DCondition::Create( 
     IndexType NewId,
-    NodesArrayType const& ThisNodes,
+    NodesArrayType const& rThisNodes,
     PropertiesType::Pointer pProperties ) const
 {
-    return boost::make_shared<MortarContact2DCondition>( NewId, GetGeometry( ).Create( ThisNodes ), pProperties );
+    return Condition::Pointer( new MortarContact2DCondition( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+}
+
+Condition::Pointer MortarContact2DCondition::Create(
+    IndexType NewId,
+    GeometryType::Pointer pGeom,
+    PropertiesType::Pointer pProperties) const
+{
+    return Condition::Pointer( new MortarContact2DCondition( NewId, pGeom, pProperties ) );
 }
 
 /************************************* DESTRUCTOR **********************************/
@@ -466,10 +474,6 @@ void MortarContact2DCondition::InitializeSystemMatrices(
     Flags& rCalculationFlags 
     )
 {
-    const unsigned int dimension = 2;
-    const unsigned int num_slave_nodes = GetGeometry( ).PointsNumber( );
-    const unsigned int num_master_nodes_total = CalculateTotalNumberOfMasterNodes( );
-
     const unsigned int condition_size = this->CalculateConditionSize( );
 
     if ( rCalculationFlags.Is( MortarContact2DCondition::COMPUTE_LHS_MATRIX ) ) // Calculation of the matrix is required
@@ -487,7 +491,7 @@ void MortarContact2DCondition::InitializeSystemMatrices(
 /***********************************************************************************/
 /***********************************************************************************/
 
-const unsigned int& MortarContact2DCondition::CalculateConditionSize( )
+const unsigned int MortarContact2DCondition::CalculateConditionSize( )
 {
     const unsigned int dimension = 2;
 
@@ -510,7 +514,7 @@ const unsigned int& MortarContact2DCondition::CalculateConditionSize( )
 /***********************************************************************************/
 /***********************************************************************************/
 
-const unsigned int& MortarContact2DCondition::CalculateTotalNumberOfMasterNodes( )
+const unsigned int MortarContact2DCondition::CalculateTotalNumberOfMasterNodes( )
 {
     unsigned int num_master_nodes_total = 0;
     for ( unsigned int i_master_elem = 0; i_master_elem < mThisMasterElements.size( ); ++i_master_elem )
@@ -524,7 +528,7 @@ const unsigned int& MortarContact2DCondition::CalculateTotalNumberOfMasterNodes(
 /***********************************************************************************/
 /***********************************************************************************/
 
-const unsigned int& MortarContact2DCondition::CalculateNumberOfActiveNodesInContactPair( const unsigned int& rPairIndex )
+const unsigned int MortarContact2DCondition::CalculateNumberOfActiveNodesInContactPair( const unsigned int& rPairIndex )
 {
     const unsigned int num_slave_nodes = GetGeometry().PointsNumber();
     const contact_container& current_container = ( *( this->GetValue( CONTACT_CONTAINERS ) ) )[rPairIndex];
@@ -848,14 +852,6 @@ void MortarContact2DCondition::CalculateAndAddLHS(
     double& rIntegrationWeight
     )
 {
-    // TODO Check LHS Variables and discuss with Vicente whether those are the final ones or not !!
-
-    // Contact pair variables
-    const unsigned int dimension = 2;
-    const unsigned int num_master_nodes = rVariables.GetMasterElement( ).PointsNumber( );
-    const unsigned int num_slave_nodes = GetGeometry( ).PointsNumber( );
-    const unsigned int num_total_nodes = num_slave_nodes + num_master_nodes;
-
     if ( rLocalSystem.CalculationFlags.Is( MortarContact2DCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
     {
         /* COMPONENT-WISE LHS MATRIX */
@@ -869,10 +865,12 @@ void MortarContact2DCondition::CalculateAndAddLHS(
             if ( rLeftHandSideVariables[i] == MORTAR_CONTACT_OPERATOR )
             {
                 MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrices( )[i];
-                                MatrixType LHS_contact_pair = ZeroMatrix( rLeftHandSideMatrix.size1( ), rLeftHandSideMatrix.size2( ) );
+                MatrixType LHS_contact_pair = ZeroMatrix( rLeftHandSideMatrix.size1( ), rLeftHandSideMatrix.size2( ) );
                 
                 // Calculate
-                this->CalculateAndAddMortarContactOperator( LHS_contact_pair, rVariables, rIntegrationWeight );
+                this->CalculateAndAddMortarContactOperator( LHS_contact_pair, 
+                                                            rVariables, 
+                                                            rIntegrationWeight );
 
                 // Assemble
                 this->AssembleContactPairLHSToConditionSystem( rVariables.GetMasterElementIndex( ),
@@ -894,7 +892,9 @@ void MortarContact2DCondition::CalculateAndAddLHS(
         MatrixType LHS_contact_pair = ZeroMatrix( rLeftHandSideMatrix.size1( ), rLeftHandSideMatrix.size2( ) );
                 
         // Calculate
-        this->CalculateAndAddMortarContactOperator( LHS_contact_pair, rVariables, rIntegrationWeight );
+        this->CalculateAndAddMortarContactOperator( LHS_contact_pair,
+                                                    rVariables, 
+                                                    rIntegrationWeight );
 
         // Assemble
         this->AssembleContactPairLHSToConditionSystem( rVariables.GetMasterElementIndex( ),
@@ -1046,7 +1046,7 @@ void MortarContact2DCondition::CalculateAndAddMortarContactOperator(
     const Matrix& M = mThisMortarConditionMatrices.M;
   
     // Calculate the blocks of B_co and B_co_transpose
-    unsigned int i = 0, j = 0, j_node = 0;
+    unsigned int i = 0, j = 0;
     for ( unsigned int i_active = 0; i_active < num_active_nodes; ++i_active )
     {
         i = ( i_active + num_total_nodes ) * dimension;
@@ -1083,8 +1083,7 @@ void MortarContact2DCondition::EquationIdVector(
 {
     KRATOS_TRY;
 
-        const unsigned int num_slave_nodes = GetGeometry().PointsNumber();
-        const std::vector<contact_container> all_conditions = *( this->GetValue( CONTACT_CONTAINERS ) );
+    const std::vector<contact_container> all_conditions = *( this->GetValue( CONTACT_CONTAINERS ) );
         
     rResult.resize( 0, false );
 
@@ -1144,7 +1143,6 @@ void MortarContact2DCondition::GetDofList(
 {
     KRATOS_TRY;
 
-    const unsigned int num_slave_nodes = GetGeometry().PointsNumber();
     const std::vector<contact_container> all_conditions = *( this->GetValue( CONTACT_CONTAINERS ) );
         
     rConditionalDofList.resize( 0 );
