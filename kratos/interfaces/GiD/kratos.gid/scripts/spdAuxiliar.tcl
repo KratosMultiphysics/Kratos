@@ -578,7 +578,7 @@ proc spdAux::injectSolvers {basenode args} {
             set un [apps::getAppUniqueName $appid "$stn$n"]
             set container "<container help='$help' n='$n' pn='$pn' un='$un' state='\[SolverEntryState\]' solstratname='$stn' >"
             set defsolver [lindex [$se getDefaultSolvers] 0]
-            append container "<value n='Solver' pn='Solver' v='$defsolver' values='\[GetSolvers\]' actualize='1' update_proc='Updateme'/>"
+            append container "<value n='Solver' pn='Solver' v='$defsolver' values='' dict='\[GetSolvers\]' actualize='1' update_proc='Updateme'/>"
             #append container "<dependencies node='../value' actualize='1'/>"
             #append container "</value>"
             append container $paramsnodes
@@ -1210,9 +1210,9 @@ proc spdAux::ProcGetSolvers { domNode args } {
         lappend pnames [$slvr getName] 
         lappend pnames [$slvr getPublicName]
     }
-    $domNode setAttribute dict [join $pnames ","]
+    $domNode setAttribute values [join $names ","]
     if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
-    return [join $names ","]
+    return [join $pnames ","]
     
 }
 proc spdAux::ProcCheckNodalConditionState { domNode args } {

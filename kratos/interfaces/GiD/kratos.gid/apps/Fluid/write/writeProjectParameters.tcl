@@ -45,7 +45,7 @@ proc ::Fluid::write::getParametersDict { } {
     dict set solverSettingsDict model_import_settings $modelDict
     
     set solverSettingsDict [dict merge $solverSettingsDict [write::getSolutionStrategyParametersDict] ]
-    set solverSettingsDict [dict merge $solverSettingsDict [write::getSolversParametersDict] ]
+    set solverSettingsDict [dict merge $solverSettingsDict [write::getSolversParametersDict Fluid] ]
     # Parts
     dict set solverSettingsDict volume_model_part_name {*}[write::getPartsMeshId]
     # Skin parts

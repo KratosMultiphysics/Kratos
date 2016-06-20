@@ -690,34 +690,39 @@ proc write::getSolutionStrategyParametersDict {} {
     return $solverSettingsDict
 }
 
-
-
-proc write::getSolversParametersDict {} {
-    set solStratUN  [apps::getCurrentUniqueName SolStrat]
+proc write::getSolversParametersDict { {appid ""}} {
+    if {$appid eq ""} {
+        set appid [apps::getActiveAppId]
+    }
+    set solStratUN [apps::getAppUniqueName $appid SolStrat]
     set solstratName [write::getValue $solStratUN]
     set sol [::Model::GetSolutionStrategy $solstratName]
     set solverSettingsDict [dict create]
     foreach se [$sol getSolversEntries] {
-	set solverEntryDict [dict create]
-	set un [apps::getCurrentUniqueName "$solstratName[$se getName]"] 
-	set solverName [write::getValue $un Solver]
-	if {$solverName ne "Default"} {
-	    dict set solverEntryDict solver_type $solverName
-	    #W "Solver Name $solverName"
-	    foreach {n in} [[::Model::GetSolver $solverName] getInputs] {
-		# JG temporal, para la precarga de combos
-		if {[$in getType] ni [list "bool" "integer" "double"]} {
-		    set v ""
-		    catch {set v [write::getValue $un $n]}
-		    if {$v eq ""} {set v [write::getValue $un $n]}
-		    dict set solverEntryDict $n $v
-		} {
-		    dict set solverEntryDict $n [write::getValue $un $n]
-		}
-	    }
-	    dict set solverSettingsDict [$se getName] $solverEntryDict
-	}
-	unset solverEntryDict
+        set solverEntryDict [dict create]
+        set un [apps::getAppUniqueName $appid "$solstratName[$se getName]"]
+        #W $un
+        if {[spdAux::getRoute $un] ne ""} {
+            set solverName [write::getValue $un Solver]
+            if {$solverName ne "Default"} {
+                dict set solverEntryDict solver_type $solverName
+                 #W "Solver Name $solverName"
+                set solver [::Model::GetSolver $solverName]
+                foreach {n in} [$solver getInputs] {
+                # JG temporal, para la precarga de combos
+                if {[$in getType] ni [list "bool" "integer" "double"]} {
+                    set v ""
+                    catch {set v [write::getValue $un $n]}
+                    if {$v eq ""} {set v [write::getValue $un $n]}
+                    dict set solverEntryDict $n $v
+                } {
+                    dict set solverEntryDict $n [write::getValue $un $n]
+                }
+                }
+                dict set solverSettingsDict [$se getName] $solverEntryDict
+            }
+        }
+        unset solverEntryDict
     }
     return $solverSettingsDict
 }
