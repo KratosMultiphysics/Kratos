@@ -22,6 +22,7 @@
 #include "includes/node.h"
 #include "geometries/geometry.h"
 #include "geometries/triangle_2d_3.h"
+#include "geometries/tetrahedra_3d_4.h"
 #include "python/add_geometries_to_python.h"
 #include "python/bounded_vector_python_interface.h"
 #include "python/vector_scalar_operator_python.h"
@@ -48,7 +49,9 @@ void  AddGeometriesToPython()
     class_<Triangle2D3<Node<3> >, Triangle2D3<Node<3> >::Pointer, bases< GeometryType > >("Triangle2D3", init<Node<3>::Pointer, Node<3>::Pointer, Node<3>::Pointer>())
     ;    
     
-    
+	class_<Tetrahedra3D4<Node<3> >, Tetrahedra3D4<Node<3> >::Pointer, bases< GeometryType > >("Tetrahedra3D4", init<Node<3>::Pointer, Node<3>::Pointer, Node<3>::Pointer, Node<3>::Pointer>())
+		;
+
 //     class_<GeometryType, GeometryType::Pointer, bases<PointerVector< Node<3> > > >("Geometry", init<>())
 //      .def(init< GeometryType::PointsArrayType& >())
 //      ;
