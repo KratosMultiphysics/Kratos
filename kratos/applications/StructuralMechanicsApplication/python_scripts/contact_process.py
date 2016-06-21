@@ -81,21 +81,10 @@ class ContactProcess(KratosMultiphysics.Process):
         
         # It should create the conditions automatically
         self.Preprocess.GenerateInterfacePart(self.o_model_part, self.o_interface, condition_name) 
-        #self.Preprocess.AppendInterfacePart(self.o_model_part, self.o_interface) 
         self.Preprocess.GenerateInterfacePart(self.d_model_part, self.d_interface, condition_name)
-        #self.Preprocess.AppendInterfacePart(self.d_model_part, self.d_interface)
-        #self.Preprocess.GenerateInterfacePart(self.main_model_part, self.o_interface, condition_name) 
         self.Preprocess.AppendInterfacePart(self.main_model_part, self.o_interface) 
-        #self.Preprocess.GenerateInterfacePart(self.main_model_part, self.d_interface, condition_name)
         self.Preprocess.AppendInterfacePart(self.main_model_part, self.d_interface)
-        
-        #print("ORIGIN MODEL PART")
-        #print(self.o_model_part) 
-        ##print(self.o_interface) 
-        #print("DESTINY MODEL PART")
-        #print(self.d_model_part) 
-        ##print(self.d_interface) 
-        
+
         print("MODEL PART AFTER CREATING INTERFACE")
         print(self.main_model_part) 
         
@@ -117,15 +106,12 @@ class ContactProcess(KratosMultiphysics.Process):
     def ExecuteInitializeSolutionStep(self):
         if self.params["contact_type"].GetString() == "MortarMethod":
             self.contact_search.CreateMortarConditions(self.search_factor,self.max_number_results,self.type_search, self.bidirectional, self.integration_order)
+            #self.contact_search.CheckMortarConditions()
         elif self.params["contact_type"].GetString() == "NTN":
             self.contact_search.CreateNTNConditions(self.search_factor,self.max_number_results,self.type_search, self.bidirectional, self.integration_order)
         elif self.params["contact_type"].GetString() == "NTS":
             self.contact_search.CreateNTSConditions(self.search_factor,self.max_number_results,self.type_search, self.bidirectional, self.integration_order)
-
-        #for condition in self.main_model_part.Conditions:
-            #condition.Set(KratosMultiphysics.ACTIVE, False)
-        #pass
-            
+        
     def ExecuteFinalizeSolutionStep(self):
         pass
               

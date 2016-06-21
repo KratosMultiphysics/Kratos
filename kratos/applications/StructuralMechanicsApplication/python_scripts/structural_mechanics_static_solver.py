@@ -168,6 +168,33 @@ class StaticStructuralSolver(solid_mechanics_static_solver.StaticMechanicalSolve
             self.main_model_part.ProcessInfo[KratosMultiphysics.StructuralMechanicsApplication.LAMBDA] = 0.00;
    
         print("::[Mechanical Solver]:: Variables ADDED")
+        
+    def AddDofs(self):
+
+        for node in self.main_model_part.Nodes:
+            # adding dofs
+            node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X);
+            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y);
+            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z);
+            
+        if self.settings["rotation_dofs"].GetBool():
+            for node in self.main_model_part.Nodes:
+                node.AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X);
+                node.AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y);
+                node.AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z);
+                
+        if self.settings["pressure_dofs"].GetBool():                
+            for node in self.main_model_part.Nodes:
+                node.AddDof(KratosMultiphysics.PRESSURE, KratosSolid.PRESSURE_REACTION);
+        
+        if  self.settings["compute_mortar_contact"].GetBool():
+            for node in self.main_model_part.Nodes:
+                node.AddDof(KratosMultiphysics.StructuralMechanicsApplication.LAGRANGE_MULTIPLIER_X);
+                node.AddDof(KratosMultiphysics.StructuralMechanicsApplication.LAGRANGE_MULTIPLIER_Y);
+                node.AddDof(KratosMultiphysics.StructuralMechanicsApplication.LAGRANGE_MULTIPLIER_Z);
+
+        print("::[Mechanical Solver]:: DOF's ADDED")
+
     
     def Solve(self):
         self.mechanical_solver.Solve()

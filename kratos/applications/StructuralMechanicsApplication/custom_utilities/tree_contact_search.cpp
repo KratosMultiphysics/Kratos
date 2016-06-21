@@ -94,7 +94,8 @@ void TreeContactSearch::InitializeMortarConditions()
     
     for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
     {
-        cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>(mallocation);  
+        cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
+        cond_it->GetValue(CONTACT_CONTAINERS)->reserve(mallocation); 
     }
     
     ConditionsArrayType& pCondOrigin = mrOriginModelPart.Conditions();
@@ -103,7 +104,8 @@ void TreeContactSearch::InitializeMortarConditions()
     
     for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
     {
-        cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>(mallocation); 
+        cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();   
+        cond_it->GetValue(CONTACT_CONTAINERS)->reserve(mallocation);    
     }
 }
 
@@ -138,18 +140,18 @@ void TreeContactSearch::ClearMortarConditions()
         {
             cond_it->Set(ACTIVE, false);
             
-            std::vector<contact_container> * ConditionPointersDestination = cond_it->GetValue(CONTACT_CONTAINERS);
+            std::vector<contact_container> *& ConditionPointersDestination = cond_it->GetValue(CONTACT_CONTAINERS);
             
             for (unsigned int i =0; i< ConditionPointersDestination->size();i++)
             {
                 delete(&((*ConditionPointersDestination)[i].condition));
-                
             } 
             
             ConditionPointersDestination->clear();
             
             delete cond_it->GetValue(CONTACT_CONTAINERS); 
-            cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>(mallocation); 
+            cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>(); 
+            cond_it->GetValue(CONTACT_CONTAINERS)->reserve(mallocation); 
         }
     }
     
@@ -163,7 +165,7 @@ void TreeContactSearch::ClearMortarConditions()
         {
             cond_it->Set(ACTIVE, false); 
             
-            std::vector<contact_container> * ConditionPointersOrigin = cond_it->GetValue(CONTACT_CONTAINERS);
+            std::vector<contact_container> *& ConditionPointersOrigin = cond_it->GetValue(CONTACT_CONTAINERS);
             
             for (unsigned int i =0; i< ConditionPointersOrigin->size();i++)
             {
@@ -173,7 +175,8 @@ void TreeContactSearch::ClearMortarConditions()
             ConditionPointersOrigin->clear();
             
             delete cond_it->GetValue(CONTACT_CONTAINERS); 
-            cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>(mallocation); 
+            cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
+            cond_it->GetValue(CONTACT_CONTAINERS)->reserve(mallocation); 
         }
     }
 }
@@ -196,7 +199,7 @@ void TreeContactSearch::CreatePointListNTN()
         Coord[1] = node_it->Y();
         Coord[2] = node_it->Z();
 
-        PointItem::Pointer pP = PointItem::Pointer(new PointItem(Coord, *(node_it.base()))); // TODO: Add the calculation of the normal of the point
+        PointItem::Pointer pP = PointItem::Pointer(new PointItem(Coord, *(node_it.base()))); 
         (mPointListDestination).push_back(pP);
     }
     
@@ -210,7 +213,7 @@ void TreeContactSearch::CreatePointListNTN()
         Coord[1] = node_it->Y();
         Coord[2] = node_it->Z();
         
-        PointItem::Pointer pP = PointItem::Pointer(new PointItem(Coord, *(node_it.base()))); // TODO: Add the calculation of the normal of the point
+        PointItem::Pointer pP = PointItem::Pointer(new PointItem(Coord, *(node_it.base()))); 
         (mPointListOrigin).push_back(pP);
     }
 }
@@ -233,7 +236,7 @@ void TreeContactSearch::CreatePointListNTS()
         Coord[1] = node_it->Y();
         Coord[2] = node_it->Z();
         
-        PointItem::Pointer pP = PointItem::Pointer(new PointItem(Coord, *(node_it.base()))); // TODO: Add the calculation of the normal of the point
+        PointItem::Pointer pP = PointItem::Pointer(new PointItem(Coord, *(node_it.base()))); 
         (mPointListDestination).push_back(pP);
     }
     
@@ -397,13 +400,13 @@ void TreeContactSearch::CreateMortarConditions(
                 pCondOrigin->Set(ACTIVE, true);
             }
 
-            std::vector<contact_container> * ConditionPointersOrigin = pCondOrigin->GetValue(CONTACT_CONTAINERS);
+            std::vector<contact_container> *& ConditionPointersOrigin = pCondOrigin->GetValue(CONTACT_CONTAINERS);
             
 //             KRATOS_WATCH(NumberPointsFound); 
             for(unsigned int i = 0; i < NumberPointsFound; i++)
             {   
                 Condition::Pointer pCondDestination = PointsFound[i]->GetCondition();
-                std::vector<contact_container> * ConditionPointersDestination = pCondDestination->GetValue(CONTACT_CONTAINERS);
+                std::vector<contact_container> *& ConditionPointersDestination = pCondDestination->GetValue(CONTACT_CONTAINERS);
                 
                 if (bidirectional == true)
                 {
@@ -421,6 +424,48 @@ void TreeContactSearch::CreateMortarConditions(
     // FIXME
     // Calculate the mean of the normal in all the nodes
     ComputeNodesMeanNormal(bidirectional);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TreeContactSearch::CheckMortarConditions()
+{
+    ConditionsArrayType& pCondDestination  = mrDestinationModelPart.Conditions();
+    ConditionsArrayType::iterator it_begin = pCondDestination.ptr_begin();
+    ConditionsArrayType::iterator it_end   = pCondDestination.ptr_end();
+    
+    for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
+    {
+        if (cond_it->Is(ACTIVE))
+        {
+            std::vector<contact_container> *& ConditionPointersDestination = cond_it->GetValue(CONTACT_CONTAINERS);
+            KRATOS_WATCH(ConditionPointersDestination->size());
+            
+            for (unsigned int i = 0; i < ConditionPointersDestination->size(); i++)
+            {
+                (*ConditionPointersDestination)[i].print();
+            } 
+        }
+    }
+    
+    ConditionsArrayType& pCondOrigin = mrOriginModelPart.Conditions();
+    it_begin = pCondOrigin.ptr_begin();
+    it_end   = pCondOrigin.ptr_end();
+    
+    for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
+    {
+        if (cond_it->Is(ACTIVE))
+        {
+            std::vector<contact_container> *& ConditionPointersOrigin = cond_it->GetValue(CONTACT_CONTAINERS);
+            KRATOS_WATCH(ConditionPointersOrigin->size());
+            
+            for (unsigned int i = 0; i < ConditionPointersOrigin->size(); i++)
+            {
+                (*ConditionPointersOrigin)[i].print();
+            } 
+        }
+    }
 }
 
 /***********************************************************************************/
