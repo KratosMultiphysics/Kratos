@@ -27,7 +27,6 @@
 #include "utilities/math_utils.h"
 #include "includes/kratos_flags.h"
 
-
 namespace Kratos {
 
 ///@name Kratos Globals
@@ -96,8 +95,11 @@ protected:
         Vector IntegrationPointNormalGap;
         Vector IntegrationPointNormalVector;
 
-        // determinant of slave cell's jacobian
+        // Determinant of slave cell's jacobian
         double DetJSlave;
+
+        // Contact area
+        double ContactArea;
 
         /*
         * Jacobians in current configuration on all integration points of slave segment
@@ -110,7 +112,7 @@ protected:
         /******************** STRUCT METHODS ********************/
         /********************************************************/
 
-        // Initializer method
+        // Initializer method // TODO: Check if it is possible to get the values from another place
         void Initialize( 
             const unsigned int& rLocalDimensionMaster = 1,  // Xi local coordinate
             const unsigned int& rLocalDimensionSlave  = 1,  // Xi local coordinate
@@ -137,7 +139,10 @@ protected:
             IntegrationPointNormalVector = ZeroVector( rDimension );
 
             // Jacobian of slave
-            DetJSlave = 0;
+            DetJSlave = 0.0;
+            
+            // Jacobian of slave
+            ContactArea = 0.0;
 
             // Jacobians on all integration points
             j_Slave.resize( 1, false );
@@ -269,12 +274,27 @@ protected:
             const unsigned int& rDimension            = 2  // 2D physical space
             )
         {
-            if( rCalculateSlaveContributions )
+            const unsigned int size1 = rDimension * rNumberOfSlaveNodes;
+            const unsigned int size2 = rDimension * rNumberOfMasterNodes;
+            if( rCalculateSlaveContributions == true )
             {
-                D = ZeroMatrix( rDimension * rNumberOfSlaveNodes, rDimension * rNumberOfSlaveNodes );
+                if ( D.size1() != size1 )
+                {
+                    D.resize( size1, size1, false );
+                }
+                D = ZeroMatrix( size1, size1 );
             }
-
-            M = ZeroMatrix( rDimension * rNumberOfSlaveNodes, rDimension * rNumberOfMasterNodes );
+            if ( M.size1() != size1 )
+            {
+                M.resize( size1, size2, false );
+            }
+            M = ZeroMatrix( size1, size2 );
+        }
+        
+        void print()
+        {
+            KRATOS_WATCH(D);
+            KRATOS_WATCH(M);
         }
     };
 
@@ -718,6 +738,7 @@ private:
 
     // might be a good idea to move those three vectors to the contact container
     std::vector<Condition*> mThisMasterElements;
+    std::vector<double> mContactArea;
 
     MortarConditionMatrices mThisMortarConditionMatrices;
 

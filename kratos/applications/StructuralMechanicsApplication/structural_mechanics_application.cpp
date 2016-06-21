@@ -117,6 +117,7 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_TORQUE )
     /* Mortar method */
     KRATOS_REGISTER_VARIABLE( CONTACT_CONTAINERS )                          // A vector of which contains the structure which defines the contact conditions
+    KRATOS_REGISTER_VARIABLE( INTEGRATION_ORDER_CONTACT )                   // The integration order computed in the contact
     KRATOS_REGISTER_VARIABLE( ELEMENT_POINTER )                             // A pointer to the element belonging to this condition
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( CONTACT_MESH_TYING_FORCE ) // The "force" resulting from contact
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LAGRANGE_MULTIPLIER )      // The lagrange multiplier used to enforce the mortar constraint
