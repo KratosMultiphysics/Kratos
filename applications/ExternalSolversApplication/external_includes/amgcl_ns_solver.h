@@ -1,6 +1,16 @@
 #if !defined(KRATOS_AMGCL_NAVIERSTOKES_SOLVER )
 #define  KRATOS_AMGCL_NAVIERSTOKES_SOLVER
 
+// #ifndef AMGCL_PARAM_MISSING
+// #define AMGCL_PARAM_MISSING(name) std::cout << "unset AMGCL parameter with name " << name <<std::endl;
+// #endif
+// KRATOS_THROW_ERROR(std::logic_error, , #name)
+// Unknown parameter action
+#ifndef AMGCL_PARAM_UNKNOWN
+#  define AMGCL_PARAM_UNKNOWN(name)                                            \
+      std::cerr << "AMGCL WARNING: unknown parameter " << name << std::endl
+#endif
+
 // External includes
 #include "boost/smart_ptr.hpp"
 #include <iostream>
@@ -67,19 +77,22 @@ public:
         Parameters default_parameters( R"(
                                        {
                                        "solver_type" : "AMGCL_NS_Solver",
-                                       "krylov_type"                    : "bicgstab",
+                                       "krylov_type" : "gmres",
                                        "velocity_block_preconditioner" :
-                                            {
+                                        {
+                                            "krylov_type" : "bicgstab",
                                             "tolerance" : 1e-3,
-                                            "preconditioner_type" : "spai0"
+                                            "preconditioner_type" : "spai0",
+                                            "max_iteration": 50
                                         },
                                         "pressure_block_preconditioner" :
-                                            {
+                                        {
+                                            "krylov_type" : "cg",
                                             "tolerance" : 1e-2,
-                                            "preconditioner_type" : "spai0"
+                                            "preconditioner_type" : "spai0",
+                                            "max_iteration": 50
                                         },
                                        "tolerance" : 1e-9,
-                                       "krylov_type": "gmres",
                                        "gmres_krylov_space_dimension": 50,
                                        "coarsening_type": "aggregation",
                                        "max_iteration": 50,
@@ -128,15 +141,22 @@ public:
         mprm.put("solver.type", rParameters["krylov_type"].GetString());
 
         mndof = 1; //this will be computed automatically later on
-        mprm.put("solver.M",  rParameters["gmres_krylov_space_dimension"].GetInt());
+        
+        if(rParameters["krylov_type"].GetString() == "gmres")
+            mprm.put("solver.M",  rParameters["gmres_krylov_space_dimension"].GetInt());
 
         //setting velocity solver options
+        mprm.put("precond.usolver.solver.type", rParameters["velocity_block_preconditioner"]["krylov_type"].GetString());
         mprm.put("precond.usolver.solver.tol", rParameters["velocity_block_preconditioner"]["tolerance"].GetDouble());
-        mprm.put("precond.usolver.precond", rParameters["velocity_block_preconditioner"]["preconditioner_type"].GetString());
+        mprm.put("precond.usolver.precond.type", rParameters["velocity_block_preconditioner"]["preconditioner_type"].GetString());
 
         //setting pressure solver options
+        mprm.put("precond.psolver.solver.type", rParameters["pressure_block_preconditioner"]["krylov_type"].GetString());
         mprm.put("precond.psolver.solver.tol", rParameters["pressure_block_preconditioner"]["tolerance"].GetDouble());
-        mprm.put("precond.psolver.relax.type", rParameters["pressure_block_preconditioner"]["preconditioner_type"].GetString());
+        mprm.put("precond.psolver.precond.relax.type", rParameters["pressure_block_preconditioner"]["preconditioner_type"].GetString());
+        mprm.put("precond.psolver.precond.coarsening.aggr.eps_strong", 0.0);
+        mprm.put("precond.psolver.precond.coarsening.aggr.block_size", 1);
+        mprm.put("precond.psolver.precond.coarse_enough",mcoarse_enough);
     }
 
     /**
@@ -154,12 +174,8 @@ public:
      */
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
-        mprm.put("precond.coarsening.aggr.eps_strong",0.0);
-        mprm.put("precond.coarsening.aggr.block_size",mndof);
         mprm.put("solver.tol", mTol);
         mprm.put("solver.maxiter", mmax_it);
-
-        mprm.put("precond.coarse_enough",mcoarse_enough/mndof);
 
         mprm.put("precond.pmask", static_cast<void*>(&mp[0]));
         mprm.put("precond.pmask_size", mp.size());
@@ -178,6 +194,21 @@ public:
               
         if(mverbosity > 1)
             write_json(std::cout, mprm);
+        
+        if(mverbosity == 4)
+        {
+            //output to matrix market
+            std::stringstream matrix_market_name;
+            matrix_market_name << "A" <<  ".mm";
+            TSparseSpaceType::WriteMatrixMarketMatrix((char*) (matrix_market_name.str()).c_str(), rA, false);
+            
+            std::stringstream matrix_market_vectname;
+            matrix_market_vectname << "b" << ".mm.rhs";
+            TSparseSpaceType::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), rB);
+            
+            KRATOS_THROW_ERROR(std::logic_error, "verobsity = 4 prints the matrix and exits","")
+        }
+
 
 //         size_t n = rA.size1();
 
