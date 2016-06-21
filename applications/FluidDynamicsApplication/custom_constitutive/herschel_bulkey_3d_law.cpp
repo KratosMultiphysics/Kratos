@@ -80,7 +80,7 @@ void  HerschelBulkey3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     const double gamma_dot = std::sqrt(2.*S[0]*S[0] + 2.*S[1]*S[1] + 2.*S[2]*S[2] 
                                 + S[3]*S[3] + S[4]*S[4] + S[5]*S[5]);
     
-    const double min_gamma_dot = 1e-12;
+    const double min_gamma_dot = 1e-6; 
 
     //limit the gamma_dot to a minimum so to ensure that the case of gamma_dot=0 is not problematic
     const double g = std::max(gamma_dot, min_gamma_dot);
