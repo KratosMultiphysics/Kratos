@@ -275,6 +275,32 @@ def ConstructSolver(configuration):
             linear_solver = KratosMultiphysics.ExternalSolversApplication.AMGCLSolver(params)
 
     elif(solver_type == "AMGCL_NS_Solver"):
+        if(params == 0): #old style construction
+            params = Parameters("""
+                {
+                                       "solver_type" : "AMGCL_NS_Solver",
+                                       "krylov_type" : "gmres",
+                                       "velocity_block_preconditioner" :
+                                        {
+                                            "krylov_type" : "gmres",
+                                            "tolerance" : 1e-3,
+                                            "preconditioner_type" : "ilu0"
+                                        },
+                                        "pressure_block_preconditioner" :
+                                        {
+                                            "krylov_type" : "bicgstab",
+                                            "tolerance" : 1e-2,
+                                            "preconditioner_type" : "spai0"
+                                        },
+                                       "tolerance" : 1e-6,
+                                       "gmres_krylov_space_dimension": 50,
+                                       "coarsening_type": "aggregation",
+                                       "max_iteration": 50,
+                                       "verbosity" : 1,
+                                       "scaling": false,
+                                       "coarse_enough" : 5000
+                                   }
+                """)
         import KratosMultiphysics.ExternalSolversApplication
         linear_solver = KratosMultiphysics.ExternalSolversApplication.AMGCL_NS_Solver(params)
     #
