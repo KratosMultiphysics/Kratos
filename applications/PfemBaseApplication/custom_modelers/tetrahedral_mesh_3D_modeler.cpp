@@ -14,6 +14,7 @@
 // Project includes
 #include "custom_modelers/laplacian_smoothing.hpp"
 #include "custom_modelers/tetrahedral_mesh_3D_modeler.hpp"
+#include "geometries/tetrahedra_3d_4.h"
 
 #include "pfem_base_application_variables.h"
 
@@ -1059,7 +1060,7 @@ namespace Kratos
 	    //n :neighbours
 	    //J :do not eliminate points detected as coincident
 
-	    strcpy (meshing_options, "nVV"); //"nVVJFM" //"QJFu0"; //"pq1.414a0.1"
+	    strcpy (meshing_options, "nVJFMO4/4"); //"nVVJFM" //"QJFu0"; //"pq1.414a0.1"
 	    std::cout<<"SET MESHING FLAGS "<<std::endl;
 	    meshing_info = "Neighbours remeshing executed";
 	  }
@@ -1477,9 +1478,9 @@ namespace Kratos
 
 	    //std::cout<<" ******** ELEMENT "<<el+1<<" ********** "<<std::endl;
 
-	    double Alpha =  rMeshingVariables.AlphaParameter * 2.8;
+	    double Alpha =  rMeshingVariables.AlphaParameter * 4;
 
-	    if(numboundary>=2)
+	    if(numboundary>=3)
 	      Alpha*=1.8;
 	
 	    // std::cout<<" vertices for the contact element "<<std::endl;
@@ -1530,7 +1531,7 @@ namespace Kratos
 	    if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONTACT_SEARCH))
 	      self_contact = ModelerUtils.CheckSubdomain(vertices);
 	    
-	    //4.- to control that the element is inside of the domain boundaries
+ 	    //4.- to control that the element is inside of the domain boundaries
 	    if(accepted)
 	      {
 		if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONTACT_SEARCH))
@@ -1539,7 +1540,7 @@ namespace Kratos
 		  }
 		else
 		  {
-		    accepted=ModelerUtils.CheckInnerCentre(vertices);
+		    //accepted=ModelerUtils.CheckInnerCentre(vertices); //problems: when slivers are released, a boundary is created and the normals calculated, then elements that are inside suddently its center is calculated as outside... // some corrections are needded.
 		  }
 	      }
 	    // else{
@@ -1547,6 +1548,21 @@ namespace Kratos
 	    //   std::cout<<" Element DID NOT pass Alpha Shape ("<<Alpha<<") "<<std::endl;
 	    // }
 	      
+
+	    //5.- to control that the element has a good shape
+	    int sliver = 0;
+	    if(accepted)
+	      {
+		Geometry<Node<3> >* tetrahedron = new Tetrahedra3D4<Node<3> > (vertices);
+
+		accepted=ModelerUtils.CheckGeometryShape(*tetrahedron,sliver);
+		
+		if( sliver )
+		  accepted = false;
+
+		delete tetrahedron;
+	      }
+	    
 
 	    //std::cout<<" C "<<std::endl;
 	    if(accepted)
@@ -1559,7 +1575,6 @@ namespace Kratos
 	      
 	    //   std::cout<<" Element DID NOT pass INNER/OUTER check "<<std::endl;
 	    // }
-
 
 	  }
 
@@ -1716,12 +1731,12 @@ namespace Kratos
 		    if((nodes_begin + out.tetrahedronlist[el*4+pn]-1)->Is(TO_REFINE))
 		      count_dissipative+=1;
 
-		    if((nodes_begin + out.tetrahedronlist[el*4+pn]-1)->Is(NEW_ENTITY))
-		      count_boundary_inserted+=1;	      
-
-		    if((nodes_begin + out.tetrahedronlist[el*4+pn]-1)->Is(BOUNDARY)){
+ 		    if((nodes_begin + out.tetrahedronlist[el*4+pn]-1)->Is(BOUNDARY)){
 		      count_boundary+=1;
 
+		      if((nodes_begin + out.tetrahedronlist[el*4+pn]-1)->Is(NEW_ENTITY))
+			count_boundary_inserted+=1;	      
+		      
 		      if( (nodes_begin + out.tetrahedronlist[el*4+pn]-1)->SolutionStepsDataHas(CONTACT_FORCE) ){
 
 			array_1d<double, 3 > & ContactForceNormal = (nodes_begin + out.tetrahedronlist[el*4+pn]-1)->FastGetSolutionStepValue(CONTACT_FORCE);
@@ -1950,6 +1965,8 @@ namespace Kratos
 	    //std::cout<<" node creation position ("<<x<<", "<<y<<")"<<std::endl;
 	    Node<3>::Pointer pnode = rModelPart.CreateNewNode(id,x,y,z);
 		
+	    pnode->Set(NEW_ENTITY); //not boundary
+
 	    //set to the main mesh (Mesh 0) to avoid problems in the NodalPreIds (number of nodes: change) in other methods
 	    pnode->SetBufferSize(rModelPart.NodesBegin(MeshId)->GetBufferSize() );
 
