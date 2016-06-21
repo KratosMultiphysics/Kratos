@@ -65,7 +65,7 @@ public:
     {
     }
 
-    Parameters(std::string json_string)
+    Parameters(const std::string json_string)
     {
 
         mpdoc =  boost::shared_ptr<rapidjson::Document>(new rapidjson::Document() );
