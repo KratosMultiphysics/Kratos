@@ -232,7 +232,7 @@ virtual void RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(cons
                                                                             double DeltDisp[3], //IN GLOBAL AXES
                                                                             double RelVel[3], //IN GLOBAL AXES
                                                                             double OldLocalCoordSystem[3][3],
-                                                                            double LocalCoordSystem[3][3], 
+                                                                            double LocalCoordSystem[3][3],
                                                                             SphericParticle* neighbour_iterator);
 
 virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotationMatrix(double DeltDisp[3],
@@ -325,21 +325,22 @@ virtual void save(Serializer& rSerializer) const
 {
 KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DiscreteElement );
 rSerializer.save("mRadius",mRadius);
+rSerializer.save("mSearchRadius", mSearchRadius);
+rSerializer.save("mSearchRadiusWithFem", mSearchRadiusWithFem);
 rSerializer.save("mRealMass",mRealMass);
-//rSerializer.save("mFastProperties",mFastProperties);
-
-/*rSerializer.save("mRollingFriction",mRollingFriction);
-rSerializer.save("mYoung",mYoung);
-rSerializer.save("mPoisson",mPoisson);
-rSerializer.save("mTgOfFrictionAngle",mTgOfFrictionAngle);
-rSerializer.save("mLnOfRestitCoeff",mLnOfRestitCoeff);  */
+rSerializer.save("mClusterId",mClusterId);
+rSerializer.save("mBoundDeltaDispSq",mBoundDeltaDispSq);
 }
 
 virtual void load(Serializer& rSerializer)
 {
 KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DiscreteElement );
 rSerializer.load("mRadius",mRadius);
+rSerializer.load("mSearchRadius", mSearchRadius);
+rSerializer.load("mSearchRadiusWithFem", mSearchRadiusWithFem);
 rSerializer.load("mRealMass",mRealMass);
+rSerializer.load("mClusterId",mClusterId);
+rSerializer.load("mBoundDeltaDispSq",mBoundDeltaDispSq);
 //rSerializer.load("mFastProperties",mFastProperties);
 
 /*rSerializer.load("mRollingFriction",mRollingFriction);
