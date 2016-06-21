@@ -719,7 +719,8 @@ void IsotropicShellElement::EquationIdVector(EquationIdVectorType& rResult, Proc
 void IsotropicShellElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
 {
     ElementalDofList.resize(0);
-
+    ElementalDofList.reserve(18);
+    
     for (unsigned int i=0; i<GetGeometry().size(); i++)
     {
         ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
@@ -2088,13 +2089,15 @@ int  IsotropicShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
 
     //verify that the variables are correctly initialized
     if(VELOCITY.Key() == 0)
-        KRATOS_THROW_ERROR( std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered", "" )
-        if(DISPLACEMENT.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
-            if(ACCELERATION.Key() == 0)
-                KRATOS_THROW_ERROR( std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered", "" );
+    if(DISPLACEMENT.Key() == 0)
+            KRATOS_THROW_ERROR( std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered", "" );
+    if(ROTATION.Key() == 0)
+            KRATOS_THROW_ERROR( std::invalid_argument,"ROTATION has Key zero! (check if the application is correctly registered", "" )
+          if(ACCELERATION.Key() == 0)
+                KRATOS_THROW_ERROR( std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered", "" );
                 if(DENSITY.Key() == 0)
-                    KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY has Key zero! (check if the application is correctly registered", "" )
+                    KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY has Key zero! (check if the application is correctly registered", "" );
                     // if(BODY_FORCE.Key() == 0)
                     // KRATOS_THROW_ERROR( std::invalid_argument,"BODY_FORCE has Key zero! (check if the application is correctly registered", "" )
                     if(THICKNESS.Key() == 0)
@@ -2104,13 +2107,13 @@ int  IsotropicShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
                         for(unsigned int i=0; i<this->GetGeometry().size(); i++)
                         {
                             if(this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false)
-                                KRATOS_THROW_ERROR( std::invalid_argument,"missing variable DISPLACEMENT on node ",this->GetGeometry()[i].Id() )
+                                KRATOS_THROW_ERROR( std::invalid_argument,"missing variable DISPLACEMENT on node ",this->GetGeometry()[i].Id() );
                                 if(this->GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Z) == false)
-                                    KRATOS_THROW_ERROR( std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT on node ",GetGeometry()[i].Id() )
+                                    KRATOS_THROW_ERROR( std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT on node ",GetGeometry()[i].Id() );
                                     if(this->GetGeometry()[i].SolutionStepsDataHas(ROTATION) == false)
-                                        KRATOS_THROW_ERROR( std::invalid_argument,"missing variable ROTATION on node ",this->GetGeometry()[i].Id() )
+                                        KRATOS_THROW_ERROR( std::invalid_argument,"missing variable ROTATION on node ",this->GetGeometry()[i].Id() );
                                         if(this->GetGeometry()[i].HasDofFor(ROTATION_X) == false || this->GetGeometry()[i].HasDofFor(ROTATION_Y) == false || this->GetGeometry()[i].HasDofFor(ROTATION_Z) == false)
-                                            KRATOS_THROW_ERROR( std::invalid_argument,"missing one of the dofs for the variable ROTATION on node ",GetGeometry()[i].Id() )
+                                            KRATOS_THROW_ERROR( std::invalid_argument,"missing one of the dofs for the variable ROTATION on node ",GetGeometry()[i].Id() );
                                         }
 
     //Verify that the body force is defined
