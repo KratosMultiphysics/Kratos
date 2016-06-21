@@ -15,6 +15,13 @@
 #include "includes/kratos_flags.h"
 #include "custom_utilities/modeler_utilities.hpp"
 
+#ifndef DBL_MIN
+#define DBL_MIN (1e-300)
+#endif  //DBL_MIN
+
+#ifndef DBL_MAX
+#define DBL_MAX (9.999999999999999e300)
+#endif  //DBL_MAX
 
 namespace Kratos
 {
@@ -565,11 +572,269 @@ namespace Kratos
     KRATOS_CATCH( "" )
   }
 
-  
+    //*******************************************************************************************
+  //*******************************************************************************************
+
+  ModelerUtilities::ContactElementType ModelerUtilities::CheckContactElement(Geometry<Node<3> >& rGeometry, std::vector<int>& rSlaveVertices)
+  {
+   
+    KRATOS_TRY
+
+    const unsigned int  size = rGeometry.size();
+
+    //Identify subdomains: (non selfcontact elements)
+    for(unsigned int i=0; i<size; i++)
+      if(rGeometry[i].IsNot(BOUNDARY))
+	return ModelerUtilities::NonContact;
+
+    unsigned int NumberOfSlaves = 0;
+
+    if(rSlaveVertices.size() != size)
+      rSlaveVertices.reserve(size);
+
+    std::fill(rSlaveVertices.begin(),rSlaveVertices.end(),0);
+
+    
+    //Identify subdomains: (non selfcontact elements)
+    for(unsigned int i=0; i<size; i++)
+      {
+	for(unsigned int j=i+1; j<size; j++)
+	  {
+	    if( rGeometry[i].GetValue(DOMAIN_LABEL) == rGeometry[j].GetValue(DOMAIN_LABEL) )
+	      {
+		rSlaveVertices[i]+=1;
+		rSlaveVertices[j]+=1;
+	      }
+	  }
+
+	NumberOfSlaves+=rSlaveVertices[i];
+      }
+
+    //NonContact Elements or Selfcontact elements (2D/3D): Number of Slaves = size * (size-1);
+    if(NumberOfSlaves == size*(size-1)){
+
+      std::vector<int> NeighbourVertices(size);
+      std::fill(NeighbourVertices.begin(),NeighbourVertices.end(),0);
+      unsigned int NumberOfNeighbours = 0;
+
+      for(unsigned int i=0; i<size; i++)
+	{	    
+
+	  if( rGeometry[i].Is(NEW_ENTITY) )
+	    return Undefined;
+
+	  WeakPointerVector<Node<3> >& rN = rGeometry[i].GetValue(NEIGHBOUR_NODES);
+	  
+	  for(unsigned int n=0; n<rN.size(); n++)
+	    {
+	      for(unsigned int j=i+1; j<size; j++)
+		{
+		  
+		  if( rN[n].Id() == rGeometry[j].Id() )
+		    {
+		      NeighbourVertices[i] +=1;
+		      NeighbourVertices[j] +=1;
+		    }
+		}
+	    }
+	    
+	  NumberOfNeighbours += NeighbourVertices[i];
+	}
+
+      //Node to face elements (2D/3D): Number of Slaves = (size-1) * (size-2);
+      if(NumberOfNeighbours == (size-1)*(size-2))
+	return ModelerUtilities::PointToFace;
+      //Edge to edge elements (3D): Number of Slaves = size;
+      if(NumberOfNeighbours == size)
+	return ModelerUtilities::EdgeToEdge;
+
+      return ModelerUtilities::NonContact;
+    }
+
+    //Node to face elements (2D/3D): Number of Slaves = (size-1) * (size-2);
+    if(NumberOfSlaves == (size-1)*(size-2))
+      return ModelerUtilities::PointToFace;
+    //Edge to edge elements (3D): Number of Slaves = size;
+    if(NumberOfSlaves == size)
+      return ModelerUtilities::EdgeToEdge;
+    //Elements with one vertex to each domain(2D/3D): Number of Slaves = 0
+    if(NumberOfSlaves == 0)
+      return ModelerUtilities::PointToPoint;
+    
+
+    return ModelerUtilities::NonContact;
+    
+    KRATOS_CATCH( "" )
+      
+  }
+
   //*******************************************************************************************
   //*******************************************************************************************
 
-  bool ModelerUtilities::CheckGeometryShape(Geometry<Node<3> >& rGeometry, double& rShape)
+  bool ModelerUtilities::CheckSliver(Geometry<Node<3> >& rGeometry)
+  {
+
+    KRATOS_TRY
+   
+    std::vector<Vector> FaceNormals(rGeometry.FacesNumber());
+    std::fill(FaceNormals.begin(),FaceNormals.end(),ZeroVector(3));
+
+    std::vector<double> FaceAreas(rGeometry.FacesNumber());
+    std::fill(FaceAreas.begin(),FaceAreas.end(), 0.0 );
+
+    double MaximumFaceArea = DBL_MIN;
+    double MinimumFaceArea = DBL_MAX;
+
+    boost::numeric::ublas::matrix<unsigned int> lpofa;  //points that define the faces
+    rGeometry.NodesInFaces(lpofa);
+    boost::numeric::ublas::vector<unsigned int> lnofa;  //number of nodes per face (3)
+    rGeometry.NumberNodesInFaces(lnofa);
+
+    //calculate face normals
+    Vector FirstVectorPlane  = ZeroVector(3);
+    Vector SecondVectorPlane = ZeroVector(3);
+
+    double FaceArea = 0;
+    for(unsigned int i=0; i<lpofa.size2(); i++)
+      {
+	std::vector<Vector> FaceCoordinates(lnofa[i]); // (3)
+	std::fill(FaceCoordinates.begin(),FaceCoordinates.end(),ZeroVector(3));
+	for(unsigned int j=0; j<lnofa[i]; j++)
+	  {
+	    for(unsigned int k=0; k<3; k++)
+	      {
+		FaceCoordinates[j][k] = rGeometry[lpofa(j+1,i)].Coordinates()[k];
+	      }
+	  }
+	
+	if( lnofa[i] > 2 ){	 
+	  FirstVectorPlane  =  FaceCoordinates[1]-FaceCoordinates.front();
+	  SecondVectorPlane =  FaceCoordinates.back()-FaceCoordinates.front();
+	}
+	else{
+	  KRATOS_THROW_ERROR( std::logic_error,"2D check sliver not implemented", "" ) 
+	}
+	
+	FaceNormals[i] = MathUtils<double>::CrossProduct(FirstVectorPlane,SecondVectorPlane);
+
+	FaceArea = norm_2(FaceNormals[i]);
+
+	if(FaceArea<MinimumFaceArea)
+	  MinimumFaceArea = FaceArea;
+	if(FaceArea>MaximumFaceArea)
+	  MaximumFaceArea = FaceArea;	
+      }
+
+    //check areas 
+    if( MaximumFaceArea >= MinimumFaceArea * 1.0e2 ){
+      return true;
+    }
+
+    //normalize normals
+    for(unsigned int i=0; i<FaceNormals.size(); i++)
+      if(norm_2(FaceNormals[i])!=0)
+	FaceNormals[i]/=norm_2(FaceNormals[i]);
+
+    //check coincident normals
+    std::vector<int> FaceCoincidentNormals(rGeometry.FacesNumber());
+    std::fill(FaceCoincidentNormals.begin(),FaceCoincidentNormals.end(), 0.0 );
+
+    unsigned int CoincidentNormals = 0;
+    for(unsigned int i=0; i<lpofa.size2(); i++)
+      {
+	for(unsigned int j=i+1; j<lpofa.size2(); j++)
+	  {
+	    double projection = inner_prod(FaceNormals[i],FaceNormals[j]);
+	    if( fabs(projection) >= 0.99 ){
+	      FaceCoincidentNormals[i] +=1;
+	      FaceCoincidentNormals[j] +=1;
+	    }
+	  }
+
+	CoincidentNormals +=FaceCoincidentNormals[i];
+      }	
+    
+    //CoincidentNormals: 12 => all-faces coincident 
+    //CoincidentNormals:  6 => 3-faces coincident
+    //CoincidentNormals:  4 => 2-faces/2-faces coincident 
+    //CoincidentNormals:  2 => 2-faces coincident
+
+    const unsigned int  size = rGeometry.size();
+    unsigned int NumberOfBoundaryNodes = 0;
+    for(unsigned int i=0; i<size; i++)
+      if(rGeometry[i].Is(BOUNDARY))
+	NumberOfBoundaryNodes+=1;
+
+    // for(unsigned int i=0; i<FaceNormals.size(); i++)
+    //   {
+    //     std::cout<<"FaceNormal ["<<i<<"] "<<FaceNormals[i]<<std::endl; 
+    //   }	
+    
+    if( NumberOfBoundaryNodes == size ){ //boundary elements
+      if( CoincidentNormals >= 4 ){
+	return true;
+      }
+    }
+    else if(NumberOfBoundaryNodes >=2){
+      if( CoincidentNormals >= 6 ){
+	return true;
+      }
+    }
+    else{ //inside elements
+      if( CoincidentNormals >= 12 ){
+     	return true;
+      }
+    }
+
+    return false;
+
+    KRATOS_CATCH( "" )
+      
+  }
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  double ModelerUtilities::GetAndCompareSideLenghts(Geometry<Node<3> >& rGeometry, double& rMaximumSideLength, double& rMinimumSideLength)
+  {
+
+    KRATOS_TRY
+   
+    rMaximumSideLength = DBL_MIN;
+    rMinimumSideLength = DBL_MAX;
+    
+    boost::numeric::ublas::matrix<unsigned int> lpofa;
+    rGeometry.NodesInFaces(lpofa);
+
+    double SideLength = 0;
+    for(unsigned int i=0; i<lpofa.size2(); i++)
+      {
+
+	for(unsigned int j=1; j<lpofa.size1(); j++)
+	  {
+	    SideLength = norm_2(rGeometry[lpofa(0,i)].Coordinates() - rGeometry[lpofa(j,i)].Coordinates());
+	
+	    if( SideLength < rMinimumSideLength )
+	      rMinimumSideLength = SideLength;
+	    
+	    if( SideLength > rMaximumSideLength )
+	      rMaximumSideLength = SideLength;
+	  }
+      }
+      
+
+    return (rMaximumSideLength/rMinimumSideLength);
+
+    KRATOS_CATCH( "" )
+      
+  }
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  bool ModelerUtilities::CheckGeometryShape(Geometry<Node<3> >& rGeometry, int& rShape)
   {
     KRATOS_TRY
       
@@ -582,60 +847,78 @@ namespace Kratos
 
     double Volume = 0;
     double MaximumSideLength = 0;
-    //double MinimumSideLength = 0;
+    double MinimumSideLength = 0;
     
-    double CriticalRelativeSideLength = (double)size; //edge relative length
+    double CriticalRelativeSideLength = (double)size*5; //edge relative length (3,4)
     
     Volume = rGeometry.Volume();
     
     //compare side lengths
     double RelativeSideLength = 0;
-    //RelativeSideLength = CompareSideLengths(rGeometry, MaximumSideLength, MinimumSideLength);
+    RelativeSideLength = GetAndCompareSideLenghts(rGeometry, MaximumSideLength, MinimumSideLength);
  
     if( RelativeSideLength > CriticalRelativeSideLength ){
+      //std::cout<<" RelativeSideLength "<<RelativeSideLength<<std::endl;
       distorted = true;
     }
       
-    double GeometrySideVolume =  1e-6 * pow( MaximumSideLength, size );
+    double CriticalVolume =  1e-12 * pow( MinimumSideLength, size-1 );
 
-    if( Volume < GeometrySideVolume ){
+    //check sliver (volume)
+    if( Volume < CriticalVolume ){
+      //std::cout<<" Sliver (volume) "<<Volume<<" "<<CriticalVolume<<std::endl;
       sliver = true;
     }
+
+    //check sliver (volume + normals and faces)
+    if( !sliver ){
+      sliver = CheckSliver(rGeometry);
+      // if(sliver)	
+      // 	std::cout<<" Sliver (faces) "<<sliver<<std::endl;
+    }
+
+
     
-    //check if is an SELF CONTACT element (contact domain definition)
+    //check if it is a contact element (contact domain definition)
     std::vector<int> SlaveVertices;
-    //CheckContactElement(rGeometry, SlaveVertices);
+    ContactElementType ContactType= CheckContactElement(rGeometry, SlaveVertices);
 
-    //check if is an EDGE or a FACE element (contact domain definition)
-    unsigned int slaves = SlaveVertices.size();
-    if( slaves == 1 ){ //FACE
+    if( ContactType != NonContact ){
+
+      std::cout<<" contact type "<<std::endl;
+
+      if( ContactType == PointToFace ){ //POINT_FACE
       
-      //check the projection of the slave vertex on the geometry face
-      double AreaTolerance = 2; //if is outside of the face (only a 2*FaceArea deviation is allowed)
-      double FaceArea = 0;
-      double ProjectedArea = 0;
-      //FaceArea = ComputeFaceArea(rGeometry, SlaveVertex);
-      //ProjectedArea = ComputePointToFaceProjection(rGeometry, SlaveVertex);
+	//check the projection of the slave vertex on the geometry face
+	double AreaTolerance = 2; //if is outside of the face (only a 2*FaceArea deviation is allowed)
+	double FaceArea = 0;
+	double ProjectedArea = 0;
+	//FaceArea = ComputeFaceArea(rGeometry, SlaveVertex);
+	//ProjectedArea = ComputePointToFaceProjection(rGeometry, SlaveVertex);
 
-      if( ProjectedArea < 0 ){ // projection outside of the face
+	if( ProjectedArea < 0 ){ // projection outside of the face
 	
-	if( FaceArea < AreaTolerance * fabs(ProjectedArea) ) 
-	  distorted = true;
+	  if( FaceArea < AreaTolerance * fabs(ProjectedArea) ) 
+	    distorted = true;
+	}
+
+      }
+      else if( ContactType == EdgeToEdge ){ //EDGE_EDGE
+
+	//compare vertex normals (detect coplanar faces and orthogonal faces)
+	//if( !CheckVertexNormals(rGeometry) )
+	distorted = true;
+      }
+      else if( ContactType == PointToPoint ){ //POINT_POINT
+      
+	//compare vertex normals (detect coplanar faces and orthogonal faces)
+	//if( !CheckVertexNormals(rGeometry) )
+	distorted = true;
       }
 
     }
-    else if( slaves > 1 ){ //EDGE
 
-      //compare vertex normals (detect coplanar faces and orthogonal faces)
-      //if( !CheckVertexNormals(rGeometry) )
-      distorted = true;
-    }
-    else if( slaves == 0 ){ //SELF CONTACT  :: element with crossed diagonals (strange situation)
-      
-      //compare vertex normals (detect coplanar faces and orthogonal faces)
-      //if( !CheckVertexNormals(rGeometry) )
-      distorted = true;
-    }
+    //std::cout<<" DISTORTED "<<distorted<<" SLIVER "<<sliver<<std::endl;
 
     if( sliver )
       rShape = 1;
@@ -874,17 +1157,17 @@ namespace Kratos
 
     h /= (double)size;
 
-    double CriticalVolume = 1e-6 * pow(h, size-1);
+    double CriticalVolume = 1e-12 * pow(h, size-1);
     double AlphaRadius    = AlphaParameter * h;
 
 
     if( Volume < CriticalVolume ) //sliver
       {
+	//std::cout<<" Sliver (alpha_volume) "<<Volume<<" "<<CriticalVolume<<std::endl;
 	return false;
       }
     else
       {
-
 	if( Radius < AlphaRadius )
 	  {
 	    return true;

@@ -72,6 +72,16 @@ public:
     typedef MeshDataTransferUtilities::TransferParameters    TransferParametersType;
 
 
+    enum ContactElementType //(contact domain definition)
+    {
+      NonContact,   //this is not a contact element
+      PointToFace,  //2D/3D classical well defined node to face contact
+      EdgeToEdge,   //3D edge to edge complex contact element
+      PointToPoint, //2D/3D not compatible element belong to multiple bodies
+      Undefined     //to be defined later
+    };
+
+
     /**
      * Flags related to the meshing parameters
      */
@@ -493,7 +503,13 @@ public:
     
     bool CheckOuterCentre   (Geometry<Node<3> >& rGeometry, double& rOffsetFactor, bool& rSelfContact);
 
-    bool CheckGeometryShape (Geometry<Node<3> >& rGeometry, double& rShape);         
+    bool CheckSliver        (Geometry<Node<3> >& rGeometry);
+
+    ContactElementType  CheckContactElement  (Geometry<Node<3> >& rGeometry, std::vector<int>& rSlaveVertices);
+
+    double GetAndCompareSideLenghts  (Geometry<Node<3> >& rGeometry, double& rMaximumSideLength, double& rMinimumSideLength);
+
+    bool CheckGeometryShape (Geometry<Node<3> >& rGeometry, int& rShape);         
 
     //*******************************************************************************************
     //*******************************************************************************************

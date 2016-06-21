@@ -1942,11 +1942,12 @@ namespace Kratos
 		    if((nodes_begin + out.trianglelist[el*3+pn]-1)->Is(TO_REFINE))
 		      count_dissipative+=1;
 
-		    if((nodes_begin + out.trianglelist[el*3+pn]-1)->Is(NEW_ENTITY))
-		      count_boundary_inserted+=1;	      
-
 		    if((nodes_begin + out.trianglelist[el*3+pn]-1)->Is(BOUNDARY)){
 		      count_boundary+=1;
+
+		      if((nodes_begin + out.trianglelist[el*3+pn]-1)->Is(NEW_ENTITY))
+			count_boundary_inserted+=1;	      
+
 
 		      if( (nodes_begin + out.trianglelist[el*3+pn]-1)->SolutionStepsDataHas(CONTACT_FORCE) ){
 			array_1d<double, 3 > & ContactForceNormal = (nodes_begin + out.trianglelist[el*3+pn]-1)->FastGetSolutionStepValue(CONTACT_FORCE);
