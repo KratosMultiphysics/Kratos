@@ -183,22 +183,34 @@ public:
     BOOST_UBLAS_INLINE
     const_reference	operator ()	(size_type i) const
     {
+#ifndef NDEBUG
+        if(i>=N) KRATOS_THROW_ERROR(std::argument_error,"index greater than the size of the array - index is i = ", i);
+#endif
         return data_[i];
     }
     BOOST_UBLAS_INLINE
     reference operator () (size_type i)
     {
+#ifndef NDEBUG
+        if(i>=N) KRATOS_THROW_ERROR(std::argument_error,"index greater than the size of the array - index is i = ", i);
+#endif
         return data_[i];
     }
 
     BOOST_UBLAS_INLINE
     const_reference	operator []	(size_type i) const
     {
+#ifndef NDEBUG
+        if(i>=N) KRATOS_THROW_ERROR(std::argument_error,"index greater than the size of the array - index is i = ", i);
+#endif
         return data_[i];
     }
     BOOST_UBLAS_INLINE
     reference operator [] (size_type i)
     {
+#ifndef NDEBUG
+        if(i>=N) KRATOS_THROW_ERROR(std::argument_error,"index greater than the size of the array - index is i = ", i);
+#endif
         return data_[i];
     }
 
