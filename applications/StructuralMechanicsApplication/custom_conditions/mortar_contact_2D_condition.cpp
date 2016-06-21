@@ -234,8 +234,8 @@ void MortarContact2DCondition::CalculateLocalSystem(
     LocalSystemComponents LocalSystem;
 
     // Calculation flags
-    LocalSystem.CalculationFlags.Set(MortarContact2DCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS);
-    LocalSystem.CalculationFlags.Set(MortarContact2DCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
+    LocalSystem.CalculationFlags.Set(MortarContact2DCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS, true);
+    LocalSystem.CalculationFlags.Set(MortarContact2DCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS, true);
 
     //Initialize sizes for the system components:
     if ( rLHSVariables.size( ) != rLeftHandSideMatrices.size( ) )
@@ -248,28 +248,21 @@ void MortarContact2DCondition::CalculateLocalSystem(
         rRightHandSideVectors.resize( rRHSVariables.size( ) );
     }
 
-    LocalSystem.CalculationFlags.Set(MortarContact2DCondition::COMPUTE_LHS_MATRIX);
+    LocalSystem.CalculationFlags.Set(MortarContact2DCondition::COMPUTE_LHS_MATRIX, true);
     for ( unsigned int i = 0; i < rLeftHandSideMatrices.size( ); i++ )
     {
         // Note: rRightHandSideVectors.size() > 0
-        this->InitializeSystemMatrices( rLeftHandSideMatrices[i],
-                                        rRightHandSideVectors[0],
-                                        LocalSystem.CalculationFlags 
-                                        );
+        this->InitializeSystemMatrices( rLeftHandSideMatrices[i], rRightHandSideVectors[0],LocalSystem.CalculationFlags );
     }
 
-    LocalSystem.CalculationFlags.Set( MortarContact2DCondition::COMPUTE_RHS_VECTOR );
+    LocalSystem.CalculationFlags.Set( MortarContact2DCondition::COMPUTE_RHS_VECTOR, true );
     LocalSystem.CalculationFlags.Set( MortarContact2DCondition::COMPUTE_LHS_MATRIX, false ); // Temporarily only
     for ( unsigned int i = 0; i < rRightHandSideVectors.size( ); i++ )
     {
         // Note: rLeftHandSideMatrices.size() > 0
-        this->InitializeSystemMatrices( rLeftHandSideMatrices[0],
-                                        rRightHandSideVectors[i],
-                                        LocalSystem.CalculationFlags 
-                                        );
+        this->InitializeSystemMatrices( rLeftHandSideMatrices[0], rRightHandSideVectors[i], LocalSystem.CalculationFlags  );
     }
     LocalSystem.CalculationFlags.Set( MortarContact2DCondition::COMPUTE_LHS_MATRIX, true ); // Reactivated again
-
 
     // Set Variables to Local system components
     LocalSystem.SetLeftHandSideMatrices( rLeftHandSideMatrices );
@@ -293,26 +286,22 @@ void MortarContact2DCondition::CalculateLocalSystem(
     )
 {
     KRATOS_TRY;
-
-    // TODO: ADD CONTENT!!!!!
     
+    // Create local system components
     LocalSystemComponents LocalSystem;
 
-    //calculation flags
-    LocalSystem.CalculationFlags.Set( MortarContact2DCondition::COMPUTE_LHS_MATRIX );
-    LocalSystem.CalculationFlags.Set( MortarContact2DCondition::COMPUTE_RHS_VECTOR );
+    // Calculation flags
+    LocalSystem.CalculationFlags.Set( MortarContact2DCondition::COMPUTE_LHS_MATRIX, true );
+    LocalSystem.CalculationFlags.Set( MortarContact2DCondition::COMPUTE_RHS_VECTOR, true );
 
-    //Initialize sizes for the system components:
-    this->InitializeSystemMatrices( rLeftHandSideMatrix,
-                                    rRightHandSideVector,
-                                    LocalSystem.CalculationFlags 
-                                  );
+    // Initialize sizes for the system components:
+    this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
     
-    //Set Variables to Local system components
+    // Set Variables to Local system components
     LocalSystem.SetLeftHandSideMatrix( rLeftHandSideMatrix );
     LocalSystem.SetRightHandSideVector( rRightHandSideVector );
 
-    //Calculate condition system
+    // Calculate condition system
     this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
 
     KRATOS_CATCH( "" );
@@ -330,21 +319,18 @@ void MortarContact2DCondition::CalculateLeftHandSide(
     LocalSystemComponents LocalSystem;
 
     // Calculation flags
-    LocalSystem.CalculationFlags.Set( MortarContact2DCondition::COMPUTE_LHS_MATRIX );
+    LocalSystem.CalculationFlags.Set( MortarContact2DCondition::COMPUTE_LHS_MATRIX, true );
 
     VectorType RightHandSideVector = Vector( );
 
     // Initialize sizes for the system components:
-    this->InitializeSystemMatrices( rLeftHandSideMatrix,
-                                    RightHandSideVector,
-                                    LocalSystem.CalculationFlags 
-                                    );
+    this->InitializeSystemMatrices( rLeftHandSideMatrix, RightHandSideVector, LocalSystem.CalculationFlags );
 
-    //Set Variables to Local system components
+    // Set Variables to Local system components
     LocalSystem.SetLeftHandSideMatrix( rLeftHandSideMatrix );
     LocalSystem.SetRightHandSideVector( RightHandSideVector );
 
-    //Calculate condition system
+    // Calculate condition system
     this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
 }
 
@@ -357,19 +343,19 @@ void MortarContact2DCondition::CalculateLeftHandSide(
     ProcessInfo& rCurrentProcessInfo 
     )
 {
+    // Create local system components
     LocalSystemComponents LocalSystem;
 
-    LocalSystem.CalculationFlags.Set( MortarContact2DCondition::COMPUTE_LHS_MATRIX );
-    LocalSystem.CalculationFlags.Set( MortarContact2DCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
+    // Calculation flags
+    LocalSystem.CalculationFlags.Set( MortarContact2DCondition::COMPUTE_LHS_MATRIX, true );
+    LocalSystem.CalculationFlags.Set( MortarContact2DCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS, true );
 
     VectorType RightHandSideVector = Vector( );
 
-    for( unsigned int i = 0; i<rLeftHandSideMatrices.size( ); i++ )
+    // Initialize size for the system components
+    for( unsigned int i = 0; i < rLeftHandSideMatrices.size( ); i++ )
     {
-        this->InitializeSystemMatrices( rLeftHandSideMatrices[i],
-                                        RightHandSideVector,
-                                        LocalSystem.CalculationFlags 
-                                        );
+        this->InitializeSystemMatrices( rLeftHandSideMatrices[i], RightHandSideVector, LocalSystem.CalculationFlags );
     }
 
     LocalSystem.SetLeftHandSideMatrices( rLeftHandSideMatrices );
@@ -390,15 +376,12 @@ void MortarContact2DCondition::CalculateRightHandSide(
     LocalSystemComponents LocalSystem;
 
     // Calculation flags
-    LocalSystem.CalculationFlags.Set( MortarContact2DCondition::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set( MortarContact2DCondition::COMPUTE_RHS_VECTOR, true);
 
     MatrixType LeftHandSideMatrix = Matrix( );
 
     // Initialize size for the system components
-    this->InitializeSystemMatrices( LeftHandSideMatrix,
-                                    rRightHandSideVector,
-                                    LocalSystem.CalculationFlags 
-                                  );
+    this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVector,LocalSystem.CalculationFlags);
 
     //Set Variables to Local system components
     LocalSystem.SetLeftHandSideMatrix( LeftHandSideMatrix );
@@ -420,18 +403,15 @@ void MortarContact2DCondition::CalculateRightHandSide(
     LocalSystemComponents LocalSystem;
 
     // Calculation flags
-    LocalSystem.CalculationFlags.Set( MortarContact2DCondition::COMPUTE_RHS_VECTOR );
-    LocalSystem.CalculationFlags.Set( MortarContact2DCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS );
+    LocalSystem.CalculationFlags.Set( MortarContact2DCondition::COMPUTE_RHS_VECTOR, true );
+    LocalSystem.CalculationFlags.Set( MortarContact2DCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS, true );
 
     MatrixType LeftHandSideMatrix = Matrix( );
 
     // Initialize size for the system components
     for( unsigned int i=0; i<rRightHandSideVectors.size(); i++ )
     {
-        this->InitializeSystemMatrices( LeftHandSideMatrix,
-                                        rRightHandSideVectors[i],
-                                        LocalSystem.CalculationFlags 
-                                      );
+        this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVectors[i], LocalSystem.CalculationFlags );
     }
 
     //Set Variables to Local system components
@@ -452,16 +432,24 @@ void MortarContact2DCondition::InitializeSystemMatrices(
     )
 {
     const unsigned int condition_size = this->CalculateConditionSize( );
-
+    
     // Resizing as needed the LHS
     if ( rCalculationFlags.Is( MortarContact2DCondition::COMPUTE_LHS_MATRIX ) ) // Calculation of the matrix is required
     {
+        if ( rLeftHandSideMatrix.size1() != condition_size )
+        {
+            rLeftHandSideMatrix.resize( condition_size, condition_size, false );
+        }
         noalias( rLeftHandSideMatrix ) = ZeroMatrix( condition_size, condition_size ); // Resetting LHS
     }
 
     // Resizing as needed the RHS
     if ( rCalculationFlags.Is( MortarContact2DCondition::COMPUTE_RHS_VECTOR ) ) // Calculation of the matrix is required
     {
+        if ( rRightHandSideVector.size() != condition_size )
+        {
+            rRightHandSideVector.resize( condition_size, false );
+        }
         rRightHandSideVector = ZeroVector( condition_size ); // Resetting RHS
     }
 }
@@ -552,14 +540,11 @@ void MortarContact2DCondition::CalculateConditionSystem(
 
             this->CalculateKinematics( Variables, PointNumber );
 
-            this->InitializeConditionMatrices( Variables,
-                                               integration_weight,
-                                               PointNumber,
-                                               calculate_slave_contributions);
+            this->InitializeConditionMatrices( Variables, integration_weight, PointNumber, calculate_slave_contributions);
 
             // To prevent recalculation of slave contributions
             calculate_slave_contributions = false;
-
+            
             // Calculation of the matrix is required
             if ( rLocalSystem.CalculationFlags.Is( MortarContact2DCondition::COMPUTE_LHS_MATRIX ) ||
                  rLocalSystem.CalculationFlags.Is( MortarContact2DCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
@@ -602,12 +587,7 @@ void MortarContact2DCondition::InitializeGeneralVariables(
     const unsigned int local_dimension_master = current_master_element.LocalSpaceDimension();
 
     // Slave element info
-    rVariables.Initialize(local_dimension_master,
-                          number_of_nodes_master,
-                          local_dimension_slave,
-                          number_of_nodes_slave,
-                          dimension 
-                         );
+    rVariables.Initialize(local_dimension_master, number_of_nodes_master, local_dimension_slave, number_of_nodes_slave, dimension );
 
     rVariables.SetMasterElement( current_master_element );
     rVariables.SetMasterElementIndex( rMasterElementIndex );
@@ -785,7 +765,7 @@ void MortarContact2DCondition::CalculateDAndM(
         const unsigned int iNode = rVariables.GetInactiveSet()[i_inactive];
         const unsigned int i = i_inactive * dimension;
         
-        // tTo avoid recalculating the D matrix
+        // To avoid recalculating the D matrix
         if( rCalculateSlaveContributions )
         {
             D( i    , i     ) = rIntegrationWeight * N_s( iNode ) * J_s;
@@ -795,8 +775,8 @@ void MortarContact2DCondition::CalculateDAndM(
         for ( unsigned int jNode = 0; jNode < num_master_nodes; ++jNode )
         {
             const unsigned int j = jNode * dimension;
-            M( i  , j   ) = rIntegrationWeight * Phi( iNode ) * N_m( jNode ) * J_s;
-            M( i+1, j+1 ) = M( i, j );
+            M( i    , j     ) = rIntegrationWeight * Phi( iNode ) * N_m( jNode ) * J_s;
+            M( i + 1, j + 1 ) = M( i, j );
         }
      }
 
@@ -843,19 +823,15 @@ void MortarContact2DCondition::CalculateAndAddLHS(
 
             if ( rLeftHandSideVariables[i] == MORTAR_CONTACT_OPERATOR )
             {
-                const unsigned int condition_size = this->CalculateConditionSize( );
                 MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrices( )[i];
-                MatrixType LHS_contact_pair = ZeroMatrix( condition_size, condition_size );
+                MatrixType LHS_contact_pair = ZeroMatrix(rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2());
                 
                 // Calculate
-                this->CalculateAndAddMortarContactOperator( LHS_contact_pair, 
-                                                            rVariables, 
-                                                            rIntegrationWeight );
+                this->CalculateAndAddMortarContactOperator( LHS_contact_pair, rVariables, rIntegrationWeight );
 
                 // Assemble
-                this->AssembleContactPairLHSToConditionSystem( rVariables.GetMasterElementIndex( ),
-                                                               LHS_contact_pair,
-                                                               rLeftHandSideMatrix );
+                this->AssembleContactPairLHSToConditionSystem( rVariables.GetMasterElementIndex( ), LHS_contact_pair, rLeftHandSideMatrix );
+                
                 calculated = true;
             }
 
@@ -865,22 +841,17 @@ void MortarContact2DCondition::CalculateAndAddLHS(
             }
         }
     }
-    else
+    else // if ( rLocalSystem.CalculationFlags.Is( MortarContact2DCondition::COMPUTE_LHS_MATRIX ) )
     {
         /* SINGLE LHS MATRIX */
-        const unsigned int condition_size = this->CalculateConditionSize( );
         MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix( );
-        MatrixType LHS_contact_pair = ZeroMatrix(condition_size, condition_size);
+        MatrixType LHS_contact_pair = ZeroMatrix(rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2());
         
         // Calculate
-        this->CalculateAndAddMortarContactOperator( LHS_contact_pair,
-                                                    rVariables, 
-                                                    rIntegrationWeight );
+        this->CalculateAndAddMortarContactOperator( LHS_contact_pair, rVariables, rIntegrationWeight );
 
         // Assemble
-        this->AssembleContactPairLHSToConditionSystem( rVariables.GetMasterElementIndex( ),
-                                                       LHS_contact_pair,
-                                                       rLeftHandSideMatrix );
+        this->AssembleContactPairLHSToConditionSystem( rVariables.GetMasterElementIndex( ), LHS_contact_pair, rLeftHandSideMatrix );
 
 //      KRATOS_WATCH( rLeftHandSideMatrix )
     }
@@ -906,19 +877,15 @@ void MortarContact2DCondition::AssembleContactPairLHSToConditionSystem(
     
     for ( unsigned int i_master_elem = 0; i_master_elem < rPairIndex; ++i_master_elem ) //TODO: Check if correct
     {
-        KRATOS_WATCH(mThisMasterElements[i_master_elem]->GetGeometry( ).PointsNumber( ));
         index_begin += mThisMasterElements[i_master_elem]->GetGeometry( ).PointsNumber( );
         index_begin += num_slave_nodes;
         index_begin += CalculateNumberOfActiveNodesInContactPair( i_master_elem );
     }
 
     index_begin *= dimension;
-    
-    Matrix pair_block_in_rConditionLHS = subrange( rConditionLHS,
-                                                   index_begin,
-                                                   index_begin + current_pair_size,
-                                                   index_begin,
-                                                   index_begin + current_pair_size);
+  
+    const unsigned int aux_index = index_begin + current_pair_size;
+    Matrix pair_block_in_rConditionLHS = subrange( rConditionLHS, index_begin, aux_index, index_begin, aux_index);
 
     pair_block_in_rConditionLHS = rPairLHS;
 }
@@ -991,12 +958,10 @@ void MortarContact2DCondition::AssembleContactPairRHSToConditionSystem(
         index_begin += CalculateNumberOfActiveNodesInContactPair( i_master_elem );
     }
 
-        index_begin *= dimension;
+    index_begin *= dimension;
     
-    Vector pair_block_in_rConditionRHS = subrange( rConditionRHS,
-                                                   index_begin,
-                                                   index_begin + current_pair_size
-                                                 );
+    const unsigned int aux_index = index_begin + current_pair_size;
+    Vector pair_block_in_rConditionRHS = subrange( rConditionRHS, index_begin, aux_index );
 
     pair_block_in_rConditionRHS = rPairRHS;
 }
