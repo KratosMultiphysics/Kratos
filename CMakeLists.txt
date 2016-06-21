@@ -264,7 +264,13 @@ include_directories( ${CMAKE_BINARY_DIR}/external_libraries/zlib )
 
 # defines needed
 add_definitions( -DKRATOS_PYTHON )
-add_definitions( -DNDEBUG )
+
+if(${DO_NOT_DEFINE_NDEBUG} MATCHES ON )
+    message("*************** ATTENTION AVOIDING DEFINING NDEBUG --- EXTREMELY SLOW!! ***************************")
+else(${DO_NOT_DEFINE_NDEBUG} MATCHES ON )    
+    add_definitions( -DNDEBUG )
+endif(${DO_NOT_DEFINE_NDEBUG} MATCHES ON )
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   add_definitions( -fPIC )
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
