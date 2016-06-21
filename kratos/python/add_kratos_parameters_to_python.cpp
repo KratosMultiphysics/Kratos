@@ -32,7 +32,7 @@ void  AddKratosParametersToPython()
 {
     using namespace boost::python;
 
-    class_<Parameters, Parameters::Pointer >("Parameters", init<std::string>()) //init<rapidjson::Value& >())
+    class_<Parameters, Parameters::Pointer >("Parameters", init<const std::string>()) //init<rapidjson::Value& >())
         .def(init<Parameters const&>())
         .def("WriteJsonString", &Parameters::WriteJsonString)
         .def("PrettyPrintJsonString", &Parameters::PrettyPrintJsonString)
