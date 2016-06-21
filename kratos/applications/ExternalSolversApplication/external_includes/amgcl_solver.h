@@ -157,7 +157,8 @@ public:
 
         mprovide_coordinates = rParameters["provide_coordinates"].GetBool();
         mcoarse_enough = rParameters["coarse_enough"].GetInt();
-
+        
+        
         mndof = rParameters["block_size"].GetInt(); //set the mndof to an inital number
         mTol = rParameters["tolerance"].GetDouble();
         mmax_it = rParameters["max_iteration"].GetInt();
@@ -221,7 +222,7 @@ public:
         mcoarse_enough = 5000;
         
         mgmres_size = gmres_size;
-        mprm.put("solver.M",  mgmres_size);
+        
 
 
         //choose smoother in the list "gauss_seidel, multicolor_gauss_seidel, ilu0, parallel_ilu0, ilut, damped_jacobi, spai0, chebyshev"
@@ -263,6 +264,7 @@ public:
         {
         case GMRES:
         {
+            mprm.put("solver.M",  mgmres_size);
             mprm.put("solver.type", "gmres");
             break;
         }
@@ -283,6 +285,7 @@ public:
         }
         case BICGSTAB_WITH_GMRES_FALLBACK:
         {
+            mprm.put("solver.M",  mgmres_size);
             mprm.put("solver.type", "bicgstab");
             mfallback_to_gmres=true;
             break;
@@ -324,7 +327,7 @@ public:
         mgmres_size = gmres_size;
         mcoarse_enough = 5000;
         
-        mprm.put("solver.M",  mgmres_size);
+        
 
 
         //choose smoother in the list "gauss_seidel, multicolor_gauss_seidel, ilu0, parallel_ilu0, ilut, damped_jacobi, spai0, chebyshev"
@@ -366,6 +369,7 @@ public:
         {
         case GMRES:
         {
+            mprm.put("solver.M",  mgmres_size);
             mprm.put("solver.type", "gmres");
             break;
         }
@@ -386,6 +390,7 @@ public:
         }
         case BICGSTAB_WITH_GMRES_FALLBACK:
         {
+            mprm.put("solver.M",  mgmres_size);
             mprm.put("solver.type", "bicgstab");
             mfallback_to_gmres=true;
             break;
@@ -444,6 +449,33 @@ public:
         
         mprm.put("precond.coarse_enough",mcoarse_enough/mndof);
         
+
+
+        Matrix B;
+        if(mprovide_coordinates == true)
+        {
+            B = ZeroMatrix(  rA.size1(), mndof*4  );
+            for(unsigned int i=0; i<rA.size1(); i+=mndof)
+            {
+                for( unsigned int j=0; j<static_cast<unsigned int>(mndof); j++)
+                {
+                    B(i+j,  j) = 1.0;
+
+                    unsigned int inode = i/mndof;
+
+                    B(i+j, mndof +j*3 + 0) = mcoords[inode][0];
+                    B(i+j, mndof +j*3 + 1) = mcoords[inode][1];
+                    B(i+j, mndof +j*3 + 2) = mcoords[inode][2];
+                }
+            }
+            mprm.put("precond.coarsening.nullspace.cols", B.size2());
+            mprm.put("precond.coarsening.nullspace.rows", B.size1());
+            mprm.put("precond.coarsening.nullspace.B",    &(B.data()[0]));
+        }
+        
+        if(mverbosity > 1)
+            write_json(std::cout, mprm);
+ 
         if(mverbosity == 4)
         {
             //output to matrix market
@@ -472,31 +504,6 @@ public:
             
             KRATOS_THROW_ERROR(std::logic_error, "verobsity = 4 prints the matrix and exits","")
         }
-
-        Matrix B;
-        if(mprovide_coordinates == true)
-        {
-            B = ZeroMatrix(  rA.size1(), mndof*4  );
-            for(unsigned int i=0; i<rA.size1(); i+=mndof)
-            {
-                for( unsigned int j=0; j<static_cast<unsigned int>(mndof); j++)
-                {
-                    B(i+j,  j) = 1.0;
-
-                    unsigned int inode = i/mndof;
-
-                    B(i+j, mndof +j*3 + 0) = mcoords[inode][0];
-                    B(i+j, mndof +j*3 + 1) = mcoords[inode][1];
-                    B(i+j, mndof +j*3 + 2) = mcoords[inode][2];
-                }
-            }
-            mprm.put("precond.coarsening.nullspace.cols", B.size2());
-            mprm.put("precond.coarsening.nullspace.rows", B.size1());
-            mprm.put("precond.coarsening.nullspace.B",    &(B.data()[0]));
-        }
-        
-        if(mverbosity > 1)
-            write_json(std::cout, mprm);
         
         size_t iters;
         double resid;
