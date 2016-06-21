@@ -56,6 +56,7 @@ void  AddCustomUtilitiesToPython()
     .def("CreateNTNConditions",&TreeContactSearch::CreateNTNConditions)
     .def("CreateNTSConditions",&TreeContactSearch::CreateNTSConditions)
     .def("CreateMortarConditions",&TreeContactSearch::CreateMortarConditions)
+    .def("CheckMortarConditions",&TreeContactSearch::CheckMortarConditions)
     ;
   
 }

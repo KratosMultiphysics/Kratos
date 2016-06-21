@@ -54,7 +54,8 @@ MortarContact2DCondition::MortarContact2DCondition(
     PropertiesType::Pointer pProperties ) :
     Condition( NewId, pGeometry, pProperties )
 {
-    
+    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod(); // TODO: Add the possibilty to chose different integration order
+    //DO NOT ADD DOFS HERE!!!
 }
 
 /************************************* CONSTRUCTOR *********************************/
@@ -64,7 +65,7 @@ MortarContact2DCondition::MortarContact2DCondition(
     MortarContact2DCondition const& rOther ) :
     Condition( rOther )
 {
-    
+    //DO NOT ADD DOFS HERE!!!
 }
 
 /************************************* OPERATIONS **********************************/
@@ -165,11 +166,11 @@ double MortarContact2DCondition::LagrangeMultiplierShapeFunctionValue(
         const GeometryType::IntegrationPointType& pt = GetGeometry().IntegrationPoints( mThisIntegrationMethod )[rPointNumber];
         GeometryType::CoordinatesArrayType local_coordinates;
         double eta = GetGeometry( ).PointLocalCoordinates( local_coordinates, pt.Coordinates( ) )(0);
-        if (rShapeFunctionIndex == 1 )
+        if (rShapeFunctionIndex == 0 )
         {
             phi = ( 0.5 * ( 1.0 - 3.0 * eta ) );
         }
-        else if (rShapeFunctionIndex == 2 )
+        else if (rShapeFunctionIndex == 1 )
         {
             phi = ( 0.5 * ( 1.0 + 3.0 * eta ) );
         }
@@ -181,15 +182,15 @@ double MortarContact2DCondition::LagrangeMultiplierShapeFunctionValue(
     else if (number_nodes == 3) // Second order
     {
         const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
-        if (rShapeFunctionIndex == 1 )
+        if (rShapeFunctionIndex == 0 )
         {
             phi = Ncontainer(rPointNumber, 0) -  3.0/4.0 * Ncontainer(rPointNumber, 2) + 0.5;
         }
-        else if (rShapeFunctionIndex == 2 )
+        else if (rShapeFunctionIndex == 1 )
         {
             phi = Ncontainer(rPointNumber, 1) -  3.0/4.0 * Ncontainer(rPointNumber, 2) + 0.5;
         }
-        else if (rShapeFunctionIndex == 3 )
+        else if (rShapeFunctionIndex == 2 )
         {
             phi = 5.0/2.0 * Ncontainer(rPointNumber, 2) - 1.0;
         }
@@ -452,6 +453,7 @@ void MortarContact2DCondition::InitializeSystemMatrices(
 {
     const unsigned int condition_size = this->CalculateConditionSize( );
 
+    // Resizing as needed the LHS
     if ( rCalculationFlags.Is( MortarContact2DCondition::COMPUTE_LHS_MATRIX ) ) // Calculation of the matrix is required
     {
         noalias( rLeftHandSideMatrix ) = ZeroMatrix( condition_size, condition_size ); // Resetting LHS
@@ -544,7 +546,7 @@ void MortarContact2DCondition::CalculateConditionSystem(
         this->InitializeGeneralVariables( Variables, i_master_elem );
         this->InitializeActiveSet( Variables );
 
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size( ); PointNumber++ )
+        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
             double integration_weight = integration_points[PointNumber].Weight( );
 
@@ -664,10 +666,10 @@ void MortarContact2DCondition::CalculateKinematics(
     KRATOS_TRY;
     
     /* DEFINITIONS */
-    GeometryType& slave_nodes = GetGeometry( );
+    GeometryType& slave_nodes  = GetGeometry( );
     GeometryType& master_nodes = rVariables.GetMasterElement( );
     const unsigned int number_of_master_nodes = master_nodes.PointsNumber( );
-    const unsigned int number_of_slave_nodes = slave_nodes.PointsNumber( );
+    const unsigned int number_of_slave_nodes  =  slave_nodes.PointsNumber( );
 
     /* RESIZE MATRICES AND VECTORS */
     rVariables.Phi_LagrangeMultipliers.resize( number_of_slave_nodes );
@@ -695,8 +697,9 @@ void MortarContact2DCondition::CalculateKinematics(
     rVariables.DPhi_De_LagrangeMultipliers = LagrangeMultiplierShapeFunctionLocalGradient( rPointNumber );
 
     slave_nodes.Jacobian( rVariables.j_Slave, mThisIntegrationMethod );
-
-    rVariables.DetJSlave = slave_nodes.DeterminantOfJacobian( rPointNumber, mThisIntegrationMethod );
+    
+//     rVariables.DetJSlave = slave_nodes.DeterminantOfJacobian( rPointNumber, mThisIntegrationMethod ); // TODO: Check if it is correct
+    rVariables.DetJSlave = slave_nodes.Length()/2.00;
 
     this->CalculateNormalGapAtIntegrationPoint( rVariables, rPointNumber );
 
@@ -840,8 +843,9 @@ void MortarContact2DCondition::CalculateAndAddLHS(
 
             if ( rLeftHandSideVariables[i] == MORTAR_CONTACT_OPERATOR )
             {
+                const unsigned int condition_size = this->CalculateConditionSize( );
                 MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrices( )[i];
-                MatrixType LHS_contact_pair = ZeroMatrix( rLeftHandSideMatrix.size1( ), rLeftHandSideMatrix.size2( ) );
+                MatrixType LHS_contact_pair = ZeroMatrix( condition_size, condition_size );
                 
                 // Calculate
                 this->CalculateAndAddMortarContactOperator( LHS_contact_pair, 
@@ -864,9 +868,10 @@ void MortarContact2DCondition::CalculateAndAddLHS(
     else
     {
         /* SINGLE LHS MATRIX */
+        const unsigned int condition_size = this->CalculateConditionSize( );
         MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix( );
-        MatrixType LHS_contact_pair = ZeroMatrix( rLeftHandSideMatrix.size1( ), rLeftHandSideMatrix.size2( ) );
-                
+        MatrixType LHS_contact_pair = ZeroMatrix(condition_size, condition_size);
+        
         // Calculate
         this->CalculateAndAddMortarContactOperator( LHS_contact_pair,
                                                     rVariables, 
@@ -893,27 +898,27 @@ void MortarContact2DCondition::AssembleContactPairLHSToConditionSystem(
     const unsigned int dimension = 2;
     const unsigned int num_slave_nodes = GetGeometry( ).PointsNumber( );
     const unsigned int num_current_master_nodes = mThisMasterElements[rPairIndex]->GetGeometry( ).PointsNumber( );
-        const unsigned int num_current_active_nodes = CalculateNumberOfActiveNodesInContactPair( rPairIndex );
-        const unsigned int current_pair_size = dimension * ( num_current_master_nodes + num_slave_nodes +  num_current_active_nodes );
+    const unsigned int num_current_active_nodes = CalculateNumberOfActiveNodesInContactPair( rPairIndex );
+    const unsigned int current_pair_size = dimension * ( num_current_master_nodes + num_slave_nodes +  num_current_active_nodes );
   
     // Find location of the piar's master DOFs in ConditionLHS
     unsigned int index_begin = 0;
-
-    for ( unsigned int i_master_elem = 0; i_master_elem < rPairIndex - 1; ++i_master_elem )
+    
+    for ( unsigned int i_master_elem = 0; i_master_elem < rPairIndex; ++i_master_elem ) //TODO: Check if correct
     {
+        KRATOS_WATCH(mThisMasterElements[i_master_elem]->GetGeometry( ).PointsNumber( ));
         index_begin += mThisMasterElements[i_master_elem]->GetGeometry( ).PointsNumber( );
         index_begin += num_slave_nodes;
         index_begin += CalculateNumberOfActiveNodesInContactPair( i_master_elem );
     }
 
-        index_begin *= dimension;
+    index_begin *= dimension;
     
     Matrix pair_block_in_rConditionLHS = subrange( rConditionLHS,
                                                    index_begin,
                                                    index_begin + current_pair_size,
                                                    index_begin,
-                                                   index_begin + current_pair_size
-                                                 );
+                                                   index_begin + current_pair_size);
 
     pair_block_in_rConditionLHS = rPairLHS;
 }
@@ -1012,15 +1017,15 @@ void MortarContact2DCondition::CalculateAndAddMortarContactOperator(
   
     // Contact pair variables
     const unsigned int dimension = 2;
-    const unsigned int num_slave_nodes = GetGeometry( ).PointsNumber( );
-    const unsigned int num_master_nodes = rVariables.GetMasterElement( ).PointsNumber( );  
-    const unsigned int num_total_nodes = num_slave_nodes + num_master_nodes;
-    const unsigned int num_active_nodes = rVariables.GetActiveSet( ).size( );
+    const unsigned int num_slave_nodes    = GetGeometry( ).PointsNumber( );
+    const unsigned int num_master_nodes   = rVariables.GetMasterElement( ).PointsNumber( );  
+    const unsigned int num_total_nodes    = num_slave_nodes + num_master_nodes;
+    const unsigned int num_active_nodes   = rVariables.GetActiveSet( ).size( );
     const unsigned int num_inactive_nodes = rVariables.GetInactiveSet( ).size( );
 
     const Matrix& D = mThisMortarConditionMatrices.D;
     const Matrix& M = mThisMortarConditionMatrices.M;
-  
+    
     // Calculate the blocks of B_co and B_co_transpose
     unsigned int i = 0, j = 0;
     for ( unsigned int i_active = 0; i_active < num_active_nodes; ++i_active )
@@ -1029,22 +1034,22 @@ void MortarContact2DCondition::CalculateAndAddMortarContactOperator(
         
         for ( unsigned int j_master = 0; j_master < num_master_nodes; ++j_master )
         {
-                // fill the -M and -M' parts
+            // Fill the -M and -M' parts
             j = j_master * dimension;
-                rLeftHandSideMatrix( i,     j     ) = -M( i, j );
-                rLeftHandSideMatrix( i + 1, j + 1 ) = -M( i, j );
-          
-                rLeftHandSideMatrix( j,     i     ) = -M( i, j );
-                rLeftHandSideMatrix( j + 1, i + 1 ) = -M( i, j );
+            rLeftHandSideMatrix( i,     j     ) = - M( i_active * dimension, j_master * dimension );
+            rLeftHandSideMatrix( i + 1, j + 1 ) = - M( i_active * dimension, j_master * dimension );
+        
+            rLeftHandSideMatrix( j,     i     ) = - M( j_master * dimension, i_active * dimension );
+            rLeftHandSideMatrix( j + 1, i + 1 ) = - M( j_master * dimension, i_active * dimension );
         }
       
-        // fill the D and D' parts
+        // Fill the D and D' parts
         j = ( i_active + num_master_nodes + num_inactive_nodes ) * dimension;
-        rLeftHandSideMatrix( i,     j     ) = D( i_active, i_active );
-        rLeftHandSideMatrix( i + 1, j + 1 ) = D( i_active, i_active );
+        rLeftHandSideMatrix( i,     j     ) = D( i_active * dimension, i_active * dimension );
+        rLeftHandSideMatrix( i + 1, j + 1 ) = D( i_active * dimension, i_active * dimension );
 
-        rLeftHandSideMatrix( j,     i     ) = D( i_active, i_active );
-        rLeftHandSideMatrix( j + 1, i + 1 ) = D( i_active, i_active );
+        rLeftHandSideMatrix( j,     i     ) = D( i_active * dimension, i_active * dimension );
+        rLeftHandSideMatrix( j + 1, i + 1 ) = D( i_active * dimension, i_active * dimension );
     }
 
     KRATOS_CATCH( "" );
@@ -1058,52 +1063,55 @@ void MortarContact2DCondition::EquationIdVector(
     ProcessInfo& CurrentProcessInfo )
 {
     KRATOS_TRY;
-
-    const std::vector<contact_container> all_conditions = *( this->GetValue( CONTACT_CONTAINERS ) );
         
     rResult.resize( 0, false );
 
-    /* ORDER - [ MASTER, SLAVE_I, SLAVE_A, LAMBDA ] */
-  
-    for ( unsigned int i_cond = 0; all_conditions.size( ); ++i_cond )
+    if (this->Is(ACTIVE))
     {
-        const contact_container& current_container = all_conditions[i_cond];
-        GeometryType& current_master = current_container.condition->GetGeometry( );
+        const std::vector<contact_container> all_conditions = *( this->GetValue( CONTACT_CONTAINERS ) );
+            
+        /* ORDER - [ MASTER, SLAVE_I, SLAVE_A, LAMBDA ] */
+    
+        for ( unsigned int i_cond = 0;  i_cond < all_conditions.size( ); ++i_cond )
+        {
+            const contact_container& current_container = all_conditions[i_cond];
+            GeometryType& current_master = current_container.condition->GetGeometry( );
+            
+            std::vector< unsigned int > active_nodes;
+            std::vector< unsigned int > inactive_nodes;
+            this->DetermineActiveAndInactiveSets( active_nodes, inactive_nodes, i_cond );
         
-        std::vector< unsigned int > active_nodes;
-        std::vector< unsigned int > inactive_nodes;
-        this->DetermineActiveAndInactiveSets( active_nodes, inactive_nodes, i_cond );
-      
-        // Master Nodes Displacement Equation IDs
-        for ( unsigned int iNode = 0; iNode < current_master.PointsNumber( ); iNode++ )
-        {
-            NodeType& master_node = current_master[iNode];
-            rResult.push_back( master_node.GetDof( DISPLACEMENT_X ).EquationId( ) );
-            rResult.push_back( master_node.GetDof( DISPLACEMENT_Y ).EquationId( ) );
-        }
-        
-        // Inactive Nodes Displacement Equation IDs
-        for ( unsigned int i_slave = 0; i_slave < inactive_nodes.size( ); ++i_slave )
-        {
-            NodeType& slave_node = GetGeometry()[ inactive_nodes[i_slave] ];
-            rResult.push_back( slave_node.GetDof( DISPLACEMENT_X ).EquationId( ) );
-            rResult.push_back( slave_node.GetDof( DISPLACEMENT_Y ).EquationId( ) );
-        }
+            // Master Nodes Displacement Equation IDs
+            for ( unsigned int iNode = 0; iNode < current_master.PointsNumber( ); iNode++ )
+            {
+                NodeType& master_node = current_master[iNode];
+                rResult.push_back( master_node.GetDof( DISPLACEMENT_X ).EquationId( ) );
+                rResult.push_back( master_node.GetDof( DISPLACEMENT_Y ).EquationId( ) );
+            }
+            
+            // Inactive Nodes Displacement Equation IDs
+            for ( unsigned int i_slave = 0; i_slave < inactive_nodes.size( ); ++i_slave )
+            {
+                NodeType& slave_node = GetGeometry()[ inactive_nodes[i_slave] ];
+                rResult.push_back( slave_node.GetDof( DISPLACEMENT_X ).EquationId( ) );
+                rResult.push_back( slave_node.GetDof( DISPLACEMENT_Y ).EquationId( ) );
+            }
 
-        // Active Nodes Displacement Equation IDs
-        for ( unsigned int i_slave = 0; i_slave < active_nodes.size( ); ++i_slave )
-        {
-            NodeType& slave_node = GetGeometry()[ active_nodes[i_slave] ];
-            rResult.push_back( slave_node.GetDof( DISPLACEMENT_X ).EquationId( ) );
-            rResult.push_back( slave_node.GetDof( DISPLACEMENT_Y ).EquationId( ) );
-        }
+            // Active Nodes Displacement Equation IDs
+            for ( unsigned int i_slave = 0; i_slave < active_nodes.size( ); ++i_slave )
+            {
+                NodeType& slave_node = GetGeometry()[ active_nodes[i_slave] ];
+                rResult.push_back( slave_node.GetDof( DISPLACEMENT_X ).EquationId( ) );
+                rResult.push_back( slave_node.GetDof( DISPLACEMENT_Y ).EquationId( ) );
+            }
 
-        // Active Nodes Lambda Equation IDs
-        for ( unsigned int i_slave = 0; i_slave < active_nodes.size( ); ++i_slave )
-        {
-            NodeType& slave_node = GetGeometry()[ active_nodes[i_slave] ];
-            rResult.push_back( slave_node.GetDof( LAGRANGE_MULTIPLIER_X ).EquationId( ) );
-            rResult.push_back( slave_node.GetDof( LAGRANGE_MULTIPLIER_Y ).EquationId( ) );
+            // Active Nodes Lambda Equation IDs
+            for ( unsigned int i_slave = 0; i_slave < active_nodes.size( ); ++i_slave )
+            {
+                NodeType& slave_node = GetGeometry()[ active_nodes[i_slave] ];
+                rResult.push_back( slave_node.GetDof( LAGRANGE_MULTIPLIER_X ).EquationId( ) );
+                rResult.push_back( slave_node.GetDof( LAGRANGE_MULTIPLIER_Y ).EquationId( ) );
+            }
         }
     }
 
@@ -1118,52 +1126,55 @@ void MortarContact2DCondition::GetDofList(
     ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
-
-    const std::vector<contact_container> all_conditions = *( this->GetValue( CONTACT_CONTAINERS ) );
-        
+    
     rConditionalDofList.resize( 0 );
-
-    /* ORDER - [ MASTER, SLAVE_I, SLAVE_A, LAMBDA ] */
-  
-    for ( unsigned int i_cond = 0; all_conditions.size( ); ++i_cond )
+    
+    if (this->Is(ACTIVE))
     {
-        const contact_container& current_container = all_conditions[i_cond];
-        GeometryType& current_master = current_container.condition->GetGeometry( );
+        const std::vector<contact_container> all_conditions = *( this->GetValue( CONTACT_CONTAINERS ) );
         
-        std::vector< unsigned int > active_nodes;
-        std::vector< unsigned int > inactive_nodes;
-        this->DetermineActiveAndInactiveSets( active_nodes, inactive_nodes, i_cond );
-      
-        // Master Nodes Displacement Equation IDs
-        for ( unsigned int iNode = 0; iNode < current_master.PointsNumber( ); iNode++ )
-        {
-            NodeType& master_node = current_master[iNode];
-            rConditionalDofList.push_back( master_node.pGetDof( DISPLACEMENT_X ) );
-            rConditionalDofList.push_back( master_node.pGetDof( DISPLACEMENT_Y ) );
-        }
+        /* ORDER - [ MASTER, SLAVE_I, SLAVE_A, LAMBDA ] */
         
-        // Inactive Nodes Displacement Equation IDs
-        for ( unsigned int i_slave = 0; i_slave < inactive_nodes.size( ); ++i_slave )
+        for ( unsigned int i_cond = 0; i_cond < all_conditions.size( ); ++i_cond )
         {
-            NodeType& slave_node = GetGeometry()[ inactive_nodes[i_slave] ];
-            rConditionalDofList.push_back( slave_node.pGetDof( DISPLACEMENT_X ) );
-            rConditionalDofList.push_back( slave_node.pGetDof( DISPLACEMENT_Y ) );
-        }
+            const contact_container& current_container = all_conditions[i_cond];
+            GeometryType& current_master = current_container.condition->GetGeometry( );
+            
+            std::vector< unsigned int > active_nodes;
+            std::vector< unsigned int > inactive_nodes;
+            this->DetermineActiveAndInactiveSets( active_nodes, inactive_nodes, i_cond );
+        
+            // Master Nodes Displacement Equation IDs
+            for ( unsigned int iNode = 0; iNode < current_master.PointsNumber( ); iNode++ )
+            {
+                NodeType& master_node = current_master[iNode];
+                rConditionalDofList.push_back( master_node.pGetDof( DISPLACEMENT_X ) );
+                rConditionalDofList.push_back( master_node.pGetDof( DISPLACEMENT_Y ) );
+            }
+            
+            // Inactive Nodes Displacement Equation IDs
+            for ( unsigned int i_slave = 0; i_slave < inactive_nodes.size( ); ++i_slave )
+            {
+                NodeType& slave_node = GetGeometry()[ inactive_nodes[i_slave] ];
+                rConditionalDofList.push_back( slave_node.pGetDof( DISPLACEMENT_X ) );
+                rConditionalDofList.push_back( slave_node.pGetDof( DISPLACEMENT_Y ) );
+            }
 
-        // Active Nodes Displacement Equation IDs
-        for ( unsigned int i_slave = 0; i_slave < active_nodes.size( ); ++i_slave )
-        {
-            NodeType& slave_node = GetGeometry()[ active_nodes[i_slave] ];
-            rConditionalDofList.push_back( slave_node.pGetDof( DISPLACEMENT_X ) );
-            rConditionalDofList.push_back( slave_node.pGetDof( DISPLACEMENT_Y ) );
-        }
+            // Active Nodes Displacement Equation IDs
+            for ( unsigned int i_slave = 0; i_slave < active_nodes.size( ); ++i_slave )
+            {
+                NodeType& slave_node = GetGeometry()[ active_nodes[i_slave] ];
+                rConditionalDofList.push_back( slave_node.pGetDof( DISPLACEMENT_X ) );
+                rConditionalDofList.push_back( slave_node.pGetDof( DISPLACEMENT_Y ) );
+            }
 
-        // Active Nodes Lambda Equation IDs
-        for ( unsigned int i_slave = 0; i_slave < active_nodes.size( ); ++i_slave )
-        {
-            NodeType& slave_node = GetGeometry()[ active_nodes[i_slave] ];
-            rConditionalDofList.push_back( slave_node.pGetDof( LAGRANGE_MULTIPLIER_X ) );
-            rConditionalDofList.push_back( slave_node.pGetDof( LAGRANGE_MULTIPLIER_Y ) );
+            // Active Nodes Lambda Equation IDs
+            for ( unsigned int i_slave = 0; i_slave < active_nodes.size( ); ++i_slave )
+            {
+                NodeType& slave_node = GetGeometry()[ active_nodes[i_slave] ];
+                rConditionalDofList.push_back( slave_node.pGetDof( LAGRANGE_MULTIPLIER_X ) );
+                rConditionalDofList.push_back( slave_node.pGetDof( LAGRANGE_MULTIPLIER_Y ) );
+            }
         }
     }
 
@@ -1193,7 +1204,7 @@ void MortarContact2DCondition::CalculateOnIntegrationPoints(
 {
     KRATOS_TRY;
 
-    unsigned int number_of_integration_pts = GetGeometry( ).IntegrationPoints( mThisIntegrationMethod ).size( );
+    const unsigned int number_of_integration_pts = GetGeometry( ).IntegrationPointsNumber( mThisIntegrationMethod );
     if ( rOutput.size( ) != number_of_integration_pts )
     {
         rOutput.resize( number_of_integration_pts );

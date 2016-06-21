@@ -439,6 +439,14 @@ public:
     );
     
     /**
+     * 
+     * @param 
+     * @return 
+     */
+    
+    void CheckMortarConditions();
+    
+    /**
      * Fills
      * @param 
      * @return 
