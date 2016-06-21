@@ -953,7 +953,12 @@ public:
 
         //otherwise do a find
         it = mDofs.find(rDofVariable.Key());
-        return *(it);
+        if ( it!= mDofs.end() )
+            return *it;
+
+        std::stringstream buffer;
+        buffer << "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name();
+        KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
     }
 
     /** retuns the Dof asociated with variable  */
@@ -1003,8 +1008,10 @@ public:
         typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
         mDofs.insert(mDofs.begin(), p_new_dof);
         
+        if(!mDofs.IsSorted())
+            mDofs.Sort();
+        
         return p_new_dof;
-//         return *(mDofs.insert(mDofs.begin(), DofType(Id(), &mSolutionStepsNodalData, rDofVariable)).base());
 
         KRATOS_CATCH_LEVEL_3(*this);
 
@@ -1021,12 +1028,13 @@ public:
 
         typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(SourceDof);
         mDofs.insert(mDofs.begin(), p_new_dof);
-//         typename DofType::Pointer p_new_dof(  *(mDofs.insert(mDofs.begin(), make_shared<DofType>(  SourceDof).base())  );
 
         p_new_dof->SetId(Id());
-//		p_new_dof->Id() = Id();
 
         p_new_dof->SetSolutionStepsData(&mSolutionStepsNodalData);
+        
+        if(!mDofs.IsSorted())
+            mDofs.Sort();
 
         return p_new_dof;
 
@@ -1049,8 +1057,11 @@ public:
         
         typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction);
         mDofs.insert(mDofs.begin(), p_new_dof);
+        
+        if(!mDofs.IsSorted())
+            mDofs.Sort();
+        
         return p_new_dof;
-//         return *(mDofs.insert(mDofs.begin(), DofType(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction)).base());
 
         KRATOS_CATCH_LEVEL_3(*this);
 
@@ -1068,9 +1079,11 @@ public:
         
         typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
         mDofs.insert(mDofs.begin(), p_new_dof);
+        
+        if(!mDofs.IsSorted())
+            mDofs.Sort();
+        
         return *p_new_dof;
-
-//         return *(mDofs.insert(mDofs.begin(), DofType(Id(), &mSolutionStepsNodalData, rDofVariable)));
 
         KRATOS_CATCH_LEVEL_3(*this);
 
@@ -1088,11 +1101,12 @@ public:
         
         typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction);
         mDofs.insert(mDofs.begin(), p_new_dof);
+        
+        if(!mDofs.IsSorted())
+            mDofs.Sort();
+        
         return *p_new_dof;        
         
-        
-//         return *(mDofs.insert(mDofs.begin(), DofType(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction)));
-
         KRATOS_CATCH_LEVEL_3(*this);
 
     }
