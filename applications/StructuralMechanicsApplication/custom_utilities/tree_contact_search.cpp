@@ -250,7 +250,7 @@ void TreeContactSearch::CreatePointListNTS()
         Point<3> Center;
         double Radius;
         array_1d<double, 3> Normal;
-        CenterAndRadius(CondOri, Center, Radius, Normal); 
+        StructuralMechanicsMathUtilities::CenterAndRadius(CondOri, Center, Radius, Normal, mdimension); 
         PointItem::Pointer pP = PointItem::Pointer(new PointItem(Center, *(cond_it.base()), Radius, Normal));
         (mPointListOrigin).push_back(pP);
     }
@@ -271,7 +271,7 @@ void TreeContactSearch::CreatePointListMortar()
         Point<3> Center;
         double Radius;
         array_1d<double, 3> Normal;
-        CenterAndRadius(CondOri, Center, Radius, Normal); 
+        StructuralMechanicsMathUtilities::CenterAndRadius(CondOri, Center, Radius, Normal, mdimension); 
         PointItem::Pointer pP = PointItem::Pointer(new PointItem(Center, *(cond_it.base()), Radius, Normal));
         (mPointListDestination).push_back(pP);
     }
@@ -286,7 +286,7 @@ void TreeContactSearch::CreatePointListMortar()
         Point<3> Center;
         double Radius;
         array_1d<double, 3> Normal;
-        CenterAndRadius(CondOri, Center, Radius, Normal); 
+        StructuralMechanicsMathUtilities::CenterAndRadius(CondOri, Center, Radius, Normal, mdimension); 
         PointItem::Pointer pP = PointItem::Pointer(new PointItem(Center, *(cond_it.base()), Radius, Normal));
         (mPointListOrigin).push_back(pP);
     }
@@ -401,12 +401,14 @@ void TreeContactSearch::CreateMortarConditions(
             }
 
             std::vector<contact_container> *& ConditionPointersOrigin = pCondOrigin->GetValue(CONTACT_CONTAINERS);
+            pCondOrigin->GetValue(INTEGRATION_ORDER_CONTACT) = IntegrationOrder;
             
 //             KRATOS_WATCH(NumberPointsFound); 
             for(unsigned int i = 0; i < NumberPointsFound; i++)
             {   
                 Condition::Pointer pCondDestination = PointsFound[i]->GetCondition();
                 std::vector<contact_container> *& ConditionPointersDestination = pCondDestination->GetValue(CONTACT_CONTAINERS);
+                pCondDestination->GetValue(INTEGRATION_ORDER_CONTACT) = IntegrationOrder;
                 
                 if (bidirectional == true)
                 {
@@ -506,11 +508,11 @@ void TreeContactSearch::MortarContainerFiller(
     {
         if (orig_dest == true)
         {
-            Project(PointFound->GetPoint(),  pCond_1->GetGeometry()[j_index], ProjectedPoint, contact_container.contact_gap[j_index], contact_normal);
+            StructuralMechanicsMathUtilities::Project(PointFound->GetPoint(),  pCond_1->GetGeometry()[j_index], ProjectedPoint, contact_container.contact_gap[j_index], contact_normal);
         }
         else
         {
-            Project(PointOfList->GetPoint(), pCond_1->GetGeometry()[j_index], ProjectedPoint, contact_container.contact_gap[j_index], contact_normal);
+            StructuralMechanicsMathUtilities::Project(PointOfList->GetPoint(), pCond_1->GetGeometry()[j_index], ProjectedPoint, contact_container.contact_gap[j_index], contact_normal);
         }
         
         array_1d<double, 3> result;
@@ -552,11 +554,11 @@ void TreeContactSearch::MortarContainerFiller(
         double dist_aux;
         if (orig_dest == true)
         {
-            Project(PointFound->GetPoint(), GaussPoint,  ProjectedGaussPoint, dist_aux, contact_normal);
+            StructuralMechanicsMathUtilities::Project(PointFound->GetPoint(), GaussPoint,  ProjectedGaussPoint, dist_aux, contact_normal);
         }
         else
         {
-            Project(PointOfList->GetPoint(), GaussPoint, ProjectedGaussPoint, dist_aux, contact_normal);
+            StructuralMechanicsMathUtilities::Project(PointOfList->GetPoint(), GaussPoint, ProjectedGaussPoint, dist_aux, contact_normal);
         }
         
         bool inside = pCond_2->GetGeometry().IsInside(ProjectedGaussPoint, result);
@@ -581,157 +583,6 @@ void TreeContactSearch::MortarContainerFiller(
 //     contact_container.print();
         
     ConditionPointers->push_back(contact_container);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::Project(
-        const Point<3>& PointOrigin,
-        const Point<3>& PointDestiny,
-        Point<3>& PointProjected,
-        double& dist,
-        const array_1d<double,3>& Normal
-        )
-{
-     array_1d<double,3> vector_points;
-     vector_points[0] = PointDestiny.Coordinate(1) - PointOrigin.Coordinate(1);
-     vector_points[1] = PointDestiny.Coordinate(2) - PointOrigin.Coordinate(2);
-     vector_points[2] = PointDestiny.Coordinate(3) - PointOrigin.Coordinate(3);
-    
-     dist = vector_points[0] * Normal[0]
-          + vector_points[1] * Normal[1]
-          + vector_points[2] * Normal[2];
-     
-     PointProjected.Coordinate(1) = PointDestiny.Coordinate(1) - Normal[0] * dist;
-     PointProjected.Coordinate(2) = PointDestiny.Coordinate(2) - Normal[1] * dist;
-     PointProjected.Coordinate(3) = PointDestiny.Coordinate(3) - Normal[2] * dist;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TreeContactSearch::CenterAndRadius(
-        const Condition::Pointer pCond,
-        Point<3>& Center,
-        double& Radius,
-        array_1d<double,3> & Normal
-        )
-{
-    Radius = 0.0;
-    Center = pCond->GetGeometry().Center();
-    noalias(Normal) = ZeroVector(3);
-    
-    // TODO: To calculate the normal I am going to use the Newell's method for quadrilateral, I recommend to find some way to compute in a way that it is possible to have the normal in the nodes and use the Nagata Patch
-    if (pCond->GetGeometry().PointsNumber() == 2) // A linear line
-    {
-        array_1d<double,3> v1,v2;
-
-        // Assuming plane X-Y
-        v1[0] = 0.0;
-        v1[1] = 0.0;
-        v1[2] = 1.0;
-        
-        v2[0] = pCond->GetGeometry()[1].X() - pCond->GetGeometry()[0].X();
-        v2[1] = pCond->GetGeometry()[1].Y() - pCond->GetGeometry()[0].Y();
-        v2[2] = pCond->GetGeometry()[1].Z() - pCond->GetGeometry()[0].Z();
-        
-        MathUtils<double>::CrossProduct(Normal,v1,v2);
-
-        double NNorm = std::sqrt(Normal[0] * Normal[0] + Normal[1] * Normal[1]);
-        Normal /= NNorm;
-    }
-    else if (pCond->GetGeometry().PointsNumber() == 3) // A triangle or quadratic line
-    {
-        if (mdimension == 2) // Quadratic line
-        {
-            boost::numeric::ublas::bounded_matrix<double, 3, 3 >  matrix_coeficients     = ZeroMatrix(3, 3);
-            boost::numeric::ublas::bounded_matrix<double, 3, 3 >  inv_matrix_coeficients = ZeroMatrix(3, 3);
-            boost::numeric::ublas::bounded_matrix<double, 3, 1 >  vector_coeficients     = ZeroMatrix(3, 1);
-            for (unsigned int i = 0; i < 3; i++)
-            {
-                matrix_coeficients(i, 0) = pCond->GetGeometry()[i].X() * pCond->GetGeometry()[i].X();
-                matrix_coeficients(i, 1) = pCond->GetGeometry()[i].X();
-                matrix_coeficients(i, 2) = 1.0;
-                
-                vector_coeficients(i, 0) = pCond->GetGeometry()[i].Y();
-            }
-            
-            StructuralMechanicsMathUtilities::InvMat3x3(matrix_coeficients, inv_matrix_coeficients);
-            
-            boost::numeric::ublas::bounded_matrix<double, 3, 1 >  coeficients;
-            noalias(coeficients) = prod(inv_matrix_coeficients, vector_coeficients);
-            
-            Normal[0] =   2.0 * pCond->GetGeometry()[1].X() * coeficients(0, 0) + coeficients(1, 0);
-            Normal[1] = - 1.0;
-            Normal[2] =   0.0;
-            
-            double NNorm = std::sqrt(Normal[0] * Normal[0] + Normal[1] * Normal[1]);
-            Normal /= NNorm;
-        }
-        else // Triangle
-        {
-            array_1d<double,3> v1,v2;
-
-            v1[0] = pCond->GetGeometry()[1].X() - pCond->GetGeometry()[0].X();
-            v1[1] = pCond->GetGeometry()[1].Y() - pCond->GetGeometry()[0].Y();
-            v1[2] = pCond->GetGeometry()[1].Z() - pCond->GetGeometry()[0].Z();
-
-            v2[0] = pCond->GetGeometry()[2].X() - pCond->GetGeometry()[0].X();
-            v2[1] = pCond->GetGeometry()[2].Y() - pCond->GetGeometry()[0].Y();
-            v2[2] = pCond->GetGeometry()[2].Z() - pCond->GetGeometry()[0].Z();
-
-            MathUtils<double>::CrossProduct(Normal,v1,v2);
-
-            double NNorm = std::sqrt(Normal[0] * Normal[0] + Normal[1] * Normal[1] + Normal[2] * Normal[2]);
-            Normal /= NNorm;
-        }
-    }
-    else if (pCond->GetGeometry().PointsNumber() == 4) // A quadrilateral
-    {
-        // Newell's method
-        for(unsigned int i = 0; i < pCond->GetGeometry().PointsNumber(); i++)
-        {
-            unsigned int index_aux = i + 1; 
-            if (i == pCond->GetGeometry().PointsNumber() - 1)
-            {
-                index_aux = 0;
-            }
-            Normal[0] += (pCond->GetGeometry()[i].Y() - pCond->GetGeometry()[index_aux].Y()) * 
-                         (pCond->GetGeometry()[i].Z() - pCond->GetGeometry()[index_aux].Z());
-                         
-            Normal[1] += (pCond->GetGeometry()[i].Z() - pCond->GetGeometry()[index_aux].Z()) * 
-                         (pCond->GetGeometry()[i].X() - pCond->GetGeometry()[index_aux].X());
-                         
-            Normal[2] += (pCond->GetGeometry()[i].X() - pCond->GetGeometry()[index_aux].X()) * 
-                         (pCond->GetGeometry()[i].Y() - pCond->GetGeometry()[index_aux].Y());
-        }
-        
-        double NNorm = std::sqrt(Normal[0] * Normal[0] + Normal[1] * Normal[1] + Normal[2] * Normal[2]);
-        Normal /= NNorm;
-    }
-    else // The Newell's method can be used, but nodes must be reordered
-    {
-        KRATOS_THROW_ERROR( std::logic_error, " There is not any method to calculate the normal for this geometry. Number of nodes: ", pCond->GetGeometry().PointsNumber() );
-    }
-    
-    // TODO: Add calculation of radius to geometry.h in june (after release)
-    // TODO: Add calculation of normal to geometry.h in june (after release)
-    for(unsigned int i = 0; i < pCond->GetGeometry().PointsNumber(); i++)
-    {
-        double dx = Center.Coordinate(1) - pCond->GetGeometry()[i].X();
-        double dy = Center.Coordinate(2) - pCond->GetGeometry()[i].Y();
-        double dz = Center.Coordinate(3) - pCond->GetGeometry()[i].Z();
-
-        double tmp = dx * dx + dy * dy + dz * dz;
-
-        if(tmp > Radius)
-        {
-            Radius = tmp;
-        }
-    }
-
-    Radius = std::sqrt(Radius);
 }
 
 /***********************************************************************************/

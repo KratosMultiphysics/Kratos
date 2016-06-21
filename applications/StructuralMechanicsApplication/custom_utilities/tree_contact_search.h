@@ -463,35 +463,6 @@ public:
         );
     
     /**
-     * Project
-     * @param 
-     * @return 
-     */
-    
-    void Project(
-        const Point<3>& PointOrigin,
-        const Point<3>& PointDestiny,
-        Point<3>& PointProjected,
-        double& dist,
-        const array_1d<double,3>& Normal
-        );
-    
-    /**
-     * This function calculates the center and radius of the geometry of a condition
-     * @param Cond: The pointer to the condition of interest
-     * @return Center: The center of the condition
-     * @return Radius: The radius of the condition 
-     * @return Normal: The normal of the condition 
-     */
-    
-    void CenterAndRadius(
-        const Condition::Pointer pCond,
-        Point<3>& Center,
-        double& Radius,
-        array_1d<double,3> & Normal
-        );
-    
-    /**
      * It computes the mean of the normal in the condition in all the nodes
      * @return The modelparts with the normal computed
      */
