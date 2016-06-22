@@ -260,60 +260,82 @@ void NodalConcentratedElement::FinalizeSolutionStep( ProcessInfo& rCurrentProces
 void NodalConcentratedElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
 
-    KRATOS_TRY
+    KRATOS_TRY;
 
-    //1.-Initialize sizes for the system components:
+    /* Calculate elemental system */
 
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    // Compute RHS (RHS = rRightHandSideVector = Fext - Fint)
+    this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+
+    // Compute LHS
+    this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+
+    KRATOS_CATCH( "" );
+}
+
+//***********************************************************************************
+//***********************************************************************************
+
+void NodalConcentratedElement::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+{
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    // Resizing as needed the RHS
+    unsigned int system_size = dimension;
+
+    if ( rRightHandSideVector.size() != system_size )
+    {
+        rRightHandSideVector.resize( system_size, false );
+    }
+
+    rRightHandSideVector = ZeroVector( system_size ); //resetting RHS
+
+    array_1d<double, 3 > Current_Displacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+    array_1d<double, 3 > Volume_Acceleration = ZeroVector(3);
+
+    if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) )
+    {
+        Volume_Acceleration = GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+    }
+
+    // Compute and add external forces
+    double Nodal_Mass = Element::GetValue(NODAL_MASS);
+    for ( unsigned int j = 0; j < dimension; j++ )
+    {
+        rRightHandSideVector[j]  += Volume_Acceleration[j] * Nodal_Mass;
+    }
+
+    // Compute and add internal forces
+    array_1d<double, 3 > Nodal_Stiffness = Element::GetValue(NODAL_STIFFNESS);
+    for ( unsigned int j = 0; j < dimension; j++ )
+    {
+        rRightHandSideVector[j]  -= Nodal_Stiffness[j] * Current_Displacement[j];
+    }
+
+}
+
+//***********************************************************************************
+//***********************************************************************************
+
+void NodalConcentratedElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+{
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     // Resizing as needed the LHS
     unsigned int system_size = dimension;
 
     if ( rLeftHandSideMatrix.size1() != system_size )
     {
-	rLeftHandSideMatrix.resize( system_size, system_size, false );
+        rLeftHandSideMatrix.resize( system_size, system_size, false );
     }
 
     noalias( rLeftHandSideMatrix ) = ZeroMatrix( system_size, system_size ); //resetting LHS
 
-    //r Resizing as needed the RHS
-    if ( rRightHandSideVector.size() != system_size )
-    {
-	rRightHandSideVector.resize( system_size, false );
-    }
-
-    rRightHandSideVector = ZeroVector( system_size ); //resetting RHS
-
-    //2.- Initialize local variables
-    // Nodal concentrated element has not
-
-    //3.-Calculate elemental system:
     array_1d<double, 3 > Nodal_Stiffness = Element::GetValue(NODAL_STIFFNESS);
-    array_1d<double, 3 > Current_Displacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
-    array_1d<double, 3 > Volume_Acceleration = ZeroVector(3);
-    if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) )
-    {
-        Volume_Acceleration = GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-    }
-    double Nodal_Mass = Element::GetValue(NODAL_MASS);
-    // Compute LHS
     for ( unsigned int j = 0; j < dimension; j++ )
     {
-	rLeftHandSideMatrix(j, j) += Nodal_Stiffness[j];
+        rLeftHandSideMatrix(j, j) += Nodal_Stiffness[j];
     }
-    // (RHS = rRightHandSideVector = Fext - Fint)
-    // Compute and add external forces 
-    for ( unsigned int j = 0; j < dimension; j++ )
-    {
-	rRightHandSideVector[j]  += Volume_Acceleration[j] * Nodal_Mass;
-    }
-    // Compute and add internal forces 
-    for ( unsigned int j = 0; j < dimension; j++ )
-    {
-	rRightHandSideVector[j]  -= Nodal_Stiffness[j] * Current_Displacement[j];
-    }
-
-    KRATOS_CATCH( "" );
 }
 
 //***********************************************************************************
