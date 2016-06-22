@@ -308,9 +308,9 @@ namespace Kratos {
 
 	// Add integration point contribution to the local mass matrix
 	// double massWeight=GaussWeight*Density*2.0/TimeStep;
-	double dynamicWeight=GaussWeight*Density;
-
-	this->ComputeLumpedMassMatrix(MassMatrix,dynamicWeight);
+	double DynamicWeight=GaussWeight*Density;
+	double MeanValueMass=0;
+	this->ComputeLumpedMassMatrix(MassMatrix,DynamicWeight,MeanValueMass);
 	// this->ComputeMomentumMassTerm(MassMatrix,N,dynamicWeight);
 
 	this->AddExternalForces(rRightHandSideVector,Density,BodyForce,N,GaussWeight);
@@ -324,6 +324,14 @@ namespace Kratos {
 	double VolumetricCoeff = 0;
 
 	this->ComputeMaterialParameters(DeviatoricCoeff,VolumetricCoeff,TimeStep);
+	double MeanValueMaterial=0.0;
+       	this->ComputeMeanValueMaterialTangentMatrix(rElementalVariables,MeanValueMaterial,rDN_DX,DeviatoricCoeff,VolumetricCoeff,GaussWeight);
+	if(MeanValueMass!=0 && MeanValueMaterial!=0){
+	  VolumetricCoeff*=MeanValueMass*2/TimeStep/MeanValueMaterial;
+	  // double BulkReduction=MeanValueMass*2/TimeStep/MeanValueMaterial;
+	  // std::cout<<"___BulkRed: "<<BulkReduction<<std::endl;
+	}
+	
 	// Add viscous term
        	this->AddCompleteTangentTerm(rElementalVariables,rLeftHandSideMatrix,rDN_DX,DeviatoricCoeff,VolumetricCoeff,GaussWeight);
 
@@ -340,6 +348,9 @@ namespace Kratos {
     this->GetAccelerationValues(LastAccValues,0);
     this->GetVelocityValues(VelocityValues,1);
     UpdatedAccelerations += -2.0*VelocityValues/TimeStep - LastAccValues; 
+    // VectorType OldVelocityValues = ZeroVector(LocalSize);
+    // this->GetVelocityValues(OldVelocityValues,2);
+    // UpdatedAccelerations += -2.0*VelocityValues/TimeStep - (VelocityValues-OldVelocityValues)/TimeStep; 
     noalias( rRightHandSideVector ) += -prod(MassMatrix,UpdatedAccelerations);
     noalias( rLeftHandSideMatrix ) +=  MassMatrix*2/TimeStep;
 
@@ -383,7 +394,10 @@ namespace Kratos {
 
     MatrixType BulkVelMatrix = ZeroMatrix(NumNodes,NumNodes);
     MatrixType BulkAccMatrix = ZeroMatrix(NumNodes,NumNodes);
+    MatrixType BulkVelMatrixLump = ZeroMatrix(NumNodes,NumNodes);
+    MatrixType BulkAccMatrixLump = ZeroMatrix(NumNodes,NumNodes);
     MatrixType BoundLHSMatrix = ZeroMatrix(NumNodes,NumNodes);
+    VectorType BoundRHSVector = ZeroVector(NumNodes);
     MatrixType StabLaplacianMatrix = ZeroMatrix(NumNodes,NumNodes);
 
 
@@ -393,9 +407,14 @@ namespace Kratos {
     double VolumetricCoeff = 0;
     this->ComputeMaterialParameters(DeviatoricCoeff,VolumetricCoeff,TimeStep);
 
+    ElementalVariables rElementalVariables;
+    this->InitializeElementalVariables(rElementalVariables);
+
     // Loop on integration points
     for (unsigned int g = 0; g < NumGauss; g++)
       {
+
+	this->CalcStrainRateUpdated(rElementalVariables,rCurrentProcessInfo,g);
 	// this->UpdateCauchyStress(g);
         const double GaussWeight = GaussWeights[g];
         const ShapeFunctionsType& N = row(NContainer,g);
@@ -422,18 +441,31 @@ namespace Kratos {
 
 	this->CalculateTauFIC(Tau,ElemSize,ConvVel,Density,DeviatoricCoeff,rCurrentProcessInfo);
 
-	double BulkCoeff =GaussWeight/(VolumetricCoeff*1000);
+	double BulkCoeff =GaussWeight/(VolumetricCoeff);
 	this->ComputeBulkMatrixForPressureVel(BulkVelMatrix,N,BulkCoeff);
-	rLeftHandSideMatrix+=BulkVelMatrix;
+	this->ComputeBulkMatrixForPressureVelLump(BulkVelMatrixLump,N,BulkCoeff);
+	rLeftHandSideMatrix+=BulkVelMatrixLump;
 
 	double BulkStabCoeff=BulkCoeff*Tau*Density/TimeStep;
 	this->ComputeBulkMatrixForPressureAcc(BulkAccMatrix,N,BulkStabCoeff);
-	rLeftHandSideMatrix+=BulkAccMatrix;
+	this->ComputeBulkMatrixForPressureAccLump(BulkAccMatrixLump,N,BulkStabCoeff);
+	rLeftHandSideMatrix+=BulkAccMatrixLump;
 	// this->AddStabilizationMatrixLHS(rLeftHandSideMatrix,BulkAccMatrix,N,BulkStabCoeff);
 
-	double BoundLHSCoeff=2.0*Tau/ElemSize*100;
+	//double BoundLHSCoeff=2.0*Tau/ElemSize*1000;
+	// double BoundLHSCoeff=2.0*Tau/ElemSize*1000;
+	double BoundLHSCoeff=Tau*ElemSize*ElemSize/GaussWeight;
 	this->ComputeBoundLHSMatrix(BoundLHSMatrix,N,BoundLHSCoeff);
 	rLeftHandSideMatrix+=BoundLHSMatrix;
+
+	double NProjSpatialDefRate=0;
+	double NAcc=0;
+	this->CalcNormalProjectionsForBoundRHSVector(rElementalVariables.SpatialDefRate,NAcc,NProjSpatialDefRate);
+	// double BoundRHSCoeff=Tau*GaussWeight*(Density*NAcc-4.0/ElemSize*NProjSpatialDefRate);
+	double BoundRHSCoeff=Tau*ElemSize*Density*NAcc-BoundLHSCoeff*2.0*NProjSpatialDefRate*DeviatoricCoeff;
+	// double BoundRHSCoeff=BoundLHSCoeff*(ElemSize*Density*NAcc*0.5-2.0*NProjSpatialDefRate*DeviatoricCoeff);
+	    // std::cout<<"   B[i] "<<BoundRHSVector[i];
+	this->ComputeBoundRHSVector(BoundRHSVector,N,BoundRHSCoeff);
 
 	VectorType UpdatedPressure;
 	VectorType CurrentPressure;
@@ -452,12 +484,12 @@ namespace Kratos {
 	VectorType PreviousDeltaPressure = CurrentPressure-PreviousPressure;
 	VectorType DeltaPressureVariation = DeltaPressure - PreviousDeltaPressure;
 
-	rRightHandSideVector -= prod(BulkVelMatrix,DeltaPressure);
+	rRightHandSideVector -= prod(BulkVelMatrixLump,DeltaPressure);
 
 	VectorType PressureAccStabilizationRHSterm = ZeroVector(NumNodes);
-	PressureAccStabilizationRHSterm =prod(BulkAccMatrix,DeltaPressureVariation);
+	PressureAccStabilizationRHSterm =prod(BulkAccMatrixLump,DeltaPressureVariation);
 	
-	rRightHandSideVector -= prod(BulkAccMatrix,DeltaPressureVariation);
+	rRightHandSideVector -= prod(BulkAccMatrixLump,DeltaPressureVariation);
 
 
         double DivU=0;
@@ -467,6 +499,8 @@ namespace Kratos {
 	rLeftHandSideMatrix+=StabLaplacianMatrix;
 
 	rRightHandSideVector -= prod(StabLaplacianMatrix,UpdatedPressure);
+
+	rRightHandSideVector -= prod(BoundLHSMatrix,UpdatedPressure);
 
 	// Add convection, stabilization and RHS contributions to the local system equation
         for (SizeType i = 0; i < NumNodes; ++i)
@@ -478,7 +512,10 @@ namespace Kratos {
             double RHSi =  N[i] * DivU;
             rRightHandSideVector[i] += GaussWeight * RHSi;
 	    this->AddStabilizationNodalTermsRHS(rRightHandSideVector,Tau,Density,BodyForce,GaussWeight,rDN_DX,i);
-            // rRightHandSideVector[i] += PressureAccStabilizationRHSterm[i];
+
+	    rRightHandSideVector[i] += BoundRHSVector[i];
+	    // std::cout<<"   B[i] "<<BoundRHSVector[i];
+	    // rRightHandSideVector[i] += PressureAccStabilizationRHSterm[i];
 	    // if(rGeom[i].Is(FREE_SURFACE) || rGeom[i].Is(RIGID)){
 	    //   rRightHandSideVector[i]=0;
 	    // }
@@ -738,7 +775,8 @@ namespace Kratos {
     }
   }
 
-  
+
+
   template<>
   void TwoStepUpdatedLagrangianVPElement<2>::GetUpdatedPositions(Vector& rValues,
 								 const ProcessInfo& rCurrentProcessInfo)
@@ -1463,6 +1501,48 @@ void TwoStepUpdatedLagrangianVPElement<3>::CalcDeviatoricInvariant(VectorType &S
 
 
 template < > 
+void TwoStepUpdatedLagrangianVPElement<2>::CalcNormalProjectionsForBoundRHSVector(VectorType &SpatialDefRate,
+										  double& NormalAcceleration,
+										  double& NormalProjSpatialDefRate)
+{
+  array_1d<double, 3>  NormalA;
+  array_1d<double, 3>  NormalB;
+  array_1d<double, 3>  NormalMean;
+  VectorType LastAccValues = ZeroVector(2);
+  this->GetAccelerationValues(LastAccValues,0);
+  GeometryType& rGeom = this->GetGeometry();
+
+  if((rGeom[0].Is(FREE_SURFACE) || rGeom[0].Is(RIGID) ) && (rGeom[1].Is(FREE_SURFACE)  || rGeom[1].Is(RIGID)) && !(rGeom[0].Is(RIGID) && rGeom[1].Is(RIGID)) ){
+    NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
+    NormalA    += rGeom[1].FastGetSolutionStepValue(NORMAL);
+    NormalMean = NormalA*0.5;
+  }else if((rGeom[2].Is(FREE_SURFACE) || rGeom[2].Is(RIGID) ) && (rGeom[0].Is(FREE_SURFACE)  || rGeom[0].Is(RIGID)) && !(rGeom[2].Is(RIGID) && rGeom[0].Is(RIGID))){
+    NormalA    = rGeom[2].FastGetSolutionStepValue(NORMAL);
+    NormalA    += rGeom[0].FastGetSolutionStepValue(NORMAL);
+    NormalMean = NormalA*0.5;
+  }else if((rGeom[1].Is(FREE_SURFACE) || rGeom[1].Is(RIGID) ) && (rGeom[2].Is(FREE_SURFACE)  || rGeom[2].Is(RIGID)) && !(rGeom[1].Is(RIGID) && rGeom[2].Is(RIGID))){
+    NormalA    = rGeom[1].FastGetSolutionStepValue(NORMAL);
+    NormalA    += rGeom[2].FastGetSolutionStepValue(NORMAL);
+    NormalMean = NormalA*0.5;
+  }
+
+  NormalAcceleration=NormalMean[0]*LastAccValues[0]+NormalMean[1]*LastAccValues[1];
+
+  NormalProjSpatialDefRate=NormalMean[0]*SpatialDefRate[0]*NormalMean[0]+NormalMean[1]*SpatialDefRate[1]*NormalMean[1]+2*NormalMean[0]*SpatialDefRate[2]*NormalMean[1];
+
+}
+
+
+template < > 
+void TwoStepUpdatedLagrangianVPElement<3>::CalcNormalProjectionsForBoundRHSVector(VectorType &SpatialDefRate,
+										  double& NormalAcceleration,
+										  double& NormalProjSpatialDefRate)
+{
+  std::cout<<"!!!!  CalcNormalProjectionSpatialDefRate to implentfor 3D !!!!!"<<std::endl;
+}
+
+
+template < > 
 void TwoStepUpdatedLagrangianVPElement<2>::CheckStrain2(MatrixType &SpatialVelocityGrad,
 							     MatrixType &Fgrad,
 							     MatrixType &VelDefgrad)
@@ -1594,23 +1674,28 @@ void TwoStepUpdatedLagrangianVPElement<3>::CheckStrain2(MatrixType &SpatialVeloc
 
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPElement<TDim>::ComputeLumpedMassMatrix(Matrix& rMassMatrix,
-									     const double Weight)
+									const double Weight,
+									double & MeanValue)
   {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
-    double coeff=1.0+TDim;
+    double Coeff=1.0+TDim;
+    double Count=0;
     for (SizeType i = 0; i < NumNodes; ++i)
       {
     
-	double Mij = Weight/coeff;
+	double Mij = Weight/Coeff;
 
         for ( unsigned int j = 0; j <  TDim; j++ )
 	  {
             unsigned int index = i * TDim + j;
             rMassMatrix( index, index ) += Mij;
+	    Count+=1.0;
+	    MeanValue+=Mij;
 	  }
 
       }
+    MeanValue*=1.0/Count;
   }
 
 

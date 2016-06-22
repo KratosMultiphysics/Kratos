@@ -253,6 +253,8 @@ namespace Kratos
 
       for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(MeshId); ic != mrModelPart.ConditionsEnd(MeshId); ic++)
 	{
+
+
 	  
 	  //std::cout<<" Condition ("<<ic->Id()<<") : ME="<<ic->GetValue(MASTER_ELEMENTS)[0].Id()<<", MN= "<<ic->GetValue(MASTER_NODES)[0].Id()<<std::endl;
 
@@ -551,15 +553,6 @@ namespace Kratos
 	      }
 	    }
 
-	    // if(in->Is(ISOLATED)){
-	    //   if(in->Is(FREE_SURFACE) && !in->Is(RIGID)){
-	    // 	in->Set(ISOLATED);
-	    // 	// in->FastGetSolutionStepValue(ISOLATED) = 1;
-	    //   }else{
-	    // 	// in.FastGetSolutionStepValue(ISOLATED) = 0;
-	    // 	in->Reset(ISOLATED);
-	    //   }
-	    // }
 
 	  // if(in->Is(OUTLET)){
 	  //   std::cout<<"OUTLET NODE"<<std::endl;
@@ -595,6 +588,7 @@ namespace Kratos
 	  Geometry< Node<3> >& rConditionGeometry = ic->GetGeometry();
 	  for( unsigned int i=0; i<rConditionGeometry.size(); i++ )
 	    {
+
 	      if( rConditionGeometry[i].Is(TO_ERASE)){
 		ic->Set(TO_ERASE);
 		break;
@@ -740,7 +734,6 @@ namespace Kratos
 			    
 			    }
 			    else{
-			      std::cout<<"... hola ......";
 
 			      if( PreservedConditions[ic->Id()-1] < 2 ){
 
