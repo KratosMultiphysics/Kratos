@@ -27,7 +27,7 @@
 // #include "spatial_containers/bounding_volume_tree.h" // k-DOP
 #include "spatial_containers/spatial_containers.h" // kd-tree 
 #include "utilities/math_utils.h"                  // Cross Product
-#include "custom_utilities/structural_mechanics_math_utilities.hpp"
+#include "custom_utilities/contact_utilities.h"
 
 // TODO: Add parallelization
 
@@ -131,6 +131,17 @@ public:
         Point<3> Point(Coords);
         
         return Point;
+    }
+    
+    /**
+     * Set the point
+     * @param The point
+     */
+    void SetPoint(Point<3> Point)
+    {
+        this->Coordinate(1) = Point.Coordinate(1);
+        this->Coordinate(2) = Point.Coordinate(2);
+        this->Coordinate(3) = Point.Coordinate(3);
     }
     
     /**
@@ -393,6 +404,12 @@ public:
      */
     
     void CreatePointListMortar();
+    
+    /**
+     * This function updates a lists  points ready for the Mortar method
+     */
+    
+    void UpdatePointListMortar(); // TODO: Add the other updates
     
     /**
      * This function 
