@@ -80,6 +80,27 @@ namespace Kratos
   }
 
 
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void MeshModeler::ExecuteMeshRefiningProcesses(ModelPart& rModelPart,
+						 MeshingParametersType& rMeshingVariables,
+						 ModelPart::IndexType MeshId)
+  {
+    KRATOS_TRY
+    
+    //Refine and Remove nodes processes
+    ////////////////////////////////////////////////////////////
+    if( mRefiningProcesses.size() )
+      for(unsigned int i=0; i<mRefiningProcesses.size(); i++)
+	mRefiningProcesses[i]->Execute();
+    ////////////////////////////////////////////////////////////
+
+    KRATOS_CATCH( "" )
+  }
+
+
   //*******************************************************************************************
   //*******************************************************************************************
 
@@ -157,6 +178,18 @@ namespace Kratos
      KRATOS_CATCH(" ")
   }
 
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void MeshModeler::SetRefiningProcess( Process::Pointer pRefiningProcess )
+  {
+     KRATOS_TRY
+       
+     mRefiningProcesses.push_back(pRefiningProcess); //NOTE: order set = order of execution
+       
+     KRATOS_CATCH(" ")
+  }
+
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -178,6 +211,19 @@ namespace Kratos
      KRATOS_TRY
        
      mPostMeshingProcesses = rPostMeshingProcessVector; 
+       
+     KRATOS_CATCH(" ")
+  }
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void MeshModeler::SetRefiningProcessVector( std::vector<Process::Pointer>& rRefiningProcessVector )
+  {
+     KRATOS_TRY
+       
+     mRefiningProcesses = rRefiningProcessVector; 
        
      KRATOS_CATCH(" ")
   }

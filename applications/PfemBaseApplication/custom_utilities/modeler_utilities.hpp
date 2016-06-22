@@ -139,6 +139,46 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG ( ENGAGED_NODES );
 
    
+    struct MeshContainer
+    {
+      
+    KRATOS_CLASS_POINTER_DEFINITION(MeshContainer);
+      
+    protected:
+      
+      double* mpPointList;
+      int*    mpElementList;
+      
+      double* mpElementSizeList;
+      int*    mpElementNeighbourList;
+
+    public:
+      
+      int NumberOfPoints;
+      int NumberOfElements;
+      
+      void SetPointList(double* &rPointList) { mpPointList = rPointList; }
+      void SetElementList(int* &rElementList) { mpElementList = rElementList; };
+      void SetElementSizeList(double* &rElementSizeList) { mpElementSizeList = rElementSizeList; };
+      void SetElementNeighbourList(int* &rElementNeighbourList) { mpElementNeighbourList = rElementNeighbourList; };
+      
+      double* GetPointList() { return mpPointList; };
+      int*    GetElementList() { return mpElementList; };
+      double* GetElementSizeList() { return mpElementSizeList; };
+      int*    GetElementNeighbourList() { return mpElementNeighbourList; };
+
+      void Initialize()
+      {
+	mpPointList            = (double*) NULL;
+	mpElementList          = (int*)    NULL;
+	mpElementSizeList      = (double*) NULL;
+	mpElementNeighbourList = (int*)    NULL;
+	NumberOfPoints   = 0;
+	NumberOfElements = 0;
+      };
+      
+    };
+
 
     struct InfoParameters
     { 
@@ -235,6 +275,7 @@ public:
 
       double   Alpha;               //critical alpha parameter
 
+      double   InitialRadius;       //initial mesh mean radius (mean h)
       double   CriticalRadius;      //critical area   size
       double   CriticalSide;        //critical length size
 
@@ -322,6 +363,7 @@ public:
 	
 	NumberOfElements    = 0;
 	Alpha               = 0;
+	InitialRadius       = 0;
 	CriticalRadius      = 0;  
 	CriticalSide        = 0;  
 	ReferenceThreshold  = 0;
@@ -369,6 +411,11 @@ public:
 
       std::vector<int> PreservedElements;
       std::vector<std::vector<int> > NeighbourList; 
+
+      //modeler pointers to the mesh structures
+      MeshContainer       InMesh;
+      MeshContainer      OutMesh;
+      MeshContainer      MidMesh;
 
       InfoParameters::Pointer        Info;
       RefiningParameters::Pointer  Refine;
@@ -463,6 +510,7 @@ public:
 	// Refine.Initialize();	
       };
     };
+
 
 
     ///@}
@@ -598,6 +646,23 @@ public:
       
     };
 
+    static inline double CalculateElementRadius(Geometry< Node<3> >& rGeometry, double& rDomainSize)
+    {
+      const unsigned int dimension = rGeometry.WorkingSpaceDimension();
+      
+      if( dimension == 2 )
+	return CalculateTriangleRadius( rGeometry[0].X(), rGeometry[0].Y(),
+					rGeometry[1].X(), rGeometry[1].Y(),
+					rGeometry[2].X(), rGeometry[2].Y(),
+					rDomainSize );
+      else
+	return CalculateTetrahedronRadius( rGeometry[0].X(), rGeometry[0].Y(), rGeometry[0].Z(),
+					   rGeometry[1].X(), rGeometry[1].Y(), rGeometry[1].Z(),
+					   rGeometry[2].X(), rGeometry[2].Y(), rGeometry[2].Z(),
+					   rGeometry[3].X(), rGeometry[3].Y(), rGeometry[3].Z(),
+					   rDomainSize );
+      
+    };
 
     static inline double CalculateTriangleArea(const double x0, const double y0,
 					       const double x1, const double y1,

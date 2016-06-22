@@ -24,6 +24,34 @@ namespace Kratos
 
   //*******************************************************************************************
   //*******************************************************************************************
+  void TriangularMesh2DModeler::SetModelerMesh(ModelerUtilities::MeshContainer& rMesh, struct triangulateio& tr)
+  {
+
+    KRATOS_TRY
+
+    if(tr.numberofpoints){
+      rMesh.NumberOfPoints = tr.numberofpoints;
+      rMesh.SetPointList(tr.pointlist);
+    }
+
+    if(tr.numberoftriangles){
+      rMesh.NumberOfElements = tr.numberoftriangles;
+      rMesh.SetElementList(tr.trianglelist);
+    }
+   
+    if(tr.trianglearealist != NULL)
+      rMesh.SetElementSizeList(tr.trianglearealist);
+
+    if(tr.neighborlist != NULL)
+      rMesh.SetElementNeighbourList(tr.neighborlist);
+
+
+    KRATOS_CATCH( "" )
+  }
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
   void TriangularMesh2DModeler::PerformTransferOnly(ModelPart& rModelPart,
 						    MeshingParametersType& rMeshingVariables,
 						    ModelPart::IndexType MeshId)
@@ -180,6 +208,11 @@ namespace Kratos
 
     rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::NEIGHBOURS_SEARCH);
 
+
+    //set modeler meshes
+    SetModelerMesh(rMeshingVariables.InMesh,in);
+    SetModelerMesh(rMeshingVariables.OutMesh,out);
+
     //print out the mesh generation time
     if( this->GetEchoLevel() > 0 )
       std::cout<<" [ MESH GENERATION (TIME = "<<auxiliary.elapsed()<<") ] "<<std::endl;
@@ -213,7 +246,11 @@ namespace Kratos
       ////////////////////////////////////////////////////////////
 	  
       ////////////////////////////////////////////////////////////
-      RefineElements (rModelPart,rMeshingVariables,in,out,MeshId);
+      this->ExecuteMeshRefiningProcesses(rModelPart,rMeshingVariables,MeshId);
+      ////////////////////////////////////////////////////////////
+
+      ////////////////////////////////////////////////////////////
+      RefineElements (rModelPart,rMeshingVariables,in,out,MeshId);  // must be replaced by the process
       ////////////////////////////////////////////////////////////
 
       ////////////////////////////////////////////////////////////
@@ -228,6 +265,10 @@ namespace Kratos
 
       rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::REFINE);
       ////////////////////////////////////////////////////////////
+
+      //set modeler meshes
+      SetModelerMesh(rMeshingVariables.InMesh,in);
+      SetModelerMesh(rMeshingVariables.OutMesh,out);
 
       //Building the entities for new nodes:
       GenerateNewParticles(rModelPart,rMeshingVariables,in,out,MeshId);
@@ -348,6 +389,10 @@ namespace Kratos
 
     rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::BOUNDARIES_SEARCH);
 
+    //set modeler meshes
+    SetModelerMesh(rMeshingVariables.InMesh,in);
+    SetModelerMesh(rMeshingVariables.MidMesh,mid);
+
     // KRATOS_WATCH( in.numberofsegments )
     // KRATOS_WATCH( in.numberofpoints )
     // KRATOS_WATCH( in.numberoftriangles )
@@ -374,6 +419,9 @@ namespace Kratos
     
     rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::NEIGHBOURS_SEARCH);
     rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::CONSTRAINED);
+
+    //set modeler meshes
+    SetModelerMesh(rMeshingVariables.OutMesh, out);
 
     // KRATOS_WATCH( out.numberofsegments )
     // KRATOS_WATCH( out.numberofpoints )
@@ -470,6 +518,10 @@ namespace Kratos
 
     rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::NEIGHBOURS_SEARCH);
 
+    //set modeler meshes
+    SetModelerMesh(rMeshingVariables.InMesh,in);
+    SetModelerMesh(rMeshingVariables.OutMesh,out);
+
     if(in.numberofpoints!=out.numberofpoints){
       std::cout<<" [ MESH GENERATION FAILED: point insertion (initial = "<<in.numberofpoints<<" final = "<<out.numberofpoints<<") ] "<<std::endl;
     }
@@ -505,10 +557,13 @@ namespace Kratos
     SetTriangulationNodes (rModelPart,rMeshingVariables,in,mid_out,MeshId);
     ////////////////////////////////////////////////////////////
 
-    ////////////////////////////////////////////////////////////		
-    RefineElements (rModelPart,rMeshingVariables,in,out,MeshId);
     ////////////////////////////////////////////////////////////
-
+    this->ExecuteMeshRefiningProcesses(rModelPart,rMeshingVariables,MeshId);
+    ////////////////////////////////////////////////////////////
+    
+    ////////////////////////////////////////////////////////////
+    RefineElements (rModelPart,rMeshingVariables,in,out,MeshId);  // must be replaced by the process
+    ////////////////////////////////////////////////////////////
 
     //free the memory used in the first step, free out
     ClearTrianglesList(out);
@@ -619,6 +674,10 @@ namespace Kratos
     rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::NEIGHBOURS_SEARCH);
     rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::CONSTRAINED);
 
+    //set modeler meshes
+    SetModelerMesh(rMeshingVariables.InMesh,in);
+    SetModelerMesh(rMeshingVariables.OutMesh,out);
+
     if(in.numberofpoints!=out.numberofpoints){
       std::cout<<" [ MESH GENERATION FAILED: point insertion (initial = "<<in.numberofpoints<<" final = "<<out.numberofpoints<<") ] "<<std::endl;
     }
@@ -664,7 +723,11 @@ namespace Kratos
     rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::CONSTRAINED);
 
     ////////////////////////////////////////////////////////////
-    RefineElements (rModelPart,rMeshingVariables,in,out,MeshId);
+    this->ExecuteMeshRefiningProcesses(rModelPart,rMeshingVariables,MeshId);
+    ////////////////////////////////////////////////////////////
+    
+    ////////////////////////////////////////////////////////////
+    RefineElements (rModelPart,rMeshingVariables,in,out,MeshId);  // must be replaced by the process
     ////////////////////////////////////////////////////////////
 
 

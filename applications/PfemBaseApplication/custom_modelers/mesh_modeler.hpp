@@ -101,6 +101,7 @@ public:
       :mpMeshingVariables(rOther.mpMeshingVariables)
       ,mPreMeshingProcesses(rOther.mPreMeshingProcesses)
       ,mPostMeshingProcesses(rOther.mPostMeshingProcesses)
+      ,mRefiningProcesses(rOther.mRefiningProcesses)
       ,mpModelerUtilities(rOther.mpModelerUtilities)
       ,mpDataTransferUtilities(rOther.mpDataTransferUtilities)
       ,mEchoLevel(rOther.mEchoLevel)
@@ -154,9 +155,13 @@ public:
 
     void SetPostMeshingProcess( Process::Pointer pPostMeshingProcess );
 
+    void SetRefiningProcess( Process::Pointer pRefiningProcess );
+
     void SetPreMeshingProcessVector( std::vector<Process::Pointer>& rPreMeshingProcessVector );
 
     void SetPostMeshingProcessVector( std::vector<Process::Pointer>& rPostMeshingProcessVector );
+
+    void SetRefiningProcessVector( std::vector<Process::Pointer>& rRefiningProcessVector );
 
     /**
      * Utilities for the mesher are given to the modeler
@@ -171,7 +176,6 @@ public:
 
     //*******************************************************************************************
     //*******************************************************************************************
-
 
     /**
      * Mesh Modeler :: Initilize
@@ -241,6 +245,8 @@ protected:
     std::vector<Process::Pointer>         mPreMeshingProcesses;
 
     std::vector<Process::Pointer>        mPostMeshingProcesses;
+
+    std::vector<Process::Pointer>           mRefiningProcesses;
     
     ModelerUtilities::Pointer               mpModelerUtilities;
 
@@ -283,6 +289,15 @@ protected:
     virtual void InitializeMeshGeneration(ModelPart& rModelPart,
 					  MeshingParametersType& rMeshingVariables,
 					  ModelPart::IndexType MeshId=0);
+
+
+    /**
+     * Mesh Modeler :: Process to be done at the begining of the Generation
+     */
+    virtual void ExecuteMeshRefiningProcesses(ModelPart& rModelPart,
+					      MeshingParametersType& rMeshingVariables,
+					      ModelPart::IndexType MeshId=0);
+
 
     /**
      * Mesh Modeler :: Process to be done at the end of the Generation
