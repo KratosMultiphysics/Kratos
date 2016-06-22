@@ -271,6 +271,11 @@ else(${DO_NOT_DEFINE_NDEBUG} MATCHES ON )
     add_definitions( -DNDEBUG )
 endif(${DO_NOT_DEFINE_NDEBUG} MATCHES ON )
 
+if(${KRATOS_DEBUG} MATCHES ON )
+    message("*************** DEFINING KRATOS_DEBUG --- VERY SLOW!! ***************************")
+    add_definitions( -DKRATOS_DEBUG )
+endif(${KRATOS_DEBUG} MATCHES ON )
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   add_definitions( -fPIC )
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
