@@ -994,7 +994,7 @@ protected:
      */
     void CalculateTransverseGradientF(
             array_1d<double, 3 > & TransverseGradientF,
-            const boost::numeric::ublas::bounded_matrix<double, 1, 6 > & TransversalCartesianDerivativesGauss,
+            const boost::numeric::ublas::bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss,
             const boost::numeric::ublas::bounded_matrix<double, 12, 3 > & nodes_coord
             );
 

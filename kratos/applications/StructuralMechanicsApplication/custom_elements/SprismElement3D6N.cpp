@@ -1096,22 +1096,6 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         }
     }
 
-//    if ( rOutput.size() != 3 * integration_point_number )
-//    {
-//        std::vector<double> rOutput_aux;
-//        rOutput_aux = rOutput;
-
-//        rOutput.resize( 3 * integration_point_number, false );
-
-//        for (unsigned int Gauss_Point = 0; Gauss_Point < integration_point_number; Gauss_Point++)
-//        {
-//            for (unsigned int iii = 0; iii < 3; iii++)
-//            {
-//                rOutput[Gauss_Point * 3 + iii] = rOutput_aux[Gauss_Point];
-//            }
-//        }
-//    }
-
     KRATOS_CATCH( "" );
 }
 
@@ -1147,10 +1131,6 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
 
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-
-//        /* TEST */
-//        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-//        /* TEST */
 
         /* Reading integration points */
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
@@ -1189,19 +1169,6 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
             }
 
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, Variables.StressMeasure);
-
-//            /* TEST */
-////            this->CalculateGreenLagrangeStrain(Variables.C,Variables.StrainVector);
-////            this->CalculateHenckyStrain(Variables.C,Variables.StrainVector);
-////            this->CalculateLinearStress(Variables);
-////            this->CalculateLinearIsotropicStress(Variables);
-////            this->LinearConstitutiveMatrix(Variables);
-////            this->CalculateLinearStress(Variables);
-//            this->CalculateGreenLagrangeStrain(Variables.C,Variables.StrainVector);
-//            this->CalculateHyperelasticNeoHookeanStress(Variables);
-////            this->CalculateHenckyStrain(Variables.C,Variables.StrainVector);
-////            this->CalculateLogStress(Variables);
-//            /* TEST */
 
             if (rOutput[PointNumber].size() != Variables.StressVector.size())
             {
@@ -1287,22 +1254,6 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
             }
         }
     }
-
-//    if ( rOutput.size() != 3  *integration_point_number )
-//    {
-//        std::vector<Vector> rOutput_aux;
-//        rOutput_aux = rOutput;
-
-//        rOutput.resize( 3 * integration_point_number );
-
-//        for (unsigned int Gauss_Point = 0; Gauss_Point < integration_point_number; Gauss_Point++)
-//        {
-//            for (unsigned int iii = 0; iii < 3; iii++)
-//            {
-//                rOutput[Gauss_Point * 3 + iii] =  rOutput_aux[Gauss_Point];
-//            }
-//        }
-//    }
 
     KRATOS_CATCH( "" );
 }
@@ -1482,22 +1433,6 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
             }
         }
     }
-
-//    if ( rOutput.size() != 3 * integration_point_number )
-//    {
-//        std::vector<Matrix> rOutput_aux;
-//        rOutput_aux = rOutput;
-
-//        rOutput.resize( 3 * integration_point_number );
-
-//        for (unsigned int Gauss_Point = 0; Gauss_Point < integration_point_number; Gauss_Point++)
-//        {
-//            for (unsigned int iii = 0; iii < 3; iii++)
-//            {
-//                rOutput[Gauss_Point * 3 + iii] = rOutput_aux[Gauss_Point];
-//            }
-//        }
-//    }
 
     KRATOS_CATCH( "" );
 }
@@ -2263,13 +2198,6 @@ void SprismElement3D6N::CalculateElementalSystem(
         // Compute stresses and constitutive parameters
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, Variables.StressMeasure);
 
-//        /* TEST */
-//        this->CalculateGreenLagrangeStrain(Variables.C,Variables.StrainVector);
-//        this->CalculateHyperelasticNeoHookeanStress(Variables);
-////        this->CalculateHenckyStrain(Variables.C,Variables.StrainVector);
-////        this->CalculateLogStress(Variables);
-//        /* TEST */
-
         // Calculating weights for integration on the "reference configuration"
         double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 
@@ -2633,21 +2561,6 @@ void SprismElement3D6N::CalculateCommonComponents()
     /* Calculating the normal transverse strain-displacement matrix */
     CalculateAndAdd_B_Normal(mCC.mB_normal, mCC.mC_normal, mCC.mTransversalCartesianDerivativesCenter, TransverseGradientF0);
 
-//    if (this->Id() == 1)
-//    {
-//        std::cout << "\n "<< std::endl;
-////        KRATOS_WATCH(mCC.mB_membrane_lower);
-////        KRATOS_WATCH(mCC.mB_membrane_upper);
-////        KRATOS_WATCH(mCC.mB_shear_lower);
-////        KRATOS_WATCH(mCC.mB_shear_upper);
-////        KRATOS_WATCH(mCC.mB_normal);
-//        KRATOS_WATCH(mCC.mC_membrane_lower);
-//        KRATOS_WATCH(mCC.mC_membrane_upper);
-//        KRATOS_WATCH(mCC.mC_shear_lower);
-//        KRATOS_WATCH(mCC.mC_shear_upper);
-//        KRATOS_WATCH(mCC.mC_normal);
-//    }
-
     KRATOS_CATCH("");
 }
 
@@ -2869,13 +2782,6 @@ void SprismElement3D6N::ComputeLocalDerivatives(
     local_der_patch(5, 1) =   L_2;
 
     /* Derivative in direction zeta */
-//    local_der_patch(0, 2) = - 0.5 * (1.0 - eta - xi);
-//    local_der_patch(1, 2) = - 0.5 * xi;
-//    local_der_patch(2, 2) = - 0.5 * eta;
-//    local_der_patch(3, 2) =   0.5 * (1.0 - eta - xi);
-//    local_der_patch(4, 2) =   0.5 * xi;
-//    local_der_patch(5, 2) =   0.5 * eta;
-
     local_der_patch(0, 2) = - 1.0 + eta + xi;
     local_der_patch(1, 2) = - xi;
     local_der_patch(2, 2) = - eta;
@@ -3342,7 +3248,7 @@ void SprismElement3D6N::CalculateInPlaneGradientFGauss(
 
 void SprismElement3D6N::CalculateTransverseGradientF(
         array_1d<double, 3 > & TransverseGradientF,
-        const boost::numeric::ublas::bounded_matrix<double, 1, 6 > & TransversalCartesianDerivativesGauss,
+        const boost::numeric::ublas::bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGauss,
         const boost::numeric::ublas::bounded_matrix<double, 12, 3 > & nodes_coord
         )
 {
@@ -3352,7 +3258,7 @@ void SprismElement3D6N::CalculateTransverseGradientF(
     {
         for (unsigned int j = 0; j < 3; j++)
         {
-            TransverseGradientF[j] += TransversalCartesianDerivativesGauss(0, i) * nodes_coord(i, j);
+            TransverseGradientF[j] += TransversalCartesianDerivativesGauss(i, 0) * nodes_coord(i, j);
         }
     }
 }
@@ -4134,24 +4040,6 @@ void SprismElement3D6N::CalculateAndAddDynamicLHS(
 
   double TotalMass = rIntegrationWeight * Density;
 
-//  // Using shape fucntions
-//  unsigned int indexi = 0;
-//  unsigned int indexj = 0;
-
-//  for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
-//  {
-//      for ( unsigned int k = 0; k < 3; k++ )
-//      {
-//          indexj = 0;
-//          for ( unsigned int j = 0; j < GetGeometry().size(); j++ )
-//          {
-//              rLeftHandSideMatrix(indexi + k,indexj + k) += rVariables.N[i] * rVariables.N[j] * TotalMass;
-//              indexj += 3;
-//          }
-//      }
-//      indexi += 3;
-//  }
-
   // Manually
   TotalMass /= 72.0; // Dividing for the coefficient
   for (unsigned int i = 0; i < 6; i++) // Main nodes
@@ -4433,24 +4321,8 @@ void SprismElement3D6N::ApplyEASRHS(
     /* Calculate the RHS */
     noalias(rhs_full) -= trans(mEAS.mH_EAS) * mEAS.mrhs_alpha / mEAS.mstiff_alpha;
 
-//////    std::cout << "\n Element: " << this->Id() << std::endl;
-//    if (this->Id() == 1)
-//    {
-//        std::cout << "Before update" << std::endl;
-//        KRATOS_WATCH(alpha_eas);
-//    }
-
     // Update ALPHA_EAS
     alpha_eas -= mEAS.mrhs_alpha / mEAS.mstiff_alpha;
-
-//    if (this->Id() == 1)
-//    {
-//        std::cout << "After update" << std::endl;
-//        KRATOS_WATCH(mEAS.mrhs_alpha);
-//        KRATOS_WATCH(mEAS.mstiff_alpha);
-//        KRATOS_WATCH(mEAS.mH_EAS);
-//        KRATOS_WATCH(alpha_eas);
-//    }
 
     KRATOS_CATCH( "" );
 }
@@ -4769,12 +4641,6 @@ void SprismElement3D6N::CbartoFbar(
     C_bar.resize(3, 3, false);
     StructuralMechanicsMathUtilities::VectorToTensor(rVariables.C, C_bar);
 
-//    if (this->Id() == 1)
-//    {
-//        KRATOS_WATCH(rVariables.C);
-//        KRATOS_WATCH(C_bar - IdentityMatrix(3));
-//    }
-
     // Decompose matrix C_bar
     StructuralMechanicsMathUtilities::EigenVectors(C_bar, EigenVectorsMatrix, EigenValuesMatrix, 1e-24, 100);
 
@@ -4786,21 +4652,9 @@ void SprismElement3D6N::CbartoFbar(
     boost::numeric::ublas::bounded_matrix<double, 3, 3 > U_bar;
     noalias(U_bar) = prod( EigenValuesMatrix, EigenVectorsMatrix );
 
-//    if (this->Id() == 1)
-//    {
-//        KRATOS_WATCH(U_bar);
-//        KRATOS_WATCH(prod(trans(U_bar), U_bar)-IdentityMatrix(3));
-//    }
-
     /* Decompose F */
     boost::numeric::ublas::bounded_matrix<double, 3, 3 > F;
     noalias(F) = prod( rVariables.J[rPointNumber], mInvJ0[rPointNumber] );
-
-//    if (this->Id() == 1)
-//    {
-//        std::cout << "F of Kratos" << std::endl;
-//        KRATOS_WATCH(F - IdentityMatrix(3));
-//    }
 
     boost::numeric::ublas::bounded_matrix<double, 3, 3 > C;
     noalias(C) = prod( trans(F), F );
@@ -4823,22 +4677,8 @@ void SprismElement3D6N::CbartoFbar(
 
     StructuralMechanicsMathUtilities::InvMat3x3(U_bar, invU);
 
-//    if (this->Id() == 1)
-//    {
-//        KRATOS_WATCH(R);
-//        KRATOS_WATCH(prod(rVariables.F, invU));
-
-//        KRATOS_WATCH(prod(trans(R),R)-IdentityMatrix(3));
-//    }
-
     /* Calculate F_bar */
     noalias(rVariables.F) = prod(R, U_bar);
-
-//    if (this->Id() == 1)
-//    {
-//        KRATOS_WATCH(rVariables.F -IdentityMatrix(3) );
-//        KRATOS_WATCH(prod(trans(rVariables.F),rVariables.F) - IdentityMatrix(3));
-//    }
 
     KRATOS_CATCH( "" );
 }
