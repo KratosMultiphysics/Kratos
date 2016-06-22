@@ -172,6 +172,26 @@ public:
 
 
     /**
+     * this calculates just the RHS
+     * @param rLeftHandSideMatrix: the elemental left hand side matrix
+     * @param rRightHandSideVector: the elemental right hand side
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+
+    void CalculateRightHandSide( VectorType& rRightHandSideVector,
+                                 ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * this calculates just the LHS
+     * @param rLeftHandSideMatrix: the elemental left hand side matrix
+     * @param rRightHandSideVector: the elemental right hand side
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+
+    void CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix,
+                                ProcessInfo& rCurrentProcessInfo);
+
+    /**
       * this is called during the assembling process in order
       * to calculate the elemental mass matrix
       * @param rMassMatrix: the elemental mass matrix
