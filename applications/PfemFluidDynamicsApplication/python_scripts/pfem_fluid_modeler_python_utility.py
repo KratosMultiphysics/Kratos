@@ -27,7 +27,7 @@ class ModelerUtility:
         self.mesh_modelers = []
 
         # mesh modeler parameters
-        self.alpha_shape        = 1.1
+        self.alpha_shape        = 1.4
         self.h_factor           = 0.5
         self.avoid_tip_elements = False
         self.offset_factor      = 0
@@ -161,7 +161,18 @@ class ModelerUtility:
 
             print("::[Modeler_Utility]:: Nodal H Search executed ")
 
-    #
+        #
+    def SetSetInitialRadius(self, configuration):
+
+     
+        mesh_id = 0
+
+        for parameters in configuration.mesh_conditions:
+      
+            self.RefiningParameters.SetInitialRadius(self.model_part, mesh_id)                       
+
+    
+#
     def BuildMeshModelers(self, configuration):
 
         # definition of the echo level
@@ -267,6 +278,8 @@ class ModelerUtility:
             self.RefiningParameters.SetCriticalRadius(critical_mesh_size)                       
             self.RefiningParameters.SetCriticalSide(critical_mesh_side)
 
+            #critical_radius=self.modeler_utils.ComputeInitialMeanRadius(self.model_part)                       
+
             # set mesh refinement in box
             box_refinement_only = parameters["RefineOnBoxOnly"]
 
@@ -314,7 +327,7 @@ class ModelerUtility:
             meshing_options.Set(ModelerUtilities.CONSTRAINED, parameters["Constrained"])
             meshing_options.Set(ModelerUtilities.REFINE, parameters["Refine"])
             #meshing_options.Set(ModelerUtilities.MESH_SMOOTHING, parameters["MeshSmoothing"])
-            meshing_options.Set(ModelerUtilities.VARIABLES_SMOOTHING, parameters["JacobiSmoothing"])
+            #meshing_options.Set(ModelerUtilities.VARIABLES_SMOOTHING, parameters["JacobiSmoothing"])
             
             self.MeshingParameters.SetOptions(meshing_options)
 
@@ -353,6 +366,8 @@ class ModelerUtility:
             self.mesh_modelers.append(mesh_modeler)
 
             self.mesh_ids.append(mesh_id)
+
+            self.RefiningParameters.SetInitialRadius(self.model_part, mesh_id)                       
 
             ###############
 

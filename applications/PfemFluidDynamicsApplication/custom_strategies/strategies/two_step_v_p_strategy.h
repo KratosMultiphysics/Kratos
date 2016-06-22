@@ -282,7 +282,6 @@ public:
 
 	  // Iterative solution for pressure
 	  for(unsigned int it = 0; it < mMaxPressureIter; ++it)
-	  /* for(unsigned int it = 0; it <1 ; ++it) */
             {
 	      if ( BaseType::GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)
 		std::cout << "----- > iteration: " << it << std::endl;
@@ -408,6 +407,7 @@ public:
 	   i != rModelPart.NodesEnd(); ++i)
         {
 
+
 	  array_1d<double, 3 > & CurrentVelocity      = (i)->FastGetSolutionStepValue(VELOCITY, 0);
 	  array_1d<double, 3 > & PreviousVelocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
 	  /* array_1d<double, 3 > & OldVelocity          = (i)->FastGetSolutionStepValue(VELOCITY, 2); */
@@ -416,8 +416,13 @@ public:
 	  array_1d<double, 3 > & PreviousAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
 
 	  /* UpdateAcceleration (CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity,BDFcoeffs); */
-	  UpdateAccelerations ( CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity, BDFcoeffs);
 
+	  if((i)->Is(ISOLATED) ){
+	    (i)->FastGetSolutionStepValue(ACCELERATION_Y, 0)=-9.81;
+	    (i)->FastGetSolutionStepValue(ACCELERATION_Y, 1)=-9.81;
+	  }else{
+	    UpdateAccelerations ( CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity, BDFcoeffs);
+	  }
         }
     }
 
@@ -438,7 +443,6 @@ public:
       // std::cout<<"rBDFCoeffs[0] is "<<rBDFCoeffs[0]<<std::endl;//3/(2*delta_t)
       // std::cout<<"rBDFCoeffs[1] is "<<rBDFCoeffs[1]<<std::endl;//-2/(delta_t)
       // std::cout<<"rBDFCoeffs[2] is "<<rBDFCoeffs[2]<<std::endl;//1/(2*delta_t)
-
     }
 
     void CalculateDisplacements()
@@ -683,22 +687,7 @@ protected:
 /* 	    std::cout << "          number of elements " <<count<<std::endl; */
 /* 	  } */
 
-/* #pragma omp parallel */
-/* 	  { */
-/* 	    ModelPart::NodeIterator NodesBegin; */
-/* 	    ModelPart::NodeIterator NodesEnd; */
-/* 	    OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd); */
 
-/* 	    for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode) */
-/* 	      { */
-
-/* 		if(itNode->Is(ISOLATED)){ */
-/* 		  itNode->FastGetSolutionStepValue(PRESSURE) = 0.0; */
-/* 		  itNode->FastGetSolutionStepValue(ACCELERATION_Y) = 1000.0; */
-/* 		  std::cout<<" .............two_step VP strategy ISOLATED NODE !!! "<<itNode->Id()<<std::endl; */
-/* 		} */
-/* 	      } */
-/* 	  } */
 
 #pragma omp parallel
 	  {
@@ -713,15 +702,10 @@ protected:
 		  /* // Initialize BDF2 coefficients */
 		  /* ProcessInfo rCurrentProcessInfo=rModelPart.GetProcessInfo(); */
 		  itNode->FastGetSolutionStepValue(PRESSURE) = 0.0;
-		  itNode->FastGetSolutionStepValue(ACCELERATION_Y) = -9.81;
-		  itNode->FastGetSolutionStepValue(ACCELERATION_X) = 0;
-		  /* array_1d<double,3>& rAcc = itNode->FastGetSolutionStepValue(ACCELERATION); */
-		  /* array_1d<double,3>& rVel = itNode->FastGetSolutionStepValue(VELOCITY); */
-		  /* double Dt = rCurrentProcessInfo[DELTA_TIME]; */
-		  /* rVel+=rAcc*Dt; */
-		  /* itNode->FastGetSolutionStepValue(VELOCITY) = rVel; */
-		  /* itNode->FastGetSolutionStepValue(ACCELERATION_Y) = -9.81; */
-		  /* itNode->FastGetSolutionStepValue(ACCELERATION_X) = 0; */
+		  itNode->FastGetSolutionStepValue(ACCELERATION_Y,0) = -9.81;
+		  itNode->FastGetSolutionStepValue(ACCELERATION_Y,1) = -9.81;
+		  itNode->FastGetSolutionStepValue(ACCELERATION_X,0) = 0;
+		  itNode->FastGetSolutionStepValue(ACCELERATION_X,1) = 0;
 		  std::cout<<" .............two_step VP strategy ISOLATED NODE !!! "<<itNode->Id()<<std::endl;
 		}
 	      }
@@ -799,10 +783,11 @@ protected:
       }
 
 
+
       // 3. Compute end-of-step velocity
-      if (BaseType::GetEchoLevel() > 0 && Rank == 0){
-	/* std::cout << "Upd ating Velocity." << std::endl; */
-      }
+      /* if (BaseType::GetEchoLevel() > 0 && Rank == 0){ */
+      /* 	/\* std::cout << "Upd ating Velocity." << std::endl; *\/ */
+      /* } */
      
       /* rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,6); */
 
@@ -816,7 +801,6 @@ protected:
       for (std::vector<Process::Pointer>::iterator iExtraSteps = mExtraIterationSteps.begin();
 	   iExtraSteps != mExtraIterationSteps.end(); ++iExtraSteps)
 	(*iExtraSteps)->Execute();
-
 
       return NormDp;
     }

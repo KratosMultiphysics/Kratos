@@ -442,7 +442,8 @@ namespace Kratos
 				   const double Weight);
 
       void ComputeLumpedMassMatrix(Matrix& rMassMatrix,
-				   const double Weight);
+				   const double Weight,
+				   double& MeanValue);
 
     
       void AddExternalForces( Vector& rRHSVector,
@@ -465,13 +466,28 @@ namespace Kratos
 					ElementalVariables& rElementalVariables,
 					const double Weight);
 
-      virtual void AddCompleteTangentTerm(ElementalVariables& rElementalVariables,
+      virtual void ComputeMeanValueMaterialTangentMatrix(ElementalVariables& rElementalVariables,
+							 double& MeanValue,
+							 const ShapeFunctionDerivativesType& rShapeDeriv,
+							 const double secondLame,
+							 const double bulkModulus,
+							 const double Weight){};
+
+     virtual void AddCompleteTangentTerm(ElementalVariables& rElementalVariables,
 					  MatrixType& rDampingMatrix,
 					  const ShapeFunctionDerivativesType& rShapeDeriv,
 					  const double secondLame,
 					  const double bulkModulus,
 					  const double Weight){};
 	
+      virtual void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix,
+						   const ShapeFunctionsType& rN,
+						   const double Weight){};
+      
+      virtual void ComputeBulkMatrixForPressureAccLump(MatrixType& BulkAccMatrix,
+						   const ShapeFunctionsType& rN,
+						   const double Weight){};
+
       virtual void ComputeBulkMatrixForPressureVel(MatrixType& BulkVelMatrix,
 						   const ShapeFunctionsType& rN,
 						   const double Weight){};
@@ -481,6 +497,10 @@ namespace Kratos
 						   const double Weight){};
 
       virtual void ComputeBoundLHSMatrix(MatrixType& BoundLHSMatrix,
+					 const ShapeFunctionsType& rN,
+					 const double Weight){};
+
+      virtual void ComputeBoundRHSVector(VectorType& BoundRHSVector,
 					 const ShapeFunctionsType& rN,
 					 const double Weight){};
 
@@ -529,6 +549,10 @@ namespace Kratos
 
       void CalcDeviatoricInvariant(VectorType &SpatialDefRate,
 				   double &DeviatoricInvariant);
+
+      void CalcNormalProjectionsForBoundRHSVector(VectorType &SpatialDefRate,
+						  double &NormalAcceleration,
+						  double &NormalProjSpatialDefRate);
 
       void CheckStrain1(double &VolumetricDefRate,
 			MatrixType &SpatialVelocityGrad);

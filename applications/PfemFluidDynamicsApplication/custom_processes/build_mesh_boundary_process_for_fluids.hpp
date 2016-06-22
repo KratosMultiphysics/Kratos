@@ -32,6 +32,7 @@
 
 #include "custom_conditions/composite_condition.hpp"
 #include "custom_utilities/boundary_normals_calculation_utilities.hpp"
+#include "../PfemBaseApplication/custom_utilities/modeler_utilities.hpp"
 #include "pfem_fluid_dynamics_application_variables.h"
 
 ///VARIABLES used:
@@ -505,6 +506,45 @@ namespace Kratos
 
     }
 
+  void ComputeInitialRadius(double & MeanRadius)
+  {
+    KRATOS_TRY
+	 
+      std::cout<<" ComputeInitialMeanRadius ComputeMeanRadius ComputeMeanRadius ComputeMeanRadius"<<std::endl;       
+
+       double Count=0.0;
+       double NeighCount=0.0;
+       for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(mMeshId); in != mrModelPart.NodesEnd(mMeshId); in++)
+       	 {
+	   NeighCount=0.0;
+	   WeakPointerVector<Element >& neighb_elems = in->GetValue(NEIGHBOUR_ELEMENTS);
+	   double mean_node_radius = 0;
+	   for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
+	     {
+	       NeighCount+=1.0;
+	       // mean_node_radius+= mModelerUtilities.CalculateElementRadius(ne->GetGeometry()); //Triangle 2D, Tetrahedron 3D
+	       ModelerUtilities ModelerUtils;
+
+	       mean_node_radius+= ModelerUtils.CalculateTriangleRadius(ne->GetGeometry());
+	       // mean_node_radius+= mModelerUtilities.CalculateTetrahedronRadius(ne->GetGeometry());
+	     }
+	       
+	   if(NeighCount!=0){
+	     mean_node_radius /=  NeighCount;
+	     Count+=1.0;
+	     MeanRadius+=mean_node_radius;
+	   }
+
+       	 }
+
+       MeanRadius/=Count;
+        std::cout<<" Mean Radius is..."<<MeanRadius<<std::endl;       
+
+    KRATOS_CATCH(" ")
+
+      }
+
+
     bool FindCondition(Geometry< Node<3> >& rConditionGeometry,Geometry< Node<3> >& rGeometry , boost::numeric::ublas::matrix<unsigned int>& lpofa, boost::numeric::ublas::vector<unsigned int>& lnofa, unsigned int& iface)
     {
       
@@ -760,7 +800,6 @@ namespace Kratos
 	  }
 	}
 
-      std::cout<<"1  AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"<<std::endl;
       this->AddOtherConditions(TemporaryConditions, PreservedConditions, ConditionId, MeshId);
 	
       return true;
@@ -779,17 +818,18 @@ namespace Kratos
       int number_properties = mrModelPart.NumberOfProperties();
       Properties::Pointer properties = mrModelPart.GetMesh().pGetProperties(number_properties-1);
 			
-      uint countFreeSurf=0;
+      // uint countFreeSurf=0;
       uint countWall=0;
       //reset the boundary flag in all nodes
       for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(MeshId); in!=mrModelPart.NodesEnd(MeshId); in++)
 	{
+	  // in->Reset(FREE_SURFACE);
 	  if(MeshId==3){
 	    if(in->Is(BOUNDARY)){
-	      std::cout<<"3 BOUNDARY NODE"<<std::endl;
+	      // std::cout<<"3 BOUNDARY NODE"<<std::endl;
 	      in->Set(RIGID);
 	    }else{
-	      std::cout<<"3 NON-BOUNDARY NODE"<<std::endl;
+	      // std::cout<<"3 NON-BOUNDARY NODE"<<std::endl;
 	      in->Set(RIGID);
 	      in->Set(BOUNDARY);
 	    }
@@ -807,16 +847,16 @@ namespace Kratos
 	  // }
 
 	  if(MeshId==5){
+
 	    if(in->Is(BOUNDARY)){
 
 	      if(in->Is(RIGID)){
 		countWall++;
-		std::cout<<"BOUNDARY AND RIGID NODE"<<countWall<<std::endl;
+		// std::cout<<"BOUNDARY AND RIGID NODE"<<countWall<<std::endl;
 	      }else{
-		countFreeSurf++;
-		std::cout<<"BOUNDARY AND FREE_SURFACE "<<countFreeSurf<<std::endl;
-		in->Set(FREE_SURFACE);
-		in->FastGetSolutionStepValue(FREESURFACE) = 0;
+		// countFreeSurf++;
+		// std::cout<<"BOUNDARY AND FREE_SURFACE "<<countFreeSurf<<std::endl;
+		// // in->Set(FREE_SURFACE);
 	      }
 	      in->Reset(BOUNDARY);
 	    }
@@ -839,7 +879,17 @@ namespace Kratos
 
 	}
 
+      // if(MeshId==5){
+	double MeanRadius;
+	this->ComputeInitialRadius(MeanRadius);
+	ModelerUtilities::RefiningParameters               RefiningParametersType;
+	std::cout<<"before MeanRadius is "<<RefiningParametersType.InitialRadius<<std::endl;
 
+	// RefiningParametersType.SetInitialRadius(MeanRadius);
+	std::cout<<"MeanRadius is "<<RefiningParametersType.InitialRadius<<std::endl;
+	RefiningParametersType.InitialRadius=MeanRadius;
+	// this->SetInitialRadius(MeanRadius);
+      // }
       //swap conditions for a temporary use
       ModelPart::ConditionsContainerType TemporaryConditions;
       TemporaryConditions.reserve(mrModelPart.Conditions(MeshId).size());

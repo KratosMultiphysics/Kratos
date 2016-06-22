@@ -417,6 +417,14 @@ namespace Kratos
       /* 						ElementalVariables& rElementalVariables, */
       /* 						const double Weight); */
 
+      void ComputeMeanValueMaterialTangentMatrix(ElementalVariables& rElementalVariables,
+						 double& MeanValue,
+						 const ShapeFunctionDerivativesType& rShapeDeriv,
+						 const double secondLame,
+						 const double bulkModulus,
+						 const double Weight);
+
+
      void AddCompleteTangentTerm(ElementalVariables& rElementalVariables,
 				 MatrixType& rDampingMatrix,
 				 const ShapeFunctionDerivativesType& rShapeDeriv,
@@ -424,6 +432,14 @@ namespace Kratos
 				 const double bulkModulus,
 				 const double Weight);
 	
+     void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix,
+					      const ShapeFunctionsType& rN,
+					      const double Weight);
+	
+     void ComputeBulkMatrixForPressureAccLump(MatrixType& BulkAccMatrix,
+					      const ShapeFunctionsType& rN,
+					      const double Weight);
+
      void ComputeBulkMatrixForPressureVel(MatrixType& BulkVelMatrix,
 					  const ShapeFunctionsType& rN,
 					  const double Weight);
@@ -436,6 +452,9 @@ namespace Kratos
 				const ShapeFunctionsType& rN,
 				const double Weight);
 
+     void ComputeBoundRHSVector(VectorType& BoundRHSVector,
+				const ShapeFunctionsType& rN,
+				const double Weight);
 
      void ComputeStabLaplacianMatrix(MatrixType& StabLaplacianMatrix,
 				     const ShapeFunctionDerivativesType& rShapeDeriv,
