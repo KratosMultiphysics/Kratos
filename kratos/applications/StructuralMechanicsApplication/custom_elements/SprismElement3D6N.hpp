@@ -43,6 +43,65 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+class CommonComponents // Common Components
+{
+    public:
+        /* Declaring operators */
+        boost::numeric::ublas::bounded_matrix<double, 3, 18 > B_membrane_lower; // Membrane (lower)
+        boost::numeric::ublas::bounded_matrix<double, 3, 18 > B_membrane_upper; // Membrane (upper)
+        boost::numeric::ublas::bounded_matrix<double, 2, 18 > B_shear_lower;    // Transverse shear (lower)
+        boost::numeric::ublas::bounded_matrix<double, 2, 18 > B_shear_upper;    // Transverse shear (upper)
+        boost::numeric::ublas::bounded_matrix<double, 1, 18 > B_normal;         // Transverse normal
+
+        /* Components of Cauchy tensor C*/
+        boost::numeric::ublas::bounded_matrix<double, 3, 1 > C_membrane_lower; // Membrane (lower)
+        boost::numeric::ublas::bounded_matrix<double, 3, 1 > C_membrane_upper; // Membrane (upper)
+        boost::numeric::ublas::bounded_matrix<double, 2, 1 > C_shear_lower;    // Transverse shear (lower)
+        boost::numeric::ublas::bounded_matrix<double, 2, 1 > C_shear_upper;    // Transverse shear (upper)
+        double C_normal;                                                       // Transverse normal
+
+        /**
+         * Reset components
+         */
+        void clear()
+        {
+            B_membrane_lower = ZeroMatrix(3, 18);
+            B_membrane_upper = ZeroMatrix(3, 18);
+            B_shear_lower    = ZeroMatrix(2, 18);
+            B_shear_upper    = ZeroMatrix(2, 18);
+            B_normal         = ZeroMatrix(1, 18);
+
+            C_membrane_lower = ZeroMatrix(3, 1);
+            C_membrane_upper = ZeroMatrix(3, 1);
+            C_shear_lower    = ZeroMatrix(2, 1);
+            C_shear_upper    = ZeroMatrix(2, 1);
+            C_normal         = 0.0;
+        }
+};
+
+class StressIntegratedComponents // Stress integrated Components
+{
+    public:
+        /* The PK2 components*/
+        array_1d<double, 3 > S_membrane_lower; // Membrane (lower)
+        array_1d<double, 3 > S_membrane_upper; // Membrane (upper)
+        array_1d<double, 2 > S_shear_lower;    // Transverse shear (lower)
+        array_1d<double, 2 > S_shear_upper;    // Transverse shear (upper)
+        double S_normal;                       // Transverse normal
+
+        /**
+         * Reset components
+         */
+        void clear()
+        {
+            S_membrane_lower = ZeroVector(3);
+            S_membrane_upper = ZeroVector(3);
+            S_shear_lower    = ZeroVector(2);
+            S_shear_upper    = ZeroVector(2);
+            S_normal         = 0.0;
+        }
+};
+
 /** \brief SprismElement3D6N
  * This is a triangular prism solid element for the analysis of thin/thick shells undergoing large elastic–plastic strains.
  * The element is based on a total Lagrangian formulation and uses as strain measure the logarithm of the right stretch tensor (U)
@@ -682,95 +741,80 @@ protected:
     /* The coordinates in the previous iteration (not necessarily in the previous time step) */
     boost::numeric::ublas::bounded_matrix<double, 36, 1 > mPreviousCoor;
 
-    struct mCommonComponents // Common Components
+    class CartesianDerivatives // Cartesian Derivatives (If not stored as a member variable it is needed to recalculate each time, despite in reference configuration they never change)
     {
         public:
             /* Declare cartesian derivatives (reference configuration) */
             /* In-plane components */
-            boost::numeric::ublas::bounded_matrix<double, 2, 4 > mInPlaneCartesianDerivativesGauss1;
-            boost::numeric::ublas::bounded_matrix<double, 2, 4 > mInPlaneCartesianDerivativesGauss2;
-            boost::numeric::ublas::bounded_matrix<double, 2, 4 > mInPlaneCartesianDerivativesGauss3;
-            boost::numeric::ublas::bounded_matrix<double, 2, 4 > mInPlaneCartesianDerivativesGauss4;
-            boost::numeric::ublas::bounded_matrix<double, 2, 4 > mInPlaneCartesianDerivativesGauss5;
-            boost::numeric::ublas::bounded_matrix<double, 2, 4 > mInPlaneCartesianDerivativesGauss6;
-            
+            boost::numeric::ublas::bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss1;
+            boost::numeric::ublas::bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss2;
+            boost::numeric::ublas::bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss3;
+            boost::numeric::ublas::bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss4;
+            boost::numeric::ublas::bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss5;
+            boost::numeric::ublas::bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss6;
+
             /* Transversal components */
             // Central node
-            boost::numeric::ublas::bounded_matrix<double, 6, 1 > mTransversalCartesianDerivativesCenter;
+            boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesCenter;
             // Gauss nodes
-            boost::numeric::ublas::bounded_matrix<double, 6, 1 > mTransversalCartesianDerivativesGauss1;
-            boost::numeric::ublas::bounded_matrix<double, 6, 1 > mTransversalCartesianDerivativesGauss2;
-            boost::numeric::ublas::bounded_matrix<double, 6, 1 > mTransversalCartesianDerivativesGauss3;
-            boost::numeric::ublas::bounded_matrix<double, 6, 1 > mTransversalCartesianDerivativesGauss4;
-            boost::numeric::ublas::bounded_matrix<double, 6, 1 > mTransversalCartesianDerivativesGauss5;
-            boost::numeric::ublas::bounded_matrix<double, 6, 1 > mTransversalCartesianDerivativesGauss6;
-            
-            /* Declaring operators */
-            boost::numeric::ublas::bounded_matrix<double, 3, 18 > mB_membrane_lower; // Membrane (lower)
-            boost::numeric::ublas::bounded_matrix<double, 3, 18 > mB_membrane_upper; // Membrane (upper)
-            boost::numeric::ublas::bounded_matrix<double, 2, 18 > mB_shear_lower;    // Transverse shear (lower)
-            boost::numeric::ublas::bounded_matrix<double, 2, 18 > mB_shear_upper;    // Transverse shear (upper)
-            boost::numeric::ublas::bounded_matrix<double, 1, 18 > mB_normal;         // Transverse normal
+            boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss1;
+            boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss2;
+            boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss3;
+            boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss4;
+            boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss5;
+            boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss6;
 
-            /* Components of Cauchy tensor C*/
-            boost::numeric::ublas::bounded_matrix<double, 3, 1 > mC_membrane_lower; // Membrane (lower)
-            boost::numeric::ublas::bounded_matrix<double, 3, 1 > mC_membrane_upper; // Membrane (upper)
-            boost::numeric::ublas::bounded_matrix<double, 2, 1 > mC_shear_lower;    // Transverse shear (lower)
-            boost::numeric::ublas::bounded_matrix<double, 2, 1 > mC_shear_upper;    // Transverse shear (upper)
-            double mC_normal;                                                       // Transverse normal
-            
             /* Inverse of the Jaconians */
-            boost::numeric::ublas::bounded_matrix<double, 2, 2 > mJinv_plane_lower;
-            boost::numeric::ublas::bounded_matrix<double, 2, 2 > mJinv_plane_upper;
-    };
-
-    mCommonComponents mCC;
-
-    struct mPK2Components // PK2 integrated Components
-    {
-        public:
-            /* The PK2 components*/
-            array_1d<double, 3 > mS_membrane_lower; // Membrane (lower)
-            array_1d<double, 3 > mS_membrane_upper; // Membrane (upper)
-            array_1d<double, 2 > mS_shear_lower;    // Transverse shear (lower)
-            array_1d<double, 2 > mS_shear_upper;    // Transverse shear (upper)
-            double mS_normal;                       // Transverse normal
+            boost::numeric::ublas::bounded_matrix<double, 2, 2 > Jinv_plane_lower;
+            boost::numeric::ublas::bounded_matrix<double, 2, 2 > Jinv_plane_upper;
 
             /**
              * Reset components
              */
             void clear()
             {
-                mS_membrane_lower = ZeroVector(3);
-                mS_membrane_upper = ZeroVector(3);
-                mS_shear_lower = ZeroVector(2);
-                mS_shear_upper = ZeroVector(2);
-                mS_normal = 0.0;
+                InPlaneCartesianDerivativesGauss1 = ZeroMatrix(2, 4);
+                InPlaneCartesianDerivativesGauss2 = ZeroMatrix(2, 4);
+                InPlaneCartesianDerivativesGauss3 = ZeroMatrix(2, 4);
+                InPlaneCartesianDerivativesGauss4 = ZeroMatrix(2, 4);
+                InPlaneCartesianDerivativesGauss5 = ZeroMatrix(2, 4);
+                InPlaneCartesianDerivativesGauss6 = ZeroMatrix(2, 4);
+
+                TransversalCartesianDerivativesCenter = ZeroMatrix(6, 1);
+                TransversalCartesianDerivativesGauss1 = ZeroMatrix(6, 1);
+                TransversalCartesianDerivativesGauss2 = ZeroMatrix(6, 1);
+                TransversalCartesianDerivativesGauss3 = ZeroMatrix(6, 1);
+                TransversalCartesianDerivativesGauss4 = ZeroMatrix(6, 1);
+                TransversalCartesianDerivativesGauss5 = ZeroMatrix(6, 1);
+                TransversalCartesianDerivativesGauss6 = ZeroMatrix(6, 1);
+
+                Jinv_plane_lower = ZeroMatrix(2, 2);
+                Jinv_plane_upper = ZeroMatrix(2, 2);
             }
     };
 
-    mPK2Components mPK2;
-
-    struct mEASComponents // EAS Components
+    CartesianDerivatives mCartesianDerivatives;
+    
+    class EASComponents // EAS Components
     {
         public:
             /* The EAS components*/
-            double mrhs_alpha;
-            double mstiff_alpha;
-            boost::numeric::ublas::bounded_matrix<double, 1, 36 > mH_EAS;
+            double rhs_alpha;
+            double stiff_alpha;
+            boost::numeric::ublas::bounded_matrix<double, 1, 36 > H_EAS;
 
             /**
-             * Reset components
-             */
+            * Reset components
+            */
             void clear()
             {
-                mrhs_alpha   = 0.0;
-                mstiff_alpha = 0.0;
-                mH_EAS = ZeroMatrix(1, 36);
+                rhs_alpha   = 0.0;
+                stiff_alpha = 0.0;
+                H_EAS       = ZeroMatrix(1, 36);
             }
     };
-
-    mEASComponents mEAS;
+    
+    EASComponents mEAS;
 
     ///@}
     ///@name Protected Operators
@@ -826,9 +870,14 @@ protected:
     virtual unsigned int NumberOfActiveNeighbours(WeakPointerVector< Node < 3 > >& neighbs);
 
     /**
+     * Calculate the cartesian derivatives
+     */
+    virtual void CalculateCartesianDerivatives();
+    
+    /**
      * Calculate the necessary components for the Kinematic calculus
      */
-    virtual void CalculateCommonComponents();
+    virtual void CalculateCommonComponents(CommonComponents& CC);
 
     /**
      * Calculates the Local Coordinates System
@@ -1021,8 +1070,8 @@ protected:
      * @param node_gauss: Number of Gauss node calculated
      */
     void CalculateAndAdd_B_Membrane(
-            boost::numeric::ublas::bounded_matrix<double, 3, 18 > & mB_membrane,
-            boost::numeric::ublas::bounded_matrix<double, 3, 1 > & mC_membrane,
+            boost::numeric::ublas::bounded_matrix<double, 3, 18 > & B_membrane,
+            boost::numeric::ublas::bounded_matrix<double, 3, 1 > & C_membrane,
             const boost::numeric::ublas::bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss,
             const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & InPlaneGradientFGauss,
             const int node_gauss
@@ -1038,9 +1087,9 @@ protected:
      */
     void CalculateAndAdd_Membrane_Kgeometric(
             boost::numeric::ublas::bounded_matrix<double, 36, 36 > & Kgeometricmembrane,
-            const boost::numeric::ublas::bounded_matrix<double, 2, 4 > & mInPlaneCartesianDerivativesGauss1,
-            const boost::numeric::ublas::bounded_matrix<double, 2, 4 > & mInPlaneCartesianDerivativesGauss2,
-            const boost::numeric::ublas::bounded_matrix<double, 2, 4 > & mInPlaneCartesianDerivativesGauss3,
+            const boost::numeric::ublas::bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss1,
+            const boost::numeric::ublas::bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss2,
+            const boost::numeric::ublas::bounded_matrix<double, 2, 4 > & InPlaneCartesianDerivativesGauss3,
             const array_1d<double, 3 > & S_membrane,
             const int index
             );
@@ -1096,8 +1145,8 @@ protected:
      * @param TransversalDeformationGradientF: Transversal components of the deformation gradient in the central point of the element
      */
     void CalculateAndAdd_B_Normal(
-            boost::numeric::ublas::bounded_matrix<double, 1, 18 > & mB_normal,
-            double & mC_normal,
+            boost::numeric::ublas::bounded_matrix<double, 1, 18 > & B_normal,
+            double & C_normal,
             const boost::numeric::ublas::bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGaussCenter,
             const array_1d<double, 3 > & TransversalDeformationGradientF
             );
@@ -1111,7 +1160,7 @@ protected:
     void CalculateAndAdd_Normal_Kgeometric(
             boost::numeric::ublas::bounded_matrix<double, 18, 18 > & Kgeometricnormal,
             const boost::numeric::ublas::bounded_matrix<double, 6, 1 > & TransversalCartesianDerivativesGaussCenter,
-            const double mS_normal
+            const double S_normal
             );
 
     /**
@@ -1136,6 +1185,7 @@ protected:
      */
     void IntegrateInZeta(
             GeneralVariables& rVariables,
+            StressIntegratedComponents& IntStress,
             const double& alpha_eas,
             const double& zeta_gauss,
             const double& rIntegrationWeight
@@ -1152,6 +1202,8 @@ protected:
             LocalSystemComponents& rLocalSystem,
             GeneralVariables& rVariables,
             ConstitutiveLaw::Parameters& rValues,
+            const StressIntegratedComponents& IntStress,
+            const CommonComponents& CC,
             double& alpha_eas
             );
 
@@ -1179,6 +1231,8 @@ protected:
             LocalSystemComponents& rLocalSystem,
             GeneralVariables& rVariables,
             Vector& rVolumeForce,
+            const StressIntegratedComponents& IntStress,
+            const CommonComponents& CC,
             double& alpha_eas
             );
 
@@ -1213,7 +1267,10 @@ protected:
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      * @return rLeftHandSideMatrix: LHS of the system
      */
-    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix);
+    virtual void CalculateAndAddKuug(
+            MatrixType& rLeftHandSideMatrix,
+            const StressIntegratedComponents& IntStress
+            );
 
     /**
      * Update the LHS of the system with the EAS
@@ -1249,6 +1306,8 @@ protected:
       */
     virtual void CalculateAndAddInternalForces(
             VectorType& rRightHandSideVector,
+            const StressIntegratedComponents& IntStress,
+            const CommonComponents& CC,
             double& alpha_eas
             );
 
@@ -1300,6 +1359,7 @@ protected:
      */
     virtual void CalculateKinematics(
             GeneralVariables& rVariables,
+            const CommonComponents& CC,
             const int& rPointNumber,
             const double& alpha_eas,
             const double& zeta_gauss
@@ -1324,6 +1384,7 @@ protected:
      */
     virtual void CalculateDeformationMatrix(
             Matrix& rB,
+            const CommonComponents& CC,
             const double& zeta_gauss,
             const double& alpha_eas
             );
