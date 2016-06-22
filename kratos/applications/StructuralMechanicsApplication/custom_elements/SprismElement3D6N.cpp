@@ -992,10 +992,14 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
 
         double& alpha_eas = Element::GetValue(ALPHA_EAS);
 
+        /* Calculate the cartesian derivatives */
+        CartesianDerivatives CartDeriv;
+        this->CalculateCartesianDerivatives(CartDeriv);
+
         /* Calculate common components (B, C) */
         CommonComponents CC;
         CC.clear();
-        this->CalculateCommonComponents(CC);
+        this->CalculateCommonComponents(CC, CartDeriv);
 
         // Reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
@@ -1043,10 +1047,14 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
 
         double& alpha_eas = Element::GetValue(ALPHA_EAS);
 
+        /* Calculate the cartesian derivatives */
+        CartesianDerivatives CartDeriv;
+        this->CalculateCartesianDerivatives(CartDeriv);
+
         /* Calculate common components (B, C) */
         CommonComponents CC;
         CC.clear();
-        this->CalculateCommonComponents(CC);
+        this->CalculateCommonComponents(CC, CartDeriv);
 
         // Reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
@@ -1141,10 +1149,14 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
 
         double& alpha_eas = Element::GetValue(ALPHA_EAS);
 
+        /* Calculate the cartesian derivatives */
+        CartesianDerivatives CartDeriv;
+        this->CalculateCartesianDerivatives(CartDeriv);
+
         /* Calculate common components (B, C) */
         CommonComponents CC;
         CC.clear();
-        this->CalculateCommonComponents(CC);
+        this->CalculateCommonComponents(CC, CartDeriv);
 
         // Reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
@@ -1194,10 +1206,14 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
 
         double& alpha_eas = Element::GetValue(ALPHA_EAS);
 
+        /* Calculate the cartesian derivatives */
+        CartesianDerivatives CartDeriv;
+        this->CalculateCartesianDerivatives(CartDeriv);
+
         /* Calculate common components (B, C) */
         CommonComponents CC;
         CC.clear();
-        this->CalculateCommonComponents(CC);
+        this->CalculateCommonComponents(CC, CartDeriv);
 
         // Reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
@@ -1360,10 +1376,14 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
 
         double& alpha_eas = Element::GetValue(ALPHA_EAS);
 
+        /* Calculate the cartesian derivatives */
+        CartesianDerivatives CartDeriv;
+        this->CalculateCartesianDerivatives(CartDeriv);
+
         /* Calculate common components (B, C) */
         CommonComponents CC;
         CC.clear();
-        this->CalculateCommonComponents(CC);
+        this->CalculateCommonComponents(CC, CartDeriv);
 
         // Reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
@@ -1398,10 +1418,14 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
 
         double& alpha_eas = Element::GetValue(ALPHA_EAS);
 
+        /* Calculate the cartesian derivatives */
+        CartesianDerivatives CartDeriv;
+        this->CalculateCartesianDerivatives(CartDeriv);
+
         /* Calculate common components (B, C) */
         CommonComponents CC;
         CC.clear();
-        this->CalculateCommonComponents(CC);
+        this->CalculateCommonComponents(CC, CartDeriv);
 
         // Reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
@@ -1879,10 +1903,14 @@ void SprismElement3D6N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 
     double& alpha_eas = Element::GetValue(ALPHA_EAS);
 
+    /* Calculate the cartesian derivatives */
+    CartesianDerivatives CartDeriv;
+    this->CalculateCartesianDerivatives(CartDeriv);
+
     /* Calculate common components (B, C) */
     CommonComponents CC;
     CC.clear();
-    this->CalculateCommonComponents(CC);
+    this->CalculateCommonComponents(CC, CartDeriv);
 
     // Reading integration points
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
@@ -1949,8 +1977,6 @@ void SprismElement3D6N::SwitchFlagImplicitExplicit(bool& flag)
 void SprismElement3D6N::Initialize()
 {
     KRATOS_TRY;
-
-    this->CalculateCartesianDerivatives();
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
@@ -2055,10 +2081,14 @@ void SprismElement3D6N::CalculateElementalSystem(
         }
     }
 
+    /* Calculate the cartesian derivatives */
+    CartesianDerivatives CartDeriv;
+    this->CalculateCartesianDerivatives(CartDeriv);
+
     /* Calculate common components (B, C) */
     CommonComponents CC;
     CC.clear();
-    this->CalculateCommonComponents(CC);
+    this->CalculateCommonComponents(CC, CartDeriv);
 
     /* Reset the integrated stress components */
     StressIntegratedComponents IntStress;
@@ -2107,8 +2137,8 @@ void SprismElement3D6N::CalculateElementalSystem(
 
     if ( rLocalSystem.CalculationFlags.Is(SprismElement3D6N::COMPUTE_LHS_MATRIX) == true ) // Calculation of the matrix is required
     {
-        /* Contribution to the tangen stiffness matrix */
-        this->CalculateAndAddLHS ( rLocalSystem, Variables, Values, IntStress, CC, alpha_eas );
+        /* Contribution to the tangent stiffness matrix */
+        this->CalculateAndAddLHS( rLocalSystem, Variables, Values, IntStress, CC, CartDeriv, alpha_eas );
     }
 
     KRATOS_CATCH("");
@@ -2140,8 +2170,14 @@ void SprismElement3D6N::CalculateDynamicSystem(
     /* Getting the alpha parameter of the EAS improvement */
     double& alpha_eas = Element::GetValue(ALPHA_EAS);
 
+    /* Calculate the cartesian derivatives */
+    CartesianDerivatives CartDeriv;
+    this->CalculateCartesianDerivatives(CartDeriv);
+
+    /* Calculate common components (B, C) */
     CommonComponents CC;
-    this->CalculateCommonComponents(CC);
+    CC.clear();
+    this->CalculateCommonComponents(CC, CartDeriv);
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
@@ -2310,17 +2346,16 @@ unsigned int SprismElement3D6N::NumberOfActiveNeighbours(WeakPointerVector< Node
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SprismElement3D6N::CalculateCartesianDerivatives()
+void SprismElement3D6N::CalculateCartesianDerivatives(CartesianDerivatives& CartDeriv)
 {
     boost::numeric::ublas::bounded_matrix<double, 12, 3 > nodes_coord = ZeroMatrix(12, 3);
 
     /* Fill the aux matrix of coordinates */
     for (unsigned int i = 0; i < 6; i++)
     {
-        const array_1d<double, 3> &CurrentPosition  = GetGeometry()[i].Coordinates();
-        nodes_coord(i, 0) = CurrentPosition[0];
-        nodes_coord(i, 1) = CurrentPosition[1];
-        nodes_coord(i, 2) = CurrentPosition[2];
+        nodes_coord(i, 0) = GetGeometry()[i].X0();
+        nodes_coord(i, 1) = GetGeometry()[i].Y0();
+        nodes_coord(i, 2) = GetGeometry()[i].Z0();
     }
 
     WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
@@ -2330,10 +2365,9 @@ void SprismElement3D6N::CalculateCartesianDerivatives()
     {
         for (unsigned int i = 0; i < 6; i++)
         {
-            const array_1d<double, 3> &CurrentPosition  = nodal_neigb[i].Coordinates();
-            nodes_coord(i + 6, 0) = CurrentPosition[0];
-            nodes_coord(i + 6, 1) = CurrentPosition[1];
-            nodes_coord(i + 6, 2) = CurrentPosition[2];
+            nodes_coord(i + 6, 0) = nodal_neigb[i].X0();
+            nodes_coord(i + 6, 1) = nodal_neigb[i].Y0();
+            nodes_coord(i + 6, 2) = nodal_neigb[i].Z0();
         }
     }
     else
@@ -2342,10 +2376,9 @@ void SprismElement3D6N::CalculateCartesianDerivatives()
         {
             if (HasNeighbour(i, nodal_neigb[i]))
             {
-                const array_1d<double, 3> &CurrentPosition  = nodal_neigb[i].Coordinates();
-                nodes_coord(i + 6, 0) = CurrentPosition[0];
-                nodes_coord(i + 6, 1) = CurrentPosition[1];
-                nodes_coord(i + 6, 2) = CurrentPosition[2];
+                nodes_coord(i + 6, 0) = nodal_neigb[i].X0();
+                nodes_coord(i + 6, 1) = nodal_neigb[i].Y0();
+                nodes_coord(i + 6, 2) = nodal_neigb[i].Z0();
             }
             else
             {
@@ -2380,65 +2413,68 @@ void SprismElement3D6N::CalculateCartesianDerivatives()
     CalculateCartesianDerOnCenter_plane(3, nodes_coord, CartesianDerivativesCenterUpper );
 
     /* Transversal derivative */
-    CalculateCartesianDerOnCenter_trans(nodes_coord, 0); // Center
-    CalculateCartesianDerOnCenter_trans(nodes_coord, 1); // Lower part
-    CalculateCartesianDerOnCenter_trans(nodes_coord, 2); // Upper part
+    CalculateCartesianDerOnCenter_trans(CartDeriv, nodes_coord, 0); // Center
+    CalculateCartesianDerOnCenter_trans(CartDeriv, nodes_coord, 1); // Lower part
+    CalculateCartesianDerOnCenter_trans(CartDeriv, nodes_coord, 2); // Upper part
 
     //******************************** GAUSS POINTS *******************************
 
     /* Transversal derivative */
-    CalculateCartesianDerOnGauss_trans(nodes_coord, mCartesianDerivatives.TransversalCartesianDerivativesGauss1, 0.5, 0.5, - 1.0);
-    CalculateCartesianDerOnGauss_trans(nodes_coord, mCartesianDerivatives.TransversalCartesianDerivativesGauss4, 0.5, 0.5,   1.0);
+    CalculateCartesianDerOnGauss_trans(nodes_coord, CartDeriv.TransversalCartesianDerivativesGauss1, 0.5, 0.5, - 1.0);
+    CalculateCartesianDerOnGauss_trans(nodes_coord, CartDeriv.TransversalCartesianDerivativesGauss4, 0.5, 0.5,   1.0);
 
     /* In-plane derivative */
     if (HasNeighbour(0, nodal_neigb[0])) // Assuming that if the upper element has neighbours the lower has too
     {
-        CalculateCartesianDerOnGauss_plane(0, 0, nodes_coord, mCartesianDerivatives.InPlaneCartesianDerivativesGauss1);
-        CalculateCartesianDerOnGauss_plane(0, 3, nodes_coord, mCartesianDerivatives.InPlaneCartesianDerivativesGauss4);
+        CalculateCartesianDerOnGauss_plane(0, 0, nodes_coord, CartDeriv.InPlaneCartesianDerivativesGauss1);
+        CalculateCartesianDerOnGauss_plane(0, 3, nodes_coord, CartDeriv.InPlaneCartesianDerivativesGauss4);
     }
     else
     {
-        noalias(mCartesianDerivatives.InPlaneCartesianDerivativesGauss1) = CartesianDerivativesCenterLower;
-        noalias(mCartesianDerivatives.InPlaneCartesianDerivativesGauss4) = CartesianDerivativesCenterUpper;
+        noalias(CartDeriv.InPlaneCartesianDerivativesGauss1) = CartesianDerivativesCenterLower;
+        noalias(CartDeriv.InPlaneCartesianDerivativesGauss4) = CartesianDerivativesCenterUpper;
     }
 
     /* Transversal derivative */
-    CalculateCartesianDerOnGauss_trans(nodes_coord, mCartesianDerivatives.TransversalCartesianDerivativesGauss2, 0.0, 0.5, - 1.0);
-    CalculateCartesianDerOnGauss_trans(nodes_coord, mCartesianDerivatives.TransversalCartesianDerivativesGauss5, 0.0, 0.5,   1.0);
+    CalculateCartesianDerOnGauss_trans(nodes_coord, CartDeriv.TransversalCartesianDerivativesGauss2, 0.0, 0.5, - 1.0);
+    CalculateCartesianDerOnGauss_trans(nodes_coord, CartDeriv.TransversalCartesianDerivativesGauss5, 0.0, 0.5,   1.0);
 
     /* In-plane derivative */
     if (HasNeighbour(1, nodal_neigb[1])) //Idem
     {
-        CalculateCartesianDerOnGauss_plane(1, 0, nodes_coord, mCartesianDerivatives.InPlaneCartesianDerivativesGauss2);
-        CalculateCartesianDerOnGauss_plane(1, 3, nodes_coord, mCartesianDerivatives.InPlaneCartesianDerivativesGauss5);
+        CalculateCartesianDerOnGauss_plane(1, 0, nodes_coord, CartDeriv.InPlaneCartesianDerivativesGauss2);
+        CalculateCartesianDerOnGauss_plane(1, 3, nodes_coord, CartDeriv.InPlaneCartesianDerivativesGauss5);
     }
     else
     {
-        noalias(mCartesianDerivatives.InPlaneCartesianDerivativesGauss2) = CartesianDerivativesCenterLower;
-        noalias(mCartesianDerivatives.InPlaneCartesianDerivativesGauss5) = CartesianDerivativesCenterUpper;
+        noalias(CartDeriv.InPlaneCartesianDerivativesGauss2) = CartesianDerivativesCenterLower;
+        noalias(CartDeriv.InPlaneCartesianDerivativesGauss5) = CartesianDerivativesCenterUpper;
     }
 
     /* Transversal derivative */
-    CalculateCartesianDerOnGauss_trans(nodes_coord, mCartesianDerivatives.TransversalCartesianDerivativesGauss3, 0.5, 0.0, - 1.0);
-    CalculateCartesianDerOnGauss_trans(nodes_coord, mCartesianDerivatives.TransversalCartesianDerivativesGauss6, 0.5, 0.0,   1.0);
+    CalculateCartesianDerOnGauss_trans(nodes_coord, CartDeriv.TransversalCartesianDerivativesGauss3, 0.5, 0.0, - 1.0);
+    CalculateCartesianDerOnGauss_trans(nodes_coord, CartDeriv.TransversalCartesianDerivativesGauss6, 0.5, 0.0,   1.0);
 
     /* In-plane derivative */
     if (HasNeighbour(2, nodal_neigb[2])) // Idem
     {
-        CalculateCartesianDerOnGauss_plane(2, 0, nodes_coord, mCartesianDerivatives.InPlaneCartesianDerivativesGauss3);
-        CalculateCartesianDerOnGauss_plane(2, 3, nodes_coord, mCartesianDerivatives.InPlaneCartesianDerivativesGauss6);
+        CalculateCartesianDerOnGauss_plane(2, 0, nodes_coord, CartDeriv.InPlaneCartesianDerivativesGauss3);
+        CalculateCartesianDerOnGauss_plane(2, 3, nodes_coord, CartDeriv.InPlaneCartesianDerivativesGauss6);
     }
     else
     {
-        noalias(mCartesianDerivatives.InPlaneCartesianDerivativesGauss3) = CartesianDerivativesCenterLower;
-        noalias(mCartesianDerivatives.InPlaneCartesianDerivativesGauss6) = CartesianDerivativesCenterUpper;
+        noalias(CartDeriv.InPlaneCartesianDerivativesGauss3) = CartesianDerivativesCenterLower;
+        noalias(CartDeriv.InPlaneCartesianDerivativesGauss6) = CartesianDerivativesCenterUpper;
     }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SprismElement3D6N::CalculateCommonComponents(CommonComponents& CC)
+void SprismElement3D6N::CalculateCommonComponents(
+        CommonComponents& CC,
+        const CartesianDerivatives& CartDeriv
+        )
 {
     KRATOS_TRY;
 
@@ -2501,16 +2537,16 @@ void SprismElement3D6N::CalculateCommonComponents(CommonComponents& CC)
     // Lower face
 
     // Gauss point 1
-    CalculateInPlaneGradientFGauss(InPlaneGradientFGauss, mCartesianDerivatives.InPlaneCartesianDerivativesGauss1, nodes_coord, 0, 0);
-    CalculateAndAdd_B_Membrane(CC.B_membrane_lower, CC.C_membrane_lower, mCartesianDerivatives.InPlaneCartesianDerivativesGauss1, InPlaneGradientFGauss, 0);
+    CalculateInPlaneGradientFGauss(InPlaneGradientFGauss, CartDeriv.InPlaneCartesianDerivativesGauss1, nodes_coord, 0, 0);
+    CalculateAndAdd_B_Membrane(CC.B_membrane_lower, CC.C_membrane_lower, CartDeriv.InPlaneCartesianDerivativesGauss1, InPlaneGradientFGauss, 0);
 
     // Gauss point 2
-    CalculateInPlaneGradientFGauss(InPlaneGradientFGauss, mCartesianDerivatives.InPlaneCartesianDerivativesGauss2, nodes_coord, 1, 0);
-    CalculateAndAdd_B_Membrane(CC.B_membrane_lower, CC.C_membrane_lower, mCartesianDerivatives.InPlaneCartesianDerivativesGauss2, InPlaneGradientFGauss, 1);
+    CalculateInPlaneGradientFGauss(InPlaneGradientFGauss, CartDeriv.InPlaneCartesianDerivativesGauss2, nodes_coord, 1, 0);
+    CalculateAndAdd_B_Membrane(CC.B_membrane_lower, CC.C_membrane_lower, CartDeriv.InPlaneCartesianDerivativesGauss2, InPlaneGradientFGauss, 1);
 
     // Gauss point 3
-    CalculateInPlaneGradientFGauss(InPlaneGradientFGauss, mCartesianDerivatives.InPlaneCartesianDerivativesGauss3, nodes_coord, 2, 0);
-    CalculateAndAdd_B_Membrane(CC.B_membrane_lower, CC.C_membrane_lower, mCartesianDerivatives.InPlaneCartesianDerivativesGauss3, InPlaneGradientFGauss, 2);
+    CalculateInPlaneGradientFGauss(InPlaneGradientFGauss, CartDeriv.InPlaneCartesianDerivativesGauss3, nodes_coord, 2, 0);
+    CalculateAndAdd_B_Membrane(CC.B_membrane_lower, CC.C_membrane_lower, CartDeriv.InPlaneCartesianDerivativesGauss3, InPlaneGradientFGauss, 2);
 
     CC.B_membrane_lower *= 0.333333333333333333333333333333333;
     CC.C_membrane_lower *= 0.333333333333333333333333333333333;
@@ -2518,16 +2554,16 @@ void SprismElement3D6N::CalculateCommonComponents(CommonComponents& CC)
     // Upper face
 
     // Gauss point 4
-    CalculateInPlaneGradientFGauss(InPlaneGradientFGauss, mCartesianDerivatives.InPlaneCartesianDerivativesGauss4, nodes_coord, 0, 3);
-    CalculateAndAdd_B_Membrane(CC.B_membrane_upper, CC.C_membrane_upper, mCartesianDerivatives.InPlaneCartesianDerivativesGauss4, InPlaneGradientFGauss, 0);
+    CalculateInPlaneGradientFGauss(InPlaneGradientFGauss, CartDeriv.InPlaneCartesianDerivativesGauss4, nodes_coord, 0, 3);
+    CalculateAndAdd_B_Membrane(CC.B_membrane_upper, CC.C_membrane_upper, CartDeriv.InPlaneCartesianDerivativesGauss4, InPlaneGradientFGauss, 0);
 
     // Gauss point 5
-    CalculateInPlaneGradientFGauss(InPlaneGradientFGauss, mCartesianDerivatives.InPlaneCartesianDerivativesGauss5, nodes_coord, 1, 3);
-    CalculateAndAdd_B_Membrane(CC.B_membrane_upper, CC.C_membrane_upper, mCartesianDerivatives.InPlaneCartesianDerivativesGauss5, InPlaneGradientFGauss, 1);
+    CalculateInPlaneGradientFGauss(InPlaneGradientFGauss, CartDeriv.InPlaneCartesianDerivativesGauss5, nodes_coord, 1, 3);
+    CalculateAndAdd_B_Membrane(CC.B_membrane_upper, CC.C_membrane_upper, CartDeriv.InPlaneCartesianDerivativesGauss5, InPlaneGradientFGauss, 1);
 
     // Gauss point 6
-    CalculateInPlaneGradientFGauss(InPlaneGradientFGauss, mCartesianDerivatives.InPlaneCartesianDerivativesGauss6, nodes_coord, 2, 3);
-    CalculateAndAdd_B_Membrane(CC.B_membrane_upper, CC.C_membrane_upper, mCartesianDerivatives.InPlaneCartesianDerivativesGauss6, InPlaneGradientFGauss, 2);
+    CalculateInPlaneGradientFGauss(InPlaneGradientFGauss, CartDeriv.InPlaneCartesianDerivativesGauss6, nodes_coord, 2, 3);
+    CalculateAndAdd_B_Membrane(CC.B_membrane_upper, CC.C_membrane_upper, CartDeriv.InPlaneCartesianDerivativesGauss6, InPlaneGradientFGauss, 2);
 
     CC.B_membrane_upper *= 0.333333333333333333333333333333333;
     CC.C_membrane_upper *= 0.333333333333333333333333333333333;
@@ -2544,15 +2580,15 @@ void SprismElement3D6N::CalculateCommonComponents(CommonComponents& CC)
     CalculateTransverseGradientFinP(TransverseGradientFt, TransverseGradientFxi, TransverseGradientFeta, nodes_coord, 0);
 
     /* Calculate f transverse components */
-    CalculateTransverseGradientF(TransverseGradientF0, mCartesianDerivatives.TransversalCartesianDerivativesGauss1, nodes_coord);
-    CalculateTransverseGradientF(TransverseGradientF1, mCartesianDerivatives.TransversalCartesianDerivativesGauss2, nodes_coord);
-    CalculateTransverseGradientF(TransverseGradientF2, mCartesianDerivatives.TransversalCartesianDerivativesGauss3, nodes_coord);
+    CalculateTransverseGradientF(TransverseGradientF0, CartDeriv.TransversalCartesianDerivativesGauss1, nodes_coord);
+    CalculateTransverseGradientF(TransverseGradientF1, CartDeriv.TransversalCartesianDerivativesGauss2, nodes_coord);
+    CalculateTransverseGradientF(TransverseGradientF2, CartDeriv.TransversalCartesianDerivativesGauss3, nodes_coord);
 
     /* Shear contribution to the deformation matrix */
-    CalculateAndAdd_B_Shear(CC.B_shear_lower, CC.C_shear_lower, mCartesianDerivatives.TransversalCartesianDerivativesGauss1,
-                            mCartesianDerivatives.TransversalCartesianDerivativesGauss2, mCartesianDerivatives.TransversalCartesianDerivativesGauss3,
+    CalculateAndAdd_B_Shear(CC.B_shear_lower, CC.C_shear_lower, CartDeriv.TransversalCartesianDerivativesGauss1,
+                            CartDeriv.TransversalCartesianDerivativesGauss2, CartDeriv.TransversalCartesianDerivativesGauss3,
                             TransverseGradientF0, TransverseGradientF1, TransverseGradientF2, TransverseGradientFt,
-                            TransverseGradientFxi, TransverseGradientFeta, mCartesianDerivatives.Jinv_plane_lower, 0);
+                            TransverseGradientFxi, TransverseGradientFeta, CartDeriv.Jinv_plane_lower, 0);
 
     // Upper face
 
@@ -2560,22 +2596,22 @@ void SprismElement3D6N::CalculateCommonComponents(CommonComponents& CC)
     CalculateTransverseGradientFinP(TransverseGradientFt, TransverseGradientFxi, TransverseGradientFeta, nodes_coord, 3);
 
     /* Calculate f transverse components */
-    CalculateTransverseGradientF(TransverseGradientF0, mCartesianDerivatives.TransversalCartesianDerivativesGauss4, nodes_coord);
-    CalculateTransverseGradientF(TransverseGradientF1, mCartesianDerivatives.TransversalCartesianDerivativesGauss5, nodes_coord);
-    CalculateTransverseGradientF(TransverseGradientF2, mCartesianDerivatives.TransversalCartesianDerivativesGauss6, nodes_coord);
+    CalculateTransverseGradientF(TransverseGradientF0, CartDeriv.TransversalCartesianDerivativesGauss4, nodes_coord);
+    CalculateTransverseGradientF(TransverseGradientF1, CartDeriv.TransversalCartesianDerivativesGauss5, nodes_coord);
+    CalculateTransverseGradientF(TransverseGradientF2, CartDeriv.TransversalCartesianDerivativesGauss6, nodes_coord);
 
     /* Shear contribution to the deformation matrix */
-    CalculateAndAdd_B_Shear(CC.B_shear_upper, CC.C_shear_upper, mCartesianDerivatives.TransversalCartesianDerivativesGauss4,
-                            mCartesianDerivatives.TransversalCartesianDerivativesGauss5, mCartesianDerivatives.TransversalCartesianDerivativesGauss6,
+    CalculateAndAdd_B_Shear(CC.B_shear_upper, CC.C_shear_upper, CartDeriv.TransversalCartesianDerivativesGauss4,
+                            CartDeriv.TransversalCartesianDerivativesGauss5, CartDeriv.TransversalCartesianDerivativesGauss6,
                             TransverseGradientF0, TransverseGradientF1, TransverseGradientF2, TransverseGradientFt,
-                            TransverseGradientFxi, TransverseGradientFeta, mCartesianDerivatives.Jinv_plane_upper, 9);
+                            TransverseGradientFxi, TransverseGradientFeta, CartDeriv.Jinv_plane_upper, 9);
 
     /* NORMAL TRANSVERSE */
     /* Calculate f normal components */
-    CalculateTransverseGradientF(TransverseGradientF0, mCartesianDerivatives.TransversalCartesianDerivativesCenter, nodes_coord);
+    CalculateTransverseGradientF(TransverseGradientF0, CartDeriv.TransversalCartesianDerivativesCenter, nodes_coord);
 
     /* Calculating the normal transverse strain-displacement matrix */
-    CalculateAndAdd_B_Normal(CC.B_normal, CC.C_normal, mCartesianDerivatives.TransversalCartesianDerivativesCenter, TransverseGradientF0);
+    CalculateAndAdd_B_Normal(CC.B_normal, CC.C_normal, CartDeriv.TransversalCartesianDerivativesCenter, TransverseGradientF0);
 
     KRATOS_CATCH("");
 }
@@ -3132,6 +3168,7 @@ void SprismElement3D6N::CalculateCartesianDerOnGauss_trans(
 /***********************************************************************************/
 
 void SprismElement3D6N::CalculateCartesianDerOnCenter_trans(
+        CartesianDerivatives& CartDeriv,
         const boost::numeric::ublas::bounded_matrix<double, 12, 3 > & nodes_coord,
         const int part
         )
@@ -3183,7 +3220,7 @@ void SprismElement3D6N::CalculateCartesianDerOnCenter_trans(
 
         for (unsigned int i = 0; i < 6 ; i++)
         {
-            mCartesianDerivatives.TransversalCartesianDerivativesCenter(i, 0) =
+            CartDeriv.TransversalCartesianDerivativesCenter(i, 0) =
                      mvze[0] * TransversalCartesianDerivativesGauss_aux(i, 0) +
                      mvze[1] * TransversalCartesianDerivativesGauss_aux(i, 1) +
                      mvze[2] * TransversalCartesianDerivativesGauss_aux(i, 2);
@@ -3206,17 +3243,17 @@ void SprismElement3D6N::CalculateCartesianDerOnCenter_trans(
          /* Compute inverse of the Jaccobian (just in plane components)*/
          if (part == 1)
          {
-             mCartesianDerivatives.Jinv_plane_lower(0, 0) = inner_prod(Xdxi,  mvxe);
-             mCartesianDerivatives.Jinv_plane_lower(0, 1) = inner_prod(Xdeta, mvxe);
-             mCartesianDerivatives.Jinv_plane_lower(1, 0) = inner_prod(Xdxi,  mvye);
-             mCartesianDerivatives.Jinv_plane_lower(1, 1) = inner_prod(Xdeta, mvye);
+             CartDeriv.Jinv_plane_lower(0, 0) = inner_prod(Xdxi,  mvxe);
+             CartDeriv.Jinv_plane_lower(0, 1) = inner_prod(Xdeta, mvxe);
+             CartDeriv.Jinv_plane_lower(1, 0) = inner_prod(Xdxi,  mvye);
+             CartDeriv.Jinv_plane_lower(1, 1) = inner_prod(Xdeta, mvye);
          }
          else if (part == 2)
          {
-             mCartesianDerivatives.Jinv_plane_upper(0, 0) = inner_prod(Xdxi,  mvxe);
-             mCartesianDerivatives.Jinv_plane_upper(0, 1) = inner_prod(Xdeta, mvxe);
-             mCartesianDerivatives.Jinv_plane_upper(1, 0) = inner_prod(Xdxi,  mvye);
-             mCartesianDerivatives.Jinv_plane_upper(1, 1) = inner_prod(Xdeta, mvye);
+             CartDeriv.Jinv_plane_upper(0, 0) = inner_prod(Xdxi,  mvxe);
+             CartDeriv.Jinv_plane_upper(0, 1) = inner_prod(Xdeta, mvxe);
+             CartDeriv.Jinv_plane_upper(1, 0) = inner_prod(Xdxi,  mvye);
+             CartDeriv.Jinv_plane_upper(1, 1) = inner_prod(Xdeta, mvye);
          }
      }
 }
@@ -3910,6 +3947,7 @@ void SprismElement3D6N::CalculateAndAddLHS(
         ConstitutiveLaw::Parameters& rValues,
         const StressIntegratedComponents& IntStress,
         const CommonComponents& CC,
+        const CartesianDerivatives& CartDeriv,
         double& alpha_eas
         )
 {
@@ -3958,7 +3996,7 @@ void SprismElement3D6N::CalculateAndAddLHS(
             if( rLeftHandSideVariables[i] == GEOMETRIC_STIFFNESS_MATRIX )
             {
                 /* Operation performed: add Kg to the LefsHandSideMatrix */
-                this->CalculateAndAddKuug( rLeftHandSideMatrices[i], IntStress );
+                this->CalculateAndAddKuug( rLeftHandSideMatrices[i], IntStress, CartDeriv );
                 calculated = true;
             }
 
@@ -4015,7 +4053,7 @@ void SprismElement3D6N::CalculateAndAddLHS(
 
         /* Calculate the Geometric Stiffness Matrix */
         /* Operation performed: add Kg to the LefsHandSideMatrix */
-        this->CalculateAndAddKuug( LeftHandSideMatrix, IntStress );
+        this->CalculateAndAddKuug( LeftHandSideMatrix, IntStress, CartDeriv );
 
         /* Implicit or explicit EAS update*/
         bool eas_imp = true;
@@ -4235,7 +4273,8 @@ void SprismElement3D6N::CalculateAndAddKuum(
 
 void SprismElement3D6N::CalculateAndAddKuug(
         MatrixType& rLeftHandSideMatrix,
-        const StressIntegratedComponents& IntStress
+        const StressIntegratedComponents& IntStress,
+        const CartesianDerivatives& CartDeriv
         )
 {
     KRATOS_TRY;
@@ -4251,26 +4290,26 @@ void SprismElement3D6N::CalculateAndAddKuug(
     /* MEMBRANE CONTRIBUTION */
     /* Adding the geometric membrane stiffness */
     // Lower face
-    CalculateAndAdd_Membrane_Kgeometric(K, mCartesianDerivatives.InPlaneCartesianDerivativesGauss1, mCartesianDerivatives.InPlaneCartesianDerivativesGauss2,
-                                           mCartesianDerivatives.InPlaneCartesianDerivativesGauss3, IntStress.S_membrane_lower, 0);
+    CalculateAndAdd_Membrane_Kgeometric(K, CartDeriv.InPlaneCartesianDerivativesGauss1, CartDeriv.InPlaneCartesianDerivativesGauss2,
+                                           CartDeriv.InPlaneCartesianDerivativesGauss3, IntStress.S_membrane_lower, 0);
     // Upper face
-    CalculateAndAdd_Membrane_Kgeometric(K, mCartesianDerivatives.InPlaneCartesianDerivativesGauss4, mCartesianDerivatives.InPlaneCartesianDerivativesGauss5,
-                                           mCartesianDerivatives.InPlaneCartesianDerivativesGauss6, IntStress.S_membrane_upper, 9);
+    CalculateAndAdd_Membrane_Kgeometric(K, CartDeriv.InPlaneCartesianDerivativesGauss4, CartDeriv.InPlaneCartesianDerivativesGauss5,
+                                           CartDeriv.InPlaneCartesianDerivativesGauss6, IntStress.S_membrane_upper, 9);
 
 //    /* SHEAR CONTRIBUTION */
 //    /* Adding the geometric shear stiffness */
 //    // Lower face
-//    CalculateAndAdd_Shear_Kgeometric(aux_K, mCartesianDerivatives.TransversalCartesianDerivativesGauss1,
-//                                            mCartesianDerivatives.TransversalCartesianDerivativesGauss2, mCartesianDerivatives.TransversalCartesianDerivativesGauss3,
-//                                            mCartesianDerivatives.Jinv_plane_lower, IntStress.S_shear_lower, 0);
+//    CalculateAndAdd_Shear_Kgeometric(aux_K, CartDeriv.TransversalCartesianDerivativesGauss1,
+//                                            CartDeriv.TransversalCartesianDerivativesGauss2, CartDeriv.TransversalCartesianDerivativesGauss3,
+//                                            CartDeriv.Jinv_plane_lower, IntStress.S_shear_lower, 0);
 //    // Upper face
-//    CalculateAndAdd_Shear_Kgeometric(aux_K, mCartesianDerivatives.TransversalCartesianDerivativesGauss4,
-//                                            mCartesianDerivatives.TransversalCartesianDerivativesGauss5, mCartesianDerivatives.TransversalCartesianDerivativesGauss6,
-//                                            mCartesianDerivatives.Jinv_plane_upper, IntStress.S_shear_upper, 9);
+//    CalculateAndAdd_Shear_Kgeometric(aux_K, CartDeriv.TransversalCartesianDerivativesGauss4,
+//                                            CartDeriv.TransversalCartesianDerivativesGauss5, CartDeriv.TransversalCartesianDerivativesGauss6,
+//                                            CartDeriv.Jinv_plane_upper, IntStress.S_shear_upper, 9);
 
     /* NORMAL TRANSVERSE */
     /* Adding the geometric normal stiffness */
-    CalculateAndAdd_Normal_Kgeometric(aux_K, mCartesianDerivatives.TransversalCartesianDerivativesCenter, IntStress.S_normal);
+    CalculateAndAdd_Normal_Kgeometric(aux_K, CartDeriv.TransversalCartesianDerivativesCenter, IntStress.S_normal);
 
     // Transfering to the complete stiffness matrix
     for (unsigned int i = 0; i < 18; i++)

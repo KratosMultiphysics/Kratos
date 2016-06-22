@@ -43,6 +43,59 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+class CartesianDerivatives // Cartesian Derivatives
+{
+    public:
+        /* Declare cartesian derivatives (reference configuration) */
+        /* In-plane components */
+        boost::numeric::ublas::bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss1;
+        boost::numeric::ublas::bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss2;
+        boost::numeric::ublas::bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss3;
+        boost::numeric::ublas::bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss4;
+        boost::numeric::ublas::bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss5;
+        boost::numeric::ublas::bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss6;
+
+        /* Transversal components */
+        // Central node
+        boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesCenter;
+        // Gauss nodes
+        boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss1;
+        boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss2;
+        boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss3;
+        boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss4;
+        boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss5;
+        boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss6;
+
+        /* Inverse of the Jaconians */
+        boost::numeric::ublas::bounded_matrix<double, 2, 2 > Jinv_plane_lower;
+        boost::numeric::ublas::bounded_matrix<double, 2, 2 > Jinv_plane_upper;
+
+        /**
+            * Reset components
+            */
+        void clear()
+        {
+            InPlaneCartesianDerivativesGauss1 = ZeroMatrix(2, 4);
+            InPlaneCartesianDerivativesGauss2 = ZeroMatrix(2, 4);
+            InPlaneCartesianDerivativesGauss3 = ZeroMatrix(2, 4);
+            InPlaneCartesianDerivativesGauss4 = ZeroMatrix(2, 4);
+            InPlaneCartesianDerivativesGauss5 = ZeroMatrix(2, 4);
+            InPlaneCartesianDerivativesGauss6 = ZeroMatrix(2, 4);
+
+            TransversalCartesianDerivativesCenter = ZeroMatrix(6, 1);
+            TransversalCartesianDerivativesGauss1 = ZeroMatrix(6, 1);
+            TransversalCartesianDerivativesGauss2 = ZeroMatrix(6, 1);
+            TransversalCartesianDerivativesGauss3 = ZeroMatrix(6, 1);
+            TransversalCartesianDerivativesGauss4 = ZeroMatrix(6, 1);
+            TransversalCartesianDerivativesGauss5 = ZeroMatrix(6, 1);
+            TransversalCartesianDerivativesGauss6 = ZeroMatrix(6, 1);
+
+            Jinv_plane_lower = ZeroMatrix(2, 2);
+            Jinv_plane_upper = ZeroMatrix(2, 2);
+        }
+};
+
+    
 class CommonComponents // Common Components
 {
     public:
@@ -740,60 +793,6 @@ protected:
 
     /* The coordinates in the previous iteration (not necessarily in the previous time step) */
     boost::numeric::ublas::bounded_matrix<double, 36, 1 > mPreviousCoor;
-
-    class CartesianDerivatives // Cartesian Derivatives (If not stored as a member variable it is needed to recalculate each time, despite in reference configuration they never change)
-    {
-        public:
-            /* Declare cartesian derivatives (reference configuration) */
-            /* In-plane components */
-            boost::numeric::ublas::bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss1;
-            boost::numeric::ublas::bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss2;
-            boost::numeric::ublas::bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss3;
-            boost::numeric::ublas::bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss4;
-            boost::numeric::ublas::bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss5;
-            boost::numeric::ublas::bounded_matrix<double, 2, 4 > InPlaneCartesianDerivativesGauss6;
-
-            /* Transversal components */
-            // Central node
-            boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesCenter;
-            // Gauss nodes
-            boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss1;
-            boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss2;
-            boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss3;
-            boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss4;
-            boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss5;
-            boost::numeric::ublas::bounded_matrix<double, 6, 1 > TransversalCartesianDerivativesGauss6;
-
-            /* Inverse of the Jaconians */
-            boost::numeric::ublas::bounded_matrix<double, 2, 2 > Jinv_plane_lower;
-            boost::numeric::ublas::bounded_matrix<double, 2, 2 > Jinv_plane_upper;
-
-            /**
-             * Reset components
-             */
-            void clear()
-            {
-                InPlaneCartesianDerivativesGauss1 = ZeroMatrix(2, 4);
-                InPlaneCartesianDerivativesGauss2 = ZeroMatrix(2, 4);
-                InPlaneCartesianDerivativesGauss3 = ZeroMatrix(2, 4);
-                InPlaneCartesianDerivativesGauss4 = ZeroMatrix(2, 4);
-                InPlaneCartesianDerivativesGauss5 = ZeroMatrix(2, 4);
-                InPlaneCartesianDerivativesGauss6 = ZeroMatrix(2, 4);
-
-                TransversalCartesianDerivativesCenter = ZeroMatrix(6, 1);
-                TransversalCartesianDerivativesGauss1 = ZeroMatrix(6, 1);
-                TransversalCartesianDerivativesGauss2 = ZeroMatrix(6, 1);
-                TransversalCartesianDerivativesGauss3 = ZeroMatrix(6, 1);
-                TransversalCartesianDerivativesGauss4 = ZeroMatrix(6, 1);
-                TransversalCartesianDerivativesGauss5 = ZeroMatrix(6, 1);
-                TransversalCartesianDerivativesGauss6 = ZeroMatrix(6, 1);
-
-                Jinv_plane_lower = ZeroMatrix(2, 2);
-                Jinv_plane_upper = ZeroMatrix(2, 2);
-            }
-    };
-
-    CartesianDerivatives mCartesianDerivatives;
     
     class EASComponents // EAS Components
     {
@@ -872,12 +871,15 @@ protected:
     /**
      * Calculate the cartesian derivatives
      */
-    virtual void CalculateCartesianDerivatives();
+    virtual void CalculateCartesianDerivatives(CartesianDerivatives& CartDeriv);
     
     /**
      * Calculate the necessary components for the Kinematic calculus
      */
-    virtual void CalculateCommonComponents(CommonComponents& CC);
+    virtual void CalculateCommonComponents(
+            CommonComponents& CC,
+            const CartesianDerivatives& CartDeriv
+            );
 
     /**
      * Calculates the Local Coordinates System
@@ -1015,6 +1017,7 @@ protected:
      * @param part: 0 for center node of the element, 1 for upper part and 2 for lower part
      */
     void CalculateCartesianDerOnCenter_trans(
+            CartesianDerivatives& CartDeriv,
             const boost::numeric::ublas::bounded_matrix<double, 12, 3 > & nodes_coord,
             const int part
             );
@@ -1204,6 +1207,7 @@ protected:
             ConstitutiveLaw::Parameters& rValues,
             const StressIntegratedComponents& IntStress,
             const CommonComponents& CC,
+            const CartesianDerivatives& CartDeriv,
             double& alpha_eas
             );
 
@@ -1269,7 +1273,8 @@ protected:
      */
     virtual void CalculateAndAddKuug(
             MatrixType& rLeftHandSideMatrix,
-            const StressIntegratedComponents& IntStress
+            const StressIntegratedComponents& IntStress,
+            const CartesianDerivatives& CartDeriv
             );
 
     /**
