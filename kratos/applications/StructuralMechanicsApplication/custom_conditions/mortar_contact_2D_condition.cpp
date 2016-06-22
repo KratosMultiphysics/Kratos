@@ -16,7 +16,7 @@
 
 // Project includes
 #include "custom_conditions/mortar_contact_2D_condition.hpp"
-#include "custom_utilities/structural_mechanics_math_utilities.hpp"
+#include "custom_utilities/contact_utilities.h"
 #include "utilities/math_utils.h"
 #include "structural_mechanics_application.h"
 #include "structural_mechanics_application_variables.h"
@@ -172,54 +172,13 @@ void MortarContact2DCondition::InitializeNonLinearIteration( ProcessInfo& rCurre
     std::vector<contact_container> * all_containers = this->GetValue(CONTACT_CONTAINERS);
     
     // Define the normal to the contact
-    const array_1d<double, 3> & contact_normal = this->GetValue(NORMAL);
+    const array_1d<double, 3> & contact_normal = this->GetValue(NORMAL); // TODO: Recalculate
     
-    // TODO: Move this to math_utilities and remove it here and in contact_tree_search
     for ( unsigned int i_cond = 0; i_cond < all_containers->size(); ++i_cond )
     {
-        // Define the discrete contact gap
-        Point<3> ProjectedPoint;
-        Condition *& pCond = (*all_containers)[i_cond].condition;
-        const unsigned int number_nodes = GetGeometry().PointsNumber();
-        
-        for (unsigned int j_index = 0; j_index < number_nodes; j_index++)
-        {
-            StructuralMechanicsMathUtilities::Project(pCond->GetGeometry().Center(), GetGeometry()[j_index], ProjectedPoint, (*all_containers)[i_cond].contact_gap[j_index], contact_normal);
-        }
-    
-        (*all_containers)[i_cond].contact_area = 0.0;
-        double aux_int = 0.0;
-        /* Reading integration points */
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-        for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
-        {
-            Point<3> GaussPoint;
-            Point<3> GaussPointLocalCoordinates;
-            Point<3> ProjectedGaussPoint;
-            GaussPointLocalCoordinates.Coordinate(1) = integration_points[PointNumber].X();
-            GaussPointLocalCoordinates.Coordinate(2) = integration_points[PointNumber].Y();
-            GaussPointLocalCoordinates.Coordinate(3) = integration_points[PointNumber].Z(); 
-            
-            array_1d<double, 3> result;
-            GaussPoint = GetGeometry().GlobalCoordinates(result, GaussPointLocalCoordinates);
-            
-            double dist_aux;
-            StructuralMechanicsMathUtilities::Project(pCond->GetGeometry().Center(), GaussPoint,  ProjectedGaussPoint, dist_aux, contact_normal);
-
-            bool inside = pCond->GetGeometry().IsInside(ProjectedGaussPoint, result);
-            
-            // Integration weigth
-            double IntegrationWeight = integration_points[PointNumber].Weight();
-            aux_int += IntegrationWeight;
-            
-            if (inside == true)
-            {
-                (*all_containers)[i_cond].contact_area += IntegrationWeight;
-            }
-        }
-        
-        (*all_containers)[i_cond].contact_area /= aux_int;
-        mContactArea[i_cond] = (*all_containers)[i_cond].contact_area;
+            Condition *& pCond = (*all_containers)[i_cond].condition;
+            ContactUtilities::ContactContainerFiller((*all_containers)[i_cond], contact_normal, pCond->GetGeometry().Center(), GetGeometry(), pCond->GetGeometry(), mThisIntegrationMethod);
+            mContactArea[i_cond] = (*all_containers)[i_cond].contact_area;
     }
     
     KRATOS_CATCH( "" );
@@ -1083,7 +1042,7 @@ void MortarContact2DCondition::CalculateAndAddMortarContactOperator(
             rLeftHandSideMatrix( i,     j     ) = - M( i_active * dimension, j_master * dimension );
             rLeftHandSideMatrix( i + 1, j + 1 ) = - M( i_active * dimension, j_master * dimension );
         
-            rLeftHandSideMatrix( j,     i     ) = - M( i_active * dimension, j_master * dimension );
+            rLeftHandSideMatrix( j    , i     ) = - M( i_active * dimension, j_master * dimension );
             rLeftHandSideMatrix( j + 1, i + 1 ) = - M( i_active * dimension, j_master * dimension );
         }
       

@@ -113,8 +113,10 @@ class ContactProcess(KratosMultiphysics.Process):
             self.contact_search.CreateNTSConditions(self.search_factor,self.max_number_results,self.type_search, self.bidirectional, self.integration_order)
         
     def ExecuteFinalizeSolutionStep(self):
-        pass
-              
+        if self.params["contact_type"].GetString() == "MortarMethod":
+            self.contact_search.UpdatePointListMortar()
+            self.contact_search.ClearMortarConditions()
+
     def ExecuteBeforeOutputStep(self):
         pass
 
