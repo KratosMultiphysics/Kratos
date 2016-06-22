@@ -128,12 +128,12 @@ Vector& PointLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, General
 	  for( unsigned int k = 0; k < dimension; k++ )
 	    rVectorForce[k] += rVariables.N[i] * PointLoad[k];
 
-	  std::cout<<" PointLoad "<<PointLoad<<" N "<<rVariables.N[0]<<std::endl;
+// 	  std::cout<<" PointLoad "<<PointLoad<<" N "<<rVariables.N[0]<<std::endl;
  
 	}
       }
 
-    std::cout<<" rVerctorForce "<<rVectorForce<<std::endl;
+//     std::cout<<" rVerctorForce "<<rVectorForce<<std::endl;
 
     return rVectorForce;
 
