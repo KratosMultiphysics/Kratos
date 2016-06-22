@@ -57,7 +57,6 @@ public:
     typedef ModelPart::PropertiesType       PropertiesType;
     typedef ConditionType::GeometryType       GeometryType;
 
-
     ///@}
     ///@name Life Cycle
     ///@{

@@ -193,6 +193,11 @@ protected:
 
     //*******************************************************************************************
     //*******************************************************************************************
+    void SetModelerMesh(ModelerUtilities::MeshContainer& rMesh, struct triangulateio& tr);
+
+
+    //*******************************************************************************************
+    //*******************************************************************************************
     void PerformTransferOnly(ModelPart& rModelPart,
 			     MeshingParametersType& rMeshingVariables,
 			     ModelPart::IndexType MeshId=0);
