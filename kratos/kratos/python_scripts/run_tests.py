@@ -115,7 +115,7 @@ def main():
     command = sys.executable
 
     verbose_values = [0, 1, 2]
-    level_values = ['all', 'nightly', 'small']
+    level_values = ['all', 'nightly', 'small', 'validation']
 
     # Set default values
     applications = GetAvailableApplication()
