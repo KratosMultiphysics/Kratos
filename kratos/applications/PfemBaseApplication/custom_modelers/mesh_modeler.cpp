@@ -80,25 +80,44 @@ namespace Kratos
   }
 
 
-
   //*******************************************************************************************
   //*******************************************************************************************
 
-  void MeshModeler::ExecuteMeshRefiningProcesses(ModelPart& rModelPart,
-						 MeshingParametersType& rMeshingVariables,
-						 ModelPart::IndexType MeshId)
+  void MeshModeler::InitializeMeshRefinement(ModelPart& rModelPart,
+					     MeshingParametersType& rMeshingVariables,
+					     ModelPart::IndexType MeshId)
   {
     KRATOS_TRY
     
     //Refine and Remove nodes processes
     ////////////////////////////////////////////////////////////
-    if( mRefiningProcesses.size() )
-      for(unsigned int i=0; i<mRefiningProcesses.size(); i++)
-	mRefiningProcesses[i]->Execute();
+    if( mPreRefiningProcesses.size() )
+      for(unsigned int i=0; i<mPreRefiningProcesses.size(); i++)
+	mPreRefiningProcesses[i]->Execute();
     ////////////////////////////////////////////////////////////
 
     KRATOS_CATCH( "" )
   }
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void MeshModeler::FinalizeMeshRefinement(ModelPart& rModelPart,
+					   MeshingParametersType& rMeshingVariables,
+					   ModelPart::IndexType MeshId)
+  {
+    KRATOS_TRY
+    
+    //Refine and Remove nodes processes
+    ////////////////////////////////////////////////////////////
+    if( mPostRefiningProcesses.size() )
+      for(unsigned int i=0; i<mPostRefiningProcesses.size(); i++)
+	mPostRefiningProcesses[i]->Execute();
+    ////////////////////////////////////////////////////////////
+
+    KRATOS_CATCH( "" )
+  }
+
 
 
   //*******************************************************************************************
@@ -181,15 +200,26 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  void MeshModeler::SetRefiningProcess( Process::Pointer pRefiningProcess )
+  void MeshModeler::SetPreRefiningProcess( Process::Pointer pPreRefiningProcess )
   {
      KRATOS_TRY
        
-     mRefiningProcesses.push_back(pRefiningProcess); //NOTE: order set = order of execution
+     mPreRefiningProcesses.push_back(pPreRefiningProcess); //NOTE: order set = order of execution
        
      KRATOS_CATCH(" ")
   }
 
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void MeshModeler::SetPostRefiningProcess( Process::Pointer pPostRefiningProcess )
+  {
+     KRATOS_TRY
+       
+     mPostRefiningProcesses.push_back(pPostRefiningProcess); //NOTE: order set = order of execution
+       
+     KRATOS_CATCH(" ")
+  }
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -219,14 +249,27 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  void MeshModeler::SetRefiningProcessVector( std::vector<Process::Pointer>& rRefiningProcessVector )
+  void MeshModeler::SetPreRefiningProcessVector( std::vector<Process::Pointer>& rPreRefiningProcessVector )
   {
      KRATOS_TRY
        
-     mRefiningProcesses = rRefiningProcessVector; 
+     mPreRefiningProcesses = rPreRefiningProcessVector; 
        
      KRATOS_CATCH(" ")
   }
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void MeshModeler::SetPostRefiningProcessVector( std::vector<Process::Pointer>& rPostRefiningProcessVector )
+  {
+     KRATOS_TRY
+       
+     mPostRefiningProcesses = rPostRefiningProcessVector; 
+       
+     KRATOS_CATCH(" ")
+  }
+
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -508,6 +551,86 @@ namespace Kratos
     KRATOS_CATCH(" ")
   }
 
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void MeshModeler::SetNodes(ModelPart& rModelPart,
+			     MeshingParametersType& rMeshingVariables,
+			     ModelPart::IndexType MeshId)
+  {
+    KRATOS_TRY
+
+        
+    const unsigned int dimension = rModelPart.ElementsBegin(MeshId)->GetGeometry().WorkingSpaceDimension();
+
+    //*********************************************************************
+    //input mesh: NODES
+    ModelerUtilities::MeshContainer& InMesh = rMeshingVariables.InMesh;
+    double* PointList     = InMesh.GetPointList();
+
+
+    InMesh.NumberOfPoints = rModelPart.Nodes(MeshId).size();
+    PointList             = new double[InMesh.NumberOfPoints * 2];
+
+    if((int)rMeshingVariables.NodalPreIds.size() != InMesh.NumberOfPoints)
+      rMeshingVariables.NodalPreIds.resize(InMesh.NumberOfPoints);
+    
+    std::fill( rMeshingVariables.NodalPreIds.begin(), rMeshingVariables.NodalPreIds.end(), 0 );
+    
+    //writing the points coordinates in a vector and reordening the Id's
+    ModelPart::NodesContainerType::iterator nodes_begin = rModelPart.NodesBegin(MeshId);
+
+    int base   = 0;
+    int direct = 1;
+
+    for(int i = 0; i<InMesh.NumberOfPoints; i++)
+      {
+	//from now on it is consecutive
+	rMeshingVariables.NodalPreIds[direct]=(nodes_begin + i)->Id();
+	(nodes_begin + i)->SetId(direct);
+
+	array_1d<double, 3>& Coordinates = (nodes_begin + i)->Coordinates();
+
+	if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONSTRAINED)){
+
+	  if( (nodes_begin + i)->Is(BOUNDARY) ){
+	       
+	    array_1d<double, 3>&  Normal=(nodes_begin + i)->FastGetSolutionStepValue(NORMAL); //BOUNDARY_NORMAL must be set as nodal variable
+	    double Shrink = (nodes_begin + i)->FastGetSolutionStepValue(SHRINK_FACTOR);   //SHRINK_FACTOR   must be set as nodal variable
+	           
+	    array_1d<double, 3> Offset;
+
+	    Normal /= norm_2(Normal);
+	    for(unsigned int j=0; j<dimension; j++){
+	      Offset[j] = ( (-1) * Normal[j] * Shrink * rMeshingVariables.OffsetFactor * 0.25 );
+	    }
+
+	    for(unsigned int j=0; j<dimension; j++){
+	      PointList[base+j]   = Coordinates[j] + Offset[j];
+	    }
+	  }
+	  else{
+	    for(unsigned int j=0; j<dimension; j++){
+	      PointList[base+j]   = Coordinates[j];
+	    }
+	  }
+
+	}
+	else{
+	  for(unsigned int j=0; j<dimension; j++){
+	    PointList[base+j]   = Coordinates[j];
+	  }
+	}
+	   
+	base+=dimension;
+	direct+=1;
+      }
+
+    KRATOS_CATCH( "" )
+
+  }
 
 
   //*******************************************************************************************

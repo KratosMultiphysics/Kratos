@@ -50,6 +50,13 @@ namespace Kratos
     If boundary nodes are removed, conditions must be build again (new conditions are build in the current mesh)   
 */
 
+
+/**NOTE: as kratos uses shared pointers, the main list of nodes can be changed.
+   the element contains the geometry which has pointers to nodes, so that nodes are kept in memory and their information can be recovered.
+   that means also that if the element information is needed it is kept until the end when new elements are created and replace the old ones.
+*/
+
+
 class RemoveMeshNodesProcess
   : public Process
 {
