@@ -5,6 +5,7 @@
                 ImplementedInApplication="Dam"
                 ImplementedInPythonFile="solid_mechanics_implicit_dynamic_solver"
                 MinimumKratosVersion="8500"
+                App="Dam"
                 ProductionReady=""
                 help="">
     
@@ -68,6 +69,7 @@
                 ImplementedInApplication="Dam"
                 ImplementedInPythonFile="solid_mechanics_implicit_dynamic_solver"
                 MinimumKratosVersion="8500"
+                App="Dam"
                 ProductionReady=""
                 help="">
     

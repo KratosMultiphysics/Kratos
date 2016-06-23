@@ -41,6 +41,7 @@ parallel.SetNumThreads(int(ProjectParameters["general_data"]["NumberofThreads"].
 # Problem parameters
 problem_path = os.getcwd()
 problem_name = ProjectParameters["general_data"]["problem_name"].GetString()
+type_of_problem = ProjectParameters["general_data"]["type_of_problem"].GetString()
 delta_time = ProjectParameters["general_data"]["delta_time"].GetDouble()
 ending_time = ProjectParameters["general_data"]["ending_time"].GetDouble()
 time_converter = ProjectParameters["general_data"]["time_scale"].GetString()
@@ -89,7 +90,7 @@ model_part.SetBufferSize(buffer_size)
 
 # Set thermal degrees of freedom
 # TODO: fix the problems with convection-diffusion solver
-#diffusion_solver.AddDofs(model_part)  
+diffusion_solver.AddDofs(model_part)  
 
 # Set mechanical degrees of freedom
 mechanical_solver.AddDofs(model_part)
@@ -99,12 +100,15 @@ current_time = -(buffer_size-1)*delta_time
 model_part.ProcessInfo[TIME] = current_time #current_time and TIME = 0 after filling the buffer
 
 #Type of reference temperature
-reference_temperature = ProjectParameters["diffusion_settings"]["reference_temperature"]
-if (reference_temperature =="Reservoir Information"):
-    model_part.ProcessInfo[REFERENCE_TEMPERATURE] = 10.0  #TODO: for working
+if (type_of_problem == "Thermo-Mechanical"):
+    reference_temperature = ProjectParameters["diffusion_settings"]["reference_temperature"].GetString()
+    if (reference_temperature =="Reservoir Information"):
+        model_part.ProcessInfo[REFERENCE_TEMPERATURE] = 10.0  #TODO: for working
 #model_part.ProcessInfo[REFERENCE_TEMPERATURE] = model_part.GetTable(18).GetNearestValue(0.0)      To start computations at time = 0  / Table 5 = Reference Temperature Values
-else:
-    model_part.ProcessInfo[REFERENCE_TEMPERATURE] = 10.0 # TODO: Here we have to solve the thermal problem until arrives a stationary    
+    else:
+        model_part.ProcessInfo[REFERENCE_TEMPERATURE] = 10.0 # TODO: Here we have to solve the thermal problem until arrives a stationary    
+
+
 
 for step in range(buffer_size-1):
     current_time = current_time + delta_time
@@ -112,6 +116,13 @@ for step in range(buffer_size-1):
 
 
 ## Initialize ------------------------------------------------------------------------------------------------
+
+## Processes initialization
+#for process in list_of_processes:
+    #process.ExecuteInitialize()
+
+#for process in list_of_processes:
+    #process.ExecuteBeforeSolutionLoop()
 
 # Definition of utilities
 # TODO: Problems with inputs in gid_output_util, now we dont have Conditions options (think about it) 
@@ -187,6 +198,9 @@ while( (current_time+tol) < ending_time ):
 
 
 ## Finalize --------------------------------------------------------------------------------------------------
+
+#for process in list_of_processes:
+    #process.ExecuteFinalize()
 
 # Finalizing mechanical strategy
 solid_mechanics_solver.Finalize()

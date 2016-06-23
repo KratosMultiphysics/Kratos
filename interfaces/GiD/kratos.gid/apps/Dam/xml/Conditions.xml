@@ -5,7 +5,7 @@
   <ConditionItem n="PointLoad2D" pn="Point Load" ImplementedInFile="process_factory"
 	ImplementedInApplication="DamApplication" MinimumKratosVersion="13000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Point" ProcessName="ApplyConstantVectorValueProcess" help="Point load application by means of the ApplyConstantVectorValueProcess in the core"
+	ElementType="Point" ProcessName="ApplyConstantVectorValueProcess" help="Load on points, load vector referred to global axes"
 	units='N'  unit_magnitude='F' VariableName="POINT_LOAD">
     <TopologyFeatures>
       <item  GeometryType="Point" nodes="1" KratosName="PointLoadCondition2D1N"/>
