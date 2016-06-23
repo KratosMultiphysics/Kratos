@@ -2346,48 +2346,108 @@ unsigned int SprismElement3D6N::NumberOfActiveNeighbours(WeakPointerVector< Node
 /***********************************************************************************/
 /***********************************************************************************/
 
+void SprismElement3D6N::GetNodalCoordinates(
+        boost::numeric::ublas::bounded_matrix<double, 12, 3 > & nodes_coord,
+        WeakPointerVector< Node < 3 > >& nodal_neigb,
+        const std::string Configuration
+        )
+{
+     nodes_coord = ZeroMatrix(12, 3);
+     unsigned int number_neigb = NumberOfActiveNeighbours(nodal_neigb);
+
+     if (Configuration.find("Initial") != std::string::npos)
+     {
+         /* Fill the aux matrix of coordinates */
+         for (unsigned int i = 0; i < 6; i++)
+         {
+             nodes_coord(i, 0) = GetGeometry()[i].X0();
+             nodes_coord(i, 1) = GetGeometry()[i].Y0();
+             nodes_coord(i, 2) = GetGeometry()[i].Z0();
+         }
+
+         if (number_neigb == 6) // All the possible neighours
+         {
+             for (unsigned int i = 0; i < 6; i++)
+             {
+                 nodes_coord(i + 6, 0) = nodal_neigb[i].X0();
+                 nodes_coord(i + 6, 1) = nodal_neigb[i].Y0();
+                 nodes_coord(i + 6, 2) = nodal_neigb[i].Z0();
+             }
+         }
+         else
+         {
+             for (unsigned int i = 0; i < 6; i++)
+             {
+                 if (HasNeighbour(i, nodal_neigb[i]))
+                 {
+                     nodes_coord(i + 6, 0) = nodal_neigb[i].X0();
+                     nodes_coord(i + 6, 1) = nodal_neigb[i].Y0();
+                     nodes_coord(i + 6, 2) = nodal_neigb[i].Z0();
+                 }
+                 else
+                 {
+                     nodes_coord(i + 6, 0) = 0.0;
+                     nodes_coord(i + 6, 1) = 0.0;
+                     nodes_coord(i + 6, 2) = 0.0;
+                 }
+             }
+         }
+     }
+     else if (Configuration.find("Current") != std::string::npos)
+     {
+         /* Fill the aux matrix of coordinates */
+         for (unsigned int i = 0; i < 6; i++)
+         {
+             const array_1d<double, 3> &CurrentPosition  = GetGeometry()[i].Coordinates();
+             nodes_coord(i, 0) = CurrentPosition[0];
+             nodes_coord(i, 1) = CurrentPosition[1];
+             nodes_coord(i, 2) = CurrentPosition[2];
+         }
+
+         if (number_neigb == 6) // All the possible neighours
+         {
+             for (unsigned int i = 0; i < 6; i++)
+             {
+                 const array_1d<double, 3> &CurrentPosition  = nodal_neigb[i].Coordinates();
+                 nodes_coord(i + 6, 0) = CurrentPosition[0];
+                 nodes_coord(i + 6, 1) = CurrentPosition[1];
+                 nodes_coord(i + 6, 2) = CurrentPosition[2];
+             }
+         }
+         else
+         {
+             for (unsigned int i = 0; i < 6; i++)
+             {
+                 if (HasNeighbour(i, nodal_neigb[i]))
+                 {
+                     const array_1d<double, 3> &CurrentPosition  = nodal_neigb[i].Coordinates();
+                     nodes_coord(i + 6, 0) = CurrentPosition[0];
+                     nodes_coord(i + 6, 1) = CurrentPosition[1];
+                     nodes_coord(i + 6, 2) = CurrentPosition[2];
+                 }
+                 else
+                 {
+                     nodes_coord(i + 6, 0) = 0.0;
+                     nodes_coord(i + 6, 1) = 0.0;
+                     nodes_coord(i + 6, 2) = 0.0;
+                 }
+             }
+         }
+     }
+     else
+     {
+         KRATOS_THROW_ERROR( std::invalid_argument," The configuration is not possible, the posibilities are Current and Initial:  ", Configuration );
+     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SprismElement3D6N::CalculateCartesianDerivatives(CartesianDerivatives& CartDeriv)
 {
-    boost::numeric::ublas::bounded_matrix<double, 12, 3 > nodes_coord = ZeroMatrix(12, 3);
-
-    /* Fill the aux matrix of coordinates */
-    for (unsigned int i = 0; i < 6; i++)
-    {
-        nodes_coord(i, 0) = GetGeometry()[i].X0();
-        nodes_coord(i, 1) = GetGeometry()[i].Y0();
-        nodes_coord(i, 2) = GetGeometry()[i].Z0();
-    }
-
+    boost::numeric::ublas::bounded_matrix<double, 12, 3 > nodes_coord; // Coordinates of the nodes
     WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
-    int number_neigb = NumberOfActiveNeighbours(nodal_neigb);
-
-    if (number_neigb == 6) // All the possible neighours
-    {
-        for (unsigned int i = 0; i < 6; i++)
-        {
-            nodes_coord(i + 6, 0) = nodal_neigb[i].X0();
-            nodes_coord(i + 6, 1) = nodal_neigb[i].Y0();
-            nodes_coord(i + 6, 2) = nodal_neigb[i].Z0();
-        }
-    }
-    else
-    {
-        for (unsigned int i = 0; i < 6; i++)
-        {
-            if (HasNeighbour(i, nodal_neigb[i]))
-            {
-                nodes_coord(i + 6, 0) = nodal_neigb[i].X0();
-                nodes_coord(i + 6, 1) = nodal_neigb[i].Y0();
-                nodes_coord(i + 6, 2) = nodal_neigb[i].Z0();
-            }
-            else
-            {
-                nodes_coord(i + 6, 0) = 0.0;
-                nodes_coord(i + 6, 1) = 0.0;
-                nodes_coord(i + 6, 2) = 0.0;
-            }
-        }
-    }
+    this->GetNodalCoordinates(nodes_coord, nodal_neigb, "Initial");
 
     /* Calculate local system of coordinates of the element */
     // 0- If X is the prefered normal vector
@@ -2478,49 +2538,9 @@ void SprismElement3D6N::CalculateCommonComponents(
 {
     KRATOS_TRY;
 
+    boost::numeric::ublas::bounded_matrix<double, 12, 3 > nodes_coord; // Coordinates of the nodes
     WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
-    boost::numeric::ublas::bounded_matrix<double, 12, 3 > nodes_coord = ZeroMatrix(12, 3); // Coordinates of the nodes
-
-    /* Fill the aux matrix of coordinates */
-    for (unsigned int i = 0; i < 6; i++)
-    {
-        const array_1d<double, 3> &CurrentPosition  = GetGeometry()[i].Coordinates();
-        nodes_coord(i, 0) = CurrentPosition[0];
-        nodes_coord(i, 1) = CurrentPosition[1];
-        nodes_coord(i, 2) = CurrentPosition[2];
-    }
-
-    int number_neigb = NumberOfActiveNeighbours(nodal_neigb);
-
-    if (number_neigb == 6) // All the possible neighours
-    {
-        for (unsigned int i = 0; i < 6; i++)
-        {
-            const array_1d<double, 3> &CurrentPosition  = nodal_neigb[i].Coordinates();
-            nodes_coord(i + 6, 0) = CurrentPosition[0];
-            nodes_coord(i + 6, 1) = CurrentPosition[1];
-            nodes_coord(i + 6, 2) = CurrentPosition[2];
-        }
-    }
-    else
-    {
-        for (unsigned int i = 0; i < 6; i++)
-        {
-            if (HasNeighbour(i, nodal_neigb[i]))
-            {
-                const array_1d<double, 3> &CurrentPosition  = nodal_neigb[i].Coordinates();
-                nodes_coord(i + 6, 0) = CurrentPosition[0];
-                nodes_coord(i + 6, 1) = CurrentPosition[1];
-                nodes_coord(i + 6, 2) = CurrentPosition[2];
-            }
-            else
-            {
-                nodes_coord(i + 6, 0) = 0.0;
-                nodes_coord(i + 6, 1) = 0.0;
-                nodes_coord(i + 6, 2) = 0.0;
-            }
-        }
-    }
+    this->GetNodalCoordinates(nodes_coord, nodal_neigb, "Current");
 
     /* Declare deformation Gradient F components */
     // In plane components
