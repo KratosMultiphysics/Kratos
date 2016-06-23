@@ -101,7 +101,8 @@ public:
       :mpMeshingVariables(rOther.mpMeshingVariables)
       ,mPreMeshingProcesses(rOther.mPreMeshingProcesses)
       ,mPostMeshingProcesses(rOther.mPostMeshingProcesses)
-      ,mRefiningProcesses(rOther.mRefiningProcesses)
+      ,mPreRefiningProcesses(rOther.mPreRefiningProcesses)
+      ,mPostRefiningProcesses(rOther.mPostRefiningProcesses)
       ,mpModelerUtilities(rOther.mpModelerUtilities)
       ,mpDataTransferUtilities(rOther.mpDataTransferUtilities)
       ,mEchoLevel(rOther.mEchoLevel)
@@ -155,13 +156,17 @@ public:
 
     void SetPostMeshingProcess( Process::Pointer pPostMeshingProcess );
 
-    void SetRefiningProcess( Process::Pointer pRefiningProcess );
+    void SetPreRefiningProcess( Process::Pointer pRefiningProcess );
+
+    void SetPostRefiningProcess( Process::Pointer pRefiningProcess );
 
     void SetPreMeshingProcessVector( std::vector<Process::Pointer>& rPreMeshingProcessVector );
 
     void SetPostMeshingProcessVector( std::vector<Process::Pointer>& rPostMeshingProcessVector );
 
-    void SetRefiningProcessVector( std::vector<Process::Pointer>& rRefiningProcessVector );
+    void SetPreRefiningProcessVector( std::vector<Process::Pointer>& rRefiningProcessVector );
+
+    void SetPostRefiningProcessVector( std::vector<Process::Pointer>& rRefiningProcessVector );
 
     /**
      * Utilities for the mesher are given to the modeler
@@ -243,10 +248,10 @@ protected:
     MeshingParametersType::Pointer          mpMeshingVariables;
   
     std::vector<Process::Pointer>         mPreMeshingProcesses;
-
     std::vector<Process::Pointer>        mPostMeshingProcesses;
 
-    std::vector<Process::Pointer>           mRefiningProcesses;
+    std::vector<Process::Pointer>        mPreRefiningProcesses;
+    std::vector<Process::Pointer>       mPostRefiningProcesses;
     
     ModelerUtilities::Pointer               mpModelerUtilities;
 
@@ -292,11 +297,20 @@ protected:
 
 
     /**
-     * Mesh Modeler :: Process to be done at the begining of the Generation
+     * Mesh Modeler :: Process to be done at the begining of the Refinement
      */
-    virtual void ExecuteMeshRefiningProcesses(ModelPart& rModelPart,
-					      MeshingParametersType& rMeshingVariables,
-					      ModelPart::IndexType MeshId=0);
+    virtual void InitializeMeshRefinement(ModelPart& rModelPart,
+					  MeshingParametersType& rMeshingVariables,
+					  ModelPart::IndexType MeshId=0);
+
+
+
+    /**
+     * Mesh Modeler :: Process to be done at the end of the Refinement
+     */
+    virtual void FinalizeMeshRefinement(ModelPart& rModelPart,
+					MeshingParametersType& rMeshingVariables,
+					ModelPart::IndexType MeshId=0);
 
 
     /**
@@ -306,6 +320,15 @@ protected:
 					MeshingParametersType& rMeshingVariables,
 					ModelPart::IndexType MeshId=0);
   
+
+    /**
+     * Mesh Modeler :: Set Nodes to mesh
+     */
+    void SetNodes(ModelPart& rModelPart,
+		  MeshingParametersType& rMeshingVariables,
+		  ModelPart::IndexType MeshId);
+  
+
     /**
      * Mesh Modeler :: Variables Transfer without remeshing
      */

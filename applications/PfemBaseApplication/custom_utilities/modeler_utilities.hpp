@@ -98,7 +98,7 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG ( MESH_SMOOTHING );
     KRATOS_DEFINE_LOCAL_FLAG ( VARIABLES_SMOOTHING );
      
-    //execution options (tessellation)
+    //execution options (tessellation) //not needed any more, just the strings definition...to set.
     KRATOS_DEFINE_LOCAL_FLAG ( NEIGHBOURS_SEARCH );
     KRATOS_DEFINE_LOCAL_FLAG ( BOUNDARIES_SEARCH );
     KRATOS_DEFINE_LOCAL_FLAG ( SET_DOF );
@@ -134,7 +134,13 @@ public:
 
     //execution options      
     //(select)
+    KRATOS_DEFINE_LOCAL_FLAG ( SET_NODES );
+    KRATOS_DEFINE_LOCAL_FLAG ( SET_ELEMENTS );
+    KRATOS_DEFINE_LOCAL_FLAG ( SET_FACES );
+
+
     KRATOS_DEFINE_LOCAL_FLAG ( SELECT_ELEMENTS );
+    KRATOS_DEFINE_LOCAL_FLAG ( SELECT_NODES );
     KRATOS_DEFINE_LOCAL_FLAG ( PASS_ALPHA_SHAPE );
     KRATOS_DEFINE_LOCAL_FLAG ( ENGAGED_NODES );
 
@@ -270,7 +276,13 @@ public:
 
       Flags    RefiningOptions;     //configuration refining options
       Flags    RemovingOptions;     //configuration removing options
+
+      Flags    ExecutionOptions;    //configuration meshing options
       
+      //options for the mesher
+      char  meshing_options[255];
+      std::string   meshing_info;
+
       int      NumberOfElements;     
 
       double   Alpha;               //critical alpha parameter
@@ -391,11 +403,15 @@ public:
       Flags   Options;
       
       //Local execution flags
-      Flags   ExecutionOptions;
+      Flags   ExecutionOptions;    //configuration meshing options
 
       //General configuration variables
       double  AlphaParameter;
       double  OffsetFactor;
+
+      //options for the mesher
+      char  meshing_options[255];
+      std::string meshing_info;
 
       SpatialBoundingBox::Pointer  MeshingBox;
       bool MeshingBoxSetFlag;

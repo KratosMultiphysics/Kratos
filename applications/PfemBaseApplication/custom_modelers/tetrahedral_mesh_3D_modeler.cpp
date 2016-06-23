@@ -156,7 +156,7 @@ namespace Kratos
   //     //*********************************************************************
 
   //     ////////////////////////////////////////////////////////////
-  //     this->ExecuteMeshRefiningProcesses(rModelPart,rMeshingVariables,MeshId);     
+  //     this->InitializeMeshRefinement(rModelPart,rMeshingVariables,MeshId);     
   //     ////////////////////////////////////////////////////////////
 
   //     //*********************************************************************
@@ -272,7 +272,7 @@ namespace Kratos
   //   //*********************************************************************
   //   //not needed, set in initialize... that must call SelectMeshElements, SetTetrahedralizationNodes : if previous mesh comes from a tetrahedralization....
   //   ////////////////////////////////////////////////////////////
-  //   this->ExecuteMeshRefiningProcesses(rModelPart,rMeshingVariables,MeshId);     
+  //   this->InitializeMeshRefinement(rModelPart,rMeshingVariables,MeshId);     
   //   ////////////////////////////////////////////////////////////
 
   //   //*********************************************************************
@@ -517,7 +517,7 @@ namespace Kratos
       ////////////////////////////////////////////////////////////
 	  
       ////////////////////////////////////////////////////////////
-      this->ExecuteMeshRefiningProcesses(rModelPart,rMeshingVariables,MeshId);
+      this->InitializeMeshRefinement(rModelPart,rMeshingVariables,MeshId);
       ////////////////////////////////////////////////////////////
       
       ////////////////////////////////////////////////////////////
@@ -830,7 +830,7 @@ namespace Kratos
     ////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////
-    this->ExecuteMeshRefiningProcesses(rModelPart,rMeshingVariables,MeshId);
+    this->InitializeMeshRefinement(rModelPart,rMeshingVariables,MeshId);
     ////////////////////////////////////////////////////////////
     
     ////////////////////////////////////////////////////////////
@@ -994,7 +994,7 @@ namespace Kratos
     rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::CONSTRAINED);
 
     ////////////////////////////////////////////////////////////
-    this->ExecuteMeshRefiningProcesses(rModelPart,rMeshingVariables,MeshId);
+    this->InitializeMeshRefinement(rModelPart,rMeshingVariables,MeshId);
     ////////////////////////////////////////////////////////////
     
     ////////////////////////////////////////////////////////////
