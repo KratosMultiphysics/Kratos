@@ -42,11 +42,11 @@ proc Dam::xml::ProcGetSchemes {domNode args} {
         lappend pnames [$cl getPublicName]
     }
     
-    $domNode setAttribute dict [join $pnames ","]
+    $domNode setAttribute values [join $names ","]
     if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
     #spdAux::RequestRefresh
     
-    return [join $names ","]
+    return [join $pnames ","]
 }
 
 

@@ -27,10 +27,10 @@
 		set names [string range $names 0 end-1]
 		set pnames [string range $pnames 0 end-1]
 		
-		$domNode setAttribute dict $pnames
+		$domNode setAttribute values $names
 		if {[$domNode getAttribute v] eq ""} {$domNode setAttribute v [lindex $ids 0]}
-		#spdAux::RequestRefresh
-		return $names
+		spdAux::RequestRefresh
+		return $pnames
 	  
 	  ]]>
 	</proc>

@@ -21,6 +21,6 @@
     <container n="ThermalProblem" pn="Thermal Problem" state="[checkStateByUniqueName DamTypeofProblem Thermo-Mechanical]"  actualize_tree="1">
         <value n="SolStratCombo" pn="Solution strategy" un="DamSolStratTherm" v="" values="" dict="[GetSolutionStrategies Thermal]" actualize_tree="1" state="disabled"/>
         <value n="ThermalScheme" pn="Scheme" un="DamMechanicalSchemeTherm" v=""  values="" dict="[GetSchemes Thermal]" actualize_tree="1"/>
-        <value n="ReferenceTemperature" pn="Reference Temeperature" un="DamReferenceTemperature" v="Reservoir Information" values="Reservoir Information,Stationary" actualize_tree="1"/>
+        <value n="ReferenceTemperature" pn="Reference Temeperature" un="DamReferenceTemperature" v="Reservoir_Information" values="Reservoir_Information,Stationary" actualize_tree="1"/>
     </container> 
 </container>  
