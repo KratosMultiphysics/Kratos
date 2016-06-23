@@ -12,7 +12,7 @@
     <container n="TimeParameters" pn="Time parameters" un="SLTimeParameters" help="Problem parameters" state="[checkStateByUniqueName SLSoluType Dynamic]" >
         <value n="StartTime" pn="Start time" v="0.0" help=""/>
         <value n="EndTime" pn="End time" v="1.0" help=""/>
-        <value n="DeltaTime"  pn="Delta time" v="0.1" help=""/>
+        <value n="DeltaTime"  pn="Delta time" v="0.01" help=""/>
         <!--<value n="UseAutomaticDeltaTime" pn="Automatic Delta time" v="Fixed"  values="Fixed,Automatic" help="Select the Delta time option to be used"/>-->
     </container>
     
