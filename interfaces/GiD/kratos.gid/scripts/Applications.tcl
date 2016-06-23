@@ -123,10 +123,10 @@ proc apps::getAppUniqueName {appName un} {
     }
 }
 
-proc apps::ExecuteOnCurrent {elem func} {
+proc apps::ExecuteOnCurrent {param func} {
     variable activeApp
     if {$activeApp ne ""} {
-        return [$activeApp executexml $func $elem]
+        return [$activeApp executexml $func $param]
     }
 }
 proc apps::LoadAppById {appid} {
