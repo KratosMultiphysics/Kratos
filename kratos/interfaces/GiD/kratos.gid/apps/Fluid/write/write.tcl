@@ -111,9 +111,10 @@ proc Fluid::write::writeMeshes { } {
 
 proc Fluid::write::writeConditionsMesh { } {
     variable FluidConditions
+    variable BCUN
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    set xp1 "[spdAux::getRoute "FLBC"]/condition/group"
+    set xp1 "[spdAux::getRoute $BCUN]/condition/group"
     #W "Conditions $xp1 [$root selectNodes $xp1]"
     foreach group [$root selectNodes $xp1] {
         set groupid [$group @n]
@@ -131,9 +132,10 @@ proc Fluid::write::writeConditionsMesh { } {
 
 proc Fluid::write::writeSkinMesh { } {
     variable FluidConditions
+    variable BCUN
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    set xp1 "[spdAux::getRoute "FLBC"]/condition/group"
+    set xp1 "[spdAux::getRoute $BCUN]/condition/group"
     #W "Conditions $xp1 [$root selectNodes $xp1]"
     set listiniend [list ]
     set listgroups [list ]
@@ -155,11 +157,12 @@ proc Fluid::write::writeSkinMesh { } {
 }
 
 proc Fluid::write::CheckClosedVolume {} {
+    variable BCUN
     set isclosed 1
     
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    set xp1 "[spdAux::getRoute "FLBC"]/condition/group"
+    set xp1 "[spdAux::getRoute $BCUN]/condition/group"
 
     set listgroups [list ]
     foreach group [$root selectNodes $xp1] {

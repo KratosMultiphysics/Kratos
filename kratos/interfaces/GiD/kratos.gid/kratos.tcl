@@ -74,6 +74,9 @@ proc AfterWriteCalcFileGIDProject { filename errorflag } {
     set errcode [::write::writeEvent $filename]
     if {$errcode} {return "-cancel-"}
 }
+proc BeforeMeshGeneration { elementsize } {
+    Kratos::BeforeMeshGeneration $elementsize
+}
 
 ##########################################################
 #################### Kratos namespace ####################
@@ -409,6 +412,16 @@ proc Kratos::ResetModel { } {
     foreach group [GiD_Groups list] {
         GiD_Groups delete $group
     }
+}
+
+proc Kratos::BeforeMeshGeneration {elementsize} {
+    #catch {
+        #apps::ExecuteOnCurrent $elementsize BeforeMeshEvent
+        foreach group [GiD_Groups list] {
+            GiD_Process Mescape Meshing MeshCriteria Mesh Lines [GiD_EntitiesGroups get $group lines] escape escape 
+            GiD_Process Mescape Meshing MeshCriteria Mesh Surfaces [GiD_EntitiesGroups get $group surfaces] escape escape 
+        }
+    #}
 }
 
 proc Kratos::PrintArray {a {pattern *}} {
