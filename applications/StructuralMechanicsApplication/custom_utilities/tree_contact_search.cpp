@@ -146,12 +146,9 @@ void TreeContactSearch::ClearMortarConditions()
             {
                 delete(&((*ConditionPointersDestination)[i].condition));
             } 
-            
+              
             ConditionPointersDestination->clear();
-            
-            delete cond_it->GetValue(CONTACT_CONTAINERS); 
-            cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>(); 
-            cond_it->GetValue(CONTACT_CONTAINERS)->reserve(mallocation); 
+            ConditionPointersDestination->reserve(mallocation); 
         }
     }
     
@@ -173,10 +170,7 @@ void TreeContactSearch::ClearMortarConditions()
             } 
             
             ConditionPointersOrigin->clear();
-            
-            delete cond_it->GetValue(CONTACT_CONTAINERS); 
-            cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
-            cond_it->GetValue(CONTACT_CONTAINERS)->reserve(mallocation); 
+            ConditionPointersOrigin->reserve(mallocation); 
         }
     }
 }
