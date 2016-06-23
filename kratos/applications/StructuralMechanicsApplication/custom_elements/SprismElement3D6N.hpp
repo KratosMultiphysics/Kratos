@@ -869,6 +869,15 @@ protected:
     virtual unsigned int NumberOfActiveNeighbours(WeakPointerVector< Node < 3 > >& neighbs);
 
     /**
+     * It gets the nodal coordinates, according to the configutaion
+     */
+    virtual void GetNodalCoordinates(
+            boost::numeric::ublas::bounded_matrix<double, 12, 3 > & nodes_coord,
+            WeakPointerVector< Node < 3 > >& nodal_neigb,
+            const std::string Configuration
+            );
+
+    /**
      * Calculate the cartesian derivatives
      */
     virtual void CalculateCartesianDerivatives(CartesianDerivatives& CartDeriv);
