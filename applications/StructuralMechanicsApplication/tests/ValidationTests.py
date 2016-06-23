@@ -42,6 +42,6 @@ class StructrualMechanichsTestFactory(KratosUnittest.TestCase):
 
     def tearDown(self):
         pass
-
-class ShellT3IsotropicScordelisTests(StructrualMechanichsTestFactory):
-    file_name = "shell_test/Shell_T3_Isotropic_Scordelis_test"
+    
+class SprismPanTests(StructrualMechanichsTestFactory):
+    file_name = "sprism_test/pan_test"

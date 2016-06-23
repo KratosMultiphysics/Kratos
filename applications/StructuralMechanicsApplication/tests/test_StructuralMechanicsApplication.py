@@ -20,7 +20,9 @@ from SmallTests import ShellT3ThinDrillingRollUpTests as TShellT3ThinDrillingRol
 
 ## NIGTHLY TESTS
 from NightlyTests import ShellT3IsotropicScordelisTests as TShellT3IsotropicScordelisTests
-from NightlyTests import SprismPanTests as TSprismPanTests
+
+## VALIDATION TESTS
+from ValidationTests import SprismPanTests as TSprismPanTests
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -51,7 +53,10 @@ def AssambleTestSuites():
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
     nightSuite.addTest(TShellT3IsotropicScordelisTests('test_execution'))
-    nightSuite.addTest(TSprismPanTests('test_execution'))
+    
+    # For very long tests that should not be in nighly and you can use to validate 
+    validationSuite = suites['validation']
+    validationSuite.addTest(TSprismPanTests('test_execution'))
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
