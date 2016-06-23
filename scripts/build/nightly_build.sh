@@ -6,6 +6,9 @@ MAIL_GCC=${HOME}/mail_gcc
 MAIL_CLANG=${HOME}/mail_clang
 MAIL_TO=${MAIL_TO_ADDRESS}
 
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/ubuntu/Kratos/libs:/home/ubuntu/CompiledLibs/clang-3.8.0-16.04-prebuilt/lib
+export PYTHONPATH=$PYTHONPATH:/home/ubuntu/Kratos
+
 ## Step1: Prepare
 mkdir Kratos
 
