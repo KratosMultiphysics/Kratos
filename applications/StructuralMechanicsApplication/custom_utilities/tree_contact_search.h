@@ -80,13 +80,11 @@ public:
     PointItem(
         array_1d<double, 3> Coords,
         Condition::Pointer Cond,
-        double Radius,
-        array_1d<double, 3> Normal
+        double Radius
     ):
         Point<3>(Coords),
         mpOriginCond(Cond),
-        mRadius(Radius),
-        mNormal(Normal)
+        mRadius(Radius)
     {}
     
     PointItem(
@@ -102,8 +100,7 @@ public:
         Point<3>(rhs),
         mpOriginCond(rhs.mpOriginCond),
         mpOriginNode(rhs.mpOriginNode),
-        mRadius(rhs.mRadius),
-        mNormal(rhs.mNormal)
+        mRadius(rhs.mRadius)
     {
     }
 
@@ -142,24 +139,6 @@ public:
         this->Coordinate(1) = Point.Coordinate(1);
         this->Coordinate(2) = Point.Coordinate(2);
         this->Coordinate(3) = Point.Coordinate(3);
-    }
-    
-    /**
-     * Returns the radius of the condition
-     * @return The area of the condition
-     */
-    array_1d<double, 3> GetNormal()
-    {
-        return mNormal;
-    }
-    
-    /**
-     * Sets the radius of the condition
-     * @param The area of the condition
-     */
-    void SetNormal(const array_1d<double, 3>& Normal)
-    {
-        mNormal = Normal;
     }
     
     /**

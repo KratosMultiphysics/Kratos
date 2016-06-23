@@ -164,15 +164,15 @@ public:
      */
 
     static inline void CenterAndRadius(
-            const Condition::Pointer pCond,
+            Condition::Pointer pCond,
             Point<3>& Center,
             double& Radius,
-            array_1d<double,3> & Normal,
             const unsigned int dimension
             )
     {
         Radius = 0.0;
         Center = pCond->GetGeometry().Center();
+        array_1d<double,3> & Normal = pCond->GetValue(NORMAL);
         noalias(Normal) = ZeroVector(3);
 
         // TODO: To calculate the normal I am going to use the Newell's method for quadrilateral, I recommend to find some way to compute in a way that it is possible to have the normal in the nodes and use the Nagata Patch
