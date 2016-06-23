@@ -14,6 +14,7 @@ proc Dam::write::getParametersDict { } {
     set nDim [expr [string range [write::getValue nDim] 0 0] ]
     dict set generalDataDict domain_size $nDim
     dict set generalDataDict NumberofThreads [write::getValue DamNumThreads ]
+    dict set generalDataDict type_of_problem [write::getValue DamTypeofProblem ]
     dict set generalDataDict time_scale [write::getValue DamTimeParameters TimeScale]
     dict set generalDataDict evolution_type [write::getValue DamEvolutionType] 
     dict set generalDataDict delta_time [write::getValue DamTimeParameters DeltaTime]
@@ -44,9 +45,6 @@ proc Dam::write::getParametersDict { } {
     dict set mechanicalSolverSettingsDict analysis_type [write::getValue DamAnalysisType]
     dict set mechanicalSolverSettingsDict strategy_type "Newton-Raphson"
     set mechanicalSolverSettingsDict [dict merge $mechanicalSolverSettingsDict [write::getSolutionStrategyParametersDict] ]
-    #dict set mechanicalSolverSettingsDict max_iteration [write::getValue DamSolStrat DamMaxIter]
-    #dict set mechanicalSolverSettingsDict dofs_relative_tolerance [write::getValue DofsTol]
-    #dict set mechanicalSolverSettingsDict residual_relative_tolerance  [write::getValue RelTol]
     set damTypeofSolver [write::getValue DamTypeofsolver]
     if {$damTypeofSolver eq "Direct"} {
         dict set mechanicalSolverSettingsDict direct_solver [write::getValue DamDirectsolver]
@@ -56,11 +54,9 @@ proc Dam::write::getParametersDict { } {
     ### Add section to document
     dict set projectParametersDict mechanical_settings $mechanicalSolverSettingsDict
     
-    ### Submodels parts
-    #set submodelpartDict [dict create]
-    #dict set submodelpartDict problem_domain_sub_model_part_list [getSubModelPartNames "DamParts"]
-    #dict set submodelpartDict nodal_processes_sub_model_part_list [getSubModelPartNames "DamNodalConditions" ]
-    #dict set submodelpartDict load_processes_sub_model_part_list [getSubModelPartNames "DamLoads" ]
+    ### Boundary conditions processes
+    dict set projectParametersDict nodal_processes_sub_model_part_list [write::getConditionsParametersDict DamNodalConditions "Nodal"]
+    dict set projectParametersDict load_processes_sub_model_part_list [write::getConditionsParametersDict DamLoads ]
     
     ### GiD output configuration
     dict set projectParametersDict output_configuration [write::GetDefaultOutputDict]
@@ -92,26 +88,6 @@ proc write::GetDefaultOutputDict {} {
     return $outputDict
 }
 
-#proc write::getSolutionStrategyParametersDict {} {
-    #set solStratUN [apps::getCurrentUniqueName SolStrat]
-    #set schemeUN [apps::getCurrentUniqueName Scheme]
-    
-    #set solstratName [write::getValue $solStratUN]
-    #set schemeName [write::getValue $schemeUN]
-    #set sol [::Model::GetSolutionStrategy $solstratName]
-    #set sch [$sol getScheme $schemeName]
-    
-    #set paramsPath [apps::getCurrentUniqueName StratParams]
-    
-    #foreach {n in} [$sol getInputs] {
-	#dict set mechanicalSolverSettingsDict $n [write::getValue $paramsPath $n ]
-    #}
-    #foreach {n in} [$sch getInputs] {
-	#dict set mechanicalSolverSettingsDict $n [write::getValue $paramsPath $n ]
-    #}
-    #return $mechanicalSolverSettingsDict
-#}
-
 #proc Dam::write::getSubModelPartNames { args } {
     #set doc $gid_groups_conds::doc
     #set root [$doc documentElement]
@@ -135,4 +111,26 @@ proc write::GetDefaultOutputDict {} {
     
     #return $listOfProcessedGroups
 #}
+
+#proc write::getSolutionStrategyParametersDict {} {
+    #set solStratUN [apps::getCurrentUniqueName SolStrat]
+    #set schemeUN [apps::getCurrentUniqueName Scheme]
+    
+    #set solstratName [write::getValue $solStratUN]
+    #set schemeName [write::getValue $schemeUN]
+    #set sol [::Model::GetSolutionStrategy $solstratName]
+    #set sch [$sol getScheme $schemeName]
+    
+    #set paramsPath [apps::getCurrentUniqueName StratParams]
+    
+    #foreach {n in} [$sol getInputs] {
+	#dict set mechanicalSolverSettingsDict $n [write::getValue $paramsPath $n ]
+    #}
+    #foreach {n in} [$sch getInputs] {
+	#dict set mechanicalSolverSettingsDict $n [write::getValue $paramsPath $n ]
+    #}
+    #return $mechanicalSolverSettingsDict
+#}
+
+
 

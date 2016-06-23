@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <NodalConditionList>
   <NodalConditionItem n="DISPLACEMENT" pn="Displacement" ProcessName="ImposeVectorValueByComponentsProcess" VariableName="DISPLACEMENT"
-					  analysis_type="Quasi-Static,Dynamic" TypeofProblem="Mechanical,Thermo-Mechanical"   >
+					  analysis_type="Quasi-Static,Dynamic" TypeofProblem="Mechanical,Thermo-Mechanical" >
     <outputs>
       <parameter n="REACTION" pn="Reaction" v="Yes"/>
     </outputs>
@@ -19,7 +19,7 @@
 					   analysis_type="Quasi-Static,Dynamic" TypeofProblem="Thermo-Mechanical" ov="[CheckGeometry 2]" >
   </NodalConditionItem>
   
-    <NodalConditionItem  n="THERMALPARAMETERS" pn="Thermal Parameters" ProcessName="ThermalParametersScalarValueProcess" VariableName="TEMPERATURE"
+    <NodalConditionItem  n="THERMALPARAMETERS" pn="Thermal Parameters" ProcessName="ThermalParametersScalarValueProcess" VariableName="THERMAL_PARAMETERS"
 					   analysis_type="Quasi-Static,Dynamic" TypeofProblem="Thermo-Mechanical" ov="[CheckGeometry 1]">
   </NodalConditionItem>
   
