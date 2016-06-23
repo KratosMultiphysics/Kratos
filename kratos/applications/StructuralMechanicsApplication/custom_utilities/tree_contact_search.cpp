@@ -243,9 +243,8 @@ void TreeContactSearch::CreatePointListNTS()
         const Condition::Pointer CondOri = *cond_it.base();
         Point<3> Center;
         double Radius;
-        array_1d<double, 3> Normal;
-        ContactUtilities::CenterAndRadius(CondOri, Center, Radius, Normal, mdimension); 
-        PointItem::Pointer pP = PointItem::Pointer(new PointItem(Center, *(cond_it.base()), Radius, Normal));
+        ContactUtilities::CenterAndRadius(CondOri, Center, Radius, mdimension); 
+        PointItem::Pointer pP = PointItem::Pointer(new PointItem(Center, *(cond_it.base()), Radius));
         (mPointListOrigin).push_back(pP);
     }
 }
@@ -264,9 +263,8 @@ void TreeContactSearch::CreatePointListMortar()
         const Condition::Pointer CondOri = *cond_it.base();
         Point<3> Center;
         double Radius;
-        array_1d<double, 3> Normal;
-        ContactUtilities::CenterAndRadius(CondOri, Center, Radius, Normal, mdimension); 
-        PointItem::Pointer pP = PointItem::Pointer(new PointItem(Center, *(cond_it.base()), Radius, Normal));
+        ContactUtilities::CenterAndRadius(CondOri, Center, Radius, mdimension); 
+        PointItem::Pointer pP = PointItem::Pointer(new PointItem(Center, *(cond_it.base()), Radius));
         (mPointListDestination).push_back(pP);
     }
     
@@ -279,9 +277,8 @@ void TreeContactSearch::CreatePointListMortar()
         const Condition::Pointer CondOri = *cond_it.base();
         Point<3> Center;
         double Radius;
-        array_1d<double, 3> Normal;
-        ContactUtilities::CenterAndRadius(CondOri, Center, Radius, Normal, mdimension); 
-        PointItem::Pointer pP = PointItem::Pointer(new PointItem(Center, *(cond_it.base()), Radius, Normal));
+        ContactUtilities::CenterAndRadius(CondOri, Center, Radius, mdimension); 
+        PointItem::Pointer pP = PointItem::Pointer(new PointItem(Center, *(cond_it.base()), Radius));
         (mPointListOrigin).push_back(pP);
     }
 }
@@ -301,10 +298,8 @@ void TreeContactSearch::UpdatePointListMortar()
         const Condition::Pointer CondOri = *cond_it.base();
         Point<3> Center;
         double Radius;
-        array_1d<double, 3> Normal;
-        ContactUtilities::CenterAndRadius(CondOri, Center, Radius, Normal, mdimension); 
+        ContactUtilities::CenterAndRadius(CondOri, Center, Radius, mdimension); 
         PointItem::Pointer & pPDest = mPointListDestination[index];
-        pPDest->SetNormal(Normal);
         pPDest->SetRadius(Radius);
         pPDest->SetPoint(Center);
         index += 1;
@@ -320,10 +315,8 @@ void TreeContactSearch::UpdatePointListMortar()
         const Condition::Pointer CondOri = *cond_it.base();
         Point<3> Center;
         double Radius;
-        array_1d<double, 3> Normal;
-        ContactUtilities::CenterAndRadius(CondOri, Center, Radius, Normal, mdimension); 
+        ContactUtilities::CenterAndRadius(CondOri, Center, Radius, mdimension); 
         PointItem::Pointer & pPOri = mPointListOrigin[index];
-        pPOri->SetNormal(Normal);
         pPOri->SetRadius(Radius);
         pPOri->SetPoint(Center);
         index += 1;
@@ -526,16 +519,14 @@ void TreeContactSearch::MortarContainerFiller(
     contact_container.condition = &* pCond_2;
     
     // Define the normal to the contact
-    array_1d<double, 3> & contact_normal = pCond_1->GetValue(NORMAL);
+    const array_1d<double, 3> & contact_normal = pCond_1->GetValue(NORMAL);
     Point<3> ContactPoint;
     if (orig_dest == true)
     {
-        contact_normal = PointOfList->GetNormal();
         ContactPoint   = PointFound->GetPoint();
     }
     else
     {
-        contact_normal = PointFound->GetNormal();
         ContactPoint   = PointOfList->GetPoint();
     }
     
