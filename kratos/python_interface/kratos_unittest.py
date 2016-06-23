@@ -85,7 +85,7 @@ def Usage():
 
 def runTests(tests):
     verbose_values = [0, 1, 2]
-    level_values = ['all', 'small', 'nightly']
+    level_values = ['all', 'small', 'nightly', 'validation']
 
     verbosity = 1
     level = 'all'
@@ -135,5 +135,6 @@ def runTests(tests):
 KratosSuites = {
     'small': TestSuite(),
     'nightly': TestSuite(),
-    'all': TestSuite()
+    'all': TestSuite(),
+    'validation': TestSuite()
 }
