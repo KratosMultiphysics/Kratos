@@ -43,7 +43,10 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class CartesianDerivatives // Cartesian Derivatives
+/** \brief CartesianDerivatives
+ *  Cartesian Derivatives
+ */
+class CartesianDerivatives
 {
     public:
         /* Declare cartesian derivatives (reference configuration) */
@@ -95,8 +98,10 @@ class CartesianDerivatives // Cartesian Derivatives
         }
 };
 
-    
-class CommonComponents // Common Components
+/** \brief CommonComponents
+ *  Common Components
+ */
+class CommonComponents
 {
     public:
         /* Declaring operators */
@@ -132,7 +137,10 @@ class CommonComponents // Common Components
         }
 };
 
-class StressIntegratedComponents // Stress integrated Components
+/** \brief StressIntegratedComponents
+ * Stress integrated Components
+ */
+class StressIntegratedComponents
 {
     public:
         /* The PK2 components*/
@@ -152,6 +160,28 @@ class StressIntegratedComponents // Stress integrated Components
             S_shear_lower    = ZeroVector(2);
             S_shear_upper    = ZeroVector(2);
             S_normal         = 0.0;
+        }
+};
+
+/** \brief EASComponents
+ * EAS Components
+ */
+class EASComponents
+{
+    public:
+        /* The EAS components*/
+        double rhs_alpha;
+        double stiff_alpha;
+        boost::numeric::ublas::bounded_matrix<double, 1, 36 > H_EAS;
+
+        /**
+        * Reset components
+        */
+        void clear()
+        {
+            rhs_alpha   = 0.0;
+            stiff_alpha = 0.0;
+            H_EAS       = ZeroMatrix(1, 36);
         }
 };
 
@@ -194,6 +224,8 @@ protected:
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR_WITH_COMPONENTS );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
+    KRATOS_DEFINE_LOCAL_FLAG( EAS_IMPLICIT_EXPLICIT );    // True means implicit
+    KRATOS_DEFINE_LOCAL_FLAG( TOTAL_UPDATED_LAGRANGIAN ); // True means total lagrangian
 
     /* Parameters to be used in the Element as they are. Direct interface to Parameters Struct */
     struct GeneralVariables
@@ -211,8 +243,12 @@ protected:
             Vector StrainVector; // Strain tensor
             Vector StressVector; // Stress tensor
             Matrix B; // Deformation matrix
-            Matrix F; // Deformation gradient
-            double detF; // Deformation gradient determinant
+            Matrix F;  // Deformation gradient (F) from the reference to the current configuration ( Delta F )
+            Matrix F0; // Deformation gradient (F) in the reference configuration, ( historical F )
+            Matrix FT; //FT = F0 * F  ( total F )
+            double detF;  // Deformation gradient determinant in the current configuration
+            double detF0; // Deformation gradient determinant in the reference configuration
+            double detFT; // Deformation gradient determinant in the reference configuration
             Vector C ; // The Cauchy tensor components
             double detJ; // Volume variation, sqrt(det(C))
 
@@ -222,6 +258,8 @@ protected:
 
             // Variables including all integration points
             GeometryType::JacobiansType J;
+            GeometryType::JacobiansType j;
+            Matrix  DeltaPosition;
 
             /**
              * Sets the value of a specified pointer variable
@@ -746,12 +784,6 @@ public:
     void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
 
     /**
-     * Switch between implicit and explicit scheme
-     * @param flag: Value of the flag IMPLICIT-EXPLICIT
-     */
-    void SwitchFlagImplicitExplicit(bool& flag);
-
-    /**
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
@@ -785,35 +817,21 @@ protected:
     /* Total element volume */
     double mTotalDomainInitialSize;
 
-    /* Container for historical total Jacobians */
-    std::vector< Matrix > mInvJ0;
+    /* Auxiliar vector of matrices container used for different pourposes in TL and UL */
+    std::vector< Matrix > mAuxMatCont; // Container for historical total Jacobians for Total Lagrangian
+                                       // Container for historical total elastic deformation measure F0 = dx/dX  for Updated Lagrangian
 
-    /* Container for the total Jacobian determinants */
-    Vector mDetJ0;
+    /* Auxiliar vector container used for different pourposes in TL and UL */
+    Vector mAuxCont; // Container for the total Jacobian determinants for Total Lagrangian
+                     // Container for the total deformation gradient determinants for Updated Lagrangian
 
     /* The coordinates in the previous iteration (not necessarily in the previous time step) */
     boost::numeric::ublas::bounded_matrix<double, 36, 1 > mPreviousCoor;
     
-    class EASComponents // EAS Components
-    {
-        public:
-            /* The EAS components*/
-            double rhs_alpha;
-            double stiff_alpha;
-            boost::numeric::ublas::bounded_matrix<double, 1, 36 > H_EAS;
-
-            /**
-            * Reset components
-            */
-            void clear()
-            {
-                rhs_alpha   = 0.0;
-                stiff_alpha = 0.0;
-                H_EAS       = ZeroMatrix(1, 36);
-            }
-    };
-    
     EASComponents mEAS;
+
+    /* Elemental flags */
+    Flags  mELementalFlags;
 
     ///@}
     ///@name Protected Operators
@@ -1365,6 +1383,13 @@ protected:
     void ClearNodalForces ();
 
     /**
+     * Calculation of the Deformation Gradient F
+     * @param
+     * @return
+     */
+    void CalculateDeltaPosition(Matrix & rDeltaPosition);
+
+    /**
      * Calculate Element Kinematics
      * @param rVariables: The internal variables in the element
      * @param rPointNumber: The integration points of the prism
@@ -1499,11 +1524,20 @@ protected:
             );
 
     /**
+     * This function calculates the variation of the element volume
+     * @return rVolumeChange: Volume variation of the element
+     * @param rVariables: The internal variables in the element
+     */
+    virtual void CalculateVolumeChange(
+            double& rVolumeChange,
+            GeneralVariables& rVariables
+            );
+    /**
      * Calculation of the Volume Force of the Element
      * @return rVolumeForce: The volume forces of the element
      * @param rVariables: The internal variables in the element
      */
-    virtual Vector& CalculateVolumeForce(
+    virtual void CalculateVolumeForce(
             Vector& rVolumeForce,
             GeneralVariables& rVariables
             );

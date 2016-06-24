@@ -146,6 +146,7 @@ void KratosStructuralMechanicsApplication::Register()
     // Adding the SPRISM EAS variables
     KRATOS_REGISTER_VARIABLE(ALPHA_EAS);
     KRATOS_REGISTER_VARIABLE(EAS_IMP);
+    KRATOS_REGISTER_VARIABLE(SPRISM_TL_UL);
 
     // Adding the SPRISM additional variables
     KRATOS_REGISTER_VARIABLE(ANG_ROT);

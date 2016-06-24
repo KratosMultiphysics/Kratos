@@ -79,6 +79,7 @@ KRATOS_CREATE_VARIABLE( Vector, NORMAL_GAPS_VECTOR )                          //
 // Adding the SPRISM EAS variables
 KRATOS_CREATE_VARIABLE(double, ALPHA_EAS);
 KRATOS_CREATE_VARIABLE(bool, EAS_IMP);
+KRATOS_CREATE_VARIABLE(bool, SPRISM_TL_UL);
 
 // Adding the SPRISM additional variables
 KRATOS_CREATE_VARIABLE(double, ANG_ROT);
