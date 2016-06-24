@@ -52,6 +52,7 @@ struct contact_container
        }
     }
     
+    // TODO: Remove this
     void save( Serializer& rSerializer ) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, contact_container );
@@ -128,6 +129,7 @@ KRATOS_DEFINE_VARIABLE( Vector, NORMAL_GAPS_VECTOR )                          //
 // Adding the SPRISM EAS variables
 KRATOS_DEFINE_VARIABLE(double, ALPHA_EAS);
 KRATOS_DEFINE_VARIABLE(bool, EAS_IMP);
+KRATOS_DEFINE_VARIABLE(bool, SPRISM_TL_UL);
 
 // Adding the SPRISM additional variables
 KRATOS_DEFINE_VARIABLE(double, ANG_ROT); // TODO: Transform into a vector
