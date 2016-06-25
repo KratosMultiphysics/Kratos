@@ -52,15 +52,20 @@ struct contact_container
        }
     }
     
-    // TODO: Remove this
     void save( Serializer& rSerializer ) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, contact_container );
+        rSerializer.save("condition",       condition);
+        rSerializer.save("contact_area", contact_area);
+        rSerializer.save("contact_gap",   contact_gap);
+//         rSerializer.save("active_nodes", active_nodes); // NOTE: Error, ask
     }
 
     void load( Serializer& rSerializer )
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, contact_container );
+        rSerializer.load("condition",       condition);
+        rSerializer.load("contact_area", contact_area);
+        rSerializer.load("contact_gap",   contact_gap);
+//         rSerializer.load("active_nodes", active_nodes); // NOTE: Error, ask 
     }
 };
 
