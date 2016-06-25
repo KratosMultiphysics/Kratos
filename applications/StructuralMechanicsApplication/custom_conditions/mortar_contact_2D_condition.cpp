@@ -53,40 +53,8 @@ MortarContact2DCondition::MortarContact2DCondition(
     PropertiesType::Pointer pProperties ) :
     Condition( NewId, pGeometry, pProperties )
 {
-    if( GetProperties().Has(INTEGRATION_ORDER_CONTACT) )
-    {
-        if (GetProperties()[INTEGRATION_ORDER_CONTACT] == 1)
-        {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
-        }
-        else if (GetProperties()[INTEGRATION_ORDER_CONTACT] == 2)
-        {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
-        }
-        else if (GetProperties()[INTEGRATION_ORDER_CONTACT] == 3)
-        {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
-        }
-        else if (GetProperties()[INTEGRATION_ORDER_CONTACT] == 4)
-        {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_4;
-        }
-        else if (GetProperties()[INTEGRATION_ORDER_CONTACT] == 5)
-        {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_5;
-        }
-        else
-        {
-            std::cout << "The number of integration points is not defined.  INTEGRATION_ORDER_CONTACT: "<< GetProperties()[INTEGRATION_ORDER_CONTACT] << std::endl;
-            std::cout << "Options are: 1, 2, 3, 4, 5  " << std::endl;
-            std::cout << "Taking default number of integration points (INTEGRATION_ORDER_CONTACT = 1)  " << std::endl;
-            mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-        }
-    }
-    else
-    {
-        mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-    }
+    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+
     //DO NOT ADD DOFS HERE!!!
 }
 
@@ -136,6 +104,41 @@ MortarContact2DCondition::~MortarContact2DCondition( )
 void MortarContact2DCondition::Initialize( ) 
 {
     KRATOS_TRY;
+
+    if( this->Has(INTEGRATION_ORDER_CONTACT) )
+    {
+        if (this->GetValue(INTEGRATION_ORDER_CONTACT) == 1)
+        {
+            mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+        }
+        else if (this->GetValue(INTEGRATION_ORDER_CONTACT) == 2)
+        {
+            mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+        }
+        else if (this->GetValue(INTEGRATION_ORDER_CONTACT) == 3)
+        {
+            mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+        }
+        else if (this->GetValue(INTEGRATION_ORDER_CONTACT) == 4)
+        {
+            mThisIntegrationMethod = GeometryData::GI_GAUSS_4;
+        }
+        else if (this->GetValue(INTEGRATION_ORDER_CONTACT) == 5)
+        {
+            mThisIntegrationMethod = GeometryData::GI_GAUSS_5;
+        }
+        else
+        {
+            std::cout << "The number of integration points is not defined.  INTEGRATION_ORDER_CONTACT: "<< this->GetValue(INTEGRATION_ORDER_CONTACT) << std::endl;
+            std::cout << "Options are: 1, 2, 3, 4, 5  " << std::endl;
+            std::cout << "Taking default number of integration points (INTEGRATION_ORDER_CONTACT = 1)  " << std::endl;
+            mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+        }
+    }
+    else
+    {
+        mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+    }
 
     KRATOS_CATCH( "" );
 }
@@ -613,6 +616,9 @@ void MortarContact2DCondition::InitializeGeneralVariables(
     // Working space dimension
     const unsigned int dimension = 2;
 
+    // Resize according to the integration order
+    const unsigned int& integration_point_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
+    
     // Slave segment info
     GeometryType& current_slave_element = this->GetGeometry();
     const unsigned int number_of_nodes_slave = current_slave_element.PointsNumber();
@@ -624,7 +630,7 @@ void MortarContact2DCondition::InitializeGeneralVariables(
     const unsigned int local_dimension_master = current_master_element.LocalSpaceDimension();
 
     // Slave element info
-    rVariables.Initialize(local_dimension_master, number_of_nodes_master, local_dimension_slave, number_of_nodes_slave, dimension );
+    rVariables.Initialize(local_dimension_master, number_of_nodes_master, local_dimension_slave, number_of_nodes_slave, dimension, integration_point_number );
 
     rVariables.SetMasterElement( current_master_element );
     rVariables.SetMasterElementIndex( rMasterElementIndex );
@@ -697,7 +703,7 @@ void MortarContact2DCondition::CalculateKinematics(
     rVariables.DPhi_De_LagrangeMultipliers.resize( number_of_slave_nodes, slave_nodes.LocalSpaceDimension( ) );
     rVariables.DN_De_Master.resize( number_of_master_nodes, master_nodes.LocalSpaceDimension( ) );
     rVariables.DN_De_Slave.resize( number_of_slave_nodes, slave_nodes.LocalSpaceDimension( ) );
-
+    
     /*  POPULATE MATRICES AND VECTORS */
     for( unsigned int iNode = 0; iNode < number_of_master_nodes; ++iNode )
     {
@@ -710,15 +716,14 @@ void MortarContact2DCondition::CalculateKinematics(
         rVariables.Phi_LagrangeMultipliers[iNode] = LagrangeMultiplierShapeFunctionValue( rPointNumber, iNode );
     }
 
-    rVariables.DN_De_Master = master_nodes.ShapeFunctionLocalGradient( rPointNumber );
-    rVariables.DN_De_Slave  = slave_nodes.ShapeFunctionLocalGradient( rPointNumber );
+    rVariables.DN_De_Master = master_nodes.ShapeFunctionLocalGradient( rPointNumber, mThisIntegrationMethod );
+    rVariables.DN_De_Slave  =  slave_nodes.ShapeFunctionLocalGradient( rPointNumber, mThisIntegrationMethod );
     rVariables.DPhi_De_LagrangeMultipliers = LagrangeMultiplierShapeFunctionLocalGradient( rPointNumber );
 
     slave_nodes.Jacobian( rVariables.j_Slave, mThisIntegrationMethod );
     
     rVariables.DetJSlave = rVariables.ContactArea * slave_nodes.Jacobian( rVariables.j_Slave, mThisIntegrationMethod )[rPointNumber](0, 0); // TODO: Check if it is correct
 //     rVariables.DetJSlave = slave_nodes.DeterminantOfJacobian( rPointNumber, mThisIntegrationMethod ); // TODO: Check if it is correct
-//     rVariables.DetJSlave = slave_nodes.Length()/2.00;
 
     this->CalculateNormalGapAtIntegrationPoint( rVariables, rPointNumber );
 
@@ -924,7 +929,7 @@ void MortarContact2DCondition::AssembleContactPairLHSToConditionSystem(
     index_begin *= dimension;
   
     const unsigned int aux_index = index_begin + current_pair_size;
-    subrange( rConditionLHS, index_begin, aux_index, index_begin, aux_index) = rPairLHS;
+    subrange( rConditionLHS, index_begin, aux_index, index_begin, aux_index) += rPairLHS;
 }
 
 /***********************************************************************************/
@@ -1001,7 +1006,7 @@ void MortarContact2DCondition::AssembleContactPairRHSToConditionSystem(
     index_begin *= dimension;
     
     const unsigned int aux_index = index_begin + current_pair_size;
-    subrange( rConditionRHS, index_begin, aux_index ) = rPairRHS;
+    subrange( rConditionRHS, index_begin, aux_index ) += rPairRHS;
 }
 
 /***********************************************************************************/

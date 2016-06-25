@@ -18,6 +18,8 @@
 #include "structural_mechanics_application_variables.h"
 #include "includes/model_part.h"
 #include "geometries/point.h"
+#include "geometries/line_2d_2.h"
+#include "geometries/line_2d_3.h"
 
 namespace Kratos
 {
@@ -151,7 +153,7 @@ public:
          PointProjected.Coordinate(2) = PointDestiny.Coordinate(2) - Normal[1] * dist;
          PointProjected.Coordinate(3) = PointDestiny.Coordinate(3) - Normal[2] * dist;
     }
-
+    
     /***********************************************************************************/
     /***********************************************************************************/
 

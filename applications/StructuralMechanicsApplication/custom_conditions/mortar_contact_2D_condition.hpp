@@ -114,29 +114,38 @@ protected:
 
         // Initializer method // TODO: Check if it is possible to get the values from another place
         void Initialize( 
-            const unsigned int& rLocalDimensionMaster = 1,  // Xi local coordinate
-            const unsigned int& rLocalDimensionSlave  = 1,  // Xi local coordinate
-            const unsigned int& rNumberOfMasterNodes  = 2,  // 2-node line segment
-            const unsigned int& rNumberOfSlaveNodes   = 2,  // 2-node line segment
-            const unsigned int& rDimension            = 2   // 2D physical space
+            const unsigned int& rLocalDimensionMaster    = 1,  // Xi local coordinate
+            const unsigned int& rLocalDimensionSlave     = 1,  // Xi local coordinate
+            const unsigned int& rNumberOfMasterNodes     = 2,  // 2-node line segment
+            const unsigned int& rNumberOfSlaveNodes      = 2,  // 2-node line segment
+            const unsigned int& rDimension               = 2,  // 2D physical space
+            const unsigned int& rIntegrationPointNumber  = 1   // Number of integration points to be considered
             )
         {
             pMasterElement = NULL;
             mMasterElementIndex = 0;
 
             // Shape functions
+            N_Master.resize( rNumberOfMasterNodes, false );
+            N_Slave.resize( rNumberOfSlaveNodes, false );
+            Phi_LagrangeMultipliers.resize( rNumberOfSlaveNodes, false );
             N_Master                     = ZeroVector( rNumberOfMasterNodes );
             N_Slave                      = ZeroVector( rNumberOfSlaveNodes  );
             Phi_LagrangeMultipliers      = ZeroVector( rNumberOfSlaveNodes  ); // Each slave node carries a lambda DOF
 
             // Shape functions local derivatives
+            DN_De_Master.resize( rNumberOfMasterNodes, rLocalDimensionMaster, false);
+            DN_De_Slave.resize( rNumberOfSlaveNodes,  rLocalDimensionSlave, false);
+            DPhi_De_LagrangeMultipliers.resize( rNumberOfSlaveNodes ,  rLocalDimensionSlave, false);
             DN_De_Master                 = ZeroMatrix( rNumberOfMasterNodes, rLocalDimensionMaster );
             DN_De_Slave                  = ZeroMatrix( rNumberOfSlaveNodes ,  rLocalDimensionSlave );
             DPhi_De_LagrangeMultipliers  = ZeroMatrix( rNumberOfSlaveNodes ,  rLocalDimensionSlave );
 
             // Gap function
-            IntegrationPointNormalGap    = ZeroVector( rDimension );
-            IntegrationPointNormalVector = ZeroVector( rDimension );
+            IntegrationPointNormalGap.resize( rIntegrationPointNumber, false );
+            IntegrationPointNormalVector.resize( rIntegrationPointNumber, false );
+            IntegrationPointNormalGap    = ZeroVector( rIntegrationPointNumber );
+            IntegrationPointNormalVector = ZeroVector( rIntegrationPointNumber );
 
             // Jacobian of slave
             DetJSlave = 0.0;
@@ -145,8 +154,7 @@ protected:
             ContactArea = 0.0;
 
             // Jacobians on all integration points
-            j_Slave.resize( 1, false );
-            j_Slave[0] = ZeroMatrix( rDimension );
+            j_Slave.resize( rIntegrationPointNumber, false );
         }
 
         /* Setters and getters for the master element */

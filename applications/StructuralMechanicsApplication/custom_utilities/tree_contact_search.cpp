@@ -369,7 +369,7 @@ void TreeContactSearch::CreateMortarConditions(
     ClearMortarConditions(); // Clear the conditions
     
     IntegrationMethod IntegrationOrder;
-    
+
     if (integration_order == 1)
     {
         IntegrationOrder = GeometryData::GI_GAUSS_1;
@@ -432,14 +432,16 @@ void TreeContactSearch::CreateMortarConditions(
             }
 
             std::vector<contact_container> *& ConditionPointersOrigin = pCondOrigin->GetValue(CONTACT_CONTAINERS);
-            pCondOrigin->GetValue(INTEGRATION_ORDER_CONTACT) = IntegrationOrder;
+            int & OriCondIntegrationOrder = pCondOrigin->GetValue(INTEGRATION_ORDER_CONTACT);
+            OriCondIntegrationOrder = integration_order;
             
 //             KRATOS_WATCH(NumberPointsFound); 
             for(unsigned int i = 0; i < NumberPointsFound; i++)
             {   
                 Condition::Pointer pCondDestination = PointsFound[i]->GetCondition();
                 std::vector<contact_container> *& ConditionPointersDestination = pCondDestination->GetValue(CONTACT_CONTAINERS);
-                pCondDestination->GetValue(INTEGRATION_ORDER_CONTACT) = IntegrationOrder;
+                int & DestCondIntegrationOrder = pCondDestination->GetValue(INTEGRATION_ORDER_CONTACT);
+                DestCondIntegrationOrder = integration_order;
                 
                 if (bidirectional == true)
                 {
