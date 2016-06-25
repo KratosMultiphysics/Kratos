@@ -42,6 +42,7 @@ KRATOS_CREATE_LOCAL_FLAG( SprismElement3D6N, COMPUTE_RHS_VECTOR_WITH_COMPONENTS,
 KRATOS_CREATE_LOCAL_FLAG( SprismElement3D6N, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
 KRATOS_CREATE_LOCAL_FLAG( SprismElement3D6N, EAS_IMPLICIT_EXPLICIT,              4 ); // True means implicit
 KRATOS_CREATE_LOCAL_FLAG( SprismElement3D6N, TOTAL_UPDATED_LAGRANGIAN,           5 ); // True means total lagrangian
+KRATOS_CREATE_LOCAL_FLAG( SprismElement3D6N, QUADRATIC_ELEMENT,                  6 ); // True means quadratic in-plane behaviour
 
 // ------------------------------------------------------------------------- //
 // ------------------------------ PUBLIC ----------------------------------- //
@@ -2065,6 +2066,16 @@ void SprismElement3D6N::Initialize()
         mELementalFlags.Set(SprismElement3D6N::TOTAL_UPDATED_LAGRANGIAN, true);
     }
 
+    /* Quadratic or linear element */
+    if( GetProperties().Has(QUAD_ON) )
+    {
+        mELementalFlags.Set(SprismElement3D6N::QUADRATIC_ELEMENT, GetProperties()[QUAD_ON]);
+    }
+    else
+    {
+        mELementalFlags.Set(SprismElement3D6N::QUADRATIC_ELEMENT, true);
+    }
+
     // Resizing the containers
     mAuxMatCont.resize( integration_points.size() );
     mAuxCont.resize( integration_points.size(), false );
@@ -2100,7 +2111,7 @@ void SprismElement3D6N::Initialize()
         }
     }
 
-    /* Initilize alpha_eas */
+    /* Initialize alpha_eas */
     double& alpha_eas = Element::GetValue(ALPHA_EAS);
     alpha_eas = 0.0;
 
@@ -2394,19 +2405,13 @@ void SprismElement3D6N::PrintElementCalculation(
 
 bool SprismElement3D6N::HasNeighbour(unsigned int index, const Node < 3 > & neighb)
 {
-    bool quad_on = true; // NOTE: Change for a local flag?
-    if( GetProperties().Has(QUAD_ON) )
-    {
-        quad_on = GetProperties()[QUAD_ON];
-    }
-
     if (neighb.Id() == GetGeometry()[index].Id())
     {
         return false;
     }
     else
     {
-        if (quad_on == true)
+        if ( mELementalFlags.Is(SprismElement3D6N::QUADRATIC_ELEMENT) == true )
         {
             return true;
         }

@@ -226,6 +226,7 @@ protected:
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
     KRATOS_DEFINE_LOCAL_FLAG( EAS_IMPLICIT_EXPLICIT );    // True means implicit
     KRATOS_DEFINE_LOCAL_FLAG( TOTAL_UPDATED_LAGRANGIAN ); // True means total lagrangian
+    KRATOS_DEFINE_LOCAL_FLAG( QUADRATIC_ELEMENT );        // True means quadratic in-plane behaviour
 
     /* Parameters to be used in the Element as they are. Direct interface to Parameters Struct */
     struct GeneralVariables
