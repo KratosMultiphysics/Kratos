@@ -680,6 +680,16 @@ public:
     @see ShapeFunctionValue
     @see ShapeFunctionsLocalGradients
     */
+    const Matrix& ShapeFunctionLocalGradient( IndexType IntegrationPointIndex, enum IntegrationMethod ThisMethod ) const
+    {
+        if ( mShapeFunctionsLocalGradients[ThisMethod].size() <= IntegrationPointIndex )
+        {
+            KRATOS_THROW_ERROR( std::invalid_argument, "No existing integration point", "" );
+        }
+
+        return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex];
+    }
+
     const Matrix& ShapeFunctionLocalGradient( IndexType IntegrationPointIndex, IndexType ShapeFunctionIndex, enum IntegrationMethod ThisMethod ) const
     {
         if ( mShapeFunctionsLocalGradients[ThisMethod].size() <= IntegrationPointIndex )

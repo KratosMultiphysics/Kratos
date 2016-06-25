@@ -1710,8 +1710,15 @@ public:
     @see ShapeFunctionValue
     @see ShapeFunctionsLocalGradients
     */
-//     Matrix& ShapeFunctionLocalGradient(IndexType IntegrationPointIndex, IndexType ShapeFunctionIndex, IntegrationMethod ThisMethod)  const
-// {return mpGeometryData->ShapeFunctionLocalGradient(IntegrationPointIndex, ThisMethod);}
+    const Matrix& ShapeFunctionLocalGradient(IndexType IntegrationPointIndex , IntegrationMethod ThisMethod)  const
+    {
+        return mpGeometryData->ShapeFunctionLocalGradient(IntegrationPointIndex, ThisMethod);
+    }
+
+    const Matrix& ShapeFunctionLocalGradient(IndexType IntegrationPointIndex, IndexType ShapeFunctionIndex, IntegrationMethod ThisMethod)  const
+    {
+        return mpGeometryData->ShapeFunctionLocalGradient(IntegrationPointIndex, ShapeFunctionIndex, ThisMethod);
+    }
 
 
     /** This method gives gradient of all shape functions evaluated
