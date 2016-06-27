@@ -295,8 +295,8 @@ class ImplicitMechanicalSolver:
         conv_params.AddValue("residual_absolute_tolerance",self.settings["residual_absolute_tolerance"])
         
         # Construction of the class convergence_criterion
-        import convergence_criteria_utility
-        convergence_criterion = convergence_criteria_utility.convergence_criterion(conv_params)
+        import convergence_criteria_factory
+        convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_params)
         
         return convergence_criterion.mechanical_convergence_criterion
         
