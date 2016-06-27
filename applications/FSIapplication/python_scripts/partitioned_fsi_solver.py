@@ -8,10 +8,10 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 #~ import relaxation_strategy                  # Relaxation strategy
 
 # Import libraries
-import numpy
-import scipy
-import scipy.sparse
-import scipy.sparse.linalg
+#~ import numpy
+#~ import scipy
+#~ import scipy.sparse
+#~ import scipy.sparse.linalg
 import time as timemodule                   # Import time library as timemodule (avoid interferences with "time" var)
 import json                                 # Encoding library (for data exchange)
 
@@ -136,7 +136,8 @@ class PartitionedFSISolver:
             },
         "coupling_solver_settings":
             {
-            "solver_type": "mvqn_strategy"
+            "solver_type": "mvqn_strategy",
+            "max_nl_it": 10
             }
         }
         """)
@@ -159,6 +160,7 @@ class PartitionedFSISolver:
         self.fluid_solver = fluid_solver_module.CreateSolver(self.fluid_main_model_part, self.settings["fluid_solver_settings"])
         
         # Construct the coupling strategy
+        self.max_nl_it = self.settings["coupling_solver_settings"]["max_nl_it"].GetInt()
         ### TO BE DONE IN A SIMILAR FASHION AS THE ONES ABOVE
                
         print("Construction of PartitionedFSISolver finished.")
@@ -220,6 +222,7 @@ class PartitionedFSISolver:
         
     def Solve(self):
         
+        for nl_it in range(1,self.max_nl_it+1)
         # Initialize structure solver
         self.structure_solver.Solve()
         # Initialize fluid solver
