@@ -38,6 +38,8 @@
 #include "custom_processes/refine_mesh_elements_on_size_process.hpp"
 
 //PostMeshing processes
+#include "custom_processes/select_mesh_elements_process.hpp"
+#include "custom_processes/build_mesh_elements_process.hpp"
 #include "custom_processes/reconstruct_mesh_boundary_process.hpp"
 
 
@@ -99,6 +101,19 @@ namespace Kratos
       class_<RemoveMeshNodesProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
 	 "RemoveMeshNodes", init<ModelPart&, ModelerUtilities::MeshingParameters&, int, int>()
+	 )
+	;
+
+
+      class_<SelectMeshElementsProcess, bases<ProcessBaseType>, boost::noncopyable >
+	(
+	 "SelectMeshElements", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int, int>()
+	 )
+	;
+
+      class_<BuildMeshElementsProcess, bases<ProcessBaseType>, boost::noncopyable >
+	(
+	 "BuildMeshElements", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int, int>()
 	 )
 	;
 
