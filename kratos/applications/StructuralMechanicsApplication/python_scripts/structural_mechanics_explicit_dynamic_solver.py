@@ -10,6 +10,9 @@ KratosMultiphysics.CheckForPreviousImport()
 # Import the implicit solver (the explicit one is derived from it)
 import solid_mechanics_explicit_dynamic_solver
 
+def CreateSolver(main_model_part, custom_settings):
+    return ExplicitStructuralSolver(main_model_part, custom_settings)
+
 class ExplicitStructuralSolver(solid_mechanics_explicit_dynamic_solver.ExplicitMechanicalSolver):
     
     ##constructor. the constructor shall only take care of storing the settings 
