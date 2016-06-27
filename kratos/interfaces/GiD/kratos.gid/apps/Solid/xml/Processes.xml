@@ -70,15 +70,6 @@
       <parameter n="direction" pn="Direction" type="vector" fixity="Imposed" v="0.0,0.0,0.0" />
     </inputs>
   </Process>
-
-  <Process n="ApplyPointLoadProcess" pn="Apply punctual load" implemented_in_file="apply_point_load_process"
-		implemented_in_module="KratosMultiphysics.SolidMechanicsApplication"
-		help="This process applies a nodal punctual load via the apply_constant_vector_value_process in kratos core">
-    <inputs>
-      <parameter n="factor" pn="Factor" type="double" v="1.0" unit_magnitude="0" units="0"/>
-      <parameter n="direction" pn="Direction" type="vector" v="0.0,0.0,0.0" />
-    </inputs>
-  </Process>
   
   <Process n="ApplyVolumeAccelerationProcess" pn="Apply volume acceleration" implemented_in_file="apply_volume_acceleration_process"
 		implemented_in_module="KratosMultiphysics.SolidMechanicsApplication"
