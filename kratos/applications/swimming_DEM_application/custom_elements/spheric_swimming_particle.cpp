@@ -494,7 +494,6 @@ void SphericSwimmingParticle<TBaseElement>::AddFdi(const int order, array_1d<dou
         const double f00 = historic_integrands[3];
         const double f01 = historic_integrands[4];
         const double f02 = historic_integrands[5];
-        KRATOS_WATCH(coeff)
         F[0] += coeff * exp_1 * (4 * f10 - 2 * f20 + dt * beta * (f20 - 2 * dt * beta * f10) - f00 * (2 + dt * beta * exp_2 * (dt * beta - 2)) + exp_2 * (4 * f10 * (dt * beta - 1) + f20 * (2 + dt * beta * (2 * dt * beta - 3))));
         F[1] += coeff * exp_1 * (4 * f11 - 2 * f21 + dt * beta * (f21 - 2 * dt * beta * f11) - f01 * (2 + dt * beta * exp_2 * (dt * beta - 2)) + exp_2 * (4 * f11 * (dt * beta - 1) + f21 * (2 + dt * beta * (2 * dt * beta - 3))));
         F[2] += coeff * exp_1 * (4 * f12 - 2 * f22 + dt * beta * (f22 - 2 * dt * beta * f12) - f02 * (2 + dt * beta * exp_2 * (dt * beta - 2)) + exp_2 * (4 * f12 * (dt * beta - 1) + f22 * (2 + dt * beta * (2 * dt * beta - 3))));
@@ -577,7 +576,6 @@ void SphericSwimmingParticle<TBaseElement>::AddHinsbergTailContributionStrict(No
         oldest_integrand[1] = hinsberg_tail_contributions[3 * m + 1];
         oldest_integrand[2] = hinsberg_tail_contributions[3 * m + 2];
         array_1d<double, 3> Fi;
-        KRATOS_WATCH(historic_integrands.size())
 
         for (int i = 0; i < m; i++){
             const double ti = Ts[i];
@@ -779,7 +777,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeHydrodynamicTorque(NodeType& 
             rotational_coeff = 64 * KRATOS_M_PI / rot_reynolds;
         }
 
-        noalias(hydro_torque) = 0.5 *  mFluidDensity * SWIMMING_POW_5(mRadius) * rotational_coeff * norm_of_slip_rot * slip_rot;
+        noalias(hydro_torque) = 0.5 * mFluidDensity * SWIMMING_POW_5(mRadius) * rotational_coeff * norm_of_slip_rot * slip_rot;
     }
 
     else {
