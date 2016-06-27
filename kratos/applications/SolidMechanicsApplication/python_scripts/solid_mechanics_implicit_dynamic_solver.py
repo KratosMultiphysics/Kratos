@@ -279,17 +279,6 @@ class ImplicitMechanicalSolver:
                 else:
                     mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(self.settings["damp_factor_m"].GetDouble(),
                                                                                                  self.settings["dynamic_factor"].GetDouble())
-
-        elif(scheme_type == "Relaxation"):
-          #~ self.main_model_part.GetSubModelPart(self.settings["volume_model_part_name"].GetString()).AddNodalSolutionStepVariable(DISPLACEMENT)  
-            
-            self.settings.AddEmptyValue("damp_factor_f")  
-            self.settings.AddEmptyValue("dynamic_factor_m")
-            self.settings["damp_factor_f"].SetDouble(-0.3)
-            self.settings["dynamic_factor_m"].SetDouble(10.0) 
-            
-            mechanical_scheme = KratosSolid.ResidualBasedRelaxationScheme(self.settings["damp_factor_f"].GetDouble(),
-                                                                          self.settings["dynamic_factor_m"].GetDouble())
                                 
         return mechanical_scheme
     
