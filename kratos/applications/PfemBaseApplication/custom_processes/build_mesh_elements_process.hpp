@@ -158,7 +158,6 @@ namespace Kratos
       const unsigned int nds = element_begin->GetGeometry().size();
 
       int* OutElementList = mrRemesh.OutMesh.GetElementList();
-      int* OutElementNeighbourList = mrRemesh.OutMesh.GetElementNeighbourList();
 
       std::vector<Node<3>::Pointer>    list_of_element_centers;
       std::vector<Geometry<Node<3> > > list_of_element_vertices; //is this list needed?
@@ -182,47 +181,19 @@ namespace Kratos
 	      Geometry<Node<3> > vertices;
 	      std::vector<int >  neighbours (nds);
 	      
-	      for(unsigned int pn=0; pn<nds; pn++)
+	      for(unsigned int i=0; i<nds; i++)
 		{
 		  //note that OutElementList, starts from node 1, not from node 0, it can be directly assigned to mrRemesh.NodalPreIds.
-		  //vertices.push_back( *((model_nodes).find( mrRemesh.NodalPreIds[OutElementList[el*nds+pn]] ).base() ) );
-		  vertices.push_back(*(nodes_begin + OutElementList[el*nds+pn]-1).base());
+		  vertices.push_back(*(nodes_begin + OutElementList[el*nds+i]-1).base());
 		  //vertices.push_back(mrModelPart.pGetNode(OutElementList[el*3+pn],MeshId));
 		  
 		  if(vertices.back().Is(TO_ERASE))
-		    std::cout<<" WARNING:: mesh vertex RELEASED "<<vertices.back().Id()<<std::endl;
-		  
-		  //std::cout<<" out.neighborlist "<<out.neighborlist[el*nds+pn]<<std::endl;
-		  
-		  if( OutElementNeighbourList[el*nds+pn]>0 )
-		    {
-		      
-		      if(mrRemesh.PreservedElements[ OutElementNeighbourList[el*nds+pn]-1 ])
-			{
-			  neighbours[pn]= OutElementNeighbourList[el*nds+pn];
-			}
-		      else
-			{
-			  neighbours[pn]=-1;
-			  faces++;
-			}
-		      
-		    }
-		  else
-		    {
-		      neighbours[pn]=-1;
-		      faces++;
-		    }
-		  
-		  
-		  
+		    std::cout<<" WARNING:: mesh vertex RELEASED "<<vertices.back().Id()<<std::endl;		  
 		}
 	      
-
 	      id += 1;
 	      
 	      mrRemesh.PreservedElements[el] = id;
-	      mrRemesh.NeighbourList.push_back(neighbours);
 	      
 	      
 	      //*******************************************************************
@@ -300,7 +271,7 @@ namespace Kratos
       if( mrRemesh.Options.Is(ModelerUtilities::MESH_SMOOTHING) && mrRemesh.Info->GeometricalSmoothingRequired ){
 	LaplacianSmoothing  MeshGeometricSmoothing(mrModelPart);
 	MeshGeometricSmoothing.SetEchoLevel(mEchoLevel);
-	//MeshGeometricSmoothing.ApplyMeshSmoothing(mrModelPart,mrRemesh.PreservedElements,out,list_of_element_vertices,MeshId);
+	MeshGeometricSmoothing.ApplyMeshSmoothing(mrModelPart,mrRemesh.PreservedElements,OutElementList,mrRemesh.OutMesh.NumberOfPoints,mMeshId);
       }
       //*******************************************************************
       
@@ -326,7 +297,7 @@ namespace Kratos
       //*******************************************************************
       
       //8) Filling the neighbour list
-      //SetElementNeighbours(mrModelPart,mrRemesh,MeshId);
+      SetElementNeighbours();
 
       //*******************************************************************
       
@@ -430,6 +401,65 @@ namespace Kratos
     ///@name Private Operators
     ///@{
 
+    void SetElementNeighbours()
+    {
+      KRATOS_TRY
+
+	if( mEchoLevel > 0 ){
+	  std::cout<<" [ SET ELEMENT NEIGHBOURS : "<<std::endl;
+	  std::cout<<"   Initial Faces : "<<mrModelPart.Conditions(mMeshId).size()<<std::endl;
+	}
+
+      ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
+
+      const unsigned int nds = element_begin->GetGeometry().size();
+
+      int* OutElementNeighbourList = mrRemesh.OutMesh.GetElementNeighbourList();
+
+      int facecounter=0;
+      for(ModelPart::ElementsContainerType::const_iterator iii = mrModelPart.ElementsBegin(mMeshId);
+	  iii != mrModelPart.ElementsEnd(mMeshId); iii++)
+	{
+	  
+	  int Id= iii->Id() - 1; 
+	  
+	  int number_of_faces = iii->GetGeometry().FacesNumber(); //defined for triangles and tetrahedra
+	  (iii->GetValue(NEIGHBOUR_ELEMENTS)).resize(number_of_faces);
+	  WeakPointerVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
+
+	  for(int i = 0; i<number_of_faces; i++)
+	    {
+	      int index = OutElementNeighbourList[Id*nds+i];  //mrRemesh.NeighbourList[Id][i];
+				
+	      if(index > 0)
+		{
+		  //std::cout<<" Element "<<Id<<" size "<<mrRemesh.PreservedElements.size()<<std::endl;			    
+		  //std::cout<<" Index pre "<<index<<" size "<<mrRemesh.PreservedElements.size()<<std::endl;
+		  index = mrRemesh.PreservedElements[index-1];
+		  //std::cout<<" Index post "<<index<<std::endl;
+		}
+
+	      if(index > 0)
+		{
+		  neighb(i) = *((element_begin + index -1 ).base());
+		}
+	      else
+		{
+		  //neighb(i) = Element::WeakPointer();
+		  neighb(i) = *(iii.base());
+		  facecounter++;
+		}
+	    }
+	}
+	
+      if( mEchoLevel > 0 ){
+	std::cout<<"   Final Faces : "<<facecounter<<std::endl;
+	std::cout<<"   SET ELEMENT NEIGHBOURS ]; "<<std::endl;
+      }
+
+      KRATOS_CATCH( "" )
+
+    }
 
     ///@}
     ///@name Private Operations

@@ -501,10 +501,14 @@ namespace Kratos
     }
 	
 
+   //*******************************************************************************************
+   //*******************************************************************************************
+
 
     void ApplyMeshSmoothing(ModelPart& rModelPart,
 			    std::vector<Geometry<Node<3> > >& rElementsList,
 			    std::vector<std::vector<int> >&   rNeighborElementsList,
+			    const int* pNeigbourElementsList,
 			    const int& NumberOfPoints,
 			    ModelPart::IndexType MeshId=0)
     {
@@ -731,7 +735,7 @@ namespace Kratos
 	    
 	    std::fill( PointCoordinates.begin(), PointCoordinates.end(), 0.0 );
 	    MeshDataTransferUtilities DataTransferUtilities;
-	    DataTransferUtilities.CalculateCenterAndSearchRadius( ElementPointCoordinates, PointCoordinates, radius);
+	    DataTransferUtilities.CalculateCenterAndSearchRadius( ElementPointCoordinates, PointCoordinates, radius );
 
 	    //find all of the new nodes within the radius
 	    center.X() = PointCoordinates[0];
@@ -936,7 +940,432 @@ namespace Kratos
 	    
       }
 
-      KRATOS_CATCH(" ")
+      KRATOS_CATCH( "" )
+    }
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+    // GENERAL 
+
+
+    void ApplyMeshSmoothing(ModelPart& rModelPart,
+			    std::vector<int> & PreservedElements,
+			    const int* pElementsList,
+			    const int& NumberOfPoints,
+			    ModelPart::IndexType MeshId=0)
+    {
+      
+      KRATOS_TRY
+
+      NodesContainerType& rNodes = rModelPart.Nodes(MeshId);
+
+      ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(MeshId);
+
+      const unsigned int nds = element_begin->GetGeometry().size();
+
+      //*******************************************************************
+      //NEIGHBOUR NODES:
+
+      std::vector<int> EmptyVector(0);
+      std::vector<std::vector<int> >  NeighborNodesList(rNodes.size());
+      std::fill( NeighborNodesList.begin(), NeighborNodesList.end(), EmptyVector );
+
+      NeighborNodesList = SetNeighborNodes(NeighborNodesList, PreservedElements, pElementsList, NumberOfPoints, nds);
+		
+
+      //*******************************************************************
+      //MOVE NODES: LAPLACIAN SMOOTHING:
+	 
+      if( GetEchoLevel() > 0 )
+	std::cout<<" Apply Mesh Smoothing in Mesh "<<MeshId<<std::endl;
+
+      double convergence_tol  = 0.001;
+      double smoothing_factor = 0.1;
+      double smoothing_iters  = 3;//4
+      double iters = 0;
+
+      bool simple = true; //weight = 1;
+	  
+      bool   converged = false;
+      double MaxLength = 0;
+      double NewMaxLength = 0;
+
+
+      unsigned int number_of_nodes = 0;
+      
+      ModelPart::NodesContainerType::iterator nodes_begin = rModelPart.NodesBegin(MeshId);
+
+      while ( iters<smoothing_iters && converged==false ){ 
+
+	//std::cout<<" Iter "<< iters <<std::endl;
+
+	array_1d<double,3> P;
+	array_1d<double,3> Q;//neighbour position
+	array_1d<double,3> D;
+	    	    
+	    
+	double TotalWeight = 0;
+	double Weight = 0;
+	array_1d<double,3> TotalDistance;
+
+
+	//convergence variables
+	double Length = 0;
+	MaxLength     = NewMaxLength;
+	NewMaxLength  = 0;
+	   
+
+       	number_of_nodes = 0;
+	for(unsigned int in = 0; in<rNodes.size(); in++)
+	  {
+	    unsigned int NumberOfNeighbours = NeighborNodesList[in].size();
+
+	    if(rNodes[in+1].IsNot(BOUNDARY) && rNodes[in+1].IsNot(TO_ERASE) && NumberOfNeighbours>1)
+	      {
+		TotalDistance.clear();
+		TotalWeight = 0;
+		Weight = 0;
+
+		//point position
+		P[0] = (nodes_begin+in)->X();
+		P[1] = (nodes_begin+in)->Y();
+		P[2] = (nodes_begin+in)->Z();
+		     		    
+		//std::cout<<" Initial Position: "<<P<<std::endl;
+		Length = 0;
+
+		for(unsigned int i = 0; i < NumberOfNeighbours; i++)
+		  {
+		    //neighbour position
+		    Q[0] = (nodes_begin+(NeighborNodesList[in][i]-1))->X();
+		    Q[1] = (nodes_begin+(NeighborNodesList[in][i]-1))->Y();
+		    Q[1] = (nodes_begin+(NeighborNodesList[in][i]-1))->Z();
+	    	
+		    D = P-Q;
+			
+		    Length =sqrt(D[0]*D[0]+D[1]*D[1]+D[2]*D[2]);
+			  
+
+		    if( simple ){
+
+		      Weight = 1;
+
+		    }
+		    else{
+			  		
+		      if(Length !=0)
+			Weight = ( 1.0/Length );
+		      else
+			Weight = 0;
+		    }
+
+		    if(NewMaxLength<Length)
+		      NewMaxLength = Length;
+			
+		    TotalDistance += (Weight*(Q-P)) ;  		  
+		    TotalWeight   += Weight ;
+		  
+		  }
+		    
+	     
+		if(TotalWeight!=0)
+		  D = ( smoothing_factor / TotalWeight ) * TotalDistance;
+		else
+		  D.clear();
+		    
+
+		P += D;
+
+		(nodes_begin+in)->X() = P[0];
+		(nodes_begin+in)->Y() = P[1];
+		(nodes_begin+in)->Z() = P[2];
+		
+		number_of_nodes +=1;
+	      }
+
+	  }
+	  
+
+	if( (NewMaxLength-MaxLength)/NewMaxLength < convergence_tol ){
+	  converged = true;
+	  if( GetEchoLevel() > 0 )
+	    std::cout<<"   Laplacian smoothing convergence achieved "<<std::endl;
+	}
+
+
+	iters++;
+
+      }
+
+      if(iters==smoothing_iters && !converged){
+	if( GetEchoLevel() > 0 )
+	  std::cout<<"   WARNING: Laplacian smoothing convergence NOT achieved "<<std::endl;
+      }
+
+      //*******************************************************************
+      //MOVE NODES: BOUNDARY SMOOTHING 
+      //SetBoundarySmoothing (rModelPart, rNodes, PreservedElements, out, MeshId);
+
+
+      //*******************************************************************
+      //MOVE NODES: BOUNDARY PROJECTION	 
+      //SetInsideProjection (rModelPart, out, NeighborNodesList, MeshId);
+
+      //*******************************************************************
+      //TRANSFER VARIABLES TO NEW NODES POSITION:
+      ProjectVariablesToNewPositions(rModelPart, MeshId);
+
+      KRATOS_CATCH( "" )
+
+    }
+
+
+    void ProjectVariablesToNewPositions(ModelPart& rModelPart,
+					ModelPart::IndexType MeshId=0)
+    {
+      
+      KRATOS_TRY
+
+      bool transfer=true; //transfer active or inactive
+
+      if(transfer==true){
+
+	//create the list of the nodes to be check during the search (new positions after the laplacian smoothing)
+
+	std::vector<Node<3>::Pointer> list_of_nodes;	  
+	  
+	for(NodesContainerType::iterator i_node = rModelPart.NodesBegin(MeshId) ; i_node != rModelPart.NodesEnd(MeshId) ; i_node++)
+	  {
+	    //if(rNodes[in+1].IsNot(BOUNDARY) && rNodes[in+1].IsNot(TO_ERASE) && NumberOfNeighbours>1)      		
+	    if( i_node->IsNot(TO_ERASE) ){      
+	      (list_of_nodes).push_back(*(i_node.base()));	      
+	    }
+	    else {
+	      std::cout <<" LLM:PSEUDOERROR node to erase : " << i_node->Id() << std::endl;
+	    }
+	  }
+	    
+	//Find out where the new nodes belong to:
+	unsigned int number_of_nodes = list_of_nodes.size();
+	std::vector<double> ShapeFunctionsN;    
+	std::vector<VariablesListDataValueContainer> VariablesListVector(number_of_nodes);
+	std::vector<int> UniquePosition (number_of_nodes);
+	std::fill( UniquePosition.begin(), UniquePosition.end(), 0 );
+	    
+	//unsigned int  step_data_size = rModelPart.GetNodalSolutionStepDataSize();
+	VariablesList&  variables_list = rModelPart.GetNodalSolutionStepVariablesList();
+
+	//find the center and "radius" of the element
+	double  radius = 0;
+	Node<3> center(0,0.0,0.0,0.0);
+	
+	unsigned int MaximumNumberOfPointsInRadius = list_of_nodes.size();
+	std::vector<Node<3>::Pointer> PointsInRadius (MaximumNumberOfPointsInRadius);
+	std::vector<double>  PointsInRadiusDistances (MaximumNumberOfPointsInRadius);
+
+	//geometry
+	ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(MeshId);	  
+	const unsigned int nds = element_begin->GetGeometry().size();
+
+	std::vector<std::vector<double> > ElementPointCoordinates(nds);
+	std::vector<double> PointCoordinates(3); //dimension=3
+	std::fill( PointCoordinates.begin(), PointCoordinates.end(), 0.0 );
+	std::fill( ElementPointCoordinates.begin(), ElementPointCoordinates.end(), PointCoordinates );
+	
+	for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(MeshId);
+	    ie != rModelPart.ElementsEnd(MeshId); ie++)
+	  {
+	   
+	    for(unsigned int i=0; i<nds; i++)
+	      {
+		//ID[cn] = rElementsList[el][cn].Id();	
+		const array_1d<double,3>& Displacement = ie->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+		
+		PointCoordinates[0] = ie->GetGeometry()[i].X0() + Displacement[0];
+		PointCoordinates[1] = ie->GetGeometry()[i].Y0() + Displacement[1];
+		PointCoordinates[2] = ie->GetGeometry()[i].Z0() + Displacement[2];
+
+		ElementPointCoordinates[i] = PointCoordinates;
+	      }
+	    
+	    std::fill( PointCoordinates.begin(), PointCoordinates.end(), 0.0 );
+	    MeshDataTransferUtilities DataTransferUtilities;
+	    DataTransferUtilities.CalculateCenterAndSearchRadius( ElementPointCoordinates, PointCoordinates, radius );
+
+	    //find all of the new nodes within the radius
+	    center.X() = PointCoordinates[0];
+	    center.Y() = PointCoordinates[1];
+	    center.Z() = PointCoordinates[2];
+		    
+	    double Radius = radius * 1.01;
+	    int NumberOfPointsInRadius = this->SearchInRadius (center, list_of_nodes, PointsInRadius, PointsInRadiusDistances, MaximumNumberOfPointsInRadius, Radius);
+
+	    //std::cout<<"[ID:"<<el<<"]: NumberOfPointsInRadius "<<number_of_points_in_radius<<std::endl;
+
+	    //check if inside and eventually interpolate
+	    
+
+	    for(std::vector<Node<3>::Pointer>::iterator it_found = PointsInRadius.begin(); it_found != (PointsInRadius.begin() + NumberOfPointsInRadius) ; it_found++)
+	      {
+
+		if((*it_found)->IsNot(TO_ERASE)){
+
+		  //std::cout<<" Found ID "<<(*it_found)->Id()<<std::endl;
+
+		  PointCoordinates[0] = (*it_found)->X();
+		  PointCoordinates[1] = (*it_found)->Y();
+		  PointCoordinates[2] = (*it_found)->Z();
+
+		  bool is_inside = false;
+		  is_inside = ModelerUtilities::CalculatePosition( ElementPointCoordinates, PointCoordinates, ShapeFunctionsN );
+
+		  if(is_inside == true)
+		    {
+		      //std::cout<<"  Node interpolation: "<<(*it_found)->Id()<<" VariablesList size "<<VariablesListVector.size()<<std::endl;
+		      if(UniquePosition [(*it_found)->Id()] == 0){
+			    
+			UniquePosition [(*it_found)->Id()] = 1;
+
+			double alpha = 0.25; //[0,1] //smoothing level of the interpolation
+
+			MeshDataTransferUtilities DataTransferUtilities;
+			VariablesListVector[(*it_found)->Id()] = DataTransferUtilities.InterpolateVariables( ie->GetGeometry(), ShapeFunctionsN, variables_list, (*it_found), alpha );
+			    
+		      }
+		      else{
+			UniquePosition [(*it_found)->Id()] += 1;
+			std::cout<<" Node "<<(*it_found)->Id()<<" is relocated again in a element:: "<<ie->Id()<<" num locations "<<UniquePosition [(*it_found)->Id()]<<std::endl;
+			std::cout<<" ShapeFunctionsN "<<ShapeFunctionsN.size()<<std::endl;
+		      }
+
+		    }
+		}
+	      }
+	     
+	  }
+	    
+	//the search moves the nodes order using its PreIds
+	rModelPart.Nodes(MeshId).Sort();
+
+	//*******************************************************************
+	//CREATE NEW NODE INFORMATION:
+
+	int id=0;
+	for(NodesContainerType::iterator i_node = rModelPart.NodesBegin(MeshId) ; i_node != rModelPart.NodesEnd(MeshId) ; i_node++)
+	  {
+	    //std::cout<<" ID "<<i_node->Id()<<std::endl;
+	    if(i_node->IsNot(BOUNDARY) && i_node->IsNot(TO_ERASE)){
+	      //recover the original position of the node
+	      id = i_node->Id();
+
+	      // double PressurePrev = (i_node)->FastGetSolutionStepValue(PRESSURE); 
+
+	      //i_node->SolutionStepData() = VariablesListVector[id];
+
+	      if ( VariablesListVector[id].Has(DISPLACEMENT) == false)
+		{
+		  std::cout << " PSEUDOERROR: IN this line, there is a node that does not have displacement" << std::endl;
+		  std::cout << " Laplacian. ThisNode new information does not have displacement " << i_node->Id() << std::endl;
+		  std::cout << " THIS IS BECAUSE THE NODE is out of the DOMAIN and the interpolation is wrong" << std::endl;
+		  std::cout << "    X: " << i_node->X() << " Y: " << i_node->Y() << std::endl;
+		}
+	      else {
+		i_node->SolutionStepData() = VariablesListVector[id];
+	      }
+		  
+	      // double PressurePost = (i_node)->FastGetSolutionStepValue(PRESSURE);
+	      // std::cout<<" PRESSURE PREV "<<PressurePrev<<" PRESSURE POST "<<PressurePost<<std::endl;
+
+	      const array_1d<double,3>& disp = i_node->FastGetSolutionStepValue(DISPLACEMENT);
+
+	      i_node->X0() = i_node->X() - disp[0];
+	      i_node->Y0() = i_node->Y() - disp[1];
+	      i_node->Z0() = i_node->Z() - disp[2];
+
+	    }
+	    // Set the position of boundary laplacian 
+	    else if ( i_node->Is(BOUNDARY) && i_node->IsNot(TO_ERASE) && i_node->Is(VISITED) )
+	      {
+		i_node->Set(VISITED, false);
+
+		//recover the original position of the node
+		id = i_node->Id();
+
+		// double PressurePrev = (i_node)->FastGetSolutionStepValue(PRESSURE); 
+
+		//i_node->SolutionStepData() = VariablesListVector[id];
+
+		if ( VariablesListVector[id].Has(DISPLACEMENT) == false)
+		  {
+		    std::cout << " OUT::PSEUDOERROR: IN this line, there is a node that does not have displacement" << std::endl;
+		    std::cout << " Laplacian. ThisNode new information does not have displacement " << i_node->Id() << std::endl;
+		    std::cout << " THIS IS BECAUSE THE NODE is out of the DOMAIN and the interpolation is wrong" << std::endl;
+		    std::cout << "    X: " << i_node->X() << " Y: " << i_node->Y() << std::endl;
+		  }
+		else {
+		  i_node->SolutionStepData() = VariablesListVector[id];
+		}
+
+		// double PressurePost = (i_node)->FastGetSolutionStepValue(PRESSURE);
+		// std::cout<<" PRESSURE PREV "<<PressurePrev<<" PRESSURE POST "<<PressurePost<<std::endl;
+
+		if ( i_node->SolutionStepsDataHas(DISPLACEMENT) == false)
+		  {
+		    std::cout << " AFTER WIERD " << std::endl;
+		    std::cout << " Laplacian. ThisNode Does not have displacemenet " << i_node->Id() << std::endl;
+		    std::cout << "    X: " << i_node->X() << " Y: " << i_node->Y() << std::endl;
+		  }
+
+		const array_1d<double,3>& disp = i_node->FastGetSolutionStepValue(DISPLACEMENT);
+
+		bool MoveFixedNodes = false; 
+		if (MoveFixedNodes)
+		  {
+		    i_node->X0() = i_node->X() - disp[0];
+		    i_node->Y0() = i_node->Y() - disp[1];
+		    i_node->Z0() = i_node->Z() - disp[2];
+		  }
+		else {
+		  if ( i_node->pGetDof(DISPLACEMENT_X)->IsFixed() == false) {
+		    i_node->X0() = i_node->X() - disp[0];
+		  }
+		  if ( i_node->pGetDof(DISPLACEMENT_Y)->IsFixed() == false) {
+		    i_node->Y0() = i_node->Y() - disp[1];
+		  }
+
+		  if ( i_node->pGetDof(DISPLACEMENT_Z)->IsFixed() == false) {
+		    i_node->Z0() = i_node->Z() - disp[2];
+		  }
+		}
+
+	      }
+	  }
+
+      }
+      else{
+
+	for(NodesContainerType::iterator i_node = rModelPart.NodesBegin(MeshId) ; i_node != rModelPart.NodesEnd(MeshId) ; i_node++)
+	  {
+		
+	    //recover the original position of the node
+	    array_1d<double,3>& disp = i_node->FastGetSolutionStepValue(DISPLACEMENT);
+	    if(norm_2(disp)>0){
+	      i_node->X0() = i_node->X() - disp[0];
+	      i_node->Y0() = i_node->Y() - disp[1];
+	      i_node->Z0() = i_node->Z() - disp[2];
+	    }
+
+	    //Set the position of boundary laplacian (Reset the flag)
+	    if ( i_node->Is(BOUNDARY) && i_node->IsNot(TO_ERASE) && i_node->Is(VISITED) )
+	      {
+		i_node->Set(VISITED, false); //LMV.
+	      }
+
+	  }
+	    
+      }
+
+      KRATOS_CATCH( "" )
     }
 
 
@@ -2089,7 +2518,7 @@ namespace Kratos
 	      for(unsigned int jpn=0; jpn<element_size; jpn++)
 		{
 		  if(ipn!=jpn){
-		    //add unique node neighbor
+		    //add unique node neighbour
 		    //be careful this works because the Id's are renumbered from 1 to NumberOfNodes, when they are set to triangulation.
 		    neighbor_size = rNeighborNodesList[rElementsList[el][ipn].Id()-1].size();  
 		    neighbor_set = false;
@@ -2108,6 +2537,57 @@ namespace Kratos
 	}
 
       return rNeighborNodesList;
+    }
+
+
+    //GENERAL
+    std::vector<std::vector<int> >& SetNeighborNodes (std::vector<std::vector<int> >& list_of_neighbor_nodes, std::vector<int> & PreservedElements,const int* ElementList, const int& NumberOfPoints, const unsigned int& nds)
+    {
+		 
+      KRATOS_TRY
+
+      if( (int)list_of_neighbor_nodes.size() != NumberOfPoints+1 ){
+	list_of_neighbor_nodes.resize(NumberOfPoints+1);
+      }
+      std::vector<int> empty_vector(0);
+      std::fill( list_of_neighbor_nodes.begin(), list_of_neighbor_nodes.end(), empty_vector );
+
+      bool neighb_set  = false;
+      int  neighb_size = 0;
+
+      for(unsigned int el = 0; el<PreservedElements.size(); el++)
+	{
+	  if(PreservedElements[el])
+	    {
+	      //a) Create list of node neighbors (list_of_neighbor_nodes)
+	      for(unsigned int ipn=0; ipn<nds; ipn++)
+		{
+		  
+		  for(unsigned int jpn=0; jpn<nds; jpn++)
+		    {
+		      if(ipn!=jpn){
+			//add unique node neighbor
+			neighb_size = list_of_neighbor_nodes[ElementList[el*nds+ipn]].size();
+			neighb_set = false;
+			for(int npn=0; npn<neighb_size; npn++)
+			  {
+			    if( list_of_neighbor_nodes[ElementList[el*nds+ipn]][npn]==(ElementList[el*nds+jpn]) ){
+			      neighb_set=true;
+			    }
+			  }
+			if(neighb_set==false){
+			  list_of_neighbor_nodes[ElementList[el*nds+ipn]].push_back(ElementList[el*nds+jpn]);
+			}
+		      }					  
+		    }
+		}
+	    }
+	}
+
+      return list_of_neighbor_nodes;
+
+      KRATOS_CATCH( "" )
+
     }
 
 
