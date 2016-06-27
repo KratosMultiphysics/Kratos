@@ -1285,7 +1285,7 @@ namespace Kratos
 		    }
 		    else{
 		      
-		      // standart case not radius is needed
+		      // standart case no radius is needed
 		      // if( ResultDistance > list_of_distances[candidate] ){
 		      // 	result_id = (*(list_of_points_in_radius.begin()+candidate))->Id();
 		      // 	on_connectivities += 1;
