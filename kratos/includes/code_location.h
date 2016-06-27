@@ -18,6 +18,8 @@
 #include <string>
 #include <iostream> 
 
+#include "includes/kratos_export_api.h"
+
 namespace Kratos
 {
 	///@addtogroup KratosCore
@@ -25,7 +27,7 @@ namespace Kratos
 
 	/// This class keeps a code location consist of filename, function name and line number.
 	/// It also provides methods to get cleaned version of filename and function name. 
-	class CodeLocation
+	class KRATOS_API(KRATOS_CORE) CodeLocation
 	{
 	public:
 
