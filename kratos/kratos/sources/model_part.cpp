@@ -15,12 +15,13 @@
 
 
 // External includes
+#include "boost/make_shared.hpp"
 
 
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "boost/make_shared.hpp"
+#include "includes/exception.h"
 
 namespace Kratos
 {
