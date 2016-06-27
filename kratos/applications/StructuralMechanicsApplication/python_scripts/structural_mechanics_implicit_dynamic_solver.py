@@ -10,6 +10,9 @@ KratosMultiphysics.CheckForPreviousImport()
 # Import the implicit solver (the explicit one is derived from it)
 import solid_mechanics_implicit_dynamic_solver
 
+def CreateSolver(main_model_part, custom_settings):
+    return ImplicitStructuralSolver(main_model_part, custom_settings)
+
 class ImplicitStructuralSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver):
     
     ##constructor. the constructor shall only take care of storing the settings 
@@ -144,3 +147,22 @@ class ImplicitStructuralSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
                 node.AddDof(KratosMultiphysics.StructuralMechanicsApplication.LAGRANGE_MULTIPLIER_Z);
 
         print("::[Mechanical Solver]:: DOF's ADDED")
+
+    def _GetSolutionScheme(self, scheme_type, component_wise, compute_contact_forces):
+
+        if(scheme_type == "Newmark") or (scheme_type == "Bossak"):
+            
+            mechanical_scheme = super(ImplicitStructuralSolver,self)._GetSolutionScheme(scheme_type, component_wise, compute_contact_forces)
+
+        elif(scheme_type == "Relaxation"):
+          #~ self.main_model_part.GetSubModelPart(self.settings["volume_model_part_name"].GetString()).AddNodalSolutionStepVariable(DISPLACEMENT)  
+            
+            self.settings.AddEmptyValue("damp_factor_f")  
+            self.settings.AddEmptyValue("dynamic_factor_m")
+            self.settings["damp_factor_f"].SetDouble(-0.3)
+            self.settings["dynamic_factor_m"].SetDouble(10.0) 
+            
+            mechanical_scheme = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedRelaxationScheme(self.settings["damp_factor_f"].GetDouble(),
+                                                                                                                self.settings["dynamic_factor_m"].GetDouble())
+                                
+        return mechanical_scheme
