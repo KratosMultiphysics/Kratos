@@ -28,7 +28,7 @@
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
-#include "custom_strategies/residual_based_arc_length_strategy.hpp"
+#include "custom_strategies/custom_strategies/residual_based_arc_length_strategy.hpp"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
