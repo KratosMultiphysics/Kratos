@@ -27,7 +27,7 @@
 #include "includes/constant.h"
 #include "includes/kratos_config.h"
 #include "includes/kratos_export_api.h"
-#include "includes/kratos_exception.h"
+#include "includes/exception.h"
 
 
 
@@ -118,27 +118,17 @@ KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
 #define KRATOS_CURRENT_FUNCTION BOOST_CURRENT_FUNCTION
 #endif
 
-#ifndef KRATOS_HERE
-#define KRATOS_HERE  __FILE__ << ":" << __LINE__ << ":" << KRATOS_CURRENT_FUNCTION
-#endif
-
 
 #define KRATOS_CATCH_AND_THROW(ExceptionType, MoreInfo, Block) \
 catch(ExceptionType& e)                                        \
 {                                                              \
 Block                                                          \
-std::stringstream buffer;                                      \
-buffer << "\nwhile executing : " << KRATOS_HERE << MoreInfo ; \
-throw KratosException(e.what(), buffer.str());                             \
+KRATOS_ERROR;                             \
 }
 
 #define KRATOS_THROW_ERROR(ExceptionType, ErrorMessage, MoreInfo)    \
 {                                                              \
-std::stringstream kratos_error_buffer_where_12345;                                      \
-std::stringstream kratos_error_buffer_what_12345;                                      \
-kratos_error_buffer_where_12345 << KRATOS_HERE << std::endl; \
-kratos_error_buffer_what_12345 << ErrorMessage << " " << MoreInfo; \
-throw KratosException(kratos_error_buffer_what_12345.str(), kratos_error_buffer_where_12345.str());                             \
+KRATOS_ERROR << ErrorMessage << MoreInfo << std::endl;          \
 }
 
 #define KRATOS_CATCH_WITH_BLOCK(MoreInfo,Block) \
@@ -152,6 +142,7 @@ KRATOS_CATCH_AND_THROW(std::invalid_argument,MoreInfo,Block) \
 KRATOS_CATCH_AND_THROW(std::domain_error,MoreInfo,Block)     \
 KRATOS_CATCH_AND_THROW(std::logic_error,MoreInfo,Block)      \
 KRATOS_CATCH_AND_THROW(std::runtime_error,MoreInfo,Block)    \
+catch(Exception& e) { Block throw Exception(e) << KRATOS_CODE_LOCATION << MoreInfo << std::endl; } \
 catch(std::exception& e) { Block KRATOS_THROW_ERROR(std::runtime_error, e.what(), MoreInfo) } \
 catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreInfo) }
 
