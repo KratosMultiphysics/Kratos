@@ -161,6 +161,10 @@ namespace Kratos
 
 #define KRATOS_ERROR throw Exception("Error: ", KRATOS_CODE_LOCATION)
 
+#define KRATOS_ERROR_IF(conditional) if(conditional) throw Exception("Error: ", KRATOS_CODE_LOCATION)
+
+#define KRATOS_ERROR_IF_NOT(conditional) if(!(conditional)) throw Exception("Error: ", KRATOS_CODE_LOCATION)
+
   ///@}
   ///@name Input and output
   ///@{
