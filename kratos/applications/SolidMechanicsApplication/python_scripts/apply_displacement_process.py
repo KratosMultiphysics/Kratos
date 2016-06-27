@@ -36,9 +36,7 @@ class ApplyDisplacementProcess(Process):
         x_params.AddEmptyValue("variable_name").SetString("DISPLACEMENT_X")
         
         self.x_component_process = ApplyConstantScalarValueProcess(model_part, x_params)
-        
-        self.model_part = model_part
-        
+                
         # Auxiliar y-component parameters creation
         y_params = Parameters("{}")
         y_params.AddValue("model_part_name",settings["model_part_name"])
