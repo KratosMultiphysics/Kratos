@@ -814,8 +814,8 @@ void LargeDisplacementElement::PrintElementCalculation(LocalSystemComponents& rL
 
     std::cout<<" Stress "<<rVariables.StressVector<<std::endl;
     std::cout<<" Strain "<<rVariables.StrainVector<<std::endl;
-    std::cout<<" F  "<<rVariables.F<<std::endl;
-    std::cout<<" F0 "<<rVariables.F0<<std::endl;
+    std::cout<<" F  "<<rVariables.F<<" detF "<<rVariables.detF<<std::endl;
+    std::cout<<" F0 "<<rVariables.F0<<" detF0 "<<rVariables.detF0<<std::endl;
     std::cout<<" ConstitutiveMatrix "<<rVariables.ConstitutiveMatrix<<std::endl;
     std::cout<<" K "<<rLocalSystem.GetLeftHandSideMatrix()<<std::endl;
     std::cout<<" f "<<rLocalSystem.GetRightHandSideVector()<<std::endl;	
@@ -916,8 +916,9 @@ void LargeDisplacementElement::CalculateAndAddRHS(LocalSystemComponents& rLocalS
       // operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
       this->CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight );
 
+      //KRATOS_WATCH( rRightHandSideVector )
     }
-    //KRATOS_WATCH( rRightHandSideVector )
+
 }
 
 
