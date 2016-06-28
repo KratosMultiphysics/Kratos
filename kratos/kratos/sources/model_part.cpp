@@ -110,6 +110,12 @@ namespace Kratos
 		for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
 			delete i_sub_model_part.base()->second;
 
+                mpCommunicator->Clear();
+                
+                for(auto i_mesh = mMeshes.begin() ; i_mesh != mMeshes.end() ; i_mesh++)
+                    i_mesh->Clear();
+                
+                
 		if (!IsSubModelPart())
 			delete mpVariablesList;
 	}
