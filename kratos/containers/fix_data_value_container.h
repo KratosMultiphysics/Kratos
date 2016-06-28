@@ -328,6 +328,7 @@ public:
 #endif
         return *(TDataType*)(mpData + index);
     }
+    
     template<class TDataType> const TDataType& FastGetValue(const Variable<TDataType>& rThisVariable) const
     {
         IndexType index = mpVariablesList->Index(rThisVariable);
@@ -340,6 +341,7 @@ public:
 #endif
         return *(const TDataType*)(mpData + index);
     }
+    
     //*******************************************************************************************
 
     template<class TAdaptorType> typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable)
