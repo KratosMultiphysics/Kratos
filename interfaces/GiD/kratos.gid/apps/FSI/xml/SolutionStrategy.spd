@@ -7,12 +7,12 @@
             
     <container n="StratParams" pn="Strategy parameters" un="FSIStratParams" icon="groupsTreeNew.gif" state="normal" >
         <dynamicnode command="injectSolStratParams" args="ImplementedInApplication FSIApplication"/>
-    </container>
+    </container><!--
 
     <container n="TimeParameters" pn="Time parameters" un="FLTimeParameters" help="Time parameters" >
         <value n="StartTime" pn="Start time" v="0.0" help=""/>
         <value n="EndTime" pn="End time" v="1" help=""/>
         <value n="DeltaTime" pn="Delta time" v="0.01" help=""/>
     </container>
-      
+      -->
 </container>

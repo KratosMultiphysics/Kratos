@@ -6,7 +6,7 @@ proc Structural::xml::Init { } {
      variable dir
      Model::InitVariables dir $Structural::dir
     
-    Model::ForgetSolutionStrategies
+     Model::ForgetSolutionStrategies
      Model::getSolutionStrategies Strategies.xml
      Model::getProcesses Processes.xml
      Model::getElements Elements.xml

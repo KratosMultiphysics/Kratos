@@ -8,8 +8,12 @@ proc FSI::xml::Init { } {
     variable dir
     Model::InitVariables dir $FSI::dir
     
+    Model::ForgetSolutionStrategies
+    Model::getSolutionStrategies "../../Fluid/xml/Strategies.xml"
+    Model::getSolutionStrategies "../../Structural/xml/Strategies.xml"
     Model::getSolutionStrategies Strategies.xml
-    Model::getElements Elements.xml
+    Model::getProcesses Processes.xml
+    Model::getConditions Conditions.xml
     
     Model::ForgetSolvers
     Model::getSolvers "../../Common/xml/Solvers.xml"
