@@ -8,7 +8,6 @@ CheckForPreviousImport()
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-    model_part.AddNodalSolutionStepVariable(ELEMENTSHAPE)
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
 
 
@@ -24,12 +23,11 @@ def AddDofs(model_part):
 
 class MeshSolverLaplacian:
 
-    def __init__(self, model_part, domain_size, reform_dof_at_every_step):
+    def __init__(self, model_part, reform_dof_at_every_step):
 
         # Assign parameters
         self.time_order = 2
         self.model_part = model_part
-        self.domain_size = domain_size
         self.reform_dof_at_every_step = reform_dof_at_every_step
         self.time_order = 2
 
@@ -39,7 +37,6 @@ class MeshSolverLaplacian:
         self.neighbour_search = FindNodalNeighboursProcess(model_part, number_of_avg_elems, number_of_avg_nodes)
 
         # definition of the solvers
-
         tol = 1e-8
         max_it = 1000
         verbosity = 1
@@ -53,7 +50,7 @@ class MeshSolverLaplacian:
     def Initialize(self):
         (self.neighbour_search).Execute()
 
-        self.solver = LaplacianMeshMovingStrategy(self.model_part, self.linear_solver, self.domain_size, self.time_order, self.reform_dof_at_every_step)
+        self.solver = LaplacianMeshMovingStrategy(self.model_part, self.linear_solver, self.time_order, self.reform_dof_at_every_step)
         (self.solver).SetEchoLevel(0)
         print("finished moving the mesh")
 

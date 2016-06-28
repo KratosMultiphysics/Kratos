@@ -1,8 +1,8 @@
 /* ****************************************************************************
  *  Projectname:         $KratosALEApplication
- *  Last Modified by:    $Author: Andreas.Mini@tum.de $
- *  Date:                $Date: November 2015 $
- *  Revision:            $Revision: 1.4 $
+ *  Last Modified by:    $Author: A.Winterstein@tum.de $
+ *  Date:                $Date: June 2016 $
+ *  Revision:            $Revision: 1.5 $
  * ***************************************************************************/
 
 #if !defined(KRATOS_NEW_STRUCTURAL_MESHMOVING_STRATEGY )
@@ -11,6 +11,8 @@
 /* System includes */
 
 /* External includes */
+#include "spaces/ublas_space.h"
+
 
 /* Project includes */
 #include "includes/define.h"
@@ -80,7 +82,6 @@ class StructuralMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
 
     //Generating Mesh Part
     GenerateMeshPart();
-    //mdimension = dimension;
     mvel_order = velocity_order;
     mreform_dof_at_every_step = reform_dof_at_every_step;
 
@@ -104,15 +105,10 @@ class StructuralMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
     KRATOS_CATCH("")
   }
 
-  /** Destructor.
-   */
+
   virtual ~StructuralMeshMovingStrategy() {}
 
-  /** Destructor.
-   */
 
-  //*********************************************************************************
-  //*********************************************************************************
   double Solve()
   {
     KRATOS_TRY;
@@ -141,8 +137,7 @@ class StructuralMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
     KRATOS_CATCH("");
   }
 
-  //*********************************************************************************
-  //*********************************************************************************
+
   void CalculateMeshVelocities()
   {
     KRATOS_TRY;
@@ -259,7 +254,6 @@ private:
 
   typename BaseType::Pointer mstrategy;
 
-  //int mdimension;
   int mvel_order;
   bool mreform_dof_at_every_step;
 

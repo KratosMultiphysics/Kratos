@@ -42,13 +42,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
 */
 
-//
-//   Project Name:        Kratos
-//   Last modified by:    $Author: anonymous $
-//   Date:                $Date: 2007-10-08 11:11:46 $
-//   Revision:            $Revision: 1.3 $
-//
-//
+/* ****************************************************************************
+ *  Projectname:         $KratosALEApplication
+ *  Last Modified by:    $Author: A.Winterstein@tum.de $
+ *  Date:                $Date: June 2016 $
+ *  Revision:            $Revision: 1.5 $
+ * ***************************************************************************/
 
 // System includes
 

@@ -44,9 +44,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* ****************************************************************************
  *  Projectname:         $KratosALEApplication
- *  Last Modified by:    $Author: Andreas.Mini@tum.de $
- *  Date:                $Date: November 2015 $
- *  Revision:            $Revision: 1.4 $
+ *  Last Modified by:    $Author: A.Winterstein@tum.de $
+ *  Date:                $Date: June 2016 $
+ *  Revision:            $Revision: 1.5 $
  * ***************************************************************************/
 
 
@@ -94,7 +94,7 @@ namespace Kratos
 ///@{
 
 
-template< unsigned int TDim >
+//template< unsigned int TDim >
 class LaplacianMeshMovingElement
         : public Element
 {
@@ -103,20 +103,30 @@ public:
     ///@{
     /// Counted pointer of LaplacianMeshMovingElement
     KRATOS_CLASS_POINTER_DEFINITION(LaplacianMeshMovingElement);
+
+    typedef Element BaseType;
+    typedef BaseType::GeometryType GeometryType;
+    typedef BaseType::NodesArrayType NodesArrayType;
+    typedef BaseType::PropertiesType PropertiesType;
+    typedef BaseType::IndexType IndexType;
+    typedef BaseType::SizeType SizeType;
+    typedef BaseType::MatrixType MatrixType;
+    typedef BaseType::VectorType VectorType;
+    typedef BaseType::EquationIdVectorType EquationIdVectorType;
+    typedef BaseType::DofsVectorType DofsVectorType;
+
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
     ///@}
 
     ///@name Life Cycle
     /// Default constructor.
     LaplacianMeshMovingElement(IndexType NewId,
-                               GeometryType::Pointer pGeometry)
-    {}
+                               GeometryType::Pointer pGeometry);
 
     /// Default constructor.
     LaplacianMeshMovingElement(IndexType NewId,
                                GeometryType::Pointer pGeometry,
-                               PropertiesType::Pointer pProperties):
-        Element(NewId, pGeometry, pProperties)
-    {}
+                               PropertiesType::Pointer pProperties);
 
     /// Destructor.
     virtual ~LaplacianMeshMovingElement()
@@ -131,23 +141,22 @@ public:
     ///@}
     ///@name Operations
 
-    /**
-     * creates a new total lagrangian updated element pointer
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
-     * @return a Pointer to the new element
-     */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+    BaseType::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes,  PropertiesType::Pointer pProperties) const;
 
-    ///Bulid up system matrices
+    void Initialize();
+
+    MatrixType CalculateDerivatives(const int& rdimension, const double& rPointNumber);
+
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
                               ProcessInfo& rCurrentProcessInfo);
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
-    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+    void GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateDeltaPosition(const int dimension, VectorType& rtemp_vec_np, ProcessInfo& rCurrentProcessInfo);
+
     ///@{
 
     ///@}
@@ -184,6 +193,8 @@ protected:
 
     ///@name Protected Operations
     ///@{
+    void GetDisplacementValues(VectorType& rValues,
+        const int Step = 0);
     ///@}
 
     ///@name Protected  Access
@@ -205,6 +216,11 @@ private:
 
     ///@name Member Variables
     ///@{
+    IntegrationMethod mThisIntegrationMethod;
+    GeometryType::JacobiansType mJ0;
+    GeometryType::JacobiansType mInvJ0;
+    VectorType mDetJ0;
+    double mTotalDomainInitialSize;
     ///@}
 
     ///@name Serialization

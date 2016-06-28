@@ -1,10 +1,9 @@
-/* *********************************************************
-*
-*   Last Modified by:    $Author: AMini $
-*   Date:                $Date: Mai 2015 $
-*   Revision:            $Revision: 1.3 $
-*
-* ***********************************************************/
+/* ****************************************************************************
+ *  Projectname:         $KratosALEApplication
+ *  Last Modified by:    $Author: A.Winterstein@tum.de $
+ *  Date:                $Date: June 2016 $
+ *  Revision:            $Revision: 1.5 $
+ * ***************************************************************************/
 
 
 #if !defined(KRATOS_ALE_APPLICATION_H_INCLUDED )
@@ -26,7 +25,6 @@
 
 #include "custom_elements/laplacian_meshmoving_element.h"
 #include "custom_elements/structural_meshmoving_element.h"
-#include "custom_elements/structural_meshmoving_element_nonlinear.h"
 
 #include "includes/variables.h"
 
@@ -191,12 +189,16 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    const LaplacianMeshMovingElement<2>   mLaplacianMeshMovingElement2D;
-    const LaplacianMeshMovingElement<3>   mLaplacianMeshMovingElement3D;
+    const LaplacianMeshMovingElement   mLaplacianMeshMovingElement2D3N;
+    const LaplacianMeshMovingElement   mLaplacianMeshMovingElement2D4N;
+    const LaplacianMeshMovingElement   mLaplacianMeshMovingElement3D4N;
+    const LaplacianMeshMovingElement   mLaplacianMeshMovingElement3D8N;
     const StructuralMeshMovingElement mStructuralMeshMovingElement2D3N;
+    const StructuralMeshMovingElement mStructuralMeshMovingElement2D4N;
     const StructuralMeshMovingElement mStructuralMeshMovingElement3D4N;
-    const StructuralMeshMovingElementNonlinear<2>  mStructuralMeshMovingElement2DNonlinear;
-    const StructuralMeshMovingElementNonlinear<3>  mStructuralMeshMovingElement3DNonlinear;
+    const StructuralMeshMovingElement mStructuralMeshMovingElement3D8N;
+    const StructuralMeshMovingElement mStructuralMeshMovingElement3D6N;
+    const StructuralMeshMovingElement mStructuralMeshMovingElement3D15N;
     ///@}
     ///@name Private Operators
     ///@{

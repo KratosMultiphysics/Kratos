@@ -43,7 +43,7 @@
 /* ****************************************************************************
  *  Projectname:         $KratosALEApplication
  *  Last Modified by:    $Author: Andreas.Mini@tum.de $
- *  Date:                $Date: November 2015 $
+ *  Date:                $Date: March 2016 $
  *  Revision:            $Revision: 1.4 $
  * ***************************************************************************/
 
@@ -111,41 +111,27 @@ class StructuralMeshMovingElement : public Element {
   ///@name Life Cycle
   ///@{
 
-  /// Default constructor.
   StructuralMeshMovingElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-  /// Default constructor.
   StructuralMeshMovingElement(IndexType NewId, GeometryType::Pointer pGeometry,
       PropertiesType::Pointer pProperties);
 
-  /// Destructor.
   virtual ~StructuralMeshMovingElement()
   {}
 
   ///@}
   ///@name Operators
   ///@{
+  /// Assignment operator.
   ///@}
 
   ///@name Operations
   ///@{
 
-  /**
-   * creates a new total lagrangian updated element pointer
-   * @param NewId: the ID of the new element
-   * @param ThisNodes: the nodes of the new element
-   * @param pProperties: the properties assigned to the new element
-   * @return a Pointer to the new element
-   */
   BaseType::Pointer Create(IndexType NewId,
       NodesArrayType const& rThisNodes,
-      PropertiesType::Pointer pProperties) const
-  {
-    const GeometryType& rGeom = this->GetGeometry();
-    return BaseType::Pointer(new StructuralMeshMovingElement(NewId, rGeom.Create(rThisNodes), pProperties));
-  }
+      PropertiesType::Pointer pProperties) const;
 
-  ///Bulid up system matrices
   void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
       VectorType& rRightHandSideVector,
       ProcessInfo& rCurrentProcessInfo);
@@ -156,12 +142,12 @@ class StructuralMeshMovingElement : public Element {
   void GetDofList(DofsVectorType& rElementalDofList,
       ProcessInfo& rCurrentProcessInfo);
 
-  ///Initialize the element (must be called before calculation is done)
+  ///Initialize initial values of the element (must be called before calculation is done)
   void Initialize();
 
-  MatrixType SetAndModifyConstitutiveLaw(const int &dimension);
+  MatrixType SetAndModifyConstitutiveLaw(const int &dimension, const double& rPointNumber);
 
-  MatrixType CalculateBMatrix(const int &dimension);
+  MatrixType CalculateBMatrix(const int &dimension, const double& rPointNumber);
 
   ///@}
   ///@name Access
@@ -222,15 +208,11 @@ private:
   GeometryType::JacobiansType mJ0;
   GeometryType::JacobiansType mInvJ0;
   VectorType mDetJ0;
+  double mTotalDomainInitialSize;
   ///@}
   ///@name Member Variables
   ///@{
   ///@}
-
-  ///@name Serialization
-  ///@{
-
-  friend class Serializer;
 
   StructuralMeshMovingElement() {
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
@@ -255,6 +237,14 @@ private:
 
   ///@name Un accessible methods
   ///@{
+  ///@}
+
+  ///@name Serialization
+  ///@{
+  friend class Serializer;
+
+  // A private default constructor necessary for serialization
+
   ///@}
 
 };  // Class StructuralMeshMovingElement
