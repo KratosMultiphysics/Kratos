@@ -330,7 +330,6 @@ void TreeContactSearch::CreateNTNConditions(
     const double SearchFactor,
     const unsigned int MaxNumberResults,
     const int type_search,
-    const bool bidirectional,
     const int integration_order
 ) 
 {
@@ -344,7 +343,6 @@ void TreeContactSearch::CreateNTSConditions(
     const double SearchFactor,
     const unsigned int MaxNumberResults,
     const int type_search,
-    const bool bidirectional,
     const int integration_order
 ) 
 {
@@ -358,7 +356,6 @@ void TreeContactSearch::CreateMortarConditions(
     const double SearchFactor,
     const unsigned int MaxNumberResults,
     const int type_search,
-    const bool bidirectional,
     const int integration_order
 ) 
 {
@@ -424,16 +421,6 @@ void TreeContactSearch::CreateMortarConditions(
         if (NumberPointsFound > 0)
         {
             Condition::Pointer pCondOrigin = mPointListOrigin[cond_it]->GetCondition();
-
-            if (bidirectional == true)
-            {
-                // Set the corresponding flags
-                pCondOrigin->Set(ACTIVE, true);
-            }
-
-            std::vector<contact_container> *& ConditionPointersOrigin = pCondOrigin->GetValue(CONTACT_CONTAINERS);
-            int & OriCondIntegrationOrder = pCondOrigin->GetValue(INTEGRATION_ORDER_CONTACT);
-            OriCondIntegrationOrder = integration_order;
             
 //             KRATOS_WATCH(NumberPointsFound); 
             for(unsigned int i = 0; i < NumberPointsFound; i++)
@@ -442,11 +429,6 @@ void TreeContactSearch::CreateMortarConditions(
                 std::vector<contact_container> *& ConditionPointersDestination = pCondDestination->GetValue(CONTACT_CONTAINERS);
                 int & DestCondIntegrationOrder = pCondDestination->GetValue(INTEGRATION_ORDER_CONTACT);
                 DestCondIntegrationOrder = integration_order;
-                
-                if (bidirectional == true)
-                {
-                    MortarContainerFiller(mPointListOrigin[cond_it], PointsFound[i], pCondOrigin, pCondDestination, ConditionPointersOrigin, IntegrationOrder, true);
-                }
                 
                 // Set the corresponding flags
                 pCondDestination->Set(ACTIVE, true);
@@ -458,7 +440,7 @@ void TreeContactSearch::CreateMortarConditions(
     
     // FIXME
     // Calculate the mean of the normal in all the nodes
-    ComputeNodesMeanNormal(bidirectional);
+    ComputeNodesMeanNormal();
 }
 
 /***********************************************************************************/
@@ -521,18 +503,18 @@ void TreeContactSearch::MortarContainerFiller(
     contact_container.condition = &* pCond_2;
     
     // Define the normal to the contact
-    const array_1d<double, 3> & contact_normal = pCond_1->GetValue(NORMAL);
     Point<3> ContactPoint;
     if (orig_dest == true)
     {
-        ContactPoint   = PointFound->GetPoint();
+        ContactPoint = PointFound->GetPoint();
     }
     else
     {
-        ContactPoint   = PointOfList->GetPoint();
+        ContactPoint = PointOfList->GetPoint();
     }
     
-    ContactUtilities::ContactContainerFiller(contact_container, contact_normal, ContactPoint, pCond_1->GetGeometry(), pCond_2->GetGeometry(), IntegrationOrder);
+    ContactUtilities::ContactContainerFiller(contact_container, ContactPoint, pCond_1->GetGeometry(), pCond_2->GetGeometry(), 
+                                             pCond_1->GetValue(NORMAL), pCond_2->GetValue(NORMAL), IntegrationOrder);
         
     ConditionPointers->push_back(contact_container);
 }
@@ -540,100 +522,9 @@ void TreeContactSearch::MortarContainerFiller(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::ComputeNodesMeanNormal(const bool bidirectional)
+void TreeContactSearch::ComputeNodesMeanNormal()
 {
-    // Tolerance
-    const double tol = 1.0e-14;
-    
-    // Initialize normal vectors
-    const array_1d<double,3> ZeroNormal = ZeroVector(3);
-    
-    NodesArrayType& pNodeDestination  = mrDestinationModelPart.Nodes();
-    NodesArrayType::iterator it_node_begin = pNodeDestination.ptr_begin();
-    NodesArrayType::iterator it_node_end   = pNodeDestination.ptr_end();
-    
-    for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
-    {
-        noalias(node_it->FastGetSolutionStepValue(NORMAL)) = ZeroNormal;
-    }
-   
-    NodesArrayType& pNodeOrigin  = mrOriginModelPart.Nodes();
-    if (bidirectional)
-    {
-        it_node_begin = pNodeOrigin.ptr_begin();
-        it_node_end   = pNodeOrigin.ptr_end();
-        
-        for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
-        {
-            noalias(node_it->FastGetSolutionStepValue(NORMAL)) = ZeroNormal;
-        }
-    }
-    
-    // Sum all the nodes normals
-    ConditionsArrayType& pCondDestination  = mrDestinationModelPart.Conditions();
-    ConditionsArrayType::iterator it_cond_begin = pCondDestination.ptr_begin();
-    ConditionsArrayType::iterator it_cond_end   = pCondDestination.ptr_end();
-    
-    for(ConditionsArrayType::iterator cond_it = it_cond_begin; cond_it!=it_cond_end; cond_it++)
-    {
-        if (cond_it->Is(ACTIVE))
-        {
-            const array_1d<double, 3> & rNormal = cond_it->GetValue(NORMAL);
-            for (unsigned int i = 0; i < cond_it->GetGeometry().PointsNumber(); i++)
-            {
-                noalias( cond_it->GetGeometry()[i].FastGetSolutionStepValue(NORMAL) ) += rNormal;
-            }
-        }
-    }
-    
-    if (bidirectional)
-    {
-        ConditionsArrayType& pCondOrigin = mrOriginModelPart.Conditions();
-        it_cond_begin = pCondOrigin.ptr_begin();
-        it_cond_end   = pCondOrigin.ptr_end();
-        
-        for(ConditionsArrayType::iterator cond_it = it_cond_begin; cond_it!=it_cond_end; cond_it++)
-        {
-            if (cond_it->Is(ACTIVE))
-            {
-                const array_1d<double, 3> & rNormal = cond_it->GetValue(NORMAL);
-                for (unsigned int i = 0; i < cond_it->GetGeometry().PointsNumber(); i++)
-                {
-                    noalias( cond_it->GetGeometry()[i].FastGetSolutionStepValue(NORMAL) ) += rNormal;
-                }
-            }
-        }
-    }
-    
-    // Normalize normal vectors
-    it_node_begin = pNodeDestination.ptr_begin();
-    it_node_end   = pNodeDestination.ptr_end();
-    
-    for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
-    {
-        const double norm = norm_2(node_it->FastGetSolutionStepValue(NORMAL));
-        if (norm > tol)
-        {
-            node_it->FastGetSolutionStepValue(NORMAL)  /= norm;
-        }
-        // KRATOS_WATCH(Normal);
-    }
-    
-    if (bidirectional)
-    {
-        it_node_begin = pNodeOrigin.ptr_begin();
-        it_node_end   = pNodeOrigin.ptr_end();
-        
-        for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
-        {
-            const double norm = norm_2(node_it->FastGetSolutionStepValue(NORMAL));
-            if (norm > tol)
-            {
-                node_it->FastGetSolutionStepValue(NORMAL)  /= norm;
-            }
-            // KRATOS_WATCH(Normal);
-        }
-    }
+    ContactUtilities::ComputeNodesMeanNormalModelPart(mrDestinationModelPart);
 }
 
 /************************************** ACCESS *************************************/

@@ -29,7 +29,6 @@ class ContactProcess(KratosMultiphysics.Process):
             "search_factor"               : 1.1,
             "allocation_size"             : 1000,
             "max_number_results"          : 1000,
-            "bidirectional"               : true,
             "type_search"                 : "InRadius",
             "integration_order"           : 2
         }
@@ -50,7 +49,6 @@ class ContactProcess(KratosMultiphysics.Process):
         self.search_factor      = self.params["search_factor"].GetDouble() 
         self.allocation_size    = self.params["allocation_size"].GetInt() 
         self.max_number_results = self.params["max_number_results"].GetInt() 
-        self.bidirectional      = self.params["bidirectional"].GetBool() 
         self.integration_order  = self.params["integration_order"].GetInt() 
         if self.params["type_search"].GetString() == "InRadius":
              self.type_search = 0
@@ -105,18 +103,18 @@ class ContactProcess(KratosMultiphysics.Process):
     
     def ExecuteInitializeSolutionStep(self):
         if self.params["contact_type"].GetString() == "MortarMethod":
-            self.contact_search.CreateMortarConditions(self.search_factor,self.max_number_results,self.type_search, self.bidirectional, self.integration_order)
+            self.contact_search.CreateMortarConditions(self.search_factor,self.max_number_results,self.type_search, self.integration_order)
             #self.contact_search.CheckMortarConditions()
         elif self.params["contact_type"].GetString() == "NTN":
-            self.contact_search.CreateNTNConditions(self.search_factor,self.max_number_results,self.type_search, self.bidirectional, self.integration_order)
+            self.contact_search.CreateNTNConditions(self.search_factor,self.max_number_results,self.type_search, self.integration_order)
         elif self.params["contact_type"].GetString() == "NTS":
-            self.contact_search.CreateNTSConditions(self.search_factor,self.max_number_results,self.type_search, self.bidirectional, self.integration_order)
+            self.contact_search.CreateNTSConditions(self.search_factor,self.max_number_results,self.type_search, self.integration_order)
         
     def ExecuteFinalizeSolutionStep(self):
-        #pass
-        if self.params["contact_type"].GetString() == "MortarMethod":
-            self.contact_search.UpdatePointListMortar()
-            self.contact_search.ClearMortarConditions()
+        pass
+        #if self.params["contact_type"].GetString() == "MortarMethod":
+            #self.contact_search.UpdatePointListMortar()
+            #self.contact_search.ClearMortarConditions()
 
     def ExecuteBeforeOutputStep(self):
         pass
