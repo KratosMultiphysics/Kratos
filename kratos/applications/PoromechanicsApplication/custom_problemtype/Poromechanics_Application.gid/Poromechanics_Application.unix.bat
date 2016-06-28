@@ -18,8 +18,8 @@ rm -f "$1.err"
 
 # Update input files
 mv "$1.dat" "$1.mdpa"
-mv "$1-1.dat" "ProjectParameters.py"
-cp "$3/../../python_scripts/main_script.py" "$2/"
+mv "$1-1.dat" "ProjectParameters.json"
+cp "$3/../../python_scripts/poromechanics_main.py" "$2/"
 
 # Setting paths. WARNING: one must properly set them before running this file
 
@@ -38,4 +38,4 @@ export PATH="/usr/bin/python3:$PATH"
 #export PATH="/Library/Frameworks/Python.framework/Versions/3.5/bin:${PATH}"
 
 # Execute the program
-"python3" "main_script.py" > "$1.log" 2> "$1.err"
+"python3" "poromechanics_main.py" > "$1.log" 2> "$1.err"

@@ -16,11 +16,11 @@ del %1.err
 
 rem Update input files
 move %1.dat %1.mdpa
-move %1-1.dat ProjectParameters.py
-copy %3\\..\\..\\python_scripts\\main_script.py %2\\
+move %1-1.dat ProjectParameters.json
+copy %3\\..\\..\\python_scripts\\poromechanics_main.py %2\\
 
 rem Setting paths. WARNING: one should check them before running this file
 set PATH=C:\\KratosInstall;C:\\KratosInstall\\libs;%PATH%
 
 rem Execute the program
-C:\\KratosInstall\\runkratos main_script.py > %1.log 2> %1.err
+C:\\KratosInstall\\runkratos poromechanics_main.py > %1.log 2> %1.err
