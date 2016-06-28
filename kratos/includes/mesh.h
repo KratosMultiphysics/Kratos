@@ -215,6 +215,16 @@ public:
 	
         return Mesh(p_nodes, p_properties, p_elements, p_conditions);
     }
+    
+    void Clear()
+    {
+        Flags::Clear();
+        DataValueContainer::Clear();
+        mpNodes->clear();
+        mpProperties->clear();
+        mpElements->clear();
+        mpConditions->clear();
+    }
 
     ///@}
     ///@name Informations
