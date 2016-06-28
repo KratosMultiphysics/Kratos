@@ -28,6 +28,7 @@
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
+#include "custom_strategies/custom_schemes/residual_based_incremental_update_static_contact_scheme.hpp"
 #include "custom_strategies/custom_strategies/residual_based_arc_length_strategy.hpp"
 
 //linear solvers
@@ -71,6 +72,13 @@ void  AddCustomStrategiesToPython()
 
             .def("Initialize", &ResidualBasedRelaxationScheme<SparseSpaceType, LocalSpaceType>::Initialize)
             ;    
+     
+    // Residual Based Incremental Update Static Contact Scheme Type
+    class_< ResidualBasedIncrementalUpdateStaticContactScheme< SparseSpaceType, LocalSpaceType>,
+            bases< BaseSchemeType >, boost::noncopyable >
+            (
+            "ResidualBasedIncrementalUpdateStaticContactScheme", init< >()
+            );
      
     // Residual Based Arc Length Strategy      
     class_< ResidualBasedArcLengthStrategyType,

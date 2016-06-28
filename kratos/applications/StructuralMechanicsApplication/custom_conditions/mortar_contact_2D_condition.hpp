@@ -98,9 +98,6 @@ protected:
         // Determinant of slave cell's jacobian
         double DetJSlave;
 
-        // Contact area
-        double ContactArea;
-
         /*
         * Jacobians in current configuration on all integration points of slave segment
         * Only those two variables contain info on all GP
@@ -149,9 +146,6 @@ protected:
 
             // Jacobian of slave
             DetJSlave = 0.0;
-            
-            // Jacobian of slave
-            ContactArea = 0.0;
 
             // Jacobians on all integration points
             j_Slave.resize( rIntegrationPointNumber, false );
@@ -359,7 +353,7 @@ public:
     * and its local derivatives
     */
     double LagrangeMultiplierShapeFunctionValue( 
-        const IndexType& rPointNumber,
+        const double xi_local,
         const IndexType& rShapeFunctionIndex 
         );
 
@@ -502,7 +496,7 @@ public:
         void DetermineActiveAndInactiveSets(
         std::vector<unsigned int>& rActiveNodes,
         std::vector<unsigned int>& rInactiveNodes,
-        const unsigned int& rCondIndex
+        const unsigned int& rPairIndex
         );
 
     /**
@@ -547,7 +541,8 @@ public:
     */
     void CalculateKinematics( 
         GeneralVariables& rVariables,
-        const double& rPointNumber 
+        const double& rPointNumber,
+        const unsigned int& rPairIndex 
         );
 
 
@@ -742,13 +737,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    IntegrationMethod mThisIntegrationMethod;
-
-    // might be a good idea to move those three vectors to the contact container
-    std::vector<Condition*> mThisMasterElements;
-    std::vector<double> mContactArea;
-
-    MortarConditionMatrices mThisMortarConditionMatrices;
+    IntegrationMethod mThisIntegrationMethod;              // Integration order of the element
+    std::vector<Condition*> mThisMasterElements;           // Vector which contains the pointers to the master elements
+    MortarConditionMatrices mThisMortarConditionMatrices;  // The matrices M and D (NOTE: Too much information for a member variable, think how to move after it works)
 
     ///@}
     ///@name Private Operators

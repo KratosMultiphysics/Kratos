@@ -400,7 +400,6 @@ public:
         const double SearchFactor,
         const unsigned int MaxNumberResults,
         const int type_search,
-        const bool bidirectional,
         const int integration_order
     );
     
@@ -414,7 +413,6 @@ public:
         const double SearchFactor,
         const unsigned int MaxNumberResults,
         const int type_search,
-        const bool bidirectional,
         const int integration_order
     );
     
@@ -430,7 +428,6 @@ public:
         const double SearchFactor,
         const unsigned int MaxNumberResults,
         const int type_search,
-        const bool bidirectional,
         const int integration_order
     );
     
@@ -460,10 +457,9 @@ public:
     
     /**
      * It computes the mean of the normal in the condition in all the nodes
-     * @return The modelparts with the normal computed
      */
     
-    void ComputeNodesMeanNormal(const bool bidirectional);
+    void ComputeNodesMeanNormal();
     
     ///@}
     ///@name Access
