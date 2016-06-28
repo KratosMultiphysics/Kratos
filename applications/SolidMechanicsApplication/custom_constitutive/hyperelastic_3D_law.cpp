@@ -359,6 +359,11 @@ void HyperElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
     //5.-Left Cauchy Green tensor b: (stored in the CauchyGreenMatrix)
     ElasticVariables.CauchyGreenMatrix    = prod(ElasticVariables.DeformationGradientF,trans(ElasticVariables.DeformationGradientF));
 
+    for( unsigned int i=0; i<3; i++)
+    {
+       ElasticVariables.traceCG += ElasticVariables.CauchyGreenMatrix( i , i );
+    }
+
     //6.-Almansi Strain:
     if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
     {
