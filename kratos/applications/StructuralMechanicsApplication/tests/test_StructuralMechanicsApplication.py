@@ -70,8 +70,7 @@ def AssambleTestSuites():
             TShellQ4ThickDrillingRollUpTests,
             TShellT3ThinBendingRollUpTests,
             TShellT3ThinDrillingRollUpTests,
-            TShellT3IsotropicScordelisTests,
-            TSprismPanTests
+            TShellT3IsotropicScordelisTests
         ])
     )
 
