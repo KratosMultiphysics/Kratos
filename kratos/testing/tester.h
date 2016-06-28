@@ -41,6 +41,7 @@ namespace Kratos
 		///@{
 
 		class TestCase;
+		class TestSuite;
 
 		/// Tester class manages all tests and provide interface to run them.
 		/** Tester is a singletone class which registers the test cases and
@@ -54,6 +55,8 @@ namespace Kratos
 			///@{
 
 			typedef std::map<std::string, TestCase*> TestCasesContainerType;
+
+			typedef std::map<std::string, TestSuite*> TestSuitesContainerType;
 
 			///@}
 			///@name Enums
@@ -89,13 +92,36 @@ namespace Kratos
 
 			static void ProfileAllTestCases();
 
-			static std::size_t NumberOfEnabledTestCases();
+			static void RunTestSuite(std::string const& TestSuiteName);
+
+			static void ProfileTestSuite(std::string const& TestSuiteName);
 
 			static std::size_t NumberOfFailedTestCases();
 
 			/// This method assumes that the given test case is allocated
 			/// via new. So it will delete it at the end of the program
 			static void AddTestCase(TestCase* pHeapAllocatedTestCase);
+
+			static TestCase& GetTestCase(std::string const& TestCaseName);
+
+			static TestCase* pGetTestCase(std::string const& TestCaseName);
+
+			/// Creates a new test suite or return the already created one.
+			static TestSuite* CreateTestSuite(std::string const& TestSuiteName);
+
+			/// This method gives an error if test suite already exists.
+			static TestSuite* CreateNewTestSuite(std::string const& TestSuiteName);
+
+			/// This method assumes that the given test suite is allocated
+			/// via new. So it will delete it at the end of the program
+			static void AddTestSuite(TestSuite* pHeapAllocatedTestSuite);
+
+			static TestSuite& GetTestSuite(std::string const& TestSuiteName);
+
+			static TestSuite* pGetTestSuite(std::string const& TestSuiteName);
+
+			/// This method creates the suite if is no exist
+			static void AddTestToTestSuite(std::string const& TestName, std::string const& TestSuiteName);
 
 			///@}
 			///@name Access
@@ -111,6 +137,9 @@ namespace Kratos
 			///@name Inquiry
 			///@{
 
+			static bool HasTestCase(std::string const& TestCaseName);
+
+			static bool HasTestSuite(std::string const& TestSuiteName);
 
 			///@}
 			///@name Input and output
@@ -141,10 +170,21 @@ namespace Kratos
 
 			TestCasesContainerType mTestCases;
 
+			TestSuitesContainerType mTestSuites;
+
 			Verbosity mVerbosity;
 
 			///@}
-			static bool IsTestCaseNotAddedBefore(TestCase* pHeapAllocatedTestCase);
+
+			static void UnSelectAllTestCases();
+
+			static void SelectOnlyEnabledTestCases();
+
+			static void RunSelectedTestCases();
+
+			static void ProfileSelectedTestCases();
+
+			static std::size_t NumberOfSelectedTestCases();
 
 			static void ShowProgress(std::size_t Current, std::size_t Total, const TestCase* const pTheTestCase);
 

@@ -26,7 +26,7 @@ namespace Kratos
 {
 	namespace Testing
 	{
-		TestCaseResult::TestCaseResult() : mSucceed(false), mOutput(""), mErrorMessage("")
+		TestCaseResult::TestCaseResult() : mSucceed(true), mOutput(""), mErrorMessage("")
 			, mSetupElapsedTime(0.00), mRunElapsedTime(0.00), mTearDownElapsedTime(0.00), mElapsedTime(0.00) {}
 
 		TestCaseResult::TestCaseResult(TestCaseResult const& rOther)
@@ -51,7 +51,7 @@ namespace Kratos
 
 		void TestCaseResult::Reset()
 		{
-			mSucceed = false;
+			mSucceed = true;
 			mOutput = "";
 			mErrorMessage = "";
 			mSetupElapsedTime = 0.00;
