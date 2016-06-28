@@ -139,7 +139,7 @@ void UPwElement<TDim,TNumNodes>::Initialize()
 
     for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
     {
-        mConstitutiveLawVector[i] = Prop[CONSTITUTIVE_LAW_POINTER]->Clone();
+        mConstitutiveLawVector[i] = Prop[CONSTITUTIVE_LAW]->Clone();
         mConstitutiveLawVector[i]->InitializeMaterial( Prop, Geom,row( Geom.ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
     }
 
@@ -562,7 +562,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwElement<TDim,TNumNodes>::GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,std::vector<ConstitutiveLaw::Pointer>& rValues,
                                                                 const ProcessInfo& rCurrentProcessInfo )
 {
-    if(rVariable == CONSTITUTIVE_LAW_POINTER)
+    if(rVariable == CONSTITUTIVE_LAW)
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
             rValues.resize(mConstitutiveLawVector.size());
