@@ -9,10 +9,6 @@
 
 // External includes 
 #include <boost/python.hpp>
-#include "boost/python/detail/wrap_python.hpp"
-
-// Project includes 
-#include "includes/define.h"
 
 // Application includes
 #include "custom_python/add_custom_strategies_to_python.h"
@@ -30,7 +26,9 @@ using namespace boost::python;
   
 BOOST_PYTHON_MODULE(KratosPoromechanicsApplication)
 {
-    class_<KratosPoromechanicsApplication, KratosPoromechanicsApplication::Pointer, bases<KratosApplication>, boost::noncopyable >("KratosPoromechanicsApplication");
+    class_<KratosPoromechanicsApplication, 
+    KratosPoromechanicsApplication::Pointer, 
+    bases<KratosApplication>, boost::noncopyable >("KratosPoromechanicsApplication");
 
     AddCustomStrategiesToPython();
     AddCustomConstitutiveLawsToPython();
@@ -46,9 +44,6 @@ BOOST_PYTHON_MODULE(KratosPoromechanicsApplication)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( LOCAL_RELATIVE_DISPLACEMENT_VECTOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( PERMEABILITY_MATRIX )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( LOCAL_PERMEABILITY_MATRIX )
-        
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( NO_CONVERGENCE )
-    
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( TOTAL_STRESS_TENSOR )
 }
 
