@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ProcessList>
+    
+    <Process n="SetInterfaceProcess" pn="FSI Interface" implemented_in_file="set_interface_process"
+		implemented_in_module="KratosMultiphysics.FSIApplication"
+        help="" >
+    <inputs>
+		
+    </inputs>
+    </Process>
+
+
+    
+</ProcessList>

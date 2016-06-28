@@ -94,12 +94,12 @@ proc write::writeAppMDPA {appid} {
     
     catch {CloseFile}
     OpenFile $filename
-    eval $wevent
+    #eval $wevent
     # Delegate in app
-    #if { [catch {eval $wevent} fid] } {
-    #    W "Problem Writing MDPA block:\n$fid\nEnd problems"
-    #    set errcode 1
-    #}
+    if { [catch {eval $wevent} fid] } {
+        W "Problem Writing MDPA block:\n$fid\nEnd problems"
+        set errcode 1
+    }
     catch {CloseFile}
     return $errcode
 }
@@ -682,15 +682,15 @@ proc write::getSolutionStrategyParametersDict {} {
     set paramsPath [apps::getCurrentUniqueName StratParams]
     
     foreach {n in} [$sol getInputs] {
-	dict set solverSettingsDict $n [write::getValue $paramsPath $n ]
+        dict set solverSettingsDict $n [write::getValue $paramsPath $n ]
     }
     foreach {n in} [$sch getInputs] {
-	dict set solverSettingsDict $n [write::getValue $paramsPath $n ]
+        dict set solverSettingsDict $n [write::getValue $paramsPath $n ]
     }
     return $solverSettingsDict
 }
 
-proc write::getSolversParametersDict { {appid ""}} {
+proc write::getSolversParametersDict { {appid ""} } {
     if {$appid eq ""} {
         set appid [apps::getActiveAppId]
     }
@@ -767,15 +767,15 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
 	dict unset process_attributes pn
 	
 	set processDict [dict merge $processDict $process_attributes]
+    catch {
+		set variable_name [$condition getAttribute VariableName]
+        #W $variable_name
+		# "lindex" is a rough solution. Look for a better one.
+		if {$variable_name ne ""} {dict set paramDict variable_name [lindex $variable_name 0]}
+	}
 	foreach {inputName in_obj} $process_parameters {
 	    set in_type [$in_obj getType]
-	    catch {
-		set variable_name [$condition getAttribute VariableName]
-		#~ W $variable_name
-		# "lindex" is a rough solution. Look for a better one.
-		dict set paramDict variable_name [lindex $variable_name 0]
-		
-	    }
+	    
 	    if {$in_type eq "vector"} {
 		#W "input [$in_obj getName] fix: [$in_obj getFixity]"
 		if {[$in_obj getFixity] eq "Imposed"} {
