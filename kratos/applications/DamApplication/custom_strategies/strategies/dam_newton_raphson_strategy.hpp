@@ -98,8 +98,8 @@ public:
 
         mpScheme->Check(BaseType::GetModelPart());
 
-        if(NO_CONVERGENCE.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument,"NO_CONVERGENCE has Key zero! (check if the application is correctly registered", "" )
+        if(IS_CONVERGED.Key() == 0)
+            KRATOS_THROW_ERROR( std::invalid_argument,"IS_CONVERGED has Key zero! (check if the application is correctly registered", "" )
         
         return 0;
 
@@ -115,7 +115,7 @@ public:
         std::cout << "Initializing Newton-Raphson Strategy" << std::endl;
 
         //Initialize ProcessInfo variables
-        BaseType::GetModelPart().GetProcessInfo()[NO_CONVERGENCE] = 0;
+        BaseType::GetModelPart().GetProcessInfo()[IS_CONVERGED] = true;
         
         //Initialize Scheme
         if(mpScheme->SchemeIsInitialized() == false)
