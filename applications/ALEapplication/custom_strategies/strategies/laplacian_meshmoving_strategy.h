@@ -1,8 +1,8 @@
 /* ****************************************************************************
  *  Projectname:         $KratosALEApplication
- *  Last Modified by:    $Author: Andreas.Mini@tum.de $
- *  Date:                $Date: November 2015 $
- *  Revision:            $Revision: 1.4 $
+ *  Last Modified by:    $Author: A.Winterstein@tum.de $
+ *  Date:                $Date: June 2016 $
+ *  Revision:            $Revision: 1.5 $
  * ***************************************************************************/
 
 #if !defined(KRATOS_NEW_LAPLACIAN_MESHMOVING_STRATEGY )
@@ -11,7 +11,6 @@
 /* System includes */
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 /* Project includes */
 #include "includes/define.h"
@@ -47,8 +46,6 @@ namespace Kratos {
 /// Short class definition.
 /**   Detail class definition.
 
-
-
  */
 template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class LaplacianMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
@@ -73,17 +70,15 @@ class LaplacianMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
   LaplacianMeshMovingStrategy(
       ModelPart& model_part,
       typename TLinearSolver::Pointer pNewLinearSolver,
-      int dimension = 3,
       int velocity_order = 1,
-      bool reform_dof_at_every_step = true
+      bool reform_dof_at_every_step = false
   )
   :SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part) {
 
     KRATOS_TRY
 
-    GenerateMeshPart(dimension);
+    GenerateMeshPart();
 
-    mdimension = dimension;
     mvel_order = velocity_order;
     mreform_dof_at_every_step = reform_dof_at_every_step;
 
@@ -137,14 +132,10 @@ class LaplacianMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
     KRATOS_CATCH("")
   }
 
-  /** Destructor.
-   */
   virtual ~LaplacianMeshMovingStrategy() {
 
   }
 
-  //***************************************************************************
-  //***************************************************************************
   double Solve()
   {
     KRATOS_TRY;
@@ -159,22 +150,17 @@ class LaplacianMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
       (i)->Y() = (i)->Y0();
       (i)->Z() = (i)->Z0();
     }
-
     //X DIRECTION
     rCurrentProcessInfo[FRACTIONAL_STEP] = 1;
     mstrategy_x->Solve();
 
     //Y DIRECTION
-    if(mdimension > 1) {
-      rCurrentProcessInfo[FRACTIONAL_STEP] = 2;
-      mstrategy_y->Solve();
-    }
+    rCurrentProcessInfo[FRACTIONAL_STEP] = 2;
+    mstrategy_y->Solve();
 
     //Z DIRECTION
-    if(mdimension > 2) {
-      rCurrentProcessInfo[FRACTIONAL_STEP] = 3;
-      mstrategy_z->Solve();
-    }
+    rCurrentProcessInfo[FRACTIONAL_STEP] = 3;
+    mstrategy_z->Solve();
 
     MoveNodes();
 
@@ -190,8 +176,6 @@ class LaplacianMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
     KRATOS_CATCH("");
   }
 
-  //***************************************************************************
-  //***************************************************************************
   void CalculateMeshVelocities()
   {
     KRATOS_TRY;
@@ -202,7 +186,7 @@ class LaplacianMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
     KRATOS_THROW_ERROR(std::logic_error, "Invalid DELTA_TIME.","");
 
     double coeff = 1/DeltaTime;
-    if( mvel_order == 1)  //mesh velocity calculated as (x(n+1)-x(n))/Dt
+    if( mvel_order == 1)
     {
       for(ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin();
           i != (*mpMeshModelPart).NodesEnd(); ++i) {
@@ -217,7 +201,7 @@ class LaplacianMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
         mesh_v *= coeff;
       }
     }
-    else  //mesh velocity calculated as (3*x(n+1)-4*x(n)+x(n-1))/(2*Dt)
+    else
     {
       double c1 = 1.50*coeff;
       double c2 = -2.0*coeff;
@@ -240,8 +224,6 @@ class LaplacianMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
     KRATOS_CATCH("");
   }
 
-  //***************************************************************************
-  //***************************************************************************
   virtual void SetEchoLevel(int Level)
   {
     mstrategy_x->SetEchoLevel(Level);
@@ -249,8 +231,6 @@ class LaplacianMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
     mstrategy_z->SetEchoLevel(Level);
   }
 
-  //***************************************************************************
-  //***************************************************************************
   void MoveNodes()
   {
     CalculateMeshVelocities();
@@ -323,7 +303,6 @@ private:
   typename BaseType::Pointer mstrategy_y;
   typename BaseType::Pointer mstrategy_z;
 
-  int mdimension;
   int mvel_order;
   bool mreform_dof_at_every_step;
 
@@ -335,9 +314,7 @@ private:
   /**@name Private Operations*/
   /*@{ */
 
-  //***************************************************************************
-  //***************************************************************************
-  void GenerateMeshPart(int dimension)
+  void GenerateMeshPart()
   {
     mpMeshModelPart = ModelPart::Pointer( new ModelPart("MeshPart",1) );
 
@@ -348,26 +325,12 @@ private:
     ModelPart::ElementsContainerType& MeshElems = mpMeshModelPart->Elements();
     Element::Pointer pElem;
 
-    if(dimension == 2)
     for(ModelPart::ElementsContainerType::iterator it
         = BaseType::GetModelPart().ElementsBegin();
 
         it != BaseType::GetModelPart().ElementsEnd(); ++it) {
 
-      pElem = Element::Pointer(new LaplacianMeshMovingElement<2>(
-              (*it).Id(),
-              (*it).pGetGeometry(),
-              (*it).pGetProperties() ) );
-      MeshElems.push_back(pElem);
-    }
-
-    if(dimension == 3)
-    for(ModelPart::ElementsContainerType::iterator it
-        = BaseType::GetModelPart().ElementsBegin();
-
-        it != BaseType::GetModelPart().ElementsEnd(); ++it) {
-
-      pElem = Element::Pointer(new LaplacianMeshMovingElement<3>(
+      pElem = Element::Pointer(new LaplacianMeshMovingElement(
               (*it).Id(),
               (*it).pGetGeometry(),
               (*it).pGetProperties() ) );

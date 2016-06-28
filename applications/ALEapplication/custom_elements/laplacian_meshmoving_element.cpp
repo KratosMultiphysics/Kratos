@@ -44,15 +44,13 @@
 
 /* ****************************************************************************
  *  Projectname:         $KratosALEApplication
- *  Last Modified by:    $Author: Andreas.Mini@tum.de $
- *  Date:                $Date: November 2015 $
- *  Revision:            $Revision: 1.4 $
+ *  Last Modified by:    $Author: A.Winterstein@tum.de $
+ *  Date:                $Date: June 2016 $
+ *  Revision:            $Revision: 1.5 $
  * ***************************************************************************/
 
 // System includes
-
 // External includes
-
 // Project includes
 #include "includes/define.h"
 #include "ale_application.h"
@@ -62,43 +60,123 @@
 
 namespace Kratos {
 
+LaplacianMeshMovingElement::LaplacianMeshMovingElement(
+    IndexType NewId, GeometryType::Pointer pGeometry)
+    : Element(NewId, pGeometry) {
+  mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+}
 
-//=============================================================================
-//Element Pointer
-//=============================================================================
-template<>
-Element::Pointer LaplacianMeshMovingElement<2>::Create(
-    IndexType NewId, NodesArrayType const& ThisNodes,
+LaplacianMeshMovingElement::LaplacianMeshMovingElement(
+    IndexType NewId, GeometryType::Pointer pGeometry,
+    PropertiesType::Pointer pProperties)
+    : Element(NewId, pGeometry, pProperties) {
+  mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+}
+
+Element::Pointer LaplacianMeshMovingElement::Create(
+    IndexType NewId, NodesArrayType const& rThisNodes,
     PropertiesType::Pointer pProperties) const {
 
   return Element::Pointer(
-      new LaplacianMeshMovingElement(NewId, GetGeometry().Create(ThisNodes),
-                                     pProperties));
-}
-
-template<>
-Element::Pointer LaplacianMeshMovingElement<3>::Create(
-    IndexType NewId, NodesArrayType const& ThisNodes,
-    PropertiesType::Pointer pProperties) const {
-
-  return Element::Pointer(
-      new LaplacianMeshMovingElement(NewId, GetGeometry().Create(ThisNodes),
+      new LaplacianMeshMovingElement(NewId, GetGeometry().Create(rThisNodes),
                                      pProperties));
 }
 
 
-//=============================================================================
-//Build up System Matrices
-//=============================================================================
-template<>
-void LaplacianMeshMovingElement<2>::CalculateLocalSystem(
+void LaplacianMeshMovingElement::Initialize() {
+
+  KRATOS_TRY;
+
+  const GeometryType::IntegrationPointsArrayType& integration_points =
+      GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+
+  mJ0 = GetGeometry().Jacobian(mJ0, mThisIntegrationMethod);
+  mInvJ0.resize(integration_points.size());
+  mDetJ0.resize(integration_points.size(), false);
+  mTotalDomainInitialSize = 0.00;
+
+  for (unsigned int PointNumber = 0; PointNumber < integration_points.size();
+      ++PointNumber) {
+    //getting informations for integration
+    double IntegrationWeight = integration_points[PointNumber].Weight();
+
+    //calculating and storing inverse of the jacobian and the parameters needed
+    MathUtils<double>::InvertMatrix(mJ0[PointNumber], mInvJ0[PointNumber],
+                                    mDetJ0[PointNumber]);
+
+    //calculating the total area
+    mTotalDomainInitialSize += mDetJ0[PointNumber] * IntegrationWeight;
+  }
+
+  KRATOS_CATCH("");
+
+}
+
+LaplacianMeshMovingElement::MatrixType LaplacianMeshMovingElement::CalculateDerivatives(
+    const int& rdimension, const double& rPointNumber) {
+
+  KRATOS_TRY;
+
+  GeometryType::ShapeFunctionsGradientsType DN_De = this->GetGeometry()
+      .ShapeFunctionsLocalGradients(mThisIntegrationMethod);
+
+  Matrix DN_DX = prod(DN_De[rPointNumber], mInvJ0[rPointNumber]);
+
+  return DN_DX;
+
+  KRATOS_CATCH("");
+
+}
+
+void LaplacianMeshMovingElement::CalculateDeltaPosition(
+    const int dimension, VectorType& rtemp_vec_np,
+    ProcessInfo& rCurrentProcessInfo) {
+
+  KRATOS_TRY;
+
+  unsigned int ComponentIndex = rCurrentProcessInfo[FRACTIONAL_STEP] - 1;
+
+
+  const VectorType& disp0 = GetGeometry()[0].FastGetSolutionStepValue(
+      DISPLACEMENT, 0)
+      - GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT, 1);
+
+  const VectorType& disp1 = GetGeometry()[1].FastGetSolutionStepValue(
+      DISPLACEMENT, 0)
+      - GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT, 1);
+
+  const VectorType& disp2 = GetGeometry()[2].FastGetSolutionStepValue(
+      DISPLACEMENT, 0)
+      - GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT, 1);
+
+  rtemp_vec_np[0] = disp0[ComponentIndex];
+  rtemp_vec_np[1] = disp1[ComponentIndex];
+  rtemp_vec_np[2] = disp2[ComponentIndex];
+
+  if (dimension == 3) {
+    const VectorType& disp3 = GetGeometry()[3].FastGetSolutionStepValue(
+        DISPLACEMENT, 0)
+        - GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT, 1);
+
+    rtemp_vec_np[3] = disp3[ComponentIndex];
+  }
+
+  KRATOS_CATCH("");
+}
+
+void LaplacianMeshMovingElement::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo) {
 
   KRATOS_TRY;
 
-  //Define Matrixes and Variables
-  unsigned int NumNodes = GetGeometry().PointsNumber();
+  const SizeType NumNodes = this->GetGeometry().PointsNumber();
+  const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+
+
+  const GeometryType::IntegrationPointsArrayType& integration_points =
+      GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+
 
   if (rLeftHandSideMatrix.size1() != NumNodes)
     rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
@@ -106,291 +184,79 @@ void LaplacianMeshMovingElement<2>::CalculateLocalSystem(
   if (rRightHandSideVector.size() != NumNodes)
     rRightHandSideVector.resize(NumNodes, false);
 
-  unsigned int ComponentIndex = rCurrentProcessInfo[FRACTIONAL_STEP] - 1;
 
-  boost::numeric::ublas::bounded_matrix<double, 3, 2> DN_DX;
-  array_1d<double, 3> N;
-  array_1d<double, 2> temp_vec_np;
-  noalias(rLeftHandSideMatrix) = ZeroMatrix(NumNodes, NumNodes);
-  noalias(rRightHandSideVector) = ZeroVector(NumNodes);
 
-  //Get Geometry Data
-  double Area;
-  GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
+
+ noalias(rLeftHandSideMatrix) = ZeroMatrix(NumNodes, NumNodes);
+ noalias(rRightHandSideVector) = ZeroVector(NumNodes);
+
+
+
+  for (unsigned int PointNumber = 0; PointNumber < integration_points.size();
+      ++PointNumber) {
+
+    double IntegrationWeight = integration_points[PointNumber].Weight();
 
   //Compute LHS
-  noalias(rLeftHandSideMatrix) = prod(DN_DX, trans(DN_DX));
+  MatrixType DN_DX = CalculateDerivatives(dimension, PointNumber);
+  noalias(rLeftHandSideMatrix) += prod((IntegrationWeight * DN_DX),trans(DN_DX));
 
-  //Compute Deltaposition
-  const array_1d<double, 3>& disp0 = GetGeometry()[0].FastGetSolutionStepValue(
-      DISPLACEMENT, 0)
-      - GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT, 1);
 
-  const array_1d<double, 3>& disp1 = GetGeometry()[1].FastGetSolutionStepValue(
-      DISPLACEMENT, 0)
-      - GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT, 1);
 
-  const array_1d<double, 3>& disp2 = GetGeometry()[2].FastGetSolutionStepValue(
-      DISPLACEMENT, 0)
-      - GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT, 1);
+  VectorType temp_vec_np(dimension + 1);
 
-  //Compute Dirichlet Contribution
-  temp_vec_np[0] = disp0[ComponentIndex];
-  temp_vec_np[1] = disp1[ComponentIndex];
-  temp_vec_np[2] = disp2[ComponentIndex];
+  CalculateDeltaPosition(dimension, temp_vec_np, rCurrentProcessInfo);
 
   //Compute RHS
   noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, temp_vec_np);
 
-  //Compute Conductivity to modify LHS and RHS
 
-  //note that no multiplication by area is performed,
-  //this makes smaller elements more rigid and minimizes the mesh deformation
-  // switchValue to turn of / on conductivity settigns
-  // 1 = on  (LHS and RHS are multiplied by conductivity)
-  // 0 = off (no all elements are considered to have a conductivity of 1)
-  double switchValue = 1;
 
-  // preserve matrices to become ill-conditioned
-  if (switchValue != 0) {
-
-    // consideration of elemental conductivity
-    //(the highely-strained elements are assigned to a large conductivity value)
-    array_1d<double, 2> grad_u;
-    double norm_grad_u;
-    double conductivity;
-
-    Matrix grad(2, 2, 0.0);
-    grad_u[0] = 0;
-    grad_u[1] = 0;
-
-    // compute strains
-    for (unsigned int i = 0; i < NumNodes; i++) {
-
-      array_1d<double, 3> disp;
-      disp[0] = 1.0;
-      disp[1] = 1.0;
-      disp[2] = 1.0;
-
-      disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, 0)
-          - GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, 1);
-
-      grad(0, 0) += DN_DX(i, 0) * disp[0] + DN_DX(i, 0) * disp[0]
-          - DN_DX(i, 0) * disp[0] * DN_DX(i, 0) * disp[0]
-          - DN_DX(i, 0) * disp[1] * DN_DX(i, 0) * disp[1]
-          - DN_DX(i, 0) * disp[2] * DN_DX(i, 0) * disp[2];
-
-      grad(1, 0) += DN_DX(i, 1) * disp[0] + DN_DX(i, 0) * disp[1]
-          - DN_DX(i, 1) * disp[0] * DN_DX(i, 0) * disp[0]
-          - DN_DX(i, 1) * disp[1] * DN_DX(i, 0) * disp[1]
-          - DN_DX(i, 1) * disp[2] * DN_DX(i, 0) * disp[2];
-
-      grad(0, 1) += DN_DX(i, 1) * disp[0] + DN_DX(i, 0) * disp[1]
-          - DN_DX(i, 1) * disp[0] * DN_DX(i, 0) * disp[0]
-          - DN_DX(i, 1) * disp[1] * DN_DX(i, 0) * disp[1]
-          - DN_DX(i, 1) * disp[2] * DN_DX(i, 0) * disp[2];
-
-      grad(1, 1) += DN_DX(i, 1) * disp[1] + DN_DX(i, 1) * disp[1]
-          - DN_DX(i, 1) * disp[0] * DN_DX(i, 1) * disp[0]
-          - DN_DX(i, 1) * disp[1] * DN_DX(i, 1) * disp[1]
-          - DN_DX(i, 1) * disp[2] * DN_DX(i, 1) * disp[2];
-
-    }
-
-    Matrix eps = grad;
-    eps += trans(grad);
-    eps *= 0.5;
-
-    // Apply conductivity according norm of strains
-    norm_grad_u = norm_frobenius(eps);
-    conductivity = 1 + norm_grad_u * 1.0;
-
-    rLeftHandSideMatrix *= conductivity;
-    rRightHandSideVector *= conductivity;
   }
-
   KRATOS_CATCH("");
 }
 
-template<>
-void LaplacianMeshMovingElement<3>::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo) {
-  KRATOS_TRY;
+void LaplacianMeshMovingElement::EquationIdVector(
+    EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) {
 
-  //Define matrices and variables
-  unsigned int NumNodes = GetGeometry().PointsNumber();
+  GeometryType& rGeom = this->GetGeometry();
+  const SizeType NumNodes = rGeom.size();
+  unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+  const SizeType LocalSize = NumNodes * dimension;
 
-  if (rLeftHandSideMatrix.size1() != NumNodes)
-    rLeftHandSideMatrix.resize(NumNodes, NumNodes);
+  if (rResult.size() != LocalSize)
+    rResult.resize(LocalSize, false);
 
-  if (rRightHandSideVector.size() != NumNodes)
-    rRightHandSideVector.resize(NumNodes);
+  for (SizeType iNode = 0; iNode < NumNodes; ++iNode) {
 
-  unsigned int ComponentIndex = rCurrentProcessInfo[FRACTIONAL_STEP] - 1;
-
-  double Area;
-  boost::numeric::ublas::bounded_matrix<double, 4, 3> DN_DX;
-  array_1d<double, 4> N;
-  array_1d<double, 4> temp_vec_np;
-  noalias(rLeftHandSideMatrix) = ZeroMatrix(NumNodes, NumNodes);
-  noalias(rRightHandSideVector) = ZeroVector(NumNodes);
-
-  //Getting data for the given geometry
-  GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
-
-  //Compute LHS
-  noalias(rLeftHandSideMatrix) = prod(DN_DX, trans(DN_DX));
-
-  //Compute Delta position
-  const array_1d<double, 3>& disp0 = GetGeometry()[0].FastGetSolutionStepValue(
-      DISPLACEMENT, 0)
-      - GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT, 1);
-  const array_1d<double, 3>& disp1 = GetGeometry()[1].FastGetSolutionStepValue(
-      DISPLACEMENT, 0)
-      - GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT, 1);
-  const array_1d<double, 3>& disp2 = GetGeometry()[2].FastGetSolutionStepValue(
-      DISPLACEMENT, 0)
-      - GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT, 1);
-  const array_1d<double, 3>& disp3 = GetGeometry()[3].FastGetSolutionStepValue(
-      DISPLACEMENT, 0)
-      - GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT, 1);
-
-  //Compute dirichlet contribution
-  temp_vec_np[0] = disp0[ComponentIndex];
-  temp_vec_np[1] = disp1[ComponentIndex];
-  temp_vec_np[2] = disp2[ComponentIndex];
-  temp_vec_np[3] = disp3[ComponentIndex];
-
-  //Compute RHS
-  noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, temp_vec_np);
-
-  //Compute conductivity and modify RHS and LHS
-
-  //note that no multiplication by area is performed,
-  //this makes smaller elements more rigid and minimizes the mesh deformation
-  // switchValue to turn of / on conductivity settigns
-  // 1 = on  (LHS and RHS are multiplied by conductivity)
-  // 0 = off (no all elements are considered to have a conductivity of 1)
-  double switchValue = 1;
-
-  // preserve matrices to become ill-conditioned
-  if (switchValue != 0) {
-
-    // consideration of elemental conductivity (the highely-strained elements are assigned to a large conductivity value)
-    array_1d<double, 3> disp;
-    array_1d<double, 3> grad_u;
-    double norm_grad_u;
-    double conductivity;
-
-    Matrix grad(3, 3, 0.0);
-    grad_u[0] = 0;
-    grad_u[1] = 0;
-    grad_u[2] = 0;
-
-    // compute strains
-    for (unsigned int i = 0; i < NumNodes; i++) {
-
-      disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, 0)
-          - GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, 1);
-
-      grad(0, 0) += DN_DX(i, 0) * disp[0];
-      grad(1, 0) += DN_DX(i, 1) * disp[0];
-      grad(2, 0) += DN_DX(i, 2) * disp[0];
-
-      grad(0, 1) += DN_DX(i, 1) * disp[0];
-      grad(1, 1) += DN_DX(i, 1) * disp[1];
-      grad(2, 1) += DN_DX(i, 2) * disp[1];
-
-      grad(0, 2) += DN_DX(i, 2) * disp[0];
-      grad(1, 2) += DN_DX(i, 2) * disp[1];
-      grad(2, 2) += DN_DX(i, 2) * disp[2];
-    }
-
-    Matrix eps = grad;
-    eps += trans(grad);
-    eps *= 0.5;
-
-    // Apply conductivity according norm of strains
-    norm_grad_u = norm_frobenius(eps);
-    conductivity = 1 + norm_grad_u * 1000;
-
-    rLeftHandSideMatrix *= conductivity;
-    rRightHandSideVector *= conductivity;
-  }
-
-  KRATOS_CATCH("");
-}
-
-
-//=============================================================================
-//Generate Equation ID Vector
-//=============================================================================
-template<>
-void LaplacianMeshMovingElement<2>::EquationIdVector(
-    EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) {
-  const unsigned int NumNodes = GetGeometry().PointsNumber();
-  if (rResult.size() != NumNodes)
-    rResult.resize(NumNodes, false);
-
-  for (unsigned int i = 0; i < NumNodes; ++i) {
-    if (CurrentProcessInfo[FRACTIONAL_STEP] == 1)
-      rResult[i] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
-    else if (CurrentProcessInfo[FRACTIONAL_STEP] == 2)
-      rResult[i] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
+    SizeType Index = iNode * dimension;
+    rResult[Index] = rGeom[iNode].GetDof(DISPLACEMENT_X).EquationId();
+    rResult[Index + 1] = rGeom[iNode].GetDof(DISPLACEMENT_Y).EquationId();
+    if (dimension == 3)
+      rResult[Index + 2] = rGeom[iNode].GetDof(DISPLACEMENT_Z).EquationId();
   }
 }
 
-template<>
-void LaplacianMeshMovingElement<3>::EquationIdVector(
-    EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) {
-  const unsigned int NumNodes = GetGeometry().PointsNumber();
-  if (rResult.size() != NumNodes)
-    rResult.resize(NumNodes, false);
+void LaplacianMeshMovingElement::GetDofList(DofsVectorType& rElementalDofList,
+                                            ProcessInfo& rCurrentProcessInfo) {
 
-  for (unsigned int i = 0; i < NumNodes; ++i) {
-    if (CurrentProcessInfo[FRACTIONAL_STEP] == 1)
-      rResult[i] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
-    else if (CurrentProcessInfo[FRACTIONAL_STEP] == 2)
-      rResult[i] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
-    else if (CurrentProcessInfo[FRACTIONAL_STEP] == 3)
-      rResult[i] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
-  }
-}
+  GeometryType& rGeom = this->GetGeometry();
+  const SizeType NumNodes = rGeom.size();
+  unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+  const SizeType LocalSize = NumNodes * dimension;
 
+  if (rElementalDofList.size() != LocalSize)
+    rElementalDofList.resize(LocalSize);
 
-//=============================================================================
-//Get Dof List
-//=============================================================================
-template<>
-void LaplacianMeshMovingElement<2>::GetDofList(
-    DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) {
-  const unsigned int NumNodes = GetGeometry().PointsNumber();
-  if (ElementalDofList.size() != NumNodes)
-    ElementalDofList.resize(NumNodes);
+  for (SizeType iNode = 0; iNode < NumNodes; ++iNode) {
 
-  for (unsigned int i = 0; i < NumNodes; ++i) {
-    if (CurrentProcessInfo[FRACTIONAL_STEP] == 1)
-      ElementalDofList[i] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
-    else if (CurrentProcessInfo[FRACTIONAL_STEP] == 2)
-      ElementalDofList[i] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
-  }
-}
+    SizeType Index = iNode * dimension;
 
-template<>
-void LaplacianMeshMovingElement<3>::GetDofList(
-    DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) {
-  const unsigned int NumNodes = GetGeometry().PointsNumber();
-  if (ElementalDofList.size() != NumNodes)
-    ElementalDofList.resize(NumNodes);
+    rElementalDofList[Index] = rGeom[iNode].pGetDof(DISPLACEMENT_X);
+    rElementalDofList[Index + 1] = rGeom[iNode].pGetDof(DISPLACEMENT_Y);
+    if (dimension == 3)
+      rElementalDofList[Index + 2] = rGeom[iNode].pGetDof(DISPLACEMENT_Z);
 
-  for (unsigned int i = 0; i < NumNodes; ++i) {
-    if (CurrentProcessInfo[FRACTIONAL_STEP] == 1)
-      ElementalDofList[i] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
-    else if (CurrentProcessInfo[FRACTIONAL_STEP] == 2)
-      ElementalDofList[i] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
-    else if (CurrentProcessInfo[FRACTIONAL_STEP] == 3)
-      ElementalDofList[i] = GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
   }
 }
 

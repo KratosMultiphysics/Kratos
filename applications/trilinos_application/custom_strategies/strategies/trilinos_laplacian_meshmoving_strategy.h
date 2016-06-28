@@ -1,10 +1,9 @@
-/* *********************************************************
-*
-*   Last Modified by:    $Author: dbaumgaertner $
-*   Date:                $Date: 2013-06-27 16:07:50 $
-*   Revision:            $Revision: 1.1.1.1 $
-*
-* ***********************************************************/
+/* ****************************************************************************
+ *  Projectname:         $KratosALEApplication
+ *  Last Modified by:    $Author: A.Winterstein@tum.de $
+ *  Date:                $Date: June 2016 $
+ *  Revision:            $Revision: 1.5 $
+ * ***************************************************************************/
 
 
 #if !defined(KRATOS_NEW_TRILINOS_LAPLACIAN_MESHMOVING_STRATEGY )
@@ -63,22 +62,6 @@ namespace Kratos
 /// Short class definition.
 /**   Detail class definition.
 
-\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
 
 
 */
@@ -147,7 +130,7 @@ public:
         bool CalculateNormDxFlag = false;
 
         // Generating Mesh Part
-        GenerateMeshPart(dimension);
+        GenerateMeshPart();
 
         typedef Scheme< TSparseSpace,  TDenseSpace > SchemeType;
         typename SchemeType::Pointer pscheme = typename SchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,  TDenseSpace >() );
@@ -415,7 +398,7 @@ private:
     /**@name Private Operations*/
     /*@{ */
 
-    void GenerateMeshPart(int dimension)
+    void GenerateMeshPart()
     {
         // Initialize auxiliary model part storing the mesh elements
         mpMeshModelPart = ModelPart::Pointer( new ModelPart("MeshPart",1) );
@@ -451,26 +434,16 @@ private:
         ModelPart::ElementsContainerType& MeshElems = mpMeshModelPart->Elements();
         Element::Pointer pElem;
 
-        if(dimension == 2)
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
-                pElem = Element::Pointer(new LaplacianMeshMovingElement<2>(
+                pElem = Element::Pointer(new LaplacianMeshMovingElement(
                                              (*it).Id(),
                                              (*it).pGetGeometry(),
                                              (*it).pGetProperties() ) );
                 MeshElems.push_back(pElem);
             }
-        else if(dimension == 3)
-            for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
-                    it != BaseType::GetModelPart().ElementsEnd(); it++)
-            {
-                pElem = Element::Pointer(new LaplacianMeshMovingElement<3>(
-                                             (*it).Id(),
-                                             (*it).pGetGeometry(),
-                                             (*it).pGetProperties() ) );
-                MeshElems.push_back(pElem);
-            }
+
 
         // Optimize communicaton plan
         ParallelFillCommunicator CommunicatorGeneration( *mpMeshModelPart );

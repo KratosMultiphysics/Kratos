@@ -39,13 +39,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
 */
 
-//
-//   Project Name:        Kratos
-//   Last modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-11-14 15:25:09 $
-//   Revision:            $Revision: 1.2 $
-//
-//
+/* ****************************************************************************
+ *  Projectname:         $KratosALEApplication
+ *  Last Modified by:    $Author: A.Winterstein@tum.de $
+ *  Date:                $Date: June 2016 $
+ *  Revision:            $Revision: 1.5 $
+ * ***************************************************************************/
 
 
 // System includes
@@ -55,7 +54,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
-#include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
