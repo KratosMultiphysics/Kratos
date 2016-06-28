@@ -1018,10 +1018,12 @@ namespace Kratos
        	number_of_nodes = 0;
 	for(unsigned int in = 0; in<rNodes.size(); in++)
 	  {
-	    unsigned int NumberOfNeighbours = NeighborNodesList[in].size();
 
+	    unsigned int NumberOfNeighbours = NeighborNodesList[in+1].size();
+	    
 	    if(rNodes[in+1].IsNot(BOUNDARY) && rNodes[in+1].IsNot(TO_ERASE) && NumberOfNeighbours>1)
 	      {
+
 		TotalDistance.clear();
 		TotalWeight = 0;
 		Weight = 0;
@@ -1037,9 +1039,9 @@ namespace Kratos
 		for(unsigned int i = 0; i < NumberOfNeighbours; i++)
 		  {
 		    //neighbour position
-		    Q[0] = (nodes_begin+(NeighborNodesList[in][i]-1))->X();
-		    Q[1] = (nodes_begin+(NeighborNodesList[in][i]-1))->Y();
-		    Q[1] = (nodes_begin+(NeighborNodesList[in][i]-1))->Z();
+		    Q[0] = (nodes_begin+(NeighborNodesList[in+1][i]-1))->X();
+		    Q[1] = (nodes_begin+(NeighborNodesList[in+1][i]-1))->Y();
+		    Q[1] = (nodes_begin+(NeighborNodesList[in+1][i]-1))->Z();
 	    	
 		    D = P-Q;
 			
@@ -1104,7 +1106,7 @@ namespace Kratos
 
       //*******************************************************************
       //MOVE NODES: BOUNDARY SMOOTHING 
-      //SetBoundarySmoothing (rModelPart, rNodes, PreservedElements, out, MeshId);
+      SetBoundarySmoothing (rModelPart, PreservedElements, pElementsList, NumberOfPoints, MeshId);
 
 
       //*******************************************************************
@@ -1119,6 +1121,10 @@ namespace Kratos
 
     }
 
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+    // GENERAL 
 
     void ProjectVariablesToNewPositions(ModelPart& rModelPart,
 					ModelPart::IndexType MeshId=0)
@@ -1367,6 +1373,173 @@ namespace Kratos
 
       KRATOS_CATCH( "" )
     }
+
+
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+    // GENERAL 
+
+    void SetBoundarySmoothing(ModelPart& rModelPart,
+			      std::vector<int> & PreservedElements,
+			      const int* pElementsList,
+			      const int& NumberOfPoints,
+			      ModelPart::IndexType MeshId=0)
+    {
+      
+      NodesContainerType& rNodes = rModelPart.Nodes(MeshId);
+
+      ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(MeshId);
+
+      const unsigned int nds = element_begin->GetGeometry().size();
+
+
+      //*******************************************************************
+      //NEIGHBOUR NODES:
+
+      std::vector<int> EmptyVector(0);
+      std::vector<std::vector<int> >  NeighborNodesList(rNodes.size());
+      std::fill( NeighborNodesList.begin(), NeighborNodesList.end(), EmptyVector );
+
+      NeighborNodesList = SetBoundaryNeighborNodes(rNodes, NeighborNodesList, PreservedElements, pElementsList, NumberOfPoints, nds);
+				
+      //*******************************************************************
+      //MOVE BOUNDARY NODES: LAPLACIAN SMOOTHING:
+	 
+      if( GetEchoLevel() > 0 )
+	std::cout<<" Apply Mesh Boundary Smoothing in Mesh "<<MeshId<<std::endl;
+
+      double convergence_tol =0.001;
+      double smoothing_factor=0.1; //0.1
+      double smoothing_iters =4; //3,4
+      double iters=0;
+
+      bool   simple = true; //weight = 1;  
+      bool   converged = false;
+
+      double MaxLength=0;
+      double NewMaxLength=0;
+
+      unsigned int number_of_nodes = 0;
+
+      ModelPart::NodesContainerType::iterator nodes_begin = rModelPart.NodesBegin(MeshId);
+
+      while ( iters<smoothing_iters && converged==false ){ 
+
+	//std::cout<<" Iter "<< iters <<std::endl;
+
+	array_1d<double,3> P;
+	array_1d<double,3> Q;//neighbour position
+	array_1d<double,3> D;
+	    	    
+	    
+	double TotalWeight = 0;
+	double Weight = 0;
+	array_1d<double,3> TotalDistance;
+
+
+	//convergence variables
+	double Length = 0;
+	MaxLength     = NewMaxLength;
+	NewMaxLength  = 0;
+	   
+	for(unsigned int in = 0; in<rNodes.size(); in++)
+	  {
+	    unsigned int NumberOfNeighbours = NeighborNodesList[in+1].size();
+
+	    if(rNodes[in+1].Is(BOUNDARY) && rNodes[in+1].IsNot(TO_ERASE) && 
+	       rNodes[in+1].Is(VISITED) && NumberOfNeighbours>1 )
+	      {	    	      
+		TotalDistance.clear();
+		TotalWeight = 0;
+		Weight = 0;
+
+		//point position
+		P[0] = (nodes_begin+in)->X();
+		P[1] = (nodes_begin+in)->Y();
+		P[2] = (nodes_begin+in)->Z();
+		     
+		    
+		//std::cout<<" Initial Position: "<<P<<std::endl;
+		Length = 0;
+
+		for(unsigned int i = 0; i < NumberOfNeighbours; i++)
+		  {
+		    //neighbour position
+		    Q[0] = (nodes_begin+(NeighborNodesList[in+1][i]-1))->X();
+		    Q[1] = (nodes_begin+(NeighborNodesList[in+1][i]-1))->Y();
+		    Q[1] = (nodes_begin+(NeighborNodesList[in+1][i]-1))->Z();
+
+		    	
+		    D = P-Q;
+			
+		    Length =sqrt(D[0]*D[0]+D[1]*D[1]+D[2]*D[2]);
+			  
+
+		    if( simple ){
+
+		      Weight = 1;
+
+		    }
+		    else{
+			  		
+		      if(Length !=0)
+			Weight = ( 1.0/Length );
+		      else
+			Weight = 0;
+		    }
+
+		    if(NewMaxLength<Length)
+		      NewMaxLength = Length;
+			
+		    TotalDistance += (Weight*(Q-P)) ;  		  
+		    TotalWeight   += Weight ;
+		  
+		  }
+		    
+	     
+		if(TotalWeight!=0)
+		  D = ( smoothing_factor / TotalWeight ) * TotalDistance;
+		else
+		  D.clear();
+		    
+
+		P += D;
+
+
+		(nodes_begin+in)->X() = P[0];
+		(nodes_begin+in)->Y() = P[1];
+		(nodes_begin+in)->Z() = P[2];
+
+		    
+		number_of_nodes +=1;
+		
+	      }
+
+	    //rNodes[in+1].Set(VISITED,false); //LMV: Reset the flag after interpolation. Indeed, if the flag is set, only one iteration takes place
+	  }
+	  
+
+	if( (NewMaxLength-MaxLength)/NewMaxLength < convergence_tol ){
+	  converged = true;
+	  if( GetEchoLevel() > 0 )
+	    std::cout<<"   Laplacian smoothing convergence achieved "<<std::endl;
+	}
+
+
+	iters++;
+
+      }
+
+      if(iters==smoothing_iters && !converged){
+	if( GetEchoLevel() > 0 )
+	  std::cout<<"   WARNING: Boundary Laplacian smoothing convergence NOT achieved (iters:"<<iters<<")"<<std::endl;
+      }
+
+
+    }
+
+
 
 
     //*******************************************************************************************
@@ -2579,6 +2752,59 @@ namespace Kratos
 			  list_of_neighbor_nodes[ElementList[el*nds+ipn]].push_back(ElementList[el*nds+jpn]);
 			}
 		      }					  
+		    }
+		}
+	    }
+	}
+
+      return list_of_neighbor_nodes;
+
+      KRATOS_CATCH( "" )
+
+    }
+
+
+
+    //GENERAL
+    std::vector<std::vector<int> >& SetBoundaryNeighborNodes (NodesContainerType& rNodes, std::vector<std::vector<int> >& list_of_neighbor_nodes, std::vector<int> & PreservedElements,const int* ElementList, const int& NumberOfPoints, const unsigned int& nds)
+    {
+		 
+      KRATOS_TRY
+
+      if( (int)list_of_neighbor_nodes.size() != NumberOfPoints+1 ){
+	list_of_neighbor_nodes.resize(NumberOfPoints+1);
+      }
+      std::vector<int> empty_vector(0);
+      std::fill( list_of_neighbor_nodes.begin(), list_of_neighbor_nodes.end(), empty_vector );
+
+      bool neighb_set  = false;
+      int  neighb_size = 0;
+
+      for(unsigned int el = 0; el<PreservedElements.size(); el++)
+	{
+	  if(PreservedElements[el])
+	    {
+	      //a) Create list of node neighbors (list_of_neighbor_nodes)
+	      for(unsigned int ipn=0; ipn<nds; ipn++)
+		{
+		  if(rNodes[ElementList[el*nds+ipn]].Is(BOUNDARY)){
+		      for(unsigned int jpn=0; jpn<nds; jpn++)
+			{
+			  if(ipn!=jpn && rNodes[ElementList[el*nds+jpn]].Is(BOUNDARY)){
+			    //add unique node neighbor
+			    neighb_size = list_of_neighbor_nodes[ElementList[el*nds+ipn]].size();
+			    neighb_set = false;
+			    for(int npn=0; npn<neighb_size; npn++)
+			      {
+				if( list_of_neighbor_nodes[ElementList[el*nds+ipn]][npn]==(ElementList[el*nds+jpn]) ){
+				  neighb_set=true;
+				}
+			      }
+			    if(neighb_set==false){
+			      list_of_neighbor_nodes[ElementList[el*nds+ipn]].push_back(ElementList[el*nds+jpn]);
+			    }
+			  }					  
+			}
 		    }
 		}
 	    }
