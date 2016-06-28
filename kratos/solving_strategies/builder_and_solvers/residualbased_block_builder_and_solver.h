@@ -2,27 +2,27 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 #if !defined(KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER )
 #define  KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER
 
 
 /* System includes */
-#include <set>
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+#include "utilities/openmp_utils.h"
 
+
+#include <unordered_set>
 /* External includes */
 #include "boost/smart_ptr.hpp"
+
 #include "utilities/timer.h"
 
 /* Project includes */
@@ -30,6 +30,11 @@
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
 #include "includes/kratos_flags.h"
+
+// #define USE_GOOGLE_HASH
+#ifdef USE_GOOGLE_HASH
+    #include "sparsehash/dense_hash_set" //included in external libraries
+#endif
 
 // #include <iostream>
 // #include <fstream>
@@ -135,6 +140,24 @@ public:
 
     typedef typename BaseType::ElementsContainerType ElementsContainerType;
 
+    struct dof_iterator_hash
+    {
+        size_t operator()(const Node<3>::DofType::Pointer& it) const
+        {
+            std::size_t seed = 0;
+            boost::hash_combine(seed, it->Id());
+            boost::hash_combine(seed, (it->GetVariable()).Key());
+            return seed;
+        }
+    };
+
+    struct dof_iterator_equal
+    {
+        size_t operator()(const Node<3>::DofType::Pointer& it1, const Node<3>::DofType::Pointer& it2) const
+        {
+            return (((it1->Id() == it2->Id() && (it1->GetVariable()).Key())==(it2->GetVariable()).Key()));
+        }
+    };
     /*@} */
     /**@name Life Cycle
      */
@@ -165,7 +188,6 @@ public:
 
     //**************************************************************************
     //**************************************************************************
-
     void Build(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
@@ -177,11 +199,14 @@ public:
             KRATOS_THROW_ERROR(std::runtime_error, "No scheme provided!", "");
 
         //getting the elements from the model
-        ElementsArrayType& pElements = r_model_part.Elements();
+        const int nelements = static_cast<int>(r_model_part.Elements().size());
 
         //getting the array of the conditions
-        ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
+        const int nconditions = static_cast<int>(r_model_part.Conditions().size());
 
+        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        ModelPart::ElementsContainerType::iterator el_begin = r_model_part.ElementsBegin();
+        ModelPart::ConditionsContainerType::iterator cond_begin = r_model_part.ConditionsBegin();
 
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
@@ -191,184 +216,75 @@ public:
         //terms
         Element::EquationIdVectorType EquationId;
 
-        //double StartTime = GetTickCount();
-
         // assemble all elements
-#ifndef _OPENMP
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-
-        for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
-        {
-            //calculate elemental contribution
-            pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-
-            //assemble the elemental contribution
-            AssembleLHS(A, LHS_Contribution, EquationId);
-            AssembleRHS(b, RHS_Contribution, EquationId);
-
-            // clean local elemental memory
-            pScheme->CleanMemory(*it);
-        }
-        //double EndTime = GetTickCount();
-
-        //std::cout << "total time " << EndTime - StartTime << std::endl;
-        //std::cout << "writing in the system matrix " << ccc << std::endl;
-        //std::cout << "calculating the elemental contrib " << ddd << std::endl;
-        LHS_Contribution.resize(0, 0, false);
-        RHS_Contribution.resize(0, false);
-
-        // assemble all conditions
-        for (typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it)
-        {
-            //calculate elemental contribution
-            pScheme->Condition_CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-
-            //assemble the elemental contribution
-            AssembleLHS(A, LHS_Contribution, EquationId);
-            AssembleRHS(b, RHS_Contribution, EquationId);
-        }
-
-#else
-
-
-
-
-//         std::size_t* Arow_indices = A.index1_data().begin();
-//         std::size_t* Acol_indices = A.index2_data().begin();
-//
-//         std::ofstream row_file;
-//         row_file.open ("rows.txt");
-//         for (int k = 0; k < static_cast<int> (A.size1() ); k++)
-//             row_file << Arow_indices[k] << std::endl;
-//         row_file.close();
-//
-//         std::ofstream col_file;
-//         col_file.open ("cols.txt");
-//         for (int k = 0; k < static_cast<int>(Arow_indices[A.size1()]); k++)
-//             col_file << Acol_indices[k] << std::endl;
-//         col_file.close();
-//
-//   std::ofstream equation_ids;
-//   equation_ids.open ("equation_ids.txt");
-
-        //creating an array of lock variables of the size of the system matrix
-        std::vector< omp_lock_t > lock_array(A.size1());
-
-        int A_size = A.size1();
-        for (int i = 0; i < A_size; i++)
-            omp_init_lock(&lock_array[i]);
-
-        //create a partition of the element array
-        int number_of_threads = omp_get_max_threads();
-
-        vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, pElements.size(), element_partition);
-        if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
-        {
-            KRATOS_WATCH(number_of_threads);
-            KRATOS_WATCH(element_partition);
-        }
-
-
         double start_build = OpenMPUtils::GetCurrentTime();
 
-        #pragma omp parallel for
-        for (int k = 0; k < number_of_threads; k++)
+        #pragma omp parallel for firstprivate(nelements, LHS_Contribution, RHS_Contribution, EquationId )
+        for (int k = 0; k < nelements; k++)
         {
-            //contributions to the system
-            LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
-            LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+            ModelPart::ElementsContainerType::iterator it = el_begin + k;
 
-            //vector containing the localization in the system of the different
-            //terms
-            Element::EquationIdVectorType EquationId;
-            ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-            typename ElementsArrayType::ptr_iterator it_begin = pElements.ptr_begin() + element_partition[k];
-            typename ElementsArrayType::ptr_iterator it_end = pElements.ptr_begin() + element_partition[k + 1];
+            //detect if the element is active or not. If the user did not make any choice the element
+            //is active by default
+            bool element_is_active = true;
+            if ((it)->IsDefined(ACTIVE))
+                element_is_active = (it)->Is(ACTIVE);
 
-            // assemble all elements
-            for (typename ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
+            if (element_is_active)
             {
+                //calculate elemental contribution
+                pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
-                bool element_is_active = true;
-                if( (*it)->IsDefined(ACTIVE) )
-                    element_is_active = (*it)->Is(ACTIVE);
+                //assemble the elemental contribution
+                Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
 
-                if(element_is_active)
-                {
-                    //calculate elemental contribution
-                    pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                // clean local elemental memory
+                pScheme->CleanMemory(*(it.base()));
+            }
 
-                    //assemble the elemental contribution
-                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, lock_array);
+        }
 
-                    // clean local elemental memory
-                    pScheme->CleanMemory(*it);
-                }
 
+        #pragma omp parallel for firstprivate(nconditions, LHS_Contribution, RHS_Contribution, EquationId )
+        for (int k = 0; k < nconditions; k++)
+        {
+            ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
+
+            //detect if the element is active or not. If the user did not make any choice the element
+            //is active by default
+            bool condition_is_active = true;
+            if ((it)->IsDefined(ACTIVE))
+                condition_is_active = (it)->Is(ACTIVE);
+
+            if (condition_is_active)
+            {
+                //calculate elemental contribution
+                pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                //assemble the elemental contribution
+                Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
+
+                // clean local elemental memory
+                pScheme->CleanMemory(*(it.base()));
             }
         }
 
-        vector<unsigned int> condition_partition;
-        CreatePartition(number_of_threads, ConditionsArray.size(), condition_partition);
 
-        #pragma omp parallel for
-        for (int k = 0; k < number_of_threads; k++)
-        {
-            //contributions to the system
-            LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
-            LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-
-            Condition::EquationIdVectorType EquationId;
-
-            ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-
-            typename ConditionsArrayType::ptr_iterator it_begin = ConditionsArray.ptr_begin() + condition_partition[k];
-            typename ConditionsArrayType::ptr_iterator it_end = ConditionsArray.ptr_begin() + condition_partition[k + 1];
-
-            // assemble all elements
-            for (typename ConditionsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
-            {
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
-                bool condition_is_active = true;
-                if( (*it)->IsDefined(ACTIVE) )
-                    condition_is_active = (*it)->Is(ACTIVE);
-
-                if(condition_is_active)
-                {
-                    //calculate elemental contribution
-                    pScheme->Condition_CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-
-                    //assemble the elemental contribution
-                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, lock_array);
-
-                    // clean local elemental memory
-//                    pScheme->CleanMemory(*it);
-                }
-            }
-        }
-
-// equation_ids.close();
-// KRATOS_THROW_ERROR(std::logic_error,"i want to stop here :-D","")
+        // equation_ids.close();
+        // KRATOS_THROW_ERROR(std::logic_error,"i want to stop here :-D","")
 
         double stop_build = OpenMPUtils::GetCurrentTime();
-        if (this->GetEchoLevel() >=1 && r_model_part.GetCommunicator().MyPID() == 0)
+        if (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)
             std::cout << "build time: " << stop_build - start_build << std::endl;
 
-        for (int i = 0; i < A_size; i++)
-            omp_destroy_lock(&lock_array[i]);
-        if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
+        //for (int i = 0; i < A_size; i++)
+        //    omp_destroy_lock(&lock_array[i]);
+        if (this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
         {
             KRATOS_WATCH("finished parallel building");
         }
 
 
-        //                        //ensure that all the threads are syncronized here
-        //                        #pragma omp barrier
-#endif
 
 
         KRATOS_CATCH("")
@@ -383,48 +299,10 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A)
     {
-        KRATOS_TRY
+		KRATOS_TRY
 
-        //getting the elements from the model
-        ElementsArrayType& pElements = r_model_part.Elements();
-
-        //getting the array of the conditions
-        ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
-
-
-        //contributions to the system
-        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
-
-        //vector containing the localization in the system of the different
-        //terms
-        Element::EquationIdVectorType EquationId;
-
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-
-        // assemble all elements
-        for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
-        {
-            //calculate elemental contribution
-            pScheme->Calculate_LHS_Contribution(*it, LHS_Contribution, EquationId, CurrentProcessInfo);
-
-            //assemble the elemental contribution
-            AssembleLHS(A, LHS_Contribution, EquationId);
-
-            // clean local elemental memory
-            pScheme->CleanMemory(*it);
-        }
-
-        LHS_Contribution.resize(0, 0, false);
-
-        // assemble all conditions
-        for (typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it)
-        {
-            //calculate elemental contribution
-            pScheme->Condition_Calculate_LHS_Contribution(*it, LHS_Contribution, EquationId, CurrentProcessInfo);
-
-            //assemble the elemental contribution
-            AssembleLHS(A, LHS_Contribution, EquationId);
-        }
+			TSystemVectorType tmp(A.size1(), 0.0);
+		this->Build(pScheme, r_model_part, A, tmp);
 
         KRATOS_CATCH("")
 
@@ -440,46 +318,8 @@ public:
     {
         KRATOS_TRY
 
-        //getting the elements from the model
-        ElementsArrayType& pElements = r_model_part.Elements();
-
-        //getting the array of the conditions
-        ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
-
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-
-
-        //contributions to the system
-        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
-
-        //vector containing the localization in the system of the different
-        //terms
-        Element::EquationIdVectorType EquationId;
-
-        // assemble all elements
-        for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
-        {
-            //calculate elemental contribution
-            pScheme->Calculate_LHS_Contribution(*it, LHS_Contribution, EquationId, CurrentProcessInfo);
-
-            //assemble the elemental contribution
-            AssembleLHS_CompleteOnFreeRows(A, LHS_Contribution, EquationId);
-
-            // clean local elemental memory
-            pScheme->CleanMemory(*it);
-        }
-
-        LHS_Contribution.resize(0, 0, false);
-        // assemble all conditions
-        for (typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it)
-        {
-            //calculate elemental contribution
-            pScheme->Condition_Calculate_LHS_Contribution(*it, LHS_Contribution, EquationId, CurrentProcessInfo);
-
-            //assemble the elemental contribution
-            AssembleLHS_CompleteOnFreeRows(A, LHS_Contribution, EquationId);
-        }
-
+			TSystemVectorType tmp(A.size1(), 0.0);
+		this->Build(pScheme, r_model_part, A, tmp);
 
         KRATOS_CATCH("")
 
@@ -640,11 +480,18 @@ public:
 
         BuildRHSNoDirichlet(pScheme,r_model_part,b);
 
-        //set to zero the positions of the RHS which correspond to Dirichlet conditions
-        int i=0;
-        for (typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
-            if(dof_iterator->IsFixed()) b[i++] = 0;
-            else i++;
+		const int ndofs = static_cast<int>(BaseType::mDofSet.size());
+
+		//NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+		#pragma omp parallel for firstprivate(ndofs)
+		for (int k = 0; k<ndofs; k++)
+		{
+			typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
+			const std::size_t i = dof_iterator->EquationId();
+
+			if (dof_iterator->IsFixed())
+				b[i] = 0.0f;
+		}
 
         KRATOS_CATCH("")
 
@@ -666,55 +513,140 @@ public:
 
         //Gets the array of elements from the modeler
         ElementsArrayType& pElements = r_model_part.Elements();
+        const int nelements = static_cast<int>(pElements.size());
 
         Element::DofsVectorType ElementalDofList;
 
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
+
+
+        unsigned int nthreads = OpenMPUtils::GetNumThreads();
+
+
+//        typedef boost::fast_pool_allocator< Node<3>::DofType::Pointer > allocator_type;
+// 		typedef std::unordered_set < Node<3>::DofType::Pointer,
+// 			dof_iterator_hash,
+// 			dof_iterator_equal,
+// 			allocator_type 	>  set_type;
+        
+#ifdef USE_GOOGLE_HASH
+        typedef google::dense_hash_set < Node<3>::DofType::Pointer, dof_iterator_hash>  set_type;
+#else
+        typedef std::unordered_set < Node<3>::DofType::Pointer, dof_iterator_hash>  set_type;
+#endif
+//         
+        
+
+        std::vector<set_type> dofs_aux_list(nthreads);
+// 		std::vector<allocator_type> allocators(nthreads);
+        
+        KRATOS_WATCH(nthreads)
+        for (int i = 0; i < nthreads; i++)
+        {
+#ifdef USE_GOOGLE_HASH
+            dofs_aux_list[i].set_empty_key(Node<3>::DofType::Pointer());
+#else
+// 			dofs_aux_list[i] = set_type( allocators[i]);
+            dofs_aux_list[i].reserve(nelements);
+#endif
+        }
+        KRATOS_WATCH("initializing element loop")
+        #pragma omp parallel for firstprivate(nelements, ElementalDofList)
+        for (int i = 0; i < nelements; i++)
+        {
+            typename ElementsArrayType::iterator it = pElements.begin() + i;
+            const unsigned int this_thread_id = OpenMPUtils::ThisThread();
+
+            // gets list of Dof involved on every element
+            pScheme->GetElementalDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
+
+            dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
+        }
+        KRATOS_WATCH("initializing condition loop")
+        ConditionsArrayType& pConditions = r_model_part.Conditions();
+        const int nconditions = static_cast<int>(pConditions.size());
+        #pragma omp parallel for firstprivate(nconditions, ElementalDofList)
+        for (int i = 0; i < nconditions; i++)
+        {
+            typename ConditionsArrayType::iterator it = pConditions.begin() + i;
+            const unsigned int this_thread_id = OpenMPUtils::ThisThread();
+
+            // gets list of Dof involved on every element
+            pScheme->GetConditionDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
+            dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
+
+        }
+
+
+        KRATOS_WATCH("initializing tree reduction")
+        //here we do a reduction in a tree so to have everything on thread 0
+        unsigned int old_max = nthreads;
+        unsigned int new_max = ceil(0.5*static_cast<double>(old_max));
+        while (new_max>=1 && new_max != old_max)
+        {
+            //just for debugging
+            std::cout << "old_max" << old_max << " new_max:" << new_max << std::endl;
+            for (int i = 0; i < new_max; i++)
+            {
+                if (i + new_max < old_max)
+                {
+                    std::cout << i << " - " << i+new_max << std::endl;
+                }
+            }
+            std::cout << "********************" << std::endl;
+            
+            #pragma omp parallel for
+            for (int i = 0; i < new_max; i++)
+            {
+                if (i + new_max < old_max)
+                {
+                    dofs_aux_list[i].insert(dofs_aux_list[i+new_max].begin(), dofs_aux_list[i+new_max].end());
+                    dofs_aux_list[i+new_max].clear();
+                }
+            }
+            
+            old_max = new_max;
+            new_max = ceil(0.5*static_cast<double>(old_max));
+            
+        }
+
+        KRATOS_WATCH("initializing ordered array filling")
+
         DofsArrayType Doftemp;
         BaseType::mDofSet = DofsArrayType();
-        //mDofSet.clear();
 
-        //double StartTime = GetTickCount();
-        for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
+        Doftemp.reserve(dofs_aux_list[0].size());
+        for (auto it= dofs_aux_list[0].begin(); it!= dofs_aux_list[0].end(); it++)
         {
-            // gets list of Dof involved on every element
-            pScheme->GetElementalDofList(*it, ElementalDofList, CurrentProcessInfo);
-
-            //ccc = GetTickCount();
-            for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin(); i != ElementalDofList.end(); ++i)
-            {
-                Doftemp.push_back(*i);
-            }
+            Doftemp.push_back( *it );
         }
+        Doftemp.Sort();
 
-        //taking in account conditions
-        ConditionsArrayType& pConditions = r_model_part.Conditions();
-        for (typename ConditionsArrayType::ptr_iterator it = pConditions.ptr_begin(); it != pConditions.ptr_end(); ++it)
-        {
-            // gets list of Dof involved on every element
-            pScheme->GetConditionDofList(*it, ElementalDofList, CurrentProcessInfo);
-
-            for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin(); i != ElementalDofList.end(); ++i)
-            {
-                Doftemp.push_back(*i);
-            }
-        }
-
-
-        Doftemp.Unique();
         BaseType::mDofSet = Doftemp;
 
         //throws an execption if there are no Degrees of freedom involved in the analysis
         if (BaseType::mDofSet.size() == 0)
             KRATOS_THROW_ERROR(std::logic_error, "No degrees of freedom!", "");
-
+        KRATOS_WATCH(BaseType::mDofSet.size())
         BaseType::mDofSetIsInitialized = true;
         if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
         {
             std::cout << "finished setting up the dofs" << std::endl;
         }
 
+        KRATOS_WATCH("initializing lock array")
+        if (mlock_array.size() != 0)
+        {
+            for (int i = 0; i < mlock_array.size(); i++)
+                omp_destroy_lock(&mlock_array[i]);
+        }
+
+        mlock_array.resize(BaseType::mDofSet.size());
+
+        for (int i = 0; i < mlock_array.size(); i++)
+            omp_init_lock(&mlock_array[i]);
+        KRATOS_WATCH("end of setupdofset")
         KRATOS_CATCH("");
     }
 
@@ -726,12 +658,22 @@ public:
     )
     {
 
-        int free_id = 0;
-
-        for (typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
-            dof_iterator->SetEquationId(free_id++);
-
+        //int free_id = 0;
         BaseType::mEquationSystemSize = BaseType::mDofSet.size();
+        int ndofs = static_cast<int>(BaseType::mDofSet.size());
+
+        #pragma omp parallel for firstprivate(ndofs)
+        for (int i = 0; i < static_cast<int>(ndofs); i++)
+        {
+            typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + i;
+            dof_iterator->SetEquationId(i);
+
+        }
+
+        //for (typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
+        //    dof_iterator->SetEquationId(free_id++);
+
+
 
     }
 
@@ -840,19 +782,20 @@ public:
         //refresh RHS to have the correct reactions
         BuildRHSNoDirichlet(pScheme, r_model_part, b);
 
-        int i;
+		const int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
-        typename DofsArrayType::ptr_iterator it2;
-        //updating variables
-        for (it2 = BaseType::mDofSet.ptr_begin(); it2 != BaseType::mDofSet.ptr_end(); ++it2)
-        {
-            if ((*it2)->IsFixed())
-            {
-                i = (*it2)->EquationId();
+		//NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+		#pragma omp parallel for firstprivate(ndofs)
+		for (int k = 0; k<ndofs; k++)
+		{
+			typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
 
-                (*it2)->GetSolutionStepReactionValue() = -b[i];
-            }
-        }
+			if (dof_iterator->IsFixed())
+			{
+				const int i = (dof_iterator)->EquationId();
+				(dof_iterator)->GetSolutionStepReactionValue() = -b[i];
+			}
+		}
 
         //KRATOS_WATCH(__LINE__)
     }
@@ -869,17 +812,19 @@ public:
     {
         std::size_t system_size = A.size1();
         std::vector<double> scaling_factors (system_size, 0.0f);
-//!!!POTENTIAL BUGS: it only works if the dofs are numberred consecutively
-        for (typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
+
+        const int ndofs = static_cast<int>(BaseType::mDofSet.size());
+
+        //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+        #pragma omp parallel for firstprivate(ndofs)
+        for(int k = 0; k<ndofs; k++)
         {
-            std::size_t i = dof_iterator->EquationId();
-            if(i < system_size)
-            {
-                if(dof_iterator->IsFixed())
-                    scaling_factors[i] = 0.0f;
-                else
-                    scaling_factors[i] = 1.0f;
-            }
+            typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
+            if(dof_iterator->IsFixed())
+                scaling_factors[k] = 0.0f;
+            else
+                scaling_factors[k] = 1.0f;
+
         }
 
         double* Avalues = A.value_data().begin();
@@ -887,7 +832,7 @@ public:
         std::size_t* Acol_indices = A.index2_data().begin();
 
         //detect if there is a line of all zeros and set the diagonal to a 1 if this happens
-        #pragma omp parallel for
+        #pragma omp parallel for firstprivate(system_size)
         for(int k = 0; k < static_cast<int>(system_size); ++k)
         {
             std::size_t col_begin = Arow_indices[k];
@@ -935,16 +880,7 @@ public:
         }
     }
 
-    //**************************************************************************
-    //**************************************************************************
 
-    void ApplyPointLoads(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemVectorType& b)
-    {
-
-    }
 
     /**
     this function is intended to be called at the end of the solution step to clean up memory
@@ -960,6 +896,11 @@ public:
         {
             std::cout << "ResidualBasedBlockBuilderAndSolver Clear Function called" << std::endl;
         }
+
+        for (int i = 0; i < mlock_array.size(); i++)
+            omp_destroy_lock(&mlock_array[i]);
+        mlock_array.resize(0);
+
     }
 
     /**
@@ -969,7 +910,7 @@ public:
      * @param r_model_part
      * @return 0 all ok
      */
-    virtual int Check(ModelPart& r_model_part)
+    virtual int Check(ModelPart& r_mUSE_GOOGLE_HASHodel_part)
     {
         KRATOS_TRY
 
@@ -1009,6 +950,7 @@ protected:
     /*@} */
     /**@name Protected member Variables */
     /*@{ */
+    std::vector< omp_lock_t > mlock_array;
 
 
     /*@} */
@@ -1022,95 +964,105 @@ protected:
         ConditionsArrayType& rConditions,
         ProcessInfo& CurrentProcessInfo)
     {
+        //filling with zero the matrix (creating the structure)
+        Timer::Start("MatrixStructure");
 
-        std::size_t equation_size = A.size1();
-        std::vector<std::vector<std::size_t> > indices(equation_size);
-        //				std::vector<std::vector<std::size_t> > dirichlet_indices(TSystemSpaceType::Size1(mDirichletMatrix));
+        const std::size_t equation_size = BaseType::mDofSet.size();
+        
+#ifdef USE_GOOGLE_HASH
+        std::vector<google::dense_hash_set<std::size_t> > indices(equation_size);
+        const std::size_t empty_key = 2*equation_size + 10;
+#else
+        std::vector<std::unordered_set<std::size_t> > indices(equation_size);
+#endif
+
+        #pragma omp parallel for firstprivate(equation_size)
+        for (int iii = 0; iii < equation_size; iii++)
+        {
+#ifdef USE_GOOGLE_HASH
+        indices[iii].set_empty_key(empty_key);
+#else
+        indices[iii].reserve(40);
+#endif            
+        }
 
         Element::EquationIdVectorType ids(3, 0);
-        for (typename ElementsContainerType::iterator i_element = rElements.begin(); i_element != rElements.end(); i_element++)
+
+        const int nelements = static_cast<int>(rElements.size());
+        #pragma omp parallel for firstprivate(nelements, ids)
+        for(int iii=0; iii<nelements; iii++)
         {
+            typename ElementsContainerType::iterator i_element = rElements.begin() + iii;
             (i_element)->EquationIdVector(ids, CurrentProcessInfo);
 
             for (std::size_t i = 0; i < ids.size(); i++)
-                if (ids[i] < equation_size)
-                {
-                    std::vector<std::size_t>& row_indices = indices[ids[i]];
-                    for (std::size_t j = 0; j < ids.size(); j++)
-                        if (ids[j] < equation_size)
-                        {
-                            AddUnique(row_indices, ids[j]);
-                            //indices[ids[i]].push_back(ids[j]);
-                        }
-                }
+            {
+                omp_set_lock(&mlock_array[ids[i]]);
+
+                auto& row_indices = indices[ids[i]];
+                row_indices.insert(ids.begin(), ids.end());
+
+                omp_unset_lock(&mlock_array[ids[i]]);
+            }
 
         }
 
-        for (typename ConditionsArrayType::iterator i_condition = rConditions.begin(); i_condition != rConditions.end(); i_condition++)
+        const int nconditions = static_cast<int>(rConditions.size());
+        #pragma omp parallel for firstprivate(nconditions, ids)
+        for (int iii = 0; iii<nconditions; iii++)
         {
+            typename ConditionsArrayType::iterator i_condition = rConditions.begin() + iii;
             (i_condition)->EquationIdVector(ids, CurrentProcessInfo);
             for (std::size_t i = 0; i < ids.size(); i++)
-                if (ids[i] < equation_size)
-                {
-                    std::vector<std::size_t>& row_indices = indices[ids[i]];
-                    for (std::size_t j = 0; j < ids.size(); j++)
-                        if (ids[j] < equation_size)
-                        {
-                            AddUnique(row_indices, ids[j]);
-                            //	indices[ids[i]].push_back(ids[j]);
-                        }
-                }
-        }
-
-        //allocating the memory needed
-        int data_size = 0;
-        for (std::size_t i = 0; i < indices.size(); i++)
-        {
-            data_size += indices[i].size();
-        }
-        A.reserve(data_size, false);
-
-        //filling with zero the matrix (creating the structure)
-        Timer::Start("MatrixStructure");
-#ifndef _OPENMP
-        for (std::size_t i = 0; i < indices.size(); i++)
-        {
-            std::vector<std::size_t>& row_indices = indices[i];
-            std::sort(row_indices.begin(), row_indices.end());
-
-            for (std::vector<std::size_t>::iterator it = row_indices.begin(); it != row_indices.end(); it++)
             {
-                A.push_back(i, *it, 0.00);
-            }
-            row_indices.clear();
-        }
-#else
-        int number_of_threads = omp_get_max_threads();
-        vector<unsigned int> matrix_partition;
-        CreatePartition(number_of_threads, indices.size(), matrix_partition);
-        if (this->GetEchoLevel() > 2)
-        {
-            KRATOS_WATCH(matrix_partition);
-        }
-        for (int k = 0; k < number_of_threads; k++)
-        {
-            #pragma omp parallel
-            if (omp_get_thread_num() == k)
-            {
-                for (std::size_t i = matrix_partition[k]; i < matrix_partition[k + 1]; i++)
-                {
-                    std::vector<std::size_t>& row_indices = indices[i];
-                    std::sort(row_indices.begin(), row_indices.end());
+                omp_set_lock(&mlock_array[ids[i]]);
 
-                    for (std::vector<std::size_t>::iterator it = row_indices.begin(); it != row_indices.end(); it++)
-                    {
-                        A.push_back(i, *it, 0.00);
-                    }
-                    row_indices.clear();
-                }
+                auto& row_indices = indices[ids[i]];
+                row_indices.insert(ids.begin(), ids.end());
+
+                omp_unset_lock(&mlock_array[ids[i]]);
             }
         }
-#endif
+
+        //count the row sizes
+        unsigned int nnz = 0;
+        for (unsigned int i = 0; i < indices.size(); i++)
+            nnz += indices[i].size();
+
+        A = boost::numeric::ublas::compressed_matrix<double>(indices.size(), indices.size(), nnz);
+
+        double* Avalues = A.value_data().begin();
+        std::size_t* Arow_indices = A.index1_data().begin();
+        std::size_t* Acol_indices = A.index2_data().begin();
+
+        //filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
+        Arow_indices[0] = 0;
+        for (int i = 0; i < static_cast<int>(A.size1()); i++)
+            Arow_indices[i+1] = Arow_indices[i] + indices[i].size();
+
+
+
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(A.size1()); i++)
+        {
+            const unsigned int row_begin = Arow_indices[i];
+            const unsigned int row_end = Arow_indices[i+1];
+            unsigned int k = row_begin;
+            for (auto it = indices[i].begin(); it != indices[i].end(); it++)
+            {
+                Acol_indices[k] = *it;
+                Avalues[k] = 0.0;
+                k++;
+            }
+
+			indices[i].clear(); //deallocating the memory 
+
+            std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
+
+        }
+
+        A.set_filled(indices.size()+1, nnz);
+
         Timer::Stop("MatrixStructure");
     }
 
@@ -1156,7 +1108,12 @@ protected:
             unsigned int i_global = EquationId[i_local];
 
             // ASSEMBLING THE SYSTEM VECTOR
-            b[i_global] += RHS_Contribution[i_local];
+            double& b_value = b[i_global];
+            const double& rhs_value = RHS_Contribution[i_local];
+
+            #pragma omp atomic
+            b_value += rhs_value;
+
 
         }
 
@@ -1207,28 +1164,6 @@ private:
     /*@{ */
 
 
-    //**************************************************************************
-
-    void AssembleLHS_CompleteOnFreeRows(
-        TSystemMatrixType& A,
-        LocalSystemMatrixType& LHS_Contribution,
-        Element::EquationIdVectorType& EquationId
-    )
-    {
-        unsigned int local_size = LHS_Contribution.size1();
-        for (unsigned int i_local = 0; i_local < local_size; i_local++)
-        {
-            unsigned int i_global = EquationId[i_local];
-
-            for (unsigned int j_local = 0; j_local < local_size; j_local++)
-            {
-                int j_global = EquationId[j_local];
-
-                A(i_global, j_global) += LHS_Contribution(i_local, j_local);
-            }
-
-        }
-    }
 
 
     //******************************************************************************************
@@ -1273,41 +1208,50 @@ private:
         Element::EquationIdVectorType EquationId;
 
         // assemble all elements
-        for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
+        //for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
+
+        int nelements = static_cast<int>(pElements.size());
+        #pragma omp parallel for firstprivate(nelements, RHS_Contribution, EquationId)
+        for(int i=0; i<nelements; i++)
         {
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
-                bool element_is_active = true;
-                if( (*it)->IsDefined(ACTIVE) )
-                    element_is_active = (*it)->Is(ACTIVE);
+            typename ElementsArrayType::iterator it = pElements.begin() + i;
+            //detect if the element is active or not. If the user did not make any choice the element
+            //is active by default
+            bool element_is_active = true;
+            if( (it)->IsDefined(ACTIVE) )
+                element_is_active = (it)->Is(ACTIVE);
 
-                if(element_is_active)
-                {
-                    //calculate elemental Right Hand Side Contribution
-                    pScheme->Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+            if(element_is_active)
+            {
+                //calculate elemental Right Hand Side Contribution
+                pScheme->Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
 
-                    //assemble the elemental contribution
-                    AssembleRHS(b, RHS_Contribution, EquationId);
-                }
+                //assemble the elemental contribution
+                AssembleRHS(b, RHS_Contribution, EquationId);
+            }
         }
 
         LHS_Contribution.resize(0, 0, false);
         RHS_Contribution.resize(0, false);
 
         // assemble all conditions
-        for (typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it)
+        //for (typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it)
+        int nconditions = static_cast<int>(ConditionsArray.size());
+        #pragma omp parallel for firstprivate(nconditions, RHS_Contribution, EquationId)
+        for (int i = 0; i<nconditions; i++)
         {
+            auto it = ConditionsArray.begin() + i;
             //detect if the element is active or not. If the user did not make any choice the element
             //is active by default
             bool condition_is_active = true;
-            if( (*it)->IsDefined(ACTIVE) )
-                condition_is_active = (*it)->Is(ACTIVE);
+            if( (it)->IsDefined(ACTIVE) )
+                condition_is_active = (it)->Is(ACTIVE);
 
             if(condition_is_active)
             {
 
                 //calculate elemental contribution
-                pScheme->Condition_Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+                pScheme->Condition_Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
 
                 //assemble the elemental contribution
                 AssembleRHS(b, RHS_Contribution, EquationId);
