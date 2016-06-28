@@ -64,13 +64,13 @@ int UPwSmallStrainElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentPro
     }
     
     // Verify the constitutive law
-    if ( CONSTITUTIVE_LAW_POINTER.Key() == 0 || Prop.Has( CONSTITUTIVE_LAW_POINTER ) == false )
-        KRATOS_THROW_ERROR( std::invalid_argument, "CONSTITUTIVE_LAW_POINTER has Key zero or is not defined at element ", this->Id() )
-    if ( Prop[CONSTITUTIVE_LAW_POINTER] != NULL )
+    if ( CONSTITUTIVE_LAW.Key() == 0 || Prop.Has( CONSTITUTIVE_LAW ) == false )
+        KRATOS_THROW_ERROR( std::invalid_argument, "CONSTITUTIVE_LAW has Key zero or is not defined at element ", this->Id() )
+    if ( Prop[CONSTITUTIVE_LAW] != NULL )
     {
         // Verify compatibility of the element with the constitutive law
         ConstitutiveLaw::Features LawFeatures;
-        Prop[CONSTITUTIVE_LAW_POINTER]->GetLawFeatures(LawFeatures);
+        Prop[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
         bool correct_strain_measure = false;
         for(unsigned int i=0; i<LawFeatures.mStrainMeasures.size(); i++)
         {
@@ -81,7 +81,7 @@ int UPwSmallStrainElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentPro
             KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the element type", " StrainMeasure_Infinitesimal " );
         
         // Check constitutive law
-        ierr = Prop[CONSTITUTIVE_LAW_POINTER]->Check( Prop, Geom, rCurrentProcessInfo );
+        ierr = Prop[CONSTITUTIVE_LAW]->Check( Prop, Geom, rCurrentProcessInfo );
     }
     else
         KRATOS_THROW_ERROR( std::logic_error, "A constitutive law needs to be specified for the element ", this->Id() )

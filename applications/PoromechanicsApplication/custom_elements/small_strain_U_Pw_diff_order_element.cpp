@@ -97,12 +97,12 @@ int  SmallStrainUPwDiffOrderElement::Check( const ProcessInfo& rCurrentProcessIn
     }
 
     //verify that the constitutive law exists
-    if ( this->GetProperties().Has( CONSTITUTIVE_LAW_POINTER ) == false )
+    if ( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false )
         KRATOS_THROW_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() )
 
 	//verify compatibility with the constitutive law
     ConstitutiveLaw::Features LawFeatures;
-    this->GetProperties().GetValue( CONSTITUTIVE_LAW_POINTER )->GetLawFeatures(LawFeatures);
+    this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
 
     bool correct_strain_measure = false;
     for(unsigned int i=0; i<LawFeatures.mStrainMeasures.size(); i++)
@@ -124,7 +124,7 @@ int  SmallStrainUPwDiffOrderElement::Check( const ProcessInfo& rCurrentProcessIn
             KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered)", "" )
     }
 
-	this->GetProperties().GetValue( CONSTITUTIVE_LAW_POINTER )->Check( this->GetProperties(), rGeom, rCurrentProcessInfo );
+	this->GetProperties().GetValue( CONSTITUTIVE_LAW )->Check( this->GetProperties(), rGeom, rCurrentProcessInfo );
 
     return 0;
 
@@ -143,11 +143,11 @@ void SmallStrainUPwDiffOrderElement::Initialize()
     if ( mConstitutiveLawVector.size() != integration_points.size() )
         mConstitutiveLawVector.resize( integration_points.size() );
 
-    if ( GetProperties()[CONSTITUTIVE_LAW_POINTER] != NULL )
+    if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
     {
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
         {
-            mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW_POINTER]->Clone();
+            mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
             mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), rGeom,row( rGeom.ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
         }
     }
@@ -663,7 +663,7 @@ void SmallStrainUPwDiffOrderElement::GetValueOnIntegrationPoints( const Variable
 
 void SmallStrainUPwDiffOrderElement::GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,std::vector<ConstitutiveLaw::Pointer>& rValues,const ProcessInfo& rCurrentProcessInfo )
 {
-    if(rVariable == CONSTITUTIVE_LAW_POINTER)
+    if(rVariable == CONSTITUTIVE_LAW)
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
             rValues.resize(mConstitutiveLawVector.size());
