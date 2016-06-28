@@ -49,8 +49,8 @@ void BilinearCohesive3DLaw::GetLawFeatures(Features& rFeatures)
 int BilinearCohesive3DLaw::Check(const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const ProcessInfo& rCurrentProcessInfo)
 {
     // Verify ProcessInfo variables
-    if ( NO_CONVERGENCE.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"NO_CONVERGENCE has Key zero! (check if the application is correctly registered", "" )
+    if ( IS_CONVERGED.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"IS_CONVERGED has Key zero! (check if the application is correctly registered", "" )
     
     // Verify Properties variables
     if(CRITICAL_DISPLACEMENT.Key() == 0 || rMaterialProperties.Has( CRITICAL_DISPLACEMENT ) == false || rMaterialProperties[CRITICAL_DISPLACEMENT] <= 0.0)
@@ -174,7 +174,7 @@ void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues
 
 void BilinearCohesive3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
 {
-    if(rValues.GetProcessInfo()[NO_CONVERGENCE]==0) //Convergence is achieved. Save equilibrium state variable
+    if(rValues.GetProcessInfo()[IS_CONVERGED]==true) //Convergence is achieved. Save equilibrium state variable
     {
         //Check
         rValues.CheckAllParameters();

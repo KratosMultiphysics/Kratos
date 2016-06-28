@@ -37,8 +37,8 @@ int RestoreSimoJu3DLaw::Check(const Properties& rMaterialProperties,const Geomet
     int ierr = IsotropicDamageSimoJu3DLaw::Check(rMaterialProperties,rElementGeometry,rCurrentProcessInfo);
     if(ierr != 0) return ierr;
 
-    if ( NO_CONVERGENCE.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"NO_CONVERGENCE has Key zero! (check if the application is correctly registered", "" )
+    if ( IS_CONVERGED.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"IS_CONVERGED has Key zero! (check if the application is correctly registered", "" )
     
     return ierr;
 }
@@ -151,7 +151,7 @@ void RestoreSimoJu3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
     Matrix LinearElasticMatrix (VoigtSize,VoigtSize);
     this->CalculateLinearElasticMatrix(LinearElasticMatrix,YoungModulus,PoissonCoefficient);
     
-    if(rValues.GetProcessInfo()[NO_CONVERGENCE]==0) //Convergence is achieved. Save equilibrium state variable
+    if(rValues.GetProcessInfo()[IS_CONVERGED]==true) //Convergence is achieved. Save equilibrium state variable
     {
         ReturnMappingVariables.Options.Set(FlowRule::RETURN_MAPPING_COMPUTED,false); // Restore sate variable = false
         
