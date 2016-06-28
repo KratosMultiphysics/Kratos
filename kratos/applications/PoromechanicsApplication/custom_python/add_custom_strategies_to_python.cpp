@@ -14,11 +14,12 @@
 #include "includes/define.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "spaces/ublas_space.h"
+#include "includes/kratos_parameters.h"
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "custom_strategies/strategies/newton_raphson_strategy.hpp"
-#include "custom_strategies/strategies/ramm_arc_length_strategy.hpp"
+#include "custom_strategies/strategies/poromechanics_newton_raphson_strategy.hpp"
+#include "custom_strategies/strategies/poromechanics_ramm_arc_length_strategy.hpp"
 
 //builders and solvers
 
@@ -46,27 +47,30 @@ void  AddCustomStrategiesToPython()
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
+    typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
 
     typedef NewmarkQuasistaticUPwScheme< SparseSpaceType, LocalSpaceType >  NewmarkQuasistaticUPwSchemeType;
     typedef NewmarkDynamicUPwScheme< SparseSpaceType, LocalSpaceType >  NewmarkDynamicUPwSchemeType; 
     
-    typedef NewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > NewtonRaphsonStrategyType;
-    typedef RammArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > RammArcLengthStrategyType;
+    typedef PoromechanicsNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > PoromechanicsNewtonRaphsonStrategyType;
+    typedef PoromechanicsRammArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > PoromechanicsRammArcLengthStrategyType;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     class_< NewmarkQuasistaticUPwSchemeType,bases< BaseSchemeType >,  boost::noncopyable >("NewmarkQuasistaticUPwScheme",
-        init<  ModelPart&, double, double, double >());
+        init<  double, double, double >());
 
     class_< NewmarkDynamicUPwSchemeType,bases< BaseSchemeType >,  boost::noncopyable >("NewmarkDynamicUPwScheme",
-        init<  ModelPart&, double, double, double, double, double >());
+        init<  double, double, double, double, double >());
         
 
-    class_< NewtonRaphsonStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("NewtonRaphsonStrategy", 
-        init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, double, double, int, bool, bool, bool >());
+    class_< PoromechanicsNewtonRaphsonStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("PoromechanicsNewtonRaphsonStrategy", 
+        init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+                 BuilderAndSolverType::Pointer, int, bool, bool, bool >());
 
-    class_< RammArcLengthStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("RammArcLengthStrategy", 
-        init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, double, double, int, int, double, double, bool, bool, bool >());
+    class_< PoromechanicsRammArcLengthStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("PoromechanicsRammArcLengthStrategy", 
+        init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+                 BuilderAndSolverType::Pointer, Parameters, int, bool, bool, bool >());
 }
 
 }  // namespace Python.
