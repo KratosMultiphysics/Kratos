@@ -258,7 +258,7 @@ public:
                     //std::cout<< "Density "<< Density<<std::endl;
                     Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's connectivity
                                    
-                    Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_5);
+                    Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
                     //Matrix shape_functions_values = this->MP16ShapeFunctions();
                     //std::cout<<"shape_functions_values "<< shape_functions_values<<std::endl;
                     //const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( GeometryData::GI_GAUSS_4); 
@@ -273,7 +273,7 @@ public:
                     //int integration_point_per_element = 3;
                     
                     MP_Mass = area * Density / integration_point_per_elements;
-                    
+                    std::cout<<"MP_Mass "<<MP_Mass<<std::endl;
                     MP_Volume = area / integration_point_per_elements;
                     
                     
