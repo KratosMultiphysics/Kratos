@@ -29,7 +29,7 @@ namespace Kratos
 	namespace Testing
 	{
 		TestCase::TestCase(std::string const& Name)
-			:mName(Name), mIsEnabled(true) {}
+			:mName(Name), mIsEnabled(true), mIsSelected(false) {}
 
 		TestCase::~TestCase() {}
 
@@ -37,6 +37,7 @@ namespace Kratos
 		{
 			mResult.Reset();
 			mIsEnabled = true;
+			mIsSelected = false;
 		}
 
 		void TestCase::ResetResult()
@@ -132,6 +133,16 @@ namespace Kratos
 			mIsEnabled = false;
 		}
 
+		void TestCase::Select()
+		{
+			mIsSelected = true;
+		}
+
+		void TestCase::UnSelect()
+		{
+			mIsSelected = false;
+		}
+
 		const std::string& TestCase::Name() const
 		{
 			return mName;
@@ -155,6 +166,11 @@ namespace Kratos
 		bool TestCase::IsDisabled()
 		{
 			return !mIsEnabled;
+		}
+
+		bool TestCase::IsSelected()
+		{
+			return mIsSelected;
 		}
 
 		std::string TestCase::Info() const

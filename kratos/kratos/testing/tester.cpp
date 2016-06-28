@@ -20,8 +20,8 @@
 
 // Project includes
 #include "testing/tester.h"
-#include "testing/test_case.h"
-#include "includes/checks.h"
+#include "testing/test_suite.h" // it includes the test_case.h
+#include "includes/exception.h"
 //#include "utilities/logger.h"
 
 
@@ -37,6 +37,10 @@ namespace Kratos
 			for (auto i_test = GetInstance().mTestCases.begin();
 			i_test != GetInstance().mTestCases.end(); i_test++)
 				delete i_test->second;
+
+			for (auto i_test = GetInstance().mTestSuites.begin();
+			i_test != GetInstance().mTestSuites.end(); i_test++)
+				delete i_test->second;
 		}
 
 		void Tester::ResetAllTestCasesResults()
@@ -48,51 +52,31 @@ namespace Kratos
 
 		void Tester::RunAllTestCases()
 		{
-			auto start = std::chrono::steady_clock::now();
+			// TODO: Including the initialization time in the timing.
 			ResetAllTestCasesResults();
-			auto number_of_run_tests = NumberOfEnabledTestCases();
-
-			std::size_t test_number = 0;
-			for (auto i_test = GetInstance().mTestCases.begin();
-			i_test != GetInstance().mTestCases.end(); i_test++)
-			{
-				i_test->second->Run();
-				ShowProgress(++test_number, number_of_run_tests, i_test->second);
-			}
-
-
-			auto end = std::chrono::steady_clock::now();
-			std::chrono::duration<double> elapsed = end - start;
-
-			ReportResults(std::cout, number_of_run_tests, elapsed.count());
-
+			SelectOnlyEnabledTestCases();
+			RunSelectedTestCases();
 		}
 
 		void Tester::ProfileAllTestCases()
 		{
-			auto start = std::chrono::steady_clock::now();
 			ResetAllTestCasesResults();
-			auto number_of_run_tests = NumberOfEnabledTestCases();
-
-			for (auto i_test = GetInstance().mTestCases.begin();
-			i_test != GetInstance().mTestCases.end(); i_test++)
-				i_test->second->Profile();
-
-			auto end = std::chrono::steady_clock::now();
-			std::chrono::duration<double> elapsed = end - start;
-
-			ReportResults(std::cout, number_of_run_tests, elapsed.count());
+			SelectOnlyEnabledTestCases();
+			ProfileSelectedTestCases();
 		}
 
-		std::size_t Tester::NumberOfEnabledTestCases()
+		void Tester::RunTestSuite(std::string const& TestSuiteName)
 		{
-			std::size_t result = 0;
-			for (TestCasesContainerType::iterator i_test = GetInstance().mTestCases.begin();
-			i_test != GetInstance().mTestCases.end(); i_test++)
-				if (i_test->second->IsEnabled())
-					result++;
+			// TODO: Including the initialization time in the timing.
+			ResetAllTestCasesResults();
+			UnSelectAllTestCases();
+			GetTestSuite(TestSuiteName).Select();
+			RunSelectedTestCases();
+		}
 
-			return result;
+		void Tester::ProfileTestSuite(std::string const& TestSuiteName)
+		{
+			KRATOS_ERROR << "Profile test suite is not implmented yet" << std::endl;
 		}
 
 		std::size_t Tester::NumberOfFailedTestCases()
@@ -111,8 +95,62 @@ namespace Kratos
 
 		void Tester::AddTestCase(TestCase* pHeapAllocatedTestCase)
 		{
-			KRATOS_CHECK(IsTestCaseNotAddedBefore(pHeapAllocatedTestCase)) << "A duplicated test case found! The test case \"" << pHeapAllocatedTestCase->Name() << "\" is already added." << std::endl;
+			KRATOS_ERROR_IF(HasTestCase(pHeapAllocatedTestCase->Name())) << "A duplicated test case found! The test case \"" << pHeapAllocatedTestCase->Name() << "\" is already added." << std::endl;
 			GetInstance().mTestCases[pHeapAllocatedTestCase->Name()] = pHeapAllocatedTestCase;
+		}
+
+		TestCase& Tester::GetTestCase(std::string const& TestCaseName) {
+			return *pGetTestCase(TestCaseName);
+		}
+
+		TestCase* Tester::pGetTestCase(std::string const& TestCaseName) {
+			KRATOS_ERROR_IF_NOT(HasTestCase(TestCaseName)) << "The test case \"" << TestCaseName << "\" is not registered in tester" << std::endl;
+			return GetInstance().mTestCases[TestCaseName];
+		}
+
+		TestSuite* Tester::CreateTestSuite(std::string const& TestSuiteName)
+		{
+			if (HasTestSuite(TestSuiteName)) 
+				return pGetTestSuite(TestSuiteName);
+			TestSuite* p_new_test_suite = new TestSuite(TestSuiteName);
+			AddTestSuite(p_new_test_suite);
+			return p_new_test_suite;
+		}
+
+		TestSuite* Tester::CreateNewTestSuite(std::string const& TestSuiteName)
+		{
+			TestSuite* p_new_test_suite = new TestSuite(TestSuiteName);
+			AddTestSuite(p_new_test_suite);
+			return p_new_test_suite;
+		}
+
+		void Tester::AddTestSuite(TestSuite* pHeapAllocatedTestSuite)
+		{
+			KRATOS_ERROR_IF(HasTestSuite(pHeapAllocatedTestSuite->Name())) << "A duplicated test suite found! The test suite \"" << pHeapAllocatedTestSuite->Name() << "\" is already added." << std::endl;
+			GetInstance().mTestSuites[pHeapAllocatedTestSuite->Name()] = pHeapAllocatedTestSuite;
+		}
+
+		TestSuite& Tester::GetTestSuite(std::string const& TestSuiteName) {
+			return *pGetTestSuite(TestSuiteName);
+		}
+
+		TestSuite* Tester::pGetTestSuite(std::string const& TestSuiteName) {
+			KRATOS_ERROR_IF_NOT(HasTestSuite(TestSuiteName)) << "The test suite \"" << TestSuiteName << "\" is not registered in tester" << std::endl;
+			return GetInstance().mTestSuites[TestSuiteName];
+		}
+
+		void Tester::AddTestToTestSuite(std::string const& TestName, std::string const& TestSuiteName)
+		{
+			TestCase* p_test_case = nullptr;
+			if (HasTestCase(TestName))
+				p_test_case = pGetTestCase(TestName);
+			else if (HasTestSuite(TestName))
+				p_test_case = pGetTestSuite(TestName);
+			else
+				KRATOS_ERROR << "The test \"" << TestName << "\" is not registered in the tester" << std::endl;
+
+			TestSuite* p_test_suite = CreateTestSuite(TestSuiteName);
+			p_test_suite->AddTestCase(p_test_case);
 		}
 
 		Tester& Tester::GetInstance()
@@ -124,6 +162,14 @@ namespace Kratos
 		void Tester::SetVerbosity(Verbosity TheVerbosity)
 		{
 			GetInstance().mVerbosity = TheVerbosity;
+		}
+
+		bool Tester::HasTestCase(std::string const& TestCaseName) {
+			return (GetInstance().mTestCases.find(TestCaseName) != GetInstance().mTestCases.end());
+		}
+
+		bool Tester::HasTestSuite(std::string const& TestSuiteName) {
+			return (GetInstance().mTestSuites.find(TestSuiteName) != GetInstance().mTestSuites.end());
 		}
 
 		std::string Tester::Info() const
@@ -139,15 +185,90 @@ namespace Kratos
 		void Tester::PrintData(std::ostream& rOStream) const
 		{
 			rOStream << "    Test cases:" << std::endl;
-			for (TestCasesContainerType::iterator i_test = GetInstance().mTestCases.begin();
+			for (auto i_test = GetInstance().mTestCases.begin();
 			i_test != GetInstance().mTestCases.end(); i_test++)
 				rOStream << "        " << i_test->first << std::endl;
-			rOStream << "    Total of " << GetInstance().mTestCases.size() << " Test cases";
+			rOStream << "    Total of " << GetInstance().mTestCases.size() << " Test cases" << std::endl;
+			rOStream << "    Test suites:" << std::endl;
+			for (auto i_test = GetInstance().mTestSuites.begin();
+			i_test != GetInstance().mTestSuites.end(); i_test++)
+				rOStream << "        " << i_test->first << std::endl;
+			rOStream << "    Total of " << GetInstance().mTestSuites.size() << " Test Suites";
 		}
 
-		bool Tester::IsTestCaseNotAddedBefore(TestCase* pHeapAllocatedTestCase)
+		void Tester::UnSelectAllTestCases()
 		{
-			return (GetInstance().mTestCases.find(pHeapAllocatedTestCase->Name()) == GetInstance().mTestCases.end());
+			for (auto i_test = GetInstance().mTestCases.begin();
+			i_test != GetInstance().mTestCases.end(); i_test++)
+				i_test->second->UnSelect();
+		}
+
+		void Tester::SelectOnlyEnabledTestCases()
+		{
+			for (auto i_test = GetInstance().mTestCases.begin();
+			i_test != GetInstance().mTestCases.end(); i_test++)
+				if (i_test->second->IsEnabled())
+					i_test->second->Select();
+				else
+					i_test->second->UnSelect();
+		}
+
+
+		void Tester::RunSelectedTestCases()
+		{
+			auto start = std::chrono::steady_clock::now();
+			auto number_of_run_tests = NumberOfSelectedTestCases();
+
+			std::size_t test_number = 0;
+			for (auto i_test = GetInstance().mTestCases.begin();
+			i_test != GetInstance().mTestCases.end(); i_test++)
+			{
+				if (i_test->second->IsSelected()) {
+					i_test->second->Run();
+					ShowProgress(++test_number, number_of_run_tests, i_test->second);
+				}
+			}
+
+			auto end = std::chrono::steady_clock::now();
+			std::chrono::duration<double> elapsed = end - start;
+
+			ReportResults(std::cout, number_of_run_tests, elapsed.count());
+		}
+
+
+
+		void Tester::ProfileSelectedTestCases()
+		{
+			KRATOS_ERROR << "Profile test cases is not implemented yet" << std::endl;
+			auto start = std::chrono::steady_clock::now();
+			auto number_of_run_tests = NumberOfSelectedTestCases();
+
+			std::size_t test_number = 0;
+			for (auto i_test = GetInstance().mTestCases.begin();
+			i_test != GetInstance().mTestCases.end(); i_test++)
+			{
+				if (i_test->second->IsSelected()) {
+					i_test->second->Profile();
+					ShowProgress(++test_number, number_of_run_tests, i_test->second);
+				}
+			}
+
+			auto end = std::chrono::steady_clock::now();
+			std::chrono::duration<double> elapsed = end - start;
+
+			ReportResults(std::cout, number_of_run_tests, elapsed.count());
+		}
+
+		std::size_t Tester::NumberOfSelectedTestCases()
+		{
+			std::size_t result = 0;
+			for (auto i_test = GetInstance().mTestCases.begin();
+			i_test != GetInstance().mTestCases.end(); i_test++)
+				if (i_test->second->IsEnabled())
+					if (i_test->second->IsSelected())
+						result++;
+
+			return result;
 		}
 
 		void Tester::ShowProgress(std::size_t Current, std::size_t Total, const TestCase* const pTheTestCase)

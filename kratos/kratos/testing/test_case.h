@@ -67,7 +67,7 @@ namespace Kratos
 			/// The TestCase cannot be copied to avoid duplications
 			TestCase(TestCase const& rOther) = delete;
 
-
+			/// The constructor to be called
 			TestCase(std::string const& Name);
 
 			/// Destructor.
@@ -97,9 +97,13 @@ namespace Kratos
 
 			virtual void TearDown();
 
-			void Enable();
+			virtual void Enable();
 
-			void Disable();
+			virtual void Disable();
+
+			virtual void Select();
+
+			virtual void UnSelect();
 
 			///@}
 			///@name Access
@@ -118,6 +122,7 @@ namespace Kratos
 
 			bool IsEnabled();
 			bool IsDisabled();
+			bool IsSelected();
 
 
 			///@}
@@ -135,48 +140,7 @@ namespace Kratos
 
 
 			///@}
-			///@name Friends
-			///@{
 
-
-			///@}
-
-		protected:
-			///@name Protected static Member Variables
-			///@{
-
-
-			///@}
-			///@name Protected member Variables
-			///@{
-
-
-			///@}
-			///@name Protected Operators
-			///@{
-
-
-			///@}
-			///@name Protected Operations
-			///@{
-
-
-			///@}
-			///@name Protected  Access
-			///@{
-
-
-			///@}
-			///@name Protected Inquiry
-			///@{
-
-
-			///@}
-			///@name Protected LifeCycle
-			///@{
-
-
-			///@}
 
 		private:
 			///@name Static Member Variables
@@ -190,6 +154,8 @@ namespace Kratos
 			const std::string mName;
 
 			bool mIsEnabled;
+
+			bool mIsSelected;
 
 			TestCaseResult mResult;
 
@@ -229,6 +195,20 @@ namespace Kratos
 
 #define KRATOS_TESTING_CONVERT_TO_STRING(Name) #Name
 
+#define KRATOS_TESTING_TEST_CASE_CLASS_BODY(TestCaseName,ParentName) \
+ public:\
+  KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)() : ParentName(KRATOS_TESTING_CONVERT_TO_STRING(Test##TestCaseName)) {}\
+ private: \
+  void TestFunction() override; \
+  static const Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > mDummy; 
+
+#define KRATOS_TESTING_TEST_CASE_CLASS(TestCaseName,ParentName) \
+class KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) : public ParentName \
+ {\
+KRATOS_TESTING_TEST_CASE_CLASS_BODY(TestCaseName,ParentName) \
+};
+
+
 // This macro creates a sub class of TestCase for given TestCaseName prepending a Test to it
 // For example if the TestCaseName is "ModelPartConstruction" then the result is:
 // class TestModelPartConstruction : public TestCase
@@ -244,14 +224,7 @@ namespace Kratos
 //	void TestModelPartConstruction::TestFunction()
 //
 #define KRATOS_TEST_CASE(TestCaseName) \
-class KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) : public TestCase \
- {\
- public:\
-  KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)() : TestCase(KRATOS_TESTING_CONVERT_TO_STRING(Test##TestCaseName)) {}\
- private: \
-  void TestFunction() override; \
-  static const Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > mDummy; \
-}; \
+KRATOS_TESTING_TEST_CASE_CLASS(TestCaseName, TestCase) \
 const Kratos::Testing::Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > \
 		KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mDummy; \
 \
@@ -285,14 +258,7 @@ void TestFixtureName::Setup()
 void TestFixtureName::TearDown()
 
 #define KRATOS_TEST_CASE_WITH_FIXTURE(TestCaseName,TestFixtureName) \
-class KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) : public TestFixtureName \
- {\
- public:\
-  KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)() : TestFixtureName(KRATOS_TESTING_CONVERT_TO_STRING(Test##TestCaseName)) {}\
- private: \
-  void TestFunction() override; \
-  static const Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > mDummy; \
-}; \
+KRATOS_TESTING_TEST_CASE_CLASS(TestCaseName, TestFixtureName)  \
 const Kratos::Testing::Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > \
 		KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mDummy; \
 \
