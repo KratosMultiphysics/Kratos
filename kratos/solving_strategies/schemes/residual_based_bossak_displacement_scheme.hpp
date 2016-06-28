@@ -1024,7 +1024,7 @@ protected:
             noalias(mVector.a[thread]) += mAlpha.m * mVector.ap[thread] * mNewmark.static_dynamic;
 
             noalias(RHS_Contribution)  -= prod(M, mVector.a[thread]);
-            //KRATOS_WATCH( prod(M, macc[thread] ) )
+            //KRATOS_WATCH( prod(M, mVector.a[thread] ) )
 
         }
 
