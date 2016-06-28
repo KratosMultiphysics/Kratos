@@ -33,8 +33,8 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ///Constructor
-    NewmarkDynamicUPwScheme(ModelPart& r_model_part, double beta, double gamma, double theta,
-                            double rayleigh_m, double rayleigh_k) : NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(r_model_part, beta, gamma, theta)
+    NewmarkDynamicUPwScheme(double beta, double gamma, double theta,
+                            double rayleigh_m, double rayleigh_k) : NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(beta, gamma, theta)
     {
         mRayleighAlpha = rayleigh_m;
         mRayleighBeta = rayleigh_k;

@@ -38,7 +38,7 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ///Constructor
-    NewmarkQuasistaticUPwScheme(ModelPart& r_model_part, double beta, double gamma, double theta) : Scheme<TSparseSpace,TDenseSpace>()
+    NewmarkQuasistaticUPwScheme(double beta, double gamma, double theta) : Scheme<TSparseSpace,TDenseSpace>()
     {   
         mBeta = beta;
         mGamma = gamma;
@@ -99,10 +99,6 @@ public:
         //check for minimum value of the buffer index.
         if (r_model_part.GetBufferSize() < 2)
             KRATOS_THROW_ERROR( std::logic_error, "insufficient buffer size. Buffer size should be greater than 2. Current size is", r_model_part.GetBufferSize() )
-        
-        // Check DeltaTime
-        if (r_model_part.GetProcessInfo()[DELTA_TIME] < 1.0e-25)
-            KRATOS_THROW_ERROR( std::logic_error, "Detected DELTA_TIME < 1e-25 in the Solution Scheme. DELTA_TIME should be greater than 0.0", "" )
         
         // Check beta, gamma and theta
         if(mBeta <= 0.0 || mGamma<= 0.0 || mTheta <= 0.0)
