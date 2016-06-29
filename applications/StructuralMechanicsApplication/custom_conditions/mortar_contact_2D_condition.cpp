@@ -443,7 +443,7 @@ void MortarContact2DCondition::CalculateRightHandSide(
     MatrixType LeftHandSideMatrix = Matrix( );
 
     // Initialize size for the system components
-    for( unsigned int i=0; i<rRightHandSideVectors.size(); i++ )
+    for( unsigned int i = 0; i < rRightHandSideVectors.size(); i++ )
     {
         this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVectors[i], LocalSystem.CalculationFlags );
     }
@@ -732,14 +732,12 @@ void MortarContact2DCondition::CalculateKinematics(
     for( unsigned int iNode = 0; iNode < number_of_master_nodes; ++iNode )
     {
         rVariables.N_Master[iNode] = master_nodes.ShapeFunctionValue( iNode, aux_Point );
-//         rVariables.N_Master[iNode] = master_nodes.ShapeFunctionValue( rPointNumber, iNode, mThisIntegrationMethod );
     }
 
     aux_Point.Coordinate(1) = xi_local_slave;
     for( unsigned int iNode = 0; iNode < number_of_slave_nodes; ++iNode )
     {
         rVariables.N_Slave[iNode] = slave_nodes.ShapeFunctionValue( iNode, aux_Point );
-//         rVariables.N_Slave[iNode] = slave_nodes.ShapeFunctionValue( rPointNumber, iNode, mThisIntegrationMethod );
         rVariables.Phi_LagrangeMultipliers[iNode] = LagrangeMultiplierShapeFunctionValue( rPointNumber, iNode );
     }
 
@@ -749,7 +747,6 @@ void MortarContact2DCondition::CalculateKinematics(
 
     slave_nodes.Jacobian( rVariables.j_Slave, mThisIntegrationMethod );
     
-    // TODO: Añadir la diferencia de coordenadas locales
     rVariables.DetJSlave = (xislave2 - xislave1)/2.0 * slave_nodes.Jacobian( rVariables.j_Slave, mThisIntegrationMethod )[rPointNumber](0, 0); // TODO: Check if it is correct
 
     this->CalculateNormalGapAtIntegrationPoint( rVariables, rPointNumber );
@@ -968,38 +965,48 @@ void MortarContact2DCondition::CalculateAndAddRHS(
     double& rIntegrationWeight 
     )
 {
-    // NOTE: For a standard LM method the RHS added is zero!!!
-    if( rLocalSystem.CalculationFlags.Is( MortarContact2DCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
+    if ( rLocalSystem.CalculationFlags.Is( MortarContact2DCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
     {
-        std::vector<VectorType>& rRightHandSideVectors = rLocalSystem.GetRightHandSideVectors();
-        const std::vector< Variable< VectorType > >& rRightHandSideVariables = rLocalSystem.GetRightHandSideVariables();
-        for( unsigned int i = 0; i < rRightHandSideVariables.size(); i++ )
+        /* COMPONENT-WISE RHS MATRIX */
+        const std::vector<Variable<VectorType> >& rRightHandSideVariables = rLocalSystem.GetRightHandSideVariables( );
+        bool calculated;
+
+        for ( unsigned int i = 0; i < rRightHandSideVariables.size( ); i++ )
         {
-            this->CalculateAndAddInternalForces( rRightHandSideVectors[i], rVariables, rIntegrationWeight );
+            calculated = false;
+
+            if ( rRightHandSideVariables[i] == MORTAR_CONTACT_OPERATOR )
+            {
+                VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVectors()[i];
+                VectorType RHS_contact_pair = ZeroVector(rRightHandSideVector.size());
+                
+                // Calculate
+                this->CalculateAndAddMortarContactOperator( RHS_contact_pair, rVariables, rIntegrationWeight );
+
+                // Assemble
+                this->AssembleContactPairRHSToConditionSystem( rVariables.GetMasterElementIndex( ), RHS_contact_pair, rRightHandSideVector );
+                
+                calculated = true;
+            }
+
+            if ( calculated == false )
+            {
+                KRATOS_THROW_ERROR( std::logic_error,  " CONDITION can not supply the required local system variable: ", rRightHandSideVariables[i] );
+            }
         }
     }
-    else
+    else 
     {
+        /* SINGLE LHS MATRIX */
         VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
-        this->CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight );
+        VectorType RHS_contact_pair = ZeroVector(rRightHandSideVector.size());
+        
+        // Calculate
+        this->CalculateAndAddMortarContactOperator( RHS_contact_pair, rVariables, rIntegrationWeight );
+        
+        // Assemble
+        this->AssembleContactPairRHSToConditionSystem( rVariables.GetMasterElementIndex( ), RHS_contact_pair, rRightHandSideVector );
     }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void MortarContact2DCondition::CalculateAndAddInternalForces(
-        VectorType& rRightHandSideVector,
-    GeneralVariables & rVariables,
-    double& rIntegrationWeight
-        )
-{
-    KRATOS_TRY;
-
-    VectorType InternalForces = ZeroVector(this->CalculateConditionSize( ));
-    noalias( rRightHandSideVector ) -= InternalForces;
-
-    KRATOS_CATCH( "" );
 }
   
 /***********************************************************************************/
@@ -1085,6 +1092,58 @@ void MortarContact2DCondition::CalculateAndAddMortarContactOperator(
 
         rLeftHandSideMatrix( j,     i     ) = D( i_active * dimension, i_active * dimension );
         rLeftHandSideMatrix( j + 1, i + 1 ) = D( i_active * dimension, i_active * dimension );
+    }
+
+    KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MortarContact2DCondition::CalculateAndAddMortarContactOperator( 
+    VectorType& rRightHandSideVector,
+    GeneralVariables& rVariables,
+    double& rIntegrationWeight 
+    )
+{
+    KRATOS_TRY;
+  
+    // Contact pair variables
+    const unsigned int dimension = 2;
+    const unsigned int num_slave_nodes    = GetGeometry( ).PointsNumber( );
+    const unsigned int num_master_nodes   = rVariables.GetMasterElement( ).PointsNumber( );  
+    const unsigned int num_total_nodes    = num_slave_nodes + num_master_nodes;
+    const unsigned int num_active_nodes   = rVariables.GetActiveSet( ).size( );
+    const unsigned int num_inactive_nodes = rVariables.GetInactiveSet( ).size( );
+
+    const Matrix& D = mThisMortarConditionMatrices.D;
+    const Matrix& M = mThisMortarConditionMatrices.M;
+  
+//     mThisMortarConditionMatrices.print();
+    
+    // Calculate the block of r_co
+    unsigned int i = 0, j = 0;
+    array_1d<double, 3> previous_lagrange_multiplier;
+    for ( unsigned int i_active = 0; i_active < num_active_nodes; ++i_active )
+    {
+        i = ( i_active + num_total_nodes ) * dimension;
+        
+        for ( unsigned int j_master = 0; j_master < num_master_nodes; ++j_master )
+        {
+            previous_lagrange_multiplier = rVariables.GetMasterElement()[j_master].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER, 1); 
+            
+            // Fill the lambda * M part
+            j = j_master * dimension;
+            rRightHandSideVector[ j     ] = previous_lagrange_multiplier[0] *  M( i_active * dimension, j_master * dimension );
+            rRightHandSideVector[ j + 1 ] = previous_lagrange_multiplier[1] *  M( i_active * dimension, j_master * dimension );
+        }
+        
+        previous_lagrange_multiplier = GetGeometry()[i_active].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER, 1); 
+        
+        // Fill the - lambda *  D part
+        j = ( i_active + num_master_nodes + num_inactive_nodes ) * dimension; 
+        rRightHandSideVector[ j     ] = - previous_lagrange_multiplier[0] *  D( i_active * dimension, i_active * dimension );
+        rRightHandSideVector[ j + 1 ] = - previous_lagrange_multiplier[1] *  D( i_active * dimension, i_active * dimension );
     }
 
     KRATOS_CATCH( "" );

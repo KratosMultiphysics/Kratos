@@ -577,7 +577,7 @@ public:
     * Assmbles the contact pair LHS block into the condition's LHS
     */
     void AssembleContactPairLHSToConditionSystem( 
-        const unsigned int rMasterElementIndex,
+        const unsigned int rPairIndex,
         MatrixType& rPairLHS,
         MatrixType& rConditionLHS 
         );
@@ -618,6 +618,15 @@ public:
     */
     void CalculateAndAddMortarContactOperator( 
         MatrixType& rLeftHandSideMatrix,
+        GeneralVariables& rVariables,
+        double& rIntegrationWeight 
+    );
+        
+    /*
+    * Calculates r_co = [ M * lambda, - D  * lambda], where D and M are the mortar condition matrices and lambda the lagrange multiplier in the step n
+    */
+    void CalculateAndAddMortarContactOperator( 
+        VectorType& rRightHandSideVector,
         GeneralVariables& rVariables,
         double& rIntegrationWeight 
     );
