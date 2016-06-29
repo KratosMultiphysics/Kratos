@@ -26,7 +26,7 @@
 ///VARIABLES used:
 //Data:     
 //StepData: NODAL_H, CONTACT_FORCE
-//Flags:    (checked) TO_REFOME, BOUNDARY, NEW_ENTITY
+//Flags:    (checked) TO_ERASE, BOUNDARY, NEW_ENTITY
 //          (set)     
 //          (modified)  
 //          (reset)   
@@ -490,11 +490,27 @@ private:
     int mEchoLevel;
 
     ///@}
-    ///@name Un accessible methods
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
     ///@{
 
     ///@}
+    ///@name Private  Access
+    ///@{
 
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
 
     /// Assignment operator.

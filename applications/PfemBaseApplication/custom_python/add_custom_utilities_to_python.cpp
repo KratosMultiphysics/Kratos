@@ -51,6 +51,11 @@ namespace Kratos
       rRefiningParameters.SetErrorVariable(rVariable);
     }
 
+    Variable<double> GetThresholdVariable(ModelerUtilities::RefiningParameters& rRefiningParameters)
+    {
+      return rRefiningParameters.GetThresholdVariable();
+
+    }
     // remeshing methods
 
     void SetReferenceElement(ModelerUtilities::MeshingParameters& rMeshingParameters, char* ElementName)
@@ -65,6 +70,10 @@ namespace Kratos
 
 
     // transfer methods
+    void TransferNodesToElementsOnThreshold( MeshDataTransferUtilities& rMeshDataTransfer, MeshDataTransferUtilities::TransferParameters& rTransferParameters, const Variable<double>& rVariable, double Value, ModelPart& rModelPart, int MeshId)
+    {
+      rMeshDataTransfer.TransferNodalValuesToElements( rTransferParameters, rVariable, Value, rModelPart, MeshId );
+    }
 
     void SetDoubleVariable( MeshDataTransferUtilities::TransferParameters& rTransferParameters, const Variable<double>& rVariable)
     {
@@ -134,11 +143,16 @@ namespace Kratos
 	.def_readonly("REFINE_BOUNDARY_ON_DISTANCE",&ModelerUtilities::REFINE_BOUNDARY_ON_DISTANCE)
 	.def_readonly("REFINE_BOUNDARY_ON_ERROR",&ModelerUtilities::REFINE_BOUNDARY_ON_ERROR)
 	.def_readonly("REFINE_BOUNDARY_ON_THRESHOLD",&ModelerUtilities::REFINE_BOUNDARY_ON_THRESHOLD)
+
+	.def_readonly("SET_NODES",&ModelerUtilities::SET_NODES)
+	.def_readonly("SET_ELEMENTS",&ModelerUtilities::SET_ELEMENTS)
+	.def_readonly("SET_FACES",&ModelerUtilities::SET_FACES)
+	.def_readonly("SELECT_ELEMENTS",&ModelerUtilities::SELECT_ELEMENTS)
+	.def_readonly("SELECT_NODES",&ModelerUtilities::SELECT_NODES)
+	.def_readonly("PASS_ALPHA_SHAPE",&ModelerUtilities::PASS_ALPHA_SHAPE)
+	.def_readonly("ENGAGED_NODES",&ModelerUtilities::ENGAGED_NODES)
 	;
         
-      
-      class_< MeshDataTransferUtilities, boost::noncopyable > ("MeshDataTransferUtilities", init<>())
-	;
         
 
       //***************NORMALS**************//
@@ -160,6 +174,21 @@ namespace Kratos
 
       //***************TRANSFER UTILITIES**************//
 
+      typedef  void (MeshDataTransferUtilities::*TransferElementalValuesToNodes)(const MeshDataTransferUtilities::TransferParameters&, ModelPart&, ModelPart::IndexType);
+      typedef  void (MeshDataTransferUtilities::*TransferNodalValuesToElements)(const MeshDataTransferUtilities::TransferParameters&, ModelPart&, ModelPart::IndexType);
+
+      TransferElementalValuesToNodes   TransferElementsToNodes  = &MeshDataTransferUtilities::TransferElementalValuesToNodes;
+      TransferNodalValuesToElements    TransferNodesToElements  = &MeshDataTransferUtilities::TransferNodalValuesToElements;
+
+
+      class_<MeshDataTransferUtilities> ("MeshDataTransferUtilities", init<>())
+	.def("TransferElementalValuesToNodes", TransferElementsToNodes)
+	.def("TransferNodalValuesToElements", TransferNodesToElements)
+	.def("TransferNodalValuesToElementsOnThreshold", TransferNodesToElementsOnThreshold)
+	;
+
+
+
       // Remeshing modeler information parameters
       class_< MeshDataTransferUtilities::TransferParameters, MeshDataTransferUtilities::TransferParameters::Pointer, boost::noncopyable>
 	("TransferParameters", init<>() )    
@@ -178,6 +207,14 @@ namespace Kratos
       class_< ModelerUtilities::InfoParameters, ModelerUtilities::InfoParameters::Pointer, boost::noncopyable>
 	("InfoParameters", init<>() )    
 	.def("Initialize",&ModelerUtilities::InfoParameters::Initialize)
+	.def("CheckMechanicalSmoothing",&ModelerUtilities::InfoParameters::CheckMechanicalSmoothing)
+	.def("SetNumberOfNodes",&ModelerUtilities::InfoParameters::SetNumberOfNodes)
+	.def("SetNumberOfElements",&ModelerUtilities::InfoParameters::SetNumberOfElements)
+	.def("SetNumberOfConditions",&ModelerUtilities::InfoParameters::SetNumberOfConditions)
+	.def("SetNumberOfNewNodes",&ModelerUtilities::InfoParameters::SetNumberOfNewNodes)
+	.def("SetNumberOfNewElements",&ModelerUtilities::InfoParameters::SetNumberOfNewElements)
+	.def("SetNumberOfNewConditions",&ModelerUtilities::InfoParameters::SetNumberOfNewConditions)
+
 	;
 
       // Remeshing modeler refining parameters
@@ -186,6 +223,7 @@ namespace Kratos
 	.def("Initialize",&ModelerUtilities::RefiningParameters::Initialize)
 	.def("SetRefiningOptions",&ModelerUtilities::RefiningParameters::SetRefiningOptions)
 	.def("SetRemovingOptions",&ModelerUtilities::RefiningParameters::SetRemovingOptions)
+	.def("SetExecutionOptions",&ModelerUtilities::RefiningParameters::SetExecutionOptions)
 	.def("SetAlphaParameter",&ModelerUtilities::RefiningParameters::SetAlphaParameter)
 	.def("SetCriticalRadius",&ModelerUtilities::RefiningParameters::SetCriticalRadius)
 	.def("SetCriticalSide",&ModelerUtilities::RefiningParameters::SetCriticalSide)
@@ -195,6 +233,9 @@ namespace Kratos
 	.def("SetReferenceError",&ModelerUtilities::RefiningParameters::SetReferenceError)
 	.def("SetThresholdVariable",SetThresholdVariable)
 	.def("SetErrorVariable",SetErrorVariable)
+	.def("GetThresholdVariable",GetThresholdVariable)
+	.def("GetReferenceThreshold",&ModelerUtilities::RefiningParameters::GetReferenceThreshold)
+
 	;
 
       // Remeshing modeler remeshing parameters
@@ -204,6 +245,7 @@ namespace Kratos
 	.def("Set",&ModelerUtilities::MeshingParameters::Set)
 	.def("Reset",&ModelerUtilities::MeshingParameters::Reset)
 	.def("SetOptions",&ModelerUtilities::MeshingParameters::SetOptions)
+	.def("SetExecutionOptions",&ModelerUtilities::MeshingParameters::SetExecutionOptions)
 	.def("SetAlphaParameter",&ModelerUtilities::MeshingParameters::SetAlphaParameter)
 	.def("SetOffsetFactor",&ModelerUtilities::MeshingParameters::SetOffsetFactor)
 	.def("SetInfoParameters",&ModelerUtilities::MeshingParameters::SetInfoParameters)
@@ -213,6 +255,8 @@ namespace Kratos
 	.def("SetTransferVariable",&ModelerUtilities::MeshingParameters::SetTransferVariable)
 	.def("SetReferenceElement",SetReferenceElement)
 	.def("SetReferenceCondition",SetReferenceCondition)
+	.def("GetInfoParameters",&ModelerUtilities::MeshingParameters::GetInfoParameters)
+	.def("GetRefiningParameters",&ModelerUtilities::MeshingParameters::GetRefiningParameters)
 	;
 
 

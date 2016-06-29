@@ -764,7 +764,7 @@ namespace Kratos
 		  bool is_inside = false;
 		  is_inside = ModelerUtilities::CalculatePosition( ElementPointCoordinates, PointCoordinates, ShapeFunctionsN );
 
-		  PointsArrayType PointsArray(num_nodes);
+		  PointsArrayType PointsArray;
 		  for(unsigned int cn = 0; cn<num_nodes; cn++)
 		    {
 		      PointsArray.push_back(*( (nodes_begin + rElementsList[el][cn].Id() - 1).base() ));
@@ -1151,6 +1151,22 @@ namespace Kratos
 	    }
 	  }
 	    
+
+	//defintions for spatial search
+	typedef Node<3>                                  PointType;
+	typedef Node<3>::Pointer                  PointPointerType;
+	typedef std::vector<PointPointerType>          PointVector;
+	typedef PointVector::iterator                PointIterator;
+	typedef std::vector<double>                 DistanceVector;
+	typedef std::vector<double>::iterator     DistanceIterator;
+	
+	typedef Bucket<3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > BucketType;
+	typedef Tree< KDTreePartition<BucketType> >     KdtreeType; //Kdtree
+	//defintions for spatial search
+	
+	unsigned int  bucket_size = 20;
+	KdtreeType    NodesTree(list_of_nodes.begin(),list_of_nodes.end(),bucket_size);
+
 	//Find out where the new nodes belong to:
 	unsigned int number_of_nodes = list_of_nodes.size();
 	std::vector<double> ShapeFunctionsN;    
@@ -1204,7 +1220,8 @@ namespace Kratos
 	    center.Z() = PointCoordinates[2];
 		    
 	    double Radius = radius * 1.01;
-	    int NumberOfPointsInRadius = this->SearchInRadius (center, list_of_nodes, PointsInRadius, PointsInRadiusDistances, MaximumNumberOfPointsInRadius, Radius);
+	    int NumberOfPointsInRadius = NodesTree.SearchInRadius (center, Radius, PointsInRadius.begin(), PointsInRadiusDistances.begin(),  MaximumNumberOfPointsInRadius);
+	    //int NumberOfPointsInRadius = this->SearchInRadius (center, list_of_nodes, PointsInRadius, PointsInRadiusDistances, MaximumNumberOfPointsInRadius, Radius); //not efficient: the build of the kdtree is the expensive thing...
 
 	    //std::cout<<"[ID:"<<el<<"]: NumberOfPointsInRadius "<<number_of_points_in_radius<<std::endl;
 

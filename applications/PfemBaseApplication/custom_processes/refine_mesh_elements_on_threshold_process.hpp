@@ -63,11 +63,11 @@ public:
 
     /// Default constructor.
     RefineMeshElementsOnThresholdProcess(ModelPart& rModelPart,
-			   ModelerUtilities::RefiningParameters& rRefiningParameters,
-			   ModelPart::IndexType MeshId,
-			   int EchoLevel) 
+					 ModelerUtilities::MeshingParameters& rRemeshingParameters,
+					 ModelPart::IndexType MeshId,
+					 int EchoLevel) 
       : mrModelPart(rModelPart),
-	mrRefine(rRefiningParameters)
+	mrRemesh(rRemeshingParameters)
     {
     
       mMeshId = MeshId;
@@ -100,7 +100,7 @@ public:
     {
       KRATOS_TRY
 
-	if( ( mrRefine.RefiningOptions.Is(ModelerUtilities::REFINE_ADD_NODES) ||  mrRefine.RefiningOptions.Is(ModelerUtilities::REFINE_INSERT_NODES) ) && (mrRefine.RefiningOptions.Is(ModelerUtilities::REFINE_ELEMENTS_ON_THRESHOLD) ) ){
+	if( ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_ADD_NODES) ||  mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_INSERT_NODES) ) && (mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_ELEMENTS_ON_THRESHOLD) ) ){
 	  
 	  SetNodesToRefine();
 
@@ -197,7 +197,7 @@ private:
     ///@{
     ModelPart& mrModelPart;
  
-    ModelerUtilities::RefiningParameters& mrRefine;
+    ModelerUtilities::MeshingParameters& mrRemesh;
 
     ModelerUtilities mModelerUtilities;  
 
@@ -219,7 +219,7 @@ private:
       ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
       
       double max_value = 0;
-      double critical_value = mrRefine.ReferenceThreshold; 
+      double critical_value = mrRemesh.Refine->ReferenceThreshold; 
 
       int counter = 0;
       //set label refine in elements that must be refined due to dissipation
@@ -229,7 +229,7 @@ private:
 	  double variable_value=0;
 	  std::vector<double> Value(1);
 
-	  (iii)->GetValueOnIntegrationPoints(mrRefine.GetThresholdVariable(),Value,CurrentProcessInfo);
+	  (iii)->GetValueOnIntegrationPoints(mrRemesh.Refine->GetThresholdVariable(),Value,CurrentProcessInfo);
 	    
 	  //the expected returned value is an "specific" value (per unit of Area) (usually PlasticPower)
 	  //variable_value = Value[0] * iii->GetGeometry().Area();
@@ -241,7 +241,7 @@ private:
 	    max_value = variable_value;
  
 	  // if(variable_value>0)
-	  //   std::cout<<" Element ["<<iii->Id()<<"] "<<mrRefine.GetThresholdVariable()<<": "<<variable_value<<" CriticalValue "<<critical_value<<" Area "<<iii->GetGeometry().DomainSize()<<std::endl;
+	  //   std::cout<<" Element ["<<iii->Id()<<"] "<<mrRemesh.Refine->GetThresholdVariable()<<": "<<variable_value<<" CriticalValue "<<critical_value<<" Area "<<iii->GetGeometry().DomainSize()<<std::endl;
 	 
 	  if( variable_value > critical_value )
 	    {

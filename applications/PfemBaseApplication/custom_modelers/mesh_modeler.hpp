@@ -191,6 +191,11 @@ public:
      * Mesh Generation :: Remesh all ModelPart
      */
     virtual void GenerateMesh(ModelPart& rModelPart, ModelPart::IndexType MeshId=0);
+
+    /**
+     * Mesh Generation :: Remesh all ModelPart
+     */
+    virtual void ExecuteMeshing(ModelPart& rModelPart, ModelPart::IndexType MeshId=0);
        
     /**
      * Mesh Modeler :: Finalize
@@ -324,10 +329,31 @@ protected:
     /**
      * Mesh Modeler :: Set Nodes to mesh
      */
-    void SetNodes(ModelPart& rModelPart,
-		  MeshingParametersType& rMeshingVariables,
-		  ModelPart::IndexType MeshId);
+    virtual void SetNodes(ModelPart& rModelPart,
+			  MeshingParametersType& rMeshingVariables,
+			  ModelPart::IndexType MeshId);
+
+    /**
+     * Mesh Modeler :: Set Elements to mesh
+     */
+    virtual void SetElements(ModelPart& rModelPart,
+			     MeshingParametersType& rMeshingVariables,
+			     ModelPart::IndexType MeshId);
   
+    /**
+     * Mesh Modeler :: Set Faces to mesh
+     */
+    virtual void SetFaces(ModelPart& rModelPart,
+			  MeshingParametersType& rMeshingVariables,
+			  ModelPart::IndexType MeshId){};
+
+    /**
+     * Mesh Modeler :: Delaunay Tessellation
+     */
+    virtual void Generate (ModelPart& rModelPart,
+			   MeshingParametersType& rMeshingVariables,
+			   ModelPart::IndexType MeshId=0);
+
 
     /**
      * Mesh Modeler :: Variables Transfer without remeshing
@@ -372,6 +398,13 @@ protected:
     virtual void SetElementNeighbours(ModelPart& rModelPart, 
 				      MeshingParametersType& rMeshingVariables,
 				      ModelPart::IndexType MeshId=0);
+
+    /**
+     * Mesh Modeler :: Set Element Neighbours
+     */
+    virtual void RecoverBoundaryPosition(ModelPart& rModelPart, 
+					 MeshingParametersType& rMeshingVariables,
+					 ModelPart::IndexType MeshId=0);
 
 
     ///@}
