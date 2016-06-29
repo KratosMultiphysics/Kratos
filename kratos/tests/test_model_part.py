@@ -1,4 +1,4 @@
-from __future__ import print_function, absolute_import, division
+﻿from __future__ import print_function, absolute_import, division
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import *
@@ -57,6 +57,39 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertFalse(model_part.HasSubModelPart("Inlets"))
         self.assertEqual(model_part.NumberOfSubModelParts(), 0)
         #print (model_part)
+
+    def test_variables_list(self):
+        model_part = ModelPart("Main")
+
+        self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 0)
+
+        model_part.AddNodalSolutionStepVariable(TEMPERATURE)
+
+        self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 1)
+
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+
+        self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 4)
+
+        model_part.CreateSubModelPart("Inlets")
+        sub_model_part_1 = model_part.GetSubModelPart("Inlets")
+
+        self.assertEqual(sub_model_part_1.GetNodalSolutionStepDataSize(), 4)
+
+        model_part.AddNodalSolutionStepVariable(VELOCITY)
+
+        self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 7)
+        self.assertEqual(sub_model_part_1.GetNodalSolutionStepDataSize(), 7)
+
+        sub_model_part_1.AddNodalSolutionStepVariable(PRESSURE)
+
+        self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 8)
+        self.assertEqual(sub_model_part_1.GetNodalSolutionStepDataSize(), 8)
+
+
+
+
+
 
     def test_model_part_nodes(self):
         model_part = ModelPart("Main")
