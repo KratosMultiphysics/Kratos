@@ -68,6 +68,10 @@ VALUE: Elimination
 QUESTION: Solver_Type#CB#(Skyline_LU_factorization,Super_LU,SuperLUIterativeSolver,Conjugate_gradient,BiConjugate_gradient_stabilized,GMRES,Deflated_Conjugate_gradient,AMGCL,AMGCL_NS_Solver)
 Value: BiConjugate_gradient_stabilized
 HELP: Skyline_LU_factorization and Super_LU are direct solvers. The rest are iterative solvers.
+QUESTION: Scaling#CB#(true,false)
+VALUE: false
+QUESTION: Verbosity
+VALUE: 0
 
 
 TITLE:PostProcess
