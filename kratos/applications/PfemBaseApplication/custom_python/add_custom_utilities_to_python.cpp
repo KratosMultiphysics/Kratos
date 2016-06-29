@@ -111,7 +111,7 @@ namespace Kratos
 	.def_readonly("RECONNECT",&ModelerUtilities::RECONNECT)
 	.def_readonly("TRANSFER",&ModelerUtilities::TRANSFER)
 	.def_readonly("CONSTRAINED",&ModelerUtilities::CONSTRAINED)
-	.def_readonly("CONSTACT_SEARCH",&ModelerUtilities::CONTACT_SEARCH)
+	.def_readonly("CONTACT_SEARCH",&ModelerUtilities::CONTACT_SEARCH)
 	.def_readonly("MESH_SMOOTHING",&ModelerUtilities::MESH_SMOOTHING)
 	.def_readonly("VARIABLES_SMOOTHING",&ModelerUtilities::VARIABLES_SMOOTHING)
 
