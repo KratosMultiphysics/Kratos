@@ -8,7 +8,7 @@ proc FSI::write::getParametersDict { } {
    set solverSettingsDict [dict create]
    set currentStrategyId [write::getValue FSISolStrat]
    set strategy_write_name [[::Model::GetSolutionStrategy $currentStrategyId] getAttribute "ImplementedInPythonFile"]
-   dict set solverSettingsDict strategy_id $currentStrategyId
+   dict set solverSettingsDict coupling_scheme $currentStrategyId
    dict set solverSettingsDict solver_type $strategy_write_name
    set solverSettingsDict [dict merge $solverSettingsDict [write::getSolutionStrategyParametersDict] ]
    set solverSettingsDict [dict merge $solverSettingsDict [write::getSolversParametersDict FSI] ]
