@@ -195,6 +195,17 @@ protected:
     //*******************************************************************************************
     void SetModelerMesh(ModelerUtilities::MeshContainer& rMesh, struct triangulateio& tr);
 
+    //*******************************************************************************************
+    //*******************************************************************************************
+    void SetFaces(ModelPart& rModelPart,
+		  MeshingParametersType& rMeshingVariables,
+		  ModelPart::IndexType MeshId){};
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+    void Generate(ModelPart& rModelPart,
+		  MeshingParametersType& rMeshingVariables,
+		  ModelPart::IndexType MeshId=0);
 
     //*******************************************************************************************
     //*******************************************************************************************
@@ -261,6 +272,11 @@ protected:
 			       Flags& RefiningOptions,
 			       struct triangulateio& in,
 			       struct triangulateio& out);
+
+    //Generate the Delaunay Tesselation
+    int  GenerateTessellation(MeshingParametersType& rMeshingVariables,
+			      struct triangulateio& in,
+			      struct triangulateio& out);
   
     //Free memory of the mesher
     void ClearTrianglesList  ( struct triangulateio& tr );

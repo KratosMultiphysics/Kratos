@@ -234,7 +234,38 @@ public:
 
       };
       
-      void CheckGeometricalSmoothing(){
+
+      void SetNumberOfNodes(int NumberNodes)
+      {
+	NumberOfNodes = NumberNodes;
+      }
+
+      void SetNumberOfElements(int NumberElements)
+      {
+	NumberOfElements = NumberElements;
+      }
+
+      void SetNumberOfConditions(int NumberConditions)
+      {
+	NumberOfConditions = NumberConditions;
+      }
+
+      void SetNumberOfNewNodes(int NumberNodes)
+      {
+	NumberOfNewNodes = NumberNodes;
+      }
+
+      void SetNumberOfNewElements(int NumberElements)
+      {
+	NumberOfNewElements = NumberElements;
+      }
+
+      void SetNumberOfNewConditions(int NumberConditions)
+      {
+	NumberOfNewConditions = NumberConditions;
+      }
+      
+      bool CheckGeometricalSmoothing(){
 	
 	if( InsertedNodes > NumberOfNodes * 0.002 || RemovedNodes > NumberOfNodes * 0.002 ){
 	  GeometricalSmoothingRequired = true;
@@ -246,16 +277,17 @@ public:
 	  GeometricalSmoothingRequired = false;
 	}
 
+	return GeometricalSmoothingRequired;	
       }
 
-
-      void CheckMechanicalSmoothing(){
+      bool CheckMechanicalSmoothing(){
 
 	if( CriticalElements > 0 || NumberOfNewElements != 0 )
 	  MechanicalSmoothingRequired = true;
 	else
 	  MechanicalSmoothingRequired = false;
 
+	return MechanicalSmoothingRequired;
       }
 
     };
@@ -312,6 +344,11 @@ public:
 	RemovingOptions=rOptions;
       };
 
+      void SetExecutionOptions(const Flags&  rOptions)
+      {
+	ExecutionOptions=rOptions;
+      };
+
       void SetAlphaParameter( const double rAlpha)
       {
 	Alpha = rAlpha;
@@ -360,6 +397,13 @@ public:
       {
 	mpErrorVariable = &rVariable;
       };
+
+
+      double GetReferenceThreshold()
+      {
+	return ReferenceThreshold;
+      };
+
 
       const Variable<double>& GetThresholdVariable()
       {
@@ -426,7 +470,7 @@ public:
       std::vector<int> NodalNewIds;
 
       std::vector<int> PreservedElements;
-      std::vector<std::vector<int> > NeighbourList; 
+      std::vector<std::vector<int> > NeighbourList; //deprecated in new mesher 
 
       //modeler pointers to the mesh structures
       MeshContainer       InMesh;
@@ -449,6 +493,11 @@ public:
       void SetOptions(const Flags&  rOptions)
       {
 	Options=rOptions;
+      };
+
+      void SetExecutionOptions(const Flags&  rOptions)
+      {
+	ExecutionOptions=rOptions;
       };
 
       void SetAlphaParameter( const double rAlpha)
@@ -498,6 +547,16 @@ public:
       void SetReferenceCondition (const Condition & rCondition)
       {
 	mpReferenceCondition=&rCondition;
+      };
+      
+      InfoParameters::Pointer GetInfoParameters()
+      {
+	return Info;
+      };
+
+      RefiningParameters::Pointer GetRefiningParameters()
+      {
+	return Refine;
       };
 
       Element const&    GetReferenceElement   ()

@@ -49,6 +49,102 @@ namespace Kratos
     KRATOS_CATCH( "" )
   }
 
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void TriangularMesh2DModeler::Generate(ModelPart& rModelPart,
+					 MeshingParametersType& rMeshingVariables,
+					 ModelPart::IndexType MeshId)
+  {
+
+    KRATOS_TRY
+ 
+    this->StartEcho(rModelPart,"PFEM Base Remesh",MeshId);
+    
+    //*********************************************************************
+
+    ////////////////////////////////////////////////////////////
+    this->InitializeMeshGeneration(rModelPart,rMeshingVariables,MeshId);   
+    ////////////////////////////////////////////////////////////
+
+    //*********************************************************************      
+
+    //Creating the containers for the input and output
+    struct triangulateio in;
+    struct triangulateio out;
+    
+    //Initialize containers
+    ClearTrianglesList(in);
+    ClearTrianglesList(out);
+
+    //Set containers to meshing variables
+    SetModelerMesh(rMeshingVariables.InMesh,in);
+    SetModelerMesh(rMeshingVariables.OutMesh,out);
+
+    //*********************************************************************
+
+    //Set Nodes
+    if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::SET_NODES) )
+      this->SetNodes(rModelPart,rMeshingVariables,MeshId);
+
+    //Set Elements
+    if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::SET_ELEMENTS) )
+      this->SetElements(rModelPart,rMeshingVariables,MeshId);
+
+    //Set Faces
+    if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::SET_FACES) )
+      this->SetFaces(rModelPart,rMeshingVariables,MeshId);
+
+
+    //*********************************************************************
+
+    boost::timer auxiliary;
+
+    //Generate Mesh
+    ////////////////////////////////////////////////////////////
+    int fail = GenerateTessellation(rMeshingVariables,in,out);
+    ////////////////////////////////////////////////////////////
+
+    if(fail){
+      if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONSTRAINED) ){	
+    	rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::CONSTRAINED);
+    	////////////////////////////////////////////////////////////
+    	fail = GenerateTessellation(rMeshingVariables,in, out);
+    	////////////////////////////////////////////////////////////
+    	rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::CONSTRAINED);
+      }
+    }
+
+    if(fail || in.numberofpoints!=out.numberofpoints){
+      std::cout<<" [ MESH GENERATION FAILED: point insertion (initial = "<<in.numberofpoints<<" final = "<<out.numberofpoints<<") ] "<<std::endl;
+    }
+
+    //print out the mesh generation time
+    if( this->GetEchoLevel() > 0 )
+      std::cout<<" [ MESH GENERATION (TIME = "<<auxiliary.elapsed()<<") ] "<<std::endl;
+
+
+    //*********************************************************************
+    
+
+    //*********************************************************************
+
+    ////////////////////////////////////////////////////////////
+    this->FinalizeMeshGeneration(rModelPart,rMeshingVariables,MeshId);
+    ////////////////////////////////////////////////////////////
+
+    //*********************************************************************
+
+    //free memory  (to determine from custom mesh modelling)
+    // DeletePointsList(in);
+    // delete [] in.trianglelist;
+    // DeleteTrianglesList(out);
+
+    this->EndEcho(rModelPart,"PFEM Base Remesh",MeshId);
+
+    KRATOS_CATCH( "" )
+
+  }
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -1138,6 +1234,73 @@ namespace Kratos
     
     if( this->GetEchoLevel() > 0 ){
       std::cout<<"  -( "<<meshing_info<<" )- "<<std::endl;
+      std::cout<<"  (out ELEMENTS "<<out.numberoftriangles<<") "<<std::endl;
+      std::cout<<"  (out POINTS "<<out.numberofpoints<<") :  REMESH ]; "<<std::endl;
+      std::cout<<std::endl;
+    }
+
+    return fail;
+   
+    KRATOS_CATCH( "" )
+
+  }
+
+  //*******************************************************************************************
+  //GENERAL TESSELLATION
+  //*******************************************************************************************
+
+
+  int TriangularMesh2DModeler::GenerateTessellation(MeshingParametersType& rMeshingVariables,
+						    struct triangulateio& in,
+						    struct triangulateio& out)
+  {
+    KRATOS_TRY
+
+    int fail=0;
+
+    struct triangulateio vorout;
+
+    //initilize all to avoid memory problems
+    ClearTrianglesList(vorout);
+
+    //switches: https://www.cs.cmu.edu/~quake/triangle.switch.html
+
+    if( this->GetEchoLevel() > 0 )
+      std::cout<<" [ REMESH: (in POINTS "<<in.numberofpoints<<") "<<std::endl;
+
+    //this->WritePoints(in);
+
+    //perform the meshing
+    try {
+      triangulate(rMeshingVariables.meshing_options,&in,&out,&vorout);
+    }
+
+    catch( int error_code ){
+
+      switch(TriangleErrors(error_code))
+	{
+	case INPUT_MEMORY_ERROR:       fail=1;
+	  break;
+	case INTERNAL_ERROR:           fail=2;
+	  break;
+	case INVALID_GEOMETRY_ERROR:   fail=3;
+	  break;
+	default:                       fail=0;
+	  //create new connections
+	  if( this->GetEchoLevel() > 0 )
+	    std::cout<<" triangulation done "<<std::endl;
+	  break;
+	}
+    }
+      
+
+    if(rMeshingVariables.Options.IsNot(ModelerUtilities::REFINE) && in.numberofpoints<out.numberofpoints){
+      fail=3;
+      std::cout<<"  fail error: [NODES ADDED] something is wrong with the geometry "<<std::endl;
+    }
+    
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<"  -( "<<rMeshingVariables.meshing_info<<" )- "<<std::endl;
       std::cout<<"  (out ELEMENTS "<<out.numberoftriangles<<") "<<std::endl;
       std::cout<<"  (out POINTS "<<out.numberofpoints<<") :  REMESH ]; "<<std::endl;
       std::cout<<std::endl;

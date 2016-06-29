@@ -552,6 +552,162 @@ namespace Kratos
   }
 
 
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+
+  void MeshModeler::ExecuteMeshing ( ModelPart& rModelPart, ModelPart::IndexType MeshId )
+  {
+    KRATOS_TRY
+
+
+    if( GetEchoLevel() > 0 ){
+      std::cout<<" [ GetRemeshData ["<<MeshId<<"]: [ RefineFlag: "<<mpMeshingVariables->Options.Is(ModelerUtilities::REFINE)<<"; RemeshFlag : "<<mpMeshingVariables->Options.Is(ModelerUtilities::REMESH)<<" ] ]"<<std::endl;
+    }
+  
+    // bool out_buffer_active = true;
+    // std::streambuf* buffer = NULL;
+    // if( mEchoLevel == 0 ){
+    //   //std::cout<<" Deactivate cout "<<std::endl;
+    //   buffer = std::cout.rdbuf();
+    //   std::ofstream fout("/dev/null");
+    //   std::cout.rdbuf(fout.rdbuf());
+    //   //std::cout<<output(off,buffer);
+    //   out_buffer_active = false;
+    // } 
+	
+    // Located in the begining of the assignation:
+
+    // check mesh size introduced :: warning must be shown
+    // if(!out_buffer_active)
+    //   std::cout.rdbuf(buffer);
+        
+    if(mpMeshingVariables->Options.Is( ModelerUtilities::REFINE ))
+      mpModelerUtilities->CheckCriticalRadius(rModelPart, mpMeshingVariables->Refine->CriticalRadius, MeshId);
+		
+    // if(!out_buffer_active){
+    //   buffer = std::cout.rdbuf();
+    //   std::ofstream fout("/dev/null");
+    //   std::cout.rdbuf(fout.rdbuf());
+    // }
+    // check mesh size introduced :: warning must be shown
+    
+	
+    //bool remesh_performed=false;
+	
+    if( GetEchoLevel() > 0 ){
+      std::cout<<" --------------                     -------------- "<<std::endl;
+      std::cout<<" --------------       DOMAIN        -------------- "<<std::endl;
+    }
+	
+    // Located in the begining of the assignation:
+
+    //set properties in all meshes
+    if(rModelPart.NumberOfProperties(MeshId)!=rModelPart.NumberOfProperties())
+      rModelPart.GetMesh(MeshId).SetProperties(rModelPart.GetMesh().pProperties());
+
+
+    //generate mesh
+    this->Generate(rModelPart,*(mpMeshingVariables),MeshId);
+   
+
+    KRATOS_CATCH(" ")
+  }
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void MeshModeler::Generate(ModelPart& rModelPart,
+			     MeshingParametersType& rMeshingVariables,
+			     ModelPart::IndexType MeshId)
+  {
+
+    KRATOS_TRY
+ 
+    this->StartEcho(rModelPart,"PFEM Base Remesh",MeshId);
+    
+    //*********************************************************************
+
+    ////////////////////////////////////////////////////////////
+    this->InitializeMeshGeneration(rModelPart,rMeshingVariables,MeshId);   
+    ////////////////////////////////////////////////////////////
+
+    //*********************************************************************      
+
+    //Creating the containers for the input and output
+    //tetgenio in;
+    //tetgenio out;
+    
+    //Initialize containers
+    //this->ClearList(in);
+    //this->ClearList(out);
+
+    //Set containers to meshing variables
+    //this->SetModelerMesh(rMeshingVariables.InMesh,in);
+    //this->SetModelerMesh(rMeshingVariables.OutMesh,out);
+
+    //*********************************************************************
+
+    //Set Nodes
+    if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::SET_NODES) )
+      this->SetNodes(rModelPart,rMeshingVariables,MeshId);
+
+    //Set Elements
+    if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::SET_ELEMENTS) )
+      this->SetElements(rModelPart,rMeshingVariables,MeshId);
+
+    //Set Faces
+    if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::SET_FACES) )
+      this->SetFaces(rModelPart,rMeshingVariables,MeshId);
+
+
+    //*********************************************************************
+
+    boost::timer auxiliary;
+
+    //Generate Mesh
+    ////////////////////////////////////////////////////////////
+    //int fail = GenerateTessellation(rMeshingVariables,in,out);
+    ////////////////////////////////////////////////////////////
+
+    // if(fail){
+    //   if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONSTRAINED) ){	
+    // 	rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::CONSTRAINED);
+    // 	////////////////////////////////////////////////////////////
+    // 	//fail = GenerateTessellation(rMeshingVariables,in, out);
+    // 	////////////////////////////////////////////////////////////
+    // 	rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::CONSTRAINED);
+    //   }
+    // }
+
+    // if(fail || in.numberofpoints!=out.numberofpoints){
+    //   std::cout<<" [ MESH GENERATION FAILED: point insertion (initial = "<<in.numberofpoints<<" final = "<<out.numberofpoints<<") ] "<<std::endl;
+    // }
+
+    //print out the mesh generation time
+    if( this->GetEchoLevel() > 0 )
+      std::cout<<" [ MESH GENERATION (TIME = "<<auxiliary.elapsed()<<") ] "<<std::endl;
+
+
+    //*********************************************************************
+    
+
+    //*********************************************************************
+
+    ////////////////////////////////////////////////////////////
+    this->FinalizeMeshGeneration(rModelPart,rMeshingVariables,MeshId);
+    ////////////////////////////////////////////////////////////
+
+    //*********************************************************************
+
+
+    this->EndEcho(rModelPart,"PFEM Base Remesh",MeshId);
+
+    KRATOS_CATCH( "" )
+
+  }
+
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -572,7 +728,7 @@ namespace Kratos
 
 
     InMesh.NumberOfPoints = rModelPart.Nodes(MeshId).size();
-    PointList             = new double[InMesh.NumberOfPoints * 2];
+    PointList             = new double[InMesh.NumberOfPoints * dimension];
 
     if((int)rMeshingVariables.NodalPreIds.size() != InMesh.NumberOfPoints)
       rMeshingVariables.NodalPreIds.resize(InMesh.NumberOfPoints);
@@ -626,6 +782,47 @@ namespace Kratos
 	   
 	base+=dimension;
 	direct+=1;
+      }
+
+    KRATOS_CATCH( "" )
+
+  }
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void MeshModeler::SetElements(ModelPart& rModelPart,
+				MeshingParametersType& rMeshingVariables,
+				ModelPart::IndexType MeshId)
+  {
+    KRATOS_TRY
+
+        
+    const unsigned int dimension = rModelPart.ElementsBegin(MeshId)->GetGeometry().WorkingSpaceDimension();
+          
+    //*********************************************************************
+    //input mesh: ELEMENTS
+    ModelerUtilities::MeshContainer& InMesh = rMeshingVariables.InMesh;
+    int* ElementList     = InMesh.GetElementList();
+
+    ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(MeshId);
+    const unsigned int nds       = element_begin->GetGeometry().size();
+
+    InMesh.NumberOfElements = rModelPart.Elements(MeshId).size();
+    ElementList             = new int[InMesh.NumberOfElements * nds];
+
+ 
+    int base=0;
+    for(unsigned int el = 0; el<rModelPart.Elements(MeshId).size(); el++)
+      {
+	Geometry<Node<3> >& geom = (element_begin+el)->GetGeometry();
+	
+	for(unsigned int i=0; i<dimension; i++)
+	  {
+	    ElementList[base+i] = geom[i].Id();
+	  }
+	base+=nds;
       }
 
     KRATOS_CATCH( "" )
@@ -695,6 +892,50 @@ namespace Kratos
     KRATOS_CATCH( "" )
 
   }
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void MeshModeler::RecoverBoundaryPosition(ModelPart& rModelPart,
+					    MeshingParametersType& rMeshingVariables,
+					    ModelPart::IndexType MeshId)
+  {
+    KRATOS_TRY
+    
+    const unsigned int dimension = rModelPart.ElementsBegin(MeshId)->GetGeometry().WorkingSpaceDimension();
+          
+    //*********************************************************************
+    //input mesh: ELEMENTS
+
+    ModelerUtilities::MeshContainer& InMesh = rMeshingVariables.InMesh;
+    double* InPointList  = InMesh.GetPointList();
+
+    ModelerUtilities::MeshContainer& OutMesh = rMeshingVariables.OutMesh;
+    double* OutPointList = OutMesh.GetPointList();
+
+    ModelPart::NodesContainerType::iterator nodes_begin = rModelPart.NodesBegin(MeshId);
+
+    int base=0;
+    for(unsigned int i = 0; i<rModelPart.Nodes(MeshId).size(); i++)
+      { 
+	   
+	if( (nodes_begin + i)->Is(BOUNDARY) ){
+	  
+	  array_1d<double, 3>& Position = (nodes_begin + i)->Coordinates();
+	  for( unsigned int j=0; j<dimension; j++)
+	    {
+	      InPointList[base+j]    = Position[j];
+	      OutPointList[base+j]   = Position[j];
+	    }
+	}
+	   
+	base+=dimension;
+      }
+
+    KRATOS_CATCH( "" )
+  }
+
 
 } // Namespace Kratos
 

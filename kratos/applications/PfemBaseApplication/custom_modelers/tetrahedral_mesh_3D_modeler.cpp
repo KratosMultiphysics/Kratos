@@ -54,271 +54,100 @@ namespace Kratos
   // //*******************************************************************************************
   // //*******************************************************************************************
 
-  // void TetrahedralMesh3DModeler::GenerateTessellation(ModelPart& rModelPart,
-  // 						      MeshingParametersType& rMeshingVariables,
-  // 						      ModelPart::IndexType MeshId)
-  // {
+  void TetrahedralMesh3DModeler::Generate(ModelPart& rModelPart,
+					  MeshingParametersType& rMeshingVariables,
+					  ModelPart::IndexType MeshId)
+  {
 
-  //   KRATOS_TRY
+    KRATOS_TRY
  
-  //   this->StartEcho(rModelPart,"Tetgen PFEM Remesh",MeshId);
+    this->StartEcho(rModelPart,"PFEM Base Remesh",MeshId);
     
-  //   //*********************************************************************
+    //*********************************************************************
 
-  //   ////////////////////////////////////////////////////////////
-  //   this->InitializeMeshGeneration(rModelPart,rMeshingVariables,MeshId);   
-  //   ////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
+    this->InitializeMeshGeneration(rModelPart,rMeshingVariables,MeshId);   
+    ////////////////////////////////////////////////////////////
 
-  //   //*********************************************************************      
+    //*********************************************************************      
 
-  //   //Creating the containers for the input and output
-  //   tetgenio in;
-  //   tetgenio out;
+    //Creating the containers for the input and output
+    tetgenio in;
+    tetgenio out;
     
-  //   //Initialize containers
-  //   ClearTetrahedraList(in);
-  //   ClearTetrahedraList(out);
+    //Initialize containers
+    ClearTetrahedraList(in);
+    ClearTetrahedraList(out);
 
-  //   //Set containers to meshing variables
-  //   SetModelerMesh(rMeshingVariables.InMesh,in);
-  //   SetModelerMesh(rMeshingVariables.OutMesh,out);
+    //Set containers to meshing variables
+    SetModelerMesh(rMeshingVariables.InMesh,in);
+    SetModelerMesh(rMeshingVariables.OutMesh,out);
 
-  //   rMeshingVariables.NodalIdsSetFlag=false; //first set must be true (check needed)
+    //*********************************************************************
 
-  //   //EXECUTION FLAGS
-  //   rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::NEIGHBOURS_SEARCH);
-  //   rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::CONSTRAINED);
-  //   rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::SET_DOF);
+    //Set Nodes
+    if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::SET_NODES) )
+      this->SetNodes(rModelPart,rMeshingVariables,MeshId);
 
-  //   rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::PASS_ALPHA_SHAPE);
-  //   rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::SELECT_ELEMENTS);
-  //   rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::ENGAGED_NODES);
+    //Set Elements
+    if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::SET_ELEMENTS) )
+      this->SetElements(rModelPart,rMeshingVariables,MeshId);
 
-
-  //   //*********************************************************************
-
-  //   //Set Nodes
-  //   ////////////////////////////////////////////////////////////
-  //   SetTetrahedralizationNodes(rModelPart,rMeshingVariables,in,out,MeshId);
-  //   ////////////////////////////////////////////////////////////
-
-  //   boost::timer auxiliary;
-
-  //   //Generate Mesh
-  //   ////////////////////////////////////////////////////////////
-  //   int fail = GenerateTetrahedralization(rMeshingVariables.ExecutionOptions,rMeshingVariables.Refine->RefiningOptions,in,out);
-  //   ////////////////////////////////////////////////////////////
-
-  //   if(fail){
-  //     if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONSTRAINED) ){	
-  // 	rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::CONSTRAINED);
-  // 	////////////////////////////////////////////////////////////
-  // 	fail = GenerateTriangulation(rMeshingVariables.ExecutionOptions,rMeshingVariables.Refine->RefiningOptions,in, out);
-  // 	////////////////////////////////////////////////////////////
-  // 	rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::CONSTRAINED);
-  //     }
-  //   }
-
-  //   if(fail || in.numberofpoints!=out.numberofpoints){
-  //     std::cout<<" [ MESH GENERATION FAILED: point insertion (initial = "<<in.numberofpoints<<" final = "<<out.numberofpoints<<") ] "<<std::endl;
-  //   }
-
-  //   //print out the mesh generation time
-  //   if( this->GetEchoLevel() > 0 )
-  //     std::cout<<" [ MESH GENERATION (TIME = "<<auxiliary.elapsed()<<") ] "<<std::endl;
+    //Set Faces
+    if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::SET_FACES) )
+      this->SetFaces(rModelPart,rMeshingVariables,MeshId);
 
 
-  //   //*********************************************************************
-    
-  //   //Refine
-  //   if(rMeshingVariables.Options.Is(ModelerUtilities::REFINE)){
-	  
-  //     //EXECUTION FLAGS
-  //     rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::REFINE);
-	  
-  //     //Select elements
-  //     ////////////////////////////////////////////////////////////
-  //     SelectMeshElements(rModelPart.Nodes(MeshId),rMeshingVariables,out); //passing alpha shape and returning the Elements preserved  
-  //     ////////////////////////////////////////////////////////////
+    //*********************************************************************
 
-  //     //free the memory used in the first step, preserve out
-  //     DeletePointsList(in);
-  //     DeleteTetrahedraList(in);
-  //     ClearTetrahedraList(in);
+    boost::timer auxiliary;
 
-  //     rMeshingVariables.NodalIdsSetFlag=false; //second set must be true
+    //Generate Mesh
+    ////////////////////////////////////////////////////////////
+    int fail = GenerateTessellation(rMeshingVariables,in,out);
+    ////////////////////////////////////////////////////////////
 
-  //     //Set nodes
-  //     ////////////////////////////////////////////////////////////
-  //     SetTetrahedralizationNodes (rModelPart,rMeshingVariables,in,out,MeshId);
-  //     ////////////////////////////////////////////////////////////
+    if(fail){
+      if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONSTRAINED) ){	
+    	rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::CONSTRAINED);
+    	////////////////////////////////////////////////////////////
+    	fail = GenerateTessellation(rMeshingVariables,in, out);
+    	////////////////////////////////////////////////////////////
+    	rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::CONSTRAINED);
+      }
+    }
 
-  //     //*********************************************************************
+    if(fail || in.numberofpoints!=out.numberofpoints){
+      std::cout<<" [ MESH GENERATION FAILED: point insertion (initial = "<<in.numberofpoints<<" final = "<<out.numberofpoints<<") ] "<<std::endl;
+    }
 
-  //     ////////////////////////////////////////////////////////////
-  //     this->InitializeMeshRefinement(rModelPart,rMeshingVariables,MeshId);     
-  //     ////////////////////////////////////////////////////////////
+    //print out the mesh generation time
+    if( this->GetEchoLevel() > 0 )
+      std::cout<<" [ MESH GENERATION (TIME = "<<auxiliary.elapsed()<<") ] "<<std::endl;
 
-  //     //*********************************************************************
 
-  //     //free the memory used in the first step, free out
-  //     ClearTetrahedraList(out);
-
-  //     ////////////////////////////////////////////////////////////
-  //     int fail = GenerateTetrahedralization(rMeshingVariables.ExecutionOptions,rMeshingVariables.Refine->RefiningOptions,in,out);
-  //     ////////////////////////////////////////////////////////////
-
-  //     if(fail){
-  // 	if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONSTRAINED) ){	
-  // 	  rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::CONSTRAINED);
-  // 	  ////////////////////////////////////////////////////////////
-  // 	  fail = GenerateTriangulation(rMeshingVariables.ExecutionOptions,rMeshingVariables.Refine->RefiningOptions,in, out);
-  // 	  ////////////////////////////////////////////////////////////
-  // 	  rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::CONSTRAINED);
-  // 	}
-  //     }
-      
-  //     if(fail){
-  // 	std::cout<<" [ MESH REFINING FAILED: point insertion (initial = "<<in.numberofpoints<<" final = "<<out.numberofpoints<<") ] "<<std::endl;
-  //     }
-
-  //     //Building the entities for new nodes:
-  //     ////////////////////////////////////////////////////////////
-  //     GenerateNewParticles(rModelPart,rMeshingVariables,in,out,MeshId);
-  //     ////////////////////////////////////////////////////////////
-      
-  //   }
+    //*********************************************************************
     
 
-  //   //*********************************************************************
-       
-  //   ////////////////////////////////////////////////////////////
-  //   BuildMeshElements(rModelPart,rMeshingVariables,out,MeshId);
-  //   ////////////////////////////////////////////////////////////
+    //*********************************************************************
 
-  //   //*********************************************************************
+    ////////////////////////////////////////////////////////////
+    this->FinalizeMeshGeneration(rModelPart,rMeshingVariables,MeshId);
+    ////////////////////////////////////////////////////////////
 
-  //   ////////////////////////////////////////////////////////////
-  //   this->FinalizeMeshGeneration(rModelPart,rMeshingVariables,MeshId);
-  //   ////////////////////////////////////////////////////////////
+    //*********************************************************************
 
-  //   //*********************************************************************
+    //free memory  (to determine from custom mesh modelling)
+    // DeletePointsList(in);
+    // delete [] in.tetrahedronlist;
+    // DeleteTetrahedronList(out);
 
+    this->EndEcho(rModelPart,"PFEM Base Remesh",MeshId);
 
-  //   this->EndEcho(rModelPart,"Tetgen PFEM Remesh",MeshId);
+    KRATOS_CATCH( "" )
 
-  //   KRATOS_CATCH( "" )
+  }
 
-  // }
-
-
-  // //*******************************************************************************************
-  // //*******************************************************************************************
-
-  // void TetrahedralMesh3DModeler::RefineMesh(ModelPart& rModelPart,
-  // 					    MeshingParametersType& rMeshingVariables,
-  // 					    tetgenio& in,
-  // 					    tetgenio& out,
-  // 					    ModelPart::IndexType MeshId)
-  // {
-
-  //   KRATOS_TRY
- 
-  //   this->StartEcho(rModelPart,"Tetgen PFEM Refine",MeshId);
-    
-  //   //this->SetExecutionFlags(rMeshingVariables.ExecutionOptions);
-
-  //   //*********************************************************************
-
-  //   ////////////////////////////////////////////////////////////
-  //   //this->InitializeMeshRefining(rModelPart,rMeshingVariables,MeshId);     
-  //   ////////////////////////////////////////////////////////////
-
-  //   //*********************************************************************
-
-
-  //   rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::REFINE);
-
-  //   //*********************************************************************
-   
-  //   rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::NEIGHBOURS_SEARCH);
-  //   rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::CONSTRAINED);
-  //   rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::SET_DOF);
-
-  //   rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::PASS_ALPHA_SHAPE);
-  //   rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::SELECT_ELEMENTS);
-  //   rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::ENGAGED_NODES);
-
-  //   //*********************************************************************
-	  
-    
-  //   //Select elements
-  //   ////////////////////////////////////////////////////////////
-  //   SelectMeshElements(rModelPart.Nodes(MeshId),rMeshingVariables,out); //passing alpha shape and returning the Elements preserved  
-  //   ////////////////////////////////////////////////////////////
-    
-  //   //free the memory used in the first step, preserve out
-  //   DeletePointsList(in);
-  //   DeleteTetrahedraList(in);
-  //   ClearTetrahedraList(in);
-    
-  //   rMeshingVariables.NodalIdsSetFlag=false; //second set must be true
-    
-  //   //Set nodes
-  //   ////////////////////////////////////////////////////////////
-  //   SetTetrahedralizationNodes (rModelPart,rMeshingVariables,in,out,MeshId);
-  //   ////////////////////////////////////////////////////////////
-
-  //   //*********************************************************************
-  //   //not needed, set in initialize... that must call SelectMeshElements, SetTetrahedralizationNodes : if previous mesh comes from a tetrahedralization....
-  //   ////////////////////////////////////////////////////////////
-  //   this->InitializeMeshRefinement(rModelPart,rMeshingVariables,MeshId);     
-  //   ////////////////////////////////////////////////////////////
-
-  //   //*********************************************************************
-
-  //   //free the memory used in the first step, free out
-  //   ClearTetrahedraList(out);
-
-  //   //include both executions in one if fails....
-  //   ////////////////////////////////////////////////////////////
-  //   int fail = GenerateTetrahedralization(rMeshingVariables.ExecutionOptions,rMeshingVariables.Refine->RefiningOptions,in,out);
-  //   ////////////////////////////////////////////////////////////
-
-  //   if(fail){
-  //     if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONSTRAINED) ){	
-  // 	rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::CONSTRAINED);
-  // 	////////////////////////////////////////////////////////////
-  // 	fail = GenerateTriangulation(rMeshingVariables.ExecutionOptions,rMeshingVariables.Refine->RefiningOptions,in, out);
-  // 	////////////////////////////////////////////////////////////
-  // 	rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::CONSTRAINED);
-  //     }
-  //   }
-      
-  //   if(fail){
-  //     std::cout<<" [ MESH REFINING FAILED: point insertion (initial = "<<in.numberofpoints<<" final = "<<out.numberofpoints<<") ] "<<std::endl;
-  //   }
-    
-  //   //Building the entities for new nodes:
-  //   ////////////////////////////////////////////////////////////
-  //   GenerateNewParticles(rModelPart,rMeshingVariables,in,out,MeshId);
-  //   ////////////////////////////////////////////////////////////
-    
-
-  //   //*********************************************************************
-
-  //   ////////////////////////////////////////////////////////////
-  //   this->FinalizeMeshRefining(rModelPart,rMeshingVariables,MeshId); //for example generating new particles....or selecting and building elements if the configuration is like this...
-  //   ////////////////////////////////////////////////////////////
-
-  //   //*********************************************************************
-    
-  //   this->EndEcho(rModelPart,"Tetgen PFEM Refine",MeshId);
-
-  //   KRATOS_CATCH( "" )
-
-  // }
-  
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -1441,6 +1270,73 @@ namespace Kratos
 
     if( this->GetEchoLevel() > 0 ){
       std::cout<<"  -( "<<meshing_info<<" )- "<<std::endl;
+      std::cout<<"  (out ELEMENTS "<<out.numberoftetrahedra<<") "<<std::endl;
+      std::cout<<"  (out POINTS "<<out.numberofpoints<<") :  REMESH ]; "<<std::endl;
+      std::cout<<std::endl;
+    }
+
+    return fail;
+   
+    KRATOS_CATCH( "" )
+
+  }
+
+  //*******************************************************************************************
+  //METHODS CALLED FOR THE TESSELLATION
+  //*******************************************************************************************
+
+  int TetrahedralMesh3DModeler::GenerateTessellation(MeshingParametersType& rMeshingVariables,
+						     tetgenio& in,
+						     tetgenio& out)
+  {
+    KRATOS_TRY
+
+    int fail=0;
+
+    tetgenio vorout;
+
+    //initilize all to avoid memory problems
+    ClearTetrahedraList(vorout);
+
+    if( this->GetEchoLevel() > 0 )
+      std::cout<<" [ REMESH: (in POINTS "<<in.numberofpoints<<") "<<std::endl;
+
+    //this->WritePoints(in);
+
+    //perform the meshing
+    try {
+      tetrahedralize(rMeshingVariables.meshing_options,&in,&out,&vorout);
+    }
+
+    catch( int error_code ){
+
+      switch(TetgenErrors(error_code))
+	{
+	case INPUT_MEMORY_ERROR:       fail=1;
+	  break;
+	case INTERNAL_ERROR:           fail=2;
+	  break;
+	case INVALID_GEOMETRY_ERROR:   fail=3;
+	  break;
+	default:                       fail=0;
+	  //create new connections
+	  if( this->GetEchoLevel() > 0 )
+	    std::cout<<" tetrahedralization done "<<std::endl;
+	  break;
+	}
+    }
+    
+    //this->CheckInOutPoints(in, out);
+    //this->WritePoints(out);
+    //this->WriteTetrahedra(out);
+
+    if(rMeshingVariables.Options.IsNot(ModelerUtilities::REFINE) && in.numberofpoints<out.numberofpoints){
+      fail=3;
+      std::cout<<"  fail error: [NODES ADDED] something is wrong with the geometry "<<std::endl;
+    }
+
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<"  -( "<<rMeshingVariables.meshing_info<<" )- "<<std::endl;
       std::cout<<"  (out ELEMENTS "<<out.numberoftetrahedra<<") "<<std::endl;
       std::cout<<"  (out POINTS "<<out.numberofpoints<<") :  REMESH ]; "<<std::endl;
       std::cout<<std::endl;

@@ -169,7 +169,23 @@ protected:
     //*******************************************************************************************
     //*******************************************************************************************
     void SetModelerMesh(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr);
+
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+    void SetFaces(ModelPart& rModelPart,
+		  MeshingParametersType& rMeshingVariables,
+		  ModelPart::IndexType MeshId){};
+
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+    void Generate (ModelPart& rModelPart,
+		   MeshingParametersType& rMeshingVariables,
+		   ModelPart::IndexType MeshId=0);
+
     
+
     //*******************************************************************************************
     //*******************************************************************************************
     void PerformTransferOnly(ModelPart& rModelPart,
@@ -230,7 +246,12 @@ protected:
 				    Flags& RefiningOptions,
 				    tetgenio& in,
 				    tetgenio& out);
-  
+
+    //Generate the Delaunay Tesselation
+    int  GenerateTessellation(MeshingParametersType& rMeshingVariables,
+			      tetgenio& in,
+			      tetgenio& out);
+
     //Free memory of the mesher
     void ClearTetrahedraList  ( tetgenio& tr );
   
