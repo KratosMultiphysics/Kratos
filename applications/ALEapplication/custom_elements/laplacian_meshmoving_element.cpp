@@ -128,8 +128,7 @@ LaplacianMeshMovingElement::MatrixType LaplacianMeshMovingElement::CalculateDeri
 }
 
 void LaplacianMeshMovingElement::CalculateDeltaPosition(
-    const int dimension, VectorType& rtemp_vec_np,
-    ProcessInfo& rCurrentProcessInfo) {
+    VectorType& IntermediateDisplacements, ProcessInfo& rCurrentProcessInfo) {
 
   KRATOS_TRY;
 
@@ -142,7 +141,7 @@ void LaplacianMeshMovingElement::CalculateDeltaPosition(
     const VectorType& displacement = GetGeometry()[iNode]
         .FastGetSolutionStepValue(DISPLACEMENT, 0)
         - GetGeometry()[iNode].FastGetSolutionStepValue(DISPLACEMENT, 1);
-    rtemp_vec_np[iNode] = displacement[ComponentIndex];
+    IntermediateDisplacements[iNode] = displacement[ComponentIndex];
   }
 
   KRATOS_CATCH("");
@@ -179,12 +178,12 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(
     noalias(rLeftHandSideMatrix) += prod((IntegrationWeight * DN_DX),
                                          trans(DN_DX));
 
-    VectorType temp_vec_np(NumNodes);
+    VectorType IntermediateDisplacements(NumNodes);
 
-    CalculateDeltaPosition(dimension, temp_vec_np, rCurrentProcessInfo);
+    CalculateDeltaPosition(IntermediateDisplacements, rCurrentProcessInfo);
 
     //Compute RHS
-    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, temp_vec_np);
+    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, IntermediateDisplacements);
 
   }KRATOS_CATCH("");
 
