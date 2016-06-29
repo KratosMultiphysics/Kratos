@@ -179,6 +179,7 @@ public:
         //resetting to zero the vector of reactions
         TSparseSpace::SetToZero( *(BaseType::mpReactionsVector) );
 
+#ifndef _OPENMP
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
@@ -191,7 +192,6 @@ public:
 
 //             ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
         // assemble all elements
-#ifndef _OPENMP
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
         for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
         {
