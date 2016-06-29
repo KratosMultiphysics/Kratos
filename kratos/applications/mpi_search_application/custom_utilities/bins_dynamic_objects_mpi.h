@@ -341,6 +341,7 @@ public:
 
         int objectCounter = 0;
 
+        //This loop looks for the neighbours in the same partition
         for (IteratorType object_pointer_it = it_begin; object_pointer_it != it_end; ++object_pointer_it)
         {
             ResultIteratorType   ResultsPointer          = Results[objectCounter].begin();
@@ -351,6 +352,7 @@ public:
             TConfigure::CalculateBoundingBox((*object_pointer_it), Low, High, Radius[objectCounter]);
             Box.Set( CalculateCell(Low), CalculateCell(High), mN );
 
+            //Actual search
             SearchInRadiusExclusive((*object_pointer_it), Radius[objectCounter], ResultsPointer, ResultsDistancesPointer, NumberOfResults[objectCounter], MaxNumberOfResults, Box );
 
             //For each point with results < MaxResults and each process excluding ourself
@@ -394,6 +396,7 @@ public:
             }
         }
 
+        //Here we transfer basic info about the objects that will possibly be ghost in other partitions. The neighbours of these guys will be taken back as the actual ghosts
         TConfigure::TransferObjects(Communicator,SendObjectToProcess,SearchPetitions);
         TConfigure::TransferObjects(SendRadiusToProcess,SearchPetitionsRadius);
 
@@ -432,6 +435,7 @@ public:
 
                     Box.Set( CalculateCell(Low), CalculateCell(High), mN );
 
+                    //Actual search
                     SearchInRadiusExclusive((SearchPetitions[i].GetContainer())[j], SearchPetitionsRadius[i][j], remoteResultsPointer, ResultsDistancesPointer, thisNumberOfResults, MaxNumberOfResults, Box );
 
                     for(ResultIteratorType result_it = TempResults.begin(); result_it != remoteResultsPointer; ++result_it)
@@ -450,7 +454,8 @@ public:
                 NumberOfSendPoints[i] = accum_results;
             }
         }
-
+                
+        // Here we transfer the objects that will be ghost (they have been found in a search with center "canditate to ghost for the other partition")
         TConfigure::TransferObjects(Communicator,remoteResults,SearchResults);
         TConfigure::TransferObjects(SendResultsPerPoint,RecvResultsPerPoint);
 
@@ -482,26 +487,38 @@ public:
                             ResultsDistances[j][NumberOfResults[j]] = dist;
                             NumberOfResults[j]++;
 
-                            Communicator.GhostMesh().Elements().push_back((SearchResults[i].GetContainer())[ResultCounter]);
-                            Communicator.GhostMesh(origin).Elements().push_back((SearchResults[i].GetContainer())[ResultCounter]);
+                            /*bool repeat = 0;
+                            for(ModelPart::ElementsContainerType::iterator it = Communicator.GhostMesh(origin).Elements().begin(); !repeat && it != Communicator.GhostMesh(origin).Elements().end(); ++it) {
+                              if((SearchResults[i].GetContainer())[ResultCounter]->Id() == it->Id()) {
+                                repeat = 1; 
+                                break;
+                              }
+                            }*/
+                            //if(!repeat) {                            
+                                Communicator.GhostMesh().Elements().push_back((SearchResults[i].GetContainer())[ResultCounter]);                            
+                                Communicator.GhostMesh(origin).Elements().push_back((SearchResults[i].GetContainer())[ResultCounter]);
+                            //}
 
-                            bool repeat = 0;
-                            for(ModelPart::NodesContainerType::iterator it = Communicator.GhostMesh(origin).Nodes().begin(); !repeat && it != Communicator.GhostMesh(origin).Nodes().end(); ++it)
-                              if((SearchResults[i].GetContainer())[ResultCounter]->GetGeometry()[0].Id() == it->Id())
-                                repeat = 0;
-                            if(!repeat)
-                            {
-                                Communicator.GhostMesh().Nodes().push_back((SearchResults[i].GetContainer())[ResultCounter]->GetGeometry()(0));
-                                Communicator.GhostMesh(origin).Nodes().push_back((SearchResults[i].GetContainer())[ResultCounter]->GetGeometry()(0));
-                            }
-
+                            /*repeat = 0;
+                            for(ModelPart::NodesContainerType::iterator it = Communicator.GhostMesh(origin).Nodes().begin(); !repeat && it != Communicator.GhostMesh(origin).Nodes().end(); ++it) {
+                              if((SearchResults[i].GetContainer())[ResultCounter]->GetGeometry()[0].Id() == it->Id()) {
+                                repeat = 1; 
+                                break;
+                              }
+                            }*/
+                            //if(!repeat) {
+                                boost::shared_ptr<Kratos::Node<3ul> >& r_shared_ptr_to_node = (SearchResults[i].GetContainer())[ResultCounter]->GetGeometry()(0);
+                                Communicator.GhostMesh().Nodes().push_back(r_shared_ptr_to_node);
+                                Communicator.GhostMesh(origin).Nodes().push_back(r_shared_ptr_to_node);                                
+                            //}
+                            
                             ResultCounter++;
                         }
                         ParticleCounter++;
                     }
                 }
             }
-        }
+        }        
 
         delete [] NumberOfSendPoints;
         delete [] NumberOfRecvPoints;
