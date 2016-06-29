@@ -54,8 +54,8 @@ gid_output_fluid = GiDOutputProcess(solver.fluid_solver.GetComputeModelPart(),
 gid_output_structure.ExecuteInitialize()
 gid_output_fluid.ExecuteInitialize()
 
-##here all of the allocation of the strategies etc is done
-solver.Initialize()
+#~ ##here all of the allocation of the strategies etc is done
+#~ solver.Initialize()
 
 
 ##TODO: replace MODEL for the Kratos one ASAP
@@ -98,9 +98,11 @@ list_of_processes += process_factory.KratosProcessFactory(SolidModel).ConstructL
 ## Processes initialization
 for process in list_of_processes:
     process.ExecuteInitialize()
+    
+    
+# Solver initialization moved after the processes initialization, otherwise the flag INTERFACE is not set 
+solver.Initialize()
 
-#TODO: think if there is a better way to do this
-#~ fluid_model_part = solver.GetComputeModelPart()
 
 ## Stepping and time settings
 Dt = ProjectParameters["fluid_solver_settings"]["problem_data"]["time_step"].GetDouble()
@@ -126,35 +128,35 @@ while(time <= end_time):
     print("STEP = ", step)
     print("TIME = ", time)
 
-    if(step >= 3):
-        for process in list_of_processes:
-            process.ExecuteInitializeSolutionStep()
-        
-        gid_output_structure.ExecuteInitializeSolutionStep()
-        gid_output_fluid.ExecuteInitializeSolutionStep()
-        
-        solver.Solve()
-        
-        for process in list_of_processes:
-            process.ExecuteFinalizeSolutionStep()
-            
-        gid_output_structure.ExecuteFinalizeSolutionStep()
-        gid_output_fluid.ExecuteFinalizeSolutionStep()
-
-        #TODO: decide if it shall be done only when output is processed or not
-        for process in list_of_processes:
-            process.ExecuteBeforeOutputStep()
+    #~ if(step >= 3):
+    for process in list_of_processes:
+        process.ExecuteInitializeSolutionStep()
     
-        if gid_output_structure.IsOutputStep():
-            gid_output_structure.PrintOutput()
-            
-        if gid_output_fluid.IsOutputStep():
-            gid_output_fluid.PrintOutput()
+    gid_output_structure.ExecuteInitializeSolutionStep()
+    gid_output_fluid.ExecuteInitializeSolutionStep()
+    
+    solver.Solve()
+    
+    for process in list_of_processes:
+        process.ExecuteFinalizeSolutionStep()
         
-        for process in list_of_processes:
-            process.ExecuteAfterOutputStep()
+    gid_output_structure.ExecuteFinalizeSolutionStep()
+    gid_output_fluid.ExecuteFinalizeSolutionStep()
 
-        out = out + Dt
+    #TODO: decide if it shall be done only when output is processed or not
+    for process in list_of_processes:
+        process.ExecuteBeforeOutputStep()
+
+    if gid_output_structure.IsOutputStep():
+        gid_output_structure.PrintOutput()
+        
+    if gid_output_fluid.IsOutputStep():
+        gid_output_fluid.PrintOutput()
+    
+    for process in list_of_processes:
+        process.ExecuteAfterOutputStep()
+
+    out = out + Dt
 
 for process in list_of_processes:
     process.ExecuteFinalize()
