@@ -18,6 +18,11 @@ proc ::FSI::Init { } {
     
     set ::Model::ValidSpatialDimensions [list 2D 3D]
     ::spdAux::CreateDimensionWindow
+    
+    
+    GiDMenu::InsertOption "Kratos" [list "---"] 6 PRE "" "" "" replace =
+    GiDMenu::InsertOption "Kratos" [list "Mok - Channel with flexible wall" ] 7 PRE [list ::FSI::xml::MokChannelFlexibleWall] "" "" replace =
+    GiDMenu::UpdateMenus
 }
 
 proc ::FSI::LoadMyFiles { } {
