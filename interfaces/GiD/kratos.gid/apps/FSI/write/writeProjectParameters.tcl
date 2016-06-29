@@ -12,16 +12,16 @@ proc FSI::write::getParametersDict { } {
    dict set solverSettingsDict solver_type $strategy_write_name
    set solverSettingsDict [dict merge $solverSettingsDict [write::getSolutionStrategyParametersDict] ]
    set solverSettingsDict [dict merge $solverSettingsDict [write::getSolversParametersDict FSI] ]
-   dict set FSIParametersDict solver_settings $solverSettingsDict
    
    set solidInterfacesList [write::GetMeshFromCondition STLoads Interface2D]
    lappend solidInterfacesList {*}[write::GetMeshFromCondition STLoads Interface3D]
-   dict set FSIParametersDict solid_interfaces_list $solidInterfacesList
+   dict set solverSettingsDict solid_interfaces_list $solidInterfacesList
    
    set fluidInterfacesList [write::GetMeshFromCondition FLBC FluidNoSlipInterface2D]
    lappend fluidInterfacesList {*}[write::GetMeshFromCondition FLBC FluidNoSlipInterface3D]
-   dict set FSIParametersDict fluid_interfaces_list $fluidInterfacesList
+   dict set solverSettingsDict fluid_interfaces_list $fluidInterfacesList
    
+   dict set FSIParametersDict solver_settings $solverSettingsDict
    
    # Structural section
    UpdateUniqueNames Structural
