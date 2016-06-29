@@ -93,7 +93,7 @@ namespace Kratos
 
     //Set Faces
     if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::SET_FACES) )
-      this->SetFaces(rModelPart,rMeshingVariables,MeshId);
+      this->SetFaces(rModelPart,rMeshingVariables, in, out, MeshId);
 
 
     //*********************************************************************
@@ -915,6 +915,8 @@ namespace Kratos
     ClearTrianglesList(out);
 
     //*********************************************************************
+    //PART 1: node list
+
     //input mesh: NODES
     in.numberofpoints = rModelPart.Nodes(MeshId).size();
     in.pointlist      = new REAL[in.numberofpoints * 2];
@@ -1001,24 +1003,43 @@ namespace Kratos
     if(!rMeshingVariables.NodalIdsSetFlag){
       rMeshingVariables.NodalIdsSetFlag=true;
     }
-    //*********************************************************************
 
+    //*********************************************************************
+    //PART 2:
     //SetFaces (segments)
 
-    //PART 1: node list
-
-    if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONSTRAINED)){
-
-      //PART 2: faced list (we can have holes in facets != area holes)
-      in.numberofsegments           = rModelPart.NumberOfConditions(MeshId);
-      in.segmentmarkerlist          = new int[in.numberofsegments];
-      in.segmentlist                = new int[in.numberofsegments*2];
+    if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONSTRAINED))
+      this->SetFaces(rModelPart,rMeshingVariables,in,out,MeshId);
 
 
+    KRATOS_CATCH( "" )
+
+  }
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void TriangularMesh2DModeler::SetFaces(ModelPart& rModelPart,
+					 MeshingParametersType& rMeshingVariables,
+					 struct triangulateio& in,
+					 struct triangulateio& out,
+					 ModelPart::IndexType MeshId)
+  {
+     KRATOS_TRY
+
+     //*********************************************************************
+
+     //PART 2: faced list (we can have holes in facets != area holes)
+     in.numberofsegments           = rModelPart.NumberOfConditions(MeshId);
+     in.segmentmarkerlist          = new int[in.numberofsegments];
+     in.segmentlist                = new int[in.numberofsegments*2];
+     
+     
       ModelPart::ConditionsContainerType::iterator conditions_begin = rModelPart.ConditionsBegin(MeshId);
-
-
-      base = 0;
+      
+      
+      int base = 0;
       for(unsigned int i = 0; i<rModelPart.Conditions(MeshId).size(); i++)
 	{
 	  if( (conditions_begin + i)->Is(TO_ERASE) )
@@ -1060,9 +1081,7 @@ namespace Kratos
       in.regionlist[3] = -1;
 
 
-    }
-
-    KRATOS_CATCH( "" )
+      KRATOS_CATCH( "" )
 
   }
 
