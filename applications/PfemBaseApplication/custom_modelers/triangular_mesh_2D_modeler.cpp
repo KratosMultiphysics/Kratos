@@ -1289,9 +1289,19 @@ namespace Kratos
 
     //this->WritePoints(in);
 
+    //option 1
+    std::string str = rMeshingVariables.TessellationFlags;
+    const char *meshing_options = str.c_str();
+
+    //option 2
+    // std::string str = rMeshingVariables.meshing_options;
+    // char *meshing_options = new char[str.length() + 1];
+    // strcpy(cstr, str.c_str());
+    // delete [] cstr;
+
     //perform the meshing
     try {
-      triangulate(rMeshingVariables.meshing_options,&in,&out,&vorout);
+      triangulate(meshing_options,&in,&out,&vorout);
     }
 
     catch( int error_code ){
@@ -1319,7 +1329,7 @@ namespace Kratos
     }
     
     if( this->GetEchoLevel() > 0 ){
-      std::cout<<"  -( "<<rMeshingVariables.meshing_info<<" )- "<<std::endl;
+      std::cout<<"  -( "<<rMeshingVariables.TessellationInfo<<" )- "<<std::endl;
       std::cout<<"  (out ELEMENTS "<<out.numberoftriangles<<") "<<std::endl;
       std::cout<<"  (out POINTS "<<out.numberofpoints<<") :  REMESH ]; "<<std::endl;
       std::cout<<std::endl;

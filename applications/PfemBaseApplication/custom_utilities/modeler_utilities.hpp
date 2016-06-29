@@ -311,9 +311,6 @@ public:
 
       Flags    ExecutionOptions;    //configuration meshing options
       
-      //options for the mesher
-      char  meshing_options[255];
-      std::string   meshing_info;
 
       int      NumberOfElements;     
 
@@ -454,8 +451,8 @@ public:
       double  OffsetFactor;
 
       //options for the mesher
-      char  meshing_options[255];
-      std::string meshing_info;
+      std::string TessellationFlags;
+      std::string TessellationInfo;
 
       SpatialBoundingBox::Pointer  MeshingBox;
       bool MeshingBoxSetFlag;
@@ -498,6 +495,16 @@ public:
       void SetExecutionOptions(const Flags&  rOptions)
       {
 	ExecutionOptions=rOptions;
+      };
+
+      void SetTessellationFlags(std::string rFlags)
+      {
+	TessellationFlags=rFlags;
+      };
+
+      void SetTessellationInfo(std::string rInfo)
+      {
+	TessellationInfo=rInfo;
       };
 
       void SetAlphaParameter( const double rAlpha)
@@ -544,11 +551,17 @@ public:
       {
 	mpReferenceElement=&rElement;
       };
+
       void SetReferenceCondition (const Condition & rCondition)
       {
 	mpReferenceCondition=&rCondition;
       };
       
+      Flags GetOptions()
+      {
+	return Options;
+      };
+
       InfoParameters::Pointer GetInfoParameters()
       {
 	return Info;

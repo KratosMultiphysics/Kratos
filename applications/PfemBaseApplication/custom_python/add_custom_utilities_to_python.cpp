@@ -246,6 +246,8 @@ namespace Kratos
 	.def("Reset",&ModelerUtilities::MeshingParameters::Reset)
 	.def("SetOptions",&ModelerUtilities::MeshingParameters::SetOptions)
 	.def("SetExecutionOptions",&ModelerUtilities::MeshingParameters::SetExecutionOptions)
+	.def("SetTessellationFlags",&ModelerUtilities::MeshingParameters::SetTessellationFlags)
+	.def("SetTessellationInfo",&ModelerUtilities::MeshingParameters::SetTessellationInfo)
 	.def("SetAlphaParameter",&ModelerUtilities::MeshingParameters::SetAlphaParameter)
 	.def("SetOffsetFactor",&ModelerUtilities::MeshingParameters::SetOffsetFactor)
 	.def("SetInfoParameters",&ModelerUtilities::MeshingParameters::SetInfoParameters)
@@ -257,6 +259,7 @@ namespace Kratos
 	.def("SetReferenceCondition",SetReferenceCondition)
 	.def("GetInfoParameters",&ModelerUtilities::MeshingParameters::GetInfoParameters)
 	.def("GetRefiningParameters",&ModelerUtilities::MeshingParameters::GetRefiningParameters)
+	.def("GetOptions",&ModelerUtilities::MeshingParameters::GetOptions)
 	;
 
 

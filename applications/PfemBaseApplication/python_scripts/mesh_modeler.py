@@ -70,6 +70,8 @@ class MeshModeler:
     #
     def SetPostMeshingProcesses(self):
 
+        # The order set is the order of execution:
+
         #select mesh elements
         generate_particles  = GenerateNewParticles(self.model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
         self.mesher.SetPostMeshingProcess(generate_particles)
@@ -152,12 +154,12 @@ class MeshModeler:
         execution_options.Set(ModelerUtilities.ENGAGED_NODES, False)
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
+
     #
     def ExecuteMeshing(self):
 
     
         self.mesher.InitializeMeshing()  #set execution flags and modeler flags
-        
         self.mesher.ExecuteMeshing()
         
         self.mesher.FinalizeMeshing()    #set execution flags and modeler flags
