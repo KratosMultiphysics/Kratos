@@ -447,13 +447,19 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
       {
           KRATOS_TRY
 
-          for (unsigned int i = 0; i < mCommunicator.LocalMeshes().size(); i++)
+          for (unsigned int i = 0; i < mCommunicator.LocalMeshes().size(); i++){
               mCommunicator.LocalMesh(i).Nodes().Unique();
+              mCommunicator.LocalMesh(i).Elements().Unique(); //MA is this necessary (if not, I have repeated elements)
+          }
           
           mCommunicator.GhostMesh().Nodes().Unique();
+          mCommunicator.GhostMesh().Elements().Unique(); //MA is this necessary (if not, I have repeated elements)
           
           for (unsigned int i = 0; i < mCommunicator.GhostMeshes().size(); i++)
+          {
               mCommunicator.GhostMesh(i).Nodes().Unique();
+              mCommunicator.GhostMesh(i).Elements().Unique(); //MA is this necessary (if not, I have repeated elements)
+          }
           
           KRATOS_CATCH(" ")
       }
