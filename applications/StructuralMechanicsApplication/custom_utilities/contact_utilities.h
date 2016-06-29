@@ -233,7 +233,7 @@ public:
             point2_assigned = true;
         }
         
-        if ((point1_assigned and point2_assigned) == false)
+        if ((point1_assigned && point2_assigned) == false)
         {
             const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( IntegrationOrder );
             const unsigned int number_integration_points = integration_points.size();
@@ -258,7 +258,7 @@ public:
                 
                 if (point2_assigned == false)
                 {
-                    if (active_gauss[PointNumber] == true)
+                    if (active_gauss[number_integration_points - PointNumber - 1] == true)
                     {
                         GaussPointLocalCoordinates.Coordinates() = integration_points[number_integration_points - PointNumber - 1].Coordinates();
 
@@ -271,7 +271,7 @@ public:
                     }
                 }
                 
-                if ((point1_assigned and point2_assigned) == true)
+                if ((point1_assigned && point2_assigned) == true)
                 {
                     break;
                 }
@@ -314,7 +314,7 @@ public:
             point2_assigned = true;
         }
         
-        if ((point1_assigned and point2_assigned) == false)
+        if ((point1_assigned && point2_assigned) == false)
         {
             const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( IntegrationOrder );
             const unsigned int number_integration_points = integration_points.size();
@@ -340,7 +340,7 @@ public:
                     }
                 }
                 
-                if ((point1_assigned and point2_assigned) == true)
+                if ((point1_assigned && point2_assigned) == true)
                 {
                     break;
                 }
