@@ -340,19 +340,13 @@ protected:
 			     MeshingParametersType& rMeshingVariables,
 			     ModelPart::IndexType MeshId);
   
-    /**
-     * Mesh Modeler :: Set Faces to mesh
-     */
-    virtual void SetFaces(ModelPart& rModelPart,
-			  MeshingParametersType& rMeshingVariables,
-			  ModelPart::IndexType MeshId){};
 
     /**
      * Mesh Modeler :: Delaunay Tessellation
      */
     virtual void Generate (ModelPart& rModelPart,
 			   MeshingParametersType& rMeshingVariables,
-			   ModelPart::IndexType MeshId=0);
+			   ModelPart::IndexType MeshId=0){};
 
 
     /**

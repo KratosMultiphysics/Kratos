@@ -195,11 +195,6 @@ protected:
     //*******************************************************************************************
     void SetModelerMesh(ModelerUtilities::MeshContainer& rMesh, struct triangulateio& tr);
 
-    //*******************************************************************************************
-    //*******************************************************************************************
-    void SetFaces(ModelPart& rModelPart,
-		  MeshingParametersType& rMeshingVariables,
-		  ModelPart::IndexType MeshId){};
 
     //*******************************************************************************************
     //*******************************************************************************************
@@ -352,6 +347,13 @@ private:
 				 ModelPart::IndexType MeshId=0 );
 
 
+    //Set faces in the triangulateio before the Delaunay Tesselation
+    void SetFaces ( ModelPart &rModelPart,
+		    MeshingParametersType & rMeshingVariables,
+		    struct triangulateio &in,
+		    struct triangulateio &out,
+		    ModelPart::IndexType MeshId=0 );
+    
     //recover the boundary position after an small offset when remeshing constrained
     void RecoverBoundaryPosition ( ModelPart &rModelPart,
 				   MeshingParametersType & rMeshingVariables,

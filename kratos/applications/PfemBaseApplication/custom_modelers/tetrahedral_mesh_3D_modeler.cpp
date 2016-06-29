@@ -95,7 +95,7 @@ namespace Kratos
 
     //Set Faces
     if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::SET_FACES) )
-      this->SetFaces(rModelPart,rMeshingVariables,MeshId);
+      this->SetFaces(rModelPart,rMeshingVariables, in, out, MeshId);
 
 
     //*********************************************************************
@@ -1003,92 +1003,106 @@ namespace Kratos
     if(!rMeshingVariables.NodalIdsSetFlag){
       rMeshingVariables.NodalIdsSetFlag=true;
     }
+
     //*********************************************************************
+    //PART 2:
+    //SetFaces (segments)
 
-    //SetFaces (facets)
+    if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONSTRAINED))
+      SetFaces(rModelPart,rMeshingVariables,in,out,MeshId);
 
-    //PART 1: node list
+    KRATOS_CATCH( "" )
 
-    if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONSTRAINED)){
+  }
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void TetrahedralMesh3DModeler::SetFaces(ModelPart& rModelPart,
+					  MeshingParametersType& rMeshingVariables,
+					  tetgenio& in,
+					  tetgenio& out,
+					  ModelPart::IndexType MeshId)
+  {
+    KRATOS_TRY
+
+    //*********************************************************************
+    //PART 2: faced list (we can have holes in facets != volume holes)
+    
+    in.numberoffacets           = rModelPart.NumberOfConditions(MeshId);
+    in.facetmarkerlist          = new int[in.numberoffacets];
+    in.facetlist                = new tetgenio::facet[in.numberoffacets];
 
 
-      //PART 2: faced list (we can have holes in facets != volume holes)
-      in.numberoffacets           = rModelPart.NumberOfConditions(MeshId);
-      in.facetmarkerlist          = new int[in.numberoffacets];
-      in.facetlist                = new tetgenio::facet[in.numberoffacets];
-
-
-      ModelPart::ConditionsContainerType::iterator conditions_begin = rModelPart.ConditionsBegin(MeshId);
-
-      //facets
-      tetgenio::facet   *f;
-      tetgenio::polygon *p;
-
-      for(int fc=0; fc<in.numberoffacets; fc++)
-	{
-	  f = &in.facetlist[fc];
-
-	  f->numberofpolygons = 1;
-	  f->polygonlist      = new tetgenio::polygon[f->numberofpolygons];
-
-	  f->numberofholes    = 0;
-	  f->holelist         = NULL;
+    ModelPart::ConditionsContainerType::iterator conditions_begin = rModelPart.ConditionsBegin(MeshId);
+    
+    //facets
+    tetgenio::facet   *f;
+    tetgenio::polygon *p;
+    
+    for(int fc=0; fc<in.numberoffacets; fc++)
+      {
+	f = &in.facetlist[fc];
+	
+	f->numberofpolygons = 1;
+	f->polygonlist      = new tetgenio::polygon[f->numberofpolygons];
+	
+	f->numberofholes    = 0;
+	f->holelist         = NULL;
             
-	  p = &f->polygonlist[0];
+	p = &f->polygonlist[0];
 
-	  p->numberofvertices = 3; //face is a triangle
-	  p->vertexlist       = new int[p->numberofvertices];
+	p->numberofvertices = 3; //face is a triangle
+	p->vertexlist       = new int[p->numberofvertices];
 	  
 
-	  if( (conditions_begin + fc)->Is(TO_ERASE) )
-	    std::cout<<" ERROR: condition to erase present "<<std::endl;
+	if( (conditions_begin + fc)->Is(TO_ERASE) )
+	  std::cout<<" ERROR: condition to erase present "<<std::endl;
 
-	  Geometry< Node<3> >& rGeometry = (conditions_begin + fc)->GetGeometry();
+	Geometry< Node<3> >& rGeometry = (conditions_begin + fc)->GetGeometry();
 	  
-	  for (int nd=0;nd<3;nd++)
-	    {
-	      p->vertexlist[nd] = rGeometry[nd].Id();
-	    }      
+	for (int nd=0;nd<3;nd++)
+	  {
+	    p->vertexlist[nd] = rGeometry[nd].Id();
+	  }      
 
-	  in.facetmarkerlist[fc] = MeshId;
-
-	}
-
-
-      //PART 3: (volume) hole list
-
-      //holes
-      in.numberofholes            = 0;
-      in.holelist                 = (REAL*) NULL;
-
-      //PART 4: region attributes list
-
-      //regions
-      in.numberofregions          = 1;
-      in.regionlist               = new REAL[in.numberofregions * 5];
-     
-                
-      double inside_factor = 2;
-      Geometry< Node<3> >& rGeometry = (conditions_begin)->GetGeometry();
-      array_1d<double, 3>&  Normal   = rGeometry[0].FastGetSolutionStepValue(NORMAL);
-      
-      double NormNormal = norm_2(Normal);
-      if( NormNormal != 0)
-	Normal /= NormNormal;
-      
-      //inside point of the region:
-      in.regionlist[0] = rGeometry[0][0]-((-1)*Normal[0]*rMeshingVariables.OffsetFactor*inside_factor);
-      in.regionlist[1] = rGeometry[0][1]-((-1)*Normal[1]*rMeshingVariables.OffsetFactor*inside_factor);
-      in.regionlist[2] = rGeometry[0][2]-((-1)*Normal[2]*rMeshingVariables.OffsetFactor*inside_factor);
-      
-      //region attribute (regional attribute or marker "A" must be switched)
-      in.regionlist[3] = MeshId;
-      
-      //region maximum volume attribute (maximum volume attribute "a" (with no number following) must be switched)
-      in.regionlist[4] = -1;
-      
-    }
-
+	in.facetmarkerlist[fc] = MeshId;
+	
+      }
+    
+    //PART 3: (volume) hole list
+    
+    //holes
+    in.numberofholes            = 0;
+    in.holelist                 = (REAL*) NULL;
+    
+    //PART 4: region attributes list
+    
+    //regions
+    in.numberofregions          = 1;
+    in.regionlist               = new REAL[in.numberofregions * 5];
+    
+    
+    double inside_factor = 2;
+    Geometry< Node<3> >& rGeometry = (conditions_begin)->GetGeometry();
+    array_1d<double, 3>&  Normal   = rGeometry[0].FastGetSolutionStepValue(NORMAL);
+    
+    double NormNormal = norm_2(Normal);
+    if( NormNormal != 0)
+      Normal /= NormNormal;
+    
+    //inside point of the region:
+    in.regionlist[0] = rGeometry[0][0]-((-1)*Normal[0]*rMeshingVariables.OffsetFactor*inside_factor);
+    in.regionlist[1] = rGeometry[0][1]-((-1)*Normal[1]*rMeshingVariables.OffsetFactor*inside_factor);
+    in.regionlist[2] = rGeometry[0][2]-((-1)*Normal[2]*rMeshingVariables.OffsetFactor*inside_factor);
+    
+    //region attribute (regional attribute or marker "A" must be switched)
+    in.regionlist[3] = MeshId;
+    
+    //region maximum volume attribute (maximum volume attribute "a" (with no number following) must be switched)
+    in.regionlist[4] = -1;
+    
+   
     KRATOS_CATCH( "" )
 
   }
