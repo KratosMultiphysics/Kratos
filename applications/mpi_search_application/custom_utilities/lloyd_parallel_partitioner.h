@@ -335,11 +335,19 @@ public:
         ContainerType pElementsMarked;
 
         MPI_Barrier(MPI_COMM_WORLD);
+        double max_radius = 0.0;
+        
+        for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
+        {
+            const double Radius = TConfigure::GetObjectRadius(*particle_pointer_it);
+            if(Radius > max_radius) max_radius = Radius;
+        }
+        
+        mModelPart.GetCommunicator().MaxAll(max_radius); //Max Radius across partitions
 
         //Mark elements in boundary (Level-1)
         for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
-        {
-            double Radius       = (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+        {            
             int myRank          = (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(PARTITION_INDEX);
 
             (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(PARTITION_MASK) = 0;
@@ -359,7 +367,7 @@ public:
 
                 if (j != myRank)
                 {
-                    if( NodeToCutPlaneDist <= Radius*2)
+                    if( NodeToCutPlaneDist <= max_radius * 2.0)
                     {
                        (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(PARTITION_MASK) |= ((1 << j) | (1 << myRank));
                     }
