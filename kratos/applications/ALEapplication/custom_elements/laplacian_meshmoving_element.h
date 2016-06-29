@@ -156,7 +156,7 @@ public:
 
     void GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateDeltaPosition(const int dimension, VectorType& rtemp_vec_np, ProcessInfo& rCurrentProcessInfo);
+    void CalculateDeltaPosition(VectorType& IntermediateDisplacements, ProcessInfo& rCurrentProcessInfo);
 
     ///@{
 
