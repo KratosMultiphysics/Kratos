@@ -15,7 +15,7 @@ proc FSI::write::getParametersDict { } {
    
    set solidInterfacesList [write::GetMeshFromCondition STLoads Interface2D]
    lappend solidInterfacesList {*}[write::GetMeshFromCondition STLoads Interface3D]
-   dict set solverSettingsDict solid_interfaces_list $solidInterfacesList
+   dict set solverSettingsDict structure_interfaces_list $solidInterfacesList
    
    set fluidInterfacesList [write::GetMeshFromCondition FLBC FluidNoSlipInterface2D]
    lappend fluidInterfacesList {*}[write::GetMeshFromCondition FLBC FluidNoSlipInterface3D]
