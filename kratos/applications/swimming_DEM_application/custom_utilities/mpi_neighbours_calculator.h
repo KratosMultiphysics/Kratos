@@ -93,7 +93,7 @@ namespace Kratos {
             if(MaxNodeRadius == 0.0f) //TODO
                 for (IteratorType particle_pointer_it = pLocalElements.begin(); particle_pointer_it != pLocalElements.end(); ++particle_pointer_it)
                 {
-                    double NodeRaidus = (1.0 + radius_extend) * (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+                    double NodeRaidus = (1.0 + radius_extend) * (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS); //TODO: MA: WATCH OUT! The use of SEARCH_RADIUS_EXTENSION might have changed
                     MaxNodeRadius = NodeRaidus > MaxNodeRadius ? NodeRaidus : MaxNodeRadius;
                 }
             
