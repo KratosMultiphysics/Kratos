@@ -385,17 +385,18 @@ namespace Kratos
 
           ElementsContainerType::ContainerType& pLocalElements = rModelPart.GetCommunicator().LocalMesh().ElementsArray();
 
-          ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+          //ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
-          double search_tolerance = 0.0;
-          if (extension_option) search_tolerance = rCurrentProcessInfo[SEARCH_TOLERANCE];
+          //double search_tolerance = 0.0;
+          //if (extension_option) search_tolerance = rCurrentProcessInfo[SEARCH_TOLERANCE];
 
           static double MaxNodeRadius = 0.0f;
           if(MaxNodeRadius == 0.0f) //TODO
               for (ElementsContainerType::ContainerType::iterator particle_pointer_it = pLocalElements.begin(); particle_pointer_it != pLocalElements.end(); ++particle_pointer_it)
               {
-                  double NodeRaidus = search_tolerance + (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-                  MaxNodeRadius = NodeRaidus > MaxNodeRadius ? NodeRaidus : MaxNodeRadius;
+                  double NodeRadius = Configure::GetObjectRadius(*particle_pointer_it);
+                  //double NodeRadius = search_tolerance + (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+                  MaxNodeRadius = NodeRadius > MaxNodeRadius ? NodeRadius : MaxNodeRadius;
               }
 
           LloydParallelPartitioner<Configure> partitioner;
