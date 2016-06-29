@@ -43,7 +43,7 @@
 /* ****************************************************************************
  *  Projectname:         $KratosALEApplication
  *  Last Modified by:    $Author: Andreas.Mini@tum.de $
- *  Date:                $Date: March 2016 $
+ *  Date:                $Date: June 2016 $
  *  Revision:            $Revision: 1.4 $
  * ***************************************************************************/
 
@@ -63,10 +63,10 @@
 /// This class implements a structural similarity mesh-updating scheme
 /**
  * This mesh-updating scheme treats the mesh as a solid and therefore
- * solves the equations of solid mechanics using linear kinematics
+ * solves the equations of solid mechanics using a corrotational formulation
  * and a linear elastic consitutive law. The stiffness of the elements
  * depends on their size and can be controlled by the Jacobian Determinant
- * weightened by an exponent.
+ * weightened by an exponent. It is implemented for all types of elements.
  */
 
 namespace Kratos {

@@ -82,7 +82,6 @@ Element::Pointer LaplacianMeshMovingElement::Create(
                                      pProperties));
 }
 
-
 void LaplacianMeshMovingElement::Initialize() {
 
   KRATOS_TRY;
@@ -136,29 +135,14 @@ void LaplacianMeshMovingElement::CalculateDeltaPosition(
 
   unsigned int ComponentIndex = rCurrentProcessInfo[FRACTIONAL_STEP] - 1;
 
+  const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
-  const VectorType& disp0 = GetGeometry()[0].FastGetSolutionStepValue(
-      DISPLACEMENT, 0)
-      - GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT, 1);
+  for (SizeType iNode = 0; iNode < NumNodes; ++iNode) {
 
-  const VectorType& disp1 = GetGeometry()[1].FastGetSolutionStepValue(
-      DISPLACEMENT, 0)
-      - GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT, 1);
-
-  const VectorType& disp2 = GetGeometry()[2].FastGetSolutionStepValue(
-      DISPLACEMENT, 0)
-      - GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT, 1);
-
-  rtemp_vec_np[0] = disp0[ComponentIndex];
-  rtemp_vec_np[1] = disp1[ComponentIndex];
-  rtemp_vec_np[2] = disp2[ComponentIndex];
-
-  if (dimension == 3) {
-    const VectorType& disp3 = GetGeometry()[3].FastGetSolutionStepValue(
-        DISPLACEMENT, 0)
-        - GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT, 1);
-
-    rtemp_vec_np[3] = disp3[ComponentIndex];
+    const VectorType& displacement = GetGeometry()[iNode]
+        .FastGetSolutionStepValue(DISPLACEMENT, 0)
+        - GetGeometry()[iNode].FastGetSolutionStepValue(DISPLACEMENT, 1);
+    rtemp_vec_np[iNode] = displacement[ComponentIndex];
   }
 
   KRATOS_CATCH("");
@@ -173,10 +157,8 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(
   const SizeType NumNodes = this->GetGeometry().PointsNumber();
   const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
 
-
   const GeometryType::IntegrationPointsArrayType& integration_points =
       GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-
 
   if (rLeftHandSideMatrix.size1() != NumNodes)
     rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
@@ -184,36 +166,28 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(
   if (rRightHandSideVector.size() != NumNodes)
     rRightHandSideVector.resize(NumNodes, false);
 
-
-
-
- noalias(rLeftHandSideMatrix) = ZeroMatrix(NumNodes, NumNodes);
- noalias(rRightHandSideVector) = ZeroVector(NumNodes);
-
-
+  noalias(rLeftHandSideMatrix) = ZeroMatrix(NumNodes, NumNodes);
+  noalias(rRightHandSideVector) = ZeroVector(NumNodes);
 
   for (unsigned int PointNumber = 0; PointNumber < integration_points.size();
       ++PointNumber) {
 
     double IntegrationWeight = integration_points[PointNumber].Weight();
 
-  //Compute LHS
-  MatrixType DN_DX = CalculateDerivatives(dimension, PointNumber);
-  noalias(rLeftHandSideMatrix) += prod((IntegrationWeight * DN_DX),trans(DN_DX));
+    //Compute LHS
+    MatrixType DN_DX = CalculateDerivatives(dimension, PointNumber);
+    noalias(rLeftHandSideMatrix) += prod((IntegrationWeight * DN_DX),
+                                         trans(DN_DX));
 
+    VectorType temp_vec_np(NumNodes);
 
+    CalculateDeltaPosition(dimension, temp_vec_np, rCurrentProcessInfo);
 
-  VectorType temp_vec_np(dimension + 1);
+    //Compute RHS
+    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, temp_vec_np);
 
-  CalculateDeltaPosition(dimension, temp_vec_np, rCurrentProcessInfo);
+  }KRATOS_CATCH("");
 
-  //Compute RHS
-  noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, temp_vec_np);
-
-
-
-  }
-  KRATOS_CATCH("");
 }
 
 void LaplacianMeshMovingElement::EquationIdVector(

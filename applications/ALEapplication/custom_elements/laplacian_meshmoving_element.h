@@ -71,8 +71,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /// This class implements a laplacian mesh-updating scheme
 /**
  * This mesh-updating scheme solves the Laplace equation in order to update the mesh.
- * It uses the L2 norm of the linear strain tensor
  * to distribute the motion of the structure into the fluid flow domain.
+ * It can be used for a) quadrilateral, b) triangular, c) tetrahedral and d) hexaedral elements,
+ * working best for b) and c),
 */
 
 namespace Kratos
