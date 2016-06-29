@@ -1317,17 +1317,11 @@ namespace Kratos
 
     //this->WritePoints(in);
 
-    //option 1
     std::string str = rMeshingVariables.TessellationFlags;
-    const char *meshing_options = str.c_str();
+    char *meshing_options = new char[str.length() + 1];
+    strcpy(meshing_options, str.c_str());
 
-    //option 2
-    // std::string str = rMeshingVariables.meshing_options;
-    // char *meshing_options = new char[str.length() + 1];
-    // strcpy(cstr, str.c_str());
-    // delete [] cstr;
     //perform the meshing
-
     try {
       tetrahedralize(meshing_options,&in,&out,&vorout);
     }
@@ -1349,7 +1343,9 @@ namespace Kratos
 	  break;
 	}
     }
-    
+
+    delete [] meshing_options;    
+
     //this->CheckInOutPoints(in, out);
     //this->WritePoints(out);
     //this->WriteTetrahedra(out);
