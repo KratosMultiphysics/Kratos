@@ -834,6 +834,23 @@ proc write::GetResultsList { un } {
     return $result
 }
 
+proc write::GetMeshFromCondition { base_UN condition_id } {
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    
+    set xp1 "[spdAux::getRoute $base_UN]/condition\[@n='$condition_id'\]/group"
+    set groups [$root selectNodes $xp1]
+    
+    set meshes [list ]
+    foreach gNode $groups {
+        set group [$gNode @n]
+        set meshid [getMeshId $condition_id $group]
+        lappend meshes $meshid
+    }
+    
+    return $meshes
+}
+
 proc write::getAllMaterialParametersDict {matname} {
     variable matun
     set doc $gid_groups_conds::doc

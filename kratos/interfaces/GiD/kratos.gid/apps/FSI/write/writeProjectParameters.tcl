@@ -14,6 +14,15 @@ proc FSI::write::getParametersDict { } {
    set solverSettingsDict [dict merge $solverSettingsDict [write::getSolversParametersDict FSI] ]
    dict set FSIParametersDict solver_settings $solverSettingsDict
    
+   set solidInterfacesList [write::GetMeshFromCondition STLoads Interface2D]
+   lappend solidInterfacesList {*}[write::GetMeshFromCondition STLoads Interface3D]
+   dict set FSIParametersDict solid_interfaces_list $solidInterfacesList
+   
+   set fluidInterfacesList [write::GetMeshFromCondition FLBC FluidNoSlipInterface2D]
+   lappend fluidInterfacesList {*}[write::GetMeshFromCondition FLBC FluidNoSlipInterface3D]
+   dict set FSIParametersDict fluid_interfaces_list $fluidInterfacesList
+   
+   
    # Structural section
    UpdateUniqueNames Structural
    apps::setActiveAppSoft Structural
