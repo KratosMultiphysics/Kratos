@@ -158,7 +158,7 @@ public:
 		{
 		  //set vertices
 		  if(mrRemesh.NodalPreIds[OutElementList[el*nds+pn]]<0){
-		    if(mrRemesh.ExecutionOptions.IsNot(ModelerUtilities::CONTACT_SEARCH))
+		    if(mrRemesh.Options.IsNot(ModelerUtilities::CONTACT_SEARCH))
 		      std::cout<<" ERROR: something is wrong: nodal id < 0 "<<std::endl;
 		    box_side_element = true;
 		    break;
@@ -254,7 +254,7 @@ public:
 	      ModelerUtilities ModelerUtils;
 	      if(mrRemesh.ExecutionOptions.Is(ModelerUtilities::PASS_ALPHA_SHAPE)){
 		
-		if(mrRemesh.ExecutionOptions.Is(ModelerUtilities::CONTACT_SEARCH))
+		if(mrRemesh.Options.Is(ModelerUtilities::CONTACT_SEARCH))
 		  {
 		    accepted=ModelerUtils.ShrankAlphaShape(Alpha,vertices,mrRemesh.OffsetFactor,dimension);
 		  }
@@ -280,13 +280,13 @@ public:
 
 	      //3.1.-
 	      bool self_contact = false;
-	      if(mrRemesh.ExecutionOptions.Is(ModelerUtilities::CONTACT_SEARCH))
+	      if(mrRemesh.Options.Is(ModelerUtilities::CONTACT_SEARCH))
 		self_contact = ModelerUtils.CheckSubdomain(vertices);
 	    	    
 	      //4.- to control that the element is inside of the domain boundaries
 	      if(accepted)
 		{
-		  if(mrRemesh.ExecutionOptions.Is(ModelerUtilities::CONTACT_SEARCH))
+		  if(mrRemesh.Options.Is(ModelerUtilities::CONTACT_SEARCH))
 		    {
 		      accepted=ModelerUtils.CheckOuterCentre(vertices,mrRemesh.OffsetFactor, self_contact);
 		    }

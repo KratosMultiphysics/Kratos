@@ -1428,7 +1428,7 @@ namespace Kratos
 	      {
 		//set vertices
 		if(rMeshingVariables.NodalPreIds[out.trianglelist[el*3+pn]]<0){
-		  if(rMeshingVariables.ExecutionOptions.IsNot(ModelerUtilities::CONTACT_SEARCH))
+		  if(rMeshingVariables.Options.IsNot(ModelerUtilities::CONTACT_SEARCH))
 		    std::cout<<" ERROR: something is wrong: nodal id < 0 "<<std::endl;
 		  box_side_element = true;
 		  break;
@@ -1523,7 +1523,7 @@ namespace Kratos
 	    ModelerUtilities ModelerUtils;
 	    if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::PASS_ALPHA_SHAPE)){
 
-	      if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONTACT_SEARCH))
+	      if(rMeshingVariables.Options.Is(ModelerUtilities::CONTACT_SEARCH))
 		{
 		  accepted=ModelerUtils.ShrankAlphaShape(Alpha,vertices,rMeshingVariables.OffsetFactor,2);
 		}
@@ -1549,13 +1549,13 @@ namespace Kratos
 
 	    //3.1.-
 	    bool self_contact = false;
-	    if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONTACT_SEARCH))
+	    if(rMeshingVariables.Options.Is(ModelerUtilities::CONTACT_SEARCH))
 	      self_contact = ModelerUtils.CheckSubdomain(vertices);
 	    	    
 	    //4.- to control that the element is inside of the domain boundaries
 	    if(accepted)
 	      {
-		if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONTACT_SEARCH))
+		if(rMeshingVariables.Options.Is(ModelerUtilities::CONTACT_SEARCH))
 		  {
 		    accepted=ModelerUtils.CheckOuterCentre(vertices,rMeshingVariables.OffsetFactor, self_contact);
 		  }
@@ -1695,7 +1695,7 @@ namespace Kratos
 	      {
 		//set vertices
 		if(rMeshingVariables.NodalPreIds[pElementList[el*3+pn]]<0){
-		  if(rMeshingVariables.ExecutionOptions.IsNot(ModelerUtilities::CONTACT_SEARCH))
+		  if(rMeshingVariables.Options.IsNot(ModelerUtilities::CONTACT_SEARCH))
 		    std::cout<<" ERROR: something is wrong: nodal id < 0 "<<std::endl;
 		  box_side_element = true;
 		  break;
@@ -1790,7 +1790,7 @@ namespace Kratos
 	    ModelerUtilities ModelerUtils;
 	    if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::PASS_ALPHA_SHAPE)){
 
-	      if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONTACT_SEARCH))
+	      if(rMeshingVariables.Options.Is(ModelerUtilities::CONTACT_SEARCH))
 		{
 		  accepted=ModelerUtils.ShrankAlphaShape(Alpha,vertices,rMeshingVariables.OffsetFactor,2);
 		}
@@ -1816,13 +1816,13 @@ namespace Kratos
 
 	    //3.1.-
 	    bool self_contact = false;
-	    if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONTACT_SEARCH))
+	    if(rMeshingVariables.Options.Is(ModelerUtilities::CONTACT_SEARCH))
 	      self_contact = ModelerUtils.CheckSubdomain(vertices);
 	    	    
 	    //4.- to control that the element is inside of the domain boundaries
 	    if(accepted)
 	      {
-		if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONTACT_SEARCH))
+		if(rMeshingVariables.Options.Is(ModelerUtilities::CONTACT_SEARCH))
 		  {
 		    accepted=ModelerUtils.CheckOuterCentre(vertices,rMeshingVariables.OffsetFactor, self_contact);
 		  }
