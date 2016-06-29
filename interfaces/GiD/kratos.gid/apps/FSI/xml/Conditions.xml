@@ -2,32 +2,32 @@
 <ConditionList>
   <ConditionItem n="FluidSlipInterface2D" pn="FSI slip interface" ImplementedInFile=".cpp"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="Developer"
-	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" VariableName="SLIP_INTERFACE" App="Fluid"
-	ElementType="Line" ProcessName="SetInterfaceProcess" help="Condition">
+	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" VariableName="IS_INTERFACE" App="Fluid"
+	ElementType="Line" ProcessName="SetInterfaceProcess" help="Process to set the interface flag. NOTE THAT THE DEPRECATED FLAG 'IS INTERFACE' IS USED (MOVE TO THE 'INTERFACE' ONE ASAP)">
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="Condition2D2N"/>
     </TopologyFeatures>
   </ConditionItem>
     <ConditionItem n="FluidNoSlipInterface2D" pn="FSI no slip interface" ImplementedInFile=".cpp"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" VariableName="NO_SLIP_INTERFACE" App="Fluid"
-	ElementType="Line" ProcessName="SetInterfaceProcess" help="Condition">
+	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" VariableName="IS_INTERFACE" App="Fluid"
+	ElementType="Line" ProcessName="SetInterfaceProcess" help="Process to set the interface flag. NOTE THAT THE DEPRECATED FLAG 'IS INTERFACE' IS USED (MOVE TO THE 'INTERFACE' ONE ASAP)">
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="Condition2D2N"/>
     </TopologyFeatures>
   </ConditionItem>
     <ConditionItem n="Interface2D" pn="FSI Interface" ImplementedInFile=".cpp"
 	ImplementedInApplication="StructuralMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" VariableName="INTERFACE" App="Structural"
-	ElementType="Line" ProcessName="SetInterfaceProcess" help="Condition">
+	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" VariableName="IS_INTERFACE" App="Structural"
+	ElementType="Line" ProcessName="SetInterfaceProcess" help="Process to set the interface flag. NOTE THAT THE DEPRECATED FLAG 'IS INTERFACE' IS USED (MOVE TO THE 'INTERFACE' ONE ASAP)">
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="Condition2D2N"/>
     </TopologyFeatures>
   </ConditionItem>
     <ConditionItem n="FluidSlipInterface3D" pn="FSI slip interface" ImplementedInFile=".cpp"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="Developer"
-	WorkingSpaceDimension="3D" LocalSpaceDimension="1" SkinConditions="True" VariableName="SLIP_INTERFACE" App="Fluid"
-	ElementType="Surface" ProcessName="SetInterfaceProcess" help="Condition">
+	WorkingSpaceDimension="3D" LocalSpaceDimension="1" SkinConditions="True" VariableName="IS_INTERFACE" App="Fluid"
+	ElementType="Surface" ProcessName="SetInterfaceProcess" help="Process to set the interface flag. NOTE THAT THE DEPRECATED FLAG 'IS INTERFACE' IS USED (MOVE TO THE 'INTERFACE' ONE ASAP)">
     <TopologyFeatures>
       <item  GeometryType="Triangle" nodes="3" KratosName="Condition3D3N"/>
       <item  GeometryType="Quadrilateral" nodes="4" KratosName="Condition3D4N"/>
@@ -35,8 +35,8 @@
   </ConditionItem>
     <ConditionItem n="FluidNoSlipInterface3D" pn="FSI no slip interface" ImplementedInFile=".cpp"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="3D" LocalSpaceDimension="1" SkinConditions="True" VariableName="NO_SLIP_INTERFACE" App="Fluid"
-	ElementType="Surface" ProcessName="SetInterfaceProcess" help="Condition">
+	WorkingSpaceDimension="3D" LocalSpaceDimension="1" SkinConditions="True" VariableName="IS_INTERFACE" App="Fluid"
+	ElementType="Surface" ProcessName="SetInterfaceProcess" help="Process to set the interface flag. NOTE THAT THE DEPRECATED FLAG 'IS INTERFACE' IS USED (MOVE TO THE 'INTERFACE' ONE ASAP)">
     <TopologyFeatures>
       <item  GeometryType="Triangle" nodes="3" KratosName="Condition3D3N"/>
       <item  GeometryType="Quadrilateral" nodes="4" KratosName="Condition3D4N"/>
@@ -44,8 +44,8 @@
   </ConditionItem>
     <ConditionItem n="Interface3D" pn="FSI Interface" ImplementedInFile=".cpp"
 	ImplementedInApplication="StructuralMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="3D" LocalSpaceDimension="1" SkinConditions="True" VariableName="INTERFACE" App="Structural"
-	ElementType="Surface" ProcessName="SetInterfaceProcess" help="Condition">
+	WorkingSpaceDimension="3D" LocalSpaceDimension="1" SkinConditions="True" VariableName="IS_INTERFACE" App="Structural"
+	ElementType="Surface" ProcessName="SetInterfaceProcess" help="Process to set the interface flag. NOTE THAT THE DEPRECATED FLAG 'IS INTERFACE' IS USED (MOVE TO THE 'INTERFACE' ONE ASAP)">
     <TopologyFeatures>
       <item  GeometryType="Triangle" nodes="3" KratosName="Condition3D3N"/>
       <item  GeometryType="Quadrilateral" nodes="4" KratosName="Condition3D4N"/>
