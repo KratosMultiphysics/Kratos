@@ -7,7 +7,15 @@
             
     <container n="StratParams" pn="Strategy parameters" un="FSIStratParams" icon="groupsTreeNew.gif" state="normal" >
         <dynamicnode command="injectSolStratParams" args="ImplementedInApplication FSIApplication"/>
-    </container><!--
+    </container>
+            
+    <container n="ALEParams" pn="ALE parameters" un="FSIStratParams" icon="groupsTreeNew.gif" state="normal" args="ImplementedInApplication FSIApplication" >
+        <value n="MeshSolver" pn="Mesh solver" type="combo" values="StructuralSimilarity,Laplacian" pvalues="Structural similarity,Laplacian" v="Structural similarity" help="Available ALE mesh solvers."/>
+        <value n="ReformDOFs" pn="Reform DOFs at each step" type="bool" values="false,true" v="false" help="Switch on/off the reform DOFs operation at each step."/>
+        <value n="TimeOrder"  pn="Time order" type="combo" values="1,2" v="2" help="Mesh velocity time approximation order."/>
+    </container>
+    
+    <!--
 
     <container n="TimeParameters" pn="Time parameters" un="FLTimeParameters" help="Time parameters" >
         <value n="StartTime" pn="Start time" v="0.0" help=""/>
