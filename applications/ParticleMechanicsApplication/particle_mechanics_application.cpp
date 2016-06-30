@@ -94,6 +94,7 @@ namespace Kratos
     
     
     //constitutive law
+    KRATOS_CREATE_VARIABLE( std::string, CONSTITUTIVE_LAW_NAME )
     KRATOS_CREATE_VARIABLE( ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW_POINTER )
     KRATOS_CREATE_VARIABLE( Matrix, CONSTITUTIVE_MATRIX )
     KRATOS_CREATE_VARIABLE( Matrix, DEFORMATION_GRADIENT )
@@ -189,6 +190,7 @@ namespace Kratos
         
               
         //consitutive law
+        KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW_NAME )
         KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW_POINTER )
         KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_MATRIX )
         KRATOS_REGISTER_VARIABLE( DEFORMATION_GRADIENT )
@@ -215,6 +217,10 @@ namespace Kratos
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_MOMENTUM )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_INERTIA )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_INTERNAL_FORCE )
+
+		//Hyperelastic ViscoPlastic laws
+        Serializer::Register( "HyperElasticViscoplastic3DLaw", mHyperElasticViscoplastic3DLaw );
+        Serializer::Register( "HyperElasticViscoplasticPlaneStrain2DLaw", mHyperElasticViscoplasticPlaneStrain2DLaw );
  
     }
 
