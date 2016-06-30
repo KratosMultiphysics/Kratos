@@ -350,7 +350,7 @@ class ModelerUtility:
             #Pre Meshing Processes
 
             # A:
-            refine_mesh_elements = RefineMeshElements(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
+            refine_mesh_elements = SetElementsToRefineOnThreshold(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
             mesh_modeler.SetPreMeshingProcess(refine_mesh_elements)
 
             # B:
