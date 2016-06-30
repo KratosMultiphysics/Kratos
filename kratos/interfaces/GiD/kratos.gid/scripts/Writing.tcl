@@ -137,7 +137,6 @@ proc write::writeMaterials { } {
         WriteString "End Properties"
         WriteString ""
     }
-
 }
 
 proc write::writeNodalCoordinates { } {
@@ -933,6 +932,10 @@ proc write::WriteString {str} {
 proc write::getMatDict {} {
     variable mat_dict
     return $mat_dict
+}
+proc write::setMatDict {matdict} {
+    variable mat_dict
+    set mat_dict $matdict
 }
 
 proc write::isDict {value} {

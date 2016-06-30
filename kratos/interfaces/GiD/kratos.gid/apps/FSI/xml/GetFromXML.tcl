@@ -66,7 +66,6 @@ proc ::FSI::xml::MokChannelFlexibleWall {args} {
     GiD_Process Mescape Geometry Create NurbsSurface {*}$fluidalllines escape escape 
 
     GiD_Process 'Zoom Frame 
-    
     GiD_Process 'Layers New Structure escape 
     GiD_Process 'Layers Off Fluid escape
     GiD_Process 'Layers ToUse Structure escape
