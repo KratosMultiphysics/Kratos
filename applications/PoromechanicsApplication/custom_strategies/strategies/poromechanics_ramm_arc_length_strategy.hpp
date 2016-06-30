@@ -204,7 +204,7 @@ public:
         TSparseSpace::SetToZero(mb);
         TSparseSpace::SetToZero(mDxf);
         
-        // Note: This is not efficient, but I want to solve mA*mDxf=mf without losing mf , and BuildLHS just doesn't work
+        // Note: This is not so efficient, but I want to solve mA*mDxf=mf without losing mf
         this->BuildWithDirichlet(mA, mDxf, mb);
         noalias(mb) = mf;
         mpBuilderAndSolver->SystemSolve(mA, mDxf, mb);
@@ -247,7 +247,7 @@ public:
             TSparseSpace::SetToZero(mb);
             TSparseSpace::SetToZero(mDxf);
             
-            // Note: This is not efficient, but I want to solve mA*mDxf=mf without losing mf , and BuildLHS just doesn't work
+            // Note: This is not so efficient, but I want to solve mA*mDxf=mf without losing mf
             this->BuildWithDirichlet(mA, mDxf, mb);
             noalias(mb) = mf;
             mpBuilderAndSolver->SystemSolve(mA, mDxf, mb);
