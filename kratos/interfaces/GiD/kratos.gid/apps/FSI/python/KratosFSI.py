@@ -122,8 +122,11 @@ while(time <= end_time):
 
     time = time + Dt
     step = step + 1
-    structure_main_model_part.CloneTimeStep(time)
-    fluid_main_model_part.CloneTimeStep(time)
+
+    solver.SetTimeStep(step)
+    
+    structure_main_model_part.CloneTimeStep(time)    
+    fluid_main_model_part.CloneTimeStep(time)   
 
     print("STEP = ", step)
     print("TIME = ", time)
@@ -135,7 +138,9 @@ while(time <= end_time):
     gid_output_structure.ExecuteInitializeSolutionStep()
     gid_output_fluid.ExecuteInitializeSolutionStep()
     
+    print("Time step ",step," resolution starts...")
     solver.Solve()
+    print("Time step ",step," solved.")
     
     for process in list_of_processes:
         process.ExecuteFinalizeSolutionStep()
