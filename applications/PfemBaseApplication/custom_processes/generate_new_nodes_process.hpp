@@ -118,12 +118,15 @@ public:
       const unsigned int dimension = element_begin->GetGeometry().WorkingSpaceDimension();
 
       double* OutPointList = mrRemesh.OutMesh.GetPointList();
+
+      int& InNumberOfPoints = mrRemesh.InMesh.GetNumberOfPoints();
+      int& OutNumberOfPoints = mrRemesh.OutMesh.GetNumberOfPoints();
      
       //if points were added, new nodes must be added to ModelPart
       int j = 0;
-      if (mrRemesh.OutMesh.NumberOfPoints > mrRemesh.InMesh.NumberOfPoints)
+      if (OutNumberOfPoints > InNumberOfPoints)
 	{
-	  for(int i = mrRemesh.InMesh.NumberOfPoints; i<mrRemesh.OutMesh.NumberOfPoints; i++)
+	  for(int i = InNumberOfPoints; i<OutNumberOfPoints; i++)
 	    {
 	      unsigned int id = initial_node_size + j ;
 	      int base = i*dimension;
@@ -171,7 +174,7 @@ public:
 	}
       
       //Inserted nodes
-      mrRemesh.Info->InsertedNodes = mrRemesh.OutMesh.NumberOfPoints-mrRemesh.InMesh.NumberOfPoints;
+      mrRemesh.Info->InsertedNodes = OutNumberOfPoints-InNumberOfPoints;
 
       if( mEchoLevel > 0 )
 	std::cout <<"   [ GENERATED NODES: ( added: " << mrRemesh.Info->InsertedNodes <<" ) ]"<<std::endl;

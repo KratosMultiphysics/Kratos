@@ -136,13 +136,14 @@ public:
     //(select)
     KRATOS_DEFINE_LOCAL_FLAG ( SET_NODES );
     KRATOS_DEFINE_LOCAL_FLAG ( SET_ELEMENTS );
+    KRATOS_DEFINE_LOCAL_FLAG ( SET_NEIGHBOURS );
     KRATOS_DEFINE_LOCAL_FLAG ( SET_FACES );
-
-
+    
     KRATOS_DEFINE_LOCAL_FLAG ( SELECT_ELEMENTS );
     KRATOS_DEFINE_LOCAL_FLAG ( SELECT_NODES );
     KRATOS_DEFINE_LOCAL_FLAG ( PASS_ALPHA_SHAPE );
     KRATOS_DEFINE_LOCAL_FLAG ( ENGAGED_NODES );
+    KRATOS_DEFINE_LOCAL_FLAG ( DELETE_DATA );
 
    
     struct MeshContainer
@@ -158,20 +159,34 @@ public:
       double* mpElementSizeList;
       int*    mpElementNeighbourList;
 
+      int     mNumberOfPoints;
+      int     mNumberOfElements;
+
     public:
       
-      int NumberOfPoints;
-      int NumberOfElements;
+      bool ContainerActiveFlag;
+
+      //flags to set when the pointers are created (true) or deleted (false)
+      bool PointListFlag;
+      bool ElementListFlag;
+      bool ElementSizeListFlag;
+      bool ElementNeighbourListFlag;
       
       void SetPointList(double* &rPointList) { mpPointList = rPointList; }
       void SetElementList(int* &rElementList) { mpElementList = rElementList; };
       void SetElementSizeList(double* &rElementSizeList) { mpElementSizeList = rElementSizeList; };
       void SetElementNeighbourList(int* &rElementNeighbourList) { mpElementNeighbourList = rElementNeighbourList; };
-      
+      void SetNumberOfPoints(int& rNumberOfPoints) {mNumberOfPoints = rNumberOfPoints;};
+      void SetNumberOfElements(int& rNumberOfElements) {mNumberOfElements = rNumberOfElements;};
+
       double* GetPointList() { return mpPointList; };
       int*    GetElementList() { return mpElementList; };
       double* GetElementSizeList() { return mpElementSizeList; };
       int*    GetElementNeighbourList() { return mpElementNeighbourList; };
+
+      int&    GetNumberOfPoints()   {return mNumberOfPoints;};
+      int&    GetNumberOfElements() {return mNumberOfElements;};
+
 
       void Initialize()
       {
@@ -179,9 +194,45 @@ public:
 	mpElementList          = (int*)    NULL;
 	mpElementSizeList      = (double*) NULL;
 	mpElementNeighbourList = (int*)    NULL;
-	NumberOfPoints   = 0;
-	NumberOfElements = 0;
-      };
+	mNumberOfPoints        = 0;
+	mNumberOfElements      = 0;
+
+	ContainerActiveFlag      = false;
+	PointListFlag            = false;
+	ElementListFlag          = false;
+	ElementSizeListFlag      = false;
+	ElementNeighbourListFlag = false;
+      }
+
+
+      void Finalize()
+      {
+	if( mpPointList!= NULL )
+	  delete [] mpPointList;
+
+	if( mpElementList!= NULL )
+	  delete [] mpElementList;
+
+	if( mpElementSizeList!= NULL )
+	  delete [] mpElementSizeList;
+
+	if( mpElementNeighbourList!= NULL )
+	  delete [] mpElementNeighbourList;
+
+	mpPointList            = (double*) NULL;
+	mpElementList          = (int*)    NULL;
+	mpElementSizeList      = (double*) NULL;
+	mpElementNeighbourList = (int*)    NULL;
+
+	mNumberOfPoints        = 0;
+	mNumberOfElements      = 0;
+
+	ContainerActiveFlag      = false;
+	PointListFlag            = false;
+	ElementListFlag          = false;
+	ElementSizeListFlag      = false;
+	ElementNeighbourListFlag = false;
+      }
       
     };
 
@@ -396,6 +447,17 @@ public:
       };
 
 
+      Flags GetRefiningOptions()
+      {
+	return RefiningOptions;
+      };
+      
+      Flags GetRemovingOptions()
+      {
+	return RemovingOptions;
+      };
+
+
       double GetReferenceThreshold()
       {
 	return ReferenceThreshold;
@@ -505,6 +567,11 @@ public:
       void SetTessellationInfo(std::string rInfo)
       {
 	TessellationInfo=rInfo;
+      };
+
+      void SetNodalIdsFlag(bool rFlag)
+      {
+	NodalIdsSetFlag = rFlag;
       };
 
       void SetAlphaParameter( const double rAlpha)

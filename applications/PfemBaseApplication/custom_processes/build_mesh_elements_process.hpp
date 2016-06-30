@@ -157,6 +157,7 @@ namespace Kratos
       
       const unsigned int nds = element_begin->GetGeometry().size();
 
+      int& OutNumberOfElements =  mrRemesh.OutMesh.GetNumberOfElements();
       int* OutElementList = mrRemesh.OutMesh.GetElementList();
 
       std::vector<Node<3>::Pointer>    list_of_element_centers;
@@ -174,7 +175,7 @@ namespace Kratos
       mrRemesh.NeighbourList.clear(); //destroy all elements
       
       int faces = 0;
-      for(int el = 0; el<mrRemesh.OutMesh.NumberOfElements; el++)
+      for(int el = 0; el<OutNumberOfElements; el++)
 	{
 	  if(mrRemesh.PreservedElements[el])
 	    {
@@ -269,9 +270,10 @@ namespace Kratos
       
       //if(mrRemesh.smoothing && mrRemesh.remesh && mrRemesh.Info->GeometricalSmoothingRequired ){
       if( mrRemesh.Options.Is(ModelerUtilities::MESH_SMOOTHING) && mrRemesh.Info->GeometricalSmoothingRequired ){
+	int& OutNumberOfPoints = mrRemesh.OutMesh.GetNumberOfPoints();
 	LaplacianSmoothing  MeshGeometricSmoothing(mrModelPart);
 	MeshGeometricSmoothing.SetEchoLevel(mEchoLevel);
-	MeshGeometricSmoothing.ApplyMeshSmoothing(mrModelPart,mrRemesh.PreservedElements,OutElementList,mrRemesh.OutMesh.NumberOfPoints,mMeshId);
+	MeshGeometricSmoothing.ApplyMeshSmoothing(mrModelPart,mrRemesh.PreservedElements,OutElementList,OutNumberOfPoints,mMeshId);
       }
       //*******************************************************************
       

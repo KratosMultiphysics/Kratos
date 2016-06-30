@@ -20,11 +20,6 @@ class ReconnectModeler(mesh_modeler.MeshModeler):
         self.MeshingParameters = meshing_parameters
 
         print("Construction of RecoonectModeler finished")
-
-    #
-    def SetPreMeshingProcesses(self):
-        
-        #nothing to do: only reconnection    
   
     #
     def InitializeMeshing(self):
@@ -35,6 +30,7 @@ class ReconnectModeler(mesh_modeler.MeshModeler):
         execution_options.Set(ModelerUtilities.SET_NODES, True)
         execution_options.Set(ModelerUtilities.SELECT_ELEMENTS, True)
         execution_options.Set(ModelerUtilities.PASS_ALPHA_SHAPE, True)
+        execution_options.Set(ModelerUtilities.DELETE_DATA, True) #delete data at the end
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
         
@@ -62,6 +58,11 @@ class ReconnectModeler(mesh_modeler.MeshModeler):
 
         self.MeshingParameters.SetTessellationFlags(modeler_flags)
         self.MeshingParameters.SetTessellationInfo(modeler_info)
+
+    #
+    def SetPreMeshingProcesses(self):
+        
+        #nothing to do: only reconnection    
 
 
     #

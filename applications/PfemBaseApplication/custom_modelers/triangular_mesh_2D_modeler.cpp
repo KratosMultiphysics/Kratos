@@ -24,30 +24,89 @@ namespace Kratos
 
   //*******************************************************************************************
   //*******************************************************************************************
-  void TriangularMesh2DModeler::SetModelerMesh(ModelerUtilities::MeshContainer& rMesh, struct triangulateio& tr)
+  void TriangularMesh2DModeler::SetModelerData(ModelerUtilities::MeshContainer& rMesh, struct triangulateio& tr)
   {
 
     KRATOS_TRY
 
-    if(tr.numberofpoints){
-      rMesh.NumberOfPoints = tr.numberofpoints;
-      rMesh.SetPointList(tr.pointlist);
-    }
+    // first time enters this method the container is active
+    if( rMesh.ContainerActiveFlag == false ){
 
-    if(tr.numberoftriangles){
-      rMesh.NumberOfElements = tr.numberoftriangles;
-      rMesh.SetElementList(tr.trianglelist);
-    }
-   
-    if(tr.trianglearealist != NULL)
-      rMesh.SetElementSizeList(tr.trianglearealist);
+      ClearTrianglesList(tr);
 
-    if(tr.neighborlist != NULL)
-      rMesh.SetElementNeighbourList(tr.neighborlist);
+      tr.pointlist        = rMesh.GetPointList();
+      tr.trianglelist     = rMesh.GetElementList();
+      tr.trianglearealist = rMesh.GetElementSizeList();
+      tr.neighborlist     = rMesh.GetElementNeighbourList();      
+      rMesh.ContainerActiveFlag = true;
+
+    }
+    else{
+          
+      //set pointers
+      tr.pointlist        = rMesh.GetPointList();
+      tr.trianglelist     = rMesh.GetElementList();
+      tr.trianglearealist = rMesh.GetElementSizeList();
+      tr.neighborlist     = rMesh.GetElementNeighbourList();      
+
+      // copy the numbers 
+      if( rMesh.GetNumberOfPoints() )
+	tr.numberofpoints = rMesh.GetNumberOfPoints();
+
+      
+      if( rMesh.GetNumberOfElements() )
+	tr.numberoftriangles = rMesh.GetNumberOfElements();
+
+
+    }
 
 
     KRATOS_CATCH( "" )
   }
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void TriangularMesh2DModeler::GetModelerData(ModelerUtilities::MeshContainer& rMesh, struct triangulateio& tr)
+  {
+
+    KRATOS_TRY
+
+    if( rMesh.ContainerActiveFlag == false )
+      std::cout<<" Something if Wrong in the Modeler Data "<<std::endl;
+              
+    // copy the numbers 
+    if( tr.numberofpoints ){
+      rMesh.SetNumberOfPoints(tr.numberofpoints);
+    }
+
+    if( tr.numberoftriangles ){
+      rMesh.SetNumberOfElements(tr.numberoftriangles);
+    }
+    
+    KRATOS_CATCH( "" )
+
+  }
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void TriangularMesh2DModeler::UnsetModelerData(ModelerUtilities::MeshContainer& rMesh, struct triangulateio& tr)
+  {
+    KRATOS_TRY
+
+    //delete modeler container
+    rMesh.Finalize();
+    
+    //delete triangle other structures
+    DeleteTrianglesList(tr);
+
+    ClearTrianglesList(tr);
+
+    KRATOS_CATCH( "" )
+  }
+
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -60,6 +119,14 @@ namespace Kratos
     KRATOS_TRY
  
     this->StartEcho(rModelPart,"PFEM Base Remesh",MeshId);
+
+    //Creating the containers for the input and output
+    struct triangulateio in;
+    struct triangulateio out;
+
+    //Set/Get data pointers
+    SetModelerData(rMeshingVariables.InMesh,in);
+    SetModelerData(rMeshingVariables.OutMesh,out);
     
     //*********************************************************************
 
@@ -69,17 +136,6 @@ namespace Kratos
 
     //*********************************************************************      
 
-    //Creating the containers for the input and output
-    struct triangulateio in;
-    struct triangulateio out;
-    
-    //Initialize containers
-    ClearTrianglesList(in);
-    ClearTrianglesList(out);
-
-    //Set containers to meshing variables
-    SetModelerMesh(rMeshingVariables.InMesh,in);
-    SetModelerMesh(rMeshingVariables.OutMesh,out);
 
     //*********************************************************************
 
@@ -90,6 +146,14 @@ namespace Kratos
     //Set Elements
     if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::SET_ELEMENTS) )
       this->SetElements(rModelPart,rMeshingVariables,MeshId);
+
+    //Set Neighbours
+    if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::SET_NEIGHBOURS) )
+      this->SetNeighbours(rModelPart,rMeshingVariables,MeshId);
+
+    //Set/Get data pointers
+    SetModelerData(rMeshingVariables.InMesh,in);
+    SetModelerData(rMeshingVariables.OutMesh,out);
 
     //Set Faces
     if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::SET_FACES) )
@@ -105,28 +169,30 @@ namespace Kratos
     int fail = GenerateTessellation(rMeshingVariables,in,out);
     ////////////////////////////////////////////////////////////
 
-    if(fail){
-      if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONSTRAINED) ){	
-    	rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::CONSTRAINED);
-    	////////////////////////////////////////////////////////////
-    	fail = GenerateTessellation(rMeshingVariables,in, out);
-    	////////////////////////////////////////////////////////////
-    	rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::CONSTRAINED);
-      }
-    }
+    // if(fail){
+    //   if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONSTRAINED) ){	
+    // 	rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::CONSTRAINED);
+    // 	////////////////////////////////////////////////////////////
+    // 	fail = GenerateTessellation(rMeshingVariables,in, out);
+    // 	////////////////////////////////////////////////////////////
+    // 	rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::CONSTRAINED);
+    //   }
+    // }
 
     if(fail || in.numberofpoints!=out.numberofpoints){
       std::cout<<" [ MESH GENERATION FAILED: point insertion (initial = "<<in.numberofpoints<<" final = "<<out.numberofpoints<<") ] "<<std::endl;
     }
 
-    //print out the mesh generation time
+    //Print out the mesh generation time
     if( this->GetEchoLevel() > 0 )
       std::cout<<" [ MESH GENERATION (TIME = "<<auxiliary.elapsed()<<") ] "<<std::endl;
 
 
+    //Get data numbers
+    GetModelerData(rMeshingVariables.OutMesh,out);
+
     //*********************************************************************
     
-
     //*********************************************************************
 
     ////////////////////////////////////////////////////////////
@@ -135,11 +201,15 @@ namespace Kratos
 
     //*********************************************************************
 
-    //free memory  (to determine from custom mesh modelling)
-    // DeletePointsList(in);
-    // delete [] in.trianglelist;
-    // DeleteTrianglesList(out);
-
+    //Free memory  (to determine from custom mesh modelling)
+    if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::DELETE_DATA) ){
+      UnsetModelerData(rMeshingVariables.InMesh,out);
+      UnsetModelerData(rMeshingVariables.OutMesh,out);
+    }
+    else{
+      UnsetModelerData(rMeshingVariables.OutMesh,out);
+    }
+    
     this->EndEcho(rModelPart,"PFEM Base Remesh",MeshId);
 
     KRATOS_CATCH( "" )
@@ -305,10 +375,6 @@ namespace Kratos
     rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::NEIGHBOURS_SEARCH);
 
 
-    //set modeler meshes
-    SetModelerMesh(rMeshingVariables.InMesh,in);
-    SetModelerMesh(rMeshingVariables.OutMesh,out);
-
     //print out the mesh generation time
     if( this->GetEchoLevel() > 0 )
       std::cout<<" [ MESH GENERATION (TIME = "<<auxiliary.elapsed()<<") ] "<<std::endl;
@@ -362,9 +428,6 @@ namespace Kratos
       rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::REFINE);
       ////////////////////////////////////////////////////////////
 
-      //set modeler meshes
-      SetModelerMesh(rMeshingVariables.InMesh,in);
-      SetModelerMesh(rMeshingVariables.OutMesh,out);
 
       //Building the entities for new nodes:
       GenerateNewParticles(rModelPart,rMeshingVariables,in,out,MeshId);
@@ -485,10 +548,6 @@ namespace Kratos
 
     rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::BOUNDARIES_SEARCH);
 
-    //set modeler meshes
-    SetModelerMesh(rMeshingVariables.InMesh,in);
-    SetModelerMesh(rMeshingVariables.MidMesh,mid);
-
     // KRATOS_WATCH( in.numberofsegments )
     // KRATOS_WATCH( in.numberofpoints )
     // KRATOS_WATCH( in.numberoftriangles )
@@ -515,9 +574,6 @@ namespace Kratos
     
     rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::NEIGHBOURS_SEARCH);
     rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::CONSTRAINED);
-
-    //set modeler meshes
-    SetModelerMesh(rMeshingVariables.OutMesh, out);
 
     // KRATOS_WATCH( out.numberofsegments )
     // KRATOS_WATCH( out.numberofpoints )
@@ -613,10 +669,6 @@ namespace Kratos
     }
 
     rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::NEIGHBOURS_SEARCH);
-
-    //set modeler meshes
-    SetModelerMesh(rMeshingVariables.InMesh,in);
-    SetModelerMesh(rMeshingVariables.OutMesh,out);
 
     if(in.numberofpoints!=out.numberofpoints){
       std::cout<<" [ MESH GENERATION FAILED: point insertion (initial = "<<in.numberofpoints<<" final = "<<out.numberofpoints<<") ] "<<std::endl;
@@ -769,10 +821,6 @@ namespace Kratos
 
     rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::NEIGHBOURS_SEARCH);
     rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::CONSTRAINED);
-
-    //set modeler meshes
-    SetModelerMesh(rMeshingVariables.InMesh,in);
-    SetModelerMesh(rMeshingVariables.OutMesh,out);
 
     if(in.numberofpoints!=out.numberofpoints){
       std::cout<<" [ MESH GENERATION FAILED: point insertion (initial = "<<in.numberofpoints<<" final = "<<out.numberofpoints<<") ] "<<std::endl;
@@ -1030,6 +1078,25 @@ namespace Kratos
 
      //*********************************************************************
 
+     if( in.segmentlist != NULL ){
+       delete [] in.segmentlist;
+       in.numberofsegments = 0;
+     }
+
+     if( in.segmentmarkerlist != NULL )
+       delete [] in.segmentmarkerlist;
+
+     if( in.holelist != NULL ){
+      delete [] in.holelist;
+      in.numberofholes = 0;
+     }
+
+     if( in.regionlist != NULL ){
+      delete [] in.regionlist;
+      in.numberofregions = 0;
+     }
+
+
      //PART 2: faced list (we can have holes in facets != area holes)
      in.numberofsegments           = rModelPart.NumberOfConditions(MeshId);
      in.segmentmarkerlist          = new int[in.numberofsegments];
@@ -1274,6 +1341,10 @@ namespace Kratos
 						    struct triangulateio& out)
   {
     KRATOS_TRY
+
+    //if not remesh return true
+    if(rMeshingVariables.Options.IsNot(ModelerUtilities::REMESH))
+      return 1;
 
     int fail=0;
 
@@ -2677,20 +2748,26 @@ namespace Kratos
     KRATOS_TRY
 
     //always for "out":
-    trifree (tr.trianglelist);
+    if(tr.numberoftriangles)
+      trifree (tr.trianglelist);
 
-    delete [] tr.triangleattributelist;
-    delete [] tr.trianglearealist;
+    if( tr.triangleattributelist != NULL ) 
+      delete [] tr.triangleattributelist;
 
-    //in case of n switch not used
-    //delete [] tr.neighborlist;
+    if( tr.holelist != NULL )
+      delete [] tr.holelist;
+    
+    if( tr.regionlist != NULL )
+      delete [] tr.regionlist;
+       
 
     //if p is switched then in and out are pointed:(free only once)
     //delete [] tr.segmentlist;
     //delete [] tr.segmentmarkerlist;
 
-    delete [] tr.holelist;
-    delete [] tr.regionlist;
+    //in case of n switch not used
+    //delete [] tr.neighborlist;
+    //delete [] tr.trianglearealist;
 
     //delete [] tr.edgelist;
     //delete [] tr.edgemarkerlist;

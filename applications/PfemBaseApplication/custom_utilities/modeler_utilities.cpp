@@ -77,12 +77,14 @@ namespace Kratos
 
   KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, SET_NODES,             0 );
   KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, SET_ELEMENTS,          1 );
-  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, SET_FACES,             2 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, SET_NEIGHBOURS,        2 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, SET_FACES,             3 );
 
-  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, SELECT_ELEMENTS,       3 );
-  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, SELECT_NODES,          4 );
-  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, PASS_ALPHA_SHAPE,      5 );
-  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, ENGAGED_NODES,         6 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, SELECT_ELEMENTS,       4 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, SELECT_NODES,          5 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, PASS_ALPHA_SHAPE,      6 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, ENGAGED_NODES,         7 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, DELETE_DATA,           8 );
 
 
   

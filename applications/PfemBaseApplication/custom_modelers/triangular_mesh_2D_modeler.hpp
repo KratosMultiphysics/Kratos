@@ -193,7 +193,11 @@ protected:
 
     //*******************************************************************************************
     //*******************************************************************************************
-    void SetModelerMesh(ModelerUtilities::MeshContainer& rMesh, struct triangulateio& tr);
+    void SetModelerData(ModelerUtilities::MeshContainer& rMesh, struct triangulateio& tr);
+
+    void GetModelerData(ModelerUtilities::MeshContainer& rMesh, struct triangulateio& tr);
+
+    void UnsetModelerData(ModelerUtilities::MeshContainer& rMesh, struct triangulateio& tr);
 
 
     //*******************************************************************************************

@@ -83,13 +83,13 @@ namespace Kratos
 
       class_<RefineMeshElementsOnThresholdProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "RefineMeshElements", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int, int>()
+	 "SetElementsToRefineOnThreshold", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int, int>()
 	 )
 	;
 
       class_<RefineMeshElementsOnSizeProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "RefineMeshModelerElements", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int, int>()
+	 "SetElementsToRefineOnSize", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int, int>()
 	 )
 	;
 

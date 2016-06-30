@@ -53,6 +53,8 @@ class MeshingDomain:
                "reference_threshold" : 0.0,
                "error_variable": NORM_ISOCHORIC_STRESS,
                "reference_error" : 0.0,
+               "add_nodes": True,
+               "insert_nodes": False,
                "remove_nodes": {
                    "apply_removal": False,
                    "on_distance": False,
@@ -199,8 +201,8 @@ class MeshingDomain:
         refining_options.Set(ModelerUtilities.REFINE_BOUNDARY_ON_THRESHOLD, remove_boundary["on_threshold"].GetBool())  
 
         refining_options = Flags()
-        refining_options.Set(ModelerUtilities.REFINE_ADD_NODES, True)
-        refining_options.Set(ModelerUtilities.REFINE_INSERT_NODES, True)
+        refining_options.Set(ModelerUtilities.REFINE_ADD_NODES, self.settings["refining_parameters"]["add_nodes"].GetBool())
+        refining_options.Set(ModelerUtilities.REFINE_INSERT_NODES, self.settings["refining_parameters"]["insert_nodes"].GetBool())
 
         #refine elements
         refine_elements = self.settings["refining_parameters"]["refine_elements"]

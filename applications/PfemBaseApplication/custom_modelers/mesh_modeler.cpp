@@ -631,15 +631,25 @@ namespace Kratos
     //input mesh: NODES
     ModelerUtilities::MeshContainer& InMesh = rMeshingVariables.InMesh;
     double* PointList     = InMesh.GetPointList();
+    int& NumberOfPoints   = InMesh.GetNumberOfPoints();
 
+    if( PointList != NULL ){
+      delete [] PointList;
+      NumberOfPoints = 0;
+    }
 
-    InMesh.NumberOfPoints = rModelPart.Nodes(MeshId).size();
-    PointList             = new double[InMesh.NumberOfPoints * dimension];
+    NumberOfPoints        = rModelPart.Nodes(MeshId).size();
+    PointList             = new double[NumberOfPoints * dimension];
+    InMesh.PointListFlag  = true;
 
-    if((int)rMeshingVariables.NodalPreIds.size() != InMesh.NumberOfPoints)
-      rMeshingVariables.NodalPreIds.resize(InMesh.NumberOfPoints);
-    
-    std::fill( rMeshingVariables.NodalPreIds.begin(), rMeshingVariables.NodalPreIds.end(), 0 );
+    if(!rMeshingVariables.NodalIdsSetFlag){
+
+      if((int)rMeshingVariables.NodalPreIds.size() != NumberOfPoints)
+	rMeshingVariables.NodalPreIds.resize(NumberOfPoints);
+      
+      std::fill( rMeshingVariables.NodalPreIds.begin(), rMeshingVariables.NodalPreIds.end(), 0 );
+
+    }
     
     //writing the points coordinates in a vector and reordening the Id's
     ModelPart::NodesContainerType::iterator nodes_begin = rModelPart.NodesBegin(MeshId);
@@ -647,11 +657,13 @@ namespace Kratos
     int base   = 0;
     int direct = 1;
 
-    for(int i = 0; i<InMesh.NumberOfPoints; i++)
+    for(int i = 0; i<NumberOfPoints; i++)
       {
 	//from now on it is consecutive
-	rMeshingVariables.NodalPreIds[direct]=(nodes_begin + i)->Id();
-	(nodes_begin + i)->SetId(direct);
+	if(!rMeshingVariables.NodalIdsSetFlag){
+	  rMeshingVariables.NodalPreIds[direct]=(nodes_begin + i)->Id();
+	  (nodes_begin + i)->SetId(direct);
+	}
 
 	array_1d<double, 3>& Coordinates = (nodes_begin + i)->Coordinates();
 
@@ -710,14 +722,20 @@ namespace Kratos
     //*********************************************************************
     //input mesh: ELEMENTS
     ModelerUtilities::MeshContainer& InMesh = rMeshingVariables.InMesh;
-    int* ElementList     = InMesh.GetElementList();
+    int* ElementList      = InMesh.GetElementList();
+    int& NumberOfElements = InMesh.GetNumberOfElements();
 
     ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(MeshId);
     const unsigned int nds       = element_begin->GetGeometry().size();
 
-    InMesh.NumberOfElements = rModelPart.Elements(MeshId).size();
-    ElementList             = new int[InMesh.NumberOfElements * nds];
+    if( ElementList != NULL ){
+      delete [] ElementList;
+      NumberOfElements = 0;
+    }
 
+    NumberOfElements         = rModelPart.Elements(MeshId).size();
+    ElementList              = new int[NumberOfElements * nds];
+    InMesh.ElementListFlag   = true;
  
     int base=0;
     for(unsigned int el = 0; el<rModelPart.Elements(MeshId).size(); el++)
@@ -735,6 +753,51 @@ namespace Kratos
 
   }
 
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void MeshModeler::SetNeighbours(ModelPart& rModelPart,
+				  MeshingParametersType& rMeshingVariables,
+				  ModelPart::IndexType MeshId)
+  {
+    KRATOS_TRY
+
+        
+    //*********************************************************************
+    //input mesh: NEIGHBOURELEMENTS
+    ModelerUtilities::MeshContainer& InMesh = rMeshingVariables.InMesh;
+    int* ElementNeighbourList      = InMesh.GetElementNeighbourList();
+    int& NumberOfElements          = InMesh.GetNumberOfElements();
+
+    ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(MeshId);
+    const unsigned int nds          = element_begin->GetGeometry().size();
+
+    if( ElementNeighbourList != NULL ){
+      delete [] ElementNeighbourList;
+    }
+
+    NumberOfElements                = rModelPart.Elements(MeshId).size();
+    ElementNeighbourList            = new int[NumberOfElements * nds];
+    InMesh.ElementNeighbourListFlag = true;
+ 
+
+    for(unsigned int el = 0; el<rModelPart.Elements(MeshId).size(); el++)
+      {
+	WeakPointerVector<Element >& rE = (element_begin+el)->GetValue(NEIGHBOUR_ELEMENTS);
+
+	for(unsigned int pn=0; pn<nds; pn++){
+	  if( (element_begin+el)->Id() == rE[pn].Id() )
+	    ElementNeighbourList[el*nds+pn] = 0;
+	  else
+	    ElementNeighbourList[el*nds+pn] = rE[pn].Id();
+	}
+	      
+      }
+
+    KRATOS_CATCH( "" )
+
+  }
 
   //*******************************************************************************************
   //*******************************************************************************************
