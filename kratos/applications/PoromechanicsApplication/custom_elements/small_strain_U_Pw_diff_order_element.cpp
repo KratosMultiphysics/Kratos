@@ -267,6 +267,40 @@ void SmallStrainUPwDiffOrderElement::CalculateLocalSystem( MatrixType& rLeftHand
 
 //----------------------------------------------------------------------------------------
 
+void SmallStrainUPwDiffOrderElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+    
+    KRATOS_THROW_ERROR(std::logic_error,"SmallStrainUPwDiffOrderElement::CalculateLeftHandSide not implemented","");
+    
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+void SmallStrainUPwDiffOrderElement::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+{
+    const GeometryType& rGeom = GetGeometry();
+    const SizeType Dim = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes = rGeom.PointsNumber();
+    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
+    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
+
+    //Resetting the RHS
+    if ( rRightHandSideVector.size() != ElementSize )
+        rRightHandSideVector.resize( ElementSize, false );
+    noalias( rRightHandSideVector ) = ZeroVector( ElementSize );
+
+    //calculation flags
+    bool CalculateLHSMatrixFlag = false;
+    bool CalculateResidualVectorFlag = true;
+    MatrixType temp = Matrix();
+
+    CalculateAll(temp, rRightHandSideVector, rCurrentProcessInfo, CalculateLHSMatrixFlag, CalculateResidualVectorFlag);
+}
+
+//----------------------------------------------------------------------------------------
+
 void SmallStrainUPwDiffOrderElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
@@ -402,29 +436,6 @@ void SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector( Vector& rValues
 
     for ( SizeType i = 0; i < NumPNodes; i++ )
         rValues[Index++] = 0.0;
-}
-
-//----------------------------------------------------------------------------------------
-
-void SmallStrainUPwDiffOrderElement::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
-{
-    const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
-
-    //Resetting the RHS
-    if ( rRightHandSideVector.size() != ElementSize )
-        rRightHandSideVector.resize( ElementSize, false );
-    noalias( rRightHandSideVector ) = ZeroVector( ElementSize );
-
-    //calculation flags
-    bool CalculateLHSMatrixFlag = false;
-    bool CalculateResidualVectorFlag = true;
-    MatrixType temp = Matrix();
-
-    CalculateAll(temp, rRightHandSideVector, rCurrentProcessInfo, CalculateLHSMatrixFlag, CalculateResidualVectorFlag);
 }
 
 //----------------------------------------------------------------------------------------
