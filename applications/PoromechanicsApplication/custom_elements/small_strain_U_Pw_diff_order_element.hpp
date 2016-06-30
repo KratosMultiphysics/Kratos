@@ -58,15 +58,17 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-
+    
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,ProcessInfo& rCurrentProcessInfo );
+    
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    
     void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-    
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
