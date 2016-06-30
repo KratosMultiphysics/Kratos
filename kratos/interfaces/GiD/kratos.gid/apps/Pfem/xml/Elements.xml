@@ -88,7 +88,7 @@
                WorkingSpaceDimension="3D" LocalSpaceDimension="3" ElementType="Rigid" help="To be written by...">
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
-      <item GeometryType="Tetrahedron"      nodes="4" KratosName="Element3D3N"/>
+      <item GeometryType="Tetrahedra"      nodes="4" KratosName="Element3D3N"/>
     </TopologyFeatures>
     <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
