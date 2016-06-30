@@ -122,23 +122,67 @@ proc write::writeTables { } {
 	WriteString ""
 }
 
-proc write::writeMaterials { } {
+proc write::writeMaterials { {appid ""}} {
     variable mat_dict
     
     set exclusionList [list "MID" "APPID" "ConstitutiveLaw" "Material"]
     # We print all the material data directly from the saved dictionary
     foreach material [dict keys $mat_dict] {
-        WriteString "Begin Properties [dict get $mat_dict $material MID]"
-        foreach prop [dict keys [dict get $mat_dict $material] ] {
-            if {$prop ni $exclusionList} {
-            WriteString "    $prop [dict get $mat_dict $material $prop] "
+        set matapp [dict get $mat_dict $material APPID]
+        if {$appid eq "" || $matapp in $appid} {
+            WriteString "Begin Properties [dict get $mat_dict $material MID]"
+            foreach prop [dict keys [dict get $mat_dict $material] ] {
+                if {$prop ni $exclusionList} {
+                WriteString "    $prop [dict get $mat_dict $material $prop] "
+                }
             }
+            WriteString "End Properties"
+            WriteString ""
         }
-        WriteString "End Properties"
-        WriteString ""
     }
 }
 
+#proc write::writeNodalCoordinatesOnParts { } {
+#    variable parts
+#    set doc $gid_groups_conds::doc
+#    set root [$doc documentElement]
+#    
+#    set xp1 "[spdAux::getRoute $parts]/group"
+#    set formats [dict create]
+#    set f "%5d %14.5f %14.5f %14.5f%.0s\n"
+#    foreach gNode [$root selectNodes $xp1] {
+#        set group [$gNode getAttribute n]
+#        dict set formats $group $f
+#    }
+#    WriteString "Begin Nodes"
+#    write_calc_data nodes $formats
+#    WriteString "End Nodes"
+#    WriteString "\n"
+#}
+
+proc write::writeNodalCoordinatesOnParts { } {
+    variable parts
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    
+    set xp1 "[spdAux::getRoute $parts]/group"
+    #set groups [list ]
+    #set formats [dict create]
+    set f "%5d %14.5f %14.5f %14.5f"
+    set objarray [objarray new intarray 0]
+    foreach gNode [$root selectNodes $xp1] {
+        set group [$gNode getAttribute n]
+        set objarray [objarray union -sorted $objarray [GiD_EntitiesGroups get $group nodes]]
+    }
+    WriteString "Begin Nodes"
+    set numnodes [objarray length $objarray]
+    for {set i 0} {$i < $numnodes} {incr i} {
+        set node_id [objarray get $objarray $i]  
+        WriteString [format $f $node_id {*}[lrange [GiD_Mesh get node $node_id] 1 end] ]
+    }
+    WriteString "End Nodes"
+    WriteString "\n"
+}
 proc write::writeNodalCoordinates { } {
     # Write the nodal coordinates block
     # Nodes block format
@@ -201,7 +245,6 @@ proc write::processMaterials { } {
     }
 }
 
-
 proc write::writeElementConnectivities { } {
     variable parts
     set doc $gid_groups_conds::doc
@@ -217,7 +260,7 @@ proc write::writeElementConnectivities { } {
             set mid [dict get $mat_dict $group MID]
             if {[$gNode hasAttribute ov]} {set ov [get_domnode_attribute $gNode ov] } {set ov [get_domnode_attribute [$gNode parent] ov] }
             #W $ov
-            lassign [getEtype $ov] etype nnodes
+            lassign [getEtype $ov $group] etype nnodes
             #W "$group $ov -> $etype $nnodes"
             if {$nnodes ne ""} {
                 set formats [GetFormatDict $group $mid $nnodes]
@@ -252,7 +295,7 @@ proc write::writeConditions { baseUN } {
 	set groupid [get_domnode_attribute $group n]
 	set ov [[$group parent] @ov]
 	set cond [::Model::getCondition $condid]
-	lassign [write::getEtype $ov] etype nnodes
+	lassign [write::getEtype $ov $groupid] etype nnodes
 	set kname [$cond getTopologyKratosName $etype $nnodes]
 	if {$kname ne ""} {
 	    set obj [list ]
@@ -378,66 +421,70 @@ proc write::GetFormatDict { groupid n num} {
     return [dict create $groupid $f]
 }
 
-proc write::getEtype {ov} {
+proc write::getEtype {ov group} {
     set isquadratic [isquadratic]
     set ret [list "" ""]
-    
+    set b 0
     if {$ov eq "point"} {
-	set ret [list "Point" 1]
+        if {$b} {error "Multiple element types in $group over $ov"}
+        set ret [list "Point" 1]
+        set b 1
     }
     
     if {$ov eq "line"} {
-	switch $isquadratic {
-	    0 { set ret [list "Linear" 2] }
-	    default { set ret [list "Linear" 2] }                                         
-	} 
+        if {$b} {error "Multiple element types in $group over $ov"}
+        switch $isquadratic {
+            0 { set ret [list "Linear" 2] }
+            default { set ret [list "Linear" 2] }                                         
+        } 
     }
     
     if {$ov eq "surface"} {
-	foreach ielem [lrange [GiD_Info Mesh] 1 end] {
-	    switch $ielem {
-		Triangle {          
+        if {[GiD_EntitiesGroups get $group elements -count -element_type Triangle]} {
+            if {$b} {error "Multiple element types in $group over $ov"}
 		    switch $isquadratic {
 		        0 { set ret [list "Triangle" 3]  }
 		        default { set ret [list "Triangle" 6]  }
 		    }
+            set b 1
 		}
-		Tetrahedra {          
-		    switch $isquadratic {
-		        0 { set ret [list "Triangle" 3]  }
-		        default { set ret [list "Triangle" 6]  }
-		    }
-		}           
-		Quadrilateral {          
+        if {[GiD_EntitiesGroups get $group elements -count -element_type Quadrilateral]} {
+            if {$b} {error "Multiple element types in $group over $ov"}
 		    switch $isquadratic {
 		        0 { set ret [list "Quadrilateral" 4]  }                
 		        1 { set ret [list "Quadrilateral" 8]  }                
 		        2 { set ret [list "Quadrilateral" 9]  }                
 		    }
+            set b 1
 		}
-	    }
-	}
+        if {[GiD_EntitiesGroups get $group elements -count -element_type Circle]} {
+            if {$b} {error "Multiple element types in $group over $ov"}
+		    switch $isquadratic {
+		        0 { set ret [list "Circle" 1]  }                 
+		    }
+            set b 1
+		}
     }
     
     if {$ov eq "volume"} {
-	foreach ielem [lrange [GiD_Info Mesh] 1 end] {
-	    switch $ielem {
-		Tetrahedra {          
+        if {[GiD_EntitiesGroups get $group elements -count -element_type Tetrahedra]} {
+            if {$b} {error "Multiple element types in $group over $ov"}
 		    switch $isquadratic {
 		        0 { set ret [list "Tetrahedra" 4]  }               
 		        1 { set ret [list "Tetrahedra" 10] }                
 		        2 { set ret [list "Tetrahedra" 10] }  
 		    }
-		}           
-		Hexahedra {          
+            set b 1
+		}
+        if {[GiD_EntitiesGroups get $group elements -count -element_type Hexahedra]} {
+            if {$b} {error "Multiple element types in $group over $ov"}
 		    switch $isquadratic {
 		        0 { set ret [list "Hexahedra" 8]  }                
 		        1 { set ret [list "Hexahedra" 20]  }                
 		        2 { set ret [list "Hexahedra" 27]  }                
 		    }
-		}
+            set b 1
 	    }
-	}
     }
     
     return $ret

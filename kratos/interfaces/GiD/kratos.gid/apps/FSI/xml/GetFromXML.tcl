@@ -33,6 +33,11 @@ proc ::FSI::xml::MultiAppEvent {args} {
 }
 
 proc ::FSI::xml::MokChannelFlexibleWall {args} {
+    DrawMokChannelFlexibleWallGeometry
+    TreeAssignationMokChannelFlexibleWall
+}
+
+proc FSI::xml::DrawMokChannelFlexibleWallGeometry {args} {
     Kratos::ResetModel
     GiD_Process Mescape 'Layers ChangeName Layer0 Fluid escape
     
@@ -110,7 +115,9 @@ proc ::FSI::xml::MokChannelFlexibleWall {args} {
     GiD_EntitiesGroups assign StructureInterface lines [lrange $strucLines 0 end-1]
     
     GidUtils::UpdateWindow GROUPS
-    
+}
+
+proc FSI::xml::TreeAssignationMokChannelFlexibleWall {args} {
     # Fluid Parts
     set fluidParts {container[@n='FSI']/container[@n='Fluid']/condition[@n='Parts']}
     gid_groups_conds::addF $fluidParts group {n Fluid}
@@ -168,9 +175,8 @@ proc ::FSI::xml::MokChannelFlexibleWall {args} {
     
     # Structural Displacement
     set structDisplacement {container[@n='FSI']/container[@n='Structural']/container[@n='Boundary Conditions']/condition[@n='DISPLACEMENT']}
-    gid_groups_conds::addF $structDisplacement group {n Structure}
-    set structDisplacementGroup "$structDisplacement/group\[@n='FixedDisplacement'\]"
     gid_groups_conds::addF $structDisplacement group {n FixedDisplacement ov line}
+    set structDisplacementGroup "$structDisplacement/group\[@n='FixedDisplacement'\]"
     gid_groups_conds::addF $structDisplacementGroup value {n FixX pn {X Imposed} values 1,0 help {} state {} v 1}
     gid_groups_conds::addF $structDisplacementGroup value {n FixY pn {Y Imposed} values 1,0 help {} state {} v 1}
     gid_groups_conds::addF $structDisplacementGroup value {n FixZ pn {Z Imposed} values 1,0 help {} state {[CheckDimension 3D]} v 1}

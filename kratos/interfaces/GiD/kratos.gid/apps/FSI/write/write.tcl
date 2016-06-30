@@ -9,8 +9,12 @@ proc FSI::write::Init { } {
 # Events
 proc FSI::write::writeModelPartEvent { } {
     set filename "[file tail [GiD_Info project ModelName]]"
+    
+    ::Structural::write::SetCoordinatesByGroups 1
     write::writeAppMDPA Structural
     write::RenameFileInModel "$filename.mdpa" "${filename}_Structural.mdpa"
+    
+    ::Fluid::write::SetCoordinatesByGroups 1
     write::writeAppMDPA Fluid
     write::RenameFileInModel "$filename.mdpa" "${filename}_Fluid.mdpa"
 }
