@@ -6,6 +6,9 @@ proc Structural::write::Init { } {
     Solid::write::AddValidApps "Structural"
 }
 
+proc Structural::write::SetCoordinatesByGroups {value} {
+    Solid::write::SetCoordinatesByGroups $value
+}
 
 proc Structural::write::writeCustomFilesEvent { } {
     return [Solid::write::writeCustomFilesEvent]

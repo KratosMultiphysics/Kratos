@@ -3,6 +3,7 @@ namespace eval Solid::write {
     variable validApps
     variable ConditionsDictGroupIterators
     variable NodalConditionsGroup
+    variable writeCoordinatesByGroups
 }
 
 proc Solid::write::Init { } {
@@ -17,6 +18,9 @@ proc Solid::write::Init { } {
     
     variable validApps
     set validApps [list "Solid"]
+    
+    variable writeCoordinatesByGroups
+    set writeCoordinatesByGroups 0
 }
 
 proc Solid::write::AddValidApps {appList} {
@@ -34,17 +38,24 @@ proc Solid::write::writeCustomFilesEvent { } {
     #write::RenameFileInModel "ProjectParameters.json" "ProjectParameters.py"
 }
 
+proc Solid::write::SetCoordinatesByGroups {value} {
+    variable writeCoordinatesByGroups
+    set writeCoordinatesByGroups $value
+}
+
 # MDPA Blocks
 
 proc Solid::write::writeModelPartEvent { } {
+    variable writeCoordinatesByGroups
+    variable validApps
     write::initWriteData "SLParts" "SLMaterials"
     
     write::writeModelPartData
     write::WriteString "Begin Properties 0"
     write::WriteString "End Properties"
-    write::writeMaterials
+    write::writeMaterials $validApps
     #write::writeTables
-    write::writeNodalCoordinates
+    if {$writeCoordinatesByGroups} {write::writeNodalCoordinatesOnParts} {write::writeNodalCoordinates}
     write::writeElementConnectivities
     writeConditions
     writeMeshes
