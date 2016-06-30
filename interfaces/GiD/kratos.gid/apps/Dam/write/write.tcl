@@ -33,6 +33,8 @@ proc Dam::write::writeModelPartEvent { } {
     write::writeModelPartData
     write::WriteString "Begin Properties 0"
     write::WriteString "End Properties"
+    
+    UpdateMaterials
     write::writeMaterials
     #write::writeTables
     write::writeNodalCoordinates
@@ -42,6 +44,16 @@ proc Dam::write::writeModelPartEvent { } {
     #writeCustomBlock
 }
 
+proc Dam::write::UpdateMaterials { } {
+    set matdict [write::getMatDict]
+    foreach {mat props} $matdict {
+        set constlaw [dict get $props ConstitutiveLaw]
+        # Modificar la ley constitutiva
+        set newconstlaw $constlaw
+        dict set matdict $mat CONSTITUTIVE_LAW_NAME $newconstlaw
+    }
+    write::setMatDict $matdict
+}
 
 proc Dam::write::writeConditions { } {
     variable ConditionsDictGroupIterators
