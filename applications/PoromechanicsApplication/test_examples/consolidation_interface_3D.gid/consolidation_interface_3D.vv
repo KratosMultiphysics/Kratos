@@ -1,11 +1,11 @@
-BeginZE C:\Users\Administrator\Downloads\NEW_test\consolidation_interface_3D.gid\consolidation_interface_3D.vv
+BeginZE C:\Users\Administrator\Downloads\tests\consolidation_interface_3D.gid\consolidation_interface_3D.vv
    x -0.36602538824081421 1.366025447845459
-   y 1.8340290784835815 -0.83402907848358154
-   z -3.0980761051177979 2.0980761051177979
+   y 2.0692236423492432 -1.0692236423492432
+   z -1.366025447845459 0.36602538824081421
    e 0.86602538824081421
-   v 0 0 0
-   r 1
-   m 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1
+   v -0 -0 -8.7422780003724745e-008
+   r -0.99999999999999623
+   m 1 -1.7484555314695172e-007 0 0 1.7484555314695172e-007 1 0 0 0 0 1 0 0 0 0 1
    c 0.5 0.5 0.5
    pd 0
    pno 0
@@ -29,7 +29,7 @@ BeginZE C:\Users\Administrator\Downloads\NEW_test\consolidation_interface_3D.gid
    OGLStereo(EyeDistance) 0.075
    OGLStereo(LeftEyeDistance) 1 0 0 1
    OGLStereo(RightEyeDistance) 0 1 1 1
-EndZE C:\Users\Administrator\Downloads\NEW_test\consolidation_interface_3D.gid\consolidation_interface_3D.vv
+EndZE C:\Users\Administrator\Downloads\tests\consolidation_interface_3D.gid\consolidation_interface_3D.vv
 
 BeginMirror
    Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror

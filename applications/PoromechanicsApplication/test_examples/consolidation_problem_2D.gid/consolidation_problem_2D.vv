@@ -1,6 +1,6 @@
-BeginZE C:\Users\Administrator\Downloads\NEW_test\consolidation_problem_2D.gid\consolidation_problem_2D.vv
-   x -0.2848377525806427 1.2848377227783203
-   y 1.7089672088623047 -0.70896720886230469
+BeginZE C:\Users\Administrator\Downloads\tests\consolidation_problem_2D.gid\consolidation_problem_2D.vv
+   x -0.22648325562477112 1.2264832258224487
+   y 1.8163754940032959 -0.8163754940032959
    z -0.72648316621780396 0.72648316621780396
    e 0.72648316621780396
    v 0 0 0
@@ -29,7 +29,7 @@ BeginZE C:\Users\Administrator\Downloads\NEW_test\consolidation_problem_2D.gid\c
    OGLStereo(EyeDistance) 0.075
    OGLStereo(LeftEyeDistance) 1 0 0 1
    OGLStereo(RightEyeDistance) 0 1 1 1
-EndZE C:\Users\Administrator\Downloads\NEW_test\consolidation_problem_2D.gid\consolidation_problem_2D.vv
+EndZE C:\Users\Administrator\Downloads\tests\consolidation_problem_2D.gid\consolidation_problem_2D.vv
 
 BeginMirror
    Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror

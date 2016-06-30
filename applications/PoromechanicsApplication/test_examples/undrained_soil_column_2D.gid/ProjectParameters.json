@@ -3,12 +3,11 @@
         "problem_name":      "undrained_soil_column_2D",
         "model_part_name":   "PorousDomain",
         "domain_size":       2,
-        "time_step":         0.02,
         "start_time":        0.0,
         "end_time":          2.0,
+        "time_step":         0.02,
         "echo_level":        1,
         "OMP_threads":       1,
-        "FIC_stabilization": false,
         "gid_path":          "C:\\Program Files\\GiD\\GiD 13.0\\gid.exe"
     },
     "solver_settings":          {
@@ -52,6 +51,32 @@
         "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Solid_Displacement-auto-3","Fluid_Pressure-auto-1","Face_Load-auto-1","Normal_Fluid_Flux-auto-1"],
         "loads_sub_model_part_list":          ["Face_Load-auto-1","Normal_Fluid_Flux-auto-1"],
         "loads_variable_list":                ["FACE_LOAD","NORMAL_FLUID_FLUX"]
+    },
+    "output_configuration":     {
+        "result_file_configuration": {
+            "gidpost_flags":       {
+                "GiDPostMode":           "GiD_PostBinary",
+                "WriteDeformedMeshFlag": "WriteDeformed",
+                "WriteConditionsFlag":   "WriteElementsOnly",
+                "MultiFileFlag":         "SingleFile"
+            },
+            "file_label":          "step",
+            "output_control_type": "step",
+            "output_frequency":    1,
+            "body_output":         true,
+            "node_output":         false,
+            "skin_output":         false,
+            "plane_output":        [],
+            "nodal_results":       ["DISPLACEMENT","WATER_PRESSURE","FACE_LOAD"],
+            "gauss_point_results": []
+        },
+        "point_data_configuration":  []
+    },
+    "restart_options":          {
+        "SaveRestart":      false,
+        "RestartFrequency": 0,
+        "LoadRestart":      false,
+        "Restart_Step":     0
     },
     "constraints_process_list": [{
         "implemented_in_file":   "apply_constraint_vector_table_process",
@@ -132,31 +157,5 @@
             "value":           0.0,
             "table":           0
         }
-    }],
-    "output_configuration":     {
-        "result_file_configuration": {
-            "gidpost_flags":       {
-                "GiDPostMode":           "GiD_PostBinary",
-                "WriteDeformedMeshFlag": "WriteDeformed",
-                "WriteConditionsFlag":   "WriteElementsOnly",
-                "MultiFileFlag":         "SingleFile"
-            },
-            "file_label":          "step",
-            "output_control_type": "step",
-            "output_frequency":    1,
-            "body_output":         true,
-            "node_output":         false,
-            "skin_output":         false,
-            "plane_output":        [],
-            "nodal_results":       ["DISPLACEMENT","WATER_PRESSURE","FACE_LOAD"],
-            "gauss_point_results": []
-        },
-        "point_data_configuration":  []
-    },
-    "restart_options":          {
-        "SaveRestart":      false,
-        "RestartFrequency": 0,
-        "LoadRestart":      false,
-        "Restart_Step":     0
-    }
+    }]
 }
