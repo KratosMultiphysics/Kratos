@@ -161,6 +161,18 @@ void UPwCondition<TDim,TNumNodes>::CalculateLocalSystem( MatrixType& rLeftHandSi
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
+void UPwCondition<TDim,TNumNodes>::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY;
+    
+    KRATOS_THROW_ERROR(std::logic_error,"UPwCondition::CalculateLeftHandSide not implemented","");
+    
+    KRATOS_CATCH("");
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
 void UPwCondition<TDim,TNumNodes>::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
