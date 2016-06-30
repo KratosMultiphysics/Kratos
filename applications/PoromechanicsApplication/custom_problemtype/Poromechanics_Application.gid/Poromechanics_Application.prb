@@ -1,16 +1,16 @@
 PROBLEM DATA
 
-TITLE:General_Data
+TITLE:Problem_Data
 QUESTION: Domain_Size#CB#(2,3)
 VALUE: 2
-QUESTION: Delta_Time
-VALUE: 0.25
-HELP: Units in IS: s
 QUESTION: Start_Time
 VALUE: 0.0
 HELP: Units in IS: s
 QUESTION: End_Time
 VALUE: 1.0
+HELP: Units in IS: s
+QUESTION: Delta_Time
+VALUE: 0.25
 HELP: Units in IS: s
 QUESTION: Echo_Level
 VALUE: 1
@@ -74,7 +74,7 @@ QUESTION: Verbosity
 VALUE: 0
 
 
-TITLE:PostProcess
+TITLE:Output_Configuration
 QUESTION: Write_Solid_Displacement#CB#(true,false)
 VALUE: true
 QUESTION: Write_Fluid_Pressure#CB#(true,false)
