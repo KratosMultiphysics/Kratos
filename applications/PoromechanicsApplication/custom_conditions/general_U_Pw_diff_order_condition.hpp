@@ -54,10 +54,12 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo );
-
-    void EquationIdVector(EquationIdVectorType& rResult,ProcessInfo& rCurrentProcessInfo );
-
+    
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,ProcessInfo& rCurrentProcessInfo );
+    
     void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo );
+    
+    void EquationIdVector(EquationIdVectorType& rResult,ProcessInfo& rCurrentProcessInfo );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

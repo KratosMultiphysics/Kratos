@@ -155,6 +155,40 @@ void GeneralUPwDiffOrderCondition::CalculateLocalSystem( MatrixType& rLeftHandSi
 
 //----------------------------------------------------------------------------------------
 
+void GeneralUPwDiffOrderCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+    
+    KRATOS_THROW_ERROR(std::logic_error,"GeneralUPwDiffOrderCondition::CalculateLeftHandSide not implemented","");
+    
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+void GeneralUPwDiffOrderCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+{
+    const GeometryType& rGeom = GetGeometry();
+    const SizeType Dim = rGeom.WorkingSpaceDimension();
+    const SizeType NumUNodes = rGeom.PointsNumber();
+    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
+    const SizeType ConditionSize = NumUNodes * Dim + NumPNodes;
+        
+    //Resetting the RHS
+    if ( rRightHandSideVector.size() != ConditionSize )
+        rRightHandSideVector.resize( ConditionSize, false );
+    noalias( rRightHandSideVector ) = ZeroVector( ConditionSize );
+    
+    //calculation flags
+    bool CalculateLHSMatrixFlag = false;
+    bool CalculateResidualVectorFlag = true;
+    MatrixType temp = Matrix();
+    
+    CalculateAll(temp, rRightHandSideVector, rCurrentProcessInfo, CalculateLHSMatrixFlag, CalculateResidualVectorFlag);
+}
+
+//----------------------------------------------------------------------------------------
+
 void GeneralUPwDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResult,ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -182,29 +216,6 @@ void GeneralUPwDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResul
         rResult[Index++] = GetGeometry()[i].GetDof( WATER_PRESSURE ).EquationId();
 
     KRATOS_CATCH( "" )
-}
-
-//----------------------------------------------------------------------------------------
-
-void GeneralUPwDiffOrderCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
-{
-    const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    const SizeType ConditionSize = NumUNodes * Dim + NumPNodes;
-        
-    //Resetting the RHS
-    if ( rRightHandSideVector.size() != ConditionSize )
-        rRightHandSideVector.resize( ConditionSize, false );
-    noalias( rRightHandSideVector ) = ZeroVector( ConditionSize );
-    
-    //calculation flags
-    bool CalculateLHSMatrixFlag = false;
-    bool CalculateResidualVectorFlag = true;
-    MatrixType temp = Matrix();
-    
-    CalculateAll(temp, rRightHandSideVector, rCurrentProcessInfo, CalculateLHSMatrixFlag, CalculateResidualVectorFlag);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
