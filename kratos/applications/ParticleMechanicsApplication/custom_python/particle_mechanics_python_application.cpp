@@ -62,7 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-
+#include "custom_python/add_custom_constitutive_laws_to_python.h"
 
 #include "custom_elements/updated_lagrangian.hpp"
 //#include "custom_elements/updated_lagrangian_quadrilateral.hpp"
@@ -132,6 +132,7 @@ Element::Pointer CreateUpdatedLagragian3D4N()
 
 	AddCustomStrategiesToPython();
 	AddCustomUtilitiesToPython();
+	AddCustomConstitutiveLawsToPython();
 
 	def("CreateUpdatedLagragian2D3N", &CreateUpdatedLagragian2D3N);
 	def("CreateUpdatedLagragian3D4N", &CreateUpdatedLagragian3D4N);

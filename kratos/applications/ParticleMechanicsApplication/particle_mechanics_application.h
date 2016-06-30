@@ -39,6 +39,13 @@
 #include "custom_elements/updated_lagrangian.hpp"
 //#include "custom_elements/updated_lagrangian_quadrilateral.hpp"
 //#include "custom_elements/total_lagrangian.hpp"
+
+//constitutive laws
+#include "custom_constitutive/hyperelastic_viscoplastic_3D_law.hpp"
+#include "custom_constitutive/hyperelastic_viscoplastic_2D_plain_strain_law.hpp"
+//flow rules
+#include "custom_constitutive/flow_rules/viscoplastic_flow_rule.hpp"
+#include "custom_constitutive/flow_rules/bingham_viscoplastic_flow_rule.hpp"
 namespace Kratos
 {
 	///@name Type Definitions
@@ -86,6 +93,7 @@ namespace Kratos
     
     
     //constitutive law
+	KRATOS_DEFINE_VARIABLE( std::string, CONSTITUTIVE_LAW_NAME )
     KRATOS_DEFINE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW_POINTER )
     KRATOS_DEFINE_VARIABLE(Matrix, CONSTITUTIVE_MATRIX )
     KRATOS_DEFINE_VARIABLE(Matrix, DEFORMATION_GRADIENT )
@@ -269,7 +277,28 @@ namespace Kratos
  		//const UpdatedLagrangianQuad mUpdatedLagrangianQuad2D4N;
  		//const TotalLagrangian mTotalLagrangian2D3N;
  		//const TotalLagrangian mTotalLagrangian3D4N;
+		
+        //constitutive laws
 
+        const HyperElasticViscoplastic3DLaw                mHyperElasticViscoplastic3DLaw;
+        const HyperElasticViscoplasticPlaneStrain2DLaw     mHyperElasticViscoplasticPlaneStrain2DLaw;
+
+		
+        //Flow Rules
+        //const NonLinearAssociativePlasticFlowRule     mNonLinearAssociativePlasticFlowRule;
+        //const LinearAssociativePlasticFlowRule        mLinearAssociativePlasticFlowRule;
+        //const IsotropicDamageFlowRule                 mIsotropicDamageFlowRule;
+        const ViscoplasticFlowRule                    mViscoplasticFlowRule;
+        const BinghamViscoplasticFlowRule             mBinghamViscoplasticFlowRule;
+        
+        //Yield Criteria
+        //const MisesHuberYieldCriterion                mMisesHuberYieldCriterion;
+        //const SimoJuYieldCriterion                    mSimoJuYieldCriterion;
+        
+        //Hardening Laws
+        //const NonLinearIsotropicKinematicHardeningLaw mNonLinearIsotropicKinematicHardeningLaw;
+        //const LinearIsotropicKinematicHardeningLaw    mLinearIsotropicKinematicHardeningLaw;
+        //const ExponentialDamageHardeningLaw           mExponentialDamageHardeningLaw;
 
 		///@} 
 		///@name Private Operators
