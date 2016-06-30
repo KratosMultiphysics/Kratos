@@ -123,24 +123,72 @@ public:
         
         KRATOS_CATCH("")
     }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void InitializeSolutionStep(
+        ModelPart& r_model_part,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b)
+    {
+        KRATOS_TRY
+        
+        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        
+        #pragma omp parallel
+        {
+            ModelPart::ElementIterator ElemBegin;
+            ModelPart::ElementIterator ElemEnd;
+            OpenMPUtils::PartitionedIterators(r_model_part.Elements(),ElemBegin,ElemEnd);
+            
+            for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
+            {
+                itElem -> InitializeSolutionStep(CurrentProcessInfo);
+            }
+        }
+        
+        #pragma omp parallel
+        {
+            ModelPart::ConditionIterator CondBegin;
+            ModelPart::ConditionIterator CondEnd;
+            OpenMPUtils::PartitionedIterators(r_model_part.Conditions(),CondBegin,CondEnd);
+
+            for (ModelPart::ConditionIterator itCond = CondBegin; itCond != CondEnd; ++itCond)
+            {
+                itCond -> InitializeSolutionStep(CurrentProcessInfo);
+            }
+        }
+        
+        KRATOS_CATCH("")
+    }
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Predict(ModelPart& r_model_part,DofsArrayType& rDofSet,TSystemMatrixType& A,TSystemVectorType& Dx,TSystemVectorType& b)
+    void Predict(
+        ModelPart& r_model_part,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b)
     {
         this->UpdateVariablesDerivatives(r_model_part);
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void InitializeNonLinIteration(ModelPart& r_model_part,TSystemMatrixType& A,TSystemVectorType& Dx,TSystemVectorType& b)
+    void InitializeNonLinIteration(
+        ModelPart& r_model_part,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b)
     {
         KRATOS_TRY
         
+        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        
         #pragma omp parallel
         {
-            ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-            
             ModelPart::ElementIterator ElemBegin;
             ModelPart::ElementIterator ElemEnd;
             OpenMPUtils::PartitionedIterators(r_model_part.Elements(),ElemBegin,ElemEnd);
@@ -151,11 +199,8 @@ public:
             }
         }
         
-        /*
         #pragma omp parallel
-        {
-            ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-            
+        {            
             ModelPart::ConditionIterator CondBegin;
             ModelPart::ConditionIterator CondEnd;
             OpenMPUtils::PartitionedIterators(r_model_part.Conditions(),CondBegin,CondEnd);
@@ -165,21 +210,24 @@ public:
                 itCond -> InitializeNonLinearIteration(CurrentProcessInfo);
             }
         }
-        */
         
         KRATOS_CATCH("")
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void FinalizeNonLinIteration(ModelPart& r_model_part,TSystemMatrixType& A,TSystemVectorType& Dx,TSystemVectorType& b)
+    void FinalizeNonLinIteration(
+        ModelPart& r_model_part,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b)
     {
         KRATOS_TRY
         
+        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        
         #pragma omp parallel
         {
-            ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-            
             ModelPart::ElementIterator ElemBegin;
             ModelPart::ElementIterator ElemEnd;
             OpenMPUtils::PartitionedIterators(r_model_part.Elements(),ElemBegin,ElemEnd);
@@ -190,11 +238,8 @@ public:
             }
         }
         
-        /*
         #pragma omp parallel
-        {
-            ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-            
+        {            
             ModelPart::ConditionIterator CondBegin;
             ModelPart::ConditionIterator CondEnd;
             OpenMPUtils::PartitionedIterators(r_model_part.Conditions(),CondBegin,CondEnd);
@@ -204,15 +249,18 @@ public:
                 itCond -> FinalizeNonLinearIteration(CurrentProcessInfo);
             }
         }
-        */
         
         KRATOS_CATCH("")
     }
-
+    
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateSystemContributions(Element::Pointer rCurrentElement,LocalSystemMatrixType& LHS_Contribution,LocalSystemVectorType& RHS_Contribution,
-                                        Element::EquationIdVectorType& EquationId,ProcessInfo& CurrentProcessInfo)
+    void CalculateSystemContributions(
+        Element::Pointer rCurrentElement,
+        LocalSystemMatrixType& LHS_Contribution,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -225,8 +273,12 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,LocalSystemMatrixType& LHS_Contribution,LocalSystemVectorType& RHS_Contribution,
-                                                Element::EquationIdVectorType& EquationId,ProcessInfo& CurrentProcessInfo)
+    void Condition_CalculateSystemContributions(
+        Condition::Pointer rCurrentCondition,
+        LocalSystemMatrixType& LHS_Contribution,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -239,7 +291,80 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Update(ModelPart& r_model_part,DofsArrayType& rDofSet,TSystemMatrixType& A,TSystemVectorType& Dx,TSystemVectorType& b )
+    void Calculate_RHS_Contribution(
+        Element::Pointer rCurrentElement,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        ProcessInfo& CurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        (rCurrentElement) -> CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
+
+        (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
+
+        KRATOS_CATCH( "" )
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void Condition_Calculate_RHS_Contribution(
+        Condition::Pointer rCurrentCondition,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        ProcessInfo& CurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        (rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+
+        (rCurrentCondition) -> EquationIdVector(EquationId, CurrentProcessInfo);
+
+        KRATOS_CATCH( "" )
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void Calculate_LHS_Contribution(
+        Element::Pointer rCurrentElement,
+        LocalSystemMatrixType& LHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        ProcessInfo& CurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        (rCurrentElement) -> CalculateLeftHandSide(LHS_Contribution,CurrentProcessInfo);
+
+        (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
+
+        KRATOS_CATCH( "" )
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void Condition_Calculate_LHS_Contribution(
+        Condition::Pointer rCurrentCondition,
+        LocalSystemMatrixType& LHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        ProcessInfo& CurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        (rCurrentCondition) -> CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
+
+        (rCurrentCondition) -> EquationIdVector(EquationId, CurrentProcessInfo);
+
+        KRATOS_CATCH( "" )
+    }
+    
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void Update(
+        ModelPart& r_model_part,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b)
     {
         KRATOS_TRY
 
@@ -263,34 +388,6 @@ public:
         }
         
         this->UpdateVariablesDerivatives(r_model_part);
-
-        KRATOS_CATCH( "" )
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void Calculate_RHS_Contribution(Element::Pointer rCurrentElement,LocalSystemVectorType& RHS_Contribution,Element::EquationIdVectorType& EquationId,
-                                    ProcessInfo& CurrentProcessInfo)
-    {
-        KRATOS_TRY
-
-        (rCurrentElement) -> CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
-
-        (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
-
-        KRATOS_CATCH( "" )
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,LocalSystemVectorType& RHS_Contribution,
-                                            Element::EquationIdVectorType& EquationId,ProcessInfo& CurrentProcessInfo)
-    {
-        KRATOS_TRY
-
-        (rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
-
-        (rCurrentCondition) -> EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }

@@ -91,8 +91,12 @@ public:
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateSystemContributions(Element::Pointer rCurrentElement,LocalSystemMatrixType& LHS_Contribution,LocalSystemVectorType& RHS_Contribution,
-                                        Element::EquationIdVectorType& EquationId,ProcessInfo& CurrentProcessInfo)
+    void CalculateSystemContributions(
+        Element::Pointer rCurrentElement,
+        LocalSystemMatrixType& LHS_Contribution,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -115,8 +119,11 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Calculate_RHS_Contribution(Element::Pointer rCurrentElement,LocalSystemVectorType& RHS_Contribution,Element::EquationIdVectorType& EquationId,
-                                    ProcessInfo& CurrentProcessInfo)
+    void Calculate_RHS_Contribution(
+        Element::Pointer rCurrentElement,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -134,7 +141,32 @@ public:
 
         KRATOS_CATCH( "" )
     }
-    
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void Calculate_LHS_Contribution(
+        Element::Pointer rCurrentElement,
+        LocalSystemMatrixType& LHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        ProcessInfo& CurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        int thread = OpenMPUtils::ThisThread();
+
+        (rCurrentElement) -> CalculateLeftHandSide(LHS_Contribution,CurrentProcessInfo);
+
+        (rCurrentElement) -> CalculateMassMatrix(mMassMatrix[thread],CurrentProcessInfo);
+
+        (rCurrentElement) -> CalculateDampingMatrix(mDampingMatrix[thread],CurrentProcessInfo);
+
+        this->AddDynamicsToLHS (LHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
+
+        (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
+
+        KRATOS_CATCH( "" )
+    }
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
