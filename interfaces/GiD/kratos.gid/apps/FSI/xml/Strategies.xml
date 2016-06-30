@@ -22,7 +22,6 @@
 		<defaults>
 		</defaults>
       </linearSolverItem>
-
     </linearSolvers>
 
 	<schemes>
@@ -56,7 +55,7 @@
     <linearSolvers>
       <linearSolverItem n="coupling_strategy" pn="Coupling strategy" default="MVQN" >
         <filterFeatures>
-            <filter field="n" value="MVQN,JFNK"/>
+            <filter field="SolverType" value="FSICoupling"/>  
         </filterFeatures>
 		<defaults>
 		</defaults>
