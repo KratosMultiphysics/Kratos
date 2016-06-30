@@ -1,7 +1,7 @@
-BeginZE C:\Users\Administrator\Downloads\NEW_test\undrained_soil_column_2D.gid\undrained_soil_column_2D.vv
-   x -17.4151611328125 18.4151611328125
-   y 42.596588134765625 -12.596586227416992
-   z -49.749374389648438 49.749374389648438
+BeginZE C:\Users\Administrator\Downloads\tests\undrained_soil_column_2D.gid\undrained_soil_column_2D.vv
+   x -16.083124160766602 17.083124160766602
+   y 45.048347473144531 -15.048347473144531
+   z -16.583124160766602 16.583124160766602
    e 16.583124160766602
    v 0 0 0
    r 1
@@ -29,7 +29,7 @@ BeginZE C:\Users\Administrator\Downloads\NEW_test\undrained_soil_column_2D.gid\u
    OGLStereo(EyeDistance) 0.075
    OGLStereo(LeftEyeDistance) 1 0 0 1
    OGLStereo(RightEyeDistance) 0 1 1 1
-EndZE C:\Users\Administrator\Downloads\NEW_test\undrained_soil_column_2D.gid\undrained_soil_column_2D.vv
+EndZE C:\Users\Administrator\Downloads\tests\undrained_soil_column_2D.gid\undrained_soil_column_2D.vv
 
 BeginMirror
    Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror

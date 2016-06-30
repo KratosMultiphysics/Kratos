@@ -3,12 +3,11 @@
         "problem_name":      "fluid_pumping_2D",
         "model_part_name":   "PorousDomain",
         "domain_size":       2,
-        "time_step":         1.0e-5,
         "start_time":        0.0,
         "end_time":          1.0e-3,
+        "time_step":         1.0e-5,
         "echo_level":        1,
         "OMP_threads":       1,
-        "FIC_stabilization": true,
         "gid_path":          "C:\\Program Files\\GiD\\GiD 13.0\\gid.exe"
     },
     "solver_settings":          {
@@ -49,9 +48,35 @@
             "verbosity":                      0
         },
         "problem_domain_sub_model_part_list": ["Body_Part-auto-1","Interface_Part-auto-1","Interface_Part-auto-2"],
-        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Solid_Displacement-auto-3","Fluid_Pressure-auto-1","Fluid_Pressure-auto-2","Normal_Fluid_Flux-auto-1","Interface_Normal_Fluid_Flux-auto-1"],
+        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Solid_Displacement-auto-3","Fluid_Pressure-auto-1","Normal_Fluid_Flux-auto-1","Interface_Normal_Fluid_Flux-auto-1"],
         "loads_sub_model_part_list":          ["Normal_Fluid_Flux-auto-1","Interface_Normal_Fluid_Flux-auto-1"],
         "loads_variable_list":                ["NORMAL_FLUID_FLUX","NORMAL_FLUID_FLUX"]
+    },
+    "output_configuration":     {
+        "result_file_configuration": {
+            "gidpost_flags":       {
+                "GiDPostMode":           "GiD_PostBinary",
+                "WriteDeformedMeshFlag": "WriteDeformed",
+                "WriteConditionsFlag":   "WriteElementsOnly",
+                "MultiFileFlag":         "SingleFile"
+            },
+            "file_label":          "step",
+            "output_control_type": "step",
+            "output_frequency":    1,
+            "body_output":         true,
+            "node_output":         false,
+            "skin_output":         false,
+            "plane_output":        [],
+            "nodal_results":       ["DISPLACEMENT","WATER_PRESSURE","NORMAL_FLUID_FLUX"],
+            "gauss_point_results": ["CAUCHY_STRESS_TENSOR","FLUID_FLUX_VECTOR","DAMAGE_VARIABLE"]
+        },
+        "point_data_configuration":  []
+    },
+    "restart_options":          {
+        "SaveRestart":      false,
+        "RestartFrequency": 0,
+        "LoadRestart":      false,
+        "Restart_Step":     0
     },
     "constraints_process_list": [{
         "implemented_in_file":   "apply_constraint_vector_table_process",
@@ -98,22 +123,6 @@
         "process_name":          "ApplyPorePressureTableProcess",
         "Parameters":            {
             "mesh_id":              0,
-            "model_part_name":      "Fluid_Pressure-auto-2",
-            "variable_name":        "WATER_PRESSURE",
-            "is_fixed":             false,
-            "value":                5.0,
-            "table":                0,
-            "hydrostatic":          false,
-            "gravity_direction":    3,
-            "reference_coordinate": 0.0,
-            "specific_weight":      10000.0
-        }
-    },{
-        "implemented_in_file":   "apply_pore_pressure_table_process",
-        "implemented_in_module": "KratosMultiphysics.PoromechanicsApplication",
-        "process_name":          "ApplyPorePressureTableProcess",
-        "Parameters":            {
-            "mesh_id":              0,
             "model_part_name":      "Fluid_Pressure-auto-1",
             "variable_name":        "WATER_PRESSURE",
             "is_fixed":             true,
@@ -147,31 +156,5 @@
             "value":           -1.0,
             "table":           0
         }
-    }],
-    "output_configuration":     {
-        "result_file_configuration": {
-            "gidpost_flags":       {
-                "GiDPostMode":           "GiD_PostBinary",
-                "WriteDeformedMeshFlag": "WriteDeformed",
-                "WriteConditionsFlag":   "WriteElementsOnly",
-                "MultiFileFlag":         "SingleFile"
-            },
-            "file_label":          "step",
-            "output_control_type": "step",
-            "output_frequency":    1,
-            "body_output":         true,
-            "node_output":         false,
-            "skin_output":         false,
-            "plane_output":        [],
-            "nodal_results":       ["DISPLACEMENT","WATER_PRESSURE","NORMAL_FLUID_FLUX"],
-            "gauss_point_results": ["CAUCHY_STRESS_TENSOR","FLUID_FLUX_VECTOR","DAMAGE_VARIABLE"]
-        },
-        "point_data_configuration":  []
-    },
-    "restart_options":          {
-        "SaveRestart":      false,
-        "RestartFrequency": 0,
-        "LoadRestart":      false,
-        "Restart_Step":     0
-    }
+    }]
 }

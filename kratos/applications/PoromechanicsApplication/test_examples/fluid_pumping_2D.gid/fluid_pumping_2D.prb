@@ -1,15 +1,15 @@
 PROBLEM DATA
-TITLE: General_Data
+TITLE: Problem_Data
 QUESTION: Domain_Size#CB#(2,3)
 VALUE: 2
-QUESTION: Delta_Time
-VALUE: 1.0e-5
-HELP: Units in IS: s
 QUESTION: Start_Time
 VALUE: 0.0
 HELP: Units in IS: s
 QUESTION: End_Time
 VALUE: 1.0e-3
+HELP: Units in IS: s
+QUESTION: Delta_Time
+VALUE: 1.0e-5
 HELP: Units in IS: s
 QUESTION: Echo_Level
 VALUE: 1
@@ -65,7 +65,11 @@ VALUE: Elimination
 QUESTION: Solver_Type#CB#(Skyline_LU_factorization,Super_LU,SuperLUIterativeSolver,Conjugate_gradient,BiConjugate_gradient_stabilized,GMRES,Deflated_Conjugate_gradient,AMGCL,AMGCL_NS_Solver)
 VALUE: BiConjugate_gradient_stabilized
 HELP: Skyline_LU_factorization and Super_LU are direct solvers. The rest are iterative solvers.
-TITLE: PostProcess
+QUESTION: Scaling#CB#(true,false)
+VALUE: false
+QUESTION: Verbosity
+VALUE: 0
+TITLE: Output_Configuration
 QUESTION: Write_Solid_Displacement#CB#(true,false)
 VALUE: true
 QUESTION: Write_Fluid_Pressure#CB#(true,false)
