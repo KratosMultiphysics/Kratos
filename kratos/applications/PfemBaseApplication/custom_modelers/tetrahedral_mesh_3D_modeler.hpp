@@ -168,8 +168,11 @@ protected:
 
     //*******************************************************************************************
     //*******************************************************************************************
-    void SetModelerMesh(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr);
+    void SetModelerData(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr);
 
+    void GetModelerData(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr);
+
+    void UnsetModelerData(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr);
 
 
     //*******************************************************************************************

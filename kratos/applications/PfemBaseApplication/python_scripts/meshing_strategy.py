@@ -92,10 +92,10 @@ class MeshingStrategy:
 
         modelers = []        
         if( self.settings["remesh"].GetBool() && self.settings["refine"].GetBool() ):
-            modeler.append("reconnect_modeler")
-            modeler.append("refine_modeler")
+            modeler.append("pre_refining_modeler")
+            modeler.append("post_refining_modeler")
         elif( self.settings["remesh"].GetBool() ):
-            modeler.append("remesh_modeler")
+            modeler.append("reconnect_modeler")
         elif( self.settings["transfer"].GetBool() ):
             modeler.append("transfer_modeler")
  

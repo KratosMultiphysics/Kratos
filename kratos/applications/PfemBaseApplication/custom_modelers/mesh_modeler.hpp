@@ -339,6 +339,13 @@ protected:
     virtual void SetElements(ModelPart& rModelPart,
 			     MeshingParametersType& rMeshingVariables,
 			     ModelPart::IndexType MeshId);
+
+    /**
+     * Mesh Modeler :: Set Elements to mesh
+     */
+    virtual void SetNeighbours(ModelPart& rModelPart,
+			       MeshingParametersType& rMeshingVariables,
+			       ModelPart::IndexType MeshId);
   
 
     /**

@@ -39,56 +39,6 @@ class MeshModeler:
         self.mesher.SetEchoLevel(self.echo_level)
 
     #
-    def SetPreMeshingProcesses(self):
-        
-        # The order set is the order of execution:
-
-        # process to remove nodes / remove boundary
-        remove_mesh_nodes = RemoveMeshNodes(self.main_model_part, self.MeshingParameters,  self.mesh_id, self.echo_level)
-        self.mesher.SetPreMeshingProcess(remove_mesh_nodes)
-
-        # process to refine elements /refine boundary
-        refine_mesh_elements  = RefineMeshElements(self.main_model_part, self.RefiningParameters, self.mesh_id, self.echo_level)
-        self.mesher.SetPreMeshingProcess(refine_mesh_elements)
-
-        #refine_mesh_boundary = RefineMeshBoundary(self.model_part, self.RefiningParameters, self.mesh_id, self.echo_level)            
-        #self.mesher.SetPreMeshingProcess(refine_mesh_boundary)
-                
-        #set imposed walls (rigid walls)
-        rigid_walls_container = BoundingBoxContainer()
-
-        if( self.imposed_walls.RigidWallActive() ):
-            rigid_wall_bbox = self.imposed_walls.RigidWallBoundingBoxes()
-            for sizei in range(0, len(rigid_wall_bbox)):
-                rigid_walls_container.PushBack( rigid_wall_bbox[sizei] )
-
-        #refine_mesh_boundary
-        refine_mesh_boundary = ContactRefineMeshBoundary(self.model_part, rigid_walls_container, self.MeshingParameters, self.mesh_id, self.echo_level)
-        self.mesher.SetPreMeshingProcess(refine_mesh_boundary)
-
-        
-    #
-    def SetPostMeshingProcesses(self):
-
-        # The order set is the order of execution:
-
-        #select mesh elements
-        generate_particles  = GenerateNewParticles(self.model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
-        self.mesher.SetPostMeshingProcess(generate_particles)
-
-        #select mesh elements
-        select_mesh_elements  = SelectMeshElements(self.model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
-        self.mesher.SetPostMeshingProcess(select_mesh_elements)
-
-        #rebuild elements
-        rebuild_mesh_elements = BuildMeshElements(self.model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
-        self.mesher.SetPostMeshingProcess(rebuild_mesh_elements)
-
-        #rebuild boundary
-        rebuild_mesh_boundary = ReconstructMeshBoundary(self.model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
-        self.mesher.SetPostMeshingProcess(rebuild_mesh_boundary)
-
-    #
     def InitializeMeshing(self):
         
         # set execution flags: to set the options to be executed in methods and processes
@@ -141,17 +91,73 @@ class MeshModeler:
 
 
     #
+    def SetPreMeshingProcesses(self):
+        
+        # The order set is the order of execution:
+
+
+        # process to refine elements /refine boundary
+        refine_mesh_elements  = SetElementsToRefineOnThreshold(self.main_model_part, self.RefiningParameters, self.mesh_id, self.echo_level)
+        self.mesher.SetPreMeshingProcess(refine_mesh_elements)
+
+        #refine_mesh_boundary = RefineMeshBoundary(self.model_part, self.RefiningParameters, self.mesh_id, self.echo_level)            
+        #self.mesher.SetPreMeshingProcess(refine_mesh_boundary)
+                
+        #set imposed walls (rigid walls)
+        rigid_walls_container = BoundingBoxContainer()
+
+        if( self.imposed_walls.RigidWallActive() ):
+            rigid_wall_bbox = self.imposed_walls.RigidWallBoundingBoxes()
+            for sizei in range(0, len(rigid_wall_bbox)):
+                rigid_walls_container.PushBack( rigid_wall_bbox[sizei] )
+
+        #refine_mesh_boundary
+        refine_mesh_boundary = ContactRefineMeshBoundary(self.model_part, rigid_walls_container, self.MeshingParameters, self.mesh_id, self.echo_level)
+        self.mesher.SetPreMeshingProcess(refine_mesh_boundary)
+
+        # process to remove nodes / remove boundary
+        remove_mesh_nodes = RemoveMeshNodes(self.main_model_part, self.MeshingParameters,  self.mesh_id, self.echo_level)
+        self.mesher.SetPreMeshingProcess(remove_mesh_nodes)
+
+        
+    #
+    def SetPostMeshingProcesses(self):
+
+        # The order set is the order of execution:
+
+        #select mesh elements
+        generate_particles  = GenerateNewParticles(self.model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        self.mesher.SetPostMeshingProcess(generate_particles)
+
+        #select mesh elements
+        select_mesh_elements  = SelectMeshElements(self.model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        self.mesher.SetPostMeshingProcess(select_mesh_elements)
+
+        #rebuild elements
+        rebuild_mesh_elements = BuildMeshElements(self.model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        self.mesher.SetPostMeshingProcess(rebuild_mesh_elements)
+
+        #rebuild boundary
+        rebuild_mesh_boundary = ReconstructMeshBoundary(self.model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        self.mesher.SetPostMeshingProcess(rebuild_mesh_boundary)
+
+    #
     def FinalizeMeshing(self):
         
         # reset execution flags: to unset the options to be executed in methods and processes
         execution_options = Flags()
+        
+        # all flags
         execution_options.Set(ModelerUtilities.SET_NODES, False)
         execution_options.Set(ModelerUtilities.SET_ELEMENTS, False)
+        execution_options.Set(ModelerUtilities.SET_NEIGHBOURS, False)
         execution_options.Set(ModelerUtilities.SET_FACES, False)  
+
         execution_options.Set(ModelerUtilities.SELECT_ELEMENTS, False)
         execution_options.Set(ModelerUtilities.SELECT_NODES, False)
         execution_options.Set(ModelerUtilities.PASS_ALPHA_SHAPE, False)
         execution_options.Set(ModelerUtilities.ENGAGED_NODES, False)
+        execution_options.Set(ModelerUtilities.DELETE_DATA, False)
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
 

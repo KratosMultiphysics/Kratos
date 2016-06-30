@@ -101,10 +101,11 @@ public:
       KRATOS_TRY
 
       if( mEchoLevel > 0 )
-	std::cout<<" [ SELECT MESH ELEMENTS: ("<<(mrRemesh.OutMesh.NumberOfElements)<<") "<<std::endl;
+	std::cout<<" [ SELECT MESH ELEMENTS: ("<<mrRemesh.OutMesh.GetNumberOfElements()<<") "<<std::endl;
 
+      int& OutNumberOfElements = mrRemesh.OutMesh.GetNumberOfElements();
       mrRemesh.PreservedElements.clear();
-      mrRemesh.PreservedElements.resize(mrRemesh.OutMesh.NumberOfElements);
+      mrRemesh.PreservedElements.resize(OutNumberOfElements);
       std::fill( mrRemesh.PreservedElements.begin(), mrRemesh.PreservedElements.end(), 0 );
       
       mrRemesh.Info->NumberOfElements=0;
@@ -115,7 +116,7 @@ public:
 
       if(mrRemesh.ExecutionOptions.IsNot(ModelerUtilities::SELECT_ELEMENTS))
 	{
-	  for(int el=0; el<mrRemesh.OutMesh.NumberOfElements; el++)
+	  for(int el=0; el<OutNumberOfElements; el++)
 	    {
 	      mrRemesh.PreservedElements[el]=1;
 	      mrRemesh.Info->NumberOfElements+=1;
@@ -124,7 +125,7 @@ public:
       else
 	{
 	  if( mEchoLevel > 0 )
-	    std::cout<<"   Start Element Selection "<<mrRemesh.OutMesh.NumberOfElements<<std::endl;
+	    std::cout<<"   Start Element Selection "<<OutNumberOfElements<<std::endl;
 
 	  ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
 	  const unsigned int nds = (*element_begin).GetGeometry().size();
@@ -137,7 +138,7 @@ public:
 	  int el;
 	  int number=0;
 	  //#pragma omp parallel for reduction(+:number) private(el)
-	  for(el=0; el<mrRemesh.OutMesh.NumberOfElements; el++)
+	  for(el=0; el<OutNumberOfElements; el++)
 	    {
 	      Geometry<Node<3> > vertices;
 	      //double Alpha   = 0;
@@ -349,7 +350,7 @@ public:
 	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes(mMeshId);
 
 	//check engaged nodes
-	for(int el=0; el<mrRemesh.OutMesh.NumberOfElements; el++)
+	for(int el=0; el<OutNumberOfElements; el++)
 	  {
 	    if( mrRemesh.PreservedElements[el]){
 	      for(unsigned int pn=0; pn<nds; pn++)
@@ -384,7 +385,7 @@ public:
       }
 
       if( mEchoLevel > 0 ){
-	std::cout<<"   Generated_Elements :"<<mrRemesh.OutMesh.NumberOfElements<<std::endl;
+	std::cout<<"   Generated_Elements :"<<OutNumberOfElements<<std::endl;
 	std::cout<<"   Passed_AlphaShape  :"<<mrRemesh.Info->NumberOfElements<<std::endl;
 	std::cout<<"   SELECT MESH ELEMENTS ]; "<<std::endl;
       }

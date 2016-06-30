@@ -146,11 +146,13 @@ namespace Kratos
 
 	.def_readonly("SET_NODES",&ModelerUtilities::SET_NODES)
 	.def_readonly("SET_ELEMENTS",&ModelerUtilities::SET_ELEMENTS)
+	.def_readonly("SET_NEIGHBOURS",&ModelerUtilities::SET_NEIGHBOURS)
 	.def_readonly("SET_FACES",&ModelerUtilities::SET_FACES)
 	.def_readonly("SELECT_ELEMENTS",&ModelerUtilities::SELECT_ELEMENTS)
 	.def_readonly("SELECT_NODES",&ModelerUtilities::SELECT_NODES)
 	.def_readonly("PASS_ALPHA_SHAPE",&ModelerUtilities::PASS_ALPHA_SHAPE)
 	.def_readonly("ENGAGED_NODES",&ModelerUtilities::ENGAGED_NODES)
+	.def_readonly("DELETE_DATA",&ModelerUtilities::DELETE_DATA)
 	;
         
         
@@ -235,7 +237,8 @@ namespace Kratos
 	.def("SetErrorVariable",SetErrorVariable)
 	.def("GetThresholdVariable",GetThresholdVariable)
 	.def("GetReferenceThreshold",&ModelerUtilities::RefiningParameters::GetReferenceThreshold)
-
+	.def("GetRefiningOptions",&ModelerUtilities::RefiningParameters::GetRefiningOptions)
+	.def("GetRemovingOptions",&ModelerUtilities::RefiningParameters::GetRemovingOptions)
 	;
 
       // Remeshing modeler remeshing parameters
@@ -255,6 +258,7 @@ namespace Kratos
 	.def("SetMeshingBox",&ModelerUtilities::MeshingParameters::SetMeshingBox)
 	.def("SetTransferParameters",&ModelerUtilities::MeshingParameters::SetTransferParameters)
 	.def("SetTransferVariable",&ModelerUtilities::MeshingParameters::SetTransferVariable)
+	.def("SetNodalIdsFlag",&ModelerUtilities::MeshingParameters::SetNodalIdsFlag)
 	.def("SetReferenceElement",SetReferenceElement)
 	.def("SetReferenceCondition",SetReferenceCondition)
 	.def("GetInfoParameters",&ModelerUtilities::MeshingParameters::GetInfoParameters)

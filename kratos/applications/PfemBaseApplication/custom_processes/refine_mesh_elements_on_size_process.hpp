@@ -121,16 +121,19 @@ public:
 	  
 	  unsigned int nds = (*element_begin).GetGeometry().size();
 	  
-	  mrRemesh.InMesh.NumberOfElements  = mrRemesh.Info->NumberOfElements;
-	  mrRemesh.OutMesh.NumberOfElements = mrRemesh.Info->NumberOfElements;
+	  int& InNumberOfElements  = mrRemesh.InMesh.GetNumberOfElements();
+	  int& OutNumberOfElements = mrRemesh.OutMesh.GetNumberOfElements();
+	  
+	  InNumberOfElements  = mrRemesh.Info->NumberOfElements;
+	  OutNumberOfElements = mrRemesh.Info->NumberOfElements;
 	 
 	  int* InElementList        = mrRemesh.InMesh.GetElementList();
 	  double* InElementSizeList = mrRemesh.InMesh.GetElementSizeList();
 
 	  int* OutElementList       = mrRemesh.OutMesh.GetElementList();
 
-	  InElementList     = new int  [mrRemesh.InMesh.NumberOfElements * nds];
-	  InElementSizeList = new double [mrRemesh.InMesh.NumberOfElements];
+	  InElementList     = new int  [InNumberOfElements * nds];
+	  InElementSizeList = new double [InNumberOfElements];
 
 	  ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin(mMeshId);
 
@@ -165,7 +168,7 @@ public:
 
 	  int id = 0; 
 	    
-	  for(int el = 0; el< mrRemesh.OutMesh.NumberOfElements; el++)
+	  for(int el = 0; el< OutNumberOfElements; el++)
 	    {
 	      if(mrRemesh.PreservedElements[el])
 		{
