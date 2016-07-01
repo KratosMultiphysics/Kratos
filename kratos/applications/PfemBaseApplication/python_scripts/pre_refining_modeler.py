@@ -27,7 +27,7 @@ class PreRefiningModeler(mesh_modeler.MeshModeler):
     def InitializeMeshing(self):
         
         # set execution flags: to set the options to be executed in methods and processes
-        execution_options = Flags()
+        execution_options = KratosMultiphysics.Flags()
         meshing_options = self.MeshingParameters.GetOptions()
     
         self.MeshingParameters.SetNodalIdsFlag(False) #they are not set
@@ -76,14 +76,14 @@ class PreRefiningModeler(mesh_modeler.MeshModeler):
         
 
         # process to refine elements /refine boundary
-        refine_mesh_elements = SetElementsToRefineOnThreshold(self.main_model_part, self.RefiningParameters, self.mesh_id, self.echo_level)
+        refine_mesh_elements = KratosPfemBase.SetElementsToRefineOnThreshold(self.main_model_part, self.RefiningParameters, self.mesh_id, self.echo_level)
         self.mesher.SetPreMeshingProcess(refine_mesh_elements)
 
         #refine_mesh_boundary = RefineMeshBoundary(self.model_part, self.RefiningParameters, self.mesh_id, self.echo_level)            
         #self.mesher.SetPreMeshingProcess(refine_mesh_boundary)
 
         # process to remove nodes / remove boundary
-        remove_mesh_nodes = RemoveMeshNodes(self.main_model_part, self.MeshingParameters,  self.mesh_id, self.echo_level)
+        remove_mesh_nodes = KratosPfemBase.RemoveMeshNodes(self.main_model_part, self.MeshingParameters,  self.mesh_id, self.echo_level)
         self.mesher.SetPreMeshingProcess(remove_mesh_nodes)
      
 
@@ -111,7 +111,7 @@ class PreRefiningModeler(mesh_modeler.MeshModeler):
     def FinalizeMeshing(self):
         
         # reset execution flags: to unset the options to be executed in methods and processes
-        execution_options = Flags()
+        execution_options = KratosMultiphysics.Flags()
 
         self.MeshingParameters.SetNodalIdsFlag(True) #they are already set
         execution_options.Set(ModelerUtilities.SET_NODES, False)

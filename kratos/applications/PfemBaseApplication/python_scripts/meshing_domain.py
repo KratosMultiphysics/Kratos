@@ -122,14 +122,14 @@ class MeshingDomain:
     def SetInfoParameters(self):
 
         # Create InfoParameters        
-        self.InfoParameters  = InfoParameters()
+        self.InfoParameters  = KratosPfemBase.InfoParameters()
         self.InfoParameters.Initialize()
         
         
     def SetTransferParameters(self):
         
         # Create TransferParameters
-        self.TransferParameters = TransferParameters()
+        self.TransferParameters = KratosPfemBase.TransferParameters()
         transfer_variables = self.settings["elemental_variables_to_transfer"]
         for variable in transfer_variables:
             self.TransferParameters.SetVariable(globals()[variable])
@@ -138,7 +138,7 @@ class MeshingDomain:
     def SetRefiningParameters(self):
         
         # Create RefiningParameters
-        self.RefiningParameters = RefiningParameters()
+        self.RefiningParameters = KratosPfemBase.RefiningParameters()
         self.RefiningParameters.Initialize()
 
         # parameters
@@ -172,7 +172,7 @@ class MeshingDomain:
                 center[i]   = self.settings["spatial_bounding_box"]["center"][i].GetDouble()
                 velocity[i] = self.settings["spatial_bounding_box"]["velocity"][i].GetDouble()
                 
-        refining_box = SpatialBoundingBox(center, radius, velocity)
+        refining_box = KratosPfemBase.SpatialBoundingBox(center, radius, velocity)
         self.RefiningParameters.SetRefiningBox(refining_box)
 
         self.RefiningParameters.SetThresholdVariable(globals()[self.settings["refining_parameters"]["threshold_variable"].GetString()])
@@ -182,7 +182,7 @@ class MeshingDomain:
         self.RefiningParameters.SetReferenceError(self.settings["refining_parameters"]["reference_error"].GetDouble())
 
 
-        removing_options = Flags()
+        removing_options = KratosMultiphysics.Flags()
 
         refining_options.Set(ModelerUtilities.REFINE, self.settings["refine"].GetBool())
 
@@ -200,7 +200,7 @@ class MeshingDomain:
         refining_options.Set(ModelerUtilities.REFINE_BOUNDARY_ON_ERROR, remove_boundary["on_error"].GetBool())  
         refining_options.Set(ModelerUtilities.REFINE_BOUNDARY_ON_THRESHOLD, remove_boundary["on_threshold"].GetBool())  
 
-        refining_options = Flags()
+        refining_options = KratosMultiphysics.Flags()
         refining_options.Set(ModelerUtilities.REFINE_ADD_NODES, self.settings["refining_parameters"]["add_nodes"].GetBool())
         refining_options.Set(ModelerUtilities.REFINE_INSERT_NODES, self.settings["refining_parameters"]["insert_nodes"].GetBool())
 
@@ -223,7 +223,7 @@ class MeshingDomain:
     def SetMeshingParameters(self):
               
         # Create MeshingParameters
-        self.MeshingParameters = MeshingParameters()
+        self.MeshingParameters = KratosPfemBase.MeshingParameters()
         self.MeshingParameters.Initialize()
 
         self.MeshingParameters.SetAlphaParameter(self.settings["alpha_shape"].GetDouble())

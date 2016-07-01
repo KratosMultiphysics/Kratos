@@ -25,7 +25,7 @@ class ReconnectModeler(mesh_modeler.MeshModeler):
     def InitializeMeshing(self):
         
         # set execution flags: to set the options to be executed in methods and processes
-        execution_options = Flags()
+        execution_options = KratosMultiphysics.Flags()
 
         execution_options.Set(ModelerUtilities.SET_NODES, True)
         execution_options.Set(ModelerUtilities.SELECT_ELEMENTS, True)
@@ -69,7 +69,7 @@ class ReconnectModeler(mesh_modeler.MeshModeler):
     def FinalizeMeshing(self):
         
         # reset execution flags: to unset the options to be executed in methods and processes
-        execution_options = Flags()
+        execution_options = KratosMultiphysics.Flags()
         execution_options.Set(ModelerUtilities.SET_NODES, False)
         execution_options.Set(ModelerUtilities.SET_ELEMENTS, False)
         execution_options.Set(ModelerUtilities.SET_FACES, False)  
