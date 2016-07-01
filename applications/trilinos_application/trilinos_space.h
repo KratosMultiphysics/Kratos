@@ -155,6 +155,16 @@ public:
     ///@}
     ///@name Operations
     ///@{
+    //
+    static MatrixPointerType CreateEmptyMatrixPointer()
+    {
+        return MatrixPointerType(nullptr);
+    }
+
+    static VectorPointerType CreateEmptyVectorPointer()
+    {
+        return VectorPointerType(nullptr);
+    }
 
     static MatrixPointerType CreateEmptyMatrixPointer(Epetra_MpiComm& Comm)
     {
