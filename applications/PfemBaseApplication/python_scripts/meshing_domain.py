@@ -29,7 +29,7 @@ class MeshingDomain:
             "alpha_shape": 2.4,
             "offset_factor": 0.0,
             "meshing_strategy":{
-               "strategy_type": 
+               "strategy_type": "meshing_strategy",
                "remesh": False,
                "refine": False,
                "reconnect": False,
