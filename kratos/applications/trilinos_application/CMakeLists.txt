@@ -63,12 +63,11 @@ set( KRATOS_TRILINOS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_communicator_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_first.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_zoltan_processes_to_python.cpp
-        ${CMAKE_SOURCE_DIR}/applications/ALEapplication/custom_elements/laplacian_meshmoving_element.cpp
-        ${CMAKE_SOURCE_DIR}/applications/ALEapplication/custom_elements/structural_meshmoving_element.cpp
-        ${CMAKE_SOURCE_DIR}/applications/ALEapplication/custom_elements/structural_meshmoving_element_nonlinear.cpp
-        ${CMAKE_SOURCE_DIR}/applications/AdjointFluidApplication/custom_elements/vms_adjoint_element.cpp
-        ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication/fluid_dynamics_application_variables.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi_normal_calculation_utilities.cpp;
+    ${CMAKE_SOURCE_DIR}/applications/ALEapplication/custom_elements/laplacian_meshmoving_element.cpp
+    ${CMAKE_SOURCE_DIR}/applications/ALEapplication/custom_elements/structural_meshmoving_element.cpp
+    ${CMAKE_SOURCE_DIR}/applications/AdjointFluidApplication/custom_elements/vms_adjoint_element.cpp
+    ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication/fluid_dynamics_application_variables.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi_normal_calculation_utilities.cpp;
 )
 
 # add_executable(testmap ${CMAKE_CURRENT_SOURCE_DIR}/testmap.cpp )
