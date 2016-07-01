@@ -356,12 +356,6 @@ proc spdAux::ExploreAllRoutes { } {
         W "Route $routeName $route"
         set node [$root selectNodes $route]
         W "Node $node"
-        W "Value [get_domnode_attribute $node values]"
-        W "Value [get_domnode_attribute $node v]"
-        gid_groups_conds::uncompress_subtree $node
-        
-        W "Value [get_domnode_attribute $node values]"
-        W "Value [get_domnode_attribute $node v]"
     }
     
 }

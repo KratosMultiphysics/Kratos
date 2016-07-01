@@ -162,16 +162,10 @@ proc write::writeMaterials { {appid ""}} {
 
 proc write::writeNodalCoordinatesOnParts { } {
     variable parts
-    set doc $gid_groups_conds::doc
-    set root [$doc documentElement]
     
-    set xp1 "[spdAux::getRoute $parts]/group"
-    #set groups [list ]
-    #set formats [dict create]
     set f "%5d %14.5f %14.5f %14.5f"
     set objarray [objarray new intarray 0]
-    foreach gNode [$root selectNodes $xp1] {
-        set group [$gNode getAttribute n]
+    foreach group [getPartsGroupsId] {
         set objarray [objarray union -sorted $objarray [GiD_EntitiesGroups get $group nodes]]
     }
     WriteString "Begin Nodes"
@@ -533,8 +527,8 @@ proc write::getPartsGroupsId {} {
     set groups [$root selectNodes $xp1]
     
     foreach group $groups {
-	set groupName [get_domnode_attribute $group n]
-	lappend listOfGroups $groupName
+        set groupName [get_domnode_attribute $group n]
+        lappend listOfGroups $groupName
     }
     return $listOfGroups
 }
@@ -553,7 +547,7 @@ proc write::getPartsMeshId {} {
 
 proc write::writePartMeshes { } {
     foreach group [getPartsGroupsId] {
-	writeGroupMesh Parts $group "Elements"
+        writeGroupMesh Parts $group "Elements"
     } 
 }
 
@@ -634,41 +628,33 @@ proc write::WriteJSON {processDict} {
     WriteString [write::tcl2json $processDict]
 }
 
-proc write::GetDefaultOutputDict {} {
+proc write::GetDefaultOutputDict { {appid ""} } {
     set outputDict [dict create]
     set resultDict [dict create]
     
+    if {$appid eq ""} {set results_UN Results } {set results_UN [apps::getAppUniqueName $appid Results]}
     set GiDPostDict [dict create]
-    dict set GiDPostDict GiDPostMode                [getValue Results GiDPostMode]
-    dict set GiDPostDict WriteDeformedMeshFlag      [getValue Results GiDWriteMeshFlag]
-    dict set GiDPostDict WriteConditionsFlag        [getValue Results GiDWriteConditionsFlag]
-    #dict set GiDPostDict WriteParticlesFlag        [getValue Results GiDWriteParticlesFlag]
-    dict set GiDPostDict MultiFileFlag              [getValue Results GiDMultiFileFlag]
+    dict set GiDPostDict GiDPostMode                [getValue $results_UN GiDPostMode]
+    dict set GiDPostDict WriteDeformedMeshFlag      [getValue $results_UN GiDWriteMeshFlag]
+    dict set GiDPostDict WriteConditionsFlag        [getValue $results_UN GiDWriteConditionsFlag]
+    #dict set GiDPostDict WriteParticlesFlag        [getValue $results_UN GiDWriteParticlesFlag]
+    dict set GiDPostDict MultiFileFlag              [getValue $results_UN GiDMultiFileFlag]
     dict set resultDict gidpost_flags $GiDPostDict
     
-    dict set resultDict file_label                 [getValue Results FileLabel]
-    set outputCT [getValue Results OutputControlType]
+    dict set resultDict file_label                 [getValue $results_UN FileLabel]
+    set outputCT [getValue $results_UN OutputControlType]
     dict set resultDict output_control_type $outputCT
-    if {$outputCT eq "time"} {set frequency [getValue Results OutputDeltaTime]} {set frequency [getValue Results OutputDeltaStep]}
+    if {$outputCT eq "time"} {set frequency [getValue $results_UN OutputDeltaTime]} {set frequency [getValue $results_UN OutputDeltaStep]}
     dict set resultDict output_frequency $frequency     
     
-    dict set resultDict body_output           [getValue Results BodyOutput]
-    dict set resultDict node_output           [getValue Results NodeOutput]
-    dict set resultDict skin_output           [getValue Results SkinOutput]
+    dict set resultDict body_output           [getValue $results_UN BodyOutput]
+    dict set resultDict node_output           [getValue $results_UN NodeOutput]
+    dict set resultDict skin_output           [getValue $results_UN SkinOutput]
     
-    dict set resultDict plane_output [GetCutPlanesList]
-    
-    #dict set outputDict write_results "PreMeshing"
-    #dict set outputDict plot_graphs false
-    #dict set outputDict plot_frequency 0
-    #dict set outputDict print_lists true
-    #dict set outputDict file_list [list ]
-    #dict set outputDict output_time 0.01
-    #dict set outputDict volume_output true
-    #dict set outputDict add_skin true
-    
-    dict set resultDict nodal_results [GetResultsList NodalResults]
-    dict set resultDict gauss_point_results [GetResultsList ElementResults]
+    dict set resultDict plane_output [GetCutPlanesList $results_UN]
+
+    dict set resultDict nodal_results [GetResultsList $results_UN OnNodes]
+    dict set resultDict gauss_point_results [GetResultsList $results_UN OnElement]
     
     dict set outputDict "result_file_configuration" $resultDict
     dict set outputDict "point_data_configuration" [GetEmptyList]
@@ -679,13 +665,13 @@ proc write::GetEmptyList { } {
     set a [list ]
     return $a
 }
-proc write::GetCutPlanesList { } {
+proc write::GetCutPlanesList { {results_UN Results} } {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
 
     set list_of_planes [list ]
     
-    set xp1 "[spdAux::getRoute Results]/container\[@n='CutPlanes'\]/blockdata"
+    set xp1 "[spdAux::getRoute $results_UN]/container\[@n='CutPlanes'\]/blockdata"
     set planes [$root selectNodes $xp1]
     
     foreach plane $planes {
@@ -863,13 +849,12 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
     return $bcCondsDict
 }
 
-
-proc write::GetResultsList { un } {
+proc write::GetResultsList { un {cnd ""} } {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     
     set result [list ]
-    set xp1 "[spdAux::getRoute $un]/value"
+    if {$cnd eq ""} {set xp1 "[spdAux::getRoute $un]/value"} {set xp1 "[spdAux::getRoute $un]/container\[@n = '$cnd'\]/value"}
     set resultxml [$root selectNodes $xp1]
     foreach res $resultxml {
         if {[get_domnode_attribute $res v] in [list "Yes" "True" "1"] && [get_domnode_attribute $res state] ne "hidden"} {
