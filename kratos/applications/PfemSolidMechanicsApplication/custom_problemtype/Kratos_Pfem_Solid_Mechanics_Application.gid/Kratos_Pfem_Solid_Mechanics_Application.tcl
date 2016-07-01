@@ -48,14 +48,14 @@ proc InitGIDProject {dir} {
 # Pass the path to kratos and the name of the problem to the Python script
 proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args } {
 
-    set filename [file join $dir "${basename}-3.dat"]
+    #set filename [file join $dir "${basename}-3.dat"]
 
-    set varfile [open $filename a]
-    puts $varfile "problem_name = '${basename}'"
-    puts $varfile "problem_path = '${dir}'"
-    puts $varfile "kratos_path = '${::kaux::kratos_path}'"
-    puts $varfile ""
-    close $varfile
+    #set varfile [open $filename a]
+    #puts $varfile "problem_name = '${basename}'"
+    #puts $varfile "problem_path = '${dir}'"
+    #puts $varfile "kratos_path = '${::kaux::kratos_path}'"
+    #puts $varfile ""
+    #close $varfile
 }
 
 proc InitKratosPT { ptdir } {
