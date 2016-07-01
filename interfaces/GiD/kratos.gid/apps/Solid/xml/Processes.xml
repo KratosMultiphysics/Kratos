@@ -5,7 +5,7 @@
 		help="This process ">
     <inputs>
       <parameter n="factor" pn="Factor" type="double" v="1.0"/>
-      <parameter n="direction" pn="Direction" type="vector" v="0.0,0.0,-1.0" />
+      <parameter n="direction" pn="Direction" type="vector" v="0.0,0.0,0.0" />
     </inputs>
   </Process>
   
