@@ -218,11 +218,9 @@ public:
         //by default the matrices are rebuilt at each iteration
         this->SetRebuildLevel(2);
         
-        
-        mpA = TSystemMatrixPointerType(new TSystemMatrixType(0, 0));
-        mpDx = TSystemVectorPointerType(new TSystemVectorType(0));
-        mpb = TSystemVectorPointerType(new TSystemVectorType(0));
-
+        mpA = TSparseSpace::CreateEmptyMatrixPointer();
+        mpDx = TSparseSpace::CreateEmptyVectorPointer();
+        mpb = TSparseSpace::CreateEmptyVectorPointer();
 
         KRATOS_CATCH("")
     }
@@ -280,10 +278,9 @@ public:
         //by default the matrices are rebuilt at each iteration
         this->SetRebuildLevel(2);
         
-        mpA = TSystemMatrixPointerType(new TSystemMatrixType(0, 0));
-        mpDx = TSystemVectorPointerType(new TSystemVectorType(0));
-        mpb = TSystemVectorPointerType(new TSystemVectorType(0));
-
+        mpA = TSparseSpace::CreateEmptyMatrixPointer();
+        mpDx = TSparseSpace::CreateEmptyVectorPointer();
+        mpb = TSparseSpace::CreateEmptyVectorPointer();
 
         KRATOS_CATCH("")
     }

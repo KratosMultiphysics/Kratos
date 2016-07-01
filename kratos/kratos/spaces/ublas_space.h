@@ -156,12 +156,12 @@ public:
 
     static MatrixPointerType CreateEmptyMatrixPointer()
     {
-        return MatrixPointerType(new TMatrixType());
+        return MatrixPointerType(new TMatrixType(0, 0));
     }
 
     static VectorPointerType CreateEmptyVectorPointer()
     {
-        return VectorPointerType(new TVectorType());
+        return VectorPointerType(new TVectorType(0));
     }
 
     /// return size of vector rV
