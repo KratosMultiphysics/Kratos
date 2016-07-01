@@ -1,6 +1,6 @@
 {
     "problem_data"             : {
-        "problem_name"    : "test_interface5",
+        "problem_name"    : "*tcl(file tail [GiD_Info Project ModelName])",
         "model_part_name" : "Structure",
         "domain_size"     : *GenData(DOMAIN_SIZE,INT),
         "echo_level"      : *GenData(Echo_Level)
@@ -27,8 +27,8 @@
 *set var ndomains(int) = 0
 *Set cond group_DeformableBodies *groups
 *loop groups *OnlyInCond           
-    "meshin_domains" : {
-    	"mesh_id": *cond(Group_ID),	   
+    "meshing_domains" : {
+        "mesh_id": *cond(Group_ID),
 	"domain_size": *GenData(DOMAIN_SIZE,INT),
 	"echo_level": *GenData(Echo_Level),
 	"alpha_shape": 2.4,
@@ -43,12 +43,11 @@
 		"mesh_smoothing": *cond(MeshSmoothing),
 		"variables_smoothing": *cond(JacobiSmoothing),
 		"elemental_variables_to_smooth":[ "DETERMINANT_F" ],
-		"reference_element": "Element2D3N"
+		"reference_element": "Element2D3N",
 		"reference_condition": "CompositeCondition2D3N"
-	}	
+	},	
 	"spatial_bounding_box":{
-		"refine_in_box_only": *cond(Refine_on_box_only),
-		"radius":  *cond(Radius_box),
+		"radius": 0.0,
 		"center": [0.0, 0.0, 0.0],
 		"velocity": [0.0, 0.0, 0.0]
 	},	
@@ -85,9 +84,10 @@
 			"on_error": False
 		},              
 		"refining_box":{
-			"radius": 0.0,
-			"center": [0.0, 0.0, 0.0],
-			"velocity": [0.0, 0.0, 0.0]
+			"refine_in_box_only": *cond(Refine_on_box_only),
+			"radius":  *cond(Radius_box),
+			"center": [*cond(Center_box)],
+			"velocity": [*cond(Velocity_box)]
 		}
 	},            
 	"elemental_variables_to_transfer":[ "CAUCHY_STRESS_VECTOR", "DEFORMATION_GRADIENT" ]
