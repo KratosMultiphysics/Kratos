@@ -8,11 +8,10 @@
     <container n="StratParams" pn="Strategy parameters" un="FSIStratParams" icon="groupsTreeNew.gif" state="normal" >
         <dynamicnode command="injectSolStratParams" args="ImplementedInApplication FSIApplication"/>
     </container>
-            
-    <container n="ALEParams" pn="ALE parameters" un="FSIStratParams" icon="groupsTreeNew.gif" state="normal" args="ImplementedInApplication FSIApplication" >
-        <value n="MeshSolver" pn="Mesh solver" type="combo" values="StructuralSimilarity,Laplacian" pvalues="Structural similarity,Laplacian" v="Structural similarity" help="Available ALE mesh solvers."/>
+
+    <container n="ALEParams" pn="ALE parameters" un="FSIALEParams" icon="groupsTreeNew.gif" state="normal" >
+        <value n="MeshSolver" pn="Mesh solver" type="combo" values="mesh_solver_ballvertex,mesh_solver_laplacian,mesh_solver_structural_similarity" dict="mesh_solver_ballvertex,Ballvertex,mesh_solver_laplacian,Laplacian,mesh_solver_structural_similarity,Structural similarity" v="mesh_solver_structural_similarity" help="Available ALE mesh solvers."/>
         <value n="ReformDOFs" pn="Reform DOFs at each step" type="bool" values="false,true" v="false" help="Switch on/off the reform DOFs operation at each step."/>
-        <value n="TimeOrder"  pn="Time order" type="combo" values="1,2" v="2" help="Mesh velocity time approximation order."/>
     </container>
     
     <!--
