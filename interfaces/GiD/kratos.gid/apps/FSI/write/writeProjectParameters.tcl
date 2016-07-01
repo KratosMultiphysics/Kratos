@@ -41,6 +41,9 @@ proc FSI::write::getParametersDict { } {
    set FluidParametersDict [Fluid::write::getParametersDict]
    set current [dict get $FluidParametersDict solver_settings model_import_settings input_filename]
    dict set FluidParametersDict solver_settings model_import_settings input_filename "${current}_Fluid"
+   set nodalresults [dict get $FluidParametersDict output_configuration result_file_configuration nodal_results]
+   lappend nodalresults "DISPLACEMENT"
+   dict set FluidParametersDict output_configuration result_file_configuration nodal_results $nodalresults
    UpdateUniqueNames FSI
    apps::setActiveAppSoft FSI
    

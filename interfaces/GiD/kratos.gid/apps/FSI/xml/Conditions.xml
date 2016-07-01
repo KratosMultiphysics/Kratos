@@ -5,15 +5,15 @@
 	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" VariableName="IS_INTERFACE" App="Fluid"
 	ElementType="Line" ProcessName="SetInterfaceProcess" help="Process to set the interface flag. NOTE THAT THE DEPRECATED FLAG IS INTERFACE IS USED MOVE TO THE INTERFACE ONE ASAP">
     <TopologyFeatures>
-      <item  GeometryType="Line" nodes="2" KratosName="Condition2D2N"/>
+      <item  GeometryType="Line" nodes="2" KratosName="WallCondition2D2N"/>
     </TopologyFeatures>
   </ConditionItem>
-    <ConditionItem n="Interface2D" pn="FSI Interface" ImplementedInFile=".cpp"
+    <ConditionItem n="Interface2D" pn="FSI interface" ImplementedInFile=".cpp"
 	ImplementedInApplication="StructuralMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" VariableName="IS_INTERFACE" App="Structural"
 	ElementType="Line" ProcessName="SetInterfaceProcess" help="Process to set the interface flag. NOTE THAT THE DEPRECATED FLAG IS INTERFACE IS USED MOVE TO THE INTERFACE ONE ASAP">
     <TopologyFeatures>
-      <item  GeometryType="Line" nodes="2" KratosName="Condition2D2N"/>
+      <item  GeometryType="Line" nodes="2" KratosName="WallCondition2D2N"/>
     </TopologyFeatures>
   </ConditionItem>
     <ConditionItem n="FluidNoSlipInterface3D" pn="FSI interface" ImplementedInFile=".cpp"
@@ -21,17 +21,17 @@
 	WorkingSpaceDimension="3D" LocalSpaceDimension="1" SkinConditions="True" VariableName="IS_INTERFACE" App="Fluid"
 	ElementType="Surface" ProcessName="SetInterfaceProcess" help="Process to set the interface flag. NOTE THAT THE DEPRECATED FLAG IS INTERFACE IS USED MOVE TO THE INTERFACE ONE ASAP">
     <TopologyFeatures>
-      <item  GeometryType="Triangle" nodes="3" KratosName="Condition3D3N"/>
-      <item  GeometryType="Quadrilateral" nodes="4" KratosName="Condition3D4N"/>
+      <item  GeometryType="Triangle" nodes="3" KratosName="WallCondition3D3N"/>
+      <item  GeometryType="Quadrilateral" nodes="4" KratosName="WallCondition3D4N"/>
     </TopologyFeatures>
   </ConditionItem>
-    <ConditionItem n="Interface3D" pn="FSI Interface" ImplementedInFile=".cpp"
+    <ConditionItem n="Interface3D" pn="FSI interface" ImplementedInFile=".cpp"
 	ImplementedInApplication="StructuralMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="1" SkinConditions="True" VariableName="IS_INTERFACE" App="Structural"
 	ElementType="Surface" ProcessName="SetInterfaceProcess" help="Process to set the interface flag. NOTE THAT THE DEPRECATED FLAG IS INTERFACE IS USED MOVE TO THE INTERFACE ONE ASAP">
     <TopologyFeatures>
-      <item  GeometryType="Triangle" nodes="3" KratosName="Condition3D3N"/>
-      <item  GeometryType="Quadrilateral" nodes="4" KratosName="Condition3D4N"/>
+      <item  GeometryType="Triangle" nodes="3" KratosName="WallCondition3D3N"/>
+      <item  GeometryType="Quadrilateral" nodes="4" KratosName="WallCondition3D4N"/>
     </TopologyFeatures>
   </ConditionItem>
 	
