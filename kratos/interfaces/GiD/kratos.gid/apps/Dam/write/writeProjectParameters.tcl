@@ -39,24 +39,35 @@ proc Dam::write::getParametersDict { } {
     ### Add section to document
     dict set projectParametersDict diffusion_settings $diffusionSolverSettingsDict
     
+       
     ### Mechanical Settings
     set mechanicalSolverSettingsDict [dict create]
+    dict set mechanicalSolverSettingsDict solver_type "dam_new_mechanical_solver"
+    set modelDict [dict create]
+    dict set modelDict input_type "mdpa"
+    dict set modelDict input_filename $model_name
+    dict set mechanicalSolverSettingsDict model_import_settings $modelDict
     dict set mechanicalSolverSettingsDict solution_type [write::getValue DamSoluType]
     dict set mechanicalSolverSettingsDict analysis_type [write::getValue DamAnalysisType]
     dict set mechanicalSolverSettingsDict strategy_type "Newton-Raphson"
     set mechanicalSolverSettingsDict [dict merge $mechanicalSolverSettingsDict [write::getSolutionStrategyParametersDict] ]
-    set damTypeofSolver [write::getValue DamTypeofsolver]
-    if {$damTypeofSolver eq "Direct"} {
-        dict set mechanicalSolverSettingsDict direct_solver [write::getValue DamDirectsolver]
-    } elseif {$damTypeofSolver eq "Iterative"} {
-        dict set mechanicalSolverSettingsDict direct_solver [write::getValue DamIterativesolver]
+    dict set mechanicalSolverSettingsDict type_of_builder [write::getValue DamTypeofbuilder]
+    dict set mechanicalSolverSettingsDict type_of_solver [write::getValue DamTypeofsolver]
+    set typeofsolver [write::getValue DamTypeofsolver]
+    if {$typeofsolver eq "Direct"} {
+        dict set mechanicalSolverSettingsDict solver_class [write::getValue DamDirectsolver]
+    } elseif {$typeofsolver eq "Iterative"} {
+        dict set mechanicalSolverSettingsDict solver_class [write::getValue DamIterativesolver]
     }
     ### Add section to document
     dict set projectParametersDict mechanical_settings $mechanicalSolverSettingsDict
     
     ### Boundary conditions processes
+    dict set projectParametersDict problem_domain_sub_model_part_list [getSubModelPartNames "DamParts"]
+    dict set projectParametersDict processes_sub_model_part_list [getSubModelPartNames "DamNodalConditions" "DamLoads"]
     dict set projectParametersDict nodal_processes_sub_model_part_list [write::getConditionsParametersDict DamNodalConditions "Nodal"]
     dict set projectParametersDict load_processes_sub_model_part_list [write::getConditionsParametersDict DamLoads ]
+    
     
     ### GiD output configuration
     dict set projectParametersDict output_configuration [write::GetDefaultOutputDict]
@@ -88,29 +99,29 @@ proc write::GetDefaultOutputDict {} {
     return $outputDict
 }
 
-#proc Dam::write::getSubModelPartNames { args } {
-    #set doc $gid_groups_conds::doc
-    #set root [$doc documentElement]
+proc Dam::write::getSubModelPartNames { args } {
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
     
-    #set listOfProcessedGroups [list ]
-    #set groups [list ]
-    #foreach un $args {
-        #set xp1 "[spdAux::getRoute $un]/condition/group"
-        #set xp2 "[spdAux::getRoute $un]/group"
-        #set grs [$root selectNodes $xp1]
-        #if {$grs ne ""} {lappend groups {*}$grs}
-        #set grs [$root selectNodes $xp2]
-        #if {$grs ne ""} {lappend groups {*}$grs}
-    #}
-    #foreach group $groups {
-        #set groupName [$group @n]
-        #set cid [[$group parent] @n]
-        #set gname [::write::getMeshId $cid $groupName]
-        #if {$gname ni $listOfProcessedGroups} {lappend listOfProcessedGroups $gname}
-    #}
+    set listOfProcessedGroups [list ]
+    set groups [list ]
+    foreach un $args {
+        set xp1 "[spdAux::getRoute $un]/condition/group"
+        set xp2 "[spdAux::getRoute $un]/group"
+        set grs [$root selectNodes $xp1]
+        if {$grs ne ""} {lappend groups {*}$grs}
+        set grs [$root selectNodes $xp2]
+        if {$grs ne ""} {lappend groups {*}$grs}
+    }
+    foreach group $groups {
+        set groupName [$group @n]
+        set cid [[$group parent] @n]
+        set gname [::write::getMeshId $cid $groupName]
+        if {$gname ni $listOfProcessedGroups} {lappend listOfProcessedGroups $gname}
+    }
     
-    #return $listOfProcessedGroups
-#}
+    return $listOfProcessedGroups
+}
 
 #proc write::getSolutionStrategyParametersDict {} {
     #set solStratUN [apps::getCurrentUniqueName SolStrat]

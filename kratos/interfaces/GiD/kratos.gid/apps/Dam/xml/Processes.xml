@@ -5,7 +5,7 @@
   <Process n="ImposeVectorValueByComponentsProcess" pn="Impose vector value by components process" implemented_in_file="impose_vector_value_by_components_process"
 		implemented_in_module="KratosMultiphysics" help="This process fixes the selected components of a given vector variable">
     <inputs>
-        <parameter n="value" pn="Value" type="vector" fixity="Fix" v="0.0,0.0,0.0"/>
+        <parameter n="value" pn="Value" type="vector" fixity="Imposed" v="0.0,0.0,0.0"/>
     </inputs>
   </Process>
   
@@ -14,7 +14,7 @@
 		implemented_in_module="KratosMultiphysics" help="This process fixes the given scalar variable">
     <inputs>
         <parameter n="Modified" pn="Modified" type="bool" v="true" />
-        <parameter n="value" pn="Value" type="double" v="0.0" fixity="Fix" />
+        <parameter n="value" pn="Value" type="double" v="0.0" fixity="Imposed" />
     </inputs>
   </Process>   
    
