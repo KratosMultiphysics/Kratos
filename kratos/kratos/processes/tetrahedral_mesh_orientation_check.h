@@ -4,6 +4,7 @@
 
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/element.h"
 #include "includes/kratos_flags.h"
 #include "processes/process.h"
 #include "geometries/geometry.h"
@@ -252,10 +253,13 @@ public:
                         //mark the condition as visited. This will be useful for a check at the endif
                         (it_face->second)->Set(VISITED,true);
 
-//                         if(mrOptions.Is(ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS))
-//                         {
-//                             (it_face->second)->SetValue(NEIGHBOUR_ELEMENT, Element::WeakPointer( *itElem.base() );
-//                         }
+						if(mrOptions.Is(ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS))
+						{
+							WeakPointerVector< Element > VectorOfNeighbours;
+							VectorOfNeighbours.resize(1);
+							VectorOfNeighbours(0) = Element::WeakPointer( *itElem.base() );
+							(it_face->second)->SetValue(NEIGHBOUR_ELEMENTS, VectorOfNeighbours);
+						}
 
                         //compute the normal of the face
                         array_1d<double,3> FaceNormal(3,0.0);
