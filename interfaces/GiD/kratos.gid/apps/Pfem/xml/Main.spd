@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?> 
   <container n="Pfem" pn="PFEM Data" icon="units" prefix="PFEM_" tree_state="open">        
     <container n="Domains" pn="Domains" help="" open="1">
-        <!--<container n="Solids2D" pn="Solids" help="Solid Domains" open="0" state="[checkStateByUniqueName nDim 2D nDim 2Da]">-->
-        <container n="Solids2D" pn="Solids" help="Solid Domains" state="normal">
-            <condition n="Rigid" pn="Rigid"  un="PFEM_Rigid2DParts" ov="line,surface" ovm="" help="">  
+        <container n="Solids2D" pn="Solids" help="Solid Domains" open="0" state="[checkStateByUniqueName nDim 2D nDim 2Da]">
+            <condition n="Rigid" pn="Rigid"  un="PFEM_Rigid2DParts" ov="line,surface" ovm="Line,Triangle" help="">  
                 <value n="ImposedMotion" pn="Imposed Motion" un="PFEM_fixed_solid" v="Yes" values="Yes,No">
                     <dependencies node="../value" actualize="1"/>
                 </value>
@@ -31,7 +30,7 @@
             </condition>
         </container>
         <container n="Solids3D" pn="Solids" help="" open="0" state="[checkStateByUniqueName nDim 3D]" >
-            <condition n="Rigid" pn="Rigid" ov="surface,volume" un="PFEM_Rigid3DParts" ovm="" help="" open="0">  
+            <condition n="Rigid" pn="Rigid" ov="surface,volume" un="PFEM_Rigid3DParts" ovm="Triangle,Tetrahedra" help="" open="0">  
                 <value n="ImposedMotion" pn="Imposed Motion" un="PFEM_fixed_solid" v="Yes" values="Yes,No" >
                     <dependencies node="../value" actualize="1"/>
                 </value>
@@ -53,8 +52,8 @@
                 <value n="PrincipalAxisOfInertia3" pn="Principal Axis Of Inertia 3" v="0.0 0.0 1.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
                 <value n="PrincipalMomentOfInertia3" pn="Principal Moment Of Inertia 3" v="1.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
             </condition>
-            <condition n="Deformable" pn="Deformable"  ov="volume" un="PFEM_Deformable3DParts" ovm="" help="" open="0">
-                <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements ElementType Solid]" state="normal">
+            <condition n="Deformable" pn="Deformable"  ov="volume" un="PFEM_Deformable3DParts" ovm="Tetrahedra" help="" open="0">
+              <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements ElementType Solid]" state="normal">
               <dependencies node="../value" actualize="1" />
             </value>
                 <value n="Material" pn="Material" editable='0' help="Choose a material from the database"
@@ -65,7 +64,7 @@
                 <value n="MeshingDomain" pn="Meshing domain" v="" values="[GetMeshingDomains]" state="normal"/>
             </condition>
         </container>
-        <condition n="Fluids2D" pn="Fluids" ov="surface" un="PFEM_Fluid2DParts" ovm="Triangle,Quadrilateral" help="" open="0" state="[checkStateByUniqueName nDim 2D nDim 2Da]">
+        <condition n="Fluids2D" pn="Fluids" ov="surface" un="PFEM_Fluid2DParts" ovm="Triangle" help="" open="0" state="[checkStateByUniqueName nDim 2D nDim 2Da]">
             <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements ElementType Fluid]" state="normal">
               <dependencies node="../value" actualize="1" />
             </value>
@@ -76,7 +75,7 @@
             </value>
             <value n="MeshingDomain" pn="Meshing domain" v="" values="[GetMeshingDomains]" state="normal"/>
         </condition>
-        <condition n="Fluids3D" pn="Fluids" ov="volume" un="PFEM_Fluid3DParts" ovm="Tetrahedra,Hexahedra" help="" open="0" state="[checkStateByUniqueName nDim 3D]">
+        <condition n="Fluids3D" pn="Fluids" ov="volume" un="PFEM_Fluid3DParts" ovm="Tetrahedra" help="" open="0" state="[checkStateByUniqueName nDim 3D]">
             <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements ElementType Fluid]" state="normal">
               <dependencies node="../value" actualize="1" />
             </value>
@@ -94,15 +93,15 @@
     <include n="Materials" active="1" path="apps/Pfem/xml/Materials.spd"/> 
     
     <container n="Loads" pn="Loads" help="Loads" open="0" icon="loads.gif">
-        <condition n="VolumeAcceleration2D" pn="Self weight" ov="surface" ovm="Triangle,Quadrilateral" state="[checkStateByUniqueName nDim 2D]" help="Gravity (Body Force)">
+        <condition n="VolumeAcceleration2D" pn="Self weight" ov="surface" ovm="Triangle" state="[checkStateByUniqueName nDim 2D]" help="Gravity (Body Force)">
             <value n="GravityX" pn="Gravity X" v="0.0" unit_magnitude="L/T^2" units="m/s^2" help=""/>  
             <value n="GravityY" pn="Gravity Y" v="-9.81" unit_magnitude="L/T^2" units="m/s^2" help=""/>  
         </condition>
-        <condition n="VolumeAcceleration2Da" pn="Self weight" ov="surface" ovm="Triangle,Quadrilateral" state="[checkStateByUniqueName nDim 2Da]" help="Gravity (Body Force)">
+        <condition n="VolumeAcceleration2Da" pn="Self weight" ov="surface" ovm="Triangle" state="[checkStateByUniqueName nDim 2Da]" help="Gravity (Body Force)">
             <value n="GravityX" pn="Gravity X" v="0.0" unit_magnitude="L/T^2" units="m/s^2" help=""/>  
             <value n="GravityY" pn="Gravity Y" v="-9.81" unit_magnitude="L/T^2" units="m/s^2" help=""/>  
         </condition>
-        <condition n="VolumeAcceleration3D" pn="Self weight" ov="volume" ovm="Tetrahedra,Hexahedra" state="[checkStateByUniqueName nDim 3D]" help="Gravity (Body Force)">
+        <condition n="VolumeAcceleration3D" pn="Self weight" ov="volume" ovm="Tetrahedra" state="[checkStateByUniqueName nDim 3D]" help="Gravity (Body Force)">
             <value n="GravityX" pn="Gravity X" v="0.0" unit_magnitude="L/T^2" units="m/s^2" help=""/>  
             <value n="GravityY" pn="Gravity Y" v="0.0" unit_magnitude="L/T^2" units="m/s^2" help=""/>  
             <value n="GravityZ" pn="Gravity Z" v="-9.81" unit_magnitude="L/T^2" units="m/s^2" help=""/>  
@@ -133,11 +132,11 @@
             <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F/L" units="N/m" help=""/>  
             <value n="ForceZ" pn="Force Z" v="0.0" unit_magnitude="F/L" units="N/m" help=""/>  
         </condition>
-        <condition n="SurfaceLoad2D" pn="Force on a surface" ov="surface" ovm="Triangle,Quadrilateral" icon="groupsTreeNew.gif" state="[checkStateByUniqueName nDim 2D]" help="">
+        <condition n="SurfaceLoad2D" pn="Force on a surface" ov="surface" ovm="Triangle" icon="groupsTreeNew.gif" state="[checkStateByUniqueName nDim 2D]" help="">
             <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
             <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
         </condition>
-        <condition n="SurfaceLoad3D" pn="Force on a surface" ov="surface" ovm="Triangle,Quadrilateral" icon="groupsTreeNew.gif" state="[checkStateByUniqueName nDim 3D]" help="">
+        <condition n="SurfaceLoad3D" pn="Force on a surface" ov="surface" ovm="Triangle" icon="groupsTreeNew.gif" state="[checkStateByUniqueName nDim 3D]" help="">
             <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
             <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
             <value n="ForceZ" pn="Force Z" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
