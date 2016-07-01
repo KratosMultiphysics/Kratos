@@ -10,15 +10,15 @@ import json                                 # Encoding library (for data exchang
 
 # Import kratos core and applications
 import KratosMultiphysics
+import KratosMultiphysics.ALEApplication as KratosALE
 import KratosMultiphysics.FSIApplication as KratosFSI
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
-
-
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
+
 
 def CreateSolver(structure_main_model_part, fluid_main_model_part, project_parameters):
     return PartitionedFSISolver(structure_main_model_part, fluid_main_model_part, project_parameters)
@@ -136,11 +136,15 @@ class PartitionedFSISolver:
             "solver_type"       : "partitioned_fsi_solver",
             "nl_tol"            : 1e-5,
             "nl_max_it"         : 50,
+            "move_interface"    : true,
+            "mesh_prediction"   : true,
             "coupling_strategy" : {
                 "solver_type"       : "relaxation_strategy",
                 "acceleration_type" : "Aitken",
                 "w_0"               : 0.825
                 },
+            "mesh_solver"               : "mesh_solver_structural_similarity",
+            "mesh_reform_dofs_each_step"     : false,
             "structure_interfaces_list" : [""],
             "fluid_interfaces_list" : [""]
             }
@@ -156,7 +160,14 @@ class PartitionedFSISolver:
         # Overwrite the default settings with user-provided parameters
         self.settings.ValidateAndAssignDefaults(default_settings)
         
+        # Auxiliar variables
+        self.max_nl_it = self.settings["coupling_solver_settings"]["nl_max_it"].GetInt()
+        self.nl_tol = self.settings["coupling_solver_settings"]["nl_tol"].GetDouble()
+        self.move_interface = self.settings["coupling_solver_settings"]["move_interface"].GetBool()
+        self.mesh_prediction = self.settings["coupling_solver_settings"]["mesh_prediction"].GetBool()
+        
         print("*** Partitioned FSI solver construction starts...")
+        
         # Construct the structure solver
         structure_solver_module = __import__(self.settings["structure_solver_settings"]["solver_type"].GetString())
         self.structure_solver = structure_solver_module.CreateSolver(self.structure_main_model_part, 
@@ -170,13 +181,18 @@ class PartitionedFSISolver:
         print("* Fluid solver constructed.")
         
         # Construct the coupling partitioned strategy
-        self.max_nl_it = self.settings["coupling_solver_settings"]["nl_max_it"].GetInt()
-        self.nl_tol = self.settings["coupling_solver_settings"]["nl_tol"].GetDouble()
-        
         coupling_strategy_name = self.settings["coupling_solver_settings"]["coupling_strategy"]["solver_type"].GetString()
         interface_strategy_module = __import__(coupling_strategy_name)       
         self.coupling_strategy = interface_strategy_module.CreateStrategy(self.settings["coupling_solver_settings"]["coupling_strategy"])
         print("* Coupling strategy constructed.")
+        
+        # Construct the ALE mesh solver
+        mesh_solver_name = self.settings["coupling_solver_settings"]["mesh_solver"].GetString()
+        self.mesh_solver_module = __import__(mesh_solver_name)
+        self.mesh_solver = self.mesh_solver_module.CreateMeshSolver(self.fluid_main_model_part,
+                                                                    self.settings["coupling_solver_settings"]["mesh_reform_dofs_each_step"].GetBool())
+        print("* ALE mesh solver constructed.")
+        
         print("*** FSI partitioned solver construction finished.")
         
         
@@ -198,14 +214,14 @@ class PartitionedFSISolver:
         # Standard CFD variables addition
         self.fluid_solver.AddVariables()
         # FSI variables addition
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE)
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_INTERFACE)    # TODO: IS_INTERFACE is deprecated. Move to INTERFACE.
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE)
+        # Mesh solver variables addition
+        self.mesh_solver_module.AddVariables(self.fluid_solver.main_model_part)
                 
         ## Mapper variables addition
-        NonConformant_OneSideMap.AddVariables(self.fluid_solver.main_model_part,
-                                              self.structure_solver.main_model_part)
+        NonConformant_OneSideMap.AddVariables(self.fluid_solver.main_model_part,self.structure_solver.main_model_part)
+                
                 
     def ImportModelPart(self):
         # Import structure model part
@@ -221,6 +237,7 @@ class PartitionedFSISolver:
            
         # Add DOFs fluid
         self.fluid_solver.AddDofs()
+        self.mesh_solver_module.AddDofs(self.fluid_solver.main_model_part)
         
         
     def Initialize(self):
@@ -230,7 +247,8 @@ class PartitionedFSISolver:
         # Initialize fluid solver
         self.fluid_solver.Initialize()
         
-        
+        # Mesh solver initialization
+        self.mesh_solver.Initialize()
 
         # Get interface problem sizes
         interface_problem_sizes = self._GetInterfaceProblemSizes()
@@ -270,22 +288,22 @@ class PartitionedFSISolver:
         for i in range(0,fluid_interface_residual_size):
             self.iteration_guess_value[i] = 0.0001
             
-        print(self.structure_solver.main_model_part)
+        #~ print(self.structure_solver.main_model_part)
         
-        print(self.structure_solver.main_model_part.Elements[1658])
-        
-        
-        print(self.structure_solver.main_model_part.Nodes[839])
-        print(self.structure_solver.main_model_part.Nodes[807])
-        print(self.structure_solver.main_model_part.Nodes[859])
+        #~ print(self.structure_solver.main_model_part.Elements[1658])
         
         
-        for elem in self.structure_solver.main_model_part.Elements:
-            print(elem.Id)
-            for node in elem.GetNodes():
-                print(node)
+        #~ print(self.structure_solver.main_model_part.Nodes[839])
+        #~ print(self.structure_solver.main_model_part.Nodes[807])
+        #~ print(self.structure_solver.main_model_part.Nodes[859])
+        
+        
+        #~ for elem in self.structure_solver.main_model_part.Elements:
+            #~ print(elem.Id)
+            #~ for node in elem.GetNodes():
+                #~ print(node)
             
-            print(elem)
+            #~ print(elem)
         
                 
     def GetComputeModelPart(self):
@@ -308,14 +326,12 @@ class PartitionedFSISolver:
     def Solve(self):
         
         ##### DEVELOPMENT FLAGS --> TO BE REMOVED AS SOON AS THEY ARE IMPLEMENTED IN THE JSON FILE.
-        mesh_prediction = False
+        self.mesh_prediction = False
         fluid_prediction = False
-        move_interface =  False
+        self.move_interface =  False
         
-        
-        
-        # Compute mesh prediction # --> IMPLEMENT CORRECTLY THE MESH PREDICTION
-        #~ if mesh_prediction == True:
+        ## Compute mesh prediction ##
+        #~ if self.mesh_prediction == True:
             #~ print("Computing time step ",step," prediction...")
             #~ # Get the previous step fluid interface nodal fluxes
             #~ fluid_flux_prev_step = residual_definitions.GetInterfaceNodalResult(self.fluid_solver,"REACTION",1)
@@ -339,7 +355,7 @@ class PartitionedFSISolver:
             
             #~ print("Time step ",step," prediction computed.")
         
-        
+        ## Non-Linear interface coupling iteration ##
         for nl_it in range(1,self.max_nl_it+1):
             
             self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] = nl_it
@@ -353,16 +369,15 @@ class PartitionedFSISolver:
             print("     Residual computation finished. |res|=",nl_res_norm)      
             
             # Move interface nodes
-            if move_interface == True:
-                
-                    solid_interface_disp = self.interface_residual.GetInterfaceNodalResult(self.structure_solver,"DISPLACEMENT",0)
-                    #~ solid_interface_disp = D2_problem.GetInterfaceDisplacement()
-                    solid_interface_disp_comm = wet_interface_comm.StructureToFluid_VectorMap(solid_interface_disp)
-                    D1_problem.MoveInterface(solid_interface_disp_comm)
+            if self.move_interface == True:
+                    
+                    self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
+                                                                     KratosMultiphysics.DISPLACEMENT,
+                                                                     True,False)                      # Project the structure interface displacement onto the fluid interface
+                    self.mesh_solver.MoveNodes()                                                      # Move interface nodes
                     
             # Check convergence
             if nl_res_norm < self.nl_tol:
-                convergence = True
             
                 print("    NON-LINEAR ITERATION CONVERGENCE ACHIEVED")
                 print("    Total non-linear iterations: ",nl_it," NL residual norm: ",nl_res_norm)
@@ -375,6 +390,17 @@ class PartitionedFSISolver:
                                                                                             nl_it,
                                                                                             self.iteration_guess_value,
                                                                                             vel_residual)
+              
+        ## Mesh update ##
+        self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
+                                                         KratosMultiphysics.DISPLACEMENT,
+                                                         True,False)                           # Project the structure interface displacement onto the fluid interface
+        self.mesh_solver.Solve()                                                               # Solve the mesh problem
+        self.mesh_solver.MoveNodes()                                                           # Move nodes
+                
+        # Compute mesh residual
+        mesh_res_norm = self.interface_residual.ComputeMeshResidual()
+        print("MESH RESIDUAL NORM: ",mesh_res_norm)
         
 
     def SetEchoLevel(self, level):
