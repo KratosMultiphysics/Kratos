@@ -20,6 +20,7 @@
 #include "custom_constitutive/DEM_Dempack_CL.h"
 #include "custom_constitutive/DEM_Dempack_2D_CL.h"
 #include "custom_constitutive/DEM_Dempack_torque_CL.h"
+#include "custom_constitutive/DEM_Dempack_dev_CL.h"
 #include "custom_constitutive/dem_kdem_2d_cl.h"
 #include "custom_constitutive/dem_kdem_fabric_2d_cl.h"
 #include "custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.h"
@@ -708,6 +709,7 @@ namespace Kratos
     Serializer::Register("DEM_KDEM", DEM_KDEM());
     Serializer::Register("DEM_KDEMFabric", DEM_KDEMFabric());
     Serializer::Register("DEM_Dempack_torque", DEM_Dempack_torque());
+    Serializer::Register("DEM_Dempack_dev", DEM_Dempack_dev());
     Serializer::Register("DEM_KDEM2D", DEM_KDEM2D());
     Serializer::Register("DEM_ExponentialHC", DEM_ExponentialHC());
     
