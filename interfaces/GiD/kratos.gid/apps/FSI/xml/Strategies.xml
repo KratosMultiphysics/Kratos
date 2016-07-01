@@ -12,6 +12,8 @@
     <parameter_list>
         <parameter n="nl_tol" pn="Non-linear tolerance" type="double" v="1e-5" help="Interface residual tolerance."/>
         <parameter n="nl_max_it" pn="Non-linear max. iterations" type="integer" v="50" help="Maximum number of non-linear iterations."/>
+        <parameter n="move_interface" pn="Interface update" type="bool" values="true,false" v="true" help="Decides wether the interface is updated or not at each non-linear iteration."/>
+        <parameter n="mesh_prediction" pn="Mesh prediction" type="bool" values="true,false" v="true" help="Perform a mesh prediction at the current step with the previous time step information."/>
     </parameter_list>
     
     <linearSolvers>
@@ -50,6 +52,8 @@
     <parameter_list>
         <parameter n="nl_tol" pn="Non-linear tolerance" type="double" v="1e-5" help="Interface residual tolerance."/>
         <parameter n="nl_max_it" pn="Non-linear max. iterations" type="integer" v="50" help="Maximum number of non-linear iterations."/>
+        <parameter n="move_interface" pn="Interface update" type="bool" values="true,false" v="true" help="Decides wether the interface is updated or not at each non-linear iteration."/>
+        <parameter n="mesh_prediction" pn="Mesh prediction" type="bool" values="true,false" v="true" help="Perform a mesh prediction at the current step with the previous time step information."/>
     </parameter_list>
     
     <linearSolvers>
