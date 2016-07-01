@@ -229,12 +229,35 @@ class StaticStructuralSolver(solid_mechanics_static_solver.StaticMechanicalSolve
                                                                          #self.settings["dynamic_factor"].GetDouble())
                 elif  self.settings["compute_mortar_contact"].GetBool():
                     mechanical_scheme = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedIncrementalUpdateStaticContactScheme()
-                    
                 else:
                     mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
                                 
         return mechanical_scheme
     
+    def _GetConvergenceCriterion(self):
+        # Creation of an auxiliar Kratos parameters object to store the convergence settings
+        conv_params = KratosMultiphysics.Parameters("{}")
+        conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
+        conv_params.AddValue("rotation_dofs",self.settings["rotation_dofs"])
+        conv_params.AddValue("echo_level",self.settings["echo_level"])
+        conv_params.AddValue("component_wise",self.settings["component_wise"])
+        conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])
+        conv_params.AddValue("displacement_absolute_tolerance",self.settings["displacement_absolute_tolerance"])
+        conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
+        conv_params.AddValue("residual_absolute_tolerance",self.settings["residual_absolute_tolerance"])
+        
+        # Construction of the class convergence_criterion
+        import convergence_criteria_factory
+        convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_params)
+        
+        if  self.settings["compute_mortar_contact"].GetBool():
+            Mortar = KratosMultiphysics.StructuralMechanicsApplication.MortarConvergenceCriteria()
+            Mortar.SetEchoLevel(self.settings["echo_level"].GetInt())
+
+            convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Mortar, convergence_criterion.mechanical_convergence_criterion)
+        
+        return convergence_criterion.mechanical_convergence_criterion
+        
     def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search):
         
         if(component_wise):

@@ -25,15 +25,18 @@
 
 #include "spaces/ublas_space.h"
 
-//strategies
+// Strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
 #include "custom_strategies/custom_schemes/residual_based_incremental_update_static_contact_scheme.hpp"
 #include "custom_strategies/custom_strategies/residual_based_arc_length_strategy.hpp"
 
-//linear solvers
-#include "linear_solvers/linear_solver.h"
+// Convergence criterias
+#include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "custom_strategies/custom_convergencecriterias/mortar_criteria.h"
 
+// Linear solvers
+#include "linear_solvers/linear_solver.h"
 
 namespace Kratos
 {
@@ -50,8 +53,7 @@ void  AddCustomStrategiesToPython()
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-    typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
-    typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > TConvergenceCriteriaType;
+    typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
     
     // Custom strategy types
      typedef ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedArcLengthStrategyType;
@@ -62,7 +64,11 @@ void  AddCustomStrategiesToPython()
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
 
     // Custom convergence criterion types
-
+    typedef MortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > MortarConvergenceCriteriaType;
+    
+    //********************************************************************
+    //*************************SCHEME CLASSES*****************************
+    //********************************************************************
     
     // Residual Based Relaxation Scheme Type
     class_< ResidualBasedRelaxationSchemeType,
@@ -84,9 +90,24 @@ void  AddCustomStrategiesToPython()
     class_< ResidualBasedArcLengthStrategyType,
             bases< BaseSolvingStrategyType >,  boost::noncopyable >
             (
-                "ResidualBasedArcLengthStrategy", init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer,
+                "ResidualBasedArcLengthStrategy", init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
                                                                 unsigned int, unsigned int, unsigned int,long double,bool, bool, bool>() )
             ;
+            
+    //********************************************************************
+    //*******************CONVERGENCE CRITERIA CLASSES*********************
+    //********************************************************************
+
+    // Displacement Convergence Criterion
+    class_< MortarConvergenceCriteriaType,
+            bases< ConvergenceCriteriaType >, boost::noncopyable >
+            (
+            "MortarConvergenceCriteria", 
+            init< >())
+            .def(init< >())
+            .def("SetEchoLevel", &MortarConvergenceCriteriaType::SetEchoLevel)
+            ;
+            
 }
 
 }  // namespace Python.
