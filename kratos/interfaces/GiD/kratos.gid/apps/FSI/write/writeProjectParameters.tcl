@@ -13,6 +13,9 @@ proc FSI::write::getParametersDict { } {
    set solverSettingsDict [dict merge $solverSettingsDict [write::getSolutionStrategyParametersDict] ]
    set solverSettingsDict [dict merge $solverSettingsDict [write::getSolversParametersDict FSI] ]
    
+   dict set solverSettingsDict mesh_solver [write::getValue FSIALEParams MeshSolver]
+   dict set solverSettingsDict mesh_reform_dofs_each_step [write::getValue FSIALEParams ReformDOFs]
+   
    set solidInterfacesList [write::GetMeshFromCondition STLoads Interface2D]
    lappend solidInterfacesList {*}[write::GetMeshFromCondition STLoads Interface3D]
    dict set solverSettingsDict structure_interfaces_list $solidInterfacesList
