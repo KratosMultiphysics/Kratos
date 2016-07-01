@@ -138,7 +138,7 @@ protected:
             DN_De_Slave                  = ZeroMatrix( rNumberOfSlaveNodes ,  rLocalDimensionSlave );
             DPhi_De_LagrangeMultipliers  = ZeroMatrix( rNumberOfSlaveNodes ,  rLocalDimensionSlave );
 
-            // Gap function
+            // Gap function // TODO: Remove if not used
             IntegrationPointNormalGap.resize( rIntegrationPointNumber, false );
             IntegrationPointNormalVector.resize( rIntegrationPointNumber, false );
             IntegrationPointNormalGap    = ZeroVector( rIntegrationPointNumber );
@@ -259,6 +259,7 @@ protected:
        /*
         * Struct Member Variables
         */
+       
         // Mortar condition matrices - D and M and their directional derivatives
         Matrix D;
         Matrix M;
@@ -268,7 +269,6 @@ protected:
         */
         // Initializer method
         void Initialize( 
-            const bool& rCalculateSlaveContributions  = false,
             const unsigned int& rLocalDimensionMaster = 1, // Xi local coordinate
             const unsigned int& rLocalDimensionSlave  = 1, // Xi local coordinate
             const unsigned int& rNumberOfMasterNodes  = 2, // 2-node line segment
@@ -278,14 +278,13 @@ protected:
         {
             const unsigned int size1 = rDimension * rNumberOfSlaveNodes;
             const unsigned int size2 = rDimension * rNumberOfMasterNodes;
-            if( rCalculateSlaveContributions == true )
+
+            if ( D.size1() != size1 )
             {
-                if ( D.size1() != size1 )
-                {
-                    D.resize( size1, size1, false );
-                }
-                D = ZeroMatrix( size1, size1 );
+                D.resize( size1, size1, false );
             }
+            D = ZeroMatrix( size1, size1 );
+            
             if ( M.size1() != size1 )
             {
                 M.resize( size1, size2, false );
@@ -297,6 +296,40 @@ protected:
         {
             KRATOS_WATCH(D);
             KRATOS_WATCH(M);
+        }
+    };
+    
+   /*
+    * Mortar Weighted Gaps
+    */
+    struct MortarWeightedGaps
+    {
+    public:
+       /*
+        * Struct Member Variables
+        */
+       
+        // Weighted gap
+        Vector gn;
+
+       /*
+        * Struct Methods
+        */
+        // Initializer method
+        void Initialize( 
+            const unsigned int& rNumberOfSlaveNodes   = 2 // 2-node line segment
+            )
+        {
+            if ( gn.size() != rNumberOfSlaveNodes )
+            {
+                gn.resize( rNumberOfSlaveNodes, false );
+            }
+            gn = ZeroVector( rNumberOfSlaveNodes );
+        }
+        
+        void print()
+        {
+            KRATOS_WATCH(gn);
         }
     };
 
@@ -338,6 +371,11 @@ public:
     * Called at the beginning of each iteration
     */
     void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    
+    /**
+    * Called at the end of each iteration
+    */
+    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
 
     /**
     * Initialize System Matrices
@@ -498,25 +536,6 @@ public:
         std::vector<unsigned int>& rInactiveNodes,
         const unsigned int& rPairIndex
         );
-
-    /**
-    * 
-    */
-    void CalculateNormalGapAtIntegrationPoint(
-    GeneralVariables& rVariables,
-    const unsigned int& rPointNumber
-    );
-    
-    /**
-    * Initialize the mortar condition matrices
-    * D and M matrices and the directional derivatives matrices
-    */
-    virtual void InitializeConditionMatrices( 
-        GeneralVariables& rVariables,
-        double& rIntegrationWeight,
-        const unsigned int& rPointNumber,
-        const bool& rCalculateSlaveContributions
-        );
                   
     /**
     * This function loops over all conditions and calculates the overall number of DOFs
@@ -557,8 +576,8 @@ public:
     */
     void CalculateDAndM( 
         GeneralVariables& rVariables,
-        double& rIntegrationWeight,
-        const bool& rCalculateSlaveContributions 
+        const double& rIntegrationWeight,
+        MortarConditionMatrices& ThisMortarConditionMatrices
         );
 
     /*******************************************************************************/
@@ -570,7 +589,7 @@ public:
     virtual void CalculateAndAddLHS( 
         LocalSystemComponents& rLocalSystem,
         GeneralVariables& rVariables,
-        double& rIntegrationWeight 
+        const MortarConditionMatrices& ThisMortarConditionMatrices 
         );
 
     /*
@@ -588,23 +607,15 @@ public:
     virtual void CalculateAndAddRHS( 
         LocalSystemComponents& rLocalSystem,
         GeneralVariables& rVariables,
-        double& rIntegrationWeight 
-        );
-                  
-    /*
-    * 
-    */
-    void CalculateAndAddInternalForces(
-        VectorType& rRightHandSideVector,
-        GeneralVariables & rVariables,
-        double& rIntegrationWeight
+        const MortarConditionMatrices& ThisMortarConditionMatrices 
         );
     
     /*
-    * Assmbles the contact pair RHS block into the condition's RHS
+    * Assembles the contact pair RHS block into the condition's RHS
     */
     void AssembleContactPairRHSToConditionSystem( 
         const unsigned int rPairIndex,
+        const std::vector< unsigned int > active_set,
         VectorType& rPairRHS,
         VectorType& rConditionRHS 
         );
@@ -619,7 +630,7 @@ public:
     void CalculateAndAddMortarContactOperator( 
         MatrixType& rLeftHandSideMatrix,
         GeneralVariables& rVariables,
-        double& rIntegrationWeight 
+        const MortarConditionMatrices& ThisMortarConditionMatrices
     );
         
     /*
@@ -628,7 +639,7 @@ public:
     void CalculateAndAddMortarContactOperator( 
         VectorType& rRightHandSideVector,
         GeneralVariables& rVariables,
-        double& rIntegrationWeight 
+        const MortarConditionMatrices& ThisMortarConditionMatrices
     );
         
     
@@ -748,7 +759,7 @@ private:
 
     IntegrationMethod mThisIntegrationMethod;              // Integration order of the element
     std::vector<Condition*> mThisMasterElements;           // Vector which contains the pointers to the master elements
-    MortarConditionMatrices mThisMortarConditionMatrices;  // The matrices M and D (NOTE: Too much information for a member variable, think how to move after it works)
+    std::vector<MortarWeightedGaps> mThisWeightedGap;      // Vector which contains the weighted gaps of the contact
 
     ///@}
     ///@name Private Operators

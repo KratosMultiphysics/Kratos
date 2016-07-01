@@ -60,42 +60,28 @@ public:
         // Define the discrete contact gap
          Point<3> ProjectedPoint;
          const unsigned int number_nodes = Geom1.PointsNumber();
+         const unsigned int dimension = Geom1.WorkingSpaceDimension();
          contact_container.contact_gap.resize(number_nodes);
          contact_container.active_nodes_slave.resize(number_nodes);
 
          for (unsigned int index = 0; index < number_nodes; index++)
          {
-             ContactUtilities::Project(ContactPoint,  Geom1[index], ProjectedPoint, contact_container.contact_gap[index], contact_normal1);
+             Project(ContactPoint,  Geom1[index], ProjectedPoint, contact_container.contact_gap[index], contact_normal1);
              
              array_1d<double, 3> result;
-             bool inside = Geom2.IsInside(ProjectedPoint, result);
-             if (inside == true)
-             {
-                 contact_container.active_nodes_slave[index] = true;
-             }
-             else
-             {
-                 contact_container.active_nodes_slave[index] = false;
-             }
+             contact_container.active_nodes_slave[index] =  Geom2.IsInside(ProjectedPoint, result);
          }
          
-         contact_container.active_nodes_master.resize(Geom2.PointsNumber());
+         std::vector<bool> active_nodes_master;
+         active_nodes_master.resize(Geom2.PointsNumber());
 
          double aux_value;
          for (unsigned int index = 0; index < Geom2.PointsNumber(); index++)
          {
-             ContactUtilities::Project(Geom1[0],  Geom2[index], ProjectedPoint, aux_value, contact_normal2);
+             Project(Geom1[0],  Geom2[index], ProjectedPoint, aux_value, contact_normal2);
              
              array_1d<double, 3> result;
-             bool inside = Geom1.IsInside(ProjectedPoint, result);
-             if (inside == true)
-             {
-                 contact_container.active_nodes_master[index] = true;
-             }
-             else
-             {
-                 contact_container.active_nodes_master[index] = false;
-             }
+             active_nodes_master[index] = Geom1.IsInside(ProjectedPoint, result);
          }
 
 //          KRATOS_WATCH("-----------------------------------------------------------------------------------------------------------------")
@@ -104,7 +90,8 @@ public:
          
          /* Reading integration points slave condition */
          const GeometryType::IntegrationPointsArrayType& integration_points1 = Geom1.IntegrationPoints( IntegrationOrder );
-         contact_container.active_gauss_slave.resize(integration_points1.size());
+         std::vector<bool> active_gauss_slave;
+         active_gauss_slave.resize(integration_points1.size());
          
          for (unsigned int PointNumber = 0; PointNumber < integration_points1.size(); PointNumber++)
          {
@@ -118,18 +105,9 @@ public:
 
              double dist_aux;
 
-             ContactUtilities::Project(ContactPoint, GaussPoint,  ProjectedGaussPoint, dist_aux, contact_normal1);
+             Project(ContactPoint, GaussPoint,  ProjectedGaussPoint, dist_aux, contact_normal1);
 
-             bool inside = Geom2.IsInside(ProjectedGaussPoint, result);
-             
-             if (inside == true)
-             {
-                 contact_container.active_gauss_slave[PointNumber] = true;
-             }
-             else
-             {
-                 contact_container.active_gauss_slave[PointNumber] = false;
-             }
+             active_gauss_slave[PointNumber] = Geom2.IsInside(ProjectedGaussPoint, result);
              
 //              KRATOS_WATCH(inside);
 //              KRATOS_WATCH(result);
@@ -139,7 +117,8 @@ public:
          
          /* Reading integration points master condition */
          const GeometryType::IntegrationPointsArrayType& integration_points2 = Geom2.IntegrationPoints( IntegrationOrder );
-         contact_container.active_gauss_master.resize(integration_points2.size());
+         std::vector<bool> active_gauss_master;
+         active_gauss_master.resize(integration_points2.size());
          
          for (unsigned int PointNumber = 0; PointNumber < integration_points2.size(); PointNumber++)
          {
@@ -153,20 +132,33 @@ public:
 
              double dist_aux;
 
-             ContactUtilities::Project(ContactPoint, GaussPoint,  ProjectedGaussPoint, dist_aux, contact_normal1);
+             Project(ContactPoint, GaussPoint,  ProjectedGaussPoint, dist_aux, contact_normal1);
 
-             bool inside = Geom1.IsInside(ProjectedGaussPoint, result);
-             
-             if (inside == true)
+             active_gauss_master[PointNumber] =  Geom1.IsInside(ProjectedGaussPoint, result);
+         }
+
+         if (dimension == 2)
+         {
+             if (number_nodes == 2)
              {
-                 contact_container.active_gauss_master[PointNumber] = true;
+                 contact_container.local_coordinates_slave.resize(2, false);
+                 LocalLine2D2NProcess(contact_container.active_nodes_slave, active_gauss_slave, Geom1, contact_container.local_coordinates_slave[0], contact_container.local_coordinates_slave[1], IntegrationOrder);
+                
+                 contact_container.local_coordinates_master.resize(2, false);
+                 LocalLine2D2NProcess(active_nodes_master, active_gauss_slave, Geom2, contact_container.local_coordinates_master[0], contact_container.local_coordinates_master[1], IntegrationOrder);
              }
              else
              {
-                 contact_container.active_gauss_master[PointNumber] = false;
+                 KRATOS_THROW_ERROR( std::logic_error, "NOT IMPLEMENTED. Number of nodes:",  number_nodes);
+                 // TODO: IMPLEMENT MORE GEOMETRIES
              }
          }
-
+         else
+         {
+             KRATOS_THROW_ERROR( std::logic_error, "NOT IMPLEMENTED. Dimension:",  dimension);
+             // TODO: IMPLEMENT IN 3D
+         }
+         
 //         contact_container.print();
     }
 
@@ -519,7 +511,10 @@ public:
         
         for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
         {
-            noalias(node_it->FastGetSolutionStepValue(NORMAL)) = ZeroNormal;
+            if (node_it->Is(INTERFACE))
+            {
+                noalias(node_it->FastGetSolutionStepValue(NORMAL)) = ZeroNormal;
+            }
         }
         
         // Sum all the nodes normals
@@ -534,6 +529,7 @@ public:
                 ConditionNormal(*(cond_it.base()), dimension);
                 
                 const array_1d<double, 3> & rNormal = cond_it->GetValue(NORMAL);
+//                 KRATOS_WATCH(rNormal);
                 for (unsigned int i = 0; i < cond_it->GetGeometry().PointsNumber(); i++)
                 {
                     noalias( cond_it->GetGeometry()[i].FastGetSolutionStepValue(NORMAL) ) += rNormal;
@@ -547,12 +543,15 @@ public:
         
         for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
         {
-            const double norm = norm_2(node_it->FastGetSolutionStepValue(NORMAL));
-            if (norm > tol)
+            if (node_it->Is(INTERFACE))
             {
-                node_it->FastGetSolutionStepValue(NORMAL)  /= norm;
+                const double norm = norm_2(node_it->FastGetSolutionStepValue(NORMAL));
+                if (norm > tol)
+                {
+                    node_it->FastGetSolutionStepValue(NORMAL)  /= norm;
+                }
+//                 KRATOS_WATCH(node_it->FastGetSolutionStepValue(NORMAL) );
             }
-            // KRATOS_WATCH(Normal);
         }
       
     }

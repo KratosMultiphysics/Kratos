@@ -122,7 +122,7 @@ public:
     /***********************************************************************************/
     
     void InitializeNonLinIteration(
-      ModelPart& r_model_part,
+      ModelPart& rModelPart,
       TSystemMatrixType& A,
       TSystemVectorType& Dx,
       TSystemVectorType& b
@@ -131,17 +131,17 @@ public:
         KRATOS_TRY;
         
         // Update normal of the conditions
-        ContactUtilities::ComputeNodesMeanNormalModelPart( r_model_part );
+        ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart );
         
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
         
-        ElementsArrayType& pElements = r_model_part.Elements();
+        ElementsArrayType& pElements = rModelPart.Elements();
         for( typename ElementsArrayType::iterator it = pElements.begin(); it != pElements.end(); ++it )
         {
             (it)->InitializeNonLinearIteration(CurrentProcessInfo);
         }
 
-        ConditionsArrayType& pConditions = r_model_part.Conditions();
+        ConditionsArrayType& pConditions = rModelPart.Conditions();
         for( typename ConditionsArrayType::iterator it = pConditions.begin(); it != pConditions.end(); ++it )
         {
             if ( it->Is( ACTIVE ) )

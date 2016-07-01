@@ -320,6 +320,8 @@ public:
             const unsigned int allocation_size
             );
     
+    void AuxConstructor(ModelPart & rModelPart); 
+    
     virtual ~TreeContactSearch();
 
     ///@}
@@ -347,7 +349,19 @@ public:
      */
     
     void InitializeMortarConditions();
+
+    /**
+     * This function initializes nodes 
+     */
     
+    void InitializeNodes(ModelPart & rModelPart);
+
+    /**
+     * This function initializes conditions
+     */
+    
+    void InitializeConditions(ModelPart & rModelPart);
+
     /**
      * This function clears the NTN conditions already created 
      */
@@ -365,6 +379,12 @@ public:
      */
     
     void ClearMortarConditions();
+    
+    /**
+     * This function clears conditions already created 
+     */
+    
+    void ClearConditions(ModelPart & rModelPart);
     
     /**
      * This function creates a lists  points ready for the NTN method
@@ -385,10 +405,47 @@ public:
     void CreatePointListMortar();
     
     /**
+     * This function creates a node list
+     */
+    
+    void CreatePointListNodes(
+        ModelPart & rModelPart, 
+        PointVector & PoinList
+        );
+
+    /**
+     * This function creates a condition list
+     */
+    
+    void CreatePointListConditions(
+        ModelPart & rModelPart, 
+        PointVector & PoinList
+        );
+    
+    /**
      * This function updates a lists  points ready for the Mortar method
      */
     
     void UpdatePointListMortar(); // TODO: Add the other updates
+    
+
+    /**
+     * This function updates a node list
+     */
+    
+    void UpdatePointListNodes(
+        ModelPart & rModelPart, 
+        PointVector & PoinList
+        );
+
+    /**
+     * This function updates a condition list
+     */
+    
+    void UpdatePointListConditions(
+        ModelPart & rModelPart, 
+        PointVector & PoinList
+        );
     
     /**
      * This function 

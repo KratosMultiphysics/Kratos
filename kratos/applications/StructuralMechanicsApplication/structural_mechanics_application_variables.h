@@ -32,13 +32,23 @@ typedef array_1d<double,3> Vector3;
 
 struct contact_container 
 {
-    Condition*            condition;
-    std::vector<double> contact_gap;
-    std::vector<bool>  active_nodes_slave; // NOTE: This could be simplified using Gauss_lobatto instead
-    std::vector<bool>  active_gauss_slave;
-    std::vector<bool>  active_nodes_master; // NOTE: This could be simplified using Gauss_lobatto instead
-    std::vector<bool>  active_gauss_master;
+    Condition*                         condition;
+    std::vector<double>              contact_gap;
+    std::vector<double>  local_coordinates_slave;
+    std::vector<double> local_coordinates_master;
+    std::vector<bool>         active_nodes_slave; 
   
+    ~contact_container(){}
+    
+    void clear()
+    {
+        delete condition;
+        contact_gap.clear();
+        local_coordinates_slave.clear();
+        local_coordinates_master.clear();
+        active_nodes_slave.clear();
+    }
+    
     void print()
     {
        KRATOS_WATCH(condition);
@@ -48,50 +58,40 @@ struct contact_container
             std::cout << "contact_gap_" << i << " " << contact_gap[i] << std::endl;
        }
        std::cout << std::endl;
+       for (unsigned int i = 0; i < local_coordinates_slave.size(); i++)
+       {
+            std::cout << "local_coordinates_slave_" << i << " " << local_coordinates_slave[i] << std::endl;
+       }
+       std::cout << std::endl;
+       for (unsigned int i = 0; i < local_coordinates_master.size(); i++)
+       {
+            std::cout << "local_coordinates_master_" << i << " " << local_coordinates_master[i] << std::endl;
+       }
+       std::cout << std::endl;
        
        for (unsigned int i = 0; i < active_nodes_slave.size(); i++)
        {
             std::cout << "active_nodes_slave_" << i << " " << active_nodes_slave[i] << std::endl;
        }
        std::cout << std::endl;
-       
-       for (unsigned int i = 0; i < active_gauss_slave.size(); i++)
-       {
-            std::cout << "active_gauss_slave_" << i << " " << active_gauss_slave[i] << std::endl;
-       }
-       std::cout << std::endl;
-       
-       for (unsigned int i = 0; i < active_nodes_master.size(); i++)
-       {
-            std::cout << "active_nodes_master_" << i << " " << active_nodes_master[i] << std::endl;
-       }
-       std::cout << std::endl;
-       
-       for (unsigned int i = 0; i < active_gauss_master.size(); i++)
-       {
-            std::cout << "active_gauss_master_" << i << " " << active_gauss_master[i] << std::endl;
-       }
-       std::cout << std::endl;
     }
     
     void save( Serializer& rSerializer ) const
     {
-        rSerializer.save("condition",       condition);
-        rSerializer.save("contact_gap",   contact_gap);
-//         rSerializer.save("active_nodes", active_nodes_slave); // NOTE: Error, ask
-//         rSerializer.save("active_gauss", active_gauss_slave); // NOTE: Error, ask
-//         rSerializer.save("active_nodes", active_nodes_master); // NOTE: Error, ask
-//         rSerializer.save("active_gauss", active_gauss_master); // NOTE: Error, ask
+        rSerializer.save("condition",                               condition);
+        rSerializer.save("contact_gap",                           contact_gap);
+        rSerializer.save("local_coordinates_slave",   local_coordinates_slave);
+        rSerializer.save("local_coordinates_master", local_coordinates_master);
+//         rSerializer.save("active_nodes_slave", active_nodes_slave);   // NOTE: Error, ask
     }
 
     void load( Serializer& rSerializer )
     {
-        rSerializer.load("condition",       condition);
-        rSerializer.load("contact_gap",   contact_gap);
-//         rSerializer.load("active_nodes", active_nodes_slave); // NOTE: Error, ask 
-//         rSerializer.load("active_gauss", active_gauss_slave); // NOTE: Error, ask 
-//         rSerializer.load("active_nodes", active_nodes_master); // NOTE: Error, ask 
-//         rSerializer.load("active_gauss", active_gauss_master); // NOTE: Error, ask 
+        rSerializer.load("condition",                              condition);
+        rSerializer.load("contact_gap",                          contact_gap);
+        rSerializer.load("local_coordinates_slave",  local_coordinates_slave);
+        rSerializer.load("local_coordinates_master",local_coordinates_master);
+//         rSerializer.load("active_nodes_slave", active_nodes_slave);   // NOTE: Error, ask 
     }
 };
 
