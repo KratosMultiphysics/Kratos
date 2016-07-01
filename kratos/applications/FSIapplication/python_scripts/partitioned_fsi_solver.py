@@ -278,7 +278,10 @@ class PartitionedFSISolver:
         
         # Set the Neumann B.C. in the fluid interface
         if self.settings["coupling_solver_settings"]["coupling_scheme"].GetString() == "NeumannNeumann":
-            self._SetFluidNeumannCondition()    
+            self._SetFluidNeumannCondition()
+            
+        # Set ALE mesh boundary conditions
+        self._SetFluidMeshBoundaryConditions()
         
         # Interface solution initial guess (it might be velocity or fluxes depending on the type of coupling)
         # Note that the FSI problem is defined in terms of the fluid interface
@@ -287,27 +290,9 @@ class PartitionedFSISolver:
 
         for i in range(0,fluid_interface_residual_size):
             self.iteration_guess_value[i] = 0.0001
-            
-        #~ print(self.structure_solver.main_model_part)
-        
-        #~ print(self.structure_solver.main_model_part.Elements[1658])
-        
-        
-        #~ print(self.structure_solver.main_model_part.Nodes[839])
-        #~ print(self.structure_solver.main_model_part.Nodes[807])
-        #~ print(self.structure_solver.main_model_part.Nodes[859])
-        
-        
-        #~ for elem in self.structure_solver.main_model_part.Elements:
-            #~ print(elem.Id)
-            #~ for node in elem.GetNodes():
-                #~ print(node)
-            
-            #~ print(elem)
-        
+
                 
     def GetComputeModelPart(self):
-        ##### THIS FUNCTION IS PROBABLY NOT NECESSARY IN THE COMBINED SOLVER
         pass
         
         
@@ -320,41 +305,37 @@ class PartitionedFSISolver:
         
         
     def SaveRestart(self):
-        pass #one should write the restart file here
+        pass
         
         
     def Solve(self):
-        
-        ##### DEVELOPMENT FLAGS --> TO BE REMOVED AS SOON AS THEY ARE IMPLEMENTED IN THE JSON FILE.
-        self.mesh_prediction = False
-        fluid_prediction = False
-        self.move_interface =  False
-        
+                
         ## Compute mesh prediction ##
-        #~ if self.mesh_prediction == True:
-            #~ print("Computing time step ",step," prediction...")
-            #~ # Get the previous step fluid interface nodal fluxes
-            #~ fluid_flux_prev_step = residual_definitions.GetInterfaceNodalResult(self.fluid_solver,"REACTION",1)
-            #~ fluid_flux_prev_step_comm = wet_interface_comm.FluidToStructure_VectorMap(fluid_flux_prev_step,True)
+        if self.mesh_prediction == True:
+            print("Computing time step ",step," prediction...")
+            # Get the previous step fluid interface nodal fluxes
+            self.interface_mapper.FluidToStructure_VectorMap(KratosMultiphysics.REACTION,
+                                                             KratosMultiphysics.POINT_LOAD,
+                                                             False,False)                                              
                 
-            #~ # Solve the current step structure problem with the previous step fluid interface nodal fluxes
-            #~ D2_problem.SolveNeumann(fluid_flux_prev_step_comm)
-            #~ solid_interface_disp = residual_definitions.GetInterfaceNodalResult(D2_problem,"DISPLACEMENT",0)
-            #~ solid_interface_disp_comm = wet_interface_comm.StructureToFluid_VectorMap(solid_interface_disp,False)
-                
-            #~ # Solve the fluid mesh problem with the obtained solid interface displacements
-            #~ D1_problem.SolveMesh(solid_interface_disp_comm)
+            # Solve the current step structure problem with the previous step fluid interface nodal fluxes
+            self.structure_solver.Solve()
+            # Map the obtained structure displacement to the fluid interface
+            self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
+                                                             KratosMultiphysics.DISPLACEMENT,
+                                                             True,False)
+            # Solve the mesh problem
+            self.mesh_solver.Solve()
+            self.mesh_solver.MoveNodes()
+                                                             
+            # Map the obtained structure velocity to the fluid interface
+            self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.VELOCITY,
+                                                             KratosMultiphysics.VELOCITY,
+                                                             True,False)
         
-            #~ if fluid_prediction == True:
-                #~ # Get the obtained solid interface velocity
-                #~ solid_interface_velo = residual_definitions.GetInterfaceNodalResult(D2_problem,"VELOCITY",1)
-                #~ solid_interface_velo_comm = wet_interface_comm.StructureToFluid_VectorMap(solid_interface_velo,False)
+            # Solve the fluid problem with the updated mesh and the solid interface velocity as Dirichlet B.C.
+            self.fluid_solver.Solve()
             
-                #~ # Solve the fluid domain with the obtained solid interface velocity and the updated mesh
-                #~ D1_problem.SolveDirichlet(solid_interface_velo_comm)
-            
-            #~ print("Time step ",step," prediction computed.")
-        
         ## Non-Linear interface coupling iteration ##
         for nl_it in range(1,self.max_nl_it+1):
             
@@ -416,13 +397,10 @@ class PartitionedFSISolver:
 
     def Clear(self):
         pass
-        #~ self.solver.Clear()
         
         
     def Check(self):
         pass
-        # How to do a check of the interface solver?¿?¿ Probably it is not necessary...
-        #~ self.mechanical_solver.Check()
             
             
     def _GetInterfaceProblemSizes(self):
@@ -513,4 +491,20 @@ class PartitionedFSISolver:
                 elif self.structure_solver.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
                     fluid_computational_volume_submodelpart.CreateNewCondition("PointForce3Dfluid",aux_count,[node.Id],self.fluid_solver.main_model_part.Properties[0]) 
                 
-                aux_count+=1       
+                aux_count+=1
+                
+            
+    def _SetFluidMeshBoundaryConditions(self):
+        # Note that this function also initializes the interface displacement as 0 (the interface submodelpart is within the skin_parts group).
+        
+        for i in range(self.settings["fluid_solver_settings"]["skin_parts"].size()):
+            skin_submodelpart_name = self.settings["fluid_solver_settings"]["skin_parts"][i].GetString()
+            skin_submodelpart_i = self.fluid_solver.main_model_part.GetSubModelPart(skin_submodelpart_name)
+            
+            for node in skin_submodelpart_i.Nodes:
+                node.Fix(KratosMultiphysics.DISPLACEMENT_X)
+                node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
+                node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
+                node.SetValue(KratosMultiphysics.DISPLACEMENT_X,0.0)
+                node.SetValue(KratosMultiphysics.DISPLACEMENT_Y,0.0)
+                node.SetValue(KratosMultiphysics.DISPLACEMENT_Z,0.0)
