@@ -51,7 +51,7 @@ class MeshingStrategy:
         #meshing parameters
         self.MeshingParameters = meshing_parameters  
       
-        meshing_options = Flags()
+        meshing_options = KratosMultiphysics.Flags()
         
         meshing_options.Set(ModelerUtilities.REMESH, self.settings["remesh"].GetBool())
         meshing_options.Set(ModelerUtilities.REFINE, self.settings["refine"].GetBool())
@@ -64,8 +64,8 @@ class MeshingStrategy:
         self.MeshingParameters.SetMeshingOptions(meshing_options)
         
         #set variables to global transfer
-        self.MeshDataTransfer   = MeshDataTransferUtilities()
-        self.TransferParameters = TransferParameters()
+        self.MeshDataTransfer   = KratosPfemBase.MeshDataTransferUtilities()
+        self.TransferParameters = KratosPfemBase.TransferParameters()
         self.global_transfer    = False
         if( self.settings["variables_smoothing"].GetBool() == True ):
             self.global_transfer = True

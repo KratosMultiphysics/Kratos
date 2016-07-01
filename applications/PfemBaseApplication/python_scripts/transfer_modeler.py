@@ -25,7 +25,7 @@ class TransferModeler(mesh_modeler.MeshModeler):
     def InitializeMeshing(self):
         
         # set execution flags: to set the options to be executed in methods and processes
-        execution_options = Flags()
+        execution_options = KratosMultiphysics.Flags()
 
         execution_options.Set(ModelerUtilities.SET_NODES, True)
         execution_options.Set(ModelerUtilities.SET_ELEMENTS, True)
@@ -49,15 +49,15 @@ class TransferModeler(mesh_modeler.MeshModeler):
         
         #nothing to do: only reconnection
         #select mesh elements
-        select_mesh_elements  = SelectMeshElements(self.model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        select_mesh_elements  = KratosPfemBase.SelectMeshElements(self.model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
         self.mesher.SetPostMeshingProcess(select_mesh_elements)
 
         #rebuild elements
-        rebuild_mesh_elements = BuildMeshElements(self.model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        rebuild_mesh_elements = KratosPfemBase.BuildMeshElements(self.model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
         self.mesher.SetPostMeshingProcess(rebuild_mesh_elements)
 
         #rebuild boundary
-        rebuild_mesh_boundary = ReconstructMeshBoundary(self.model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        rebuild_mesh_boundary = KratosPfemBase.ReconstructMeshBoundary(self.model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
         self.mesher.SetPostMeshingProcess(rebuild_mesh_boundary)
 
 
