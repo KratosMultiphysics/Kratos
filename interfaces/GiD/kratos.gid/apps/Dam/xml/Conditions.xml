@@ -1,5 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ConditionList>
+    
+   <!---  Conditions: SELF WEIGHT -->    
+  <ConditionItem n="SelfWeight3D" pn="Self weight" ImplementedInFile="process_factory"
+	ImplementedInApplication="DamApplication" MinimumKratosVersion="13000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="3D" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
+	ElementType="Volume" ProcessName="ApplyConstantVectorValueProcess" VariableName="VOLUME_ACCELERATION"
+    help="Self weight application by means of the ApplyConstantVectorValueProcess in the core" units="m/s^2" unit_magnitude="Acceleration">
+    <TopologyFeatures>
+    </TopologyFeatures>
+    <inputs>
+    </inputs>
+    <DefaultValues>
+	  <value n="factor" pn="Modulus" v="9.8" />
+	  <value n="direction" v="0.0,0.0,-1.0" />
+    </DefaultValues>
+    <outputs>
+      <parameter n="FORCE" pn="External Load" v="false"/>
+    </outputs>
+  </ConditionItem>
+  
+  <ConditionItem n="SelfWeight2D" pn="Self weight" ImplementedInFile="process_factory"
+	ImplementedInApplication="DamApplication" MinimumKratosVersion="13000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="2D" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
+	ElementType="Surface"  ProcessName="ApplyConstantVectorValueProcess" VariableName="VOLUME_ACCELERATION"
+    help="Self weight application by means of the ApplyConstantVectorValueProcess in the core" units="m/s^2" unit_magnitude="Acceleration">
+    <TopologyFeatures>
+    </TopologyFeatures>
+    <inputs>
+    </inputs>
+    <DefaultValues>
+	  <value n="factor" pn="Modulus" v="9.8" />
+	  <value n="direction" v="0.0,-1.0,0.0" />
+    </DefaultValues>
+    <outputs>
+      <parameter n="FORCE" pn="External Load" v="false"/>
+    </outputs>
+  </ConditionItem>
 
    <!---  Conditions: POINT LOADS -->    
   <ConditionItem n="PointLoad2D" pn="Point Load" ImplementedInFile="process_factory"

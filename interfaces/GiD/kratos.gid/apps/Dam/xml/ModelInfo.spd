@@ -10,6 +10,7 @@
         <container n="SolStrat" pn="Solution strategy: Newton-Raphson"  state="normal" un="DamStratParams">
             <dynamicnode command="injectSolStratParams" args="ImplementedInApplication Dam"/>
         </container>
+        <value n="TypeofBuilder" pn="Type of Builder" un="DamTypeofbuilder" v="Elimination" values="Elimination,Block"></value>
         <value n="TypeofSolver" pn="Type of Solver" un="DamTypeofsolver" v="Iterative" values="Direct,Iterative">
             <dependencies node="../value[@n='DirectSolver']" actualize="1"/>
             <dependencies node="../value[@n='IterativeSolver']" actualize="1"/>

@@ -24,8 +24,12 @@
 		<parameter n="residual_absolute_tolerance" pn="Residual absolute tolerance" type="double" v="1e-9" parent="Residual_criterion,And_criterion,Or_criterion" 
 		   help="Absolute residual tolerance employed in the nonlinear iteration"/>
 	  </parameter>
-      <parameter n="max_iteration" pn="Maximum iterations" type="integer" v="10" 
-		 help="This number will break the iterative loop when reached"/> 
+      <parameter n="max_iteration" pn="Maximum iterations" type="integer" v="10" help="This number will break the iterative loop when reached"/> 
+      <parameter n="echo_level" pn="Echo level" type="combo" v="0" values="0,1,2,3" help="Level of printing information"/> 
+      <parameter n="buffer_size" pn="Buffer size" type="combo" v="2" values="1,2,3" help="Number of previous solutions"/>
+      <parameter n="compute_reactions" pn="Compute reactions" type="bool" v="true" values="false,true" help="Compute the reactions"/> 
+      <parameter n="reform_step_dofs" pn="Reform Steps" type="bool" v="false" values="false,true" help="Reform the dofs at each iteration"/>
+      <parameter n="move_mesh_flag" pn="Move mesh flag" type="bool" v="true" values="false,true" help="Move the mesh"/>
     </parameter_list>
     
     <linearSolvers>
