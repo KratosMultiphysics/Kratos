@@ -130,6 +130,7 @@ namespace Kratos {
         double total_equiv_area = 0.0;
         double total_mContIniNeighArea = 0.0;
         int cont_ini_neighbours_size = mContinuumInitialNeighborsSize;
+        double porosity = 0.2373;
 
         for (int i = 0; i < cont_ini_neighbours_size; i++) {
             SphericParticle* ini_cont_neighbour_iterator = mNeighbourElements[i];
@@ -148,9 +149,9 @@ namespace Kratos {
                 std::ofstream outputfile("alpha.txt", std::ios_base::out | std::ios_base::app);
                 outputfile << alpha << "\n";
                 outputfile.close();
-                //alpha = 1.0;
+
                 for (unsigned int i = 0; i < mContIniNeighArea.size(); i++) {
-                    mContIniNeighArea[i] = alpha * mContIniNeighArea[i];
+                    mContIniNeighArea[i] = (porosity/0.228) * alpha * mContIniNeighArea[i];
                     total_mContIniNeighArea += mContIniNeighArea[i];
                 } //for every neighbor
 
@@ -173,14 +174,17 @@ namespace Kratos {
         int cont_ini_neighbours_size = mContinuumInitialNeighborsSize;
         double effectiveVolumeRadiusSum = 0.0;
         for (int i = 0; i < cont_ini_neighbours_size; i++) {
-            //SphericParticle* ini_cont_neighbour_iterator = mNeighbourElements[i];
-            //double other_radius = ini_cont_neighbour_iterator->GetRadius();
+            SphericParticle* ini_cont_neighbour_iterator = mNeighbourElements[i];
+            double other_radius = ini_cont_neighbour_iterator->GetRadius();
 
             SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
             array_1d<double, 3> other_to_me_vect;
             noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
             double distance = DEM_MODULUS_3(other_to_me_vect);
-            effectiveVolumeRadiusSum += (distance)/2;}
+            //effectiveVolumeRadiusSum += (distance)/2;}                                                //1
+            effectiveVolumeRadiusSum += (distance-(GetRadius()+other_radius))/2 + GetRadius();}       //2
+            //effectiveVolumeRadiusSum += distance - other_radius;}                                       //3
+
             // alternativa teorica: effectiveVolumeRadiusSum += (-GetInitialDelta(i))/2;}  ja que initial_delta = radius_sum - distance;
 
        double effectiveVolumeRadius = effectiveVolumeRadiusSum / cont_ini_neighbours_size;
@@ -499,6 +503,30 @@ namespace Kratos {
         return max_local_search;
         KRATOS_CATCH("")
     }
+
+
+
+    bool SphericContinuumParticle::OverlappedParticleRemoval() {
+        KRATOS_TRY
+
+        for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+            if(mNeighbourElements[i] == NULL) continue;
+            SphericParticle* ini_cont_neighbour_iterator = mNeighbourElements[i];
+            double other_radius = ini_cont_neighbour_iterator->GetRadius();
+
+            SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
+            array_1d<double, 3> other_to_me_vect;
+            noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
+            double distance = DEM_MODULUS_3(other_to_me_vect);
+
+            if (GetRadius() + distance < 1.0*other_radius) {this->Set(TO_ERASE, true);  // GetRadius() + distance < alpha*other_radius  alpha = 1 particle completly inside one another
+               return true;}
+        }
+        return false;
+        KRATOS_CATCH("")
+
+    }
+
 
 
     double SphericContinuumParticle::CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) {

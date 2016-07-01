@@ -87,7 +87,7 @@ namespace Kratos {
                 SphericContinuumParticle* element1,
                 SphericContinuumParticle* element2,
                 int i_neighbour_count,
-                int time_steps) override;
+                int time_steps);
 
 
         virtual void CalculateTangentialForces(double LocalElasticContactForce[3],
@@ -103,7 +103,7 @@ namespace Kratos {
                 int i_neighbour_count,
                 bool& sliding,
                 int search_control,
-                vector<int>& search_control_vector) override;
+                vector<int>& search_control_vector);
         
         virtual void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                       SphericContinuumParticle* neighbor,

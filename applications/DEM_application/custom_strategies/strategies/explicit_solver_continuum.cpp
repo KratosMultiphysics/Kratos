@@ -65,6 +65,9 @@ namespace Kratos {
         // 3. Search Neighbors with tolerance (after first repartition process)
         BaseType::SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_TOLERANCE], 1.0);
         SearchNeighbours();
+        MeshRepairOperations();
+        SearchNeighbours();
+
 
         if (BaseType::GetDeltaOption() == 2) {
             SetCoordinationNumber(r_model_part);
@@ -444,10 +447,12 @@ namespace Kratos {
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
 
         const double in_coordination_number = r_process_info[COORDINATION_NUMBER];
-        double out_coordination_number = ComputeCoordinationNumber();
+        double standard_dev = 0;
+        double out_coordination_number = ComputeCoordinationNumber(standard_dev);
         int iteration = 0;
         int maxiteration = 100;
         double& added_search_distance = r_process_info[SEARCH_TOLERANCE];
+
 
         std::cout << "Setting up Coordination Number by increasing or decreasing the search radius... " << std::endl;
 
@@ -466,19 +471,23 @@ namespace Kratos {
             added_search_distance *= in_coordination_number / out_coordination_number;
             BaseType::SetSearchRadiiOnAllParticles(r_model_part, added_search_distance, 1.0);
             SearchNeighbours(); //r_process_info[SEARCH_TOLERANCE] will be used inside this function, and it's the variable we are updating in this while
-            out_coordination_number = ComputeCoordinationNumber();
+            out_coordination_number = ComputeCoordinationNumber(standard_dev);
         }//while
 
-        if (iteration < maxiteration) std::cout << "Coordination Number iteration converged after " << iteration << " iterations, to value " << out_coordination_number << " using an extension of " << added_search_distance << ". " << "\n" << std::endl;
+        if (iteration < maxiteration){
+            std::cout << "Coordination Number iterative procedure converged after " << iteration << " iterations, to value " << out_coordination_number << " using an extension of " << added_search_distance << ". " << "\n" << std::endl;
+            std::cout << "Standard deviation for achieved coordination number is " << standard_dev << ". " << "\n" << std::endl;
+            std::cout << "This means that most particles (about 68% of the total particles, assuming a normal distribution) have a coordination number within " <<  standard_dev << " contacts of the mean (" << out_coordination_number-standard_dev << "–" << out_coordination_number+standard_dev << " contacts). " << "\n" << std::endl;}
+
         else {
-            std::cout << "Coordination Number iteration did NOT converge after " << iteration << " iterations. Coordination number reached is " << out_coordination_number << ". " << "\n" << std::endl;
+            std::cout << "Coordination Number iterative procedure did NOT converge after " << iteration << " iterations. Coordination number reached is " << out_coordination_number << ". " << "\n" << std::endl;
             KRATOS_THROW_ERROR(std::runtime_error, "Please use a Absolute tolerance instead ", " ")
                     //NOTE: if it doesn't converge, problems occur with contact mesh and rigid face contact.
         }
 
     } //SetCoordinationNumber
 
-    double ContinuumExplicitSolverStrategy::ComputeCoordinationNumber() {
+    double ContinuumExplicitSolverStrategy::ComputeCoordinationNumber(double& standard_dev) {
         KRATOS_TRY
 
         ModelPart& r_model_part = BaseType::GetModelPart();
@@ -516,9 +525,7 @@ namespace Kratos {
 
         double coord_number = double(global_total_contacts) / double(global_number_of_elements);
 
-        //double standard_dev = sqrt(total_sum / number_of_particles);
-        //if (coord_number > 9.9){
-        //std::cout << "Standard deviation for achieved coordination number reached is " << standard_dev << ". " << "\n" << std::endl;}
+        standard_dev = sqrt(total_sum / number_of_particles);
 
         return coord_number;
 
@@ -573,6 +580,45 @@ namespace Kratos {
         }
 
         r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION] = maximum_across_threads;
+
+        KRATOS_CATCH("")
+    }
+
+
+    void ContinuumExplicitSolverStrategy::MeshRepairOperations() {
+
+        KRATOS_TRY
+
+        const int number_of_particles = (int) mListOfSphericContinuumParticles.size();
+        int particle_counter = 0.0;
+
+        #pragma omp parallel for
+        for (int i = 0; i < number_of_particles; i++) {
+            bool result = mListOfSphericContinuumParticles[i]->OverlappedParticleRemoval();
+
+            if (result == true) {particle_counter += 1;}
+        }
+
+        DestroyMarkedParticlesRebuildLists();
+
+        std::cout << "Mesh repair complete. " << particle_counter << " particles were removed. " << "\n" << std::endl;
+
+        KRATOS_CATCH("")
+    }
+
+
+    void ContinuumExplicitSolverStrategy::DestroyMarkedParticlesRebuildLists() {
+
+        KRATOS_TRY
+
+        ModelPart& r_model_part = GetModelPart();
+
+        BaseType::GetParticleCreatorDestructor()->DestroyParticles(r_model_part);
+
+        RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles); //These lists are necessary because the elements in this partition might have changed.
+        RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
+        RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericContinuumParticles);
+        RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
 
         KRATOS_CATCH("")
     }

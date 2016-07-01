@@ -76,10 +76,12 @@ namespace Kratos {
         void ContactInitializeSolutionStep();
         void PrepareContactElementsForPrinting();
         void SetCoordinationNumber(ModelPart& r_model_part);
-        double ComputeCoordinationNumber();
+        double ComputeCoordinationNumber(double& standard_dev);
         void BoundingBoxUtility(bool is_time_to_mark_and_remove = true);
         void Check_MPI(bool& has_mpi);
-        void CalculateMaxSearchDistance();
+        virtual void CalculateMaxSearchDistance();
+        virtual void MeshRepairOperations();
+        virtual void DestroyMarkedParticlesRebuildLists();
         void CalculateMeanContactArea();
         void SetInitialDemContacts();
         void SetInitialFemContacts();

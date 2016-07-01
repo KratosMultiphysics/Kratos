@@ -7,52 +7,24 @@
 
 // Project includes
 //#include "DEM_application.h"
-#include "DEM_Dempack_CL.h"
+#include "DEM_Dempack_dev_CL.h"
 //#include "custom_elements/spheric_particle.h"
 #include "custom_elements/spheric_continuum_particle.h"
 
 namespace Kratos {
 
-    void DEM_Dempack::Initialize() {
-        
-    KRATOS_TRY  
-        mHistoryMaxInd              = 0.0; //maximum indentation achieved
-        mHistoryMaxForce            = 0.0; //maximum force achieved
-        mHistoryDamage              = 0.0; //cumulated_damage
-        mHistoryDegradation         = 1.0; //degradation factor for G reducing in Dempack;
-        mHistoryDisp                = 0.0; //displacement;
-        mHistoryShearFlag           = 0.0; //superado el limite de cortante;  
-    KRATOS_CATCH("")  
-    }
-
-    DEMContinuumConstitutiveLaw::Pointer DEM_Dempack::Clone() const {
-        DEMContinuumConstitutiveLaw::Pointer p_clone(new DEM_Dempack(*this));
+    DEMContinuumConstitutiveLaw::Pointer DEM_Dempack_dev::Clone() const {
+        DEMContinuumConstitutiveLaw::Pointer p_clone(new DEM_Dempack_dev(*this));
         return p_clone;
     }
 
-    void DEM_Dempack::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
-        std::cout << "Assigning DEM_Dempack to Properties " << pProp->Id() << std::endl;
+    void DEM_Dempack_dev::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
+        std::cout << "Assigning DEM_Dempack_dev to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
-    void DEM_Dempack::CalculateContactArea(double radius, double other_radius, double& calculation_area) {
-        
-        KRATOS_TRY
-        double rmin = radius;
-        if (other_radius < radius) rmin = other_radius;
-        calculation_area = KRATOS_M_PI * rmin*rmin;
 
-        KRATOS_CATCH("")  
-    }
-
-    double DEM_Dempack::CalculateContactArea(double radius, double other_radius, std::vector<double>& v) {
-        double area = 0.0;
-        CalculateContactArea(radius, other_radius, area);
-        v.push_back(area);
-        return area;
-    }
-
-    void DEM_Dempack::GetContactArea(const double radius,
+    void DEM_Dempack_dev::GetContactArea(const double radius,
                                      const double other_radius,
                                      const std::vector<double> & vector_of_initial_areas,
                                      const int neighbour_position,
@@ -64,52 +36,8 @@ namespace Kratos {
 
     }
 
-    double DEM_Dempack::LocalMaxSearchDistance(const int i,
-                                               SphericContinuumParticle* element1,
-                                               SphericContinuumParticle* element2) {
 
-        Properties& element1_props = element1->GetProperties();
-        Properties& element2_props = element2->GetProperties();
-        double mDamageMaxDisplacementFactor;
-        double mTensionLimit;
-
-        // calculation of equivalent young modulus
-        double myYoung = element1->GetYoung();
-        double other_young = element2->GetYoung();
-        double equiv_young = 2.0 * myYoung * other_young / (myYoung + other_young);
-
-        const double my_radius = element1->GetRadius();
-        const double other_radius = element2->GetRadius();
-
-        double calculation_area = 0; 
-        CalculateContactArea(my_radius, other_radius, calculation_area);
-
-        double radius_sum = my_radius + other_radius;
-        double initial_delta = element1->GetInitialDelta(i);
-        double initial_dist = radius_sum - initial_delta;
-
-        // calculation of elastic constants
-        double kn_el = equiv_young * calculation_area / initial_dist;
-
-        if (&element1_props == &element2_props) {
-             mDamageMaxDisplacementFactor = element1_props[DAMAGE_FACTOR];
-             mTensionLimit = element1_props[CONTACT_SIGMA_MIN]*1e6;
-        } else {
-            mDamageMaxDisplacementFactor = 0.5*(element1_props[DAMAGE_FACTOR] + element2_props[DAMAGE_FACTOR]);
-            mTensionLimit = 0.5*1e6*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]);
-        }
-
-        const double Ntstr_el = mTensionLimit * calculation_area;
-        double u1 = Ntstr_el / kn_el;
-        //if (u1 > 2*radius_sum) {u1 = 2*radius_sum;}   // agregar opcion input desde gid
-        double u2 = u1 * (1 + mDamageMaxDisplacementFactor)*10;
-        return u2;
-
-    }
-
-
-
-    void DEM_Dempack::CalculateElasticConstants(double &kn_el,
+    void DEM_Dempack_dev::CalculateElasticConstants(double &kn_el,
                                                 double &kt_el,
                                                 double initial_dist,
                                                 double equiv_young,
@@ -117,105 +45,15 @@ namespace Kratos {
                                                 double calculation_area) {
         
         KRATOS_TRY 
-        double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
+        //double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
         kn_el = equiv_young * calculation_area / initial_dist;
-        kt_el = equiv_shear * calculation_area / initial_dist;
+        kt_el = equiv_young * calculation_area / initial_dist;
         KRATOS_CATCH("")  
     }
 
-    void DEM_Dempack::CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
-                                                double &equiv_visco_damp_coeff_tangential,
-                                                SphericContinuumParticle* element1,
-                                                SphericContinuumParticle* element2,
-                                                const double kn_el,
-                                                const double kt_el) {
-        
-        KRATOS_TRY 
-        double aux_norm_to_tang = 0.0;               // sqrt(kt_el / kn_el);
-        const double mRealMass = element1->GetMass();
-        const double &other_real_mass = element2->GetMass();
-        const double mCoefficientOfRestitution = element1->GetProperties()[COEFFICIENT_OF_RESTITUTION];
-        const double mOtherCoefficientOfRestitution = element2->GetProperties()[COEFFICIENT_OF_RESTITUTION];
-        const double equiv_coefficientOfRestitution = 0.5 * (mCoefficientOfRestitution + mOtherCoefficientOfRestitution);
 
-        equiv_visco_damp_coeff_normal = (1-equiv_coefficientOfRestitution) * 2.0 * sqrt(kn_el / (mRealMass + other_real_mass)) * (sqrt(mRealMass * other_real_mass)); // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
-        equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // Dempack no ho fa servir...
-        KRATOS_CATCH("")  
-    }
 
-    void DEM_Dempack::CalculateForces(const ProcessInfo& r_process_info,
-                                    double OldLocalElasticContactForce[3],
-                                    double LocalElasticContactForce[3],
-                                    double LocalDeltDisp[3],
-                                    const double kn_el,
-                                    const double kt_el,
-                                    double& contact_sigma,
-                                    double& contact_tau,
-                                    double& failure_criterion_state,
-                                    double equiv_young,
-                                    double indentation,
-                                    double calculation_area,
-                                    double& acumulated_damage,
-                                    SphericContinuumParticle* element1,
-                                    SphericContinuumParticle* element2,
-                                    int i_neighbour_count,
-                                    int time_steps,
-                                    bool& sliding,
-                                    int search_control,
-                                    vector<int>& search_control_vector,
-                                    double &equiv_visco_damp_coeff_normal,
-                                    double &equiv_visco_damp_coeff_tangential,
-                                    double LocalRelVel[3],
-                                    double ViscoDampingLocalContactForce[3],
-                                    int failure_id) {
-
-        KRATOS_TRY
-
-        CalculateNormalForces(LocalElasticContactForce,
-                kn_el,
-                equiv_young,
-                indentation,
-                calculation_area,
-                acumulated_damage,
-                element1,
-                element2,
-                i_neighbour_count,
-                time_steps);
-
-        CalculateTangentialForces(LocalElasticContactForce,
-                LocalDeltDisp,
-                kt_el,
-                contact_sigma,
-                contact_tau,
-                indentation,
-                calculation_area,
-                failure_criterion_state,
-                element1,
-                element2,
-                i_neighbour_count,
-                sliding,
-                search_control,
-                search_control_vector);
-
-        CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal,
-                                   equiv_visco_damp_coeff_tangential,
-                                   element1,
-                                   element2,
-                                   kn_el,
-                                   kt_el);
-
-        CalculateViscoDamping(LocalRelVel,
-                              ViscoDampingLocalContactForce,
-                              indentation,
-                              equiv_visco_damp_coeff_normal,
-                              equiv_visco_damp_coeff_tangential,
-                              sliding,
-                              failure_id);
-
-        KRATOS_CATCH("")  
-    }
-
-    void DEM_Dempack::CalculateNormalForces(double LocalElasticContactForce[3],
+    void DEM_Dempack_dev::CalculateNormalForces(double LocalElasticContactForce[3],
             const double kn_el,
             double equiv_young,
             double indentation,
@@ -225,7 +63,7 @@ namespace Kratos {
             SphericContinuumParticle* element2,
             int i_neighbour_count,
             int time_steps) {
-        
+
         KRATOS_TRY
 
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
@@ -243,6 +81,12 @@ namespace Kratos {
         double mDamageMaxDisplacementFactor;
         double mTensionLimit;
 
+
+
+        double rmin = element1->GetRadius();
+        const double other_radius = element2->GetRadius();
+        if (other_radius < rmin) rmin = other_radius;
+        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
 
         if (&element1_props == &element2_props) {
 
@@ -274,15 +118,15 @@ namespace Kratos {
         const double kn_c = kn_el / mN2;
         const double kn_d = kn_el / mN3;
         const double kp_el = mYoungPlastic / equiv_young * kn_el;
-        const double Yields_el = mPlasticityLimit * calculation_area;
+        const double Yields_el = mPlasticityLimit * effective_calculation_area;
 
-        const double Ncstr1_el = mC1 * calculation_area;
-        const double Ncstr2_el = mC2 * calculation_area;
-        const double Ncstr3_el = mC3 * calculation_area;
-        const double Ntstr_el = mTensionLimit * calculation_area;
+        const double Ncstr1_el = mC1 * effective_calculation_area;
+        const double Ncstr2_el = mC2 * effective_calculation_area;
+        const double Ncstr3_el = mC3 * effective_calculation_area;
+        const double Ntstr_el = mTensionLimit * effective_calculation_area;
         double u_max = mHistoryMaxInd;
 
-        double& fn = LocalElasticContactForce[2]; //[2] means 'normal' contact force                
+        double& fn = LocalElasticContactForce[2]; //[2] means 'normal' contact force
 
         if (indentation >= 0.0) { //COMPRESSION
 
@@ -370,14 +214,13 @@ namespace Kratos {
             else {fn = 0.0;}
         } //Tension
 
-    KRATOS_CATCH("")  
+    KRATOS_CATCH("")
     }
-
 
 
       /////// check old tangential forces calculations with unstable rotations
 
-//    void DEM_Dempack::CalculateTangentialForces(double LocalElasticContactForce[3],
+//    void DEM_Dempack_dev::CalculateTangentialForces(double LocalElasticContactForce[3],
 //            double LocalDeltDisp[3],
 //            const double kt_el,
 //            double& contact_sigma,
@@ -500,7 +343,7 @@ namespace Kratos {
 
 
 
-    void DEM_Dempack::CalculateTangentialForces(double LocalElasticContactForce[3],
+    void DEM_Dempack_dev::CalculateTangentialForces(double LocalElasticContactForce[3],
             double LocalDeltDisp[3],
             const double kt_el,
             double& contact_sigma,
@@ -524,6 +367,10 @@ namespace Kratos {
         double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
                                   + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
+        double rmin = element1->GetRadius();
+        const double other_radius = element2->GetRadius();
+        if (other_radius < rmin) rmin = other_radius;
+        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
 
         if (failure_type == 0) { //This means it has not broken
             Properties& element1_props = element1->GetProperties();
@@ -531,8 +378,8 @@ namespace Kratos {
             const double mTauZero = 0.5 * 1e6 * (element1_props[CONTACT_TAU_ZERO] + element2_props[CONTACT_TAU_ZERO]);
             const double mInternalFriction = 0.5 * (element1_props[CONTACT_INTERNAL_FRICC] + element2_props[CONTACT_INTERNAL_FRICC]);
 
-            contact_tau = ShearForceNow / calculation_area;
-            contact_sigma = LocalElasticContactForce[2] / calculation_area;
+            contact_tau = ShearForceNow / effective_calculation_area;
+            contact_sigma = LocalElasticContactForce[2] / effective_calculation_area;
 
             double tau_strength = mTauZero;
 
@@ -565,7 +412,7 @@ namespace Kratos {
 
 
     
-    void DEM_Dempack::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
+    void DEM_Dempack_dev::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                     SphericContinuumParticle* neighbor,
                                                     double equiv_young,
                                                     double distance,
