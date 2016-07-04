@@ -14,6 +14,7 @@
 
 // System includes
 #include <chrono>
+#include <regex>
 
 // External includes
 
@@ -72,6 +73,17 @@ namespace Kratos
 			UnSelectAllTestCases();
 			GetTestSuite(TestSuiteName).Select();
 			RunSelectedTestCases();
+		}
+
+		void Tester::RunTestCases(std::string const& TestCasesNamePattern)
+		{
+			ResetAllTestCasesResults();
+			UnSelectAllTestCases();
+			SelectTestCasesByPattern(TestCasesNamePattern);
+			RunSelectedTestCases();
+
+			//KRATOS_CHECK(std::regex_match(s, std::regex(buffer.str())));
+
 		}
 
 		void Tester::ProfileTestSuite(std::string const& TestSuiteName)
@@ -213,6 +225,19 @@ namespace Kratos
 					i_test->second->UnSelect();
 		}
 
+		void Tester::SelectTestCasesByPattern(std::string const& TestCasesNamePattern)
+		{
+			// creating the regex pattern replacing * with ".*"
+			std::regex replace_star("\\*");
+			std::stringstream regex_pattern_string;
+			std::regex_replace(std::ostreambuf_iterator<char>(regex_pattern_string),
+				TestCasesNamePattern.begin(), TestCasesNamePattern.end(), replace_star, ".*");
+			for (auto i_test = GetInstance().mTestCases.begin();
+			i_test != GetInstance().mTestCases.end(); i_test++)
+				if (std::regex_match(i_test->second->Name(), std::regex(regex_pattern_string.str())))
+					i_test->second->Select();
+
+		}
 
 		void Tester::RunSelectedTestCases()
 		{
@@ -299,16 +324,19 @@ namespace Kratos
 		{
 			if (GetInstance().mVerbosity == Verbosity::PROGRESS)
 				rOStream << std::endl;
-			std::size_t number_of_failed_tests = NumberOfFailedTestCases();
-			std::string test_cases = " Test Case";
-			if (NumberOfRunTests > 1)
-				test_cases += "s";
+
+			auto number_of_failed_tests = NumberOfFailedTestCases();
+
+			std::string total_test_cases = " test case";
+			auto total_test_cases_size = GetInstance().mTestCases.size();
+			if (total_test_cases_size > 1)
+				total_test_cases += "s";
 
 			if (number_of_failed_tests == 0)
-				rOStream << NumberOfRunTests << test_cases << " run in " << ElapsedTime << "s. OK." << std::endl;
+				rOStream << "Ran " << NumberOfRunTests << " of " << total_test_cases_size << total_test_cases << " in " << ElapsedTime << "s. OK." << std::endl;
 			else
 			{
-				rOStream << NumberOfRunTests << test_cases << " run in " << ElapsedTime << "s. " << number_of_failed_tests << " failed:" << std::endl;
+				rOStream << "Ran " << NumberOfRunTests << " of " << total_test_cases_size << total_test_cases << " in " << ElapsedTime << "s. " << number_of_failed_tests << " failed:" << std::endl;
 				ReportFailures(rOStream);
 			}
 
