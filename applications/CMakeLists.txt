@@ -42,6 +42,8 @@ message("PARTICLE_MECHANICS_APPLICATION...... ${PARTICLE_MECHANICS_APPLICATION}"
 message("FORMING_APPLICATION................. ${FORMING_APPLICATION}")
 message("DAM_APPLICATION..................... ${DAM_APPLICATION}")
 message("SHAPE_OPTIMIZATION_APPLICATION...... ${SHAPE_OPTIMIZATION_APPLICATION}")
+message("MY_LAPLACIAN_APPLICATION............ ${MY_LAPLACIAN_APPLICATION}")
+message("LAGRANGIAN_MPM_APPLICATION.......... ${LAGRANGIAN_MPM_APPLICATION}")
 message( " ")
 
 
@@ -226,6 +228,14 @@ endif(${DAM_APPLICATION} MATCHES ON)
 if(${SHAPE_OPTIMIZATION_APPLICATION} MATCHES ON)
   add_subdirectory(ShapeOptimizationApplication)
 endif(${SHAPE_OPTIMIZATION_APPLICATION} MATCHES ON)
+
+if(${MY_LAPLACIAN_APPLICATION} MATCHES ON)
+  add_subdirectory(MyLaplacianApplication)
+endif(${MY_LAPLACIAN_APPLICATION} MATCHES ON)
+
+if(${LAGRANGIAN_MPM_APPLICATION} MATCHES ON)
+  add_subdirectory(LagrangianMPMApplication)
+endif(${LAGRANGIAN_MPM_APPLICATION} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")
