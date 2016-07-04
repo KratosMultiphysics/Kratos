@@ -4,7 +4,7 @@
 			<dependencies node="../value" actualize="1" />
 	  </value>
 	  <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" v=""
-			 values="" dict="[GetConstitutiveLaws]" state="[UpdateDictAndReturnState]">
+			 values="" dict="[GetConstitutiveLaws]" state="normal">
 			<dependencies node="../value" actualize="1"/>
 	  </value>
 <!--	  <value n="Material" pn="Material" editable='0' help="Choose a material from the database"
