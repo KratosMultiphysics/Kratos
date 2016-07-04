@@ -126,8 +126,8 @@ proc spdAux::activeApp { appid } {
         }
     }
     #[$root selectNodes "value\[@n='nDim'\]"] setAttribute v $::Model::SpatialDimension
-    spdAux::processIncludes
-    parseRoutes
+    #spdAux::processIncludes
+    #parseRoutes
     #apps::ExecuteOnCurrent init MultiAppEvent
     catch {apps::ExecuteOnCurrent init MultiAppEvent}
     catch {apps::ExecuteOnCurrent "" CustomTree}
@@ -281,11 +281,13 @@ proc spdAux::SwitchDimAndCreateWindow { ndim } {
     SetSpatialDimmension $ndim
     spdAux::DestroyWindow
     
+    processIncludes
+    parseRoutes
+    
     if {$TreeVisibility} {
         after 100 [list gid_groups_conds::open_conditions menu ]
         spdAux::TryRefreshTree
     }
-    
 }
 
 proc spdAux::getImagePathDim { dim } {
@@ -909,7 +911,6 @@ proc spdAux::GetBooleanForTree {raw} {
 proc spdAux::injectConstitutiveLawOutputs { basenode  args} {
     set parts [$basenode parent]
     set outputs [::Model::GetAllCLOutputs {*}$args]
-    
     foreach in [dict keys $outputs] {
         if {[$parts find n $in] eq ""} {
             set pn [[dict get $outputs $in] getPublicName]
@@ -934,10 +935,9 @@ proc spdAux::injectProcs { basenode  args} {
         foreach in [$xmlNode getElementsByTagName "proc"] {
             # This allows an app to overwrite mandatory procs
             set procn [$in @n]
-            catch {
-                set pastnode [[$basenode parent] selectNodes "./proc\[@n='$procn'\]"]
-                $pastnode delete
-            }
+            set pastnode [[$basenode parent] selectNodes "./proc\[@n='$procn'\]"]
+            if {$pastnode ne ""} {gid_groups_conds::delete [$pastnode toXPath]}
+            
             [$basenode parent] appendChild $in
         }
         $basenode delete
@@ -1167,7 +1167,6 @@ proc spdAux::ProcGetSchemes {domNode args} {
 }
 
 proc spdAux::ProcGetConstitutiveLaws { domNode args } {
-    
     set Elementname [$domNode selectNodes {string(../value[@n='Element']/@v)}]
     set Claws [::Model::GetAvailableConstitutiveLaws $Elementname]
     #W "Const Laws que han pasado la criba: $Claws"

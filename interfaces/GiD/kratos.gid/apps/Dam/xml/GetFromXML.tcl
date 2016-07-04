@@ -27,7 +27,7 @@ proc Dam::xml::ProcGetSchemes {domNode args} {
           set sol_stratUN "DamSolStratMech"
     }
     
-    set solStratName [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] v]
+    set solStratName [write::getValue $sol_stratUN]
     set schemes [::Model::GetAvailableSchemes $solStratName]
     set ids [list ]
     if {[llength $schemes] == 0} {
@@ -83,15 +83,17 @@ proc Dam::xml::ProcGetConstitutiveLaws {domNode args} {
      
      set type_of_problem [write::getValue DamTypeofProblem]
      set goodList [list ]
-     if {$type_of_problem ne "Thermo-Mechanical"} {
-          foreach cl $Claws {
-               set type [$cl getAttribute Type]
-               if {[string first "Therm" $type] eq -1} {
-                    lappend goodList $cl
-               }
+     foreach cl $Claws {
+          set type [$cl getAttribute Type]
+          if {[string first "Therm" $type] eq -1 && $type_of_problem ne "Thermo-Mechanical"} {
+               lappend goodList $cl
           }
-          set Claws $goodList
+          if {[string first "Therm" $type] ne -1 && $type_of_problem eq "Thermo-Mechanical"} {
+               lappend goodList $cl
+          }
      }
+     set Claws $goodList
+   
      #W "Const Laws que han pasado la criba: $Claws"
      if {[llength $Claws] == 0} {
          if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v "None"}
