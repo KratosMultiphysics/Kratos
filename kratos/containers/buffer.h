@@ -326,7 +326,7 @@ public:
 
         pop_front(temp);
 
-        rValue = temp << 1;
+        rValue = temp & 1;
     }
 
 
