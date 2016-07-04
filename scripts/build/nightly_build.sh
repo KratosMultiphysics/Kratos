@@ -34,9 +34,9 @@ make install -j2 -k > ${LOG_DIR}/compile_gcc.log 2> ${LOG_DIR}/compile_gcc.log
 cd ${HOME}/Kratos/kratos/python_scripts
 python3 run_tests.py -l nightly > ${LOG_DIR}/unittest_gcc.log 2> ${LOG_DIR}/unittest_gcc.log
 
-# Benchmarking
-cd ${HOME}/Kratos/benchmarking
-python3 run_all_benchmarks.py > ${LOG_DIR}/benchmarking_gcc.log 2> ${LOG_DIR}/benchmarking_gcc.log
+# # Benchmarking
+# cd ${HOME}/Kratos/benchmarking
+# python3 run_all_benchmarks.py > ${LOG_DIR}/benchmarking_gcc.log 2> ${LOG_DIR}/benchmarking_gcc.log
 
 echo "This is the Kratos Nightly report for GCC" > ${MAIL_GCC}
 echo "=========================================" >> ${MAIL_GCC}
@@ -57,12 +57,12 @@ echo "\n" >> ${MAIL_GCC}
 echo "UnitTests:    \n" >> ${MAIL_GCC}
 echo "============= \n" >> ${MAIL_GCC}
 cat ${LOG_DIR}/unittest_gcc.log >> ${MAIL_GCC};
-echo "\n" >> ${MAIL_GCC}
-echo "Benchmarking: \n" >> ${MAIL_GCC}
-echo "============= \n" >> ${MAIL_GCC}
-cat ${LOG_DIR}/benchmarking_gcc.log >> ${MAIL_GCC};
+# echo "\n" >> ${MAIL_GCC}
+# echo "Benchmarking: \n" >> ${MAIL_GCC}
+# echo "============= \n" >> ${MAIL_GCC}
+# cat ${LOG_DIR}/benchmarking_gcc.log >> ${MAIL_GCC};
 
-tar -zcvf ${LOG_DIR}/logs_gcc.tar.gz ${LOG_DIR}/configure_gcc.log ${LOG_DIR}/compile_gcc.log ${LOG_DIR}/benchmarking_gcc.log ${LOG_DIR}/unittest_gcc.log
+tar -zcvf ${LOG_DIR}/logs_gcc.tar.gz ${LOG_DIR}/configure_gcc.log ${LOG_DIR}/compile_gcc.log ${LOG_DIR}/unittest_gcc.log
 smtp-cli --host=${KRATOS_MAIL_SERVER} --enable-auth --user ${KRATOS_MAIL_USER} --password ${KRATOS_MAIL_PASSWD}  --to ${MAIL_TO} --body-plain ${MAIL_GCC} --attach ${LOG_DIR}/logs_gcc.tar.gz --subject "Kratos Nightly Report" --mail-from "kratosmultiphysics@gmail.com" --from "Kratos Nightly Report GCC"
 
 ## ------------------------------------------------------ ##
@@ -84,9 +84,9 @@ make install -j2 -k > ${LOG_DIR}/compile_clang.log 2> ${LOG_DIR}/compile_clang.l
 cd ${HOME}/Kratos/kratos/python_scripts
 python3 run_tests.py -l nightly > ${LOG_DIR}/unittest_clang.log 2> ${LOG_DIR}/unittest_clang.log
 
-# Benchmarking
-cd ${HOME}/Kratos/benchmarking
-python3 run_all_benchmarks.py > ${LOG_DIR}/benchmarking_clang.log 2> ${LOG_DIR}/benchmarking_clang.log
+# # Benchmarking
+# cd ${HOME}/Kratos/benchmarking
+# python3 run_all_benchmarks.py > ${LOG_DIR}/benchmarking_clang.log 2> ${LOG_DIR}/benchmarking_clang.log
 
 echo "This is the Kratos Nightly report for CLANG" > ${MAIL_CLANG}
 echo "===========================================" >> ${MAIL_CLANG}
@@ -107,12 +107,12 @@ echo "\n" >> ${MAIL_CLANG}
 echo "UnitTests:    \n" >> ${MAIL_CLANG}
 echo "============= \n" >> ${MAIL_CLANG}
 cat ${LOG_DIR}/unittest_clang.log >> ${MAIL_CLANG};
-echo "\n" >> ${MAIL_CLANG}
-echo "Benchmarking: \n" >> ${MAIL_CLANG}
-echo "============= \n" >> ${MAIL_CLANG}
-cat ${LOG_DIR}/benchmarking_clang.log >> ${MAIL_CLANG};
+# echo "\n" >> ${MAIL_CLANG}
+# echo "Benchmarking: \n" >> ${MAIL_CLANG}
+# echo "============= \n" >> ${MAIL_CLANG}
+# cat ${LOG_DIR}/benchmarking_clang.log >> ${MAIL_CLANG};
 
-tar -zcvf ${LOG_DIR}/logs_clang.tar.gz ${LOG_DIR}/configure_clang.log ${LOG_DIR}/compile_clang.log ${LOG_DIR}/benchmarking_clang.log ${LOG_DIR}/unittest_clang.log
+tar -zcvf ${LOG_DIR}/logs_clang.tar.gz ${LOG_DIR}/configure_clang.log ${LOG_DIR}/compile_clang.log ${LOG_DIR}/unittest_clang.log
 smtp-cli --host=${KRATOS_MAIL_SERVER} --enable-auth --user ${KRATOS_MAIL_USER} --password ${KRATOS_MAIL_PASSWD}  --to ${MAIL_TO} --body-plain ${MAIL_GCC} --attach ${LOG_DIR}/logs_clang.tar.gz --subject "Kratos Nightly Report" --mail-from "kratosmultiphysics@gmail.com" --from "Kratos Nightly Report CLANG"
 
 ## Step4: Finish
