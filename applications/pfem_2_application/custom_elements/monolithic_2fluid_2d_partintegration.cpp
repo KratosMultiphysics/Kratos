@@ -360,7 +360,7 @@ namespace Kratos
 				{
 					double viscosity=viscosity_water;
 					//if (partition_temperature>100.0)
-					//	viscosity=viscosity_water;//*(1.0 - (partition_temperature-100.0)*0.1 );
+					//	viscosity=viscosity_water;// *(1.0 - (partition_temperature-100.0)*0.1 );
 					//if (viscosity<1.0) //(crude oil viscosity)
 					//	viscosity=1.0;
 					//viscosities(i)=viscosity;

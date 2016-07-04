@@ -156,7 +156,7 @@ namespace Kratos
 		//in case one node is too close to zero
 		for(unsigned int iii = 0; iii<(TDim+1); iii++)
 		{
-			if(fabs(distances(iii)<0.01))
+			if(fabs(distances(iii))<0.01)
 			{
 				if(distances(iii)<0.0)
 				     distances(iii)=-0.01;
@@ -300,10 +300,10 @@ namespace Kratos
 			
 				if (use_press_proj)
 					for (unsigned int j = 0; j < TDim; j++)
-						rRightHandSideVector(i*(TDim+1)+TDim) -= TauOne*Area*(DN_DX(i,j)*rhs_stab(j) + fabs(DN_DX(i,j)) * volume_correction *0.25) ;
+						rRightHandSideVector(i*(TDim+1)+TDim) -= 1.00025*TauOne*Area*(DN_DX(i,j)*rhs_stab(j) + fabs(DN_DX(i,j)) * volume_correction *0.25) ;
 				else
 					for (unsigned int j = 0; j < TDim; j++)
-						rRightHandSideVector(i*(TDim+1)+TDim) -= TauOne*Area*(DN_DX(i,j)*body_force(j) + fabs(DN_DX(i,j)) * volume_correction *0.25) ;
+						rRightHandSideVector(i*(TDim+1)+TDim) -= 1.00025*TauOne*Area*(DN_DX(i,j)*body_force(j) + fabs(DN_DX(i,j)) * volume_correction *0.25) ;
 
 			}
 			
@@ -397,7 +397,7 @@ namespace Kratos
 				}
 			}
 			
-			const double element_viscosity_for_tau=Weight_for_tau/Area;
+			double element_viscosity_for_tau=Weight_for_tau/Area;
 			const double element_density= mass/Area;
 						
 			for (unsigned int i = 0; i < TDim+1; i++)
@@ -420,7 +420,7 @@ namespace Kratos
 								volumes,
 								ndivisions);
 			*/
-			this->AddViscousTerm(rLeftHandSideMatrix,DN_DX, (element_viscosity_for_tau), negative_area );
+			this->AddViscousTerm(rLeftHandSideMatrix,DN_DX, (element_viscosity_for_tau), Area );
 
 			
 
@@ -567,7 +567,7 @@ namespace Kratos
 					
 					//also the standard D and G matrices had to be expanded.
 
-						for (unsigned int k = 0; k < TDim; k++) //we go through the 4 standard pressures
+						for (unsigned int k = 0; k < TDim+1; k++) //we go through the 4 standard pressures
 						{
 							for (unsigned int l = 0; l < TDim; l++)
 							{
@@ -628,8 +628,8 @@ namespace Kratos
 					
 					///WARNING, WHEN THE MATRIX IS REARRANGED, the condensed rows have the gradient of the pressure and the columns have the divergence. that is the reason for the mixed indexes.
 					///if the gradient was not integrated by parts, then G matrix should be used in the columns instead of the rows, unlike the case of standard velocity DOFs
-					condensed_rows(k,i*(TDim+1)+TDim)= -G_matrix(i, (TDim+1)*TDim+k);
-					condensed_columns(k,i*(TDim+1)+TDim)= -G_matrix(i, (TDim+1)*TDim+k);
+					condensed_rows(k,i*(TDim+1)+TDim)= -D_matrix(i, (TDim+1)*TDim+k);
+					condensed_columns(k,i*(TDim+1)+TDim)= -D_matrix(i, (TDim+1)*TDim+k);
 				}
 				
 			}
@@ -647,11 +647,11 @@ namespace Kratos
 			//second block
 			for (unsigned int i = 0; i < enrich_velocity_dofs; i++) //we go through the 3 enrichments
 				for (unsigned int k = 0; k < enrich_pressure_dofs; k++) //we go through the 3 enrichments
-					condensed_block(i,k+enrich_velocity_dofs)= -G_matrix_mixed(k,(TDim+1)*TDim+i);		// in  this case, we are in the gradient side and we should use the gradient if we do not integrate it by parts.		
+					condensed_block(i,k+enrich_velocity_dofs)= -D_matrix_mixed(k,(TDim+1)*TDim+i);		// in  this case, we are in the gradient side and we should use the gradient if we do not integrate it by parts.		
 			//third block
 			for (unsigned int i = 0; i < enrich_pressure_dofs; i++) //we go through the 3 enrichments
 				for (unsigned int k = 0; k < enrich_velocity_dofs; k++) //we go through the 3 enrichments
-					condensed_block(i+enrich_velocity_dofs,k)= -G_matrix_mixed(i,(TDim+1)*TDim+k);		// in  this case, we are in the divergence side and we should use the gradient if we want to integrate the divergence it by parts.
+					condensed_block(i+enrich_velocity_dofs,k)= -D_matrix_mixed(i,(TDim+1)*TDim+k);		// in  this case, we are in the divergence side and we should use the gradient if we want to integrate the divergence it by parts.
 			
 			//fourth block
 			for (unsigned int i = 0; i < enrich_pressure_dofs; i++) //we go through the 3 enrichments
@@ -1051,7 +1051,7 @@ namespace Kratos
 						for (unsigned int i=0; i!=(TDim+1); i++) //loop around the nodes of the element to add contribution to node i
 						{
 							geom[i].SetLock();
-							geom[i].FastGetSolutionStepValue(NODAL_AREA) += Area*factor*0.00000001;		
+							geom[i].FastGetSolutionStepValue(NODAL_AREA) += Area*factor*0.000000000000001;		
 							geom[i].UnSetLock();					
 						}
 					}
@@ -1062,7 +1062,7 @@ namespace Kratos
 			for (unsigned int i=0; i!=(TDim+1); i++) //loop around the nodes of the element to add contribution to node i
 			{
 				geom[i].SetLock();
-				geom[i].FastGetSolutionStepValue(NODAL_AREA) += Area*factor*0.00000001;	
+				geom[i].FastGetSolutionStepValue(NODAL_AREA) += Area*factor*0.000000000000001;	
 				geom[i].UnSetLock();						
 			}
 		}
@@ -1072,6 +1072,90 @@ namespace Kratos
 	
 
 	void MonolithicPFEM22D::AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 13, 13 > & output,
+										  boost::numeric::ublas::bounded_matrix<double, (3), 2 >& rShapeDeriv,
+										  array_1d<double,3>&  distances,
+										  std::vector< Matrix >& gauss_gradients, 
+										  array_1d<double,3>&  viscosities,
+										  array_1d<double,3>&  signs,
+										  array_1d<double,3>&  volumes ,
+										  const unsigned int ndivisions)
+	{		
+		boost::numeric::ublas::bounded_matrix<double, 9, 9 > ExtendedDampMatrix=ZeroMatrix(9,9);
+		//boost::numeric::ublas::bounded_matrix<double, 8, 8 > rExtendedDampMatrix= ZeroMatrix(8,8);
+
+		boost::numeric::ublas::bounded_matrix<double, 9,3 > B_matrix = ZeroMatrix(9,3);
+
+		
+		int counter=0;
+		boost::numeric::ublas::bounded_matrix<double, 3, 3 > C_matrix = ZeroMatrix(3,3);
+			
+		for (unsigned int i=0; i!=(2); i++)
+		{
+			C_matrix(counter,counter)=2.0;
+			counter++;
+		}
+		for (unsigned int i=0; i!=(1); i++)
+		{
+			C_matrix(counter,counter)=1.0;
+			counter++;
+		}
+		
+		//now the enriched part:
+		//we have to construct (ndivisions) rTempDampMatrix and asseble add them to rDampMatrix
+		for (unsigned int division=0; division!=ndivisions; division++)
+		{
+			//standard shape functions:
+			for (unsigned int i=0; i!=(3); i++) //i node
+			{
+				for (unsigned int j=0; j!=(2); j++) //x,y,z
+					B_matrix(i*(2)+j,j)=rShapeDeriv(i,j);
+				
+				//useful for both 2d and 3d:	
+				//relating 12 and 21 stresses
+				B_matrix(i*(2)+0,2)=rShapeDeriv(i,1);
+				B_matrix(i*(2)+1,2)=rShapeDeriv(i,0);
+
+			}
+			
+			
+			for (unsigned int j=0; j!=(2); j++) //x,y,z
+				B_matrix(3*(2)+j,j)= gauss_gradients[division](0,j);
+			
+			//useful for both 2d and 3d:	
+			//relating 12 and 21 stresses
+			B_matrix(3*(2)+0,2)=gauss_gradients[division](0,1);
+			B_matrix(3*(2)+1,2)=gauss_gradients[division](0,0);
+			
+			//the jump in x direction
+			B_matrix(4*(2)+0,0)= gauss_gradients[division](1,0);	
+			//relating 12 and 21 stresses
+			B_matrix(4*(2)+0,2)=gauss_gradients[division](1,1);
+
+			
+			boost::numeric::ublas::bounded_matrix<double, 3 , 9  > temp_matrix = prod(C_matrix,trans(B_matrix));
+			ExtendedDampMatrix += viscosities(division)*volumes(division)*prod(B_matrix, temp_matrix );
+		}
+		
+		//now we put it all toghether in the big matrix:
+		for (unsigned int i=0; i!=(4); i++) //4 nodes + 1dof in the new virtual node
+			for (unsigned int j=0; j!=(4); j++) //4 nodes + 1dof in the new virtual node
+				for (unsigned int k=0; k!=(2); k++) //x,y,(z)
+					for (unsigned int l=0; l!=(2); l++) //x,y,(z)
+						 output(i*3+k,j*3+l) += ExtendedDampMatrix(i*2+k,j*2+l);
+						 
+		output(11,11) += ExtendedDampMatrix(8,8);
+		for (unsigned int i=0; i!=(4); i++) // 3 nodes + 1 new for gradient.
+			for (unsigned int k=0; k!=(2); k++) //x,y,(z)
+			{
+				output(i*3+k,11) += ExtendedDampMatrix(i*2+k,8);
+				output(11,i*3+k) += ExtendedDampMatrix(8,i*2+k);
+			}
+						 
+		//KRATOS_WATCH(ExtendedDampMatrix)
+	}	
+	
+	
+		void MonolithicPFEM22D::AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 12, 12 > & output,
 										  boost::numeric::ublas::bounded_matrix<double, (3), 2 >& rShapeDeriv,
 										  array_1d<double,3>&  distances,
 										  std::vector< Matrix >& gauss_gradients, 
@@ -1118,14 +1202,14 @@ namespace Kratos
 			}
 			
 			
-			for (unsigned int j=0; j!=(3); j++) //x,y,z
+			for (unsigned int j=0; j!=(2); j++) //x,y,z
 				B_matrix(3*(2)+j,j)= gauss_gradients[division](0,j);
 			
 			//useful for both 2d and 3d:	
 			//relating 12 and 21 stresses
 			B_matrix(3*(2)+0,2)=gauss_gradients[division](0,1);
 			B_matrix(3*(2)+1,2)=gauss_gradients[division](0,0);
-
+			
 			
 			boost::numeric::ublas::bounded_matrix<double, 3 , 8  > temp_matrix = prod(C_matrix,trans(B_matrix));
 			ExtendedDampMatrix += viscosities(division)*volumes(division)*prod(B_matrix, temp_matrix );
@@ -1136,16 +1220,17 @@ namespace Kratos
 			for (unsigned int j=0; j!=(4); j++) //4 nodes + 1dof in the new virtual node
 				for (unsigned int k=0; k!=(2); k++) //x,y,(z)
 					for (unsigned int l=0; l!=(2); l++) //x,y,(z)
-						 output(i*3+k,j*3+l) += ExtendedDampMatrix(i*2+k,j*2+l);
-						 
+						 output(i*3+k,j*3+l) += ExtendedDampMatrix(i*2+k,j*2+l);		 
 		//KRATOS_WATCH(ExtendedDampMatrix)
 	}	
+	
+	
 	
 	
 	//with matrixtype, constant coefficient
 	void MonolithicPFEM22D::AddViscousTerm(MatrixType& rDampMatrix,
                          const boost::numeric::ublas::bounded_matrix<double, 3, 2 >& rShapeDeriv,
-                         double Viscosity,const double Area)
+                         double& Viscosity,const double Area)
 	{
 
 		

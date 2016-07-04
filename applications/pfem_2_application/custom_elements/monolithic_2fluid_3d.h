@@ -96,7 +96,7 @@ namespace Kratos
                                 
        virtual void AddViscousTerm(MatrixType& rDampMatrix,
                                        const boost::numeric::ublas::bounded_matrix<double, 4, 3>& rShapeDeriv,
-                                       double Viscosity,const double Area); 
+                                       double& Viscosity,const double Area); 
                          
        void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 21, 21 > & output,
 						  boost::numeric::ublas::bounded_matrix<double, (4), 3 >& rShapeDeriv,

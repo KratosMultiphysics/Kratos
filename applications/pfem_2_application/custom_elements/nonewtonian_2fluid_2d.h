@@ -130,7 +130,7 @@ protected:
     ///@{
 	       virtual void AddViscousTerm(MatrixType& rDampMatrix,
                                        const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
-                                       double Viscosity,const double Area);             
+                                       double& Viscosity,const double Area);             
     ///@}
     ///@name Protected  Access
     ///@{

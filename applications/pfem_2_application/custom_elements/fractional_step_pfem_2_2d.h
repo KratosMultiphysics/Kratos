@@ -21,7 +21,6 @@
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h" 
-#include "custom_utilities/pfem_particle.h"
 
 
 namespace Kratos

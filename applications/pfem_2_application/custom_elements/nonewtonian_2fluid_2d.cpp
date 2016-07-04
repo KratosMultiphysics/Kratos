@@ -29,10 +29,10 @@ namespace Kratos
 	//with matrixtype, constant coefficient
 	void NoNewtonianMonolithicPFEM22D::AddViscousTerm(MatrixType& OutputMatrix,
                          const boost::numeric::ublas::bounded_matrix<double, 3, 2 >& rShapeDeriv,
-                         double Viscosity, const double Area)
+                         double& Viscosity, const double Area)
 	{
-		const double theta = 0.35;
-		const double Cohesion = 0.0;
+		double theta = 0.0;
+		double Cohesion = 0.0;
 
         double base_viscosity = Viscosity;
         
@@ -55,20 +55,25 @@ namespace Kratos
 		double pressure = 0.0;
 		
 		double negative_nodes=0.0;
-		double has_fixed_vel=false; //if some nodes are fixed, then we are on a boundary and then we can set different material properties (for example to simulate a lower basal friction angle)
+		//double has_fixed_vel=false; //if some nodes are fixed, then we are on a boundary and then we can set different material properties (for example to simulate a lower basal friction angle)
 		for (unsigned int i=0; i!=3; i++) //i node
 		{
 			if (this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)<0.0)
 			{
-				pressure += this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
+                                pressure += this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
+				 theta += this->GetGeometry()[i].FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE);
+                                Cohesion += this->GetGeometry()[i].FastGetSolutionStepValue(YIELD_STRESS);
+                                
 				negative_nodes +=1.0;
 			}
-			if (this->GetGeometry()[i].IsFixed(VELOCITY_X)==true) 
-			    has_fixed_vel = true;
+			//if (this->GetGeometry()[i].IsFixed(VELOCITY_X)==true) 
+			 //   has_fixed_vel = true;
 		}
 		
 		
-		pressure /=negative_nodes;
+                pressure /=negative_nodes;
+                theta /=negative_nodes;
+                Cohesion /=negative_nodes;
 		
 		if (pressure<0.0)
 			pressure=0.0;

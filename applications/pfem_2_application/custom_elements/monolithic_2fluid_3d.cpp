@@ -978,7 +978,7 @@ namespace Kratos
 	//with matrixtype, constant coefficient
 	void MonolithicPFEM23D::AddViscousTerm(MatrixType& rDampMatrix,
                          const boost::numeric::ublas::bounded_matrix<double, 4, 3 >& rShapeDeriv,
-                         double Viscosity,const double Area)
+                         double& Viscosity,const double Area)
 	{
 
 		
