@@ -1,6 +1,6 @@
 #importing the Kratos Library
 from KratosMultiphysics import *
-
+import time
         
 class SolvingStrategyPython:
     def __init__(self,model_part,time_scheme,linear_solver,convergence_criteria,CalculateReactionsFlag,ReformDofSetAtEachStep,MoveMeshFlag):
@@ -42,6 +42,7 @@ class SolvingStrategyPython:
 
         #by default is linear. so only one iteration will be performed.
         self.max_iter = 1
+        self.computepressureprojection=False;
         
     #######################################################################
     def Initialize(self):
@@ -60,7 +61,7 @@ class SolvingStrategyPython:
         if(self.InitializeWasPerformed == False):
             self.Initialize()
             self.InitializeWasPerformed = True
-
+        t1=time.time()
         #perform initializations for the current step
         #this operation implies:
         #identifying the set of DOFs that will be solved during this step
@@ -73,7 +74,7 @@ class SolvingStrategyPython:
                 reform_dofs = False
             self.InitializeSolutionStep(reform_dofs);
             self.SolutionStepIsInitialized = True;
-
+        #print("assembly time = ",time.time()-t1)
         #perform prediction 
         self.Predict()
 
@@ -84,7 +85,8 @@ class SolvingStrategyPython:
         it = 1
         
         #print ("fist iteration is done")
-        
+        if(self.computepressureprojection==True):
+              self.pressureprojector()
         #non linear loop
         converged = False
         
@@ -100,8 +102,8 @@ class SolvingStrategyPython:
 
             #verify convergence
             converged = self.convergence_criteria.PostCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
-
-           
+            if(self.computepressureprojection==True):
+                  self.pressureprojector()
             #update iteration count
             it = it + 1
 
@@ -162,16 +164,17 @@ class SolvingStrategyPython:
         self.builder_and_solver.BuildAndSolve(self.scheme,self.model_part,self.A,self.Dx,self.b)
         
         #full output if needed
-        #if(echo_level == 3):
-        #    print "SystemMatrix = ", self.A 
-        #    print "solution obtained = ", self.Dx 
-        #    print "RHS = ", self.b
-        #elif(echo_level == 4):
-        #     filename = str("A_t_") + str(self.model_part.ProcessInfo[TIME]) + str(".mm");
-        #     WriteMatrixMarketMatrix(filename, self.A, False);
-##            bname = str("b_t_") + str(self.model_part.ProcessInfo[TIME]) + str(".mm");
-##            print "solution obtained = ", self.Dx 
-##            print "RHS = ", self.b
+        #echo_level=4
+        if(echo_level == 3):
+            print("SystemMatrix = ", self.A)
+            print("solution obtained = ", self.Dx)
+            print("RHS = ", self.b)
+        elif(echo_level == 4):
+             filename = str("A_t_") + str(self.model_part.ProcessInfo[TIME]) + str(".mm");
+             WriteMatrixMarketMatrix(filename, self.A, False);
+             bname = str("b_t_") + str(self.model_part.ProcessInfo[TIME]) + str(".mm");
+             #print "solution obtained = ", self.Dx 
+             #print "RHS = ", self.b
         WriteMatrixMarketMatrix     
         #perform update
         self.scheme.Update(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b);
@@ -234,3 +237,7 @@ class SolvingStrategyPython:
 
     def SetMaximumIterations(self,max_iter):
         self.max_iter=max_iter
+
+    def ActivatePressureProjectionCalculation(self, CalculatePressureProjection ):
+        self.pressureprojector =  CalculatePressureProjection
+        self.computepressureprojection=True;

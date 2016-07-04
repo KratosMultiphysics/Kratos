@@ -2,6 +2,7 @@ from __future__ import print_function
 from KratosMultiphysics import *
 from KratosMultiphysics.PFEM2Application import *
 from KratosMultiphysics.ExternalSolversApplication import *
+import KratosMultiphysics as kratoscore
 #from KratosMultiphysics.OpenCLApplication import *        #in case you want to use the gpu to solve the system
 from math import sqrt
 import time as timer
@@ -50,8 +51,35 @@ class PFEM2Solver:
         pDiagPrecond = DiagonalPreconditioner()
         #self.monolithic_linear_solver = BICGSTABSolver(1e-5, 5000,pDiagPrecond) # SkylineLUFactorizationSolver() 
         #self.monolithic_linear_solver =  ViennaCLSolver(tol,500,OpenCLPrecision.Double,OpenCLSolverType.CG,OpenCLPreconditionerType.AMG_DAMPED_JACOBI) #
-        self.monolithic_linear_solver=AMGCLSolver(AMGCLSmoother.DAMPED_JACOBI,AMGCLIterativeSolverType.CG,tol,1000,verbosity,gmres_size)      #BICGSTABSolver(1e-7, 5000) # SkylineLUFactorizationSolver(	
+        #self.monolithic_linear_solver=AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,1000,verbosity,gmres_size)      #BICGSTABSolver(1e-7, 5000) # SkylineLUFactorizationSolver(	
+        settings = Parameters("""{
+                                       "solver_type" : "AMGCL_NS_Solver",
+                                       "velocity_block_preconditioner" :
+                                            {
+                                            "tolerance" : 1e-3,
+                                            "preconditioner_type" : "ilu0"
+                                        },
+                                        "pressure_block_preconditioner" :
+                                            {
+                                            "tolerance" : 1e-2,
+                                            "preconditioner_type" : "ilu0"
+                                        },
+                                       "tolerance" : 1e-5,
+                                       "krylov_type": "bicgstab",
+                                       "gmres_krylov_space_dimension": 50,
+                                       "coarsening_type": "aggregation",
+                                       "max_iteration": 50,
+                                       "verbosity" : 2,
+                                       "scaling": false,
+                                       "coarse_enough" : 5000
+                                   } """)
+        linear_solver = AMGCL_NS_Solver(settings)
 
+        
+        #construct the linear solvers
+        import linear_solver_factory
+        self.monolithic_linear_solver =  linear_solver
+        #self.monolithic_linear_solver = AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,1000,verbosity,gmres_size)
         self.conv_criteria = DisplacementCriteria(1e-3,1e-3)  #tolerance for the solver 
         self.conv_criteria.SetEchoLevel(0)
         
@@ -194,7 +222,7 @@ class PFEM2Solver:
         if (self.water_initial_volume==0.0): 
                 self.water_initial_volume=self.water_volume
         water_fraction= self.water_volume/(self.water_initial_volume)
-        self.mass_correction_factor = (1.0 - water_fraction) * 100.0 * 0.0
+        self.mass_correction_factor = (1.0 - water_fraction) * 100.0 * 0.1
         print("current mass loss is : " , (1.0 - water_fraction) * 100.0 , " % ")
         #print("water fraction ", water_fraction)
         #print("water volume ", self.water_volume)
@@ -224,10 +252,10 @@ class PFEM2Solver:
     #######################################################################   
     def CalculatePressureProjection(self):
         self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 10)
-        (self.ExplicitStrategy).InitializeSolutionStep(self.model_part.ProcessInfo);
-        (self.ExplicitStrategy).AssembleLoop(self.model_part.ProcessInfo);
+        (self.ExplicitStrategy).InitializeSolutionStep();
+        (self.ExplicitStrategy).AssembleLoop();
         self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 10)
-        (self.ExplicitStrategy).FinalizeSolutionStep(self.model_part.ProcessInfo);
+        (self.ExplicitStrategy).FinalizeSolutionStep();
 
 
     def SetEchoLevel(self,level):
