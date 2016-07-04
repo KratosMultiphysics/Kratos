@@ -4,7 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.PfemSolidMechanicsApplication as KratosPfemSolid
-CheckForPreviousImport()
+KratosMultiphysics.CheckForPreviousImport()
 
 
 class ModelerUtility:
@@ -32,6 +32,8 @@ class ModelerUtility:
         self.mu_static  = 0.3
         self.mu_dynamic = 0.2
 
+        self.reference_element = "Element2D3N"
+        
         self.initial_transfer      = True
         self.contact_alpha_shape   = 1.4
         self.contact_constrained   = False
@@ -164,10 +166,10 @@ class ModelerUtility:
         self.meshing_domains = meshing_domains
 
         # set modeler utilities
-        self.modeler_utils =  KratosPfemBase.ModelerUtilities()
+        self.modeler_utils = KratosPfemBase.ModelerUtilities()
 
         # set transfer utilities
-        self.transfer_utils =  KratosPfemBase.MeshDataTransferUtilities()
+        self.transfer_utils = KratosPfemBase.MeshDataTransferUtilities()
                 
         # set the domain labels to mesh modeler
         self.modeler_utils.SetDomainLabels(self.model_part)
@@ -228,14 +230,14 @@ class ModelerUtility:
         self.ContactRefiningParameters =  KratosPfemBase.RefiningParameters()
             
         self.ContactRefiningParameters.Initialize()
-        self.ContactRefiningParameters.SetAlphaParameter(self.alpha_shape)
+        self.ContactRefiningParameters.SetAlphaParameter(self.contact_alpha_shape)
 
         # set transfer parameters
         self.ContactTransferParameters =  KratosPfemBase.TransferParameters()
         cauchy_stress = "CAUCHY_STRESS_VECTOR"
         deformation_gradient = "DEFORMATION_GRADIENT"
-        self.ContactTransferParameters.SetVariable(globals()[cauchy_stress])
-        self.ContactTransferParameters.SetVariable(globals()[deformation_gradient])
+        self.ContactTransferParameters.SetVariable(KratosMultiphysics.KratosGlobals.GetVariable(cauchy_stress))
+        self.ContactTransferParameters.SetVariable(KratosMultiphysics.KratosGlobals.GetVariable(deformation_gradient))
 
         # set meshing parameters to mesh modeler
         self.ContactMeshingParameters =  KratosPfemBase.MeshingParameters()
@@ -246,16 +248,17 @@ class ModelerUtility:
         self.ContactMeshingParameters.SetRefiningParameters(self.ContactRefiningParameters)
         self.ContactMeshingParameters.SetTransferParameters(self.ContactTransferParameters)
                         
-        contact_meshing_options = Flags()
+        contact_meshing_options = KratosMultiphysics.Flags()
 
-        contact_meshing_options.Set(ModelerUtilities.REMESH, True)
-        contact_meshing_options.Set(ModelerUtilities.CONSTRAINED, contact_config.constrained_contact)
+        contact_meshing_options.Set(KratosPfemBase.ModelerUtilities.REMESH, True)
+        contact_meshing_options.Set(KratosPfemBase.ModelerUtilities.CONSTRAINED, contact_config.constrained_contact)
             
         self.ContactMeshingParameters.SetOptions(contact_meshing_options)
 
-        self.ContactMeshingParameters.SetOffsetFactor(self.offset_factor)
-        self.ContactMeshingParameters.SetAlphaParameter(self.alpha_shape)
+        self.ContactMeshingParameters.SetOffsetFactor(self.contact_offset_factor)
+        self.ContactMeshingParameters.SetAlphaParameter(self.contact_alpha_shape)
                 
+
         self.ContactMeshingParameters.SetReferenceElement(self.reference_element)
         self.ContactMeshingParameters.SetReferenceCondition(self.contact_condition)
                 
@@ -291,8 +294,8 @@ class ModelerUtility:
             ContactTransferParameters = KratosPfemBase.TransferParameters()
             cauchy_stress = "CAUCHY_STRESS_VECTOR"
             deformation_gradient = "DEFORMATION_GRADIENT"
-            ContactTransferParameters.SetVariable(globals()[cauchy_stress])
-            ContactTransferParameters.SetVariable(globals()[deformation_gradient])
+            ContactTransferParameters.SetVariable(KratosMultiphysics.KratosGlobals.GetVariable(cauchy_stress))
+            ContactTransferParameters.SetVariable(KratosMultiphysics.KratosGlobals.GetVariable(deformation_gradient))
 
             self.contact_modeler.TransferContactData(self.model_part, ContactTransferParameters, self.initial_transfer);
             self.contact_transfer_done = True
@@ -316,7 +319,7 @@ class ModelerUtility:
             if( self.echo_level > 0 ):
                 print("::[Modeler_Utility]:: MESH DOMAIN...", self.counter)
 
-            meshing_options = Flags()
+            meshing_options = KratosMultiphysics.Flags()
             self.model_meshing =  KratosPfemBase.ModelMeshing(self.model_part, meshing_options, self.echo_level)
 
             self.model_meshing.ExecuteInitialize()

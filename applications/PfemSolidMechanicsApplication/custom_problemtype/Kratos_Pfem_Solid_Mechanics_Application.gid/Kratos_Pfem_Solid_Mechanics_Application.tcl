@@ -58,6 +58,10 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
     close $varfile
 }
 
+proc JoinByComma { x } {
+    return [join $x ,]
+}
+
 proc InitKratosPT { ptdir } {
     # Store path to problemtype folder
     set ::kaux::pt_path $ptdir
