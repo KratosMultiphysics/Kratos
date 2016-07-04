@@ -8,7 +8,7 @@
 //  Original author:  Josep Maria Carbonell
 //  comming from      SolidMechanicsApplication (see SolidMechanicsApplication/license.txt)
 //
-//  Other authors:    Vicente Mataix Ferrándiz
+//  Co-author:        Vicente Mataix Ferrándiz
 //
 
 #if !defined(KRATOS_RESIDUAL_BASED_NEWMARK_DISPLACEMENT_SCHEME )
@@ -85,8 +85,8 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-    ResidualBasedNewmarkDisplacementScheme(double rDynamic = 1)
-      :DerivedBaseType(0.0, rDynamic)
+    ResidualBasedNewmarkDisplacementScheme()
+      :DerivedBaseType(0.0)
     {
     }
 

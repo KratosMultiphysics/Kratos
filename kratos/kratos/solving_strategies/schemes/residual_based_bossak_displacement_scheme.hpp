@@ -8,7 +8,7 @@
 //  Original author:  Josep Maria Carbonell
 //  comming from      SolidMechanicsApplication (see SolidMechanicsApplication/license.txt)
 //
-//  Other authors:    Vicente Mataix Ferrándiz
+//  Co-author:        Vicente Mataix Ferrándiz
 //
 
 #if !defined(KRATOS_RESIDUAL_BASED_BOSSAK_DISPLACEMENT_SCHEME )
@@ -86,10 +86,7 @@ public:
      * Constructor.
      * The bossak method
      */
-    ResidualBasedBossakDisplacementScheme(
-      double rAlpham = 0.0,
-      double rDynamic = 1.0
-    )
+    ResidualBasedBossakDisplacementScheme(double rAlpham = 0.0)
         :Scheme<TSparseSpace,TDenseSpace>()
     {
         // For pure Newmark Scheme
@@ -98,8 +95,6 @@ public:
 
         mNewmark.beta= (1.0 + mAlpha.f - mAlpha.m) * (1.0 + mAlpha.f - mAlpha.m) * 0.25;
         mNewmark.gamma= 0.5 + mAlpha.f - mAlpha.m;
-
-        mNewmark.static_dynamic= rDynamic;
 
         // std::cout << " MECHANICAL SCHEME: The Bossak Time Integration Scheme [alpha_m= " << mAlpha.m << " beta= " << mNewmark.beta << " gamma= " << mNewmark.gamma << "]" <<std::endl;
 
@@ -590,16 +585,13 @@ public:
 
         (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
 
-        if(mNewmark.static_dynamic !=0)
-        {
-            (rCurrentElement) -> CalculateMassMatrix(mMatrix.M[thread],CurrentProcessInfo);
+        (rCurrentElement) -> CalculateMassMatrix(mMatrix.M[thread],CurrentProcessInfo);
 
-            (rCurrentElement) -> CalculateDampingMatrix(mMatrix.D[thread],CurrentProcessInfo);
+        (rCurrentElement) -> CalculateDampingMatrix(mMatrix.D[thread],CurrentProcessInfo);
 
-            AddDynamicsToLHS (LHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
+        AddDynamicsToLHS (LHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
 
-            AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
-        }
+        AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
 
         //AssembleTimeSpaceLHS(rCurrentElement, LHS_Contribution, DampMatrix, MassMatrix,CurrentProcessInfo);
 
@@ -631,19 +623,13 @@ public:
         // Basic operations for the element considered
         (rCurrentElement) -> CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
 
-        if(mNewmark.static_dynamic !=0)
-        {
-            (rCurrentElement) -> CalculateMassMatrix(mMatrix.M[thread], CurrentProcessInfo);
+        (rCurrentElement) -> CalculateMassMatrix(mMatrix.M[thread], CurrentProcessInfo);
 
-            (rCurrentElement) -> CalculateDampingMatrix(mMatrix.D[thread],CurrentProcessInfo);
-        }
+        (rCurrentElement) -> CalculateDampingMatrix(mMatrix.D[thread],CurrentProcessInfo);
 
         (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
 
-        if(mNewmark.static_dynamic !=0)
-        {
-            AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
-        }
+         AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
 
         KRATOS_CATCH( "" );
     }
@@ -676,16 +662,13 @@ public:
 
         (rCurrentCondition) -> EquationIdVector(EquationId,CurrentProcessInfo);
 
-        if(mNewmark.static_dynamic !=0)
-        {
-            (rCurrentCondition) -> CalculateMassMatrix(mMatrix.M[thread], CurrentProcessInfo);
+        (rCurrentCondition) -> CalculateMassMatrix(mMatrix.M[thread], CurrentProcessInfo);
 
-            (rCurrentCondition) -> CalculateDampingMatrix(mMatrix.D[thread],CurrentProcessInfo);
+        (rCurrentCondition) -> CalculateDampingMatrix(mMatrix.D[thread],CurrentProcessInfo);
 
-            AddDynamicsToLHS  (LHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
+        AddDynamicsToLHS  (LHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
 
-            AddDynamicsToRHS  (rCurrentCondition, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
-        }
+        AddDynamicsToRHS  (rCurrentCondition, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
 
         //AssembleTimeSpaceLHS_Condition(rCurrentCondition, LHS_Contribution,DampMatrix, MassMatrix,CurrentProcessInfo);
 
@@ -718,15 +701,12 @@ public:
 
         (rCurrentCondition) -> EquationIdVector(EquationId, CurrentProcessInfo);
 
-        if(mNewmark.static_dynamic !=0)
-        {
-            (rCurrentCondition) -> CalculateMassMatrix(mMatrix.M[thread], CurrentProcessInfo);
+        (rCurrentCondition) -> CalculateMassMatrix(mMatrix.M[thread], CurrentProcessInfo);
 
-            (rCurrentCondition) -> CalculateDampingMatrix(mMatrix.D[thread], CurrentProcessInfo);
+        (rCurrentCondition) -> CalculateDampingMatrix(mMatrix.D[thread], CurrentProcessInfo);
 
-            // Adding the dynamic contributions (static is already included)
-            AddDynamicsToRHS  (rCurrentCondition, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
-        }
+        // Adding the dynamic contributions (static is already included)
+        AddDynamicsToRHS  (rCurrentCondition, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
 
         KRATOS_CATCH( "" );
     }
@@ -893,9 +873,6 @@ protected:
         double c4;
         double c5;
         double c6;
-
-        // Static-Dynamic parameter
-        double static_dynamic;
     };
 
     struct  GeneralMatrices
@@ -941,7 +918,7 @@ protected:
     )
     {
         noalias(CurrentVelocity) =  (mNewmark.c1 * DeltaDisplacement - mNewmark.c4 * PreviousVelocity
-                                     - mNewmark.c5 * PreviousAcceleration) * mNewmark.static_dynamic;
+                                     - mNewmark.c5 * PreviousAcceleration);
     }
 
     /**
@@ -960,7 +937,7 @@ protected:
     )
     {
         noalias(CurrentAcceleration) =  (mNewmark.c0 * DeltaDisplacement - mNewmark.c2 * PreviousVelocity
-                                         -  mNewmark.c3 * PreviousAcceleration) * mNewmark.static_dynamic;
+                                         -  mNewmark.c3 * PreviousAcceleration);
     }
 
     /**
@@ -981,7 +958,7 @@ protected:
         // Adding mass contribution to the dynamic stiffness
         if (M.size1() != 0) // if M matrix declared
         {
-            noalias(LHS_Contribution) += M * (1.0 - mAlpha.m) * mNewmark.c0 * mNewmark.static_dynamic;
+            noalias(LHS_Contribution) += M * (1.0 - mAlpha.m) * mNewmark.c0;
 
             // std::cout<<" Mass Matrix "<<M<<" coeficient "<<(1-mAlpha.m)*mNewmark.c0<<std::endl;
         }
@@ -989,7 +966,7 @@ protected:
         // Adding  damping contribution
         if (D.size1() != 0) // if D matrix declared
         {
-            noalias(LHS_Contribution) += D * (1.0 - mAlpha.f) * mNewmark.c1 * mNewmark.static_dynamic;
+            noalias(LHS_Contribution) += D * (1.0 - mAlpha.f) * mNewmark.c1;
 
         }
     }
@@ -1017,11 +994,11 @@ protected:
         {
             rCurrentElement->GetSecondDerivativesVector(mVector.a[thread], 0);
 
-            (mVector.a[thread]) *= (1.00 - mAlpha.m) * mNewmark.static_dynamic ;
+            (mVector.a[thread]) *= (1.00 - mAlpha.m);
 
             rCurrentElement->GetSecondDerivativesVector(mVector.ap[thread], 1);
 
-            noalias(mVector.a[thread]) += mAlpha.m * mVector.ap[thread] * mNewmark.static_dynamic;
+            noalias(mVector.a[thread]) += mAlpha.m * mVector.ap[thread];
 
             noalias(RHS_Contribution)  -= prod(M, mVector.a[thread]);
             //KRATOS_WATCH( prod(M, mVector.a[thread] ) )
@@ -1032,8 +1009,6 @@ protected:
         if (D.size1() != 0)
         {
             rCurrentElement->GetFirstDerivativesVector(mVector.v[thread], 0);
-
-            (mVector.v[thread]) *= mNewmark.static_dynamic ;
 
             noalias(RHS_Contribution) -= prod(D, mVector.v[thread]);
         }
@@ -1062,11 +1037,11 @@ protected:
         {
             rCurrentCondition->GetSecondDerivativesVector(mVector.a[thread], 0);
 
-            (mVector.a[thread]) *= (1.00 - mAlpha.m) * mNewmark.static_dynamic;
+            (mVector.a[thread]) *= (1.00 - mAlpha.m);
 
             rCurrentCondition->GetSecondDerivativesVector(mVector.ap[thread], 1);
 
-            noalias(mVector.a[thread]) += mAlpha.m * mVector.ap[thread] * mNewmark.static_dynamic;
+            noalias(mVector.a[thread]) += mAlpha.m * mVector.ap[thread];
 
             noalias(RHS_Contribution)  -= prod(M, mVector.a[thread]);
         }
@@ -1076,8 +1051,6 @@ protected:
         if (D.size1() != 0)
         {
             rCurrentCondition->GetFirstDerivativesVector(mVector.v[thread], 0);
-
-            (mVector.v[thread]) *= mNewmark.static_dynamic ;
 
             noalias(RHS_Contribution) -= prod(D, mVector.v [thread]);
         }
