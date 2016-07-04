@@ -25,32 +25,25 @@
 #include "includes/kratos_application.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
-#include "custom_utilities/pfem_particle.h" //hahaha
-#include "custom_utilities/pfem_particle_fluidonly.h" //hahaha
+#include "custom_utilities/pfem_particle.h" 
+#include "custom_utilities/pfem_particle_fluidonly.h" 
 
-//#include "custom_elements/2fluid_2d.h" //including the file for the element
-//#include "custom_elements/2fluid_3d.h" //including the file for the element
-//#include "custom_elements/fluid_phase_2d.h" //including the file for the element
 #include "custom_elements/fractional_step_pfem_2_2d.h" //including the file for the element
 #include "custom_elements/fractional_step_pfem_2_3d.h" //including the file for the element
 #include "custom_elements/monolithic_2fluid_2d.h" //including the file for the element
 #include "custom_elements/monolithic_2fluid_3d.h" //including the file for the element
 #include "custom_elements/nonewtonian_2fluid_2d.h" //including the file for the element
 #include "custom_elements/nonewtonian_2fluid_3d.h" //including the file for the element
-//#include "custom_elements/monolithic_3fluid_2d.h" //including the file for the element
-//#include "custom_elements/monolithic_3fluid_3d.h" //including the file for the element
 #include "custom_elements/monolithic_2fluid_2d_partintegration.h" //including the file for the element
 #include "custom_elements/monolithic_2fluid_3d_partintegration.h" //including the file for the element
-//#include "custom_elements/fsi_2d.h" //including the file for the element
-//#include "custom_elements/fsi_3d.h" //including the file for the element
-//#include "custom_elements/no_particles_solid_only_2d.h" //including the file for the element
+#include "custom_elements/vel_enriched_2fluid_2d.h"
+//#include "custom_elements/vel_enriched_2fluid_2d_nopressure.h"
 
 #include "custom_conditions/fixed_velocity_2d.h" //the condition
 #include "custom_conditions/fixed_velocity_3d.h" //the condition
 #include "custom_conditions/fixed_pressure_2d.h" //the condition
 #include "custom_conditions/fixed_pressure_3d.h" //the condition
 #include "custom_conditions/autoslip_inlet_3d.h" //the condition
-//#include "custom_conditions/water_fixed_velocity_2d.h" //the condition
 
 
 namespace Kratos
@@ -265,33 +258,28 @@ namespace Kratos
 
 
 
-		//       static const ApplicationCondition  msApplicationCondition; 
-
 		///@} 
 		///@name Member Variables 
 		///@{ 
  	
- 		//const FluidPhasePFEM22D   mFluidPhasePFEM22D; 
   		const FractionalStepPFEM22D   mFractionalStepPFEM22D; 
   		const FractionalStepPFEM23D   mFractionalStepPFEM23D; 
 		const MonolithicPFEM22D   mMonolithicPFEM22D; 
 		const MonolithicPFEM23D   mMonolithicPFEM23D; 
 		const NoNewtonianMonolithicPFEM22D   mNoNewtonianMonolithicPFEM22D; 
 		const NoNewtonianMonolithicPFEM23D   mNoNewtonianMonolithicPFEM23D; 
- 		//const Monolithic3FluidPFEM22D mMonolithic3FluidPFEM22D;
- 		//const Monolithic3FluidPFEM23D mMonolithic3FluidPFEM23D;
+
  		const MonolithicAutoSlipPFEM22D   mMonolithicAutoSlipPFEM22D; 
  		const MonolithicAutoSlipPFEM23D   mMonolithicAutoSlipPFEM23D; 
- 		//const FsiPFEM22D   mFsiPFEM22D; 
- 		//const FsiPFEM23D   mFsiPFEM23D; 
- 		//const NoParticlesSolidOnlyPFEM22D   mNoParticlesSolidOnlyPFEM22D; 
+ 
+  		const VelocityEnrichedPFEM22D   mVelocityEnrichedPFEM22D; 
+		//const VelocityEnrichedPFEM22DNoPressure   mVelocityEnrichedPFEM22DNoPressure; 
  		
 		const FixedVelocity2D   mFixedVelocity2D; 
 		const FixedVelocity3D   mFixedVelocity3D;
  		const FixedPressure2D   mFixedPressure2D; 
 		const FixedPressure3D   mFixedPressure3D; 
 		const MonolithicAutoSlipInlet3D   mMonolithicAutoSlipInlet3D; 
-		//const WaterFixedVelocity2D   mWaterFixedVelocity2D; 
  		
 
 		///@} 

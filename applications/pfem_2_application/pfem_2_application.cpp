@@ -20,7 +20,6 @@
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/line_2d.h"
-#include "custom_utilities/pfem_particle.h"
 #include "custom_utilities/pfem_particle_fluidonly.h"
 #include "pfem_2_application.h"
 #include "includes/variables.h"
@@ -93,26 +92,21 @@ namespace Kratos
 //
 
  	KratosPFEM2Application::KratosPFEM2Application():
- 			//mFluidPhasePFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3, Node<3>() ) ) ) ),
- 			mFractionalStepPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3, Node<3>() ) ) ) ),
- 			mFractionalStepPFEM23D ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >(  Element::GeometryType::PointsArrayType (4, Node<3>() ) ) ) ),
- 			mMonolithicPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3, Node<3>() ) ) ) ),
- 			mMonolithicPFEM23D    ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >(  Element::GeometryType::PointsArrayType (4, Node<3>() ) ) ) ),
- 			mNoNewtonianMonolithicPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3, Node<3>() ) ) ) ),
- 			mNoNewtonianMonolithicPFEM23D    ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >(  Element::GeometryType::PointsArrayType (4, Node<3>() ) ) ) ),
- 			mMonolithicAutoSlipPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3, Node<3>() ) ) ) ),
- 			mMonolithicAutoSlipPFEM23D    ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >(  Element::GeometryType::PointsArrayType (4, Node<3>() ) ) ) ),
- 			//mMonolithic3FluidPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3, Node<3>() ) ) ) ),
- 			//mMonolithic3FluidPFEM23D    ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >(  Element::GeometryType::PointsArrayType (4, Node<3>() ) ) ) ),
- 			//mFsiPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3, Node<3>() ) ) ) ),
- 			//mNoParticlesSolidOnlyPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3, Node<3>() ) ) ) ),
- 			//mFsiPFEM23D    ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >(  Element::GeometryType::PointsArrayType (4, Node<3>() ) ) ) ),
- 			mFixedVelocity2D    ( 0, Condition::GeometryType::Pointer( new Point2D<Node<3> >(  Element::GeometryType::PointsArrayType (1, Node<3>() ) ) ) ),
- 			mFixedVelocity3D    ( 0, Condition::GeometryType::Pointer( new Point3D<Node<3> >(  Element::GeometryType::PointsArrayType (1, Node<3>() ) ) ) ),
- 			mFixedPressure2D    ( 0, Condition::GeometryType::Pointer( new Point2D<Node<3> >(  Element::GeometryType::PointsArrayType (1, Node<3>() ) ) ) ),
- 			mFixedPressure3D    ( 0, Condition::GeometryType::Pointer( new Point3D<Node<3> >(  Element::GeometryType::PointsArrayType (1, Node<3>() ) ) ) ),
-			mMonolithicAutoSlipInlet3D    ( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >(  Element::GeometryType::PointsArrayType (3, Node<3>() ) ) ) )
- 			//mWaterFixedVelocity2D    ( 0, Condition::GeometryType::Pointer( new Point2D<Node<3> >(  Element::GeometryType::PointsArrayType (1, Node<3>() ) ) ) ),
+ 			mFractionalStepPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
+ 			mFractionalStepPFEM23D ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >(  Element::GeometryType::PointsArrayType (4 ) ) ) ),
+ 			mMonolithicPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
+ 			mMonolithicPFEM23D    ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >(  Element::GeometryType::PointsArrayType (4 ) ) ) ),
+ 			mNoNewtonianMonolithicPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
+ 			mNoNewtonianMonolithicPFEM23D    ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >(  Element::GeometryType::PointsArrayType (4 ) ) ) ),
+ 			mMonolithicAutoSlipPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
+ 			mMonolithicAutoSlipPFEM23D    ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >(  Element::GeometryType::PointsArrayType (4) ) ) ),
+ 	 		mVelocityEnrichedPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
+			//mVelocityEnrichedPFEM22DNoPressure    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
+ 			mFixedVelocity2D    ( 0, Condition::GeometryType::Pointer( new Point2D<Node<3> >(  Element::GeometryType::PointsArrayType (1 ) ) ) ),
+ 			mFixedVelocity3D    ( 0, Condition::GeometryType::Pointer( new Point3D<Node<3> >(  Element::GeometryType::PointsArrayType (1 ) ) ) ),
+ 			mFixedPressure2D    ( 0, Condition::GeometryType::Pointer( new Point2D<Node<3> >(  Element::GeometryType::PointsArrayType (1 ) ) ) ),
+ 			mFixedPressure3D    ( 0, Condition::GeometryType::Pointer( new Point3D<Node<3> >(  Element::GeometryType::PointsArrayType (1 ) ) ) ),
+			mMonolithicAutoSlipInlet3D    ( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >(  Element::GeometryType::PointsArrayType (3 ) ) ) )
  	{}
  	
  	void KratosPFEM2Application::Register()
@@ -120,7 +114,6 @@ namespace Kratos
  		// calling base class register to register Kratos components
  		KratosApplication::Register();
  		std::cout << "Initializing KratosPFEM2Application... " << std::endl;
- 		//KRATOS_REGISTER_ELEMENT("FluidPhasePFEM22D", mFluidPhasePFEM22D);
  		KRATOS_REGISTER_ELEMENT("FractionalStepPFEM22D", mFractionalStepPFEM22D);
  		KRATOS_REGISTER_ELEMENT("FractionalStepPFEM23D", mFractionalStepPFEM23D);
  		KRATOS_REGISTER_ELEMENT("MonolithicPFEM22D", mMonolithicPFEM22D);
@@ -129,19 +122,14 @@ namespace Kratos
  		KRATOS_REGISTER_ELEMENT("NoNewtonianMonolithicPFEM23D", mNoNewtonianMonolithicPFEM23D);
  		KRATOS_REGISTER_ELEMENT("MonolithicAutoSlipPFEM22D", mMonolithicAutoSlipPFEM22D);
  		KRATOS_REGISTER_ELEMENT("MonolithicAutoSlipPFEM23D", mMonolithicAutoSlipPFEM23D);
- 		//KRATOS_REGISTER_ELEMENT("Monolithic3FluidPFEM22D", mMonolithic3FluidPFEM22D);
- 		//KRATOS_REGISTER_ELEMENT("Monolithic3FluidPFEM23D", mMonolithic3FluidPFEM23D);
- 		//KRATOS_REGISTER_ELEMENT("MonolithicGeomechPFEM22D", mMonolithicGeomechPFEM22D);
- 		//KRATOS_REGISTER_ELEMENT("FsiPFEM22D", mFsiPFEM22D);
- 		//KRATOS_REGISTER_ELEMENT("FsiPFEM23D", mFsiPFEM23D);
- 		//KRATOS_REGISTER_ELEMENT("NoParticlesSolidOnlyPFEM22D", mNoParticlesSolidOnlyPFEM22D);
+ 		KRATOS_REGISTER_ELEMENT("VelocityEnrichedPFEM22D", mVelocityEnrichedPFEM22D);
+ 		//KRATOS_REGISTER_ELEMENT("VelocityEnrichedPFEM22DNoPressure", mVelocityEnrichedPFEM22DNoPressure);
  		
  		KRATOS_REGISTER_CONDITION("FixedVelocity2D", mFixedVelocity2D);
  		KRATOS_REGISTER_CONDITION("FixedVelocity3D", mFixedVelocity3D);
  		KRATOS_REGISTER_CONDITION("FixedPressure2D", mFixedPressure2D);
  		KRATOS_REGISTER_CONDITION("FixedPressure3D", mFixedPressure3D);
  		KRATOS_REGISTER_CONDITION("MonolithicAutoSlipInlet3D", mMonolithicAutoSlipInlet3D);
- 		//KRATOS_REGISTER_CONDITION("WaterFixedVelocity2D", mWaterFixedVelocity2D);
  				
  		KRATOS_REGISTER_VARIABLE( PRESS_GRADIENT_JUMP )
  		KRATOS_REGISTER_VARIABLE(PRESS_DISCONTINUITY);
