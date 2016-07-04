@@ -10,6 +10,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/ubuntu/Kratos/libs:/home/ubuntu/Co
 export PYTHONPATH=$PYTHONPATH:/home/ubuntu/Kratos
 
 ## Step1: Prepare
+yum -y install smtp-cli perl-IO-Socket-SSL  perl-Digest-HMAC  perl-TermReadKey perl-MIME-Lite  perl-File-LibMagic  perl-IO-Socket-INET6
 mkdir Kratos
 
 cd ${HOME}/Kratos
@@ -62,7 +63,7 @@ echo "============= \n" >> ${MAIL_GCC}
 cat ${LOG_DIR}/benchmarking_gcc.log >> ${MAIL_GCC};
 
 tar -zcvf ${LOG_DIR}/logs_gcc.tar.gz ${LOG_DIR}/configure_gcc.log ${LOG_DIR}/compile_gcc.log ${LOG_DIR}/benchmarking_gcc.log ${LOG_DIR}/unittest_gcc.log
-sendEmail -s ${KRATOS_MAIL_SERVER} -xu ${KRATOS_MAIL_USER} -xp ${KRATOS_MAIL_PASSWD} -f "Kratos@no-reply.com" -t "${MAIL_TO}" -o message-file=${MAIL_GCC} -u "Kratos Nightly Report GCC" -a ${LOG_DIR}/logs_gcc.tar.gz
+smtp-cli --host=${KRATOS_MAIL_SERVER} --enable-auth --user ${KRATOS_MAIL_USER} --password ${KRATOS_MAIL_PASSWD}  --to ${MAIL_TO} --body-plain ${MAIL_GCC} --attach ${LOG_DIR}/logs_gcc.tar.gz --subject "Kratos Nightly Report" --mail-from "kratosmultiphysics@gmail.com" --from "Kratos Nightly Report GCC"
 
 ## ------------------------------------------------------ ##
 
@@ -112,7 +113,7 @@ echo "============= \n" >> ${MAIL_CLANG}
 cat ${LOG_DIR}/benchmarking_clang.log >> ${MAIL_CLANG};
 
 tar -zcvf ${LOG_DIR}/logs_clang.tar.gz ${LOG_DIR}/configure_clang.log ${LOG_DIR}/compile_clang.log ${LOG_DIR}/benchmarking_clang.log ${LOG_DIR}/unittest_clang.log
-sendEmail -s ${KRATOS_MAIL_SERVER} -xu ${KRATOS_MAIL_USER} -xp ${KRATOS_MAIL_PASSWD} -f "Kratos@no-reply.com" -t "${MAIL_TO}" -o message-file=${MAIL_CLANG} -u "Kratos Nightly Report Clang" -a ${LOG_DIR}/logs_clang.tar.gz
+smtp-cli --host=${KRATOS_MAIL_SERVER} --enable-auth --user ${KRATOS_MAIL_USER} --password ${KRATOS_MAIL_PASSWD}  --to ${MAIL_TO} --body-plain ${MAIL_GCC} --attach ${LOG_DIR}/logs_clang.tar.gz --subject "Kratos Nightly Report" --mail-from "kratosmultiphysics@gmail.com" --from "Kratos Nightly Report CLANG"
 
 ## Step4: Finish
 
