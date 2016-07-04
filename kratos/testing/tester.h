@@ -96,6 +96,12 @@ namespace Kratos
 
 			static void ProfileTestSuite(std::string const& TestSuiteName);
 
+			/// The test case pattern can apply * as any number of any character
+			static void RunTestCases(std::string const& TestCasesNamePattern);
+
+			/// The test case pattern can apply * as any number of any character
+			static void ProfileTestCases(std::string const& TestCasesNamePattern);
+
 			static std::size_t NumberOfFailedTestCases();
 
 			/// This method assumes that the given test case is allocated
@@ -179,6 +185,8 @@ namespace Kratos
 			static void UnSelectAllTestCases();
 
 			static void SelectOnlyEnabledTestCases();
+
+			static void SelectTestCasesByPattern(std::string const& TestCasesNamePattern);
 
 			static void RunSelectedTestCases();
 
