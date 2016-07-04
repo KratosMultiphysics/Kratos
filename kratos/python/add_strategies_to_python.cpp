@@ -326,7 +326,7 @@ namespace Kratos
 	    class_< ResidualBasedBossakDisplacementSchemeType,
             bases< BaseSchemeType >,  boost::noncopyable >
             (
-                "ResidualBasedBossakDisplacementScheme", init< double , double >() )
+                "ResidualBasedBossakDisplacementScheme", init< double >() )
             .def("Initialize", &ResidualBasedBossakDisplacementScheme<SparseSpaceType, LocalSpaceType>::Initialize)
             ;
 	    
@@ -334,7 +334,7 @@ namespace Kratos
 	    class_< ResidualBasedNewmarkDisplacementSchemeType,
             bases< BaseSchemeType >,  boost::noncopyable >
             (
-                "ResidualBasedNewmarkDisplacementScheme", init< double >() )
+                "ResidualBasedNewmarkDisplacementScheme", init< >() )
             .def("Initialize", &ResidualBasedNewmarkDisplacementScheme<SparseSpaceType, LocalSpaceType>::Initialize)
             ;
 
