@@ -68,6 +68,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ///
 #include "includes/dof.h"
 #include "includes/variables.h"
+#include "includes/cfd_variables.h"
 #include "includes/deprecated_variables.h"
 #include "containers/array_1d.h"
 #include "containers/data_value_container.h"
@@ -135,6 +136,9 @@ namespace Kratos
 			: mr_model_part(model_part) , mmaximum_number_of_particles(maximum_number_of_particles)  
 		{
 			std::cout << "initializing moveparticle utility" << std::endl;
+			
+			Check();
+			
 			
 			//tools to move the domain, in case we are using a moving domain approach.
 			mintialized_transfer_tool=false; 
@@ -916,10 +920,32 @@ namespace Kratos
 					//we reset the local vectors for a faster access;
 				}
 			}
+			
+			
+			bool nonzero_mesh_velocity  = false;
+			//seeing if we have to use the mesh_velocity or not
+			for(ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin(); 
+				inode!=mr_model_part.NodesEnd(); inode++)
+			{
+				const array_1d<double, 3 > velocity = inode->FastGetSolutionStepValue(VELOCITY);
+				for(unsigned int i = 0; i!=2; i++)
+				{
+					if (fabs(velocity[i])>1.0e-9)
+						nonzero_mesh_velocity=true;
+				}
+				if( nonzero_mesh_velocity==true)
+					break;
+			}
+			
+			if ( nonzero_mesh_velocity==true)
+				muse_mesh_velocity_to_convect = true; // if there is mesh velocity, then we have to take it into account when moving the particles
+			else
+				muse_mesh_velocity_to_convect = false; //otherwise, we can avoid reading the values since we know it is zero everywhere (to save time!)
+			
 			std::cout << "convecting particles" << std::endl;
             //We move the particles across the fixed mesh and saving change data into them (using the function MoveParticle)			
 
-			#pragma omp barrier
+			const bool local_use_mesh_velocity_to_convect = muse_mesh_velocity_to_convect;
 			
 			#pragma omp parallel for
 			for(int kkk=0; kkk<number_of_threads; kkk++)
@@ -957,7 +983,7 @@ namespace Kratos
 					ResultIteratorType result_begin = results.begin();
 					bool & erase_flag=pparticle.GetEraseFlag();
 					if (erase_flag==false){
-						MoveParticle(pparticle,pcurrent_element,elements_in_trajectory,number_of_elements_in_trajectory,result_begin,max_results, mesh_displacement, discriminate_streamlines); //saqué N de los argumentos, no lo necesito ya q empieza SIEMPRE en un nodo y no me importa donde termina
+						MoveParticle(pparticle,pcurrent_element,elements_in_trajectory,number_of_elements_in_trajectory,result_begin,max_results, mesh_displacement, discriminate_streamlines, local_use_mesh_velocity_to_convect); //saqué N de los argumentos, no lo necesito ya q empieza SIEMPRE en un nodo y no me importa donde termina
 
 						const int current_element_id = pcurrent_element->Id();
 
@@ -1520,7 +1546,7 @@ namespace Kratos
 			for (unsigned int i = 1; i < number_of_threads; i++)
 			elem_partition[i] = elem_partition[i - 1] + elem_partition_size;
 
-			
+			const bool local_use_mesh_velocity_to_convect = muse_mesh_velocity_to_convect;
 			#pragma omp parallel firstprivate(elem_partition)
 			{
 				ResultContainerType results(max_results);
@@ -1588,7 +1614,7 @@ namespace Kratos
 							
 						    ResultIteratorType result_begin = results.begin();
 							Element::Pointer pelement( *ielem.base() );
-							MoveParticle_inverse_way(pparticle, pelement, result_begin, max_results);
+							MoveParticle_inverse_way(pparticle, pelement, result_begin, max_results, local_use_mesh_velocity_to_convect);
 							
 							 //and we copy it to the array:
 							 mparticles_vector[freeparticle] =  pparticle;
@@ -2105,7 +2131,21 @@ namespace Kratos
 
 	private:
 	
-
+	
+	void Check()
+	{
+		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(DISTANCE) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing DISTANCE variable on solution step data","");
+		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(PRESS_PROJ) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESS_PROJ variable on solution step data","");
+		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(VELOCITY) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data","");
+		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(PRESSURE) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE variable on solution step data","");
+		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(PROJECTED_VELOCITY) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing PROJECTED_VELOCITY variable on solution step data","");
+		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(DELTA_VELOCITY) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing DELTA_VELOCITY variable on solution step data","");
+		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(MESH_VELOCITY) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing MESH_VELOCITY variable on solution step data","");
+		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(YP) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing YP variable on solution step data","");
+		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(NORMAL) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing NORMAL variable on solution step data","");
+		if(mr_model_part.NodesBegin()->SolutionStepsDataHas(NODAL_AREA) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing NODAL_AREA variable on solution step data","");
+	}
+	
 
 	///this function moves a particle according to the "velocity" given
 	///by "rVariable". The movement is performed in nsubsteps, during a total time
@@ -2117,7 +2157,8 @@ namespace Kratos
 						 ResultIteratorType result_begin,
 						 const unsigned int MaxNumberOfResults,
 						 const array_1d<double,3> mesh_displacement,
-						 const bool discriminate_streamlines)
+						 const bool discriminate_streamlines,
+						 const bool use_mesh_velocity_to_convect)
 	{
 		
 		ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
@@ -2169,9 +2210,13 @@ namespace Kratos
 					{
 						sum_Ns_without_other_phase_nodes += N[j];
 						noalias(vel_without_other_phase_nodes) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j]; 
+						if (use_mesh_velocity_to_convect)
+							noalias(vel_without_other_phase_nodes) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j]; 
 					}
 						
 					noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j]; 	
+					if (use_mesh_velocity_to_convect)
+							noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j]; 
 				}
 				
 				if (sum_Ns_without_other_phase_nodes>0.01)
@@ -2180,13 +2225,22 @@ namespace Kratos
 					//flying_water_particle=false;
 				}
 				else
+				{
 					vel = particle_velocity;
+					if (use_mesh_velocity_to_convect)
+					{
+						for(unsigned int j=0; j<(TDim+1); j++)
+							noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j]; 
+					}
+				}
 			}
 			else // air particle or we are not following streamlines
 			{
 				for(unsigned int j=0; j<(TDim+1); j++)
 				{
 					noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j]; 
+					if (use_mesh_velocity_to_convect)
+							noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j]; 
 				}
 				//flying_water_particle=false;
 			}
@@ -2233,8 +2287,12 @@ namespace Kratos
 							{
 								sum_Ns_without_other_phase_nodes += N[j];
 								noalias(vel_without_other_phase_nodes) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j]; 
+								if (use_mesh_velocity_to_convect)
+										noalias(vel_without_other_phase_nodes) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j]; 
 							}
 							noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j]; 
+							if (use_mesh_velocity_to_convect)
+								noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j]; 
 						}
 					
 						//if (have_water_node)
@@ -2248,6 +2306,11 @@ namespace Kratos
 						{
 							particle_velocity += substep_dt * gravity;
 							vel  = particle_velocity;
+							if (use_mesh_velocity_to_convect)
+							{
+								for(unsigned int j=0; j<(TDim+1); j++)
+									noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j]; 
+							}
 						}
 					}
 					else //air particle or we are not discriminating streamlines
@@ -2257,7 +2320,10 @@ namespace Kratos
 							for(unsigned int j=0; j<(TDim+1); j++)
 							{
 								noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j]; 
+								if (use_mesh_velocity_to_convect)
+									noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j]; 
 							}
+							
 							//flying_water_particle=false;
 					}
 					
@@ -2382,7 +2448,8 @@ namespace Kratos
 						 PFEM_Particle_Fluid & pparticle,
 						 Element::Pointer & pelement, //NOT A REFERENCE!! WE SHALL NOT OVERWRITE THE ELEMENT IT BELONGS TO!						 
 						 ResultIteratorType result_begin,
-						 const unsigned int MaxNumberOfResults)
+						 const unsigned int MaxNumberOfResults,
+						 const bool use_mesh_velocity_to_convect)
 	{
 		
 		ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
@@ -2395,6 +2462,7 @@ namespace Kratos
 		bool is_found;
 		
 		array_1d<double,3> vel;
+		array_1d<double,3> particle_vel;
 		array_1d<double,3> position;
 		array_1d<double,3> mid_position;
 		array_1d<double,TDim+1> N;
@@ -2413,12 +2481,16 @@ namespace Kratos
 			KEEP_INTEGRATING=true;
 			Geometry< Node<3> >& geom = pelement->GetGeometry();//the element we're in			
 			vel=ZeroVector(3);
+			particle_vel=ZeroVector(3);
 			distance=0.0;
 			
 			for(unsigned int j=0; j<(TDim+1); j++)
 			{
 				distance +=  geom[j].FastGetSolutionStepValue(DISTANCE)*N(j);
+				noalias(particle_vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j];
 				noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j]; 
+				if (use_mesh_velocity_to_convect)
+					noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j]; 
 			}
 			//calculating substep to get +- courant(substep) = 1/4
 			nsubsteps = 10.0 * (delta_t * pelement->GetValue(VELOCITY_OVER_ELEM_SIZE));
@@ -2437,13 +2509,17 @@ namespace Kratos
 					Geometry< Node<3> >& geom = pelement->GetGeometry();//the element we're in
 			
 					vel=ZeroVector(3);
+					particle_vel=ZeroVector(3);
 					distance=0.0;
 
 					
 					for(unsigned int j=0; j<(TDim+1); j++)
 					{
+						noalias(particle_vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j] ;
 						noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j] ;
 						distance +=  geom[j].FastGetSolutionStepValue(DISTANCE)*N(j);
+						if (use_mesh_velocity_to_convect)
+							noalias(vel) -= geom[j].FastGetSolutionStepValue(MESH_VELOCITY)*N[j]; 
 					}
 
 		
@@ -2469,7 +2545,7 @@ namespace Kratos
 			
 
 			
-			pparticle.GetVelocity()=vel;
+			pparticle.GetVelocity()=particle_vel;
 		}
 		//else {KRATOS_WATCH(position); }		
 
@@ -3413,6 +3489,7 @@ namespace Kratos
 	array_1d<double, 3 > mcalculation_domain_complete_displacement;
 	array_1d<double, 3 > mcalculation_domain_added_displacement;
 	bool mintialized_transfer_tool;
+	bool muse_mesh_velocity_to_convect;
 	int m_nparticles;
 	int mnelems;
 	double mDENSITY_WATER;
