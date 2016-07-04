@@ -23,17 +23,17 @@ namespace Kratos {
 		{
 			ModelPart model_part("Main");
 
-			model_part.CreateSubModelPart("Inlet");
+			model_part.CreateSubModelPart("Inlet1");
 			model_part.CreateSubModelPart("Inlet2");
 			model_part.CreateSubModelPart("Outlet");
-			model_part.CreateSubModelPart("Outlet2");
+			model_part.CreateSubModelPart("AnotherOutlet");
 
 			std::size_t id = 1;
 			for(auto i_SubModelPart = model_part.SubModelPartsBegin() ; i_SubModelPart != model_part.SubModelPartsEnd() ; i_SubModelPart++){
 				i_SubModelPart->CreateNewNode(id++, 0.00,0.00,0.00);
 			}
 			KRATOS_CHECK_EQUAL(model_part.NumberOfNodes(), 4);
-			KRATOS_CHECK_EQUAL(model_part.GetSubModelPart("Inlet").NumberOfNodes(), 1);
+			KRATOS_CHECK_EQUAL(model_part.GetSubModelPart("Inlet1").NumberOfNodes(), 1);
 			KRATOS_CHECK_EQUAL(model_part.GetSubModelPart("Outlet").NumberOfNodes(), 1);
 			KRATOS_CHECK_EQUAL(model_part.GetSubModelPart("Outlet").GetNode(2).Id(), 2);
 			// self.assertEqual(model_part.NumberOfNodes(), 3)
