@@ -130,7 +130,6 @@ namespace Kratos {
         double total_equiv_area = 0.0;
         double total_mContIniNeighArea = 0.0;
         int cont_ini_neighbours_size = mContinuumInitialNeighborsSize;
-        double porosity = 0.2373;
 
         for (int i = 0; i < cont_ini_neighbours_size; i++) {
             SphericParticle* ini_cont_neighbour_iterator = mNeighbourElements[i];
@@ -151,7 +150,7 @@ namespace Kratos {
                 outputfile.close();
 
                 for (unsigned int i = 0; i < mContIniNeighArea.size(); i++) {
-                    mContIniNeighArea[i] = (porosity/0.228) * alpha * mContIniNeighArea[i];
+                    mContIniNeighArea[i] = alpha * mContIniNeighArea[i];
                     total_mContIniNeighArea += mContIniNeighArea[i];
                 } //for every neighbor
 
