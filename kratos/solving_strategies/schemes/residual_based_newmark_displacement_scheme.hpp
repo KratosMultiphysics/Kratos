@@ -6,7 +6,7 @@
 //
 //  License:          BSD License
 //  Original author:  Josep Maria Carbonell
-//  comming from      SolidMechanicsApplication (see SolidMechanicsApplication/license.txt)
+//  comming from      SolidMechanicsApplication
 //
 //  Co-author:        Vicente Mataix Ferrándiz
 //
