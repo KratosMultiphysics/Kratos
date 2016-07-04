@@ -1,7 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "*tcl(file tail [GiD_Info Project ModelName])",
-        "model_part_name" : "Structure",
+        "model_part_name" : "Solid Domain",
         "domain_size"     : *GenData(DOMAIN_SIZE,INT),
         "echo_level"      : *GenData(Echo_Level)
     },
@@ -14,7 +14,7 @@
             "input_type"     : "mdpa",
             "input_filename" : "test_interface5"
         },
-        "line_search"                        : *GenData(LineSearch),
+        "line_search"                        : *tcl(string tolower *GenData(LineSearch)),
         "convergence_criterion"              : "Residual_criterion",
         "displacement_relative_tolerance"    : *GenData(Convergence_Tolerance),
         "displacement_absolute_tolerance"    : *GenData(Absolute_Tolerance),
@@ -24,10 +24,12 @@
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto2"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","SelfWeight2D_Self_weight_Auto1"]
     },
+    "meshing_domains" : [
 *set var ndomains(int) = 0
 *Set cond group_DeformableBodies *groups
 *loop groups *OnlyInCond           
-    "meshing_domains" : {
+      	{
+	"domain_type": "meshing_domain",
         "mesh_id": *cond(Group_ID),
 	"domain_size": *GenData(DOMAIN_SIZE,INT),
 	"echo_level": *GenData(Echo_Level),
@@ -35,17 +37,22 @@
 	"offset_factor": *GenData(Offset_Factor),
 	"meshing_strategy":{
 		"strategy_type": "meshing_strategy",
-		"remesh": *cond(Remesh),
-		"refine": *cond(Refine),
-		"reconnect": *cond(Remesh),
-		"transfer": *cond(Transfer),
-		"constrained": *cond(Constrained),
-		"mesh_smoothing": *cond(MeshSmoothing),
-		"variables_smoothing": *cond(JacobiSmoothing),
+		"remesh": *tcl(string tolower *cond(Remesh)),
+		"refine": *tcl(string tolower *cond(Refine)),
+		"reconnect": *tcl(string tolower *cond(Remesh)),
+		"transfer": *tcl(string tolower *cond(Transfer)),
+		"constrained": *tcl(string tolower *cond(Constrained)),
+		"mesh_smoothing": *tcl(string tolower *cond(MeshSmoothing)),
+		"variables_smoothing": *tcl(string tolower *cond(JacobiSmoothing)),
 		"elemental_variables_to_smooth":[ "DETERMINANT_F" ],
+*if(GenData(DOMAIN_SIZE,INT)==2)
 		"reference_element": "Element2D3N",
-		"reference_condition": "CompositeCondition2D3N"
-	},	
+		"reference_condition": "CompositeCondition2D2N"
+*elseif(GenData(DOMAIN_SIZE,INT)==3)
+		"reference_element": "Element3D4N" ,
+		"reference_condition": "CompositeCondition3D3N"
+*endif
+	},
 	"spatial_bounding_box":{
 		"radius": 0.0,
 		"center": [0.0, 0.0, 0.0],
@@ -53,46 +60,47 @@
 	},	
 	"refining_parameters":{
 		"critical_size": *cond(Critical_Mesh_Size),
-		"threshold_variable": *cond(Dissipation_Variable),
+		"threshold_variable": "*cond(Dissipation_Variable)",
 		"reference_threshold" : *cond(Critical_Dissipation),
-		"error_variable": *cond(Error_Variable),
+		"error_variable": "*cond(Error_Variable)",
 		"reference_error" : *cond(Critical_Error),
-		"add_nodes": True,
-		"insert_nodes": False,
+		"add_nodes": true,
+		"insert_nodes": false,
 		"remove_nodes": {
-			"apply_removal": False,
-			"on_distance": False,
-			"on_threshold": False,
-			"on_error": False
+			"apply_removal": false,
+			"on_distance": true,
+			"on_threshold": false,
+			"on_error": true
 		},
 		"remove_boundary": {
-			"apply_removal": False,
-			"on_distance": False,
-			"on_threshold": False,
-			"on_error": False
+			"apply_removal": false,
+			"on_distance": true,
+			"on_threshold": false,
+			"on_error": false
 		},
 		"refine_elements": {
-			"apply_refinement": False,
-			"on_distance": False,
-			"on_threshold": False,
-			"on_error": False
+			"apply_refinement": false,
+			"on_distance": true,
+			"on_threshold": true,
+			"on_error": false
 		},
 		"refine_boundary": {
-			"apply_refinement": False,
-			"on_distance": False,
-			"on_threshold": False,
-			"on_error": False
+			"apply_refinement": false,
+			"on_distance": false,
+			"on_threshold": false,
+			"on_error": false
 		},              
 		"refining_box":{
-			"refine_in_box_only": *cond(Refine_on_box_only),
+			"refine_in_box_only": *tcl(string tolower *cond(Refine_on_box_only)),
 			"radius":  *cond(Radius_box),
-			"center": [*cond(Center_box)],
-			"velocity": [*cond(Velocity_box)]
+			"center": [*tcl(JoinByComma *cond(Center_box))],
+			"velocity": [*tcl(JoinByComma *cond(Velocity_box))]
 		}
 	},            
 	"elemental_variables_to_transfer":[ "CAUCHY_STRESS_VECTOR", "DEFORMATION_GRADIENT" ]
-    },
-*end groups	
+	}
+*end groups
+    ],	
     "constraints_process_list" : [{
         "implemented_in_file"   : "apply_displacement_process",
         "implemented_in_module" : "KratosMultiphysics.SolidMechanicsApplication",
@@ -137,13 +145,13 @@
         "point_data_configuration"  : []
     },
     "restart_options"          : {
-        "SaveRestart"      : *GenData(Print_Restart),
+        "SaveRestart"      : *tcl(string tolower *GenData(Print_Restart)),
         "RestartFrequency" : *GenData(Write_Frequency),
-        "LoadRestart"      : *GenData(Load_Restart),
+        "LoadRestart"      : *tcl(string tolower *GenData(Load_Restart)),
         "Restart_Step"     : *GenData(Load_Step)
     },
     "constraints_data"         : {
-        "incremental_load"         : *GenData(Incremental_Load),
-        "incremental_displacement" : *GenData(Incremental_Displacement)
+        "incremental_load"         : *tcl(string tolower *GenData(Incremental_Load)),
+        "incremental_displacement" : *tcl(string tolower *GenData(Incremental_Displacement))
     }
 }

@@ -32,9 +32,11 @@ done < "${2}/${1}.kpt"
 
 if [ ${script_type} == "Use_Default" ]; then
  cp "${3}/script.py" "${2}/"
+ cp "${3}/pfem_script.py" "${2}/"
 # cp "${3}/run_example_trilinos.py" "${2}/"
 elif [ $script_type == "Copy_From" ]; then
  cp "$script_path" "${2}/script.py"
+ cp "$script_path" "${2}/pfem_script.py"
 fi
 
 # Launch the script

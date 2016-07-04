@@ -5,7 +5,7 @@ import KratosMultiphysics
 import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
 
 # Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
+KratosMultiphysics.CheckForPreviousImport()
 
 def CreateMeshingStrategy(main_model_part, custom_settings):
     return MeshingStrategy(main_model_part, custom_settings)
@@ -21,15 +21,15 @@ class MeshingStrategy:
         default_settings = KratosMultiphysics.Parameters("""
         {
              "strategy_type": "meshing_strategy",
-             "remesh": False,
-             "refine": False,
-             "reconnect": False,
-             "transfer": False,
-             "constrained": False,
-             "mesh_smoothing": False,
-             "variables_smoothing": False,
+             "remesh": false,
+             "refine": false,
+             "reconnect": false,
+             "transfer": false,
+             "constrained": false,
+             "mesh_smoothing": false,
+             "variables_smoothing": false,
              "elemental_variables_to_smooth":[ "DETERMINANT_F" ],
-             "reference_element": "Element2D3N"
+             "reference_element": "Element2D3N",
              "reference_condition": "CompositeCondition2D3N"
         }
         """)
@@ -53,15 +53,15 @@ class MeshingStrategy:
       
         meshing_options = KratosMultiphysics.Flags()
         
-        meshing_options.Set(ModelerUtilities.REMESH, self.settings["remesh"].GetBool())
-        meshing_options.Set(ModelerUtilities.REFINE, self.settings["refine"].GetBool())
-        meshing_options.Set(ModelerUtilities.RECONNECT, self.settings["reconnect"].GetBool())
-        meshing_options.Set(ModelerUtilities.TRANSFER, self.settings["transfer"].GetBool())
-        meshing_options.Set(ModelerUtilities.CONSTRAINED, self.settings["constrained"].GetBool())
-        meshing_options.Set(ModelerUtilities.MESH_SMOOTHING, self.settings["mesh_smoothing"].GetBool())
-        meshing_options.Set(ModelerUtilities.VARIABLES_SMOOTHING, self.settings["variables_smoothing"].GetBool())
+        meshing_options.Set(KratosPfemBase.ModelerUtilities.REMESH, self.settings["remesh"].GetBool())
+        meshing_options.Set(KratosPfemBase.ModelerUtilities.REFINE, self.settings["refine"].GetBool())
+        meshing_options.Set(KratosPfemBase.ModelerUtilities.RECONNECT, self.settings["reconnect"].GetBool())
+        meshing_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER, self.settings["transfer"].GetBool())
+        meshing_options.Set(KratosPfemBase.ModelerUtilities.CONSTRAINED, self.settings["constrained"].GetBool())
+        meshing_options.Set(KratosPfemBase.ModelerUtilities.MESH_SMOOTHING, self.settings["mesh_smoothing"].GetBool())
+        meshing_options.Set(KratosPfemBase.ModelerUtilities.VARIABLES_SMOOTHING, self.settings["variables_smoothing"].GetBool())
 
-        self.MeshingParameters.SetMeshingOptions(meshing_options)
+        self.MeshingParameters.SetOptions(meshing_options)
         
         #set variables to global transfer
         self.MeshDataTransfer   = KratosPfemBase.MeshDataTransferUtilities()
@@ -70,9 +70,11 @@ class MeshingStrategy:
         if( self.settings["variables_smoothing"].GetBool() == True ):
             self.global_transfer = True
             transfer_variables = self.settings["elemental_variables_to_smooth"]
-            for variable in transfer_variables:
-                self.TransferParameters.SetVariable(globals()[variable])
-            
+            #for variable in transfer_variables:
+            #    self.TransferParameters.SetVariable( KratosMultiphysics.KratosGlobals.GetVariable( variable.GetString() ) )
+            for i in range(0, transfer_variables.size() ):            
+                self.TransferParameters.SetVariable(KratosMultiphysics.KratosGlobals.GetVariable(transfer_variables[i].GetString()))
+                            
 
         #mesh modelers for the current strategy
         self.mesh_modelers = []
@@ -91,7 +93,7 @@ class MeshingStrategy:
     def SetMeshModelers(self):
 
         modelers = []        
-        if( self.settings["remesh"].GetBool() && self.settings["refine"].GetBool() ):
+        if( self.settings["remesh"].GetBool() and self.settings["refine"].GetBool() ):
             modeler.append("pre_refining_modeler")
             modeler.append("post_refining_modeler")
         elif( self.settings["remesh"].GetBool() ):

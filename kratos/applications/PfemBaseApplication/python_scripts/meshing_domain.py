@@ -16,13 +16,14 @@ class MeshingDomain:
     ##
     ##real construction shall be delayed to the function "Initialize" which 
     ##will be called once the modeler is already filled
-    def __init__(self, main_model_part, custom_settings): 
+    def __init__(self, main_model_part, custom_settings):
         
         self.main_model_part = main_model_part    
         
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
+	    "domain_type": "meshing_domain",
             "mesh_id": 1,
             "domain_size": 2,
             "echo_level": 0,
@@ -30,56 +31,56 @@ class MeshingDomain:
             "offset_factor": 0.0,
             "meshing_strategy":{
                "strategy_type": "meshing_strategy",
-               "remesh": False,
-               "refine": False,
-               "reconnect": False,
-               "transfer": False,
-               "constrained": False,
-               "mesh_smoothing": False,
-               "variables_smoothing": False,
+               "remesh": false,
+               "refine": false,
+               "reconnect": false,
+               "transfer": false,
+               "constrained": false,
+               "mesh_smoothing": false,
+               "variables_smoothing": false,
                "elemental_variables_to_smooth":[ "DETERMINANT_F" ],
-               "reference_element": "Element2D3N"
-               "reference_condition": "CompositeCondition2D3N"
-            }
+               "reference_element": "Element2D3N",
+               "reference_condition": "CompositeCondition2D2N"
+            },
             "spatial_bounding_box":{
-               "refine_in_box_only": False,
                "radius": 0.0,
                "center": [0.0, 0.0, 0.0],
                "velocity": [0.0, 0.0, 0.0]
             },
             "refining_parameters":{
                "critical_size": 0.0,
-               "threshold_variable": PLASTIC_STRAIN,
+               "threshold_variable": "PLASTIC_STRAIN",
                "reference_threshold" : 0.0,
-               "error_variable": NORM_ISOCHORIC_STRESS,
+               "error_variable": "NORM_ISOCHORIC_STRESS",
                "reference_error" : 0.0,
-               "add_nodes": True,
-               "insert_nodes": False,
+               "add_nodes": true,
+               "insert_nodes": false,
                "remove_nodes": {
-                   "apply_removal": False,
-                   "on_distance": False,
-                   "on_threshold": False,
-                   "on_error": False
+                   "apply_removal": false,
+                   "on_distance": false,
+                   "on_threshold": false,
+                   "on_error": false
                },
                "remove_boundary": {
-                   "apply_removal": False,
-                   "on_distance": False,
-                   "on_threshold": False,
-                   "on_error": False
+                   "apply_removal": false,
+                   "on_distance": false,
+                   "on_threshold": false,
+                   "on_error": false
                },
                "refine_elements": {
-                   "apply_refinement": False,
-                   "on_distance": False,
-                   "on_threshold": False,
-                   "on_error": False
+                   "apply_refinement": false,
+                   "on_distance": false,
+                   "on_threshold": false,
+                   "on_error": false
                },
                "refine_boundary": {
-                   "apply_refinement": False,
-                   "on_distance": False,
-                   "on_threshold": False,
-                   "on_error": False
+                   "apply_refinement": false,
+                   "on_distance": false,
+                   "on_threshold": false,
+                   "on_error": false
                },              
                "refining_box":{
+                   "refine_in_box_only": false,
                    "radius": 0.0,
                    "center": [0.0, 0.0, 0.0],
                    "velocity": [0.0, 0.0, 0.0]
@@ -131,9 +132,11 @@ class MeshingDomain:
         # Create TransferParameters
         self.TransferParameters = KratosPfemBase.TransferParameters()
         transfer_variables = self.settings["elemental_variables_to_transfer"]
-        for variable in transfer_variables:
-            self.TransferParameters.SetVariable(globals()[variable])
-
+        i=0
+        #for variable in transfer_variables:
+        #    self.TransferParameters.SetVariable( KratosMultiphysics.KratosGlobals.GetVariable( variable.GetString() ) )
+        for i in range(0, transfer_variables.size() ):            
+            self.TransferParameters.SetVariable(KratosMultiphysics.KratosGlobals.GetVariable(transfer_variables[i].GetString()))
 
     def SetRefiningParameters(self):
         
@@ -144,7 +147,7 @@ class MeshingDomain:
         # parameters
         self.RefiningParameters.SetAlphaParameter(self.settings["alpha_shape"].GetDouble())
         
-        critical_mesh_size = self.settings["refining_parameters"]["critical_mesh_size"].GetDouble()
+        critical_mesh_size = self.settings["refining_parameters"]["critical_size"].GetDouble()
 
         # set mesh refinement based on wall tip discretization size
         # if(parameters["TipRadiusRefine"]):
@@ -163,58 +166,58 @@ class MeshingDomain:
             
         # set mesh refinement in box
         size = self.domain_size
-        if(self.settings["spatial_bounding_box"]["refine_in_box_only"].GetBool()):               
-            radius   = self.settings["spatial_bounding_box"]["radius"].GetDouble()
+        refining_box = self.settings["refining_parameters"]["refining_box"]
+        if(refining_box["refine_in_box_only"].GetBool()):               
+            radius   = refining_box["radius"].GetDouble()
             center   = Vector(size)
             velocity = Vector(size)
             
             for i in range(0, size):
-                center[i]   = self.settings["spatial_bounding_box"]["center"][i].GetDouble()
-                velocity[i] = self.settings["spatial_bounding_box"]["velocity"][i].GetDouble()
+                center[i]   = refining_box["center"][i].GetDouble()
+                velocity[i] = refining_box["velocity"][i].GetDouble()
                 
-        refining_box = KratosPfemBase.SpatialBoundingBox(center, radius, velocity)
-        self.RefiningParameters.SetRefiningBox(refining_box)
+            refining_box = KratosPfemBase.SpatialBoundingBox(center, radius, velocity)
+            self.RefiningParameters.SetRefiningBox(refining_box)
 
-        self.RefiningParameters.SetThresholdVariable(globals()[self.settings["refining_parameters"]["threshold_variable"].GetString()])
+        self.RefiningParameters.SetThresholdVariable(KratosMultiphysics.KratosGlobals.GetVariable(self.settings["refining_parameters"]["threshold_variable"].GetString() ))
         self.RefiningParameters.SetReferenceThreshold(self.settings["refining_parameters"]["reference_threshold"].GetDouble())
                 
-        self.RefiningParameters.SetErrorVariable(globals()[self.settings["refining_parameters"]["error_variable"].GetString()])
+        self.RefiningParameters.SetErrorVariable(KratosMultiphysics.KratosGlobals.GetVariable(self.settings["refining_parameters"]["error_variable"].GetString()))
         self.RefiningParameters.SetReferenceError(self.settings["refining_parameters"]["reference_error"].GetDouble())
 
 
         removing_options = KratosMultiphysics.Flags()
 
-        refining_options.Set(ModelerUtilities.REFINE, self.settings["refine"].GetBool())
-
         #remove nodes
         remove_nodes = self.settings["refining_parameters"]["remove_nodes"]
-        refining_options.Set(ModelerUtilities.REFINE_ELEMENTS, remove_nodes["apply_refinement"].GetBool())
-        refining_options.Set(ModelerUtilities.REFINE_ELEMENTS_ON_DISTANCE, remove_nodes["on_distance"].GetBool())
-        refining_options.Set(ModelerUtilities.REFINE_ELEMENTS_ON_ERROR, remove_nodes["on_error"].GetBool())  
-        refining_options.Set(ModelerUtilities.REFINE_ELEMENTS_ON_THRESHOLD, remove_nodes["on_threshold"].GetBool())  
+        removing_options.Set(KratosPfemBase.ModelerUtilities.REFINE_ELEMENTS, remove_nodes["apply_removal"].GetBool())
+        removing_options.Set(KratosPfemBase.ModelerUtilities.REFINE_ELEMENTS_ON_DISTANCE, remove_nodes["on_distance"].GetBool())
+        removing_options.Set(KratosPfemBase.ModelerUtilities.REFINE_ELEMENTS_ON_ERROR, remove_nodes["on_error"].GetBool())  
+        removing_options.Set(KratosPfemBase.ModelerUtilities.REFINE_ELEMENTS_ON_THRESHOLD, remove_nodes["on_threshold"].GetBool())  
 
         #remove boundary
         remove_boundary = self.settings["refining_parameters"]["remove_boundary"]
-        refining_options.Set(ModelerUtilities.REFINE_BOUNDARY, remove_boundary["apply_refinement"].GetBool())
-        refining_options.Set(ModelerUtilities.REFINE_BOUNDARY_ON_DISTANCE, remove_boundary["on_distance"].GetBool())
-        refining_options.Set(ModelerUtilities.REFINE_BOUNDARY_ON_ERROR, remove_boundary["on_error"].GetBool())  
-        refining_options.Set(ModelerUtilities.REFINE_BOUNDARY_ON_THRESHOLD, remove_boundary["on_threshold"].GetBool())  
+        removing_options.Set(KratosPfemBase.ModelerUtilities.REFINE_BOUNDARY, remove_boundary["apply_removal"].GetBool())
+        removing_options.Set(KratosPfemBase.ModelerUtilities.REFINE_BOUNDARY_ON_DISTANCE, remove_boundary["on_distance"].GetBool())
+        removing_options.Set(KratosPfemBase.ModelerUtilities.REFINE_BOUNDARY_ON_ERROR, remove_boundary["on_error"].GetBool())  
+        removing_options.Set(KratosPfemBase.ModelerUtilities.REFINE_BOUNDARY_ON_THRESHOLD, remove_boundary["on_threshold"].GetBool())  
 
         refining_options = KratosMultiphysics.Flags()
-        refining_options.Set(ModelerUtilities.REFINE_ADD_NODES, self.settings["refining_parameters"]["add_nodes"].GetBool())
-        refining_options.Set(ModelerUtilities.REFINE_INSERT_NODES, self.settings["refining_parameters"]["insert_nodes"].GetBool())
+        refining_options.Set(KratosPfemBase.ModelerUtilities.REFINE, self.settings["meshing_strategy"]["refine"].GetBool())
+        refining_options.Set(KratosPfemBase.ModelerUtilities.REFINE_ADD_NODES, self.settings["refining_parameters"]["add_nodes"].GetBool())
+        refining_options.Set(KratosPfemBase.ModelerUtilities.REFINE_INSERT_NODES, self.settings["refining_parameters"]["insert_nodes"].GetBool())
 
         #refine elements
         refine_elements = self.settings["refining_parameters"]["refine_elements"]
-        refining_options.Set(ModelerUtilities.REFINE_ELEMENTS, refine_elements["apply_refinement"].GetBool())
-        refining_options.Set(ModelerUtilities.REFINE_ELEMENTS_ON_DISTANCE, refine_elements["on_distance"].GetBool())
-        refining_options.Set(ModelerUtilities.REFINE_ELEMENTS_ON_THRESHOLD, refine_elements["on_threshold"].GetBool())  
+        refining_options.Set(KratosPfemBase.ModelerUtilities.REFINE_ELEMENTS, refine_elements["apply_refinement"].GetBool())
+        refining_options.Set(KratosPfemBase.ModelerUtilities.REFINE_ELEMENTS_ON_DISTANCE, refine_elements["on_distance"].GetBool())
+        refining_options.Set(KratosPfemBase.ModelerUtilities.REFINE_ELEMENTS_ON_THRESHOLD, refine_elements["on_threshold"].GetBool())  
 
         #refine boundary
         refine_boundary = self.settings["refining_parameters"]["refine_boundary"]
-        refining_options.Set(ModelerUtilities.REFINE_BOUNDARY, refine_boundary["apply_refinement"].GetBool())
-        refining_options.Set(ModelerUtilities.REFINE_BOUNDARY_ON_DISTANCE, refine_boundary["on_distance"].GetBool())
-        refining_options.Set(ModelerUtilities.REFINE_BOUNDARY_ON_THRESHOLD, refine_boundary["on_threshold"].GetBool())  
+        refining_options.Set(KratosPfemBase.ModelerUtilities.REFINE_BOUNDARY, refine_boundary["apply_refinement"].GetBool())
+        refining_options.Set(KratosPfemBase.ModelerUtilities.REFINE_BOUNDARY_ON_DISTANCE, refine_boundary["on_distance"].GetBool())
+        refining_options.Set(KratosPfemBase.ModelerUtilities.REFINE_BOUNDARY_ON_THRESHOLD, refine_boundary["on_threshold"].GetBool())  
         
         self.RefiningParameters.SetRefiningOptions(refining_options)
         self.RefiningParameters.SetRemovingOptions(removing_options)
