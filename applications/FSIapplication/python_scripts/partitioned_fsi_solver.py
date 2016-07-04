@@ -312,10 +312,10 @@ class PartitionedFSISolver:
                 
         ## Compute mesh prediction ##
         if self.mesh_prediction == True:
-            print("Computing time step ",step," prediction...")
+            print("Computing time step ",self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS]," prediction...")
             # Get the previous step fluid interface nodal fluxes
             self.interface_mapper.FluidToStructure_VectorMap(KratosMultiphysics.REACTION,
-                                                             KratosMultiphysics.POINT_LOAD,
+                                                             KratosSolid.POINT_LOAD,
                                                              False,False)                                              
                 
             # Solve the current step structure problem with the previous step fluid interface nodal fluxes
@@ -391,8 +391,8 @@ class PartitionedFSISolver:
         
     def SetTimeStep(self, step):
         
-        self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS] = step
-        self.structure_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS] = step
+        self.fluid_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME_STEPS, step)
+        self.structure_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME_STEPS, step)
 
 
     def Clear(self):
