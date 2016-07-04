@@ -10,7 +10,9 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/ubuntu/Kratos/libs:/home/ubuntu/Co
 export PYTHONPATH=$PYTHONPATH:/home/ubuntu/Kratos
 
 ## Step1: Prepare
-yum -y install smtp-cli perl-IO-Socket-SSL  perl-Digest-HMAC  perl-TermReadKey perl-MIME-Lite  perl-File-LibMagic  perl-IO-Socket-INET6
+cd ${HOME}
+wget http://www.logix.cz/michal/devel/smtp-cli/smtp-cli
+sudo apt-get install -y libio-socket-ssl-perl  libdigest-hmac-perl  libterm-readkey-perl libmime-lite-perl libfile-libmagic-perl libio-socket-inet6-perl
 mkdir Kratos
 
 cd ${HOME}/Kratos
