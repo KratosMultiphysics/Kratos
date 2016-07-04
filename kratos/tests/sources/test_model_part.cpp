@@ -15,7 +15,6 @@
 #include "testing/testing.h"
 #include "includes/model_part.h"
 
-
 namespace Kratos {
 	namespace Testing {
 
@@ -36,13 +35,6 @@ namespace Kratos {
 			KRATOS_CHECK_EQUAL(model_part.GetSubModelPart("Inlet1").NumberOfNodes(), 1);
 			KRATOS_CHECK_EQUAL(model_part.GetSubModelPart("Outlet").NumberOfNodes(), 1);
 			KRATOS_CHECK_EQUAL(model_part.GetSubModelPart("Outlet").GetNode(2).Id(), 2);
-			// self.assertEqual(model_part.NumberOfNodes(), 3)
-			// self.assertEqual(model_part.GetSubModelPart("Inlet").NumberOfNodes(), 1)
-			// self.assertEqual(model_part.GetSubModelPart("Outlet2").NumberOfNodes(), 1)
-			// self.assertEqual(model_part.GetSubModelPart("Outlet").NumberOfNodes(), 1)
-			// self.assertEqual(model_part.GetSubModelPart("Outlet").GetNode(2).Id, 2)
 		}
-
-
 	}
 }  // namespace Kratos.
