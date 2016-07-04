@@ -122,7 +122,7 @@ namespace Kratos
 
 		TestSuite* Tester::CreateTestSuite(std::string const& TestSuiteName)
 		{
-			if (HasTestSuite(TestSuiteName)) 
+			if (HasTestSuite(TestSuiteName))
 				return pGetTestSuite(TestSuiteName);
 			TestSuite* p_new_test_suite = new TestSuite(TestSuiteName);
 			AddTestSuite(p_new_test_suite);
@@ -228,14 +228,14 @@ namespace Kratos
 		void Tester::SelectTestCasesByPattern(std::string const& TestCasesNamePattern)
 		{
 			// creating the regex pattern replacing * with ".*"
-			std::regex replace_star("\\*");
-			std::stringstream regex_pattern_string;
-			std::regex_replace(std::ostreambuf_iterator<char>(regex_pattern_string),
-				TestCasesNamePattern.begin(), TestCasesNamePattern.end(), replace_star, ".*");
-			for (auto i_test = GetInstance().mTestCases.begin();
-			i_test != GetInstance().mTestCases.end(); i_test++)
-				if (std::regex_match(i_test->second->Name(), std::regex(regex_pattern_string.str())))
-					i_test->second->Select();
+			// std::regex replace_star("\\*");
+			// std::stringstream regex_pattern_string;
+			// std::regex_replace(std::ostreambuf_iterator<char>(regex_pattern_string),
+			// 	TestCasesNamePattern.begin(), TestCasesNamePattern.end(), replace_star, ".*");
+			// for (auto i_test = GetInstance().mTestCases.begin();
+			// i_test != GetInstance().mTestCases.end(); i_test++)
+			// 	if (std::regex_match(i_test->second->Name(), std::regex(regex_pattern_string.str())))
+			// 		i_test->second->Select();
 
 		}
 
