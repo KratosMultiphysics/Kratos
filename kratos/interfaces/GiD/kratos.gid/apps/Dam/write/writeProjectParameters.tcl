@@ -32,6 +32,7 @@ proc Dam::write::getParametersDict { } {
     dict set diffusionSolverSettingsDict density_variable "DENSITY"
     set damTypeofProblem [write::getValue DamTypeofProblem]
     if {$damTypeofProblem eq "Thermo-Mechanical"} {
+        set thermal_sol_strat [write::getValue DamSolStratTherm]
         dict set diffusionSolverSettingsDict temporal_scheme [write::getValue DamMechanicalSchemeTherm]
         dict set diffusionSolverSettingsDict reference_temperature [write::getValue DamReferenceTemperature]
     } 

@@ -75,7 +75,8 @@
             <parameter n="THERMAL_EXPANSION" pn="Thermal Expansion" v="1e-05"/>
         </inputs>
         <outputs>
-            
+            <parameter n="THERMAL_STRESS_TENSOR" pn="Thermal Stress" v="False" />
+			<parameter n="THERMAL_STRAIN_TENSOR" pn="Thermal Strain" v="False" />
         </outputs>
     </CLaw>
     <CLaw n="ThermalLinearElastic2DPlaneStress" pn="Thermal Linear Elastic Plane Stress" ProductionReady="ProductionReady" Type="ThermalPlaneStress" behaviour="Elastic" StrainSize="3"
@@ -88,7 +89,8 @@
             <parameter n="THERMAL_EXPANSION" pn="Thermal Expansion" v="1e-05"/>
         </inputs>
         <outputs>
-            
+            <parameter n="THERMAL_STRESS_TENSOR" pn="Thermal Stress" v="False" />
+			<parameter n="THERMAL_STRAIN_TENSOR" pn="Thermal Strain" v="False" />
         </outputs>
     </CLaw>
 
