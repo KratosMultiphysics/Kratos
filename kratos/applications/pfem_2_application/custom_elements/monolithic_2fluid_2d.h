@@ -100,7 +100,7 @@ namespace Kratos
                                 
         virtual void AddViscousTerm(MatrixType& rDampMatrix,
                                        const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
-                                       double Viscosity,const double Area);                        
+                                       double& Viscosity,const double Area);                        
                            
 		void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 13, 13 > & output,
 						  boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& rShapeDeriv,
@@ -109,7 +109,16 @@ namespace Kratos
 						  array_1d<double,3>&  viscosities,
 						  array_1d<double,3>&  signs,
 						  array_1d<double,3>&  volumes ,
-						  const unsigned int ndivisions);				  
+						  const unsigned int ndivisions);			
+						  
+				void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 12, 12 > & output,
+						  boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& rShapeDeriv,
+						  array_1d<double,3>&  distances,
+                          std::vector< Matrix >& gauss_gradients, 
+						  array_1d<double,3>&  viscosities,
+						  array_1d<double,3>&  signs,
+						  array_1d<double,3>&  volumes ,
+						  const unsigned int ndivisions);			  
 						  
 		void  AddViscousTerm(MatrixType& rDampMatrix,
                                        std::vector< Matrix > & gauss_gradients_discontinuous,
