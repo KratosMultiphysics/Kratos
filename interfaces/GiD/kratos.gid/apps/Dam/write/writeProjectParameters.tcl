@@ -85,10 +85,10 @@ proc write::GetDefaultOutputDict {} {
     set resultDict [dict create]
     
     set GiDPostDict [dict create]
-    dict set GiDPostDict GiDPostMode                [getValue Results GiDPostMode]
-    dict set GiDPostDict WriteDeformedMeshFlag      [getValue Results GiDWriteMeshFlag]
-    dict set GiDPostDict WriteConditionsFlag        [getValue Results GiDWriteConditionsFlag]
-    dict set GiDPostDict MultiFileFlag              [getValue Results GiDMultiFileFlag]
+    dict set GiDPostDict GiDPostMode                [write::getValue Results GiDPostMode]
+    dict set GiDPostDict WriteDeformedMeshFlag      [write::getValue Results GiDWriteMeshFlag]
+    dict set GiDPostDict WriteConditionsFlag        [write::getValue Results GiDWriteConditionsFlag]
+    dict set GiDPostDict MultiFileFlag              [write::getValue Results GiDMultiFileFlag]
     dict set resultDict gidpost_flags $GiDPostDict
     
     dict set resultDict output_frequency [write::getValue Results OutputDeltaTime]   

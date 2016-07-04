@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="procs" pn="procs" includeContainer="No">
 
-
+	<proc n='GetConstitutiveLaws' args='args'>
+	  <![CDATA[
+	  return [Dam::xml::ProcGetConstitutiveLaws $domNode $args]
+	  ]]>
+	</proc>
 	  <proc n='SolStratParamState' args='args'>
 	  <![CDATA[
 		    
@@ -12,7 +16,6 @@
 
 		 	<proc n='GetSolutionStrategies' args='args'>
 	  <![CDATA[
-	  
 		set names ""
 		set pnames ""
 		set ids [list ]
