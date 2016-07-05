@@ -33,7 +33,7 @@
 #include "includes/variables.h"
 #include "lagrangian_mpm_application_variables.h"
 #include "custom_elements/meshless_base_element.h"
-
+#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
