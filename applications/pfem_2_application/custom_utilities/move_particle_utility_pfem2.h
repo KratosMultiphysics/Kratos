@@ -2125,6 +2125,74 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 		
+		void RotateParticlesVelocities(array_1d<double, 3 > rotations)
+		{
+			KRATOS_TRY
+			
+			
+			
+			if(fabs(rotations[0])>0.000000001 or fabs(rotations[1])>0.000000001)
+				KRATOS_THROW_ERROR(std::invalid_argument,"ROTATIONS ONLY IMPLEMENTED AROUND Z AXIS! (xy plane) ","");
+				
+			const double cosinus_theta = cos(rotations[2]);
+			const double sinus_theta = sin(rotations[2]);
+						
+			//std::cout << "updating particles" << std::endl;
+			ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+			
+			const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
+																				//(flag managed only by MoveParticles
+			//KRATOS_WATCH(offset)
+			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
+			
+			
+			vector<unsigned int> element_partition;
+			#ifdef _OPENMP
+				int number_of_threads = omp_get_max_threads();
+			#else
+				int number_of_threads = 1;
+			#endif
+			OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Elements().size(), element_partition);
+			
+			#pragma omp parallel for
+			for(int kkk=0; kkk<number_of_threads; kkk++)
+			{
+				for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
+				{
+					//const int & elem_id = ielem->Id();
+					ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
+					Element::Pointer pelement(*ielem.base());
+					
+					ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(FLUID_PARTICLE_POINTERS));
+					int & number_of_particles_in_elem=ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
+					//std::cout << "elem " << ii << " with " << (unsigned int)number_of_particles_in_elem << " particles" << std::endl;
+					
+					for (int iii=0; iii<number_of_particles_in_elem ; iii++ )
+					{
+						//KRATOS_WATCH(iii)
+						if (iii>mmaximum_number_of_particles) //it means we are out of our portion of the array, abort loop!
+							break; 
+
+						PFEM_Particle_Fluid & pparticle = element_particle_pointers[offset+iii];
+						
+						
+						bool erase_flag= pparticle.GetEraseFlag();
+						if (erase_flag==false)
+						{
+							array_1d<float, 3 > & vel = pparticle.GetVelocity();
+							const float vel_x = vel[0];
+							const float vel_y = vel[1];
+							vel[0] = cosinus_theta*vel_x + sinus_theta*vel_y;
+							vel[1] = cosinus_theta*vel_y - sinus_theta*vel_x;
+						}
+						
+						
+					}	
+				}
+			}
+			KRATOS_CATCH("")
+		}
+		
 		
 	protected:
 
