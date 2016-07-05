@@ -69,7 +69,7 @@ proc FSI::xml::DrawMokChannelFlexibleWallGeometry {args} {
     lappend fluidalllines {*}$fluidinteractionLines
     GiD_Process Mescape Geometry Create NurbsSurface {*}$fluidalllines escape escape 
 
-    GiD_Process 'Zoom Frame 
+    
     GiD_Process 'Layers New Structure escape 
     GiD_Process 'Layers Off Fluid escape
     GiD_Process 'Layers ToUse Structure escape
@@ -100,6 +100,7 @@ proc FSI::xml::DrawMokChannelFlexibleWallGeometry {args} {
         GiD_Process 'Layers On Fluid escape 
 
     }
+    GiD_Process 'Zoom Frame
     
     # Group creation
     GiD_Groups create Fluid
@@ -114,15 +115,17 @@ proc FSI::xml::DrawMokChannelFlexibleWallGeometry {args} {
 
     # Group entities
     if {$::Model::SpatialDimension eq "3D"} {
+        GiD_Groups create FluidFixedDisplacement
         GiD_EntitiesGroups assign Fluid volumes 1
         GiD_EntitiesGroups assign Structure volumes 2
         GiD_EntitiesGroups assign Inlet surfaces 4
         GiD_EntitiesGroups assign Outlet surfaces 6
-        GiD_EntitiesGroups assign NoSlip surfaces 1 3 7 8 9 10 14
+        GiD_EntitiesGroups assign NoSlip surfaces {1 3 7 8 9 10 14}
         GiD_EntitiesGroups assign Slip surfaces 5
-        GiD_EntitiesGroups assign FluidInterface surfaces 11 12 13
+        GiD_EntitiesGroups assign FluidFixedDisplacement surfaces {1 14}
+        GiD_EntitiesGroups assign FluidInterface surfaces {11 12 13}
         GiD_EntitiesGroups assign FixedDisplacement surfaces 18
-        GiD_EntitiesGroups assign StructureInterface surfaces 2 15 16 17 19
+        GiD_EntitiesGroups assign StructureInterface surfaces {2 15 16 17 19}
         
     } {
         GiD_EntitiesGroups assign Fluid surfaces 1
@@ -140,11 +143,12 @@ proc FSI::xml::DrawMokChannelFlexibleWallGeometry {args} {
 }
 
 proc FSI::xml::TreeAssignationMokChannelFlexibleWall {args} {
+    set nd $::Model::SpatialDimension
     # Fluid Parts
     set fluidParts {container[@n='FSI']/container[@n='Fluid']/condition[@n='Parts']}
     gid_groups_conds::addF $fluidParts group {n Fluid}
     set fluidGroup "$fluidParts/group\[@n='Fluid'\]"
-    gid_groups_conds::addF $fluidGroup value {n Element pn Element dict {[GetElements]} actualize_tree 1 values FractionalStep2D state hidden v FractionalStep2D}
+    gid_groups_conds::addF $fluidGroup value "n Element pn Element dict {\[GetElements\]} actualize_tree 1 values FractionalStep$nd state hidden v FractionalStep$nd"
     gid_groups_conds::addF $fluidGroup value {n ConstitutiveLaw pn {Fluid type} actualize_tree 1 values Newtonian,HerschelBulkley dict {[GetConstitutiveLaws]} state normal v Newtonian}
     gid_groups_conds::addF -resolve_parametric 1 $fluidGroup value {n DENSITY pn Density state {[PartParamState]} unit_magnitude Density help {} v 956.0 units kg/m^3}
     gid_groups_conds::addF -resolve_parametric 1 $fluidGroup value {n VISCOSITY pn {Kinematic viscosity} state {[PartParamState]} unit_magnitude L^2/T help {Fluidized viscosity.} v 0.145 units m^2/s}
@@ -152,35 +156,50 @@ proc FSI::xml::TreeAssignationMokChannelFlexibleWall {args} {
     gid_groups_conds::addF $fluidGroup value {n POWER_LAW_K pn {Consistency index (k)} state {[PartParamState]} unit_magnitude {} help {} v 1}
     gid_groups_conds::addF $fluidGroup value {n POWER_LAW_N pn {Flow index (n)} state {[PartParamState]} unit_magnitude {} help {} v 1}
 
+    set fluidConditions {container[@n='FSI']/container[@n='Fluid']/container[@n='BoundaryConditions']}
     # Fluid Interface
-    set fluidFSI {container[@n='FSI']/container[@n='Fluid']/container[@n='BoundaryConditions']/condition[@n='Inlet2D']}
+    set fluidInlet "$fluidConditions/condition\[@n='Inlet$nd'\]"
     
     # Fluid Inlet
-    gid_groups_conds::addF $fluidFSI group {n Inlet}
-    set fluidfsiGroup "$fluidFSI/group\[@n='Inlet'\]"
-    gid_groups_conds::addF -resolve_parametric 1 $fluidfsiGroup value {n factor pn Modulus unit_magnitude Velocity help {} state {} v 0.6067 units m/s}
-    gid_groups_conds::addF $fluidfsiGroup value {n directionX wn {Inlet2D _X} pn {Direction X} help {} state {} v 1.0}
-    gid_groups_conds::addF $fluidfsiGroup value {n directionY wn {Inlet2D _Y} pn {Direction Y} help {} state {} v 0.0}
-    gid_groups_conds::addF $fluidfsiGroup value {n directionZ wn {Inlet2D _Z} pn {Direction Z} help {} state {[CheckDimension 3D]} v 0.0}
+    gid_groups_conds::addF $fluidInlet group {n Inlet}
+    set fluidInletGroup "$fluidInlet/group\[@n='Inlet'\]"
+    gid_groups_conds::addF -resolve_parametric 1 $fluidInletGroup value {n factor pn Modulus unit_magnitude Velocity help {} state {} v 0.6067 units m/s}
+    gid_groups_conds::addF $fluidInletGroup value "n directionX wn {Inlet$nd _X} pn {Direction X} help {} state {} v 1.0"
+    gid_groups_conds::addF $fluidInletGroup value "n directionY wn {Inlet$nd _Y} pn {Direction Y} help {} state {} v 0.0"
+    gid_groups_conds::addF $fluidInletGroup value "n directionZ wn {Inlet$nd _Z} pn {Direction Z} help {} state {\[CheckDimension 3D\]} v 0.0"
         
     # Fluid Outlet
-    gid_groups_conds::addF {container[@n='FSI']/container[@n='Fluid']/container[@n='BoundaryConditions']/condition[@n='Outlet2D']} group {n Outlet}
-    gid_groups_conds::addF -resolve_parametric 1 {container[@n='FSI']/container[@n='Fluid']/container[@n='BoundaryConditions']/condition[@n='Outlet2D']/group[@n='Outlet']} value {n value pn Value unit_magnitude P help {} state {} v 0.0 units Pa}
+    set fluidOutlet "$fluidConditions/condition\[@n='Outlet$nd'\]"
+    gid_groups_conds::addF $fluidOutlet group {n Outlet}
+    gid_groups_conds::addF -resolve_parametric 1 "$fluidOutlet/group\[@n='Outlet'\]" value {n value pn Value unit_magnitude P help {} state {} v 0.0 units Pa}
     
     # Fluid Conditions
-    gid_groups_conds::addF {container[@n='FSI']/container[@n='Fluid']/container[@n='BoundaryConditions']/condition[@n='NoSlip2D']} group {n NoSlip}
-    gid_groups_conds::addF {container[@n='FSI']/container[@n='Fluid']/container[@n='BoundaryConditions']/condition[@n='Slip2D']} group {n Slip}
-    gid_groups_conds::addF {container[@n='FSI']/container[@n='Fluid']/container[@n='BoundaryConditions']/condition[@n='FluidNoSlipInterface2D']} group {n FluidInterface}
+    gid_groups_conds::addF "$fluidConditions/condition\[@n='NoSlip$nd'\]" group {n NoSlip}
+    gid_groups_conds::addF "$fluidConditions/condition\[@n='Slip$nd'\]" group {n Slip}
+    gid_groups_conds::addF "$fluidConditions/condition\[@n='FluidNoSlipInterface$nd'\]" group {n FluidInterface}
+    
+    # Displacement 3D
+    if {$nd eq "3D"} {
+        set fluidDisplacement "$fluidConditions/condition\[@n='DISPLACEMENT'\]"
+        gid_groups_conds::addF $fluidDisplacement group {n FluidFixedDisplacement ov surface}
+        set fluidDisplacementGroup "$fluidDisplacement/group\[@n='FluidFixedDisplacement'\]"
+        gid_groups_conds::addF $fluidDisplacementGroup value {n FixX pn {X Imposed} values 1,0 help {} state {} v 0}
+        gid_groups_conds::addF $fluidDisplacementGroup value {n FixY pn {Y Imposed} values 1,0 help {} state {} v 0}
+        gid_groups_conds::addF $fluidDisplacementGroup value {n FixZ pn {Z Imposed} values 1,0 help {} state {[CheckDimension 3D]} v 1}
+        gid_groups_conds::addF $fluidDisplacementGroup value {n valueX wn {DISPLACEMENT _X} pn {Value X} help {} state {} v 0.0}
+        gid_groups_conds::addF $fluidDisplacementGroup value {n valueY wn {DISPLACEMENT _Y} pn {Value Y} help {} state {} v 0.0}
+        gid_groups_conds::addF $fluidDisplacementGroup value {n valueZ wn {DISPLACEMENT _Z} pn {Value Z} help {} state {[CheckDimension 3D]} v 0.0}
+    }
 
     # Structural
     gid_groups_conds::setAttributesF {container[@n='FSI']/container[@n='Structural']/container[@n='StageInfo']/value[@n='SolutionType']} {v Dynamic}
     
     # Structural Parts
     set structParts {container[@n='FSI']/container[@n='Structural']/condition[@n='Parts']}
-    gid_groups_conds::addF $structParts group {n Structure}
+    gid_groups_conds::addF $structParts group {n Structure ov volume}
     set structPartsGroup "$structParts/group\[@n='Structure'\]"
-    gid_groups_conds::addF $structPartsGroup value {n Element pn Element actualize_tree 1 values SmallDisplacementElement2D,TotalLagrangianElement2D,UpdatedLagrangianElement2D,UpdatedLagrangianElementUP2D dict {[GetElements]} state normal v SmallDisplacementElement2D}
-    gid_groups_conds::addF $structPartsGroup value {n ConstitutiveLaw pn {Constitutive law} actualize_tree 1 values LinearElasticPlaneStrain2DLaw,LinearElasticPlaneStress2DLaw,IsotropicDamageSimoJuPlaneStrain2DLaw,IsotropicDamageSimoJuPlaneStress2DLaw dict {LinearElasticPlaneStrain2DLaw,Linear Elastic Plane Strain,LinearElasticPlaneStress2DLaw,Linear Elastic Plane Stress,IsotropicDamageSimoJuPlaneStrain2DLaw,Isotropic Damage Simo-Ju Plane Strain,IsotropicDamageSimoJuPlaneStress2DLaw,Isotropic Damage Simo-Ju Plane Stress} state {[UpdateDictAndReturnState]} v LinearElasticPlaneStrain2DLaw}
+    gid_groups_conds::addF $structPartsGroup value "n Element pn Element actualize_tree 1 dict {\[GetElements\]} state normal v SmallDisplacementElement$nd"
+    gid_groups_conds::addF $structPartsGroup value "n ConstitutiveLaw pn {Constitutive law} actualize_tree 1 dict \[GetConstitutiveLaws\] state normal v LinearElasticPlaneStrain${nd}Law"
     gid_groups_conds::addF $structPartsGroup value {n SECTION_TYPE pn {Section type} state {[PartParamState]} unit_magnitude {} help {} v 0}
     gid_groups_conds::addF -resolve_parametric 1 $structPartsGroup value {n THICKNESS pn Thickness state {[PartParamState]} unit_magnitude L help {} v 1.0 units m}
     gid_groups_conds::addF -resolve_parametric 1 $structPartsGroup value {n DENSITY pn Density state {[PartParamState]} unit_magnitude Density help {} v 1500.0 units kg/m^3}
@@ -208,7 +227,9 @@ proc FSI::xml::TreeAssignationMokChannelFlexibleWall {args} {
     gid_groups_conds::addF $structDisplacementGroup value {n valueZ wn {DISPLACEMENT _Z} pn {Value Z} help {} state {[CheckDimension 3D]} v 0.0}
     
     # Structural Interface
-    gid_groups_conds::addF {container[@n='FSI']/container[@n='Structural']/container[@n='Loads']/condition[@n='Interface2D']} group {n StructureInterface}
+    gid_groups_conds::addF "container\[@n='FSI'\]/container\[@n='Structural'\]/container\[@n='Loads'\]/condition\[@n='Interface$nd'\]" group {n StructureInterface}
+    
+    
     
     spdAux::RequestRefresh
 }
