@@ -196,7 +196,12 @@ proc FSI::xml::TreeAssignationMokChannelFlexibleWall {args} {
     
     # Structural Parts
     set structParts {container[@n='FSI']/container[@n='Structural']/condition[@n='Parts']}
-    gid_groups_conds::addF $structParts group {n Structure ov volume}
+    if {$nd eq "3D"} {
+        gid_groups_conds::addF $structParts group {n Structure ov volume}
+    } {
+        gid_groups_conds::addF $structParts group {n Structure ov surface}
+    }
+    
     set structPartsGroup "$structParts/group\[@n='Structure'\]"
     gid_groups_conds::addF $structPartsGroup value "n Element pn Element actualize_tree 1 dict {\[GetElements\]} state normal v SmallDisplacementElement$nd"
     gid_groups_conds::addF $structPartsGroup value "n ConstitutiveLaw pn {Constitutive law} actualize_tree 1 dict \[GetConstitutiveLaws\] state normal v LinearElasticPlaneStrain${nd}Law"
