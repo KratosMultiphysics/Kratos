@@ -73,7 +73,7 @@ def AssambleTestSuites():
             TShellT3ThinBendingRollUpTests,
             TShellT3ThinDrillingRollUpTests,
             TShellT3IsotropicScordelisTests,
-            TSimplePatchTestContact # REQUIRES PLAIN STRAIN!!!!!!
+            TSimplePatchTestContact
         ])
     )
 
