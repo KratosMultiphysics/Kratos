@@ -380,9 +380,6 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
 		  }
 		}
 
-		double VolumeChange = 0;
-		VolumeChange = this->CalculateVolumeChange( VolumeChange, rVariables );
-
 		rVolumeForce *= 1.0 / (rVariables.detFT) * GetProperties()[DENSITY];
 
 		return rVolumeForce;
@@ -399,25 +396,21 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
 
     {
         KRATOS_TRY
-        unsigned int number_of_nodes = GetGeometry().PointsNumber();
-        
-        unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        
-        
+    unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    double DomainChange = (1.0/rVariables.detF0); //density_n+1 = density_0 * ( 1.0 / detF0 )
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        int index = dimension * i;
+        for ( unsigned int j = 0; j < dimension; j++ )
         {
-            int index = dimension * i;
-            
-            for ( unsigned int j = 0; j < dimension; j++ )
-            {
-            rRightHandSideVector[index + j] += rVariables.N[i] * rVolumeForce[j]; 
-            
-            }
-            
+	  rRightHandSideVector[index + j] += rVariables.IntegrationWeight * rVariables.N[i] * rVolumeForce[j] * DomainChange;
         }
-        
-        KRATOS_CATCH( "" )
+    }
+
+    KRATOS_CATCH( "" )
     }    
 //************************************************************************************
 //*********************Calculate the contribution of internal force*******************
