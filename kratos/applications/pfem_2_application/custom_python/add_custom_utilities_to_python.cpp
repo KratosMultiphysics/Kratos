@@ -58,8 +58,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-//#include "custom_utilities/move_particle_utility_diff.h" 
 #include "custom_utilities/move_particle_utility_pfem2.h" 
+
 #include "custom_utilities/visualization.h" 
 #include "custom_utilities/calculate_water_fraction.h"
 #include "spaces/ublas_space.h"
@@ -82,59 +82,6 @@ namespace Python
 		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-/*
-		class_< MoveParticleUtilityDiff<2> > ("MoveParticleUtilityDiff2D", init<ModelPart& , int >())
-                    .def("MountBinDiff", &MoveParticleUtilityDiff<2>::MountBinDiff)
-                    .def("MoveParticlesDiff", &MoveParticleUtilityDiff<2>::MoveParticlesDiff)
-                    .def("AccelerateParticlesWithoutMovingUsingDeltaVelocity", &MoveParticleUtilityDiff<2>::AccelerateParticlesWithoutMovingUsingDeltaVelocity)
-                    .def("PreReseed", &MoveParticleUtilityDiff<2>::PreReseed)
-                    .def("PostReseed", &MoveParticleUtilityDiff<2>::PostReseed)
-                    .def("ResetBoundaryConditions", &MoveParticleUtilityDiff<2>::ResetBoundaryConditions)
-                    .def("CopyVectorVarToPreviousTimeStep", &MoveParticleUtilityDiff<2>::CopyVectorVarToPreviousTimeStep)
-                    .def("CopyScalarVarToPreviousTimeStep", &MoveParticleUtilityDiff<2>::CopyScalarVarToPreviousTimeStep)
-                    .def("TransferLagrangianToEulerian",&MoveParticleUtilityDiff<2>::TransferLagrangianToEulerian)
-                    .def("ReplaceParticlesVelocityAndDistance",&MoveParticleUtilityDiff<2>::ReplaceParticlesVelocityAndDistance)
-                    .def("FlagSplittedElementsAndTheirNodes", &MoveParticleUtilityDiff<2>::FlagSplittedElementsAndTheirNodes)
-                    .def("CalculateVelOverElemSize", &MoveParticleUtilityDiff<2>::CalculateVelOverElemSize)
-                    .def("CalculateDeltaVelocity", &MoveParticleUtilityDiff<2>::CalculateDeltaVelocity)
-                    .def("ComputeDeltaVelocityForNonLinearIteration", &MoveParticleUtilityDiff<2>::ComputeDeltaVelocityForNonLinearIteration)
-                    .def("FindParticlesToBurn", &MoveParticleUtilityDiff<2>::FindParticlesToBurn)
-                    .def("InitializeTransferTool", &MoveParticleUtilityDiff<2>::InitializeTransferTool)
-                    .def("PreReseedUsingTopographicDomain", &MoveParticleUtilityDiff<2>::PreReseedUsingTopographicDomain)
-                    .def("PostReseedOnlyInBoundingBox", &MoveParticleUtilityDiff<2>::PostReseedOnlyInBoundingBox)
-                    .def("CalculateElementalMeanStress", &MoveParticleUtilityDiff<2>::CalculateElementalMeanStress)
-                    .def("UpdateParticleStresses", &MoveParticleUtilityDiff<2>::UpdateParticleStresses)
-                    .def("ComputeCalculationDomainDisplacement", &MoveParticleUtilityDiff<2>::ComputeCalculationDomainDisplacement)
-                    .def("ExecuteParticlesPritingTool", &MoveParticleUtilityDiff<2>::ExecuteParticlesPritingTool)
-                    .def("CorrectFreeSurface", &MoveParticleUtilityDiff<2>::CorrectFreeSurface)
-                    ; 
-                    
-		class_< MoveParticleUtilityDiff<3> > ("MoveParticleUtilityDiff3D", init<ModelPart& , int >())
-                    .def("MountBinDiff", &MoveParticleUtilityDiff<3>::MountBinDiff)
-                    .def("MoveParticlesDiff", &MoveParticleUtilityDiff<3>::MoveParticlesDiff)
-                    .def("AccelerateParticlesWithoutMovingUsingDeltaVelocity", &MoveParticleUtilityDiff<3>::AccelerateParticlesWithoutMovingUsingDeltaVelocity)
-                    .def("PreReseed", &MoveParticleUtilityDiff<3>::PreReseed)
-                    .def("PostReseed", &MoveParticleUtilityDiff<3>::PostReseed)
-                    .def("ResetBoundaryConditions", &MoveParticleUtilityDiff<3>::ResetBoundaryConditions)
-                    .def("CopyVectorVarToPreviousTimeStep", &MoveParticleUtilityDiff<3>::CopyVectorVarToPreviousTimeStep)
-                    .def("CopyScalarVarToPreviousTimeStep", &MoveParticleUtilityDiff<3>::CopyScalarVarToPreviousTimeStep)
-                    .def("TransferLagrangianToEulerian",&MoveParticleUtilityDiff<3>::TransferLagrangianToEulerian)
-                    .def("ReplaceParticlesVelocityAndDistance",&MoveParticleUtilityDiff<3>::ReplaceParticlesVelocityAndDistance)
-                    .def("FlagSplittedElementsAndTheirNodes", &MoveParticleUtilityDiff<3>::FlagSplittedElementsAndTheirNodes)
-                    .def("CalculateVelOverElemSize", &MoveParticleUtilityDiff<3>::CalculateVelOverElemSize)
-                    .def("CalculateDeltaVelocity", &MoveParticleUtilityDiff<3>::CalculateDeltaVelocity)
-                    .def("ComputeDeltaVelocityForNonLinearIteration", &MoveParticleUtilityDiff<3>::ComputeDeltaVelocityForNonLinearIteration)
-                    .def("FindParticlesToBurn", &MoveParticleUtilityDiff<3>::FindParticlesToBurn)
-                    .def("InitializeTransferTool", &MoveParticleUtilityDiff<3>::InitializeTransferTool)
-                    .def("PreReseedUsingTopographicDomain", &MoveParticleUtilityDiff<3>::PreReseedUsingTopographicDomain)
-                    .def("PostReseedOnlyInBoundingBox", &MoveParticleUtilityDiff<3>::PostReseedOnlyInBoundingBox)
-                    .def("CalculateElementalMeanStress", &MoveParticleUtilityDiff<3>::CalculateElementalMeanStress)
-                    .def("UpdateParticleStresses", &MoveParticleUtilityDiff<3>::UpdateParticleStresses)
-                    .def("ComputeCalculationDomainDisplacement", &MoveParticleUtilityDiff<3>::ComputeCalculationDomainDisplacement)
-                    .def("ExecuteParticlesPritingTool", &MoveParticleUtilityDiff<3>::ExecuteParticlesPritingTool)
-                    .def("CorrectFreeSurface", &MoveParticleUtilityDiff<3>::CorrectFreeSurface)
-                    ;            
-        */
 
         class_< MoveParticleUtilityPFEM2<2> > ("MoveParticleUtilityPFEM22D", init<ModelPart& , int >())
                     .def("MountBin", &MoveParticleUtilityPFEM2<2>::MountBin)
@@ -214,10 +161,6 @@ namespace Python
 					.def("CalculateMaxCourantInNegativeElements",&CalculateWaterFraction<3>::CalculateMaxCourantInNegativeElements)
 					.def("CalculateForce",&CalculateWaterFraction<3>::CalculateForce)
                     ;
-                    
-
-                    
-
   }
 	
 

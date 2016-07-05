@@ -36,7 +36,7 @@
 #include "custom_elements/nonewtonian_2fluid_3d.h" //including the file for the element
 #include "custom_elements/monolithic_2fluid_2d_partintegration.h" //including the file for the element
 #include "custom_elements/monolithic_2fluid_3d_partintegration.h" //including the file for the element
-#include "custom_elements/vel_enriched_2fluid_2d.h"
+//#include "custom_elements/vel_enriched_2fluid_2d.h"
 //#include "custom_elements/vel_enriched_2fluid_2d_nopressure.h"
 
 #include "custom_conditions/fixed_velocity_2d.h" //the condition
@@ -272,7 +272,7 @@ namespace Kratos
  		const MonolithicAutoSlipPFEM22D   mMonolithicAutoSlipPFEM22D; 
  		const MonolithicAutoSlipPFEM23D   mMonolithicAutoSlipPFEM23D; 
  
-  		const VelocityEnrichedPFEM22D   mVelocityEnrichedPFEM22D; 
+  		//const VelocityEnrichedPFEM22D   mVelocityEnrichedPFEM22D; 
 		//const VelocityEnrichedPFEM22DNoPressure   mVelocityEnrichedPFEM22DNoPressure; 
  		
 		const FixedVelocity2D   mFixedVelocity2D; 
