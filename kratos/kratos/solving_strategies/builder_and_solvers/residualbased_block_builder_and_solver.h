@@ -542,7 +542,7 @@ public:
 // 		std::vector<allocator_type> allocators(nthreads);
         
         KRATOS_WATCH(nthreads)
-        for (int i = 0; i < nthreads; i++)
+        for (int i = 0; i < static_cast<int>(nthreads); i++)
         {
 #ifdef USE_GOOGLE_HASH
             dofs_aux_list[i].set_empty_key(Node<3>::DofType::Pointer());
@@ -587,7 +587,7 @@ public:
         {
             //just for debugging
             std::cout << "old_max" << old_max << " new_max:" << new_max << std::endl;
-            for (int i = 0; i < new_max; i++)
+            for (int i = 0; i < static_cast<int>(new_max); i++)
             {
                 if (i + new_max < old_max)
                 {
@@ -597,7 +597,7 @@ public:
             std::cout << "********************" << std::endl;
             
             #pragma omp parallel for
-            for (int i = 0; i < new_max; i++)
+            for (int i = 0; i < static_cast<int>(new_max); i++)
             {
                 if (i + new_max < old_max)
                 {
@@ -638,13 +638,13 @@ public:
         KRATOS_WATCH("initializing lock array")
         if (mlock_array.size() != 0)
         {
-            for (int i = 0; i < mlock_array.size(); i++)
+            for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
                 omp_destroy_lock(&mlock_array[i]);
         }
 
         mlock_array.resize(BaseType::mDofSet.size());
 
-        for (int i = 0; i < mlock_array.size(); i++)
+        for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
             omp_init_lock(&mlock_array[i]);
         KRATOS_WATCH("end of setupdofset")
         KRATOS_CATCH("");
@@ -897,7 +897,7 @@ public:
             std::cout << "ResidualBasedBlockBuilderAndSolver Clear Function called" << std::endl;
         }
 
-        for (int i = 0; i < mlock_array.size(); i++)
+        for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
             omp_destroy_lock(&mlock_array[i]);
         mlock_array.resize(0);
 
@@ -977,7 +977,7 @@ protected:
 #endif
 
         #pragma omp parallel for firstprivate(equation_size)
-        for (int iii = 0; iii < equation_size; iii++)
+        for (int iii = 0; iii < static_cast<int>(equation_size); iii++)
         {
 #ifdef USE_GOOGLE_HASH
         indices[iii].set_empty_key(empty_key);

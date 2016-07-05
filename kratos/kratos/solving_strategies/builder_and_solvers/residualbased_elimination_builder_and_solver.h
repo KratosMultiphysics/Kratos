@@ -220,7 +220,7 @@ public:
 
 		// assemble all elements
 		double start_build = OpenMPUtils::GetCurrentTime();
-
+KRATOS_WATCH("before assembling elements")
 #pragma omp parallel for firstprivate(nelements, LHS_Contribution, RHS_Contribution, EquationId )
 		for (int k = 0; k < nelements; k++)
 		{
@@ -234,6 +234,7 @@ public:
 
 			if (element_is_active)
 			{
+                            KRATOS_WATCH(it->Id())
 				//calculate elemental contribution
 				pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
@@ -242,10 +243,11 @@ public:
 
 				// clean local elemental memory
 				pScheme->CleanMemory(*(it.base()));
+                                
 			}
 
 		}
-
+KRATOS_WATCH("before assembling conditions")
 
 #pragma omp parallel for firstprivate(nconditions, LHS_Contribution, RHS_Contribution, EquationId )
 		for (int k = 0; k < nconditions; k++)
@@ -271,7 +273,7 @@ public:
 			}
 	}
 
-
+KRATOS_WATCH("after assembling conditions")
 		double stop_build = OpenMPUtils::GetCurrentTime();
 		if (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)
 			std::cout << "build time: " << stop_build - start_build << std::endl;
@@ -682,7 +684,7 @@ public:
 		std::vector<set_type> dofs_aux_list(nthreads);
 		// 		std::vector<allocator_type> allocators(nthreads);
 
-			for (int i = 0; i < nthreads; i++)
+			for (int i = 0; i < static_cast<int>(nthreads); i++)
 			{
 #ifdef USE_GOOGLE_HASH
 				dofs_aux_list[i].set_empty_key(Node<3>::DofType::Pointer());
@@ -693,7 +695,7 @@ public:
 			}
 		
 #pragma omp parallel for firstprivate(nelements, ElementalDofList)
-			for (int i = 0; i < nelements; i++)
+			for (int i = 0; i < static_cast<int>(nelements); i++)
 			{
 				typename ElementsArrayType::iterator it = pElements.begin() + i;
 				const unsigned int this_thread_id = OpenMPUtils::ThisThread();
@@ -735,7 +737,7 @@ public:
 			std::cout << "********************" << std::endl;
 */
 #pragma omp parallel for
-			for (int i = 0; i < new_max; i++)
+			for (int i = 0; i < static_cast<int>(new_max); i++)
 			{
 				if (i + new_max < old_max)
 				{
@@ -773,13 +775,13 @@ public:
 
 			if (mlock_array.size() != 0)
 			{
-				for (int i = 0; i < mlock_array.size(); i++)
+				for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
 					omp_destroy_lock(&mlock_array[i]);
 			}
 
 		mlock_array.resize(BaseType::mDofSet.size());
 
-		for (int i = 0; i < mlock_array.size(); i++)
+		for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
 			omp_init_lock(&mlock_array[i]);
 
 
@@ -1025,7 +1027,7 @@ protected:
 #endif
 
 #pragma omp parallel for firstprivate(equation_size)
-		for (int iii = 0; iii < equation_size; iii++)
+		for (int iii = 0; iii < static_cast<int>(equation_size); iii++)
 		{
 #ifdef USE_GOOGLE_HASH
 			indices[iii].set_empty_key(empty_key);
