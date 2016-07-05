@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
+//
 //
 
 
@@ -72,14 +72,14 @@ namespace Kratos
  */
 class KRATOS_API(KRATOS_CORE) ModelPart : public DataValueContainer, public Flags
 {
-	class GetModelPartName : public std::unary_function<const ModelPart* const, std::string> 
-	{
-	public:
-		std::string const& operator()(const ModelPart& rModelPart) const
-		{
-			return rModelPart.Name();
-		}
-	};
+    class GetModelPartName : public std::unary_function<const ModelPart* const, std::string>
+    {
+    public:
+        std::string const& operator()(const ModelPart& rModelPart) const
+        {
+            return rModelPart.Name();
+        }
+    };
 public:
     ///@name  Enum's
     ///@{
@@ -203,53 +203,53 @@ public:
     usage. */
     typedef TablesContainerType::const_iterator TableConstantIterator;
 
-    /// The container of the sub model parts. A hash table is used. 
-	/**  
-	*/
+    /// The container of the sub model parts. A hash table is used.
+    /**
+    */
     typedef PointerHashMapSet<ModelPart, boost::hash< std::string >, GetModelPartName, ModelPart*>  SubModelPartsContainerType;
 
     /// Iterator over the sub model parts of this model part.
-	/**	Note that this iterator only iterates over the next level of
-		sub model parts and does not go through the hierarchy of the
-		sub model parts
-	*/
+    /**	Note that this iterator only iterates over the next level of
+    	sub model parts and does not go through the hierarchy of the
+    	sub model parts
+    */
     typedef SubModelPartsContainerType::iterator SubModelPartIterator;
 
     /// Constant iterator over the sub model parts of this model part.
-	/**	Note that this iterator only iterates over the next level of
-		sub model parts and does not go through the hierarchy of the
-		sub model parts
-	*/
+    /**	Note that this iterator only iterates over the next level of
+    	sub model parts and does not go through the hierarchy of the
+    	sub model parts
+    */
     typedef SubModelPartsContainerType::const_iterator SubModelPartConstantIterator;
 
-	
+
 
     ///@}
-	///@name Flags 
-	///@{ 
+    ///@name Flags
+    ///@{
 
-	KRATOS_DEFINE_LOCAL_FLAG(ALL_ENTITIES);
-	KRATOS_DEFINE_LOCAL_FLAG(OVERWRITE_ENTITIES);
+    KRATOS_DEFINE_LOCAL_FLAG(ALL_ENTITIES);
+    KRATOS_DEFINE_LOCAL_FLAG(OVERWRITE_ENTITIES);
 
-	///@}
-	///@name Life Cycle
+    ///@}
+    ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-	ModelPart();
+    ModelPart();
 
-	/// Constructor with name
-	ModelPart(std::string const& NewName);
+    /// Constructor with name
+    ModelPart(std::string const& NewName);
 
-	/// Constructor with name and bufferSize
-	ModelPart(std::string const& NewName, IndexType NewBufferSize);
+    /// Constructor with name and bufferSize
+    ModelPart(std::string const& NewName, IndexType NewBufferSize);
 
     /// Copy constructor.
-	ModelPart(ModelPart const& rOther);
+    ModelPart(ModelPart const& rOther);
 
 
     /// Destructor.
-	virtual ~ModelPart();
+    virtual ~ModelPart();
 
 
     ///@}
@@ -257,16 +257,16 @@ public:
     ///@{
 
     /// Assignment operator.
-	ModelPart & operator=(ModelPart const& rOther);
+    ModelPart & operator=(ModelPart const& rOther);
 
     ///@}
     ///@name Solution Steps
     ///@{
 
 
-	IndexType CreateSolutionStep();
+    IndexType CreateSolutionStep();
 
-	IndexType CloneSolutionStep();
+    IndexType CloneSolutionStep();
 
     // commented due to a bug, Pooyan.
     //       IndexType CreateTimeStep()
@@ -277,17 +277,17 @@ public:
     // 	  return new_index;
     // 	}
 
-	IndexType CloneTimeStep();
- 
-	IndexType CreateTimeStep(double NewTime);
+    IndexType CloneTimeStep();
 
-	IndexType CloneTimeStep(double NewTime);
+    IndexType CreateTimeStep(double NewTime);
 
-	void OverwriteSolutionStepData(IndexType SourceSolutionStepIndex, IndexType DestinationSourceSolutionStepIndex);
+    IndexType CloneTimeStep(double NewTime);
 
-	///ATTENTION: this function does not touch the coordinates of the nodes.
-	///It just resets the database values to the values at the beginning of the time step
-	void ReduceTimeStep(ModelPart& rModelPart, double NewTime);
+    void OverwriteSolutionStepData(IndexType SourceSolutionStepIndex, IndexType DestinationSourceSolutionStepIndex);
+
+    ///ATTENTION: this function does not touch the coordinates of the nodes.
+    ///It just resets the database values to the values at the beginning of the time step
+    void ReduceTimeStep(ModelPart& rModelPart, double NewTime);
 
     ///@}
     ///@name Nodes
@@ -300,19 +300,19 @@ public:
 
     /** Inserts a node in the current mesh.
      */
-	void AddNode(NodeType::Pointer pNewNode, IndexType ThisIndex = 0);
+    void AddNode(NodeType::Pointer pNewNode, IndexType ThisIndex = 0);
 
     /** Inserts a node in the current mesh.
      */
-	NodeType::Pointer CreateNewNode(int Id, double x, double y, double z, VariablesList* pNewVariablesList, IndexType ThisIndex = 0);
+    NodeType::Pointer CreateNewNode(int Id, double x, double y, double z, VariablesList* pNewVariablesList, IndexType ThisIndex = 0);
 
-	NodeType::Pointer CreateNewNode(IndexType Id, double x, double y, double z, IndexType ThisIndex = 0);
+    NodeType::Pointer CreateNewNode(IndexType Id, double x, double y, double z, IndexType ThisIndex = 0);
 
-	NodeType::Pointer CreateNewNode(IndexType Id, double x, double y, double z, double* pThisData, IndexType ThisIndex = 0);
+    NodeType::Pointer CreateNewNode(IndexType Id, double x, double y, double z, double* pThisData, IndexType ThisIndex = 0);
 
-	NodeType::Pointer CreateNewNode(IndexType NodeId, NodeType const& rSourceNode, IndexType ThisIndex = 0);
+    NodeType::Pointer CreateNewNode(IndexType NodeId, NodeType const& rSourceNode, IndexType ThisIndex = 0);
 
-	void AssignNode(NodeType::Pointer pThisNode, IndexType ThisIndex = 0);
+    void AssignNode(NodeType::Pointer pThisNode, IndexType ThisIndex = 0);
 
     /** Returns the Node::Pointer  corresponding to it's identifier */
     NodeType::Pointer pGetNode(IndexType NodeId, IndexType ThisIndex = 0)
@@ -326,46 +326,46 @@ public:
         return GetMesh(ThisIndex).GetNode(NodeId);
     }
 
-	/** Remove the node with given Id from mesh with ThisIndex in this modelpart and all its subs.
-	*/
-	void RemoveNode(IndexType NodeId, IndexType ThisIndex = 0);
+    /** Remove the node with given Id from mesh with ThisIndex in this modelpart and all its subs.
+    */
+    void RemoveNode(IndexType NodeId, IndexType ThisIndex = 0);
 
-	/** Remove given node from mesh with ThisIndex in this modelpart and all its subs.
-	*/
-	void RemoveNode(NodeType& ThisNode, IndexType ThisIndex = 0);
+    /** Remove given node from mesh with ThisIndex in this modelpart and all its subs.
+    */
+    void RemoveNode(NodeType& ThisNode, IndexType ThisIndex = 0);
 
-	/** Remove given node from mesh with ThisIndex in this modelpart and all its subs.
-	*/
-	void RemoveNode(NodeType::Pointer pThisNode, IndexType ThisIndex = 0);
+    /** Remove given node from mesh with ThisIndex in this modelpart and all its subs.
+    */
+    void RemoveNode(NodeType::Pointer pThisNode, IndexType ThisIndex = 0);
 
-	/** Remove the node with given Id from mesh with ThisIndex in parents and children.
-	*/
-	void RemoveNodeFromAllLevels(IndexType NodeId, IndexType ThisIndex = 0);
+    /** Remove the node with given Id from mesh with ThisIndex in parents and children.
+    */
+    void RemoveNodeFromAllLevels(IndexType NodeId, IndexType ThisIndex = 0);
 
-	/** Remove given node from current mesh with ThisIndex in parents and children.
-	*/
-	void RemoveNodeFromAllLevels(NodeType& ThisNode, IndexType ThisIndex = 0);
+    /** Remove given node from current mesh with ThisIndex in parents and children.
+    */
+    void RemoveNodeFromAllLevels(NodeType& ThisNode, IndexType ThisIndex = 0);
 
-	/** Remove given node from current mesh with ThisIndex in parents and children.
-	*/
-	void RemoveNodeFromAllLevels(NodeType::Pointer pThisNode, IndexType ThisIndex = 0);
-        
-        /** erases all nodes identified by "identifier_flag" by removing the pointer. 
-         * Pointers are erased from this level downwards
-         * nodes will be automatically destructured 
-         * when no pointer is left to them
-         */
-        void RemoveNodes(Flags identifier_flag = TO_ERASE);
-        
-        /** erases all nodes identified by "identifier_flag" by removing the pointer. 
-         * Pointers will be erase from all levels
-         * nodes will be automatically destructured 
-         * when no pointer is left to them
-         */
-        void RemoveNodesFromAllLevels(Flags identifier_flag = TO_ERASE);
-        
-        /** this function gives back the "root" model part, that is the model_part that has no father */
-        ModelPart& GetRootModelPart();
+    /** Remove given node from current mesh with ThisIndex in parents and children.
+    */
+    void RemoveNodeFromAllLevels(NodeType::Pointer pThisNode, IndexType ThisIndex = 0);
+
+    /** erases all nodes identified by "identifier_flag" by removing the pointer.
+     * Pointers are erased from this level downwards
+     * nodes will be automatically destructured
+     * when no pointer is left to them
+     */
+    void RemoveNodes(Flags identifier_flag = TO_ERASE);
+
+    /** erases all nodes identified by "identifier_flag" by removing the pointer.
+     * Pointers will be erase from all levels
+     * nodes will be automatically destructured
+     * when no pointer is left to them
+     */
+    void RemoveNodesFromAllLevels(Flags identifier_flag = TO_ERASE);
+
+    /** this function gives back the "root" model part, that is the model_part that has no father */
+    ModelPart& GetRootModelPart();
 
     NodeIterator NodesBegin(IndexType ThisIndex = 0)
     {
@@ -408,7 +408,7 @@ public:
     }
 
     template<class TDataType>
-	void AddNodalSolutionStepVariable(Variable<TDataType> const& ThisVariable)
+    void AddNodalSolutionStepVariable(Variable<TDataType> const& ThisVariable)
     {
         mpVariablesList->Add(ThisVariable);
     }
@@ -418,7 +418,7 @@ public:
         return *mpVariablesList;
     }
 
-	void SetNodalSolutionStepVariablesList();
+    void SetNodalSolutionStepVariablesList();
 
     SizeType GetNodalSolutionStepDataSize()
     {
@@ -442,7 +442,7 @@ public:
 
     /** Inserts a Table
      */
-	void AddTable(IndexType TableId, TableType::Pointer pNewTable);
+    void AddTable(IndexType TableId, TableType::Pointer pNewTable);
 
     /** Returns the Table::Pointer  corresponding to it's identifier */
     TableType::Pointer pGetTable(IndexType TableId)
@@ -456,13 +456,13 @@ public:
         return mTables[TableId];
     }
 
-	/** Remove the Table with given Id from current mesh in this modelpart and all its subs.
-	*/
-	void RemoveTable(IndexType TableId);
+    /** Remove the Table with given Id from current mesh in this modelpart and all its subs.
+    */
+    void RemoveTable(IndexType TableId);
 
-	/** Remove the Table with given Id from current mesh in parents, itself and all children.
-	*/
-	void RemoveTableFromAllLevels(IndexType TableId);
+    /** Remove the Table with given Id from current mesh in parents, itself and all children.
+    */
+    void RemoveTableFromAllLevels(IndexType TableId);
 
 
     TableIterator TablesBegin()
@@ -508,7 +508,7 @@ public:
 
     /** Inserts a properties in the current mesh.
      */
-	void AddProperties(PropertiesType::Pointer pNewProperties, IndexType ThisIndex = 0);
+    void AddProperties(PropertiesType::Pointer pNewProperties, IndexType ThisIndex = 0);
 
     /** Returns the Properties::Pointer  corresponding to it's identifier */
     PropertiesType::Pointer pGetProperties(IndexType PropertiesId, IndexType ThisIndex = 0)
@@ -522,29 +522,29 @@ public:
         return GetMesh(ThisIndex).GetProperties(PropertiesId);
     }
 
-	/** Remove the Properties with given Id from mesh with ThisIndex in this modelpart and all its subs.
-	*/
-	void RemoveProperties(IndexType PropertiesId, IndexType ThisIndex = 0);
+    /** Remove the Properties with given Id from mesh with ThisIndex in this modelpart and all its subs.
+    */
+    void RemoveProperties(IndexType PropertiesId, IndexType ThisIndex = 0);
 
-	/** Remove given Properties from mesh with ThisIndex in this modelpart and all its subs.
-	*/
-	void RemoveProperties(PropertiesType& ThisProperties, IndexType ThisIndex = 0);
+    /** Remove given Properties from mesh with ThisIndex in this modelpart and all its subs.
+    */
+    void RemoveProperties(PropertiesType& ThisProperties, IndexType ThisIndex = 0);
 
-	/** Remove given Properties from mesh with ThisIndex in this modelpart and all its subs.
-	*/
-	void RemoveProperties(PropertiesType::Pointer pThisProperties, IndexType ThisIndex = 0);
+    /** Remove given Properties from mesh with ThisIndex in this modelpart and all its subs.
+    */
+    void RemoveProperties(PropertiesType::Pointer pThisProperties, IndexType ThisIndex = 0);
 
-	/** Remove the Properties with given Id from mesh with ThisIndex in parents, itself and children.
-	*/
-	void RemovePropertiesFromAllLevels(IndexType PropertiesId, IndexType ThisIndex = 0);
+    /** Remove the Properties with given Id from mesh with ThisIndex in parents, itself and children.
+    */
+    void RemovePropertiesFromAllLevels(IndexType PropertiesId, IndexType ThisIndex = 0);
 
-	/** Remove given Properties from mesh with ThisIndex in parents, itself and children.
-	*/
-	void RemovePropertiesFromAllLevels(PropertiesType& ThisProperties, IndexType ThisIndex = 0);
+    /** Remove given Properties from mesh with ThisIndex in parents, itself and children.
+    */
+    void RemovePropertiesFromAllLevels(PropertiesType& ThisProperties, IndexType ThisIndex = 0);
 
-	/** Remove given Properties from mesh with ThisIndex in parents, itself and children.
-	*/
-	void RemovePropertiesFromAllLevels(PropertiesType::Pointer pThisProperties, IndexType ThisIndex = 0);
+    /** Remove given Properties from mesh with ThisIndex in parents, itself and children.
+    */
+    void RemovePropertiesFromAllLevels(PropertiesType::Pointer pThisProperties, IndexType ThisIndex = 0);
 
     PropertiesIterator PropertiesBegin(IndexType ThisIndex = 0)
     {
@@ -603,11 +603,11 @@ public:
     /** Inserts a element in the current mesh.
      */
     void AddElement(ElementType::Pointer pNewElement, IndexType ThisIndex = 0);
-    
+
     /** Inserts an element in the current mesh.
      */
     ElementType::Pointer CreateNewElement(std::string ElementName, IndexType Id, std::vector<IndexType> ElementNodeIds, PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
-    
+
     /** Inserts an element in the current mesh.
      */
     ElementType::Pointer CreateNewElement(std::string ElementName, IndexType Id, Geometry< Node < 3 > >::PointsArrayType pElementNodes, PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
@@ -624,29 +624,43 @@ public:
         return GetMesh(ThisIndex).GetElement(ElementId);
     }
 
-	/** Remove the element with given Id from mesh with ThisIndex in this modelpart and all its subs.
-	*/
-	void RemoveElement(IndexType ElementId, IndexType ThisIndex = 0);
+    /** Remove the element with given Id from mesh with ThisIndex in this modelpart and all its subs.
+    */
+    void RemoveElement(IndexType ElementId, IndexType ThisIndex = 0);
 
-	/** Remove given element from mesh with ThisIndex in this modelpart and all its subs.
-	*/
-	void RemoveElement(ElementType& ThisElement, IndexType ThisIndex = 0);
+    /** Remove given element from mesh with ThisIndex in this modelpart and all its subs.
+    */
+    void RemoveElement(ElementType& ThisElement, IndexType ThisIndex = 0);
 
-	/** Remove given element from mesh with ThisIndex in this modelpart and all its subs.
-	*/
-	void RemoveElement(ElementType::Pointer pThisElement, IndexType ThisIndex = 0);
+    /** Remove given element from mesh with ThisIndex in this modelpart and all its subs.
+    */
+    void RemoveElement(ElementType::Pointer pThisElement, IndexType ThisIndex = 0);
 
-	/** Remove the element with given Id from mesh with ThisIndex in parents, itself and children.
-	*/
-	void RemoveElementFromAllLevels(IndexType ElementId, IndexType ThisIndex = 0);
+    /** Remove the element with given Id from mesh with ThisIndex in parents, itself and children.
+    */
+    void RemoveElementFromAllLevels(IndexType ElementId, IndexType ThisIndex = 0);
 
-	/** Remove given element from mesh with ThisIndex in parents, itself and children.
-	*/
-	void RemoveElementFromAllLevels(ElementType& ThisElement, IndexType ThisIndex = 0);
+    /** Remove given element from mesh with ThisIndex in parents, itself and children.
+    */
+    void RemoveElementFromAllLevels(ElementType& ThisElement, IndexType ThisIndex = 0);
 
-	/** Remove given element from mesh with ThisIndex in parents, itself and children.
-	*/
-	void RemoveElementFromAllLevels(ElementType::Pointer pThisElement, IndexType ThisIndex = 0);
+    /** Remove given element from mesh with ThisIndex in parents, itself and children.
+    */
+    void RemoveElementFromAllLevels(ElementType::Pointer pThisElement, IndexType ThisIndex = 0);
+
+    /** erases all elements identified by "identifier_flag" by removing the pointer.
+         * Pointers are erased from this level downwards
+         * nodes will be automatically destructured
+         * when no pointer is left to them
+         */
+    void RemoveElements(Flags identifier_flag = TO_ERASE);
+
+    /** erases all elements identified by "identifier_flag" by removing the pointer.
+     * Pointers will be erase from all levels
+     * nodes will be automatically destructured
+     * when no pointer is left to them
+     */
+    void RemoveElementsFromAllLevels(Flags identifier_flag = TO_ERASE);
 
     ElementIterator ElementsBegin(IndexType ThisIndex = 0)
     {
@@ -701,18 +715,18 @@ public:
     /** Inserts a condition in the current mesh.
      */
     void AddCondition(ConditionType::Pointer pNewCondition, IndexType ThisIndex = 0);
-    
+
     /** Inserts a condition in the current mesh.
      */
-    ConditionType::Pointer CreateNewCondition(std::string ConditionName, 
-		IndexType Id, std::vector<IndexType> ConditionNodeIds, 
-		PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
-    
+    ConditionType::Pointer CreateNewCondition(std::string ConditionName,
+            IndexType Id, std::vector<IndexType> ConditionNodeIds,
+            PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
+
     /** Inserts a condition in the current mesh.
      */
-    ConditionType::Pointer CreateNewCondition(std::string ConditionName, 
-		IndexType Id, Geometry< Node < 3 > >::PointsArrayType pConditionNodes, 
-		PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
+    ConditionType::Pointer CreateNewCondition(std::string ConditionName,
+            IndexType Id, Geometry< Node < 3 > >::PointsArrayType pConditionNodes,
+            PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
     /** Returns the Condition::Pointer  corresponding to it's identifier */
     ConditionType::Pointer pGetCondition(IndexType ConditionId, IndexType ThisIndex = 0)
@@ -726,29 +740,43 @@ public:
         return GetMesh(ThisIndex).GetCondition(ConditionId);
     }
 
-	/**  Remove the condition with given Id from mesh with ThisIndex in this modelpart and all its subs.
-	*/
-	void RemoveCondition(IndexType ConditionId, IndexType ThisIndex = 0);
+    /**  Remove the condition with given Id from mesh with ThisIndex in this modelpart and all its subs.
+    */
+    void RemoveCondition(IndexType ConditionId, IndexType ThisIndex = 0);
 
-	/** Remove given condition from mesh with ThisIndex in this modelpart and all its subs.
-	*/
-	void RemoveCondition(ConditionType& ThisCondition, IndexType ThisIndex = 0);
+    /** Remove given condition from mesh with ThisIndex in this modelpart and all its subs.
+    */
+    void RemoveCondition(ConditionType& ThisCondition, IndexType ThisIndex = 0);
 
-	/** Remove given condition from mesh with ThisIndex in this modelpart and all its subs.
-	*/
-	void RemoveCondition(ConditionType::Pointer pThisCondition, IndexType ThisIndex = 0);
+    /** Remove given condition from mesh with ThisIndex in this modelpart and all its subs.
+    */
+    void RemoveCondition(ConditionType::Pointer pThisCondition, IndexType ThisIndex = 0);
 
-	/**  Remove the condition with given Id from mesh with ThisIndex in parents, itself and children.
-	*/
-	void RemoveConditionFromAllLevels(IndexType ConditionId, IndexType ThisIndex = 0);
+    /**  Remove the condition with given Id from mesh with ThisIndex in parents, itself and children.
+    */
+    void RemoveConditionFromAllLevels(IndexType ConditionId, IndexType ThisIndex = 0);
 
-	/** Remove given condition from mesh with ThisIndex in parents, itself and children.
-	*/
-	void RemoveConditionFromAllLevels(ConditionType& ThisCondition, IndexType ThisIndex = 0);
+    /** Remove given condition from mesh with ThisIndex in parents, itself and children.
+    */
+    void RemoveConditionFromAllLevels(ConditionType& ThisCondition, IndexType ThisIndex = 0);
 
-	/** Remove given condition from mesh with ThisIndex in parents, itself and children.
-	*/
-	void RemoveConditionFromAllLevels(ConditionType::Pointer pThisCondition, IndexType ThisIndex = 0);
+    /** Remove given condition from mesh with ThisIndex in parents, itself and children.
+    */
+    void RemoveConditionFromAllLevels(ConditionType::Pointer pThisCondition, IndexType ThisIndex = 0);
+
+    /** erases all elements identified by "identifier_flag" by removing the pointer.
+    * Pointers are erased from this level downwards
+    * nodes will be automatically destructured
+    * when no pointer is left to them
+    */
+    void RemoveConditions(Flags identifier_flag = TO_ERASE);
+
+    /** erases all elements identified by "identifier_flag" by removing the pointer.
+     * Pointers will be erase from all levels
+     * nodes will be automatically destructured
+     * when no pointer is left to them
+     */
+    void RemoveConditionsFromAllLevels(Flags identifier_flag = TO_ERASE);
 
     ConditionIterator ConditionsBegin(IndexType ThisIndex = 0)
     {
@@ -791,88 +819,88 @@ public:
     }
 
 
-	///@}
-	///@name Sub model parts
-	///@{
+    ///@}
+    ///@name Sub model parts
+    ///@{
 
-	SizeType NumberOfSubModelParts() const
-	{
-		return mSubModelParts.size();
-	}
+    SizeType NumberOfSubModelParts() const
+    {
+        return mSubModelParts.size();
+    }
 
-	/** Creates a new sub model part with given name.
-	Does nothing if a sub model part with the same name exist.
-	*/
-	ModelPart& CreateSubModelPart(std::string const& NewSubModelPartName);
+    /** Creates a new sub model part with given name.
+    Does nothing if a sub model part with the same name exist.
+    */
+    ModelPart& CreateSubModelPart(std::string const& NewSubModelPartName);
 
-	/** Add an existing model part as a sub model part. 
-		All the meshes will be added to the parents.
-		NOTE: The added sub model part should not have 
-		mesh entities with id in conflict with other ones in the parent 
-		In the case of conflict the new one would replace the old one 
-		resulting inconsitency in parent.
-	*/
-	void AddSubModelPart(ModelPart& rThisSubModelPart);
+    /** Add an existing model part as a sub model part.
+    	All the meshes will be added to the parents.
+    	NOTE: The added sub model part should not have
+    	mesh entities with id in conflict with other ones in the parent
+    	In the case of conflict the new one would replace the old one
+    	resulting inconsitency in parent.
+    */
+    void AddSubModelPart(ModelPart& rThisSubModelPart);
 
-	/** Returns a reference to the sub_model part with given string name
-		In debug gives an error if does not exist.
-	*/
-	ModelPart& GetSubModelPart(std::string const& SubModelPartName)
-	{	
-		SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-		if(i == mSubModelParts.end())
-		  KRATOS_THROW_ERROR(std::logic_error, "There is no sub model part with name : ", SubModelPartName )
-		  //TODO: KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part"; // << std::endl;
+    /** Returns a reference to the sub_model part with given string name
+    	In debug gives an error if does not exist.
+    */
+    ModelPart& GetSubModelPart(std::string const& SubModelPartName)
+    {
+        SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
+        if(i == mSubModelParts.end())
+            KRATOS_THROW_ERROR(std::logic_error, "There is no sub model part with name : ", SubModelPartName )
+            //TODO: KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part"; // << std::endl;
 
-		return *i;
-	}
-	
-	/** Remove a sub modelpart with given name.
-	*/
-	void RemoveSubModelPart(std::string const& ThisSubModelPartName);
+            return *i;
+    }
 
-	/** Remove given sub model part.
-	*/
-	void RemoveSubModelPart(ModelPart& ThisSubModelPart);
+    /** Remove a sub modelpart with given name.
+    */
+    void RemoveSubModelPart(std::string const& ThisSubModelPartName);
 
-	SubModelPartIterator SubModelPartsBegin()
-	{
-		return mSubModelParts.begin();
-	}
+    /** Remove given sub model part.
+    */
+    void RemoveSubModelPart(ModelPart& ThisSubModelPart);
 
-	SubModelPartConstantIterator SubModelPartsBegin() const
-	{
-		return mSubModelParts.begin();
-	}
+    SubModelPartIterator SubModelPartsBegin()
+    {
+        return mSubModelParts.begin();
+    }
 
-	SubModelPartIterator SubModelPartsEnd()
-	{
-		return mSubModelParts.end();
-	}
+    SubModelPartConstantIterator SubModelPartsBegin() const
+    {
+        return mSubModelParts.begin();
+    }
 
-	SubModelPartConstantIterator SubModelPartsEnd() const
-	{
-		return mSubModelParts.end();
-	}
+    SubModelPartIterator SubModelPartsEnd()
+    {
+        return mSubModelParts.end();
+    }
 
-	SubModelPartsContainerType& SubModelParts()
-	{
-		return mSubModelParts;
-	}
+    SubModelPartConstantIterator SubModelPartsEnd() const
+    {
+        return mSubModelParts.end();
+    }
 
-
-	ModelPart* GetParentModelPart() const
-	{
-		return mpParentModelPart;
-	}
-
-	bool HasSubModelPart(std::string const& ThisSubModelPartName)
-	{
-		return (mSubModelParts.find(ThisSubModelPartName) != mSubModelParts.end());
-	}
+    SubModelPartsContainerType& SubModelParts()
+    {
+        return mSubModelParts;
+    }
 
 
-	///@}
+    ModelPart* GetParentModelPart() const
+    {
+        return mpParentModelPart;
+    }
+
+    bool HasSubModelPart(std::string const& ThisSubModelPartName)
+    {
+        return (mSubModelParts.find(ThisSubModelPartName) != mSubModelParts.end());
+    }
+
+
+    ///@}
     ///@name Access
     ///@{
 
@@ -971,11 +999,11 @@ public:
         mpCommunicator = pNewCommunicator;
     }
 
-	///@}
-	///@name Operations
-	///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
-	void SetBufferSize(IndexType NewBufferSize);
+    void SetBufferSize(IndexType NewBufferSize);
 
     IndexType GetBufferSize()
     {
@@ -994,10 +1022,10 @@ public:
     ///@name Inquiry
     ///@{
 
-	bool IsSubModelPart() const
-	{
-		return (mpParentModelPart != NULL);
-	}
+    bool IsSubModelPart() const
+    {
+        return (mpParentModelPart != NULL);
+    }
 
     ///@}
     ///@name Input and output
@@ -1051,9 +1079,9 @@ private:
 
     Communicator::Pointer mpCommunicator;
 
-	ModelPart* mpParentModelPart;
+    ModelPart* mpParentModelPart;
 
-	SubModelPartsContainerType mSubModelParts;
+    SubModelPartsContainerType mSubModelParts;
 
     ///@}
     ///@name Private Operators
@@ -1064,19 +1092,19 @@ private:
     ///@name Private Operations
     ///@{
 
-	void SetParentModelPart(ModelPart* pParentModelPart)
-	{
-		mpParentModelPart = pParentModelPart;
-	}
+    void SetParentModelPart(ModelPart* pParentModelPart)
+    {
+        mpParentModelPart = pParentModelPart;
+    }
 
-	template <typename TEntitiesContainerType> 
-	void AddEntities(TEntitiesContainerType const& Source, TEntitiesContainerType& rDestination, Flags Options)
-	{
-		//if (Options->Is(ALL_ENTITIES))
-		//{
-		//	if(Options->Is())
-		//}
-	}
+    template <typename TEntitiesContainerType>
+    void AddEntities(TEntitiesContainerType const& Source, TEntitiesContainerType& rDestination, Flags Options)
+    {
+        //if (Options->Is(ALL_ENTITIES))
+        //{
+        //	if(Options->Is())
+        //}
+    }
 
     ///@}
     ///@name Serialization
@@ -1120,13 +1148,13 @@ private:
 
 /// input stream function
 KRATOS_API(KRATOS_CORE) inline std::istream & operator >>(std::istream& rIStream,
-                                  ModelPart& rThis)
+        ModelPart& rThis)
 {
     return rIStream;
 }
 /// output stream function
 KRATOS_API(KRATOS_CORE) inline std::ostream & operator <<(std::ostream& rOStream,
-                                  const ModelPart& rThis)
+        const ModelPart& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
