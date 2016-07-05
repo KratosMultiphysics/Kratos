@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ConditionList>
+    <ConditionItem n="DISPLACEMENT" pn="Displacement" ImplementedInFile=".cpp"
+	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="False" VariableName="DISPLACEMENT" App="Fluid"
+	ElementType="Point,Line,Surface,Volume" ProcessName="ImposeVectorValueByComponentsProcess" help="A" unit_magnitude="L" units="m">
+    <TopologyFeatures>
+    </TopologyFeatures>
+    <outputs>
+      <parameter n="REACTION" pn="Reaction" v="Yes"/>
+    </outputs>
+  </ConditionItem>
     <ConditionItem n="FluidNoSlipInterface2D" pn="FSI interface" ImplementedInFile=".cpp"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" VariableName="IS_INTERFACE" App="Fluid"

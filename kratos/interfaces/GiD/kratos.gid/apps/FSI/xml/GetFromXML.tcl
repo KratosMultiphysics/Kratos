@@ -92,27 +92,50 @@ proc FSI::xml::DrawMokChannelFlexibleWallGeometry {args} {
     GiD_Process 'Layers Color Fluid 047186223 Transparent Fluid 255 escape 'Layers Color Structure 187119038 Transparent Structure 255 escape 
     GiD_Process 'Layers On Fluid escape
     
+    if {$::Model::SpatialDimension eq "3D"} {
+        GiD_Process 'Layers Off Structure escape Mescape
+        GiD_Process Utilities Copy Surfaces Duplicate DoExtrude Volumes MaintainLayers Translation FNoJoin 0.0,0.0,0.0 FNoJoin 0.0,0.0,1.0 1 escape Mescape
+        GiD_Process 'Layers On Structure escape 'Layers Off Fluid escape Mescape
+        GiD_Process Utilities Copy Surfaces Duplicate DoExtrude Volumes MaintainLayers Translation FNoJoin 0.0,0.0,0.0 FNoJoin 0.0,0.0,1.0 2 escape Mescape
+        GiD_Process 'Layers On Fluid escape 
+
+    }
+    
     # Group creation
     GiD_Groups create Fluid
     GiD_Groups create Structure
     GiD_Groups create Inlet
     GiD_Groups create Outlet
     GiD_Groups create NoSlip
+    GiD_Groups create Slip
     GiD_Groups create FluidInterface
     GiD_Groups create FixedDisplacement
     GiD_Groups create StructureInterface
 
     # Group entities
-    GiD_EntitiesGroups assign Fluid surfaces 1
-    GiD_EntitiesGroups assign Structure surfaces 2
-    GiD_EntitiesGroups assign Inlet lines 2
-    GiD_EntitiesGroups assign Outlet lines 4
-    GiD_EntitiesGroups assign NoSlip lines $fluidLines
-    GiD_EntitiesGroups unassign NoSlip lines {2 4}
-    GiD_EntitiesGroups assign FluidInterface lines $fluidinteractionLines
-    GiD_EntitiesGroups assign FixedDisplacement lines [lindex $strucLines end]
-    GiD_EntitiesGroups assign StructureInterface lines [lrange $strucLines 0 end-1]
-    
+    if {$::Model::SpatialDimension eq "3D"} {
+        GiD_EntitiesGroups assign Fluid volumes 1
+        GiD_EntitiesGroups assign Structure volumes 2
+        GiD_EntitiesGroups assign Inlet surfaces 4
+        GiD_EntitiesGroups assign Outlet surfaces 6
+        GiD_EntitiesGroups assign NoSlip surfaces 1 3 7 8 9 10 14
+        GiD_EntitiesGroups assign Slip surfaces 5
+        GiD_EntitiesGroups assign FluidInterface surfaces 11 12 13
+        GiD_EntitiesGroups assign FixedDisplacement surfaces 18
+        GiD_EntitiesGroups assign StructureInterface surfaces 2 15 16 17 19
+        
+    } {
+        GiD_EntitiesGroups assign Fluid surfaces 1
+        GiD_EntitiesGroups assign Structure surfaces 2
+        GiD_EntitiesGroups assign Inlet lines 2
+        GiD_EntitiesGroups assign Outlet lines 4
+        GiD_EntitiesGroups assign NoSlip lines $fluidLines
+        GiD_EntitiesGroups unassign NoSlip lines {2 3 4}
+        GiD_EntitiesGroups assign Slip lines 3
+        GiD_EntitiesGroups assign FluidInterface lines $fluidinteractionLines
+        GiD_EntitiesGroups assign FixedDisplacement lines [lindex $strucLines end]
+        GiD_EntitiesGroups assign StructureInterface lines [lrange $strucLines 0 end-1]
+    }
     GidUtils::UpdateWindow GROUPS
 }
 
@@ -144,8 +167,9 @@ proc FSI::xml::TreeAssignationMokChannelFlexibleWall {args} {
     gid_groups_conds::addF {container[@n='FSI']/container[@n='Fluid']/container[@n='BoundaryConditions']/condition[@n='Outlet2D']} group {n Outlet}
     gid_groups_conds::addF -resolve_parametric 1 {container[@n='FSI']/container[@n='Fluid']/container[@n='BoundaryConditions']/condition[@n='Outlet2D']/group[@n='Outlet']} value {n value pn Value unit_magnitude P help {} state {} v 0.0 units Pa}
     
-    # Fluid Inlet
+    # Fluid Conditions
     gid_groups_conds::addF {container[@n='FSI']/container[@n='Fluid']/container[@n='BoundaryConditions']/condition[@n='NoSlip2D']} group {n NoSlip}
+    gid_groups_conds::addF {container[@n='FSI']/container[@n='Fluid']/container[@n='BoundaryConditions']/condition[@n='Slip2D']} group {n Slip}
     gid_groups_conds::addF {container[@n='FSI']/container[@n='Fluid']/container[@n='BoundaryConditions']/condition[@n='FluidNoSlipInterface2D']} group {n FluidInterface}
 
     # Structural
