@@ -170,9 +170,9 @@ namespace Kratos
       
       //generate kratos elements (conditions are not touched)
       int id = 0;
-      std::vector<std::vector<int> > EmptyNeighList;
-      mrRemesh.NeighbourList.swap(EmptyNeighList); 
-      mrRemesh.NeighbourList.clear(); //destroy all elements
+      // std::vector<std::vector<int> > EmptyNeighList;
+      // mrRemesh.NeighbourList.swap(EmptyNeighList); 
+      // mrRemesh.NeighbourList.clear(); //destroy all elements
       
       int faces = 0;
       for(int el = 0; el<OutNumberOfElements; el++)
@@ -419,25 +419,33 @@ namespace Kratos
       int* OutElementNeighbourList = mrRemesh.OutMesh.GetElementNeighbourList();
 
       int facecounter=0;
+      int Id = 0;
       for(ModelPart::ElementsContainerType::const_iterator iii = mrModelPart.ElementsBegin(mMeshId);
 	  iii != mrModelPart.ElementsEnd(mMeshId); iii++)
 	{
 	  
-	  int Id= iii->Id() - 1; 
+	  for(unsigned int i= 0; i<mrRemesh.PreservedElements.size(); i++)
+	    {
+	      if( mrRemesh.PreservedElements[Id] == -1)
+		Id++;
+	      else
+		break;
+	    }
 	  
 	  int number_of_faces = iii->GetGeometry().FacesNumber(); //defined for triangles and tetrahedra
 	  (iii->GetValue(NEIGHBOUR_ELEMENTS)).resize(number_of_faces);
 	  WeakPointerVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
 
+	  int index = 0;
 	  for(int i = 0; i<number_of_faces; i++)
 	    {
-	      int index = OutElementNeighbourList[Id*nds+i];  //mrRemesh.NeighbourList[Id][i];
-				
+	      index = OutElementNeighbourList[Id*nds+i];  //mrRemesh.NeighbourList[Id][i];
+			
 	      if(index > 0)
 		{
 		  //std::cout<<" Element "<<Id<<" size "<<mrRemesh.PreservedElements.size()<<std::endl;			    
 		  //std::cout<<" Index pre "<<index<<" size "<<mrRemesh.PreservedElements.size()<<std::endl;
-		  index = mrRemesh.PreservedElements[index-1];
+		  index =  mrRemesh.PreservedElements[index-1]; 
 		  //std::cout<<" Index post "<<index<<std::endl;
 		}
 
@@ -452,6 +460,8 @@ namespace Kratos
 		  facecounter++;
 		}
 	    }
+
+	  Id++;
 	}
 	
       if( mEchoLevel > 0 ){

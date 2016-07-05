@@ -59,6 +59,7 @@ namespace Python
       .def("SetDataTransferUtilities",&MeshModeler::SetDataTransferUtilities)
       .def("GenerateMesh",&MeshModeler::GenerateMesh)
       .def("SetEchoLevel",&MeshModeler::SetEchoLevel)
+      .def("ExecuteMeshing",&MeshModeler::ExecuteMeshing)
       ;
 
     //class that allows 3D adaptive remeshing (inserting and erasing nodes)

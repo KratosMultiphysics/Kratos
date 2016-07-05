@@ -564,7 +564,7 @@ namespace Kratos
     if( GetEchoLevel() > 0 ){
       std::cout<<" [ GetRemeshData ["<<MeshId<<"]: [ RefineFlag: "<<mpMeshingVariables->Options.Is(ModelerUtilities::REFINE)<<"; RemeshFlag : "<<mpMeshingVariables->Options.Is(ModelerUtilities::REMESH)<<" ] ]"<<std::endl;
     }
-  
+
     // bool out_buffer_active = true;
     // std::streambuf* buffer = NULL;
     // if( mEchoLevel == 0 ){
@@ -623,32 +623,24 @@ namespace Kratos
 			     ModelPart::IndexType MeshId)
   {
     KRATOS_TRY
-
-        
+     
     const unsigned int dimension = rModelPart.ElementsBegin(MeshId)->GetGeometry().WorkingSpaceDimension();
 
     //*********************************************************************
     //input mesh: NODES
     ModelerUtilities::MeshContainer& InMesh = rMeshingVariables.InMesh;
+    
+    InMesh.CreatePointList(rModelPart.Nodes(MeshId).size(), dimension);
+
     double* PointList     = InMesh.GetPointList();
     int& NumberOfPoints   = InMesh.GetNumberOfPoints();
-
-    if( PointList != NULL ){
-      delete [] PointList;
-      NumberOfPoints = 0;
-    }
-
-    NumberOfPoints        = rModelPart.Nodes(MeshId).size();
-    PointList             = new double[NumberOfPoints * dimension];
-    InMesh.PointListFlag  = true;
 
     if(!rMeshingVariables.NodalIdsSetFlag){
 
       if((int)rMeshingVariables.NodalPreIds.size() != NumberOfPoints)
-	rMeshingVariables.NodalPreIds.resize(NumberOfPoints);
+	rMeshingVariables.NodalPreIds.resize(NumberOfPoints+1);
       
       std::fill( rMeshingVariables.NodalPreIds.begin(), rMeshingVariables.NodalPreIds.end(), 0 );
-
     }
     
     //writing the points coordinates in a vector and reordening the Id's
@@ -702,6 +694,8 @@ namespace Kratos
 	direct+=1;
       }
 
+    //InMesh.SetPointList(PointList);
+
     KRATOS_CATCH( "" )
 
   }
@@ -715,34 +709,27 @@ namespace Kratos
 				ModelPart::IndexType MeshId)
   {
     KRATOS_TRY
-
-        
-    const unsigned int dimension = rModelPart.ElementsBegin(MeshId)->GetGeometry().WorkingSpaceDimension();
+       
           
     //*********************************************************************
     //input mesh: ELEMENTS
-    ModelerUtilities::MeshContainer& InMesh = rMeshingVariables.InMesh;
-    int* ElementList      = InMesh.GetElementList();
-    int& NumberOfElements = InMesh.GetNumberOfElements();
-
     ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(MeshId);
     const unsigned int nds       = element_begin->GetGeometry().size();
 
-    if( ElementList != NULL ){
-      delete [] ElementList;
-      NumberOfElements = 0;
-    }
+    ModelerUtilities::MeshContainer& InMesh = rMeshingVariables.InMesh;
 
-    NumberOfElements         = rModelPart.Elements(MeshId).size();
-    ElementList              = new int[NumberOfElements * nds];
-    InMesh.ElementListFlag   = true;
+    InMesh.CreateElementList(rModelPart.Elements(MeshId).size(), nds);
+    
+    int* ElementList      = InMesh.GetElementList();
+    int& NumberOfElements = InMesh.GetNumberOfElements();
+
  
     int base=0;
-    for(unsigned int el = 0; el<rModelPart.Elements(MeshId).size(); el++)
+    for(unsigned int el = 0; el<(unsigned int)NumberOfElements; el++)
       {
 	Geometry<Node<3> >& geom = (element_begin+el)->GetGeometry();
 	
-	for(unsigned int i=0; i<dimension; i++)
+	for(unsigned int i=0; i<nds; i++)
 	  {
 	    ElementList[base+i] = geom[i].Id();
 	  }
@@ -766,21 +753,14 @@ namespace Kratos
         
     //*********************************************************************
     //input mesh: NEIGHBOURELEMENTS
-    ModelerUtilities::MeshContainer& InMesh = rMeshingVariables.InMesh;
-    int* ElementNeighbourList      = InMesh.GetElementNeighbourList();
-    int& NumberOfElements          = InMesh.GetNumberOfElements();
-
     ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(MeshId);
     const unsigned int nds          = element_begin->GetGeometry().size();
 
-    if( ElementNeighbourList != NULL ){
-      delete [] ElementNeighbourList;
-    }
+    ModelerUtilities::MeshContainer& InMesh = rMeshingVariables.InMesh;
 
-    NumberOfElements                = rModelPart.Elements(MeshId).size();
-    ElementNeighbourList            = new int[NumberOfElements * nds];
-    InMesh.ElementNeighbourListFlag = true;
- 
+    InMesh.CreateElementNeighbourList(rModelPart.Elements(MeshId).size(), nds);
+
+    int* ElementNeighbourList      = InMesh.GetElementNeighbourList();   
 
     for(unsigned int el = 0; el<rModelPart.Elements(MeshId).size(); el++)
       {

@@ -26,7 +26,7 @@ class MeshingDomain:
 	    "domain_type": "meshing_domain",
             "mesh_id": 1,
             "domain_size": 2,
-            "echo_level": 0,
+            "echo_level": 1,
             "alpha_shape": 2.4,
             "offset_factor": 0.0,
             "meshing_strategy":{

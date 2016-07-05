@@ -187,6 +187,43 @@ public:
       int&    GetNumberOfPoints()   {return mNumberOfPoints;};
       int&    GetNumberOfElements() {return mNumberOfElements;};
 
+      void CreatePointList(const unsigned int NumberOfPoints, const unsigned int Dimension)
+      {
+	if( mpPointList != NULL ){
+	  delete [] mpPointList;
+	}
+	mNumberOfPoints = NumberOfPoints;
+	mpPointList     = new double[NumberOfPoints * Dimension];
+	PointListFlag   = true;
+      }
+
+      void CreateElementList(const unsigned int NumberOfElements, const unsigned int NumberOfVertices)
+      {
+	if( mpElementList != NULL ){
+	  delete [] mpElementList;
+	}
+	mNumberOfElements = NumberOfElements;
+	mpElementList     = new int[NumberOfElements * NumberOfVertices];
+	ElementListFlag   = true;
+      }
+
+      void CreateElementSizeList(const unsigned int NumberOfElements)
+      {
+	if( mpElementSizeList != NULL ){
+	  delete [] mpElementSizeList;
+	}
+	mpElementSizeList     = new double[NumberOfElements];
+	ElementSizeListFlag   = true;
+      }
+
+      void CreateElementNeighbourList(const unsigned int NumberOfElements, const unsigned int NumberOfFaces)
+      {
+	if( mpElementNeighbourList != NULL ){
+	  delete [] mpElementNeighbourList;
+	}
+	mpElementNeighbourList     = new int[NumberOfElements * NumberOfFaces];
+	ElementNeighbourListFlag   = true;
+      }
 
       void Initialize()
       {
@@ -207,17 +244,22 @@ public:
 
       void Finalize()
       {
-	if( mpPointList!= NULL )
+	if( mpPointList!= NULL && PointListFlag ){
 	  delete [] mpPointList;
+	}
 
-	if( mpElementList!= NULL )
-	  delete [] mpElementList;
+	// mesher deletes it always...
+	// if( mpElementList!= NULL && ElementListFlag ){
+	//   delete [] mpElementList;
+	// }
 
-	if( mpElementSizeList!= NULL )
+	if( mpElementSizeList!= NULL && ElementSizeListFlag ){
 	  delete [] mpElementSizeList;
+	}
 
-	if( mpElementNeighbourList!= NULL )
+	if( mpElementNeighbourList!= NULL && ElementNeighbourListFlag ){
 	  delete [] mpElementNeighbourList;
+	}
 
 	mpPointList            = (double*) NULL;
 	mpElementList          = (int*)    NULL;
@@ -661,6 +703,10 @@ public:
   
 	NodalIdsSetFlag = false;
 
+	InMesh.Initialize();
+	OutMesh.Initialize();
+	MidMesh.Initialize();
+
 	// RemeshInfo.Initialize();
 	// Refine.Initialize();	
       };
@@ -792,9 +838,8 @@ public:
 
     static inline double CalculateElementRadius(Geometry< Node<3> >& rGeometry)
     {
-      const unsigned int dimension = rGeometry.WorkingSpaceDimension();
       
-      if( dimension == 2 )
+      if(  rGeometry.size() == 3 )
 	return CalculateTriangleRadius( rGeometry );
       else
 	return CalculateTetrahedronRadius( rGeometry );
@@ -803,9 +848,8 @@ public:
 
     static inline double CalculateElementRadius(Geometry< Node<3> >& rGeometry, double& rDomainSize)
     {
-      const unsigned int dimension = rGeometry.WorkingSpaceDimension();
       
-      if( dimension == 2 )
+      if( rGeometry.size() == 3 )
 	return CalculateTriangleRadius( rGeometry[0].X(), rGeometry[0].Y(),
 					rGeometry[1].X(), rGeometry[1].Y(),
 					rGeometry[2].X(), rGeometry[2].Y(),

@@ -128,7 +128,7 @@ public:
 	    std::cout<<"   Start Element Selection "<<OutNumberOfElements<<std::endl;
 
 	  ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
-	  const unsigned int nds = (*element_begin).GetGeometry().size();
+	  const unsigned int nds = element_begin->GetGeometry().size();
 	  const unsigned int dimension = element_begin->GetGeometry().WorkingSpaceDimension();
 
 	  int* OutElementList = mrRemesh.OutMesh.GetElementList();
@@ -137,6 +137,11 @@ public:
 
 	  int el;
 	  int number=0;
+
+	  // std::cout<<" num nodes "<<rNodes.size()<<std::endl;
+	  // std::cout<<" NodalPreIdsSize "<<mrRemesh.NodalPreIds.size()<<std::endl;
+
+
 	  //#pragma omp parallel for reduction(+:number) private(el)
 	  for(el=0; el<OutNumberOfElements; el++)
 	    {
@@ -150,10 +155,16 @@ public:
 	      //int  numfixed =0;
 	      
 	      unsigned int  numfreesurf =0;
-	      unsigned int  numboundary =0;
+	      unsigned int  numboundary =0;	      
+
+	      // std::cout<<" selected vertices ["<<OutElementList[el*nds];
+	      // for(unsigned int d=1; d<nds; d++)
+	      // 	{
+	      // 	  std::cout<<", "<<OutElementList[el*nds+d];
+	      // 	}
 	      
-	      // std::cout<<" num nodes "<<rNodes.size()<<std::endl;
-	      // std::cout<<" selected vertices [ "<<OutElementList[el*3]<<", "<<OutElementList[el*3+1]<<", "<<OutElementList[el*3+2]<<"] "<<std::endl;
+	      // std::cout<<"] "<<std::endl;
+
 	      box_side_element = false;
 	      for(unsigned int pn=0; pn<nds; pn++)
 		{

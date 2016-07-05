@@ -62,7 +62,7 @@ namespace Kratos
     KRATOS_CATCH( "" )
   }
 
-    //*******************************************************************************************
+  //*******************************************************************************************
   //*******************************************************************************************
 
   void TetrahedralMesh3DModeler::GetModelerData(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr)
@@ -73,6 +73,12 @@ namespace Kratos
     if( rMesh.ContainerActiveFlag == false )
       std::cout<<" Something if Wrong in the Modeler Data "<<std::endl;
               
+    //set pointers
+    rMesh.SetPointList(tr.pointlist);
+    rMesh.SetElementList(tr.tetrahedronlist);
+    rMesh.SetElementSizeList(tr.tetrahedronvolumelist);
+    rMesh.SetElementNeighbourList(tr.neighborlist);
+
     // copy the numbers 
     if( tr.numberofpoints ){
       rMesh.SetNumberOfPoints(tr.numberofpoints);
@@ -93,13 +99,13 @@ namespace Kratos
   {
     KRATOS_TRY
 
+    //delete tetrahedra other structures
+    DeleteTetrahedraList(tr);
+    ClearTetrahedraList(tr);
+
     //delete modeler container
     rMesh.Finalize();
     
-    //delete tetrahedra other structures
-    DeleteTetrahedraList(tr);
-
-    ClearTetrahedraList(tr);
 
     KRATOS_CATCH( "" )
   }
@@ -197,15 +203,21 @@ namespace Kratos
     this->FinalizeMeshGeneration(rModelPart,rMeshingVariables,MeshId);
     ////////////////////////////////////////////////////////////
 
+
+    //Set/Get data pointers
+    SetModelerData(rMeshingVariables.InMesh,in); //necesary if a process fills in...
+
     //*********************************************************************
 
     //Free memory  (to determine from custom mesh modelling)
     if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::DELETE_DATA) ){
-      UnsetModelerData(rMeshingVariables.InMesh,out);
-      UnsetModelerData(rMeshingVariables.OutMesh,out);
+      UnsetModelerData(rMeshingVariables.InMesh,in);
+      if(rMeshingVariables.Options.Is(ModelerUtilities::REMESH))
+	UnsetModelerData(rMeshingVariables.OutMesh,out);
     }
     else{
-      UnsetModelerData(rMeshingVariables.OutMesh,out);
+      if(rMeshingVariables.Options.Is(ModelerUtilities::REMESH))
+	UnsetModelerData(rMeshingVariables.OutMesh,out);
     }
 
     this->EndEcho(rModelPart,"PFEM Base Remesh",MeshId);
@@ -1370,8 +1382,16 @@ namespace Kratos
     KRATOS_TRY
 
     //if not remesh return true
-    if(rMeshingVariables.Options.IsNot(ModelerUtilities::REMESH))
+    if(rMeshingVariables.Options.IsNot(ModelerUtilities::REMESH)){
+      // out.pointlist             = in.pointlist;
+      // out.numberofpoints        = in.numberofpoints;
+      // out.tetrahedronlist       = in.tetrahedronlist;
+      // out.numberoftetrahedra    = in.numberoftetrahedra;
+      // out.tetrahedronvolumelist = in.tetrahedronvolumelist;
+      // out.neighborlist          = in.neighborlist;
+      out = in;
       return 1;
+    }
 
     int fail=0;
 
