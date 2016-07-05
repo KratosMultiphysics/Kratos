@@ -297,10 +297,11 @@ def ConstructSolver(configuration):
                                        "coarsening_type": "aggregation",
                                        "max_iteration": 50,
                                        "verbosity" : 1,
-                                       "scaling": false,
+                                       "scaling": ,
                                        "coarse_enough" : 5000
                                    }
                 """)
+        scaling = params["scaling"].GetBool()
         import KratosMultiphysics.ExternalSolversApplication
         linear_solver = KratosMultiphysics.ExternalSolversApplication.AMGCL_NS_Solver(params)
     #
