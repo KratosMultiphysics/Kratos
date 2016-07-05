@@ -75,3 +75,6 @@ class ShellT3ThinBendingRollUpTests(StructrualMechanichsTestFactory):
 
 class ShellT3ThinDrillingRollUpTests(StructrualMechanichsTestFactory):
     file_name = "shell_test/Shell_T3_Thin__DrillingRollUp_test"
+    
+class SimplePatchTestContact(StructrualMechanichsTestFactory):
+    file_name = "contact_test/simple_patch_test"

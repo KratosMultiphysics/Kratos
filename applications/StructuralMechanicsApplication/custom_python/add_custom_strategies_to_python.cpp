@@ -62,6 +62,7 @@ void  AddCustomStrategiesToPython()
 
     // Custom scheme types
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
+    typedef ResidualBasedIncrementalUpdateStaticContactScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedIncrementalUpdateStaticContactSchemeType;
 
     // Custom convergence criterion types
     typedef MortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > MortarConvergenceCriteriaType;
@@ -78,9 +79,9 @@ void  AddCustomStrategiesToPython()
 
             .def("Initialize", &ResidualBasedRelaxationScheme<SparseSpaceType, LocalSpaceType>::Initialize)
             ;    
-     
+
     // Residual Based Incremental Update Static Contact Scheme Type
-    class_< ResidualBasedIncrementalUpdateStaticContactScheme< SparseSpaceType, LocalSpaceType>,
+    class_< ResidualBasedIncrementalUpdateStaticContactSchemeType,
             bases< BaseSchemeType >, boost::noncopyable >
             (
             "ResidualBasedIncrementalUpdateStaticContactScheme", init< >()

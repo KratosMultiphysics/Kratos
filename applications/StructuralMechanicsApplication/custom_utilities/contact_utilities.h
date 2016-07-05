@@ -145,7 +145,7 @@ public:
                  LocalLine2D2NProcess(contact_container.active_nodes_slave, active_gauss_slave, Geom1, contact_container.local_coordinates_slave[0], contact_container.local_coordinates_slave[1], IntegrationOrder);
                 
                  contact_container.local_coordinates_master.resize(2, false);
-                 LocalLine2D2NProcess(active_nodes_master, active_gauss_slave, Geom2, contact_container.local_coordinates_master[0], contact_container.local_coordinates_master[1], IntegrationOrder);
+                 LocalLine2D2NProcess(active_nodes_master, active_gauss_master, Geom2, contact_container.local_coordinates_master[0], contact_container.local_coordinates_master[1], IntegrationOrder);
              }
              else
              {
@@ -524,7 +524,7 @@ public:
         
         for(ConditionsArrayType::iterator cond_it = it_cond_begin; cond_it!=it_cond_end; cond_it++)
         {
-            if (cond_it->Is(ACTIVE))
+            if (cond_it->Is(ACTIVE) || cond_it->Is(MASTER))
             {
                 ConditionNormal(*(cond_it.base()), dimension);
                 

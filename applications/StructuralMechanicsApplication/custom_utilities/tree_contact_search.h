@@ -320,7 +320,10 @@ public:
             const unsigned int allocation_size
             );
     
-    void AuxConstructor(ModelPart & rModelPart); 
+    void AuxConstructor(
+        ModelPart & rModelPart,
+        const bool rSlaveMaster
+        ); 
     
     virtual ~TreeContactSearch();
 
