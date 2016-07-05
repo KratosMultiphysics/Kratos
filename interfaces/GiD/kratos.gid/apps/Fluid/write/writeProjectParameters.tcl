@@ -104,8 +104,11 @@ proc Fluid::write::getBoundaryConditionMeshId {} {
     foreach group $groups {
         set groupName [$group @n]
         set cid [[$group parent] @n]
-        set gname [::write::getMeshId $cid $groupName]
-        if {$gname ni $listOfBCGroups} {lappend listOfBCGroups $gname}
+        set cond [Model::getCondition $cid]
+        if {[$cond getAttribute "SkinConditions"] eq "True"} {
+            set gname [::write::getMeshId $cid $groupName]
+            if {$gname ni $listOfBCGroups} {lappend listOfBCGroups $gname}
+        }
     }
     
     return $listOfBCGroups
