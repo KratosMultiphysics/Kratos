@@ -47,19 +47,17 @@ namespace Kratos
       tr.pointlist        = rMesh.GetPointList();
       tr.trianglelist     = rMesh.GetElementList();
       tr.trianglearealist = rMesh.GetElementSizeList();
-      tr.neighborlist     = rMesh.GetElementNeighbourList();      
+      tr.neighborlist     = rMesh.GetElementNeighbourList();    
 
       // copy the numbers 
-      if( rMesh.GetNumberOfPoints() )
+      if( rMesh.GetNumberOfPoints() != 0 )
 	tr.numberofpoints = rMesh.GetNumberOfPoints();
 
       
-      if( rMesh.GetNumberOfElements() )
+      if( rMesh.GetNumberOfElements() != 0 )
 	tr.numberoftriangles = rMesh.GetNumberOfElements();
 
-
     }
-
 
     KRATOS_CATCH( "" )
   }
@@ -76,12 +74,18 @@ namespace Kratos
     if( rMesh.ContainerActiveFlag == false )
       std::cout<<" Something if Wrong in the Modeler Data "<<std::endl;
               
+    //set pointers
+    rMesh.SetPointList(tr.pointlist);
+    rMesh.SetElementList(tr.trianglelist);
+    rMesh.SetElementSizeList(tr.trianglearealist);
+    rMesh.SetElementNeighbourList(tr.neighborlist);
+
     // copy the numbers 
-    if( tr.numberofpoints ){
+    if( tr.numberofpoints != 0 ){
       rMesh.SetNumberOfPoints(tr.numberofpoints);
     }
 
-    if( tr.numberoftriangles ){
+    if( tr.numberoftriangles != 0 ){
       rMesh.SetNumberOfElements(tr.numberoftriangles);
     }
     
@@ -96,13 +100,12 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    //delete modeler container
-    rMesh.Finalize();
-    
     //delete triangle other structures
     DeleteTrianglesList(tr);
-
     ClearTrianglesList(tr);
+
+    //delete modeler container
+    rMesh.Finalize();    
 
     KRATOS_CATCH( "" )
   }
@@ -199,15 +202,22 @@ namespace Kratos
     this->FinalizeMeshGeneration(rModelPart,rMeshingVariables,MeshId);
     ////////////////////////////////////////////////////////////
 
+    //Set/Get data pointers
+    SetModelerData(rMeshingVariables.InMesh,in); //necesary if a process fills in...
+    this->WriteTriangles(in);
+
     //*********************************************************************
 
     //Free memory  (to determine from custom mesh modelling)
     if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::DELETE_DATA) ){
-      UnsetModelerData(rMeshingVariables.InMesh,out);
-      UnsetModelerData(rMeshingVariables.OutMesh,out);
+      UnsetModelerData(rMeshingVariables.InMesh,in);
+      if(rMeshingVariables.Options.Is(ModelerUtilities::REMESH))
+	UnsetModelerData(rMeshingVariables.OutMesh,out);
     }
     else{
-      UnsetModelerData(rMeshingVariables.OutMesh,out);
+      if(rMeshingVariables.Options.Is(ModelerUtilities::REMESH)){
+	UnsetModelerData(rMeshingVariables.OutMesh,out);
+      }
     }
     
     this->EndEcho(rModelPart,"PFEM Base Remesh",MeshId);
@@ -1132,8 +1142,10 @@ namespace Kratos
       //regions
       double inside_factor = 2;
       Geometry< Node<3> >& rGeometry = (conditions_begin)->GetGeometry();
+
       array_1d<double, 3>&  Normal   = rGeometry[0].FastGetSolutionStepValue(NORMAL); 
       double NormNormal = norm_2(Normal);
+
       if( NormNormal != 0)
 	Normal /= NormNormal;
 
@@ -1343,8 +1355,16 @@ namespace Kratos
     KRATOS_TRY
 
     //if not remesh return true
-    if(rMeshingVariables.Options.IsNot(ModelerUtilities::REMESH))
+    if(rMeshingVariables.Options.IsNot(ModelerUtilities::REMESH)){
+      // out.pointlist         = in.pointlist;
+      // out.numberofpoints    = in.numberofpoints;
+      // out.trianglelist      = in.trianglelist;
+      // out.numberoftriangles = in.numberoftriangles;
+      // out.trianglearealist  = in.trianglearealist;
+      // out.neighborlist      = in.neighborlist;
+      out = in;
       return 1;
+    }
 
     int fail=0;
 
@@ -2677,6 +2697,7 @@ namespace Kratos
 	    std::cout<<tr.trianglelist[el*3+pn]<<"_";
 	  }
 	std::cout<<" ]   Area: "<<tr.trianglearealist[el]<<std::endl;
+	//std::cout<<" ] "<<std::endl;
       }   
 
     KRATOS_CATCH(" ")
@@ -2757,9 +2778,8 @@ namespace Kratos
     if( tr.holelist != NULL )
       delete [] tr.holelist;
     
-    if( tr.regionlist != NULL )
-      delete [] tr.regionlist;
-       
+    // if( tr.regionlist != NULL )
+    //   delete [] tr.regionlist;      
 
     //if p is switched then in and out are pointed:(free only once)
     //delete [] tr.segmentlist;

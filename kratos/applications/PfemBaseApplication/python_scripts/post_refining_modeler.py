@@ -6,7 +6,10 @@ import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
-def CreateMeshModeler(main_model_part, custom_settings):
+# Import the mesh modeler (the base class for the modeler derivation)
+import mesh_modeler
+
+def CreateMeshModeler(main_model_part, meshing_parameters, mesh_id):
     return PostRefiningModeler(main_model_part, meshing_parameters, mesh_id)
 
 class PostRefiningModeler(mesh_modeler.MeshModeler):
@@ -14,7 +17,7 @@ class PostRefiningModeler(mesh_modeler.MeshModeler):
     #
     def __init__(self, main_model_part, meshing_parameters, mesh_id): 
         
-        self.echo_level        = 0
+        self.echo_level        = 1
         self.mesh_id           = mesh_id
         self.main_model_part   = main_model_part 
         self.MeshingParameters = meshing_parameters
@@ -29,42 +32,43 @@ class PostRefiningModeler(mesh_modeler.MeshModeler):
         # set modeler flags: to set options for the mesher (triangle 2D, tetgen 3D)
         # REFINE
 
-        refining_parameters = self.MeshingVariables.GetRefiningParameters()
+        refining_parameters = self.MeshingParameters.GetRefiningParameters()
         refining_options = refining_parameters.GetRefiningOptions()
 
         modeler_flags = ""
         modeler_info  = "Refine the domain"
 
-        if( self.domain_size = 2 ):
+        meshing_options = self.MeshingParameters.GetOptions()
+
+        if( self.domain_size == 2 ):
            
-            if( refining_options.Is(ModelerUtilities.ADD_NODES) ):
+            if( refining_options.Is(KratosPfemBase.ModelerUtilities.REFINE_ADD_NODES) ):
                 #"YYJaqrn" "YJq1.4arn" "Jq1.4arn"
-                if( meshing_options.Is(ModelerUtilities.CONSTRAINED) ):
+                if( meshing_options.Is(KratosPfemBase.ModelerUtilities.CONSTRAINED) ):
                     modeler_flags = "pYJq1.4arnCQ"  
-                elif:
+                else:
                     modeler_flags = "YJq1.4arnQ"
 
-            if( refining_options.Is(ModelerUtilities.INSERT_NODES) ):
+            if( refining_options.Is(KratosPfemBase.ModelerUtilities.REFINE_INSERT_NODES) ):
                 #"riYYJQ" "riYYJQ" "riJQ" "riQ"
-                if( meshing_options.Is(ModelerUtilities.CONSTRAINED) ):
+                if( meshing_options.Is(KratosPfemBase.ModelerUtilities.CONSTRAINED) ):
                     modeler_flags = "rinYYJQ"  
-                elif:
+                else:
                     modeler_flags = "rinJQ"
             
-        elif( self.domain_size = 3 ):
+        elif( self.domain_size == 3 ):
 
-            if( refining_options.Is(ModelerUtilities.ADD_NODES) ):
-                if( meshing_options.Is(ModelerUtilities.CONSTRAINED) ):
+            if( refining_options.Is(KratosPfemBase.ModelerUtilities.REFINE_ADD_NODES) ):
+                if( meshing_options.Is(KratosPfemBase.ModelerUtilities.CONSTRAINED) ):
                     modeler_flags = "pMYJq1.4arnCBQF"
-                elif:
+                else:
                     modeler_flags = "YJq1.4arnBQF"
 
-            if( refining_options.Is(ModelerUtilities.INSERT_NODES) ):
-                if( meshing_options.Is(ModelerUtilities.CONSTRAINED) ):
+            if( refining_options.Is(KratosPfemBase.ModelerUtilities.REFINE_INSERT_NODES) ):
+                if( meshing_options.Is(KratosPfemBase.ModelerUtilities.CONSTRAINED) ):
                     modeler_flags = "rinYYJBQF"  
-                elif:
+                else:
                     modeler_flags = "rinJBQF"
-
 
         self.MeshingParameters.SetTessellationFlags(modeler_flags)
         self.MeshingParameters.SetTessellationInfo(modeler_info)
@@ -72,7 +76,7 @@ class PostRefiningModeler(mesh_modeler.MeshModeler):
 
     #
     def SetPreMeshingProcesses(self):
-        
         # no process to start
+        pass
      
 

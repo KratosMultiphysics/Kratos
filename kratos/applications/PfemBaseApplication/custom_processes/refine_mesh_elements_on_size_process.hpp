@@ -104,6 +104,7 @@ public:
 	//std::cout<<"   refine selection "<<std::endl;
       }
       
+
       //***SIZES :::: parameters do define the tolerance in mesh size: 
       double size_for_inside_elements   = 0.75 * mrRemesh.Refine->CriticalRadius;
       double size_for_boundary_elements = 1.50 * mrRemesh.Refine->CriticalRadius; 
@@ -121,19 +122,17 @@ public:
 	  
 	  unsigned int nds = (*element_begin).GetGeometry().size();
 	  
-	  int& InNumberOfElements  = mrRemesh.InMesh.GetNumberOfElements();
+	  ModelerUtilities::MeshContainer& InMesh = mrRemesh.InMesh;
+
+	  InMesh.CreateElementList(mrRemesh.Info->NumberOfElements, nds);
+	  InMesh.CreateElementSizeList(mrRemesh.Info->NumberOfElements);
+
 	  int& OutNumberOfElements = mrRemesh.OutMesh.GetNumberOfElements();
 	  
-	  InNumberOfElements  = mrRemesh.Info->NumberOfElements;
-	  OutNumberOfElements = mrRemesh.Info->NumberOfElements;
-	 
 	  int* InElementList        = mrRemesh.InMesh.GetElementList();
 	  double* InElementSizeList = mrRemesh.InMesh.GetElementSizeList();
 
 	  int* OutElementList       = mrRemesh.OutMesh.GetElementList();
-
-	  InElementList     = new int  [InNumberOfElements * nds];
-	  InElementSizeList = new double [InNumberOfElements];
 
 	  ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin(mMeshId);
 
@@ -223,7 +222,7 @@ public:
 
 		  		  
 		  double element_size = 0;
-		  double element_radius = mModelerUtilities.CalculateElementRadius (vertices, element_size);
+		  double element_radius = mModelerUtilities.CalculateElementRadius(vertices, element_size);
 		  
 	
 		  //calculate the prescribed h
@@ -379,9 +378,6 @@ public:
 	}
 
 	
-      //Check struct "in"
-      //WriteTriangles(in);
-      //WritePoints(in);
       
       if( mEchoLevel > 0 )
 	std::cout<<"   SELECT ELEMENTS TO REFINE ]; "<<std::endl;

@@ -6,7 +6,10 @@ import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
-def CreateMeshModeler(main_model_part, custom_settings):
+# Import the mesh modeler (the base class for the modeler derivation)
+import mesh_modeler
+
+def CreateMeshModeler(main_model_part, meshing_parameters, mesh_id):
     return TransferModeler(main_model_part, meshing_parameters, mesh_id)
 
 class TransferModeler(mesh_modeler.MeshModeler):
@@ -27,38 +30,38 @@ class TransferModeler(mesh_modeler.MeshModeler):
         # set execution flags: to set the options to be executed in methods and processes
         execution_options = KratosMultiphysics.Flags()
 
-        execution_options.Set(ModelerUtilities.SET_NODES, True)
-        execution_options.Set(ModelerUtilities.SET_ELEMENTS, True)
-        execution_options.Set(ModelerUtilities.SET_NEIGHBOURS, True)
+        self.MeshingParameters.SetNodalIdsFlag(False) #they are not set
+        execution_options.Set(KratosPfemBase.ModelerUtilities.SET_NODES, True)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.SET_ELEMENTS, True)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.SET_NEIGHBOURS, True)
 
-        execution_options.Set(ModelerUtilities.SELECT_ELEMENTS, True)
-        execution_options.Set(ModelerUtilities.PASS_ALPHA_SHAPE, False)
-        execution_options.Set(ModelerUtilities.ENGAGED_NODES, False)
-        execution_options.Set(ModelerUtilities.DELETE_DATA, True) #delete data at the end
+        execution_options.Set(KratosPfemBase.ModelerUtilities.SELECT_ELEMENTS, True)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.PASS_ALPHA_SHAPE, False)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.ENGAGED_NODES, False)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.DELETE_DATA, True) #delete data at the end
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
         
 
     #
     def SetPreMeshingProcesses(self):
-        
-        #nothing to do: only reconnection
+        #nothing to do: only transfer
+        pass
+
 
    #
     def SetPostMeshingProcesses(self):
         
         #nothing to do: only reconnection
         #select mesh elements
-        select_mesh_elements  = KratosPfemBase.SelectMeshElements(self.model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        select_mesh_elements  = KratosPfemBase.SelectMeshElements(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
         self.mesher.SetPostMeshingProcess(select_mesh_elements)
 
         #rebuild elements
-        rebuild_mesh_elements = KratosPfemBase.BuildMeshElements(self.model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        rebuild_mesh_elements = KratosPfemBase.BuildMeshElements(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
         self.mesher.SetPostMeshingProcess(rebuild_mesh_elements)
 
         #rebuild boundary
-        rebuild_mesh_boundary = KratosPfemBase.ReconstructMeshBoundary(self.model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        rebuild_mesh_boundary = KratosPfemBase.ReconstructMeshBoundary(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
         self.mesher.SetPostMeshingProcess(rebuild_mesh_boundary)
-
-
 

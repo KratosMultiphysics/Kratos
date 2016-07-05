@@ -39,14 +39,14 @@ class MeshingStrategy:
         self.settings.ValidateAndAssignDefaults(default_settings)
                 
         print("Construction of Mesh Modeler finished")
-
         
-
     #
     def Initialize(self,meshing_parameters,imposed_walls,domain_size,mesh_id):
         
         #parameters
         self.mesh_id = mesh_id
+
+        self.echo_level = 1
         
         #meshing parameters
         self.MeshingParameters = meshing_parameters  
@@ -62,6 +62,8 @@ class MeshingStrategy:
         meshing_options.Set(KratosPfemBase.ModelerUtilities.VARIABLES_SMOOTHING, self.settings["variables_smoothing"].GetBool())
 
         self.MeshingParameters.SetOptions(meshing_options)
+        self.MeshingParameters.SetReferenceElement(self.settings["reference_element"].GetString())
+        self.MeshingParameters.SetReferenceCondition(self.settings["reference_condition"].GetString())
         
         #set variables to global transfer
         self.MeshDataTransfer   = KratosPfemBase.MeshDataTransferUtilities()
@@ -94,12 +96,12 @@ class MeshingStrategy:
 
         modelers = []        
         if( self.settings["remesh"].GetBool() and self.settings["refine"].GetBool() ):
-            modeler.append("pre_refining_modeler")
-            modeler.append("post_refining_modeler")
+            modelers.append("pre_refining_modeler")
+            modelers.append("post_refining_modeler")
         elif( self.settings["remesh"].GetBool() ):
-            modeler.append("reconnect_modeler")
+            modelers.append("reconnect_modeler")
         elif( self.settings["transfer"].GetBool() ):
-            modeler.append("transfer_modeler")
+            modelers.append("transfer_modeler")
  
         for modeler in modelers:
             meshing_module =__import__(modeler)      
@@ -109,7 +111,7 @@ class MeshingStrategy:
     #
     def SetInfo(self):
         
-        info_parameters = self.MeshingVariables.GetInfoParameters()
+        info_parameters = self.MeshingParameters.GetInfoParameters()
     
         current_number_of_nodes      = self.main_model_part.NumberOfNodes(self.mesh_id)
         current_number_of_elements   = self.main_model_part.NumberOfElements(self.mesh_id)
@@ -131,7 +133,7 @@ class MeshingStrategy:
         self.number_of_conditions = 0
         self.number_of_nodes      = 0
         
-        info_parameters = self.MeshingVariables.GetInfoParameters()
+        info_parameters = self.MeshingParameters.GetInfoParameters()
         info_parameters.Initialize()
         
         self.SetInfo()
@@ -144,10 +146,10 @@ class MeshingStrategy:
 
         self.SetInfo()
 
-        info_parameters    = self.MeshingVariables.GetInfoParameters()
+        info_parameters    = self.MeshingParameters.GetInfoParameters()
         smoothing_required = info_parameters.CheckMechanicalSmoothing()
         
-        refining_parameters = self.MeshingVariables.GetRefiningParameters()
+        refining_parameters = self.MeshingParameters.GetRefiningParameters()
         
         if( self.global_transfer == True ):
             if(smoothing_required):

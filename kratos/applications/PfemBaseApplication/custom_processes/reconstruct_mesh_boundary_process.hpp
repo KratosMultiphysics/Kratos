@@ -568,6 +568,8 @@ namespace Kratos
       ModelPart::ElementsContainerType::iterator elements_end    = mrModelPart.ElementsEnd(MeshId);
     
       ConditionId=0;
+      int facecounter = 0;
+      int Id=0;
       for(ModelPart::ElementsContainerType::iterator ie = elements_begin; ie != elements_end ; ie++)
 	{
 	  
@@ -601,32 +603,53 @@ namespace Kratos
 	    rGeometry.NodesInFaces(lpofa);
 	    rGeometry.NumberNodesInFaces(lnofa);
 	    
+	    
+	    if( mrRemesh.NeighbourList.size() != 0 ){
+	      Id=ie->Id()-1;
+	    }
+	    else{
+	      for(unsigned int i= 0; i<mrRemesh.PreservedElements.size(); i++)
+		{
+		  if( mrRemesh.PreservedElements[Id] == -1)
+		    Id++;
+		  else
+		    break;
+		}	      
+	    }
 
-	    int Id=ie->Id() -1 ;
-
+	    
 	    ModelPart::ElementsContainerType::iterator element_neighbour;
 
 	    //Get the standard ReferenceCondition
 	    const Condition & rReferenceCondition = mrRemesh.GetReferenceCondition();
 	    
+	    const unsigned int nds = elements_begin->GetGeometry().size();
+	    int* OutElementNeighbourList = mrRemesh.OutMesh.GetElementNeighbourList();
+	      
 	    //loop on element faces
+	    int index = 0;
 	    for(unsigned int iface = 0; iface<rGeometry.FacesNumber(); iface++)
 	      {
 
 		unsigned int NumberNodesInFace = lnofa[iface];
 
-		int index = mrRemesh.NeighbourList[Id][iface];
-		
+		index = OutElementNeighbourList[Id*nds+iface];
+		if( mrRemesh.NeighbourList.size() != 0 )
+		  index = mrRemesh.NeighbourList[Id][iface];
+
+
 		if(index > 0)
-		  {
-		    index = mrRemesh.PreservedElements[index-1];
-		    
+		  index = mrRemesh.PreservedElements[index-1];
+
+		if(index > 0)
+		  {	    
 		    //check if this element exists:: if not found-> returns the last element
 		    element_neighbour = (mrModelPart.Elements(MeshId)).find( elements_begin->Id() + index-1 ); 
 		  }
 		else
 		  {
 		    element_neighbour = elements_end;
+		    facecounter++;
 		  }
 
 	      
@@ -808,9 +831,11 @@ namespace Kratos
 		  }
 	      }
 
+	    Id++;
 	  }
 	}
-
+      
+      std::cout<<"   Final Faces : "<<facecounter<<std::endl;
       this->AddOtherConditions(TemporaryConditions, PreservedConditions, ConditionId, MeshId);
 	
       return true;
