@@ -78,7 +78,7 @@ public:
          double aux_value;
          for (unsigned int index = 0; index < Geom2.PointsNumber(); index++)
          {
-             Project(Geom1[0],  Geom2[index], ProjectedPoint, aux_value, contact_normal2);
+             Project(Geom1.Center(),  Geom2[index], ProjectedPoint, aux_value, contact_normal2);
              
              array_1d<double, 3> result;
              active_nodes_master[index] = Geom1.IsInside(ProjectedPoint, result);
@@ -132,7 +132,7 @@ public:
 
              double dist_aux;
 
-             Project(ContactPoint, GaussPoint,  ProjectedGaussPoint, dist_aux, contact_normal1);
+             Project(Geom1.Center(), GaussPoint,  ProjectedGaussPoint, dist_aux, contact_normal2);
 
              active_gauss_master[PointNumber] =  Geom1.IsInside(ProjectedGaussPoint, result);
          }
