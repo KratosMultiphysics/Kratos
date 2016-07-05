@@ -39,7 +39,6 @@ proc EndGIDPostProcess {} {
         gid_groups_conds::open_conditions menu
     }
 }
-
  
 # Load GiD project files (initialise XML Tdom structure)
 proc LoadGIDProject { filespd } {
@@ -111,13 +110,15 @@ proc Kratos::InitGIDProject { dir } {
         uplevel 1 [list source [file join $dir scripts Model $filename]]
     }
     
-    # JG Sources will be in a different proc
-    #foreach filename {anigif.tcl} {
-    #    uplevel 1 [list source [file join $dir libs $filename]]
-    #}
     set kratos_private(UseWizard) 0
      
     Kratos::load_gid_groups_conds
+    
+        # JG Sources will be in a different proc
+    foreach filename {tempCustomConds.tcl} {
+        uplevel 1 [list source [file join $dir libs $filename]]
+    }
+    
     Kratos::LoadEnvironment
     Kratos::ChangeMenus
     #set HeaderBackground [$doc selectNodes string(Infoproblemtype/Program/HeaderBackground)]
@@ -426,21 +427,21 @@ proc Kratos::BeforeMeshGeneration {elementsize} {
 
 proc Kratos::PrintArray {a {pattern *}} {
     # ABSTRACT:
-    # Print the content of array a to WarnWinText window
+    # Print the content of array nicely
     
     upvar 1 $a array  
     if {![array exists array]} {
-	error "\"$a\" isn't an array"
+        error "\"$a\" isn't an array"
     }
     set maxl 0
     foreach name [lsort [array names array $pattern]] {
-	if {[string length $name] > $maxl} {
-	    set maxl [string length $name]
-	}
+        if {[string length $name] > $maxl} {
+            set maxl [string length $name]
+        }
     }
     set maxl [expr {$maxl + [string length $a] + 2}]
     foreach name [lsort [array names array $pattern]] {
-	set nameString [format %s(%s) $a $name]
-	WarnWinText "[format "%-*s = %s" $maxl $nameString $array($name)]"
+        set nameString [format %s(%s) $a $name]
+        W "[format "%-*s = %s" $maxl $nameString $array($name)]"
     }
 }

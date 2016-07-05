@@ -125,13 +125,6 @@ proc spdAux::activeApp { appid } {
             $elem setAttribute "active" 0
         }
     }
-    #[$root selectNodes "value\[@n='nDim'\]"] setAttribute v $::Model::SpatialDimension
-    #spdAux::processIncludes
-    #parseRoutes
-    #apps::ExecuteOnCurrent init MultiAppEvent
-    catch {apps::ExecuteOnCurrent init MultiAppEvent}
-    catch {apps::ExecuteOnCurrent "" CustomTree}
-    
     set nd ""
     catch {set nd [$root selectNodes "value\[@n='nDim'\]"]} 
     if {$nd eq ""} {catch {set nd [$root selectNodes "hiddenfield\[@n='nDim'\]"]}}
@@ -283,6 +276,9 @@ proc spdAux::SwitchDimAndCreateWindow { ndim } {
     
     processIncludes
     parseRoutes
+    
+    catch {apps::ExecuteOnCurrent init MultiAppEvent}
+    catch {apps::ExecuteOnCurrent "" CustomTree}
     
     if {$TreeVisibility} {
         after 100 [list gid_groups_conds::open_conditions menu ]
