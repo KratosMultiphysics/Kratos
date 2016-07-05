@@ -63,13 +63,16 @@ class LagrangianMPMSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-        print("variables for the lagrnagian MPM solver added correctly")
+        print("variables for the lagrangian MPM solver added correctly")
 
     def ImportModelPart(self):
         
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             #here it would be the place to import restart data if required
+            
             KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
+            
+            print("model part successfully read")
             
             #generate the MPM particles
             
@@ -114,7 +117,7 @@ class LagrangianMPMSolver:
         self.conv_criteria = KratosMultiphysics.DisplacementCriteria(self.settings["relative_tolerance"].GetDouble(),
                                                      self.settings["absolute_tolerance"].GetDouble())
              
-        self.time_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(0.0, 1.0)
+        self.time_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(0.0)
     
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver) 
         
@@ -132,6 +135,7 @@ class LagrangianMPMSolver:
                                                          
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         #self.solver.Check() #TODO: define a correct checking in the element
+        #self.Check()
         print ("lagrangian MPM solver initialization finished.")
         
     def GetComputeModelPart(self):
