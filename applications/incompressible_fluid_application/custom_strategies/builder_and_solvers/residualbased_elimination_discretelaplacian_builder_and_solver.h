@@ -837,7 +837,7 @@ private:
         unsigned int dof_position = (mActiveNodes.begin())->GetDofPosition(PRESSURE);
 
         typedef  unsigned int size_type;
-        typedef  double value_type;
+        //typedef  double value_type;
 
         for(WeakPointerVector< Node<3> >::iterator in = mActiveNodes.begin();
                 in!=mActiveNodes.end(); in++)
@@ -1000,7 +1000,7 @@ private:
         //modifying G taking in account the diag vector
         //G = diag * G
         typedef unsigned int size_type;
-        typedef double value_type;
+        //typedef double value_type;
 
         for (size_type k = 0; k < G.size1 (); ++ k)
         {

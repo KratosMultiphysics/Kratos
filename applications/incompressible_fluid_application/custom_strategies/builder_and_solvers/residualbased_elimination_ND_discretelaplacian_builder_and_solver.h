@@ -1068,7 +1068,7 @@ private:
         //modifying G taking in account the diag vector
         //G = diag * G
         typedef unsigned int size_type;
-        typedef double value_type;
+        //typedef double value_type;
 
         for (size_type k = 0; k < G.size1 (); ++ k)
         {
