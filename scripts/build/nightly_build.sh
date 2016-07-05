@@ -65,6 +65,7 @@ cat ${LOG_DIR}/unittest_gcc.log >> ${MAIL_GCC};
 # echo "============= \n" >> ${MAIL_GCC}
 # cat ${LOG_DIR}/benchmarking_gcc.log >> ${MAIL_GCC};
 
+cd ${HOME}
 tar -zcvf ${LOG_DIR}/logs_gcc.tar.gz ${LOG_DIR}/configure_gcc.log ${LOG_DIR}/compile_gcc.log ${LOG_DIR}/unittest_gcc.log
 ./smtp-cli --host=${KRATOS_MAIL_SERVER} --enable-auth --user ${KRATOS_MAIL_USER} --password ${KRATOS_MAIL_PASSWD}  --to ${MAIL_TO} --body-plain ${MAIL_GCC} --attach ${LOG_DIR}/logs_gcc.tar.gz --subject "Kratos Nightly Report" --mail-from "kratosmultiphysics@gmail.com" --from "Kratos Nightly Report GCC"
 
@@ -115,6 +116,7 @@ cat ${LOG_DIR}/unittest_clang.log >> ${MAIL_CLANG};
 # echo "============= \n" >> ${MAIL_CLANG}
 # cat ${LOG_DIR}/benchmarking_clang.log >> ${MAIL_CLANG};
 
+cd ${HOME}
 tar -zcvf ${LOG_DIR}/logs_clang.tar.gz ${LOG_DIR}/configure_clang.log ${LOG_DIR}/compile_clang.log ${LOG_DIR}/unittest_clang.log
 ./smtp-cli --host=${KRATOS_MAIL_SERVER} --enable-auth --user ${KRATOS_MAIL_USER} --password ${KRATOS_MAIL_PASSWD}  --to ${MAIL_TO} --body-plain ${MAIL_GCC} --attach ${LOG_DIR}/logs_clang.tar.gz --subject "Kratos Nightly Report" --mail-from "kratosmultiphysics@gmail.com" --from "Kratos Nightly Report CLANG"
 
