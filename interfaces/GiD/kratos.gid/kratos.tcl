@@ -418,8 +418,8 @@ proc Kratos::BeforeMeshGeneration {elementsize} {
     #catch {
         #apps::ExecuteOnCurrent $elementsize BeforeMeshEvent
         foreach group [GiD_Groups list] {
-            GiD_Process Mescape Meshing MeshCriteria Mesh Lines [GiD_EntitiesGroups get $group lines] escape escape 
-            GiD_Process Mescape Meshing MeshCriteria Mesh Surfaces [GiD_EntitiesGroups get $group surfaces] escape escape 
+            GiD_Process Mescape Meshing MeshCriteria Mesh Lines {*}[GiD_EntitiesGroups get $group lines] escape escape Mescape
+            GiD_Process Mescape Meshing MeshCriteria Mesh Surfaces {*}[GiD_EntitiesGroups get $group surfaces] escape escape 
         }
     #}
 }
