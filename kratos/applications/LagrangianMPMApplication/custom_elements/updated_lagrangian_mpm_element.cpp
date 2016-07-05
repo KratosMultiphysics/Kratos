@@ -251,10 +251,15 @@ void UpdatedLagrangianMPMElement::CalculateLocalSystem(MatrixType& rLeftHandSide
     unsigned int matrix_size = number_of_nodes * dim;
     if (rLeftHandSideMatrix.size1() != matrix_size)
         rLeftHandSideMatrix.resize(matrix_size, matrix_size, false);
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( matrix_size, matrix_size ); 
     if (rRightHandSideVector.size() != matrix_size)
         rRightHandSideVector.resize(matrix_size, false);
+    rRightHandSideVector = ZeroVector( matrix_size );
 
-
+    //if (this->Id() == 1)
+    //{
+		//std::cout<<"rRightHandSideVector in Calculate Local System"<<rRightHandSideVector<<std::endl;
+	//}
     CalculateElementalSystem( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo );
     //obtain shape functions
 
@@ -271,6 +276,7 @@ void UpdatedLagrangianMPMElement::CalculateLocalSystem(MatrixType& rLeftHandSide
     //compute RHS
 
     //compute LHS
+    
 
 }
 void UpdatedLagrangianMPMElement::CalculateElementalSystem( MatrixType& rLeftHandSideMatrix,
@@ -296,26 +302,41 @@ void UpdatedLagrangianMPMElement::CalculateElementalSystem( MatrixType& rLeftHan
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-KRATOS_WATCH(__LINE__);
+//KRATOS_WATCH(__LINE__);
 
     //auxiliary terms
     Vector VolumeForce;
-
+    
+    
 
     //compute element kinematics B, F, DN_DX ...
     this->CalculateKinematics(Variables,rCurrentProcessInfo);
-KRATOS_WATCH(__LINE__);
+    
+//KRATOS_WATCH(__LINE__);
     //set general variables to constitutivelaw parameters
     this->SetGeneralVariables(Variables,Values);
-KRATOS_WATCH(__LINE__);
+//KRATOS_WATCH(__LINE__);
     mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
-KRATOS_WATCH(__LINE__);
+    Variables.integration_weight *= Variables.detFT; 
+    //if (this->Id() == 1)
+    //{
+		//std::cout<<"rVariables.N "<<Variables.N<<std::endl;
+		//std::cout<<"rVariables.DN_DX "<<Variables.DN_DX<<std::endl;
+		//std::cout<<"rVariables.integration_weight "<<Variables.integration_weight<<std::endl;
+		//std::cout<<"rVariables.StressVector "<<Variables.StressVector<<std::endl;
+		//std::cout<<"rVariables.ConstitutiveMatrix "<<Variables.ConstitutiveMatrix<<std::endl;
+	//}
+//KRATOS_WATCH(__LINE__);
     this->CalculateAndAddLHS ( rLeftHandSideMatrix, Variables);
-KRATOS_WATCH(__LINE__);
+//KRATOS_WATCH(__LINE__);
     VolumeForce  = this->CalculateVolumeForce( VolumeForce, Variables );
-KRATOS_WATCH(__LINE__);
+    //if (this->Id() == 1)
+    //{
+		//std::cout<<"VolumeForce "<<VolumeForce<<std::endl;
+	//}
+//KRATOS_WATCH(__LINE__);
     this->CalculateAndAddRHS ( rRightHandSideVector, Variables, VolumeForce);
-KRATOS_WATCH(__LINE__);
+//KRATOS_WATCH(__LINE__);
     KRATOS_CATCH( "" )
 }
 
@@ -415,6 +436,10 @@ void UpdatedLagrangianMPMElement::CalculateAndAddExternalForces(VectorType& rRig
         }
 
     }
+    if (this->Id() == 1)
+    {
+		std::cout<<"rRightHandSideVector "<<rRightHandSideVector<<std::endl;
+	}
 
     KRATOS_CATCH( "" )
 }
@@ -429,6 +454,10 @@ void UpdatedLagrangianMPMElement::CalculateAndAddInternalForces(VectorType& rRig
     VectorType InternalForces = rVariables.integration_weight * prod( trans( rVariables.B ), rVariables.StressVector );
 
     noalias( rRightHandSideVector ) -= InternalForces;
+    //if (this->Id() == 1)
+    //{
+		//std::cout<<"rRightHandSideVector "<<rRightHandSideVector<<std::endl;
+	//}
 
     KRATOS_CATCH( "" )
 }
@@ -478,6 +507,9 @@ void UpdatedLagrangianMPMElement::InitializeGeneralVariables (GeneralVariables& 
     rVariables.integration_weight = 0.0;
 
     this->GetGeometryData(rVariables.integration_weight,rVariables.N,rVariables.DN_DX);
+    
+    
+
     //**********************************************************************************************************************
 
     //CurrentDisp is the variable unknown. It represents the nodal delta displacement. When it is predicted is equal to zero.
@@ -506,31 +538,31 @@ void UpdatedLagrangianMPMElement::SetGeneralVariables(GeneralVariables& rVariabl
 
         std::cout<<" Element: "<<this->Id()<<std::endl;
         std::cout<<" Element position "<<this->GetValue(GAUSS_POINT_COORDINATES)<<std::endl;
-        unsigned int number_of_nodes = GetGeometry().PointsNumber();
+        //unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            array_1d<double, 3> &CurrentPosition  = GetGeometry()[i].Coordinates();
-            array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-            array_1d<double, 3> & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-            //array_1d<double, 3> PreviousPosition  = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
-            std::cout<<" NODE ["<<GetGeometry()[i].Id()<<"]: (Current position: "<<CurrentPosition<<") "<<std::endl;
-            std::cout<<" ---Current Disp: "<<CurrentDisplacement<<" (Previour Disp: "<<PreviousDisplacement<<")"<<std::endl;
-        }
+        //for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        //{
+            //array_1d<double, 3> &CurrentPosition  = GetGeometry()[i].Coordinates();
+            //array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+            //array_1d<double, 3> & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+            ////array_1d<double, 3> PreviousPosition  = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
+            //std::cout<<" NODE ["<<GetGeometry()[i].Id()<<"]: (Current position: "<<CurrentPosition<<") "<<std::endl;
+            //std::cout<<" ---Current Disp: "<<CurrentDisplacement<<" (Previour Disp: "<<PreviousDisplacement<<")"<<std::endl;
+        //}
 
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            if( GetGeometry()[i].SolutionStepsDataHas(CONTACT_FORCE) )
-            {
-                array_1d<double, 3 > & PreContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE,1);
-                array_1d<double, 3 > & ContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
-                std::cout<<" ---Contact_Force: (Pre:"<<PreContactForce<<", Cur:"<<ContactForce<<") "<<std::endl;
-            }
-            else
-            {
-                std::cout<<" ---Contact_Force: NULL "<<std::endl;
-            }
-        }
+        //for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        //{
+            //if( GetGeometry()[i].SolutionStepsDataHas(CONTACT_FORCE) )
+            //{
+                //array_1d<double, 3 > & PreContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE,1);
+                //array_1d<double, 3 > & ContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
+                //std::cout<<" ---Contact_Force: (Pre:"<<PreContactForce<<", Cur:"<<ContactForce<<") "<<std::endl;
+            //}
+            //else
+            //{
+                //std::cout<<" ---Contact_Force: NULL "<<std::endl;
+            //}
+        //}
 
         KRATOS_THROW_ERROR( std::invalid_argument," MPM UPDATED LAGRANGIAN DISPLACEMENT ELEMENT INVERTED: |F|<0  detF = ", rVariables.detF )
     }
