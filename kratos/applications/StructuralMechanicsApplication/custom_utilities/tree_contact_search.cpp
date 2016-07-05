@@ -39,16 +39,19 @@ TreeContactSearch::TreeContactSearch(
     mallocation(allocation_size)
 {
     // Destination model part
-    AuxConstructor(mrDestinationModelPart);
+    AuxConstructor(mrDestinationModelPart, true);
     
     // Origin model part
-    AuxConstructor(mrOriginModelPart);
+    AuxConstructor(mrOriginModelPart, false);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::AuxConstructor(ModelPart & rModelPart) 
+void TreeContactSearch::AuxConstructor(
+    ModelPart & rModelPart,
+    const bool rSlaveMaster
+    ) 
 {
     ConditionsArrayType& pCond  = rModelPart.Conditions();
     ConditionsArrayType::iterator it_begin = pCond.ptr_begin();
@@ -57,6 +60,8 @@ void TreeContactSearch::AuxConstructor(ModelPart & rModelPart)
     for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
     {
         cond_it->Set( ACTIVE, false ); // NOTE: It is supposed to be already false, just in case   
+        cond_it->Set( SLAVE,   rSlaveMaster);
+        cond_it->Set( MASTER, !rSlaveMaster);
     }
 }
 

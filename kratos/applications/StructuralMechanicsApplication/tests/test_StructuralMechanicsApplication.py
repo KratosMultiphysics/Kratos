@@ -17,6 +17,7 @@ from SmallTests import ShellQ4ThickBendingRollUpTests as TShellQ4ThickBendingRol
 from SmallTests import ShellQ4ThickDrillingRollUpTests as TShellQ4ThickDrillingRollUpTests
 from SmallTests import ShellT3ThinBendingRollUpTests as TShellT3ThinBendingRollUpTests
 from SmallTests import ShellT3ThinDrillingRollUpTests as TShellT3ThinDrillingRollUpTests
+from SmallTests import SimplePatchTestContact as TSimplePatchTestContact
 
 ## NIGTHLY TESTS
 from NightlyTests import ShellT3IsotropicScordelisTests as TShellT3IsotropicScordelisTests
@@ -48,6 +49,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution'))
     smallSuite.addTest(TShellT3ThinBendingRollUpTests('test_execution'))
     smallSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
+    smallSuite.addTest(TSimplePatchTestContact('test_execution'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -70,7 +72,8 @@ def AssambleTestSuites():
             TShellQ4ThickDrillingRollUpTests,
             TShellT3ThinBendingRollUpTests,
             TShellT3ThinDrillingRollUpTests,
-            TShellT3IsotropicScordelisTests
+            TShellT3IsotropicScordelisTests,
+            TSimplePatchTestContact # REQUIRES PLAIN STRAIN!!!!!!
         ])
     )
 

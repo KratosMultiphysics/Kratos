@@ -80,6 +80,7 @@ protected:
         std::vector< unsigned int > mThisActiveSlaveNodes;
         std::vector< unsigned int > mThisInactiveSlaveNodes;
 
+        
     public:
         // Shape functions for contact pair
         Vector N_Master;
@@ -92,7 +93,7 @@ protected:
         Matrix DPhi_De_LagrangeMultipliers;
 
         // Gap function and its derivative variables
-        Vector IntegrationPointNormalGap;
+        double IntegrationPointNormalGap;
         Vector IntegrationPointNormalVector;
 
         // Determinant of slave cell's jacobian
@@ -139,9 +140,7 @@ protected:
             DPhi_De_LagrangeMultipliers  = ZeroMatrix( rNumberOfSlaveNodes ,  rLocalDimensionSlave );
 
             // Gap function // TODO: Remove if not used
-            IntegrationPointNormalGap.resize( rIntegrationPointNumber, false );
-            IntegrationPointNormalVector.resize( rIntegrationPointNumber, false );
-            IntegrationPointNormalGap    = ZeroVector( rIntegrationPointNumber );
+            IntegrationPointNormalGap    = 0.0;
             IntegrationPointNormalVector = ZeroVector( rIntegrationPointNumber );
 
             // Jacobian of slave
@@ -212,7 +211,7 @@ protected:
             //for calculation local system with LHS and RHS components
             std::vector<MatrixType> *mpLeftHandSideMatrices;
             std::vector<VectorType> *mpRightHandSideVectors;
-
+            
             //LHS variable components
             const std::vector< Variable< MatrixType > > *mpLeftHandSideVariables;
 
@@ -371,7 +370,7 @@ public:
     * Called at the beginning of each iteration
     */
     void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
-    
+
     /**
     * Called at the end of each iteration
     */
@@ -394,7 +393,11 @@ public:
         const double xi_local,
         const IndexType& rShapeFunctionIndex 
         );
-
+    
+    /**
+    * Evaluation methods for Lagrange multipliers shape functions
+    * and its local derivatives
+    */
     const Matrix LagrangeMultiplierShapeFunctionLocalGradient( const IndexType& rPointNumber );
 
     /**
@@ -531,7 +534,7 @@ public:
     * active set of nodes and the inactive set of nodes
     * pointers to those nodes are stored in private arrays
     */                  
-        void DetermineActiveAndInactiveSets(
+    void DetermineActiveAndInactiveSets(
         std::vector<unsigned int>& rActiveNodes,
         std::vector<unsigned int>& rInactiveNodes,
         const unsigned int& rPairIndex
@@ -642,7 +645,6 @@ public:
         const MortarConditionMatrices& ThisMortarConditionMatrices
     );
         
-    
     /******************************************************************/
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
     /******************************************************************/

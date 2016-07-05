@@ -7,12 +7,9 @@ from KratosMultiphysics.StructuralMechanicsApplication import *
 import os
 import process_factory
 
-
 class Kratos_Execute_Test:
 
     def __init__(self, ProjectParameters):
-
-
 
         self.ProjectParameters = ProjectParameters
         print(ProjectParameters)
