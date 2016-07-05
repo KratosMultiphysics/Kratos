@@ -791,7 +791,7 @@ namespace Kratos
 		//in case one node is too close to zero
 		for(unsigned int iii = 0; iii<(TDim+1); iii++)
 		{
-			if(fabs(distances(iii)<0.01))
+			if(fabs(distances(iii))<0.01)
 			{
 				if(distances(iii)<0.0)
 				     distances(iii)=-0.01;
