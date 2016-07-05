@@ -24,7 +24,6 @@ proc FSI::xml::getUniqueName {name} {
     return ${::FSI::prefix}${name}
 }
 
-
 proc ::FSI::xml::MultiAppEvent {args} {
    if {$args eq "init"} {
         ::Structural::xml::MultiAppEvent init
