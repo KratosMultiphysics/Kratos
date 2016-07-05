@@ -54,15 +54,16 @@ class LagrangianMPMSolver:
 
         print("Construction of NavierStokesSolver_VMSMonolithic finished")
         
+        
     def GetMinimumBufferSize(self):
-        return 3;
+        return 2;
 
     def AddVariables(self):
-        
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+        
         print("variables for the lagrangian MPM solver added correctly")
 
     def ImportModelPart(self):
@@ -71,6 +72,8 @@ class LagrangianMPMSolver:
             #here it would be the place to import restart data if required
             
             KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
+            
+
             
             print("model part successfully read")
             
@@ -110,7 +113,7 @@ class LagrangianMPMSolver:
         
         self.compute_model_part = self.GetComputeModelPart()
         
-        
+
         
         
         # creating the solution strategy
@@ -159,7 +162,8 @@ class LagrangianMPMSolver:
         #for elem in self.main_model_part.Elements:
             #for node in elem.GetNodes():
                 #print(node.Id)
-            #print(" ")
+            #print(" ")            for node in self.main_model_part.Nodes:
+
             
         #compute the shape functions on the geometry. Note that the node position is still the one at the end of the previous step, so it is 0!!
         KratosMultiphysics.LagrangianMPMApplication.ComputeMLSShapeFunctionsProcess(self.main_model_part).Execute()

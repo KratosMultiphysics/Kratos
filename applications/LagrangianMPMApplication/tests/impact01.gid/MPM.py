@@ -29,6 +29,7 @@ def StopTimeMeasuring(time_ip, process, report):
 from KratosMultiphysics import *
 from KratosMultiphysics.LagrangianMPMApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
+from KratosMultiphysics.SolidMechanicsApplication import *
 
 
 ######################################################################################

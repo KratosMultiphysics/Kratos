@@ -35,8 +35,8 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 MeshlessBaseElement::MeshlessBaseElement(
-	IndexType NewId,
-	GeometryType::Pointer pGeometry)
+    IndexType NewId,
+    GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
 {
     //DO NOT ADD DOFS HERE!!!
@@ -46,17 +46,17 @@ MeshlessBaseElement::MeshlessBaseElement(
 //************************************************************************************
 //************************************************************************************
 MeshlessBaseElement::MeshlessBaseElement(
-	IndexType NewId,
-	GeometryType::Pointer pGeometry,  
-	PropertiesType::Pointer pProperties)
+    IndexType NewId,
+    GeometryType::Pointer pGeometry,
+    PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
 {
 }
 
 Element::Pointer MeshlessBaseElement::Create(
-	IndexType NewId, 
-	NodesArrayType const& ThisNodes,  
-	PropertiesType::Pointer pProperties) const
+    IndexType NewId,
+    NodesArrayType const& ThisNodes,
+    PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new MeshlessBaseElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
@@ -68,13 +68,13 @@ MeshlessBaseElement::~MeshlessBaseElement()
 //************************************************************************************
 //************************************************************************************
 void MeshlessBaseElement::GetGeometryData(double& integration_weight,
-	Vector& N,
-	Matrix& DN_Dx
-	)
+        Vector& N,
+        Matrix& DN_Dx
+                                         )
 {
-	integration_weight = this->GetValue(GAUSS_AREA);
-	N = this->GetValue(SHAPE_FUNCTIONS);
-	DN_Dx = this->GetValue(SHAPE_FUNCTIONS_DERIVATIVES);
+    integration_weight = this->GetValue(GAUSS_AREA);
+    N = this->GetValue(SHAPE_FUNCTIONS);
+    DN_Dx = this->GetValue(SHAPE_FUNCTIONS_DERIVATIVES);
 }
 
 
