@@ -170,7 +170,7 @@ void MortarContact2DCondition::InitializeNonLinearIteration( ProcessInfo& rCurre
     KRATOS_TRY;
     
     // Populate the vector of master elements
-    std::vector<contact_container> * all_containers = this->GetValue(CONTACT_CONTAINERS);
+    std::vector<contact_container> *& all_containers = this->GetValue(CONTACT_CONTAINERS);
     
     for ( unsigned int i_cond = 0; i_cond < all_containers->size(); ++i_cond )
     {
@@ -193,7 +193,7 @@ void MortarContact2DCondition::FinalizeNonLinearIteration( ProcessInfo& rCurrent
         
         const unsigned int number_nodes = GetGeometry().PointsNumber(); 
     
-        std::vector<contact_container> * all_containers = this->GetValue(CONTACT_CONTAINERS);
+        std::vector<contact_container> *& all_containers = this->GetValue(CONTACT_CONTAINERS);
 
         for ( unsigned int i_cond = 0; i_cond < all_containers->size(); ++i_cond )
         {
@@ -708,7 +708,7 @@ void MortarContact2DCondition::DetermineActiveAndInactiveSets(
         const unsigned int& rPairIndex
         )
 {
-    contact_container& current_container = ( *( this->GetValue( CONTACT_CONTAINERS ) ) )[rPairIndex];
+    const contact_container& current_container = ( *( this->GetValue( CONTACT_CONTAINERS ) ) )[rPairIndex];
     const unsigned int num_slave_nodes = GetGeometry( ).PointsNumber( );
   
     rActiveNodes.resize( 0 );
@@ -745,7 +745,7 @@ void MortarContact2DCondition::CalculateKinematics(
     const unsigned int number_of_slave_nodes  =  slave_nodes.PointsNumber( );
 
     /* LOCAL COORDINATES */ // TODO: Think to move this, because we repeat it every time
-    contact_container& current_container = ( *( this->GetValue( CONTACT_CONTAINERS ) ) )[rPairIndex];
+    const contact_container& current_container = ( *( this->GetValue( CONTACT_CONTAINERS ) ) )[rPairIndex];
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry( ).IntegrationPoints(mThisIntegrationMethod);
     const double eta = integration_points[rPointNumber].Coordinate(1);
     const double xi_local_slave  =   (0.5 * (1.0 - eta) * current_container.local_coordinates_slave[0]  + 0.5 * (1.0 + eta) * current_container.local_coordinates_slave[1]);
@@ -784,7 +784,6 @@ void MortarContact2DCondition::CalculateKinematics(
     slave_nodes.Jacobian( rVariables.j_Slave, mThisIntegrationMethod );
     
     // FIXME which one should be it the ||J|| for 2D ???
-//    rVariables.DetJSlave = (current_container.local_coordinates_slave[1] - current_container.local_coordinates_slave[0])/2.0 * norm_2( column( rVariables.j_Slave[rPointNumber], 0) );
     rVariables.DetJSlave = (current_container.local_coordinates_slave[1] - current_container.local_coordinates_slave[0])/2.0 * slave_nodes.Jacobian( rVariables.j_Slave, mThisIntegrationMethod )[rPointNumber](0, 0); // TODO: Check if it is correct
 
     // We interpolate the gap bewtween the nodes
