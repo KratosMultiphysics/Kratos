@@ -24,6 +24,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NODAL_AREA) 
     model_part.AddNodalSolutionStepVariable(NODAL_MASS)
     model_part.AddNodalSolutionStepVariable(BODY_FORCE)
+    model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
 
 def AddDofs(model_part):
     for node in model_part.Nodes:
@@ -52,6 +53,7 @@ class PFEM2Solver:
         #self.monolithic_linear_solver = BICGSTABSolver(1e-5, 5000,pDiagPrecond) # SkylineLUFactorizationSolver() 
         #self.monolithic_linear_solver =  ViennaCLSolver(tol,500,OpenCLPrecision.Double,OpenCLSolverType.CG,OpenCLPreconditionerType.AMG_DAMPED_JACOBI) #
         #self.monolithic_linear_solver=AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,1000,verbosity,gmres_size)      #BICGSTABSolver(1e-7, 5000) # SkylineLUFactorizationSolver(	
+        '''
         settings = Parameters("""{
                                        "solver_type" : "AMGCL_NS_Solver",
                                        "velocity_block_preconditioner" :
@@ -74,12 +76,12 @@ class PFEM2Solver:
                                        "coarse_enough" : 5000
                                    } """)
         linear_solver = AMGCL_NS_Solver(settings)
-
+        '''
         
         #construct the linear solvers
         import linear_solver_factory
-        self.monolithic_linear_solver =  linear_solver
-        #self.monolithic_linear_solver = AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,1000,verbosity,gmres_size)
+        #self.monolithic_linear_solver =  linear_solver
+        self.monolithic_linear_solver = AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,1000,verbosity,gmres_size)
         self.conv_criteria = DisplacementCriteria(1e-3,1e-3)  #tolerance for the solver 
         self.conv_criteria.SetEchoLevel(0)
         
