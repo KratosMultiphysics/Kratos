@@ -76,7 +76,7 @@ class ModelerUtility:
                 # find skin and boundary normals
                 if(ReloadFile == False):
                     self.BuildMeshBoundary()
-                self.neighbours_set = True
+                self.neighbours_set = True                
 
     #
     def SearchNeighbours(self):
@@ -161,6 +161,9 @@ class ModelerUtility:
 
     #
     def BuildMeshModelers(self, meshing_domains ):
+
+        if(self.remesh_domains):
+            self.modeler_active = True
 
         # set mesing domains
         self.meshing_domains = meshing_domains
