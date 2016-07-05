@@ -75,8 +75,8 @@ public:
     ///@{
 
     /// Default constructor.
-	MeshlessBaseElement(IndexType NewId, GeometryType::Pointer pGeometry);
-	MeshlessBaseElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+    MeshlessBaseElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    MeshlessBaseElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
     /// Destructor.
     virtual ~MeshlessBaseElement();
@@ -116,10 +116,10 @@ public:
     ///@}
 
 protected:
-	// A private default constructor necessary for serialization
-	MeshlessBaseElement() : Element()
-	{
-	}
+    // A private default constructor necessary for serialization
+    MeshlessBaseElement() : Element()
+    {
+    }
 
     ///@name Protected static Member Variables
     ///@{
@@ -139,16 +139,16 @@ protected:
     ///@name Protected Operations
     ///@{
 
-	void GetGeometryData(
-		double& integration_weight,
-		Vector& N,
-		Matrix& DN_Dx
-		);
+    void GetGeometryData(
+        double& integration_weight,
+        Vector& N,
+        Matrix& DN_Dx
+    );
 
-        unsigned int GetDomainSize()
-        {
-            return this->GetValue(SHAPE_FUNCTIONS_DERIVATIVES).size2();
-        }
+    unsigned int GetDomainSize()
+    {
+        return this->GetValue(SHAPE_FUNCTIONS_DERIVATIVES).size2();
+    }
     ///@}
     ///@name Protected  Access
     ///@{
@@ -169,7 +169,7 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    
+
 
     ///@}
     ///@name Member Variables
@@ -191,7 +191,7 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
-    
+
     ///@}
     ///@name Private Operators
     ///@{

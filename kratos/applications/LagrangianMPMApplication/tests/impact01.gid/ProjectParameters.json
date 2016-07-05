@@ -3,7 +3,7 @@
 		"problem_name": "impact01",
 		"model_part_name": "Structure",
 		"domain_size": 2,
-		"time_step": 1.1,
+		"time_step": 0.0001,
 		"start_time": 0.0,
 		"end_time": 1.0,
 		"echo_level": 0

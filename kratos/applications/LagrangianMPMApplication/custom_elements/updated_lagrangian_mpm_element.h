@@ -34,7 +34,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
-#include "includes/model_part.h"
+
 //#include "custom_geometries/meshless_geometry.h"
 
 namespace Kratos
@@ -75,7 +75,7 @@ public:
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
     ///StressMeasure from constitutive laws
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
-    
+
     /// Counted pointer of UpdatedLagrangianMPMElement
     KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianMPMElement );
     ///@}
@@ -97,14 +97,14 @@ protected:
 
     struct GeneralVariables
     {
-      private:
+    private:
 
         //variables including all integration points
         //const GeometryType::ShapeFunctionsGradientsType* pDN_De;
         //const Matrix* pDN_De;
         const Vector* pNcontainer;
 
-      public:
+    public:
 
         StressMeasureType StressMeasure;
 
@@ -137,24 +137,24 @@ protected:
         Matrix DeltaPosition;
         Matrix CurrentDisp;
         Matrix PreviousDisp;
-        
-      
+
+
     };
 
-	
+
 public:
     ///@name Type Definitions
     ///@{
 
-    
+
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-	UpdatedLagrangianMPMElement(IndexType NewId, GeometryType::Pointer pGeometry);
-	UpdatedLagrangianMPMElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+    UpdatedLagrangianMPMElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    UpdatedLagrangianMPMElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
     /// Destructor.
     virtual ~UpdatedLagrangianMPMElement();
@@ -172,11 +172,11 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const;
-    
-    
 
-    
-    
+
+
+
+
     void  EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo );
 
     void  GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo );
@@ -184,11 +184,11 @@ public:
     void  GetValuesVector( Vector& values, int Step );
 
     void  GetFirstDerivativesVector( Vector& values, int Step );
- 
+
     void  GetSecondDerivativesVector( Vector& values, int Step );
-    
-    
-        //************* STARTING - ENDING  METHODS
+
+
+    //************* STARTING - ENDING  METHODS
 
     /**
       * Called to initialize the element.
@@ -200,14 +200,14 @@ public:
      * Called at the beginning of each solution step
      */
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
-    
+
     /**
      * Called at the end of eahc solution step
      */
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
-    
-        //************* COMPUTING  METHODS
-    
+
+    //************* COMPUTING  METHODS
+
     /**
      * this is called during the assembling process in order
      * to calculate all elemental contributions to the global system
@@ -215,8 +215,8 @@ public:
      * @param rLeftHandSideMatrix: the elemental left hand side matrix
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
-     */    
-    void  CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);    
+     */
+    void  CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
     /**
       * this is called during the assembling process in order
       * to calculate the elemental mass matrix
@@ -224,7 +224,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void  CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
-    
+
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -235,10 +235,10 @@ public:
     int Check(const ProcessInfo& rCurrentProcessInfo);
 
 protected:
-	// A private default constructor necessary for serialization
-	UpdatedLagrangianMPMElement() : MeshlessBaseElement()
-	{
-	}
+    // A private default constructor necessary for serialization
+    UpdatedLagrangianMPMElement() : MeshlessBaseElement()
+    {
+    }
     ///@name Protected static Member Variables
     ///@{
     ///@}
@@ -252,8 +252,8 @@ protected:
      * Container for the total deformation gradient determinants
      */
     double mDeterminantF0;
-    
-	
+
+
     /**
      * Currently selected integration methods
      */
@@ -264,18 +264,17 @@ protected:
      */
     ConstitutiveLaw::Pointer mConstitutiveLawVector;
 
-    ModelPart::Pointer mpModelPart;
     /**
      * Finalize and Initialize label
      */
     bool mFinalizedStep;
-    
-    
-    
+
+
+
     virtual void CalculateElementalSystem(MatrixType& rLeftHandSideMatrix,
-										  VectorType& rRightHandSideVector,
+                                          VectorType& rRightHandSideVector,
                                           ProcessInfo& rCurrentProcessInfo);
-                                          
+
     /**
      * Calculation and addition of the matrices of the LHS
      */
@@ -310,15 +309,15 @@ protected:
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
     virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-					       GeneralVariables& rVariables,
-					       Vector& rVolumeForce);
+            GeneralVariables& rVariables,
+            Vector& rVolumeForce);
 
 
     /**
       * Calculation of the Internal Forces Vector. Fi = B * sigma
       */
     virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-					       GeneralVariables & rVariables);
+            GeneralVariables & rVariables);
 
 
     /**
@@ -327,7 +326,7 @@ protected:
     virtual void SetGeneralVariables(GeneralVariables& rVariables,
                                      ConstitutiveLaw::Parameters& rValues);
 
-                                          
+
     /**
      * Initialize Material Properties on the Constitutive Law
      */
@@ -338,43 +337,43 @@ protected:
      * Reset the Constitutive Law Parameters
      */
     void ResetConstitutiveLaw();
-    
+
     /**
      * Calculate Element Kinematics
      */
     virtual void CalculateKinematics(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo);
 
 
-    
-	/**
+
+    /**
      * Calculation of the Current Displacement
      */
     Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
-    
-    
+
+
     /**
      * Initialize Element General Variables
      */
     virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
-   /**
-     * Finalize Element Internal Variables
-     */
+    /**
+      * Finalize Element Internal Variables
+      */
     virtual void FinalizeStepVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
-    
+
     /**
      * Calculation of the Deformation Matrix  BL
      */
     virtual void CalculateDeformationMatrix(Matrix& rB,
                                             Matrix& rF,
                                             Matrix& rDN_DX);
-                                            
+
     /**
      * Calculation of the Volume Force of the Element
      */
     virtual Vector& CalculateVolumeForce(Vector& rVolumeForce, GeneralVariables& rVariables);
-                                      
+
     ///@name Protected static Member Variables
     ///@{
 
@@ -414,7 +413,7 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    
+
 
     ///@}
     ///@name Member Variables
@@ -429,12 +428,12 @@ private:
 
     //virtual void save(Serializer& rSerializer) const
     //{
-        //KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, MeshlessBaseElement);
+    //KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, MeshlessBaseElement);
     //}
 
     //virtual void load(Serializer& rSerializer)
     //{
-        //KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, MeshlessBaseElement);
+    //KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, MeshlessBaseElement);
     //}
     friend class Serializer;
 
