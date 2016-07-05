@@ -34,6 +34,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
+#include "includes/model_part.h"
 //#include "custom_geometries/meshless_geometry.h"
 
 namespace Kratos
@@ -263,7 +264,7 @@ protected:
      */
     ConstitutiveLaw::Pointer mConstitutiveLawVector;
 
-
+    ModelPart::Pointer mpModelPart;
     /**
      * Finalize and Initialize label
      */
@@ -423,19 +424,23 @@ private:
     ///@}
     ///@name Serialization
     ///@{
+    //friend class Serializer;
+
+
+    //virtual void save(Serializer& rSerializer) const
+    //{
+        //KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, MeshlessBaseElement);
+    //}
+
+    //virtual void load(Serializer& rSerializer)
+    //{
+        //KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, MeshlessBaseElement);
+    //}
     friend class Serializer;
 
+    virtual void save(Serializer& rSerializer) const;
 
-    virtual void save(Serializer& rSerializer) const
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, MeshlessBaseElement);
-    }
-
-    virtual void load(Serializer& rSerializer)
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, MeshlessBaseElement);
-    }
-    
+    virtual void load(Serializer& rSerializer);
     ///@}
     ///@name Private Operators
     ///@{

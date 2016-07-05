@@ -40,6 +40,7 @@ UpdatedLagrangianMPMElement::UpdatedLagrangianMPMElement(
 	IndexType NewId,
 	GeometryType::Pointer pGeometry)
     : MeshlessBaseElement(NewId, pGeometry)
+    , mpModelPart(ModelPart::Pointer())
 {
     //DO NOT ADD DOFS HERE!!!
 
@@ -52,6 +53,7 @@ UpdatedLagrangianMPMElement::UpdatedLagrangianMPMElement(
 	GeometryType::Pointer pGeometry,  
 	PropertiesType::Pointer pProperties)
     : MeshlessBaseElement(NewId, pGeometry, pProperties)
+    , mpModelPart(ModelPart::Pointer())
 {
 	mFinalizedStep = true; 
 }
@@ -84,31 +86,12 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
         KRATOS_TRY
         
         
-        array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
-       
-        
-
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
         
         mDeterminantF0 = 1;
         
         mDeformationGradientF0 = identity_matrix<double> (dim);
-              
-        
-        //Compute jacobian inverses 
-        
-        Matrix J0 = ZeroMatrix(dim, dim);
-        
-        J0 = GetGeometry().Jacobian( J0 , xg);   
-        
-        //calculating and storing inverse and the determinant of the jacobian 
-        MathUtils<double>::InvertMatrix( J0, mInverseJ0, mDeterminantJ0 );
-        
-        Matrix j = ZeroMatrix(dim,dim);
-        j = GetGeometry().Jacobian( j , xg);  
-        double detj;
-        MathUtils<double>::InvertMatrix( j, mInverseJ, detj );
-        
+            
         InitializeMaterial();  
 
         KRATOS_CATCH( "" )
@@ -135,14 +118,14 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
     {
         KRATOS_TRY
         
-        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-		const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-		unsigned int voigtsize  = 3;
+        //const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+		//const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+		//unsigned int voigtsize  = 3;
             
-        if( dimension == 3 )
-        {
-            voigtsize  = 6;
-        }
+        //if( dimension == 3 )
+        //{
+            //voigtsize  = 6;
+        //}
        
         //create and initialize element variables:
         GeneralVariables Variables;
@@ -195,7 +178,8 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
     void UpdatedLagrangianMPMElement::InitializeMaterial()
     {
         KRATOS_TRY
-        array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
+        //array_1d<double,3>& xg = this->GetValue(GAUSS_POINT_COORDINATES);
+        ProcessInfo& rCurrentProcessInfo = (mpModelPart)->GetProcessInfo();
         GeneralVariables Variables;
         this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
         
@@ -220,7 +204,9 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
     void UpdatedLagrangianMPMElement::ResetConstitutiveLaw()
     {
         KRATOS_TRY
-        array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
+        //array_1d<double,3>& xg = this->GetValue(GAUSS_COORD_COORDINATES);
+        ProcessInfo& rCurrentProcessInfo = (mpModelPart)->GetProcessInfo();
+        
         GeneralVariables Variables;
         this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
         
@@ -331,7 +317,7 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
             GeneralVariables& rVariables )
     {
         KRATOS_TRY    
-        noalias( rLeftHandSideMatrix ) += prod( trans( rVariables.B ),  rVariables.IntegrationWeight * Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) ); 
+        noalias( rLeftHandSideMatrix ) += prod( trans( rVariables.B ),  rVariables.integration_weight * Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) ); 
 
         KRATOS_CATCH( "" )
     }
@@ -346,7 +332,7 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
 
         unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
-        Matrix ReducedKg = prod( rVariables.DN_DX, rVariables.IntegrationWeight * Matrix( prod( StressTensor, trans( rVariables.DN_DX ) ) ) ); 
+        Matrix ReducedKg = prod( rVariables.DN_DX, rVariables.integration_weight * Matrix( prod( StressTensor, trans( rVariables.DN_DX ) ) ) ); 
         MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, ReducedKg, dimension ); 
 
         KRATOS_CATCH( "" )
@@ -366,25 +352,21 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
 	{
 		KRATOS_TRY
 
-		const unsigned int number_of_nodes = GetGeometry().size();
+		//const unsigned int number_of_nodes = GetGeometry().size();
 		const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
 		rVolumeForce = ZeroVector(dimension);
 
-		for ( unsigned int j = 0; j < number_of_nodes; j++ )
-		{
-		  if( GetGeometry()[j].SolutionStepsDataHas(VOLUME_ACCELERATION) ){ // it must be checked once at the begining only
-		array_1d<double, 3 >& VolumeAcceleration = GetGeometry()[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-		for( unsigned int i = 0; i < dimension; i++ )
-		  rVolumeForce[i] += rVariables.N[j] * VolumeAcceleration[i] ;
-		  }
-		}
+              
+        
+        rVolumeForce = this->GetValue(MP_VOLUME_ACCELERATION)* 1.0 / (rVariables.detFT) * GetProperties()[DENSITY];
+        
+        
+        return rVolumeForce;
 
-		rVolumeForce *= 1.0 / (rVariables.detFT) * GetProperties()[DENSITY];
+        KRATOS_CATCH( "" )
 
-		return rVolumeForce;
-
-		KRATOS_CATCH( "" )
+		
 	}    
 
 //************************************************************************************
@@ -396,21 +378,25 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
 
     {
         KRATOS_TRY
-    unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        unsigned int number_of_nodes = GetGeometry().PointsNumber();
+        
+        unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        
+        
 
-    double DomainChange = (1.0/rVariables.detF0); //density_n+1 = density_0 * ( 1.0 / detF0 )
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        int index = dimension * i;
-        for ( unsigned int j = 0; j < dimension; j++ )
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-	  rRightHandSideVector[index + j] += rVariables.IntegrationWeight * rVariables.N[i] * rVolumeForce[j] * DomainChange;
+            int index = dimension * i;
+            
+            for ( unsigned int j = 0; j < dimension; j++ )
+            {
+            rRightHandSideVector[index + j] += rVariables.N[i] * rVolumeForce[j] * rVariables.integration_weight; 
+            
+            }
+            
         }
-    }
-
-    KRATOS_CATCH( "" )
+        
+        KRATOS_CATCH( "" )
     }    
 //************************************************************************************
 //*********************Calculate the contribution of internal force*******************
@@ -420,7 +406,7 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
     {
         KRATOS_TRY
 
-        VectorType InternalForces = rVariables.IntegrationWeight * prod( trans( rVariables.B ), rVariables.StressVector );
+        VectorType InternalForces = rVariables.integration_weight * prod( trans( rVariables.B ), rVariables.StressVector );
         
         noalias( rRightHandSideVector ) -= InternalForces;
 
@@ -460,34 +446,27 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
 
         rVariables.StressVector.resize( voigtsize );
         
-        this->GetGeometryData(integration_weight,N,DN_Dx);
+        
 
         rVariables.DN_DX.resize( number_of_nodes, dimension );
-        rVariables.DN_De.resize( number_of_nodes, dimension );
+       
         
-        array_1d<double,3>& xg = this->GetValue(GAUSS_POINT_COORDINATES);
+        rVariables.N.resize(number_of_nodes);
         
-        rVariables.N = N;
-        rVariables.DN_DX = DN_Dx; //gradient values at the previous time step
-        rVariables.integration_weight = integration_weight;
-        //reading shape functions local gradients
-        //rVariables.DN_De = this->MPMShapeFunctionsLocalGradients( rVariables.DN_De);
+        rVariables.DN_DX.resize(number_of_nodes, dimension); //gradient values at the previous time step
         
+        rVariables.integration_weight = 0.0;
         
+        this->GetGeometryData(rVariables.integration_weight,rVariables.N,rVariables.DN_DX);
         //**********************************************************************************************************************
         
         //CurrentDisp is the variable unknown. It represents the nodal delta displacement. When it is predicted is equal to zero.
         
-        rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition, rCurrentProcessInfo);
+        rVariables.DeltaPosition.resize(number_of_nodes, dimension);
+        CalculateDeltaPosition(rVariables.DeltaPosition);
         
         
-        ////calculating the current jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n+1/d£]
-        rVariables.j = GetGeometry().Jacobian( rVariables.j, xg);
-        
-                
-        ////calculating the reference jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n/d£]
-        rVariables.J = GetGeometry().Jacobian( rVariables.J, xg, rVariables.DeltaPosition);
-        
+               
         //std::cout<<"The general variables are initialized"<<std::endl;
         //*************************************************************************************************************************
 
@@ -505,7 +484,7 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
         if(rVariables.detF<0){
             
             std::cout<<" Element: "<<this->Id()<<std::endl;
-            std::cout<<" Element position "<<this->GetValue(GAUSS_COORD)<<std::endl;
+            std::cout<<" Element position "<<this->GetValue(GAUSS_POINT_COORDINATES)<<std::endl;
             unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
             for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -566,21 +545,8 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
         //Define the stress measure
         rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
 
-        //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
-        //Matrix InvJ;
-        
-        //MathUtils<double>::InvertMatrix( rVariables.J, InvJ, rVariables.detJ);
-        
-        
-        
-        //Calculating the inverse of the jacobian and the parameters needed [d£/(dx_n+1)]
-        Matrix Invj;
-        MathUtils<double>::InvertMatrix( rVariables.j, Invj, rVariables.detJ ); //overwrites detJ
-
-        Matrix InvF = prod (rVariables.J, invj);
-
-        //Compute cartesian derivatives [dN/dx_n+1]        
-        rVariables.DN_DX = prod( rVariables.DN_DX, InvF); //overwrites DX now is the current position dx
+                
+               
         
         //Deformation Gradient F [(dx_n+1 - dx_n)/dx_n] to be updated in constitutive law parameter as total deformation gradient
         //the increment of total deformation gradient can be evaluated in 2 ways.
@@ -592,12 +558,16 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
         Matrix I=identity_matrix<double>( dimension );
         
         Matrix GradientDisp = ZeroMatrix(dimension, dimension);
-        rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition, rCurrentProcessInfo);
-        GradientDisp = prod(trans(rVariables.DeltaPosition),rVariables.DN_DX);
+        rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
+        GradientDisp = prod(trans(rVariables.DeltaPosition),rVariables.DN_DX); //here I'm using DN_DX of the previous time step
         
         
         noalias( rVariables.F ) = (I + GradientDisp);
+        Matrix InvF;
         
+        MathUtils<double>::InvertMatrix( rVariables.F, InvF, rVariables.detF );
+        //Compute cartesian derivatives [dN/dx_n+1]        
+        rVariables.DN_DX = prod( rVariables.DN_DX, InvF); //overwrites DX now is the current position dx
         
         //Determinant of the Deformation Gradient F_n
                         
@@ -747,7 +717,7 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
         if ( rResult.size() != matrix_size )
             rResult.resize( matrix_size, false );
 
-        for ( int i = 0; i < number_of_nodes; i++ )
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             int index = i * dim;
             rResult[index] = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
@@ -953,8 +923,10 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
         //int IntMethod = int(mThisIntegrationMethod);
         //rSerializer.save("IntegrationMethod",IntMethod);
         rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
+        rSerializer.save("ModelPart",mpModelPart);
         rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
         rSerializer.save("DeterminantF0",mDeterminantF0);
+        rSerializer.save("FinalizedStep",mFinalizedStep);
         //rSerializer.save("InverseJ0",mInverseJ0);
         //rSerializer.save("DeterminantJ0",mDeterminantJ0);
 
@@ -964,8 +936,10 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
         rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
+        rSerializer.load("ModelPart",mpModelPart);
         rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
         rSerializer.load("DeterminantF0",mDeterminantF0);
+        rSerializer.load("FinalizedStep",mFinalizedStep);
         //rSerializer.load("InverseJ0",mInverseJ0);
         //rSerializer.load("DeterminantJ0",mDeterminantJ0);
         
