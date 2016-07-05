@@ -4,6 +4,7 @@ message("**** configuring KratosLagrangianMPMApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
+
 # generate variables with the sources
 set( KRATOS_LAGRANGIAN_MPM_APPLICATION_SOURCES
      ${CMAKE_CURRENT_SOURCE_DIR}/lagrangian_mpm_application.cpp

@@ -49,7 +49,7 @@ echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
 #defining the model_part
 main_model_part = ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
 main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
-
+domain_size =  ProjectParameters["problem_data"]["domain_size"].GetInt()
 ###TODO replace this "model" for real one once available in kratos core
 Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main_model_part}
 
@@ -74,6 +74,8 @@ solver.AddDofs()
 for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
     part_name = ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
     Model.update({part_name: main_model_part.GetSubModelPart(part_name)})
+
+
 
 #print model_part and properties
 if(echo_level>1):
@@ -139,6 +141,19 @@ gid_output.ExecuteInitialize()
 
 #### output settings end ####
 
+
+
+
+
+import constitutive_law_python_utility as constitutive_law_utils
+
+constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(computing_model_part, domain_size);
+constitutive_law.Initialize();
+
+
+
+
+
 ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
 solver.Initialize()
 
@@ -167,6 +182,9 @@ end_time   = ProjectParameters["problem_data"]["end_time"].GetDouble()
 
 # writing a initial state results file (if no restart)
 # gid_io.write_results(time, computing_model_part) done in ExecuteBeforeSolutionLoop()
+
+
+
 
 # solving the problem (time integration)
 while(time <= end_time):

@@ -86,7 +86,7 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
         KRATOS_TRY
         
         
-        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+        const unsigned int dim = 2;//GetGeometry().WorkingSpaceDimension();
         
         mDeterminantF0 = 1;
         
@@ -179,10 +179,23 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
     {
         KRATOS_TRY
         //array_1d<double,3>& xg = this->GetValue(GAUSS_POINT_COORDINATES);
-        ProcessInfo& rCurrentProcessInfo = (mpModelPart)->GetProcessInfo();
-        GeneralVariables Variables;
-        this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
         
+        
+        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int dimension = 2;//GetGeometry().WorkingSpaceDimension();
+        //ProcessInfo& rCurrentProcessInfo = (mpModelPart)->GetProcessInfo();
+        
+        GeneralVariables Variables;
+        
+        //this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+        
+        Variables.N.resize(number_of_nodes);
+        
+        Variables.DN_DX.resize(number_of_nodes, dimension); //gradient values at the previous time step
+        
+        Variables.integration_weight = 0.0;
+        
+        this->GetGeometryData(Variables.integration_weight,Variables.N,Variables.DN_DX);
         
         if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
         {
@@ -330,7 +343,7 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
     {
         KRATOS_TRY
 
-        unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        unsigned int dimension = 2;//GetGeometry().WorkingSpaceDimension();
         Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
         Matrix ReducedKg = prod( rVariables.DN_DX, rVariables.integration_weight * Matrix( prod( StressTensor, trans( rVariables.DN_DX ) ) ) ); 
         MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, ReducedKg, dimension ); 
@@ -353,7 +366,7 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
 		KRATOS_TRY
 
 		//const unsigned int number_of_nodes = GetGeometry().size();
-		const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+		const unsigned int dimension       = 2;//GetGeometry().WorkingSpaceDimension();
 
 		rVolumeForce = ZeroVector(dimension);
 
@@ -380,7 +393,7 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
         KRATOS_TRY
         unsigned int number_of_nodes = GetGeometry().PointsNumber();
         
-        unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        unsigned int dimension = 2;//GetGeometry().WorkingSpaceDimension();
         
         
 
@@ -417,7 +430,7 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
     void UpdatedLagrangianMPMElement::InitializeGeneralVariables (GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
     {
         const unsigned int number_of_nodes = GetGeometry().size();
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        const unsigned int dimension = 2;//GetGeometry().WorkingSpaceDimension();
         unsigned int voigtsize  = 3;
             
         if( dimension == 3 )
@@ -540,7 +553,7 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
     {
         KRATOS_TRY
 
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        const unsigned int dimension = 2;//GetGeometry().WorkingSpaceDimension();
         
         //Define the stress measure
         rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
@@ -592,7 +605,7 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
         KRATOS_TRY
 
         const unsigned int number_of_nodes = GetGeometry().size();
-        const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+        const unsigned int dimension       = 2;//GetGeometry().WorkingSpaceDimension();
         
         rB.clear(); //set all components to zero
 
@@ -657,7 +670,7 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
 		KRATOS_TRY
 
 		const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-		unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+		unsigned int dimension = 2;//GetGeometry().WorkingSpaceDimension();
 
 		rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
 
@@ -831,7 +844,7 @@ UpdatedLagrangianMPMElement::~UpdatedLagrangianMPMElement()
     {
         KRATOS_TRY
         
-        unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+        unsigned int dimension = 2;//this->GetGeometry().WorkingSpaceDimension();
         
         //verify compatibility with the constitutive law
         ConstitutiveLaw::Features LawFeatures;
