@@ -67,7 +67,7 @@
     <outputs>
     </outputs>
   </ElementItem>  
-  <ElementItem n="RigidLagrangianElement3D3N" pn="Rigid Wall" ImplementedInFile="none.cpp"
+  <ElementItem n="SurfaceRigidLagrangianElement3D3N" pn="Rigid Wall" ImplementedInFile="none.cpp"
 	       ImplementedInApplication="PfemSolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="Developer"
 	       WorkingSpaceDimension="3D" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False,True"
 	       help="To be written by..."
