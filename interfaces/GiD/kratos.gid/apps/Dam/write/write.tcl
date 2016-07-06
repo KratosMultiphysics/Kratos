@@ -20,7 +20,7 @@ proc Dam::write::Init { } {
 proc Dam::write::writeCustomFilesEvent { } {
     
     write::CopyFileIntoModel "python/dam_thermo_mechanic_script.py"
-    #write::RenameFileInModel "dam_thermo_mechanic_script.py" "MainKratos.py"
+    write::RenameFileInModel "dam_thermo_mechanic_script.py" "MainKratos.py"
     
     #write::RenameFileInModel "ProjectParameters.json" "ProjectParameters.py"
 }

@@ -98,6 +98,7 @@ proc Solid::write::getParametersDict { } {
 
 proc Solid::write::writeParametersEvent { } {
     write::WriteJSON [getParametersDict]
+    write::SetParallelismConfiguration
 }
 
 proc Solid::write::getSubModelPartNames { args } {

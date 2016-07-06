@@ -63,6 +63,7 @@ proc ::Fluid::write::getParametersDict { } {
 
 proc Fluid::write::writeParametersEvent { } {
     set projectParametersDict [getParametersDict]
+    write::SetParallelismConfiguration
     write::WriteJSON $projectParametersDict
 }
 
