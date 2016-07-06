@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="SolutionStratFL" pn="Solution" help="Solution Strategy" >
     
-    <include n="Parallelism" active="1" path="apps/Common/xml/Parallelism.spd"/> 
+    <!--<include n="Parallelism" active="1" path="apps/Common/xml/Parallelism.spd"/> -->
     
     <dynamicnode command="injectSolvers" args="ImplementedInApplication FluidDynamicsApplication"/>
     

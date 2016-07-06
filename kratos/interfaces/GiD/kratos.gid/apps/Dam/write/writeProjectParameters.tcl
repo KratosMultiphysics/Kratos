@@ -79,6 +79,7 @@ proc Dam::write::getParametersDict { } {
 proc Dam::write::writeParametersEvent { } {
     set projectParametersDict [getParametersDict]
     write::WriteJSON $projectParametersDict
+    write::SetParallelismConfiguration DamNumThreads ""
 }
 
 proc write::GetDefaultOutputDict {} {

@@ -54,8 +54,9 @@ proc FSI::write::getParametersDict { } {
 }
 
 proc FSI::write::writeParametersEvent { } {
-    set projectParametersDict [getParametersDict]
-    write::WriteJSON $projectParametersDict
+   set projectParametersDict [getParametersDict]
+   write::SetParallelismConfiguration
+   write::WriteJSON $projectParametersDict
 }
 
 proc FSI::write::UpdateUniqueNames { appid } {

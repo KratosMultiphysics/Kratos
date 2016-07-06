@@ -77,7 +77,7 @@ proc write::writeEvent { filename } {
 	set errcode 1
     }
     catch {CloseFile}
-	
+	    
     return $errcode
     # set endtime [clock seconds]
     # set ttime [expr {$endtime-$inittime}]
@@ -897,6 +897,16 @@ proc write::getAllMaterialParametersDict {matname} {
         dict set md [$prop @n] [get_domnode_attribute $prop v]
     }
     return $md
+}
+
+
+proc write::SetParallelismConfiguration {{un "Parallelization"} {n "OpenMPNumberOfThreads"}} {
+    set nt 0
+    catch {set nt [write::getValue $un $n]}
+    if {$nt} {write::SetEnvironmentVariable OMP_NUM_THREADS $nt} {return 0}
+}
+proc write::SetEnvironmentVariable {name value} {
+    set ::env($name) $value
 }
 
 # Auxiliar
