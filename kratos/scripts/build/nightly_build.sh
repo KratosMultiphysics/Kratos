@@ -13,7 +13,6 @@ export PYTHONPATH=$PYTHONPATH:/home/ubuntu/Kratos
 cd ${HOME}
 wget http://www.logix.cz/michal/devel/smtp-cli/smtp-cli
 chmod 777 smtp-cli
-sudo apt-get install -y libio-socket-ssl-perl  libdigest-hmac-perl  libterm-readkey-perl libmime-lite-perl libfile-libmagic-perl libio-socket-inet6-perl
 mkdir Kratos
 
 cd ${HOME}/Kratos
@@ -64,6 +63,11 @@ cat ${LOG_DIR}/unittest_gcc.log >> ${MAIL_GCC};
 # echo "Benchmarking: \n" >> ${MAIL_GCC}
 # echo "============= \n" >> ${MAIL_GCC}
 # cat ${LOG_DIR}/benchmarking_gcc.log >> ${MAIL_GCC};
+
+#### Ugly Fix ####
+# Apparently, this needs to go here because someone didn't had anything else to do apart from adding autoupdates in ubuntu 16....
+sudo apt-get install -y libio-socket-ssl-perl  libdigest-hmac-perl  libterm-readkey-perl libmime-lite-perl libfile-libmagic-perl libio-socket-inet6-perl
+##################
 
 cd ${HOME}
 tar -zcvf ${LOG_DIR}/logs_gcc.tar.gz ${LOG_DIR}/configure_gcc.log ${LOG_DIR}/compile_gcc.log ${LOG_DIR}/unittest_gcc.log
@@ -118,7 +122,7 @@ cat ${LOG_DIR}/unittest_clang.log >> ${MAIL_CLANG};
 
 cd ${HOME}
 tar -zcvf ${LOG_DIR}/logs_clang.tar.gz ${LOG_DIR}/configure_clang.log ${LOG_DIR}/compile_clang.log ${LOG_DIR}/unittest_clang.log
-./smtp-cli --host=${KRATOS_MAIL_SERVER} --enable-auth --user ${KRATOS_MAIL_USER} --password ${KRATOS_MAIL_PASSWD}  --to ${MAIL_TO} --body-plain ${MAIL_GCC} --attach ${LOG_DIR}/logs_clang.tar.gz --subject "Kratos Nightly Report" --mail-from "kratosmultiphysics@gmail.com" --from "Kratos Nightly Report CLANG"
+./smtp-cli --host=${KRATOS_MAIL_SERVER} --enable-auth --user ${KRATOS_MAIL_USER} --password ${KRATOS_MAIL_PASSWD}  --to ${MAIL_TO} --body-plain ${MAIL_CLANG} --attach ${LOG_DIR}/logs_clang.tar.gz --subject "Kratos Nightly Report" --mail-from "kratosmultiphysics@gmail.com" --from "Kratos Nightly Report CLANG"
 
 ## Step4: Finish
 
