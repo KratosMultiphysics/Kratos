@@ -748,8 +748,8 @@ void MortarContact2DCondition::CalculateKinematics(
     const contact_container& current_container = ( *( this->GetValue( CONTACT_CONTAINERS ) ) )[rPairIndex];
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry( ).IntegrationPoints(mThisIntegrationMethod);
     const double eta = integration_points[rPointNumber].Coordinate(1);
-    const double xi_local_slave  =   (0.5 * (1.0 - eta) * current_container.local_coordinates_slave[0]  + 0.5 * (1.0 + eta) * current_container.local_coordinates_slave[1]);
-    const double xi_local_master = - (0.5 * (1.0 - eta) * current_container.local_coordinates_master[0] + 0.5 * (1.0 + eta) * current_container.local_coordinates_master[1]);   
+    const double xi_local_slave  =  0.5 * (1.0 - eta) * current_container.local_coordinates_slave[0]  + 0.5 * (1.0 + eta) * current_container.local_coordinates_slave[1];
+    const double xi_local_master =  0.5 * (1.0 - eta) * current_container.local_coordinates_master[0] + 0.5 * (1.0 + eta) * current_container.local_coordinates_master[1];   
     
     /* RESIZE MATRICES AND VECTORS */
     rVariables.Phi_LagrangeMultipliers.resize( number_of_slave_nodes );

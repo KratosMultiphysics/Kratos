@@ -59,85 +59,21 @@ public:
             const array_1d<double, 3> & contact_normal2, // MASTER
             const IntegrationMethod IntegrationOrder
             )
-    {        
+    {
+        // Define the basic information
+        const unsigned int number_nodes = Geom1.PointsNumber();
+        const unsigned int dimension = Geom1.WorkingSpaceDimension();
+        
         // Define the discrete contact gap
          Point<3> ProjectedPoint;
-         const unsigned int number_nodes = Geom1.PointsNumber();
-         const unsigned int dimension = Geom1.WorkingSpaceDimension();
          contact_container.contact_gap.resize(number_nodes);
          contact_container.active_nodes_slave.resize(number_nodes);
          
          for (unsigned int index = 0; index < number_nodes; index++)
          {
              Project(ContactPoint,  Geom1[index], ProjectedPoint, contact_container.contact_gap[index], contact_normal1);
-             
              array_1d<double, 3> result;
              contact_container.active_nodes_slave[index] =  Geom2.IsInside(ProjectedPoint, result);
-         }
-         
-         std::vector<bool> active_nodes_master;
-         active_nodes_master.resize(Geom2.PointsNumber());
-
-         double aux_value;
-         for (unsigned int index = 0; index < Geom2.PointsNumber(); index++)
-         {
-             Project(Geom1.Center(),  Geom2[index], ProjectedPoint, aux_value, contact_normal2);
-             
-             array_1d<double, 3> result;
-             active_nodes_master[index] = Geom1.IsInside(ProjectedPoint, result);
-         }
-
-//          KRATOS_WATCH("-----------------------------------------------------------------------------------------------------------------")
-//          KRATOS_WATCH(Geom1);
-//          KRATOS_WATCH(Geom2);
-         
-         /* Reading integration points slave condition */
-         const GeometryType::IntegrationPointsArrayType& integration_points1 = Geom1.IntegrationPoints( IntegrationOrder );
-         std::vector<bool> active_gauss_slave;
-         active_gauss_slave.resize(integration_points1.size());
-         
-         for (unsigned int PointNumber = 0; PointNumber < integration_points1.size(); PointNumber++)
-         {
-             Point<3> GaussPoint;
-             Point<3> GaussPointLocalCoordinates;
-             Point<3> ProjectedGaussPoint;
-             GaussPointLocalCoordinates.Coordinates() = integration_points1[PointNumber].Coordinates();
-
-             array_1d<double, 3> result;
-             GaussPoint = Geom1.GlobalCoordinates(result, GaussPointLocalCoordinates);
-
-             double dist_aux;
-
-             Project(ContactPoint, GaussPoint,  ProjectedGaussPoint, dist_aux, contact_normal1);
-
-             active_gauss_slave[PointNumber] = Geom2.IsInside(ProjectedGaussPoint, result);
-             
-//              KRATOS_WATCH(inside);
-//              KRATOS_WATCH(result);
-//              KRATOS_WATCH(GaussPoint);
-//              KRATOS_WATCH(ProjectedGaussPoint);
-         }
-         
-         /* Reading integration points master condition */
-         const GeometryType::IntegrationPointsArrayType& integration_points2 = Geom2.IntegrationPoints( IntegrationOrder );
-         std::vector<bool> active_gauss_master;
-         active_gauss_master.resize(integration_points2.size());
-         
-         for (unsigned int PointNumber = 0; PointNumber < integration_points2.size(); PointNumber++)
-         {
-             Point<3> GaussPoint;
-             Point<3> GaussPointLocalCoordinates;
-             Point<3> ProjectedGaussPoint;
-             GaussPointLocalCoordinates.Coordinates() = integration_points2[PointNumber].Coordinates();
-
-             array_1d<double, 3> result;
-             GaussPoint = Geom2.GlobalCoordinates(result, GaussPointLocalCoordinates);
-
-             double dist_aux;
-
-             Project(Geom1.Center(), GaussPoint,  ProjectedGaussPoint, dist_aux, contact_normal2);
-
-             active_gauss_master[PointNumber] =  Geom1.IsInside(ProjectedGaussPoint, result);
          }
 
          if (dimension == 2)
@@ -145,10 +81,8 @@ public:
              if (number_nodes == 2)
              {
                  contact_container.local_coordinates_slave.resize(2, false);
-                 LocalLine2D2NProcess(contact_container.active_nodes_slave, active_gauss_slave, Geom1, contact_container.local_coordinates_slave[0], contact_container.local_coordinates_slave[1], IntegrationOrder);
-                
                  contact_container.local_coordinates_master.resize(2, false);
-                 LocalLine2D2NProcess(active_nodes_master, active_gauss_master, Geom2, contact_container.local_coordinates_master[0], contact_container.local_coordinates_master[1], IntegrationOrder);
+                 LocalLine2D2NProcess(contact_container.local_coordinates_slave, contact_container.local_coordinates_master, Geom1, Geom2, contact_normal1, contact_normal2, IntegrationOrder);  
              }
              else
              {
@@ -198,68 +132,59 @@ public:
     
     /**
      * This function calculates the local coordinates of the projected line for the mortar condition
-     * @param active_nodes: Vector that says if the points of the line are active 
-     * @param active_gauss: Vector that says if the Gauss points of the line are active 
-     * @param Geom: The geometry of the line
-     * @param IntegrationOrder: The integration order of the line  
-     * @return coord1 and coord2: The local coordinates of the pojected points of the line
+     * @param Geom1 and Geom2: The geometries of the slave and master respectively
+     * @param contact_normal1 and contact_normal2: The normals of the slave and master respectively
+     * @param IntegrationOrder: The integration order   
+     * @return local_coordinates_slave and local_coordinates_master: The local coordinates of the pojected points of the line
      */
-
+    
     static inline void LocalLine2D2NProcess(
-        const std::vector<bool> & active_nodes,
-        const std::vector<bool> & active_gauss,
-        Geometry<Node<3> > & Geom,
-        double & coord1,
-        double & coord2,
+        std::vector<double> & local_coordinates_slave,
+        std::vector<double> & local_coordinates_master,
+        Geometry<Node<3> > & Geom1, // SLAVE
+        Geometry<Node<3> > & Geom2, // MASTER
+        const array_1d<double, 3> & contact_normal1, // SLAVE
+        const array_1d<double, 3> & contact_normal2, // MASTER
         const IntegrationMethod & IntegrationOrder
     )
     {   
-        bool point1_assigned = false;
-        bool point2_assigned = false;
+        // Define auxiliar values
+        Point<3> ProjectedPoint;
         
-        if (active_nodes[0] == true)
+        // Domain 1
+        for (unsigned int index = 0; index < Geom1.PointsNumber(); index++)
         {
-            coord1 = - 1.0;
-            point1_assigned = true;
+             double aux_dist;
+             Project(Geom2.Center(),  Geom1[index], ProjectedPoint, aux_dist, contact_normal1);
+             
+             array_1d<double, 3> projected_local_coor;
+             bool in_out =  Geom2.IsInside(ProjectedPoint, projected_local_coor);
+             
+             if (in_out == true)
+             {
+                 array_1d<double, 3> local_coor;
+                 local_coor = Geom1.PointLocalCoordinates(local_coor, Geom1[index]);
+                 local_coordinates_slave[index] = local_coor[0];
+                 local_coordinates_master[index] = projected_local_coor[0];
+             }
         }
         
-        if (active_nodes[1] == true)
+        // Domain 2
+        for (unsigned int index = 0; index < Geom2.PointsNumber(); index++)
         {
-            coord2 = 1.0;
-            point2_assigned = true;
-        }
-        
-        if ((point1_assigned && point2_assigned) == false)
-        {
-            const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( IntegrationOrder );
-            const unsigned int number_integration_points = integration_points.size();
-            for (unsigned int PointNumber = 0; PointNumber < number_integration_points; PointNumber++)
-            {
-                Point<3> GaussPointLocalCoordinates;
-                
-                if (point1_assigned == false)
-                {
-                    if (active_gauss[PointNumber] == true)
-                    {
-                        coord1 = integration_points[PointNumber].Coordinate(1);
-                        point1_assigned = true;
-                    }
-                }
-                
-                if (point2_assigned == false)
-                {
-                    if (active_gauss[number_integration_points - PointNumber - 1] == true)
-                    {
-                        coord2 = integration_points[number_integration_points - PointNumber - 1].Coordinate(1);
-                        point2_assigned = true;
-                    }
-                }
-                
-                if ((point1_assigned && point2_assigned) == true)
-                {
-                    break;
-                }
-            }
+             double aux_dist;
+             Project(Geom1.Center(),  Geom2[index], ProjectedPoint, aux_dist, contact_normal2);
+             
+             array_1d<double, 3> projected_local_coor;
+             bool in_out =  Geom1.IsInside(ProjectedPoint, projected_local_coor);
+             
+             if (in_out == true)
+             {
+                 array_1d<double, 3> local_coor;
+                 local_coor = Geom2.PointLocalCoordinates(local_coor, Geom2[index]);
+                 local_coordinates_master[index] = local_coor[0];
+                 local_coordinates_slave[index] = projected_local_coor[0];
+             }
         }
     }
     
