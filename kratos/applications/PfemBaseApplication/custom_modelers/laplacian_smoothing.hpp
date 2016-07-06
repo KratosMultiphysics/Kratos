@@ -594,7 +594,7 @@ namespace Kratos
 		    //neighbour position
 		    Q[0] = (nodes_begin+(NeighborNodesList[in][i]-1))->X();
 		    Q[1] = (nodes_begin+(NeighborNodesList[in][i]-1))->Y();
-		    Q[1] = (nodes_begin+(NeighborNodesList[in][i]-1))->Z();
+		    Q[2] = (nodes_begin+(NeighborNodesList[in][i]-1))->Z();
 	    	
 		    D = P-Q;
 			
@@ -689,13 +689,14 @@ namespace Kratos
 	    if( i_node->IsNot(TO_ERASE) ){      
 	      (list_of_nodes).push_back(*(i_node.base()));
 	    }
-	    else {
-	      std::cout <<" LLM:PSEUDOERROR node to erase : " << i_node->Id() << std::endl;
-	    }
+	    // else {
+	    //   std::cout <<" LLM:PSEUDOERROR node to erase : " << i_node->Id() << std::endl;
+	    // }
 	  }
 	    
 	//Find out where the new nodes belong to:
-	std::vector<double> ShapeFunctionsN;    
+	unsigned int num_nodes = rElementsList[0].size();
+	std::vector<double> ShapeFunctionsN(num_nodes);    
 	std::vector<VariablesListDataValueContainer> VariablesListVector(number_of_nodes);
 	std::vector<int> UniquePosition (number_of_nodes);
 	std::fill( UniquePosition.begin(), UniquePosition.end(), 0 );
@@ -712,7 +713,6 @@ namespace Kratos
 	std::vector<double>  PointsInRadiusDistances (MaximumNumberOfPointsInRadius);
 
 	//geometry
-	unsigned int num_nodes = rElementsList[0].size();
 	std::vector<std::vector<double> > ElementPointCoordinates(num_nodes);
 	std::vector<double> PointCoordinates(3); //dimension=3
 	std::fill( PointCoordinates.begin(), PointCoordinates.end(), 0.0 );
@@ -1041,7 +1041,7 @@ namespace Kratos
 		    //neighbour position
 		    Q[0] = (nodes_begin+(NeighborNodesList[in+1][i]-1))->X();
 		    Q[1] = (nodes_begin+(NeighborNodesList[in+1][i]-1))->Y();
-		    Q[1] = (nodes_begin+(NeighborNodesList[in+1][i]-1))->Z();
+		    Q[2] = (nodes_begin+(NeighborNodesList[in+1][i]-1))->Z();
 	    	
 		    D = P-Q;
 			
@@ -1101,7 +1101,7 @@ namespace Kratos
 
       if(iters==smoothing_iters && !converged){
 	if( GetEchoLevel() > 0 )
-	  std::cout<<"   WARNING: Laplacian smoothing convergence NOT achieved "<<std::endl;
+	  std::cout<<"   WARNING: Laplacian smoothing convergence NOT achieved (iters:"<<iters<<")"<<std::endl;
       }
 
       //*******************************************************************
@@ -1131,6 +1131,11 @@ namespace Kratos
     {
       
       KRATOS_TRY
+
+
+      if( GetEchoLevel() > 0 )
+	std::cout<<" Apply Projection Variables in Mesh "<<MeshId<<std::endl;
+
 
       bool transfer=true; //transfer active or inactive
 
@@ -1168,8 +1173,20 @@ namespace Kratos
 	KdtreeType    NodesTree(list_of_nodes.begin(),list_of_nodes.end(),bucket_size);
 
 	//Find out where the new nodes belong to:
-	unsigned int number_of_nodes = list_of_nodes.size();
-	std::vector<double> ShapeFunctionsN;    
+	unsigned int number_of_nodes = list_of_nodes.size()+1;
+
+	ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(MeshId);	  
+	const unsigned int nds = element_begin->GetGeometry().size();
+
+	std::vector<double> ShapeFunctionsN(nds);    
+	
+
+	if( number_of_nodes < rModelPart.Nodes(MeshId).size()+1 ){
+	  number_of_nodes = rModelPart.Nodes(MeshId).size()+1;
+	  std::cout<<" WARNING: ISOLATED NODES DELETED "<<std::endl;
+	}
+	  
+
 	std::vector<VariablesListDataValueContainer> VariablesListVector(number_of_nodes);
 	std::vector<int> UniquePosition (number_of_nodes);
 	std::fill( UniquePosition.begin(), UniquePosition.end(), 0 );
@@ -1186,14 +1203,12 @@ namespace Kratos
 	std::vector<double>  PointsInRadiusDistances (MaximumNumberOfPointsInRadius);
 
 	//geometry
-	ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(MeshId);	  
-	const unsigned int nds = element_begin->GetGeometry().size();
-
 	std::vector<std::vector<double> > ElementPointCoordinates(nds);
 	std::vector<double> PointCoordinates(3); //dimension=3
 	std::fill( PointCoordinates.begin(), PointCoordinates.end(), 0.0 );
 	std::fill( ElementPointCoordinates.begin(), ElementPointCoordinates.end(), PointCoordinates );
 	
+
 	for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(MeshId);
 	    ie != rModelPart.ElementsEnd(MeshId); ie++)
 	  {
@@ -1245,6 +1260,7 @@ namespace Kratos
 		  if(is_inside == true)
 		    {
 		      //std::cout<<"  Node interpolation: "<<(*it_found)->Id()<<" VariablesList size "<<VariablesListVector.size()<<std::endl;
+		      //std::cout<<"  Node interpolation: "<<(*it_found)->Id()<<" N "<<ShapeFunctionsN[0]<<" "<<ShapeFunctionsN[1]<<" "<<ShapeFunctionsN[2]<<std::endl;
 		      if(UniquePosition [(*it_found)->Id()] == 0){
 			    
 			UniquePosition [(*it_found)->Id()] = 1;
@@ -1257,8 +1273,8 @@ namespace Kratos
 		      }
 		      else{
 			UniquePosition [(*it_found)->Id()] += 1;
-			std::cout<<" Node "<<(*it_found)->Id()<<" is relocated again in a element:: "<<ie->Id()<<" num locations "<<UniquePosition [(*it_found)->Id()]<<std::endl;
-			std::cout<<" ShapeFunctionsN "<<ShapeFunctionsN.size()<<std::endl;
+			//std::cout<<" Node "<<(*it_found)->Id()<<" is relocated again in a element:: "<<ie->Id()<<" num locations "<<UniquePosition [(*it_found)->Id()]<<std::endl;
+			//std::cout<<" ShapeFunctionsN "<<ShapeFunctionsN.size()<<std::endl;
 		      }
 
 		    }
@@ -1267,8 +1283,11 @@ namespace Kratos
 	     
 	  }
 	    
+
+	
 	//the search moves the nodes order using its PreIds
 	rModelPart.Nodes(MeshId).Sort();
+
 
 	//*******************************************************************
 	//CREATE NEW NODE INFORMATION:
@@ -1307,61 +1326,61 @@ namespace Kratos
 
 	    }
 	    // Set the position of boundary laplacian 
-	    else if ( i_node->Is(BOUNDARY) && i_node->IsNot(TO_ERASE) && i_node->Is(VISITED) )
-	      {
-		i_node->Set(VISITED, false);
+	    else if ( i_node->Is(BOUNDARY) && i_node->IsNot(TO_ERASE) && i_node->Is(VISITED) ){
 
-		//recover the original position of the node
-		id = i_node->Id();
+	      i_node->Set(VISITED, false);
 
-		// double PressurePrev = (i_node)->FastGetSolutionStepValue(PRESSURE); 
+	      //recover the original position of the node
+	      id = i_node->Id();
 
-		//i_node->SolutionStepData() = VariablesListVector[id];
+	      // double PressurePrev = (i_node)->FastGetSolutionStepValue(PRESSURE); 
 
-		if ( VariablesListVector[id].Has(DISPLACEMENT) == false)
-		  {
-		    std::cout << " OUT::PSEUDOERROR: IN this line, there is a node that does not have displacement" << std::endl;
-		    std::cout << " Laplacian. ThisNode new information does not have displacement " << i_node->Id() << std::endl;
-		    std::cout << " THIS IS BECAUSE THE NODE is out of the DOMAIN and the interpolation is wrong" << std::endl;
-		    std::cout << "    X: " << i_node->X() << " Y: " << i_node->Y() << std::endl;
-		  }
-		else {
-		  i_node->SolutionStepData() = VariablesListVector[id];
+	      //i_node->SolutionStepData() = VariablesListVector[id];
+
+	      if ( VariablesListVector[id].Has(DISPLACEMENT) == false)
+		{
+		  std::cout << " OUT::PSEUDOERROR: IN this line, there is a node that does not have displacement" << std::endl;
+		  std::cout << " Laplacian. ThisNode new information does not have displacement " << i_node->Id() << std::endl;
+		  std::cout << " THIS IS BECAUSE THE NODE is out of the DOMAIN and the interpolation is wrong" << std::endl;
+		  std::cout << "    X: " << i_node->X() << " Y: " << i_node->Y() << std::endl;
 		}
-
-		// double PressurePost = (i_node)->FastGetSolutionStepValue(PRESSURE);
-		// std::cout<<" PRESSURE PREV "<<PressurePrev<<" PRESSURE POST "<<PressurePost<<std::endl;
-
-		if ( i_node->SolutionStepsDataHas(DISPLACEMENT) == false)
-		  {
-		    std::cout << " AFTER WIERD " << std::endl;
-		    std::cout << " Laplacian. ThisNode Does not have displacemenet " << i_node->Id() << std::endl;
-		    std::cout << "    X: " << i_node->X() << " Y: " << i_node->Y() << std::endl;
-		  }
-
-		const array_1d<double,3>& disp = i_node->FastGetSolutionStepValue(DISPLACEMENT);
-
-		bool MoveFixedNodes = false; 
-		if (MoveFixedNodes)
-		  {
-		    i_node->X0() = i_node->X() - disp[0];
-		    i_node->Y0() = i_node->Y() - disp[1];
-		    i_node->Z0() = i_node->Z() - disp[2];
-		  }
-		else {
-		  if ( i_node->pGetDof(DISPLACEMENT_X)->IsFixed() == false) {
-		    i_node->X0() = i_node->X() - disp[0];
-		  }
-		  if ( i_node->pGetDof(DISPLACEMENT_Y)->IsFixed() == false) {
-		    i_node->Y0() = i_node->Y() - disp[1];
-		  }
-
-		  if ( i_node->pGetDof(DISPLACEMENT_Z)->IsFixed() == false) {
-		    i_node->Z0() = i_node->Z() - disp[2];
-		  }
-		}
-
+	      else {
+		i_node->SolutionStepData() = VariablesListVector[id];
 	      }
+
+	      // double PressurePost = (i_node)->FastGetSolutionStepValue(PRESSURE);
+	      // std::cout<<" PRESSURE PREV "<<PressurePrev<<" PRESSURE POST "<<PressurePost<<std::endl;
+
+	      if ( i_node->SolutionStepsDataHas(DISPLACEMENT) == false)
+		{
+		  std::cout << " AFTER WIERD " << std::endl;
+		  std::cout << " Laplacian. ThisNode Does not have displacemenet " << i_node->Id() << std::endl;
+		  std::cout << "    X: " << i_node->X() << " Y: " << i_node->Y() << std::endl;
+		}
+
+	      const array_1d<double,3>& disp = i_node->FastGetSolutionStepValue(DISPLACEMENT);
+
+	      bool MoveFixedNodes = false; 
+	      if (MoveFixedNodes)
+		{
+		  i_node->X0() = i_node->X() - disp[0];
+		  i_node->Y0() = i_node->Y() - disp[1];
+		  i_node->Z0() = i_node->Z() - disp[2];
+		}
+	      else {
+		if ( i_node->pGetDof(DISPLACEMENT_X)->IsFixed() == false) {
+		  i_node->X0() = i_node->X() - disp[0];
+		}
+		if ( i_node->pGetDof(DISPLACEMENT_Y)->IsFixed() == false) {
+		  i_node->Y0() = i_node->Y() - disp[1];
+		}
+
+		if ( i_node->pGetDof(DISPLACEMENT_Z)->IsFixed() == false) {
+		  i_node->Z0() = i_node->Z() - disp[2];
+		}
+	      }
+
+	    }
 	  }
 
       }
@@ -1387,6 +1406,8 @@ namespace Kratos
 	  }
 	    
       }
+
+      std::cout<<" Finalize Apply Projection Variables in Mesh "<<MeshId<<std::endl;
 
       KRATOS_CATCH( "" )
     }
@@ -1485,7 +1506,7 @@ namespace Kratos
 		    //neighbour position
 		    Q[0] = (nodes_begin+(NeighborNodesList[in+1][i]-1))->X();
 		    Q[1] = (nodes_begin+(NeighborNodesList[in+1][i]-1))->Y();
-		    Q[1] = (nodes_begin+(NeighborNodesList[in+1][i]-1))->Z();
+		    Q[2] = (nodes_begin+(NeighborNodesList[in+1][i]-1))->Z();
 
 		    	
 		    D = P-Q;

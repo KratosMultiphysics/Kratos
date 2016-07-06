@@ -1417,7 +1417,7 @@ namespace Kratos
 	  unsigned int buffer_size = pnode.GetBufferSize();
 	     
 	  if (N[0]==0.0 && N[1]==0.0){
-	    KRATOS_THROW_ERROR( std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR", "" )
+	    KRATOS_THROW_ERROR( std::logic_error,"SOMETHING is wrong with interpolated 2 Nodes Shape Functions", "" )
 	      }
      
 	  for(VariablesList::const_iterator i_variable =  rVariablesList.begin();  i_variable != rVariablesList.end() ; i_variable++)
@@ -1613,9 +1613,13 @@ namespace Kratos
 
 	  unsigned int buffer_size = pnode->GetBufferSize();
 	     
+	  bool all_null = true;
 	  for(unsigned int i=0; i<N.size(); i++)
-	    if(N[i]==0)
-	      KRATOS_THROW_ERROR( std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR", "" )
+	    if(N[i]!=0)
+	      all_null = false;
+
+	  if( all_null )
+	      KRATOS_THROW_ERROR( std::logic_error,"SOMETHING is wrong with the Interpolation Functions", "" )
 
      
 	  for(VariablesList::const_iterator i_variable =  rVariablesList.begin();  i_variable != rVariablesList.end() ; i_variable++)
@@ -1625,7 +1629,6 @@ namespace Kratos
 	      std::string variable_name = i_variable->Name();
 	      if(KratosComponents<Variable<double> >::Has(variable_name))
 		{
-		  //std::cout<<"double"<<std::endl;
 		  Variable<double> variable = KratosComponents<Variable<double> >::Get(variable_name);
 		  for(unsigned int step = 0; step<buffer_size; step++)
 		    {
@@ -1637,11 +1640,9 @@ namespace Kratos
 			nodes_data.push_back(&geom[i].FastGetSolutionStepValue(variable, step));
 		  
 		      if(alpha != 1 ){
-			node_data = (alpha) * (N[0]*(*nodes_data[0]));
-			for(unsigned int i=1; i<geom.size(); i++)
-			  node_data += (alpha) * (N[i]*(*nodes_data[i]));
-			
-			node_data += (1-alpha) * node_data;
+			node_data *= (1-alpha);
+			for(unsigned int i=0; i<geom.size(); i++)
+			  node_data += (alpha) * (N[i]*(*nodes_data[i]));		       
 		      }
 		      else{
 			
@@ -1666,11 +1667,11 @@ namespace Kratos
 			nodes_data.push_back(&geom[i].FastGetSolutionStepValue(variable, step));
 		  
 		      if(alpha != 1 ){
-			node_data = (alpha) * (N[0]*(*nodes_data[0]));
-			for(unsigned int i=1; i<geom.size(); i++)
+
+			node_data *= (1-alpha);
+			for(unsigned int i=0; i<geom.size(); i++)
 			  node_data += (alpha) * (N[i]*(*nodes_data[i]));
 			
-			node_data += (1-alpha) * node_data;
 		      }
 		      else{
 			
@@ -1714,11 +1715,11 @@ namespace Kratos
 			if( same_size ) {
 			
 			  if(alpha != 1 ){
-			    node_data = (alpha) * (N[0]*(*nodes_data[0]));
-			    for(unsigned int i=1; i<geom.size(); i++)
+			    
+			    node_data *= (1-alpha);
+			    for(unsigned int i=0; i<geom.size(); i++)
 			      node_data += (alpha) * (N[i]*(*nodes_data[i]));
 			    
-			    node_data += (1-alpha) * node_data;
 			  }
 			  else{
 			    
@@ -1760,17 +1761,16 @@ namespace Kratos
 			    if( same_size ) {
 			      
 			      if(alpha != 1 ){
-				node_data = (alpha) * (N[0]*(*nodes_data[0]));
-				for(unsigned int i=1; i<geom.size(); i++)
-				  node_data += (alpha) * (N[i]*(*nodes_data[i]));
 
-				node_data += (1-alpha) * node_data;
+				node_data *= (1-alpha);
+				for(unsigned int i=0; i<geom.size(); i++)
+				  node_data += (alpha) * (N[i]*(*nodes_data[i]));
 			      }
 			      else{
 
-				node_data = (alpha) * (N[0]*(*nodes_data[0]));
+				node_data = (N[0]*(*nodes_data[0]));
 				for(unsigned int i=1; i<geom.size(); i++)
-				  node_data += (alpha) * (N[i]*(*nodes_data[i]));
+				  node_data += (N[i]*(*nodes_data[i]));
 
 			      }
 			      
@@ -1818,12 +1818,9 @@ namespace Kratos
 		//copying this data in the position of the vector we are interested in
 		for(unsigned int j= 0; j<step_data_size; j++)
 		  {
-		    step_data[j] = (alpha) * (N[0]*nodes_data[0][j]);
-		    for(unsigned int i=1; i<geom.size(); i++)
-		      {
-			step_data[j] += (alpha) * (N[i]*nodes_data[i][j]);
-		      }
-		    step_data[j] += (1-alpha) * step_data[j];
+		    step_data[j] *= (1-alpha);
+		    for(unsigned int i=0; i<geom.size(); i++)
+		      step_data[j] += (alpha) * (N[i]*nodes_data[i][j]);
 		  }
 	      }
 

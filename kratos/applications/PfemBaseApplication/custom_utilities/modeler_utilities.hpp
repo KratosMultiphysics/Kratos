@@ -1014,6 +1014,11 @@ public:
 	  std::cout<<" ERROR LS: element with zero area found: "<<volume<<" position ("<<x0<<", "<<y0<<", "<<z0<<") ("<<x1<<", "<<y1<<", "<<z1<<") ("<<x2<<", "<<y2<<", "<<z2<<") ("<<x3<<", "<<y3<<", "<<z3<<") "<<std::endl;
 	}
 
+     if( rShapeFunctionsN.size() != 4 ){
+	rShapeFunctionsN.resize(4);
+	//std::fill( rShapeFunctionsN.begin(), rShapeFunctionsN.end(), 0 );
+      }
+
       rShapeFunctionsN[0] = CalculateTetrahedronVolume(x1,y1,z1,x2,y2,z2,x3,y3,z3,xc,yc,zc) / volume;
       rShapeFunctionsN[1] = CalculateTetrahedronVolume(x2,y2,z2,x3,y3,z3,x0,y0,z0,xc,yc,zc) / volume;
       rShapeFunctionsN[2] = CalculateTetrahedronVolume(x3,y3,z3,x0,y0,z0,x1,y1,z1,xc,yc,zc) / volume;
@@ -1047,6 +1052,11 @@ public:
 	  //KRATOS_THROW_ERROR( std::logic_error,"element with zero area found", "" );
 	  std::cout<<" ERROR LS: element with zero area found: "<<area<<" position ("<<x0<<", "<<y0<<") ("<<x1<<", "<<y1<<") ("<<x2<<", "<<y2<<") "<<std::endl;
 	}
+      
+      if( rShapeFunctionsN.size() != 3 ){
+	rShapeFunctionsN.resize(3);
+	//std::fill( rShapeFunctionsN.begin(), rShapeFunctionsN.end(), 0 );
+      }
 
       rShapeFunctionsN[0] = CalculateTriangleArea(x1,y1,x2,y2,xc,yc) / area;
       rShapeFunctionsN[1] = CalculateTriangleArea(x2,y2,x0,y0,xc,yc) / area;

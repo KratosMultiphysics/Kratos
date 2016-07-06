@@ -151,7 +151,7 @@ namespace Kratos
 	;
 
 
-      class_<ReconstructMeshBoundaryProcess, bases<<BuildMeshBoundaryProcess>, boost::noncopyable >
+      class_<ReconstructMeshBoundaryProcess, bases<BuildMeshBoundaryProcess>, boost::noncopyable >
 	(
 	 "ReconstructMeshBoundary", init<ModelPart&, ModelerUtilities::MeshingParameters&, int, int>()
 	 )

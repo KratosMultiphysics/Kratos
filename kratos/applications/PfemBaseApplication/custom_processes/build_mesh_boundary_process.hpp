@@ -353,6 +353,11 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
+    ModelPart& mrModelPart;
+
+    int mMeshId;
+    int mEchoLevel;
+
 
     ///@}
     ///@name Protected Operators
@@ -653,15 +658,12 @@ namespace Kratos
     //**************************************************************************
 
 
-    bool AddOtherConditions(ModelPart::ConditionsContainerType& rTemporaryConditions, std::vector<int>& PreservedConditions, unsigned int& rConditionId, int MeshId = 0 )
+    virtual bool AddOtherConditions(ModelPart::ConditionsContainerType& rTemporaryConditions, std::vector<int>& PreservedConditions, unsigned int& rConditionId, int MeshId = 0 )
     {
       //add all previous conditions not found in the skin search are added:
       for(ModelPart::ConditionsContainerType::iterator ic = rTemporaryConditions.begin(); ic!= rTemporaryConditions.end(); ic++)
 	{	
 
-	  bool node_not_preserved = false;
-	  bool condition_not_preserved = false;
-	    
 	  if( PreservedConditions[ic->Id()-1] == 0 ){
 
 	    Geometry< Node<3> >& rGeometry = ic->GetGeometry();
@@ -675,8 +677,6 @@ namespace Kratos
 	      for(unsigned int j=0; j<rGeometry.size(); j++)
 		{
 		  FaceNodes.push_back(rGeometry(j));
-		  if( FaceNodes[j].Is(TO_ERASE) || FaceNodes[j].Is(TO_REFINE) )
-		    node_not_preserved = true;
 		}
 
 	      PreservedConditions[ic->Id()-1] += 1;
@@ -690,17 +690,11 @@ namespace Kratos
 	      mrModelPart.AddCondition(p_cond,MeshId);
 	      //mrModelPart.Conditions(MeshId).push_back(ic->Clone(rConditionId,FaceNodes));
 
-
-	      if( mEchoLevel > 0 ){
-		std::cout<<" Temporal Condition Not Set "<<ic->Id()<<"("<<ic->GetGeometry()[0].Id()<<","<<ic->GetGeometry()[1].Id()<<")"<<std::endl;
-		std::cout<<" Push Back Not Set Conditions "<<rConditionId<<"("<<FaceNodes[0].Id()<<","<<FaceNodes[1].Id()<<")"<<std::endl;
-	      }
-
 	    }
+
 	  }
 	}
-
-
+	
       //control if all previous conditions have been added:
       bool all_assigned = true;
       for(unsigned int i=0; i<PreservedConditions.size(); i++)
@@ -749,10 +743,7 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-    ModelPart& mrModelPart;
 
-    int mMeshId;
-    int mEchoLevel;
 
     ///@}
     ///@name Private Operators
