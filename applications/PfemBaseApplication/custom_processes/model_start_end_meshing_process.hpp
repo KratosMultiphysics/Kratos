@@ -220,7 +220,7 @@ namespace Kratos
 	//FindNodalH.Execute();
 
 	//CONDITIONS MASTER_ELEMENTS and MASTER_NODES SEARCH
-	BuildMeshBoundaryProcess BuildBoundaryProcess(mrModelPart,2);
+	BuildMeshBoundaryProcess BuildBoundaryProcess(mrModelPart);
 	for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
 	  {
 	    BuildBoundaryProcess.SearchConditionMasters(MeshId);

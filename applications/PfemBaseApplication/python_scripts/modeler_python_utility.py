@@ -119,7 +119,7 @@ class ModelerUtility:
         mesh_id = 0
 
         # define building utility
-        skin_build = BuildMeshBoundary(self.model_part, self.domain_size, self.echo_level, mesh_id)
+        skin_build = BuildMeshBoundary(self.model_part, mesh_id, self.echo_level)
 
         # execute building:
         skin_build.Execute()
