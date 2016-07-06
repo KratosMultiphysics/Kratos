@@ -227,9 +227,9 @@ namespace Kratos {
     
     static inline void TensorGlobal2Local(const double LocalCoordSystem[3][3], const double GlobalTensor[3][3], double LocalTensor[3][3])
     {
-        // We will compute SigmaLocal = transposed(LocalCoordSystem) * GlobalTensor * LocalCoordSystem
-        // starting on the left, so we will first compute the product TemporalResult = transposed(LocalCoordSystem) * GlobalTensor
-        // and afterwards TemporalResult * LocalCoordSystem, which will give the value of the tensor LocalTensor
+        // We will compute LocalTensor = LocalCoordSystem * GlobalTensor * transposed(LocalCoordSystem)
+        // starting on the left, so we will first compute the product TemporalResult = LocalCoordSystem * GlobalTensor
+        // and afterwards TemporalResult * transposed(LocalCoordSystem), which will give the value of the tensor LocalTensor
         
         double TransposedLocalCoordSystem[3][3];
         double TemporalResult[3][3];
