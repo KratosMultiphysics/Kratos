@@ -213,6 +213,47 @@ namespace Kratos {
         }
     }
 
+    static inline void ProductMatrices3X3(const double Matrix1[3][3], const double Matrix2[3][3], double Matrix3[3][3])
+    {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                Matrix3[i][j] = 0.0;
+                for (int k = 0; k < 3; k++) {
+                    Matrix3[i][j] += Matrix1[i][k] * Matrix2[k][j];
+                }
+            }
+        }
+    }
+    
+    static inline void TensorGlobal2Local(const double LocalCoordSystem[3][3], const double GlobalTensor[3][3], double LocalTensor[3][3])
+    {
+        // We will compute SigmaLocal = transposed(LocalCoordSystem) * GlobalTensor * LocalCoordSystem
+        // starting on the left, so we will first compute the product TemporalResult = transposed(LocalCoordSystem) * GlobalTensor
+        // and afterwards TemporalResult * LocalCoordSystem, which will give the value of the tensor LocalTensor
+        
+        double TransposedLocalCoordSystem[3][3];
+        double TemporalResult[3][3];
+        
+        TransposedLocalCoordSystem[0][0] = LocalCoordSystem[0][0]; TransposedLocalCoordSystem[0][1] = LocalCoordSystem[1][0]; TransposedLocalCoordSystem[0][2] = LocalCoordSystem[2][0];
+        TransposedLocalCoordSystem[1][0] = LocalCoordSystem[0][1]; TransposedLocalCoordSystem[1][1] = LocalCoordSystem[1][1]; TransposedLocalCoordSystem[1][2] = LocalCoordSystem[2][1];
+        TransposedLocalCoordSystem[2][0] = LocalCoordSystem[0][2]; TransposedLocalCoordSystem[2][1] = LocalCoordSystem[1][2]; TransposedLocalCoordSystem[2][2] = LocalCoordSystem[2][2];     
+                    
+        ProductMatrices3X3(LocalCoordSystem, GlobalTensor, TemporalResult);
+        ProductMatrices3X3(TemporalResult, TransposedLocalCoordSystem, LocalTensor);
+    }
+        
+    static inline void RotaMatrixTensorLocal2Global(const double R[3][3], const double LocalTensor[3][3], double GlobalTensor[3][3])
+    {    
+        double RT[3][3]; double Temp[3][3];
+        
+        RT[0][0] = R[0][0]; RT[0][1] = R[1][0]; RT[0][2] = R[2][0];
+        RT[1][0] = R[0][1]; RT[1][1] = R[1][1]; RT[1][2] = R[2][1];
+        RT[2][0] = R[0][2]; RT[2][1] = R[1][2]; RT[2][2] = R[2][2];     
+                    
+        ProductMatrices3X3(R, LocalTensor, Temp);
+        ProductMatrices3X3(Temp, RT, GlobalTensor);
+    }
+
     static inline double DotProduct(double Vector1[3], double Vector2[3])
     {
         return Vector1[0] * Vector2[0] + Vector1[1] * Vector2[1] + Vector1[2] * Vector2[2];
@@ -537,7 +578,7 @@ namespace Kratos {
                                                           double LocalCoordSystem[3][3], double& normal_flag)
     {
         //NOTE: this function is designed in a way that the normal always points the side where the center of particle is found. Therefore should only be used in this way if the indentation is less than the radius value.
-        //the function returns a flag with the same value as the dotproduct of the normal of the triangle and the normal pointing to the particle.
+        //the function returns a flag with the same value as the dot product of the normal of the triangle and the normal pointing to the particle.
 
         double Vector1[3] = {0.0};
         double Vector2[3] = {0.0};
