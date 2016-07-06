@@ -34,7 +34,7 @@ make install -j2 -k > ${LOG_DIR}/compile_gcc.log 2> ${LOG_DIR}/compile_gcc.log
 
 # UnitTesting
 cd ${HOME}/Kratos/kratos/python_scripts
-python3 run_tests.py -l nightly > ${LOG_DIR}/unittest_gcc.log 2> ${LOG_DIR}/unittest_gcc.log
+python3 run_tests.py -l nightly > ${LOG_DIR}/unittest_gcc.log 2>&1
 
 # # Benchmarking
 # cd ${HOME}/Kratos/benchmarking
@@ -90,7 +90,7 @@ make install -j2 -k > ${LOG_DIR}/compile_clang.log 2> ${LOG_DIR}/compile_clang.l
 
 # UnitTesting
 cd ${HOME}/Kratos/kratos/python_scripts
-python3 run_tests.py -l nightly > ${LOG_DIR}/unittest_clang.log 2> ${LOG_DIR}/unittest_clang.log
+python3 run_tests.py -l nightly > ${LOG_DIR}/unittest_clang.log 2>&1
 
 # # Benchmarking
 # cd ${HOME}/Kratos/benchmarking
