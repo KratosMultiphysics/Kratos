@@ -114,6 +114,7 @@ public:
       
       ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
+      int id = 0; 
       if(mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_ELEMENTS)
 	 && mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_ADD_NODES) )
 	{
@@ -124,7 +125,7 @@ public:
 	  
 	  ModelerUtilities::MeshContainer& InMesh = mrRemesh.InMesh;
 
-	  InMesh.CreateElementList(mrRemesh.Info->NumberOfElements, nds);
+	  InMesh.CreateElementList(mrRemesh.Info->NumberOfElements, nds); //number of preserved elements
 	  InMesh.CreateElementSizeList(mrRemesh.Info->NumberOfElements);
 
 	  int& OutNumberOfElements = mrRemesh.OutMesh.GetNumberOfElements();
@@ -165,7 +166,6 @@ public:
 	  //SET THE REFINED ELEMENTS AND THE AREA (NODAL_H)
 	  //*********************************************************************
 
-	  int id = 0; 
 	    
 	  for(int el = 0; el< OutNumberOfElements; el++)
 	    {
@@ -347,7 +347,7 @@ public:
 		}
 
 
-
+	      
 	    }
 
 
@@ -376,11 +376,53 @@ public:
 	      }
 	  }
 	}
+      else{
 
+	  ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);
+	
+	  unsigned int nds = (*element_begin).GetGeometry().size();
+	  
+	  ModelerUtilities::MeshContainer& InMesh = mrRemesh.InMesh;
+	  
+	  InMesh.CreateElementList(mrRemesh.Info->NumberOfElements, nds); //number of preserved elements
+	  InMesh.CreateElementSizeList(mrRemesh.Info->NumberOfElements);
+	  
+	  int& OutNumberOfElements = mrRemesh.OutMesh.GetNumberOfElements();
+	  
+	  int* InElementList        = mrRemesh.InMesh.GetElementList();
+	  double* InElementSizeList = mrRemesh.InMesh.GetElementSizeList();
+	  
+	  int* OutElementList       = mrRemesh.OutMesh.GetElementList();
+	  
+	  ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin(mMeshId);	  
+	    
+	  for(int el = 0; el< OutNumberOfElements; el++)
+	    {
+	      if(mrRemesh.PreservedElements[el])
+		{
+		  Geometry<Node<3> > vertices;
+		  for(unsigned int pn=0; pn<nds; pn++)
+		    {
+		      InElementList[id*nds+pn]= OutElementList[el*nds+pn];
+		      vertices.push_back(*(nodes_begin + OutElementList[el*nds+pn]-1).base());		  
+		    }
+
+		  double element_size = 0;
+		  mModelerUtilities.CalculateElementRadius(vertices, element_size);
+		  
+		  InElementSizeList[id] = nodal_h_non_refining_factor * element_size;
+		}
+	      id++;
+	    }
+
+      }
 	
       
-      if( mEchoLevel > 0 )
+      if( mEchoLevel > 0 ){
+	std::cout<<"   Visited Elements: "<<id<<std::endl;
 	std::cout<<"   SELECT ELEMENTS TO REFINE ]; "<<std::endl;
+      }
+
       
       KRATOS_CATCH(" ")
     }

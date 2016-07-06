@@ -113,12 +113,10 @@ namespace Kratos
     
       //*******************************************************************
       //selecting elements
-      mrRemesh.ExecutionOptions.Set(ModelerUtilities::ENGAGED_NODES);
       
       SelectMeshElementsProcess SelectElements(mrModelPart,mrRemesh,mMeshId,mEchoLevel);
       SelectElements.Execute();
 
-      mrRemesh.ExecutionOptions.Reset(ModelerUtilities::ENGAGED_NODES);
 
       //*******************************************************************
       //setting new elements

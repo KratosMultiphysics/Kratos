@@ -42,11 +42,6 @@ namespace Kratos
   KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, MESH_SMOOTHING,       6 );
   KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, VARIABLES_SMOOTHING,  7 );
 
-  //execution options (tessellation)
-  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, NEIGHBOURS_SEARCH,    8 );
-  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, BOUNDARIES_SEARCH,    9 );
-  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, SET_DOF,              10 );
-
   //removing options
 
   //(configuration)
@@ -75,17 +70,22 @@ namespace Kratos
 
   //execution options
 
-  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, SET_NODES,             0 );
-  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, SET_ELEMENTS,          1 );
-  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, SET_NEIGHBOURS,        2 );
-  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, SET_FACES,             3 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, INITIALIZE_MESHER_INPUT,              0 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, FINALIZE_MESHER_INPUT,                1 );
 
-  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, SELECT_ELEMENTS,       4 );
-  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, SELECT_NODES,          5 );
-  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, PASS_ALPHA_SHAPE,      6 );
-  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, ENGAGED_NODES,         7 );
-  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, DELETE_DATA,           8 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, TRANSFER_KRATOS_NODES_TO_MESHER,      2 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, TRANSFER_KRATOS_ELEMENTS_TO_MESHER,   3 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, TRANSFER_KRATOS_NEIGHBOURS_TO_MESHER, 4 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, TRANSFER_KRATOS_FACES_TO_MESHER,      5 );
 
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, SELECT_TESSELLATION_ELEMENTS,         6 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, KEEP_ISOLATED_NODES,                  7 );
+
+  //execution options (tessellation)
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, NEIGHBOURS_SEARCH,                    8 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, BOUNDARIES_SEARCH,                    9 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, SET_DOF,                             10 );
+  KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, PASS_ALPHA_SHAPE,                    11 );
 
   
 

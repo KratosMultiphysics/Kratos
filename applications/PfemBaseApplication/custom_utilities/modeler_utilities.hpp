@@ -98,11 +98,6 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG ( MESH_SMOOTHING );
     KRATOS_DEFINE_LOCAL_FLAG ( VARIABLES_SMOOTHING );
      
-    //execution options (tessellation) //not needed any more, just the strings definition...to set.
-    KRATOS_DEFINE_LOCAL_FLAG ( NEIGHBOURS_SEARCH );
-    KRATOS_DEFINE_LOCAL_FLAG ( BOUNDARIES_SEARCH );
-    KRATOS_DEFINE_LOCAL_FLAG ( SET_DOF );
-
     //removing options
 
     //(configuration)
@@ -134,18 +129,25 @@ public:
 
     //execution options      
     //(select)
-    KRATOS_DEFINE_LOCAL_FLAG ( SET_NODES );
-    KRATOS_DEFINE_LOCAL_FLAG ( SET_ELEMENTS );
-    KRATOS_DEFINE_LOCAL_FLAG ( SET_NEIGHBOURS );
-    KRATOS_DEFINE_LOCAL_FLAG ( SET_FACES );
-    
-    KRATOS_DEFINE_LOCAL_FLAG ( SELECT_ELEMENTS );
-    KRATOS_DEFINE_LOCAL_FLAG ( SELECT_NODES );
-    KRATOS_DEFINE_LOCAL_FLAG ( PASS_ALPHA_SHAPE );
-    KRATOS_DEFINE_LOCAL_FLAG ( ENGAGED_NODES );
-    KRATOS_DEFINE_LOCAL_FLAG ( DELETE_DATA );
+    KRATOS_DEFINE_LOCAL_FLAG ( INITIALIZE_MESHER_INPUT );
+    KRATOS_DEFINE_LOCAL_FLAG ( FINALIZE_MESHER_INPUT );
 
+    KRATOS_DEFINE_LOCAL_FLAG ( TRANSFER_KRATOS_NODES_TO_MESHER );
+    KRATOS_DEFINE_LOCAL_FLAG ( TRANSFER_KRATOS_ELEMENTS_TO_MESHER );
+    KRATOS_DEFINE_LOCAL_FLAG ( TRANSFER_KRATOS_NEIGHBOURS_TO_MESHER );
+    KRATOS_DEFINE_LOCAL_FLAG ( TRANSFER_KRATOS_FACES_TO_MESHER );
+    
+    KRATOS_DEFINE_LOCAL_FLAG ( SELECT_TESSELLATION_ELEMENTS );
+    KRATOS_DEFINE_LOCAL_FLAG ( KEEP_ISOLATED_NODES );
    
+    //execution options (tessellation) //not needed any more, just the strings definition...to set.
+    KRATOS_DEFINE_LOCAL_FLAG ( NEIGHBOURS_SEARCH );
+    KRATOS_DEFINE_LOCAL_FLAG ( BOUNDARIES_SEARCH );
+    KRATOS_DEFINE_LOCAL_FLAG ( SET_DOF );
+
+    KRATOS_DEFINE_LOCAL_FLAG ( PASS_ALPHA_SHAPE );
+
+
     struct MeshContainer
     {
       
@@ -164,7 +166,6 @@ public:
 
     public:
       
-      bool ContainerActiveFlag;
 
       //flags to set when the pointers are created (true) or deleted (false)
       bool PointListFlag;
@@ -234,7 +235,6 @@ public:
 	mNumberOfPoints        = 0;
 	mNumberOfElements      = 0;
 
-	ContainerActiveFlag      = false;
 	PointListFlag            = false;
 	ElementListFlag          = false;
 	ElementSizeListFlag      = false;
@@ -269,7 +269,6 @@ public:
 	mNumberOfPoints        = 0;
 	mNumberOfElements      = 0;
 
-	ContainerActiveFlag      = false;
 	PointListFlag            = false;
 	ElementListFlag          = false;
 	ElementSizeListFlag      = false;
@@ -565,7 +564,7 @@ public:
       bool TransferVariablesSetFlag;
 
       //Local execution variables
-      bool    NodalIdsSetFlag;
+      bool InputInitializedFlag;
 
       std::vector<int> NodalPreIds;
       std::vector<int> NodalNewIds;
@@ -611,10 +610,6 @@ public:
 	TessellationInfo=rInfo;
       };
 
-      void SetNodalIdsFlag(bool rFlag)
-      {
-	NodalIdsSetFlag = rFlag;
-      };
 
       void SetAlphaParameter( const double rAlpha)
       {
@@ -701,7 +696,7 @@ public:
 
 	TransferVariablesSetFlag = false;
   
-	NodalIdsSetFlag = false;
+	InputInitializedFlag = false;
 
 	InMesh.Initialize();
 	OutMesh.Initialize();

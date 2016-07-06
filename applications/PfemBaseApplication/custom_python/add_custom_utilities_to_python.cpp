@@ -144,15 +144,15 @@ namespace Kratos
 	.def_readonly("REFINE_BOUNDARY_ON_ERROR",&ModelerUtilities::REFINE_BOUNDARY_ON_ERROR)
 	.def_readonly("REFINE_BOUNDARY_ON_THRESHOLD",&ModelerUtilities::REFINE_BOUNDARY_ON_THRESHOLD)
 
-	.def_readonly("SET_NODES",&ModelerUtilities::SET_NODES)
-	.def_readonly("SET_ELEMENTS",&ModelerUtilities::SET_ELEMENTS)
-	.def_readonly("SET_NEIGHBOURS",&ModelerUtilities::SET_NEIGHBOURS)
-	.def_readonly("SET_FACES",&ModelerUtilities::SET_FACES)
-	.def_readonly("SELECT_ELEMENTS",&ModelerUtilities::SELECT_ELEMENTS)
-	.def_readonly("SELECT_NODES",&ModelerUtilities::SELECT_NODES)
-	.def_readonly("PASS_ALPHA_SHAPE",&ModelerUtilities::PASS_ALPHA_SHAPE)
-	.def_readonly("ENGAGED_NODES",&ModelerUtilities::ENGAGED_NODES)
-	.def_readonly("DELETE_DATA",&ModelerUtilities::DELETE_DATA)
+	.def_readonly("INITIALIZE_MESHER_INPUT",&ModelerUtilities::INITIALIZE_MESHER_INPUT)
+	.def_readonly("FINALIZE_MESHER_INPUT",&ModelerUtilities::FINALIZE_MESHER_INPUT)
+	.def_readonly("TRANSFER_KRATOS_NODES_TO_MESHER",&ModelerUtilities::TRANSFER_KRATOS_NODES_TO_MESHER)
+	.def_readonly("TRANSFER_KRATOS_ELEMENTS_TO_MESHER",&ModelerUtilities::TRANSFER_KRATOS_ELEMENTS_TO_MESHER)
+	.def_readonly("TRANSFER_KRATOS_NEIGHBOURS_TO_MESHER",&ModelerUtilities::TRANSFER_KRATOS_NEIGHBOURS_TO_MESHER)
+	.def_readonly("TRANSFER_KRATOS_FACES_TO_MESHER",&ModelerUtilities::TRANSFER_KRATOS_FACES_TO_MESHER)
+
+	.def_readonly("SELECT_TESSELLATION_ELEMENTS",&ModelerUtilities::SELECT_TESSELLATION_ELEMENTS)
+	.def_readonly("KEEP_ISOLATED_NODES",&ModelerUtilities::KEEP_ISOLATED_NODES)
 	;
         
         
@@ -258,7 +258,6 @@ namespace Kratos
 	.def("SetMeshingBox",&ModelerUtilities::MeshingParameters::SetMeshingBox)
 	.def("SetTransferParameters",&ModelerUtilities::MeshingParameters::SetTransferParameters)
 	.def("SetTransferVariable",&ModelerUtilities::MeshingParameters::SetTransferVariable)
-	.def("SetNodalIdsFlag",&ModelerUtilities::MeshingParameters::SetNodalIdsFlag)
 	.def("SetReferenceElement",SetReferenceElement)
 	.def("SetReferenceCondition",SetReferenceCondition)
 	.def("GetInfoParameters",&ModelerUtilities::MeshingParameters::GetInfoParameters)

@@ -28,22 +28,23 @@ class PreRefiningModeler(mesh_modeler.MeshModeler):
     def InitializeMeshing(self):
         
         # set execution flags: to set the options to be executed in methods and processes
-        execution_options = KratosMultiphysics.Flags()
         meshing_options = self.MeshingParameters.GetOptions()
+
+        execution_options = KratosMultiphysics.Flags()
     
-        self.MeshingParameters.SetNodalIdsFlag(False) #they are not set
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SET_NODES, True)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SET_ELEMENTS, False)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SET_NEIGHBOURS, False)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.INITIALIZE_MESHER_INPUT, True)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.FINALIZE_MESHER_INPUT,  False)
+
+        execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_NODES_TO_MESHER, True)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_ELEMENTS_TO_MESHER, False)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_NEIGHBOURS_TO_MESHER, False)
 
         if( meshing_options.Is(KratosPfemBase.ModelerUtilities.CONSTRAINED) ):
-            execution_options.Set(KratosPfemBase.ModelerUtilities.SET_FACES, True)
+            execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_FACES_TO_MESHER, True)
 
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SELECT_ELEMENTS, True)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SELECT_NODES, False)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.PASS_ALPHA_SHAPE, True)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.ENGAGED_NODES, False)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.DELETE_DATA, False)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.SELECT_TESSELLATION_ELEMENTS, True)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.KEEP_ISOLATED_NODES, False)
+
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
         
@@ -115,33 +116,25 @@ class PreRefiningModeler(mesh_modeler.MeshModeler):
     def FinalizeMeshing(self):
         
         # reset execution flags: to unset the options to be executed in methods and processes
-        execution_options = KratosMultiphysics.Flags()
-
-        self.MeshingParameters.SetNodalIdsFlag(True) #they are already set
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SET_NODES, False)
-
         refining_parameters = self.MeshingParameters.GetRefiningParameters()
         refining_options = refining_parameters.GetRefiningOptions()
 
-        if( refining_options.Is(KratosPfemBase.ModelerUtilities.REFINE_INSERT_NODES) ):
-            self.MeshingParameters.SetNodalIdsFlag(False) #set it again
-            execution_options.Set(KratosPfemBase.ModelerUtilities.SET_NODES, True)
-
-        if( refining_options.Is(KratosPfemBase.ModelerUtilities.REFINE_ADD_NODES) ):
-            self.MeshingParameters.SetNodalIdsFlag(True) #they are already set
-            execution_options.Set(KratosPfemBase.ModelerUtilities.SET_NODES, False)
-
-
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SET_ELEMENTS, False)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SET_NEIGHBOURS, False)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SET_FACES, False)  
+        execution_options = KratosMultiphysics.Flags()
 
         # set for the post_refining process
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SELECT_ELEMENTS, True)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SELECT_NODES, True)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.PASS_ALPHA_SHAPE, True)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.ENGAGED_NODES, True) 
+        if( refining_options.Is(KratosPfemBase.ModelerUtilities.REFINE_INSERT_NODES) ):
+            execution_options.Set(KratosPfemBase.ModelerUtilities.INITIALIZE_MESHER_INPUT, True)
+            execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_NODES_TO_MESHER, True)
+            if( meshing_options.Is(KratosPfemBase.ModelerUtilities.CONSTRAINED) ):
+                execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_FACES_TO_MESHER, True)
+                 
 
-        execution_options.Set(KratosPfemBase.ModelerUtilities.DELETE_DATA, True)
+        if( refining_options.Is(KratosPfemBase.ModelerUtilities.REFINE_ADD_NODES) ):
+            execution_options.Set(KratosPfemBase.ModelerUtilities.INITIALIZE_MESHER_INPUT, False)
+
+        execution_options.Set(KratosPfemBase.ModelerUtilities.FINALIZE_MESHER_INPUT,  True)
+
+        execution_options.Set(KratosPfemBase.ModelerUtilities.SELECT_TESSELLATION_ELEMENTS, True)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.KEEP_ISOLATED_NODES, False)
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
