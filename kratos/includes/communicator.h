@@ -534,6 +534,18 @@ public:
         return true;
     }
     
+    virtual bool ScanSum(const double& send_partial, double& receive_accumulated)
+    {
+        receive_accumulated = send_partial;
+        return true;
+    }
+    
+    virtual bool ScanSum(const int& send_partial, int& receive_accumulated)
+    {
+        receive_accumulated = send_partial;
+        return true;
+    }
+    
     virtual bool SynchronizeElementalIds()
     {
         // #if defined(KRATOS_USING_MPI )
