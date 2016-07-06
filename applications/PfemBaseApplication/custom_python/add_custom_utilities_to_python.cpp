@@ -70,9 +70,9 @@ namespace Kratos
 
 
     // transfer methods
-    void TransferNodesToElementsOnThreshold( MeshDataTransferUtilities& rMeshDataTransfer, MeshDataTransferUtilities::TransferParameters& rTransferParameters, const Variable<double>& rVariable, double Value, ModelPart& rModelPart, int MeshId)
+    void TransferNodesToElementsOnThreshold( MeshDataTransferUtilities& rMeshDataTransfer, MeshDataTransferUtilities::TransferParameters& rTransferParameters, ModelerUtilities::RefiningParameters& rRefiningParameters, ModelPart& rModelPart, int MeshId)
     {
-      rMeshDataTransfer.TransferNodalValuesToElements( rTransferParameters, rVariable, Value, rModelPart, MeshId );
+      rMeshDataTransfer.TransferNodalValuesToElements( rTransferParameters, rRefiningParameters.GetThresholdVariable(), rRefiningParameters.GetReferenceThreshold(), rModelPart, MeshId );
     }
 
     void SetDoubleVariable( MeshDataTransferUtilities::TransferParameters& rTransferParameters, const Variable<double>& rVariable)
