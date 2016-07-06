@@ -42,18 +42,21 @@ public:
     /***********************************************************************************/
 
     /**
-     * This
-     * @param
-     * @return
+     * This function fills the contact_container for the Mortar condition
+     * @param ContactPoint: The destination point
+     * @param Geom1 and Geom2: The geometries of the slave and master respectively
+     * @param contact_normal1 and contact_normal2: The normals of the slave and master respectively
+     * @param IntegrationOrder: The integration order   
+     * @return contact_container: Once has been filled
      */
 
     static inline void ContactContainerFiller(
             contact_container & contact_container,
             const Point<3>& ContactPoint,
-            Geometry<Node<3> > & Geom1,
-            Geometry<Node<3> > & Geom2,
-            const array_1d<double, 3> & contact_normal1,
-            const array_1d<double, 3> & contact_normal2,
+            Geometry<Node<3> > & Geom1, // SLAVE
+            Geometry<Node<3> > & Geom2, // MASTER
+            const array_1d<double, 3> & contact_normal1, // SLAVE
+            const array_1d<double, 3> & contact_normal2, // MASTER
             const IntegrationMethod IntegrationOrder
             )
     {        
@@ -63,7 +66,7 @@ public:
          const unsigned int dimension = Geom1.WorkingSpaceDimension();
          contact_container.contact_gap.resize(number_nodes);
          contact_container.active_nodes_slave.resize(number_nodes);
-
+         
          for (unsigned int index = 0; index < number_nodes; index++)
          {
              Project(ContactPoint,  Geom1[index], ProjectedPoint, contact_container.contact_gap[index], contact_normal1);
@@ -159,16 +162,19 @@ public:
              // TODO: IMPLEMENT IN 3D
          }
          
-//         contact_container.print();
+        contact_container.print();
     }
 
     /***********************************************************************************/
     /***********************************************************************************/
     
     /**
-     * Project
-     * @param
-     * @return
+     * Project a point over a plane
+     * @param PointOrigin: A point in the plane
+     * @param PointDestiny: The point to be projected
+     * @param Normal: The normal of the plane
+     * @return PointProjected: The point pojected over the plane
+     * @return dist: The distance between the point and the plane
      */
 
     static inline void Project(
@@ -191,95 +197,12 @@ public:
     /***********************************************************************************/
     
     /**
-     * 
-     * @param 
-     * @return 
-     */
-
-    static inline void LocalLine2D2NProcess(
-        const std::vector<bool> & active_nodes,
-        const std::vector<bool> & active_gauss,
-        Geometry<Node<3> > & Geom,
-        Geometry<Point<3> > & GeomOut,
-        double & coord1,
-        double & coord2,
-        const IntegrationMethod & IntegrationOrder
-    )
-    {   
-        Point<3>::Pointer pPoint1, pPoint2;
-        
-        bool point1_assigned = false;
-        bool point2_assigned = false;
-        
-        if (active_nodes[0] == true)
-        {
-            pPoint1->Coordinates() = Geom[0].Coordinates();
-            coord1 = - 1.0;
-            point1_assigned = true;
-        }
-        
-        if (active_nodes[1] == true)
-        {
-            pPoint2->Coordinates() = Geom[1].Coordinates();
-            coord2 = 1.0;
-            point2_assigned = true;
-        }
-        
-        if ((point1_assigned && point2_assigned) == false)
-        {
-            const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( IntegrationOrder );
-            const unsigned int number_integration_points = integration_points.size();
-            for (unsigned int PointNumber = 0; PointNumber < number_integration_points; PointNumber++)
-            {
-                Point<3> GaussPointLocalCoordinates;
-                
-                if (point1_assigned == false)
-                {
-                    if (active_gauss[PointNumber] == true)
-                    {
-                        GaussPointLocalCoordinates.Coordinates() = integration_points[PointNumber].Coordinates();
-
-                        array_1d<double, 3> result;
-                        *(pPoint1) = Geom.GlobalCoordinates(result, GaussPointLocalCoordinates);
-                        
-                        coord1 = GaussPointLocalCoordinates.Coordinate(1);
-                        
-                        point1_assigned = true;
-                    }
-                }
-                
-                if (point2_assigned == false)
-                {
-                    if (active_gauss[number_integration_points - PointNumber - 1] == true)
-                    {
-                        GaussPointLocalCoordinates.Coordinates() = integration_points[number_integration_points - PointNumber - 1].Coordinates();
-
-                        array_1d<double, 3> result;
-                        *(pPoint2) = Geom.GlobalCoordinates(result, GaussPointLocalCoordinates);
-                         
-                        coord2 = GaussPointLocalCoordinates.Coordinate(1);
-                        
-                        point2_assigned = true;
-                    }
-                }
-                
-                if ((point1_assigned && point2_assigned) == true)
-                {
-                    break;
-                }
-            }
-        }
-
-        GeomOut = Line2D2< Point<3> >(pPoint1, pPoint2);
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    /**
-     * 
-     * @param 
-     * @return 
+     * This function calculates the local coordinates of the projected line for the mortar condition
+     * @param active_nodes: Vector that says if the points of the line are active 
+     * @param active_gauss: Vector that says if the Gauss points of the line are active 
+     * @param Geom: The geometry of the line
+     * @param IntegrationOrder: The integration order of the line  
+     * @return coord1 and coord2: The local coordinates of the pojected points of the line
      */
 
     static inline void LocalLine2D2NProcess(
@@ -325,7 +248,7 @@ public:
                 
                 if (point2_assigned == false)
                 {
-                    if (active_gauss[PointNumber] == true)
+                    if (active_gauss[number_integration_points - PointNumber - 1] == true)
                     {
                         coord2 = integration_points[number_integration_points - PointNumber - 1].Coordinate(1);
                         point2_assigned = true;
