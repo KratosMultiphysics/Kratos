@@ -114,7 +114,7 @@ public:
       bool wrong_added_node = false;
 
 
-      if(mrRemesh.ExecutionOptions.IsNot(ModelerUtilities::SELECT_ELEMENTS))
+      if(mrRemesh.ExecutionOptions.IsNot(ModelerUtilities::SELECT_TESSELLATION_ELEMENTS))
 	{
 	  for(int el=0; el<OutNumberOfElements; el++)
 	    {
@@ -264,23 +264,16 @@ public:
 	      bool accepted=false;
 	      
 	      ModelerUtilities ModelerUtils;
-	      if(mrRemesh.ExecutionOptions.Is(ModelerUtilities::PASS_ALPHA_SHAPE)){
-		
-		if(mrRemesh.Options.Is(ModelerUtilities::CONTACT_SEARCH))
-		  {
-		    accepted=ModelerUtils.ShrankAlphaShape(Alpha,vertices,mrRemesh.OffsetFactor,dimension);
-		  }
-		else
-		  {
-		    accepted=ModelerUtils.AlphaShape(Alpha,vertices,dimension);
-		  }
+	      
+	      if(mrRemesh.Options.Is(ModelerUtilities::CONTACT_SEARCH))
+		{
+		  accepted=ModelerUtils.ShrankAlphaShape(Alpha,vertices,mrRemesh.OffsetFactor,dimension);
+		}
+	      else
+		{
+		  accepted=ModelerUtils.AlphaShape(Alpha,vertices,dimension);
+		}
 
-	      }
-	      else{
-
-		accepted = true;
-
-	      }
 	      	   
 	      //3.- to control all nodes from the same subdomain (problem, domain is not already set for new inserted particles on mesher)
 	      // if(accepted)
@@ -333,8 +326,8 @@ public:
 	      if(accepted)
 		{
 		  //std::cout<<" Element ACCEPTED after cheking Center "<<number<<std::endl;
-		  mrRemesh.PreservedElements[el] = 1;
 		  number+=1;
+		  mrRemesh.PreservedElements[el] = number;
 		}
 	      // else{
 	      
@@ -348,9 +341,9 @@ public:
 
 	}
 
-      //std::cout<<"   Number of Preserved Elements "<<mrRemesh.Info->NumberOfElements<<std::endl;
+      std::cout<<"   Number of Preserved Elements "<<mrRemesh.Info->NumberOfElements<<std::endl;
 
-      if(mrRemesh.ExecutionOptions.Is(ModelerUtilities::ENGAGED_NODES)){
+      if(mrRemesh.ExecutionOptions.IsNot(ModelerUtilities::KEEP_ISOLATED_NODES)){
 
 
 	ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
@@ -363,11 +356,11 @@ public:
 	//check engaged nodes
 	for(int el=0; el<OutNumberOfElements; el++)
 	  {
-	    if( mrRemesh.PreservedElements[el]){
+	    if( mrRemesh.PreservedElements[el] ){
 	      for(unsigned int pn=0; pn<nds; pn++)
 		{
 		  //set vertices
-		  rNodes[OutElementList[el*nds+pn]].Set(ModelerUtilities::ENGAGED_NODES);
+		  rNodes[OutElementList[el*nds+pn]].Set(BLOCKED);
 		}
 	    }
 	    
@@ -376,23 +369,32 @@ public:
 	int count_release = 0;
 	for(ModelPart::NodesContainerType::iterator i_node = rNodes.begin() ; i_node != rNodes.end() ; i_node++)
 	  {
-	    if( i_node->IsNot(ModelerUtilities::ENGAGED_NODES)  ){
+	    if( i_node->IsNot(BLOCKED)  ){
 	      if(!(i_node->Is(FREE_SURFACE) || i_node->Is(RIGID))){
 		i_node->Set(TO_ERASE);
 		if( mEchoLevel > 0 )
 		  std::cout<<" NODE "<<i_node->Id()<<" RELEASE "<<std::endl;
-		if( i_node->IsNot(ModelerUtilities::ENGAGED_NODES) )
+		if( i_node->Is(BOUNDARY) )
 		  std::cout<<" ERROR: node "<<i_node->Id()<<" IS BOUNDARY RELEASE "<<std::endl;
 		count_release++;
 	      }
 	    }
 	      
-	    i_node->Reset(ModelerUtilities::ENGAGED_NODES);
+	    i_node->Reset(BLOCKED);
 	  }
 	  
 	if( mEchoLevel > 0 )
 	  std::cout<<"   NUMBER OF RELEASED NODES "<<count_release<<std::endl;
 
+      }
+      else{
+	
+	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes(mMeshId);
+
+	for(ModelPart::NodesContainerType::iterator i_node = rNodes.begin() ; i_node != rNodes.end() ; i_node++)
+	  { 
+	    i_node->Reset(BLOCKED);
+	  }
       }
 
       if( mEchoLevel > 0 ){

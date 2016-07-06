@@ -168,12 +168,17 @@ protected:
 
     //*******************************************************************************************
     //*******************************************************************************************
-    void SetModelerData(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr);
+    void GetFromContainer(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr);
 
-    void GetModelerData(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr);
+    void SetToContainer(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr);
 
-    void UnsetModelerData(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr);
+    void DeleteContainer(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr);
 
+    //Set faces in the triangulateio before the Delaunay Tesselation
+    void BuildInput ( ModelPart &rModelPart,
+		      MeshingParametersType & rMeshingVariables,
+		      tetgenio& in,
+		      ModelPart::IndexType MeshId=0 );
 
     //*******************************************************************************************
     //*******************************************************************************************
@@ -324,7 +329,6 @@ private:
     void SetFaces( ModelPart &rModelPart,
 		   MeshingParametersType & rMeshingVariables,
 		   tetgenio &in,
-		   tetgenio &out,
 		   ModelPart::IndexType MeshId=0 );
 
 

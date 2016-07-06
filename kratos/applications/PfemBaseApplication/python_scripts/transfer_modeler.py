@@ -30,15 +30,15 @@ class TransferModeler(mesh_modeler.MeshModeler):
         # set execution flags: to set the options to be executed in methods and processes
         execution_options = KratosMultiphysics.Flags()
 
-        self.MeshingParameters.SetNodalIdsFlag(False) #they are not set
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SET_NODES, True)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SET_ELEMENTS, True)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SET_NEIGHBOURS, True)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.INITIALIZE_MESHER_INPUT, True)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.FINALIZE_MESHER_INPUT, True)
 
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SELECT_ELEMENTS, True)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.PASS_ALPHA_SHAPE, False)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.ENGAGED_NODES, False)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.DELETE_DATA, True) #delete data at the end
+        execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_NODES_TO_MESHER, True)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_ELEMENTS_TO_MESHER, True)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_NEIGHBOURS_TO_MESHER, True)
+                              
+        execution_options.Set(KratosPfemBase.ModelerUtilities.SELECT_TESSELLATION_ELEMENTS, True)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.KEEP_ISOLATED_NODES, False)
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
         

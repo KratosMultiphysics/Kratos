@@ -472,12 +472,12 @@ namespace Kratos
     //*******************************************************************
     //selecting elements
     rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::PASS_ALPHA_SHAPE);
-    rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::SELECT_ELEMENTS);
+    rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::SELECT_TESSELLATION_ELEMENTS);
     rMeshingVariables.Options.Set(ModelerUtilities::CONTACT_SEARCH);
 
     this->SelectMeshElements(rBoundaryNodes,rMeshingVariables,out);
 
-    rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::SELECT_ELEMENTS);
+    rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::SELECT_TESSELLATION_ELEMENTS);
     rMeshingVariables.Options.Reset(ModelerUtilities::CONTACT_SEARCH);
     rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::PASS_ALPHA_SHAPE);
 

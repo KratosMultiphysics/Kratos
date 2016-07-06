@@ -635,7 +635,7 @@ namespace Kratos
     double* PointList     = InMesh.GetPointList();
     int& NumberOfPoints   = InMesh.GetNumberOfPoints();
 
-    if(!rMeshingVariables.NodalIdsSetFlag){
+    if(!rMeshingVariables.InputInitializedFlag){
 
       if((int)rMeshingVariables.NodalPreIds.size() != NumberOfPoints)
 	rMeshingVariables.NodalPreIds.resize(NumberOfPoints+1);
@@ -652,7 +652,7 @@ namespace Kratos
     for(int i = 0; i<NumberOfPoints; i++)
       {
 	//from now on it is consecutive
-	if(!rMeshingVariables.NodalIdsSetFlag){
+	if(!rMeshingVariables.InputInitializedFlag){
 	  rMeshingVariables.NodalPreIds[direct]=(nodes_begin + i)->Id();
 	  (nodes_begin + i)->SetId(direct);
 	}

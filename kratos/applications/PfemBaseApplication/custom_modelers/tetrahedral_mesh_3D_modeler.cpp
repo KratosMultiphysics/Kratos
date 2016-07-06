@@ -25,39 +25,22 @@ namespace Kratos
   
   //*******************************************************************************************
   //*******************************************************************************************
-  void TetrahedralMesh3DModeler::SetModelerData(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr)
+  void TetrahedralMesh3DModeler::GetFromContainer(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr)
   {
 
     KRATOS_TRY
 
-    // first time enters this method the container is active
-    if( rMesh.ContainerActiveFlag == false ){
-
-      ClearTetrahedraList(tr);
-
-      tr.pointlist              = rMesh.GetPointList();
-      tr.tetrahedronlist        = rMesh.GetElementList();
-      tr.tetrahedronvolumelist  = rMesh.GetElementSizeList();
-      tr.neighborlist           = rMesh.GetElementNeighbourList();      
-      rMesh.ContainerActiveFlag = true;
-
-    }
-    else{
-          
-      //set pointers
-      tr.pointlist              = rMesh.GetPointList();
-      tr.tetrahedronlist        = rMesh.GetElementList();
-      tr.tetrahedronvolumelist  = rMesh.GetElementSizeList();
-      tr.neighborlist           = rMesh.GetElementNeighbourList();      
-
-      // copy the numbers 
-      if( rMesh.GetNumberOfPoints() )
-	tr.numberofpoints = rMesh.GetNumberOfPoints();
-             
-      if( rMesh.GetNumberOfElements() )
-	tr.numberoftetrahedra = rMesh.GetNumberOfElements();
-
-    }
+    //get pointers
+    tr.pointlist             = rMesh.GetPointList();
+    tr.tetrahedronlist       = rMesh.GetElementList();
+    tr.tetrahedronvolumelist = rMesh.GetElementSizeList();
+    tr.neighborlist          = rMesh.GetElementNeighbourList();      
+    
+    if( rMesh.GetNumberOfPoints() != 0 )
+      tr.numberofpoints = rMesh.GetNumberOfPoints();
+      
+    if( rMesh.GetNumberOfElements() != 0 )
+      tr.numberoftetrahedra = rMesh.GetNumberOfElements();
 
     KRATOS_CATCH( "" )
   }
@@ -65,14 +48,11 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  void TetrahedralMesh3DModeler::GetModelerData(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr)
+  void TetrahedralMesh3DModeler::SetToContainer(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr)
   {
 
     KRATOS_TRY
 
-    if( rMesh.ContainerActiveFlag == false )
-      std::cout<<" Something if Wrong in the Modeler Data "<<std::endl;
-              
     //set pointers
     rMesh.SetPointList(tr.pointlist);
     rMesh.SetElementList(tr.tetrahedronlist);
@@ -80,11 +60,11 @@ namespace Kratos
     rMesh.SetElementNeighbourList(tr.neighborlist);
 
     // copy the numbers 
-    if( tr.numberofpoints ){
+    if( tr.numberofpoints != 0 ){
       rMesh.SetNumberOfPoints(tr.numberofpoints);
     }
 
-    if( tr.numberoftetrahedra ){
+    if( tr.numberoftetrahedra != 0 ){
       rMesh.SetNumberOfElements(tr.numberoftetrahedra);
     }
     
@@ -95,7 +75,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  void TetrahedralMesh3DModeler::UnsetModelerData(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr)
+  void TetrahedralMesh3DModeler::DeleteContainer(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr)
   {
     KRATOS_TRY
 
@@ -114,6 +94,46 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
+  void TetrahedralMesh3DModeler::BuildInput(ModelPart& rModelPart,
+					    MeshingParametersType& rMeshingVariables,
+					    tetgenio& in,
+					    ModelPart::IndexType MeshId)
+    
+  {
+    KRATOS_TRY
+
+    if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::INITIALIZE_MESHER_INPUT) ){
+
+      //Set Nodes
+      if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::TRANSFER_KRATOS_NODES_TO_MESHER) )
+	this->SetNodes(rModelPart,rMeshingVariables,MeshId);
+      
+      //Set Elements
+      if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::TRANSFER_KRATOS_ELEMENTS_TO_MESHER) )
+	this->SetElements(rModelPart,rMeshingVariables,MeshId);
+      
+      //Set Neighbours
+      if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::TRANSFER_KRATOS_NEIGHBOURS_TO_MESHER) )
+	this->SetNeighbours(rModelPart,rMeshingVariables,MeshId);
+
+      rMeshingVariables.InputInitializedFlag = true;
+    }
+    
+    ClearTetrahedraList(in);
+    GetFromContainer(rMeshingVariables.InMesh,in);
+
+    //Set Faces
+    if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::TRANSFER_KRATOS_FACES_TO_MESHER) )
+      this->SetFaces(rModelPart,rMeshingVariables, in, MeshId);
+
+
+    KRATOS_CATCH( "" )
+  }
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
   void TetrahedralMesh3DModeler::Generate(ModelPart& rModelPart,
 					  MeshingParametersType& rMeshingVariables,
 					  ModelPart::IndexType MeshId)
@@ -123,14 +143,6 @@ namespace Kratos
  
     this->StartEcho(rModelPart,"PFEM Base Remesh",MeshId);
     
-    //Creating the containers for the input and output
-    tetgenio in;
-    tetgenio out;
- 
-    //Set/Get data pointers
-    SetModelerData(rMeshingVariables.InMesh,in);
-    SetModelerData(rMeshingVariables.OutMesh,out);
-
     //*********************************************************************
 
     ////////////////////////////////////////////////////////////
@@ -139,29 +151,12 @@ namespace Kratos
 
     //*********************************************************************      
 
+    //Creating the containers for the input and output
+    tetgenio in;
+    tetgenio out;
+    ClearTetrahedraList(out);
 
-    //*********************************************************************
-
-    //Set Nodes
-    if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::SET_NODES) )
-      this->SetNodes(rModelPart,rMeshingVariables,MeshId);
-
-    //Set Elements
-    if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::SET_ELEMENTS) )
-      this->SetElements(rModelPart,rMeshingVariables,MeshId);
-
-    //Set Neighbours
-    if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::SET_NEIGHBOURS) )
-      this->SetNeighbours(rModelPart,rMeshingVariables,MeshId);
-
-    //Set/Get data pointers
-    SetModelerData(rMeshingVariables.InMesh,in);
-    SetModelerData(rMeshingVariables.OutMesh,out);
-
-    //Set Faces
-    if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::SET_FACES) )
-      this->SetFaces(rModelPart,rMeshingVariables, in, out, MeshId);
-
+    BuildInput(rModelPart,rMeshingVariables,in,MeshId);    
 
     //*********************************************************************
 
@@ -190,12 +185,10 @@ namespace Kratos
     if( this->GetEchoLevel() > 0 )
       std::cout<<" [ MESH GENERATION (TIME = "<<auxiliary.elapsed()<<") ] "<<std::endl;
 
-
-    //Get data numbers
-    GetModelerData(rMeshingVariables.OutMesh,out);
-
     //*********************************************************************
     
+    //GetOutput
+    SetToContainer(rMeshingVariables.OutMesh,out);
 
     //*********************************************************************
 
@@ -204,22 +197,19 @@ namespace Kratos
     ////////////////////////////////////////////////////////////
 
 
-    //Set/Get data pointers
-    SetModelerData(rMeshingVariables.InMesh,in); //necesary if a process fills in...
+    //*********************************************************************
+
+    //Free input memory or keep it to transfer it for next mesh generation
+    if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::FINALIZE_MESHER_INPUT) )
+      DeleteContainer(rMeshingVariables.InMesh,in);
 
     //*********************************************************************
 
-    //Free memory  (to determine from custom mesh modelling)
-    if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::DELETE_DATA) ){
-      UnsetModelerData(rMeshingVariables.InMesh,in);
-      if(rMeshingVariables.Options.Is(ModelerUtilities::REMESH))
-	UnsetModelerData(rMeshingVariables.OutMesh,out);
-    }
-    else{
-      if(rMeshingVariables.Options.Is(ModelerUtilities::REMESH))
-	UnsetModelerData(rMeshingVariables.OutMesh,out);
-    }
+    //Free output memory
+    if(rMeshingVariables.Options.Is(ModelerUtilities::REMESH))
+      DeleteContainer(rMeshingVariables.OutMesh,out);
 
+    
     this->EndEcho(rModelPart,"PFEM Base Remesh",MeshId);
 
     KRATOS_CATCH( "" )
@@ -239,7 +229,7 @@ namespace Kratos
     //configuration Options false: REMESH, REFINE, CONSTRAINED
     //configuration Options true : MESH_SMOOTHING
 
-    //execution Options: SET_DOF, SELECT_ELEMENTS, PASS_ALPHA_SHAPE
+    //execution Options: SET_DOF, SELECT_TESSELLATION_ELEMENTS, PASS_ALPHA_SHAPE
 
     this->StartEcho(rModelPart,"Tetgen PFEM Transfer Only",MeshId);
 
@@ -248,7 +238,7 @@ namespace Kratos
     tetgenio out;
     
 	
-    rMeshingVariables.NodalIdsSetFlag=false;
+    rMeshingVariables.InputInitializedFlag=false;
 
     rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::SET_DOF);
     ////////////////////////////////////////////////////////////
@@ -296,7 +286,7 @@ namespace Kratos
     //*********************************************************************
 
 
-    rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::SELECT_ELEMENTS);
+    rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::SELECT_TESSELLATION_ELEMENTS);
     rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::PASS_ALPHA_SHAPE);	  
 
     ////////////////////////////////////////////////////////////
@@ -304,7 +294,7 @@ namespace Kratos
     ////////////////////////////////////////////////////////////
 
     rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::PASS_ALPHA_SHAPE);
-    rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::SELECT_ELEMENTS);
+    rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::SELECT_TESSELLATION_ELEMENTS);
 
     //*********************************************************************
 
@@ -340,7 +330,7 @@ namespace Kratos
     //configuration Options false: REFINE, CONSTRAINED
     //configuration Options true : REMESH
 
-    //execution Options: SET_DOF, NEIGHBOURS_SEARCH, SELECT_ELEMENTS, PASS_ALPHA_SHAPE
+    //execution Options: SET_DOF, NEIGHBOURS_SEARCH, SELECT_TESSELLATION_ELEMENTS, PASS_ALPHA_SHAPE
 
     //if refine true: REFINE_ELEMENTS, REFINE_ADD_NODES
 
@@ -366,7 +356,7 @@ namespace Kratos
     tetgenio in;
     tetgenio out;
 
-    rMeshingVariables.NodalIdsSetFlag=false;
+    rMeshingVariables.InputInitializedFlag=false;
 
     rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::SET_DOF);
     ////////////////////////////////////////////////////////////
@@ -397,11 +387,11 @@ namespace Kratos
       ////////////////////////////////////////////////////////////
       //Select Elements to be preserved after passing Alpha-Shape
       rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::PASS_ALPHA_SHAPE);
-      rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::SELECT_ELEMENTS);
+      rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::SELECT_TESSELLATION_ELEMENTS);
 	  	  
       SelectMeshElements(rModelPart.Nodes(MeshId),rMeshingVariables,out); //passing alpha shape and returning the Elements preserved  
 
-      rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::SELECT_ELEMENTS);
+      rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::SELECT_TESSELLATION_ELEMENTS);
       rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::PASS_ALPHA_SHAPE);
       ////////////////////////////////////////////////////////////
 
@@ -414,7 +404,7 @@ namespace Kratos
       //i.e. insert and remove nodes based upon mesh quality and prescribed sizes	
       tetgenio mid_out;
 
-      rMeshingVariables.NodalIdsSetFlag=false; //second set must be true
+      rMeshingVariables.InputInitializedFlag=false; //second set must be true
       ////////////////////////////////////////////////////////////	  
       SetTetrahedralizationNodes (rModelPart,rMeshingVariables,in,mid_out,MeshId);
       ////////////////////////////////////////////////////////////
@@ -447,7 +437,7 @@ namespace Kratos
     }
     else{
 
-      rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::SELECT_ELEMENTS);
+      rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::SELECT_TESSELLATION_ELEMENTS);
       rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::PASS_ALPHA_SHAPE);	  
     }
 
@@ -476,7 +466,7 @@ namespace Kratos
     ////////////////////////////////////////////////////////////
 
     rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::PASS_ALPHA_SHAPE);
-    rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::SELECT_ELEMENTS);
+    rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::SELECT_TESSELLATION_ELEMENTS);
 
     //*********************************************************************
 
@@ -512,7 +502,7 @@ namespace Kratos
     //configuration Options false: REFINE
     //configuration Options true : REMESH, CONSTRAINED
 
-    //execution Options: BOUNDARIES_SEARCH(temp), NEIGHBOURS_SEARCH(temp), SELECT_ELEMENTS, PASS_ALPHA_SHAPE
+    //execution Options: BOUNDARIES_SEARCH(temp), NEIGHBOURS_SEARCH(temp), SELECT_TESSELLATION_ELEMENTS, PASS_ALPHA_SHAPE
 
 
     this->StartEcho(rModelPart,"Tetgen PFEM CDT Mesher",MeshId);
@@ -521,7 +511,7 @@ namespace Kratos
     tetgenio in;
     tetgenio out;
 
-    rMeshingVariables.NodalIdsSetFlag=false;
+    rMeshingVariables.InputInitializedFlag=false;
 
     ////////////////////////////////////////////////////////////
     SetTetrahedralizationNodes(rModelPart,rMeshingVariables,in,out,MeshId);
@@ -634,14 +624,13 @@ namespace Kratos
     //configuration Options false: CONSTRAINED
     //configuration Options true : REMESH, REFINE
 
-    //execution Options: SET_DOF, NEIGHBOURS_SEARCH(temp), SELECT_ELEMENTS, PASS_ALPHA_SHAPE
+    //execution Options: SET_DOF, NEIGHBOURS_SEARCH(temp), SELECT_TESSELLATION_ELEMENTS, PASS_ALPHA_SHAPE
     //execution Refinine Options: REFINE_ADD_NODES, REFINE_ELEMENTS, CRITERION_ENERGY
 
     this->StartEcho(rModelPart,"Tetgen PFEM RDT Mesher",MeshId);
 	    
     //remove_nodes:
-    //REMOVE_NODES, CRITERION_ERROR, REMOVE_ON_BOUNDARY, CRITERION_DISTANCE, ENGAGED_NODES(nodes)
-
+    //REMOVE_NODES, CRITERION_ERROR, REMOVE_ON_BOUNDARY, CRITERION_DISTANCE, 
     //refine_boundary:
     //REFINE_INSERT_NODES, REFINE_BOUNDARY // REBUILD_BOUNDARY(CONSTRAINED), CRITERION_ENERGY
 
@@ -660,7 +649,7 @@ namespace Kratos
     tetgenio in;
     tetgenio out;
 
-    rMeshingVariables.NodalIdsSetFlag=false;
+    rMeshingVariables.InputInitializedFlag=false;
 
     rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::SET_DOF);
     ////////////////////////////////////////////////////////////
@@ -696,11 +685,11 @@ namespace Kratos
     ////////////////////////////////////////////////////////////
     //Select Elements to be preserved after passing Alpha-Shape
     rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::PASS_ALPHA_SHAPE);
-    rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::SELECT_ELEMENTS);
+    rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::SELECT_TESSELLATION_ELEMENTS);
 		
     SelectMeshElements(rModelPart.Nodes(MeshId),rMeshingVariables,out); //passing alpha shape and returning the Elements preserved
 
-    rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::SELECT_ELEMENTS);
+    rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::SELECT_TESSELLATION_ELEMENTS);
     rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::PASS_ALPHA_SHAPE);
     ////////////////////////////////////////////////////////////
 
@@ -713,7 +702,7 @@ namespace Kratos
     //1.- Select Tetrahedra to Refine via changing the nodal_h
     tetgenio mid_out;
 
-    rMeshingVariables.NodalIdsSetFlag=true;
+    rMeshingVariables.InputInitializedFlag=true;
     ////////////////////////////////////////////////////////////
     SetTetrahedralizationNodes (rModelPart,rMeshingVariables,in,mid_out,MeshId);
     ////////////////////////////////////////////////////////////
@@ -784,7 +773,7 @@ namespace Kratos
     //configuration Options false: 
     //configuration Options true : REMESH, REFINE, CONSTRAINED
 
-    //execution Options: SET_DOF, NEIGHBOURS_SEARCH(temp), SELECT_ELEMENTS, PASS_ALPHA_SHAPE, ENGAGED_NODES
+    //execution Options: SET_DOF, NEIGHBOURS_SEARCH(temp), SELECT_TESSELLATION_ELEMENTS, PASS_ALPHA_SHAPE
     //execution Refinine Options: REFINE_ADD_NODES, REFINE_ELEMENTS, CRITERION_ENERGY, REFINE_BOUNDARY
 
 
@@ -805,7 +794,7 @@ namespace Kratos
     tetgenio in;
     tetgenio out;
 
-    rMeshingVariables.NodalIdsSetFlag=false;
+    rMeshingVariables.InputInitializedFlag=false;
 
     rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::CONSTRAINED);
     rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::SET_DOF);
@@ -850,13 +839,11 @@ namespace Kratos
     ////////////////////////////////////////////////////////////
     //Select Elements to be preserved after passing Alpha-Shape
     rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::PASS_ALPHA_SHAPE);
-    rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::SELECT_ELEMENTS);
-    rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::ENGAGED_NODES);
+    rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::SELECT_TESSELLATION_ELEMENTS);
 
     SelectMeshElements(rModelPart.Nodes(MeshId),rMeshingVariables,out); //passing alpha shape and returning the Elements preserved
 
-    rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::ENGAGED_NODES);
-    rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::SELECT_ELEMENTS);
+    rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::SELECT_TESSELLATION_ELEMENTS);
     rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::PASS_ALPHA_SHAPE);
     ////////////////////////////////////////////////////////////
 
@@ -871,7 +858,7 @@ namespace Kratos
 
     rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::CONSTRAINED);
 
-    rMeshingVariables.NodalIdsSetFlag=false; //second set must be true
+    rMeshingVariables.InputInitializedFlag=false; //second set must be true
     ////////////////////////////////////////////////////////////
     SetTetrahedralizationNodes (rModelPart,rMeshingVariables,in,mid_out,MeshId);
     ////////////////////////////////////////////////////////////
@@ -971,7 +958,7 @@ namespace Kratos
     in.numberofpoints = rModelPart.Nodes(MeshId).size();
     in.pointlist      = new REAL[in.numberofpoints * 3];
 
-    if(!rMeshingVariables.NodalIdsSetFlag){
+    if(!rMeshingVariables.InputInitializedFlag){
       rMeshingVariables.NodalPreIds.resize(in.numberofpoints+1);
       std::fill( rMeshingVariables.NodalPreIds.begin(), rMeshingVariables.NodalPreIds.end(), 0 );
 
@@ -989,7 +976,7 @@ namespace Kratos
       {
 	//if( (nodes_begin + i)->IsNot(STRUCTURE) ){
 	//from now on it is consecutive
-	if(!rMeshingVariables.NodalIdsSetFlag){
+	if(!rMeshingVariables.InputInitializedFlag){
 	  //std::cout<<" "<<(nodes_begin + i)->Id()<<"(";
 	  rMeshingVariables.NodalNewIds[(nodes_begin + i)->Id()] = direct;
 	  rMeshingVariables.NodalPreIds[direct]=(nodes_begin + i)->Id();
@@ -1056,8 +1043,8 @@ namespace Kratos
     // std::cout<<"), "<<std::endl;
     //std::cout<<"    SET NODES ]; "<<std::endl;
 
-    if(!rMeshingVariables.NodalIdsSetFlag){
-      rMeshingVariables.NodalIdsSetFlag=true;
+    if(!rMeshingVariables.InputInitializedFlag){
+      rMeshingVariables.InputInitializedFlag=true;
     }
 
     //*********************************************************************
@@ -1065,7 +1052,7 @@ namespace Kratos
     //SetFaces (segments)
 
     if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONSTRAINED))
-      SetFaces(rModelPart,rMeshingVariables,in,out,MeshId);
+      SetFaces(rModelPart,rMeshingVariables,in,MeshId);
 
     KRATOS_CATCH( "" )
 
@@ -1077,7 +1064,6 @@ namespace Kratos
   void TetrahedralMesh3DModeler::SetFaces(ModelPart& rModelPart,
 					  MeshingParametersType& rMeshingVariables,
 					  tetgenio& in,
-					  tetgenio& out,
 					  ModelPart::IndexType MeshId)
   {
     KRATOS_TRY
@@ -1475,9 +1461,7 @@ namespace Kratos
 
     //*******************************************************************
     //selecting elements
-    rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::ENGAGED_NODES);
     SelectMeshElements(rModelPart.Nodes(MeshId),rMeshingVariables,out);
-    rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::ENGAGED_NODES);
 
     //*******************************************************************
     //setting new elements
@@ -1697,7 +1681,7 @@ namespace Kratos
     
     bool box_side_element = false;
     bool wrong_added_node = false;
-    if(rMeshingVariables.ExecutionOptions.IsNot(ModelerUtilities::SELECT_ELEMENTS))
+    if(rMeshingVariables.ExecutionOptions.IsNot(ModelerUtilities::SELECT_TESSELLATION_ELEMENTS))
       {
 
 	for(int el=0; el<out.numberoftetrahedra; el++)
@@ -1900,8 +1884,8 @@ namespace Kratos
 	    if(accepted)
 	      {
 		//std::cout<<" Element ACCEPTED after cheking Center "<<number<<std::endl;
-		rMeshingVariables.PreservedElements[el] = 1;
 		number+=1;
+		rMeshingVariables.PreservedElements[el] = number;
 	      }
 	    // else{
 	      
@@ -1916,7 +1900,7 @@ namespace Kratos
 
     std::cout<<"   Number of Preserved Elements "<<rMeshingVariables.Info->NumberOfElements<<std::endl;
 
-    if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::ENGAGED_NODES)){
+    if(rMeshingVariables.ExecutionOptions.IsNot(ModelerUtilities::KEEP_ISOLATED_NODES)){
 
       //check engaged nodes
       for(int el=0; el<out.numberoftetrahedra; el++)
@@ -1925,7 +1909,7 @@ namespace Kratos
 	    for(int pn=0; pn<4; pn++)
 	      {
 		//set vertices
-		rNodes[out.tetrahedronlist[el*4+pn]].Set(ModelerUtilities::ENGAGED_NODES);
+		rNodes[out.tetrahedronlist[el*4+pn]].Set(BLOCKED);
 	      }
 	  }
 	    
@@ -1934,21 +1918,28 @@ namespace Kratos
       int count_release = 0;
       for(ModelPart::NodesContainerType::iterator i_node = rNodes.begin() ; i_node != rNodes.end() ; i_node++)
 	{
-	  if( i_node->IsNot(ModelerUtilities::ENGAGED_NODES)  ){
+	  if( i_node->IsNot(BLOCKED)  ){
 	    i_node->Set(TO_ERASE);
 	    if( this->GetEchoLevel() > 0 )
 	      std::cout<<" NODE "<<i_node->Id()<<" RELEASE "<<std::endl;
-	    if( i_node->IsNot(ModelerUtilities::ENGAGED_NODES) )
+	    if( i_node->Is(BOUNDARY) )
 	      std::cout<<" ERROR: node "<<i_node->Id()<<" IS BOUNDARY RELEASE "<<std::endl;
 	    count_release++;
 	  }
 	      
-	  i_node->Reset(ModelerUtilities::ENGAGED_NODES);
+	  i_node->Reset(BLOCKED);
 	}
 
       if( this->GetEchoLevel() > 0 ) 
 	std::cout<<"   NUMBER OF RELEASED NODES "<<count_release<<std::endl;
 
+    }
+    else{
+
+      for(ModelPart::NodesContainerType::iterator i_node = rNodes.begin() ; i_node != rNodes.end() ; i_node++)
+	{ 
+	  i_node->Reset(BLOCKED);
+	}
     }
 
     if( this->GetEchoLevel() > 0 ){
@@ -2304,7 +2295,7 @@ namespace Kratos
 
 	    list_of_new_nodes.push_back( pnode );
 
-	    if(rMeshingVariables.NodalIdsSetFlag){
+	    if(rMeshingVariables.InputInitializedFlag){
 	      rMeshingVariables.NodalPreIds.push_back( pnode->Id() );
 	      pnode->SetId(i+1);
 	    }
@@ -2338,7 +2329,7 @@ namespace Kratos
 		
     //Set new NodalPreIds in the rMeshingVariables.NodalPreIds
     // j=0;
-    // if(rMeshingVariables.NodalIdsSetFlag){
+    // if(rMeshingVariables.InputInitializedFlag){
     //   for( PointPointerVector::iterator it =  list_of_new_nodes.begin(); it!=list_of_new_nodes.end(); it++)
     //     {
     //       //set NodalPreIds

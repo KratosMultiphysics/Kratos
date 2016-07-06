@@ -148,7 +148,7 @@ public:
 
 	      list_of_new_nodes.push_back( pnode );
 
-	      if(mrRemesh.NodalIdsSetFlag){
+	      if(mrRemesh.InputInitializedFlag){
 		mrRemesh.NodalPreIds.push_back( pnode->Id() );
 		pnode->SetId(i+1);
 	      }

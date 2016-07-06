@@ -27,9 +27,9 @@
 //Data:     NORMAL, MASTER_NODES, NEIGHBOUR_NODES, NEIGBOUR_ELEMENTS
 //StepData: MEAN_ERROR, CONTACT_FORCE
 //Flags:    (checked) TO_ERASE, BOUNDARY, STRUCTURE, TO_SPLIT, CONTACT, NEW_ENTITY, BLOCKED
-//          (set)     TO_ERASE(conditions,nodes)(set), NEW_ENTITY(conditions,nodes)(set), BLOCKED(nodes)->locally, VISITED(nodes)(set)
+//          (set)     TO_ERASE(conditions,nodes)(set), NEW_ENTITY(conditions,nodes)(set), BLOCKED(nodes)(set), VISITED(nodes)(set)
 //          (modified)  
-//          (reset)   BLOCKED->locally
+//          (reset)   
 //(set):=(set in this process)
 
 namespace Kratos
@@ -635,10 +635,7 @@ private:
 		Condition::Pointer NewCond = node_shared_conditions[nodeId][i];
 
 		Node0.Set(BLOCKED);
-		Node0.Set(ModelerUtilities::ENGAGED_NODES);
-
 		Node2.Set(BLOCKED);
-		Node2.Set(ModelerUtilities::ENGAGED_NODES);
 
 		//create new condition Node0-NodeB
 		Condition::NodesArrayType face;
@@ -672,10 +669,10 @@ private:
 
 	}
 
-      for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(mMeshId); in != mrModelPart.NodesEnd(mMeshId); in++)
-	{
-	  in->Reset(BLOCKED);
-	}
+      // for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(mMeshId); in != mrModelPart.NodesEnd(mMeshId); in++)
+      // 	{
+      // 	  in->Reset(BLOCKED);
+      // 	}
 
       return any_condition_removed;
 
@@ -980,12 +977,10 @@ private:
 		      Geometry<Node<3> >& rConditionGeom3 = NewCond->GetGeometry();
 		      Node<3> & NodeB = rConditionGeom3[1];
 
-		      NodeA.Set(ModelerUtilities::ENGAGED_NODES);
-		      NodeB.Set(ModelerUtilities::ENGAGED_NODES);
-
-		      Node0.Set(ModelerUtilities::ENGAGED_NODES);
-		
-		
+		      NodeA.Set(BLOCKED);
+		      NodeB.Set(BLOCKED);
+		      Node0.Set(BLOCKED);
+				
 		      //create new condition Node0-NodeB
 		      Condition::NodesArrayType face;
 		      face.reserve(2);

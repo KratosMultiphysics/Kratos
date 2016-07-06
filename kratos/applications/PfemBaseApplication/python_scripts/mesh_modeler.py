@@ -44,13 +44,16 @@ class MeshModeler:
         # set execution flags: to set the options to be executed in methods and processes
         execution_options = KratosMultiphysics.Flags()
 
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SET_NODES, False)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SET_ELEMENTS, False)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SET_FACES, False)  
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SELECT_ELEMENTS, False)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SELECT_NODES, False)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.PASS_ALPHA_SHAPE, False)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.ENGAGED_NODES, False)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.INITIALIZE_MESHER_INPUT, False)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.FINALIZE_MESHER_INPUT, False)
+
+        execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_NODES_TO_MESHER, False)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_ELEMENTS_TO_MESHER, False)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_NEIGHBOURS_TO_MESHER, False)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_FACES_TO_MESHER, False)
+
+        execution_options.Set(KratosPfemBase.ModelerUtilities.SELECT_TESSELLATION_ELEMENTS, False)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.KEEP_ISOLATED_NODES, False)
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
         
@@ -149,16 +152,16 @@ class MeshModeler:
         execution_options = KratosMultiphysics.Flags()
         
         # all flags
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SET_NODES, False)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SET_ELEMENTS, False)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SET_NEIGHBOURS, False)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SET_FACES, False)  
+        execution_options.Set(KratosPfemBase.ModelerUtilities.INITIALIZE_MESHER_INPUT, False)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.FINALIZE_MESHER_INPUT, False)
 
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SELECT_ELEMENTS, False)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SELECT_NODES, False)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.PASS_ALPHA_SHAPE, False)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.ENGAGED_NODES, False)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.DELETE_DATA, False)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_NODES_TO_MESHER, False)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_ELEMENTS_TO_MESHER, False)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_NEIGHBOURS_TO_MESHER, False)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_FACES_TO_MESHER, False)
+
+        execution_options.Set(KratosPfemBase.ModelerUtilities.SELECT_TESSELLATION_ELEMENTS, False)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.KEEP_ISOLATED_NODES, False)
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
 
