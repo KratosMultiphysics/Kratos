@@ -980,7 +980,7 @@ public:
 				  rPointCoordinates[2][0], rPointCoordinates[2][1],
 				  rCenter[0], rCenter[1], rShapeFunctionsN );
       }
-      else if( rPointCoordinates.size() == 3 ){
+      else if( rPointCoordinates.size() == 4 ){
 	
 	return CalculatePosition( rPointCoordinates[0][0], rPointCoordinates[0][1], rPointCoordinates[0][2],
 				   rPointCoordinates[1][0], rPointCoordinates[1][1], rPointCoordinates[1][2],
@@ -1023,6 +1023,8 @@ public:
       rShapeFunctionsN[1] = CalculateTetrahedronVolume(x2,y2,z2,x3,y3,z3,x0,y0,z0,xc,yc,zc) / volume;
       rShapeFunctionsN[2] = CalculateTetrahedronVolume(x3,y3,z3,x0,y0,z0,x1,y1,z1,xc,yc,zc) / volume;
       rShapeFunctionsN[3] = CalculateTetrahedronVolume(x0,y0,z0,x1,y1,z1,x2,y2,z2,xc,yc,zc) / volume;
+
+      //std::cout<<" N "<<rShapeFunctionsN[0]<<" "<<rShapeFunctionsN[1]<<" "<<rShapeFunctionsN[2]<<" "<<rShapeFunctionsN[3]<<" "<<std::endl;
 
       double tol = 1e-5;
       double upper_limit = 1.0+tol;

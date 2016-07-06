@@ -346,7 +346,7 @@ namespace Kratos
 
       if(iters==smoothing_iters && !converged){
 	if( GetEchoLevel() > 0 )
-	  std::cout<<"   WARNING: Laplacian smoothing convergence NOT achieved "<<std::endl;
+	  std::cout<<"     WARNING: Laplacian smoothing convergence NOT achieved "<<std::endl;
       }
 
       bool transfer=true; //transfer active or inactive
@@ -532,7 +532,7 @@ namespace Kratos
       //MOVE NODES: LAPLACIAN SMOOTHING:
 	 
       if( GetEchoLevel() > 0 )
-	std::cout<<" Apply Mesh Smoothing in Mesh "<<MeshId<<std::endl;
+	std::cout<<"   [ Apply Mesh Smoothing in Mesh ("<<MeshId<<") ]"<<std::endl;
 
       double convergence_tol  = 0.001;
       double smoothing_factor = 0.1;
@@ -654,7 +654,7 @@ namespace Kratos
 
       if(iters==smoothing_iters && !converged){
 	if( GetEchoLevel() > 0 )
-	  std::cout<<"   WARNING: Laplacian smoothing convergence NOT achieved "<<std::endl;
+	  std::cout<<"     WARNING: Laplacian smoothing convergence NOT achieved "<<std::endl;
       }
 
       //*******************************************************************
@@ -816,6 +816,7 @@ namespace Kratos
 
 	      if ( VariablesListVector[id].Has(DISPLACEMENT) == false)
 		{
+		  std::cout << " Node ["<<i_node->Id()<<"]: interpolation: "<<UniquePosition [i_node->Id()]<<std::endl;
 		  std::cout << " PSEUDOERROR: IN this line, there is a node that does not have displacement" << std::endl;
 		  std::cout << " Laplacian. ThisNode new information does not have displacement " << i_node->Id() << std::endl;
 		  std::cout << " THIS IS BECAUSE THE NODE is out of the DOMAIN and the interpolation is wrong" << std::endl;
@@ -977,7 +978,7 @@ namespace Kratos
       //MOVE NODES: LAPLACIAN SMOOTHING:
 	 
       if( GetEchoLevel() > 0 )
-	std::cout<<" Apply Mesh Smoothing in Mesh "<<MeshId<<std::endl;
+	std::cout<<"   [ Apply Mesh Smoothing in Mesh ("<<MeshId<<") ]"<<std::endl;
 
       double convergence_tol  = 0.001;
       double smoothing_factor = 0.1;
@@ -1101,7 +1102,7 @@ namespace Kratos
 
       if(iters==smoothing_iters && !converged){
 	if( GetEchoLevel() > 0 )
-	  std::cout<<"   WARNING: Laplacian smoothing convergence NOT achieved (iters:"<<iters<<")"<<std::endl;
+	  std::cout<<"     WARNING: Laplacian smoothing convergence NOT achieved (iters:"<<iters<<")"<<std::endl;
       }
 
       //*******************************************************************
@@ -1133,8 +1134,8 @@ namespace Kratos
       KRATOS_TRY
 
 
-      if( GetEchoLevel() > 0 )
-	std::cout<<" Apply Projection Variables in Mesh "<<MeshId<<std::endl;
+      // if( GetEchoLevel() > 0 )
+      // 	std::cout<<" Apply Projection Variables in Mesh "<<MeshId<<std::endl;
 
 
       bool transfer=true; //transfer active or inactive
@@ -1217,7 +1218,6 @@ namespace Kratos
 	      {
 		//ID[cn] = rElementsList[el][cn].Id();	
 		const array_1d<double,3>& Displacement = ie->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-		
 		PointCoordinates[0] = ie->GetGeometry()[i].X0() + Displacement[0];
 		PointCoordinates[1] = ie->GetGeometry()[i].Y0() + Displacement[1];
 		PointCoordinates[2] = ie->GetGeometry()[i].Z0() + Displacement[2];
@@ -1234,15 +1234,13 @@ namespace Kratos
 	    center.Y() = PointCoordinates[1];
 	    center.Z() = PointCoordinates[2];
 		    
-	    double Radius = radius * 1.01;
+	    double Radius = radius * 1.15;
 	    int NumberOfPointsInRadius = NodesTree.SearchInRadius (center, Radius, PointsInRadius.begin(), PointsInRadiusDistances.begin(),  MaximumNumberOfPointsInRadius);
 	    //int NumberOfPointsInRadius = this->SearchInRadius (center, list_of_nodes, PointsInRadius, PointsInRadiusDistances, MaximumNumberOfPointsInRadius, Radius); //not efficient: the build of the kdtree is the expensive thing...
 
-	    //std::cout<<"[ID:"<<el<<"]: NumberOfPointsInRadius "<<number_of_points_in_radius<<std::endl;
+	    //std::cout<<"[ID:"<<ie->Id()<<"]: NumberOfPointsInRadius "<<NumberOfPointsInRadius<<" Radius "<<Radius<<std::endl;
 
 	    //check if inside and eventually interpolate
-	    
-
 	    for(std::vector<Node<3>::Pointer>::iterator it_found = PointsInRadius.begin(); it_found != (PointsInRadius.begin() + NumberOfPointsInRadius) ; it_found++)
 	      {
 
@@ -1295,92 +1293,93 @@ namespace Kratos
 	int id=0;
 	for(NodesContainerType::iterator i_node = rModelPart.NodesBegin(MeshId) ; i_node != rModelPart.NodesEnd(MeshId) ; i_node++)
 	  {
-	    //std::cout<<" ID "<<i_node->Id()<<std::endl;
-	    if(i_node->IsNot(BOUNDARY) && i_node->IsNot(TO_ERASE)){
-	      //recover the original position of the node
-	      id = i_node->Id();
 
-	      // double PressurePrev = (i_node)->FastGetSolutionStepValue(PRESSURE); 
-
-	      //i_node->SolutionStepData() = VariablesListVector[id];
-
-	      if ( VariablesListVector[id].Has(DISPLACEMENT) == false)
-		{
-		  std::cout << " PSEUDOERROR: IN this line, there is a node that does not have displacement" << std::endl;
-		  std::cout << " Laplacian. ThisNode new information does not have displacement " << i_node->Id() << std::endl;
-		  std::cout << " THIS IS BECAUSE THE NODE is out of the DOMAIN and the interpolation is wrong" << std::endl;
-		  std::cout << "    X: " << i_node->X() << " Y: " << i_node->Y() << std::endl;
-		}
-	      else {
-		i_node->SolutionStepData() = VariablesListVector[id];
-	      }
-		  
-	      // double PressurePost = (i_node)->FastGetSolutionStepValue(PRESSURE);
-	      // std::cout<<" PRESSURE PREV "<<PressurePrev<<" PRESSURE POST "<<PressurePost<<std::endl;
-
-	      const array_1d<double,3>& disp = i_node->FastGetSolutionStepValue(DISPLACEMENT);
-
-	      i_node->X0() = i_node->X() - disp[0];
-	      i_node->Y0() = i_node->Y() - disp[1];
-	      i_node->Z0() = i_node->Z() - disp[2];
-
-	    }
-	    // Set the position of boundary laplacian 
-	    else if ( i_node->Is(BOUNDARY) && i_node->IsNot(TO_ERASE) && i_node->Is(VISITED) ){
-
-	      i_node->Set(VISITED, false);
-
-	      //recover the original position of the node
-	      id = i_node->Id();
-
-	      // double PressurePrev = (i_node)->FastGetSolutionStepValue(PRESSURE); 
-
-	      //i_node->SolutionStepData() = VariablesListVector[id];
-
-	      if ( VariablesListVector[id].Has(DISPLACEMENT) == false)
-		{
-		  std::cout << " OUT::PSEUDOERROR: IN this line, there is a node that does not have displacement" << std::endl;
-		  std::cout << " Laplacian. ThisNode new information does not have displacement " << i_node->Id() << std::endl;
-		  std::cout << " THIS IS BECAUSE THE NODE is out of the DOMAIN and the interpolation is wrong" << std::endl;
-		  std::cout << "    X: " << i_node->X() << " Y: " << i_node->Y() << std::endl;
-		}
-	      else {
-		i_node->SolutionStepData() = VariablesListVector[id];
-	      }
-
-	      // double PressurePost = (i_node)->FastGetSolutionStepValue(PRESSURE);
-	      // std::cout<<" PRESSURE PREV "<<PressurePrev<<" PRESSURE POST "<<PressurePost<<std::endl;
+	    if( UniquePosition [i_node->Id()] && i_node->IsNot(TO_ERASE) ){
 
 	      if ( i_node->SolutionStepsDataHas(DISPLACEMENT) == false)
 		{
-		  std::cout << " AFTER WIERD " << std::endl;
+		  std::cout << " WIERD " << std::endl;
 		  std::cout << " Laplacian. ThisNode Does not have displacemenet " << i_node->Id() << std::endl;
-		  std::cout << "    X: " << i_node->X() << " Y: " << i_node->Y() << std::endl;
+		  std::cout << "    X: " << i_node->X() << " Y: " << i_node->Y() <<  " Z: " << i_node->Z() << std::endl;
+		}
+	      
+	      if( i_node->IsNot(BOUNDARY) ){
+
+		//recover the original position of the node
+		id = i_node->Id();
+		
+		i_node->SolutionStepData() = VariablesListVector[id];
+		  
+		const array_1d<double,3>& disp = i_node->FastGetSolutionStepValue(DISPLACEMENT);
+
+		i_node->X0() = i_node->X() - disp[0];
+		i_node->Y0() = i_node->Y() - disp[1];
+		i_node->Z0() = i_node->Z() - disp[2];
+
+	      }
+	      else if ( i_node->Is(BOUNDARY) && i_node->Is(VISITED) ){ // Set the position of boundary laplacian 
+
+		i_node->Set(VISITED, false);
+
+		//recover the original position of the node
+		id = i_node->Id();
+		
+		i_node->SolutionStepData() = VariablesListVector[id];
+
+		const array_1d<double,3>& disp = i_node->FastGetSolutionStepValue(DISPLACEMENT);
+
+		bool MoveFixedNodes = false; 
+		if (MoveFixedNodes)
+		  {
+		    i_node->X0() = i_node->X() - disp[0];
+		    i_node->Y0() = i_node->Y() - disp[1];
+		    i_node->Z0() = i_node->Z() - disp[2];
+		  }
+		else {
+		  if ( i_node->pGetDof(DISPLACEMENT_X)->IsFixed() == false) {
+		    i_node->X0() = i_node->X() - disp[0];
+		  }
+		  if ( i_node->pGetDof(DISPLACEMENT_Y)->IsFixed() == false) {
+		    i_node->Y0() = i_node->Y() - disp[1];
+		  }
+
+		  if ( i_node->pGetDof(DISPLACEMENT_Z)->IsFixed() == false) {
+		    i_node->Z0() = i_node->Z() - disp[2];
+		  }
 		}
 
-	      const array_1d<double,3>& disp = i_node->FastGetSolutionStepValue(DISPLACEMENT);
+	      }
 
-	      bool MoveFixedNodes = false; 
-	      if (MoveFixedNodes)
+
+	    }
+	    else{
+	      
+
+	      if ( i_node->SolutionStepsDataHas(DISPLACEMENT) == false)
 		{
-		  i_node->X0() = i_node->X() - disp[0];
-		  i_node->Y0() = i_node->Y() - disp[1];
-		  i_node->Z0() = i_node->Z() - disp[2];
-		}
-	      else {
-		if ( i_node->pGetDof(DISPLACEMENT_X)->IsFixed() == false) {
-		  i_node->X0() = i_node->X() - disp[0];
-		}
-		if ( i_node->pGetDof(DISPLACEMENT_Y)->IsFixed() == false) {
-		  i_node->Y0() = i_node->Y() - disp[1];
+		  std::cout << " WIERD " << std::endl;
+		  std::cout << " Laplacian. ThisNode Does not have displacemenet " << i_node->Id() << std::endl;
+		  std::cout << "    X: " << i_node->X() << " Y: " << i_node->Y() <<  " Z: " << i_node->Z() << std::endl;
 		}
 
-		if ( i_node->pGetDof(DISPLACEMENT_Z)->IsFixed() == false) {
-		  i_node->Z0() = i_node->Z() - disp[2];
-		}
+	      //recover the original position of the node
+	      id = i_node->Id();
+	      	      
+	      const array_1d<double,3>& disp = i_node->FastGetSolutionStepValue(DISPLACEMENT);
+	      
+	      i_node->X0() = i_node->X() - disp[0];
+	      i_node->Y0() = i_node->Y() - disp[1];
+	      i_node->Z0() = i_node->Z() - disp[2];
+	      
+	      if( GetEchoLevel() > 1 ){
+		std::cout << " OUT::PSEUDOERROR: IN this line, there is a node that does not have displacement" << std::endl;
+		std::cout << " Laplacian. ThisNode new information does not have displacement " << i_node->Id() << std::endl;
+		std::cout << " THIS IS BECAUSE THE NODE is out of the DOMAIN and the interpolation is wrong" << std::endl;
+		std::cout << "    X: " << i_node->X() << " Y: " << i_node->Y() <<  " Z: " << i_node->Z() << std::endl;
 	      }
 
 	    }
+
 	  }
 
       }
@@ -1407,7 +1406,7 @@ namespace Kratos
 	    
       }
 
-      std::cout<<" Finalize Apply Projection Variables in Mesh "<<MeshId<<std::endl;
+      //std::cout<<" Finalize Apply Projection Variables in Mesh "<<MeshId<<std::endl;
 
       KRATOS_CATCH( "" )
     }
@@ -1445,7 +1444,7 @@ namespace Kratos
       //MOVE BOUNDARY NODES: LAPLACIAN SMOOTHING:
 	 
       if( GetEchoLevel() > 0 )
-	std::cout<<" Apply Mesh Boundary Smoothing in Mesh "<<MeshId<<std::endl;
+	std::cout<<"   [ Apply Mesh Boundary Smoothing in Mesh ("<<MeshId<<") ]"<<std::endl;
 
       double convergence_tol =0.001;
       double smoothing_factor=0.1; //0.1
@@ -1571,7 +1570,7 @@ namespace Kratos
 
       if(iters==smoothing_iters && !converged){
 	if( GetEchoLevel() > 0 )
-	  std::cout<<"   WARNING: Boundary Laplacian smoothing convergence NOT achieved (iters:"<<iters<<")"<<std::endl;
+	  std::cout<<"     WARNING: Boundary Laplacian smoothing convergence NOT achieved (iters:"<<iters<<")"<<std::endl;
       }
 
 
@@ -3263,7 +3262,7 @@ namespace Kratos
 
       if(iters==smoothing_iters && !converged){
 	if( GetEchoLevel() > 0 )
-	  std::cout<<"   WARNING: Boundary Laplacian smoothing convergence NOT achieved (iters:"<<iters<<")"<<std::endl;
+	  std::cout<<"     WARNING: Boundary Laplacian smoothing convergence NOT achieved (iters:"<<iters<<")"<<std::endl;
       }
 
 

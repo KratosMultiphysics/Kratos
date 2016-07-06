@@ -539,7 +539,7 @@ namespace Kratos
 	  bool node_not_preserved = false;
 	  bool condition_not_preserved = false;
 
-	  if( PreservedConditions[ic->Id()-1] == 0 ){
+	  if( PreservedConditions[ic->Id()-1] == 0 ){ //I have not used the condition and any node of the condition
 
 	    Geometry< Node<3> >& rGeometry = ic->GetGeometry();
 	    
@@ -570,10 +570,10 @@ namespace Kratos
 	    mrModelPart.AddCondition(p_cond,MeshId);
 	    //mrModelPart.Conditions(MeshId).push_back(ic->Clone(rConditionId,FaceNodes));
 
-	    if( mEchoLevel > 0 ){
-	      std::cout<<" Temporal Condition Not Set "<<ic->Id()<<"("<<ic->GetGeometry()[0].Id()<<","<<ic->GetGeometry()[1].Id()<<")"<<std::endl;
-	      std::cout<<" Push Back Not Set Conditions "<<rConditionId<<"("<<FaceNodes[0].Id()<<","<<FaceNodes[1].Id()<<")"<<std::endl;
-	    }
+	    // if( mEchoLevel > 0 ){
+	    //   std::cout<<" Temporal Condition Not Set "<<ic->Id()<<"("<<ic->GetGeometry()[0].Id()<<","<<ic->GetGeometry()[1].Id()<<")"<<std::endl;
+	    //   std::cout<<" Push Back Not Set Conditions "<<rConditionId<<"("<<FaceNodes[0].Id()<<","<<FaceNodes[1].Id()<<")"<<std::endl;
+	    // }
 
 	  }
 	}

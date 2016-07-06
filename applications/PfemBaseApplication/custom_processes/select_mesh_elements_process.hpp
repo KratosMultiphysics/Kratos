@@ -113,6 +113,7 @@ public:
       bool box_side_element = false;
       bool wrong_added_node = false;
 
+      int number_of_slivers = 0;
 
       if(mrRemesh.ExecutionOptions.IsNot(ModelerUtilities::SELECT_TESSELLATION_ELEMENTS))
 	{
@@ -135,9 +136,8 @@ public:
 	 
 	  ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes(mMeshId);
 
-	  int el;
-	  int number=0;
-
+	  int el = 0;
+	  int number = 0;
 	  // std::cout<<" num nodes "<<rNodes.size()<<std::endl;
 	  // std::cout<<" NodalPreIdsSize "<<mrRemesh.NodalPreIds.size()<<std::endl;
 
@@ -152,7 +152,7 @@ public:
 	      
 	      // int  numflying=0;
 	      // int  numlayer =0;
-	      //int  numfixed =0;
+	      // int  numfixed =0;
 	      
 	      unsigned int  numfreesurf =0;
 	      unsigned int  numboundary =0;	      
@@ -168,6 +168,7 @@ public:
 	      box_side_element = false;
 	      for(unsigned int pn=0; pn<nds; pn++)
 		{
+		  // std::cout<<" pn "<<pn<<std::endl;
 		  //set vertices
 		  if(mrRemesh.NodalPreIds[OutElementList[el*nds+pn]]<0){
 		    if(mrRemesh.Options.IsNot(ModelerUtilities::CONTACT_SEARCH))
@@ -175,8 +176,11 @@ public:
 		    box_side_element = true;
 		    break;
 		  }
-		
 		  
+		  if(OutElementList[el*nds+pn]<=0)
+		    std::cout<<" ERROR: something is wrong: nodal id < 0 "<<el<<std::endl;
+
+
 		  if( (unsigned int)OutElementList[el*nds+pn] > mrRemesh.NodalPreIds.size() ){
 		    wrong_added_node = true;
 		    std::cout<<" ERROR: something is wrong: node out of bounds "<<std::endl;
@@ -259,7 +263,7 @@ public:
 	      // 	  std::cout<<" ("<<n+1<<"): ["<<vertices[n].Id()<<"] "<<vertices[n]<<std::endl;
 	      // 	}
 	      
-	      // std::cout<<" Element "<<el<<" with alpha "<<mrRemesh.AlphaParameter<<"("<<Alpha<<")"<<std::endl;
+	      //std::cout<<" Element "<<el<<" with alpha "<<mrRemesh.AlphaParameter<<"("<<Alpha<<")"<<std::endl;
 	      
 	      bool accepted=false;
 	      
@@ -298,7 +302,6 @@ public:
 		  else
 		    {
 		      //accepted=ModelerUtils.CheckInnerCentre(vertices); //problems in 3D: when slivers are released, a boundary is created and the normals calculated, then elements that are inside suddently its center is calculated as outside... // some corrections are needded.
-	
 		    }
 		}
 	      // else{
@@ -315,8 +318,10 @@ public:
 
 		    accepted=ModelerUtils.CheckGeometryShape(*tetrahedron,sliver);
 		
-		    if( sliver )
+		    if( sliver ){
 		      accepted = false;
+		      number_of_slivers++;
+		    }
 
 		    delete tetrahedron;
 		  }
@@ -341,7 +346,7 @@ public:
 
 	}
 
-      std::cout<<"   Number of Preserved Elements "<<mrRemesh.Info->NumberOfElements<<std::endl;
+      std::cout<<"   Number of Preserved Elements "<<mrRemesh.Info->NumberOfElements<<" (slivers detected: "<<number_of_slivers<<") "<<std::endl;
 
       if(mrRemesh.ExecutionOptions.IsNot(ModelerUtilities::KEEP_ISOLATED_NODES)){
 

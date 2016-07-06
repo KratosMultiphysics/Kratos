@@ -412,8 +412,6 @@ namespace Kratos
 
       ModelPart::ElementsContainerType::iterator elements_begin  = mrModelPart.ElementsBegin(MeshId);
       ModelPart::ElementsContainerType::iterator elements_end    = mrModelPart.ElementsEnd(MeshId);
-    
-      const unsigned int dimension = elements_begin->GetGeometry().WorkingSpaceDimension();
 
       ConditionId=0;
       for(ModelPart::ElementsContainerType::iterator ie = elements_begin; ie != elements_end ; ie++)
@@ -475,10 +473,10 @@ namespace Kratos
 		      }
 				    
 							
-		    if( dimension == 2 ){					  
+		    if( NumberNodesInFace == 2 ){					  
 		      ConditionVertices = Condition::GeometryType::Pointer(new Line2D2< Node<3> >(FaceNodes) );
 		    }
-		    else if ( dimension == 3 ){
+		    else if ( NumberNodesInFace == 3 ){
 		      ConditionVertices = Condition::GeometryType::Pointer(new Triangle3D3< Node<3> >(FaceNodes) );
 		    }
 
@@ -801,7 +799,6 @@ namespace Kratos
       ModelPart::ElementsContainerType::iterator elements_begin  = mrModelPart.ElementsBegin(MeshId);
       ModelPart::ElementsContainerType::iterator elements_end    = mrModelPart.ElementsEnd(MeshId);
     
-      const unsigned int dimension = elements_begin->GetGeometry().WorkingSpaceDimension();
 
       ConditionId=0;
       for(ModelPart::ElementsContainerType::iterator ie = elements_begin; ie != elements_end ; ie++)
@@ -895,10 +892,10 @@ namespace Kratos
 			  FaceNodes.push_back(rGeometry(lpofa(j,iface)));
 			}
 				   						
-		      if( dimension == 2 ){					  
+		      if( NumberNodesInFace == 2 ){					  
 			ConditionVertices = Condition::GeometryType::Pointer(new Line2D2< Node<3> >(FaceNodes) );
 		      }
-		      else if ( dimension == 3 ){
+		      else if ( NumberNodesInFace == 3 ){
 			ConditionVertices = Condition::GeometryType::Pointer(new Triangle3D3< Node<3> >(FaceNodes) );
 		      }
 

@@ -120,6 +120,9 @@ namespace Kratos
     }
     
     ClearTetrahedraList(in);
+    //input mesh: NODES
+    in.firstnumber    = 1;
+    in.mesh_dim       = 3;
     GetFromContainer(rMeshingVariables.InMesh,in);
 
     //Set Faces
@@ -200,8 +203,10 @@ namespace Kratos
     //*********************************************************************
 
     //Free input memory or keep it to transfer it for next mesh generation
-    if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::FINALIZE_MESHER_INPUT) )
+    if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::FINALIZE_MESHER_INPUT) ){
       DeleteContainer(rMeshingVariables.InMesh,in);
+      rMeshingVariables.InputInitializedFlag = false;
+    }
 
     //*********************************************************************
 
