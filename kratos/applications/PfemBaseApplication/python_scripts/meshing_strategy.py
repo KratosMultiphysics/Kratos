@@ -154,7 +154,7 @@ class MeshingStrategy:
         if( self.global_transfer == True ):
             if(smoothing_required):
                 #smooth only on selected part based on a threshold variable
-                self.MeshDataTransfer.TransferNodalValuesToElementsOnThreshold(self.TransferParameters,refining_parameters.GetThresholdVariable(),refining_parameters.GetReferenceThreshold(),self.main_model_part,self.mesh_id)
+                self.MeshDataTransfer.TransferNodalValuesToElementsOnThreshold(self.TransferParameters,refining_parameters,self.main_model_part,self.mesh_id)
             else:
                 #smooth all domain
                 self.MeshDataTransfer.TransferNodalValuesToElements(self.TransferParameters,self.main_model_part,self.mesh_id)                  
