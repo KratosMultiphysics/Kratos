@@ -307,7 +307,8 @@ double SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(int order, u
                     return 4 * SWIMMING_POW_5(sqrt_alpha_plus_1) / (15 * last_h_over_h) + 2 * (4 * SWIMMING_POW_3(sqrt_alpha_plus_2) * (3 + 4 * last_h_over_h) - SWIMMING_POW_3(sqrt_alpha_plus_1) * (9 + 4 * last_h_over_h)) / 15;
                 }
                 else if (j == 2){
-                    return 2 * sqrt_alpha_plus_1 * (3 - 2 * last_h_over_h) / 15 + 2 * (4 * SWIMMING_POW_3(sqrt_alpha_plus_2) * (2 * last_h_over_h - 1) + sqrt_alpha_plus_1 * (8 * last_h_over_h * (2 + last_h_over_h) - 7)) / 15;
+                    return 4 / 15 * (SWIMMING_POW_3(sqrt_alpha_plus_2) * (2 - 4 * last_h_over_h) + sqrt_alpha_plus_1 * (4 * last_h_over_h * last_h_over_h + 7 * last_h_over_h - 2));
+                    //return 2 * sqrt_alpha_plus_1 * (3 - 2 * last_h_over_h) / 15 + 2 * (4 * SWIMMING_POW_3(sqrt_alpha_plus_2) * (2 * last_h_over_h - 1) + sqrt_alpha_plus_1 * (8 * last_h_over_h * (2 + last_h_over_h) - 7)) / 15;
                 }
                 else {
                     return 2 * (sqrt_alpha_plus_1 * (1 - 3 * last_h_over_h - 4 * last_h_over_h * last_h_over_h) + sqrt_alpha_plus_2 * (1 + last_h_over_h + 4 * last_h_over_h * last_h_over_h)) / 15;
