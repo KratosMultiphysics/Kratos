@@ -207,8 +207,10 @@ namespace Kratos
     //*********************************************************************
 
     //Free input memory or keep it to transfer it for next mesh generation
-    if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::FINALIZE_MESHER_INPUT) )
+    if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::FINALIZE_MESHER_INPUT) ){
       DeleteContainer(rMeshingVariables.InMesh,in);
+      rMeshingVariables.InputInitializedFlag = false;
+    }
 
     //*********************************************************************
 

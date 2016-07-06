@@ -141,7 +141,6 @@ for i in range(0,domains_list.size()):
     domain = domain_module.CreateMeshingDomain(model_part,item)
     meshing_domains.append(domain)
 
-
 remesh_domains = general_variables.RemeshDomains
 contact_search = general_variables.FindContacts
 rigid_wall_contact_search = general_variables.FindRigidWallContacts

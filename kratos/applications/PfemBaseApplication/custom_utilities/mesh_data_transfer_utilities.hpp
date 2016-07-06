@@ -276,7 +276,7 @@ namespace Kratos
 					rPointCoordinates[2][0], rPointCoordinates[2][1],
 					rCenter[0], rCenter[1], rRadius);
       }
-      else if( rPointCoordinates.size() == 3 ){
+      else if( rPointCoordinates.size() == 4 ){
 	
 	CalculateCenterAndSearchRadius( rPointCoordinates[0][0], rPointCoordinates[0][1], rPointCoordinates[0][2],
 					rPointCoordinates[1][0], rPointCoordinates[1][1], rPointCoordinates[1][2],
@@ -319,9 +319,9 @@ namespace Kratos
 					       const double x3, const double y3, const double z3,
 					       double& xc, double& yc, double& zc, double& R)
     {
-      xc = 0.25*(x0+x1+x2);
-      yc = 0.25*(y0+y1+y2);
-      zc = 0.25*(z0+z1+z2);
+      xc = 0.25*(x0+x1+x2+x3);
+      yc = 0.25*(y0+y1+y2+y3);
+      zc = 0.25*(z0+z1+z2+z3);
 
       double R1 = (xc-x0)*(xc-x0) + (yc-y0)*(yc-y0) + (zc-z0)*(zc-z0); 
       double R2 = (xc-x1)*(xc-x1) + (yc-y1)*(yc-y1) + (zc-z1)*(zc-z1);
