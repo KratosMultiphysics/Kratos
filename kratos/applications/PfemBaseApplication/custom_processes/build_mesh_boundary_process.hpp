@@ -86,26 +86,12 @@ namespace Kratos
     ///@{
 
     /// Default constructor.
-
-    // BuildMeshBoundaryProcess(ModelPart& model_part,
-    // 		     char * ReferenceConditionName,
-    // 		     unsigned int dim,
-    // 		     unsigned int preserve)
-    // 	: mrModelPart(model_part), mr_reference_condition(KratosComponents<Condition>::Get("ReferenceConditionName"))
-    // { 
-    // 	std::cout<<" Reference Condition "<<mr_reference_condition<<std::endl;
-    // 	mDimension=dim;
-    // }
-  
-    //second constructor
     BuildMeshBoundaryProcess(ModelPart& rModelPart,
-			     int Dimension,
-			     int EchoLevel = 0,
-			     int MeshId = 0)
+			     int MeshId = 0,
+			     int EchoLevel = 0)
       : mrModelPart(rModelPart)
     { 
       mMeshId = MeshId;
-      mDimension = Dimension;
       mEchoLevel = EchoLevel;
     }
 
@@ -134,6 +120,7 @@ namespace Kratos
       bool success=false;
 
       boost::timer auxiliary;
+
       unsigned int NumberOfMeshes=mrModelPart.NumberOfMeshes();
 	
 		
@@ -376,131 +363,182 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
+    //**************************************************************************
+    //**************************************************************************
 
 
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
-  private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-    ModelPart& mrModelPart;
-
-    int mDimension;
-    int mMeshId;
-    int mEchoLevel;
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    void SetGlobalConditions()
+    virtual bool UniqueSkinSearch( int MeshId = 0 )
     {
 
-      if( mEchoLevel >= 1 ){
-	std::cout<<" [MESH:0]: "<<std::endl;
-	std::cout<<" [OLD TOTAL CONDITIONS: "<<mrModelPart.NumberOfConditions()<<"] "<<std::endl;
+      if( mEchoLevel > 0 ){
+	std::cout<<" [ SET BOUNDARY CONDITIONS : "<<std::endl;
+	std::cout<<"   Initial Conditions : "<<mrModelPart.Conditions(MeshId).size()<<" [MESH:"<<MeshId<<"]"<<std::endl;
       }
 
-      //contact conditions are located on Mesh_0
-      ModelPart::ConditionsContainerType KeepConditions;
-
-      unsigned int condId=1;
-      unsigned int start=0;  
-      unsigned int NumberOfMeshes=mrModelPart.NumberOfMeshes();
-      if(NumberOfMeshes>1) 
-	start=1;
-
-      for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
-	{
-	  for(ModelPart::ConditionsContainerType::iterator i_cond = mrModelPart.ConditionsBegin(MeshId) ; i_cond != mrModelPart.ConditionsEnd(MeshId) ; i_cond++)
-	    {
-	      // i_cond->PrintInfo(std::cout);
-	      // std::cout<<" -- "<<std::endl;
-	      KeepConditions.push_back(*(i_cond.base()));
-	      KeepConditions.back().SetId(condId);
-	      condId+=1;
-
-	      // KeepConditions.back().PrintInfo(std::cout);
-	      // std::cout<<std::endl;
-
-	    }
-	}
-
-
-      for(ModelPart::ConditionsContainerType::iterator i_cond = mrModelPart.ConditionsBegin(); i_cond!= mrModelPart.ConditionsEnd(); i_cond++)
-	{
-	  if(i_cond->Is(CONTACT)){
-	    KeepConditions.push_back(*(i_cond.base()));
-	    KeepConditions.back().SetId(condId);
-	    condId+=1;
-
-	    //std::cout<<" -- "<<std::endl;
-	    //KeepConditions.back().PrintInfo(std::cout);
-	    //std::cout<<std::endl;
-			  
-	  }
-		      
-	}
-      
-      mrModelPart.Conditions().swap(KeepConditions);
-
-      if( mEchoLevel >= 1 )
-	std::cout<<" [NEW TOTAL CONDITIONS: "<<mrModelPart.NumberOfConditions()<<"] "<<std::endl;
-
-    }
-
-    void PrintSkin (ModelPart::IndexType MeshId=0)
-    {
-      //PRINT SKIN:		
-      std::cout<<" CONDITIONS: geometry nodes ("<<mrModelPart.Conditions(MeshId).size()<<")"<<std::endl;
-
-      ConditionsContainerType& rCond = mrModelPart.Conditions(MeshId);
-      for(ConditionsContainerType::iterator ic = rCond.begin(); ic!= rCond.end(); ic++)
-	{
+      //properties to be used in the generation
+      int number_properties = mrModelPart.NumberOfProperties();
+      Properties::Pointer properties = mrModelPart.GetMesh().pGetProperties(number_properties-1);
 			
-	  Geometry< Node<3> >& rConditionGeometry = ic->GetGeometry();
-	  std::cout<<"["<<ic->Id()<<"]:"<<std::endl;
-	  //ic->PrintInfo(std::cout);
-	  std::cout<<"( ";
-	  for(unsigned int i = 0; i < rConditionGeometry.size(); i++)
-	    {
-	      std::cout<< rConditionGeometry[i].Id()<<", ";
-	    }
-	  std::cout<<" ): ";
-
-	  ic->GetValue(MASTER_ELEMENTS)[0].PrintInfo(std::cout);
-							
-	  std::cout<<std::endl;
-
+      //reset the boundary flag in all nodes
+      for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(MeshId); in!=mrModelPart.NodesEnd(MeshId); in++)
+	{
+	  in->Reset(BOUNDARY);
 	}
-      std::cout<<std::endl;
 
+
+      //swap conditions for a temporary use
+      ModelPart::ConditionsContainerType TemporaryConditions;
+      TemporaryConditions.reserve(mrModelPart.Conditions(MeshId).size());
+      TemporaryConditions.swap(mrModelPart.Conditions(MeshId));
+
+      //set consecutive ids in the mesh conditions
+      unsigned int ConditionId=1;
+      for(ModelPart::ConditionsContainerType::iterator ic = TemporaryConditions.begin(); ic!= TemporaryConditions.end(); ic++)
+	{
+	  ic->SetId(ConditionId);
+	  ConditionId++;
+	}
+
+     
+      //control the previous mesh conditions
+      std::vector<int> PreservedConditions( TemporaryConditions.size() );
+      std::fill( PreservedConditions.begin(), PreservedConditions.end(), 0 );
+		
+
+      ModelPart::ElementsContainerType::iterator elements_begin  = mrModelPart.ElementsBegin(MeshId);
+      ModelPart::ElementsContainerType::iterator elements_end    = mrModelPart.ElementsEnd(MeshId);
+    
+      const unsigned int dimension = elements_begin->GetGeometry().WorkingSpaceDimension();
+
+      ConditionId=0;
+      for(ModelPart::ElementsContainerType::iterator ie = elements_begin; ie != elements_end ; ie++)
+	{
+	  
+	  Geometry< Node<3> >& rGeometry = ie->GetGeometry();
+	  
+	  if( rGeometry.FacesNumber() >= 3 ){ //3 or 4
+
+	    /*each face is opposite to the corresponding node number so in 2D triangle
+	      0 ----- 1 2
+	      1 ----- 2 0
+	      2 ----- 0 1
+	    */
+
+	    /*each face is opposite to the corresponding node number so in 3D tetrahedron
+	      0 ----- 1 2 3
+	      1 ----- 2 0 3
+	      2 ----- 0 1 3
+	      3 ----- 0 2 1
+	    */
+
+	    //finding boundaries and creating the "skin"
+	    //
+	    //********************************************************************
+
+	    boost::numeric::ublas::matrix<unsigned int> lpofa; //connectivities of points defining faces
+	    boost::numeric::ublas::vector<unsigned int> lnofa; //number of points defining faces
+	 
+	    WeakPointerVector<Element >& rE = ie->GetValue(NEIGHBOUR_ELEMENTS);
+	    
+	    //get matrix nodes in faces
+	    rGeometry.NodesInFaces(lpofa);
+	    rGeometry.NumberNodesInFaces(lnofa);
+	    
+	    //loop on neighbour elements of an element
+	    unsigned int iface=0;
+	    for(WeakPointerVector< Element >::iterator ne = rE.begin(); ne!=rE.end(); ne++)
+	      {
+		unsigned int NumberNodesInFace = lnofa[iface];
+
+		if (ne->Id() == ie->Id())
+		  {
+		    //if no neighbour is present => the face is free surface
+		    for(unsigned int j=1; j<=NumberNodesInFace; j++)
+		      {
+			rGeometry[lpofa(j,iface)].Set(BOUNDARY);
+		      }
+
+		    //1.- create geometry: points array and geometry type
+		    Condition::NodesArrayType        FaceNodes;
+		    Condition::GeometryType::Pointer ConditionVertices;
+		      
+		    FaceNodes.reserve(NumberNodesInFace);
+
+		    for(unsigned int j=1; j<=NumberNodesInFace; j++)
+		      {
+			FaceNodes.push_back(rGeometry(lpofa(j,iface)));
+		      }
+				    
+							
+		    if( dimension == 2 ){					  
+		      ConditionVertices = Condition::GeometryType::Pointer(new Line2D2< Node<3> >(FaceNodes) );
+		    }
+		    else if ( dimension == 3 ){
+		      ConditionVertices = Condition::GeometryType::Pointer(new Triangle3D3< Node<3> >(FaceNodes) );
+		    }
+
+		    ConditionId +=1;
+		    
+		    //Create a composite condition
+		    CompositeCondition::Pointer p_cond = CompositeCondition::Pointer(new CompositeCondition(ConditionId,ConditionVertices,properties) ); 
+
+		    bool condition_found = false;
+		    bool point_condition = false;
+					       
+		    // Search for existing conditions: start
+		    for(ModelPart::ConditionsContainerType::iterator ic = TemporaryConditions.begin(); ic!= TemporaryConditions.end(); ic++)
+		      {
+			Geometry< Node<3> >& rConditionGeometry = ic->GetGeometry();
+						
+			condition_found = this->FindCondition(rConditionGeometry,rGeometry,lpofa,lnofa,iface);
+
+			if( condition_found ){
+
+			  p_cond->AddChild(*(ic.base()));
+
+			  PreservedConditions[ic->Id()-1] += 1;		  
+
+			  if( rConditionGeometry.PointsNumber() == 1 )
+			    point_condition = true;
+			}
+			
+		      }
+		    // Search for existing conditions: end
+
+		    if( !point_condition ){
+		      // usually one MasterElement and one MasterNode in 2D; in 3D can be more than one -> it has to be extended to other 3D geometries
+		      //p_cond->GetValue(MASTER_ELEMENTS).push_back( Element::WeakPointer( *(ie.base()) ) );
+		      WeakPointerVector< Element >& MasterElements = p_cond->GetValue(MASTER_ELEMENTS);
+		      MasterElements.push_back( Element::WeakPointer( *(ie.base()) ) );
+		      p_cond->SetValue(MASTER_ELEMENTS,MasterElements);
+
+		      //p_cond->GetValue(MASTER_NODES).push_back( Node<3>::WeakPointer( rGeometry(lpofa(0,i)) ) );	
+		      WeakPointerVector< Node<3> >& MasterNodes = p_cond->GetValue(MASTER_NODES);
+		      MasterNodes.push_back( Node<3>::WeakPointer( rGeometry(lpofa(0,iface)) ) );
+		      p_cond->SetValue(MASTER_NODES,MasterNodes);
+		    }
+
+		    mrModelPart.AddCondition(Condition::Pointer(p_cond), MeshId);
+		    //mrModelPart.Conditions(MeshId).push_back(Condition::Pointer(p_cond));
+
+		    // Set new conditions: end
+		    
+		  }
+					
+		iface+=1;
+	      }
+
+	  }
+	}
+
+
+      this->AddOtherConditions(TemporaryConditions, PreservedConditions, ConditionId, MeshId);
+	
+      return true;
     }
+
+    //**************************************************************************
+    //**************************************************************************
 
     bool FindCondition(Geometry< Node<3> >& rConditionGeometry,Geometry< Node<3> >& rGeometry , boost::numeric::ublas::matrix<unsigned int>& lpofa, boost::numeric::ublas::vector<unsigned int>& lnofa, unsigned int& iface)
     {
@@ -558,6 +596,10 @@ namespace Kratos
     }
 
 
+    //**************************************************************************
+    //**************************************************************************
+
+
     bool FindConditionID(Geometry< Node<3> >& rConditionGeometry, int& MeshId)
     {
 
@@ -573,6 +615,156 @@ namespace Kratos
 
       return false;
     }
+
+
+    //**************************************************************************
+    //**************************************************************************
+
+
+    void PrintSkin (ModelPart::IndexType MeshId=0)
+    {
+      //PRINT SKIN:		
+      std::cout<<" CONDITIONS: geometry nodes ("<<mrModelPart.Conditions(MeshId).size()<<")"<<std::endl;
+
+      ConditionsContainerType& rCond = mrModelPart.Conditions(MeshId);
+      for(ConditionsContainerType::iterator ic = rCond.begin(); ic!= rCond.end(); ic++)
+	{
+			
+	  Geometry< Node<3> >& rConditionGeometry = ic->GetGeometry();
+	  std::cout<<"["<<ic->Id()<<"]:"<<std::endl;
+	  //ic->PrintInfo(std::cout);
+	  std::cout<<"( ";
+	  for(unsigned int i = 0; i < rConditionGeometry.size(); i++)
+	    {
+	      std::cout<< rConditionGeometry[i].Id()<<", ";
+	    }
+	  std::cout<<" ): ";
+
+	  ic->GetValue(MASTER_ELEMENTS)[0].PrintInfo(std::cout);
+							
+	  std::cout<<std::endl;
+
+	}
+      std::cout<<std::endl;
+
+    }
+
+    //**************************************************************************
+    //**************************************************************************
+
+
+    bool AddOtherConditions(ModelPart::ConditionsContainerType& rTemporaryConditions, std::vector<int>& PreservedConditions, unsigned int& rConditionId, int MeshId = 0 )
+    {
+      //add all previous conditions not found in the skin search are added:
+      for(ModelPart::ConditionsContainerType::iterator ic = rTemporaryConditions.begin(); ic!= rTemporaryConditions.end(); ic++)
+	{	
+
+	  bool node_not_preserved = false;
+	  bool condition_not_preserved = false;
+	    
+	  if( PreservedConditions[ic->Id()-1] == 0 ){
+
+	    Geometry< Node<3> >& rGeometry = ic->GetGeometry();
+				
+	    if( FindConditionID(rGeometry, MeshId) ){
+
+	      Condition::NodesArrayType FaceNodes;
+
+	      FaceNodes.reserve(rGeometry.size() );
+
+	      for(unsigned int j=0; j<rGeometry.size(); j++)
+		{
+		  FaceNodes.push_back(rGeometry(j));
+		  if( FaceNodes[j].Is(TO_ERASE) || FaceNodes[j].Is(TO_REFINE) )
+		    node_not_preserved = true;
+		}
+
+	      PreservedConditions[ic->Id()-1] += 1;
+
+	      rConditionId +=1;
+
+
+	      Condition::Pointer p_cond = ic->Clone(rConditionId, FaceNodes);
+	      p_cond->Data() = ic->Data();
+	      
+	      mrModelPart.AddCondition(p_cond,MeshId);
+	      //mrModelPart.Conditions(MeshId).push_back(ic->Clone(rConditionId,FaceNodes));
+
+
+	      if( mEchoLevel > 0 ){
+		std::cout<<" Temporal Condition Not Set "<<ic->Id()<<"("<<ic->GetGeometry()[0].Id()<<","<<ic->GetGeometry()[1].Id()<<")"<<std::endl;
+		std::cout<<" Push Back Not Set Conditions "<<rConditionId<<"("<<FaceNodes[0].Id()<<","<<FaceNodes[1].Id()<<")"<<std::endl;
+	      }
+
+	    }
+	  }
+	}
+
+
+      //control if all previous conditions have been added:
+      bool all_assigned = true;
+      for(unsigned int i=0; i<PreservedConditions.size(); i++)
+	{
+	  if( PreservedConditions[i] == 0 )
+	    all_assigned = false;
+	}
+
+
+      if( mEchoLevel >= 1 ){
+
+	std::cout<<"    New Conditions: "<<mrModelPart.NumberOfConditions(MeshId)<<"] [MESH:"<<MeshId<<"]"<<std::endl;
+
+	if(all_assigned == true)
+	  std::cout<<"   Boundary Conditions RELOCATED "<<std::endl;
+	else
+	  std::cout<<"   Boundary Conditions NOT relocated "<<std::endl;
+      }
+
+      return all_assigned;
+
+    }
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+  private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+    ModelPart& mrModelPart;
+
+    int mMeshId;
+    int mEchoLevel;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    //**************************************************************************
+    //**************************************************************************
 
 
     bool SkinSearch( int MeshId = 0 )
@@ -618,6 +810,8 @@ namespace Kratos
       ModelPart::ElementsContainerType::iterator elements_begin  = mrModelPart.ElementsBegin(MeshId);
       ModelPart::ElementsContainerType::iterator elements_end    = mrModelPart.ElementsEnd(MeshId);
     
+      const unsigned int dimension = elements_begin->GetGeometry().WorkingSpaceDimension();
+
       ConditionId=0;
       for(ModelPart::ElementsContainerType::iterator ie = elements_begin; ie != elements_end ; ie++)
 	{
@@ -710,10 +904,10 @@ namespace Kratos
 			  FaceNodes.push_back(rGeometry(lpofa(j,iface)));
 			}
 				   						
-		      if( mDimension == 2 ){					  
+		      if( dimension == 2 ){					  
 			ConditionVertices = Condition::GeometryType::Pointer(new Line2D2< Node<3> >(FaceNodes) );
 		      }
-		      else if ( mDimension == 3 ){
+		      else if ( dimension == 3 ){
 			ConditionVertices = Condition::GeometryType::Pointer(new Triangle3D3< Node<3> >(FaceNodes) );
 		      }
 
@@ -764,228 +958,65 @@ namespace Kratos
     }
 
 
-    bool UniqueSkinSearch( int MeshId = 0 )
+    //**************************************************************************
+    //**************************************************************************
+
+    void SetGlobalConditions()
     {
-
-      if( mEchoLevel > 0 ){
-	std::cout<<" [ SET BOUNDARY CONDITIONS : "<<std::endl;
-	std::cout<<"   Initial Conditions : "<<mrModelPart.Conditions(MeshId).size()<<" [MESH:"<<MeshId<<"]"<<std::endl;
-      }
-
-      //properties to be used in the generation
-      int number_properties = mrModelPart.NumberOfProperties();
-      Properties::Pointer properties = mrModelPart.GetMesh().pGetProperties(number_properties-1);
-			
-      //reset the boundary flag in all nodes
-      for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(MeshId); in!=mrModelPart.NodesEnd(MeshId); in++)
-	{
-	  in->Reset(BOUNDARY);
-	}
-
-
-      //swap conditions for a temporary use
-      ModelPart::ConditionsContainerType TemporaryConditions;
-      TemporaryConditions.reserve(mrModelPart.Conditions(MeshId).size());
-      TemporaryConditions.swap(mrModelPart.Conditions(MeshId));
-
-      //set consecutive ids in the mesh conditions
-      unsigned int ConditionId=1;
-      for(ModelPart::ConditionsContainerType::iterator ic = TemporaryConditions.begin(); ic!= TemporaryConditions.end(); ic++)
-	{
-	  ic->SetId(ConditionId);
-	  ConditionId++;
-	}
-
-     
-      //control the previous mesh conditions
-      std::vector<int> PreservedConditions( TemporaryConditions.size() );
-      std::fill( PreservedConditions.begin(), PreservedConditions.end(), 0 );
-		
-
-      ModelPart::ElementsContainerType::iterator elements_begin  = mrModelPart.ElementsBegin(MeshId);
-      ModelPart::ElementsContainerType::iterator elements_end          = mrModelPart.ElementsEnd(MeshId);
-    
-      ConditionId=0;
-      for(ModelPart::ElementsContainerType::iterator ie = elements_begin; ie != elements_end ; ie++)
-	{
-	  
-	  Geometry< Node<3> >& rGeometry = ie->GetGeometry();
-	  
-	  if( rGeometry.FacesNumber() >= 3 ){ //3 or 4
-
-	    /*each face is opposite to the corresponding node number so in 2D triangle
-	      0 ----- 1 2
-	      1 ----- 2 0
-	      2 ----- 0 1
-	    */
-
-	    /*each face is opposite to the corresponding node number so in 3D tetrahedron
-	      0 ----- 1 2 3
-	      1 ----- 2 0 3
-	      2 ----- 0 1 3
-	      3 ----- 0 2 1
-	    */
-
-	    //finding boundaries and creating the "skin"
-	    //
-	    //********************************************************************
-
-	    boost::numeric::ublas::matrix<unsigned int> lpofa; //connectivities of points defining faces
-	    boost::numeric::ublas::vector<unsigned int> lnofa; //number of points defining faces
-	 
-	    WeakPointerVector<Element >& rE = ie->GetValue(NEIGHBOUR_ELEMENTS);
-	    
-	    //get matrix nodes in faces
-	    rGeometry.NodesInFaces(lpofa);
-	    rGeometry.NumberNodesInFaces(lnofa);
-	    
-	    //loop on neighbour elements of an element
-	    unsigned int iface=0;
-	    for(WeakPointerVector< Element >::iterator ne = rE.begin(); ne!=rE.end(); ne++)
-	      {
-		unsigned int NumberNodesInFace = lnofa[iface];
-
-		if (ne->Id() == ie->Id())
-		  {
-		    //if no neighbour is present => the face is free surface
-		    for(unsigned int j=1; j<=NumberNodesInFace; j++)
-		      {
-			rGeometry[lpofa(j,iface)].Set(BOUNDARY);
-		      }
-
-		    //1.- create geometry: points array and geometry type
-		    Condition::NodesArrayType        FaceNodes;
-		    Condition::GeometryType::Pointer ConditionVertices;
-		      
-		    FaceNodes.reserve(NumberNodesInFace);
-
-		    for(unsigned int j=1; j<=NumberNodesInFace; j++)
-		      {
-			FaceNodes.push_back(rGeometry(lpofa(j,iface)));
-		      }
-				    
-							
-		    if( mDimension == 2 ){					  
-		      ConditionVertices = Condition::GeometryType::Pointer(new Line2D2< Node<3> >(FaceNodes) );
-		    }
-		    else if ( mDimension == 3 ){
-		      ConditionVertices = Condition::GeometryType::Pointer(new Triangle3D3< Node<3> >(FaceNodes) );
-		    }
-
-		    ConditionId +=1;
-		    
-		    //Create a composite condition
-		    CompositeCondition::Pointer p_cond = CompositeCondition::Pointer(new CompositeCondition(ConditionId,ConditionVertices,properties) ); 
-
-		    bool condition_found = false;
-		    bool point_condition = false;
-					       
-		    // Search for existing conditions: start
-		    for(ModelPart::ConditionsContainerType::iterator ic = TemporaryConditions.begin(); ic!= TemporaryConditions.end(); ic++)
-		      {
-			Geometry< Node<3> >& rConditionGeometry = ic->GetGeometry();
-						
-			condition_found = this->FindCondition(rConditionGeometry,rGeometry,lpofa,lnofa,iface);
-
-			if( condition_found ){
-
-			  p_cond->AddChild(*(ic.base()));
-
-			  PreservedConditions[ic->Id()-1] += 1;		  
-
-			  if( rConditionGeometry.PointsNumber() == 1 )
-			    point_condition = true;
-			}
-			
-		      }
-		    // Search for existing conditions: end
-
-		    if( !point_condition ){
-		      // usually one MasterElement and one MasterNode in 2D; in 3D can be more than one -> it has to be extended to other 3D geometries
-		      //p_cond->GetValue(MASTER_ELEMENTS).push_back( Element::WeakPointer( *(ie.base()) ) );
-		      WeakPointerVector< Element >& MasterElements = p_cond->GetValue(MASTER_ELEMENTS);
-		      MasterElements.push_back( Element::WeakPointer( *(ie.base()) ) );
-		      p_cond->SetValue(MASTER_ELEMENTS,MasterElements);
-
-		      //p_cond->GetValue(MASTER_NODES).push_back( Node<3>::WeakPointer( rGeometry(lpofa(0,i)) ) );	
-		      WeakPointerVector< Node<3> >& MasterNodes = p_cond->GetValue(MASTER_NODES);
-		      MasterNodes.push_back( Node<3>::WeakPointer( rGeometry(lpofa(0,iface)) ) );
-		      p_cond->SetValue(MASTER_NODES,MasterNodes);
-		    }
-
-		    mrModelPart.AddCondition(Condition::Pointer(p_cond), MeshId);
-		    //mrModelPart.Conditions(MeshId).push_back(Condition::Pointer(p_cond));
-
-		    // Set new conditions: end
-		    
-		  }
-					
-		iface+=1;
-	      }
-
-	  }
-	}
-
-
-      this->AddOtherConditions(TemporaryConditions, PreservedConditions, ConditionId, MeshId);
-	
-      return true;
-    }
-
-    bool AddOtherConditions(ModelPart::ConditionsContainerType& rTemporaryConditions, std::vector<int>& PreservedConditions, unsigned int& rConditionId, int MeshId = 0 )
-    {
-      //add all previous conditions not found in the skin search are added:
-      for(ModelPart::ConditionsContainerType::iterator ic = rTemporaryConditions.begin(); ic!= rTemporaryConditions.end(); ic++)
-	{		    
-	  if( PreservedConditions[ic->Id()-1] == 0 ){
-
-	    Geometry< Node<3> >& rGeometry = ic->GetGeometry();
-				
-	    if( FindConditionID(rGeometry, MeshId) ){
-
-	      Condition::NodesArrayType FaceNodes;
-
-	      FaceNodes.reserve(rGeometry.size() );
-
-	      for(unsigned int j=0; j<rGeometry.size(); j++)
-		{
-		  FaceNodes.push_back(rGeometry(j));
-		}
-
-	      PreservedConditions[ic->Id()-1] += 1;
-
-	      rConditionId +=1;
-
-	      mrModelPart.AddCondition(ic->Clone(rConditionId,FaceNodes),MeshId);
-	      //mrModelPart.Conditions(MeshId).push_back(ic->Clone(rConditionId,FaceNodes));
-
-	    }
-	  }
-	}
-
-
-      //control if all previous conditions have been added:
-      bool all_assigned = true;
-      for(unsigned int i=0; i<PreservedConditions.size(); i++)
-	{
-	  if( PreservedConditions[i] == 0 )
-	    all_assigned = false;
-	}
-
 
       if( mEchoLevel >= 1 ){
-
-	std::cout<<"    New Conditions: "<<mrModelPart.NumberOfConditions(MeshId)<<"] [MESH:"<<MeshId<<"]"<<std::endl;
-
-	if(all_assigned == true)
-	  std::cout<<"   Boundary Conditions RELOCATED "<<std::endl;
-	else
-	  std::cout<<"   Boundary Conditions NOT relocated "<<std::endl;
+	std::cout<<" [MESH:0]: "<<std::endl;
+	std::cout<<" [OLD TOTAL CONDITIONS: "<<mrModelPart.NumberOfConditions()<<"] "<<std::endl;
       }
 
-      return all_assigned;
+      //contact conditions are located on Mesh_0
+      ModelPart::ConditionsContainerType KeepConditions;
+
+      unsigned int condId=1;
+      unsigned int start=0;  
+      unsigned int NumberOfMeshes=mrModelPart.NumberOfMeshes();
+      if(NumberOfMeshes>1) 
+	start=1;
+
+      for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
+	{
+	  for(ModelPart::ConditionsContainerType::iterator i_cond = mrModelPart.ConditionsBegin(MeshId) ; i_cond != mrModelPart.ConditionsEnd(MeshId) ; i_cond++)
+	    {
+	      // i_cond->PrintInfo(std::cout);
+	      // std::cout<<" -- "<<std::endl;
+	      KeepConditions.push_back(*(i_cond.base()));
+	      KeepConditions.back().SetId(condId);
+	      condId+=1;
+
+	      // KeepConditions.back().PrintInfo(std::cout);
+	      // std::cout<<std::endl;
+
+	    }
+	}
+
+
+      for(ModelPart::ConditionsContainerType::iterator i_cond = mrModelPart.ConditionsBegin(); i_cond!= mrModelPart.ConditionsEnd(); i_cond++)
+	{
+	  if(i_cond->Is(CONTACT)){
+	    KeepConditions.push_back(*(i_cond.base()));
+	    KeepConditions.back().SetId(condId);
+	    condId+=1;
+
+	    //std::cout<<" -- "<<std::endl;
+	    //KeepConditions.back().PrintInfo(std::cout);
+	    //std::cout<<std::endl;
+			  
+	  }
+		      
+	}
+      
+      mrModelPart.Conditions().swap(KeepConditions);
+
+      if( mEchoLevel >= 1 )
+	std::cout<<" [NEW TOTAL CONDITIONS: "<<mrModelPart.NumberOfConditions()<<"] "<<std::endl;
 
     }
+
 
 
     ///@}

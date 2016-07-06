@@ -72,6 +72,32 @@ namespace Kratos
         .def( "PushBack", Push_Back_Process )
       ;
 
+
+     //***************NEIGHBOURS**************//
+      
+      class_<NodalNeighboursSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
+	(
+	 "NodalNeighboursSearch", init<ModelPart&, int, int, int, int>()
+	 )
+	.def("CleanNeighbours", &NodalNeighboursSearchProcess::ClearNeighbours)
+	;
+      
+      class_<ElementalNeighboursSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
+	(
+	 "ElementalNeighboursSearch", init<ModelPart&, int, int, int, int>()
+	 )
+	.def("CleanNeighbours", &ElementalNeighboursSearchProcess::ClearNeighbours)
+	;
+
+
+      //***************BOUNDARY**************//
+
+      class_<BuildMeshBoundaryProcess, bases<ProcessBaseType>, boost::noncopyable >
+	(
+	 "BuildMeshBoundary", init<ModelPart&, int, int>()
+	 )
+	;
+
       //**********MESH MODELLER PROCESS*********//
 
       class_<ModelStartEndMeshingProcess, bases<ProcessBaseType>, boost::noncopyable >
@@ -125,37 +151,13 @@ namespace Kratos
 	;
 
 
-      class_<ReconstructMeshBoundaryProcess, bases<ProcessBaseType>, boost::noncopyable >
+      class_<ReconstructMeshBoundaryProcess, bases<<BuildMeshBoundaryProcess>, boost::noncopyable >
 	(
 	 "ReconstructMeshBoundary", init<ModelPart&, ModelerUtilities::MeshingParameters&, int, int>()
 	 )
 	;
 
-      //***************NEIGHBOURS**************//
-      
-      class_<NodalNeighboursSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "NodalNeighboursSearch", init<ModelPart&, int, int, int, int>()
-	 )
-	.def("CleanNeighbours", &NodalNeighboursSearchProcess::ClearNeighbours)
-	;
-      
-      class_<ElementalNeighboursSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "ElementalNeighboursSearch", init<ModelPart&, int, int, int, int>()
-	 )
-	.def("CleanNeighbours", &ElementalNeighboursSearchProcess::ClearNeighbours)
-	;
-
-
-      //***************BOUNDARY**************//
-
-      class_<BuildMeshBoundaryProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "BuildMeshBoundary", init<ModelPart&, int, int, int>()
-	 )
-	;
-
+ 
 
       //********MODEL VOLUME CALCULATION*********//
 
