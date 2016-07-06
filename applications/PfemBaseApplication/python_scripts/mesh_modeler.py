@@ -134,8 +134,8 @@ class MeshModeler:
         self.mesher.SetPostMeshingProcess(generate_particles)
 
         #select mesh elements
-        select_mesh_elements  = KratosPfemBase.SelectMeshElements(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
-        self.mesher.SetPostMeshingProcess(select_mesh_elements)
+        #select_mesh_elements  = KratosPfemBase.SelectMeshElements(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        #self.mesher.SetPostMeshingProcess(select_mesh_elements)
 
         #rebuild elements
         rebuild_mesh_elements = KratosPfemBase.BuildMeshElements(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)

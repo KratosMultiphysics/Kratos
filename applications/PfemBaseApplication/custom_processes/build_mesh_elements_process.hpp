@@ -172,7 +172,6 @@ namespace Kratos
       // mrRemesh.NeighbourList.swap(EmptyNeighList); 
       // mrRemesh.NeighbourList.clear(); //destroy all elements
       
-      int faces = 0;
       for(int el = 0; el<OutNumberOfElements; el++)
 	{
 	  if(mrRemesh.PreservedElements[el])
@@ -254,8 +253,6 @@ namespace Kratos
 	  
 	}
       
-      if( mEchoLevel > 0 )
-	std::cout<<" [ FACES "<<faces<<"]"<<std::endl;
       
       //*******************************************************************
       //5) Laplacian Smoothing
