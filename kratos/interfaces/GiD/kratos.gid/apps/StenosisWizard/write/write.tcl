@@ -8,13 +8,15 @@ proc StenosisWizard::write::Init { } {
 
 
 proc StenosisWizard::write::writeCustomFilesEvent { } {
-    return [Fluid::write::writeCustomFilesEvent]
+    write::CopyFileIntoModel "../Fluid/python/KratosFluid.py"
+    write::RenameFileInModel "KratosFluid.py" "MainKratos.py"
 }
 
 # MDPA Blocks
 
 proc StenosisWizard::write::writeModelPartEvent { } {
-    Fluid::write::writeModelPartEvent
+    Fluid::write::AddValidApps StenosisWizard
+    write::writeAppMDPA Fluid
 }
 
 # Project Parameters
