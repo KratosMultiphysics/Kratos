@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ConditionList>
     
-  <ConditionItem n="SelfWeight3D" pn="Self weight" ImplementedInFile="process_factory"
+  <ConditionItem n="SelfWeight3D" pn="Self weight" ImplementedInFile="process_factory" Interval="Total"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Line,Surface,Volume" ProcessName="ApplyConstantVectorValueProcess" VariableName="VOLUME_ACCELERATION"
@@ -19,7 +19,7 @@
     </outputs>
   </ConditionItem>
   
-  <ConditionItem n="SelfWeight2D" pn="Self weight" ImplementedInFile="process_factory"
+  <ConditionItem n="SelfWeight2D" pn="Self weight" ImplementedInFile="process_factory" Interval="Total"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Line,Surface"  ProcessName="ApplyConstantVectorValueProcess" VariableName="VOLUME_ACCELERATION"
@@ -37,7 +37,7 @@
     </outputs>
   </ConditionItem>
   
-  <ConditionItem n="SelfWeight2Da" pn="Self weight" ImplementedInFile="process_factory"
+  <ConditionItem n="SelfWeight2Da" pn="Self weight" ImplementedInFile="process_factory" Interval="Total"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2Da" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Line,Surface"  ProcessName="ApplyConstantVectorValueProcess" VariableName="VOLUME_ACCELERATION"
@@ -55,7 +55,7 @@
     </outputs>
   </ConditionItem>
 
-  <ConditionItem n="PointLoad2D" pn="Load on points" ImplementedInFile="process_factory"
+  <ConditionItem n="PointLoad2D" pn="Load on points" ImplementedInFile="process_factory" Interval="Total"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Point" ProcessName="ApplyConstantVectorValueProcess" help="Point load application by means of the ApplyConstantVectorValueProcess in the core"
@@ -70,7 +70,7 @@
     </outputs>
   </ConditionItem>
   
-  <ConditionItem n="PointLoad2DAxisym" pn="Load on points" ImplementedInFile="process_factory"
+  <ConditionItem n="PointLoad2DAxisym" pn="Load on points" ImplementedInFile="process_factory" Interval="Total"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2Da" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Point" ProcessName="ApplyConstantVectorValueProcess" help="Point load application by means of the ApplyConstantVectorValueProcess in the core"
@@ -85,7 +85,7 @@
     </outputs>
   </ConditionItem>
   
-  <ConditionItem n="PointLoad3D" pn="Load on points" ImplementedInFile="process_factory"
+  <ConditionItem n="PointLoad3D" pn="Load on points" ImplementedInFile="process_factory" Interval="Total"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Point" ProcessName="ApplyConstantVectorValueProcess" help="Load on points, load vector referred to global axes"
@@ -100,7 +100,7 @@
     </outputs>
   </ConditionItem>
   
-  <ConditionItem n="LineLoad2D" pn="Load on lines" ImplementedInFile="process_factory"
+  <ConditionItem n="LineLoad2D" pn="Load on lines" ImplementedInFile="process_factory" Interval="Total"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Line" ProcessName="ApplyVectorOnConditionsProcess" help="Load on lines, load vector referred to global axes"
@@ -116,7 +116,7 @@
     </outputs>
   </ConditionItem>
 
-  <ConditionItem n="LineLoad2DAxisym" pn="Load on lines" ImplementedInFile="apply_vector_on_conditions_process"
+  <ConditionItem n="LineLoad2DAxisym" pn="Load on lines" ImplementedInFile="apply_vector_on_conditions_process" Interval="Total"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2Da" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Line" ProcessName="ApplyVectorOnConditionsProcess" help="Load on lines, load vector referred to global axes"
@@ -132,7 +132,7 @@
     </outputs>
   </ConditionItem>
   
-  <ConditionItem n="SurfaceLoad3D" pn="Load on surfaces" ImplementedInFile="apply_vector_on_conditions_process"
+  <ConditionItem n="SurfaceLoad3D" pn="Load on surfaces" ImplementedInFile="apply_vector_on_conditions_process" Interval="Total"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Surface"  ProcessName="ApplyVectorOnConditionsProcess" help="Load on surfaces, load vector referred to global axes"
@@ -151,7 +151,7 @@
     </outputs>
   </ConditionItem>
   
-  <ConditionItem n="LinePressure2D" pn="Pressure on lines" ImplementedInFile="apply_scalar_on_conditions_processs"
+  <ConditionItem n="LinePressure2D" pn="Pressure on lines" ImplementedInFile="apply_scalar_on_conditions_processs" Interval="Total"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Line" ProcessName="ApplyScalarOnConditionsProcess" help="Normal pressure on lines, oriented pointing against the line outer normal"
@@ -167,7 +167,7 @@
     </outputs>
   </ConditionItem>
   
-  <ConditionItem n="LinePressure2DAxisym" pn="Pressure on lines" ImplementedInFile="apply_scalar_on_conditions_processs"
+  <ConditionItem n="LinePressure2DAxisym" pn="Pressure on lines" ImplementedInFile="apply_scalar_on_conditions_processs" Interval="Total"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2Da" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Line" ProcessName="ApplyScalarOnConditionsProcess" help="Normal pressure on lines, oriented pointing against the line outer normal"
@@ -183,7 +183,7 @@
     </outputs>
   </ConditionItem>
 
-  <ConditionItem n="SurfacePressure3D" pn="Pressure on surfaces" ImplementedInFile="apply_scalar_on_conditions_process"
+  <ConditionItem n="SurfacePressure3D" pn="Pressure on surfaces" ImplementedInFile="apply_scalar_on_conditions_process" Interval="Total"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Surface" ProcessName="ApplyScalarOnConditionsProcess" help="Normal Pressure on surfaces, oriented pointing against the surface outer normal"
