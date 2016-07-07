@@ -36,11 +36,12 @@ namespace Kratos
             double sphere_perimeter = 2*KRATOS_M_PI * GetRadius();       
             double total_equiv_perimeter = 0.0;
             unsigned int continuous_initial_neighbours_size = mContinuumInitialNeighborsSize;
+            Vector& cont_ini_neigh_area = GetValue(NEIGHBOURS_CONTACT_AREAS);
         
             for (unsigned int i = 0; i < continuous_initial_neighbours_size; i++) {
                 SphericParticle* ini_cont_neighbour_iterator = mNeighbourElements[i];
                 double other_radius     = ini_cont_neighbour_iterator->GetInteractionRadius();
-                double area = mContinuumConstitutiveLawArray[i]->CalculateContactArea(GetRadius(), other_radius, mContIniNeighArea); //This call fills the vector of areas only if the Constitutive Law wants.         
+                double area = mContinuumConstitutiveLawArray[i]->CalculateContactArea(GetRadius(), other_radius, cont_ini_neigh_area); //This call fills the vector of areas only if the Constitutive Law wants.         
                 total_equiv_perimeter += area;
             } //for every neighbour
       
@@ -48,14 +49,14 @@ namespace Kratos
             
                 if (!*mSkinSphere) {
                     AuxiliaryFunctions::CalculateAlphaFactor2D(continuous_initial_neighbours_size, sphere_perimeter, total_equiv_perimeter, alpha); 
-                    for (unsigned int i = 0; i < mContIniNeighArea.size(); i++) {
-                        mContIniNeighArea[i] = alpha*mContIniNeighArea[i];                      
+                    for (unsigned int i = 0; i < cont_ini_neigh_area.size(); i++) {
+                        cont_ini_neigh_area[i] = alpha*cont_ini_neigh_area[i];                      
                     } //for every neighbour
                 }
                 else { //skin sphere                              
-                    for (unsigned int i = 0; i < mContIniNeighArea.size(); i++) {
+                    for (unsigned int i = 0; i < cont_ini_neigh_area.size(); i++) {
                         alpha            = 1.30*(1.10266)*(sphere_perimeter/total_equiv_perimeter)*((double(continuous_initial_neighbours_size))/6); // 6 is mean coordination number.
-                        mContIniNeighArea[i] = alpha*mContIniNeighArea[i];
+                        cont_ini_neigh_area[i] = alpha*cont_ini_neigh_area[i];
                     }     //loop on cont neighs
                 }           //skin particles.
             }               //if 3 neighbours or more.

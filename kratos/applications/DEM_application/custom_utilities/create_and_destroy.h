@@ -50,6 +50,8 @@ public:
     int FindMaxNodeIdInModelPart(ModelPart& r_modelpart);
     void FindAndSaveMaxNodeIdInModelPart(ModelPart& r_modelpart);
     int FindMaxElementIdInModelPart(ModelPart& r_modelpart);
+    int FindMaxConditionIdInModelPart(ModelPart& r_modelpart);
+    void RenumberElementIdsFromGivenValue(ModelPart& r_modelpart, const int initial_id);
         
     void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                            Node < 3 > ::Pointer& pnew_node,

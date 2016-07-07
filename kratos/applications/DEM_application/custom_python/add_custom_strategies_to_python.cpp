@@ -54,11 +54,7 @@ namespace Kratos
         {
           typedef UblasSpace<double, CompressedMatrix, Vector>                          SparseSpaceType;
           typedef UblasSpace<double, Matrix, Vector>                                    LocalSpaceType;
-
           typedef LinearSolver<SparseSpaceType, LocalSpaceType >                        LinearSolverType;
-          typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >  BaseSolvingStrategyType;
-          //typedef Scheme< SparseSpaceType, LocalSpaceType >                             BaseSchemeType;
-
           typedef OMP_DEMSearch                                                         OmpDemSearchType;
           typedef DEMSearch<OmpDemSearchType >                                          DemSearchType;
 
@@ -124,6 +120,10 @@ namespace Kratos
           "ExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
                   .def("Solve", &ExplicitSolverStrategy::Solve)
                   .def("Initialize", &ExplicitSolverStrategy::Initialize)
+                  .def("SetSearchRadiiOnAllParticles", &ExplicitSolverStrategy::SetSearchRadiiOnAllParticles)
+                  .def("SetNormalRadiiOnAllParticles", &ExplicitSolverStrategy::SetNormalRadiiOnAllParticles)
+                  .def("SetSearchRadiiWithFemOnAllParticles", &ExplicitSolverStrategy::SetSearchRadiiWithFemOnAllParticles)
+                  .def("RebuildListOfDiscontinuumSphericParticles", &ExplicitSolverStrategy::RebuildListOfDiscontinuumSphericParticles)          
                   .def("InitialTimeStepCalculation", &ExplicitSolverStrategy::InitialTimeStepCalculation)
                   .def("PrepareElementsForPrinting", &ExplicitSolverStrategy::PrepareElementsForPrinting)
                   .def("ResetPrescribedMotionFlagsRespectingImposedDofs", &ExplicitSolverStrategy::ResetPrescribedMotionFlagsRespectingImposedDofs)

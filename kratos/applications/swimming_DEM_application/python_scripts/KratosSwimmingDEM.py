@@ -363,6 +363,7 @@ if(pp.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmaras"):
             node.SetSolutionStepValue(TURBULENT_VISCOSITY, 0, 0.0)
             node.Fix(TURBULENT_VISCOSITY)
 
+solver.CreateCPlusPlusStrategy()
 solver.Initialize()    # Possible modifications of DELTA_TIME
 
 fluid_solver.Initialize()

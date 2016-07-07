@@ -12,7 +12,6 @@
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "DEM_application_variables.h"
 #include "includes/kratos_flags.h"
-#include "custom_utilities/properties_proxies.h"
 
 namespace Kratos {
         

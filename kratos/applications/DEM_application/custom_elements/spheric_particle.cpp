@@ -120,8 +120,7 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
 
 void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double dt, const array_1d<double,3>& gravity, int search_control)
 {
-    KRATOS_TRY
-
+    KRATOS_TRY    
     array_1d<double, 3> additional_forces;
     array_1d<double, 3> additionally_applied_moment;
     array_1d<double, 3> initial_rotation_moment;
@@ -369,7 +368,7 @@ void SphericParticle::CalculateLocalAngularMomentum(array_1d<double, 3>& r_angul
     noalias(r_angular_momentum) = moment_of_inertia * ang_vel;
 }
 
-void SphericParticle::ComputeNewNeighboursHistoricalData(std::vector<int>& mTempNeighboursIds,
+void SphericParticle::ComputeNewNeighboursHistoricalData(boost::numeric::ublas::vector<int>& mTempNeighboursIds,
                                                          std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
                                                          std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces)
 {
@@ -378,6 +377,8 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(std::vector<int>& mTemp
     mTempNeighboursIds.resize(new_size);
     mTempNeighbourElasticContactForces.resize(new_size);
     mTempNeighbourTotalContactForces.resize(new_size);
+    
+    boost::numeric::ublas::vector<int>& vector_of_ids_of_neighbours = GetValue(NEIGHBOUR_IDS);
 
     for (unsigned int i = 0; i < new_size; i++) {
         noalias(mTempNeighbourElasticContactForces[i]) = vector_of_zeros;
@@ -389,9 +390,11 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(std::vector<int>& mTemp
         }
 
         mTempNeighboursIds[i] = mNeighbourElements[i]->Id();
+        
+        
 
-        for (unsigned int j = 0; j < mOldNeighbourIds.size(); j++) {
-            if (int(mTempNeighboursIds[i]) == mOldNeighbourIds[j] && mOldNeighbourIds[j] != -1) {
+        for (unsigned int j = 0; j < vector_of_ids_of_neighbours.size(); j++) {
+            if (int(mTempNeighboursIds[i]) == vector_of_ids_of_neighbours[j] && vector_of_ids_of_neighbours[j] != -1) {
                 noalias(mTempNeighbourElasticContactForces[i]) = mNeighbourElasticContactForces[j];
                 noalias(mTempNeighbourTotalContactForces[i])   = mNeighbourTotalContactForces[j];
                 break;
@@ -399,7 +402,7 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(std::vector<int>& mTemp
         }
     }
 
-    mOldNeighbourIds.swap(mTempNeighboursIds);
+    vector_of_ids_of_neighbours.swap(mTempNeighboursIds);
     mNeighbourElasticContactForces.swap(mTempNeighbourElasticContactForces);
     mNeighbourTotalContactForces.swap(mTempNeighbourTotalContactForces);
 }
@@ -549,33 +552,33 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
                                                 const array_1d<double, 3>& angular_vel,
                                                 SphericParticle* p_neighbour)
 {
-        array_1d<double, 3>& neigh_angular_vel = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-        array_1d<double, 3> temp_angular_vel = angular_vel;
-        array_1d<double, 3> angular_velocity = angular_vel;
-        array_1d<double, 3> other_angular_velocity = neigh_angular_vel;
-        array_1d<double, 3> temp_neigh_angular_vel = neigh_angular_vel;
+        const array_1d<double, 3>& neigh_angular_vel = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);               
         const double other_young = p_neighbour->GetYoung();
         const double my_young = GetYoung();
 
-        DEM_MULTIPLY_BY_SCALAR_3(temp_angular_vel, dt); //THIS MACRO OPERATION CONVERTS THE temp_angular_vel VARIABLE INTO AN ANGLE, DESPITE THE NAME
-        DEM_MULTIPLY_BY_SCALAR_3(temp_neigh_angular_vel, dt); // SAME COMMENT AS IN THE PREVIOUS LINE
+        array_1d<double, 3> temp_angular_vel;
+        noalias(temp_angular_vel) = angular_vel;
+        array_1d<double, 3> temp_neigh_angular_vel;
+        noalias(temp_neigh_angular_vel) = neigh_angular_vel;
+        DEM_MULTIPLY_BY_SCALAR_3(temp_angular_vel, dt); //THIS MACRO CONVERTS THE temp_angular_vel VARIABLE INTO AN ANGLE, DESPITE THE NAME
+        DEM_MULTIPLY_BY_SCALAR_3(temp_neigh_angular_vel, dt); //THIS MACRO CONVERTS THE temp_angular_vel VARIABLE INTO AN ANGLE, DESPITE THE NAME
 
-        double my_rotated_angle = DEM_MODULUS_3(temp_angular_vel);
-        double other_rotated_angle = DEM_MODULUS_3(temp_neigh_angular_vel);
+        const double my_rotated_angle = DEM_MODULUS_3(temp_angular_vel);
+        const double other_rotated_angle = DEM_MODULUS_3(temp_neigh_angular_vel);
 
         array_1d<double, 3> other_to_me_vect;
         noalias(other_to_me_vect)  = this->GetGeometry()[0].Coordinates() - p_neighbour->GetGeometry()[0].Coordinates();
-        double distance            = DEM_MODULUS_3(other_to_me_vect);
-        double radius_sum          = GetInteractionRadius() + other_radius;
-        double indentation         = radius_sum - distance;
+        const double distance            = DEM_MODULUS_3(other_to_me_vect);
+        const double radius_sum          = GetInteractionRadius() + other_radius;
+        const double indentation         = radius_sum - distance;
 
-        double arm = GetInteractionRadius() - indentation * other_young / (other_young + my_young);
+        const double arm = GetInteractionRadius() - indentation * other_young / (other_young + my_young);
         array_1d<double, 3> e1;
         DEM_COPY_SECOND_TO_FIRST_3(e1, OldLocalCoordSystem[2]);
         DEM_MULTIPLY_BY_SCALAR_3(e1, -arm);
         array_1d<double, 3> new_axes1 = e1;
 
-        double other_arm = other_radius - indentation * my_young / (other_young + my_young);
+        const double other_arm = other_radius - indentation * my_young / (other_young + my_young);
         array_1d<double, 3> e2;
         DEM_COPY_SECOND_TO_FIRST_3(e2, OldLocalCoordSystem[2]);
         DEM_MULTIPLY_BY_SCALAR_3(e2, other_arm);
@@ -615,8 +618,8 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
         array_1d<double, 3> vel = ZeroVector(3);
         array_1d<double, 3> other_vel = ZeroVector(3);
 
-        GeometryFunctions::CrossProduct(angular_velocity, radial_vector, vel);
-        GeometryFunctions::CrossProduct(other_angular_velocity, other_radial_vector, other_vel);
+        GeometryFunctions::CrossProduct(angular_vel, radial_vector, vel);
+        GeometryFunctions::CrossProduct(neigh_angular_vel, other_radial_vector, other_vel);
 
         RelVel[0] += vel[0] - other_vel[0];
         RelVel[1] += vel[1] - other_vel[1];
@@ -1142,6 +1145,7 @@ void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& 
 void SphericParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
 {
     KRATOS_TRY
+            
     mRadius = this->GetGeometry()[0].FastGetSolutionStepValue(RADIUS); //Just in case someone is overwriting the radius in Python
     this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) = 0.0;
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
@@ -1555,6 +1559,7 @@ void   SphericParticle::SetClusterId(int givenId)                               
 double SphericParticle::GetRadius()                                                      { return mRadius;         }
 double SphericParticle::CalculateVolume()                                                { return 4 * KRATOS_M_PI_3 * mRadius * mRadius * mRadius;     }
 void   SphericParticle::SetRadius(double radius)                                         { mRadius = radius;       }
+void   SphericParticle::SetRadius()                                                      { mRadius = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);       }
 double SphericParticle::GetInteractionRadius()                                           { return mRadius;         }
 void   SphericParticle::SetInteractionRadius(const double radius)                        { mRadius = radius; GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = radius;}
 double SphericParticle::GetSearchRadius()                                                { return mSearchRadius;   }

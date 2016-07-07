@@ -19,6 +19,7 @@
 #include "custom_utilities/dem_fem_utilities.h"
 #include "custom_utilities/benchmark_utilities.h" 
 #include "custom_utilities/inlet.h"
+#include "custom_utilities/reorder_consecutive_from_given_ids_model_part_io.h"
 
 #include "boost/python/list.hpp"
 #include "boost/python/extract.hpp"
@@ -84,6 +85,8 @@ void  AddCustomUtilitiesToPython() {
         .def("DestroyContactElementsOutsideBoundingBox", &ParticleCreatorDestructor::DestroyContactElementsOutsideBoundingBox)
         .def("FindMaxNodeIdInModelPart", &ParticleCreatorDestructor::FindMaxNodeIdInModelPart)
         .def("FindMaxElementIdInModelPart", &ParticleCreatorDestructor::FindMaxElementIdInModelPart)
+        .def("FindMaxConditionIdInModelPart", &ParticleCreatorDestructor::FindMaxConditionIdInModelPart)
+        .def("RenumberElementIdsFromGivenValue", &ParticleCreatorDestructor::RenumberElementIdsFromGivenValue)
         ;
       
       class_<DEM_Inlet, boost::noncopyable >
@@ -156,7 +159,12 @@ void  AddCustomUtilitiesToPython() {
         ("BenchmarkUtils", init<>())
         .def("ComputeHydrodynamicForces", &BenchmarkUtils::ComputeHydrodynamicForces)
         ;
-        
+
+     
+     class_<ReorderConsecutiveFromGivenIdsModelPartIO, ReorderConsecutiveFromGivenIdsModelPartIO::Pointer, bases<ReorderConsecutiveModelPartIO>,  boost::noncopyable>(
+        "ReorderConsecutiveFromGivenIdsModelPartIO",init<std::string const& >())
+        .def(init<std::string const&, const int, const int, const int>())
+     ;       
 
     }
 

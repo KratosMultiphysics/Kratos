@@ -26,8 +26,8 @@ namespace Kratos {
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
         void CalculateContactArea(double radius, double other_radius, double& calculation_area) override;
-        double CalculateContactArea(double radius, double other_radius, std::vector<double>& v) override;
-        void GetContactArea(const double radius, const double other_radius, const std::vector<double> & vector_of_initial_areas, const int neighbour_position, double& calculation_area) override;
+        double CalculateContactArea(double radius, double other_radius, Vector& v) override;
+        void GetContactArea(const double radius, const double other_radius, const Vector& vector_of_initial_areas, const int neighbour_position, double& calculation_area) override;
         void CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young, double equiv_poisson, double calculation_area) override;
 
         void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
@@ -44,6 +44,7 @@ namespace Kratos {
         void CalculateForces(const ProcessInfo& r_process_info,
                              double OldLocalElasticContactForce[3],
                              double LocalElasticContactForce[3],
+                             double LocalCoordSystem[3][3],
                              double LocalDeltDisp[3],
                              const double kn_el,
                              const double kt_el,
@@ -51,6 +52,7 @@ namespace Kratos {
                              double& contact_tau,
                              double& failure_criterion_state,
                              double equiv_young,
+                             double equiv_shear,
                              double indentation,
                              double calculation_area,
                              double& acumulated_damage,
@@ -83,8 +85,10 @@ namespace Kratos {
 
 
         void CalculateTangentialForces(double LocalElasticContactForce[3],
-                double LocalDeltDisp[3],
+                double LocalCoordSystem[3][3],             
+                double LocalDeltDisp[3],                
                 const double kt_el,
+                const double equiv_shear,
                 double& contact_sigma,
                 double& contact_tau,
                 double indentation,
@@ -96,6 +100,15 @@ namespace Kratos {
                 bool& sliding,
                 int search_control,
                 vector<int>& search_control_vector) override;
+        
+        void AddContributionOfShearStrainParallelToBond(double LocalElasticContactForce[3], 
+                                                    double LocalCoordSystem[3][3],
+                                                    const double kt_el,
+                                                    const double equiv_shear,
+                                                    const int i_neighbour_count,
+                                                    const double calculation_area,
+                                                    SphericContinuumParticle* element1, 
+                                                    SphericContinuumParticle* element2);
         
         
         void CalculateViscoDamping(double LocalRelVel[3],

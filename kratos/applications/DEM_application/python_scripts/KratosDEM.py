@@ -24,12 +24,13 @@ if "OMPI_COMM_WORLD_SIZE" in os.environ:
     import DEM_procedures_mpi as DEM_procedures
     import DEM_material_test_script_mpi as DEM_material_test_script
     print("Running under MPI...........")
-    model_part_reader = ReorderConsecutiveModelPartIO
+    model_part_reader = ReorderConsecutiveFromGivenIdsModelPartIO
 else:
     # DEM Application
     import DEM_procedures
     import DEM_material_test_script
     model_part_reader = ModelPartIO
+    model_part_reader = ReorderConsecutiveFromGivenIdsModelPartIO
     print("Running under OpenMP........")
 
 # TODO: Ugly fix. Change it. I don't like this to be in the main...
@@ -122,17 +123,34 @@ model_part_io_spheres = model_part_reader(spheres_mp_filename)
 
 model_part_io_spheres.ReadModelPart(spheres_model_part)
 
+
+max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
+max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(spheres_model_part)
+old_max_elem_Id_spheres = max_elem_Id
+max_cond_Id = creator_destructor.FindMaxElementIdInModelPart(spheres_model_part)
 rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
-model_part_io_fem = model_part_reader(rigidFace_mp_filename)
+model_part_io_fem = model_part_reader(rigidFace_mp_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
 model_part_io_fem.ReadModelPart(rigid_face_model_part)
 
-clusters_mp_filename = DEM_parameters.problem_name + "DEM_Clusters"
-model_part_io_clusters = model_part_reader(clusters_mp_filename)
-model_part_io_clusters.ReadModelPart(cluster_model_part)
 
+max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
+max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(rigid_face_model_part)
+max_cond_Id = creator_destructor.FindMaxElementIdInModelPart(rigid_face_model_part)
+clusters_mp_filename = DEM_parameters.problem_name + "DEM_Clusters"
+model_part_io_clusters = model_part_reader(clusters_mp_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
+model_part_io_clusters.ReadModelPart(cluster_model_part)
+max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(spheres_model_part)
+if(max_elem_Id != old_max_elem_Id_spheres):
+    creator_destructor.RenumberElementIdsFromGivenValue(cluster_model_part, max_elem_Id)
+
+
+max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(cluster_model_part)
+max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(cluster_model_part)
+max_cond_Id = creator_destructor.FindMaxElementIdInModelPart(cluster_model_part)
 DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"  
-model_part_io_demInlet = model_part_reader(DEM_Inlet_filename)
+model_part_io_demInlet = model_part_reader(DEM_Inlet_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
 model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
+
 
 # Setting up the buffer size
 spheres_model_part.SetBufferSize(1)
@@ -191,11 +209,14 @@ demio.InitializeMesh(spheres_model_part,
                      solver.contact_model_part,
                      mapping_model_part)
 
-os.chdir(post_path)
-
 # Perform a partition to balance the problem
+solver.search_strategy = parallelutils.GetSearchStrategy(solver, spheres_model_part)
+solver.CreateCPlusPlusStrategy()
+solver.RebuildListOfDiscontinuumSphericParticles()
+solver.SetNormalRadiiOnAllParticles()
+solver.SetSearchRadiiOnAllParticles()
 parallelutils.Repart(spheres_model_part)
-parallelutils.CalculateModelNewIds(spheres_model_part)
+#parallelutils.CalculateModelNewIds(spheres_model_part)
 
 os.chdir(post_path)
 
@@ -207,7 +228,6 @@ if (DEM_parameters.BoundingBoxOption == "ON"):
 
 #Creating a solver object and set the search strategy
 #solver                 = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, DEM_parameters)
-solver.search_strategy = parallelutils.GetSearchStrategy(solver, spheres_model_part)
 
 dt = DEM_parameters.MaxTimeStep
 

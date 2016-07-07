@@ -293,6 +293,11 @@ public:
     
     static inline double GetObjectRadius(const PointerType& rObject, const double& Radius)
     {
+        return GetObjectRadius(rObject);       
+    }
+    
+    static inline double GetObjectRadius(const PointerType& rObject)
+    {
         SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*rObject);
         return p_particle->GetSearchRadius();        
     }

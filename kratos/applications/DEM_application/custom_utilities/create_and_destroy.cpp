@@ -30,7 +30,7 @@ namespace Kratos {
     }
 
     int ParticleCreatorDestructor::FindMaxNodeIdInModelPart(ModelPart& r_modelpart) {
-
+        KRATOS_TRY
         int max_Id = 1; //GID accepts Id's >= 1
         std::vector<int> thread_maximums(OpenMPUtils::GetNumThreads(),1);
 
@@ -46,14 +46,17 @@ namespace Kratos {
         
         r_modelpart.GetCommunicator().MaxAll(max_Id);
         return max_Id;
+        KRATOS_CATCH("")
     }
     
     void ParticleCreatorDestructor::FindAndSaveMaxNodeIdInModelPart(ModelPart& r_modelpart) {
+        KRATOS_TRY
         mMaxNodeId = FindMaxNodeIdInModelPart(r_modelpart);
+        KRATOS_CATCH("")
     }
 
     int ParticleCreatorDestructor::FindMaxElementIdInModelPart(ModelPart& r_modelpart) {
-
+        KRATOS_TRY
         int max_Id = 1;
         
         for (ModelPart::ElementsContainerType::iterator element_it = r_modelpart.GetCommunicator().LocalMesh().ElementsBegin();
@@ -65,10 +68,45 @@ namespace Kratos {
 
         r_modelpart.GetCommunicator().MaxAll(max_Id);
         return max_Id;
+        KRATOS_CATCH("")
     }
     
-    double ParticleCreatorDestructor::rand_normal(const double mean, const double stddev, const double max_radius, const double min_radius) {
+    int ParticleCreatorDestructor::FindMaxConditionIdInModelPart(ModelPart& r_modelpart) {
+        KRATOS_TRY
+        int max_Id = 1;
+        
+        for (ModelPart::ConditionsContainerType::iterator condition_it = r_modelpart.GetCommunicator().LocalMesh().ConditionsBegin();
+            condition_it != r_modelpart.GetCommunicator().LocalMesh().ConditionsEnd();
+            condition_it++) {
 
+            if ((int) (condition_it->Id()) > max_Id) max_Id = condition_it->Id();
+        }
+
+        r_modelpart.GetCommunicator().MaxAll(max_Id);
+        return max_Id;
+        KRATOS_CATCH("")
+    }
+    
+    void ParticleCreatorDestructor::RenumberElementIdsFromGivenValue(ModelPart& r_modelpart, const int initial_id) {
+        KRATOS_TRY
+        const int number_of_elements = r_modelpart.GetCommunicator().LocalMesh().NumberOfElements();
+        int total_accumulated_elements = 0;
+        
+        r_modelpart.GetCommunicator().ScanSum(number_of_elements, total_accumulated_elements);
+
+        int id = total_accumulated_elements - number_of_elements + initial_id;
+        auto& local_mesh = r_modelpart.GetCommunicator().LocalMesh();
+        
+        for (auto element_it = local_mesh.ElementsBegin(); element_it != local_mesh.ElementsEnd(); element_it++) {
+            element_it->SetId(id);
+            id++;
+        }                
+        KRATOS_CATCH("")
+    }
+        
+    
+    double ParticleCreatorDestructor::rand_normal(const double mean, const double stddev, const double max_radius, const double min_radius) {
+        KRATOS_TRY
         if (!stddev) return mean;
 
         double return_value;
@@ -88,19 +126,21 @@ namespace Kratos {
         } while (return_value < min_radius || return_value > max_radius);
 
         return return_value;
+        KRATOS_CATCH("")
     }
     
     double ParticleCreatorDestructor::rand_lognormal(const double mean, const double stddev, const double max_radius, const double min_radius) {
-        
+        KRATOS_TRY
         const double normal_mean = log(mean * mean / sqrt(stddev * stddev + mean * mean));
         const double normal_stddev = sqrt(log(1 + stddev * stddev / (mean * mean)));
         double normally_distributed_value = rand_normal(normal_mean, normal_stddev, log(max_radius), log(min_radius));
 
         return exp(normally_distributed_value);
+        KRATOS_CATCH("")
     }
     
     void ParticleCreatorDestructor::AddRandomPerpendicularVelocityToGivenVelocity(array_1d<double, 3 >& velocity, const double angle_in_degrees) {
-        
+        KRATOS_TRY
         double velocity_modulus = sqrt(velocity[0]*velocity[0] + velocity[1]*velocity[1] + velocity[2]*velocity[2]);
         array_1d<double, 3 > unitary_velocity;
         noalias(unitary_velocity) = velocity / velocity_modulus;
@@ -148,7 +188,8 @@ namespace Kratos {
             local_added_velocity_modulus_square = local_added_velocity[0]*local_added_velocity[0] + local_added_velocity[1]*local_added_velocity[1];
         }
         
-        noalias(velocity) += local_added_velocity[0] * normal_1 + local_added_velocity[1] * normal_2;        
+        noalias(velocity) += local_added_velocity[0] * normal_1 + local_added_velocity[1] * normal_2;  
+        KRATOS_CATCH("")
     }
     
     void ParticleCreatorDestructor::NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart,
@@ -160,7 +201,7 @@ namespace Kratos {
                                                                     bool has_sphericity,
                                                                     bool has_rotation,
                                                                     bool initial) {
-        
+        KRATOS_TRY
         array_1d<double, 3 > null_vector(3, 0.0);
 
         double bx = reference_node->X();
@@ -226,6 +267,7 @@ namespace Kratos {
         pnew_node->Set(DEMFlags::FIXED_ANG_VEL_X, true);
         pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Y, true);
         pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Z, true);
+        KRATOS_CATCH("")
     }
 
     Kratos::Element* ParticleCreatorDestructor::ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
@@ -239,7 +281,7 @@ namespace Kratos {
                                                                         bool has_rotation,
                                                                         bool initial,
                                                                         ElementsContainerType& array_of_injector_elements) {
-
+        KRATOS_TRY
         Node<3>::Pointer pnew_node;
 
         double radius = (*r_params)[RADIUS];
@@ -305,6 +347,7 @@ namespace Kratos {
         }
         
         return spheric_p_particle;
+        KRATOS_CATCH("")
     }
 
     void ParticleCreatorDestructor::NodeCreatorForClusters(ModelPart& r_modelpart,
@@ -313,7 +356,7 @@ namespace Kratos {
                                                             array_1d<double, 3>& reference_coordinates,
                                                             double radius,
                                                             Properties& params) {
-
+        KRATOS_TRY
         pnew_node = boost::make_shared< Node<3> >( aId, reference_coordinates[0], reference_coordinates[1], reference_coordinates[2] );
         pnew_node->SetSolutionStepVariablesList(&r_modelpart.GetNodalSolutionStepVariablesList());
         pnew_node->SetBufferSize(r_modelpart.GetBufferSize());
@@ -353,6 +396,7 @@ namespace Kratos {
         pnew_node->Set(DEMFlags::BELONGS_TO_A_CLUSTER, true);
         
         //pnew_node->FastGetSolutionStepValue(SPRAYED_MATERIAL) = 0.0;
+        KRATOS_CATCH("")
     }
 
     Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForClusters(ModelPart& r_modelpart,
@@ -364,6 +408,7 @@ namespace Kratos {
                                                                                   const Element& r_reference_element,
                                                                                   const int cluster_id, 
                                                                                   PropertiesProxy* p_fast_properties) {
+        KRATOS_TRY
         Node<3>::Pointer pnew_node;
         
         NodeCreatorForClusters(r_modelpart, pnew_node, r_Elem_Id, reference_coordinates, radius, *r_params);
@@ -392,6 +437,7 @@ namespace Kratos {
         }
         
         return spheric_p_particle;
+        KRATOS_CATCH("")
     }
 
 Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(ModelPart& r_modelpart,
@@ -402,6 +448,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
                                                                                   const Element& r_reference_element,
                                                                                   const int cluster_id, 
                                                                                   PropertiesProxy* p_fast_properties) {
+        KRATOS_TRY
         Node<3>::Pointer pnew_node;
         
         NodeCreatorForClusters(r_modelpart, pnew_node, r_Elem_Id, reference_coordinates, radius, *r_params);
@@ -432,6 +479,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
             r_modelpart.Elements().push_back(p_particle);
         }
         return spheric_p_particle;
+        KRATOS_CATCH("")
     }       
     
     void ParticleCreatorDestructor::ClusterCreatorWithPhysicalParameters(ModelPart& r_spheres_modelpart,
@@ -892,8 +940,10 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
     }
 
     void ParticleCreatorDestructor::DestroyParticlesOutsideBoundingBox(ModelPart& r_model_part) {
+        KRATOS_TRY
         MarkDistantParticlesForErasing(r_model_part);
         DestroyParticles(r_model_part);
+        KRATOS_CATCH("")
     }
 
     void ParticleCreatorDestructor::MoveParticlesOutsideBoundingBoxBackInside(ModelPart& r_model_part) {
@@ -940,8 +990,10 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
     }
 
     void ParticleCreatorDestructor::DestroyContactElementsOutsideBoundingBox(ModelPart& r_model_part, ModelPart& mcontacts_model_part) {
+        KRATOS_TRY
         MarkContactElementsForErasing(r_model_part, mcontacts_model_part);
         DestroyContactElements(mcontacts_model_part);
+        KRATOS_CATCH("")
     }
 
     array_1d<double, 3 > ParticleCreatorDestructor::GetHighNode() { return (mHighPoint);}
@@ -961,6 +1013,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
     void ParticleCreatorDestructor::PrintData(std::ostream& rOStream) const {}
 
     void ParticleCreatorDestructor::Clear(ModelPart::NodesContainerType::iterator node_it, int step_data_size) {
+        KRATOS_TRY
         unsigned int buffer_size = node_it->GetBufferSize();
         for (unsigned int step = 0; step < buffer_size; step++) {
             //getting the data of the solution step
@@ -970,11 +1023,14 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
                 step_data[j] = 0.0;
             }
         }
+        KRATOS_CATCH("")
     }
 
     void ParticleCreatorDestructor::ClearVariables(ModelPart::NodesContainerType::iterator node_it, Variable<array_1d<double, 3 > >& rVariable) {
+        KRATOS_TRY
         array_1d<double, 3 > & Aux_var = node_it->FastGetSolutionStepValue(rVariable);
         noalias(Aux_var) = ZeroVector(3);
+        KRATOS_CATCH("")
     }
 
     void ParticleCreatorDestructor::ClearVariables(ParticleIterator particle_it, Variable<double>& rVariable) {}

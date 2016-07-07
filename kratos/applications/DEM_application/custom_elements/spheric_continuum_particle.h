@@ -103,6 +103,8 @@ namespace Kratos
         unsigned int mContinuumInitialNeighborsSize;
         unsigned int mInitialNeighborsSize;
         std::vector<Kratos::DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
+        std::vector<array_1d<double, 3> > mArrayOfOldDeltaDisplacements;
+        Matrix* mOldSymmStressTensor; 
 
     protected:
 
@@ -121,12 +123,10 @@ namespace Kratos
                                                     const double radius_sum,
                                                     const double contact_area);
 
-        double*                        mSkinSphere; 
-        std::vector<double>         mContIniNeighArea;        
+        double*                     mSkinSphere; 
         std::vector<int>            mFemIniNeighbourIds;
-        std::vector<double>         mFemIniNeighbourDelta;                        
-
-
+        std::vector<double>         mFemIniNeighbourDelta;  
+               
     private:
 
         friend class Serializer;
@@ -137,6 +137,7 @@ namespace Kratos
             //rSerializer.save("mContinuumGroup",mContinuumGroup);
             //rSerializer.save("mIniNeighbourIds",mIniNeighbourIds);
             //rSerializer.save("mSymmStressTensor",mSymmStressTensor);
+            rSerializer.save("mContinuumInitialNeighborsSize",mContinuumInitialNeighborsSize);                        
         }
 
         virtual void load(Serializer& rSerializer) override
@@ -144,8 +145,10 @@ namespace Kratos
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SphericParticle );
             //rSerializer.load("mContinuumGroup",mContinuumGroup);
             //rSerializer.load("mIniNeighbourIds",mIniNeighbourIds);
-            //rSerializer.load("mSymmStressTensor",mSymmStressTensor);
-            mContinuumGroup = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);  
+            //rSerializer.load("mSymmStressTensor",mSymmStressTensor); 
+            rSerializer.load("mContinuumInitialNeighborsSize",mContinuumInitialNeighborsSize); 
+            mContinuumGroup = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP); 
+            mSkinSphere     = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
         }
             
         /* Assignment operator

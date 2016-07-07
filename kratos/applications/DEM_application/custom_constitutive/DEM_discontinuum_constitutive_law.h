@@ -5,7 +5,6 @@
 /* Project includes */
 #include "includes/define.h"
 #include "../custom_utilities/AuxiliaryFunctions.h"
-#include "../custom_utilities/properties_proxies.h"
 #include "includes/serializer.h"
 #include "containers/flags.h"
 
