@@ -10,6 +10,8 @@ namespace eval write {
     variable matun
     variable meshes
     variable groups_type_name
+    
+    variable MDPA_loop_control
 }
 
 proc write::Init { } {
@@ -24,6 +26,11 @@ proc write::Init { } {
     set parts ""
     set meshes [dict create]
     set groups_type_name "SubModelPart"
+    
+    
+    
+    variable MDPA_loop_control
+    set MDPA_loop_control 0
 }
 
 proc write::initWriteData {partes mats} {
@@ -32,6 +39,10 @@ proc write::initWriteData {partes mats} {
     variable meshes
     set parts $partes
     set matun $mats
+    
+    
+    variable MDPA_loop_control
+    set MDPA_loop_control 0
     
     #set meshes [dict create]
     processMaterials
@@ -85,6 +96,10 @@ proc write::writeEvent { filename } {
 }
 
 proc write::writeAppMDPA {appid} {
+    variable MDPA_loop_control
+    incr MDPA_loop_control
+    if {$MDPA_loop_control > 10} {error "Infinite loop on MDPA"}
+    
     set errcode 0
     set activeapp [::apps::getAppById $appid]
     
@@ -201,7 +216,7 @@ proc write::processMaterials { } {
     set xp2 ".//value\[@n='Material']"
     
     set material_number [llength [dict keys $mat_dict] ] 
-    
+
     foreach gNode [$root selectNodes $xp1] {
         set nodeApp [spdAux::GetAppIdFromNode $gNode]
         set group [$gNode getAttribute n]

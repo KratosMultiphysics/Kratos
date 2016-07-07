@@ -5,6 +5,8 @@ namespace eval Fluid::write {
     variable PartsUN
     variable BCUN
     variable writeCoordinatesByGroups
+    
+    variable validApps
 }
 
 proc Fluid::write::Init { } {
@@ -20,6 +22,14 @@ proc Fluid::write::Init { } {
     
     variable writeCoordinatesByGroups
     set writeCoordinatesByGroups 0
+    
+    variable validApps
+    set validApps [list "Fluid"]
+}
+
+proc Fluid::write::AddValidApps {appid} {
+    variable validApps
+    if {$appid ni $validApps} {lappend validApps $appid}
 }
 
 proc Fluid::write::SetCoordinatesByGroups {value} {
@@ -31,12 +41,13 @@ proc Fluid::write::SetCoordinatesByGroups {value} {
 proc Fluid::write::writeModelPartEvent { } {
     variable PartsUN
     variable writeCoordinatesByGroups
+    variable validApps
     set err [Validate]
     if {$err ne ""} {error $err}
     write::initWriteData $PartsUN "FLMaterials"
     write::writeModelPartData
     writeProperties
-    write::writeMaterials Fluid
+    write::writeMaterials $validApps
     if {$writeCoordinatesByGroups} {write::writeNodalCoordinatesOnParts} {write::writeNodalCoordinates}
     write::writeElementConnectivities
     writeConditions
