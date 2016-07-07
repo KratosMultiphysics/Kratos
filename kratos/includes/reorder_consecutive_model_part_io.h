@@ -126,6 +126,9 @@ protected:
 
     ///@}
     ///@name Protected member Variables
+	SizeType mNumberOfNodes;
+	SizeType mNumberOfElements;
+	SizeType mNumberOfConditions;
     ///@{
 
 
@@ -164,10 +167,6 @@ private:
 
     ///@name Member Variables
     ///@{
-	
-	SizeType mNumberOfNodes;
-	SizeType mNumberOfElements;
-	SizeType mNumberOfConditions;
 
 	IdMapType mNodeIdMap;
 	IdMapType mElementIdMap;
