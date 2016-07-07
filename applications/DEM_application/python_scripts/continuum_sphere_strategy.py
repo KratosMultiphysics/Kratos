@@ -30,7 +30,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         self.amplified_continuum_search_radius_extension = Param.AmplifiedSearchRadiusExtension
 
-    def Initialize(self):
+    def CreateCPlusPlusStrategy(self):
         self.SetVariablesAndOptions()
 
         # ADDITIONAL VARIABLES AND OPTIONS
@@ -52,7 +52,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         else:
             self.cplusplus_strategy = ContinuumExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                   self.delta_option, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
-
+    def Initialize(self):
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy Initialize function (initializes all elements and performs other necessary tasks before starting the time loop) (C++)
 
     def SetContinuumType(self):

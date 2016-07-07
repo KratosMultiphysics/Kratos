@@ -416,6 +416,7 @@ namespace Kratos {
 
     void ExplicitSolverStrategy::InitializeSolutionStep() {
         KRATOS_TRY
+                        
         ModelPart& r_model_part = GetModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
@@ -782,19 +783,27 @@ namespace Kratos {
 
     void ExplicitSolverStrategy::SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance, const double amplification) {
         KRATOS_TRY
-                int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
-        mNumberOfElementsOldRadiusList = number_of_elements;
+        int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
         #pragma omp parallel for
         for (int i = 0; i < number_of_elements; i++) {
             mListOfSphericParticles[i]->SetSearchRadius(amplification * (added_search_distance + mListOfSphericParticles[i]->GetRadius()));
         }
         KRATOS_CATCH("")
     }
+    
+    void ExplicitSolverStrategy::SetNormalRadiiOnAllParticles(ModelPart& r_model_part) {
+        KRATOS_TRY
+        int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
+        #pragma omp parallel for
+        for (int i = 0; i < number_of_elements; i++) {
+            mListOfSphericParticles[i]->SetRadius();
+        }
+        KRATOS_CATCH("")
+    }
 
     void ExplicitSolverStrategy::SetSearchRadiiWithFemOnAllParticles(ModelPart& r_model_part, const double added_search_distance, const double amplification) {
         KRATOS_TRY
-                int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
-        mNumberOfElementsOldRadiusList = number_of_elements;
+        int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
         #pragma omp parallel for
         for (int i = 0; i < number_of_elements; i++) {
             mListOfSphericParticles[i]->SetSearchRadiusWithFem(amplification * (added_search_distance + mListOfSphericParticles[i]->GetRadius()));
@@ -815,7 +824,7 @@ namespace Kratos {
         GetResults().resize(number_of_elements);
         GetResultsDistances().resize(number_of_elements);
 
-        mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetArrayOfAmplifiedRadii(), this->GetResults(), this->GetResultsDistances());
+        mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetArrayOfAmplifiedRadii(), this->GetResults(), this->GetResultsDistances());        
         const int number_of_particles = (int) mListOfSphericParticles.size();
 
         #pragma omp parallel for schedule(dynamic, 100) //schedule(guided)
@@ -825,7 +834,7 @@ namespace Kratos {
                 Element* p_neighbour_element = (*neighbour_it).get();
                 SphericParticle* p_spheric_neighbour_particle = dynamic_cast<SphericParticle*> (p_neighbour_element);
                 if (mListOfSphericParticles[i]->Is(DEMFlags::BELONGS_TO_A_CLUSTER) && (mListOfSphericParticles[i]->GetClusterId() == p_spheric_neighbour_particle->GetClusterId())) continue;
-                mListOfSphericParticles[i]->mNeighbourElements.push_back(p_spheric_neighbour_particle);
+                mListOfSphericParticles[i]->mNeighbourElements.push_back(p_spheric_neighbour_particle);                                
             }
             this->GetResults()[i].clear();
             this->GetResultsDistances()[i].clear();
@@ -840,7 +849,7 @@ namespace Kratos {
 
         #pragma omp parallel
         {
-            std::vector<int> mTempNeighboursIds;
+            boost::numeric::ublas::vector<int> mTempNeighboursIds;
             std::vector<array_1d<double, 3> > mTempNeighbourElasticContactForces;
             std::vector<array_1d<double, 3> > mTempNeighbourTotalContactForces;
 

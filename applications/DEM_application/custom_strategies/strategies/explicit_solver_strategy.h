@@ -133,7 +133,6 @@ namespace Kratos {
             mMaxTimeStep = max_delta_time;
             mNStepSearch = n_step_search;
             mSafetyFactor = safety_factor;
-            mNumberOfElementsOldRadiusList = 0;
             mpDem_model_part = &(*(settings.r_model_part));
             
             if (mpDem_model_part == NULL)
@@ -202,6 +201,9 @@ namespace Kratos {
             return;
             KRATOS_CATCH("")
         }
+        void RebuildListOfDiscontinuumSphericParticles() {
+            RebuildListOfSphericParticles<SphericParticle>(GetModelPart().GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
+        }
        
         void RebuildPropertiesProxyPointers(std::vector<SphericParticle*>& rCustomListOfSphericParticles);
         void SendProcessInfoToClustersModelPart();
@@ -234,6 +236,7 @@ namespace Kratos {
         void ApplyPrescribedBoundaryConditions();
         void ApplyInitialConditions();
         void SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance = 0.0, const double amplification = 1.0);
+        void SetNormalRadiiOnAllParticles(ModelPart& r_model_part);
         void SetSearchRadiiWithFemOnAllParticles(ModelPart& r_model_part, const double added_search_distance = 0.0, const double amplification = 1.0);
         virtual void SearchNeighbours();
         virtual void ComputeNewNeighboursHistoricalData();
@@ -264,7 +267,6 @@ namespace Kratos {
         double& GetMaxTimeStep() { return (mMaxTimeStep);}
         double& GetSafetyFactor() { return (mSafetyFactor);}
         int& GetDeltaOption() { return (mDeltaOption);}
-        int& GetNumberOfElementsOldRadiusList() { return (mNumberOfElementsOldRadiusList);}
         vector<unsigned int>& GetElementPartition() { return (mElementPartition);}
         typename ParticleCreatorDestructor::Pointer& GetParticleCreatorDestructor() { return (mpParticleCreatorDestructor);}
         typename DEMIntegrationScheme::Pointer& GetScheme() { return (mpScheme);}
@@ -284,7 +286,6 @@ namespace Kratos {
         int mNStepSearch;
         int mSearchControl;
         int mNumberOfThreads;
-        int mNumberOfElementsOldRadiusList;
         double mMaxTimeStep;
         double mSafetyFactor;
         int mDeltaOption;

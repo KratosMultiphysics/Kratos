@@ -45,16 +45,18 @@ namespace Kratos {
         KRATOS_CATCH("")  
     }
 
-    double DEM_Dempack::CalculateContactArea(double radius, double other_radius, std::vector<double>& v) {
-        double area = 0.0;
-        CalculateContactArea(radius, other_radius, area);
-        v.push_back(area);
-        return area;
+    double DEM_Dempack::CalculateContactArea(double radius, double other_radius, Vector& v) {
+        double a = 0.0;
+        CalculateContactArea(radius, other_radius, a);
+        unsigned int old_size = v.size();
+        v.resize(old_size + 1);
+        v[old_size]=a;
+        return a;
     }
 
     void DEM_Dempack::GetContactArea(const double radius,
                                      const double other_radius,
-                                     const std::vector<double> & vector_of_initial_areas,
+                                     const Vector& vector_of_initial_areas,
                                      const int neighbour_position,
                                      double& calculation_area)
     {
@@ -146,6 +148,7 @@ namespace Kratos {
     void DEM_Dempack::CalculateForces(const ProcessInfo& r_process_info,
                                     double OldLocalElasticContactForce[3],
                                     double LocalElasticContactForce[3],
+                                    double LocalCoordSystem[3][3],
                                     double LocalDeltDisp[3],
                                     const double kn_el,
                                     const double kt_el,
@@ -153,6 +156,7 @@ namespace Kratos {
                                     double& contact_tau,
                                     double& failure_criterion_state,
                                     double equiv_young,
+                                    double equiv_shear,
                                     double indentation,
                                     double calculation_area,
                                     double& acumulated_damage,
@@ -183,8 +187,10 @@ namespace Kratos {
                 time_steps);
 
         CalculateTangentialForces(LocalElasticContactForce,
+                LocalCoordSystem,
                 LocalDeltDisp,
                 kt_el,
+                equiv_shear,
                 contact_sigma,
                 contact_tau,
                 indentation,
@@ -501,8 +507,10 @@ namespace Kratos {
 
 
     void DEM_Dempack::CalculateTangentialForces(double LocalElasticContactForce[3],
+            double LocalCoordSystem[3][3],
             double LocalDeltDisp[3],
             const double kt_el,
+            const double equiv_shear,
             double& contact_sigma,
             double& contact_tau,
             double indentation,

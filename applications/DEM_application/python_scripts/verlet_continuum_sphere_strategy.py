@@ -19,7 +19,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         
         BaseExplicitStrategy.AddAdditionalVariables(self, model_part, Param)
 
-    def Initialize(self):
+    def CreateCPlusPlusStrategy(self):
         
         #BaseExplicitStrategy.Initialize  (revisar si es pot cridar desde el basetype)
         #self.cplusplus_strategy = IterativeExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
@@ -85,5 +85,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         self.cplusplus_strategy = VerletVelocitySolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                     self.delta_option, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
+    
+    def Initialize(self):
 
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy Initialize function (initializes all elements and performs other necessary tasks before iterating)

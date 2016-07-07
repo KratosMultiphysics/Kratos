@@ -96,9 +96,6 @@ namespace Kratos {
         // 4. Set Initial Contacts
         if (r_process_info[CASE_OPTION] != 0) {
             SetInitialDemContacts();
-            CalculateMeanContactArea();
-            CalculateMaxSearchDistance();
-
         }
 
         if (r_process_info[CRITICAL_TIME_OPTION]) {
@@ -118,6 +115,14 @@ namespace Kratos {
         if (r_process_info[CONTACT_MESH_OPTION] == 1) {
             CreateContactElements();
             InitializeContactElements();
+        }
+        
+        r_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(NEIGHBOUR_IDS);
+        r_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(NEIGHBOURS_CONTACT_AREAS);
+        
+        if (r_process_info[CASE_OPTION] != 0) {
+            CalculateMeanContactArea();
+            CalculateMaxSearchDistance();
         }
 
         // 5. Finalize Solution Step
@@ -140,7 +145,7 @@ namespace Kratos {
 
         BaseType::InitializeSolutionStep();
         SearchDEMOperations(r_model_part, has_mpi);
-        SearchFEMOperations(r_model_part, has_mpi);
+        SearchFEMOperations(r_model_part, has_mpi);               
         BaseType::ForceOperations(r_model_part);
         BaseType::PerformTimeIntegrationOfMotion();
         FinalizeSolutionStep();
@@ -233,7 +238,7 @@ namespace Kratos {
 
         #pragma omp parallel
         {
-            std::vector<int> TempNeighboursIds; //We are passing all these temporal vectors as arguments because creating them inside the function is slower (memory allocation and deallocation)
+            boost::numeric::ublas::vector<int> TempNeighboursIds; //We are passing all these temporal vectors as arguments because creating them inside the function is slower (memory allocation and deallocation)
             std::vector<array_1d<double, 3> > TempNeighbourElasticContactForces;
             std::vector<array_1d<double, 3> > TempNeighbourTotalContactForces;
             std::vector<SphericParticle*> TempNeighbourElements;
@@ -571,7 +576,7 @@ namespace Kratos {
         #pragma omp parallel for
         for (int i = 0; i < number_of_particles; i++) {
             double max_sphere = mListOfSphericContinuumParticles[i]->CalculateMaxSearchDistance(has_mpi, r_process_info);
-            if (max_sphere > thread_maxima[OpenMPUtils::ThisThread()]) thread_maxima[OpenMPUtils::ThisThread()] = max_sphere;
+            if (max_sphere > thread_maxima[OpenMPUtils::ThisThread()]) thread_maxima[OpenMPUtils::ThisThread()] = max_sphere;                        
         }
 
         double maximum_across_threads = 0.0;

@@ -10,7 +10,7 @@ import DEM_procedures
 
 import DEM_material_test_script_mpi as DEM_material_test_script
 
-import MPIer
+#import MPIer
 
 
 class MdpaCreator(DEM_procedures.MdpaCreator):
@@ -61,7 +61,7 @@ class Procedures(DEM_procedures.Procedures):
     def PreProcessModel(self, DEM_parameters):
         if (mpi.rank == 0):
             print("Creating MPIer...")
-            MPIClassObject = MPIer.MPIerClass(str(DEM_parameters.problem_name) + "DEM.mdpa")
+            #MPIClassObject = MPIer.MPIerClass(str(DEM_parameters.problem_name) + "DEM.mdpa")
             print("done.")
         mpi.world.barrier() #TODO: maybe not necessary (debugging)
             
@@ -123,7 +123,7 @@ class MultifileList(object):
         self.index = 0
         self.step = step
         self.name = name
-        self.file = open(self.name+"_"+str(mpi.rank)+"_"+str(step)+".post.lst","w")
+        self.file = open("_list_"+self.name+"_"+str(mpi.rank)+"_"+str(step)+".post.lst","w")
         
 
 class DEMIo(DEM_procedures.DEMIo):

@@ -26,7 +26,7 @@ namespace Kratos {
 
     void DEM_Dempack_dev::GetContactArea(const double radius,
                                      const double other_radius,
-                                     const std::vector<double> & vector_of_initial_areas,
+                                     const Vector& vector_of_initial_areas,
                                      const int neighbour_position,
                                      double& calculation_area)
     {
@@ -344,8 +344,10 @@ namespace Kratos {
 
 
     void DEM_Dempack_dev::CalculateTangentialForces(double LocalElasticContactForce[3],
+            double LocalCoordSystem[3][3],
             double LocalDeltDisp[3],
             const double kt_el,
+            const double equiv_shear,
             double& contact_sigma,
             double& contact_tau,
             double indentation,

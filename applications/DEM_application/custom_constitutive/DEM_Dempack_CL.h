@@ -38,8 +38,8 @@ namespace Kratos {
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
         virtual void CalculateContactArea(double radius, double other_radius, double &calculation_area) override;
-        virtual double CalculateContactArea(double radius, double other_radius, std::vector<double>& v) override;
-        virtual void GetContactArea(const double radius, const double other_radius, const std::vector<double> & vector_of_initial_areas, const int neighbour_position, double& calculation_area) override;
+        virtual double CalculateContactArea(double radius, double other_radius, Vector& v) override;
+        virtual void GetContactArea(const double radius, const double other_radius, const Vector& vector_of_initial_areas, const int neighbour_position, double& calculation_area) override;
         virtual void CalculateElasticConstants(double &kn_el, double &kt_el, double initial_dist, double equiv_young, double equiv_poisson, double calculation_area) override;
 
         virtual void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
@@ -55,6 +55,7 @@ namespace Kratos {
         virtual void CalculateForces(const ProcessInfo& r_process_info,
                 double OldLocalElasticContactForce[3],
                 double LocalElasticContactForce[3],
+                double LocalCoordSystem[3][3],
                 double LocalDeltDisp[3],
                 const double kn_el,
                 const double kt_el,
@@ -62,6 +63,7 @@ namespace Kratos {
                 double& contact_tau,
                 double& failure_criterion_state,
                 double equiv_young,
+                double equiv_shear,
                 double indentation,
                 double calculation_area,
                 double& acumulated_damage,
@@ -91,8 +93,10 @@ namespace Kratos {
 
 
         virtual void CalculateTangentialForces(double LocalElasticContactForce[3],
+                double LocalCoordSystem[3][3],
                 double LocalDeltDisp[3],
                 const double kt_el,
+                const double equiv_shear,
                 double& contact_sigma,
                 double& contact_tau,
                 double indentation,

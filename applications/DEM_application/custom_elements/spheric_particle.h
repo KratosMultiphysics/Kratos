@@ -92,6 +92,7 @@ void  SetClusterId(const int Id);
 
 virtual double GetRadius();
 virtual void   SetRadius(double radius);
+virtual void   SetRadius();
 virtual double CalculateVolume();
 virtual double GetInteractionRadius();
 virtual void SetInteractionRadius(const double radius);
@@ -156,7 +157,7 @@ virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "SphericPartic
 /// Print object's data.
 virtual void PrintData(std::ostream& rOStream) const {}
 
-virtual void ComputeNewNeighboursHistoricalData(std::vector<int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
+virtual void ComputeNewNeighboursHistoricalData(boost::numeric::ublas::vector<int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
                                                 std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces);
 
 virtual void ComputeNewRigidFaceNeighboursHistoricalData();
@@ -182,7 +183,6 @@ array_1d<double, 3> mContactMoment; //SLS
 Matrix* mStressTensor;
 Matrix* mSymmStressTensor;
 
-std::vector<int> mOldNeighbourIds;
 std::vector<int> mFemOldNeighbourIds;
 
 protected:
@@ -323,31 +323,38 @@ friend class Serializer;
 
 virtual void save(Serializer& rSerializer) const
 {
-KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DiscreteElement );
-rSerializer.save("mRadius",mRadius);
-rSerializer.save("mSearchRadius", mSearchRadius);
-rSerializer.save("mSearchRadiusWithFem", mSearchRadiusWithFem);
-rSerializer.save("mRealMass",mRealMass);
-rSerializer.save("mClusterId",mClusterId);
-rSerializer.save("mBoundDeltaDispSq",mBoundDeltaDispSq);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DiscreteElement );
+    rSerializer.save("mRadius",mRadius);
+    rSerializer.save("mSearchRadius", mSearchRadius);
+    rSerializer.save("mSearchRadiusWithFem", mSearchRadiusWithFem);
+    rSerializer.save("mRealMass",mRealMass);
+    rSerializer.save("mClusterId",mClusterId);
+    rSerializer.save("mBoundDeltaDispSq",mBoundDeltaDispSq);
+    rSerializer.save("HasStressTensor", (int)this->Is(DEMFlags::HAS_STRESS_TENSOR));
+    if (this->Is(DEMFlags::HAS_STRESS_TENSOR)){
+        rSerializer.save("mSymmStressTensor", mSymmStressTensor);
+    }
 }
 
 virtual void load(Serializer& rSerializer)
 {
-KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DiscreteElement );
-rSerializer.load("mRadius",mRadius);
-rSerializer.load("mSearchRadius", mSearchRadius);
-rSerializer.load("mSearchRadiusWithFem", mSearchRadiusWithFem);
-rSerializer.load("mRealMass",mRealMass);
-rSerializer.load("mClusterId",mClusterId);
-rSerializer.load("mBoundDeltaDispSq",mBoundDeltaDispSq);
-//rSerializer.load("mFastProperties",mFastProperties);
-
-/*rSerializer.load("mRollingFriction",mRollingFriction);
-rSerializer.load("mYoung",mYoung);
-rSerializer.load("mPoisson",mPoisson);
-rSerializer.load("mTgOfFrictionAngle",mTgOfFrictionAngle);
-rSerializer.load("mLnOfRestitCoeff",mLnOfRestitCoeff);  */
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DiscreteElement );
+    rSerializer.load("mRadius",mRadius);
+    rSerializer.load("mSearchRadius", mSearchRadius);
+    rSerializer.load("mSearchRadiusWithFem", mSearchRadiusWithFem);
+    rSerializer.load("mRealMass",mRealMass);
+    rSerializer.load("mClusterId",mClusterId);
+    rSerializer.load("mBoundDeltaDispSq",mBoundDeltaDispSq); 
+    int aux_int=0;
+    rSerializer.load("HasStressTensor", aux_int);
+    if(aux_int) this->Set(DEMFlags::HAS_STRESS_TENSOR, true);
+    if (this->Is(DEMFlags::HAS_STRESS_TENSOR)){
+        mStressTensor  = new Matrix(3,3);
+        *mStressTensor = ZeroMatrix(3,3);
+        mSymmStressTensor  = new Matrix(3,3);
+        *mSymmStressTensor = ZeroMatrix(3,3);
+        rSerializer.load("mSymmStressTensor", mSymmStressTensor);
+    }
 }
 
 }; // Class SphericParticle
