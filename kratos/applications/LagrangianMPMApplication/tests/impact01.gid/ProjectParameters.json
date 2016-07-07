@@ -3,10 +3,10 @@
 		"problem_name": "impact01",
 		"model_part_name": "Structure",
 		"domain_size": 2,
-		"time_step": 0.0001,
+		"time_step": 1e-8,
 		"start_time": 0.0,
 		"end_time": 1.0,
-		"echo_level": 0
+		"echo_level": 2
 	},
 	"solver_settings": {
 		"solver_type": "lagrangian_mpm_solver",
@@ -22,7 +22,7 @@
 		"absolute_tolerance": 1e-7,
 		"linear_solver_settings": {
 			"solver_type": "Super LU",
-			"scaling": true
+			"scaling": false
 		},
 		"processes_sub_model_part_list" : ["DISPLACEMENT_Displacement_Auto1","Parts_Parts_Auto3"]
 	},
@@ -46,15 +46,15 @@
 		"result_file_configuration": {
 			"gidpost_flags": {
 				"GiDPostMode": "GiD_PostBinary",
-				"WriteDeformedMeshFlag": "WriteDeformed",
+				"WriteDeformedMeshFlag": "WriteUndeformed",
 				"WriteConditionsFlag": "WriteConditions",
 				"MultiFileFlag": "SingleFile"
 			},
 			"file_label": "step",
 			"output_control_type": "step",
-			"output_frequency": 1.0,
-			"body_output": true,
-			"node_output": false,
+			"output_frequency": 1,
+			"body_output": false,
+			"node_output": true,
 			"skin_output": false,
 			"plane_output": [],
 			"nodal_results": ["DISPLACEMENT", "REACTION", "VELOCITY", "ACCELERATION"],

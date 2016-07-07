@@ -184,8 +184,16 @@ end_time   = ProjectParameters["problem_data"]["end_time"].GetDouble()
 # writing a initial state results file (if no restart)
 # gid_io.write_results(time, computing_model_part) done in ExecuteBeforeSolutionLoop()
 
+for node in main_model_part.Nodes:
+    if(node.IsFixed(DISPLACEMENT_Y) == False):
+        node.SetSolutionStepValue(VELOCITY_Y,0,-373.0)
 
-
+g = Vector(3)
+g[0] = 0.0
+g[1] = 0.0
+g[2] = 0.0
+for elem in main_model_part.Elements:
+    elem.SetValue(MP_VOLUME_ACCELERATION, g)
 
 # solving the problem (time integration)
 while(time <= end_time):
