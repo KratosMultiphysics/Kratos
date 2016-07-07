@@ -21,7 +21,6 @@
 
 // Project includes
 #include "includes/condition.h"
-#include "contact_mechanics_application.h"
 
 
 namespace Kratos

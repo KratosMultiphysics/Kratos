@@ -17,7 +17,7 @@
 
 // Include Base h
 #include "custom_conditions/rigid_contact_condition.h"
-
+#include "contact_mechanics_application_variables.h"
 
 namespace Kratos
 {
