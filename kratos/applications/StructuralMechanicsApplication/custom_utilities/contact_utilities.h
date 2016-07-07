@@ -154,9 +154,18 @@ public:
 //                 std::cout << "a2: " << a2 << " b2: " << b2 << std::endl;
                 
                 const double aux2 = a2 - a1;
-                PointProjected.Coordinate(1) = ( b1 - b2)/aux2;
-                PointProjected.Coordinate(2) = ( a2 * b1 - a1 * b2)/aux2;
-                PointProjected.Coordinate(3) = 0.0;
+                if (std::abs(aux2) > tol)
+                {
+                    PointProjected.Coordinate(1) = ( b1 - b2)/aux2;
+                    PointProjected.Coordinate(2) = ( a2 * b1 - a1 * b2)/aux2;
+                    PointProjected.Coordinate(3) = 0.0;
+                }
+                else
+                {
+                    PointProjected.Coordinates() = PointDestiny.Coordinates();
+                    dist = 0.0;
+                    std::cout << " The lines are parallel, something wrong happen " << std::endl;
+                }
             }
             else
             {
