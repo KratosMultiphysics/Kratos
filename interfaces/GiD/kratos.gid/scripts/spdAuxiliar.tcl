@@ -130,8 +130,8 @@ proc spdAux::activeApp { appid } {
     if {$nd eq ""} {catch {set nd [$root selectNodes "hiddenfield\[@n='nDim'\]"]}}
     
     if {[$nd getAttribute v] ne "undefined"} {
-        $nd setAttribute v $::Model::SpatialDimension
-        destroy $initwind
+        spdAux::SwitchDimAndCreateWindow $::Model::SpatialDimension
+        #destroy $initwind
         #gid_groups_conds::open_conditions menu
         #gid_groups_conds::actualize_conditions_window
         #spdAux::RequestRefresh
@@ -684,6 +684,10 @@ proc spdAux::injectProcesses {basenode args} {
 proc spdAux::injectNodalConditions { basenode args} {
     set nodalconds [$basenode parent]
     #W "cosas $args"
+    
+    set AppUsesIntervals [apps::ExecuteOnApp [GetAppIdFromNode $nodalconds] GetAttribute UseIntervals]
+    if {$AppUsesIntervals eq ""} {set AppUsesIntervals 0}
+    
     if {$args eq "{}"} {
         set nodal_conditions [::Model::getAllNodalConditions]
     } {
@@ -743,6 +747,10 @@ proc spdAux::injectNodalConditions { basenode args} {
                 }
                 append node "<value n='$inName' pn='$pn' v='$v'  units='$units'  unit_magnitude='$um'  help='$help'/>"
             }
+        }
+        set CondUsesIntervals [$nc getAttribute "Interval"]
+        if {$AppUsesIntervals && $CondUsesIntervals ne "False"} {
+            append node "<value n='Interval' pn='Time interval' v='$CondUsesIntervals' values='\[getIntervals\]'  help='$help'/>"
         }
         append node "</condition>"
         $nodalconds appendXML $node
