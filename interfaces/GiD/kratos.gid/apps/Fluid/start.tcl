@@ -2,17 +2,23 @@ namespace eval ::Fluid {
     # Variable declaration
     variable dir
     variable prefix
+    variable attributes
 }
 
 proc ::Fluid::Init { } {
     # Variable initialization
     variable dir
     variable prefix
-    #W "Sourced Fluid"
+    variable attributes
+    
     set dir [apps::getMyDir "Fluid"]
+    set attributes [dict create]
+    
     set prefix FL
     set ::Model::ValidSpatialDimensions [list 2D 3D]
     ::spdAux::CreateDimensionWindow
+    
+    dict set attributes UseIntervals 1
 }
 
 proc ::Fluid::LoadMyFiles { } {
@@ -21,6 +27,13 @@ proc ::Fluid::LoadMyFiles { } {
     uplevel #0 [list source [file join $dir xml GetFromXML.tcl]]
     uplevel #0 [list source [file join $dir write write.tcl]]
     uplevel #0 [list source [file join $dir write writeProjectParameters.tcl]]
+}
+
+proc ::Fluid::GetAttribute {name} {
+    variable attributes
+    set value ""
+    catch {set value [dict get $attributes $name]}
+    return $value
 }
 
 ::Fluid::Init

@@ -58,7 +58,7 @@ proc apps::getActiveAppId { } {
 }
 
 proc apps::getAppById { id } {
-    variable appList;
+    variable appList
     set appR ""
     foreach app $appList {
         if {[$app getName] eq $id} {set appR $app; break}
@@ -114,7 +114,7 @@ proc apps::getMyDir {appName} {
 }
 
 proc apps::getCurrentUniqueName {un} {
-    return [ExecuteOnCurrent $un getUniqueName]
+    return [ExecuteOnCurrentXML getUniqueName $un]
 }
 proc apps::getAppUniqueName {appName un} {
     variable appList
@@ -123,11 +123,19 @@ proc apps::getAppUniqueName {appName un} {
     }
 }
 
-proc apps::ExecuteOnCurrent {param func} {
+proc apps::ExecuteOnCurrentXML { func args} {
     variable activeApp
     if {$activeApp ne ""} {
-        return [$activeApp executexml $func $param]
+        return [$activeApp executexml $func {*}$args]
     }
+}
+proc apps::ExecuteOnApp {appid func args} {
+    set response ""
+    catch {
+        set app [getAppById $appid]
+        set response [$app execute $func {*}$args]   
+    }
+    return $response
 }
 proc apps::LoadAppById {appid} {
     variable appList
@@ -221,6 +229,12 @@ oo::class create App {
         #W "func $func "
         variable name
         set f ${name}::xml::${func}
+        $f {*}$args
+	}
+    method execute { func args } {
+        #W "func $func "
+        variable name
+        set f ${name}::${func}
         $f {*}$args
 	}
     

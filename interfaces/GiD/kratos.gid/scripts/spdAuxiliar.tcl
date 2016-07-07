@@ -277,8 +277,8 @@ proc spdAux::SwitchDimAndCreateWindow { ndim } {
     processIncludes
     parseRoutes
     
-    catch {apps::ExecuteOnCurrent init MultiAppEvent}
-    catch {apps::ExecuteOnCurrent "" CustomTree}
+    catch {apps::ExecuteOnCurrentXML MultiAppEvent init }
+    catch {apps::ExecuteOnCurrentXML CustomTree "" }
     
     if {$TreeVisibility} {
         after 100 [list gid_groups_conds::open_conditions menu ]
@@ -754,6 +754,9 @@ proc spdAux::injectNodalConditions { basenode args} {
 proc spdAux::injectConditions { basenode args} {
     set conds [$basenode parent]
     
+    set AppUsesIntervals [apps::ExecuteOnApp [GetAppIdFromNode $conds] GetAttribute UseIntervals]
+    if {$AppUsesIntervals eq ""} {set AppUsesIntervals 0}
+    
     set loads [::Model::GetConditions {*}$args]
     foreach ld $loads {
         set n [$ld getName]
@@ -809,6 +812,11 @@ proc spdAux::injectConditions { basenode args} {
                 }
                 append node "<value n='$inName' pn='$pn' v='$v'  units='$units'  unit_magnitude='$um'  help='$help'/>"
             }
+        }
+        
+        set CondUsesIntervals [$ld getAttribute "Interval"]
+        if {$AppUsesIntervals && $CondUsesIntervals ne "False"} {
+            append node "<value n='Interval' pn='Time interval' v='$CondUsesIntervals' values='\[getIntervals\]'  help='$help'/>"
         }
         append node "</condition>"
         $conds appendXML $node
@@ -1022,11 +1030,13 @@ proc spdAux::SchemeParamState {outnode} {
     return [::Model::CheckSchemeInputState $SolStrat $Scheme $paramName]
 }
 
-proc spdAux::getIntervals {} {
+proc spdAux::getIntervals { {un ""} } {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    set intervals_un [apps::getCurrentUniqueName Intervals]
-    set xp1 "[spdAux::getRoute $intervals_un]/blockdata\[@n='Interval'\]"
+    if {$un eq ""} {
+        set un "Intervals"
+    } 
+    set xp1 "[spdAux::getRoute $un]/blockdata\[@n='Interval'\]"
     set lista [list ]
     foreach node [$root selectNodes $xp1] {
         lappend lista [$node @name]
@@ -1398,7 +1408,6 @@ proc spdAux::ProcDirectorVectorNonZero { domNode args } {
     }
 }
 proc spdAux::ProcShowInMode { domNode args } {
-    
     set kw [lindex $args 0]
     if {$kw ni [list "Release" "Developer"]} {return "hidden"}
     if {$::Kratos::kratos_private(DevMode) eq "dev"} {
@@ -1407,4 +1416,14 @@ proc spdAux::ProcShowInMode { domNode args } {
     if {$::Kratos::kratos_private(DevMode) eq "release"} {
         if {$kw eq "Developer"} {return "hidden"} {return "normal"}
     }
+}
+
+proc spdAux::ProcGetIntervals {domNode args} {
+    set lista [::spdAux::getIntervals]
+    if {$lista eq ""} {$domNode setAttribute state "hidden"; spdAux::RequestRefresh}
+    if {[$domNode @v] eq "" || [$domNode @v] ni $lista} {
+        $domNode setAttribute v [lindex $lista 0]
+    }
+    set res [spdAux::ListToValues $lista]
+    return $res
 }
