@@ -8,13 +8,9 @@ proc Structural::xml::Init { } {
     
      Model::ForgetSolutionStrategies
      Model::getSolutionStrategies Strategies.xml
-     Model::getProcesses Processes.xml
      Model::getElements Elements.xml
      Model::getNodalConditions NodalConditions.xml
      Model::getConstitutiveLaws ConstitutiveLaws.xml
-     Model::getConditions Conditions.xml
-     Model::getSolvers Solvers.xml
-     
 }
 
 proc Structural::xml::getUniqueName {name} {
