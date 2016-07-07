@@ -899,6 +899,27 @@ proc write::getAllMaterialParametersDict {matname} {
     return $md
 }
 
+proc write::getIntervalsDict { { un "Intervals" } } {
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    
+    set intervalsDict [dict create]
+    set xp3 "[spdAux::getRoute $un]/blockdata\[@n='Interval'\]"
+    if {$xp3 ne ""} {
+        set intervals [$root selectNodes $xp3]
+        foreach intNode $intervals {
+            set name [get_domnode_attribute $intNode name]
+            set xpini "value\[@n='IniTime'\]"
+            set xpend "value\[@n='EndTime'\]"
+            set ininode [$intNode selectNodes $xpini]
+            set endnode [$intNode selectNodes $xpend]
+            set ini [get_domnode_attribute $ininode v]
+            set end [get_domnode_attribute $endnode v]
+            dict set intervalsDict $name [list $ini $end]
+        }
+    }
+    return $intervalsDict
+}
 
 proc write::SetParallelismConfiguration {{un "Parallelization"} {n "OpenMPNumberOfThreads"}} {
     set nt 0
