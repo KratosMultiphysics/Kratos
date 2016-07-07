@@ -99,6 +99,12 @@ class LagrangianMPMSolver:
             node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X)
             node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y)
             node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z)
+            node.AddDof(KratosMultiphysics.VELOCITY_X)
+            node.AddDof(KratosMultiphysics.VELOCITY_Y)
+            node.AddDof(KratosMultiphysics.VELOCITY_Z)
+            node.AddDof(KratosMultiphysics.ACCELERATION_X)
+            node.AddDof(KratosMultiphysics.ACCELERATION_Y)
+            node.AddDof(KratosMultiphysics.ACCELERATION_Z)
 
         print("DOFs for the VMS fluid solver added correctly.")
 
@@ -119,7 +125,10 @@ class LagrangianMPMSolver:
         # creating the solution strategy
         self.conv_criteria = KratosMultiphysics.DisplacementCriteria(self.settings["relative_tolerance"].GetDouble(),
                                                      self.settings["absolute_tolerance"].GetDouble())
-             
+        print("echo level", self.settings["echo_level"].GetInt())
+        self.conv_criteria.SetEchoLevel(self.settings["echo_level"].GetInt())
+        print(self.conv_criteria)
+        
         self.time_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(0.0)
     
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver) 
@@ -168,10 +177,11 @@ class LagrangianMPMSolver:
         #compute the shape functions on the geometry. Note that the node position is still the one at the end of the previous step, so it is 0!!
         KratosMultiphysics.LagrangianMPMApplication.ComputeMLSShapeFunctionsProcess(self.main_model_part).Execute()
         
-        
+        self._CheckShapeFunctions()
         
         #ensure that the system graph is to be reformed
         self.solver.Clear() 
+
         
         self.solver.Solve()
         

@@ -155,6 +155,13 @@ void UpdatedLagrangianMPMElement::FinalizeSolutionStep( ProcessInfo& rCurrentPro
 
     //call the element internal variables update
     this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
+    
+    //****************** update the postion of the MPM particle
+    array_1d<double,3> delta_displacement = ZeroVector(3);
+    for(unsigned int i=0; i<GetGeometry().size(); i++)
+        delta_displacement += Variables.N[i]*(GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1));
+    
+    noalias(this->GetValue(GAUSS_POINT_COORDINATES)) += delta_displacement;
 
 
     mFinalizedStep = true;
@@ -436,10 +443,10 @@ void UpdatedLagrangianMPMElement::CalculateAndAddExternalForces(VectorType& rRig
         }
 
     }
-    if (this->Id() == 1)
-    {
-		std::cout<<"rRightHandSideVector "<<rRightHandSideVector<<std::endl;
-	}
+//     if (this->Id() == 1)
+//     {
+// 		std::cout<<"rRightHandSideVector "<<rRightHandSideVector<<std::endl;
+// 	}
 
     KRATOS_CATCH( "" )
 }
