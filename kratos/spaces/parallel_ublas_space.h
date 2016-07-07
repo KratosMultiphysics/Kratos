@@ -517,7 +517,7 @@ private:
     {
 //std::cout << "in function ParallelProductNoAdd" << std::endl;
         typedef  unsigned int size_type;
-        typedef  double value_type;
+//        typedef  double value_type;
 
         //create partition
         vector<size_type> partition;
