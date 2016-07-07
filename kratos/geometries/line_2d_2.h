@@ -779,6 +779,8 @@ public:
 
         double tol = 1.0e-14;
 
+//        KRATOS_WATCH( rResult[0]);
+
         if ( rResult[0] >= (-1.0 - tol) && rResult[0] <= (1.0 + tol) )
         {
             return true;
@@ -795,13 +797,7 @@ public:
             CoordinatesArrayType& rResult,
             const CoordinatesArrayType& rPoint )
     {
-        // Assuming that we work in the plane XY
-        if ( rResult.size() != 1 )
-        {
-            rResult.resize( 1 );
-        }
-
-        rResult = ZeroVector( 1 );
+        rResult.clear();
 
         const TPointType& FirstPoint  = BaseType::GetPoint(0);
         const TPointType& SecondPoint = BaseType::GetPoint(1);
@@ -821,24 +817,21 @@ public:
         VectorPoint[0] = rPoint[0] - FirstPoint[0];
         VectorPoint[1] = rPoint[1] - FirstPoint[1];
         double dist_proy = VectorPoint[0] * Normal[0] + VectorPoint[1] * Normal[1];
-
-        array_1d<double,2> Point_projected = ZeroVector(2);
-        Point_projected[0] = rPoint[0] - dist_proy * Normal[0];
-        Point_projected[1] = rPoint[1] - dist_proy * Normal[1];
         
-        // KRATOS_WATCH(Point_projected);
-        // KRATOS_WATCH(dist_proy);
+//        KRATOS_WATCH(rPoint);
+//        KRATOS_WATCH(Point_projected);
+//        KRATOS_WATCH(dist_proy);
 
         if (dist_proy < tol)
         {
             double L  = Length();
             
-            double l1 = (Point_projected[0] - FirstPoint[0]) * (Point_projected[0] - FirstPoint[0])
-                      + (Point_projected[1] - FirstPoint[1]) * (Point_projected[1] - FirstPoint[1]);
+            double l1 = (rPoint[0] - FirstPoint[0]) * (rPoint[0] - FirstPoint[0])
+                      + (rPoint[1] - FirstPoint[1]) * (rPoint[1] - FirstPoint[1]);
             l1 = std::sqrt(l1);
             
-            double l2 = (Point_projected[0] - SecondPoint[0]) * (Point_projected[0] - SecondPoint[0])
-                      + (Point_projected[1] - SecondPoint[1]) * (Point_projected[1] - SecondPoint[1]);
+            double l2 = (rPoint[0] - SecondPoint[0]) * (rPoint[0] - SecondPoint[0])
+                      + (rPoint[1] - SecondPoint[1]) * (rPoint[1] - SecondPoint[1]);
             l2 = std::sqrt(l2);
             
 //            std::cout << "L: " << L << " l1: " << l1 << " l2: " << l2 << std::endl;

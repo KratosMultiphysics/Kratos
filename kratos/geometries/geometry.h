@@ -690,11 +690,7 @@ public:
     {
         Matrix J = ZeroMatrix( LocalSpaceDimension(), LocalSpaceDimension() );
 
-        if ( rResult.size() != LocalSpaceDimension() )
-            rResult.resize( LocalSpaceDimension() );
-
-        //starting with xi = 0
-        rResult = ZeroVector( LocalSpaceDimension() );
+        rResult.clear();
 
         Vector DeltaXi = ZeroVector( LocalSpaceDimension() );
 
@@ -714,12 +710,14 @@ public:
             noalias( DeltaXi ) = prod( J, CurrentGlobalCoords );
             noalias( rResult ) += DeltaXi;
 
-            if ( MathUtils<double>::Norm3( DeltaXi ) > 30 )
+//            if ( MathUtils<double>::Norm3( DeltaXi ) > 30 )
+            if ( norm_2( DeltaXi ) > 30 )
             {
                 break;
             }
 
-            if ( MathUtils<double>::Norm3( DeltaXi ) < tol )
+//            if ( MathUtils<double>::Norm3( DeltaXi ) < tol )
+            if ( norm_2( DeltaXi ) < tol )
             {
                 break;
             }
