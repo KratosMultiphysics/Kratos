@@ -250,7 +250,9 @@ class PFEM2Solver:
                 print( "this time step" ,  t13-t1  )
                 print( "current time in simulation: ", self.model_part.ProcessInfo.GetValue(TIME) , "s" )
         
-
+    
+    def RotateParticlesAndDomainVelocities(self,angles):
+        (self.moveparticles).RotateParticlesAndDomainVelocities(angles)
     #######################################################################   
     def CalculatePressureProjection(self):
         self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 10)
