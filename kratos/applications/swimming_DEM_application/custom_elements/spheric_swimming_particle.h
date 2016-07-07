@@ -172,7 +172,8 @@ namespace Kratos
         void AddHinsbergTailContribution(NodeType& node, array_1d<double, 3>& fractional_derivative_of_slip_vel, const int order, const int n_steps_per_quad_step, const double time, const double delta_time, const double last_h_over_h, vector<double>& historic_integrands);
         void AddHinsbergTailContributionStrict(NodeType& node, array_1d<double, 3>& fractional_derivative_of_slip_vel, const int order, const int n_steps_per_quad_step, const double time, const double delta_time, const double last_h_over_h, vector<double>& historic_integrands);
         double Phi(const double x);
-        void AddFdi(const int order, array_1d<double, 3>& F, const double t_win, const double ti, const double beta, const double last_h_over_h, const double delta_time, const vector<double>& historic_integrands, const array_1d<double, 3>& oldest_integrand);
+        double Ki(const double alpha, const double beta, const double time);
+        void AddFdi(const int order, array_1d<double, 3>& F, const double t_win, const double alpha, const double beta, const double last_h_over_h, const double delta_time, const vector<double>& historic_integrands, const array_1d<double, 3>& oldest_integrand);
         void AddFre(array_1d<double, 3>& old_Fi, const double beta, const double delta_time);
         void Initialize(const ProcessInfo& r_process_info);
         ///@name Static Member Variables
