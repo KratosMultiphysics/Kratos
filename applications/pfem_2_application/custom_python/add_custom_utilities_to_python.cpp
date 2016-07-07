@@ -99,7 +99,7 @@ namespace Python
                     .def("PreReseedUsingTopographicDomain", &MoveParticleUtilityPFEM2<2>::PreReseedUsingTopographicDomain)
                     .def("ExecuteParticlesPritingTool", &MoveParticleUtilityPFEM2<2>::ExecuteParticlesPritingTool)
                     .def("ExecuteParticlesPritingToolForDroppletsOnly", &MoveParticleUtilityPFEM2<2>::ExecuteParticlesPritingToolForDroppletsOnly)
-                    .def("RotateParticlesVelocities", &MoveParticleUtilityPFEM2<2>::RotateParticlesVelocities)
+                    .def("RotateParticlesAndDomainVelocities", &MoveParticleUtilityPFEM2<2>::RotateParticlesAndDomainVelocities)
                     ;    
 
         class_< MoveParticleUtilityPFEM2<3> > ("MoveParticleUtilityPFEM23D", init<ModelPart& , int >())
@@ -119,7 +119,7 @@ namespace Python
                     .def("ExecuteParticlesPritingTool", &MoveParticleUtilityPFEM2<3>::ExecuteParticlesPritingTool)
                     .def("ExecuteParticlesPritingToolForDroppletsOnly", &MoveParticleUtilityPFEM2<3>::ExecuteParticlesPritingToolForDroppletsOnly)
                     .def("AssignNodalVelocityUsingInletConditions", &MoveParticleUtilityPFEM2<3>::AssignNodalVelocityUsingInletConditions)
-                    .def("RotateParticlesVelocities", &MoveParticleUtilityPFEM2<3>::RotateParticlesVelocities)
+                    .def("RotateParticlesAndDomainVelocities", &MoveParticleUtilityPFEM2<3>::RotateParticlesAndDomainVelocities)
                     ;    
                     
       	class_<AddFixedVelocityCondition2D > ("AddFixedVelocityCondition2D", init<ModelPart& >())

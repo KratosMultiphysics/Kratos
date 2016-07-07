@@ -343,6 +343,29 @@ namespace Kratos
 				++i_int;
 			}
 			
+			
+			bool nonzero_mesh_velocity  = false;
+			//seeing if we have to use the mesh_velocity or not
+			for(ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin(); 
+				inode!=mr_model_part.NodesEnd(); inode++)
+			{
+				const array_1d<double, 3 > velocity = inode->FastGetSolutionStepValue(MESH_VELOCITY);
+				for(unsigned int i = 0; i!=3; i++)
+				{
+					if (fabs(velocity[i])>1.0e-9)
+						nonzero_mesh_velocity=true;
+				}
+				if( nonzero_mesh_velocity==true)
+					break;
+			}
+			
+			if ( nonzero_mesh_velocity==true)
+				muse_mesh_velocity_to_convect = true; // if there is mesh velocity, then we have to take it into account when moving the particles
+			else
+				muse_mesh_velocity_to_convect = false; //otherwise, we can avoid reading the values since we know it is zero everywhere (to save time!)
+			
+			
+			
 			m_nparticles=particle_id; //we save the last particle created as the total number of particles we have. For the moment this is true.
 			KRATOS_WATCH(m_nparticles);
 			//KRATOS_WATCH(mlast_elem_id);
@@ -609,22 +632,46 @@ namespace Kratos
 			#endif
 			OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Elements().size(), element_partition);
 			
-			#pragma omp parallel for
-			for(int kkk=0; kkk<number_of_threads; kkk++)
+			if (muse_mesh_velocity_to_convect==false)
 			{
-				for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
+				#pragma omp parallel for
+				for(int kkk=0; kkk<number_of_threads; kkk++)
 				{
-					ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
-					Geometry<Node<3> >& geom = ielem->GetGeometry();
+					for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
+					{
+						ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
+						Geometry<Node<3> >& geom = ielem->GetGeometry();
 
-					array_1d<double, 3 >vector_mean_velocity=ZeroVector(3);
+						array_1d<double, 3 >vector_mean_velocity=ZeroVector(3);
 
-					for (unsigned int i=0; i != (TDim+1) ; i++)
-						vector_mean_velocity += geom[i].FastGetSolutionStepValue(VELOCITY);
-					vector_mean_velocity *= nodal_weight;
-					
-					const double mean_velocity = sqrt ( pow(vector_mean_velocity[0],2) + pow(vector_mean_velocity[1],2) + pow(vector_mean_velocity[2],2) );
-					ielem->GetValue(VELOCITY_OVER_ELEM_SIZE) = mean_velocity / ( ielem->GetValue(MEAN_SIZE) );
+						for (unsigned int i=0; i != (TDim+1) ; i++)
+							vector_mean_velocity += geom[i].FastGetSolutionStepValue(VELOCITY);
+						vector_mean_velocity *= nodal_weight;
+						
+						const double mean_velocity = sqrt ( pow(vector_mean_velocity[0],2) + pow(vector_mean_velocity[1],2) + pow(vector_mean_velocity[2],2) );
+						ielem->GetValue(VELOCITY_OVER_ELEM_SIZE) = mean_velocity / ( ielem->GetValue(MEAN_SIZE) );
+					}
+				}
+			}
+			else
+			{
+				#pragma omp parallel for
+				for(int kkk=0; kkk<number_of_threads; kkk++)
+				{
+					for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
+					{
+						ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
+						Geometry<Node<3> >& geom = ielem->GetGeometry();
+
+						array_1d<double, 3 >vector_mean_velocity=ZeroVector(3);
+
+						for (unsigned int i=0; i != (TDim+1) ; i++)
+							vector_mean_velocity += geom[i].FastGetSolutionStepValue(VELOCITY)-geom[i].FastGetSolutionStepValue(MESH_VELOCITY);
+						vector_mean_velocity *= nodal_weight;
+						
+						const double mean_velocity = sqrt ( pow(vector_mean_velocity[0],2) + pow(vector_mean_velocity[1],2) + pow(vector_mean_velocity[2],2) );
+						ielem->GetValue(VELOCITY_OVER_ELEM_SIZE) = mean_velocity / ( ielem->GetValue(MEAN_SIZE) );
+					}
 				}
 			}
 			KRATOS_CATCH("")
@@ -927,8 +974,8 @@ namespace Kratos
 			for(ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin(); 
 				inode!=mr_model_part.NodesEnd(); inode++)
 			{
-				const array_1d<double, 3 > velocity = inode->FastGetSolutionStepValue(VELOCITY);
-				for(unsigned int i = 0; i!=2; i++)
+				const array_1d<double, 3 > velocity = inode->FastGetSolutionStepValue(MESH_VELOCITY);
+				for(unsigned int i = 0; i!=3; i++)
 				{
 					if (fabs(velocity[i])>1.0e-9)
 						nonzero_mesh_velocity=true;
@@ -2125,7 +2172,7 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 		
-		void RotateParticlesVelocities(array_1d<double, 3 > rotations)
+		void RotateParticlesAndDomainVelocities(array_1d<double, 3 > rotations)
 		{
 			KRATOS_TRY
 			
@@ -2188,6 +2235,28 @@ namespace Kratos
 						
 						
 					}	
+				}
+			}
+			
+			
+			ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
+			vector<unsigned int> node_partition;
+			OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Nodes().size(), node_partition);
+				
+			#pragma omp parallel for
+			for(int kkk=0; kkk<number_of_threads; kkk++)
+			{
+				for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
+				{
+						ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+						if (inode->IsFixed(VELOCITY_X)==false)
+						{
+							array_1d<double, 3 > & vel = inode->FastGetSolutionStepValue(VELOCITY);
+							const double vel_x = vel[0];
+							const double vel_y = vel[1];
+							vel[0] = cosinus_theta*vel_x + sinus_theta*vel_y;
+							vel[1] = cosinus_theta*vel_y - sinus_theta*vel_x;
+						}
 				}
 			}
 			KRATOS_CATCH("")
