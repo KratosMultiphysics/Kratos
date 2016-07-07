@@ -224,6 +224,16 @@ namespace Kratos {
             }
         }
     }
+
+    static inline void ProductMatrix3X3Vector3X1(const double Matrix[3][3], const array_1d<double,3>& Vector1, array_1d<double,3>& Vector2)
+    {
+        for (int i=0; i<3; i++) {
+            Vector2[i] = 0.0;
+            for (int j=0; j<3; j++) {
+                Vector2[i]+=Matrix[j][i]*Vector1[j];
+            }
+        }
+    }
     
     static inline void TensorGlobal2Local(const double LocalCoordSystem[3][3], const double GlobalTensor[3][3], double LocalTensor[3][3])
     {
@@ -252,6 +262,20 @@ namespace Kratos {
                     
         ProductMatrices3X3(R, LocalTensor, Temp);
         ProductMatrices3X3(Temp, RT, GlobalTensor);
+    }
+
+    static inline void ConstructLocalTensor(const array_1d<double, 3 >& moments_of_inertia, double LocalTensor[3][3])
+    {
+        LocalTensor[0][0] = moments_of_inertia[0]; LocalTensor[0][1] = 0.0; LocalTensor[0][2] = 0.0;
+        LocalTensor[1][0] = 0.0; LocalTensor[1][1] = moments_of_inertia[1]; LocalTensor[1][2] = 0.0;
+        LocalTensor[2][0] = 0.0; LocalTensor[2][1] = 0.0; LocalTensor[2][2] = moments_of_inertia[2];
+    }
+    
+    static inline void ConstructInvLocalTensor(const array_1d<double, 3 >& moments_of_inertia, double LocalTensorInv[3][3])
+    {
+        LocalTensorInv[0][0] = 1/moments_of_inertia[0]; LocalTensorInv[0][1] = 0.0; LocalTensorInv[0][2] = 0.0;
+        LocalTensorInv[1][0] = 0.0; LocalTensorInv[1][1] = 1/moments_of_inertia[1]; LocalTensorInv[1][2] = 0.0;
+        LocalTensorInv[2][0] = 0.0; LocalTensorInv[2][1] = 0.0; LocalTensorInv[2][2] = 1/moments_of_inertia[2];
     }
 
     static inline double DotProduct(double Vector1[3], double Vector2[3])
@@ -721,6 +745,36 @@ namespace Kratos {
         Quaternion<double> Q_conj = Q.conjugate();
         Q_conj.RotateVector3(GlobalVector, LocalVector);
     }
+
+    static inline void QuaternionTensorLocal2Global(const Quaternion<double>& Q, const double LocalTensor[3][3], double GlobalTensor[3][3])
+    {
+        array_1d<double, 3> LocalTensorC1; array_1d<double, 3> LocalTensorC2; array_1d<double, 3> LocalTensorC3;
+        
+        LocalTensorC1[0] = LocalTensor[0][0]; LocalTensorC2[0] = LocalTensor[0][1]; LocalTensorC3[0] = LocalTensor[0][2];
+        LocalTensorC1[1] = LocalTensor[1][0]; LocalTensorC2[1] = LocalTensor[1][1]; LocalTensorC3[1] = LocalTensor[1][2];
+        LocalTensorC1[2] = LocalTensor[2][0]; LocalTensorC2[2] = LocalTensor[2][1]; LocalTensorC3[2] = LocalTensor[2][2];        
+
+        array_1d<double, 3> TempTensorC1; array_1d<double, 3> TempTensorC2; array_1d<double, 3> TempTensorC3;
+        array_1d<double, 3> TempTensorTraspC1; array_1d<double, 3> TempTensorTraspC2; array_1d<double, 3> TempTensorTraspC3;
+        
+        Q.RotateVector3(LocalTensorC1, TempTensorC1);
+        Q.RotateVector3(LocalTensorC2, TempTensorC2);
+        Q.RotateVector3(LocalTensorC3, TempTensorC3);
+
+        TempTensorTraspC1[0] = TempTensorC1[0]; TempTensorTraspC2[0] = TempTensorC1[1]; TempTensorTraspC3[0] = TempTensorC1[2];
+        TempTensorTraspC1[1] = TempTensorC2[0]; TempTensorTraspC2[1] = TempTensorC2[1]; TempTensorTraspC3[1] = TempTensorC2[2];
+        TempTensorTraspC1[2] = TempTensorC3[0]; TempTensorTraspC2[2] = TempTensorC3[1]; TempTensorTraspC3[2] = TempTensorC3[2];
+
+        array_1d<double, 3> GlobalTensorTraspC1; array_1d<double, 3> GlobalTensorTraspC2; array_1d<double, 3> GlobalTensorTraspC3;
+        
+        Q.RotateVector3(TempTensorTraspC1, GlobalTensorTraspC1);
+        Q.RotateVector3(TempTensorTraspC2, GlobalTensorTraspC2);
+        Q.RotateVector3(TempTensorTraspC3, GlobalTensorTraspC3);
+        
+        GlobalTensor[0][0] = GlobalTensorTraspC1[0]; GlobalTensor[0][1] = GlobalTensorTraspC1[1]; GlobalTensor[0][2] = GlobalTensorTraspC1[2];
+        GlobalTensor[1][0] = GlobalTensorTraspC2[0]; GlobalTensor[1][1] = GlobalTensorTraspC2[1]; GlobalTensor[1][2] = GlobalTensorTraspC2[2];
+        GlobalTensor[2][0] = GlobalTensorTraspC3[0]; GlobalTensor[2][1] = GlobalTensorTraspC3[1]; GlobalTensor[2][2] = GlobalTensorTraspC3[2];
+    }
     
     static inline void UpdateOrientation(array_1d<double, 3>& EulerAngles, const array_1d<double, 3>& RotatedAngle)
     {
@@ -766,6 +820,27 @@ namespace Kratos {
         Orientation.ToEulerAngles(EulerAngles);
     }
     
+    static inline void UpdateOrientation(const Quaternion<double>& Orientation, Quaternion<double>& NewOrientation, const array_1d<double, 3>& DeltaRotation)
+    {
+        Quaternion<double> DeltaOrientation = Quaternion<double>::Identity();
+                        
+        array_1d<double, 3 > theta = DeltaRotation;
+        DEM_MULTIPLY_BY_SCALAR_3(theta, 0.5);
+
+        double thetaMag = DEM_MODULUS_3(theta);
+        const double epsilon = std::numeric_limits<double>::epsilon();
+                  
+        if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
+            double aux = (1 - thetaMag * thetaMag / 6);
+            DeltaOrientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+        }
+        else {
+            double aux = sin(thetaMag)/thetaMag;
+            DeltaOrientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+        }
+        NewOrientation = DeltaOrientation * Orientation;
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////******EULER ANGLES from 2 vectors******/////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
