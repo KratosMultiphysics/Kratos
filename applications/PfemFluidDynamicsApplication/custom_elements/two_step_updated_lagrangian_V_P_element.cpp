@@ -1506,8 +1506,11 @@ void TwoStepUpdatedLagrangianVPElement<2>::CalcNormalProjectionsForBoundRHSVecto
 										  double& NormalProjSpatialDefRate)
 {
   array_1d<double, 3>  NormalA;
+  NormalA.clear();
   array_1d<double, 3>  NormalB;
+  NormalB.clear();
   array_1d<double, 3>  NormalMean;
+  NormalMean.clear();
   VectorType LastAccValues = ZeroVector(2);
   this->GetAccelerationValues(LastAccValues,0);
   GeometryType& rGeom = this->GetGeometry();
@@ -1538,7 +1541,7 @@ void TwoStepUpdatedLagrangianVPElement<3>::CalcNormalProjectionsForBoundRHSVecto
 										  double& NormalAcceleration,
 										  double& NormalProjSpatialDefRate)
 {
-  std::cout<<"!!!!  CalcNormalProjectionSpatialDefRate to implentfor 3D !!!!!"<<std::endl;
+  std::cout<<"!!!!  CalcNormalProjectionSpatialDefRate to implent for 3D !!!!!"<<std::endl;
 }
 
 
