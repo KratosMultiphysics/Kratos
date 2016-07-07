@@ -315,14 +315,16 @@ public:
     // InterfaceMapper = InterfacePreprocess()
     // InterfacePart = InterfaceMapper.GenerateInterfacePart(Complete_Model_Part)
     TreeContactSearch(
-            ModelPart & rOriginModelPart,
-            ModelPart & rDestinationModelPart,
-            const unsigned int allocation_size
-            );
+        ModelPart & rOriginModelPart,
+        ModelPart & rDestinationModelPart,
+        const unsigned int allocation_size
+        );
     
     void AuxConstructor(
         ModelPart & rModelPart,
-        const bool rSlaveMaster
+        const bool rActive,
+//         const bool rSlave,
+        const bool rMaster
         ); 
     
     virtual ~TreeContactSearch();

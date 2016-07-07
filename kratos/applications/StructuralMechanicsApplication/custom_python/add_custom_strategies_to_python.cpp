@@ -35,6 +35,9 @@
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/mortar_criteria.h"
 
+// Builders and solvers
+#include "custom_strategies/custom_builder_and_solvers/residualbased_block_builder_and_solver_contact.h"
+
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
 
@@ -51,14 +54,14 @@ void  AddCustomStrategiesToPython()
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
+    // Base types
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
+    typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
     
     // Custom strategy types
      typedef ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedArcLengthStrategyType;
-     
-    // Custom builder_and_solver types
 
     // Custom scheme types
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
@@ -66,6 +69,9 @@ void  AddCustomStrategiesToPython()
 
     // Custom convergence criterion types
     typedef MortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > MortarConvergenceCriteriaType;
+    
+    // Custom builder and solvers types
+    typedef ResidualBasedBlockBuilderAndSolverContact< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverContactType;
     
     //********************************************************************
     //*************************SCHEME CLASSES*****************************
@@ -108,6 +114,17 @@ void  AddCustomStrategiesToPython()
             .def(init< >())
             .def("SetEchoLevel", &MortarConvergenceCriteriaType::SetEchoLevel)
             ;
+            
+            
+    //********************************************************************
+    //*************************BUILDER AND SOLVER*************************
+    //********************************************************************
+
+    // Residual Based Builder and Solver
+    class_< ResidualBasedBlockBuilderAndSolverContactType, bases<BuilderAndSolverType>, boost::noncopyable > 
+            (
+        "ResidualBasedBlockBuilderAndSolverContact", init< LinearSolverType::Pointer > ()
+            );
             
 }
 

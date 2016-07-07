@@ -39,10 +39,10 @@ TreeContactSearch::TreeContactSearch(
     mallocation(allocation_size)
 {
     // Destination model part
-    AuxConstructor(mrDestinationModelPart, true);
+    AuxConstructor(mrDestinationModelPart, true, false);
     
     // Origin model part
-    AuxConstructor(mrOriginModelPart, false);
+    AuxConstructor(mrOriginModelPart, false, true);
 }
 
 /***********************************************************************************/
@@ -50,7 +50,9 @@ TreeContactSearch::TreeContactSearch(
 
 void TreeContactSearch::AuxConstructor(
     ModelPart & rModelPart,
-    const bool rSlaveMaster
+    const bool rActive,
+//     const bool rSlave,
+    const bool rMaster
     ) 
 {
     ConditionsArrayType& pCond  = rModelPart.Conditions();
@@ -59,9 +61,9 @@ void TreeContactSearch::AuxConstructor(
     
     for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
     {
-        cond_it->Set( ACTIVE, false ); // NOTE: It is supposed to be already false, just in case   
-        cond_it->Set( SLAVE,   rSlaveMaster);
-        cond_it->Set( MASTER, !rSlaveMaster);
+        cond_it->Set( ACTIVE, rActive ); // NOTE: It is supposed to be already false, just in case   
+//         cond_it->Set( SLAVE,  rSlave);
+        cond_it->Set( MASTER, rMaster);
     }
 }
 
@@ -419,14 +421,13 @@ void TreeContactSearch::CreateMortarConditions(
                 DestCondIntegrationOrder = integration_order;
                 
                 // Set the corresponding flags
-                pCondDestination->Set(ACTIVE, true);
+                pCondDestination->Set(ACTIVE, true); 
 
                 MortarContainerFiller(mPointListOrigin[cond_it], PointsFound[i], pCondDestination, pCondOrigin, ConditionPointersDestination, IntegrationOrder, false);
             }
         }
     }
     
-    // FIXME
     // Calculate the mean of the normal in all the nodes
     ComputeNodesMeanNormal();
 }
@@ -502,7 +503,7 @@ void TreeContactSearch::MortarContainerFiller(
     }
     
     ContactUtilities::ContactContainerFiller(contact_container, ContactPoint, pCond_1->GetGeometry(), pCond_2->GetGeometry(), 
-                                             pCond_1->GetValue(NORMAL), pCond_2->GetValue(NORMAL), IntegrationOrder);
+                                             pCond_1->GetValue(NORMAL), pCond_2->GetValue(NORMAL), IntegrationOrder); 
         
     ConditionPointers->push_back(contact_container);
 }

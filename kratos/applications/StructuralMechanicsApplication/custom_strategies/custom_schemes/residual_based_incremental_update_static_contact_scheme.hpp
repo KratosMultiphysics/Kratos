@@ -86,7 +86,7 @@ public:
     /***********************************************************************************/
     /***********************************************************************************/
     
-    virtual void Condition_CalculateSystemContributions(
+    void Condition_CalculateSystemContributions(
         Condition::Pointer rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
@@ -104,7 +104,7 @@ public:
     /***********************************************************************************/
     /***********************************************************************************/
     
-    virtual void Condition_Calculate_RHS_Contribution(
+    void Condition_Calculate_RHS_Contribution(
         Condition::Pointer rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
@@ -130,27 +130,59 @@ public:
     {
         KRATOS_TRY;
         
-        // Update normal of the conditions
-        ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart );
-        
+        // Initializes the non-linear iteration for all the elements
+        ElementsArrayType& rElements = rModelPart.Elements();
         ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-        
-        ElementsArrayType& pElements = rModelPart.Elements();
-        for( typename ElementsArrayType::iterator it = pElements.begin(); it != pElements.end(); ++it )
+
+        int NumThreads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector ElementPartition;
+        OpenMPUtils::DivideInPartitions(rElements.size(), NumThreads, ElementPartition);
+
+        #pragma omp parallel
         {
-            (it)->InitializeNonLinearIteration(CurrentProcessInfo);
+            int k = OpenMPUtils::ThisThread();
+
+            typename ElementsArrayType::iterator ElementsBegin = rElements.begin() + ElementPartition[k];
+            typename ElementsArrayType::iterator ElementsEnd = rElements.begin() + ElementPartition[k + 1];
+
+            for (typename ElementsArrayType::iterator itElem = ElementsBegin; itElem != ElementsEnd; itElem++)
+            {
+                itElem->InitializeNonLinearIteration(CurrentProcessInfo);
+            }
         }
 
-        ConditionsArrayType& pConditions = rModelPart.Conditions();
-        for( typename ConditionsArrayType::iterator it = pConditions.begin(); it != pConditions.end(); ++it )
+        // Update normal of the conditions
+        ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart ); 
+        
+        // Initializes the non-linear iteration for all the conditions
+        ConditionsArrayType& rConditions = rModelPart.Conditions();
+        
+        OpenMPUtils::PartitionVector ConditionPartition;
+        OpenMPUtils::DivideInPartitions(rConditions.size(), NumThreads, ConditionPartition);
+
+        #pragma omp parallel
         {
-            if ( it->Is( ACTIVE ) )
+            int k = OpenMPUtils::ThisThread();
+
+            typename ConditionsArrayType::iterator ConditionsBegin = rConditions.begin() + ConditionPartition[k];
+            typename ConditionsArrayType::iterator ConditionsEnd = rConditions.begin() + ConditionPartition[k + 1];
+
+            for (typename ConditionsArrayType::iterator itCond = ConditionsBegin; itCond != ConditionsEnd; itCond++)
             {
-                (it)->InitializeNonLinearIteration(CurrentProcessInfo);
+                bool condition_is_active = true;
+                if( (itCond)->IsDefined(ACTIVE) )
+                {
+                    condition_is_active = (itCond)->Is(ACTIVE);
+                }
+                
+                if ( condition_is_active == true )
+                {
+                    itCond->InitializeNonLinearIteration(CurrentProcessInfo);
+                }
             }
         }
         
-        KRATOS_CATCH( "" );
+        KRATOS_CATCH("");
     }
     
     /***********************************************************************************/
@@ -187,6 +219,71 @@ public:
         (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
     }
     
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    void FinalizeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b)
+    {
+        KRATOS_TRY;
+        
+        // Finalizes solution step for all of the elements
+        ElementsArrayType& rElements = rModelPart.Elements();
+        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
+        int NumThreads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector ElementPartition;
+        OpenMPUtils::DivideInPartitions(rElements.size(), NumThreads, ElementPartition);
+
+        #pragma omp parallel
+        {
+            int k = OpenMPUtils::ThisThread();
+
+            typename ElementsArrayType::iterator ElementsBegin = rElements.begin() + ElementPartition[k];
+            typename ElementsArrayType::iterator ElementsEnd = rElements.begin() + ElementPartition[k + 1];
+
+            for (typename ElementsArrayType::iterator itElem = ElementsBegin; itElem != ElementsEnd; itElem++)
+            {
+                itElem->FinalizeSolutionStep(CurrentProcessInfo);
+            }
+        }
+
+        // Update normal of the conditions
+        ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart ); 
+        
+        // Finalizes solution step for all the conditions
+        ConditionsArrayType& rConditions = rModelPart.Conditions();
+
+        OpenMPUtils::PartitionVector ConditionPartition;
+        OpenMPUtils::DivideInPartitions(rConditions.size(), NumThreads, ConditionPartition);
+
+        #pragma omp parallel
+        {
+            int k = OpenMPUtils::ThisThread();
+
+            typename ConditionsArrayType::iterator ConditionsBegin = rConditions.begin() + ConditionPartition[k];
+            typename ConditionsArrayType::iterator ConditionsEnd = rConditions.begin() + ConditionPartition[k + 1];
+
+            for (typename ConditionsArrayType::iterator itCond = ConditionsBegin; itCond != ConditionsEnd; itCond++)
+            {
+                bool condition_is_active = true;
+                if( (itCond)->IsDefined(ACTIVE) )
+                {
+                    condition_is_active = (itCond)->Is(ACTIVE);
+                }
+                
+                if ( condition_is_active == true )
+                {
+                    itCond->FinalizeSolutionStep(CurrentProcessInfo);
+                }
+            }
+        }
+        
+        KRATOS_CATCH("");
+    }
 };
 
 }  // namespace Kratos

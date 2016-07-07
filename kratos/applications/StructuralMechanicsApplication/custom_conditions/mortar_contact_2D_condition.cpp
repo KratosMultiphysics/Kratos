@@ -168,13 +168,15 @@ void MortarContact2DCondition::InitializeSolutionStep( ProcessInfo& rCurrentProc
 void MortarContact2DCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
-    
+
     // Populate the vector of master elements
     std::vector<contact_container> *& all_containers = this->GetValue(CONTACT_CONTAINERS);
     
     for ( unsigned int i_cond = 0; i_cond < all_containers->size(); ++i_cond )
     {
         Condition *& pCond = (*all_containers)[i_cond].condition;
+    
+        // Fill the condition
         ContactUtilities::ContactContainerFiller((*all_containers)[i_cond], pCond->GetGeometry().Center(), GetGeometry(), pCond->GetGeometry(), 
                                                  this->GetValue(NORMAL), pCond->GetValue(NORMAL), mThisIntegrationMethod);
     }
