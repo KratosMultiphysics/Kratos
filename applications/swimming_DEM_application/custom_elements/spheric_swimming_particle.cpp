@@ -278,40 +278,40 @@ double SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(int order, u
             }
         }
         else {
-            if (n == 1){ // use formula for the alphas of first order
+            if (n == 1){ // use formula for the phis of first order
                 SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(1, n, j, last_h_over_h, n_steps_per_quad_step);
             }
 
             else if (n == 2){
 
-                const double sqrt_alpha_plus_1 = std::sqrt(1 + last_h_over_h);
+                const double sqrt_phi_plus_1 = std::sqrt(1 + last_h_over_h);
 
                 if (j == 0){
-                    return 4 * sqrt_alpha_plus_1 * (4 * last_h_over_h - 1) / (15 * last_h_over_h);
+                    return 4 * sqrt_phi_plus_1 * (4 * last_h_over_h - 1) / (15 * last_h_over_h);
                 }
                 else if (j == 1){
-                    return 4 * SWIMMING_POW_5(sqrt_alpha_plus_1) / (15 * last_h_over_h);
+                    return 4 * SWIMMING_POW_5(sqrt_phi_plus_1) / (15 * last_h_over_h);
                 }
                 else {
-                    return 2 * sqrt_alpha_plus_1 * (3 - 2 * last_h_over_h) / 15;
+                    return 2 * sqrt_phi_plus_1 * (3 - 2 * last_h_over_h) / 15;
                 }
             }
             else {
-                const double sqrt_alpha_plus_1 = std::sqrt(1 + last_h_over_h);
-                const double sqrt_alpha_plus_2 = std::sqrt(2 + last_h_over_h);
+                const double sqrt_phi_plus_1 = std::sqrt(1 + last_h_over_h);
+                const double sqrt_phi_plus_2 = std::sqrt(2 + last_h_over_h);
 
                 if (j == 0){
-                    return 4 * sqrt_alpha_plus_1 * (4 * last_h_over_h - 1) / (15 * last_h_over_h);
+                    return 4 * sqrt_phi_plus_1 * (4 * last_h_over_h - 1) / (15 * last_h_over_h);
                 }
                 else if (j == 1){
-                    return 4 * SWIMMING_POW_5(sqrt_alpha_plus_1) / (15 * last_h_over_h) + 2 * (4 * SWIMMING_POW_3(sqrt_alpha_plus_2) * (3 + 4 * last_h_over_h) - SWIMMING_POW_3(sqrt_alpha_plus_1) * (9 + 4 * last_h_over_h)) / 15;
+                    return 4 * SWIMMING_POW_5(sqrt_phi_plus_1) / (15 * last_h_over_h) + 2 * (4 * SWIMMING_POW_3(sqrt_phi_plus_2) * (3 + 4 * last_h_over_h) - SWIMMING_POW_3(sqrt_phi_plus_1) * (9 + 4 * last_h_over_h)) / 15;
                 }
                 else if (j == 2){
-                    return 4 / 15 * (SWIMMING_POW_3(sqrt_alpha_plus_2) * (2 - 4 * last_h_over_h) + sqrt_alpha_plus_1 * (4 * last_h_over_h * last_h_over_h + 7 * last_h_over_h - 2));
-                    //return 2 * sqrt_alpha_plus_1 * (3 - 2 * last_h_over_h) / 15 + 2 * (4 * SWIMMING_POW_3(sqrt_alpha_plus_2) * (2 * last_h_over_h - 1) + sqrt_alpha_plus_1 * (8 * last_h_over_h * (2 + last_h_over_h) - 7)) / 15;
+                    return 4 / 15 * (SWIMMING_POW_3(sqrt_phi_plus_2) * (2 - 4 * last_h_over_h) + sqrt_phi_plus_1 * (4 * last_h_over_h * last_h_over_h + 7 * last_h_over_h - 2));
+                    //return 2 * sqrt_phi_plus_1 * (3 - 2 * last_h_over_h) / 15 + 2 * (4 * SWIMMING_POW_3(sqrt_phi_plus_2) * (2 * last_h_over_h - 1) + sqrt_phi_plus_1 * (8 * last_h_over_h * (2 + last_h_over_h) - 7)) / 15;
                 }
                 else {
-                    return 2 * (sqrt_alpha_plus_1 * (1 - 3 * last_h_over_h - 4 * last_h_over_h * last_h_over_h) + sqrt_alpha_plus_2 * (1 + last_h_over_h + 4 * last_h_over_h * last_h_over_h)) / 15;
+                    return 2 * (sqrt_phi_plus_1 * (1 - 3 * last_h_over_h - 4 * last_h_over_h * last_h_over_h) + sqrt_phi_plus_2 * (1 + last_h_over_h + 4 * last_h_over_h * last_h_over_h)) / 15;
                 }
             }
         }
@@ -469,11 +469,20 @@ double SphericSwimmingParticle<TBaseElement>::Phi(const double x)
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::AddFdi(const int order, array_1d<double, 3>& F, const double t_win, const double ti, const double beta, const double alpha, const double dt, const vector<double>& historic_integrands, const array_1d<double, 3>& oldest_integrand)
+double SphericSwimmingParticle<TBaseElement>::Ki(const double alpha, const double beta, const double time)
 {
-    if (order == 1){
+    return alpha * std::exp(beta * time);
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+template < class TBaseElement >
+void SphericSwimmingParticle<TBaseElement>::AddFdi(const int order, array_1d<double, 3>& F, const double t_win, const double alpha, const double beta, const double phi, const double dt, const vector<double>& historic_integrands, const array_1d<double, 3>& oldest_integrand)
+{
+    if (order == 1 || order == 2){
         const double beta_dt = beta * dt;
-        const double coeff = 2 * std::sqrt(ti) * std::exp(beta * (t_win - dt + dt * alpha) + 0.5);
+        const double coeff = - alpha / beta * std::exp(beta * (t_win - dt + dt * phi));
         const double coeff_N = 1 - Phi(beta_dt);
         const double coeff_N_plus_1 = std::exp(beta_dt) * (Phi(- beta_dt) - 1);
 
@@ -483,21 +492,51 @@ void SphericSwimmingParticle<TBaseElement>::AddFdi(const int order, array_1d<dou
     }
 
     else if (order == 2){
-        const double coeff = 0.5 * std::sqrt(1.0 / ti) / (SWIMMING_POW_3(beta) * SWIMMING_POW_2(dt));
-        const double exp_1 = std::exp(beta * (t_win - dt + dt * alpha) + 0.5);
-        const double exp_2 = std::exp(beta * dt);
-        const double f20 = oldest_integrand[0];
-        const double f21 = oldest_integrand[1];
-        const double f22 = oldest_integrand[2];
-        const double f10 = historic_integrands[0];
-        const double f11 = historic_integrands[1];
-        const double f12 = historic_integrands[2];
-        const double f00 = historic_integrands[3];
-        const double f01 = historic_integrands[4];
-        const double f02 = historic_integrands[5];
-        F[0] += coeff * exp_1 * (4 * f10 - 2 * f20 + dt * beta * (f20 - 2 * dt * beta * f10) - f00 * (2 + dt * beta * exp_2 * (dt * beta - 2)) + exp_2 * (4 * f10 * (dt * beta - 1) + f20 * (2 + dt * beta * (2 * dt * beta - 3))));
-        F[1] += coeff * exp_1 * (4 * f11 - 2 * f21 + dt * beta * (f21 - 2 * dt * beta * f11) - f01 * (2 + dt * beta * exp_2 * (dt * beta - 2)) + exp_2 * (4 * f11 * (dt * beta - 1) + f21 * (2 + dt * beta * (2 * dt * beta - 3))));
-        F[2] += coeff * exp_1 * (4 * f12 - 2 * f22 + dt * beta * (f22 - 2 * dt * beta * f12) - f02 * (2 + dt * beta * exp_2 * (dt * beta - 2)) + exp_2 * (4 * f12 * (dt * beta - 1) + f22 * (2 + dt * beta * (2 * dt * beta - 3))));
+        if (true){ // unstable
+            const double coeff = 0.5 * alpha / (beta * SWIMMING_POW_2(dt * beta));
+            const double exp_1 = std::exp(beta * (t_win - dt + dt * phi));
+            const double exp_2 = std::exp(beta * dt);
+            const double f20 = oldest_integrand[0];
+            const double f21 = oldest_integrand[1];
+            const double f22 = oldest_integrand[2];
+            const double f10 = historic_integrands[0];
+            const double f11 = historic_integrands[1];
+            const double f12 = historic_integrands[2];
+            const double f00 = historic_integrands[3];
+            const double f01 = historic_integrands[4];
+            const double f02 = historic_integrands[5];
+            KRATOS_WATCH(exp_1)
+            F[0] += coeff * exp_1 * ((2 * exp_2 * (dt * beta) - dt * beta - 2)                                                * f00
+                                   + (exp_2 * (4 - 4 * dt * beta) + 2 * beta * SWIMMING_POW_2(dt * beta) - 4)                 * f10
+                                   + (exp_2 * (2 - 3 * dt * beta + 2 * 2 * beta * SWIMMING_POW_2(dt * beta)) + dt * beta - 2) * f20);
+            F[1] += coeff * exp_1 * ((2 * exp_2 * (dt * beta) - dt * beta - 2)                                                * f01
+                                   + (exp_2 * (4 - 4 * dt * beta) + 2 * beta * SWIMMING_POW_2(dt * beta) - 4)                 * f11
+                                   + (exp_2 * (2 - 3 * dt * beta + 2 * 2 * beta * SWIMMING_POW_2(dt * beta)) + dt * beta - 2) * f21);
+            F[2] += coeff * exp_1 * ((2 * exp_2 * (dt * beta) - dt * beta - 2)                                                * f02
+                                   + (exp_2 * (4 - 4 * dt * beta) + 2 * beta * SWIMMING_POW_2(dt * beta) - 4)                 * f12
+                                   + (exp_2 * (2 - 3 * dt * beta + 2 * 2 * beta * SWIMMING_POW_2(dt * beta)) + dt * beta - 2) * f22);
+        }
+        else {
+            const double t_minus_t2 = t_win + dt * phi;
+            const double t_minus_t1 = t_win + dt * phi - dt;
+            const double t_minus_t0 = t_win + dt * phi - 2 * dt;
+            const double Ki2 = Ki(alpha, beta, t_minus_t2);
+            const double Ki1 = Ki(alpha, beta, t_minus_t1);
+            const double Ki0 = Ki(alpha, beta, t_minus_t0);
+            const double f20 = oldest_integrand[0] * Ki2;
+            const double f21 = oldest_integrand[1] * Ki2;
+            const double f22 = oldest_integrand[2] * Ki2;
+            const double f10 = historic_integrands[0] * Ki1;
+            const double f11 = historic_integrands[1] * Ki1;
+            const double f12 = historic_integrands[2] * Ki1;
+            const double f00 = historic_integrands[3] * Ki0;
+            const double f01 = historic_integrands[4] * Ki0;
+            const double f02 = historic_integrands[5] * Ki0;
+            const double aux_coeff = dt / 12;
+            F[0] += aux_coeff * (- f00 + 8 * f10 + 5 * f20);
+            F[1] += aux_coeff * (- f01 + 8 * f11 + 5 * f21);
+            F[2] += aux_coeff * (- f02 + 8 * f12 + 5 * f22);
+        }
     }
     else {
         return;
@@ -528,16 +567,18 @@ void SphericSwimmingParticle<TBaseElement>::AddHinsbergTailContribution(NodeType
         oldest_integrand[1] = hinsberg_tail_contributions[3 * m + 1];
         oldest_integrand[2] = hinsberg_tail_contributions[3 * m + 2];
         const std::vector<double>& Ts = SphericSwimmingParticle<SphericParticle>::mTs;
+        const double e = std::exp(1);
         array_1d<double, 3> Fi;
 
         for (int i = 0; i < m; i++){
             const double ti = Ts[i];
             const double beta = - 0.5 / ti;
+            const double alpha = std::sqrt(e / ti);
             Fi[0] = hinsberg_tail_contributions[3 * i];
             Fi[1] = hinsberg_tail_contributions[3 * i + 1];
             Fi[2] = hinsberg_tail_contributions[3 * i + 2];
             AddFre(Fi, beta, quadrature_delta_time);
-            AddFdi(order, Fi, t_win, ti, beta, 1.0, quadrature_delta_time, historic_integrands, oldest_integrand);
+            AddFdi(order, Fi, t_win, alpha, beta, 1.0, quadrature_delta_time, historic_integrands, oldest_integrand);
             hinsberg_tail_contributions[3 * i]     = Fi[0];
             hinsberg_tail_contributions[3 * i + 1] = Fi[1];
             hinsberg_tail_contributions[3 * i + 2] = Fi[2];
@@ -563,13 +604,15 @@ void SphericSwimmingParticle<TBaseElement>::AddHinsbergTailContributionStrict(No
 {
     vector<double>& hinsberg_tail_contributions = node.GetValue(HINSBERG_TAIL_CONTRIBUTIONS);
     int m = hinsberg_tail_contributions.size() / 3 - 1; // number of exponentials: the last three slots hold the components of the oldest historic integrand
-    const double t_win = SphericSwimmingParticle<TBaseElement>::mTimeWindow;
-    const std::vector<double>& Ts = SphericSwimmingParticle<SphericParticle>::mTs;
-    const double delta_time = quadrature_delta_time / n_steps_per_quad_step;
 
     if (m < 1){ // trivial, 0-exponentials case (there is no tail contribution)
         return;
     }
+
+    const double t_win = SphericSwimmingParticle<TBaseElement>::mTimeWindow;
+    const std::vector<double>& Ts = SphericSwimmingParticle<SphericParticle>::mTs;
+    const double e = std::exp(1);
+    const double delta_time = quadrature_delta_time / n_steps_per_quad_step;
 
     if (n_steps_per_quad_step * last_h_over_h < 1.5 && 2 * n_steps_per_quad_step * (time - t_win) > quadrature_delta_time){ // calculation right after last append (but at least later than t = t_win, so there is some tail)
         array_1d<double, 3> oldest_integrand;
@@ -581,11 +624,12 @@ void SphericSwimmingParticle<TBaseElement>::AddHinsbergTailContributionStrict(No
         for (int i = 0; i < m; i++){
             const double ti = Ts[i];
             const double beta = - 0.5 / ti;
+            const double alpha = std::sqrt(e / ti);
             Fi[0] = hinsberg_tail_contributions[3 * i];
             Fi[1] = hinsberg_tail_contributions[3 * i + 1];
             Fi[2] = hinsberg_tail_contributions[3 * i + 2];
             AddFre(Fi, beta, delta_time);
-            AddFdi(order, Fi, t_win, ti, beta, last_h_over_h, quadrature_delta_time, historic_integrands, oldest_integrand);
+            AddFdi(order, Fi, t_win, alpha, beta, last_h_over_h, quadrature_delta_time, historic_integrands, oldest_integrand);
             hinsberg_tail_contributions[3 * i]     = Fi[0];
             hinsberg_tail_contributions[3 * i + 1] = Fi[1];
             hinsberg_tail_contributions[3 * i + 2] = Fi[2];
