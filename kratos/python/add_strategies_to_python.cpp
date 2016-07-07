@@ -359,19 +359,17 @@ namespace Kratos
                     bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
                     boost::noncopyable >
                     ("DisplacementCriteria", init< double, double>())
-                    .def("SetEchoLevel", &DisplacementCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel);
+                    ;
 		    
 	    class_< IncrementalDisplacementCriteria<SparseSpaceType, LocalSpaceType >,
                     bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
                     boost::noncopyable >
-                    ("IncrementalDisplacementCriteria", init< double, double>())
-                    .def("SetEchoLevel", &IncrementalDisplacementCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel);
+                    ("IncrementalDisplacementCriteria", init< double, double>());
 
             class_<ResidualCriteria<SparseSpaceType, LocalSpaceType >,
                     bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
                     boost::noncopyable >
-                    ("ResidualCriteria", init< double, double>())
-                    .def("SetEchoLevel", &ResidualCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel);
+                    ("ResidualCriteria", init< double, double>());
 
             /*			class_< ResidualCriteria< SparseSpaceType >,
                                              bases<ConvergenceCriteria< SparseSpaceType > >,
