@@ -111,7 +111,7 @@ public:
              // TODO: IMPLEMENT IN 3D
          }
          
-        contact_container.print();
+//         contact_container.print();
     }
 
     /***********************************************************************************/
@@ -168,19 +168,27 @@ public:
             dist = std::sqrt((PointProjected.Coordinate(1) - PointDestiny.Coordinate(1)) * (PointProjected.Coordinate(1) - PointDestiny.Coordinate(1))
                            + (PointProjected.Coordinate(2) - PointDestiny.Coordinate(2)) * (PointProjected.Coordinate(2) - PointDestiny.Coordinate(2)));
         }
-//         else if (dimension == 3)
-//         {
-//             // TODO: COMPLETE
-//             // TODO: Add something more than just triangles to project
-//             
-// //             PointProjected.Coordinate(1) =   
-// //             PointProjected.Coordinate(2) = 
-// //             PointProjected.Coordinate(3) = 
-//             
-//             dist = std::sqrt((PointProjected.Coordinate(1) - PointDestiny.Coordinate(1)) * (PointProjected.Coordinate(1) - PointDestiny.Coordinate(1))
-//                            + (PointProjected.Coordinate(2) - PointDestiny.Coordinate(2)) * (PointProjected.Coordinate(2) - PointDestiny.Coordinate(2))
-//                            + (PointProjected.Coordinate(3) - PointDestiny.Coordinate(3)) * (PointProjected.Coordinate(3) - PointDestiny.Coordinate(3)));
-//         }
+        else if (dimension == 3)
+        {            
+            array_1d<double,3> Normal;
+            
+            GeometryNormal(Normal, Geom);
+            
+            array_1d<double,3> vector_points = Geom.Center() - PointDestiny.Coordinates();
+
+            if (std::abs(inner_prod(Vector, Normal) ) > tol)
+            {
+                dist = inner_prod(vector_points, Normal)/inner_prod(Vector, Normal); 
+
+                PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * dist;
+            }
+            else
+            {
+                PointProjected.Coordinates() = PointDestiny.Coordinates();
+                dist = 0.0;
+                std::cout << " The line and the plane are coplanar, something wrong happen " << std::endl;
+            }
+        }
         else
         {
             KRATOS_THROW_ERROR( std::logic_error, " Not implemented dimension: ", dimension );
@@ -254,6 +262,7 @@ public:
              array_1d<double, 3> projected_local_coor;
              const bool in_out = Geom2.IsInside(ProjectedPoint, projected_local_coor);
              
+//              // TODO: Do the loop over all the master surfaces!!!!
 //              KRATOS_WATCH(Geom2[0].Coordinates());
 //              KRATOS_WATCH(Geom2[1].Coordinates());
 //              KRATOS_WATCH(Geom1[index].Coordinates());
