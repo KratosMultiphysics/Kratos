@@ -135,18 +135,6 @@ public:
     */
     /*@{ */
 
-    /*Criterias that need to be called before getting the solution */
-    virtual bool PreCriteria(
-        ModelPart& r_model_part,
-        DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
-    )
-    {
-        return false;
-    }
-
     /*Criterias that need to be called after getting the solution */
     bool PostCriteria(
         ModelPart& r_model_part,
@@ -174,23 +162,19 @@ public:
                     KRATOS_THROW_ERROR(std::logic_error, "NaN norm is detected", "")
                 ratio = mFinalCorrectionNorm/mReferenceDispNorm;
             }
-KRATOS_WATCH(mFinalCorrectionNorm)
-KRATOS_WATCH(mReferenceDispNorm)
             double aaa = SparseSpaceType::Size(Dx);
 
             double AbsoluteNorm = (mFinalCorrectionNorm/sqrt(aaa));
-//KRATOS_WATCH(AbsoluteNorm)
-//KRATOS_WATCH(mAlwaysConvergedNorm)
-//KRATOS_WATCH(mRatioTolerance)
-	    if (this->GetEchoLevel() == 1)
-	      std::cout << "DISPLACEMENT CRITERION :: [ Obtained tol = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute tol = " << AbsoluteNorm << "; ]" << std::endl;
+
+            if (this->GetEchoLevel() >= 1)
+	      std::cout << "DISPLACEMENT CRITERION :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << AbsoluteNorm << "; ]" << std::endl;
 
 	    r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
 	    r_model_part.GetProcessInfo()[RESIDUAL_NORM] = AbsoluteNorm;
 
             if ( ratio <= mRatioTolerance  ||  AbsoluteNorm<mAlwaysConvergedNorm )  //  || (mFinalCorrectionNorm/x.size())<=1e-7)
             {
-	      if (this->GetEchoLevel() == 1)
+	      if (this->GetEchoLevel() >= 1)
 		std::cout << "Convergence is achieved" << std::endl;
 	      
 	      return true;
