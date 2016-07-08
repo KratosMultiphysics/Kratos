@@ -220,7 +220,7 @@ public:
 
 		// assemble all elements
 		double start_build = OpenMPUtils::GetCurrentTime();
-KRATOS_WATCH("before assembling elements")
+
 #pragma omp parallel for firstprivate(nelements, LHS_Contribution, RHS_Contribution, EquationId )
 		for (int k = 0; k < nelements; k++)
 		{
@@ -234,7 +234,6 @@ KRATOS_WATCH("before assembling elements")
 
 			if (element_is_active)
 			{
-                            KRATOS_WATCH(it->Id())
 				//calculate elemental contribution
 				pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
@@ -247,7 +246,6 @@ KRATOS_WATCH("before assembling elements")
 			}
 
 		}
-KRATOS_WATCH("before assembling conditions")
 
 #pragma omp parallel for firstprivate(nconditions, LHS_Contribution, RHS_Contribution, EquationId )
 		for (int k = 0; k < nconditions; k++)
@@ -273,7 +271,6 @@ KRATOS_WATCH("before assembling conditions")
 			}
 	}
 
-KRATOS_WATCH("after assembling conditions")
 		double stop_build = OpenMPUtils::GetCurrentTime();
 		if (this->GetEchoLevel() >= 1 && r_model_part.GetCommunicator().MyPID() == 0)
 			std::cout << "build time: " << stop_build - start_build << std::endl;
