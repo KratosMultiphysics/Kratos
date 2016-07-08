@@ -12,7 +12,7 @@
 
 // Project includes
 #include "includes/model_part_io.h"
-#include "utilities/logger.h"
+#include "input_output/logger.h"
 
 namespace Kratos
 {
@@ -2031,12 +2031,13 @@ namespace Kratos
 
             ExtractValue(word,node_id);
             NodesContainerType::iterator i_node = FindKey(rThisNodes, ReorderedNodeId(node_id), "Node");
-            p_local_mesh->Nodes().push_back(*(i_node.base()));
-            p_interface_mesh->Nodes().push_back(*(i_node.base()));
+			auto p_node = *(i_node.base());
+            p_local_mesh->Nodes().push_back(p_node);
+            p_interface_mesh->Nodes().push_back(p_node);
         }
 
-        p_local_mesh->Nodes().Sort();
-        p_interface_mesh->Nodes().Sort();
+        p_local_mesh->Nodes().Unique();
+        p_interface_mesh->Nodes().Unique();
 // 	KRATOS_WATCH("finished reading CommunicatorLocalNodesBlock")
 
 // 	KRATOS_WATCH(rThisCommunicator)
@@ -2097,8 +2098,8 @@ namespace Kratos
             p_interface_mesh->Nodes().push_back(*(i_node.base()));
         }
 
-        p_ghost_mesh->Nodes().Sort();
-        p_interface_mesh->Nodes().Sort();
+        p_ghost_mesh->Nodes().Unique();
+        p_interface_mesh->Nodes().Unique();
 
 
 // 	KRATOS_WATCH(rThisCommunicator)
@@ -3284,7 +3285,7 @@ namespace Kratos
 				SkipBlock(word);
 		}
 
-		WriteInAllFiles(OutputFiles, "End Mesh\n");
+		WriteInAllFiles(OutputFiles, "End SubModelPart\n");
 
 		KRATOS_CATCH("")
 	}
