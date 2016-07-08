@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
+//  Main authors:    Pooyan Dadvand, Carlos A. Roig
 //
 //
 
@@ -31,4 +31,4 @@ void  AddTestingToPython();
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_TESTING_TO_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_ADD_TESTING_TO_PYTHON_H_INCLUDED  defined
