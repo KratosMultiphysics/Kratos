@@ -23,7 +23,6 @@
 #include "testing/tester.h"
 #include "testing/test_suite.h" // it includes the test_case.h
 #include "includes/exception.h"
-//#include "utilities/logger.h"
 
 
 namespace Kratos
