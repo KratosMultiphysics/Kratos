@@ -4,11 +4,8 @@
 
 #if !defined(KRATOS_CONTINUUM_EXPLICIT_SOLVER_STRATEGY)
 #define  KRATOS_CONTINUUM_EXPLICIT_SOLVER_STRATEGY
-
 #include "custom_strategies/strategies/explicit_solver_strategy.h"
-#include "DEM_definitions.h"
 #include "custom_elements/spheric_continuum_particle.h"
-
 #define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
 
 namespace Kratos {
