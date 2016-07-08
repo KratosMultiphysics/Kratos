@@ -123,7 +123,7 @@ KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
 catch(ExceptionType& e)                                        \
 {                                                              \
 Block                                                          \
-KRATOS_ERROR;                             \
+KRATOS_ERROR << e.what();                             \
 }
 
 #define KRATOS_THROW_ERROR(ExceptionType, ErrorMessage, MoreInfo)    \
