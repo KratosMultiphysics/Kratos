@@ -33,26 +33,24 @@ Model = {ProjectParameters["general_data"]["model_part_name"].GetString() : main
 
 ########################## IMPORTING THE SOLVER ########################## 
 
+# Thermal Solver
+thermal_solver_module = __import__("dam_eulerian_convection_diffusion_solver")
+thermal_solver = thermal_solver_module.CreateSolver(main_model_part, ProjectParameters)
+
+# Mechanical Solver
 solver_module = __import__("dam_new_mechanical_solver")  # Up to now is the unique one
 solver = solver_module.CreateSolver(main_model_part, ProjectParameters)
 
-
-thermal_solver_module = __import__("new_eulerian_convection_diffusion_solver")
-thermal_solver = solver_module.CreateSolver(main_model_part, ProjectParameters)
-
-
 # Add variables
-solver.AddVariables()
 thermal_solver.AddVariables()
-
+solver.AddVariables()
 
 # Import the model part
 solver.ImportModelPart()
 
-
 # Add degrees of freedom
-solver.AddDofs()
 thermal_solver.AddDofs()
+solver.AddDofs()
 
 ########################## IMPORTING NECESSARY MODULES ########################## 
 
@@ -83,7 +81,6 @@ tol = delta_time*1.0e-10
 echo_level = ProjectParameters["mechanical_settings"]["echo_level"].GetInt()
 buffer_size = ProjectParameters["mechanical_settings"]["buffer_size"].GetInt()
 
-
 # Time Units Converter
 if(time_converter=="Months"):               # Factor to pass from months to seconds
     time_unit_converter = 2592000.0
@@ -93,7 +90,6 @@ elif(time_converter=="Hours"):              # Factor to pass from hours to secon
     time_unit_converter = 3600.0
 else:                                       # No changes
     time_unit_converter = 1.0               
-
 
 #Thermal Parameters
 if (type_of_problem == "Thermo-Mechanical"):
@@ -108,14 +104,14 @@ if (type_of_problem == "Thermo-Mechanical"):
         main_model_part.ProcessInfo[REFERENCE_TEMPERATURE] = 10.0 # TODO: Here we have to solve the thermal problem until arrives a stationary    
     
     #Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
-    thermal_scheme = ProjectParameters["diffusion_settings"]["temporal_scheme"]
+    thermal_scheme = ProjectParameters["diffusion_settings"]["temporal_scheme"].GetString()
+    
     if(thermal_scheme=="Backward-Euler"):
         main_model_part.ProcessInfo[THETA] = 1.0
     elif(thermal_scheme=="Crank-Nicolson"):   
         main_model_part.ProcessInfo[THETA] = 0.5
     else:
         main_model_part.ProcessInfo[THETA] = 0.0
-    
     
 # Update time variables
 delta_time = delta_time * time_unit_converter
@@ -241,14 +237,11 @@ while( (current_time+tol) < ending_time ):
 # Finalizing output files
 gid_output.ExecuteFinalize()
 
-
 for process in list_of_processes:
     process.ExecuteFinalize()
-    
-    
+        
 # Finalizing strategy
 solver.Clear()
-
 
 # Time control
 print (ctime())
