@@ -125,6 +125,16 @@ namespace Kratos
         return *this;
 	}
 
+	std::ostream& operator << (std::ostream& rOStream, const Exception& rThis)
+	{
+		rThis.PrintInfo(rOStream);
+		rOStream << std::endl;
+		rThis.PrintData(rOStream);
+
+		return rOStream;
+	}
+
+
 }  // namespace Kratos.
 
 
