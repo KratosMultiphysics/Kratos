@@ -2,24 +2,16 @@
 // Author: Miquel Santasusana msantasusana@cimne.upc.edu
 //
 
-
 #if !defined(KRATOS_ITERATIVE_SOLVER_STRATEGY)
 #define  KRATOS_ITERATIVE_SOLVER_STRATEGY
-
 #include "custom_strategies/strategies/explicit_solver_strategy.h"
-#include "DEM_definitions.h"
-
 #define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
-
 
 namespace Kratos
 {
-
   class IterativeSolverStrategy: public ExplicitSolverStrategy
   {
       public:
-      ///@name Type Definitions
-      ///@{
 
       typedef ExplicitSolverStrategy  BaseType;
 
@@ -28,12 +20,9 @@ namespace Kratos
       typedef typename BaseType::ElementsIterator                           ElementsIterator;
       typedef typename BaseType::ConditionsArrayType                        ConditionsArrayType;
 
-      /*  Revisar charlie */
-
       typedef WeakPointerVector<Element> ParticleWeakVectorType;
       typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
       typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
-
 
       /// Pointer definition of ExplicitSolverStrategy
       KRATOS_CLASS_POINTER_DEFINITION(IterativeSolverStrategy);
