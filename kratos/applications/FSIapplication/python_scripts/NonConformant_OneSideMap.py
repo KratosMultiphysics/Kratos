@@ -17,7 +17,7 @@ def AddVariables(fluid_model_part, structure_model_part):
     fluid_model_part.AddNodalSolutionStepVariable(SCALAR_PROJECTED)
     fluid_model_part.AddNodalSolutionStepVariable(VECTOR_PROJECTED)
 
-    structure_model_part.AddNodalSolutionStepVariable(NODAL_MAUX)
+    structure_model_part.AddNodalSolutionStepVariable(NODAL_MAUX)  # Stores Nodal Area
     structure_model_part.AddNodalSolutionStepVariable(PRESSURE)
     structure_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     structure_model_part.AddNodalSolutionStepVariable(AUX)
@@ -27,7 +27,7 @@ def AddVariables(fluid_model_part, structure_model_part):
     structure_model_part.AddNodalSolutionStepVariable(SCALAR_PROJECTED)
     structure_model_part.AddNodalSolutionStepVariable(VECTOR_PROJECTED)
 
-    print("Variables for the mesh solver added correctly")
+    print("Mapper variables added correctly.")
 
 
 class NonConformant_OneSideMap:
@@ -56,7 +56,7 @@ class NonConformant_OneSideMap:
         if (domain_size_fl != domain_size_fl):
           raise ValueError("Domain sizes from two model parts are not compatible")
 
-        print("Identifying fluid interface")
+        print("Identifying fluid interface...")
         if (domain_size_fl == 3):
           #self.Preprocess.GenerateTriangle3NInterfacePart(fluid_model_part, self.fl_interface, "Condition3D")
           self.Preprocess.GenerateTriangleInterfacePart(fluid_model_part, self.fl_interface)
@@ -64,26 +64,26 @@ class NonConformant_OneSideMap:
           #self.Preprocess.GenerateLine2NInterfacePart(fluid_model_part, self.fl_interface, "Condition2D2N")
           self.Preprocess.GenerateLineInterfacePart(fluid_model_part, self.fl_interface)
 
-        print("Identifying structure interface")
+        print("Identifying structure interface...")
         if (domain_size_fl == 3):
           #self.Preprocess.GenerateTriangle3NInterfacePart(structure_model_part, self.str_interface, "Condition3D")
           self.Preprocess.GenerateTriangleInterfacePart(structure_model_part, self.str_interface)
         else:
           #self.Preprocess.GenerateLine2NInterfacePart(structure_model_part, self.str_interface, "Condition2D2N")
           self.Preprocess.GenerateLineInterfacePart(structure_model_part, self.str_interface)
-        print("Interface identified")
-
+        print("Fluid and structure interfaces identified.")
+        
+        # Interface mappers construction
         self.FluidToStructureMapper = AdvancedNMPointsMapper\
             (self.fl_interface, self.str_interface)
         self.StructureToFluidMapper = AdvancedNMPointsMapper\
             (self.str_interface, self.fl_interface)
-        print("Interface Mappers created")
+        print("Interface Mappers created.")
 
+        # Neighbour search
         (self.FluidToStructureMapper).FindNeighbours(search_radius_factor)
         (self.StructureToFluidMapper).FindNeighbours(search_radius_factor)
-
-        print((self.FluidToStructureMapper))
-        print((self.StructureToFluidMapper))
+        print("Neighbours search finished.")
 
     def RecomputeTransferPairs(self, search_radius_factor):
         (self.FluidToStructureMapper).FindNeighbours(search_radius_factor)
