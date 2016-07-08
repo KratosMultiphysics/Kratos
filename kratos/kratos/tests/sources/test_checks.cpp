@@ -41,6 +41,8 @@ namespace Kratos {
 
 			KRATOS_CHECK_GREATER(2., 1.);
 			KRATOS_CHECK_GREATER_EQUAL(2., 2.);
+
+			KRATOS_CHECK_STRING_CONTAIN_SUB_STRING(std::string("Test"), "es");
 		}
 	}
 }  // namespace Kratos.
