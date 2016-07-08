@@ -7,18 +7,26 @@ CheckForPreviousImport()
 
 
 def AddVariables(model_part):
+    
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
+    
+    print("Mesh solver variables added correctly.")
 
 
 def AddDofs(model_part):
+    
     for node in model_part.Nodes:
-        # adding dofs
+
         node.AddDof(DISPLACEMENT_X)
         node.AddDof(DISPLACEMENT_Y)
         node.AddDof(DISPLACEMENT_Z)
 
-    print("variables for the mesh solver added correctly")
+    print("Mesh solver DOFs added correctly.")
+    
+    
+def CreateMeshSolver(model_part, reform_dof_at_every_step):
+    return MeshSolverLaplacian(model_part,reform_dof_at_every_step)
 
 
 class MeshSolverLaplacian:
