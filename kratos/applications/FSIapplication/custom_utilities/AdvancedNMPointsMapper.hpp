@@ -101,6 +101,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
+    
     /**
      * Returns the area of the condtition
      * @return The area of the condition
@@ -190,33 +191,22 @@ public:
             double & Dist,
             const int dimension
             );
-
+            
     /**
-     * It does a very primitive projection in 2D (assuming X-Y plane)
-     * @param Point_to_project: The coordinates of the point to be projected
-     * @param Coor1/2: The coordinates of the points that define the line where project
-     * @return Point_projected: The coordiantes of the point projected in the line
+     * Project a point over a plane
+     * @param PointInPlane: A point in the plane
+     * @param PointToBeProjected: The point to be projected
+     * @param Normal: The normal of the plane
+     * @return PointProjected: The point pojected over the plane
+     * @return dist: The distance between the point and the plane
      */
 
-    void ProjectLine2D(
-            const array_1d<double,3> & Point_to_project,
-            const array_1d<double,3> & Coor1,
-            const array_1d<double,3> & Coor2,
-            array_1d<double,3> & Point_projected
-            );
-
-    /**
-     * It does a very primitive interpolation beetween the nodes conforming the line
-     * @param Point_to_project: The coordinates of the point to be interpolated
-     * @param Coor1/2: The coordinates of the points that define the line where project
-     * @return ShapeFunction: The shape function
-     */
-
-    void LineShapeFunction2D(
-            const array_1d<double,3> & Point_to_inter,
-            const array_1d<double,3> & Coor1,
-            const array_1d<double,3> & Coor2,
-            array_1d<double,2> & ShapeFunction
+    void ProjectPointToPlane(
+            const Point<3> & PointInPlane,
+            const Point<3> & PointToBeProjected,
+            Point<3> & PointProjected,
+            double & dist,
+            const array_1d<double,3> & Normal
             );
 
     /**
