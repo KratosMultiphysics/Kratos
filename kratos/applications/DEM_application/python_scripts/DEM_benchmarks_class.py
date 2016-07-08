@@ -175,21 +175,21 @@ def initialize_time_parameters(benchmark_number):
         output_time_step                = 1e-7
         number_of_points_in_the_graphic = 1
 
-    elif benchmark_number==26:          # Tensile with indentation
+    elif benchmark_number==26:          #
 
         final_time                      = 0.1
         dt                              = 1e-5
         output_time_step                = 1e-4
         number_of_points_in_the_graphic = 1
 
-    elif benchmark_number==27:          # Shear
+    elif benchmark_number==27:          #
 
-        final_time                      = 8e-5
-        dt                              = 1e-7
-        output_time_step                = 1e-7
+        final_time                      = 0.05
+        dt                              = 5e-7
+        output_time_step                = 5e-4
         number_of_points_in_the_graphic = 1
 
-    else: #benchmark_number==28:        # Shear + radius expansion
+    else: #benchmark_number==28:        #
 
         final_time                      = 1e-3
         dt                              = 1e-6
@@ -212,10 +212,10 @@ class Benchmark1:
             else:
                 node.SetSolutionStepValue(VELOCITY_X,  self.initial_normal_vel)
 
-    def generate_graph_points(self, modelpart, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):
         pass
 
-    def get_final_data(self, modelpart):
+    def get_final_data(self, modelpart, rigid_face_model_part):
         pass
 
     def ApplyNodalRotation(self, time, dt, modelpart):
@@ -280,10 +280,10 @@ class Benchmark2:
             node.SetSolutionStepValue(VELOCITY_Z, self.initial_normal_vel)
 
 
-    def generate_graph_points(self, modelpart, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):
         pass
 
-    def get_final_data(self, modelpart):
+    def get_final_data(self, modelpart, rigid_face_model_part):
         pass
 
     def ApplyNodalRotation(self, time, dt, modelpart):
@@ -357,13 +357,13 @@ class Benchmark3:
             self.initial_normal_vel = node.GetSolutionStepValue(VELOCITY_Z)
             modelpart.GetProperties()[1][COEFFICIENT_OF_RESTITUTION] = number
 
-    def generate_graph_points(self, modelpart, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):
         pass
 
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def get_final_data(self, modelpart):
+    def get_final_data(self, modelpart, rigid_face_model_part):
 
         for node in modelpart.Nodes:
             final_vel = node.GetSolutionStepValue(VELOCITY_Z)
@@ -475,13 +475,13 @@ class Benchmark4:
             node.SetSolutionStepValue(VELOCITY_Y, self.initial_tangential_vel)
             node.SetSolutionStepValue(VELOCITY_Z, initial_normal_vel)
 
-    def generate_graph_points(self, modelpart, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):
         pass
 
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def get_final_data(self, modelpart):
+    def get_final_data(self, modelpart, rigid_face_model_part):
 
         for node in modelpart.Nodes:
 
@@ -670,13 +670,13 @@ class Benchmark5:
             node.SetSolutionStepValue(VELOCITY_Y, self.initial_tangential_vel)
             node.SetSolutionStepValue(VELOCITY_Z, self.initial_normal_vel)
 
-    def generate_graph_points(self, modelpart, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):
         pass
 
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def get_final_data(self, modelpart):
+    def get_final_data(self, modelpart, rigid_face_model_part):
 
         mu = 0.3
 
@@ -829,10 +829,10 @@ class Benchmark6:
             node.SetSolutionStepValue(VELOCITY_Z, self.initial_normal_vel)
             node.SetSolutionStepValue(ANGULAR_VELOCITY_Y, initial_angular_vel)
 
-    def generate_graph_points(self, modelpart, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):
         pass
 
-    def get_final_data(self, modelpart):
+    def get_final_data(self, modelpart, rigid_face_model_part):
 
         mu = 0.4
         restitution_coeff = 0.5
@@ -993,13 +993,13 @@ class Benchmark7:
                 node.SetSolutionStepValue(VELOCITY_X, -initial_normal_vel)
                 node.SetSolutionStepValue(ANGULAR_VELOCITY_Y, -self.initial_angular_vel)
 
-    def generate_graph_points(self, modelpart, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):
         pass
 
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def get_final_data(self, modelpart):
+    def get_final_data(self, modelpart, rigid_face_model_part):
 
         for node in modelpart.Nodes:
             if node.Id == 1:
@@ -1147,10 +1147,10 @@ class Benchmark8:
                 node.SetSolutionStepValue(VELOCITY_X, self.initial_normal_vel)
                 node.SetSolutionStepValue(ANGULAR_VELOCITY_Y, initial_angular_vel)
 
-    def generate_graph_points(self, modelpart, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):
         pass
 
-    def get_final_data(self, modelpart):
+    def get_final_data(self, modelpart, rigid_face_model_part):
 
         mu = 0.4
         restitution_coeff = 0.5
@@ -1313,10 +1313,10 @@ class Benchmark9:
                 node.SetSolutionStepValue(VELOCITY_Z,  self.initial_normal_vel)
                 modelpart.GetProperties()[1][COEFFICIENT_OF_RESTITUTION] = number
 
-    def generate_graph_points(self, modelpart, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):
         pass
 
-    def get_final_data(self, modelpart):
+    def get_final_data(self, modelpart, rigid_face_model_part):
 
         for node in modelpart.Nodes:
             if node.Id == 1:
@@ -1428,7 +1428,7 @@ class Benchmark10: ########## LINEAR THORNTON
         self.lines_DEM = []
         self.degrees = 0
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):   # Change this function name from 'set_initial_data' to 'set_initial_data'
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):   # Change this function name from 'set_initial_data' to 'set_initial_data'
 
         if iteration == 1:
             self.degrees = 1
@@ -1465,7 +1465,7 @@ class Benchmark10: ########## LINEAR THORNTON
 
         print(self.coeff_of_restitution)
 
-    def get_final_data(self, modelpart):
+    def get_final_data(self, modelpart, rigid_face_model_part):
 
         mu = 0.1
 
@@ -1660,7 +1660,7 @@ class Benchmark10: ########## LINEAR THORNTON
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):
         pass
 
 
@@ -1683,7 +1683,7 @@ class Benchmark11: ########## HERTZIAN THORNTON
         self.lines_DEM = []
         self.degrees = 0
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):   # Change this function name from 'set_initial_data' to 'set_initial_data'
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):   # Change this function name from 'set_initial_data' to 'set_initial_data'
 
         if iteration == 1:
             self.degrees = 1
@@ -1722,7 +1722,7 @@ class Benchmark11: ########## HERTZIAN THORNTON
 
         print(self.coeff_of_restitution)
 
-    def get_final_data(self, modelpart):
+    def get_final_data(self, modelpart, rigid_face_model_part):
 
         mu = 0.1
 
@@ -1917,7 +1917,7 @@ class Benchmark11: ########## HERTZIAN THORNTON
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):
         pass
 
 
@@ -1932,14 +1932,14 @@ class Benchmark12: ########## ROLLING FRICTION
         self.angular_velocity_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.angular_velocity_list_outfile_name, 'w')
 
-    def get_final_data(self, modelpart):                 #FINALIZATION STEP
+    def get_final_data(self, modelpart, rigid_face_model_part):                 #FINALIZATION STEP
         
         self.simulation_graph.close()
 
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
 
         self.graph_frequency        = int(output_time_step/dt)
         if self.graph_frequency < 1:
@@ -2023,14 +2023,14 @@ class Benchmark13: ########## DEM-FEM Facet
         self.velocity_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.velocity_list_outfile_name, 'w')
 
-    def get_final_data(self, modelpart):                 #FINALIZATION STEP
+    def get_final_data(self, modelpart, rigid_face_model_part):                 #FINALIZATION STEP
         
         self.simulation_graph.close()
 
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
 
         self.graph_frequency        = int(output_time_step/dt)
         if self.graph_frequency < 1:
@@ -2109,14 +2109,14 @@ class Benchmark14: ########## DEM-FEM Edge
         self.velocity_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.velocity_list_outfile_name, 'w')
 
-    def get_final_data(self, modelpart):                 #FINALIZATION STEP
+    def get_final_data(self, modelpart, rigid_face_model_part):                 #FINALIZATION STEP
         
         self.simulation_graph.close()
 
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
 
         self.graph_frequency        = int(output_time_step/dt)
         if self.graph_frequency < 1:
@@ -2193,14 +2193,14 @@ class Benchmark15: ########## DEM-FEM Vertex
         self.velocity_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.velocity_list_outfile_name, 'w')
 
-    def get_final_data(self, modelpart):                 #FINALIZATION STEP
+    def get_final_data(self, modelpart, rigid_face_model_part):                 #FINALIZATION STEP
         
         self.simulation_graph.close()
 
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
 
         self.graph_frequency        = int(output_time_step/dt)
         if self.graph_frequency < 1:
@@ -2278,14 +2278,14 @@ class Benchmark16: ########## DEM-FEM Grid
         self.velocity_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.velocity_list_outfile_name, 'w')
 
-    def get_final_data(self, modelpart):                 #FINALIZATION STEP
+    def get_final_data(self, modelpart, rigid_face_model_part):                 #FINALIZATION STEP
         
         self.simulation_graph.close()
 
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
 
         self.graph_frequency        = int(output_time_step/dt)
         if self.graph_frequency < 1:
@@ -2396,14 +2396,14 @@ class Benchmark17: ########## DEM-FEM Rolling
         self.error_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.error_list_outfile_name, 'w')
 
-    def get_final_data(self, modelpart):                 #FINALIZATION STEP
+    def get_final_data(self, modelpart, rigid_face_model_part):                 #FINALIZATION STEP
         
         self.simulation_graph.close()
 
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
 
         self.graph_frequency        = int(output_time_step/dt)
         if self.graph_frequency < 1:
@@ -2481,18 +2481,18 @@ class Benchmark20:
         #self.graph_frequency = int(output_time_step/dt)  # def __init__(self, output_time_step, dt):
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):  #INITIALIZATION STEP
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):  #INITIALIZATION STEP
 
         self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
 
-    def get_final_data(self, modelpart):                 #FINALIZATION STEP
+    def get_final_data(self, modelpart, rigid_face_model_part):                 #FINALIZATION STEP
         self.simulation_graph.close()
 
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
 
         self.graph_frequency        = int(output_time_step/dt)
         if self.graph_frequency < 1:
@@ -2596,18 +2596,18 @@ class Benchmark21:
         #self.graph_frequency = int(output_time_step/dt)  # def __init__(self, output_time_step, dt):
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):  #INITIALIZATION STEP
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):  #INITIALIZATION STEP
 
         self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
 
-    def get_final_data(self, modelpart):        #FINALIZATION STEP
+    def get_final_data(self, modelpart, rigid_face_model_part):        #FINALIZATION STEP
         self.simulation_graph.close()
 
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
 
         self.graph_frequency        = int(output_time_step/dt)
         if self.graph_frequency < 1:
@@ -2713,18 +2713,18 @@ class Benchmark22:
         #self.graph_frequency = int(output_time_step/dt)  # def __init__(self, output_time_step, dt):
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):  #INITIALIZATION STEP
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):  #INITIALIZATION STEP
 
         self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
 
-    def get_final_data(self, modelpart):        #FINALIZATION STEP
+    def get_final_data(self, modelpart, rigid_face_model_part):        #FINALIZATION STEP
         self.simulation_graph.close()
 
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
 
         self.graph_frequency        = int(output_time_step/dt)
         if self.graph_frequency < 1:
@@ -2827,18 +2827,18 @@ class Benchmark23:
         #self.graph_frequency = int(output_time_step/dt)  # def __init__(self, output_time_step, dt):
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):  #INITIALIZATION STEP
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):  #INITIALIZATION STEP
 
         self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
 
-    def get_final_data(self, modelpart):        #FINALIZATION STEP
+    def get_final_data(self, modelpart, rigid_face_model_part):        #FINALIZATION STEP
         self.simulation_graph.close()
 
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, time, output_time_step, dt):     #MAIN LOOP STEP
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):     #MAIN LOOP STEP
 
         self.graph_frequency        = int(output_time_step/dt)
         if self.graph_frequency < 1:
@@ -2940,12 +2940,12 @@ class Benchmark24:
         self.restitution_numbers_vector_list_outfile = None
         self.balls_graph_counter = 1
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):
 
         self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
 
-    def get_final_data(self, modelpart):
+    def get_final_data(self, modelpart, rigid_face_model_part):
         self.simulation_graph.close()
 
     def cross_product(self, a, b):
@@ -3013,7 +3013,7 @@ class Benchmark24:
                 angular_velocity = [0]*3
                 node.SetSolutionStepValue(ANGULAR_VELOCITY, angular_velocity)
 
-    def generate_graph_points(self, modelpart, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):
 
         self.graph_frequency = int(output_time_step/dt)
 
@@ -3093,12 +3093,12 @@ class Benchmark25:
         self.restitution_numbers_vector_list_outfile = None
         self.balls_graph_counter = 1
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):
 
         self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
 
-    def get_final_data(self, modelpart):
+    def get_final_data(self, modelpart, rigid_face_model_part):
         self.simulation_graph.close()
 
     def cross_product(self, a, b):
@@ -3170,7 +3170,7 @@ class Benchmark25:
                 angular_velocity = [0]*3
                 node.SetSolutionStepValue(ANGULAR_VELOCITY, angular_velocity)
 
-    def generate_graph_points(self, modelpart, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):
 
         self.graph_frequency = int(output_time_step/dt)
 
@@ -3201,7 +3201,7 @@ class Benchmark25:
 
         if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
             error_file.write(" OK!........ Test 25 SUCCESSFUL\n")
-            shutil.rmtree('benchmark27_Post_Files', ignore_errors = True)
+            shutil.rmtree('benchmark25_Post_Files', ignore_errors = True)
         else:
             error_file.write(" KO!........ Test 25 FAILED\n")
         error_file.close()
@@ -3251,18 +3251,18 @@ class Benchmark26:
         self.restitution_numbers_vector_list_outfile = None
         self.balls_graph_counter = 1
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):
 
         self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
 
-    def get_final_data(self, modelpart):
+    def get_final_data(self, modelpart, rigid_face_model_part):
         self.simulation_graph.close()
 
     def ApplyNodalRotation(self, time, dt, modelpart):
         pass
 
-    def generate_graph_points(self, modelpart, time, output_time_step, dt):
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):
 
         self.graph_frequency = int(output_time_step/dt)
 
@@ -3292,6 +3292,257 @@ class Benchmark26:
 
     def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
         pass
+
+
+
+
+
+
+
+
+class Benchmark27:
+
+    def __init__(self):
+        self.restitution_numbers_vector_list_outfile = None
+        self.balls_graph_counter = 1
+        self.rigid_graph_counter = 1
+
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):
+
+        self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.rigid_face_file = "benchmark" + str(sys.argv[1]) + '_rigid_graph.dat'
+        self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+        self.rigid_graph = open(self.rigid_face_file, 'w')
+
+    def get_final_data(self, modelpart, rigid_face_model_part):
+        self.simulation_graph.close()
+        self.rigid_graph.close()
+
+    def cross_product(self, a, b):
+        c = [a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2], a[0]*b[1] - a[1]*b[0]]
+        return c
+
+    def ApplyNodalRotation(self, time, dt, modelpart):
+
+        ang_vel = 20 * pi
+        angular_velocity = [0, 0, ang_vel]
+        rotation_matrix = [[cos(ang_vel * time), -1.0 * sin(ang_vel * time), 0], [sin(ang_vel * time), cos(ang_vel * time), 0], [0,0,1]]
+        time_dt = time - dt
+        rotation_matrix_minus_dt = [[cos(ang_vel * time_dt), -1.0 * sin(ang_vel * time_dt), 0], [sin(ang_vel * time_dt), cos(ang_vel * time_dt), 0], [0,0,1]] #
+        centroid = [-1.0, 0.0, 0.0]
+        relative_initial_node_coords, relative_node_coords, relative_node_coords_dt = [0]*3, [0]*3, [0]*3
+        sum, sum_dt = 0, 0
+
+        for node in modelpart.Nodes:
+            if node.Id == 999999:
+                for j in range(3):
+                    rot_mat = rotation_matrix[j]
+                    rot_mat_dt = rotation_matrix_minus_dt[j]
+                    relative_initial_node_coords[0] = node.X0 - centroid[0]
+                    relative_initial_node_coords[1] = node.Y0 - centroid[1]
+                    relative_initial_node_coords[2] = node.Z0 - centroid[2]
+                    for i in range(3):
+                        sum += rot_mat[i] * relative_initial_node_coords[i]
+                        sum_dt += rot_mat_dt[i] * relative_initial_node_coords[i]
+                    relative_node_coords[j], sum, relative_node_coords_dt[j], sum_dt = sum, 0, sum_dt, 0
+                node.X = relative_node_coords[0] + centroid[0]
+                node.Y = relative_node_coords[1] + centroid[1]
+                node.Z = relative_node_coords[2] + centroid[2]
+
+                displacement = [0]*3
+                displacement[0] = node.X - node.X0
+                displacement[1] = node.Y - node.Y0
+                displacement[2] = node.Z - node.Z0
+                node.SetSolutionStepValue(DISPLACEMENT, displacement)
+
+                velocity = [0]*3
+                velocity = self.cross_product(angular_velocity, relative_node_coords)
+                node.SetSolutionStepValue(VELOCITY, velocity)
+
+                angular_velocity = [0]*3
+                node.SetSolutionStepValue(ANGULAR_VELOCITY, angular_velocity)
+
+                delta_displacement = [0]*3
+                delta_displacement[0] = relative_node_coords[0] - relative_node_coords_dt[0]
+                delta_displacement[1] = relative_node_coords[1] - relative_node_coords_dt[1]
+                delta_displacement[2] = relative_node_coords[2] - relative_node_coords_dt[2]
+                node.SetSolutionStepValue(DELTA_DISPLACEMENT, delta_displacement)
+
+                particle_rotation_angle = [0]*3
+                particle_rotation_angle[0] = angular_velocity[0] * time
+                particle_rotation_angle[1] = angular_velocity[1] * time
+                particle_rotation_angle[2] = angular_velocity[2] * time
+                node.SetSolutionStepValue(PARTICLE_ROTATION_ANGLE, particle_rotation_angle)
+
+                delta_rotation = [0]*3
+                delta_rotation[0] = angular_velocity[0] * dt
+                delta_rotation[1] = angular_velocity[1] * dt
+                delta_rotation[2] = angular_velocity[2] * dt
+                node.SetSolutionStepValue(DELTA_ROTATION, delta_rotation)
+
+                if time > 3.8e-5:
+                    radius = 1.0001
+                    node.SetSolutionStepValue(RADIUS, radius)
+            if node.Id == 140:
+                angular_velocity = [0]*3
+                node.SetSolutionStepValue(ANGULAR_VELOCITY, angular_velocity)
+
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):
+
+        #self.graph_frequency = int(5e-7/dt)   #output_time_step/dt
+        self.graph_frequency = int(output_time_step/1/dt)   #1 veces mas grf que bin
+        #print (self.graph_frequency)
+        #print (self.balls_graph_counter)
+        if self.graph_frequency < 1:
+           self.graph_frequency = 1
+
+        if (self.balls_graph_counter == self.graph_frequency):
+            #print (self.balls_graph_counter)
+            self.balls_graph_counter = 0
+            self.total_force_x = 0.0
+            self.total_force_y = 0.0
+
+            for node in modelpart.Nodes:
+                if node.Id == 29:
+                   force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
+                   force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+                   self.total_force_x += force_node_x
+                   self.total_force_y += force_node_y
+
+            self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
+            self.simulation_graph.flush()
+        self.balls_graph_counter += 1
+
+        for mesh_number in range(1, rigid_face_model_part.NumberOfMeshes()):
+            if(rigid_face_model_part.GetMesh(mesh_number)[TOP]):
+
+              self.top_mesh_nodes = rigid_face_model_part.GetMesh(mesh_number).Nodes
+
+            if (self.rigid_graph_counter == self.graph_frequency):
+                self.rigid_graph_counter = 0
+                self.total_force_top = 0.0
+
+                for node in self.top_mesh_nodes:
+
+                  force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+                  self.total_force_top += force_node_y
+
+                self.rigid_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_top).rjust(13)+"\n")
+                self.rigid_graph.flush()
+            self.rigid_graph_counter += 1
+
+
+
+
+
+
+
+
+
+    def print_results(self, number_of_points_in_the_graphic, dt=0):
+        error1, error2, error3 = self.compute_errors(self.restitution_numbers_vector_list_outfile_name)
+        error4, error5, error6 = self.compute_rigid_errors(self.rigid_face_file)
+
+        error_filename = 'errors.txt'
+        error_file = open(error_filename, 'a')
+        error_file.write("DEM Benchmark 27:")
+
+        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+            error_file.write(" OK!........ Test 27 SUCCESSFUL (spheres)\n")
+            shutil.rmtree('benchmark27_Post_Files', ignore_errors = True)
+        else:
+            error_file.write(" KO!........ Test 27 FAILED (spheres)\n")
+        error_file.write("DEM Benchmark 27:")
+        if (error4 < 10.0 and error5 < 10.0 and error6 < 10.0):
+            error_file.write(" OK!........ Test 27 SUCCESSFUL (finite elements)\n")
+        else:
+            error_file.write(" KO!........ Test 27 FAILED (finite elements)\n")
+        error_file.close()
+
+
+
+
+    def compute_errors(self, restitution_numbers_vector_list_outfile_name):
+        lines_analytics = lines_DEM = list(range(0, 1000));
+        analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
+        i = 0
+        with open('paper_data/reference_graph_benchmark' + '27' + '.dat') as inf:
+            for line in inf:
+                if i in lines_analytics:
+                    parts = line.split()
+                    analytics_data.append(float(parts[2]))
+                i+=1
+        i = 0
+        with open(restitution_numbers_vector_list_outfile_name) as inf:
+            for line in inf:
+                if i in lines_DEM:
+                    parts = line.split()
+                    DEM_data.append(float(parts[2]))   #segona component del vector ()
+                i+=1
+        final_restitution_numbers_error = 0
+
+        for j in analytics_data:
+            summation_of_analytics_data+=abs(j)
+
+        for i, j in zip(DEM_data, analytics_data):
+            final_restitution_numbers_error+=fabs(i-j)
+        final_restitution_numbers_error/=summation_of_analytics_data
+
+        print("Error in simulation =", 100*final_restitution_numbers_error,"%")
+
+        error1 = 100*final_restitution_numbers_error
+
+        error2 = error3 = 0
+
+        return error1, error2, error3
+
+
+    def compute_rigid_errors(self, rigid_face_file):
+        lines_analytics = lines_FEM = list(range(0, 1000));
+        analytics_data = []; FEM_data = []; summation_of_analytics_data = 0
+        i = 0
+        with open('paper_data/reference_graph_benchmark_rigid' + '27' + '.dat') as inf:
+            for line in inf:
+                if i in lines_analytics:
+                    parts = line.split()
+                    analytics_data.append(float(parts[1]))
+                i+=1
+        i = 0
+        with open(rigid_face_file) as inf:
+            for line in inf:
+                if i in lines_FEM:
+                    parts = line.split()
+                    FEM_data.append(float(parts[1]))   #segona component del vector ()
+                i+=1
+        final_error = 0
+
+        for j in analytics_data:
+            summation_of_analytics_data+=abs(j)
+
+        for i, j in zip(FEM_data, analytics_data):
+            final_error+=fabs(i-j)
+        final_error/=summation_of_analytics_data
+
+        print("Error in simulation =", 100*final_error,"%")
+
+        error4 = 100*final_error
+
+        error5 = error6 = 0
+
+        return error4, error5, error6
+
+    def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
+        pass
+
+
+
+
+
+
+
+
+
+
 
 
 def delete_archives():
