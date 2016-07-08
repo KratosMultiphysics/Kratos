@@ -21,7 +21,7 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/variable_data.h"
-#include "utilities/logger.h"
+#include "input_output/logger.h"
 
 
 namespace Kratos
