@@ -111,7 +111,7 @@ public:
              // TODO: IMPLEMENT IN 3D
          }
          
-//         contact_container.print();
+        contact_container.print();
     }
 
     /***********************************************************************************/
@@ -268,44 +268,40 @@ public:
                  ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, Geom1[index].FastGetSolutionStepValue(NORMAL, 0));
              }  
              
-             array_1d<double, 3> projected_local_coor;
-             const bool in_out = Geom2.IsInside(ProjectedPoint, projected_local_coor);
+             array_1d<double, 3> projected_local_coor_1;
+             const bool in_out_1 = Geom2.IsInside(ProjectedPoint, projected_local_coor_1);
              
-//              // TODO: Do the loop over all the master surfaces!!!!
-//              KRATOS_WATCH(Geom2[0].Coordinates());
-//              KRATOS_WATCH(Geom2[1].Coordinates());
-//              KRATOS_WATCH(Geom1[index].Coordinates());
-//              KRATOS_WATCH(ProjectedPoint);
-// //              KRATOS_WATCH(contact_normal1);
-//              KRATOS_WATCH(Geom1[index].FastGetSolutionStepValue(NORMAL, 0));
-//              KRATOS_WATCH(in_out);
-//              
-             if (in_out == true)
+             if (in_out_1 == true)
              {
-                 array_1d<double, 3> local_coor;
-                 local_coor = Geom1.PointLocalCoordinates(local_coor, Geom1[index]);
-                 local_coordinates_slave[index]  = local_coor[0];
-                 local_coordinates_master[index] = projected_local_coor[0];
+                 array_1d<double, 3> local_coor_1;
+                 local_coor_1 = Geom1.PointLocalCoordinates(local_coor_1, Geom1[index]);
+                 local_coordinates_slave[index]  = local_coor_1[0];
+                 local_coordinates_master[index] = projected_local_coor_1[0];
              }
-        }
-        
-        // Domain 2
-        for (unsigned int index = 0; index < Geom2.PointsNumber(); index++)
-        {
-             double aux_dist;
-             ProjectDirection(Geom1,  Geom2[index], ProjectedPoint, aux_dist, - contact_normal1);
-//              Project(Geom1.Center(),  Geom2[index], ProjectedPoint, aux_dist, contact_normal2);
-             
-             array_1d<double, 3> projected_local_coor;
-             const bool in_out = Geom1.IsInside(ProjectedPoint, projected_local_coor);
-             
-             if (in_out == true)
+             else
              {
-                 array_1d<double, 3> local_coor;
-                 local_coor = Geom2.PointLocalCoordinates(local_coor, Geom2[index]);
-                 local_coordinates_master[index] = local_coor[0];
-                 local_coordinates_slave[index]  = projected_local_coor[0];
-             }
+                 // Domain 2
+                 for (unsigned int index = 0; index < Geom2.PointsNumber(); index++)
+                 {
+                     ProjectDirection(Geom1,  Geom2[index], ProjectedPoint, aux_dist, - contact_normal1);
+//                      Project(Geom1.Center(),  Geom2[index], ProjectedPoint, aux_dist, contact_normal2);
+                    
+                     array_1d<double, 3> projected_local_coor_2;
+                     const bool in_out_2 = Geom1.IsInside(ProjectedPoint, projected_local_coor_2);
+                    
+                     if (in_out_2 == true)
+                     {
+                         array_1d<double, 3> local_coor_2;
+                         local_coor_2 = Geom2.PointLocalCoordinates(local_coor_2, Geom2[index]);
+                         local_coordinates_master[index] = local_coor_2[0];
+                         local_coordinates_slave[index]  = projected_local_coor_2[0];
+                     }
+                     else
+                     {
+                         std::cout << " PROJECTION WASN'T POSSIBLE" << std::endl;
+                     }
+                }
+            }
         }
     }
     
