@@ -34,11 +34,6 @@
 
 
 // External includes
-// #include <boost/serialization/base_object.hpp>
-// #include <boost/serialization/utility.hpp>
-// #include <boost/serialization/list.hpp>
-
-
 
 // Project includes
 #include "includes/define.h"
@@ -968,19 +963,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    //       friend class boost::serialization::access;
-
-    //       template<class TArchive>
-    // 	  void serialize(TArchive & ThisArchive, const unsigned int ThisVersion)
-    // 	  {
-    // /* 	      ThisArchive & mName & mBufferSize & mCurrentIndex; */
-    // 	  }
-
-    //       void RemoveSolutionStepData(IndexType SolutionStepIndex, MeshType& ThisMesh)
-    // 	{
-    // 	  for(NodeIterator i_node = ThisMesh.NodesBegin() ; i_node != ThisMesh.NodesEnd() ; ++i_node)
-    // 	    i_node->RemoveSolutionStepNodalData(SolutionStepIndex);
-    // 	}
 
     ///@}
     ///@name Private  Access
