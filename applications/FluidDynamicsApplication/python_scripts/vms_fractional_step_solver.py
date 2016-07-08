@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # -*- coding: utf-8 -*-
 # importing the Kratos Library
 from KratosMultiphysics import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
