@@ -40,7 +40,7 @@
 #include "includes/table.h"
 #include "containers/pointer_vector_map.h"
 #include "containers/pointer_hash_map_set.h"
-#include "utilities/logger.h"
+#include "input_output/logger.h"
 #include "includes/model_part.h"
 #include "includes/kratos_flags.h"
 
