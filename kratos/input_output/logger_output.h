@@ -139,7 +139,7 @@ namespace Kratos
 				std::stringstream buffer;
 				buffer << rValue;
 
-				mrStream << buffer;
+				mrStream << buffer.str();
 
 				return *this;
 			}
