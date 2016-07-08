@@ -539,10 +539,10 @@ const unsigned int MortarContact2DCondition::CalculateConditionSize( )
         
     // Master and slave displacement nodes
     condition_size += this->CalculateTotalNumberOfMasterNodes( );
-    condition_size += mThisMasterElements.size( ) * GetGeometry().PointsNumber( );
         
     for ( unsigned int i_master_elem = 0; i_master_elem < mThisMasterElements.size( ); ++i_master_elem )
     {
+        condition_size += mThisMasterElements[i_master_elem]->GetGeometry( ).PointsNumber( );
         condition_size += CalculateNumberOfActiveNodesInContactPair( i_master_elem );
     }
   
@@ -1076,8 +1076,6 @@ void MortarContact2DCondition::CalculateAndAddMortarContactOperator(
     const Matrix& D = ThisMortarConditionMatrices.D;
     const Matrix& M = ThisMortarConditionMatrices.M;
     
-//     ThisMortarConditionMatrices.print();
-    
     // Calculate the blocks of B_co and B_co_transpose
     unsigned int i = 0, j = 0;
     for ( unsigned int i_active = 0; i_active < num_active_nodes; ++i_active )
@@ -1088,7 +1086,7 @@ void MortarContact2DCondition::CalculateAndAddMortarContactOperator(
         {
             // Fill the -M and -M' parts
             j = j_master * dimension;
-            double minus_M_ij = -M( i_active * dimension, j_master * dimension );
+            double minus_M_ij = - M( i_active * dimension, j_master * dimension );
             rLeftHandSideMatrix( i,     j     ) = minus_M_ij;
             rLeftHandSideMatrix( i + 1, j + 1 ) = minus_M_ij;
                                                   
