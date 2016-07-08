@@ -3383,7 +3383,7 @@ class Benchmark27:
                 if time > 3.8e-5:
                     radius = 1.0001
                     node.SetSolutionStepValue(RADIUS, radius)
-            if node.Id == 140:
+            if node.Id == 99999:
                 angular_velocity = [0]*3
                 node.SetSolutionStepValue(ANGULAR_VELOCITY, angular_velocity)
 
@@ -3401,15 +3401,46 @@ class Benchmark27:
             self.balls_graph_counter = 0
             self.total_force_x = 0.0
             self.total_force_y = 0.0
+            self.total_force_z = 0.0
+            self.total_force_sum = 0.0
+
+            self.total_angular_x = 0.0
+            self.total_angular_y = 0.0
+            self.total_angular_z = 0.0
+            self.total_angular_sum = 0.0
+
+            self.total_delta_x = 0.0
+            self.total_delta_y = 0.0
+            self.total_delta_z = 0.0
+            self.total_delta_sum = 0.0
 
             for node in modelpart.Nodes:
                 if node.Id == 29:
                    force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
                    force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+                   force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES)[2]
                    self.total_force_x += force_node_x
                    self.total_force_y += force_node_y
+                   self.total_force_z += force_node_z
 
-            self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
+                   angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
+                   angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
+                   angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
+                   self.total_angular_x += angular_node_x
+                   self.total_angular_y += angular_node_y
+                   self.total_angular_z += angular_node_z
+
+                   delta_node_x = node.GetSolutionStepValue(DELTA_DISPLACEMENT)[0]
+                   delta_node_y = node.GetSolutionStepValue(DELTA_DISPLACEMENT)[1]
+                   delta_node_z = node.GetSolutionStepValue(DELTA_DISPLACEMENT)[2]
+                   self.total_delta_x += delta_node_x
+                   self.total_delta_y += delta_node_y
+                   self.total_delta_z += delta_node_z
+
+            self.total_force_sum = self.total_force_x + self.total_force_y + self.total_force_z
+            self.total_angular_sum = self.total_angular_x + self.total_angular_y + self.total_angular_z
+            self.total_delta_sum = self.total_delta_x + self.total_delta_y + self.total_delta_z
+            self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_sum).rjust(13)+" "+str("%.6g"%self.total_angular_sum).rjust(13)+" "+str("%.6g"%self.total_delta_sum).rjust(13)+"\n")
             self.simulation_graph.flush()
         self.balls_graph_counter += 1
 
@@ -3429,7 +3460,7 @@ class Benchmark27:
 
                 self.rigid_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_top).rjust(13)+"\n")
                 self.rigid_graph.flush()
-            self.rigid_graph_counter += 1
+        self.rigid_graph_counter += 1
 
 
 
@@ -3463,53 +3494,110 @@ class Benchmark27:
 
 
     def compute_errors(self, restitution_numbers_vector_list_outfile_name):
-        lines_analytics = lines_DEM = list(range(0, 1000));
+        reference_data = lines_DEM = list(range(0, 1000));
         analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
         i = 0
-        with open('paper_data/reference_graph_benchmark' + '27' + '.dat') as inf:
-            for line in inf:
-                if i in lines_analytics:
+        with open('paper_data/reference_graph_benchmark' + '27' + '.dat') as reference:
+            for line in reference:
+                if i in reference_data:
                     parts = line.split()
-                    analytics_data.append(float(parts[2]))
+                    analytics_data.append(float(parts[1]))
                 i+=1
         i = 0
-        with open(restitution_numbers_vector_list_outfile_name) as inf:
-            for line in inf:
+        with open(restitution_numbers_vector_list_outfile_name) as current_data:
+            for line in current_data:
                 if i in lines_DEM:
                     parts = line.split()
-                    DEM_data.append(float(parts[2]))   #segona component del vector ()
+                    DEM_data.append(float(parts[1]))   #segona component del vector ()
                 i+=1
-        final_restitution_numbers_error = 0
+        dem_error1 = 0
 
         for j in analytics_data:
             summation_of_analytics_data+=abs(j)
 
         for i, j in zip(DEM_data, analytics_data):
-            final_restitution_numbers_error+=fabs(i-j)
-        final_restitution_numbers_error/=summation_of_analytics_data
+            dem_error1+=fabs(i-j)
+        dem_error1/=summation_of_analytics_data
 
-        print("Error in simulation =", 100*final_restitution_numbers_error,"%")
+        print("Error in total force at the reference particle =", 100*dem_error1,"%")
 
-        error1 = 100*final_restitution_numbers_error
 
-        error2 = error3 = 0
+
+
+
+        i = 0
+        with open('paper_data/reference_graph_benchmark' + '27' + '.dat') as reference:
+            for line in reference:
+                if i in reference_data:
+                    parts = line.split()
+                    analytics_data.append(float(parts[2]))
+                i+=1
+        i = 0
+        with open(restitution_numbers_vector_list_outfile_name) as current_data:
+            for line in current_data:
+                if i in lines_DEM:
+                    parts = line.split()
+                    DEM_data.append(float(parts[2]))   #segona component del vector ()
+                i+=1
+        dem_error2 = 0
+
+        for j in analytics_data:
+            summation_of_analytics_data+=abs(j)
+
+        for i, j in zip(DEM_data, analytics_data):
+            dem_error2+=fabs(i-j)
+        dem_error2/=summation_of_analytics_data
+
+        print("Error in angular velocity at the reference particle =", 100*dem_error2,"%")
+
+
+        i = 0
+        with open('paper_data/reference_graph_benchmark' + '27' + '.dat') as reference:
+            for line in reference:
+                if i in reference_data:
+                    parts = line.split()
+                    analytics_data.append(float(parts[3]))
+                i+=1
+        i = 0
+        with open(restitution_numbers_vector_list_outfile_name) as current_data:
+            for line in current_data:
+                if i in lines_DEM:
+                    parts = line.split()
+                    DEM_data.append(float(parts[3]))   #segona component del vector ()
+                i+=1
+        dem_error3 = 0
+
+        for j in analytics_data:
+            summation_of_analytics_data+=abs(j)
+
+        for i, j in zip(DEM_data, analytics_data):
+            dem_error3+=fabs(i-j)
+        dem_error3/=summation_of_analytics_data
+
+        print("Error in delta displacement at the reference particle =", 100*dem_error3,"%")
+
+
+
+        error1 = 100*dem_error1
+        error2 = 100*dem_error2
+        error3 = 100*dem_error3
 
         return error1, error2, error3
 
 
     def compute_rigid_errors(self, rigid_face_file):
-        lines_analytics = lines_FEM = list(range(0, 1000));
+        reference_data = lines_FEM = list(range(0, 1000));
         analytics_data = []; FEM_data = []; summation_of_analytics_data = 0
         i = 0
-        with open('paper_data/reference_graph_benchmark_rigid' + '27' + '.dat') as inf:
-            for line in inf:
-                if i in lines_analytics:
+        with open('paper_data/reference_graph_benchmark_rigid' + '27' + '.dat') as reference:
+            for line in reference:
+                if i in reference_data:
                     parts = line.split()
                     analytics_data.append(float(parts[1]))
                 i+=1
         i = 0
-        with open(rigid_face_file) as inf:
-            for line in inf:
+        with open(rigid_face_file) as current_data:
+            for line in current_data:
                 if i in lines_FEM:
                     parts = line.split()
                     FEM_data.append(float(parts[1]))   #segona component del vector ()
@@ -3523,7 +3611,7 @@ class Benchmark27:
             final_error+=fabs(i-j)
         final_error/=summation_of_analytics_data
 
-        print("Error in simulation =", 100*final_error,"%")
+        print("Error in FEM axial force =", 100*final_error,"%")
 
         error4 = 100*final_error
 
