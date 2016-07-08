@@ -25,7 +25,7 @@
 namespace Kratos {
 	namespace Testing {
 
-		KRATOS_TEST_CASE(CodeLocation)
+		KRATOS_TEST_CASE_IN_SUITE(CodeLocation, KratosCoreFastSuite)
 		{
 			CodeLocation location1(R"string([C:\kratos\kratos\sources\model_part_io.cpp)string",
 				R"string(iterators::indirect_iterator< std::_Vector_iterator< std::_Vector_val<struct std::_Simple_types< shared_ptr< Element> > > >, struct iterators::use_default, struct iterators::use_default, struct iterators::use_default, struct iterators::use_default>  ModelPartIO::FindKey< PointerVectorSet< Element, IndexedObject, struct std::less<unsigned __int64>, struct std::equal_to<unsigned __int64>, shared_ptr< Element>, std::vector< shared_ptr< Element>, std::allocator< shared_ptr< Element> > > >, unsigned __int64>(PointerVectorSet< Element, IndexedObject, struct std::less<unsigned __int64>, struct std::equal_to<unsigned __int64>, shared_ptr< Element>, std::vector< shared_ptr< Element>, std::allocator< shared_ptr< Element> > > > &, unsigned __int64, std::basic_string<char, struct std::char_traits<char>, std::allocator<char> >))string", 3552);
@@ -48,7 +48,7 @@ double  ResidualBasedLinearStrategy< UblasSpace<double, ublas::compressed_matrix
 			//std::cout << "size: " << location2.CleanFunctionName().size() << std::endl;
 		}
 
-		KRATOS_TEST_CASE(CodeLocationTemplateParameterReduction)
+		KRATOS_TEST_CASE_IN_SUITE(CodeLocationTemplateParameterReduction, KratosCoreFastSuite)
 		{
 			CodeLocation location1("", "ublas::vector<double, ublas::unbounded_array<double> >", 0);
 			KRATOS_CHECK_C_STRING_EQUAL(location1.CleanFunctionName().c_str(), "Vector");
