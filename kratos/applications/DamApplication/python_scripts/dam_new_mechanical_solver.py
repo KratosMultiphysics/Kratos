@@ -32,17 +32,21 @@ class DamMechanicalSolver:
                 "model_part_name" : "MainModelPart",
                 "domain_size"     : 2,
                 "NumberofThreads" : 1,
-                "type_of_problem" : "Mechanical",
+                "type_of_problem" : "Thermo-Mechanical",
                 "time_scale"      : "Seconds",
                 "evolution_type"  : "Exact",
                 "delta_time"      : 1,
                 "ending_time"     : 10
             },
             "diffusion_settings"                  : {
-                "unknown_variable"       : "TEMPERATURE",
-                "difussion_variable"     : "CONDUCTIVITY",
-                "specific_heat_variable" : "SPECIFIC_HEAT",
-                "density_variable"       : "DENSITY"
+                "variables"             : {
+                    "unknown_variable"       : "KratosMultiphysics.TEMPERATURE",
+                    "difussion_variable"     : "KratosMultiphysics.CONDUCTIVITY",
+                    "specific_heat_variable" : "KratosMultiphysics.SPECIFIC_HEAT",
+                    "density_variable"       : "KratosMultiphysics.DENSITY"
+                },
+                "temporal_scheme"       : "Backward-Euler",
+                "reference_temperature" : "Reservoir_Information"
             },
             "mechanical_settings"                 : {
                 "solver_type"                     : "dam_new_mechanical_solver",
@@ -60,6 +64,7 @@ class DamMechanicalSolver:
                 "residual_absolute_tolerance"     : 1e-9,
                 "max_iteration"                   : 10,
                 "echo_level"                      : 0,
+                "buffer_size"                     : 2,
                 "compute_reactions"               : true,
                 "reform_step_dofs"                : false,
                 "move_mesh_flag"                  : true,
@@ -95,7 +100,7 @@ class DamMechanicalSolver:
         self.linear_solver = self.LinearSolver(self.settings["mechanical_settings"]["type_of_solver"].GetString(),
                                     self.settings["mechanical_settings"]["solver_class"].GetString())
     
-        print("Construction of DamSolver finished")
+        print("Construction of Dam Mechanical Solver finished")
     
     def GetMinimumBufferSize(self):
         return 2;
@@ -113,11 +118,10 @@ class DamMechanicalSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.LINE_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.SURFACE_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
-        #self.main_model_part.AddNodalSolutionStepVariable(IMPOSED_DISPLACEMENT)
         #add volume acceleration
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
 
-        print("Variables correctly added")
+        print("Mechanical variables correctly added")
 
     def ImportModelPart(self):
         
@@ -158,7 +162,7 @@ class DamMechanicalSolver:
             node.AddDof(KratosMultiphysics.DISPLACEMENT_Y,KratosMultiphysics.REACTION_Y)
             node.AddDof(KratosMultiphysics.DISPLACEMENT_Z,KratosMultiphysics.REACTION_Z)
 
-        print("DOFs correctly added")
+        print(" Mechanical DOFs correctly added")
 
 
     def Initialize(self):
@@ -181,8 +185,6 @@ class DamMechanicalSolver:
                                             convergence_criterion,
                                             builder_and_solver,
                                             self.settings["mechanical_settings"]["strategy_type"].GetString()) 
-        print("HOLA")                                    
-        print(self.solver)
         
         # Set echo_level
         self.solver.SetEchoLevel(self.settings["mechanical_settings"]["echo_level"].GetInt())
@@ -258,13 +260,10 @@ class DamMechanicalSolver:
         
     def SchemeCreator(self, solution_type):
         if(solution_type == "Quasi-Static"):
-            damp_factor_m = 0.00
-            dynamic_factor = 0
-            scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m, dynamic_factor)
+            scheme =  KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         elif(solution_type == "Dynamic"):
             damp_factor_m = -0.01
-            dynamic_factor = 1
-            scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m, dynamic_factor)
+            scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
             
         return scheme
          
