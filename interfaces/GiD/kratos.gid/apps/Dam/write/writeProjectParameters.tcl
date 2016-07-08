@@ -26,10 +26,12 @@ proc Dam::write::getParametersDict { } {
     ### Solver Data
     ### Diffusion settings
     set diffusionSolverSettingsDict [dict create]
-    dict set diffusionSolverSettingsDict unknown_variable "TEMPERATURE"
-    dict set diffusionSolverSettingsDict difussion_variable "CONDUCTIVITY"
-    dict set diffusionSolverSettingsDict specific_heat_variable "SPECIFIC_HEAT"
-    dict set diffusionSolverSettingsDict density_variable "DENSITY"
+    set variablesDict [dict create] 
+    dict set variablesDict unknown_variable "KratosMultiphysics.TEMPERATURE"
+    dict set variablesDict diffusion_variable "KratosMultiphysics.CONDUCTIVITY"
+    dict set variablesDict specific_heat_variable "KratosMultiphysics.SPECIFIC_HEAT"
+    dict set variablesDict density_variable "KratosMultiphysics.DENSITY"
+    dict set diffusionSolverSettingsDict variables $variablesDict
     set damTypeofProblem [write::getValue DamTypeofProblem]
     if {$damTypeofProblem eq "Thermo-Mechanical"} {
         set thermal_sol_strat [write::getValue DamSolStratTherm]
