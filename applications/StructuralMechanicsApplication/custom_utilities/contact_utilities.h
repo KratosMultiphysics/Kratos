@@ -177,7 +177,7 @@ public:
             dist = std::sqrt((PointProjected.Coordinate(1) - PointDestiny.Coordinate(1)) * (PointProjected.Coordinate(1) - PointDestiny.Coordinate(1))
                            + (PointProjected.Coordinate(2) - PointDestiny.Coordinate(2)) * (PointProjected.Coordinate(2) - PointDestiny.Coordinate(2)));
         }
-        else if (dimension == 3)
+        else
         {            
             array_1d<double,3> Normal;
             
@@ -197,10 +197,6 @@ public:
                 dist = 0.0;
                 std::cout << " The line and the plane are coplanar, something wrong happen " << std::endl;
             }
-        }
-        else
-        {
-            KRATOS_THROW_ERROR( std::logic_error, " Not implemented dimension: ", dimension );
         }
     }
     
@@ -256,16 +252,16 @@ public:
         Point<3> ProjectedPoint;
         
         // Domain 1
-        for (unsigned int index = 0; index < Geom1.PointsNumber(); index++)
+        for (unsigned int index_1 = 0; index_1 < Geom1.PointsNumber(); index_1++)
         {
              double aux_dist;
-             if (norm_2(Geom1[index].FastGetSolutionStepValue(NORMAL, 0)) < 1.0e-12)
+             if (norm_2(Geom1[index_1].FastGetSolutionStepValue(NORMAL, 0)) < 1.0e-12)
              {
-                 ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, contact_normal1);
+                 ProjectDirection(Geom2, Geom1[index_1], ProjectedPoint, aux_dist, contact_normal1);
              }
              else
              {
-                 ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, Geom1[index].FastGetSolutionStepValue(NORMAL, 0));
+                 ProjectDirection(Geom2, Geom1[index_1], ProjectedPoint, aux_dist, Geom1[index_1].FastGetSolutionStepValue(NORMAL, 0));
              }  
              
              array_1d<double, 3> projected_local_coor_1;
@@ -274,17 +270,24 @@ public:
              if (in_out_1 == true)
              {
                  array_1d<double, 3> local_coor_1;
-                 local_coor_1 = Geom1.PointLocalCoordinates(local_coor_1, Geom1[index]);
-                 local_coordinates_slave[index]  = local_coor_1[0];
-                 local_coordinates_master[index] = projected_local_coor_1[0];
+                 local_coor_1 = Geom1.PointLocalCoordinates(local_coor_1, Geom1[index_1]);
+                 local_coordinates_slave[index_1]  = local_coor_1[0];
+                 local_coordinates_master[index_1] = projected_local_coor_1[0];
              }
              else
              {
+//                  KRATOS_WATCH(Geom2[0].Coordinates());
+//                  KRATOS_WATCH(Geom2[1].Coordinates());
+//                  KRATOS_WATCH(Geom1[index_1].Coordinates());
+//                  KRATOS_WATCH(ProjectedPoint);
+//                  KRATOS_WATCH(contact_normal1);
+//                  KRATOS_WATCH(Geom1[index_1].FastGetSolutionStepValue(NORMAL, 0));
+                 
                  // Domain 2
-                 for (unsigned int index = 0; index < Geom2.PointsNumber(); index++)
+                 for (unsigned int index_2 = 0; index_2 < Geom2.PointsNumber(); index_2++)
                  {
-                     ProjectDirection(Geom1,  Geom2[index], ProjectedPoint, aux_dist, - contact_normal1);
-//                      Project(Geom1.Center(),  Geom2[index], ProjectedPoint, aux_dist, contact_normal2);
+                     ProjectDirection(Geom1,  Geom2[index_2], ProjectedPoint, aux_dist, - contact_normal1);
+//                      Project(Geom1.Center(),  Geom2[index_2], ProjectedPoint, aux_dist, contact_normal2);
                     
                      array_1d<double, 3> projected_local_coor_2;
                      const bool in_out_2 = Geom1.IsInside(ProjectedPoint, projected_local_coor_2);
@@ -292,12 +295,18 @@ public:
                      if (in_out_2 == true)
                      {
                          array_1d<double, 3> local_coor_2;
-                         local_coor_2 = Geom2.PointLocalCoordinates(local_coor_2, Geom2[index]);
-                         local_coordinates_master[index] = local_coor_2[0];
-                         local_coordinates_slave[index]  = projected_local_coor_2[0];
+                         local_coor_2 = Geom2.PointLocalCoordinates(local_coor_2, Geom2[index_2]);
+                         local_coordinates_master[index_2] = local_coor_2[0];
+                         local_coordinates_slave[index_2]  = projected_local_coor_2[0];
                      }
                      else
                      {
+//                          KRATOS_WATCH(Geom1[0].Coordinates());
+//                          KRATOS_WATCH(Geom1[1].Coordinates());
+//                          KRATOS_WATCH(Geom2[index_2].Coordinates());
+//                          KRATOS_WATCH(ProjectedPoint);
+//                          KRATOS_WATCH(contact_normal1);
+                 
                          std::cout << " PROJECTION WASN'T POSSIBLE" << std::endl;
                      }
                 }
