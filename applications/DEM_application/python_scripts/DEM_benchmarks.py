@@ -21,7 +21,7 @@ benchmark_number = int(sys.argv[1])
 listDISCONT = list(range(1,12))
 listROLLFR  = list(range(12,13))
 listDEMFEM  = list(range(13,18))
-listCONT    = list(range(20,26))
+listCONT    = list(range(20,27))
 
 if benchmark_number in listDISCONT:
     import DEM_explicit_solver_var as DEM_parameters
@@ -30,7 +30,9 @@ elif benchmark_number in listROLLFR:
 elif benchmark_number in listDEMFEM:
     import DEM_explicit_solver_var_DEMFEM as DEM_parameters
 elif benchmark_number in listCONT:
-    import DEM_explicit_solver_var2 as DEM_parameters
+    import DEM_explicit_solver_var_CONT as DEM_parameters
+elif benchmark_number == 27:
+    import DEM_explicit_solver_var_UCS as DEM_parameters
 else:
     KRATOSprint('Benchmark number does not exist')
 
@@ -157,7 +159,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
 
         ###################################################### CHUNG, OOI BENCHMARKS
 
-        benchmark.set_initial_data(spheres_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration)
+        benchmark.set_initial_data(spheres_model_part, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration)
 
         ###################################################### CHUNG, OOI BENCHMARKS
 
@@ -296,10 +298,10 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
             else:
               KRATOSprint("Activate Contact Mesh for ModelData information")
 
-        if (DEM_parameters.Dempack):
+        #if (DEM_parameters.Dempack):
         #    if(mpi.rank == 0):
-            materialTest.PrintChart();
-            materialTest.PrepareDataForGraph()
+        materialTest.PrintChart();
+        materialTest.PrepareDataForGraph()
 
         ##############################################################################
         #                                                                            #
@@ -382,7 +384,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
             #### GENERAL FORCE GRAPHS ############################
             #DEMFEMProcedures.MeasureForces()
             DEMFEMProcedures.PrintGraph(time)
-            benchmark.generate_graph_points(spheres_model_part, time, output_time_step, dt)
+            benchmark.generate_graph_points(spheres_model_part, rigid_face_model_part, time, output_time_step, dt)
 
             #### GiD IO ##########################################
             time_to_print = time - time_old_print
@@ -425,7 +427,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         #
         ###################################################### CHUNG, OOI BENCHMARKS
 
-        benchmark.get_final_data(spheres_model_part)
+        benchmark.get_final_data(spheres_model_part, rigid_face_model_part)
 
         ###################################################### CHUNG, OOI BENCHMARKS
         #
