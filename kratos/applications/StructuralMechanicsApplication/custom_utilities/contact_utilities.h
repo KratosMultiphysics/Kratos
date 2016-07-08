@@ -174,8 +174,7 @@ public:
                 PointProjected.Coordinate(3) =  0.0;
             }
             
-            dist = std::sqrt((PointProjected.Coordinate(1) - PointDestiny.Coordinate(1)) * (PointProjected.Coordinate(1) - PointDestiny.Coordinate(1))
-                           + (PointProjected.Coordinate(2) - PointDestiny.Coordinate(2)) * (PointProjected.Coordinate(2) - PointDestiny.Coordinate(2)));
+            dist = DistancePoints(PointProjected, PointDestiny);
         }
         else
         {            
@@ -231,6 +230,27 @@ public:
     /***********************************************************************************/
     
     /**
+     * calculates the distance between nodes
+     * @param PointOrigin: A point in the plane
+     * @param PointDestiny: The point to be projected
+     */
+    
+    static inline double DistancePoints(
+            const Point<3>& PointOrigin,
+            const Point<3>& PointDestiny
+            )
+    {
+        double dist = std::sqrt((PointOrigin.Coordinate(1) - PointDestiny.Coordinate(1)) * (PointOrigin.Coordinate(1) - PointDestiny.Coordinate(1))
+                              + (PointOrigin.Coordinate(2) - PointDestiny.Coordinate(2)) * (PointOrigin.Coordinate(2) - PointDestiny.Coordinate(2))
+                              + (PointOrigin.Coordinate(3) - PointDestiny.Coordinate(3)) * (PointOrigin.Coordinate(3) - PointDestiny.Coordinate(3)));
+        
+        return dist;
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    /**
      * This function calculates the local coordinates of the projected line for the mortar condition
      * @param Geom1 and Geom2: The geometries of the slave and master respectively
      * @param contact_normal1 and contact_normal2: The normals of the slave and master respectively
@@ -263,51 +283,38 @@ public:
              {
                  ProjectDirection(Geom2, Geom1[index_1], ProjectedPoint, aux_dist, Geom1[index_1].FastGetSolutionStepValue(NORMAL, 0));
              }  
-             
+
+
              array_1d<double, 3> projected_local_coor_1;
              const bool in_out_1 = Geom2.IsInside(ProjectedPoint, projected_local_coor_1);
-             
+             array_1d<double, 3> local_coor_1 = Geom1.PointLocalCoordinates(local_coor_1, Geom1[index_1]);
+                              
              if (in_out_1 == true)
              {
-                 array_1d<double, 3> local_coor_1;
-                 local_coor_1 = Geom1.PointLocalCoordinates(local_coor_1, Geom1[index_1]);
                  local_coordinates_slave[index_1]  = local_coor_1[0];
                  local_coordinates_master[index_1] = projected_local_coor_1[0];
              }
              else
              {
-//                  KRATOS_WATCH(Geom2[0].Coordinates());
-//                  KRATOS_WATCH(Geom2[1].Coordinates());
-//                  KRATOS_WATCH(Geom1[index_1].Coordinates());
-//                  KRATOS_WATCH(ProjectedPoint);
-//                  KRATOS_WATCH(contact_normal1);
-//                  KRATOS_WATCH(Geom1[index_1].FastGetSolutionStepValue(NORMAL, 0));
-                 
                  // Domain 2
+                 double proj_dist = 2.0;
                  for (unsigned int index_2 = 0; index_2 < Geom2.PointsNumber(); index_2++)
                  {
                      ProjectDirection(Geom1,  Geom2[index_2], ProjectedPoint, aux_dist, - contact_normal1);
-//                      Project(Geom1.Center(),  Geom2[index_2], ProjectedPoint, aux_dist, contact_normal2);
-                    
+
                      array_1d<double, 3> projected_local_coor_2;
                      const bool in_out_2 = Geom1.IsInside(ProjectedPoint, projected_local_coor_2);
-                    
+
                      if (in_out_2 == true)
                      {
-                         array_1d<double, 3> local_coor_2;
-                         local_coor_2 = Geom2.PointLocalCoordinates(local_coor_2, Geom2[index_2]);
-                         local_coordinates_master[index_2] = local_coor_2[0];
-                         local_coordinates_slave[index_2]  = projected_local_coor_2[0];
-                     }
-                     else
-                     {
-//                          KRATOS_WATCH(Geom1[0].Coordinates());
-//                          KRATOS_WATCH(Geom1[1].Coordinates());
-//                          KRATOS_WATCH(Geom2[index_2].Coordinates());
-//                          KRATOS_WATCH(ProjectedPoint);
-//                          KRATOS_WATCH(contact_normal1);
-                 
-                         std::cout << " PROJECTION WASN'T POSSIBLE" << std::endl;
+                         array_1d<double, 3> local_coor_2 = Geom2.PointLocalCoordinates(local_coor_2, Geom2[index_2]);
+                         
+                         if( std::abs( projected_local_coor_2[0] - local_coor_1[0] ) <= proj_dist )
+                         {
+                             proj_dist = std::abs(projected_local_coor_2[0] - local_coor_1[0] );
+                             local_coordinates_master[index_1] = local_coor_2[0];
+                             local_coordinates_slave[index_1]  = projected_local_coor_2[0];
+                         }
                      }
                 }
             }
