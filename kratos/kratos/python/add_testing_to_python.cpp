@@ -15,7 +15,7 @@
 #include <boost/python.hpp>
 
 // Project includes
-#include "testing/tester.h"
+#include "testing/testing.h"
 
 
 namespace Kratos
@@ -24,20 +24,54 @@ namespace Kratos
 namespace Python
 {
 
-void ListOfAllTestCases()
-{
+void ListOfAllTestCases() {
 	std::cout << Testing::Tester::GetInstance() << std::endl;
 }
 
-void  AddTestingToPython()
-{
+void  AddTestingToPython() {
 	using namespace boost::python;
 
+  scope tester_scope = class_<Testing::Tester, boost::shared_ptr<Testing::Tester>, boost::noncopyable>("Tester", no_init)
 
-	def("RunAllTestCases", &Testing::Tester::RunAllTestCases);
-	def("ListOfAllTestCases", ListOfAllTestCases);
+  // Properties
+  .def("SetVerbosity",&Testing::Tester::SetVerbosity)
+  .staticmethod("SetVerbosity")
+
+  // Run
+  .def("RunAllTestCases", &Testing::Tester::RunAllTestCases)
+  .staticmethod("RunAllTestCases")
+  .def("RunTestSuite", &Testing::Tester::RunTestSuite)
+  .staticmethod("RunTestSuite")
+  .def("RunTestCases", &Testing::Tester::RunTestCases)
+  .staticmethod("RunTestCases")
+
+  // Profile tests
+  .def("ProfileAllTestCases", &Testing::Tester::ProfileAllTestCases)
+  .staticmethod("ProfileAllTestCases")
+  .def("ProfileTestSuite", &Testing::Tester::ProfileTestSuite)
+  .staticmethod("ProfileTestSuite")
+
+  // Utils
+  .def("NumberOfFailedTestCases", &Testing::Tester::NumberOfFailedTestCases)
+  .staticmethod("NumberOfFailedTestCases")
+  .def("ResetAllTestCasesResults", &Testing::Tester::ResetAllTestCasesResults)
+  .staticmethod("ResetAllTestCasesResults")
+
+  // Info
+  .def("ListOfAllTestCases", ListOfAllTestCases)
+  .staticmethod("ListOfAllTestCases")
+
+  ;
+
+  enum_<Testing::Tester::Verbosity>("Verbosity")
+  // Enums
+  .value("QUITE", Testing::Tester::Verbosity::QUITE)
+  .value("PROGRESS", Testing::Tester::Verbosity::PROGRESS)
+  .value("TESTS_LIST", Testing::Tester::Verbosity::TESTS_LIST)
+  .value("FAILED_TESTS_OUTPUTS", Testing::Tester::Verbosity::FAILED_TESTS_OUTPUTS)
+  .value("TESTS_OUTPUTS", Testing::Tester::Verbosity::TESTS_OUTPUTS);
+
 }
 }  // namespace Python.
 
 } // Namespace Kratos
-
