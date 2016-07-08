@@ -25,7 +25,7 @@
 namespace Kratos {
 	namespace Testing {
 
-		KRATOS_TEST_CASE(TestSuite)
+		KRATOS_TEST_CASE_IN_SUITE(TestSuite, KratosCoreFastSuite)
 		{
 			Tester::CreateTestSuite("MyTestSuite");
 
