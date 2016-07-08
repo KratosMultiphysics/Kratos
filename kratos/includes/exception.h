@@ -174,6 +174,9 @@ namespace Kratos
   std::istream& operator >> (std::istream& rIStream,
   				    Exception& rThis);
 
+  /// output stream function
+  std::ostream& operator << (std::ostream& rOStream, const Exception& rThis);
+
 
   ///@}
 
