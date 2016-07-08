@@ -18,14 +18,14 @@
 
 
 // Project includes
-#include "testing/test_case.h"
-#include "includes/checks.h"
+#include "testing/testing.h"
+
 
 
 namespace Kratos {
 	namespace Testing {
 
-		KRATOS_TEST_CASE(Checks)
+		KRATOS_TEST_CASE_IN_SUITE(Checks, KratosCoreFastSuite)
 		{
 			KRATOS_CHECK(true);
 			KRATOS_CHECK_IS_FALSE(false);
@@ -42,8 +42,6 @@ namespace Kratos {
 			KRATOS_CHECK_GREATER(2., 1.);
 			KRATOS_CHECK_GREATER_EQUAL(2., 2.);
 		}
-
-
 	}
 }  // namespace Kratos.
 
