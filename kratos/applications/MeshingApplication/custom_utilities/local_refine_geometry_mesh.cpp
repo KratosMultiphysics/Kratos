@@ -68,6 +68,8 @@ namespace Kratos
             }
         }
 
+        this->ResetFatherNodes(mModelPart);
+
         /* Calling all the functions necessaries to refine the mesh */
         CSRRowMatrix(mModelPart, Coord);
         SearchEdgeToBeRefined(mModelPart, Coord);
@@ -87,6 +89,8 @@ namespace Kratos
                 it->Z() = it->Z0() + disp[2];
             }
         }
+
+        UpdateSubModelPartNodes(mModelPart);
 
         KRATOS_CATCH("");
     }
@@ -441,6 +445,48 @@ namespace Kratos
         std::vector<Vector> values;
         father_elem->GetValueOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
         child_elem->SetValueOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
+    }
+
+
+    void LocalRefineGeometryMesh::UpdateSubModelPartNodes(ModelPart &rModelPart)
+    {
+        for (ModelPart::SubModelPartIterator iSubModelPart = rModelPart.SubModelPartsBegin();
+                iSubModelPart != rModelPart.SubModelPartsEnd(); iSubModelPart++)
+        {
+            for (ModelPart::NodesContainerType::ptr_iterator iNode = rModelPart.Nodes().ptr_begin();
+                    iNode != rModelPart.Nodes().ptr_end(); iNode++)
+            {
+                WeakPointerVector< Node<3> > &rFatherNodes = (*iNode)->GetValue(FATHER_NODES);
+                unsigned int ParentCount = rFatherNodes.size();
+
+                if (ParentCount > 0)
+                {
+                    unsigned int ParentsInSubModelPart = 0;
+
+                    for ( WeakPointerVector< Node<3> >::iterator iParent = rFatherNodes.begin();
+                            iParent != rFatherNodes.end(); iParent++)
+                    {
+                        unsigned int ParentId = iParent->Id();
+                        ModelPart::NodeIterator iFound = iSubModelPart->Nodes().find( ParentId );
+                        if ( iFound != iSubModelPart->NodesEnd() )
+                            ParentsInSubModelPart++;
+                    }
+
+                    if ( ParentCount == ParentsInSubModelPart )
+                        iSubModelPart->AddNode( *iNode );
+                }
+            }
+        }
+    }
+
+
+    void LocalRefineGeometryMesh::ResetFatherNodes(ModelPart &rModelPart)
+    {
+        for (ModelPart::NodeIterator iNode = rModelPart.NodesBegin();
+                iNode != rModelPart.NodesEnd(); iNode++)
+        {
+            ( iNode->GetValue(FATHER_NODES) ).clear();
+        }
     }
 
 } // Namespace Kratos.

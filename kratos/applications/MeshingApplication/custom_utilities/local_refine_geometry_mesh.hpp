@@ -238,6 +238,10 @@ public:
             ProcessInfo& rCurrentProcessInfo
             );
 
+    virtual void UpdateSubModelPartNodes(ModelPart &rModelPart);
+
+    virtual void ResetFatherNodes(ModelPart &rModelPart);
+
 protected:
     ///@name Protected static Member Variables
     ///@{
