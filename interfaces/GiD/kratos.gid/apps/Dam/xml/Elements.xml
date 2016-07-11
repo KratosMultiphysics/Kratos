@@ -39,9 +39,7 @@
 
     <outputs>
       <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Total Strain" v="true" />
-      
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Total Stress" v="true" />
-      <parameter n="MECHANICAL_STRESS_TENSOR" pn="Mechanical Stress" v="False" />
       <parameter n="VON_MISES_STRESS" pn="Von Mises stress" v="true" />
     </outputs>
   </ElementItem>
@@ -83,9 +81,7 @@
 
     <outputs>
       <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Total Strain" v="true" />
-      
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Total Stress" v="true" />
-      <parameter n="MECHANICAL_STRESS_TENSOR" pn="Mechanical Stress" v="False" />
       <parameter n="VON_MISES_STRESS" pn="Von Mises stress" v="true" />
     </outputs>
   </ElementItem>
@@ -124,7 +120,6 @@
     <outputs>
       <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Total Strain" v="true" />
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Total Stress" v="true" />
-      <parameter n="MECHANICAL_STRESS_TENSOR" pn="Mechanical Stress" v="False" />
       <parameter n="VON_MISES_STRESS" pn="Von Mises stress" v="true" />
       <parameter n="DAMAGE_VARIABLE" pn="Damage" v="true" />
     </outputs>
@@ -163,9 +158,7 @@
 
     <outputs>
       <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Total Strain" v="true" />
-      
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Total Stress" v="true" />
-      <parameter n="MECHANICAL_STRESS_TENSOR" pn="Mechanical Stress" v="False" />
       <parameter n="VON_MISES_STRESS" pn="Von Mises stress" v="true" />
       <parameter n="DAMAGE_VARIABLE" pn="Damage" v="true" />
     </outputs>

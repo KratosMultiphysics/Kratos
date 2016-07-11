@@ -22,7 +22,9 @@
             <parameter n="THERMAL_EXPANSION" pn="Thermal Expansion" v="1e-05"/>
         </inputs>
         <outputs>
-            
+            <parameter n="THERMAL_STRESS_TENSOR" pn="Thermal Stress" v="False" />
+            <parameter n="MECHANICAL_STRESS_TENSOR" pn="Mechanical Stress" v="False" />
+			<parameter n="THERMAL_STRAIN_TENSOR" pn="Thermal Strain" v="False" />
         </outputs>
     </CLaw>
     <CLaw n="BilinearCohesive3DLaw" pn="Bilinear Cohesive 3D" ProductionReady="ProductionReady" Type="Bilinear3D" behaviour="Elastic" StrainSize="6" 
@@ -76,6 +78,7 @@
         </inputs>
         <outputs>
             <parameter n="THERMAL_STRESS_TENSOR" pn="Thermal Stress" v="False" />
+            <parameter n="MECHANICAL_STRESS_TENSOR" pn="Mechanical Stress" v="False" />
 			<parameter n="THERMAL_STRAIN_TENSOR" pn="Thermal Strain" v="False" />
         </outputs>
     </CLaw>
@@ -90,6 +93,7 @@
         </inputs>
         <outputs>
             <parameter n="THERMAL_STRESS_TENSOR" pn="Thermal Stress" v="False" />
+            <parameter n="MECHANICAL_STRESS_TENSOR" pn="Mechanical Stress" v="False" />
 			<parameter n="THERMAL_STRAIN_TENSOR" pn="Thermal Strain" v="False" />
         </outputs>
     </CLaw>
