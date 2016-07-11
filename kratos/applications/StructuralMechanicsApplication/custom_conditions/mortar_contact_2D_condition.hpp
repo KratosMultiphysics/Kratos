@@ -104,7 +104,7 @@ protected:
         * Only those two variables contain info on all GP
         * other variables contain info only on the currently-calculated GP
         */
-        GeometryType::JacobiansType j_Slave;
+        Matrix j_Slave;
 
         /********************************************************/
         /******************** STRUCT METHODS ********************/
@@ -147,7 +147,7 @@ protected:
             DetJSlave = 0.0;
 
             // Jacobians on all integration points
-            j_Slave.resize( rIntegrationPointNumber, false );
+            j_Slave.resize( rNumberOfSlaveNodes, 1, false );
         }
 
         /* Setters and getters for the master element */
