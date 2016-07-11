@@ -130,68 +130,25 @@ public:
             const array_1d<double,3>& Vector
             )
     {        
-        const unsigned int dimension = Geom.WorkingSpaceDimension();
-        
         const double tol = 1.0e-15;
         
-        if (dimension == 2)
+        array_1d<double,3> Normal;
+        
+        GeometryNormal(Normal, Geom);
+        
+        array_1d<double,3> vector_points = Geom.Center() - PointDestiny.Coordinates();
+
+        if (std::abs(inner_prod(Vector, Normal) ) > tol)
         {
-            const double aux1 =   Geom[0].Coordinate(1) - Geom[1].Coordinate(1);
-            const double a1  = (  Geom[0].Coordinate(2) - Geom[1].Coordinate(2))/aux1;
-            const double b1  = (- Geom[1].Coordinate(1) * Geom[0].Coordinate(2) + Geom[0].Coordinate(1) * Geom[1].Coordinate(2))/aux1;
-            
-//             std::cout << "a1: " << a1 << " b1: " << b1 << std::endl;
-            
-            if (std::abs(Vector[0]) > tol)
-            {
-                const double a2 = Vector[1] / Vector[0];
-                const double b2 = PointDestiny.Coordinate(2) - PointDestiny.Coordinate(1) * a2;
-                
-//                 std::cout << "a2: " << a2 << " b2: " << b2 << std::endl;
-                
-                const double aux2 = a2 - a1;
-                if (std::abs(aux2) > tol)
-                {
-                    PointProjected.Coordinate(1) = ( b1 - b2)/aux2;
-                    PointProjected.Coordinate(2) = ( a2 * b1 - a1 * b2)/aux2;
-                    PointProjected.Coordinate(3) = 0.0;
-                }
-                else
-                {
-                    PointProjected.Coordinates() = PointDestiny.Coordinates();
-                    dist = 0.0;
-                    std::cout << " The lines are parallel, something wrong happen " << std::endl;
-                }
-            }
-            else
-            {
-                PointProjected.Coordinate(1) = PointDestiny.Coordinate(1);
-                PointProjected.Coordinate(2) = PointDestiny.Coordinate(1) * a1 + b1;
-                PointProjected.Coordinate(3) =  0.0;
-            }
-            
-            dist = DistancePoints(PointProjected, PointDestiny);
+            dist = inner_prod(vector_points, Normal)/inner_prod(Vector, Normal); 
+
+            PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * dist;
         }
         else
-        {            
-            array_1d<double,3> Normal;
-            
-            GeometryNormal(Normal, Geom);
-            
-            array_1d<double,3> vector_points = Geom.Center() - PointDestiny.Coordinates();
-
-            if (std::abs(inner_prod(Vector, Normal) ) > tol)
-            {
-                dist = inner_prod(vector_points, Normal)/inner_prod(Vector, Normal); 
-
-                PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * dist;
-            }
-            else
-            {
-                PointProjected.Coordinates() = PointDestiny.Coordinates();
-                dist = 0.0;
-                std::cout << " The line and the plane are coplanar, something wrong happen " << std::endl;
-            }
+        {
+            PointProjected.Coordinates() = PointDestiny.Coordinates();
+            dist = 0.0;
+            std::cout << " The line and the plane are coplanar, something wrong happened " << std::endl;
         }
     }
     

@@ -756,18 +756,15 @@ void MortarContact2DCondition::CalculateKinematics(
     local_point.Coordinate(1) = xi_local_slave;
     
     /* RESIZE MATRICES AND VECTORS */
-    rVariables.Phi_LagrangeMultipliers.resize( number_of_slave_nodes );
-    rVariables.N_Master.resize( number_of_master_nodes );
-    rVariables.N_Slave.resize( number_of_slave_nodes );
+    rVariables.Phi_LagrangeMultipliers.resize( number_of_slave_nodes, false );
+    rVariables.N_Master.resize( number_of_master_nodes, false );
+    rVariables.N_Slave.resize( number_of_slave_nodes, false );
 
-//     rVariables.DN_De_Master.resize( number_of_master_nodes, master_nodes.LocalSpaceDimension( ) );
-//     rVariables.DN_De_Slave.resize( number_of_slave_nodes, slave_nodes.LocalSpaceDimension( ) );
-//     rVariables.DPhi_De_LagrangeMultipliers.resize( number_of_slave_nodes, slave_nodes.LocalSpaceDimension( ) );
+//     rVariables.DN_De_Master.resize( number_of_master_nodes, master_nodes.LocalSpaceDimension( ), false );
+//     rVariables.DN_De_Slave.resize( number_of_slave_nodes, slave_nodes.LocalSpaceDimension( ), false );
+//     rVariables.DPhi_De_LagrangeMultipliers.resize( number_of_slave_nodes, slave_nodes.LocalSpaceDimension( ), false );
     
     /*  POPULATE MATRICES AND VECTORS */
-    
-    // MASTER CONDITION
-    this->MasterShapeFunctionValue( rVariables, eta, local_point);
     
     // SLAVE CONDITION
     for( unsigned int iNode = 0; iNode < number_of_slave_nodes; ++iNode )
@@ -775,13 +772,16 @@ void MortarContact2DCondition::CalculateKinematics(
         rVariables.N_Slave[iNode] = slave_nodes.ShapeFunctionValue( iNode, local_point );
         rVariables.Phi_LagrangeMultipliers[iNode] = LagrangeMultiplierShapeFunctionValue( xi_local_slave, iNode );
     }
+    
+    // MASTER CONDITION
+    this->MasterShapeFunctionValue( rVariables, eta, local_point);
 
 //     rVariables.DN_De_Master = master_nodes.ShapeFunctionLocalGradient( rPointNumber, mThisIntegrationMethod );  // TODO FIXME evaluate at proper point
 //     rVariables.DN_De_Slave  =  slave_nodes.ShapeFunctionLocalGradient( rPointNumber, mThisIntegrationMethod );
 //     rVariables.DPhi_De_LagrangeMultipliers = LagrangeMultiplierShapeFunctionLocalGradient( rPointNumber );
 
+    /* CALCULATE JACOBIAN AND JACOBIAN DETERMINANT */
     slave_nodes.Jacobian( rVariables.j_Slave, local_point.Coordinates() );
-    
     rVariables.DetJSlave = (current_container.local_coordinates_slave[1] - current_container.local_coordinates_slave[0])/2.0 * rVariables.j_Slave(0, 0); // TODO: Check if it is correct
 
     KRATOS_CATCH( "" );
@@ -805,14 +805,35 @@ void MortarContact2DCondition::MasterShapeFunctionValue(
     rVariables.IntegrationPointNormalGap = 0.0;
     PointType projected_gp_global;
     GeometryType& master_seg = rVariables.GetMasterElement( );
-    const array_1d<double,3>& master_normal = cond->GetValue( NORMAL );
+    const array_1d<double,3>& normal = cond->GetValue( NORMAL );
+    
+//     const array_1d<double,3>& normal = this->GetValue( NORMAL );
+    
+//     array_1d<double,3> normal = ZeroVector(3);
+//     for( unsigned int iNode = 0; iNode < master_seg.PointsNumber(); ++iNode )
+//     {
+//         normal += rVariables.N_Slave[iNode] * master_seg[iNode].FastGetSolutionStepValue(NORMAL, 0); 
+//     }
+    
+//     array_1d<double,3> normal = ZeroVector(3);
+//     for( unsigned int iNode = 0; iNode < this->GetGeometry().PointsNumber(); ++iNode )
+//     {
+//         normal += rVariables.N_Slave[iNode] * this->GetGeometry()[iNode].FastGetSolutionStepValue(NORMAL, 0); 
+//     }
+    
+//     normal = cond->GetValue( NORMAL );
+    
+//     KRATOS_WATCH(normal);
+    
+//     normal = normal/norm_2(normal); // It is suppossed to be already unitary (just in case)
     
     // Doing calculations with eta
     GeometryType::CoordinatesArrayType slave_gp_global;
     this->GetGeometry( ).GlobalCoordinates( slave_gp_global, rSlaveIntegrationPoint );
     
-    ContactUtilities::ProjectDirection( master_seg, slave_gp_global, projected_gp_global, rVariables.IntegrationPointNormalGap, master_normal );
-
+    double aux_dist = 0.0;
+    ContactUtilities::ProjectDirection( master_seg, slave_gp_global, projected_gp_global, aux_dist, normal );
+    
     GeometryType::CoordinatesArrayType projected_gp_local;
     if( master_seg.IsInside( projected_gp_global.Coordinates( ), projected_gp_local ) )
     {
@@ -821,7 +842,7 @@ void MortarContact2DCondition::MasterShapeFunctionValue(
     
     // Doing calculations with local xi
     this->GetGeometry( ).GlobalCoordinates( slave_gp_global, local_point );
-    ContactUtilities::ProjectDirection( master_seg, slave_gp_global, projected_gp_global, rVariables.IntegrationPointNormalGap, master_normal );
+    ContactUtilities::ProjectDirection( master_seg, slave_gp_global, projected_gp_global, rVariables.IntegrationPointNormalGap, normal );
 }
 
 /***********************************************************************************/
@@ -1331,7 +1352,7 @@ void MortarContact2DCondition::CalculateOnIntegrationPoints(
     const unsigned int number_of_integration_pts = GetGeometry( ).IntegrationPointsNumber( mThisIntegrationMethod );
     if ( rOutput.size( ) != number_of_integration_pts )
     {
-        rOutput.resize( number_of_integration_pts );
+        rOutput.resize( number_of_integration_pts, false );
     }
 
     // TODO: ADD CONTENT!!!!!
