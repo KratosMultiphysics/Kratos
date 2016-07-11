@@ -583,9 +583,6 @@ public:
         MortarConditionMatrices& ThisMortarConditionMatrices
         );
 
-    /*******************************************************************************/
-    /*******************************************************************************/
-
     /*
     * Calculation and addition of the matrices of the LHS of a contact pair
     */
@@ -627,6 +624,15 @@ public:
     /**************** AUXILLIARY METHODS FOR CONDITION LHS CONTRIBUTION ****************/
     /***********************************************************************************/
 
+    /*
+    * Calculates the values of the shape functions for the master element
+    */
+    void MasterShapeFunctionValue(
+        GeneralVariables& rVariables,
+        const PointType& rSlaveIntegrationPoint,
+        const PointType& local_point 
+    );
+    
     /*
     * Calculates B_co = [ -M, D ], where D and M are the mortar condition matrices
     */
