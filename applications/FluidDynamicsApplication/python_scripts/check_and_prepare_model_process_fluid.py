@@ -46,7 +46,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                 
         print(fluid_computational_model_part)
         
-        if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
+        if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3 and self.main_model_part.GetCommunicator().TotalProcesses() == 0 ):
             #verify that the skin is correct (no gaps and overlaps)
             KratosMultiphysics.CheckSkinProcess(fluid_computational_model_part , KratosMultiphysics.Flags()).Execute()
 

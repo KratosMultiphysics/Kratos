@@ -46,6 +46,23 @@ def ConstructPreconditioner(configuration):
 #
 #
 def ConstructSolver(configuration):
+
+    ##############################################################
+    ###THIS IS A VERY DIRTY HACK TO ALLOW PARAMETERS TO BE PASSED TO THE LINEAR SOLVER FACTORY
+    ###TODO: clean this up!!
+    if(type(configuration) == Parameters):
+        solver_type = configuration["solver_type"].GetString()
+        
+        import json
+        tmp = json.loads(configuration.PrettyPrintJsonString())
+        
+        class aux(object):
+            pass 
+        
+        configuration = aux()
+        configuration.__dict__.update(tmp)
+    ##############################################################
+
     solver_type = configuration.solver_type
 
     overlap_level = 0
