@@ -15,11 +15,11 @@
 					   analysis_type="Quasi-Static,Dynamic" TypeofProblem="Thermo-Mechanical" >
   </NodalConditionItem>
   
-  <NodalConditionItem  n="BOFANGTEMPERATURE" pn="Bofang Temperature" ProcessName="BofangImposeScalarValueProcess" VariableName="TEMPERATURE"
+  <NodalConditionItem  n="BOFANGTEMPERATURE" pn="Bofang Temperature" ProcessName="ImposeBofangConditionProcess" VariableName="TEMPERATURE"
 					   analysis_type="Quasi-Static,Dynamic" TypeofProblem="Thermo-Mechanical" ov="[CheckGeometry 2]" >
   </NodalConditionItem>
   
-    <NodalConditionItem  n="THERMALPARAMETERS" pn="Thermal Parameters" ProcessName="ThermalParametersScalarValueProcess" VariableName="THERMAL_PARAMETERS"
+    <NodalConditionItem  n="THERMALPARAMETERS" pn="Thermal Parameters" ProcessName="ImposeThermalParametersScalarValueProcess" VariableName="THERMAL_PARAMETERS"
 					   analysis_type="Quasi-Static,Dynamic" TypeofProblem="Thermo-Mechanical" ov="[CheckGeometry 1]">
   </NodalConditionItem>
   

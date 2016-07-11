@@ -183,6 +183,12 @@ gid_output.ExecuteBeforeSolutionLoop()
 
 while( (current_time+tol) < ending_time ):
 
+    for process in list_of_processes:
+        process.ExecuteInitializeSolutionStep()
+
+
+    gid_output.ExecuteInitializeSolutionStep()
+
     # Update temporal variables
     current_time = current_time + delta_time
     current_step = current_step + 1
@@ -197,13 +203,6 @@ while( (current_time+tol) < ending_time ):
     clock_time = clock()
     thermal_solver.Solve()
     print("Thermal Solving Time = ","%.5f" % (clock() - clock_time)," seconds")
-    
-    
-    for process in list_of_processes:
-        process.ExecuteInitializeSolutionStep()
-
-
-    gid_output.ExecuteInitializeSolutionStep()
     
     
     # Solve mechanical step

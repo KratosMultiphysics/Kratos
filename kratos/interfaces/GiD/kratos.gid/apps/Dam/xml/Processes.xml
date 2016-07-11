@@ -18,7 +18,7 @@
   </Process>   
    
   <!---  Bofang Temperature -->   
-  <Process n="BofangImposeScalarValueProcess" pn="Impose Bofang scalar field value" implemented_in_file="bofang_condition_process"
+  <Process n="BofangImposeScalarValueProcess" pn="Impose Bofang scalar field value" implemented_in_file="impose_bofang_condition_process"
 		implemented_in_module="KratosMultiphysics.DamApplication" help="This process fixes the given scalar variable">
     <inputs>
         <parameter n="Modified" pn="Modified by Reservoir Information" type="bool" v="true" />
@@ -33,7 +33,7 @@
   </Process>
     
    <!---  Thermal Parameters -->
-    <Process n="ThermalParametersScalarValueProcess" pn="Impose thermal parameters for solving the thermal problem" implemented_in_file="dam_conditions_utility"
+    <Process n="ImposeThermalParametersScalarValueProcess" pn="Impose thermal parameters for solving the thermal problem" implemented_in_file="impose_thermal_parameters_scalar_value_process"
 		implemented_in_module="KratosMultiphysics.DamApplication" help="This process fixes the given scalar variable">
     <inputs>
         <parameter n="ThermalDensity" pn="Density" type="double" v="2400" />
