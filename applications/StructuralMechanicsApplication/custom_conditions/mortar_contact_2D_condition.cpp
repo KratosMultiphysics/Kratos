@@ -749,9 +749,11 @@ void MortarContact2DCondition::CalculateKinematics(
     /* LOCAL COORDINATES */ // TODO: Think to move this, because we repeat it every time
     const contact_container& current_container = ( *( this->GetValue( CONTACT_CONTAINERS ) ) )[rPairIndex];
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry( ).IntegrationPoints(mThisIntegrationMethod);
-    const double eta = integration_points[rPointNumber].Coordinate(1);
-    const double xi_local_slave  =  0.5 * (1.0 - eta) * current_container.local_coordinates_slave[0]  + 0.5 * (1.0 + eta) * current_container.local_coordinates_slave[1];
-    const double xi_local_master =  0.5 * (1.0 - eta) * current_container.local_coordinates_master[0] + 0.5 * (1.0 + eta) * current_container.local_coordinates_master[1];   
+    const PointType& eta = integration_points[rPointNumber].Coordinates();
+    const double xi_local_slave  =  0.5 * (1.0 - eta[0]) * current_container.local_coordinates_slave[0]  + 0.5 * (1.0 + eta[0]) * current_container.local_coordinates_slave[1];
+    Point<3> local_point;
+    local_point.Coordinates() = ZeroVector(3);
+    local_point.Coordinate(1) = xi_local_slave;
     
     /* RESIZE MATRICES AND VECTORS */
     rVariables.Phi_LagrangeMultipliers.resize( number_of_slave_nodes );
@@ -763,19 +765,14 @@ void MortarContact2DCondition::CalculateKinematics(
     rVariables.DN_De_Slave.resize( number_of_slave_nodes, slave_nodes.LocalSpaceDimension( ) );
     
     /*  POPULATE MATRICES AND VECTORS */
-    Point<3> aux_Point;
-    aux_Point.Coordinates() = ZeroVector(3);
-    aux_Point.Coordinate(1) = xi_local_master;
     
-    for( unsigned int iNode = 0; iNode < number_of_master_nodes; ++iNode )
-    {
-       rVariables.N_Master[iNode] = master_nodes.ShapeFunctionValue( iNode, aux_Point );
-    }
+    // MASTER CONDITION
+    this->MasterShapeFunctionValue( rVariables, eta, local_point);
     
-    aux_Point.Coordinate(1) = xi_local_slave;
+    // SLAVE CONDITION
     for( unsigned int iNode = 0; iNode < number_of_slave_nodes; ++iNode )
     {
-        rVariables.N_Slave[iNode] = slave_nodes.ShapeFunctionValue( iNode, aux_Point );
+        rVariables.N_Slave[iNode] = slave_nodes.ShapeFunctionValue( iNode, local_point );
         rVariables.Phi_LagrangeMultipliers[iNode] = LagrangeMultiplierShapeFunctionValue( xi_local_slave, iNode );
     }
 
@@ -788,20 +785,46 @@ void MortarContact2DCondition::CalculateKinematics(
     // FIXME which one should be it the ||J|| for 2D ???
     rVariables.DetJSlave = (current_container.local_coordinates_slave[1] - current_container.local_coordinates_slave[0])/2.0 * slave_nodes.Jacobian( rVariables.j_Slave, mThisIntegrationMethod )[rPointNumber](0, 0); // TODO: Check if it is correct
 
-    // We interpolate the gap bewtween the nodes
-    const std::vector<double> current_contact_gap = current_container.contact_gap;
-    rVariables.IntegrationPointNormalGap = 0.0;
-    
-    for( unsigned int iNode = 0; iNode < number_of_slave_nodes; ++iNode )
-    {
-        rVariables.IntegrationPointNormalGap += rVariables.N_Slave[iNode] * current_contact_gap[iNode]; 
-    }
-    
     KRATOS_CATCH( "" );
 }
  
 /***********************************************************************************/
 /*************** METHODS TO CALCULATE THE CONTACT CONDITION MATRICES ***************/
+/***********************************************************************************/
+
+void MortarContact2DCondition::MasterShapeFunctionValue(
+    GeneralVariables& rVariables,
+    const PointType& rSlaveIntegrationPoint,
+    const PointType& local_point 
+    )
+{
+    rVariables.N_Master = ZeroVector(2);
+    
+    contact_container current_container = (*this->GetValue(CONTACT_CONTAINERS))[rVariables.GetMasterElementIndex( ) ];
+    Condition* cond = current_container.condition;
+    
+    double dist = 0.0;
+    PointType projected_gp_global;
+    GeometryType& master_seg = rVariables.GetMasterElement( );
+    const array_1d<double,3>& master_normal = cond->GetValue( NORMAL );
+    
+    GeometryType::CoordinatesArrayType slave_gp_global;
+    this->GetGeometry( ).GlobalCoordinates( slave_gp_global, rSlaveIntegrationPoint );
+    
+    ContactUtilities::ProjectDirection( master_seg, slave_gp_global, projected_gp_global, dist, master_normal );
+
+    GeometryType::CoordinatesArrayType projected_gp_local;
+    if( master_seg.IsInside( projected_gp_global.Coordinates( ), projected_gp_local ) )
+    {
+        rVariables.N_Master = master_seg.ShapeFunctionsValues( rVariables.N_Master, projected_gp_local );         
+    }
+    
+    rVariables.IntegrationPointNormalGap = 0.0;
+    this->GetGeometry( ).GlobalCoordinates( slave_gp_global, local_point );
+    ContactUtilities::ProjectDirection( master_seg, slave_gp_global, projected_gp_global, rVariables.IntegrationPointNormalGap, master_normal );
+}
+
+/***********************************************************************************/
 /***********************************************************************************/
 
 void MortarContact2DCondition::CalculateDAndM( 
