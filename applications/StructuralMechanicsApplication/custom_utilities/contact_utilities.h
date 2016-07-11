@@ -66,21 +66,19 @@ public:
         
         // Define the discrete contact gap
          Point<3> ProjectedPoint;
-         contact_container.contact_gap.resize(number_nodes);
          contact_container.active_nodes_slave.resize(number_nodes);
          
          for (unsigned int index = 0; index < number_nodes; index++)
          {
+             double aux_dist = 0.0;
              if (norm_2(Geom1[index].FastGetSolutionStepValue(NORMAL, 0)) < 1.0e-12)
              {
-                 ProjectDirection(Geom2, Geom1[index], ProjectedPoint, contact_container.contact_gap[index], contact_normal1);
+                 ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, contact_normal1);
              }
              else
              { 
-                ProjectDirection(Geom2, Geom1[index], ProjectedPoint, contact_container.contact_gap[index], Geom1[index].FastGetSolutionStepValue(NORMAL, 0));
+                ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, Geom1[index].FastGetSolutionStepValue(NORMAL, 0));
              }  
-//              Project(Geom2.Center(),  Geom1[index], ProjectedPoint, contact_container.contact_gap[index], contact_normal1);
-//              Project(ContactPoint,  Geom1[index], ProjectedPoint, contact_container.contact_gap[index], contact_normal1);
              
              array_1d<double, 3> result;
              contact_container.active_nodes_slave[index] = Geom2.IsInside(ProjectedPoint, result);
@@ -95,9 +93,7 @@ public:
              {
                  contact_container.local_coordinates_slave.clear();
                  contact_container.local_coordinates_slave.resize(2);
-                 contact_container.local_coordinates_master.clear();
-                 contact_container.local_coordinates_master.resize(2);
-                 LocalLine2D2NProcess(contact_container.local_coordinates_slave, contact_container.local_coordinates_master, Geom1, Geom2, contact_normal1, contact_normal2, IntegrationOrder);  
+                 LocalLine2D2NProcess(contact_container.local_coordinates_slave, Geom1, Geom2, contact_normal1, contact_normal2, IntegrationOrder);  
              }
              else
              {
@@ -260,7 +256,6 @@ public:
     
     static inline void LocalLine2D2NProcess(
         std::vector<double> & local_coordinates_slave,
-        std::vector<double> & local_coordinates_master,
         Geometry<Node<3> > & Geom1, // SLAVE
         Geometry<Node<3> > & Geom2, // MASTER
         const array_1d<double, 3> & contact_normal1, // SLAVE
@@ -274,7 +269,7 @@ public:
         // Domain 1
         for (unsigned int index_1 = 0; index_1 < Geom1.PointsNumber(); index_1++)
         {
-             double aux_dist;
+             double aux_dist = 0.0;
              if (norm_2(Geom1[index_1].FastGetSolutionStepValue(NORMAL, 0)) < 1.0e-12)
              {
                  ProjectDirection(Geom2, Geom1[index_1], ProjectedPoint, aux_dist, contact_normal1);
@@ -292,7 +287,6 @@ public:
              if (in_out_1 == true)
              {
                  local_coordinates_slave[index_1]  = local_coor_1[0];
-                 local_coordinates_master[index_1] = projected_local_coor_1[0];
              }
              else
              {
@@ -307,12 +301,9 @@ public:
 
                      if (in_out_2 == true)
                      {
-                         array_1d<double, 3> local_coor_2 = Geom2.PointLocalCoordinates(local_coor_2, Geom2[index_2]);
-                         
                          if( std::abs( projected_local_coor_2[0] - local_coor_1[0] ) <= proj_dist )
                          {
                              proj_dist = std::abs(projected_local_coor_2[0] - local_coor_1[0] );
-                             local_coordinates_master[index_1] = local_coor_2[0];
                              local_coordinates_slave[index_1]  = projected_local_coor_2[0];
                          }
                      }

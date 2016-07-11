@@ -807,6 +807,7 @@ void MortarContact2DCondition::MasterShapeFunctionValue(
     GeometryType& master_seg = rVariables.GetMasterElement( );
     const array_1d<double,3>& master_normal = cond->GetValue( NORMAL );
     
+    // Doing calculations with eta
     GeometryType::CoordinatesArrayType slave_gp_global;
     this->GetGeometry( ).GlobalCoordinates( slave_gp_global, rSlaveIntegrationPoint );
     
@@ -818,6 +819,7 @@ void MortarContact2DCondition::MasterShapeFunctionValue(
         rVariables.N_Master = master_seg.ShapeFunctionsValues( rVariables.N_Master, projected_gp_local );         
     }
     
+    // Doing calculations with local xi
     this->GetGeometry( ).GlobalCoordinates( slave_gp_global, local_point );
     ContactUtilities::ProjectDirection( master_seg, slave_gp_global, projected_gp_global, rVariables.IntegrationPointNormalGap, master_normal );
 }
