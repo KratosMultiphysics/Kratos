@@ -194,13 +194,13 @@ destination_model_part.ProcessInfo[DOMAIN_SIZE] = domain_size
 for node in origin_model_part.Nodes:
     if (node.Y > 0.999999):
         node.SetSolutionStepValue(VELOCITY_X, 0, 1.0)
-        node.SetSolutionStepValue(VELOCITY_Y, 0, 1.0)
+        node.SetSolutionStepValue(VELOCITY_Y, 0, 2.0)
         node.SetSolutionStepValue(IS_INTERFACE, 0, 1.0)
 print("***** Velocity assigned to nodes *****")
 
 for node in destination_model_part.Nodes:
     if (node.Y < 1.000001):
-        node.SetSolutionStepValue(PRESSURE, 0, 1.0)
+        node.SetSolutionStepValue(PRESSURE, 0, 3.0)
         node.SetSolutionStepValue(IS_INTERFACE, 0, 1.0)
 print("***** Pressure assigned to nodes *****")
 
@@ -220,8 +220,8 @@ print("Attempting transfer")
 mapper = NonConformant_OneSideMap.NonConformant_OneSideMap(destination_model_part, origin_model_part, 1.0, 15)
 print("***** mapper created *****")
 
-mapper.FluidToStructure_ScalarMap(PRESSURE, PRESSURE)
-mapper.StructureToFluid_VectorMap(VELOCITY, VELOCITY)
+mapper.FluidToStructure_ScalarMap(PRESSURE, PRESSURE, True, False)
+mapper.StructureToFluid_VectorMap(VELOCITY, VELOCITY, True, False)
 print("***** information transferred *****")
 
 if (benchmarking.InBuildReferenceMode()):
