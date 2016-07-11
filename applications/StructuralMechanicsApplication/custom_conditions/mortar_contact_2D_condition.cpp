@@ -760,9 +760,9 @@ void MortarContact2DCondition::CalculateKinematics(
     rVariables.N_Master.resize( number_of_master_nodes );
     rVariables.N_Slave.resize( number_of_slave_nodes );
 
-    rVariables.DPhi_De_LagrangeMultipliers.resize( number_of_slave_nodes, slave_nodes.LocalSpaceDimension( ) );
-    rVariables.DN_De_Master.resize( number_of_master_nodes, master_nodes.LocalSpaceDimension( ) );
-    rVariables.DN_De_Slave.resize( number_of_slave_nodes, slave_nodes.LocalSpaceDimension( ) );
+//     rVariables.DN_De_Master.resize( number_of_master_nodes, master_nodes.LocalSpaceDimension( ) );
+//     rVariables.DN_De_Slave.resize( number_of_slave_nodes, slave_nodes.LocalSpaceDimension( ) );
+//     rVariables.DPhi_De_LagrangeMultipliers.resize( number_of_slave_nodes, slave_nodes.LocalSpaceDimension( ) );
     
     /*  POPULATE MATRICES AND VECTORS */
     
@@ -776,14 +776,13 @@ void MortarContact2DCondition::CalculateKinematics(
         rVariables.Phi_LagrangeMultipliers[iNode] = LagrangeMultiplierShapeFunctionValue( xi_local_slave, iNode );
     }
 
-    rVariables.DN_De_Master = master_nodes.ShapeFunctionLocalGradient( rPointNumber, mThisIntegrationMethod );  // TODO FIXME evaluate at proper point
-    rVariables.DN_De_Slave  =  slave_nodes.ShapeFunctionLocalGradient( rPointNumber, mThisIntegrationMethod );
-    rVariables.DPhi_De_LagrangeMultipliers = LagrangeMultiplierShapeFunctionLocalGradient( rPointNumber );
+//     rVariables.DN_De_Master = master_nodes.ShapeFunctionLocalGradient( rPointNumber, mThisIntegrationMethod );  // TODO FIXME evaluate at proper point
+//     rVariables.DN_De_Slave  =  slave_nodes.ShapeFunctionLocalGradient( rPointNumber, mThisIntegrationMethod );
+//     rVariables.DPhi_De_LagrangeMultipliers = LagrangeMultiplierShapeFunctionLocalGradient( rPointNumber );
 
-    slave_nodes.Jacobian( rVariables.j_Slave, mThisIntegrationMethod );
+    slave_nodes.Jacobian( rVariables.j_Slave, local_point.Coordinates() );
     
-    // FIXME which one should be it the ||J|| for 2D ???
-    rVariables.DetJSlave = (current_container.local_coordinates_slave[1] - current_container.local_coordinates_slave[0])/2.0 * slave_nodes.Jacobian( rVariables.j_Slave, mThisIntegrationMethod )[rPointNumber](0, 0); // TODO: Check if it is correct
+    rVariables.DetJSlave = (current_container.local_coordinates_slave[1] - current_container.local_coordinates_slave[0])/2.0 * rVariables.j_Slave(0, 0); // TODO: Check if it is correct
 
     KRATOS_CATCH( "" );
 }
@@ -803,7 +802,7 @@ void MortarContact2DCondition::MasterShapeFunctionValue(
     contact_container current_container = (*this->GetValue(CONTACT_CONTAINERS))[rVariables.GetMasterElementIndex( ) ];
     Condition* cond = current_container.condition;
     
-    double dist = 0.0;
+    rVariables.IntegrationPointNormalGap = 0.0;
     PointType projected_gp_global;
     GeometryType& master_seg = rVariables.GetMasterElement( );
     const array_1d<double,3>& master_normal = cond->GetValue( NORMAL );
@@ -811,7 +810,7 @@ void MortarContact2DCondition::MasterShapeFunctionValue(
     GeometryType::CoordinatesArrayType slave_gp_global;
     this->GetGeometry( ).GlobalCoordinates( slave_gp_global, rSlaveIntegrationPoint );
     
-    ContactUtilities::ProjectDirection( master_seg, slave_gp_global, projected_gp_global, dist, master_normal );
+    ContactUtilities::ProjectDirection( master_seg, slave_gp_global, projected_gp_global, rVariables.IntegrationPointNormalGap, master_normal );
 
     GeometryType::CoordinatesArrayType projected_gp_local;
     if( master_seg.IsInside( projected_gp_global.Coordinates( ), projected_gp_local ) )
@@ -819,7 +818,6 @@ void MortarContact2DCondition::MasterShapeFunctionValue(
         rVariables.N_Master = master_seg.ShapeFunctionsValues( rVariables.N_Master, projected_gp_local );         
     }
     
-    rVariables.IntegrationPointNormalGap = 0.0;
     this->GetGeometry( ).GlobalCoordinates( slave_gp_global, local_point );
     ContactUtilities::ProjectDirection( master_seg, slave_gp_global, projected_gp_global, rVariables.IntegrationPointNormalGap, master_normal );
 }
