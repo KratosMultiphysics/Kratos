@@ -635,7 +635,7 @@ namespace Kratos {
         
         if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
             mOldSymmStressTensor  = new Matrix(3,3);
-            *mSymmStressTensor = ZeroMatrix(3,3);
+            *mOldSymmStressTensor = ZeroMatrix(3,3);
         }
         else {
             mOldSymmStressTensor = NULL;
