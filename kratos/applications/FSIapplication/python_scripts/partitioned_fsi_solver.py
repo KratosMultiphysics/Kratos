@@ -208,19 +208,19 @@ class PartitionedFSISolver:
         # Standard CFD variables addition
         self.structure_solver.AddVariables()
         # FSI variables addition
-        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_INTERFACE)    # TODO: IS_INTERFACE is deprecated. Move to INTERFACE.
+        #~ self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_INTERFACE)    # TODO: IS_INTERFACE is deprecated. Move to INTERFACE.
         
         ## Fluid variables addition
         # Standard CFD variables addition
         self.fluid_solver.AddVariables()
         # FSI variables addition
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_INTERFACE)    # TODO: IS_INTERFACE is deprecated. Move to INTERFACE.
+        #~ self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_INTERFACE)    # TODO: IS_INTERFACE is deprecated. Move to INTERFACE.
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE)
         # Mesh solver variables addition
         self.mesh_solver_module.AddVariables(self.fluid_solver.main_model_part)
                 
         ## Mapper variables addition
-        NonConformant_OneSideMap.AddVariables(self.fluid_solver.main_model_part,self.structure_solver.main_model_part)
+        NonConformant_OneSideMap.AddVariables(self.fluid_solver.main_model_part,self.structure_solver.main_model_part) # --> This mapper is using IS_INTERFACE (deprecated)
                 
                 
     def ImportModelPart(self):
@@ -289,7 +289,7 @@ class PartitionedFSISolver:
         self.iteration_guess_value = KratosMultiphysics.Vector(fluid_interface_residual_size) 
 
         for i in range(0,fluid_interface_residual_size):
-            self.iteration_guess_value[i] = 0.0001
+            self.iteration_guess_value[i] = 0.0001      
 
                 
     def GetComputeModelPart(self):
@@ -316,7 +316,7 @@ class PartitionedFSISolver:
             # Get the previous step fluid interface nodal fluxes
             self.interface_mapper.FluidToStructure_VectorMap(KratosMultiphysics.REACTION,
                                                              KratosSolid.POINT_LOAD,
-                                                             False,False)                                              
+                                                             False,False)
                 
             # Solve the current step structure problem with the previous step fluid interface nodal fluxes
             self.structure_solver.Solve()
@@ -324,17 +324,18 @@ class PartitionedFSISolver:
             self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
                                                              KratosMultiphysics.DISPLACEMENT,
                                                              True,False)
+                                                             
             # Solve the mesh problem
             self.mesh_solver.Solve()
             self.mesh_solver.MoveNodes()
                                                              
             # Map the obtained structure velocity to the fluid interface
-            self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.VELOCITY,
-                                                             KratosMultiphysics.VELOCITY,
-                                                             True,False)
+            #~ self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.VELOCITY,
+                                                             #~ KratosMultiphysics.VELOCITY,
+                                                             #~ True,False)
         
             # Solve the fluid problem with the updated mesh and the solid interface velocity as Dirichlet B.C.
-            self.fluid_solver.Solve()
+            #~ self.fluid_solver.Solve()
             
         ## Non-Linear interface coupling iteration ##
         for nl_it in range(1,self.max_nl_it+1):
@@ -382,7 +383,7 @@ class PartitionedFSISolver:
         # Compute mesh residual
         mesh_res_norm = self.interface_residual.ComputeMeshResidual()
         print("MESH RESIDUAL NORM: ",mesh_res_norm)
-        
+       
 
     def SetEchoLevel(self, level):
         pass
