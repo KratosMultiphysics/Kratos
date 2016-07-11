@@ -134,6 +134,12 @@ public:
             }
         }
 
+        pnode->GetValue(FATHER_NODES).resize(0);
+        pnode->GetValue(FATHER_NODES).push_back( Node< 3 >::WeakPointer( geom(0) ) );
+        pnode->GetValue(FATHER_NODES).push_back( Node< 3 >::WeakPointer( geom(1) ) );
+        pnode->GetValue(FATHER_NODES).push_back( Node< 3 >::WeakPointer( geom(2) ) );
+        pnode->GetValue(FATHER_NODES).push_back( Node< 3 >::WeakPointer( geom(3) ) );
+
         return new_id;
     }
     
@@ -151,7 +157,7 @@ public:
     void EraseOldElementAndCreateNewElement(
             ModelPart& this_model_part,
             const compressed_matrix<int>& Coord,
-            PointerVector< Element >& New_Elements,
+            PointerVector< Element >& NewElements,
             bool interpolate_internal_variables
     )
     {
@@ -216,6 +222,14 @@ public:
 	  if (create_element == true)
 	  {
 	      to_be_deleted++;
+
+          WeakPointerVector< Element >& rChildElements = it->GetValue(NEIGHBOUR_ELEMENTS);
+          // We will use this flag to identify the element later, when operating on 
+          // SubModelParts. Note that fully refined elements already have this flag set 
+          // to true, but this is not the case for partially refined element, so we set it here.
+          it->SetValue(SPLIT_ELEMENT,true);
+          rChildElements.resize(0);
+
 	      // Create the new connectivity
 	      for (int i = 0; i < number_elem; i++)
 	      {
@@ -248,7 +262,9 @@ public:
 		  // Transfer elemental variables
 		  p_element->Data() = it->Data();
 		  p_element->GetValue(SPLIT_ELEMENT) = false;
-		  New_Elements.push_back(p_element);
+		  NewElements.push_back(p_element);
+
+          rChildElements.push_back( Element::WeakPointer(p_element) );
 
 		  current_id++;
 	      }
@@ -263,7 +279,7 @@ public:
       }
 
       /* Adding news elements to the model part */
-      for (PointerVector< Element >::iterator it_new = New_Elements.begin(); it_new != New_Elements.end(); it_new++)
+      for (PointerVector< Element >::iterator it_new = NewElements.begin(); it_new != NewElements.end(); it_new++)
       {
 	  rElements.push_back(*(it_new.base()));
       }
@@ -275,6 +291,53 @@ public:
       rElements.erase(this_model_part.Elements().end() - to_be_deleted, this_model_part.Elements().end());
 
       std::cout << "NEW NUMBER ELEMENTS: " << rElements.size() << std::endl;
+
+
+      // Now update the elements in SubModelParts
+      if (NewElements.size() > 0)
+      {
+          for (ModelPart::SubModelPartIterator iSubModelPart = this_model_part.SubModelPartsBegin();
+                  iSubModelPart != this_model_part.SubModelPartsEnd(); iSubModelPart++)
+          {
+              to_be_deleted = 0;
+              NewElements.clear();
+
+              // Create list of new elements in SubModelPart
+              // Count how many elements will be removed
+              for (ModelPart::ElementIterator iElem = iSubModelPart->ElementsBegin();
+                      iElem != iSubModelPart->ElementsEnd(); iElem++)
+              {
+                  if( iElem->GetValue(SPLIT_ELEMENT) )
+                  {
+                      to_be_deleted++;
+                      WeakPointerVector< Element >& rChildElements = iElem->GetValue(NEIGHBOUR_ELEMENTS);
+
+                      for ( WeakPointerVector< Element >::ptr_iterator iChild = rChildElements.ptr_begin();
+                              iChild != rChildElements.ptr_end(); iChild++ )
+                      {
+                          NewElements.push_back( (*iChild).lock() );
+                      } 
+                  }
+              }
+
+              // Add new elements to SubModelPart
+              iSubModelPart->Elements().reserve( iSubModelPart->Elements().size() + NewElements.size() );
+              for (PointerVector< Element >::iterator it_new = NewElements.begin();
+                      it_new != NewElements.end(); it_new++)
+              {
+                  iSubModelPart->Elements().push_back(*(it_new.base()));
+              }
+
+              // Delete old elements
+              iSubModelPart->Elements().Sort();
+              iSubModelPart->Elements().erase(iSubModelPart->Elements().end() - to_be_deleted, iSubModelPart->Elements().end());
+
+              KRATOS_WATCH(iSubModelPart->Info());
+              KRATOS_WATCH(to_be_deleted);
+              KRATOS_WATCH(iSubModelPart->Elements().size());
+              KRATOS_WATCH(this_model_part.Elements().size());
+          }
+      }
     }
 
     /***********************************************************************************/
@@ -287,13 +350,13 @@ public:
     */
     
     void EraseOldConditionsAndCreateNew(
-	ModelPart& this_model_part,
-	const compressed_matrix<int>& Coord
-	 )
+            ModelPart& this_model_part,
+            const compressed_matrix<int>& Coord
+            )
     {
         KRATOS_TRY;
-	
-        PointerVector< Condition > New_Conditions;
+
+        PointerVector< Condition > NewConditions;
 
         ConditionsArrayType& rConditions = this_model_part.Conditions();
 
@@ -319,14 +382,20 @@ public:
 
                 if (geom.size() == 3)
                 {
-                     CalculateEdgesFaces(geom, Coord, edge_ids, aux);
+                    CalculateEdgesFaces(geom, Coord, edge_ids, aux);
 
                     // Create the new conditions
                     bool create_condition =  Split_Triangle(edge_ids, t, &number_elem, &splitted_edges, &nint);
 
                     if(create_condition==true)
                     {
+                        WeakPointerVector< Condition >& rChildConditions = it->GetValue(NEIGHBOUR_CONDITIONS);
+                        // We will use this flag to identify the condition later, when operating on 
+                        // SubModelParts.
+                        it->SetValue(SPLIT_ELEMENT,true);
+                        rChildConditions.resize(0);
                         to_be_deleted++;
+
                         for(int i = 0; i < number_elem; i++)
                         {
                             unsigned int base = i * 3;
@@ -335,23 +404,25 @@ public:
                             unsigned int i2   = aux[t[base+2]];
 
                             Triangle3D3<Node<3> > newgeom(
-                                this_model_part.Nodes()(i0),
-                                this_model_part.Nodes()(i1),
-                                this_model_part.Nodes()(i2)
-                            );
+                                    this_model_part.Nodes()(i0),
+                                    this_model_part.Nodes()(i1),
+                                    this_model_part.Nodes()(i2)
+                                    );
 
-			    // Generate new condition by cloning the base one
-			    Condition::Pointer pcond;
-			    pcond = it->Create(current_id, newgeom, it->pGetProperties());
-			    pcond ->Initialize();
-			    pcond ->InitializeSolutionStep(rCurrentProcessInfo);
-			    pcond ->FinalizeSolutionStep(rCurrentProcessInfo);
-		  
+                            // Generate new condition by cloning the base one
+                            Condition::Pointer pcond;
+                            pcond = it->Create(current_id, newgeom, it->pGetProperties());
+                            pcond ->Initialize();
+                            pcond ->InitializeSolutionStep(rCurrentProcessInfo);
+                            pcond ->FinalizeSolutionStep(rCurrentProcessInfo);
+
                             // Transfer condition variables
-			    pcond->Data() = it->Data();
-			    pcond->GetValue(SPLIT_ELEMENT) = false;
-                            New_Conditions.push_back(pcond);
-			    
+                            pcond->Data() = it->Data();
+                            pcond->GetValue(SPLIT_ELEMENT) = false;
+                            NewConditions.push_back(pcond);
+
+                            rChildConditions.push_back( Condition::WeakPointer( pcond ) );
+
                             current_id++;
                         }
                         it->SetId(large_id);
@@ -360,21 +431,75 @@ public:
                 }
             }
 
-	    /* All of the conditions to be erased are at the end */
+            /* All of the conditions to be erased are at the end */
             this_model_part.Conditions().Sort();
 
             /* Now remove all of the "old" conditions*/
             this_model_part.Conditions().erase(this_model_part.Conditions().end() - to_be_deleted, this_model_part.Conditions().end());
 
-            unsigned int total_size = this_model_part.Conditions().size()+ New_Conditions.size();
+            unsigned int total_size = this_model_part.Conditions().size()+ NewConditions.size();
             this_model_part.Conditions().reserve(total_size);
+
+            /// Add the new Conditions to the ModelPart
+            for (PointerVector< Condition >::ptr_iterator iCond = NewConditions.ptr_begin();
+                    iCond != NewConditions.ptr_end(); iCond++)
+            {
+                this_model_part.Conditions().push_back( *iCond );
+            }
 
             /* Renumber id */
             unsigned int my_index = 1;
             for(ModelPart::ConditionsContainerType::iterator it = this_model_part.ConditionsBegin(); it != this_model_part.ConditionsEnd(); it++)
-	    {
+            {
                 it->SetId(my_index++);
-	    }
+            }
+
+
+            // Now update the conditions in SubModelParts
+            if (NewConditions.size() > 0)
+            {
+                for (ModelPart::SubModelPartIterator iSubModelPart = this_model_part.SubModelPartsBegin();
+                        iSubModelPart != this_model_part.SubModelPartsEnd(); iSubModelPart++)
+                {
+                    to_be_deleted = 0;
+                    NewConditions.clear();
+
+                    // Create list of new conditions in SubModelPart
+                    // Count how many conditions will be removed
+                    for (ModelPart::ConditionIterator iCond = iSubModelPart->ConditionsBegin();
+                            iCond != iSubModelPart->ConditionsEnd(); iCond++)
+                    {
+                        if( iCond->GetValue(SPLIT_ELEMENT) )
+                        {
+                            to_be_deleted++;
+                            WeakPointerVector< Condition >& rChildConditions = iCond->GetValue(NEIGHBOUR_CONDITIONS);
+
+                            for ( WeakPointerVector< Condition >::ptr_iterator iChild = rChildConditions.ptr_begin();
+                                    iChild != rChildConditions.ptr_end(); iChild++ )
+                            {
+                                NewConditions.push_back( (*iChild).lock() );
+                            } 
+                        }
+                    }
+
+                    // Add new conditions to SubModelPart
+                    iSubModelPart->Conditions().reserve( iSubModelPart->Conditions().size() + NewConditions.size() );
+                    for (PointerVector< Condition >::iterator it_new = NewConditions.begin();
+                            it_new != NewConditions.end(); it_new++)
+                    {
+                        iSubModelPart->Conditions().push_back(*(it_new.base()));
+                    }
+
+                    // Delete old conditions
+                    iSubModelPart->Conditions().Sort();
+                    iSubModelPart->Conditions().erase(iSubModelPart->Conditions().end() - to_be_deleted, iSubModelPart->Conditions().end());
+
+                    KRATOS_WATCH(iSubModelPart->Info());
+                    KRATOS_WATCH(to_be_deleted);
+                    KRATOS_WATCH(iSubModelPart->Conditions().size());
+                    KRATOS_WATCH(this_model_part.Conditions().size());
+                }
+            }
         }
         KRATOS_CATCH("");
     }
