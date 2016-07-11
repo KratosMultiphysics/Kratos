@@ -86,16 +86,17 @@ public:
     // inner Mesh
     TVolumeMesh *m ;
 
-    ModelPart refMP ;
+    ModelPart &refMP ;
 
     /// Default constructor.
-    TetrahedraReconnectUtility(ModelPart& r_model_part)
+    TetrahedraReconnectUtility(ModelPart& r_model_part):
+        refMP(r_model_part)
     {
         std::cout << "Creating mesh" << "\n";
         m = new TVolumeMesh();
         // Convert to inner format
         innerConvertFromKratos(r_model_part , m );
-        refMP = r_model_part;
+        //refMP = r_model_part;
 
         maxNumThreads = 0;
         blockSize = 2048;
@@ -801,10 +802,7 @@ private:
     }
 
     /// Copy constructor.
-    TetrahedraReconnectUtility(TetrahedraReconnectUtility const& rOther)
-    {
-        return ;
-    }
+    TetrahedraReconnectUtility(TetrahedraReconnectUtility const& rOther);
 
 
     ///@}
