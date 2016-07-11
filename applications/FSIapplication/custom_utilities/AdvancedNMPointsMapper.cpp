@@ -1053,11 +1053,40 @@ void AdvancedNMPointsMapper::ScalarMap(
         const bool distributed
         )
 {
+
+    // Define some variables that will be used in the iteration
+    boost::numeric::ublas::bounded_matrix<double,2,2> MCons; // Elemental Consistent Mass Matrix = L/6 * MCons
+    boost::numeric::ublas::bounded_matrix<double,2,2> MInterp;
+    boost::numeric::ublas::bounded_matrix<double,2,2> aux_GPPos;
+    boost::numeric::ublas::bounded_matrix<double,2,2> inv_aux_GPPos;
+    
+    MCons(0, 0) = 2.0; 
+    MCons(0, 1) = 1.0;
+    MCons(1, 0) = 1.0;
+    MCons(1, 1) = 2.0;
+    
+    aux_GPPos(0, 0) = (1.0+(-std::sqrt(1.0/3.0)))/2.0;
+    aux_GPPos(0, 1) = (1.0-(-std::sqrt(1.0/3.0)))/2.0;
+    aux_GPPos(1, 0) = (1.0+(+std::sqrt(1.0/3.0)))/2.0;
+    aux_GPPos(1, 1) = (1.0-(+std::sqrt(1.0/3.0)))/2.0;
+    
+    double det_aux_GPPos;
+    det_aux_GPPos = (aux_GPPos(0,0)*aux_GPPos(1,1))-(aux_GPPos(0,1)*aux_GPPos(1,0));
+    
+    inv_aux_GPPos(0, 0) = aux_GPPos(1, 1)/det_aux_GPPos;
+    inv_aux_GPPos(0, 1) = -aux_GPPos(0, 1)/det_aux_GPPos;
+    inv_aux_GPPos(1, 0) = -aux_GPPos(1, 0)/det_aux_GPPos;
+    inv_aux_GPPos(1, 1) = aux_GPPos(0, 0)/det_aux_GPPos;
+
+    MInterp = prod(MCons, inv_aux_GPPos); // Interpolation Matrix (NodalValues = (L/6)*MInterp*GaussValues)
+
     double sign = 1.0;
     if (sign_pos == false)
     {
         sign = -1.0;
     }
+
+    //~ array_1d<double,3> ZeroVect = ZeroVector(3);
 
     // Build (Diagonal) System Matrix and initialize results
     for ( ModelPart::NodesContainerType::iterator node_it = mrDestinationModelPart.NodesBegin();
@@ -1073,62 +1102,42 @@ void AdvancedNMPointsMapper::ScalarMap(
     if (dimension == 2) // 2D case
     {
         
-        // Define some variables that will be used in the iteration
-        boost::numeric::ublas::bounded_matrix<double,2,2> aux;
-        boost::numeric::ublas::bounded_matrix<double,2,2> MCons; // Elemental Consistent Mass Matrix = L/6 * MCons
-        boost::numeric::ublas::bounded_matrix<double,2,2> MInterp;
-        boost::numeric::ublas::bounded_matrix<double,2,2> aux_GPPos;
-        boost::numeric::ublas::bounded_matrix<double,2,2> inv_aux_GPPos;
-        
-        aux(0, 0) = 2.0;
-        aux(0, 1) = 1.0;
-        aux(1, 0) = 1.0;
-        aux(1, 1) = 2.0;
-        
-        MCons(0, 0) = 2.0;
-        MCons(0, 1) = 1.0;
-        MCons(1, 0) = 1.0;
-        MCons(1, 1) = 2.0;
-        
-        aux_GPPos(0, 0) = (1.0+(-std::sqrt(1.0/3.0)))/2.0;
-        aux_GPPos(0, 1) = (1.0-(-std::sqrt(1.0/3.0)))/2.0;
-        aux_GPPos(1, 0) = (1.0+(+std::sqrt(1.0/3.0)))/2.0;
-        aux_GPPos(1, 1) = (1.0-(+std::sqrt(1.0/3.0)))/2.0;
-        
-        double det_aux_GPPos;
-        det_aux_GPPos = (aux_GPPos(0,0)*aux_GPPos(1,1))-(aux_GPPos(0,1)*aux_GPPos(1,0));
-        
-        inv_aux_GPPos(0, 0) = aux_GPPos(1, 1)/det_aux_GPPos;
-        inv_aux_GPPos(0, 1) = -aux_GPPos(0, 1)/det_aux_GPPos;
-        inv_aux_GPPos(1, 0) = -aux_GPPos(1, 0)/det_aux_GPPos;
-        inv_aux_GPPos(1, 1) = aux_GPPos(0, 0)/det_aux_GPPos;
-
-        MInterp = prod(aux, inv_aux_GPPos); // Interpolation Matrix (NodalValues = (L/3)*MInterp*GaussValues)
-
-        std::vector< boost::shared_ptr< array_1d<double, 3> > > pInterpValues;
+        std::vector< boost::shared_ptr<array_1d<double,2> > > pInterpValues;
 
         // Here we loop both the Destination Model Part and the Gauss Point List, using the
         // fact that the GP list was created by a loop over the Dest. Model Part's conditions
         int GPi = 0;
-        for (ModelPart::ConditionsContainerType::iterator cond_it = mrDestinationModelPart.ConditionsBegin();
+        for (ModelPart::ConditionIterator cond_it = mrDestinationModelPart.ConditionsBegin();
                 cond_it != mrDestinationModelPart.ConditionsEnd();
                 cond_it++)
         {
-            array_1d<double,3> GPValues;
-            array_1d<double,3> NodalValues;
+            array_1d<double, 2> GPValues;
+            array_1d<double, 2> NodalValues;
 
-            double CondLength = 0.0; // Note: In 2D the condition length is also represented by variable Area.
-            mGaussPointList[GPi]->GetArea(CondLength);
-
+            double CondLength = 0.0;
+            mGaussPointList[GPi]->GetArea(CondLength); // Gets the length of the parent condition of the two points considered
+            const double K = CondLength/6.0;
+            
+            // Store the nodal influence length of the condition we are looping on (stored in NODAL_MAUX variable)
             for (unsigned int i = 0; i < 2; i++)
             {
                 cond_it->GetGeometry()[i].GetValue(NODAL_MAUX) += 0.5 * CondLength;
-                mGaussPointList[GPi + i]->GetProjectedValue(rOriginVar, GPValues[i], dimension);
             }
+    
+            // Store in GPValues the projected value in the destiny condition Gauss Points
+            // Note that currently the implementation is valid for only 2 GP
+            double TempValue = 0.0;
 
-            noalias(NodalValues) = (CondLength/3.0) * prod(MInterp, GPValues);
+            mGaussPointList[GPi]->GetProjectedValue(rOriginVar, TempValue, dimension);
+            GPValues[0] = TempValue;
 
-            boost::shared_ptr< array_1d<double, 3> > pNodalValues(new array_1d<double, 3>(NodalValues) );
+            mGaussPointList[GPi + 1]->GetProjectedValue(rOriginVar, TempValue, dimension);
+            GPValues[1] = TempValue;
+
+            NodalValues[0] = K*(MInterp(0,0)*GPValues[0] + MInterp(0,1)*GPValues[1]);
+            NodalValues[1] = K*(MInterp(1,0)*GPValues[0] + MInterp(1,1)*GPValues[1]);
+
+            boost::shared_ptr< array_1d<double,2> > pNodalValues(new array_1d<double,2>(NodalValues) );
             pInterpValues.push_back(pNodalValues); // This is computed here because it is the constant part of RHS
 
             GPi += 2; // 1 Condition = 2 Gauss Points
@@ -1145,35 +1154,37 @@ void AdvancedNMPointsMapper::ScalarMap(
                 node_it->GetValue(AUX) = 0.0;
             }
 
-            array_1d<double, 2> LocalRHS;
+            double LocalRHS0, LocalRHS1; // Local RHS for each node
             array_1d<double, 2> LastSolution;
             int IV_iter = 0;
 
-            for (ModelPart::ConditionsContainerType::iterator cond_it = mrDestinationModelPart.ConditionsBegin();
+            for (ModelPart::ConditionIterator cond_it = mrDestinationModelPart.ConditionsBegin();
                     cond_it != mrDestinationModelPart.ConditionsEnd();
                     cond_it++)
             {
-                for(unsigned int j = 0; j < 2; j++)
-                {
-                    LocalRHS[j] = 0.0;
-                    LastSolution[j] = sign * cond_it->GetGeometry()[j].FastGetSolutionStepValue(rDestVar);
-                }
-
                 double CondLength = 0.0;
                 mGaussPointList[2 * IV_iter]->GetArea(CondLength);
+                const double K = CondLength/6.0;
+                
+                LocalRHS0 = 0.0;
+                LocalRHS1 = 0.0;
+                
+                LastSolution[0] = sign * cond_it->GetGeometry()[0].FastGetSolutionStepValue(rDestVar);
+                LastSolution[1] = sign * cond_it->GetGeometry()[1].FastGetSolutionStepValue(rDestVar);
 
-                noalias(LocalRHS) = *pInterpValues[IV_iter] - (CondLength/6.0) * prod(MCons, LastSolution);
-                // We are taking advantage of 1 Condition = 3 Gauss Points to iterate the interpolation results and the Gauss Point Vector Again
+                array_1d<double,2> CondValues = *pInterpValues[IV_iter];
 
-                for (unsigned int j = 0; j < 2 ; j++)
-                {
-                    cond_it->GetGeometry()[j].GetValue(AUX) += LocalRHS[j];
-                }
+                LocalRHS0 = CondValues[0] - K * (2.0*LastSolution[0] + 1.0*LastSolution[1]);
+                LocalRHS1 = CondValues[1] - K * (1.0*LastSolution[0] + 2.0*LastSolution[1]);
+
+                // We are taking advantage of 1 Condition = 2 Gauss Points to iterate the interpolation results and the Gauss Point Vector Again
+                cond_it->GetGeometry()[0].GetValue(AUX) += LocalRHS0;
+                cond_it->GetGeometry()[1].GetValue(AUX) += LocalRHS1;
 
                 IV_iter++;
             }
-            
-            // Solve
+
+            double dVal          = 0.0;
             double dValNorm      = 0.0;
             double ValNorm       = 0.0;
             double RelativeError = 0.0;
@@ -1184,13 +1195,12 @@ void AdvancedNMPointsMapper::ScalarMap(
                     node_it++)
             {
                 const double & NodeArea = node_it->GetValue(NODAL_MAUX);
-                //node_it->FastGetSolutionStepValue(NODAL_MAUX) = NodeArea; // TEST: store nodal area so GiD can paint it later
-                double dVal = node_it->GetValue(AUX)/NodeArea;
+                dVal = node_it->GetValue(AUX)/NodeArea;
                 node_it->FastGetSolutionStepValue(rDestVar) += sign * dVal;
 
                 // Variables for convergence check
-                dValNorm += dVal * dVal;
-                ValNorm  += std::pow(node_it->FastGetSolutionStepValue(rDestVar), 2);
+                dValNorm += dVal;
+                ValNorm += node_it->FastGetSolutionStepValue(rDestVar);
 
                 NodeNum++;
             }
@@ -1201,14 +1211,14 @@ void AdvancedNMPointsMapper::ScalarMap(
             {
                 RelativeError = dValNorm / ValNorm;
             }
-            if( (ValNorm/NodeNum < 0.00001 * std::pow(TolIter, 2.00)) || (RelativeError < std::pow(TolIter, 2.00)) )
+            if( (ValNorm/NodeNum < 0.00001 * TolIter * TolIter) || RelativeError < TolIter * TolIter)
             {
-                std::cout << "ScalarMap converged in " << k + 1 << " iterations." << std::endl;
+                std::cout << "VectorMap converged in " << k + 1 << " iterations." << std::endl;
                 break;
             }
-            else if ((k + 1) == MaxIter)
+            else if ( (k + 1) == MaxIter)
             {
-                std::cout << "WARNING: ScalarMap did not converge in " << k + 1 << " iterations." << std::endl;
+                std::cout << "WARNING: VectorMap did not converge in " << k + 1 << " iterations." << std::endl;
             }
         } // End of Iteration
 
@@ -1223,6 +1233,7 @@ void AdvancedNMPointsMapper::ScalarMap(
             }
         }
     }
+    
     else // 3D case
     {
         // Define some variables that will be used in the iteration
