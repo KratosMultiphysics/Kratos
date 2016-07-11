@@ -474,8 +474,8 @@ void AdvancedNMPointsMapper::CalcNormalAndArea(
         v2[2] = 1.0;
     }
 
-    // RUBEN: I've switched v2 and v1 in the cross product (now the normals point outwards)
-    MathUtils<double>::CrossProduct(Normal,v2,v1);
+    // Get the condition normal
+    MathUtils<double>::CrossProduct(Normal,v1,v2);
 
     double NNorm = std::sqrt(Normal[0]*Normal[0] + Normal[1]*Normal[1] + Normal[2]*Normal[2]);
 
