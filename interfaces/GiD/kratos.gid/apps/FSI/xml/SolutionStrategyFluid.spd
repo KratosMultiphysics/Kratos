@@ -10,7 +10,7 @@
     </container>
 	  
     <container n="Gravity" pn="Gravity" un="FLGravity" help="Body forces" >
-        <value n="GravityValue" pn="Gravity value" v="9.8" help="Gravity value" unit_magnitude="Acceleration" units="m/s^2"  />
+        <value n="GravityValue" pn="Gravity value" v="0.0" help="Gravity value" unit_magnitude="Acceleration" units="m/s^2"  />
         <value n="Cx" pn="Cx" v="0.0" help="X Vector"/>
         <value n="Cy" pn="Cy" v="-1.0" help="Y Vector"/>
         <value n="Cz" pn="Cz" v="0.0" help="Z Vector" state="[CheckDimension 3D]"/>
