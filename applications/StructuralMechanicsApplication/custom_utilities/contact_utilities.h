@@ -80,6 +80,10 @@ public:
                 ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, Geom1[index].FastGetSolutionStepValue(NORMAL, 0));
              }  
              
+             KRATOS_WATCH(ProjectedPoint.Coordinates());
+             KRATOS_WATCH(Geom2[0].Coordinates());
+             KRATOS_WATCH(Geom2[1].Coordinates());
+             
              array_1d<double, 3> result;
              contact_container.active_nodes_slave[index] = Geom2.IsInside(ProjectedPoint, result);
          }
@@ -236,7 +240,6 @@ public:
                  ProjectDirection(Geom2, Geom1[index_1], ProjectedPoint, aux_dist, Geom1[index_1].FastGetSolutionStepValue(NORMAL, 0));
              }  
 
-
              array_1d<double, 3> projected_local_coor_1;
              const bool in_out_1 = Geom2.IsInside(ProjectedPoint, projected_local_coor_1);
              array_1d<double, 3> local_coor_1 = Geom1.PointLocalCoordinates(local_coor_1, Geom1[index_1]);
@@ -347,10 +350,10 @@ public:
             array_1d<double,3> v1,v2;
 
             // Assuming plane X-Y
-            noalias(v1) = ZeroVector(3);
-            v1[2] = 1.0;
-
-            noalias(v2) = Geom[1].Coordinates() - Geom[0].Coordinates();
+            noalias(v1) = Geom[1].Coordinates() - Geom[0].Coordinates();
+            
+            noalias(v2) = ZeroVector(3);
+            v2[2] = 1.0;
             
             MathUtils<double>::CrossProduct(Normal,v1,v2);
 
