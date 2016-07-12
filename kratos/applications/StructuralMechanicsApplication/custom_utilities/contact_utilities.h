@@ -80,17 +80,10 @@ public:
                 ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, Geom1[index].FastGetSolutionStepValue(NORMAL, 0));
              }  
              
-             KRATOS_WATCH(ProjectedPoint.Coordinates());
-             KRATOS_WATCH(Geom2[0].Coordinates());
-             KRATOS_WATCH(Geom2[1].Coordinates());
-             
              array_1d<double, 3> result;
              contact_container.active_nodes_slave[index] = Geom2.IsInside(ProjectedPoint, result);
          }
 
-//          std::cout << "X0: "<< Geom1[0].Coordinate(1) << " Y0: " << Geom1[0].Coordinate(2) << " X1: "<< Geom1[1].Coordinate(1) << " Y1: " << Geom1[1].Coordinate(2) << std::endl;
-//          std::cout << "X0: "<< Geom2[0].Coordinate(1) << " Y0: " << Geom2[0].Coordinate(2) << " X1: "<< Geom2[1].Coordinate(1) << " Y1: " << Geom2[1].Coordinate(2) << std::endl;
-         
          if (dimension == 2)
          {
              if (number_nodes == 2)
@@ -111,7 +104,7 @@ public:
              // TODO: IMPLEMENT IN 3D
          }
          
-        contact_container.print();
+//         contact_container.print();
     }
 
     /***********************************************************************************/
