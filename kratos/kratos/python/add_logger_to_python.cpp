@@ -13,6 +13,7 @@
 
 // External includes
 #include <boost/python.hpp>
+#include <boost/python/raw_function.hpp>
 
 // Project includes
 #include "input_output/logger.h"
