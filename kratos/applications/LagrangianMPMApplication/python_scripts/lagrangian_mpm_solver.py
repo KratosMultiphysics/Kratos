@@ -1,5 +1,6 @@
 #importing the Kratos Library
 import KratosMultiphysics 
+import KratosMultiphysics.SolidMechanicsApplication 
 import KratosMultiphysics.ExternalSolversApplication 
 import KratosMultiphysics.LagrangianMPMApplication 
 #import KratosMultiphysics.SolidMechanicsApplication 
@@ -129,7 +130,7 @@ class LagrangianMPMSolver:
         self.conv_criteria.SetEchoLevel(self.settings["echo_level"].GetInt())
         print(self.conv_criteria)
         
-        self.time_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(0.0)
+        self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
     
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver) 
         
@@ -146,6 +147,8 @@ class LagrangianMPMSolver:
         
                                                          
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
+        (self.solver).Initialize()
+        
         #self.solver.Check() #TODO: define a correct checking in the element
         #self.Check()
         print ("lagrangian MPM solver initialization finished.")
