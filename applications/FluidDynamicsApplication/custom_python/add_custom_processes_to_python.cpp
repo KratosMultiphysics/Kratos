@@ -83,7 +83,6 @@ void AddCustomProcessesToPython()
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
     class_<SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases<Process>, boost::noncopyable >
     ("SpalartAllmarasTurbulenceModel", init < ModelPart&, LinearSolverType::Pointer, unsigned int, double, unsigned int, bool, unsigned int>())
