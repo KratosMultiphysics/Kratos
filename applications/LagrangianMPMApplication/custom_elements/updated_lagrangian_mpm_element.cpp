@@ -291,6 +291,10 @@ void UpdatedLagrangianMPMElement::CalculateElementalSystem( MatrixType& rLeftHan
 {
     KRATOS_TRY
 
+	const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dim = GetDomainSize();
+    unsigned int matrix_size = number_of_nodes * dim;
+
     //create and initialize element variables:
     GeneralVariables Variables;
 
@@ -324,15 +328,22 @@ void UpdatedLagrangianMPMElement::CalculateElementalSystem( MatrixType& rLeftHan
     this->SetGeneralVariables(Variables,Values);
 //KRATOS_WATCH(__LINE__);
     mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
+    
+    Vector disp0 = ZeroVector(matrix_size);
+    Vector disp1 = ZeroVector(matrix_size);
+    GetValuesVector(disp0,0);
+    GetValuesVector(disp1,1);
     Variables.integration_weight *= Variables.detFT; 
-    //if (this->Id() == 1)
-    //{
+    if (this->Id() == 1)
+    {
 		//std::cout<<"rVariables.N "<<Variables.N<<std::endl;
 		//std::cout<<"rVariables.DN_DX "<<Variables.DN_DX<<std::endl;
 		//std::cout<<"rVariables.integration_weight "<<Variables.integration_weight<<std::endl;
-		//std::cout<<"rVariables.StressVector "<<Variables.StressVector<<std::endl;
+		std::cout<<"rVariables.StressVector "<<Variables.StressVector<<std::endl;
+		std::cout<<"rVariables.StrainVector "<<Variables.StrainVector<<std::endl;
+		std::cout<<"B*GetValuesVector "<< prod(Variables.B,(disp0-disp1))<<std::endl;
 		//std::cout<<"rVariables.ConstitutiveMatrix "<<Variables.ConstitutiveMatrix<<std::endl;
-	//}
+	}
 //KRATOS_WATCH(__LINE__);
     this->CalculateAndAddLHS ( rLeftHandSideMatrix, Variables);
 //KRATOS_WATCH(__LINE__);
@@ -461,10 +472,11 @@ void UpdatedLagrangianMPMElement::CalculateAndAddInternalForces(VectorType& rRig
     VectorType InternalForces = rVariables.integration_weight * prod( trans( rVariables.B ), rVariables.StressVector );
 
     noalias( rRightHandSideVector ) -= InternalForces;
-    //if (this->Id() == 1)
-    //{
-		//std::cout<<"rRightHandSideVector "<<rRightHandSideVector<<std::endl;
-	//}
+    if (this->Id() == 1)
+    {
+		std::cout<<"rVariables.integration_weight "<<rVariables.integration_weight<<std::endl;
+		std::cout<<"rRightHandSideVector "<<rRightHandSideVector<<std::endl;
+	}
 
     KRATOS_CATCH( "" )
 }
@@ -621,17 +633,24 @@ void UpdatedLagrangianMPMElement::CalculateKinematics(GeneralVariables& rVariabl
 
     Matrix GradientDisp = ZeroMatrix(dimension, dimension);
     rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
-    GradientDisp = prod(trans(rVariables.DeltaPosition),rVariables.DN_DX); //here I'm using DN_DX of the previous time step
+    GradientDisp = prod(trans(rVariables.DeltaPosition),GetValue(SHAPE_FUNCTIONS_DERIVATIVES)); //here I'm using DN_DX of the previous time step
 
 //     KRATOS_WATCH( norm_frobenius(GradientDisp - rVariables.DN_DX) );
 
     noalias( rVariables.F ) = (I + GradientDisp);
+    if (this->Id() == 1)
+    {
+		std::cout<< "rVariables.DeltaPosition "<< rVariables.DeltaPosition<<std::endl;
+		std::cout<< "rVariables.DN_DX "<< rVariables.DN_DX<<std::endl;
+		std::cout<< "GradientDisp "<< GradientDisp <<std::endl;
+		std::cout<< "rVariables.F "<< rVariables.F <<std::endl;
+	}
     Matrix InvF;
 
     MathUtils<double>::InvertMatrix( rVariables.F, InvF, rVariables.detF );
     //Compute cartesian derivatives [dN/dx_n+1]
-    rVariables.DN_DX = prod( rVariables.DN_DX, InvF); //overwrites DX now is the current position dx
-
+    //rVariables.DN_DX = prod( rVariables.DN_DX, InvF); //overwrites DX now is the current position dx
+    rVariables.DN_DX = prod( GetValue(SHAPE_FUNCTIONS_DERIVATIVES), InvF);
     //Determinant of the Deformation Gradient F_n
 
     rVariables.detF0 = mDeterminantF0;
@@ -728,7 +747,11 @@ Matrix& UpdatedLagrangianMPMElement::CalculateDeltaPosition(Matrix & rDeltaPosit
     {
         const array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
         const array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-
+        if (GetGeometry()[i].Id() ==6)
+        {
+			std::cout << "PreviousDisplacement "<<PreviousDisplacement<<std::endl;
+			std::cout << "CurrentDisplacement "<<CurrentDisplacement<<std::endl;
+        }
         for ( unsigned int j = 0; j < dimension; j++ )
         {
             rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
@@ -826,7 +849,7 @@ void UpdatedLagrangianMPMElement::GetValuesVector( Vector& values, int Step )
         unsigned int index = i * dim;
         const array_1d<double,3>& disp = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT, Step );
         values[index] = disp[0];
-        values[index + 1] = disp[1];;
+        values[index + 1] = disp[1];
 
         if ( dim == 3 )
             values[index + 2] = disp[2];
