@@ -138,7 +138,7 @@ public:
                         }
                         
                         Condition const & rCondition = KratosComponents<Condition>::Get(EdgeConditionName);
-                        InterfacePart.Conditions().push_back( rCondition.Create(CondId++, (*elem_it).GetGeometry().Edges()[it_edge], (*elem_it).pGetProperties()));
+                        InterfacePart.Conditions().push_back( rCondition.Create(CondId++, (*elem_it).GetGeometry().Edges()[it_edge], (*elem_it).pGetProperties())); // NOTE: Remove pushback
                         if (ConditionName.find("Mortar") != std::string::npos)
                         {
                              Element::Pointer & pElem = const_cast<Condition &>(rCondition).GetValue(ELEMENT_POINTER);
@@ -192,7 +192,7 @@ public:
                         }
   
                         Condition const & rCondition = KratosComponents<Condition>::Get(FaceConditionName); 
-                        InterfacePart.Conditions().push_back( rCondition.Create(CondId++, (*elem_it).GetGeometry().Faces()[it_face], (*elem_it).pGetProperties()));
+                        InterfacePart.Conditions().push_back( rCondition.Create(CondId++, (*elem_it).GetGeometry().Faces()[it_face], (*elem_it).pGetProperties())); // NOTE: Remove pushback
                         if (ConditionName.find("Mortar") != std::string::npos)
                         {
                              Element::Pointer & pElem = const_cast<Condition &>(rCondition).GetValue(ELEMENT_POINTER);

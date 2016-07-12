@@ -805,7 +805,7 @@ void MortarContact2DCondition::MasterShapeFunctionValue(
     rVariables.IntegrationPointNormalGap = 0.0;
     PointType projected_gp_global;
     GeometryType& master_seg = rVariables.GetMasterElement( );
-    const array_1d<double,3>& normal = cond->GetValue( NORMAL );
+    const array_1d<double,3>& normal = cond->GetValue( NORMAL ); //TODO: Check if correct!!!!!
     
 //     const array_1d<double,3>& normal = this->GetValue( NORMAL );
     
@@ -816,22 +816,26 @@ void MortarContact2DCondition::MasterShapeFunctionValue(
 //     }
     
 //     array_1d<double,3> normal = ZeroVector(3);
-//     for( unsigned int iNode = 0; iNode < this->GetGeometry().PointsNumber(); ++iNode )
+//     for( unsigned int iNode = 0; iNode < GetGeometry().PointsNumber(); ++iNode )
 //     {
-//         normal += rVariables.N_Slave[iNode] * this->GetGeometry()[iNode].FastGetSolutionStepValue(NORMAL, 0); 
+//         normal += rVariables.N_Slave[iNode] * GetGeometry()[iNode].FastGetSolutionStepValue(NORMAL, 0); 
+// //         KRATOS_WATCH(GetGeometry()[iNode].FastGetSolutionStepValue(NORMAL, 0));
 //     }
     
 //     normal = cond->GetValue( NORMAL );
     
 //     KRATOS_WATCH(normal);
+//     KRATOS_WATCH(this->GetValue( NORMAL ));
     
 //     normal = normal/norm_2(normal); // It is suppossed to be already unitary (just in case)
     
     // Doing calculations with eta
     GeometryType::CoordinatesArrayType slave_gp_global;
-    this->GetGeometry( ).GlobalCoordinates( slave_gp_global, rSlaveIntegrationPoint );
+//     this->GetGeometry( ).GlobalCoordinates( slave_gp_global, rSlaveIntegrationPoint );
+    this->GetGeometry( ).GlobalCoordinates( slave_gp_global, local_point );
     
     double aux_dist = 0.0;
+//     ContactUtilities::ProjectDirection( master_seg, slave_gp_global, projected_gp_global, aux_dist, - normal );
     ContactUtilities::ProjectDirection( master_seg, slave_gp_global, projected_gp_global, aux_dist, normal );
     
     GeometryType::CoordinatesArrayType projected_gp_local;
@@ -842,6 +846,7 @@ void MortarContact2DCondition::MasterShapeFunctionValue(
     
     // Doing calculations with local xi
     this->GetGeometry( ).GlobalCoordinates( slave_gp_global, local_point );
+//     ContactUtilities::ProjectDirection( master_seg, slave_gp_global, projected_gp_global, rVariables.IntegrationPointNormalGap, - normal );
     ContactUtilities::ProjectDirection( master_seg, slave_gp_global, projected_gp_global, rVariables.IntegrationPointNormalGap, normal );
 }
 
@@ -872,41 +877,53 @@ void MortarContact2DCondition::CalculateDAndM(
     for ( unsigned int iNode = 0; iNode < num_slave_nodes; ++iNode )
     {
         gn[iNode] += rIntegrationWeight * Phi( iNode ) * gap * J_s;
-    }
-    
-    // Inactive Slave DOFs
-    for ( unsigned int i_inactive = 0; i_inactive < rVariables.GetInactiveSet().size( ); ++i_inactive )
-    {
-        const unsigned int iNode = rVariables.GetInactiveSet()[i_inactive];
-        const unsigned int i = i_inactive * dimension;
+        
+        const unsigned int i = iNode * dimension;
         
         D( i    , i     ) += rIntegrationWeight * Phi( iNode ) * N_s( iNode ) * J_s;
-        D( i + 1, i + 1 )  = D( i, i );
+        D( i + 1, i + 1 )  = D( i, i ); // NOTE: We can avoid this, because we are storing twice the same value
          
         for ( unsigned int jNode = 0; jNode < num_master_nodes; ++jNode )
         {
             const unsigned int j = jNode * dimension;
             M( i    , j     ) += rIntegrationWeight * Phi( iNode ) * N_m( jNode ) * J_s;
-            M( i + 1, j + 1 )  = M( i, j );
+            M( i + 1, j + 1 )  = M( i, j ); // NOTE: We can avoid this, because we are storing twice the same value
         }
-     }
-
-     // Active Slave DOFs
-     for ( unsigned int i_active = 0; i_active < rVariables.GetActiveSet().size( ); ++i_active )
-     {
-         const unsigned int iNode = rVariables.GetActiveSet()[i_active];
-         const unsigned int i = ( i_active + rVariables.GetInactiveSet().size( ) ) * dimension;    // Active follows slave
-
-         D( i    , i     ) += rIntegrationWeight * Phi( iNode ) * N_s( iNode ) * J_s;
-         D( i + 1, i + 1 )  = D( i, i );
-        
-         for ( unsigned int jNode = 0; jNode < num_master_nodes; ++jNode )
-         {
-             const unsigned int j = jNode * dimension;
-             M( i    , j     ) += rIntegrationWeight * Phi( iNode ) * N_m( jNode ) * J_s;
-             M( i + 1, j + 1 )  = M( i, j );
-         }
-     }
+    }
+    
+//     // Inactive Slave DOFs
+//     for ( unsigned int i_inactive = 0; i_inactive < rVariables.GetInactiveSet().size( ); ++i_inactive )
+//     {
+//         const unsigned int iNode = rVariables.GetInactiveSet()[i_inactive];
+//         const unsigned int i = i_inactive * dimension;
+//         
+//         D( i    , i     ) += rIntegrationWeight * Phi( iNode ) * N_s( iNode ) * J_s;
+//         D( i + 1, i + 1 )  = D( i, i );
+//          
+//         for ( unsigned int jNode = 0; jNode < num_master_nodes; ++jNode )
+//         {
+//             const unsigned int j = jNode * dimension;
+//             M( i    , j     ) += rIntegrationWeight * Phi( iNode ) * N_m( jNode ) * J_s;
+//             M( i + 1, j + 1 )  = M( i, j );
+//         }
+//      }
+// 
+//      // Active Slave DOFs
+//      for ( unsigned int i_active = 0; i_active < rVariables.GetActiveSet().size( ); ++i_active )
+//      {
+//          const unsigned int iNode = rVariables.GetActiveSet()[i_active];
+//          const unsigned int i = ( i_active + rVariables.GetInactiveSet().size( ) ) * dimension;    // Active follows slave
+// 
+//          D( i    , i     ) += rIntegrationWeight * Phi( iNode ) * N_s( iNode ) * J_s;
+//          D( i + 1, i + 1 )  = D( i, i );
+//         
+//          for ( unsigned int jNode = 0; jNode < num_master_nodes; ++jNode )
+//          {
+//              const unsigned int j = jNode * dimension;
+//              M( i    , j     ) += rIntegrationWeight * Phi( iNode ) * N_m( jNode ) * J_s;
+//              M( i + 1, j + 1 )  = M( i, j );
+//          }
+//      }
 }
 
 /***********************************************************************************/
@@ -952,7 +969,8 @@ void MortarContact2DCondition::CalculateAndAddLHS(
     {
         /* SINGLE LHS MATRIX */
         MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix( );
-        MatrixType LHS_contact_pair = ZeroMatrix(rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2());
+        const unsigned int pair_size = 2 * ( rVariables.GetMasterElement( ).PointsNumber( ) + GetGeometry( ).PointsNumber( ) + rVariables.GetActiveSet( ).size( ) );       
+        MatrixType LHS_contact_pair = ZeroMatrix(pair_size, pair_size);
         
         // Calculate
         this->CalculateAndAddMortarContactOperator( LHS_contact_pair, rVariables, ThisMortarConditionMatrices );
@@ -974,26 +992,24 @@ void MortarContact2DCondition::AssembleContactPairLHSToConditionSystem(
 {
     const unsigned int dimension = 2;
     const unsigned int num_slave_nodes = GetGeometry( ).PointsNumber( );
-    const unsigned int num_current_master_nodes = mThisMasterElements[rPairIndex]->GetGeometry( ).PointsNumber( );
-    const unsigned int num_current_active_nodes = CalculateNumberOfActiveNodesInContactPair( rPairIndex );
-    const unsigned int current_pair_size = dimension * ( num_current_master_nodes + num_slave_nodes +  num_current_active_nodes );
+    const unsigned int num_master_nodes = mThisMasterElements[rPairIndex]->GetGeometry( ).PointsNumber( );
+    const unsigned int num_active_nodes = CalculateNumberOfActiveNodesInContactPair( rPairIndex );
+    const unsigned int current_pair_size = dimension * ( num_master_nodes + num_slave_nodes +  num_active_nodes );
   
     // Find location of the piar's master DOFs in ConditionLHS
     unsigned int index_begin = 0;
-    if (rPairIndex > 0)
-    {
-        for ( unsigned int i_master_elem = 0; i_master_elem < rPairIndex - 1; ++i_master_elem ) 
-        {
-            index_begin += mThisMasterElements[i_master_elem]->GetGeometry( ).PointsNumber( );
-            index_begin += num_slave_nodes;
-            index_begin += CalculateNumberOfActiveNodesInContactPair( i_master_elem );
-        }
 
-        index_begin *= dimension;
+    for ( unsigned int i_master_elem = 0; i_master_elem < rPairIndex ; ++i_master_elem ) 
+    {
+        index_begin += mThisMasterElements[i_master_elem]->GetGeometry( ).PointsNumber( );
+        index_begin += num_slave_nodes;
+        index_begin += CalculateNumberOfActiveNodesInContactPair( i_master_elem );
     }
+
+    index_begin *= dimension;
   
-    const unsigned int aux_index = index_begin + current_pair_size;
-    subrange( rConditionLHS, index_begin, aux_index, index_begin, aux_index) = rPairLHS;
+    const unsigned int index_end = index_begin + current_pair_size;
+    subrange( rConditionLHS, index_begin, index_end, index_begin, index_end) += rPairLHS;
 }
 
 /***********************************************************************************/
@@ -1039,7 +1055,8 @@ void MortarContact2DCondition::CalculateAndAddRHS(
     {
         /* SINGLE LHS MATRIX */
         VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
-        VectorType RHS_contact_pair = ZeroVector(rRightHandSideVector.size());
+        const unsigned int pair_size = 2 * ( rVariables.GetMasterElement( ).PointsNumber( ) + GetGeometry( ).PointsNumber( ) + rVariables.GetActiveSet( ).size( ) ); 
+        VectorType RHS_contact_pair = ZeroVector(pair_size);
         
         // Calculate
         this->CalculateAndAddMortarContactOperator( RHS_contact_pair, rVariables, ThisMortarConditionMatrices );
@@ -1062,39 +1079,37 @@ void MortarContact2DCondition::AssembleContactPairRHSToConditionSystem(
 {
     const unsigned int dimension = 2;
     const unsigned int num_slave_nodes = GetGeometry( ).PointsNumber( );
-    const unsigned int num_current_master_nodes = mThisMasterElements[rPairIndex]->GetGeometry( ).PointsNumber( );
-    const unsigned int num_current_active_nodes = active_set.size();
-    const unsigned int current_pair_size = dimension * ( num_current_master_nodes + num_slave_nodes +  num_current_active_nodes );
+    const unsigned int num_master_nodes = mThisMasterElements[rPairIndex]->GetGeometry( ).PointsNumber( );
+    const unsigned int num_active_nodes = active_set.size();
+    const unsigned int current_pair_size = dimension * ( num_master_nodes + num_slave_nodes +  num_active_nodes );
   
     // Find location of the piar's master DOFs in ConditionRHS
     unsigned int index_begin = 0;
 
-    if (rPairIndex > 0)
+    for ( unsigned int i_master_elem = 0; i_master_elem < rPairIndex; ++i_master_elem )
     {
-        for ( unsigned int i_master_elem = 0; i_master_elem < rPairIndex - 1; ++i_master_elem )
-        {
-            index_begin += mThisMasterElements[i_master_elem]->GetGeometry( ).PointsNumber( );
-            index_begin += num_slave_nodes;
-            index_begin += CalculateNumberOfActiveNodesInContactPair( i_master_elem );
-        }
+        index_begin += mThisMasterElements[i_master_elem]->GetGeometry( ).PointsNumber( );
+        index_begin += num_slave_nodes;
+        index_begin += CalculateNumberOfActiveNodesInContactPair( i_master_elem );
     }
 
     index_begin *= dimension;
     const unsigned int index_end = index_begin + current_pair_size;
     
-    // Adding the gap to the RHS
-    const VectorType& gn = mThisWeightedGap[rPairIndex].gn;
-    unsigned int gap_index = dimension * ( num_current_master_nodes + num_slave_nodes);
-    
-   for (unsigned int index = 0; index < num_current_active_nodes; index++)
-   {
-       const array_1d<double, 3> gap_decomp = gn[active_set[index]] * GetGeometry()[index].FastGetSolutionStepValue(NORMAL, 0); 
-       rPairRHS[gap_index + index * dimension    ] -= gap_decomp[0];
-       rPairRHS[gap_index + index * dimension + 1] -= gap_decomp[1];
-   }
+//     // Adding the gap to the RHS
+//     const VectorType& gn = mThisWeightedGap[rPairIndex].gn;
+//     unsigned int gap_index = dimension * ( num_master_nodes + num_slave_nodes);
+//     
+//     for ( unsigned int i_active = 0; i_active < num_active_nodes; ++i_active ) 
+//     {
+//         const unsigned int iNode = active_set[i_active];
+//         const array_1d<double, 3> gap_decomp = gn[iNode] * GetGeometry()[iNode].FastGetSolutionStepValue(NORMAL, 0); 
+//         rPairRHS[gap_index + i_active * dimension    ] -= gap_decomp[0];
+//         rPairRHS[gap_index + i_active * dimension + 1] -= gap_decomp[1];
+//     }
     
     // Computing subrange
-    subrange( rConditionRHS, index_begin, index_end ) = rPairRHS;
+    subrange( rConditionRHS, index_begin, index_end ) += rPairRHS;
 }
 
 /***********************************************************************************/
@@ -1125,27 +1140,30 @@ void MortarContact2DCondition::CalculateAndAddMortarContactOperator(
     for ( unsigned int i_active = 0; i_active < num_active_nodes; ++i_active )
     {
         i = ( i_active + num_total_nodes ) * dimension;
+        const unsigned int iNode = rVariables.GetActiveSet()[i_active];
         
         for ( unsigned int j_master = 0; j_master < num_master_nodes; ++j_master )
         {
             // Fill the -M and -M' parts
             j = j_master * dimension;
-            double minus_M_ij = - M( i_active * dimension, j_master * dimension );
-            rLeftHandSideMatrix( i,     j     ) = minus_M_ij;
-            rLeftHandSideMatrix( i + 1, j + 1 ) = minus_M_ij;
+            double minus_M_ij = - M( iNode * dimension, j_master * dimension );
+//             double minus_M_ij = - M( i_active * dimension, j_master * dimension );
+            rLeftHandSideMatrix( i,     j     ) += minus_M_ij;
+            rLeftHandSideMatrix( i + 1, j + 1 ) += minus_M_ij;
                                                   
-            rLeftHandSideMatrix( j    , i     ) = minus_M_ij;
-            rLeftHandSideMatrix( j + 1, i + 1 ) = minus_M_ij;
+            rLeftHandSideMatrix( j    , i     ) += minus_M_ij;
+            rLeftHandSideMatrix( j + 1, i + 1 ) += minus_M_ij;
         }
       
         // Fill the D and D' parts
         j = ( i_active + num_master_nodes + num_inactive_nodes ) * dimension;
-        double D_ii = D( i_active * dimension, i_active * dimension );
-        rLeftHandSideMatrix( i,     j     ) = D_ii;
-        rLeftHandSideMatrix( i + 1, j + 1 ) = D_ii;
+        double D_ii = D( iNode * dimension, iNode * dimension );
+//         double D_ii = D( i_active * dimension, i_active * dimension );
+        rLeftHandSideMatrix( i,     j     ) += D_ii;
+        rLeftHandSideMatrix( i + 1, j + 1 ) += D_ii;
                                               
-        rLeftHandSideMatrix( j,     i     ) = D_ii;
-        rLeftHandSideMatrix( j + 1, i + 1 ) = D_ii;
+        rLeftHandSideMatrix( j,     i     ) += D_ii;
+        rLeftHandSideMatrix( j + 1, i + 1 ) += D_ii;
     }
 
     KRATOS_CATCH( "" );
@@ -1172,31 +1190,40 @@ void MortarContact2DCondition::CalculateAndAddMortarContactOperator(
 
     const Matrix& D = ThisMortarConditionMatrices.D;
     const Matrix& M = ThisMortarConditionMatrices.M;
-  
+    
     // Calculate the block of r_co
     unsigned int j = 0;
     array_1d<double, 3> lagrange_multiplier; 
     for ( unsigned int i_active = 0; i_active < num_active_nodes; ++i_active )
     {
-        const unsigned int i_node = rVariables.GetActiveSet( )[i_active];
-        noalias(lagrange_multiplier)  = GetGeometry( )[i_node].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER, 0); 
+        const unsigned int iNode = rVariables.GetActiveSet()[i_active];
+        noalias(lagrange_multiplier)  = GetGeometry( )[iNode].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER, 0); 
     
-        // Fill the lambda * M part
+        // Fill the - lambda * - M part
         for ( unsigned int j_master = 0; j_master < num_master_nodes; ++j_master )
         {
             j = j_master * dimension;
-            const double M_ij = M( i_node * dimension, j );
-            rRightHandSideVector[ j     ] += lagrange_multiplier[0] * M_ij;
-            rRightHandSideVector[ j + 1 ] += lagrange_multiplier[1] * M_ij;
+//             const double minus_M_ij = - M( i_active * dimension, j );
+            const double minus_M_ij = - M( iNode * dimension, j );
+            rRightHandSideVector[ j     ] -= lagrange_multiplier[0] * minus_M_ij;
+            rRightHandSideVector[ j + 1 ] -= lagrange_multiplier[1] * minus_M_ij;
         }
         
         // Fill the - lambda *  D part
         j = ( i_active + num_master_nodes + num_inactive_nodes ) * dimension;
-        const double D_ii = D( i_active * dimension, i_active * dimension );
+//         const double D_ii = D( i_active * dimension, i_active * dimension );
+        const double D_ii = D( iNode * dimension, iNode * dimension );
         rRightHandSideVector[ j     ] -= lagrange_multiplier[0] * D_ii;
         rRightHandSideVector[ j + 1 ] -= lagrange_multiplier[1] * D_ii;
+        
+        // Adding the gap to the RHS
+        const VectorType& gn = mThisWeightedGap[rVariables.GetMasterElementIndex( )].gn;
+        const array_1d<double, 3> gap_decomp = gn[iNode] * GetGeometry()[iNode].FastGetSolutionStepValue(NORMAL, 0); 
+        j = (num_total_nodes + i_active) * dimension; 
+        rRightHandSideVector[j    ] -= gap_decomp[0]; 
+        rRightHandSideVector[j + 1] -= gap_decomp[1];
     }
-
+    
     KRATOS_CATCH( "" );
 }
 
