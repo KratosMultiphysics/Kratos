@@ -1,0 +1,154 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "simple_patch_notmatching_a_test",
+        "model_part_name" : "Structure",
+        "domain_size"     : 2,
+        "time_step"       : 1.1,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "structural_mechanics_static_solver",
+        "echo_level"                         : 0,
+        "solution_type"                      : "Static",
+        "analysis_type"                      : "Non-Linear",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "contact_test/simple_patch_notmatching_a_test"
+        },
+        "compute_mortar_contact"             : true,
+        "block_builder"                      : true,
+        "line_search"                        : false,
+        "convergence_criterion"              : "Residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "linear_solver_settings"             : {
+            "solver_type" : "Super_LU",
+            "scaling"     : false,
+            "verbosity"   : 0
+        },
+        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto2","Parts_Parts_Auto3"],
+        "processes_sub_model_part_list"      : ["INTERFACE_Auto2","INTERFACE_Auto3","Parts_Parts_Auto2","Parts_Parts_Auto3","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","IMPOSE_DISP_Auto1"]
+    },
+    "constraints_process_list" : [{
+        "implemented_in_file"   : "impose_vector_value_by_components_process",
+        "implemented_in_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+            "variable_name"   : "DISPLACEMENT",
+            "is_fixed_x"      : false,
+            "is_fixed_y"      : true,
+            "is_fixed_z"      : true,
+            "value"           : [0.0,0.0,0.0]
+        }
+    },{
+        "implemented_in_file"   : "impose_vector_value_by_components_process",
+        "implemented_in_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+            "variable_name"   : "DISPLACEMENT",
+            "is_fixed_x"      : true,
+            "is_fixed_y"      : true,
+            "is_fixed_z"      : true,
+            "value"           : [0.0,0.0,0.0]
+        }
+    },{
+        "implemented_in_file"   : "impose_vector_value_by_components_process",
+        "implemented_in_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "IMPOSE_DISP_Auto1",
+            "variable_name"   : "DISPLACEMENT",
+            "is_fixed_x"      : false,
+            "is_fixed_y"      : true,
+            "is_fixed_z"      : false,
+            "value"           : [0.0,-0.01,0.0]
+        }
+    }
+    ],
+    "loads_process_list"       : [],
+    "list_other_processes" :[
+    {
+        "implemented_in_file"   : "contact_process",
+        "implemented_in_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+        "help"                  : "",
+        "process_name"          : "ContactProcess",
+        "Parameters"            : {
+            "model_part_name"             : "Structure",
+            "origin_model_part_name"      : "Parts_Parts_Auto3",
+            "destination_model_part_name" : "Parts_Parts_Auto2",
+            "origin_interface_nodes"      : "INTERFACE_Auto3",
+            "destination_interface_nodes" : "INTERFACE_Auto2",
+            "contact_type"                : "MortarMethod",
+            "search_factor"               : 2.0,
+            "allocation_size"             : 1000,
+            "max_number_results"          : 1000,
+            "type_search"                 : "InRadius",
+            "integration_order"           : 5
+        }
+    },
+    {
+        "implemented_in_file"   : "from_json_check_result_process",
+        "implemented_in_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables" : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "input_file_name" : "contact_test/simple_patch_notmatching_a_test_results.json",
+            "model_part_name"  : "INTERFACE_Auto3",
+            "time_frequency"   : 0.01
+        }
+    }
+    ],
+    "loads_process_list" : [],  
+    "json_check_process" : [
+    {
+        "implemented_in_file"   : "from_json_check_result_process",
+        "implemented_in_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables" : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "input_file_name" : "contact_test/simple_patch_notmatching_a_test_results.json",
+            "model_part_name"  : "INTERFACE_Auto3",
+            "time_frequency"   : 0.01
+        }
+    }
+    ],
+    "json_output_process" : [
+    {
+        "implemented_in_file"   : "json_output_process",
+        "implemented_in_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables" : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "output_file_name" : "contact_test/simple_patch_notmatching_a_test_results.json",
+            "model_part_name"  : "INTERFACE_Auto3",
+            "time_frequency"   : 0.01
+        }
+    }
+    ],
+    "restart_options"          : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "constraints_data"         : {
+        "incremental_load"         : false,
+        "incremental_displacement" : false
+    }
+}

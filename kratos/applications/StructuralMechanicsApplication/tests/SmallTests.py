@@ -78,3 +78,9 @@ class ShellT3ThinDrillingRollUpTests(StructrualMechanichsTestFactory):
     
 class SimplePatchTestContact(StructrualMechanichsTestFactory):
     file_name = "contact_test/simple_patch_test"
+    
+class SimplePatchNotMatchingATestContact(StructrualMechanichsTestFactory):
+    file_name = "contact_test/simple_patch_notmatching_a_test"
+    
+class SimplePatchNotMatchingBTestContact(StructrualMechanichsTestFactory):
+    file_name = "contact_test/simple_patch_notmatching_b_test"
