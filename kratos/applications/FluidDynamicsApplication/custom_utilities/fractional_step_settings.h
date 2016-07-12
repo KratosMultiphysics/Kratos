@@ -18,10 +18,8 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
-//#include "solving_strategies/schemes/residualbased_incremental_aitken_static_scheme.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
-//#include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "processes/process.h"
 
 // Application includes
@@ -156,7 +154,6 @@ public:
         else if ( rStrategyLabel == BaseType::Pressure )
         {
             // Pressure Builder and Solver
-//            BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> >(pLinearSolver, PRESSURE));
             BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (pLinearSolver));
             SchemePointerType pScheme = SchemePointerType(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
 
@@ -164,22 +161,6 @@ public:
             BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >
                                                                         (rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
         }
-//        else if ( rStrategyLabel == EddyViscosity )
-//        {
-//            // Solution scheme: Aitken iterations
-//            const double DefaultAitkenOmega = 1.0;
-//            SchemePointerType pScheme = SchemePointerType( new ResidualBasedIncrementalAitkenStaticScheme< TSparseSpace, TDenseSpace > (DefaultAitkenOmega) );
-
-//            // Convergence criteria
-//            const double NearlyZero = 1.0e-20;
-//            ConvergenceCriteriaPointerType pConvCriteria = ConvergenceCriteriaPointerType( new ResidualCriteria<TSparseSpace,TDenseSpace>(Tolerance,NearlyZero) );
-
-//            // Builder and solver
-//            BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> > (pLinearSolver, TURBULENT_VISCOSITY));
-
-//            // Strategy
-//            mStrategies[EddyViscosity] = StrategyPointerType( new ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(mrModelPart,pScheme,pLinearSolver,pConvCriteria,pBuildAndSolver,MaxIter,CalculateReactions,mReformDofSet,mMoveMeshFlag));
-//        }
         else
         {
             KRATOS_THROW_ERROR(std::runtime_error,"Error in FractionalStepSettings: Unknown strategy label.","");
