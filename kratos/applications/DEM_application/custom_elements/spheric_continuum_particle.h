@@ -38,7 +38,7 @@ namespace Kratos
     class SphericContinuumParticle : public SphericParticle
     {
     public:
-      
+
         /// Pointer definition of SphericContinuumParticle
         KRATOS_CLASS_POINTER_DEFINITION(SphericContinuumParticle);
 
@@ -50,30 +50,30 @@ namespace Kratos
         SphericContinuumParticle(IndexType NewId, GeometryType::Pointer pGeometry);
         SphericContinuumParticle(IndexType NewId, NodesArrayType const& ThisNodes);
         SphericContinuumParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
-      
+
         Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
-         
+
         /// Destructor
         virtual ~SphericContinuumParticle();
-               
+
         void SetInitialSphereContacts(ProcessInfo& r_process_info);
         void SetInitialFemContacts();
         void CreateContinuumConstitutiveLaws();
-        void FinalizeSolutionStep(ProcessInfo& r_process_info) override;     
+        void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
         void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
 
         void ReorderAndRecoverInitialPositionsAndFilter(std::vector<SphericParticle*>& mTempNeighbourElements);
         void ReorderFEMneighbours();
-        
+
         //virtual void ComputeNewRigidFaceNeighboursHistoricalData();
 
         virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) override;
         virtual double CalculateMaxSearchDistance(const bool has_mpi, const ProcessInfo& r_process_info);
         virtual bool OverlappedParticleRemoval();
-        virtual void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info);      
-        virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalElasticContactForce[3], 
+        virtual void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info);
+        virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalElasticContactForce[3],
                                                 double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps);
-           
+
         virtual void ContactAreaWeighting();
         virtual double EffectiveVolumeRadius();
         virtual double GetInitialDelta(int index);
@@ -85,7 +85,7 @@ namespace Kratos
             buffer << "SphericCosntinuumParticle" ;
             return buffer.str();
         }
-      
+
         /// Print information about this object
         virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "SphericContinuumParticle";}
 
@@ -99,34 +99,34 @@ namespace Kratos
         std::vector<int> mIniNeighbourFailureId;
         std::vector<double> mIniNeighbourDelta;
 
-        
+
         unsigned int mContinuumInitialNeighborsSize;
         unsigned int mInitialNeighborsSize;
         std::vector<Kratos::DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
         std::vector<array_1d<double, 3> > mArrayOfOldDeltaDisplacements;
-        Matrix* mOldSymmStressTensor; 
+        Matrix* mOldSymmStressTensor;
 
     protected:
 
         SphericContinuumParticle();
-                
+
         virtual void Initialize(const ProcessInfo& r_process_info) override;
-        virtual double GetInitialDeltaWithFEM(int index) override;              
+        virtual double GetInitialDeltaWithFEM(int index) override;
         virtual void ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
-                                                   array_1d<double, 3>& rContactForce, 
-                                                   array_1d<double, 3>& InitialRotaMoment, 
-                                                   ProcessInfo& r_process_info, 
+                                                   array_1d<double, 3>& rContactForce,
+                                                   array_1d<double, 3>& InitialRotaMoment,
+                                                   ProcessInfo& r_process_info,
                                                    const double dt,
-                                                   const bool multi_stage_RHS) final;         
+                                                   const bool multi_stage_RHS) final;
 
         virtual void AddContributionToRepresentativeVolume(const double distance,
                                                     const double radius_sum,
                                                     const double contact_area);
 
-        double*                     mSkinSphere; 
+        double*                     mSkinSphere;
         std::vector<int>            mFemIniNeighbourIds;
-        std::vector<double>         mFemIniNeighbourDelta;  
-               
+        std::vector<double>         mFemIniNeighbourDelta;
+
     private:
 
         friend class Serializer;
@@ -137,7 +137,10 @@ namespace Kratos
             //rSerializer.save("mContinuumGroup",mContinuumGroup);
             //rSerializer.save("mIniNeighbourIds",mIniNeighbourIds);
             //rSerializer.save("mSymmStressTensor",mSymmStressTensor);
-            rSerializer.save("mContinuumInitialNeighborsSize",mContinuumInitialNeighborsSize);                        
+            rSerializer.save("mContinuumInitialNeighborsSize",mContinuumInitialNeighborsSize);
+            if (this->Is(DEMFlags::HAS_STRESS_TENSOR)){
+                rSerializer.save("mOldSymmStressTensor", mOldSymmStressTensor);
+            }
         }
 
         virtual void load(Serializer& rSerializer) override
@@ -145,20 +148,25 @@ namespace Kratos
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SphericParticle );
             //rSerializer.load("mContinuumGroup",mContinuumGroup);
             //rSerializer.load("mIniNeighbourIds",mIniNeighbourIds);
-            //rSerializer.load("mSymmStressTensor",mSymmStressTensor); 
-            rSerializer.load("mContinuumInitialNeighborsSize",mContinuumInitialNeighborsSize); 
-            mContinuumGroup = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP); 
+            //rSerializer.load("mSymmStressTensor",mSymmStressTensor);
+            rSerializer.load("mContinuumInitialNeighborsSize",mContinuumInitialNeighborsSize);
+            mContinuumGroup = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);
             mSkinSphere     = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
+            if (this->Is(DEMFlags::HAS_STRESS_TENSOR)){
+                mOldSymmStressTensor  = new Matrix(3,3);
+                *mOldSymmStressTensor = ZeroMatrix(3,3);
+                rSerializer.load("mOldSymmStressTensor", mOldSymmStressTensor);
+            }
         }
-            
+
         /* Assignment operator
         SphericContinuumParticle& operator=(SphericContinuumParticle const& rOther) { return *this; }
         Copy constructor
         SphericContinuumParticle(SphericContinuumParticle const& rOther) { *this = rOther; }
         */
 
-    }; // Class SphericContinuumParticle 
-        
+    }; // Class SphericContinuumParticle
+
     /// input stream function
     inline std::istream& operator >> (std::istream& rIStream, SphericContinuumParticle& rThis) {return rIStream;}
 
@@ -171,6 +179,4 @@ namespace Kratos
     }
 } // namespace Kratos
 
-#endif // KRATOS_SPHERIC_CONTINUUM_PARTICLE_H_INCLUDED defined 
-
-
+#endif // KRATOS_SPHERIC_CONTINUUM_PARTICLE_H_INCLUDED defined
