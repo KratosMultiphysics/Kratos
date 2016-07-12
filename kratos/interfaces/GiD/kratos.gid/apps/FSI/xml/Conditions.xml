@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ConditionList>
-    <ConditionItem n="DISPLACEMENT" pn="Displacement" ImplementedInFile=".cpp" Interval="Total"
+  <ConditionItem n="DISPLACEMENT" pn="ALE mesh displacement BC" ImplementedInFile=".cpp" Interval="Total"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="3D" LocalSpaceDimension="1" SkinConditions="False" VariableName="DISPLACEMENT" App="Fluid"
-	ElementType="Point,Line,Surface,Volume" ProcessName="ImposeVectorValueByComponentsProcess" help="A" unit_magnitude="L" units="m">
+	LocalSpaceDimension="1" SkinConditions="False" VariableName="DISPLACEMENT" App="Fluid"
+	ElementType="Point,Line" ProcessName="ImposeVectorValueByComponentsProcess" help="Process to set custom mesh displacement conditions." unit_magnitude="L" units="m">
     <TopologyFeatures>
     </TopologyFeatures>
     <outputs>
       <parameter n="REACTION" pn="Reaction" v="Yes"/>
     </outputs>
   </ConditionItem>
-    <ConditionItem n="FluidNoSlipInterface2D" pn="FSI fluid interface" ImplementedInFile=".cpp"
+  
+  <ConditionItem n="FluidNoSlipInterface2D" pn="FSI fluid interface" ImplementedInFile=".cpp" Interval="False"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" VariableName="IS_INTERFACE" App="Fluid"
 	ElementType="Line" ProcessName="SetInterfaceProcess" help="Process to set the interface flag. NOTE THAT THE DEPRECATED FLAG IS INTERFACE IS USED MOVE TO THE INTERFACE ONE ASAP">
@@ -18,7 +19,8 @@
       <item  GeometryType="Line" nodes="2" KratosName="WallCondition2D2N"/>
     </TopologyFeatures>
   </ConditionItem>
-    <ConditionItem n="Interface2D" pn="FSI structure interface" ImplementedInFile=".cpp"
+  
+  <ConditionItem n="Interface2D" pn="FSI structure interface" ImplementedInFile=".cpp" Interval="False"
 	ImplementedInApplication="StructuralMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" VariableName="IS_INTERFACE" App="Structural"
 	ElementType="Line" ProcessName="SetInterfaceProcess" help="Process to set the interface flag. NOTE THAT THE DEPRECATED FLAG IS INTERFACE IS USED MOVE TO THE INTERFACE ONE ASAP">
@@ -26,7 +28,8 @@
       <item  GeometryType="Line" nodes="2" KratosName="Condition2D2N"/>
     </TopologyFeatures>
   </ConditionItem>
-    <ConditionItem n="FluidNoSlipInterface3D" pn="FSI fluid interface" ImplementedInFile=".cpp"
+  
+  <ConditionItem n="FluidNoSlipInterface3D" pn="FSI fluid interface" ImplementedInFile=".cpp" Interval="False"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="1" SkinConditions="True" VariableName="IS_INTERFACE" App="Fluid"
 	ElementType="Surface" ProcessName="SetInterfaceProcess" help="Process to set the interface flag. NOTE THAT THE DEPRECATED FLAG IS INTERFACE IS USED MOVE TO THE INTERFACE ONE ASAP">
@@ -35,7 +38,8 @@
       <item  GeometryType="Quadrilateral" nodes="4" KratosName="WallCondition3D4N"/>
     </TopologyFeatures>
   </ConditionItem>
-    <ConditionItem n="Interface3D" pn="FSI structure interface" ImplementedInFile=".cpp"
+  
+  <ConditionItem n="Interface3D" pn="FSI structure interface" ImplementedInFile=".cpp" Interval="False"
 	ImplementedInApplication="StructuralMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="1" SkinConditions="True" VariableName="IS_INTERFACE" App="Structural"
 	ElementType="Surface" ProcessName="SetInterfaceProcess" help="Process to set the interface flag. NOTE THAT THE DEPRECATED FLAG IS INTERFACE IS USED MOVE TO THE INTERFACE ONE ASAP">
@@ -44,4 +48,5 @@
       <item  GeometryType="Quadrilateral" nodes="4" KratosName="Condition3D4N"/>
     </TopologyFeatures>
   </ConditionItem>
+  
 </ConditionList>
