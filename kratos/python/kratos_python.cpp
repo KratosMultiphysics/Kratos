@@ -67,6 +67,7 @@
 #include "add_search_strategies_to_python.h"
 #include "add_kratos_parameters_to_python.h"
 #include "add_testing_to_python.h"
+#include "add_logger_to_python.h"
 
 namespace Kratos
 {
@@ -77,7 +78,7 @@ namespace Python
 char const* greet()
 {
 	std::stringstream header;
-	header << "Hello, I am Kratos Multi-Physics " << KRATOS_VERSION <<" ;-)"; 
+	header << "Hello, I am Kratos Multi-Physics " << KRATOS_VERSION <<" ;-)";
     return header.str().c_str();
 }
 
@@ -128,9 +129,10 @@ BOOST_PYTHON_MODULE(Kratos)
     AddParallelLinearSolversToPython();
     AddMatrixMarketInterfaceToPython();
     AddKratosParametersToPython();
-    
+
     AddSearchStrategiesToPython();
-	AddTestingToPython();
+    AddTestingToPython();
+    AddLoggerToPython();
 
     def("Hello", greet);
 }
@@ -139,5 +141,3 @@ BOOST_PYTHON_MODULE(Kratos)
 }  // namespace Python.
 
 }  // namespace Kratos.
-
-
