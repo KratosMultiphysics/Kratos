@@ -1472,9 +1472,6 @@ public:
         return mpGeometryData->ShapeFunctionsValues();
     }
 
-
-
-
     /** This method gives all non-zero shape functions values
     evaluated at the rCoordinates provided
 
@@ -1496,14 +1493,6 @@ public:
                             "Calling base class ShapeFunctionsValues method instead of derived class one. Please check the definition of derived class." , *this );
         return rResult;
     }
-
-
-
-
-
-
-
-
 
     /** This method gives all shape functions values evaluated in all
     integration points of given integration method. There is no
