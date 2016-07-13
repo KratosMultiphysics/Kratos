@@ -1422,7 +1422,7 @@ protected:
                                       double ElemSize,
                                       const ProcessInfo &rProcessInfo)
     {
-        double Csmag = this->GetValue(C_SMAGORINSKY);
+        const double Csmag = (static_cast< const VMS<TDim> * >(this) )->GetValue(C_SMAGORINSKY);
         double Viscosity = 0.0;
         this->EvaluateInPoint(Viscosity,VISCOSITY,rN);
 
