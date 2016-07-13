@@ -617,7 +617,7 @@ public:
     {
         if(rResult.size() != 2)
         {
-            rResult.resize(2,false);
+            rResult.resize(2, false);
         }
 
         rResult[0] =  0.5 * ( 1.0 - rCoordinates[0]);
@@ -632,9 +632,9 @@ public:
         switch ( ShapeFunctionIndex )
         {
         case 0:
-            return( 0.5*( 1.0 - rPoint[0] ) );
+            return( 0.5 * ( 1.0 - rPoint[0] ) );
         case 1:
-            return( 0.5*( 1.0 + rPoint[0] ) );
+            return( 0.5 * ( 1.0 + rPoint[0] ) );
         default:
             KRATOS_THROW_ERROR( std::logic_error,
                           "Wrong index of shape function!" ,
@@ -644,7 +644,9 @@ public:
         return 0;
     }
 
-
+    ///@}
+    ///@name Shape Function Integration Points Gradient
+    ///@{
 
     virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod ) const
     {
@@ -729,11 +731,15 @@ public:
     virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
             const CoordinatesArrayType& rPoint ) const
     {
-        //setting up result matrix
-        rResult.resize( 2, 1 );
+        // Setting up result matrix
+        if(rResult.size1() != 2 || rResult.size2() != 1)
+        {
+            rResult.resize( 2, 1, false );
+        }
         noalias( rResult ) = ZeroMatrix( 2, 1 );
-        rResult( 0, 0 ) = -0.5;
-        rResult( 1, 0 ) =  0.5;
+        rResult( 0, 0 ) = - 0.5;
+        rResult( 1, 0 ) =   0.5;
+
         return( rResult );
     }
 
@@ -744,7 +750,10 @@ public:
      */
     virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const
     {
-        rResult.resize( 2, 1 );
+        if(rResult.size1() != 2 || rResult.size2() != 1)
+        {
+            rResult.resize( 2, 1, false );
+        }
         noalias( rResult ) = ZeroMatrix( 2, 1 );
         rResult( 0, 0 ) = -1.0;
         rResult( 1, 0 ) =  1.0;
@@ -761,7 +770,10 @@ public:
      */
     virtual Matrix& ShapeFunctionsGradients( Matrix& rResult, CoordinatesArrayType& rPoint )
     {
-        rResult.resize( 2, 1 );
+        if(rResult.size1() != 2 || rResult.size2() != 1)
+        {
+            rResult.resize( 2, 1, false );
+        }
         noalias( rResult ) = ZeroMatrix( 2, 1 );
 
         rResult( 0, 0 ) = - 0.5;

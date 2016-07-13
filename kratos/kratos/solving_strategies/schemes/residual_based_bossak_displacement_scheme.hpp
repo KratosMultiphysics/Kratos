@@ -99,7 +99,7 @@ public:
         // std::cout << " MECHANICAL SCHEME: The Bossak Time Integration Scheme [alpha_m= " << mAlpha.m << " beta= " << mNewmark.beta << " gamma= " << mNewmark.gamma << "]" <<std::endl;
 
         // Allocate auxiliary memory
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
 
         mMatrix.M.resize(NumThreads);
         mMatrix.D.resize(NumThreads);
@@ -162,17 +162,17 @@ public:
 
         // std::cout << " Update " << std::endl;
 
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
 
         // Update of displacement (by DOF)
         OpenMPUtils::PartitionVector DofPartition;
         OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofPartition);
 
-        const int ndof = static_cast<int>(rDofSet.size());
+        const unsigned int ndof = static_cast<int>(rDofSet.size());
         typename DofsArrayType::iterator DofBegin = rDofSet.begin();
 
         #pragma omp parallel for firstprivate(DofBegin)
-        for(int i = 0;  i < ndof; i++)
+        for(unsigned int i = 0;  i < ndof; i++)
         {
             typename DofsArrayType::iterator itDof = DofBegin + i;
 
@@ -186,11 +186,11 @@ public:
         OpenMPUtils::PartitionVector NodePartition;
         OpenMPUtils::DivideInPartitions(r_model_part.Nodes().size(), NumThreads, NodePartition);
 
-        const int nnodes = static_cast<int>(r_model_part.Nodes().size());
+        const unsigned int nnodes = static_cast<int>(r_model_part.Nodes().size());
         NodesArrayType::iterator NodeBegin = r_model_part.Nodes().begin();
 
         #pragma omp parallel for firstprivate(NodeBegin)
-        for(int i = 0;  i < nnodes; i++)
+        for(unsigned int i = 0;  i < nnodes; i++)
         {
             array_1d<double, 3 > DeltaDisplacement;
 
@@ -237,15 +237,15 @@ public:
         const double DeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
 
         // Updating time derivatives (nodally for efficiency)
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector NodePartition;
         OpenMPUtils::DivideInPartitions(r_model_part.Nodes().size(), NumThreads, NodePartition);
 
-        const int nnodes = static_cast<int>( r_model_part.Nodes().size() );
+        const unsigned int nnodes = static_cast<int>( r_model_part.Nodes().size() );
         NodesArrayType::iterator NodeBegin = r_model_part.Nodes().begin();
 
         #pragma omp parallel for firstprivate(NodeBegin)
-        for(int i = 0;  i< nnodes; i++)
+        for(unsigned int i = 0;  i< nnodes; i++)
         {
             array_1d<double, 3 > DeltaDisplacement;
 
@@ -340,15 +340,15 @@ public:
     {
         KRATOS_TRY;
 
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
         OpenMPUtils::DivideInPartitions(rModelPart.Elements().size(), NumThreads, ElementPartition);
 
-        const int nelem = static_cast<int>(rModelPart.Elements().size());
+        const unsigned int nelem = static_cast<int>(rModelPart.Elements().size());
         ElementsArrayType::iterator ElemBegin = rModelPart.Elements().begin();
 
         #pragma omp parallel for
-        for(int i = 0;  i < nelem; i++)
+        for(unsigned int i = 0;  i < nelem; i++)
         {
             ElementsArrayType::iterator itElem = ElemBegin + i;
 
@@ -376,15 +376,15 @@ public:
             KRATOS_THROW_ERROR( std::logic_error, "Before initilizing Conditions, initialize Elements FIRST", "" );
         }
 
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ConditionPartition;
         OpenMPUtils::DivideInPartitions(rModelPart.Conditions().size(), NumThreads, ConditionPartition);
 
-        const int ncond = static_cast<int>(rModelPart.Conditions().size());
+        const unsigned int ncond = static_cast<int>(rModelPart.Conditions().size());
         ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin();
 
         #pragma omp parallel for
-        for(int i = 0;  i < ncond; i++)
+        for(unsigned int i = 0;  i < ncond; i++)
         {
             ConditionsArrayType::iterator itCond = CondBegin + i;
 
@@ -463,15 +463,15 @@ public:
         ElementsArrayType& rElements = rModelPart.Elements();
         ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
         OpenMPUtils::DivideInPartitions(rElements.size(), NumThreads, ElementPartition);
 
-        const int nelem = static_cast<int>( rModelPart.Elements().size() );
+        const unsigned int nelem = static_cast<int>( rModelPart.Elements().size() );
         ElementsArrayType::iterator ElemBegin = rModelPart.Elements().begin();
 
         #pragma omp parallel for
-        for(int i = 0;  i < nelem; i++)
+        for(unsigned int i = 0;  i < nelem; i++)
         {
             ElementsArrayType::iterator itElem = ElemBegin + i;
 
@@ -483,11 +483,11 @@ public:
         OpenMPUtils::PartitionVector ConditionPartition;
         OpenMPUtils::DivideInPartitions(rConditions.size(), NumThreads, ConditionPartition);
 
-        const int ncond = static_cast<int>( rModelPart.Conditions().size() );
+        const unsigned int ncond = static_cast<int>( rModelPart.Conditions().size() );
         ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin();
 
         #pragma omp parallel for
-        for(int i = 0;  i < ncond; i++)
+        for(unsigned int i = 0;  i < ncond; i++)
         {
             ConditionsArrayType::iterator itCond = CondBegin + i;
 
@@ -654,7 +654,7 @@ public:
 
         int thread = OpenMPUtils::ThisThread();
 
-        //Initializing the non linear iteration for the current element
+        // Initializing the non linear iteration for the current element
         //(rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
 
         // Basic operations for the element considered
@@ -670,7 +670,7 @@ public:
 
         AddDynamicsToRHS  (rCurrentCondition, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
 
-        //AssembleTimeSpaceLHS_Condition(rCurrentCondition, LHS_Contribution,DampMatrix, MassMatrix,CurrentProcessInfo);
+        // AssembleTimeSpaceLHS_Condition(rCurrentCondition, LHS_Contribution,DampMatrix, MassMatrix,CurrentProcessInfo);
 
         KRATOS_CATCH( "" );
     }
@@ -693,10 +693,10 @@ public:
 
         int thread = OpenMPUtils::ThisThread();
 
-        //Initializing the non linear iteration for the current condition
+        // Initializing the non linear iteration for the current condition
         //(rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
 
-        //basic operations for the element considered
+        // Basic operations for the element considered
         (rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
         (rCurrentCondition) -> EquationIdVector(EquationId, CurrentProcessInfo);

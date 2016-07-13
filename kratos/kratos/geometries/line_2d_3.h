@@ -689,13 +689,14 @@ public:
         return 0;
     }
 
-
+    ///@}
+    ///@name Shape Function Integration Points Gradient
+    ///@{
 
     virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod ) const
     {
         KRATOS_THROW_ERROR( std::logic_error, "Jacobian is not square" , "" );
     }
-
 
     ///@}
     ///@name Input and output
@@ -793,12 +794,15 @@ public:
     virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
             const CoordinatesArrayType& rPoint ) const
     {
-        //setting up result matrix
-        rResult.resize( 3, 1 );
+        // Setting up result matrix
+        if(rResult.size1() != 3 || rResult.size2() != 1)
+        {
+            rResult.resize( 3, 1, false );
+        }
         noalias( rResult ) = ZeroMatrix( 3, 1 );
-        rResult( 0, 0 ) = rPoint[0] - 0.5;
-        rResult( 2, 0 ) = -2.0 * rPoint[0];
-        rResult( 1, 0 ) = rPoint[0] + 0.5;
+        rResult( 0, 0 ) =  rPoint[0] - 0.5;
+        rResult( 1, 0 ) =  rPoint[0] + 0.5;
+        rResult( 2, 0 ) = -rPoint[0] * 2.0;
         return( rResult );
     }
 
@@ -809,11 +813,14 @@ public:
      */
     virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const
     {
-        rResult.resize( 3, 1 );
+        if(rResult.size1() != 3 || rResult.size2() != 1)
+        {
+            rResult.resize( 3, 1, false );
+        }
         noalias( rResult ) = ZeroMatrix( 3, 1 );
         rResult( 0, 0 ) = -1.0;
-        rResult( 2, 0 ) =  0.0;
         rResult( 1, 0 ) =  1.0;
+        rResult( 2, 0 ) =  0.0;
         return rResult;
     }
 
@@ -827,12 +834,15 @@ public:
      */
     virtual Matrix& ShapeFunctionsGradients( Matrix& rResult, CoordinatesArrayType& rPoint )
     {
-        rResult.resize( 3, 1 );
+        if(rResult.size1() != 3 || rResult.size2() != 1)
+        {
+            rResult.resize( 3, 1, false );
+        }
         noalias( rResult ) = ZeroMatrix( 3, 1 );
 
-        rResult( 0, 0 ) = rPoint[0] - 0.5;
-        rResult( 2, 0 ) = -2.0 * rPoint[0];
-        rResult( 1, 0 ) = rPoint[0] + 0.5;
+        rResult( 0, 0 ) =  rPoint[0] - 0.5;
+        rResult( 1, 0 ) =  rPoint[0] + 0.5;
+        rResult( 2, 0 ) = -rPoint[0] * 2.0;
         return rResult;
     }
 
