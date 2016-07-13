@@ -18,7 +18,8 @@ proc ::Fluid::Init { } {
     set ::Model::ValidSpatialDimensions [list 2D 3D]
     ::spdAux::CreateDimensionWindow
     
-    dict set attributes UseIntervals 1
+    dict set attributes UseIntervals 0
+    if {$::Kratos::kratos_private(DevMode) eq "dev"} {dict set attributes UseIntervals 1}
 }
 
 proc ::Fluid::LoadMyFiles { } {

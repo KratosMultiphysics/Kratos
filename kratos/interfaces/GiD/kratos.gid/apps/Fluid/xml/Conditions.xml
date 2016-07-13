@@ -33,7 +33,7 @@
   <ConditionItem n="Outlet2D" pn="Outlet pressure" ImplementedInFile=".cpp" Interval="Total"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" VariableName="PRESSURE" App="Fluid"
-	ElementType="Point,Line" ProcessName="ImposeScalarValueProcess" help=""  units="Pa" unit_magnitude="P">
+	ElementType="Point,Line" ProcessName="ApplyOutletProcess" help=""  units="Pa" unit_magnitude="P">
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="WallCondition2D2N"/>
       <item  GeometryType="Point" nodes="1" KratosName="WallCondition2D1N"/>
@@ -49,7 +49,7 @@
   <ConditionItem n="Outlet3D" pn="Outlet pressure" ImplementedInFile=".cpp" Interval="Total"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="2" SkinConditions="True" VariableName="PRESSURE" App="Fluid"
-	ElementType="Point,Line,Surface" ProcessName="ImposeScalarValueProcess" help=""  units="Pa" unit_magnitude="P">
+	ElementType="Point,Line,Surface" ProcessName="ApplyOutletProcess" help=""  units="Pa" unit_magnitude="P">
     <TopologyFeatures>
       <item  GeometryType="Triangle" nodes="3" KratosName="WallCondition3D3N"/>
       <item  GeometryType="Line" nodes="2" KratosName="WallCondition3D2N"/>

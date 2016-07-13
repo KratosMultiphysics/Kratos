@@ -6,34 +6,29 @@
 		implemented_in_module="KratosMultiphysics.FluidDynamicsApplication" check="DirectorVectorNonZero direction"
         help="This process fixes the velocity values introduced in the interface. All the components are fixed.
               The values introduced by the user are directly imposed (no normalization of the vector)." >
-    <inputs>
-        <parameter n="direction" pn="Value" type="vector" v="1.0,0.0,0.0" />
-    </inputs>
+		<inputs>
+			<parameter n="direction" pn="Value" type="vector" v="1.0,0.0,0.0" />
+		</inputs>
     </Process>
 
-
-<!--
-The OutletProcess has been substituted by the ImposedScalarValueProcess in the core
--->
-<!--
     <Process n="ApplyOutletProcess" pn="Scalar value" implemented_in_file="impose_scalar_value_process"
         implemented_in_module="KratosMultiphysics.FluidDynamicsApplication">
-    <inputs>
-        <parameter n="value" pn="Pressure" type="double" unit_magnitude="P" units="Pa"/>
-    </inputs>
+		<inputs>
+			<parameter n="PressureType" pn="Pressure type" type="combo" v="Constant" values="Constant,Hydrostatic" help="Pressure will be setted.." state="[ShowInMode Developer]"/>
+			<parameter n="value" pn="Pressure" type="double" unit_magnitude="P" units="Pa"/>
+		</inputs>
     </Process>
--->
-  
+
     <Process n="ApplySlipProcess" pn="Scalar value" implemented_in_file="apply_slip_process"
         implemented_in_module="KratosMultiphysics.FluidDynamicsApplication">
-    <inputs>
-    </inputs>
+		<inputs>
+		</inputs>
     </Process>
   
     <Process n="ApplyNoSlipProcess" pn="Scalar value" implemented_in_file="apply_noslip_process"
         implemented_in_module="KratosMultiphysics.FluidDynamicsApplication">
-    <inputs>
-    </inputs>
+		<inputs>
+		</inputs>
     </Process>
   
     <Process n="ApplyConstantVectorValueProcess" pn="Vector value" implemented_in_file="process_factory"

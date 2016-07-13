@@ -786,6 +786,8 @@ proc spdAux::injectConditions { basenode args} {
             set v [$in getDv]
             set fix [$in getFixity]
             set help [$in getHelp]
+            set state [$in getAttribute "state"]
+            if {$state eq ""} {set state "normal"}
             foreach key [$ld getDefaults $inName] {
                 set $key [$ld getDefault $inName $key]
             }
@@ -807,7 +809,7 @@ proc spdAux::injectConditions { basenode args} {
                 if {$fix ne 0} {
                     append node "<value n='Fix' pn='$fix' v='1' values='1,0' help=''/>"
                 }
-                append node "<value n='$inName' pn='$pn' v='$v' values='$values'  help='$help'/>"
+                append node "<value n='$inName' pn='$pn' v='$v' values='$values' state='$state' help='$help'/>"
             } elseif { $type eq "bool" } {
                 set values "true,false"
                 if {$fix ne 0} {
