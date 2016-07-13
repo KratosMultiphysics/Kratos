@@ -119,11 +119,16 @@ proc Model::ParseInputParamNode {st in} {
     if {$fi eq ""} {set fi 0}
     $input setFixity $fi
     if {[$in hasChildNodes]} {$input setActualize 1}
+    foreach att [$in attributes] {
+        #W "$n $att"
+        $input addAttribute $att [$in getAttribute $att]
+    }
     $st addInputDone $input
     if {[$in hasAttribute "parent"]} {
         set dn [[$in parent] @n]
         set dv [$in @parent]
         $st addInputDependency $n $dn $dv
     }
+    
     return $st
 }
