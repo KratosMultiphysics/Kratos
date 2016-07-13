@@ -618,7 +618,10 @@ proc write::tcl2json { value } {
 	    return [expr {$value}]
 	}
 	booleanString {
-	    return [expr {$value ? "true" : "false"}]
+        if {[isBooleanFalse $value]} {return [expr "false"]}
+        if {[isBooleanTrue $value]} {return [expr "true"]}
+	    return [json::write string $value]
+	    #return [expr {$value ? "true" : "false"}]
 	}
 	default {
 	    # Some other type; do some guessing...
@@ -788,78 +791,85 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
         set groups [$root selectNodes $xp1]
     }
     foreach group $groups {
-	set groupName [$group @n]
-	#W "GROUP $groupName"
-	set cid [[$group parent] @n]
-	set groupId [::write::getMeshId $cid $groupName]
-	set condId [[$group parent] @n]
-	if {$condition_type eq "Condition"} {
-	    set condition [::Model::getCondition $condId]
-	} {
-	    set condition [::Model::getNodalConditionbyId $condId]
-	}
-	#W "Condition = $condition"
-	set processName [$condition getProcessName]
-	set process [::Model::GetProcess $processName]
-	set processDict [dict create]
-	set paramDict [dict create]
-	dict set paramDict mesh_id 0
-	dict set paramDict model_part_name $groupId
-	
-	set process_attributes [$process getAttributes]
-	set process_parameters [$process getInputs]
-	
-	dict set process_attributes process_name [dict get $process_attributes n]
-	dict unset process_attributes n
-	dict unset process_attributes pn
-	
-	set processDict [dict merge $processDict $process_attributes]
-    catch {
-		set variable_name [$condition getAttribute VariableName]
-        #W $variable_name
-		# "lindex" is a rough solution. Look for a better one.
-		if {$variable_name ne ""} {dict set paramDict variable_name [lindex $variable_name 0]}
-	}
-	foreach {inputName in_obj} $process_parameters {
-	    set in_type [$in_obj getType]
-	    
-	    if {$in_type eq "vector"} {
-		#W "input [$in_obj getName] fix: [$in_obj getFixity]"
-		if {[$in_obj getFixity] eq "Imposed"} {
-		    set is_fixed_x [expr True]
-		    set is_fixed_y [expr True]
-		    set is_fixed_z [expr True]
-		    if {[$group find n FixX] ne ""} {
-		        set is_fixed_x [expr [get_domnode_attribute [$group find n FixX] v] ? True : False]
-		    }
-		    if {[$group find n FixY] ne ""} {
-		        set is_fixed_y [expr [get_domnode_attribute [$group find n FixY] v] ? True : False]
-		    }
-		    if {[$group find n FixZ] ne ""} {
-		        set is_fixed_z [expr [get_domnode_attribute [$group find n FixZ] v] ? True : False]
-		    }
-		    dict set paramDict is_fixed_x $is_fixed_x
-		    dict set paramDict is_fixed_y $is_fixed_y
-		    dict set paramDict is_fixed_z $is_fixed_z    
-		}
-		
-		set ValX [expr [get_domnode_attribute [$group find n ${inputName}X] v] ]
-		set ValY [expr [get_domnode_attribute [$group find n ${inputName}Y] v] ] 
-		set ValZ [expr 0.0]
-		catch {set ValZ [expr [get_domnode_attribute [$group find n ${inputName}Z] v]]}
-		dict set paramDict $inputName [list $ValX $ValY $ValZ]
-	    } elseif {$in_type eq "double"} {
-		set value [get_domnode_attribute [$group find n $inputName] v] 
-		if {[$group find n Fix] ne ""} {
-		    set is_fixed [expr [get_domnode_attribute [$group find n Fix] v] ? True : False]
-		    dict set paramDict is_fixed $is_fixed
-		}
-		dict set paramDict $inputName [expr $value]
-	    }
-	}
-	
-	dict set processDict Parameters $paramDict
-	lappend bcCondsDict $processDict
+        set groupName [$group @n]
+        #W "GROUP $groupName"
+        set cid [[$group parent] @n]
+        set groupId [::write::getMeshId $cid $groupName]
+        set condId [[$group parent] @n]
+        if {$condition_type eq "Condition"} {
+            set condition [::Model::getCondition $condId]
+        } {
+            set condition [::Model::getNodalConditionbyId $condId]
+        }
+        #W "Condition = $condition"
+        set processName [$condition getProcessName]
+        set process [::Model::GetProcess $processName]
+        set processDict [dict create]
+        set paramDict [dict create]
+        dict set paramDict mesh_id 0
+        dict set paramDict model_part_name $groupId
+        
+        set process_attributes [$process getAttributes]
+        set process_parameters [$process getInputs]
+        
+        dict set process_attributes process_name [dict get $process_attributes n]
+        dict unset process_attributes n
+        dict unset process_attributes pn
+        
+        set processDict [dict merge $processDict $process_attributes]
+        catch {
+            set variable_name [$condition getAttribute VariableName]
+            #W $variable_name
+            # "lindex" is a rough solution. Look for a better one.
+            if {$variable_name ne ""} {dict set paramDict variable_name [lindex $variable_name 0]}
+        }
+        foreach {inputName in_obj} $process_parameters {
+            set in_type [$in_obj getType]
+            #W "input [$in_obj getName] fix: [$in_obj getFixity]"
+            if {$in_type eq "vector"} {
+            
+                if {[$in_obj getFixity] eq "Imposed"} {
+                    set is_fixed_x [expr True]
+                    set is_fixed_y [expr True]
+                    set is_fixed_z [expr True]
+                    if {[$group find n FixX] ne ""} {
+                        set is_fixed_x [expr [get_domnode_attribute [$group find n FixX] v] ? True : False]
+                    }
+                    if {[$group find n FixY] ne ""} {
+                        set is_fixed_y [expr [get_domnode_attribute [$group find n FixY] v] ? True : False]
+                    }
+                    if {[$group find n FixZ] ne ""} {
+                        set is_fixed_z [expr [get_domnode_attribute [$group find n FixZ] v] ? True : False]
+                    }
+                    dict set paramDict is_fixed_x $is_fixed_x
+                    dict set paramDict is_fixed_y $is_fixed_y
+                    dict set paramDict is_fixed_z $is_fixed_z    
+                }
+            
+                set ValX [expr [get_domnode_attribute [$group find n ${inputName}X] v] ]
+                set ValY [expr [get_domnode_attribute [$group find n ${inputName}Y] v] ] 
+                set ValZ [expr 0.0]
+                catch {set ValZ [expr [get_domnode_attribute [$group find n ${inputName}Z] v]]}
+                dict set paramDict $inputName [list $ValX $ValY $ValZ]
+            } elseif {$in_type eq "double"} {
+                set value [get_domnode_attribute [$group find n $inputName] v] 
+                if {[$group find n Fix] ne ""} {
+                    set is_fixed [expr [get_domnode_attribute [$group find n Fix] v] ? True : False]
+                    dict set paramDict is_fixed $is_fixed
+                }
+                dict set paramDict $inputName [expr $value]
+            } elseif {$in_type eq "bool"} {
+                set value [get_domnode_attribute [$group find n $inputName] v] 
+                set value [expr $value ? True : False]
+                dict set paramDict $inputName [expr $value]
+            } else {
+                set value [get_domnode_attribute [$group find n $inputName] v] 
+                dict set paramDict $inputName [expr $value]
+            }
+        }
+        
+        dict set processDict Parameters $paramDict
+        lappend bcCondsDict $processDict
     }
     return $bcCondsDict
 }
@@ -980,10 +990,18 @@ proc write::getValue { name { it "" } } {
     return $v
  }
  
- proc write::isBoolean {value} {
-    set goodList [list "Yes" "1" "yes" "ok" "YES" "Ok" "OK" "True" "TRUE" "true" "No" "0" "no" "NO" "False" "FALSE" "false"]
-    if {$value in $goodList} {return 1} {return 0}
- }
+proc write::isBoolean {value} {
+   set goodList [list "Yes" "1" "yes" "ok" "YES" "Ok" "OK" "True" "TRUE" "true" "No" "0" "no" "NO" "False" "FALSE" "false"]
+   if {$value in $goodList} {return 1} {return 0}
+}
+proc write::isBooleanTrue {value} {
+   set goodList [list "Yes" "1" "yes" "ok" "YES" "Ok" "OK" "True" "TRUE" "true"]
+   if {$value in $goodList} {return 1} {return 0}
+}
+proc write::isBooleanFalse {value} {
+   set goodList [list "No" "0" "no" "NO" "False" "FALSE" "false"]
+   if {$value in $goodList} {return 1} {return 0}
+}
 
 proc write::getStringBinaryValue { name { it "" } } {
     set v [getValue $name $it]

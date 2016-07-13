@@ -811,7 +811,7 @@ proc spdAux::injectConditions { basenode args} {
             } elseif { $type eq "bool" } {
                 set values "true,false"
                 if {$fix ne 0} {
-                    append node "<value n='Fix' pn='$fix' v='1' values='1,0' help=''/>"
+                    append node "<value n='Fix' pn='$fix' v='$v' values='1,0' help=''/>"
                 }
                 append node "<value n='$inName' pn='$pn' v='$v' values='$values'  help='$help'/>"
             } else {

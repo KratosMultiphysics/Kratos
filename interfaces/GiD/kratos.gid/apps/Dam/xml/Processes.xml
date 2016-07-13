@@ -76,7 +76,8 @@
   <Process n="HydrostaticConditionsProcess" pn="Apply a scalar value over a condition" implemented_in_file="impose_water_loads_condition_process"
 		implemented_in_module="KratosMultiphysics.DamApplication" help="This process sets a scalar variable value over a condition" > 
     <inputs>
-        <parameter n="Gravity_Direction" pn="Gravity Direction" type="string" v="Y" values="X,Y,Z" fixity="Modify"/>
+        <parameter n="Modify" pn="Modify" type="bool" v="1"/>
+        <parameter n="Gravity_Direction" pn="Gravity Direction" type="combo" v="Y" values="X,Y,Z"/>
         <parameter n="Reservoir_Bottom_Coordinate_in_Gravity_Direction" pn="Reservoir Bottom Coordinate in Gravity Direction" type="double" v="0.0"/>
         <parameter n="Spe_weight" pn="Specific Weight" type="double" v="10000"/>
         <parameter n="Water_level" pn="Water Level" type="double" v="0.0"/>
