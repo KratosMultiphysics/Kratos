@@ -20,7 +20,7 @@ class MeshingStrategy:
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-             "strategy_type": "meshing_strategy",
+             "python_file_name": "meshing_strategy",
              "meshing_frequency": 0,
              "remesh": false,
              "refine": false,
