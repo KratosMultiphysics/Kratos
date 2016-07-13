@@ -137,7 +137,7 @@ meshing_domains = []
 domains_list = ProjectParameters["meshing_domains"]
 for i in range(0,domains_list.size()):
     item = domains_list[i]
-    domain_module = __import__(item["domain_type"].GetString())
+    domain_module = __import__(item["python_file_name"].GetString())
     domain = domain_module.CreateMeshingDomain(model_part,item)
     meshing_domains.append(domain)
 
@@ -307,7 +307,7 @@ rigid_wall = wall_utils.RigidWallUtility(model_part, domain_size, general_variab
 
 # build mesh modeler
 for domain in meshing_domains:
-    domain.SetImposedWall(rigid_wall)
+    domain.SetImposedWalls(rigid_wall)
     domain.Initialize()
 
 modeler.BuildMeshModelers(meshing_domains)
