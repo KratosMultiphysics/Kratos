@@ -260,7 +260,8 @@ void MonolithicWallCondition<3,3>::CalculateNormal(array_1d<double,3>& An )
 template<unsigned int TDim, unsigned int TNumNodes>
 void MonolithicWallCondition<TDim,TNumNodes>::ApplyNeumannCondition(MatrixType &rLocalMatrix, VectorType &rLocalVector)
 {
-    if (this->GetValue(IS_STRUCTURE) == 0.0)
+    const MonolithicWallCondition<TDim,TNumNodes>& rConstThis = *this;
+    if (rConstThis.GetValue(IS_STRUCTURE) == 0.0)
     {
         const unsigned int LocalSize = TDim+1;
         const GeometryType& rGeom = this->GetGeometry();
