@@ -127,25 +127,6 @@ proc Dam::write::getSubModelPartNames { args } {
     return $listOfProcessedGroups
 }
 
-#proc write::getSolutionStrategyParametersDict {} {
-    #set solStratUN [apps::getCurrentUniqueName SolStrat]
-    #set schemeUN [apps::getCurrentUniqueName Scheme]
-    
-    #set solstratName [write::getValue $solStratUN]
-    #set schemeName [write::getValue $schemeUN]
-    #set sol [::Model::GetSolutionStrategy $solstratName]
-    #set sch [$sol getScheme $schemeName]
-    
-    #set paramsPath [apps::getCurrentUniqueName StratParams]
-    
-    #foreach {n in} [$sol getInputs] {
-	#dict set mechanicalSolverSettingsDict $n [write::getValue $paramsPath $n ]
-    #}
-    #foreach {n in} [$sch getInputs] {
-	#dict set mechanicalSolverSettingsDict $n [write::getValue $paramsPath $n ]
-    #}
-    #return $mechanicalSolverSettingsDict
-#}
 
 
 

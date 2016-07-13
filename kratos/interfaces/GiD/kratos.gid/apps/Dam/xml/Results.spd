@@ -9,7 +9,7 @@
         <value n="DISPLACEMENT" pn="Displacement" v="Yes" values="Yes,No" help=""/>
         <value n="REACTION" pn="Reaction" v="No" values="Yes,No" help=""/>
         <value n="ACCELERATION" pn="Acceleration" v="No" values="Yes,No" help=""/>
-        <value n="TEMPERATURE" pn="Temperature" v="No" values="Yes,No" help="" state="[checkStateByUniqueName DamTypeofProblem Thermo-Mechanical]" />
+        <value n="TEMPERATURE" pn="Temperature" v="Yes" values="Yes,No" help="" state="[checkStateByUniqueName DamTypeofProblem Thermo-Mechanical]" />
     </container>
     <container n="GiDOptions" pn="Options" help="GiD postprocess options" >
 <!--
