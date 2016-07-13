@@ -60,25 +60,30 @@ set( KRATOS_INCOMPRESSIBLE_FLUID_APPLICATION_SOURCES
 ## define library Kratos which defines the basic python interface
 add_library(KratosIncompressibleFluidApplication SHARED ${KRATOS_INCOMPRESSIBLE_FLUID_APPLICATION_SOURCES})
 target_link_libraries(KratosIncompressibleFluidApplication KratosCore )
+set_target_properties(KratosIncompressibleFluidApplication PROPERTIES COMPILE_DEFINITIONS "INCOMPRESSIBLE_FLUID_APPLICATION=EXPORT,API")
 set_target_properties(KratosIncompressibleFluidApplication PROPERTIES PREFIX "")
 
+# changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	set_target_properties(KratosIncompressibleFluidApplication PROPERTIES SUFFIX .pyd)
+  set_target_properties(KratosIncompressibleFluidApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-# changing the .dylib suffix to .so 
+# changing the .dylib suffix to .so
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosIncompressibleFluidApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 install(TARGETS KratosIncompressibleFluidApplication DESTINATION libs )
 
+if(${INSTALL_TESTING_FILES} MATCHES ON)
+  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
+endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
   install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
-
 
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
