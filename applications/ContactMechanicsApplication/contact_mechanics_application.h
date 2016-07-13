@@ -36,6 +36,10 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 
+// Core applications
+//#include "solid_mechanics_application.h"
+//#include "pfem_base_application.h"
+
 
 namespace Kratos {
 

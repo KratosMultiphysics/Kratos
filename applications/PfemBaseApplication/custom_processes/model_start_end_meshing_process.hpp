@@ -12,21 +12,13 @@
 
 
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
-#include <boost/timer.hpp>
-
 
 // Project includes
-#include "includes/define.h"
-#include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
-#include "includes/model_part.h"
 #include "custom_utilities/modeler_utilities.hpp"
+#include "custom_processes/nodal_neighbours_search_process.hpp"
+#include "custom_processes/build_mesh_boundary_process.hpp"
 
 #include "pfem_base_application_variables.h"
 
@@ -124,46 +116,7 @@ namespace Kratos
       KRATOS_TRY
 
       //Sort Conditions
-      unsigned int consecutive_index = 1;
-      for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(); ic!=mrModelPart.ConditionsEnd(); ic++)
-	(ic)->SetId(consecutive_index++);
-
-      mrModelPart.Conditions().Sort();
-      mrModelPart.Conditions().Unique();
-
-      // //Sort Elements
-      // consecutive_index = 1;
-      // for(ModelPart::ElementsContainerType::iterator ie = mrModelPart.ElementsBegin(); ie!=mrModelPart.ElementsEnd(); ie++)
-      //   ie->SetId(consecutive_index++);
-
-      // mrModelPart.Elements().Sort();
-      // mrModelPart.Elements().Unique();
-
-      // //Sort Nodes, set STRUCTURE NODES (RIGID TOOL NODES) AT END
-      // consecutive_index = 1;
-      // unsigned int reverse_index = mrModelPart.Nodes().size();
-      // for(ModelPart::NodesContainerType::iterator in = mrModelPart.NodesBegin(); in!=mrModelPart.NodesEnd(); in++){
-      //   if(in->IsNot(STRUCTURE) ){
-      //     in->SetId(consecutive_index++);
-      //   }
-      //   else{
-      //     in->SetId(reverse_index--);
-      //   }
-      // }
-
-      // mrModelPart.Nodes().Sort();
-      // mrModelPart.Nodes().Unique();
-
-      //check that contact forces are not cleared
-      // for(ModelPart::NodesContainerType::iterator in = mrModelPart.NodesBegin(); in!=mrModelPart.NodesEnd(); in++){
-
-      // 	if(in->Is(BOUNDARY) ){
-      // 	  array_1d<double, 3 > &ContactForce = in->FastGetSolutionStepValue(CONTACT_FORCE);
-      // 	  std::cout<<" ContactForce["<<in->Id()<<"] "<<ContactForce<<std::endl;
-      // 	}
-	
-      // }
-
+      this->SortModelPartConditions();
 
       KRATOS_CATCH(" ")
     }
@@ -174,73 +127,12 @@ namespace Kratos
     virtual void ExecuteFinalize()
     {
       KRATOS_TRY
-
-      //Once all meshes are build, the main mesh Id=0 must be reassigned
-      ModelerUtilities ModelerUtils;
-
-      MeshDataTransferUtilities TransferUtilities;
-
-      unsigned int NumberOfMeshes = mrModelPart.NumberOfMeshes();
-
-      if(NumberOfMeshes>1){
-	ModelerUtils.BuildTotalMesh(mrModelPart, mEchoLevel);
-      }
-      else{
-	ModelerUtils.CleanMeshFlags(mrModelPart,0);
-      }
-	
-      unsigned int start = 0;
-      if(NumberOfMeshes>1) 
-	start=1;
       
-      bool remesh_performed =true; //false; //deactivate searches
-	   
-      if(remesh_performed){
+      // Restore mehses coherency
+      this->BuildModelPartMeshes();
 
-
-	//CHANGE ELEMENTS WITH ALL NODES IN BOUNDARY  (TIP ELEMENTS)
-	for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
-	  {
-		
-	    //if(Meshes[MeshId].Is( ModelerUtilities::REMESH )){
-	      // ChangeTipElementsUtilities TipElements;
-	      // if(mpMeshingVariables->AvoidTipElementsFlag){
-	      //   //TipElements.SwapDiagonals(mrModelPart,MeshId);
-	      // }
-	    //}
-	  }		
-	    
-	    
-	//NEIGHBOURS SEARCH
-	NodalNeighboursSearchProcess FindNeighbours(mrModelPart);
-	FindNeighbours.Execute();
-
-	//NODAL_H SEARCH	    
-	//FindNodalHProcess FindNodalH(mrModelPart);
-	//FindNodalH.Execute();
-
-	//CONDITIONS MASTER_ELEMENTS and MASTER_NODES SEARCH
-	BuildMeshBoundaryProcess BuildBoundaryProcess(mrModelPart);
-	for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
-	  {
-	    BuildBoundaryProcess.SearchConditionMasters(MeshId);
-	  }
-
-
-	//BOUNDARY NORMALS SEARCH // SHRINKAGE FACTOR
-	//ComputeBoundaryNormals BoundUtils;
-	BoundaryNormalsCalculationUtilities BoundaryComputation;
-	for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
-	  {
-	    BoundaryComputation.CalculateMeshBoundaryNormals(mrModelPart, MeshId, mEchoLevel);
-	  }
-
-
-
-      }
-
-      // if(!out_buffer_active)
-      //   std::cout.rdbuf(buffer);
+      // Perform searches for next processes (i.e. contact search)
+      this->PerformModelSearches();
 
       KRATOS_CATCH(" ")
 
@@ -294,6 +186,12 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
+    ModelPart& mrModelPart;
+
+    Flags mOptions;
+
+    int mEchoLevel;
+
 
     ///@}
     ///@name Protected Operators
@@ -303,6 +201,159 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
+
+    void SortModelPartConditions()
+    {
+
+      KRATOS_TRY
+
+      //Sort Conditions
+      unsigned int consecutive_index = 1;
+      for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(); ic!=mrModelPart.ConditionsEnd(); ic++)
+	(ic)->SetId(consecutive_index++);
+
+      mrModelPart.Conditions().Sort();
+      mrModelPart.Conditions().Unique();
+
+
+      KRATOS_CATCH(" ")
+
+    }
+
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+
+    void SortModelPartElements()
+    {
+
+      KRATOS_TRY
+
+
+      // Sort Elements
+      unsigned int consecutive_index = 1;
+      for(ModelPart::ElementsContainerType::iterator ie = mrModelPart.ElementsBegin(); ie!=mrModelPart.ElementsEnd(); ie++)
+	ie->SetId(consecutive_index++);
+
+      mrModelPart.Elements().Sort();
+      mrModelPart.Elements().Unique();
+
+      KRATOS_CATCH(" ")
+
+     }
+
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+    
+    void SortModelPartNodes()
+    {
+
+      KRATOS_TRY
+
+
+      //Sort Nodes, set STRUCTURE nodes at end
+      unsigned int consecutive_index = 1;
+      unsigned int reverse_index = mrModelPart.Nodes().size();
+      for(ModelPart::NodesContainerType::iterator in = mrModelPart.NodesBegin(); in!=mrModelPart.NodesEnd(); in++)
+	{
+	  if(in->IsNot(STRUCTURE) ){
+	    in->SetId(consecutive_index++);
+	  }
+	  else{
+	    in->SetId(reverse_index--);
+	  }
+	}
+
+      mrModelPart.Nodes().Sort();
+      mrModelPart.Nodes().Unique();
+
+      KRATOS_CATCH(" ")
+
+     }
+
+    
+    //*******************************************************************************************
+    //*******************************************************************************************
+    
+    void BuildModelPartMeshes()
+    {
+
+      KRATOS_TRY
+
+      //Once all meshes are build, the main mesh Id=0 must be reassigned
+      ModelerUtilities ModelerUtils;
+
+      unsigned int NumberOfMeshes = mrModelPart.NumberOfMeshes();
+
+      if(NumberOfMeshes>1){
+	ModelerUtils.BuildTotalMesh(mrModelPart, mEchoLevel);
+      }
+      else{
+	ModelerUtils.CleanMeshFlags(mrModelPart,0);
+      }
+
+
+      KRATOS_CATCH(" ")
+
+     }
+
+
+    
+    //*******************************************************************************************
+    //*******************************************************************************************
+    
+    virtual void PerformModelSearches()
+    {
+
+      KRATOS_TRY
+       
+	//NODAL NEIGHBOURS SEARCH
+	NodalNeighboursSearchProcess FindNeighbours(mrModelPart);
+	FindNeighbours.Execute();
+
+	//NODAL_H SEARCH	    
+	//FindNodalHProcess FindNodalH(mrModelPart);
+	//FindNodalH.Execute();
+
+	//CONDITIONS MASTER_ELEMENTS and MASTER_NODES SEARCH
+	BuildMeshBoundaryProcess BuildBoundaryProcess(mrModelPart);
+	BuildBoundaryProcess.SearchConditionMasters();
+
+	//BOUNDARY NORMALS SEARCH and  SHRINKAGE FACTOR
+	BoundaryNormalsCalculationUtilities BoundaryComputation;
+	BoundaryComputation.CalculateMeshBoundaryNormals(mrModelPart, mEchoLevel);   
+
+
+      KRATOS_CATCH(" ")
+
+     }
+
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+    
+    void ChangeTipElements()
+    {
+
+      KRATOS_TRY
+
+	
+	//CHANGE ELEMENTS WITH ALL NODES IN BOUNDARY  (TIP ELEMENTS)
+	// for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
+	//   {
+		
+	//     if(Meshes[MeshId].Is( ModelerUtilities::REMESH )){
+	//       ChangeTipElementsUtilities TipElements;
+	//       if(mpMeshingVariables->AvoidTipElementsFlag){
+	// 	TipElements.SwapDiagonals(mrModelPart,MeshId);
+	//       }
+	//     }
+	//   }	
+	
+      KRATOS_CATCH(" ")
+
+     }
 
 
     ///@}
@@ -330,11 +381,7 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-    ModelPart& mrModelPart;
 
-    Flags mOptions;
-
-    int mEchoLevel;
 
     ///@}
     ///@name Private Operators
