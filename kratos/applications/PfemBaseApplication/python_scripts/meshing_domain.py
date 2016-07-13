@@ -31,7 +31,7 @@ class MeshingDomain:
             "offset_factor": 0.0,
             "meshing_strategy":{
                "python_file_name": "meshing_strategy",
-               "meshing_frequency": 0
+               "meshing_frequency": 0,
                "remesh": false,
                "refine": false,
                "reconnect": false,
