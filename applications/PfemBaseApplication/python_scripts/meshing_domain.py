@@ -23,14 +23,15 @@ class MeshingDomain:
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-	    "domain_type": "meshing_domain",
+	    "python_file_name": "meshing_domain",
             "mesh_id": 1,
             "domain_size": 2,
             "echo_level": 1,
             "alpha_shape": 2.4,
             "offset_factor": 0.0,
             "meshing_strategy":{
-               "strategy_type": "meshing_strategy",
+               "python_file_name": "meshing_strategy",
+               "meshing_frequency": 0
                "remesh": false,
                "refine": false,
                "reconnect": false,
@@ -95,16 +96,17 @@ class MeshingDomain:
         self.settings.ValidateAndAssignDefaults(default_settings)
         
         #construct the solving strategy
-        meshing_module = __import__(self.settings["meshing_strategy"]["strategy_type"].GetString())
+        meshing_module = __import__(self.settings["meshing_strategy"]["python_file_name"].GetString())
         self.MeshingStrategy = meshing_module.CreateMeshingStrategy(self.main_model_part, self.settings["meshing_strategy"])
 
         print("Construction of Mesh Modeler finished")
         
 
-    
-    def Initialize(self, imposed_walls):
+    #### 
 
-        print("::[Mesh Modeler]:: -START-")
+    def Initialize(self):
+
+        print("::[Mesh Domain]:: -START-")
         
         self.domain_size = self.settings["domain_size"].GetInt()
         self.mesh_id     = self.settings["mesh_id"].GetInt()
@@ -113,10 +115,14 @@ class MeshingDomain:
         self.SetMeshingParameters()
         
         # Meshing Stratety
-        self.MeshingStrategy.Initialize(self.MeshingParameters, imposed_walls, self.domain_size, self.mesh_id)
+        self.MeshingStrategy.Initialize(self.MeshingParameters, self.domain_size, self.mesh_id)
         
-        print("::[Mesh Modeler]:: -END- ")
+        print("::[Mesh Domain]:: -END- ")
 
+    #
+    def SetImposedWalls(self,imposed_walls): #must be set before initialize
+
+        self.MeshingStrategy.SetImposedWalls( imposed_walls )
         
     #### 
     
@@ -132,7 +138,6 @@ class MeshingDomain:
         # Create TransferParameters
         self.TransferParameters = KratosPfemBase.TransferParameters()
         transfer_variables = self.settings["elemental_variables_to_transfer"]
-        i=0
         #for variable in transfer_variables:
         #    self.TransferParameters.SetVariable( KratosMultiphysics.KratosGlobals.GetVariable( variable.GetString() ) )
         for i in range(0, transfer_variables.size() ):            
@@ -240,7 +245,6 @@ class MeshingDomain:
         self.MeshingParameters.SetTransferParameters(self.TransferParameters)
         self.MeshingParameters.SetRefiningParameters(self.RefiningParameters)
         
-
 
     def ExecuteMeshing(self):
         

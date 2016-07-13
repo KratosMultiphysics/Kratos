@@ -307,7 +307,8 @@ rigid_wall = wall_utils.RigidWallUtility(model_part, domain_size, general_variab
 
 # build mesh modeler
 for domain in meshing_domains:
-    domain.Initialize(rigid_wall)
+    domain.SetImposedWall(rigid_wall)
+    domain.Initialize()
 
 modeler.BuildMeshModelers(meshing_domains)
 

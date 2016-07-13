@@ -35,14 +35,15 @@ namespace Kratos
     //be careful: it must be done once only after the step solution: 
     if(initial){
       //std::cout<<" INITIAL "<<std::endl;
-      rParameters.Options.Set(MeshDataTransferUtilities::INITIALIZATION, true);
+      rParameters.Options.Set(MeshDataTransferUtilities::INITIALIZE_MASTER_CONDITION, true);
       MeshDataTransfer.TransferBoundaryData(rParameters, rModelPart);
     }
     else{
       //std::cout<<" ELEMENT_TO_NODE "<<std::endl;
-      rParameters.Options.Set(MeshDataTransferUtilities::MASTER_ELEMENT_TO_NODE, true);
+      rParameters.Options.Set(MeshDataTransferUtilities::MASTER_ELEMENT_TO_MASTER_CONDITION, true);
       MeshDataTransfer.TransferBoundaryData(rParameters, rModelPart);
-    }	 
+    }
+
              	
     KRATOS_CATCH(" ")
   }

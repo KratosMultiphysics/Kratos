@@ -406,7 +406,7 @@ namespace Kratos
     // VARIABLES SMOOTHING, transfer to nodes
     if(mpMeshingVariables->Options.Is(ModelerUtilities::VARIABLES_SMOOTHING)){
       if( mpMeshingVariables->TransferVariablesSetFlag ){
-	mpDataTransferUtilities->TransferElementalValuesToNodes(mpMeshingVariables->TransferVariables,rModelPart,MeshId);
+	mpDataTransferUtilities->TransferElementalValuesToNodes(*(mpMeshingVariables->Transfer),rModelPart,MeshId);
       }
     }
     
@@ -514,11 +514,11 @@ namespace Kratos
 	//recover DETERMINANT_F FOR VARIABLES SMOOTHING from nodes
 	if( mpMeshingVariables->Info->CriticalElements > 0 ){
 
-	  if( mpMeshingVariables->TransferVariables.VariablesSetFlag ){
+	  if( mpMeshingVariables->Transfer->VariablesSetFlag ){
 	    //Smoothing performed only in critical elements (usually based on PLASTIC_STRAIN variable)
-	    mpDataTransferUtilities->TransferNodalValuesToElements(mpMeshingVariables->TransferVariables,mpMeshingVariables->Refine->GetThresholdVariable(),mpMeshingVariables->Refine->ReferenceThreshold,rModelPart,MeshId);
+	    mpDataTransferUtilities->TransferNodalValuesToElements(*(mpMeshingVariables->Transfer),mpMeshingVariables->Refine->GetThresholdVariable(),mpMeshingVariables->Refine->ReferenceThreshold,rModelPart,MeshId);
 	    
-	    //std::cout<<" Transfer on critical elements "<<*mpMeshingVariables->TransferVariables.DoubleVariables[0]<<" "<<mpMeshingVariables->Refine->GetThresholdVariable()<<std::endl;
+	    //std::cout<<" Transfer on critical elements "<<*mpMeshingVariables->Transfer->DoubleVariables[0]<<" "<<mpMeshingVariables->Refine->GetThresholdVariable()<<std::endl;
 		   
 	    //Smoothing performed only in critical elements (based on Set Dissipation Variable)
 	    //mpDataTransferUtilities->TransferNodalValuesToElements(DETERMINANT_F,mpMeshingVariables->Refine->GetThresholdVariable(),mpMeshingVariables->Refine->ReferenceThreshold,rModelPart,MeshId);
@@ -532,8 +532,8 @@ namespace Kratos
 	else{
 
 	  //Smoothing performed to all mesh
-	  if( mpMeshingVariables->TransferVariables.VariablesSetFlag )
-	    mpDataTransferUtilities->TransferNodalValuesToElements(mpMeshingVariables->TransferVariables,rModelPart,MeshId);
+	  if( mpMeshingVariables->Transfer->VariablesSetFlag )
+	    mpDataTransferUtilities->TransferNodalValuesToElements(*(mpMeshingVariables->Transfer),rModelPart,MeshId);
 	      
 	}
 

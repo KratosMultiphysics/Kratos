@@ -490,7 +490,7 @@ class ModelerUtility:
         if(self.contact_search):
             print("::[Modeler_Utility]:: CONTACT SEARCH START: ", self.contact_condition)
             self.ContactTransfer()
-            self.contact_modeler.GenerateContactMesh(self.model_part, self.penalty_parameter, self.stability_parameter, self.friction_active, self.mu_static, self.mu_dynamic);
+            self.contact_modeler.GenerateContactMesh(self.model_part, self.penalty_parameter, self.stability_parameter, self.friction_active, self.mu_static, self.mu_dynamic)
 
     #
     def InitializeStep(self):

@@ -14,16 +14,21 @@ class MeshModeler:
     #
     def __init__(self, main_model_part, meshing_parameters, mesh_id): 
         
-        self.echo_level        = 1
-        self.mesh_id           = mesh_id
-        self.main_model_part   = main_model_part 
-        self.MeshingParameters = meshing_parameters
+        self.echo_level             = 1
+        self.mesh_id                = mesh_id
+        self.main_model_part        = main_model_part
+        self.MeshingParameters      = meshing_parameters
+
+        self.imposed_walls          = []
+        self.consider_imposed_walls = False      
+
+        print("Construction of Mesh Modeler finished")
 
     #
-    def Initialize(self, imposed_walls, domain_size):
+    def Initialize(self, domain_size):
         
         self.domain_size   =  domain_size
-        self.imposed_walls =  imposed_walls
+
         # set mesh modeler
         if(self.domain_size == 2):
             self.mesher = KratosPfemBase.TriangularMesh2DModeler()
@@ -37,6 +42,12 @@ class MeshModeler:
         self.SetPostMeshingProcesses()    
 
         self.mesher.Initialize()
+
+    # 
+    def SetImposedWalls(self, imposed_walls):  #must be set before initialize
+
+        self.consider_imposed_walls = True
+        self.imposed_walls =  imposed_walls
 
     #
     def InitializeMeshing(self):
@@ -103,21 +114,24 @@ class MeshModeler:
         # process to refine elements /refine boundary
         refine_mesh_elements  = KratosPfemBase.SetElementsToRefineOnThreshold(self.main_model_part, self.RefiningParameters, self.mesh_id, self.echo_level)
         self.mesher.SetPreMeshingProcess(refine_mesh_elements)
+        
+        # process to refine boundary (considering or not imposed walls)        
+        if( self.consider_imposed_walls ):
 
-        #refine_mesh_boundary = RefineMeshBoundary(self.main_model_part, self.RefiningParameters, self.mesh_id, self.echo_level)            
-        #self.mesher.SetPreMeshingProcess(refine_mesh_boundary)
-                
-        #set imposed walls (rigid walls)
-        rigid_walls_container = KratosPfemBase.BoundingBoxContainer()
+            rigid_walls_container = KratosPfemBase.BoundingBoxContainer()
 
-        if( self.imposed_walls.RigidWallActive() ):
-            rigid_wall_bbox = self.imposed_walls.RigidWallBoundingBoxes()
-            for sizei in range(0, len(rigid_wall_bbox)):
-                rigid_walls_container.PushBack( rigid_wall_bbox[sizei] )
+            if( self.imposed_walls.RigidWallActive() ):
+                rigid_wall_bbox = self.imposed_walls.RigidWallBoundingBoxes()
+                for sizei in range(0, len(rigid_wall_bbox)):
+                    rigid_walls_container.PushBack( rigid_wall_bbox[sizei] )
 
-        #refine_mesh_boundary
-        refine_mesh_boundary = KratosPfemBase.ContactRefineMeshBoundary(self.main_model_part, rigid_walls_container, self.MeshingParameters, self.mesh_id, self.echo_level)
-        self.mesher.SetPreMeshingProcess(refine_mesh_boundary)
+                refine_mesh_boundary = KratosPfemBase.ContactRefineMeshBoundary(self.main_model_part, rigid_walls_container, self.MeshingParameters, self.mesh_id, self.echo_level)
+                self.mesher.SetPreMeshingProcess(refine_mesh_boundary)
+
+        else:
+            refine_mesh_boundary = RefineMeshBoundary(self.main_model_part, self.RefiningParameters, self.mesh_id, self.echo_level)            
+            self.mesher.SetPreMeshingProcess(refine_mesh_boundary)
+
 
         # process to remove nodes / remove boundary
         remove_mesh_nodes = KratosPfemBase.RemoveMeshNodes(self.main_model_part, self.MeshingParameters,  self.mesh_id, self.echo_level)

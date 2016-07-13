@@ -496,7 +496,7 @@ namespace Kratos
 
 			  MeshDataTransferUtilities TransferUtilities;
 
-			  TransferUtilities.InitializeBoundaryData(p_cond, mrRemesh.TransferVariables); 
+			  TransferUtilities.InitializeBoundaryData(p_cond, *(mrRemesh.Transfer)); 
 
 			  WeakPointerVector< Element >& MasterElements = p_cond->GetValue(MASTER_ELEMENTS);
 			  MasterElements.push_back( Element::WeakPointer( *(ie.base()) ) );

@@ -560,7 +560,6 @@ public:
       SpatialBoundingBox::Pointer  MeshingBox;
       bool MeshingBoxSetFlag;
 
-      TransferParametersType TransferVariables;
       bool TransferVariablesSetFlag;
 
       //Local execution variables
@@ -577,8 +576,11 @@ public:
       MeshContainer      OutMesh;
       MeshContainer      MidMesh;
 
-      InfoParameters::Pointer        Info;
-      RefiningParameters::Pointer  Refine;
+      InfoParameters::Pointer             Info;
+      RefiningParameters::Pointer       Refine;
+      TransferParametersType::Pointer Transfer;
+
+      PropertiesType           Properties;
      
       void Set(Flags ThisFlag)                           
       {
@@ -631,6 +633,13 @@ public:
 	Refine=rRefine;
       };
 
+
+      void SetProperties(PropertiesType rProperties)
+      {
+	Properties=rProperties;
+      };
+
+
       void SetMeshingBox(SpatialBoundingBox::Pointer pMeshingBox)
       {
 	MeshingBoxSetFlag =true;
@@ -638,17 +647,17 @@ public:
       }
 
 
-      void SetTransferParameters(TransferParametersType& rTransferVariables)
+      void SetTransferParameters(TransferParametersType::Pointer rTransferVariables)
       {
 	TransferVariablesSetFlag =true;
-	TransferVariables = rTransferVariables;
+	Transfer = rTransferVariables;
       }
 
 
       void SetTransferVariable(const Variable<double>& rTransferVariable)
       {
 	TransferVariablesSetFlag =true;
-	TransferVariables.SetVariable(rTransferVariable);
+	Transfer->SetVariable(rTransferVariable);
       }
 
       void SetReferenceElement   (const Element   & rElement)
@@ -671,9 +680,20 @@ public:
 	return Info;
       };
 
+      TransferParametersType::Pointer GetTransferParameters()
+      {
+	return Transfer;
+      };
+
       RefiningParameters::Pointer GetRefiningParameters()
       {
 	return Refine;
+      };
+
+
+      PropertiesType const& GetProperties()
+      {
+	return Properties;
       };
 
       Element const&    GetReferenceElement   ()
