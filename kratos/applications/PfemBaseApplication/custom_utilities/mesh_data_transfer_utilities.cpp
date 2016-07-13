@@ -19,9 +19,8 @@ namespace Kratos
        KRATOS_CREATE_LOCAL_FLAG( MeshDataTransferUtilities, NODE_TO_ELEMENT,        0 );
        KRATOS_CREATE_LOCAL_FLAG( MeshDataTransferUtilities, ELEMENT_TO_NODE,        1 );
        KRATOS_CREATE_LOCAL_FLAG( MeshDataTransferUtilities, ELEMENT_TO_ELEMENT,     2 );
-       KRATOS_CREATE_LOCAL_FLAG( MeshDataTransferUtilities, MASTER_ELEMENT_TO_NODE, 3 );
-       KRATOS_CREATE_LOCAL_FLAG( MeshDataTransferUtilities, INITIALIZATION,         4 );
-
+       KRATOS_CREATE_LOCAL_FLAG( MeshDataTransferUtilities, INITIALIZE_MASTER_CONDITION,        3 );
+       KRATOS_CREATE_LOCAL_FLAG( MeshDataTransferUtilities, MASTER_ELEMENT_TO_MASTER_CONDITION, 4 );
 
   
 
@@ -166,10 +165,10 @@ namespace Kratos
 	{
 	    KRATOS_TRY
 
-	    if(rTransferVariables.Options.Is(MeshDataTransferUtilities::MASTER_ELEMENT_TO_NODE))
+	    if(rTransferVariables.Options.Is(MeshDataTransferUtilities::MASTER_ELEMENT_TO_MASTER_CONDITION))
 	      {
 		
-		std::cout<<"  TRANSFER MASTER_ELEMENT_TO_NODE "<<std::endl;
+		std::cout<<"  TRANSFER MASTER_ELEMENT_TO_MASTER_CONDITION "<<std::endl;
 
 		ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 		unsigned int StrainSize;
@@ -316,10 +315,10 @@ namespace Kratos
 
 	      }
 
-	    if(rTransferVariables.Options.Is(MeshDataTransferUtilities::INITIALIZATION))		
+	    if(rTransferVariables.Options.Is(MeshDataTransferUtilities::INITIALIZE_MASTER_CONDITION))		
 	      {
 		
-		std::cout<<"  TRANSFER INITIALIZE "<<std::endl;
+		std::cout<<"  TRANSFER INITIALIZE MASTER CONDITION "<<std::endl;
 
 		unsigned int StrainSize;
 		

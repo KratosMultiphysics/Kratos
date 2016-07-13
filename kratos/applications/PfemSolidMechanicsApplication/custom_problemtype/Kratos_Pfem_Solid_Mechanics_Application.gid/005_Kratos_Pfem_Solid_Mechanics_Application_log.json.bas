@@ -29,14 +29,14 @@
 *Set cond group_DeformableBodies *groups
 *loop groups *OnlyInCond           
       	{
-	"domain_type": "meshing_domain",
+	"python_file_name": "meshing_domain",
         "mesh_id": *cond(Group_ID),
 	"domain_size": *GenData(DOMAIN_SIZE,INT),
 	"echo_level": *GenData(Echo_Level),
 	"alpha_shape": 2.4,
 	"offset_factor": *GenData(Offset_Factor),
 	"meshing_strategy":{
-		"strategy_type": "meshing_strategy",
+		"python_file_name": "meshing_strategy",
 		"remesh": *tcl(string tolower *cond(Remesh)),
 		"refine": *tcl(string tolower *cond(Refine)),
 		"reconnect": *tcl(string tolower *cond(Remesh)),

@@ -178,15 +178,23 @@ namespace Kratos
 
       typedef  void (MeshDataTransferUtilities::*TransferElementalValuesToNodes)(const MeshDataTransferUtilities::TransferParameters&, ModelPart&, ModelPart::IndexType);
       typedef  void (MeshDataTransferUtilities::*TransferNodalValuesToElements)(const MeshDataTransferUtilities::TransferParameters&, ModelPart&, ModelPart::IndexType);
+      typedef  void (MeshDataTransferUtilities::*TransferBoundaryData)(const MeshDataTransferUtilities::TransferParameters&, ModelPart&, ModelPart::IndexType);
 
       TransferElementalValuesToNodes   TransferElementsToNodes  = &MeshDataTransferUtilities::TransferElementalValuesToNodes;
       TransferNodalValuesToElements    TransferNodesToElements  = &MeshDataTransferUtilities::TransferNodalValuesToElements;
+      TransferBoundaryData             TransferDataToBoundary   = &MeshDataTransferUtilities::TransferBoundaryData;
 
 
       class_<MeshDataTransferUtilities> ("MeshDataTransferUtilities", init<>())
 	.def("TransferElementalValuesToNodes", TransferElementsToNodes)
 	.def("TransferNodalValuesToElements", TransferNodesToElements)
 	.def("TransferNodalValuesToElementsOnThreshold", TransferNodesToElementsOnThreshold)
+	.def("TransferBoundaryData", TransferDataToBoundary)
+	.def_readonly("NODE_TO_ELEMENT",&MeshDataTransferUtilities::NODE_TO_ELEMENT)
+	.def_readonly("ELEMENT_TO_NODE",&MeshDataTransferUtilities::ELEMENT_TO_NODE)
+	.def_readonly("ELEMENT_TO_ELEMENT",&MeshDataTransferUtilities::ELEMENT_TO_ELEMENT)
+	.def_readonly("INITIALIZE_MASTER_CONDITION",&MeshDataTransferUtilities::INITIALIZE_MASTER_CONDITION)
+	.def_readonly("MASTER_ELEMENT_TO_MASTER_CONDITION",&MeshDataTransferUtilities::MASTER_ELEMENT_TO_MASTER_CONDITION)
 	;
 
 
@@ -197,6 +205,7 @@ namespace Kratos
 	.def("Set",&MeshDataTransferUtilities::TransferParameters::Set)
 	.def("Reset",&MeshDataTransferUtilities::TransferParameters::Reset)
 	.def("SetOptions",&MeshDataTransferUtilities::TransferParameters::SetOptions)
+	.def("GetOptions",&MeshDataTransferUtilities::TransferParameters::GetOptions)
 	.def("SetVariable",SetDoubleVariable)
 	.def("SetVariable",SetArray1DVariable)
 	.def("SetVariable",SetVectorVariable)
@@ -255,12 +264,14 @@ namespace Kratos
 	.def("SetOffsetFactor",&ModelerUtilities::MeshingParameters::SetOffsetFactor)
 	.def("SetInfoParameters",&ModelerUtilities::MeshingParameters::SetInfoParameters)
 	.def("SetRefiningParameters",&ModelerUtilities::MeshingParameters::SetRefiningParameters)
+	.def("SetProperties",&ModelerUtilities::MeshingParameters::SetProperties)
 	.def("SetMeshingBox",&ModelerUtilities::MeshingParameters::SetMeshingBox)
 	.def("SetTransferParameters",&ModelerUtilities::MeshingParameters::SetTransferParameters)
 	.def("SetTransferVariable",&ModelerUtilities::MeshingParameters::SetTransferVariable)
 	.def("SetReferenceElement",SetReferenceElement)
 	.def("SetReferenceCondition",SetReferenceCondition)
 	.def("GetInfoParameters",&ModelerUtilities::MeshingParameters::GetInfoParameters)
+	.def("GetTransferParameters",&ModelerUtilities::MeshingParameters::GetTransferParameters)
 	.def("GetRefiningParameters",&ModelerUtilities::MeshingParameters::GetRefiningParameters)
 	.def("GetOptions",&ModelerUtilities::MeshingParameters::GetOptions)
 	;

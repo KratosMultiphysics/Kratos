@@ -21,6 +21,7 @@ class MeshingStrategy:
         default_settings = KratosMultiphysics.Parameters("""
         {
              "strategy_type": "meshing_strategy",
+             "meshing_frequency": 0,
              "remesh": false,
              "refine": false,
              "reconnect": false,
@@ -38,10 +39,13 @@ class MeshingStrategy:
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
                 
+        self.imposed_walls          = []
+        self.consider_imposed_walls = False      
+
         print("Construction of Mesh Modeler finished")
         
     #
-    def Initialize(self,meshing_parameters,imposed_walls,domain_size,mesh_id):
+    def Initialize(self,meshing_parameters,domain_size,mesh_id):
         
         #parameters
         self.mesh_id = mesh_id
@@ -85,28 +89,46 @@ class MeshingStrategy:
         self.SetMeshModelers();
         
         for mesher in self.mesh_modelers:
-            mesher.Initialize(imposed_walls,domain_size)
+            mesher.Initialize(domain_size)
 
         self.number_of_nodes      = 0
         self.number_of_elements   = 0
         self.number_of_conditions = 0
+        
+    #
+    def SetImposedWalls(self, imposed_walls): #must be set before initialize
+
+        self.consider_imposed_walls = True
+        self.imposed_walls =  imposed_walls       
 
     #
     def SetMeshModelers(self):
 
-        modelers = []        
+        modelers = []       
+
         if( self.settings["remesh"].GetBool() and self.settings["refine"].GetBool() ):
+
             modelers.append("pre_refining_modeler")
             modelers.append("post_refining_modeler")
+
         elif( self.settings["remesh"].GetBool() ):
+
             modelers.append("reconnect_modeler")
+
         elif( self.settings["transfer"].GetBool() ):
+
             modelers.append("transfer_modeler")
  
+
         for modeler in modelers:
             meshing_module =__import__(modeler)      
             mesher = meshing_module.CreateMeshModeler(self.main_model_part,self.MeshingParameters,self.mesh_id) 
             self.mesh_modelers.append(mesher)
+
+        if( self.consider_imposed_walls ):
+            for mesher in self.mesh_modelers:
+                mesher.SetImposedWalls(self.imposed_walls)
+
   
     #
     def SetInfo(self):

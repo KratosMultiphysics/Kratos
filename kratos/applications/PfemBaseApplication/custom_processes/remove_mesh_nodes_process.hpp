@@ -657,7 +657,7 @@ private:
 		pcond->SetValue(MASTER_NODES, NewCond->GetValue(MASTER_NODES) );
 
 		MeshDataTransferUtilities TransferUtilities;
-		TransferUtilities.TransferBoundaryData(pcond, NewCond, mrRemesh.TransferVariables); 
+		TransferUtilities.TransferBoundaryData(pcond, NewCond, *(mrRemesh.Transfer)); 
 
 		(mrModelPart.Conditions(mMeshId)).push_back(pcond);
 
@@ -844,7 +844,7 @@ private:
 		    pcond->SetValue(MASTER_NODES, NewCond->GetValue(MASTER_NODES) );
 
 		    MeshDataTransferUtilities TransferUtilities;
-		    TransferUtilities.TransferBoundaryData(pcond, NewCond, mrRemesh.TransferVariables); 
+		    TransferUtilities.TransferBoundaryData(pcond, NewCond,*(mrRemesh.Transfer)); 
 
 		    (mrModelPart.Conditions(mMeshId)).push_back(pcond);
 
@@ -1007,7 +1007,7 @@ private:
 		      pcond->SetValue(MASTER_NODES, NewCond->GetValue(MASTER_NODES) );
 
 		      MeshDataTransferUtilities TransferUtilities;
-		      TransferUtilities.TransferBoundaryData(pcond, NewCond, mrRemesh.TransferVariables); 
+		      TransferUtilities.TransferBoundaryData(pcond, NewCond, *(mrRemesh.Transfer) ); 
 
 		      (mrModelPart.Conditions(mMeshId)).push_back(pcond);
 

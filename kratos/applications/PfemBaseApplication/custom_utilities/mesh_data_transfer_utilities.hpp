@@ -72,8 +72,8 @@ namespace Kratos
     KRATOS_DEFINE_LOCAL_FLAG( NODE_TO_ELEMENT );
     KRATOS_DEFINE_LOCAL_FLAG( ELEMENT_TO_NODE );
     KRATOS_DEFINE_LOCAL_FLAG( ELEMENT_TO_ELEMENT );
-    KRATOS_DEFINE_LOCAL_FLAG( MASTER_ELEMENT_TO_NODE );
-    KRATOS_DEFINE_LOCAL_FLAG( INITIALIZATION );
+    KRATOS_DEFINE_LOCAL_FLAG( INITIALIZE_MASTER_CONDITION );
+    KRATOS_DEFINE_LOCAL_FLAG( MASTER_ELEMENT_TO_MASTER_CONDITION );
 
     struct TransferParameters
     {      
@@ -132,6 +132,10 @@ namespace Kratos
 	MatrixVariables.push_back(&pVariable);
       }
 
+      Flags GetOptions()
+      {
+	return Options;
+      };
 
       void Initialize ()
       {
