@@ -37,6 +37,7 @@
 	"offset_factor": *GenData(Offset_Factor),
 	"meshing_strategy":{
 		"python_file_name": "meshing_strategy",
+		"meshing_frequency": 0,
 		"remesh": *tcl(string tolower *cond(Remesh)),
 		"refine": *tcl(string tolower *cond(Refine)),
 		"reconnect": *tcl(string tolower *cond(Remesh)),
