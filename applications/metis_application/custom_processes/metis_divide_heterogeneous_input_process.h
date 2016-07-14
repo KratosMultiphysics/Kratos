@@ -341,8 +341,8 @@ private:
                        std::vector<int>& rNodePartition)
     {
         int n = static_cast<int>(NumNodes);
-        int wgtflag = 0; // Graph is not weighted
-        int numflag = 0; // Nodes are numbered from 0 (C style)
+        //int wgtflag = 0; // Graph is not weighted
+        //int numflag = 0; // Nodes are numbered from 0 (C style)
         int nparts = static_cast<int>(BaseType::mNumberOfPartitions);
         int edgecut;
         rNodePartition.resize(NumNodes);

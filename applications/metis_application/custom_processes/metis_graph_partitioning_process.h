@@ -298,9 +298,7 @@ protected:
         int number_of_element_nodes = ElementsConnectivities.begin()->size(); // here assuming that all elements are the same!!
 
         int ne = NumberOfElements;
-        int nn = NumberOfNodes;
-
-
+        //int nn = NumberOfNodes;
 
         int etype;
         if(number_of_element_nodes == 3) // triangles
@@ -317,10 +315,9 @@ protected:
         else
             KRATOS_THROW_ERROR(std::invalid_argument, "invalid element type with number of nodes : ", number_of_element_nodes);
 
-
-        int numflag = 0;
-        int number_of_partitions = static_cast<int>(mNumberOfPartitions);
-        int edgecut;
+        //int numflag = 0;
+        //int number_of_partitions = static_cast<int>(mNumberOfPartitions);
+        //int edgecut;
 
         idxtype* elmnts = new idxtype[connectivity_size];
 
