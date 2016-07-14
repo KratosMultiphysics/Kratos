@@ -867,8 +867,10 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
                 set value [expr $value ? True : False]
                 dict set paramDict $inputName [expr $value]
             } else {
-                set value [get_domnode_attribute [$group find n $inputName] v] 
-                dict set paramDict $inputName $value
+                if {[get_domnode_attribute [$group find n $inputName] state] ne "hidden" } {
+                    set value [get_domnode_attribute [$group find n $inputName] v] 
+                    dict set paramDict $inputName $value
+                }
             }
         }
         
