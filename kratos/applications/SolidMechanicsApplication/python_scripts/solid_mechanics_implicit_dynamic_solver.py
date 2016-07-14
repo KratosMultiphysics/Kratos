@@ -227,10 +227,10 @@ class ImplicitMechanicalSolver:
         self.mechanical_solver.Solve()
 
     def SetEchoLevel(self, level):
-        self.solver.SetEchoLevel(level)
+        self.mechanical_solver.SetEchoLevel(level)
 
     def Clear(self):
-        self.solver.Clear()
+        self.mechanical_solver.Clear()
         
     def Check(self):
         self.mechanical_solver.Check()
