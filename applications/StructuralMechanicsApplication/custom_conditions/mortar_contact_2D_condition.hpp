@@ -389,16 +389,13 @@ public:
     * Evaluation methods for Lagrange multipliers shape functions
     * and its local derivatives
     */
-    double LagrangeMultiplierShapeFunctionValue( 
-        const double xi_local,
-        const IndexType& rShapeFunctionIndex 
-        );
+    const Vector LagrangeMultiplierShapeFunctionValue(const double xi_local);
     
     /**
     * Evaluation methods for Lagrange multipliers shape functions
     * and its local derivatives
     */
-    const Matrix LagrangeMultiplierShapeFunctionLocalGradient( const IndexType& rPointNumber );
+    const Matrix LagrangeMultiplierShapeFunctionLocalGradient( const double xi_local );
 
     /**
     * Creates a new element pointer from an arry of nodes
@@ -766,7 +763,7 @@ private:
     ///@{
 
     IntegrationMethod mThisIntegrationMethod;              // Integration order of the element
-    std::vector<Condition*> mThisMasterElements;           // Vector which contains the pointers to the master elements
+    std::vector<Condition::Pointer> mThisMasterElements;           // Vector which contains the pointers to the master elements
     std::vector<MortarWeightedGaps> mThisWeightedGap;      // Vector which contains the weighted gaps of the contact
 
     ///@}

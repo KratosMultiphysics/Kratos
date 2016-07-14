@@ -149,9 +149,10 @@ void MortarContact2DCondition::Initialize( )
 void MortarContact2DCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
-
+    
     // Populate the vector of master elements
     std::vector<contact_container> * all_containers = this->GetValue(CONTACT_CONTAINERS);
+    mThisMasterElements.clear();
     mThisMasterElements.resize( all_containers->size( ) );
     
     for ( unsigned int i_cond = 0; i_cond < all_containers->size(); ++i_cond )
@@ -168,13 +169,13 @@ void MortarContact2DCondition::InitializeSolutionStep( ProcessInfo& rCurrentProc
 void MortarContact2DCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
-
+    
     // Populate the vector of master elements
     std::vector<contact_container> *& all_containers = this->GetValue(CONTACT_CONTAINERS);
     
     for ( unsigned int i_cond = 0; i_cond < all_containers->size(); ++i_cond )
     {
-        Condition *& pCond = (*all_containers)[i_cond].condition;
+        Condition::Pointer pCond = (*all_containers)[i_cond].condition;
     
         // Fill the condition
         ContactUtilities::ContactContainerFiller((*all_containers)[i_cond], pCond->GetGeometry().Center(), GetGeometry(), pCond->GetGeometry(), 
@@ -189,6 +190,7 @@ void MortarContact2DCondition::InitializeNonLinearIteration( ProcessInfo& rCurre
 
 void MortarContact2DCondition::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
+    
     if (this->Is(ACTIVE))
     {
         const double cn = GetProperties()[YOUNG_MODULUS]; // NOTE: Kind of penalty, not necessarily this value
@@ -225,70 +227,59 @@ void MortarContact2DCondition::FinalizeNonLinearIteration( ProcessInfo& rCurrent
 /***********************************************************************************/
 /***********************************************************************************/
 
-double MortarContact2DCondition::LagrangeMultiplierShapeFunctionValue( 
-    const double xi_local,
-    const IndexType& rShapeFunctionIndex 
-    )
+const Vector MortarContact2DCondition::LagrangeMultiplierShapeFunctionValue(const double xi_local)
 {
     // NOTE: For more information look at the thesis of Popp page 93/236
     
-    const unsigned number_nodes = GetGeometry( ).PointsNumber();
-    double phi = 0.0;
+    const unsigned int num_slave_nodes = GetGeometry( ).PointsNumber();
+    Vector Phi = ZeroVector( num_slave_nodes );
 
-    if (number_nodes == 2) // First order
+    if (num_slave_nodes == 2) // First order
     {
-        if (rShapeFunctionIndex == 0 )
-        {
-            phi = ( 0.5 * ( 1.0 - 3.0 * xi_local ) );
-        }
-        else if (rShapeFunctionIndex == 1 )
-        {
-            phi = ( 0.5 * ( 1.0 + 3.0 * xi_local ) );
-        }
-        else
-        {
-            KRATOS_THROW_ERROR( std::logic_error, " The rShapeFunctionIndex is wrong: ", rShapeFunctionIndex );
-        }
+        Phi[0] = ( 0.5 * ( 1.0 - 3.0 * xi_local ) );
+        Phi[1] = ( 0.5 * ( 1.0 + 3.0 * xi_local ) );
     }
-    else if (number_nodes == 3) // Second order
+    else if (num_slave_nodes == 3) // Second order
     {
         array_1d<double,3> aux_coordinates = ZeroVector(3);
         aux_coordinates[0] = xi_local;
         Vector Ncontainer = ZeroVector(3);
         Ncontainer = GetGeometry().ShapeFunctionsValues(Ncontainer, aux_coordinates);
-        if (rShapeFunctionIndex == 0 )
-        {
-            phi = Ncontainer(0) -  3.0/4.0 * Ncontainer(2) + 0.5;
-        }
-        else if (rShapeFunctionIndex == 1 )
-        {
-            phi = Ncontainer(1) -  3.0/4.0 * Ncontainer(2) + 0.5;
-        }
-        else if (rShapeFunctionIndex == 2 )
-        {
-            phi = 5.0/2.0 * Ncontainer(2) - 1.0;
-        }
-        else
-        {
-            KRATOS_THROW_ERROR( std::logic_error, " The rShapeFunctionIndex is wrong: ", rShapeFunctionIndex );
-        }
+
+        Phi[0] = Ncontainer(0) -  3.0/4.0 * Ncontainer(2) + 0.5;
+        Phi[1] = Ncontainer(1) -  3.0/4.0 * Ncontainer(2) + 0.5;
+        Phi[2] = 5.0/2.0 * Ncontainer(2) - 1.0;
     }
         
-    return phi;
+    return Phi;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Matrix MortarContact2DCondition::LagrangeMultiplierShapeFunctionLocalGradient( const IndexType& rPointNumber )
+const Matrix MortarContact2DCondition::LagrangeMultiplierShapeFunctionLocalGradient( const double xi_local )
 {
     // For 2D2N elements as presented in Popp's and Gitterle's work
     const unsigned int num_slave_nodes = GetGeometry( ).PointsNumber( );
     const unsigned int local_dimension_slave = GetGeometry( ).LocalSpaceDimension( );
-    Matrix DPhi_De = Matrix( num_slave_nodes, local_dimension_slave );
+    Matrix DPhi_De = ZeroMatrix( num_slave_nodes, local_dimension_slave );
 
-    DPhi_De( 0, 0 ) = - 3.0 / 2.0;
-    DPhi_De( 0, 1 ) = + 3.0 / 2.0;
+    if (num_slave_nodes == 2) // First order
+    {
+        DPhi_De( 0, 0 ) = - 3.0 / 2.0;
+        DPhi_De( 1, 0 ) = + 3.0 / 2.0;
+    }
+    else if (num_slave_nodes == 3) // Second order
+    {
+        array_1d<double,3> aux_coordinates = ZeroVector(3);
+        aux_coordinates[0] = xi_local;
+        Matrix DNcontainer = ZeroMatrix(3, 1);
+        DNcontainer = GetGeometry().ShapeFunctionsLocalGradients( DNcontainer , aux_coordinates );
+        
+        DPhi_De( 0, 0 ) = DNcontainer(0, 0) -  3.0/4.0 * DNcontainer(2, 0);
+        DPhi_De( 1, 0 ) = DNcontainer(1, 0) -  3.0/4.0 * DNcontainer(2, 0);
+        DPhi_De( 2, 0 ) = 5.0/2.0 * DNcontainer(2, 0);
+    }
 
     return DPhi_De;
 }
@@ -760,25 +751,22 @@ void MortarContact2DCondition::CalculateKinematics(
     rVariables.N_Master.resize( number_of_master_nodes, false );
     rVariables.N_Slave.resize( number_of_slave_nodes, false );
 
-//     rVariables.DN_De_Master.resize( number_of_master_nodes, master_nodes.LocalSpaceDimension( ), false );
-//     rVariables.DN_De_Slave.resize( number_of_slave_nodes, slave_nodes.LocalSpaceDimension( ), false );
-//     rVariables.DPhi_De_LagrangeMultipliers.resize( number_of_slave_nodes, slave_nodes.LocalSpaceDimension( ), false );
+    rVariables.DN_De_Master.resize( number_of_master_nodes, master_nodes.LocalSpaceDimension( ), false );
+    rVariables.DN_De_Slave.resize( number_of_slave_nodes, slave_nodes.LocalSpaceDimension( ), false );
+    rVariables.DPhi_De_LagrangeMultipliers.resize( number_of_slave_nodes, slave_nodes.LocalSpaceDimension( ), false );
     
     /*  POPULATE MATRICES AND VECTORS */
     
-    // SLAVE CONDITION
-    for( unsigned int iNode = 0; iNode < number_of_slave_nodes; ++iNode )
-    {
-        rVariables.N_Slave[iNode] = slave_nodes.ShapeFunctionValue( iNode, local_point );
-        rVariables.Phi_LagrangeMultipliers[iNode] = LagrangeMultiplierShapeFunctionValue( xi_local_slave, iNode );
-    }
+    /// SLAVE CONDITION ///
+    // SHAPE FUNCTIONS 
+    rVariables.N_Slave = slave_nodes.ShapeFunctionsValues( rVariables.N_Slave, local_point.Coordinates() );
+    rVariables.Phi_LagrangeMultipliers= LagrangeMultiplierShapeFunctionValue( xi_local_slave );
+    // SHAPE FUNCTION DERIVATIVES
+    rVariables.DN_De_Slave  =  slave_nodes.ShapeFunctionsLocalGradients( rVariables.DN_De_Slave , local_point );
+    rVariables.DPhi_De_LagrangeMultipliers = LagrangeMultiplierShapeFunctionLocalGradient( xi_local_slave );
     
     // MASTER CONDITION
     this->MasterShapeFunctionValue( rVariables, eta, local_point);
-
-//     rVariables.DN_De_Master = master_nodes.ShapeFunctionLocalGradient( rPointNumber, mThisIntegrationMethod );  // TODO FIXME evaluate at proper point
-//     rVariables.DN_De_Slave  =  slave_nodes.ShapeFunctionLocalGradient( rPointNumber, mThisIntegrationMethod );
-//     rVariables.DPhi_De_LagrangeMultipliers = LagrangeMultiplierShapeFunctionLocalGradient( rPointNumber );
 
     /* CALCULATE JACOBIAN AND JACOBIAN DETERMINANT */
     slave_nodes.Jacobian( rVariables.j_Slave, local_point.Coordinates() );
@@ -806,7 +794,7 @@ void MortarContact2DCondition::MasterShapeFunctionValue(
     array_1d<double,3> normal = ZeroVector(3);
     for( unsigned int iNode = 0; iNode < GetGeometry().PointsNumber(); ++iNode )
     {
-        normal += rVariables.N_Slave[iNode] * GetGeometry()[iNode].FastGetSolutionStepValue(NORMAL, 0); 
+        normal -= rVariables.N_Slave[iNode] * GetGeometry()[iNode].FastGetSolutionStepValue(NORMAL, 0); // The opposite direction
     }
     
 //     normal = normal/norm_2(normal); // It is suppossed to be already unitary (just in case)
@@ -822,7 +810,9 @@ void MortarContact2DCondition::MasterShapeFunctionValue(
     GeometryType::CoordinatesArrayType projected_gp_local;
     if( master_seg.IsInside( projected_gp_global.Coordinates( ), projected_gp_local ) )
     {
-        rVariables.N_Master = master_seg.ShapeFunctionsValues( rVariables.N_Master, projected_gp_local );         
+        // SHAPE FUNCTIONS 
+        rVariables.N_Master     = master_seg.ShapeFunctionsValues(         rVariables.N_Master,     projected_gp_local );         
+        rVariables.DN_De_Master = master_seg.ShapeFunctionsLocalGradients( rVariables.DN_De_Master, projected_gp_local );         
     }
     
     // Doing calculations with local xi
