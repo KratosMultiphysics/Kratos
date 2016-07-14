@@ -417,12 +417,6 @@ namespace Kratos {
         double force[3];
         Matrix average_stress_tensor = ZeroMatrix(3,3);
         
-//        if(element1->Id()== 89708 && element2->Id()== 89278) KRATOS_WATCH("****89708****89278***************************************")
-//        if(element1->Id()== 124637 && element2->Id()== 123713) KRATOS_WATCH("****124637****123713***************************************")
-//                
-//        if((element1->Id()== 89708 && element2->Id()== 89278) || (element1->Id()== 124637 && element2->Id()== 123713))KRATOS_WATCH((*mSymmStressTensor)(1,1))
-//        if((element1->Id()== 89708 && element2->Id()== 89278) || (element1->Id()== 124637 && element2->Id()== 123713))KRATOS_WATCH((*(element2->mSymmStressTensor))(1,1))
-//        
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 average_stress_tensor(i,j) = 0.5 * ((*mSymmStressTensor)(i,j) + (*(element2->mSymmStressTensor))(i,j));
@@ -436,19 +430,10 @@ namespace Kratos {
                        (average_stress_tensor)(i,2) * LocalCoordSystem[0][2]; // StressTensor*unitaryNormal0
         }
         
-        
-        
-        
         double sigma_x = force[0] * LocalCoordSystem[0][0] +
                          force[1] * LocalCoordSystem[0][1] +
                          force[2] * LocalCoordSystem[0][2]; // projection to normal to obtain value of the normal stress
         
-//        if((element1->Id()== 89708 && element2->Id()== 89278) || (element1->Id()== 124637 && element2->Id()== 123713))KRATOS_WATCH(average_stress_tensor)
-//        if((element1->Id()== 89708 && element2->Id()== 89278) || (element1->Id()== 124637 && element2->Id()== 123713))KRATOS_WATCH(LocalCoordSystem[0][0])
-//        if((element1->Id()== 89708 && element2->Id()== 89278) || (element1->Id()== 124637 && element2->Id()== 123713))KRATOS_WATCH(LocalCoordSystem[0][1])
-//        if((element1->Id()== 89708 && element2->Id()== 89278) || (element1->Id()== 124637 && element2->Id()== 123713))KRATOS_WATCH(LocalCoordSystem[0][2])                
-//        if((element1->Id()== 89708 && element2->Id()== 89278) || (element1->Id()== 124637 && element2->Id()== 123713))KRATOS_WATCH(sigma_x)
-
         for (int i = 0; i < 3; i++) {
             
             force[i] = (average_stress_tensor)(i,0) * LocalCoordSystem[1][0] +
@@ -460,15 +445,8 @@ namespace Kratos {
                          force[1] * LocalCoordSystem[1][1] +
                          force[2] * LocalCoordSystem[1][2]; // projection to normal to obtain value of the normal stress
 
-//        if((element1->Id()== 89708 && element2->Id()== 89278) || (element1->Id()== 124637 && element2->Id()== 123713))KRATOS_WATCH(LocalCoordSystem[1][0])
-//        if((element1->Id()== 89708 && element2->Id()== 89278) || (element1->Id()== 124637 && element2->Id()== 123713))KRATOS_WATCH(LocalCoordSystem[1][1])
-//        if((element1->Id()== 89708 && element2->Id()== 89278) || (element1->Id()== 124637 && element2->Id()== 123713))KRATOS_WATCH(LocalCoordSystem[1][2])
-//        if((element1->Id()== 89708 && element2->Id()== 89278) || (element1->Id()== 124637 && element2->Id()== 123713))KRATOS_WATCH(sigma_y)
-        
         double poisson_force = calculation_area * equiv_poisson * (sigma_x + sigma_y);
         
-//        if((element1->Id()== 89708 && element2->Id()== 89278) || (element1->Id()== 124637 && element2->Id()== 123713))KRATOS_WATCH(poisson_force)
-
         int poisson_effect_factor = r_process_info[POISSON_EFFECT_OPTION];
         
         normal_force -= poisson_effect_factor * poisson_force;
@@ -497,16 +475,6 @@ namespace Kratos {
             }
         }
         
-        
-//        if(element1->Id()== 56700 ) KRATOS_WATCH("***********************************************")
-//        if(element1->Id()== 56700) {
-//            KRATOS_WATCH(element2->Id())
-//        }
-//        if(element1->Id()== 56700 ) KRATOS_WATCH(LocalElasticContactForce[0])
-//        if(element1->Id()== 56700 ) KRATOS_WATCH(LocalElasticContactForce[1])
-//        if(element1->Id()== 56700 ) KRATOS_WATCH(*(element1->mSymmStressTensor))
-//        if(element1->Id()== 56700 ) KRATOS_WATCH(*(element2->mSymmStressTensor))
-
         double current_sigma_local[3][3];
         double old_sigma_local[3][3];                     
         GeometryFunctions::TensorGlobal2Local(LocalCoordSystem, average_stress_tensor, current_sigma_local);                
@@ -516,13 +484,9 @@ namespace Kratos {
         const double current_tangential_stress2 = current_sigma_local[1][2]; 
         const double old_tangential_stress1 = old_sigma_local[0][2];
         const double old_tangential_stress2 = old_sigma_local[1][2];
-//        if(element1->Id()== 56700 ) KRATOS_WATCH(current_sigma_local[0][2])
-//        if(element1->Id()== 56700 ) KRATOS_WATCH(current_sigma_local[1][2])
                         
         const double increment_of_tangential_stress1 = current_tangential_stress1 - old_tangential_stress1;
         const double increment_of_tangential_stress2 = current_tangential_stress2 - old_tangential_stress2; 
-//        if(element1->Id()== 56700 ) KRATOS_WATCH(calculation_area * increment_of_tangential_stress1)
-//        if(element1->Id()== 56700 ) KRATOS_WATCH(calculation_area * increment_of_tangential_stress2)
         
         LocalElasticContactForce[0] -= calculation_area * increment_of_tangential_stress1;
         LocalElasticContactForce[1] -= calculation_area * increment_of_tangential_stress2;
@@ -535,14 +499,6 @@ namespace Kratos {
                 
         LocalElasticContactForce[0] += kt_el * old_delta_displacement_in_new_local_axes[0];
         LocalElasticContactForce[1] += kt_el * old_delta_displacement_in_new_local_axes[1];
-        
-//        if(element1->Id()== 56700 ) KRATOS_WATCH(old_delta_displacement_in_new_local_axes[0])
-//        if(element1->Id()== 56700 ) KRATOS_WATCH(kt_el * old_delta_displacement_in_new_local_axes[0])
-//        if(element1->Id()== 56700 ) KRATOS_WATCH(kt_el * old_delta_displacement_in_new_local_axes[1])
-//                
-//        if(element1->Id()== 56700 ) KRATOS_WATCH(LocalElasticContactForce[0])
-//        if(element1->Id()== 56700 ) KRATOS_WATCH(LocalElasticContactForce[1])
-        
     }
 
 } // namespace Kratos
