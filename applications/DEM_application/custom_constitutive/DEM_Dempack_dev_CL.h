@@ -26,7 +26,8 @@ namespace Kratos {
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
         void GetContactArea(const double radius, const double other_radius, const Vector& vector_of_initial_areas, const int neighbour_position, double& calculation_area) override;
-        void CalculateElasticConstants(double &kn_el, double &kt_el, double initial_dist, double equiv_young, double equiv_poisson, double calculation_area) override;
+        void CalculateElasticConstants(double &kn_el, double &kt_el, double initial_dist, double equiv_young, double equiv_poisson,
+                                       double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
         void CalculateTangentialForces(double LocalElasticContactForce[3],
                 double LocalCoordSystem[3][3],
                 double LocalDeltDisp[3],
@@ -62,7 +63,9 @@ namespace Kratos {
                                                       double calculation_area,
                                                       double LocalCoordSystem[3][3],
                                                       double ElasticLocalRotationalMoment[3],
-                                                      double ViscoLocalRotationalMoment[3]) override;
+                                                      double ViscoLocalRotationalMoment[3],
+                                                      double equiv_poisson,
+                                                      double indentation) override;
 
     private:
 
