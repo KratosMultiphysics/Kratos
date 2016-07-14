@@ -42,7 +42,7 @@ namespace Kratos {
                                                         double& calculation_area) {}
         
         void DEM_sintering_continuum::CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
-                                             double equiv_poisson, double calculation_area) {}
+                                             double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {}
 
 	void DEM_sintering_continuum::CalculateSinteringForces(const ProcessInfo& r_process_info,
 		const double OldLocalElasticContactForce[3],
@@ -366,11 +366,14 @@ namespace Kratos {
                                                     double calculation_area,
                                                     double LocalCoordSystem[3][3],
                                                     double ElasticLocalRotationalMoment[3],
-                                                    double ViscoLocalRotationalMoment[3]) {
+                                                    double ViscoLocalRotationalMoment[3],
+                                                    double equiv_poisson,
+                                                    double indentation) {
             
             if (element->Is(DEMFlags::IS_SINTERING)) return;
             
-            DEM_KDEM::ComputeParticleRotationalMoments(element, neighbor, equiv_young, distance, calculation_area, LocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
+            DEM_KDEM::ComputeParticleRotationalMoments(element, neighbor, equiv_young, distance, calculation_area, LocalCoordSystem,
+                                                       ElasticLocalRotationalMoment, ViscoLocalRotationalMoment, equiv_poisson, indentation);
         }
 
 

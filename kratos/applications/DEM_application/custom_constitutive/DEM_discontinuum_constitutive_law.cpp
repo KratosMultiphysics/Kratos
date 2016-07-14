@@ -57,7 +57,9 @@ namespace Kratos {
             double initial_dist,
             double equiv_young,
             double equiv_poisson,
-            double calculation_area) {
+            double calculation_area,
+            SphericParticle* element1,
+            SphericParticle* element2) {
         
         KRATOS_TRY 
         double equiv_shear = equiv_young / (2.0 * (1.0 + equiv_poisson));

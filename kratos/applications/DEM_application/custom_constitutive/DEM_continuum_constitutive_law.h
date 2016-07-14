@@ -78,7 +78,9 @@ namespace Kratos {
                 double initial_dist,
                 double equiv_young,
                 double equiv_poisson,
-                double calculation_area) {
+                double calculation_area,
+                SphericContinuumParticle* element1,
+                SphericContinuumParticle* element2) {
             KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateElasticConstants) should not be called.","")
         };
 
@@ -160,9 +162,12 @@ namespace Kratos {
                                                       double calculation_area,
                                                       double LocalCoordSystem[3][3],
                                                       double ElasticLocalRotationalMoment[3],
-                                                      double ViscoLocalRotationalMoment[3]);
+                                                      double ViscoLocalRotationalMoment[3],
+                                                      double equiv_poisson,
+                                                      double indentation);
         
-        virtual void AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1, SphericContinuumParticle* element2);
+        virtual void AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, double calculation_area, Matrix* mSymmStressTensor,
+                                            SphericContinuumParticle* element1, SphericContinuumParticle* element2, const ProcessInfo& r_process_info);
 
         virtual double LocalMaxSearchDistance(const int i,
                                               SphericContinuumParticle* element1,

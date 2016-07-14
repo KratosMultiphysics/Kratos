@@ -27,12 +27,15 @@ namespace Kratos {
                                                           double calculation_area,
                                                           double LocalCoordSystem[3][3],
                                                           double ElasticLocalRotationalMoment[3],
-                                                          double ViscoLocalRotationalMoment[3]) {
+                                                          double ViscoLocalRotationalMoment[3],
+                                                          double equiv_poisson,
+                                                          double indentation) {
         KRATOS_TRY
         
         double fabric_coefficient = element->GetProperties()[FABRIC_COEFFICIENT];
         
-        DEM_KDEM::ComputeParticleRotationalMoments(element, neighbor, equiv_young, distance, calculation_area, LocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
+        DEM_KDEM::ComputeParticleRotationalMoments(element, neighbor, equiv_young, distance, calculation_area, LocalCoordSystem,
+                                                   ElasticLocalRotationalMoment, ViscoLocalRotationalMoment, equiv_poisson, indentation);
         
         DEM_MULTIPLY_BY_SCALAR_3(ElasticLocalRotationalMoment, fabric_coefficient);
         DEM_MULTIPLY_BY_SCALAR_3(ViscoLocalRotationalMoment, fabric_coefficient);
@@ -42,7 +45,8 @@ namespace Kratos {
     
     
     void DEM_KDEMFabric::AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, 
-                                          double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
+                                          double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1,
+                                          SphericContinuumParticle* element2, const ProcessInfo& r_process_info) {
         KRATOS_TRY         
         KRATOS_CATCH("")
     }
