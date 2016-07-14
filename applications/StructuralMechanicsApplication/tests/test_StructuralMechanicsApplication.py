@@ -20,6 +20,7 @@ from SmallTests import ShellT3ThinDrillingRollUpTests as TShellT3ThinDrillingRol
 from SmallTests import SimplePatchTestContact as TSimplePatchTestContact
 from SmallTests import SimplePatchNotMatchingATestContact as TSimplePatchNotMatchingATestContact
 from SmallTests import SimplePatchNotMatchingBTestContact as TSimplePatchNotMatchingBTestContact
+from SmallTests import TaylorPatchTestContact as TTaylorPatchTestContact
 
 ## NIGTHLY TESTS
 from NightlyTests import ShellT3IsotropicScordelisTests as TShellT3IsotropicScordelisTests
@@ -54,6 +55,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TSimplePatchTestContact('test_execution'))
     smallSuite.addTest(TSimplePatchNotMatchingATestContact('test_execution'))
     smallSuite.addTest(TSimplePatchNotMatchingBTestContact('test_execution'))
+    smallSuite.addTest(TTaylorPatchTestContact('test_execution'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -79,7 +81,8 @@ def AssambleTestSuites():
             TShellT3IsotropicScordelisTests,
             TSimplePatchTestContact,
             TSimplePatchNotMatchingATestContact,
-            TSimplePatchNotMatchingBTestContact
+            TSimplePatchNotMatchingBTestContact,
+            TTaylorPatchTestContact
         ])
     )
 

@@ -7,7 +7,6 @@ from KratosMultiphysics import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import Kratos_Execute_Solid_Test as Execute_Test
 
-
 # This utiltiy will control the execution scope in case we need to acces files or we depend
 # on specific relative locations of the files.
 
@@ -22,7 +21,6 @@ class controlledExecutionScope:
 
     def __exit__(self, type, value, traceback):
         os.chdir(self.currentPath)
-
 
 class StructrualMechanichsTestFactory(KratosUnittest.TestCase):
 
@@ -76,11 +74,18 @@ class ShellT3ThinBendingRollUpTests(StructrualMechanichsTestFactory):
 class ShellT3ThinDrillingRollUpTests(StructrualMechanichsTestFactory):
     file_name = "shell_test/Shell_T3_Thin__DrillingRollUp_test"
     
+    
 class SimplePatchTestContact(StructrualMechanichsTestFactory):
     file_name = "contact_test/simple_patch_test"
+    
     
 class SimplePatchNotMatchingATestContact(StructrualMechanichsTestFactory):
     file_name = "contact_test/simple_patch_notmatching_a_test"
     
+    
 class SimplePatchNotMatchingBTestContact(StructrualMechanichsTestFactory):
     file_name = "contact_test/simple_patch_notmatching_b_test"
+    
+    
+class TaylorPatchTestContact(StructrualMechanichsTestFactory):
+    file_name = "contact_test/taylor_patch_test"
