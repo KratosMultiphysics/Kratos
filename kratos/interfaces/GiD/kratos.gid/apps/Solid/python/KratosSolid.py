@@ -182,7 +182,6 @@ while(time <= end_time):
 
     gid_output.ExecuteInitializeSolutionStep()
         
-    solver.Clear()
     solver.Solve()
 
     gid_output.ExecuteFinalizeSolutionStep()
