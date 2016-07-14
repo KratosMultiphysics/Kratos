@@ -47,6 +47,7 @@ class ImplicitStructuralSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
             "compute_contact_forces": false,
             "compute_mortar_contact": false,
             "block_builder": false,
+            "clear_storage": false,
             "component_wise": false,
             "move_mesh_flag": true,
             "solution_type": "Dynamic",

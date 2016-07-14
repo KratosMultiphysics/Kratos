@@ -79,9 +79,7 @@ class ContactProcess(KratosMultiphysics.Process):
             condition_name = "NTSContact"
         
         print("MODEL PART BEFORE CREATING INTERFACE")
-        print(self.o_model_part)
-        print(self.d_model_part)
-        #print(self.main_model_part) 
+        print(self.main_model_part) 
         
         # It should create the conditions automatically
         initial_id = CalculateLastIdCondition(self.main_model_part)
@@ -90,9 +88,7 @@ class ContactProcess(KratosMultiphysics.Process):
         self.Preprocess.GenerateInterfacePart(self.d_model_part, self.d_interface, condition_name, initial_id) 
 
         print("MODEL PART AFTER CREATING INTERFACE")
-        print(self.o_model_part)
-        print(self.d_model_part)
-        #print(self.main_model_part)
+        print(self.main_model_part)
         
         self.contact_search = KratosMultiphysics.StructuralMechanicsApplication.TreeContactSearch(self.o_interface, self.d_interface, self.allocation_size)
         
