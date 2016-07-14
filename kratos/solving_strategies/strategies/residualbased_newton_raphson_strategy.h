@@ -471,8 +471,13 @@ public:
 
         GetScheme()->Clear();
 
-        if(BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
-            std::cout << "Newton Raphson strategy Clear function used" << std::endl;
+        if (this->GetEchoLevel() > 0)
+        {
+            if(BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+            {
+                std::cout << "Newton Raphson strategy Clear function used" << std::endl;
+            }
+        }
 
         KRATOS_CATCH("");
     }
@@ -597,38 +602,39 @@ public:
     */
 	void FinalizeSolutionStep()
 	{
-		KRATOS_TRY
+            KRATOS_TRY
 
-		typename TSchemeType::Pointer pScheme = GetScheme();
-        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
+            typename TSchemeType::Pointer pScheme = GetScheme();
+            typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
 
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb = *mpb;
+            TSystemMatrixType& mA = *mpA;
+            TSystemVectorType& mDx = *mpDx;
+            TSystemVectorType& mb = *mpb;
 
-		//Finalisation of the solution step,
-        //operations to be done after achieving convergence, for example the
-        //Final Residual Vector (mb) has to be saved in there
-        //to avoid error accumulation
-        pScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
-        pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+                    //Finalisation of the solution step,
+            //operations to be done after achieving convergence, for example the
+            //Final Residual Vector (mb) has to be saved in there
+            //to avoid error accumulation
+            
+            pScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+            pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
 
-        //Cleaning memory after the solution
-        pScheme->Clean();
+            //Cleaning memory after the solution
+            pScheme->Clean();
 
-        //reset flags for next step
-        mSolutionStepIsInitialized = false;
+            //reset flags for next step
+            mSolutionStepIsInitialized = false;
 
-        if (mReformDofSetAtEachStep == true) //deallocate the systemvectors
-        {
-            SparseSpaceType::Clear(mpA);
-            SparseSpaceType::Clear(mpDx);
-            SparseSpaceType::Clear(mpb);
+            if (mReformDofSetAtEachStep == true) //deallocate the systemvectors
+            {
+                SparseSpaceType::Clear(mpA);
+                SparseSpaceType::Clear(mpDx);
+                SparseSpaceType::Clear(mpb);
 
-            this->Clear();
-        }
+                this->Clear();
+            }
 
-		KRATOS_CATCH("")
+            KRATOS_CATCH("")
 	}
 
 	/**
@@ -636,11 +642,11 @@ public:
     */
 	bool SolveSolutionStep()
 	{
-		//pointers needed in the solution
+        // Pointers needed in the solution
         typename TSchemeType::Pointer pScheme = GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
 
-		DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();
+        DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();
 
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
@@ -695,7 +701,10 @@ public:
         pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
         //move the mesh if needed
-        if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+        if (BaseType::MoveMeshFlag() == true) 
+        {
+            BaseType::MoveMesh();
+        }
 
         pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
 
