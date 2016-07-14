@@ -77,6 +77,7 @@ namespace Kratos
         virtual void ContactAreaWeighting();
         virtual double EffectiveVolumeRadius();
         virtual double GetInitialDelta(int index);
+        virtual bool IsSkin() { return (bool)*mSkinSphere; }
 
         /// Turn back information as a string
         virtual std::string Info() const override
