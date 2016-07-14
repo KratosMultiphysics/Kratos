@@ -9,13 +9,13 @@
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
-// External includes 
-#include "includes/node.h"
+// Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 #include "processes/process.h"
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
 #include "custom_python/add_custom_processes_to_python.h"
+#include "spaces/ublas_space.h"
+#include "includes/kratos_parameters.h"
 
 // Processes
 #include "custom_processes/displa_table_interpolation_process.hpp"
@@ -29,6 +29,10 @@
 #include "custom_processes/interpolation_water_evolution_conditions_load_process.hpp"
 #include "custom_processes/interpolation_bofang_evolution_conditions_temperature_process.hpp"
 
+// Processes new interface
+#include "custom_processes/bofang_condition_temperature_process.hpp"
+#include "custom_processes/dam_hydro_condition_load_process.hpp"
+#include "custom_processes/dam_uplift_condition_load_process.hpp"
 
 namespace Kratos
 {
@@ -79,6 +83,24 @@ void  AddCustomProcessesToPython()
     // Interpolation case Evolution for Water Loads
     class_< InterpolationWaterEvolutionConditionsLoadProcess, bases< Process >, boost::noncopyable > ( "InterpolationWaterEvolutionConditionsLoadProcess",
         init < ModelPart&,double >());
+        
+        
+    // PROCESSES FOR NEW INTERFACE
+    
+    // Bofang Process
+    class_< BofangConditionTemperatureProcess, bases< Process >, boost::noncopyable > ( "BofangConditionTemperatureProcess",
+        init < ModelPart&, Parameters>());
+        
+    // Hydrostatic condition
+    class_< DamHydroConditionLoadProcess, bases< Process >, boost::noncopyable > ( "DamHydroConditionLoadProcess",
+        init < ModelPart&, Parameters>());
+    // Uplift Condition
+    
+    class_< DamUpliftConditionLoadProcess, bases< Process >, boost::noncopyable > ( "DamUpliftConditionLoadProcess",
+        init < ModelPart&, Parameters>());
+        
+        
+        
               
 }
 
