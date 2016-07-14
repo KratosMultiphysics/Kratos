@@ -45,11 +45,11 @@ namespace Kratos {
 			FixedSizeMemoryPool fixed_size_memory_pool(block_size, number_of_blocks);
 			std::size_t empty_size = 16 + sizeof(Chunk) + sizeof(FixedSizeMemoryPool) + sizeof(std::size_t);
 
-			auto repeat_number = 13;
+			std::size_t repeat_number = 13;
 			for (std::size_t i_repeat = 1; i_repeat <= repeat_number; i_repeat++)
 			{
 				std::set<void *> pointer_set;
-				for (auto i_chunk = 0; i_chunk < i_repeat; i_chunk++)
+				for (std::size_t i_chunk = 0; i_chunk < i_repeat; i_chunk++)
 					for (auto i_block = 0; i_block < number_of_blocks; i_block++)
 					{
 						void* p = fixed_size_memory_pool.Allocate();
