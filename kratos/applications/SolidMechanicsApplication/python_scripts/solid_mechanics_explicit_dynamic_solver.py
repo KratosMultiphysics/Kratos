@@ -45,6 +45,7 @@ class ExplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
             "reform_dofs_at_each_iteration": false,
             "compute_reactions": true,
             "move_mesh_flag": true,
+            "clear_storage": false,
             "max_delta_time": 1.0e-5,
             "fraction_delta_time": 0.9,
             "time_step_prediction_level": 0,

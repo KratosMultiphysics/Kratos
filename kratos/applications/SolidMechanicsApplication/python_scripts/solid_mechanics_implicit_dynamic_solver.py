@@ -43,6 +43,7 @@ class ImplicitMechanicalSolver:
             "compute_reactions": true,
             "compute_contact_forces": false,
             "block_builder": false,
+            "clear_storage": false,
             "component_wise": false,
             "move_mesh_flag": true,
             "solution_type": "Dynamic",
@@ -224,6 +225,9 @@ class ImplicitMechanicalSolver:
         pass #one should write the restart file here
         
     def Solve(self):
+        if self.settings["clear_storage"].GetBool():
+            self.Clear()
+            
         self.mechanical_solver.Solve()
 
     def SetEchoLevel(self, level):
