@@ -33,7 +33,9 @@ namespace Kratos {
                                                     double calculation_area,
                                                     double LocalCoordSystem[3][3],
                                                     double ElasticLocalRotationalMoment[3],
-                                                    double ViscoLocalRotationalMoment[3]) {
+                                                    double ViscoLocalRotationalMoment[3],
+                                                    double equiv_poisson,
+                                                    double indentation) {
 
         KRATOS_TRY 
         //double LocalRotationalMoment[3]     = {0.0};
