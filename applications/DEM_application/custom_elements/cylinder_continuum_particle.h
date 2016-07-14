@@ -52,14 +52,16 @@ namespace Kratos
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const {}
 
-      void ContactAreaWeighting();
+      void ContactAreaWeighting() override;
 
     protected:
 
       CylinderContinuumParticle();
       
-      double CalculateVolume();
-      double CalculateMomentOfInertia();
+      double CalculateVolume() override;
+      double CalculateMomentOfInertia() override;
+      void AddContributionToRepresentativeVolume(const double distance, const double radius_sum, const double contact_area) override ;
+
       
     private:
 
