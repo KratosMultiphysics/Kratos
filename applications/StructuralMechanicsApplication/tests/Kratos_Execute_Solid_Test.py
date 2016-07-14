@@ -17,34 +17,30 @@ class Kratos_Execute_Test:
         self.main_model_part = ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
         self.main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
 
-        # ##TODO replace this "model" for real one once available in kratos core
         self.Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString(): self.main_model_part}
 
-        # construct the solver (main setting methods are located in the solver_module)
+        # Construct the solver (main setting methods are located in the solver_module)
         solver_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString())
         self.solver = solver_module.CreateSolver(self.main_model_part, self.ProjectParameters["solver_settings"])
 
-        # add variables (always before importing the model part) (it must be integrated in the ImportModelPart)
-        # if we integrate it in the model part we cannot use combined solvers
+        # Add variables (always before importing the model part) (it must be integrated in the ImportModelPart)
+        # If we integrate it in the model part we cannot use combined solvers
         self.solver.AddVariables()
-        # Temporal
-        # self.main_model_part.AddNodalSolutionStepVariable(ALPHA_EAS)
 
-        # read model_part (note: the buffer_size is set here) (restart can be read here)
+        # Read model_part (note: the buffer_size is set here) (restart can be read here)
         self.solver.ImportModelPart()
 
-        # add dofs (always after importing the model part) (it must be integrated in the ImportModelPart)
-        # if we integrate it in the model part we cannot use combined solvers
+        # Add dofs (always after importing the model part) (it must be integrated in the ImportModelPart)
+        # If we integrate it in the model part we cannot use combined solvers
         self.solver.AddDofs()
 
-        # build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
-        # #TODO: replace MODEL for the Kratos one ASAP
-        # #get the list of the submodel part in the object Model
+        # Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
+        # #Get the list of the submodel part in the object Model
         for i in range(self.ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
             part_name = self.ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
             self.Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
 
-        # obtain the list of the processes to be applied
+        # Obtain the list of the processes to be applied
         self.list_of_processes = process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["constraints_process_list"])
         self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["loads_process_list"])
         self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["list_other_processes"])
@@ -54,33 +50,33 @@ class Kratos_Execute_Test:
 
         # ### START SOLUTION ####
 
-        # TODO: think if there is a better way to do this
         self.computing_model_part = self.solver.GetComputeModelPart()
 
-        # ### output settings start ####
+        # ### Output settings start ####
         self.problem_path = os.getcwd()
         self.problem_name = self.ProjectParameters["problem_data"]["problem_name"].GetString()
 
-        # ### output settings start ####
+        # ### Output settings start ####
 
-        # # Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
+        # Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
         self.solver.Initialize()
+        self.solver.SetEchoLevel(0) # Avoid to print anything 
 
     def Solve(self):
         for process in self.list_of_processes:
             process.ExecuteBeforeSolutionLoop()
 
         # #Stepping and time settings (get from process info or solving info)
-        # delta time
+        # Delta time
         delta_time = self.ProjectParameters["problem_data"]["time_step"].GetDouble()
-        # start step
+        # Start step
         step = 0
-        # start time
+        # Start time
         time = self.ProjectParameters["problem_data"]["start_time"].GetDouble()
-        # end time
+        # End time
         end_time = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
 
-        # solving the problem (time integration)
+        # Solving the problem (time integration)
         while(time <= end_time):
             time = time + delta_time
             step += 1
@@ -90,6 +86,7 @@ class Kratos_Execute_Test:
             for process in self.list_of_processes:
                 process.ExecuteInitializeSolutionStep()
 
+            self.solver.Clear()
             self.solver.Solve()
 
             for process in self.list_of_processes:
