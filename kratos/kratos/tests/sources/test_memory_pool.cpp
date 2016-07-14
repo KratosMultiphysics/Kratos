@@ -2,18 +2,18 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   
 //
-	           
+//
+
 // System includes
 #include <set>
-// External includes 
+// External includes
 
 
 // Project includes
@@ -46,7 +46,7 @@ namespace Kratos {
 			std::size_t empty_size = 16 + sizeof(Chunk) + sizeof(FixedSizeMemoryPool) + sizeof(std::size_t);
 
 			auto repeat_number = 13;
-			for (auto i_repeat = 1; i_repeat <= repeat_number; i_repeat++)
+			for (std::size_t i_repeat = 1; i_repeat <= repeat_number; i_repeat++)
 			{
 				std::set<void *> pointer_set;
 				for (auto i_chunk = 0; i_chunk < i_repeat; i_chunk++)
@@ -120,7 +120,7 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(NormalNewDelete, KratosCoreStressSuite)
 		{
-			auto repeat_number = 1024;
+			auto repeat_number = 128;
 			for (auto i_repeat = 1; i_repeat <= repeat_number; i_repeat++)
 			{
 				std::vector<Block46byte*> the_vector;
@@ -129,7 +129,7 @@ namespace Kratos {
 					for (auto i_block = 0; i_block < 4096; i_block++)
 						the_vector.push_back(new Block46byte);
 
-				for (auto i = 0; i < the_vector.size(); i++) {
+				for (std::size_t i = 0; i < the_vector.size(); i++) {
 					delete the_vector[i];
 				}
 			}
@@ -139,5 +139,3 @@ namespace Kratos {
 
 	}
 }  // namespace Kratos.
-
-
