@@ -71,7 +71,7 @@ class ExplicitStrategy:
         elif (Param.DeltaOption == "Coordination_Number"):
             self.delta_option = 2
             self.coordination_number = Param.CoordinationNumber
-            self.search_tolerance = 0.01 * Param.MeanRadius
+            self.search_tolerance = 0.01 * 0.0001 #Param.MeanRadius
 
         # TIME RELATED PARAMETERS
         self.delta_time = Param.MaxTimeStep
@@ -119,6 +119,7 @@ class ExplicitStrategy:
             self.virtual_mass_option = 1
 
         self.rolling_friction_option = self.Var_Translator(Param.RollingFrictionOption)
+        self.poisson_effect_option = self.Var_Translator(Param.PoissonEffectOption)
 
         # PRINTING VARIABLES
         self.print_export_id = self.Var_Translator(Param.PostExportId)
@@ -176,6 +177,8 @@ class ExplicitStrategy:
 
         # GLOBAL MATERIAL PROPERTIES
         self.spheres_model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
+        self.spheres_model_part.ProcessInfo.SetValue(ROLLING_FRICTION_OPTION, self.rolling_friction_option)
+        self.spheres_model_part.ProcessInfo.SetValue(POISSON_EFFECT_OPTION, self.poisson_effect_option)
 
         # SEARCH-RELATED
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_TOLERANCE, self.search_tolerance)
@@ -184,7 +187,6 @@ class ExplicitStrategy:
 
         # PRINTING VARIABLES
 
-        self.spheres_model_part.ProcessInfo.SetValue(ROLLING_FRICTION_OPTION, self.rolling_friction_option)
         self.spheres_model_part.ProcessInfo.SetValue(PRINT_EXPORT_ID, self.print_export_id)
 
         # TIME RELATED PARAMETERS
