@@ -47,7 +47,7 @@ namespace Kratos
       
             if (continuous_initial_neighbours_size >= 3) {
             
-                if (!*mSkinSphere) {
+                if (!IsSkin()) {
                     AuxiliaryFunctions::CalculateAlphaFactor2D(continuous_initial_neighbours_size, sphere_perimeter, total_equiv_perimeter, alpha); 
                     for (unsigned int i = 0; i < cont_ini_neigh_area.size(); i++) {
                         cont_ini_neigh_area[i] = alpha*cont_ini_neigh_area[i];                      
