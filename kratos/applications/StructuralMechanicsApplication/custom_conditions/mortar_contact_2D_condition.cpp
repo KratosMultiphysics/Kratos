@@ -190,35 +190,31 @@ void MortarContact2DCondition::InitializeNonLinearIteration( ProcessInfo& rCurre
 
 void MortarContact2DCondition::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
+    const double cn = GetProperties()[YOUNG_MODULUS]; // NOTE: Kind of penalty, not necessarily this value
     
-    if (this->Is(ACTIVE))
-    {
-        const double cn = GetProperties()[YOUNG_MODULUS]; // NOTE: Kind of penalty, not necessarily this value
-        
-        const unsigned int number_nodes = GetGeometry().PointsNumber(); 
-    
-        std::vector<contact_container> *& all_containers = this->GetValue(CONTACT_CONTAINERS);
+    const unsigned int number_nodes = GetGeometry().PointsNumber(); 
 
-        for ( unsigned int i_cond = 0; i_cond < all_containers->size(); ++i_cond )
+    std::vector<contact_container> *& all_containers = this->GetValue(CONTACT_CONTAINERS);
+
+    for ( unsigned int i_cond = 0; i_cond < all_containers->size(); ++i_cond )
+    {
+        const VectorType& gn = mThisWeightedGap[i_cond].gn;
+        
+        for (unsigned int j_node = 0; j_node < number_nodes; j_node++)
         {
-            const VectorType& gn = mThisWeightedGap[i_cond].gn;
+            const array_1d<double,3> lagrange_multiplier = GetGeometry()[j_node].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER, 0);
+            const array_1d<double,3>        nodal_normal = GetGeometry()[j_node].FastGetSolutionStepValue(NORMAL,              0);
+            const double lambda_n = inner_prod(lagrange_multiplier, nodal_normal);
             
-            for (unsigned int j_node = 0; j_node < number_nodes; j_node++)
+            const double check = lambda_n - cn * gn[j_node];
+            
+            if (check >= 0.0)
             {
-                const array_1d<double,3> lagrange_multiplier = GetGeometry()[j_node].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER, 0);
-                const array_1d<double,3>        nodal_normal = GetGeometry()[j_node].FastGetSolutionStepValue(NORMAL,              0);
-                const double lambda_n = inner_prod(lagrange_multiplier, nodal_normal);
-                
-                const double check = lambda_n - cn * gn[j_node];
-                
-                if (check >= 0.0)
-                {
-                     (*all_containers)[i_cond].active_nodes_slave[j_node] = false;
-                }
-                else
-                {
-                     (*all_containers)[i_cond].active_nodes_slave[j_node] = true;
-                }
+                    (*all_containers)[i_cond].active_nodes_slave[j_node] = false;
+            }
+            else
+            {
+                    (*all_containers)[i_cond].active_nodes_slave[j_node] = true;
             }
         }
     }
@@ -704,12 +700,12 @@ void MortarContact2DCondition::DetermineActiveAndInactiveSets(
     const contact_container& current_container = ( *( this->GetValue( CONTACT_CONTAINERS ) ) )[rPairIndex];
     const unsigned int num_slave_nodes = GetGeometry( ).PointsNumber( );
   
-    rActiveNodes.resize( 0 );
-    rInactiveNodes.resize( 0 );
+    rActiveNodes.resize( 0, false );
+    rInactiveNodes.resize( 0, false );
     
     for ( unsigned int iSlave = 0; iSlave < num_slave_nodes; ++iSlave )
     {
-        if( current_container.active_nodes_slave[iSlave] )
+        if( current_container.active_nodes_slave[iSlave] == true )
         {
             rActiveNodes.push_back( iSlave );    
         }
@@ -1158,52 +1154,49 @@ void MortarContact2DCondition::EquationIdVector(
         
     rResult.resize( 0, false );
 
-    if (this->Is(ACTIVE))
-    {
-        const std::vector<contact_container> all_conditions = *( this->GetValue( CONTACT_CONTAINERS ) );
-            
-        /* ORDER - [ MASTER, SLAVE_I, SLAVE_A, LAMBDA ] */
-    
-        for ( unsigned int i_cond = 0;  i_cond < all_conditions.size( ); ++i_cond )
-        {
-            const contact_container& current_container = all_conditions[i_cond];
-            GeometryType& current_master = current_container.condition->GetGeometry( );
-            
-            std::vector< unsigned int > active_nodes;
-            std::vector< unsigned int > inactive_nodes;
-            this->DetermineActiveAndInactiveSets( active_nodes, inactive_nodes, i_cond );
+    const std::vector<contact_container> all_conditions = *( this->GetValue( CONTACT_CONTAINERS ) );
         
-            // Master Nodes Displacement Equation IDs
-            for ( unsigned int iNode = 0; iNode < current_master.PointsNumber( ); iNode++ )
-            {
-                NodeType& master_node = current_master[iNode];
-                rResult.push_back( master_node.GetDof( DISPLACEMENT_X ).EquationId( ) );
-                rResult.push_back( master_node.GetDof( DISPLACEMENT_Y ).EquationId( ) );
-            }
-            
-            // Inactive Nodes Displacement Equation IDs
-            for ( unsigned int i_slave = 0; i_slave < inactive_nodes.size( ); ++i_slave )
-            {
-                NodeType& slave_node = GetGeometry()[ inactive_nodes[i_slave] ];
-                rResult.push_back( slave_node.GetDof( DISPLACEMENT_X ).EquationId( ) );
-                rResult.push_back( slave_node.GetDof( DISPLACEMENT_Y ).EquationId( ) );
-            }
-
-            // Active Nodes Displacement Equation IDs
-            for ( unsigned int i_slave = 0; i_slave < active_nodes.size( ); ++i_slave )
-            {
-                NodeType& slave_node = GetGeometry()[ active_nodes[i_slave] ];
-                rResult.push_back( slave_node.GetDof( DISPLACEMENT_X ).EquationId( ) );
-                rResult.push_back( slave_node.GetDof( DISPLACEMENT_Y ).EquationId( ) );
-            }
-
-            // Active Nodes Lambda Equation IDs
-            for ( unsigned int i_slave = 0; i_slave < active_nodes.size( ); ++i_slave )
-            {
-                NodeType& slave_node = GetGeometry()[ active_nodes[i_slave] ];
-                rResult.push_back( slave_node.GetDof( LAGRANGE_MULTIPLIER_X ).EquationId( ) );
-                rResult.push_back( slave_node.GetDof( LAGRANGE_MULTIPLIER_Y ).EquationId( ) );
-            }
+    /* ORDER - [ MASTER, SLAVE_I, SLAVE_A, LAMBDA ] */
+    
+    for ( unsigned int i_cond = 0;  i_cond < all_conditions.size( ); ++i_cond )
+    {   
+        const contact_container& current_container = all_conditions[i_cond];
+        GeometryType& current_master = current_container.condition->GetGeometry( );
+        
+        std::vector< unsigned int > active_nodes;
+        std::vector< unsigned int > inactive_nodes;
+        this->DetermineActiveAndInactiveSets( active_nodes, inactive_nodes, i_cond );
+    
+        // Master Nodes Displacement Equation IDs
+        for ( unsigned int iNode = 0; iNode < current_master.PointsNumber( ); iNode++ )
+        {
+            NodeType& master_node = current_master[iNode];
+            rResult.push_back( master_node.GetDof( DISPLACEMENT_X ).EquationId( ) );
+            rResult.push_back( master_node.GetDof( DISPLACEMENT_Y ).EquationId( ) );
+        }
+        
+        // Inactive Nodes Displacement Equation IDs
+        for ( unsigned int i_slave = 0; i_slave < inactive_nodes.size( ); ++i_slave )
+        {
+            NodeType& slave_node = GetGeometry()[ inactive_nodes[i_slave] ];
+            rResult.push_back( slave_node.GetDof( DISPLACEMENT_X ).EquationId( ) );
+            rResult.push_back( slave_node.GetDof( DISPLACEMENT_Y ).EquationId( ) );
+        }
+        
+        // Active Nodes Displacement Equation IDs
+        for ( unsigned int i_slave = 0; i_slave < active_nodes.size( ); ++i_slave )
+        {
+            NodeType& slave_node = GetGeometry()[ active_nodes[i_slave] ];
+            rResult.push_back( slave_node.GetDof( DISPLACEMENT_X ).EquationId( ) );
+            rResult.push_back( slave_node.GetDof( DISPLACEMENT_Y ).EquationId( ) );
+        }
+        
+        // Active Nodes Lambda Equation IDs
+        for ( unsigned int i_slave = 0; i_slave < active_nodes.size( ); ++i_slave )
+        {
+            NodeType& slave_node = GetGeometry()[ active_nodes[i_slave] ];
+            rResult.push_back( slave_node.GetDof( LAGRANGE_MULTIPLIER_X ).EquationId( ) );
+            rResult.push_back( slave_node.GetDof( LAGRANGE_MULTIPLIER_Y ).EquationId( ) );
         }
     }
 
@@ -1220,53 +1213,50 @@ void MortarContact2DCondition::GetDofList(
     KRATOS_TRY;
     
     rConditionalDofList.resize( 0 );
+
+    const std::vector<contact_container> all_conditions = *( this->GetValue( CONTACT_CONTAINERS ) );
     
-    if (this->Is(ACTIVE))
+    /* ORDER - [ MASTER, SLAVE_I, SLAVE_A, LAMBDA ] */
+    
+    for ( unsigned int i_cond = 0; i_cond < all_conditions.size( ); ++i_cond )
     {
-        const std::vector<contact_container> all_conditions = *( this->GetValue( CONTACT_CONTAINERS ) );
+        const contact_container& current_container = all_conditions[i_cond];
+        GeometryType& current_master = current_container.condition->GetGeometry( );
         
-        /* ORDER - [ MASTER, SLAVE_I, SLAVE_A, LAMBDA ] */
-        
-        for ( unsigned int i_cond = 0; i_cond < all_conditions.size( ); ++i_cond )
+        std::vector< unsigned int > active_nodes;
+        std::vector< unsigned int > inactive_nodes;
+        this->DetermineActiveAndInactiveSets( active_nodes, inactive_nodes, i_cond );
+    
+        // Master Nodes Displacement Equation IDs
+        for ( unsigned int iNode = 0; iNode < current_master.PointsNumber( ); iNode++ )
         {
-            const contact_container& current_container = all_conditions[i_cond];
-            GeometryType& current_master = current_container.condition->GetGeometry( );
-            
-            std::vector< unsigned int > active_nodes;
-            std::vector< unsigned int > inactive_nodes;
-            this->DetermineActiveAndInactiveSets( active_nodes, inactive_nodes, i_cond );
+            NodeType& master_node = current_master[iNode];
+            rConditionalDofList.push_back( master_node.pGetDof( DISPLACEMENT_X ) );
+            rConditionalDofList.push_back( master_node.pGetDof( DISPLACEMENT_Y ) );
+        }
         
-            // Master Nodes Displacement Equation IDs
-            for ( unsigned int iNode = 0; iNode < current_master.PointsNumber( ); iNode++ )
-            {
-                NodeType& master_node = current_master[iNode];
-                rConditionalDofList.push_back( master_node.pGetDof( DISPLACEMENT_X ) );
-                rConditionalDofList.push_back( master_node.pGetDof( DISPLACEMENT_Y ) );
-            }
-            
-            // Inactive Nodes Displacement Equation IDs
-            for ( unsigned int i_slave = 0; i_slave < inactive_nodes.size( ); ++i_slave )
-            {
-                NodeType& slave_node = GetGeometry()[ inactive_nodes[i_slave] ];
-                rConditionalDofList.push_back( slave_node.pGetDof( DISPLACEMENT_X ) );
-                rConditionalDofList.push_back( slave_node.pGetDof( DISPLACEMENT_Y ) );
-            }
+        // Inactive Nodes Displacement Equation IDs
+        for ( unsigned int i_slave = 0; i_slave < inactive_nodes.size( ); ++i_slave )
+        {
+            NodeType& slave_node = GetGeometry()[ inactive_nodes[i_slave] ];
+            rConditionalDofList.push_back( slave_node.pGetDof( DISPLACEMENT_X ) );
+            rConditionalDofList.push_back( slave_node.pGetDof( DISPLACEMENT_Y ) );
+        }
 
-            // Active Nodes Displacement Equation IDs
-            for ( unsigned int i_slave = 0; i_slave < active_nodes.size( ); ++i_slave )
-            {
-                NodeType& slave_node = GetGeometry()[ active_nodes[i_slave] ];
-                rConditionalDofList.push_back( slave_node.pGetDof( DISPLACEMENT_X ) );
-                rConditionalDofList.push_back( slave_node.pGetDof( DISPLACEMENT_Y ) );
-            }
+        // Active Nodes Displacement Equation IDs
+        for ( unsigned int i_slave = 0; i_slave < active_nodes.size( ); ++i_slave )
+        {
+            NodeType& slave_node = GetGeometry()[ active_nodes[i_slave] ];
+            rConditionalDofList.push_back( slave_node.pGetDof( DISPLACEMENT_X ) );
+            rConditionalDofList.push_back( slave_node.pGetDof( DISPLACEMENT_Y ) );
+        }
 
-            // Active Nodes Lambda Equation IDs
-            for ( unsigned int i_slave = 0; i_slave < active_nodes.size( ); ++i_slave )
-            {
-                NodeType& slave_node = GetGeometry()[ active_nodes[i_slave] ];
-                rConditionalDofList.push_back( slave_node.pGetDof( LAGRANGE_MULTIPLIER_X ) );
-                rConditionalDofList.push_back( slave_node.pGetDof( LAGRANGE_MULTIPLIER_Y ) );
-            }
+        // Active Nodes Lambda Equation IDs
+        for ( unsigned int i_slave = 0; i_slave < active_nodes.size( ); ++i_slave )
+        {
+            NodeType& slave_node = GetGeometry()[ active_nodes[i_slave] ];
+            rConditionalDofList.push_back( slave_node.pGetDof( LAGRANGE_MULTIPLIER_X ) );
+            rConditionalDofList.push_back( slave_node.pGetDof( LAGRANGE_MULTIPLIER_Y ) );
         }
     }
 

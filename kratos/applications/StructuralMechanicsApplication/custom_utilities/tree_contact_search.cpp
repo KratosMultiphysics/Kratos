@@ -148,9 +148,6 @@ void TreeContactSearch::ClearMortarConditions()
 {
     // Destination model part
     ClearConditions(mrDestinationModelPart);
-    
-    // Origin model part
-    ClearConditions(mrOriginModelPart);
 }
 
 /***********************************************************************************/
@@ -164,20 +161,27 @@ void TreeContactSearch::ClearConditions(ModelPart & rModelPart)
     
     for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
     {
-        if (cond_it->Is(ACTIVE))
+        if (cond_it->Is(ACTIVE) == true)
         {
             cond_it->Set(ACTIVE, false);
             
-            std::vector<contact_container> *& ConditionPointers = cond_it->GetValue(CONTACT_CONTAINERS);
+            std::vector<contact_container> * ConditionPointers = cond_it->GetValue(CONTACT_CONTAINERS);
+//             std::vector<contact_container> *& ConditionPointers = cond_it->GetValue(CONTACT_CONTAINERS);
             
-            for (unsigned int i =0; i< ConditionPointers->size();i++)
+            if (ConditionPointers != NULL)
             {
-//                 delete(&((*ConditionPointers)[i].condition));
-                (*ConditionPointers)[i].clear();
-            } 
-              
-            ConditionPointers->clear();
-//             ConditionPointers->reserve(mallocation); 
+                for (unsigned int i = 0; i < ConditionPointers->size();i++)
+                {
+                    (*ConditionPointers)[i].clear();
+                } 
+                
+                ConditionPointers->clear();
+                
+    //             ConditionPointers->reserve(mallocation); 
+            }
+        
+//             delete ConditionPointers;
+//             cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
         }
     }
 }
@@ -189,9 +193,6 @@ void TreeContactSearch::CreatePointListNTN()
 {
     // Destination model part
     CreatePointListNodes(mrDestinationModelPart, mPointListDestination);
-    
-    // Origin model part
-    CreatePointListNodes(mrOriginModelPart, mPointListOrigin);
 }
 
 /***********************************************************************************/
@@ -201,9 +202,6 @@ void TreeContactSearch::CreatePointListNTS()
 {
     // Destination model part
     CreatePointListNodes(mrDestinationModelPart, mPointListDestination);
-    
-    // Origin model part
-    CreatePointListConditions(mrOriginModelPart, mPointListOrigin);
 }
 
 /***********************************************************************************/
@@ -213,9 +211,6 @@ void TreeContactSearch::CreatePointListMortar()
 {
     // Destination model part
     CreatePointListConditions(mrDestinationModelPart, mPointListDestination);
-    
-    // Origin model part
-    CreatePointListConditions(mrOriginModelPart, mPointListOrigin);
 }
 
 /***********************************************************************************/
@@ -255,11 +250,11 @@ void TreeContactSearch::CreatePointListConditions(
     
     for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
     {
-        const Condition::Pointer Cond = *cond_it.base();
+        const Condition::Pointer pCond = (*cond_it.base());
         Point<3> Center;
         double Radius;
-        ContactUtilities::CenterAndRadius(Cond, Center, Radius, mdimension); 
-        PointItem::Pointer pPoint = PointItem::Pointer(new PointItem(Center, *(cond_it.base()), Radius));
+        ContactUtilities::CenterAndRadius(pCond, Center, Radius, mdimension); 
+        PointItem::Pointer pPoint = PointItem::Pointer(new PointItem(Center, pCond, Radius));
         (PoinList).push_back(pPoint);
     }
 }
@@ -271,9 +266,6 @@ void TreeContactSearch::UpdatePointListMortar()
 {
     // Destination model part
     UpdatePointListConditions(mrDestinationModelPart, mPointListDestination);
-    
-    // Origin model part
-    UpdatePointListConditions(mrOriginModelPart, mPointListOrigin);
 }
 
 /***********************************************************************************/
@@ -302,15 +294,16 @@ void TreeContactSearch::UpdatePointListConditions(
     unsigned int index = 0;
     for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
     {
-        const Condition::Pointer Cond = *cond_it.base();
+        const Condition::Pointer pCond = (*cond_it.base());
         Point<3> Center;
         double Radius;
-        ContactUtilities::CenterAndRadius(Cond, Center, Radius, mdimension); 
+        ContactUtilities::CenterAndRadius(pCond, Center, Radius, mdimension); 
         PointItem::Pointer & pPoint = PoinList[index];
+        pPoint->SetCondition(pCond);
         pPoint->SetRadius(Radius);
         pPoint->SetPoint(Center);
         index += 1;
-    }
+     }
 }
 
 /***********************************************************************************/
@@ -389,12 +382,21 @@ void TreeContactSearch::CreateMortarConditions(
     // Copying the list is required because the tree will reorder it for efficiency
     tree Tree_points(mPointListDestination.begin(), mPointListDestination.end(), mBucketSize);
     
-    for(unsigned int cond_it = 0; cond_it < mPointListOrigin.size(); cond_it++)
+    ConditionsArrayType& pCond  = mrOriginModelPart.Conditions();
+    ConditionsArrayType::iterator it_begin = pCond.ptr_begin();
+    ConditionsArrayType::iterator it_end   = pCond.ptr_end();
+    
+    for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
     {
+        const Condition::Pointer pCondOrigin = (*cond_it.base());
+        
         if (type_search == 0)
         {
-            double SearchRadius = SearchFactor * mPointListOrigin[cond_it]->GetRadius();
-            Point<3> Center = mPointListOrigin[cond_it]->GetPoint();
+            Point<3> Center;
+            double SearchRadius;
+            ContactUtilities::CenterAndRadius(pCondOrigin, Center, SearchRadius, mdimension); 
+            SearchRadius *= SearchFactor;
+
             NumberPointsFound = Tree_points.SearchInRadius(Center, SearchRadius, PointsFound.begin(), PointsDistances.begin(), MaxNumberResults);
         }
 //         else if (type_search == 1) // TODO: Complete search in bounding box
@@ -410,8 +412,6 @@ void TreeContactSearch::CreateMortarConditions(
         
         if (NumberPointsFound > 0)
         {
-            Condition::Pointer pCondOrigin = mPointListOrigin[cond_it]->GetCondition();
-            
 //             KRATOS_WATCH(NumberPointsFound); 
             for(unsigned int i = 0; i < NumberPointsFound; i++)
             {   
@@ -423,7 +423,7 @@ void TreeContactSearch::CreateMortarConditions(
                 // Set the corresponding flags
                 pCondDestination->Set(ACTIVE, true); 
 
-                MortarContainerFiller(mPointListOrigin[cond_it], PointsFound[i], pCondDestination, pCondOrigin, ConditionPointersDestination, IntegrationOrder, false);
+                MortarContainerFiller(pCondOrigin->GetGeometry().Center(), PointsFound[i], pCondDestination, pCondOrigin, ConditionPointersDestination, IntegrationOrder, false);
             }
         }
     }
@@ -478,7 +478,8 @@ void TreeContactSearch::CheckMortarConditions()
 /***********************************************************************************/
 
 void TreeContactSearch::MortarContainerFiller(
-        const PointType::Pointer PointOfList,
+//         const PointType::Pointer PointOfList,
+        const Point<3>& OriginPoint,
         const PointType::Pointer PointFound,
         const Condition::Pointer & pCond_1,
         const Condition::Pointer & pCond_2,
@@ -499,7 +500,8 @@ void TreeContactSearch::MortarContainerFiller(
     }
     else
     {
-        ContactPoint = PointOfList->GetPoint();
+//         ContactPoint = PointOfList->GetPoint();
+        ContactPoint = OriginPoint;
     }
     
     ContactUtilities::ContactContainerFiller(contact_container, ContactPoint, pCond_1->GetGeometry(), pCond_2->GetGeometry(), 

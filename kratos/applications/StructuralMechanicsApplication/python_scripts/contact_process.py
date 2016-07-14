@@ -23,7 +23,7 @@ class ContactProcess(KratosMultiphysics.Process):
             "model_part_name"             : "",
             "origin_model_part_name"      : "",
             "destination_model_part_name" : "",
-            "origin_interface_nodes"         : "",
+            "origin_interface_nodes"      : "",
             "destination_interface_nodes" : "",
             "contact_type"                : "MortarMethod",
             "search_factor"               : 1.1,
@@ -112,15 +112,14 @@ class ContactProcess(KratosMultiphysics.Process):
         
     def ExecuteFinalizeSolutionStep(self):
         pass
-        #if self.params["contact_type"].GetString() == "MortarMethod":
-            #self.contact_search.UpdatePointListMortar()
-            #self.contact_search.ClearMortarConditions()
 
     def ExecuteBeforeOutputStep(self):
         pass
 
     def ExecuteAfterOutputStep(self):
-        pass
+        if self.params["contact_type"].GetString() == "MortarMethod":
+            self.contact_search.UpdatePointListMortar()
+            self.contact_search.ClearMortarConditions()
 
     def ExecuteFinalize(self):
         pass

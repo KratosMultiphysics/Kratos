@@ -95,8 +95,17 @@ public:
     {
         KRATOS_TRY;
         
-        ( rCurrentCondition )->InitializeNonLinearIteration( CurrentProcessInfo );
-        BaseType::Condition_CalculateSystemContributions( rCurrentCondition, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
+        bool condition_is_active = true;
+        if( (rCurrentCondition)->IsDefined(ACTIVE) == true)
+        {
+            condition_is_active = (rCurrentCondition)->Is(ACTIVE);
+        }
+        
+        if (condition_is_active == true)
+        {
+            ( rCurrentCondition )->InitializeNonLinearIteration( CurrentProcessInfo );
+            BaseType::Condition_CalculateSystemContributions( rCurrentCondition, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
+        }
         
         KRATOS_CATCH("");
     }
@@ -111,11 +120,44 @@ public:
         ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY;
+
+        bool condition_is_active = true;
+        if( (rCurrentCondition)->IsDefined(ACTIVE) == true)
+        {
+            condition_is_active = (rCurrentCondition)->Is(ACTIVE);
+        }
         
-        ( rCurrentCondition )->InitializeNonLinearIteration( CurrentProcessInfo );
-        BaseType::Condition_Calculate_RHS_Contribution( rCurrentCondition, RHS_Contribution, EquationId, CurrentProcessInfo );
+        if (condition_is_active == true)
+        {
+            ( rCurrentCondition )->InitializeNonLinearIteration( CurrentProcessInfo );
+            BaseType::Condition_Calculate_RHS_Contribution( rCurrentCondition, RHS_Contribution, EquationId, CurrentProcessInfo );
+        }
         
         KRATOS_CATCH("");
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    /** 
+     * Function that returns the list of Degrees of freedom to be assembled in the system for a Given Element
+     */
+    
+    void GetConditionDofList(
+        Condition::Pointer rCurrentCondition,
+        Element::DofsVectorType& ConditionDofList,
+        ProcessInfo& CurrentProcessInfo)
+    {
+        bool condition_is_active = true;
+        if( (rCurrentCondition)->IsDefined(ACTIVE) == true)
+        {
+            condition_is_active = (rCurrentCondition)->Is(ACTIVE);
+        }
+        
+        if (condition_is_active == true)
+        {
+            rCurrentCondition->GetDofList(ConditionDofList, CurrentProcessInfo);
+        }
     }
     
     /***********************************************************************************/
@@ -134,16 +176,16 @@ public:
         ElementsArrayType& rElements = rModelPart.Elements();
         ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
         OpenMPUtils::DivideInPartitions(rElements.size(), NumThreads, ElementPartition);
 
         #pragma omp parallel
         {
-            int k = OpenMPUtils::ThisThread();
+            const unsigned int k = OpenMPUtils::ThisThread();
 
             typename ElementsArrayType::iterator ElementsBegin = rElements.begin() + ElementPartition[k];
-            typename ElementsArrayType::iterator ElementsEnd = rElements.begin() + ElementPartition[k + 1];
+            typename ElementsArrayType::iterator ElementsEnd   = rElements.begin() + ElementPartition[k + 1];
 
             for (typename ElementsArrayType::iterator itElem = ElementsBegin; itElem != ElementsEnd; itElem++)
             {
@@ -159,18 +201,18 @@ public:
         
         OpenMPUtils::PartitionVector ConditionPartition;
         OpenMPUtils::DivideInPartitions(rConditions.size(), NumThreads, ConditionPartition);
-
+        
         #pragma omp parallel
         {
-            int k = OpenMPUtils::ThisThread();
+            const unsigned int k = OpenMPUtils::ThisThread();
 
             typename ConditionsArrayType::iterator ConditionsBegin = rConditions.begin() + ConditionPartition[k];
-            typename ConditionsArrayType::iterator ConditionsEnd = rConditions.begin() + ConditionPartition[k + 1];
+            typename ConditionsArrayType::iterator ConditionsEnd   = rConditions.begin() + ConditionPartition[k + 1];
 
             for (typename ConditionsArrayType::iterator itCond = ConditionsBegin; itCond != ConditionsEnd; itCond++)
             {
                 bool condition_is_active = true;
-                if( (itCond)->IsDefined(ACTIVE) )
+                if( (itCond)->IsDefined(ACTIVE) == true)
                 {
                     condition_is_active = (itCond)->Is(ACTIVE);
                 }
@@ -234,16 +276,16 @@ public:
         ElementsArrayType& rElements = rModelPart.Elements();
         ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
         OpenMPUtils::DivideInPartitions(rElements.size(), NumThreads, ElementPartition);
 
         #pragma omp parallel
         {
-            int k = OpenMPUtils::ThisThread();
+            const unsigned int k = OpenMPUtils::ThisThread();
 
             typename ElementsArrayType::iterator ElementsBegin = rElements.begin() + ElementPartition[k];
-            typename ElementsArrayType::iterator ElementsEnd = rElements.begin() + ElementPartition[k + 1];
+            typename ElementsArrayType::iterator ElementsEnd   = rElements.begin() + ElementPartition[k + 1];
 
             for (typename ElementsArrayType::iterator itElem = ElementsBegin; itElem != ElementsEnd; itElem++)
             {
@@ -259,18 +301,18 @@ public:
 
         OpenMPUtils::PartitionVector ConditionPartition;
         OpenMPUtils::DivideInPartitions(rConditions.size(), NumThreads, ConditionPartition);
-
+        
         #pragma omp parallel
         {
-            int k = OpenMPUtils::ThisThread();
+            const unsigned int k = OpenMPUtils::ThisThread();
 
             typename ConditionsArrayType::iterator ConditionsBegin = rConditions.begin() + ConditionPartition[k];
-            typename ConditionsArrayType::iterator ConditionsEnd = rConditions.begin() + ConditionPartition[k + 1];
+            typename ConditionsArrayType::iterator ConditionsEnd   = rConditions.begin() + ConditionPartition[k + 1];
 
             for (typename ConditionsArrayType::iterator itCond = ConditionsBegin; itCond != ConditionsEnd; itCond++)
             {
                 bool condition_is_active = true;
-                if( (itCond)->IsDefined(ACTIVE) )
+                if( (itCond)->IsDefined(ACTIVE)== true)
                 {
                     condition_is_active = (itCond)->Is(ACTIVE);
                 }
@@ -278,6 +320,73 @@ public:
                 if ( condition_is_active == true )
                 {
                     itCond->FinalizeSolutionStep(CurrentProcessInfo);
+                }
+            }
+        }
+        
+        KRATOS_CATCH("");
+    }
+    
+    /**
+     * Function to be called when it is needed to finalize an iteration. It is designed to be called at the end of each non linear iteration
+     */
+    
+    void FinalizeNonLinIteration(
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b)
+    {
+        KRATOS_TRY;
+        
+        // Finalizes non linear iteration for all of the elements
+        ElementsArrayType& rElements = rModelPart.Elements();
+        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
+        const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector ElementPartition;
+        OpenMPUtils::DivideInPartitions(rElements.size(), NumThreads, ElementPartition);
+
+        #pragma omp parallel
+        {
+            const unsigned int k = OpenMPUtils::ThisThread();
+
+            typename ElementsArrayType::iterator ElementsBegin = rElements.begin() + ElementPartition[k];
+            typename ElementsArrayType::iterator ElementsEnd   = rElements.begin() + ElementPartition[k + 1];
+
+            for (typename ElementsArrayType::iterator itElem = ElementsBegin; itElem != ElementsEnd; itElem++)
+            {
+                itElem->FinalizeNonLinearIteration(CurrentProcessInfo);
+            }
+        }
+
+        // Update normal of the conditions
+        ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart ); 
+        
+        // Finalizes non linear iteration for all the conditions
+        ConditionsArrayType& rConditions = rModelPart.Conditions();
+
+        OpenMPUtils::PartitionVector ConditionPartition;
+        OpenMPUtils::DivideInPartitions(rConditions.size(), NumThreads, ConditionPartition);
+        
+        #pragma omp parallel
+        {
+            const unsigned int k = OpenMPUtils::ThisThread();
+
+            typename ConditionsArrayType::iterator ConditionsBegin = rConditions.begin() + ConditionPartition[k];
+            typename ConditionsArrayType::iterator ConditionsEnd   = rConditions.begin() + ConditionPartition[k + 1];
+
+            for (typename ConditionsArrayType::iterator itCond = ConditionsBegin; itCond != ConditionsEnd; itCond++)
+            {
+                bool condition_is_active = true;
+                if( (itCond)->IsDefined(ACTIVE)== true)
+                {
+                    condition_is_active = (itCond)->Is(ACTIVE);
+                }
+                
+                if ( condition_is_active == true )
+                {
+                    itCond->FinalizeNonLinearIteration(CurrentProcessInfo);
                 }
             }
         }

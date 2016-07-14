@@ -68,13 +68,8 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( POINT_TORQUE )
 KRATOS_CREATE_VARIABLE( std::vector<contact_container>*, CONTACT_CONTAINERS ) // A vector of which contains the structure which defines the contact conditions
 KRATOS_CREATE_VARIABLE( Element::Pointer , ELEMENT_POINTER )                  // A pointer to the element belonging to this condition
 KRATOS_CREATE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                     // The integration order computed in the contact
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( CONTACT_MESH_TYING_FORCE )         // The "force" resulting from contact
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( LAGRANGE_MULTIPLIER )              // The lagrange multiplier used to enforce the mortar constraint
 KRATOS_CREATE_VARIABLE( Matrix, MORTAR_CONTACT_OPERATOR )                     // Mortar Contact Operator
-KRATOS_CREATE_VARIABLE( Matrix, CONTACT_STIFFNESS_MATRIX )                    // LHS contribution
-KRATOS_CREATE_VARIABLE( Matrix, GAP_DERIVATIVES_MATRIX )                      // LHS contribution
-KRATOS_CREATE_VARIABLE( Vector, CONTACT_FORCES_VECTOR )                       // RHS contribution
-KRATOS_CREATE_VARIABLE( Vector, NORMAL_GAPS_VECTOR )                          // RHS contribution
 
 // Adding the SPRISM EAS variables
 KRATOS_CREATE_VARIABLE(double, ALPHA_EAS);

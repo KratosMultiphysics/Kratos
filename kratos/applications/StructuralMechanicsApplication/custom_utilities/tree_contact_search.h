@@ -508,7 +508,8 @@ public:
      */
     
     void MortarContainerFiller(
-        const PointType::Pointer PointOfList,
+//         const PointType::Pointer PointOfList,
+        const Point<3>& OriginPoint,
         const PointType::Pointer PointFound,
         const Condition::Pointer & pCond_1,
         const Condition::Pointer & pCond_2,
@@ -601,7 +602,6 @@ private:
     ModelPart& mrDestinationModelPart;        // The destination model part
     unsigned int mBucketSize;                 // Bucket size for kd-tree
     PointVector mPointListDestination;        // A list that contents the all the points (from nodes) from the modelpart 
-    PointVector mPointListOrigin;             // A list that contents the all the points (from nodes) from the modelpart 
     const unsigned int mdimension;            // Dimension size of the space
     const unsigned int mallocation;           // Allocation size for the vectors
     
