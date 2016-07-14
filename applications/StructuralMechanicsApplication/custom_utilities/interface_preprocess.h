@@ -30,6 +30,7 @@
 #include "geometries/quadrilateral_3d_8.h"
 #include "geometries/quadrilateral_3d_9.h"
 #include "includes/define.h"
+#include "utilities/openmp_utils.h"
 #include "structural_mechanics_application_variables.h"
 
 // TODO: Add parallellization!!!
@@ -65,6 +66,12 @@ public:
     ///@name Type Definitions
     ///@{
     
+    typedef ModelPart::NodesContainerType                   NodesArrayType;
+
+    typedef ModelPart::ElementsContainerType             ElementsArrayType;
+
+    typedef ModelPart::ConditionsContainerType         ConditionsArrayType;
+    
     ///@}
     ///@name Life Cycle
     ///@{
@@ -85,7 +92,7 @@ public:
      */
     
     void GenerateInterfacePart(
-            const ModelPart& rOriginPart,
+            ModelPart& rOriginPart,
             ModelPart& InterfacePart,
             std::string ConditionName
             )
@@ -93,14 +100,24 @@ public:
         KRATOS_TRY;
         
         const unsigned int dimension = rOriginPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+//         const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+        
+//         OpenMPUtils::PartitionVector NodePartition;
+//         OpenMPUtils::DivideInPartitions(rOriginPart.Nodes().size(), NumThreads, NodePartition);
         
         // Store pointers to all interface nodes
         unsigned int NodesCounter = 0;
         for (ModelPart::NodesContainerType::const_iterator node_it = rOriginPart.NodesBegin(); node_it != rOriginPart.NodesEnd(); node_it++)
         {
+//         const unsigned int nnodes = static_cast<int>(rOriginPart.Nodes().size());
+//         NodesArrayType::iterator NodeBegin = rOriginPart.Nodes().begin();
+// 
+//         #pragma omp parallel for firstprivate(NodeBegin)
+//         for(unsigned int i = 0;  i < nnodes; i++)
+//         {
             if (node_it->Is(INTERFACE) == true)
             {
-                InterfacePart.Nodes().push_back( *(node_it.base()) );
+                InterfacePart.AddNode(*(node_it.base()));
                 NodesCounter ++;
             }
         }
@@ -108,11 +125,22 @@ public:
         unsigned int CondCounter = 0;
         unsigned int CondId = 1; // Id 
         
+//         OpenMPUtils::PartitionVector ElementPartition;
+//         OpenMPUtils::DivideInPartitions(rOriginPart.Elements().size(), NumThreads, ElementPartition);
+// 
+//         const unsigned int nelem = static_cast<int>( rOriginPart.Elements().size() );
+//         ElementsArrayType::iterator ElemBegin = rOriginPart.Elements().begin();
+        
         if (dimension == 2)
         {
             // Generate Conditions from original the edges that can be considered interface
             for (ModelPart::ElementsContainerType::const_iterator elem_it = rOriginPart.ElementsBegin(); elem_it != rOriginPart.ElementsEnd(); elem_it++)
             {
+//             #pragma omp parallel for
+//             for(unsigned int i = 0;  i < nelem; i++)
+//             {
+//                 ElementsArrayType::iterator elem_it = ElemBegin + i; 
+                
                 for (unsigned int it_edge = 0; it_edge < (*elem_it).GetGeometry().EdgesNumber(); it_edge++)
                 {
                     bool interface = true;
@@ -156,6 +184,11 @@ public:
             // Generate Conditions from original the faces that can be considered interface
             for (ModelPart::ElementsContainerType::const_iterator elem_it = rOriginPart.ElementsBegin(); elem_it != rOriginPart.ElementsEnd(); elem_it++)
             {
+//             #pragma omp parallel for
+//             for(unsigned int i = 0;  i < nelem; i++)
+//             {
+//                 ElementsArrayType::iterator elem_it = ElemBegin + i; 
+                
                 for (unsigned int it_face = 0; it_face < (*elem_it).GetGeometry().FacesNumber(); it_face++)
                 {
                     bool interface = true;

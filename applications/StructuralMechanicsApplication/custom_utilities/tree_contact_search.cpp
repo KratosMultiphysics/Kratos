@@ -489,7 +489,7 @@ void TreeContactSearch::MortarContainerFiller(
 {
     contact_container contact_container;
     
-    contact_container.condition = &* pCond_2;
+    contact_container.condition = pCond_2;
     
     // Define the normal to the contact
     Point<3> ContactPoint;
