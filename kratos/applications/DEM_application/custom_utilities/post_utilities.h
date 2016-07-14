@@ -172,11 +172,12 @@ namespace Kratos {
         }
 
         
-        double ComputePoisson(ModelPart& rModelPart) {
+        array_1d<double, 3> ComputePoisson(ModelPart& rModelPart) {
 
             ElementsArrayType& pElements = rModelPart.GetCommunicator().LocalMesh().Elements();
             double total_poisson_value   = 0.0;
-            unsigned int number_of_bonds_to_evaluate_poisson = 0;
+            unsigned int number_of_spheres_to_evaluate_poisson = 0;
+            array_1d<double, 3> return_data = ZeroVector(3);
             
             // TODO: Add OpenMP code
             for (unsigned int k = 0; k < pElements.size(); k++) {
@@ -188,10 +189,9 @@ namespace Kratos {
                 particle_poisson_value         = 0.0;
                 double epsilon_XY              = 0.0;
                 double epsilon_Z               = 0.0;
-                unsigned int number_of_neighbors_to_evaluate_poisson = 0;
+                unsigned int number_of_neighbors_per_sphere_to_evaluate_poisson = 0;
                 array_1d<double, 3> other_to_me_vector;
                 array_1d<double, 3> initial_other_to_me_vector;
-                                       
                 unsigned int number_of_neighbors = p_sphere->mNeighbourElements.size();
 
                 for (unsigned int i = 0; i < number_of_neighbors; i++) {
@@ -201,33 +201,41 @@ namespace Kratos {
                     noalias(initial_other_to_me_vector) = p_sphere->GetGeometry()[0].GetInitialPosition() - p_sphere->mNeighbourElements[i]->GetGeometry()[0].GetInitialPosition();
                     double initial_distance_XY = sqrt(initial_other_to_me_vector[0] * initial_other_to_me_vector[0] + initial_other_to_me_vector[1] * initial_other_to_me_vector[1]);
                     double initial_distance_Z  = initial_other_to_me_vector[2];
+                    
                     if (initial_distance_XY && initial_distance_Z) {
                         epsilon_XY = -1 + sqrt(other_to_me_vector[0] * other_to_me_vector[0] + other_to_me_vector[1] * other_to_me_vector[1]) / initial_distance_XY;
                         epsilon_Z  = -1 + fabs(other_to_me_vector[2] / initial_distance_Z);
-                    }
-                    if (epsilon_Z) {
+                    } else continue;
+                    
+                    if (epsilon_Z) { // Should it be added here 'if p_sphere->Id() < p_sphere->mNeighbourElements[i]->Id()'?
+                        if (((-epsilon_XY / epsilon_Z) > 0.5) || ((-epsilon_XY / epsilon_Z) < 0.0)) continue; // TODO: Check this
                         particle_poisson_value -= epsilon_XY / epsilon_Z;
-                        number_of_neighbors_to_evaluate_poisson++;
-                        //if (p_sphere->Id() < p_sphere->mNeighbourElements[i]->Id()) {
-                            total_poisson_value -= epsilon_XY / epsilon_Z;
-                            number_of_bonds_to_evaluate_poisson++;
-                        //}
-                    }
+                        number_of_neighbors_per_sphere_to_evaluate_poisson++;
+                    } else continue;
                 }
-                if (number_of_neighbors_to_evaluate_poisson) particle_poisson_value /= number_of_neighbors_to_evaluate_poisson;
+                
+                if (number_of_neighbors_per_sphere_to_evaluate_poisson) {
+                    particle_poisson_value /= number_of_neighbors_per_sphere_to_evaluate_poisson;
+                    number_of_spheres_to_evaluate_poisson++;
+                    total_poisson_value += particle_poisson_value;
+                }
             }
             
-            if (number_of_bonds_to_evaluate_poisson) total_poisson_value /= number_of_bonds_to_evaluate_poisson;
-            return total_poisson_value;
+            if (number_of_spheres_to_evaluate_poisson) total_poisson_value /= number_of_spheres_to_evaluate_poisson;
+
+            return_data[0] = total_poisson_value;
+            return return_data;
             
         } //ComputePoisson
     
         
-        double ComputePoisson2D(ModelPart& rModelPart) {
+        array_1d<double, 3> ComputePoisson2D(ModelPart& rModelPart) { // TODO: Adjust this function to the new changes made in the 3D version
 
             ElementsArrayType& pElements = rModelPart.GetCommunicator().LocalMesh().Elements();
             double total_poisson_value     = 0.0;
             unsigned int number_of_bonds_to_evaluate_poisson = 0;
+            array_1d<double, 3> return_data = ZeroVector(3);
+            double total_epsilon_y_value = 0.0;
             
             // TODO: Add OpenMP code
             for (unsigned int k = 0; k < pElements.size(); k++) {
@@ -242,6 +250,7 @@ namespace Kratos {
                 unsigned int number_of_neighbors_to_evaluate_poisson = 0;
                 array_1d<double, 3> other_to_me_vector;
                 array_1d<double, 3> initial_other_to_me_vector;
+                double average_sphere_epsilon_y_value = 0.0;
                                        
                 unsigned int number_of_neighbors = p_sphere->mNeighbourElements.size();
 
@@ -259,17 +268,24 @@ namespace Kratos {
                     if (epsilon_Y) {
                         particle_poisson_value -= epsilon_X / epsilon_Y;
                         number_of_neighbors_to_evaluate_poisson++;
-                        //if (p_sphere->Id() < p_sphere->mNeighbourElements[i]->Id()) {
                             total_poisson_value -= epsilon_X / epsilon_Y;
                             number_of_bonds_to_evaluate_poisson++;
-                        //}
-                    }                    
+                    }
+                    average_sphere_epsilon_y_value += epsilon_Y;
                 }
                 if (number_of_neighbors_to_evaluate_poisson) particle_poisson_value /= number_of_neighbors_to_evaluate_poisson;
+                
+                total_epsilon_y_value += average_sphere_epsilon_y_value / number_of_neighbors;
             }
             
             if (number_of_bonds_to_evaluate_poisson) total_poisson_value /= number_of_bonds_to_evaluate_poisson;
-            return total_poisson_value;
+            
+            total_epsilon_y_value /= pElements.size();
+            
+            return_data[0] = total_poisson_value;
+            return_data[1] = total_epsilon_y_value;
+            
+            return return_data;
 
         } //ComputePoisson2D
         
