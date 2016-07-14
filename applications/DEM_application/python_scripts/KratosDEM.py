@@ -5,6 +5,7 @@ import time as timer
 import os
 import sys
 #import math
+from glob import glob
 
 # Kratos
 from KratosMultiphysics import *
@@ -171,6 +172,13 @@ os.chdir(main_path)
 
 KRATOSprint("\nInitializing Problem...")
 
+poisson = 1
+if poisson:
+    os.chdir(main_path)
+    files_to_delete_list = glob('*.txt')
+    for to_erase_file in files_to_delete_list:
+        os.remove(to_erase_file)
+
 # Initialize GiD-IO
 demio.AddGlobalVariables()
 demio.AddSpheresVariables()
@@ -265,14 +273,8 @@ report.Prepare(timer, DEM_parameters.ControlTime)
 
 first_print = True; index_5 = 1; index_10 = 1; index_50 = 1; control = 0.0
 
-if (DEM_parameters.ModelDataInfo == "ON"):
-    os.chdir(data_and_results)
-    if (DEM_parameters.ContactMeshOption == "ON"):
-        (coordination_number) = procedures.ModelData(spheres_model_part, solver.contact_model_part, solver) # Calculates the mean number of neighbours the mean radius, etc..
-        KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
-        os.chdir(main_path)
-    else:
-        KRATOSprint("Activate Contact Mesh for ModelData information")
+coordination_number = procedures.ModelData(spheres_model_part, solver.contact_model_part, solver)
+KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
 
 materialTest.PrintChart()
 materialTest.PrepareDataForGraph()
@@ -306,6 +308,8 @@ for node in spheres_model_part.Nodes:
 if nodeplotter: #Related to debugging
     os.chdir(main_path)
     plotter = plot_variables.variable_plotter(spheres_model_part, list_of_nodes_ids) #Related to debugging
+
+
 
 while (time < DEM_parameters.FinalTime):
     
@@ -444,3 +448,8 @@ if (DEM_parameters.dem_inlet_option):
 
 for obj in objects_to_destroy:
     del obj
+
+files_to_delete_list = glob('*.time')
+for to_erase_file in files_to_delete_list:
+    os.remove(to_erase_file)
+
