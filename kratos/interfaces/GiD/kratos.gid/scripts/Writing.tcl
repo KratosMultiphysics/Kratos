@@ -300,38 +300,41 @@ proc write::writeConditions { baseUN } {
     set xp1 "[spdAux::getRoute $baseUN]/condition/group"
     set iter 1
     foreach group [$root selectNodes $xp1] {
-	set condid [[$group parent] @n]
-	set groupid [get_domnode_attribute $group n]
-	set ov [[$group parent] @ov]
-	set cond [::Model::getCondition $condid]
-	lassign [write::getEtype $ov $groupid] etype nnodes
-	set kname [$cond getTopologyKratosName $etype $nnodes]
-	if {$kname ne ""} {
-	    set obj [list ]
-	    WriteString "Begin Conditions $kname// GUI group identifier: $groupid"
-	    if {$etype eq "Point"} {
-		set formats [dict create $groupid "%10d \n"]
-		
-		#set obj [write_calc_data nodes -return $formats]
-		#set obj [list 3 5]
-		set obj [GiD_EntitiesGroups get $groupid nodes]
-	    } else {
-		set formats [write::GetFormatDict $groupid 0 $nnodes]
-		set elems [write_calc_data connectivities -return $formats]
-		#W $elems
-		
-		set obj [GetListsOfNodes $elems $nnodes 2]
-	    }
-	    set initial $iter
-	    for {set i 0} {$i <[llength $obj]} {incr iter; incr i} {
-	    set nids [lindex $obj $i]
-	    WriteString "$iter 0 $nids"
-	    }
-	    set final [expr $iter -1]
-	    WriteString "End Conditions"
-	    WriteString ""
-	    dict set dictGroupsIterators $groupid [list $initial $final]
-	}
+        set condid [[$group parent] @n]
+        #W $condid
+        set groupid [get_domnode_attribute $group n]
+        if {[$group hasAttribute ov]} {set ov [$group getAttribute ov]} {set ov [[$group parent ] getAttribute ov]}
+        set cond [::Model::getCondition $condid]
+        lassign [write::getEtype $ov $groupid] etype nnodes
+        #W "$etype $nnodes"
+        set kname [$cond getTopologyKratosName $etype $nnodes]
+        #W $kname
+        if {$kname ne ""} {
+            set obj [list ]
+            WriteString "Begin Conditions $kname// GUI group identifier: $groupid"
+            if {$etype eq "Point"} {
+                set formats [dict create $groupid "%10d \n"]
+                
+                #set obj [write_calc_data nodes -return $formats]
+                #set obj [list 3 5]
+                set obj [GiD_EntitiesGroups get $groupid nodes]
+            } else {
+                set formats [write::GetFormatDict $groupid 0 $nnodes]
+                set elems [write_calc_data connectivities -return $formats]
+                #W $elems
+                
+                set obj [GetListsOfNodes $elems $nnodes 2]
+            }
+            set initial $iter
+            for {set i 0} {$i <[llength $obj]} {incr iter; incr i} {
+                set nids [lindex $obj $i]
+                WriteString "$iter 0 $nids"
+            }
+            set final [expr $iter -1]
+            WriteString "End Conditions"
+            WriteString ""
+            dict set dictGroupsIterators $groupid [list $initial $final]
+        }
     }
     return $dictGroupsIterators
 }
@@ -431,6 +434,7 @@ proc write::GetFormatDict { groupid n num} {
 }
 
 proc write::getEtype {ov group} {
+    # W "$ov $group"
     set isquadratic [isquadratic]
     set ret [list "" ""]
     set b 0
