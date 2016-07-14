@@ -40,7 +40,7 @@ struct contact_container
     
     void clear()
     {
-//         condition = NULL;
+        condition = nullptr;
         local_coordinates_slave.clear();
         active_nodes_slave.clear();
     }
@@ -127,17 +127,12 @@ KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( POINT_MOMENT )
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( LOCAL_POINT_MOMENT )
 /* Torque conditions */
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( POINT_TORQUE )
-/* Mortar method */ // TODO: Remove unnecessary variables
+/* Mortar method */ 
 KRATOS_DEFINE_VARIABLE( std::vector<contact_container>*, CONTACT_CONTAINERS ) // A vector of which contains the structure which defines the contact conditions
 KRATOS_DEFINE_VARIABLE( Element::Pointer, ELEMENT_POINTER )                   // A pointer to the element belonging to this condition
 KRATOS_DEFINE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                     // The integration order computed in the contact
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( CONTACT_MESH_TYING_FORCE )         // The "force" resulting from contact
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( LAGRANGE_MULTIPLIER )              // The lagrange multiplier used to enforce the mortar constraint
 KRATOS_DEFINE_VARIABLE( Matrix, MORTAR_CONTACT_OPERATOR )                     // Mortar Contact Operator
-KRATOS_DEFINE_VARIABLE( Matrix, CONTACT_STIFFNESS_MATRIX )                    // LHS contribution
-KRATOS_DEFINE_VARIABLE( Matrix, GAP_DERIVATIVES_MATRIX )                      // LHS contribution
-KRATOS_DEFINE_VARIABLE( Vector, CONTACT_FORCES_VECTOR )                       // RHS contribution
-KRATOS_DEFINE_VARIABLE( Vector, NORMAL_GAPS_VECTOR )                          // RHS contribution
 
 // Adding the SPRISM EAS variables
 KRATOS_DEFINE_VARIABLE(double, ALPHA_EAS);

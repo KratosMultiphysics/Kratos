@@ -12,7 +12,6 @@
 #if !defined(KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER_CONTACT )
 #define  KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER_CONTACT
 
-
 /* System includes */
 
 #include "utilities/openmp_utils.h"
@@ -188,11 +187,13 @@ public:
         #pragma omp parallel for firstprivate(ndofs)
         for (unsigned int k = 0; k < ndofs; k++)
         {
-                typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
-                const std::size_t i = dof_iterator->EquationId();
+            typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
+            const std::size_t i = dof_iterator->EquationId();
 
-                if (dof_iterator->IsFixed())
-                        b[i] = 0.0f;
+            if (dof_iterator->IsFixed() == true)
+            {
+                b[i] = 0.0f;       
+            }
         }
 
         KRATOS_CATCH("");
@@ -219,7 +220,7 @@ public:
 
         //NOTE: DOFS are assumed to be numbered consecutively in the BlockBuilderAndSolver
         #pragma omp parallel for firstprivate(ndofs)
-        for (int k = 0; k<ndofs; k++)
+        for (int k = 0; k < ndofs; k++)
         {
             typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
 
