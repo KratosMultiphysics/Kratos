@@ -4,11 +4,11 @@ import KratosMultiphysics
 import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
 KratosMultiphysics.CheckForPreviousImport()
 
-
+#TODO: It must be build as a process
 class ModelerUtility:
     #
 
-    def __init__(self, main_model_part, domain_size):
+    def __init__(self, main_model_part, meshing_domains, domain_size):
 
 
         self.echo_level = 1        
@@ -16,28 +16,16 @@ class ModelerUtility:
         self.domain_size = domain_size
 
         # mesh modeler vector
-        self.meshing_domains = []        
+        self.meshing_domains = meshing_domains        
         self.remesh_domains_active = False
         self.neighbours_search_performed = False
         self.counter = 1
-
-                       
-    #
-    def SetMeshingDomains(self, meshing_domains ):
-
-        # set mesing domains
-        self.meshing_domains = meshing_domains
-
-        # set modeler utilities
-        self.modeler_utils = KratosPfemBase.ModelerUtilities()
-
-        # set the domain labels to mesh modeler
-        self.modeler_utils.SetDomainLabels(self.model_part)
 
         # check if some of them is active:
         if( self.meshing_domains.size() ):
             self.remesh_domains_active = True
 
+                       
     #
     def Initialize(self, restart=False ):
         
@@ -62,6 +50,12 @@ class ModelerUtility:
                 # self.SearchNodalH() #now done from main script
             
                 
+            # set modeler utilities
+            self.modeler_utils = KratosPfemBase.ModelerUtilities()
+
+            # set the domain labels to mesh modeler
+            self.modeler_utils.SetDomainLabels(self.model_part)
+
             for domain in self.meshing_domains:
                 domain.Check();
 
