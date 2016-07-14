@@ -40,7 +40,7 @@ namespace Kratos {
         virtual void CalculateContactArea(double radius, double other_radius, double &calculation_area) override;
         virtual double CalculateContactArea(double radius, double other_radius, Vector& v) override;
         virtual void GetContactArea(const double radius, const double other_radius, const Vector& vector_of_initial_areas, const int neighbour_position, double& calculation_area) override;
-        virtual void CalculateElasticConstants(double &kn_el, double &kt_el, double initial_dist, double equiv_young, double equiv_poisson, double calculation_area) override;
+        virtual void CalculateElasticConstants(double &kn_el, double &kt_el, double initial_dist, double equiv_young, double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
 
         virtual void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
                 double &equiv_visco_damp_coeff_tangential,
@@ -116,7 +116,9 @@ namespace Kratos {
                                                       double calculation_area,
                                                       double LocalCoordSystem[3][3],
                                                       double ElasticLocalRotationalMoment[3],
-                                                      double ViscoLocalRotationalMoment[3]) override;
+                                                      double ViscoLocalRotationalMoment[3],
+                                                      double equiv_poisson,
+                                                      double indentation) override;
 
     private:
 
