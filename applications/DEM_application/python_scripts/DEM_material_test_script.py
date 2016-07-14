@@ -129,14 +129,11 @@ class MaterialTest(object):
         self.graph_export_1 = open(self.parameters.problem_name +"_graph_top.grf", 'w')
         self.graph_export_2 = open(self.parameters.problem_name +"_graph_bot.grf", 'w')
         
-        if( self.parameters.TestType =="Hydrostatic"):  
+        if (self.parameters.TestType =="Hydrostatic"):  
           self.graph_export_volumetric = open(self.parameters.problem_name+"_graph_VOL.grf",'w')
 
         self.Procedures.KRATOSprint ('Initial Height of the Model: ' + str(self.height)+'\n')
-        
-        if(self.parameters.PredefinedSkinOption == "ON" ):
-          self.Procedures.KRATOSprint ("ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF")
-        
+                
         (self.xtop_area,self.xbot_area,self.xlat_area,self.xtopcorner_area,self.xbotcorner_area,y_top_total,weight_top, y_bot_total, weight_bot) = self.CylinderSkinDetermination()
         
         #xtop_area_gath        = mpi.allgather(mpi.world, xtop_area) 
@@ -347,7 +344,7 @@ class MaterialTest(object):
 
     self.strain += -100*self.length_correction_factor*1.0*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenLength
 
-    if( self.parameters.TestType =="BTS"):
+    if (self.parameters.TestType =="BTS"):
 
       total_force_bts = 0.0
       
@@ -360,7 +357,7 @@ class MaterialTest(object):
       self.strain_bts += -100*2*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenDiameter
     else:
 
-      if( self.parameters.TestType =="Hydrostatic"):
+      if (self.parameters.TestType =="Hydrostatic"):
         
         radial_strain = -100*self.MeasureRadialStrain()
         self.volumetric_strain = self.strain + 2.0*radial_strain
@@ -387,7 +384,7 @@ class MaterialTest(object):
       self.total_stress_mean = 0.5*(self.total_stress_bot + self.total_stress_top)
 
       
-      if( ( (self.parameters.TestType == "Triaxial") or (self.parameters.TestType == "Hydrostatic") ) and (self.parameters.ConfinementPressure != 0.0) ):
+      if ( ( (self.parameters.TestType == "Triaxial") or (self.parameters.TestType == "Hydrostatic") ) and (self.parameters.ConfinementPressure != 0.0) ):
           
           self.Pressure = min(self.total_stress_mean*1e6, self.parameters.ConfinementPressure * 1e6)
           
