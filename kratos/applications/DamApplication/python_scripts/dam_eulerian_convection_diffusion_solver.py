@@ -93,10 +93,7 @@ class DamThermalSolver:
         # Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-        
-        # Get the linear solver
-        #self.linear_solver = self.LinearSolver(self.settings["general_data"]["domain_size"].GetInt())
-    
+            
         print("Construction of Dam Thermal Solver finished")
     
     def GetMinimumBufferSize(self):
@@ -133,7 +130,6 @@ class DamThermalSolver:
             #and now we save it in the model part.            
             (self.main_model_part.ProcessInfo).SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, thermal_settings)
             
-            print(self.main_model_part.ProcessInfo)
         #now we can add the variable, as the name suggest
         if (self.main_model_part.ProcessInfo).Has(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS):
             thermal_settings  = (self.main_model_part.ProcessInfo).GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
@@ -161,7 +157,7 @@ class DamThermalSolver:
             node.AddDof(KratosMultiphysics.TEMPERATURE);
         print("user should include the variables as needed by nodes")
         
-        print (" thermal DOFS Ok")
+        print(" Thermal DOFs correctly added")
 
 
     def Initialize(self):
@@ -171,8 +167,6 @@ class DamThermalSolver:
         
         # Set echo_level
         self.solver.SetEchoLevel(self.settings["mechanical_settings"]["echo_level"].GetInt())
-
-
 
         print ("Initialization DamThermalSolver finished")
         
@@ -185,18 +179,7 @@ class DamThermalSolver:
         self.solver.SetEchoLevel(level)
 
 
-    #### Specific internal functions ####
-    
-    #def LinearSolver(self, domain_size):
-        #convection_solver = KratosConvDiff.EulerianConvectionDiffusionSolver(self.model_part, domain_size)
-        ## linear solver settings
-        #import linear_solver_factory
-        #if(hasattr(config, "convection_linear_solver_config")):
-            #self.linear_solver = linear_solver_factory.ConstructSolver(
-                #config.convection_linear_solver_config)
-
-        #return convection_solver
-    
+    #### Specific internal functions ####    
     
     def ConstructTheSolver(self):
         
@@ -214,31 +197,4 @@ class DamThermalSolver:
                                                                                 self.ReformDofAtEachIteration,
                                                                                 domain_size)
         return self.solver
-
-#class Struct:
-    #def __init__(self, **entries): 
-        #self.__dict__.update(entries)
-
-        
-#class py_settings:
-    
-    #def __init__(custom_settings):
-        
-        #unknown_variable = custom_settings["diffusion_settings"]["variables"]["unknown_variable"].GetString()
-        #diffusion_variable = custom_settings["diffusion_settings"]["variables"]["diffusion_variable"].GetString()
-        #specific_heat_variable = custom_settings["diffusion_settings"]["variables"]["specific_heat_variable"].GetString()
-        #density_variable = custom_settings["diffusion_settings"]["variables"]["density_variable"].GetString()
-        
-        #py_settings.diffusion_variable = diffusion
-        #py_settings.unknown_variable = unknown
-        #py_settings.specific_heat_variable = specific_heat
-        #py_settings.density_variable = specific_heat
-        
-        #return py_settings
-        
-        
-        
-        
-        
-            
 
