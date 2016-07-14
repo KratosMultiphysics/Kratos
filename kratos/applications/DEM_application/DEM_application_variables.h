@@ -28,7 +28,10 @@ namespace Kratos
 #define DEM_MODULUS_2(a)                            sqrt(a[0] * a[0] + a[1] * a[1])
 #define DEM_INNER_PRODUCT_3(a, b)                       (a[0] * b[0] + a[1] * b[1] + a[2] * b[2])
 #define DEM_SET_TO_CROSS_OF_FIRST_TWO_3(a, b, c)    c[0] = a[1] * b[2] - a[2] * b[1]; c[1] = a[2] * b[0] - a[0] * b[2]; c[2] = a[0] * b[1] - a[1] * b[0];
-  
+#define DEM_COPY_SECOND_TO_FIRST_3x3(a, b)          a[0][0] = b[0][0]; a[0][1] = b[0][1]; a[0][2] = b[0][2]; \
+                                                    a[1][0] = b[1][0]; a[1][1] = b[1][1]; a[1][2] = b[1][2]; \
+                                                    a[2][0] = b[2][0]; a[2][1] = b[2][1]; a[2][2] = b[2][2];
+    
   KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, CONTINUUM_INI_NEIGHBOUR_ELEMENTS)
   KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, NODE_TO_NEIGH_ELEMENT_POINTER)
 
@@ -54,6 +57,7 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(int, CLEAN_INDENT_OPTION)
   KRATOS_DEFINE_VARIABLE(int, TRIHEDRON_OPTION)
   KRATOS_DEFINE_VARIABLE(int, ROLLING_FRICTION_OPTION)
+  KRATOS_DEFINE_VARIABLE(int, POISSON_EFFECT_OPTION)
   KRATOS_DEFINE_VARIABLE(int, NEIGH_INITIALIZED)
   KRATOS_DEFINE_VARIABLE(int, TRIAXIAL_TEST_OPTION)
   KRATOS_DEFINE_VARIABLE(int, FIX_VELOCITIES_FLAG)
@@ -110,7 +114,7 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(double, EXCENTRICITY_STANDARD_DEVIATION)
   KRATOS_DEFINE_VARIABLE(double, FABRIC_COEFFICIENT)
   KRATOS_DEFINE_VARIABLE(double, POISSON_VALUE)
-  KRATOS_DEFINE_VARIABLE(double, KT_KN_QUOTIENT)
+  KRATOS_DEFINE_VARIABLE(double, KT_FACTOR)
 
 
   // *************** Nano-particle only BEGIN *************
