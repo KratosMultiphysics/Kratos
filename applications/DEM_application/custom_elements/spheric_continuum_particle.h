@@ -6,7 +6,6 @@
 #define  KRATOS_SPHERIC_CONTINUUM_PARTICLE_H_INCLUDED
 
 // System includes
-// System includes
 #include <string>
 #include <iostream>
 #include <iomanip> // to improve std::cout precision
@@ -60,6 +59,8 @@ namespace Kratos
         void SetInitialFemContacts();
         void CreateContinuumConstitutiveLaws();
         void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
+        void CorrectRepresentativeVolume(double& rRepresentative_Volume, bool& is_smaller_than_sphere);
+
         void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
 
         void ReorderAndRecoverInitialPositionsAndFilter(std::vector<SphericParticle*>& mTempNeighbourElements);
