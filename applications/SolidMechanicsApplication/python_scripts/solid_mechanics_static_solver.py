@@ -46,6 +46,7 @@ class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMec
             "compute_reactions": true,
             "compute_contact_forces": false,
             "block_builder": false,
+            "clear_storage": false,
             "component_wise": false,
             "move_mesh_flag": true,
             "convergence_criterion": "Residual_criteria",
