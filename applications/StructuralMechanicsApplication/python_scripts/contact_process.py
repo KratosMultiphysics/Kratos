@@ -7,6 +7,13 @@ import KratosMultiphysics.StructuralMechanicsApplication
 
 KratosMultiphysics.CheckForPreviousImport()
 
+def CalculateLastIdCondition(model_part):
+    cond_id = 0
+    for condition in model_part.Conditions:
+        cond_id += 1
+
+    return cond_id
+
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
@@ -16,8 +23,7 @@ class ContactProcess(KratosMultiphysics.Process):
   
     def __init__(self,model_part,params):
         
-                
-        ##settings string in json format
+        ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {
             "model_part_name"             : "",
@@ -38,13 +44,13 @@ class ContactProcess(KratosMultiphysics.Process):
         self.params = params
         self.params.ValidateAndAssignDefaults(default_parameters)
         
-        self.main_model_part = model_part[self.params["model_part_name"].GetString()].GetSubModelPart("solid_computational_model_part")
+        self.main_model_part = model_part[self.params["model_part_name"].GetString()]
 
         self.o_model_part = model_part[self.params["origin_model_part_name"].GetString()]
         self.d_model_part = model_part[self.params["destination_model_part_name"].GetString()]
         
-        self.o_interface_nodes = model_part[self.params["origin_interface_nodes"].GetString()]
-        self.d_interface_nodes = model_part[self.params["destination_interface_nodes"].GetString()]
+        self.o_interface = model_part[self.params["origin_interface_nodes"].GetString()]
+        self.d_interface = model_part[self.params["destination_interface_nodes"].GetString()]
         
         self.search_factor      = self.params["search_factor"].GetDouble() 
         self.allocation_size    = self.params["allocation_size"].GetInt() 
@@ -55,17 +61,15 @@ class ContactProcess(KratosMultiphysics.Process):
         
     def ExecuteInitialize(self):
         
-        for node in self.o_interface_nodes.Nodes:
+        for node in self.o_interface.Nodes:
             node.Set(KratosMultiphysics.INTERFACE,True)
         del(node)
         
-        for node in self.d_interface_nodes.Nodes:
+        for node in self.d_interface.Nodes:
             node.Set(KratosMultiphysics.INTERFACE,True)
         del(node)
         
         self.Preprocess  = KratosMultiphysics.StructuralMechanicsApplication.InterfacePreprocessCondition()
-        self.o_interface = KratosMultiphysics.ModelPart("origin_interface")
-        self.d_interface = KratosMultiphysics.ModelPart("destination_interface")
         
         if self.params["contact_type"].GetString() == "MortarMethod":
             condition_name = "MortarContact"
@@ -75,16 +79,20 @@ class ContactProcess(KratosMultiphysics.Process):
             condition_name = "NTSContact"
         
         print("MODEL PART BEFORE CREATING INTERFACE")
-        print(self.main_model_part) 
+        print(self.o_model_part)
+        print(self.d_model_part)
+        #print(self.main_model_part) 
         
         # It should create the conditions automatically
-        self.Preprocess.GenerateInterfacePart(self.o_model_part, self.o_interface, condition_name) 
-        self.Preprocess.GenerateInterfacePart(self.d_model_part, self.d_interface, condition_name)
-        self.Preprocess.AppendInterfacePart(self.main_model_part, self.o_interface) 
-        self.Preprocess.AppendInterfacePart(self.main_model_part, self.d_interface)
+        initial_id = CalculateLastIdCondition(self.main_model_part)
+        self.Preprocess.GenerateInterfacePart(self.o_model_part, self.o_interface, condition_name, initial_id) 
+        initial_id = CalculateLastIdCondition(self.main_model_part)
+        self.Preprocess.GenerateInterfacePart(self.d_model_part, self.d_interface, condition_name, initial_id) 
 
         print("MODEL PART AFTER CREATING INTERFACE")
-        print(self.main_model_part) 
+        print(self.o_model_part)
+        print(self.d_model_part)
+        #print(self.main_model_part)
         
         self.contact_search = KratosMultiphysics.StructuralMechanicsApplication.TreeContactSearch(self.o_interface, self.d_interface, self.allocation_size)
         

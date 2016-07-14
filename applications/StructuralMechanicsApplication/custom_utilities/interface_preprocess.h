@@ -67,9 +67,7 @@ public:
     ///@{
     
     typedef ModelPart::NodesContainerType                   NodesArrayType;
-
     typedef ModelPart::ElementsContainerType             ElementsArrayType;
-
     typedef ModelPart::ConditionsContainerType         ConditionsArrayType;
     
     ///@}
@@ -93,8 +91,9 @@ public:
     
     void GenerateInterfacePart(
             ModelPart& rOriginPart,
-            ModelPart& InterfacePart,
-            std::string ConditionName
+            ModelPart& rInterfacePart,
+            std::string ConditionName,
+            unsigned int CondId
             )
     {
         KRATOS_TRY;
@@ -107,23 +106,12 @@ public:
         
         // Store pointers to all interface nodes
         unsigned int NodesCounter = 0;
-        for (ModelPart::NodesContainerType::const_iterator node_it = rOriginPart.NodesBegin(); node_it != rOriginPart.NodesEnd(); node_it++)
+        for (ModelPart::NodesContainerType::const_iterator node_it = rInterfacePart.NodesBegin(); node_it != rInterfacePart.NodesEnd(); node_it++)
         {
-//         const unsigned int nnodes = static_cast<int>(rOriginPart.Nodes().size());
-//         NodesArrayType::iterator NodeBegin = rOriginPart.Nodes().begin();
-// 
-//         #pragma omp parallel for firstprivate(NodeBegin)
-//         for(unsigned int i = 0;  i < nnodes; i++)
-//         {
-            if (node_it->Is(INTERFACE) == true)
-            {
-                InterfacePart.AddNode(*(node_it.base()));
-                NodesCounter ++;
-            }
+            NodesCounter++;
         }
         
         unsigned int CondCounter = 0;
-        unsigned int CondId = 1; // Id 
         
 //         OpenMPUtils::PartitionVector ElementPartition;
 //         OpenMPUtils::DivideInPartitions(rOriginPart.Elements().size(), NumThreads, ElementPartition);
@@ -143,18 +131,22 @@ public:
                 
                 for (unsigned int it_edge = 0; it_edge < (*elem_it).GetGeometry().EdgesNumber(); it_edge++)
                 {
-                    bool interface = true;
+                    unsigned int count = 0;
                     unsigned int number_points = (*elem_it).GetGeometry().Edges()[it_edge].PointsNumber();
                     for (unsigned int node_it = 0; node_it < number_points; node_it++)
                     {
-                        if ((*elem_it).GetGeometry().Edges()[it_edge][node_it].Is(INTERFACE) == false)  
+                        if ((*elem_it).GetGeometry().Edges()[it_edge][node_it].IsDefined(INTERFACE) == true)  
                         {
-                            interface = false;
+                            if ((*elem_it).GetGeometry().Edges()[it_edge][node_it].Is(INTERFACE) == true)  
+                            {
+                                count++;
+                            }
                         }
                     }
                     
-                    if (interface == true)
+                    if (count == number_points)
                     {
+                        CondId += 1;
                         std::string EdgeConditionName = ConditionName;
                         if (number_points == 2)
                         {
@@ -166,8 +158,8 @@ public:
                         }
                         
                         Condition const & rCondition = KratosComponents<Condition>::Get(EdgeConditionName);
-                        Condition::Pointer pCond = Condition::Pointer(rCondition.Create(CondId++, (*elem_it).GetGeometry().Edges()[it_edge], (*elem_it).pGetProperties()));
-                        InterfacePart.AddCondition(pCond);
+                        Condition::Pointer pCond = Condition::Pointer(rCondition.Create(CondId, (*elem_it).GetGeometry().Edges()[it_edge], (*elem_it).pGetProperties()));
+                        rInterfacePart.AddCondition(pCond);
                         if (ConditionName.find("Mortar") != std::string::npos)
                         {
                              Element::Pointer & pElem = const_cast<Condition &>(rCondition).GetValue(ELEMENT_POINTER);
@@ -191,18 +183,22 @@ public:
                 
                 for (unsigned int it_face = 0; it_face < (*elem_it).GetGeometry().FacesNumber(); it_face++)
                 {
-                    bool interface = true;
+                    unsigned int count = 0;
                     unsigned int number_points = (*elem_it).GetGeometry().Faces()[it_face].PointsNumber();
                     for (unsigned int node_it = 0; node_it < number_points; node_it++)
                     {
-                        if ((*elem_it).GetGeometry().Faces()[it_face][node_it].Is(INTERFACE) == false)  
+                        if ((*elem_it).GetGeometry().Faces()[it_face][node_it].IsDefined(INTERFACE) == true)  
                         {
-                            interface = false;
+                            if ((*elem_it).GetGeometry().Faces()[it_face][node_it].Is(INTERFACE) == true)  
+                            {
+                                count++;
+                            }
                         }
                     }
                     
-                    if (interface == true)
+                    if (count == number_points)
                     {
+                        CondId += 1;
                         std::string FaceConditionName = ConditionName;
                         if (number_points == 3)
                         {
@@ -226,8 +222,8 @@ public:
                         }
   
                         Condition const & rCondition = KratosComponents<Condition>::Get(FaceConditionName); 
-                        Condition::Pointer pCond = Condition::Pointer(rCondition.Create(CondId++, (*elem_it).GetGeometry().Faces()[it_face], (*elem_it).pGetProperties()));
-                        InterfacePart.AddCondition(pCond);
+                        Condition::Pointer pCond = Condition::Pointer(rCondition.Create(CondId, (*elem_it).GetGeometry().Faces()[it_face], (*elem_it).pGetProperties()));
+                        rInterfacePart.AddCondition(pCond);
                         if (ConditionName.find("Mortar") != std::string::npos)
                         {
                              Element::Pointer & pElem = const_cast<Condition &>(rCondition).GetValue(ELEMENT_POINTER);
@@ -263,7 +259,7 @@ public:
         /* Adding news elements to the model part */
         for (ModelPart::ConditionsContainerType::const_iterator it = InterfacePart.ConditionsBegin(); it != InterfacePart.ConditionsEnd(); it++)
         {
-            rOriginPart.Conditions().push_back(*(it.base()));
+            rOriginPart.Conditions().push_back(*(it.base())); // NOTE: Remove this shit
         }
 
         /* Renumber */

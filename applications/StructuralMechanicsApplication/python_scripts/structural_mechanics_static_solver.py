@@ -195,8 +195,11 @@ class StaticStructuralSolver(solid_mechanics_static_solver.StaticMechanicalSolve
 
         print("::[Mechanical Solver]:: DOF's ADDED")
 
+    def GetComputeModelPart(self):
+        return self.main_model_part
     
     def Solve(self):
+        
         self.mechanical_solver.Solve()
         
         if self.settings["analysis_type"].GetString() == "Arc-Length":
