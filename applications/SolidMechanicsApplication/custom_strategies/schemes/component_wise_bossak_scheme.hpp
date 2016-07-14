@@ -15,7 +15,7 @@
 /* External includes */
 
 /* Project includes */
-#include "custom_strategies/schemes/residual_based_bossak_scheme.hpp"
+#include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "solid_mechanics_application_variables.h"
 
 namespace Kratos
@@ -37,7 +37,7 @@ namespace Kratos
 /*@} */
 
 template<class TSparseSpace,  class TDenseSpace >
-class ComponentWiseBossakScheme: public ResidualBasedBossakScheme<TSparseSpace,TDenseSpace>
+class ComponentWiseBossakScheme: public ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>
 {
 public:
 
@@ -70,7 +70,7 @@ public:
 
     typedef typename BaseType::Pointer                           BaseTypePointer;
 
-    typedef ResidualBasedBossakScheme<TSparseSpace,TDenseSpace>  DerivedBaseType;
+    typedef ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>  DerivedBaseType;
 
     /*@} */
 
@@ -78,9 +78,11 @@ public:
      * Constructor.
      * The bossak method
      */
-    ComponentWiseBossakScheme(double rAlpham=0,double rDynamic=1)
-      :DerivedBaseType(rAlpham,rDynamic)
+  ComponentWiseBossakScheme(double rAlpham = 0.0, double rDynamic = 0.0)
+      :DerivedBaseType(rAlpham)
     {
+
+      mDynamic = rDynamic;
       mLocalSystem.Initialize();
       //std::cout<<" component wise bossak scheme selected "<<std::endl;
     }
@@ -236,7 +238,7 @@ public:
 	  }
 	
 
-        if(this->mNewmark.static_dynamic !=0)
+        if( mDynamic !=0)
         {
 
             (rCurrentElement) -> CalculateMassMatrix(this->mMatrix.M[thread], rCurrentProcessInfo);
@@ -247,7 +249,7 @@ public:
 
         (rCurrentElement) -> EquationIdVector(rEquationId, rCurrentProcessInfo);
 
-        if(this->mNewmark.static_dynamic !=0)
+        if( mDynamic !=0)
         {
 
             this->AddDynamicsToLHS (rLHS_Contribution, this->mMatrix.D[thread], this->mMatrix.M[thread], rCurrentProcessInfo);
@@ -304,7 +306,7 @@ public:
 	  }
 	
 
-        if(this->mNewmark.static_dynamic !=0)
+        if( mDynamic !=0)
         {
 
             (rCurrentElement) -> CalculateMassMatrix(this->mMatrix.M[thread], rCurrentProcessInfo);
@@ -314,7 +316,7 @@ public:
 
         (rCurrentElement) -> EquationIdVector(rEquationId,rCurrentProcessInfo);
 
-        if(this->mNewmark.static_dynamic !=0)
+        if( mDynamic !=0)
         {
 
             this->AddDynamicsToRHS (rCurrentElement, rRHS_Contribution, this->mMatrix.D[thread], this->mMatrix.M[thread], rCurrentProcessInfo);
@@ -443,7 +445,7 @@ public:
 
 	  }
 	    	    
-        if(this->mNewmark.static_dynamic !=0)
+        if( mDynamic !=0)
         {
 
             (rCurrentCondition) -> CalculateMassMatrix(this->mMatrix.M[thread], rCurrentProcessInfo);
@@ -454,7 +456,7 @@ public:
 
         (rCurrentCondition) -> EquationIdVector(rEquationId, rCurrentProcessInfo);
 
-        if(this->mNewmark.static_dynamic !=0)
+        if( mDynamic !=0)
         {
 
             this->AddDynamicsToLHS  (rLHS_Contribution, this->mMatrix.D[thread], this->mMatrix.M[thread], rCurrentProcessInfo);
@@ -514,7 +516,7 @@ public:
 	    (rCurrentCondition) -> CalculateRightHandSide(rRHS_Contribution, rCurrentProcessInfo);
 	  }
 
-        if(this->mNewmark.static_dynamic !=0)
+        if( mDynamic !=0)
         {
 
             (rCurrentCondition) -> CalculateMassMatrix(this->mMatrix.M[thread], rCurrentProcessInfo);
@@ -527,7 +529,7 @@ public:
 
         //adding the dynamic contributions (static is already included)
 
-        if(this->mNewmark.static_dynamic !=0)
+        if( mDynamic !=0)
         {
 
             this->AddDynamicsToRHS  (rCurrentCondition, rRHS_Contribution, this->mMatrix.D[thread], this->mMatrix.M[thread], rCurrentProcessInfo);
@@ -580,6 +582,9 @@ private:
     /**@name Member Variables */
     /*@{ */
     LocalSystemComponentsType mLocalSystem;
+
+    double mDynamic;
+
     /*@} */
     /**@name Private Operators*/
     /*@{ */

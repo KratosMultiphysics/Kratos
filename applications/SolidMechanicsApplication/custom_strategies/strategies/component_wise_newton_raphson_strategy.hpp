@@ -20,7 +20,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 //default builder and solver
@@ -135,64 +135,27 @@ public:
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
     )
-      : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
+      : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
     {
         KRATOS_TRY
 
-	this->mKeepSystemConstantDuringIterations = false;
-
-        //set flags to default values
-        this->SetMaxIterationNumber(MaxIterations);
-        this->mCalculateReactionsFlag = CalculateReactions;
-
-
-        this->mReformDofSetAtEachStep = ReformDofSetAtEachStep;
-
-        //saving the convergence criteria to be used
-        this->mpConvergenceCriteria = pNewConvergenceCriteria;
-
-        //saving the scheme
-        this->mpScheme = pScheme;
-
-        //saving the linear solver
-        this->mpLinearSolver = pNewLinearSolver;
+	// std::cout<<" STRATEGY: ComponentWiseNewtonRaphsonStrategy "<<std::endl;
 
         //setting up the default builder and solver
         this->mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer
-	  (
-	   new ComponentWiseBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (this->mpLinearSolver)
-	   );
+    	  (
+    	   new ComponentWiseBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (this->mpLinearSolver)
+    	   );
 
-        //set flags to start correcty the calculations
-        this->mSolutionStepIsInitialized = false;
-
-        this->mInitializeWasPerformed = false;
-
-	this->mFinalizeSolutionStep = true;
-
-        //tells to the builder and solver if the reactions have to be Calculated or not
-        this->GetBuilderAndSolver()->SetCalculateReactionsFlag(this->mCalculateReactionsFlag);
-
-        //tells to the Builder And Solver if the system matrix and vectors need to
-        //be reshaped at each step or not
-        this->GetBuilderAndSolver()->SetReshapeMatrixFlag(this->mReformDofSetAtEachStep);
-
-        //set EchoLevel to the default value (only time is displayed)
-        this->SetEchoLevel(1);
-
-        //by default the matrices are rebuilt at each iteration
-        this->SetRebuildLevel(2);
-
-
-	//component-wise options
-	GlobalSystemComponentsType& rGlobalSystem = this->mpBuilderAndSolver->GetGlobalSystemComponents();
+      	//component-wise options
+    	GlobalSystemComponentsType& rGlobalSystem = this->mpBuilderAndSolver->GetGlobalSystemComponents();
 	
-	rGlobalSystem.SetRHS_Element_Components( this->mpConvergenceCriteria->GetRHS_Element_Components() );
-	rGlobalSystem.SetRHS_Element_Variables( this->mpConvergenceCriteria->GetRHS_Element_Variables() );
+    	rGlobalSystem.SetRHS_Element_Components( this->mpConvergenceCriteria->GetRHS_Element_Components() );
+    	rGlobalSystem.SetRHS_Element_Variables( this->mpConvergenceCriteria->GetRHS_Element_Variables() );
 
-	rGlobalSystem.SetRHS_Condition_Components( this->mpConvergenceCriteria->GetRHS_Condition_Components() );
-	rGlobalSystem.SetRHS_Condition_Variables( this->mpConvergenceCriteria->GetRHS_Condition_Variables() );
-	//component-wise options
+    	rGlobalSystem.SetRHS_Condition_Components( this->mpConvergenceCriteria->GetRHS_Condition_Components() );
+    	rGlobalSystem.SetRHS_Condition_Variables( this->mpConvergenceCriteria->GetRHS_Condition_Variables() );
+    	//component-wise options
 
 
         KRATOS_CATCH( "" )
@@ -251,7 +214,7 @@ public:
     /*@{ */
     /*@} */
 
-private:
+protected:
     /**@name Protected static Member Variables */
     /*@{ */
     /*@} */
@@ -273,7 +236,14 @@ private:
     /**@name Protected LifeCycle */
     /*@{ */
     /*@} */
-protected:
+
+    /** Copy constructor.
+     */
+    ComponentWiseNewtonRaphsonStrategy(const ComponentWiseNewtonRaphsonStrategy& Other)
+    {
+    };
+
+private:
     /**@name Static Member Variables */
     /*@{ */
     /*@} */
@@ -294,14 +264,6 @@ protected:
     /*@} */
     /**@name Un accessible methods */
     /*@{ */
-
-    /** Copy constructor.
-     */
-    ComponentWiseNewtonRaphsonStrategy(const ComponentWiseNewtonRaphsonStrategy& Other)
-    {
-    };
-
-
     /*@} */
 
 }; /* Class ComponentWiseNewtonRaphsonStrategy */

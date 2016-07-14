@@ -126,7 +126,7 @@ class PfemMechanicalSolver:
 
         # definition of the default builder_and_solver:
         self.block_builder = False
-        self.builder_and_solver = ResidualBasedBuilderAndSolver(self.linear_solver)
+        self.builder_and_solver = ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
 
         # definition of the component wise calculation "computation is slower"
         #(it affects to strategy, builder_and_solver, scheme and convergence_criterion)
@@ -232,9 +232,9 @@ class PfemMechanicalSolver:
         else:
             if(self.block_builder):
                 # to keep matrix blocks in builder
-                self.builder_and_solver = BlockResidualBasedBuilderAndSolver(self.linear_solver)
+                self.builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.linear_solver)
             else:
-                self.builder_and_solver = ResidualBasedBuilderAndSolver(self.linear_solver)
+                self.builder_and_solver = ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
 
     #
     def SetSolutionScheme(self):
