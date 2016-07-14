@@ -116,7 +116,9 @@ namespace Kratos {
                                                 double initial_dist,
                                                 double equiv_young,
                                                 double equiv_poisson,
-                                                double calculation_area) {
+                                                double calculation_area,
+                                                SphericContinuumParticle* element1,
+                                                SphericContinuumParticle* element2) {
         
         KRATOS_TRY 
         double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
@@ -580,6 +582,8 @@ namespace Kratos {
                                                     double calculation_area,
                                                     double LocalCoordSystem[3][3],
                                                     double ElasticLocalRotationalMoment[3],
-                                                    double ViscoLocalRotationalMoment[3]) {}  //ComputeParticleRotationalMoments
+                                                    double ViscoLocalRotationalMoment[3],
+                                                    double equiv_poisson,
+                                                    double indentation) {}  //ComputeParticleRotationalMoments
 
 } /* namespace Kratos.*/
