@@ -195,9 +195,7 @@ class Procedures(object):
         self.rotation_OPTION               = Var_Translator(self.DEM_parameters.RotationOption)
         self.bounding_box_OPTION           = Var_Translator(self.DEM_parameters.BoundingBoxOption)
         self.automatic_bounding_box_OPTION = Var_Translator(self.DEM_parameters.AutomaticBoundingBoxOption)
-        self.contact_mesh_OPTION           = 0
-        if (hasattr(DEM_parameters, "contact_mesh_OPTION")):
-            self.contact_mesh_OPTION           = Var_Translator(self.DEM_parameters.ContactMeshOption)
+        self.contact_mesh_OPTION           = Var_Translator(self.DEM_parameters.ContactMeshOption)
         self.arlequin                      = 0
         if (hasattr(DEM_parameters, "arlequin")):
             self.arlequin                    = Var_Translator(self.DEM_parameters.arlequin)
@@ -362,7 +360,7 @@ class Procedures(object):
             var = total_sum_squared / i - mean ** 2.0
         std_dev = 0.0
 
-        if(abs(var) > 1e-9):
+        if (abs(var) > 1e-9):
             std_dev = var ** 0.5
 
         if (i>0.0):
@@ -383,8 +381,8 @@ class Procedures(object):
 
         if (self.contact_mesh_OPTION):
             for bar in contact_model_part.Elements:
-                Total_Contacts += 1.0
-            Coordination_Number = 1.0 * (Total_Contacts * 2.0) / (Total_Particles)
+                Total_Contacts += 1
+            Coordination_Number = 2.0 * Total_Contacts / Total_Particles
 
         Model_Data.write("Total Number of Particles: " + str(Total_Particles) + '\n')
         Model_Data.write("Total Number of Contacts: " + str(Total_Contacts) + '\n')
@@ -709,9 +707,9 @@ class DEMFEMProcedures(object):
     def PrintPoisson(self, model_part, DEM_parameters, filename, time):
         
         if (DEM_parameters.Dimension == 3):
-            poisson = PostUtilities().ComputePoisson(model_part)
+            poisson, dummy, _ = PostUtilities().ComputePoisson(model_part)
         else:
-            poisson = PostUtilities().ComputePoisson2D(model_part)
+            poisson, dummy, _ = PostUtilities().ComputePoisson2D(model_part)
             
         file_open = open(filename, 'a')
         data = str(time) + "  " + str(poisson) + "\n"
@@ -927,12 +925,15 @@ class Report(object):
         if (incremental_time > self.control_time):
 
             percentage = 100 * (float(step) / self.total_steps_expected)
+            elapsed_time = timer.time() - self.initial_re_time
 
-            report = report + "Real time calculation: " + str(timer.time() - self.initial_re_time) + "\n"\
-                + "Simulation time: " + str(time) + "\n"\
-                + "%s %.5f %s"%("Percentage Completed: ", percentage,"%") + "\n"\
-                + "Time Step: " + str(step) + "\n"
-
+            report = report + "Real time calculation: " + str(elapsed_time) + " seconds" + "\n"\
+                            + "In minutes: " + str(elapsed_time / 60.0) + " minutes" + "\n"\
+                            + "In hours: " + str(elapsed_time / 3600.0) + " hours" + "\n"\
+                            + "Simulation time: " + str(time) + " seconds" + "\n"\
+                            + "%s %.5f %s"%("Percentage Completed: ", percentage,"%") + "\n"\
+                            + "Computed time steps: " + str(step) + " out of " + str(self.total_steps_expected) + "\n"
+            
             self.prev_time  = (timer.time() - self.initial_re_time)
 
         if ((timer.time() - self.initial_re_time > 60) and self.first_print == True and step != 0):
@@ -1083,7 +1084,8 @@ class DEMIo(object):
         self.PushPrintVar(self.PostAppliedForces,       EXTERNAL_APPLIED_FORCE,  self.spheres_and_clusters_variables)
         self.PushPrintVar(self.PostAppliedForces,       EXTERNAL_APPLIED_MOMENT, self.spheres_and_clusters_variables)
         self.PushPrintVar(self.PostRigidElementForces,  RIGID_ELEMENT_FORCE,     self.spheres_and_clusters_variables)
-        if (Var_Translator(self.DEM_parameters.RotationOption)):  # xapuza
+        #if (Var_Translator(self.DEM_parameters.RotationOption)):  # xapuza
+        if 1:
             self.PushPrintVar(self.PostAngularVelocity, ANGULAR_VELOCITY,        self.spheres_and_clusters_variables)
             self.PushPrintVar(self.PostParticleMoment,  PARTICLE_MOMENT,         self.spheres_and_clusters_variables)
             
@@ -1096,8 +1098,8 @@ class DEMIo(object):
         self.PushPrintVar(self.PostRadius,           RADIUS,                       self.spheres_variables)
         self.PushPrintVar(self.PostExportId,         EXPORT_ID,                    self.spheres_variables)
         self.PushPrintVar(self.PostSkinSphere,       SKIN_SPHERE,                  self.spheres_variables)
-        #self.PushPrintVar(                        1, DELTA_DISPLACEMENT,           self.spheres_variables)  # Debugging
-        #self.PushPrintVar(                        1, PARTICLE_ROTATION_ANGLE,      self.spheres_variables)  # Debugging
+        self.PushPrintVar(                        1, DELTA_DISPLACEMENT,           self.spheres_variables)  # Debugging
+        self.PushPrintVar(                        1, PARTICLE_ROTATION_ANGLE,      self.spheres_variables)  # Debugging
         self.PushPrintVar(self.PostTemperature,      TEMPERATURE,                  self.spheres_variables)
         self.PushPrintVar(self.PostHeatFlux,         HEATFLUX,                     self.spheres_variables)
 
@@ -1117,6 +1119,8 @@ class DEMIo(object):
                 self.PushPrintVar(1, DEM_STRESS_ZX,         self.spheres_variables)
                 self.PushPrintVar(1, DEM_STRESS_ZY,         self.spheres_variables)
                 self.PushPrintVar(1, DEM_STRESS_ZZ,         self.spheres_variables)
+                self.PushPrintVar(1, FORCE_REACTION,        self.spheres_variables)
+                self.PushPrintVar(1, MOMENT_REACTION,       self.spheres_variables)
                 if Var_Translator(self.DEM_parameters.PostPoissonRatio):
                     self.PushPrintVar(self.DEM_parameters.PostPoissonRatio, POISSON_VALUE,         self.spheres_variables)
 
