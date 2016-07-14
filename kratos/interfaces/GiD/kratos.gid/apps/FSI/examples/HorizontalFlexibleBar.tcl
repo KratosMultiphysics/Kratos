@@ -116,6 +116,9 @@ proc FSI::examples::DrawHorizontalFlexibleBarGeometry {args} {
 proc FSI::examples::TreeAssignationHorizontalFlexibleBar {args} {
     set nd $::Model::SpatialDimension
     # Fluid Parts
+    
+    set condtype line
+    if {$nd eq "3D"} { set condtype surface }
     set fluidParts {container[@n='FSI']/container[@n='Fluid']/condition[@n='Parts']}
     gid_groups_conds::addF $fluidParts group {n Fluid}
     set fluidGroup "$fluidParts/group\[@n='Fluid'\]"
@@ -141,7 +144,7 @@ proc FSI::examples::TreeAssignationHorizontalFlexibleBar {args} {
         
     # Fluid Outlet
     set fluidOutlet "$fluidConditions/condition\[@n='Outlet$nd'\]"
-    gid_groups_conds::addF $fluidOutlet group {n Outlet}
+    gid_groups_conds::addF $fluidOutlet group "n Outlet ov $condtype"
     gid_groups_conds::addF -resolve_parametric 1 "$fluidOutlet/group\[@n='Outlet'\]" value {n value pn Value unit_magnitude P help {} state {} v 0.0 units Pa}
     
     # Fluid Conditions

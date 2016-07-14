@@ -113,6 +113,9 @@ proc FSI::examples::DrawMokChannelFlexibleWallGeometry {args} {
 
 proc FSI::examples::TreeAssignationMokChannelFlexibleWall {args} {
     set nd $::Model::SpatialDimension
+    
+    set condtype line
+    if {$::Model::SpatialDimension eq "3D"} { set condtype surface }
     # Fluid Parts
     set fluidParts {container[@n='FSI']/container[@n='Fluid']/condition[@n='Parts']}
     gid_groups_conds::addF $fluidParts group {n Fluid}
@@ -130,7 +133,7 @@ proc FSI::examples::TreeAssignationMokChannelFlexibleWall {args} {
     set fluidInlet "$fluidConditions/condition\[@n='Inlet$nd'\]"
     
     # Fluid Inlet
-    gid_groups_conds::addF $fluidInlet group {n Inlet}
+    gid_groups_conds::addF $fluidInlet group "n Inlet ov $condtype"
     set fluidInletGroup "$fluidInlet/group\[@n='Inlet'\]"
     gid_groups_conds::addF -resolve_parametric 1 $fluidInletGroup value {n factor pn Modulus unit_magnitude Velocity help {} state {} v 0.6067 units m/s}
     gid_groups_conds::addF $fluidInletGroup value "n directionX wn {Inlet$nd _X} pn {Direction X} help {} state {} v 1.0"
@@ -139,13 +142,13 @@ proc FSI::examples::TreeAssignationMokChannelFlexibleWall {args} {
         
     # Fluid Outlet
     set fluidOutlet "$fluidConditions/condition\[@n='Outlet$nd'\]"
-    gid_groups_conds::addF $fluidOutlet group {n Outlet}
+    gid_groups_conds::addF $fluidOutlet group "n Outlet ov $condtype"
     gid_groups_conds::addF -resolve_parametric 1 "$fluidOutlet/group\[@n='Outlet'\]" value {n value pn Value unit_magnitude P help {} state {} v 0.0 units Pa}
     
     # Fluid Conditions
-    gid_groups_conds::addF "$fluidConditions/condition\[@n='NoSlip$nd'\]" group {n NoSlip}
-    gid_groups_conds::addF "$fluidConditions/condition\[@n='Slip$nd'\]" group {n Slip}
-    gid_groups_conds::addF "$fluidConditions/condition\[@n='FluidNoSlipInterface$nd'\]" group {n FluidInterface}
+    gid_groups_conds::addF "$fluidConditions/condition\[@n='NoSlip$nd'\]" group "n NoSlip ov $condtype"
+    gid_groups_conds::addF "$fluidConditions/condition\[@n='Slip$nd'\]" group "n Slip ov $condtype"
+    gid_groups_conds::addF "$fluidConditions/condition\[@n='FluidNoSlipInterface$nd'\]" group "n FluidInterface ov $condtype"
     
     # Displacement 3D
     if {$nd eq "3D"} {
