@@ -32,7 +32,7 @@ typedef array_1d<double,3> Vector3;
 
 struct contact_container 
 {
-    Condition*                         condition;
+    Condition::Pointer                 condition;
     std::vector<double>  local_coordinates_slave;
     std::vector<bool>         active_nodes_slave; 
   
@@ -40,7 +40,7 @@ struct contact_container
     
     void clear()
     {
-        delete condition;
+//         condition = NULL;
         local_coordinates_slave.clear();
         active_nodes_slave.clear();
     }
