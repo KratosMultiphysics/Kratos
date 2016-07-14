@@ -22,7 +22,6 @@
 
 //Application includes
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_strategies/builders_and_solvers/residual_based_builder_and_solver.hpp"
 
 //Utilities
 
@@ -44,9 +43,6 @@ namespace Kratos
 
       typedef Scheme< SparseSpaceType, LocalSpaceType >            SchemeType;
       typedef SchemeType::Pointer                           SchemePointerType;
-
-      typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType >                 BuilderAndSolverType;
-      typedef BuilderAndSolverType::Pointer        BuilderAndSolverPointerType;
 
     }
 
