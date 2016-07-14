@@ -33,6 +33,10 @@
 #include "linear_solvers/linear_solver.h"
 
 //schemes
+#include "custom_strategies/schemes/residual_based_static_scheme.hpp"
+#include "custom_strategies/schemes/residual_based_newmark_scheme.hpp"
+#include "custom_strategies/schemes/residual_based_bossak_scheme.hpp"
+#include "custom_strategies/schemes/residual_based_contact_bossak_scheme.hpp"
 #include "custom_strategies/schemes/residual_based_U_wP_static_scheme.hpp"
 
 namespace Kratos
@@ -54,13 +58,15 @@ namespace Kratos
       typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
       typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
 
-      //custom types
+      //custom strategy types
       typedef ResidualBasedUwPStaticScheme< SparseSpaceType, LocalSpaceType > ResidualBasedUwPStaticSchemeType;
       typedef ResidualBasedNewtonRaphsonLineSearchImplexStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonLineSearchImplexStrategyType;
 
-      //********************************************************************
-      //*************************STRATEGY CLASSES***************************
-      //********************************************************************
+      //custom scheme types
+      typedef ResidualBasedStaticScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedStaticSchemeType;
+      typedef ResidualBasedNewmarkScheme< SparseSpaceType, LocalSpaceType > ResidualBasedNewmarkSchemeType;
+      typedef ResidualBasedBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakSchemeType;
+      typedef ResidualBasedContactBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedContactBossakSchemeType;    
 
     
 
@@ -73,48 +79,79 @@ namespace Kratos
       //********************************************************************
       //*************************SHCHEME CLASSES****************************
       //********************************************************************
+
+      // Static Scheme Type
+      class_< ResidualBasedStaticSchemeType,
+	      bases< BaseSchemeType >, boost::noncopyable >
+	(
+	 "ResidualBasedStaticScheme", init< >() )
+	
+	.def("Initialize", &ResidualBasedStaticScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+	;
+      
+      // Residual Based Newmark Scheme Type
+      class_< ResidualBasedNewmarkSchemeType,
+	      bases< BaseSchemeType >, boost::noncopyable >
+	(
+	 "ResidualBasedNewmarkScheme", init< double >() )
+	
+	.def("Initialize", &ResidualBasedNewmarkScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+	;
+      
+      // Residual Based Bossak Scheme Type
+      class_< ResidualBasedBossakSchemeType,
+	      bases< BaseSchemeType >,  boost::noncopyable >
+	(
+	 "ResidualBasedBossakScheme", init< double , double >() )
+	
+	.def("Initialize", &ResidualBasedBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+	;
+      
+
+      // Residual Based Bossak Scheme Type
+      class_< ResidualBasedContactBossakSchemeType,
+	      bases< BaseSchemeType >,  boost::noncopyable >
+	(
+	 "ResidualBasedContactBossakScheme", init< double , double >() )
+	
+	.def("Initialize", &ResidualBasedContactBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+	;
+      
       // Static Scheme Type
       class_< ResidualBasedUwPStaticSchemeType,
-        bases< BaseSchemeType >, boost::noncopyable >
-              (
-             "ResidualBasedUwPStaticScheme", init< >() )
+	      bases< BaseSchemeType >, boost::noncopyable >
+	(
+	 "ResidualBasedUwPStaticScheme", init< >() )
         
-              .def("Initialize", &ResidualBasedUwPStaticScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-              ;
-
-
-
-
+	.def("Initialize", &ResidualBasedUwPStaticScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+	;
+      
+      
       //********************************************************************
       //*******************CONVERGENCE CRITERIA CLASSES*********************
       //********************************************************************
-
-
-    //********************************************************************
-    //*************************STRATEGY CLASSES***************************
-    //********************************************************************
-
-    // Residual Based Newton-Raphson Line Search Strategy
-    class_< ResidualBasedNewtonRaphsonLineSearchImplexStrategyType, 
-      bases< BaseSolvingStrategyType >, boost::noncopyable >
-      (
-       "ResidualBasedNewtonRaphsonLineSearchImplexStrategy",
-       init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaBaseType::Pointer, int, bool, bool, bool>())
       
-      .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaBaseType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
-      .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::SetMaxIterationNumber)
-      .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetMaxIterationNumber)
-      .def("SetInitializePerformedFlag", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::SetInitializePerformedFlag)
-      .def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetInitializePerformedFlag)
-      .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::SetKeepSystemConstantDuringIterations)
-      .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetKeepSystemConstantDuringIterations)
-      ;
-     
-
-
-
- 
-
+      
+      //********************************************************************
+      //*************************STRATEGY CLASSES***************************
+      //********************************************************************
+      
+      // Residual Based Newton-Raphson Line Search Strategy
+      class_< ResidualBasedNewtonRaphsonLineSearchImplexStrategyType, 
+	      bases< BaseSolvingStrategyType >, boost::noncopyable >
+	(
+	 "ResidualBasedNewtonRaphsonLineSearchImplexStrategy",
+	 init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaBaseType::Pointer, int, bool, bool, bool>())
+	
+	.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaBaseType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
+	.def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::SetMaxIterationNumber)
+	.def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetMaxIterationNumber)
+	.def("SetInitializePerformedFlag", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::SetInitializePerformedFlag)
+	.def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetInitializePerformedFlag)
+	.def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::SetKeepSystemConstantDuringIterations)
+	.def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetKeepSystemConstantDuringIterations)
+	;
+                             
     }
 
   }  // namespace Python.

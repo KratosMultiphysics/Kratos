@@ -273,11 +273,7 @@ class ImplicitMechanicalSolver:
                 mechanical_scheme = KratosSolid.ComponentWiseBossakScheme(self.settings["damp_factor_m"].GetDouble(), 
                                                                           self.settings["dynamic_factor"].GetDouble())
             else:
-                if(compute_contact_forces):
-                    mechanical_scheme = KratosSolid.ResidualBasedContactBossakScheme(self.settings["damp_factor_m"].GetDouble(),
-                                                                                     self.settings["dynamic_factor"].GetDouble())
-                else:
-                    mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(self.settings["damp_factor_m"].GetDouble())
+                mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(self.settings["damp_factor_m"].GetDouble())
                                 
         return mechanical_scheme
     

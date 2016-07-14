@@ -12,6 +12,8 @@ def Run():
     Text = "===== Solid Mechanics Application =====\n"
 
     print("---start solid mechanics application tests---")
+    print("---they must fail: ")
+    print("   ProjectParameters.json update is needed---")
 
     #
     # SOLID 2D elements tests

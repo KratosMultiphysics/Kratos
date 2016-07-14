@@ -131,15 +131,9 @@ class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMec
             self.settings["dynamic_factor"].SetDouble(0.0) # Quasi-static scheme
             
             if component_wise:
-                mechanical_scheme = KratosSolid.ComponentWiseBossakScheme(self.settings["damp_factor_m"].GetDouble(), 
-                                                                          self.settings["dynamic_factor"].GetDouble())
+                mechanical_scheme = KratosSolid.ComponentWiseBossakScheme(self.settings["damp_factor_m"].GetDouble()) #static scheme needed for component_wise
             else:
-                if compute_contact_forces:
-                    raise Exception("TODO: change for one that works with contact change")
-                    #mechanical_scheme = ResidualBasedContactBossakScheme(self.settings["damp_factor_m"].GetDouble(), 
-                                                                         #self.settings["dynamic_factor"].GetDouble())
-                else:
-                    mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+                mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
                                 
         return mechanical_scheme
         
