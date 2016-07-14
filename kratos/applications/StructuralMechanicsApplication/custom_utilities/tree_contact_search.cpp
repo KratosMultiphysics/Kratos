@@ -416,14 +416,18 @@ void TreeContactSearch::CreateMortarConditions(
             for(unsigned int i = 0; i < NumberPointsFound; i++)
             {   
                 Condition::Pointer pCondDestination = PointsFound[i]->GetCondition();
-                std::vector<contact_container> *& ConditionPointersDestination = pCondDestination->GetValue(CONTACT_CONTAINERS);
-                int & DestCondIntegrationOrder = pCondDestination->GetValue(INTEGRATION_ORDER_CONTACT);
-                DestCondIntegrationOrder = integration_order;
                 
-                // Set the corresponding flags
-                pCondDestination->Set(ACTIVE, true); 
+                if (pCondDestination != pCondOrigin) // Avoiding "auto self-contact"
+                {
+                    std::vector<contact_container> *& ConditionPointersDestination = pCondDestination->GetValue(CONTACT_CONTAINERS);
+                    int & DestCondIntegrationOrder = pCondDestination->GetValue(INTEGRATION_ORDER_CONTACT);
+                    DestCondIntegrationOrder = integration_order;
+                    
+                    // Set the corresponding flags
+                    pCondDestination->Set(ACTIVE, true); 
 
-                MortarContainerFiller(pCondOrigin->GetGeometry().Center(), PointsFound[i], pCondDestination, pCondOrigin, ConditionPointersDestination, IntegrationOrder, false);
+                    MortarContainerFiller(pCondOrigin->GetGeometry().Center(), PointsFound[i], pCondDestination, pCondOrigin, ConditionPointersDestination, IntegrationOrder, false);
+                }
             }
         }
     }
