@@ -86,7 +86,6 @@ class Kratos_Execute_Test:
             for process in self.list_of_processes:
                 process.ExecuteInitializeSolutionStep()
 
-            self.solver.Clear()
             self.solver.Solve()
 
             for process in self.list_of_processes:

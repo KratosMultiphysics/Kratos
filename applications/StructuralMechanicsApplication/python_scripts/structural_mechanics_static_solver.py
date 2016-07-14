@@ -79,6 +79,7 @@ class StaticStructuralSolver(solid_mechanics_static_solver.StaticMechanicalSolve
             "compute_contact_forces": false,
             "compute_mortar_contact": false,
             "block_builder": false,
+            "clear_storage": false,
             "component_wise": false,
             "move_mesh_flag": true,
             "convergence_criterion": "Residual_criteria",
@@ -200,6 +201,9 @@ class StaticStructuralSolver(solid_mechanics_static_solver.StaticMechanicalSolve
     
     def Solve(self):
         
+        if self.settings["clear_storage"].GetBool():
+            self.Clear()
+            
         self.mechanical_solver.Solve()
         
         if self.settings["analysis_type"].GetString() == "Arc-Length":
