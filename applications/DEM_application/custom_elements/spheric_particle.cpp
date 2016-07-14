@@ -11,6 +11,8 @@
 #include <iostream>
 #include <cmath>
 
+#include <fstream>
+
 // External includes
 
 // Project includes
@@ -785,11 +787,12 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         }
         
         array_1d<double, 3> other_ball_to_ball_forces(3,0.0);
+        
         ComputeOtherBallToBallForces(other_ball_to_ball_forces);
 
         // Transforming to global forces and adding up
         AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce,
-                              GlobalElasticContactForce, ViscoDampingLocalContactForce, cohesive_force, other_ball_to_ball_forces, r_elastic_force, r_contact_force, i);
+                              GlobalElasticContactForce, ViscoDampingLocalContactForce, cohesive_force, other_ball_to_ball_forces, r_elastic_force, r_contact_force, i, r_process_info);
 
         // ROTATION FORCES
         if (this->Is(DEMFlags::HAS_ROTATION) && !multi_stage_RHS) {
@@ -802,7 +805,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         }
 
         if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
-                AddNeighbourContributionToStressTensor(GlobalElasticContactForce, LocalCoordSystem[2], distance, radius_sum);
+                AddNeighbourContributionToStressTensor(GlobalElasticContactForce, LocalCoordSystem[2], distance, radius_sum, this);
         }
 
     }// for each neighbor
@@ -953,9 +956,8 @@ void SphericParticle::ComputeConditionRelativeData(int rigid_neighbour_index,
                                             array_1d<double, 4>& Weight,
                                             array_1d<double, 3>& wall_delta_disp_at_contact_point,
                                             array_1d<double, 3>& wall_velocity_at_contact_point,
-                                            int& ContactType
-                                            )
-  {
+                                            int& ContactType)
+{
     size_t FE_size = wall->GetGeometry().size();
     std::vector< array_1d <double,3> >Coord;
     Coord.resize(FE_size, array_1d<double,3>(3,0.0) );
@@ -980,7 +982,7 @@ void SphericParticle::ComputeConditionRelativeData(int rigid_neighbour_index,
             if (points == 2) {inode2 = inode;}
         }
 
-        if (fabs(total_weight - 1.0) < 1.0e-12){
+        if (fabs(total_weight - 1.0) < 1.0e-12) {
             break;
         }
     }
@@ -994,20 +996,20 @@ void SphericParticle::ComputeConditionRelativeData(int rigid_neighbour_index,
 
     if (points == 3 || points == 4)
     {
-      unsigned int dummy_current_edge_index;
-      contact_exists = GeometryFunctions::FacetCheck(Coord, node_coor, radius, LocalCoordSystem, DistPToB, TempWeight, dummy_current_edge_index);
-      ContactType = 1;
-      Weight[0]=TempWeight[0];
-      Weight[1]=TempWeight[1];
-      Weight[2]=TempWeight[2];
-      if(points == 4)
-      {
-        Weight[3] = TempWeight[3];
-      }
-      else
-      {
-       Weight[3] = 0.0;
-      }
+        unsigned int dummy_current_edge_index;
+        contact_exists = GeometryFunctions::FacetCheck(Coord, node_coor, radius, LocalCoordSystem, DistPToB, TempWeight, dummy_current_edge_index);
+        ContactType = 1;
+        Weight[0]=TempWeight[0];
+        Weight[1]=TempWeight[1];
+        Weight[2]=TempWeight[2];
+        if (points == 4)
+        {
+            Weight[3] = TempWeight[3];
+        }
+        else
+        {
+            Weight[3] = 0.0;
+        }
     }
 
     else if (points == 2) {
@@ -1029,12 +1031,12 @@ void SphericParticle::ComputeConditionRelativeData(int rigid_neighbour_index,
 
     if (contact_exists == false) {ContactType = -1;}
 
-    for (std::size_t inode = 0; inode < FE_size; inode++){
-        noalias(wall_velocity_at_contact_point)   += wall->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY) * Weight[inode];
+    for (std::size_t inode = 0; inode < FE_size; inode++) {
+        noalias(wall_velocity_at_contact_point) += wall->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY) * Weight[inode];
 
-        array_1d<double, 3>  wall_delta_displacement  = ZeroVector(3);
+        array_1d<double, 3>  wall_delta_displacement = ZeroVector(3);
         wall->GetDeltaDisplacement(wall_delta_displacement, inode);
-        noalias(wall_delta_disp_at_contact_point) +=  wall_delta_displacement* Weight[inode];
+        noalias(wall_delta_disp_at_contact_point) += wall_delta_displacement* Weight[inode];
 
     }
 }//ComputeConditionRelativeData
@@ -1162,7 +1164,8 @@ void SphericParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
 void SphericParticle::AddNeighbourContributionToStressTensor(const double Force[3],
                                                              const double other_to_me_vect[3],
                                                              const double distance,
-                                                             const double radius_sum) {
+                                                             const double radius_sum,
+                                                             SphericParticle* element) {
     KRATOS_TRY
 
     double gap = distance - radius_sum;
@@ -1211,24 +1214,43 @@ void SphericParticle::AddWallContributionToStressTensor(const double Force[3],
     KRATOS_CATCH("")
 }
 
+void SphericParticle::CorrectRepresentativeVolume(double& rRepresentative_Volume, bool& is_smaller_than_sphere) {
+    
+    KRATOS_TRY
+    
+    const double sphere_volume = CalculateVolume();
+
+    if ((rRepresentative_Volume <= sphere_volume)) { //In case it gets 0.0 (discontinuum). Also sometimes the error can be too big. This puts some bound to the error for continuum.
+        rRepresentative_Volume = sphere_volume;
+        is_smaller_than_sphere = true;
+    }
+
+    KRATOS_CATCH("")
+}
+
 void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
+    
     KRATOS_TRY
     
     ComputeReactions();
-    
+
     double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
-    const double sphere_volume = CalculateVolume();
-    if ((rRepresentative_Volume <= sphere_volume)) { //In case it gets 0.0 (discontinuum). Also sometimes the error can be too big. This puts some bound to the error for continuum.
-        rRepresentative_Volume = sphere_volume;
-    }
+    bool is_smaller_than_sphere = false;
+    
+    CorrectRepresentativeVolume(rRepresentative_Volume, is_smaller_than_sphere);
+    
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
+        
         //Divide Stress Tensor by the total volume:
         const array_1d<double, 3>& reaction_force=this->GetGeometry()[0].FastGetSolutionStepValue(FORCE_REACTION);
+
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 (*mStressTensor)(i,j) /= rRepresentative_Volume;                
             }
-            (*mStressTensor)(i,i) += GeometryFunctions::sign( (*mStressTensor)(i,i) ) * GetRadius() * fabs(reaction_force[i]);     
+
+            (*mStressTensor)(i,i) += GeometryFunctions::sign( (*mStressTensor)(i,i) ) * GetRadius() * fabs(reaction_force[i]) / rRepresentative_Volume;
+
         }        
         if( this->Is(DEMFlags::HAS_ROTATION) ) {
             const array_1d<double, 3>& reaction_moment=this->GetGeometry()[0].FastGetSolutionStepValue(MOMENT_REACTION);
@@ -1236,7 +1258,7 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
             for (int i = 0; i < 3; i++) {
                 for (int j = 0; j < 3; j++) {
                     if(i!=j){
-                        (*mStressTensor)(i,j) += GeometryFunctions::sign( (*mStressTensor)(i,j) ) * fabs_reaction_moment_modulus;
+                        (*mStressTensor)(i,j) += GeometryFunctions::sign( (*mStressTensor)(i,j) ) * fabs_reaction_moment_modulus / rRepresentative_Volume;
                     }
                 }
             }
@@ -1311,14 +1333,15 @@ void SphericParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
                                             array_1d<double, 3>& other_ball_to_ball_forces,
                                             array_1d<double, 3>& r_elastic_force,
                                             array_1d<double, 3>& r_contact_force,
-                                            const unsigned int i_neighbour_count)
+                                            const unsigned int i_neighbour_count,
+                                            ProcessInfo& r_process_info)
 {
     for (unsigned int index = 0; index < 3; index++) {
-        LocalContactForce[index] = LocalElasticContactForce[index] + ViscoDampingLocalContactForce[index];
+        LocalContactForce[index] = LocalElasticContactForce[index] + ViscoDampingLocalContactForce[index] + other_ball_to_ball_forces[index];
     }
     LocalContactForce[2] -= cohesive_force;
     
-    DEM_ADD_SECOND_TO_FIRST(LocalContactForce, other_ball_to_ball_forces);
+    DEM_ADD_SECOND_TO_FIRST(LocalElasticContactForce, other_ball_to_ball_forces);
 
     GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
     GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
@@ -1426,7 +1449,7 @@ double SphericParticle::CalculateLocalMaxPeriod(const bool has_mpi, const Proces
 }
 
 
-void SphericParticle::ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces){}
+void SphericParticle::ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces) {}
 
 
 double SphericParticle::GetInitialDeltaWithFEM(int index) //only available in continuum_particle
@@ -1557,7 +1580,7 @@ void SphericParticle::AdditionalCalculate(const Variable<double>& rVariable, dou
 int    SphericParticle::GetClusterId()                                                   { return mClusterId;      }
 void   SphericParticle::SetClusterId(int givenId)                                        { mClusterId = givenId;   }
 double SphericParticle::GetRadius()                                                      { return mRadius;         }
-double SphericParticle::CalculateVolume()                                                { return 4 * KRATOS_M_PI_3 * mRadius * mRadius * mRadius;     }
+double SphericParticle::CalculateVolume()                                                { return 4.0 * KRATOS_M_PI_3 * mRadius * mRadius * mRadius;     }
 void   SphericParticle::SetRadius(double radius)                                         { mRadius = radius;       }
 void   SphericParticle::SetRadius()                                                      { mRadius = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);       }
 double SphericParticle::GetInteractionRadius()                                           { return mRadius;         }

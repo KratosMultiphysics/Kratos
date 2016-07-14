@@ -65,6 +65,7 @@ virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process
 virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info);
 virtual void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& r_process_info );
 virtual void FinalizeSolutionStep(ProcessInfo& r_process_info);
+virtual void CorrectRepresentativeVolume(double& rRepresentative_Volume, bool& is_smaller_than_sphere);
 virtual void ComputeReactions();
 virtual void PrepareForPrinting(ProcessInfo& r_process_info);
 virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
@@ -266,7 +267,8 @@ virtual void AddUpForcesAndProject(double OldCoordSystem[3][3],
                     array_1d<double, 3>& other_ball_to_ball_forces,
                     array_1d<double, 3>& rElasticForce,
                     array_1d<double, 3>& rContactForce,
-                    const unsigned int i_neighbour_count) final;
+                    const unsigned int i_neighbour_count,
+                    ProcessInfo& r_process_info) final;
 
 virtual void AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
                     double LocalContactForce[3],
@@ -292,7 +294,8 @@ virtual void AdditionalCalculate(const Variable<double>& rVariable, double& Outp
 virtual void AddNeighbourContributionToStressTensor(const double GlobalElasticContactForce[3],
                                                     const double other_to_me_vect[3],
                                                     const double distance,
-                                                    const double radius_sum);
+                                                    const double radius_sum,
+                                                    SphericParticle* element);
 
 virtual void AddWallContributionToStressTensor(const double GlobalElasticContactForce[3],
                                                 const double other_to_me_vect[3],
