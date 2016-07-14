@@ -195,17 +195,17 @@ class MeshingDomain:
 
         #remove nodes
         remove_nodes = self.settings["refining_parameters"]["remove_nodes"]
-        removing_options.Set(KratosPfemBase.ModelerUtilities.REFINE_ELEMENTS, remove_nodes["apply_removal"].GetBool())
-        removing_options.Set(KratosPfemBase.ModelerUtilities.REFINE_ELEMENTS_ON_DISTANCE, remove_nodes["on_distance"].GetBool())
-        removing_options.Set(KratosPfemBase.ModelerUtilities.REFINE_ELEMENTS_ON_ERROR, remove_nodes["on_error"].GetBool())  
-        removing_options.Set(KratosPfemBase.ModelerUtilities.REFINE_ELEMENTS_ON_THRESHOLD, remove_nodes["on_threshold"].GetBool())  
+        removing_options.Set(KratosPfemBase.ModelerUtilities.REMOVE_NODES, remove_nodes["apply_removal"].GetBool())
+        removing_options.Set(KratosPfemBase.ModelerUtilities.REMOVE_NODES_ON_DISTANCE, remove_nodes["on_distance"].GetBool())
+        removing_options.Set(KratosPfemBase.ModelerUtilities.REMOVE_NODES_ON_ERROR, remove_nodes["on_error"].GetBool())  
+        removing_options.Set(KratosPfemBase.ModelerUtilities.REMOVE_NODES_ON_THRESHOLD, remove_nodes["on_threshold"].GetBool())  
 
         #remove boundary
         remove_boundary = self.settings["refining_parameters"]["remove_boundary"]
-        removing_options.Set(KratosPfemBase.ModelerUtilities.REFINE_BOUNDARY, remove_boundary["apply_removal"].GetBool())
-        removing_options.Set(KratosPfemBase.ModelerUtilities.REFINE_BOUNDARY_ON_DISTANCE, remove_boundary["on_distance"].GetBool())
-        removing_options.Set(KratosPfemBase.ModelerUtilities.REFINE_BOUNDARY_ON_ERROR, remove_boundary["on_error"].GetBool())  
-        removing_options.Set(KratosPfemBase.ModelerUtilities.REFINE_BOUNDARY_ON_THRESHOLD, remove_boundary["on_threshold"].GetBool())  
+        removing_options.Set(KratosPfemBase.ModelerUtilities.REMOVE_BOUNDARY_NODES, remove_boundary["apply_removal"].GetBool())
+        removing_options.Set(KratosPfemBase.ModelerUtilities.REMOVE_BOUNDARY_NODES_ON_DISTANCE, remove_boundary["on_distance"].GetBool())
+        removing_options.Set(KratosPfemBase.ModelerUtilities.REMOVE_BOUNDARY_NODES_ON_ERROR, remove_boundary["on_error"].GetBool())  
+        removing_options.Set(KratosPfemBase.ModelerUtilities.REMOVE_BOUNDARY_NODES_ON_THRESHOLD, remove_boundary["on_threshold"].GetBool())  
 
         refining_options = KratosMultiphysics.Flags()
         refining_options.Set(KratosPfemBase.ModelerUtilities.REFINE, self.settings["meshing_strategy"]["refine"].GetBool())
@@ -216,12 +216,14 @@ class MeshingDomain:
         refine_elements = self.settings["refining_parameters"]["refine_elements"]
         refining_options.Set(KratosPfemBase.ModelerUtilities.REFINE_ELEMENTS, refine_elements["apply_refinement"].GetBool())
         refining_options.Set(KratosPfemBase.ModelerUtilities.REFINE_ELEMENTS_ON_DISTANCE, refine_elements["on_distance"].GetBool())
+        refining_options.Set(KratosPfemBase.ModelerUtilities.REFINE_ELEMENTS_ON_ERROR, refine_elements["on_error"].GetBool())  
         refining_options.Set(KratosPfemBase.ModelerUtilities.REFINE_ELEMENTS_ON_THRESHOLD, refine_elements["on_threshold"].GetBool())  
 
         #refine boundary
         refine_boundary = self.settings["refining_parameters"]["refine_boundary"]
         refining_options.Set(KratosPfemBase.ModelerUtilities.REFINE_BOUNDARY, refine_boundary["apply_refinement"].GetBool())
         refining_options.Set(KratosPfemBase.ModelerUtilities.REFINE_BOUNDARY_ON_DISTANCE, refine_boundary["on_distance"].GetBool())
+        refining_options.Set(KratosPfemBase.ModelerUtilities.REFINE_BOUNDARY_ON_ERROR, refine_boundary["on_error"].GetBool())
         refining_options.Set(KratosPfemBase.ModelerUtilities.REFINE_BOUNDARY_ON_THRESHOLD, refine_boundary["on_threshold"].GetBool())  
         
         self.RefiningParameters.SetRefiningOptions(refining_options)
@@ -249,4 +251,15 @@ class MeshingDomain:
     def ExecuteMeshing(self):
         
         self.MeshingStrategy.GenerateMesh()
+        
+        
+    def Check(self):
+        
+        # set modeler utilities
+        self.modeler_utils = KratosPfemBase.ModelerUtilities()
+
+        # set the domain labels to mesh modeler
+        critical_mesh_size = self.settings["refining_parameters"]["critical_size"].GetDouble()
+        self.modeler_utils.CheckCriticalRadius(self.model_part,critical_mesh_size,self.mesh_id)
+
         

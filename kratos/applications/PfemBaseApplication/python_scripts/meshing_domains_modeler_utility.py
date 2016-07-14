@@ -58,10 +58,14 @@ class ModelerUtility:
             if(restart == False):
                 self.BuildMeshBoundary()
 
-            # search nodal h
-            self.SearchNodalH()
+                # search nodal h
+                # self.SearchNodalH() #now done from main script
             
-            
+                
+            for domain in self.meshing_domains:
+                domain.Check();
+
+
     #
     def SearchNodeNeighbours(self):
 

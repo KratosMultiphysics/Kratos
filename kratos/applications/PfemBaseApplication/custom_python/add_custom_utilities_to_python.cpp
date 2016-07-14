@@ -115,6 +115,7 @@ namespace Kratos
       //***************DOMAIN SET**************//
       class_< ModelerUtilities, boost::noncopyable > ("ModelerUtilities", init<>())
 	.def("SetDomainLabels",&ModelerUtilities::SetDomainLabels)
+	.def("CheckCriticalRadius",&ModelerUtilities::CheckCriticalRadius)
 	.def_readonly("REMESH",&ModelerUtilities::REMESH)
 	.def_readonly("REFINE",&ModelerUtilities::REFINE)
 	.def_readonly("RECONNECT",&ModelerUtilities::RECONNECT)
