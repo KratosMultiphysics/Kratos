@@ -595,13 +595,13 @@ namespace Kratos {
                 KRATOS_THROW_ERROR(std::runtime_error, message, 0);
             }
 
-            bool neigh_is_skin = (bool)r_continuum_ini_neighbour->mSkinSphere;
-            if ((mSkinSphere && neigh_is_skin) || (!mSkinSphere && !neigh_is_skin)) { //both skin or both inner.
+            bool neigh_is_skin = (bool)*(r_continuum_ini_neighbour->mSkinSphere);
+            if ((*mSkinSphere && neigh_is_skin) || (!mSkinSphere && !neigh_is_skin)) { //both skin or both inner.
                 double mean_area =  0.5 * (cont_ini_neigh_area[i] + NeighbourContIniNeighArea[index_of_the_neighbour_that_is_me]);
                 cont_ini_neigh_area[i] = mean_area;
                 NeighbourContIniNeighArea[index_of_the_neighbour_that_is_me] = mean_area;
             }
-            else if (!mSkinSphere && neigh_is_skin) {//we will store both the same only coming from the inner to the skin.
+            else if (!*mSkinSphere && neigh_is_skin) {//we will store both the same only coming from the inner to the skin.
                 NeighbourContIniNeighArea[index_of_the_neighbour_that_is_me] = cont_ini_neigh_area[i];
             }
             else {
