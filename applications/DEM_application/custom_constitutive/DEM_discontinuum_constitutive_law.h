@@ -50,7 +50,9 @@ namespace Kratos {
                 double initial_dist,
                 double equiv_young,
                 double equiv_poisson,
-                double calculation_area);
+                double calculation_area,
+                SphericParticle* element1,
+                SphericParticle* element2);
 
 
         virtual void CalculateForces(const ProcessInfo& r_process_info,
