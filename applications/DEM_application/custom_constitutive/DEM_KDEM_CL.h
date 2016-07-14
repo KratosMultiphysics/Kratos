@@ -28,7 +28,8 @@ namespace Kratos {
         void CalculateContactArea(double radius, double other_radius, double& calculation_area) override;
         double CalculateContactArea(double radius, double other_radius, Vector& v) override;
         void GetContactArea(const double radius, const double other_radius, const Vector& vector_of_initial_areas, const int neighbour_position, double& calculation_area) override;
-        void CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young, double equiv_poisson, double calculation_area) override;
+        void CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
+                                       double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
 
         void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
                 double &equiv_visco_damp_coeff_tangential,
@@ -127,12 +128,15 @@ namespace Kratos {
                                                       double calculation_area,
                                                       double LocalCoordSystem[3][3],
                                                       double ElasticLocalRotationalMoment[3],
-                                                      double ViscoLocalRotationalMoment[3]) override;
+                                                      double ViscoLocalRotationalMoment[3],
+                                                      double equiv_poisson,
+                                                      double indentation) override;
         
         void AddPoissonContribution(const double equiv_poisson, 
                                     double LocalCoordSystem[3][3], 
                                     double& normal_force, 
-                                    double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
+                                    double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1,
+                                    SphericContinuumParticle* element2, const ProcessInfo& r_process_info) override;
 
     private:
 
