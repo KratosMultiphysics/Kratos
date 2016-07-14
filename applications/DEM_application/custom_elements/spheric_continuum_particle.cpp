@@ -158,7 +158,7 @@ namespace Kratos {
         outputfile.close();
 
         if (cont_ini_neighbours_size >= 4) { // more than 3 neighbors
-            if (!*mSkinSphere) {
+            if (!IsSkin()) {
                 AuxiliaryFunctions::CalculateAlphaFactor3D(cont_ini_neighbours_size, external_sphere_area, total_equiv_area, alpha);
                 std::ofstream outputfile("alpha.txt", std::ios_base::out | std::ios_base::app);
                 outputfile << alpha << "\n";
@@ -595,13 +595,13 @@ namespace Kratos {
                 KRATOS_THROW_ERROR(std::runtime_error, message, 0);
             }
 
-            bool neigh_is_skin = (bool)*(r_continuum_ini_neighbour->mSkinSphere);
-            if ((*mSkinSphere && neigh_is_skin) || (!mSkinSphere && !neigh_is_skin)) { //both skin or both inner.
+            bool neigh_is_skin = r_continuum_ini_neighbour->IsSkin();
+            if ((IsSkin() && neigh_is_skin) || (!IsSkin() && !neigh_is_skin)) { //both skin or both inner.
                 double mean_area =  0.5 * (cont_ini_neigh_area[i] + NeighbourContIniNeighArea[index_of_the_neighbour_that_is_me]);
                 cont_ini_neigh_area[i] = mean_area;
                 NeighbourContIniNeighArea[index_of_the_neighbour_that_is_me] = mean_area;
             }
-            else if (!*mSkinSphere && neigh_is_skin) {//we will store both the same only coming from the inner to the skin.
+            else if (!IsSkin() && neigh_is_skin) {//we will store both the same only coming from the inner to the skin.
                 NeighbourContIniNeighArea[index_of_the_neighbour_that_is_me] = cont_ini_neigh_area[i];
             }
             else {
