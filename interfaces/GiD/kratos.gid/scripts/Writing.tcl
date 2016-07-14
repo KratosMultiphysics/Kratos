@@ -829,7 +829,7 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
         }
         foreach {inputName in_obj} $process_parameters {
             set in_type [$in_obj getType]
-            #W "input [$in_obj getName] fix: [$in_obj getFixity]"
+            #W "input [$in_obj getName] fix: [$in_obj getFixity] datatype: [GetDataType [get_domnode_attribute [$group find n $inputName] v] ]"
             if {$in_type eq "vector"} {
             
                 if {[$in_obj getFixity] eq "Imposed"} {
@@ -855,7 +855,7 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
                 set ValZ [expr 0.0]
                 catch {set ValZ [expr [get_domnode_attribute [$group find n ${inputName}Z] v]]}
                 dict set paramDict $inputName [list $ValX $ValY $ValZ]
-            } elseif {$in_type eq "double"} {
+            } elseif {$in_type eq "double" || $in_type eq "integer"} {
                 set value [get_domnode_attribute [$group find n $inputName] v] 
                 if {[$group find n Fix] ne ""} {
                     set is_fixed [expr [get_domnode_attribute [$group find n Fix] v] ? True : False]
