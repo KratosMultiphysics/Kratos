@@ -24,24 +24,24 @@ proc Dam::write::getParametersDict { } {
     dict set projectParametersDict general_data $generalDataDict
     
     ### Solver Data
-    ### Diffusion settings
-    set diffusionSolverSettingsDict [dict create]
-    set variablesDict [dict create] 
-    dict set variablesDict unknown_variable "KratosMultiphysics.TEMPERATURE"
-    dict set variablesDict diffusion_variable "KratosMultiphysics.CONDUCTIVITY"
-    dict set variablesDict specific_heat_variable "KratosMultiphysics.SPECIFIC_HEAT"
-    dict set variablesDict density_variable "KratosMultiphysics.DENSITY"
-    dict set diffusionSolverSettingsDict variables $variablesDict
+    
+    ### Diffusion settings just in case
     set damTypeofProblem [write::getValue DamTypeofProblem]
     if {$damTypeofProblem eq "Thermo-Mechanical"} {
+        set diffusionSolverSettingsDict [dict create]
+        set variablesDict [dict create] 
+        dict set variablesDict unknown_variable "KratosMultiphysics.TEMPERATURE"
+        dict set variablesDict diffusion_variable "KratosMultiphysics.CONDUCTIVITY"
+        dict set variablesDict specific_heat_variable "KratosMultiphysics.SPECIFIC_HEAT"
+        dict set variablesDict density_variable "KratosMultiphysics.DENSITY"
+        dict set diffusionSolverSettingsDict variables $variablesDict
         set thermal_sol_strat [write::getValue DamSolStratTherm]
         dict set diffusionSolverSettingsDict temporal_scheme [write::getValue DamMechanicalSchemeTherm]
         dict set diffusionSolverSettingsDict reference_temperature [write::getValue DamReferenceTemperature]
-    } 
-    
+        
     ### Add section to document
     dict set projectParametersDict diffusion_settings $diffusionSolverSettingsDict
-    
+    }     
        
     ### Mechanical Settings
     set mechanicalSolverSettingsDict [dict create]

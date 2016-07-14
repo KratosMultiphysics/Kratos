@@ -10,8 +10,8 @@
   </Process>
   
    <!---  Uniform tempereature -->
-  <Process n="ImposeScalarValueProcess" pn="Impose vector value by components process" implemented_in_file="impose_scalar_value_process"
-		implemented_in_module="KratosMultiphysics" help="This process fixes the given scalar variable">
+  <Process n="ImposeUniformTemperatureProcess" pn="Impose vector value by components process" implemented_in_file="impose_uniform_temperature_process"
+		implemented_in_module="KratosMultiphysics.DamApplication" help="This process fixes the given scalar variable">
     <inputs>
         <parameter n="value" pn="Value" type="double" v="0.0" fixity="Imposed" />
     </inputs>
@@ -88,6 +88,7 @@
   <Process n="UpliftConditionsProcess" pn="Apply a scalar value over a condition" implemented_in_file="impose_water_loads_condition_process"
 		implemented_in_module="KratosMultiphysics.DamApplication" help="This process sets a scalar variable value over a condition" > 
     <inputs>
+        <parameter n="Modify" pn="Modify" type="bool" v="1"/>
         <parameter n="Gravity_Direction" pn="Gravity Direction" type="combo" v="Y" values="X,Y,Z" />
         <parameter n="Reservoir_Bottom_Coordinate_in_Gravity_Direction" pn="Reservoir Bottom Coordinate in Gravity Direction" type="double" v="0.0"/>
         <parameter n="Uplift_Direction" pn="Uplift Direction" type="combo" v="X" values="X,Y,Z"/>
