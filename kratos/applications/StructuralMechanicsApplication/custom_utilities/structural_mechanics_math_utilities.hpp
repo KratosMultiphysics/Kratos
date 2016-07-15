@@ -579,6 +579,25 @@ public:
         }
     }
 
+    static inline void DetMat3x3(
+            const boost::numeric::ublas::bounded_matrix<double, 3, 3 > & rMatrixOrig,
+            double& det
+            )
+    {
+        /* Compute determinant of the Jacobian */
+        det = rMatrixOrig(0, 0) * rMatrixOrig(1, 1) * rMatrixOrig(2, 2) \
+                + rMatrixOrig(1, 0) * rMatrixOrig(2, 1) * rMatrixOrig(0, 2)\
+                + rMatrixOrig(0, 1) * rMatrixOrig(1, 2) * rMatrixOrig(2, 0)\
+                - rMatrixOrig(2, 0) * rMatrixOrig(1, 1) * rMatrixOrig(0, 2)\
+                - rMatrixOrig(2, 1) * rMatrixOrig(1, 2) * rMatrixOrig(0, 0)\
+                - rMatrixOrig(1, 0) * rMatrixOrig(0, 1) * rMatrixOrig(2,2);
+
+        if (det < 1.0e-18)
+        {
+            KRATOS_THROW_ERROR( std::invalid_argument," Determinant of the matrix is 0 or negative!!!, det = ", det);
+        }
+    }
+
     /***********************************************************************************/
     /***********************************************************************************/
 

@@ -1957,13 +1957,6 @@ void SprismElement3D6N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
     GeneralVariables Variables;
     this->InitializeGeneralVariables(Variables);
 
-    // StressMeasure_PK1             //stress related to reference configuration non-symmetric
-    // StressMeasure_PK2             //stress related to reference configuration
-    // StressMeasure_Kirchhoff       //stress related to current   configuration
-    // StressMeasure_Cauchy          //stress related to current   configuration
-
-    Variables.StressMeasure = ConstitutiveLaw::StressMeasure_PK2;
-
     // Create constitutive law parameters:
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
@@ -2115,6 +2108,9 @@ void SprismElement3D6N::Initialize()
     double& alpha_eas = Element::GetValue(ALPHA_EAS);
     alpha_eas = 0.0;
 
+    /* Initialize EAS parameters*/
+    mEAS.clear();
+
     /* Material initialisation */
     InitializeMaterial();
 
@@ -2144,13 +2140,6 @@ void SprismElement3D6N::CalculateElementalSystem(
     /* Create and initialize element variables: */
     GeneralVariables Variables;
     this->InitializeGeneralVariables(Variables);
-
-    // StressMeasure_PK1             //stress related to reference configuration non-symmetric
-    // StressMeasure_PK2             //stress related to reference configuration
-    // StressMeasure_Kirchhoff       //stress related to current   configuration
-    // StressMeasure_Cauchy          //stress related to current   configuration
-
-    Variables.StressMeasure = ConstitutiveLaw::StressMeasure_PK2;
 
     /* Create constitutive law parameters: */
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -4660,7 +4649,7 @@ void SprismElement3D6N::InitializeSystemMatrices(
     // Resizing as needed the LHS
     WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
     const unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(nodal_neigb);
-    unsigned int MatSize = number_of_nodes * 3;
+    const unsigned int MatSize = number_of_nodes * 3;
 
     if ( rCalculationFlags.Is(SprismElement3D6N::COMPUTE_LHS_MATRIX) ) // Calculation of the matrix is required
     {
@@ -4829,7 +4818,7 @@ void SprismElement3D6N::CalculateDeltaPosition(Matrix & rDeltaPosition)
     for ( unsigned int i = 0; i < 6; i++ )
     {
         const array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-        const array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+        const array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, 1);
 
         for ( unsigned int j = 0; j < 3; j++ )
         {
@@ -4854,14 +4843,11 @@ void SprismElement3D6N::CbartoFbar(
     /* We perform a polar decomposition of the C_bar and F(regular) to obtain F_bar */
 
     /* Decompose C_bar */
-    Matrix EigenValuesMatrix;
-    EigenValuesMatrix.resize(3, 3, false);
-    Matrix EigenVectorsMatrix;
-    EigenVectorsMatrix.resize(3, 3, false);
+    Matrix EigenValuesMatrix  = ZeroMatrix(3, 3);
+    Matrix EigenVectorsMatrix = ZeroMatrix(3, 3);
 
     // Assemble matrix C_bar
-    Matrix C_bar;
-    C_bar.resize(3, 3, false);
+    Matrix C_bar = ZeroMatrix(3, 3);
     StructuralMechanicsMathUtilities::VectorToTensor(rVariables.C, C_bar);
 
     // Decompose matrix C_bar
@@ -4869,14 +4855,14 @@ void SprismElement3D6N::CbartoFbar(
 
     for (unsigned int i = 0; i < 3; i++)
     {
-        EigenValuesMatrix(i, i) = sqrt(EigenValuesMatrix(i, i));
+        EigenValuesMatrix(i, i) = std::sqrt(EigenValuesMatrix(i, i));
     }
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > U_bar;
+    Matrix U_bar = ZeroMatrix(3, 3);
     noalias(U_bar) = prod( EigenValuesMatrix, EigenVectorsMatrix );
 
     /* Decompose F */
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > F;
+    Matrix F = ZeroMatrix(3, 3);
     if ( mELementalFlags.Is(SprismElement3D6N::TOTAL_UPDATED_LAGRANGIAN) == true )
     {
         // Deformation Gradient F [dx_n+1/dx_n]
@@ -4885,35 +4871,35 @@ void SprismElement3D6N::CbartoFbar(
     else
     {
         // Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
-        Matrix InvJ;
+        Matrix InvJ = ZeroMatrix(3, 3);
         MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
         // Deformation Gradient F [dx_n+1/dx_n]
         noalias(F) = prod( rVariables.j[rPointNumber], InvJ );
     }
 
-
-
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > C;
+    Matrix C = ZeroMatrix(3, 3);
     noalias(C) = prod( trans(F), F );
+
+    EigenValuesMatrix  = ZeroMatrix(3, 3);
+    EigenVectorsMatrix = ZeroMatrix(3, 3);
 
     // Decompose matrix C
     StructuralMechanicsMathUtilities::EigenVectors(C, EigenVectorsMatrix, EigenValuesMatrix, 1e-24, 100);
 
     for (unsigned int i = 0; i < 3; i++)
     {
-        EigenValuesMatrix(i, i) = sqrt(EigenValuesMatrix(i, i));
+        EigenValuesMatrix(i, i) = std::sqrt(EigenValuesMatrix(i, i));
     }
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > U;
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > invU;
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > R;
-    noalias(U) = prod( EigenValuesMatrix, EigenVectorsMatrix );
+    Matrix U    = ZeroMatrix(3, 3);
+    Matrix invU = ZeroMatrix(3, 3);
+    Matrix R    = ZeroMatrix(3, 3);
+    noalias(U)  = prod( EigenValuesMatrix, EigenVectorsMatrix );
 
-    StructuralMechanicsMathUtilities::InvMat3x3(U, invU);
+    double aux_det = 0.0;
+    MathUtils<double>::InvertMatrix(U, invU, aux_det);
     noalias(R) = prod( F, invU );
-
-    StructuralMechanicsMathUtilities::InvMat3x3(U_bar, invU);
 
     /* Calculate F_bar */
     noalias(rVariables.F) = prod(R, U_bar);
@@ -4977,6 +4963,11 @@ void SprismElement3D6N::CalculateDeformationMatrix(
 
 void SprismElement3D6N::InitializeGeneralVariables(GeneralVariables& rVariables)
 {
+    // StressMeasure_PK1             //stress related to reference configuration non-symmetric
+    // StressMeasure_PK2             //stress related to reference configuration
+    // StressMeasure_Kirchhoff       //stress related to current   configuration
+    // StressMeasure_Cauchy          //stress related to current   configuration
+
     // StressMeasure
     if ( mELementalFlags.Is(SprismElement3D6N::TOTAL_UPDATED_LAGRANGIAN) == true )
     {
@@ -4994,24 +4985,19 @@ void SprismElement3D6N::InitializeGeneralVariables(GeneralVariables& rVariables)
     rVariables.detJ  = 1.0;
 
     // Vectors
-    rVariables.StrainVector.resize(6, false);
-    rVariables.StressVector.resize(6, false);
-    rVariables.C.resize(6, false);
-    rVariables.N.resize(6, false);
+    rVariables.StrainVector = ZeroVector(6);
+    rVariables.StressVector = ZeroVector(6);
+    rVariables.C = ZeroVector(6);
     rVariables.N = ZeroVector(6);
 
     // Matrices
-    rVariables.F.resize(3, 3, false);
-    rVariables.F0.resize(3, 3, false);
-    rVariables.FT.resize(3, 3, false);
-    rVariables.B.resize(6, 36, false);
     rVariables.F  = IdentityMatrix(3);
     rVariables.F0 = IdentityMatrix(3);
     rVariables.FT = IdentityMatrix(3);
-    rVariables.DN_DX.resize( 6, 3, false);
-    rVariables.DeltaPosition.resize( 6, 3, false);
+    rVariables.B  = ZeroMatrix(6, 36);
+
+    rVariables.DN_DX = ZeroMatrix(6, 3);
     rVariables.DeltaPosition = ZeroMatrix(6, 3);
-    rVariables.ConstitutiveMatrix.resize(6, 6, false);
     rVariables.ConstitutiveMatrix = ZeroMatrix(6, 6);
 
     // Reading shape functions
@@ -5020,8 +5006,8 @@ void SprismElement3D6N::InitializeGeneralVariables(GeneralVariables& rVariables)
     // Jacobians
     rVariables.J.resize(1, false);
     rVariables.j.resize(1, false);
-    rVariables.J[0] = ZeroMatrix(1,1);
-    rVariables.j[0] = ZeroMatrix(1,1);
+    rVariables.J[0] = ZeroMatrix(1, 1);
+    rVariables.j[0] = ZeroMatrix(1, 1);
 
     // Calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
     rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );

@@ -244,35 +244,6 @@ public:
     /***********************************************************************************/
     /***********************************************************************************/
     
-    
-    /**
-     * This function append the IterfacePart to the general model_part, for being computable
-     * @return rOriginPart: The original model part
-     * @param InterfacePart: The interface model part
-     */
-    
-    void AppendInterfacePart(
-            ModelPart& rOriginPart,
-            const ModelPart& InterfacePart
-            )
-    {
-        /* Adding news elements to the model part */
-        for (ModelPart::ConditionsContainerType::const_iterator it = InterfacePart.ConditionsBegin(); it != InterfacePart.ConditionsEnd(); it++)
-        {
-            rOriginPart.Conditions().push_back(*(it.base())); // NOTE: Remove this shit
-        }
-
-        /* Renumber */
-        unsigned int my_index = 1;
-        for (ModelPart::ConditionsContainerType::iterator it = rOriginPart.ConditionsBegin(); it != rOriginPart.ConditionsEnd(); it++)
-        {
-            it->SetId(my_index++);
-        }
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
     /**
      * Generate a new ModelPart containing only the interface. It will contain only linear linear conditions 
      * @param rOriginPart: The original model part

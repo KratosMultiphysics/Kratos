@@ -32,7 +32,7 @@
             "verbosity"   : 0
         },
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto2","Parts_Parts_Auto3"],
-        "processes_sub_model_part_list"      : ["INTERFACE_Auto2","INTERFACE_Auto3","Parts_Parts_Auto2","Parts_Parts_Auto3","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","IMPOSE_DISP_Auto1"]
+        "processes_sub_model_part_list"      : ["Parts_Parts_Auto2","Parts_Parts_Auto3","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","IMPOSE_DISP_Auto1"]
     },
     "constraints_process_list" : [{
         "implemented_in_file"   : "impose_vector_value_by_components_process",
@@ -89,8 +89,6 @@
             "model_part_name"             : "Structure",
             "origin_model_part_name"      : "Parts_Parts_Auto3",
             "destination_model_part_name" : "Parts_Parts_Auto2",
-            "origin_interface_nodes"      : "INTERFACE_Auto3",
-            "destination_interface_nodes" : "INTERFACE_Auto2",
             "contact_type"                : "MortarMethod",
             "search_factor"               : 2.0,
             "allocation_size"             : 1000,
@@ -105,10 +103,11 @@
         "help"                  : "",
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
-            "check_variables" : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "input_file_name" : "contact_test/simple_patch_notmatching_b_test_results.json",
-            "model_part_name"  : "INTERFACE_Auto3",
-            "time_frequency"   : 0.01
+            "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "input_file_name"      : "contact_test/simple_patch_notmatching_b_test_results.json",
+            "model_part_name"      : "Parts_Parts_Auto3",
+            "sub_model_part_name"  : "INTERFACE",
+            "time_frequency"       : 1.00
         }
     }
     ],
@@ -120,10 +119,11 @@
         "help"                  : "",
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
-            "check_variables" : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "input_file_name" : "contact_test/simple_patch_notmatching_b_test_results.json",
-            "model_part_name"  : "INTERFACE_Auto3",
-            "time_frequency"   : 0.01
+            "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "input_file_name"      : "contact_test/simple_patch_notmatching_b_test_results.json",
+            "model_part_name"      : "Parts_Parts_Auto3",
+            "sub_model_part_name"  : "INTERFACE",
+            "time_frequency"       : 1.00
         }
     }
     ],
@@ -134,10 +134,11 @@
         "help"                  : "",
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
-            "output_variables" : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "output_file_name" : "contact_test/simple_patch_notmatching_b_test_results.json",
-            "model_part_name"  : "INTERFACE_Auto3",
-            "time_frequency"   : 0.01
+            "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "output_file_name"     : "contact_test/simple_patch_notmatching_b_test_results.json",
+            "model_part_name"      : "Parts_Parts_Auto3",
+            "sub_model_part_name"  : "INTERFACE",
+            "time_frequency"       : 1.00
         }
     }
     ],

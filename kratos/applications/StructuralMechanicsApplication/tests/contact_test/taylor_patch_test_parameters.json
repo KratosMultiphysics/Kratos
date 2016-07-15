@@ -37,9 +37,7 @@
                                                 "DISPLACEMENT_fixed_support",
                                                 "DISPLACEMENT_rolling_support_y",
                                                 "DISPLACEMENT_rolling_support_x",
-                                                "LineLoad2D_line_load",
-                                                "Contact_foundation_interface",
-                                                "Contact_punch_interface"
+                                                "LineLoad2D_line_load"
                                                 ]
     },
     "constraints_process_list" : [{
@@ -109,8 +107,6 @@
             "model_part_name"             : "Structure",
             "origin_model_part_name"      : "Parts_punch",
             "destination_model_part_name" : "Parts_foundation",
-            "origin_interface_nodes"      : "Contact_punch_interface",
-            "destination_interface_nodes" : "Contact_foundation_interface",
             "contact_type"                : "MortarMethod",
             "search_factor"               : 2.0,
             "allocation_size"             : 1000,
@@ -125,10 +121,11 @@
         "help"                  : "",
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
-            "check_variables" : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "input_file_name" : "contact_test/taylor_patch_test_results.json",
-            "model_part_name"  : "Contact_foundation_interface",
-            "time_frequency"   : 1.0
+            "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "input_file_name"      : "contact_test/taylor_patch_test_results.json",
+            "model_part_name"      : "Parts_foundation",
+            "sub_model_part_name"  : "INTERFACE",
+            "time_frequency"       : 1.0
         }
     }
     ],
@@ -140,10 +137,11 @@
         "help"                  : "",
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
-            "check_variables" : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "input_file_name" : "contact_test/taylor_patch_test_results.json",
-            "model_part_name"  : "Contact_foundation_interface",
-            "time_frequency"   : 1.0
+            "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "input_file_name"      : "contact_test/taylor_patch_test_results.json",
+            "model_part_name"      : "Parts_foundation",
+            "sub_model_part_name"  : "INTERFACE",
+            "time_frequency"       : 1.0
         }
     }
     ],
@@ -154,10 +152,11 @@
         "help"                  : "",
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
-            "output_variables" : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "output_file_name" : "contact_test/taylor_patch_test_results.json",
-            "model_part_name"  : "Contact_foundation_interface",
-            "time_frequency"   : 1.0
+            "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "output_file_name"     : "contact_test/taylor_patch_test_results.json",
+            "model_part_name"      : "Parts_foundation",
+            "sub_model_part_name"  : "INTERFACE",
+            "time_frequency"       : 1.0
         }
     }
     ],
