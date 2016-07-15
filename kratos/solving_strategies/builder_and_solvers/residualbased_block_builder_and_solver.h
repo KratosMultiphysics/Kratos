@@ -519,10 +519,7 @@ public:
 
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
-
-
         unsigned int nthreads = OpenMPUtils::GetNumThreads();
-
 
 //        typedef boost::fast_pool_allocator< Node<3>::DofType::Pointer > allocator_type;
 // 		typedef std::unordered_set < Node<3>::DofType::Pointer,
@@ -540,9 +537,12 @@ public:
 
         std::vector<set_type> dofs_aux_list(nthreads);
 // 		std::vector<allocator_type> allocators(nthreads);
-        
-        KRATOS_WATCH(nthreads)
-        for (int i = 0; i < static_cast<int>(nthreads); i++)
+
+        if( this->GetEchoLevel() > 2)
+        {
+            std::cout << "Number of threads" << nthreads << "\n" << std::endl;
+        }
+        for (unsigned int i = 0; i < static_cast<int>(nthreads); i++)
         {
 #ifdef USE_GOOGLE_HASH
             dofs_aux_list[i].set_empty_key(Node<3>::DofType::Pointer());
@@ -551,9 +551,12 @@ public:
             dofs_aux_list[i].reserve(nelements);
 #endif
         }
-        KRATOS_WATCH("initializing element loop")
+        if( this->GetEchoLevel() > 2)
+        {
+            KRATOS_WATCH("Initializing element loop")
+        }
         #pragma omp parallel for firstprivate(nelements, ElementalDofList)
-        for (int i = 0; i < nelements; i++)
+        for (unsigned int i = 0; i < nelements; i++)
         {
             typename ElementsArrayType::iterator it = pElements.begin() + i;
             const unsigned int this_thread_id = OpenMPUtils::ThisThread();
@@ -563,7 +566,10 @@ public:
 
             dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
         }
-        KRATOS_WATCH("initializing condition loop")
+        if( this->GetEchoLevel() > 2)
+        {
+            std::cout << "Initializing condition loop\n" << std::endl;
+        }
         ConditionsArrayType& pConditions = r_model_part.Conditions();
         const int nconditions = static_cast<int>(pConditions.size());
         #pragma omp parallel for firstprivate(nconditions, ElementalDofList)
@@ -578,26 +584,31 @@ public:
 
         }
 
-
-        KRATOS_WATCH("initializing tree reduction")
-        //here we do a reduction in a tree so to have everything on thread 0
+        if( this->GetEchoLevel() > 2)
+        {
+            std::cout << "Initializing tree reduction\n" << std::endl;
+        }
+        // Here we do a reduction in a tree so to have everything on thread 0
         unsigned int old_max = nthreads;
         unsigned int new_max = ceil(0.5*static_cast<double>(old_max));
         while (new_max>=1 && new_max != old_max)
         {
-            //just for debugging
-            std::cout << "old_max" << old_max << " new_max:" << new_max << std::endl;
-            for (int i = 0; i < static_cast<int>(new_max); i++)
+            if( this->GetEchoLevel() > 2)
             {
-                if (i + new_max < old_max)
+                //just for debugging
+                std::cout << "old_max" << old_max << " new_max:" << new_max << std::endl;
+                for (unsigned int i = 0; i < static_cast<int>(new_max); i++)
                 {
-                    std::cout << i << " - " << i+new_max << std::endl;
+                    if (i + new_max < old_max)
+                    {
+                        std::cout << i << " - " << i+new_max << std::endl;
+                    }
                 }
+                std::cout << "********************" << std::endl;
             }
-            std::cout << "********************" << std::endl;
             
             #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(new_max); i++)
+            for (unsigned int i = 0; i < static_cast<int>(new_max); i++)
             {
                 if (i + new_max < old_max)
                 {
@@ -611,7 +622,10 @@ public:
             
         }
 
-        KRATOS_WATCH("initializing ordered array filling")
+        if( this->GetEchoLevel() > 2)
+        {
+            std::cout << "Initializing ordered array filling\n" << std::endl;
+        }
 
         DofsArrayType Doftemp;
         BaseType::mDofSet = DofsArrayType();
@@ -625,28 +639,44 @@ public:
 
         BaseType::mDofSet = Doftemp;
 
-        //throws an execption if there are no Degrees of freedom involved in the analysis
+        //Throws an exception if there are no Degrees Of Freedom involved in the analysis
         if (BaseType::mDofSet.size() == 0)
+        {
             KRATOS_THROW_ERROR(std::logic_error, "No degrees of freedom!", "");
-        KRATOS_WATCH(BaseType::mDofSet.size())
+        }
+        if( this->GetEchoLevel() > 2)
+        {
+            KRATOS_WATCH(BaseType::mDofSet.size())
+        }
         BaseType::mDofSetIsInitialized = true;
         if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
         {
-            std::cout << "finished setting up the dofs" << std::endl;
+            std::cout << "Finished setting up the dofs" << std::endl;
         }
 
-        KRATOS_WATCH("initializing lock array")
+        if( this->GetEchoLevel() > 2)
+        {
+            KRATOS_WATCH("Initializing lock array")
+        }
         if (mlock_array.size() != 0)
         {
-            for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
+            for (unsigned int i = 0; i < static_cast<int>(mlock_array.size()); i++)
+            {
                 omp_destroy_lock(&mlock_array[i]);
+            }
         }
 
         mlock_array.resize(BaseType::mDofSet.size());
 
-        for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
+        for (unsigned int i = 0; i < static_cast<int>(mlock_array.size()); i++)
+        {
             omp_init_lock(&mlock_array[i]);
-        KRATOS_WATCH("end of setupdofset")
+        }
+        if( this->GetEchoLevel() > 2)
+        {
+            std::cout << "End of setupdofset\n" << std::endl;
+        }
+        
         KRATOS_CATCH("");
     }
 
