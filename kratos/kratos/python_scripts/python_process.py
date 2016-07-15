@@ -20,7 +20,6 @@ class PythonProcess(object):
         pass
     
     def ExecuteAfterOutputStep(self):
-        print("aaa")
         pass
     
     def ExecuteFinalize(self):
