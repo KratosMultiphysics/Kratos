@@ -1,5 +1,4 @@
 import KratosMultiphysics 
-import KratosMultiphysics.SolidMechanicsApplication 
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):

@@ -10,7 +10,7 @@ KratosMultiphysics.CheckForPreviousImport()
 def CreateMeshingStrategy(main_model_part, custom_settings):
     return MeshingStrategy(main_model_part, custom_settings)
 
-class MeshingStrategy:
+class MeshingStrategy(object):
 
     #
     def __init__(self, main_model_part, custom_settings):

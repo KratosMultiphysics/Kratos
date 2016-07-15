@@ -9,7 +9,7 @@ KratosMultiphysics.CheckForPreviousImport()
 def CreateMeshingDomain(main_model_part, custom_settings):
     return MeshingDomain(main_model_part, custom_settings)
 
-class MeshingDomain:
+class MeshingDomain(object):
     
     ##constructor. the constructor shall only take care of storing the settings 
     ##and the pointer to the main_model part.
