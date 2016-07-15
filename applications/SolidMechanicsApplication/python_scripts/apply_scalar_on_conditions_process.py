@@ -15,7 +15,7 @@ class ApplyScalarOnConditionsProcess(KratosMultiphysics.Process):
         self.var = KratosMultiphysics.KralosGlobals.GetVariable(settings["variable_name"].GetString())
         
         #check if variable type is a scalar or a component
-        if(type(self.var) != KratosMultiphysics.Kratos.Array1DComponentVariable and type(self.var) != KratosMultiphysics.Kratos.DoubleVariable):
+        if(type(self.var) != KratosMultiphysics.Array1DComponentVariable and type(self.var) != KratosMultiphysics.DoubleVariable):
             raise Exception("Variable type is incorrect. Must be a scalar or a component")
         
         self.value = settings["value"].GetDouble()
