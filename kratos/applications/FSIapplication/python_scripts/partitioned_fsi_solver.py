@@ -93,7 +93,7 @@ class PartitionedFSISolver:
             "echo_level": 0,
             "consider_periodic_conditions": false,
             "time_order": 2,
-            "compute_reactions": false,
+            "compute_reactions": true,
             "divergence_clearance_steps": 0,
             "reform_dofs_at_each_iteration": true,
             "relative_velocity_tolerance": 1e-5,
@@ -263,7 +263,7 @@ class PartitionedFSISolver:
         ### NOTE2: The flag "INTERFACE" ("IS_INTERFACE" if the old mapper is used) has to be set to the interface nodes before the mapper construction.
         self.interface_mapper = NonConformant_OneSideMap.NonConformant_OneSideMap(self.fluid_solver.main_model_part,
                                                                                   self.structure_solver.main_model_part, 
-                                                                                  1.0, 50, 1e-5)
+                                                                                  2.0, 50, 1e-5)
         print("Non-conformant one side map constructed.")
                                                                                   
         # Construct the interface residual 
@@ -289,7 +289,10 @@ class PartitionedFSISolver:
         self.iteration_guess_value = KratosMultiphysics.Vector(fluid_interface_residual_size) 
 
         for i in range(0,fluid_interface_residual_size):
-            self.iteration_guess_value[i] = 0.0001      
+            self.iteration_guess_value[i] = 0.0001
+            
+        self.fluid_solver.SolverInitialize()
+        self.structure_solver.SolverInitialize()
 
                 
     def GetComputeModelPart(self):
@@ -309,7 +312,13 @@ class PartitionedFSISolver:
         
         
     def Solve(self):
-                
+        
+        self.fluid_solver.SolverInitializeSolutionStep()
+        self.structure_solver.SolverInitializeSolutionStep()
+        
+        self.fluid_solver.SolverPredict()
+        self.structure_solver.SolverPredict()
+        
         ## Compute mesh prediction ##
         if self.mesh_prediction == True:
             print("Computing time step ",self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS]," prediction...")
@@ -319,7 +328,8 @@ class PartitionedFSISolver:
                                                              False,False)
                 
             # Solve the current step structure problem with the previous step fluid interface nodal fluxes
-            self.structure_solver.Solve()
+            self.structure_solver.SolverSolveSolutionStep()
+
             # Map the obtained structure displacement to the fluid interface
             self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
                                                              KratosMultiphysics.DISPLACEMENT,
@@ -327,7 +337,6 @@ class PartitionedFSISolver:
                                                              
             # Solve the mesh problem
             self.mesh_solver.Solve()
-            self.mesh_solver.MoveNodes()
                                                              
             # Map the obtained structure velocity to the fluid interface
             #~ self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.VELOCITY,
@@ -335,24 +344,23 @@ class PartitionedFSISolver:
                                                              #~ True,False)
         
             # Solve the fluid problem with the updated mesh and the solid interface velocity as Dirichlet B.C.
-            #~ self.fluid_solver.Solve()
+            #~ self.fluid_solver.SolveSolutionStep()
             
         ## Non-Linear interface coupling iteration ##
         for nl_it in range(1,self.max_nl_it+1):
             
-            self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] = nl_it
-            self.structure_solver.main_model_part.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] = nl_it
+            self.fluid_solver.main_model_part.ProcessInfo[KratosFSI.FSI_NL_ITERATION] = nl_it
+            self.structure_solver.main_model_part.ProcessInfo[KratosFSI.FSI_NL_ITERATION] = nl_it
             
             print("    NL-ITERATION ",nl_it,"STARTS.")
             
             print("     Residual computation starts...")
             vel_residual = self.interface_residual.ComputeResidual(self.iteration_guess_value)            
-            nl_res_norm = self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.RESIDUAL_NORM]
+            nl_res_norm = self.fluid_solver.main_model_part.ProcessInfo[KratosFSI.FSI_INTERFACE_RESIDUAL_NORM]
             print("     Residual computation finished. |res|=",nl_res_norm)      
             
             # Move interface nodes
             if self.move_interface == True:
-                    
                     self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
                                                                      KratosMultiphysics.DISPLACEMENT,
                                                                      True,False)                      # Project the structure interface displacement onto the fluid interface
@@ -360,29 +368,31 @@ class PartitionedFSISolver:
                     
             # Check convergence
             if nl_res_norm < self.nl_tol:
-            
                 print("    NON-LINEAR ITERATION CONVERGENCE ACHIEVED")
                 print("    Total non-linear iterations: ",nl_it," NL residual norm: ",nl_res_norm)
             
                 break 
                 
             else:
-                
+                print("    Performing non-linear iteration ",nl_it," correction.")
                 self.iteration_guess_value = self.coupling_strategy.InterfaceSolutionUpdate(self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS],
                                                                                             nl_it,
                                                                                             self.iteration_guess_value,
-                                                                                            vel_residual)
+                                                                                            vel_residual)                                                                               
               
         ## Mesh update ##
         self.interface_mapper.StructureToFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
                                                          KratosMultiphysics.DISPLACEMENT,
                                                          True,False)                           # Project the structure interface displacement onto the fluid interface
         self.mesh_solver.Solve()                                                               # Solve the mesh problem
-        self.mesh_solver.MoveNodes()                                                           # Move nodes
                 
-        # Compute mesh residual
+        ## Compute mesh residual ##
         mesh_res_norm = self.interface_residual.ComputeMeshResidual()
         print("MESH RESIDUAL NORM: ",mesh_res_norm)
+        
+        ## Finalize solution step ##
+        self.fluid_solver.SolverFinalizeSolutionStep()
+        self.structure_solver.SolverFinalizeSolutionStep()
        
 
     def SetEchoLevel(self, level):
