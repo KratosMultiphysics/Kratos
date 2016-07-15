@@ -152,7 +152,7 @@ namespace Kratos
     //*********************************************************************
 
     ////////////////////////////////////////////////////////////
-    this->InitializeMeshGeneration(rModelPart,rMeshingVariables,MeshId);   
+    this->ExecutePreMeshingProcesses(rModelPart,rMeshingVariables,MeshId);   
     ////////////////////////////////////////////////////////////
 
     //*********************************************************************      
@@ -200,7 +200,7 @@ namespace Kratos
     //*********************************************************************
     
     ////////////////////////////////////////////////////////////
-    this->FinalizeMeshGeneration(rModelPart,rMeshingVariables,MeshId);
+    this->ExecutePostMeshingProcesses(rModelPart,rMeshingVariables,MeshId);
     ////////////////////////////////////////////////////////////
     
 
@@ -309,7 +309,7 @@ namespace Kratos
     //*********************************************************************
 	  
     ////////////////////////////////////////////////////////////
-    this->FinalizeMeshGeneration(rModelPart,rMeshingVariables,MeshId);
+    this->ExecutePostMeshingProcesses(rModelPart,rMeshingVariables,MeshId);
     ////////////////////////////////////////////////////////////
 
     //*********************************************************************
@@ -350,7 +350,7 @@ namespace Kratos
       //*********************************************************************
       
       ////////////////////////////////////////////////////////////
-      this->InitializeMeshGeneration(rModelPart,rMeshingVariables,MeshId);
+      this->ExecutePreMeshingProcesses(rModelPart,rMeshingVariables,MeshId);
       ////////////////////////////////////////////////////////////
       
       //*********************************************************************
@@ -478,7 +478,7 @@ namespace Kratos
     //*********************************************************************
 	  
     ////////////////////////////////////////////////////////////
-    this->FinalizeMeshGeneration(rModelPart,rMeshingVariables,MeshId);
+    this->ExecutePostMeshingProcesses(rModelPart,rMeshingVariables,MeshId);
     ////////////////////////////////////////////////////////////
 
     //*********************************************************************
@@ -597,7 +597,7 @@ namespace Kratos
     //*********************************************************************
 	  
     ////////////////////////////////////////////////////////////
-    this->FinalizeMeshGeneration(rModelPart,rMeshingVariables,MeshId);
+    this->ExecutePostMeshingProcesses(rModelPart,rMeshingVariables,MeshId);
     ////////////////////////////////////////////////////////////
 
     //*********************************************************************
@@ -645,7 +645,7 @@ namespace Kratos
     //*********************************************************************
     
     ////////////////////////////////////////////////////////////
-    this->InitializeMeshGeneration(rModelPart,rMeshingVariables,MeshId);
+    this->ExecutePreMeshingProcesses(rModelPart,rMeshingVariables,MeshId);
     ////////////////////////////////////////////////////////////
     
     //*********************************************************************
@@ -750,7 +750,7 @@ namespace Kratos
     //*********************************************************************
 	  
     ////////////////////////////////////////////////////////////
-    this->FinalizeMeshGeneration(rModelPart,rMeshingVariables,MeshId);
+    this->ExecutePostMeshingProcesses(rModelPart,rMeshingVariables,MeshId);
     ////////////////////////////////////////////////////////////
 
     //*********************************************************************
@@ -791,7 +791,7 @@ namespace Kratos
     //*********************************************************************
     
     ////////////////////////////////////////////////////////////
-    this->InitializeMeshGeneration(rModelPart,rMeshingVariables,MeshId);
+    this->ExecutePreMeshingProcesses(rModelPart,rMeshingVariables,MeshId);
     ////////////////////////////////////////////////////////////
     
     //*********************************************************************
@@ -934,7 +934,7 @@ namespace Kratos
     //*********************************************************************
 	  
     ////////////////////////////////////////////////////////////
-    this->FinalizeMeshGeneration(rModelPart,rMeshingVariables,MeshId);
+    this->ExecutePostMeshingProcesses(rModelPart,rMeshingVariables,MeshId);
     ////////////////////////////////////////////////////////////
 
     //*********************************************************************

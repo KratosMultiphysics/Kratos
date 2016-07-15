@@ -296,10 +296,10 @@ protected:
     /**
      * Mesh Modeler :: Process to be done at the begining of the Generation
      */
-    virtual void InitializeMeshGeneration(ModelPart& rModelPart,
-					  MeshingParametersType& rMeshingVariables,
-					  ModelPart::IndexType MeshId=0);
-
+    virtual void ExecutePreMeshingProcesses(ModelPart& rModelPart,
+					    MeshingParametersType& rMeshingVariables,
+					    ModelPart::IndexType MeshId=0);
+x
 
     /**
      * Mesh Modeler :: Process to be done at the begining of the Refinement
@@ -321,9 +321,9 @@ protected:
     /**
      * Mesh Modeler :: Process to be done at the end of the Generation
      */
-    virtual void FinalizeMeshGeneration(ModelPart& rModelPart,
-					MeshingParametersType& rMeshingVariables,
-					ModelPart::IndexType MeshId=0);
+    virtual void ExecutePostMeshingProcesses(ModelPart& rModelPart,
+					     MeshingParametersType& rMeshingVariables,
+					     ModelPart::IndexType MeshId=0);
   
 
     /**
