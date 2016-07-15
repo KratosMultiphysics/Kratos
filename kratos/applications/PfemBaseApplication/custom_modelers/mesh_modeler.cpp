@@ -63,9 +63,9 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  void MeshModeler::InitializeMeshGeneration(ModelPart& rModelPart,
-					     MeshingParametersType& rMeshingVariables,
-					     ModelPart::IndexType MeshId)
+  void MeshModeler::ExecutePreMeshingProcesses(ModelPart& rModelPart,
+					       MeshingParametersType& rMeshingVariables,
+					       ModelPart::IndexType MeshId)
   {
     KRATOS_TRY
     
@@ -123,9 +123,9 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  void MeshModeler::FinalizeMeshGeneration(ModelPart& rModelPart,
-					   MeshingParametersType& rMeshingVariables,
-					   ModelPart::IndexType MeshId)
+  void MeshModeler::ExecutePostMeshingProcesses(ModelPart& rModelPart,
+						MeshingParametersType& rMeshingVariables,
+						ModelPart::IndexType MeshId)
   {
     KRATOS_TRY
 
