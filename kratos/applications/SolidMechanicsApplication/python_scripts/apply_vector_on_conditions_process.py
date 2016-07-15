@@ -17,7 +17,7 @@ class ApplyVectorOnConditionsProcess(KratosMultiphysics.Process):
         self.var = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
 
         #check if variable type is a vector
-        if( type(self.var) != KratosMultiphysics.Kratos.Array1DVariable3 ):
+        if( type(self.var) != KratosMultiphysics.Array1DVariable3 ):
             raise Exception("Variable type is incorrect. Must be a three-component vector.")
     
         self.factor = settings["factor"].GetDouble();
