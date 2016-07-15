@@ -172,12 +172,12 @@ os.chdir(main_path)
 
 KRATOSprint("\nInitializing Problem...")
 
-poisson = 1
-if poisson:
-    os.chdir(main_path)
-    files_to_delete_list = glob('*.txt')
-    for to_erase_file in files_to_delete_list:
-        os.remove(to_erase_file)
+#poisson = 1
+#if poisson:
+#    os.chdir(main_path)
+#    files_to_delete_list = glob('*.txt')
+#    for to_erase_file in files_to_delete_list:
+#        os.remove(to_erase_file)
 
 # Initialize GiD-IO
 demio.AddGlobalVariables()
