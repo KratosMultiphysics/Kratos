@@ -751,6 +751,43 @@ public:
         }
     }
 
+    static inline void InvMat3x3Col(
+            const boost::numeric::ublas::bounded_matrix<double, 3, 3 > & rMatrixOrig,
+            const int& column,
+            const double& det,
+            boost::numeric::ublas::bounded_matrix<double, 3, 1 > & InvMatrix
+            )
+    {
+        if (det < 1.0e-18)
+        {
+            KRATOS_THROW_ERROR( std::invalid_argument," Determinant of the matrix is 0 or negative!!!, det = ", det);
+        }
+
+        /* Compute inverse of the Matrix (just one column) */
+        if (column == 1)
+        {
+            InvMatrix(0, 0) =   (rMatrixOrig(1, 1) * rMatrixOrig(2, 2) - rMatrixOrig(1, 2) * rMatrixOrig(2, 1)) / det;
+            InvMatrix(1, 0) = - (rMatrixOrig(1, 0) * rMatrixOrig(2, 2) - rMatrixOrig(2, 0) * rMatrixOrig(1, 2)) / det;
+            InvMatrix(2, 0) =   (rMatrixOrig(1, 0) * rMatrixOrig(2, 1) - rMatrixOrig(1, 1) * rMatrixOrig(2, 0)) / det;
+        }
+        else if (column == 2)
+        {
+            InvMatrix(0, 0) = - (rMatrixOrig(0, 1) * rMatrixOrig(2, 2) - rMatrixOrig(0, 2) * rMatrixOrig(2, 1)) / det;
+            InvMatrix(1, 0) =   (rMatrixOrig(0, 0) * rMatrixOrig(2, 2) - rMatrixOrig(0, 2) * rMatrixOrig(2, 0)) / det;
+            InvMatrix(2, 0) = - (rMatrixOrig(0, 0) * rMatrixOrig(2, 1) - rMatrixOrig(0, 1) * rMatrixOrig(2, 0)) / det;
+        }
+        else if (column == 3)
+        {
+            InvMatrix(0, 0) =   (rMatrixOrig(0, 1) * rMatrixOrig(1, 2) - rMatrixOrig(0, 2) * rMatrixOrig(1, 1)) / det;
+            InvMatrix(1, 0) = - (rMatrixOrig(0, 0) * rMatrixOrig(1, 2) - rMatrixOrig(0, 2) * rMatrixOrig(1, 0)) / det;
+            InvMatrix(2, 0) =   (rMatrixOrig(0, 0) * rMatrixOrig(1, 1) - rMatrixOrig(1, 0) * rMatrixOrig(0, 1)) / det;
+        }
+        else
+        {
+            KRATOS_THROW_ERROR( std::invalid_argument," The column index must be between 1 and 3, column = ", column);
+        }
+    }
+
     /***********************************************************************************/
     /***********************************************************************************/
 
