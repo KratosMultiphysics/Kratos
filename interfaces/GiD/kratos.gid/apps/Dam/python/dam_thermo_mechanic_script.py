@@ -97,7 +97,7 @@ if (type_of_problem == "Thermo-Mechanical"):
     #Type of reference temperature
     reference_temperature = ProjectParameters["diffusion_settings"]["reference_temperature"].GetString()
     
-    if (reference_temperature =="Reservoir Information"):
+    if (reference_temperature =="Reservoir_Information"):
         main_model_part.ProcessInfo[REFERENCE_TEMPERATURE] = 10.0  #TODO: for working
         #model_part.ProcessInfo[REFERENCE_TEMPERATURE] = model_part.GetTable(18).GetNearestValue(0.0)      To start computations at time = 0  / Table 5 = Reference Temperature Values
     else:
