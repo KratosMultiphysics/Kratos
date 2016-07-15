@@ -59,7 +59,7 @@ namespace Kratos
         void SetInitialFemContacts();
         void CreateContinuumConstitutiveLaws();
         void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
-        void CorrectRepresentativeVolume(double& rRepresentative_Volume, bool& is_smaller_than_sphere);
+        void CorrectRepresentativeVolume(double& rRepresentative_Volume, bool& is_smaller_than_sphere) override;
 
         void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
 

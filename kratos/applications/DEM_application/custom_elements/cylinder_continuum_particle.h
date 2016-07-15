@@ -33,13 +33,13 @@ namespace Kratos
       CylinderContinuumParticle( IndexType NewId, NodesArrayType const& ThisNodes);
       CylinderContinuumParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
 
-      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
       /// Destructor.
       virtual ~CylinderContinuumParticle();
 
 
-      virtual std::string Info() const
+      virtual std::string Info() const override
       {
           std::stringstream buffer;
           buffer << "CylinderContinuumParticle" ;
@@ -47,10 +47,10 @@ namespace Kratos
       }
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "CylinderContinuumParticle";}
+      virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "CylinderContinuumParticle";}
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const {}
+      virtual void PrintData(std::ostream& rOStream) const override {}
 
       void ContactAreaWeighting() override;
 
@@ -67,12 +67,12 @@ namespace Kratos
 
       friend class Serializer;
 
-      virtual void save(Serializer& rSerializer) const
+      virtual void save(Serializer& rSerializer) const override 
       {
           KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DiscreteElement );
       }
 
-      virtual void load(Serializer& rSerializer)
+      virtual void load(Serializer& rSerializer) override 
       {
           KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DiscreteElement );
       }
