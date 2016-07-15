@@ -125,6 +125,7 @@ class PreRefiningModeler(mesh_modeler.MeshModeler):
         if( refining_options.Is(KratosPfemBase.ModelerUtilities.REFINE_INSERT_NODES) ):
             execution_options.Set(KratosPfemBase.ModelerUtilities.INITIALIZE_MESHER_INPUT, True)
             execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_NODES_TO_MESHER, True)
+            meshing_options = self.MeshingParameters.GetOptions()
             if( meshing_options.Is(KratosPfemBase.ModelerUtilities.CONSTRAINED) ):
                 execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_FACES_TO_MESHER, True)
                  

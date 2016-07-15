@@ -9,7 +9,7 @@ KratosMultiphysics.CheckForPreviousImport()
 def CreateMeshModeler(main_model_part, meshing_parameters, mesh_id):
     return MeshModeler(main_model_part, meshing_parameters, mesh_id)
 
-class MeshModeler:
+class MeshModeler(object):
     
     #
     def __init__(self, main_model_part, meshing_parameters, mesh_id): 
