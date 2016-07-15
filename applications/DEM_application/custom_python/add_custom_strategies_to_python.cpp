@@ -52,8 +52,8 @@ namespace Kratos
 
         void  AddCustomStrategiesToPython()
         {
-          typedef UblasSpace<double, CompressedMatrix, Vector>                          SparseSpaceType;
-          typedef UblasSpace<double, Matrix, Vector>                                    LocalSpaceType;
+          //typedef UblasSpace<double, CompressedMatrix, Vector>                          SparseSpaceType;
+          //typedef UblasSpace<double, Matrix, Vector>                                    LocalSpaceType;
           //typedef LinearSolver<SparseSpaceType, LocalSpaceType >                        LinearSolverType;
           typedef OMP_DEMSearch                                                         OmpDemSearchType;
           typedef DEMSearch<OmpDemSearchType >                                          DemSearchType;
