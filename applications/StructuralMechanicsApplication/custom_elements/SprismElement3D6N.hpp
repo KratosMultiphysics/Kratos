@@ -246,7 +246,7 @@ protected:
             Matrix B; // Deformation matrix
             Matrix F;  // Deformation gradient (F) from the reference to the current configuration ( Delta F )
             Matrix F0; // Deformation gradient (F) in the reference configuration, ( historical F )
-            Matrix FT; //FT = F0 * F  ( total F )
+            Matrix FT; // FT = F0 * F  ( total F )
             double detF;  // Deformation gradient determinant in the current configuration
             double detF0; // Deformation gradient determinant in the reference configuration
             double detFT; // Deformation gradient determinant in the reference configuration

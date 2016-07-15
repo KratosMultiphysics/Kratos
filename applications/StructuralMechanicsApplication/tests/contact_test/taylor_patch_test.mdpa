@@ -333,6 +333,23 @@ Begin SubModelPart Parts_foundation // Group foundation // Subtree Parts
     End SubModelPartElements
     Begin SubModelPartConditions
     End SubModelPartConditions
+    
+    Begin SubModelPart INTERFACE
+        Begin SubModelPartNodes
+            10
+            11
+            24
+            25
+            26
+            27
+            28
+        End SubModelPartNodes
+        Begin SubModelPartElements
+        End SubModelPartElements
+        Begin SubModelPartConditions
+        End SubModelPartConditions
+    End SubModelPart
+    
 End SubModelPart
 Begin SubModelPart Parts_punch // Group punch // Subtree Parts
     Begin SubModelPartNodes
@@ -382,6 +399,21 @@ Begin SubModelPart Parts_punch // Group punch // Subtree Parts
     End SubModelPartElements
     Begin SubModelPartConditions
     End SubModelPartConditions
+    
+    Begin SubModelPart INTERFACE
+        Begin SubModelPartNodes
+            5
+            6
+            35
+            36
+            37
+        End SubModelPartNodes
+        Begin SubModelPartElements
+        End SubModelPartElements
+        Begin SubModelPartConditions
+        End SubModelPartConditions
+    End SubModelPart
+    
 End SubModelPart
 Begin SubModelPart DISPLACEMENT_fixed_support // Group fixed_support // Subtree DISPLACEMENT
     Begin SubModelPartNodes
@@ -445,33 +477,5 @@ Begin SubModelPart LineLoad2D_line_load // Group line_load // Subtree LineLoad2D
          6
          7
          8
-    End SubModelPartConditions
-End SubModelPart
-Begin SubModelPart Contact_foundation_interface // Group foundation_interface // Subtree Contact
-    Begin SubModelPartNodes
-        10
-        11
-        24
-        25
-        26
-        27
-        28
-    End SubModelPartNodes
-    Begin SubModelPartElements
-    End SubModelPartElements
-    Begin SubModelPartConditions
-    End SubModelPartConditions
-End SubModelPart
-Begin SubModelPart Contact_punch_interface // Group punch_interface // Subtree Contact
-    Begin SubModelPartNodes
-         5
-         6
-        35
-        36
-        37
-    End SubModelPartNodes
-    Begin SubModelPartElements
-    End SubModelPartElements
-    Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart

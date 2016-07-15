@@ -33,7 +33,6 @@ void  AddCustomMappersToPython()
 
     class_<InterfacePreprocessCondition>("InterfacePreprocessCondition", init<>())
     .def("GenerateInterfacePart",&InterfacePreprocessCondition::GenerateInterfacePart)
-    .def("AppendInterfacePart",&InterfacePreprocessCondition::AppendInterfacePart)
     .def("GenerateLine2NInterfacePart",&InterfacePreprocessCondition::GenerateLine2NInterfacePart)
     .def("GenerateLine3NInterfacePart",&InterfacePreprocessCondition::GenerateLine3NInterfacePart)
     .def("GenerateTriangle3NInterfacePart",&InterfacePreprocessCondition::GenerateTriangle3NInterfacePart)
