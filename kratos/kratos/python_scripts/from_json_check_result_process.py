@@ -1,10 +1,10 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
-from KratosMultiphysics import *
+import KratosMultiphysics
 import json
 #import numpy as np # This cannot be here, manually interpolated
 from json_utilities import *
-CheckForPreviousImport()
+KratosMultiphysics.CheckForPreviousImport()
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -32,14 +32,29 @@ def linear_interpolation(x, x_list, y_list):
     return y
 
 def Factory(settings, Model):
-    if(type(settings) != Parameters):
+    if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return FromJsonCheckResultProcess(Model, settings["Parameters"])
 
-class FromJsonCheckResultProcess(Process, KratosUnittest.TestCase):
+class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
   
     def __init__(self,model_part,params):
-
+        
+        ## Settings string in json format
+        default_parameters = KratosMultiphysics.Parameters("""
+        {
+            "check_variables"      : [],
+            "input_file_name"      : "",
+            "model_part_name"      : "",
+            "sub_model_part_name"  : "",
+            "time_frequency"       : 1.00
+        }
+        """)
+        
+        ## Overwrite the default settings with user-provided parameters
+        self.params = params
+        self.params.ValidateAndAssignDefaults(default_parameters)
+        
         self.model_part = model_part
 
         self.params = params
@@ -51,7 +66,10 @@ class FromJsonCheckResultProcess(Process, KratosUnittest.TestCase):
         
     def ExecuteInitialize(self):
         input_file_name = self.params["input_file_name"].GetString()
-        self.sub_model_part = self.model_part[self.params["model_part_name"].GetString()]
+        if (len(self.params["sub_model_part_name"].GetString()) > 0):
+            self.sub_model_part = self.model_part[self.params["model_part_name"].GetString()].GetSubModelPart(self.params["sub_model_part_name"].GetString())
+        else:
+            self.sub_model_part = self.model_part[self.params["model_part_name"].GetString()]
         self.check_variables = self.__generate_variable_list_from_input(self.params["check_variables"])
         self.frequency = self.params["time_frequency"].GetDouble()
         self.data =  read_external_json(input_file_name)
@@ -63,8 +81,8 @@ class FromJsonCheckResultProcess(Process, KratosUnittest.TestCase):
         pass
 
     def ExecuteFinalizeSolutionStep(self):
-        time = self.sub_model_part.ProcessInfo.GetValue(TIME)
-        dt = self.sub_model_part.ProcessInfo.GetValue(DELTA_TIME)
+        time = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME)
+        dt = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
         self.time_counter += dt
         if self.time_counter > self.frequency:
             self.time_counter = 0.0
@@ -72,7 +90,7 @@ class FromJsonCheckResultProcess(Process, KratosUnittest.TestCase):
             for node in self.sub_model_part.Nodes:
                 for i in range(self.params["check_variables"].size()):
                     out = self.params["check_variables"][i]
-                    variable = KratosGlobals.GetVariable( out.GetString() )
+                    variable = KratosMultiphysics.KratosGlobals.GetVariable( out.GetString() )
                     val = node.GetSolutionStepValue(variable, 0)
                     if isinstance(val,float):
                         value_scalar = True
@@ -115,5 +133,5 @@ class FromJsonCheckResultProcess(Process, KratosUnittest.TestCase):
           raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
 
       # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
-      return [ KratosGlobals.GetVariable( param[i].GetString() ) for i in range( 0,param.size() ) ]
+      return [ KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString() ) for i in range( 0,param.size() ) ]
 
