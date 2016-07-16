@@ -556,7 +556,7 @@ public:
             KRATOS_WATCH("Initializing element loop")
         }
         #pragma omp parallel for firstprivate(nelements, ElementalDofList)
-        for (unsigned int i = 0; i < nelements; i++)
+        for (int i = 0; i < nelements; i++)
         {
             typename ElementsArrayType::iterator it = pElements.begin() + i;
             const unsigned int this_thread_id = OpenMPUtils::ThisThread();
@@ -608,7 +608,7 @@ public:
             }
             
             #pragma omp parallel for
-            for (unsigned int i = 0; i < static_cast<int>(new_max); i++)
+            for (int i = 0; i < static_cast<int>(new_max); i++)
             {
                 if (i + new_max < old_max)
                 {
