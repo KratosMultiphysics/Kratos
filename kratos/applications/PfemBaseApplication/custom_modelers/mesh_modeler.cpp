@@ -197,29 +197,6 @@ namespace Kratos
      KRATOS_CATCH(" ")
   }
 
-  //*******************************************************************************************
-  //*******************************************************************************************
-
-  void MeshModeler::SetPreRefiningProcess( Process::Pointer pPreRefiningProcess )
-  {
-     KRATOS_TRY
-       
-     mPreRefiningProcesses.push_back(pPreRefiningProcess); //NOTE: order set = order of execution
-       
-     KRATOS_CATCH(" ")
-  }
-
-  //*******************************************************************************************
-  //*******************************************************************************************
-
-  void MeshModeler::SetPostRefiningProcess( Process::Pointer pPostRefiningProcess )
-  {
-     KRATOS_TRY
-       
-     mPostRefiningProcesses.push_back(pPostRefiningProcess); //NOTE: order set = order of execution
-       
-     KRATOS_CATCH(" ")
-  }
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -241,31 +218,6 @@ namespace Kratos
      KRATOS_TRY
        
      mPostMeshingProcesses = rPostMeshingProcessVector; 
-       
-     KRATOS_CATCH(" ")
-  }
-
-
-  //*******************************************************************************************
-  //*******************************************************************************************
-
-  void MeshModeler::SetPreRefiningProcessVector( std::vector<Process::Pointer>& rPreRefiningProcessVector )
-  {
-     KRATOS_TRY
-       
-     mPreRefiningProcesses = rPreRefiningProcessVector; 
-       
-     KRATOS_CATCH(" ")
-  }
-
-  //*******************************************************************************************
-  //*******************************************************************************************
-
-  void MeshModeler::SetPostRefiningProcessVector( std::vector<Process::Pointer>& rPostRefiningProcessVector )
-  {
-     KRATOS_TRY
-       
-     mPostRefiningProcesses = rPostRefiningProcessVector; 
        
      KRATOS_CATCH(" ")
   }
