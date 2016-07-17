@@ -156,17 +156,11 @@ public:
 
     void SetPostMeshingProcess( Process::Pointer pPostMeshingProcess );
 
-    void SetPreRefiningProcess( Process::Pointer pRefiningProcess );
-
-    void SetPostRefiningProcess( Process::Pointer pRefiningProcess );
 
     void SetPreMeshingProcessVector( std::vector<Process::Pointer>& rPreMeshingProcessVector );
 
     void SetPostMeshingProcessVector( std::vector<Process::Pointer>& rPostMeshingProcessVector );
 
-    void SetPreRefiningProcessVector( std::vector<Process::Pointer>& rRefiningProcessVector );
-
-    void SetPostRefiningProcessVector( std::vector<Process::Pointer>& rRefiningProcessVector );
 
     /**
      * Utilities for the mesher are given to the modeler
