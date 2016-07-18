@@ -198,6 +198,7 @@ namespace Kratos {
             noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
             double distance = DEM_MODULUS_3(other_to_me_vect);
             effectiveVolumeRadiusSum += 0.5 * (distance + GetRadius() - other_radius);
+            //effectiveVolumeRadiusSum += (distance-(GetRadius()+other_radius))/2 + GetRadius();}       //2
         }
         
         double effectiveVolumeRadius = effectiveVolumeRadiusSum / cont_ini_neighbours_size;
