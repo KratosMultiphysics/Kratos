@@ -339,6 +339,7 @@ while (time < DEM_parameters.FinalTime):
     
     #### GENERAL TEST LOAD&UNLOAD  #####################
     #DEMFEMProcedures.ApplyMovementbySteps(time)
+    #DEMFEMProcedures.ApplyNodalRotation(time)
     
     #### SOLVE #########################################
     solver.Solve()
