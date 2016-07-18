@@ -61,9 +61,9 @@ protected:
 
   typedef struct
   {
-    int    Dimension;           //2D or 3D
-    bool   Axisymmetric;        //true or false
-    int    Convexity;           //1 or -1  if "in" is inside or outside respectively   
+    int    Dimension;           // 2D or 3D
+    bool   Axisymmetric;        // true or false
+    int    Convexity;           // 1 or -1  if "in" is inside or outside respectively   
     double Radius;              // box radius
     
     TPointType  HighPoint;      // box highest point
@@ -153,8 +153,7 @@ public:
       mBox.HighPoint = rHighPoint;
       mBox.LowPoint  = rLowPoint;
 
-      mBox.Center = 0.5 *( rHighPoint + rLowPoint );
-
+      mBox.Center = 0.5 * ( rHighPoint + rLowPoint );
       mBox.Radius = 0.5 * norm_2(rHighPoint-rLowPoint);   
     }
 
@@ -566,7 +565,7 @@ public:
       vertices.push_back(Reference);
       
 
-      if( mBox.Center.size() > 2){
+      if( mBox.Center.size() > 2){ //THIS IS WRONG
 
 	Reference = mBox.LowPoint + mMovement.Velocity * rCurrentTime;
 	

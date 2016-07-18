@@ -296,23 +296,6 @@ protected:
 
 
     /**
-     * Mesh Modeler :: Process to be done at the begining of the Refinement
-     */
-    virtual void InitializeMeshRefinement(ModelPart& rModelPart,
-					  MeshingParametersType& rMeshingVariables,
-					  ModelPart::IndexType MeshId=0);
-
-
-
-    /**
-     * Mesh Modeler :: Process to be done at the end of the Refinement
-     */
-    virtual void FinalizeMeshRefinement(ModelPart& rModelPart,
-					MeshingParametersType& rMeshingVariables,
-					ModelPart::IndexType MeshId=0);
-
-
-    /**
      * Mesh Modeler :: Process to be done at the end of the Generation
      */
     virtual void ExecutePostMeshingProcesses(ModelPart& rModelPart,

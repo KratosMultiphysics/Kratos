@@ -109,7 +109,7 @@ namespace Kratos
 
       class_<RefineMeshElementsOnThresholdProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "SetElementsToRefineOnThreshold", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int, int>()
+	 "SetElementNodesToRefineOnThreshold", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int, int>()
 	 )
 	;
 
