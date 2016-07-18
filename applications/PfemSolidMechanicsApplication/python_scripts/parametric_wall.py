@@ -34,10 +34,19 @@ class ParametricWall(object):
                "clearance_angle": 0.0,
                "convexity": 0
             }],
-            "search_strategy":{
-               "python_file_name": "meshing_strategy",
-               "meshing_frequency": 0,
-               "reference_condition_type": "PointContactCondition2D1N"
+            "contact_search_strategy":{
+               "python_file_name": "contact_search_strategy",
+               "search_frequency": 0,
+               "contact_parameters":{
+                   "contact_condition_type": "PointContactCondition2D1N",
+                   "friction_active": false,
+                   "friction_law_type": "MorhCoulomb",
+                   "variables_of_properties":{
+                      "MU_STATIC": 0.3,
+                      "MU_DYNAMIC": 0.2,
+                      "PENALTY_PARAMETER": 1000
+                   }
+               }
             },
             "constraints_process_list":[{
                "implemented_in_file"   : "apply_velocity_process",
@@ -53,9 +62,6 @@ class ParametricWall(object):
                     "value"          : [0.0, 0.0, 0.0]
                }
             }],
-            "variables_of_properties":{
-               "PENALTY_PARAMETER": 0.0,
-            },
             "rigid_body_element_type": "TranslatoryRigidElement3D1N"
         }
         """)
@@ -65,8 +71,8 @@ class ParametricWall(object):
         self.settings.ValidateAndAssignDefaults(default_settings)
         
         #construct the solving strategy
-        meshing_module = __import__(self.settings["search_strategy"]["python_file_name"].GetString())
-        self.SearchStrategy = meshing_module.CreateSearchStrategy(self.main_model_part, self.settings["search_strategy"])
+        meshing_module = __import__(self.settings["contact_search_strategy"]["python_file_name"].GetString())
+        self.SearchStrategy = meshing_module.CreateSearchStrategy(self.main_model_part, self.settings["contact_search_strategy"])
 
         print("Construction of Parametric Wall finished")
         
@@ -80,11 +86,9 @@ class ParametricWall(object):
         self.domain_size = self.settings["domain_size"].GetInt()
         self.mesh_id     = self.settings["mesh_id"].GetInt()
 
-        # Set MeshingParameters
-        self.SetMeshingParameters()
-        
+       
         # Meshing Stratety
-        self.MeshingStrategy.Initialize(self.MeshingParameters, self.domain_size, self.mesh_id)
+        self.SearchStrategy.Initialize(self.MeshingParameters, self.domain_size, self.mesh_id)
         
         print("::[Mesh Domain]:: -END- ")
 
