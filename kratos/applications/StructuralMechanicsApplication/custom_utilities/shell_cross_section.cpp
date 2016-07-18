@@ -353,7 +353,6 @@ void ShellCrossSection::CalculateSectionResponse(Parameters& rValues, const Cons
     bool compute_constitutive_tensor = Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     SizeType strain_size = GetStrainSize();
     SizeType condensed_strain_size = GetCondensedStrainSize();
-
     if(!compute_constitutive_tensor && mNeedsOOPCondensation)
     {
         compute_constitutive_tensor = true;
@@ -379,7 +378,7 @@ void ShellCrossSection::CalculateSectionResponse(Parameters& rValues, const Cons
     Matrix HRcT;
     Matrix LRcT;
     Matrix LTRT;
-    Matrix Hinv;
+    Matrix Hinv = ZeroMatrix(condensed_strain_size, condensed_strain_size);
     if(mNeedsOOPCondensation)
     {
         Rc.resize(condensed_strain_size, condensed_strain_size, false);
@@ -389,9 +388,10 @@ void ShellCrossSection::CalculateSectionResponse(Parameters& rValues, const Cons
             LRcT.resize(strain_size, condensed_strain_size, false);
             LTRT.resize(condensed_strain_size, strain_size, false);
         }
-        Hinv = ZeroMatrix(condensed_strain_size, condensed_strain_size);
+//         Hinv = ZeroMatrix(condensed_strain_size, condensed_strain_size);
     }
 
+    
     // compute the generalized strain vector in section coordinate system
     Vector generalizedStrainVector_element;
     if(mOrientation != 0.0)
@@ -603,7 +603,6 @@ void ShellCrossSection::CalculateSectionResponse(Parameters& rValues, const Cons
             if(tolerance < always_converged_tolerance)
                 tolerance = always_converged_tolerance;
         }
-
         // compute H^-1
         if(mBehavior == Thick)
         {
@@ -634,17 +633,16 @@ void ShellCrossSection::CalculateSectionResponse(Parameters& rValues, const Cons
     if(!converged || compute_constitutive_tensor)
     {
         Matrix LHinv( prod( L, Hinv ) );
+
         if(!converged && compute_stress)
         {
             noalias( generalizedStressVector ) += prod( LHinv, condensedStressVector );
         }
-
         if(compute_constitutive_tensor)
         {
             noalias( constitutiveMatrix ) -= prod( LHinv, LT );
         }
     }
-
     // *********************************** NOW WE MOVE TO THE PARENT ELEMENT COORDINATE SYSTEM ************************************
 
     // transform the outputs back to the element coordinate system (if necessary)
