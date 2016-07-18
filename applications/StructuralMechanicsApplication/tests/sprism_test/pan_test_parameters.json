@@ -59,45 +59,48 @@
     },
     "constraints_process_list" : [
     {
-        "implemented_in_file"   : "apply_displacement_process",
-        "implemented_in_module" : "KratosMultiphysics.SolidMechanicsApplication",
-        "help"                  : "This process applies a displacement via the apply_constant_vector_value_process in kratos core",
-        "process_name"          : "ApplyDisplacementProcess",
+        "implemented_in_file"   : "impose_vector_value_by_components_process",
+        "implemented_in_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+            "variable_name"   : "DISPLACEMENT",
             "is_fixed_x"      : true,
             "is_fixed_y"      : false,
             "is_fixed_z"      : false,
-            "direction"       : [0.0,0.0,0.0]
+            "value"           : [0.0,0.0,0.0]
         }
     },
     {
-        "implemented_in_file"   : "apply_displacement_process",
-        "implemented_in_module" : "KratosMultiphysics.SolidMechanicsApplication",
-        "help"                  : "This process applies a displacement via the apply_constant_vector_value_process in kratos core",
-        "process_name"          : "ApplyDisplacementProcess",
+        "implemented_in_file"   : "impose_vector_value_by_components_process",
+        "implemented_in_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+            "variable_name"   : "DISPLACEMENT",
             "is_fixed_x"      : false,
             "is_fixed_y"      : true,
             "is_fixed_z"      : false,
-            "direction"       : [0.0,0.0,0.0]
+            "value"           : [0.0,0.0,0.0]
         }
     },
     {
-        "implemented_in_file"   : "apply_displacement_process",
-        "implemented_in_module" : "KratosMultiphysics.SolidMechanicsApplication",
-        "help"                  : "This process applies a displacement via the apply_constant_vector_value_process in kratos core",
-        "process_name"          : "ApplyDisplacementProcess",
+        "implemented_in_file"   : "impose_vector_value_by_components_process",
+        "implemented_in_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto3",
+            "variable_name"   : "DISPLACEMENT",
             "is_fixed_x"      : false,
             "is_fixed_y"      : false,
             "is_fixed_z"      : true,
-            "direction"       : [0.0,0.0,0.0]
+            "value"           : [0.0,0.0,0.0]
         }
     }
     ],
