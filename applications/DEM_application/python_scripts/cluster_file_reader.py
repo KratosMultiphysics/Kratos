@@ -7,8 +7,8 @@ def ReadNextLine(f):
         
 def ReadClusterFile(filename):
     import os
+    os.chdir("..")
     f = open(filename, 'r')
-    
     list_of_coordinates = []
     list_of_radii = []
     inertias = []
