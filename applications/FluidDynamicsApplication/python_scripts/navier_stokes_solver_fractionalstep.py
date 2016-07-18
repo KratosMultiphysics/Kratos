@@ -70,7 +70,8 @@ class NavierStokesSolver_FractionalStep:
                 "verbosity"                      : 0
             },
             "volume_model_part_name" : "volume_model_part",
-            "skin_parts":[""]
+            "skin_parts":[""],
+            "no_skin_parts":[""]
         }""")
         
         ##overwrite the default settings with user-provided parameters
@@ -141,15 +142,15 @@ class NavierStokesSolver_FractionalStep:
         
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
             
-            ##here we shall check that the input read has the shape we like
-            self.settings.AddEmptyValue("prepare_model_part_settings")
-            self.settings["prepare_model_part_settings"].AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
-            self.settings["prepare_model_part_settings"].AddValue("skin_parts",self.settings["skin_parts"])
-
-            import check_and_prepare_model_process_fluid
-            check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, self.settings["prepare_model_part_settings"]).Execute()
+            ## Auxiliar parameters to execute the CheckAndPrepareModelProcess
+            prepare_model_part_settings = KratosMultiphysics.Parameters("{}")
+            prepare_model_part_settings.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
+            prepare_model_part_settings.AddValue("skin_parts",self.settings["skin_parts"])
             
-            #here we read the KINEMATIC VISCOSITY and DENSITY and we apply it to the nodes
+            import check_and_prepare_model_process_fluid
+            check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
+            
+            ## Read the KINEMATIC VISCOSITY and DENSITY and we apply it to the nodes
             for el in self.main_model_part.Elements:
                 rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
                 kin_viscosity = el.Properties.GetValue(KratosMultiphysics.VISCOSITY)
@@ -158,11 +159,6 @@ class NavierStokesSolver_FractionalStep:
             KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
             KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
             
-            
-            #if needed here we shall generate the constitutive laws
-            #import constitutive_law_python_utility as constitutive_law_utils
-            #constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(main_model_part, self.settings["DomainSize"]);
-            #constitutive_law.Initialize();
         else:
             raise Exception("Other input options are not yet implemented.")
         
