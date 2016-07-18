@@ -19,6 +19,21 @@
 		</inputs>
     </Process>
 
+    <Process n="ApplyHydrostaticOutletProcess" pn="Scalar value" implemented_in_file="apply_hydrostatic_outlet_process"
+        implemented_in_module="KratosMultiphysics.FluidDynamicsApplication">
+		<inputs>
+<!--
+            checkStateByUniqueName not working for un "outlet_type". The function is only called when opening the BC in the tree but not called when switching values in the combobox.
+-->
+<!--
+			<parameter n="outlet_type" un="outlet_type" pn="Outlet type" type="combo" v="Constant" values="Constant,Hydrostatic" help="Set eiter a constant pressure distribution or a hydrostatic one." state="[ShowInMode Developer]"/>
+-->
+			<parameter n="outlet_type" un="outlet_type" pn="Outlet type" type="combo" v="Hydrostatic" values="Hydrostatic" help="Set eiter a constant pressure distribution or a hydrostatic one." state="[ShowInMode Developer]"/>
+            <parameter n="h_top" pn="Top height" type="double" v="0.0" unit_magnitude="L" units="m" help="Fluid height above the outlet. If equals 0.0 triangular distribution is considered." state="[checkStateByUniqueName outlet_type Hydrostatic]"/>
+            <parameter n="hyd_rho" pn="Hydrostatic density" type="double" v="1000.0" unit_magnitude="m/L" units="kg/m^3" help="Density of the fluid that yields the outlet pressure distribution." state="[checkStateByUniqueName outlet_type Hydrostatic]"/>
+		</inputs>
+    </Process>
+
     <Process n="ApplySlipProcess" pn="Scalar value" implemented_in_file="apply_slip_process"
         implemented_in_module="KratosMultiphysics.FluidDynamicsApplication">
 		<inputs>
