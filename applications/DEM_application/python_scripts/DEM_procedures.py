@@ -1121,8 +1121,10 @@ class DEMIo(object):
                 self.PushPrintVar(1, DEM_STRESS_ZZ,         self.spheres_variables)
                 self.PushPrintVar(1, FORCE_REACTION,        self.spheres_variables)
                 self.PushPrintVar(1, MOMENT_REACTION,       self.spheres_variables)
-                if Var_Translator(self.DEM_parameters.PostPoissonRatio):
-                    self.PushPrintVar(self.DEM_parameters.PostPoissonRatio, POISSON_VALUE,         self.spheres_variables)
+
+        if (hasattr(self.DEM_parameters, "PostPoissonRatio")):
+            if Var_Translator(self.DEM_parameters.PostPoissonRatio):
+                self.PushPrintVar(self.DEM_parameters.PostPoissonRatio, POISSON_VALUE, self.spheres_variables)
 
     def AddArlequinVariables(self):
         self.PushPrintVar(1, DISTANCE, self.global_variables)
