@@ -1,10 +1,11 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-import math
 
 import sphere_strategy as SolverStrategy
 BaseExplicitStrategy = SolverStrategy.ExplicitStrategy
+
+import math
 
 class ExplicitStrategy(BaseExplicitStrategy):
 
@@ -29,6 +30,16 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.test_type = Param.TestType
 
         self.amplified_continuum_search_radius_extension = Param.AmplifiedSearchRadiusExtension
+        
+        if not hasattr(Param, "PostPoissonRatio"):
+            self.poisson_ratio_option = 0
+        else:
+            self.poisson_ratio_option = self.Var_Translator(Param.PostPoissonRatio)
+            
+        if not hasattr(Param, "PoissonEffectOption"):
+            self.poisson_effect_option = 0
+        else:
+            self.poisson_effect_option = self.Var_Translator(Param.PoissonEffectOption)
 
     def CreateCPlusPlusStrategy(self):
         self.SetVariablesAndOptions()
@@ -44,6 +55,9 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         self.spheres_model_part.ProcessInfo.SetValue(FIXED_VEL_TOP, self.fixed_vel_top)
         self.spheres_model_part.ProcessInfo.SetValue(FIXED_VEL_BOT, self.fixed_vel_bot)
+        
+        self.spheres_model_part.ProcessInfo.SetValue(POISSON_EFFECT_OPTION, self.poisson_effect_option)
+
         ##################################
 
         if (self.Parameters.IntegrationScheme == 'Verlet_Velocity'):
