@@ -27,6 +27,8 @@ class PreRefiningModeler(mesh_modeler.MeshModeler):
     #
     def InitializeMeshing(self):
         
+        self.MeshingParameters.InitializeMeshing()
+
         # set execution flags: to set the options to be executed in methods and processes
         meshing_options = self.MeshingParameters.GetOptions()
 
@@ -139,3 +141,5 @@ class PreRefiningModeler(mesh_modeler.MeshModeler):
         execution_options.Set(KratosPfemBase.ModelerUtilities.KEEP_ISOLATED_NODES, False)
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
+        
+        self.MeshingParameters.InitializeMeshing() # select tessellation elements is going to be performed again

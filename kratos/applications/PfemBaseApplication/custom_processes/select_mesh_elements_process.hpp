@@ -107,7 +107,8 @@ public:
       mrRemesh.PreservedElements.clear();
       mrRemesh.PreservedElements.resize(OutNumberOfElements);
       std::fill( mrRemesh.PreservedElements.begin(), mrRemesh.PreservedElements.end(), 0 );
-      
+      mrRemesh.MeshElementsSelectedFlag = true;
+
       mrRemesh.Info->NumberOfElements=0;
     
       bool box_side_element = false;

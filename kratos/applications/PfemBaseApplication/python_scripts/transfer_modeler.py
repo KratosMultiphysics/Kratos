@@ -26,7 +26,9 @@ class TransferModeler(mesh_modeler.MeshModeler):
   
     #
     def InitializeMeshing(self):
-        
+       
+        self.MeshingParameters.InitializeMeshing()
+
         # set execution flags: to set the options to be executed in methods and processes
         execution_options = KratosMultiphysics.Flags()
 

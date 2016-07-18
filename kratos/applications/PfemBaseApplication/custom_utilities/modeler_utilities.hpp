@@ -571,9 +571,11 @@ public:
       bool InputInitializedFlag;
 
       std::vector<int> NodalPreIds;
-      std::vector<int> NodalNewIds;
+      std::vector<int> NodalNewIds; //deprecated in new mesher 
 
       std::vector<int> PreservedElements;
+      bool MeshElementsSelectedFlag;
+
       std::vector<std::vector<int> > NeighbourList; //deprecated in new mesher 
 
       //modeler pointers to the mesh structures
@@ -585,7 +587,7 @@ public:
       RefiningParameters::Pointer       Refine;
       TransferParametersType::Pointer Transfer;
 
-      PropertiesType           Properties;
+      PropertiesType                Properties;
      
       void Set(Flags ThisFlag)                           
       {
@@ -715,13 +717,14 @@ public:
 
 	AlphaParameter = 0;
 
-	OffsetFactor = 0;
+	OffsetFactor   = 0;
 
-	MeshingBoxSetFlag = false;
+	MeshingBoxSetFlag        = false;
 
 	TransferVariablesSetFlag = false;
   
-	InputInitializedFlag = false;
+	InputInitializedFlag     = false;
+	MeshElementsSelectedFlag = false;
 
 	InMesh.Initialize();
 	OutMesh.Initialize();
@@ -730,6 +733,19 @@ public:
 	// RemeshInfo.Initialize();
 	// Refine.Initialize();	
       };
+
+      void InitializeMeshing(){
+	MeshElementsSelectedFlag   = false;
+        PreservedElements.clear();
+	PreservedElements.resize(0);
+      };
+
+      void FinalizeMeshing(){
+	MeshElementsSelectedFlag   = false;
+        PreservedElements.clear();
+	PreservedElements.resize(0);
+      };
+
     };
 
 

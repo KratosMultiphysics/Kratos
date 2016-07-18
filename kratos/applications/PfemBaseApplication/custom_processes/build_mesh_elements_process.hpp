@@ -114,7 +114,7 @@ namespace Kratos
       //*******************************************************************
       //selecting elements
       
-	if( !mrRemesh.PreservedElements.size() || mrRemesh.ExecutionOptions.IsNot(ModelerUtilities::SELECT_TESSELLATION_ELEMENTS) )  //Select Mesh Elements not performed  ... is needed to be done before building new elements
+	if( !mrRemesh.MeshElementsSelectedFlag )  //Select Mesh Elements not performed  ... is needed to be done before building new elements
 	{  
 	  std::cout<<" ERROR : no selection of elements performed before building the elements "<<std::endl;
 	  SelectMeshElementsProcess SelectElements(mrModelPart,mrRemesh,mMeshId,mEchoLevel);

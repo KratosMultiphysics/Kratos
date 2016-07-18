@@ -27,6 +27,8 @@ class ReconnectModeler(mesh_modeler.MeshModeler):
     #
     def InitializeMeshing(self):
 
+        self.MeshingParameters.InitializeMeshing()
+
         meshing_options = self.MeshingParameters.GetOptions()
         
         # set execution flags: to set the options to be executed in methods and processes
@@ -45,8 +47,7 @@ class ReconnectModeler(mesh_modeler.MeshModeler):
         execution_options.Set(KratosPfemBase.ModelerUtilities.SELECT_TESSELLATION_ELEMENTS, True)
         execution_options.Set(KratosPfemBase.ModelerUtilities.KEEP_ISOLATED_NODES, False)
 
-
-        self.MeshingParameters.SetExecutionOptions(execution_options)
+        self.MeshingParameters.SetExecutionOptions(execution_options)       
         
         # set modeler flags: to set options for the mesher (triangle 2D, tetgen 3D)
         # RECONNECT
@@ -83,3 +84,5 @@ class ReconnectModeler(mesh_modeler.MeshModeler):
         execution_options = KratosMultiphysics.Flags() 
         # all false
         self.MeshingParameters.SetExecutionOptions(execution_options)
+
+        self.MeshingParameters.FinalizeMeshing()
