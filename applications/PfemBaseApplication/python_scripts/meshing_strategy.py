@@ -30,8 +30,8 @@ class MeshingStrategy(object):
              "mesh_smoothing": false,
              "variables_smoothing": false,
              "elemental_variables_to_smooth":[ "DETERMINANT_F" ],
-             "reference_element": "Element2D3N",
-             "reference_condition": "CompositeCondition2D3N"
+             "reference_element_type": "Element2D3N",
+             "reference_condition_type": "CompositeCondition2D3N"
         }
         """)
         
@@ -66,8 +66,8 @@ class MeshingStrategy(object):
         meshing_options.Set(KratosPfemBase.ModelerUtilities.VARIABLES_SMOOTHING, self.settings["variables_smoothing"].GetBool())
 
         self.MeshingParameters.SetOptions(meshing_options)
-        self.MeshingParameters.SetReferenceElement(self.settings["reference_element"].GetString())
-        self.MeshingParameters.SetReferenceCondition(self.settings["reference_condition"].GetString())
+        self.MeshingParameters.SetReferenceElement(self.settings["reference_element_type"].GetString())
+        self.MeshingParameters.SetReferenceCondition(self.settings["reference_condition_type"].GetString())
         
         #set variables to global transfer
         self.MeshDataTransfer   = KratosPfemBase.MeshDataTransferUtilities()
