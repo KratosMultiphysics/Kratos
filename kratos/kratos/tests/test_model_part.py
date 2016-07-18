@@ -102,11 +102,16 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfNodes(), 1)
         self.assertEqual(model_part.NumberOfNodes(0), 1)
 
-        model_part.CreateNewNode(1, 0.00,0.00,0.00) # This overwrites the previous one
+        #trying to create a node with Id 1 and coordinates which are different from the ones of the existing node 1. Error
+        with self.assertRaises(RuntimeError):
+            model_part.CreateNewNode(1, 0.00,0.00,0.00) 
 
+        #here i try to create a node with Id 1 but the coordinates coincide with the ones of the existing node. EXISTING NODE is returned and no error is thrown
+        model_part.CreateNewNode(1, 1.00,0.00,0.00) 
         self.assertEqual(model_part.NumberOfNodes(), 1)
         self.assertEqual(model_part.GetNode(1).Id, 1)
-        self.assertEqual(model_part.GetNode(1,0).X, 0.00)
+        self.assertEqual(model_part.GetNode(1,0).X, 1.00) 
+        
         self.assertEqual(len(model_part.Nodes), 1)
 
         model_part.CreateNewNode(2000, 2.00,0.00,0.00)
@@ -121,7 +126,7 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfNodes(), 3)
         self.assertEqual(model_part.GetNode(1).Id, 1)
         self.assertEqual(model_part.GetNode(2).Id, 2)
-        self.assertEqual(model_part.GetNode(1).X, 0.00)
+        self.assertEqual(model_part.GetNode(1).X, 1.00) #here the coordinates are still  the same as the original node
         self.assertEqual(model_part.GetNode(2).X, 2.00)
 
         model_part.RemoveNode(2000)
@@ -290,7 +295,9 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfElements(), 1)
         self.assertEqual(model_part.NumberOfElements(0), 1)
 
-        model_part.CreateNewElement("Element2D3N", 1, [1,2,3], model_part.GetProperties()[1])
+        #an error is thrown if i try to create an element with the same Id
+        with self.assertRaises(RuntimeError):
+            model_part.CreateNewElement("Element2D3N", 1, [1,2,3], model_part.GetProperties()[1])
 
         self.assertEqual(model_part.NumberOfElements(), 1)
         self.assertEqual(model_part.GetElement(1).Id, 1)
@@ -381,7 +388,8 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfConditions(), 1)
         self.assertEqual(model_part.NumberOfConditions(0), 1)
 
-        model_part.CreateNewCondition("Condition3D", 1, [1,2,3], model_part.GetProperties()[1])
+        with self.assertRaises(RuntimeError):
+            model_part.CreateNewCondition("Condition3D", 1, [1,2,3], model_part.GetProperties()[1])
 
         self.assertEqual(model_part.NumberOfConditions(), 1)
         self.assertEqual(model_part.GetCondition(1).Id, 1)
