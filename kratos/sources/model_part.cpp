@@ -250,6 +250,7 @@ void ModelPart::AddNode(ModelPart::NodeType::Pointer pNewNode, ModelPart::IndexT
 */
 ModelPart::NodeType::Pointer ModelPart::CreateNewNode(int Id, double x, double y, double z, VariablesList* pNewVariablesList, ModelPart::IndexType ThisIndex)
 {
+    KRATOS_TRY
     if (IsSubModelPart())
     {
         NodeType::Pointer p_new_node = mpParentModelPart->CreateNewNode(Id, x, y, z, pNewVariablesList, ThisIndex);
@@ -258,8 +259,22 @@ ModelPart::NodeType::Pointer ModelPart::CreateNewNode(int Id, double x, double y
         return p_new_node;
     }
 
+    //verify if the node exists and eventually give back the existing node   
+    auto& root_nodes = this->Nodes(); //note that if we are here than we are working with the root model_part
+    auto existing_node_it = root_nodes.find(Id);
+    if( existing_node_it != root_nodes.end())
+    {
+        //the node already exists - now check if the position we ask for coincides with the one of the existing one
+        double distance = sqrt( pow( existing_node_it->X() - x,2) + pow(existing_node_it->Y() - y,2) + pow(existing_node_it->Z() - z,2) );
+        
+        if(distance > std::numeric_limits<int>::epsilon()*1000)
+            KRATOS_ERROR << "trying to create a node with Id " << Id << " however a node with the same Id already exists in the root model part. Existing node coordinates are " << existing_node_it->Coordinates() << " coordinates of the nodes we are attempting to create are :" << x << " " << y << " " << z;
+        
+        //if the node we attempt to create is in the same position as the one that is already there, we return the old one
+        return *(existing_node_it.base());
+    }
+
     //create a new node
-// 		NodeType::Pointer p_new_node = NodeType::Pointer(new NodeType(Id, x, y, z));
     NodeType::Pointer p_new_node = boost::make_shared< NodeType >( Id, x, y, z );
 
     // Giving model part's variables list to the node
@@ -272,36 +287,17 @@ ModelPart::NodeType::Pointer ModelPart::CreateNewNode(int Id, double x, double y
     GetMesh(ThisIndex).AddNode(p_new_node);
 
     return p_new_node;
+    KRATOS_CATCH("")
 }
 
 ModelPart::NodeType::Pointer ModelPart::CreateNewNode(ModelPart::IndexType Id, double x, double y, double z, ModelPart::IndexType ThisIndex)
 {
-    if (IsSubModelPart())
-    {
-        NodeType::Pointer p_new_node = mpParentModelPart->CreateNewNode(Id, x, y, z, ThisIndex);
-        GetMesh(ThisIndex).AddNode(p_new_node);
-
-        return p_new_node;
-    }
-
-    //create a new node
-// 		NodeType::Pointer p_new_node = NodeType::Pointer(new NodeType(Id, x, y, z));
-    NodeType::Pointer p_new_node = boost::make_shared< NodeType >( Id, x, y, z);
-
-    // Giving model part's variables list to the node
-    p_new_node->SetSolutionStepVariablesList(mpVariablesList);
-
-    //set buffer size
-    p_new_node->SetBufferSize(mBufferSize);
-
-    //add the new node to the list of nodes
-    GetMesh(ThisIndex).AddNode(p_new_node);
-
-    return p_new_node;
+    return CreateNewNode(Id, x, y, z, mpVariablesList, ThisIndex);
 }
 
 ModelPart::NodeType::Pointer ModelPart::CreateNewNode(ModelPart::IndexType Id, double x, double y, double z, double* pThisData, ModelPart::IndexType ThisIndex)
 {
+    KRATOS_TRY
     if (IsSubModelPart())
 
     {
@@ -310,42 +306,34 @@ ModelPart::NodeType::Pointer ModelPart::CreateNewNode(ModelPart::IndexType Id, d
 
         return p_new_node;
     }
+    KRATOS_WATCH(Id)
+    //verify if the node exists and eventually give back the existing node
+    NodesContainerType::iterator existing_node_it = this->GetMesh(ThisIndex).Nodes().find(Id);
+    if( existing_node_it != GetMesh(ThisIndex).NodesEnd())
+    {
+        //the node already exists - now check if the position we ask for coincides with the one of the existing one
+        double distance = sqrt( pow( existing_node_it->X() - x,2) + pow(existing_node_it->Y() - y,2) + pow(existing_node_it->Z() - z,2) );
+        
+        if(distance > std::numeric_limits<int>::epsilon()*1000)
+            KRATOS_ERROR << "trying to create a node with Id " << Id << " however a node with the same Id already exists in the root model part. Existing node coordinates are " << existing_node_it->Coordinates() << " coordinates of the nodes we are attempting to create are :" << x << " " << y << " " << z;
+        
+        //if the node we attempt to create is in the same position as the one that is already there, we return the old one
+        return *(existing_node_it.base());
+    }
 
     //create a new node
-    //NodeType::Pointer p_new_node = NodeType::Pointer(new NodeType(Id, x, y, z, mpVariablesList, pThisData, mBufferSize));
     NodeType::Pointer p_new_node = boost::make_shared< NodeType >( Id, x, y, z, mpVariablesList, pThisData, mBufferSize);
     //add the new node to the list of nodes
     GetMesh(ThisIndex).AddNode(p_new_node);
 
     return p_new_node;
+    KRATOS_CATCH("")
 
 }
 
 ModelPart::NodeType::Pointer ModelPart::CreateNewNode(ModelPart::IndexType NodeId, ModelPart::NodeType const& rSourceNode, ModelPart::IndexType ThisIndex)
 {
-    if (IsSubModelPart())
-    {
-        NodeType::Pointer p_new_node = mpParentModelPart->CreateNewNode(NodeId, rSourceNode, ThisIndex);
-        GetMesh(ThisIndex).AddNode(p_new_node);
-
-        return p_new_node;
-    }
-
-    //create a new node
-// 		NodeType::Pointer p_new_node = NodeType::Pointer(new NodeType(NodeId, rSourceNode.X(), rSourceNode.Y(), rSourceNode.Z()));
-    NodeType::Pointer p_new_node = boost::make_shared< NodeType >( NodeId, rSourceNode.X(), rSourceNode.Y(), rSourceNode.Z() );
-
-    // Giving model part's variables list to the node
-    p_new_node->SetSolutionStepVariablesList(mpVariablesList);
-
-    //set buffer size
-    p_new_node->SetBufferSize(mBufferSize);
-
-    //add the new node to the list of nodes
-    GetMesh(ThisIndex).AddNode(p_new_node);
-
-    return p_new_node;
-
+    return CreateNewNode(NodeId, rSourceNode.X(), rSourceNode.Y(), rSourceNode.Z(), mpVariablesList, ThisIndex);
 }
 
 void ModelPart::AssignNode(ModelPart::NodeType::Pointer pThisNode, ModelPart::IndexType ThisIndex)
@@ -483,9 +471,9 @@ void ModelPart::RemoveNodesFromAllLevels(Flags identifier_flag)
 ModelPart& ModelPart::GetRootModelPart()
 {
     if (IsSubModelPart())
-        return *this;
+        return mpParentModelPart->GetRootModelPart(); 
     else
-        return mpParentModelPart->GetRootModelPart();;
+        return *this;
 }
 
 void ModelPart::SetNodalSolutionStepVariablesList()
@@ -649,13 +637,19 @@ ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementN
         ModelPart::IndexType Id, Geometry< Node < 3 > >::PointsArrayType pElementNodes,
         ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
 {
+    KRATOS_TRY
     if (IsSubModelPart())
     {
         ElementType::Pointer p_new_element = mpParentModelPart->CreateNewElement(ElementName, Id, pElementNodes, pProperties, ThisIndex);
         GetMesh(ThisIndex).AddElement(p_new_element);
         return p_new_element;
     }
+        
+    auto existing_element_iterator = GetMesh(ThisIndex).Elements().find(Id);
+    if(existing_element_iterator != GetMesh(ThisIndex).ElementsEnd() )
+        KRATOS_ERROR << "trying to construct aen element with ID " << Id << " however an element with the same Id already exists";
 
+    
     //create the new element
     ElementType const& r_clone_element = KratosComponents<ElementType>::Get(ElementName);
     Element::Pointer p_element = r_clone_element.Create(Id, pElementNodes, pProperties);
@@ -664,6 +658,7 @@ ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementN
     GetMesh(ThisIndex).AddElement(p_element);
 
     return p_element;
+    KRATOS_CATCH("")
 }
 
 /** Remove the element with given Id from mesh with ThisIndex in this modelpart and all its subs.
@@ -810,11 +805,37 @@ ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string Cond
         ModelPart::IndexType Id, Geometry< Node < 3 > >::PointsArrayType pConditionNodes,
         ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
 {
+    KRATOS_TRY
     if (IsSubModelPart())
     {
         ConditionType::Pointer p_new_condition = mpParentModelPart->CreateNewCondition(ConditionName, Id, pConditionNodes, pProperties, ThisIndex);
         GetMesh(ThisIndex).AddCondition(p_new_condition);
         return p_new_condition;
+    }
+
+    auto existing_condition_iterator = GetMesh(ThisIndex).Conditions().find(Id);
+    if(existing_condition_iterator != GetMesh(ThisIndex).ConditionsEnd() )
+    {
+        KRATOS_ERROR << "trying to construct a condition with ID " << Id << " however a condition with the same Id already exists";
+        
+//         if(pConditionNodes.size() != existing_condition_iterator.size())
+//             KRATOS_ERROR << "trying to construct a condition with a different number of nodes. Element Id is ";
+//         
+//         //check if the ids of nodes coincides
+//         bool nodes_are_matching = true;
+//         for(unsigned int i=0; i<pConditionNodes.size(); i++)
+//         {
+//             
+//             if(pConditionNodes[i].Id() != existing_condition_iterator->GetGeometry()[i].Id())
+//             {
+//                 nodes_are_matching = false;
+//                 break;
+//             }
+//         }
+//         if(nodes_are_matching == false)
+//             KRATOS_THROW_ERROR << "Error when attempting to construct condition with Id" << Id << " a condition with the same Id exists with the following geometry " << existing_condition_iterator->GetGeometry();
+//         
+//         return *(existing_condition_iterator.base());
     }
 
     //get the element
@@ -825,6 +846,7 @@ ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string Cond
     GetMesh(ThisIndex).AddCondition(p_condition);
 
     return p_condition;
+    KRATOS_CATCH("")
 }
 
 
