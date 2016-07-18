@@ -23,12 +23,7 @@ class ExplicitStrategy:
         if not hasattr(Param, "AutomaticTimestep"):
             self.critical_time_option = 0
         else:
-            self.critical_time_option = self.Var_Translator(Param.AutomaticTimestep)
-        
-        if not hasattr(Param, "PostPoissonRatio"):
-            self.poisson_ratio_option = 0
-        else:
-            self.poisson_ratio_option = self.Var_Translator(Param.PostPoissonRatio)    
+            self.critical_time_option = self.Var_Translator(Param.AutomaticTimestep)    
                    
         self.trihedron_option        = self.Var_Translator(Param.PostEulerAngles)
         self.rotation_option         = self.Var_Translator(Param.RotationOption)
@@ -119,11 +114,11 @@ class ExplicitStrategy:
             self.virtual_mass_option = 1
 
         self.rolling_friction_option = self.Var_Translator(Param.RollingFrictionOption)
-        self.poisson_effect_option = self.Var_Translator(Param.PoissonEffectOption)
 
         # PRINTING VARIABLES
         self.print_export_id = self.Var_Translator(Param.PostExportId)
         self.print_export_skin_sphere = 0
+        self.poisson_ratio_option = 0
 
         # RESOLUTION METHODS AND PARAMETERS
         self.n_step_search = int(Param.NeighbourSearchFrequency)
@@ -178,7 +173,6 @@ class ExplicitStrategy:
         # GLOBAL MATERIAL PROPERTIES
         self.spheres_model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
         self.spheres_model_part.ProcessInfo.SetValue(ROLLING_FRICTION_OPTION, self.rolling_friction_option)
-        self.spheres_model_part.ProcessInfo.SetValue(POISSON_EFFECT_OPTION, self.poisson_effect_option)
 
         # SEARCH-RELATED
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_TOLERANCE, self.search_tolerance)
