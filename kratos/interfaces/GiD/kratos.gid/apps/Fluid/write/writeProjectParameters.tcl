@@ -50,7 +50,9 @@ proc ::Fluid::write::getParametersDict { } {
     dict set solverSettingsDict volume_model_part_name {*}[write::getPartsMeshId]
     # Skin parts
     dict set solverSettingsDict skin_parts [getBoundaryConditionMeshId]
-        
+    # No skin parts
+    dict set solverSettingsDict no_skin_parts [getNoSkinConditionMeshId]
+    
     dict set projectParametersDict solver_settings $solverSettingsDict
         
     # Boundary conditions processes
@@ -67,7 +69,7 @@ proc Fluid::write::writeParametersEvent { } {
     write::WriteJSON $projectParametersDict
 }
 
-# Skin SubModelParts ids
+# Gravity SubModelParts and Process collection
 proc Fluid::write::getGravityProcessDict {} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
@@ -113,5 +115,27 @@ proc Fluid::write::getBoundaryConditionMeshId {} {
     }
     
     return $listOfBCGroups
+}
+
+# No-skin SubModelParts ids
+proc Fluid::write::getNoSkinConditionMeshId {} {
+    variable BCUN
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    
+    set listOfNoSkinGroups [list ]
+    set xp1 "[spdAux::getRoute $BCUN]/condition/group"
+    set groups [$root selectNodes $xp1]    
+    foreach group $groups {
+        set groupName [$group @n]
+        set cid [[$group parent] @n]
+        set cond [Model::getCondition $cid]
+        if {[$cond getAttribute "SkinConditions"] eq "False"} {
+            set gname [::write::getMeshId $cid $groupName]
+            if {$gname ni $listOfNoSkinGroups} {lappend listOfNoSkinGroups $gname}
+        }
+    }
+    
+    return $listOfNoSkinGroups
 }
 
