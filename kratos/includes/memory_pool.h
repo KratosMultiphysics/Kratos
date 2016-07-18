@@ -79,6 +79,7 @@ namespace Kratos
 	  }
 
 	  static void Deallocate(void* pPointrerToRelease, std::size_t ObjectSizeInBytes) {
+#pragma omp critical
 		  GetPoolWithBlockSize(ObjectSizeInBytes)->Deallocate(pPointrerToRelease);
 	  }
 
@@ -97,12 +98,15 @@ namespace Kratos
 	  }
 
 	  static FixedSizeMemoryPool* GetPoolWithBlockSize(std::size_t BlockSize) {
-		  PoolsContainerType& r_pools = GetInstance().mPools;
-		  if (r_pools.size() <= BlockSize)
-			  r_pools.resize(BlockSize+1, nullptr);
+			  PoolsContainerType& r_pools = GetInstance().mPools;
+#pragma omp critical
+		  {
+			  if (r_pools.size() <= BlockSize)
+				  r_pools.resize(BlockSize + 1, nullptr);
 
-		  if (r_pools[BlockSize] == nullptr) {
-			  r_pools[BlockSize] = new FixedSizeMemoryPool(BlockSize);
+			  if (r_pools[BlockSize] == nullptr) {
+				  r_pools[BlockSize] = new FixedSizeMemoryPool(BlockSize);
+			  }
 		  }
 		  return r_pools[BlockSize];
 	  }

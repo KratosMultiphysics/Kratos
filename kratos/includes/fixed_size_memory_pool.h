@@ -44,7 +44,7 @@ namespace Kratos
 
 	  ///@}
 
-		static constexpr SizeType DefaultNumberOfBlocksPerChunk = 4096;
+		static constexpr SizeType DefaultChunkSize = 1024*1024; // 1M byte
 
 	  ///@name Life Cycle
       ///@{
@@ -56,9 +56,9 @@ namespace Kratos
 	  FixedSizeMemoryPool(FixedSizeMemoryPool const& rOther) = delete;
 
 	  /// The constructor to be called
-	  FixedSizeMemoryPool(std::size_t BlockSizeInBytes, SizeType NumberOfBlocksPerChunk = DefaultNumberOfBlocksPerChunk)
+	  FixedSizeMemoryPool(std::size_t BlockSizeInBytes, SizeType ChunkSize = DefaultChunkSize)
 		  : mBlockSizeInBytes(BlockSizeInBytes)
-		  , mNumberOfBlocksPerChunk(NumberOfBlocksPerChunk)
+		  , mChunkSize(ChunkSize)
 	  {
 		  AddChunk();
 	  }
@@ -81,22 +81,25 @@ namespace Kratos
 
 	  /// This function does not throw and returns zero if cannot allocate
 	  void* Allocate() {
-		  if (mAvailableChunksIndices.empty())
-			  AddChunk();
+		  void* p_result = nullptr;
+#pragma omp critical
+		  {
+			  if (mAvailableChunksIndices.empty())
+				  AddChunk();
 
-		  Chunk& r_available_chunk = mChunks[mAvailableChunksIndices.back()];
-		  if (r_available_chunk.IsReleased())
-			  r_available_chunk.Initialize(mBlockSizeInBytes,mNumberOfBlocksPerChunk);
-		  void* p_result = r_available_chunk.Allocate(mBlockSizeInBytes);
-		  if (r_available_chunk.IsFull()) mAvailableChunksIndices.pop_back();
-
+			  Chunk& r_available_chunk = mChunks[mAvailableChunksIndices.back()];
+			  if (r_available_chunk.IsReleased())
+				  r_available_chunk.Initialize();
+			  p_result = r_available_chunk.Allocate();
+			  if (r_available_chunk.IsFull()) mAvailableChunksIndices.pop_back();
+		  }
 		  return p_result;
 	  }
 
 	  void Deallocate(void* pPointrerToRelease) {
 		  if (!mAvailableChunksIndices.empty()) {
 			  std::size_t chunk_index = mAvailableChunksIndices.back();
-			  if (mChunks[chunk_index].Has(pPointrerToRelease, mBlockSizeInBytes, mNumberOfBlocksPerChunk)) {
+			  if (mChunks[chunk_index].Has(pPointrerToRelease)) {
 				  DeallocateFromChunk(pPointrerToRelease, chunk_index);
 				  return;
 			  }
@@ -104,7 +107,7 @@ namespace Kratos
 
 		  for (std::size_t i_chunk_index = 0; i_chunk_index < mChunks.size(); i_chunk_index++)
 		  {
-			  if (mChunks[i_chunk_index].Has(pPointrerToRelease, mBlockSizeInBytes, mNumberOfBlocksPerChunk)) {
+			  if (mChunks[i_chunk_index].Has(pPointrerToRelease)) {
 				  DeallocateFromChunk(pPointrerToRelease, i_chunk_index);
 				  return;
 			  }
@@ -123,20 +126,20 @@ namespace Kratos
 	  }
 
 	  SizeType ChunkSize() const {
-		  return Chunk::Size(mBlockSizeInBytes, mNumberOfBlocksPerChunk);
+		  return mChunkSize;
 	  }
 
 	  std::size_t MemoryUsed() const {
 		  std::size_t memory_used = sizeof(FixedSizeMemoryPool) + (mAvailableChunksIndices.size() * sizeof(std::size_t));
 		  for (auto i_chunk = mChunks.begin(); i_chunk != mChunks.end(); i_chunk++)
-			  memory_used += i_chunk->MemoryUsed(mBlockSizeInBytes, mNumberOfBlocksPerChunk);
+			  memory_used += i_chunk->MemoryUsed();
 		  return memory_used;
 	  }
 
 	  std::size_t MemoryOverhead() const {
 		  std::size_t memory_overhead = sizeof(FixedSizeMemoryPool) + (mAvailableChunksIndices.size() * sizeof(std::size_t));
 		  for (auto i_chunk = mChunks.begin(); i_chunk != mChunks.end(); i_chunk++)
-			  memory_overhead += i_chunk->MemoryOverhead(mBlockSizeInBytes, mNumberOfBlocksPerChunk);
+			  memory_overhead += i_chunk->MemoryOverhead();
 		  return memory_overhead;
 	  }
 
@@ -189,7 +192,7 @@ namespace Kratos
       ///@{
 
 		std::size_t mBlockSizeInBytes;
-		SizeType mNumberOfBlocksPerChunk;
+		SizeType mChunkSize;
 		std::vector<Chunk> mChunks;
 		std::vector<std::size_t> mAvailableChunksIndices;
 
@@ -198,7 +201,7 @@ namespace Kratos
       ///@{
 
 		void AddChunk() {
-			mChunks.push_back(Chunk(mBlockSizeInBytes, mNumberOfBlocksPerChunk));
+			mChunks.push_back(Chunk(mBlockSizeInBytes, mChunkSize));
 			mAvailableChunksIndices.push_back(mChunks.size() - 1);
 		}
 
@@ -206,8 +209,8 @@ namespace Kratos
 			Chunk& r_chunk = mChunks[ChunkIndex];
 			if (r_chunk.IsFull()) // It will be available after deallocating but is not in the list yet
 				mAvailableChunksIndices.push_back(ChunkIndex);
-			r_chunk.Deallocate(pPointrerToRelease, mBlockSizeInBytes);
-			if (r_chunk.IsEmpty(mNumberOfBlocksPerChunk))
+			r_chunk.Deallocate(pPointrerToRelease);
+			if (r_chunk.IsEmpty())
 				ReleaseChunk(ChunkIndex);
 		}
 
