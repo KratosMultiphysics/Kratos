@@ -275,6 +275,8 @@ namespace Kratos
 	.def("GetTransferParameters",&ModelerUtilities::MeshingParameters::GetTransferParameters)
 	.def("GetRefiningParameters",&ModelerUtilities::MeshingParameters::GetRefiningParameters)
 	.def("GetOptions",&ModelerUtilities::MeshingParameters::GetOptions)
+	.def("InitializeMeshing",&ModelerUtilities::MeshingParameters::InitializeMeshing)
+	.def("FinalizeMeshing",&ModelerUtilities::MeshingParameters::FinalizeMeshing)
 	;
 
 

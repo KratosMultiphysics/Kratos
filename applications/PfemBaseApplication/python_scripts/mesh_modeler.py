@@ -52,6 +52,8 @@ class MeshModeler(object):
     #
     def InitializeMeshing(self):
         
+        self.MeshingParameters.InitializeMeshing()
+
         # set execution flags: to set the options to be executed in methods and processes
         execution_options = KratosMultiphysics.Flags()
 
@@ -178,6 +180,8 @@ class MeshModeler(object):
         execution_options.Set(KratosPfemBase.ModelerUtilities.KEEP_ISOLATED_NODES, False)
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
+
+        self.MeshingParameters.FinalizeMeshing()
 
     #
     def ExecuteMeshing(self):

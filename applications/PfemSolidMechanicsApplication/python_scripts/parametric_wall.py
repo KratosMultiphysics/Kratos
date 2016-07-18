@@ -27,6 +27,7 @@ class ParametricWall(object):
             "mesh_id": 1,
             "domain_size": 2,
             "echo_level": 1,
+            "rigid_body_element_type": "TranslatoryRigidElement3D1N",
             "wall_parameters_list":[{
                "radius": "meshing_strategy",
                "center": [0.0, 0.0, 0.0],
@@ -47,25 +48,14 @@ class ParametricWall(object):
                       "PENALTY_PARAMETER": 1000
                    }
                }
-            },
-            "constraints_process_list":[{
-               "implemented_in_file"   : "apply_velocity_process",
-               "implemented_in_module" : "KratosMultiphysics.SolidMechanicsApplication",
-               "process_name"          : "ApplyVelocityProcess",
-               "parameters"            : {
-                    "mesh_id"        : 0,
-                    "model_part_name : "ParametricWallPart",
-                    "variable_name"  : "VELOCITY",
-                    "is_fixed_x"     : true,
-                    "is_fixed_y"     : true,
-                    "is_fixed_z"     : true,
-                    "value"          : [0.0, 0.0, 0.0]
-               }
-            }],
-            "rigid_body_element_type": "TranslatoryRigidElement3D1N"
+            }
         }
         """)
         
+        ## new node and rigid body element inside the same mesh : boundary conditions also applied
+        ## this node and elements must be considered in the computing model part
+        ## new contact conditions must be already assembled
+
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
