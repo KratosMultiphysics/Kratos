@@ -12,6 +12,12 @@ EAS_IMP                      1
 QUAD_ON                      1
 End Properties
 
+Begin Properties  1
+End Properties
+
+Begin Properties  2
+End Properties
+
 Begin Nodes
 1	0.0000E+00	0.0000E+00	2.5337E+00
 2	3.1670E-02	0.0000E+00	2.5335E+00

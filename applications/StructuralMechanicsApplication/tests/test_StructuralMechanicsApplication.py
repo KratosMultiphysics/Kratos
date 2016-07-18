@@ -83,6 +83,7 @@ def AssambleTestSuites():
             TSimplePatchNotMatchingATestContact,
             TSimplePatchNotMatchingBTestContact,
             TTaylorPatchTestContact
+            #####TSprismPanTests
         ])
     )
 
