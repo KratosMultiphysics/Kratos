@@ -6,7 +6,7 @@ import KratosMultiphysics.PfemSolidMechanicsApplication as KratosPfemSolid
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
-def CreateWall(main_model_part, custom_settings):
+def CreateParametricWall(main_model_part, custom_settings):
     return ParametricWall(main_model_part, custom_settings)
 
 class ParametricWall(object):
@@ -37,7 +37,7 @@ class ParametricWall(object):
             "search_strategy":{
                "python_file_name": "meshing_strategy",
                "meshing_frequency": 0,
-               "reference_condition": "PointContactCondition2D1N"
+               "reference_condition_type": "PointContactCondition2D1N"
             },
             "constraints_process_list":[{
                "implemented_in_file"   : "apply_velocity_process",
@@ -53,9 +53,10 @@ class ParametricWall(object):
                     "value"          : [0.0, 0.0, 0.0]
                }
             }],
-            "properties_variables":{
+            "variables_of_properties":{
                "PENALTY_PARAMETER": 0.0,
-            }
+            },
+            "rigid_body_element_type": "TranslatoryRigidElement3D1N"
         }
         """)
         

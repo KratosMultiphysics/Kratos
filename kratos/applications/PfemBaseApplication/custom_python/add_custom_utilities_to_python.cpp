@@ -226,7 +226,7 @@ namespace Kratos
 	.def("SetNumberOfNewNodes",&ModelerUtilities::InfoParameters::SetNumberOfNewNodes)
 	.def("SetNumberOfNewElements",&ModelerUtilities::InfoParameters::SetNumberOfNewElements)
 	.def("SetNumberOfNewConditions",&ModelerUtilities::InfoParameters::SetNumberOfNewConditions)
-
+	.def("GetInsertedNodes",&ModelerUtilities::InfoParameters::GetInsertedNodes)
 	;
 
       // Remeshing modeler refining parameters

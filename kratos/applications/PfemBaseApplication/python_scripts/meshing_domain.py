@@ -40,8 +40,8 @@ class MeshingDomain(object):
                "mesh_smoothing": false,
                "variables_smoothing": false,
                "elemental_variables_to_smooth":[ "DETERMINANT_F" ],
-               "reference_element": "Element2D3N",
-               "reference_condition": "CompositeCondition2D2N"
+               "reference_element_type": "Element2D3N",
+               "reference_condition_type": "CompositeCondition2D2N"
             },
             "spatial_bounding_box":{
                "radius": 0.0,

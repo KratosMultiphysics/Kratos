@@ -47,11 +47,11 @@
 		"variables_smoothing": *tcl(string tolower *cond(JacobiSmoothing)),
 		"elemental_variables_to_smooth":[ "DETERMINANT_F" ],
 *if(GenData(DOMAIN_SIZE,INT)==2)
-		"reference_element": "Element2D3N",
-		"reference_condition": "CompositeCondition2D2N"
+		"reference_element_type": "Element2D3N",
+		"reference_condition_type": "CompositeCondition2D2N"
 *elseif(GenData(DOMAIN_SIZE,INT)==3)
-		"reference_element": "Element3D4N" ,
-		"reference_condition": "CompositeCondition3D3N"
+		"reference_element_type": "Element3D4N" ,
+		"reference_condition_type": "CompositeCondition3D3N"
 *endif
 	},
 	"spatial_bounding_box":{

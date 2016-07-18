@@ -382,6 +382,11 @@ public:
 	return MechanicalSmoothingRequired;
       }
 
+      int GetInsertedNodes(){
+	return InsertedNodes;
+      }
+      
+
     };
 
 
