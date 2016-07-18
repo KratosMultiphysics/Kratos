@@ -15,14 +15,6 @@
 #include "includes/kratos_flags.h"
 #include "custom_utilities/modeler_utilities.hpp"
 
-#ifndef DBL_MIN
-#define DBL_MIN (1e-300)
-#endif  //DBL_MIN
-
-#ifndef DBL_MAX
-#define DBL_MAX (9.999999999999999e300)
-#endif  //DBL_MAX
-
 namespace Kratos
 {
 
@@ -692,8 +684,8 @@ namespace Kratos
     std::vector<double> FaceAreas(rGeometry.FacesNumber());
     std::fill(FaceAreas.begin(),FaceAreas.end(), 0.0 );
 
-    double MaximumFaceArea = DBL_MIN;
-    double MinimumFaceArea = DBL_MAX;
+    double MaximumFaceArea = std::numeric_limits<double>::min();
+    double MinimumFaceArea = std::numeric_limits<double>::max();
 
     boost::numeric::ublas::matrix<unsigned int> lpofa;  //points that define the faces
     rGeometry.NodesInFaces(lpofa);
@@ -811,8 +803,8 @@ namespace Kratos
 
     KRATOS_TRY
    
-    rMaximumSideLength = DBL_MIN;
-    rMinimumSideLength = DBL_MAX;
+    rMaximumSideLength = std::numeric_limits<double>::min();
+    rMinimumSideLength = std::numeric_limits<double>::max();
     
     boost::numeric::ublas::matrix<unsigned int> lpofa;
     rGeometry.NodesInFaces(lpofa);

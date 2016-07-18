@@ -80,45 +80,6 @@ namespace Kratos
   }
 
 
-  //*******************************************************************************************
-  //*******************************************************************************************
-
-  void MeshModeler::InitializeMeshRefinement(ModelPart& rModelPart,
-					     MeshingParametersType& rMeshingVariables,
-					     ModelPart::IndexType MeshId)
-  {
-    KRATOS_TRY
-    
-    //Refine and Remove nodes processes
-    ////////////////////////////////////////////////////////////
-    if( mPreRefiningProcesses.size() )
-      for(unsigned int i=0; i<mPreRefiningProcesses.size(); i++)
-	mPreRefiningProcesses[i]->Execute();
-    ////////////////////////////////////////////////////////////
-
-    KRATOS_CATCH( "" )
-  }
-
-  //*******************************************************************************************
-  //*******************************************************************************************
-
-  void MeshModeler::FinalizeMeshRefinement(ModelPart& rModelPart,
-					   MeshingParametersType& rMeshingVariables,
-					   ModelPart::IndexType MeshId)
-  {
-    KRATOS_TRY
-    
-    //Refine and Remove nodes processes
-    ////////////////////////////////////////////////////////////
-    if( mPostRefiningProcesses.size() )
-      for(unsigned int i=0; i<mPostRefiningProcesses.size(); i++)
-	mPostRefiningProcesses[i]->Execute();
-    ////////////////////////////////////////////////////////////
-
-    KRATOS_CATCH( "" )
-  }
-
-
 
   //*******************************************************************************************
   //*******************************************************************************************

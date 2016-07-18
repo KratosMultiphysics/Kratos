@@ -112,7 +112,7 @@ class MeshModeler(object):
 
 
         # process to refine elements /refine boundary
-        refine_mesh_elements  = KratosPfemBase.SetElementsToRefineOnThreshold(self.main_model_part, self.RefiningParameters, self.mesh_id, self.echo_level)
+        refine_mesh_elements  = KratosPfemBase.SetElementNodesToRefineOnThreshold(self.main_model_part, self.RefiningParameters, self.mesh_id, self.echo_level)
         self.mesher.SetPreMeshingProcess(refine_mesh_elements)
         
         # process to refine boundary (considering or not imposed walls)        
