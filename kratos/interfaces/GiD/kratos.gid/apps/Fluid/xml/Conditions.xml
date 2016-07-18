@@ -33,7 +33,7 @@
   <ConditionItem n="Outlet2D" pn="Outlet pressure" ImplementedInFile=".cpp" Interval="Total"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" VariableName="PRESSURE" App="Fluid"
-	ElementType="Point,Line" ProcessName="ApplyOutletProcess" help=""  units="Pa" unit_magnitude="P">
+	ElementType="Point,Line" ProcessName="ApplyOutletProcess" help="Fixes the pressure to a constant scalar value."  units="Pa" unit_magnitude="P">
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="WallCondition2D2N"/>
       <item  GeometryType="Point" nodes="1" KratosName="WallCondition2D1N"/>
@@ -46,10 +46,25 @@
     </outputs>
   </ConditionItem>
   
+  <ConditionItem n="HydrostaticOutlet2D" pn="Hydrostatic outlet pressure" ImplementedInFile=".cpp" Interval="Total"
+	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" VariableName="EXTERNAL_PRESSURE" App="Fluid"
+	ElementType="Line" ProcessName="ApplyHydrostaticOutletProcess" help="Applies a hydrostatic external pressure distribution" >
+    <TopologyFeatures>
+      <item  GeometryType="Line" nodes="2" KratosName="WallCondition2D2N"/>
+    </TopologyFeatures>
+	<DegreesOfFreedom>
+	</DegreesOfFreedom>
+    <inputs>
+    </inputs>
+    <outputs>
+    </outputs>
+  </ConditionItem>
+  
   <ConditionItem n="Outlet3D" pn="Outlet pressure" ImplementedInFile=".cpp" Interval="Total"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="2" SkinConditions="True" VariableName="PRESSURE" App="Fluid"
-	ElementType="Point,Line,Surface" ProcessName="ApplyOutletProcess" help=""  units="Pa" unit_magnitude="P">
+	ElementType="Point,Line,Surface" ProcessName="ApplyOutletProcess" help="Fixes the pressure to a constant scalar value."  units="Pa" unit_magnitude="P">
     <TopologyFeatures>
       <item  GeometryType="Triangle" nodes="3" KratosName="WallCondition3D3N"/>
       <item  GeometryType="Line" nodes="2" KratosName="WallCondition3D2N"/>
@@ -62,6 +77,23 @@
     <outputs>
     </outputs>
   </ConditionItem>
+  
+  <ConditionItem n="HydrostaticOutlet3D" pn="Hydrostatic outlet pressure" ImplementedInFile=".cpp" Interval="Total"
+	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="3D" LocalSpaceDimension="1" SkinConditions="True" VariableName="EXTERNAL_PRESSURE" App="Fluid"
+	ElementType="Line" ProcessName="ApplyHydrostaticOutletProcess" help="Applies a hydrostatic external pressure distribution" >
+    <TopologyFeatures>
+      <item  GeometryType="Line" nodes="2" KratosName="WallCondition2D2N"/>
+      <item  GeometryType="Triangle" nodes="3" KratosName="WallCondition3D3N"/>
+    </TopologyFeatures>
+	<DegreesOfFreedom>
+	</DegreesOfFreedom>
+    <inputs>
+    </inputs>
+    <outputs>
+    </outputs>
+  </ConditionItem>
+  
   <ConditionItem n="Slip2D" pn="Slip" ImplementedInFile=".cpp" Interval="False"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" App="Fluid"
