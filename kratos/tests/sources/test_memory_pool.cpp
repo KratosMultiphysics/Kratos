@@ -107,14 +107,25 @@ namespace Kratos {
 			double block[8];
 		};
 
-		KRATOS_TEST_CASE_IN_SUITE(PoolObjectNew, KratosCoreFastSuite)
+		KRATOS_TEST_CASE_IN_SUITE(PoolObjectParallelNewDelete, KratosCoreFastSuite)
 		{
 			std::cout << MemoryPool::Info() << std::endl;
-			Block46byte* p_new = new Block46byte;
+			auto repeat_number = 100;
+#pragma omp parallel for 
+			for (auto i_repeat = 0; i_repeat < repeat_number; i_repeat++)
+			{
+				std::size_t size = 1024 * 1024;
+				std::vector<Block46byte*> the_vector(size);
 
-			std::cout << MemoryPool::Info() << std::endl;
 
-			delete p_new;
+				for (std::size_t i = 0; i < size; i++)
+					the_vector[i] = new Block46byte;
+
+				std::cout << MemoryPool::Info() << std::endl;
+
+				for (std::size_t i = 0; i < size; i++)
+					delete the_vector[i];
+			}
 			std::cout << MemoryPool::Info() << std::endl;
 		}
 
