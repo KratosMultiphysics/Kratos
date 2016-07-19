@@ -136,9 +136,8 @@
 	    "model_part_name"       : "Solid Domain",
 	    "echo_level"            : 1,
 	    "domain_size"           : 2,
-            "meshing_control_type"  : "step",
-            "meshing_frequency"     : 1.0,
-            "meshing_before_output" : true,
+            "search_control_type"  : "step",
+            "search_frequency"     : 1.0,
 	    "parametric_walls" : [
 *set var ndomains(int) = 0
 *Set cond group_DeformableBodies *groups

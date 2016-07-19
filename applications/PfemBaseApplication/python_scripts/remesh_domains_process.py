@@ -12,11 +12,11 @@ def Factory(settings, Model):
 
 class RemeshDomainsProcess(KratosMultiphysics.Process):
     #
-    def __init__(self, Model, settings ):
+    def __init__(self, Model, custom_settings ):
 
         KratosMultiphysics.Process.__init__(self)
         
-        self.model_part = Model[settings["model_part_name"].GetString()]
+        self.model_part = Model[custom_settings["model_part_name"].GetString()]
     
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
@@ -32,16 +32,19 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         }
         """)
  
-        self.settings          = settings
+        ##overwrite the default settings with user-provided parameters
+        self.settings = custom_settings
+        self.settings.ValidateAndAssignDefaults(default_settings)
+
         self.echo_level        = self.settings["echo_level"].GetInt()
         self.domain_size       = self.settings["domain_size"].GetInt()
         self.meshing_frequency = self.settings["meshing_frequency"].GetDouble()
         
         self.meshing_control_is_time = False
         meshing_control_type   = self.settings["meshing_control_type"].GetString()
-        if meshing_control_type == "time":
+        if(meshing_control_type == "time"):
             self.meshing_control_is_time = True
-        elif meshing_control_type == "step":
+        elif(meshing_control_type == "step"):
             self.meshing_control_is_time = False
 
         #construct meshing domains
@@ -51,7 +54,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         for i in range(0,self.number_of_domains):
             item = domains_list[i]
             domain_module = __import__(item["python_file_name"].GetString())
-            domain = domain_module.CreateMeshingDomain(model_part,item)
+            domain = domain_module.CreateMeshingDomain(self.model_part,item)
             self.meshing_domains.append(domain)
 
         # mesh modeler initial values
@@ -69,7 +72,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
 
         self.restart = False
-        if( self.model_part.ProcessInfo[LOAD_RESTART] ):
+        if( self.model_part.ProcessInfo[IS_RESTARTED] ):
             self.restart = True
         
         # initialize the modeler 
@@ -219,7 +222,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         if(self.remesh_domains_active):
 
             if( self.echo_level > 0 ):
-                print("::[Modeler_Utility]:: MESH DOMAIN...", self.counter)
+                print("::[Meshing_Process]:: MESH DOMAIN...", self.counter)
 
             meshing_options = KratosMultiphysics.Flags()
             self.model_meshing =  KratosPfemBase.ModelMeshing(self.model_part, meshing_options, self.echo_level)
@@ -227,11 +230,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
             self.model_meshing.ExecuteInitialize()
 
             for domain in self.meshing_domains:
-
                 domain.ExecuteMeshing();
-
-                self.remesh_executed = True
-
  
             self.model_meshing.ExecuteFinalize()
 
@@ -239,12 +238,12 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
 
 
         # schedule next meshing
-        if self.meshing_frequency >= 0.0:
-            if self.meshing_control_is_time:
-                while self.next_meshing <= time:
+        if(self.meshing_frequency >= 0.0):
+            if(self.meshing_control_is_time):
+                while(self.next_meshing <= time):
                     self.next_meshing += self.meshing_frequency
             else:
-                while self.next_meshing <= self.step_count:
+                while(self.next_meshing <= self.step_count):
                     self.next_meshing += self.meshing_frequency
 
 
@@ -256,7 +255,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
     #
     def IsMeshingStep(self):
 
-        if self.meshing_control_is_time:
+        if(self.meshing_control_is_time):
             #print( str(self.model_part.ProcessInfo[TIME])+">"+ str(self.next_meshing) )
             return ( self.model_part.ProcessInfo[TIME] > self.next_meshing )
         else:
