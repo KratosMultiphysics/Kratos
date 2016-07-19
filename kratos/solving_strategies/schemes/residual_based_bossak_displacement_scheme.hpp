@@ -6,7 +6,7 @@
 //
 //  License:          BSD License
 //  Original author:  Josep Maria Carbonell
-//  comming from      SolidMechanicsApplication
+//  coming from       SolidMechanicsApplication
 //
 //  Co-author:        Vicente Mataix Ferrándiz
 //
@@ -112,11 +112,11 @@ public:
     /** Copy Constructor.
      */
     ResidualBasedBossakDisplacementScheme(ResidualBasedBossakDisplacementScheme& rOther)
-      :BaseType(rOther)
-      ,mAlpha(rOther.mAlpha)
-      ,mNewmark(rOther.mNewmark)
-      ,mMatrix(rOther.mMatrix)
-      ,mVector(rOther.mVector)
+        :BaseType(rOther)
+        ,mAlpha(rOther.mAlpha)
+        ,mNewmark(rOther.mNewmark)
+        ,mMatrix(rOther.mMatrix)
+        ,mVector(rOther.mVector)
     {
     }
 
@@ -125,7 +125,7 @@ public:
      */
     virtual BaseTypePointer Clone()
     {
-      return BaseTypePointer( new ResidualBasedBossakDisplacementScheme(*this) );
+        return BaseTypePointer( new ResidualBasedBossakDisplacementScheme(*this) );
     }
 
     /** Destructor.
@@ -409,7 +409,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-        )
+    )
     {
         KRATOS_TRY;
 
@@ -506,10 +506,10 @@ public:
      */
 
     void InitializeNonLinIteration(
-      ModelPart& r_model_part,
-      TSystemMatrixType& A,
-      TSystemVectorType& Dx,
-      TSystemVectorType& b
+        ModelPart& r_model_part,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b
     )
     {
         KRATOS_TRY;
@@ -538,8 +538,8 @@ public:
      */
 
     void InitializeNonLinearIteration(
-      Condition::Pointer rCurrentCondition,
-      ProcessInfo& CurrentProcessInfo
+        Condition::Pointer rCurrentCondition,
+        ProcessInfo& CurrentProcessInfo
     )
     {
         (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
@@ -552,8 +552,8 @@ public:
      */
 
     void InitializeNonLinearIteration(
-      Element::Pointer rCurrentElement,
-      ProcessInfo& CurrentProcessInfo
+        Element::Pointer rCurrentElement,
+        ProcessInfo& CurrentProcessInfo
     )
     {
         (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
@@ -629,7 +629,7 @@ public:
 
         (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
 
-         AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
+        AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
 
         KRATOS_CATCH( "" );
     }
@@ -758,7 +758,7 @@ public:
         int err = Scheme<TSparseSpace, TDenseSpace>::Check(r_model_part);
         if(err!=0)
         {
-          return err;
+            return err;
         }
 
         // Check for variables keys
@@ -911,10 +911,10 @@ protected:
      */
 
     inline void UpdateVelocity(
-      array_1d<double, 3 > & CurrentVelocity,
-      const array_1d<double, 3 > & DeltaDisplacement,
-      const array_1d<double, 3 > & PreviousVelocity,
-      const array_1d<double, 3 > & PreviousAcceleration
+        array_1d<double, 3 > & CurrentVelocity,
+        const array_1d<double, 3 > & DeltaDisplacement,
+        const array_1d<double, 3 > & PreviousVelocity,
+        const array_1d<double, 3 > & PreviousAcceleration
     )
     {
         noalias(CurrentVelocity) =  (mNewmark.c1 * DeltaDisplacement - mNewmark.c4 * PreviousVelocity
@@ -930,10 +930,10 @@ protected:
      */
 
     inline void UpdateAcceleration(
-      array_1d<double, 3 > & CurrentAcceleration,
-      const array_1d<double, 3 > & DeltaDisplacement,
-      const array_1d<double, 3 > & PreviousVelocity,
-      const array_1d<double, 3 > & PreviousAcceleration
+        array_1d<double, 3 > & CurrentAcceleration,
+        const array_1d<double, 3 > & DeltaDisplacement,
+        const array_1d<double, 3 > & PreviousVelocity,
+        const array_1d<double, 3 > & PreviousAcceleration
     )
     {
         noalias(CurrentAcceleration) =  (mNewmark.c0 * DeltaDisplacement - mNewmark.c2 * PreviousVelocity
