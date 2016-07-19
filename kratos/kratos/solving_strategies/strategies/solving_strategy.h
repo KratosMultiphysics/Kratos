@@ -324,7 +324,7 @@ public:
                 if (i->SolutionStepsDataHas(DISPLACEMENT) == false)
                 {
                     std::cout << "problem on node with Id " << i->Id() << std::endl;
-                    KRATOS_THROW_ERROR(std::logic_error, "It is impossible to move the mesh since the DISPLACMENT var is not in the model_part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables", "");
+                    KRATOS_THROW_ERROR(std::logic_error, "It is impossible to move the mesh since the DISPLACEMENT var is not in the model_part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables", "");
                 }
         }
 
