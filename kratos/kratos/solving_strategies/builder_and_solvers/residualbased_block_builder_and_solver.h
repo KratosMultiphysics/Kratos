@@ -542,7 +542,7 @@ public:
         {
             std::cout << "Number of threads" << nthreads << "\n" << std::endl;
         }
-        for (unsigned int i = 0; i < static_cast<int>(nthreads); i++)
+        for (int i = 0; i < static_cast<int>(nthreads); i++)
         {
 #ifdef USE_GOOGLE_HASH
             dofs_aux_list[i].set_empty_key(Node<3>::DofType::Pointer());
@@ -597,7 +597,7 @@ public:
             {
                 //just for debugging
                 std::cout << "old_max" << old_max << " new_max:" << new_max << std::endl;
-                for (unsigned int i = 0; i < static_cast<int>(new_max); i++)
+                for (int i = 0; i < static_cast<int>(new_max); i++)
                 {
                     if (i + new_max < old_max)
                     {
@@ -660,7 +660,7 @@ public:
         }
         if (mlock_array.size() != 0)
         {
-            for (unsigned int i = 0; i < static_cast<int>(mlock_array.size()); i++)
+            for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
             {
                 omp_destroy_lock(&mlock_array[i]);
             }
@@ -668,7 +668,7 @@ public:
 
         mlock_array.resize(BaseType::mDofSet.size());
 
-        for (unsigned int i = 0; i < static_cast<int>(mlock_array.size()); i++)
+        for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
         {
             omp_init_lock(&mlock_array[i]);
         }
