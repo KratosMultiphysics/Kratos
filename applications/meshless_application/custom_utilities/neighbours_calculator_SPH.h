@@ -204,6 +204,7 @@ public:
             {
                 (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);
                 ++neighbour_counter;
+
             }
         }
 

@@ -6,12 +6,20 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 ## generate variables with the sources
 set( KRATOS_MESHLESS_APPLICATION_SOURCES     
-	${CMAKE_CURRENT_SOURCE_DIR}//meshless_application.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/meshless_application.cpp 
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ULF_MLSparticle.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/meshless_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/meshless_application_variables.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/meshless_application_variables.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/lagrange_multiplier_condition.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/lagrange_multiplier_condition_x.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/lagrange_multiplier_condition_y.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/pointforce2D.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_constitutive_laws_to_python.cpp
+
+
 )
 
 ###############################################################
@@ -29,11 +37,6 @@ install(TARGETS KratosMeshlessApplication DESTINATION libs )
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosMeshlessApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-
-# changing the .dylib suffix to .so 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	set_target_properties(KratosMeshlessApplication PROPERTIES SUFFIX .so)
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
