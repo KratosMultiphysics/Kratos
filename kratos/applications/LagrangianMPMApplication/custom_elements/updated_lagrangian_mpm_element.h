@@ -102,7 +102,7 @@ protected:
         //variables including all integration points
         //const GeometryType::ShapeFunctionsGradientsType* pDN_De;
         //const Matrix* pDN_De;
-        const Vector* pNcontainer;
+//         const Vector* pNcontainer;
 
     public:
 
