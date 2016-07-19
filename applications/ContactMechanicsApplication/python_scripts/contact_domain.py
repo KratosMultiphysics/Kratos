@@ -35,18 +35,18 @@ class ContactDomain(mesh_modeler.MeshingDomain):
                "python_file_name": "contact_meshing_strategy",
                "meshing_frequency": 0,
                "remesh": true,
-               "constrained": false,
+               "constrained": false
             },
             "contact_parameters":{
-               "contact_condition": "ContactDomainLM2DCondition",
+               "contact_condition_type": "ContactDomainLM2DCondition",
                "friction_active": false,
                "friction_law_type": "MorhCoulomb",
-               "variables":{
+               "variables_of_properties":{
                   "MU_STATIC": 0.3,
                   "MU_DYNAMIC": 0.2,
                   "PENALTY_PARAMETER": 1000,
                   "TAU_STAB": 1
-                };
+                }
             },
             "elemental_variables_to_transfer":[ "CAUCHY_STRESS_VECTOR", "DEFORMATION_GRADIENT" ]
         }
@@ -100,7 +100,7 @@ class ContactDomain(mesh_modeler.MeshingDomain):
 
         properties = KratosMultiphysics.Properties()
         
-        contact_variables = self.settings["contact_parameters"]["variables"]
+        contact_variables = self.settings["contact_parameters"]["variables_of_properties"]
 
         #iterators of a json list are not working right now :: must be done by hand:
         properties.SetValue(KratosMultiphysics.KratosGlobals.GetVariable("MU_STATIC"), contact_variables["MU_STATIC"])
