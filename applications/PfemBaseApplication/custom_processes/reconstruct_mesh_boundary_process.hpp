@@ -552,6 +552,9 @@ namespace Kratos
 		FaceNodes.push_back(rGeometry(j));
 		if( FaceNodes[j].Is(TO_ERASE) || FaceNodes[j].Is(TO_REFINE) )
 		  node_not_preserved = true;
+
+		if( FaceNodes[j].Is(ISOLATED) || FaceNodes[j].IsNot(BOUNDARY) )		  
+		  condition_not_preserved = true;
 	      }
 
 	    if( ic->Is(TO_ERASE) )

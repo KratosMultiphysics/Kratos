@@ -825,7 +825,7 @@ namespace Kratos
     }
 
     if( rMeshingVariables.Options.Is(ModelerUtilities::CONSTRAINED) )
-      RecoverBoundaryPosition(rModelPart,rMeshingVariables,in,out,MeshId);
+      RecoverBoundaryPreviousPosition(rModelPart,rMeshingVariables,in,out,MeshId);
 
     //print out the mesh generation time
     if( this->GetEchoLevel() > 0 )
@@ -893,7 +893,7 @@ namespace Kratos
     rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::CONSTRAINED);
 
     if( rMeshingVariables.Options.Is(ModelerUtilities::CONSTRAINED) )
-      RecoverBoundaryPosition(rModelPart,rMeshingVariables,in,out,MeshId);
+      RecoverBoundaryPreviousPosition(rModelPart,rMeshingVariables,in,out,MeshId);
 
     ////////////////////////////////////////////////////////////
 
@@ -1166,11 +1166,11 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  void TetrahedralMesh3DModeler::RecoverBoundaryPosition(ModelPart& rModelPart,
-							 MeshingParametersType& rMeshingVariables,
-							 tetgenio& in,
-							 tetgenio& out,
-							 ModelPart::IndexType MeshId)
+  void TetrahedralMesh3DModeler::RecoverBoundaryPreviousPosition(ModelPart& rModelPart,
+								 MeshingParametersType& rMeshingVariables,
+								 tetgenio& in,
+								 tetgenio& out,
+								 ModelPart::IndexType MeshId)
   {
     KRATOS_TRY
     

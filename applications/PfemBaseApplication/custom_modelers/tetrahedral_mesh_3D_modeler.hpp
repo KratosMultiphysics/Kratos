@@ -333,11 +333,11 @@ private:
 
 
     //recover the boundary position after an small offset when remeshing constrained
-    void RecoverBoundaryPosition ( ModelPart &rModelPart,
-				   MeshingParametersType & rMeshingVariables,
-				   tetgenio &in,
-				   tetgenio &out,
-				   ModelPart::IndexType MeshId=0 );
+    void RecoverBoundaryPreviousPosition ( ModelPart &rModelPart,
+					   MeshingParametersType & rMeshingVariables,
+					   tetgenio &in,
+					   tetgenio &out,
+					   ModelPart::IndexType MeshId=0 );
 
 
 
