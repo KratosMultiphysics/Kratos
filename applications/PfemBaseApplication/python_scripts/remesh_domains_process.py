@@ -21,12 +21,14 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "echo_level" : 1,
-            "domain_size": 2,
-            "meshing_control_type": "step",
-            "meshing_frequency": 1.0,
-            "meshing_before_output": true,
-            "meshing_domains": [],
+            "mesh_id"               : 0,
+            "model_part_name"       : "Solid Domain",
+            "echo_level"            : 1,
+            "domain_size"           : 2,
+            "meshing_control_type"  : "step",
+            "meshing_frequency"     : 1.0,
+            "meshing_before_output" : true,
+            "meshing_domains"       : []
         }
         """)
  

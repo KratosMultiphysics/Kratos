@@ -12,7 +12,7 @@ class ApplyScalarOnConditionsProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Process.__init__(self)        
         
         self.model_part = Model[settings["model_part_name"].GetString()]
-        self.var = KratosMultiphysics.KralosGlobals.GetVariable(settings["variable_name"].GetString())
+        self.var = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
         
         #check if variable type is a scalar or a component
         if(type(self.var) != KratosMultiphysics.Array1DComponentVariable and type(self.var) != KratosMultiphysics.DoubleVariable):
