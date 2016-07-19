@@ -39,10 +39,10 @@ namespace Kratos
       
       typedef UblasSpace<double, CompressedMatrix, Vector>    SparseSpaceType;
       typedef UblasSpace<double, Matrix, Vector>               LocalSpaceType;
-      typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+      //typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
       typedef Scheme< SparseSpaceType, LocalSpaceType >            SchemeType;
-      typedef SchemeType::Pointer                           SchemePointerType;
+      //typedef SchemeType::Pointer                           SchemePointerType;
 
     }
 
