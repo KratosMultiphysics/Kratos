@@ -140,8 +140,8 @@ private:
 
     void ComputeActualStrain(const array_1d<double,3>& Pps);
 
-    enum   Cases {right, left};
-    Cases  mCases;
+//     enum   Cases {right, left};
+//     Cases  mCases;
 
 
 };

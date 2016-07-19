@@ -78,7 +78,7 @@ namespace Kratos
         KRATOS_TRY
 
         unsigned int dimension = GetGeometry().WorkingSpaceDimension();  // checks dimension of problem
-        unsigned int number_of_nodes = GetGeometry().size();             // number of nodes
+//         unsigned int number_of_nodes = GetGeometry().size();             // number of nodes
 
         if (dimension != 3)
             KRATOS_THROW_ERROR(std::logic_error, "This element only works in 3D space", "")

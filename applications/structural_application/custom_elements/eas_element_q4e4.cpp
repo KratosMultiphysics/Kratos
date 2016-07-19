@@ -994,7 +994,7 @@ namespace Kratos
     
     void EASElementQ4E4::CalculateGoperator ( Matrix& G_Operator, IndexType IntegrationPointIndex)
     {
-        unsigned int dim = GetGeometry().WorkingSpaceDimension();
+//         unsigned int dim = GetGeometry().WorkingSpaceDimension();
         noalias( G_Operator ) = ZeroMatrix( 3, 4 );
         
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
@@ -1060,7 +1060,7 @@ namespace Kratos
         double tol = 1e-9;
         int max_cnt = 15;
         int cnt = 0;
-        bool CalculateStiffnessMatrixFlag = true;
+//         bool CalculateStiffnessMatrixFlag = true;
 
         #ifdef ENABLE_Q4E4_DEBUG_LEVEL1
         KRATOS_WATCH(CurrentDisp);

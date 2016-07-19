@@ -74,7 +74,9 @@ SlaveContactPoint2D::SlaveContactPoint2D( IndexType NewId,
     GetValue( IS_CONTACT_SLAVE  )         = 1;
     GetValue( IS_CONTACT_MASTER )         = 0;
     Condition::GeometryType& geom         = this->GetGeometry();
-    geom[0].GetValue(IS_CONTACT_SLAVE  )  = 1;
+    //KRATOS_ERROR << "geom[0].GetValue(IS_CONTACT_SLAVE  ) fails if the node is created by the default constructo";
+    if(geom(0) != NULL)
+     geom[0].GetValue(IS_CONTACT_SLAVE  )  = 1;
 
 }
 
