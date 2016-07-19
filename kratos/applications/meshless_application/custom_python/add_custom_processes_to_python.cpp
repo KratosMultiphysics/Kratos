@@ -60,7 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
 
-#include "custom_processes/node_and_element_erase_process.h"
+//#include "custom_processes/node_and_element_erase_process.h"
 #include "spaces/ublas_space.h"
 
 

@@ -68,8 +68,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "custom_strategies/sph_time_integrator.h"
-
+//#include "custom_strategies/sph_time_integrator.h"
+//#include "custom_strategies/MLS_strategy.h"
+// #include "custom_strategies/residualbased_predictorcorrector_bossak_scheme.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -91,14 +92,20 @@ void  AddCustomStrategiesToPython()
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+//     typedef ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalSpaceType >
+//     ResidualBasedPredictorCorrectorBossakSchemeType;
 
     //********************************************************************
     //********************************************************************
-    class_<SPHTimeIntegrator>("SPHTimeIntegrator", init<>())
-            .def("EstimateDeltaTime",&SPHTimeIntegrator::EstimateDeltaTime)
-            .def("Initialize",&SPHTimeIntegrator::Initialize)
-            .def("MarkOuterNodes",&SPHTimeIntegrator::MarkOuterNodes)
-            .def("Solve",&SPHTimeIntegrator::Solve);
+
+
+
+
+// //     class_< ResidualBasedPredictorCorrectorBossakSchemeType,
+// //             bases< BaseSchemeType >,  boost::noncopyable >
+// //             (
+// //                 "ResidualBasedPredictorCorrectorBossakScheme", init< double >()
+// //             );
 
 //    class_< PureConvectionEdgeBased < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType>, boost::noncopyable > ("PureConvectionEdgeBased2D", init<MatrixContainer < 2, SparseSpaceType>&, ModelPart& >())
 

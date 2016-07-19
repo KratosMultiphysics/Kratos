@@ -64,11 +64,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "includes/model_part.h"
 
-#include "custom_utilities/CreateSPHParticle.h"
+//#include "custom_utilities/CreateSPHParticle.h"
+//#include "custom_utilities/CreateMLSParticle.h"
+#include "custom_utilities/CreateMLSParticleGauss.h"
+#include "custom_utilities/CreateLMEParticleGauss.h"
 
 #include "custom_utilities/neighbours_calculator_SPH.h"
-#include "custom_processes/node_and_element_erase_process.h"
-
+#include "custom_utilities/neighbours_calculator_MLS.h"
+#include "custom_utilities/neighbours_calculator_LME.h"
+//#include "custom_processes/node_and_element_erase_process.h"
+#include "custom_utilities/nodal_values_utility.h"
+#include "custom_utilities/gauss_coordiantes_update.h"
+#include "custom_utilities/recompute_neighbours.h"
 
 namespace Kratos
 {
@@ -86,9 +93,24 @@ void  AddCustomUtilitiesToPython()
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
+    typedef Geometry<Node<3> >::GeometryType GeometryType;
 
-    class_<CreateSPHParticle > ("CreateSPHParticle", init<ModelPart& ,unsigned int, float  >())  //the input parameters is a model part
-            .def("Execute", &CreateSPHParticle::Execute);
+
+
+	    
+    class_<CreateMLSParticleGauss > ("CreateMLSParticleGauss", init<ModelPart& ,unsigned int >())  //the input parameters is a model part
+            .def("Execute", &CreateMLSParticleGauss::Execute);
+    class_<CreateLMEParticleGauss > ("CreateLMEParticleGauss", init<ModelPart& ,unsigned int >())  //the input parameters is a model part
+            .def("Execute", &CreateLMEParticleGauss::Execute);
+
+
+    //class_<CreateMLSParticle > ("CreateMLSParticle", init<ModelPart& ,unsigned int, float  >())  //the input parameters is a model part
+            //.def("Execute", &CreateMLSParticle::Execute);
+	    
+    //class_<Neighbours_Calculator_MLS<LinearMLSKernel> > ("Neighbours_Calculator_MLS", init<>())  //the input parameters is a model part
+            //.def("Search_Neighbours", &Neighbours_Calculator_MLS<LinearMLSKernel>::Search_Neighbours);
+	    
+
 
 //    class_<WCSPHUtils>("WCSPHUtils", init<>())
 //            .def("UpdateDensities",&WCSPHUtils::UpdateDensities)
@@ -147,12 +169,25 @@ void  AddCustomUtilitiesToPython()
 //            .def("SolvePressurePoissonEquation",&ISPHUtils::SolvePressurePoissonEquation)
 //            .def("GetBoundaryAcceleration",&ISPHUtils::GetBoundaryAcceleration);
 
-    class_<NodeAndElementEraseProcess>("NodeAndElementEraseProcess", init < ModelPart& >())
-            .def("Execute", &NodeAndElementEraseProcess::Execute);
+    //class_<NodeAndElementEraseProcess>("NodeAndElementEraseProcess", init < ModelPart& >())
+            //.def("Execute", &NodeAndElementEraseProcess::Execute);
 
 
+    class_<Nodal_Values_Utility>
+    ( "Nodal_Values_Utility", init<ModelPart&, int >() )
+    .def( "CalculateNodalStress", &Nodal_Values_Utility::CalculateNodalStress )
+    .def( "CalculateNodalArea", &Nodal_Values_Utility::CalculateNodalArea )
+    ;
 
+    class_<Gauss_Coordinates_Update_Utility>
+    ( "Gauss_Coordinates_Update_Utility", init<ModelPart& >() )
+    .def( "UpdateGaussCoordinates", &Gauss_Coordinates_Update_Utility::UpdateGaussCoordinates )
+    ;
 
+    class_<Recompute_Neighbours_Utility>
+    ( "RecomputeNeighbours", init<ModelPart& >() )
+    .def( "Recompute_Neighbours", &Recompute_Neighbours_Utility::Recompute_Neighbours )
+    ;
 
 
 

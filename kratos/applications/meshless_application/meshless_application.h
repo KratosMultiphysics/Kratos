@@ -26,11 +26,26 @@
 
 
 #include "includes/variables.h"
-#include "custom_elements/SPHparticle.h"
+//#include "custom_elements/SPHparticle.h"
+#include "custom_elements/ULF_LMEparticle.h"
+//#include "custom_elements/TLF_LMEparticle.h"
+#include "custom_elements/TLF_MLSparticle.h"
+#include "custom_elements/ULF_MLSparticle.h"
+
 #include "includes/ublas_interface.h"
 #include "meshless_application_variables.h"
-
-
+#include "custom_conditions/lagrange_multiplier_condition.h"
+#include "custom_conditions/lagrange_multiplier_condition_x.h"
+#include "custom_conditions/lagrange_multiplier_condition_y.h"
+#include "custom_conditions/pointforce2D.h"
+//#include "custom_constitutive/isotropic_rankine_damage_2d.h"
+//#include "custom_constitutive/brittle_material_2d.h"
+//#include "custom_constitutive/plane_strain.h"
+//#include "fluency_criteria/fluency_criteria.h"
+//#include "fluency_criteria/standard_morh_coulomb_yield_function.h"
+//#include "soft_hard_behavior/cohesion.h"
+//#include "soft_hard_behavior/cohesion_softening.h"
+//#include "soft_hard_behavior/softening_hardening_criteria.h"
 
 namespace Kratos
 {
@@ -203,7 +218,7 @@ private:
 //    const SPHparticle<KernelQuintic,KernelQuintic,KernelQuintic> mSPHparticle; // For the SPH particle element
 
 
-
+/*
     const SPHparticle<KernelPoly6,KernelSpiky,KernelMullerViscous> mSPHparticlePoly; // Element 1
 
     const SPHparticle<KernelSpiky,KernelSpiky,KernelSpiky> mSPHparticlePolyPresSpiky; // Element 2
@@ -216,7 +231,27 @@ private:
 
     const SPHparticle<KernelQuadratic,KernelQuadratic,KernelQuadratic> mSPHparticleGaus; // Element 6
 
+    //const SPHparticle<LinearMLSKernel,LinearMLSKernel,LinearMLSKernel> mSPHparticleGaus;
 
+    //const MLSparticle<LinearMLSKernel> mMLSparticleMls; // Element 7
+
+    const TLF_LMEparticle<LinearLMEKernel> mLinearElement2D3N;  //just for generate mesh
+    //const MLSparticle<LinearMLSKernel> mLinearElement2D4N;  //just for generate mesh
+
+    const TLF_LMEparticle<LinearLMEKernel> mTLFLMEparticleLme; // Element 8
+
+
+    const ULF_LMEparticle<LinearLMEKernel> mULFLMEparticleLme; // Element 9
+ */
+
+
+    const ULF_MLSparticle mLinearElement2D3N;  //just for generate mesh
+    const ULF_MLSparticle mULFMLSparticleMls; // Element 9
+
+    const LagrangeMultiplierCondition2D mLagrangeMultiplierCondition2D;
+    const LagrangeMultiplierCondition2DX mLagrangeMultiplierCondition2DX;
+    const LagrangeMultiplierCondition2DY mLagrangeMultiplierCondition2DY;
+    const PointForce2D  mPointForce2D;
     ///@}
     ///@name Private Operators
     ///@{
