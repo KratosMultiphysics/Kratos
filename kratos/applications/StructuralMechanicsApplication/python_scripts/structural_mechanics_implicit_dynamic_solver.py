@@ -37,7 +37,7 @@ class ImplicitStructuralSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
             "echo_level": 0,
             "buffer_size": 2,
             "time_integration_method": "Implicit",
-            "analysis_type": "nonlinear",
+            "analysis_type": "Non-Linear",
             "rotation_dofs": false,
             "pressure_dofs": false,
             "stabilization_factor": 1.0,
@@ -149,11 +149,37 @@ class ImplicitStructuralSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
 
         print("::[Mechanical Solver]:: DOF's ADDED")
 
+    def GetComputeModelPart(self):
+        return self.main_model_part
+    
+    def _GetBuilderAndSolver(self, component_wise, block_builder):
+        if  self.settings["compute_mortar_contact"].GetBool():
+            builder_and_solver = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedBlockBuilderAndSolverContact(self.linear_solver)
+        else:
+            # Creating the builder and solver
+            if(component_wise):
+                builder_and_solver = KratosSolid.ComponentWiseBuilderAndSolver(self.linear_solver)
+            else:
+                if(block_builder):
+                    # To keep matrix blocks in builder
+                    builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+                else:
+                    builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
+        
+        return builder_and_solver
+    
     def _GetSolutionScheme(self, scheme_type, component_wise, compute_contact_forces):
 
         if(scheme_type == "Newmark") or (scheme_type == "Bossak"):
             
-            mechanical_scheme = super(ImplicitStructuralSolver,self)._GetSolutionScheme(scheme_type, component_wise, compute_contact_forces)
+            if  self.settings["compute_mortar_contact"].GetBool():
+                if (scheme_type == "Newmark"):
+                    mechanical_scheme = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedBossakDisplacementContactScheme(0.0)
+                else:
+                    alpha = self.settings["damp_factor_m"].GetDouble()
+                    mechanical_scheme = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedBossakDisplacementContactScheme(alpha)
+            else:
+                mechanical_scheme = super(ImplicitStructuralSolver,self)._GetSolutionScheme(scheme_type, component_wise, compute_contact_forces)
 
         elif(scheme_type == "Relaxation"):
           #~ self.main_model_part.GetSubModelPart(self.settings["volume_model_part_name"].GetString()).AddNodalSolutionStepVariable(DISPLACEMENT)  
@@ -167,3 +193,27 @@ class ImplicitStructuralSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
                                                                                                                 self.settings["dynamic_factor_m"].GetDouble())
                                 
         return mechanical_scheme
+    
+    def _GetConvergenceCriterion(self):
+        # Creation of an auxiliar Kratos parameters object to store the convergence settings
+        conv_params = KratosMultiphysics.Parameters("{}")
+        conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
+        conv_params.AddValue("rotation_dofs",self.settings["rotation_dofs"])
+        conv_params.AddValue("echo_level",self.settings["echo_level"])
+        conv_params.AddValue("component_wise",self.settings["component_wise"])
+        conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])
+        conv_params.AddValue("displacement_absolute_tolerance",self.settings["displacement_absolute_tolerance"])
+        conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
+        conv_params.AddValue("residual_absolute_tolerance",self.settings["residual_absolute_tolerance"])
+        
+        # Construction of the class convergence_criterion
+        import convergence_criteria_factory
+        convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_params)
+        
+        if  self.settings["compute_mortar_contact"].GetBool():
+            Mortar = KratosMultiphysics.StructuralMechanicsApplication.MortarConvergenceCriteria()
+            Mortar.SetEchoLevel(self.settings["echo_level"].GetInt())
+
+            convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Mortar, convergence_criterion.mechanical_convergence_criterion)
+        
+        return convergence_criterion.mechanical_convergence_criterion

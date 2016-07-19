@@ -386,6 +386,22 @@ public:
         );
 
     /**
+    * Initialize Mass Matrix
+    */
+    void CalculateMassMatrix( 
+    MatrixType& rMassMatrix, 
+    ProcessInfo& rCurrentProcessInfo
+    );
+    
+    /**
+    * Initialize Damping Matrix
+    */
+    void CalculateDampingMatrix( 
+    MatrixType& rDampingMatrix,
+    ProcessInfo& rCurrentProcessInfo
+    );
+    
+    /**
     * Evaluation methods for Lagrange multipliers shape functions
     * and its local derivatives
     */
