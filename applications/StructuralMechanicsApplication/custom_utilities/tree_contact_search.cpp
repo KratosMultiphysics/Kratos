@@ -35,8 +35,8 @@ TreeContactSearch::TreeContactSearch(
     mrOriginModelPart(rOriginModelPart),
     mrDestinationModelPart(rDestinationModelPart),
     mBucketSize(4),
-    mdimension(rOriginModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension()),
-    mallocation(allocation_size)
+    mdimension(rOriginModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension())
+//     , mallocation(allocation_size)
 {
     // Destination model part
     AuxConstructor(mrDestinationModelPart, true, false);

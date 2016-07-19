@@ -603,7 +603,7 @@ private:
     unsigned int mBucketSize;                 // Bucket size for kd-tree
     PointVector mPointListDestination;        // A list that contents the all the points (from nodes) from the modelpart 
     const unsigned int mdimension;            // Dimension size of the space
-    const unsigned int mallocation;           // Allocation size for the vectors
+//     const unsigned int mallocation;           // Allocation size for the vectors
     
     ///@}
     ///@name Private Operators
