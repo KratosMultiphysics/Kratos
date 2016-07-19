@@ -364,11 +364,11 @@ private:
 		    ModelPart::IndexType MeshId=0 );
     
     //recover the boundary position after an small offset when remeshing constrained
-    void RecoverBoundaryPosition ( ModelPart &rModelPart,
-				   MeshingParametersType & rMeshingVariables,
-				   struct triangulateio &in,
-				   struct triangulateio &out,
-				   ModelPart::IndexType MeshId=0 );
+    void RecoverBoundaryPreviousPosition ( ModelPart &rModelPart,
+					   MeshingParametersType & rMeshingVariables,
+					   struct triangulateio &in,
+					   struct triangulateio &out,
+					   ModelPart::IndexType MeshId=0 );
 
 
 

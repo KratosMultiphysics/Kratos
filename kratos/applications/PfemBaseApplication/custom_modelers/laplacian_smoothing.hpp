@@ -521,11 +521,11 @@ namespace Kratos
       //*******************************************************************
       //NEIGHBOUR NODES:
 
-      // std::vector<int> EmptyVector(0);
-      // std::vector<std::vector<int> >  NeighborNodesList(rNodes.size());
-      // std::fill( NeighborNodesList.begin(), NeighborNodesList.end(), EmptyVector );
+      std::vector<int> EmptyVector(0);
+      std::vector<std::vector<int> >  NeighborNodesList(rNodes.size());
+      std::fill( NeighborNodesList.begin(), NeighborNodesList.end(), EmptyVector );
 
-      std::vector<std::vector<int> >& NeighborNodesList = SetNeighborNodes(rNodes,rElementsList,rNeighborElementsList,NeighborNodesList);
+      this->GetNeighborNodes(rNodes,rElementsList,rNeighborElementsList,NeighborNodesList);
 		
 
       //*******************************************************************
@@ -971,7 +971,7 @@ namespace Kratos
       std::vector<std::vector<int> >  NeighborNodesList(rNodes.size());
       std::fill( NeighborNodesList.begin(), NeighborNodesList.end(), EmptyVector );
 
-      NeighborNodesList = SetNeighborNodes(NeighborNodesList, PreservedElements, pElementsList, NumberOfPoints, nds);
+      this->GetNeighborNodes(NeighborNodesList, PreservedElements, pElementsList, NumberOfPoints, nds);
 		
 
       //*******************************************************************
@@ -1438,7 +1438,7 @@ namespace Kratos
       std::vector<std::vector<int> >  NeighborNodesList(rNodes.size());
       std::fill( NeighborNodesList.begin(), NeighborNodesList.end(), EmptyVector );
 
-      NeighborNodesList = SetBoundaryNeighborNodes(rNodes, NeighborNodesList, PreservedElements, pElementsList, NumberOfPoints, nds);
+      this->GetBoundaryNeighborNodes(rNodes, NeighborNodesList, PreservedElements, pElementsList, NumberOfPoints, nds);
 				
       //*******************************************************************
       //MOVE BOUNDARY NODES: LAPLACIAN SMOOTHING:
@@ -1610,7 +1610,8 @@ namespace Kratos
 	
       //*******************************************************************
       //NEIGHBOUR NODES:
-      std::vector<std::vector<int> >  list_of_neighbor_nodes= SetNeighborNodes(PreservedElements,out);
+      std::vector<std::vector<int> >  list_of_neighbor_nodes;
+      this->GetNeighborNodes(list_of_neighbor_nodes, PreservedElements,out);
 		
       //*******************************************************************
       //MOVE NODES: LAPLACIAN SMOOTHING:
@@ -2082,7 +2083,7 @@ namespace Kratos
 	
     void ApplyMeshSmoothing(ModelPart& rModelPart,
 			    std::vector<int> & PreservedElements,
-			    struct tetgenio &out,
+			    tetgenio &out,
 			    std::vector<Geometry<Node<3> > >& list_of_element_vertices,
 			    ModelPart::IndexType MeshId=0)
     {
@@ -2105,7 +2106,8 @@ namespace Kratos
 	
       //*******************************************************************
       //NEIGHBOUR NODES:
-      std::vector<std::vector<int> >  list_of_neighbor_nodes= SetNeighborNodes(PreservedElements,out);
+      std::vector<std::vector<int> >  list_of_neighbor_nodes;
+      this->GetNeighborNodes(list_of_neighbor_nodes, PreservedElements,out);
 		
       //*******************************************************************
       //MOVE NODES: LAPLACIAN SMOOTHING:
@@ -2706,7 +2708,7 @@ namespace Kratos
     ///@{
 
     //Neighbors of a Node from Neigbors of an Element
-    std::vector<std::vector<int> >& SetNeighborNodes (const NodesContainerType& rNodes, const std::vector<Geometry<Node<3> > >& rElementsList, const std::vector<std::vector<int> >& rNeighborElementsList, std::vector<std::vector<int> >& rNeighborNodesList)
+    void GetNeighborNodes (const NodesContainerType& rNodes, const std::vector<Geometry<Node<3> > >& rElementsList, const std::vector<std::vector<int> >& rNeighborElementsList, std::vector<std::vector<int> >& rNeighborNodesList)
     {		 
 
       if( rNeighborNodesList.size() != rNodes.size() ){
@@ -2746,12 +2748,11 @@ namespace Kratos
 	    }
 	}
 
-      return rNeighborNodesList;
     }
 
 
     //GENERAL
-    std::vector<std::vector<int> >& SetNeighborNodes (std::vector<std::vector<int> >& list_of_neighbor_nodes, std::vector<int> & PreservedElements,const int* ElementList, const int& NumberOfPoints, const unsigned int& nds)
+    void GetNeighborNodes (std::vector<std::vector<int> >& list_of_neighbor_nodes, std::vector<int> & PreservedElements,const int* ElementList, const int& NumberOfPoints, const unsigned int& nds)
     {
 		 
       KRATOS_TRY
@@ -2794,7 +2795,6 @@ namespace Kratos
 	    }
 	}
 
-      return list_of_neighbor_nodes;
 
       KRATOS_CATCH( "" )
 
@@ -2803,16 +2803,16 @@ namespace Kratos
 
 
     //GENERAL
-    std::vector<std::vector<int> >& SetBoundaryNeighborNodes (NodesContainerType& rNodes, std::vector<std::vector<int> >& list_of_neighbor_nodes, std::vector<int> & PreservedElements,const int* ElementList, const int& NumberOfPoints, const unsigned int& nds)
+    void GetBoundaryNeighborNodes (NodesContainerType& rNodes, std::vector<std::vector<int> >& list_of_neighbor_nodes, std::vector<int> & PreservedElements,const int* ElementList, const int& NumberOfPoints, const unsigned int& nds)
     {
 		 
       KRATOS_TRY
 
       if( (int)list_of_neighbor_nodes.size() != NumberOfPoints+1 ){
 	list_of_neighbor_nodes.resize(NumberOfPoints+1);
+	std::vector<int> empty_vector(0);
+	std::fill( list_of_neighbor_nodes.begin(), list_of_neighbor_nodes.end(), empty_vector );
       }
-      std::vector<int> empty_vector(0);
-      std::fill( list_of_neighbor_nodes.begin(), list_of_neighbor_nodes.end(), empty_vector );
 
       bool neighb_set  = false;
       int  neighb_size = 0;
@@ -2847,19 +2847,20 @@ namespace Kratos
 	    }
 	}
 
-      return list_of_neighbor_nodes;
 
       KRATOS_CATCH( "" )
 
     }
 
 
-    std::vector<std::vector<int> > SetNeighborNodes (std::vector<int> & PreservedElements,struct triangulateio &out)
+    void GetNeighborNodes (std::vector<std::vector<int> >& list_of_neighbor_nodes, std::vector<int> & PreservedElements,struct triangulateio &out)
     {
 		 
-      std::vector<int> empty_vector(0);
-      std::vector<std::vector<int> >  list_of_neighbor_nodes(out.numberofpoints+1);
-      std::fill( list_of_neighbor_nodes.begin(), list_of_neighbor_nodes.end(), empty_vector );
+      if( list_of_neighbor_nodes.size() != (unsigned int)out.numberofpoints+1 ){
+	std::vector<int> empty_vector(0);
+	list_of_neighbor_nodes.resize(out.numberofpoints+1);
+	std::fill( list_of_neighbor_nodes.begin(), list_of_neighbor_nodes.end(), empty_vector );
+      }
 
       bool neighb_set  = false;
       int  neighb_size = 0;
@@ -2892,17 +2893,18 @@ namespace Kratos
 	    }
 	}
 
-      return list_of_neighbor_nodes;
     }
 
 
 
-    std::vector<std::vector<int> > SetNeighborNodes (std::vector<int> & PreservedElements,struct tetgenio &out)
+    void GetNeighborNodes (std::vector<std::vector<int> >& list_of_neighbor_nodes, std::vector<int> & PreservedElements,tetgenio &out)
     {
 		 
-      std::vector<int> empty_vector(0);
-      std::vector<std::vector<int> >  list_of_neighbor_nodes(out.numberofpoints+1);
-      std::fill( list_of_neighbor_nodes.begin(), list_of_neighbor_nodes.end(), empty_vector );
+      if( list_of_neighbor_nodes.size() != (unsigned int)out.numberofpoints+1 ){
+	std::vector<int> empty_vector(0);
+	list_of_neighbor_nodes.resize(out.numberofpoints+1);
+	std::fill( list_of_neighbor_nodes.begin(), list_of_neighbor_nodes.end(), empty_vector );
+      }
 
       bool neighb_set  = false;
       int  neighb_size = 0;
@@ -2935,22 +2937,24 @@ namespace Kratos
 	    }
 	}
 
-      return list_of_neighbor_nodes;
     }
 
     /**
      * boundary smoothing
      */
  
-    std::vector<std::vector<int> > SetBoundaryNeighborNodes (ModelPart& rModelPart, 
-							     std::vector<int> & PreservedElements, 
-							     struct triangulateio &out, 
-							     ModelPart::IndexType MeshId=0)
+    void  GetBoundaryNeighborNodes (ModelPart& rModelPart, 
+				    std::vector<std::vector<int> >&  list_of_neighbor_nodes,
+				    std::vector<int> & PreservedElements, 
+				    struct triangulateio &out, 
+				    ModelPart::IndexType MeshId=0)
     {
 		 
-      std::vector<int> empty_vector(0);
-      std::vector<std::vector<int> >  list_of_neighbor_nodes(out.numberofpoints+1);
-      std::fill( list_of_neighbor_nodes.begin(), list_of_neighbor_nodes.end(), empty_vector );
+      if( list_of_neighbor_nodes.size() != (unsigned int)out.numberofpoints+1){
+	std::vector<int> empty_vector(0);
+	list_of_neighbor_nodes.resize(out.numberofpoints+1);
+	std::fill( list_of_neighbor_nodes.begin(), list_of_neighbor_nodes.end(), empty_vector );
+      }
 
       bool neighb_set  = false;
       int  neighb_size = 0;
@@ -2989,7 +2993,6 @@ namespace Kratos
 	    }
 	}
 
-      return list_of_neighbor_nodes;
     }
 
 
@@ -3138,7 +3141,8 @@ namespace Kratos
 	
       //*******************************************************************
       //NEIGHBOUR NODES:
-      std::vector<std::vector<int> >  list_of_neighbor_nodes= SetBoundaryNeighborNodes(rModelPart,PreservedElements,out,MeshId);
+      std::vector<std::vector<int> >  list_of_neighbor_nodes;
+      this->GetBoundaryNeighborNodes(rModelPart,list_of_neighbor_nodes,PreservedElements,out,MeshId);
 		
       //*******************************************************************
       //MOVE BOUNDARY NODES: LAPLACIAN SMOOTHING:
