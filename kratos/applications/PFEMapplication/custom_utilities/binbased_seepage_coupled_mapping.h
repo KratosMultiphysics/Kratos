@@ -215,9 +215,9 @@ public:
 
         //defintions for spatial search
         typedef typename BinBasedNodesInElementLocator<TDim>::PointType PointType;
-        typedef typename PointType::Pointer PointTypePointer;
+        //typedef typename PointType::Pointer PointTypePointer;
         typedef typename BinBasedNodesInElementLocator<TDim>::PointIterator PointIterator;
-        typedef typename BinBasedNodesInElementLocator<TDim>::DistanceIterator DistanceIterator;
+        //typedef typename BinBasedNodesInElementLocator<TDim>::DistanceIterator DistanceIterator;
         typedef typename BinBasedNodesInElementLocator<TDim>::PointVector PointVector;
         typedef typename BinBasedNodesInElementLocator<TDim>::DistanceVector DistanceVector;
 
