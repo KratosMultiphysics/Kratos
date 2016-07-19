@@ -66,6 +66,8 @@ class ParametricWall(object):
         ## this node and elements must be considered in the computing model part
         ## new contact conditions must be already assembled
 
+        ## if exist a movement from a point different from CG a link condition must be used
+
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)

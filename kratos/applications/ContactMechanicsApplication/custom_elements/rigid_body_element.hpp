@@ -56,19 +56,24 @@ public:
 
     ///@name Type Definitions
     ///@{    
-   ///Reference type definition for constitutive laws
-    typedef ConstitutiveLaw                         ConstitutiveLawType;
+    ///Reference type definition for constitutive laws
+    typedef ConstitutiveLaw                          ConstitutiveLawType;
     ///Pointer type for constitutive laws
-    typedef ConstitutiveLawType::Pointer     ConstitutiveLawPointerType;
+    typedef ConstitutiveLawType::Pointer      ConstitutiveLawPointerType;
     ///StressMeasure from constitutive laws
-    typedef ConstitutiveLawType::StressMeasure        StressMeasureType;
+    typedef ConstitutiveLawType::StressMeasure         StressMeasureType;
     ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod           IntegrationMethod;
+    typedef GeometryData::IntegrationMethod            IntegrationMethod;
     ///Type definition for beam utilities
-    typedef BeamMathUtils<double>                     BeamMathUtilsType;
+    typedef BeamMathUtils<double>                      BeamMathUtilsType;
     ///Type definition for quaternion 
-    typedef Quaternion<double>                           QuaternionType;
+    typedef Quaternion<double>                            QuaternionType;
+    ///Type for nodes
+    typedef Geometry::PointType                                 NodeType;
+    ///Type for nodes container    
+    typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
 
+ 
     /// Counted pointer of RigidBodyElement
     KRATOS_CLASS_POINTER_DEFINITION( RigidBodyElement );
 
@@ -155,7 +160,7 @@ public:
 
     RigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
-    RigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties, ModelPart::MeshType::Pointer pMesh);
+    RigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties, NodesContainerType::Pointer pNodes);
 
     ///Copy constructor
     RigidBodyElement(RigidBodyElement const& rOther);
@@ -410,8 +415,7 @@ protected:
      */
     QuaternionType  mInitialLocalQuaternion;
 
-
-    ModelPart::MeshType::Pointer mpMesh;
+    NodesContainerType::Pointer     mpNodes;
 
     ///@}
     ///@name Protected Operators
