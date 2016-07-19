@@ -53,11 +53,6 @@
 #include "custom_constitutive/linear_elastic_plastic_plane_stress_2D_law.hpp"
 
 #include "custom_conditions/wall_condition.h"
-/* #include "custom_conditions/two_step_werner_wengle_wall_condition.h" */
-/* #include "custom_conditions/two_step_generalized_wall_condition.h" */
-/* #include "custom_conditions/wall_condition_discontinuous.h" */
-/* #include "custom_conditions/monolithic_wall_condition.h" */
-/* #include "custom_conditions/two_step_periodic_condition.h" */
 
 #include "geometries/triangle_3d_3.h"
 #include "geometries/line_2d.h"

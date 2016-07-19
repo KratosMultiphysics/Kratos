@@ -1,13 +1,8 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-#from KratosMultiphysics import *
-import KratosMultiphysics 
-from KratosMultiphysics.SolidMechanicsApplication import *
-import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
-import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
-#from KratosMultiphysics.PfemBaseApplication import *
-#from KratosMultiphysics.PfemFluidDynamicsApplication import *
-KratosMultiphysics.CheckForPreviousImport()
+from KratosMultiphysics import *
+from KratosMultiphysics.PfemBaseApplication import *
+CheckForPreviousImport()
 
 
 class ModelerUtility:
@@ -30,7 +25,7 @@ class ModelerUtility:
         self.mesh_modelers = []
 
         # mesh modeler parameters
-        self.alpha_shape        = 1.4
+        self.alpha_shape        = 2.4
         self.h_factor           = 0.5
         self.avoid_tip_elements = False
         self.offset_factor      = 0
@@ -62,14 +57,11 @@ class ModelerUtility:
                 self.SearchNeighbours()
                 # find skin and boundary normals
                 if(ReloadFile == False):
-                    self.BuildMeshBoundaryForFluids()
-                    #self.BuildMeshBoundary()
+                    self.BuildMeshBoundary()
                 self.neighbours_set = True
 
     #
     def SearchNeighbours(self):
-
-        print("::[Modeler_Utility]:: Search Neighbours ")
 
         self.SearchNodeNeighbours()
         self.SearchElementNeighbours()
@@ -83,8 +75,7 @@ class ModelerUtility:
         mesh_id = 0
 
         # define search utility
-        # nodal_neighbour_search = NodalNeighboursSearch(self.model_part, self.echo_level, number_of_avg_elems, number_of_avg_nodes, mesh_id)
-        nodal_neighbour_search = KratosPfemBase.NodalNeighboursSearch(self.model_part, self.echo_level, number_of_avg_elems, number_of_avg_nodes, mesh_id)
+        nodal_neighbour_search = NodalNeighboursSearch(self.model_part, self.echo_level, number_of_avg_elems, number_of_avg_nodes, mesh_id)
 
         # execute search:
         nodal_neighbour_search.Execute()
@@ -99,8 +90,7 @@ class ModelerUtility:
         mesh_id = 0
          
         # define search utility
-        # elemental_neighbour_search = ElementalNeighboursSearch(self.model_part, self.domain_size, self.echo_level, number_of_avg_elems, mesh_id)
-        elemental_neighbour_search = KratosPfemBase.ElementalNeighboursSearch(self.model_part, self.domain_size, self.echo_level, number_of_avg_elems, mesh_id)
+        elemental_neighbour_search = ElementalNeighboursSearch(self.model_part, self.domain_size, self.echo_level, number_of_avg_elems, mesh_id)
 
         # execute search:
         elemental_neighbour_search.Execute()
@@ -111,8 +101,7 @@ class ModelerUtility:
     def ComputeBoundaryNormals(self):
 
         # define calculation utility
-        # normals_calculation = BoundaryNormalsCalculation()
-        normals_calculation = KratosPfemBase.BoundaryNormalsCalculation()
+        normals_calculation = BoundaryNormalsCalculation()
 
         # execute calculation:
         #(scaled normals)
@@ -130,25 +119,8 @@ class ModelerUtility:
         mesh_id = 0
 
         # define building utility
-        # skin_build = BuildMeshBoundary(self.model_part, self.domain_size, self.echo_level, mesh_id)
-        skin_build = KratosPfemBase.BuildMeshBoundary(self.model_part, mesh_id, self.echo_level)
-        #skin_build = KratosPfemFluid.BuildMeshBoundaryForFluids(self.model_part, mesh_id, self.echo_level)
+        skin_build = BuildMeshBoundary(self.model_part, mesh_id, self.echo_level)
 
-        # execute building:
-        skin_build.Execute()
-
-        print("::[Modeler_Utility]:: Mesh Boundary Build executed ")
-
-    #
-    def BuildMeshBoundaryForFluids(self):
-
-        print("::[Modeler_Utility]:: Build Mesh Boundary for fluids ")
-        # set building options:
-        mesh_id = 0
-
-        # define building utility
-        skin_build = KratosPfemFluid.BuildMeshBoundaryForFluids(self.model_part, self.domain_size, self.echo_level, mesh_id)
- 
         # execute building:
         skin_build.Execute()
 
@@ -159,7 +131,7 @@ class ModelerUtility:
 
         if(self.neighbours_set):
             # define search utility
-            nodal_h_search = KratosMultiphysics.FindNodalHProcess(self.model_part)
+            nodal_h_search = FindNodalHProcess(self.model_part)
             # execute search:
             nodal_h_search.Execute()
 
@@ -169,37 +141,7 @@ class ModelerUtility:
 
             print("::[Modeler_Utility]:: Nodal H Search executed ")
 
-        #
-    def CheckInitialRadius(self):
-     
-        mesh_id = 0
-        for domain in self.meshing_domains:
-            domain.CheckInitialRadius()       
-#
-
-    def BuildMeshModelersNEW(self, meshing_domains ):
-
-        if(self.remesh_domains):
-            self.modeler_active = True
-
-        # set mesing domains
-        self.meshing_domains = meshing_domains
-
-        # set modeler utilities
-        self.modeler_utils = KratosPfemBase.ModelerUtilities()
-
-        # set transfer utilities
-        self.transfer_utils = KratosPfemBase.MeshDataTransferUtilities()
-                
-        # set the domain labels to mesh modeler
-        self.modeler_utils.SetDomainLabels(self.model_part)
-
-        # set remesh frequency vector
-        #for domain in self.meshing_domains:
-        #    self.remesh_frequencies.append(domain.GetMeshingFrequency())
-        
     #
-
     def BuildMeshModelers(self, configuration):
 
         # definition of the echo level
@@ -228,7 +170,7 @@ class ModelerUtility:
         # set modeler utilities
         self.modeler_utils = ModelerUtilities()
 
-        ## set transfer utilities
+        # set transfer utilities
         self.transfer_utils = MeshDataTransferUtilities()
                 
         # set the domain labels to mesh modeler
@@ -239,10 +181,10 @@ class ModelerUtility:
         for parameters in configuration.mesh_conditions:
 
             # set mesh modeler
-            # if(self.domain_size == 2):
-            mesh_modeler = TriangularMesh2DModeler()
-            # else:
-            # mesh_modeler = TetrahedronMesh3DModeler()
+            if(self.domain_size == 2):
+                mesh_modeler = TriangularMesh2DModeler()
+                # else:
+                # mesh_modeler = TetrahedronMesh3DModeler()
                 
             
             mesh_modeler.Initialize()
@@ -264,30 +206,9 @@ class ModelerUtility:
 
             refining_options = Flags()
             refining_options.Set(ModelerUtilities.REFINE, parameters["Refine"])
-            refining_options.Set(ModelerUtilities.REFINE_ADD_NODES, True)
-            ##refine elements
-            refining_options.Set(ModelerUtilities.REFINE_ELEMENTS, True)
-            refining_options.Set(ModelerUtilities.REFINE_ELEMENTS_ON_DISTANCE, True)
-            refining_options.Set(ModelerUtilities.REFINE_ELEMENTS_ON_THRESHOLD, True)  
-            ##refine boundary
-            #refining_options.Set(ModelerUtilities.REFINE_BOUNDARY, True)
-            ##refining_options.Set(ModelerUtilities.REFINE_BOUNDARY_ON_DISTANCE, True)
-            #refining_options.Set(ModelerUtilities.REFINE_BOUNDARY_ON_THRESHOLD, True)  
 
-            self.RefiningParameters.SetRefiningOptions(refining_options)
-
-
-            removing_options = Flags()
-            if( parameters["Refine"] ):
-                removing_options.Set(ModelerUtilities.REMOVE_NODES, True)
-                removing_options.Set(ModelerUtilities.REMOVE_NODES_ON_DISTANCE, True)
-                removing_options.Set(ModelerUtilities.REMOVE_NODES_ON_ERROR, True)
-                removing_options.Set(ModelerUtilities.REMOVE_NODES_ON_THRESHOLD, True)
-
-            self.RefiningParameters.SetRemovingOptions(removing_options)
-
-            self.RefiningParameters.SetAlphaParameter(self.alpha_shape)
-
+            self.RefiningParameters.SetOptions(refining_options)
+            
             critical_mesh_size = parameters["CriticalMeshSize"]
 
             # set mesh refinement based on wall tip discretization size
@@ -304,8 +225,6 @@ class ModelerUtility:
 
             self.RefiningParameters.SetCriticalRadius(critical_mesh_size)                       
             self.RefiningParameters.SetCriticalSide(critical_mesh_side)
-
-            #critical_radius=self.modeler_utils.ComputeInitialMeanRadius(self.model_part)                       
 
             # set mesh refinement in box
             box_refinement_only = parameters["RefineOnBoxOnly"]
@@ -352,9 +271,8 @@ class ModelerUtility:
 
             meshing_options.Set(ModelerUtilities.REMESH, parameters["Remesh"])
             meshing_options.Set(ModelerUtilities.CONSTRAINED, parameters["Constrained"])
-            meshing_options.Set(ModelerUtilities.REFINE, parameters["Refine"])
-            #meshing_options.Set(ModelerUtilities.MESH_SMOOTHING, parameters["MeshSmoothing"])
-            #meshing_options.Set(ModelerUtilities.VARIABLES_SMOOTHING, parameters["JacobiSmoothing"])
+            meshing_options.Set(ModelerUtilities.REMESH, parameters["Remesh"])
+            meshing_options.Set(ModelerUtilities.VARIABLE_SMOOTHING, parameters["JacobiSmoothing"])
             
             self.MeshingParameters.SetOptions(meshing_options)
 
@@ -363,21 +281,17 @@ class ModelerUtility:
                 
             self.MeshingParameters.SetReferenceElement(parameters["MeshElement"])
             self.MeshingParameters.SetReferenceCondition("CompositeCondition2D2N")
-            #self.MeshingParameters.SetReferenceCondition("WallCondition2D")
                 
 
             #Pre Meshing Processes
-            #remove_mesh_nodes = RemoveMeshNodes(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
-            remove_mesh_nodes = RemoveMeshNodesForFluids(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
-
+            remove_mesh_nodes = RemoveMeshNodes(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
             mesh_modeler.SetPreMeshingProcess(remove_mesh_nodes)
 
-            ##refine_mesh_boundary = RefineMeshBoundary(self.model_part, self.RefiningParameters, self.InfoParameters, mesh_id, self.echo_level) commented the 26 04 2016
-            #mesh_modeler.SetPreMeshingProcess(refine_mesh_boundary)
+            refine_mesh_boundary = RefineMeshBoundary(self.model_part, self.RefiningParameters, self.InfoParameters, mesh_id, self.echo_level)
+            mesh_modeler.SetPreMeshingProcess(refine_mesh_boundary)
 
             #Post Meshing Processes
             rebuild_mesh_boundary = ReconstructMeshBoundary(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
-            #rebuild_mesh_boundary = ReconstructMeshBoundaryForFluids(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
            
             
             mesh_modeler.SetPostMeshingProcess(rebuild_mesh_boundary)
@@ -414,59 +328,20 @@ class ModelerUtility:
         self.remesh_executed = False
 
     #
-    def RemeshDomainsNEW(self):
-
-        if(self.remesh_domains):
-           # if(self.contact_search):
-            #    self.ContactTransfer()
-
-            if( self.echo_level > 0 ):
-                print("::[Modeler_Utility]:: MESH DOMAIN...", self.counter)
-
-            meshing_options = KratosMultiphysics.Flags()
-            self.model_meshing =  KratosPfemBase.ModelMeshing(self.model_part, meshing_options, self.echo_level)
-
-            self.model_meshing.ExecuteInitialize()
-         
-            print("::[Modeler_Utility]:: BEFORE LOOP", self.counter)
-
-            id = 0
-            for domain in self.meshing_domains:
-
-                print("::[Modeler_Utility]:: IN THE LOOP")
-
-                domain.ExecuteMeshing();
-
-                self.remesh_executed = True
-
-                id+=1
-
-            self.model_meshing.ExecuteFinalize()
-
-            self.counter += 1 
-
     def RemeshDomains(self):
 
         if(self.remesh_domains):
 
-            if( self.echo_level >= 0 ):
+            if( self.echo_level > 0 ):
                 print("::[Modeler_Utility]:: MESH DOMAIN...", self.counter)
-
-            #meshing_options = Flags()
-            meshing_options = KratosMultiphysics.Flags()
-
-            self.model_meshing = ModelMeshing(self.model_part, meshing_options, self.echo_level)
-            ##self.model_meshing = ModelMeshingForFluids(self.model_part, meshing_options, self.echo_level)
-
-            self.model_meshing.ExecuteInitialize()
 
             id = 0
             for mesher in self.mesh_modelers:
 
                 mesh_id = self.mesh_ids[id]
-                
+
                 mesher.InitializeMeshModeler(self.model_part,mesh_id)
-                
+
                 mesher.GenerateMesh(self.model_part,mesh_id);
 
                 mesher.FinalizeMeshModeler(self.model_part,mesh_id)
@@ -475,34 +350,7 @@ class ModelerUtility:
 
                 id+=1
 
-            self.model_meshing.ExecuteFinalize()
-          
             self.counter += 1 
-
-
-   # def RemeshDomains(self):
-
-   #     if(self.remesh_domains):
-
-   #         if( self.echo_level > 0 ):
-    #            print("::[Modeler_Utility]:: MESH DOMAIN...", self.counter)
-#
-   #         id = 0
-  #          for mesher in self.mesh_modelers:
-
-    #            mesh_id = self.mesh_ids[id]
-
-     #           mesher.InitializeMeshModeler(self.model_part,mesh_id)
-
-    #            mesher.GenerateMesh(self.model_part,mesh_id);
-
-    #            mesher.FinalizeMeshModeler(self.model_part,mesh_id)
-
-    #            self.remesh_executed = True
-
-    #            id+=1
-
-   #         self.counter += 1 
 
 
     #

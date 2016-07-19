@@ -25,10 +25,10 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 
 #include "custom_strategies/strategies/two_step_v_p_strategy.h"
-// #include "custom_strategies/temporary_predictorcorrector_velocity_bdf_scheme_turbulent.h"
+#include "custom_strategies/strategies/gauss_seidel_linear_strategy.h"
 
 // builder_and_solvers
-#include "custom_strategies/builders_and_solvers/residualbased_block_builder_and_solver_periodic.h"
+// #include "custom_strategies/builders_and_solvers/residualbased_block_builder_and_solver_periodic.h"
 
 //convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -38,7 +38,6 @@
 #include "linear_solvers/linear_solver.h"
 
 //schemes
-//#include "custom_strategies/schemes/fluid_residual_based_U_wP_static_scheme.hpp"
 
 namespace Kratos
 {
@@ -100,6 +99,14 @@ namespace Kratos
       	.def("AddIterationStep",&TwoStepVPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::AddIterationStep)
       	.def("ClearExtraIterationSteps",&TwoStepVPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::ClearExtraIterationSteps)
       	;
+
+      class_< GaussSeidelLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases< BaseSolvingStrategyType >, boost::noncopyable >
+	("GaussSeidelLinearStrategy",init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool >())
+	.def(init < ModelPart& ,  BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool, bool,  bool  >())
+	.def("GetResidualNorm", &GaussSeidelLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetResidualNorm)
+	.def("SetBuilderAndSolver", &GaussSeidelLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetBuilderAndSolver)
+	;
+
 
       //********************************************************************
       //*******************CONVERGENCE CRITERIA CLASSES*********************

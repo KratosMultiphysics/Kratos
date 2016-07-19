@@ -80,7 +80,8 @@ public:
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
-    
+      std::cout<<" remove_mesh_nodes_process_for_fluids "<<std::endl;
+
       mMeshId = MeshId;
       mEchoLevel = EchoLevel;
     }
@@ -109,6 +110,7 @@ public:
     /// Execute method is used to execute the Process algorithms.
     virtual void Execute()
     {
+
       KRATOS_TRY
 
       if( mEchoLevel > 0 ){
@@ -130,10 +132,13 @@ public:
       //if the remove_node switch is activated, we check if the nodes got too close
       if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES))
 	{
+	  std::cout<<" REMOVE_NODES is TRUE "<<std::endl;
 	  bool any_node_removed_on_error = false;
 	  ////////////////////////////////////////////////////////////
 	  if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES_ON_ERROR))	      
 	    {
+	      std::cout<<" REMOVE_NODES_ON_ERROR is TRUE "<<std::endl;
+	  
 	      any_node_removed_on_error = RemoveNodesOnError(error_nodes_removed); //2D and 3D
 	    }
 	  //////////////////////////////////////////////////////////// 
@@ -144,6 +149,7 @@ public:
 	  ////////////////////////////////////////////////////////////
 	  if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES_ON_DISTANCE))	      
 	    {
+	      std::cout<<" REMOVE_NODES_ON_DISTANCE is TRUE "<<std::endl;
 	      // double  MeanRadius=0;
 	      // ComputeMeanRadius(MeanRadius);
 	      any_node_removed_on_distance = RemoveNodesOnDistance(inside_nodes_removed, boundary_nodes_removed, any_condition_removed); 
@@ -195,7 +201,7 @@ public:
       RemovedConditions -= mrModelPart.NumberOfConditions(mMeshId);
       
       if( mEchoLevel > 0 ){
-	std::cout<<"   [ CONDITIONS ( removed : "<<RemovedConditions<<" ) ]"<<std::endl;
+	std::cout<<"  remove_mesh_nodes_process_for_fluids  [ CONDITIONS ( removed : "<<RemovedConditions<<" ) ]"<<std::endl;
 	std::cout<<"   [ NODES      ( removed : "<<mrRemesh.Info->RemovedNodes<<" ) ]"<<std::endl;
 	std::cout<<"   [ Error(removed: "<<error_nodes_removed<<"); Distance(removed: "<<distance_remove<<"; inside: "<<inside_nodes_removed<<"; boundary: "<<boundary_nodes_removed<<") ]"<<std::endl;
 
@@ -504,7 +510,7 @@ private:
     {
        KRATOS_TRY
 	 
-	 std::cout<<"RemoveNodesOnDistance RemoveNodesOnDistance RemoveNodesOnDistance RemoveNodesOnDistance"<<std::endl;
+	 std::cout<<"remove_mesh_nodes_process_for_fluid.hpp    -------->    RemoveNodesOnDistance"<<std::endl;
 
        //***SIZES :::: parameters do define the tolerance in mesh size: 
        // double size_for_distance_inside       = 1.0  * mrRemesh.Refine->CriticalRadius;//compared with element radius
@@ -515,7 +521,7 @@ private:
        double size_for_distance_inside       = 1.25  * mrRemesh.Refine->CriticalRadius;//compared with element radius
        double size_for_distance_boundary     = 1.25  * size_for_distance_inside; //compared with element radius
        double size_for_wall_tip_contact_side = 0.15 * mrRemesh.Refine->CriticalSide;
-       size_for_distance_inside       = 0.6  * initialMeanRadius;//compared with element radius
+       size_for_distance_inside       = 0.5 * initialMeanRadius;//compared with element radius
        size_for_distance_boundary     = 1.25  * size_for_distance_inside; //compared with element radius
        size_for_wall_tip_contact_side = 0.15 * mrRemesh.Refine->CriticalSide;
       // double size_for_distance_inside       = 1.25  * mrRemesh.Refine->CriticalRadius;//compared with element radius
@@ -584,7 +590,7 @@ private:
 
 	       if (n_points_in_radius>1)
 		 {
-		   std::cout<<"     Points in Radius "<< n_points_in_radius<<" radius "<<radius<<std::endl;
+		   // std::cout<<"     Points in Radius "<< n_points_in_radius<<" radius "<<radius<<std::endl;
 
 		   //if( in->IsNot(STRUCTURE) ) {//MEANS DOFS FIXED
 

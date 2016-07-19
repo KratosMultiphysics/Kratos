@@ -22,9 +22,11 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
-#include "solving_strategies/strategies/residualbased_linear_strategy.h"
+/* #include "solving_strategies/strategies/residualbased_linear_strategy.h" */
 
 #include "custom_utilities/solver_settings.h"
+
+#include "custom_strategies/strategies/gauss_seidel_linear_strategy.h"
 
 namespace Kratos {
 
@@ -172,14 +174,15 @@ public:
         //CONSTRUCTION OF VELOCITY
         BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (pVelocityLinearSolver));
 //        BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverSlip<TSparseSpace, TDenseSpace, TLinearSolver, VarComponent > (pNewVelocityLinearSolver, this->mDomainSize, VELOCITY_X, VELOCITY_Y, VELOCITY_Z));
-        this->mpMomentumStrategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pVelocityLinearSolver, vel_build, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
+        this->mpMomentumStrategy = typename BaseType::Pointer(new GaussSeidelLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pVelocityLinearSolver, vel_build, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
+        /* this->mpMomentumStrategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pVelocityLinearSolver, vel_build, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag)); */
         this->mpMomentumStrategy->SetEchoLevel( BaseType::GetEchoLevel() );
 
-        BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(
-                    //new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(pPressureLinearSolver));
-                new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> >(pPressureLinearSolver, PRESSURE));
+        BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> >(pPressureLinearSolver, PRESSURE));
 
-        this->mpPressureStrategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pPressureLinearSolver, pressure_build, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
+	this->mpPressureStrategy = typename BaseType::Pointer(new GaussSeidelLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pPressureLinearSolver, pressure_build, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
+
+        /* this->mpPressureStrategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pPressureLinearSolver, pressure_build, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag)); */
         this->mpPressureStrategy->SetEchoLevel( BaseType::GetEchoLevel() );
 
         if (mUseSlipConditions)
@@ -706,7 +709,7 @@ protected:
 		  itNode->FastGetSolutionStepValue(ACCELERATION_Y,1) = -9.81;
 		  itNode->FastGetSolutionStepValue(ACCELERATION_X,0) = 0;
 		  itNode->FastGetSolutionStepValue(ACCELERATION_X,1) = 0;
-		  std::cout<<" .............two_step VP strategy ISOLATED NODE !!! "<<itNode->Id()<<std::endl;
+		  /* std::cout<<" .............two_step VP strategy ISOLATED NODE !!! "<<itNode->Id()<<std::endl; */
 		}
 	      }
 	  }
