@@ -31,7 +31,6 @@
 #include "processes/process.h"
 
 // Application includes
-#include "custom_processes/spalart_allmaras_turbulence_model.h" 
 #include "custom_utilities/solver_settings.h"
 
 
@@ -200,37 +199,6 @@ public:
         KRATOS_CATCH("");
     }
 
-    virtual void SetTurbulenceModel(TurbulenceModelLabel const& rTurbulenceModel,
-                                    typename TLinearSolver::Pointer pLinearSolver,
-                                    const double Tolerance,
-                                    const unsigned int MaxIter)
-    {
-        KRATOS_TRY;
-
-        BaseType::mHaveTurbulenceModel = true;
-
-        ModelPart& rModelPart = BaseType::GetModelPart();
-        unsigned int DomainSize = BaseType::GetDomainSize();
-        unsigned int TimeOrder = BaseType::GetTimeOrder();
-        bool ReformDofSet = BaseType::GetReformDofSet();
-
-        if (rTurbulenceModel == BaseType::SpalartAllmaras)
-        {
-            BaseType::mpTurbulenceModel = ProcessPointerType( new SpalartAllmarasTurbulenceModel<TSparseSpace,TDenseSpace,TLinearSolver>
-                                                              (rModelPart,pLinearSolver,DomainSize,Tolerance,MaxIter,ReformDofSet,TimeOrder));
-        }
-        else
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"Error in TwoStepVPSettings: Unknown turbulence model label.","");
-        }
-
-        KRATOS_CATCH("");
-    }
-
-    virtual void SetTurbulenceModel(ProcessPointerType pTurbulenceModel)
-    {
-        BaseType::SetTurbulenceModel(pTurbulenceModel);
-    }
 
     ///@}
     ///@name Inquiry

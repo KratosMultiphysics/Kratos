@@ -114,11 +114,10 @@ class QuasiIncompressibleFluidSolver:
 
         self.use_slip_conditions = False
 
-        self.use_spalart_allmaras = False
         self.use_des = False
         self.Cdes = 1.0
         self.wall_nodes = list()
-        self.spalart_allmaras_linear_solver = None
+        #self.spalart_allmaras_linear_solver = None
 
         self.divergence_clearance_steps = 0
 
@@ -204,40 +203,7 @@ class QuasiIncompressibleFluidSolver:
                                          self.press_toll,
                                          self.max_press_its)
         """
-        if self.use_spalart_allmaras:
-            for node in self.wall_nodes:
-                node.SetValue(IS_VISITED, 1.0)
-                node.SetSolutionStepValue(DISTANCE, 0, 0.0)
 
-            if(self.domain_size == 2):
-                self.redistance_utils = ParallelDistanceCalculator2D()
-            else:
-                self.redistance_utils = ParallelDistanceCalculator3D()
-
-            max_levels = 100
-            max_distance = 1000
-            self.redistance_utils.CalculateDistancesLagrangianSurface(
-                self.model_part,
-                DISTANCE,
-                NODAL_AREA,
-                max_levels,
-                max_distance)
-
-            """
-            sa_non_linear_tol = 0.001
-            sa_max_it = 10
-
-            reform_dofset = self.ReformDofAtEachIteration
-            time_order = self.time_order
-            pPrecond = DiagonalPreconditioner()
-            turbulence_linear_solver = BICGSTABSolver(1e-9, 5000, pPrecond)
-
-            self.solver_settings.SetTurbulenceModel(
-                TwoStepVPTurbulenceModelLabel.SpalartAllmaras,
-                turbulence_linear_solver,
-                sa_non_linear_tol,
-                sa_max_it)
-            """
 
         """
         if self.periodic == True:
@@ -460,13 +426,13 @@ def CreateSolver(model_part, config, periodic=False):
         fluid_solver.divergence_clearance_steps = config.divergence_cleareance_step
 
     # RANS or DES settings
-    if hasattr(config, "TurbulenceModel"):
-        if config.TurbulenceModel == "Spalart-Allmaras":
-            fluid_solver.use_spalart_allmaras = True
-        elif config.TurbulenceModel == "Smagorinsky-Lilly":
-            msg = """Fluid solver error: Smagorinsky model requested, but
-                         the value for the Smagorinsky constant is
-                         undefined."""
-            raise Exception(msg)
+    #if hasattr(config, "TurbulenceModel"):
+    #    if config.TurbulenceModel == "Spalart-Allmaras":
+    #        fluid_solver.use_spalart_allmaras = True
+    #    elif config.TurbulenceModel == "Smagorinsky-Lilly":
+    #        msg = """Fluid solver error: Smagorinsky model requested, but
+    #                     the value for the Smagorinsky constant is
+    #                     undefined."""
+    #        raise Exception(msg)
 
     return fluid_solver

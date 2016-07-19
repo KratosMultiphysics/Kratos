@@ -34,7 +34,6 @@
 #include "custom_utilities/boundary_normals_calculation_utilities.hpp"
 #include "../PfemBaseApplication/custom_utilities/modeler_utilities.hpp"
 #include "pfem_fluid_dynamics_application_variables.h"
-
 ///VARIABLES used:
 //Data:     MASTER_ELEMENTS(set), MASTER_NODES(set), NEIGHBOUR_ELEMENTS
 //StepData: RIGID_WALL
@@ -88,16 +87,6 @@ namespace Kratos
 
     /// Default constructor.
 
-    // BuildMeshBoundaryProcessForFluids(ModelPart& model_part,
-    // 		     char * ReferenceConditionName,
-    // 		     unsigned int dim,
-    // 		     unsigned int preserve)
-    // 	: mrModelPart(model_part), mr_reference_condition(KratosComponents<Condition>::Get("ReferenceConditionName"))
-    // { 
-    // 	std::cout<<" Reference Condition "<<mr_reference_condition<<std::endl;
-    // 	mDimension=dim;
-    // }
-  
     //second constructor
     BuildMeshBoundaryProcessForFluids(ModelPart& rModelPart,
 			     int Dimension,
@@ -135,6 +124,7 @@ namespace Kratos
       bool success=false;
 
       boost::timer auxiliary;
+
       unsigned int NumberOfMeshes=mrModelPart.NumberOfMeshes();
 	
 		
@@ -151,7 +141,6 @@ namespace Kratos
 	      std::cout<<" [ Skin Search on Mesh["<<MeshId<<"] ]"<<std::endl;
 
 	    //success=SkinSearch(MeshId);
-	    std::cout<<"1--> build mesh boundary process... Execute() "<<std::endl;
 	    success=UniqueSkinSearch(MeshId);
 			    
 	    if(!success)
@@ -172,7 +161,6 @@ namespace Kratos
 	  std::cout<<" [ Skin Search on Mesh["<<mMeshId<<"] ]"<<std::endl;
 
 	//success=SkinSearch(MeshId);
-	std::cout<<"2--> build mesh boundary process... Execute() "<<std::endl;
 	success=UniqueSkinSearch(mMeshId);
 			    
 	if(!success)
@@ -634,6 +622,7 @@ namespace Kratos
       for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(MeshId); in!=mrModelPart.NodesEnd(MeshId); in++)
 	{
 	  in->Reset(BOUNDARY);
+	      // std::cout<<"1. reset BOUNDARY in build_mesh_boundary_process_for_fluid"<<std::endl;
 	}
 
 
@@ -859,6 +848,8 @@ namespace Kratos
 		// // in->Set(FREE_SURFACE);
 	      }
 	      in->Reset(BOUNDARY);
+	      std::cout<<"reset BOUNDARY in build_mesh_boundary_process_for_fluid"<<std::endl;
+
 	    }
 	  }
 	  // if(in->Is(OUTLET)){
@@ -1034,8 +1025,6 @@ namespace Kratos
 
 	  }
 	}
-
-      std::cout<<"2  AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"<<std::endl;
 
       this->AddOtherConditions(TemporaryConditions, PreservedConditions, ConditionId, MeshId);
 	

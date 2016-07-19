@@ -42,9 +42,6 @@ set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_SOURCES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/wall_condition.cpp
 
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/triangular_fluid_mesh_2D_modeler.cpp
-
-
 )
 
 ###############################################################
