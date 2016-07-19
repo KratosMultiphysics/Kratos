@@ -123,7 +123,7 @@ public:
     /// Default constructor.
     /// This constructor will take all elements of the model_part for topology optimization
     TopologyUpdateProcess(ModelPart& r_model_part, double volfrac, double rmin, int ft)
-    : mr_model_part(r_model_part), mvolfrac(volfrac), mrmin(rmin), mft(ft), mbinsize(100), mtotal_volume(0.0)
+    : mr_model_part(r_model_part), mvolfrac(volfrac), mrmin(rmin), mtotal_volume(0.0), mft(ft), mbinsize(100)
     {
         mrElements = r_model_part.Elements();
     }
