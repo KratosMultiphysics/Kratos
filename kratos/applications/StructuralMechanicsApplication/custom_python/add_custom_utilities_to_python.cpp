@@ -36,7 +36,7 @@ void  AddCustomUtilitiesToPython()
 
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+//     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     
     class_<SprismNeighbours>("SprismNeighbours", init<ModelPart&>())
     .def("Execute",&SprismNeighbours::Execute)
