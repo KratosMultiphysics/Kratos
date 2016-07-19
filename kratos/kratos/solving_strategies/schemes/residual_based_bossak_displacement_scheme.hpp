@@ -144,7 +144,7 @@ public:
     /**
      * Performing the update of the solution
      * Incremental update within newton iteration. It updates the state variables at the end of the time step: u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
-     * @param r_model_part: The model of the problem to solve
+     * @param rModelPart: The model of the problem to solve
      * @param rDofSet: Set of all primary variables
      * @param A: LHS matrix
      * @param Dx: incremental update of primary variables
@@ -152,7 +152,7 @@ public:
      */
 
     void Update(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
@@ -184,10 +184,10 @@ public:
 
         // Updating time derivatives (nodally for efficiency)
         OpenMPUtils::PartitionVector NodePartition;
-        OpenMPUtils::DivideInPartitions(r_model_part.Nodes().size(), NumThreads, NodePartition);
+        OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
 
-        const int nnodes = static_cast<int>(r_model_part.Nodes().size());
-        NodesArrayType::iterator NodeBegin = r_model_part.Nodes().begin();
+        const int nnodes = static_cast<int>(rModelPart.Nodes().size());
+        NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
 
         #pragma omp parallel for firstprivate(NodeBegin)
         for(int i = 0;  i < nnodes; i++)
@@ -215,7 +215,7 @@ public:
     /**
      * Performing the prediction of the solution
      * It predicts the solution for the current step: x = xold + vold * Dt
-     * @param r_model_part: The model of the problem to solve
+     * @param rModelPart: The model of the problem to solve
      * @param rDofSet set of all primary variables
      * @param A: LHS matrix
      * @param Dx: Incremental update of primary variables
@@ -223,7 +223,7 @@ public:
      */
 
     void Predict(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
@@ -234,15 +234,15 @@ public:
 
         // std::cout << " Prediction " << std::endl;
 
-        const double DeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
+        const double DeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
 
         // Updating time derivatives (nodally for efficiency)
         const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector NodePartition;
-        OpenMPUtils::DivideInPartitions(r_model_part.Nodes().size(), NumThreads, NodePartition);
+        OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
 
-        const int nnodes = static_cast<int>( r_model_part.Nodes().size() );
-        NodesArrayType::iterator NodeBegin = r_model_part.Nodes().begin();
+        const int nnodes = static_cast<int>( rModelPart.Nodes().size() );
+        NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
 
         #pragma omp parallel for firstprivate(NodeBegin)
         for(int i = 0;  i< nnodes; i++)
@@ -334,7 +334,7 @@ public:
     /**
      * This is the place to initialize the elements.
      * This is intended to be called just once when the strategy is initialized
-     * @param r_model_part: The model of the problem to solve
+     * @param rModelPart: The model of the problem to solve
      */
     void InitializeElements(ModelPart& rModelPart)
     {
@@ -364,7 +364,7 @@ public:
 
     /**
      * This is the place to initialize the conditions. This is intended to be called just once when the strategy is initialized
-     * @param r_model_part: The model of the problem to solve
+     * @param rModelPart: The model of the problem to solve
      */
 
     void InitializeConditions(ModelPart& rModelPart)
@@ -398,14 +398,15 @@ public:
 
     /**
      * It initializes time step solution. Only for reasons if the time step solution is restarted
-     * @param r_model_part: The model of the problem to solve
+     * @param rModelPart: The model of the problem to solve
      * @param A: LHS matrix
      * @param Dx: Incremental update of primary variables
      * @param b: RHS Vector
      *
      */
+    
     void InitializeSolutionStep(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
@@ -413,9 +414,9 @@ public:
     {
         KRATOS_TRY;
 
-        ProcessInfo CurrentProcessInfo= r_model_part.GetProcessInfo();
+        ProcessInfo CurrentProcessInfo= rModelPart.GetProcessInfo();
 
-        Scheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(r_model_part, A, Dx, b);
+        Scheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(rModelPart, A, Dx, b);
 
         double DeltaTime = CurrentProcessInfo[DELTA_TIME];
 
@@ -445,7 +446,7 @@ public:
     /**
      * Function called once at the end of a solution step, after convergence is reached if
      * an iterative process is needed
-     * @param r_model_part: The model of the problem to solve
+     * @param rModelPart: The model of the problem to solve
      * @param A: LHS matrix
      * @param Dx: Incremental update of primary variables
      * @param b: RHS Vector
@@ -455,7 +456,8 @@ public:
         ModelPart& rModelPart,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b
+        )
     {
         KRATOS_TRY;
 
@@ -499,14 +501,14 @@ public:
 
     /**
      * It initializes a non-linear iteration (for the element)
-     * @param r_model_part: The model of the problem to solve
+     * @param rModelPart: The model of the problem to solve
      * @param A: LHS matrix
      * @param Dx: Incremental update of primary variables
      * @param b: RHS Vector
      */
 
     void InitializeNonLinIteration(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
@@ -514,18 +516,44 @@ public:
     {
         KRATOS_TRY;
 
-        ElementsArrayType& pElements = r_model_part.Elements();
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        // Initializes the non-linear iteration for all the elements
+        ElementsArrayType& rElements = rModelPart.Elements();
+        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-        for (ElementsArrayType::iterator it = pElements.begin(); it != pElements.end(); ++it)
+        const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector ElementPartition;
+        OpenMPUtils::DivideInPartitions(rElements.size(), NumThreads, ElementPartition);
+
+        #pragma omp parallel
         {
-            (it) -> InitializeNonLinearIteration(CurrentProcessInfo);
+            const unsigned int k = OpenMPUtils::ThisThread();
+
+            typename ElementsArrayType::iterator ElementsBegin = rElements.begin() + ElementPartition[k];
+            typename ElementsArrayType::iterator ElementsEnd   = rElements.begin() + ElementPartition[k + 1];
+
+            for (typename ElementsArrayType::iterator itElem = ElementsBegin; itElem != ElementsEnd; itElem++)
+            {
+                itElem->InitializeNonLinearIteration(CurrentProcessInfo);
+            }
         }
-
-        ConditionsArrayType& pConditions = r_model_part.Conditions();
-        for (ConditionsArrayType::iterator it = pConditions.begin(); it != pConditions.end(); ++it)
+        
+        // Initializes the non-linear iteration for all the conditions
+        ConditionsArrayType& rConditions = rModelPart.Conditions();
+        
+        OpenMPUtils::PartitionVector ConditionPartition;
+        OpenMPUtils::DivideInPartitions(rConditions.size(), NumThreads, ConditionPartition);
+        
+        #pragma omp parallel
         {
-            (it) -> InitializeNonLinearIteration(CurrentProcessInfo);
+            const unsigned int k = OpenMPUtils::ThisThread();
+
+            typename ConditionsArrayType::iterator ConditionsBegin = rConditions.begin() + ConditionPartition[k];
+            typename ConditionsArrayType::iterator ConditionsEnd   = rConditions.begin() + ConditionPartition[k + 1];
+
+            for (typename ConditionsArrayType::iterator itCond = ConditionsBegin; itCond != ConditionsEnd; itCond++)
+            {
+                itCond->InitializeNonLinearIteration(CurrentProcessInfo);
+            }
         }
 
         KRATOS_CATCH( "" );
@@ -547,7 +575,7 @@ public:
 
     /**
      * It initializes a non-linear iteration (for an individual element)
-     * @param rCurrentConditiont: The element to compute
+     * @param rCurrentElement: The element to compute
      * @param CurrentProcessInfo: The current process info instance
      */
 
@@ -654,10 +682,10 @@ public:
 
         int thread = OpenMPUtils::ThisThread();
 
-        // Initializing the non linear iteration for the current element
+        // Initializing the non linear iteration for the current condition
         //(rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
 
-        // Basic operations for the element considered
+        // Basic operations for the condition considered
         (rCurrentCondition) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
         (rCurrentCondition) -> EquationIdVector(EquationId,CurrentProcessInfo);
@@ -679,7 +707,7 @@ public:
      * Functions that calculates the RHS of a "condition" object
      * @param rCurrentCondition: The condition to compute
      * @param RHS_Contribution: The RHS vector contribution
-     * @param EquationId: The ID's of the element degrees of freedom
+     * @param EquationId: The ID's of the condition degrees of freedom
      * @param CurrentProcessInfo: The current process info instance
      */
 
@@ -696,7 +724,7 @@ public:
         // Initializing the non linear iteration for the current condition
         //(rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
 
-        // Basic operations for the element considered
+        // Basic operations for the condition considered
         (rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
         (rCurrentCondition) -> EquationIdVector(EquationId, CurrentProcessInfo);
@@ -747,15 +775,15 @@ public:
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
      * to catch user's errors.
-     * @param r_model_part: The model of the problem to solve
+     * @param rModelPart: The model of the problem to solve
      * @return Zero means  all ok
      */
 
-    virtual int Check(ModelPart& r_model_part)
+    virtual int Check(ModelPart& rModelPart)
     {
         KRATOS_TRY;
 
-        int err = Scheme<TSparseSpace, TDenseSpace>::Check(r_model_part);
+        int err = Scheme<TSparseSpace, TDenseSpace>::Check(rModelPart);
         if(err!=0)
         {
             return err;
@@ -777,8 +805,8 @@ public:
         }
 
         // Check that variables are correctly allocated
-        for(ModelPart::NodesContainerType::iterator it=r_model_part.NodesBegin();
-                it!=r_model_part.NodesEnd(); it++)
+        for(ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin();
+                it!=rModelPart.NodesEnd(); it++)
         {
             if (it->SolutionStepsDataHas(DISPLACEMENT) == false)
             {
@@ -795,8 +823,8 @@ public:
         }
 
         // Check that dofs exist
-        for(ModelPart::NodesContainerType::iterator it=r_model_part.NodesBegin();
-                it!=r_model_part.NodesEnd(); it++)
+        for(ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin();
+                it!=rModelPart.NodesEnd(); it++)
         {
             if(it->HasDofFor(DISPLACEMENT_X) == false)
             {
@@ -820,9 +848,9 @@ public:
 
         // Check for minimum value of the buffer index
         // Verify buffer size
-        if (r_model_part.GetBufferSize() < 2)
+        if (rModelPart.GetBufferSize() < 2)
         {
-            KRATOS_THROW_ERROR( std::logic_error, "insufficient buffer size. Buffer size should be greater than 2. Current size is", r_model_part.GetBufferSize() );
+            KRATOS_THROW_ERROR( std::logic_error, "insufficient buffer size. Buffer size should be greater than 2. Current size is", rModelPart.GetBufferSize() );
         }
 
         return 0;
