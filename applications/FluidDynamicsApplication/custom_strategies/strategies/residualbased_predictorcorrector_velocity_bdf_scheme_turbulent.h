@@ -506,39 +506,90 @@ namespace Kratos {
             LocalSystemMatrixType LHS_Contribution;
             ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-            for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); ++itNode)
+            
+            ModelPart::NodeIterator itnodes_begin = rModelPart.NodesBegin();
+            const unsigned int nnodes = rModelPart.Nodes().size();
+            #pragma omp parallel for firstprivate(nnodes, itnodes_begin)
+            for(unsigned int i=0; i<nnodes; i++)
             {
-                itNode->FastGetSolutionStepValue(REACTION,0) = array_1d<double,3>(3,0.0);
+                ModelPart::NodeIterator itNode = itnodes_begin + i;
+                (itNode->FastGetSolutionStepValue(REACTION)).clear();
             }
-
-            for (ModelPart::ElementsContainerType::ptr_iterator itElem = rModelPart.Elements().ptr_begin(); itElem != rModelPart.Elements().ptr_end(); ++itElem)
+            
+            
+            ModelPart::ElementsContainerType::iterator itelem_begin = rModelPart.ElementsBegin();
+            const unsigned int nelems = rModelPart.Elements().size();
+             #pragma omp parallel for firstprivate(nelems, itelem_begin)
+            for(unsigned int i=0; i<nelems; i++)
             {
-                (*itElem)->InitializeNonLinearIteration(CurrentProcessInfo);
-                //KRATOS_WATCH(LHS_Contribution);
-                //basic operations for the element considered
-                (*itElem)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+                ModelPart::ElementsContainerType::iterator itElem = itelem_begin + i;
+                
+                (itElem)->InitializeNonLinearIteration(CurrentProcessInfo);
+                (itElem)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo); //TODO: call CalculateRHS instead
 
-                (*itElem)->EquationIdVector(EquationId, CurrentProcessInfo);
-
-                GeometryType& rGeom = (*itElem)->GetGeometry();
+                GeometryType& rGeom = (itElem)->GetGeometry();
                 unsigned int NumNodes = rGeom.PointsNumber();
                 unsigned int Dimension = rGeom.WorkingSpaceDimension();
                 unsigned int index = 0;
 
+                
                 for (unsigned int i = 0; i < NumNodes; i++)
                 {
-                    array_1d<double,3>& rReaction = rGeom[i].FastGetSolutionStepValue(REACTION,0);
+                    
+                    array_1d<double,3>& rReaction = rGeom[i].FastGetSolutionStepValue(REACTION);
+                    rGeom[i].SetLock();
                     rReaction[0] -= RHS_Contribution[index++];
                     rReaction[1] -= RHS_Contribution[index++];
                     if (Dimension == 3) rReaction[2] -= RHS_Contribution[index++];
+                    rGeom[i].UnSetLock();
                     index++; // skip pressure dof
+                    
                 }
             }
-
+            
             rModelPart.GetCommunicator().AssembleCurrentData(REACTION);
             
-            for (ModelPart::ElementsContainerType::ptr_iterator itElem = rModelPart.Elements().ptr_begin(); itElem != rModelPart.Elements().ptr_end(); ++itElem)
-                (*itElem)->FinalizeSolutionStep(CurrentProcessInfo);
+            #pragma omp parallel for firstprivate(nelems, itelem_begin)
+            for(unsigned int i=0; i<nelems; i++)
+            {
+                ModelPart::ElementsContainerType::iterator itElem = itelem_begin + i;
+                (itElem)->FinalizeSolutionStep(CurrentProcessInfo);
+            }
+            
+            
+//             for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); ++itNode)
+//             {
+//                 itNode->FastGetSolutionStepValue(REACTION,0) = array_1d<double,3>(3,0.0);
+//             }
+// 
+//             for (ModelPart::ElementsContainerType::ptr_iterator itElem = rModelPart.Elements().ptr_begin(); itElem != rModelPart.Elements().ptr_end(); ++itElem)
+//             {
+//                 (*itElem)->InitializeNonLinearIteration(CurrentProcessInfo);
+//                 //KRATOS_WATCH(LHS_Contribution);
+//                 //basic operations for the element considered
+//                 (*itElem)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+// 
+//                 (*itElem)->EquationIdVector(EquationId, CurrentProcessInfo);
+// 
+//                 GeometryType& rGeom = (*itElem)->GetGeometry();
+//                 unsigned int NumNodes = rGeom.PointsNumber();
+//                 unsigned int Dimension = rGeom.WorkingSpaceDimension();
+//                 unsigned int index = 0;
+// 
+//                 for (unsigned int i = 0; i < NumNodes; i++)
+//                 {
+//                     array_1d<double,3>& rReaction = rGeom[i].FastGetSolutionStepValue(REACTION,0);
+//                     rReaction[0] -= RHS_Contribution[index++];
+//                     rReaction[1] -= RHS_Contribution[index++];
+//                     if (Dimension == 3) rReaction[2] -= RHS_Contribution[index++];
+//                     index++; // skip pressure dof
+//                 }
+//             }
+// 
+//             rModelPart.GetCommunicator().AssembleCurrentData(REACTION);
+//             
+//             for (ModelPart::ElementsContainerType::ptr_iterator itElem = rModelPart.Elements().ptr_begin(); itElem != rModelPart.Elements().ptr_end(); ++itElem)
+//                 (*itElem)->FinalizeSolutionStep(CurrentProcessInfo);
         }
 
         //************************************************************************************************
