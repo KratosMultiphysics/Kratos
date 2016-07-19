@@ -56,14 +56,14 @@ RigidBodyElement::RigidBodyElement(IndexType NewId, GeometryType::Pointer pGeome
 //************************************************************************************
 
 
-RigidBodyElement::RigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, ModelPart::MeshType::Pointer pMesh)
+RigidBodyElement::RigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, NodesContainerType::Pointer pNodes)
     : Element(NewId, pGeometry, pProperties)
 {
     KRATOS_TRY
 
     //DO NOT ADD DOFS HERE!!!
 
-    mpMesh = pMesh;
+    mpNodes = pNodes;
 
     KRATOS_CATCH( "" )
 
@@ -76,7 +76,7 @@ RigidBodyElement::RigidBodyElement(IndexType NewId, GeometryType::Pointer pGeome
 RigidBodyElement::RigidBodyElement(RigidBodyElement const& rOther)
     :Element(rOther)
     ,mInitialLocalQuaternion(rOther.mInitialLocalQuaternion)
-    ,mpMesh(rOther.mpMesh)
+    ,mpNodes(rOther.mpNodes)
 {
 }
 
