@@ -491,11 +491,11 @@ public:
 // ***
         //defintions for spatial search
         typedef Node<3> PointType;
-        typedef Node<3>::Pointer PointTypePointer;
+//         typedef Node<3>::Pointer PointTypePointer;
         typedef std::vector<PointType::Pointer>           PointVector;
-        typedef std::vector<PointType::Pointer>::iterator PointIterator;
-        typedef std::vector<double>               DistanceVector;
-        typedef std::vector<double>::iterator     DistanceIterator;
+//         typedef std::vector<PointType::Pointer>::iterator PointIterator;
+//         typedef std::vector<double>               DistanceVector;
+//         typedef std::vector<double>::iterator     DistanceIterator;
 
 
         //creating an auxiliary list for the new nodes

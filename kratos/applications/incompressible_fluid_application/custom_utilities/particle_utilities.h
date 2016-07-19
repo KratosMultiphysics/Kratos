@@ -409,7 +409,7 @@ public:
 
         //generate a tree with the position of the lagrangian nodes
         typedef Node < 3 > PointType;
-        typedef Node < 3 > ::Pointer PointTypePointer;
+//         typedef Node < 3 > ::Pointer PointTypePointer;
         typedef Node<3> NodeType;
 
         //unsigned int min_number_of_particles = 4  ;
@@ -530,7 +530,7 @@ public:
         for ( int i = 1; i < number_of_threads; i++)
             elem_partition[i] = elem_partition[i - 1] + elem_partition_size;
 
-        typedef Node < 3 > PointType;
+//         typedef Node < 3 > PointType;
         std::vector<ModelPart::NodesContainerType> aux;// aux;
         aux.resize(number_of_threads);
 
@@ -996,9 +996,9 @@ public:
         Timer::Start("Puntos");
 
         //generate a tree with the position of the lagrangian nodes
-        typedef Node < 3 > PointType;
-        typedef Node < 3 > ::Pointer PointTypePointer;
-        typedef Node<3> NodeType;
+//         typedef Node < 3 > PointType;
+//         typedef Node < 3 > ::Pointer PointTypePointer;
+//         typedef Node<3> NodeType;
 
         //unsigned int min_number_of_particles = 4  ;
 
@@ -1105,9 +1105,9 @@ public:
         Timer::Start("Puntos");
 
         //generate a tree with the position of the lagrangian nodes
-        typedef Node < 3 > PointType;
-        typedef Node < 3 > ::Pointer PointTypePointer;
-        typedef Node<3> NodeType;
+//         typedef Node < 3 > PointType;
+//         typedef Node < 3 > ::Pointer PointTypePointer;
+//         typedef Node<3> NodeType;
 
         //unsigned int min_number_of_particles = 4  ;
 
@@ -1452,8 +1452,8 @@ public:
             KRATOS_THROW_ERROR(std::logic_error, "Add  ----TEMPERATURE---- variable!!!!!! ERROR", "");
 
         //defintions for spatial search
-        typedef Node < 3 > PointType;
-        typedef Node < 3 > ::Pointer PointTypePointer;
+//         typedef Node < 3 > PointType;
+//         typedef Node < 3 > ::Pointer PointTypePointer;
 
 
         for (ModelPart::NodesContainerType::iterator node_it = rEulerianModelPart.NodesBegin();

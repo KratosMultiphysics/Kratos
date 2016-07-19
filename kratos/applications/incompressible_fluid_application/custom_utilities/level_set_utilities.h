@@ -377,9 +377,9 @@ public:
         //defintions for spatial search
         typedef Node<3> PointType;
         typedef Node<3>::Pointer PointTypePointer;
-        typedef std::vector<PointType::Pointer>           PointVector;
-        typedef std::vector<PointType::Pointer>::iterator PointIterator;
-        typedef std::vector<double>               DistanceVector;
+         typedef std::vector<PointType::Pointer>           PointVector;
+//         typedef std::vector<PointType::Pointer>::iterator PointIterator;
+//         typedef std::vector<double>               DistanceVector;
         typedef std::vector<double>::iterator     DistanceIterator;
 
 
@@ -1203,7 +1203,7 @@ public:
 
         typedef Node<3> PointType;
         typedef PointerVector<PointType >  PointVector;
-        typedef PointVector::iterator PointIterator;
+//         typedef PointVector::iterator PointIterator;
 
         //generate a container with the layers to be extrapolated
         PointVector work_array;

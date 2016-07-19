@@ -148,7 +148,7 @@ void AddCustomStrategiesToPython()
     typedef ExplicitResidualBasedBuilder< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitResidualBasedBuilderType;
 
 
-    typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
+//    typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
     typedef ExplicitResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitResidualBasedNewtonRaphsonStrategyType;
 
 
