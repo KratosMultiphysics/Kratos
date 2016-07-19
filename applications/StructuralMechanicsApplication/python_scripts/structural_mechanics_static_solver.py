@@ -77,7 +77,6 @@ class StaticStructuralSolver(solid_mechanics_static_solver.StaticMechanicalSolve
             "line_search": false,
             "compute_reactions": true,
             "compute_contact_forces": false,
-            "compute_mortar_contact": false,
             "block_builder": false,
             "clear_storage": false,
             "component_wise": false,
@@ -159,12 +158,6 @@ class StaticStructuralSolver(solid_mechanics_static_solver.StaticMechanicalSolve
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SolidMechanicsApplication.PRESSURE_REACTION)
             
-        if  self.settings["compute_mortar_contact"].GetBool():
-            # Add normal
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-            # Add lagrange multiplier
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.StructuralMechanicsApplication.LAGRANGE_MULTIPLIER)
-            
         if self.settings["analysis_type"].GetString() == "Arc-Length":
             self.main_model_part.ProcessInfo[KratosMultiphysics.StructuralMechanicsApplication.LAMBDA] = 0.00;
    
@@ -187,13 +180,7 @@ class StaticStructuralSolver(solid_mechanics_static_solver.StaticMechanicalSolve
         if self.settings["pressure_dofs"].GetBool():                
             for node in self.main_model_part.Nodes:
                 node.AddDof(KratosMultiphysics.PRESSURE, KratosSolid.PRESSURE_REACTION);
-        
-        if  self.settings["compute_mortar_contact"].GetBool():
-            for node in self.main_model_part.Nodes:
-                node.AddDof(KratosMultiphysics.StructuralMechanicsApplication.LAGRANGE_MULTIPLIER_X);
-                node.AddDof(KratosMultiphysics.StructuralMechanicsApplication.LAGRANGE_MULTIPLIER_Y);
-                node.AddDof(KratosMultiphysics.StructuralMechanicsApplication.LAGRANGE_MULTIPLIER_Z);
-
+    
         print("::[Mechanical Solver]:: DOF's ADDED")
 
     def GetComputeModelPart(self):
@@ -211,22 +198,6 @@ class StaticStructuralSolver(solid_mechanics_static_solver.StaticMechanicalSolve
             if echo_level > 0:
                 print("LAMBDA: ", self.main_model_part.ProcessInfo[KratosMultiphysics.StructuralMechanicsApplication.LAMBDA])
             ChangeCondition(self.main_model_part, echo_level)
-    
-    def _GetBuilderAndSolver(self, component_wise, block_builder):
-        if  self.settings["compute_mortar_contact"].GetBool():
-            builder_and_solver = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedBlockBuilderAndSolverContact(self.linear_solver)
-        else:
-            # Creating the builder and solver
-            if(component_wise):
-                builder_and_solver = KratosSolid.ComponentWiseBuilderAndSolver(self.linear_solver)
-            else:
-                if(block_builder):
-                    # To keep matrix blocks in builder
-                    builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-                else:
-                    builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
-        
-        return builder_and_solver
     
     def _GetSolutionScheme(self, analysis_type, component_wise, compute_contact_forces):
         if(analysis_type == "Linear"):
@@ -250,36 +221,10 @@ class StaticStructuralSolver(solid_mechanics_static_solver.StaticMechanicalSolve
                     raise Exception("TODO: change for one that works with contact change")
                     #mechanical_scheme = ResidualBasedContactBossakScheme(self.settings["damp_factor_m"].GetDouble(), 
                                                                          #self.settings["dynamic_factor"].GetDouble())
-                elif  self.settings["compute_mortar_contact"].GetBool():
-                    mechanical_scheme = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedIncrementalUpdateStaticContactScheme()
                 else:
                     mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
                                 
         return mechanical_scheme
-    
-    def _GetConvergenceCriterion(self):
-        # Creation of an auxiliar Kratos parameters object to store the convergence settings
-        conv_params = KratosMultiphysics.Parameters("{}")
-        conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
-        conv_params.AddValue("rotation_dofs",self.settings["rotation_dofs"])
-        conv_params.AddValue("echo_level",self.settings["echo_level"])
-        conv_params.AddValue("component_wise",self.settings["component_wise"])
-        conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])
-        conv_params.AddValue("displacement_absolute_tolerance",self.settings["displacement_absolute_tolerance"])
-        conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
-        conv_params.AddValue("residual_absolute_tolerance",self.settings["residual_absolute_tolerance"])
-        
-        # Construction of the class convergence_criterion
-        import convergence_criteria_factory
-        convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_params)
-        
-        if  self.settings["compute_mortar_contact"].GetBool():
-            Mortar = KratosMultiphysics.StructuralMechanicsApplication.MortarConvergenceCriteria()
-            Mortar.SetEchoLevel(self.settings["echo_level"].GetInt())
-
-            convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Mortar, convergence_criterion.mechanical_convergence_criterion)
-        
-        return convergence_criterion.mechanical_convergence_criterion
         
     def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search):
         

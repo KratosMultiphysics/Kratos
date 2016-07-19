@@ -518,6 +518,36 @@ void MortarContact2DCondition::InitializeSystemMatrices(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void MortarContact2DCondition::CalculateMassMatrix( 
+    MatrixType& rMassMatrix, 
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
+    
+    rMassMatrix.resize(0, 0, false);
+
+    KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MortarContact2DCondition::CalculateDampingMatrix( 
+    MatrixType& rDampingMatrix,
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
+
+    rDampingMatrix.resize(0, 0, false);
+
+    KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 const unsigned int MortarContact2DCondition::CalculateConditionSize( )
 {
     const unsigned int dimension = 2;

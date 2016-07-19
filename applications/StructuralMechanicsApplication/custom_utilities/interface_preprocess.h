@@ -98,11 +98,7 @@ public:
     {
         KRATOS_TRY;
         
-        const unsigned int dimension = rOriginPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-//         const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-        
-//         OpenMPUtils::PartitionVector NodePartition;
-//         OpenMPUtils::DivideInPartitions(rOriginPart.Nodes().size(), NumThreads, NodePartition);
+        const unsigned int dimension = rOriginPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();   
         
         // Store pointers to all interface nodes
         unsigned int NodesCounter = 0;
@@ -113,6 +109,7 @@ public:
         
         unsigned int CondCounter = 0;
         
+//         const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
 //         OpenMPUtils::PartitionVector ElementPartition;
 //         OpenMPUtils::DivideInPartitions(rOriginPart.Elements().size(), NumThreads, ElementPartition);
 // 
@@ -146,7 +143,7 @@ public:
                     
                     if (count == number_points)
                     {
-                        CondId += 1;
+                        CondId += 1; // NOTE: Para paralelizar cuidado con esta ID
                         std::string EdgeConditionName = ConditionName;
                         if (number_points == 2)
                         {
@@ -235,7 +232,9 @@ public:
                 }
             }
         }
-        
+      
+        // NOTE: Reorder ID if parallellization
+      
         PrintNodesAndConditions(NodesCounter, CondCounter);
       
         KRATOS_CATCH("");

@@ -482,7 +482,6 @@ void TreeContactSearch::CheckMortarConditions()
 /***********************************************************************************/
 
 void TreeContactSearch::MortarContainerFiller(
-//         const PointType::Pointer PointOfList,
         const Point<3>& OriginPoint,
         const PointType::Pointer PointFound,
         const Condition::Pointer & pCond_1,
@@ -504,7 +503,6 @@ void TreeContactSearch::MortarContainerFiller(
     }
     else
     {
-//         ContactPoint = PointOfList->GetPoint();
         ContactPoint = OriginPoint;
     }
     

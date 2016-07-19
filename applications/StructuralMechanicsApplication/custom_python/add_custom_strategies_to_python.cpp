@@ -28,7 +28,7 @@
 // Strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
-#include "custom_strategies/custom_schemes/residual_based_incremental_update_static_contact_scheme.hpp"
+#include "custom_strategies/custom_schemes/residual_based_bossak_displacement_contact_scheme.hpp"
 #include "custom_strategies/custom_strategies/residual_based_arc_length_strategy.hpp"
 
 // Convergence criterias
@@ -65,7 +65,7 @@ void  AddCustomStrategiesToPython()
 
     // Custom scheme types
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
-    typedef ResidualBasedIncrementalUpdateStaticContactScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedIncrementalUpdateStaticContactSchemeType;
+    typedef ResidualBasedBossakDisplacementContactScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementContactSchemeType;
 
     // Custom convergence criterion types
     typedef MortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > MortarConvergenceCriteriaType;
@@ -86,12 +86,13 @@ void  AddCustomStrategiesToPython()
             .def("Initialize", &ResidualBasedRelaxationScheme<SparseSpaceType, LocalSpaceType>::Initialize)
             ;    
 
-    // Residual Based Incremental Update Static Contact Scheme Type
-    class_< ResidualBasedIncrementalUpdateStaticContactSchemeType,
-            bases< BaseSchemeType >, boost::noncopyable >
-            (
-            "ResidualBasedIncrementalUpdateStaticContactScheme", init< >()
-            );
+    // Residual Based Bossak Scheme Type
+    class_< ResidualBasedBossakDisplacementContactSchemeType,
+    bases< BaseSchemeType >,  boost::noncopyable >
+    (
+        "ResidualBasedBossakDisplacementContactScheme", init< double >() )
+    .def("Initialize", &ResidualBasedBossakDisplacementContactScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+    ;
      
     // Residual Based Arc Length Strategy      
     class_< ResidualBasedArcLengthStrategyType,
