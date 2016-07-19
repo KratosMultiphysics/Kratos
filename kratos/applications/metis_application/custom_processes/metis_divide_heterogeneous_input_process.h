@@ -341,14 +341,15 @@ private:
                        std::vector<int>& rNodePartition)
     {
         int n = static_cast<int>(NumNodes);
-        //int wgtflag = 0; // Graph is not weighted
-        //int numflag = 0; // Nodes are numbered from 0 (C style)
+
         int nparts = static_cast<int>(BaseType::mNumberOfPartitions);
         int edgecut;
         rNodePartition.resize(NumNodes);
         
         
         #ifndef KRATOS_USE_METIS_5
+            int wgtflag = 0; // Graph is not weighted
+            int numflag = 0; // Nodes are numbered from 0 (C style)
            int options[5]; // options array
            options[0] = 0; // use default options
 
@@ -361,6 +362,9 @@ private:
            METIS_SetDefaultOptions(options);
            
            int metis_return = METIS_PartGraphKway(&n,&ncon,NodeIndices,NodeConnectivities,NULL,NULL,NULL,&nparts,NULL,NULL,&options[0],&edgecut,&rNodePartition[0]);
+           
+           if(metis_return != 0)
+               std::cout << "metis returns the following error code :" << metis_return << std::endl;
 	   /*         int METIS PartGraphKway(
             * idx t *nvtxs, 
             * idx t *ncon, 
