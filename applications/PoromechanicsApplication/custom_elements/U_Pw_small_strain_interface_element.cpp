@@ -232,6 +232,14 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints
         
         this->InterpolateOutputDoubles(rValues,GPValues);
     }
+    else if(rVariable == STATE_VARIABLE)
+    {
+        if ( rValues.size() != mConstitutiveLawVector.size() )
+            rValues.resize(mConstitutiveLawVector.size());
+        
+        for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
+            rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
+    }
 }
 
 //----------------------------------------------------------------------------------------
