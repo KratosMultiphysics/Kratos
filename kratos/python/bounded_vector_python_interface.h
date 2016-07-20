@@ -150,7 +150,7 @@ public:
                 if (!elem_proxy.check()) return 0;
                 if (is_range) break; // in a range all elements are of the same type
             }
-            if (!is_range) assert(i == obj_size);
+            if (!is_range) assert(i == static_cast<std::size_t>(obj_size));
         }
         return obj_ptr;
     }
