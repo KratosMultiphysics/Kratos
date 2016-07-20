@@ -82,16 +82,6 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
         
         print("::[fluid_pre_refining_modeler]:: -START SetPreMeshingProcesses-")
 
-        # process to refine elements /refine boundary
-        #refine_mesh_elements = KratosPfemBase.SetElementsToRefineOnThreshold(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
-        #refine_mesh_elements = KratosPfemFluid.SetElementsToRefineOnSize(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
-        #self.mesher.SetPreMeshingProcess(refine_mesh_elements)
-
-        #refine_mesh_boundary = RefineMeshBoundary(self.main_model_part, self.RefiningParameters, self.mesh_id, self.echo_level)            
-        #self.mesher.SetPreMeshingProcess(refine_mesh_boundary)
-
-        # process to remove nodes / remove boundary
-        #remove_mesh_nodes = KratosPfemBase.RemoveMeshNodes(self.main_model_part, self.MeshingParameters,  self.mesh_id, self.echo_level)
         remove_mesh_nodes = KratosPfemFluid.RemoveMeshNodesForFluids(self.main_model_part, self.MeshingParameters,  self.mesh_id, self.echo_level)
         self.mesher.SetPreMeshingProcess(remove_mesh_nodes)
      
@@ -107,7 +97,6 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
         refining_options = refining_parameters.GetRefiningOptions()
 
         #select mesh elements
-        #select_mesh_elements  = KratosPfemBase.SelectMeshElements(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
         select_mesh_elements  = KratosPfemFluid.SelectMeshElements(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
         self.mesher.SetPostMeshingProcess(select_mesh_elements)
 
@@ -117,20 +106,10 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
             self.mesher.SetPostMeshingProcess(select_refine_elements)
 
         if( refining_options.Is(KratosPfemBase.ModelerUtilities.REFINE_INSERT_NODES) ):
-            #select_refine_elements = KratosPfemBase.SetElementsToRefineOnSize(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
             select_refine_elements = KratosPfemFluid.SetElementsToRefineOnSize(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
             self.mesher.SetPostMeshingProcess(select_refine_elements)
-            #generate_new_nodes  = KratosPfemFluid.GenerateNewNodes(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
             generate_new_nodes  = KratosPfemFluid.GenerateNewNodesForHomogeneousMesh(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
             self.mesher.SetPostMeshingProcess(generate_new_nodes)
-            #insert_nodes = InsertNodes(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
-            #self.mesher.SetPostMeshingProcess(insert_nodes)
-
-        #if( refining_options.Is(KratosPfemBase.ModelerUtilities.REFINE_INSERT_NODES) ):
-            #insert_nodes = InsertNodes(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
-            #self.mesher.SetPostMeshingProcess(insert_nodes)
-
-
 
 
     #

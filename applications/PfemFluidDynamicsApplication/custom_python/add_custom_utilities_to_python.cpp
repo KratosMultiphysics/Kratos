@@ -30,7 +30,6 @@
 // #include "custom_utilities/contact_domain_utilities.hpp"
 
 #include "custom_utilities/two_step_v_p_settings.h"
-// #include "custom_utilities/two_step_v_p_settings_periodic.h"
 
 namespace Kratos
 {

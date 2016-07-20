@@ -28,7 +28,6 @@
 #include "custom_strategies/strategies/gauss_seidel_linear_strategy.h"
 
 // builder_and_solvers
-// #include "custom_strategies/builders_and_solvers/residualbased_block_builder_and_solver_periodic.h"
 
 //convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
