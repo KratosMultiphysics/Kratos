@@ -510,7 +510,7 @@ namespace Kratos {
             ModelPart::NodeIterator itnodes_begin = rModelPart.NodesBegin();
             const unsigned int nnodes = rModelPart.Nodes().size();
             #pragma omp parallel for firstprivate(nnodes, itnodes_begin)
-            for(unsigned int i=0; i<nnodes; i++)
+            for(int i=0; i<nnodes; i++)
             {
                 ModelPart::NodeIterator itNode = itnodes_begin + i;
                 (itNode->FastGetSolutionStepValue(REACTION)).clear();
@@ -520,7 +520,7 @@ namespace Kratos {
             ModelPart::ElementsContainerType::iterator itelem_begin = rModelPart.ElementsBegin();
             const unsigned int nelems = rModelPart.Elements().size();
              #pragma omp parallel for firstprivate(nelems, itelem_begin)
-            for(unsigned int i=0; i<nelems; i++)
+            for(int i=0; i<nelems; i++)
             {
                 ModelPart::ElementsContainerType::iterator itElem = itelem_begin + i;
                 
@@ -533,7 +533,7 @@ namespace Kratos {
                 unsigned int index = 0;
 
                 
-                for (unsigned int i = 0; i < NumNodes; i++)
+                for (int i = 0; i < NumNodes; i++)
                 {
                     
                     array_1d<double,3>& rReaction = rGeom[i].FastGetSolutionStepValue(REACTION);
