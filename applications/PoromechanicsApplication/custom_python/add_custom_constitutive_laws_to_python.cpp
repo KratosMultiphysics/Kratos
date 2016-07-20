@@ -15,10 +15,11 @@
 //Application includes
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 
+#include "custom_constitutive/custom_flow_rules/restore_damage_flow_rule.hpp"
+
 //constitutive laws
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
-
 #include "custom_constitutive/restore_simo_ju_3D_law.hpp"
 #include "custom_constitutive/restore_simo_ju_plane_strain_2D_law.hpp"
 #include "custom_constitutive/restore_simo_ju_plane_stress_2D_law.hpp"
