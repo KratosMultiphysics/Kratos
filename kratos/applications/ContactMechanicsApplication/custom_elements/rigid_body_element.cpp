@@ -1,11 +1,11 @@
 //
-//   Project Name:        KratosStringDynamicsApplication $
-//   Created by:          $Author:            JMCarbonell $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:            November 2015 $
-//   Revision:            $Revision:                  0.0 $
+//   Project Name:        KratosContactMechanicsApplication $
+//   Created by:          $Author:              JMCarbonell $
+//   Last modified by:    $Co-Author:                       $
+//   Date:                $Date:                  July 2016 $
+//   Revision:            $Revision:                    0.0 $
 //
-// 
+//
 
 // System includes
 
@@ -14,7 +14,7 @@
 // Project includes
 #include "custom_elements/rigid_body_element.hpp"
 
-#include "string_dynamics_application_variables.h"
+#include "contact_mechanics_application_variables.h"
 
 
 namespace Kratos
@@ -107,16 +107,21 @@ void RigidBodyElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& 
     ElementalDofList.resize(0);
     
     const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
 	ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
 	ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-	ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
-
-	ElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
-	ElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Y));
-	ElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
+	if( dimension == 2 ){
+	  ElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
+	}
+	else{
+	  ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
+	  ElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
+	  ElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Y));
+	  ElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
+	}
       }
 
 }
@@ -129,21 +134,26 @@ void RigidBodyElement::EquationIdVector(EquationIdVectorType& rResult, ProcessIn
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int element_size          = number_of_nodes * ( dimension * 2 );
+    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
+    unsigned int element_size          = number_of_nodes * ( dofs_size );
 
     if ( rResult.size() != element_size )
         rResult.resize( element_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-      int index = i * ( dimension * 2 );
+      int index = i * (dofs_size);
       rResult[index]   = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
       rResult[index+1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
-      rResult[index+2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
-
-      rResult[index+3] = GetGeometry()[i].GetDof(ROTATION_X).EquationId();
-      rResult[index+4] = GetGeometry()[i].GetDof(ROTATION_Y).EquationId();
-      rResult[index+5] = GetGeometry()[i].GetDof(ROTATION_Z).EquationId();
+      if( dimension == 2 ){
+	rResult[index+2] = GetGeometry()[i].GetDof(ROTATION_Z).EquationId();
+      }
+      else{
+	rResult[index+2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();	  
+	rResult[index+3] = GetGeometry()[i].GetDof(ROTATION_X).EquationId();
+	rResult[index+4] = GetGeometry()[i].GetDof(ROTATION_Y).EquationId();
+	rResult[index+5] = GetGeometry()[i].GetDof(ROTATION_Z).EquationId();
+      }
     }
  
 }
@@ -158,20 +168,25 @@ void RigidBodyElement::GetValuesVector(Vector& rValues, int Step)
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * ( dimension * 2 );
+    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
+    unsigned int       element_size    = number_of_nodes * (dofs_size);
 
     if ( rValues.size() != element_size ) rValues.resize( element_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-      int index = i * ( dimension * 2 );
+      int index = i * (dofs_size);
       rValues[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
       rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
-      rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
-
-      rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( ROTATION_X, Step );
-      rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Y, Step );
-      rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Z, Step );
+      if( dimension == 2 ){
+	rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Z, Step );
+      }
+      else{
+	rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
+	rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( ROTATION_X, Step );
+	rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Y, Step );
+	rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Z, Step );
+      }
     }
 
     KRATOS_CATCH( "" )
@@ -188,20 +203,25 @@ void RigidBodyElement::GetFirstDerivativesVector(Vector& rValues, int Step)
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * ( dimension * 2 );
+    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
+    unsigned int       element_size    = number_of_nodes * (dofs_size);
 
     if ( rValues.size() != element_size ) rValues.resize( element_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-      int index = i * ( dimension * 2 );
+      int index = i * (dofs_size);
       rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
       rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
-      rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
-
-      rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_VELOCITY_X, Step );
-      rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_VELOCITY_Y, Step );
-      rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_VELOCITY_Z, Step );
+      if( dimension == 2 ){
+	rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_VELOCITY_Z, Step );
+      }
+      else{
+	rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );      
+	rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_VELOCITY_X, Step );
+	rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_VELOCITY_Y, Step );
+	rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_VELOCITY_Z, Step );	
+      }
     }
 
 
@@ -217,20 +237,26 @@ void RigidBodyElement::GetSecondDerivativesVector(Vector& rValues, int Step)
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * ( dimension * 2 );
+    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
+    unsigned int       element_size    = number_of_nodes * (dofs_size);
 
     if ( rValues.size() != element_size ) rValues.resize( element_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-      int index = i * ( dimension * 2 );
+      int index = i * (dofs_size);
       rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
       rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
-      rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
+      if( dimension == 2 ){
+	rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_Z, Step );
+      }
+      else{
+	rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
+	rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_X, Step );
+	rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_Y, Step );
+	rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_Z, Step );
+      }
 
-      rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_X, Step );
-      rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_Y, Step );
-      rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_Z, Step );
     }
 
 
@@ -244,8 +270,8 @@ void RigidBodyElement::GetSecondDerivativesVector(Vector& rValues, int Step)
 //************************************************************************************
 
 void RigidBodyElement::GetValueOnIntegrationPoints( const Variable<array_1d<double, 3 > >& rVariable,
-								std::vector< array_1d<double, 3 > >& rValues,
-								const ProcessInfo& rCurrentProcessInfo )
+						    std::vector< array_1d<double, 3 > >& rValues,
+						    const ProcessInfo& rCurrentProcessInfo )
 {
 
     this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
@@ -323,9 +349,9 @@ void RigidBodyElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 
 void RigidBodyElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
-  KRATOS_TRY
+     KRATOS_TRY
 
-  KRATOS_CATCH( "" )
+     KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
@@ -335,8 +361,11 @@ void RigidBodyElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessI
 {
      KRATOS_TRY
        
+     this->UpdateRigidBodyNodes(rCurrentProcessInfo);
+
      KRATOS_CATCH( "" )
 }
+
 
 
 //************************************************************************************
@@ -344,10 +373,10 @@ void RigidBodyElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessI
 
 void RigidBodyElement::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
+     KRATOS_TRY
 
 
-    KRATOS_CATCH( "" )
+     KRATOS_CATCH( "" )
 }
 
 
@@ -364,7 +393,8 @@ void RigidBodyElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
     //resizing as needed the LHS
-    unsigned int MatSize = number_of_nodes * ( dimension * 2 );
+    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
+    unsigned int MatSize               = number_of_nodes * ( dofs_size );
 
     if ( rCalculationFlags.Is(RigidBodyElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
     {
@@ -588,7 +618,6 @@ void RigidBodyElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSyst
 
 	this->CalculateAndAddInertiaRHS( rRightHandSideVector, Variables, rCurrentProcessInfo);
 	
-
 	Vector VolumeForce = ZeroVector(3);
 	VolumeForce = CalculateVolumeForce(VolumeForce);
 	this->CalculateAndAddExternalForces( rRightHandSideVector, Variables, VolumeForce);
@@ -610,7 +639,10 @@ void RigidBodyElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSyst
 
       MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
       
-      BeamMathUtilsType::MapLocalToGlobal3D(InitialLocalMatrix, rLeftHandSideMatrix);
+      if( dimension == 2 )
+	//BeamMathUtilsType::MapLocalToGlobal2D(InitialLocalMatrix, rLeftHandSideMatrix);
+      else
+	BeamMathUtilsType::MapLocalToGlobal3D(InitialLocalMatrix, rLeftHandSideMatrix);
 
       //std::cout<<"["<<this->Id()<<"] RB RotatedDynamic rLeftHandSideMatrix "<<rLeftHandSideMatrix<<std::endl;
     }
@@ -622,7 +654,10 @@ void RigidBodyElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSyst
 
       //std::cout<<"["<<this->Id()<<"] RB Dynamic rRightHandSideVector "<<rRightHandSideVector<<std::endl;
 
-      BeamMathUtilsType::MapLocalToGlobal3D(InitialLocalMatrix, rRightHandSideVector);
+      if( dimension == 2 )
+	//BeamMathUtilsType::MapLocalToGlobal2D(InitialLocalMatrix, rRightHandSideVector);
+      else
+	BeamMathUtilsType::MapLocalToGlobal3D(InitialLocalMatrix, rRightHandSideVector);
 
       //std::cout<<"["<<this->Id()<<"] RB RotatedDynamic rRightHandSideVector "<<rRightHandSideVector<<std::endl;
     }
@@ -657,8 +692,9 @@ void RigidBodyElement::CalculateAndAddExternalForces(VectorType& rRightHandSideV
 {
     KRATOS_TRY
 
-    unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    unsigned int number_of_nodes   = GetGeometry().PointsNumber();
+    unsigned int dimension         = GetGeometry().WorkingSpaceDimension();
+    const unsigned int dofs_size   = dimension * (dimension + 1) * 0.5;
 
     double DomainSize = rVariables.RigidBody.Mass;
 
@@ -668,10 +704,14 @@ void RigidBodyElement::CalculateAndAddExternalForces(VectorType& rRightHandSideV
     unsigned int RowIndex = 0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-      	RowIndex = i * (dimension * 2);
-        GravityLoad = rVolumeForce * DomainSize;
+      	RowIndex = i * (dofs_size);
 	
-	//substract because is added as a component of the InertiRHS and is substracted again later in the scheme
+	for ( unsigned int j = 0; j < dimension; j++ )
+	  {
+	    GravityLoad[j] = rVolumeForce[j] * DomainSize;
+	  }
+	
+	//substract because is added as a component of the InertiaRHS and is substracted again later in the scheme
 	BeamMathUtilsType::SubstractVector( GravityLoad, rRightHandSideVector, RowIndex );
     
     }
@@ -688,14 +728,15 @@ void RigidBodyElement::CalculateAndAddExternalForces(VectorType& rRightHandSideV
 //************************************************************************************
 
 void RigidBodyElement::AddExplicitContribution(const VectorType& rRHSVector, 
-							   const Variable<VectorType>& rRHSVariable, 
-							   Variable<array_1d<double,3> >& rDestinationVariable, 
-							   const ProcessInfo& rCurrentProcessInfo)
+					       const Variable<VectorType>& rRHSVariable, 
+					       Variable<array_1d<double,3> >& rDestinationVariable, 
+					       const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
       
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
 
     if( (rRHSVariable == RESIDUAL_VECTOR) ){
 
@@ -704,7 +745,7 @@ void RigidBodyElement::AddExplicitContribution(const VectorType& rRHSVector,
 
 	  for(unsigned int i=0; i< number_of_nodes; i++)
 	    {
-	      int index = (dimension * 2) * i;
+	      int index = (dofs_size) * i;
 
 	      GetGeometry()[i].SetLock();
 
@@ -723,17 +764,21 @@ void RigidBodyElement::AddExplicitContribution(const VectorType& rRHSVector,
 
 	  for(unsigned int i=0; i< number_of_nodes; i++)
 	    {
-	      int index = dimension + (dimension * 2) * i;
+	      int index = dimension + (dofs_size) * i;
 
 	      GetGeometry()[i].SetLock();
 
 	      array_1d<double, 3 > &MomentResidual = GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
 
-	      for(unsigned int j=0; j<dimension; j++)
-		{
-		  MomentResidual[j] += rRHSVector[index + j];
-		}
-
+	      if( dimension == 2 ){
+		MomentResidual[2] += rRHSVector[index]
+	      }
+	      else{
+		for(unsigned int j=0; j<dimension; j++)
+		  {
+		    MomentResidual[j] += rRHSVector[index + j];
+		  }
+	      }
 	      GetGeometry()[i].UnSetLock();
 	    }
 
@@ -909,15 +954,18 @@ void RigidBodyElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideV
     }
     else{
 
-      const unsigned int number_of_nodes = GetGeometry().size();
-      const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-      unsigned int MatSize               = number_of_nodes * ( dimension * 2 );
+      //create local system components
+      LocalSystemComponents LocalSystem;
 
-      //2.-Calculate Inertial Forces:
-      if ( rRightHandSideVector.size() != MatSize )
-	rRightHandSideVector.resize( MatSize, false );
-      
-      rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
+      //calculation flags
+      LocalSystem.CalculationFlags.Set(RigidBodyElement::COMPUTE_RHS_VECTOR);
+
+      MatrixType LeftHandSideMatrix = Matrix();
+
+      //Initialize sizes for the system components:
+      this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
+
+      //RHS reseted to zero
     }
 
 
@@ -936,7 +984,8 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int MatSize               = number_of_nodes * ( dimension * 2 );
+    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
+    unsigned int MatSize               = number_of_nodes * (dofs_size);
 
     if(rLeftHandSideMatrix.size1() != MatSize)
       rLeftHandSideMatrix.resize (MatSize, MatSize, false);
@@ -1127,12 +1176,12 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
     	m11 = ZeroMatrix(3,3);
     	m22 = ZeroMatrix(3,3);
 
-    	RowIndex = i * (dimension * 2);
+    	RowIndex = i * (dofs_size);
 
     	for ( unsigned int j = 0; j < number_of_nodes; j++ )
     	  {
 
-    	    ColIndex = j * (dimension * 2);
+    	    ColIndex = j * (dofs_size);
 
     	    m11 = (1.0-AlphaM) * Newmark1 * TotalMass * DiagonalMatrix;
 
@@ -1141,7 +1190,10 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
 
     	    //Building the Local Tangent Inertia Matrix
     	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
-    	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, m22, RowIndex+3, ColIndex+3 );
+	    if(dimension == 2)
+	      rLeftHandSideMatrix(RowIndex+3,ColIndex+3) = m22(2,2);
+	    else  
+	      MathUtils<double>::AddMatrix( rLeftHandSideMatrix, m22, RowIndex+3, ColIndex+3 );
 	    
     	  }
       }
@@ -1230,12 +1282,12 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
     // 	m11 = ZeroMatrix(3,3);
     // 	m22 = ZeroMatrix(3,3);
 
-    // 	RowIndex = i * (dimension * 2);
+    // 	RowIndex = i * (dofs_size);
 
     // 	for ( unsigned int j = 0; j < number_of_nodes; j++ )
     // 	  {
 
-    // 	    ColIndex = j * (dimension * 2);
+    // 	    ColIndex = j * (dofs_size);
 
     // 	    m11 = TotalMass * DiagonalMatrix;
 
@@ -1265,7 +1317,8 @@ void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVecto
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int MatSize               = number_of_nodes * ( dimension * 2 );
+    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
+    unsigned int MatSize               = number_of_nodes * (dofs_size);
 
     if(rRightHandSideVector.size() != MatSize)
       rRightHandSideVector.resize(MatSize, false);
@@ -1298,11 +1351,11 @@ void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVecto
 	CurrentValueVector = GetNodalCurrentValue( ROTATION, CurrentValueVector, i );
 	TotalRotationVector             =  CurrentValueVector;
 
-	//Current Linear Velocity Vector
+	//Current Linear Acceleration Vector
 	CurrentValueVector = GetNodalCurrentValue( ACCELERATION, CurrentValueVector, i );
 	CurrentLinearAccelerationVector  = CurrentValueVector;
 
-	//Previous Linear Velocity Vector
+	//Previous Linear Acceleration Vector
 	CurrentValueVector = GetNodalPreviousValue( ACCELERATION, CurrentValueVector, i );
 	PreviousLinearAccelerationVector = CurrentValueVector;
 
@@ -1377,21 +1430,25 @@ void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVecto
 
     //compose total acceleration integral function:
 
-    Vector TotalInertialForceVector = ZeroVector(6);
+    Vector TotalInertialForceVector = ZeroVector(dofs_size);
 
     BeamMathUtilsType::AddVector(LinearInertialForceVector, TotalInertialForceVector, 0);
-    BeamMathUtilsType::AddVector(AngularInertialForceVector, TotalInertialForceVector, 3);
+
+    if(dimension == 2)
+      TotalIntertialForceVector[dofs_size-1] = AngularInertialForceVector[2];
+    else
+      BeamMathUtilsType::AddVector(AngularInertialForceVector, TotalInertialForceVector, 3);
 
     //Initialize Local Matrices
-    VectorType Fi = ZeroVector(6);
+    VectorType Fi = ZeroVector(dofs_size);
     unsigned int RowIndex = 0;
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
 
-    	RowIndex = i * (dimension * 2);
+    	RowIndex = i * (dofs_size);
 
-    	Fi = ZeroVector(6);
+    	Fi = ZeroVector(dofs_size);
 	
     	//nodal force vector
     	Fi  = TotalInertialForceVector;
@@ -1418,7 +1475,8 @@ void RigidBodyElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo&
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int MatSize               = number_of_nodes * ( dimension * 2 );
+    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
+    unsigned int MatSize               = number_of_nodes * (dofs_size);
 
     if(rMassMatrix.size1() != MatSize)
         rMassMatrix.resize (MatSize, MatSize, false);
@@ -1450,7 +1508,7 @@ void RigidBodyElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo&
 
         double temp = TotalMass;
 
-    	int RowIndex = i * (dimension * 2);
+    	int RowIndex = i * (dofs_size);
 
     	for( unsigned int k=0; k < dimension; k++ )
     	  {
@@ -1459,11 +1517,14 @@ void RigidBodyElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo&
 
     	m22 = InertiaDyadic * temp;
 
-	
     	//Building the Local Tangent Inertia Matrix
     	MathUtils<double>::AddMatrix( rMassMatrix, m11, RowIndex, RowIndex );
-    	MathUtils<double>::AddMatrix( rMassMatrix, m22, RowIndex+3, RowIndex+3 );
-	
+
+	if(dimension == 2)
+	  rMassMatrix(RowIndex+3,RowIndex+3) = m22(2,2);
+	else
+	  MathUtils<double>::AddMatrix( rMassMatrix, m22, RowIndex+3, RowIndex+3 );
+
       }
  
 
@@ -1520,9 +1581,132 @@ void RigidBodyElement::CalculateRotationLinearPartTensor(Vector& rRotationVector
 //************************************************************************************
 //************************************************************************************
 
+void RigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
+{
+
+     KRATOS_TRY
+
+     Matrix SkewSymVariable = ZeroMatrix(3,3);
+     Vector RadiusVector    = ZeroVector(3);
+     Vector Variable        = ZeroVector(3);
+     Vector AngularVariable = ZeroVector(3);
+     array_1d<double,3>     VariableArray;
+ 
+     array_1d<double,3> Radius;
+
+     Node<3>& rCenterOfGravity = this->GetGeometry()[0];
+
+     array_1d<double, 3 >&  Center              = rCenterOfGravity.GetInitialPosition();
+     array_1d<double, 3 >&  Displacement        = rCenterOfGravity.FastGetSolutionStepValue(DISPLACEMENT);
+     array_1d<double, 3 >&  Rotation            = rCenterOfGravity.FastGetSolutionStepValue(ROTATION);
+     array_1d<double, 3 >&  StepRotation        = rCenterOfGravity.FastGetSolutionStepValue(STEP_ROTATION);
+     array_1d<double, 3 >&  DeltaRotation       = rCenterOfGravity.FastGetSolutionStepValue(DELTA_ROTATION);
+     
+     array_1d<double, 3 >&  Velocity            = rCenterOfGravity.FastGetSolutionStepValue(VELOCITY);
+     array_1d<double, 3 >&  Acceleration        = rCenterOfGravity.FastGetSolutionStepValue(ACCELERATION);
+     array_1d<double, 3 >&  AngularVelocity     = rCenterOfGravity.FastGetSolutionStepValue(ANGULAR_VELOCITY);
+     array_1d<double, 3 >&  AngularAcceleration = rCenterOfGravity.FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+     
+     //std::cout<<" [  MasterElement "<<this->Id() ];
+     //std::cout<<" [ Rotation:"<<Rotation<<",StepRotation:"<<StepRotation<<",DeltaRotation:"<<DeltaRotation<<"]"<<std::endl;
+     //std::cout<<" [ Velocity:"<<Velocity<<",Acceleration:"<<Acceleration<<",Displacement:"<<Displacement<<",DeltaDisplacement"<<Displacement-rCenterOfGravity.FastGetSolutionStepValue(DISPLACEMENT,1)<<"]"<<std::endl;
+     
+     for (NodesContainerType::iterator i = mpNodes->Begin(); i != mpNodes->End(); ++i)
+       {	
+	 //Get rotation matrix
+	 QuaternionType TotalQuaternion = QuaternionType::FromRotationVector<array_1d<double,3> >(Rotation);
+
+	 Radius = (i)->GetInitialPosition() - Center;
+
+	 Matrix RotationMatrix;
+	 TotalQuaternion.ToRotationMatrix(RotationMatrix);
+	      
+	 for(int j=0; j<3; j++)
+	   RadiusVector[j] = Radius[j];
+	      
+	 RadiusVector = prod( RotationMatrix, RadiusVector );
+
+	 for(int j=0; j<3; j++)
+	   Radius[j] = RadiusVector[j];
+
+	 //TotalQuaternion.RotateVector3<array_1d<double,3> >(Radius);
+        
+	 array_1d<double, 3 >&  NodeDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT);
+	 array_1d<double, 3 >&  NodeRotation      = (i)->FastGetSolutionStepValue(ROTATION);
+	 array_1d<double, 3 >&  NodeStepRotation  = (i)->FastGetSolutionStepValue(STEP_ROTATION);
+	 array_1d<double, 3 >&  NodeDeltaRotation = (i)->FastGetSolutionStepValue(DELTA_ROTATION);
+
+	 noalias(NodeDisplacement)  = ( (Center + Displacement)  + Radius ) - (i)->GetInitialPosition();
+	 noalias(NodeRotation)      = Rotation;
+	 noalias(NodeStepRotation)  = StepRotation;
+	 noalias(NodeDeltaRotation) = DeltaRotation;    
+     
+
+	 for(int j=0; j<3; j++)
+	   RadiusVector[j] = Radius[j];
+
+	 //********************
+	 for(int j=0; j<3; j++)
+	   Variable[j] = AngularVelocity[j];
+
+	 //compute the skewsymmmetric tensor of the angular velocity
+	 BeamMathUtilsType::VectorToSkewSymmetricTensor(Variable, SkewSymVariable);
+	      
+	 //compute the contribution of the angular velocity to the velocity v = Wxr
+	 Variable = prod(SkewSymVariable,RadiusVector);
+     
+	 for(int j=0; j<3; j++)
+	   VariableArray[j] = Variable[j];
+
+	 (i)->FastGetSolutionStepValue(VELOCITY)               = Velocity + VariableArray;
+
+
+	 //********************
+	      
+	 //centripetal acceleration:
+	 for(int j=0; j<3; j++)
+	   AngularVariable[j] = AngularVelocity[j];
+		
+	 //compute the skewsymmmetric tensor of the angular velocity
+	 BeamMathUtilsType::VectorToSkewSymmetricTensor(AngularVariable, SkewSymVariable);
+
+	 AngularVariable = prod(SkewSymVariable,Variable); //ac = Wx(Wxr)
+
+
+	 for(int j=0; j<3; j++)
+	   Variable[j] = AngularAcceleration[j];
+
+	 //compute the skewsymmmetric tensor of the angular acceleration
+	 BeamMathUtilsType::VectorToSkewSymmetricTensor(Variable, SkewSymVariable);
+	      
+	 //compute the contribution of the angular velocity to the velocity a = Axr
+	 Variable = prod(SkewSymVariable,RadiusVector);
+
+	 for(int j=0; j<3; j++)
+	   VariableArray[j] = Variable[j] + AngularVariable[j];
+
+	 (i)->FastGetSolutionStepValue(ACCELERATION)           = Acceleration + VariableArray;
+
+
+	 //********************
+	 (i)->FastGetSolutionStepValue(ANGULAR_VELOCITY)       = AngularVelocity;
+	 (i)->FastGetSolutionStepValue(ANGULAR_ACCELERATION)   = AngularAcceleration;
+    
+	 // 	std::cout<<"  [ Finalize Rigid Body Link Point : [Id:"<<(i)->Id()<<"] "<<std::endl;
+	 // 	std::cout<<"  [ Displacement:"<<NodeDisplacement<<" / StepRotation"<<NodeStepRotation<<" ] "<<std::endl;  
+	 // 	std::cout<<"  [ Rotation:"<<NodeRotation<<" / Angular Acceleration"<<AngularAcceleration<<" ] "<<std::endl;  
+
+       }
+
+     KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
 void RigidBodyElement::CalculateOnIntegrationPoints(  const Variable<array_1d<double, 3 > >& rVariable,
-								  std::vector< array_1d<double, 3 > >& rOutput, 
-								  const ProcessInfo& rCurrentProcessInfo )
+						      std::vector< array_1d<double, 3 > >& rOutput, 
+						      const ProcessInfo& rCurrentProcessInfo )
 {
 
     KRATOS_TRY

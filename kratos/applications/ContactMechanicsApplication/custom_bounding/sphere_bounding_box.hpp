@@ -1,27 +1,20 @@
 //
-//   Project Name:        KratosPfemSolidMechanicsApplication $
-//   Created by:          $Author:                JMCarbonell $
-//   Last modified by:    $Co-Author:                         $
-//   Date:                $Date:                    July 2013 $
-//   Revision:            $Revision:                      0.0 $
+//   Project Name:        KratosContactMechanicsApplication $
+//   Created by:          $Author:              JMCarbonell $
+//   Last modified by:    $Co-Author:                       $
+//   Date:                $Date:                  July 2016 $
+//   Revision:            $Revision:                    0.0 $
 //
 //
 
-#if !defined(KRATOS_RIGID_CIRCLE_WALL_BOUNDING_BOX_H_INCLUDED )
-#define  KRATOS_RIGID_CIRCLE_WALL_BOUNDING_BOX_H_INCLUDED
+#if !defined(KRATOS_SPHERE_BOUNDING_BOX_H_INCLUDED )
+#define  KRATOS_SPHERE_BOUNDING_BOX_H_INCLUDED
 
 // External includes
 
 // System includes
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <cstddef>
 
 // Project includes
-#include "includes/kratos_flags.h"
-#include "includes/model_part.h"
-
 #include "custom_bounding/spatial_bounding_box.hpp"
 
 
@@ -58,43 +51,111 @@ namespace Kratos
     This bounding box is essentially used for rigid wall contact purposes
 */
 
-class RigidCircleWallBoundingBox
+class SphereBoundingBox
   : public SpatialBoundingBox
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of RigidCircleWallBoundingBox
-    KRATOS_CLASS_POINTER_DEFINITION( RigidCircleWallBoundingBox );
+    /// Pointer definition of SphereBoundingBox
+    KRATOS_CLASS_POINTER_DEFINITION( SphereBoundingBox );
 
-    typedef Vector TPointType;
-
+    typedef bounded_vector<double, 3>                       PointType;
+    typedef ModelPart::NodeType::Pointer                     NodeType;
+    typedef ModelPart::NodesContainerType          NodesContainerType;
+    typedef NodesContainerType::Pointer     NodesContainerTypePointer;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    RigidCircleWallBoundingBox() : SpatialBoundingBox()
+    SphereBoundingBox() : SpatialBoundingBox()
     {
-        std::cout<< "Calling Rigid Circle Wall BBX empty constructor" <<std::endl;
+      KRATOS_TRY
+
+      std::cout<< "Calling Rigid Sphere Wall BBX empty constructor" <<std::endl;
+
+      KRATOS_CATCH("")
     }
 
-    // General Wall constructor
-    RigidCircleWallBoundingBox( int Label,
-				int Convexity,
-				double Radius,
-				TPointType Center,
-				TPointType Velocity,
-				TPointType AngularVelocity,
-				TPointType RotationCenter)
+
+    //**************************************************************************
+    //**************************************************************************
+
+    SphereBoundingBox(Parameters CustomParameters)
     {
-            
+
+      KRATOS_TRY
+
+      Parameters DefaultParameters( R"(
+            {
+                "parameters_list":[{
+                   "center": [0.0, 0.0, 0.0],
+                   "radius": 0.0,
+                   "convexity": 1
+                 }],
+                 "velocity": [0.0, 0.0, 0.0]
+
+            }  )" );
+
+
+      //validate against defaults -- this also ensures no type mismatch
+      CustomParameters.ValidateAndAssignDefaults(DefaultParameters);
+        
+      if(CustomParameters["parameters_list"].IsArray() == true && CustomParameters["parameters_list"].size() != 1)
+        {
+	  KRATOS_THROW_ERROR(std::runtime_error,"paramters_list for the Sphere BBX must contain only one term",CustomParameters.PrettyPrintJsonString());
+        }
+
+      mBox.Initialize();
+
+      Parameters BoxParameters = CustomParameters["parameters_list"][0];
+
+      mBox.Center[0] = BoxParameters["center"][0].GetDouble();
+      mBox.Center[1] = BoxParameters["center"][1].GetDouble();
+      mBox.Center[2] = BoxParameters["center"][2].GetDouble();
+
+      mBox.Radius = BoxParameters["radius"].GetDouble();
+
+      mBox.Velocity[0] = CustomParameters["velocity"][0].GetDouble();
+      mBox.Velocity[1] = CustomParameters["velocity"][1].GetDouble();
+      mBox.Velocity[2] = CustomParameters["velocity"][2].GetDouble();
+
+      mBox.Convexity = BoxParameters["convexity"].GetInt();
+
+      PointType Side;
+      Side[0] = mBox.Radius;
+      Side[1] = mBox.Radius;
+      Side[2] = mBox.Radius;
+
+      mBox.HighPoint = mBox.Center + Side;
+      mBox.LowPoint  = mBox.Center - Side;
+
+      mBox.OriginalCenter = mBox.Center;
+
+      mBoxCenterSupplied = false;
+
+      KRATOS_CATCH("")
+    }
+
+
+    //**************************************************************************
+    //**************************************************************************
+
+
+    // General Wall constructor
+    SphereBoundingBox(PointType Center,
+		      double Radius,
+		      PointType Velocity,
+		      int Convexity)
       
-      std::cout<<" [--CIRCLE WALL--]["<<Label<<"]"<<std::endl;
+    {           
+      KRATOS_TRY
+
+      std::cout<<" [--CIRCLE WALL--] "<<std::endl;
       
-      mBox.OriginalCenter = Center;
       mBox.Center = Center;
       mBox.Radius = Radius;
       mBox.Convexity = Convexity;
@@ -104,31 +165,44 @@ public:
       std::cout<<"  [Center:"<<mBox.Center<<std::endl;
       std::cout<<" [--------] "<<std::endl;
       
-      this->mMovement.Label                   = Label;
-      this->mMovement.Velocity                = Velocity;
-      this->mMovement.AngularVelocity         = AngularVelocity;
-      this->mMovement.OriginalRotationCenter  = RotationCenter;
-      this->mMovement.RotationCenter          = RotationCenter;
+      mBox.Velocity = Velocity;
 
+      mBox.OriginalCenter = mBox.Center;
+
+      mBoxCenterSupplied = false;
+
+      KRATOS_CATCH("")
     }
 
+    //**************************************************************************
+    //**************************************************************************
 
     /// Assignment operator.
-    RigidCircleWallBoundingBox& operator=(RigidCircleWallBoundingBox const& rOther)
+    SphereBoundingBox& operator=(SphereBoundingBox const& rOther)
     {
+      KRATOS_TRY
+
       SpatialBoundingBox::operator=(rOther);
       return *this;
+
+      KRATOS_CATCH("")
     }
 
+    //**************************************************************************
+    //**************************************************************************
 
     /// Copy constructor.
-    RigidCircleWallBoundingBox(RigidCircleWallBoundingBox const& rOther) 
-    :SpatialBoundingBox(rOther)
+    SphereBoundingBox(SphereBoundingBox const& rOther) 
+      :SpatialBoundingBox(rOther)
     {
     }
 
+
+    //**************************************************************************
+    //**************************************************************************
+
     /// Destructor.
-    virtual ~RigidCircleWallBoundingBox() {};
+    virtual ~SphereBoundingBox() {};
 
 
     ///@}
@@ -140,80 +214,73 @@ public:
     ///@name Operations
     ///@{
   
-    double GetRadius()
-    {
-        return mBox.Radius;
-    }
-
-//    void SetRadius(double& rRadius)
-//    {
-//      //used to set a comparisson radius
-//    }  
-
-    virtual void UpdatePosition(double & rTime)
-    {
-      
-      SpatialBoundingBox::UpdatePosition(rTime);
-      
-    }
-
 
     //************************************************************************************
     //************************************************************************************
    
 
-    bool IsInside (const TPointType& rPoint, double& rCurrentTime, int & ContactFace, double Radius = 0)
+    bool IsInside (const PointType& rPoint, double& rCurrentTime, int & ContactFace, double Radius = 0)
     {
-      
+      KRATOS_TRY
+
       ContactFace = 2; //TipSurface
       
       return IsInside(rPoint,rCurrentTime,Radius);
       
+      KRATOS_CATCH("")
     } 
 
     //************************************************************************************
     //************************************************************************************
    
 
-    bool IsInside (const TPointType& rPoint, double& rCurrentTime, double Radius = 0)
+    bool IsInside (const PointType& rPoint, double& rCurrentTime, double Radius = 0)
     {
       
+      KRATOS_TRY
+
       bool is_inside = false;
       
-      double CircleRadius = mBox.Radius;
+      double SphereRadius = mBox.Radius;
 
       if( mBox.Convexity == 1)
-	CircleRadius *= 1.25; //increase the bounding box 
+	SphereRadius *= 1.25; //increase the bounding box 
 
       if( mBox.Convexity == -1)
-       	CircleRadius *= 0.75; //decrease the bounding box 
+       	SphereRadius *= 0.75; //decrease the bounding box 
 
-      is_inside = ContactSearch(rPoint, CircleRadius);
-
+      is_inside = ContactSearch(rPoint, SphereRadius);
 
       return is_inside;
-      
+
+      KRATOS_CATCH("")
     } 
 
 
     //************************************************************************************
     //************************************************************************************
    
-    bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, int& ContactFace, double Radius = 0)
+    bool IsInside(const PointType& rPoint, double& rGapNormal, double& rGapTangent, PointType& rNormal, PointType& rTangent, int& ContactFace, double Radius = 0)
     {
 
+      KRATOS_TRY
+	
       ContactFace = 2; //TipSurface
       
       return IsInside(rPoint,rGapNormal,rGapTangent,rNormal,rTangent,Radius);
-      
+
+      KRATOS_CATCH("")      
     }
 
 
     //************************************************************************************
     //************************************************************************************
    
-    bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, double Radius = 0)
+    bool IsInside(const PointType& rPoint, double& rGapNormal, double& rGapTangent, PointType& rNormal, PointType& rTangent, double Radius = 0)
     {
+
+      KRATOS_TRY
+
       bool is_inside = false;
 
       rGapNormal  = 0;
@@ -221,12 +288,13 @@ public:
       rNormal.clear();
       rTangent.clear();
 
-      double CircleRadius = mBox.Radius;
+      double SphereRadius = mBox.Radius;
 
-      is_inside = ContactSearch(rPoint,CircleRadius,rGapNormal,rGapTangent,rNormal,rTangent);
+      is_inside = ContactSearch(rPoint,SphereRadius,rGapNormal,rGapTangent,rNormal,rTangent);
 
       return is_inside;
       
+      KRATOS_CATCH("")     
     } 
 
 
@@ -248,7 +316,7 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "RigidCircleWallBoundingBox";
+        return "SphereBoundingBox";
     }
 
     /// Print information about this object.
@@ -290,50 +358,19 @@ protected:
     ///@{
 
 
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
 
 
     //************************************************************************************
     //************************************************************************************
 
 
-    bool ContactSearch(const TPointType& rPoint, const double& rRadius)
+    bool ContactSearch(const PointType& rPoint, const double& rRadius)
     {
 
       KRATOS_TRY
 
       //1.-compute point projection
-      TPointType Projection(3);
+      PointType Projection(3);
       Projection = rRadius * ( (rPoint-mBox.Center)/ norm_2(rPoint-mBox.Center) ) + mBox.Center;
       
 
@@ -362,8 +399,8 @@ private:
     //************************************************************************************
     //************************************************************************************
 
-    //Circle
-    bool ContactSearch(const TPointType& rPoint, const double& rRadius, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent)
+    //Sphere
+    bool ContactSearch(const PointType& rPoint, const double& rRadius, double& rGapNormal, double& rGapTangent, PointType& rNormal, PointType& rTangent)
     {
       KRATOS_TRY
 
@@ -371,7 +408,7 @@ private:
       rTangent = ZeroVector(3);
 
       //1.-compute point projection
-      TPointType Projection(3);
+      PointType Projection(3);
       Projection = rRadius * ( (rPoint-mBox.Center)/ norm_2(rPoint-mBox.Center) ) + mBox.Center;
       
       //2.-compute contact normal
@@ -407,7 +444,7 @@ private:
     //************************************************************************************
     //************************************************************************************
 
-    static inline double inner_prod(const TPointType& a, const TPointType& b)
+    static inline double inner_prod(const PointType& a, const PointType& b)
     {
         double temp =a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
         return temp;
@@ -416,12 +453,44 @@ private:
     //************************************************************************************
     //************************************************************************************
 
-    static inline double norm_2(const TPointType& a)
+    static inline double norm_2(const PointType& a)
     {
         double temp = pow(a[0],2) + pow(a[1],2) + pow(a[2],2);
         temp = sqrt(temp);
         return temp;
     }
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
 
     ///@}
     ///@name Private Operations
@@ -446,7 +515,7 @@ private:
     ///@}
 
 
-}; // Class RigidCircleWallBoundingBox
+}; // Class SphereBoundingBox
 
 ///@}
 
@@ -458,28 +527,11 @@ private:
 ///@name Input and output
 ///@{
 
-
-/// input stream function
-template<class TPointType, class TPointerType>
-inline std::istream& operator >> (std::istream& rIStream,
-                                  RigidCircleWallBoundingBox& rThis);
-
-/// output stream function
-template<class TPointType, class TPointerType>
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const RigidCircleWallBoundingBox& rThis)
-{
-    // rThis.PrintInfo(rOStream);
-    // rOStream << std::endl;
-    // rThis.PrintData(rOStream);
-
-    return rOStream;
-}
 ///@}
 
 
 }  // namespace Kratos.
 
-#endif // KRATOS_RIGID_CIRCLE_WALL_BOUNDING_BOX_H_INCLUDED  defined 
+#endif // KRATOS_SPHERE_BOUNDING_BOX_H_INCLUDED  defined 
 
 

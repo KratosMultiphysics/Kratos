@@ -1,9 +1,9 @@
 //
-//   Project Name:        KratosStringDynamicsApplication $
-//   Created by:          $Author:            JMCarbonell $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:            November 2015 $
-//   Revision:            $Revision:                  0.0 $
+//   Project Name:        KratosContactMechanicsApplication $
+//   Created by:          $Author:              JMCarbonell $
+//   Last modified by:    $Co-Author:                       $
+//   Date:                $Date:                  July 2016 $
+//   Revision:            $Revision:                    0.0 $
 //
 // 
 
@@ -22,7 +22,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
-#include "custom_utilities/beam_math_utilities.hpp"
+#include "utilities/beam_math_utilities.hpp"
 #include "custom_bounding/rigid_body_bounding_box.hpp"
 
 namespace Kratos
@@ -504,7 +504,13 @@ protected:
     /**
      * Calculation Complementary Method : Inertial Matrix Calculation Part 1
      */
-   virtual void CalculateRotationLinearPartTensor(Vector& rRotationVector, Matrix& rRotationTensor);
+    virtual void CalculateRotationLinearPartTensor(Vector& rRotationVector, Matrix& rRotationTensor);
+
+
+    /**
+      * Update rigid body nodes and positions
+      */
+    virtual void UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo);
 
 
     ///@}
