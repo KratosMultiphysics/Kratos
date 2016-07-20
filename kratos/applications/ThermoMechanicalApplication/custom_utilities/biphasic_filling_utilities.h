@@ -430,7 +430,7 @@ public:
 		// Now we loop until convergence
 		unsigned int iteration=0;
 		//double inc_correction=1000.0;
-		while((iteration<15)&&(exit_loop==false))
+		while((iteration<10)&&(exit_loop==false))
 			{
 			correction_old=correction;
 			wet_volume_old=wet_volume;
@@ -469,6 +469,7 @@ public:
 				//std::cout << "Volume Correction performed: it= "<< iteration <<" Correction =" << correction << " Wet_volume =" << wet_volume << " Net Volume =" << fabs(Net_volume) << std::endl;
 				}
 			}
+		
 		//BLOCK TO BE MODIFIED, JUST COMPUTE CORRECTION IF IT SUPPOSED TO DO IT
 		//Now we set the correction to be 0 if it is negative -> if it is positive, the distance of point near 0 positive becomes negotive, so that the front advances
 		if(CorrectNegativeVolume==false && correction<0)
@@ -490,7 +491,7 @@ public:
         ThisModelPart.GetProcessInfo()[CUTTED_AREA] =cutted_area ;
         ThisModelPart.GetProcessInfo()[WET_VOLUME] = wet_volume;
         if (ThisModelPart.GetCommunicator().MyPID() == 0)
-            std::cout << "Volume correction : " << correction << std::endl;
+            std::cout << "Volume correction : " << correction << " in " << iteration<< std::endl;
 
         //std::cout << "Volume Correction " << " Net volume: "<< fabs(Net_volume) << " wet volume: " << wet_volume << " percent: "<< wet_volume/fabs(Net_volume)<< " Area: "<< cutted_area << std::endl;
         KRATOS_CATCH("")
@@ -603,7 +604,7 @@ public:
                     Velocity += rGeometry[i].FastGetSolutionStepValue(VELOCITY);
                 Velocity /= 3.0;
 
-                net_input += Velocity[0]*AreaNormal[0] + Velocity[1]*AreaNormal[1] + Velocity[2]*AreaNormal[2];
+                net_input -= Velocity[0]*AreaNormal[0] + Velocity[1]*AreaNormal[1] + Velocity[2]*AreaNormal[2];
             }
         }
         ThisModelPart.GetCommunicator().SumAll(net_input);
@@ -681,7 +682,7 @@ public:
         for (ModelPart::NodeIterator i = ThisModelPart.NodesBegin();
                 i != ThisModelPart.NodesEnd(); ++i)
         {
-            (i)->GetSolutionStepValue(NODAL_VOLUME) = 0.00;
+            (i)->GetValue(NODAL_VOLUME) = 0.00;
         }
 
         for (ModelPart::ElementIterator i = ThisModelPart.ElementsBegin();
@@ -691,10 +692,10 @@ public:
             double volume = 0.25 * rGeometry.DomainSize()/3.0;//Attention DomainSize() Returns JAcobian/2.0, Volume is Jacobian/6.0
 
             for (int jj =0; jj<4; ++jj)
-                rGeometry[jj].FastGetSolutionStepValue(NODAL_VOLUME) += volume;
+                rGeometry[jj].GetValue(NODAL_VOLUME) += volume;
         }
 
-        ThisModelPart.GetCommunicator().AssembleCurrentData(NODAL_VOLUME);
+        //ThisModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_VOLUME);
 
 
         KRATOS_CATCH("")
@@ -717,6 +718,8 @@ public:
 	{
 	  KRATOS_TRY;
       //Check if there is any dry node
+	  /* Defining for Solid_fraction_extrapolation*/
+
 	  int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();
 	  double is_wet = 1.0;
 	  #pragma omp parallel for firstprivate(node_size)
@@ -727,6 +730,7 @@ public:
 			if(dist>=0.0)
 			{
 				is_wet = 0.0;
+				it->GetValue(FILLTIME)=corrected_time;
 				//dist = -1.0;
 			}
 	  }
@@ -737,28 +741,31 @@ public:
 		//If there is a dry node then do extrapolation for velocity
 		if(is_wet == 0.0)
 		{
-		 ParallelExtrapolationUtilities<3>::ExtrapolateTemperature(ThisModelPart, DISTANCE, TEMPERATURE, NODAL_AREA,10);
-		 //ParallelExtrapolationUtilities<3>::ParallelExtrapolationUtilities().ExtrapolateVelocity(ThisModelPart, DISTANCE, VELOCITY, NODAL_AREA,10);
+			ParallelExtrapolationUtilities<3>::ExtrapolateTemperature(ThisModelPart, DISTANCE, TEMPERATURE, NODAL_AREA,10);
+			//ParallelExtrapolationUtilities<3>::ParallelExtrapolationUtilities().ExtrapolateVelocity(ThisModelPart, DISTANCE, VELOCITY, NODAL_AREA,10);
+			#pragma omp parallel for firstprivate(node_size)
+			for (int ii = 0; ii < node_size; ii++)
+			{
+				ModelPart::NodesContainerType::iterator it = ThisModelPart.GetCommunicator().LocalMesh().NodesBegin() + ii;
+				double& dist = it->FastGetSolutionStepValue(DISTANCE);
+				if (dist >= 0.0) 
+				{ 
+					dist = -1.0;
 
-		 #pragma omp parallel for firstprivate(node_size)
-		 for (int ii = 0; ii < node_size; ii++)
-		 {
-			ModelPart::NodesContainerType::iterator it = ThisModelPart.GetCommunicator().LocalMesh().NodesBegin() + ii;
-			double& dist = it->FastGetSolutionStepValue(DISTANCE);
-			if(dist>=0.0)
-				dist = -1.0;	
+				
+				}
 		 
-            //filling time
-            double is_visited = it->FastGetSolutionStepValue(IS_VISITED);
-            if(is_visited == 0.0 && dist<=0.0)
-            {
-                it->FastGetSolutionStepValue(IS_VISITED) = 1.0;
+    //        //filling time
+    //        double is_visited = it->FastGetSolutionStepValue(IS_VISITED);
+    //        if(is_visited == 0.0 && dist<=0.0)
+    //        {
+    //            it->FastGetSolutionStepValue(IS_VISITED) = 1.0;
 
-                //double filling_time =  ThisModelPart.GetProcessInfo()[TIME];
-                //it->FastGetSolutionStepValue(FILLTIME) = filling_time * time_correction_factor;
-				it->FastGetSolutionStepValue(FILLTIME) =corrected_time;
-            }		 
-		 }
+    //            //double filling_time =  ThisModelPart.GetProcessInfo()[TIME];
+    //            //it->FastGetSolutionStepValue(FILLTIME) = filling_time * time_correction_factor;
+				//it->GetValue(FILLTIME) =corrected_time;
+    //        }		 
+			}
 		}
 
 	  KRATOS_CATCH("")
@@ -790,147 +797,147 @@ public:
 	}
 	//**********************************************************************************************
 	//**********************************************************************************************
-	void MacroPorosityToShrinkageComputation(ModelPart& ThisModelPart, ModelPart::NodesContainerType& visited_nodes, unsigned int division_number)
-	{
-	  KRATOS_TRY;
+	//void MacroPorosityToShrinkageComputation(ModelPart& ThisModelPart, ModelPart::NodesContainerType& visited_nodes, unsigned int division_number)
+	//{
+	//  KRATOS_TRY;
 
-	  double max_porosity = -1000.0;
-	  double min_porosity = 1000000.0;
-      ModelPart::NodesContainerType& r_nodes = ThisModelPart.Nodes();
- 	  for(ModelPart::NodesContainerType::iterator i_node = r_nodes.begin(); i_node!=r_nodes.end(); i_node++)
-	  {
-		i_node->Set(NOT_VISITED);
-		const double mcp = i_node->FastGetSolutionStepValue(MACRO_POROSITY);
-		if(max_porosity <= mcp)
-			max_porosity = mcp;
-		if(min_porosity >= mcp && mcp != 0.0)
-			min_porosity = mcp;
-	  }
+	//  double max_porosity = -1000.0;
+	//  double min_porosity = 1000000.0;
+ //     ModelPart::NodesContainerType& r_nodes = ThisModelPart.Nodes();
+ //	  for(ModelPart::NodesContainerType::iterator i_node = r_nodes.begin(); i_node!=r_nodes.end(); i_node++)
+	//  {
+	//	i_node->Set(NOT_VISITED);
+	//	const double mcp = i_node->FastGetSolutionStepValue(MACRO_POROSITY);
+	//	if(max_porosity <= mcp)
+	//		max_porosity = mcp;
+	//	if(min_porosity >= mcp && mcp != 0.0)
+	//		min_porosity = mcp;
+	//  }
 
-	 // double min_porosity = 0.01*max_porosity;
-	/*	  double step_length = (max_porosity - min_porosity)/double(division_number);
+	// // double min_porosity = 0.01*max_porosity;
+	///*	  double step_length = (max_porosity - min_porosity)/double(division_number);
 
-	  double floor_mp =  min_porosity;// + step_length;
+	//  double floor_mp =  min_porosity;// + step_length;
 
-  for(unsigned int cnt = 1; cnt <= division_number; cnt++)
-	  {
-		  double cnt_val = min_porosity + double(cnt) * step_length;
+ // for(unsigned int cnt = 1; cnt <= division_number; cnt++)
+	//  {
+	//	  double cnt_val = min_porosity + double(cnt) * step_length;
 
- 
- 		  for(ModelPart::NodesContainerType::iterator i_node = r_nodes.begin(); i_node!=r_nodes.end(); i_node++)
-		   {
-             const double nd_mcp = i_node->FastGetSolutionStepValue(MACRO_POROSITY);
-			 if( nd_mcp >= floor_mp && i_node->IsNot(VISITED) )
-			 {
-				if( nd_mcp <= cnt_val)
-				{
-					i_node->Set(VISITED);
-					i_node->FastGetSolutionStepValue(SHRINKAGE_POROSITY) = cnt_val;
-					visited_nodes.push_back(*(i_node.base()));
-				}
-			 }
-		   }
-	  
-	  }*/
-    
-	double floor_mp =  min_porosity;// + step_length;
- 	for(ModelPart::NodesContainerType::iterator i_node = r_nodes.begin(); i_node!=r_nodes.end(); i_node++)
-      {
-        const double nd_mcp = i_node->FastGetSolutionStepValue(MACRO_POROSITY);
-		if( nd_mcp >= floor_mp )
-			 {
-					i_node->FastGetSolutionStepValue(SHRINKAGE_POROSITY) = nd_mcp;
-					visited_nodes.push_back(*(i_node.base()));
+ //
+ //		  for(ModelPart::NodesContainerType::iterator i_node = r_nodes.begin(); i_node!=r_nodes.end(); i_node++)
+	//	   {
+ //            const double nd_mcp = i_node->FastGetSolutionStepValue(MACRO_POROSITY);
+	//		 if( nd_mcp >= floor_mp && i_node->IsNot(VISITED) )
+	//		 {
+	//			if( nd_mcp <= cnt_val)
+	//			{
+	//				i_node->Set(VISITED);
+	//				i_node->FastGetSolutionStepValue(SHRINKAGE_POROSITY) = cnt_val;
+	//				visited_nodes.push_back(*(i_node.base()));
+	//			}
+	//		 }
+	//	   }
+	//  
+	//  }*/
+ //   
+	//double floor_mp =  min_porosity;// + step_length;
+ //	for(ModelPart::NodesContainerType::iterator i_node = r_nodes.begin(); i_node!=r_nodes.end(); i_node++)
+ //     {
+ //       const double nd_mcp = i_node->FastGetSolutionStepValue(MACRO_POROSITY);
+	//	if( nd_mcp >= floor_mp )
+	//		 {
+	//				i_node->FastGetSolutionStepValue(SHRINKAGE_POROSITY) = nd_mcp;
+	//				visited_nodes.push_back(*(i_node.base()));
 
-			 }
+	//		 }
 
-	   }
+	//   }
 
-	/*for(ModelPart::NodesContainerType::iterator i_node = r_nodes.begin(); i_node!=r_nodes.end(); i_node++)
-	{
-        const double nd_mcp = i_node->FastGetSolutionStepValue(MACRO_POROSITY);
-		if(i_node->IsNot(VISITED) && nd_mcp <= floor_mp)
-			i_node->FastGetSolutionStepValue(SHRINKAGE_POROSITY) = std::numeric_limits<double>::infinity();
-	}*/
+	///*for(ModelPart::NodesContainerType::iterator i_node = r_nodes.begin(); i_node!=r_nodes.end(); i_node++)
+	//{
+ //       const double nd_mcp = i_node->FastGetSolutionStepValue(MACRO_POROSITY);
+	//	if(i_node->IsNot(VISITED) && nd_mcp <= floor_mp)
+	//		i_node->FastGetSolutionStepValue(SHRINKAGE_POROSITY) = std::numeric_limits<double>::infinity();
+	//}*/
 
 
-	  KRATOS_CATCH("")
-	}
-	//**********************************************************************************************
+	//  KRATOS_CATCH("")
+	//}
+	////**********************************************************************************************
     //**********************************************************************************************
     void ComputePosetiveVolume(ModelPart& ThisModelPart)
     {
         KRATOS_TRY;
 
-       //set as active the internal nodes
-       int node_size = ThisModelPart.Nodes().size();
-        #pragma omp parallel for
-        for (int i = 0; i < node_size; i++)
-        {
-            ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + i;
-            it->FastGetSolutionStepValue(NODAL_MASS) = 0.0;
-        }
-        int elem_size = ThisModelPart.Elements().size();
-        array_1d<double, 4 > N;
-        boost::numeric::ublas::bounded_matrix <double, 4, 3> DN_DX;
-		#pragma omp parallel for private(DN_DX,N) firstprivate(elem_size)
-        for (int i = 0; i < elem_size; i++)
-          {
-                PointerVector< Element>::iterator it = ThisModelPart.ElementsBegin() + i;
+  //     //set as active the internal nodes
+  //     int node_size = ThisModelPart.Nodes().size();
+  //      #pragma omp parallel for
+  //      for (int i = 0; i < node_size; i++)
+  //      {
+  //          ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + i;
+  //          it->FastGetSolutionStepValue(NODAL_MASS) = 0.0;
+  //      }
+  //      int elem_size = ThisModelPart.Elements().size();
+  //      array_1d<double, 4 > N;
+  //      boost::numeric::ublas::bounded_matrix <double, 4, 3> DN_DX;
+		//#pragma omp parallel for private(DN_DX,N) firstprivate(elem_size)
+  //      for (int i = 0; i < elem_size; i++)
+  //        {
+  //              PointerVector< Element>::iterator it = ThisModelPart.ElementsBegin() + i;
 
-                Geometry<Node < 3 > >&geom = it->GetGeometry();
-                    double Volume;
-                    GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+  //              Geometry<Node < 3 > >&geom = it->GetGeometry();
+  //                  double Volume;
+  //                  GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
 
-                    for (unsigned int k = 0; k < 4; k++)
-                    {
-                            geom[k].SetLock();
-                            geom[k].FastGetSolutionStepValue(NODAL_MASS) += Volume*0.25;
-                            geom[k].UnSetLock();             
-                    }
-		 }
+  //                  for (unsigned int k = 0; k < 4; k++)
+  //                  {
+  //                          geom[k].SetLock();
+  //                          geom[k].FastGetSolutionStepValue(NODAL_MASS) += Volume*0.25;
+  //                          geom[k].UnSetLock();             
+  //                  }
+		// }
 
-        double net_input = 0.0;
-		ModelPart::NodesContainerType& r_nodes = ThisModelPart.Nodes();
- 		for(ModelPart::NodesContainerType::iterator i_node = r_nodes.begin(); i_node!=r_nodes.end(); i_node++)
-		 {
-			 double distance = i_node->GetSolutionStepValue(DISTANCE);
-			 if(distance >= 0.0)
-			 {
-				 double nd_vol = i_node->GetSolutionStepValue(NODAL_MASS);
-				 net_input += nd_vol;
-			 }
-		}
-		ProcessInfo& CurrentProcessInfo = ThisModelPart.GetProcessInfo();
-		double& net_volume = CurrentProcessInfo[NET_INPUT_MATERIAL];
-		net_volume = net_input;
-		KRATOS_WATCH(net_volume);
+  //      double net_input = 0.0;
+		//ModelPart::NodesContainerType& r_nodes = ThisModelPart.Nodes();
+ 	//	for(ModelPart::NodesContainerType::iterator i_node = r_nodes.begin(); i_node!=r_nodes.end(); i_node++)
+		// {
+		//	 double distance = i_node->GetSolutionStepValue(DISTANCE);
+		//	 if(distance >= 0.0)
+		//	 {
+		//		 double nd_vol = i_node->GetSolutionStepValue(NODAL_MASS);
+		//		 net_input += nd_vol;
+		//	 }
+		//}
+		//ProcessInfo& CurrentProcessInfo = ThisModelPart.GetProcessInfo();
+		//double& net_volume = CurrentProcessInfo[NET_INPUT_MATERIAL];
+		//net_volume = net_input;
+		//KRATOS_WATCH(net_volume);
 
-        //int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();
-        //#pragma omp parallel for firstprivate(node_size) reduction(+:net_input)
-        //for (int ii = 0; ii < node_size; ii++)
-        //{
-        //    ModelPart::NodesContainerType::iterator it = ThisModelPart.GetCommunicator().LocalMesh().NodesBegin() + ii;
-        //    double str_flag = it->GetValue(IS_STRUCTURE);
-        //    double slip_flag = it->GetSolutionStepValue(IS_SLIP);
-        //    double distance = it->GetSolutionStepValue(DISTANCE);
+  //      //int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();
+  //      //#pragma omp parallel for firstprivate(node_size) reduction(+:net_input)
+  //      //for (int ii = 0; ii < node_size; ii++)
+  //      //{
+  //      //    ModelPart::NodesContainerType::iterator it = ThisModelPart.GetCommunicator().LocalMesh().NodesBegin() + ii;
+  //      //    double str_flag = it->GetValue(IS_STRUCTURE);
+  //      //    double slip_flag = it->GetSolutionStepValue(IS_SLIP);
+  //      //    double distance = it->GetSolutionStepValue(DISTANCE);
 
-        //   // if ( (str_flag != 0.0 || slip_flag == 0.0) && distance < 0.0 )
-        //    if ( it->Is(INLET) )
-        //    {
-        //        const array_1d<double, 3> vel = it->FastGetSolutionStepValue(VELOCITY);
-        //        const array_1d<double, 3> normal = it->FastGetSolutionStepValue(NORMAL);
+  //      //   // if ( (str_flag != 0.0 || slip_flag == 0.0) && distance < 0.0 )
+  //      //    if ( it->Is(INLET) )
+  //      //    {
+  //      //        const array_1d<double, 3> vel = it->FastGetSolutionStepValue(VELOCITY);
+  //      //        const array_1d<double, 3> normal = it->FastGetSolutionStepValue(NORMAL);
 
-        //        net_input += inner_prod(vel,normal);
-        //    }
-        //}
-        ////syncronoze
-        //ThisModelPart.GetCommunicator().SumAll(net_input);
+  //      //        net_input += inner_prod(vel,normal);
+  //      //    }
+  //      //}
+  //      ////syncronoze
+  //      //ThisModelPart.GetCommunicator().SumAll(net_input);
 
-        //ProcessInfo& CurrentProcessInfo = ThisModelPart.GetProcessInfo();
-        //const double delta_t = CurrentProcessInfo[DELTA_TIME];
-        //double& net_volume = CurrentProcessInfo[NET_INPUT_MATERIAL];
-        //net_volume += (net_input*delta_t);
+  //      //ProcessInfo& CurrentProcessInfo = ThisModelPart.GetProcessInfo();
+  //      //const double delta_t = CurrentProcessInfo[DELTA_TIME];
+  //      //double& net_volume = CurrentProcessInfo[NET_INPUT_MATERIAL];
+  //      //net_volume += (net_input*delta_t);
 
 
         KRATOS_CATCH("")
@@ -999,6 +1006,148 @@ public:
 		// First we compute the Total Volume of the Fluid
         ComputeWetVolumeAndCuttedArea(ThisModelPart, wet_volume, cutted_area);
 		return wet_volume;
+	}
+
+	//**********************************************************************************************
+    //**********************************************************************************************
+    double ComputePartVolume(ModelPart& ThisModelPart)
+    {
+		double vol=0.0;
+		ModelPart::ElementIterator ibegin = ThisModelPart.ElementsBegin();
+		unsigned int size_to_loop=ThisModelPart.Elements().size();
+
+        KRATOS_TRY;
+		#pragma omp parallel for reduction(+: vol)
+        for (int k = 0; k < size_to_loop; ++k)
+        {
+			ModelPart::ElementIterator i = ibegin+k;
+            Geometry< Node<3> >& rGeometry = i->GetGeometry();
+			double elem_volume = rGeometry.DomainSize(); // Looks like now it is repaired 3.0;//Attention DomainSize() Returns JAcobian/2.0, Volume is Jacobian/6.0
+			vol+=elem_volume;
+        }
+        KRATOS_CATCH("")
+		return vol;
+    }
+	//**********************************************************************************************
+    //**********************************************************************************************
+    double ComputePartArea(ModelPart& ThisModelPart)
+    {
+		double area=0.0;
+		ModelPart::ConditionIterator ibegin = ThisModelPart.ConditionsBegin();
+		unsigned int size_to_loop=ThisModelPart.Conditions().size();
+        KRATOS_TRY;
+		#pragma omp parallel for reduction(+: area)
+        for (int k=0; k <size_to_loop; ++k)
+        {
+			ModelPart::ConditionIterator i=ibegin+k;
+            Geometry< Node<3> >& rGeometry = i->GetGeometry();
+			double condition_area = rGeometry.DomainSize(); // Looks like now it is repaired 3.0;//Attention DomainSize() Returns JAcobian/2.0, Volume is Jacobian/6.0
+			area+=condition_area;
+        }
+        KRATOS_CATCH("")
+		return area;
+    }
+	//**********************************************************************************************
+    //**********************************************************************************************
+    double ComputePartInletArea(ModelPart& ThisModelPart)
+    {
+		double area=0.0;
+		ModelPart::ConditionIterator ibegin = ThisModelPart.ConditionsBegin();
+		unsigned int size_to_loop=ThisModelPart.Conditions().size();
+        KRATOS_TRY;
+		#pragma omp parallel for reduction(+: area)
+        for (int k=0; k <size_to_loop; ++k)
+        {
+			ModelPart::ConditionIterator i=ibegin+k;
+            Geometry< Node<3> >& rGeometry = i->GetGeometry();
+			double condition_area = rGeometry.DomainSize(); // Looks like now it is repaired 3.0;//Attention DomainSize() Returns JAcobian/2.0, Volume is Jacobian/6.0
+			if(i->GetValue(IS_INLET)>0.0){ area+=condition_area;}
+        }
+        KRATOS_CATCH("")
+		return area;
+    }
+	//**********************************************************************************************
+	//**********************************************************************************************
+	double ComputePartMaxh(ModelPart& ThisModelPart)
+	{
+		KRATOS_TRY
+		double h_max = 0.0;
+		for (ModelPart::ElementsContainerType::iterator it = ThisModelPart.ElementsBegin(); it != ThisModelPart.ElementsEnd(); it++)
+		{
+			Geometry<Node<3> >&geom = it->GetGeometry();
+			double h = 0.0;
+
+			for (unsigned int i = 0; i<4; i++)
+			{
+				double xc = geom[i].X();
+				double yc = geom[i].Y();
+				double zc = geom[i].Z();
+				for (unsigned int j = i + 1; j<4; j++)
+				{
+					double x = geom[j].X();
+					double y = geom[j].Y();
+					double z = geom[j].Z();
+					double l = (x - xc)*(x - xc);
+					l += (y - yc)*(y - yc);
+					l += (z - zc)*(z - zc);
+					if (l > h) h = l;
+				}
+			}
+
+			h = sqrt(h);
+
+			if (h > h_max) h_max = h;
+
+		}
+
+		ThisModelPart.GetCommunicator().MaxAll(h_max);
+
+		return h_max;
+
+		KRATOS_CATCH("");
+	}
+	//**********************************************************************************************
+	//**********************************************************************************************
+	double ComputePartAvgh(ModelPart& ThisModelPart)
+	{
+		KRATOS_TRY
+		double h_avg = 0.0;
+		unsigned int n_edges = 0; // It will count held 
+		for (ModelPart::ElementsContainerType::iterator it = ThisModelPart.ElementsBegin(); it != ThisModelPart.ElementsEnd(); it++)
+		{
+			Geometry<Node<3> >&geom = it->GetGeometry();
+			//double h = 0.0;
+			for (unsigned int i = 0; i<4; i++)
+			{
+				double xc = geom[i].X();
+				double yc = geom[i].Y();
+				double zc = geom[i].Z();
+				for (unsigned int j = i + 1; j<4 ; j++)
+				{
+					double x = geom[j].X();
+					double y = geom[j].Y();
+					double z = geom[j].Z();
+					double l = (x - xc)*(x - xc);
+					l += (y - yc)*(y - yc);
+					l += (z - zc)*(z - zc);
+					l = sqrt(l);
+					h_avg += l;
+					n_edges += 1;
+				}
+			}
+
+			//h = sqrt(h);
+			//h_avg += h;
+
+		}
+		double n = static_cast<double>(n_edges);
+
+		ThisModelPart.GetCommunicator().SumAll(h_avg);
+		ThisModelPart.GetCommunicator().SumAll(n);
+		h_avg /= n;
+		return h_avg;
+
+		KRATOS_CATCH("");
 	}
 
 	//**********************************************************************************************
