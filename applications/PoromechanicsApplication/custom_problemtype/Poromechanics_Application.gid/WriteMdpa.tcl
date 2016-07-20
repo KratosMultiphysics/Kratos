@@ -1,7 +1,7 @@
-proc Poromechanics_Application::WriteMDPA { basename dir } {
+proc WriteMdpa { basename dir } {
     
     ## Start MDPA file
-    set filename [file join $dir ${basename}.dat]
+    set filename [file join $dir ${basename}.mdpa]
     set varfile [open $filename w]
     
     ## ModelPart Data
@@ -515,7 +515,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
                 if {[llength $Entities] > 0} {
                     puts $varfile "Begin Elements UPwSmallStrainElement2D3N"
                     for {set j 0} {$j < [llength $Entities]} {incr j} {
-                        set Connectivities [::Poromechanics_Application::Triangle2D3Connectivities [lindex $Entities $j]]
+                        set Connectivities [Triangle2D3Connectivities [lindex $Entities $j]]
                         puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                     }
                     puts $varfile "End Elements"
@@ -526,7 +526,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
                 if {[llength $Entities] > 0} {
                     puts $varfile "Begin Elements UPwSmallStrainElement2D4N"
                     for {set j 0} {$j < [llength $Entities]} {incr j} {
-                        set Connectivities [::Poromechanics_Application::Quadrilateral2D4Connectivities [lindex $Entities $j]]
+                        set Connectivities [Quadrilateral2D4Connectivities [lindex $Entities $j]]
                         puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                     }
                     puts $varfile "End Elements"
@@ -537,7 +537,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
                 if {[llength $Entities] > 0} {
                     puts $varfile "Begin Elements UPwSmallStrainElement3D4N"
                     for {set j 0} {$j < [llength $Entities]} {incr j} {
-                        set Connectivities [::Poromechanics_Application::Quadrilateral2D4Connectivities [lindex $Entities $j]]
+                        set Connectivities [Quadrilateral2D4Connectivities [lindex $Entities $j]]
                         puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                     }
                     puts $varfile "End Elements"
@@ -548,7 +548,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
                 if {[llength $Entities] > 0} {
                     puts $varfile "Begin Elements UPwSmallStrainElement3D8N"
                     for {set j 0} {$j < [llength $Entities]} {incr j} {
-                        set Connectivities [::Poromechanics_Application::Hexahedron3D8Connectivities [lindex $Entities $j]]
+                        set Connectivities [Hexahedron3D8Connectivities [lindex $Entities $j]]
                         puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                     }
                     puts $varfile "End Elements"
@@ -565,7 +565,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
                 if {[llength $Entities] > 0} {
                     puts $varfile "Begin Elements UPwSmallStrainFICElement2D3N"
                     for {set j 0} {$j < [llength $Entities]} {incr j} {
-                        set Connectivities [::Poromechanics_Application::Triangle2D3Connectivities [lindex $Entities $j]]
+                        set Connectivities [Triangle2D3Connectivities [lindex $Entities $j]]
                         puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                     }
                     puts $varfile "End Elements"
@@ -576,7 +576,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
                 if {[llength $Entities] > 0} {
                     puts $varfile "Begin Elements UPwSmallStrainFICElement2D4N"
                     for {set j 0} {$j < [llength $Entities]} {incr j} {
-                        set Connectivities [::Poromechanics_Application::Quadrilateral2D4Connectivities [lindex $Entities $j]]
+                        set Connectivities [Quadrilateral2D4Connectivities [lindex $Entities $j]]
                         puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                     }
                     puts $varfile "End Elements"
@@ -587,7 +587,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
                 if {[llength $Entities] > 0} {
                     puts $varfile "Begin Elements UPwSmallStrainFICElement3D4N"
                     for {set j 0} {$j < [llength $Entities]} {incr j} {
-                        set Connectivities [::Poromechanics_Application::Quadrilateral2D4Connectivities [lindex $Entities $j]]
+                        set Connectivities [Quadrilateral2D4Connectivities [lindex $Entities $j]]
                         puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                     }
                     puts $varfile "End Elements"
@@ -598,7 +598,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
                 if {[llength $Entities] > 0} {
                     puts $varfile "Begin Elements UPwSmallStrainFICElement3D8N"
                     for {set j 0} {$j < [llength $Entities]} {incr j} {
-                        set Connectivities [::Poromechanics_Application::Hexahedron3D8Connectivities [lindex $Entities $j]]
+                        set Connectivities [Hexahedron3D8Connectivities [lindex $Entities $j]]
                         puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                     }
                     puts $varfile "End Elements"
@@ -616,7 +616,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
             if {[llength $Entities] > 0} {
                 puts $varfile "Begin Elements SmallStrainUPwDiffOrderElement2D6N"
                 for {set j 0} {$j < [llength $Entities]} {incr j} {
-                    set Connectivities [::Poromechanics_Application::Triangle2D6Connectivities [lindex $Entities $j]]
+                    set Connectivities [Triangle2D6Connectivities [lindex $Entities $j]]
                     puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                 }
                 puts $varfile "End Elements"
@@ -628,7 +628,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
                 puts $varfile "Begin Elements SmallStrainUPwDiffOrderElement2D8N"
                 
                 for {set j 0} {$j < [llength $Entities]} {incr j} {
-                    set Connectivities [::Poromechanics_Application::Hexahedron3D8Connectivities [lindex $Entities $j]]
+                    set Connectivities [Hexahedron3D8Connectivities [lindex $Entities $j]]
                     puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                 }
                 puts $varfile "End Elements"
@@ -639,7 +639,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
             if {[llength $Entities] > 0} {
                 puts $varfile "Begin Elements SmallStrainUPwDiffOrderElement3D10N"
                 for {set j 0} {$j < [llength $Entities]} {incr j} {
-                    set Connectivities [::Poromechanics_Application::Tetrahedron3D10Connectivities [lindex $Entities $j]]
+                    set Connectivities [Tetrahedron3D10Connectivities [lindex $Entities $j]]
                     puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                 }
                 puts $varfile "End Elements"
@@ -650,7 +650,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
             if {[llength $Entities] > 0} {
                 puts $varfile "Begin Elements SmallStrainUPwDiffOrderElement3D20N"
                 for {set j 0} {$j < [llength $Entities]} {incr j} {
-                    set Connectivities [::Poromechanics_Application::Hexahedron3D20Connectivities [lindex $Entities $j]]
+                    set Connectivities [Hexahedron3D20Connectivities [lindex $Entities $j]]
                     puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                 }
                 puts $varfile "End Elements"
@@ -667,7 +667,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
             if {[llength $Entities] > 0} {
                 puts $varfile "Begin Elements SmallStrainUPwDiffOrderElement2D6N"
                 for {set j 0} {$j < [llength $Entities]} {incr j} {
-                    set Connectivities [::Poromechanics_Application::Triangle2D6Connectivities [lindex $Entities $j]]
+                    set Connectivities [Triangle2D6Connectivities [lindex $Entities $j]]
                     puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                 }
                 puts $varfile "End Elements"
@@ -678,7 +678,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
             if {[llength $Entities] > 0} {
                 puts $varfile "Begin Elements SmallStrainUPwDiffOrderElement2D9N"
                 for {set j 0} {$j < [llength $Entities]} {incr j} {
-                    set Connectivities [::Poromechanics_Application::Quadrilateral2D9Connectivities [lindex $Entities $j]]
+                    set Connectivities [Quadrilateral2D9Connectivities [lindex $Entities $j]]
                     puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                 }
                 puts $varfile "End Elements"
@@ -689,7 +689,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
             if {[llength $Entities] > 0} {
                 puts $varfile "Begin Elements SmallStrainUPwDiffOrderElement3D10N"
                 for {set j 0} {$j < [llength $Entities]} {incr j} {
-                    set Connectivities [::Poromechanics_Application::Tetrahedron3D10Connectivities [lindex $Entities $j]]
+                    set Connectivities [Tetrahedron3D10Connectivities [lindex $Entities $j]]
                     puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                 }
                 puts $varfile "End Elements"
@@ -700,7 +700,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
             if {[llength $Entities] > 0} {
                 puts $varfile "Begin Elements SmallStrainUPwDiffOrderElement3D27N"
                 for {set j 0} {$j < [llength $Entities]} {incr j} {
-                    set Connectivities [::Poromechanics_Application::Hexahedron3D27Connectivities [lindex $Entities $j]]
+                    set Connectivities [Hexahedron3D27Connectivities [lindex $Entities $j]]
                     puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                 }
                 puts $varfile "End Elements"
@@ -719,7 +719,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
         if {[llength $Entities] > 0} {
             puts $varfile "Begin Elements UPwSmallStrainLinkInterfaceElement2D4N"
             for {set j 0} {$j < [llength $Entities]} {incr j} {
-                set Connectivities [::Poromechanics_Application::TriangleInterface2D4Connectivities [lindex $Entities $j]]
+                set Connectivities [TriangleInterface2D4Connectivities [lindex $Entities $j]]
                 puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
             }
             puts $varfile "End Elements"
@@ -731,7 +731,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
                 # UPwSmallStrainInterfaceElement2D4N
                 puts $varfile "Begin Elements UPwSmallStrainInterfaceElement2D4N"
                 for {set j 0} {$j < [llength $Entities]} {incr j} {
-                    set Connectivities [::Poromechanics_Application::QuadrilateralInterface2D4Connectivities [lindex $Entities $j]]
+                    set Connectivities [Quadrilateral2D4Connectivities [lindex $Entities $j]]
                     puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                 }
                 puts $varfile "End Elements"
@@ -740,7 +740,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
                 # UPwSmallStrainLinkInterfaceElement2D4N
                 puts $varfile "Begin Elements UPwSmallStrainLinkInterfaceElement2D4N"
                 for {set j 0} {$j < [llength $Entities]} {incr j} {
-                    set Connectivities [::Poromechanics_Application::QuadrilateralInterface2D4Connectivities [lindex $Entities $j]]
+                    set Connectivities [QuadrilateralInterface2D4Connectivities [lindex $Entities $j]]
                     puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                 }
                 puts $varfile "End Elements"
@@ -752,7 +752,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
         if {[llength $Entities] > 0} {
             puts $varfile "Begin Elements UPwSmallStrainLinkInterfaceElement3D6N"
             for {set j 0} {$j < [llength $Entities]} {incr j} {
-                set Connectivities [::Poromechanics_Application::TetrahedronInterface3D6Connectivities [lindex $Entities $j]]
+                set Connectivities [TetrahedronInterface3D6Connectivities [lindex $Entities $j]]
                 puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
             }
             puts $varfile "End Elements"
@@ -764,7 +764,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
                 # UPwSmallStrainInterfaceElement3D6N
                 puts $varfile "Begin Elements UPwSmallStrainInterfaceElement3D6N"
                 for {set j 0} {$j < [llength $Entities]} {incr j} {
-                    set Connectivities [::Poromechanics_Application::Triangle2D6Connectivities [lindex $Entities $j]]
+                    set Connectivities [Triangle2D6Connectivities [lindex $Entities $j]]
                     puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                 }
                 puts $varfile "End Elements"
@@ -773,7 +773,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
                 # UPwSmallStrainLinkInterfaceElement3D6N
                 puts $varfile "Begin Elements UPwSmallStrainLinkInterfaceElement3D6N"
                 for {set j 0} {$j < [llength $Entities]} {incr j} {
-                    set Connectivities [::Poromechanics_Application::Triangle2D6Connectivities [lindex $Entities $j]]
+                    set Connectivities [Triangle2D6Connectivities [lindex $Entities $j]]
                     puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                 }
                 puts $varfile "End Elements"
@@ -786,7 +786,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
                 # UPwSmallStrainInterfaceElement3D8N
                 puts $varfile "Begin Elements UPwSmallStrainInterfaceElement3D8N"
                 for {set j 0} {$j < [llength $Entities]} {incr j} {
-                    set Connectivities [::Poromechanics_Application::HexaedronInterface3D8Connectivities [lindex $Entities $j]]
+                    set Connectivities [Hexahedron3D8Connectivities [lindex $Entities $j]]
                     puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                 }
                 puts $varfile "End Elements"
@@ -795,7 +795,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
                 # UPwSmallStrainLinkInterfaceElement3D8N
                 puts $varfile "Begin Elements UPwSmallStrainLinkInterfaceElement3D8N"
                 for {set j 0} {$j < [llength $Entities]} {incr j} {
-                    set Connectivities [::Poromechanics_Application::HexaedronInterface3D8Connectivities [lindex $Entities $j]]
+                    set Connectivities [HexaedronInterface3D8Connectivities [lindex $Entities $j]]
                     puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                 }
                 puts $varfile "End Elements"
@@ -1586,7 +1586,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
             for {set j 0} {$j < [llength $Entities]} {incr j} {
                 incr ConditionId
                 lappend AuxList $ConditionId
-                set Connectivities [::Poromechanics_Application::Line2D2Connectivities [lindex $Entities $j]]
+                set Connectivities [Line2D2Connectivities [lindex $Entities $j]]
                 puts $varfile "  $ConditionId  $InterfaceElemsMat  $Connectivities"
             }
             puts $varfile "End Conditions"
@@ -1599,7 +1599,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
             for {set j 0} {$j < [llength $Entities]} {incr j} {
                 incr ConditionId
                 lappend AuxList $ConditionId
-                set Connectivities [::Poromechanics_Application::TriangleInterface3D4Connectivities [lindex $Entities $j]]
+                set Connectivities [TriangleInterface3D4Connectivities [lindex $Entities $j]]
                 puts $varfile "  $ConditionId  $InterfaceElemsMat  $Connectivities"
             }
             puts $varfile "End Conditions"
@@ -1611,7 +1611,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
             for {set j 0} {$j < [llength $Entities]} {incr j} {
                 incr ConditionId
                 lappend AuxList $ConditionId
-                set Connectivities [::Poromechanics_Application::QuadrilateralInterface3D4Connectivities [lindex $Entities $j]]
+                set Connectivities [QuadrilateralInterface3D4Connectivities [lindex $Entities $j]]
                 puts $varfile "  $ConditionId  $InterfaceElemsMat  $Connectivities"
             }
             puts $varfile "End Conditions"
@@ -1631,7 +1631,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
             for {set j 0} {$j < [llength $Entities]} {incr j} {
                 incr ConditionId
                 lappend AuxList $ConditionId
-                set Connectivities [::Poromechanics_Application::Line2D2Connectivities [lindex $Entities $j]]
+                set Connectivities [Line2D2Connectivities [lindex $Entities $j]]
                 puts $varfile "  $ConditionId  $InterfaceElemsMat  $Connectivities"
             }
             puts $varfile "End Conditions"
@@ -1644,7 +1644,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
             for {set j 0} {$j < [llength $Entities]} {incr j} {
                 incr ConditionId
                 lappend AuxList $ConditionId
-                set Connectivities [::Poromechanics_Application::TriangleInterface3D4Connectivities [lindex $Entities $j]]
+                set Connectivities [TriangleInterface3D4Connectivities [lindex $Entities $j]]
                 puts $varfile "  $ConditionId  $InterfaceElemsMat  $Connectivities"
             }
             puts $varfile "End Conditions"
@@ -1656,7 +1656,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
             for {set j 0} {$j < [llength $Entities]} {incr j} {
                 incr ConditionId
                 lappend AuxList $ConditionId
-                set Connectivities [::Poromechanics_Application::QuadrilateralInterface3D4Connectivities [lindex $Entities $j]]
+                set Connectivities [QuadrilateralInterface3D4Connectivities [lindex $Entities $j]]
                 puts $varfile "  $ConditionId  $InterfaceElemsMat  $Connectivities"
             }
             puts $varfile "End Conditions"
@@ -2025,7 +2025,7 @@ proc Poromechanics_Application::WriteMDPA { basename dir } {
 
 #-------------------------------------------------------------------------------
 
-proc Poromechanics_Application::Triangle2D3Connectivities { ElemId } {
+proc Triangle2D3Connectivities { ElemId } {
     
     set ElementInfo [GiD_Mesh get element $ElemId]
     #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
@@ -2039,7 +2039,7 @@ proc Poromechanics_Application::Triangle2D3Connectivities { ElemId } {
 
 #-------------------------------------------------------------------------------
 
-proc Poromechanics_Application::Quadrilateral2D4Connectivities { ElemId } {
+proc Quadrilateral2D4Connectivities { ElemId } {
     
     #It is the same for the Tethrahedron3D4
     
@@ -2056,7 +2056,7 @@ proc Poromechanics_Application::Quadrilateral2D4Connectivities { ElemId } {
 
 #-------------------------------------------------------------------------------
 
-proc Poromechanics_Application::Triangle2D6Connectivities { ElemId } {
+proc Triangle2D6Connectivities { ElemId } {
     
     #It is the same for the Prism3D6
     
@@ -2072,7 +2072,7 @@ proc Poromechanics_Application::Triangle2D6Connectivities { ElemId } {
 
 #-------------------------------------------------------------------------------
 
-proc Poromechanics_Application::Hexahedron3D8Connectivities { ElemId } {
+proc Hexahedron3D8Connectivities { ElemId } {
     
     #It is the same for Quadrilateral2D8
     
@@ -2089,7 +2089,7 @@ proc Poromechanics_Application::Hexahedron3D8Connectivities { ElemId } {
 
 #-------------------------------------------------------------------------------
 
-proc Poromechanics_Application::Quadrilateral2D9Connectivities { ElemId } {
+proc Quadrilateral2D9Connectivities { ElemId } {
     
     set ElementInfo [GiD_Mesh get element $ElemId]
     #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
@@ -2104,7 +2104,7 @@ proc Poromechanics_Application::Quadrilateral2D9Connectivities { ElemId } {
 
 #-------------------------------------------------------------------------------
 
-proc Poromechanics_Application::Tetrahedron3D10Connectivities { ElemId } {
+proc Tetrahedron3D10Connectivities { ElemId } {
         
     set ElementInfo [GiD_Mesh get element $ElemId]
     #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
@@ -2119,7 +2119,7 @@ proc Poromechanics_Application::Tetrahedron3D10Connectivities { ElemId } {
 
 #-------------------------------------------------------------------------------
 
-proc Poromechanics_Application::Hexahedron3D20Connectivities { ElemId } {
+proc Hexahedron3D20Connectivities { ElemId } {
     
     set ElementInfo [GiD_Mesh get element $ElemId]
     #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
@@ -2134,7 +2134,7 @@ proc Poromechanics_Application::Hexahedron3D20Connectivities { ElemId } {
 
 #-------------------------------------------------------------------------------
 
-proc Poromechanics_Application::Hexahedron3D27Connectivities { ElemId } {
+proc Hexahedron3D27Connectivities { ElemId } {
         
     set ElementInfo [GiD_Mesh get element $ElemId]
     #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
@@ -2149,7 +2149,7 @@ proc Poromechanics_Application::Hexahedron3D27Connectivities { ElemId } {
 
 #-------------------------------------------------------------------------------
 
-proc Poromechanics_Application::TriangleInterface2D4Connectivities { ElemId } {
+proc TriangleInterface2D4Connectivities { ElemId } {
     
     # Obtaining element nodes
     set ElementInfo [GiD_Mesh get element $ElemId]
@@ -2188,8 +2188,8 @@ proc Poromechanics_Application::TriangleInterface2D4Connectivities { ElemId } {
 
 #-------------------------------------------------------------------------------
 
-proc Poromechanics_Application::QuadrilateralInterface2D4Connectivities { ElemId } {
-    
+proc QuadrilateralInterface2D4Connectivities { ElemId } {
+        
     # Obtaining element nodes
     set ElementInfo [GiD_Mesh get element $ElemId]
     #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
@@ -2227,7 +2227,7 @@ proc Poromechanics_Application::QuadrilateralInterface2D4Connectivities { ElemId
 
 #-------------------------------------------------------------------------------
 
-proc Poromechanics_Application::TetrahedronInterface3D6Connectivities { ElemId } {
+proc TetrahedronInterface3D6Connectivities { ElemId } {
         
     set ElementInfo [GiD_Mesh get element $ElemId]
     #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
@@ -2242,7 +2242,7 @@ proc Poromechanics_Application::TetrahedronInterface3D6Connectivities { ElemId }
 
 #-------------------------------------------------------------------------------
 
-proc Poromechanics_Application::HexaedronInterface3D8Connectivities { ElemId } {
+proc HexaedronInterface3D8Connectivities { ElemId } {
     
     # Obtaining element nodes
     set ElementInfo [GiD_Mesh get element $ElemId]
@@ -2316,7 +2316,7 @@ proc Poromechanics_Application::HexaedronInterface3D8Connectivities { ElemId } {
 
 #-------------------------------------------------------------------------------
 
-proc Poromechanics_Application::Line2D2Connectivities { ElemId } {
+proc Line2D2Connectivities { ElemId } {
     
     set ElementInfo [GiD_Mesh get element $ElemId]
     #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
@@ -2330,7 +2330,7 @@ proc Poromechanics_Application::Line2D2Connectivities { ElemId } {
 
 #-------------------------------------------------------------------------------
 
-proc Poromechanics_Application::TriangleInterface3D4Connectivities { ElemId } {
+proc TriangleInterface3D4Connectivities { ElemId } {
     
     # Obtaining element nodes
     set ElementInfo [GiD_Mesh get element $ElemId]
@@ -2373,7 +2373,7 @@ proc Poromechanics_Application::TriangleInterface3D4Connectivities { ElemId } {
 
 #-------------------------------------------------------------------------------
 
-proc Poromechanics_Application::QuadrilateralInterface3D4Connectivities { ElemId } {
+proc QuadrilateralInterface3D4Connectivities { ElemId } {
     
     # Obtaining element nodes
     set ElementInfo [GiD_Mesh get element $ElemId]

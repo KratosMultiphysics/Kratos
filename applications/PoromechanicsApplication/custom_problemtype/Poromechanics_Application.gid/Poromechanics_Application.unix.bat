@@ -9,16 +9,7 @@
 #currentdirectory = $2
 #problemtypedirectory = $3
 
-# Remove old files
-rm -f "$1.post.bin"
-rm -f "$1.post.res"
-rm -f "$1.post.msh"
-rm -f "$1.log"
-rm -f "$1.err"
-
-# Update input files
-mv "$1.dat" "$1.mdpa"
-mv "$1-1.dat" "ProjectParameters.json"
+# Update main script
 cp "$3/../../python_scripts/poromechanics_main.py" "$2/"
 
 # Setting paths. WARNING: one must properly set them before running this file
