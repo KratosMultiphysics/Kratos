@@ -169,6 +169,8 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "SurfaceNormalFluidFluxDiffOrderCondition3D8N", mSurfaceNormalFluidFluxDiffOrderCondition3D8N )
     KRATOS_REGISTER_CONDITION( "SurfaceNormalFluidFluxDiffOrderCondition3D9N", mSurfaceNormalFluidFluxDiffOrderCondition3D9N )
     
+    Serializer::Register( "RestoreDamageFlowRule", mRestoreDamageFlowRule );
+    
     //Register Constitutive Laws
     Serializer::Register("BilinearCohesive3DLaw",mBilinearCohesive3DLaw);
     Serializer::Register("BilinearCohesive2DLaw",mBilinearCohesive2DLaw);
@@ -209,6 +211,10 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( IS_CONVERGED )
     
     KRATOS_REGISTER_VARIABLE( TOTAL_STRESS_TENSOR )
+    
+    KRATOS_REGISTER_VARIABLE( STATE_VARIABLE )
+    KRATOS_REGISTER_VARIABLE( ARC_LENGTH_LAMBDA )
+    KRATOS_REGISTER_VARIABLE( ARC_LENGTH_RADIUS_FACTOR )
 }
 
 }// namespace Kratos.
