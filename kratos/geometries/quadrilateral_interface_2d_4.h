@@ -476,6 +476,68 @@ public:
     }
 
     /**
+    * Returns the local coordinates of a given arbitrary point
+    */
+    // TODO: Check if correct
+    virtual CoordinatesArrayType& PointLocalCoordinates(
+            CoordinatesArrayType& rResult,
+            const CoordinatesArrayType& rPoint )
+    {
+        rResult.clear();
+
+        array_1d<double, 3> FirstPoint;
+        noalias(FirstPoint) = 0.5 * (BaseType::GetPoint( 0 ) + BaseType::GetPoint( 3 ));
+		array_1d<double, 3> SecondPoint;
+        noalias(SecondPoint) = 0.5 * (BaseType::GetPoint( 1 ) + BaseType::GetPoint( 2 ));
+        
+        // Project point
+        double tol = 1e-14; // Tolerance
+        
+        // Normal
+        array_1d<double,2> Normal = ZeroVector(2);
+        Normal[0] = SecondPoint[1] -  FirstPoint[1];
+        Normal[1] =  FirstPoint[0] - SecondPoint[0];
+        double norm = std::sqrt(Normal[0] * Normal[0] + Normal[1] * Normal[1]);
+        Normal /= norm;
+        
+        // Vector point and distance
+        array_1d<double,2> VectorPoint = ZeroVector(2);
+        VectorPoint[0] = rPoint[0] - FirstPoint[0];
+        VectorPoint[1] = rPoint[1] - FirstPoint[1];
+        double dist_proy = VectorPoint[0] * Normal[0] + VectorPoint[1] * Normal[1];
+        
+        if (dist_proy < tol)
+        {
+            double L  = Length();
+            
+            double l1 = (rPoint[0] - FirstPoint[0]) * (rPoint[0] - FirstPoint[0])
+                      + (rPoint[1] - FirstPoint[1]) * (rPoint[1] - FirstPoint[1]);
+            l1 = std::sqrt(l1);
+            
+            double l2 = (rPoint[0] - SecondPoint[0]) * (rPoint[0] - SecondPoint[0])
+                      + (rPoint[1] - SecondPoint[1]) * (rPoint[1] - SecondPoint[1]);
+            l2 = std::sqrt(l2);
+            
+//            std::cout << "L: " << L << " l1: " << l1 << " l2: " << l2 << std::endl;
+
+            if (l1 <= (L + tol)  && l2 <= (L + tol))
+            {
+                rResult[0] = 2.0 * l1/(L + tol) - 1.0;
+            }
+            else 
+            {
+                rResult[0] = 2.0; // Out of the line!!! TODO: Check if this value gives problems
+            }
+        }
+        else
+        {
+            rResult[0] = 2.0; // Out of the line!!!
+        }
+
+        return( rResult );
+    }
+
+    /**
      * TODO: implemented but not yet tested
      */
     /**
