@@ -213,12 +213,24 @@ void BilinearCohesive3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
 
 double& BilinearCohesive3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
-    if( rThisVariable == DAMAGE_VARIABLE )
+    if( rThisVariable == DAMAGE_VARIABLE || rThisVariable == STATE_VARIABLE )
     {
         rValue = mStateVariable;
     }
-        
+    
     return rValue;
+}
+
+//----------------------------------------------------------------------------------------
+
+void BilinearCohesive3DLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue,
+                                        const ProcessInfo& rCurrentProcessInfo )
+{
+    if (rThisVariable == STATE_VARIABLE)
+    {
+        mStateVariable = rValue;
+        mStateVariableEquilibrium = rValue;
+    }
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

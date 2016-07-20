@@ -59,6 +59,8 @@ public:
 
     double& GetValue( const Variable<double>& rThisVariable, double& rValue );
     
+    void SetValue( const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo );
+    
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
