@@ -47,6 +47,7 @@ class UPwSolver:
             "rayleigh_m": 0.0,
             "rayleigh_k": 0.0,
             "strategy_type": "Newton-Raphson",
+            "fracture_propagation": false,
             "convergence_criterion": "Displacement_criterion",
             "displacement_relative_tolerance": 1.0e-4,
             "displacement_absolute_tolerance": 1.0e-9,
@@ -151,8 +152,8 @@ class UPwSolver:
             check_and_prepare_model_process_solid.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
             
             # Constitutive law import
-            import poromechanics_constitutivelaw
-            poromechanics_constitutivelaw.SetConstitutiveLaw(self.main_model_part)
+            import poromechanics_constitutivelaw_utility
+            poromechanics_constitutivelaw_utility.SetConstitutiveLaw(self.main_model_part)
             
         else:
             raise Exception("Other input options are not yet implemented.")
@@ -178,10 +179,7 @@ class UPwSolver:
         print("DOFs correctly added")
     
     def Initialize(self):
-        
-        # Get the computational_model_part 
-        compute_model_part = self.GetComputeModelPart()
-        
+                
         # Builder and solver creation
         builder_and_solver = self._ConstructBuilderAndSolver(self.settings["builder"].GetString())
         
@@ -193,11 +191,10 @@ class UPwSolver:
         convergence_criterion = self._ConstructConvergenceCriterion(self.settings["convergence_criterion"].GetString())
                 
         # Solver creation
-        self.Solver = self._ConstructSolver(compute_model_part,
-                                         scheme,
-                                         convergence_criterion,
-                                         builder_and_solver,
-                                         self.settings["strategy_type"].GetString())
+        self.Solver = self._ConstructSolver(builder_and_solver,
+                                            scheme,
+                                            convergence_criterion,
+                                            self.settings["strategy_type"].GetString())
 
         # Set echo_level
         self.Solver.SetEchoLevel(self.settings["echo_level"].GetInt())
@@ -290,33 +287,39 @@ class UPwSolver:
             convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
         
         return convergence_criterion
-        
-    def _ConstructSolver(self, compute_model_part, scheme, convergence_criterion, builder_and_solver, strategy_type):
+    
+    def _ConstructSolver(self, builder_and_solver, scheme, convergence_criterion, strategy_type):
         
         max_iters = self.settings["max_iteration"].GetInt()
         compute_reactions = self.settings["compute_reactions"].GetBool()
         reform_step_dofs = self.settings["reform_dofs_at_each_iteration"].GetBool()
         move_mesh_flag = self.settings["move_mesh_flag"].GetBool()
         
-        if(strategy_type == "Newton-Raphson"):
-            solver = KratosPoro.PoromechanicsNewtonRaphsonStrategy(compute_model_part,
+        if strategy_type == "Newton-Raphson":
+            NR_params = KratosMultiphysics.Parameters("{}")
+            NR_params.AddValue("loads_sub_model_part_list",self.settings["loads_sub_model_part_list"])
+            NR_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
+            
+            solver = KratosPoro.PoromechanicsNewtonRaphsonStrategy(self.main_model_part,
                                                                    scheme,
                                                                    self.linear_solver,
                                                                    convergence_criterion,
                                                                    builder_and_solver,
+                                                                   NR_params,
                                                                    max_iters,
                                                                    compute_reactions,
                                                                    reform_step_dofs,
                                                                    move_mesh_flag)
+        
         else:
-            ## Arc-length strategy
+            # Arc-Length strategy
             arc_length_params = KratosMultiphysics.Parameters("{}")
             arc_length_params.AddValue("desired_iterations",self.settings["desired_iterations"])
             arc_length_params.AddValue("max_radius_factor",self.settings["max_radius_factor"])
             arc_length_params.AddValue("min_radius_factor",self.settings["min_radius_factor"])
             arc_length_params.AddValue("loads_sub_model_part_list",self.settings["loads_sub_model_part_list"])
             arc_length_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
-                        
+            
             solver = KratosPoro.PoromechanicsRammArcLengthStrategy(self.main_model_part,
                                                                    scheme,
                                                                    self.linear_solver,
@@ -329,3 +332,13 @@ class UPwSolver:
                                                                    move_mesh_flag)
         
         return solver
+    
+    def _InitializeStrategy(self):
+        
+        self.Solver.Initialize()
+        
+    def _CheckConvergence(self):
+        
+        IsConverged = self.Solver.IsConverged()
+        
+        return IsConverged
