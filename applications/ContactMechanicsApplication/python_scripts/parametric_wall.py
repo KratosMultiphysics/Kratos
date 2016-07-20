@@ -38,13 +38,14 @@ class ParametricWall(object):
                    "principal_axes": [ [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ]
                }
             },
-            "wall_parameters_list":[{
-               "radius": 0.0,
-               "center": [0.0, 0.0, 0.0],
-               "rake_angle": 0.0,
-               "clearance_angle": 0.0,
-               "convexity": 0
-            }],
+            "bounding_box_settings":{
+               "implemented_in_module": "KratosMultiphysics.ContactMechanisApplication",
+               "bounding_box_type": "SpatialBoundingBox",
+               "bounding_box_parameters":{
+                   "parameters_list":[],
+                   "velocity" = [0.0, 0.0, 0.0]
+               }
+            }
             "contact_search_settings":{
                "python_file_name": "contact_search_strategy",
                "search_frequency": 0,
@@ -71,11 +72,19 @@ class ParametricWall(object):
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-        
-        
+                
         #construct rigid wall // it will contain the array of nodes, array of elements, and the array of conditions
         self.wall_model_part = Model[self.settings["model_part_name"].GetString()]
-        self.wall_bounding_box  = KratosContact.SpatialBoundingBox(self.wall_model_part, wall_parameters_list) 
+
+        module = __import__(self.settings["bounding_box_settings"]["implemented_in_module"].GetString())      
+        box_module    = self.settings["bounding_box_settings"]["implemented_in_module"].GetString()
+        box_type_name = self.settings["bounding_box_settings"]["bounding_box_type"].GetString()
+        BoundingBox   = None
+
+        box_type_call = " BoundingBox = " box_module + box_type_name
+        exec(box_type_call)
+        
+        self.wall_bounding_box = BoundingBox(self.wall_bounding_box, self.settings["bounding_box_settings"]["bounding_box_parameters"])
 
         #construct rigid element // must pass an array of nodes to the element, create a node (CG) and a rigid element set them in the main_model_part, set the node CG as the reference node of the wall_bounding_box, BLOCKED, set in the wall_model_part for imposed movements processes.
         self.rigid_wall_element = KratosContact.CreateRigidBodyElement(self.main_model_part, self.wall_bounding_box, self.settings["rigid_body_settings"])

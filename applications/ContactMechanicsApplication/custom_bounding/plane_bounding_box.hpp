@@ -1,27 +1,20 @@
 //
-//   Project Name:        KratosPfemSolidMechanicsApplication $
-//   Created by:          $Author:                JMCarbonell $
-//   Last modified by:    $Co-Author:                         $
-//   Date:                $Date:                    July 2013 $
-//   Revision:            $Revision:                      0.0 $
+//   Project Name:        KratosContactMechanicsApplication $
+//   Created by:          $Author:              JMCarbonell $
+//   Last modified by:    $Co-Author:                       $
+//   Date:                $Date:                  July 2016 $
+//   Revision:            $Revision:                    0.0 $
 //
 //
 
-#if !defined(KRATOS_RIGID_PLANE_WALL_BOUNDING_BOX_H_INCLUDED )
-#define  KRATOS_RIGID_PLANE_WALL_BOUNDING_BOX_H_INCLUDED
+#if !defined(KRATOS_PLANE_BOUNDING_BOX_H_INCLUDED )
+#define  KRATOS_PLANE_BOUNDING_BOX_H_INCLUDED
 
 // External includes
 
 // System includes
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <cstddef>
 
 // Project includes
-#include "includes/kratos_flags.h"
-#include "includes/model_part.h"
-
 #include "custom_bounding/spatial_bounding_box.hpp"
 
 
@@ -58,69 +51,133 @@ namespace Kratos
     This bounding box is essentially used for rigid wall contact purposes
 */
 
-class RigidPlaneWallBoundingBox
+class PlaneBoundingBox
   : public SpatialBoundingBox
 {
+public:
+
+    typedef bounded_vector<double, 3>                       PointType;
+    typedef ModelPart::NodeType::Pointer                     NodeType;
+    typedef ModelPart::NodesContainerType          NodesContainerType;
+    typedef NodesContainerType::Pointer     NodesContainerTypePointer;
+
+
 protected:
 
-   typedef struct
-   {
-
-     TPointType  Point;      // plane point
-     TPointType  Normal;     // plane normal
+    typedef struct
+    {
+      
+      PointType  Point;      // plane point
+      PointType  Normal;     // plane normal
 
      
-   public:
+    public:
      
-     void clear()
-     {
+      void Initialize()
+      {
 
-       Point.clear();
-       Normal.clear();
+	Point.clear();
+	Normal.clear();
 
       }
 
-
-   } PlaneVariables;
+    } PlaneVariables;
 
 
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of RigidPlaneWallBoundingBox
-    KRATOS_CLASS_POINTER_DEFINITION( RigidPlaneWallBoundingBox );
-
-    typedef Vector TPointType;
-
+    /// Pointer definition of PlaneBoundingBox
+    KRATOS_CLASS_POINTER_DEFINITION( PlaneBoundingBox );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    RigidPlaneWallBoundingBox() : SpatialBoundingBox()
+    PlaneBoundingBox() : SpatialBoundingBox()
     {
-        std::cout<< "Calling Rigid Plane Wall BBX empty constructor" <<std::endl;
+      KRATOS_TRY
+
+      std::cout<< "Calling Rigid Plane Wall BBX empty constructor" <<std::endl;
+
+      KRATOS_CATCH("")
     }
 
-    // General Wall constructor
-    RigidPlaneWallBoundingBox( int Label,
-			       int Convexity,
-			       TPointType Point,
-			       TPointType Normal,
-			       TPointType Velocity,
-			       TPointType AngularVelocity,
-			       TPointType RotationCenter)
+    //**************************************************************************
+    //**************************************************************************
+
+    PlaneBoundingBox(Parameters CustomParameters)
     {
+
+      KRATOS_TRY
+
+      Parameters DefaultParameters( R"(
+            {
+                "parameters_list":[{
+                   "point": [0.0, 0.0, 0.0],
+                   "normal": [0.0, 0.0, 0.0],
+                   "convexity": 1
+                 }],
+                 "velocity": [0.0, 0.0, 0.0]
+                
+            }  )" );
+
+
+      //validate against defaults -- this also ensures no type mismatch
+      CustomParameters.ValidateAndAssignDefaults(DefaultParameters);
+
+      if(CustomParameters["parameters_list"].IsArray() == true && CustomParameters["parameters_list"].size() != 1)
+        {
+	  KRATOS_THROW_ERROR(std::runtime_error,"paramters_list for the Plane BBX must contain only one term",CustomParameters.PrettyPrintJsonString());
+        }
+        
+      mBox.Initialize();
+      mPlane.Initialize();
+
+      Parameters BoxParameters = CustomParameters["parameters_list"][0];
+
+      mPlane.Point[0] = BoxParameters["point"][0].GetDouble();
+      mPlane.Point[1] = BoxParameters["point"][1].GetDouble();
+      mPlane.Point[2] = BoxParameters["point"][2].GetDouble();
+
+      mPlane.Normal[0] = BoxParameters["normal"][0].GetDouble();
+      mPlane.Normal[1] = BoxParameters["normal"][1].GetDouble();
+      mPlane.Normal[2] = BoxParameters["normal"][2].GetDouble();
+
+      mBox.Center = mPlane.Point;
+
+      mBox.Velocity[0] = CustomParameters["velocity"][0].GetDouble();
+      mBox.Velocity[1] = CustomParameters["velocity"][1].GetDouble();
+      mBox.Velocity[2] = CustomParameters["velocity"][2].GetDouble();
+
+      mBox.Convexity = BoxParameters["convexity"].GetInt();
+
+      mBox.OriginalCenter = mBox.Center;
+
+      mBoxCenterSupplied = false;
+
+      KRATOS_CATCH("")
+    }
+
+  
+    //**************************************************************************
+    //**************************************************************************
+
+    // General Wall constructor
+    PlaneBoundingBox(PointType Point,
+		     PointType Normal,
+		     PointType Velocity,
+		     int Convexity)
+    {
+      KRATOS_TRY
                   
-      std::cout<<" [--PLANE WALL--]["<<Label<<"]"<<std::endl;
+      std::cout<<" [--PLANE WALL--] "<<std::endl;
       
-      mBox.OriginalCenter = Point;
-      mBox.Center    = Point;
+      mBox.Center  = Point;
+      mPlane.Point = Point;
       mBox.Convexity = Convexity;
-      
-      mPlane.Point  = Point;
 
       if( norm_2(Normal) )
 	mPlane.Normal = Normal/norm_2(Normal);
@@ -133,31 +190,46 @@ public:
       std::cout<<"  [Normal:"<<mPlane.Normal<<std::endl;
       std::cout<<" [--------] "<<std::endl;
       
-      this->mMovement.Label                   = Label;
-      this->mMovement.Velocity                = Velocity;
-      this->mMovement.AngularVelocity         = AngularVelocity;
-      this->mMovement.OriginalRotationCenter  = RotationCenter;
-      this->mMovement.RotationCenter          = RotationCenter;
+      mBox.Velocity = Velocity;
 
+      mBox.OriginalCenter = mBox.Center;
+
+      mBoxCenterSupplied = false;
+
+      KRATOS_CATCH("")
     }
 
+    //**************************************************************************
+    //**************************************************************************
 
+ 
     /// Assignment operator.
-    RigidPlaneWallBoundingBox& operator=(RigidPlaneWallBoundingBox const& rOther)
+    PlaneBoundingBox& operator=(PlaneBoundingBox const& rOther)
     {
+      KRATOS_TRY
+
       SpatialBoundingBox::operator=(rOther);
+      mPlane = rOther.mPlane;
       return *this;
+
+      KRATOS_CATCH("")
     }
 
+    //**************************************************************************
+    //**************************************************************************
 
     /// Copy constructor.
-    RigidPlaneWallBoundingBox(RigidPlaneWallBoundingBox const& rOther) 
-    :SpatialBoundingBox(rOther)
+    PlaneBoundingBox(PlaneBoundingBox const& rOther) 
+      :SpatialBoundingBox(rOther)
+      ,mPlane(rOther.mPlane)
     {
     }
 
+    //**************************************************************************
+    //**************************************************************************
+
     /// Destructor.
-    virtual ~RigidPlaneWallBoundingBox() {};
+    virtual ~PlaneBoundingBox() {};
 
 
     ///@}
@@ -170,31 +242,29 @@ public:
     ///@name Operations
     ///@{
 
-    double GetRadius()
+    //**************************************************************************
+    //**************************************************************************
+
+    void UpdateBoxPosition(const double & rCurrentTime)
     {
-        return mBox.Radius;
-    }
 
-//    void SetRadius(double& rRadius)
-//    {
-//      //used to set a comparisson radius
-//    }  
+      KRATOS_TRY
 
-    virtual void UpdatePosition(double & rTime)
-    {
+      PointType Displacement  =  this->GetBoxDisplacement(rCurrentTime);
+
+      mBox.Center  = mBox.OriginalCenter + Displacement;
+
+      mPlane.Point = mBox.Center;
+
+      KRATOS_CATCH("")
       
-      SpatialBoundingBox::UpdatePosition(rTime);
-      
-      mPlane.Point =  mBox.OriginalCenter + this->mMovement.Velocity * rTime;
-
     }
-
 
     //************************************************************************************
     //************************************************************************************
    
 
-    bool IsInside (const TPointType& rPoint, double& rCurrentTime, int & ContactFace, double Radius = 0)
+    bool IsInside (const PointType& rPoint, double& rCurrentTime, int & ContactFace, double Radius = 0)
     {
       
       ContactFace = 0; //FreeSurface
@@ -207,12 +277,16 @@ public:
     //************************************************************************************
    
 
-    bool IsInside (const TPointType& rPoint, double& rCurrentTime, double Radius = 0)
+    bool IsInside (const PointType& rPoint, double& rCurrentTime, double Radius = 0)
     {
       
+      KRATOS_TRY
+
       bool is_inside = false;
-      
-      TPointType  PlanePoint = mPlane.Point;
+
+      PointType  Displacement = this->GetBoxDisplacement(rCurrentTime);      
+
+      PointType  PlanePoint   = mBox.OriginalCenter + Displacement;
       
       if( mBox.Convexity == 1 )
 	PlanePoint += mPlane.Normal * 0.1; //increase the bounding box 
@@ -225,27 +299,32 @@ public:
 
       return is_inside;
       
+      KRATOS_CATCH("")
     } 
 
 
    //************************************************************************************
-    //************************************************************************************
+   //************************************************************************************
    
-    bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, int& ContactFace, double Radius = 0)
+    bool IsInside(const PointType& rPoint, double& rGapNormal, double& rGapTangent, PointType& rNormal, PointType& rTangent, int& ContactFace, double Radius = 0)
     {
+      KRATOS_TRY
 
-      ContactFace = 0; //FreeSurface
-      
+      ContactFace = 0; //FreeSurface     
+
       return IsInside(rPoint,rGapNormal,rGapTangent,rNormal,rTangent,Radius);
       
+      KRATOS_CATCH("")
     }
 
 
     //************************************************************************************
     //************************************************************************************
    
-    bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, double Radius = 0)
+    bool IsInside(const PointType& rPoint, double& rGapNormal, double& rGapTangent, PointType& rNormal, PointType& rTangent, double Radius = 0)
     {
+      KRATOS_TRY
+
       bool is_inside = false;
 
       rGapNormal  = 0;
@@ -257,6 +336,7 @@ public:
 
       return is_inside;
       
+      KRATOS_CATCH("")
     } 
 
     ///@}
@@ -277,7 +357,7 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "RigidPlaneWallBoundingBox";
+        return "PlaneBoundingBox";
     }
 
     /// Print information about this object.
@@ -354,7 +434,7 @@ private:
     //************************************************************************************
 
 
-    bool ContactSearch(const TPointType& rPoint, const TPointType& rPlanePoint)
+    bool ContactSearch(const PointType& rPoint, const PointType& rPlanePoint)
     {
 
       KRATOS_TRY
@@ -378,14 +458,14 @@ private:
     //************************************************************************************
     //************************************************************************************
 
-    //Plane
-    bool ContactSearch(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent)
+    //Plane (note: box position has been updated previously)
+    bool ContactSearch(const PointType& rPoint, double& rGapNormal, double& rGapTangent, PointType& rNormal, PointType& rTangent)
     {
       KRATOS_TRY
      
       rNormal  = ZeroVector(3);
       rTangent = ZeroVector(3);
- 
+      
       //1.-compute contact normal
       rNormal = mPlane.Normal;
 
@@ -415,7 +495,7 @@ private:
     //************************************************************************************
     //************************************************************************************
 
-    static inline double inner_prod(const TPointType& a, const TPointType& b)
+    static inline double inner_prod(const PointType& a, const PointType& b)
     {
         double temp =a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
         return temp;
@@ -424,7 +504,7 @@ private:
     //************************************************************************************
     //************************************************************************************
 
-    static inline double norm_2(const TPointType& a)
+    static inline double norm_2(const PointType& a)
     {
         double temp = pow(a[0],2) + pow(a[1],2) + pow(a[2],2);
         temp = sqrt(temp);
@@ -455,7 +535,7 @@ private:
     ///@}
 
 
-}; // Class RigidPlaneWallBoundingBox
+}; // Class PlaneBoundingBox
 
 ///@}
 
@@ -467,28 +547,11 @@ private:
 ///@name Input and output
 ///@{
 
-
-/// input stream function
-template<class TPointType, class TPointerType>
-inline std::istream& operator >> (std::istream& rIStream,
-                                  RigidPlaneWallBoundingBox& rThis);
-
-/// output stream function
-template<class TPointType, class TPointerType>
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const RigidPlaneWallBoundingBox& rThis)
-{
-    // rThis.PrintInfo(rOStream);
-    // rOStream << std::endl;
-    // rThis.PrintData(rOStream);
-
-    return rOStream;
-}
 ///@}
 
 
 }  // namespace Kratos.
 
-#endif // KRATOS_RIGID_PLANE_WALL_BOUNDING_BOX_H_INCLUDED  defined 
+#endif // KRATOS_PLANE_BOUNDING_BOX_H_INCLUDED  defined 
 
 
