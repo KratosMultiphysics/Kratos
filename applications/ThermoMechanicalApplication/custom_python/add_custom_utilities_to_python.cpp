@@ -132,13 +132,17 @@ void  AddCustomUtilitiesToPython()
 	.def("LastStepExtrapolations", &BiphasicFillingUtilities::LastStepExtrapolations)  
 	.def("SolidificationDuringFilling", &BiphasicFillingUtilities::SolidificationDuringFilling)  
 	.def("ViscosityBasedSolidification", &BiphasicFillingUtilities::ViscosityBasedSolidification)
-	.def("MacroPorosityToShrinkageComputation", &BiphasicFillingUtilities::MacroPorosityToShrinkageComputation) 
+	//.def("MacroPorosityToShrinkageComputation", &BiphasicFillingUtilities::MacroPorosityToShrinkageComputation) 
 	.def("ComputePosetiveVolume", &BiphasicFillingUtilities::ComputePosetiveVolume)
 	.def("PosetiveVolumeCorrection", &BiphasicFillingUtilities::PosetiveVolumeCorrection)
 	.def("ApplyTemperatureLimitation", &BiphasicFillingUtilities::ApplyTemperatureLimitation) 
 	.def("CheckIfAllNodesAreWet", &BiphasicFillingUtilities::CheckIfAllNodesAreWet) 
 	.def("ComputeWetVolume", &BiphasicFillingUtilities::ComputeWetVolume)
-	
+	.def("ComputePartVolume", &BiphasicFillingUtilities::ComputePartVolume)
+	.def("ComputePartArea", &BiphasicFillingUtilities::ComputePartArea)
+	.def("ComputePartInletArea", &BiphasicFillingUtilities::ComputePartInletArea)
+	.def("ComputePartMaxh", &BiphasicFillingUtilities::ComputePartMaxh)
+	.def("ComputePartAvgh", &BiphasicFillingUtilities::ComputePartAvgh)
     ; 
 
 
