@@ -1,33 +1,24 @@
-proc Poromechanics_Application::WriteProjectParameters { basename dir gidexe TableList} {
+proc WriteProjectParameters { basename dir TableList} {
     
     ## Start ProjectParameters.json file
-    set filename [file join $dir ${basename}-1.dat]
+    set filename [file join $dir ProjectParameters.json]
     set varfile [open $filename w]
     
     puts $varfile "\{"
-    
+        
     ## problem_data
-    puts $varfile "    \"problem_data\":             \{"
-    puts $varfile "        \"problem_name\":      \"$basename\","
-    puts $varfile "        \"model_part_name\":   \"PorousDomain\","
-    puts $varfile "        \"domain_size\":       [GiD_AccessValue get gendata Domain_Size],"
-    puts $varfile "        \"start_time\":        [GiD_AccessValue get gendata Start_Time],"
-    puts $varfile "        \"end_time\":          [GiD_AccessValue get gendata End_Time],"
-    puts $varfile "        \"time_step\":         [GiD_AccessValue get gendata Delta_Time],"
-    puts $varfile "        \"echo_level\":        [GiD_AccessValue get gendata Echo_Level],"
-    puts $varfile "        \"OMP_threads\":       [GiD_AccessValue get gendata OMP_Threads],"
-    if {[regexp -all {\\} $gidexe] > 0} {
-        # Windows
-        regsub -all {\\} $gidexe {\\\\} gidexe
-        puts $varfile "        \"gid_path\":          \"$gidexe\""
-    } else {
-        # Unix
-        puts $varfile "        \"gid_path\":          \"$gidexe\""
-    }
+    puts $varfile "    \"problem_data\": \{"
+    puts $varfile "        \"problem_name\":         \"$basename\","
+    puts $varfile "        \"model_part_name\":      \"PorousDomain\","
+    puts $varfile "        \"domain_size\":          [GiD_AccessValue get gendata Domain_Size],"
+    puts $varfile "        \"start_time\":           [GiD_AccessValue get gendata Start_Time],"
+    puts $varfile "        \"end_time\":             [GiD_AccessValue get gendata End_Time],"
+    puts $varfile "        \"time_step\":            [GiD_AccessValue get gendata Delta_Time],"
+    puts $varfile "        \"OMP_threads\":          [GiD_AccessValue get gendata OMP_Threads]"
     puts $varfile "    \},"
     
     ## solver_settings
-    puts $varfile "    \"solver_settings\":          \{"
+    puts $varfile "    \"solver_settings\": \{"
     puts $varfile "        \"solver_type\":                        \"poromechanics_U_Pw_solver\","
     puts $varfile "        \"model_import_settings\":              \{"
     puts $varfile "            \"input_type\":     \"mdpa\","
@@ -46,6 +37,7 @@ proc Poromechanics_Application::WriteProjectParameters { basename dir gidexe Tab
     puts $varfile "        \"rayleigh_m\":                         [GiD_AccessValue get gendata Rayleigh_Mass],"
     puts $varfile "        \"rayleigh_k\":                         [GiD_AccessValue get gendata Rayleigh_Stiffness],"
     puts $varfile "        \"strategy_type\":                      \"[GiD_AccessValue get gendata Strategy_Type]\","
+    puts $varfile "        \"fracture_propagation\":               [GiD_AccessValue get gendata Fracture_Propagation],"
     puts $varfile "        \"convergence_criterion\":              \"[GiD_AccessValue get gendata Convergence_Criterion]\","
     puts $varfile "        \"displacement_relative_tolerance\":    [GiD_AccessValue get gendata Displacement_Relative_Tolerance],"
     puts $varfile "        \"displacement_absolute_tolerance\":    [GiD_AccessValue get gendata Displacement_Absolute_Tolerance],"
@@ -263,16 +255,23 @@ proc Poromechanics_Application::WriteProjectParameters { basename dir gidexe Tab
     puts $varfile "    \},"
     
     ## output_configuration
-    puts $varfile "    \"output_configuration\":     \{"
+    puts $varfile "    \"output_configuration\": \{"
     puts $varfile "        \"result_file_configuration\": \{"
     puts $varfile "            \"gidpost_flags\":       \{"
     puts $varfile "                \"GiDPostMode\":           \"[GiD_AccessValue get gendata GiD_post_mode]\","
     puts $varfile "                \"WriteDeformedMeshFlag\": \"[GiD_AccessValue get gendata Write_deformed_mesh]\","
     puts $varfile "                \"WriteConditionsFlag\":   \"[GiD_AccessValue get gendata Write_conditions]\","
-    puts $varfile "                \"MultiFileFlag\":         \"[GiD_AccessValue get gendata Multi_file_flag]\""
-    puts $varfile "            \},"
-    puts $varfile "            \"file_label\":          \"[GiD_AccessValue get gendata File_label]\","
-    puts $varfile "            \"output_control_type\": \"[GiD_AccessValue get gendata Output_control_type]\","
+    if {[GiD_AccessValue get gendata Fracture_Propagation]==true} {
+        puts $varfile "                \"MultiFileFlag\":         \"MultipleFiles\""
+        puts $varfile "            \},"
+        puts $varfile "            \"file_label\":          \"time\","
+        puts $varfile "            \"output_control_type\": \"time\","
+    } else {
+        puts $varfile "                \"MultiFileFlag\":         \"[GiD_AccessValue get gendata Multi_file_flag]\""
+        puts $varfile "            \},"
+        puts $varfile "            \"file_label\":          \"[GiD_AccessValue get gendata File_label]\","
+        puts $varfile "            \"output_control_type\": \"[GiD_AccessValue get gendata Output_control_type]\","
+    }
     puts $varfile "            \"output_frequency\":    [GiD_AccessValue get gendata Output_frequency],"
     puts $varfile "            \"body_output\":         [GiD_AccessValue get gendata Body_output],"
     puts $varfile "            \"node_output\":         [GiD_AccessValue get gendata Node_output],"
@@ -379,7 +378,7 @@ proc Poromechanics_Application::WriteProjectParameters { basename dir gidexe Tab
     puts $varfile "    \},"
     
     ## restart_options
-    puts $varfile "    \"restart_options\":          \{"
+    puts $varfile "    \"restart_options\": \{"
     puts $varfile "        \"SaveRestart\":      false,"
     puts $varfile "        \"RestartFrequency\": 0,"
     puts $varfile "        \"LoadRestart\":      false,"
@@ -712,7 +711,7 @@ proc Poromechanics_Application::WriteProjectParameters { basename dir gidexe Tab
     incr NumGroups [llength $Groups]
     if {$NumGroups > 0} {
         set iGroup 0
-        puts $varfile "    \"loads_process_list\":       \[\{"
+        puts $varfile "    \"loads_process_list\": \[\{"
         # Force
         set Groups [GiD_Info conditions Force groups]
         for {set i 0} {$i < [llength $Groups]} {incr i} {
