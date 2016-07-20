@@ -550,7 +550,7 @@ namespace Kratos {
             rModelPart.GetCommunicator().AssembleCurrentData(REACTION);
             
             #pragma omp parallel for firstprivate(nelems, itelem_begin)
-            for(unsigned int i=0; i<nelems; i++)
+            for(int i=0; i<nelems; i++)
             {
                 ModelPart::ElementsContainerType::iterator itElem = itelem_begin + i;
                 (itElem)->FinalizeSolutionStep(CurrentProcessInfo);
