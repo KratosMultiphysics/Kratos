@@ -71,6 +71,7 @@ class Solver:
         self.normal_tools = BodyNormalCalculationUtils()
 
         self.conv_criteria = ResidualCriteria(1e-3, 1e-4)
+        self.conv_criteria.SetEchoLevel(self.echo_level)
         self.max_iter = 5
 
         # material settings
