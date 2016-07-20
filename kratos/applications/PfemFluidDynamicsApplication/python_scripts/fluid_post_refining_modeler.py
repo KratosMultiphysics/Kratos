@@ -58,14 +58,7 @@ class PostRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
                 if( meshing_options.Is(KratosPfemBase.ModelerUtilities.CONSTRAINED) ):
                     modeler_flags = "rinYYJQ"  
                 else:
-                    #modeler_flags = "ns"
                     modeler_flags = "nQP"
-                    #modeler_flags = "rinYQ"
-                    #modeler_flags = "rnYYJrQNP"
-                    #modeler_flags = "YJnrQ"
-                    #modeler_flags = "inJQ"
-                    #modeler_flags = "riYYJnQ"
-                    #modeler_flags = "riYYPJQ"
             
         elif( self.domain_size == 3 ):
 

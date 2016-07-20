@@ -1,12 +1,9 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-#from KratosMultiphysics import *
 import KratosMultiphysics 
 from KratosMultiphysics.SolidMechanicsApplication import *
 import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
-#from KratosMultiphysics.PfemBaseApplication import *
-#from KratosMultiphysics.PfemFluidDynamicsApplication import *
 KratosMultiphysics.CheckForPreviousImport()
 
 
@@ -83,7 +80,6 @@ class ModelerUtility:
         mesh_id = 0
 
         # define search utility
-        # nodal_neighbour_search = NodalNeighboursSearch(self.model_part, self.echo_level, number_of_avg_elems, number_of_avg_nodes, mesh_id)
         nodal_neighbour_search = KratosPfemBase.NodalNeighboursSearch(self.model_part, self.echo_level, number_of_avg_elems, number_of_avg_nodes, mesh_id)
 
         # execute search:
@@ -99,7 +95,6 @@ class ModelerUtility:
         mesh_id = 0
          
         # define search utility
-        # elemental_neighbour_search = ElementalNeighboursSearch(self.model_part, self.domain_size, self.echo_level, number_of_avg_elems, mesh_id)
         elemental_neighbour_search = KratosPfemBase.ElementalNeighboursSearch(self.model_part, self.domain_size, self.echo_level, number_of_avg_elems, mesh_id)
 
         # execute search:

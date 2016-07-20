@@ -13,36 +13,7 @@ def CreateMeshModeler(main_model_part, meshing_parameters, mesh_id):
     return FluidMeshModeler(main_model_part, meshing_parameters, mesh_id)
 
 class FluidMeshModeler(mesh_modeler.MeshModeler):
-    
-    #
-    def __init__(self, main_model_part, meshing_parameters, mesh_id): 
-        
-        self.echo_level        = 1
-        self.mesh_id           = mesh_id
-        self.main_model_part   = main_model_part 
-        self.MeshingParameters = meshing_parameters
 
-    #
- 
-    def Initialize(self, domain_size):
-
-        print("::[fluid_mesh_modeler]:: -START Initialize-")
- 
-        self.domain_size   =  domain_size
-
-        # set mesh modeler
-        if(self.domain_size == 2):
-            self.mesher = KratosPfemBase.TriangularMesh2DModeler()
-        elif(self.domain_size == 3):
-            self.mesher = KratosPfemBase.TetrahedralMesh3DModeler()
-
-        self.mesher.SetEchoLevel(self.echo_level)
-        self.mesher.SetMeshingParameters(self.MeshingParameters,self.mesh_id)
-
-        self.SetPreMeshingProcesses()
-        self.SetPostMeshingProcesses()    
-
-        self.mesher.Initialize()
     #
     def InitializeMeshing(self):
 
@@ -101,39 +72,10 @@ class FluidMeshModeler(mesh_modeler.MeshModeler):
         if( self.domain_size == 3 ):
             #other flags
             pass
-            
+  
+
     #
-    def SetPreMeshingProcesses(self):
-        
-        # The order set is the order of execution:
-        print("::[fluid_mesh_modeler]:: -START SetPreMeshingProcesses-")
-
-
-        # process to refine elements /refine boundary
-        refine_mesh_elements  = KratosPfemBase.SetElementsToRefineOnThreshold(self.main_model_part, self.RefiningParameters, self.mesh_id, self.echo_level)
-        self.mesher.SetPreMeshingProcess(refine_mesh_elements)
-
-        #refine_mesh_boundary = RefineMeshBoundary(self.main_model_part, self.RefiningParameters, self.mesh_id, self.echo_level)            
-        #self.mesher.SetPreMeshingProcess(refine_mesh_boundary)
-                
-        #set imposed walls (rigid walls)
-        rigid_walls_container = KratosPfemBase.BoundingBoxContainer()
-
-        if( self.imposed_walls.RigidWallActive() ):
-            rigid_wall_bbox = self.imposed_walls.RigidWallBoundingBoxes()
-            for sizei in range(0, len(rigid_wall_bbox)):
-                rigid_walls_container.PushBack( rigid_wall_bbox[sizei] )
-
-        #refine_mesh_boundary
-        refine_mesh_boundary = KratosPfemBase.ContactRefineMeshBoundary(self.main_model_part, rigid_walls_container, self.MeshingParameters, self.mesh_id, self.echo_level)
-        self.mesher.SetPreMeshingProcess(refine_mesh_boundary)
-
-        # process to remove nodes / remove boundary
-        remove_mesh_nodes = KratosPfemBase.RemoveMeshNodes(self.main_model_part, self.MeshingParameters,  self.mesh_id, self.echo_level)
-        self.mesher.SetPreMeshingProcess(remove_mesh_nodes)
-
-        
-    #
+   #
     def SetPostMeshingProcesses(self):
 
         # The order set is the order of execution:
@@ -156,7 +98,7 @@ class FluidMeshModeler(mesh_modeler.MeshModeler):
         rebuild_mesh_boundary = KratosPfemBase.ReconstructMeshBoundary(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
         self.mesher.SetPostMeshingProcess(rebuild_mesh_boundary)
 
-    #
+
     def FinalizeMeshing(self):
         
         # reset execution flags: to unset the options to be executed in methods and processes
