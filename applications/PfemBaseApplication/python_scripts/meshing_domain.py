@@ -152,23 +152,9 @@ class MeshingDomain(object):
         # parameters
         self.RefiningParameters.SetAlphaParameter(self.settings["alpha_shape"].GetDouble())
         
-        critical_mesh_size = self.settings["refining_parameters"]["critical_size"].GetDouble()
-
-        # set mesh refinement based on wall tip discretization size
-        # if(parameters["TipRadiusRefine"]):
-            # tip arch opening (in degrees = 5-7.5-10)
-            #tool_arch_opening = 12
-            # tip surface length
-            #tool_arch_length = tool_arch_opening * (3.1416 / 180.0)
-            # critical mesh size based on wall tip
-            #critical_mesh_size = tool_arch_length * parameters["CriticalTipRadius"]
-            
-        critical_mesh_size = critical_mesh_size
-        critical_mesh_side = critical_mesh_size * 3
-            
-        self.RefiningParameters.SetCriticalRadius(critical_mesh_size)                       
-        self.RefiningParameters.SetCriticalSide(critical_mesh_side)
-            
+        # custom set of the mesh size from settings from initial mesh or other parts
+        self.SetMeshSizeValues()
+           
         # set mesh refinement in box
         size = self.domain_size
         refining_box = self.settings["refining_parameters"]["refining_box"]
@@ -253,6 +239,26 @@ class MeshingDomain(object):
         self.MeshingStrategy.GenerateMesh()
         
         
+    def SetMeshSizeValue(self):
+
+        critical_mesh_size = self.settings["refining_parameters"]["critical_size"].GetDouble()
+
+        # set mesh refinement based on wall tip discretization size
+        # if(parameters["TipRadiusRefine"]):
+            # tip arch opening (in degrees = 5-7.5-10)
+            #tool_arch_opening = 12
+            # tip surface length
+            #tool_arch_length = tool_arch_opening * (3.1416 / 180.0)
+            # critical mesh size based on wall tip
+            #critical_mesh_size = tool_arch_length * parameters["CriticalTipRadius"]
+            
+        critical_mesh_size = critical_mesh_size
+        critical_mesh_side = critical_mesh_size * 3
+            
+        self.RefiningParameters.SetCriticalRadius(critical_mesh_size)                       
+        self.RefiningParameters.SetCriticalSide(critical_mesh_side)
+
+
     def Check(self):
         
         # set modeler utilities
