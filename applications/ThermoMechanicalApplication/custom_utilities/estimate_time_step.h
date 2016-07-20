@@ -179,7 +179,9 @@ namespace Kratos
 	  //*******************************************************************
 	  double ComputeSolidificationCoolingDt(ModelPart& ThisModelPart, 
 		  const double solidification_percent, 
-		  const double max_cooling_delta_temp, 
+		  const double max_cooling_delta_temp,
+		  const double change_in_shrinkage,
+		  const double limit_of_mushy_zone,
 		  const double dt_min,
 		  const double dt_max)
 	  {			
@@ -213,6 +215,8 @@ namespace Kratos
 				  double max_presolodification_delta_tem = std::min(10.0,max_cooling_delta_temp);
 				  int node_size = ThisModelPart.Nodes().size();
 				  double max_delta_temp = 0.0;
+				  std::vector<double> mdelta(omp_get_max_threads());
+#pragma omp parallel for shared(mdelta)
 				  for (int ii = 0; ii < node_size; ii++)
 				  {
 					  ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
@@ -220,10 +224,17 @@ namespace Kratos
 					  double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
 					  double old_temp = it->FastGetSolutionStepValue(TEMPERATURE,1);	
 					  // Get the Maximum on each thread
-					  max_delta_temp=std::max(-current_temp + old_temp,max_delta_temp);
+					  //max_delta_temp=std::max(-current_temp + old_temp,max_delta_temp);
+					  double& md = mdelta[omp_get_thread_num()];
+					  md= std::max(-current_temp + old_temp, md);
+				  }
+				  //workaround because VS does not support omp 4.0
+				  for (int i = 0; i < omp_get_num_threads(); i++)
+				  {
+					  max_delta_temp = std::max(max_delta_temp, mdelta[i]);
 				  }
 				  ThisModelPart.GetCommunicator().MaxAll(max_delta_temp);
-
+				  // Now we can keep on
 				  if( max_delta_temp > 0.0 )
 				  {
 					  double new_delta_time = std::min(1.5, max_presolodification_delta_tem / max_delta_temp); // 
@@ -234,8 +245,6 @@ namespace Kratos
 						  new_delta_time = dt_max;
 					  else if( new_delta_time < dt_min)
 						  new_delta_time = dt_min;
-
-
 					  return new_delta_time;
 				  }
 				  else 
@@ -249,34 +258,39 @@ namespace Kratos
 				//**************************************
 				//**** WHEN NOT EVERYTHING IS LIQUID    ****
 				//**************************************
+				  //double Kfact=0.70; // TO DO mODIGY SO THAT THIS PARAMETER AND THE ONE IN THE SHRINKAGE CALCULATRION ARE SYNCRONIZED
 				  double current_solidified_volume = 0.0;
 				  double old_solidified_volume = 0.0;
+				  double current_over_mushy_zone=0.0 ;
+				  double old_over_mushy_zone=0.0;
 				  double tot_vol = 0.0;
 				  //double max_delta_temp=0.0;
-				  int node_size = ThisModelPart.Nodes().size();	    
+				  int node_size = ThisModelPart.Nodes().size();
+#pragma omp parallel for reduction(+:current_solidified_volume,old_solidified_volume, current_over_mushy_zone, old_over_mushy_zone,tot_vol)
 				  for (int ii = 0; ii < node_size; ii++)
 				  {
 					  // Now we look for the Solidifcation Volume
 					  ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
-					  double vol = it->FastGetSolutionStepValue(NODAL_VOLUME);
+					  double vol = it->GetValue(NODAL_VOLUME);
 					  double current_S = it->FastGetSolutionStepValue(SOLID_FRACTION);
 					  double old_S = it->FastGetSolutionStepValue(SOLID_FRACTION,1);
-
+					  if(current_S>=limit_of_mushy_zone) {	current_over_mushy_zone+= vol;  }
+					  if(old_S>=limit_of_mushy_zone) {	old_over_mushy_zone+= vol;  }
 					  current_solidified_volume += vol*current_S;
 					  old_solidified_volume += vol*old_S;
 					  tot_vol += vol;
 
 					  //filling solidifiacation time
-					  double is_visited = it->FastGetSolutionStepValue(IS_VISITED);
-					  if(is_visited == 0.0 && current_S == 1.0){
-						  it->FastGetSolutionStepValue(IS_VISITED) = 1.0;
+					  //double is_visited = it->FastGetSolutionStepValue(IS_VISITED);
+					  //if(is_visited == 0.0 && current_S == 1.0){
+						 // it->FastGetSolutionStepValue(IS_VISITED) = 1.0;
 
-						  double solid_time =  ThisModelPart.GetProcessInfo()[TIME];
-						  double modulus = ThisModelPart.GetProcessInfo()[K0];
+						  //double solid_time =  ThisModelPart.GetProcessInfo()[TIME];
+						  //double modulus = ThisModelPart.GetProcessInfo()[K0];
 
-						  it->FastGetSolutionStepValue(SOLIDIF_TIME) = solid_time;
-						  it->FastGetSolutionStepValue(SOLIDIF_MODULUS) = 100.0*modulus*sqrt(solid_time); // 100.0 is to convert m to cm.
-					  }
+						  //it->FastGetSolutionStepValue(SOLIDIF_TIME) = solid_time;
+						  //it->FastGetSolutionStepValue(SOLIDIF_MODULUS) = modulus*sqrt(solid_time);
+					  //}
 					  // Now for the maximum change in temperature
 
 					  //double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
@@ -288,6 +302,8 @@ namespace Kratos
 				  ThisModelPart.GetCommunicator().SumAll(current_solidified_volume);	 
 				  ThisModelPart.GetCommunicator().SumAll(old_solidified_volume);
 				  ThisModelPart.GetCommunicator().SumAll(tot_vol);
+				  ThisModelPart.GetCommunicator().SumAll(current_over_mushy_zone);
+				  ThisModelPart.GetCommunicator().SumAll(old_over_mushy_zone);
 				  //ThisModelPart.GetCommunicator().MaxAll(max_delta_temp);
 
 				  if(tot_vol == 0.0)   KRATOS_THROW_ERROR(std::logic_error, "inside ComputeSolidificationCoolingDt: total volume is zero!", "")
@@ -299,15 +315,19 @@ namespace Kratos
 					}
 					else
 					{
-						double  delta_solid = current_solidified_volume - old_solidified_volume;
 
-						if( delta_solid > 0.0 )
+						double delta_solid = current_solidified_volume - old_solidified_volume;
+						double delta_over_mushy_zone=current_over_mushy_zone-old_over_mushy_zone;
+						if( delta_solid > 0.0 || delta_over_mushy_zone > 0.0 )
 						{
 							delta_solid /= tot_vol;
-							//double K=std::min(solidification_percent/delta_solid, max_cooling_delta_temp / max_delta_temp);
-							//KRATOS_WATCH(delta_solid);
-							double new_dt = std::min(1.5, solidification_percent/delta_solid) * current_dt;
-							if( new_dt > dt_max) new_dt = dt_max; //1.5 * current_dt;//dt_max;
+							delta_over_mushy_zone /= tot_vol;
+							if(delta_solid<=0.0){delta_solid=delta_over_mushy_zone*solidification_percent/change_in_shrinkage;}
+							if(delta_over_mushy_zone<=0.0){delta_over_mushy_zone=delta_solid*change_in_shrinkage/solidification_percent;}
+							double tmp=(1.0-current_solidified_volume/tot_vol); // What it is left to solidify
+							double target_to_solidify=std::min(solidification_percent,solidification_percent/4.0+std::max(0.0,tmp));
+							double new_dt = std::min(1.5, std::min( solidification_percent/delta_solid, change_in_shrinkage/delta_over_mushy_zone) ) * current_dt;
+							if( new_dt > dt_max) new_dt = dt_max;
 							else if( new_dt < dt_min) new_dt = dt_min;
 							return new_dt;	      
 						}
@@ -379,7 +399,7 @@ namespace Kratos
 		// Compute Part Volume and Area
 	    {
 			ModelPart::NodesContainerType::iterator it_nd = ThisModelPart.NodesBegin() + ii;
-			double vol = it_nd->FastGetSolutionStepValue(NODAL_VOLUME);
+			double vol = it_nd->GetValue(NODAL_VOLUME);
 			tot_vol += vol;
 			double area =  it_nd->FastGetSolutionStepValue(NODAL_PAUX);
 			tot_area += area;
@@ -440,7 +460,7 @@ namespace Kratos
 	    for (int ii = 0; ii < node_size; ii++)
 	    {
 			ModelPart::NodesContainerType::iterator it_nd = ThisModelPart.NodesBegin() + ii;
-			double vol = it_nd->FastGetSolutionStepValue(NODAL_VOLUME);
+			double vol = it_nd->GetValue(NODAL_VOLUME);
 			tot_vol += vol;
 			vol=pow(vol,1.0);
 			// dE1 - First Term
@@ -496,7 +516,7 @@ namespace Kratos
 		double solidification_time_chorinov=0.0;
 		//const double htc= ThisModelPart.GetProcessInfo()[HTC];	    
 		//const double mould_temperature=ThisModelPart.GetProcessInfo()[MOULD_AVERAGE_TEMPERATURE];	
-		solidification_time_chorinov=pow(density*LL/std::abs(initial_temperature-stop_temperature),2)*(3.1416/(4*avg_conductivity*avg_density*avg_sheat));
+		solidification_time_chorinov=pow(density*LL/fabs(initial_temperature-stop_temperature),2)*(3.1416/(4*avg_conductivity*avg_density*avg_sheat));
 		solidification_time_chorinov*=1+(cc*pow((initial_temperature-stop_temperature)/LL,2));
 		solidification_time_chorinov*=pow(tot_vol/tot_area,1.5);
 		return std::max(solidification_time,solidification_time_chorinov);
@@ -510,12 +530,13 @@ namespace Kratos
 		double delta_max_temp = avg_temp - stop_temperature;
 		double sum_temp = 0.0;
 
-	    int node_size = ThisModelPart.Nodes().size();	    
+	    int node_size = ThisModelPart.Nodes().size();
+#pragma omp parallel for reduction(+:sum_temp)
 	    for (int ii = 0; ii < node_size; ii++)
 	       {
             ModelPart::NodesContainerType::iterator it_nd = ThisModelPart.NodesBegin() + ii;
 		    double temp = it_nd->FastGetSolutionStepValue(TEMPERATURE);
-			sum_temp += std::max(temp,0.999*stop_temperature); // before temp
+			sum_temp += std::max(temp,0.99999*stop_temperature); // before temp
 
 		   }
 		sum_temp /= double(node_size);
@@ -625,7 +646,7 @@ namespace Kratos
 	    for (int ii = 0; ii < node_size; ii++)
 	    {
 			ModelPart::NodesContainerType::iterator it_nd = ThisModelPart.NodesBegin() + ii;
-			double vol = it_nd->FastGetSolutionStepValue(NODAL_VOLUME);
+			double vol = it_nd->GetValue(NODAL_VOLUME);
 			tot_vol += vol;
 			vol=pow(vol,0.8);
 			// dE1 - First Term
@@ -657,7 +678,7 @@ namespace Kratos
 			double tarea=rGeom.DomainSize();
 			tot_area+=tarea;
 			
-			const double condition_area=pow(std::abs(rGeom.DomainSize()),1.0);
+			const double condition_area=pow(fabs(rGeom.DomainSize()),1.0);
 			// dE2 - Second Term
 			//dE_2/dT=V_{mould}*V_{fact}*\rho_{mould}*C_{mould}*max(0,(T_{mould}-T_{end})/(T_{ini}-T_{end}))
 			double aux =condition_area*mould_thickness*mould_vfact*mould_density*mould_specific_heat;
@@ -685,11 +706,11 @@ namespace Kratos
 		//const double htc= ThisModelPart.GetProcessInfo()[HTC];
 		const double solid_temp= ThisModelPart.GetProcessInfo()[SOLID_TEMPERATURE];
 		//const double mould_temperature=ThisModelPart.GetProcessInfo()[MOULD_AVERAGE_TEMPERATURE];	
-		cooling_time_chorinov=pow(density*LL/std::abs(initial_temperature-solid_temp),2)*(3.1416/(4*avg_conductivity*avg_density*avg_sheat));
+		cooling_time_chorinov=pow(density*LL/fabs(initial_temperature-solid_temp),2)*(3.1416/(4*avg_conductivity*avg_density*avg_sheat));
 		cooling_time_chorinov*=1+(cc*pow((initial_temperature-solid_temp)/LL,2));
 		cooling_time_chorinov*=pow(tot_vol/tot_area,2);
 		// Now we compute the time from solidification to cooling
-		double time_to_cool=(tot_vol*cc*density*std::abs(solid_temp-stop_temperature))/(avg_env_htc*tot_area*(0.5*initial_temperature+0.5*stop_temperature-ambient_temperature));
+		double time_to_cool=(tot_vol*cc*density*fabs(solid_temp-stop_temperature))/(avg_env_htc*tot_area*(0.5*initial_temperature+0.5*stop_temperature-ambient_temperature));
 		cooling_time_chorinov+=time_to_cool;
 
 		return std::max(CoolingTime,cooling_time_chorinov);
@@ -711,29 +732,38 @@ namespace Kratos
 		ThisModelPart.GetCommunicator().MinAll(last_temp);
 		return last_temp;
 	 }
-	 private:
-		 /////////////////////////////////////////////////////////////////////////////
+	 //private:
+	//	 /////////////////////////////////////////////////////////////////////////////
 	 int CheckMaxTemperature(ModelPart& ThisModelPart)
 	 {
-		double last_temp = ThisModelPart.GetProcessInfo()[FLUID_TEMPERATURE]; //GetTable(3).Data().back().first;
-		double is_hot_point = 1.0;
-		int node_size = ThisModelPart.Nodes().size();
+		 double last_temp = ThisModelPart.GetProcessInfo()[FLUID_TEMPERATURE]; //GetTable(3).Data().back().first;
+		 double is_hot_point = 1.0;
+		 int node_size = ThisModelPart.Nodes().size();
+		 KRATOS_WATCH(omp_get_max_threads())
+		 std::vector<double> local_is_hot_point(omp_get_max_threads(),1.0); 
+#pragma omp parallel for shared(local_is_hot_point)
+		 for (int ii = 0; ii < node_size; ii++)
+		 {
+			 ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
 
-		for (int ii = 0; ii < node_size; ii++)
-		    {
-		      ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
+			 double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
 
-		      double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
-	      
-		      if( current_temp < last_temp){
-			is_hot_point = 0.0;
-			break;
-		      }		      
-		    }
-	       
-		ThisModelPart.GetCommunicator().MinAll(is_hot_point);
+			 if (current_temp < last_temp) {
+				 //is_hot_point = 0.0;
+				 local_is_hot_point[omp_get_thread_num()]= 0.0;
+				 break;
+			 }
+		 }
+		 //Now we finf the minimum is_hot_point among threads
+		 for (int ii = 0; ii < omp_get_num_threads(); ii++)
+		 {
+			 is_hot_point = std::min(is_hot_point, local_is_hot_point[ii]);
+		 }
 
-		return (is_hot_point==1.0)? 1 : 0;
+
+		 ThisModelPart.GetCommunicator().MinAll(is_hot_point);
+
+		 return (is_hot_point == 1.0) ? 1 : 0;
 	 }
 
 	};
