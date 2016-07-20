@@ -593,7 +593,8 @@ public:
     void CalculateDAndM( 
         GeneralVariables& rVariables,
         const double& rIntegrationWeight,
-        MortarConditionMatrices& ThisMortarConditionMatrices
+        MortarConditionMatrices& ThisMortarConditionMatrices,
+        VectorType& gn
         );
 
     /*
@@ -620,7 +621,8 @@ public:
     virtual void CalculateAndAddRHS( 
         LocalSystemComponents& rLocalSystem,
         GeneralVariables& rVariables,
-        const MortarConditionMatrices& ThisMortarConditionMatrices 
+        const MortarConditionMatrices& ThisMortarConditionMatrices, 
+        const VectorType& gn
         );
     
     /*
@@ -661,7 +663,8 @@ public:
     void CalculateAndAddMortarContactOperator( 
         VectorType& rRightHandSideVector,
         GeneralVariables& rVariables,
-        const MortarConditionMatrices& ThisMortarConditionMatrices
+        const MortarConditionMatrices& ThisMortarConditionMatrices,
+        const VectorType& gn
     );
         
     /******************************************************************/
@@ -779,8 +782,7 @@ private:
     ///@{
 
     IntegrationMethod mThisIntegrationMethod;              // Integration order of the element
-    std::vector<Condition::Pointer> mThisMasterElements;           // Vector which contains the pointers to the master elements
-    std::vector<MortarWeightedGaps> mThisWeightedGap;      // Vector which contains the weighted gaps of the contact
+    std::vector<Condition::Pointer> mThisMasterElements;   // Vector which contains the pointers to the master elements
 
     ///@}
     ///@name Private Operators

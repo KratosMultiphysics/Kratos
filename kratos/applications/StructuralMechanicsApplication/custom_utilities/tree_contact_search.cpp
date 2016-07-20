@@ -39,7 +39,7 @@ TreeContactSearch::TreeContactSearch(
     mallocation(allocation_size)
 {
     // Destination model part
-    AuxConstructor(mrDestinationModelPart, true, false);
+    AuxConstructor(mrDestinationModelPart, false, false);
     
     // Origin model part
     AuxConstructor(mrOriginModelPart, false, true);
@@ -64,6 +64,15 @@ void TreeContactSearch::AuxConstructor(
         cond_it->Set( ACTIVE, rActive ); // NOTE: It is supposed to be already false, just in case   
 //         cond_it->Set( SLAVE,  rSlave);
         cond_it->Set( MASTER, rMaster);
+    }
+    
+    NodesArrayType& pNode               = rModelPart.Nodes();
+    NodesArrayType::iterator node_begin = pNode.ptr_begin();
+    NodesArrayType::iterator node_end   = pNode.ptr_end();
+    
+    for(NodesArrayType::iterator node_it = node_begin; node_it!=node_end; node_it++)
+    {
+        node_it->Set( ACTIVE, rActive );  // NOTE: It is supposed to be already false, just in case   
     }
 }
 
@@ -186,6 +195,18 @@ void TreeContactSearch::ClearConditions(ModelPart & rModelPart)
         
 //             delete ConditionPointers;
 //             cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
+        }
+    }
+    
+    NodesArrayType& pNode               = rModelPart.Nodes();
+    NodesArrayType::iterator node_begin = pNode.ptr_begin();
+    NodesArrayType::iterator node_end   = pNode.ptr_end();
+    
+    for(NodesArrayType::iterator node_it = node_begin; node_it!=node_end; node_it++)
+    {
+        if (node_it->Is(ACTIVE) == true)
+        {
+            node_it->Set( ACTIVE, false );
         }
     }
 }

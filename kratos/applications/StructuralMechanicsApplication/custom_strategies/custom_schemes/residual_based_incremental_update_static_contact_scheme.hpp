@@ -296,6 +296,8 @@ public:
         // Update normal of the conditions
         ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart ); 
         
+        const double cn = rElements[0].GetProperties().GetValue(YOUNG_MODULUS);  // Some "huge" value should be considered, maybe the attractive of Vicente
+        
         // Finalizes solution step for all the conditions
         ConditionsArrayType& rConditions = rModelPart.Conditions();
 
@@ -323,6 +325,9 @@ public:
                 }
             }
         }
+        
+        // Recompute Active/Inactive nodes 
+        ContactUtilities::ReComputeActiveInactive( rModelPart, cn ); 
         
         KRATOS_CATCH("");
     }

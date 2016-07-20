@@ -34,7 +34,6 @@ struct contact_container
 {
     Condition::Pointer                 condition;
     std::vector<double>  local_coordinates_slave;
-    std::vector<bool>         active_nodes_slave; 
   
     ~contact_container(){}
     
@@ -42,7 +41,6 @@ struct contact_container
     {
         condition = nullptr;
         local_coordinates_slave.clear();
-        active_nodes_slave.clear();
     }
     
     void print()
@@ -55,25 +53,18 @@ struct contact_container
        }
        std::cout << std::endl;
        
-       for (unsigned int i = 0; i < active_nodes_slave.size(); i++)
-       {
-            std::cout << "active_nodes_slave_" << i << " " << active_nodes_slave[i] << std::endl;
-       }
-       std::cout << std::endl;
     }
     
     void save( Serializer& rSerializer ) const
     {
         rSerializer.save("condition",                               condition);
         rSerializer.save("local_coordinates_slave",   local_coordinates_slave);
-//         rSerializer.save("active_nodes_slave", active_nodes_slave);   // NOTE: Error, ask
     }
 
     void load( Serializer& rSerializer )
     {
         rSerializer.load("condition",                              condition);
         rSerializer.load("local_coordinates_slave",  local_coordinates_slave);
-//         rSerializer.load("active_nodes_slave", active_nodes_slave);   // NOTE: Error, ask 
     }
 };
 
@@ -134,6 +125,7 @@ KRATOS_DEFINE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                     //
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( LAGRANGE_MULTIPLIER )              // The lagrange multiplier used to enforce the mortar constraint
 KRATOS_DEFINE_VARIABLE( Matrix, MORTAR_CONTACT_OPERATOR )                     // Mortar Contact Operator
 KRATOS_DEFINE_VARIABLE( double, ACTIVE_CHECK_FACTOR )                         // The factor employed to consider an active/inactive node
+KRATOS_DEFINE_VARIABLE( double, WEIGHTED_GAP )                                // The integrated gap employed in mortar formulation
 
 // Adding the SPRISM EAS variables
 KRATOS_DEFINE_VARIABLE(double, ALPHA_EAS);

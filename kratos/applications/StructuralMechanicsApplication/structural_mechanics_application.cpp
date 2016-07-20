@@ -122,6 +122,7 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LAGRANGE_MULTIPLIER )      // The lagrange multiplier used to enforce the mortar constraint
     KRATOS_REGISTER_VARIABLE( MORTAR_CONTACT_OPERATOR )                     // Mortar Contact Operator
     KRATOS_REGISTER_VARIABLE( ACTIVE_CHECK_FACTOR )                         // The factor employed to consider an active/inactive node
+    KRATOS_REGISTER_VARIABLE( WEIGHTED_GAP )                                // The integrated gap employed in mortar formulation
 
 //    // Orthotropy
 //    KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_X )
