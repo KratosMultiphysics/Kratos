@@ -152,22 +152,6 @@ class ImplicitStructuralSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
     def GetComputeModelPart(self):
         return self.main_model_part
     
-    def _GetBuilderAndSolver(self, component_wise, block_builder):
-        if  self.settings["compute_mortar_contact"].GetBool():
-            builder_and_solver = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedBlockBuilderAndSolverContact(self.linear_solver)
-        else:
-            # Creating the builder and solver
-            if(component_wise):
-                builder_and_solver = KratosSolid.ComponentWiseBuilderAndSolver(self.linear_solver)
-            else:
-                if(block_builder):
-                    # To keep matrix blocks in builder
-                    builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-                else:
-                    builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
-        
-        return builder_and_solver
-    
     def _GetSolutionScheme(self, scheme_type, component_wise, compute_contact_forces):
 
         if(scheme_type == "Newmark") or (scheme_type == "Bossak"):
