@@ -12,7 +12,12 @@ namespace Kratos
 {
 
 //Default Constructor
-RestoreSimoJu3DLaw::RestoreSimoJu3DLaw() : IsotropicDamageSimoJu3DLaw() {}
+RestoreSimoJu3DLaw::RestoreSimoJu3DLaw() : IsotropicDamageSimoJu3DLaw()
+{
+  mpHardeningLaw   = HardeningLaw::Pointer( new ExponentialDamageHardeningLaw() );
+  mpYieldCriterion = YieldCriterion::Pointer( new SimoJuYieldCriterion(mpHardeningLaw) );
+  mpFlowRule       = FlowRule::Pointer( new RestoreDamageFlowRule(mpYieldCriterion) );
+}
 
 //----------------------------------------------------------------------------------------
 
@@ -162,6 +167,40 @@ void RestoreSimoJu3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
         ReturnMappingVariables.Options.Set(FlowRule::RETURN_MAPPING_COMPUTED,true); // Restore sate variable = true
         
         this->UpdateInternalStateVariables(ReturnMappingVariables,rStressVector,LinearElasticMatrix,rStrainVector);
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+double& RestoreSimoJu3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
+{
+    if (rThisVariable==DAMAGE_VARIABLE)
+    {
+        const FlowRule::InternalVariables& InternalVariables = mpFlowRule->GetInternalVariables();
+        rValue=InternalVariables.DeltaPlasticStrain;
+    }
+    else if(rThisVariable==STATE_VARIABLE)
+    {
+        const FlowRule::InternalVariables& InternalVariables = mpFlowRule->GetInternalVariables();
+        rValue=InternalVariables.EquivalentPlasticStrain;
+    }
+
+    return( rValue );
+}
+
+//----------------------------------------------------------------------------------------
+
+void RestoreSimoJu3DLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue,
+                                        const ProcessInfo& rCurrentProcessInfo )
+{
+    if (rThisVariable == STATE_VARIABLE)
+    {
+        FlowRule::RadialReturnVariables ReturnMappingVariables;
+        ReturnMappingVariables.TrialStateFunction = rValue;
+        
+        FlowRule::PlasticFactors ScalingFactors;
+        
+        mpFlowRule->CalculateScalingFactors(ReturnMappingVariables,ScalingFactors);
     }
 }
 
