@@ -51,11 +51,11 @@
 
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
-      <item GeometryType="Tetrahedra"      nodes="3" KratosName="SmallDisplacementThermoMechanicElement3D4N"/>
-      <item GeometryType="Tetrahedra"      nodes="6" KratosName="SmallDisplacementThermoMechanicElement3D10N"/>
-      <item GeometryType="Hexahedra"       nodes="4" KratosName="SmallDisplacementThermoMechanicElement3D8N"/>
-      <item GeometryType="Hexahedra"       nodes="8" KratosName="SmallDisplacementThermoMechanicElement3D20N"/>
-      <item GeometryType="Hexahedra"       nodes="9" KratosName="SmallDisplacementThermoMechanicElement3D27N"/>
+      <item GeometryType="Tetrahedra"      nodes="4" KratosName="SmallDisplacementThermoMechanicElement3D4N"/>
+      <item GeometryType="Tetrahedra"      nodes="10" KratosName="SmallDisplacementThermoMechanicElement3D10N"/>
+      <item GeometryType="Hexahedra"       nodes="8" KratosName="SmallDisplacementThermoMechanicElement3D8N"/>
+      <item GeometryType="Hexahedra"       nodes="20" KratosName="SmallDisplacementThermoMechanicElement3D20N"/>
+      <item GeometryType="Hexahedra"       nodes="27" KratosName="SmallDisplacementThermoMechanicElement3D27N"/>
     </TopologyFeatures>
 
     <!-- here we add the block of features which we require from the constitutive law-->
