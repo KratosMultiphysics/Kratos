@@ -1,16 +1,14 @@
 {
-    "problem_data":             {
-        "problem_name":      "arc_length_test",
-        "model_part_name":   "PorousDomain",
-        "domain_size":       2,
-        "start_time":        0.0,
-        "end_time":          50.0,
-        "time_step":         1.0,
-        "echo_level":        1,
-        "OMP_threads":       1,
-        "gid_path":          "C:\\Program Files\\GiD\\GiD 13.0\\gid.exe"
+    "problem_data": {
+        "problem_name":         "arc_length_test",
+        "model_part_name":      "PorousDomain",
+        "domain_size":          2,
+        "start_time":           0.0,
+        "end_time":             50.0,
+        "time_step":            1.0,
+        "OMP_threads":          1
     },
-    "solver_settings":          {
+    "solver_settings": {
         "solver_type":                        "poromechanics_U_Pw_solver",
         "model_import_settings":              {
             "input_type":     "mdpa",
@@ -29,6 +27,7 @@
         "rayleigh_m":                         0.0,
         "rayleigh_k":                         0.0,
         "strategy_type":                      "Arc-Length",
+        "fracture_propagation":               false,
         "convergence_criterion":              "And_criterion",
         "displacement_relative_tolerance":    1.0E-4,
         "displacement_absolute_tolerance":    1.0E-9,
@@ -52,7 +51,7 @@
         "loads_sub_model_part_list":          ["Face_Load-auto-1","Face_Load-auto-2"],
         "loads_variable_list":                ["FACE_LOAD","FACE_LOAD"]
     },
-    "output_configuration":     {
+    "output_configuration": {
         "result_file_configuration": {
             "gidpost_flags":       {
                 "GiDPostMode":           "GiD_PostBinary",
@@ -72,7 +71,7 @@
         },
         "point_data_configuration":  []
     },
-    "restart_options":          {
+    "restart_options": {
         "SaveRestart":      false,
         "RestartFrequency": 0,
         "LoadRestart":      false,
@@ -121,7 +120,7 @@
             "specific_weight":      10000.0
         }
     }],
-    "loads_process_list":       [{
+    "loads_process_list": [{
         "implemented_in_file":   "apply_load_vector_table_process",
         "implemented_in_module": "KratosMultiphysics.PoromechanicsApplication",
         "process_name":          "ApplyLoadVectorTableProcess",
