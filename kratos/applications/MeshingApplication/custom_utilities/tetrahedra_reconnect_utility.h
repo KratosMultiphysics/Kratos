@@ -355,8 +355,8 @@ public:
         if (m->vertexes->Count()>(int)n_points_before_refinement)
         {
             //defintions for spatial search
-            typedef Node < 3 > PointType;
-            typedef Node < 3 > ::Pointer PointTypePointer;
+//             typedef Node < 3 > PointType;
+//             typedef Node < 3 > ::Pointer PointTypePointer;
             array_1d<double, 4 > N;
             const int max_results = 10000;
             BinBasedFastPointLocator<3>::ResultContainerType results(max_results);
