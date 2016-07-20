@@ -70,6 +70,7 @@ KRATOS_CREATE_VARIABLE( Element::Pointer , ELEMENT_POINTER )                  //
 KRATOS_CREATE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                     // The integration order computed in the contact
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( LAGRANGE_MULTIPLIER )              // The lagrange multiplier used to enforce the mortar constraint
 KRATOS_CREATE_VARIABLE( Matrix, MORTAR_CONTACT_OPERATOR )                     // Mortar Contact Operator
+KRATOS_CREATE_VARIABLE( double, ACTIVE_CHECK_FACTOR )                         // The factor employed to consider an active/inactive node
 
 // Adding the SPRISM EAS variables
 KRATOS_CREATE_VARIABLE(double, ALPHA_EAS);

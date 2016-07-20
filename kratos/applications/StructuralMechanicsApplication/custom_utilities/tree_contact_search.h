@@ -353,7 +353,7 @@ public:
      * This function initializes the mortar conditions already created 
      */
     
-    void InitializeMortarConditions();
+    void InitializeMortarConditions(const double rActiveCheckFactor);
 
     /**
      * This function initializes nodes 
@@ -365,7 +365,10 @@ public:
      * This function initializes conditions
      */
     
-    void InitializeConditions(ModelPart & rModelPart);
+    void InitializeConditions(
+        ModelPart & rModelPart, 
+        const double rActiveCheckFactor
+        );
 
     /**
      * This function clears the NTN conditions already created 
@@ -460,7 +463,6 @@ public:
         
     void CreateNTNConditions(
         const double SearchFactor,
-        const unsigned int MaxNumberResults,
         const int type_search,
         const int integration_order
     );
@@ -473,7 +475,6 @@ public:
         
     void CreateNTSConditions(
         const double SearchFactor,
-        const unsigned int MaxNumberResults,
         const int type_search,
         const int integration_order
     );
@@ -481,14 +482,12 @@ public:
     /**
      * This function has as pourpose to find potential contact conditions and fill the mortar conditions with the necessary pointers
      * @param Searchfactor: The proportion increased of the Radius/Bounding-box volume for the search
-     * @param MaxNumberResults: The maximum number of results that can be obtained from the search
      * @param type_search: 0 means search in radius, 1 means search in box // TODO: Add more types of bounding boxes, as kdops, look bounding_volume_tree.h
      * @return The mortar conditions alreay created
      */
         
     void CreateMortarConditions(
         const double SearchFactor,
-        const unsigned int MaxNumberResults,
         const int type_search,
         const int integration_order
     );
@@ -504,16 +503,17 @@ public:
     /**
      * Fills
      * @param 
+     * @param ActiveCheckFactor: The proportion of the length of the geometry that is going to be taking into account to chechk if the node is active or inactive
      * @return 
      */
     
     void MortarContainerFiller(
-//         const PointType::Pointer PointOfList,
         const Point<3>& OriginPoint,
         const PointType::Pointer PointFound,
         const Condition::Pointer & pCond_1,
         const Condition::Pointer & pCond_2,
         std::vector<contact_container> *& ConditionPointers,
+        const double ActiveCheckFactor,
         const IntegrationMethod & IntegrationOrder,
         const bool orig_dest
         );
@@ -603,7 +603,7 @@ private:
     unsigned int mBucketSize;                 // Bucket size for kd-tree
     PointVector mPointListDestination;        // A list that contents the all the points (from nodes) from the modelpart 
     const unsigned int mdimension;            // Dimension size of the space
-//     const unsigned int mallocation;           // Allocation size for the vectors
+    const unsigned int mallocation;           // Allocation size for the vectors and max number of potential results
     
     ///@}
     ///@name Private Operators

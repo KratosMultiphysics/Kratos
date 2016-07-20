@@ -31,7 +31,7 @@ class ContactProcess(KratosMultiphysics.Process):
             "destination_model_part_name" : "",
             "contact_type"                : "MortarMethod",
             "search_factor"               : 1.1,
-            "allocation_size"             : 1000,
+            "active_check_factor"         : 0.2,
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
             "integration_order"           : 2
@@ -50,10 +50,10 @@ class ContactProcess(KratosMultiphysics.Process):
         self.o_interface = self.o_model_part.GetSubModelPart("INTERFACE")
         self.d_interface = self.d_model_part.GetSubModelPart("INTERFACE")
         
-        self.search_factor      = self.params["search_factor"].GetDouble() 
-        self.allocation_size    = self.params["allocation_size"].GetInt() 
-        self.max_number_results = self.params["max_number_results"].GetInt() 
-        self.integration_order  = self.params["integration_order"].GetInt() 
+        self.search_factor       = self.params["search_factor"].GetDouble() 
+        self.active_check_factor = self.params["active_check_factor"].GetDouble() 
+        self.max_number_results  = self.params["max_number_results"].GetInt() 
+        self.integration_order   = self.params["integration_order"].GetInt() 
         if self.params["type_search"].GetString() == "InRadius":
              self.type_search = 0
         
@@ -88,11 +88,11 @@ class ContactProcess(KratosMultiphysics.Process):
         #print("MODEL PART AFTER CREATING INTERFACE")
         #print(self.main_model_part)
         
-        self.contact_search = KratosMultiphysics.StructuralMechanicsApplication.TreeContactSearch(self.o_interface, self.d_interface, self.allocation_size)
+        self.contact_search = KratosMultiphysics.StructuralMechanicsApplication.TreeContactSearch(self.o_interface, self.d_interface, self.max_number_results)
         
         if self.params["contact_type"].GetString() == "MortarMethod":
             self.contact_search.CreatePointListMortar()
-            self.contact_search.InitializeMortarConditions()
+            self.contact_search.InitializeMortarConditions(self.active_check_factor)
         elif self.params["contact_type"].GetString() == "NTN":
             self.contact_search.CreatePointListNTN()
             self.contact_search.InitializeNTNConditions()
@@ -105,12 +105,12 @@ class ContactProcess(KratosMultiphysics.Process):
     
     def ExecuteInitializeSolutionStep(self):
         if self.params["contact_type"].GetString() == "MortarMethod":
-            self.contact_search.CreateMortarConditions(self.search_factor,self.max_number_results,self.type_search, self.integration_order)
+            self.contact_search.CreateMortarConditions(self.search_factor, self.type_search, self.integration_order)
             #self.contact_search.CheckMortarConditions()
         elif self.params["contact_type"].GetString() == "NTN":
-            self.contact_search.CreateNTNConditions(self.search_factor,self.max_number_results,self.type_search, self.integration_order)
+            self.contact_search.CreateNTNConditions(self.search_factor, self.type_search, self.integration_order)
         elif self.params["contact_type"].GetString() == "NTS":
-            self.contact_search.CreateNTSConditions(self.search_factor,self.max_number_results,self.type_search, self.integration_order)
+            self.contact_search.CreateNTSConditions(self.search_factor, self.type_search, self.integration_order)
         
     def ExecuteFinalizeSolutionStep(self):
         pass
