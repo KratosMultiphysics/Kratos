@@ -18,6 +18,18 @@ VALUE: 1
 QUESTION: FIC_Stabilization#CB#(true,false)
 VALUE: true
 HELP: Only for linear elements with equal order interpolation for displacements and pressures.
+QUESTION: Fracture_Propagation#CB#(true,false)
+VALUE: false
+DEPENDENCIES: (true,RESTORE,Propagation_Length,#CURRENT#,RESTORE,Propagation_Damage,#CURRENT#,RESTORE,Propagation_Frequency,#CURRENT#,RESTORE,Propagation_Width,#CURRENT#)(false,HIDE,Propagation_Length,#CURRENT#,HIDE,Propagation_Damage,#CURRENT#,HIDE,Propagation_Frequency,#CURRENT#,HIDE,Propagation_Width,#CURRENT#)
+QUESTION: Propagation_Length
+VALUE: 0.05
+QUESTION: Propagation_Damage
+VALUE: 0.5
+QUESTION: Propagation_Width
+VALUE: 0.01
+QUESTION: Propagation_Frequency
+VALUE: 1
+HELP: Number of steps after which the fracture propagation will be checked.
 TITLE: Solver_Settings
 QUESTION: Solution_Type#CB#(Quasi-Static,Dynamic)
 VALUE: Quasi-Static
