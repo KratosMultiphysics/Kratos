@@ -93,7 +93,7 @@ void  AddCustomStrategiesToPython()
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-    typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+//     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
     //********************************************************************
     //********************************************************************
