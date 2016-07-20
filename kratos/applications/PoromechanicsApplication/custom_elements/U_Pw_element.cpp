@@ -516,7 +516,7 @@ void UPwElement<TDim,TNumNodes>::GetValueOnIntegrationPoints( const Variable<dou
             
         this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
     }
-    else if(rVariable == DAMAGE_VARIABLE)
+    else if(rVariable == DAMAGE_VARIABLE || rVariable == STATE_VARIABLE)
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
             rValues.resize(mConstitutiveLawVector.size());
