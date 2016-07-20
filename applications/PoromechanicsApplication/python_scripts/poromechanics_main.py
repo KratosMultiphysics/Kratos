@@ -44,7 +44,6 @@ echo_level = ProjectParameters["solver_settings"]["echo_level"].GetInt()
 buffer_size = ProjectParameters["solver_settings"]["buffer_size"].GetInt()
 delta_time = ProjectParameters["problem_data"]["time_step"].GetDouble()
 end_time = ProjectParameters["problem_data"]["end_time"].GetDouble()
-step = 0
 time = ProjectParameters["problem_data"]["start_time"].GetDouble()
 tol = delta_time*1.0e-10
 output_settings = ProjectParameters["output_configuration"]
@@ -131,7 +130,6 @@ while( (time+tol) <= end_time ):
     
     # Update temporal variables
     time = time + delta_time
-    step = step + 1
     main_model_part.CloneTimeStep(time)
     
     # Update imposed conditions
