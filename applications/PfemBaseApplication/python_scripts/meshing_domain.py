@@ -239,7 +239,7 @@ class MeshingDomain(object):
         self.MeshingStrategy.GenerateMesh()
         
         
-    def SetMeshSizeValue(self):
+    def SetMeshSizeValues(self):
 
         critical_mesh_size = self.settings["refining_parameters"]["critical_size"].GetDouble()
 
