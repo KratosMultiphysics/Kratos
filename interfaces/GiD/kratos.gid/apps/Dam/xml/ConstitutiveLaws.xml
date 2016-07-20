@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ConstitutiveLaws>
     <!--3D laws-->
-    <CLaw n="LinearElastic3DLaw" pn="Linear Elastic" ProductionReady="ProductionReady" Type="Linear3D" behaviour="Elastic" StrainSize="6" 
+    <CLaw n="LinearElastic3D" pn="Linear Elastic" ProductionReady="ProductionReady" Type="Linear3D" behaviour="Elastic" StrainSize="6" 
 	  help="Linear Elastic Behaviour in 3D" Dimension="3D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" AllowsAnisotropy="False" >
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2500"/>
@@ -13,7 +13,7 @@
         </outputs>
     </CLaw>
     
-    <CLaw n="ThermalLinearElastic3DLaw" pn="Thermal Linear Elastic" ProductionReady="ProductionReady" Type="Thermal3D" behaviour="Elastic" StrainSize="6" 
+    <CLaw n="ThermalLinearElastic3D" pn="Thermal Linear Elastic" ProductionReady="ProductionReady" Type="Thermal3D" behaviour="Elastic" StrainSize="6" 
 	  help="Thermal Linear Elastic Behaviour in 3D" Dimension="3D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" AllowsAnisotropy="False" >
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2500"/>
@@ -27,7 +27,7 @@
 			<parameter n="THERMAL_STRAIN_TENSOR" pn="Thermal Strain" v="False" />
         </outputs>
     </CLaw>
-    <CLaw n="BilinearCohesive3DLaw" pn="Bilinear Cohesive 3D" ProductionReady="ProductionReady" Type="Bilinear3D" behaviour="Elastic" StrainSize="6" 
+    <CLaw n="BilinearCohesive3D" pn="Bilinear Cohesive 3D" ProductionReady="ProductionReady" Type="Bilinear3D" behaviour="Elastic" StrainSize="6" 
 	  help="Bilinear Cohesive law for problems in 3D" Dimension="3D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" AllowsAnisotropy="False" >
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2500"/>
