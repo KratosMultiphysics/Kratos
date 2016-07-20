@@ -1090,9 +1090,9 @@ public:
     int SolveStep2 (typename TLinearSolver::Pointer pLinearSolver)
     {
         KRATOS_TRY
-        typedef Node < 3 > PointType;
-        typedef PointerVector<PointType > PointVector;
-        typedef PointVector::iterator PointIterator;
+//         typedef Node < 3 > PointType;
+//         typedef PointerVector<PointType > PointVector;
+//         typedef PointVector::iterator PointIterator;
         #pragma omp parallel for
         for ( int i_node = 0; i_node < static_cast<int>(mr_model_part.Nodes().size()); i_node++)
             mis_visited[i_node] = 0;
@@ -1870,9 +1870,9 @@ public:
     {
         KRATOS_TRY
         //ensure that corner nodes are wet if all of the nodes around them have a negative distance
-        typedef Node < 3 > PointType;
-        typedef PointerVector<PointType > PointVector;
-        typedef PointVector::iterator PointIterator;
+//         typedef Node < 3 > PointType;
+//         typedef PointerVector<PointType > PointVector;
+//         typedef PointVector::iterator PointIterator;
         mr_matrix_container.FillScalarFromDatabase (DISTANCE, mdistances,mr_model_part.Nodes() );
 
         #pragma omp parallel for

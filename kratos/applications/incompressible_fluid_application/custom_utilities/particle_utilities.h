@@ -408,7 +408,7 @@ public:
         Timer::Start("Puntos");
 
         //generate a tree with the position of the lagrangian nodes
-        typedef Node < 3 > PointType;
+//         typedef Node < 3 > PointType;
 //         typedef Node < 3 > ::Pointer PointTypePointer;
         typedef Node<3> NodeType;
 

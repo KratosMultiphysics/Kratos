@@ -875,7 +875,7 @@ private:
         unsigned int dof_position = (mActiveNodes.begin())->GetDofPosition(PRESSURE);
 
         typedef  unsigned int size_type;
-        typedef  double value_type;
+//         typedef  double value_type;
 
         for(WeakPointerVector< Node<3> >::iterator in = mActiveNodes.begin();
                 in!=mActiveNodes.end(); in++)
