@@ -435,6 +435,124 @@ public:
 	
         KRATOS_CATCH("");
     }
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	template< class TValueType >
+    void CalculateOnSimplexLowMemory(ModelPart& rModelPart,
+                            int Dimension,
+                            Variable<TValueType>& rVariable,
+                            const TValueType Zero,const double rAlpha)
+    {
+        KRATOS_TRY;
+
+        // Reset normals
+        const array_1d<double,3> ZeroNormal(3,0.0);
+
+	for(ModelPart::NodesContainerType::iterator it =  rModelPart.NodesBegin();
+                it !=rModelPart.NodesEnd(); it++)
+        {
+            noalias(it->GetValue(NORMAL)) = ZeroNormal;
+            it->GetValue(NODAL_PAUX) = 0.0;	    
+        }
+
+        // Calculate new condition normals, using only conditions with rVariable == rValue
+        array_1d<double,3> An(3,0.0);
+
+        if ( Dimension == 2 )
+        {
+            for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond )
+            {
+                if ( itCond->GetValue(rVariable) != Zero )
+                    CalculateNormal2D(itCond,An);
+            }
+        }
+        else if ( Dimension == 3 )
+        {
+            array_1d<double,3> v1(3,0.0);
+            array_1d<double,3> v2(3,0.0);
+
+            for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond )
+            {
+                if ( itCond->GetValue(rVariable) != Zero )
+                    CalculateNormal3D(itCond,An,v1,v2);
+            }
+        }
+        
+        
+      //loop over nodes to set normals
+	for(ModelPart::NodesContainerType::iterator it =  rModelPart.NodesBegin();
+                it !=rModelPart.NodesEnd(); it++)
+        {
+	  std::vector< array_1d<double,3> > N_Mat; 
+	  N_Mat.reserve(10);
+	  double nodal_area = 0.0;
+	 
+	  WeakPointerVector<Condition >& ng_cond = it->GetValue(NEIGHBOUR_CONDITIONS);
+	  
+	  if(ng_cond.size() != 0){	  
+	    for(WeakPointerVector<Condition >::iterator ic = ng_cond.begin(); ic!=ng_cond.end(); ic++)
+	    {
+		Condition::GeometryType& pGeom = ic->GetGeometry();
+		const array_1d<double,3>&  rNormal = ic->GetValue(NORMAL);
+		const double Coef = 1.0 / pGeom.PointsNumber();
+		double norm_normal = norm_2( rNormal );
+		
+		if(norm_normal != 0.0)
+		{
+		  nodal_area += Coef * norm_normal;
+		  
+		  if(N_Mat.size() == 0.0)
+		      N_Mat.push_back( rNormal * Coef );
+		  else{
+			
+			int added = 0;
+			for(unsigned int ii=0; ii<N_Mat.size();++ii)
+			  {
+			  const array_1d<double,3>& temp_normal = N_Mat[ii];
+			  double norm_temp = norm_2( temp_normal );
+			  
+			  double cos_alpha=temp_normal[0]*rNormal[0] + temp_normal[1]*rNormal[1] +temp_normal[2]*rNormal[2];
+			  cos_alpha /= (norm_temp*norm_normal);
+			  
+			  if( cos_alpha > cos(0.017453293*rAlpha) ){
+			    N_Mat[ii] += rNormal * Coef;
+			    added = 1;}		      
+			  }
+			  
+			if(!added)
+			    N_Mat.push_back( rNormal*Coef );
+			  
+		    }
+		  }
+	      }
+	  }
+	  //compute NORMAL and mark 
+	  array_1d<double,3> sum_Normal(3,0.0);	  
+	  
+	  for(unsigned int ii=0; ii<N_Mat.size(); ++ii){
+	    sum_Normal += N_Mat[ii];
+	  }
+	  
+	  noalias( it->FastGetSolutionStepValue(NORMAL) ) = sum_Normal;
+	  it->FastGetSolutionStepValue(NODAL_PAUX) = nodal_area;
+	  //assign IS_SLIP = 0 for vertices
+	  if(N_Mat.size() == 2){
+// 	    it->SetValue(IS_SLIP,0);	  
+	    it->FastGetSolutionStepValue(IS_SLIP)=20.0;}	
+	  else if(N_Mat.size() == 3)
+	    it->FastGetSolutionStepValue(IS_SLIP)=30.0;	
+	  else if(N_Mat.size() == 1)
+	    it->FastGetSolutionStepValue(IS_SLIP)=10.0;	
+	  
+	   
+	  
+	}
+               
+        // For MPI: correct values on partition boundaries
+        rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
+        rModelPart.GetCommunicator().AssembleCurrentData(NODAL_PAUX);
+	
+        KRATOS_CATCH("");
+    }
 
 
 
