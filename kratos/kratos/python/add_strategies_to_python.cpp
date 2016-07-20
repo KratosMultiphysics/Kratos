@@ -369,7 +369,9 @@ namespace Kratos
             class_<ResidualCriteria<SparseSpaceType, LocalSpaceType >,
                     bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
                     boost::noncopyable >
-                    ("ResidualCriteria", init< double, double>());
+                    ("ResidualCriteria", init< double, double>())
+					.def("SetEchoLevel",&ResidualCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
+					;
 
             /*			class_< ResidualCriteria< SparseSpaceType >,
                                              bases<ConvergenceCriteria< SparseSpaceType > >,
