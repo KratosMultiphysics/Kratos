@@ -57,6 +57,7 @@ public:
             Geometry<Node<3> > & Geom2, // MASTER
             const array_1d<double, 3> & contact_normal1, // SLAVE
             const array_1d<double, 3> & contact_normal2, // MASTER
+            const double ActiveCheckFactor,
             const IntegrationMethod IntegrationOrder
             )
     {
@@ -80,20 +81,18 @@ public:
                 ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, Geom1[index].FastGetSolutionStepValue(NORMAL, 0));
              }  
              
-//              double tolerance = 0.2; // NOTE: As an input
-//              double dist_tol = tolerance * Geom1.Length();
-//              dist_tol = (dist_tol <= tolerance * Geom2.Length()) ? tolerance * Geom2.Length();
+             double dist_tol = ActiveCheckFactor * Geom1.Length();
+             dist_tol = (dist_tol <= ActiveCheckFactor * Geom2.Length()) ? (ActiveCheckFactor * Geom2.Length()):dist_tol;
              
              array_1d<double, 3> result;
-             contact_container.active_nodes_slave[index] = Geom2.IsInside(ProjectedPoint, result);
-//              if (aux_dist < dist_tol)
-//              {
-//                 contact_container.active_nodes_slave[index] = Geom2.IsInside(ProjectedPoint, result);
-//              }
-//              else 
-//              {
-//                  contact_container.active_nodes_slave[index] = false;
-//              }
+             if (aux_dist < dist_tol)
+             {
+                contact_container.active_nodes_slave[index] = Geom2.IsInside(ProjectedPoint, result);
+             }
+             else 
+             {
+                 contact_container.active_nodes_slave[index] = false;
+             }
          }
 
          if (dimension == 2)

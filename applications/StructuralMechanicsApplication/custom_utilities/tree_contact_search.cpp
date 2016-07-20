@@ -35,8 +35,8 @@ TreeContactSearch::TreeContactSearch(
     mrOriginModelPart(rOriginModelPart),
     mrDestinationModelPart(rDestinationModelPart),
     mBucketSize(4),
-    mdimension(rOriginModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension())
-//     , mallocation(allocation_size)
+    mdimension(rOriginModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension()),
+    mallocation(allocation_size)
 {
     // Destination model part
     AuxConstructor(mrDestinationModelPart, true, false);
@@ -92,13 +92,13 @@ void TreeContactSearch::InitializeNTSConditions()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::InitializeMortarConditions()
+void TreeContactSearch::InitializeMortarConditions(const double rActiveCheckFactor)
 {
     // Destination model part
-    InitializeConditions(mrDestinationModelPart);
+    InitializeConditions(mrDestinationModelPart, rActiveCheckFactor);
     
     // Origin model part
-    InitializeConditions(mrOriginModelPart);
+    InitializeConditions(mrOriginModelPart, rActiveCheckFactor);
 }
 
 /***********************************************************************************/
@@ -112,7 +112,10 @@ void TreeContactSearch::InitializeNodes(ModelPart & rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::InitializeConditions(ModelPart & rModelPart)
+void TreeContactSearch::InitializeConditions(
+    ModelPart & rModelPart,
+    const double rActiveCheckFactor
+    )
 {
     ConditionsArrayType& pCond  = rModelPart.Conditions();
     ConditionsArrayType::iterator it_begin = pCond.ptr_begin();
@@ -122,6 +125,7 @@ void TreeContactSearch::InitializeConditions(ModelPart & rModelPart)
     {
         cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
 //         cond_it->GetValue(CONTACT_CONTAINERS)->reserve(mallocation); 
+        cond_it->GetProperties().SetValue(ACTIVE_CHECK_FACTOR, rActiveCheckFactor);
     }
 }
 
@@ -311,7 +315,6 @@ void TreeContactSearch::UpdatePointListConditions(
 
 void TreeContactSearch::CreateNTNConditions(
     const double SearchFactor,
-    const unsigned int MaxNumberResults,
     const int type_search,
     const int integration_order
 ) 
@@ -324,7 +327,6 @@ void TreeContactSearch::CreateNTNConditions(
 
 void TreeContactSearch::CreateNTSConditions(
     const double SearchFactor,
-    const unsigned int MaxNumberResults,
     const int type_search,
     const int integration_order
 ) 
@@ -337,14 +339,13 @@ void TreeContactSearch::CreateNTSConditions(
 
 void TreeContactSearch::CreateMortarConditions(
     const double SearchFactor,
-    const unsigned int MaxNumberResults,
     const int type_search,
     const int integration_order
 ) 
 {
     // Initialize values
-    PointVector PointsFound(MaxNumberResults);
-    std::vector<double> PointsDistances(MaxNumberResults);
+    PointVector PointsFound(mallocation);
+    std::vector<double> PointsDistances(mallocation);
     unsigned int NumberPointsFound = 0;
     ClearMortarConditions(); // Clear the conditions
     
@@ -397,13 +398,13 @@ void TreeContactSearch::CreateMortarConditions(
             ContactUtilities::CenterAndRadius(pCondOrigin, Center, SearchRadius, mdimension); 
             SearchRadius *= SearchFactor;
 
-            NumberPointsFound = Tree_points.SearchInRadius(Center, SearchRadius, PointsFound.begin(), PointsDistances.begin(), MaxNumberResults);
+            NumberPointsFound = Tree_points.SearchInRadius(Center, SearchRadius, PointsFound.begin(), PointsDistances.begin(), mallocation);
         }
 //         else if (type_search == 1) // TODO: Complete search in bounding box
 //         {
 //             Point<3> MinPoint, MaxPoint;
 //             CondOri->GetGeometry().BoundingBox(MinPoint, MaxPoint);
-//             NumberPointsFound= Tree_conds.SearchInBox(MinPoint, MaxPoint, PointsFound.begin(), PointsDistances.begin(), MaxNumberResults);
+//             NumberPointsFound= Tree_conds.SearchInBox(MinPoint, MaxPoint, PointsFound.begin(), PointsDistances.begin(), mallocation);
 //         }
         else
         {
@@ -425,8 +426,9 @@ void TreeContactSearch::CreateMortarConditions(
                     
                     // Set the corresponding flags
                     pCondDestination->Set(ACTIVE, true); 
+                    const double ActiveCheckFactor = pCondDestination->GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
 
-                    MortarContainerFiller(pCondOrigin->GetGeometry().Center(), PointsFound[i], pCondDestination, pCondOrigin, ConditionPointersDestination, IntegrationOrder, false);
+                    MortarContainerFiller(pCondOrigin->GetGeometry().Center(), PointsFound[i], pCondDestination, pCondOrigin, ConditionPointersDestination, ActiveCheckFactor, IntegrationOrder, false);
                 }
             }
         }
@@ -487,6 +489,7 @@ void TreeContactSearch::MortarContainerFiller(
         const Condition::Pointer & pCond_1,
         const Condition::Pointer & pCond_2,
         std::vector<contact_container> *& ConditionPointers,
+        const double ActiveCheckFactor,
         const IntegrationMethod & IntegrationOrder,
         const bool orig_dest
         )
@@ -507,7 +510,7 @@ void TreeContactSearch::MortarContainerFiller(
     }
     
     ContactUtilities::ContactContainerFiller(contact_container, ContactPoint, pCond_1->GetGeometry(), pCond_2->GetGeometry(), 
-                                             pCond_1->GetValue(NORMAL), pCond_2->GetValue(NORMAL), IntegrationOrder); 
+                                             pCond_1->GetValue(NORMAL), pCond_2->GetValue(NORMAL), ActiveCheckFactor, IntegrationOrder); 
         
     ConditionPointers->push_back(contact_container);
 }
