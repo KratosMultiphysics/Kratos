@@ -56,21 +56,21 @@ void  AddCustomStrategiesToPython()
     typedef PoromechanicsRammArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > PoromechanicsRammArcLengthStrategyType;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+    
     class_< NewmarkQuasistaticUPwSchemeType,bases< BaseSchemeType >,  boost::noncopyable >("NewmarkQuasistaticUPwScheme",
         init<  double, double, double >());
-
+    
     class_< NewmarkDynamicUPwSchemeType,bases< BaseSchemeType >,  boost::noncopyable >("NewmarkDynamicUPwScheme",
         init<  double, double, double, double, double >());
-        
-
+    
+    
     class_< PoromechanicsNewtonRaphsonStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("PoromechanicsNewtonRaphsonStrategy", 
         init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
-                 BuilderAndSolverType::Pointer, int, bool, bool, bool >());
-
+                 BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
+    
     class_< PoromechanicsRammArcLengthStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("PoromechanicsRammArcLengthStrategy", 
         init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
-                 BuilderAndSolverType::Pointer, Parameters, int, bool, bool, bool >());
+                 BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
 }
 
 }  // namespace Python.

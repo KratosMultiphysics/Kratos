@@ -14,6 +14,7 @@
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 #include "poromechanics_application.h"
  
 namespace Kratos
@@ -33,6 +34,7 @@ BOOST_PYTHON_MODULE(KratosPoromechanicsApplication)
     AddCustomStrategiesToPython();
     AddCustomConstitutiveLawsToPython();
     AddCustomProcessesToPython();
+    AddCustomUtilitiesToPython();
 
     //Registering variables in python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( DT_WATER_PRESSURE )
@@ -45,6 +47,9 @@ BOOST_PYTHON_MODULE(KratosPoromechanicsApplication)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( PERMEABILITY_MATRIX )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( LOCAL_PERMEABILITY_MATRIX )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( TOTAL_STRESS_TENSOR )
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( ARC_LENGTH_LAMBDA )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( ARC_LENGTH_RADIUS_FACTOR )
 }
 
 }  // namespace Python.
