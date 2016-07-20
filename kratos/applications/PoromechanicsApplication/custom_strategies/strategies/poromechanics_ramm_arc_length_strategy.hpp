@@ -9,7 +9,6 @@
 #define KRATOS_POROMECHANICS_RAMM_ARC_LENGTH_STRATEGY
 
 // Project includes
-#include "includes/kratos_parameters.h"
 #include "custom_strategies/strategies/poromechanics_newton_raphson_strategy.hpp"
 
 // Application includes
@@ -49,6 +48,8 @@ public:
     using GrandMotherType::mSolutionStepIsInitialized;
     using GrandMotherType::mMaxIterationNumber;
     using GrandMotherType::mInitializeWasPerformed;
+    using MotherType::mSubModelPartList;
+    using MotherType::mVariableNames;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -59,13 +60,13 @@ public:
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-        Parameters rParameters,
+        Parameters& rParameters,
         int MaxIterations = 30,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
         ) : PoromechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,
-                pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
+                pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
         {
             //only include validation with c++11 since raw_literals do not exist in c++03
             Parameters default_parameters( R"(
@@ -84,19 +85,6 @@ public:
             mDesiredIterations = rParameters["desired_iterations"].GetInt();
             mMaxRadiusFactor = rParameters["max_radius_factor"].GetDouble();
             mMinRadiusFactor = rParameters["min_radius_factor"].GetDouble();
-            
-            // Set Load SubModelParts and Variable names
-            mSubModelPartList.resize(rParameters["loads_sub_model_part_list"].size());
-            mVariableNames.resize(rParameters["loads_variable_list"].size());
-
-            if( mSubModelPartList.size() != mVariableNames.size() )
-                KRATOS_THROW_ERROR( std::logic_error, "For each SubModelPart there must be a corresponding nodal Variable", "" )
-
-            for(unsigned int i = 0; i < mVariableNames.size(); i++)
-            {
-                mSubModelPartList[i] = &( model_part.GetSubModelPart(rParameters["loads_sub_model_part_list"][i].GetString()) );
-                mVariableNames[i] = rParameters["loads_variable_list"][i].GetString();
-            }
         }
     
     //------------------------------------------------------------------------------------
@@ -184,7 +172,7 @@ public:
 	bool SolveSolutionStep()
 	{
         // ********** Prediction phase **********
-        
+                
         std::cout << "ARC-LENGTH RADIUS: " << mRadius/mRadius_0 << " X initial radius" << std::endl;
         
         // Initialize variables
@@ -335,18 +323,7 @@ public:
                 mRadius = mMinRadiusFactor*mRadius_0;
             
             // Update Norm of x
-            mNormxEquilibrium = 0.0;
-            double temp;
-            
-            for (typename DofsArrayType::iterator itDof = rDofSet.begin(); itDof != rDofSet.end(); ++itDof)
-            {
-                if (itDof->IsFree())
-                {
-                    temp = itDof->GetSolutionStepValue();
-                    mNormxEquilibrium += temp*temp;
-                }
-            }
-            mNormxEquilibrium = sqrt(mNormxEquilibrium);
+            mNormxEquilibrium = this->CalculateReferenceDofsNorm(rDofSet);
         }
         else
         {
@@ -362,6 +339,9 @@ public:
             //move the mesh if needed
             if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
         }
+
+        BaseType::GetModelPart().GetProcessInfo()[ARC_LENGTH_LAMBDA] = mLambda;
+        BaseType::GetModelPart().GetProcessInfo()[ARC_LENGTH_RADIUS_FACTOR] = mRadius/mRadius_0;
 
         mpScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
         mpBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
@@ -411,6 +391,36 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    bool IsConverged()
+    {
+        KRATOS_TRY
+        
+        bool IsConverged = true;
+        
+        mLambda = BaseType::GetModelPart().GetProcessInfo()[ARC_LENGTH_LAMBDA];
+        mRadius = (BaseType::GetModelPart().GetProcessInfo()[ARC_LENGTH_RADIUS_FACTOR])*mRadius_0;
+        /*TODO
+        // Update External Loads        
+        this->UpdateExternalLoads();
+        
+        // Note: Initialize() needs to be called beforehand
+        
+		this->InitializeSolutionStep();
+        
+		this->Predict();
+        
+        // Solve the problem with constant load
+		IsConverged = this->CheckConvergence();
+        
+		this->FinalizeSolutionStep();
+        */
+        return IsConverged;
+        
+        KRATOS_CATCH("")
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 protected:
 
     /// Member Variables
@@ -428,10 +438,25 @@ protected:
     double mLambda, mLambda_old; /// Loading factor
     double mNormxEquilibrium; /// Norm of the solution vector in equilibrium
     double mDLambdaStep; /// Delta lambda of the current step
-    
-    std::vector<ModelPart*> mSubModelPartList; /// List of every SubModelPart associated to an external load
-    std::vector<std::string> mVariableNames; /// Name of the nodal variable associated to every SubModelPart
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    int Check()
+    {
+        KRATOS_TRY
         
+        int ierr = MotherType::Check();
+        if(ierr != 0) return ierr;
+        
+        if(ARC_LENGTH_LAMBDA.Key() == 0)
+            KRATOS_THROW_ERROR( std::invalid_argument,"ARC_LENGTH_LAMBDA has Key zero! (check if the application is correctly registered", "" )
+        if(ARC_LENGTH_RADIUS_FACTOR.Key() == 0)
+            KRATOS_THROW_ERROR( std::invalid_argument,"ARC_LENGTH_RADIUS_FACTOR has Key zero! (check if the application is correctly registered", "" )
+        return ierr;
+
+        KRATOS_CATCH( "" )
+    }
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void InitializeSystemVector(TSystemVectorPointerType& pv)
@@ -469,7 +494,45 @@ protected:
         // Update scheme
         mpScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
         
-        // Update External Loads        
+        // Update External Loads
+        this->UpdateExternalLoads();
+
+        KRATOS_CATCH( "" )
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void ClearStep()
+    {
+        KRATOS_TRY
+
+        SparseSpaceType::Clear(mpDxf);
+        SparseSpaceType::Clear(mpDxb);
+        SparseSpaceType::Clear(mpDxPred);
+        SparseSpaceType::Clear(mpDxStep);
+
+        TSystemVectorType& mDxf = *mpDxf;
+        TSystemVectorType& mDxb = *mpDxb;
+        TSystemVectorType& mDxPred = *mpDxPred;
+        TSystemVectorType& mDxStep = *mpDxStep;
+
+        SparseSpaceType::Resize(mDxf, 0);
+        SparseSpaceType::Resize(mDxb, 0);
+        SparseSpaceType::Resize(mDxPred, 0);
+        SparseSpaceType::Resize(mDxStep, 0);
+
+        GrandMotherType::Clear();
+
+        KRATOS_CATCH("");
+    }
+
+private:
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void UpdateExternalLoads()
+    {
+        // Update External Loads
         for(unsigned int i = 0; i < mVariableNames.size(); i++)
         {
             ModelPart& rSubModelPart = *(mSubModelPartList[i]);
@@ -524,34 +587,6 @@ protected:
         
         // Save the applied Lambda factor
         mLambda_old = mLambda;
-
-        KRATOS_CATCH( "" )
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void ClearStep()
-    {
-        KRATOS_TRY
-
-        SparseSpaceType::Clear(mpDxf);
-        SparseSpaceType::Clear(mpDxb);
-        SparseSpaceType::Clear(mpDxPred);
-        SparseSpaceType::Clear(mpDxStep);
-
-        TSystemVectorType& mDxf = *mpDxf;
-        TSystemVectorType& mDxb = *mpDxb;
-        TSystemVectorType& mDxPred = *mpDxPred;
-        TSystemVectorType& mDxStep = *mpDxStep;
-
-        SparseSpaceType::Resize(mDxf, 0);
-        SparseSpaceType::Resize(mDxb, 0);
-        SparseSpaceType::Resize(mDxPred, 0);
-        SparseSpaceType::Resize(mDxStep, 0);
-
-        GrandMotherType::Clear();
-
-        KRATOS_CATCH("");
     }
 
 }; // Class PoromechanicsRammArcLengthStrategy
