@@ -65,33 +65,32 @@ public:
         const unsigned int number_nodes = Geom1.PointsNumber();
         const unsigned int dimension = Geom1.WorkingSpaceDimension();
         
-        // Define the discrete contact gap
-         Point<3> ProjectedPoint;
-         contact_container.active_nodes_slave.resize(number_nodes);
-         
          for (unsigned int index = 0; index < number_nodes; index++)
          {
-             double aux_dist = 0.0;
-             if (norm_2(Geom1[index].FastGetSolutionStepValue(NORMAL, 0)) < 1.0e-12)
+             if (Geom1[index].Is(ACTIVE) == false)
              {
-                 ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, contact_normal1);
-             }
-             else
-             { 
-                ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, Geom1[index].FastGetSolutionStepValue(NORMAL, 0));
-             }  
-             
-             double dist_tol = ActiveCheckFactor * Geom1.Length();
-             dist_tol = (dist_tol <= ActiveCheckFactor * Geom2.Length()) ? (ActiveCheckFactor * Geom2.Length()):dist_tol;
-             
-             array_1d<double, 3> result;
-             if (aux_dist < dist_tol)
-             {
-                contact_container.active_nodes_slave[index] = Geom2.IsInside(ProjectedPoint, result);
-             }
-             else 
-             {
-                 contact_container.active_nodes_slave[index] = false;
+                Point<3> ProjectedPoint;
+                double aux_dist = 0.0;
+                if (norm_2(Geom1[index].FastGetSolutionStepValue(NORMAL, 0)) < 1.0e-12)
+                {
+                    ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, contact_normal1);
+                }
+                else
+                {
+                    ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, Geom1[index].FastGetSolutionStepValue(NORMAL, 0));
+                }  
+                
+                double dist_tol = ActiveCheckFactor * Geom1.Length();
+                dist_tol = (dist_tol <= ActiveCheckFactor * Geom2.Length()) ? (ActiveCheckFactor * Geom2.Length()):dist_tol;
+                
+                array_1d<double, 3> result;
+                if (aux_dist < dist_tol)
+                {
+                    if (Geom2.IsInside(ProjectedPoint, result) == true)
+                    {
+                        Geom1[index].Set(ACTIVE, true);
+                    }
+                }
              }
          }
 
@@ -463,7 +462,7 @@ public:
         {
             if (node_it->Is(INTERFACE))
             {
-                noalias(node_it->FastGetSolutionStepValue(NORMAL)) = ZeroNormal;
+                noalias(node_it->GetValue(NORMAL)) = ZeroNormal;
             }
         }
         
@@ -482,7 +481,7 @@ public:
                 
                 for (unsigned int i = 0; i < cond_it->GetGeometry().PointsNumber(); i++)
                 {
-                    noalias( cond_it->GetGeometry()[i].FastGetSolutionStepValue(NORMAL) ) += rNormal;
+                    noalias( cond_it->GetGeometry()[i].GetValue(NORMAL) ) += rNormal;
                 }
             }
         }
@@ -495,7 +494,7 @@ public:
         {
             if (node_it->Is(INTERFACE))
             {
-                const double norm = norm_2(node_it->FastGetSolutionStepValue(NORMAL));
+                const double norm = norm_2(node_it->GetValue(NORMAL));
                 
                 if (norm > tol)
                 {
@@ -504,6 +503,45 @@ public:
             }
         }
       
+    }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    /**
+     * It changes from active to inactive and viceversa the nodes 
+     * @param ModelPart: The model part to compute
+     * @param cn: Kind of penalty, not necessarily the YOUNG_MODULUS
+     * @return The modelparts with the conditions changed
+     */
+    
+    static inline void ReComputeActiveInactive(
+        ModelPart & ModelPart, 
+        const double cn
+        )
+    {
+        NodesArrayType& pNode  = ModelPart.Nodes();
+        NodesArrayType::iterator it_node_begin = pNode.ptr_begin();
+        NodesArrayType::iterator it_node_end   = pNode.ptr_end();
+        
+        for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
+        {
+            const array_1d<double,3> lagrange_multiplier = node_it->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER, 0);
+            const array_1d<double,3>        nodal_normal = node_it->GetValue(NORMAL); 
+            const double lambda_n = inner_prod(lagrange_multiplier, nodal_normal);
+            
+            const double check = lambda_n - cn * node_it->GetValue(WEIGHTED_GAP); 
+            
+            if (check >= 0.0)
+            {
+                node_it->Set(ACTIVE, false);
+            }
+            else
+            {
+                node_it->Set(ACTIVE, true);
+            }
+        }
+        
     }
 
 private:

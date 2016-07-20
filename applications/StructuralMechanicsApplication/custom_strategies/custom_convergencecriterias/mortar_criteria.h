@@ -69,6 +69,8 @@ public:
     typedef typename BaseType::TSystemVectorType    TSystemVectorType;
     
     typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
+    
+    typedef ModelPart::NodesContainerType              NodesArrayType;
 
     ///@}
     ///@name Life Cycle
@@ -111,22 +113,20 @@ public:
     {
         if (mInitialPreviousState == false)
         {
-            ConditionsArrayType& pCond  = rModelPart.Conditions();
-            ConditionsArrayType::iterator it_begin = pCond.ptr_begin();
-            ConditionsArrayType::iterator it_end   = pCond.ptr_end();
+            NodesArrayType& pNode  = rModelPart.Nodes();
+            NodesArrayType::iterator it_node_begin = pNode.ptr_begin();
+            NodesArrayType::iterator it_node_end   = pNode.ptr_end();
             
-            for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
+            for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
             {
-                if (cond_it->Is(ACTIVE))
+                if (node_it->Is(INTERFACE))
                 {
-                    std::vector<contact_container> *& ContactContainers = cond_it->GetValue(CONTACT_CONTAINERS);
-                    for (unsigned int i = 0; i < ContactContainers->size(); i++)
+                    bool aux_bool = false;
+                    if (node_it->Is(ACTIVE))
                     {
-                        for (unsigned int j = 0; j < (*ContactContainers)[i].active_nodes_slave.size(); j++)
-                        {
-                            mPreviousState.push_back((*ContactContainers)[i].active_nodes_slave[j]);   
-                        }
+                        aux_bool = true;
                     }
+                    mPreviousState.push_back(aux_bool);   
                 }
             }
             
@@ -136,50 +136,26 @@ public:
         
         bool is_converged = true;
         
-        ConditionsArrayType& pCond  = rModelPart.Conditions();
-        ConditionsArrayType::iterator it_begin = pCond.ptr_begin();
-        ConditionsArrayType::iterator it_end   = pCond.ptr_end();
+        NodesArrayType& pNode  = rModelPart.Nodes();
+        NodesArrayType::iterator it_node_begin = pNode.ptr_begin();
+        NodesArrayType::iterator it_node_end   = pNode.ptr_end();
         
         unsigned int aux_index = 0;
-        for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
+        for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
         {
-            if (cond_it->Is(ACTIVE))
+            if (node_it->Is(INTERFACE))
             {
-                
-                if (this->GetEchoLevel() > 1)
+                bool aux_bool = false;
+                if (node_it->Is(ACTIVE))
                 {
-                    std::cout << std::endl;
-                    std::cout << "The current state of active/inactive nodes for condition " << cond_it->Id() << " is:" << std::endl;
-                    for (unsigned int i = 0; i < mPreviousState.size(); i++)
-                    {
-                        std::cout << mPreviousState[i]<< " ";
-                    }
-                    std::cout << std::endl;
+                    aux_bool = true;
                 }
-                
-                std::vector<contact_container> *& ContactContainers = cond_it->GetValue(CONTACT_CONTAINERS);
-                for (unsigned int i = 0; i < ContactContainers->size(); i++)
-                {
-                    for (unsigned int j = 0; j < (*ContactContainers)[i].active_nodes_slave.size(); j++)
-                    {
-                        if (mPreviousState[aux_index] != (*ContactContainers)[i].active_nodes_slave[j])
-                        {                            
-                            mPreviousState[aux_index] = (*ContactContainers)[i].active_nodes_slave[j];
-                            is_converged = false;
-                        }
-                        aux_index += 1;
-                    }
+                if (mPreviousState[aux_index] != aux_bool)
+                {                            
+                    mPreviousState[aux_index] = aux_bool;
+                    is_converged = false;
                 }
-                
-                if (this->GetEchoLevel() > 1)
-                {
-                    std::cout << "The new state of active/inactive nodes for condition " << cond_it->Id() << " is:" << std::endl;
-                    for (unsigned int i = 0; i < mPreviousState.size(); i++)
-                    {
-                        std::cout << mPreviousState[i]<< " ";
-                    }
-                    std::cout << std::endl;
-                }
+                aux_index += 1;
             }
         }
         
