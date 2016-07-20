@@ -252,8 +252,10 @@ public:
         
         KRATOS_CATCH("")
     }
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// Note: this is in a parallel loop
 
     void CalculateSystemContributions(
         Element::Pointer rCurrentElement,
@@ -273,6 +275,8 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+// Note: this is in a parallel loop
+
     void Condition_CalculateSystemContributions(
         Condition::Pointer rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
@@ -291,6 +295,8 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+// Note: this is in a parallel loop
+
     void Calculate_RHS_Contribution(
         Element::Pointer rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
@@ -307,6 +313,8 @@ public:
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// Note: this is in a parallel loop
 
     void Condition_Calculate_RHS_Contribution(
         Condition::Pointer rCurrentCondition,
@@ -325,6 +333,8 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+// Note: this is in a parallel loop
+
     void Calculate_LHS_Contribution(
         Element::Pointer rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
@@ -341,6 +351,8 @@ public:
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// Note: this is in a parallel loop
 
     void Condition_Calculate_LHS_Contribution(
         Condition::Pointer rCurrentCondition,
