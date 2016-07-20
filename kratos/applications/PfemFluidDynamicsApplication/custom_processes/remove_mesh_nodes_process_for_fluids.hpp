@@ -166,7 +166,7 @@ public:
 	  
 
 	  if(any_node_removed)
-	    mModelerUtilities.CleanRemovedNodes(mrModelPart,mMeshId);
+	    this->CleanRemovedNodes(mrModelPart,mMeshId);
 
 	  if(any_condition_removed){
 	    //Clean Conditions
@@ -312,6 +312,36 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
+
+    //**************************************************************************
+    //**************************************************************************
+
+    void CleanRemovedNodes(ModelPart& rModelPart,ModelPart::IndexType MeshId)
+    {
+        KRATOS_TRY
+
+        //MESH 0 total domain mesh
+	ModelPart::NodesContainerType temporal_nodes;
+	temporal_nodes.reserve(rModelPart.Nodes(MeshId).size());
+	
+	temporal_nodes.swap(rModelPart.Nodes(MeshId));
+	
+	for(ModelPart::NodesContainerType::iterator i_node = temporal_nodes.begin() ; i_node != temporal_nodes.end() ; i_node++)
+	  {
+	    if( i_node->IsNot(TO_ERASE) ){
+	      (rModelPart.Nodes(MeshId)).push_back(*(i_node.base()));	
+	    }
+	    else{
+	      if( i_node->Is(BOUNDARY) )
+		std::cout<<"   BOUNDARY NODE RELEASED "<<i_node->Id()<<std::endl;
+	    }
+	  }
+	
+	rModelPart.Nodes(MeshId).Sort();
+	
+	
+	KRATOS_CATCH( "" )
+    }
 
     //**************************************************************************
     //**************************************************************************
