@@ -399,12 +399,12 @@ public:
         
         mLambda = BaseType::GetModelPart().GetProcessInfo()[ARC_LENGTH_LAMBDA];
         mRadius = (BaseType::GetModelPart().GetProcessInfo()[ARC_LENGTH_RADIUS_FACTOR])*mRadius_0;
-        /*TODO
+        
         // Update External Loads        
         this->UpdateExternalLoads();
         
         // Note: Initialize() needs to be called beforehand
-        
+        /*TODO
 		this->InitializeSolutionStep();
         
 		this->Predict();
