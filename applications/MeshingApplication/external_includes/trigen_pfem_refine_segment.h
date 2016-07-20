@@ -155,7 +155,7 @@ public:
         int step_data_size = ThisModelPart.GetNodalSolutionStepDataSize();
         KRATOS_WATCH(step_data_size);
         // bucket types
-        typedef Bucket<3, PointType, ModelPart::NodesContainerType, PointPointerType, PointIterator, DistanceIterator > BucketType;
+//         typedef Bucket<3, PointType, ModelPart::NodesContainerType, PointPointerType, PointIterator, DistanceIterator > BucketType;
         typedef Bins< 3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > StaticBins;
         // bucket types
         //typedef Bucket<3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > BucketType;//commented

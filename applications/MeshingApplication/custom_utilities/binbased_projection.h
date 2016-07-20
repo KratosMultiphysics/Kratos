@@ -235,8 +235,8 @@ public:
 // 			}
         }
         //defintions for spatial search
-        typedef Node < 3 > PointType;
-        typedef Node < 3 > ::Pointer PointTypePointer;
+//         typedef Node < 3 > PointType;
+//         typedef Node < 3 > ::Pointer PointTypePointer;
 
         array_1d<double, TDim + 1 > N;
         const int max_results = 10000;
@@ -324,10 +324,10 @@ public:
         }
 
         //defintions for spatial search
-        typedef typename BinBasedNodesInElementLocator<TDim>::PointType PointType;
-        typedef typename PointType::Pointer PointTypePointer;
+//         typedef typename BinBasedNodesInElementLocator<TDim>::PointType PointType;
+//         typedef typename PointType::Pointer PointTypePointer;
         typedef typename BinBasedNodesInElementLocator<TDim>::PointIterator PointIterator;
-        typedef typename BinBasedNodesInElementLocator<TDim>::DistanceIterator DistanceIterator;
+//         typedef typename BinBasedNodesInElementLocator<TDim>::DistanceIterator DistanceIterator;
         typedef typename BinBasedNodesInElementLocator<TDim>::PointVector PointVector;
         typedef typename BinBasedNodesInElementLocator<TDim>::DistanceVector DistanceVector;
         const unsigned int max_results = 5000;
