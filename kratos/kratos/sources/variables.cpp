@@ -960,11 +960,11 @@ namespace Kratos
       //Register specific elements ( must be completed : elements defined in kratos_appliction.h)
       KRATOS_REGISTER_ELEMENT( "Element3D4N", mElement3D4N )
       KRATOS_REGISTER_ELEMENT( "Element2D3N", mElement2D3N )
-<<<<<<< .mine	  KRATOS_REGISTER_ELEMENT("Element3D10N", mElement3D10N)
-	  KRATOS_REGISTER_ELEMENT("Element3D8N", mElement3D8N)
-	  KRATOS_REGISTER_ELEMENT("Element3D6N", mElement3D6N)
-=======      KRATOS_REGISTER_ELEMENT( "Element2D2N", mElement2D2N )
->>>>>>> .theirs      
+      KRATOS_REGISTER_ELEMENT("Element3D10N", mElement3D10N)
+      KRATOS_REGISTER_ELEMENT("Element3D8N", mElement3D8N)
+      KRATOS_REGISTER_ELEMENT("Element3D6N", mElement3D6N)
+      KRATOS_REGISTER_ELEMENT( "Element2D2N", mElement2D2N )
+   
       //Register general geometries:
 
       //Points:
