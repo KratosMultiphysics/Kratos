@@ -36,7 +36,6 @@
 #include "custom_strategies/custom_convergencecriterias/mortar_criteria.h"
 
 // Builders and solvers
-#include "custom_strategies/custom_builder_and_solvers/residualbased_block_builder_and_solver_contact.h"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -71,7 +70,6 @@ void  AddCustomStrategiesToPython()
     typedef MortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > MortarConvergenceCriteriaType;
     
     // Custom builder and solvers types
-    typedef ResidualBasedBlockBuilderAndSolverContact< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverContactType;
     
     //********************************************************************
     //*************************SCHEME CLASSES*****************************
@@ -121,11 +119,6 @@ void  AddCustomStrategiesToPython()
     //*************************BUILDER AND SOLVER*************************
     //********************************************************************
 
-    // Residual Based Builder and Solver
-    class_< ResidualBasedBlockBuilderAndSolverContactType, bases<BuilderAndSolverType>, boost::noncopyable > 
-            (
-        "ResidualBasedBlockBuilderAndSolverContact", init< LinearSolverType::Pointer > ()
-            );
             
 }
 

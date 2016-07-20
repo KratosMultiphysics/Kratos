@@ -80,7 +80,9 @@ public:
                 ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, Geom1[index].FastGetSolutionStepValue(NORMAL, 0));
              }  
              
-//              const double dist_tol = ; // NOTE: Add something in function of the velocity
+//              double tolerance = 0.2; // NOTE: As an input
+//              double dist_tol = tolerance * Geom1.Length();
+//              dist_tol = (dist_tol <= tolerance * Geom2.Length()) ? tolerance * Geom2.Length();
              
              array_1d<double, 3> result;
              contact_container.active_nodes_slave[index] = Geom2.IsInside(ProjectedPoint, result);
