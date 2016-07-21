@@ -1090,7 +1090,7 @@ namespace Kratos
   	    typedef Node<3>                                  PointType;
 	    typedef Node<3>::Pointer                  PointPointerType;
 	    typedef std::vector<PointPointerType>   PointPointerVector;
-	    typedef std::vector<PointType>             PointTypeVector;
+	    //typedef std::vector<PointType>             PointTypeVector;
 	    typedef PointPointerVector::iterator         PointIterator;
 	    typedef std::vector<double>                 DistanceVector;
 	    typedef std::vector<double>::iterator     DistanceIterator;

@@ -3127,14 +3127,14 @@ namespace Kratos
     {
       
       //defintions for spatial search
-      typedef Node<3>                                  PointType;
-      typedef Node<3>::Pointer                  PointPointerType;
-      typedef std::vector<PointPointerType>          PointVector;
-      typedef PointVector::iterator                PointIterator;
+      //typedef Node<3>                                  PointType;
+      //typedef Node<3>::Pointer                  PointPointerType;
+      //typedef std::vector<PointPointerType>          PointVector;
+      //typedef PointVector::iterator                PointIterator;
       //typedef std::vector<double>                 DistanceVector;
-      typedef std::vector<double>::iterator     DistanceIterator;
+      //typedef std::vector<double>::iterator     DistanceIterator;
 	
-      typedef Bucket<3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > BucketType;
+      //typedef Bucket<3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > BucketType;
       //typedef Tree< KDTreePartition<BucketType> >     KdtreeType; //Kdtree
       //defintions for spatial search
 
