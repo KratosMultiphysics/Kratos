@@ -304,21 +304,6 @@ public:
                 }
             }
 
-            // std::cout << " DispPre " << PreviousDisplacement << " ID " << i->Id() << std::endl;
-            // std::cout << " DispCur " << CurrentDisplacement  << " ID " << i->Id() << std::endl;
-
-            if (itNode->HasDofFor(PRESSURE))
-            {
-                double& PreviousPressure    = (itNode)->FastGetSolutionStepValue(PRESSURE, 1);
-                double& CurrentPressure     = (itNode)->FastGetSolutionStepValue(PRESSURE, 0);
-
-                if (itNode->IsFixed(PRESSURE) == false)
-                {
-                    CurrentPressure = PreviousPressure;
-                }
-
-                // std::cout<<" PressureCur [1] " << CurrentPressure << " PressurePre [1] " << PreviousPressure << " ID " << i->Id() << std::endl;
-            }
 
             // Updating time derivatives ::: Please note that displacements and its time derivatives can not be consistently fixed separately
             noalias(DeltaDisplacement) = CurrentDisplacement - PreviousDisplacement;
@@ -422,12 +407,7 @@ public:
 
         if (DeltaTime < 1.0e-24)
         {
-            std::cout << " WARNING: detected delta_time = 0 in the Solution Scheme " << std::endl;
-            std::cout << " DELTA_TIME set to 1 considering a Quasistatic step with one step only " << std::endl;
-            std::cout << " PLEASE : check if the time step is created correctly for the current model part " << std::endl;
-
-            CurrentProcessInfo[DELTA_TIME] = 1.0;
-            DeltaTime = CurrentProcessInfo[DELTA_TIME];
+            KRATOS_ERROR << " ERROR: detected delta_time = 0 in the Solution Scheme DELTA_TIME. PLEASE : check if the time step is created correctly for the current model part ";
         }
 
         // Initializing Newmark constants
@@ -437,8 +417,6 @@ public:
         mNewmark.c3 = ( 0.5 / (mNewmark.beta) - 1.0 );
         mNewmark.c4 = ( (mNewmark.gamma / mNewmark.beta) - 1.0  );
         mNewmark.c5 = ( DeltaTime * 0.5 * ( ( mNewmark.gamma / mNewmark.beta ) - 2.0 ) );
-
-        // std::cout<<" Newmark Variables " << mNewmark.c0 << " " << mNewmark.c1 << " " << mNewmark.c2 << " " << mNewmark.c3 << " " << mNewmark.c4 << " " << mNewmark.c5 << std::endl;
 
         KRATOS_CATCH( "" );
     }
