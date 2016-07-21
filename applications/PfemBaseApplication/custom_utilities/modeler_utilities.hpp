@@ -51,7 +51,6 @@ class KRATOS_API(PFEM_BASE_MECHANICS_APPLICATION) ModelerUtilities
 {
 public:
   
-
     ///@name Type Definitions
     ///@{
 
@@ -1135,6 +1134,24 @@ public:
 
     double CheckCriticalRadius (ModelPart& rModelPart, double& rCriticalRadius, unsigned int MeshId = 0);
 
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+
+    /**
+     *  Set Nodes to mesh
+     */
+    void SetNodes(ModelPart& rModelPart,
+		  MeshingParametersType& rMeshingVariables,
+		  ModelPart::IndexType MeshId);
+
+    /**
+     * Set Elements to mesh
+     */
+    void SetElements(ModelPart& rModelPart,
+		     MeshingParametersType& rMeshingVariables,
+		     ModelPart::IndexType MeshId);
+  
     ///@}
     ///@name Access
     ///@{
