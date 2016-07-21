@@ -71,11 +71,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //#include "custom_strategies/custom_schemes/schemes/residual_based_bossak_scheme.hpp"
 #include "custom_strategies/schemes/MPM_residual_based_bossak_scheme.hpp"
-#include "custom_strategies/schemes/residual_based_static_scheme.hpp"
+//#include "custom_strategies/schemes/residual_based_static_scheme.hpp"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 
-#include "custom_strategies/builders_and_solvers/residual_based_builder_and_solver.hpp"
-
+//#include "custom_strategies/builders_and_solvers/residual_based_builder_and_solver.hpp"
+#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 // #include "custom_strategies/custom_builders_and_solvers/block_residual_based_builder_and_solver.hpp"
 //convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -341,7 +341,7 @@ public:
             
             
             typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace >() );
-            typename TBuilderAndSolverType::Pointer pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            typename TBuilderAndSolverType::Pointer pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
             
             double ratio_tolerance = 0.0001;
             double always_converged_norm = 1e-09;
@@ -362,7 +362,7 @@ public:
             double Dynamic;
             typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, Alpham = 0.0, Dynamic=1) );
            
-            typename TBuilderAndSolverType::Pointer pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            typename TBuilderAndSolverType::Pointer pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
             
             double ratio_tolerance = 0.0001;
             double always_converged_norm = 1e-09;
@@ -383,7 +383,7 @@ public:
             double Dynamic;
             typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, Alpham = 0.00, Dynamic=0) );
             
-            typename TBuilderAndSolverType::Pointer pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            typename TBuilderAndSolverType::Pointer pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
             
             double ratio_tolerance = 0.0001;
             double always_converged_norm = 1e-09;
