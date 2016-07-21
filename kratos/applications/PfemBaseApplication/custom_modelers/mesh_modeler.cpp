@@ -538,7 +538,7 @@ namespace Kratos
     KRATOS_TRY
      
     ModelerUtilities ModelerUtils;
-    ModelerUtilities.SetNodes(rModelPart,rMeshingVariables,MeshId)
+    ModelerUtils.SetNodes(rModelPart,rMeshingVariables,MeshId);
 
     KRATOS_CATCH( "" )
 
@@ -555,7 +555,7 @@ namespace Kratos
     KRATOS_TRY
        
     ModelerUtilities ModelerUtils;
-    ModelerUtilities.SetElements(rModelPart,rMeshingVariables,MeshId)
+    ModelerUtils.SetElements(rModelPart,rMeshingVariables,MeshId);
 
     KRATOS_CATCH( "" )
 

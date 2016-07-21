@@ -21,7 +21,7 @@
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
-
+#include "utilities/beam_math_utilities.hpp"
 
 namespace Kratos
 {
@@ -57,24 +57,33 @@ public:
   typedef ModelPart::NodeType::Pointer                     NodeType;
   typedef ModelPart::NodesContainerType          NodesContainerType;
   typedef NodesContainerType::Pointer     NodesContainerTypePointer;
- 
+  typedef BeamMathUtils<double>                   BeamMathUtilsType;
+  typedef Quaternion<double>                         QuaternionType;
+
 protected:
 
   typedef struct
   {
 
-    int    Dimension;           // 2D or 3D
-    bool   Axisymmetric;        // true or false
-    int    Convexity;           // 1 or -1  if "in" is inside or outside respectively   
-    double Radius;              // box radius
-    
-    PointType  HighPoint;      // box highest point
-    PointType  LowPoint;       // box lowest point
+    int        Dimension;        // 2D or 3D
+    bool       Axisymmetric;     // true or false
+    int        Convexity;        // 1 or -1  if "in" is inside or outside respectively   
+    double     Radius;           // box radius
 
-    PointType  OriginalCenter; // center original position
-    PointType  Center;         // center current position
-    PointType  Velocity;       // velocity of the center
+    PointType  InitialUpperPoint; // box highest point
+    PointType  InitialLowerPoint;  // box lowest point
+    PointType  InitialCenter;    // center current position
+  
+    PointType  UpperPoint;        // box highest point
+    PointType  LowerPoint;         // box lowest point
+    PointType  Center;           // center current position
+
+    PointType  Velocity;         // box velocity
+    PointType  AngularVelocity;  // box rotation
     
+    QuaternionType  InitialLocalQuaternion; //initial local axes for the box
+    QuaternionType  LocalQuaternion;        //local axes for the box
+
   public:
     
     void Initialize()
@@ -84,14 +93,36 @@ protected:
       Convexity = 1;
       Radius = 0;
 
-      HighPoint.clear();
-      LowPoint.clear();
-
-      OriginalCenter.clear();
+      UpperPoint.clear();
+      LowerPoint.clear();
       Center.clear();
+
+      InitialUpperPoint.clear();
+      InitialLowerPoint.clear();
+      InitialCenter.clear();
+
       Velocity.clear();
+      AngularVelocity.clear();
+
+      Matrix InitialLocalMatrix = IdentityMatrix(3);
+      InitialLocalQuaternion  = QuaternionType::FromRotationMatrix( InitialLocalMatrix );
+      LocalQuaternion         = QuaternionType::FromRotationMatrix( InitialLocalMatrix );
+
     }
 
+    void SetInitialValues()
+    {
+      InitialUpperPoint = Center;
+      InitialLowerPoint  = Center;
+      InitialCenter    = Center;
+    }
+
+    void UpdatePosition( PointType& Displacement )
+    {
+      UpperPoint = InitialUpperPoint + Displacement;
+      LowerPoint = InitialLowerPoint  + Displacement;
+      Center     = InitialCenter    + Displacement;
+    }
 
   } BoundingBoxVariables;
 
@@ -117,7 +148,7 @@ public:
       KRATOS_TRY
 
       mBox.Initialize();
-      mBoxCenterSupplied = false;
+      mRigidBodyCenterSupplied = false;
       //std::cout<< " Calling Bounding Box empty constructor" <<std::endl;
 
       KRATOS_CATCH("")
@@ -135,12 +166,13 @@ public:
       Parameters DefaultParameters( R"(
             {
                 "parameters_list":[{
-                   "high_point": [0.0, 0.0, 0.0],
-                   "low_point": [0.0, 0.0, 0.0],
-                   "convexity": 1
+                    "upper_point": [0.0, 0.0, 0.0],
+                    "lower_point": [0.0, 0.0, 0.0],
+                    "convexity": 1
                  }],
-                 "velocity": [0.0, 0.0, 0.0]
- 
+                 "velocity": [0.0, 0.0, 0.0],
+                 "angular_velocity": [0.0, 0.0, 0.0],
+                 "local_axes":[ [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ]
             }  )" );
 
 
@@ -156,26 +188,49 @@ public:
 
       Parameters BoxParameters = CustomParameters["parameters_list"][0];
 
-      mBox.HighPoint[0] = BoxParameters["high_point"][0].GetDouble();
-      mBox.HighPoint[1] = BoxParameters["high_point"][1].GetDouble();
-      mBox.HighPoint[2] = BoxParameters["high_point"][2].GetDouble();
+      mBox.UpperPoint[0] = BoxParameters["upper_point"][0].GetDouble();
+      mBox.UpperPoint[1] = BoxParameters["upper_point"][1].GetDouble();
+      mBox.UpperPoint[2] = BoxParameters["upper_point"][2].GetDouble();
 
-      mBox.LowPoint[0] = BoxParameters["low_point"][0].GetDouble();
-      mBox.LowPoint[1] = BoxParameters["low_point"][1].GetDouble();
-      mBox.LowPoint[2] = BoxParameters["low_point"][2].GetDouble();
+      mBox.LowerPoint[0] = BoxParameters["lower_point"][0].GetDouble();
+      mBox.LowerPoint[1] = BoxParameters["lower_point"][1].GetDouble();
+      mBox.LowerPoint[2] = BoxParameters["lower_point"][2].GetDouble();
 
-      mBox.Center = 0.5 * ( mBox.HighPoint + mBox.LowPoint );
-      mBox.Radius = 0.5 * norm_2(mBox.HighPoint - mBox.LowPoint);   
+      mBox.Center = 0.5 * ( mBox.UpperPoint + mBox.LowerPoint );
+      mBox.Radius = 0.5 * norm_2(mBox.UpperPoint - mBox.LowerPoint);   
 
       mBox.Velocity[0] = CustomParameters["velocity"][0].GetDouble();
       mBox.Velocity[1] = CustomParameters["velocity"][1].GetDouble();
       mBox.Velocity[2] = CustomParameters["velocity"][2].GetDouble();
 
+      mBox.AngularVelocity[0] = CustomParameters["angular_velocity"][0].GetDouble();
+      mBox.AngularVelocity[1] = CustomParameters["angular_velocity"][1].GetDouble();
+      mBox.AngularVelocity[2] = CustomParameters["angular_velocity"][2].GetDouble();
+
       mBox.Convexity = BoxParameters["convexity"].GetInt();
 
-      mBox.OriginalCenter = mBox.Center;
+      Matrix InitialLocalMatrix = IdentityMatrix(3);
 
-      mBoxCenterSupplied = false;
+      unsigned int size = CustomParameters["local_axes"].size();
+
+      for( unsigned int i=0; i<size; i++ )
+	{
+	  Parameters LocalAxesRow = CustomParameters["local_axes"][i];
+
+	  InitialLocalMatrix(0,i) = LocalAxesRow[0].GetDouble(); //column disposition
+	  InitialLocalMatrix(1,i) = LocalAxesRow[1].GetDouble();
+	  InitialLocalMatrix(2,i) = LocalAxesRow[2].GetDouble();
+	} 
+
+      //set to local frame
+      this->MapToLocalFrame(mBox.InitialLocalQuaternion,mBox);
+
+      BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, mBox.Velocity);
+      BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, mBox.AngularVelocity);
+
+      mBox.SetInitialValues();
+
+      mRigidBodyCenterSupplied = false;
 
       KRATOS_CATCH("")
     }
@@ -183,20 +238,26 @@ public:
     //**************************************************************************
     //**************************************************************************
 
-    SpatialBoundingBox(const PointType& rLowPoint, const PointType& rHighPoint )
+    SpatialBoundingBox(const PointType& rLowerPoint, const PointType& rUpperPoint )
     {
       KRATOS_TRY
 
       mBox.Initialize();
-      mBox.HighPoint = rHighPoint;
-      mBox.LowPoint  = rLowPoint;
+      mBox.UpperPoint = rUpperPoint;
+      mBox.LowerPoint  = rLowerPoint;
 
-      mBox.Center = 0.5 * ( rHighPoint + rLowPoint );
-      mBox.Radius = 0.5 * norm_2(rHighPoint-rLowPoint); 
+      mBox.Center = 0.5 * ( rUpperPoint + rLowerPoint );
+      mBox.Radius = 0.5 * norm_2(rUpperPoint-rLowerPoint); 
 
-      mBox.OriginalCenter = mBox.Center;
- 
-      mBoxCenterSupplied = false;
+      //set to local frame
+      this->MapToLocalFrame(mBox.InitialLocalQuaternion,mBox);
+
+      BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, mBox.Velocity);
+      BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, mBox.AngularVelocity);
+
+      mBox.SetInitialValues();
+
+      mRigidBodyCenterSupplied = false;
 
       KRATOS_CATCH("")
     }
@@ -217,12 +278,15 @@ public:
       Side[1] = mBox.Radius;
       Side[2] = mBox.Radius;
 
-      mBox.HighPoint = mBox.Center + Side;
-      mBox.LowPoint  = mBox.Center - Side;
+      mBox.UpperPoint = mBox.Center + Side;
+      mBox.LowerPoint  = mBox.Center - Side;
 
-      mBox.OriginalCenter = mBox.Center;
+      //set to local frame
+      this->MapToLocalFrame(mBox.InitialLocalQuaternion,mBox);
 
-      mBoxCenterSupplied = false;
+      mBox.SetInitialValues();
+
+      mRigidBodyCenterSupplied = false;
 
       KRATOS_CATCH("")
     }
@@ -301,12 +365,13 @@ public:
       Side[1] = mBox.Radius;
       Side[2] = mBox.Radius;
 
-      mBox.HighPoint = mBox.Center + Side;
-      mBox.LowPoint  = mBox.Center - Side;
+      mBox.UpperPoint = mBox.Center + Side;
+      mBox.LowerPoint  = mBox.Center - Side;
 
-      mBox.OriginalCenter = mBox.Center;
+      //set to local frame
+      this->MapToLocalFrame(mBox.InitialLocalQuaternion,mBox);
 
-      mBoxCenterSupplied = false;
+      mRigidBodyCenterSupplied = false;
 
       KRATOS_CATCH("")
     }
@@ -320,8 +385,8 @@ public:
     {
       KRATOS_TRY
 	
-      mpBoxCenter = rOther.mpBoxCenter;
-      mBoxCenterSupplied = rOther.mBoxCenterSupplied;
+      mpRigidBodyCenter = rOther.mpRigidBodyCenter;
+      mRigidBodyCenterSupplied = rOther.mRigidBodyCenterSupplied;
       mBox = rOther.mBox;
 
       return *this;
@@ -335,8 +400,8 @@ public:
 
     /// Copy constructor.
     SpatialBoundingBox(SpatialBoundingBox const& rOther) 
-      :mpBoxCenter(rOther.mpBoxCenter)
-      ,mBoxCenterSupplied(rOther.mBoxCenterSupplied)
+      :mpRigidBodyCenter(rOther.mpRigidBodyCenter)
+      ,mRigidBodyCenterSupplied(rOther.mRigidBodyCenterSupplied)
       ,mBox(rOther.mBox)
     {
     }
@@ -367,8 +432,10 @@ public:
       KRATOS_TRY
 
       PointType Displacement  =  this->GetBoxDisplacement(rCurrentTime);
+      
+      mBox.UpdatePosition(Displacement);
 
-      mBox.Center = mBox.OriginalCenter + Displacement;
+      this->MapToLocalFrame(mBox.LocalQuaternion, mBox);
 
       KRATOS_CATCH("")
       
@@ -387,35 +454,81 @@ public:
 
       PointType Displacement  =  this->GetBoxDisplacement(rCurrentTime);
 
-      PointType Reference = mBox.Center + Displacement;
+      mBox.UpdatePosition(Displacement);
+
+      this->MapToLocalFrame(mBox.LocalQuaternion, mBox);
       
-      if(norm_2((Reference-rPoint)) > 2 * mBox.Radius)
+      PointType LocalPoint = rPoint;
+      BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, LocalPoint);
+
+
+      if(norm_2((mBox.Center-LocalPoint)) > 2 * mBox.Radius)
 	inside = false;
 
-      Reference = mBox.HighPoint + Displacement;
-
       for(unsigned int i=0; i<mBox.Center.size(); i++)
 	{
-	  if(Reference[i]<rPoint[i]){
+	  if(mBox.UpperPoint[i]<LocalPoint[i]){
 	    inside = false;
 	    break;
 	  }
 	}
 
-      Reference = mBox.LowPoint + Displacement;
-
       for(unsigned int i=0; i<mBox.Center.size(); i++)
 	{
-	  if(Reference[i]>rPoint[i]){
+	  if(mBox.LowerPoint[i]>LocalPoint[i]){
 	    inside = false;
 	    break;
 	  }
 	}
 
+      QuaternionType LocaQuaternionlConjugate = mBox.LocalQuaternion.conjugate();
+      this->MapToLocalFrame(LocaQuaternionlConjugate, mBox);
            
       return inside;
 
       KRATOS_CATCH("")
+
+    }
+
+
+    //**************************************************************************
+    //**************************************************************************
+
+
+    virtual bool IsInside (const PointType& rPoint)
+    {
+
+      KRATOS_TRY
+
+      bool inside = true;
+     
+      PointType LocalPoint = rPoint;
+      BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, LocalPoint);
+
+
+      if(norm_2((mBox.Center-LocalPoint)) > 2 * mBox.Radius)
+	inside = false;
+
+      for(unsigned int i=0; i<mBox.Center.size(); i++)
+	{
+	  if(mBox.UpperPoint[i]<LocalPoint[i]){
+	    inside = false;
+	    break;
+	  }
+	}
+
+      for(unsigned int i=0; i<mBox.Center.size(); i++)
+	{
+	  if(mBox.LowerPoint[i]>LocalPoint[i]){
+	    inside = false;
+	    break;
+	  }
+	}
+           
+      return inside;
+
+      KRATOS_CATCH("")
+
     }
 
 
@@ -428,7 +541,7 @@ public:
 
       ContactFace = 0;
 
-      return IsInside(rPoint, Radius);
+      return IsInside(rPoint);
 
       KRATOS_CATCH("")
     }
@@ -477,6 +590,16 @@ public:
     void SetVelocity(PointType& rVelocity)
     {
       mBox.Velocity = rVelocity;
+      BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, mBox.Velocity);
+    }
+
+    //**************************************************************************
+    //**************************************************************************
+
+    void SetAngularVelocity(PointType& rAngularVelocity)
+    {
+      mBox.AngularVelocity = rAngularVelocity;
+      BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, mBox.AngularVelocity);
     }
 
     //**************************************************************************
@@ -500,8 +623,8 @@ public:
 
     void SetBoxCenterNode(NodeType pCenter)
     {
-      mpBoxCenter = pCenter;     
-      mBoxCenterSupplied = true;
+      mpRigidBodyCenter = pCenter;     
+      mRigidBodyCenterSupplied = true;
     }
 
     // GET
@@ -527,6 +650,8 @@ public:
 
     virtual PointType GetCenter()
     {
+       PointType Center = mBox.Center;
+       BeamMathUtilsType::MapToReferenceLocalFrame(mBox.InitialLocalQuaternion, mBox.Center);
        return mBox.Center;
     }
 
@@ -535,6 +660,8 @@ public:
 
     virtual PointType GetCenter(const PointType& rPoint)
     {
+       PointType Center = mBox.Center;
+       BeamMathUtilsType::MapToReferenceLocalFrame(mBox.InitialLocalQuaternion, mBox.Center);
        return mBox.Center;
     }
 
@@ -584,11 +711,11 @@ public:
     
       std::vector<PointType> vertices;
 
-      PointType Displacement = GetBoxDisplacement( rCurrentTime );
+      PointType Displacement = this->GetBoxDisplacement( rCurrentTime );
 
-      PointType Reference = mBox.HighPoint + Displacement;
+      PointType Reference = mBox.UpperPoint + Displacement;
       
-      PointType Side = mBox.HighPoint - mBox.LowPoint;
+      PointType Side = mBox.UpperPoint - mBox.LowerPoint;
 
       //point 1
       vertices.push_back(Reference);
@@ -611,7 +738,7 @@ public:
 
       if( rDimension == 3 ){ 
 
-	Reference = mBox.LowPoint + Displacement;
+	Reference = mBox.LowerPoint + Displacement;
 	
 	//point 5
 	vertices.push_back(Reference);
@@ -662,7 +789,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        rOStream << mBox.HighPoint << " , " << mBox.LowPoint;
+        rOStream << mBox.UpperPoint << " , " << mBox.LowerPoint;
     }
 
     ///@}
@@ -681,9 +808,9 @@ protected:
     ///@name Protected member Variables
     ///@{
   
-    NodeType      mpBoxCenter;
+    NodeType      mpRigidBodyCenter;
 
-    bool   mBoxCenterSupplied;
+    bool   mRigidBodyCenterSupplied;
 
     BoundingBoxVariables mBox;
 
@@ -696,24 +823,57 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    //**************************************************************************
+    //**************************************************************************
+
+    void MapToLocalFrame(QuaternionType& rQuaternion, BoundingBoxVariables& rBox)
+    {
+      KRATOS_TRY
+
+      BeamMathUtilsType::MapToCurrentLocalFrame(rQuaternion, rBox.UpperPoint);
+      BeamMathUtilsType::MapToCurrentLocalFrame(rQuaternion, rBox.LowerPoint);
+      BeamMathUtilsType::MapToCurrentLocalFrame(rQuaternion, rBox.Center);
+
+      KRATOS_CATCH("")
+    }
+
 
     //**************************************************************************
     //**************************************************************************
   
     PointType GetBoxDisplacement(const double& rCurrentTime)
     {
+      
       PointType Displacement = ZeroVector(3);
+      PointType Rotation = ZeroVector(3);
+      
+      if( mRigidBodyCenterSupplied ){
 
-      if( mBoxCenterSupplied ){
-
-	array_1d<double, 3 > & CurrentDisplacement = mpBoxCenter->FastGetSolutionStepValue(DISPLACEMENT);
+	array_1d<double, 3 > & CurrentDisplacement = mpRigidBodyCenter->FastGetSolutionStepValue(DISPLACEMENT);
 	for( int i=0; i<3; i++ )
 	  Displacement[i] = CurrentDisplacement[i];
+
+	if( mpRigidBodyCenter->SolutionStepsDataHas(ROTATION) ){
+	  array_1d<double, 3 > & CurrentRotation = mpRigidBodyCenter->FastGetSolutionStepValue(ROTATION);
+	  for( int i=0; i<3; i++ )
+	    Rotation[i] = CurrentRotation[i];
+	}
+
+	//local base rotation
+	BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, Rotation);
+	mBox.LocalQuaternion = QuaternionType::FromRotationVector(Rotation);
+	
+	BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, Displacement);
 
       }
       else{
 
 	Displacement = mBox.Velocity * rCurrentTime;
+	Rotation     = mBox.AngularVelocity * rCurrentTime;
+
+	//local base rotation
+	BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, Rotation);
+	mBox.LocalQuaternion = QuaternionType::FromRotationVector(Rotation);
 	
       }
       

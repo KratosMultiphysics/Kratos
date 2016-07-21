@@ -154,9 +154,9 @@ public:
 
       mBox.Convexity = BoxParameters["convexity"].GetInt();
 
-      mBox.OriginalCenter = mBox.Center;
+      mBox.SetInitialValues();
 
-      mBoxCenterSupplied = false;
+      mRigidBodyCenterSupplied = false;
 
       KRATOS_CATCH("")
     }
@@ -192,9 +192,9 @@ public:
       
       mBox.Velocity = Velocity;
 
-      mBox.OriginalCenter = mBox.Center;
+      mBox.SetInitialValues();
 
-      mBoxCenterSupplied = false;
+      mRigidBodyCenterSupplied = false;
 
       KRATOS_CATCH("")
     }
@@ -252,7 +252,7 @@ public:
 
       PointType Displacement  =  this->GetBoxDisplacement(rCurrentTime);
 
-      mBox.Center  = mBox.OriginalCenter + Displacement;
+      mBox.UpdatePosition(Displacement);
 
       mPlane.Point = mBox.Center;
 
@@ -286,7 +286,7 @@ public:
 
       PointType  Displacement = this->GetBoxDisplacement(rCurrentTime);      
 
-      PointType  PlanePoint   = mBox.OriginalCenter + Displacement;
+      PointType  PlanePoint   = mBox.InitialCenter + Displacement;
       
       if( mBox.Convexity == 1 )
 	PlanePoint += mPlane.Normal * 0.1; //increase the bounding box 
@@ -369,7 +369,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        rOStream << this->mBox.HighPoint << " , " << this->mBox.LowPoint;
+        rOStream << this->mBox.UpperPoint << " , " << this->mBox.LowerPoint;
     }
 
     ///@}
