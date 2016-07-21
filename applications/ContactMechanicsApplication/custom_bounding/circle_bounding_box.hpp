@@ -179,7 +179,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        rOStream << this->mBox.HighPoint << " , " << this->mBox.LowPoint;
+        rOStream << this->mBox.UpperPoint << " , " << this->mBox.LowerPoint;
     }
 
     ///@}

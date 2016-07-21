@@ -1450,7 +1450,7 @@ namespace Kratos
   //*******************************************************************************************
 
   void ModelerUtilities::SetNodes(ModelPart& rModelPart,
-				  MeshingParametersType& rMeshingVariables,
+				  MeshingParameters& rMeshingVariables,
 				  ModelPart::IndexType MeshId)
   {
     KRATOS_TRY
@@ -1536,7 +1536,7 @@ namespace Kratos
   //*******************************************************************************************
 
   void ModelerUtilities::SetElements(ModelPart& rModelPart,
-				     MeshingParametersType& rMeshingVariables,
+				     MeshingParameters& rMeshingVariables,
 				     ModelPart::IndexType MeshId)
   {
     KRATOS_TRY

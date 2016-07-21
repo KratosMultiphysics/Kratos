@@ -130,12 +130,12 @@ public:
       Side[1] = mBox.Radius;
       Side[2] = mBox.Radius;
 
-      mBox.HighPoint = mBox.Center + Side;
-      mBox.LowPoint  = mBox.Center - Side;
+      mBox.UpperPoint = mBox.Center + Side;
+      mBox.LowerPoint  = mBox.Center - Side;
 
-      mBox.OriginalCenter = mBox.Center;
+      mBox.SetInitialValues();
 
-      mBoxCenterSupplied = false;
+      mRigidBodyCenterSupplied = false;
 
       KRATOS_CATCH("")
     }
@@ -167,9 +167,9 @@ public:
       
       mBox.Velocity = Velocity;
 
-      mBox.OriginalCenter = mBox.Center;
+      mBox.SetInitialValues();
 
-      mBoxCenterSupplied = false;
+      mRigidBodyCenterSupplied = false;
 
       KRATOS_CATCH("")
     }
@@ -328,7 +328,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        rOStream << this->mBox.HighPoint << " , " << this->mBox.LowPoint;
+        rOStream << this->mBox.UpperPoint << " , " << this->mBox.LowerPoint;
     }
 
     ///@}

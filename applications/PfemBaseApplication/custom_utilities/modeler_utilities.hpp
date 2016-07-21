@@ -1142,14 +1142,14 @@ public:
      *  Set Nodes to mesh
      */
     void SetNodes(ModelPart& rModelPart,
-		  MeshingParametersType& rMeshingVariables,
+		  MeshingParameters& rMeshingVariables,
 		  ModelPart::IndexType MeshId);
 
     /**
      * Set Elements to mesh
      */
     void SetElements(ModelPart& rModelPart,
-		     MeshingParametersType& rMeshingVariables,
+		     MeshingParameters& rMeshingVariables,
 		     ModelPart::IndexType MeshId);
   
     ///@}

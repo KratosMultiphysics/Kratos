@@ -93,7 +93,7 @@ namespace Python
     //compound_noses-wall
     class_<CompoundNosesBoundingBox, bases<BoundingBoxBaseType>, boost::noncopyable > 
       ( "CompoundNosesBoundingBox", 
-	init< Vector, Vector, Vector, Matrix, Vector, Vector >() )
+	init< Vector, Vector, Vector, Matrix, Vector, Vector, Vector, Vector, Vector, Matrix >() )
         .def(init< Parameters >())
         .def(init< Parameters& >())
       ;

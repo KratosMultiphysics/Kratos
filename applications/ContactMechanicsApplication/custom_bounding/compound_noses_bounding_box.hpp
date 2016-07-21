@@ -60,10 +60,12 @@ class CompoundNosesBoundingBox
 {
 public:
 
-   typedef bounded_vector<double, 3>                       PointType;
-   typedef ModelPart::NodeType::Pointer                     NodeType;
-   typedef ModelPart::NodesContainerType          NodesContainerType;
-   typedef NodesContainerType::Pointer     NodesContainerTypePointer;
+  typedef bounded_vector<double, 3>                       PointType;
+  typedef ModelPart::NodeType::Pointer                     NodeType;
+  typedef ModelPart::NodesContainerType          NodesContainerType;
+  typedef NodesContainerType::Pointer     NodesContainerTypePointer;
+  typedef BeamMathUtils<double>                   BeamMathUtilsType;
+  typedef Quaternion<double>                         QuaternionType;
 
 private:
 
@@ -82,12 +84,13 @@ protected:
      double TangentRakeAngle;      //tan((pi/2)-#RakeAngle)
      double TangentClearanceAngle; //tan((pi/2)-#ClearanceAngle)
     
-     PointType  OriginalCenter; // center original position
-     PointType  Center;         // center current position
+     PointType  InitialCenter; // center original position
+     PointType  Center;        // center current position
+    
     
    public:
     
-     void clear()
+     void Initialize()
      {
        Convexity = 1;
        Radius = 0;
@@ -97,11 +100,21 @@ protected:
        TangentRakeAngle = 0;
        TangentClearanceAngle = 0;
 
-       OriginalCenter.clear();
+       InitialCenter.clear();
        Center.clear();
      }
+     
+     void SetInitialValues()
+     {
+       InitialCenter = Center;
+     }
 
+     void UpdatePosition( PointType& Displacement )
+     {
+       Center = InitialCenter + Displacement;
+     }
 
+     
    } BoxNoseVariables;
 
 
@@ -137,8 +150,11 @@ public:
       Parameters DefaultParameters( R"(
             {
                 "parameters_list": [],
-                "velocity": [0.0, 0.0, 0.0]
-
+                "velocity": [0.0, 0.0, 0.0],
+                "angular_velocity": [0.0, 0.0, 0.0],
+                "upper_point": [0.0, 0.0, 0.0],
+                "lower_point": [0.0, 0.0, 0.0],
+                "local_axes":[ [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ],
             }  )" );
 
 
@@ -150,9 +166,7 @@ public:
       // "convexity": 0}
 
       //validate against defaults -- this also ensures no type mismatch
-      CustomParameters.ValidateAndAssignDefaults(DefaultParameters);
-        
-      mBox.Initialize();
+      CustomParameters.ValidateAndAssignDefaults(DefaultParameters);       
 
       unsigned int list_size = CustomParameters["parameters_list"].size();
 
@@ -177,12 +191,41 @@ public:
 	  Convexities[i]     = NoseParameters["convexity"].GetInt();
 	}
 
-      PointType Velocity;
+      Vector Velocity;
       Velocity[0] = CustomParameters["velocity"][0].GetDouble();
       Velocity[1] = CustomParameters["velocity"][1].GetDouble();
       Velocity[2] = CustomParameters["velocity"][2].GetDouble();
 
-      this->CreateCompoundNosesBox(Radius,RakeAngles,ClearanceAngles,Centers,Convexities,Velocity);
+      Vector AngularVelocity;
+      AngularVelocity[0] = CustomParameters["angular_velocity"][0].GetDouble();
+      AngularVelocity[1] = CustomParameters["angular_velocity"][1].GetDouble();
+      AngularVelocity[2] = CustomParameters["angular_velocity"][2].GetDouble();
+
+      Vector UpperPoint;
+      UpperPoint[0] = CustomParameters["upper_point"][0].GetDouble();
+      UpperPoint[1] = CustomParameters["upper_point"][1].GetDouble();
+      UpperPoint[2] = CustomParameters["upper_point"][2].GetDouble();
+
+      Vector LowerPoint;
+      LowerPoint[0] = CustomParameters["lower_point"][0].GetDouble();
+      LowerPoint[1] = CustomParameters["lower_point"][1].GetDouble();
+      LowerPoint[2] = CustomParameters["lower_point"][2].GetDouble();
+
+      Matrix InitialLocalMatrix = IdentityMatrix(3);
+
+      unsigned int size = CustomParameters["local_axes"].size();
+
+      for( unsigned int i=0; i<size; i++ )
+	{
+	  Parameters LocalAxesRow = CustomParameters["local_axes"][i];
+
+	  InitialLocalMatrix(0,i) = LocalAxesRow[0].GetDouble(); //column disposition
+	  InitialLocalMatrix(1,i) = LocalAxesRow[1].GetDouble();
+	  InitialLocalMatrix(2,i) = LocalAxesRow[2].GetDouble();
+	} 
+
+      this->CreateCompoundNosesBox(Radius,RakeAngles,ClearanceAngles,Centers,Convexities,
+				   Velocity, AngularVelocity, UpperPoint, LowerPoint, InitialLocalMatrix);
 
       KRATOS_CATCH("")
 
@@ -198,12 +241,17 @@ public:
 			     Vector ClearanceAngles,
 			     Matrix Centers,
 			     Vector Convexities,
-			     PointType Velocity)
+			     Vector Velocity,
+			     Vector AngularVelocity,
+			     Vector UpperPoint,
+			     Vector LowerPoint,
+			     Matrix InitialLocalMatrix) //column disposition of the local_axes matrix
     {
     
       KRATOS_TRY
 
-      this->CreateCompoundNosesBox(Radius,RakeAngles,ClearanceAngles,Centers,Convexities,Velocity);
+      this->CreateCompoundNosesBox(Radius,RakeAngles,ClearanceAngles,Centers,Convexities,
+				   Velocity, AngularVelocity, UpperPoint, LowerPoint, InitialLocalMatrix);
 
       KRATOS_CATCH("")
 
@@ -216,6 +264,7 @@ public:
     CompoundNosesBoundingBox& operator=(CompoundNosesBoundingBox const& rOther)
     {
       SpatialBoundingBox::operator=(rOther);
+      mBoxNoses = rOther.mBoxNoses;
       return *this;
     }
 
@@ -225,6 +274,7 @@ public:
     /// Copy constructor.
     CompoundNosesBoundingBox(CompoundNosesBoundingBox const& rOther) 
     :SpatialBoundingBox(rOther)
+    ,mBoxNoses(rOther.mBoxNoses)
     {
     }
 
@@ -249,7 +299,13 @@ public:
 
     double GetRadius(const PointType& rPoint)
     {
-       return GetNearerRadius(rPoint);
+      PointType LocalPoint = rPoint;
+      BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, LocalPoint);
+      BeamMathUtilsType::MapToCurrentLocalFrame(mBox.LocalQuaternion, LocalPoint);
+
+      LocalPoint[2] = 0; //2D
+	
+      return GetNearerRadius(LocalPoint);
     }
 
     //**************************************************************************
@@ -257,24 +313,36 @@ public:
 
     PointType GetCenter(const PointType& rPoint)
     {
-       return GetNearerCenter(rPoint);
+      PointType LocalPoint = rPoint;
+      BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, LocalPoint);
+      BeamMathUtilsType::MapToCurrentLocalFrame(mBox.LocalQuaternion, LocalPoint);
+
+      LocalPoint[2] = 0; //2D
+      
+      PointType LocalNearerPoint = GetNearerCenter(LocalPoint);
+      BeamMathUtilsType::MapToReferenceLocalFrame(mBox.InitialLocalQuaternion, LocalNearerPoint);
+      BeamMathUtilsType::MapToReferenceLocalFrame(mBox.LocalQuaternion, LocalNearerPoint);
+
+      return  LocalNearerPoint;
     }
 
 
     //**************************************************************************
     //**************************************************************************
 
-
     void UpdateBoxPosition(double & rCurrentTime)
     {
       
       PointType Displacement  =  this->GetBoxDisplacement(rCurrentTime);
 
-      mBox.Center = mBox.OriginalCenter + Displacement;
+      mBox.UpdatePosition(Displacement);
+
+      this->MapToLocalFrame(mBox.LocalQuaternion, mBox);
 
       for(unsigned int i=0; i<mBoxNoses.size(); i++)
 	{
-	  mBoxNoses[i].Center =  mBoxNoses[i].OriginalCenter + Displacement;
+	  mBoxNoses[i].Center =  mBoxNoses[i].InitialCenter + Displacement;
+	  BeamMathUtilsType::MapToCurrentLocalFrame(mBox.LocalQuaternion, mBoxNoses[i].Center);
 	}
     }
 
@@ -284,54 +352,68 @@ public:
 
     bool IsInside (const PointType& rPoint, double& rCurrentTime, double Radius = 0)
     {
-      bool is_inside = false;
-
-      unsigned int SelectedNose = BoxNoseSearch(rPoint);
       
-      BoxNoseVariables& rWallNose = mBoxNoses[SelectedNose];
+      KRATOS_TRY   
 
-      double NoseRadius = rWallNose.Radius;
+      bool is_inside = SpatialBoundingBox::IsInside(rPoint);
 
-      if( rWallNose.Convexity == 1)
-	NoseRadius *= 2; //increase the bounding box 
+      if( is_inside ){
 
-      if( rWallNose.Convexity == -1)
-       	NoseRadius *= 0.1; //decrease the bounding box 
+	PointType LocalPoint = rPoint;
+	BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, LocalPoint);
+	BeamMathUtilsType::MapToCurrentLocalFrame(mBox.LocalQuaternion, LocalPoint);  
 
-      // bool node_in =false;
-      // if( rWallNose.Convexity == 1 && (rPoint[0]>=95 && rPoint[1]>=6.9) )
-      //  	node_in = true;
+	LocalPoint[2] = 0; //2D
 
-      switch( ContactSearch(rPoint, NoseRadius, rWallNose) )
-	{
-  	case FreeSurface:      
-	  is_inside = false;
-	  // if( node_in )
-	  //   std::cout<<" Nose "<<SelectedNose<<" [ FreeSurface :"<<rPoint<<"]"<<std::endl;
-	  break;
-	case RakeSurface:      
-	  is_inside = true;
-	  // if( node_in )
-	  //   std::cout<<" Nose "<<SelectedNose<<" [ RakeSurface :"<<rPoint<<"]"<<std::endl;
-	  break;
-	case TipSurface:       
-	  is_inside = true;
-	  // if( node_in )
-	  //   std::cout<<" Nose "<<SelectedNose<<" [ TipSurface :"<<rPoint<<"]"<<std::endl;
-	  break;
-	case ClearanceSurface: 
-	  is_inside = true;
-	  // if( node_in )
-	  //   std::cout<<" Nose "<<SelectedNose<<" [ ClearanceSurface :"<<rPoint<<"]"<<std::endl;
-	  break;
-	default:               
-	  is_inside = false;
-	  break;
-	}
+	unsigned int SelectedNose = BoxNoseSearch(LocalPoint);
+
+      	BoxNoseVariables& rWallNose = mBoxNoses[SelectedNose];
+
+	double NoseRadius = rWallNose.Radius;
+
+	if( rWallNose.Convexity == 1)
+	  NoseRadius *= 2; //increase the bounding box 
+
+	if( rWallNose.Convexity == -1)
+	  NoseRadius *= 0.1; //decrease the bounding box 
+
+	// bool node_in =false;
+	// if( rWallNose.Convexity == 1 && (LocalPoint[0]>=95 && LocalPoint[1]>=6.9) )
+	//  	node_in = true;
+
+	switch( ContactSearch(LocalPoint, NoseRadius, rWallNose) )
+	  {
+	  case FreeSurface:      
+	    is_inside = false;
+	    // if( node_in )
+	    //   std::cout<<" Nose "<<SelectedNose<<" [ FreeSurface :"<<rPoint<<"]"<<std::endl;
+	    break;
+	  case RakeSurface:      
+	    is_inside = true;
+	    // if( node_in )
+	    //   std::cout<<" Nose "<<SelectedNose<<" [ RakeSurface :"<<rPoint<<"]"<<std::endl;
+	    break;
+	  case TipSurface:       
+	    is_inside = true;
+	    // if( node_in )
+	    //   std::cout<<" Nose "<<SelectedNose<<" [ TipSurface :"<<rPoint<<"]"<<std::endl;
+	    break;
+	  case ClearanceSurface: 
+	    is_inside = true;
+	    // if( node_in )
+	    //   std::cout<<" Nose "<<SelectedNose<<" [ ClearanceSurface :"<<rPoint<<"]"<<std::endl;
+	    break;
+	  default:               
+	    is_inside = false;
+	    break;
+	  }
      
+      }
 
       return is_inside;
       
+     KRATOS_CATCH("")
+ 
     }
 
     //************************************************************************************
@@ -340,47 +422,61 @@ public:
 
     bool IsInside (const PointType& rPoint, double& rCurrentTime, int & ContactFace, double Radius = 0)
     {
-      bool is_inside = false;
 
-      unsigned int SelectedNose = BoxNoseSearch(rPoint);
+      KRATOS_TRY
+
+      bool is_inside = SpatialBoundingBox::IsInside(rPoint);
+
+      if( is_inside ){
+
+	PointType LocalPoint = rPoint;
+	BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, LocalPoint);
+	BeamMathUtilsType::MapToCurrentLocalFrame(mBox.LocalQuaternion, LocalPoint);
+
+	LocalPoint[2] = 0; //2D
+
+	unsigned int SelectedNose = BoxNoseSearch(LocalPoint);
       
-      BoxNoseVariables& rWallNose = mBoxNoses[SelectedNose];
+	BoxNoseVariables& rWallNose = mBoxNoses[SelectedNose];
 
-      double NoseRadius = rWallNose.Radius;
+	double NoseRadius = rWallNose.Radius;
 
-      if( rWallNose.Convexity == 1)
-	NoseRadius *= 1.25; //increase the bounding box 
+	if( rWallNose.Convexity == 1)
+	  NoseRadius *= 1.25; //increase the bounding box 
 
-      if( rWallNose.Convexity == -1)
-       	NoseRadius *= 0.75; //decrease the bounding box 
+	if( rWallNose.Convexity == -1)
+	  NoseRadius *= 0.75; //decrease the bounding box 
 
 
-      switch( ContactSearch(rPoint, NoseRadius, rWallNose) )
-	{
-  	case FreeSurface:      
-	  is_inside = false;
-	  ContactFace = 0;
-	  break;
-	case RakeSurface:      
-	  is_inside = true;
-	  ContactFace = 1;
-	  break;
-	case TipSurface:       
-	  is_inside = true;
-	  ContactFace = 2;
-	  break;
-	case ClearanceSurface: 
-	  is_inside = true;
-	  ContactFace = 3;
-	  break;
-	default:               
-	  is_inside = false;
-	  break;
-	}
+	switch( ContactSearch(LocalPoint, NoseRadius, rWallNose) )
+	  {
+	  case FreeSurface:      
+	    is_inside = false;
+	    ContactFace = 0;
+	    break;
+	  case RakeSurface:      
+	    is_inside = true;
+	    ContactFace = 1;
+	    break;
+	  case TipSurface:       
+	    is_inside = true;
+	    ContactFace = 2;
+	    break;
+	  case ClearanceSurface: 
+	    is_inside = true;
+	    ContactFace = 3;
+	    break;
+	  default:               
+	    is_inside = false;
+	    break;
+	  }
 
+      }
 
       return is_inside;
       
+      KRATOS_CATCH("")
+
     } 
 
 
@@ -389,51 +485,70 @@ public:
    
     bool IsInside(const PointType& rPoint, double& rGapNormal, double& rGapTangent, PointType& rNormal, PointType& rTangent, int& ContactFace, double Radius = 0)
     {
-      bool is_inside = false;
+
+      KRATOS_TRY
 
       rGapNormal  = 0;
       rGapTangent = 0;
       rNormal.clear();
       rTangent.clear();
 
-      unsigned int SelectedNose = BoxNoseSearch(rPoint);
+      bool is_inside = SpatialBoundingBox::IsInside(rPoint);
+
+      if( is_inside ){
+
+	PointType LocalPoint = rPoint;
+	BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, LocalPoint);
+	BeamMathUtilsType::MapToCurrentLocalFrame(mBox.LocalQuaternion, LocalPoint);
+
+	LocalPoint[2] = 0; //2D
+
+	unsigned int SelectedNose = BoxNoseSearch(LocalPoint);
       
-      BoxNoseVariables& rWallNose = mBoxNoses[SelectedNose];
+	BoxNoseVariables& rWallNose = mBoxNoses[SelectedNose];
 
-      double NoseRadius = rWallNose.Radius;
+	double NoseRadius = rWallNose.Radius;
 
-      //std::cout<<" Convexity ["<<SelectedNose<<" ]: "<< rWallNose.Convexity <<std::endl;
+	//std::cout<<" Convexity ["<<SelectedNose<<" ]: "<< rWallNose.Convexity <<std::endl;
 
-      switch( ContactSearch(rPoint, NoseRadius, rWallNose) )
-	{	  
-	case FreeSurface:      
-	  is_inside = false;
-	  ContactFace = 0;
-	  break;
-	case RakeSurface:      
-	  is_inside = CalculateRakeSurface(rPoint, NoseRadius, rGapNormal, rGapTangent, rNormal, rTangent, rWallNose);
-	  ContactFace = 1;
-	  break;
-	case TipSurface:       
-	  is_inside = CalculateTipSurface(rPoint, NoseRadius, rGapNormal, rGapTangent, rNormal, rTangent, rWallNose);
-	  ContactFace = 2;
-	  break;
-	case ClearanceSurface: 
-	  is_inside = CalculateClearanceSurface(rPoint, NoseRadius, rGapNormal, rGapTangent, rNormal, rTangent, rWallNose);
-	  ContactFace = 3;
-	  break;
-	default:               
-	  is_inside = false;
-	  break;
-	}
+	switch( ContactSearch(LocalPoint, NoseRadius, rWallNose) )
+	  {	  
+	  case FreeSurface:      
+	    is_inside = false;
+	    ContactFace = 0;
+	    break;
+	  case RakeSurface:      
+	    is_inside = CalculateRakeSurface(LocalPoint, NoseRadius, rGapNormal, rGapTangent, rNormal, rTangent, rWallNose);
+	    ContactFace = 1;
+	    break;
+	  case TipSurface:       
+	    is_inside = CalculateTipSurface(LocalPoint, NoseRadius, rGapNormal, rGapTangent, rNormal, rTangent, rWallNose);
+	    ContactFace = 2;
+	    break;
+	  case ClearanceSurface: 
+	    is_inside = CalculateClearanceSurface(LocalPoint, NoseRadius, rGapNormal, rGapTangent, rNormal, rTangent, rWallNose);
+	    ContactFace = 3;
+	    break;
+	  default:               
+	    is_inside = false;
+	    break;
+	  }
 
-      // if(rWallNose.Convexity == -1  && ContactFace == 3 && rGapNormal<1.0){
-      //  	std::cout<<" [ ContactFace: "<<ContactFace<<"; Normal: "<<rNormal<<"; GapNormal: "<< rGapNormal <<" ] "<<rPoint<<std::endl;
-      // }
-
+	// if(rWallNose.Convexity == -1  && ContactFace == 3 && rGapNormal<1.0){
+	//  	std::cout<<" [ ContactFace: "<<ContactFace<<"; Normal: "<<rNormal<<"; GapNormal: "<< rGapNormal <<" ] "<<rPoint<<std::endl;
+	// }
 	
+	BeamMathUtilsType::MapToReferenceLocalFrame(mBox.InitialLocalQuaternion, rNormal);
+	BeamMathUtilsType::MapToReferenceLocalFrame(mBox.InitialLocalQuaternion, rTangent);
+
+	BeamMathUtilsType::MapToReferenceLocalFrame(mBox.LocalQuaternion, rNormal);
+	BeamMathUtilsType::MapToReferenceLocalFrame(mBox.LocalQuaternion, rTangent);
+
+      }
 
       return is_inside;
+      
+      KRATOS_CATCH("")
       
     } 
 
@@ -468,7 +583,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        rOStream << this->mBox.HighPoint << " , " << this->mBox.LowPoint;
+        rOStream << this->mBox.UpperPoint << " , " << this->mBox.LowerPoint;
     }
 
     ///@}
@@ -540,6 +655,7 @@ private:
 
     PointType GetNearerCenter(const PointType& rPoint)
     {
+
       unsigned int SelectedNose = BoxNoseSearch(rPoint);
  
       BoxNoseVariables& rWallNose = mBoxNoses[SelectedNose];
@@ -581,34 +697,37 @@ private:
     //************************************************************************************
 
     // General Wall creator 
-    void CreateCompoundNosesBox(Vector Radius, Vector RakeAngles, Vector ClearanceAngles, Matrix Centers, Vector Convexities, PointType Velocity)
+    void CreateCompoundNosesBox(Vector& rRadius, Vector& rRakeAngles, Vector& rClearanceAngles, Matrix& rCenters, Vector& rConvexities, 
+				Vector& rVelocity, Vector& rAngularVelocity, Vector& rUpperPoint, Vector& rLowerPoint, Matrix& rInitialLocalMatrix)
     {
     
       KRATOS_TRY
 
-      if( Radius.size() != RakeAngles.size() || RakeAngles.size() != ClearanceAngles.size() )
+      if( rRadius.size() != rRakeAngles.size() || rRakeAngles.size() != rClearanceAngles.size() )
 	std::cout<<" Introduced walls are not consistent in sizes "<<std::endl;
       
       double pi = 3.141592654;
       
       std::cout<<" [--NOSE-WALL--] "<<std::endl;
-      std::cout<<"  [NOSES:"<<Radius.size()<<"]"<<std::endl;
+      std::cout<<"  [NOSES:"<<rRadius.size()<<"]"<<std::endl;
 
-      for(unsigned int i=0; i<Radius.size(); i++)
+      mBox.Initialize();     
+      
+      for(unsigned int i=0; i<rRadius.size(); i++)
 	{
 	  BoxNoseVariables WallNose;
-	  WallNose.clear();
+	  WallNose.Initialize();
 
-	  WallNose.Convexity      = Convexities[i];
-	  WallNose.Radius         = Radius[i];
+	  WallNose.Convexity      = rConvexities[i];
+	  WallNose.Radius         = rRadius[i];
 
 	  // RakeAngle :: Angle given respect to the vertical axis  (is positive line, represents the nose upper part) 
 	  // changed to be expressed respect to the horitzontal axis, represents positive (increasing) line
-	  WallNose.RakeAngle      = ( 90 - RakeAngles[i] );        
+	  WallNose.RakeAngle      = ( 90 - rRakeAngles[i] );        
 
 	  // ClearanceAngle :: Angle given respect to the vertical axis  (is negative line, represents the nose down part) 
 	  // changed to represent a negative (decreasing) line
-	  WallNose.ClearanceAngle = ( 180 + ClearanceAngles[i] ); 
+	  WallNose.ClearanceAngle = ( 180 + rClearanceAngles[i] ); 
 
 	  bool valid_angle = CheckValidAngle( WallNose.RakeAngle );
 
@@ -634,15 +753,15 @@ private:
 	    WallNose.TangentClearanceAngle = 0;
 	  }
 	  
-	  WallNose.OriginalCenter.resize(3);
-	  WallNose.Center.resize(3);
-
-	  for(unsigned int j=0; j<Centers.size2(); j++)
+	  for(unsigned int j=0; j<rCenters.size2(); j++)
 	    {
-	      WallNose.OriginalCenter[j] = Centers(i,j);
-	      WallNose.Center[j]         = Centers(i,j);
+	      WallNose.Center[j] = rCenters(i,j);
 	    }
 	  
+	  //set to local frame
+	  BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, WallNose.InitialCenter);
+	  BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, WallNose.Center);
+
 	  std::cout<<"  [COMPONENT]["<<i<<"]"<<std::endl;
 	  std::cout<<"  [Convexity:"<<WallNose.Convexity<<std::endl;
 	  std::cout<<"  [Radius:"<<WallNose.Radius<<std::endl;
@@ -658,9 +777,23 @@ private:
 
       std::cout<<" [--------] "<<std::endl;
       
-      mBox.Velocity = Velocity;
+      mBox.InitialLocalQuaternion = QuaternionType::FromRotationMatrix( rInitialLocalMatrix );
 
-      mBoxCenterSupplied = false;
+      mBox.UpperPoint = rUpperPoint;
+      mBox.LowerPoint = rLowerPoint;
+
+      mBox.Velocity        = rVelocity;
+      mBox.AngularVelocity = rAngularVelocity;
+      
+      //set to local frame
+      this->MapToLocalFrame(mBox.InitialLocalQuaternion,mBox);
+
+      BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, mBox.Velocity);
+      BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, mBox.AngularVelocity);
+
+      mBox.SetInitialValues();
+
+      mRigidBodyCenterSupplied = false;
 
       KRATOS_CATCH("")
     }
@@ -670,6 +803,9 @@ private:
 
     unsigned int BoxNoseSearch(const PointType& rPoint)
     {
+
+      KRATOS_TRY
+
       double MinimumDistance       =std::numeric_limits<double>::max();
       double MinimumDistanceRadius =std::numeric_limits<double>::max();
 
@@ -688,6 +824,7 @@ private:
 
 	  //based on distance
 	  PointType Distance = (mBoxNoses[i].Center - rPoint);
+	  Distance[2] = 0; //2D
 	  double NoseDistance = norm_2( Distance );  
 	  double NoseDistanceRadius = norm_2( Distance );  
 
@@ -812,10 +949,11 @@ private:
 	}
 
       }
-	  
-      
-      
+	             
       return SelectedNose;
+
+      KRATOS_CATCH("")
+      
     }
 
 
@@ -826,8 +964,11 @@ private:
     {
       
       PointType DistanceToPoint  = (rPoint - rMasterCenter);
+      DistanceToPoint[2] = 0; //2D
       PointType DistanceToCenter = (rSlaveCenter - rMasterCenter);
+      DistanceToCenter[2] = 0; //2D
       PointType DistanceToTip    = (rSlaveTipPoint - rMasterCenter);
+      DistanceToTip[2] = 0; //2D
 
       PointType ReferenceOrientation = MathUtils<double>::CrossProduct( DistanceToTip, DistanceToCenter );
       PointType Orientation = MathUtils<double>::CrossProduct( DistanceToPoint, DistanceToCenter );
@@ -863,8 +1004,9 @@ private:
       
       PointType TipPoint(3);
       
-      TipPoint  = ( RakePoint - rWallNose.Center ) + ( ClearancePoint - rWallNose.Center );
-      TipPoint *= ( rWallNose.Radius/norm_2(TipPoint) );
+      TipPoint    = ( RakePoint - rWallNose.Center ) + ( ClearancePoint - rWallNose.Center );
+      TipPoint[2] = 0; //2D
+      TipPoint   *= ( rWallNose.Radius/norm_2(TipPoint) );
       
       //open angle to get the correct tip direction
       double OpenAngle = ( rWallNose.ClearanceAngle - rWallNose.RakeAngle ) * ( 180.0 / pi ) - 90;
@@ -874,6 +1016,8 @@ private:
       else
 	TipPoint  = rWallNose.Center - TipPoint;
       
+      TipPoint[2] = 0; //2D
+
       return TipPoint;
 
     }

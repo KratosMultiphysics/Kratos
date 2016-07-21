@@ -639,10 +639,8 @@ void RigidBodyElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSyst
 
       MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
       
-      if( dimension == 2 )
-	//BeamMathUtilsType::MapLocalToGlobal2D(InitialLocalMatrix, rLeftHandSideMatrix);
-      else
-	BeamMathUtilsType::MapLocalToGlobal3D(InitialLocalMatrix, rLeftHandSideMatrix);
+      // works for 2D and 3D case
+      BeamMathUtilsType::MapLocalToGlobal3D(InitialLocalMatrix, rLeftHandSideMatrix);
 
       //std::cout<<"["<<this->Id()<<"] RB RotatedDynamic rLeftHandSideMatrix "<<rLeftHandSideMatrix<<std::endl;
     }
@@ -654,17 +652,14 @@ void RigidBodyElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSyst
 
       //std::cout<<"["<<this->Id()<<"] RB Dynamic rRightHandSideVector "<<rRightHandSideVector<<std::endl;
 
-      if( dimension == 2 )
-	//BeamMathUtilsType::MapLocalToGlobal2D(InitialLocalMatrix, rRightHandSideVector);
-      else
-	BeamMathUtilsType::MapLocalToGlobal3D(InitialLocalMatrix, rRightHandSideVector);
+      // works for 2D and 3D case
+      BeamMathUtilsType::MapLocalToGlobal3D(InitialLocalMatrix, rRightHandSideVector);
 
       //std::cout<<"["<<this->Id()<<"] RB RotatedDynamic rRightHandSideVector "<<rRightHandSideVector<<std::endl;
     }
 
     KRATOS_CATCH( "" )
 }
-
 
 
 //************************************************************************************
