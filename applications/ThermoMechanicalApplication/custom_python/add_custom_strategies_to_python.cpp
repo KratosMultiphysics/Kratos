@@ -90,8 +90,8 @@ void  AddCustomStrategiesToPython()
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-    typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+    //typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+    //typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
     //********************************************************************
     //********************************************************************
