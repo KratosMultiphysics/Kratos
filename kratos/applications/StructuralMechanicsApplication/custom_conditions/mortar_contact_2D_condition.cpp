@@ -1166,7 +1166,7 @@ void MortarContact2DCondition::CalculateAndAddMortarContactOperator(
         rRightHandSideVector[j + 1] = 0.0;
         
         // Adding the gap to the RHS
-        const array_1d<double, 3> gap_decomp = gn[iNode] * GetGeometry()[iNode].GetValue(NORMAL); 
+        //const array_1d<double, 3> gap_decomp = gn[iNode] * GetGeometry()[iNode].GetValue(NORMAL); 
         j = (num_total_nodes + num_inactive_nodes + i_active) * dimension; 
         rRightHandSideVector[j    ] -= gap_decomp[0]; 
         rRightHandSideVector[j + 1] -= gap_decomp[1];
