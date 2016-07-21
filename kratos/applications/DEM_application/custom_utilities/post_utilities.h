@@ -290,7 +290,7 @@ namespace Kratos {
         } //ComputePoisson2D
         
         
-        void ComputeEulerAngles(ModelPart rModelPart) {
+        void ComputeEulerAngles(ModelPart& rModelPart) {
 
             ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
             bool if_trihedron_option = (bool) r_process_info[TRIHEDRON_OPTION];
