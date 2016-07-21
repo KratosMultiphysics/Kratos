@@ -75,7 +75,6 @@ class KRATOS_API(PFEM_BASE_MECHANICS_APPLICATION) MeshModeler
 {
 public:
 
-
     ///@name Type Definitions
     ///@{
 

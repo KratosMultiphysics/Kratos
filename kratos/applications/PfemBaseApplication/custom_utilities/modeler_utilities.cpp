@@ -1445,5 +1445,133 @@ namespace Kratos
 
   }
 
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void ModelerUtilities::SetNodes(ModelPart& rModelPart,
+				  MeshingParametersType& rMeshingVariables,
+				  ModelPart::IndexType MeshId)
+  {
+    KRATOS_TRY
+     
+    const unsigned int dimension = rModelPart.ElementsBegin(MeshId)->GetGeometry().WorkingSpaceDimension();
+
+    //*********************************************************************
+    //input mesh: NODES
+    ModelerUtilities::MeshContainer& InMesh = rMeshingVariables.InMesh;
+    
+    InMesh.CreatePointList(rModelPart.Nodes(MeshId).size(), dimension);
+
+    double* PointList     = InMesh.GetPointList();
+    int& NumberOfPoints   = InMesh.GetNumberOfPoints();
+
+    if(!rMeshingVariables.InputInitializedFlag){
+
+      if((int)rMeshingVariables.NodalPreIds.size() != NumberOfPoints)
+	rMeshingVariables.NodalPreIds.resize(NumberOfPoints+1);
+      
+      std::fill( rMeshingVariables.NodalPreIds.begin(), rMeshingVariables.NodalPreIds.end(), 0 );
+    }
+    
+    //writing the points coordinates in a vector and reordening the Id's
+    ModelPart::NodesContainerType::iterator nodes_begin = rModelPart.NodesBegin(MeshId);
+
+    int base   = 0;
+    int direct = 1;
+
+    for(int i = 0; i<NumberOfPoints; i++)
+      {
+	//from now on it is consecutive
+	if(!rMeshingVariables.InputInitializedFlag){
+	  rMeshingVariables.NodalPreIds[direct]=(nodes_begin + i)->Id();
+	  (nodes_begin + i)->SetId(direct);
+	}
+
+	array_1d<double, 3>& Coordinates = (nodes_begin + i)->Coordinates();
+
+	if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONSTRAINED)){
+
+	  if( (nodes_begin + i)->Is(BOUNDARY) ){
+	       
+	    array_1d<double, 3>&  Normal=(nodes_begin + i)->FastGetSolutionStepValue(NORMAL); //BOUNDARY_NORMAL must be set as nodal variable
+	    double Shrink = (nodes_begin + i)->FastGetSolutionStepValue(SHRINK_FACTOR);   //SHRINK_FACTOR   must be set as nodal variable
+	           
+	    array_1d<double, 3> Offset;
+
+	    Normal /= norm_2(Normal);
+	    for(unsigned int j=0; j<dimension; j++){
+	      Offset[j] = ( (-1) * Normal[j] * Shrink * rMeshingVariables.OffsetFactor * 0.25 );
+	    }
+
+	    for(unsigned int j=0; j<dimension; j++){
+	      PointList[base+j]   = Coordinates[j] + Offset[j];
+	    }
+	  }
+	  else{
+	    for(unsigned int j=0; j<dimension; j++){
+	      PointList[base+j]   = Coordinates[j];
+	    }
+	  }
+
+	}
+	else{
+	  for(unsigned int j=0; j<dimension; j++){
+	    PointList[base+j]   = Coordinates[j];
+	  }
+	}
+	   
+	base+=dimension;
+	direct+=1;
+      }
+
+    //InMesh.SetPointList(PointList);
+
+    KRATOS_CATCH( "" )
+
+  }
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void ModelerUtilities::SetElements(ModelPart& rModelPart,
+				     MeshingParametersType& rMeshingVariables,
+				     ModelPart::IndexType MeshId)
+  {
+    KRATOS_TRY
+       
+          
+    //*********************************************************************
+    //input mesh: ELEMENTS
+    ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(MeshId);
+    const unsigned int nds       = element_begin->GetGeometry().size();
+
+    ModelerUtilities::MeshContainer& InMesh = rMeshingVariables.InMesh;
+
+    InMesh.CreateElementList(rModelPart.Elements(MeshId).size(), nds);
+    
+    int* ElementList      = InMesh.GetElementList();
+    int& NumberOfElements = InMesh.GetNumberOfElements();
+
+ 
+    int base=0;
+    for(unsigned int el = 0; el<(unsigned int)NumberOfElements; el++)
+      {
+	Geometry<Node<3> >& geom = (element_begin+el)->GetGeometry();
+	
+	for(unsigned int i=0; i<nds; i++)
+	  {
+	    ElementList[base+i] = geom[i].Id();
+	  }
+	base+=nds;
+      }
+
+    KRATOS_CATCH( "" )
+
+  }
+
+
+
 } // Namespace Kratos
 
