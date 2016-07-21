@@ -1162,7 +1162,8 @@ public:
             {
                 if (it->Id() < 1)
                     KRATOS_THROW_ERROR(std::logic_error, "Element Id can not be lesser than 1 (0 is not allowed as Id)", "");
-                if (typeid (ref_el) != typeid (*it) && typeid (ref_el2) != typeid (*it))
+		auto it_element = *it;
+                if (typeid (ref_el) != typeid (it_element) && typeid (ref_el2) != typeid (it_element))
                 {
                     std::cout << "wrong element found --> " << it->Id() << std::endl;
                     KRATOS_THROW_ERROR(std::logic_error, "Fractional step strategy requires Fluid2D element for the 2D case", "");
