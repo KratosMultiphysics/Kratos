@@ -369,11 +369,11 @@ protected:
     const Element  mElement;
     const Element  mElement3D4N;
     const Element  mElement2D3N;
-    const Element  mElement2D2N;
+    const Element  mElement2D2N;	
 	
-	const Element mElement3D10N;
-	const Element mElement3D8N;
-	const Element mElement3D6N;
+    const Element mElement3D8N;
+    const Element mElement3D10N;
+    const Element mElement3D6N;
 
 
     KratosComponents<VariableData>::ComponentsContainerType* mpVariableData;
