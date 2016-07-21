@@ -112,7 +112,7 @@
       <Item id="GiDWriteParticlesFlag" kkword="GiDWriteParticlesFlag" />
       <Item id="GiDMultiFileFlag" kkword="GiDMultiFileFlag" />
       <Item id="Area" kkword="CROSS_AREA" />
-      <Item id="LocalInertia" kkword="LOCAL_INERTIA" />
+      <Item id="LocalInertia" kkword="LOCAL_INERTIA_TENSOR" />
     </StructuralAnalysis>
     <Fluid>
       <Item id="ASGS2D" kkword="ASGS2D" usennode="No" />
