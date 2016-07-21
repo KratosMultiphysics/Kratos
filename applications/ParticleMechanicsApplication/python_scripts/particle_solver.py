@@ -26,7 +26,7 @@ def AddVariables(model_part, config=None):
     #model_part.AddNodalSolutionStepVariable(CONTACT_FORCE)  
      
     # add specific variables for the problem conditions
-    model_part.AddNodalSolutionStepVariable(IMPOSED_DISPLACEMENT)
+    #model_part.AddNodalSolutionStepVariable(IMPOSED_DISPLACEMENT)
     #model_part.AddNodalSolutionStepVariable(IMPOSED_ROTATION)
     #model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE)
     #model_part.AddNodalSolutionStepVariable(NEGATIVE_FACE_PRESSURE)
@@ -88,7 +88,7 @@ def AddDofs(model_part, config=None):
 class ParticleSolver:
     #
 
-    def __init__(self, model_part1, model_part2, new_element, domain_size):
+    def __init__(self, model_part1, model_part2, new_element, domain_size, geometry_element):
 
         # default settings
         
@@ -99,6 +99,7 @@ class ParticleSolver:
         self.new_element = new_element
         
         self.domain_size = domain_size
+        self.geometry_element = geometry_element
         self.buffer_size = 3 #default buffer_size
 
         self.pressure_dofs = False
@@ -128,8 +129,8 @@ class ParticleSolver:
         # self.mechanical_convergence_criterion = DisplacementConvergenceCriterion(self.rel_disp_tol,self.abs_disp_tol)
 
         # definition of the default builder_and_solver:
-        self.block_builder = False
-        self.builder_and_solver = ResidualBasedBuilderAndSolver(self.linear_solver)
+        #self.block_builder = False
+        #self.builder_and_solver = ResidualBasedBuilderAndSolver(self.linear_solver)
 
         # definition of the component wise calculation "computation is slower"
         #(it affects to strategy, builder_and_solver, scheme and convergence_criterion)
@@ -176,29 +177,29 @@ class ParticleSolver:
 
           # self.reform_step_dofs = False;
           print('set solving strategy')
-          if(self.component_wise):
-              self.particle_solver = ComponentWiseNewtonRaphsonStrategy(self.model_part1, self.particle_scheme, self.linear_solver, self.particle_convergence_criterion, self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
+          #if(self.component_wise):
+              #self.particle_solver = ComponentWiseNewtonRaphsonStrategy(self.model_part1, self.particle_scheme, self.linear_solver, self.particle_convergence_criterion, self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
           
-          else:
-              if(self.line_search):
-                  self.particle_solver = ResidualBasedNewtonRaphsonLineSearchStrategy(self.model_part1, self.particle_scheme, self.linear_solver, self.particle_convergence_criterion, self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
-              else:
-                  if (self.domain_size==2):
-                   self.particle_solver = MPM2D(self.model_part1, self.model_part2, self.linear_solver, self.new_element, self.move_mesh_flag, self.scheme_type)
-                  else:
-                    self.particle_solver = MPM3D(self.model_part1, self.model_part2, self.linear_solver, self.new_element, self.move_mesh_flag, self.scheme_type)
-        if(self.time_integration_method == "Explicit"):
-            self.particle_solver = ExplicitStrategy(self.model_part1, self.particle_scheme, self.linear_solver, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
+         # else:
+              #if(self.line_search):
+                  #self.particle_solver = ResidualBasedNewtonRaphsonLineSearchStrategy(self.model_part1, self.particle_scheme, self.linear_solver, self.particle_convergence_criterion, self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
+              #else:
+        if(self.domain_size==2):
+            self.particle_solver = MPM2D(self.model_part1, self.model_part2, self.linear_solver, self.new_element, self.move_mesh_flag, self.scheme_type, self.geometry_element)
+        else:
+            self.particle_solver = MPM3D(self.model_part1, self.model_part2, self.linear_solver, self.new_element, self.move_mesh_flag, self.scheme_type, self.geometry_element)
+        #if(self.time_integration_method == "Explicit"):
+            #self.particle_solver = ExplicitStrategy(self.model_part1, self.particle_scheme, self.linear_solver, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
           
-            self.particle_solver.SetRebuildLevel(0) # 1 to recompute the mass matrix in each explicit step 
+            #self.particle_solver.SetRebuildLevel(0) # 1 to recompute the mass matrix in each explicit step 
         
         
         # creating the builder and solver:
         print('set builder and solver')
         # creating the solution scheme:
-        self.SetBuilderAndSolver()
+        #self.SetBuilderAndSolver()
         print('set solution scheme')
-        self.SetSolutionScheme()
+        #self.SetSolutionScheme()
        
         self.SetStabilizationFactor(self.stabilization_factor)
         
@@ -369,9 +370,9 @@ class ParticleSolver:
 
 #
 #
-def CreateSolver(model_part1, model_part2, new_element, config):
+def CreateSolver(model_part1, model_part2, new_element, config, geometry_element):
 
-    structural_solver = ParticleSolver(model_part1, model_part2,new_element, config.domain_size)
+    structural_solver = ParticleSolver(model_part1, model_part2,new_element, config.domain_size,geometry_element)
 
     #Explicit scheme parameters
     if(hasattr(config, "max_delta_time")):

@@ -65,12 +65,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 
 #include "custom_elements/updated_lagrangian.hpp"
-//#include "custom_elements/updated_lagrangian_quadrilateral.hpp"
+//#include "custom_elements/updated_lagrangian_UP.hpp"
+#include "custom_elements/updated_lagrangian_quadrilateral.hpp"
+//#include "custom_elements/updated_lagrangian_UP_quadrilateral.hpp"
 
 //#include "custom_elements/total_lagrangian.hpp"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/triangle_2d_3.h"
-//#include "geometries/quadrilateral_2d_4.h"
+#include "geometries/quadrilateral_2d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
  
  
@@ -91,6 +93,15 @@ Element::Pointer CreateUpdatedLagragian2D3N()
 	return NewElement;
 	
 	}
+	
+//Element::Pointer CreateUpdatedLagragianUP2D3N()
+//{
+	//UpdatedLagrangianUP::Pointer NewElement( 
+	//new UpdatedLagrangianUP( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ));
+	//return NewElement;
+	
+	//}	
+	
 Element::Pointer CreateUpdatedLagragian3D4N()
 {
 	UpdatedLagrangian::Pointer NewElement( 
@@ -98,30 +109,25 @@ Element::Pointer CreateUpdatedLagragian3D4N()
 	return NewElement;
 	
 	}
-//Element::Pointer CreateUpdatedLagragian2D4N()
-//{
-	//UpdatedLagrangianQuad::Pointer NewElement( 
-	//new UpdatedLagrangianQuad( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ));
-	//return NewElement;
+Element::Pointer CreateUpdatedLagragian2D4N()
+{
+	UpdatedLagrangianQuadrilateral::Pointer NewElement( 
+	new UpdatedLagrangianQuadrilateral( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ));
+	return NewElement;
 	
-	//}	
+	}	
 	
 
-
-//Element::Pointer CreateTotalLagragian2D3N()
+//Element::Pointer CreateUpdatedLagragianUP2D4N()
 //{
-	//TotalLagrangian::Pointer NewElement( 
-	//new TotalLagrangian( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ));
+	//UpdatedLagrangianUPQuadrilateral::Pointer NewElement( 
+	//new UpdatedLagrangianUPQuadrilateral( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ));
 	//return NewElement;
 	
 	//}
-//Element::Pointer CreateTotalLagragian3D4N()
-//{
-	//TotalLagrangian::Pointer NewElement( 
-	//new TotalLagrangian( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ));
-	//return NewElement;
 	
-	//}  
+	
+ 
   BOOST_PYTHON_MODULE(KratosParticleMechanicsApplication)
   {
 
@@ -135,10 +141,11 @@ Element::Pointer CreateUpdatedLagragian3D4N()
 	AddCustomConstitutiveLawsToPython();
 
 	def("CreateUpdatedLagragian2D3N", &CreateUpdatedLagragian2D3N);
+//	def("CreateUpdatedLagragianUP2D3N", &CreateUpdatedLagragianUP2D3N);
 	def("CreateUpdatedLagragian3D4N", &CreateUpdatedLagragian3D4N);
-
-	//def("CreateUpdatedLagragian2D4N", &CreateUpdatedLagragian2D4N);
-
+	def("CreateUpdatedLagragian2D4N", &CreateUpdatedLagragian2D4N);
+//	def("CreateUpdatedLagragianUP2D4N", &CreateUpdatedLagragianUP2D4N);
+    
 	//def("CreateTotalLagragian2D3N", &CreateTotalLagragian2D3N);
 	//def("CreateTotalLagragian3D4N", &CreateTotalLagragian3D4N);
 	
