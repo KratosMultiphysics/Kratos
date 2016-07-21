@@ -393,8 +393,8 @@ public:
     {
         KRATOS_TRY;
         //generate a tree with the position of the lagrangian nodes
-        typedef Node < 3 > PointType;
-        typedef Node < 3 > ::Pointer PointTypePointer;
+//         typedef Node < 3 > PointType;
+//         typedef Node < 3 > ::Pointer PointTypePointer;
 
         //unsigned int min_number_of_particles = 1;
 
