@@ -102,15 +102,15 @@ namespace Kratos
       using namespace boost::python;
 
       
-      typedef UblasSpace<double, CompressedMatrix, Vector>    SparseSpaceType;
-      typedef UblasSpace<double, Matrix, Vector>               LocalSpaceType;
-      typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+      //typedef UblasSpace<double, CompressedMatrix, Vector>    SparseSpaceType;
+      //typedef UblasSpace<double, Matrix, Vector>               LocalSpaceType;
+      //typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-      typedef Scheme< SparseSpaceType, LocalSpaceType >            SchemeType;
-      typedef SchemeType::Pointer                           SchemePointerType;
+      //typedef Scheme< SparseSpaceType, LocalSpaceType >            SchemeType;
+      //typedef SchemeType::Pointer                           SchemePointerType;
 
-      typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType >   BuilderAndSolverType;
-      typedef BuilderAndSolverType::Pointer        BuilderAndSolverPointerType;
+      //typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType >   BuilderAndSolverType;
+      //typedef BuilderAndSolverType::Pointer        BuilderAndSolverPointerType;
 
       //***************DOMAIN SET**************//
       class_< ModelerUtilities, boost::noncopyable > ("ModelerUtilities", init<>())
