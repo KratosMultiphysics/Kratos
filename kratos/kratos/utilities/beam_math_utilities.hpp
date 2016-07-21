@@ -40,6 +40,8 @@ public:
   typedef MathUtils<TDataType>         MathUtilsType;
   typedef BeamMathUtils<TDataType> BeamMathUtilsType; 
  
+  typedef bounded_vector<double, 3>        PointType;
+
   ///@}
   ///name Math Utilities for beams
   ///@{
@@ -75,6 +77,35 @@ public:
   //************************************************************************************
   //************************************************************************************
 
+  /**
+   * Transform a vector from the reference to the current local frame (MATERIAL frame for a beam)
+   * @param rQuaternion: Quaternion representing the rotation from the reference to the current local frames
+   * @param rVector: Vector to be rotated
+   * the rotated vector rVector is returned. 
+   */
+  static inline PointType& MapToCurrentLocalFrame(QuaternionType& rQuaternion, PointType& rVector)
+  {
+    KRATOS_TRY
+
+    //(rQuaternion.conjugate()).RotateVector3(rVariable); 
+    // precision problems due to a rest included in the rotation
+
+    //vector value :  v' = QT * v
+
+    Matrix RotationMatrix;
+    (rQuaternion.conjugate()).ToRotationMatrix(RotationMatrix);
+    
+    rVector = prod(RotationMatrix,rVector);
+
+    return rVector;
+
+    KRATOS_CATCH( "" )
+  }
+
+
+  //************************************************************************************
+  //************************************************************************************
+
 
   /**
    * Transform a vector from the current to the reference local frame (SPATIAL frame for a beam)
@@ -101,6 +132,38 @@ public:
     KRATOS_CATCH( "" )
 
   }
+
+
+  //************************************************************************************
+  //************************************************************************************
+
+
+  /**
+   * Transform a vector from the current to the reference local frame (SPATIAL frame for a beam)
+   * @param rQuaternion: Quaternion representing the rotation from the reference to the current local frames
+   * @param rVector: Vector to be rotated
+   * the rotated vector rVariable is returned.
+   */
+  static inline PointType& MapToReferenceLocalFrame(QuaternionType& rQuaternion, PointType& rVector)
+  {
+    KRATOS_TRY
+
+    //rQuaternion.RotateVector3(rVariable); 
+    // precision problems due to a rest included in the rotation
+      
+    //vector value :  v = Q * v'
+
+    Matrix RotationMatrix;
+    rQuaternion.ToRotationMatrix(RotationMatrix);
+    
+    rVector = prod(RotationMatrix,rVector);
+
+    return rVector;
+
+    KRATOS_CATCH( "" )
+
+  }
+
   ///@}
 
 
