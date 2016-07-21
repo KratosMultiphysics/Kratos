@@ -104,7 +104,7 @@ void  AddCustomParallelStrategiesToPython()
 //std::cout << "ATTENTION Ublas space used instead of Parallel Ublas Space" << std::endl;
 
     typedef LinearSolver<ParallelSparseSpaceType, ParallelLocalSpaceType > ParallelLinearSolverType;
-    typedef SolvingStrategy< ParallelSparseSpaceType, ParallelLocalSpaceType, ParallelLinearSolverType > ParallelBaseSolvingStrategyType;
+    //typedef SolvingStrategy< ParallelSparseSpaceType, ParallelLocalSpaceType, ParallelLinearSolverType > ParallelBaseSolvingStrategyType;
     typedef Scheme< ParallelSparseSpaceType, ParallelLocalSpaceType > ParallelBaseSchemeType;
 
 
@@ -112,7 +112,7 @@ void  AddCustomParallelStrategiesToPython()
     typedef ResidualBasedPredictorCorrectorBossakScheme< ParallelSparseSpaceType, ParallelLocalSpaceType > ParallelResidualBasedPredictorCorrectorBossakSchemeType;
     typedef ResidualBasedNewmarkScheme<ParallelSparseSpaceType, ParallelLocalSpaceType> ParallelResidualBasedNewmarkSchemeType;
 
-    typedef ConvergenceCriteria< ParallelSparseSpaceType, ParallelLocalSpaceType > ParallelConvergenceCriteriaBaseType;
+    //typedef ConvergenceCriteria< ParallelSparseSpaceType, ParallelLocalSpaceType > ParallelConvergenceCriteriaBaseType;
 
 
 
