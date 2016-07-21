@@ -10,16 +10,6 @@
 //  Main authors:    Pooyan Dadvand
 //
 
-
-
-
-
-
-
-
-
-
-
 #if !defined(KRATOS_VARIABLES_H_INCLUDED )
 #define  KRATOS_VARIABLES_H_INCLUDED
 
@@ -109,8 +99,11 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, STRAIN_ENERGY )
     KRATOS_DEFINE_VARIABLE( double, EXTERNAL_ENERGY )
 
-
     KRATOS_DEFINE_VARIABLE( double, STABILIZATION_FACTOR )
+
+    // Lagrange multiplier for general purpose
+    KRATOS_DEFINE_VARIABLE( double,            SCALAR_LAGRANGE_MULTIPLIER )
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( VECTOR_LAGRANGE_MULTIPLIER )
 
     //for Structural application
     KRATOS_DEFINE_VARIABLE( double, FRICTION_COEFFICIENT )
