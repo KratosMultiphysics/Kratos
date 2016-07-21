@@ -1,50 +1,16 @@
-/*
-==============================================================================
-KratosIncompressibleFluidApplication
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: kkamran $
-//   Date:                $Date: 2008-10-13 06:58:23 $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Kazem Kamran
+//                   Riccardo Rossi
+//                   Pooyan Dadvand
+//                   Jordi Rubio
 //
 
 
@@ -1018,7 +984,7 @@ public:
 
         KRATOS_TRY;
 		#pragma omp parallel for reduction(+: vol)
-        for (int k = 0; k < size_to_loop; ++k)
+        for (int k = 0; k < static_cast<int>(size_to_loop); ++k)
         {
 			ModelPart::ElementIterator i = ibegin+k;
             Geometry< Node<3> >& rGeometry = i->GetGeometry();
@@ -1037,7 +1003,7 @@ public:
 		unsigned int size_to_loop=ThisModelPart.Conditions().size();
         KRATOS_TRY;
 		#pragma omp parallel for reduction(+: area)
-        for (int k=0; k <size_to_loop; ++k)
+        for (int k=0; k <static_cast<int>(size_to_loop); ++k)
         {
 			ModelPart::ConditionIterator i=ibegin+k;
             Geometry< Node<3> >& rGeometry = i->GetGeometry();
@@ -1056,7 +1022,7 @@ public:
 		unsigned int size_to_loop=ThisModelPart.Conditions().size();
         KRATOS_TRY;
 		#pragma omp parallel for reduction(+: area)
-        for (int k=0; k <size_to_loop; ++k)
+        for (int k=0; k <static_cast<int>(size_to_loop); ++k)
         {
 			ModelPart::ConditionIterator i=ibegin+k;
             Geometry< Node<3> >& rGeometry = i->GetGeometry();
