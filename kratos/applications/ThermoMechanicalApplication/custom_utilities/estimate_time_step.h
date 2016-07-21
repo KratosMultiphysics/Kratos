@@ -325,7 +325,7 @@ namespace Kratos
 							if(delta_solid<=0.0){delta_solid=delta_over_mushy_zone*solidification_percent/change_in_shrinkage;}
 							if(delta_over_mushy_zone<=0.0){delta_over_mushy_zone=delta_solid*change_in_shrinkage/solidification_percent;}
 							double tmp=(1.0-current_solidified_volume/tot_vol); // What it is left to solidify
-							double target_to_solidify=std::min(solidification_percent,solidification_percent/4.0+std::max(0.0,tmp));
+							//double target_to_solidify=std::min(solidification_percent,solidification_percent/4.0+std::max(0.0,tmp));
 							double new_dt = std::min(1.5, std::min( solidification_percent/delta_solid, change_in_shrinkage/delta_over_mushy_zone) ) * current_dt;
 							if( new_dt > dt_max) new_dt = dt_max;
 							else if( new_dt < dt_min) new_dt = dt_min;
