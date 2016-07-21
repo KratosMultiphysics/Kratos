@@ -94,7 +94,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "utilities/binbased_fast_point_locator.h"
-
+#include "custom_utilities/quad_binbased_fast_point_locator.h"
 
 
 namespace Kratos
@@ -214,8 +214,8 @@ public:
 
     /*@{ */
     
-    MPMStrategy(ModelPart& grid_model_part, ModelPart& mpm_model_part, typename TLinearSolver::Pointer plinear_solver,Element const& NewElement, bool MoveMeshFlag = false, std::string SolutionType = "StaticType")
-    : SolvingStrategyType(grid_model_part, MoveMeshFlag), mr_grid_model_part(grid_model_part), mr_mpm_model_part(mpm_model_part)
+    MPMStrategy(ModelPart& grid_model_part, ModelPart& mpm_model_part, typename TLinearSolver::Pointer plinear_solver,Element const& NewElement, bool MoveMeshFlag = false, std::string SolutionType = "StaticType", std::string GeometryElement = "Triangle")
+    : SolvingStrategyType(grid_model_part, MoveMeshFlag), mr_grid_model_part(grid_model_part), mr_mpm_model_part(mpm_model_part), m_GeometryElement(GeometryElement)
     {   
         
          //populate for the first time the mpm_model_part
@@ -236,15 +236,16 @@ public:
         array_1d<double,3> MP_Velocity;
         double MP_KineticEnergy = 0.0;
         double MP_StrainEnergy = 0.0;
-        Vector MP_CauchyVector = ZeroVector(3);
-        Vector MP_AlmansiVector = ZeroVector(3);
-        Matrix MP_ConstitutiveMatrix = ZeroMatrix(6,6);
+        //Vector MP_CauchyVector = ZeroVector(3);
+        //Vector MP_AlmansiVector = ZeroVector(3);
+        //Matrix MP_ConstitutiveMatrix = ZeroMatrix(6,6);
         double MP_Mass;
         double MP_Volume;
         
         unsigned int k = 0;
         const unsigned int number_elements = grid_model_part.NumberOfElements();
-        
+        const unsigned int number_nodes = grid_model_part.NumberOfNodes();
+        int new_element_id = 0;
         
         for (ModelPart::ElementIterator i = grid_model_part.ElementsBegin();
                     i != grid_model_part.ElementsEnd(); i++)
@@ -258,7 +259,7 @@ public:
                     //std::cout<< "Density "<< Density<<std::endl;
                     Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's connectivity
                                    
-                    Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+                    Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
                     //Matrix shape_functions_values = this->MP16ShapeFunctions();
                     //std::cout<<"shape_functions_values "<< shape_functions_values<<std::endl;
                     //const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( GeometryData::GI_GAUSS_4); 
@@ -280,8 +281,14 @@ public:
                     //loop over the material points that fall in each grid element
                     for ( unsigned int PointNumber = 0; PointNumber < integration_point_per_elements; PointNumber++ ) 
                         {   
-                                                    
-                            Element::Pointer p_element = NewElement.Create((1+PointNumber+number_elements)+(integration_point_per_elements*k), rGeom, properties);
+                            if(number_elements > number_nodes)
+                            {
+								new_element_id = (1+PointNumber+number_elements)+(integration_point_per_elements*k);
+							}
+							else{
+								new_element_id = (1+PointNumber+number_nodes)+(integration_point_per_elements*k);
+							}                        
+                            Element::Pointer p_element = NewElement.Create(new_element_id, rGeom, properties);
                             //Element::Pointer p_element = NewElement.Create((1+PointNumber+number_nodes)+(integration_point_per_element*k), rGeom, properties);
                             double MP_Density = Density;
                             //std::cout<<"MPM ID "<<(1+PointNumber+number_elements)+(integration_point_per_element*k)<<std::endl;
@@ -305,9 +312,9 @@ public:
                             //std::cout<<"xg "<< xg<<std::endl;
                             p_element -> SetValue(GAUSS_COORD, xg);
                             p_element -> SetValue(MP_NUMBER, integration_point_per_elements);
-                            p_element -> SetValue(MP_CAUCHY_STRESS_VECTOR, MP_CauchyVector);
-                            p_element -> SetValue(MP_ALMANSI_STRAIN_VECTOR, MP_AlmansiVector);
-                            p_element -> SetValue(MP_CONSTITUTIVE_MATRIX, MP_ConstitutiveMatrix);
+                            //p_element -> SetValue(MP_CAUCHY_STRESS_VECTOR, MP_CauchyVector);
+                            //p_element -> SetValue(MP_ALMANSI_STRAIN_VECTOR, MP_AlmansiVector);
+                            //p_element -> SetValue(MP_CONSTITUTIVE_MATRIX, MP_ConstitutiveMatrix);
                             p_element -> SetValue(MP_DENSITY, MP_Density);
                             
                             p_element -> SetValue(MP_MASS, MP_Mass);
@@ -333,14 +340,14 @@ public:
         {
             
             
-            typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new ResidualBasedStaticScheme< TSparseSpace,TDenseSpace >() );
+            typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace >() );
             typename TBuilderAndSolverType::Pointer pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
             
             double ratio_tolerance = 0.0001;
             double always_converged_norm = 1e-09;
             typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = typename TConvergenceCriteriaType::Pointer(new ResidualCriteria< TSparseSpace, TDenseSpace >(ratio_tolerance,always_converged_norm));
             
-            int MaxIterations = 100;
+            int MaxIterations = 20;
             bool CalculateReactions = false;
             bool ReformDofAtEachIteration = false;
             bool MoveMeshFlags = false;
@@ -361,7 +368,7 @@ public:
             double always_converged_norm = 1e-09;
             
             typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = typename TConvergenceCriteriaType::Pointer(new ResidualCriteria< TSparseSpace, TDenseSpace >(ratio_tolerance,always_converged_norm));
-            int MaxIterations = 50;
+            int MaxIterations = 10;
             bool CalculateReactions = false;
             bool ReformDofAtEachIteration = false;
             bool MoveMeshFlags = false;
@@ -734,28 +741,36 @@ public:
         ModelPart& grid_model_part,
         ModelPart& mpm_model_part)
     {
-    
+        //std::cout << " 1111111111111111111 "<<std::endl;
         //Set all the grid elements to be inactive
         for (ModelPart::ElementIterator i = grid_model_part.ElementsBegin();
                 i != grid_model_part.ElementsEnd(); ++i)
             {   
                 
                 i -> Reset(ACTIVE);
-                i -> SetValue(COUNTER, 0);     
+                
+                //i -> SetValue(COUNTER, 0);     
             }
-                   
-            
+        //std::cout << " 22222222222222222222 "<<std::endl;  
+        //std::cout << " grid_model_part.Elements()[0].GetGeometry().PointsNumber() "<<grid_model_part.Elements()[0]<<std::endl;
+        //if (TDim == 2 && grid_model_part.Elements()[0].GetGeometry().PointsNumber() == 3)
+        //{
+            //std::cout << " 3333333333333333 "<<std::endl;    
+        
+        //******************SEARCH FOR TRIANGLES************************    
+        if (m_GeometryElement == "Triangle")
+        {
         const int max_results = 1000; 
         array_1d<double, TDim + 1 > N;
-        
+            
         BinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
         SearchStructure.UpdateSearchDatabase();
-        
-        
+            
+            
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);     
-        
-        
-        
+            
+            
+            
         //loop over the material points
         for (ModelPart::ElementIterator k = mpm_model_part.ElementsBegin(); 
                 k != mpm_model_part.ElementsEnd(); ++k)
@@ -763,19 +778,19 @@ public:
                 //const unsigned int number_of_nodes = k -> GetGeometry().PointsNumber();
                 array_1d<double,3> xg = k -> GetValue(GAUSS_COORD);
                 typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-                                    
+                                       
                 Element::Pointer pelem;
-                
+                    
                 //FindPointOnMesh find the element in which a given point falls and the relative shape functions
                 bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, max_results);                        
-                
+                    
                 if (is_found == true)
                 {
                 pelem->Set(ACTIVE);
                 //std::cout<<"pelem->Id() "<<pelem->Id()<<std::endl;
-                int counter = pelem -> GetValue(COUNTER);            
-                counter += 1;
-                pelem -> SetValue(COUNTER, counter);
+                //int counter = pelem -> GetValue(COUNTER);            
+                //counter += 1;
+                //pelem -> SetValue(COUNTER, counter);
                 
                 k->GetGeometry()(0) = pelem->GetGeometry()(0);
                 k->GetGeometry()(1) = pelem->GetGeometry()(1);
@@ -784,34 +799,110 @@ public:
                 //if use quadrilateral add this line
                 //k->GetGeometry()(3) = pelem->GetGeometry()(3);
                 
+                //if(k->Id() == 18274)
+                //{
+                    //std::cout<<"GetGeometry()[0].Id()"<<k->GetGeometry()[0].Id()<<std::endl;
+                    //std::cout<<"GetGeometry()[1].Id()"<<k->GetGeometry()[1].Id()<<std::endl;
+                    //std::cout<<"GetGeometry()[2].Id()"<<k->GetGeometry()[2].Id()<<std::endl;
+                //}
                 
                 
+                }
+            }  
+            
+		}
+                 
+        //}
+        //else if (TDim == 2 && grid_model_part.Elements()[0].GetGeometry().PointsNumber() == 4)
+        //{
+        //std::cout << " 44444444444444444 "<<std::endl;  
+        
+        
+        //******************SEARCH FOR QUADRILATERALS************************
+        else if(m_GeometryElement == "Quadrilateral")
+        {
+        const int max_results = 1000; 
+            //array_1d<double, TDim + 1 > N;
+            
+        QuadBinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
+        SearchStructure.UpdateSearchDatabase();
+            
+            
+        typename QuadBinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);     
+        
+            
+            
+            //loop over the material points
+        for (ModelPart::ElementIterator k = mpm_model_part.ElementsBegin(); 
+                k != mpm_model_part.ElementsEnd(); ++k)
+            {   
+                    //const unsigned int number_of_nodes = k -> GetGeometry().PointsNumber();
+                array_1d<double,3> xg = k -> GetValue(GAUSS_COORD);
+                typename QuadBinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+                                        
+                Element::Pointer pelem;
+                    
+                    //FindPointOnMesh find the element in which a given point falls and the relative shape functions
+                bool is_found = SearchStructure.FindPointOnMesh(xg, pelem, result_begin, max_results);                        
+                //std::cout<< "k->Id() "<<k->Id()<<std::endl;
+                //std::cout<< " is_found "<< is_found<<std::endl;  
+                if (is_found == true)
+                {
+                pelem->Set(ACTIVE);
+                //std::cout<< "k->Id() "<<k->Id()<<std::endl;
+                //std::cout<<"pelem->Id() "<<pelem->Id()<<std::endl;
+                //int counter = pelem -> GetValue(COUNTER);            
+                //counter += 1;
+                //pelem -> SetValue(COUNTER, counter);
+                
+                k->GetGeometry()(0) = pelem->GetGeometry()(0);
+                k->GetGeometry()(1) = pelem->GetGeometry()(1);
+                k->GetGeometry()(2) = pelem->GetGeometry()(2);
+                k->GetGeometry()(3) = pelem->GetGeometry()(3);
+                //if use quadrilateral add this line
+                //k->GetGeometry()(3) = pelem->GetGeometry()(3);
+                
+                //if(k->Id() == 27938)
+                    //{
+                        //std::cout<<"GetGeometry()[0].Id()"<<k->GetGeometry()[0].Id()<<std::endl;
+                        //std::cout<<"GetGeometry()[1].Id()"<<k->GetGeometry()[1].Id()<<std::endl;
+                        //std::cout<<"GetGeometry()[2].Id()"<<k->GetGeometry()[2].Id()<<std::endl;
+                        //std::cout<<"GetGeometry()[3].Id()"<<k->GetGeometry()[3].Id()<<std::endl;
+                    //}
+                if(k->Id() == 14716)
+                    {
+                        std::cout<<"pelem->Id()"<<pelem->Id()<<std::endl;
+                    }
                 
                 }
                 
                 
-            } 
+            }    
+            
+		}
+            
+          
             
         //loop over grid element to know how many MP fall in each element
-        for (ModelPart::ElementIterator i = grid_model_part.ElementsBegin();
-                i != grid_model_part.ElementsEnd(); ++i)
-            { 
-                if(i->IsDefined(ACTIVE))
-                {
-                    int MP_number_per_element = i->GetValue(COUNTER);
-                    for (ModelPart::ElementIterator k = mpm_model_part.ElementsBegin(); 
-                        k != mpm_model_part.ElementsEnd(); ++k)
-                        {
-                            if (k->GetGeometry()(0) == i->GetGeometry()(0) && k->GetGeometry()(1) == i->GetGeometry()(1) && k->GetGeometry()(2) == i->GetGeometry()(2))
-                            {
-                                k->SetValue(MP_NUMBER, MP_number_per_element);
-                            }
+        //for (ModelPart::ElementIterator i = grid_model_part.ElementsBegin();
+                //i != grid_model_part.ElementsEnd(); ++i)
+            //{ 
+                //if(i->IsDefined(ACTIVE))
+                //{
+                    //int MP_number_per_element = i->GetValue(COUNTER);
+                    //for (ModelPart::ElementIterator k = mpm_model_part.ElementsBegin(); 
+                        //k != mpm_model_part.ElementsEnd(); ++k)
+                        //{
+                            //if (k->GetGeometry()(0) == i->GetGeometry()(0) && k->GetGeometry()(1) == i->GetGeometry()(1) && k->GetGeometry()(2) == i->GetGeometry()(2))
+                            //{
+                                //k->SetValue(MP_NUMBER, MP_number_per_element);
+                            //}
                             
-                        }
+                        //}
                     
-                }
+                //}
                                
-            }
+            //}
         
     }
     
@@ -856,6 +947,7 @@ protected:
     
     ModelPart& mr_grid_model_part;
     ModelPart& mr_mpm_model_part;
+    std::string m_GeometryElement;
     
     SolvingStrategyType::Pointer mp_solving_strategy;
 

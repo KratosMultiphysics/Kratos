@@ -37,7 +37,9 @@
 
 //element
 #include "custom_elements/updated_lagrangian.hpp"
-//#include "custom_elements/updated_lagrangian_quadrilateral.hpp"
+//#include "custom_elements/updated_lagrangian_UP.hpp"
+#include "custom_elements/updated_lagrangian_quadrilateral.hpp"
+//#include "custom_elements/updated_lagrangian_UP_quadrilateral.hpp"
 //#include "custom_elements/total_lagrangian.hpp"
 
 //constitutive laws
@@ -274,7 +276,11 @@ namespace Kratos
 		///@{ 
  		const UpdatedLagrangian mUpdatedLagrangian2D3N;
  		const UpdatedLagrangian mUpdatedLagrangian3D4N;
- 		//const UpdatedLagrangianQuad mUpdatedLagrangianQuad2D4N;
+ 		//const UpdatedLagrangianUP mUpdatedLagrangianUP2D3N;
+ 		//const UpdatedLagrangianUP mUpdatedLagrangianUP3D4N;
+ 		const UpdatedLagrangianQuadrilateral mUpdatedLagrangian2D4N;
+ 		//const UpdatedLagrangianUPQuadrilateral mUpdatedLagrangianUP2D4N;
+ 		
  		//const TotalLagrangian mTotalLagrangian2D3N;
  		//const TotalLagrangian mTotalLagrangian3D4N;
 		

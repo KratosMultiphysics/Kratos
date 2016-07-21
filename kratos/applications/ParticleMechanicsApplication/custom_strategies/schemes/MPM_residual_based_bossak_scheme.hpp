@@ -292,7 +292,7 @@ public:
             array_1d<double, 3 > & PreviousVelocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
             array_1d<double, 3 > & PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
             array_1d<double, 3 > & CurrentDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT);
-            array_1d<double, 3 > & ImposedDisplacement  = (i)->FastGetSolutionStepValue(IMPOSED_DISPLACEMENT);  
+            //array_1d<double, 3 > & ImposedDisplacement  = (i)->FastGetSolutionStepValue(IMPOSED_DISPLACEMENT);  
             array_1d<double, 3 > & PreviousAcceleration  = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
             
             //if ((i)->Id() == 2693 || (i)->Id() == 2790 || (i)->Id() == 2721)
@@ -308,7 +308,7 @@ public:
             }
             else
             {
-                CurrentDisplacement[0]  = PreviousDisplacement[0] + ImposedDisplacement[0];
+                CurrentDisplacement[0]  = PreviousDisplacement[0];// + ImposedDisplacement[0];
             }
 
             if (i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false)
@@ -317,7 +317,7 @@ public:
             }
             else
             {
-                CurrentDisplacement[1]  = PreviousDisplacement[1] + ImposedDisplacement[1];
+                CurrentDisplacement[1]  = PreviousDisplacement[1];// + ImposedDisplacement[1];
             }
 
 
@@ -329,7 +329,7 @@ public:
                 }
                 else
                 {
-                    CurrentDisplacement[2]  = PreviousDisplacement[2] + ImposedDisplacement[2];
+                    CurrentDisplacement[2]  = PreviousDisplacement[2];// + ImposedDisplacement[2];
                 }
             }
             
@@ -338,12 +338,12 @@ public:
 
             if (i->HasDofFor(PRESSURE))
             {
-                double& PreviousPressure    = (i)->FastGetSolutionStepValue(PRESSURE, 1);
+                //double& PreviousPressure    = (i)->FastGetSolutionStepValue(PRESSURE, 1);
                 double& CurrentPressure     = (i)->FastGetSolutionStepValue(PRESSURE);
 
                 if ((i->pGetDof(PRESSURE))->IsFixed() == false)
-                    CurrentPressure = PreviousPressure;
-
+                    //CurrentPressure = PreviousPressure;
+                    CurrentPressure = 0.0;  
                 
             }
 
@@ -474,19 +474,20 @@ public:
 
                     array_1d<double, 3 > & NodalMomentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
                     array_1d<double, 3 > & NodalInertia = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
-                    
                     double & NodalMass = (i)->FastGetSolutionStepValue(NODAL_MASS);
+                    double & NodalPressure = (i)->FastGetSolutionStepValue(PRESSURE);
+
                     NodalMomentum.clear();
                     NodalInertia.clear();
-                    
                     NodalMass= 0.0;
+                    NodalPressure = 0.0;
                 }
                 
                 if((i)->SolutionStepsDataHas(DISPLACEMENT) && (i)->SolutionStepsDataHas(VELOCITY) && (i)->SolutionStepsDataHas(ACCELERATION) )
                 {
                     array_1d<double, 3 > & NodalDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT);
-                    array_1d<double, 3 > & NodalVelocity = (i)->FastGetSolutionStepValue(VELOCITY);
-                    array_1d<double, 3 > & NodalAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION);
+                    array_1d<double, 3 > & NodalVelocity = (i)->FastGetSolutionStepValue(VELOCITY,1);
+                    array_1d<double, 3 > & NodalAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
                     array_1d<double, 3 > & DeltaNodalVelocity = (i)->FastGetSolutionStepValue(AUX_VELOCITY);
                     array_1d<double, 3 > & DeltaNodalAcceleration = (i)->FastGetSolutionStepValue(AUX_ACCELERATION);
                     
@@ -514,8 +515,8 @@ public:
         double NormAcc = 1.0;
         double NormDeltaVel = 1.0;
         double NormDeltaAcc = 1.0;
-        double TolVel = 1.0e-3;
-        double TolAcc = 1.0e-3;
+        double TolVel = 5.0e-3;
+        double TolAcc = 5.0e-3;
         int ItNum = 1;
         //for (unsigned int i = 0; i<20; i++)// 
         //while(RatioNormVel > TolVel || RatioNormAcc > TolAcc)
@@ -560,6 +561,8 @@ public:
             NormAcc = 0.0;
             NormDeltaVel = 0.0;
             NormDeltaAcc = 0.0;
+            //TolVel = 1;
+            //TolAcc = 1;
             int nodes_counter = 0;
             Scheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(r_model_part,A,Dx,b);
             
@@ -876,48 +879,48 @@ public:
 
             ElementsArrayType::iterator ElementsBegin = rElements.begin() + ElementPartition[k];
             ElementsArrayType::iterator ElementsEnd = rElements.begin() + ElementPartition[k + 1];
-            double TotalKineticEnergy = 0.0;
-            double TotalStrainEnergy = 0.0;
+            //double TotalKineticEnergy = 0.0;
+            //double TotalStrainEnergy = 0.0;
             for (ElementsArrayType::iterator itElem = ElementsBegin; itElem != ElementsEnd; itElem++)
             {   
                 
                 itElem->FinalizeSolutionStep(CurrentProcessInfo);
                 
                 //AFTER THE FINALIZATION OF TIME STEP, KINETIC AND STRAIN ENERGY CAN BE EVALUATED.
-                const array_1d<double, 3 > MP_Velocity = itElem->GetValue(MP_VELOCITY);
+                //const array_1d<double, 3 > MP_Velocity = itElem->GetValue(MP_VELOCITY);
                 //array_1d<double, 3 > AUX_MP_Velocity = itElem->GetValue(AUX_MP_VELOCITY);
                 //array_1d<double, 3 > AUX_MP_Acceleration = itElem->GetValue(AUX_MP_ACCELERATION);
                 //AUX_MP_Velocity.clear();
                 //AUX_MP_Acceleration.clear();
-                const Vector MP_Stress = itElem->GetValue(MP_CAUCHY_STRESS_VECTOR);
-                const Vector Previous_MP_Stress = itElem->GetValue(PREVIOUS_MP_CAUCHY_STRESS_VECTOR);
-                const Vector MP_Strain = itElem->GetValue(MP_ALMANSI_STRAIN_VECTOR);
-                const Vector Previous_MP_Strain = itElem->GetValue(PREVIOUS_MP_ALMANSI_STRAIN_VECTOR);
-                const Vector MP_DeltaStrain = MP_Strain - Previous_MP_Strain;
-                if(itElem->Id() == 17370)
-                {
-                    std::cout<<"MP_Strain " << MP_Strain<<std::endl;
-                    std::cout<<"Previous_MP_Strain " << Previous_MP_Strain<<std::endl;
-                    std::cout<<"MP_DeltaStrain " << MP_DeltaStrain<<std::endl;
+                //const Vector MP_Stress = itElem->GetValue(MP_CAUCHY_STRESS_VECTOR);
+                //const Vector Previous_MP_Stress = itElem->GetValue(PREVIOUS_MP_CAUCHY_STRESS_VECTOR);
+                //const Vector MP_Strain = itElem->GetValue(MP_ALMANSI_STRAIN_VECTOR);
+                //const Vector Previous_MP_Strain = itElem->GetValue(PREVIOUS_MP_ALMANSI_STRAIN_VECTOR);
+                //const Vector MP_DeltaStrain = MP_Strain - Previous_MP_Strain;
+                //if(itElem->Id() == 17370)
+                //{
+                    //std::cout<<"MP_Strain " << MP_Strain<<std::endl;
+                    //std::cout<<"Previous_MP_Strain " << Previous_MP_Strain<<std::endl;
+                    //std::cout<<"MP_DeltaStrain " << MP_DeltaStrain<<std::endl;
                     
-                    std::cout<<"MP_Stress " << MP_Stress<<std::endl;
-                    std::cout<<"Previous_MP_Stress " << Previous_MP_Stress<<std::endl;
-                }
-                double MP_Mass = itElem->GetValue(MP_MASS);
-                double MP_Volume = itElem->GetValue(MP_VOLUME);
+                    //std::cout<<"MP_Stress " << MP_Stress<<std::endl;
+                    //std::cout<<"Previous_MP_Stress " << Previous_MP_Stress<<std::endl;
+                //}
+                //double MP_Mass = itElem->GetValue(MP_MASS);
+                //double MP_Volume = itElem->GetValue(MP_VOLUME);
                 
-                double MP_KineticEnergy = 0.0;
-                double MP_StrainEnergy = 0.0;
+                //double MP_KineticEnergy = 0.0;
+                //double MP_StrainEnergy = 0.0;
                 
-                for(unsigned int k = 0;k<3;k++)
-                {
-                MP_KineticEnergy += 0.5 * MP_Mass * MP_Velocity[k] * MP_Velocity[k] ;
-                }
-                for(unsigned int j = 0; j < MP_Stress.size(); j++)
-                {
-                MP_StrainEnergy +=  0.5 * MP_Volume * (MP_Stress[j]) * (MP_Strain[j]);
-                }
-                itElem->SetValue(MP_KINETIC_ENERGY, MP_KineticEnergy);// +  MP_Previous_KineticEnergy;
+                //for(unsigned int k = 0;k<3;k++)
+                //{
+                //MP_KineticEnergy += 0.5 * MP_Mass * MP_Velocity[k] * MP_Velocity[k] ;
+                //}
+                //for(unsigned int j = 0; j < MP_Stress.size(); j++)
+                //{
+                //MP_StrainEnergy +=  0.5 * MP_Volume * (MP_Stress[j]) * (MP_Strain[j]);
+                //}
+                //itElem->SetValue(MP_KINETIC_ENERGY, MP_KineticEnergy);// +  MP_Previous_KineticEnergy;
                 //if(itElem->Id() == 17370)
                 //{
                     //std::cout<<" MP_StrainEnergy "<< MP_StrainEnergy<<std::endl;
@@ -925,27 +928,27 @@ public:
                 //}
                 //double Previous_MP_StrainEnergy = itElem->GetValue(MP_STRAIN_ENERGY);
                 //MP_StrainEnergy += Previous_MP_StrainEnergy;// + MP_Previous_StrainEnergy;
-                itElem->SetValue(MP_STRAIN_ENERGY, MP_StrainEnergy);
+                //itElem->SetValue(MP_STRAIN_ENERGY, MP_StrainEnergy);
                 
-                TotalKineticEnergy += MP_KineticEnergy;
-                TotalStrainEnergy += MP_StrainEnergy;
+                //TotalKineticEnergy += MP_KineticEnergy;
+                //TotalStrainEnergy += MP_StrainEnergy;
                 //in the finilize of each time step the auxiliary variables are reset.
                 //itElem->SetValue(AUX_MP_VELOCITY,AUX_MP_Velocity);
                 //itElem->SetValue(AUX_MP_ACCELERATION,AUX_MP_Acceleration);
-                itElem->SetValue(MP_BOOL ,0);
+                //itElem->SetValue(MP_BOOL ,0);
             }
-            std::cout<<"Total ENERGY "<< "\t" << TotalKineticEnergy + TotalStrainEnergy<<std::endl;
-            std::cout<<"TotalKineticEnergy "<< "\t" << TotalKineticEnergy <<std::endl;
-            std::cout<<"TotalStrainEnergy "<< "\t" << TotalStrainEnergy<<std::endl;
-            for (ElementsArrayType::iterator itElem = ElementsBegin; itElem != ElementsEnd; itElem++)
-            {
-                if(itElem->Id() == 18144)
-                {
-                    itElem->SetValue(MP_KINETIC_ENERGY, TotalKineticEnergy);
-                    itElem->SetValue(MP_STRAIN_ENERGY, TotalStrainEnergy);
-                    itElem->SetValue(MP_TOTAL_ENERGY, TotalKineticEnergy + TotalStrainEnergy);
-                }
-            }
+            //std::cout<<"Total ENERGY "<< "\t" << TotalKineticEnergy + TotalStrainEnergy<<std::endl;
+            //std::cout<<"TotalKineticEnergy "<< "\t" << TotalKineticEnergy <<std::endl;
+            //std::cout<<"TotalStrainEnergy "<< "\t" << TotalStrainEnergy<<std::endl;
+            //for (ElementsArrayType::iterator itElem = ElementsBegin; itElem != ElementsEnd; itElem++)
+            //{
+                //if(itElem->Id() == 18144)
+                //{
+                    //itElem->SetValue(MP_KINETIC_ENERGY, TotalKineticEnergy);
+                    //itElem->SetValue(MP_STRAIN_ENERGY, TotalStrainEnergy);
+                    //itElem->SetValue(MP_TOTAL_ENERGY, TotalKineticEnergy + TotalStrainEnergy);
+                //}
+            //}
         }
         
 
