@@ -22,6 +22,7 @@
 
 //Processes
 #include "custom_processes/contact_model_start_end_meshing_process.hpp"
+#include "custom_processes/parametric_wall_contact_search_process.hpp"
 
 namespace Kratos
 {
@@ -39,10 +40,13 @@ namespace Kratos
       
       //**********MESH MODELLER PROCESS*********//
 
-      class_<ContactModelStartEndMeshingProcess, bases< ModelStartEndMeshingProcessBaseType>, boost::noncopyable >
+      class_<ContactModelStartEndMeshingProcess, bases< ModelStartEndMeshingProcessBaseType >, boost::noncopyable >
 	("ContactModelMeshing", init<ModelPart&, Flags, int>())
 	;
 
+      class_<ParametricWallContactSearchProcess, bases< ProcessBaseType >, boost::noncopyable >
+	("ParametricWallContactSearch", init<ModelPart&, SpatialBoundingBox::Pointer, Parameters>())
+	;
 
     }
  

@@ -207,9 +207,6 @@ namespace Kratos
       DeleteContainer(rMeshingVariables.InMesh,in);
       rMeshingVariables.InputInitializedFlag = false;
     }
-    else{
-      DeletePointsList(in);
-    }
 
     //*********************************************************************
 

@@ -299,9 +299,6 @@ private:
       // create rigid body element:
       unsigned int LastElementId = rModelPart.Elements().back().Id() + 1;
 
-      std::vector<int> NodeIds;
-      NodeIds.push_back(LastNodeId);
-
       std::string ElementName = CustomParameters["rigid_body_element_type"].GetString();
 
       GeometryType::Pointer pGeometry = GeometryType::Pointer(new Point3DType( NodeCenterOfGravity ));
@@ -320,9 +317,18 @@ private:
       else if( ElementName.compare("RigidBodyEMCElement") == 0 ){
     	//pRigidBodyElement = ElementType::Pointer(new RigidBodyEMCElement(LastElementId, pGeometry, pProperties, pNodes) );
       }
-      else{
 
-      }
+      // once conventional constructor and registered
+      // ElementType::NodesArrayType ElementNodes;
+      // ElementNodes.push_back(NodeCenterOfGravity);
+      // ElementType const& rCloneElement = KratosComponents<ElementType>::Get(ElementName);
+      // ElementType::Pointer pRigidBodyElement = rCloneElement.Create(LastElementId, ElementNodes, pProperties);
+      // rModelPart.AddElement(pRigidBodyElement);
+      
+      // other posibility
+      // std::vector<int> NodeIds;
+      // NodeIds.push_back(LastNodeId);
+      // rModelPart.CreateNewElement(ElementName,LastElementId, NodeIds, pProperties);
 
       rModelPart.AddElement(pRigidBodyElement);
 
