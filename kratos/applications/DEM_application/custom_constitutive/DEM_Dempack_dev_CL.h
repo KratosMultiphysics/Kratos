@@ -25,9 +25,19 @@ namespace Kratos {
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
-        void GetContactArea(const double radius, const double other_radius, const Vector& vector_of_initial_areas, const int neighbour_position, double& calculation_area) override;
-        void CalculateElasticConstants(double &kn_el, double &kt_el, double initial_dist, double equiv_young, double equiv_poisson,
-                                       double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
+        void GetContactArea(const double radius,
+                            const double other_radius,
+                            const Vector& vector_of_initial_areas,
+                            const int neighbour_position,
+                            double& calculation_area) override;
+        void CalculateElasticConstants(double &kn_el,
+                                       double &kt_el,
+                                       double initial_dist,
+                                       double equiv_young,
+                                       double equiv_poisson,
+                                       double calculation_area,
+                                       SphericContinuumParticle* element1,
+                                       SphericContinuumParticle* element2) override;
         void CalculateTangentialForces(double LocalElasticContactForce[3],
                 double LocalCoordSystem[3][3],
                 double LocalDeltDisp[3],
@@ -55,6 +65,17 @@ namespace Kratos {
                 SphericContinuumParticle* element2,
                 int i_neighbour_count,
                 int time_steps) override;
+
+        void AddContributionOfShearStrainParallelToBond(double LocalElasticContactForce[3],
+                                                    double LocalCoordSystem[3][3],
+                                                    const double kt_el,
+                                                    const double equiv_shear,
+                                                    const int i_neighbour_count,
+                                                    const double calculation_area,
+                                                    SphericContinuumParticle* element1,
+                                                    SphericContinuumParticle* element2);
+
+
         
         void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                       SphericContinuumParticle* neighbor,
