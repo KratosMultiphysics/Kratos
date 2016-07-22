@@ -42,7 +42,7 @@
 #include "utilities/indexed_object.h"
 #include "containers/flags.h"
 #include "containers/weak_pointer_vector.h"
-#include "constitutive_law.h"
+#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
