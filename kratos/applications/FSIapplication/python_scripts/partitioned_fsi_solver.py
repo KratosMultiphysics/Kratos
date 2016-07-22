@@ -194,9 +194,9 @@ class PartitionedFSISolver:
         print("* Fluid solver constructed.")
         
         # Construct the coupling partitioned strategy
-        coupling_strategy_name = self.settings["coupling_solver_settings"]["coupling_strategy"]["solver_type"].GetString()
-        interface_strategy_module = __import__(coupling_strategy_name)       
-        self.coupling_strategy = interface_strategy_module.CreateStrategy(self.settings["coupling_solver_settings"]["coupling_strategy"])
+        coupling_utility_name = self.settings["coupling_solver_settings"]["coupling_strategy"]["solver_type"].GetString()
+        interface_utility_module = __import__(coupling_utility_name)       
+        self.coupling_utility = interface_utility_module.CreateInterfaceUtility(self.settings["coupling_solver_settings"]["coupling_strategy"])
         print("* Coupling strategy constructed.")
         
         # Construct the ALE mesh solver
@@ -333,6 +333,7 @@ class PartitionedFSISolver:
         
         self.fluid_solver.SolverInitializeSolutionStep()
         self.structure_solver.SolverInitializeSolutionStep()
+        self.coupling_utility.ExecuteInitializeSolutionStep()
         
         self.fluid_solver.SolverPredict()
         self.structure_solver.SolverPredict()
@@ -370,10 +371,10 @@ class PartitionedFSISolver:
                 # If convergence is not achieved, perform the correction of the prediction
                 print("     Performing non-linear iteration ",nl_it," correction.")               
                 
-                self.iteration_value = self.coupling_strategy.InterfaceSolutionUpdate(self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS],
-                                                                                      nl_it,
-                                                                                      self.iteration_value,
-                                                                                      vel_residual)
+                self.iteration_value = self.coupling_utility.InterfaceSolutionUpdate(self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS],
+                                                                                     nl_it,
+                                                                                     self.iteration_value,
+                                                                                     vel_residual)
 
                 # Move interface nodes
                 # If the correction is done over the velocity, the interface displacement must be done according the corrected velocity.
