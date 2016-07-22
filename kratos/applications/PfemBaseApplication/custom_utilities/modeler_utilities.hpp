@@ -199,7 +199,7 @@ public:
 
       void CreateElementList(const unsigned int NumberOfElements, const unsigned int NumberOfVertices)
       {
-	if( mpElementList != NULL && ElementListFlag = true){
+	if( mpElementList != NULL && ElementListFlag == true){
 	  delete [] mpElementList;
 	}
 	mNumberOfElements = NumberOfElements;
