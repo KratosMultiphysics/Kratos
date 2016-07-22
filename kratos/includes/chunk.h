@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   
+//
 //
 
 
@@ -29,13 +29,13 @@ namespace Kratos
   /** The memory management of Kratos is implemented based on the design
 	  given in Modern C++ Design by A. Alexandrescu and chunk is the lower
 	  layer of it holding a chunk of NumberOfBlocks objects of BlockSize.
-	  This implemnetation is designed for larg chunk size (i.e. 1M) 
-	  imposes more overhead than the reference for stroing a header 
+	  This implemnetation is designed for larg chunk size (i.e. 1M)
+	  imposes more overhead than the reference for stroing a header
 	  containing the chunk size and block size and thread private links.
   */
-  class Chunk : public LockObject 
+  class Chunk : public LockObject
     {
-    public:    
+    public:
 
 	  ///@name Type Definitions
 	  ///@{
@@ -96,7 +96,7 @@ namespace Kratos
 		  mOwnerThread = GetThreadNumber();  // initialization can change the owner thread
 		  std::size_t block_size_after_alignment = GetBlockSize(mBlockSizeInBytes);
 		  mpData = new DataType[DataSize()];
-  		  SetFirstAvailableBlockIndex(0); 
+  		  SetFirstAvailableBlockIndex(0);
 		  for (auto i_thread = 0; i_thread < GetNumberOfThreads(); i_thread++)
 			  SetNumberOfAvailableBlocks(0, i_thread);
 		  SetNumberOfAvailableBlocks(AllocatableDataSize() / block_size_after_alignment);
@@ -124,10 +124,6 @@ namespace Kratos
 				  }
 			  UnSetLock();
 		  }
-		  DataType* p_data = GetData();
-		  auto first_index = GetFirstAvailableBlockIndex();
-		  auto block_size = GetBlockSize(mBlockSizeInBytes);
-		  auto thread_number = GetThreadNumber();
 		  DataType * p_result = GetData() + (GetFirstAvailableBlockIndex() * GetBlockSize(mBlockSizeInBytes));
 		  KRATOS_DEBUG_CHECK(Has(p_result));
 		  SetFirstAvailableBlockIndex(*p_result);
@@ -275,7 +271,7 @@ namespace Kratos
 		DataType * mpData;
 		SizeType mSize;
 		SizeType mBlockSizeInBytes;
-		SizeType mOwnerThread;
+		int mOwnerThread;
 
       ///@}
       ///@name Operations

@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   
+//
 //
 
 
@@ -31,14 +31,14 @@ namespace Kratos
   /// FixedSizeMemoryPool is the multi-thread manager of Kratos memory management.
   /** The memory management of Kratos is implemented based on the design
 	  given in Modern C++ Design by A. Alexandrescu. However a new layer is added
-	  over the ThreadFixedSizeMemoryPool in order to control the multi-thread 
+	  over the ThreadFixedSizeMemoryPool in order to control the multi-thread
 	  creation and destruction of the chunks. This layer keeps ThreadFixedSizeMemoryPool
-	  for each thread and is in charge of calling their methods in a thread safe way 
+	  for each thread and is in charge of calling their methods in a thread safe way
 	  and also feeds them with new chunk (or reusing the released ones)
   */
   class FixedSizeMemoryPool : public LockObject
     {
-    public:    
+    public:
 	  ///@name Type Definitions
 	  ///@{
 
@@ -69,7 +69,7 @@ namespace Kratos
 			  mThreadsPool.emplace_back(BlockSizeInBytes, ChunkSize);
 	  }
 
-      /// Destructor 
+      /// Destructor
 	  virtual ~FixedSizeMemoryPool() {
 
 	  }
@@ -92,7 +92,6 @@ namespace Kratos
 
 	  void Deallocate(void* pPointrerToRelease) {
 
-		  Chunk* p_chunk = nullptr;
 		  if (mThreadsPool[GetThreadNumber()].Deallocate(pPointrerToRelease)) 
 			  return;
 
@@ -160,9 +159,9 @@ namespace Kratos
 			  overhead_percentage = static_cast<double>(memory_overhead)/(memory_used - memory_overhead);
 		  overhead_percentage *= 100.00;
 
-		  rOStream << GetNumberOfAllocatedChunks() << " Chunks of " 
-			  << SizeInBytesToString(ChunkSize()) << " bytes each. Total memory usage: " 
-			  << SizeInBytesToString(MemoryUsed()) << " bytes and memory overhead " 
+		  rOStream << GetNumberOfAllocatedChunks() << " Chunks of "
+			  << SizeInBytesToString(ChunkSize()) << " bytes each. Total memory usage: "
+			  << SizeInBytesToString(MemoryUsed()) << " bytes and memory overhead "
 			  << SizeInBytesToString(MemoryOverhead()) << "(" << overhead_percentage << "%)" << std::endl;
 	  }
 
