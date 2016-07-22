@@ -12,7 +12,6 @@ class Kratos_Execute_Test:
     def __init__(self, ProjectParameters):
 
         self.ProjectParameters = ProjectParameters
-        print(ProjectParameters)
 
         self.main_model_part = ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
         self.main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
@@ -57,10 +56,21 @@ class Kratos_Execute_Test:
         self.problem_name = self.ProjectParameters["problem_data"]["problem_name"].GetString()
 
         # ### Output settings start ####
-
+        self.output_post = ProjectParameters.Has("output_configuration")
+        if (self.output_post == True):
+            from gid_output_process import GiDOutputProcess
+            output_settings = ProjectParameters["output_configuration"]
+            self.gid_output = GiDOutputProcess(self.computing_model_part,
+                                               self.problem_name,
+                                               output_settings)
+            self.gid_output.ExecuteInitialize()
+            
         # Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
         self.solver.Initialize()
         self.solver.SetEchoLevel(0) # Avoid to print anything 
+        
+        if (self.output_post == True):
+            self.gid_output.ExecuteBeforeSolutionLoop()
 
     def Solve(self):
         for process in self.list_of_processes:
@@ -85,8 +95,14 @@ class Kratos_Execute_Test:
 
             for process in self.list_of_processes:
                 process.ExecuteInitializeSolutionStep()
-
+                
+            if (self.output_post == True):
+                self.gid_output.ExecuteInitializeSolutionStep()
+                        
             self.solver.Solve()
+            
+            if (self.output_post == True):
+                self.gid_output.ExecuteFinalizeSolutionStep()
 
             for process in self.list_of_processes:
                 process.ExecuteFinalizeSolutionStep()
@@ -97,7 +113,12 @@ class Kratos_Execute_Test:
             for process in self.list_of_processes:
                 process.ExecuteAfterOutputStep()
 
-            for process in self.list_of_processes:
-                process.ExecuteFinalize()
+            if (self.output_post == True):
+                if self.gid_output.IsOutputStep():
+                    self.gid_output.PrintOutput()
 
-  # def CheckResults(self, Results):
+        if (self.output_post == True):
+            self.gid_output.ExecuteFinalize()
+
+        for process in self.list_of_processes:
+            process.ExecuteFinalize()
