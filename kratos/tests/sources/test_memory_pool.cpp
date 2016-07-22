@@ -28,29 +28,31 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(FixedSizeMemoryPoolConstruction, KratosCoreFastSuite)
 		{
+			int max_threads = LockObject::GetNumberOfThreads();
 			std::size_t block_size = 5;
-			unsigned char number_of_blocks = 2;
-			FixedSizeMemoryPool fixed_size_memory_pool(block_size, number_of_blocks);
-			std::size_t empty_size = 16 + sizeof(Chunk) + sizeof(FixedSizeMemoryPool) + sizeof(std::size_t);
-
-			KRATOS_CHECK_EQUAL(fixed_size_memory_pool.GetNumberOfChunks(), 1);
-			KRATOS_CHECK_EQUAL(fixed_size_memory_pool.ChunkSize(), 16);
+			std::size_t default_chunk_size = 1024 * 1024; // 1M
+			FixedSizeMemoryPool fixed_size_memory_pool(block_size);
+			std::size_t empty_size = sizeof(ThreadFixedSizeMemoryPool) * max_threads + sizeof(FixedSizeMemoryPool);
+			KRATOS_CHECK_EQUAL(fixed_size_memory_pool.GetNumberOfAllocatedChunks(), 0);
+			KRATOS_CHECK_EQUAL(fixed_size_memory_pool.ChunkSize(), default_chunk_size);
 			KRATOS_CHECK_EQUAL(fixed_size_memory_pool.MemoryUsed(), empty_size);
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(FixedSizeMemoryPoolAllocationDeallocation, KratosCoreFastSuite)
 		{
-			std::size_t block_size = 5;
-			unsigned char number_of_blocks = 2;
-			FixedSizeMemoryPool fixed_size_memory_pool(block_size, number_of_blocks);
-			std::size_t empty_size = 16 + sizeof(Chunk) + sizeof(FixedSizeMemoryPool) + sizeof(std::size_t);
+			int max_threads = LockObject::GetNumberOfThreads();
+			std::size_t block_size = 15;
+			std::size_t default_chunk_size = 1024 * 1024; // 1M
+			std::size_t number_of_blocks = (default_chunk_size - 2 * max_threads * sizeof(Chunk::SizeType)) / 16;
+			FixedSizeMemoryPool fixed_size_memory_pool(block_size);
+			
 
-			std::size_t repeat_number = 13;
+			std::size_t repeat_number = 2;
 			for (std::size_t i_repeat = 1; i_repeat <= repeat_number; i_repeat++)
 			{
 				std::set<void *> pointer_set;
 				for (std::size_t i_chunk = 0; i_chunk < i_repeat; i_chunk++)
-					for (auto i_block = 0; i_block < number_of_blocks; i_block++)
+					for (std::size_t i_block = 0; i_block < number_of_blocks; i_block++)
 					{
 						void* p = fixed_size_memory_pool.Allocate();
 						KRATOS_ERROR_IF(pointer_set.find(p) != pointer_set.end())
@@ -61,28 +63,31 @@ namespace Kratos {
 				for (auto i_pointer = pointer_set.begin(); i_pointer != pointer_set.end(); i_pointer++) {
 					fixed_size_memory_pool.Deallocate(*i_pointer);
 				}
-				KRATOS_CHECK_EQUAL(fixed_size_memory_pool.GetNumberOfChunks(), i_repeat);
-				KRATOS_CHECK_EQUAL(fixed_size_memory_pool.ChunkSize(), 16);
-				KRATOS_CHECK_EQUAL(fixed_size_memory_pool.MemoryUsed(), empty_size) << fixed_size_memory_pool << std::endl;
-				empty_size += sizeof(Chunk) + sizeof(std::size_t);
-
+				std::size_t number_of_chunks = i_repeat;// ((i_repeat / OpenMPUtils::GetNumThreads()) + 1) *  OpenMPUtils::GetNumThreads();
+				KRATOS_CHECK_EQUAL(fixed_size_memory_pool.GetNumberOfAllocatedChunks(), number_of_chunks) << " (number_of_chunks = " << number_of_chunks << ")";
+				KRATOS_CHECK_EQUAL(fixed_size_memory_pool.ChunkSize(), default_chunk_size);
 			}
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(FixedSizeMemoryPoolStressTest, KratosCoreStressSuite)
 		{
+			int max_threads = LockObject::GetNumberOfThreads();
 			std::size_t block_size = 61;
-			auto number_of_blocks = 4096;
-			FixedSizeMemoryPool fixed_size_memory_pool(block_size, number_of_blocks);
+			std::size_t default_chunk_size = 1024; // * 1024;// 1M
+			std::size_t number_of_blocks = (default_chunk_size - 2 * max_threads * sizeof(Chunk::SizeType)) / 64;
+			FixedSizeMemoryPool fixed_size_memory_pool(block_size, 1024);
 
 			auto repeat_number = 128;
 			for (auto i_repeat = 1; i_repeat <= repeat_number; i_repeat++)
 			{
 				std::vector<void *> pointer_vector;
 				for (auto i_chunk = 0; i_chunk < i_repeat; i_chunk++)
-					for (auto i_block = 0; i_block < number_of_blocks; i_block++)
+					for (std::size_t i_block = 0; i_block < number_of_blocks; i_block++)
 					{
+						if (i_repeat == 18)
+						KRATOS_WATCH(i_block);
 						void* p = fixed_size_memory_pool.Allocate();
+						KRATOS_CHECK_NOT_EQUAL(p, nullptr);
 						pointer_vector.push_back(p);
 
 					}
@@ -118,13 +123,13 @@ namespace Kratos {
 				std::vector<Block46byte*> the_vector(size);
 
 
-				for (std::size_t i = 0; i < size; i++)
-					the_vector[i] = new Block46byte;
+				//for (std::size_t i = 0; i < size; i++)
+				//	the_vector[i] = new Block46byte;
 
-				std::cout << MemoryPool::Info() << std::endl;
+				//std::cout << MemoryPool::Info() << std::endl;
 
-				for (std::size_t i = 0; i < size; i++)
-					delete the_vector[i];
+				//for (std::size_t i = 0; i < size; i++)
+				//	delete the_vector[i];
 			}
 			std::cout << MemoryPool::Info() << std::endl;
 		}
