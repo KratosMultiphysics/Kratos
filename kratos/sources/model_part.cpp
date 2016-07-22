@@ -526,9 +526,22 @@ void ModelPart::RemoveTableFromAllLevels(ModelPart::IndexType TableId)
 void ModelPart::AddProperties(ModelPart::PropertiesType::Pointer pNewProperties, ModelPart::IndexType ThisIndex)
 {
     if (IsSubModelPart())
+    {
         mpParentModelPart->AddProperties(pNewProperties);
+    }
 
-    GetMesh(ThisIndex).AddProperties(pNewProperties);
+    auto pprop_it = GetMesh(0).Properties().find(ThisIndex);
+    if( pprop_it != GetMesh(0).Properties().end() )
+    {
+        if( &(*(pprop_it.base())) != &pNewProperties )
+        {
+            KRATOS_ERROR << "trying to add a property with existing Id within the model part : " << Name() << " Property Id is :" << ThisIndex;
+        }
+    }
+    else
+    {
+        GetMesh(0).AddProperties(pNewProperties);
+    }
 }
 
 /** Remove the Properties with given Id from mesh with ThisIndex in this modelpart and all its subs.
