@@ -444,8 +444,17 @@ namespace Kratos
 
 		  }
 		else{
-		  //std::cout<<" NOT ENGAGED NODE "<<i_node->Id()<<std::endl;
-		  i_node->Set(ISOLATED);		 	  
+		  i_node->Set(ISOLATED);
+
+		  if( mOptions.Is(ModelerUtilities::KEEP_ISOLATED_NODES) ){
+
+		    (rModelPart.Nodes(MeshId)).push_back(*(i_node.base()));
+		    (rModelPart.Nodes()).push_back(*(i_node.base()));	
+		    rModelPart.Nodes().back().SetId(nodeId);
+		    nodeId+=1;
+
+		  }
+		    
 		}
 		
 		if(i_node->Is(BOUNDARY)){
