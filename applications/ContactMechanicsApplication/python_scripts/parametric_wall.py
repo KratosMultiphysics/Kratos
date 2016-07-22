@@ -31,11 +31,12 @@ class ParametricWall(object):
             "rigid_body_settings":{
                "rigid_body_element_type": "TranslatoryRigidElement3D1N",
                "fixed_body": true,
-               "compute_parameters_from_wall": false,
+               "compute_parameters": false,
                "rigid_body_parameters":{
                    "center_of_gravity": [0.0 ,0.0, 0.0],
+                   "mass":0.0,
                    "main_inertias": [0.0, 0.0, 0.0],
-                   "principal_axes": [ [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ]
+                   "main_axes": [ [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ]
                }
             },
             "bounding_box_settings":{
@@ -43,7 +44,7 @@ class ParametricWall(object):
                "bounding_box_type": "SpatialBoundingBox",
                "bounding_box_parameters":{
                    "parameters_list":[],
-                   "velocity" = [0.0, 0.0, 0.0]
+                   "velocity" = [0.0, 0.0, 0.0],
                }
             }
             "contact_search_settings":{
@@ -87,7 +88,8 @@ class ParametricWall(object):
         self.wall_bounding_box = BoundingBox(self.wall_bounding_box, self.settings["bounding_box_settings"]["bounding_box_parameters"])
 
         #construct rigid element // must pass an array of nodes to the element, create a node (CG) and a rigid element set them in the main_model_part, set the node CG as the reference node of the wall_bounding_box, BLOCKED, set in the wall_model_part for imposed movements processes.
-        self.rigid_wall_element = KratosContact.CreateRigidBodyElement(self.main_model_part, self.wall_bounding_box, self.settings["rigid_body_settings"])
+        creation_utility = KratosContact.RigidBodyCreationUtilities()
+        creation_utility.CreateRigidBodyElement(self.main_model_part, self.wall_bounding_box, self.settings["rigid_body_settings"])
 
         #construct the search strategy
         meshing_module = __import__(self.settings["contact_search_strategy"]["python_file_name"].GetString())

@@ -46,14 +46,14 @@ TranslatoryRigidBodyElement::TranslatoryRigidBodyElement(IndexType NewId, Geomet
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-TranslatoryRigidBodyElement::TranslatoryRigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, ModelPart::MeshType::Pointer pMesh)
+TranslatoryRigidBodyElement::TranslatoryRigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, NodesContainerType::Pointer pNodes)
     : RigidBodyElement(NewId, pGeometry, pProperties)
 {
     KRATOS_TRY
 
     //DO NOT ADD DOFS HERE!!!
 
-    mpMesh = pMesh;
+    mpNodes = pNodes;
 
     KRATOS_CATCH( "" )
 
@@ -68,13 +68,23 @@ TranslatoryRigidBodyElement::TranslatoryRigidBodyElement(TranslatoryRigidBodyEle
 {
 }
 
-//*********************************OPERATIONS*****************************************
+//*********************************CREATE*********************************************
 //************************************************************************************
 
 Element::Pointer TranslatoryRigidBodyElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new TranslatoryRigidBodyElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
+
+
+//*********************************CLONE**********************************************
+//************************************************************************************
+
+Element::Pointer TranslatoryRigidBodyElement::Clone (IndexType NewId, NodesArrayType const& ThisNodes) const
+{
+  return Element::Pointer(new TranslatoryRigidBodyElement(NewId, GetGeometry().Create(ThisNodes), pGetProperties(), mpNodes));
+}
+
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
@@ -95,6 +105,7 @@ void TranslatoryRigidBodyElement::GetDofList(DofsVectorType& ElementalDofList,Pr
     ElementalDofList.resize(0);
     
     const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
@@ -291,7 +302,9 @@ void TranslatoryRigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHan
 
     //rCurrentProcessInfo must give it:
     double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
- 
+
+    double AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
+
     double Newmark1 = (1.0/ ( DeltaTime * DeltaTime * rCurrentProcessInfo[NEWMARK_BETA] ));
 
     //block m(1,1) of the mass matrix
@@ -481,12 +494,11 @@ void TranslatoryRigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProc
 
      Node<3>& rCenterOfGravity = this->GetGeometry()[0];
      
-     array_1d<double, 3 >&  Center       = rCenterOfGravity.GetInitialPosition();
      array_1d<double, 3 >&  Displacement = rCenterOfGravity.FastGetSolutionStepValue(DISPLACEMENT);
      array_1d<double, 3 >&  Velocity     = rCenterOfGravity.FastGetSolutionStepValue(VELOCITY);
      array_1d<double, 3 >&  Acceleration = rCenterOfGravity.FastGetSolutionStepValue(ACCELERATION);
 
-     for (NodesContainerType::iterator i = mpNodes->Begin(); i != mpNodes->End(); ++i)
+     for (NodesContainerType::iterator i = mpNodes->begin(); i != mpNodes->end(); ++i)
        {
 	 (i)->FastGetSolutionStepValue(DISPLACEMENT) = Displacement;
 	 (i)->FastGetSolutionStepValue(VELOCITY)     = Velocity;

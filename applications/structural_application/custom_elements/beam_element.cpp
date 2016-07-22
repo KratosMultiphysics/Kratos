@@ -341,17 +341,17 @@ void BeamElement::CalculateSectionProperties()
         mArea = GetValue(AREA);
     
     Matrix* inertia;
-    if( GetProperties().Has(LOCAL_INERTIA) )
+    if( GetProperties().Has(LOCAL_INERTIA_TENSOR) )
     {
-        inertia = &(GetProperties()[LOCAL_INERTIA]);
+        inertia = &(GetProperties()[LOCAL_INERTIA_TENSOR]);
     }
     else if( GetProperties().Has(INERTIA) )
     {
         inertia = &(GetProperties()[INERTIA]);
     }
-    else if( Has(LOCAL_INERTIA) )
+    else if( Has(LOCAL_INERTIA_TENSOR) )
     {
-        inertia = &(GetValue(LOCAL_INERTIA));
+        inertia = &(GetValue(LOCAL_INERTIA_TENSOR));
     }
     else if( Has(INERTIA) )
     {
@@ -1181,8 +1181,8 @@ int  BeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
         KRATOS_THROW_ERROR(std::invalid_argument,"BODY_FORCE has Key zero! (check if the application is correctly registered","");
     if(CROSS_AREA.Key() == 0)
         KRATOS_THROW_ERROR(std::invalid_argument,"CROSS_AREA has Key zero! (check if the application is correctly registered","");
-    if(LOCAL_INERTIA.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"LOCAL_INERTIA has Key zero! (check if the application is correctly registered","");
+    if(LOCAL_INERTIA_TENSOR.Key() == 0)
+        KRATOS_THROW_ERROR(std::invalid_argument,"LOCAL_INERTIA_TENSOR has Key zero! (check if the application is correctly registered","");
     if(ROTATION.Key() == 0)
         KRATOS_THROW_ERROR(std::invalid_argument,"ROTATION has Key zero! (check if the application is correctly registered","");
 
@@ -1203,17 +1203,17 @@ int  BeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
     }
 
     //verify that the inertia is given by properties
-//    if (this->GetProperties().Has(LOCAL_INERTIA)==false)
+//    if (this->GetProperties().Has(LOCAL_INERTIA_TENSOR)==false)
 //    {
 //        if( GetValue(INERTIA)(0,0) == 0.0 )
 //            KRATOS_THROW_ERROR(std::logic_error,"INERTIA not provided for this element ",this->Id());
 //    }
-    if (this->GetProperties().Has(LOCAL_INERTIA)==false
+    if (this->GetProperties().Has(LOCAL_INERTIA_TENSOR)==false
         || this->GetProperties().Has(INERTIA)==false
-        || Has(LOCAL_INERTIA)==false
+        || Has(LOCAL_INERTIA_TENSOR)==false
         || Has(INERTIA)==false )
     {
-        KRATOS_THROW_ERROR(std::logic_error,"INERTIA|LOCAL_INERTIA not provided for this element ",this->Id());
+        KRATOS_THROW_ERROR(std::logic_error,"INERTIA|LOCAL_INERTIA_TENSOR not provided for this element ",this->Id());
     }
 
     //Verify that the body force is defined

@@ -40,6 +40,10 @@
 //#include "solid_mechanics_application.h"
 //#include "pfem_base_application.h"
 
+// elements
+#include "custom_elements/rigid_body_element.hpp"
+#include "custom_elements/translatory_rigid_body_element.hpp"
+
 
 namespace Kratos {
 

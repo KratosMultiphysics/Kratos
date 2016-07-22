@@ -49,7 +49,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class SpatialBoundingBox
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) SpatialBoundingBox
 {
 public:
 
@@ -621,7 +621,7 @@ public:
     //**************************************************************************
     //**************************************************************************
 
-    void SetBoxCenterNode(NodeType pCenter)
+    void SetRigidBodyCenter(NodeType pCenter)
     {
       mpRigidBodyCenter = pCenter;     
       mRigidBodyCenterSupplied = true;

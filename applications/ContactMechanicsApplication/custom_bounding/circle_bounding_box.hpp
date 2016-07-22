@@ -51,7 +51,7 @@ namespace Kratos
     This bounding box is essentially used for rigid wall contact purposes
 */
 
-class CircleBoundingBox
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) CircleBoundingBox
   : public SphereBoundingBox
 {
 public:

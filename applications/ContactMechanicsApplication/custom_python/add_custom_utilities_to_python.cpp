@@ -22,6 +22,8 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
+//Utilities
+#include "custom_utilities/rigid_body_element_creation_utility.hpp"
 
 
 namespace Kratos
@@ -34,16 +36,13 @@ namespace Python
   void  AddCustomUtilitiesToPython()
   {
 	using namespace boost::python;
-
-
-		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-
+	
+	class_< RigidBodyElementCreationUtility, boost::noncopyable > 
+	  ("RigidBodyCreationUtility", init<>())
+	  .def("CreateRigidBodyElement",&RigidBodyElementCreationUtility::CreateRigidBodyElement)
+	  ;
 
   }
-
-
 
 
 

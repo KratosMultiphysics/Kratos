@@ -16,14 +16,13 @@
 #include "boost/smart_ptr.hpp"
 
 // Project includes
-#include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
 #include "utilities/beam_math_utilities.hpp"
-#include "custom_bounding/rigid_body_bounding_box.hpp"
+
 
 namespace Kratos
 {
@@ -49,7 +48,7 @@ namespace Kratos
  * Nodal Dofs: DISPLACEMENT, ROTATION
  */
 
-class RigidBodyElement
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodyElement
     :public Element
 {
 public:
@@ -69,7 +68,7 @@ public:
     ///Type definition for quaternion 
     typedef Quaternion<double>                            QuaternionType;
     ///Type for nodes
-    typedef Geometry::PointType                                 NodeType;
+    typedef Node<3>                                             NodeType;
     ///Type for nodes container    
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
 
@@ -183,6 +182,14 @@ public:
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
 
+    /**
+     * creates a new element pointer and clones the previous element data
+     * @param NewId: the ID of the new element
+     * @param ThisNodes: the nodes of the new element
+     * @param pProperties: the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
 
   
 

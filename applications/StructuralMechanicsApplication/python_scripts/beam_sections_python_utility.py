@@ -29,7 +29,7 @@ def SetProperties(SectionType, SectionData, BeamProperties):
         inertia[1, 0] = float(SectionProperties["Iz(m4)"])  # we have to set this correctly
         inertia[1, 1] = float(SectionProperties["Iy(m4)"])  #y is the vertical axis of the section
 
-        BeamProperties.SetValue(LOCAL_INERTIA, inertia)
+        BeamProperties.SetValue(LOCAL_INERTIA_TENSOR, inertia)
         BeamProperties.SetValue(CROSS_AREA, cross_area)
         mean_radius   =  float(size_profile) * 0.5
         BeamProperties.SetValue(MEAN_RADIUS, mean_radius)
@@ -62,7 +62,7 @@ def SetProperties(SectionType, SectionData, BeamProperties):
         inertia[1, 0] = square_inertia_polar
         inertia[1, 1] = square_inertia_y
 
-        BeamProperties.SetValue(LOCAL_INERTIA, inertia)
+        BeamProperties.SetValue(LOCAL_INERTIA_TENSOR, inertia)
         BeamProperties.SetValue(CROSS_AREA, square_area)
         mean_radius = sqrt(square_area)
         BeamProperties.SetValue(MEAN_RADIUS, mean_radius)
@@ -90,7 +90,7 @@ def SetProperties(SectionType, SectionData, BeamProperties):
         inertia[1, 0] = circular_inertia_polar
         inertia[1, 1] = circular_inertia
 
-        BeamProperties.SetValue(LOCAL_INERTIA, inertia)
+        BeamProperties.SetValue(LOCAL_INERTIA_TENSOR, inertia)
         BeamProperties.SetValue(CROSS_AREA, circular_area)
         BeamProperties.SetValue(MEAN_RADIUS, radius)
         sides = 25
@@ -132,7 +132,7 @@ def SetProperties(SectionType, SectionData, BeamProperties):
         inertia[1, 0] = circular_inertia_polar
         inertia[1, 1] = circular_inertia
 
-        BeamProperties.SetValue(LOCAL_INERTIA, inertia)
+        BeamProperties.SetValue(LOCAL_INERTIA_TENSOR, inertia)
         BeamProperties.SetValue(CROSS_AREA, circular_area)
         BeamProperties.SetValue(MEAN_RADIUS, radius)
         sides = 25
@@ -159,7 +159,7 @@ def SetProperties(SectionType, SectionData, BeamProperties):
         inertia[1, 0] = inertia_polar
         inertia[1, 1] = inertia_y
 
-        BeamProperties.SetValue(LOCAL_INERTIA, inertia)
+        BeamProperties.SetValue(LOCAL_INERTIA_TENSOR, inertia)
         BeamProperties.SetValue(CROSS_AREA, area)
         BeamProperties.SetValue(MEAN_RADIUS, radius)
         sides = 25

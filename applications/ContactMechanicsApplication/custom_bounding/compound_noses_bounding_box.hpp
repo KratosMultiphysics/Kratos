@@ -55,7 +55,7 @@ namespace Kratos
     This bounding box is essentially used for rigid wall contact purposes
 */
 
-class CompoundNosesBoundingBox
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) CompoundNosesBoundingBox
   : public SpatialBoundingBox
 {
 public:

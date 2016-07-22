@@ -1033,7 +1033,7 @@ namespace Kratos
 
         //CENTERS AND NODES INPUT
 	void MeshDataTransferUtilities::TransferNodalValuesToElements(ModelPart& rModelPart,
-								      const Element & rReferenceElement,
+								      const Element& rReferenceElement,
 								      PointPointerVector &list_of_new_centers,
 								      std::vector<Geometry<Node<3> > >& list_of_new_vertices,
 								      ModelPart::IndexType MeshId)
