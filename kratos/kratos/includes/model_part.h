@@ -513,13 +513,51 @@ public:
     /** Returns the Properties::Pointer  corresponding to it's identifier */
     PropertiesType::Pointer pGetProperties(IndexType PropertiesId, IndexType ThisIndex = 0)
     {
-        return GetMesh(ThisIndex).pGetProperties(PropertiesId);
+        auto pprop_it = GetMesh(ThisIndex).Properties().find(PropertiesId);
+        if(pprop_it != GetMesh(ThisIndex).Properties().end()) //property does exist
+        {
+            return *(pprop_it.base());
+        }
+        else
+        {
+            if(IsSubModelPart())
+            {
+                PropertiesType::Pointer pprop =  mpParentModelPart->pGetProperties(PropertiesId, ThisIndex);                
+                GetMesh(ThisIndex).AddProperties(pprop);
+                return pprop;
+            }
+            else
+            {
+                PropertiesType::Pointer pnew_property = boost::make_shared<PropertiesType>(PropertiesId);
+                GetMesh(ThisIndex).AddProperties(pnew_property);
+                return pnew_property;
+            }
+        }
     }
 
     /** Returns a reference Properties corresponding to it's identifier */
     PropertiesType& GetProperties(IndexType PropertiesId, IndexType ThisIndex = 0)
     {
-        return GetMesh(ThisIndex).GetProperties(PropertiesId);
+        auto pprop_it = GetMesh(ThisIndex).Properties().find(PropertiesId);
+        if(pprop_it != GetMesh(ThisIndex).Properties().end()) //property does exist
+        {
+            return *pprop_it;
+        }
+        else
+        {
+            if(IsSubModelPart())
+            {
+                PropertiesType::Pointer pprop =  mpParentModelPart->pGetProperties(PropertiesId, ThisIndex);                
+                GetMesh(ThisIndex).AddProperties(pprop);
+                return *pprop;
+            }
+            else
+            {
+                PropertiesType::Pointer pnew_property = boost::make_shared<PropertiesType>(PropertiesId);
+                GetMesh(ThisIndex).AddProperties(pnew_property);
+                return *pnew_property;
+            }
+        }
     }
 
     /** Remove the Properties with given Id from mesh with ThisIndex in this modelpart and all its subs.
