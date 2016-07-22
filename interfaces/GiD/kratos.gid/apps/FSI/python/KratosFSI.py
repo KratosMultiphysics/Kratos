@@ -63,9 +63,9 @@ for i in range(ProjectParameters["fluid_solver_settings"]["solver_settings"]["sk
     FluidModel.update({skin_part_name: fluid_main_model_part.GetSubModelPart(skin_part_name)})
     
 ## Get the list of the no-skin submodel parts in the object Model (FLUID)
-for i in range(ProjectParameters["solver_settings"]["no_skin_parts"].size()):
-    no_skin_part_name = ProjectParameters["solver_settings"]["no_skin_parts"][i].GetString()
-    Model.update({no_skin_part_name: main_model_part.GetSubModelPart(no_skin_part_name)})
+#~ for i in range(ProjectParameters["solver_settings"]["no_skin_parts"].size()):
+    #~ no_skin_part_name = ProjectParameters["solver_settings"]["no_skin_parts"][i].GetString()
+    #~ Model.update({no_skin_part_name: main_model_part.GetSubModelPart(no_skin_part_name)})
 
 ## Get the list of the initial conditions submodel parts in the object Model (FLUID)
 for i in range(ProjectParameters["fluid_solver_settings"]["initial_conditions_process_list"].size()):
