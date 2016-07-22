@@ -30,12 +30,11 @@ namespace Kratos {
                                      const int neighbour_position,
                                      double& calculation_area)
     {
-        //if (vector_of_initial_areas.size()) calculation_area = vector_of_initial_areas[neighbour_position];
-        //else CalculateContactArea(radius, other_radius, calculation_area);
-        CalculateContactArea(radius, other_radius, calculation_area);
+        if (vector_of_initial_areas.size()) calculation_area = vector_of_initial_areas[neighbour_position];
+        else CalculateContactArea(radius, other_radius, calculation_area);
+        //CalculateContactArea(radius, other_radius, calculation_area);
 
     }
-
 
     void DEM_Dempack_dev::CalculateElasticConstants(double &kn_el,
                                                 double &kt_el,
@@ -47,9 +46,9 @@ namespace Kratos {
                                                 SphericContinuumParticle* element2) {
         
         KRATOS_TRY 
-        //double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
+        double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
         kn_el = equiv_young * calculation_area / initial_dist;
-        kt_el = equiv_young * calculation_area / initial_dist;
+        kt_el = equiv_shear * calculation_area / initial_dist;
         KRATOS_CATCH("")  
     }
 
@@ -368,6 +367,8 @@ namespace Kratos {
         LocalElasticContactForce[0] -= kt_el * LocalDeltDisp[0]; // 0: first tangential
         LocalElasticContactForce[1] -= kt_el * LocalDeltDisp[1]; // 1: second tangential
 
+        AddContributionOfShearStrainParallelToBond(LocalElasticContactForce, LocalCoordSystem, kt_el, equiv_shear, i_neighbour_count, calculation_area,  element1, element2);
+
         double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
                                   + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
@@ -425,6 +426,55 @@ namespace Kratos {
                                                     double ElasticLocalRotationalMoment[3],
                                                     double ViscoLocalRotationalMoment[3],
                                                     double equiv_poisson,
-                                                    double indentation) {}  //ComputeParticleRotationalMoments
+                                                    double indentation) {}//ComputeParticleRotationalMoments
+
+
+    void DEM_Dempack_dev::AddContributionOfShearStrainParallelToBond(double LocalElasticContactForce[3],
+                                                              double LocalCoordSystem[3][3],
+                                                              const double kt_el,
+                                                              const double equiv_shear,
+                                                              const int i_neighbour_count,
+                                                              const double calculation_area,
+                                                              SphericContinuumParticle* element1,
+                                                              SphericContinuumParticle* element2) {
+
+        if (element1->mSymmStressTensor == NULL || element1->mOldSymmStressTensor == NULL) return; //
+        if(element1->IsSkin() || element2->IsSkin()) return;
+
+        double average_stress_tensor[3][3];
+        double average_old_stress_tensor[3][3];
+
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                average_stress_tensor[i][j]     = 0.5 * ((*(element1->mSymmStressTensor   ))(i,j) + (*(element2->mSymmStressTensor   ))(i,j));
+                average_old_stress_tensor[i][j] = 0.5 * ((*(element1->mOldSymmStressTensor))(i,j) + (*(element2->mOldSymmStressTensor))(i,j));
+            }
+        }
+
+        double current_sigma_local[3][3];
+        double old_sigma_local[3][3];
+        GeometryFunctions::TensorGlobal2Local(LocalCoordSystem, average_stress_tensor, current_sigma_local);
+        GeometryFunctions::TensorGlobal2Local(LocalCoordSystem, average_old_stress_tensor, old_sigma_local);
+
+        const double current_tangential_stress1 = current_sigma_local[0][2];
+        const double current_tangential_stress2 = current_sigma_local[1][2];
+        const double old_tangential_stress1 = old_sigma_local[0][2];
+        const double old_tangential_stress2 = old_sigma_local[1][2];
+
+        const double increment_of_tangential_stress1 = current_tangential_stress1 - old_tangential_stress1;
+        const double increment_of_tangential_stress2 = current_tangential_stress2 - old_tangential_stress2;
+
+        LocalElasticContactForce[0] -= calculation_area * increment_of_tangential_stress1;
+        LocalElasticContactForce[1] -= calculation_area * increment_of_tangential_stress2;
+
+        array_1d<double, 3> old_delta_displacement;
+        noalias(old_delta_displacement) = element1->mArrayOfOldDeltaDisplacements[i_neighbour_count];
+
+        array_1d<double, 3> old_delta_displacement_in_new_local_axes;
+        GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, old_delta_displacement, old_delta_displacement_in_new_local_axes);
+
+        LocalElasticContactForce[0] += kt_el * old_delta_displacement_in_new_local_axes[0];
+        LocalElasticContactForce[1] += kt_el * old_delta_displacement_in_new_local_axes[1];
+    }
 
 } /* namespace Kratos.*/
