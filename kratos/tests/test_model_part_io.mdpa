@@ -14,7 +14,7 @@ Begin Properties 1
 DENSITY 3.4E-5  //scalar
 THICKNESS 19.5
 VOLUME_ACCELERATION [3] (0.00,0.00,9.8) //vector
-LOCAL_INERTIA [3,3] ((0, 0.27,0.27),(0.087,0,0.27),(0.075,0.23,0)) // matrix
+LOCAL_INERTIA_TENSOR [3,3] ((0, 0.27,0.27),(0.087,0,0.27),(0.075,0.23,0)) // matrix
 
 Begin Table TEMPERATURE VISCOSITY
 200. 2e-6
