@@ -21,7 +21,6 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(LINE_LOAD)
     model_part.AddNodalSolutionStepVariable(SURFACE_LOAD)
     model_part.AddNodalSolutionStepVariable(NEGATIVE_FACE_PRESSURE)
-    model_part.AddNodalSolutionStepVariable(IMPOSED_DISPLACEMENT)
     #add volume acceleration
     model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION)
 
@@ -69,13 +68,10 @@ def CreateSolver(model_part, config):
 
     #Setting the solution scheme (quasi-static, dynamic)
     if(config.analysis_type == "Quasi-Static"):
-        damp_factor_m = 0.00
-        dynamic_factor = 0
-        solution_scheme = ResidualBasedBossakScheme(damp_factor_m, dynamic_factor)
+        solution_scheme = ResidualBasedIncrementalUpdateStaticScheme()
     elif(config.analysis_type == "Dynamic"):
         damp_factor_m = -0.01
-        dynamic_factor = 1
-        solution_scheme = ResidualBasedBossakScheme(damp_factor_m, dynamic_factor)
+        solution_scheme = ResidualBasedBossakDisplacementScheme(damp_factor_m)
 
     #Setting the builder_and_solver
     builder_and_solver = ResidualBasedEliminationBuilderAndSolver(linear_solver)
