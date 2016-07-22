@@ -357,22 +357,6 @@ namespace Kratos {
         const double neighbor_mass = neighbor->GetMass();
         const double equiv_mass    = element_mass * neighbor_mass / (element_mass + neighbor_mass);
         
-        /*
-        const double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
-        array_1d<double, 3> MyGlobalDeltaDisplacement;
-        array_1d<double, 3> MyLocalDeltaDisplacement;
-        noalias(MyGlobalDeltaDisplacement) = element->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-        array_1d<double, 3> OtherGlobalDeltaDisplacement;
-        array_1d<double, 3> OtherLocalDeltaDisplacement;
-        noalias(OtherGlobalDeltaDisplacement) = neighbor->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-        GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, MyGlobalDeltaDisplacement, MyLocalDeltaDisplacement);
-        GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, OtherGlobalDeltaDisplacement, OtherLocalDeltaDisplacement);
-        const double MyYoungModulus = element->GetYoung();
-        const double OtherYoungModulus = neighbor->GetYoung();
-        const double MyWeightedRadius = element->GetRadius() - indentation * OtherYoungModulus / (MyYoungModulus + OtherYoungModulus);
-        const double OtherWeightedRadius = neighbor->GetRadius() - indentation * MyYoungModulus / (MyYoungModulus + OtherYoungModulus);   
-        */
-        
         // Viscous parameter taken from J.S.Marshall, 'Discrete-element modeling of particle aerosol flows', section 4.3. Twisting resistance
         const double alpha = 0.9; // TODO: Hardcoded only for testing purposes. This value depends on the restitution coefficient and goes from 0.1 to 1.0
         const double visc_param = 0.5 * equivalent_radius * equivalent_radius * alpha * sqrt(1.33333333333333333 * equiv_mass * equiv_young * equivalent_radius);
