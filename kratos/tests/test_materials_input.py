@@ -2,7 +2,7 @@
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import *
-from KratosMultiphysics.SolidMechanicsApplication import *
+#from KratosMultiphysics.SolidMechanicsApplication import *
 
 def GetFilePath(fileName):
     return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
@@ -25,7 +25,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
             "Inlet2" : model_part.GetSubModelPart("Inlets").GetSubModelPart("Inlet2"),
             "Outlet" : model_part.GetSubModelPart("Outlet")
             }
-
+        
         test_settings = Parameters("""
             {
                     "Parameters": {
@@ -46,15 +46,15 @@ class TestMaterialsInput(KratosUnittest.TestCase):
             self.assertTrue(elem.Properties.Id == 2)
         for cond in Model["Outlet"].Conditions:
             self.assertTrue(cond.Properties.Id == 2)   
-            
+                    
         #test that the properties are read correctly
         self.assertTrue(model_part.Properties[1].GetValue(YOUNG_MODULUS) == 200.0)
         self.assertTrue(model_part.Properties[1].GetValue(POISSON_RATIO) == 0.3)
         self.assertTrue(model_part.Properties[1].GetValue(YIELD_STRESS) == 400.0)
         
-        print("prop 2 ",model_part.Properties[2])
 
-        #self.assertTrue(model_part.Properties[2].GetValue(YOUNG_MODULUS) == 100.0)
+
+        self.assertTrue(model_part.Properties[2].GetValue(YOUNG_MODULUS) == 100.0)
         self.assertTrue(model_part.Properties[2].GetValue(POISSON_RATIO) == 0.1)
         self.assertTrue(model_part.Properties[2].GetValue(YIELD_STRESS) == 800.0)
         self.assertTrue(model_part.Properties[2].GetValue(HTC) == 0.3)
