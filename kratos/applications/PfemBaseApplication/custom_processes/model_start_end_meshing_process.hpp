@@ -444,7 +444,11 @@ namespace Kratos
 
 		  }
 		else{
+
 		  i_node->Set(ISOLATED);
+		  i_node->Reset(NEW_ENTITY); //reset if was new 
+		  i_node->Reset(TO_REFINE);  //reset if was labeled to refine (to not duplicate boundary conditions)
+		  i_node->Reset(BLOCKED); 
 
 		  if( mOptions.Is(ModelerUtilities::KEEP_ISOLATED_NODES) ){
 
