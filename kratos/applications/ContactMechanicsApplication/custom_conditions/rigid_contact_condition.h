@@ -46,7 +46,7 @@ namespace Kratos
 ///@{
 
 
-class RigidContactCondition : public Condition {
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidContactCondition : public Condition {
 public:
 
 

@@ -46,7 +46,7 @@ namespace Kratos
 ///@{
 
 
-class ContactDomainCondition : public Condition {
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) ContactDomainCondition : public Condition {
 public:
 
 

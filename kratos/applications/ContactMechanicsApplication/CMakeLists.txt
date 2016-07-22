@@ -17,6 +17,12 @@ set( KRATOS_CONTACT_MECHANICS_APPLICATION_SOURCES
 	##conditions
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_domain_condition.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/rigid_contact_condition.cpp
+
+	##elements
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_element.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/translatory_rigid_body_element.cpp
+
+
 )
 
 # define library Kratos which defines the basic python interface

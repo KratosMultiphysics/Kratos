@@ -58,7 +58,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class ContactModelStartEndMeshingProcess
+  class KRATOS_API(CONTACT_MECHANICS_APPLICATION) ContactModelStartEndMeshingProcess
     : public ModelStartEndMeshingProcess
   {
   public:

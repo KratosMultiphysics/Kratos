@@ -50,19 +50,6 @@ void  AddCustomUtilitiesToPython()
 
     using namespace boost::python;
 
-
-//     typedef UblasSpace<double, CompressedMatrix, Vector>    SparseSpaceType;
-//     typedef UblasSpace<double, Matrix, Vector>               LocalSpaceType;
-//     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-
-//     typedef Scheme< SparseSpaceType, LocalSpaceType >            SchemeType;
-//     typedef SchemeType::Pointer                           SchemePointerType;
-
-//     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-//     typedef BuilderAndSolverType::Pointer                   BuilderAndSolverPointerType;
-
-//     typedef Process                                         ProcessBaseType;
-
     class_<EnergyUtilities>("EnergyUtilities",init<>())
     .def("GetTotalKinematicEnergy",&EnergyUtilities::GetTotalKinematicEnergy)
     .def("CalculateNodalMass",&EnergyUtilities::CalculateNodalMass)

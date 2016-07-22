@@ -348,16 +348,16 @@ void SmallDisplacementBeamElement3D2N::CalculateSectionProperties()
     }
 
 
-    if( GetProperties().Has(LOCAL_INERTIA) )
+    if( GetProperties().Has(LOCAL_INERTIA_TENSOR) )
     {
-        Matrix& inertia = GetProperties()[LOCAL_INERTIA];
+        Matrix& inertia = GetProperties()[LOCAL_INERTIA_TENSOR];
         mSection.Inertia_z = inertia(0,0);
         mSection.Inertia_y = inertia(1,1);
         mSection.Polar_Inertia = inertia(0,1);
     }
     else
     {
-        Matrix& inertia = GetValue(LOCAL_INERTIA);
+        Matrix& inertia = GetValue(LOCAL_INERTIA_TENSOR);
         mSection.Inertia_z = inertia(0,0);
         mSection.Inertia_y = inertia(1,1);
         mSection.Polar_Inertia = inertia(0,1);
@@ -1492,8 +1492,8 @@ int  SmallDisplacementBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessI
                         // KRATOS_THROW_ERROR( std::invalid_argument,"VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered", "" )
                         if(CROSS_AREA.Key() == 0)
                             KRATOS_THROW_ERROR( std::invalid_argument,"CROSS_AREA has Key zero! (check if the application is correctly registered", "" )
-                            if(LOCAL_INERTIA.Key() == 0)
-                                KRATOS_THROW_ERROR( std::invalid_argument,"LOCAL_INERTIA has Key zero! (check if the application is correctly registered", "" )
+                            if(LOCAL_INERTIA_TENSOR.Key() == 0)
+                                KRATOS_THROW_ERROR( std::invalid_argument,"LOCAL_INERTIA_TENSOR has Key zero! (check if the application is correctly registered", "" )
                                 if(ROTATION.Key() == 0)
                                     KRATOS_THROW_ERROR( std::invalid_argument,"ROTATION has Key zero! (check if the application is correctly registered", "" )
 
@@ -1514,7 +1514,7 @@ int  SmallDisplacementBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessI
         }
 
     //verify that the inertia is given by properties
-    if (this->GetProperties().Has(LOCAL_INERTIA)==false)
+    if (this->GetProperties().Has(LOCAL_INERTIA_TENSOR)==false)
     {
         if( GetValue(INERTIA)(0,0) == 0.0 )
             KRATOS_THROW_ERROR( std::logic_error,"INERTIA not provided for this element ", this->Id() )

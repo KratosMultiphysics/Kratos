@@ -41,7 +41,7 @@ namespace Kratos
  * Nodal Dofs: DISPLACEMENT, ROTATION
  */
 
-class TranslatoryRigidBodyElement
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) TranslatoryRigidBodyElement
     :public RigidBodyElement
 {
 public:
@@ -49,17 +49,22 @@ public:
     ///@name Type Definitions
     ///@{    
    ///Reference type definition for constitutive laws
-    typedef ConstitutiveLaw                         ConstitutiveLawType;
+    typedef ConstitutiveLaw                          ConstitutiveLawType;
     ///Pointer type for constitutive laws
-    typedef ConstitutiveLawType::Pointer     ConstitutiveLawPointerType;
+    typedef ConstitutiveLawType::Pointer      ConstitutiveLawPointerType;
     ///StressMeasure from constitutive laws
-    typedef ConstitutiveLawType::StressMeasure        StressMeasureType;
-    ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod           IntegrationMethod;
+    typedef ConstitutiveLawType::StressMeasure         StressMeasureType;
+    ///Type definition for integration methods 
+    typedef GeometryData::IntegrationMethod            IntegrationMethod;
     ///Type definition for beam utilities
-    typedef BeamMathUtils<double>                     BeamMathUtilsType;
+    typedef BeamMathUtils<double>                      BeamMathUtilsType;
     ///Type definition for quaternion 
-    typedef Quaternion<double>                           QuaternionType;
+    typedef Quaternion<double>                            QuaternionType;
+    ///Type for nodes
+    typedef Node<3>                                             NodeType;
+    ///Type for nodes container    
+    typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
+
 
     /// Counted pointer of TranslatoryRigidBodyElement
     KRATOS_CLASS_POINTER_DEFINITION( TranslatoryRigidBodyElement );
@@ -76,7 +81,7 @@ public:
 
     TranslatoryRigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
-    TranslatoryRigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties, ModelPart::MeshType::Pointer pMesh);
+    TranslatoryRigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties, NodesContainerType::Pointer pNodes);
 
     ///Copy constructor
     TranslatoryRigidBodyElement(TranslatoryRigidBodyElement const& rOther);
@@ -100,7 +105,14 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
 
 
-  
+    /**
+     * creates a new element pointer and clones the previous element data
+     * @param NewId: the ID of the new element
+     * @param ThisNodes: the nodes of the new element
+     * @param pProperties: the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Clone (IndexType NewId, NodesArrayType const& ThisNodes) const;
 
     //************* GETTING METHODS
 
@@ -213,21 +225,7 @@ protected:
                                           Flags& rCalculationFlags);
 
 
-    /**
-     * Initialize Element General Variables
-     */
-    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
-
-
  
-    /**
-     * Calculation of the External Forces Vector. Fe = N * t + N * b
-     */
-    virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-					       GeneralVariables& rVariables,
-					       Vector& rVolumeForce);
-
-
     /**
       * Calculation of the Tangent Intertia Matrix
       */

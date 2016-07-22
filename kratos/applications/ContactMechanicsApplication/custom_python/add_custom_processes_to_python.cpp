@@ -40,9 +40,7 @@ namespace Kratos
       //**********MESH MODELLER PROCESS*********//
 
       class_<ContactModelStartEndMeshingProcess, bases< ModelStartEndMeshingProcessBaseType>, boost::noncopyable >
-	(
-	 "ContactModelMeshing", init<ModelPart&, Flags, int>()
-	 )
+	("ContactModelMeshing", init<ModelPart&, Flags, int>())
 	;
 
 

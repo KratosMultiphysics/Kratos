@@ -80,13 +80,23 @@ RigidBodyElement::RigidBodyElement(RigidBodyElement const& rOther)
 {
 }
 
-//*********************************OPERATIONS*****************************************
+//*********************************CREATE*********************************************
 //************************************************************************************
 
 Element::Pointer RigidBodyElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new RigidBodyElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
+
+
+//*********************************CLONE**********************************************
+//************************************************************************************
+
+Element::Pointer RigidBodyElement::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const
+{
+  return Element::Pointer(new RigidBodyElement(NewId, GetGeometry().Create(ThisNodes), pGetProperties(), mpNodes));
+}
+
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
@@ -287,47 +297,9 @@ void RigidBodyElement::Initialize()
 {
     KRATOS_TRY
       
-    Matrix& InertiaTensor = GetProperties()[LOCAL_INERTIA];
+    Matrix& LocalAxesMatrix = GetProperties()[LOCAL_AXES_MATRIX];
 
-    //change inertia to global axis START
-    RigidBodyUtilities RigidBodyUtils(false); //false to not compute it in parallel
-
-    //CHECK MAIN AXIS  
-    Matrix MainAxes = ZeroMatrix(3,3);
-    Matrix MainInertia = InertiaTensor;
-    RigidBodyUtils.InertiaTensorToMainAxes(MainInertia, MainAxes);
-		
-    // std::cout<<" Main Axes "<<MainAxes<<std::endl;    
-    // std::cout<<" Main Inertia "<<MainInertia<<std::endl;
-    // std::cout<<" Inertia Tensor "<<InertiaTensor<<std::endl;
-
-    GetProperties()[LOCAL_INERTIA] = MainInertia;
-
-    Matrix InitialLocalMatrix = IdentityMatrix(3);
-
-    mInitialLocalQuaternion  = QuaternionType::FromRotationMatrix( InitialLocalMatrix );
-
-
-    //main axes given in rows    
-    for(unsigned int i=0; i<3; i++)
-      {
-	Vector Axis = ZeroVector(3);
-	for(unsigned int j=0; j<3; j++)
-	  {
-	    Axis[j] = MainAxes(i,j);
-	  }
-
-	double norm = norm_2(Axis);
-	if( norm != 0)
-	  Axis/=norm;
-
-	for(unsigned int j=0; j<3; j++)
-	  {
-	    InitialLocalMatrix(j,i) = Axis[j]; //column disposition
-	  }
-      }
-
-    mInitialLocalQuaternion = QuaternionType::FromRotationMatrix( InitialLocalMatrix );
+    mInitialLocalQuaternion = QuaternionType::FromRotationMatrix( LocalAxesMatrix );
 
     KRATOS_CATCH( "" )
 }
@@ -498,9 +470,9 @@ void RigidBodyElement::CalculateRigidBodyProperties(RigidBodyProperties & rRigid
     }
 
 
-    if( GetProperties().Has(LOCAL_INERTIA) )
+    if( GetProperties().Has(LOCAL_INERTIA_TENSOR) )
     {
-        Matrix& inertia = GetProperties()[LOCAL_INERTIA];
+        Matrix& inertia = GetProperties()[LOCAL_INERTIA_TENSOR];
 
         rRigidBody.InertiaTensor = inertia;
     }
@@ -766,7 +738,7 @@ void RigidBodyElement::AddExplicitContribution(const VectorType& rRHSVector,
 	      array_1d<double, 3 > &MomentResidual = GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
 
 	      if( dimension == 2 ){
-		MomentResidual[2] += rRHSVector[index]
+		MomentResidual[2] += rRHSVector[index];
 	      }
 	      else{
 		for(unsigned int j=0; j<dimension; j++)
@@ -1430,7 +1402,7 @@ void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVecto
     BeamMathUtilsType::AddVector(LinearInertialForceVector, TotalInertialForceVector, 0);
 
     if(dimension == 2)
-      TotalIntertialForceVector[dofs_size-1] = AngularInertialForceVector[2];
+      TotalInertialForceVector[dofs_size-1] = AngularInertialForceVector[2];
     else
       BeamMathUtilsType::AddVector(AngularInertialForceVector, TotalInertialForceVector, 3);
 
@@ -1606,7 +1578,7 @@ void RigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
      //std::cout<<" [ Rotation:"<<Rotation<<",StepRotation:"<<StepRotation<<",DeltaRotation:"<<DeltaRotation<<"]"<<std::endl;
      //std::cout<<" [ Velocity:"<<Velocity<<",Acceleration:"<<Acceleration<<",Displacement:"<<Displacement<<",DeltaDisplacement"<<Displacement-rCenterOfGravity.FastGetSolutionStepValue(DISPLACEMENT,1)<<"]"<<std::endl;
      
-     for (NodesContainerType::iterator i = mpNodes->Begin(); i != mpNodes->End(); ++i)
+     for (NodesContainerType::iterator i = mpNodes->begin(); i != mpNodes->end(); ++i)
        {	
 	 //Get rotation matrix
 	 QuaternionType TotalQuaternion = QuaternionType::FromRotationVector<array_1d<double,3> >(Rotation);
@@ -1745,8 +1717,8 @@ int  RigidBodyElement::Check(const ProcessInfo& rCurrentProcessInfo)
         // KRATOS_THROW_ERROR( std::invalid_argument,"VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered", "" )
     if(NODAL_MASS.Key() == 0)
         KRATOS_THROW_ERROR( std::invalid_argument,"CROSS_AREA has Key zero! (check if the application is correctly registered", "" )
-    if(LOCAL_INERTIA.Key() == 0)
-        KRATOS_THROW_ERROR( std::invalid_argument,"LOCAL_INERTIA has Key zero! (check if the application is correctly registered", "" )
+    if(LOCAL_INERTIA_TENSOR.Key() == 0)
+        KRATOS_THROW_ERROR( std::invalid_argument,"LOCAL_INERTIA_TENSOR has Key zero! (check if the application is correctly registered", "" )
     if(ROTATION.Key() == 0)
         KRATOS_THROW_ERROR( std::invalid_argument,"ROTATION has Key zero! (check if the application is correctly registered", "" )
 
@@ -1767,10 +1739,10 @@ int  RigidBodyElement::Check(const ProcessInfo& rCurrentProcessInfo)
     }
 
     //verify that the inertia is given by properties
-    if (this->GetProperties().Has(LOCAL_INERTIA)==false)
+    if (this->GetProperties().Has(LOCAL_INERTIA_TENSOR)==false)
     {
-        if( GetValue(LOCAL_INERTIA)(0,0) == 0.0 )
-	  KRATOS_THROW_ERROR( std::logic_error,"LOCAL_INERTIA not provided for this element ", this->Id() )
+        if( GetValue(LOCAL_INERTIA_TENSOR)(0,0) == 0.0 )
+	  KRATOS_THROW_ERROR( std::logic_error,"LOCAL_INERTIA_TENSOR not provided for this element ", this->Id() )
     }
 
 
