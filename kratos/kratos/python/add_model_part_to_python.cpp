@@ -227,6 +227,10 @@ void ModelPartAddProperties2(ModelPart& rModelPart, Properties::Pointer pNewProp
 	rModelPart.AddProperties(pNewProperties, ThisIndex);
 }
 
+Properties::Pointer ModelPartGetPropertiesById(ModelPart& rModelPart, unsigned int property_id, unsigned int mesh_id)
+{
+	return rModelPart.pGetProperties(property_id, mesh_id);
+}
 
 ModelPart::PropertiesContainerType::Pointer ModelPartGetProperties1(ModelPart& rModelPart)
 {
@@ -604,6 +608,7 @@ void AddModelPartToPython()
 		.def("NumberOfTables", &ModelPart::NumberOfTables)
 		.def("AddTable", &ModelPart::AddTable)
 		.def("GetTable", &ModelPart::pGetTable)
+                .def("GetProperties", ModelPartGetPropertiesById) //new method where one asks for one specific property on one given mesh
 		.add_property("Properties", ModelPartGetProperties1, ModelPartSetProperties1)
 		.def("AddProperties", ModelPartAddProperties1)
 		.def("AddProperties", ModelPartAddProperties2)
