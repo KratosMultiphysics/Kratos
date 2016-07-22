@@ -430,9 +430,9 @@ namespace Kratos
 		//i_node->PrintInfo(std::cout);
 		//std::cout<<std::endl;
 
-		if(i_node->Is(BLOCKED))
+		if(i_node->Is(BLOCKED) || i_node->Is(RIGID))
 		  {
-		    i_node->Reset(ISOLATED); //reset isolated
+		    i_node->Reset(ISOLATED);   //reset isolated
 		    i_node->Reset(NEW_ENTITY); //reset if was new 
 		    i_node->Reset(TO_REFINE);  //reset if was labeled to refine (to not duplicate boundary conditions)
 		    i_node->Reset(BLOCKED); 
@@ -445,7 +445,7 @@ namespace Kratos
 		  }
 		else{
 		  //std::cout<<" NOT ENGAGED NODE "<<i_node->Id()<<std::endl;
-		  i_node->Set(ISOLATED);
+		  i_node->Set(ISOLATED);		 	  
 		}
 		
 		if(i_node->Is(BOUNDARY)){
