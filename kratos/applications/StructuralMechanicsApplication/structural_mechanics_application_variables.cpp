@@ -68,7 +68,6 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( POINT_TORQUE )
 KRATOS_CREATE_VARIABLE( std::vector<contact_container>*, CONTACT_CONTAINERS ) // A vector of which contains the structure which defines the contact conditions
 KRATOS_CREATE_VARIABLE( Element::Pointer , ELEMENT_POINTER )                  // A pointer to the element belonging to this condition
 KRATOS_CREATE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                     // The integration order computed in the contact
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( LAGRANGE_MULTIPLIER )              // The lagrange multiplier used to enforce the mortar constraint
 KRATOS_CREATE_VARIABLE( Matrix, MORTAR_CONTACT_OPERATOR )                     // Mortar Contact Operator
 KRATOS_CREATE_VARIABLE( double, ACTIVE_CHECK_FACTOR )                         // The factor employed to consider an active/inactive node
 KRATOS_CREATE_VARIABLE( double, WEIGHTED_GAP )                                // The integrated gap employed in mortar formulation

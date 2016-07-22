@@ -1060,7 +1060,7 @@ void MortarContact2DCondition::CalculateAndAddMortarContactOperator(
     {
         if (GetGeometry( )[i_slave].Is(ACTIVE) == true)
         {
-            noalias(lagrange_multiplier) = GetGeometry( )[i_slave].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER, 0); 
+            noalias(lagrange_multiplier) = GetGeometry( )[i_slave].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0); 
         
             i = i_slave * dimension;
             // Fill the - lambda * - M part
@@ -1137,8 +1137,8 @@ void MortarContact2DCondition::EquationIdVector(
         for ( unsigned int i_slave = 0; i_slave < num_slave_nodes; ++i_slave )
         {
             NodeType& slave_node = GetGeometry()[ i_slave ];
-            rResult.push_back( slave_node.GetDof( LAGRANGE_MULTIPLIER_X ).EquationId( ) );
-            rResult.push_back( slave_node.GetDof( LAGRANGE_MULTIPLIER_Y ).EquationId( ) );
+            rResult.push_back( slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_X ).EquationId( ) );
+            rResult.push_back( slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Y ).EquationId( ) );
         }
     }
 
@@ -1186,8 +1186,8 @@ void MortarContact2DCondition::GetDofList(
         for ( unsigned int i_slave = 0; i_slave < num_slave_nodes; ++i_slave )
         {
             NodeType& slave_node = GetGeometry()[ i_slave ];
-            rConditionalDofList.push_back( slave_node.pGetDof( LAGRANGE_MULTIPLIER_X ) );
-            rConditionalDofList.push_back( slave_node.pGetDof( LAGRANGE_MULTIPLIER_Y ) );
+            rConditionalDofList.push_back( slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_X ) );
+            rConditionalDofList.push_back( slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Y ) );
         }
     }
 

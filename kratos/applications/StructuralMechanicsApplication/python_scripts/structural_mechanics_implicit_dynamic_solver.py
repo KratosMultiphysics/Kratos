@@ -119,7 +119,7 @@ class ImplicitStructuralSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
             # Add normal
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
             # Add lagrange multiplier
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.StructuralMechanicsApplication.LAGRANGE_MULTIPLIER)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)
    
         print("::[Mechanical Solver]:: Variables ADDED")
         
@@ -143,9 +143,9 @@ class ImplicitStructuralSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
         
         if  self.settings["compute_mortar_contact"].GetBool():
             for node in self.main_model_part.Nodes:
-                node.AddDof(KratosMultiphysics.StructuralMechanicsApplication.LAGRANGE_MULTIPLIER_X);
-                node.AddDof(KratosMultiphysics.StructuralMechanicsApplication.LAGRANGE_MULTIPLIER_Y);
-                node.AddDof(KratosMultiphysics.StructuralMechanicsApplication.LAGRANGE_MULTIPLIER_Z);
+                node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_X);
+                node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Y);
+                node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Z);
 
         print("::[Mechanical Solver]:: DOF's ADDED")
 
