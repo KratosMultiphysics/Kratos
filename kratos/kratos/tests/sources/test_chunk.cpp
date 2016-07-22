@@ -20,7 +20,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/chunk.h"
-
+#include "utilities/openmp_utils.h"
 
 
 
@@ -29,18 +29,17 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkInitialize, KratosCoreFastSuite)
 		{
-#ifdef _OPENMP
-				int max_threads = omp_get_max_threads();
-#else
-				int max_threads = 1;
-#endif
+			int max_threads = LockObject::GetNumberOfThreads();
+
 			std::size_t block_size_in_bytes = 5; // the aligned block size is 8
 			std::size_t chunk_size_in_bytes = 5+2*max_threads* sizeof(Chunk::SizeType);
 			Chunk too_small_chunk(block_size_in_bytes, chunk_size_in_bytes);
+			too_small_chunk.Initialize();
 			KRATOS_CHECK_EQUAL(too_small_chunk.GetNumberOfAvailableBlocks(), 0) << " Available block :" << too_small_chunk.GetNumberOfAvailableBlocks();
 
 			chunk_size_in_bytes = 1024;
 			Chunk chunk(block_size_in_bytes, chunk_size_in_bytes);
+			chunk.Initialize();
 			std::size_t block_size_after_alignment = 8;
 			std::size_t available_blocks_should_be = (chunk_size_in_bytes - 2* max_threads * sizeof(Chunk::SizeType)) / block_size_after_alignment;
 			KRATOS_CHECK_EQUAL(chunk.GetNumberOfAvailableBlocks(), available_blocks_should_be) << " Available block :" << chunk.GetNumberOfAvailableBlocks() << " vs " << available_blocks_should_be;
@@ -53,7 +52,6 @@ namespace Kratos {
 			std::size_t chunk_size_in_bytes = 1024;
 			Chunk chunk(block_size_in_bytes, chunk_size_in_bytes);
 
-			chunk.Release();
 			chunk.Initialize();
 
 			std::set<void *> pointer_set;
@@ -83,6 +81,7 @@ namespace Kratos {
 			{
 				try {
 					Chunk chunk(block_size, chunk_size_in_bytes);
+					chunk.Initialize();
 					std::size_t size = 100;
 
 					for (std::size_t i = 0; i < size; i++)
@@ -112,8 +111,10 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkParallelAllocateDeallocate, EXCLUDED_KratosCoreFastSuite)
 		{
+			int max_threads = OpenMPUtils::GetNumThreads();
+
 			std::size_t block_size = 5;
-			std::size_t chunk_size_in_bytes = 1024;
+			std::size_t chunk_size_in_bytes = 1024 + 2 * max_threads * sizeof(Chunk::SizeType);
 
 			auto repeat_number = 10;
 			std::stringstream buffer;
@@ -123,14 +124,16 @@ namespace Kratos {
 			{
 				try {
 					Chunk chunk(block_size, chunk_size_in_bytes);
+					chunk.Initialize();
 					std::size_t size = 100;
 					std::vector<void*> the_vector(size);
 
 
 					for (std::size_t i = 0; i < size; i++)
 					{
-						the_vector[i] = chunk.Allocate();
-						KRATOS_CHECK_NOT_EQUAL(the_vector[i], nullptr);
+							the_vector[i] = chunk.Allocate();
+							KRATOS_CHECK_NOT_EQUAL(the_vector[i], nullptr) << " for i = " << i << " and repeat = " << i_repeat;
+						
 					}
 
 					for (std::size_t i = 0; i < size; i++)

@@ -16,8 +16,9 @@
 #define  KRATOS_FIXED_SIZE_MEMORY_POOL_H_INCLUDED
 
 #include <vector>
+#include <list>
 
-#include "includes/chunk.h"
+#include "includes/thread_fixed_size_memory_pool.h"
 
 namespace Kratos
 {
@@ -27,12 +28,15 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-  /// FixedSizeMemoryPool is the smallest building block of Kratos memory management.
+  /// FixedSizeMemoryPool is the multi-thread manager of Kratos memory management.
   /** The memory management of Kratos is implemented based on the design
-	  given in Modern C++ Design by A. Alexandrescu and FixedSizeMemoryPool is the second
-	  layer of it "AKA FixedAllocator" holding chunks.
+	  given in Modern C++ Design by A. Alexandrescu. However a new layer is added
+	  over the ThreadFixedSizeMemoryPool in order to control the multi-thread 
+	  creation and destruction of the chunks. This layer keeps ThreadFixedSizeMemoryPool
+	  for each thread and is in charge of calling their methods in a thread safe way 
+	  and also feeds them with new chunk (or reusing the released ones)
   */
-  class FixedSizeMemoryPool
+  class FixedSizeMemoryPool : public LockObject
     {
     public:    
 	  ///@name Type Definitions
@@ -57,10 +61,12 @@ namespace Kratos
 
 	  /// The constructor to be called
 	  FixedSizeMemoryPool(std::size_t BlockSizeInBytes, SizeType ChunkSize = DefaultChunkSize)
-		  : mBlockSizeInBytes(BlockSizeInBytes)
+		  : LockObject()
+		  , mBlockSizeInBytes(BlockSizeInBytes)
 		  , mChunkSize(ChunkSize)
 	  {
-		  AddChunk();
+		  for (int i_thread = 0; i_thread < GetNumberOfThreads(); i_thread++)
+			  mThreadsPool.emplace_back(BlockSizeInBytes, ChunkSize);
 	  }
 
       /// Destructor 
@@ -81,77 +87,53 @@ namespace Kratos
 
 	  /// This function does not throw and returns zero if cannot allocate
 	  void* Allocate() {
-		  void* p_result = nullptr;
-#pragma omp critical
-		  {
-			  if (mAvailableChunksIndices.empty())
-				  AddChunk();
-
-			  Chunk& r_available_chunk = mChunks[mAvailableChunksIndices.back()];
-			  if (r_available_chunk.IsReleased())
-				  r_available_chunk.Initialize();
-			  p_result = r_available_chunk.Allocate();
-			  if (r_available_chunk.IsFull()) mAvailableChunksIndices.pop_back();
-		  }
-		  return p_result;
+		  return mThreadsPool[GetThreadNumber()].Allocate();
 	  }
 
 	  void Deallocate(void* pPointrerToRelease) {
-		  if (!mAvailableChunksIndices.empty()) {
-			  std::size_t chunk_index = mAvailableChunksIndices.back();
-			  if (mChunks[chunk_index].Has(pPointrerToRelease)) {
-				  DeallocateFromChunk(pPointrerToRelease, chunk_index);
-				  return;
-			  }
-		  }
 
-		  for (std::size_t i_chunk_index = 0; i_chunk_index < mChunks.size(); i_chunk_index++)
-		  {
-			  if (mChunks[i_chunk_index].Has(pPointrerToRelease)) {
-				  DeallocateFromChunk(pPointrerToRelease, i_chunk_index);
-				  return;
-			  }
-		  }
+		  Chunk* p_chunk = nullptr;
+		  if (mThreadsPool[GetThreadNumber()].Deallocate(pPointrerToRelease)) 
+			  return;
+
+		  for (int i_thread = 0; i_thread < GetNumberOfThreads(); i_thread++)
+			  if (i_thread != GetThreadNumber())
+				  if (mThreadsPool[i_thread].Deallocate(pPointrerToRelease))
+					  return;
 
 		  KRATOS_ERROR << "The Pointer with address " << pPointrerToRelease << " was not found in this pool" << std::endl;
 	  }
 
-	  void ReleaseChunk(std::size_t ChunkIndex) {
-		  if(mAvailableChunksIndices.size() > 1)
-			mChunks[ChunkIndex].Release();
-	  }
-
-	  void Release() {
-		  mChunks.clear();
-	  }
-
-	  SizeType ChunkSize() const {
-		  return mChunkSize;
-	  }
-
 	  std::size_t MemoryUsed() const {
-		  std::size_t memory_used = sizeof(FixedSizeMemoryPool) + (mAvailableChunksIndices.size() * sizeof(std::size_t));
-		  for (auto i_chunk = mChunks.begin(); i_chunk != mChunks.end(); i_chunk++)
-			  memory_used += i_chunk->MemoryUsed();
+		  std::size_t memory_used = sizeof(FixedSizeMemoryPool);
+		  for (int i_thread = 0; i_thread < GetNumberOfThreads(); i_thread++)
+			  memory_used += mThreadsPool[i_thread].MemoryUsed();
 		  return memory_used;
 	  }
 
 	  std::size_t MemoryOverhead() const {
-		  std::size_t memory_overhead = sizeof(FixedSizeMemoryPool) + (mAvailableChunksIndices.size() * sizeof(std::size_t));
-		  for (auto i_chunk = mChunks.begin(); i_chunk != mChunks.end(); i_chunk++)
-			  memory_overhead += i_chunk->MemoryOverhead();
+		  std::size_t memory_overhead = sizeof(FixedSizeMemoryPool);
+		  for (int i_thread = 0; i_thread < GetNumberOfThreads(); i_thread++)
+			  memory_overhead += mThreadsPool[i_thread].MemoryOverhead();
 		  return memory_overhead;
+	  }
+
+	  std::size_t GetNumberOfAllocatedChunks() const {
+		  std::size_t number_of_allocated_chunks = 0;
+		  for (int i_thread = 0; i_thread < GetNumberOfThreads(); i_thread++)
+			  number_of_allocated_chunks += mThreadsPool[i_thread].GetNumberOfChunks() - mThreadsPool[i_thread].GetNumberOfReleasedChunks();
+		  return number_of_allocated_chunks;
 	  }
 
 	  ///@}
       ///@name Access
       ///@{
 
-	  std::size_t GetNumberOfChunks() const {
-		  return mChunks.size();
+	  SizeType ChunkSize() const {
+		  return mChunkSize;
 	  }
 
-      ///@}
+	  ///@}
       ///@name Inquiry
       ///@{
 
@@ -178,7 +160,7 @@ namespace Kratos
 			  overhead_percentage = static_cast<double>(memory_overhead)/(memory_used - memory_overhead);
 		  overhead_percentage *= 100.00;
 
-		  rOStream << GetNumberOfChunks() << " Chunks of " 
+		  rOStream << GetNumberOfAllocatedChunks() << " Chunks of " 
 			  << SizeInBytesToString(ChunkSize()) << " bytes each. Total memory usage: " 
 			  << SizeInBytesToString(MemoryUsed()) << " bytes and memory overhead " 
 			  << SizeInBytesToString(MemoryOverhead()) << "(" << overhead_percentage << "%)" << std::endl;
@@ -193,26 +175,11 @@ namespace Kratos
 
 		std::size_t mBlockSizeInBytes;
 		SizeType mChunkSize;
-		std::vector<Chunk> mChunks;
-		std::vector<std::size_t> mAvailableChunksIndices;
+		std::vector<ThreadFixedSizeMemoryPool> mThreadsPool;
 
       ///@}
       ///@name Operations
       ///@{
-
-		void AddChunk() {
-			mChunks.push_back(Chunk(mBlockSizeInBytes, mChunkSize));
-			mAvailableChunksIndices.push_back(mChunks.size() - 1);
-		}
-
-		void DeallocateFromChunk(void* pPointrerToRelease, std::size_t ChunkIndex) {
-			Chunk& r_chunk = mChunks[ChunkIndex];
-			if (r_chunk.IsFull()) // It will be available after deallocating but is not in the list yet
-				mAvailableChunksIndices.push_back(ChunkIndex);
-			r_chunk.Deallocate(pPointrerToRelease);
-			if (r_chunk.IsEmpty())
-				ReleaseChunk(ChunkIndex);
-		}
 
 		std::string SizeInBytesToString(std::size_t Bytes) const {
 			std::stringstream buffer;
@@ -232,7 +199,8 @@ namespace Kratos
 			return buffer.str();
 		}
 
-     ///@}
+
+		///@}
 
     }; // Class FixedSizeMemoryPool
 
