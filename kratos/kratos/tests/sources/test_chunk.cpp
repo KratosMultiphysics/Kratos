@@ -2,19 +2,19 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   
 //
-	           
+//
+
 // System includes
 #include <set>
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -32,12 +32,13 @@ namespace Kratos {
 			int max_threads = LockObject::GetNumberOfThreads();
 
 			std::size_t block_size_in_bytes = 5; // the aligned block size is 8
-			std::size_t chunk_size_in_bytes = 5+2*max_threads* sizeof(Chunk::SizeType);
+			std::size_t header_size = 2 * max_threads * sizeof(Chunk::SizeType);
+			std::size_t chunk_size_in_bytes = header_size + 5;
 			Chunk too_small_chunk(block_size_in_bytes, chunk_size_in_bytes);
 			too_small_chunk.Initialize();
 			KRATOS_CHECK_EQUAL(too_small_chunk.GetNumberOfAvailableBlocks(), 0) << " Available block :" << too_small_chunk.GetNumberOfAvailableBlocks();
 
-			chunk_size_in_bytes = 1024;
+			chunk_size_in_bytes = header_size + 1024;
 			Chunk chunk(block_size_in_bytes, chunk_size_in_bytes);
 			chunk.Initialize();
 			std::size_t block_size_after_alignment = 8;
@@ -48,8 +49,10 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkAllocateDeallocate, KratosCoreFastSuite)
 		{
-			std::size_t block_size_in_bytes = 5; 
-			std::size_t chunk_size_in_bytes = 1024;
+			int max_threads = LockObject::GetNumberOfThreads();
+			std::size_t block_size_in_bytes = 5;
+			std::size_t header_size = 2 * max_threads * sizeof(Chunk::SizeType);
+		  std::size_t chunk_size_in_bytes =  header_size + 1024;
 			Chunk chunk(block_size_in_bytes, chunk_size_in_bytes);
 
 			chunk.Initialize();
@@ -62,7 +65,7 @@ namespace Kratos {
 				pointer_set.insert(p);
 			}
 			KRATOS_CHECK_EQUAL(pointer_set.size(), chunk.GetNumberOfBlocks()) << " (pointer set size : " << pointer_set.size() << ")" << std::endl;
-			
+
 			for (auto i_pointer = pointer_set.begin(); i_pointer != pointer_set.end(); i_pointer++) {
 				chunk.Deallocate(*i_pointer);
 			}
@@ -71,16 +74,18 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkParallelAllocate, KratosCoreFastSuite)
 		{
-			std::size_t block_size = 5;
-			std::size_t chunk_size_in_bytes = 1024;
+			int max_threads = LockObject::GetNumberOfThreads();
+			std::size_t block_size_in_bytes = 5;
+			std::size_t header_size = 2 * max_threads * sizeof(Chunk::SizeType);
+		  std::size_t chunk_size_in_bytes =  header_size + 1024;
 
 			auto repeat_number = 10;
 			std::stringstream buffer;
-#pragma omp parallel for 
-			for (auto i_repeat = 0; i_repeat < repeat_number; i_repeat++)
+#pragma omp parallel for
+			for (auto i_repeat = 0; (i_repeat < repeat_number) ; i_repeat++)
 			{
 				try {
-					Chunk chunk(block_size, chunk_size_in_bytes);
+					Chunk chunk(block_size_in_bytes, chunk_size_in_bytes);
 					chunk.Initialize();
 					std::size_t size = 100;
 
@@ -93,14 +98,12 @@ namespace Kratos {
 					}
 				}
 				catch (Exception& e) {
-#pragma omp critical
+
 					buffer << e;
-					break;
 				}
 				catch (...) {
-#pragma omp critical
+
 					buffer << "UknownError";
-					break;
 				}
 			}
 			if (!buffer.str().empty())
@@ -111,19 +114,19 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkParallelAllocateDeallocate, EXCLUDED_KratosCoreFastSuite)
 		{
-			int max_threads = OpenMPUtils::GetNumThreads();
-
-			std::size_t block_size = 5;
-			std::size_t chunk_size_in_bytes = 1024 + 2 * max_threads * sizeof(Chunk::SizeType);
+			int max_threads = LockObject::GetNumberOfThreads();
+			std::size_t block_size_in_bytes = 5;
+			std::size_t header_size = 2 * max_threads * sizeof(Chunk::SizeType);
+		  std::size_t chunk_size_in_bytes =  header_size + 1024;
 
 			auto repeat_number = 10;
 			std::stringstream buffer;
 
-#pragma omp parallel for 
+#pragma omp parallel for
 			for (auto i_repeat = 0; i_repeat < repeat_number; i_repeat++)
 			{
 				try {
-					Chunk chunk(block_size, chunk_size_in_bytes);
+					Chunk chunk(block_size_in_bytes, chunk_size_in_bytes);
 					chunk.Initialize();
 					std::size_t size = 100;
 					std::vector<void*> the_vector(size);
@@ -133,7 +136,7 @@ namespace Kratos {
 					{
 							the_vector[i] = chunk.Allocate();
 							KRATOS_CHECK_NOT_EQUAL(the_vector[i], nullptr) << " for i = " << i << " and repeat = " << i_repeat;
-						
+
 					}
 
 					for (std::size_t i = 0; i < size; i++)
@@ -142,12 +145,12 @@ namespace Kratos {
 				catch (Exception& e) {
 #pragma omp critical
 					buffer << e;
-					break;
+
 				}
 				catch (...) {
 #pragma omp critical
 					buffer << "UknownError";
-					break;
+
 				}
 			}
 			if (!buffer.str().empty())
@@ -159,5 +162,3 @@ namespace Kratos {
 
 	}
 }  // namespace Kratos.
-
-

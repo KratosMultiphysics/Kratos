@@ -45,7 +45,7 @@ namespace Kratos {
 			std::size_t default_chunk_size = 1024 * 1024; // 1M
 			std::size_t number_of_blocks = (default_chunk_size - 2 * max_threads * sizeof(Chunk::SizeType)) / 16;
 			FixedSizeMemoryPool fixed_size_memory_pool(block_size);
-			
+
 
 			std::size_t repeat_number = 2;
 			for (std::size_t i_repeat = 1; i_repeat <= repeat_number; i_repeat++)
@@ -73,7 +73,7 @@ namespace Kratos {
 		{
 			int max_threads = LockObject::GetNumberOfThreads();
 			std::size_t block_size = 61;
-			std::size_t default_chunk_size = 1024; // * 1024;// 1M
+			std::size_t default_chunk_size = 1024 * 1024;// 1M
 			std::size_t number_of_blocks = (default_chunk_size - 2 * max_threads * sizeof(Chunk::SizeType)) / 64;
 			FixedSizeMemoryPool fixed_size_memory_pool(block_size, 1024);
 
@@ -116,7 +116,7 @@ namespace Kratos {
 		{
 			std::cout << MemoryPool::Info() << std::endl;
 			auto repeat_number = 100;
-#pragma omp parallel for 
+#pragma omp parallel for
 			for (auto i_repeat = 0; i_repeat < repeat_number; i_repeat++)
 			{
 				std::size_t size = 1024 * 1024;
