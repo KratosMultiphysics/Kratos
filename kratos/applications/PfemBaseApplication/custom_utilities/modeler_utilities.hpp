@@ -189,7 +189,7 @@ public:
 
       void CreatePointList(const unsigned int NumberOfPoints, const unsigned int Dimension)
       {
-	if( mpPointList != NULL ){
+	if( mpPointList != NULL && PointListFlag == true){
 	  delete [] mpPointList;
 	}
 	mNumberOfPoints = NumberOfPoints;
@@ -199,7 +199,7 @@ public:
 
       void CreateElementList(const unsigned int NumberOfElements, const unsigned int NumberOfVertices)
       {
-	if( mpElementList != NULL ){
+	if( mpElementList != NULL && ElementListFlag = true){
 	  delete [] mpElementList;
 	}
 	mNumberOfElements = NumberOfElements;
