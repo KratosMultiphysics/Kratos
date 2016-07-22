@@ -44,12 +44,12 @@ class ParametricWall(object):
                "bounding_box_type": "SpatialBoundingBox",
                "bounding_box_parameters":{
                    "parameters_list":[],
-                   "velocity" = [0.0, 0.0, 0.0],
+                   "velocity" = [0.0, 0.0, 0.0]
                }
             }
             "contact_search_settings":{
-               "python_file_name": "contact_search_strategy",
-               "search_frequency": 0,
+               "python_file_name": "parametric_wall_contact_search",
+               "search_frequency": 0,            
                "contact_parameters":{
                    "contact_condition_type": "PointContactCondition2D1N",
                    "friction_active": false,
@@ -92,8 +92,8 @@ class ParametricWall(object):
         creation_utility.CreateRigidBodyElement(self.main_model_part, self.wall_bounding_box, self.settings["rigid_body_settings"])
 
         #construct the search strategy
-        meshing_module = __import__(self.settings["contact_search_strategy"]["python_file_name"].GetString())
-        self.SearchStrategy = meshing_module.CreateSearchStrategy(self.main_model_part, self.wall_bounding_box, self.settings["contact_search_settings"])
+        search_module = __import__(self.settings["contact_search_strategy"]["python_file_name"].GetString())
+        self.SearchStrategy = search_module.CreateContactSearch(self.main_model_part, self.wall_bounding_box, self.settings["contact_search_settings"])
 
         print("Construction of Parametric Wall finished")
         
@@ -107,7 +107,6 @@ class ParametricWall(object):
         self.domain_size = self.settings["domain_size"].GetInt()
         self.mesh_id     = self.settings["mesh_id"].GetInt()
 
-       
         # Meshing Stratety
         self.SearchStrategy.Initialize()   #in the contact search a contact_mesh or model_part must be created for each parametric wall.
 
@@ -117,8 +116,6 @@ class ParametricWall(object):
         self.main_model_part.CreateSubModelPart(self.contact_model_part_name) 
         self.contact_wall_model_part = self.main_model_part.GetSubModelPart(self.contact_model_part_name)
         
-        
-
         print("::[Parametric_Wall]:: -END- ")
 
 
@@ -132,5 +129,5 @@ class ParametricWall(object):
         
     def ExecuteSearch(self):
         
-        self.SearchStrategy.SerchAndBuildContacts()
+        self.SearchStrategy.ExecuteSearch()
         
