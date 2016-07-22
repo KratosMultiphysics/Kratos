@@ -77,10 +77,7 @@ protected:
         // Contact pair information
         GeometryType* pMasterElement;   // Points to the master contact segment only
         unsigned int mMasterElementIndex;
-        std::vector< unsigned int > mThisActiveSlaveNodes;
-        std::vector< unsigned int > mThisInactiveSlaveNodes;
 
-        
     public:
         // Shape functions for contact pair
         Vector N_Master;
@@ -170,28 +167,6 @@ protected:
         const unsigned int& GetMasterElementIndex( ) 
         { 
             return mMasterElementIndex; 
-        }
-      
-        /* Setters and getters for the active set */
-        void SetActiveSet( const std::vector< unsigned int >& rActiveNodes ) 
-        {
-            mThisActiveSlaveNodes = rActiveNodes; 
-        }
-        
-        const std::vector< unsigned int >& GetActiveSet( ) 
-        {
-            return mThisActiveSlaveNodes;
-        }
-      
-        /* Setters and getters for the active set */
-        void SetInactiveSet( const std::vector< unsigned int >& rInactiveNodes ) 
-        {
-            mThisInactiveSlaveNodes = rInactiveNodes; 
-        }
-        
-        const std::vector< unsigned int >& GetInactiveSet( )
-        { 
-            return mThisInactiveSlaveNodes;
         }
     };
 
@@ -536,40 +511,12 @@ public:
         GeneralVariables& rVariables,
         const unsigned int& rMasterElementIndex 
         );
-
-    /**
-    * This function assigns the active and the inactive sets of the current condition
-    */
-    void InitializeActiveSet( GeneralVariables& rVariables );
-                  
-    /*
-    * This fucntion loops over the slave nodes to determine the
-    * active set of nodes and the inactive set of nodes
-    * pointers to those nodes are stored in private arrays
-    */                  
-    void DetermineActiveAndInactiveSets(
-        std::vector<unsigned int>& rActiveNodes,
-        std::vector<unsigned int>& rInactiveNodes,
-        const unsigned int& rPairIndex
-        );
                   
     /**
     * This function loops over all conditions and calculates the overall number of DOFs
-    * total_dofs = SUM( master_u_dofs + slave_u_dofs + active_slave_lambda_dofs )
+    * total_dofs = SUM( master_u_dofs + 2 * slave_u_dofs) 
     */
     const unsigned int CalculateConditionSize( );
-
-    /**
-    * Loops over all master elements in the condition and
-    * sum up their nodes - used to size the system matrices
-    */
-    const unsigned int CalculateTotalNumberOfMasterNodes( );
-    
-    /**
-    * This method loops over the vector of active nodes stored in the container
-    * correspoding to rPairIndex and counts the number of active nodes there
-    */
-    const unsigned int CalculateNumberOfActiveNodesInContactPair( const unsigned int& rPairIndex );
 
     /**
     * Calculate condition kinematics
@@ -630,7 +577,6 @@ public:
     */
     void AssembleContactPairRHSToConditionSystem( 
         const unsigned int rPairIndex,
-        const std::vector< unsigned int > active_set,
         VectorType& rPairRHS,
         VectorType& rConditionRHS 
         );
