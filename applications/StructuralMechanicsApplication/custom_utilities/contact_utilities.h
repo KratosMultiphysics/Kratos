@@ -526,7 +526,7 @@ public:
         
         for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
         {
-            const array_1d<double,3> lagrange_multiplier = node_it->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER, 0);
+            const array_1d<double,3> lagrange_multiplier = node_it->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0);
             const array_1d<double,3>        nodal_normal = node_it->GetValue(NORMAL); 
             const double lambda_n = inner_prod(lagrange_multiplier, nodal_normal);
             
@@ -541,7 +541,6 @@ public:
                 node_it->Set(ACTIVE, true);
             }
         }
-        
     }
 
 private:

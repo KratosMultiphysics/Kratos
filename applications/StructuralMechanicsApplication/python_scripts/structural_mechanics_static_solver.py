@@ -163,7 +163,7 @@ class StaticStructuralSolver(solid_mechanics_static_solver.StaticMechanicalSolve
             # Add normal
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
             # Add lagrange multiplier
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.StructuralMechanicsApplication.LAGRANGE_MULTIPLIER)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)
             
         if self.settings["analysis_type"].GetString() == "Arc-Length":
             self.main_model_part.ProcessInfo[KratosMultiphysics.StructuralMechanicsApplication.LAMBDA] = 0.00;
@@ -190,9 +190,9 @@ class StaticStructuralSolver(solid_mechanics_static_solver.StaticMechanicalSolve
         
         if  self.settings["compute_mortar_contact"].GetBool():
             for node in self.main_model_part.Nodes:
-                node.AddDof(KratosMultiphysics.StructuralMechanicsApplication.LAGRANGE_MULTIPLIER_X);
-                node.AddDof(KratosMultiphysics.StructuralMechanicsApplication.LAGRANGE_MULTIPLIER_Y);
-                node.AddDof(KratosMultiphysics.StructuralMechanicsApplication.LAGRANGE_MULTIPLIER_Z);
+                node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_X);
+                node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Y);
+                node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Z);
 
         print("::[Mechanical Solver]:: DOF's ADDED")
 
