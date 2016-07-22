@@ -34,15 +34,14 @@ public:
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
     typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
     typedef typename BaseType::TSchemeType TSchemeType;
+    typedef typename BaseType::DofsArrayType DofsArrayType;
+    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+    typedef typename BaseType::TSystemVectorType TSystemVectorType;
     using MotherType::mpScheme;
     using MotherType::mpBuilderAndSolver;
-    using MotherType::mpConvergenceCriteria;
     using MotherType::mpA; //Tangent matrix
     using MotherType::mpb; //Residual vector of iteration i
     using MotherType::mpDx; //Delta x of iteration i
-    using MotherType::mReformDofSetAtEachStep;
-    using MotherType::mCalculateReactionsFlag;
-    using MotherType::mSolutionStepIsInitialized;
     using MotherType::mMaxIterationNumber;
     using MotherType::mInitializeWasPerformed;
 
