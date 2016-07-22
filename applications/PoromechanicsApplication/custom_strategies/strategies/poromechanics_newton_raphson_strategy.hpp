@@ -108,7 +108,7 @@ public:
         KRATOS_TRY
         
         bool IsConverged = true;
-        
+        /*TODO
         // Set the loads to 0.0
         this->SetLoadsToZero();
         
@@ -125,7 +125,7 @@ public:
         
         // Set the loads to its original value
         this->RestoreLoadsValue();
-        
+        */
         return IsConverged;
         
         KRATOS_CATCH("")
