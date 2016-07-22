@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>coupling_strategy
+<?xml version="1.0" encoding="utf-8"?>
 <Solvers>
     <solver n="relaxation_utility" pn="Relaxation" SolverType="FSICoupling">
         <inputs>
