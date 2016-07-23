@@ -30,11 +30,11 @@ class ContactProcess(KratosMultiphysics.Process):
             "origin_model_part_name"      : "",
             "destination_model_part_name" : "",
             "contact_type"                : "MortarMethod",
-            "search_factor"               : 1.1,
-            "active_check_factor"         : 0.2,
+            "search_factor"               : 1.5,
+            "active_check_factor"         : 0.01,
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
-            "integration_order"           : 2
+            "integration_order"           : 5
         }
         """)
         
