@@ -21,6 +21,7 @@ from SmallTests import SimplePatchTestContact as TSimplePatchTestContact
 from SmallTests import SimplePatchNotMatchingATestContact as TSimplePatchNotMatchingATestContact
 from SmallTests import SimplePatchNotMatchingBTestContact as TSimplePatchNotMatchingBTestContact
 from SmallTests import TaylorPatchTestContact as TTaylorPatchTestContact
+from SmallTests import HertzSimpleTestContact as THertzSimpleTestContact
 
 ## NIGTHLY TESTS
 from NightlyTests import ShellT3IsotropicScordelisTests as TShellT3IsotropicScordelisTests
@@ -56,6 +57,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TSimplePatchNotMatchingATestContact('test_execution'))
     smallSuite.addTest(TSimplePatchNotMatchingBTestContact('test_execution'))
     smallSuite.addTest(TTaylorPatchTestContact('test_execution'))
+    smallSuite.addTest(THertzSimpleTestContact('test_execution'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -82,7 +84,8 @@ def AssambleTestSuites():
             TSimplePatchTestContact,
             TSimplePatchNotMatchingATestContact,
             TSimplePatchNotMatchingBTestContact,
-            TTaylorPatchTestContact
+            TTaylorPatchTestContact,
+            THertzSimpleTestContact
             #####TSprismPanTests
         ])
     )

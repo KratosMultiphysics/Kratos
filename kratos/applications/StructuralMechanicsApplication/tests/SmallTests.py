@@ -22,7 +22,7 @@ class controlledExecutionScope:
     def __exit__(self, type, value, traceback):
         os.chdir(self.currentPath)
 
-class StructrualMechanichsTestFactory(KratosUnittest.TestCase):
+class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
 
     def setUp(self):
         # Within this location context:
@@ -43,49 +43,52 @@ class StructrualMechanichsTestFactory(KratosUnittest.TestCase):
         pass
 
 
-class DynamicBossakTests(StructrualMechanichsTestFactory):
+class DynamicBossakTests(StructuralMechanichsTestFactory):
     file_name = "dynamic_test/dynamic_bossak_test"
 
 
-class DynamicNewmarkTests(StructrualMechanichsTestFactory):
+class DynamicNewmarkTests(StructuralMechanichsTestFactory):
     file_name = "dynamic_test/dynamic_newmark_test"
 
 
-class SprismMembranePatchTests(StructrualMechanichsTestFactory):
+class SprismMembranePatchTests(StructuralMechanichsTestFactory):
     file_name = "sprism_test/patch_membrane_test"
 
 
-class SprismBendingPatchTests(StructrualMechanichsTestFactory):
+class SprismBendingPatchTests(StructuralMechanichsTestFactory):
     file_name = "sprism_test/patch_bending_test"
 
 
-class ShellQ4ThickBendingRollUpTests(StructrualMechanichsTestFactory):
+class ShellQ4ThickBendingRollUpTests(StructuralMechanichsTestFactory):
     file_name = "shell_test/Shell_Q4_Thick__BendingRollUp_test"
 
 
-class ShellQ4ThickDrillingRollUpTests(StructrualMechanichsTestFactory):
+class ShellQ4ThickDrillingRollUpTests(StructuralMechanichsTestFactory):
     file_name = "shell_test/Shell_Q4_Thick__DrillingRollUp_test"
 
 
-class ShellT3ThinBendingRollUpTests(StructrualMechanichsTestFactory):
+class ShellT3ThinBendingRollUpTests(StructuralMechanichsTestFactory):
     file_name = "shell_test/Shell_T3_Thin__BendingRollUp_test"
 
 
-class ShellT3ThinDrillingRollUpTests(StructrualMechanichsTestFactory):
+class ShellT3ThinDrillingRollUpTests(StructuralMechanichsTestFactory):
     file_name = "shell_test/Shell_T3_Thin__DrillingRollUp_test"
     
     
-class SimplePatchTestContact(StructrualMechanichsTestFactory):
+class SimplePatchTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test/simple_patch_test"
     
     
-class SimplePatchNotMatchingATestContact(StructrualMechanichsTestFactory):
+class SimplePatchNotMatchingATestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test/simple_patch_notmatching_a_test"
     
     
-class SimplePatchNotMatchingBTestContact(StructrualMechanichsTestFactory):
+class SimplePatchNotMatchingBTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test/simple_patch_notmatching_b_test"
     
     
-class TaylorPatchTestContact(StructrualMechanichsTestFactory):
+class TaylorPatchTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test/taylor_patch_test"
+    
+class HertzSimpleTestContact(StructuralMechanichsTestFactory):
+    file_name = "contact_test/hertz_simple_test"
