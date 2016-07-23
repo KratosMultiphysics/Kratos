@@ -84,10 +84,16 @@ public:
                 dist_tol = (dist_tol <= ActiveCheckFactor * Geom2.Length()) ? (ActiveCheckFactor * Geom2.Length()):dist_tol;
                 
                 array_1d<double, 3> result;
-                if (aux_dist < dist_tol)
+                if (aux_dist < dist_tol) // NOTE: We don't use std::abs() because if the aux_dist is negative is penetrating, in fact we just consider dist_tol > 0 to have some tolerance and for the static schemes
                 {
                     if (Geom2.IsInside(ProjectedPoint, result) == true)
                     {
+//                         // For debug purpose // Look for using echo_level
+//                         if (aux_dist < 0.0)
+//                         {
+//                             std::cout << "Penetration in node: " << Geom1[index].Id() << " of " << aux_dist << " m" << std::endl;
+//                         }
+                        
                         Geom1[index].Set(ACTIVE, true);
                     }
                 }

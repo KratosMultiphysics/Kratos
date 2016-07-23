@@ -173,7 +173,7 @@ void MortarContact2DCondition::InitializeNonLinearIteration( ProcessInfo& rCurre
     // Populate the vector of master elements
     std::vector<contact_container> *& all_containers = this->GetValue(CONTACT_CONTAINERS);
     
-    double ActiveCheckFactor = 0.2;
+    double ActiveCheckFactor = 0.01;
     if( GetProperties().Has(ACTIVE_CHECK_FACTOR) )
     {
         ActiveCheckFactor = GetProperties().GetValue(ACTIVE_CHECK_FACTOR);

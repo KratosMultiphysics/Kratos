@@ -88,6 +88,8 @@ class StaticStructuralSolver(solid_mechanics_static_solver.StaticMechanicalSolve
             "residual_relative_tolerance": 1.0e-4,
             "residual_absolute_tolerance": 1.0e-4,
             "max_iteration": 10,
+            "split_factor": 10.0,
+            "max_number_splits": 3,
             "linear_solver_settings":{
                 "solver_type": "Super LU",
                 "max_iteration": 500,
@@ -322,13 +324,30 @@ class StaticStructuralSolver(solid_mechanics_static_solver.StaticMechanicalSolve
                                                                             move_mesh_flag)
 
                 else:
-                    self.mechanical_solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
-                                                                            self.compute_model_part, 
-                                                                            mechanical_scheme, 
-                                                                            self.linear_solver, 
-                                                                            mechanical_convergence_criterion, 
-                                                                            builder_and_solver, 
-                                                                            max_iters, 
-                                                                            compute_reactions, 
-                                                                            reform_step_dofs, 
-                                                                            move_mesh_flag)
+                    if  self.settings["compute_mortar_contact"].GetBool():
+                        split_factor   = self.settings["split_factor"].GetDouble()
+                        max_number_splits = self.settings["max_number_splits"].GetInt()
+                        self.mechanical_solver = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactStrategy(
+                                                                                self.compute_model_part, 
+                                                                                mechanical_scheme, 
+                                                                                self.linear_solver, 
+                                                                                mechanical_convergence_criterion, 
+                                                                                builder_and_solver, 
+                                                                                max_iters, 
+                                                                                compute_reactions, 
+                                                                                reform_step_dofs, 
+                                                                                move_mesh_flag,
+                                                                                split_factor,
+                                                                                max_number_splits
+                                                                                )
+                    else:
+                        self.mechanical_solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
+                                                                                self.compute_model_part, 
+                                                                                mechanical_scheme, 
+                                                                                self.linear_solver, 
+                                                                                mechanical_convergence_criterion, 
+                                                                                builder_and_solver, 
+                                                                                max_iters, 
+                                                                                compute_reactions, 
+                                                                                reform_step_dofs, 
+                                                                                move_mesh_flag)

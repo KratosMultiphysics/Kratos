@@ -58,6 +58,8 @@ class ImplicitStructuralSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
             "residual_relative_tolerance": 1.0e-4,
             "residual_absolute_tolerance": 1.0e-4,
             "max_iteration": 10,
+            "split_factor": 10.0,
+            "max_number_splits": 3,
             "linear_solver_settings":{
                 "solver_type": "Super LU",
                 "max_iteration": 500,
@@ -201,3 +203,71 @@ class ImplicitStructuralSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
             convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Mortar, convergence_criterion.mechanical_convergence_criterion)
         
         return convergence_criterion.mechanical_convergence_criterion
+    
+    def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search):
+        
+        if(component_wise):
+            self.mechanical_solver = KratosMultiphysics.SolidMechanicsApplication.ComponentWiseNewtonRaphsonStrategy(
+                                                                            self.compute_model_part, 
+                                                                            mechanical_scheme, 
+                                                                            self.linear_solver, 
+                                                                            mechanical_convergence_criterion, 
+                                                                            builder_and_solver, 
+                                                                            max_iters, 
+                                                                            compute_reactions, 
+                                                                            reform_step_dofs, 
+                                                                            move_mesh_flag)
+        else:
+            if(line_search):
+                self.mechanical_solver = KratosMultiphysics.SolidMechanicsApplication.ResidualBasedNewtonRaphsonLineSearchStrategy(
+                                                                            self.compute_model_part, 
+                                                                            mechanical_scheme, 
+                                                                            self.linear_solver, 
+                                                                            mechanical_convergence_criterion, 
+                                                                            builder_and_solver, 
+                                                                            max_iters, 
+                                                                            compute_reactions, 
+                                                                            reform_step_dofs, 
+                                                                            move_mesh_flag)
+
+            else:
+                if self.settings["analysis_type"].GetString() == "Linear":
+                    self.mechanical_solver = KratosMultiphysics.ResidualBasedLinearStrategy(
+                                                                            self.compute_model_part, 
+                                                                            mechanical_scheme, 
+                                                                            self.linear_solver, 
+                                                                            builder_and_solver, 
+                                                                            compute_reactions, 
+                                                                            reform_step_dofs, 
+                                                                            False, 
+                                                                            move_mesh_flag)
+                    
+                else:
+                    if  self.settings["compute_mortar_contact"].GetBool():
+                        split_factor   = self.settings["split_factor"].GetDouble()
+                        max_number_splits = self.settings["max_number_splits"].GetInt()
+                        self.mechanical_solver = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactStrategy(
+                                                                                self.compute_model_part, 
+                                                                                mechanical_scheme, 
+                                                                                self.linear_solver, 
+                                                                                mechanical_convergence_criterion, 
+                                                                                builder_and_solver, 
+                                                                                max_iters, 
+                                                                                compute_reactions, 
+                                                                                reform_step_dofs, 
+                                                                                move_mesh_flag,
+                                                                                split_factor,
+                                                                                max_number_splits
+                                                                                )
+                        
+                    else:
+                        self.mechanical_solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
+                                                                                self.compute_model_part, 
+                                                                                mechanical_scheme, 
+                                                                                self.linear_solver, 
+                                                                                mechanical_convergence_criterion, 
+                                                                                builder_and_solver, 
+                                                                                max_iters, 
+                                                                                compute_reactions, 
+                                                                                reform_step_dofs, 
+                                                                                move_mesh_flag)
