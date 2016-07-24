@@ -16,8 +16,9 @@
         "scheme_type"                        : "Bossak",
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
-            "input_type"     : "mdpa",
-            "input_filename" : "*tcl(file tail [GiD_Info Project ModelName])"
+            "input_type"       : "mdpa",
+            "input_filename"   : "*tcl(file tail [GiD_Info Project ModelName])",
+	    "input_file_label" : 0
         },
         "line_search"                        : *tcl(string tolower *GenData(LineSearch)),
         "convergence_criterion"              : "Residual_criterion",
