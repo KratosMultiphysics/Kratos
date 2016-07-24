@@ -203,38 +203,38 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
     #
     def ExecuteBeforeOutputStep(self):
         
-        if( self.meshing_before_output ):
-            if(self.IsMeshingStep):
-                self.RemeshDomains()
+        if(self.remesh_domains_active):
+            if( self.meshing_before_output ):
+                if(self.IsMeshingStep):
+                    self.RemeshDomains()
         
     #
     def ExecuteAfterOutputStep(self):
         
-        if( !self.meshing_before_output ):
-            if(self.IsMeshingStep):
-                self.RemeshDomains()
+        if(self.remesh_domains_active):
+            if( !self.meshing_before_output ):
+                if(self.IsMeshingStep):
+                    self.RemeshDomains()
 
     ###
 
     #
     def RemeshDomains(self):
 
-        if(self.remesh_domains_active):
+        if( self.echo_level > 0 ):
+            print("::[Meshing_Process]:: MESH DOMAIN...", self.counter)
+            
+        meshing_options = KratosMultiphysics.Flags()
+        self.model_meshing = KratosPfemBase.ModelMeshing(self.model_part, meshing_options, self.echo_level)
+        
+        self.model_meshing.ExecuteInitialize()
 
-            if( self.echo_level > 0 ):
-                print("::[Meshing_Process]:: MESH DOMAIN...", self.counter)
-
-            meshing_options = KratosMultiphysics.Flags()
-            self.model_meshing =  KratosPfemBase.ModelMeshing(self.model_part, meshing_options, self.echo_level)
-
-            self.model_meshing.ExecuteInitialize()
-
-            for domain in self.meshing_domains:
-                domain.ExecuteMeshing();
+        for domain in self.meshing_domains:
+            domain.ExecuteMeshing();
  
-            self.model_meshing.ExecuteFinalize()
-
-            self.counter += 1 
+        self.model_meshing.ExecuteFinalize()
+        
+        self.counter += 1 
 
 
         # schedule next meshing
@@ -245,8 +245,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
             else:
                 while(self.next_meshing <= self.step_count):
                     self.next_meshing += self.meshing_frequency
-
-
+                        
 
     #
     def GetMeshingStep(self):
