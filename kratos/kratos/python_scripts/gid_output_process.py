@@ -130,7 +130,7 @@ class GiDOutputProcess(Process):
 
         self.__initialize_gidio(gidpost_flags,gidpost_flags)
 
-        # Process nodal and gaus point output
+        # Process nodal and gauss point output
         self.nodal_variables = self.__generate_variable_list_from_input(result_file_configuration["nodal_results"])
         self.gauss_point_variables = self.__generate_variable_list_from_input(result_file_configuration["gauss_point_results"])
 
