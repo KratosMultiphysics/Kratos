@@ -27,6 +27,7 @@
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/variable_utils.h"
 
 // Default builder and solver
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
@@ -98,7 +99,7 @@ public:
     
     /**
      * Default constructor 
-     * @param model_part: The model part of the problem
+     * @param rModelPart: The model part of the problem
      * @param pScheme: The integration scheme
      * @param pNewLinearSolver: The linear solver employed
      * @param pNewConvergenceCriteria: The convergence criteria employed
@@ -106,10 +107,12 @@ public:
      * @param CalculateReactions: The flag for the reaction calculation
      * @param ReformDofSetAtEachStep: The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag: The flag that allows to move the mesh
+     * @param SplitFactor: Value by one we split the time step when the problem does not converge
+     * @param MaxNumberSplits: Maximim number of splits of the time step
      */
     
     ResidualBasedNewtonRaphsonContactStrategy(
-        ModelPart& model_part,
+        ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
@@ -120,7 +123,7 @@ public:
         double SplitFactor = 10.0,
         unsigned int MaxNumberSplits = 3
     )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
+        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
     {
         KRATOS_TRY
 
@@ -177,7 +180,7 @@ public:
 
     /**
      * Default constructor 
-     * @param model_part: The model part of the problem
+     * @param rModelPart: The model part of the problem
      * @param pScheme: The integration scheme
      * @param pNewLinearSolver: The linear solver employed
      * @param pNewConvergenceCriteria: The convergence criteria employed
@@ -185,10 +188,12 @@ public:
      * @param CalculateReactions: The flag for the reaction calculation
      * @param ReformDofSetAtEachStep: The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag: The flag that allows to move the mesh
+     * @param SplitFactor: Value by one we split the time step when the problem does not converge
+     * @param MaxNumberSplits: Maximim number of splits of the time step
      */
     
     ResidualBasedNewtonRaphsonContactStrategy(
-        ModelPart& model_part,
+        ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
@@ -200,7 +205,7 @@ public:
         double SplitFactor = 10,
         unsigned int MaxNumberSplits = 3
     )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
+        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
     {
         KRATOS_TRY;
 
@@ -630,7 +635,105 @@ public:
 
         KRATOS_CATCH("");
     }
+ 
+    /**
+     * This is the initialization of the iteration cycle
+     * @return is_converged: True when the problem has converged
+     * @return ResidualIsUpdated: True when the residual has been updated
+     * @return iteration_number: Number of iterations done 
+     * @param pScheme: The integration scheme
+     * @param pNewLinearSolver: The linear solver employed
+     * @param pBuilderAndSolver: The builder and solver considered
+     * @param rDofSet: The set of degrees of freedom
+     * @param mA: The LHS of the problem
+     * @return mDx: The solution to the problem
+     * @param mb: The RHS of the problem
+     */
+    
+    void InitiliazeCycle(
+        bool& is_converged,
+        bool & ResidualIsUpdated,
+        unsigned int& iteration_number,
+        typename TSchemeType::Pointer& pScheme,
+        typename TBuilderAndSolverType::Pointer& pBuilderAndSolver,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& mA,
+        TSystemVectorType& mDx,
+        TSystemVectorType& mb
+        )
+    {
+        BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+      
+        CoutSolvingProblem();
+        
+//         BaseType::GetModelPart().GetProcessInfo().SetNonLinearIterationNumber(iteration_number);
 
+        pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
+        is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+
+        // Function to perform the building and the solving phase.
+        if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false)
+        {
+            TSparseSpace::SetToZero(mA);
+            TSparseSpace::SetToZero(mDx);
+            TSparseSpace::SetToZero(mb);
+
+            pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
+        }
+        else
+        {
+            TSparseSpace::SetToZero(mDx); // mDx=0.00;
+            TSparseSpace::SetToZero(mb);
+
+            pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
+        }
+
+        if (this->GetEchoLevel() == 3) // If it is needed to print the debug info
+        {
+            std::cout << "SystemMatrix = " << mA << std::endl;
+            std::cout << "solution obtained = " << mDx << std::endl;
+            std::cout << "RHS  = " << mb << std::endl;
+        }
+        else if (this->GetEchoLevel() == 4) // Print to matrix market file
+        {
+            std::stringstream matrix_market_name;
+            matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << iteration_number << ".mm";
+            TSparseSpace::WriteMatrixMarketMatrix((char*) (matrix_market_name.str()).c_str(), mA, false);
+
+            std::stringstream matrix_market_vectname;
+            matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << iteration_number << ".mm.rhs";
+            TSparseSpace::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), mb);
+        }
+
+        // Update results
+        rDofSet = pBuilderAndSolver->GetDofSet();
+        pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+
+        // Move the mesh if needed
+        if (BaseType::MoveMeshFlag() == true)
+        {
+            BaseType::MoveMesh();
+        }
+
+        pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
+
+        if (is_converged == true)
+        {
+            // Initialisation of the convergence criteria
+            rDofSet = pBuilderAndSolver->GetDofSet();
+            mpConvergenceCriteria->InitializeSolutionStep(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+
+            if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
+            {
+                TSparseSpace::SetToZero(mb);
+
+                pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb);
+            }
+
+            is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+        }
+    }
+ 
     /**
      * This is the inner iteration cycle considered in the SolveSolutionStep
      * @return is_converged: True when the problem has converged
@@ -661,12 +764,9 @@ public:
         while (is_converged == false && iteration_number++ < mMaxIterationNumber)
         {
             // Setting the number of iteration
-            BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] += 1; // It is always increasing, at the end it will have the total number of NL iterations, including the time splits
-
-            if (this->GetEchoLevel() != 0)
-            {
-                std::cout << "\t NON LINEAR ITERATION: " << BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] << "\t TIME: " << BaseType::GetModelPart().GetProcessInfo()[TIME]  << std::endl;
-            }
+            BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number; 
+            
+            CoutSolvingProblem();
         
             pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
 
@@ -756,118 +856,69 @@ public:
         //  Initializing the parameters of the Newton-Raphson cicle
         unsigned int iteration_number = 1;
         unsigned int split_number = 1;
-        BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = 1;
-        
-        if (this->GetEchoLevel() != 0)
-        {
-            std::cout << "\t NON LINEAR ITERATION: " << BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] << "\t TIME: " << BaseType::GetModelPart().GetProcessInfo()[TIME]  << std::endl;
-        }
-        
-//         BaseType::GetModelPart().GetProcessInfo().SetNonLinearIterationNumber(iteration_number);
         bool is_converged = false;
         bool ResidualIsUpdated = false;
-        pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-        is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-
-        // Function to perform the building and the solving phase.
-        if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false)
-        {
-            TSparseSpace::SetToZero(mA);
-            TSparseSpace::SetToZero(mDx);
-            TSparseSpace::SetToZero(mb);
-
-            pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
-        }
-        else
-        {
-            TSparseSpace::SetToZero(mDx); // mDx=0.00;
-            TSparseSpace::SetToZero(mb);
-
-            pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
-        }
-
-        if (this->GetEchoLevel() == 3) // If it is needed to print the debug info
-        {
-            std::cout << "SystemMatrix = " << mA << std::endl;
-            std::cout << "solution obtained = " << mDx << std::endl;
-            std::cout << "RHS  = " << mb << std::endl;
-        }
-        else if (this->GetEchoLevel() == 4) // Print to matrix market file
-        {
-            std::stringstream matrix_market_name;
-            matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << iteration_number << ".mm";
-            TSparseSpace::WriteMatrixMarketMatrix((char*) (matrix_market_name.str()).c_str(), mA, false);
-
-            std::stringstream matrix_market_vectname;
-            matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << iteration_number << ".mm.rhs";
-            TSparseSpace::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), mb);
-        }
-
-        // Update results
-        rDofSet = pBuilderAndSolver->GetDofSet();
-        pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-
-        // Move the mesh if needed
-        if (BaseType::MoveMeshFlag() == true)
-        {
-            BaseType::MoveMesh();
-        }
-
-        pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-
-        if (is_converged == true)
-        {
-            // Initialisation of the convergence criteria
-            rDofSet = pBuilderAndSolver->GetDofSet();
-            mpConvergenceCriteria->InitializeSolutionStep(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-
-            if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
-            {
-                TSparseSpace::SetToZero(mb);
-
-                pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb);
-            }
-
-            is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-        }
-
+        
+        InitiliazeCycle(is_converged, ResidualIsUpdated, iteration_number, pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb);
+       
         IterationCycle(is_converged, ResidualIsUpdated, iteration_number, pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb);
 
         if (iteration_number >= mMaxIterationNumber)
         {
-            if (is_converged == false && split_number <= mMaxNumberSplits)
+            double original_delta_time = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]; // We save the delta time to restore later
+            
+            // We iterate until we reach the convergence or we split more than desired
+            while (is_converged == false && split_number <= mMaxNumberSplits)
             {   
                 // Expliting time step as a way to try improve the convergence
                 split_number += 1;
+                iteration_number = 1;
                 
                 double aux_time       = BaseType::GetModelPart().GetProcessInfo()[TIME];
-                double aux_delta_time = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
+                double aux_delta_time = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]; // FIXME: The DELTA_TIME is set to 0 for some reason!!!!
+                double current_time   = aux_time - aux_delta_time;
                 
-                BaseType::GetModelPart().GetProcessInfo()[TIME]      -= aux_delta_time; // Restore time to the previous one
+                BaseType::GetModelPart().GetProcessInfo()[TIME]       =   current_time; // Restore time to the previous one
                 aux_delta_time /= mSplitFactor;
                 BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME] = aux_delta_time; // Change delta time
                 
-                if (this->GetEchoLevel() != 0)
-                {
-                    std::cout << "***************************************************" << std::endl;
-                    std::cout << "**** Max. iter. exceeded: SPLITTING TIME STEP *****" << std::endl;
-                    std::cout << "***\t\t COMING BACK TO TIME: " << BaseType::GetModelPart().GetProcessInfo()[TIME] << "\t\t ***" << std::endl;
-                    std::cout << "***\t\t NEW TIME STEP: "<< aux_delta_time << "\t\t ***" << std::endl;
-                    std::cout << "***************************************************" << std::endl;
-                }
+                CoutSplittingTime(aux_delta_time);
                 
-                while (BaseType::GetModelPart().GetProcessInfo()[TIME] <= aux_time)
-                {
+                unsigned int aux_cout = 0;
+                while (is_converged == false && BaseType::GetModelPart().GetProcessInfo()[TIME] <= aux_time && iteration_number < mMaxIterationNumber)
+                {      
                     iteration_number = 1;
-                    BaseType::GetModelPart().GetProcessInfo()[TIME] += aux_delta_time; // Increase the time in the new delta time
+                    current_time += aux_delta_time;
+         
+                    aux_cout += 1;
+                    if (aux_cout > 1) // We avoid to restore the database if we create the new step just after the first iteration
+                    {
+                        BaseType::GetModelPart().GetProcessInfo()[TIME_STEPS] += 1;
+                    }
+
+                    BaseType::GetModelPart().GetProcessInfo()[TIME] = current_time; // Increase the time in the new delta time        
+                    BaseType::GetModelPart().CloneTimeStep(current_time);
+                    InitiliazeCycle(is_converged, ResidualIsUpdated, iteration_number, pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb);
                     IterationCycle(is_converged, ResidualIsUpdated, iteration_number, pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb); 
+                
+                    // Plots a warning if the maximum number of iterations is exceeded
+                    if (is_converged == false  && iteration_number >= mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+                    {
+                        MaxIterationsExceeded();
+                    }
                 }
                 
+                if (is_converged == true)
+                {
+                    // Restoring original DELTA_TIME
+                    BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME] = original_delta_time;
+                }
             }
-            // Plots a warning if the maximum number of iterations is exceeded
-            else if (BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+            
+            // Plots a warning if the maximum number of iterations and splits are exceeded
+            if (is_converged == false  && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
             {
-                MaxIterationsExceeded();
+                MaxIterationsAndSplitsExceeded();
             }
             
         }
@@ -931,7 +982,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
+    
     typename TSchemeType::Pointer mpScheme;
 
     typename TLinearSolver::Pointer mpLinearSolver;
@@ -993,12 +1044,43 @@ protected:
     ///@name Protected Operators
     ///@{
 
+    void CoutSolvingProblem()
+    {
+        if (this->GetEchoLevel() != 0)
+        {
+            std::cout << "STEP: " << BaseType::GetModelPart().GetProcessInfo()[TIME_STEPS] << "\t NON LINEAR ITERATION: " << BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] << "\t TIME: " << BaseType::GetModelPart().GetProcessInfo()[TIME] << "\t DELTA TIME: " << BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]  << std::endl;
+        }
+    }
+    
+    void CoutSplittingTime(const double aux_delta_time)
+    {
+        if (this->GetEchoLevel() != 0)
+        {
+            std::cout << "***************************************************" << std::endl;
+            std::cout << "**** Max. iter. exceeded: SPLITTING TIME STEP *****" << std::endl;
+            std::cout << "***\t\t COMING BACK TO TIME: " << BaseType::GetModelPart().GetProcessInfo()[TIME] << "\t\t ***" << std::endl;
+            std::cout << "***\t\t NEW TIME STEP: "<< aux_delta_time << "\t\t ***" << std::endl;
+            std::cout << "***************************************************" << std::endl;
+        }
+    }
+    
     void MaxIterationsExceeded()
     {
         if (this->GetEchoLevel() != 0 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {
             std::cout << "***************************************************" << std::endl;
             std::cout << "******* ATTENTION: max iterations exceeded ********" << std::endl;
+            std::cout << "***************************************************" << std::endl;
+        }
+    }
+    
+    void MaxIterationsAndSplitsExceeded()
+    {
+        if (this->GetEchoLevel() != 0 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
+        {
+            std::cout << "***************************************************" << std::endl;
+            std::cout << "******* ATTENTION: max iterations exceeded ********" << std::endl;
+            std::cout << "********** Max number of splits exceeded **********" << std::endl;
             std::cout << "***************************************************" << std::endl;
         }
     }
