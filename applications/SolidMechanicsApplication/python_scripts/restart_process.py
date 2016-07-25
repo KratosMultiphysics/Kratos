@@ -1,4 +1,5 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+import os
 # importing the Kratos Library
 import KratosMultiphysics 
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
@@ -58,13 +59,22 @@ class RestartProcess(KratosMultiphysics.Process):
         problem_path = os.getcwd()
         self.restart_path = os.path.join(problem_path, self.settings["restart_file_name"].GetString() )
 
-        self.step_count  = 0
+        self.step_count = 0
         self.printed_step_count = 0
         self.next_output = 0.0
                        
     #
     def ExecuteInitialize(self):
-        pass
+
+        # Set current time parameters
+        if( self.model_part.ProcessInfo[IS_RESTARTED] == True ):
+            self.step_count = self.model_part.ProcessInfo[STEP]
+            self.printed_step_count = self.model_part.ProcessInfo[PRINTED_RESTART_STEP]
+            
+            if self.output_control_is_time:
+                self.next_output = self.model_part.ProcessInfo[TIME]
+            else:
+                self.next_output = self.model_part.ProcessInfo[STEP]
 
     ###
 
@@ -74,7 +84,10 @@ class RestartProcess(KratosMultiphysics.Process):
 
     #
     def ExecuteFinalizeSolutionStep(self):
-        
+        pass
+
+    #
+    def ExecuteAfterOuputStep(self):
         if( self.save_restart ):
             self.SaveRestart()
 
@@ -89,6 +102,7 @@ class RestartProcess(KratosMultiphysics.Process):
         # Print the output
         time = self.model_part.ProcessInfo[TIME]
         self.printed_step_count += 1
+        self.model_part.ProcessInfo[PRINTED_RESTART_STEP] = self.printed_step_count
         if self.output_label_is_time:
             label = time
         else:
