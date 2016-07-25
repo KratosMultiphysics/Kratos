@@ -3,14 +3,13 @@
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
-//
+// 
 //  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
-//
+// 
 //  Main authors:    Kazem Kamran
 //                   Jordi Rubio
-//
-
+// 
+ 
 
 #if !defined(KRATOS_ESTIMATE_TIME_STEP )
 #define  KRATOS_ESTIMATE_TIME_STEP
@@ -166,6 +165,7 @@ namespace Kratos
 		  const double max_cooling_delta_temp,
 		  const double change_in_shrinkage,
 		  const double limit_of_mushy_zone,
+		  const bool improve_solidification_tracking,
 		  const double dt_min,
 		  const double dt_max)
 	  {			
@@ -176,6 +176,8 @@ namespace Kratos
 
 		  const double current_dt = ThisModelPart.GetProcessInfo()[DELTA_TIME];
 		  const int is_solidified = ThisModelPart.GetProcessInfo()[IS_SOLIDIFIED];
+		  //const bool improve_solidification_tracking = true;
+		  const double low_boundary_over_mushy_zone = 5.0;
 		  int global_is_solidified = is_solidified;
 		  // 	   ThisModelPart.GetCommunicator().MinAll(global_is_solidified);	   
 
@@ -199,7 +201,7 @@ namespace Kratos
 				  double max_presolodification_delta_tem = std::min(10.0,max_cooling_delta_temp);
 				  int node_size = ThisModelPart.Nodes().size();
 				  double max_delta_temp = 0.0;
-				  std::vector<double> mdelta(omp_get_max_threads());
+				  std::vector<double> mdelta(omp_get_max_threads(),0.0);
 #pragma omp parallel for shared(mdelta)
 				  for (int ii = 0; ii < node_size; ii++)
 				  {
@@ -242,12 +244,13 @@ namespace Kratos
 				//**************************************
 				//**** WHEN NOT EVERYTHING IS LIQUID    ****
 				//**************************************
-				  //double Kfact=0.70; // TO DO mODIGY SO THAT THIS PARAMETER AND THE ONE IN THE SHRINKAGE CALCULATRION ARE SYNCRONIZED
 				  double current_solidified_volume = 0.0;
 				  double old_solidified_volume = 0.0;
 				  double current_over_mushy_zone=0.0 ;
 				  double old_over_mushy_zone=0.0;
 				  double tot_vol = 0.0;
+				  
+				  std::vector<double> mdelta(omp_get_max_threads(),0.0);  
 				  //double max_delta_temp=0.0;
 				  int node_size = ThisModelPart.Nodes().size();
 #pragma omp parallel for reduction(+:current_solidified_volume,old_solidified_volume, current_over_mushy_zone, old_over_mushy_zone,tot_vol)
@@ -256,6 +259,8 @@ namespace Kratos
 					  // Now we look for the Solidifcation Volume
 					  ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
 					  double vol = it->GetValue(NODAL_VOLUME);
+					  double& md= mdelta[omp_get_thread_num()];
+					  if (vol > md) { md = vol; }
 					  double current_S = it->FastGetSolutionStepValue(SOLID_FRACTION);
 					  double old_S = it->FastGetSolutionStepValue(SOLID_FRACTION,1);
 					  if(current_S>=limit_of_mushy_zone) {	current_over_mushy_zone+= vol;  }
@@ -282,13 +287,19 @@ namespace Kratos
 					//  max_delta_temp=std::max(-current_temp + old_temp,max_delta_temp);
 
 				  }
+				  //workaround because VS does not support omp 4.0
+				  double max_nodal_volume;
+				  for (int i = 0; i < omp_get_num_threads(); i++)
+				  {
+					  max_nodal_volume = std::max(max_nodal_volume, mdelta[i]);
+				  }
 
 				  ThisModelPart.GetCommunicator().SumAll(current_solidified_volume);	 
 				  ThisModelPart.GetCommunicator().SumAll(old_solidified_volume);
 				  ThisModelPart.GetCommunicator().SumAll(tot_vol);
 				  ThisModelPart.GetCommunicator().SumAll(current_over_mushy_zone);
 				  ThisModelPart.GetCommunicator().SumAll(old_over_mushy_zone);
-				  //ThisModelPart.GetCommunicator().MaxAll(max_delta_temp);
+				  ThisModelPart.GetCommunicator().MaxAll(max_nodal_volume);
 
 				  if(tot_vol == 0.0)   KRATOS_THROW_ERROR(std::logic_error, "inside ComputeSolidificationCoolingDt: total volume is zero!", "")
 
@@ -306,11 +317,35 @@ namespace Kratos
 						{
 							delta_solid /= tot_vol;
 							delta_over_mushy_zone /= tot_vol;
-							if(delta_solid<=0.0){delta_solid=delta_over_mushy_zone*solidification_percent/change_in_shrinkage;}
-							if(delta_over_mushy_zone<=0.0){delta_over_mushy_zone=delta_solid*change_in_shrinkage/solidification_percent;}
-// 							double tmp=(1.0-current_solidified_volume/tot_vol); // What it is left to solidify
-							//double target_to_solidify=std::min(solidification_percent,solidification_percent/4.0+std::max(0.0,tmp));
-							double new_dt = std::min(1.5, std::min( solidification_percent/delta_solid, change_in_shrinkage/delta_over_mushy_zone) ) * current_dt;
+							if(delta_solid<=0.0){delta_solid=delta_over_mushy_zone*solidification_percent/change_in_shrinkage;}  //It sets the value so that in next step we get exactly the same value
+							double solidification_ratio = solidification_percent / delta_solid;
+							double limited_change_in_shrinkage_ratio = 0.0;
+							if (delta_over_mushy_zone <= 0.0)
+							{
+								delta_over_mushy_zone = delta_solid*change_in_shrinkage / solidification_percent; // It sets the value so that in next step we get exactly the same value
+								limited_change_in_shrinkage_ratio = change_in_shrinkage;
+							} 
+							else
+							{
+								if (improve_solidification_tracking == true)
+								{
+									double lower_limit = (max_nodal_volume/ tot_vol)*low_boundary_over_mushy_zone;
+									double liquid_percent = 1.00 - (current_over_mushy_zone / tot_vol);
+									limited_change_in_shrinkage_ratio = std::min(change_in_shrinkage, liquid_percent*0.5);//delta_over_mushy_zone*0.8);
+									limited_change_in_shrinkage_ratio = std::max(limited_change_in_shrinkage_ratio, lower_limit);
+									KRATOS_WATCH(lower_limit)
+									KRATOS_WATCH(change_in_shrinkage)
+									KRATOS_WATCH(limited_change_in_shrinkage_ratio)
+
+								}
+								else
+								{
+									limited_change_in_shrinkage_ratio = change_in_shrinkage;
+								}
+							}
+							double change_in_shrinkage_ratio= limited_change_in_shrinkage_ratio / delta_over_mushy_zone;
+							double K = std::min(solidification_ratio, change_in_shrinkage_ratio);
+							double new_dt = std::min(1.5, K ) * current_dt;
 							if( new_dt > dt_max) new_dt = dt_max;
 							else if( new_dt < dt_min) new_dt = dt_min;
 							return new_dt;	      
@@ -723,7 +758,7 @@ namespace Kratos
 		 double last_temp = ThisModelPart.GetProcessInfo()[FLUID_TEMPERATURE]; //GetTable(3).Data().back().first;
 		 double is_hot_point = 1.0;
 		 int node_size = ThisModelPart.Nodes().size();
-		 KRATOS_WATCH(omp_get_max_threads())
+		 //KRATOS_WATCH(omp_get_max_threads())
 		 std::vector<double> local_is_hot_point(omp_get_max_threads(),1.0); 
 // #pragma omp parallel for shared(local_is_hot_point)
 		 for (int ii = 0; ii < node_size; ii++)
