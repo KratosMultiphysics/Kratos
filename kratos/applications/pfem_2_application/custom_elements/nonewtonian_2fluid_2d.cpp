@@ -84,6 +84,9 @@ namespace Kratos
 		{
 			Viscosity = this->EffectiveViscosity(base_viscosity,YieldStress,rShapeDeriv);
 		}
+
+		Viscosity*=negative_nodes/3.0; //number of nodes:
+
 		C_matrix *= Viscosity*Area;
 		
 		boost::numeric::ublas::bounded_matrix<double, 3, 6 > temp_matrix = prod(C_matrix,trans(B_matrix));
@@ -117,7 +120,7 @@ namespace Kratos
         // Read the viscosity for the fluidified phase from the nodes
         // In Kratos, the viscosity is assumed to be given in kinematic units (m^2/s)
         double GammaDot = this->EquivalentStrainRate(rDN_DX);
-        double m = 1.0e5;
+        double m = 1.0e3;
         double OutputDynamicViscosity=DynamicViscosity;
         if (GammaDot > 1e-12) // Normal behaviour
         {
