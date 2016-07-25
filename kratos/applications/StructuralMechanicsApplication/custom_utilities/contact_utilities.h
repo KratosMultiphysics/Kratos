@@ -84,7 +84,7 @@ public:
                 dist_tol = (dist_tol <= ActiveCheckFactor * Geom2.Length()) ? (ActiveCheckFactor * Geom2.Length()):dist_tol;
                 
                 array_1d<double, 3> result;
-                if (aux_dist < dist_tol) // NOTE: We don't use std::abs() because if the aux_dist is negative is penetrating, in fact we just consider dist_tol > 0 to have some tolerance and for the static schemes
+                if (aux_dist <= dist_tol) // NOTE: We don't use std::abs() because if the aux_dist is negative is penetrating, in fact we just consider dist_tol > 0 to have some tolerance and for the static schemes
                 {
                     if (Geom2.IsInside(ProjectedPoint, result) == true)
                     {
