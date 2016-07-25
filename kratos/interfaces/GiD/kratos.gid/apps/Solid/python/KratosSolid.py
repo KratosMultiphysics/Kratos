@@ -24,10 +24,12 @@ def StopTimeMeasuring(time_ip, process, report):
 
 #### TIME MONITORING END ####
 
+import os
+
 # Import kratos core and applications
-from KratosMultiphysics import *
-from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.ExternalSolversApplication import *
+import KratosMultiphysics
+import KratosMultiphysics.SolidMechanicsApplication  as KratosSolid
+import KratosMultiphysics.ExternalSolversApplication as KratosSolvers
 
 ######################################################################################
 ######################################################################################
@@ -37,7 +39,7 @@ from KratosMultiphysics.ExternalSolversApplication import *
 
 # Import define_output
 parameter_file = open("ProjectParameters.json",'r')
-ProjectParameters = Parameters( parameter_file.read())
+ProjectParameters = KratosMultiphysics.Parameters( parameter_file.read())
 
 # Set echo level
 echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
@@ -45,8 +47,13 @@ echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
 #### Model_part settings start ####
 
 # Defining the model_part
-main_model_part = ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
-main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
+main_model_part = KratosMultiphysics.ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
+
+main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
+main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, ProjectParameters["problem_data"]["time_step"].GetDouble())
+main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, ProjectParameters["problem_data"]["start_time"].GetDouble())
+
+print("DeltaTime", main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME])
 
 Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main_model_part}
 
@@ -63,8 +70,12 @@ solver.ImportModelPart()
 
 # Add dofs (always after importing the model part) (it must be integrated in the ImportModelPart)
 # If we integrate it in the model part we cannot use combined solvers
-solver.AddDofs()
-
+if((main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
+    if(main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
+        solver.AddDofs()
+else:
+    solver.AddDofs()
+    
 # Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
 ## Get the list of the submodel part in the object Model
 for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
@@ -80,26 +91,19 @@ if(echo_level>1):
 
 #### Model_part settings end ####
 
+
 #### Processes settings start ####
 
 #obtain the list of the processes to be applied
 
 import process_factory
-list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
-
+#the process order of execution is important
+list_of_processes  = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
 list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
-
-#list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses(ProjectParameters["list_other_processes"])
-
-#list_of_processes = []
-#process_definition = ProjectParameters["boundary_conditions_process_list"]
-#for i in range(process_definition.size()):
-#    item = process_definition[i]
-#    module = __import__(item["implemented_in_module"].GetString())
-#    interface_file = __import__(item["implemented_in_file"].GetString())
-#    p = interface_file.Factory(item, Model)
-#    list_of_processes.append( p )
-#    print("done ",i)
+if(ProjectParameters.Has("problem_process_list")):
+    list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["problem_process_list"] )
+if(ProjectParameters.Has("output_process_list")):
+    list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["output_process_list"] )
             
 #print list of constructed processes
 if(echo_level>1):
@@ -141,42 +145,34 @@ print("::[KSM Simulation]:: Analysis -START- ")
 for process in list_of_processes:
     process.ExecuteBeforeSolutionLoop()
 
-## Set results when are written in a single file
-gid_output.ExecuteBeforeSolutionLoop()
+# writing a initial state results file or single file (if no restart)
+if((main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
+    if(main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
+        gid_output.ExecuteBeforeSolutionLoop()
 
-## Stepping and time settings (get from process info or solving info)
-#delta time
-delta_time = ProjectParameters["problem_data"]["time_step"].GetDouble()
-#start step
-step       = 0
-#start time
-time       = ProjectParameters["problem_data"]["start_time"].GetDouble()
-#end time
+
+# Set time settings
+step       = main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+time       = main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+
 end_time   = ProjectParameters["problem_data"]["end_time"].GetDouble()
+delta_time = ProjectParameters["problem_data"]["time_step"].GetDouble()
 
-# monitoring info:  # must be contained in the solver
-#import solving_info_utility as solving_info_utils
-#solving_info = solving_info_utils.SolvingInfoUtility(model_part)
-
-# writing a initial state results file (if no restart)
-# gid_io.write_results(time, computing_model_part) done in ExecuteBeforeSolutionLoop()
 
 # Solving the problem (time integration)
 while(time <= end_time):
 
-    #TODO: this must be done by a solving_info utility in the solver
-    # Store previous time step
-    #~ computing_model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = delta_time
-    # Set new time step ( it can change when solve is called )
-    #~ delta_time = computing_model_part.ProcessInfo[DELTA_TIME]
+    # current time parameters
+    # main_model_part.ProcessInfo.GetPreviousStepInfo(1)[KratosMultiphysics.DELTA_TIME] = delta_time
+    delta_time = main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
     time = time + delta_time
     step = step + 1
-    main_model_part.ProcessInfo[TIME_STEPS] = step
-    main_model_part.CloneTimeStep(time)
 
-    # Print process info
+    main_model_part.ProcessInfo[KratosMultiphysics.STEP] = step
+    main_model_part.CloneTimeStep(time) 
 
+    # solve 
     for process in list_of_processes:
         process.ExecuteInitializeSolutionStep()
 
@@ -192,8 +188,8 @@ while(time <= end_time):
     for process in list_of_processes:
         process.ExecuteBeforeOutputStep()
     
-    # Write results and restart files: (frequency writing is controlled internally by the gid_io)
-    if gid_output.IsOutputStep():
+    # write results: (frequency writing is controlled internally by the gid_io)
+    if(gid_output.IsOutputStep()):
         gid_output.PrintOutput()
                       
     for process in list_of_processes:
