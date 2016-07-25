@@ -33,10 +33,6 @@ void KratosContactMechanicsApplication::Register() {
 	std::cout << "            \\___\\___/_||_\\__\\__,_\\__|\\__|MECHANICS" << std::endl;                     
  	std::cout << "Initializing KratosContactMechanicsApplication... " << std::endl;
 
-  KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( STEP_ROTATION )
-  KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( STEP_DISPLACEMENT )
-
-  KRATOS_REGISTER_VARIABLE( RESIDUAL_VECTOR )
 
   KRATOS_REGISTER_VARIABLE( NUMBER_OF_ACTIVE_CONTACTS )
   KRATOS_REGISTER_VARIABLE( NUMBER_OF_STICK_CONTACTS )

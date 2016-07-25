@@ -6,13 +6,13 @@ import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
-# Import the implicit solver (the explicit one is derived from it)
-import solid_mechanics_implicit_dynamic_solver
+# Import the mechanical solver base class
+import solid_mechanics_solver
 
 def CreateSolver(main_model_part, custom_settings):
     return StaticMechanicalSolver(main_model_part, custom_settings)
 
-class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver):
+class StaticMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
     
     
     ##constructor. the constructor shall only take care of storing the settings 
@@ -36,7 +36,8 @@ class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMec
             "analysis_type": "Non-Linear",
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": "unknown_name"
+                "input_filename": "unknown_name",
+                "input_file_label": 0
             },
             "rotation_dofs": false,
             "pressure_dofs": false,
@@ -75,7 +76,7 @@ class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMec
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
         
-        print("Construction of MechanicalSolver finished")
+        print("Construction of Static Mechanical Solver finished")
     
     def Initialize(self):
 
@@ -83,20 +84,20 @@ class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMec
         
         # Get the solid_computational_model_part 
         self.compute_model_part = self.GetComputeModelPart()
-        
-        # Builder and solver creation
-        builder_and_solver = self._GetBuilderAndSolver(self.settings["component_wise"].GetBool(), 
-                                                       self.settings["block_builder"].GetBool())
-        
-        # Solution scheme creation
+                
+        # Solution scheme choice
         mechanical_scheme = self._GetSolutionScheme(self.settings["analysis_type"].GetString(), 
                                                     self.settings["component_wise"].GetBool(),
                                                     self.settings["compute_contact_forces"].GetBool())
         
-        # Get the convergence criterion
+        # Get the convergence choice
         mechanical_convergence_criterion = self._GetConvergenceCriterion()
         
-        # Mechanical solver creation
+        # Builder and solver choice
+        builder_and_solver = self._GetBuilderAndSolver(self.settings["component_wise"].GetBool(), 
+                                                       self.settings["block_builder"].GetBool())
+
+        # Mechanical solver choice
         self._CreateMechanicalSolver(mechanical_scheme,
                                      mechanical_convergence_criterion,
                                      builder_and_solver,
