@@ -106,6 +106,8 @@ class GiDOutputProcess(Process):
         self.printed_step_count = 0
         self.next_output = 0.0
 
+
+
     def ExecuteInitialize(self):
 
         result_file_configuration = self.param["result_file_configuration"]
@@ -155,6 +157,17 @@ class GiDOutputProcess(Process):
 
         self.output_frequency = result_file_configuration["output_frequency"].GetDouble()
 
+        # Set current time parameters
+        if(  self.model_part.ProcessInfo[IS_RESTARTED] == True ):
+            self.step_count = self.model_part.ProcessInfo[STEP]
+            self.printed_step_count = self.model_part.ProcessInfo[PRINTED_STEP]
+            
+            if self.output_control_is_time:
+                self.next_output = self.model_part.ProcessInfo[TIME]
+            else:
+                self.next_output = self.model_part.ProcessInfo[STEP]
+
+
         # Create .post.lst files
         additional_list_file_data = result_file_configuration["additional_list_files"]
         additional_list_files = [ additional_list_file_data[i].GetInt() for i in range(0,additional_list_file_data.size()) ]
@@ -176,6 +189,13 @@ class GiDOutputProcess(Process):
                 self.__write_step_to_list()
             else:
                 self.__write_step_to_list(0)
+        
+        if self.multifile_flag == MultiFileFlag.MultipleFiles:
+            label = 0.0
+            self.__write_mesh(label)
+            self.__initialize_results(label)
+            self.__write_nodal_results(label)
+            self.__finalize_results()
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeSolutionLoop()
@@ -209,6 +229,7 @@ class GiDOutputProcess(Process):
         # Print the output
         time = self.model_part.ProcessInfo[TIME]
         self.printed_step_count += 1
+        self.model_part.ProcessInfo[PRINTED_STEP] = self.printed_step_count
         if self.output_label_is_time:
             label = time
         else:
