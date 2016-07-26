@@ -1085,12 +1085,14 @@ class DEMIo(object):
         self.PushPrintVar(self.PostAppliedForces,       EXTERNAL_APPLIED_MOMENT, self.spheres_and_clusters_variables)
         self.PushPrintVar(self.PostRigidElementForces,  RIGID_ELEMENT_FORCE,     self.spheres_and_clusters_variables)
         #if (Var_Translator(self.DEM_parameters.RotationOption)):  # xapuza
-        if 1:
+        if (Var_Translator(self.DEM_parameters.PostAngularVelocity)):
             self.PushPrintVar(self.PostAngularVelocity, ANGULAR_VELOCITY,        self.spheres_and_clusters_variables)
+        if (Var_Translator(self.DEM_parameters.PostParticleMoment)):       
             self.PushPrintVar(self.PostParticleMoment,  PARTICLE_MOMENT,         self.spheres_and_clusters_variables)
             
     def AddSpheresNotInClusterAndClustersVariables(self):  # variables common to spheres and clusters
-        if (Var_Translator(self.DEM_parameters.RotationOption)):  # xapuza
+        #if (Var_Translator(self.DEM_parameters.RotationOption)):  # xapuza
+        if (Var_Translator(self.DEM_parameters.PostEulerAngles)):
             self.PushPrintVar(self.PostEulerAngles,     EULER_ANGLES,            self.spheres_not_in_cluster_and_clusters_local_axis_variables)
 
     def AddSpheresVariables(self):
@@ -1098,8 +1100,8 @@ class DEMIo(object):
         self.PushPrintVar(self.PostRadius,           RADIUS,                       self.spheres_variables)
         self.PushPrintVar(self.PostExportId,         EXPORT_ID,                    self.spheres_variables)
         self.PushPrintVar(self.PostSkinSphere,       SKIN_SPHERE,                  self.spheres_variables)
-        self.PushPrintVar(                        1, DELTA_DISPLACEMENT,           self.spheres_variables)  # Debugging
-        self.PushPrintVar(                        1, PARTICLE_ROTATION_ANGLE,      self.spheres_variables)  # Debugging
+        #self.PushPrintVar(                        1, DELTA_DISPLACEMENT,           self.spheres_variables)  # Debugging
+        #self.PushPrintVar(                        1, PARTICLE_ROTATION_ANGLE,      self.spheres_variables)  # Debugging
         self.PushPrintVar(self.PostTemperature,      TEMPERATURE,                  self.spheres_variables)
         self.PushPrintVar(self.PostHeatFlux,         HEATFLUX,                     self.spheres_variables)
 
