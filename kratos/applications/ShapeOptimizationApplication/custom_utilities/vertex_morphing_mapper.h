@@ -77,9 +77,9 @@
 #include "../../kratos/processes/node_erase_process.h"
 #include "../../kratos/utilities/binbased_fast_point_locator.h"
 #include "../../kratos/utilities/normal_calculation_utils.h"
+#include "../../kratos/spaces/ublas_space.h"
 #include "shape_optimization_application.h"
 #include "filter_function.h"
-#include "../../kratos/spaces/ublas_space.h"
 
 // ==============================================================================
 
@@ -134,6 +134,7 @@ public:
     // ==========================================================================
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef typename SparseSpaceType::MatrixType SparseMatrixType;
+    typedef typename SparseSpaceType::VectorType VectorType;
 
     /// Pointer definition of VertexMorphingMapper
     KRATOS_CLASS_POINTER_DEFINITION(VertexMorphingMapper);
@@ -222,7 +223,7 @@ public:
         tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), m_max_nodes_affected);
 
         // Prepare Weighting function to be used in the mapping
-       FilterFunction filter_function( m_filter_function_type, m_filter_size );
+        FilterFunction filter_function( m_filter_function_type, m_filter_size );
 
         // Loop over all design variables
         for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
@@ -238,10 +239,6 @@ public:
             // Perform spatial search for current node
             unsigned int number_of_nodes_affected;
             number_of_nodes_affected = nodes_tree.SearchInRadius(node_i, m_filter_size, nodes_affected.begin(),resulting_squared_distances.begin(), m_max_nodes_affected);
-
-            // Store results to reuse later in the forward mapping
-            m_listOf_nodesAffected[i_ID] = nodes_affected;
-            m_number_of_nodes_affected[i_ID] = number_of_nodes_affected;
 
             // Compute and assign weights in the mapping matrix
             double sum_weights = 0.0;
@@ -298,72 +295,65 @@ public:
     // --------------------------------------------------------------------------
     void map_sensitivities_to_design_space( bool constraint_given )
     {
-    	KRATOS_TRY;
+        KRATOS_TRY;
 
     	// Measure time of mapping
     	boost::timer mapping_time;
     	std::cout << "\n> Start mapping sensitivities to design space..." << std::endl;
 
-    	// Loop over all design variables
-    	for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
-    	{
-    		// Get node information
-    		int i_ID = node_i->Id();
+        // Map objective sensitivities
 
-    		// Get the id of the node in the mapping matrix
-    		int i = node_i->GetValue(MAPPING_MATRIX_ID);
+        // Assign nodal sensitivities to vector used vor mapping
+        VectorType dJdX;
+        dJdX.resize(m_number_of_design_variables*3);
+        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
+        {
+            int i = node_i->GetValue(MAPPING_MATRIX_ID);
+            array_3d node_sens = node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
+            dJdX[i*3+0] = node_sens[0];
+            dJdX[i*3+1] = node_sens[1];
+            dJdX[i*3+2] = node_sens[2];
+        }
 
-    		//Instead of performing spatial search again, we read the results obtained from the computation of the mapping matrix
-    		unsigned int number_of_nodes_affected = m_number_of_nodes_affected[i_ID];
-    		PointVector nodes_affected(number_of_nodes_affected);
-    		nodes_affected = m_listOf_nodesAffected[i_ID];
+        // Perform mapping
+        VectorType dJds;
+        dJds.resize(m_number_of_design_variables);
+        SparseSpaceType::TransposeMult(m_mapping_matrix,dJdX,dJds);
 
-    		// Mapping gradients to design space - looping only over neighbor nodes
-    		double dFds_i = 0.0;
-    		for(unsigned int j_itr = 0 ; j_itr<number_of_nodes_affected ; j_itr++)
-    		{
-    			// Get node information
-    			int j_ID = nodes_affected[j_itr]->Id();
-    			ModelPart::NodeType& node_j = mr_opt_model_part.Nodes()[j_ID];
+        // Assign results to nodal variables
+        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
+        {
+               int i = node_i->GetValue(MAPPING_MATRIX_ID);
+               node_i->FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY) = dJds[i];
+        }
 
-    			// Get the id of the node in the mapping matrix
-    			unsigned int j = node_j.GetValue(MAPPING_MATRIX_ID);
+        // Repeat mapping to map constraint sensitivities
+        if(constraint_given)
+        {
+            // Assign nodal sensitivities to vector used vor mapping
+            VectorType dCdX;
+            dCdX.resize(m_number_of_design_variables*3);
+            for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
+            {
+                int i = node_i->GetValue(MAPPING_MATRIX_ID);
+                array_3d node_sens = node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY);
+                dCdX[i*3+0] = node_sens[0];
+                dCdX[i*3+1] = node_sens[1];
+                dCdX[i*3+2] = node_sens[2];
+            }
 
-    			// Ask for the sensitiviteis
-                array_3d node_sens = node_j.FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
+            // Perform mapping
+            VectorType dJds;
+            dJds.resize(m_number_of_design_variables);
+            SparseSpaceType::TransposeMult(m_mapping_matrix,dCdX,dJds);
 
-    			// Compute dot-product
-    			dFds_i += m_mapping_matrix(j*3+0,i) * node_sens[0]
-						+ m_mapping_matrix(j*3+1,i) * node_sens[1]
-						+ m_mapping_matrix(j*3+2,i) * node_sens[2];
-    		}
-            node_i->FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY) = dFds_i;
-
-    		// If constrainted optimization, then also compute filtered gradients for the constraints (dCds)
-    		if(constraint_given)
-    		{
-    			// Mapping sensitivities to design space - looping only over neighbor nodes
-    			double dCds_i = 0.0;
-    			for(unsigned int j_itr = 0 ; j_itr<number_of_nodes_affected ; j_itr++)
-    			{
-    				// Get node information
-    				int j_ID = nodes_affected[j_itr]->Id();
-    				ModelPart::NodeType& node_j = mr_opt_model_part.Nodes()[j_ID];
-
-    				// Get the id of the node in the mapping matrix
-    				unsigned int j = node_j.GetValue(MAPPING_MATRIX_ID);
-
-    				// Ask for the sensitiviteis
-    				array_3d node_sens = node_j.FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY);
-
-    				// Compute dot-product - Here we use the transpose of the mapping matrix (exchanged indices)
-    				dCds_i += m_mapping_matrix(j*3+0,i) * node_sens[0]
-							+ m_mapping_matrix(j*3+1,i) * node_sens[1]
-							+ m_mapping_matrix(j*3+2,i) * node_sens[2];
-    			}
-                node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY) = dCds_i;
-    		}
-    	}
+            // Assign results to nodal variables
+            for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
+            {
+                   int i = node_i->GetValue(MAPPING_MATRIX_ID);
+                   node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY) = dJds[i];
+            }
+        }
 
     	// Console output for information
     	std::cout << "> Finished mapping sensitivities to design space!" << std::endl;
@@ -381,73 +371,63 @@ public:
     	boost::timer mapping_time;
     	std::cout << "\n> Start mapping design update to geometry space..." << std::endl;
 
-    	// Loop over all design variables
-    	for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
-    	{
-    		// Get node information
-    		int i_ID = node_i->Id();
 
-    		// Get the id of the node in the mapping matrix
-    		int i = node_i->GetValue(MAPPING_MATRIX_ID);
+        // Assign design update to vector which shall be mapped
+        VectorType ds;
+        ds.resize(m_number_of_design_variables);
+        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
+        {
+            int i = node_i->GetValue(MAPPING_MATRIX_ID);
+            ds[i] = node_i->FastGetSolutionStepValue(DESIGN_UPDATE);
+        }
 
-    		// Instead of performing spatial search again, we read the results obtained from the computation of the mapping matrix
-    		unsigned int number_of_nodes_affected = m_number_of_nodes_affected[i_ID];
-    		PointVector nodes_affected(number_of_nodes_affected);
-    		nodes_affected = m_listOf_nodesAffected[i_ID];
+        // Perform mapping
+        VectorType dx;
+        dx.resize(m_number_of_design_variables*3);
+        SparseSpaceType::Mult(m_mapping_matrix,ds,dx);
 
-    		// Mapping of design variable update to geometry space
-    		// - looping only over neighbor nodes and summ all shape update contributions form neighbor nodes
-    		array_3d shape_update(3,0.0);
-    		for(unsigned int j_itr = 0 ; j_itr<number_of_nodes_affected ; j_itr++)
-    		{
-    			// Get node information
-    			int j_ID = nodes_affected[j_itr]->Id();
-    			ModelPart::NodeType& node_j = mr_opt_model_part.Nodes()[j_ID];
+        // Assign results
+        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
+        {
+            int i = node_i->GetValue(MAPPING_MATRIX_ID);
+            array_3d shape_update;
+            shape_update[0] = dx[3*i+0];
+            shape_update[1] = dx[3*i+1];
+            shape_update[2] = dx[3*i+2];
+            noalias(node_i->FastGetSolutionStepValue(SHAPE_UPDATE)) = shape_update;
+        }
 
-    			// Get the id of the node in the mapping matrix
-    			int j = node_j.GetValue(MAPPING_MATRIX_ID);
+        // Update of coordinates and absolute values AFTER shape update is modified according to special conditions
+        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
+        {
+            // If shape update deactivated, set it to zero
+            if(node_i->FastGetSolutionStepValue(SHAPE_UPDATES_DEACTIVATED))
+            {
+                array_3d zero_array(3,0.0);
+                noalias(node_i->FastGetSolutionStepValue(SHAPE_UPDATE)) = zero_array;
+            }
+            // In case it is not deactivated, it is checked if it is on a specified boundary beyond which no update is wanted
+            else
+            {
+                // Project shape update at boundary on specified boundary plane (Remove component that is normal to the boundary plane)
+                if(node_i->FastGetSolutionStepValue(IS_ON_BOUNDARY))
+                {
+                    array_3d boundary_plane = node_i->FastGetSolutionStepValue(BOUNDARY_PLANE);
+                    array_3d original_update = node_i->FastGetSolutionStepValue(SHAPE_UPDATE);
+                    array_3d projected_update = original_update - (inner_prod(original_update,boundary_plane))*boundary_plane/norm_2(boundary_plane);
+                    noalias(node_i->FastGetSolutionStepValue(SHAPE_UPDATE)) = projected_update;
+                }
+            }
 
-    			// Store shape update contribution in global node list to update after all updates have been computed
-                shape_update[0] += m_mapping_matrix(3*i+0,j) * node_j.FastGetSolutionStepValue(DESIGN_UPDATE);
-                shape_update[1] += m_mapping_matrix(3*i+1,j) * node_j.FastGetSolutionStepValue(DESIGN_UPDATE);
-                shape_update[2] += m_mapping_matrix(3*i+2,j) * node_j.FastGetSolutionStepValue(DESIGN_UPDATE);
-    		}
+            // Update coordinates
+            array_3d shape_update = node_i->FastGetSolutionStepValue(SHAPE_UPDATE);
+            node_i->X() += shape_update[0];
+            node_i->Y() += shape_update[1];
+            node_i->Z() += shape_update[2];
 
-    		// Store shape update
-    		noalias(node_i->FastGetSolutionStepValue(SHAPE_UPDATE)) = shape_update;
-    	}
-
-    	// Update of coordinates and absolute values AFTER shape update is modified according to special conditions
-    	for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
-    	{
-    		// If shape update deactivated, set it to zero
-    		if(node_i->FastGetSolutionStepValue(SHAPE_UPDATES_DEACTIVATED))
-    		{
-    			array_3d zero_array(3,0.0);
-    			noalias(node_i->FastGetSolutionStepValue(SHAPE_UPDATE)) = zero_array;
-    		}
-    		// In case it is not deactivated, it is checked if it is on a specified boundary beyond which no update is wanted
-    		else
-    		{
-    			// Project shape update at boundary on specified boundary plane (Remove component that is normal to the boundary plane)
-    			if(node_i->FastGetSolutionStepValue(IS_ON_BOUNDARY))
-    			{
-    				array_3d boundary_plane = node_i->FastGetSolutionStepValue(BOUNDARY_PLANE);
-    				array_3d original_update = node_i->FastGetSolutionStepValue(SHAPE_UPDATE);
-    				array_3d projected_update = original_update - (inner_prod(original_update,boundary_plane))*boundary_plane/norm_2(boundary_plane);
-    				noalias(node_i->FastGetSolutionStepValue(SHAPE_UPDATE)) = projected_update;
-    			}
-    		}
-
-    		// Update coordinates
-    		array_3d shape_update = node_i->FastGetSolutionStepValue(SHAPE_UPDATE);
-    		node_i->X() += shape_update[0];
-    		node_i->Y() += shape_update[1];
-    		node_i->Z() += shape_update[2];
-
-    		// Add final shape update to previous updates
-    		noalias(node_i->FastGetSolutionStepValue(SHAPE_CHANGE_ABSOLUTE)) += shape_update;
-    	}
+            // Add final shape update to previous updates
+            noalias(node_i->FastGetSolutionStepValue(SHAPE_CHANGE_ABSOLUTE)) += shape_update;
+        }
 
     	// Console output for information
     	std::cout << "> Finished mapping design update to geometry space!" << std::endl;
@@ -555,10 +535,7 @@ private:
     // ==============================================================================
     // General working arrays
     // ==============================================================================
-    std::map<int,PointVector> m_listOf_nodesAffected;
-    std::map<int,unsigned int> m_number_of_nodes_affected;
     SparseMatrixType m_mapping_matrix;
-
 
     ///@}
     ///@name Private Operators
