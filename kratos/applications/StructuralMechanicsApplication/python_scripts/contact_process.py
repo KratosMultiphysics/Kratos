@@ -33,15 +33,16 @@ class ContactProcess(KratosMultiphysics.Process):
             "search_factor"               : 1.5,
             "active_check_factor"         : 0.01,
             "max_number_results"          : 1000,
+            "constant_active_inactive"    : 1.0e9,
             "type_search"                 : "InRadius",
             "integration_order"           : 5
         }
         """)
-        
+
         ## Overwrite the default settings with user-provided parameters
         self.params = params
         self.params.ValidateAndAssignDefaults(default_parameters)
-        
+   
         self.main_model_part = model_part[self.params["model_part_name"].GetString()]
 
         self.o_model_part = model_part[self.params["origin_model_part_name"].GetString()]
@@ -50,10 +51,11 @@ class ContactProcess(KratosMultiphysics.Process):
         self.o_interface = self.o_model_part.GetSubModelPart("INTERFACE")
         self.d_interface = self.d_model_part.GetSubModelPart("INTERFACE")
         
-        self.search_factor       = self.params["search_factor"].GetDouble() 
-        self.active_check_factor = self.params["active_check_factor"].GetDouble() 
-        self.max_number_results  = self.params["max_number_results"].GetInt() 
-        self.integration_order   = self.params["integration_order"].GetInt() 
+        self.search_factor            = self.params["search_factor"].GetDouble() 
+        self.active_check_factor      = self.params["active_check_factor"].GetDouble() 
+        self.max_number_results       = self.params["max_number_results"].GetInt() 
+        self.constant_active_inactive = self.params["constant_active_inactive"].GetDouble()
+        self.integration_order        = self.params["integration_order"].GetInt() 
         if self.params["type_search"].GetString() == "InRadius":
              self.type_search = 0
         
@@ -92,7 +94,7 @@ class ContactProcess(KratosMultiphysics.Process):
         
         if self.params["contact_type"].GetString() == "MortarMethod":
             self.contact_search.CreatePointListMortar()
-            self.contact_search.InitializeMortarConditions(self.active_check_factor)
+            self.contact_search.InitializeMortarConditions(self.active_check_factor, self.constant_active_inactive)
         elif self.params["contact_type"].GetString() == "NTN":
             self.contact_search.CreatePointListNTN()
             self.contact_search.InitializeNTNConditions()
