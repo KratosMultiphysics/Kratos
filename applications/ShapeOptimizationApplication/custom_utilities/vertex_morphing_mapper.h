@@ -257,10 +257,12 @@ public:
                 double Aij = filter_function.compute_weight(i_coord,j_coord);
 
                 // Multiplication by the node normal (nodal director)
+                array_3d n = node_j.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
+
                 // In this way we implicitly preserve the in-plane mesh quality (pure Heuristic)
-                m_mapping_matrix(3*i+0,j) = Aij*node_j.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)[0];
-                m_mapping_matrix(3*i+1,j) = Aij*node_j.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)[1];
-                m_mapping_matrix(3*i+2,j) = Aij*node_j.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)[2];
+                m_mapping_matrix(3*i+0,j) = Aij*n[0];
+                m_mapping_matrix(3*i+1,j) = Aij*n[1];
+                m_mapping_matrix(3*i+2,j) = Aij*n[2];
 
                 // Computed for integration of weighting function later using post-scaling
                 sum_weights += Aij;

@@ -154,6 +154,9 @@ class VertexMorphingMethod:
         print("> Starting optimization using the following algorithm: ",self.config.optimization_algorithm)
         print("> ==============================================================================================================\n")
 
+         # Print time stamp
+        print(time.ctime())
+
         # Start timer and assign to object such that total time of opt may be measured at each step
         self.opt_start_time = time.time()
 
@@ -203,6 +206,8 @@ class VertexMorphingMethod:
             row.append("\tf")
             row.append("\tdf_absolute[%]")
             row.append("\tdf_relative[%]")
+            row.append("\tt_iteration[s]")
+            row.append("\tt_total[s]") 
             historyWriter.writerow(row)    
         
         # Define initial design (initial design corresponds to a zero shape update)
@@ -275,6 +280,16 @@ class VertexMorphingMethod:
                 print("\n> Absolut change of objective function = ",round(delta_f_absolute,6)," [%]")
                 print("\n> Relative change of objective function = ",round(delta_f_relative,6)," [%]")            
 
+            # Take time needed for current optimization step
+            end_time = time.time()
+            time_current_step = round(end_time - start_time,1)
+            time_optimization = round(end_time - self.opt_start_time,1)
+            print("\n> Time needed for current optimization step = ",time_current_step,"s")
+            print("\n> Time needed for total optimization so far = ",time_optimization,"s")     
+            
+            # Write design in GID format
+            self.gid_io.write_results(opt_itr, self.opt_model_part, self.config.nodal_results, [])   
+
             # Write design history to file
             with open(self.config.design_history_file, 'a') as csvfile:
                 historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
@@ -283,10 +298,9 @@ class VertexMorphingMethod:
                 row.append("\t"+str("%.12f"%(response[only_F_id]["func"]))+"\t")
                 row.append("\t"+str("%.2f"%(delta_f_absolute))+"\t")
                 row.append("\t"+str("%.6f"%(delta_f_relative))+"\t")
-                historyWriter.writerow(row)
-
-            # Write design in GID format
-            self.gid_io.write_results(opt_itr, self.opt_model_part, self.config.nodal_results, [])                
+                row.append("\t"+str("%.1f"%(time_current_step))+"\t")
+                row.append("\t"+str("%.1f"%(time_optimization))+"\t")
+                historyWriter.writerow(row)              
 
             # Check convergence
             if(opt_itr>1):
@@ -315,11 +329,6 @@ class VertexMorphingMethod:
             # Store initial objective value
             if(opt_itr==1):
                 initial_f = response[only_F_id]["func"]
-
-            # Take time needed for current optimization step
-            end_time = time.time()
-            print("\n> Time needed for current optimization step = ",round(end_time - start_time,1),"s")
-            print("\n> Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
 
     # --------------------------------------------------------------------------
     def start_augmented_lagrange(self):
@@ -547,7 +556,9 @@ class VertexMorphingMethod:
             row.append("\tf")
             row.append("\tdf_absolute[%]")
             row.append("\tdf_relative[%]")
-            row.append("\tc["+str(only_C_id)+"]: "+str(self.constraints[only_C_id]["type"])+"\t")           
+            row.append("\tc["+str(only_C_id)+"]: "+str(self.constraints[only_C_id]["type"])+"\t")          
+            row.append("\tt_iteration[s]")
+            row.append("\tt_total[s]") 
             historyWriter.writerow(row)    
         
         # Define initial design (initial design corresponds to a zero shape update)
@@ -643,6 +654,16 @@ class VertexMorphingMethod:
                 print("\n> Relative change of objective function = ",round(delta_f_relative,6)," [%]")           
                 print("\n> Current value of constraint function = ",round(response[only_C_id]["func"]/self.config.constraint_scaling,12))
 
+            # Take time needed for current optimization step
+            end_time = time.time()
+            time_current_step = round(end_time - start_time,1)
+            time_optimization = round(end_time - self.opt_start_time,1)
+            print("\n> Time needed for current optimization step = ",time_current_step,"s")
+            print("\n> Time needed for total optimization so far = ",time_optimization,"s")     
+            
+            # Write design in GID format
+            self.gid_io.write_results(opt_itr, self.opt_model_part, self.config.nodal_results, [])   
+
             # Write design history to file
             with open(self.config.design_history_file, 'a') as csvfile:
                 historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
@@ -652,10 +673,9 @@ class VertexMorphingMethod:
                 row.append("\t"+str("%.2f"%(delta_f_absolute))+"\t")
                 row.append("\t"+str("%.6f"%(delta_f_relative))+"\t")
                 row.append("\t"+str("%.12f"%(response[only_C_id]["func"]/self.config.constraint_scaling))+"\t")
-                historyWriter.writerow(row)
-
-            # Write design in GID format
-            self.gid_io.write_results(opt_itr, self.opt_model_part, self.config.nodal_results, [])                
+                row.append("\t"+str("%.1f"%(time_current_step))+"\t")
+                row.append("\t"+str("%.1f"%(time_optimization))+"\t")
+                historyWriter.writerow(row)       
 
             # Check convergence (Further convergence criterions to be implemented )
             if(opt_itr>1):
@@ -674,11 +694,6 @@ class VertexMorphingMethod:
             # Store initial objective value
             if(opt_itr==1):
                 initial_f = response[only_F_id]["func"]            
-
-            # Take time needed for current optimization step
-            end_time = time.time()
-            print("\n> Time needed for current optimization step = ",round(end_time - start_time,1),"s")
-            print("\n> Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
 
     # --------------------------------------------------------------------------
     def store_grads_on_nodes(self,objective_grads,constraint_grads={}):
