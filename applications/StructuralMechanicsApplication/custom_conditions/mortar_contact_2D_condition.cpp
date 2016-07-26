@@ -597,6 +597,11 @@ void MortarContact2DCondition::CalculateConditionSystem(
             const double IntegrationWeight = integration_points[PointNumber].Weight( );
             this->CalculateKinematics( Variables, PointNumber, i_master_elem );
             this->CalculateDAndM( Variables, IntegrationWeight, ThisMortarConditionMatrices, gn );
+            
+//             // DIRECTIONAL DERIVATIVES
+//             this->CalculateDeltaJSlave( Variables, IntegrationWeight, ThisMortarConditionMatrices );
+//             this->CalculateDeltaPhi( Variables, IntegrationWeight, ThisMortarConditionMatrices );
+//             this->CalculateDeltaDAndDeltaM( Variables, IntegrationWeight, ThisMortarConditionMatrices );
         }
         
         for (unsigned int iNode = 0; iNode < number_of_nodes_slave; iNode++)
@@ -708,7 +713,8 @@ void MortarContact2DCondition::CalculateKinematics(
 
     /* CALCULATE JACOBIAN AND JACOBIAN DETERMINANT */
     slave_nodes.Jacobian( rVariables.j_Slave, local_point.Coordinates() );
-    rVariables.DetJSlave = (current_container.local_coordinates_slave[1] - current_container.local_coordinates_slave[0])/2.0 * rVariables.j_Slave(0, 0); // TODO: Check if it is correct
+    rVariables.DetJSlave = rVariables.j_Slave(0, 0); 
+    rVariables.SegmentProportion = (current_container.local_coordinates_slave[1] - current_container.local_coordinates_slave[0])/2.0;
 
     KRATOS_CATCH( "" );
 }
@@ -761,6 +767,46 @@ void MortarContact2DCondition::MasterShapeFunctionValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void MortarContact2DCondition::ComputeDandMIntegral(
+    const unsigned int num_slave_nodes,
+    const unsigned int num_master_nodes,
+    MatrixType& D,
+    MatrixType& M,
+    VectorType& gn,
+    const double& rIntegrationWeight,
+    const Vector& Phi,
+    const double& gap,
+    const Vector& N_s,
+    const Vector& N_m,
+    const double& J_s,
+    const double& SegProp
+    )
+{
+    const unsigned int dimension = 2;
+        
+    // For all the nodes
+    for ( unsigned int i_slave = 0; i_slave < num_slave_nodes; ++i_slave )
+    {
+        gn[i_slave] += rIntegrationWeight * Phi( i_slave ) * gap * J_s * SegProp;
+        
+        const unsigned int i = i_slave * dimension;
+        
+        D( i    , i     ) += rIntegrationWeight * Phi( i_slave ) * N_s( i_slave ) * J_s * SegProp;
+        D( i + 1, i + 1 )  = D( i, i ); // NOTE: We can avoid this, because we are storing twice the same value
+         
+        for ( unsigned int jNode = 0; jNode < num_master_nodes; ++jNode )
+        {
+            const unsigned int j = jNode * dimension;
+            M( i    , j     ) += rIntegrationWeight * Phi( i_slave ) * N_m( jNode ) * J_s * SegProp;
+            M( i + 1, j + 1 )  = M( i, j ); // NOTE: We can avoid this, because we are storing twice the same value
+        }
+    }
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void MortarContact2DCondition::CalculateDAndM( 
     GeneralVariables& rVariables,
     const double& rIntegrationWeight,
@@ -768,7 +814,6 @@ void MortarContact2DCondition::CalculateDAndM(
     VectorType& gn
     )
 {
-    const unsigned int dimension = 2;
     const unsigned int num_slave_nodes  = GetGeometry().PointsNumber( );
     const unsigned int num_master_nodes = rVariables.GetMasterElement( ).PointsNumber( );
 
@@ -777,28 +822,171 @@ void MortarContact2DCondition::CalculateDAndM(
     const Vector& Phi = rVariables.Phi_LagrangeMultipliers;
     const double& gap = rVariables.IntegrationPointNormalGap;
     const double& J_s = rVariables.DetJSlave;
+    const double& SegProp = rVariables.SegmentProportion;
     
     MatrixType& D  = ThisMortarConditionMatrices.D;
     MatrixType& M  = ThisMortarConditionMatrices.M;
 
-    // For all the nodes
-    for ( unsigned int i_slave = 0; i_slave < num_slave_nodes; ++i_slave )
-    {
-        gn[i_slave] += rIntegrationWeight * Phi( i_slave ) * gap * J_s;
-        
-        const unsigned int i = i_slave * dimension;
-        
-        D( i    , i     ) += rIntegrationWeight * Phi( i_slave ) * N_s( i_slave ) * J_s;
-        D( i + 1, i + 1 )  = D( i, i ); // NOTE: We can avoid this, because we are storing twice the same value
-         
-        for ( unsigned int jNode = 0; jNode < num_master_nodes; ++jNode )
-        {
-            const unsigned int j = jNode * dimension;
-            M( i    , j     ) += rIntegrationWeight * Phi( i_slave ) * N_m( jNode ) * J_s;
-            M( i + 1, j + 1 )  = M( i, j ); // NOTE: We can avoid this, because we are storing twice the same value
-        }
-    }
+    ComputeDandMIntegral(num_slave_nodes, num_master_nodes, D, M, gn, rIntegrationWeight, Phi, gap, N_s, N_m, J_s, SegProp);
 }
+
+// /***********************************************************************************/
+// /***********************************************************************************/
+// 
+// void MortarContact2DCondition::CalculateDeltaJSlave(
+//     GeneralVariables& rVariables,
+//     const double& rIntegrationWeight,
+//     MortarConditionMatrices& ThisMortarConditionMatrices
+//     )
+// {
+//     // prerequisites
+//     const unsigned int dimension = 2;
+//     const unsigned int num_slave_nodes  = GetGeometry( ).PointsNumber( );
+// 
+//     const double& J_s         = rVariables.DetJSlave;
+//     const MatrixType& DN_De_s = rVariables.DN_De_Slave;
+//     const MatrixType& J_gp    = rVariables.j_Slave;
+// 
+//     MatrixType& DeltaJ_s = ThisMortarConditionMatrices.DeltaJSlave; //NOTE: Should be a double
+// 
+//     // Fill up the elements corresponding to the slave DOFs - the rest remains zero
+//     unsigned int i = 0;
+//     for ( unsigned int iSlave = 0; iSlave < num_slave_nodes; ++iSlave )
+//     {
+//         if (GetGeometry()[iSlave].Is(ACTIVE) == true)
+//         {
+//             i = iSlave * dimension;
+//             DeltaJ_s( iSlave, i )     = J_gp( 0, 0 ) * ( 1 / J_s ) * DN_De_s( iSlave, 0 );
+//             DeltaJ_s( iSlave, i + 1 ) = J_gp( 1, 0 ) * ( 1 / J_s ) * DN_De_s( iSlave, 0 );
+//         }
+//     }
+// }
+// 
+// /***********************************************************************************/
+// /***********************************************************************************/
+// 
+// void MortarContact2DCondition::CalculateDeltaPhi( 
+//     GeneralVariables& rVariables,
+//     const double& rIntegrationWeight,
+//     MortarConditionMatrices& ThisMortarConditionMatrices
+//     )
+// {
+//     const unsigned int dimension = 2;
+//     const unsigned int num_slave_nodes  = GetGeometry( ).PointsNumber( );
+// 
+//     const Vector& N_s     = rVariables.N_Slave;
+//     const double& J_s     = rVariables.DetJSlave;
+//     const double& SegProp = rVariables.SegmentProportion;
+// 
+//     MatrixType& D = ThisMortarConditionMatrices.D;
+//     MatrixType& M = ThisMortarConditionMatrices.M;
+// 
+//     MatrixType& DeltaD   = ThisMortarConditionMatrices.DeltaD;
+//     MatrixType& DeltaM   = ThisMortarConditionMatrices.DeltaM;
+//     MatrixType& DeltaPhi = ThisMortarConditionMatrices.DeltaPhiLagrangeMultipliers;
+// 
+//     /*
+//      * Invert M matrix - this is a modified version of Mortar's M matrix
+//      * refer to Popp's thesis eq. 4.57
+//      */
+//     // First calculate the modified M in reduced size to make the inversion explicit
+//     Matrix M_reduced = Matrix( num_slave_nodes, num_slave_nodes );
+//     Matrix Minv_reduced = Matrix( num_slave_nodes, num_slave_nodes );
+//     for ( unsigned int i = 0; i < num_slave_nodes; i++ )
+//     {
+//         for ( unsigned int j = 0; j < num_slave_nodes; j++ )
+//         {
+//             M_reduced( i, j ) = rIntegrationWeight * N_s( i ) * N_s( j ) * J_s * SegProp;
+//         }
+//     }
+// 
+//     double det_M_reduced = MathUtils<double>::Det( M_reduced );
+//     MathUtils<double>::InvertMatrix( M_reduced, Minv_reduced, det_M_reduced );
+// 
+//     // Then fill up the blocks again to maintain sizes consistency
+//     MatrixType Minv = ZeroMatrix( M.size1( ), M.size2( ) );
+//     unsigned int i = 0, j = 0;
+//     for ( unsigned int iBlock = 0; iBlock < num_slave_nodes; iBlock++ )
+//     {
+//         for ( unsigned int jBlock = 0; jBlock < num_slave_nodes; jBlock++ )
+//         {
+//             i = iBlock * dimension;
+//             j = jBlock * dimension;
+//             Minv( i    , j     ) = Minv_reduced( iBlock, jBlock );
+//             Minv( i + 1, j + 1 ) = Minv( i, j );
+//         }
+//     }
+// 
+//     // Calculate matrix A = D * Minv
+//     MatrixType A = ZeroMatrix( num_slave_nodes * dimension, num_slave_nodes * dimension );
+// 
+//     for ( unsigned int i = 0; i < num_slave_nodes; i += dimension )
+//     {
+//         for ( unsigned int j = 0; j < num_slave_nodes; j += dimension )
+//         {
+//             A( i    , j     ) = D( i, i ) * Minv ( i, j );
+//             A( i + 1, j + 1 ) = A( i, j );
+//         }
+//     }
+// 
+//     // Finally calculate DeltaPhi
+//     DeltaPhi = prod( ( DeltaD + prod( A, DeltaM ) ), Minv );
+//     for ( unsigned int i = 0; i < num_slave_nodes; i++ )
+//     {
+//         Matrix DeltaPhi_i = subrange( DeltaPhi, i, i + dimension, 0, num_slave_nodes * dimension );
+//         DeltaPhi_i *= N_s( i );
+//     }
+// }
+// 
+// /***********************************************************************************/
+// /***********************************************************************************/
+// 
+// void MortarContact2DCondition::CalculateDeltaNodalNormal( const IndexType& rPointNumber )
+// {
+//         // TODO Add content
+// }
+//
+// /***********************************************************************************/
+// /***********************************************************************************/
+// 
+// void MortarContact2DCondition::CalculateDeltaDiscreteGap( const IndexType& rPointNumber )
+// {
+//         // TODO Add content
+// }
+// 
+// /***********************************************************************************/
+// /***********************************************************************************/
+// 
+// void MortarContact2DCondition::CalculateDeltaDAndDeltaM( 
+//     GeneralVariables& rVariables,
+//     const double& rIntegrationWeight,
+//     MortarConditionMatrices& ThisMortarConditionMatrices,
+//     VectorType& Deltagn
+//     )
+// {
+//     const unsigned int dimension = 2;
+//     const unsigned int num_slave_nodes  = GetGeometry( ).PointsNumber( );
+//     const unsigned int num_master_nodes = rVariables.GetMasterElement( ).PointsNumber( );
+// 
+//     const Vector& N_s     = rVariables.N_Slave;
+//     const Vector& N_m     = rVariables.N_Master;
+//     const Vector& Phi     = rVariables.Phi_LagrangeMultipliers;
+//     const double& gap     = rVariables.IntegrationPointNormalGap;
+//     const double& J_s     = rVariables.DetJSlave;
+//     const double& SegProp = rVariables.SegmentProportion;
+// 
+//     MatrixType& DeltaD   = ThisMortarConditionMatrices.DeltaD;
+//     MatrixType& DeltaM   = ThisMortarConditionMatrices.DeltaM;
+//     
+//     MatrixType& DeltaPhi = ThisMortarConditionMatrices.DeltaPhiLagrangeMultipliers;
+//     MatrixType& DeltaJ_s = ThisMortarConditionMatrices.DeltaJSlave;
+//     
+//     ComputeDandMIntegral(num_slave_nodes, num_master_nodes, DeltaD, DeltaM, Deltagn, rIntegrationWeight, DeltaPhi, gap, N_s, N_m, J_s, SegProp);
+// //     ComputeDandMIntegral(num_slave_nodes, num_master_nodes, DeltaD, DeltaM, Deltagn, rIntegrationWeight, Phi, Deltagap, N_s, N_m, J_s, SegProp);
+//     ComputeDandMIntegral(num_slave_nodes, num_master_nodes, DeltaD, DeltaM, Deltagn, rIntegrationWeight, Phi, gap, N_s, N_m, DeltaJ_s, SegProp);
+// //     ComputeDandMIntegral(num_slave_nodes, num_master_nodes, DeltaD, DeltaM, Deltagn, rIntegrationWeight, Phi, gap, N_s, N_m, J_s, DeltaSegProp);
+//     
+// }
 
 /***********************************************************************************/
 /***********************************************************************************/
