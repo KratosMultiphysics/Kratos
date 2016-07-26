@@ -206,10 +206,9 @@ namespace Kratos
     //*********************************************************************
 
     //Free output memory
-    if(rMeshingVariables.Options.Is(ModelerUtilities::REMESH)){
-      DeleteTetrahedraList(tr);
+    if(rMeshingVariables.Options.Is(ModelerUtilities::REMESH))
       DeleteContainer(rMeshingVariables.OutMesh,out);
-    }
+    
     
     this->EndEcho(rModelPart,"PFEM Base Remesh",MeshId);
 
