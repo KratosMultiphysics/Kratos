@@ -79,14 +79,9 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    //delete tetrahedra other structures
-    DeleteTetrahedraList(tr);
-    ClearTetrahedraList(tr);
-
     //delete modeler container
     rMesh.Finalize();
     
-
     KRATOS_CATCH( "" )
   }
 
@@ -119,7 +114,7 @@ namespace Kratos
       rMeshingVariables.InputInitializedFlag = true;
     }
     
-    ClearTetrahedraList(in);
+    ClearTetgenIO(in);
     //input mesh: NODES
     in.firstnumber    = 1;
     in.mesh_dim       = 3;
@@ -157,7 +152,7 @@ namespace Kratos
     //Creating the containers for the input and output
     tetgenio in;
     tetgenio out;
-    ClearTetrahedraList(out);
+    ClearTetgenIO(out);
 
     BuildInput(rModelPart,rMeshingVariables,in,MeshId);    
 
@@ -211,9 +206,10 @@ namespace Kratos
     //*********************************************************************
 
     //Free output memory
-    if(rMeshingVariables.Options.Is(ModelerUtilities::REMESH))
+    if(rMeshingVariables.Options.Is(ModelerUtilities::REMESH)){
+      DeleteTetrahedraList(tr);
       DeleteContainer(rMeshingVariables.OutMesh,out);
-
+    }
     
     this->EndEcho(rModelPart,"PFEM Base Remesh",MeshId);
 
@@ -421,7 +417,7 @@ namespace Kratos
       ////////////////////////////////////////////////////////////
 
       //free the memory used in the first step, free out
-      ClearTetrahedraList(out);
+      ClearTetgenIO(out);
 
       ////////////////////////////////////////////////////////////
       rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::REFINE);
@@ -544,7 +540,7 @@ namespace Kratos
 
     //read and regenerate the existing mesh ... to generate the boundaries
     tetgenio mid;
-    ClearTetrahedraList(mid);
+    ClearTetgenIO(mid);
 
     rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::BOUNDARIES_SEARCH);
 
@@ -600,12 +596,12 @@ namespace Kratos
     //free the memory used in the intermediate step
     //DeleteTetrahedraList(mid);
     //DeletePointsList(mid);
-    ClearTetrahedraList(mid);
+    ClearTetgenIO(mid);
     delete [] mid.tetrahedronlist;
 
     //free the rest of the memory
     //DeleteTetrahedraList(out);
-    ClearTetrahedraList(out);
+    ClearTetgenIO(out);
 	
     this->EndEcho(rModelPart,"Tetgen PFEM CDT Mesher",MeshId);
 
@@ -713,7 +709,7 @@ namespace Kratos
     ////////////////////////////////////////////////////////////
     
     //free the memory used in the first step, free out
-    ClearTetrahedraList(out);
+    ClearTetgenIO(out);
 
     ////////////////////////////////////////////////////////////
     rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::REFINE);
@@ -868,7 +864,7 @@ namespace Kratos
     
 
     //free the memory used in the first step, free out
-    ClearTetrahedraList(out);
+    ClearTetgenIO(out);
 
     ////////////////////////////////////////////////////////////
     //to generate it constrained it is necessary to change the strategy:
@@ -1214,7 +1210,7 @@ namespace Kratos
     tetgenio vorout;
 
     //initilize all to avoid memory problems
-    ClearTetrahedraList(vorout);
+    ClearTetgenIO(vorout);
 
     //mesh options
     char  meshing_options[255];
@@ -1377,7 +1373,7 @@ namespace Kratos
     tetgenio vorout;
 
     //initilize all to avoid memory problems
-    ClearTetrahedraList(vorout);
+    ClearTetgenIO(vorout);
 
     if( this->GetEchoLevel() > 0 )
       std::cout<<" [ REMESH: (in POINTS "<<in.numberofpoints<<") "<<std::endl;
@@ -2526,7 +2522,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  void TetrahedralMesh3DModeler::ClearTetrahedraList(tetgenio& tr)
+  void TetrahedralMesh3DModeler::ClearTetgenIO(tetgenio& tr)
   {
     KRATOS_TRY
     
