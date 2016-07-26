@@ -191,12 +191,7 @@ class MechanicalSolver(object):
                 time = time + delta_time
                 #delta_time is computed from previous time in process_info
                 self.main_model_part.CloneTimeStep(time)
-                
-                if (self.settings["echo_level"].GetInt() > 0):
-                    print("DOMAIN_SIZE", self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
-                    print("DELTA_TIME", self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME])
-                    print("TIME", self.main_model_part.ProcessInfo[KratosMultiphysics.TIME])
-                    print("STEP", self.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
+
 
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
             
