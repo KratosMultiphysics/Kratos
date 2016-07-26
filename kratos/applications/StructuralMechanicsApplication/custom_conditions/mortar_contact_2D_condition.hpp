@@ -95,6 +95,7 @@ protected:
 
         // Determinant of slave cell's jacobian
         double DetJSlave;
+        double SegmentProportion;
 
         /*
         * Jacobians in current configuration on all integration points of slave segment
@@ -142,6 +143,7 @@ protected:
 
             // Jacobian of slave
             DetJSlave = 0.0;
+            SegmentProportion = 0.0;
 
             // Jacobians on all integration points
             j_Slave.resize( rNumberOfSlaveNodes, 1, false );
@@ -238,6 +240,13 @@ protected:
         Matrix D;
         Matrix M;
 
+        // Directional derivatives
+        Matrix DeltaD;
+        Matrix DeltaM;
+        Matrix DeltaJSlave;
+        Matrix DeltaPhiLagrangeMultipliers;
+        Matrix DeltaDiscreteGap;
+                
        /*
         * Struct Methods
         */
@@ -252,24 +261,61 @@ protected:
         {
             const unsigned int size1 = rDimension * rNumberOfSlaveNodes;
             const unsigned int size2 = rDimension * rNumberOfMasterNodes;
-
-            if ( D.size1() != size1 )
+                                
+            if ( D.size1() != size1 || D.size2() != size1)
             {
                 D.resize( size1, size1, false );
             }
-            D = ZeroMatrix( size1, size1 );
+            noalias(D) = ZeroMatrix( size1, size1 );
             
-            if ( M.size1() != size1 )
+            if ( M.size1() != size1 || M.size2() != size2)
             {
                 M.resize( size1, size2, false );
             }
-            M = ZeroMatrix( size1, size2 );
+            noalias(M) = ZeroMatrix( size1, size2 );
+            
+            if ( DeltaD.size1() != size1 || DeltaD.size2() != size1)
+            {
+                DeltaD.resize( size1, size1, false );
+            }
+            noalias(DeltaD) = ZeroMatrix( size1, size1 );
+            
+            if ( DeltaM.size1() != size1 ||  DeltaM.size2() != size2)
+            {
+                DeltaM.resize( size1, size2, false );
+            }
+            noalias(DeltaM) = ZeroMatrix( size1, size2 );
+            
+            if ( DeltaJSlave.size1() != rNumberOfSlaveNodes || DeltaJSlave.size2() != size1)
+            {
+                DeltaJSlave.resize( rNumberOfSlaveNodes, size1, false );
+            }
+            noalias(DeltaJSlave) = ZeroMatrix( rNumberOfSlaveNodes, size1 );
+            
+            if ( DeltaPhiLagrangeMultipliers.size1() != rNumberOfSlaveNodes || DeltaPhiLagrangeMultipliers.size2() != size1)
+            {
+                DeltaPhiLagrangeMultipliers.resize( rNumberOfSlaveNodes, size1, false );
+            }
+            DeltaPhiLagrangeMultipliers = ZeroMatrix( rNumberOfSlaveNodes,  size1 );
+            
+            if ( DeltaDiscreteGap.size1() != rNumberOfSlaveNodes ||  DeltaDiscreteGap.size2() != (size1 + size2))
+            {
+                DeltaDiscreteGap.resize( rNumberOfSlaveNodes, size1 + size2, false );
+            }
+            DeltaDiscreteGap = ZeroMatrix( rNumberOfSlaveNodes, size1 + size2 );
         }
         
         void print()
         {
             KRATOS_WATCH(D);
             KRATOS_WATCH(M);
+            
+            KRATOS_WATCH(DeltaD);
+            KRATOS_WATCH(DeltaM);
+                        
+            KRATOS_WATCH(DeltaJSlave);
+            KRATOS_WATCH(DeltaPhiLagrangeMultipliers);
+            KRATOS_WATCH(DeltaDiscreteGap);
         }
     };
     
@@ -505,22 +551,22 @@ public:
         );
 
     /**
-    * Initialize General Variables
-    */
+     * Initialize General Variables
+     */
     virtual void InitializeGeneralVariables( 
         GeneralVariables& rVariables,
         const unsigned int& rMasterElementIndex 
         );
                   
     /**
-    * This function loops over all conditions and calculates the overall number of DOFs
-    * total_dofs = SUM( master_u_dofs + 2 * slave_u_dofs) 
-    */
+     * This function loops over all conditions and calculates the overall number of DOFs
+     * total_dofs = SUM( master_u_dofs + 2 * slave_u_dofs) 
+     */
     const unsigned int CalculateConditionSize( );
 
     /**
-    * Calculate condition kinematics
-    */
+     * Calculate condition kinematics
+     */
     void CalculateKinematics( 
         GeneralVariables& rVariables,
         const double& rPointNumber,
@@ -533,10 +579,29 @@ public:
     /********************************************************************************/
 
     /*
-    * Calculate mortar matrices
-    * @param 
-    * 
-    */
+     * Does the integral of the gn vector, D and M matrices
+     * @param 
+     */ 
+    void ComputeDandMIntegral(
+        const unsigned int num_slave_nodes,
+        const unsigned int num_master_nodes,
+        MatrixType& D,
+        MatrixType& M,
+        VectorType& gn,
+        const double& rIntegrationWeight,
+        const Vector& Phi,
+        const double& gap,
+        const Vector& N_s,
+        const Vector& N_m,
+        const double& J_s,
+        const double& SegProp
+        );
+    
+    /*
+     * Calculate mortar matrices
+     * @param 
+     * 
+     */
     void CalculateDAndM( 
         GeneralVariables& rVariables,
         const double& rIntegrationWeight,
@@ -544,9 +609,46 @@ public:
         VectorType& gn
         );
 
+//     /*
+//      * Calculate mortar matrices directional derivatives
+//      */
+//     void CalculateDeltaDAndDeltaM( 
+//         GeneralVariables& rVariables,
+//         const double& rIntegrationWeight,
+//         MortarConditionMatrices& ThisMortarConditionMatrices
+//         );
+//     
+//     /*
+//      * Calculate slave element's Jacobian directional derivative
+//      */
+//     void CalculateDeltaJSlave(
+//         GeneralVariables& rVariables,
+//         const double& rIntegrationWeight,
+//         MortarConditionMatrices& ThisMortarConditionMatrices
+//         );
+//     
+//     /*
+//      * Calculate Lagrange multiplier shape functions directional derivative
+//      */
+//     void CalculateDeltaPhi( 
+//         GeneralVariables& rVariables,
+//        const double& rIntegrationWeight,
+//         MortarConditionMatrices& ThisMortarConditionMatrices
+//         );
+//     
+//     /*
+//      * Calculate normal directional derivative
+//      */
+//     void CalculateDeltaNodalNormal( const IndexType& rPointNumber );
+//    
+//     /*
+//      * Calculate discrete gap directional derivative
+//      */
+//     void CalculateDeltaDiscreteGap( const IndexType& rPointNumber );
+
     /*
-    * Calculation and addition of the matrices of the LHS of a contact pair
-    */
+     * Calculation and addition of the matrices of the LHS of a contact pair
+     */
     virtual void CalculateAndAddLHS( 
         LocalSystemComponents& rLocalSystem,
         GeneralVariables& rVariables,
@@ -554,8 +656,8 @@ public:
         );
 
     /*
-    * Assmbles the contact pair LHS block into the condition's LHS
-    */
+     * Assmbles the contact pair LHS block into the condition's LHS
+     */
     void AssembleContactPairLHSToConditionSystem( 
         const unsigned int rPairIndex,
         MatrixType& rPairLHS,
@@ -563,8 +665,8 @@ public:
         );
 
     /*
-    * Calculation and addition fo the vectors of the RHS of a contact pair
-    */
+     * Calculation and addition fo the vectors of the RHS of a contact pair
+     */
     virtual void CalculateAndAddRHS( 
         LocalSystemComponents& rLocalSystem,
         GeneralVariables& rVariables,
@@ -573,8 +675,8 @@ public:
         );
     
     /*
-    * Assembles the contact pair RHS block into the condition's RHS
-    */
+     * Assembles the contact pair RHS block into the condition's RHS
+     */
     void AssembleContactPairRHSToConditionSystem( 
         const unsigned int rPairIndex,
         VectorType& rPairRHS,
@@ -586,8 +688,8 @@ public:
     /***********************************************************************************/
 
     /*
-    * Calculates the values of the shape functions for the master element
-    */
+     * Calculates the values of the shape functions for the master element
+     */
     void MasterShapeFunctionValue(
         GeneralVariables& rVariables,
         const PointType& rSlaveIntegrationPoint,
@@ -595,8 +697,8 @@ public:
     );
     
     /*
-    * Calculates B_co = [ -M, D ], where D and M are the mortar condition matrices
-    */
+     * Calculates B_co = [ -M, D ], where D and M are the mortar condition matrices
+     */
     void CalculateAndAddMortarContactOperator( 
         MatrixType& rLeftHandSideMatrix,
         GeneralVariables& rVariables,
@@ -604,8 +706,8 @@ public:
     );
         
     /*
-    * Calculates r_co = [ M * lambda, - D  * lambda], where D and M are the mortar condition matrices and lambda the lagrange multiplier in the step n
-    */
+     * Calculates r_co = [ M * lambda, - D  * lambda], where D and M are the mortar condition matrices and lambda the lagrange multiplier in the step n
+     */
     void CalculateAndAddMortarContactOperator( 
         VectorType& rRightHandSideVector,
         GeneralVariables& rVariables,
