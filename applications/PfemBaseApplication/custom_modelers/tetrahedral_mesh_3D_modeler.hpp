@@ -255,11 +255,11 @@ protected:
 			      tetgenio& out);
 
     //Free memory of the mesher
-    void ClearTetrahedraList  ( tetgenio& tr );
+    void ClearTetgenIO ( tetgenio& tr );
   
     void DeleteTetrahedraList ( tetgenio& tr );
 
-    void DeletePointsList     ( tetgenio& tr );
+    void DeletePointsList ( tetgenio& tr );
 
     ///@}
     ///@name Protected  Access
