@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
+import KratosMultiphysics.ContactMechanicsApplication as KratosContact
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -27,26 +28,27 @@ class ContactDomain(mesh_modeler.MeshingDomain):
         default_settings = KratosMultiphysics.Parameters("""
         {
 	    "python_file_name": "contact_domain",
-            "domain_size": 2,
-            "echo_level": 1,
+            "sub_model_part_name": "sub_model_part_name",
             "alpha_shape": 1.4,
             "offset_factor": 0.0,
             "meshing_strategy":{
                "python_file_name": "contact_meshing_strategy",
                "meshing_frequency": 0,
                "remesh": true,
-               "constrained": false
-            },
-            "contact_parameters":{
-               "contact_condition_type": "ContactDomainLM2DCondition",
-               "friction_active": false,
-               "friction_law_type": "MorhCoulomb",
-               "variables_of_properties":{
-                  "MU_STATIC": 0.3,
-                  "MU_DYNAMIC": 0.2,
-                  "PENALTY_PARAMETER": 1000,
-                  "TAU_STAB": 1
-                }
+               "constrained": false,
+               "contact_parameters":{
+                   "contact_condition_type": "ContactDomainLM2DCondition",
+                   "friction_law_type": "FrictionLaw",
+                   "implemented_in_module": "KratosMultiphysics.ContactMechanicsApplication",
+                   "variables_of_properties":{
+                       "FRICTION_ACTIVE": false,
+                       "MU_STATIC": 0.3,
+                       "MU_DYNAMIC": 0.2,
+                       "PENALTY_PARAMETER": 1000,
+                       "TANGENTIAL_PENALTY_RATIO": 0.1,
+                       "TAU_STAB": 1
+                   }
+               }
             },
             "elemental_variables_to_transfer":[ "CAUCHY_STRESS_VECTOR", "DEFORMATION_GRADIENT" ]
         }
@@ -69,7 +71,7 @@ class ContactDomain(mesh_modeler.MeshingDomain):
 
         print("::[Mesh Contact Domain]:: -START-")
         
-        self.domain_size = self.settings["domain_size"].GetInt()
+        self.domain_size = self.model_part.ProcessInfo[DOMAIN_SIZE]
         self.mesh_id     = 0
 
         # Set MeshingParameters
@@ -97,16 +99,6 @@ class ContactDomain(mesh_modeler.MeshingDomain):
               
         # Create MeshingParameters
         mesh_modeler.MeshingDomain.SetMeshingParameters(self)
-
-        properties = KratosMultiphysics.Properties()
-        
-        contact_variables = self.settings["contact_parameters"]["variables_of_properties"]
-
-        #iterators of a json list are not working right now :: must be done by hand:
-        properties.SetValue(KratosMultiphysics.KratosGlobals.GetVariable("MU_STATIC"), contact_variables["MU_STATIC"])
-        properties.SetValue(KratosMultiphysics.KratosGlobals.GetVariable("MU_DYNAMIC"), contact_variables["MU_DYNAMIC"])
-        properties.SetValue(KratosMultiphysics.KratosGlobals.GetVariable("PENALTY_PARAMETER"), contact_variables["PENALTY_PARAMETER"])
-        properties.SetValue(KratosMultiphysics.KratosGlobals.GetVariable("TAU_STAB"), contact_variables["TAU_STAB"])
 
 
     def ExecuteMeshing(self):

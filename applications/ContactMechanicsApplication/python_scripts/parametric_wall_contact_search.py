@@ -24,13 +24,16 @@ class ContactSearch(object):
              "search_control_type": "step",
              "search_frequency": 0,
              "contact_parameters":{
-                 "contact_condition_type": "PointContactCondition2D1N",
-                 "friction_active": false,
-                 "friction_law_type": "MorhCoulomb",
-                 "variables_of_properties":{
-                      "MU_STATIC": 0.3,
-                      "MU_DYNAMIC": 0.2,
-                      "PENALTY_PARAMETER": 1000
+                  "contact_condition_type": "PointContactCondition2D1N",
+                   "friction_law_type": "FrictionLaw",
+                   "implemented_in_module": "KratosMultiphysics.ContactMechanisApplication",
+                   "variables_of_properties":{
+                     "FRICTION_ACTIVE": false,
+                     "MU_STATIC": 0.3,
+                     "MU_DYNAMIC": 0.2,
+                     "PENALTY_PARAMETER": 1000,
+                     "TANGENTIAL_PENALTY_RATIO": 0.1,
+                     "TAU_STAB": 1
                    }
              }
         }

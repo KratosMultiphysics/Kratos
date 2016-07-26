@@ -32,6 +32,7 @@
 // #include "custom_conditions/beam_point_rigid_contact_LM_3D_condition.hpp"
 // #include "custom_conditions/rigid_body_point_rigid_contact_condition.hpp"
 
+//#include "custom_conditions/custom_friction_laws/friction_law.hpp"
 
 #include "contact_mechanics_application_variables.h"
 
@@ -66,6 +67,7 @@ namespace Kratos
     typedef ConditionType::GeometryType       GeometryType;
     typedef Point2D<ModelPart::NodeType>       Point2DType;
     typedef Point3D<ModelPart::NodeType>       Point3DType;
+    //typedef FrictionLaw::pointer           FrictionLawType;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -87,14 +89,17 @@ namespace Kratos
 	   
       Parameters DefaultParameters( R"(
             {
-               "contact_condition_type": "PointContactCondition2D1N",
-               "friction_active": false,
-               "friction_law_type": "MorhCoulomb",
-               "variables_of_properties":{
-                    "MU_STATIC": 0.3,
-                    "MU_DYNAMIC": 0.2,
-                    "PENALTY_PARAMETER": 1000
-               }
+                   "contact_condition_type": "PointContactCondition2D1N",
+                   "friction_law_type": "FrictionLaw",
+                   "implemented_in_module": "KratosMultiphysics.ContactMechanicsApplication",
+                   "variables_of_properties":{
+                     "FRICTION_ACTIVE": false,
+                     "MU_STATIC": 0.3,
+                     "MU_DYNAMIC": 0.2,
+                     "PENALTY_PARAMETER": 1000,
+                     "TANGENTIAL_PENALTY_RATIO": 0.1,
+                     "TAU_STAB": 1
+                   }
 
             }  )" );
 	   
@@ -107,9 +112,18 @@ namespace Kratos
       
       mpProperties = PropertiesType::Pointer(new PropertiesType(NumberOfProperties));
 
-      mpProperties->SetValue(MU_STATIC, CustomParameters["MU_STATIC"].GetDouble());
-      mpProperties->SetValue(MU_DYNAMIC, CustomParameters["MU_DYNAMIC"].GetDouble());
-      mpProperties->SetValue(PENALTY_PARAMETER, CustomParameters["PENALTY_PARAMETER"].GetDouble());
+      // std::string FrictionLawName = CustomParameters["friction_law_type"].GetString();
+      // FrictionLawType const& rCloneFrictionLaw = KratosComponents<FrictionLawType>::Get(FrictionLawName);
+      // mpProperties->SetValue(FRICTION_LAW, rCloneFrictionLaw.Clone() );
+      
+      Parameters CustomProperties = CustomParamters["variables_of_properties"];
+
+      mpProperties->SetValue(FRICTION_ACTIVE, CustomProperties["FRICTION_ACTIVE"].GetBool());
+      mpProperties->SetValue(MU_STATIC, CustomProperties["MU_STATIC"].GetDouble());
+      mpProperties->SetValue(MU_DYNAMIC, CustomProperties["MU_DYNAMIC"].GetDouble());
+      mpProperties->SetValue(PENALTY_PARAMETER, CustomProperties["PENALTY_PARAMETER"].GetDouble());
+      mpProperties->SetValue(TANGENTIAL_PENALTY_RATIO, CustomProperties["TANGENTIAL_PENALTY_RATIO"].GetDouble());
+      mpProperties->SetValue(TAU_STAB, CustomProperties["TAU_STAB"].GetDouble());
 
       mrModelPart.AddProperties(mpProperties);
 

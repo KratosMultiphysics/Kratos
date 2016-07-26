@@ -16,18 +16,16 @@ class ParametricWall(object):
     ##
     ##real construction shall be delayed to the function "Initialize" which 
     ##will be called once the modeler is already filled
-    def __init__(self, Model, main_model_part, custom_settings):
+    def __init__(self, Model, model_part, custom_settings):
         
-        self.main_model_part = main_model_part    
+        self.model_part = model_part    
         
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
             "python_file_name": "parametric_wall",
-            "mesh_id": 1,
-            "model_part_name" : "Wall Domain",
-            "domain_size": 2,
-            "echo_level": 1,
+            "mesh_id": 0,
+            "sub_model_part_name" : "Wall Domain",
             "rigid_body_settings":{
                "rigid_body_element_type": "TranslatoryRigidElement3D1N",
                "fixed_body": true,
@@ -44,20 +42,23 @@ class ParametricWall(object):
                "bounding_box_type": "SpatialBoundingBox",
                "bounding_box_parameters":{
                    "parameters_list":[],
-                   "velocity" = [0.0, 0.0, 0.0]
+                   "velocity" : [0.0, 0.0, 0.0]
                }
-            }
+            },
             "contact_search_settings":{
                "python_file_name": "parametric_wall_contact_search",
                "search_frequency": 0,            
                "contact_parameters":{
                    "contact_condition_type": "PointContactCondition2D1N",
-                   "friction_active": false,
-                   "friction_law_type": "MorhCoulomb",
+                   "friction_law_type": "FrictionLaw",
+                   "implemented_in_module": "KratosMultiphysics.ContactMechanicsApplication",
                    "variables_of_properties":{
-                      "MU_STATIC": 0.3,
-                      "MU_DYNAMIC": 0.2,
-                      "PENALTY_PARAMETER": 1000
+                     "FRICTION_ACTIVE": false,
+                     "MU_STATIC": 0.3,
+                     "MU_DYNAMIC": 0.2,
+                     "PENALTY_PARAMETER": 1000,
+                     "TANGENTIAL_PENALTY_RATIO": 0.1,
+                     "TAU_STAB": 1
                    }
                }
             }
@@ -75,7 +76,7 @@ class ParametricWall(object):
         self.settings.ValidateAndAssignDefaults(default_settings)
                 
         #construct rigid wall // it will contain the array of nodes, array of elements, and the array of conditions
-        self.wall_model_part = Model[self.settings["model_part_name"].GetString()]
+        self.wall_model_part = Model[self.settings["sub_model_part_name"].GetString()]
 
         module = __import__(self.settings["bounding_box_settings"]["implemented_in_module"].GetString())      
         box_module    = self.settings["bounding_box_settings"]["implemented_in_module"].GetString()
@@ -87,13 +88,13 @@ class ParametricWall(object):
         
         self.wall_bounding_box = BoundingBox(self.wall_bounding_box, self.settings["bounding_box_settings"]["bounding_box_parameters"])
 
-        #construct rigid element // must pass an array of nodes to the element, create a node (CG) and a rigid element set them in the main_model_part, set the node CG as the reference node of the wall_bounding_box, BLOCKED, set in the wall_model_part for imposed movements processes.
+        #construct rigid element // must pass an array of nodes to the element, create a node (CG) and a rigid element set them in the model_part, set the node CG as the reference node of the wall_bounding_box, BLOCKED, set in the wall_model_part for imposed movements processes.
         creation_utility = KratosContact.RigidBodyCreationUtilities()
-        creation_utility.CreateRigidBodyElement(self.main_model_part, self.wall_bounding_box, self.settings["rigid_body_settings"])
+        creation_utility.CreateRigidBodyElement(self.model_part, self.wall_bounding_box, self.settings["rigid_body_settings"])
 
         #construct the search strategy
         search_module = __import__(self.settings["contact_search_strategy"]["python_file_name"].GetString())
-        self.SearchStrategy = search_module.CreateContactSearch(self.main_model_part, self.wall_bounding_box, self.settings["contact_search_settings"])
+        self.SearchStrategy = search_module.CreateContactSearch(self.model_part, self.wall_bounding_box, self.settings["contact_search_settings"])
 
         print("Construction of Parametric Wall finished")
         
@@ -104,17 +105,17 @@ class ParametricWall(object):
 
         print("::[Parametric_Wall]:: -START-")
         
-        self.domain_size = self.settings["domain_size"].GetInt()
+        self.domain_size = self.model_part.ProcessInfo[DOMAIN_SIZE]
         self.mesh_id     = self.settings["mesh_id"].GetInt()
 
         # Meshing Stratety
         self.SearchStrategy.Initialize()   #in the contact search a contact_mesh or model_part must be created for each parametric wall.
 
         # create next inside the SearchStrategy: c++
-        self.contact_model_part_name =  "contat_"+self.settings["model_part_name"].GetString()
+        self.contact_model_part_name =  "contat_"+self.settings["sub_model_part_name"].GetString()
         #can not be a child of wall_model_part due to process imposed variables
-        self.main_model_part.CreateSubModelPart(self.contact_model_part_name) 
-        self.contact_wall_model_part = self.main_model_part.GetSubModelPart(self.contact_model_part_name)
+        self.model_part.CreateSubModelPart(self.contact_model_part_name) 
+        self.contact_wall_model_part = self.model_part.GetSubModelPart(self.contact_model_part_name)
         
         print("::[Parametric_Wall]:: -END- ")
 

@@ -21,10 +21,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "mesh_id"               : 0,
             "model_part_name"       : "Solid Domain",
-            "echo_level"            : 1,
-            "domain_size"           : 2,
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 1.0,
             "meshing_before_output" : true,
@@ -36,8 +33,8 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
-        self.echo_level        = self.settings["echo_level"].GetInt()
-        self.domain_size       = self.settings["domain_size"].GetInt()
+        self.echo_level        = 1
+        self.domain_size       = self.model_part.ProcessInfo[DOMAIN_SIZE]
         self.meshing_frequency = self.settings["meshing_frequency"].GetDouble()
         
         self.meshing_control_is_time = False

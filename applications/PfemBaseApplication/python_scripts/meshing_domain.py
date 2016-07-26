@@ -6,8 +6,8 @@ import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
-def CreateMeshingDomain(main_model_part, custom_settings):
-    return MeshingDomain(main_model_part, custom_settings)
+def CreateMeshingDomain(model_part, custom_settings):
+    return MeshingDomain(model_part, custom_settings)
 
 class MeshingDomain(object):
     
@@ -16,17 +16,16 @@ class MeshingDomain(object):
     ##
     ##real construction shall be delayed to the function "Initialize" which 
     ##will be called once the modeler is already filled
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, model_part, custom_settings):
         
-        self.main_model_part = main_model_part    
+        self.model_part = model_part    
         
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
 	    "python_file_name": "meshing_domain",
             "mesh_id": 1,
-            "domain_size": 2,
-            "echo_level": 1,
+            "sub_model_part_name": "sub_model_part_name",
             "alpha_shape": 2.4,
             "offset_factor": 0.0,
             "meshing_strategy":{
@@ -97,7 +96,7 @@ class MeshingDomain(object):
         
         #construct the solving strategy
         meshing_module = __import__(self.settings["meshing_strategy"]["python_file_name"].GetString())
-        self.MeshingStrategy = meshing_module.CreateMeshingStrategy(self.main_model_part, self.settings["meshing_strategy"])
+        self.MeshingStrategy = meshing_module.CreateMeshingStrategy(self.model_part, self.settings["meshing_strategy"])
 
         print("Construction of Mesh Modeler finished")
         
@@ -108,7 +107,7 @@ class MeshingDomain(object):
 
         print("::[Mesh Domain]:: -START-")
         
-        self.domain_size = self.settings["domain_size"].GetInt()
+        self.domain_size = self.model_part.ProcessInfo[DOMAIN_SIZE]
         self.mesh_id     = self.settings["mesh_id"].GetInt()
 
         # Set MeshingParameters

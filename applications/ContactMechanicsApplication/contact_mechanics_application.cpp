@@ -34,6 +34,8 @@ void KratosContactMechanicsApplication::Register() {
  	std::cout << "Initializing KratosContactMechanicsApplication... " << std::endl;
 
 
+  KRATOS_REGISTER_VARIABLE( FRICTION_LAW )
+
   KRATOS_REGISTER_VARIABLE( NUMBER_OF_ACTIVE_CONTACTS )
   KRATOS_REGISTER_VARIABLE( NUMBER_OF_STICK_CONTACTS )
   KRATOS_REGISTER_VARIABLE( NUMBER_OF_SLIP_CONTACTS )

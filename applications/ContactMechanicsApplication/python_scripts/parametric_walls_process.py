@@ -16,15 +16,12 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
 
         KratosMultiphysics.Process.__init__(self)
         
-        self.model_part = Model[custom_settings["main_model_part_name"].GetString()]
+        self.model_part = Model[custom_settings["model_part_name"].GetString()]
     
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "mesh_id"                 : 0,
             "model_part_name"         : "Solid Domain",        
-            "echo_level"              : 1,
-            "domain_size"             : 2,
             "search_control_type"     : "step",
             "search_frequency"        : 1.0,
             "parametric_walls"        : []
@@ -35,8 +32,8 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
-        self.echo_level        = self.settings["echo_level"].GetInt()
-        self.domain_size       = self.settings["domain_size"].GetInt()
+        self.echo_level        = 1
+        self.domain_size       = self.model_part.ProcessInfo[DOMAIN_SIZE]
         self.search_frequency  = self.settings["search_frequency"].GetDouble()
         
         self.search_control_is_time = False

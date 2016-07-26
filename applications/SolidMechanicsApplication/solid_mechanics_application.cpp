@@ -232,13 +232,6 @@ namespace Kratos
     //nodal dofs
     KRATOS_REGISTER_VARIABLE( PRESSURE_REACTION )  
      
-    //already in kratos core
-    //KRATOS_REGISTER_VARIABLE( CAUCHY_STRESS_TENSOR )
-    //KRATOS_REGISTER_VARIABLE( PK2_STRESS_TENSOR )
-    //KRATOS_REGISTER_VARIABLE( GREEN_LAGRANGE_STRAIN_TENSOR )
-
-
-
     //Register Elements
 
     //Register solids
