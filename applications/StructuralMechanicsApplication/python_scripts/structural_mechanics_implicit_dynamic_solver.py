@@ -36,6 +36,8 @@ class ImplicitStructuralSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
             },
             "echo_level": 0,
             "buffer_size": 2,
+            "solution_type": "Dynamic",
+            "scheme_type": "Newmark",
             "time_integration_method": "Implicit",
             "analysis_type": "Non-Linear",
             "rotation_dofs": false,
@@ -50,8 +52,6 @@ class ImplicitStructuralSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
             "clear_storage": false,
             "component_wise": false,
             "move_mesh_flag": true,
-            "solution_type": "Dynamic",
-            "scheme_type": "Newmark",
             "convergence_criterion": "Residual_criteria",
             "displacement_relative_tolerance": 1.0e-4,
             "displacement_absolute_tolerance": 1.0e-9,
@@ -132,7 +132,7 @@ class ImplicitStructuralSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
             node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X);
             node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y);
             node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z);
-            
+        
         if self.settings["rotation_dofs"].GetBool():
             for node in self.main_model_part.Nodes:
                 node.AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X);
@@ -243,7 +243,7 @@ class ImplicitStructuralSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
                                                                             move_mesh_flag)
                     
                 else:
-                    if  self.settings["compute_mortar_contact"].GetBool():
+                    if self.settings["compute_mortar_contact"].GetBool():
                         split_factor   = self.settings["split_factor"].GetDouble()
                         max_number_splits = self.settings["max_number_splits"].GetInt()
                         self.mechanical_solver = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactStrategy(

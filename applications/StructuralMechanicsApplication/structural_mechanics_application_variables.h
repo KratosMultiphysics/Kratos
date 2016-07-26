@@ -124,6 +124,7 @@ KRATOS_DEFINE_VARIABLE( Element::Pointer, ELEMENT_POINTER )                   //
 KRATOS_DEFINE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                     // The integration order computed in the contact
 KRATOS_DEFINE_VARIABLE( Matrix, MORTAR_CONTACT_OPERATOR )                     // Mortar Contact Operator
 KRATOS_DEFINE_VARIABLE( double, ACTIVE_CHECK_FACTOR )                         // The factor employed to consider an active/inactive node
+KRATOS_DEFINE_VARIABLE( double, CONSTANT_ACT_INACT )                          // The constant that is considered for the check of active or inactive (when 0 it doesn't accept traction)
 KRATOS_DEFINE_VARIABLE( double, WEIGHTED_GAP )                                // The integrated gap employed in mortar formulation
 
 // Adding the SPRISM EAS variables

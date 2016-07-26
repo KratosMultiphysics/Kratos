@@ -898,6 +898,10 @@ public:
 
                     BaseType::GetModelPart().GetProcessInfo()[TIME] = current_time; // Increase the time in the new delta time        
                     BaseType::GetModelPart().CloneTimeStep(current_time);
+                    
+                    // We repeat the predict with the new DELTA_TIME
+                    Predict();
+                    
                     InitiliazeCycle(is_converged, ResidualIsUpdated, iteration_number, pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb);
                     IterationCycle(is_converged, ResidualIsUpdated, iteration_number, pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb); 
                 

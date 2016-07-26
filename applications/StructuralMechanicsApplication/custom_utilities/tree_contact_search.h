@@ -353,7 +353,10 @@ public:
      * This function initializes the mortar conditions already created 
      */
     
-    void InitializeMortarConditions(const double rActiveCheckFactor);
+    void InitializeMortarConditions(
+        const double rActiveCheckFactor,
+        const double rConstantActInact
+        );
 
     /**
      * This function initializes nodes 
@@ -367,7 +370,8 @@ public:
     
     void InitializeConditions(
         ModelPart & rModelPart, 
-        const double rActiveCheckFactor
+        const double rActiveCheckFactor,
+        const double rConstantActInact
         );
 
     /**

@@ -88,12 +88,11 @@ public:
                 {
                     if (Geom2.IsInside(ProjectedPoint, result) == true)
                     {
-//                         // For debug purpose // Look for using echo_level
+//                         // For debug purpose // NOTE: Look for using echo_level
 //                         if (aux_dist < 0.0)
 //                         {
 //                             std::cout << "Penetration in node: " << Geom1[index].Id() << " of " << aux_dist << " m" << std::endl;
-//                         }
-                        
+//                         }    
                         Geom1[index].Set(ACTIVE, true);
                     }
                 }
@@ -151,7 +150,14 @@ public:
         
         array_1d<double,3> vector_points = Geom.Center() - PointDestiny.Coordinates();
 
-        if (std::abs(inner_prod(Vector, Normal) ) > tol)
+        if( norm_2( Vector ) <= tol && norm_2( Normal ) >= tol )
+        {
+            dist = inner_prod(vector_points, Normal)/norm_2(Normal);
+
+            PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * dist;
+            std::cout << " :: Warning: Zero projection vector. Projection using the condition vector instead." << std::endl;
+        }
+        else if (std::abs(inner_prod(Vector, Normal) ) >= tol)
         {
             dist = inner_prod(vector_points, Normal)/inner_prod(Vector, Normal); 
 
@@ -240,13 +246,13 @@ public:
         for (unsigned int index_1 = 0; index_1 < Geom1.PointsNumber(); index_1++)
         {
              double aux_dist = 0.0;
-             if (norm_2(Geom1[index_1].FastGetSolutionStepValue(NORMAL, 0)) < 1.0e-12)
+             if (norm_2(Geom1[index_1].GetValue(NORMAL)) < 1.0e-12)
              {
                  ProjectDirection(Geom2, Geom1[index_1], ProjectedPoint, aux_dist, contact_normal1);
              }
              else
              {
-                 ProjectDirection(Geom2, Geom1[index_1], ProjectedPoint, aux_dist, Geom1[index_1].FastGetSolutionStepValue(NORMAL, 0));
+                 ProjectDirection(Geom2, Geom1[index_1], ProjectedPoint, aux_dist, Geom1[index_1].GetValue(NORMAL));
              }  
 
              array_1d<double, 3> projected_local_coor_1;
@@ -504,7 +510,7 @@ public:
                 
                 if (norm > tol)
                 {
-                    node_it->FastGetSolutionStepValue(NORMAL)  /= norm;
+                    node_it->GetValue(NORMAL)  /= norm;
                 }
             }
         }

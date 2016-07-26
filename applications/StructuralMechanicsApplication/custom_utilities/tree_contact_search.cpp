@@ -101,13 +101,16 @@ void TreeContactSearch::InitializeNTSConditions()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::InitializeMortarConditions(const double rActiveCheckFactor)
+void TreeContactSearch::InitializeMortarConditions(
+    const double rActiveCheckFactor,
+    const double rConstantActInact
+    )
 {
     // Destination model part
-    InitializeConditions(mrDestinationModelPart, rActiveCheckFactor);
+    InitializeConditions(mrDestinationModelPart, rActiveCheckFactor, rConstantActInact);
     
     // Origin model part
-    InitializeConditions(mrOriginModelPart, rActiveCheckFactor);
+    InitializeConditions(mrOriginModelPart, rActiveCheckFactor, rConstantActInact);
 }
 
 /***********************************************************************************/
@@ -123,7 +126,8 @@ void TreeContactSearch::InitializeNodes(ModelPart & rModelPart)
 
 void TreeContactSearch::InitializeConditions(
     ModelPart & rModelPart,
-    const double rActiveCheckFactor
+    const double rActiveCheckFactor,
+    const double rConstantActInact
     )
 {
     ConditionsArrayType& pCond  = rModelPart.Conditions();
@@ -135,6 +139,7 @@ void TreeContactSearch::InitializeConditions(
         cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
 //         cond_it->GetValue(CONTACT_CONTAINERS)->reserve(mallocation); 
         cond_it->GetProperties().SetValue(ACTIVE_CHECK_FACTOR, rActiveCheckFactor);
+        cond_it->GetProperties().SetValue(CONSTANT_ACT_INACT,  rConstantActInact);
     }
 }
 
@@ -482,21 +487,15 @@ void TreeContactSearch::CheckMortarConditions()
         }
     }
     
-    ConditionsArrayType& pCondOrigin = mrOriginModelPart.Conditions();
-    it_begin = pCondOrigin.ptr_begin();
-    it_end   = pCondOrigin.ptr_end();
+    NodesArrayType& pNodeDestination    = mrDestinationModelPart.Nodes();
+    NodesArrayType::iterator node_begin = pNodeDestination.ptr_begin();
+    NodesArrayType::iterator node_end   = pNodeDestination.ptr_end();
     
-    for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
+    for(NodesArrayType::iterator node_it = node_begin; node_it!=node_end; node_it++)
     {
-        if (cond_it->Is(ACTIVE))
+        if (node_it->Is(ACTIVE) == true)
         {
-            std::vector<contact_container> *& ConditionPointersOrigin = cond_it->GetValue(CONTACT_CONTAINERS);
-            KRATOS_WATCH(ConditionPointersOrigin->size());
-            
-            for (unsigned int i = 0; i < ConditionPointersOrigin->size(); i++)
-            {
-                (*ConditionPointersOrigin)[i].print();
-            } 
+            std::cout << "Node: " << node_it->Id() << " is active" << std::endl;
         }
     }
 }
