@@ -53,8 +53,6 @@ main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, ProjectPara
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, ProjectParameters["problem_data"]["time_step"].GetDouble())
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, ProjectParameters["problem_data"]["start_time"].GetDouble())
 
-print("DeltaTime", main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME])
-
 Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main_model_part}
 
 #construct the solver (main setting methods are located in the solver_module)
