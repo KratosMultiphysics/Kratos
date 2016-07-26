@@ -145,6 +145,7 @@ namespace Kratos {
         double total_mContIniNeighArea = 0.0;
         int cont_ini_neighbours_size = mContinuumInitialNeighborsSize;
         Vector& cont_ini_neigh_area = GetValue(NEIGHBOURS_CONTACT_AREAS);
+        bool print_debug_files = false;
 
         for (int i = 0; i < cont_ini_neighbours_size; i++) {
             SphericParticle* ini_cont_neighbour_iterator = mNeighbourElements[i];
@@ -153,25 +154,29 @@ namespace Kratos {
             total_equiv_area += area;
 
         }
-        std::ofstream outputfile("external_sphere_area-total_equiv_area.txt", std::ios_base::out | std::ios_base::app);
-        outputfile << external_sphere_area << "  " << total_equiv_area << "\n";
-        outputfile.close();
-
+        if (print_debug_files) {
+            std::ofstream outputfile("external_sphere_area-total_equiv_area.txt", std::ios_base::out | std::ios_base::app);
+            outputfile << external_sphere_area << "  " << total_equiv_area << "\n";
+            outputfile.close();
+        }
         if (cont_ini_neighbours_size >= 4) { // more than 3 neighbors
             if (!IsSkin()) {
                 AuxiliaryFunctions::CalculateAlphaFactor3D(cont_ini_neighbours_size, external_sphere_area, total_equiv_area, alpha);
-                std::ofstream outputfile("alpha.txt", std::ios_base::out | std::ios_base::app);
-                outputfile << alpha << "\n";
-                outputfile.close();
-
+                if (print_debug_files) {
+                    std::ofstream outputfile("alpha.txt", std::ios_base::out | std::ios_base::app);
+                    outputfile << alpha << "\n";
+                    outputfile.close();
+                }
                 for (unsigned int i = 0; i < cont_ini_neigh_area.size(); i++) {
                     cont_ini_neigh_area[i] = alpha * cont_ini_neigh_area[i];
                     total_mContIniNeighArea += cont_ini_neigh_area[i];
                 } //for every neighbor
 
-                std::ofstream outputfile2("total_mContIniNeighArea-total_equiv_area.txt", std::ios_base::out | std::ios_base::app);
-                outputfile2 << total_mContIniNeighArea << "  " << total_equiv_area << "\n";
-                outputfile2.close();
+                if (print_debug_files) {
+                    std::ofstream outputfile2("total_mContIniNeighArea-total_equiv_area.txt", std::ios_base::out | std::ios_base::app);
+                    outputfile2 << total_mContIniNeighArea << "  " << total_equiv_area << "\n";
+                    outputfile2.close();
+                }
             }
 
             else {//skin sphere
@@ -198,7 +203,6 @@ namespace Kratos {
             noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
             double distance = DEM_MODULUS_3(other_to_me_vect);
             effectiveVolumeRadiusSum += 0.5 * (distance + GetRadius() - other_radius);
-            //effectiveVolumeRadiusSum += (distance-(GetRadius()+other_radius))/2 + GetRadius();}       //2
         }
         
         double effectiveVolumeRadius = effectiveVolumeRadiusSum / cont_ini_neighbours_size;
