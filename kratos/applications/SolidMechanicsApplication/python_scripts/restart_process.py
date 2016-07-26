@@ -76,6 +76,10 @@ class RestartProcess(KratosMultiphysics.Process):
             else:
                 self.next_output = self.model_part.ProcessInfo[STEP]
 
+        # Copy to a restart folder the posterior files, delete from problem folder
+         
+        # Reconstruct .list and .csv (last build using a restart ID to be rebuild)
+
     ###
 
     #

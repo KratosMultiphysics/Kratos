@@ -182,15 +182,14 @@ class MechanicalSolver(object):
             #fill buffer
             delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
             time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-            time = time - delta_time * (current_buffer_size + 1)
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
+            time = time - delta_time * (current_buffer_size)
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)            
             for size in range(0, current_buffer_size):
-                step = size - current_buffer_size
+                step = size - (current_buffer_size -1)
                 self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
                 time = time + delta_time
                 #delta_time is computed from previous time in process_info
                 self.main_model_part.CloneTimeStep(time)
-
 
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
             

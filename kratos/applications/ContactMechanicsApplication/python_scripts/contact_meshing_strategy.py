@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
+import KratosMultiphysics.ContactMechanicsApplication as KratosContact
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -27,6 +28,19 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
              "meshing_frequency": 0,
              "remesh": true,
              "constrained": false,
+             "contact_parameters":{
+                 "contact_condition_type": "ContactDomainLM2DCondition",
+                 "friction_law_type": "FrictionLaw",
+                 "implemented_in_module": "KratosMultiphysics.ContactMechanicsApplication",
+                 "variables_of_properties":{
+                     "FRICTION_ACTIVE": false,
+                     "MU_STATIC": 0.3,
+                     "MU_DYNAMIC": 0.2,
+                     "PENALTY_PARAMETER": 1000,
+                     "TANGENTIAL_PENALTY_RATIO": 0.1,
+                     "TAU_STAB": 1
+                 }
+             }
         }
         """)
         
@@ -42,7 +56,78 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
     #
     def Initialize(self,meshing_parameters,domain_size,mesh_id):
 
-        meshing_strategy.MeshingStrategy.Intialize(self,meshing_parameters,domain_size,mesh_id)
+       #parameters
+        self.mesh_id = mesh_id
+
+        self.echo_level = 1
+        
+        #meshing parameters
+        self.MeshingParameters = meshing_parameters  
+      
+        meshing_options = KratosMultiphysics.Flags()
+        
+        meshing_options.Set(KratosPfemBase.ModelerUtilities.REMESH, self.settings["remesh"].GetBool())
+        meshing_options.Set(KratosPfemBase.ModelerUtilities.CONSTRAINED, self.settings["constrained"].GetBool())
+
+        self.MeshingParameters.SetOptions(meshing_options)
+        self.MeshingParameters.SetReferenceCondition(self.settings["contact_paramters"]["contact_condition_type"].GetString())
+        
+        #set contact properties
+        properties = KratosMultiphysics.Properties()
+        
+        contact_variables = self.settings["contact_parameters"]["variables_of_properties"]
+
+        #build friction law :: pass it as a property parameter
+        module = __import__(contact_variables["implemented_in_module"].GetString())      
+        friction_law_module    = contact_variables["implemented_in_module"].GetString()
+        friction_law_type_name = contact_variables["friction_law_type"].GetString()
+        FrictionLaw   = None
+
+        friction_law_type_call = " FrictionLaw = " friction_law_module + friction_law_type_name
+        exec(friction_law_type_call)
+        
+        friction_law = FrictionLaw()
+
+        properties.SetValue(FRICTION_LAW, friction_law.Clone())
+
+        #iterators of a json list are not working right now :: must be done by hand:
+        properties.SetValue(KratosMultiphysics.KratosGlobals.GetVariable("FRICTION_ACTIVE"), contact_variables["FRICTION_ACTIVE"])
+        properties.SetValue(KratosMultiphysics.KratosGlobals.GetVariable("MU_STATIC"), contact_variables["MU_STATIC"])
+        properties.SetValue(KratosMultiphysics.KratosGlobals.GetVariable("MU_DYNAMIC"), contact_variables["MU_DYNAMIC"])
+        properties.SetValue(KratosMultiphysics.KratosGlobals.GetVariable("PENALTY_PARAMETER"), contact_variables["PENALTY_PARAMETER"])
+        properties.SetValue(KratosMultiphysics.KratosGlobals.GetVariable("TANGENTIAL_PENALTY_RATIO"), contact_variables["TANGENTIAL_PENALTY_RATIO"])
+        properties.SetValue(KratosMultiphysics.KratosGlobals.GetVariable("TAU_STAB"), contact_variables["TAU_STAB"])
+
+
+        self.MeshingParameters.SetProperties(properties)
+
+        #set variables to global transfer
+        self.MeshDataTransfer   = KratosPfemBase.MeshDataTransferUtilities()
+        self.TransferParameters = KratosPfemBase.TransferParameters()
+        self.global_transfer    = False
+        if( self.settings["variables_smoothing"].GetBool() == True ):
+            self.global_transfer = True
+            transfer_variables = self.settings["elemental_variables_to_smooth"]
+            #for variable in transfer_variables:
+            #    self.TransferParameters.SetVariable( KratosMultiphysics.KratosGlobals.GetVariable( variable.GetString() ) )
+            for i in range(0, transfer_variables.size() ):            
+                self.TransferParameters.SetVariable(KratosMultiphysics.KratosGlobals.GetVariable(transfer_variables[i].GetString()))
+                            
+
+        #mesh modelers for the current strategy
+        self.mesh_modelers = []
+        
+        #configure meshers: 
+        self.SetMeshModelers();
+        
+        for mesher in self.mesh_modelers:
+            mesher.Initialize(domain_size)
+
+        self.number_of_nodes      = 0
+        self.number_of_elements   = 0
+        self.number_of_conditions = 0
+        
+
 
         # prepare model conditions to recieve data
         transfer_parameters = self.MeshingParameters.GetTransferParameters()
