@@ -116,7 +116,7 @@ namespace Kratos
       // FrictionLawType const& rCloneFrictionLaw = KratosComponents<FrictionLawType>::Get(FrictionLawName);
       // mpProperties->SetValue(FRICTION_LAW, rCloneFrictionLaw.Clone() );
       
-      Parameters CustomProperties = CustomParamters["variables_of_properties"];
+      Parameters CustomProperties = CustomParameters["variables_of_properties"];
 
       mpProperties->SetValue(FRICTION_ACTIVE, CustomProperties["FRICTION_ACTIVE"].GetBool());
       mpProperties->SetValue(MU_STATIC, CustomProperties["MU_STATIC"].GetDouble());

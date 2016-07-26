@@ -22,6 +22,8 @@ set( KRATOS_CONTACT_MECHANICS_APPLICATION_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_element.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/translatory_rigid_body_element.cpp
 
+	##friction laws
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/custom_friction_laws/friction_law.cpp
 
 )
 
