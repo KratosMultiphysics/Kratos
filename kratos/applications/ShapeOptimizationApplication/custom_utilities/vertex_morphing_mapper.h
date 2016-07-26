@@ -195,6 +195,9 @@ public:
         boost::timer mapping_time;
         std::cout << "> Start computing mapping matrix..." << std::endl;
 
+        // Initialize mapping matrix (zero possible entries)
+        m_mapping_matrix.clear();
+
         // Creating an auxiliary list for the nodes to be searched on
         PointVector list_of_nodes;
 
