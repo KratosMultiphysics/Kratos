@@ -34,6 +34,9 @@ class TestMaterialsInput(KratosUnittest.TestCase):
             }
             """)
         
+        ##assign the real path 
+        test_settings["Parameters"]["materials_filename"].SetString(GetFilePath("materials.json"))
+        
         import read_materials_process
         read_materials_process.Factory(test_settings,Model)
         
