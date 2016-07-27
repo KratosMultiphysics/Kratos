@@ -75,6 +75,32 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_Ang_vel[3]);
 
+        virtual void UpdateRotationalVariables(
+                const Node < 3 > & i,
+                const array_1d<double, 3 >& moments_of_inertia,
+                array_1d<double, 3 >& rotated_angle,
+                array_1d<double, 3 >& delta_rotation,
+                Quaternion<double  >& Orientation,
+                array_1d<double, 3 >& EulerAngles,
+                const array_1d<double, 3 >& angular_momentum,
+                array_1d<double, 3 >& angular_velocity,
+                const double delta_t,
+                const bool Fix_Ang_vel[3]);
+        
+        virtual void QuaternionCalculateMidAngularVelocities(
+                const Quaternion<double>& Orientation,
+                const double LocalTensorInv[3][3],
+                const array_1d<double, 3>& angular_momentum,
+                const double dt,
+                const array_1d<double, 3>& InitialAngularVel,
+                array_1d<double, 3>& FinalAngularVel);
+    
+        virtual void UpdateAngularVelocity(
+                const Quaternion<double>& Orientation,
+                const double LocalTensorInv[3][3],
+                const array_1d<double, 3>& angular_momentum,
+                array_1d<double, 3>& angular_velocity);
+
         virtual void CalculateRotationalMotion(ModelPart& model_part, NodesArrayType& pNodes, int StepFlag);
         
         virtual void CalculateLocalAngularAccelerationByEulerEquations(
@@ -84,6 +110,14 @@ namespace Kratos {
                                     const array_1d<double, 3 >& local_torque, 
                                     const double moment_reduction_factor,
                                     array_1d<double, 3 >& local_angular_acceleration);
+        
+        virtual void CalculateAngularVelocityRK(
+                                    const Quaternion<double  >& Orientation,
+                                    const array_1d<double, 3 >& moments_of_inertia,
+                                    const array_1d<double, 3 >& angular_momentum,
+                                    array_1d<double, 3 > & angular_velocity,
+                                    const double delta_t,
+                                    const bool Fix_Ang_vel[3]);
 
         virtual void CalculateRotationalMotionOfClusters(ModelPart& rcluster_model_part, int StepFlag);
 

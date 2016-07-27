@@ -1,45 +1,44 @@
 // Project includes
-#include "forward_euler_scheme.h"
+#include "taylor_scheme.h"
 
 namespace Kratos {
 
-    void ForwardEulerScheme::AddSpheresVariables(ModelPart & r_model_part){
-         DEMIntegrationScheme::AddSpheresVariables(r_model_part);}
-    
-    void ForwardEulerScheme::AddClustersVariables(ModelPart & r_model_part){
-         DEMIntegrationScheme::AddClustersVariables(r_model_part);}
+        void TaylorScheme::AddSpheresVariables(ModelPart & r_model_part){
+            DEMIntegrationScheme::AddSpheresVariables(r_model_part);}
 
-    void ForwardEulerScheme::UpdateTranslationalVariables(
-            int StepFlag,
-            Node < 3 > & i,
-            array_1d<double, 3 >& coor,
-            array_1d<double, 3 >& displ,
-            array_1d<double, 3 >& delta_displ,
-            array_1d<double, 3 >& vel,
-            const array_1d<double, 3 >& initial_coor,
-            const array_1d<double, 3 >& force,
-            const double force_reduction_factor,
-            const double mass,
-            const double delta_t,
-            const bool Fix_vel[3]) {
+        void TaylorScheme::AddClustersVariables(ModelPart & r_model_part){
+            DEMIntegrationScheme::AddClustersVariables(r_model_part);}
 
-        double mass_inv = 1.0 / mass;
-        for (int k = 0; k < 3; k++) {
-            if (Fix_vel[k] == false) {
-                delta_displ[k] = delta_t * vel[k];
-                displ[k] += delta_displ[k];
-                coor[k] = initial_coor[k] + displ[k];
-                vel[k] += delta_t * force_reduction_factor * force[k] * mass_inv;
-            }
-            else {
-                delta_displ[k] = delta_t * vel[k];
-                displ[k] += delta_displ[k];
-                coor[k] = initial_coor[k] + displ[k];
-            }
-        } // dimensions  
-    }
+        void TaylorScheme::UpdateTranslationalVariables(
+                int StepFlag,
+                Node < 3 > & i,
+                array_1d<double, 3 >& coor,
+                array_1d<double, 3 >& displ,
+                array_1d<double, 3 >& delta_displ,
+                array_1d<double, 3 >& vel,
+                const array_1d<double, 3 >& initial_coor,
+                const array_1d<double, 3 >& force,
+                const double force_reduction_factor,
+                const double mass,
+                const double delta_t,
+                const bool Fix_vel[3]) {
 
-    void ForwardEulerScheme::UpdateRotationalVariables(
+            for (int k = 0; k < 3; k++) {
+                if (Fix_vel[k] == false) {
+                    delta_displ[k] = delta_t * (vel [k] + (0.5 * delta_t / mass) * force[k]);
+                    displ[k] += delta_displ[k];
+                    coor[k] = initial_coor[k] + displ[k];
+                    vel[k] += (delta_t / mass) * force[k];
+                } else {
+                    delta_displ[k] = delta_t * vel[k];
+                    displ[k] += delta_displ[k];
+                    coor[k] = initial_coor[k] + displ[k];
+                }
+            } // dimensions                                     
+
+        }
+
+        void TaylorScheme::UpdateRotationalVariables(
                 int StepFlag,
                 const Node < 3 > & i,
                 array_1d<double, 3 >& rotated_angle,
@@ -49,19 +48,19 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
 
-        for (int k = 0; k < 3; k++) {
-            if (Fix_Ang_vel[k] == false) {
-                delta_rotation[k] = angular_velocity[k] * delta_t;
-                rotated_angle[k] += delta_rotation[k];
-                angular_velocity[k] += delta_t * angular_acceleration[k];
-            } else {
-                delta_rotation[k] = angular_velocity[k] * delta_t;
-                rotated_angle[k] += delta_rotation[k];
+            for (int k = 0; k < 3; k++) {
+                if (Fix_Ang_vel[k] == false) {
+                    delta_rotation[k] = delta_t * (angular_velocity[k] + (0.5 * delta_t * angular_acceleration[k]));
+                    rotated_angle[k] += delta_rotation[k];
+                    angular_velocity[k] += delta_t * angular_acceleration[k];
+                } else {
+                    delta_rotation[k] = angular_velocity[k] * delta_t;
+                    rotated_angle[k] += delta_rotation[k];
+                }
             }
         }
-    } 
-
-    void ForwardEulerScheme::UpdateRotationalVariables(
+        
+        void TaylorScheme::UpdateRotationalVariables(
                 const Node < 3 > & i,
                 const array_1d<double, 3 >& moments_of_inertia,
                 array_1d<double, 3 >& rotated_angle,
@@ -71,7 +70,7 @@ namespace Kratos {
                 const array_1d<double, 3 >& angular_momentum,
                 array_1d<double, 3 >& angular_velocity,
                 const double delta_t,
-                const bool Fix_Ang_vel[3]) {
+                const bool Fix_Ang_vel[3])  {
 
         for (int k = 0; k < 3; k++) {
                 delta_rotation[k] = angular_velocity[k] * delta_t;
@@ -91,7 +90,7 @@ namespace Kratos {
         }
     }
     
-    void ForwardEulerScheme::QuaternionCalculateMidAngularVelocities(
+    void TaylorScheme::QuaternionCalculateMidAngularVelocities(
                 const Quaternion<double>& Orientation,
                 const double LocalTensorInv[3][3],
                 const array_1d<double, 3>& angular_momentum,
@@ -111,7 +110,7 @@ namespace Kratos {
         GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensorInv, angular_momentum, FinalAngularVel);
     }
     
-    void ForwardEulerScheme::UpdateAngularVelocity(
+    void TaylorScheme::UpdateAngularVelocity(
                 const Quaternion<double>& Orientation,
                 const double LocalTensorInv[3][3],
                 const array_1d<double, 3>& angular_momentum,
@@ -122,43 +121,41 @@ namespace Kratos {
         GeometryFunctions::QuaternionTensorLocal2Global(Orientation, LocalTensorInv, GlobalTensorInv);
         GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensorInv, angular_momentum, angular_velocity);
     }
-    
-    void ForwardEulerScheme::CalculateLocalAngularAcceleration(
-                                const Node < 3 > & i,
-                                const double moment_of_inertia,
-                                const array_1d<double, 3 >& torque, 
-                                const double moment_reduction_factor,
-                                array_1d<double, 3 >& angular_acceleration){
-        
-        double moment_of_inertia_inv = 1.0 / moment_of_inertia;
-        for (int j = 0; j < 3; j++) {
-            angular_acceleration[j] = moment_reduction_factor * torque[j] * moment_of_inertia_inv;
+
+        void TaylorScheme::CalculateLocalAngularAcceleration(
+                const Node < 3 > & i,
+                const double moment_of_inertia,
+                const array_1d<double, 3 >& torque,
+                const double moment_reduction_factor,
+                array_1d<double, 3 >& angular_acceleration)  {
+
+            for (int j = 0; j < 3; j++) {
+                angular_acceleration[j] = moment_reduction_factor * torque[j] / moment_of_inertia;
+            }
         }
-    }
-    
-    void ForwardEulerScheme::CalculateLocalAngularAccelerationByEulerEquations(
-                                const Node < 3 > & i,
-                                const array_1d<double, 3 >& local_angular_velocity,
-                                const array_1d<double, 3 >& moments_of_inertia,
-                                const array_1d<double, 3 >& local_torque, 
-                                const double moment_reduction_factor,
-                                array_1d<double, 3 >& local_angular_acceleration){
-        
-        for (int j = 0; j < 3; j++) {
-            //Euler equations in Explicit (Forward Euler) scheme:
-            local_angular_acceleration[j] = (local_torque[j] - (local_angular_velocity[(j + 1) % 3] * moments_of_inertia[(j + 2) % 3] * local_angular_velocity[(j + 2) % 3] - local_angular_velocity[(j + 2) % 3] * moments_of_inertia[(j + 1) % 3] * local_angular_velocity[(j + 1) % 3])) / moments_of_inertia[j];
-            local_angular_acceleration[j] = local_angular_acceleration[j] * moment_reduction_factor;            
+
+        void TaylorScheme::CalculateLocalAngularAccelerationByEulerEquations(
+                const Node < 3 > & i,
+                const array_1d<double, 3 >& local_angular_velocity,
+                const array_1d<double, 3 >& moments_of_inertia,
+                const array_1d<double, 3 >& local_torque,
+                const double moment_reduction_factor,
+                array_1d<double, 3 >& local_angular_acceleration)  {
+
+            for (int j = 0; j < 3; j++) {
+                local_angular_acceleration[j] = (local_torque[j] - (local_angular_velocity[(j + 1) % 3] * moments_of_inertia[(j + 2) % 3] * local_angular_velocity[(j + 2) % 3] - local_angular_velocity[(j + 2) % 3] * moments_of_inertia[(j + 1) % 3] * local_angular_velocity[(j + 1) % 3])) / moments_of_inertia[j];
+                local_angular_acceleration[j] = local_angular_acceleration[j] * moment_reduction_factor;
+            }
         }
-    }
-    
-    void ForwardEulerScheme::CalculateAngularVelocityRK(
+        
+        void TaylorScheme::CalculateAngularVelocityRK(
                                     const Quaternion<double  >& Orientation,
                                     const array_1d<double, 3 >& moments_of_inertia,
                                     const array_1d<double, 3 >& angular_momentum,
-                                    array_1d<double, 3 >& angular_velocity,
+                                    array_1d<double, 3 > & angular_velocity,
                                     const double delta_t,
                                     const bool Fix_Ang_vel[3]) {
-        
+                                        
             double dt = delta_t;
             
             double LocalTensorInv[3][3];
@@ -178,5 +175,5 @@ namespace Kratos {
                 }
             }
     }
-    
-} //namespace Kratos
+
+} // namespace Kratos.
