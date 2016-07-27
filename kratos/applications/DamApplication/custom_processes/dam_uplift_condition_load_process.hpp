@@ -77,6 +77,12 @@ public:
         mspecific = rParameters["Spe_weight"].GetDouble();
         mbase_dam = rParameters["Base_of_dam"].GetDouble();
         
+        // Drains
+        mdrain = rParameters["Drains"].GetBool();
+        mheight_drain = rParameters["Height_drain"].GetDouble();
+        mlength_drain = rParameters["Position_drain"].GetDouble();
+        meffectiveness_drain = rParameters["Effectiveness"].GetDouble();
+        
         // TODO: PARAMETERS MUST BE GOT FROM THE TABLE
         mwater_level = rParameters["Water_level"].GetDouble();
 
@@ -126,29 +132,69 @@ public:
         if(nnodes != 0)
         {
             ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
-
-            #pragma omp parallel for
-            for(int i = 0; i<nnodes; i++)
+            
+            double ref_coord = mreference_coordinate + mwater_level;
+            
+            if( mdrain == true)
             {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
+				double coefficient_effectiveness = 1.0 - meffectiveness_drain;
+				double aux_drain = coefficient_effectiveness *(mwater_level - mheight_drain)* ((mbase_dam-mlength_drain)/mbase_dam) + mheight_drain;
+				
+				#pragma omp parallel for
+				for(int i = 0; i<nnodes; i++)
+				{
+					ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                if(mis_fixed)
-                {
-                    it->Fix(var);
-                }
-                
-                double ref_coord = mreference_coordinate + mwater_level;
-                double uplift_pressure = (mspecific*(ref_coord- (it->Coordinate(direction))))*(1.0-((1.0/mbase_dam)*(fabs( (it->Coordinate(up_direction)) - mreference_coordinate_uplift))));
-                
-                if(uplift_pressure<0.0)
-                {
-                    it->FastGetSolutionStepValue(var)=0.0;
-                }
-                else
-                {
-                    it->FastGetSolutionStepValue(var) = uplift_pressure;
-                }
-            }            
+					if(mis_fixed)
+					{
+						it->Fix(var);
+					}
+					
+					if ( (it->Coordinate(up_direction) +0.000001) <= (mreference_coordinate_uplift + mlength_drain ))
+					{						
+						muplift_pressure = (mspecific*((ref_coord-aux_drain)- (it->Coordinate(direction))))*(1.0-((1.0/(mlength_drain))*(fabs( (it->Coordinate(up_direction)) - mreference_coordinate_uplift)))) + mspecific*aux_drain;
+					}
+					else
+					{
+						muplift_pressure = (mspecific*((mreference_coordinate+aux_drain)- (it->Coordinate(direction))))*(1.0-((1.0/(mbase_dam - mlength_drain))*(fabs( (it->Coordinate(up_direction)) - (mreference_coordinate_uplift+mlength_drain)))));
+					}
+					
+					if(muplift_pressure<0.0)
+					{
+						it->FastGetSolutionStepValue(var)=0.0;
+					}
+					else
+					{
+						it->FastGetSolutionStepValue(var) = muplift_pressure;
+					}
+				}
+					
+			}
+			else
+			{
+				#pragma omp parallel for
+				for(int i = 0; i<nnodes; i++)
+				{
+					ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+					if(mis_fixed)
+					{
+						it->Fix(var);
+					}
+				
+					muplift_pressure = (mspecific*(ref_coord- (it->Coordinate(direction))))*(1.0-((1.0/mbase_dam)*(fabs( (it->Coordinate(up_direction)) - mreference_coordinate_uplift))));
+					
+					if(muplift_pressure<0.0)
+					{
+						it->FastGetSolutionStepValue(var)=0.0;
+					}
+					else
+					{
+						KRATOS_WATCH(muplift_pressure)
+						it->FastGetSolutionStepValue(var) = muplift_pressure;
+					}
+				}
+			}            
         }
         
         KRATOS_CATCH("");
@@ -188,7 +234,11 @@ protected:
     double mspecific;
     double mbase_dam;
     double mwater_level;
-
+    bool mdrain;
+    double mheight_drain;
+    double mlength_drain;
+    double meffectiveness_drain;
+    double muplift_pressure;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
