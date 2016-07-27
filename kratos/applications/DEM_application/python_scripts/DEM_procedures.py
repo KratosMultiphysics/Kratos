@@ -311,6 +311,7 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
         model_part.AddNodalSolutionStepVariable(DELTA_ROTATION)
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
+        model_part.AddNodalSolutionStepVariable(LOCAL_ANGULAR_VELOCITY)
         model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
         # FORCES
@@ -319,13 +320,16 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT)
         model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_FORCE)
         model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_MOMENT)
+        
+        # PHYSICAL PROPERTIES
         model_part.AddNodalSolutionStepVariable(PRINCIPAL_MOMENTS_OF_INERTIA)
+        model_part.AddNodalSolutionStepVariable(CLUSTER_VOLUME)
         model_part.AddNodalSolutionStepVariable(NODAL_MASS)
         model_part.AddNodalSolutionStepVariable(CHARACTERISTIC_LENGTH)
-        model_part.AddNodalSolutionStepVariable(RADIUS)
         model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
-        # Not really necessary but it is filled by inlet
-        model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)
+
+        # OTHER PROPERTIES
+        model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
 
     def AddMpiVariables(self, model_part):
         pass
