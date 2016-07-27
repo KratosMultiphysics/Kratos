@@ -85,6 +85,7 @@ public:
         :BaseType( gp_title, geometryFamily, gid_element_type, number_of_integration_points,
                    index_container) {}
 
+    using GidGaussPointsContainer::PrintResults; //to avoid the warning
     virtual void PrintResults( GiD_FILE ResultFile, Variable<double> rVariable, ModelPart& r_model_part,
                                double SolutionTag, unsigned int parameter_index )
     {
