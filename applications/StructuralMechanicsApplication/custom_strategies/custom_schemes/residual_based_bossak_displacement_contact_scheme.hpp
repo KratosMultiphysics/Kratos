@@ -171,17 +171,17 @@ public:
         {
             const int thread = OpenMPUtils::ThisThread();
             
-        // Basic operations for the condition considered
-        (rCurrentCondition)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+            // Basic operations for the condition considered
+            (rCurrentCondition)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
-        (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
+            (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
 
-        (rCurrentCondition)->CalculateMassMatrix(mMatrix.M[thread], CurrentProcessInfo);
+            (rCurrentCondition)->CalculateMassMatrix(mMatrix.M[thread], CurrentProcessInfo);
 
-        (rCurrentCondition)->CalculateDampingMatrix(mMatrix.D[thread], CurrentProcessInfo);
+            (rCurrentCondition)->CalculateDampingMatrix(mMatrix.D[thread], CurrentProcessInfo);
 
-        // Adding the dynamic contributions (static is already included)
-        AddDynamicsToRHS  (rCurrentCondition, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
+            // Adding the dynamic contributions (static is already included)
+            AddDynamicsToRHS  (rCurrentCondition, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
         }
         
         KRATOS_CATCH("");
@@ -350,9 +350,7 @@ public:
                 itElem->FinalizeSolutionStep(CurrentProcessInfo);
             }
         }
-        
-        const double cn = rElements[0].GetProperties().GetValue(CONSTANT_ACT_INACT); // Some "huge" value should be considered, maybe the attractive of Vicente
-
+    
         // Update normal of the conditions
         ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart ); 
         
@@ -385,6 +383,7 @@ public:
         }
         
         // Recompute Active/Inactive nodes 
+        const double cn = rElements[0].GetProperties().GetValue(CONSTANT_ACT_INACT); 
         ContactUtilities::ReComputeActiveInactive( rModelPart, cn ); 
         
         KRATOS_CATCH("");
@@ -427,7 +426,7 @@ public:
                 itElem->FinalizeNonLinearIteration(CurrentProcessInfo);
             }
         }
-
+                
         // Update normal of the conditions
         ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart ); 
         
@@ -458,6 +457,10 @@ public:
                 }
             }
         }
+        
+        // Recompute Active/Inactive nodes 
+        const double cn = rElements[0].GetProperties().GetValue(CONSTANT_ACT_INACT); 
+        ContactUtilities::ReComputeActiveInactive( rModelPart, cn ); 
         
         KRATOS_CATCH("");
     }

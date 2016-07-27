@@ -528,11 +528,11 @@ public:
      */
     
     static inline void ReComputeActiveInactive(
-        ModelPart & ModelPart, 
+        ModelPart & rModelPart, 
         const double cn
         )
     {
-        NodesArrayType& pNode  = ModelPart.Nodes();
+        NodesArrayType& pNode  = rModelPart.Nodes();
         NodesArrayType::iterator it_node_begin = pNode.ptr_begin();
         NodesArrayType::iterator it_node_end   = pNode.ptr_end();
         

@@ -78,6 +78,11 @@ class ContactProcess(KratosMultiphysics.Process):
         elif self.params["contact_type"].GetString() == "NTS":
             condition_name = "NTSContact"
         
+        if (condition_name == "MortarContact"):
+            for node in self.d_interface.Nodes:
+                node.SetValue(KratosMultiphysics.StructuralMechanicsApplication.WEIGHTED_GAP, 1.0e9) # Large Value
+            del node
+        
         #print("MODEL PART BEFORE CREATING INTERFACE")
         #print(self.main_model_part) 
         
