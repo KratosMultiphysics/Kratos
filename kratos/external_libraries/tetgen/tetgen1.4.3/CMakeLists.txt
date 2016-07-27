@@ -13,6 +13,7 @@ SET_SOURCE_FILES_PROPERTIES(${TETGEN_SOURCES} PROPERTIES COMPILE_FLAGS -O2)
 
 ###############################################################
 add_definitions( -DTETLIBRARY )
+add_definitions( -w )
 #perform platform specific defintions
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     add_definitions( -DCPU86 )
