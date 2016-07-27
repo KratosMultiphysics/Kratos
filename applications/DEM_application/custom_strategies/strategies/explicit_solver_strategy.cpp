@@ -27,6 +27,7 @@ namespace Kratos {
         r_process_info[CONTAINS_CLUSTERS] = false;
         rClusters_process_info[CONTAINS_CLUSTERS] = true;
 
+        rClusters_process_info[GRAVITY] = r_process_info[GRAVITY];
         rClusters_process_info[ROTATION_OPTION] = r_process_info[ROTATION_OPTION];
         rClusters_process_info[DELTA_TIME] = r_process_info[DELTA_TIME];
         rClusters_process_info[VIRTUAL_MASS_OPTION] = r_process_info[VIRTUAL_MASS_OPTION];
@@ -188,7 +189,7 @@ namespace Kratos {
         double critical_timestep = beta * KRATOS_M_PI / critical_period;
 
         r_process_info[DELTA_TIME] = critical_timestep;
-        std::cout << " Applied timestep is " << DELTA_TIME << ". " << "\n" << std::endl;
+        std::cout << " Applied timestep is " << critical_timestep << ". " << "\n" << std::endl;
         KRATOS_CATCH("")
     }
 

@@ -16,7 +16,8 @@
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
-
+#include "custom_utilities/GeometryFunctions.h"
+#include "utilities/quaternion.h"
 //#include "DEM_application.h"
 
 namespace Kratos {
@@ -42,17 +43,9 @@ namespace Kratos {
         virtual ~TaylorScheme() {
         }
 
-        void AddSpheresVariables(ModelPart & r_model_part)  override {
+        void AddSpheresVariables(ModelPart & r_model_part)  override;
 
-            DEMIntegrationScheme::AddSpheresVariables(r_model_part);
-
-        }
-
-        void AddClustersVariables(ModelPart & r_model_part)  override {
-
-            DEMIntegrationScheme::AddClustersVariables(r_model_part);
-
-        }
+        void AddClustersVariables(ModelPart & r_model_part)  override;
 
         void UpdateTranslationalVariables(
                 int StepFlag,
@@ -66,22 +59,7 @@ namespace Kratos {
                 const double force_reduction_factor,
                 const double mass,
                 const double delta_t,
-                const bool Fix_vel[3])  override {
-
-            for (int k = 0; k < 3; k++) {
-                if (Fix_vel[k] == false) {
-                    delta_displ[k] = delta_t * (vel [k] + (0.5 * delta_t / mass) * force[k]);
-                    displ[k] += delta_displ[k];
-                    coor[k] = initial_coor[k] + displ[k];
-                    vel[k] += (delta_t / mass) * force[k];
-                } else {
-                    delta_displ[k] = delta_t * vel[k];
-                    displ[k] += delta_displ[k];
-                    coor[k] = initial_coor[k] + displ[k];
-                }
-            } // dimensions                                     
-
-        }
+                const bool Fix_vel[3])  override;
 
         void UpdateRotationalVariables(
                 int StepFlag,
@@ -91,31 +69,40 @@ namespace Kratos {
                 array_1d<double, 3 >& angular_velocity,
                 array_1d<double, 3 >& angular_acceleration,
                 const double delta_t,
-                const bool Fix_Ang_vel[3])  override {
-
-            for (int k = 0; k < 3; k++) {
-                if (Fix_Ang_vel[k] == false) {
-                    delta_rotation[k] = delta_t * (angular_velocity[k] + (0.5 * delta_t * angular_acceleration[k]));
-                    rotated_angle[k] += delta_rotation[k];
-                    angular_velocity[k] += delta_t * angular_acceleration[k];
-                } else {
-                    delta_rotation[k] = angular_velocity[k] * delta_t;
-                    rotated_angle[k] += delta_rotation[k];
-                }
-            }
-        }
+                const bool Fix_Ang_vel[3])  override;
+        
+        void UpdateRotationalVariables(
+                const Node < 3 > & i,
+                const array_1d<double, 3 >& moments_of_inertia,
+                array_1d<double, 3 >& rotated_angle,
+                array_1d<double, 3 >& delta_rotation,
+                Quaternion<double  >& Orientation,
+                array_1d<double, 3 >& EulerAngles,
+                const array_1d<double, 3 >& angular_momentum,
+                array_1d<double, 3 >& angular_velocity,
+                const double delta_t,
+                const bool Fix_Ang_vel[3]) override;
+                
+        void QuaternionCalculateMidAngularVelocities(
+                const Quaternion<double>& Orientation,
+                const double LocalTensorInv[3][3],
+                const array_1d<double, 3>& angular_momentum,
+                const double dt,
+                const array_1d<double, 3>& InitialAngularVel,
+                array_1d<double, 3>& FinalAngularVel)  override;
+    
+        void UpdateAngularVelocity(
+                const Quaternion<double>& Orientation,
+                const double LocalTensorInv[3][3],
+                const array_1d<double, 3>& angular_momentum,
+                array_1d<double, 3>& angular_velocity)  override;
 
         void CalculateLocalAngularAcceleration(
                 const Node < 3 > & i,
                 const double moment_of_inertia,
                 const array_1d<double, 3 >& torque,
                 const double moment_reduction_factor,
-                array_1d<double, 3 >& angular_acceleration)  override {
-
-            for (int j = 0; j < 3; j++) {
-                angular_acceleration[j] = moment_reduction_factor * torque[j] / moment_of_inertia;
-            }
-        }
+                array_1d<double, 3 >& angular_acceleration) override;
 
         void CalculateLocalAngularAccelerationByEulerEquations(
                 const Node < 3 > & i,
@@ -123,13 +110,15 @@ namespace Kratos {
                 const array_1d<double, 3 >& moments_of_inertia,
                 const array_1d<double, 3 >& local_torque,
                 const double moment_reduction_factor,
-                array_1d<double, 3 >& local_angular_acceleration)  override {
-
-            for (int j = 0; j < 3; j++) {
-                local_angular_acceleration[j] = (local_torque[j] - (local_angular_velocity[(j + 1) % 3] * moments_of_inertia[(j + 2) % 3] * local_angular_velocity[(j + 2) % 3] - local_angular_velocity[(j + 2) % 3] * moments_of_inertia[(j + 1) % 3] * local_angular_velocity[(j + 1) % 3])) / moments_of_inertia[j];
-                local_angular_acceleration[j] = local_angular_acceleration[j] * moment_reduction_factor;
-            }
-        }
+                array_1d<double, 3 >& local_angular_acceleration) override;
+        
+        void CalculateAngularVelocityRK(
+                                    const Quaternion<double  >& Orientation,
+                                    const array_1d<double, 3 >& moments_of_inertia,
+                                    const array_1d<double, 3 >& angular_momentum,
+                                    array_1d<double, 3 > & angular_velocity,
+                                    const double delta_t,
+                                    const bool Fix_Ang_vel[3]) override;
 
         virtual std::string Info() const override{
             std::stringstream buffer;

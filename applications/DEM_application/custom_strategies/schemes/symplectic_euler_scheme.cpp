@@ -66,6 +66,68 @@ namespace Kratos {
         }
     }            
     
+    void SymplecticEulerScheme::UpdateRotationalVariables(
+                const Node < 3 > & i,
+                const array_1d<double, 3 >& moments_of_inertia,
+                array_1d<double, 3 >& rotated_angle,
+                array_1d<double, 3 >& delta_rotation,
+                Quaternion<double  >& Orientation,
+                array_1d<double, 3 >& EulerAngles,
+                const array_1d<double, 3 >& angular_momentum,
+                array_1d<double, 3 >& angular_velocity,
+                const double delta_t,
+                const bool Fix_Ang_vel[3]) {
+
+        for (int k = 0; k < 3; k++) {
+                delta_rotation[k] = angular_velocity[k] * delta_t;
+                rotated_angle[k] += delta_rotation[k];
+        }
+        
+        array_1d<double, 3 > angular_velocity_aux;
+        
+        double LocalTensorInv[3][3];
+        GeometryFunctions::ConstructInvLocalTensor(moments_of_inertia, LocalTensorInv);
+        GeometryFunctions::UpdateOrientation(EulerAngles, Orientation, delta_rotation);
+        UpdateAngularVelocity(Orientation, LocalTensorInv, angular_momentum, angular_velocity_aux);
+        for (int j = 0; j < 3; j++) {
+            if (Fix_Ang_vel[j] == false){
+                angular_velocity[j] = angular_velocity_aux[j];
+            }
+        }           
+    }
+    
+    void SymplecticEulerScheme::QuaternionCalculateMidAngularVelocities(
+                const Quaternion<double>& Orientation,
+                const double LocalTensorInv[3][3],
+                const array_1d<double, 3>& angular_momentum,
+                const double dt,
+                const array_1d<double, 3>& InitialAngularVel,
+                array_1d<double, 3>& FinalAngularVel) {
+        
+        array_1d<double, 3 > aux = InitialAngularVel;
+        DEM_MULTIPLY_BY_SCALAR_3(aux, dt);
+        array_1d<double, 3 > TempDeltaRotation = aux;
+
+        Quaternion<double> TempOrientation;
+        double GlobalTensorInv[3][3];
+            
+        GeometryFunctions::UpdateOrientation(Orientation, TempOrientation, TempDeltaRotation);
+        GeometryFunctions::QuaternionTensorLocal2Global(TempOrientation, LocalTensorInv, GlobalTensorInv);
+        GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensorInv, angular_momentum, FinalAngularVel);
+    }
+    
+    void SymplecticEulerScheme::UpdateAngularVelocity(
+                const Quaternion<double>& Orientation,
+                const double LocalTensorInv[3][3],
+                const array_1d<double, 3>& angular_momentum,
+                array_1d<double, 3>& angular_velocity) {
+        
+        double GlobalTensorInv[3][3];
+        
+        GeometryFunctions::QuaternionTensorLocal2Global(Orientation, LocalTensorInv, GlobalTensorInv);
+        GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensorInv, angular_momentum, angular_velocity);
+    }
+    
     void SymplecticEulerScheme::CalculateLocalAngularAcceleration(
                                 const Node < 3 > & i,
                                 const double moment_of_inertia,
@@ -92,5 +154,33 @@ namespace Kratos {
             local_angular_acceleration[j] = (local_torque[j] - (local_angular_velocity[(j + 1) % 3] * moments_of_inertia[(j + 2) % 3] * local_angular_velocity[(j + 2) % 3] - local_angular_velocity[(j + 2) % 3] * moments_of_inertia[(j + 1) % 3] * local_angular_velocity[(j + 1) % 3])) / moments_of_inertia[j];
             local_angular_acceleration[j] = local_angular_acceleration[j] * moment_reduction_factor;            
         }
+    }
+    
+    void SymplecticEulerScheme::CalculateAngularVelocityRK(
+                                    const Quaternion<double  >& Orientation,
+                                    const array_1d<double, 3 >& moments_of_inertia,
+                                    const array_1d<double, 3 >& angular_momentum,
+                                    array_1d<double, 3 >& angular_velocity,
+                                    const double delta_t,
+                                    const bool Fix_Ang_vel[3]) {
+        
+            double dt = delta_t;
+            
+            double LocalTensorInv[3][3];
+            
+            GeometryFunctions::ConstructInvLocalTensor(moments_of_inertia, LocalTensorInv);
+            
+            array_1d<double, 3 > angular_velocity1 = angular_velocity;
+            array_1d<double, 3 > angular_velocity2, angular_velocity3, angular_velocity4;
+
+            QuaternionCalculateMidAngularVelocities(Orientation, LocalTensorInv, angular_momentum, 0.5*dt, angular_velocity1, angular_velocity2);
+            QuaternionCalculateMidAngularVelocities(Orientation, LocalTensorInv, angular_momentum, 0.5*dt, angular_velocity2, angular_velocity3);
+            QuaternionCalculateMidAngularVelocities(Orientation, LocalTensorInv, angular_momentum,     dt, angular_velocity3, angular_velocity4);
+
+            for (int j = 0; j < 3; j++) {
+                if (Fix_Ang_vel[j] == false){
+                    angular_velocity[j] = 0.16666666666666667 * (angular_velocity1[j] + 2*angular_velocity2[j] + 2*angular_velocity3[j] + angular_velocity4[j]);
+                }
+            }
     }
 } //namespace Kratos
