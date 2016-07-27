@@ -144,7 +144,6 @@ max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(spheres_model_part)
 if(max_elem_Id != old_max_elem_Id_spheres):
     creator_destructor.RenumberElementIdsFromGivenValue(cluster_model_part, max_elem_Id)
 
-
 max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(cluster_model_part)
 max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(cluster_model_part)
 max_cond_Id = creator_destructor.FindMaxElementIdInModelPart(cluster_model_part)
@@ -250,8 +249,10 @@ creator_destructor.SetMaxNodeId(max_Id)
 
 #Strategy Initialization
 os.chdir(main_path)
-solver.Initialize()    # Possible modifications of DELTA_TIME, number of elements and number of nodes
-  
+solver.Initialize() # Possible modifications of number of elements and number of nodes
+
+dt = min(DEM_parameters.MaxTimeStep, spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)) # Possible modifications of DELTA_TIME
+
 #Constructing a model part for the DEM inlet. It contains the DEM elements to be released during the simulation  
 #Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
 if (DEM_parameters.dem_inlet_option):
@@ -278,7 +279,7 @@ KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
 
 materialTest.PrintChart()
 materialTest.PrepareDataForGraph()
- 
+
 ##############################################################################
 #                                                                            #
 #    MAIN LOOP                                                               #
