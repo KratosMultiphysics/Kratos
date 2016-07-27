@@ -216,6 +216,69 @@ void GaussPointItem::GetProjectedValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void GaussPointItem::GetProjectedValue(
+        const Variable<array_1d<double,3> >& rOriginVar,
+        array_1d<double,3>& Value,
+        const int dimension,
+        const bool distributed
+        )
+{
+    if (distributed == true)
+    {
+        if (mProjStatus == 1) // Get Interpolated value from origin condition
+        {
+            if (dimension == 2)
+            {
+                for (unsigned int i = 0; i < 2; i++)
+                {
+                    Point<3> GPloccoords;
+                    GPloccoords.Coordinate(1) = mOriginCoords[0];
+                    GPloccoords.Coordinate(2) = 0.0;
+                    GPloccoords.Coordinate(3) = 0.0;
+
+                    Vector shfunc_values;
+                    mpOriginCond.lock()->GetGeometry().ShapeFunctionsValues(shfunc_values,GPloccoords);
+
+                    Value[i] = (mpOriginCond.lock())->GetGeometry()[0].FastGetSolutionStepValue(VAUX_EQ_TRACTION)[i] * shfunc_values[0]
+                             + (mpOriginCond.lock())->GetGeometry()[1].FastGetSolutionStepValue(VAUX_EQ_TRACTION)[i] * shfunc_values[1];
+                }
+                Value[2] = 0.0;
+            }
+            else
+            {
+                for (unsigned int i = 0; i < 3; i++)
+                {
+                    Value[i] = ((mpOriginCond.lock())->GetGeometry()[0].FastGetSolutionStepValue(VAUX_EQ_TRACTION)[i] * mOriginCoords[0]
+                              + (mpOriginCond.lock())->GetGeometry()[1].FastGetSolutionStepValue(VAUX_EQ_TRACTION)[i] * mOriginCoords[1]
+                              + (mpOriginCond.lock())->GetGeometry()[2].FastGetSolutionStepValue(VAUX_EQ_TRACTION)[i] * (1.0 - mOriginCoords[0] - mOriginCoords[1]) );
+                }
+            }
+        }
+        else if (mProjStatus == 2)   // Get Value from origin node
+        {
+            if (dimension == 2)
+            {
+                Value = (mpOriginNode.lock())->FastGetSolutionStepValue(VAUX_EQ_TRACTION);
+               
+            }
+            else
+            {
+                Value = (mpOriginNode.lock())->FastGetSolutionStepValue(VAUX_EQ_TRACTION);
+            }
+        }
+        else   // mProjStatus == 0: Return 0
+        {
+            Value = ZeroVector(3);
+        }
+    }
+    else
+    {
+        GetProjectedValue(rOriginVar, Value, dimension);
+    }
+}
+/***********************************************************************************/
+/***********************************************************************************/
+
 // Mapper Methods
 AdvancedNMPointsMapper::AdvancedNMPointsMapper(
         const ModelPart& rOriginModelPart,
@@ -1098,6 +1161,9 @@ void AdvancedNMPointsMapper::ScalarMap(
     }
 
     const unsigned int dimension = mrDestinationModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension();
+    
+    // Compute nodal lengths/areas in both origin and destination modelparts
+    ComputeNodalLengthArea();
 
     if (dimension == 2) // 2D case
     {
@@ -1119,10 +1185,10 @@ void AdvancedNMPointsMapper::ScalarMap(
             const double K = CondLength/6.0;
             
             // Store the nodal influence length of the condition we are looping on (stored in NODAL_MAUX variable)
-            for (unsigned int i = 0; i < 2; i++)
-            {
-                cond_it->GetGeometry()[i].GetValue(NODAL_MAUX) += 0.5 * CondLength;
-            }
+            //~ for (unsigned int i = 0; i < 2; i++)
+            //~ {
+                //~ cond_it->GetGeometry()[i].GetValue(NODAL_MAUX) += 0.5 * CondLength;
+            //~ }
     
             // Store in GPValues the projected value in the destiny condition Gauss Points
             // Note that currently the implementation is valid for only 2 GP
@@ -1213,7 +1279,7 @@ void AdvancedNMPointsMapper::ScalarMap(
             }
             if( (ValNorm/NodeNum < 0.00001 * TolIter * TolIter) || RelativeError < TolIter * TolIter)
             {
-                std::cout << "VectorMap converged in " << k + 1 << " iterations." << std::endl;
+                std::cout << "ScalarMap converged in " << k + 1 << " iterations." << std::endl;
                 break;
             }
             else if ( (k + 1) == MaxIter)
@@ -1276,7 +1342,7 @@ void AdvancedNMPointsMapper::ScalarMap(
 
             for (unsigned int i = 0; i < 3; i++)
             {
-                cond_it->GetGeometry()[i].GetValue(NODAL_MAUX) += 0.333333333333333333 * CondArea;
+                //~ cond_it->GetGeometry()[i].GetValue(NODAL_MAUX) += 0.333333333333333333 * CondArea;
                 mGaussPointList[GPi + i]->GetProjectedValue(rOriginVar, GPValues[i], dimension);
             }
 
@@ -1424,7 +1490,7 @@ void AdvancedNMPointsMapper::VectorMap(
     {
         sign = -1.0;
     }
-
+    
     array_1d<double,3> ZeroVect = ZeroVector(3);
 
     // Build (Diagonal) System Matrix and initialize results
@@ -1435,9 +1501,20 @@ void AdvancedNMPointsMapper::VectorMap(
         node_it->GetValue(NODAL_MAUX) = 0.0;
         node_it->FastGetSolutionStepValue(rDestVar) = ZeroVect;
     }
+    
+    // Compute nodal lengths/areas in both origin and destination modelparts
+    ComputeNodalLengthArea();
+    
+    // If dealing with punctual loads, obtain their equivalent tractions
+    if (distributed == true)
+    {
+        int MaxIterTractions = MaxIter;
+        double TolIterTractions = TolIter;
+        ComputeEquivalentTractions(rOriginVar, MaxIterTractions, TolIterTractions);
+    }
 
     const unsigned int dimension = mrDestinationModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension();
-
+    
     if (dimension == 2) // 2D case
     {
         
@@ -1458,29 +1535,46 @@ void AdvancedNMPointsMapper::VectorMap(
             const double K = CondLength/6.0;
             
             // Store the nodal influence length of the condition we are looping on (stored in NODAL_MAUX variable)
-            for (unsigned int i = 0; i < 2; i++)
-            {
-                cond_it->GetGeometry()[i].GetValue(NODAL_MAUX) += 0.5 * CondLength;
-            }
+            //~ for (unsigned int i = 0; i < 2; i++)
+            //~ {
+                //~ cond_it->GetGeometry()[i].GetValue(NODAL_MAUX) += 0.5 * CondLength;
+            //~ }
     
             // Store in GPValues the projected value in the destiny condition Gauss Points
             // Note that currently the implementation is valid for only 2 GP
             array_1d<double,3> TempValues = ZeroVect;
-
-            mGaussPointList[GPi]->GetProjectedValue(rOriginVar, TempValues, dimension);
+            
+            // Gauss point 1
+            if (distributed == false)
+            {
+                mGaussPointList[GPi]->GetProjectedValue(rOriginVar, TempValues, dimension);
+            }
+            else
+            {   
+                mGaussPointList[GPi]->GetProjectedValue(rOriginVar, TempValues, dimension, distributed);
+            }
 
             for (unsigned int i = 0; i < 2; i++)
             {
                 GPValues[i] = TempValues[i];
             }
-
-            mGaussPointList[GPi + 1]->GetProjectedValue(rOriginVar, TempValues, dimension);
+            
+            // Gauss point 2
+            if (distributed == false)
+            {
+                mGaussPointList[GPi + 1]->GetProjectedValue(rOriginVar, TempValues, dimension);
+            }
+            else
+            {
+                mGaussPointList[GPi + 1]->GetProjectedValue(rOriginVar, TempValues, dimension, distributed);
+            }
 
             for (unsigned int i = 0; i < 2; i++)
             {
                 GPValues[2 + i] = TempValues[i];
             }
 
+            // Compute the nodal values from the projected ones using the interpolation matrix
             NodalValues[0] = K*(MInterp(0,0)*GPValues[0] + MInterp(0,1)*GPValues[2]);
             NodalValues[1] = K*(MInterp(0,0)*GPValues[1] + MInterp(0,1)*GPValues[3]);
             NodalValues[2] = 0.0;
@@ -1519,13 +1613,24 @@ void AdvancedNMPointsMapper::VectorMap(
 
                 LocalRHS0 = ZeroVector(3);
                 LocalRHS1 = ZeroVector(3);
-
-                for(unsigned int j = 0; j < 3; j++)
+    
+                if (distributed == false)
                 {
-                    LastSolution[j]     = sign * cond_it->GetGeometry()[0].FastGetSolutionStepValue(rDestVar)[j];
-                    LastSolution[3 + j] = sign * cond_it->GetGeometry()[1].FastGetSolutionStepValue(rDestVar)[j];
+                    for(unsigned int j = 0; j < 3; j++)
+                    {
+                        LastSolution[j]     = sign * cond_it->GetGeometry()[0].FastGetSolutionStepValue(rDestVar)[j];
+                        LastSolution[3 + j] = sign * cond_it->GetGeometry()[1].FastGetSolutionStepValue(rDestVar)[j];
+                    }
                 }
-
+                else
+                {
+                    for(unsigned int j = 0; j < 3; j++)
+                    {
+                        LastSolution[j]     = sign * cond_it->GetGeometry()[0].FastGetSolutionStepValue(VAUX_EQ_TRACTION)[j];
+                        LastSolution[3 + j] = sign * cond_it->GetGeometry()[1].FastGetSolutionStepValue(VAUX_EQ_TRACTION)[j];
+                    }
+                }
+    
                 array_1d<double,6> CondValues = *pInterpValues[IV_iter];
 
                 for(unsigned int j = 0; j < 3; j++)
@@ -1548,24 +1653,47 @@ void AdvancedNMPointsMapper::VectorMap(
             double RelativeError = 0.0;
             unsigned int NodeNum = 0;
 
-            for (ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin();
-                    node_it != mrDestinationModelPart.NodesEnd();
-                    node_it++)
+            if (distributed == false)
             {
-                const double & NodeArea = node_it->GetValue(NODAL_MAUX);
-                noalias(dVal) = node_it->GetValue(VAUX)/NodeArea;
-                node_it->FastGetSolutionStepValue(rDestVar) += sign * dVal;
-
-                // Variables for convergence check
-                for (unsigned int j = 0; j < 3; j++)
+                for (ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin();
+                        node_it != mrDestinationModelPart.NodesEnd();
+                        node_it++)
                 {
-                    dValNorm += dVal[j] * dVal[j];
-                    ValNorm += std::pow(node_it->FastGetSolutionStepValue(rDestVar)[j], 2);
-                }
+                    const double & NodeLength = node_it->GetValue(NODAL_MAUX);
+                    noalias(dVal) = node_it->GetValue(VAUX)/NodeLength;
+                    node_it->FastGetSolutionStepValue(rDestVar) += sign * dVal;
 
-                NodeNum++;
+                    // Variables for convergence check
+                    for (unsigned int j = 0; j < 3; j++)
+                    {
+                        dValNorm += dVal[j] * dVal[j];
+                        ValNorm += std::pow(node_it->FastGetSolutionStepValue(rDestVar)[j], 2);
+                    }
+
+                    NodeNum++;
+                }
             }
-            //std::cout << "VectorMap iteration: " << k+1 << std::endl;
+            else
+            {
+                for (ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin();
+                        node_it != mrDestinationModelPart.NodesEnd();
+                        node_it++)
+                {
+                    const double & NodeLength = node_it->GetValue(NODAL_MAUX);
+                    noalias(dVal) = node_it->GetValue(VAUX)/NodeLength;
+                    node_it->FastGetSolutionStepValue(VAUX_EQ_TRACTION) += sign * dVal;
+
+                    // Variables for convergence check
+                    for (unsigned int j = 0; j < 3; j++)
+                    {
+                        dValNorm += dVal[j] * dVal[j];
+                        ValNorm += std::pow(node_it->FastGetSolutionStepValue(VAUX_EQ_TRACTION)[j], 2);
+                    }
+
+                    NodeNum++;
+                }
+            }
+            //~ std::cout << "VectorMap iteration: " << k+1 << "dValNorm: " << dValNorm << std::endl;
 
             // Check Convergence
             if(ValNorm > 10e-15)
@@ -1581,17 +1709,20 @@ void AdvancedNMPointsMapper::VectorMap(
             {
                 std::cout << "WARNING: VectorMap did not converge in " << k + 1 << " iterations." << std::endl;
             }
-        } // End of Iteration
+        } 
+        // End of Iteration
 
+        // Convert the tractions to nodal loads
         if (distributed == true)
         {
-            for (ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin();
-                    node_it != mrDestinationModelPart.NodesEnd();
-                    node_it++)
-            {
-                const double & NodeArea = node_it->GetValue(NODAL_MAUX);
-                node_it->FastGetSolutionStepValue(rDestVar) /= NodeArea;
-            }
+            //~ for (ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin();
+                    //~ node_it != mrDestinationModelPart.NodesEnd();
+                    //~ node_it++)
+            //~ {
+                //~ const double & NodeArea = node_it->GetValue(NODAL_MAUX);
+                //~ node_it->FastGetSolutionStepValue(rDestVar) /= NodeArea;
+            //~ }
+            ComputeNodalLoadsFromTractions(rDestVar);
         }
     }
     else // 3D case
@@ -1612,10 +1743,10 @@ void AdvancedNMPointsMapper::VectorMap(
             mGaussPointList[GPi]->GetArea(CondArea);
             const double K = CondArea/24.0;
 
-            for (unsigned int i = 0; i < 3; i++)
-            {
-                cond_it->GetGeometry()[i].GetValue(NODAL_MAUX) += 0.333333333333333333 * CondArea;
-            }
+            //~ for (unsigned int i = 0; i < 3; i++)
+            //~ {
+                //~ cond_it->GetGeometry()[i].GetValue(NODAL_MAUX) += 0.333333333333333333 * CondArea;
+            //~ }
 
             array_1d<double,3> TempValues = ZeroVect;
 
@@ -1795,6 +1926,330 @@ void AdvancedNMPointsMapper::DistanceCheck()
         }
 
         GPiter += 3;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void AdvancedNMPointsMapper::ComputeNodalLengthArea()
+{
+    const unsigned int dimension = mrDestinationModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension();
+    
+    // DestinationModelPart
+    if (dimension == 2)
+    {
+        double CondLength = 0.0;
+        
+        for (ModelPart::ConditionIterator cond_it = mrDestinationModelPart.ConditionsBegin();
+                cond_it != mrDestinationModelPart.ConditionsEnd();
+                cond_it++)
+            {
+                for (unsigned int i = 0; i < 2; i++)
+                {
+                    CondLength = cond_it->GetGeometry().Length();
+                    cond_it->GetGeometry()[i].GetValue(NODAL_MAUX) += 0.5 * CondLength;
+                }
+            }
+    }
+    else
+    {
+        double CondArea = 0.0;
+        
+        for (ModelPart::ConditionIterator cond_it = mrDestinationModelPart.ConditionsBegin();
+                cond_it != mrDestinationModelPart.ConditionsEnd();
+                cond_it++)
+            {
+                for (unsigned int i = 0; i < 3; i++)
+                {
+                    CondArea = cond_it->GetGeometry().Area();
+                    cond_it->GetGeometry()[i].GetValue(NODAL_MAUX) += (1.0/3.0) * CondArea;
+                }
+            }
+    }
+    
+    // OriginModelPart
+    if (dimension == 2)
+    {
+        double CondLength = 0.0;
+            
+        for(ModelPart::ConditionsContainerType::const_iterator cond_it = mrOriginModelPart.ConditionsBegin();
+            cond_it != mrOriginModelPart.ConditionsEnd();
+            cond_it++)
+            {
+                for (unsigned int i = 0; i < 2; i++)
+                {
+                    CondLength = cond_it->GetGeometry().Length();
+                    cond_it->GetGeometry()[i].GetValue(NODAL_MAUX) += 0.5 * CondLength;
+                }
+            }
+    }
+    else
+    {
+        double CondArea = 0.0;
+        
+        for(ModelPart::ConditionsContainerType::const_iterator cond_it = mrOriginModelPart.ConditionsBegin();
+            cond_it != mrOriginModelPart.ConditionsEnd();
+            cond_it++)
+            {
+                for (unsigned int i = 0; i < 3; i++)
+                {
+                    CondArea = cond_it->GetGeometry().Area();
+                    cond_it->GetGeometry()[i].GetValue(NODAL_MAUX) += (1.0/3.0) * CondArea;
+                }
+            }
+    }
+    
+
+}
+
+void AdvancedNMPointsMapper::ComputeEquivalentTractions(
+     const Variable<array_1d<double,3> >& rOriginVar,
+     const int MaxIter,
+     const double TolIter)
+{
+    const unsigned int dimension = mrOriginModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension();
+
+    if (dimension == 2)
+    {
+
+        boost::numeric::ublas::bounded_matrix<double,2,2> MassMat; // Elemental consistent mass matrix 2 Gauss points in a 1D element
+            
+        MassMat(0, 0) = 2.0/3.0; 
+        MassMat(0, 1) = 1.0/3.0;
+        MassMat(1, 0) = 1.0/3.0;
+        MassMat(1, 1) = 2.0/3.0;
+        
+        // Initialization of equivalent tractions
+        for (ModelPart::NodesContainerType::const_iterator node_it = mrOriginModelPart.NodesBegin();
+             node_it != mrOriginModelPart.NodesEnd();
+             node_it++)
+        {
+            node_it->FastGetSolutionStepValue(VAUX_EQ_TRACTION) = ZeroVector(3);
+        }
+        
+        // Store the initial guess        
+        for (ModelPart::NodesContainerType::const_iterator node_it = mrOriginModelPart.NodesBegin();
+             node_it != mrOriginModelPart.NodesEnd();
+             node_it++)
+        {
+            for(unsigned int j = 0; j < 2; j++)
+            {
+                const double & NodeLength = node_it->GetValue(NODAL_MAUX);
+                node_it->FastGetSolutionStepValue(VAUX_EQ_TRACTION)[j] = (node_it->FastGetSolutionStepValue(rOriginVar)[j])/NodeLength;
+            }
+            
+        }
+        
+        // Iteration
+        for (int k = 0; k < MaxIter; k++)
+        {
+            // At the begining of each iteration initialize the variable containing the assembled RHS as 0
+            for (ModelPart::NodesContainerType::const_iterator node_it = mrOriginModelPart.NodesBegin();
+                 node_it != mrOriginModelPart.NodesEnd();
+                 node_it++)
+            {
+                node_it->GetValue(VAUX) = ZeroVector(3);
+            }
+            
+            array_1d<double, 3> LocalRHS0, LocalRHS1; // Local RHS for each node
+            array_1d<double, 6> LastSolution;
+            array_1d<double, 6> OriginNodalValues;
+            int IV_iter = 0;
+        
+            for(ModelPart::ConditionsContainerType::const_iterator cond_it = mrOriginModelPart.ConditionsBegin();
+                cond_it != mrOriginModelPart.ConditionsEnd();
+                cond_it++)
+            {
+                double CondLength = 0.0;
+                CondLength = cond_it->GetGeometry().Length();
+                const double Jac = CondLength/2.0;
+
+                LocalRHS0 = ZeroVector(3);
+                LocalRHS1 = ZeroVector(3);
+                OriginNodalValues = ZeroVector(6);
+                
+                // Original nodal values
+                for(unsigned int j = 0; j < 3; j++)
+                {
+                    OriginNodalValues[j]     = cond_it->GetGeometry()[0].FastGetSolutionStepValue(rOriginVar)[j];
+                    OriginNodalValues[3 + j] = cond_it->GetGeometry()[1].FastGetSolutionStepValue(rOriginVar)[j];
+                }
+
+                // Previous iteration solution
+                for(unsigned int j = 0; j < 3; j++)
+                {
+                    LastSolution[j]     = cond_it->GetGeometry()[0].FastGetSolutionStepValue(VAUX_EQ_TRACTION)[j];
+                    LastSolution[3 + j] = cond_it->GetGeometry()[1].FastGetSolutionStepValue(VAUX_EQ_TRACTION)[j];
+                }
+                
+                // Compute the nodal RHS
+                for(unsigned int j = 0; j < 2; j++)
+                {
+                    LocalRHS0[j] = OriginNodalValues[j]     - Jac * (MassMat(0,0)*LastSolution[j] + MassMat(0,1)*LastSolution[j + 3]);
+                    LocalRHS1[j] = OriginNodalValues[j + 3] - Jac * (MassMat(1,0)*LastSolution[j] + MassMat(1,1)*LastSolution[j + 3]);
+                }
+
+                // Accumulate the nodal RHS (localRHS)
+                cond_it->GetGeometry()[0].GetValue(VAUX) += LocalRHS0;
+                cond_it->GetGeometry()[1].GetValue(VAUX) += LocalRHS1;
+
+                IV_iter++;
+            }
+
+            // Solve
+            array_1d<double,3> dVal = ZeroVector(3);
+            double dValNorm      = 0.0;
+            double ValNorm       = 0.0;
+            double RelativeError = 0.0;
+            unsigned int NodeNum = 0;
+
+            for (ModelPart::NodesContainerType::const_iterator node_it = mrOriginModelPart.NodesBegin();
+                 node_it != mrOriginModelPart.NodesEnd();
+                 node_it++)
+            {
+                const double & NodeLength = node_it->GetValue(NODAL_MAUX);
+                noalias(dVal) = node_it->GetValue(VAUX)/NodeLength;
+                node_it->FastGetSolutionStepValue(VAUX_EQ_TRACTION) += dVal;
+                
+                //~ KRATOS_WATCH(node_it->FastGetSolutionStepValue(VAUX_EQ_TRACTION))
+
+                // Variables for convergence check
+                for (unsigned int j = 0; j < 3; j++)
+                {
+                    dValNorm += dVal[j] * dVal[j];
+                    ValNorm += std::pow(node_it->FastGetSolutionStepValue(VAUX_EQ_TRACTION)[j], 2);
+                }
+
+                NodeNum++;
+            }
+            
+            //~ std::cout << "Compute equivalent tractions iteration: " << k+1 << " dValNorm " << dValNorm << std::endl;
+
+            // Check Convergence
+            if(ValNorm > 10e-15)
+            {
+                RelativeError = dValNorm / ValNorm;
+            }
+            if( (ValNorm/NodeNum < 0.00001 * TolIter * TolIter) || RelativeError < TolIter * TolIter)
+            {
+                std::cout << "Compute equivalent tractions converged in " << k + 1 << " iterations." << std::endl;
+                break;
+            }
+            else if ( (k + 1) == MaxIter)
+            {
+                std::cout << "WARNING: Compute equivalent tractions did not converge in " << k + 1 << " iterations." << std::endl;
+            }
+        } // End of Iteration
+        
+        //~ std::cout << "Obatined equivalent tractions in origin condition" << std::endl;
+        //~ for (ModelPart::NodesContainerType::const_iterator node_it = mrOriginModelPart.NodesBegin();
+             //~ node_it != mrOriginModelPart.NodesEnd();
+             //~ node_it++)
+        //~ {
+            //~ KRATOS_WATCH(node_it->FastGetSolutionStepValue(VAUX_EQ_TRACTION))
+        //~ }
+
+    }
+    else
+    {
+        std::cout<<"Not implemented yet!"<<std::endl;
+    }
+}
+
+void AdvancedNMPointsMapper::ComputeNodalLoadsFromTractions(
+     const Variable<array_1d<double,3> >& rDestVar)
+{
+    const unsigned int dimension = mrDestinationModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension();
+
+    if (dimension == 2)
+    {
+
+        boost::numeric::ublas::bounded_matrix<double,2,2> MassMat; // Elemental consistent mass matrix 2 Gauss points in a 1D element
+            
+        MassMat(0, 0) = 2.0/3.0; 
+        MassMat(0, 1) = 1.0/3.0;
+        MassMat(1, 0) = 1.0/3.0;
+        MassMat(1, 1) = 2.0/3.0;
+        
+        array_1d<double, 3> Node0Values;
+        array_1d<double, 3> Node1Values;
+        array_1d<double, 6> NodalTractions;
+        int IV_iter = 0;
+        
+        //~ std::cout << "Obtained equivalent tractions in destiny condition" << std::endl;
+        //~ for(ModelPart::NodesContainerType::const_iterator node_it = mrDestinationModelPart.NodesBegin();
+            //~ node_it != mrDestinationModelPart.NodesEnd();
+            //~ node_it++)
+        //~ {
+            //~ KRATOS_WATCH(node_it->FastGetSolutionStepValue(VAUX_EQ_TRACTION))
+        //~ }
+    
+        //~ std::cout << "Origin conditions lengths" << std::endl;
+        //~ int iter_1 = 0;
+        //~ for(ModelPart::ConditionsContainerType::const_iterator cond_it = mrOriginModelPart.ConditionsBegin();
+            //~ cond_it != mrOriginModelPart.ConditionsEnd();
+            //~ cond_it++)
+        //~ {
+            //~ double CondLength = 0.0;
+            //~ CondLength = cond_it->GetGeometry().Length();
+            //~ KRATOS_WATCH(CondLength)
+            //~ iter_1++;
+        //~ }
+    
+        //~ std::cout << "Destination conditions lengths" << std::endl;
+        //~ int iter_2 = 0;
+        //~ for(ModelPart::ConditionsContainerType::const_iterator cond_it = mrDestinationModelPart.ConditionsBegin();
+            //~ cond_it != mrDestinationModelPart.ConditionsEnd();
+            //~ cond_it++)
+        //~ {
+            //~ double CondLength = 0.0;
+            //~ mGaussPointList[2 * IV_iter]->GetArea(CondLength);
+            //~ KRATOS_WATCH(CondLength)
+            //~ iter_2++;
+        //~ }
+    
+        for(ModelPart::ConditionsContainerType::const_iterator cond_it = mrDestinationModelPart.ConditionsBegin();
+            cond_it != mrDestinationModelPart.ConditionsEnd();
+            cond_it++)
+        {
+            double CondLength = 0.0;
+            CondLength = cond_it->GetGeometry().Length();
+            const double Jac = CondLength/2.0;
+            
+            Node0Values = ZeroVector(3);
+            Node1Values = ZeroVector(3);
+            NodalTractions = ZeroVector(6);
+            
+            for(unsigned int j = 0; j < 3; j++)
+            {
+                NodalTractions[j]     = cond_it->GetGeometry()[0].FastGetSolutionStepValue(VAUX_EQ_TRACTION)[j];
+                NodalTractions[3 + j] = cond_it->GetGeometry()[1].FastGetSolutionStepValue(VAUX_EQ_TRACTION)[j];
+            }
+            
+            //~ KRATOS_WATCH(NodalTractions)
+                        
+            for(unsigned int j = 0; j < 3; j++)
+            {
+                Node0Values[j] = Jac*(MassMat(0,0)*NodalTractions[j]+MassMat(0,1)*NodalTractions[j+3]);
+                Node1Values[j] = Jac*(MassMat(1,0)*NodalTractions[j]+MassMat(1,1)*NodalTractions[j+3]);
+            }
+            
+            //~ std::cout << "Node " << cond_it->GetGeometry()[0].Id() << " punctual values" << std::endl;
+            //~ KRATOS_WATCH(Node0Values)
+            //~ std::cout << "Node " << cond_it->GetGeometry()[1].Id() << " punctual values" << std::endl;
+            //~ KRATOS_WATCH(Node1Values)
+
+            // We are taking advantage of 1 Condition = 2 Gauss Points to iterate the interpolation results and the Gauss Point Vector Again
+            cond_it->GetGeometry()[0].FastGetSolutionStepValue(rDestVar) = Node0Values;
+            cond_it->GetGeometry()[1].FastGetSolutionStepValue(rDestVar) = Node1Values;
+            
+            IV_iter++;
+        }
+    }
+    else
+    {
+        std::cout<<"Not implemented yet!"<<std::endl;
     }
 }
 

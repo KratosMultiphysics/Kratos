@@ -235,6 +235,21 @@ public:
             const int dimension
             );
 
+    /**
+     * It gets the projected value for vector variables
+     * @param rOriginVar: The variable (vector) in the original condition
+     * @return Value: The projected value (vector)
+     * @param dimension: 2D/3D case
+     * @param distributed: if "true" gives back the equivalent nodal tractions to rOriginVar
+     */
+
+    void GetProjectedValue(
+            const Variable< array_1d<double,3> > & rOriginVar,
+            array_1d<double,3>& Value,
+            const int dimension,
+            const bool distributed
+            );
+
 protected:
 
     ///@name Protected static Member Variables
@@ -582,6 +597,30 @@ private:
      */
 
     void DistanceCheck();
+
+    /**
+     *  Auxiliar function to compute the nodal length/area of each node in both origin and destiny model parts.
+     */
+
+    void ComputeNodalLengthArea();
+    
+    /**
+     *  Auxiliar function to compute the equivalent nodal tractions to point loads minimizing the L2 norm of the error.
+     */
+    
+    void ComputeEquivalentTractions(
+            const Variable<array_1d<double,3> >& rOriginVar,
+            const int MaxIter,
+            const double TolIter
+            );
+    
+    /**
+     *  Auxiliar function to compute the equivalent nodal tractions to point loads minimizing the L2 norm of the error.
+     */
+    
+    void ComputeNodalLoadsFromTractions(
+            const Variable<array_1d<double,3> >& rDestVar
+            );
 
     ///@}
     ///@name Private  Access
