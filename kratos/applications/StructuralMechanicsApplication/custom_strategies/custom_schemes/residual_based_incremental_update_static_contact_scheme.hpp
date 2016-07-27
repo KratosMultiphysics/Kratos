@@ -296,8 +296,6 @@ public:
         // Update normal of the conditions
         ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart ); 
         
-        const double cn = rElements[0].GetProperties().GetValue(CONSTANT_ACT_INACT);  // Some "huge" value should be considered, maybe the attractive of Vicente
-        
         // Finalizes solution step for all the conditions
         ConditionsArrayType& rConditions = rModelPart.Conditions();
 
@@ -327,6 +325,7 @@ public:
         }
         
         // Recompute Active/Inactive nodes 
+        const double cn = rElements[0].GetProperties().GetValue(CONSTANT_ACT_INACT);  
         ContactUtilities::ReComputeActiveInactive( rModelPart, cn ); 
         
         KRATOS_CATCH("");
@@ -340,7 +339,8 @@ public:
         ModelPart& rModelPart,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b
+        )
     {
         KRATOS_TRY;
         
@@ -367,7 +367,7 @@ public:
 
         // Update normal of the conditions
         ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart ); 
-        
+
         // Finalizes non linear iteration for all the conditions
         ConditionsArrayType& rConditions = rModelPart.Conditions();
 
@@ -395,6 +395,10 @@ public:
                 }
             }
         }
+                
+        // Recompute Active/Inactive nodes 
+        const double cn = rElements[0].GetProperties().GetValue(CONSTANT_ACT_INACT);  
+        ContactUtilities::ReComputeActiveInactive( rModelPart, cn ); 
         
         KRATOS_CATCH("");
     }

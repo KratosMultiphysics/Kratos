@@ -166,6 +166,8 @@ class StaticStructuralSolver(solid_mechanics_static_solver.StaticMechanicalSolve
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
             # Add lagrange multiplier
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)
+            # Add weighted gap
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.StructuralMechanicsApplication.WEIGHTED_GAP)
             
         if self.settings["analysis_type"].GetString() == "Arc-Length":
             self.main_model_part.ProcessInfo[KratosMultiphysics.StructuralMechanicsApplication.LAMBDA] = 0.00;

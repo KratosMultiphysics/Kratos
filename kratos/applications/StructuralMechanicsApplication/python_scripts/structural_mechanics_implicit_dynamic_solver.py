@@ -122,6 +122,8 @@ class ImplicitStructuralSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
             # Add lagrange multiplier
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)
+            # Add weighted gap
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.StructuralMechanicsApplication.WEIGHTED_GAP)
    
         print("::[Mechanical Solver]:: Variables ADDED")
         
