@@ -9,6 +9,7 @@ set( TRIANGLE_SOURCES
 SET_SOURCE_FILES_PROPERTIES(${TRIANGLE_SOURCES} PROPERTIES COMPILE_FLAGS -O0)
 
 add_definitions( -DTRILIBRARY )
+add_definitions( -w )
 
 #perform platform specific defintions
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
