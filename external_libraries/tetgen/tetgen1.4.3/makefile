@@ -12,7 +12,6 @@
 # ===========================================================
 
 CXX = g++
-#CXX = clang++
 #CXX = icpc
 #CXX = CC
 
@@ -20,13 +19,13 @@ CXX = g++
 # -O2, -O3 ... to find the best optimization level.
 # ===================================================================
 
-CXXFLAGS = -O2 -g -ftrapping-math -fsignaling-nans 
+CXXFLAGS = -g
 
 # PREDCXXFLAGS is for compiling J. Shewchuk's predicates. It should
 # always be equal to -O0 (no optimization). Otherwise, TetGen may not
 # work properly.
 
-PREDCXXFLAGS = -O0 -g -ftrapping-math -fsignaling-nans 
+PREDCXXFLAGS = -O0
 
 # SWITCHES is a list of switches to compile TetGen.
 # =================================================
@@ -39,7 +38,7 @@ PREDCXXFLAGS = -O0 -g -ftrapping-math -fsignaling-nans
 #   down the speed of TetGen.  They can be skipped by define the -DNDEBUG
 #   switch.
 
-SWITCHES = -Wall -DLINUX 
+SWITCHES = -Wall -DSELF_CHECK
 
 # SWITCHES = -Wall -Wabi -Wctor-dtor-privacy \
 #            -Woverloaded-virtual -Wno-pmf-conversions -Wsign-promo \
