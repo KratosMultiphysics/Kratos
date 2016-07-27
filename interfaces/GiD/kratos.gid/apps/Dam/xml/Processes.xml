@@ -96,6 +96,10 @@
         <parameter n="Base_of_dam" pn="Base of Dam" type="double" v="0.0"/>
         <parameter n="Spe_weight" pn="Specific Weight" type="double" v="10000"/>
         <parameter n="Water_level" pn="Water Level" type="double" v="0.0"/>
+        <parameter n="Drains" pn="Drains" un="DamDrains" type="bool" v="1"/>
+        <parameter n="Height_drain" pn="Height of Drain" type="double" v="0.0"/>
+        <parameter n="Position_drain" pn="Position of Drain" type="double" v="0.0"/>
+        <parameter n="Effectiveness" pn="Effectivesness" type="double" v="0.0"/>
     </inputs>
   </Process>    
   

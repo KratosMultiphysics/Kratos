@@ -28,9 +28,10 @@
     <NodalConditions>
       <NodalCondition n="DISPLACEMENT"/>
       <NodalCondition n="ACCELERATION"/>
-      <NodalCondition n="UNIFORMTEMPERATURE"/>
+      <NodalCondition n="INITIALTEMPERATURE"/>
       <NodalCondition n="BOFANGTEMPERATURE"/>
       <NodalCondition n="THERMALPARAMETERS"/>
+      <NodalCondition n="REFERENCETEMPERATURE"/>
     </NodalConditions>
 
     <!--<parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />-->
@@ -70,9 +71,10 @@
     <NodalConditions>
       <NodalCondition n="DISPLACEMENT"/>
       <NodalCondition n="ACCELERATION"/>
-      <NodalCondition n="UNIFORMTEMPERATURE"/>
+      <NodalCondition n="INITIALTEMPERATURE"/>
       <NodalCondition n="BOFANGTEMPERATURE"/>
       <NodalCondition n="THERMALPARAMETERS"/>
+      <NodalCondition n="REFERENCETEMPERATURE"/>
     </NodalConditions>
 
     <!--<parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />-->
@@ -108,9 +110,10 @@
     <NodalConditions>
       <NodalCondition n="DISPLACEMENT"/>
       <NodalCondition n="ACCELERATION"/>
-      <NodalCondition n="UNIFORMTEMPERATURE"/>
+      <NodalCondition n="INITIALTEMPERATURE"/>
       <NodalCondition n="BOFANGTEMPERATURE"/>
       <NodalCondition n="THERMALPARAMETERS"/>
+      <NodalCondition n="REFERENCETEMPERATURE"/>
     </NodalConditions>
 
     <!--<parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />-->
@@ -147,9 +150,10 @@
     <NodalConditions>
       <NodalCondition n="DISPLACEMENT"/>
       <NodalCondition n="ACCELERATION"/>
-      <NodalCondition n="UNIFORMTEMPERATURE"/>
+      <NodalCondition n="INITIALTEMPERATURE"/>
       <NodalCondition n="BOFANGTEMPERATURE"/>
       <NodalCondition n="THERMALPARAMETERS"/>
+      <NodalCondition n="REFERENCETEMPERATURE"/>
     </NodalConditions>
 
     <!--<parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />-->
