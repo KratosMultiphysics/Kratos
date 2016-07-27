@@ -84,7 +84,7 @@ namespace Kratos {
         }
         
         CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
-                                        sliding, element1, element2, indentation, previous_indentation);
+                                              sliding, element1, element2, indentation, previous_indentation);
         
     }
     
@@ -102,11 +102,11 @@ namespace Kratos {
         const double other_gamma = element2->GetProperties()[DAMPING_GAMMA];
         const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
         const double equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(equiv_mass * mKn);
-        const double equiv_visco_damp_coeff_tangential = 2.0 * equiv_gamma * sqrt(equiv_mass * mKt);                
-              
+        const double equiv_visco_damp_coeff_tangential = 2.0 * equiv_gamma * sqrt(equiv_mass * mKt); 
+    
         ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
         ViscoDampingLocalContactForce[1] = - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
-        ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal     * LocalRelVel[2];  
+        ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal     * LocalRelVel[2];
     }
     
     ///////////////////////// 
@@ -114,30 +114,28 @@ namespace Kratos {
     /////////////////////////
     
     void DEM_D_Linear_viscous_Coulomb::InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta) {
-                
-        const double my_radius        = element->GetRadius(); // Get equivalent Radius
-        const double effective_radius = my_radius - ini_delta;
-        const double my_young         = element->GetYoung(); // Get equivalent Young's Modulus
-        const double walls_young      = wall->GetYoung();
-        const double my_poisson       = element->GetPoisson();
-        const double walls_poisson    = wall->GetPoisson();
-                
-        const double equiv_young      = my_young * walls_young / (walls_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - walls_poisson * walls_poisson));
-                
-        const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
-        const double walls_shear_modulus = 0.5 * walls_young / (1.0 + walls_poisson);
-        const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - walls_poisson)/walls_shear_modulus); 
-
-        /*
-        const double effective_young = my_young / (1.0 - my_poisson * my_poisson); // Equivalent Young Modulus for RIGID WALLS! 
-        const double effective_young = 0.5 * my_young / (1.0 - my_poisson * my_poisson); // Equivalent Young Modulus if the wall has the same E of the sphere
-        // Infinite Young was imposed to the wall in the formula that includes both. 
-        // For flexible walls, the computation is different, Thornton 2012 proposes same Young for both)
         
-        const double effective_shear = 0.5 * my_young / ((1.0 + my_poisson) * (2.0 - my_poisson)); // Equivalent Shear Modulus for RIGID WALLS!
-        const double effective_shear = 0.25 * my_young / ((1.0 + my_poisson) * (2.0 - my_poisson)); // Equivalent Shear Modulus if the wall has the same E of the sphere
-        // Infinite Shear was imposed to the wall in the formula that includes both. 
-        // For flexible walls, the computation is different, Thornton 2012 proposes same Shear for both)
+        const double my_radius           = element->GetRadius(); //Get equivalent Radius
+        const double effective_radius    = my_radius - ini_delta;
+        const double my_young            = element->GetYoung();  //Get equivalent Young's Modulus
+        const double walls_young         = wall->GetYoung();
+        const double my_poisson          = element->GetPoisson();
+        const double walls_poisson       = wall->GetPoisson();
+        
+        const double equiv_young         = my_young * walls_young / (walls_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - walls_poisson * walls_poisson));
+        const double my_shear_modulus    = 0.5 * my_young / (1.0 + my_poisson);
+        const double walls_shear_modulus = 0.5 * walls_young / (1.0 + walls_poisson);
+        const double equiv_shear         = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - walls_poisson)/walls_shear_modulus); 
+        /*
+        const double effective_young = my_young / (1.0 - my_poisson * my_poisson); //Equivalent Young Modulus for RIGID WALLS! 
+        const double effective_young = 0.5 * my_young / (1.0 - my_poisson * my_poisson); // Equivalent Young Modulus if the wall has the same E of the sphere
+        //Infinite Young was imposed to the wall in the formula that includes both. 
+        //For flexible walls, the computation is different, Thornton 2012 proposes same Young for both)
+        
+        const double effective_shear = 0.5 * my_young / ((1.0 + my_poisson) * (2.0 - my_poisson)); //Equivalent Shear Modulus for RIGID WALLS!
+        const double effective_shear = 0.25 * my_young / ((1.0 + my_poisson) * (2.0 - my_poisson)); //Equivalent Shear Modulus if the wall has the same E of the sphere
+        //Infinite Shear was imposed to the wall in the formula that includes both. 
+        //For flexible walls, the computation is different, Thornton 2012 proposes same Shear for both)
         */        
         //Normal and Tangent elastic constants
         //const double sqrt_equiv_radius = sqrt(effective_radius);
@@ -147,7 +145,7 @@ namespace Kratos {
         const double mKn_augmenter = 1.0;
         mKn = mKn_augmenter * equiv_young * KRATOS_M_PI * modified_radius;                                 // 2.0 * equiv_young * sqrt_equiv_radius;
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
-    }    
+    }
     
     void DEM_D_Linear_viscous_Coulomb::CalculateForcesWithFEM(ProcessInfo& r_process_info,
                                                               const double OldLocalElasticContactForce[3],
@@ -178,7 +176,7 @@ namespace Kratos {
         CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
                                         sliding, element, wall, indentation, previous_indentation);
     }
-        
+      
     template<class NeighbourClassType>
 
     void DEM_D_Linear_viscous_Coulomb::CalculateTangentialForceWithNeighbour(const double normal_contact_force,
@@ -191,13 +189,13 @@ namespace Kratos {
                                                                       NeighbourClassType* const neighbour,
                                                                       double indentation,
                                                                       double previous_indentation) {
-                                                                        
+                        
         LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - mKt * LocalDeltDisp[0];
         LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - mKt * LocalDeltDisp[1];
         
-        const double my_tg_of_friction_angle   = element->GetTgOfFrictionAngle();
-        const double wall_tg_of_friction_angle = neighbour->GetTgOfFrictionAngle();
-        const double equiv_tg_of_fri_ang       = 0.5 * (my_tg_of_friction_angle + wall_tg_of_friction_angle);    
+        const double my_tg_of_friction_angle    = element->GetTgOfFrictionAngle();
+        const double wall_tg_of_friction_angle  = neighbour->GetTgOfFrictionAngle();
+        const double equiv_tg_of_fri_ang        = 0.5 * (my_tg_of_friction_angle + wall_tg_of_friction_angle);    
         
         const double MaximumAdmisibleShearForce = normal_contact_force * equiv_tg_of_fri_ang;
         
@@ -213,20 +211,21 @@ namespace Kratos {
             const double dot_product = LocalElasticContactForce[0] * ViscoDampingLocalContactForce[0] + LocalElasticContactForce[1] * ViscoDampingLocalContactForce[1];
             const double ViscoDampingLocalContactForceModule = sqrt(ViscoDampingLocalContactForce[0] * ViscoDampingLocalContactForce[0] +\
                                                                     ViscoDampingLocalContactForce[1] * ViscoDampingLocalContactForce[1]);
+            
             if (dot_product >= 0.0) {
                 if (ActualElasticShearForce > MaximumAdmisibleShearForce) {
                     const double fraction = MaximumAdmisibleShearForce / ActualElasticShearForce;
-                    LocalElasticContactForce[0]  = LocalElasticContactForce[0] * fraction;
-                    LocalElasticContactForce[1]  = LocalElasticContactForce[1] * fraction;
+                    LocalElasticContactForce[0]      = LocalElasticContactForce[0] * fraction;
+                    LocalElasticContactForce[1]      = LocalElasticContactForce[1] * fraction;
                     ViscoDampingLocalContactForce[0] = 0.0;
                     ViscoDampingLocalContactForce[1] = 0.0;
-                }
-                else {
+                }            
+                else {                
                     const double ActualViscousShearForce = MaximumAdmisibleShearForce - ActualElasticShearForce;
                     const double fraction = ActualViscousShearForce / ViscoDampingLocalContactForceModule;
-                    ViscoDampingLocalContactForce[0]    *= fraction;
-                    ViscoDampingLocalContactForce[1]    *= fraction;
-                }                    
+                    ViscoDampingLocalContactForce[0] *= fraction;
+                    ViscoDampingLocalContactForce[1] *= fraction;
+                }        
             }
             else {
                 if (ViscoDampingLocalContactForceModule >= ActualElasticShearForce) {
