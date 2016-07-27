@@ -21,21 +21,21 @@ namespace Kratos {
         KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Hertz_viscous_Coulomb);
 
         DEM_D_Hertz_viscous_Coulomb() {}
-        
+
         ~DEM_D_Hertz_viscous_Coulomb() {}
-      
-        void Initialize(const ProcessInfo& r_process_info);         
+
+        void Initialize(const ProcessInfo& r_process_info);
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
         
         std::string GetTypeOfLaw();
 
-        DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;      
-        
+        DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;
+
         void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation);  
         
         void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta = 0.0);
-        
+
         void CalculateForces(const ProcessInfo& r_process_info,
                             const double OldLocalElasticContactForce[3],
                             double LocalElasticContactForce[3],

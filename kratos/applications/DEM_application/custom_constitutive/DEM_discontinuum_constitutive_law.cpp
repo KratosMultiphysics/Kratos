@@ -149,7 +149,6 @@ namespace Kratos {
                                                         bool& sliding) {
 
         InitializeContact(element1, element2, indentation);   
-            
         LocalElasticContactForce[2]  = CalculateNormalForce(indentation, element1, element2);   
         cohesive_force               = CalculateCohesiveNormalForce(element1, element2, indentation);
 
