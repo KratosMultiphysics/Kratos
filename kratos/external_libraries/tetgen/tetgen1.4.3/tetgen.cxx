@@ -6,7 +6,7 @@
 //                                                                           //
 // Version 1.4                                                               //
 // September 6, December 13, 2010                                            //
-// January 19, 2011                                                          //
+// January 19, April 15, 2011
 //                                                                           //
 // Copyright (C) 2002--2011                                                  //
 // Hang Si                                                                   //
@@ -19759,6 +19759,81 @@ void tetgenmesh::getsegmentsplitpoint2(face* sseg, point refpt, REAL* vt)
   }
 }
 
+void tetgenmesh::getsegmentsplitpoint3(face* seg, point refpt, REAL* steinpt)
+{
+  point ei, ej;
+  REAL Li, Lj, L;
+  REAL t;
+  int i;
+
+  ei = sorg(*seg);
+  ej = sdest(*seg);
+
+  if (b->verbose > 1) {
+    printf("      Get Steiner point on seg (%d, %d).\n", pointmark(ei),
+           pointmark(ej));
+  }
+
+  if (refpt != NULL) {
+    // Let ei be the closer one to refpt.
+    Li = distance(ei, refpt);
+    Lj = distance(ej, refpt);
+    if (Li > Lj) {
+      // Swap ei and ej;
+      sesymself(*seg);
+      ei = sorg(*seg);
+      ej = sdest(*seg);
+      L = Li;
+      Li = Lj;
+      Lj = L;
+    }
+    if (pointtype(ei) == ACUTEVERTEX) {
+      // Cut the segment by a sphere centered at ei with radius Li. 
+      L = distance(ei, ej);
+      t = Li / L; // t \in (0, 1).
+      for (i = 0; i < 3; i++) {
+        steinpt[i] = ei[i] + t * (ej[i] - ei[i]);
+      }
+      // Re-use Li and Lj;
+      Li = distance(steinpt, refpt);
+      Lj = distance(steinpt, ej);
+      if (Li > Lj) {
+        // Avoid to create a very short edge at ej.
+        t = 0.5;
+        for (i = 0; i < 3; i++) {
+          steinpt[i] = ei[i] + t * (ej[i] - ei[i]);
+        }
+        r3count++;
+      } else {
+        r2count++;
+      }
+    } else {
+      // Cut the segment by the projection point of refpt.
+      projpt2edge(refpt, ei, ej, steinpt);
+      // Only for report.
+      L = distance(ei, ej);
+      Li = distance(steinpt, ei);
+      t = Li / L;
+      r1count++;
+    }
+  } else {
+    // Split the point at the middle.
+    t = 0.5;
+    for (i = 0; i < 3; i++) {
+      steinpt[i] = ei[i] + t * (ej[i] - ei[i]);
+    }
+    r1count++;
+  } // if (refpt == NULL)
+
+  if (pointtype(steinpt) == UNUSEDVERTEX) {
+    setpointtype(steinpt, FREESEGVERTEX);
+  }
+
+  if (b->verbose > 2) {
+    printf("      Split at t(%g).\n", t);
+  }
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 //                                                                           //
 // delaunizesegments()    Recover segments in a Delaunay tetrahedralization. //
@@ -19798,7 +19873,7 @@ void tetgenmesh::delaunizesegments2()
       if (dir != INTERVERT) {
         // Create the new point.
         makepoint(&newpt);
-        getsegmentsplitpoint2(&sseg, refpt, newpt);
+        getsegmentsplitpoint3(&sseg, refpt, newpt);
         setpointtype(newpt, FREESEGVERTEX);
         setpoint2sh(newpt, sencode(sseg));
         // Split the segment by newpt.
@@ -31297,9 +31372,9 @@ void tetgenmesh::outmetrics(tetgenio* out)
       lave /= ptlist->len();
     }
     if (out == (tetgenio *) NULL) {
-      // for (i = 0; i < sizeoftensor; i++) {
-      //   fprintf(outfile, "%-16.8e ", ptloop[pointmtrindex + i]);
-      // }
+      for (i = 0; i < sizeoftensor; i++) {
+        fprintf(outfile, "%-16.8e ", ptloop[pointmtrindex + i]);
+      }
       if (ptlist->len() > 0) {
         // fprintf(outfile, "%-16.8e %-16.8e %-16.8e", lmin, lmax, lave);
         fprintf(outfile, "%-16.8e ", lave);
@@ -34651,7 +34726,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
       }
     } else {
       m.outnodes(out);
-      if (b->quality && b->metric) {
+      if (b->metric) { //if (b->quality && b->metric) {
         m.outmetrics(out);
       }
     }
