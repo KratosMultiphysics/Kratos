@@ -146,7 +146,7 @@ public:
     /**
      * Remesh information is given to the modeler
      */
-    void SetMeshingParameters( MeshingParametersType::Pointer& rMeshingParameters, ModelPart::IndexType MeshId );
+    void SetMeshingParameters( MeshingParametersType::Pointer& rMeshingParameters );
 
     /**
      * Pre and Post meshing processes are given to the modeler
@@ -178,22 +178,22 @@ public:
     /**
      * Mesh Modeler :: Initilize
      */
-    virtual void InitializeMeshModeler(ModelPart& rModelPart, ModelPart::IndexType MeshId=0);
+    virtual void InitializeMeshModeler(ModelPart& rModelPart);
   
     /**
      * Mesh Generation :: Remesh all ModelPart
      */
-    virtual void GenerateMesh(ModelPart& rModelPart, ModelPart::IndexType MeshId=0);
+    virtual void GenerateMesh(ModelPart& rModelPart);
 
     /**
      * Mesh Generation :: Remesh all ModelPart
      */
-    virtual void ExecuteMeshing(ModelPart& rModelPart, ModelPart::IndexType MeshId=0);
+    virtual void ExecuteMeshing(ModelPart& rModelPart);
        
     /**
      * Mesh Modeler :: Finalize
      */
-    virtual void FinalizeMeshModeler(ModelPart& rModelPart, ModelPart::IndexType MeshId=0);
+    virtual void FinalizeMeshModeler(ModelPart& rModelPart);
  
     ///@}
     ///@name Access
@@ -261,18 +261,17 @@ protected:
     ///@name Protected Operators
     ///@{
 
+    /// Assignment operator.
+    MeshModeler& operator=(MeshModeler const& rOther);
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-    /// Assignment operator.
-    MeshModeler& operator=(MeshModeler const& rOther);
-
     /**
      * Mesh Modeler :: Start Echo
      */
-    virtual void StartEcho(ModelPart& rModelPart,
+    virtual void StartEcho(ModelPart& rSubModelPart,
 			   std::string GenerationMessage, 
 			   ModelPart::IndexType MeshId=0);
 
@@ -280,49 +279,43 @@ protected:
     /**
      * Mesh Modeler :: End Echo
      */
-    virtual void EndEcho(ModelPart& rModelPart,
+    virtual void EndEcho(ModelPart& rSubModelPart,
 			 std::string GenerationMessage, 
 			 ModelPart::IndexType MeshId=0);
 
 
 
     /**
-     * Mesh Modeler :: Process to be done at the begining of the Generation
-     */
-    virtual void ExecutePreMeshingProcesses(ModelPart& rModelPart,
-					    MeshingParametersType& rMeshingVariables,
-					    ModelPart::IndexType MeshId=0);
-
-
-    /**
-     * Mesh Modeler :: Process to be done at the end of the Generation
-     */
-    virtual void ExecutePostMeshingProcesses(ModelPart& rModelPart,
-					     MeshingParametersType& rMeshingVariables,
-					     ModelPart::IndexType MeshId=0);
-  
-
-    /**
      * Mesh Modeler :: Set Nodes to mesh
      */
     virtual void SetNodes(ModelPart& rModelPart,
-			  MeshingParametersType& rMeshingVariables,
-			  ModelPart::IndexType MeshId);
+			  MeshingParametersType& rMeshingVariables);
 
     /**
      * Mesh Modeler :: Set Elements to mesh
      */
     virtual void SetElements(ModelPart& rModelPart,
-			     MeshingParametersType& rMeshingVariables,
-			     ModelPart::IndexType MeshId);
+			     MeshingParametersType& rMeshingVariables);
 
     /**
      * Mesh Modeler :: Set Elements to mesh
      */
     virtual void SetNeighbours(ModelPart& rModelPart,
-			       MeshingParametersType& rMeshingVariables,
-			       ModelPart::IndexType MeshId);
+			       MeshingParametersType& rMeshingVariables);
   
+
+    /**
+     * Mesh Modeler :: Process to be done at the begining of the Generation
+     */
+    virtual void ExecutePreMeshingProcesses();
+
+
+    /**
+     * Mesh Modeler :: Process to be done at the end of the Generation
+     */
+    virtual void ExecutePostMeshingProcesses();
+  
+
 
     /**
      * Mesh Modeler :: Delaunay Tessellation
@@ -373,15 +366,13 @@ protected:
      * Mesh Modeler :: Set Element Neighbours
      */
     virtual void SetElementNeighbours(ModelPart& rModelPart, 
-				      MeshingParametersType& rMeshingVariables,
-				      ModelPart::IndexType MeshId=0);
+				      MeshingParametersType& rMeshingVariables);
 
     /**
      * Mesh Modeler :: Set Element Neighbours
      */
     virtual void RecoverBoundaryPosition(ModelPart& rModelPart, 
-					 MeshingParametersType& rMeshingVariables,
-					 ModelPart::IndexType MeshId=0);
+					 MeshingParametersType& rMeshingVariables);
 
 
     ///@}

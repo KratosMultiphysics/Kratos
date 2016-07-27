@@ -63,31 +63,31 @@ namespace Kratos
 
       class_<RefineMeshElementsOnSizeProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "SetElementsToRefineOnSize", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int, int>()
+	 "SetElementsToRefineOnSize", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
 	 )
 	;
 
       class_<RemoveMeshNodesProcessForFluids, bases<ProcessBaseType>, boost::noncopyable >
       	(
-      	 "RemoveMeshNodesForFluids", init<ModelPart&, ModelerUtilities::MeshingParameters&, int, int>()
+      	 "RemoveMeshNodesForFluids", init<ModelPart&, ModelerUtilities::MeshingParameters&, int>()
       	 )
       	;
 
        // class_<ReconstructMeshBoundaryProcessForFluids, bases<ProcessBaseType>, boost::noncopyable >
        // 	(
-       // 	 "ReconstructMeshBoundaryForFluids", init<ModelPart&, ModelerUtilities::MeshingParameters&, int, int>()
+       // 	 "ReconstructMeshBoundaryForFluids", init<ModelPart&, ModelerUtilities::MeshingParameters&, int>()
        // 	 )
        // 	; 
 
       class_<GenerateNewNodesForHomogeneousMeshProcess, bases<ProcessBaseType>, boost::noncopyable >
       	(
-      	 "GenerateNewNodesForHomogeneousMesh", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int, int>()
+      	 "GenerateNewNodesForHomogeneousMesh", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
       	 )
       	;
 
       class_<SelectMeshElementsProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "SelectMeshElements", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int, int>()
+	 "SelectMeshElements", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
 	 )
 	;
 

@@ -90,9 +90,8 @@ namespace Kratos
     /// Default constructor.
     ReconstructMeshBoundaryProcess(ModelPart& rModelPart,
 				   ModelerUtilities::MeshingParameters& rRemeshingParameters,
-				   ModelPart::IndexType MeshId,
 				   int EchoLevel)
-      : BuildMeshBoundaryProcess(rModelPart,MeshId,EchoLevel),
+      : BuildMeshBoundaryProcess(rModelPart,rRemeshingParameters.MeshId,EchoLevel),
 	mrRemesh(rRemeshingParameters)
     { 
 

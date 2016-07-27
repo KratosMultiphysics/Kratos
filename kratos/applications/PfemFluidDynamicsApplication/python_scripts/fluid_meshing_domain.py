@@ -18,7 +18,7 @@ class FluidMeshingDomain(meshing_domain.MeshingDomain):
 
         print("::[Mesh Domain]:: CheckInitialRadius -START-")
         
-        self.mesh_id     = self.settings["mesh_id"].GetInt()
+        self.mesh_id     = self.MeshingParameters.GetMeshID()
 
         self.RefiningParameters.SetInitialRadius(self.main_model_part, self.mesh_id)
         

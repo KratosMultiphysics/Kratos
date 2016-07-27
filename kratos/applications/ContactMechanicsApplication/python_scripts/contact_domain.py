@@ -78,7 +78,7 @@ class ContactDomain(mesh_modeler.MeshingDomain):
         self.SetMeshingParameters()
         
         # Meshing Stratety
-        self.MeshingStrategy.Initialize(self.MeshingParameters, self.domain_size, self.mesh_id)
+        self.MeshingStrategy.Initialize(self.MeshingParameters, self.domain_size)
         
         print("::[Mesh Contact Domain]:: -END- ")
 

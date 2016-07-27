@@ -6,16 +6,15 @@ import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
-def CreateMeshModeler(main_model_part, meshing_parameters, mesh_id):
-    return MeshModeler(main_model_part, meshing_parameters, mesh_id)
+def CreateMeshModeler(main_model_part, meshing_parameters):
+    return MeshModeler(main_model_part, meshing_parameters)
 
 class MeshModeler(object):
     
     #
-    def __init__(self, main_model_part, meshing_parameters, mesh_id): 
+    def __init__(self, main_model_part, meshing_parameters): 
         
         self.echo_level             = 1
-        self.mesh_id                = mesh_id
         self.main_model_part        = main_model_part
         self.MeshingParameters      = meshing_parameters
 
@@ -36,7 +35,7 @@ class MeshModeler(object):
             self.mesher = KratosPfemBase.TetrahedralMesh3DModeler()
 
         self.mesher.SetEchoLevel(self.echo_level)
-        self.mesher.SetMeshingParameters(self.MeshingParameters,self.mesh_id)
+        #self.mesher.SetMeshingParameters(self.MeshingParameters)
 
         self.SetPreMeshingProcesses()
         self.SetPostMeshingProcesses()    
@@ -114,7 +113,7 @@ class MeshModeler(object):
 
 
         # process to refine elements /refine boundary
-        refine_mesh_elements  = KratosPfemBase.SetElementNodesToRefineOnThreshold(self.main_model_part, self.RefiningParameters, self.mesh_id, self.echo_level)
+        refine_mesh_elements  = KratosPfemBase.SetElementNodesToRefineOnThreshold(self.main_model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPreMeshingProcess(refine_mesh_elements)
         
         # process to refine boundary (considering or not imposed walls)        
@@ -127,16 +126,16 @@ class MeshModeler(object):
                 for sizei in range(0, len(rigid_wall_bbox)):
                     rigid_walls_container.PushBack( rigid_wall_bbox[sizei] )
 
-                refine_mesh_boundary = KratosPfemBase.ContactRefineMeshBoundary(self.main_model_part, rigid_walls_container, self.MeshingParameters, self.mesh_id, self.echo_level)
+                refine_mesh_boundary = KratosPfemBase.ContactRefineMeshBoundary(self.main_model_part, rigid_walls_container, self.MeshingParameters,  self.echo_level)
                 self.mesher.SetPreMeshingProcess(refine_mesh_boundary)
 
         else:
-            refine_mesh_boundary = RefineMeshBoundary(self.main_model_part, self.RefiningParameters, self.mesh_id, self.echo_level)            
+            refine_mesh_boundary = RefineMeshBoundary(self.main_model_part, self.RefiningParameters, self.echo_level)            
             self.mesher.SetPreMeshingProcess(refine_mesh_boundary)
 
 
         # process to remove nodes / remove boundary
-        remove_mesh_nodes = KratosPfemBase.RemoveMeshNodes(self.main_model_part, self.MeshingParameters,  self.mesh_id, self.echo_level)
+        remove_mesh_nodes = KratosPfemBase.RemoveMeshNodes(self.main_model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPreMeshingProcess(remove_mesh_nodes)
 
         
@@ -146,19 +145,19 @@ class MeshModeler(object):
         # The order set is the order of execution:
 
         #select mesh elements
-        generate_particles  = KratosPfemBase.GenerateNewNodes(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        generate_particles  = KratosPfemBase.GenerateNewNodes(self.main_model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(generate_particles)
 
         #select mesh elements
-        select_mesh_elements  = KratosPfemBase.SelectMeshElements(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        select_mesh_elements  = KratosPfemBase.SelectMeshElements(self.main_model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(select_mesh_elements)
 
         #rebuild elements
-        rebuild_mesh_elements = KratosPfemBase.BuildMeshElements(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        rebuild_mesh_elements = KratosPfemBase.BuildMeshElements(self.main_model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(rebuild_mesh_elements)
 
         #rebuild boundary
-        rebuild_mesh_boundary = KratosPfemBase.ReconstructMeshBoundary(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        rebuild_mesh_boundary = KratosPfemBase.ReconstructMeshBoundary(self.main_model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(rebuild_mesh_boundary)
 
     #
@@ -189,6 +188,6 @@ class MeshModeler(object):
     
         self.InitializeMeshing()  #set execution flags and modeler flags
 
-        self.mesher.ExecuteMeshing(self.main_model_part,self.mesh_id)
+        self.mesher.ExecuteMeshing(self.main_model_part)
         
         self.FinalizeMeshing()    #set execution flags and modeler flags

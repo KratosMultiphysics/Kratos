@@ -64,14 +64,13 @@ public:
     /// Default constructor.
     GenerateNewNodesForHomogeneousMeshProcess(ModelPart& rModelPart,
 					 ModelerUtilities::MeshingParameters& rRemeshingParameters,
-					 ModelPart::IndexType MeshId,
 					 int EchoLevel) 
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
       std::cout<<" generate_new_nodes_process_for_homogeneous_mesh CONSTRUCTOR "<<std::endl;
 
-      mMeshId = MeshId;
+      mMeshId = mrRemesh.MeshId;
       mEchoLevel = EchoLevel;
     }
 

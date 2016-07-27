@@ -28,7 +28,7 @@ class FluidMeshingStrategy(meshing_strategy.MeshingStrategy):
  
         for modeler in modelers:
             meshing_module =__import__(modeler)      
-            mesher = meshing_module.CreateMeshModeler(self.main_model_part,self.MeshingParameters,self.mesh_id) 
+            mesher = meshing_module.CreateMeshModeler(self.main_model_part,self.MeshingParameters) 
             self.mesh_modelers.append(mesher)
   
     #
