@@ -1450,11 +1450,12 @@ namespace Kratos
   //*******************************************************************************************
 
   void ModelerUtilities::SetNodes(ModelPart& rModelPart,
-				  MeshingParameters& rMeshingVariables,
-				  ModelPart::IndexType MeshId)
+				  MeshingParameters& rMeshingVariables)
   {
     KRATOS_TRY
      
+    unsigned int& MeshId = rMeshingVariables.MeshId;
+
     const unsigned int dimension = rModelPart.ElementsBegin(MeshId)->GetGeometry().WorkingSpaceDimension();
 
     //*********************************************************************
@@ -1536,12 +1537,12 @@ namespace Kratos
   //*******************************************************************************************
 
   void ModelerUtilities::SetElements(ModelPart& rModelPart,
-				     MeshingParameters& rMeshingVariables,
-				     ModelPart::IndexType MeshId)
+				     MeshingParameters& rMeshingVariables)
   {
     KRATOS_TRY
        
-          
+    unsigned int& MeshId = rMeshingVariables.MeshId;
+
     //*********************************************************************
     //input mesh: ELEMENTS
     ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(MeshId);

@@ -45,10 +45,10 @@ class MeshingStrategy(object):
         print("Construction of Mesh Modeler finished")
         
     #
-    def Initialize(self,meshing_parameters,domain_size,mesh_id):
+    def Initialize(self,meshing_parameters,domain_size):
         
         #parameters
-        self.mesh_id = mesh_id
+        self.mesh_id = meshing_parameters.GetMeshId()
 
         self.echo_level = 1
         
@@ -122,7 +122,7 @@ class MeshingStrategy(object):
 
         for modeler in modelers:
             meshing_module =__import__(modeler)      
-            mesher = meshing_module.CreateMeshModeler(self.main_model_part,self.MeshingParameters,self.mesh_id) 
+            mesher = meshing_module.CreateMeshModeler(self.main_model_part,self.MeshingParameters) 
             self.mesh_modelers.append(mesher)
 
         if( self.consider_imposed_walls ):

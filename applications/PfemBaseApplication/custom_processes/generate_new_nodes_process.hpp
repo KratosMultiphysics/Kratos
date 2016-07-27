@@ -63,14 +63,13 @@ public:
 
     /// Default constructor.
     GenerateNewNodesProcess(ModelPart& rModelPart,
-					 ModelerUtilities::MeshingParameters& rRemeshingParameters,
-					 ModelPart::IndexType MeshId,
-					 int EchoLevel) 
+			    ModelerUtilities::MeshingParameters& rRemeshingParameters,
+			    int EchoLevel) 
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
     
-      mMeshId = MeshId;
+      mMeshId = mrRemesh.MeshId;
       mEchoLevel = EchoLevel;
     }
 

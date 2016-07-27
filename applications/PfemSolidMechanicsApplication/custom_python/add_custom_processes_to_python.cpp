@@ -53,7 +53,7 @@ namespace Kratos
 
       class_<ContactRefineMeshBoundaryProcess, bases<RefineMeshProcessBaseType>, boost::noncopyable >
 	(
-	 "ContactRefineMeshBoundary", init<ModelPart&, BoundingBoxContainer&, ModelerUtilities::MeshingParameters&, int, int>()
+	 "ContactRefineMeshBoundary", init<ModelPart&, BoundingBoxContainer&, ModelerUtilities::MeshingParameters&, int>()
 	 )
 	;
 

@@ -547,6 +547,10 @@ public:
 
     public:
 
+      //SubModelPart Name
+      unsigned int MeshId;
+      std::string SubModelPartName;
+
       //General configuration flags
       Flags   Options;
       
@@ -601,6 +605,16 @@ public:
       void SetOptions(const Flags&  rOptions)
       {
 	Options=rOptions;
+      };
+
+      void SetMeshId(const unsigned int& rMeshId)
+      {
+	MeshId = rMeshId;
+      };
+
+      void SetSubModelPartName(std::string const& rSubModelPartName)
+      {
+	SubModelPartName = rSubModelPartName;
       };
 
       void SetExecutionOptions(const Flags&  rOptions)
@@ -676,6 +690,13 @@ public:
 	mpReferenceCondition=&rCondition;
       };
       
+
+      int GetMeshId()
+      {
+	return MeshId;
+      };
+
+
       Flags GetOptions()
       {
 	return Options;
@@ -696,7 +717,6 @@ public:
 	return Refine;
       };
 
-
       PropertiesType const& GetProperties()
       {
 	return Properties;
@@ -713,6 +733,8 @@ public:
 
  
       void Initialize (){
+
+	MeshId = 0;
 
 	AlphaParameter = 0;
 
@@ -1142,15 +1164,13 @@ public:
      *  Set Nodes to mesh
      */
     void SetNodes(ModelPart& rModelPart,
-		  MeshingParameters& rMeshingVariables,
-		  ModelPart::IndexType MeshId);
+		  MeshingParameters& rMeshingVariables);
 
     /**
      * Set Elements to mesh
      */
     void SetElements(ModelPart& rModelPart,
-		     MeshingParameters& rMeshingVariables,
-		     ModelPart::IndexType MeshId);
+		     MeshingParameters& rMeshingVariables);
   
     ///@}
     ///@name Access

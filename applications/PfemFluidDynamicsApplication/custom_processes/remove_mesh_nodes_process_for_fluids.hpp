@@ -75,14 +75,13 @@ public:
     /// Default constructor.
     RemoveMeshNodesProcessForFluids(ModelPart& rModelPart,
 			   ModelerUtilities::MeshingParameters& rRemeshingParameters,
-			   ModelPart::IndexType MeshId,
 			   int EchoLevel) 
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
       std::cout<<" remove_mesh_nodes_process_for_fluids "<<std::endl;
 
-      mMeshId = MeshId;
+      mMeshId = mrRemesh.MeshId;
       mEchoLevel = EchoLevel;
     }
 

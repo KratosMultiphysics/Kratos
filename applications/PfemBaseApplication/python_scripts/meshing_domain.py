@@ -221,6 +221,9 @@ class MeshingDomain(object):
         self.MeshingParameters = KratosPfemBase.MeshingParameters()
         self.MeshingParameters.Initialize()
 
+        self.MeshingParameters.SetMeshId(self.settings["mesh_id"].GetInt())
+        self.MeshingParameters.SetSubModelPartName(self.settings["sub_model_part_name"].GetString())
+ 
         self.MeshingParameters.SetAlphaParameter(self.settings["alpha_shape"].GetDouble())
         self.MeshingParameters.SetOffsetFactor(self.settings["offset_factor"].GetDouble())
  

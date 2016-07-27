@@ -9,16 +9,15 @@ KratosMultiphysics.CheckForPreviousImport()
 # Import the mesh modeler (the base class for the modeler derivation)
 import mesh_modeler
 
-def CreateMeshModeler(main_model_part, meshing_parameters, mesh_id):
-    return ReconnectModeler(main_model_part, meshing_parameters, mesh_id)
+def CreateMeshModeler(main_model_part, meshing_parameters):
+    return ReconnectModeler(main_model_part, meshing_parameters)
 
 class ReconnectModeler(mesh_modeler.MeshModeler):
     
     #
-    def __init__(self, main_model_part, meshing_parameters, mesh_id): 
+    def __init__(self, main_model_part, meshing_parameters): 
         
         self.echo_level        = 1
-        self.mesh_id           = mesh_id
         self.main_model_part   = main_model_part 
         self.MeshingParameters = meshing_parameters
 
@@ -67,7 +66,7 @@ class ReconnectModeler(mesh_modeler.MeshModeler):
             if( meshing_options.Is(KratosPfemBase.ModelerUtilities.CONSTRAINED) ):
                 modeler_flags = "pnBJFMYYQ"
             else:
-                modeler_flags = "nJFMQO4/4"
+                modeler_flags = "nJFMQ" # "QJFu0" (1.4.3) "nJFMQO4/4" (1.5.0)
 
         self.MeshingParameters.SetTessellationFlags(modeler_flags)
         self.MeshingParameters.SetTessellationInfo(modeler_info)

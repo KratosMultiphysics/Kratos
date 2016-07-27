@@ -78,12 +78,11 @@ namespace Kratos
     /// Default constructor.
     BuildMeshElementsProcess(ModelPart& rModelPart,
 			     ModelerUtilities::MeshingParameters& rRemeshingParameters,
-			     ModelPart::IndexType MeshId,
 			     int EchoLevel)
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     { 
-      mMeshId = MeshId;
+      mMeshId = mrRemesh.MeshId;
       mEchoLevel = EchoLevel;
     }
 
@@ -117,7 +116,7 @@ namespace Kratos
 	if( !mrRemesh.MeshElementsSelectedFlag )  //Select Mesh Elements not performed  ... is needed to be done before building new elements
 	{  
 	  std::cout<<" ERROR : no selection of elements performed before building the elements "<<std::endl;
-	  SelectMeshElementsProcess SelectElements(mrModelPart,mrRemesh,mMeshId,mEchoLevel);
+	  SelectMeshElementsProcess SelectElements(mrModelPart,mrRemesh,mEchoLevel);
 	  SelectElements.Execute();
 	}
 

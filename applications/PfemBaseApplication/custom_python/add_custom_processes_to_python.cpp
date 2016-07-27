@@ -109,51 +109,51 @@ namespace Kratos
 
       class_<RefineMeshElementsOnThresholdProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "SetElementNodesToRefineOnThreshold", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int, int>()
+	 "SetElementNodesToRefineOnThreshold", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
 	 )
 	;
 
       class_<RefineMeshElementsOnSizeProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "SetElementsToRefineOnSize", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int, int>()
+	 "SetElementsToRefineOnSize", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
 	 )
 	;
 
       class_<RefineMeshBoundaryProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "RefineMeshBoundary", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int, int>()
+	 "RefineMeshBoundary", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
 	 )
 	;
 
       class_<RemoveMeshNodesProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "RemoveMeshNodes", init<ModelPart&, ModelerUtilities::MeshingParameters&, int, int>()
+	 "RemoveMeshNodes", init<ModelPart&, ModelerUtilities::MeshingParameters&, int>()
 	 )
 	;
 
 
       class_<GenerateNewNodesProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "GenerateNewNodes", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int, int>()
+	 "GenerateNewNodes", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
 	 )
 	;
 
       class_<SelectMeshElementsProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "SelectMeshElements", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int, int>()
+	 "SelectMeshElements", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
 	 )
 	;
 
       class_<BuildMeshElementsProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "BuildMeshElements", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int, int>()
+	 "BuildMeshElements", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
 	 )
 	;
 
 
       class_<ReconstructMeshBoundaryProcess, bases<BuildMeshBoundaryProcess>, boost::noncopyable >
 	(
-	 "ReconstructMeshBoundary", init<ModelPart&, ModelerUtilities::MeshingParameters&, int, int>()
+	 "ReconstructMeshBoundary", init<ModelPart&, ModelerUtilities::MeshingParameters&, int>()
 	 )
 	;
 

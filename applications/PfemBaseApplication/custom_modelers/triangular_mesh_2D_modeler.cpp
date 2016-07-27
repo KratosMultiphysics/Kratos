@@ -96,8 +96,7 @@ namespace Kratos
 
   void TriangularMesh2DModeler::BuildInput(ModelPart& rModelPart,
 					   MeshingParametersType& rMeshingVariables,
-					   struct triangulateio& in,
-					   ModelPart::IndexType MeshId)
+					   struct triangulateio& in)
 					   
   {
     KRATOS_TRY
@@ -106,22 +105,21 @@ namespace Kratos
 
       //Set Nodes
       if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::TRANSFER_KRATOS_NODES_TO_MESHER) )
-	this->SetNodes(rModelPart,rMeshingVariables,MeshId);
+	this->SetNodes(rModelPart,rMeshingVariables);
       
       //Set Elements
       if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::TRANSFER_KRATOS_ELEMENTS_TO_MESHER) )
-	this->SetElements(rModelPart,rMeshingVariables,MeshId);
+	this->SetElements(rModelPart,rMeshingVariables);
       
       //Set Neighbours
       if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::TRANSFER_KRATOS_NEIGHBOURS_TO_MESHER) )
-	this->SetNeighbours(rModelPart,rMeshingVariables,MeshId);
+	this->SetNeighbours(rModelPart,rMeshingVariables);
 
       rMeshingVariables.InputInitializedFlag = true;
     }
     
     ClearTrianglesList(in);
     GetFromContainer(rMeshingVariables.InMesh,in);
-
 
     // if( rMeshingVariables.ExecutionOptions.IsNot(ModelerUtilities::INITIALIZE_MESHER_INPUT) ){
     //   WritePoints(in);
@@ -130,7 +128,7 @@ namespace Kratos
 
     //Set Faces
     if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::TRANSFER_KRATOS_FACES_TO_MESHER) )
-      this->SetFaces(rModelPart,rMeshingVariables, in, MeshId);
+      this->SetFaces(rModelPart,rMeshingVariables, in);
 
    
 
@@ -141,18 +139,19 @@ namespace Kratos
   //*******************************************************************************************
 
   void TriangularMesh2DModeler::Generate(ModelPart& rModelPart,
-					 MeshingParametersType& rMeshingVariables,
-					 ModelPart::IndexType MeshId)
+					 MeshingParametersType& rMeshingVariables)
   {
 
     KRATOS_TRY
  
+    unsigned int& MeshId = rMeshingVariables.MeshId;
+
     this->StartEcho(rModelPart,"PFEM Base Remesh",MeshId);
     
     //*********************************************************************
 
     ////////////////////////////////////////////////////////////
-    this->ExecutePreMeshingProcesses(rModelPart,rMeshingVariables,MeshId);   
+    this->ExecutePreMeshingProcesses();   
     ////////////////////////////////////////////////////////////
 
     //*********************************************************************      
@@ -162,7 +161,7 @@ namespace Kratos
     struct triangulateio out;
     ClearTrianglesList(out);
 
-    BuildInput(rModelPart,rMeshingVariables,in,MeshId);
+    BuildInput(rModelPart,rMeshingVariables,in);
     
     //*********************************************************************
 
@@ -200,7 +199,7 @@ namespace Kratos
     //*********************************************************************
     
     ////////////////////////////////////////////////////////////
-    this->ExecutePostMeshingProcesses(rModelPart,rMeshingVariables,MeshId);
+    this->ExecutePostMeshingProcesses();
     ////////////////////////////////////////////////////////////
     
 
@@ -309,7 +308,7 @@ namespace Kratos
     //*********************************************************************
 	  
     ////////////////////////////////////////////////////////////
-    this->ExecutePostMeshingProcesses(rModelPart,rMeshingVariables,MeshId);
+    this->ExecutePostMeshingProcesses();
     ////////////////////////////////////////////////////////////
 
     //*********************************************************************
@@ -350,7 +349,7 @@ namespace Kratos
       //*********************************************************************
       
       ////////////////////////////////////////////////////////////
-      this->ExecutePreMeshingProcesses(rModelPart,rMeshingVariables,MeshId);
+      this->ExecutePreMeshingProcesses();
       ////////////////////////////////////////////////////////////
       
       //*********************************************************************
@@ -474,7 +473,7 @@ namespace Kratos
     //*********************************************************************
 	  
     ////////////////////////////////////////////////////////////
-    this->ExecutePostMeshingProcesses(rModelPart,rMeshingVariables,MeshId);
+    this->ExecutePostMeshingProcesses();
     ////////////////////////////////////////////////////////////
 
     //*********************************************************************
@@ -593,7 +592,7 @@ namespace Kratos
     //*********************************************************************
 	  
     ////////////////////////////////////////////////////////////
-    this->ExecutePostMeshingProcesses(rModelPart,rMeshingVariables,MeshId);
+    this->ExecutePostMeshingProcesses();
     ////////////////////////////////////////////////////////////
 
     //*********************************************************************
@@ -641,7 +640,7 @@ namespace Kratos
     //*********************************************************************
     
     ////////////////////////////////////////////////////////////
-    this->ExecutePreMeshingProcesses(rModelPart,rMeshingVariables,MeshId);
+    this->ExecutePreMeshingProcesses();
     ////////////////////////////////////////////////////////////
     
     //*********************************************************************
@@ -742,7 +741,7 @@ namespace Kratos
     //*********************************************************************
 	  
     ////////////////////////////////////////////////////////////
-    this->ExecutePostMeshingProcesses(rModelPart,rMeshingVariables,MeshId);
+    this->ExecutePostMeshingProcesses();
     ////////////////////////////////////////////////////////////
 
     //*********************************************************************
@@ -783,7 +782,7 @@ namespace Kratos
     //*********************************************************************
     
     ////////////////////////////////////////////////////////////
-    this->ExecutePreMeshingProcesses(rModelPart,rMeshingVariables,MeshId);
+    this->ExecutePreMeshingProcesses();
     ////////////////////////////////////////////////////////////
     
     //*********************************************************************
@@ -828,7 +827,7 @@ namespace Kratos
     }
 
     if( rMeshingVariables.Options.Is(ModelerUtilities::CONSTRAINED) )
-      RecoverBoundaryPreviousPosition(rModelPart,rMeshingVariables,in,out,MeshId);
+      RecoverBoundaryPreviousPosition(rModelPart,rMeshingVariables,in,out);
 
     //print out the mesh generation time
     if( this->GetEchoLevel() > 0 )
@@ -895,7 +894,7 @@ namespace Kratos
     rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::CONSTRAINED);
 
     if( rMeshingVariables.Options.Is(ModelerUtilities::CONSTRAINED) )
-      RecoverBoundaryPreviousPosition(rModelPart,rMeshingVariables,in,out,MeshId);
+      RecoverBoundaryPreviousPosition(rModelPart,rMeshingVariables,in,out);
 
 
     //check if something changes:
@@ -921,7 +920,7 @@ namespace Kratos
     //*********************************************************************
 	  
     ////////////////////////////////////////////////////////////
-    this->ExecutePostMeshingProcesses(rModelPart,rMeshingVariables,MeshId);
+    this->ExecutePostMeshingProcesses();
     ////////////////////////////////////////////////////////////
 
     //*********************************************************************
@@ -1051,7 +1050,7 @@ namespace Kratos
     //SetFaces (segments)
 
     if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONSTRAINED))
-      this->SetFaces(rModelPart,rMeshingVariables,in,MeshId);
+      this->SetFaces(rModelPart,rMeshingVariables,in);
 
 
     KRATOS_CATCH( "" )
@@ -1064,10 +1063,11 @@ namespace Kratos
 
   void TriangularMesh2DModeler::SetFaces(ModelPart& rModelPart,
 					 MeshingParametersType& rMeshingVariables,
-					 struct triangulateio& in,
-					 ModelPart::IndexType MeshId)
+					 struct triangulateio& in)
   {
      KRATOS_TRY
+
+     unsigned int& MeshId = rMeshingVariables.MeshId;
 
      //*********************************************************************
 
@@ -1154,11 +1154,12 @@ namespace Kratos
   void TriangularMesh2DModeler::RecoverBoundaryPreviousPosition(ModelPart& rModelPart,
 								MeshingParametersType& rMeshingVariables,
 								struct triangulateio& in,
-								struct triangulateio& out,
-								ModelPart::IndexType MeshId)
+								struct triangulateio& out)
   {
     KRATOS_TRY
     
+    unsigned int& MeshId = rMeshingVariables.MeshId;
+
     ModelPart::NodesContainerType::iterator nodes_begin = rModelPart.NodesBegin(MeshId);
 
     int base=0;
@@ -1619,7 +1620,7 @@ namespace Kratos
     //*******************************************************************
     
     //8) Filling the neighbour list
-    SetElementNeighbours(rModelPart,rMeshingVariables,MeshId);
+    SetElementNeighbours(rModelPart,rMeshingVariables);
 
     //*******************************************************************
 	

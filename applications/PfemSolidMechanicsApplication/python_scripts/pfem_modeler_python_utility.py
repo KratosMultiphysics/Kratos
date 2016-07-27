@@ -363,7 +363,7 @@ class ModelerUtility:
                     rigid_walls_container.PushBack( rigid_wall_bbox[sizei] )
 
             
-            refine_mesh_boundary = ContactRefineMeshBoundary(self.model_part, rigid_walls_container, self.MeshingParameters, mesh_id, self.echo_level)
+            refine_mesh_boundary = ContactRefineMeshBoundary(self.model_part, rigid_walls_container, self.MeshingParameters, self.echo_level)
 
             mesh_modeler.SetPreMeshingProcess(refine_mesh_boundary)
 

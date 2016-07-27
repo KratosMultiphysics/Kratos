@@ -9,8 +9,8 @@ KratosMultiphysics.CheckForPreviousImport()
 
 import mesh_modeler
 
-def CreateMeshModeler(main_model_part, meshing_parameters, mesh_id):
-    return FluidMeshModeler(main_model_part, meshing_parameters, mesh_id)
+def CreateMeshModeler(main_model_part, meshing_parameters):
+    return FluidMeshModeler(main_model_part, meshing_parameters)
 
 class FluidMeshModeler(mesh_modeler.MeshModeler):
 
@@ -81,21 +81,21 @@ class FluidMeshModeler(mesh_modeler.MeshModeler):
         # The order set is the order of execution:
 
         #select mesh elements
-        generate_particles  = KratosPfemBase.GenerateNewNodes(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        generate_particles  = KratosPfemBase.GenerateNewNodes(self.main_model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(generate_particles)
 
         #select mesh elements
-        #select_mesh_elements  = KratosPfemBase.SelectMeshElements(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        #select_mesh_elements  = KratosPfemBase.SelectMeshElements(self.main_model_part, self.MeshingParameters, self.echo_level)
         #self.mesher.SetPostMeshingProcess(select_mesh_elements)
-        select_mesh_elements  = KratosPfemFluid.SelectMeshElements(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        select_mesh_elements  = KratosPfemFluid.SelectMeshElements(self.main_model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(select_mesh_elements)
 
         #rebuild elements
-        rebuild_mesh_elements = KratosPfemBase.BuildMeshElements(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        rebuild_mesh_elements = KratosPfemBase.BuildMeshElements(self.main_model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(rebuild_mesh_elements)
 
         #rebuild boundary
-        rebuild_mesh_boundary = KratosPfemBase.ReconstructMeshBoundary(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        rebuild_mesh_boundary = KratosPfemBase.ReconstructMeshBoundary(self.main_model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(rebuild_mesh_boundary)
 
 

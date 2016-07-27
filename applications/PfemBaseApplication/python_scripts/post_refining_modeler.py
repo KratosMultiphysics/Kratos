@@ -9,16 +9,15 @@ KratosMultiphysics.CheckForPreviousImport()
 # Import the mesh modeler (the base class for the modeler derivation)
 import mesh_modeler
 
-def CreateMeshModeler(main_model_part, meshing_parameters, mesh_id):
-    return PostRefiningModeler(main_model_part, meshing_parameters, mesh_id)
+def CreateMeshModeler(main_model_part, meshing_parameters):
+    return PostRefiningModeler(main_model_part, meshing_parameters)
 
 class PostRefiningModeler(mesh_modeler.MeshModeler):
     
     #
-    def __init__(self, main_model_part, meshing_parameters, mesh_id): 
+    def __init__(self, main_model_part, meshing_parameters): 
         
         self.echo_level        = 1
-        self.mesh_id           = mesh_id
         self.main_model_part   = main_model_part 
         self.MeshingParameters = meshing_parameters
 

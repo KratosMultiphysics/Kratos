@@ -20,35 +20,6 @@
 namespace Kratos
 {
 
-  //*******************************************************************************************
-  //*******************************************************************************************
-  void MeshModeler::StartEcho(ModelPart& rModelPart,
-			      std::string GenerationMessage, 
-			      ModelPart::IndexType MeshId)
-  {
-
-    if( this->GetEchoLevel() > 0 ){
-      std::cout<<" [ [ [ ] ] ]"<<std::endl;
-      std::cout<<" [ "<<GenerationMessage <<" ]"<<std::endl;
-      std::cout<<" [ PREVIOUS MESH (Elements: "<<rModelPart.NumberOfElements(MeshId)<<" Nodes: "<<rModelPart.NumberOfNodes(MeshId)<<" Conditions: "<<rModelPart.NumberOfConditions(MeshId)<<") ] MESH_ID: ["<<MeshId<<"]"<<std::endl;
-    }
-  }
-
-  //*******************************************************************************************
-  //*******************************************************************************************
-  void MeshModeler::EndEcho(ModelPart& rModelPart,
-			    std::string GenerationMessage, 
-			    ModelPart::IndexType MeshId)
-  {
-
-    if( this->GetEchoLevel() > 0 ){
-      std::cout<<" [ NEW MESH (Elements: "<<rModelPart.Elements(MeshId).size()<<" Nodes: "<<rModelPart.Nodes(MeshId).size()<<" Conditions: "<<rModelPart.Conditions(MeshId).size()<<") ]  MESH_ID: ["<<MeshId<<"]"<<std::endl;
-      std::cout<<" [ "<<GenerationMessage <<" ]"<<std::endl;
-      std::cout<<" [ Finished Remeshing ] "<<std::endl;
-      std::cout<<" [ [ [ ] ] ]"<<std::endl;
-    }
-
-  }
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -60,59 +31,14 @@ namespace Kratos
     KRATOS_CATCH(" ")
   }
   
+
   //*******************************************************************************************
   //*******************************************************************************************
 
-  void MeshModeler::ExecutePreMeshingProcesses(ModelPart& rModelPart,
-					       MeshingParametersType& rMeshingVariables,
-					       ModelPart::IndexType MeshId)
+  void MeshModeler::SetMeshingParameters( MeshingParametersType::Pointer& rMeshingParameters )
   {
     KRATOS_TRY
     
-    //Refine and Remove nodes processes
-    ////////////////////////////////////////////////////////////
-    if( mPreMeshingProcesses.size() )
-      for(unsigned int i=0; i<mPreMeshingProcesses.size(); i++)
-	mPreMeshingProcesses[i]->Execute();
-    ////////////////////////////////////////////////////////////
-
-    KRATOS_CATCH( "" )
-  }
-
-
-
-  //*******************************************************************************************
-  //*******************************************************************************************
-
-  void MeshModeler::ExecutePostMeshingProcesses(ModelPart& rModelPart,
-						MeshingParametersType& rMeshingVariables,
-						ModelPart::IndexType MeshId)
-  {
-    KRATOS_TRY
-
-    //Rebuild Boundary processes
-    ////////////////////////////////////////////////////////////
-    if( mPostMeshingProcesses.size() )
-      for(unsigned int i=0; i<mPostMeshingProcesses.size(); i++)
-	mPostMeshingProcesses[i]->Execute();
-    ////////////////////////////////////////////////////////////
-
- 
-    KRATOS_CATCH( "" )
-
-  }
-
-
-  //*******************************************************************************************
-  //*******************************************************************************************
-
-  void MeshModeler::SetMeshingParameters( MeshingParametersType::Pointer& rMeshingParameters, ModelPart::IndexType MeshId  )
-  {
-    KRATOS_TRY
-    
-    // if(mMeshingVariables.size() == 1 && MeshId != 0)
-    //   std::cout<<" Something wrong with mesh ID "<<MeshId<<std::endl;
-
     mpMeshingVariables = rMeshingParameters;
 
     bool Remesh = false;
@@ -128,7 +54,7 @@ namespace Kratos
       Transfer = true;
 
     if( mEchoLevel > 0 )
-      std::cout<<" SetRemeshData ["<<MeshId<<"]: [ RefineFlag: "<<Refine<<" RemeshFlag : "<<Remesh<<" TransferFlag : "<<Transfer<<" ] "<<std::endl;
+      std::cout<<" SetRemeshData ["<<mpMeshingVariables->MeshId<<"]: [ RefineFlag: "<<Refine<<" RemeshFlag : "<<Remesh<<" TransferFlag : "<<Transfer<<" ] "<<std::endl;
 
     KRATOS_CATCH(" ")
   }
@@ -184,6 +110,46 @@ namespace Kratos
   }
 
 
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void MeshModeler::ExecutePreMeshingProcesses()
+  {
+    KRATOS_TRY
+    
+    //Refine and Remove nodes processes
+    ////////////////////////////////////////////////////////////
+    if( mPreMeshingProcesses.size() )
+      for(unsigned int i=0; i<mPreMeshingProcesses.size(); i++)
+	mPreMeshingProcesses[i]->Execute();
+    ////////////////////////////////////////////////////////////
+
+    KRATOS_CATCH( "" )
+  }
+
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void MeshModeler::ExecutePostMeshingProcesses()
+  {
+    KRATOS_TRY
+
+    //Rebuild Boundary processes
+    ////////////////////////////////////////////////////////////
+    if( mPostMeshingProcesses.size() )
+      for(unsigned int i=0; i<mPostMeshingProcesses.size(); i++)
+	mPostMeshingProcesses[i]->Execute();
+    ////////////////////////////////////////////////////////////
+
+ 
+    KRATOS_CATCH( "" )
+
+  }
+
+
   //*******************************************************************************************
   //*******************************************************************************************
 
@@ -214,7 +180,7 @@ namespace Kratos
   //*******************************************************************************************
 
 
-  void MeshModeler::InitializeMeshModeler( ModelPart& rModelPart, ModelPart::IndexType MeshId )
+  void MeshModeler::InitializeMeshModeler( ModelPart& rModelPart )
   {
     KRATOS_TRY
 
@@ -228,7 +194,7 @@ namespace Kratos
   //*******************************************************************************************
 
 
-  void MeshModeler::FinalizeMeshModeler( ModelPart& rModelPart, ModelPart::IndexType MeshId )
+  void MeshModeler::FinalizeMeshModeler( ModelPart& rModelPart )
   {
     KRATOS_TRY
 
@@ -242,10 +208,11 @@ namespace Kratos
   //*******************************************************************************************
 
 
-  void MeshModeler::GenerateMesh ( ModelPart& rModelPart, ModelPart::IndexType MeshId )
+  void MeshModeler::GenerateMesh ( ModelPart& rModelPart )
   {
     KRATOS_TRY
 
+    unsigned int& MeshId = mpMeshingVariables->MeshId;
 
     if( GetEchoLevel() > 0 ){
       std::cout<<" [ GetRemeshData ["<<MeshId<<"]: [ RefineFlag: "<<mpMeshingVariables->Options.Is(ModelerUtilities::REFINE)<<"; RemeshFlag : "<<mpMeshingVariables->Options.Is(ModelerUtilities::REMESH)<<" ] ]"<<std::endl;
@@ -469,15 +436,16 @@ namespace Kratos
   //*******************************************************************************************
 
 
-  void MeshModeler::ExecuteMeshing ( ModelPart& rModelPart, ModelPart::IndexType MeshId )
+  void MeshModeler::ExecuteMeshing ( ModelPart& rModelPart )
   {
     KRATOS_TRY
 
+    unsigned int& MeshId = mpMeshingVariables->MeshId;
 
     if( GetEchoLevel() > 0 ){
       std::cout<<" [ GetRemeshData ["<<MeshId<<"]: [ RefineFlag: "<<mpMeshingVariables->Options.Is(ModelerUtilities::REFINE)<<"; RemeshFlag : "<<mpMeshingVariables->Options.Is(ModelerUtilities::REMESH)<<" ] ]"<<std::endl;
     }
-
+  
     // bool out_buffer_active = true;
     // std::streambuf* buffer = NULL;
     // if( mEchoLevel == 0 ){
@@ -527,18 +495,47 @@ namespace Kratos
     KRATOS_CATCH(" ")
   }
 
+  //*******************************************************************************************
+  //*******************************************************************************************
+  void MeshModeler::StartEcho(ModelPart& rSubModelPart,
+			      std::string GenerationMessage, 
+			      ModelPart::IndexType MeshId)
+  {
+
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<" [ [ [ ] ] ]"<<std::endl;
+      std::cout<<" [ "<<GenerationMessage <<" ]"<<std::endl;
+      std::cout<<" [ PREVIOUS MESH (Elements: "<<rSubModelPart.NumberOfElements(MeshId)<<" Nodes: "<<rSubModelPart.NumberOfNodes(MeshId)<<" Conditions: "<<rSubModelPart.NumberOfConditions(MeshId)<<") ] MESH_ID: ["<<MeshId<<"]"<<std::endl;
+    }
+  }
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+  void MeshModeler::EndEcho(ModelPart& rSubModelPart,
+			    std::string GenerationMessage, 
+			    ModelPart::IndexType MeshId)
+  {
+
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<" [ NEW MESH (Elements: "<<rSubModelPart.Elements(MeshId).size()<<" Nodes: "<<rSubModelPart.Nodes(MeshId).size()<<" Conditions: "<<rSubModelPart.Conditions(MeshId).size()<<") ]  MESH_ID: ["<<MeshId<<"]"<<std::endl;
+      std::cout<<" [ "<<GenerationMessage <<" ]"<<std::endl;
+      std::cout<<" [ Finished Remeshing ] "<<std::endl;
+      std::cout<<" [ [ [ ] ] ]"<<std::endl;
+    }
+
+  }
+
 
   //*******************************************************************************************
   //*******************************************************************************************
 
   void MeshModeler::SetNodes(ModelPart& rModelPart,
-			     MeshingParametersType& rMeshingVariables,
-			     ModelPart::IndexType MeshId)
+			     MeshingParametersType& rMeshingVariables)
   {
     KRATOS_TRY
      
     ModelerUtilities ModelerUtils;
-    ModelerUtils.SetNodes(rModelPart,rMeshingVariables,MeshId);
+    ModelerUtils.SetNodes(rModelPart,rMeshingVariables);
 
     KRATOS_CATCH( "" )
 
@@ -549,13 +546,12 @@ namespace Kratos
   //*******************************************************************************************
 
   void MeshModeler::SetElements(ModelPart& rModelPart,
-				MeshingParametersType& rMeshingVariables,
-				ModelPart::IndexType MeshId)
+				MeshingParametersType& rMeshingVariables)
   {
     KRATOS_TRY
        
     ModelerUtilities ModelerUtils;
-    ModelerUtils.SetElements(rModelPart,rMeshingVariables,MeshId);
+    ModelerUtils.SetElements(rModelPart,rMeshingVariables);
 
     KRATOS_CATCH( "" )
 
@@ -566,11 +562,11 @@ namespace Kratos
   //*******************************************************************************************
 
   void MeshModeler::SetNeighbours(ModelPart& rModelPart,
-				  MeshingParametersType& rMeshingVariables,
-				  ModelPart::IndexType MeshId)
+				  MeshingParametersType& rMeshingVariables)
   {
     KRATOS_TRY
 
+    unsigned int& MeshId = rMeshingVariables.MeshId;
         
     //*********************************************************************
     //input mesh: NEIGHBOURELEMENTS
@@ -604,10 +600,11 @@ namespace Kratos
   //*******************************************************************************************
 
   void MeshModeler::SetElementNeighbours(ModelPart& rModelPart,
-					 MeshingParametersType & rMeshingVariables,
-					 ModelPart::IndexType MeshId)
+					 MeshingParametersType & rMeshingVariables)
   {
     KRATOS_TRY
+
+    unsigned int& MeshId = rMeshingVariables.MeshId;
 
     if( this->GetEchoLevel() > 0 ){
       std::cout<<" [ SET ELEMENT NEIGHBOURS : "<<std::endl;
@@ -668,11 +665,12 @@ namespace Kratos
   //*******************************************************************************************
 
   void MeshModeler::RecoverBoundaryPosition(ModelPart& rModelPart,
-					    MeshingParametersType& rMeshingVariables,
-					    ModelPart::IndexType MeshId)
+					    MeshingParametersType& rMeshingVariables)
   {
     KRATOS_TRY
     
+    unsigned int& MeshId = rMeshingVariables.MeshId;
+
     const unsigned int dimension = rModelPart.ElementsBegin(MeshId)->GetGeometry().WorkingSpaceDimension();
           
     //*********************************************************************

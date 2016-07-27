@@ -106,9 +106,8 @@ public:
     ContactRefineMeshBoundaryProcess(ModelPart& rModelPart,
 				     std::vector<SpatialBoundingBox::Pointer>& rRigidWalls,
 				     ModelerUtilities::MeshingParameters& rRemeshingParameters,
-				     ModelPart::IndexType MeshId,
 				     int EchoLevel) 
-      :RefineMeshBoundaryProcess(rModelPart,rRemeshingParameters,MeshId,EchoLevel)
+      :RefineMeshBoundaryProcess(rModelPart,rRemeshingParameters,EchoLevel)
     {    
       mRigidWalls = rRigidWalls;
       for(unsigned int i=0; i<rRigidWalls.size(); i++)

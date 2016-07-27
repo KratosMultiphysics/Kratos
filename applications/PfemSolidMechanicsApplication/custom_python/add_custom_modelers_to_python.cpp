@@ -44,7 +44,7 @@ namespace Python
     
   void SetMeshingParameters(ContactDomain2DModeler& Mesher, ModelerUtilities::MeshingParameters::Pointer MeshingParameters, int MeshId)
   {
-    Mesher.SetMeshingParameters(MeshingParameters, MeshId);
+    Mesher.SetMeshingParameters(MeshingParameters);
   }
 
   void  AddCustomModelersToPython()

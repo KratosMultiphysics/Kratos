@@ -63,14 +63,13 @@ public:
     /// Default constructor.
     RefineMeshElementsOnSizeProcess(ModelPart& rModelPart,
 				    ModelerUtilities::MeshingParameters& rRemeshingParameters,
-				    ModelPart::IndexType MeshId,
 				    int EchoLevel) 
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
     
       std::cout<<"--------- RefineMeshElementsOnSizeProcess CONSTRUCTOR in PfemFluid"<<std::endl;
-      mMeshId = MeshId;
+      mMeshId = mrRemesh.MeshId;
       mEchoLevel = EchoLevel;
     }
 

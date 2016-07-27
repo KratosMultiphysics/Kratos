@@ -65,12 +65,11 @@ public:
     /// Default constructor.
     RefineMeshBoundaryProcess(ModelPart& rModelPart,
 			      ModelerUtilities::MeshingParameters& rRemeshingParameters,
-			      ModelPart::IndexType MeshId,
 			      int EchoLevel) 
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {     
-      mMeshId = MeshId;
+      mMeshId = mrRemesh.MeshId;
       mEchoLevel = EchoLevel;
     }
 

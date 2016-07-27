@@ -362,17 +362,17 @@ class ModelerUtility:
                 
 
             #Pre Meshing Processes
-            #remove_mesh_nodes = RemoveMeshNodes(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
-            remove_mesh_nodes = RemoveMeshNodesForFluids(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
+            #remove_mesh_nodes = RemoveMeshNodes(self.model_part, self.MeshingParameters, self.echo_level)
+            remove_mesh_nodes = RemoveMeshNodesForFluids(self.model_part, self.MeshingParameters, self.echo_level)
 
             mesh_modeler.SetPreMeshingProcess(remove_mesh_nodes)
 
-            ##refine_mesh_boundary = RefineMeshBoundary(self.model_part, self.RefiningParameters, self.InfoParameters, mesh_id, self.echo_level) commented the 26 04 2016
+            ##refine_mesh_boundary = RefineMeshBoundary(self.model_part, self.RefiningParameters, self.InfoParameters, self.echo_level) commented the 26 04 2016
             #mesh_modeler.SetPreMeshingProcess(refine_mesh_boundary)
 
             #Post Meshing Processes
-            rebuild_mesh_boundary = ReconstructMeshBoundary(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
-            #rebuild_mesh_boundary = ReconstructMeshBoundaryForFluids(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
+            rebuild_mesh_boundary = ReconstructMeshBoundary(self.model_part, self.MeshingParameters, self.echo_level)
+            #rebuild_mesh_boundary = ReconstructMeshBoundaryForFluids(self.model_part, self.MeshingParameters, self.echo_level)
            
             
             mesh_modeler.SetPostMeshingProcess(rebuild_mesh_boundary)
@@ -381,7 +381,7 @@ class ModelerUtility:
             if( parameters["Remesh"] ):
                 print("(Type:",parameters["MeshElement"],")")
 
-            mesh_modeler.SetMeshingParameters(self.MeshingParameters, mesh_id)
+            mesh_modeler.SetMeshingParameters(self.MeshingParameters)
 
             self.mesh_modelers.append(mesh_modeler)
 
@@ -460,11 +460,11 @@ class ModelerUtility:
 
                 mesh_id = self.mesh_ids[id]
                 
-                mesher.InitializeMeshModeler(self.model_part,mesh_id)
+                mesher.InitializeMeshModeler(self.model_part)
                 
-                mesher.GenerateMesh(self.model_part,mesh_id);
+                mesher.GenerateMesh(self.model_part);
 
-                mesher.FinalizeMeshModeler(self.model_part,mesh_id)
+                mesher.FinalizeMeshModeler(self.model_part)
 
                 self.remesh_executed = True
 
