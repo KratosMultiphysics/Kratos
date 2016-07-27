@@ -119,6 +119,8 @@ namespace Kratos {
         const double cluster_mass = particle_density * cluster_volume;
         
         GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = cluster_mass;
+        GetGeometry()[0].FastGetSolutionStepValue(CLUSTER_VOLUME) = cluster_volume;
+        GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MATERIAL) = this->SlowGetParticleMaterial();
         
         const double squared_scaling_factor_times_density = scaling_factor * scaling_factor * particle_density;
         GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = reference_inertias[0] * cluster_volume * squared_scaling_factor_times_density;
@@ -126,6 +128,22 @@ namespace Kratos {
         GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = reference_inertias[2] * cluster_volume * squared_scaling_factor_times_density;
          
         array_1d<double, 3> base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);  
+        const array_1d<double, 3>& EulerAngles = GetGeometry()[0].FastGetSolutionStepValue(EULER_ANGLES);
+        Quaternion<double>& Orientation = GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION);
+        Orientation = Quaternion<double>::FromEulerAngles(EulerAngles);
+        array_1d<double, 3> angular_velocity = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+        
+        array_1d<double, 3> angular_momentum;
+        double LocalTensor[3][3];
+        double GlobalTensor[3][3];
+        GeometryFunctions::ConstructLocalTensor(base_principal_moments_of_inertia, LocalTensor);
+        GeometryFunctions::QuaternionTensorLocal2Global(Orientation, LocalTensor, GlobalTensor);                   
+        GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensor, angular_velocity, angular_momentum);
+        noalias(this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_MOMENTUM)) = angular_momentum;
+        
+        array_1d<double, 3> local_angular_velocity;
+        GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
+        noalias(this->GetGeometry()[0].FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY)) = local_angular_velocity;
     }
     
     
@@ -153,9 +171,7 @@ namespace Kratos {
         
         Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
           
-        const array_1d<double, 3>& EulerAngles = central_node.FastGetSolutionStepValue(EULER_ANGLES);
         Quaternion<double>& Orientation = central_node.FastGetSolutionStepValue(ORIENTATION);
-        Orientation = Quaternion<double>::FromEulerAngles(EulerAngles);
 
         const double mass = central_node.FastGetSolutionStepValue(NODAL_MASS);
         array_1d<double, 3> coordinates_of_sphere;
@@ -339,6 +355,8 @@ namespace Kratos {
     }
     
     double Cluster3D::SlowGetDensity() { return GetProperties()[PARTICLE_DENSITY];}
+    
+    int Cluster3D::SlowGetParticleMaterial() { return GetProperties()[PARTICLE_MATERIAL];}
     
     void Cluster3D::SetInitialNeighbours(const double search_tolerance) {
         if(!mListOfSphericParticles.size() ) return;

@@ -1591,7 +1591,7 @@ void   SphericParticle::SetSearchRadius(const double radius)                    
 void   SphericParticle::SetSearchRadiusWithFem(const double radius)                      { mSearchRadiusWithFem = radius; }
 double SphericParticle::GetMass()                                                        { return mRealMass;       }
 void   SphericParticle::SetMass(double real_mass)                                        { mRealMass = real_mass;  GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = real_mass;}
-double SphericParticle::CalculateMomentOfInertia()                                       {return 0.4 * GetMass() * GetRadius() * GetRadius(); }
+double SphericParticle::CalculateMomentOfInertia()                                       { return 0.4 * GetMass() * GetRadius() * GetRadius(); }
 
 double SphericParticle::GetYoung()                                                       { return GetFastProperties()->GetYoung();                     }
 double SphericParticle::GetRollingFriction()                                             { return GetFastProperties()->GetRollingFriction();           }
@@ -1638,6 +1638,6 @@ double SphericParticle::SlowGetCoefficientOfRestitution()                       
 double SphericParticle::SlowGetDensity()                                                 { return GetProperties()[PARTICLE_DENSITY];                                        }
 int    SphericParticle::SlowGetParticleMaterial()                                        { return GetProperties()[PARTICLE_MATERIAL];                                       }
 double SphericParticle::SlowGetParticleCohesion()                                        { return GetProperties()[PARTICLE_COHESION];                                       }
-double SphericParticle::GetBoundDeltaDispSq()                                              { return mBoundDeltaDispSq;   }
+double SphericParticle::GetBoundDeltaDispSq()                                            { return mBoundDeltaDispSq;   }
 
 }  // namespace Kratos.

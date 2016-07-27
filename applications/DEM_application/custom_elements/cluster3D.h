@@ -72,7 +72,7 @@ namespace Kratos
    
         double GetSqrtOfRealMass();
         virtual double SlowGetDensity();
-
+        virtual int SlowGetParticleMaterial();
 
         virtual std::string Info() const
         {
