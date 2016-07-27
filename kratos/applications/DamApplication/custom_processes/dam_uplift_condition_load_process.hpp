@@ -47,9 +47,13 @@ public:
                 "Uplift_Direction"                                      : "X",
                 "Reservoir_Bottom_Coordinate_in_Gravity_Direction"      : 0.0,
                 "Upstream_Coordinate_at_Base_Dam_in_Uplift_Direction"   : 0.0,
-                "Base_of_dam"                                         : 0.0,
+                "Base_of_dam"                                           : 0.0,
                 "Spe_weight"                                            : 0.0,
-                "Water_level"                                           : 0.0
+                "Water_level"                                           : 10,
+                "Drains"                                                : false,
+                "Height_drain"                                          : 0.0,
+                "Position_drain"                                        : 0.0,
+                "Effectiveness"                                         : 0.0
             }  )" );
             
         
