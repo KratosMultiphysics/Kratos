@@ -523,8 +523,6 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
 
         Element::Pointer p_new_cluster = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
         Kratos::Cluster3D* p_cluster = dynamic_cast<Kratos::Cluster3D*> (p_new_cluster.get());
-                          
-        p_cluster->Initialize(r_process_info);                        
                     
         if ((*r_params)[RANDOM_EULER_ANGLES]) {
             
@@ -539,7 +537,8 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
             euler_angles[2] = (*r_params)[EULER_ANGLES][2];
         }
         
-        p_cluster->SetOrientation(euler_angles);  
+        p_cluster->SetOrientation(euler_angles);
+        p_cluster->Initialize(r_process_info); 
         
         const bool is_breakable = (*r_params)[BREAKABLE_CLUSTER]; //THIS IS NOT THREAD SAFE!!!
         
