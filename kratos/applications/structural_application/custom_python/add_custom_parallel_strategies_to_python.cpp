@@ -103,7 +103,7 @@ void  AddCustomParallelStrategiesToPython()
 //			typedef UblasSpace<double, CompressedMatrix, Vector> ParallelSparseSpaceType;
 //std::cout << "ATTENTION Ublas space used instead of Parallel Ublas Space" << std::endl;
 
-    typedef LinearSolver<ParallelSparseSpaceType, ParallelLocalSpaceType > ParallelLinearSolverType;
+    //typedef LinearSolver<ParallelSparseSpaceType, ParallelLocalSpaceType > ParallelLinearSolverType;
     //typedef SolvingStrategy< ParallelSparseSpaceType, ParallelLocalSpaceType, ParallelLinearSolverType > ParallelBaseSolvingStrategyType;
     typedef Scheme< ParallelSparseSpaceType, ParallelLocalSpaceType > ParallelBaseSchemeType;
 
