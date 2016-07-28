@@ -19,7 +19,7 @@ mv "${2}/${1}-1.dat" "$2/${1}.kpt"
 rm "${2}/${1}-2.dat"
 mv "${2}/${1}-3.dat" "${2}/ProjectParameters.py"
 mv "${2}/${1}-4.dat" "${2}/materials.py"
-mv "${2}/${1}-5.dat" "${2}/ProjectParameters.json"
+mv "${2}/${1}-6.dat" "${2}/ProjectParameters.json"
 
 # Read additional settings (kpt file)
 while read name value; do

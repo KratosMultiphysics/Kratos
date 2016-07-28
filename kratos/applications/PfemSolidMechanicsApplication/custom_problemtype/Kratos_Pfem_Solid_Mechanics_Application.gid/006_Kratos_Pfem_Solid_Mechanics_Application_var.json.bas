@@ -3,7 +3,7 @@
         "problem_name"    : "*tcl(file tail [GiD_Info Project ModelName])",
         "model_part_name" : "Solid Domain",
         "domain_size"     : *GenData(DOMAIN_SIZE,INT),
-	"time_step"       : *GenData(Time_Step)
+	"time_step"       : *GenData(Time_Step),
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : *GenData(Echo_Level)
@@ -32,8 +32,43 @@
              "scaling"     : true,
              "verbosity"   : 0
          },
-        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto2"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","SelfWeight2D_Self_weight_Auto1"]
+        "problem_domain_sub_model_part_list" : [
+*Set cond group_DeformableBodies *groups
+*if(CondNumEntities > 0)
+*set var GroupNum = 0
+*loop groups *OnlyInCond
+*set var GroupNum=operation(GroupNum+1)
+*end groups
+*set var Counter = 0
+*loop groups *OnlyInCond
+*set var Counter=operation(Counter+1)
+*if( Counter == GroupNum )
+         "*cond(Group_ID)"
+*else
+	 "*cond(Group_ID)",
+*end
+*end groups
+*endif
+      	],
+        "processes_sub_model_part_list" : [
+*Set cond group_RigidWalls *groups
+*if(CondNumEntities > 0)
+*set var GroupNum = 0
+*loop groups *OnlyInCond
+*set var GroupNum=operation(GroupNum+1)
+*end groups
+
+*set var Counter = 0
+*loop groups *OnlyInCond
+*set var Counter=operation(Counter+1)
+*if( Counter == GroupNum )
+         "*cond(Group_ID)"
+*else
+	 "*cond(Group_ID)",
+*end
+*end groups
+*endif
+      	]
     },
     "problem_process_list" : [{
         "implemented_in_file"   : "remesh_domains_process",
@@ -41,10 +76,7 @@
         "help"                  : "This process applies meshing to the problem domains",
         "process_name"          : "RemeshDomainsProcess",
         "Parameters"            : {
-            "mesh_id"               : 0,
 	    "model_part_name"       : "Solid Domain",
-	    "echo_level"            : 1,
-	    "domain_size"           : 2,
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 1.0,
             "meshing_before_output" : true,
@@ -55,8 +87,7 @@
             {
 		"python_file_name": "meshing_domain",
 		"mesh_id": *cond(Group_ID),
-		"domain_size": *GenData(DOMAIN_SIZE,INT),
-		"echo_level": *GenData(Echo_Level),
+		"sub_model_part_name": "*cond(Group_ID)",
 		"alpha_shape": 2.4,
 		"offset_factor": *GenData(Offset_Factor),
 		"meshing_strategy":{
@@ -127,53 +158,6 @@
 *end groups
             ]
         }
-    },{
-        "implemented_in_file"   : "parametric_walls_process",
-        "implemented_in_module" : "KratosMultiphysics.ContactMechanicsApplication",
-        "help"                  : "This process applies parametric walls and search contact",
-        "process_name"          : "ParametricWallsProcess",
-        "Parameters"            : {
-            "mesh_id"               : 0,
-	    "model_part_name"       : "Solid Domain",
-	    "echo_level"            : 1,
-	    "domain_size"           : 2,
-            "search_control_type"  : "step",
-            "search_frequency"     : 1.0,
-	    "parametric_walls" : [
-*set var ndomains(int) = 0
-*Set cond group_DeformableBodies *groups
-*loop groups *OnlyInCond           
-            {
-	        "python_file_name": "parametric_wall",
-		"mesh_id": 1,
-            	"domain_size": 2,
-		"echo_level": 1,
-            	"rigid_body_element_type": "TranslatoryRigidElement3D1N",
-            	"wall_parameters_list":[{
-		    "radius": "meshing_strategy",
-               	    "center": [0.0, 0.0, 0.0],
-               	    "rake_angle": 0.0,
-               	    "clearance_angle": 0.0,
-               	    "convexity": 0
-            	 }],
-            	 "contact_search_strategy":{
-               	     "python_file_name": "contact_search_strategy",
-               	     "search_frequency": 0,
-               	     "contact_parameters":{
-                         "contact_condition_type": "PointContactCondition2D1N",
-                   	 "friction_active": false,
-                   	 "friction_law_type": "MorhCoulomb",
-                   	 "variables_of_properties":{
-                      	     "MU_STATIC": 0.3,
-                      	     "MU_DYNAMIC": 0.2,
-                      	     "PENALTY_PARAMETER": 1000
-                   	 }
-                     }
-            	 }
-	     }
-*end groups
-	     ]
-	 }
     }],
     "constraints_process_list" : [{
         "implemented_in_file"   : "apply_displacement_process",
@@ -198,6 +182,20 @@
             "direction"       : [0.0,-1,0.0]
         }
     }],
+    "output_process_list" : [{
+        "implemented_in_file"   : "restart_process",
+        "implemented_in_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "help"                  : "This process writes restart files",
+        "process_name"          : "RestartProcess",
+        "Parameters"            : {
+            "save_restart"        : true,
+            "restart_file_name"   : "problem_name",
+            "restart_file_label"  : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1.0,
+            "json_output"         : false
+        }
+    }],
     "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
@@ -217,15 +215,6 @@
             "gauss_point_results" : ["VON_MISES_STRESS"]
         },
         "point_data_configuration"  : []
-    },
-    "restart_options"          : {
-        "SaveRestart"      : *tcl(string tolower *GenData(Print_Restart)),
-        "RestartFrequency" : *GenData(Write_Frequency),
-        "LoadRestart"      : *tcl(string tolower *GenData(Load_Restart)),
-        "Restart_Step"     : *GenData(Load_Step)
-    },
-    "constraints_data"         : {
-        "incremental_load"         : *tcl(string tolower *GenData(Incremental_Load)),
-        "incremental_displacement" : *tcl(string tolower *GenData(Incremental_Displacement))
     }
+
 }

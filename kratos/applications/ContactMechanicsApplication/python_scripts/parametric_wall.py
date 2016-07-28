@@ -83,7 +83,7 @@ class ParametricWall(object):
         box_type_name = self.settings["bounding_box_settings"]["bounding_box_type"].GetString()
         BoundingBox   = None
 
-        box_type_call = " BoundingBox = " box_module + box_type_name
+        box_type_call = " BoundingBox = " + box_module + box_type_name
         exec(box_type_call)
         
         self.wall_bounding_box = BoundingBox(self.wall_bounding_box, self.settings["bounding_box_settings"]["bounding_box_parameters"])

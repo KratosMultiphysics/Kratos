@@ -119,6 +119,7 @@ class MeshingStrategy(object):
 
             modelers.append("transfer_modeler")
  
+        print(" MeshID ",self.MeshingParameters.GetMeshId())
 
         for modeler in modelers:
             meshing_module =__import__(modeler)      

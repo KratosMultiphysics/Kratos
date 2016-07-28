@@ -35,7 +35,7 @@ class MeshModeler(object):
             self.mesher = KratosPfemBase.TetrahedralMesh3DModeler()
 
         self.mesher.SetEchoLevel(self.echo_level)
-        #self.mesher.SetMeshingParameters(self.MeshingParameters)
+        self.mesher.SetMeshingParameters(self.MeshingParameters)
 
         self.SetPreMeshingProcesses()
         self.SetPostMeshingProcesses()    

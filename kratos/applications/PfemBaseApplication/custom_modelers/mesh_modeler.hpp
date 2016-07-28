@@ -321,8 +321,7 @@ protected:
      * Mesh Modeler :: Delaunay Tessellation
      */
     virtual void Generate (ModelPart& rModelPart,
-			   MeshingParametersType& rMeshingVariables,
-			   ModelPart::IndexType MeshId=0){};
+			   MeshingParametersType& rMeshingVariables){};
 
 
     /**

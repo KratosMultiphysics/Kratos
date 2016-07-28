@@ -24,7 +24,7 @@ class MeshingDomain(object):
         default_settings = KratosMultiphysics.Parameters("""
         {
 	    "python_file_name": "meshing_domain",
-            "mesh_id": 1,
+            "mesh_id": 0,
             "sub_model_part_name": "sub_model_part_name",
             "alpha_shape": 2.4,
             "offset_factor": 0.0,
@@ -107,14 +107,14 @@ class MeshingDomain(object):
 
         print("::[Mesh Domain]:: -START-")
         
-        self.domain_size = self.model_part.ProcessInfo[DOMAIN_SIZE]
+        self.domain_size = self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         self.mesh_id     = self.settings["mesh_id"].GetInt()
 
         # Set MeshingParameters
         self.SetMeshingParameters()
         
         # Meshing Stratety
-        self.MeshingStrategy.Initialize(self.MeshingParameters, self.domain_size, self.mesh_id)
+        self.MeshingStrategy.Initialize(self.MeshingParameters, self.domain_size)
         
         print("::[Mesh Domain]:: -END- ")
 
@@ -268,6 +268,8 @@ class MeshingDomain(object):
 
         # set the domain labels to mesh modeler
         critical_mesh_size = self.settings["refining_parameters"]["critical_size"].GetDouble()
-        self.modeler_utils.CheckCriticalRadius(self.model_part,critical_mesh_size,self.mesh_id)
+
+        critical_radius = self.modeler_utils.CheckCriticalRadius(self.model_part,critical_mesh_size,self.mesh_id)
+        print(" CriticalRadius ", critical_radius)
 
         
