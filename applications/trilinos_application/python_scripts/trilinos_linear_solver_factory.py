@@ -193,7 +193,7 @@ def ConstructSolver(configuration):
             if(verbosity == 0):
                 aztec_parameters.set("AZ_output", "AZ_none");
             else:
-                aztec_parameters.set("AZ_output", verbosity);
+                aztec_parameters.set("AZ_output", 10);
         else:
             # settings of the ML solver
             MLList = ParameterList()
