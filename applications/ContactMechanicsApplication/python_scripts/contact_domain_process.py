@@ -13,7 +13,7 @@ def Factory(settings, Model):
     return ContactDomainProcess(Model, settings["Parameters"])
 
 
-class ContactDomainProcess(remesh_domains_process.RemesDomainsProcess):
+class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
     #
     def __init__(self, Model, custom_settings ):
 
@@ -37,7 +37,7 @@ class ContactDomainProcess(remesh_domains_process.RemesDomainsProcess):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.echo_level        = 1
-        self.domain_size       = self.model_part.ProcessInfo[DOMAIN_SIZE]
+        self.domain_size       = self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         self.meshing_frequency = self.settings["meshing_frequency"].GetDouble()
         
         self.meshing_control_is_time = False

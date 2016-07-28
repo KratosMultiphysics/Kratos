@@ -33,7 +33,7 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.echo_level        = 1
-        self.domain_size       = self.model_part.ProcessInfo[DOMAIN_SIZE]
+        self.domain_size       = self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         self.search_frequency  = self.settings["search_frequency"].GetDouble()
         
         self.search_control_is_time = False
@@ -66,7 +66,7 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
 
         self.restart = False
-        if( self.model_part.ProcessInfo[IS_RESTARTED] ):
+        if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] ):
             self.restart = True
         
 

@@ -319,6 +319,7 @@ class ModelerUtility:
             
             self.MeshingParameters.Initialize()
 
+            self.MeshingParameters.SetMeshId(mesh_id)
             self.MeshingParameters.SetInfoParameters(self.InfoParameters)
             self.MeshingParameters.SetRefiningParameters(self.RefiningParameters)
             self.MeshingParameters.SetTransferParameters(self.TransferParameters)
@@ -350,7 +351,7 @@ class ModelerUtility:
             #Pre Meshing Processes
 
             # A:
-            refine_mesh_elements = SetElementsToRefineOnThreshold(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
+            refine_mesh_elements = SetElementNodesToRefineOnThreshold(self.model_part, self.MeshingParameters, self.echo_level)
             mesh_modeler.SetPreMeshingProcess(refine_mesh_elements)
 
             # B:
@@ -368,13 +369,13 @@ class ModelerUtility:
             mesh_modeler.SetPreMeshingProcess(refine_mesh_boundary)
 
             # C:
-            remove_mesh_nodes = RemoveMeshNodes(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
+            remove_mesh_nodes = RemoveMeshNodes(self.model_part, self.MeshingParameters, self.echo_level)
             mesh_modeler.SetPreMeshingProcess(remove_mesh_nodes)
 
 
             ################################################
             #Post Meshing Processes
-            rebuild_mesh_boundary = ReconstructMeshBoundary(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
+            rebuild_mesh_boundary = ReconstructMeshBoundary(self.model_part, self.MeshingParameters, self.echo_level)
 
             
             
@@ -384,7 +385,7 @@ class ModelerUtility:
             if( parameters["Remesh"] ):
                 print("(Type:",parameters["MeshElement"],")")
 
-            mesh_modeler.SetMeshingParameters(self.MeshingParameters, mesh_id)
+            mesh_modeler.SetMeshingParameters(self.MeshingParameters)                        
 
             self.mesh_modelers.append(mesh_modeler)
 
@@ -479,7 +480,7 @@ class ModelerUtility:
         self.ContactMeshingParameters.SetReferenceCondition(self.contact_condition)
                 
         mesh_id = 0
-        self.contact_modeler.SetMeshingParameters(self.ContactMeshingParameters, mesh_id)
+        self.contact_modeler.SetMeshingParameters(self.ContactMeshingParameters)
 
         # set contact search frequency
         self.contact_search_frequency = contact_config.contact_search_frequency
@@ -545,11 +546,11 @@ class ModelerUtility:
 
                 mesh_id = self.mesh_ids[id]
                 
-                mesher.InitializeMeshModeler(self.model_part,mesh_id)
+                mesher.InitializeMeshModeler(self.model_part)
 
-                mesher.GenerateMesh(self.model_part,mesh_id);
+                mesher.GenerateMesh(self.model_part);
 
-                mesher.FinalizeMeshModeler(self.model_part,mesh_id)
+                mesher.FinalizeMeshModeler(self.model_part)
 
                 self.remesh_executed = True
 

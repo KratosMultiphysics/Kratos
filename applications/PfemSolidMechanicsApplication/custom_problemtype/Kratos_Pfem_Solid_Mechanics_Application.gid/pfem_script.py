@@ -1,37 +1,55 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
 #Activate it to import in the gdb path:
 #import sys
-#sys.path.append('/home/jmaria/kratos')
-#x = raw_input("stopped to allow debug: set breakpoints and press enter to continue");
+#sys.path.append('/home/cpuigbo/kratos')
+#x = input("stopped to allow debug: set breakpoints and press enter to continue");
 
-#
-# ***************GENERAL MAIN OF THE ANALISYS****************###
-#
+#### TIME MONITORING START ####
 
-# time control starts
-from time import *
-print(ctime())
-# measure process time
-t0p = clock()
-# measure wall time
-t0w = time()
+# Time control starts
+import time as timer
+print(timer.ctime())
+# Measure process time
+t0p = timer.clock()
+# Measure wall time
+t0w = timer.time()
 
-# ----------------------------------------------------------------#
-# --CONFIGURATIONS START--####################
-# Import the general variables read from the GiD
-import ProjectParameters as general_variables
+def StartTimeMeasuring():
+    # Measure process time
+    time_ip = timer.clock()
+    return time_ip
 
-# setting the domain size for the problem to be solved
-domain_size = general_variables.domain_size
+def StopTimeMeasuring(time_ip, process, report):
+    # Measure process time
+    time_fp = timer.clock()
+    if( report ):
+        used_time = time_fp - time_ip
+        print("::[KSM Simulation]:: [ %.2f" % round(used_time,2),"s", process," ] ")
 
-#including kratos path
-from KratosMultiphysics import *
+#### TIME MONITORING END ####
 
-#including Applications paths
-from KratosMultiphysics.ExternalSolversApplication    import *
-from KratosMultiphysics.SolidMechanicsApplication     import *
-from KratosMultiphysics.PfemBaseApplication           import *
-from KratosMultiphysics.PfemSolidMechanicsApplication import *
+#### SET NUMBER OF THREADS ####
+
+def SetParallelSize(num_threads):
+    parallel = KratosMultiphysics.OpenMPUtils()
+    parallel.SetNumThreads(int(num_threads))
+    print("::[KPFEM Simulation]:: [OMP USING",num_threads,"THREADS ]")
+    #parallel.PrintOMPInfo()
+    print(" ")
+
+#### SET NUMBER OF THREADS ####
+
+# Import system python
+import os
+
+# Import kratos core and applications
+import KratosMultiphysics
+import KratosMultiphysics.SolidMechanicsApplication     as KratosSolid
+import KratosMultiphysics.ExternalSolversApplication    as KratosSolvers
+import KratosMultiphysics.PfemBaseApplication           as KratosPfemBase
+import KratosMultiphysics.PfemSolidMechanicsApplication as KratosPfemSolid
+
 
 #import the python utilities:
 import restart_utility                 as restart_utils
@@ -40,59 +58,33 @@ import pfem_gid_output_utility         as gid_utils
 import pfem_conditions_python_utility  as condition_utils
 import list_files_python_utility       as files_utils
 
-import mesh_modeler_python_utility  as modeler_utils
-import rigid_wall_python_utility    as wall_utils
-import graph_plot_python_utility    as plot_utils
+import rigid_wall_python_utility       as wall_utils
+import graph_plot_python_utility       as plot_utils
 
-import time_operation_utility       as operation_utils
-import solving_info_utility         as solving_info_utils
+import time_operation_utility          as operation_utils
+import solving_info_utility            as solving_info_utils
 
-#----------------
-# ------------------------#--FUNCTIONS START--#------------------#
-# ---------------------------------------------------------------#
-# --TIME MONITORING START--##################
-def StartTimeMeasuring():
-    # measure process time
-    time_ip = clock()
-    return time_ip
+######################################################################################
+######################################################################################
+######################################################################################
 
-def StopTimeMeasuring(time_ip, process, report):
-    # measure process time
-    time_fp = clock()
-    if( report ):
-        used_time = time_fp - time_ip
-        print("::[KPFEM Simulation]:: [ %.2f" % round(used_time,2),"s", process," ] ")
-# --TIME MONITORING END --###################
+#### PARSING THE PARAMETERS ####
 
-# --SET NUMBER OF THREADS --#################
-
-def SetParallelSize(num_threads):
-    parallel = OpenMPUtils()
-    parallel.SetNumThreads(int(num_threads))
-    print("::[KPFEM Simulation]:: [OMP USING",num_threads,"THREADS ]")
-    #parallel.PrintOMPInfo()
-    print(" ")
-
-# --SET NUMBER OF THREADS --#################
-
-#------------------------#--FUNCTIONS END--#--------------------#
-#---------------------------------------------------------------#
-
-#### PARSING THE PARAMETERS JSON ####
-
-#import define_output
+# Import input
 parameter_file = open("ProjectParameters.json",'r')
-ProjectParameters = Parameters(parameter_file.read())
+ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
 #set echo level
 echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
 
+#### Model_part settings start ####
 
-#### model_part settings start ####
+# Defining the model_part
+model_part = KratosMultiphysics.ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
 
-#defining the model_part
-model_part = ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
-model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
+model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
+#main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, ProjectParameters["problem_data"]["time_step"].GetDouble())
+#main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, ProjectParameters["problem_data"]["start_time"].GetDouble())
 
 ###TODO replace this "model" for real one once available in kratos core
 Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : model_part}
@@ -104,8 +96,13 @@ Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : mode
 
 #### PARSING CLASSICAL PARAMETERS ####
 
+# Import input
+import ProjectParameters as general_variables
+
 # defining the type, the name and the path of the problem:
 echo_level   = general_variables.EchoLevel
+domain_size  = general_variables.domain_size
+
 problem_type = general_variables.ProblemType
 problem_name = general_variables.problem_name
 
@@ -131,27 +128,24 @@ rigid_wall = wall_utils.RigidWallUtility(model_part, domain_size, general_variab
 
 
 # --SET MESH MODELER START--##################
-
 #construct meshing domains
-meshing_domains = []
-domains_list = ProjectParameters["meshing_domains"]
-for i in range(0,domains_list.size()):
-    item = domains_list[i]
-    domain_module = __import__(item["python_file_name"].GetString())
-    domain = domain_module.CreateMeshingDomain(model_part,item)
-    meshing_domains.append(domain)
-
-remesh_domains = general_variables.RemeshDomains
-contact_search = general_variables.FindContacts
-rigid_wall_contact_search = general_variables.FindRigidWallContacts
-modeler = modeler_utils.ModelerUtility(model_part, domain_size, remesh_domains, contact_search, rigid_wall_contact_search)
+#meshing_domains = []
+#domains_list = ProjectParameters["meshing_domains"]
+#for i in range(0,domains_list.size()):
+#    item = domains_list[i]
+#    domain_module = __import__(item["python_file_name"].GetString())
+#    domain = domain_module.CreateMeshingDomain(model_part,item)
+#    meshing_domains.append(domain)
+#remesh_domains = general_variables.RemeshDomains
+#contact_search = general_variables.FindContacts
+#rigid_wall_contact_search = general_variables.FindRigidWallContacts
+#modeler = modeler_utils.ModelerUtility(model_part, domain_size, remesh_domains, contact_search, rigid_wall_contact_search)
 
 # print check
-if(echo_level>1):
-    print("::[KPFEM Simulation]:: MESH DOMAINS :", len(general_variables.MeshConditions))
-    for conditions in general_variables.MeshConditions:
-        print("::[KPFEM Simulation]:: --> Domain [", conditions["Subdomain"], "] ", conditions["MeshElement"])
-
+#if(echo_level>1):
+#    print("::[KPFEM Simulation]:: MESH DOMAINS :", len(general_variables.MeshConditions))
+#    for conditions in general_variables.MeshConditions:
+#        print("::[KPFEM Simulation]:: --> Domain [", conditions["Subdomain"], "] ", conditions["MeshElement"])
 # --SET MESH MODELER END--####################
 
 
@@ -230,21 +224,21 @@ buffer_size = 3;
 solver_constructor.AddVariables( model_part, SolverSettings)
 
 # set PfemSolidApplicationVariables
-model_part.AddNodalSolutionStepVariable(NORMAL);
+model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL);
 
-model_part.AddNodalSolutionStepVariable(OFFSET);
-model_part.AddNodalSolutionStepVariable(SHRINK_FACTOR);
+model_part.AddNodalSolutionStepVariable(KratosPfemBase.OFFSET);
+model_part.AddNodalSolutionStepVariable(KratosPfemBase.SHRINK_FACTOR);
 
-model_part.AddNodalSolutionStepVariable(MEAN_ERROR);
-model_part.AddNodalSolutionStepVariable(NODAL_H);
+model_part.AddNodalSolutionStepVariable(KratosPfemBase.MEAN_ERROR);
+model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H);
 
-model_part.AddNodalSolutionStepVariable(DETERMINANT_F);
+model_part.AddNodalSolutionStepVariable(KratosSolid.DETERMINANT_F);
 
 # if hasattr(SolverSettings, "RigidWalls"):
     # if SolverSettings.RigidWalls == True:
-model_part.AddNodalSolutionStepVariable(RIGID_WALL);
-model_part.AddNodalSolutionStepVariable(WALL_TIP_RADIUS);
-model_part.AddNodalSolutionStepVariable(WALL_REFERENCE_POINT);
+model_part.AddNodalSolutionStepVariable(KratosPfemBase.RIGID_WALL);
+model_part.AddNodalSolutionStepVariable(KratosPfemSolid.WALL_TIP_RADIUS);
+model_part.AddNodalSolutionStepVariable(KratosPfemSolid.WALL_REFERENCE_POINT);
 
 
 
@@ -258,7 +252,7 @@ if(load_restart == False):
   list_files.RemoveListFiles()
 
   #reading the model
-  model_part_io = ModelPartIO(problem_name)
+  model_part_io = KratosMultiphysics.ModelPartIO(problem_name)
   model_part_io.ReadModelPart(model_part)
  
   #set the buffer size
@@ -267,8 +261,9 @@ if(load_restart == False):
 
   print("::[KPFEM Simulation]:: Reading -END- ")
 
-  model_part.ProcessInfo[LOAD_RESTART] = 0
-    
+  model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART] = 0
+  model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
+
   #set the degrees of freedom
   solver_constructor.AddDofs(model_part, SolverSettings)
 
@@ -287,7 +282,8 @@ else:
 
   print("::[KPFEM Simulation]:: Reading -END- ")
 
-  model_part.ProcessInfo[LOAD_RESTART] = 1
+  model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART] = 1
+  model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
 
   #remove results, restart, graph and list posterior files
   problem_restart.CleanPosteriorFiles(restart_step)
@@ -303,37 +299,55 @@ rigid_wall = wall_utils.RigidWallUtility(model_part, domain_size, general_variab
 # --RIGID WALL OPTIONS END--##################
 
 
+#### Processes settings start ####
+#obtain the list of the processes to be applied
+
+import process_factory
+#the process order of execution is important
+#list_of_processes  = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
+#list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
+if(ProjectParameters.Has("problem_process_list")):
+    list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["problem_process_list"] )
+#if(ProjectParameters.Has("output_process_list")):
+#    list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["output_process_list"] )
+            
+#print list of constructed processes
+if(echo_level>1):
+    for process in list_of_processes:
+        print(process)
+
+for process in list_of_processes:
+    process.ExecuteInitialize()
+
+#### processes settings end ####
+
+
 # --BUILD MESH MODELER START--####################
-
 # build mesh modeler
-for domain in meshing_domains:
-    domain.SetImposedWalls(rigid_wall)
-    domain.Initialize()
-
-modeler.BuildMeshModelers(meshing_domains)
+#for domain in meshing_domains:
+#    domain.SetImposedWalls(rigid_wall)
+#    domain.Initialize()
+#modeler.BuildMeshModelers(meshing_domains)
 
 # set rigid walls
 #if(rigid_wall_contact_search):
 #    modeler.SetRigidWall(rigid_wall)
-
 # --BUILD MESH MODELER END--####################
 
 # --CONTACT SEARCH START--####################
-
 # build mesh modeler
-modeler.BuildContactModeler(general_variables.contact_modeler_config)
-
+# modeler.BuildContactModeler(general_variables.contact_modeler_config)
 # --CONTACT SEARCH END--######################
 
 
 #--- MODELER INITIALIZATION---#
 
 #set mesh searches and modeler
-modeler.InitializeDomains( load_restart ); ## due to the skin conditions at reloading
+#modeler.InitializeDomains( load_restart ); ## due to the skin conditions at reloading
 
 # mesh size nodal h search
-if(load_restart == False):
-    modeler.SearchNodalH();
+#if(load_restart == False):
+#    modeler.SearchNodalH();
 
 #--- PRINT CONTROL ---#
 
@@ -346,17 +360,17 @@ if(echo_level>=1):
 #
 
 # set delta time in process info
-model_part.ProcessInfo[DELTA_TIME] = general_variables.time_step
+model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = general_variables.time_step
 
 # solver initialize
 main_step_solver.Initialize()
 main_step_solver.SetRestart(load_restart) #calls strategy initialize if no restart
 
 # initial contact search
-modeler.InitialContactSearch()
+# modeler.InitialContactSearch()
 
 #define time steps and loop range of steps
-time_step = model_part.ProcessInfo[DELTA_TIME]
+time_step = model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
 if(load_restart):  
 
@@ -364,15 +378,15 @@ if(load_restart):
 
 else:
 
-  model_part.ProcessInfo[TIME]                = 0
-  model_part.ProcessInfo[TIME_STEPS]          = 0
-  model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = time_step
+  model_part.ProcessInfo[KratosMultiphysics.TIME]                = 0
+  model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS]          = 0
+  model_part.ProcessInfo[KratosSolid.PREVIOUS_DELTA_TIME] = time_step
 
   conditions.Initialize(time_step);
 
 #initialize step operations
-starting_step  = model_part.ProcessInfo[TIME_STEPS]
-starting_time  = model_part.ProcessInfo[TIME]
+starting_step  = model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS]
+starting_time  = model_part.ProcessInfo[KratosMultiphysics.TIME]
 ending_step    = general_variables.nsteps
 ending_time    = general_variables.nsteps * time_step
 
@@ -385,9 +399,9 @@ restart_print = operation_utils.TimeOperationUtility()
 restart_time_frequency = general_variables.RestartFrequency
 restart_print.InitializeTime(starting_time, ending_time, time_step, restart_time_frequency)
 
-mesh_generation = operation_utils.TimeOperationUtility()
-mesh_generation_frequency = modeler.GetRemeshFrequency()
-mesh_generation.InitializeTime(starting_time, ending_time, time_step, mesh_generation_frequency)
+#mesh_generation = operation_utils.TimeOperationUtility()
+#mesh_generation_frequency = modeler.GetRemeshFrequency()
+#mesh_generation.InitializeTime(starting_time, ending_time, time_step, mesh_generation_frequency)
 
 contact_search = operation_utils.TimeOperationUtility()
 contact_search_frequency = general_variables.contact_modeler_config.contact_search_frequency
@@ -426,8 +440,8 @@ current_step = starting_step
 for step in range(0,buffer_size):
 
   model_part.CloneTimeStep(current_time)
-  model_part.ProcessInfo[DELTA_TIME] = time_step
-  model_part.ProcessInfo[TIME_STEPS] = step-buffer_size
+  model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = time_step
+  model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS] = step-buffer_size
 
 # writing a initial state results file
 current_id = 0
@@ -450,15 +464,15 @@ print("::[KPFEM Simulation]:: Analysis -START- ")
 while(current_time < ending_time):
 
   # store previous time step
-  model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = time_step
+  model_part.ProcessInfo[KratosSolid.PREVIOUS_DELTA_TIME] = time_step
   # set new time step ( it can change when solve is called )
-  time_step = model_part.ProcessInfo[DELTA_TIME]
+  time_step = model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
   current_time = current_time + time_step
   current_step = current_step + 1
 
   model_part.CloneTimeStep(current_time)
-  model_part.ProcessInfo[TIME] = current_time
+  model_part.ProcessInfo[KratosMultiphysics.TIME] = current_time
 
   # print process information:
   print_info = solving_print.perform_time_operation(current_time)
@@ -470,6 +484,9 @@ while(current_time < ending_time):
   if(execute_rigid_wall_contact_search):
       rigid_wall.ExecuteContactSearch()
 
+  for process in list_of_processes:
+      process.ExecuteInitializeSolutionStep()
+      
   #solving the solid problem 
   clock_time = StartTimeMeasuring();
 
@@ -488,6 +505,15 @@ while(current_time < ending_time):
   #incremental load
   conditions.SetIncrementalLoad(current_step, time_step);
   ##conditions.CorrectBoundaryConditions(current_step, time_step); ## function to remove load conditions from the contact...
+
+
+  for process in list_of_processes:
+      process.ExecuteFinalizeSolutionStep()
+       
+  for process in list_of_processes:
+      process.ExecuteBeforeOutputStep()
+
+
       
   #print the results at the end of the step
   if(general_variables.WriteResults == "PreMeshing"):
@@ -503,15 +529,15 @@ while(current_time < ending_time):
       StopTimeMeasuring(clock_time,"Writing Results", False);
 
   # remesh domains
-  execute_meshing = mesh_generation.perform_time_operation(current_time)
-  if(execute_meshing):
-    modeler.RemeshDomains();
-    solving_info.set_meshing_info(execute_meshing,modeler.GetMeshingStep())
+  #execute_meshing = mesh_generation.perform_time_operation(current_time)
+  #if(execute_meshing):
+  #  modeler.RemeshDomains();
+  #  solving_info.set_meshing_info(execute_meshing,modeler.GetMeshingStep())
 
   # contact search
-  execute_contact_search = contact_search.perform_time_operation(current_time)
-  if(execute_contact_search or execute_meshing):
-    modeler.ContactSearch();
+  #execute_contact_search = contact_search.perform_time_operation(current_time)
+  #if(execute_contact_search or execute_meshing):
+  #  modeler.ContactSearch();
 
 
   # print the results at the end of the step
@@ -527,6 +553,8 @@ while(current_time < ending_time):
       solving_info.set_print_info(execute_write, current_id)
       StopTimeMeasuring(clock_time,"Writing Results", False);
 
+  for process in list_of_processes:
+    process.ExecuteAfterOutputStep()
 
   # plot graphs
   if(plot_active):
@@ -558,6 +586,9 @@ while(current_time < ending_time):
 # writing a single file
 gid_print.finalize_results()
 
+for process in list_of_processes:
+    process.ExecuteFinalize()
+
 print("::[KPFEM Simulation]:: Analysis -END- ")
 print(" ")
 
@@ -567,14 +598,16 @@ print(" ")
 # check solving information for any problem
 solving_info.info_check()
 
-# measure process time
-tfp = clock()
-# measure wall time
-tfw = time()
+#### END SOLUTION ####
 
-print("::[KPFEM Simulation]:: [ Computing Time = (%.2f" % (tfp - t0p)," seconds process time) ( %.2f" % (tfw - t0w)," seconds wall time) ]")
+# Measure process time
+tfp = timer.clock()
+# Measure wall time
+tfw = timer.time()
 
-print(ctime())
+print("::[KSM Simulation]:: [ Computing Time = (%.2f" % (tfp - t0p)," seconds process time) ( %.2f" % (tfw - t0w)," seconds wall time) ]")
+
+print(timer.ctime())
 
 # to create a benchmark: add standard benchmark files and decomment next two lines 
 # rename the file to: run_test.py

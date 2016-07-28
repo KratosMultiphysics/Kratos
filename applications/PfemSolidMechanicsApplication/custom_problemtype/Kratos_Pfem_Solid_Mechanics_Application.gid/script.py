@@ -204,6 +204,8 @@ model_part.AddNodalSolutionStepVariable(MEAN_ERROR);
 model_part.AddNodalSolutionStepVariable(NODAL_H);
 
 model_part.AddNodalSolutionStepVariable(DETERMINANT_F);
+model_part.AddNodalSolutionStepVariable(CAUCHY_STRESS_VECTOR);
+model_part.AddNodalSolutionStepVariable(DEFORMATION_GRADIENT);
 
 # if hasattr(SolverSettings, "RigidWalls"):
     # if SolverSettings.RigidWalls == True:

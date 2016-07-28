@@ -971,7 +971,6 @@ namespace Kratos
     double CriticalVolume = 1e-12 * pow(h, size-1);
     double AlphaRadius    = AlphaParameter * h;
 
-
     if( Volume < CriticalVolume ) //sliver
       {
 	//std::cout<<" Sliver (alpha_volume) "<<Volume<<" "<<CriticalVolume<<std::endl;
@@ -1421,7 +1420,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  double ModelerUtilities::CheckCriticalRadius (ModelPart& rModelPart, double& rCriticalRadius, unsigned int MeshId)
+  double ModelerUtilities::CheckCriticalRadius (ModelPart& rModelPart, double rCriticalRadius, unsigned int MeshId)
   {
     KRATOS_TRY
 

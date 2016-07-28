@@ -34,7 +34,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.echo_level        = 1
-        self.domain_size       = self.model_part.ProcessInfo[DOMAIN_SIZE]
+        self.domain_size       = self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         self.meshing_frequency = self.settings["meshing_frequency"].GetDouble()
         
         self.meshing_control_is_time = False
@@ -69,7 +69,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
 
         self.restart = False
-        if( self.model_part.ProcessInfo[IS_RESTARTED] ):
+        if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] ):
             self.restart = True
         
         # initialize the modeler 
@@ -90,7 +90,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
                 self.BuildMeshBoundary()
 
                 # search nodal h
-                # self.SearchNodalH() #now done from main script
+                self.SearchNodalH()
             
                 
             # set modeler utilities
@@ -100,7 +100,8 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
             self.modeler_utils.SetDomainLabels(self.model_part)
 
             for domain in self.meshing_domains:
-                domain.Check();
+                domain.Initialize()
+                domain.Check()
 
     #
     def SearchNodeNeighbours(self):
@@ -209,7 +210,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
     def ExecuteAfterOutputStep(self):
         
         if(self.remesh_domains_active):
-            if( !self.meshing_before_output ):
+            if( not self.meshing_before_output ):
                 if(self.IsMeshingStep):
                     self.RemeshDomains()
 

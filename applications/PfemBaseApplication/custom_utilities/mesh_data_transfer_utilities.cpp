@@ -1626,6 +1626,7 @@ namespace Kratos
 	      //std::cout<<" name "<<i_variable->Name()<<std::endl;
 	      //std::cout<<" type "<<typeid(*i_variable).name()<<std::endl;
 	      std::string variable_name = i_variable->Name();
+	      double data;
 	      if(KratosComponents<Variable<double> >::Has(variable_name))
 		{
 		  Variable<double> variable = KratosComponents<Variable<double> >::Get(variable_name);
@@ -1639,23 +1640,27 @@ namespace Kratos
 			nodes_data.push_back(&geom[i].FastGetSolutionStepValue(variable, step));
 		  
 		      if(alpha != 1 ){
-			node_data *= (1-alpha);
+
+			data = node_data * (1-alpha);
 			for(unsigned int i=0; i<geom.size(); i++)
-			  node_data += (alpha) * (N[i]*(*nodes_data[i]));		       
+			  data += (alpha) * (N[i]*(*nodes_data[i]));
+
 		      }
 		      else{
 			
-			node_data = (N[0]*(*nodes_data[0]));
+			data = (N[0]*(*nodes_data[0]));
 			for(unsigned int i=1; i<geom.size(); i++)
-			  node_data += (N[i]*(*nodes_data[i]));
+			  data += (N[i]*(*nodes_data[i]));
 		      }
 
+		      node_data = data;
 		    }
 		}
 	      else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
 		{
 		  //std::cout<<"array1d"<<std::endl;
 		  Variable<array_1d<double, 3> > variable = KratosComponents<Variable<array_1d<double, 3> > >::Get(variable_name);
+		  array_1d<double, 3> data;
 		  for(unsigned int step = 0; step<buffer_size; step++)
 		    {
 		      //getting the data of the solution step
@@ -1667,17 +1672,19 @@ namespace Kratos
 		  
 		      if(alpha != 1 ){
 
-			node_data *= (1-alpha);
+			data = node_data * (1-alpha);
 			for(unsigned int i=0; i<geom.size(); i++)
-			  node_data += (alpha) * (N[i]*(*nodes_data[i]));
-			
+			  data += (alpha) * (N[i]*(*nodes_data[i]));
+
 		      }
 		      else{
 			
-			node_data = (N[0]*(*nodes_data[0]));
+			data = (N[0]*(*nodes_data[0]));
 			for(unsigned int i=1; i<geom.size(); i++)
-			  node_data += (N[i]*(*nodes_data[i]));
+			  data += (N[i]*(*nodes_data[i]));
 		      }
+
+		      node_data = data;
 		    }
 
 		}
@@ -1695,6 +1702,7 @@ namespace Kratos
 		{
 		  //std::cout<<"Matrix"<<std::endl;
 		  Variable<Matrix> variable = KratosComponents<Variable<Matrix > >::Get(variable_name);
+		  Matrix data;
 		  for(unsigned int step = 0; step<buffer_size; step++)
 		    {
 		      //getting the data of the solution step
@@ -1712,20 +1720,21 @@ namespace Kratos
 			    same_size = false;
 
 			if( same_size ) {
-			
+
 			  if(alpha != 1 ){
-			    
-			    node_data *= (1-alpha);
+			    data = node_data * (1-alpha);
 			    for(unsigned int i=0; i<geom.size(); i++)
-			      node_data += (alpha) * (N[i]*(*nodes_data[i]));
-			    
+			      data += (alpha) * (N[i]*(*nodes_data[i]));
+		    
 			  }
 			  else{
 			    
-			    node_data = (N[0]*(*nodes_data[0]));
+			    data = (N[0]*(*nodes_data[0]));
 			    for(unsigned int i=1; i<geom.size(); i++)
-			      node_data += (N[i]*(*nodes_data[i]));
+			      data += (N[i]*(*nodes_data[i]));
 			  }
+
+			  node_data = data;
 			  
 			}
 		      }
@@ -1736,6 +1745,7 @@ namespace Kratos
 		{
 		  //std::cout<<"Vector"<<std::endl;
 		  Variable<Vector> variable = KratosComponents<Variable<Vector > >::Get(variable_name);
+		  Vector data;
 		  for(unsigned int step = 0; step<buffer_size; step++)
 		    {
 		      //getting the data of the solution step
@@ -1761,17 +1771,19 @@ namespace Kratos
 			      
 			      if(alpha != 1 ){
 
-				node_data *= (1-alpha);
+				data = node_data * (1-alpha);
 				for(unsigned int i=0; i<geom.size(); i++)
-				  node_data += (alpha) * (N[i]*(*nodes_data[i]));
+				  data += (alpha) * (N[i]*(*nodes_data[i]));
+
 			      }
 			      else{
 
-				node_data = (N[0]*(*nodes_data[0]));
+				data = (N[0]*(*nodes_data[0]));
 				for(unsigned int i=1; i<geom.size(); i++)
-				  node_data += (N[i]*(*nodes_data[i]));
+				  data += (N[i]*(*nodes_data[i]));
 
 			      }
+			      node_data = data;
 			      
 			    }
 			  }
@@ -1802,7 +1814,7 @@ namespace Kratos
 	    unsigned int buffer_size = pnode->GetBufferSize();
 
 	    //alpha [0,1] //smoothing level of the interpolation
-
+	    double data;
 	    for(unsigned int step = 0; step<buffer_size; step++)
 	      {
 		//getting the data of the solution step
@@ -1816,10 +1828,11 @@ namespace Kratos
 		
 		//copying this data in the position of the vector we are interested in
 		for(unsigned int j= 0; j<step_data_size; j++)
-		  {
-		    step_data[j] *= (1-alpha);
+		  {    
+		    data = step_data[j] * (1-alpha);
 		    for(unsigned int i=0; i<geom.size(); i++)
-		      step_data[j] += (alpha) * (N[i]*nodes_data[i][j]);
+		      data += (alpha) * (N[i]*nodes_data[i][j]);
+		    step_data[j] = data;		    
 		  }
 	      }
 

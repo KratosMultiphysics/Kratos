@@ -79,6 +79,10 @@ namespace Kratos
   {
     KRATOS_TRY
 
+    //deinitialize and initialize again to null input 
+    tr.deinitialize();
+    tr.initialize();
+  
     //delete modeler container
     rMesh.Finalize();
     
@@ -114,8 +118,8 @@ namespace Kratos
       rMeshingVariables.InputInitializedFlag = true;
     }
     
-    ClearTetgenIO(in);
     //input mesh: NODES
+    in.initialize();
     in.firstnumber    = 1;
     in.mesh_dim       = 3;
     GetFromContainer(rMeshingVariables.InMesh,in);
@@ -153,7 +157,7 @@ namespace Kratos
     //Creating the containers for the input and output
     tetgenio in;
     tetgenio out;
-    ClearTetgenIO(out);
+    out.initialize();
 
     BuildInput(rModelPart,rMeshingVariables,in);    
 

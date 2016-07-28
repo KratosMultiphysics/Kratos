@@ -1154,7 +1154,7 @@ public:
     
     bool CheckNodeCloseWallTip (std::vector<SpatialBoundingBox::Pointer>& rRigidWalls, PointType& rNode, ProcessInfo& rCurrentProcessInfo, double& rFactor);
 
-    double CheckCriticalRadius (ModelPart& rModelPart, double& rCriticalRadius, unsigned int MeshId = 0);
+    double CheckCriticalRadius (ModelPart& rModelPart, double rCriticalRadius, unsigned int MeshId);
 
 
     //*******************************************************************************************

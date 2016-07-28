@@ -247,9 +247,9 @@ public:
 	      
 	      //std::cout<<" ******** ELEMENT "<<el+1<<" ********** "<<std::endl;
 	      
-	      double Alpha =  mrRemesh.AlphaParameter; //*nds;
+	      double Alpha = mrRemesh.AlphaParameter; //*nds;
 	      if(numboundary>=nds-1)
-		Alpha*=1.8;
+		Alpha*=1.2;
 	
 	      // std::cout<<" vertices for the contact element "<<std::endl;
 	      // for( unsigned int n=0; n<nds; n++)
@@ -259,9 +259,9 @@ public:
 
 	      // std::cout<<" vertices for the subdomain element "<<std::endl;
 	      // for( unsigned int n=0; n<nds; n++)
-	      // 	{
-	      // 	  std::cout<<" ("<<n+1<<"): ["<<vertices[n].Id()<<"] "<<vertices[n]<<std::endl;
-	      // 	}
+	      //  	{
+	      //  	  std::cout<<" ("<<n+1<<"): ["<<vertices[n].Id()<<"]  NodalH "<<vertices[n].FastGetSolutionStepValue(NODAL_H)<<std::endl;
+	      //  	}
 	      
 	      //std::cout<<" Element "<<el<<" with alpha "<<mrRemesh.AlphaParameter<<"("<<Alpha<<")"<<std::endl;
 	      
@@ -305,8 +305,14 @@ public:
 		    }
 		}
 	      // else{
+
+	      // 	for( unsigned int n=0; n<nds; n++)
+	      // 	  {
+	      // 	    std::cout<<" ("<<n+1<<"): ["<<vertices[n].Id()<<"]  NodalH "<<vertices[n].FastGetSolutionStepValue(NODAL_H)<<std::endl;
+	      // 	  }
+		
+	      // 	std::cout<<" Element "<<el<<" with alpha "<<mrRemesh.AlphaParameter<<"("<<Alpha<<")"<<std::endl;
 	      
-	      //   std::cout<<" Element DID NOT pass Alpha Shape ("<<Alpha<<") "<<std::endl;
 	      // }
 	      
 	      //5.- to control that the element has a good shape

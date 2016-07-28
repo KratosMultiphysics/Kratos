@@ -1148,6 +1148,9 @@ namespace Kratos
 	  
 	for(NodesContainerType::iterator i_node = rModelPart.NodesBegin(MeshId) ; i_node != rModelPart.NodesEnd(MeshId) ; i_node++)
 	  {
+
+	    //std::cout<<" ID: "<<i_node->Id()<<" NODAL_H "<<i_node->FastGetSolutionStepValue(NODAL_H)<<std::endl;
+
 	    //if(rNodes[in+1].IsNot(BOUNDARY) && rNodes[in+1].IsNot(TO_ERASE) && NumberOfNeighbours>1)      		
 	    if( i_node->IsNot(TO_ERASE) ){      
 	      (list_of_nodes).push_back(*(i_node.base()));	      
@@ -1179,7 +1182,7 @@ namespace Kratos
 	ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(MeshId);	  
 	const unsigned int nds = element_begin->GetGeometry().size();
 
-	std::vector<double> ShapeFunctionsN(nds);    
+	std::vector<double> ShapeFunctionsN(nds);
 	
 
 	if( number_of_nodes < rModelPart.Nodes(MeshId).size()+1 ){
@@ -1258,7 +1261,7 @@ namespace Kratos
 		  if(is_inside == true)
 		    {
 		      //std::cout<<"  Node interpolation: "<<(*it_found)->Id()<<" VariablesList size "<<VariablesListVector.size()<<std::endl;
-		      //std::cout<<"  Node interpolation: "<<(*it_found)->Id()<<" N "<<ShapeFunctionsN[0]<<" "<<ShapeFunctionsN[1]<<" "<<ShapeFunctionsN[2]<<std::endl;
+		      //std::cout<<"  Node interpolation: "<<(*it_found)->Id()<<" N ["<<ie->GetGeometry()[0].Id()<<"] "<<ShapeFunctionsN[0]<<" ["<<ie->GetGeometry()[1].Id()<<"] "<<ShapeFunctionsN[1]<<" ["<<ie->GetGeometry()[2].Id()<<"] "<<ShapeFunctionsN[2]<<std::endl;
 		      if(UniquePosition [(*it_found)->Id()] == 0){
 			    
 			UniquePosition [(*it_found)->Id()] = 1;
@@ -1293,8 +1296,8 @@ namespace Kratos
 	int id=0;
 	for(NodesContainerType::iterator i_node = rModelPart.NodesBegin(MeshId) ; i_node != rModelPart.NodesEnd(MeshId) ; i_node++)
 	  {
-
-	    if( UniquePosition [i_node->Id()] && i_node->IsNot(TO_ERASE) ){
+	   
+	    if( UniquePosition[i_node->Id()] && i_node->IsNot(TO_ERASE) ){
 
 	      if ( i_node->SolutionStepsDataHas(DISPLACEMENT) == false)
 		{
@@ -1380,7 +1383,9 @@ namespace Kratos
 
 	    }
 
+	    //std::cout<<"(B) ID: "<<i_node->Id()<<" NODAL_H "<<i_node->FastGetSolutionStepValue(NODAL_H)<<std::endl;
 	  }
+
 
       }
       else{
