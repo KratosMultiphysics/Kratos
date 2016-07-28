@@ -171,6 +171,43 @@ public:
         }
     }
     
+    static inline void ProjectCoordDirection(
+            const Geometry<Node<3> > & Geom,
+            const GeometryType::CoordinatesArrayType& CoordDestiny,
+            GeometryType::CoordinatesArrayType& CoordProjected,
+            double& dist,
+            const array_1d<double,3>& Vector
+            )
+    {        
+        const double tol = 1.0e-15;
+        
+        array_1d<double,3> Normal;
+        
+        GeometryNormal(Normal, Geom);
+        
+        array_1d<double,3> vector_points = Geom.Center() - CoordDestiny;
+
+        if( norm_2( Vector ) <= tol && norm_2( Normal ) >= tol )
+        {
+            dist = inner_prod(vector_points, Normal)/norm_2(Normal);
+
+            CoordProjected = CoordDestiny + Vector * dist;
+            std::cout << " :: Warning: Zero projection vector. Projection using the condition vector instead." << std::endl;
+        }
+        else if (std::abs(inner_prod(Vector, Normal) ) >= tol)
+        {
+            dist = inner_prod(vector_points, Normal)/inner_prod(Vector, Normal); 
+
+            CoordProjected = CoordDestiny + Vector * dist;
+        }
+        else
+        {
+            CoordProjected = CoordDestiny;
+            dist = 0.0;
+            std::cout << " The line and the plane are coplanar, something wrong happened " << std::endl;
+        }
+    }
+    
     /***********************************************************************************/
     /***********************************************************************************/
     
@@ -340,6 +377,30 @@ public:
         array_1d<double,3> & Normal = pCond->GetValue(NORMAL);
         
         GeometryNormal(Normal, pCond->GetGeometry());
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    /**
+     * This function calculates the normal of a condition
+     * @param Cond: The pointer to the condition of interest
+     */
+
+    static inline array_1d<double,3> GaussPointNormal(
+        const Vector N,
+        const Geometry<Node<3> > & Geom
+        )
+    {
+        array_1d<double,3> normal = ZeroVector(3);
+        for( unsigned int iNode = 0; iNode < Geom.PointsNumber(); ++iNode )
+        {
+            normal += N[iNode] * Geom[iNode].GetValue(NORMAL); // The opposite direction
+        }
+        
+        normal = normal/norm_2(normal); // It is suppossed to be already unitary (just in case)
+        
+        return normal;
     }
     
     /***********************************************************************************/

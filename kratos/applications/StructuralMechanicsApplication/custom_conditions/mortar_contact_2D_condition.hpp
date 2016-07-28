@@ -640,11 +640,14 @@ public:
 //      * Calculate normal directional derivative
 //      */
 //     void CalculateDeltaNodalNormal( const IndexType& rPointNumber );
-//    
-//     /*
-//      * Calculate discrete gap directional derivative
-//      */
-//     void CalculateDeltaDiscreteGap( const IndexType& rPointNumber );
+ 
+    /*
+     * Calculate discrete gap directional derivative
+     */
+    double CalculateDeltaDiscreteGap( 
+        GeneralVariables& rVariables,
+        const PointType& slave_gp_local
+        );
 
     /*
      * Calculation and addition of the matrices of the LHS of a contact pair
