@@ -67,14 +67,14 @@ class RestartProcess(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
 
         # Set current time parameters
-        if( self.model_part.ProcessInfo[IS_RESTARTED] == True ):
-            self.step_count = self.model_part.ProcessInfo[STEP]
-            self.printed_step_count = self.model_part.ProcessInfo[PRINTED_RESTART_STEP]
+        if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True ):
+            self.step_count = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
+            self.printed_step_count = self.model_part.ProcessInfo[KratosMultiphysics.PRINTED_RESTART_STEP]
             
             if self.output_control_is_time:
-                self.next_output = self.model_part.ProcessInfo[TIME]
+                self.next_output = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
             else:
-                self.next_output = self.model_part.ProcessInfo[STEP]
+                self.next_output = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
 
         # Copy to a restart folder the posterior files, delete from problem folder
          
@@ -104,9 +104,9 @@ class RestartProcess(KratosMultiphysics.Process):
             print("::[Restart_Process]:: RESTART SAVED...", self.counter)
 
         # Print the output
-        time = self.model_part.ProcessInfo[TIME]
+        time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         self.printed_step_count += 1
-        self.model_part.ProcessInfo[PRINTED_RESTART_STEP] = self.printed_step_count
+        self.model_part.ProcessInfo[KratosMultiphysics.PRINTED_RESTART_STEP] = self.printed_step_count
         if self.output_label_is_time:
             label = time
         else:
