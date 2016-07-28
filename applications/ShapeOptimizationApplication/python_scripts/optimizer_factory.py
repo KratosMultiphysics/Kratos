@@ -603,8 +603,11 @@ class VertexMorphingMethod:
             # Scale constraint if specified
             response[only_C_id]["func"] = response[only_C_id]["func"]*self.config.constraint_scaling
             if(self.config.constraint_scaling!=1.0):
-                for node_Id in response[only_C_id]["grad"]: 
-                    response[only_C_id]["grad"][node_Id] = response[only_C_id]["grad"][node_Id]*self.config.constraint_scaling
+                for node_Id in response[only_C_id]["grad"]:
+                    scaled_sens=[ response[only_C_id]["grad"][node_Id][0]*self.config.constraint_scaling,
+                                  response[only_C_id]["grad"][node_Id][1]*self.config.constraint_scaling,
+                                  response[only_C_id]["grad"][node_Id][2]*self.config.constraint_scaling ]
+                    response[only_C_id]["grad"][node_Id] = scaled_sens
 
             # Check if constraint is active
             for func_id in self.config.constraints:

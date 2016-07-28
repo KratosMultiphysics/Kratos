@@ -287,7 +287,7 @@ public:
 
         // Console output for information
         std::cout << "> Finished computing mapping matrix!" << std::endl;
-        std::cout << "> Time needed for computation of mapping matrix: " << mapping_time.elapsed() << std::endl;
+        std::cout << "> Time needed for computation of mapping matrix: " << mapping_time.elapsed() << " s" << std::endl;
 
         KRATOS_CATCH("");
     }
@@ -357,7 +357,7 @@ public:
 
     	// Console output for information
     	std::cout << "> Finished mapping sensitivities to design space!" << std::endl;
-    	std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << std::endl;
+        std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
 
     	KRATOS_CATCH("");
     }
@@ -371,7 +371,6 @@ public:
     	boost::timer mapping_time;
     	std::cout << "\n> Start mapping design update to geometry space..." << std::endl;
 
-
         // Assign design update to vector which shall be mapped
         VectorType ds;
         ds.resize(m_number_of_design_variables);
@@ -381,21 +380,10 @@ public:
             ds[i] = node_i->FastGetSolutionStepValue(DESIGN_UPDATE);
         }
 
-        // Perform mapping
+        // Perform mapping to compute shape update
         VectorType dx;
         dx.resize(m_number_of_design_variables*3);
         SparseSpaceType::Mult(m_mapping_matrix,ds,dx);
-
-        // Assign results
-        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
-        {
-            int i = node_i->GetValue(MAPPING_MATRIX_ID);
-            array_3d shape_update;
-            shape_update[0] = dx[3*i+0];
-            shape_update[1] = dx[3*i+1];
-            shape_update[2] = dx[3*i+2];
-            noalias(node_i->FastGetSolutionStepValue(SHAPE_UPDATE)) = shape_update;
-        }
 
         // Update of coordinates and absolute values AFTER shape update is modified according to special conditions
         for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
@@ -409,14 +397,23 @@ public:
             // In case it is not deactivated, it is checked if it is on a specified boundary beyond which no update is wanted
             else
             {
-                // Project shape update at boundary on specified boundary plane (Remove component that is normal to the boundary plane)
+                // Read shape update from solution vector
+                int i = node_i->GetValue(MAPPING_MATRIX_ID);
+                array_3d shape_update;
+                shape_update[0] = dx[3*i+0];
+                shape_update[1] = dx[3*i+1];
+                shape_update[2] = dx[3*i+2];
+
+                // If node is on specified boundary, project shape update on specified boundary plane
+                // I.e. remove component that is normal to the boundary plane
                 if(node_i->FastGetSolutionStepValue(IS_ON_BOUNDARY))
                 {
                     array_3d boundary_plane = node_i->FastGetSolutionStepValue(BOUNDARY_PLANE);
-                    array_3d original_update = node_i->FastGetSolutionStepValue(SHAPE_UPDATE);
-                    array_3d projected_update = original_update - (inner_prod(original_update,boundary_plane))*boundary_plane/norm_2(boundary_plane);
-                    noalias(node_i->FastGetSolutionStepValue(SHAPE_UPDATE)) = projected_update;
+                    shape_update = shape_update - (inner_prod(shape_update,boundary_plane))*boundary_plane/norm_2(boundary_plane);
                 }
+
+                // Assign shape update to nodal variable
+                noalias(node_i->FastGetSolutionStepValue(SHAPE_UPDATE)) = shape_update;
             }
 
             // Update coordinates
@@ -431,7 +428,7 @@ public:
 
     	// Console output for information
     	std::cout << "> Finished mapping design update to geometry space!" << std::endl;
-    	std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << std::endl;
+        std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
 
     	KRATOS_CATCH("");
     }
