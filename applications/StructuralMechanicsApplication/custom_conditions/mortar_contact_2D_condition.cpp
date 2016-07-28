@@ -729,19 +729,14 @@ void MortarContact2DCondition::MasterShapeFunctionValue(
     const PointType& local_point 
     )
 {
-    rVariables.N_Master = ZeroVector(2);
-    
+    GeometryType& master_seg = rVariables.GetMasterElement( );
+    const unsigned int num_master_nodes = master_seg.PointsNumber();
+
+    rVariables.N_Master = ZeroVector(num_master_nodes);
     rVariables.IntegrationPointNormalGap = 0.0;
     PointType projected_gp_global;
-    GeometryType& master_seg = rVariables.GetMasterElement( );
-
-    array_1d<double,3> normal = ZeroVector(3);
-    for( unsigned int iNode = 0; iNode < GetGeometry().PointsNumber(); ++iNode )
-    {
-        normal -= rVariables.N_Slave[iNode] * GetGeometry()[iNode].GetValue(NORMAL); // The opposite direction
-    }
     
-//     normal = normal/norm_2(normal); // It is suppossed to be already unitary (just in case)
+    array_1d<double,3> normal = - ContactUtilities::GaussPointNormal(rVariables.N_Slave, GetGeometry());
     
     // Doing calculations with eta
     GeometryType::CoordinatesArrayType slave_gp_global;
@@ -945,15 +940,71 @@ void MortarContact2DCondition::CalculateDAndM(
 // {
 //         // TODO Add content
 // }
-//
-// /***********************************************************************************/
-// /***********************************************************************************/
-// 
-// void MortarContact2DCondition::CalculateDeltaDiscreteGap( const IndexType& rPointNumber )
-// {
-//         // TODO Add content
-// }
-// 
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double MortarContact2DCondition::CalculateDeltaDiscreteGap( 
+    GeneralVariables& rVariables,
+    const PointType& slave_gp_local
+    )
+{
+    double DeltaGap = 0.0;
+    
+    const unsigned int num_slave_nodes = GetGeometry().PointsNumber();
+    const GeometryType& master_seg = rVariables.GetMasterElement( );
+    const unsigned int num_master_nodes = master_seg.PointsNumber( );
+    
+    array_1d<double,3> normal_gauss = ContactUtilities::GaussPointNormal(rVariables.N_Slave, GetGeometry());
+   
+    // The delta discrete gap can be obtained after computing three independent parts
+    
+    // PART ONE
+    array_1d<double,3> vector_points = ZeroVector(3);
+    
+    double aux_dist; 
+    GeometryType::CoordinatesArrayType slave_gp_global;
+    this->GetGeometry( ).GlobalCoordinates( slave_gp_global, slave_gp_local );
+    GeometryType::CoordinatesArrayType projected_gp_global;
+    ContactUtilities::ProjectCoordDirection( GetGeometry(), slave_gp_global, projected_gp_global, aux_dist, normal_gauss );
+    vector_points[0] = slave_gp_global(1) - projected_gp_global(1);
+    vector_points[1] = slave_gp_global(2) - projected_gp_global(2);
+    
+    array_1d<double,3> part_one = ZeroVector(3);
+    
+    for (unsigned int iSlave = 0; iSlave < num_slave_nodes; iSlave++)
+    {
+        part_one += rVariables.DN_De_Slave(iSlave, 0) * GetGeometry()[iSlave].GetValue(NORMAL); /* * NOTE: We need the DeltaXi */
+//         part_one += rVariables.N_Slave[iSlave] ; /* * NOTE: We need the DeltaNormal */
+    }
+    
+    DeltaGap -= inner_prod(vector_points, part_one);
+    
+    // PART TWO
+    array_1d<double,3> part_two   = ZeroVector(3);
+    
+    for (unsigned int iSlave = 0; iSlave < num_slave_nodes; iSlave++)
+    {
+        part_two += rVariables.DN_De_Slave(iSlave, 0) * GetGeometry()[iSlave].Coordinates(); /* * NOTE: We need the DeltaXi */
+//         part_two += rVariables.N_Slave[iSlave] ; /* * NOTE: We need the DeltaCoordinates */
+    }
+    
+    DeltaGap -= inner_prod(normal_gauss, part_two);
+    
+    // PART THREE
+    array_1d<double,3> part_three = ZeroVector(3);
+    
+    for (unsigned int iMaster = 0; iMaster < num_master_nodes; iMaster++)
+    {
+        part_three += rVariables.DN_De_Master(iMaster, 0) * master_seg[iMaster].Coordinates(); /* * NOTE: We need the DeltaXi */
+//         part_three += rVariables.N_Master[iMaster]; /* * NOTE: We need the DeltaNormañ */
+    }
+    
+    DeltaGap += inner_prod(normal_gauss, part_three);
+    
+    return DeltaGap;
+}
+
 // /***********************************************************************************/
 // /***********************************************************************************/
 // 
