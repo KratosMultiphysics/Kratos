@@ -33,7 +33,7 @@ def PrintElements(element_type, Elements, outfile):
     outstring = "Begin Elements " + element_type + "\n"
     outfile.write(outstring)
     for elem in Elements:
-        outstring = str(elem.Id) + " " + "0"  # str(elem.Properties.Id())
+        outstring = str(elem.Id) + " " + str(elem.Properties.Id)
         for node in elem.GetNodes():
             outstring += " " + str(node.Id)
         outstring += "\n"
@@ -46,7 +46,7 @@ def PrintConditions(element_type, Conditions, outfile):
     outstring = "Begin Conditions " + element_type + "\n"
     outfile.write(outstring)
     for elem in Conditions:
-        outstring = str(elem.Id) + " " + "0"  # str(elem.Properties.Id())
+        outstring = str(elem.Id) + " " + str(elem.Properties.Id)
         for node in elem.GetNodes():
             outstring += " " + str(node.Id)
         outstring += "\n"
