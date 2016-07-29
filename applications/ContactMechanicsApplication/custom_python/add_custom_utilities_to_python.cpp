@@ -24,6 +24,7 @@
 
 //Utilities
 #include "custom_utilities/rigid_body_element_creation_utility.hpp"
+#include "custom_utilities/contact_domain_utilities.hpp"
 
 
 namespace Kratos

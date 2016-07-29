@@ -398,7 +398,7 @@ void RigidBodyPointRigidContactCondition::CalculateKinematics(GeneralVariables& 
       array_1d<double, 3 > DeltaDisplacement           = CurrentDisplacement-PreviousDisplacement;
  
       for (unsigned int i = 0; i < dimension ; ++i) {
-	rVariables.Surface.Tangent[i] = DeltaDisplacement[i] - mTangentialVariables.DeltaTime * this->mpRigidWall->Velocity()[i];
+	rVariables.Surface.Tangent[i] = DeltaDisplacement[i] - mTangentialVariables.DeltaTime * this->mpRigidWall->GetVelocity()[i];
       }
 
       if( norm_2(rVariables.Surface.Normal) )
@@ -1144,7 +1144,7 @@ double& RigidBodyPointRigidContactCondition::CalculateTangentRelativeMovement( d
 
   // }
 
-  VectorType WallDisplacement = mTangentialVariables.DeltaTime * this->mpRigidWall->Velocity();
+  VectorType WallDisplacement = mTangentialVariables.DeltaTime * this->mpRigidWall->GetVelocity();
        
   rTangentRelativeMovement = 0.0;
   double WallTangentRelativeMovement    = 0.0;

@@ -84,7 +84,7 @@ namespace Kratos
 
          rValue = K + 4.0*G / 3.0;
       }
-      else if ( rThisVariable == SIMILAR_YOUNG_MODULUS)
+      else if ( rThisVariable == EQUIVALENT_YOUNG_MODULUS)
       {
          double Swelling = mpYieldCriterion->GetHardeningLaw().GetProperties()[ SWELLING_SLOPE ];
          double MeanStress ;

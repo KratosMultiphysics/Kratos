@@ -625,7 +625,8 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
     double EffectiveGapT = ReferenceGapT;
 
     double CurrentTimeStep  = rCurrentProcessInfo[DELTA_TIME];
-    double PreviousTimeStep = rCurrentProcessInfo[PREVIOUS_DELTA_TIME];
+    ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo();
+    double PreviousTimeStep = rPreviousProcessInfo[DELTA_TIME];
     
     
     if(mContactVariables.PreStepGap.Normal!=0 && mContactVariables.IterationCounter<1){    

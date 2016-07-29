@@ -293,8 +293,9 @@ namespace Kratos
       double extra_radius = rContactVariables.OffsetFactor*4; 
       SpatialBoundingBox DomainBox (rModelPart, extra_radius);
       
+      const unsigned int dimension = 2;
       ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-      std::vector<Vector> BoxVertices = DomainBox.GetVertices( CurrentProcessInfo[TIME] );
+      std::vector<bounded_vector<double, 3> > BoxVertices = DomainBox.GetVertices( CurrentProcessInfo[TIME], dimension );
 
       //input mesh: NODES
       in.numberofpoints = rBoundaryNodes.size() + BoxVertices.size();
@@ -391,7 +392,7 @@ namespace Kratos
       
       //PART 3: (area) hole list
 
-      std::vector<Vector> Holes = DomainBox.GetHoles( rModelPart );
+      std::vector<bounded_vector<double, 3> > Holes = DomainBox.GetHoles( rModelPart );
 
       //holes
       in.numberofholes              = Holes.size();

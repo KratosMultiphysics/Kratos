@@ -320,22 +320,6 @@ void SmallDisplacementElement::SetValueOnIntegrationPoints( const Variable<Const
             mConstitutiveLawVector.resize(rValues.size());
 
             if( mConstitutiveLawVector.size() != GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod  ) )
-                KRATOS_THROW_ERROR( std::logic_error, "constitutive law not has the correct size ", mConstitutiveLawVector.size() )
-        }
-
-        for(unsigned int i=0; i<rValues.size(); i++)
-        {
-            mConstitutiveLawVector[i] = rValues[i]->Clone();
-        }
-    }
-
-    if(rVariable == CONSTITUTIVE_LAW_POINTER)
-    {
-        if ( mConstitutiveLawVector.size() != rValues.size() )
-        {
-            mConstitutiveLawVector.resize(rValues.size());
-
-            if( mConstitutiveLawVector.size() != GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod  ) )
                 KRATOS_THROW_ERROR( std::logic_error, "constitutive law not has the correct size ", mConstitutiveLawVector.size() );
         }
 
@@ -473,7 +457,7 @@ void SmallDisplacementElement::GetValueOnIntegrationPoints( const Variable<Const
         const ProcessInfo& rCurrentProcessInfo )
 {
 
-    if(rVariable == CONSTITUTIVE_LAW || rVariable == CONSTITUTIVE_LAW_POINTER)
+  if(rVariable == CONSTITUTIVE_LAW)
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
         {
@@ -1141,7 +1125,7 @@ void SmallDisplacementElement::InitializeMaterial()
 	// NOTE:
 	// This is the standard (previous) implementation:
 	// If we are here, it means that no one already set up the constitutive law vector
-	// through the method SetValue<CONSTITUTIVE_LAW_POINTER>
+	// through the method SetValue<CONSTITUTIVE_LAW>
 
 	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
@@ -1173,7 +1157,7 @@ void SmallDisplacementElement::InitializeMaterial()
 	// NOTE:
 	// This is the standard (previous) implementation:
 	// If we are here, it means that no one already set up the constitutive law vector
-	// through the method SetValue<CONSTITUTIVE_LAW_POINTER>
+	// through the method SetValue<CONSTITUTIVE_LAW>
 
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
     {
