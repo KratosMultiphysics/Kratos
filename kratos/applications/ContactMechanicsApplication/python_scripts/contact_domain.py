@@ -13,7 +13,7 @@ import meshing_domain
 def CreateMeshingDomain(main_model_part, custom_settings):
     return ContactDomain(main_model_part, custom_settings)
 
-class ContactDomain(mesh_modeler.MeshingDomain):
+class ContactDomain(meshing_domain.MeshingDomain):
     
     ##constructor. the constructor shall only take care of storing the settings 
     ##and the pointer to the main_model part.

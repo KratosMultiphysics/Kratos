@@ -83,7 +83,7 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
         friction_law_type_name = contact_variables["friction_law_type"].GetString()
         FrictionLaw   = None
 
-        friction_law_type_call = " FrictionLaw = " friction_law_module + friction_law_type_name
+        friction_law_type_call = " FrictionLaw = " + friction_law_module + friction_law_type_name
         exec(friction_law_type_call)
         
         friction_law = FrictionLaw()
