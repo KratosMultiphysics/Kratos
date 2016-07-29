@@ -171,26 +171,32 @@ while(time <= end_time):
     main_model_part.ProcessInfo[KratosMultiphysics.STEP] = step
     main_model_part.CloneTimeStep(time) 
 
-    # solve 
+    # processes to be executed at the begining of the solution step
     for process in list_of_processes:
         process.ExecuteInitializeSolutionStep()
 
     gid_output.ExecuteInitializeSolutionStep()
-        
+     
+   
+    # solve time step
     solver.Solve()
 
     gid_output.ExecuteFinalizeSolutionStep()
         
+
+    # processes to be executed at the end of the solution step
     for process in list_of_processes:
         process.ExecuteFinalizeSolutionStep()
 
+    # processes to be executed before witting the output
     for process in list_of_processes:
         process.ExecuteBeforeOutputStep()
     
-    # write results: (frequency writing is controlled internally by the gid_io)
+    # write output results GiD: (frequency writing is controlled internally)
     if(gid_output.IsOutputStep()):
         gid_output.PrintOutput()
                       
+    # processes to be executed after witting the output
     for process in list_of_processes:
         process.ExecuteAfterOutputStep()
 
