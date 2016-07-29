@@ -24,6 +24,7 @@ def StopTimeMeasuring(time_ip, process, report):
 
 #### TIME MONITORING END ####
 
+# Import system python
 import os
 
 # Import kratos core and applications
@@ -37,7 +38,7 @@ import KratosMultiphysics.ExternalSolversApplication as KratosSolvers
 
 #### PARSING THE PARAMETERS ####
 
-# Import define_output
+# Import input
 parameter_file = open("ProjectParameters.json",'r')
 ProjectParameters = KratosMultiphysics.Parameters( parameter_file.read())
 
