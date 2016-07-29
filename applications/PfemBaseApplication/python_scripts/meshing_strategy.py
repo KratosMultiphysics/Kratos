@@ -21,7 +21,7 @@ class MeshingStrategy(object):
         default_settings = KratosMultiphysics.Parameters("""
         {
              "python_file_name": "meshing_strategy",
-             "meshing_frequency": 0,
+             "meshing_frequency": 0.0,
              "remesh": false,
              "refine": false,
              "reconnect": false,

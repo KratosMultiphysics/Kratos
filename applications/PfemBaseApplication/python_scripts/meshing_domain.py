@@ -30,7 +30,7 @@ class MeshingDomain(object):
             "offset_factor": 0.0,
             "meshing_strategy":{
                "python_file_name": "meshing_strategy",
-               "meshing_frequency": 0,
+               "meshing_frequency": 0.0,
                "remesh": false,
                "refine": false,
                "reconnect": false,
@@ -43,9 +43,9 @@ class MeshingDomain(object):
                "reference_condition_type": "CompositeCondition2D2N"
             },
             "spatial_bounding_box":{
-               "radius": 0.0,
-               "center": [0.0, 0.0, 0.0],
-               "velocity": [0.0, 0.0, 0.0]
+               "upper_point": [0.0, 0.0, 0.0],
+	       "lower_point": [0.0, 0.0, 0.0],
+	       "velocity": [0.0, 0.0, 0.0]
             },
             "refining_parameters":{
                "critical_size": 0.0,
