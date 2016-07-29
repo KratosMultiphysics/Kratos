@@ -83,15 +83,15 @@ echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
 model_part = KratosMultiphysics.ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
 
 model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
-#main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, ProjectParameters["problem_data"]["time_step"].GetDouble())
-#main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, ProjectParameters["problem_data"]["start_time"].GetDouble())
+#model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, ProjectParameters["problem_data"]["time_step"].GetDouble())
+#model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, ProjectParameters["problem_data"]["start_time"].GetDouble())
 
 ###TODO replace this "model" for real one once available in kratos core
 Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : model_part}
 
 #construct the solver (main setting methods are located in the solver_module)
 #solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
-#solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_settings"])
+#solver = solver_module.CreateSolver(model_part, ProjectParameters["solver_settings"])
 
 
 #### PARSING CLASSICAL PARAMETERS ####
@@ -370,7 +370,7 @@ main_step_solver.SetRestart(load_restart) #calls strategy initialize if no resta
 # modeler.InitialContactSearch()
 
 #define time steps and loop range of steps
-time_step = model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+delta_time = model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
 if(load_restart):  
 
@@ -380,36 +380,35 @@ else:
 
   model_part.ProcessInfo[KratosMultiphysics.TIME]                = 0
   model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS]          = 0
-  model_part.ProcessInfo[KratosSolid.PREVIOUS_DELTA_TIME] = time_step
+  model_part.ProcessInfo[KratosSolid.PREVIOUS_DELTA_TIME] = delta_time
 
-  conditions.Initialize(time_step);
+  conditions.Initialize(delta_time);
 
 #initialize step operations
-starting_step  = model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS]
-starting_time  = model_part.ProcessInfo[KratosMultiphysics.TIME]
-ending_step    = general_variables.nsteps
-ending_time    = general_variables.nsteps * time_step
+step     = model_part.ProcessInfo[KratosMultiphysics.STEP]
+time     = model_part.ProcessInfo[KratosMultiphysics.TIME]
+end_time = general_variables.nsteps * delta_time
 
 
 output_print = operation_utils.TimeOperationUtility()
 gid_time_frequency = general_variables.GiDWriteFrequency
-output_print.InitializeTime(starting_time, ending_time, time_step, gid_time_frequency)
+output_print.InitializeTime(time, end_time, delta_time, gid_time_frequency)
 
 restart_print = operation_utils.TimeOperationUtility()
 restart_time_frequency = general_variables.RestartFrequency
-restart_print.InitializeTime(starting_time, ending_time, time_step, restart_time_frequency)
+restart_print.InitializeTime(time, end_time, delta_time, restart_time_frequency)
 
 #mesh_generation = operation_utils.TimeOperationUtility()
 #mesh_generation_frequency = modeler.GetRemeshFrequency()
-#mesh_generation.InitializeTime(starting_time, ending_time, time_step, mesh_generation_frequency)
+#mesh_generation.InitializeTime(time, end_time, delta_time, mesh_generation_frequency)
 
 contact_search = operation_utils.TimeOperationUtility()
 contact_search_frequency = general_variables.contact_modeler_config.contact_search_frequency
-contact_search.InitializeTime(starting_time, ending_time, time_step, contact_search_frequency)
+contact_search.InitializeTime(time, end_time, delta_time, contact_search_frequency)
 
 rigid_wall_contact_search = operation_utils.TimeOperationUtility()
 rigid_wall_contact_search_frequency = 0
-rigid_wall_contact_search.InitializeTime(starting_time, ending_time, time_step, rigid_wall_contact_search_frequency)
+rigid_wall_contact_search.InitializeTime(time, end_time, delta_time, rigid_wall_contact_search_frequency)
 
 #initialize graph plot variables for time integration
 if( plot_active == True):
@@ -420,11 +419,11 @@ if( plot_active == True):
 
 graph_write= operation_utils.TimeOperationUtility()
 graph_write_frequency = general_variables.PlotFrequency
-graph_write.InitializeTime(starting_time, ending_time, time_step, graph_write_frequency)
+graph_write.InitializeTime(time, end_time, delta_time, graph_write_frequency)
 
 solving_print = operation_utils.TimeOperationUtility()
 solving_time_frequency = gid_time_frequency
-solving_print.InitializeTime(starting_time, ending_time, time_step, solving_time_frequency)
+solving_print.InitializeTime(time, end_time, delta_time, solving_time_frequency)
 
 # --TIME INTEGRATION--#######################
 #
@@ -432,16 +431,21 @@ solving_print.InitializeTime(starting_time, ending_time, time_step, solving_time
 #writing a single file
 gid_print.initialize_results(model_part)
 
-#initialize time integration variables
-current_time = starting_time
-current_step = starting_step
-
 # filling the buffer
 for step in range(0,buffer_size):
 
-  model_part.CloneTimeStep(current_time)
-  model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = time_step
-  model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS] = step-buffer_size
+  model_part.CloneTimeStep(time)
+  model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = delta_time
+  model_part.ProcessInfo[KratosMultiphysics.STEP] = step-buffer_size
+
+
+# Set time settings
+step       = model_part.ProcessInfo[KratosMultiphysics.STEP]
+time       = model_part.ProcessInfo[KratosMultiphysics.TIME]
+
+end_time   = ProjectParameters["problem_data"]["end_time"].GetDouble()
+delta_time = ProjectParameters["problem_data"]["time_step"].GetDouble()
+
 
 # writing a initial state results file
 current_id = 0
@@ -451,134 +455,109 @@ if(load_restart == False):
             conditions.SetConstantWeight( general_variables.TryToSetWeightVertical, general_variables.TryToSetWeightHorizontal);
         else:
             conditions.SetWeight();
-    gid_print.write_results(model_part, general_variables.nodal_results, general_variables.gauss_points_results, current_time, current_step, current_id)
+    gid_print.write_results(model_part, general_variables.nodal_results, general_variables.gauss_points_results, time, step, current_id)
     list_files.PrintListFiles(current_id);
 
 # set solver info starting parameters
 solving_info = solving_info_utils.SolvingInfoUtility(model_part, SolverSettings)
 
+
 print(" ")
 print("::[KPFEM Simulation]:: Analysis -START- ")
 
-# solving the problem
-while(current_time < ending_time):
+# Solving the problem (time integration)
+while(time <= end_time):
 
-  # store previous time step
-  model_part.ProcessInfo[KratosSolid.PREVIOUS_DELTA_TIME] = time_step
-  # set new time step ( it can change when solve is called )
-  time_step = model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+    # current time parameters
+    # model_part.ProcessInfo.GetPreviousStepInfo(1)[KratosMultiphysics.DELTA_TIME] = delta_time
+    delta_time = model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+    
+    time = time + delta_time
+    step = step + 1
+    
+    model_part.ProcessInfo[KratosMultiphysics.STEP] = step
+    model_part.CloneTimeStep(time) 
 
-  current_time = current_time + time_step
-  current_step = current_step + 1
 
-  model_part.CloneTimeStep(current_time)
-  model_part.ProcessInfo[KratosMultiphysics.TIME] = current_time
+    # print process information:
+    print_info = solving_print.perform_time_operation(time)
+    if(print_info):
+        solving_info.print_step_info(time,step)
+        
+    # processes to be executed at the begining of the solution step
+    execute_rigid_wall_contact_search = rigid_wall_contact_search.perform_time_operation(time)
+    if(execute_rigid_wall_contact_search):
+        rigid_wall.ExecuteContactSearch()
 
-  # print process information:
-  print_info = solving_print.perform_time_operation(current_time)
-  if(print_info):
-      solving_info.print_step_info(current_time,current_step)
-  
-  # processes to be executed at the begining of the solution step
-  execute_rigid_wall_contact_search = rigid_wall_contact_search.perform_time_operation(current_time)
-  if(execute_rigid_wall_contact_search):
-      rigid_wall.ExecuteContactSearch()
-
-  for process in list_of_processes:
-      process.ExecuteInitializeSolutionStep()
+    for process in list_of_processes:
+        process.ExecuteInitializeSolutionStep()
       
-  #solving the solid problem 
-  clock_time = StartTimeMeasuring();
+    # solving the solid problem 
+    clock_time = StartTimeMeasuring();
 
-  #solve time step non-linear system
-  main_step_solver.Solve()
+    # solve time step
+    main_step_solver.Solve()
 
-  StopTimeMeasuring(clock_time,"Solving", False);
+    StopTimeMeasuring(clock_time,"Solving", False);
 
-  #processes to be executed at the end of the solution step
-  rigid_wall.UpdatePosition()
+    rigid_wall.UpdatePosition()
 
-  #plot graphs
-  if(plot_active):
-    graph_plot.SetStepResult()
+    #plot graphs
+    if(plot_active):
+        graph_plot.SetStepResult()
 
-  #incremental load
-  conditions.SetIncrementalLoad(current_step, time_step);
-  ##conditions.CorrectBoundaryConditions(current_step, time_step); ## function to remove load conditions from the contact...
+    #incremental load
+    conditions.SetIncrementalLoad(step, delta_time);
+    ##conditions.CorrectBoundaryConditions(step, delta_time); ## function to remove load conditions from the contact...
 
+    # processes to be executed at the end of the solution step
+    for process in list_of_processes:
+        process.ExecuteFinalizeSolutionStep()
 
-  for process in list_of_processes:
-      process.ExecuteFinalizeSolutionStep()
-       
-  for process in list_of_processes:
-      process.ExecuteBeforeOutputStep()
-
-
-      
-  #print the results at the end of the step
-  if(general_variables.WriteResults == "PreMeshing"):
-    execute_write = output_print.perform_time_operation(current_time)
+    # processes to be executed before witting the output      
+    for process in list_of_processes:
+        process.ExecuteBeforeOutputStep()
+     
+    #print the results at the end of the step
+    execute_write = output_print.perform_time_operation(time)
     if(execute_write):
-      clock_time=StartTimeMeasuring();
-      current_id = output_print.operation_id()
-      #print gid output file
-      gid_print.write_results(model_part,general_variables.nodal_results,general_variables.gauss_points_results,current_time,current_step,current_id)
-      #print on list files
-      list_files.PrintListFiles(current_id);
-      solving_info.set_print_info(execute_write, current_id)
-      StopTimeMeasuring(clock_time,"Writing Results", False);
+        clock_time=StartTimeMeasuring();
+        current_id = output_print.operation_id()
+        #print gid output file
+        gid_print.write_results(model_part,general_variables.nodal_results,general_variables.gauss_points_results,time,step,current_id)
+        #print on list files
+        list_files.PrintListFiles(current_id);
+        solving_info.set_print_info(execute_write, current_id)
+        StopTimeMeasuring(clock_time,"Writing Results", False);
+        
 
-  # remesh domains
-  #execute_meshing = mesh_generation.perform_time_operation(current_time)
-  #if(execute_meshing):
-  #  modeler.RemeshDomains();
-  #  solving_info.set_meshing_info(execute_meshing,modeler.GetMeshingStep())
+    # processes to be executed after witting the output
+    for process in list_of_processes:
+        process.ExecuteAfterOutputStep()
 
-  # contact search
-  #execute_contact_search = contact_search.perform_time_operation(current_time)
-  #if(execute_contact_search or execute_meshing):
-  #  modeler.ContactSearch();
+    # plot graphs
+    if(plot_active):
+        execute_plot = graph_write.perform_time_operation(time)
+        if(execute_plot):
+            current_id = output_print.operation_id()
+            graph_plot.Plot(current_id)
 
-
-  # print the results at the end of the step
-  if(general_variables.WriteResults == "PostMeshing"):
-    execute_write = output_print.perform_time_operation(current_time)
-    if(execute_write):
-      clock_time=StartTimeMeasuring();
-      current_id = output_print.operation_id()
-      #print gid output file
-      gid_print.write_results(model_part,general_variables.nodal_results,general_variables.gauss_points_results,current_time,current_step,current_id)
-      #print on list files
-      list_files.PrintListFiles(current_id);
-      solving_info.set_print_info(execute_write, current_id)
-      StopTimeMeasuring(clock_time,"Writing Results", False);
-
-  for process in list_of_processes:
-    process.ExecuteAfterOutputStep()
-
-  # plot graphs
-  if(plot_active):
-    execute_plot = graph_write.perform_time_operation(current_time)
-    if(execute_plot):
-      current_id = output_print.operation_id()
-      graph_plot.Plot(current_id)
-
-  # print restart file
-  if(save_restart):
-    execute_save = restart_print.perform_time_operation(current_time)
-    if(execute_save):
-      clock_time=StartTimeMeasuring();
-      current_id = output_print.operation_id()
-      problem_restart.Save(current_time,current_step,current_id)
-      solving_info.set_restart_info(execute_save,current_id)
-      StopTimeMeasuring(clock_time,"Writing Restart", False)
+    # print restart file
+    if(save_restart):
+        execute_save = restart_print.perform_time_operation(time)
+        if(execute_save):
+            clock_time=StartTimeMeasuring();
+            current_id = output_print.operation_id()
+            problem_restart.Save(time,step,current_id)
+            solving_info.set_restart_info(execute_save,current_id)
+            StopTimeMeasuring(clock_time,"Writing Restart", False)
 
 
-  solving_info.update_solving_info()
-  if(print_info):
-      solving_info.print_solving_info()
+    solving_info.update_solving_info()
+    if(print_info):
+        solving_info.print_solving_info()
 
-  conditions.RestartImposedDisp()
+    conditions.RestartImposedDisp()
 
 # --FINALIZE--############################
 #
