@@ -66,8 +66,8 @@
 			"reference_condition_type": "CompositeCondition2D2N"
 		    },
 		    "spatial_bounding_box":{
-			"radius": 0.0,
-			"center": [0.0, 0.0, 0.0],
+			"upper_point": [0.0, 0.0, 0.0],
+			"lower_point": [0.0, 0.0, 0.0],
 			"velocity": [0.0, 0.0, 0.0]
 		    },
 		    "refining_parameters":{
@@ -104,8 +104,8 @@
 			},              
 			"refining_box":{
 			    "refine_in_box_only": false,
-			    "radius": 0.0,
-			    "center": [0.0, 0.0, 0.0],
+			    "upper_point": [0.0, 0.0, 0.0],
+			    "lower_point": [0.0, 0.0, 0.0],
 			    "velocity": [0.0, 0.0, 0.0]
 			}
 		    },            
