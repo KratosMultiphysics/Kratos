@@ -22,27 +22,35 @@
 #if !defined(KRATOS_CONTACT_MECHANICS_APPLICATION_H_INCLUDED )
 #define  KRATOS_CONTACT_MECHANICS_APPLICATION_H_INCLUDED
 
-
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 
-// Core applications
-//#include "solid_mechanics_application.h"
-//#include "pfem_base_application.h"
-
 // elements
 #include "custom_elements/rigid_body_element.hpp"
 #include "custom_elements/translatory_rigid_body_element.hpp"
+
+// conditions
+#include "custom_conditions/contact_domain_condition.hpp"
+#include "custom_conditions/contact_domain_LM_2D_condition.hpp"
+#include "custom_conditions/contact_domain_penalty_2D_condition.hpp"
+#include "custom_conditions/axisym_contact_domain_LM_2D_condition.hpp"
+#include "custom_conditions/axisym_contact_domain_penalty_2D_condition.hpp"
+
+#include "custom_conditions/point_rigid_contact_condition.hpp"
+#include "custom_conditions/point_rigid_contact_penalty_3D_condition.hpp"
+#include "custom_conditions/point_rigid_contact_penalty_2D_condition.hpp"
+#include "custom_conditions/axisym_point_rigid_contact_penalty_2D_condition.hpp"
+
+// Core applications
+#include "pfem_base_application.h"
 
 
 namespace Kratos {
@@ -197,8 +205,11 @@ private:
 	///@name Member Variables
 	///@{
 
-	// const Elem2D   mElem2D;
-	// const Elem3D   mElem3D;
+	const ContactDomainLM2DCondition                       mContactDomainLMCondition2D3N;
+	const ContactDomainPenalty2DCondition             mContactDomainPenaltyCondition2D3N;
+
+	const AxisymContactDomainLM2DCondition           mAxisymContactDomainLMCondition2D3N;
+	const AxisymContactDomainPenalty2DCondition mAxisymContactDomainPenaltyCondition2D3N;
 
 	///@}
 	///@name Private Operators

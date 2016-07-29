@@ -1,13 +1,14 @@
 //
-//   Project Name:        KratosPfemSolidMechanicsApplication $
-//   Created by:          $Author:                  LMonforte $
-//   Last modified by:    $Co-Author:                         $
-//   Date:                $Date:                    July 2015 $
-//   Revision:            $Revision:                      0.0 $
+//   Project Name:        KratosContactMechanicsApplication $
+//   Created by:          $Author:              JMCarbonell $
+//   Last modified by:    $Co-Author:                       $
+//   Date:                $Date:                  July 2016 $
+//   Revision:            $Revision:                    0.0 $
 //
 //
 
 #include "custom_conditions/custom_friction_laws/friction_law.hpp"
+
 #include "contact_mechanics_application_variables.h"
 
 namespace Kratos
