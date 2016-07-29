@@ -1,15 +1,17 @@
 //
-//   Project Name:        KratosPfemSolidMechanicsApplication $
-//   Created by:          $Author:                  LMonforte $
-//   Last modified by:    $Co-Author:                         $
-//   Date:                $Date:                    July 2015 $
-//   Revision:            $Revision:                      0.0 $
+//   Project Name:        KratosContactMechanicsApplication $
+//   Created by:          $Author:              JMCarbonell $
+//   Last modified by:    $Co-Author:                       $
+//   Date:                $Date:                  July 2016 $
+//   Revision:            $Revision:                    0.0 $
 //
 //
 
 #if !defined(KRATOS_FRICTION_LAW_H_INCLUDED)
 #define      KRATOS_FRICTION_LAW_H_INCLUDED
+
 #include "includes/kratos_flags.h"
+
 #include "includes/model_part.h"
 
 namespace Kratos

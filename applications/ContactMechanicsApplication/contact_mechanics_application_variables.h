@@ -33,6 +33,9 @@
 #include "includes/kratos_application.h"
 #include "custom_conditions/custom_friction_laws/friction_law.hpp"
 
+// Core applications
+#include "pfem_base_application_variables.h"
+
 namespace Kratos
 {
 
