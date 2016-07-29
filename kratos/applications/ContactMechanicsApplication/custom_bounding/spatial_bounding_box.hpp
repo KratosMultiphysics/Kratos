@@ -648,11 +648,29 @@ public:
     //**************************************************************************
     //**************************************************************************
 
+    virtual PointType GetVelocity()      
+    {
+      PointType Velocity;
+      if( mRigidBodyCenterSupplied ){
+	array_1d<double, 3>& rVelocity = mpRigidBodyCenter->FastGetSolutionStepValue(VELOCITY);
+	for(unsigned int i=0; i<3; i++)
+	  Velocity[i] = rVelocity[i];
+      }
+      else{
+	Velocity = mBox.Velocity;
+	BeamMathUtilsType::MapToReferenceLocalFrame(mBox.InitialLocalQuaternion, Velocity);
+      }
+      return Velocity;
+    }
+
+    //**************************************************************************
+    //**************************************************************************
+
     virtual PointType GetCenter()
     {
        PointType Center = mBox.Center;
-       BeamMathUtilsType::MapToReferenceLocalFrame(mBox.InitialLocalQuaternion, mBox.Center);
-       return mBox.Center;
+       BeamMathUtilsType::MapToReferenceLocalFrame(mBox.InitialLocalQuaternion, Center);
+       return Center;
     }
 
     //**************************************************************************

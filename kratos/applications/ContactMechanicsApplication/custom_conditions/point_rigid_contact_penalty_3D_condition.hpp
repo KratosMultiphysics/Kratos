@@ -72,7 +72,7 @@ public:
    ///@name Type Definitions
 
     ///Tensor order 1 definition
-    typedef Vector VectorType;
+    typedef bounded_vector<double, 3>     PointType;
 
     ///@{
     // Counted pointer of PointRigidContactCondition

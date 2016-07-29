@@ -262,7 +262,7 @@ namespace Kratos
          int NumberOfSum = 0;
          for ( unsigned int i = 0; i < rN.size(); i++)
          {
-            rN[i].CalculateOnIntegrationPoints(SIMILAR_YOUNG_MODULUS, mModulus, SomeProcessInfo);
+            rN[i].CalculateOnIntegrationPoints(EQUIVALENT_YOUNG_MODULUS, mModulus, SomeProcessInfo);
             ElasticModulus += mModulus[0];
             NumberOfSum += 1;
          }
@@ -595,7 +595,7 @@ namespace Kratos
 
          // }
 
-         VectorType WallDisplacement = mTangentialVariables.DeltaTime * this->mpRigidWall->Velocity();
+         VectorType WallDisplacement = mTangentialVariables.DeltaTime * this->mpRigidWall->GetVelocity();
 
          rTangentRelativeMovement = 0.0;
          double WallTangentRelativeMovement    = 0.0;

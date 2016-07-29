@@ -55,7 +55,7 @@ public:
     ///@name Type Definitions
 
     ///Tensor order 1 definition
-    typedef Vector VectorType;
+    typedef bounded_vector<double, 3>   PointType;
 
     ///@{
     // Counted pointer of RigidBodyPointRigidContactCondition
@@ -80,8 +80,8 @@ protected:
 
    typedef struct
     {
-        VectorType Normal;        //normal direction
-        VectorType Tangent;       //tangent direction
+        PointType Normal;        //normal direction
+        PointType Tangent;       //tangent direction
 	   
     } SurfaceVector;
 
@@ -108,7 +108,7 @@ protected:
       SurfaceVector   Surface;               //normal and tangent vector to the surface
       
       
-      VectorType      CentroidPosition;
+      PointType      CentroidPosition;
       double          CentroidDistance;
 
       Matrix          SkewSymDistance;

@@ -46,8 +46,8 @@ namespace Kratos
    {
 
       mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-      mpFrictionLaw = ContactFrictionLaw::Pointer( new CoulombAdhesionFrictionLaw() );
-      //mpFrictionLaw = ContactFrictionLaw::Pointer( new HardeningCoulombFrictionLaw() );
+      mpFrictionLaw = FrictionLaw::Pointer( new CoulombAdhesionFrictionLaw() );
+      //mpFrictionLaw = FrictionLaw::Pointer( new HardeningCoulombFrictionLaw() );
       //DO NOT ADD DOFS HERE!!!
    }
 
@@ -60,8 +60,8 @@ namespace Kratos
 
       mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
       mpRigidWall = pRigidWall;
-      mpFrictionLaw = ContactFrictionLaw::Pointer( new CoulombAdhesionFrictionLaw() );
-      //mpFrictionLaw = ContactFrictionLaw::Pointer( new HardeningCoulombFrictionLaw() );
+      mpFrictionLaw = FrictionLaw::Pointer( new CoulombAdhesionFrictionLaw() );
+      //mpFrictionLaw = FrictionLaw::Pointer( new HardeningCoulombFrictionLaw() );
 
       //DO NOT ADD DOFS HERE!!!
    }
@@ -75,8 +75,8 @@ namespace Kratos
       ,mpRigidWall(rOther.mpRigidWall)
 
    {
-      mpFrictionLaw = ContactFrictionLaw::Pointer( new CoulombAdhesionFrictionLaw() );
-      //mpFrictionLaw = ContactFrictionLaw::Pointer( new HardeningCoulombFrictionLaw() );
+      mpFrictionLaw = FrictionLaw::Pointer( new CoulombAdhesionFrictionLaw() );
+      //mpFrictionLaw = FrictionLaw::Pointer( new HardeningCoulombFrictionLaw() );
    }
 
    //***********************************************************************************

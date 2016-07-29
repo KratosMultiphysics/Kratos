@@ -14,7 +14,7 @@
 // Project includes
 #include "custom_conditions/axisym_contact_domain_penalty_2D_condition.hpp"
 
-#include "pfem_solid_mechanics_application_variables.h"
+#include "contact_mechanics_application_variables.h"
 
 
 namespace Kratos

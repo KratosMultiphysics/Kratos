@@ -436,7 +436,7 @@ void ContactDomainCondition::InitializeSolutionStep( ProcessInfo& rCurrentProces
     //3.-Get ConstitutiveLaw from the selected Master Element
     ElementType& MasterElement = mContactVariables.GetMasterElement();
     
-    MasterElement.GetValueOnIntegrationPoints( CONSTITUTIVE_LAW_POINTER, mConstitutiveLawVector, rCurrentProcessInfo );
+    MasterElement.GetValueOnIntegrationPoints( CONSTITUTIVE_LAW, mConstitutiveLawVector, rCurrentProcessInfo );
     
     //4.- Clear possible residual forces from the mesh refining and interpolation:
     ClearMasterElementNodalForces( MasterElement );

@@ -13,7 +13,7 @@ endif(NOT DEFINED ${INCLUDE_TRIANGLE})
 
 if(NOT DEFINED ${INCLUDE_TETGEN})
   set(INCLUDE_TETGEN ON)
-  set(TETGEN_INSTALL_DIR ${CMAKE_SOURCE_DIR}/external_libraries/tetgen/tetgen1.4.3/)
+  set(TETGEN_INSTALL_DIR ${CMAKE_SOURCE_DIR}/external_libraries/tetgen/tetgen1.4.3.lib/)
   include_directories( ${TETGEN_INSTALL_DIR} )
 endif(NOT DEFINED ${INCLUDE_TETGEN})
 
@@ -49,6 +49,13 @@ set( KRATOS_CONTACT_MECHANICS_APPLICATION_SOURCES
 
 	##friction laws
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/custom_friction_laws/friction_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/custom_friction_laws/hardening_coulomb_friction_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/custom_friction_laws/coulomb_adhesion_friction_law.cpp
+	##utilities
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/contact_domain_utilities.cpp
+
+	##modelers
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/contact_domain_2D_modeler.cpp
 
 )
 
