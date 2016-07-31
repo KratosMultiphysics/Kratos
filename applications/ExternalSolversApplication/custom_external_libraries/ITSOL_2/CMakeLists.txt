@@ -2,6 +2,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/INC )
 
+add_definitions( -w )
+
 set( ITSOL_OBJS     
  	${CMAKE_CURRENT_SOURCE_DIR}/SRC/fgmr.c 
 	${CMAKE_CURRENT_SOURCE_DIR}/SRC/iluk.c 
