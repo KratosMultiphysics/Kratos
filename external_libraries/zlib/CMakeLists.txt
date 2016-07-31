@@ -4,6 +4,8 @@ set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS ON)
 set(SKIP_INSTALL_HEADERS 1)
 set(SKIP_INSTALL_FILES 1)
 
+add_definitions( -w )
+
 project(zlib C)
 
 set(VERSION "1.2.8")
