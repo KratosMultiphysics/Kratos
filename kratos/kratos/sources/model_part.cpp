@@ -267,7 +267,7 @@ ModelPart::NodeType::Pointer ModelPart::CreateNewNode(int Id, double x, double y
         //the node already exists - now check if the position we ask for coincides with the one of the existing one
         double distance = sqrt( pow( existing_node_it->X() - x,2) + pow(existing_node_it->Y() - y,2) + pow(existing_node_it->Z() - z,2) );
         
-        if(distance > std::numeric_limits<int>::epsilon()*1000)
+        if(distance > std::numeric_limits<double>::epsilon()*1000)
             KRATOS_ERROR << "trying to create a node with Id " << Id << " however a node with the same Id already exists in the root model part. Existing node coordinates are " << existing_node_it->Coordinates() << " coordinates of the nodes we are attempting to create are :" << x << " " << y << " " << z;
         
         //if the node we attempt to create is in the same position as the one that is already there, we return the old one
@@ -314,7 +314,7 @@ ModelPart::NodeType::Pointer ModelPart::CreateNewNode(ModelPart::IndexType Id, d
         //the node already exists - now check if the position we ask for coincides with the one of the existing one
         double distance = sqrt( pow( existing_node_it->X() - x,2) + pow(existing_node_it->Y() - y,2) + pow(existing_node_it->Z() - z,2) );
         
-        if(distance > std::numeric_limits<int>::epsilon()*1000)
+        if(distance > std::numeric_limits<double>::epsilon()*1000)
             KRATOS_ERROR << "trying to create a node with Id " << Id << " however a node with the same Id already exists in the root model part. Existing node coordinates are " << existing_node_it->Coordinates() << " coordinates of the nodes we are attempting to create are :" << x << " " << y << " " << z;
         
         //if the node we attempt to create is in the same position as the one that is already there, we return the old one
