@@ -1,5 +1,7 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+
+add_definitions( -w )
 ##removing optimizations
 
 ## generate variables with the sources
