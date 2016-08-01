@@ -27,6 +27,7 @@ class StokesSolver:
         default_settings = kratoscore.Parameters("""
         {
             "solver_type": "stokes_solver_monolithic",
+            "force_steady_state": false,
             "velocity_tolerance": 1e-3,
             "pressure_tolerance": 1e-2,
             "absolute_velocity_tolerance": 1e-3,
@@ -186,7 +187,34 @@ class StokesSolver:
         
     def Solve(self):
         self.bdf_process.Execute()
+        
+        if(self.settings["force_steady_state"].GetBool()):
+            bdf_vec = self.GetComputeModelPart().ProcessInfo[KratosMultiphysics.BDF_COEFFICIENTS]
+            for i in range(len(bdf_vec)):
+                bdf_vec[i] = 0.0
+            self.GetComputeModelPart().ProcessInfo.SetValue(KratosMultiphysics.BDF_COEFFICIENTS, bdf_vec)
+            
         self.fluid_solver.Solve()
+        
+    def InitializeSolutionStep(self):
+        self.bdf_process.Execute()
+        
+        if(self.settings["force_steady_state"].GetBool()):
+            bdf_vec = self.GetComputeModelPart().ProcessInfo[KratosMultiphysics.BDF_COEFFICIENTS]
+            for i in range(len(bdf_vec)):
+                bdf_vec[i] = 0.0
+            self.GetComputeModelPart().ProcessInfo.SetValue(KratosMultiphysics.BDF_COEFFICIENTS, bdf_vec)
+            
+        self.fluid_solver.InitializeSolutionStep()
+        
+    def Predict(self):
+        self.fluid_solver.Predict()
+
+    def SolveSolutionStep(self):
+        self.fluid_solver.SolveSolutionStep()
+
+    def FinalizeSolutionStep(self):
+        self.fluid_solver.FinalizeSolutionStep()
 
     def SetEchoLevel(self, level):
         self.fluid_solver.SetEchoLevel(level)
