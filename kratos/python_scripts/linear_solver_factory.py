@@ -33,18 +33,20 @@ def ConstructSolver(configuration):
     ###THIS IS A VERY DIRTY HACK TO ALLOW PARAMETERS TO BE PASSED TO THE LINEAR SOLVER FACTORY
     ###TODO: clean this up!!
     if(type(configuration) == Parameters):
-        solver_type = configuration["solver_type"].GetString()
+        import new_linear_solver_factory
+        return new_linear_solver_factory.ConstructSolver(configuration)
+        #solver_type = configuration["solver_type"].GetString()
         
-        import json
-        tmp = json.loads(configuration.PrettyPrintJsonString())
+        #import json
+        #tmp = json.loads(configuration.PrettyPrintJsonString())
         
-        params = configuration
+        #params = configuration
         
-        class aux(object):
-            pass 
+        #class aux(object):
+            #pass 
         
-        configuration = aux()
-        configuration.__dict__.update(tmp)
+        #configuration = aux()
+        #configuration.__dict__.update(tmp)
     ##############################################################
             
         
