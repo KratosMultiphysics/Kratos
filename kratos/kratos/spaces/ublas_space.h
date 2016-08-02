@@ -233,24 +233,13 @@ public:
 #ifndef _OPENMP
         return inner_prod(rX, rY);
 #else
-        vector<unsigned int> partition;
-        int number_of_threads = omp_get_max_threads();
-        CreatePartition(number_of_threads, rX.size(), partition);
+        const int size = static_cast<int>(rX.size());
 
-        vector< TDataType > partial_results(number_of_threads);
-
-        #pragma omp parallel for 
-        for (int i = 0; i < number_of_threads; i++)
-        {
-            partial_results[i] = std::inner_product(rX.data().begin() + partition[i],
-                                                    rX.data().begin() + partition[i + 1],
-                                                    rY.data().begin() + partition[i],
-                                                    TDataType());
-        }
-
-        double total = TDataType();
-        for (int i = 0; i < number_of_threads; i++)
-            total += partial_results[i];
+        TDataType total = 0.0;
+        #pragma omp parallel for reduction( +: total), firstprivate(size)
+        for(int i =0; i<size; ++i)
+            total += rX[i]*rY[i];
+        
         return total;
 #endif
     }
