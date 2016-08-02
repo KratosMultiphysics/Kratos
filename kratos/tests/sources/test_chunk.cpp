@@ -119,7 +119,7 @@ namespace Kratos {
 			std::size_t header_size = 2 * max_threads * sizeof(Chunk::SizeType);
 		  std::size_t chunk_size_in_bytes =  header_size + 1024;
 
-			auto repeat_number = 10;
+			auto repeat_number = 100;
 			std::stringstream buffer;
 
 #pragma omp parallel for

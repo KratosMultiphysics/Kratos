@@ -70,7 +70,7 @@ def AssambleTestSuites():
             TModelPart,
             test_kratos_parameters.TestParameters,
             test_materials_input.TestMaterialsInput,
-            test_geometries.TestGeometry
+            test_geometries.TestGeometry,
             test_linear_solvers.TestLinearSolvers
         ])
     )
