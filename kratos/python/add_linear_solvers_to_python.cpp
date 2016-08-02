@@ -119,6 +119,7 @@ void  AddLinearSolversToPython()
     .def(init<double>())
     .def(init<double, unsigned int>())
     .def(init<double, unsigned int,  PreconditionerType::Pointer>())
+    .def(init<Parameters,  PreconditionerType::Pointer>())
     //.def("",&LinearSolverType::)
     .def(self_ns::str(self))
     ;
@@ -128,6 +129,7 @@ void  AddLinearSolversToPython()
     .def(init<double, unsigned int>())
     .def(self_ns::str(self))
     .def(init<double, unsigned int,  PreconditionerType::Pointer>())
+    .def(init<Parameters,  PreconditionerType::Pointer>())
     .def("SetTolerance",&BICGSTABSolverType::SetTolerance)
     ;
 
@@ -136,6 +138,7 @@ void  AddLinearSolversToPython()
     .def(init<double, unsigned int>())
     .def(self_ns::str(self))
     .def(init<double, unsigned int,  PreconditionerType::Pointer>())
+    .def(init<Parameters,  PreconditionerType::Pointer>())
     ;
 
     class_<ScalingSolverType, ScalingSolverType::Pointer, bases<LinearSolverType> >("ScalingSolver")
@@ -160,11 +163,13 @@ void  AddLinearSolversToPython()
 
     class_<DirectSolverType, DirectSolverType::Pointer, bases<LinearSolverType> >("DirectSolver")
     .def( init< >() )
+    .def(init<Parameters>())
     .def(self_ns::str(self))
     ;
 
     class_<SkylineLUFactorizationSolverType, SkylineLUFactorizationSolverType::Pointer, bases<DirectSolverType> >("SkylineLUFactorizationSolver")
     .def(init< >())
+    .def(init<Parameters>())
     .def(self_ns::str(self))
     ;
 
@@ -172,12 +177,14 @@ void  AddLinearSolversToPython()
     .def(init<double,bool,int>())
     .def(init<double, unsigned int,bool,int>())
     .def(init<double, unsigned int,  PreconditionerType::Pointer,bool,int>())
+    .def(init<Parameters>())
 // 		  .def(init<double, unsigned int,  PreconditionerType::Pointer, ModelPart::Pointer>())
     //.def("",&LinearSolverType::)
     .def(self_ns::str(self))
     ;
 
     class_<MixedUPLinearSolverType, MixedUPLinearSolverType::Pointer, bases<IterativeSolverType> >("MixedUPLinearSolver",init<LinearSolverType::Pointer, LinearSolverType::Pointer ,double, unsigned int, unsigned int >())
+    .def(init<Parameters,LinearSolverType::Pointer, LinearSolverType::Pointer >())
     .def(self_ns::str(self))
     ;
 
