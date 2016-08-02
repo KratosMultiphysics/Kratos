@@ -94,6 +94,8 @@ public:
 
     TFQMRSolver(double NewTolerance) : BaseType(NewTolerance) {}
 
+    TFQMRSolver(Parameters settings,typename TPreconditionerType::Pointer pNewPreconditioner) : BaseType(settings) {}
+
 
     TFQMRSolver(double NewTolerance,
                 unsigned int NewMaxIterationsNumber) : BaseType(NewTolerance, NewMaxIterationsNumber) {}

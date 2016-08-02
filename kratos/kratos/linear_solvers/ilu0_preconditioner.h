@@ -317,7 +317,7 @@ public:
 
                 indexkj   = BaseType::iU[k  ];  // traverses row k of BaseType::U
                 indexkjlim= BaseType::iU[k+1];
-                jkj       = BaseType::jU[indexkj];
+                jkj       = BaseType::jU[indexkj]; //Riccardo - moved within the while loop
                 while (jkj<=k) jkj=BaseType::jU[++indexkj]; // add rows only for j>k
 //****************************************************************************************
 //****************************************************************************************+
@@ -325,7 +325,7 @@ public:
 //between this line
                 indexj    = indexk+1; // traverses row i of BaseType::L beyond k
                 indexjlim = BaseType::iL[i+1];
-                j         = BaseType::jL[indexj];
+//                 j         = BaseType::jL[indexj]; //Riccardo - moved within the while loop just below
 //and this line
 //the memory is broken in accessing to BaseType::jL[indexj]; when i=n-1
 //when it works j is read to be 0 ... but it could be whatever value
@@ -334,6 +334,7 @@ public:
 
                 while ( (indexkj<indexkjlim) && (indexj<indexjlim) )
                 {
+                    j = BaseType::jL[indexj];
                     if (j==jkj)
                     {
                         BaseType::L[indexj]= BaseType::L[indexj]-aik*BaseType::U[indexkj];

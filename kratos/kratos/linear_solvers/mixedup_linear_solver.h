@@ -91,21 +91,25 @@ public:
     {
         KRATOS_TRY
 
-//only include validation with c++11 since raw_literals do not exist in c++03
-#if __cplusplus >= 201103L
-
         Parameters default_parameters( R"(
-{
-"tolerance" : 1.0e-6,
-"maximum_iterations" : 200,
-"gmres_krylov_space_dimension" : 100
-}  )" );
+        {
+        "solver_type": "MixedUPLinearSolver",
+        "velocity_solver" : {
+                "solver_type":"BICGSTABSolver"
+            },
+        "pressure_solver" : {
+                "solver_type":"CGSolver"
+            }
+        "tolerance" : 1.0e-6,
+        "max_iteration" : 200,
+        "gmres_krylov_space_dimension" : 100
+        }  )" );
 
         //now validate agains defaults -- this also ensures no type mismatch
         settings.ValidateAndAssignDefaults(default_parameters);
-#endif
-        BaseType::mTolerance = settings["tolerance"].GetDouble();
-        BaseType::mMaxIterationsNumber = settings["maximum_iterations"].GetInt();
+
+        this->SetTolerance( settings["tolerance"].GetDouble() );
+        this->SetMaxIterationsNumber( settings["max_iteration"].GetInt() );
         mm = settings["gmres_krylov_space_dimension"].GetInt();
         
         //storing other data
