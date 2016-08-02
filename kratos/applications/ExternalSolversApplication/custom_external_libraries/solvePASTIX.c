@@ -280,7 +280,7 @@ int solvePASTIX(int verbosity,int mat_size, int nnz, double* AA, size_t* IA, siz
 	/*           Call pastix                   */
 	/*******************************************/
 	//note that we pass "x" instead of the rhs
-	pastix(&pastix_data, 0,
+	gpastix(&pastix_data, 0,
 	       ncol/ndof, colptr, rows, values,
 	       perm, invp, x, nbrhs, iparm, dparm);
 

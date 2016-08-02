@@ -12,6 +12,7 @@
 // Project includes
 #include "includes/define.h"
 #include "linear_solvers/direct_solver.h"
+#include "includes/kratos_parameters.h"
 
 //#include <complex.h>
 /* to access functions from the libpastix, respect this order */
@@ -47,7 +48,53 @@ public:
 	typedef typename TSparseSpaceType::VectorType VectorType;
 
 	typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+        
+        PastixSolver(Parameters settings)
+        {
+            Parameters default_settings( R"(
+                                       {
+                                       "solver_type" : "PastixSolver",
+                                       "solution_method": "Direct",
+                                        "tolerance":1e-6,
+                                        "max_iteration":100,
+                                        "gmres_krylov_space_dimension":100,
+                                        "ilu_level_of_fill" : 1,
+                                        "is_symmetric":false,
+                                        "verbosity":0,
+                                        "scaling": false,
+                                        "block_size": 1,
+                                       "use_block_matrices_if_possible" : true
+                                   }  )" );
+            
+            settings.ValidateAndAssignDefaults(default_settings);
 
+            //validate if values are admissible
+            std::set<std::string> available_solution_methods = {"Direct","Iterative"};
+            if(available_solution_methods.find(settings["solution_method"].GetString()) == available_solution_methods.end())
+            {
+                KRATOS_ERROR << "trying to choose an inexisting solution method. Options are Direct, Iterative. Current choice is : " << settings["solution_method"].GetString() << std::endl;
+            }
+            
+            if(settings["solution_method"].GetString() == "Iterative")
+                mincomplete = 1;
+            else
+                mincomplete = 0;
+            
+            mTol = settings["tolerance"].GetDouble();
+            mmax_it = settings["max_iteration"].GetInt();
+            mlevel_of_fill = settings["ilu_level_of_fill"].GetInt();
+            mverbosity=settings["verbosity"].GetInt();
+            mndof = settings["block_size"].GetInt();
+            
+            
+            if(settings["is_symmetric"].GetBool() == false)
+                    msymmetric = 0;
+            else
+                    msymmetric = 1;
+		
+		
+        }
+        
 	/**
 	 * Default constructor - uses ILU+GMRES
 	 * @param NewMaxTolerance tolerance that will be achieved by the iterative solver

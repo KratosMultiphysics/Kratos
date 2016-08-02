@@ -72,18 +72,21 @@ public:
      */
     KRATOS_CLASS_POINTER_DEFINITION(  SuperLUSolver );
 
-    typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
+    typedef DirectSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
 
     typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
 
     typedef typename TSparseSpaceType::VectorType VectorType;
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+    
+    
+    SuperLUSolver() {}
 
     /**
      * Default constructor
      */
-    SuperLUSolver() {}
+    SuperLUSolver(Parameters settings): BaseType(settings) {}
 
     /**
      * Destructor

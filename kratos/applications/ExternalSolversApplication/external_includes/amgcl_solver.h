@@ -439,9 +439,14 @@ public:
      */
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
+        if(rA.size1() != rA.size2() )
+            KRATOS_ERROR << "matrix A is not square! sizes are " << rA.size1() << " and " << rA.size2() << std::endl;
+        if(rX.size() != rA.size1())
+            KRATOS_ERROR << "size of x does not match the size of A. x size is " << rX.size() << " matrix size is " << rA.size1() << std::endl;
+        if(rB.size() != rA.size1())
+            KRATOS_ERROR << "size of b does not match the size of A. b size is " << rB.size() << " matrix size is " << rA.size1() << std::endl;
         //set block size
-        //KRATOS_WATCH(mndof)
-//         mprm.put("precond.coarse_enough",500);
+
         mprm.put("precond.coarsening.aggr.eps_strong",0.0);
         mprm.put("precond.coarsening.aggr.block_size",mndof);
         mprm.put("solver.tol", mTol);
@@ -512,6 +517,8 @@ public:
 
             if(muse_block_matrices_if_possible == true)
             {
+                if(rA.size1()%mndof != 0)
+                    KRATOS_ERROR << "the block size employed " << mndof << " is not an exact multiple of the matrix size " << rA.size1() << std::endl;
                 if(mndof == 1) ScalarSolve(rA,rX,rB, iters, resid);
                 else if(mndof == 2) BlockSolve<2>(rA,rX,rB, iters, resid);
                 else if(mndof == 3) BlockSolve<3>(rA,rX,rB, iters, resid);
