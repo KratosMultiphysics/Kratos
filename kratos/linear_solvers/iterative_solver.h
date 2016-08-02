@@ -30,6 +30,7 @@
 #include "linear_solvers/linear_solver.h"
 #include "linear_solvers/preconditioner.h"
 
+
 namespace Kratos
 {
 
@@ -136,21 +137,22 @@ public:
     {
         KRATOS_TRY
 
-//only include validation with c++11 since raw_literals do not exist in c++03
-#if __cplusplus >= 201103L
-
         Parameters default_parameters( R"(
-{
-"tolerance" : 1.0e-6,
-"maximum_iterations" : 200
-}  )" );
+        {
+        "solver_type": "IterativeSolver",
+        "tolerance" : 1.0e-6,
+        "max_iteration" : 200,
+        "preconditioner_type" : "None",
+        "scaling":false
+        }  )" );
 
         //now validate agains defaults -- this also ensures no type mismatch
         settings.ValidateAndAssignDefaults(default_parameters);
-#endif
-        mTolerance = settings["tolerance"].GetDouble();
-        mMaxIterationsNumber = settings["maximum_iterations"].GetInt();
 
+        this->SetTolerance( settings["tolerance"].GetDouble() );
+        this->SetMaxIterationsNumber( settings["max_iteration"].GetInt() );
+        
+        
         KRATOS_CATCH("")
     }
 

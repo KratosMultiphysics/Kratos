@@ -22,6 +22,7 @@
 // Project includes
 #include "includes/define.h"
 #include "linear_solvers/direct_solver.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -564,7 +565,7 @@ public:
     /// Counted pointer of SkylineLUFactorizationSolver
     KRATOS_CLASS_POINTER_DEFINITION(SkylineLUFactorizationSolver);
 
-    typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
+    typedef DirectSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
 
     typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
 

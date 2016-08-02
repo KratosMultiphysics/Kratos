@@ -119,22 +119,21 @@ public:
     {
         KRATOS_TRY
 
-//only include validation with c++11 since raw_literals do not exist in c++03
-#if __cplusplus >= 201103L
-
+        
         Parameters default_parameters( R"(
-{
-"tolerance" : 1.0e-6,
-"maximum_iterations" : 200,
-"assume_constant_structure" : false,
-"max_reduced_size" : 1024
-}  )" );
+        {
+        "tolerance" : 1.0e-6,
+        "max_iteration" : 200,
+        "assume_constant_structure" : false,
+        "max_reduced_size" : 1024,
+        "scaling":false
+        }  )" );
 
         //now validate agains defaults -- this also ensures no type mismatch
         settings.ValidateAndAssignDefaults(default_parameters);
-#endif
-        BaseType::mTolerance = settings["tolerance"].GetDouble();
-        BaseType::mMaxIterationsNumber = settings["maximum_iterations"].GetInt();
+
+        this->SetTolerance( settings["tolerance"].GetDouble() );
+        this->SetMaxIterationsNumber( settings["maximum_iterations"].GetInt() );
         massume_constant_structure = settings["assume_constant_structure"].GetBool();
         mmax_reduced_size = settings["max_reduced_size"].GetInt();
         
