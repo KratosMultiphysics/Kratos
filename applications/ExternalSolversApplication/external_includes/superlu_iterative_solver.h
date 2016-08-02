@@ -165,6 +165,36 @@ public:
     typedef typename TSparseSpaceType::VectorType VectorType;
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+    
+    SuperLUIterativeSolver(Parameters settings)
+    {
+        KRATOS_TRY
+        
+        
+        Parameters default_parameters( R"(
+        {
+        "solver_type": "SuperLUIterativeSolver",
+        "tolerance" : 1.0e-6,
+        "max_iteration" : 200,
+        "gmres_krylov_space_dimension": 100,
+        "drop_tolerance":  1e-4  ,
+        "fill_tolerance":  1e-2  ,
+        "fill_factor"   :  10  ,
+        "scaling":false
+        }  )" );
+
+        //now validate agains defaults -- this also ensures no type mismatch
+        settings.ValidateAndAssignDefaults(default_parameters);
+        
+        mTol = settings["tolerance"].GetDouble();
+        mmax_it = settings["max_iteration"].GetInt();
+        mrestart = settings["gmres_krylov_space_dimension"].GetInt();
+        mDropTol = settings["drop_tolerance"].GetDouble();
+        mFillTol = settings["fill_tolerance"].GetDouble();
+        mFillFactor = settings["fill_factor"].GetInt();
+        
+        KRATOS_CATCH("")
+    }
 
     /**
      * Default constructor

@@ -75,11 +75,13 @@ void  AddLinearSolversToPython()
     //***************************************************************************
     class_<SuperLUSolverType, bases<DirectSolverType>, boost::noncopyable >
     ( "SuperLUSolver",
-      init<>() );
-
+      init<>() )
+      .def(init<Parameters>());
+      
     class_<SuperLUIterativeSolverType, bases<LinearSolverType>, boost::noncopyable >
     ( "SuperLUIterativeSolver",init<>() )
     .def(init<double,int,int,double,double,double>())
+    .def(init<Parameters>())
     ;
     
 #ifndef EXCLUDE_ITSOL
@@ -95,6 +97,7 @@ void  AddLinearSolversToPython()
     class_<PastixSolverType, bases<LinearSolverType>, boost::noncopyable >
     ( "PastixSolver",init<int,bool>() )
     .def(init<double,int,int,int,bool>())
+    .def(init<Parameters>());
     ;
 #endif
 
