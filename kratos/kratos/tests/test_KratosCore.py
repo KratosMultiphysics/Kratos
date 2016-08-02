@@ -13,6 +13,7 @@ from test_model_part import TestModelPart as TModelPart
 import test_kratos_parameters
 import test_materials_input
 import test_geometries
+import test_linear_solvers
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -38,6 +39,7 @@ def AssambleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_materials_input.TestMaterialsInput]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_geometries.TestGeometry]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_kratos_parameters.TestParameters]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_linear_solvers.TestLinearSolvers]))
     
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -57,6 +59,8 @@ def AssambleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_kratos_parameters.TestParameters]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_materials_input.TestMaterialsInput]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_geometries.TestGeometry]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_linear_solvers.TestLinearSolvers]))
+    
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
@@ -67,6 +71,7 @@ def AssambleTestSuites():
             test_kratos_parameters.TestParameters,
             test_materials_input.TestMaterialsInput,
             test_geometries.TestGeometry
+            test_linear_solvers.TestLinearSolvers
         ])
     )
 
