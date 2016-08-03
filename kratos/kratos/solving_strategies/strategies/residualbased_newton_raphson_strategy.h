@@ -614,6 +614,7 @@ public:
 
         DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();
 
+
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mb = *mpb;
