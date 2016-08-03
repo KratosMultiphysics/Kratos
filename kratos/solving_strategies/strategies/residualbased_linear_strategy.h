@@ -174,6 +174,8 @@ public:
         //by default the matrices are rebuilt at each solution step
         BaseType::SetRebuildLevel(1);
 
+
+
         KRATOS_CATCH("")
     }
 

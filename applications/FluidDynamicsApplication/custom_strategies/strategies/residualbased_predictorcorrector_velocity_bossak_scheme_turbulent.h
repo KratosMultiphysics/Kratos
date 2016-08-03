@@ -578,6 +578,8 @@ namespace Kratos {
             mRotationTool.Rotate(RHS_Contribution,rCurrentCondition->GetGeometry());
             mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentCondition->GetGeometry());
 
+
+
             KRATOS_CATCH("");
         }
         //*************************************************************************************

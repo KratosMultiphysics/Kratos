@@ -295,12 +295,15 @@ public:
         if (mReformDofSet)
             this->Clear();
 
+
+
         return NormDp;
     }
 
 
     virtual void CalculateReactions()
     {
+
         ModelPart& rModelPart = BaseType::GetModelPart();
         ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
