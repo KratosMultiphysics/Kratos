@@ -91,7 +91,7 @@ class StaticStructuralSolver(solid_mechanics_static_solver.StaticMechanicalSolve
             "split_factor": 10.0,
             "max_number_splits": 3,
             "linear_solver_settings":{
-                "solver_type": "Super LU",
+                "solver_type": "SuperLUSolver",
                 "max_iteration": 500,
                 "tolerance": 1e-9,
                 "scaling": false,
