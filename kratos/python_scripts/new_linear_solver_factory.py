@@ -32,6 +32,8 @@ def ConstructSolver(configuration):
         linear_solver = KratosMultiphysics.CGSolver( configuration, ConstructPreconditioner(configuration) )
     elif(solver_type == "BICGSTABSolver"):
         linear_solver = KratosMultiphysics.BICGSTABSolver( configuration, ConstructPreconditioner(configuration) )
+    elif(solver_type == "TFQMRSolver"):
+        linear_solver = KratosMultiphysics.TFQMRSolver( configuration, ConstructPreconditioner(configuration) )
     elif(solver_type == "DeflatedCGSolver"):
         linear_solver = KratosMultiphysics.DeflatedCGSolver( configuration )
     elif(solver_type == "MixedUPLinearSolver"):
@@ -41,9 +43,9 @@ def ConstructSolver(configuration):
 
 
     ################################## following solvers need importing the ExternalSolversApplication
-    elif(solver_type == "GMRES"):
+    elif(solver_type == "GMRESSolver"):
         import KratosMultiphysics.ExternalSolversApplication
-        linear_solver = KratosMultiphysics.ExternalSolversApplication.GMRESSolver( configuration, ConstructPreconditioner(configuration) )
+        linear_solver = KratosMultiphysics.ExternalSolversApplication.GMRESSolver( configuration )
     elif(solver_type == "SuperLUSolver"):
         import KratosMultiphysics.ExternalSolversApplication
         linear_solver = KratosMultiphysics.ExternalSolversApplication.SuperLUSolver(configuration)
