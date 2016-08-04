@@ -67,12 +67,13 @@ struct spai0 {
 
 #pragma omp parallel for
         for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
-            value_type num = math::zero<value_type>();
-            value_type den = math::zero<value_type>();
+            value_type  num = math::zero<value_type>();
+            scalar_type den = math::zero<scalar_type>();
 
             for(row_iterator a = backend::row_begin(A, i); a; ++a) {
                 value_type v = a.value();
-                den += v * v;
+                scalar_type norm_v = math::norm(v);
+                den += norm_v * norm_v;
                 if (a.col() == i) num += v;
             }
 
