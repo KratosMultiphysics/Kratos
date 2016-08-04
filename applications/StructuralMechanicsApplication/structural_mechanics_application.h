@@ -45,9 +45,6 @@
 #include "custom_conditions/point_moment_3D_condition.hpp"
 // Torque condition
 #include "custom_conditions/point_torque_3D_condition.hpp"
-// Mortar conditions
-#include "custom_conditions/mortar_contact_2D_condition.hpp"
-#include "custom_conditions/mortar_contact_3D_condition.hpp"
 
 /* UTILITIES */
 // Cross sections
@@ -240,14 +237,6 @@ private:
     const PointMoment3DCondition   mPointMomentCondition3D1N;
     // Torque condition
     const PointTorque3DCondition   mPointTorqueCondition3D1N;
-    // Mortar conditions
-    const MortarContact2DCondition mMortarContactCondition2D2N;
-    const MortarContact2DCondition mMortarContactCondition2D3N;
-    const MortarContact3DCondition mMortarContactCondition3D3N;
-    const MortarContact3DCondition mMortarContactCondition3D6N;
-    const MortarContact3DCondition mMortarContactCondition3D4N;
-    const MortarContact3DCondition mMortarContactCondition3D8N;
-    const MortarContact3DCondition mMortarContactCondition3D9N;
 
     ///@}
     ///@name Private Operators

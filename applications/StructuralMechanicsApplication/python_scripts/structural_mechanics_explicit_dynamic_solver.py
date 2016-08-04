@@ -11,9 +11,9 @@ KratosMultiphysics.CheckForPreviousImport()
 import solid_mechanics_explicit_dynamic_solver
 
 def CreateSolver(main_model_part, custom_settings):
-    return ExplicitStructuralSolver(main_model_part, custom_settings)
+    return ExplicitMechanicalSolver(main_model_part, custom_settings)
 
-class ExplicitStructuralSolver(solid_mechanics_explicit_dynamic_solver.ExplicitMechanicalSolver):
+class ExplicitMechanicalSolver(solid_mechanics_explicit_dynamic_solver.ExplicitMechanicalSolver):
     
     ##constructor. the constructor shall only take care of storing the settings 
     ##and the pointer to the main_model part. This is needed since at the point of constructing the 
@@ -42,7 +42,6 @@ class ExplicitStructuralSolver(solid_mechanics_explicit_dynamic_solver.ExplicitM
             },
             "rotation_dofs": false,
             "pressure_dofs": false,
-            "compute_mortar_contact": false,
             "stabilization_factor": 1.0,
             "reform_dofs_at_each_iteration": false,
             "compute_reactions": true,
@@ -76,70 +75,12 @@ class ExplicitStructuralSolver(solid_mechanics_explicit_dynamic_solver.ExplicitM
 
     def AddVariables(self):
         
-        # Add displacements
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        # Add dynamic variables
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
-        # Add reactions for the displacements
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-        # Add normal
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        # Add nodal force variables
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FORCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_FORCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)
-        # Add specific variables for the problem conditions
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SolidMechanicsApplication.POINT_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SolidMechanicsApplication.LINE_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SolidMechanicsApplication.SURFACE_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+        solid_mechanics_explicit_dynamic_solver.ExplicitMechanicalSolver.AddVariables(self)
             
         if self.settings["rotation_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.StructuralMechanicsApplication.POINT_TORQUE)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
-        if self.settings["pressure_dofs"].GetBool():
-            # Add specific variables for the problem (pressure dofs)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SolidMechanicsApplication.PRESSURE_REACTION)
             
-        if  self.settings["compute_mortar_contact"].GetBool():
-            # Add normal
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-            # Add lagrange multiplier
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.StructuralMechanicsApplication.LAGRANGE_MULTIPLIER)
-   
         print("::[Mechanical Solver]:: Variables ADDED")
         
-    def AddDofs(self):
-
-        for node in self.main_model_part.Nodes:
-            # adding dofs
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X);
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y);
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z);
-            
-        if self.settings["rotation_dofs"].GetBool():
-            for node in self.main_model_part.Nodes:
-                node.AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X);
-                node.AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y);
-                node.AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z);
-                
-        if self.settings["pressure_dofs"].GetBool():                
-            for node in self.main_model_part.Nodes:
-                node.AddDof(KratosMultiphysics.PRESSURE, KratosSolid.PRESSURE_REACTION);
-        
-        if  self.settings["compute_mortar_contact"].GetBool():
-            for node in self.main_model_part.Nodes:
-                node.AddDof(KratosMultiphysics.StructuralMechanicsApplication.LAGRANGE_MULTIPLIER_X);
-                node.AddDof(KratosMultiphysics.StructuralMechanicsApplication.LAGRANGE_MULTIPLIER_Y);
-                node.AddDof(KratosMultiphysics.StructuralMechanicsApplication.LAGRANGE_MULTIPLIER_Z);
-
-        print("::[Mechanical Solver]:: DOF's ADDED")
 

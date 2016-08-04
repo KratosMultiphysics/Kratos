@@ -18,11 +18,9 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_cross_sections_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_mappers_to_python.cpp
 
   ## UTILITIES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/tree_contact_search.cpp
 
   ## ELEMENTS
   # Adding the beam element
@@ -47,9 +45,6 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   # Torques conditions
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_torque_3D_condition.cpp
 
-  # Mortar condition
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mortar_contact_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mortar_contact_3D_condition.cpp
 )
 
 ###############################################################
