@@ -122,6 +122,7 @@ public:
         
         Parameters default_parameters( R"(
         {
+        "solver_type": "DeflatedCGSolver",
         "tolerance" : 1.0e-6,
         "max_iteration" : 200,
         "assume_constant_structure" : false,
@@ -133,7 +134,7 @@ public:
         settings.ValidateAndAssignDefaults(default_parameters);
 
         this->SetTolerance( settings["tolerance"].GetDouble() );
-        this->SetMaxIterationsNumber( settings["maximum_iterations"].GetInt() );
+        this->SetMaxIterationsNumber( settings["max_iteration"].GetInt() );
         massume_constant_structure = settings["assume_constant_structure"].GetBool();
         mmax_reduced_size = settings["max_reduced_size"].GetInt();
         

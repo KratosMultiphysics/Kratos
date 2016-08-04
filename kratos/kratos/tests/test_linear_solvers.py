@@ -16,12 +16,12 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             settings = all_settings["test_list"][i]
             self._auxiliary_test_function(settings)
     
-    def _auxiliary_test_function(self, settings):
+    def _auxiliary_test_function(self, settings, matrix_name="A.mm"):
         space = KratosMultiphysics.UblasSparseSpace()
         
         #read the matrices
         A = KratosMultiphysics.CompressedMatrix()
-        KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath("A.mm"),A)
+        KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(matrix_name),A)
         
         Aoriginal = KratosMultiphysics.CompressedMatrix(A) #create a copy of A
         
@@ -65,7 +65,31 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         self.assertTrue(achieved_norm < target_norm)
 
         
-        
+    def test_tfqmr_in_core(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "TFQMRSolver",
+                        "tolerance" : 1.0e-6,
+                        "max_iteration" : 500,
+                        "preconditioner_type" : "ILU0Preconditioner"
+                    },
+                    {
+                        "solver_type" : "TFQMRSolver",
+                        "tolerance" : 1.0e-6,
+                        "max_iteration" : 500,
+                        "preconditioner_type" : "DiagonalPreconditioner"
+                    },
+                    {
+                        "solver_type" : "TFQMRSolver",
+                        "tolerance" : 1.0e-6,
+                        "max_iteration" : 1000,
+                        "preconditioner_type" : "None"
+                    }
+                ]
+            }
+            """)    
 
     def test_cg_in_core(self):
         self._RunParametrized("""
@@ -82,6 +106,17 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                         "tolerance" : 1.0e-6,
                         "max_iteration" : 1000,
                         "preconditioner_type" : "None"
+                    }
+                ]
+            }
+            """)
+        
+    def test_deflated_cg_in_core(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "DeflatedCGSolver"
                     }
                 ]
             }
@@ -174,7 +209,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
-    def test_amgcl(self):
+    def test_amgcl_scalar(self):
         self._RunParametrized("""
             {
                 "test_list" : [
@@ -187,28 +222,28 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                         "max_iteration": 100,
                         "provide_coordinates": false,
                         "gmres_krylov_space_dimension": 100,
-                        "verbosity" : 0,
+                        "verbosity" : 2,
                         "tolerance": 1e-6,
                         "scaling": false,
                         "block_size": 1,
                         "use_block_matrices_if_possible" : true,
-                        "coarse_enough" : 500
+                        "coarse_enough" : 100
                     },
                     {
 
                         "solver_type" : "AMGCL",
                         "smoother_type":"spai0",
-                        "krylov_type": "gmres",
+                        "krylov_type": "bicgstab",
                         "coarsening_type": "aggregation",
                         "max_iteration": 100,
                         "provide_coordinates": false,
                         "gmres_krylov_space_dimension": 100,
-                        "verbosity" : 0,
+                        "verbosity" : 2,
                         "tolerance": 1e-6,
                         "scaling": false,
                         "block_size": 1,
                         "use_block_matrices_if_possible" : true,
-                        "coarse_enough" : 5000
+                        "coarse_enough" : 100
                     },
                     {
 
@@ -219,28 +254,44 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                         "max_iteration": 100,
                         "provide_coordinates": false,
                         "gmres_krylov_space_dimension": 100,
-                        "verbosity" : 0,
+                        "verbosity" : 2,
                         "tolerance": 1e-6,
                         "scaling": false,
                         "block_size": 1,
                         "use_block_matrices_if_possible" : true,
-                        "coarse_enough" : 5000
+                        "coarse_enough" : 100
                     },
                     {
 
                         "solver_type" : "AMGCL",
-                        "smoother_type":"ilu0",
+                        "smoother_type":"iluk",
+                        "krylov_type": "bicgstab",
+                        "coarsening_type": "aggregation",
+                        "max_iteration": 100,
+                        "provide_coordinates": false,
+                        "gmres_krylov_space_dimension": 100,
+                        "verbosity" : 2,
+                        "tolerance": 1e-6,
+                        "scaling": false,
+                        "block_size": 1,
+                        "use_block_matrices_if_possible" : true,
+                        "coarse_enough" : 100
+                    },
+                    {
+
+                        "solver_type" : "AMGCL",
+                        "smoother_type":"iluk",
                         "krylov_type": "bicgstabl",
                         "coarsening_type": "aggregation",
                         "max_iteration": 100,
                         "provide_coordinates": false,
                         "gmres_krylov_space_dimension": 100,
-                        "verbosity" : 0,
+                        "verbosity" : 2,
                         "tolerance": 1e-6,
                         "scaling": false,
                         "block_size": 1,
                         "use_block_matrices_if_possible" : true,
-                        "coarse_enough" : 5000
+                        "coarse_enough" : 100
                     }
                 ]
             }
