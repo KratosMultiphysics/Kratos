@@ -81,29 +81,29 @@ void  AddLinearSolversToPython()
     //****************************************************************************************************
     typedef Preconditioner<SpaceType,  LocalSpaceType> PreconditionerType;
 
-    class_<PreconditionerType, PreconditionerType::Pointer>("Preconditioner")
+    class_<PreconditionerType, PreconditionerType::Pointer, boost::noncopyable>("Preconditioner")
     .def(self_ns::str(self))
     ;
 
     typedef DiagonalPreconditioner<SpaceType,  LocalSpaceType> DiagonalPreconditionerType;
-    class_<DiagonalPreconditionerType, DiagonalPreconditionerType::Pointer, bases<PreconditionerType> >("DiagonalPreconditioner")
+    class_<DiagonalPreconditionerType, DiagonalPreconditionerType::Pointer, bases<PreconditionerType>, boost::noncopyable >("DiagonalPreconditioner")
     .def(self_ns::str(self))
     ;
 
     typedef ILUPreconditioner<SpaceType,  LocalSpaceType> ILUPreconditionerType;
-    class_<ILUPreconditionerType, ILUPreconditionerType::Pointer, bases<PreconditionerType> >("ILUPreconditioner")
+    class_<ILUPreconditionerType, ILUPreconditionerType::Pointer, bases<PreconditionerType>, boost::noncopyable >("ILUPreconditioner")
     .def(self_ns::str(self))
     ;
 
     typedef ILU0Preconditioner<SpaceType,  LocalSpaceType> ILU0PreconditionerType;
-    class_<ILU0PreconditionerType, ILU0PreconditionerType::Pointer, bases<PreconditionerType> >("ILU0Preconditioner")
+    class_<ILU0PreconditionerType, ILU0PreconditionerType::Pointer, bases<PreconditionerType>, boost::noncopyable >("ILU0Preconditioner")
     .def(self_ns::str(self))
     ;
 
     //****************************************************************************************************
     //linear solvers
     //****************************************************************************************************
-    class_<LinearSolverType, LinearSolverType::Pointer>("LinearSolver")
+    class_<LinearSolverType, LinearSolverType::Pointer, boost::noncopyable>("LinearSolver")
     .def("Initialize",&LinearSolverType::Initialize)
     .def("Solve",pointer_to_solve)
     .def("Clear",&LinearSolverType::Clear)
@@ -111,11 +111,11 @@ void  AddLinearSolversToPython()
     .def(self_ns::str(self))
     ;
 
-    class_<IterativeSolverType, IterativeSolverType::Pointer, bases<LinearSolverType> >("IterativeSolver")
+    class_<IterativeSolverType, IterativeSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable >("IterativeSolver")
     .def(self_ns::str(self))
     ;
 
-    class_<CGSolverType, CGSolverType::Pointer, bases<IterativeSolverType> >("CGSolver")
+    class_<CGSolverType, CGSolverType::Pointer, bases<IterativeSolverType>, boost::noncopyable >("CGSolver")
     .def(init<double>())
     .def(init<double, unsigned int>())
     .def(init<double, unsigned int,  PreconditionerType::Pointer>())
@@ -124,7 +124,7 @@ void  AddLinearSolversToPython()
     .def(self_ns::str(self))
     ;
 
-    class_<BICGSTABSolverType, BICGSTABSolverType::Pointer, bases<IterativeSolverType> >("BICGSTABSolver")
+    class_<BICGSTABSolverType, BICGSTABSolverType::Pointer, bases<IterativeSolverType>, boost::noncopyable >("BICGSTABSolver")
     .def(init<double>())
     .def(init<double, unsigned int>())
     .def(self_ns::str(self))
@@ -133,7 +133,7 @@ void  AddLinearSolversToPython()
     .def("SetTolerance",&BICGSTABSolverType::SetTolerance)
     ;
 
-    class_<TFQMRSolverType, TFQMRSolverType::Pointer, bases<IterativeSolverType> >("TFQMRSolver")
+    class_<TFQMRSolverType, TFQMRSolverType::Pointer, bases<IterativeSolverType>, boost::noncopyable >("TFQMRSolver")
     .def(init<double>())
     .def(init<double, unsigned int>())
     .def(self_ns::str(self))
@@ -141,11 +141,11 @@ void  AddLinearSolversToPython()
     .def(init<Parameters,  PreconditionerType::Pointer>())
     ;
 
-    class_<ScalingSolverType, ScalingSolverType::Pointer, bases<LinearSolverType> >("ScalingSolver")
+    class_<ScalingSolverType, ScalingSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable >("ScalingSolver")
     .def(init<LinearSolverType::Pointer, bool >())
     ;
 
-    class_<PowerIterationEigenvalueSolverType, PowerIterationEigenvalueSolverType::Pointer, bases<LinearSolverType> >("PowerIterationEigenvalueSolver")
+    class_<PowerIterationEigenvalueSolverType, PowerIterationEigenvalueSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable >("PowerIterationEigenvalueSolver")
     .def(init<double, unsigned int, unsigned int, LinearSolverType::Pointer>())
     ;
 
@@ -153,7 +153,7 @@ void  AddLinearSolversToPython()
     typedef DirectSolver<SpaceType,  LocalSpaceType, ReordererType > DirectSolverType;
     typedef SkylineLUFactorizationSolver<SpaceType,  LocalSpaceType, ReordererType > SkylineLUFactorizationSolverType;
 
-    class_<ReordererType, ReordererType::Pointer >("Reorderer")
+    class_<ReordererType, ReordererType::Pointer, boost::noncopyable >("Reorderer")
     .def( init< >() )
     .def(self_ns::str(self))
     .def( "Initialize",&ReordererType::Initialize)
@@ -161,19 +161,19 @@ void  AddLinearSolversToPython()
     .def( "InverseReorder",&ReordererType::InverseReorder)
     ;
 
-    class_<DirectSolverType, DirectSolverType::Pointer, bases<LinearSolverType> >("DirectSolver")
+    class_<DirectSolverType, DirectSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable >("DirectSolver")
     .def( init< >() )
     .def(init<Parameters>())
     .def(self_ns::str(self))
     ;
 
-    class_<SkylineLUFactorizationSolverType, SkylineLUFactorizationSolverType::Pointer, bases<DirectSolverType> >("SkylineLUFactorizationSolver")
+    class_<SkylineLUFactorizationSolverType, SkylineLUFactorizationSolverType::Pointer, bases<DirectSolverType>, boost::noncopyable >("SkylineLUFactorizationSolver")
     .def(init< >())
     .def(init<Parameters>())
     .def(self_ns::str(self))
     ;
 
-    class_<DeflatedCGSolverType, DeflatedCGSolverType::Pointer, bases<IterativeSolverType> >("DeflatedCGSolver")
+    class_<DeflatedCGSolverType, DeflatedCGSolverType::Pointer, bases<IterativeSolverType>, boost::noncopyable >("DeflatedCGSolver")
     .def(init<double,bool,int>())
     .def(init<double, unsigned int,bool,int>())
     .def(init<double, unsigned int,  PreconditionerType::Pointer,bool,int>())
@@ -183,12 +183,12 @@ void  AddLinearSolversToPython()
     .def(self_ns::str(self))
     ;
 
-    class_<MixedUPLinearSolverType, MixedUPLinearSolverType::Pointer, bases<IterativeSolverType> >("MixedUPLinearSolver",init<LinearSolverType::Pointer, LinearSolverType::Pointer ,double, unsigned int, unsigned int >())
+    class_<MixedUPLinearSolverType, MixedUPLinearSolverType::Pointer, bases<IterativeSolverType>, boost::noncopyable >("MixedUPLinearSolver",init<LinearSolverType::Pointer, LinearSolverType::Pointer ,double, unsigned int, unsigned int >())
     .def(init<Parameters,LinearSolverType::Pointer, LinearSolverType::Pointer >())
     .def(self_ns::str(self))
     ;
 
-    class_<DeflatedGMRESSolverType, DeflatedGMRESSolverType::Pointer, bases<IterativeSolverType> >("DeflatedGMRESSolver",init<LinearSolverType::Pointer ,double, unsigned int, unsigned int, unsigned int >())
+    class_<DeflatedGMRESSolverType, DeflatedGMRESSolverType::Pointer, bases<IterativeSolverType>, boost::noncopyable >("DeflatedGMRESSolver",init<LinearSolverType::Pointer ,double, unsigned int, unsigned int, unsigned int >())
     .def(self_ns::str(self))
     ;
 
