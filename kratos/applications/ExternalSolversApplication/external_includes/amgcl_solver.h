@@ -117,7 +117,10 @@ public:
 //         std::set<std::string> available_coarsening = {"ruge_stuben","aggregation","smoothed_aggregation","smoothed_aggr_emin"};
         std::set<std::string> available_smoothers;
         available_smoothers.insert("spai0");
+        available_smoothers.insert("spai1");
         available_smoothers.insert("ilu0");
+        available_smoothers.insert("ilut");
+        available_smoothers.insert("iluk");
         available_smoothers.insert("damped_jacobi");
         available_smoothers.insert("gauss_seidel");
         available_smoothers.insert("chebyshev");
@@ -447,8 +450,11 @@ public:
             KRATOS_ERROR << "size of b does not match the size of A. b size is " << rB.size() << " matrix size is " << rA.size1() << std::endl;
         //set block size
 
-        mprm.put("precond.coarsening.aggr.eps_strong",0.0);
-        mprm.put("precond.coarsening.aggr.block_size",mndof);
+        if(mprm.get<std::string>("precond.coarsening.type") != std::string("ruge_stuben"))
+        {
+            mprm.put("precond.coarsening.aggr.eps_strong",0.0);
+            mprm.put("precond.coarsening.aggr.block_size",mndof);
+        }
         mprm.put("solver.tol", mTol);
         mprm.put("solver.maxiter", mmax_it);
         
