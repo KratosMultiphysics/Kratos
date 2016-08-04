@@ -9,7 +9,7 @@ def ConstructPreconditioner(configuration):
     elif(configuration["preconditioner_type"].GetString() == "DiagonalPreconditioner"):
         return KratosMultiphysics.DiagonalPreconditioner()
     elif(configuration["preconditioner_type"].GetString() == "ILU0Preconditioner"):
-        return KratosMultiphysics.ILU0Preconditioner()    
+        return KratosMultiphysics.DiagonalPreconditioner() #ILU0Preconditioner()    
     elif(configuration["preconditioner_type"].GetString() == "ILUPreconditioner"):
         return KratosMultiphysics.ILUPreconditioner() 
     else:
@@ -44,7 +44,7 @@ def ConstructSolver(configuration):
     elif(solver_type == "GMRES"):
         import KratosMultiphysics.ExternalSolversApplication
         linear_solver = KratosMultiphysics.ExternalSolversApplication.GMRESSolver( configuration, ConstructPreconditioner(configuration) )
-    elif(solver_type == "SuperLUSolver" or solver_type=="Super LU"):
+    elif(solver_type == "SuperLUSolver"):
         import KratosMultiphysics.ExternalSolversApplication
         linear_solver = KratosMultiphysics.ExternalSolversApplication.SuperLUSolver(configuration)
     elif(solver_type == "SuperLUIterativeSolver"):
