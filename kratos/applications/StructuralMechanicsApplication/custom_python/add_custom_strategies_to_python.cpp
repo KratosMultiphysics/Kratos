@@ -28,17 +28,13 @@
 // Strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/custom_strategies/residual_based_arc_length_strategy.hpp"
-#include "custom_strategies/custom_strategies/residualbased_newton_raphson_contact_strategy.h"
 
 // Schemes
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
-#include "custom_strategies/custom_schemes/residual_based_incremental_update_static_contact_scheme.hpp"
-#include "custom_strategies/custom_schemes/residual_based_bossak_displacement_contact_scheme.hpp"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "custom_strategies/custom_convergencecriterias/mortar_criteria.h"
 
 // Builders and solvers
 
@@ -66,16 +62,12 @@ void  AddCustomStrategiesToPython()
     
     // Custom strategy types
     typedef ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedArcLengthStrategyType;
-    typedef ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedNewtonRaphsonContactStrategyType;
-    
+
     // Custom scheme types
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
-    typedef ResidualBasedIncrementalUpdateStaticContactScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedIncrementalUpdateStaticContactSchemeType;
-    typedef ResidualBasedBossakDisplacementContactScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementContactSchemeType;
-
-    // Custom convergence criterion types
-    typedef MortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > MortarConvergenceCriteriaType;
     
+    // Custom convergence criterion types
+
     // Custom builder and solvers types
     
     //********************************************************************
@@ -87,16 +79,6 @@ void  AddCustomStrategiesToPython()
             (
                 "ResidualBasedArcLengthStrategy", init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
                                                                 unsigned int, unsigned int, unsigned int,long double,bool, bool, bool>() )
-            ;
-            
-    // Residual Based Newton Raphson Contact Strategy      
-    class_< ResidualBasedNewtonRaphsonContactStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
-            ("ResidualBasedNewtonRaphsonContactStrategy", init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, double, unsigned int >())
-            .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, double, unsigned int >())
-            .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetMaxIterationNumber)
-            .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetMaxIterationNumber)
-            .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetKeepSystemConstantDuringIterations)
-            .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetKeepSystemConstantDuringIterations)
             ;
              
     //********************************************************************
@@ -111,37 +93,9 @@ void  AddCustomStrategiesToPython()
             .def("Initialize", &ResidualBasedRelaxationScheme<SparseSpaceType, LocalSpaceType>::Initialize)
             ;    
 
-    
-
-    // Residual Based Incremental Update Static Contact Scheme Type
-    class_< ResidualBasedIncrementalUpdateStaticContactSchemeType,
-            bases< BaseSchemeType >, boost::noncopyable >
-            (
-            "ResidualBasedIncrementalUpdateStaticContactScheme", init< >()
-            );
-            
-    // Residual Based Bossak Scheme Type
-    class_< ResidualBasedBossakDisplacementContactSchemeType,
-    bases< BaseSchemeType >,  boost::noncopyable >
-    (
-        "ResidualBasedBossakDisplacementContactScheme", init< double >() )
-        .def("Initialize", &ResidualBasedBossakDisplacementContactScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-    ;
-     
     //********************************************************************
     //*******************CONVERGENCE CRITERIA CLASSES*********************
     //********************************************************************
-
-    // Displacement Convergence Criterion
-    class_< MortarConvergenceCriteriaType,
-            bases< ConvergenceCriteriaType >, boost::noncopyable >
-            (
-            "MortarConvergenceCriteria", 
-            init< >())
-            .def(init< >())
-            .def("SetEchoLevel", &MortarConvergenceCriteriaType::SetEchoLevel)
-            ;
-            
             
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************

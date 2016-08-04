@@ -22,7 +22,6 @@
 #include "structural_mechanics_application.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_python/add_mappers_to_python.h"
 #include "custom_python/add_cross_sections_to_python.h"
 
 namespace Kratos
@@ -45,7 +44,6 @@ BOOST_PYTHON_MODULE(KratosStructuralMechanicsApplication)
 
     AddCustomStrategiesToPython();
     AddCustomUtilitiesToPython();
-    AddCustomMappersToPython();
     AddCrossSectionsToPython();
 
     //registering variables in python
@@ -76,10 +74,6 @@ BOOST_PYTHON_MODULE(KratosStructuralMechanicsApplication)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( CROSS_AREA )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( MEAN_RADIUS )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( SECTION_SIDES )
-    
-    // CONTACT
-    /* Mortar contact */
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( WEIGHTED_GAP )
 
     // material orientation
 //     KRATOS_REGISTER_IN_PYTHON_VARIABLE( MATERIAL_ORIENTATION_DX )

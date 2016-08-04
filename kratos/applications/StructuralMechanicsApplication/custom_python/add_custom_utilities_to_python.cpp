@@ -24,7 +24,6 @@
 
 //Utilities
 #include "custom_utilities/sprism_neighbours.hpp"
-#include "custom_utilities/tree_contact_search.h"
 
 namespace Kratos
 {
@@ -41,23 +40,6 @@ void  AddCustomUtilitiesToPython()
     class_<SprismNeighbours>("SprismNeighbours", init<ModelPart&>())
     .def("Execute",&SprismNeighbours::Execute)
     .def("ClearNeighbours",&SprismNeighbours::ClearNeighbours)
-    ;
-    
-    class_<TreeContactSearch>("TreeContactSearch", init<ModelPart&, ModelPart&, const unsigned int>())
-    .def("InitializeNTNConditions",&TreeContactSearch::InitializeNTNConditions)
-    .def("InitializeNTSConditions",&TreeContactSearch::InitializeNTSConditions)
-    .def("InitializeMortarConditions",&TreeContactSearch::InitializeMortarConditions)
-    .def("ClearNTNConditions",&TreeContactSearch::ClearNTNConditions)
-    .def("ClearNTSConditions",&TreeContactSearch::ClearNTSConditions)
-    .def("ClearMortarConditions",&TreeContactSearch::ClearMortarConditions)
-    .def("CreatePointListNTN",&TreeContactSearch::CreatePointListNTN)
-    .def("CreatePointListNTS",&TreeContactSearch::CreatePointListNTS)
-    .def("CreatePointListMortar",&TreeContactSearch::CreatePointListMortar)
-    .def("UpdatePointListMortar",&TreeContactSearch::UpdatePointListMortar)
-    .def("CreateNTNConditions",&TreeContactSearch::CreateNTNConditions)
-    .def("CreateNTSConditions",&TreeContactSearch::CreateNTSConditions)
-    .def("CreateMortarConditions",&TreeContactSearch::CreateMortarConditions)
-    .def("CheckMortarConditions",&TreeContactSearch::CheckMortarConditions)
     ;
   
 }

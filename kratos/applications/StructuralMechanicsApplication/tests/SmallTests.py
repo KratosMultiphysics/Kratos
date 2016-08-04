@@ -73,22 +73,3 @@ class ShellT3ThinBendingRollUpTests(StructuralMechanichsTestFactory):
 
 class ShellT3ThinDrillingRollUpTests(StructuralMechanichsTestFactory):
     file_name = "shell_test/Shell_T3_Thin__DrillingRollUp_test"
-    
-    
-class SimplePatchTestContact(StructuralMechanichsTestFactory):
-    file_name = "contact_test/simple_patch_test"
-    
-    
-class SimplePatchNotMatchingATestContact(StructuralMechanichsTestFactory):
-    file_name = "contact_test/simple_patch_notmatching_a_test"
-    
-    
-class SimplePatchNotMatchingBTestContact(StructuralMechanichsTestFactory):
-    file_name = "contact_test/simple_patch_notmatching_b_test"
-    
-    
-class TaylorPatchTestContact(StructuralMechanichsTestFactory):
-    file_name = "contact_test/taylor_patch_test"
-    
-class HertzSimpleTestContact(StructuralMechanichsTestFactory):
-    file_name = "contact_test/hertz_simple_test"
