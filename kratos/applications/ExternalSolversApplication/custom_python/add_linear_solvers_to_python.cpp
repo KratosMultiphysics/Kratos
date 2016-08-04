@@ -143,6 +143,7 @@ void  AddLinearSolversToPython()
     
     class_<GMRESSolverType, bases<IterativeSolverType>, boost::noncopyable >
     ( "GMRESSolver")
+    .def(init<Parameters >())
     .def(init<double>())
     .def(init<double, unsigned int>())
     .def(init<double, unsigned int,  PreconditionerType::Pointer>())
