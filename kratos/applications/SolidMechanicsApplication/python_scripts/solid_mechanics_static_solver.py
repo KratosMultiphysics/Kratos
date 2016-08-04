@@ -57,7 +57,7 @@ class StaticMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
             "residual_absolute_tolerance": 1.0e-4,
             "max_iteration": 10,
             "linear_solver_settings":{
-                "solver_type": "Super LU",
+                "solver_type": "SuperLUSolver",
                 "max_iteration": 500,
                 "tolerance": 1e-9,
                 "scaling": false,
