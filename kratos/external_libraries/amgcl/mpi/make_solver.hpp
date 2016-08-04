@@ -49,7 +49,7 @@ template <
 class make_solver {
     public:
         typedef typename Precond::backend_type backend_type;
-        typedef typename backend_type::matrix matrix;
+        typedef typename Precond::matrix matrix;
         typedef typename backend_type::value_type value_type;
         typedef typename backend_type::params backend_params;
         typedef typename backend::builtin<value_type>::matrix build_matrix;
@@ -67,7 +67,9 @@ class make_solver {
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_CHILD(p, precond),
                   AMGCL_PARAMS_IMPORT_CHILD(p, solver)
-            {}
+            {
+                AMGCL_PARAMS_CHECK(p, (precond)(solver));
+            }
 
             void get(boost::property_tree::ptree &p, const std::string &path = "") const
             {
@@ -94,7 +96,7 @@ class make_solver {
                 ) :
             prm(prm), n(backend::rows(*A)),
             P(comm, A, prm.precond, bprm),
-            S(comm, backend::rows(*A), prm.solver, bprm, mpi::inner_product(comm))
+            S(backend::rows(*A), prm.solver, bprm, mpi::inner_product(comm))
         {}
 
         template <class Matrix, class Vec1, class Vec2>

@@ -163,7 +163,7 @@ struct ilut {
 
             while(!w.q.empty()) {
                 ptrdiff_t k = w.next_nonzero();
-                w[k] = D[k] * w[k];
+                w[k] = w[k] * D[k];
                 value_type wk = w[k];
 
                 if (math::norm(wk) > tol) {

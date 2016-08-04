@@ -55,8 +55,8 @@ class block_preconditioner {
         typedef typename backend_type::params  backend_params;
 
         typedef typename backend_type::value_type value_type;
-        typedef typename backend_type::matrix     matrix;
-        typedef distributed_matrix<backend_type>  dmatrix;
+        typedef typename backend_type::matrix     bmatrix;
+        typedef distributed_matrix<backend_type>  matrix;
 
         template <class Matrix>
         block_preconditioner(
@@ -132,13 +132,14 @@ class block_preconditioner {
             C = boost::make_shared< comm_pattern<backend_type> >(comm, n, Arem->col, bprm);
             Arem->ncols = C->renumber(Arem->col);
 
-            this->Arem = backend_type::copy_matrix(Arem, bprm);
-
             P = boost::make_shared<Precond>(Aloc, prm, bprm);
+
+            this->Arem = backend_type::copy_matrix(Arem, bprm);
+            this->A = boost::make_shared<matrix>(*C, P->system_matrix(), *this->Arem);
         }
 
-        const dmatrix system_matrix() const {
-            return dmatrix(*C, P->system_matrix(), *Arem);
+        const matrix& system_matrix() const {
+            return *A;
         }
 
         template <class Vec1, class Vec2>
@@ -156,7 +157,8 @@ class block_preconditioner {
     private:
         ptrdiff_t n;
         boost::shared_ptr< comm_pattern<backend_type> > C;
-        boost::shared_ptr<matrix> Arem;
+        boost::shared_ptr<bmatrix>  Arem;
+        boost::shared_ptr<matrix> A;
         boost::shared_ptr<Precond> P;
 };
 

@@ -165,25 +165,27 @@ boost::shared_ptr<Matrix> tentative_prolongation(
 
         size_t offset = 0;
 
-        amgcl::detail::QR<double> qr;
+        amgcl::detail::QR<double, amgcl::detail::col_major> qr;
         std::vector<double> Bpart;
-        for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(naggr / block_size); ++i) {
-            int d = 0;
-            Bpart.clear();
-            for(size_t j = offset; j < n && aggr[order[j]] / block_size == i; ++j, ++d)
-                std::copy(
-                        &nullspace.B[nullspace.cols * order[j]],
-                        &nullspace.B[nullspace.cols * order[j]] + nullspace.cols,
-                        std::back_inserter(Bpart)
-                        );
+        for(ptrdiff_t i = 0, nb = naggr / block_size; i < nb; ++i) {
+            size_t d = 0;
+            for(size_t j = offset; j < n && aggr[order[j]] / block_size == i; ++j, ++d);
+            Bpart.resize(d * nullspace.cols);
+
+            for(size_t j = offset, jj = 0; jj < d; ++j, ++jj) {
+                ptrdiff_t ib = nullspace.cols * order[j];
+                for(int k = 0; k < nullspace.cols; ++k)
+                    Bpart[jj + d * k] = nullspace.B[ib + k];
+            }
 
             qr.compute(d, nullspace.cols, &Bpart[0]);
+            qr.compute_q();
 
             for(int ii = 0; ii < nullspace.cols; ++ii)
                 for(int jj = 0; jj < nullspace.cols; ++jj)
                     Bnew.push_back( qr.R(ii,jj) );
 
-            for(int ii = 0; ii < d; ++ii, ++offset) {
+            for(size_t ii = 0; ii < d; ++ii, ++offset) {
                 ptrdiff_t  *c = &P->col[P->ptr[order[offset]]];
                 value_type *v = &P->val[P->ptr[order[offset]]];
 
