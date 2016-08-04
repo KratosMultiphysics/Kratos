@@ -31,7 +31,7 @@
         "split_factor"                          : 10.0,
         "max_number_splits"             : 3,
         "linear_solver_settings"             : {
-            "solver_type" : "Super_LU",
+            "solver_type" : "SuperLUSolver",
             "scaling"     : false,
             "verbosity"   : 0
         },
