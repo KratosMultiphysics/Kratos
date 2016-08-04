@@ -59,6 +59,18 @@ struct rhs_of< Eigen::Matrix<T, N, N> > {
     typedef Eigen::Matrix<T, N, 1> type;
 };
 
+/// Whether the value type is a statically sized matrix.
+template <class T, int N, int M>
+struct is_static_matrix< Eigen::Matrix<T, N, M> > : boost::true_type {};
+
+/// Number of rows for statically sized matrix types.
+template <class T, int N, int M>
+struct static_rows< Eigen::Matrix<T, N, M> > : boost::integral_constant<int, N> {};
+
+/// Number of columns for statically sized matrix types.
+template <class T, int N, int M>
+struct static_cols< Eigen::Matrix<T, N, M> > : boost::integral_constant<int, M> {};
+
 /// Specialization of conjugate transpose for eigen matrices.
 template <typename T, int N, int M>
 struct adjoint_impl< Eigen::Matrix<T, N, M> >

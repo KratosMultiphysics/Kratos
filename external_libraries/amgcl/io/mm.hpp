@@ -275,7 +275,7 @@ class mm_reader {
         read_value(std::istream &s) {
             typename math::scalar_of<T>::type x,y;
             precondition(s >> x >> y, format_error());
-            return Val(x,y);
+            return T(x,y);
         }
 
         template <typename T>

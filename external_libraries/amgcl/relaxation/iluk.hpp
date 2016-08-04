@@ -123,7 +123,7 @@ struct iluk {
 
             while(!w.q.empty()) {
                 nonzero &a = w.next_nonzero();
-                a.val = D[a.col] * a.val;
+                a.val = a.val * D[a.col];
 
                 for(ptrdiff_t j = U->ptr[a.col], e = U->ptr[a.col+1]; j < e; ++j) {
                     int lev = std::max(a.lev, Ulev[j]) + 1;

@@ -177,12 +177,12 @@ struct spmv_impl<
     typedef ::blaze::CompressedMatrix<V> matrix;
     typedef ::blaze::DynamicVector<V>    vector;
 
-    static void apply(A alpha, const matrix &A, const vector &x, B beta, vector &y)
+    static void apply(A alpha, const matrix &K, const vector &x, B beta, vector &y)
     {
         if (!math::is_zero(beta))
-            y = alpha * (A * x) + beta * y;
+            y = alpha * (K * x) + beta * y;
         else
-            y = alpha * (A * x);
+            y = alpha * (K * x);
     }
 };
 

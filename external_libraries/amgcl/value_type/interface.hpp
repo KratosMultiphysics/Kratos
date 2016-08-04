@@ -49,6 +49,19 @@ struct rhs_of {
     typedef T type;
 };
 
+/// Whether the value type is a statically sized matrix.
+template <class T, class Enable = void>
+struct is_static_matrix : boost::false_type {};
+
+/// Number of rows for statically sized matrix types.
+template <class T, class Enable = void>
+struct static_rows : boost::integral_constant<int, 1> {};
+
+/// Number of columns for statically sized matrix types.
+template <class T, class Enable = void>
+struct static_cols : boost::integral_constant<int, 1> {};
+
+
 /// Default implementation for conjugate transpose.
 /** \note Used in adjoint() */
 template <typename ValueType, class Enable = void>

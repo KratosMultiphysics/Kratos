@@ -184,6 +184,18 @@ struct rhs_of< static_matrix<T, N, N> > {
     typedef static_matrix<T, N, 1> type;
 };
 
+/// Whether the value type is a statically sized matrix.
+template <class T, int N, int M>
+struct is_static_matrix< static_matrix<T, N, M> > : boost::true_type {};
+
+/// Number of rows for statically sized matrix types.
+template <class T, int N, int M>
+struct static_rows< static_matrix<T, N, M> > : boost::integral_constant<int, N> {};
+
+/// Number of columns for statically sized matrix types.
+template <class T, int N, int M>
+struct static_cols< static_matrix<T, N, M> > : boost::integral_constant<int, M> {};
+
 /// Specialization of conjugate transpose for static matrices.
 template <typename T, int N, int M>
 struct adjoint_impl< static_matrix<T, N, M> >
@@ -299,13 +311,14 @@ struct inverse_impl< static_matrix<T, N, N> >
     static static_matrix<T, N, N> get(static_matrix<T, N, N> A) {
         // Perform LU-factorization of A in-place
         for(int k = 0; k < N; ++k) {
-            T d = A(k,k);
+            T d = 1 / A(k,k);
             assert(!math::is_zero(d));
             for(int i = k+1; i < N; ++i) {
-                A(i,k) /= d;
+                A(i,k) *= d;
                 for(int j = k+1; j < N; ++j)
                     A(i,j) -= A(i,k) * A(k,j);
             }
+            A(k,k) = d;
         }
 
         // Invert identity matrix in-place to get the solution.
@@ -323,7 +336,7 @@ struct inverse_impl< static_matrix<T, N, N> >
             for(int i = N; i --> 0; ) {
                 for(int j = i+1; j < N; ++j)
                     y(i,k) -= A(i,j) * y(j,k);
-                y(i,k) /= A(i,i);
+                y(i,k) *= A(i,i);
             }
         }
 

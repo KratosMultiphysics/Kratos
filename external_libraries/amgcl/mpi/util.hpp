@@ -78,6 +78,11 @@ struct datatype_impl<ptrdiff_t>
         >::type
 {};
 
+template <>
+struct datatype_impl<char> {
+    static MPI_Datatype get() { return MPI_CHAR; }
+};
+
 template <typename T>
 MPI_Datatype datatype() {
     return datatype_impl<T>::get();

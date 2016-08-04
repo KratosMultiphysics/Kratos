@@ -163,7 +163,7 @@ struct ilu0 {
                 }
 
                 // Compute the multiplier for jrow
-                value_type tl = D[c] * (*work[c]);
+                value_type tl = (*work[c]) * D[c];
                 *work[c] = tl;
 
                 // Perform linear combination

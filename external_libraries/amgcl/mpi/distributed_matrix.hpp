@@ -78,18 +78,17 @@ class comm_pattern {
 
         comm_pattern(
                 MPI_Comm mpi_comm,
-                ptrdiff_t n,
-                const std::vector<ptrdiff_t> cols,
+                ptrdiff_t n_loc_cols,
+                std::vector<ptrdiff_t> rem_cols,
                 const backend_params &bprm = backend_params()
                 ) : comm(mpi_comm)
         {
             // Get domain boundaries
-            std::vector<ptrdiff_t> domain = mpi::exclusive_sum(comm, n);
+            std::vector<ptrdiff_t> domain = mpi::exclusive_sum(comm, n_loc_cols);
             ptrdiff_t loc_beg = domain[comm.rank];
 
             // Renumber remote columns,
             // find out how many remote values we need from each process.
-            std::vector<ptrdiff_t> rem_cols = cols;        // Unique ids of remote columns
             std::vector<ptrdiff_t> num_recv(comm.size, 0); // Number of columns to receive from each process
 
             std::sort(rem_cols.begin(), rem_cols.end());
@@ -169,7 +168,7 @@ class comm_pattern {
 
             // Create backend structures
             x_rem  = Backend::create_vector(ncols, bprm);
-            gather = boost::make_shared<Gather>(n, send.col, bprm);
+            gather = boost::make_shared<Gather>(n_loc_cols, send.col, bprm);
         }
 
         size_t renumber(std::vector<ptrdiff_t> &col) {
@@ -212,6 +211,19 @@ class comm_pattern {
                 backend::copy_to_backend(recv.val, *x_rem);
         }
 
+        template <typename T>
+        void exchange(const T *send_val, T *recv_val) {
+            for(size_t i = 0; i < recv.nbr.size(); ++i)
+                MPI_Irecv(&recv_val[recv.ptr[i]], recv.ptr[i+1] - recv.ptr[i],
+                        datatype<T>(), recv.nbr[i], tag_exc_vals, comm, &recv.req[i]);
+
+            for(size_t i = 0; i < send.nbr.size(); ++i)
+                MPI_Isend(const_cast<T*>(&send_val[send.ptr[i]]), send.ptr[i+1] - send.ptr[i],
+                        datatype<T>(), send.nbr[i], tag_exc_vals, comm, &send.req[i]);
+
+            MPI_Waitall(recv.req.size(), &recv.req[0], MPI_STATUSES_IGNORE);
+            MPI_Waitall(send.req.size(), &send.req[0], MPI_STATUSES_IGNORE);
+        }
     private:
         typedef typename Backend::gather Gather;
 

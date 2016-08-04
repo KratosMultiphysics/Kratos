@@ -125,8 +125,10 @@ class subdomain_deflation {
         };
 
         typedef typename backend_type::value_type value_type;
-        typedef typename backend_type::matrix     matrix;
+        typedef typename backend_type::matrix     bmatrix;
         typedef typename backend_type::vector     vector;
+        typedef distributed_matrix<backend_type>  matrix;
+
 
         template <class Matrix>
         subdomain_deflation(
@@ -286,7 +288,7 @@ class subdomain_deflation {
             C = boost::make_shared< comm_pattern<backend_type> >(comm, nrows, arem->col, bprm);
             arem->ncols = C->renumber(arem->col);
             Arem = backend_type::copy_matrix(arem, bprm);
-            A = boost::make_shared<dmatrix>(*C, P->system_matrix(), *Arem);
+            A = boost::make_shared<matrix>(*C, P->system_matrix(), *Arem);
 
             TIC("A*Z");
             /* Finish construction of AZ */
@@ -524,11 +526,18 @@ class subdomain_deflation {
 #endif
                 ) const
         {
-            P->apply(rhs, x);
+            size_t iters;
+            double error;
+            backend::clear(x);
+            boost::tie(iters, error) = (*this)(rhs, x);
+            /*
+            if (comm.rank == 0)
+                std::cout << "[" << iters << ", " << error << "]" << std::endl;
+            */
         }
 
-        const subdomain_deflation& system_matrix() const {
-            return *this;
+        const matrix& system_matrix() const {
+            return *A;
         }
 
         template <class Vec1, class Vec2>
@@ -561,8 +570,6 @@ class subdomain_deflation {
             return nrows;
         }
     private:
-        typedef distributed_matrix<backend_type> dmatrix;
-
         static const int tag_exc_vals = 2011;
         static const int tag_exc_dmat = 3011;
         static const int tag_exc_dvec = 4011;
@@ -574,8 +581,8 @@ class subdomain_deflation {
         MPI_Datatype dtype;
 
         boost::shared_ptr< comm_pattern<backend_type> > C;
-        boost::shared_ptr<matrix> Arem;
-        boost::shared_ptr<dmatrix> A;
+        boost::shared_ptr<bmatrix> Arem;
+        boost::shared_ptr<matrix> A;
         boost::shared_ptr<LocalPrecond> P;
 
         mutable std::vector<value_type> df, dx, cf, cx;
@@ -588,7 +595,7 @@ class subdomain_deflation {
         int master_rank;
         boost::shared_ptr<DirectSolver> E;
 
-        boost::shared_ptr<matrix> AZ;
+        boost::shared_ptr<bmatrix> AZ;
         boost::shared_ptr<vector> q;
         boost::shared_ptr<vector> dd;
 
@@ -649,7 +656,7 @@ class subdomain_deflation {
             TIC("postprocess");
 
             // q = Ax
-            mul(1, x, 0, *q);
+            backend::spmv(1, *A, x, 0, *q);
 
             // df = transp(Z) * (rhs - Ax)
             TIC("local inner product");
