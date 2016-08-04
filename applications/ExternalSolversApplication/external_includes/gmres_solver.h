@@ -124,6 +124,8 @@ public:
         BaseType(NewMaxTolerance, NewMaxIterationsNumber, pNewPreconditioner)
     {
     }
+    
+     GMRESSolver(Parameters settings):BaseType(settings) {}
 
     /// Copy constructor.
     GMRESSolver(const GMRESSolver& Other) : BaseType(Other) {}
