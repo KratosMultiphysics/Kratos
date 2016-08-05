@@ -1,0 +1,180 @@
+==29982== Memcheck, a memory error detector
+==29982== Copyright (C) 2002-2015, and GNU GPL'd, by Julian Seward et al.
+==29982== Using Valgrind-3.11.0 and LibVEX; rerun with -h for copyright info
+==29982== Command: python3 test_ContactStructuralMechanicsApplication.py
+==29982== 
+==29982== Conditional jump or move depends on uninitialised value(s)
+==29982==    at 0x5CFDAF: ??? (in /usr/bin/python3.5)
+==29982==    by 0x4DD30D: ??? (in /usr/bin/python3.5)
+==29982==    by 0x604123: PyImport_ImportFrozenModuleObject (in /usr/bin/python3.5)
+==29982==    by 0x60417C: PyImport_ImportFrozenModule (in /usr/bin/python3.5)
+==29982==    by 0x617859: ??? (in /usr/bin/python3.5)
+==29982==    by 0x617BFD: _Py_InitializeEx_Private (in /usr/bin/python3.5)
+==29982==    by 0x63ABD8: Py_Main (in /usr/bin/python3.5)
+==29982==    by 0x4D2CA0: main (in /usr/bin/python3.5)
+==29982==  Uninitialised value was created by a heap allocation
+==29982==    at 0x4C2DB8F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==29982==    by 0x598589: ??? (in /usr/bin/python3.5)
+==29982==    by 0x5A07BF: PyDict_Merge (in /usr/bin/python3.5)
+==29982==    by 0x5A0A4A: PyDict_Copy (in /usr/bin/python3.5)
+==29982==    by 0x603917: _PyImport_Init (in /usr/bin/python3.5)
+==29982==    by 0x617BCE: _Py_InitializeEx_Private (in /usr/bin/python3.5)
+==29982==    by 0x63ABD8: Py_Main (in /usr/bin/python3.5)
+==29982==    by 0x4D2CA0: main (in /usr/bin/python3.5)
+==29982== 
+==29982== Use of uninitialised value of size 8
+==29982==    at 0x5CFDC8: ??? (in /usr/bin/python3.5)
+==29982==    by 0x4DD30D: ??? (in /usr/bin/python3.5)
+==29982==    by 0x604123: PyImport_ImportFrozenModuleObject (in /usr/bin/python3.5)
+==29982==    by 0x60417C: PyImport_ImportFrozenModule (in /usr/bin/python3.5)
+==29982==    by 0x617859: ??? (in /usr/bin/python3.5)
+==29982==    by 0x617BFD: _Py_InitializeEx_Private (in /usr/bin/python3.5)
+==29982==    by 0x63ABD8: Py_Main (in /usr/bin/python3.5)
+==29982==    by 0x4D2CA0: main (in /usr/bin/python3.5)
+==29982==  Uninitialised value was created by a heap allocation
+==29982==    at 0x4C2DB8F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==29982==    by 0x598589: ??? (in /usr/bin/python3.5)
+==29982==    by 0x5A07BF: PyDict_Merge (in /usr/bin/python3.5)
+==29982==    by 0x5A0A4A: PyDict_Copy (in /usr/bin/python3.5)
+==29982==    by 0x603917: _PyImport_Init (in /usr/bin/python3.5)
+==29982==    by 0x617BCE: _Py_InitializeEx_Private (in /usr/bin/python3.5)
+==29982==    by 0x63ABD8: Py_Main (in /usr/bin/python3.5)
+==29982==    by 0x4D2CA0: main (in /usr/bin/python3.5)
+==29982== 
+==29982== Conditional jump or move depends on uninitialised value(s)
+==29982==    at 0x5CFDAF: ??? (in /usr/bin/python3.5)
+==29982==    by 0x4DD30D: ??? (in /usr/bin/python3.5)
+==29982==    by 0x4E59F6: ??? (in /usr/bin/python3.5)
+==29982==    by 0x53E885: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x53E853: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x53E853: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x5440FA: PyEval_EvalCodeEx (in /usr/bin/python3.5)
+==29982==    by 0x4E8702: ??? (in /usr/bin/python3.5)
+==29982==    by 0x5C2686: PyObject_Call (in /usr/bin/python3.5)
+==29982==    by 0x5C32D9: _PyObject_CallMethodIdObjArgs (in /usr/bin/python3.5)
+==29982==    by 0x524DBF: PyImport_ImportModuleLevelObject (in /usr/bin/python3.5)
+==29982==    by 0x54CA17: ??? (in /usr/bin/python3.5)
+==29982==  Uninitialised value was created by a heap allocation
+==29982==    at 0x4C2DB8F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==29982==    by 0x5D04A8: PyObject_Malloc (in /usr/bin/python3.5)
+==29982==    by 0x5945F2: _PyObject_GC_NewVar (in /usr/bin/python3.5)
+==29982==    by 0x4E9720: PyFrame_New (in /usr/bin/python3.5)
+==29982==    by 0x5431DA: ??? (in /usr/bin/python3.5)
+==29982==    by 0x53EEEE: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x53E853: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x5440FA: PyEval_EvalCodeEx (in /usr/bin/python3.5)
+==29982==    by 0x4E8702: ??? (in /usr/bin/python3.5)
+==29982==    by 0x5C2686: PyObject_Call (in /usr/bin/python3.5)
+==29982==    by 0x5C32D9: _PyObject_CallMethodIdObjArgs (in /usr/bin/python3.5)
+==29982==    by 0x524DBF: PyImport_ImportModuleLevelObject (in /usr/bin/python3.5)
+==29982== 
+==29982== Use of uninitialised value of size 8
+==29982==    at 0x5CFDC8: ??? (in /usr/bin/python3.5)
+==29982==    by 0x4DD30D: ??? (in /usr/bin/python3.5)
+==29982==    by 0x4E59F6: ??? (in /usr/bin/python3.5)
+==29982==    by 0x53E885: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x53E853: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x53E853: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x5440FA: PyEval_EvalCodeEx (in /usr/bin/python3.5)
+==29982==    by 0x4E8702: ??? (in /usr/bin/python3.5)
+==29982==    by 0x5C2686: PyObject_Call (in /usr/bin/python3.5)
+==29982==    by 0x5C32D9: _PyObject_CallMethodIdObjArgs (in /usr/bin/python3.5)
+==29982==    by 0x524DBF: PyImport_ImportModuleLevelObject (in /usr/bin/python3.5)
+==29982==    by 0x54CA17: ??? (in /usr/bin/python3.5)
+==29982==  Uninitialised value was created by a heap allocation
+==29982==    at 0x4C2DB8F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==29982==    by 0x5D04A8: PyObject_Malloc (in /usr/bin/python3.5)
+==29982==    by 0x5945F2: _PyObject_GC_NewVar (in /usr/bin/python3.5)
+==29982==    by 0x4E9720: PyFrame_New (in /usr/bin/python3.5)
+==29982==    by 0x5431DA: ??? (in /usr/bin/python3.5)
+==29982==    by 0x53EEEE: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x53E853: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x5440FA: PyEval_EvalCodeEx (in /usr/bin/python3.5)
+==29982==    by 0x4E8702: ??? (in /usr/bin/python3.5)
+==29982==    by 0x5C2686: PyObject_Call (in /usr/bin/python3.5)
+==29982==    by 0x5C32D9: _PyObject_CallMethodIdObjArgs (in /usr/bin/python3.5)
+==29982==    by 0x524DBF: PyImport_ImportModuleLevelObject (in /usr/bin/python3.5)
+==29982== 
+==29982== Conditional jump or move depends on uninitialised value(s)
+==29982==    at 0x5CFDAF: ??? (in /usr/bin/python3.5)
+==29982==    by 0x4DD689: ??? (in /usr/bin/python3.5)
+==29982==    by 0x4E59F6: ??? (in /usr/bin/python3.5)
+==29982==    by 0x53E885: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x53E853: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x53E853: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x5440FA: PyEval_EvalCodeEx (in /usr/bin/python3.5)
+==29982==    by 0x4E8702: ??? (in /usr/bin/python3.5)
+==29982==    by 0x5C2686: PyObject_Call (in /usr/bin/python3.5)
+==29982==    by 0x5C32D9: _PyObject_CallMethodIdObjArgs (in /usr/bin/python3.5)
+==29982==    by 0x524DBF: PyImport_ImportModuleLevelObject (in /usr/bin/python3.5)
+==29982==    by 0x54CA17: ??? (in /usr/bin/python3.5)
+==29982==  Uninitialised value was created by a heap allocation
+==29982==    at 0x4C2DB8F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==29982==    by 0x5D04A8: PyObject_Malloc (in /usr/bin/python3.5)
+==29982==    by 0x5945F2: _PyObject_GC_NewVar (in /usr/bin/python3.5)
+==29982==    by 0x4E9720: PyFrame_New (in /usr/bin/python3.5)
+==29982==    by 0x5431DA: ??? (in /usr/bin/python3.5)
+==29982==    by 0x53EEEE: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x53E853: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x5440FA: PyEval_EvalCodeEx (in /usr/bin/python3.5)
+==29982==    by 0x4E8702: ??? (in /usr/bin/python3.5)
+==29982==    by 0x5C2686: PyObject_Call (in /usr/bin/python3.5)
+==29982==    by 0x5C32D9: _PyObject_CallMethodIdObjArgs (in /usr/bin/python3.5)
+==29982==    by 0x524DBF: PyImport_ImportModuleLevelObject (in /usr/bin/python3.5)
+==29982== 
+==29982== Use of uninitialised value of size 8
+==29982==    at 0x5CFDC8: ??? (in /usr/bin/python3.5)
+==29982==    by 0x4DD689: ??? (in /usr/bin/python3.5)
+==29982==    by 0x4E59F6: ??? (in /usr/bin/python3.5)
+==29982==    by 0x53E885: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x53E853: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x53E853: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x5440FA: PyEval_EvalCodeEx (in /usr/bin/python3.5)
+==29982==    by 0x4E8702: ??? (in /usr/bin/python3.5)
+==29982==    by 0x5C2686: PyObject_Call (in /usr/bin/python3.5)
+==29982==    by 0x5C32D9: _PyObject_CallMethodIdObjArgs (in /usr/bin/python3.5)
+==29982==    by 0x524DBF: PyImport_ImportModuleLevelObject (in /usr/bin/python3.5)
+==29982==    by 0x54CA17: ??? (in /usr/bin/python3.5)
+==29982==  Uninitialised value was created by a heap allocation
+==29982==    at 0x4C2DB8F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==29982==    by 0x5D04A8: PyObject_Malloc (in /usr/bin/python3.5)
+==29982==    by 0x5945F2: _PyObject_GC_NewVar (in /usr/bin/python3.5)
+==29982==    by 0x4E9720: PyFrame_New (in /usr/bin/python3.5)
+==29982==    by 0x5431DA: ??? (in /usr/bin/python3.5)
+==29982==    by 0x53EEEE: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x53E853: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x5440FA: PyEval_EvalCodeEx (in /usr/bin/python3.5)
+==29982==    by 0x4E8702: ??? (in /usr/bin/python3.5)
+==29982==    by 0x5C2686: PyObject_Call (in /usr/bin/python3.5)
+==29982==    by 0x5C32D9: _PyObject_CallMethodIdObjArgs (in /usr/bin/python3.5)
+==29982==    by 0x524DBF: PyImport_ImportModuleLevelObject (in /usr/bin/python3.5)
+==29982== 
+==29982== 
+==29982== Process terminating with default action of signal 2 (SIGINT)
+==29982==    at 0x511E72E: opendir (opendir.c:200)
+==29982==    by 0x635C7E: ??? (in /usr/bin/python3.5)
+==29982==    by 0x4E6486: PyCFunction_Call (in /usr/bin/python3.5)
+==29982==    by 0x53A373: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x53E853: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x5432B2: ??? (in /usr/bin/python3.5)
+==29982==    by 0x53EEEE: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x5432B2: ??? (in /usr/bin/python3.5)
+==29982==    by 0x53EEEE: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x5432B2: ??? (in /usr/bin/python3.5)
+==29982==    by 0x53EEEE: PyEval_EvalFrameEx (in /usr/bin/python3.5)
+==29982==    by 0x5432B2: ??? (in /usr/bin/python3.5)
+==29982== 
+==29982== HEAP SUMMARY:
+==29982==     in use at exit: 420,117 bytes in 430 blocks
+==29982==   total heap usage: 2,108 allocs, 1,678 frees, 751,641 bytes allocated
+==29982== 
+==29982== LEAK SUMMARY:
+==29982==    definitely lost: 0 bytes in 0 blocks
+==29982==    indirectly lost: 0 bytes in 0 blocks
+==29982==      possibly lost: 5,376 bytes in 9 blocks
+==29982==    still reachable: 414,741 bytes in 421 blocks
+==29982==         suppressed: 0 bytes in 0 blocks
+==29982== Rerun with --leak-check=full to see details of leaked memory
+==29982== 
+==29982== For counts of detected and suppressed errors, rerun with: -v
+==29982== ERROR SUMMARY: 6 errors from 6 contexts (suppressed: 0 from 0)
