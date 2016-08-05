@@ -40,6 +40,7 @@ Import_ThermoMechanicalApplication = False
 Import_DEM_FEM_Application = False
 Import_WindTurbineApplication = False
 Import_ContactMechanicsApplication = False
+Import_ContactStructuralMechanicsApplication = False
 
 print("Applications Available:")
 print("Import_SolidMechanicsApplication: False")
@@ -78,6 +79,7 @@ print("Import_ThermoMechanicalApplication: False")
 print("Import_DEM_FEM_Application: False")
 print("Import_WindTurbineApplication: False")
 print("Import_ContactMechanicsApplication: False")
+print("Import_ContactStructuralMechanicsApplication: False")
 
 application_directory = os.path.dirname(os.path.realpath(__file__))
 
@@ -119,6 +121,7 @@ def ImportApplications(kernel, applications_path=application_directory):
     print("Import_DEM_FEM_Application: " + str(Import_DEM_FEM_Application))
     print("Import_WindTurbineApplication: " + str(Import_WindTurbineApplication))
     print("Import_ContactMechanicsApplication: " + str(Import_ContactMechanicsApplication))
+    print("Import_ContactStructuralMechanicsApplication: " + str(Import_ContactStructuralMechanicsApplication))
 
     if(Import_SolidMechanicsApplication):
         print("importing KratosSolidMechanicsApplication ...")
@@ -434,6 +437,15 @@ def ImportApplications(kernel, applications_path=application_directory):
         contact_mechanics_application = KratosContactMechanicsApplication()
         kernel.AddApplication(contact_mechanics_application)
         print("KratosContactMechanicsApplication Succesfully imported")
+        
+    if(Import_ContactStructuralMechanicsApplication):
+        print("importing KratosStructuralContactMechanicsApplication ...")
+        sys.path.append(applications_path + '/ContactStructuralMechanics/python_scripts')
+        sys.path.append(applications_path + '/ContactStructuralMechanics/Linux')
+        from KratosContactStructuralMechanicsApplication import *
+        contact_mechanics_application = KratosContactStructuralMechanicsApplication()
+        kernel.AddApplication(contact_structural_mechanics_application)
+        print("KratosContactStructuralMechanicsApplication Succesfully imported")
 
 
     # dynamic renumbering of variables to ensure the consistency
@@ -512,6 +524,8 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.InitializeApplication(wind_turbine_application)
     if(Import_ContactMechanicsApplication):
         kernel.InitializeApplication(contact_mechanics_application)
+    if(Import_ContactStructuralMechanicsApplication):
+        kernel.InitializeApplication(contact_structural_mechanics_application)
 
 # def ImportApplications(kernel  ):
     # import os.path
