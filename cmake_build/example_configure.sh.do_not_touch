@@ -55,6 +55,7 @@ cmake ..  									                                                    \
 -DTRILINOS_ROOT="/home/youruser/compiled_libraries/trilinos-10.2.0"		          \
 -DINSTALL_EMBEDDED_PYTHON=ON                                                    \
 -DSHAPE_OPTIMIZATION_APPLICATION=OFF \
+-DTOPOLOGY_OPTIMIZATION_APPLICATION=OFF \
 
 #decomment this to have it verbose
 # make VERBOSE=1 -j4
