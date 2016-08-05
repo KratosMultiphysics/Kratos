@@ -442,12 +442,19 @@ public:
         );
     
     /**
+     * This function loops over all conditions and calculates the overall number of DOFs
+     * total_dofs = SUM( master_u_dofs + 2 * slave_u_dofs) 
+     */
+    const unsigned int CalculateConditionSize( );
+    
+    /**
      * Calculate condition kinematics
      */
     void CalculateKinematics( 
         GeneralVariables& rVariables,
         const double& rPointNumber,
-        const unsigned int& rPairIndex 
+        const unsigned int& rPairIndex,
+        const GeometryType::IntegrationPointsArrayType& integration_points
         );
 
     /********************************************************************************/
@@ -459,35 +466,67 @@ public:
      */
     virtual void CalculateAndAddLHS( 
         LocalSystemComponents& rLocalSystem,
-        GeneralVariables& rVariables
+        GeneralVariables& rVariables,
+        const unsigned int rPairIndex,
+        const double& rIntegrationWeight
         );
 
     /*
      * Assembles the contact pair LHS block into the condition's LHS
      */
     void AssembleContactPairLHSToConditionSystem( 
-        const unsigned int rPairIndex,
         MatrixType& rPairLHS,
-        MatrixType& rConditionLHS 
+        MatrixType& rConditionLHS,
+        const unsigned int rPairIndex
         );
 
+    /*
+     * 
+     */
+    void CalculateLocalLHS(
+        MatrixType& rPairLHS,
+        GeneralVariables& rVariables,
+        const double& rIntegrationWeight 
+        );
+    
+    /*
+     * 
+     */
+    bounded_matrix<double,12,12> ComputeGaussPointLHSContribution2D2N2N(GeneralVariables& rVariables);
+    
     /*
      * Calculation and addition fo the vectors of the RHS of a contact pair
      */
     virtual void CalculateAndAddRHS( 
         LocalSystemComponents& rLocalSystem,
-        GeneralVariables& rVariables
+        GeneralVariables& rVariables,
+        const unsigned int rPairIndex,
+        const double& rIntegrationWeight
         );
     
     /*
      * Assembles the contact pair RHS block into the condition's RHS
      */
     void AssembleContactPairRHSToConditionSystem( 
-        const unsigned int rPairIndex,
         VectorType& rPairRHS,
-        VectorType& rConditionRHS 
+        VectorType& rConditionRHS,
+        const unsigned int rPairIndex
         );
-
+    
+    /*
+     * 
+     */
+    void CalculateLocalRHS(
+        VectorType& rPairRHS,
+        GeneralVariables& rVariables,
+        const double& rIntegrationWeight 
+        );
+    
+    /*
+     * 
+     */
+    array_1d<double,12> ComputeGaussPointRHSContribution2D2N2N(GeneralVariables& rVariables);
+    
     /***********************************************************************************/
     /**************** AUXILLIARY METHODS FOR CONDITION LHS CONTRIBUTION ****************/
     /***********************************************************************************/
@@ -497,7 +536,6 @@ public:
      */
     void MasterShapeFunctionValue(
         GeneralVariables& rVariables,
-        const PointType& rSlaveIntegrationPoint,
         const PointType& local_point 
     );
         
