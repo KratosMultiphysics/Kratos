@@ -59,5 +59,16 @@ gid_io_2.initialize_results(extracted_surface_model_part)
 gid_io_2.write_results(1, extracted_surface_model_part, nodal_results, gauss_points_results)
 gid_io_2.finalize_results()
 
+# Smooth extracted surface
+smoothing_iterations = 0
+smoothed_surface_model_part = ModelPart("extracted_surface_model_part")
+TopologySmoothingUtilities().SmoothMesh(extracted_surface_model_part, smoothing_iterations)
+
+# Write smoothed mesh
+gid_io_3 = GiDOutput("smoothed_surface_model_part", VolumeOutput, GiDPostMode, GiDMultiFileFlag, GiDWriteMeshFlag, GiDWriteConditionsFlag)
+gid_io_3.initialize_results(extracted_surface_model_part)
+gid_io_3.write_results(1, extracted_surface_model_part, nodal_results, gauss_points_results)
+gid_io_3.finalize_results()
+
 # Write stl of extracted surface
 IOUtilities().WriteSurfaceAsSTLFile("extracted_surface.stl",extracted_surface_model_part)

@@ -57,231 +57,235 @@ namespace Kratos
 /// Solution utility that smooths a provided meshZz.
 /** Detail class definition.
 
-*/
+ */
 
 class TopologySmoothingUtilities
 {
 public:
 
-    ///@name Type Definitions
-    ///@{
+	///@name Type Definitions
+	///@{
 
-    /// Pointer definition of TopologySmoothingUtilities
-    KRATOS_CLASS_POINTER_DEFINITION(TopologySmoothingUtilities);
+	/// Pointer definition of TopologySmoothingUtilities
+	KRATOS_CLASS_POINTER_DEFINITION(TopologySmoothingUtilities);
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
+	///@}
+	///@name Life Cycle
+	///@{
 
-    /// Default constructor.
-    TopologySmoothingUtilities( ModelPart& model_part )
-    : mr_model_part(model_part)
-    {
-    	// Set precision for output
-    	std::cout.precision(15);
-    }
+	/// Default constructor.
+	TopologySmoothingUtilities(  )
+	{
+	}
 
-    /// Destructor.
-    virtual ~TopologySmoothingUtilities()
-    {
-    }
+	/// Destructor.
+	virtual ~TopologySmoothingUtilities()
+	{
+	}
 
 
-    ///@}
-    ///@name Operators
-    ///@{
+	///@}
+	///@name Operators
+	///@{
 
 
-    ///@}
-    ///@name Operations
-    ///@{
+	///@}
+	///@name Operations
+	///@{
 
-    // ---------------------------------------------------------------------------------------------------------------------------------------------
-    // --------------------------------- SMOOTH EXTRACTED MESH  ------------------------------------------------------------------------------------
-    // ---------------------------------------------------------------------------------------------------------------------------------------------
+	// ---------------------------------------------------------------------------------------------------------------------------------------------
+	// --------------------------------- SMOOTH EXTRACTED MESH  ------------------------------------------------------------------------------------
+	// ---------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Gets the neighbour nodes and applies a Laplacian algorithm to smooth the previously extracted surface mesh
+	/// Gets the neighbour nodes and applies a Laplacian algorithm to smooth the previously extracted surface mesh
 
-    void SmoothMesh( double iterations )
-    {
+	void SmoothMesh( ModelPart& mModelPart, double iterations )
+	{
 
-        KRATOS_TRY;
+		KRATOS_TRY;
 
-            std::cout<<"::[Smoothing mesh]::"<<std::endl;
+		std::cout<<"::[Smoothing mesh]::"<<std::endl;
 
-            if (iterations > 0)
-            {
-                // Locating neighbouring nodes
-                FindConditionsNeighboursProcess nodal_finder = FindConditionsNeighboursProcess(mr_model_part, 10, 10);
-                nodal_finder.Execute();
+		Vector smoothed_coordinates;
+		smoothed_coordinates.resize(mModelPart.NumberOfNodes() * 3);
 
-                NodesContainerType& rNodes = mr_model_part.Nodes();
+		if (iterations > 0)
+		{
+			// Locating neighbouring nodes
+			FindConditionsNeighboursProcess nodal_finder = FindConditionsNeighboursProcess(mModelPart, 10, 10);
+			nodal_finder.Execute();
 
-                // Repeat smoothing operation for the selected number of iterations
-                for(int i = 0; i < iterations; ++i){
-                    std::cout<<"  Smoothing iteration number "<< i+1 <<std::endl;
+			// Repeat smoothing operation for the selected number of iterations
+			for(int i = 0; i < iterations; ++i){
+				std::cout<<"  Smoothing iteration number "<< i+1 <<std::endl;
 
-                    for(NodesContainerType::iterator node_i = rNodes.begin(); node_i!=rNodes.end(); node_i++)
-                    {
-                        // Prepare the needed neighbouring node vector and the needed variables
-                        double x_coord = 0.0;
-                        double y_coord = 0.0;
-                        double z_coord = 0.0;
+				smoothed_coordinates.clear();
 
-                        WeakPointerVector< Node<3> >& neighbours = node_i->GetValue(NEIGHBOUR_NODES);
+				int itr = 0;
+				for(NodesContainerType::iterator node_i = mModelPart.Nodes().begin(); node_i!=mModelPart.Nodes().end(); node_i++)
+				{
+					// Prepare the needed neighbouring node vector and the needed variables
+					smoothed_coordinates[3*itr+0] = 0.0;
+					smoothed_coordinates[3*itr+1] = 0.0;
+					smoothed_coordinates[3*itr+2] = 0.0;
 
-                        // Obtain and sum the X, Y and Z coordinates of all neighbouring nodes
-                        for( WeakPointerVector<Node<3> >::iterator neighbour_node = neighbours.begin(); neighbour_node!=neighbours.end(); neighbour_node++)
-                        {
-                            x_coord += neighbour_node->X();
-                            y_coord += neighbour_node->Y();
-                            z_coord += neighbour_node->Z();
-                        }
+					WeakPointerVector< Node<3> >& neighbours = node_i->GetValue(NEIGHBOUR_NODES);
 
-                        // Average the new X, Y and Z coordinates and save them temporary (simultaneous version)
-                        node_i->SetValue(ELEM_CENTER_X, x_coord /= neighbours.size());
-                        node_i->SetValue(ELEM_CENTER_Y, y_coord /= neighbours.size());
-                        node_i->SetValue(ELEM_CENTER_Z, z_coord /= neighbours.size());
-                    }
+					// Obtain and sum the X, Y and Z coordinates of all neighbouring nodes
+					for( WeakPointerVector<Node<3> >::iterator neighbour_node = neighbours.begin(); neighbour_node!=neighbours.end(); neighbour_node++)
+					{
+						smoothed_coordinates[3*itr+0] += neighbour_node->X();
+						smoothed_coordinates[3*itr+1] += neighbour_node->Y();
+						smoothed_coordinates[3*itr+2] += neighbour_node->Z();
+					}
 
-                    // Assign the coordinates calculated value into each nodes
-                    for(NodesContainerType::iterator node_i = rNodes.begin(); node_i!=rNodes.end(); node_i++)
-                    {
-                        node_i->X() = node_i->GetValue(ELEM_CENTER_X);
-                        node_i->Y() = node_i->GetValue(ELEM_CENTER_Y);
-                        node_i->Z() = node_i->GetValue(ELEM_CENTER_Z);
-                    }
-                }
+					// Average the new X, Y and Z coordinates and save them temporary (simultaneous version)
+					smoothed_coordinates[3*itr+0] /= neighbours.size();
+					smoothed_coordinates[3*itr+1] /= neighbours.size();
+					smoothed_coordinates[3*itr+2] /= neighbours.size();
 
-                std::cout<<"  Surface smoothed succesfully with "<< iterations << " iteration(s)"<<std::endl;
-            }
-        else
-            std::cout<<"  Surface was not smoothed" <<std::endl;
+					itr++;
+				}
 
+				// Assign the coordinates calculated value into each nodes
+				itr = 0;
+				for(NodesContainerType::iterator node_i = mModelPart.Nodes().begin(); node_i!=mModelPart.Nodes().end(); node_i++)
+				{
+					node_i->X() = smoothed_coordinates[3*itr+0];
+					node_i->Y() = smoothed_coordinates[3*itr+1];
+					node_i->Z() = smoothed_coordinates[3*itr+2];
 
-        KRATOS_CATCH("");
-    }
+					itr++;
+				}
+			}
 
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
+			std::cout<<"  Surface smoothed succesfully with "<< iterations << " iteration(s)"<<std::endl;
+		}
+		else
+			std::cout<<"  Surface was not smoothed" <<std::endl;
 
 
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        return "TopologySmoothingUtilities";
-    }
-
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "TopologySmoothingUtilities";
-    }
-
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
-    {
-    }
+		KRATOS_CATCH("");
+	}
 
 
-    ///@}
-    ///@name Friends
-    ///@{
+	///@}
+	///@name Access
+	///@{
 
 
-    ///@}
+	///@}
+	///@name Inquiry
+	///@{
+
+
+	///@}
+	///@name Input and output
+	///@{
+
+	/// Turn back information as a string.
+	virtual std::string Info() const
+	{
+		return "TopologySmoothingUtilities";
+	}
+
+	/// Print information about this object.
+	virtual void PrintInfo(std::ostream& rOStream) const
+	{
+		rOStream << "TopologySmoothingUtilities";
+	}
+
+	/// Print object's data.
+	virtual void PrintData(std::ostream& rOStream) const
+	{
+	}
+
+
+	///@}
+	///@name Friends
+	///@{
+
+
+	///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
+	///@name Protected static Member Variables
+	///@{
 
 
-    ///@}
-    ///@name Protected member Variables
-    ///@{
+	///@}
+	///@name Protected member Variables
+	///@{
 
 
-    ///@}
-    ///@name Protected Operators
-    ///@{
+	///@}
+	///@name Protected Operators
+	///@{
 
 
-    ///@}
-    ///@name Protected Operations
-    ///@{
+	///@}
+	///@name Protected Operations
+	///@{
 
 
-    ///@}
-    ///@name Protected  Access
-    ///@{
+	///@}
+	///@name Protected  Access
+	///@{
 
 
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
+	///@}
+	///@name Protected Inquiry
+	///@{
 
 
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
+	///@}
+	///@name Protected LifeCycle
+	///@{
 
 
-    ///@}
+	///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
+	///@name Static Member Variables
+	///@{
 
 
-    ///@}
-    ///@name Member Variables
-    ///@{
+	///@}
+	///@name Member Variables
+	///@{
 
-    ModelPart& mr_model_part;
-
-    ///@}
-    ///@name Private Operators
-    ///@{
+	///@}
+	///@name Private Operators
+	///@{
 
 
-    ///@}
-    ///@name Private Operations
-    ///@{
+	///@}
+	///@name Private Operations
+	///@{
 
 
-    ///@}
-    ///@name Private  Access
-    ///@{
+	///@}
+	///@name Private  Access
+	///@{
 
 
-    ///@}
-    ///@name Private Inquiry
-    ///@{
+	///@}
+	///@name Private Inquiry
+	///@{
 
 
-    ///@}
-    ///@name Un accessible methods
-    ///@{
+	///@}
+	///@name Un accessible methods
+	///@{
 
-    /// Assignment operator.
-      //TopologySmoothingUtilities& operator=(TopologySmoothingUtilities const& rOther);
+	/// Assignment operator.
+	//TopologySmoothingUtilities& operator=(TopologySmoothingUtilities const& rOther);
 
-    /// Copy constructor.
-      //TopologySmoothingUtilities(TopologySmoothingUtilities const& rOther);
+	/// Copy constructor.
+	//TopologySmoothingUtilities(TopologySmoothingUtilities const& rOther);
 
 
-    ///@}
+	///@}
 
 }; // Class TopologySmoothingUtilities
 
