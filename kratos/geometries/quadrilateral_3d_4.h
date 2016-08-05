@@ -16,6 +16,7 @@
 // Project includes
 #include "geometries/line_3d_2.h"
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
+#include "integration/quadrilateral_collocation_integration_points.h"
 
 namespace Kratos
 {
@@ -1548,6 +1549,16 @@ private:
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints4,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints5,
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralCollocationIntegrationPoints1,
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralCollocationIntegrationPoints2,
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralCollocationIntegrationPoints3,
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralCollocationIntegrationPoints4,
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralCollocationIntegrationPoints5,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
@@ -1571,7 +1582,17 @@ private:
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::GI_GAUSS_4 ),
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_5 )
+                    GeometryData::GI_GAUSS_5 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_EXTENDED_GAUSS_1 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_EXTENDED_GAUSS_2 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_EXTENDED_GAUSS_3 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_EXTENDED_GAUSS_4 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_EXTENDED_GAUSS_5 )
             }
         };
         return shape_functions_values;
@@ -1590,7 +1611,12 @@ private:
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_2 ),
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_3 ),
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_4 ),
-                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_5 )
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_5 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_1 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_2 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_3 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_4 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_5 )
             }
         };
         return shape_functions_local_gradients;
