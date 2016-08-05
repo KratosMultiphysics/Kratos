@@ -135,22 +135,6 @@ public:
 	  mSearchRadius(SearchRadius),
 	  mMaxNodesAffected(MaxNodesAffected)
 	{
-		// Determine which elements are PASSIVE or ACTIVE for the complete optimization
-		ElementPositionVector positions_list;
-		for(ModelPart::ElementsContainerType::iterator elem_i = mrModelPart.ElementsBegin(); elem_i!=mrModelPart.ElementsEnd(); elem_i++)
-		{
-			// Find the center of the element
-			array_1d<double,3> center_coord = ZeroVector(3);
-			Geometry< Node<3> >& geom = elem_i->GetGeometry();
-			for(unsigned int i=0; i<geom.size(); i++)
-				noalias(center_coord) += geom[i].Coordinates();
-			center_coord /= static_cast<double>(geom.size());
-
-			// Save the (x,y,z) coordinates of the center of the element in the element
-			elem_i->SetValue(ELEM_CENTER_X,center_coord[0]);
-			elem_i->SetValue(ELEM_CENTER_Y,center_coord[1]);
-			elem_i->SetValue(ELEM_CENTER_Z,center_coord[2]);
-		}
 	}
 
 	/// Destructor.

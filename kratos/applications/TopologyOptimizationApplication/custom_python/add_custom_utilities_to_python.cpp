@@ -95,7 +95,7 @@ void AddCustomUtilitiesToPython()
 	.def("ExtractSurfaceMesh", &TopologyExtractorUtilities::ExtractSurfaceMesh)
 	;
 
-	class_<TopologySmoothingUtilities, bases<Process> >("TopologySmoothingUtilities", init<ModelPart&>())
+	class_<TopologySmoothingUtilities, bases<Process> >("TopologySmoothingUtilities", init<>())
     .def("SmoothMesh", &TopologySmoothingUtilities::SmoothMesh)
 	;
 
