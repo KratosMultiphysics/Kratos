@@ -60,9 +60,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Utilities
 #include "custom_utilities/structure_response_function_utilities.h"
 #include "custom_utilities/topology_filtering_utilities.h"
-#include "custom_utilities/topology_mesh_extractor_utilities.h"
+#include "custom_utilities/topology_extractor_utilities.h"
 #include "custom_utilities/topology_smoothing_utilities.h"
 #include "custom_utilities/topology_updating_utilities.h"
+#include "custom_utilities/io_utilities.h"
 
 
 namespace Kratos
@@ -89,10 +90,9 @@ void AddCustomUtilitiesToPython()
     .def("ApplyFilter", &TopologyFilteringUtilities::ApplyFilter)
 	;
 
-	class_<TopologyMeshExtractorUtilities, bases<Process> >("TopologyMeshExtractorUtilities", init<ModelPart&>())
-    .def("ExtractVolumeMesh", &TopologyMeshExtractorUtilities::ExtractVolumeMesh)
-	.def("ExtractSurfaceMesh", &TopologyMeshExtractorUtilities::ExtractSurfaceMesh)
-	.def("WriteSTLFile", &TopologyMeshExtractorUtilities::WriteSTLFile)
+	class_<TopologyExtractorUtilities, bases<Process> >("TopologyExtractorUtilities", init<>())
+    .def("ExtractVolumeMesh", &TopologyExtractorUtilities::ExtractVolumeMesh)
+	.def("ExtractSurfaceMesh", &TopologyExtractorUtilities::ExtractSurfaceMesh)
 	;
 
 	class_<TopologySmoothingUtilities, bases<Process> >("TopologySmoothingUtilities", init<ModelPart&>())
@@ -100,7 +100,12 @@ void AddCustomUtilitiesToPython()
 	;
 
 	class_<TopologyUpdatingUtilities, bases<Process> >("TopologyUpdatingUtilities", init<ModelPart&>())
-    .def("UpdateDensities", &TopologyUpdatingUtilities::UpdateDensities)
+    .def("UpdateDensitiesUsingOCMethod", &TopologyUpdatingUtilities::UpdateDensitiesUsingOCMethod)
+	;
+
+	class_<IOUtilities, bases<Process> >("IOUtilities", init<>())
+    .def("SaveOptimizationResults", &IOUtilities::SaveOptimizationResults)
+	.def("WriteSurfaceAsSTLFile", &IOUtilities::WriteSurfaceAsSTLFile)
 	;
 }
 

@@ -75,8 +75,10 @@ public:
 
     /// Default constructor.
     TopologySmoothingUtilities( ModelPart& model_part )
-        : mr_model_part(model_part)
+    : mr_model_part(model_part)
     {
+    	// Set precision for output
+    	std::cout.precision(15);
     }
 
     /// Destructor.

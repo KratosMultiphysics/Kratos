@@ -68,9 +68,9 @@ constraints = { "volume_fraction": {"type": "eq", "grad": "provided"} }
 #========================================================================================
 
 # General output
-restart_input_file           = "Small_Cantilever"
-restart_output_file          = "Small_Cantilever_Restart_File"
-write_restart_file_every     = 10 #iterations
+restart_input_file      = "Small_Cantilever.mdpa"
+restart_output_file     = "Small_Cantilever_Restart_File.mdpa"
+restart_write_frequency = 10 #iterations
 
 # GiD simulation output file name
 GiD_output_file_name   = "Topology_Optimization_Results"
