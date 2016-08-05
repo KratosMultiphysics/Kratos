@@ -60,34 +60,6 @@ class FilterFunction
 {
 public:
 
-	class ElementPositionItem: public Point<3>
-	{
-	public:
-
-		KRATOS_CLASS_POINTER_DEFINITION( ElementPositionItem );
-
-		ElementPositionItem(): // This Constructor is used by the tree
-			Point<3>(),
-			mpElement()
-			{
-			}
-
-		ElementPositionItem(array_1d<double,3> Coords, Element::Pointer pElement):
-			Point<3>(Coords),
-			mpElement(pElement)
-			{}
-
-		Element::Pointer GetOriginElement()
-		{
-			return mpElement;   // TEST FUNCTION
-		}
-
-
-	private:
-		Element::Pointer mpElement;
-
-	};
-
 	///@name Type Definitions
 	///@{
 

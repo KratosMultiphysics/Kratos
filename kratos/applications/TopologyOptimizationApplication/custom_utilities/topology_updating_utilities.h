@@ -98,7 +98,7 @@ public:
 	// ---------------------------------------------------------------------------------------------------------------------------------------------
 
 	/// Finds the value of the X_PHYS (density) and updates it into the optimization problem
-	void UpdateDensities( char update_type[], double volfrac, double greyscale , double OptItr , double qmax)
+	void UpdateDensitiesUsingOCMethod( char update_type[], double volfrac, double greyscale , double OptItr , double qmax)
 	{
 		KRATOS_TRY;
 
@@ -131,7 +131,7 @@ public:
 			double x_new = 0.0;
 			double lmid = 0.0;
 
-			// Bisection algorithm to find Lagrange Multiplier (lmid)
+			// Bisection algorithm to find Lagrange Multiplier so that volume constraint is satisfied (lmid)
 			while ((l2-l1)/(l1+l2) > 0.001)
 			{
 				lmid = 0.5*(l2+l1);

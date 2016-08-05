@@ -15,7 +15,6 @@ CheckForPreviousImport()
 from gid_output import GiDOutput
 
 # Further necessary imports
-import optimization_utilities as opt_utils_source
 import csv
 import math
 import time
@@ -71,7 +70,7 @@ class SIMPMethod:
         # Only happens if continuation strategy is activated (Initialization of penalty factor)
         if(self.config.continuation_strategy == 1):
             for element_i in self.opt_model_part.Elements:
-                element_i.SetValue(PENAL, 1)
+                element_i.SetValue(PENAL,1)
 
         # Add toolbox for topology filtering utilities
         self.filter_utils = TopologyFilteringUtilities( opt_model_part,
@@ -79,11 +78,11 @@ class SIMPMethod:
                                                         self.config.max_elements_in_filter_radius )
 
         # Add toolbox for topology updating utilities
-        self.opt_utils = opt_utils_source.OptimizationUtilities( opt_model_part,
-                                                                 analyzer,
-                                                                 self.controller, 
-                                                                 self.config )
-        self.topology_design_update = TopologyUpdatingUtilities( opt_model_part )
+        self.design_update_utils = TopologyUpdatingUtilities( opt_model_part )
+
+        # Add toolbox for I/O
+        self.io_utils = IOUtilities()
+
     # ----------------------------------------------------------------------------------------------------------------------------------
     def optimize(self):
 
@@ -103,7 +102,7 @@ class SIMPMethod:
            self.start_oc_algorithm()
 
         else:
-            sys.exit("Specified optimization_algorithm not implemented!")
+            raise TypeError("Specified optimization_algorithm not implemented!")
 
         # Finalize the design output in GiD format
         self.gid_io.finalize_results()
@@ -130,11 +129,11 @@ class SIMPMethod:
 
         # Initialize variables for comparison purposes in Topology Optimization Tool
         pmax                          = self.config.penalty   # Maximum penalty value used for continuation strategy
-        Obj_Function                  = 0
-        Obj_Function_old              = 0
-        Obj_Function_initial          = 0
-        Obj_Function_relative_change  = 1
-        Obj_Function_absolute_change  = 1
+        Obj_Function                  = None
+        Obj_Function_old              = None
+        Obj_Function_initial          = None
+        Obj_Function_relative_change  = None
+        Obj_Function_absolute_change  = None
 
         # Print the Topology Optimization Settings that will be used in the program
         print("\n::[Topology Optimization Settings]::")
@@ -143,13 +142,13 @@ class SIMPMethod:
         print("  Penalty factor: ", self.config.penalty)
         print("  Rel. Tolerance: ", self.config.relative_tolerance)
         print("  Volume Fraction:", self.config.initial_volume_fraction)
-        print("\n  Max. number of iterations:", self.config.max_opt_iterations)
+        print("  Max. number of iterations:", self.config.max_opt_iterations)
 
-        if (self.config.write_restart_file_every < self.config.max_opt_iterations):
-            if (self.config.write_restart_file_every == 1):
+        if (self.config.restart_write_frequency < self.config.max_opt_iterations):
+            if (self.config.restart_write_frequency == 1):
                 print("  Make a restart file every iteration")
-            elif (self.config.write_restart_file_every > 1):
-                print("  Make a restart file every", self.config.write_restart_file_every, "iterations")
+            elif (self.config.restart_write_frequency > 1):
+                print("  Make a restart file every", self.config.restart_write_frequency, "iterations")
             else:
                 print("  No restart file will be done during the simulation")
         else:
@@ -189,16 +188,11 @@ class SIMPMethod:
            
             # Update design variables ( densities )  --> new X by:
             print("\n::[Update Densities]::")
-            # 1) using Python:
-            #self.opt_utils.set_active_constraints( only_C_id )
-            #self.opt_utils.update_design_oc( opt_itr )
-
-            # 2) using C++:
-            self.topology_design_update.UpdateDensities( self.config.optimization_algorithm, 
-                                                         self.config.initial_volume_fraction, 
-                                                         self.config.grey_scale_filter, 
-                                                         opt_itr,
-                                                         self.config.q_max )
+            self.design_update_utils.UpdateDensitiesUsingOCMethod( self.config.optimization_algorithm, 
+                                                                   self.config.initial_volume_fraction, 
+                                                                   self.config.grey_scale_filter, 
+                                                                   opt_itr,
+                                                                   self.config.q_max )
        
             # Print of results
             print("\n::[RESULTS]::")
@@ -236,11 +230,11 @@ class SIMPMethod:
                 print("  Continuation Strategy for current iteration was UNACTIVE")
 
             # Write restart file every selected number of iterations
-            if (self.config.write_restart_file_every > 0):
-                if (opt_itr % self.config.write_restart_file_every == False):
+            if (self.config.restart_write_frequency > 0):
+                if (opt_itr % self.config.restart_write_frequency == False):
                     print("\n::[Restart File]::")
                     print("  Saving file at iteration", opt_itr)
-                    self.save_optimization_results()
+                    self.io_utils.SaveOptimizationResults(self.config.restart_input_file, self.opt_model_part, self.config.restart_output_file)
 
             # Check convergence
             if opt_itr > 1:
@@ -250,7 +244,7 @@ class SIMPMethod:
                     print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
                     print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
                     print("\n  Maximal iterations of optimization problem reached!")
-                    self.save_optimization_results()
+                    self.io_utils.SaveOptimizationResults(self.config.restart_input_file, self.opt_model_part, self.config.restart_output_file)
                     break
 
                 # Check for relative tolerance
@@ -259,7 +253,7 @@ class SIMPMethod:
                     print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
                     print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
                     print("\n  Optimization problem converged within a relative objective tolerance of",self.config.relative_tolerance)
-                    self.save_optimization_results()
+                    self.io_utils.SaveOptimizationResults(self.config.restart_input_file, self.opt_model_part, self.config.restart_output_file)
                     break
 
             # Set X_PHYS_OLD to X_PHYS to update the value for the next simulation's "change percentage"
@@ -270,39 +264,6 @@ class SIMPMethod:
             end_time = time.time()
             print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
             print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
-
-    # ----------------------------------------------------------------------------------------------------------------------------------
-    def save_optimization_results(self):
-
-        # Read the original .mdpa file
-        lines = None
-        with open(self.config.restart_input_file + ".mdpa") as f_tb_read:
-            lines = f_tb_read.readlines()
-
-        # Create an empty .mdpa restart file
-        f_tb_created = open(self.config.restart_output_file + ".mdpa", 'w')
-
-        # Replace pre-existing X_PHYS elemental data (if there was any)
-        density_block_active = False
-        for line in lines:
-            if "Begin ElementalData X_PHYS" in line:
-                density_block_active = True
-            if "End ElementalData" in line and density_block_active:
-                density_block_active = False
-                continue
-            if density_block_active == False:
-                f_tb_created.write(str(line))
-
-        # Write the actual X_PHYS elemental data
-        f_tb_created.write("Begin ElementalData X_PHYS\n")
-        for elem in self.opt_model_part.Elements:
-            f_tb_created.write(str(elem.Id))
-            f_tb_created.write("\t")
-            f_tb_created.write(str("%.15f"%(elem.GetValue(X_PHYS))))
-            f_tb_created.write("\n")
-        f_tb_created.write("End ElementalData\n")
-        f_tb_created.close()
-        print("  Restart file saved")
         
 # ======================================================================================================================================
 class Controller:
