@@ -1,0 +1,67 @@
+# import Kratos
+from KratosMultiphysics import *
+from KratosMultiphysics.ExternalSolversApplication import *
+from KratosMultiphysics.SolidMechanicsApplication import *
+from KratosMultiphysics.StructuralMechanicsApplication import *
+from KratosMultiphysics.ContactStructuralMechanicsApplication import *
+
+# Import Kratos "wrapper" for unittests
+import KratosMultiphysics.KratosUnittest as KratosUnittest
+
+# Import the tests o test_classes to create the suits
+## SMALL TESTS
+from SmallTests import SimplePatchTestContact as TSimplePatchTestContact
+from SmallTests import SimplePatchNotMatchingATestContact as TSimplePatchNotMatchingATestContact
+from SmallTests import SimplePatchNotMatchingBTestContact as TSimplePatchNotMatchingBTestContact
+from SmallTests import TaylorPatchTestContact as TTaylorPatchTestContact
+from SmallTests import HertzSimpleTestContact as THertzSimpleTestContact
+
+## NIGTHLY TESTS
+
+## VALIDATION TESTS
+
+def AssambleTestSuites():
+    ''' Populates the test suites to run.
+
+    Populates the test suites to run. At least, it should pupulate the suites:
+    "small", "nighlty" and "all"
+
+    Return
+    ------
+
+    suites: A dictionary of suites
+        The set of suites with its test_cases added.
+    '''
+    suites = KratosUnittest.KratosSuites
+
+    # Create a test suit with the selected tests (Small tests):
+    smallSuite = suites['small']
+    smallSuite.addTest(TSimplePatchTestContact('test_execution'))
+    smallSuite.addTest(TSimplePatchNotMatchingATestContact('test_execution'))
+    smallSuite.addTest(TSimplePatchNotMatchingBTestContact('test_execution'))
+    smallSuite.addTest(TTaylorPatchTestContact('test_execution'))
+    smallSuite.addTest(THertzSimpleTestContact('test_execution'))
+
+    # Create a test suit with the selected tests plus all small tests
+    nightSuite = suites['nightly']
+    nightSuite.addTests(smallSuite)
+    
+    # For very long tests that should not be in nighly and you can use to validate 
+    validationSuite = suites['validation']
+
+    # Create a test suit that contains all the tests:
+    allSuite = suites['all']
+    allSuite.addTests(
+        KratosUnittest.TestLoader().loadTestsFromTestCases([
+            TSimplePatchTestContact,
+            TSimplePatchNotMatchingATestContact,
+            TSimplePatchNotMatchingBTestContact,
+            TTaylorPatchTestContact,
+            THertzSimpleTestContact
+        ])
+    )
+
+    return suites
+
+if __name__ == '__main__':
+    KratosUnittest.runTests(AssambleTestSuites())
