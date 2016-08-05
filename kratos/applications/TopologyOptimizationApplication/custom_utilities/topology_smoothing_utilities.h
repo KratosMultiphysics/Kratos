@@ -97,8 +97,7 @@ public:
 	// --------------------------------- SMOOTH EXTRACTED MESH  ------------------------------------------------------------------------------------
 	// ---------------------------------------------------------------------------------------------------------------------------------------------
 
-	/// Gets the neighbour nodes and applies a Laplacian algorithm to smooth the previously extracted surface mesh
-
+	/// Gets the neighbour nodes (nodes on all neighbouring conditions) and applies a Laplacian algorithm to smooth a given surface mesh
 	void SmoothMesh( ModelPart& mModelPart, double iterations )
 	{
 
@@ -111,7 +110,7 @@ public:
 
 		if (iterations > 0)
 		{
-			// Locating neighbouring nodes
+			// Start neighbour search process
 			FindConditionsNeighboursProcess nodal_finder = FindConditionsNeighboursProcess(mModelPart, 10, 10);
 			nodal_finder.Execute();
 
@@ -124,25 +123,31 @@ public:
 				int itr = 0;
 				for(NodesContainerType::iterator node_i = mModelPart.Nodes().begin(); node_i!=mModelPart.Nodes().end(); node_i++)
 				{
-					// Prepare the needed neighbouring node vector and the needed variables
+					// Prepare variables
 					smoothed_coordinates[3*itr+0] = 0.0;
 					smoothed_coordinates[3*itr+1] = 0.0;
 					smoothed_coordinates[3*itr+2] = 0.0;
 
-					WeakPointerVector< Node<3> >& neighbours = node_i->GetValue(NEIGHBOUR_NODES);
+					WeakPointerVector<Condition>& ng_cond = node_i->GetValue(NEIGHBOUR_CONDITIONS);
+					int num_adjacent_nodes = 0;
 
-					// Obtain and sum the X, Y and Z coordinates of all neighbouring nodes
-					for( WeakPointerVector<Node<3> >::iterator neighbour_node = neighbours.begin(); neighbour_node!=neighbours.end(); neighbour_node++)
+					// Average node position (note that so far node_i is considered several times)
+					for(WeakPointerVector<Condition>::iterator ic = ng_cond.begin(); ic!=ng_cond.end(); ic++)
 					{
-						smoothed_coordinates[3*itr+0] += neighbour_node->X();
-						smoothed_coordinates[3*itr+1] += neighbour_node->Y();
-						smoothed_coordinates[3*itr+2] += neighbour_node->Z();
+						// Obtain and sum the X, Y and Z coordinates of all adjacent nodes
+						for( NodesContainerType::iterator node_j = ic->GetGeometry().begin(); node_j!=ic->GetGeometry().end(); node_j++)
+						{
+							num_adjacent_nodes++;
+							smoothed_coordinates[3*itr+0] += node_j->X();
+							smoothed_coordinates[3*itr+1] += node_j->Y();
+							smoothed_coordinates[3*itr+2] += node_j->Z();
+						}
 					}
 
-					// Average the new X, Y and Z coordinates and save them temporary (simultaneous version)
-					smoothed_coordinates[3*itr+0] /= neighbours.size();
-					smoothed_coordinates[3*itr+1] /= neighbours.size();
-					smoothed_coordinates[3*itr+2] /= neighbours.size();
+					// Average the new X, Y and Z coordinates and save them temporary (simultaneous Laplacian Smoothing)
+					smoothed_coordinates[3*itr+0] /= num_adjacent_nodes;
+					smoothed_coordinates[3*itr+1] /= num_adjacent_nodes;
+					smoothed_coordinates[3*itr+2] /= num_adjacent_nodes;
 
 					itr++;
 				}
@@ -151,9 +156,15 @@ public:
 				itr = 0;
 				for(NodesContainerType::iterator node_i = mModelPart.Nodes().begin(); node_i!=mModelPart.Nodes().end(); node_i++)
 				{
-					node_i->X() = smoothed_coordinates[3*itr+0];
-					node_i->Y() = smoothed_coordinates[3*itr+1];
-					node_i->Z() = smoothed_coordinates[3*itr+2];
+					double relaxation_factor = 0.1;
+
+					// Move nodes and overwrite their initial position
+					node_i->X() += (smoothed_coordinates[3*itr+0]-node_i->X())*relaxation_factor;
+					node_i->Y() += (smoothed_coordinates[3*itr+1]-node_i->Y())*relaxation_factor;
+					node_i->Z() += (smoothed_coordinates[3*itr+2]-node_i->Z())*relaxation_factor;
+					node_i->X0() = node_i->X();
+					node_i->Y0() = node_i->Y();
+					node_i->Z0() = node_i->Z();
 
 					itr++;
 				}
