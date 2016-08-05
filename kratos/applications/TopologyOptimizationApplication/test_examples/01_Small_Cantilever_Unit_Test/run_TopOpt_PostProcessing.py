@@ -39,7 +39,7 @@ model_part_io = ModelPartIO(restart_file_name)
 model_part_io.ReadModelPart(optimized_model_part)
 
 # Extract volume
-threshold = 0.55
+threshold = 0.3
 extraced_volume_model_part = ModelPart("extraced_volume_model_part")
 TopologyExtractorUtilities().ExtractVolumeMesh(optimized_model_part, threshold, extraced_volume_model_part)
 
@@ -60,7 +60,7 @@ gid_io_2.write_results(1, extracted_surface_model_part, nodal_results, gauss_poi
 gid_io_2.finalize_results()
 
 # Smooth extracted surface
-smoothing_iterations = 0
+smoothing_iterations = 20
 smoothed_surface_model_part = ModelPart("extracted_surface_model_part")
 TopologySmoothingUtilities().SmoothMesh(extracted_surface_model_part, smoothing_iterations)
 
