@@ -168,10 +168,10 @@ public:
 	///@{
 
 	/// Default constructor.
-	TopologyFilteringUtilities( ModelPart& model_part, const double SearchRadius, const int MaxNodesAffected )
+	TopologyFilteringUtilities( ModelPart& model_part, const double SearchRadius, const int MaxElementsAffected )
 	: mrModelPart(model_part),
 	  mSearchRadius(SearchRadius),
-	  mMaxNodesAffected(MaxNodesAffected)
+	  mMaxElementsAffected(MaxElementsAffected)
 	{
 	}
 
@@ -234,10 +234,11 @@ public:
 
 			// Creates a tree space search structure - It will use a copy of mGaussPoinList (a std::vector which contains pointers)
 			// Note that PositionList will be reordered by the tree for efficiency reasons
-			tree MyTree(PositionList.begin(),PositionList.end(),4);
+			const int BucketSize = 4;
+			tree MyTree(PositionList.begin(),PositionList.end(),BucketSize);
 
-			ElementPositionVector Results(mMaxNodesAffected);
-			DistanceVector ResultingSquaredDistances(mMaxNodesAffected);
+			ElementPositionVector Results(mMaxElementsAffected);
+			DistanceVector ResultingSquaredDistances(mMaxElementsAffected);
 
 			clock_t tree_time = clock();
 			std::cout << "  Filtered tree created                      [ spent time =  " << double(tree_time - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
@@ -259,7 +260,7 @@ public:
 
 				// This is broken. Bug found when using ResultingSquaredDistances, so we calculate our own distances
 				int num_nodes_found;
-				num_nodes_found = MyTree.SearchInRadius(ElemPositionItem,mSearchRadius,Results.begin(),ResultingSquaredDistances.begin(),mMaxNodesAffected);
+				num_nodes_found = MyTree.SearchInRadius(ElemPositionItem,mSearchRadius,Results.begin(),ResultingSquaredDistances.begin(),mMaxElementsAffected);
 
 				double Hxdc = 0.0;
 				double Hxdc_sum = 0;
@@ -391,7 +392,7 @@ public:
 
 	ModelPart& mrModelPart;
 	const double mSearchRadius;
-	const int mMaxNodesAffected;
+	const int mMaxElementsAffected;
 
 	///@}
 	///@name Private Operators
