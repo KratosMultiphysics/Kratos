@@ -1,6 +1,53 @@
-# ======================================================================================================================================
-# IMPORTS
-# ======================================================================================================================================
+# ==============================================================================
+'''
+ KratosTopologyOptimizationApplication
+ A library based on:
+ Kratos
+ A General Purpose Software for Multi-Physics Finite Element Analysis
+ (Released on march 05, 2007).
+
+ Copyright (c) 2016: Daniel Baumgaertner
+                     daniel.baumgaertner@tum.de
+                     Chair of Structural Analysis
+                     Technische Universitaet Muenchen
+                     Arcisstrasse 21 80333 Munich, Germany
+
+ Permission is hereby granted, free  of charge, to any person obtaining
+ a  copy  of this  software  and  associated  documentation files  (the
+ "Software"), to  deal in  the Software without  restriction, including
+ without limitation  the rights to  use, copy, modify,  merge, publish,
+ distribute,  sublicense and/or  sell copies  of the  Software,  and to
+ permit persons to whom the Software  is furnished to do so, subject to
+ the following condition:
+
+ Distribution of this code for  any  commercial purpose  is permissible
+ ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
+
+ The  above  copyright  notice  and  this permission  notice  shall  be
+ included in all copies or substantial portions of the Software.
+
+ THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
+ EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
+ CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
+ TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
+ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+'''
+#==============================================================================
+#
+#   Project Name:        KratosTopology                        $
+#   Last modified by:    $Author:   daniel.baumgaertner@tum.de $
+#                        $Co-Author: Octaviano Malfavón Farías $
+#   Date:                $Date:                    August 2016 $
+#   Revision:            $Revision:                        0.0 $
+#
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Imports
+# ------------------------------------------------------------------------------
+
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division 
 
@@ -19,10 +66,21 @@ import csv
 import math
 import time
 
-# ======================================================================================================================================
+# ==============================================================================
+def ConstructOptimizer( opt_model_part, config, analyzer ):
+
+    # Creat optimizer according to selected optimization method
+    if( config.optimization_method == "simp_method" ):
+        optimizer = SIMPMethod( opt_model_part, config, analyzer )
+        return optimizer
+
+    else:
+        sys.exit( "Specified optimization_method not implemented" )
+
+# ==============================================================================
 class SIMPMethod:
 
-    # ----------------------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def __init__(self, opt_model_part, config, analyzer):
 
         # Set Topology Optimization configurations
@@ -83,7 +141,7 @@ class SIMPMethod:
         # Add toolbox for I/O
         self.io_utils = IOUtilities()
 
-    # ----------------------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def optimize(self):
 
         print("\n> ==============================================================================================================")
@@ -114,7 +172,7 @@ class SIMPMethod:
         print("> Finished optimization in ",round(opt_end_time - self.opt_start_time,1)," s!")
         print("> ==============================================================================================================")
 
-    # ----------------------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def start_oc_algorithm(self):
 
         # Get Id of objective & constraint
@@ -265,10 +323,10 @@ class SIMPMethod:
             print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
             print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
         
-# ======================================================================================================================================
+# ==============================================================================
 class Controller:
 
-    # ----------------------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def __init__( self, config ):
 
         # Create and initialize controller
@@ -285,19 +343,19 @@ class Controller:
         for func_id in config.constraints:
             self.response_container[func_id] = {"func": None, "grad": None}            
 
-    # ----------------------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def initialize_controls( self ):
 
         # Sets 
         for func_id in self.controls:
             self.controls[func_id] = {"calc_func": 0, "calc_grad": 0}
 
-    # ----------------------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def get_controls( self ):
 
         return self.controls
 
-    # ----------------------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def create_response_container( self ):
 
         # Create and initialize container to store any response defined 
@@ -306,18 +364,5 @@ class Controller:
 
         # Return container
         return self.response_container      
-
-
-# ======================================================================================================================================
-def ConstructOptimizer( opt_model_part, config, analyzer ):
-
-    # Creat optimizer according to selected optimization method
-    if( config.optimization_method == "simp_method" ):
-        optimizer = SIMPMethod( opt_model_part, config, analyzer )
-        return optimizer
-
-    else:
-        sys.exit( "Specified optimization_method not implemented" )
-
-
-# ======================================================================================================================================
+        
+# ==============================================================================
