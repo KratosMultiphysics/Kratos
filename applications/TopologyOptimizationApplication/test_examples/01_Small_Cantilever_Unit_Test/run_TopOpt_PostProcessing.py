@@ -60,9 +60,10 @@ gid_io_2.write_results(1, extracted_surface_model_part, nodal_results, gauss_poi
 gid_io_2.finalize_results()
 
 # Smooth extracted surface
+smoothing_relaxation_factor = 0.1
 smoothing_iterations = 20
 smoothed_surface_model_part = ModelPart("extracted_surface_model_part")
-TopologySmoothingUtilities().SmoothMesh(extracted_surface_model_part, smoothing_iterations)
+TopologySmoothingUtilities().SmoothMesh(extracted_surface_model_part, smoothing_relaxation_factor, smoothing_iterations)
 
 # Write smoothed mesh
 gid_io_3 = GiDOutput("smoothed_surface_model_part", VolumeOutput, GiDPostMode, GiDMultiFileFlag, GiDWriteMeshFlag, GiDWriteConditionsFlag)

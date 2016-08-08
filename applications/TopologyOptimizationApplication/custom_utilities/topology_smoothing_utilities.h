@@ -1,10 +1,48 @@
-//
-//   Project Name:        $Project:     Topology_Optimization_Application $
-//   Last modified by:    $Author:      Malfavón Farías, Baumgärtner      $
-//   Date:                $Date:        May 2016                          $
-//   Revision:            $Revision:    0.0                               $
-//
+// ==============================================================================
+/*
+ KratosTopologyOptimizationApplication
+ A library based on:
+ Kratos
+ A General Purpose Software for Multi-Physics Finite Element Analysis
+ (Released on march 05, 2007).
 
+ Copyright (c) 2016: Daniel Baumgaertner
+                     daniel.baumgaertner@tum.de
+                     Chair of Structural Analysis
+                     Technische Universitaet Muenchen
+                     Arcisstrasse 21 80333 Munich, Germany
+
+ Permission is hereby granted, free  of charge, to any person obtaining
+ a  copy  of this  software  and  associated  documentation files  (the
+ "Software"), to  deal in  the Software without  restriction, including
+ without limitation  the rights to  use, copy, modify,  merge, publish,
+ distribute,  sublicense and/or  sell copies  of the  Software,  and to
+ permit persons to whom the Software  is furnished to do so, subject to
+ the following condition:
+
+ Distribution of this code for  any  commercial purpose  is permissible
+ ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
+
+ The  above  copyright  notice  and  this permission  notice  shall  be
+ included in all copies or substantial portions of the Software.
+
+ THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
+ EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
+ CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
+ TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
+ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+//==============================================================================
+//
+//   Project Name:        KratosTopology                        $
+//   Last modified by:	  $Author:   daniel.baumgaertner@tum.de $
+// 						  $Co-Author: Octaviano Malfavón Farías $
+//   Date:                $Date:                    August 2016 $
+//   Revision:            $Revision:                        0.0 $
+//
+// ==============================================================================
 
 #if !defined(KRATOS_TOPOLOGY_SMOOTHING_UTILITIES_H_INCLUDED)
 #define  KRATOS_TOPOLOGY_SMOOTHING_UTILITIES_H_INCLUDED
@@ -98,7 +136,7 @@ public:
 	// ---------------------------------------------------------------------------------------------------------------------------------------------
 
 	/// Gets the neighbour nodes (nodes on all neighbouring conditions) and applies a Laplacian algorithm to smooth a given surface mesh
-	void SmoothMesh( ModelPart& mModelPart, double iterations )
+	void SmoothMesh( ModelPart& mModelPart, double relaxation_factor, double iterations )
 	{
 
 		KRATOS_TRY;
@@ -129,15 +167,15 @@ public:
 					smoothed_coordinates[3*itr+2] = 0.0;
 
 					WeakPointerVector<Condition>& ng_cond = node_i->GetValue(NEIGHBOUR_CONDITIONS);
-					int num_adjacent_nodes = 0;
+					int num_nodes_to_average = 0;
 
-					// Average node position (note that so far node_i is considered several times)
+					// Average node position (note that node_i is considered several times)
 					for(WeakPointerVector<Condition>::iterator ic = ng_cond.begin(); ic!=ng_cond.end(); ic++)
 					{
 						// Obtain and sum the X, Y and Z coordinates of all adjacent nodes
 						for( NodesContainerType::iterator node_j = ic->GetGeometry().begin(); node_j!=ic->GetGeometry().end(); node_j++)
 						{
-							num_adjacent_nodes++;
+							num_nodes_to_average++;
 							smoothed_coordinates[3*itr+0] += node_j->X();
 							smoothed_coordinates[3*itr+1] += node_j->Y();
 							smoothed_coordinates[3*itr+2] += node_j->Z();
@@ -145,9 +183,9 @@ public:
 					}
 
 					// Average the new X, Y and Z coordinates and save them temporary (simultaneous Laplacian Smoothing)
-					smoothed_coordinates[3*itr+0] /= num_adjacent_nodes;
-					smoothed_coordinates[3*itr+1] /= num_adjacent_nodes;
-					smoothed_coordinates[3*itr+2] /= num_adjacent_nodes;
+					smoothed_coordinates[3*itr+0] /= num_nodes_to_average;
+					smoothed_coordinates[3*itr+1] /= num_nodes_to_average;
+					smoothed_coordinates[3*itr+2] /= num_nodes_to_average;
 
 					itr++;
 				}
@@ -156,8 +194,6 @@ public:
 				itr = 0;
 				for(NodesContainerType::iterator node_i = mModelPart.Nodes().begin(); node_i!=mModelPart.Nodes().end(); node_i++)
 				{
-					double relaxation_factor = 0.1;
-
 					// Move nodes and overwrite their initial position
 					node_i->X() += (smoothed_coordinates[3*itr+0]-node_i->X())*relaxation_factor;
 					node_i->Y() += (smoothed_coordinates[3*itr+1]-node_i->Y())*relaxation_factor;
@@ -170,7 +206,7 @@ public:
 				}
 			}
 
-			std::cout<<"  Surface smoothed succesfully with "<< iterations << " iteration(s)"<<std::endl;
+			std::cout<<"  Surface smoothed successfully with "<< iterations << " iteration(s)"<<std::endl;
 		}
 		else
 			std::cout<<"  Surface was not smoothed" <<std::endl;
