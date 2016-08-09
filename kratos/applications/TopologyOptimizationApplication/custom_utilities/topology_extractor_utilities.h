@@ -67,12 +67,11 @@
 
 // Application includes
 #include "topology_optimization_application.h"
-#include "processes/find_nodal_neighbours_process.h" // To find node neighbours using elements
-#include "processes/find_conditions_neighbours_process.h" // To find node neighbours using conditions
+#include "processes/find_nodal_neighbours_process.h" // To find node neighbours
+#include "processes/find_conditions_neighbours_process.h" // To find condition neighbours
 #include "processes/node_erase_process.h" // To delete empty nodes
 #include "utilities/normal_calculation_utils.h" // To calculate element's normal
 #include "geometries/triangle_3d_3.h" // Skin face geometry template
-
 
 namespace Kratos
 {
@@ -289,10 +288,15 @@ public:
 		}
 
 		// First assign to skin model part all nodes from original model_part, unnecessary nodes will be removed later
-		unsigned int id_condition = 1;
+		unsigned int face_id = 1;
 		rExtractedSurfaceModelPart.Nodes() = rExtractedVolumeModelPart.Nodes();
 
+		// Create reference conditions and elements to be assigned to a new skin-model-part
+		Condition const& rReferenceTriangleCondition = KratosComponents<Condition>::Get("Condition3D");
+		Element const& rReferenceTriangleElement = KratosComponents<Element>::Get("SmallDisplacementSIMPElement3D3N");
+
 		// Add skin faces as triangles to skin-model-part (loop over all node sets)
+		// Add skin face both as condition and element, since different post-processing functions work with both elements and conditions
 		std::cout<<"  Extracting surface mesh and computing normals" <<std::endl;
 		for(typename hashmap::const_iterator it=n_faces_map.begin(); it!=n_faces_map.end(); it++)
 		{
@@ -309,12 +313,16 @@ public:
 					Node < 3 >::Pointer pnode2 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[1]);
 					Node < 3 >::Pointer pnode3 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[2]);
 					Properties::Pointer properties = rExtractedSurfaceModelPart.rProperties()(0);
-					Condition const& rReferenceTriangleCondition = KratosComponents<Condition>::Get("Condition3D");
 
-					// Skin faces are added as conditions
-					Triangle3D3< Node<3> > triangle1(pnode1, pnode2, pnode3);
-					Condition::Pointer p_condition1 = rReferenceTriangleCondition.Create(id_condition++, triangle1, properties);
+					// Add skin face as condition
+					Triangle3D3< Node<3> > triangle_c(pnode1, pnode2, pnode3);
+					Condition::Pointer p_condition1 = rReferenceTriangleCondition.Create(face_id++, triangle_c, properties);
 					rExtractedSurfaceModelPart.Conditions().push_back(p_condition1);
+
+					// Add skin face as element
+					Triangle3D3< Node<3> > triangle_e(pnode1, pnode2, pnode3);
+					Element::Pointer p_element_1 = rReferenceTriangleElement.Create(face_id++, triangle_e, properties);
+					rExtractedSurfaceModelPart.Elements().push_back(p_element_1);
 				}
 
 				// If skin face is a quadrilateral then divide in two triangles and store them with their original orientation in new skin model part
@@ -328,17 +336,26 @@ public:
 					Node < 3 >::Pointer pnode3 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[2]);
 					Node < 3 >::Pointer pnode4 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[3]);
 					Properties::Pointer properties = rExtractedSurfaceModelPart.rProperties()(0);
-					Condition const& rReferenceTriangleCondition = KratosComponents<Condition>::Get("Condition3D");
 
 					// Add triangle one as condition
-					Triangle3D3< Node<3> > triangle1(pnode1, pnode2, pnode3);
-					Condition::Pointer p_condition1 = rReferenceTriangleCondition.Create(id_condition++, triangle1, properties);
+					Triangle3D3< Node<3> > triangle1_c(pnode1, pnode2, pnode3);
+					Condition::Pointer p_condition1 = rReferenceTriangleCondition.Create(face_id++, triangle1_c, properties);
 					rExtractedSurfaceModelPart.Conditions().push_back(p_condition1);
 
 					// Add triangle two as condition
-					Triangle3D3< Node<3> > triangle2(pnode1, pnode3, pnode4);
-					Condition::Pointer p_condition2 = rReferenceTriangleCondition.Create(id_condition++, triangle2, properties);
+					Triangle3D3< Node<3> > triangle2_c(pnode1, pnode3, pnode4);
+					Condition::Pointer p_condition2 = rReferenceTriangleCondition.Create(face_id++, triangle2_c, properties);
 					rExtractedSurfaceModelPart.Conditions().push_back(p_condition2);
+
+					// Add triangle one as element
+					Triangle3D3< Node<3> > triangle1_e(pnode1, pnode2, pnode3);
+					Element::Pointer p_elem1 = rReferenceTriangleElement.Create(face_id++, triangle1_e, properties);
+					rExtractedSurfaceModelPart.Elements().push_back(p_elem1);
+
+					// Add triangle two as element
+					Triangle3D3< Node<3> > triangle2_e(pnode1, pnode3, pnode4);
+					Element::Pointer p_elem2 = rReferenceTriangleElement.Create(face_id++, triangle2_e, properties);
+					rExtractedSurfaceModelPart.Elements().push_back(p_elem2);
 				}
 			}
 		}
