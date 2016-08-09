@@ -40,18 +40,18 @@ model_part_io.ReadModelPart(optimized_model_part)
 
 # Extract volume
 threshold = 0.3
-extraced_volume_model_part = ModelPart("extraced_volume_model_part")
-TopologyExtractorUtilities().ExtractVolumeMesh(optimized_model_part, threshold, extraced_volume_model_part)
+extracted_volume_model_part = ModelPart("extracted_volume_model_part")
+TopologyExtractorUtilities().ExtractVolumeMesh(optimized_model_part, threshold, extracted_volume_model_part)
 
 # Write extracted volume
-gid_io = GiDOutput("extraced_volume_model_part", VolumeOutput, GiDPostMode, GiDMultiFileFlag, GiDWriteMeshFlag, GiDWriteConditionsFlag)
-gid_io.initialize_results(extraced_volume_model_part)
-gid_io.write_results(1, extraced_volume_model_part, nodal_results, gauss_points_results)
+gid_io = GiDOutput("extracted_volume_model_part", VolumeOutput, GiDPostMode, GiDMultiFileFlag, GiDWriteMeshFlag, GiDWriteConditionsFlag)
+gid_io.initialize_results(extracted_volume_model_part)
+gid_io.write_results(1, extracted_volume_model_part, nodal_results, gauss_points_results)
 gid_io.finalize_results()
 
 # Extract surface
 extracted_surface_model_part = ModelPart("extracted_surface_model_part")
-TopologyExtractorUtilities().ExtractSurfaceMesh(extraced_volume_model_part, extracted_surface_model_part)
+TopologyExtractorUtilities().ExtractSurfaceMesh(extracted_volume_model_part, extracted_surface_model_part)
 
 # Write extracted surface
 gid_io_2 = GiDOutput("extracted_surface_model_part", VolumeOutput, GiDPostMode, GiDMultiFileFlag, GiDWriteMeshFlag, GiDWriteConditionsFlag)

@@ -26,7 +26,7 @@ filter_radius     		  	  = 1.5
 max_elements_in_filter_radius = 500 # Defines max number of elements considered within
 							        # specified filter radius (reduces memory footprint)
 
-grey_scale_filter 				= 0 
+grey_scale_filter = 0 
 # options: Activated=1, Deactivated=0
 
 # case: grey_scale_filter = 1
