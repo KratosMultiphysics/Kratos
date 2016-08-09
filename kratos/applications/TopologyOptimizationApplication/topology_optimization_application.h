@@ -235,6 +235,7 @@ namespace Kratos
 		///@{ 
 
         //small_displacement
+      	const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D3N;
         const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D4N;
         const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D8N;
 
