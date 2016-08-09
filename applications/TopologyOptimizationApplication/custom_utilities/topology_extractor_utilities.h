@@ -296,7 +296,7 @@ public:
 		Element const& rReferenceTriangleElement = KratosComponents<Element>::Get("SmallDisplacementSIMPElement3D3N");
 
 		// Add skin faces as triangles to skin-model-part (loop over all node sets)
-		// Add skin face both as condition and element, since different post-processing functions work with both elements and conditions
+		// Add skin face both as condition and dummy element, since different useful Kratos utilities work with both elements and conditions
 		std::cout<<"  Extracting surface mesh and computing normals" <<std::endl;
 		for(typename hashmap::const_iterator it=n_faces_map.begin(); it!=n_faces_map.end(); it++)
 		{
