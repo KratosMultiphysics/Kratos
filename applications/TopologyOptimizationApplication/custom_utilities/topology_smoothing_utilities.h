@@ -66,7 +66,7 @@
 
 // Application includes
 #include "topology_optimization_application.h"
-#include "processes/find_conditions_neighbours_process.h" // To find node neighbours using conditions
+#include "processes/find_nodal_neighbours_process.h" // To find node neighbours using conditions
 
 
 namespace Kratos
@@ -135,7 +135,8 @@ public:
 	// --------------------------------- SMOOTH EXTRACTED MESH  ------------------------------------------------------------------------------------
 	// ---------------------------------------------------------------------------------------------------------------------------------------------
 
-	/// Gets the neighbour nodes (nodes on all neighbouring conditions) and applies a Laplacian algorithm to smooth a given surface mesh
+	/// Smooth mesh by performing a Laplacian smoothing on a given surface mesh
+	// Laplacian smoothing modifies a given node-position by an average of the positions of the neighbour-nodes
 	void SmoothMesh( ModelPart& mModelPart, double relaxation_factor, double iterations )
 	{
 
@@ -146,46 +147,42 @@ public:
 		Vector smoothed_coordinates;
 		smoothed_coordinates.resize(mModelPart.NumberOfNodes() * 3);
 
+		// Start neighbour search process
+		FindNodalNeighboursProcess nodal_finder = FindNodalNeighboursProcess(mModelPart, 10, 10);
+		nodal_finder.Execute();
+
+		// Perform smoothing several times for
 		if (iterations > 0)
 		{
-			// Start neighbour search process
-			FindConditionsNeighboursProcess nodal_finder = FindConditionsNeighboursProcess(mModelPart, 10, 10);
-			nodal_finder.Execute();
-
 			// Repeat smoothing operation for the selected number of iterations
 			for(int i = 0; i < iterations; ++i){
 				std::cout<<"  Smoothing iteration number "<< i+1 <<std::endl;
 
 				smoothed_coordinates.clear();
 
+				// Note that the Laplacian smoothing is done each taking into account the point to be smoothed
 				int itr = 0;
 				for(NodesContainerType::iterator node_i = mModelPart.Nodes().begin(); node_i!=mModelPart.Nodes().end(); node_i++)
 				{
-					// Prepare variables
-					smoothed_coordinates[3*itr+0] = 0.0;
-					smoothed_coordinates[3*itr+1] = 0.0;
-					smoothed_coordinates[3*itr+2] = 0.0;
+					// Start averaging by taking into account the point to be smoothed
+					smoothed_coordinates[3*itr+0] = node_i->X();
+					smoothed_coordinates[3*itr+1] = node_i->Y();
+					smoothed_coordinates[3*itr+2] = node_i->Z();
 
-					WeakPointerVector<Condition>& ng_cond = node_i->GetValue(NEIGHBOUR_CONDITIONS);
-					int num_nodes_to_average = 0;
-
-					// Average node position (note that node_i is considered several times)
-					for(WeakPointerVector<Condition>::iterator ic = ng_cond.begin(); ic!=ng_cond.end(); ic++)
+					// Average node position
+					WeakPointerVector< Node<3> >& neighbours = node_i->GetValue(NEIGHBOUR_NODES);
+					for( WeakPointerVector<Node<3> >::iterator neighbour_node = neighbours.begin(); neighbour_node!=neighbours.end(); neighbour_node++)
 					{
 						// Obtain and sum the X, Y and Z coordinates of all adjacent nodes
-						for( NodesContainerType::iterator node_j = ic->GetGeometry().begin(); node_j!=ic->GetGeometry().end(); node_j++)
-						{
-							num_nodes_to_average++;
-							smoothed_coordinates[3*itr+0] += node_j->X();
-							smoothed_coordinates[3*itr+1] += node_j->Y();
-							smoothed_coordinates[3*itr+2] += node_j->Z();
-						}
+						smoothed_coordinates[3*itr+0] += neighbour_node->X();
+						smoothed_coordinates[3*itr+1] += neighbour_node->Y();
+						smoothed_coordinates[3*itr+2] += neighbour_node->Z();
 					}
 
 					// Average the new X, Y and Z coordinates and save them temporary (simultaneous Laplacian Smoothing)
-					smoothed_coordinates[3*itr+0] /= num_nodes_to_average;
-					smoothed_coordinates[3*itr+1] /= num_nodes_to_average;
-					smoothed_coordinates[3*itr+2] /= num_nodes_to_average;
+					smoothed_coordinates[3*itr+0] /= (neighbours.size()+1);
+					smoothed_coordinates[3*itr+1] /= (neighbours.size()+1);
+					smoothed_coordinates[3*itr+2] /= (neighbours.size()+1);
 
 					itr++;
 				}
