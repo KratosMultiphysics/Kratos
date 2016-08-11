@@ -52,12 +52,12 @@
         "divergence_clearance_steps"      : 0,
         "reform_dofs_at_each_iteration"   : false,
         "velocity_linear_solver_settings" : {
-            "solver_type" : "Super_LU",
+            "solver_type" : "SuperLUSolver",
             "scaling"     : false,
             "verbosity"   : 0
         },
         "pressure_linear_solver_settings" : {
-            "solver_type" : "Super_LU",
+            "solver_type" : "SuperLUSolver",
             "scaling"     : false,
             "verbosity"   : 0
         },
