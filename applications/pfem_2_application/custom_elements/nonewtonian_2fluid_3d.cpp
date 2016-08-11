@@ -95,9 +95,10 @@ namespace Kratos
 		if (negative_nodes>0.5)
 		{
 			Viscosity = this->EffectiveViscosity(base_viscosity,YieldStress,rShapeDeriv);
+			Viscosity*=negative_nodes/4.0; //number of nodes:
 		}
 
-		Viscosity*=negative_nodes/4.0; //number of nodes:
+		
 		C_matrix *= Viscosity*Area;
 		
 		boost::numeric::ublas::bounded_matrix<double, 6 , 12  > temp_matrix = prod(C_matrix,trans(B_matrix));

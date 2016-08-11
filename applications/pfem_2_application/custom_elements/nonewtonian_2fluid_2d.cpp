@@ -83,9 +83,9 @@ namespace Kratos
 		if (negative_nodes>0.5)
 		{
 			Viscosity = this->EffectiveViscosity(base_viscosity,YieldStress,rShapeDeriv);
+			Viscosity*=negative_nodes/3.0; //number of nodes:
 		}
 
-		Viscosity*=negative_nodes/3.0; //number of nodes:
 
 		C_matrix *= Viscosity*Area;
 		
