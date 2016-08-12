@@ -616,7 +616,15 @@ proc spdAux::injectSolStratParams {basenode args} {
                 append node " values='$vs' dict='$pv' "
             } 
             append node "/>"
-            catch {$contnode appendXML $node}
+            catch {
+                $contnode appendXML $node
+            
+                $contnode appendXML $node
+                set orig [$contnode lastChild]
+                set new [$orig cloneNode]
+                $orig delete
+                $contnode insertBefore $new $basenode
+            }
         }
     }
     
@@ -846,7 +854,13 @@ proc spdAux::injectElementInputs { basenode args} {
         set v [$in getDv]
         #set node "<value n='$inName' pn='$pn' state='\[PartParamState\]' v='-' units='$units' unit_magnitude='$um' help='$help' />"
         set node "<value n='$inName' pn='$pn' state='\[PartParamState\]' v='$v' units='$units' unit_magnitude='$um' help='$help' />"
-        catch {$parts appendXML $node}
+        catch {
+                $parts appendXML $node
+                set orig [$parts lastChild]
+                set new [$orig cloneNode]
+                $orig delete
+                $parts insertBefore $new $basenode
+            }
         
         #set originxpath "[$parts toXPath]/value\[@n='Material'\]"
         #set relativexpath "../value\[@n='$inName'\]"
@@ -867,7 +881,13 @@ proc spdAux::injectConstitutiveLawInputs { basenode  args} {
             set help [$in getHelp]
             set v [$in getDv]
             set node "<value n='$inName' pn='$pn' state='\[PartParamState\]' v='$v' units='$units' unit_magnitude='$um' help='$help' />"
-            catch {$parts appendXML $node}
+            catch {
+                $parts appendXML $node
+                set orig [$parts lastChild]
+                set new [$orig cloneNode]
+                $orig delete
+                $parts insertBefore $new $basenode
+            }
             
             #set originxpath "[$parts toXPath]/value\[@n='Material'\]"
             #set relativexpath "../value\[@n='$inName'\]"
@@ -885,7 +905,13 @@ proc spdAux::injectElementOutputs { basenode args} {
         set v [GetBooleanForTree [[dict get $outputs $in] getDv]]
         
         set node "<value n='$in' pn='$pn' state='\[ElementOutputState\]' v='$v' values='Yes,No' />"
-        catch {$parts appendXML $node}
+        catch {
+                $parts appendXML $node
+                set orig [$parts lastChild]
+                set new [$orig cloneNode]
+                $orig delete
+                $parts insertBefore $new $basenode
+            }
     }
     $basenode delete
 }
@@ -930,7 +956,13 @@ proc spdAux::injectConstitutiveLawOutputs { basenode  args} {
             set pn [[dict get $outputs $in] getPublicName]
             set v [GetBooleanForTree [[dict get $outputs $in] getDv]]
             set node "<value n='$in' pn='$pn' state='\[ConstLawOutputState\]' v='$v' values='Yes,No' />"
-            catch {$parts appendXML $node}
+            catch {
+                $parts appendXML $node
+                set orig [$parts lastChild]
+                set new [$orig cloneNode]
+                $orig delete
+                $parts insertBefore $new $basenode
+            }
         }
     }
     $basenode delete
@@ -1183,24 +1215,57 @@ proc spdAux::ProcGetSchemes {domNode args} {
 }
 
 proc spdAux::ProcGetConstitutiveLaws { domNode args } {
-    set Elementname [$domNode selectNodes {string(../value[@n='Element']/@v)}]
-    set Claws [::Model::GetAvailableConstitutiveLaws $Elementname]
-    #W "Const Laws que han pasado la criba: $Claws"
+    set Claws [Model::GetConstitutiveLaws]
     if {[llength $Claws] == 0} {
-        if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v "None"}
-        return "None"
+        $domNode setAttribute v "None"
+        $domNode setAttribute values "None"
+        spdAux::RequestRefresh
+        return "None,None"
     }
-    set names [list ]
+    #W "Const Laws que han pasado la criba: $Claws"
     set pnames [list ]
     foreach cl $Claws {
-        lappend names [$cl getName]
         lappend pnames [$cl getName] 
         lappend pnames [$cl getPublicName]
     }
-    set values [join $names ","]
-    $domNode setAttribute values $values
     set diction [join $pnames ","]
-    if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
+    
+    set Elementname [$domNode selectNodes {string(../value[@n='Element']/@v)}]
+    set Claws [::Model::GetAvailableConstitutiveLaws $Elementname]
+    set names [list ]
+    foreach cl $Claws {
+        lappend names [$cl getName]
+    }
+    set values [join $names ","]
+    
+    $domNode setAttribute values $values
+    if {[get_domnode_attribute $domNode v] eq "" || [get_domnode_attribute $domNode v] ni $values} {$domNode setAttribute v [lindex $names 0]}
+    spdAux::RequestRefresh
+    
+    return $diction
+}
+proc spdAux::ProcGetAllConstitutiveLaws { domNode args } {
+    
+    set Claws [Model::GetConstitutiveLaws]
+    #W "Const Laws que han pasado la criba: $Claws"
+    if {[llength $Claws] == 0} {
+        $domNode setAttribute v "None"
+        $domNode setAttribute values "None"
+        spdAux::RequestRefresh
+        return "None,None"
+    }
+    #set names [list ]
+    set pnames [list ]
+    foreach cl $Claws {
+        #lappend names [$cl getName]
+        lappend pnames [$cl getName] 
+        lappend pnames [$cl getPublicName]
+    }
+    #set values [join $names ","]
+    
+    #$domNode setAttribute values $values
+    set diction [join $pnames ","]
+    #if {[get_domnode_attribute $domNode v] eq "" || [get_domnode_attribute $domNode v] ni $values} {$domNode setAttribute v [lindex $names 0]}
     spdAux::RequestRefresh
     
     return $diction
@@ -1367,6 +1432,11 @@ proc spdAux::ProcActiveIfAnyPartState { domNode args } {
         set parts [$domNode selectNodes "[spdAux::getRoute $parts_un]/group"]
     }
     if {$parts ne ""} {return "normal"} else {return "hidden"}
+}
+proc spdAux::ProcActiveIfRestartAvailable { domNode args } {
+    
+    set active [apps::ExecuteOnApp [GetAppIdFromNode $domNode] GetAttribute UseRestart]
+    if {$active ne "" && $active} {return "normal"} else {return "hidden"}
 }
 
 proc spdAux::ProcDisableIfUniqueName { domNode args } {
