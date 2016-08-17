@@ -68,7 +68,7 @@ constraints = { "volume_fraction": {"type": "eq", "grad": "provided"} }
 #========================================================================================
 
 # General output
-restart_input_file      = "Small_Cantilever.mdpa"
+restart_input_file      = "Small_Cantilever_Tet.mdpa"
 restart_output_file     = "Small_Cantilever_Restart_File.mdpa"
 restart_write_frequency = 10 #iterations
 
