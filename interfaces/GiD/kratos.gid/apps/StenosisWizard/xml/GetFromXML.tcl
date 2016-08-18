@@ -5,15 +5,6 @@ namespace eval StenosisWizard::xml {
 proc StenosisWizard::xml::Init { } {
      variable dir
      Model::InitVariables dir $StenosisWizard::dir
-    
-     Model::getSolutionStrategies Strategies.xml
-     Model::getProcesses Processes.xml
-     Model::getElements Elements.xml
-     Model::getNodalConditions NodalConditions.xml
-     Model::getConstitutiveLaws ConstitutiveLaws.xml
-     Model::getConditions Conditions.xml
-     Model::getSolvers Solvers.xml
-     
 }
 
 proc StenosisWizard::xml::getUniqueName {name} {

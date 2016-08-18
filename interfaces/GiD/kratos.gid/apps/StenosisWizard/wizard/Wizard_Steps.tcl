@@ -357,7 +357,7 @@ proc StenosisWizard::Wizard::NextFluid { } {
      gid_groups_conds::addF $group value {n directionZ wn {Inlet3D _Z} pn {Direction Z} help {} state {[CheckDimension 3D]} v 0.0}
           
      gid_groups_conds::delete {container[@n='StenosisWizard']/container[@n='BoundaryConditions']/condition[@n='Outlet3D']/group}
-     gid_groups_conds::addF {container[@n='StenosisWizard']/container[@n='BoundaryConditions']/condition[@n='Outlet3D']} group {n Outlet}
+     gid_groups_conds::addF {container[@n='StenosisWizard']/container[@n='BoundaryConditions']/condition[@n='Outlet3D']} group {n Outlet ov surface}
      set group {container[@n='StenosisWizard']/container[@n='BoundaryConditions']/condition[@n='Outlet3D']/group[@n='Outlet']}
      set out [Wizard::GetProperty Fluid Outlet,value]
      gid_groups_conds::addF -resolve_parametric 1 $group value "n value pn Value unit_magnitude P help {} state {} v {$out} units Pa"
