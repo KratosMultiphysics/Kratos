@@ -269,6 +269,82 @@ namespace Kratos {
         pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Z, true);
         KRATOS_CATCH("")
     }
+    
+    void ParticleCreatorDestructor::NodeForClustersCreatorWithPhysicalParameters(ModelPart& r_modelpart,
+                                                                    Node < 3 > ::Pointer& pnew_node,
+                                                                    int aId,
+                                                                    Node < 3 > ::Pointer& reference_node,
+                                                                    Properties& params,
+                                                                    bool has_sphericity,
+                                                                    bool has_rotation,
+                                                                    bool initial) {
+        KRATOS_TRY
+        array_1d<double, 3 > null_vector(3, 0.0);
+
+        double bx = reference_node->X();
+        double cy = reference_node->Y();
+        double dz = reference_node->Z();
+
+        if (initial) {
+            pnew_node = reference_node;
+            pnew_node->SetId(aId);
+            #pragma omp critical
+            {
+                r_modelpart.AddNode(pnew_node); // The same node is added to r_modelpart (the calculation model part) 
+            }
+            pnew_node->FastGetSolutionStepValue(VELOCITY) = null_vector;            
+            //(actually it should be the velocity of the inlet layer, which is different from the particles being inserted)
+            pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL] + 100; //So the inlet ghost spheres are not in the same
+        }                                                                                             //layer of the inlet newly created spheres
+        else {                        
+            pnew_node = boost::make_shared< Node<3> >(aId, bx, cy, dz);
+            pnew_node->SetSolutionStepVariablesList(&r_modelpart.GetNodalSolutionStepVariablesList());
+            pnew_node->SetBufferSize(r_modelpart.GetBufferSize());
+            #pragma omp critical
+            {
+                //pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz); //ACTUAL node creation and addition to model part
+                r_modelpart.Nodes().push_back(pnew_node);
+            }
+                        
+            array_1d<double, 3 > velocity = params[VELOCITY];
+            double max_rand_deviation_angle = params[MAX_RAND_DEVIATION_ANGLE];
+            AddRandomPerpendicularVelocityToGivenVelocity(velocity, max_rand_deviation_angle);
+            pnew_node->FastGetSolutionStepValue(VELOCITY) = velocity;
+            pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL];
+        }
+
+        if (has_rotation && pnew_node->SolutionStepsDataHas(PARTICLE_ROTATION_DAMP_RATIO) ) {
+            pnew_node->FastGetSolutionStepValue(PARTICLE_ROTATION_DAMP_RATIO) = params[PARTICLE_ROTATION_DAMP_RATIO];
+        }
+
+        if (has_sphericity) {
+            pnew_node->FastGetSolutionStepValue(PARTICLE_SPHERICITY) = params[PARTICLE_SPHERICITY];
+        }
+  
+        pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY) = null_vector;
+
+        pnew_node->AddDof(VELOCITY_X, REACTION_X);
+        pnew_node->AddDof(VELOCITY_Y, REACTION_Y);
+        pnew_node->AddDof(VELOCITY_Z, REACTION_Z);
+        pnew_node->AddDof(ANGULAR_VELOCITY_X, REACTION_X);
+        pnew_node->AddDof(ANGULAR_VELOCITY_Y, REACTION_Y);
+        pnew_node->AddDof(ANGULAR_VELOCITY_Z, REACTION_Z);
+
+        pnew_node->pGetDof(VELOCITY_X)->FixDof();
+        pnew_node->pGetDof(VELOCITY_Y)->FixDof();
+        pnew_node->pGetDof(VELOCITY_Z)->FixDof();
+        pnew_node->pGetDof(ANGULAR_VELOCITY_X)->FixDof();
+        pnew_node->pGetDof(ANGULAR_VELOCITY_Y)->FixDof();
+        pnew_node->pGetDof(ANGULAR_VELOCITY_Z)->FixDof();
+
+        pnew_node->Set(DEMFlags::FIXED_VEL_X, true);
+        pnew_node->Set(DEMFlags::FIXED_VEL_Y, true);
+        pnew_node->Set(DEMFlags::FIXED_VEL_Z, true);
+        pnew_node->Set(DEMFlags::FIXED_ANG_VEL_X, true);
+        pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Y, true);
+        pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Z, true);
+        KRATOS_CATCH("")
+    }
 
     Kratos::Element* ParticleCreatorDestructor::ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                                                         int r_Elem_Id,
@@ -513,7 +589,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         else if (distribution_type == "lognormal") radius = rand_lognormal(radius, std_deviation, max_radius, min_radius);
         else KRATOS_THROW_ERROR(std::runtime_error, "Unknown probability distribution.", "")
 
-        NodeCreatorWithPhysicalParameters(r_clusters_modelpart, pnew_node, r_Elem_Id, reference_node, radius, *r_params, has_sphericity, has_rotation, false);
+        NodeForClustersCreatorWithPhysicalParameters(r_clusters_modelpart, pnew_node, r_Elem_Id, reference_node, *r_params, has_sphericity, has_rotation, false);
         
         pnew_node->FastGetSolutionStepValue(CHARACTERISTIC_LENGTH) = radius * 2.0; //Cluster specific. Can be removed
         
