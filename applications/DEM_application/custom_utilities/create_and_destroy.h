@@ -62,6 +62,15 @@ public:
                                            bool has_sphericity,
                                            bool has_rotation,
                                            bool initial);
+    
+    void NodeForClustersCreatorWithPhysicalParameters(ModelPart& r_modelpart,
+                                                      Node < 3 > ::Pointer& pnew_node,
+                                                      int aId,
+                                                      Node < 3 > ::Pointer& reference_node,
+                                                      Properties& params,
+                                                      bool has_sphericity,
+                                                      bool has_rotation,
+                                                      bool initial);
         
     Kratos::Element* ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                               int r_Elem_Id,
