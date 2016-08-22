@@ -47,7 +47,7 @@
                     <filter field="SolverType" value="Standard"/>
                 </filterFeatures>
                 <defaults>
-                    <solver n="Super_LU">
+                    <solver n="SuperLUSolver">
                 <!--Not ready yet-->
                 <!--<parameter n="verbosity" v="3"/>-->
                     </solver>
@@ -124,7 +124,7 @@
                     <filter field="SolverType" value="Standard"/>
                 </filterFeatures>
             <defaults>
-                <solver n="Super_LU">
+                <solver n="SuperLUSolver">
                 <!--Not ready yet-->
                 <!--<parameter n="verbosity" v="3"/>-->
                 </solver>
@@ -201,7 +201,7 @@
                 <filter field="SolverType" value="Standard"/>
             </filterFeatures>
             <defaults>
-                <solver n="Super_LU">
+                <solver n="SuperLUSolver">
 			<!--Not ready yet-->
 			<!--<parameter n="verbosity" v="3"/>-->
                 </solver>
