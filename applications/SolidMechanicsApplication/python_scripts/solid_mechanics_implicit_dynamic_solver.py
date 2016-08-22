@@ -123,6 +123,23 @@ class ImplicitMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
         print("::[Mechanical Solver]:: -END- ")
 
         
+    #### Decomposed Newton-Raphson resolution functions ####
+    
+    def SolverInitialize(self):
+        self.mechanical_solver.Initialize()
+        
+    def SolverInitializeSolutionStep(self):
+        self.mechanical_solver.InitializeSolutionStep()
+        
+    def SolverPredict(self):
+        self.mechanical_solver.Predict()
+        
+    def SolverSolveSolutionStep(self):
+        self.mechanical_solver.SolveSolutionStep()
+        
+    def SolverFinalizeSolutionStep(self):
+        self.mechanical_solver.FinalizeSolutionStep()
+
 
     #### Specific internal functions ####
     
