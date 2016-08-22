@@ -47,6 +47,7 @@ class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
             "line_search": false,
             "compute_reactions": true,
             "compute_contact_forces": false,
+            "compute_mortar_contact": false,
             "block_builder": false,
             "clear_storage": false,
             "component_wise": false,
