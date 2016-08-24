@@ -2178,7 +2178,7 @@ namespace Kratos
 			
 			
 			
-			if(fabs(rotations[0])>0.000000001 or fabs(rotations[1])>0.000000001)
+			if(fabs(rotations[0])>0.000000001 || fabs(rotations[1])>0.000000001)
 				KRATOS_THROW_ERROR(std::invalid_argument,"ROTATIONS ONLY IMPLEMENTED AROUND Z AXIS! (xy plane) ","");
 				
 			const double cosinus_theta = cos(rotations[2]);
