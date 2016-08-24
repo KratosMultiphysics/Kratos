@@ -2790,7 +2790,7 @@ namespace Kratos
 			
 			if(is_found == true)
 			{
-				pelement=Element::Pointer((*(result_begin+i)));
+				pelement=Element::Pointer((*(result_begin+i))); 
 				return true;
 			}
 		}
@@ -2969,7 +2969,7 @@ namespace Kratos
 			
 			if(is_found == true)
 			{
-				pelement=Element::Pointer((*(result_begin+i).base()));
+				pelement=Element::Pointer((*(result_begin+i)));
 				return true;
 			}
 		}
