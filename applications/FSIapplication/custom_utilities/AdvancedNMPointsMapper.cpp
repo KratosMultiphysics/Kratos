@@ -734,7 +734,7 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap( // Note: JUST 3D!!!!
         node_it->GetValue(NODAL_MAUX) = 0.0;
         node_it->FastGetSolutionStepValue(rDestVar) = ZeroVect;
     }
-
+    
     // Define some variables that will be used in the iteration
     MatrixVar MCons; // Elemental Consistent Mass Matrix = Aelem/12 * MCons
     MCons(0, 0) = 2.0;
@@ -1116,41 +1116,14 @@ void AdvancedNMPointsMapper::ScalarMap(
         )
 {
 
-    // Define some variables that will be used in the iteration
-    boost::numeric::ublas::bounded_matrix<double,2,2> MCons; // Elemental Consistent Mass Matrix = L/6 * MCons
-    boost::numeric::ublas::bounded_matrix<double,2,2> MInterp;
-    boost::numeric::ublas::bounded_matrix<double,2,2> aux_GPPos;
-    boost::numeric::ublas::bounded_matrix<double,2,2> inv_aux_GPPos;
-    
-    MCons(0, 0) = 2.0; 
-    MCons(0, 1) = 1.0;
-    MCons(1, 0) = 1.0;
-    MCons(1, 1) = 2.0;
-    
-    aux_GPPos(0, 0) = (1.0+(-std::sqrt(1.0/3.0)))/2.0;
-    aux_GPPos(0, 1) = (1.0-(-std::sqrt(1.0/3.0)))/2.0;
-    aux_GPPos(1, 0) = (1.0+(+std::sqrt(1.0/3.0)))/2.0;
-    aux_GPPos(1, 1) = (1.0-(+std::sqrt(1.0/3.0)))/2.0;
-    
-    double det_aux_GPPos;
-    det_aux_GPPos = (aux_GPPos(0,0)*aux_GPPos(1,1))-(aux_GPPos(0,1)*aux_GPPos(1,0));
-    
-    inv_aux_GPPos(0, 0) = aux_GPPos(1, 1)/det_aux_GPPos;
-    inv_aux_GPPos(0, 1) = -aux_GPPos(0, 1)/det_aux_GPPos;
-    inv_aux_GPPos(1, 0) = -aux_GPPos(1, 0)/det_aux_GPPos;
-    inv_aux_GPPos(1, 1) = aux_GPPos(0, 0)/det_aux_GPPos;
-
-    MInterp = prod(MCons, inv_aux_GPPos); // Interpolation Matrix (NodalValues = (L/6)*MInterp*GaussValues)
-
+    // Define if the mapping swaps the sign of the variable values
     double sign = 1.0;
     if (sign_pos == false)
     {
         sign = -1.0;
     }
 
-    //~ array_1d<double,3> ZeroVect = ZeroVector(3);
-
-    // Build (Diagonal) System Matrix and initialize results
+    // Initialize results and NODAL_MAUX
     for ( ModelPart::NodesContainerType::iterator node_it = mrDestinationModelPart.NodesBegin();
             node_it != mrDestinationModelPart.NodesEnd();
             node_it++)
@@ -1166,6 +1139,32 @@ void AdvancedNMPointsMapper::ScalarMap(
 
     if (dimension == 2) // 2D case
     {
+
+        // Interpolation matrix obtention
+        boost::numeric::ublas::bounded_matrix<double,2,2> MCons; // Elemental Consistent Mass Matrix = L/6 * MCons
+        boost::numeric::ublas::bounded_matrix<double,2,2> MInterp;
+        boost::numeric::ublas::bounded_matrix<double,2,2> aux_GPPos;
+        boost::numeric::ublas::bounded_matrix<double,2,2> inv_aux_GPPos;
+        
+        MCons(0, 0) = 2.0; 
+        MCons(0, 1) = 1.0;
+        MCons(1, 0) = 1.0;
+        MCons(1, 1) = 2.0;
+        
+        aux_GPPos(0, 0) = (1.0+(-std::sqrt(1.0/3.0)))/2.0;
+        aux_GPPos(0, 1) = (1.0-(-std::sqrt(1.0/3.0)))/2.0;
+        aux_GPPos(1, 0) = (1.0+(+std::sqrt(1.0/3.0)))/2.0;
+        aux_GPPos(1, 1) = (1.0-(+std::sqrt(1.0/3.0)))/2.0;
+        
+        double det_aux_GPPos;
+        det_aux_GPPos = (aux_GPPos(0,0)*aux_GPPos(1,1))-(aux_GPPos(0,1)*aux_GPPos(1,0));
+        
+        inv_aux_GPPos(0, 0) = aux_GPPos(1, 1)/det_aux_GPPos;
+        inv_aux_GPPos(0, 1) = -aux_GPPos(0, 1)/det_aux_GPPos;
+        inv_aux_GPPos(1, 0) = -aux_GPPos(1, 0)/det_aux_GPPos;
+        inv_aux_GPPos(1, 1) = aux_GPPos(0, 0)/det_aux_GPPos;
+
+        MInterp = prod(MCons, inv_aux_GPPos); // Interpolation Matrix (NodalValues = (L/6)*MInterp*GaussValues)
         
         std::vector< boost::shared_ptr<array_1d<double,2> > > pInterpValues;
 
@@ -1457,42 +1456,16 @@ void AdvancedNMPointsMapper::VectorMap(
         const bool distributed
         )
 {
-
-    // Define some variables that will be used in the iteration
-    boost::numeric::ublas::bounded_matrix<double,2,2> MCons; // Elemental Consistent Mass Matrix = L/6 * MCons
-    boost::numeric::ublas::bounded_matrix<double,2,2> MInterp;
-    boost::numeric::ublas::bounded_matrix<double,2,2> aux_GPPos;
-    boost::numeric::ublas::bounded_matrix<double,2,2> inv_aux_GPPos;
+    array_1d<double,3> ZeroVect = ZeroVector(3);
     
-    MCons(0, 0) = 2.0; 
-    MCons(0, 1) = 1.0;
-    MCons(1, 0) = 1.0;
-    MCons(1, 1) = 2.0;
-    
-    aux_GPPos(0, 0) = (1.0+(-std::sqrt(1.0/3.0)))/2.0;
-    aux_GPPos(0, 1) = (1.0-(-std::sqrt(1.0/3.0)))/2.0;
-    aux_GPPos(1, 0) = (1.0+(+std::sqrt(1.0/3.0)))/2.0;
-    aux_GPPos(1, 1) = (1.0-(+std::sqrt(1.0/3.0)))/2.0;
-    
-    double det_aux_GPPos;
-    det_aux_GPPos = (aux_GPPos(0,0)*aux_GPPos(1,1))-(aux_GPPos(0,1)*aux_GPPos(1,0));
-    
-    inv_aux_GPPos(0, 0) = aux_GPPos(1, 1)/det_aux_GPPos;
-    inv_aux_GPPos(0, 1) = -aux_GPPos(0, 1)/det_aux_GPPos;
-    inv_aux_GPPos(1, 0) = -aux_GPPos(1, 0)/det_aux_GPPos;
-    inv_aux_GPPos(1, 1) = aux_GPPos(0, 0)/det_aux_GPPos;
-
-    MInterp = prod(MCons, inv_aux_GPPos); // Interpolation Matrix (NodalValues = (L/6)*MInterp*GaussValues)
-
+    // Define if the mapping swaps the sign of the variable values
     double sign = 1.0;
     if (sign_pos == false)
     {
         sign = -1.0;
     }
-    
-    array_1d<double,3> ZeroVect = ZeroVector(3);
 
-    // Build (Diagonal) System Matrix and initialize results
+    // Initialize results and NODAL_MAUX
     for ( ModelPart::NodesContainerType::iterator node_it = mrDestinationModelPart.NodesBegin();
             node_it != mrDestinationModelPart.NodesEnd();
             node_it++)
@@ -1516,6 +1489,31 @@ void AdvancedNMPointsMapper::VectorMap(
     
     if (dimension == 2) // 2D case
     {
+        // Interpolation matrix obtention
+        boost::numeric::ublas::bounded_matrix<double,2,2> MCons; // Elemental Consistent Mass Matrix = L/6 * MCons
+        boost::numeric::ublas::bounded_matrix<double,2,2> MInterp;
+        boost::numeric::ublas::bounded_matrix<double,2,2> aux_GPPos;
+        boost::numeric::ublas::bounded_matrix<double,2,2> inv_aux_GPPos;
+        
+        MCons(0, 0) = 2.0; 
+        MCons(0, 1) = 1.0;
+        MCons(1, 0) = 1.0;
+        MCons(1, 1) = 2.0;
+        
+        aux_GPPos(0, 0) = (1.0+(-std::sqrt(1.0/3.0)))/2.0;
+        aux_GPPos(0, 1) = (1.0-(-std::sqrt(1.0/3.0)))/2.0;
+        aux_GPPos(1, 0) = (1.0+(+std::sqrt(1.0/3.0)))/2.0;
+        aux_GPPos(1, 1) = (1.0-(+std::sqrt(1.0/3.0)))/2.0;
+        
+        double det_aux_GPPos;
+        det_aux_GPPos = (aux_GPPos(0,0)*aux_GPPos(1,1))-(aux_GPPos(0,1)*aux_GPPos(1,0));
+        
+        inv_aux_GPPos(0, 0) = aux_GPPos(1, 1)/det_aux_GPPos;
+        inv_aux_GPPos(0, 1) = -aux_GPPos(0, 1)/det_aux_GPPos;
+        inv_aux_GPPos(1, 0) = -aux_GPPos(1, 0)/det_aux_GPPos;
+        inv_aux_GPPos(1, 1) = aux_GPPos(0, 0)/det_aux_GPPos;
+
+        MInterp = prod(MCons, inv_aux_GPPos); // Interpolation matrix (NodalValues = (L/6)*MInterp*GaussValues)
         
         std::vector< boost::shared_ptr<array_1d<double,6> > > pInterpValues;
 
