@@ -26,6 +26,10 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(BODY_FORCE)
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
 
+    model_part.AddNodalSolutionStepVariable(VISCOSITY_AIR)
+    model_part.AddNodalSolutionStepVariable(VISCOSITY_WATER)
+    model_part.AddNodalSolutionStepVariable(DENSITY_AIR)
+    model_part.AddNodalSolutionStepVariable(DENSITY_WATER)
 def AddDofs(model_part):
     for node in model_part.Nodes:
         node.AddDof(PRESSURE);
@@ -165,7 +169,16 @@ class PFEM2Solver:
 
         self.print_times=False
 
-      
+        visc_water=self.model_part.ProcessInfo.GetValue(VISCOSITY_WATER)
+        visc_air=self.model_part.ProcessInfo.GetValue(VISCOSITY_AIR)
+        dens_water=self.model_part.ProcessInfo.GetValue(DENSITY_WATER)
+        dens_air=self.model_part.ProcessInfo.GetValue(DENSITY_AIR)
+
+        for node in self.model_part.Nodes:
+              node.SetSolutionStepValue(VISCOSITY_WATER,visc_water)
+              node.SetSolutionStepValue(VISCOSITY_AIR,visc_air)
+              node.SetSolutionStepValue(DENSITY_WATER,dens_water)
+              node.SetSolutionStepValue(DENSITY_AIR,dens_air)
                  
     #######################################################################   
     def Solve(self):
