@@ -143,10 +143,25 @@ mapper = NonConformant_OneSideMap.NonConformant_OneSideMap(destination_model_par
 print("***** NonConformant mapper created *****")
 
 print("***** Attempting transfer *****")
-# Transfer pressure to destination mesh
-mapper.FluidToStructure_ScalarMap(PRESSURE, PRESSURE, True, False)
-mapper.FluidToStructure_VectorMap(FORCE, POINT_LOAD, True, True)
-mapper.StructureToFluid_VectorMap(VELOCITY, VELOCITY, True, False)
+# Map PRESSURE from fluid to structure
+keep_sign_1 = True
+distribute_load_1 = False
+mapper.FluidToStructure_ScalarMap(PRESSURE, PRESSURE, keep_sign_1, distribute_load_1)
+
+# Map FORCE to POINT_LOAD
+keep_sign_2 = True
+distribute_load_2 = True # Note that mapping punctual loads imply to distribute them to ensure equilibrium
+mapper.FluidToStructure_VectorMap(FORCE, POINT_LOAD, keep_sign_2, distribute_load_2)
+
+#~ # Map PRESSURE to POINT_LOAD
+#~ keep_sign_3 = True
+#~ distribute_load_3 = False
+#~ mapper.FluidToStructure_ScalarToNormalVectorMap(PRESSURE, POINT_LOAD, keep_sign_3, distribute_load_3)
+
+# Map VELOCTICY to VELOCITY
+keep_sign_4 = True
+distribute_load_4 = False
+mapper.StructureToFluid_VectorMap(VELOCITY, VELOCITY, keep_sign_4, distribute_load_4)
 print("***** Information transferred *****")
 
 if (benchmarking.InBuildReferenceMode()):
