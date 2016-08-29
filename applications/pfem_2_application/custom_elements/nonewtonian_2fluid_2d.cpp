@@ -120,7 +120,7 @@ namespace Kratos
         // Read the viscosity for the fluidified phase from the nodes
         // In Kratos, the viscosity is assumed to be given in kinematic units (m^2/s)
         double GammaDot = this->EquivalentStrainRate(rDN_DX);
-        double m = 1.0e3;
+        double m = 1.0e5;
         double OutputDynamicViscosity=DynamicViscosity;
         if (GammaDot > 1e-12) // Normal behaviour
         {
