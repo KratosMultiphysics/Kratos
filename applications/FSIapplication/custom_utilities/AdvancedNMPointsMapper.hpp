@@ -235,21 +235,6 @@ public:
             const int dimension
             );
 
-    /**
-     * It gets the projected value for vector variables
-     * @param rOriginVar: The variable (vector) in the original condition
-     * @return Value: The projected value (vector)
-     * @param dimension: 2D/3D case
-     * @param distributed: if "true" gives back the equivalent nodal tractions to rOriginVar
-     */
-
-    void GetProjectedValue(
-            const Variable< array_1d<double,3> > & rOriginVar,
-            array_1d<double,3>& Value,
-            const int dimension,
-            const bool distributed
-            );
-
 protected:
 
     ///@name Protected static Member Variables
