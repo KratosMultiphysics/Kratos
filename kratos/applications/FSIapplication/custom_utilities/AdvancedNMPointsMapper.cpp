@@ -1950,11 +1950,6 @@ void AdvancedNMPointsMapper::VectorMap(
             mGaussPointList[GPi]->GetArea(CondArea);
             const double K = CondArea/24.0;
 
-            //~ for (unsigned int i = 0; i < 3; i++)
-            //~ {
-                //~ cond_it->GetGeometry()[i].GetValue(NODAL_MAUX) += 0.333333333333333333 * CondArea;
-            //~ }
-
             array_1d<double,3> TempValues = ZeroVect;
             
             if (distributed == false)
@@ -2245,7 +2240,7 @@ void AdvancedNMPointsMapper::ComputeNodalLengthArea()
         for (ModelPart::ConditionIterator cond_it = mrDestinationModelPart.ConditionsBegin();
                 cond_it != mrDestinationModelPart.ConditionsEnd();
                 cond_it++)
-            {
+            {                
                 for (unsigned int i = 0; i < 3; i++)
                 {
                     CondArea = cond_it->GetGeometry().Area();
@@ -2455,15 +2450,15 @@ void AdvancedNMPointsMapper::ComputeEquivalentTractions(
     {
         boost::numeric::ublas::bounded_matrix<double,3,3> MassMat; // Elemental consistent mass matrix 3 Gauss points in a 2D triangular element
             
-        MassMat(0, 0) = 1.0/6.0; 
-        MassMat(0, 1) = 1.0/12.0;
-        MassMat(0, 2) = 1.0/12.0;
-        MassMat(1, 0) = 1.0/12.0;
-        MassMat(1, 1) = 1.0/6.0;
-        MassMat(1, 2) = 1.0/12.0;
-        MassMat(2, 0) = 1.0/12.0;
-        MassMat(2, 1) = 1.0/12.0;
-        MassMat(2, 2) = 1.0/6.0;
+        MassMat(0, 0) = 1.0/12.0; 
+        MassMat(0, 1) = 1.0/24.0;
+        MassMat(0, 2) = 1.0/24.0;
+        MassMat(1, 0) = 1.0/24.0;
+        MassMat(1, 1) = 1.0/12.0;
+        MassMat(1, 2) = 1.0/24.0;
+        MassMat(2, 0) = 1.0/24.0;
+        MassMat(2, 1) = 1.0/24.0;
+        MassMat(2, 2) = 1.0/12.0;
         
         // Initialization of equivalent tractions
         for (ModelPart::NodesContainerType::const_iterator node_it = mrOriginModelPart.NodesBegin();
@@ -2656,15 +2651,15 @@ void AdvancedNMPointsMapper::ComputeNodalLoadsFromTractions(
     {
         boost::numeric::ublas::bounded_matrix<double,3,3> MassMat; // Elemental consistent mass matrix 3 Gauss points in a 2D triangular element
             
-        MassMat(0, 0) = 1.0/6.0; 
-        MassMat(0, 1) = 1.0/12.0;
-        MassMat(0, 2) = 1.0/12.0;
-        MassMat(1, 0) = 1.0/12.0;
-        MassMat(1, 1) = 1.0/6.0;
-        MassMat(1, 2) = 1.0/12.0;
-        MassMat(2, 0) = 1.0/12.0;
-        MassMat(2, 1) = 1.0/12.0;
-        MassMat(2, 2) = 1.0/6.0;
+        MassMat(0, 0) = 1.0/12.0; 
+        MassMat(0, 1) = 1.0/24.0;
+        MassMat(0, 2) = 1.0/24.0;
+        MassMat(1, 0) = 1.0/24.0;
+        MassMat(1, 1) = 1.0/12.0;
+        MassMat(1, 2) = 1.0/24.0;
+        MassMat(2, 0) = 1.0/24.0;
+        MassMat(2, 1) = 1.0/24.0;
+        MassMat(2, 2) = 1.0/12.0;
         
         array_1d<double, 3> Node0Values;
         array_1d<double, 3> Node1Values;
