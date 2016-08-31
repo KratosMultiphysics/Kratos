@@ -74,9 +74,9 @@ VALUE: 0.5
 HELP: Times the initial radius. In order to use a constant radius, choose the same value for Min Radius Factor and Max Radius Factor
 QUESTION: Builder#CB#(Elimination,Block)
 VALUE: Elimination
-QUESTION: Solver_Type#CB#(Skyline_LU_factorization,Super_LU,SuperLUIterativeSolver,Conjugate_gradient,BiConjugate_gradient_stabilized,GMRES,Deflated_Conjugate_gradient,AMGCL,AMGCL_NS_Solver)
-VALUE: BiConjugate_gradient_stabilized
-HELP: Skyline_LU_factorization and Super_LU are direct solvers. The rest are iterative solvers.
+QUESTION: Solver_Type#CB#(SkylineLUFactorizationSolver,SuperLUSolver,CGSolver,BICGSTABSolver,TFQMRSolver,DeflatedCGSolver,GMRESSolver,SuperLUIterativeSolver,AMGCL)
+VALUE: BICGSTABSolver
+HELP: SkylineLUFactorizationSolver and SuperLUSolver are direct solvers. The rest are iterative solvers.
 QUESTION: Scaling#CB#(true,false)
 VALUE: false
 QUESTION: Verbosity
