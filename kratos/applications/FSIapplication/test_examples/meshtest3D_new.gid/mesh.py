@@ -149,7 +149,7 @@ print("***** NonConformant mapper created *****")
 
 print("***** Attempting transfer *****")
 # Transfer pressure to destination mesh
-mapper.FluidToStructure_ScalarMap(PRESSURE, PRESSURE, True, False)
+mapper.FluidToStructure_ScalarMap(PRESSURE, PRESSURE, True)
 mapper.FluidToStructure_VectorMap(FORCE, POINT_LOAD, True, True)
 mapper.StructureToFluid_VectorMap(VELOCITY, VELOCITY, True, False)
 print("***** Information transferred *****")
