@@ -332,7 +332,11 @@ End Elements
 *if(CondNumEntities > 0)
 Begin Elements SmallDisplacementInterfaceElement2D4N
 *loop elems *OnlyInCond
-*ElemsNum  *ElemsMat  *tcl(::Dam_Application::QuadrilateralInterface2D4Conectivities *ElemsNum)
+*ElemsNum  *ElemsMat *\
+*for(i=1;i<=4;i=i+1)
+ *ElemsConec(*i)*\
+*end for
+
 *end elems
 End Elements
 
@@ -372,7 +376,11 @@ End Elements
 Begin Elements SmallDisplacementInterfaceElement3D8N
 *loop elems *OnlyInCond
 *if(ElemsNnode==8)
-*ElemsNum  *ElemsMat  *tcl(::Dam_Application::HexaedraInterface3D8Conectivities *ElemsNum)
+*ElemsNum  *ElemsMat *\
+*for(i=1;i<=8;i=i+1)
+ *ElemsConec(*i)*\
+*end for
+
 *endif
 *end elems
 End Elements
