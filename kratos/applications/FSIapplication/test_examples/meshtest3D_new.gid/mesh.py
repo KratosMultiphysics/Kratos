@@ -19,50 +19,29 @@ import NonConformant_OneSideMap
 def BenchmarkCheck(o_model_part, d_model_part):
     # Find some nodes in both meshes and compare their vaules
     for node in o_model_part.Nodes:
-        if (node.X < 0.0001) and (node.Y < 0.0001) and (node.Z < 0.0001):
+        if (node.X < 0.51) and (node.X > 0.49) and (node.Y < 0.51) and (node.Y > 0.49) and (node.Z < 0.51) and (node.Z > 0.49):
             press_1o = node.GetSolutionStepValue(PRESSURE, 0)
             velX_1o = node.GetSolutionStepValue(VELOCITY_X, 0)
             velY_1o = node.GetSolutionStepValue(VELOCITY_Y, 0)
             velZ_1o = node.GetSolutionStepValue(VELOCITY_Z, 0)
-        elif (node.X < 0.0001) and (node.Y > 0.99999) and (node.Z > 0.99999):
-            press_2o = node.GetSolutionStepValue(PRESSURE, 0)
-            velX_2o = node.GetSolutionStepValue(VELOCITY_X, 0)
-            velY_2o = node.GetSolutionStepValue(VELOCITY_Y, 0)
-            velZ_2o = node.GetSolutionStepValue(VELOCITY_Z, 0)
 
     for node in d_model_part.Nodes:
-        if (node.X < 0.0001) and (node.Y < 0.0001) and (node.Z < 0.0001):
+        if (node.X < 0.51) and (node.X > 0.49) and (node.Y < 0.51) and (node.Y > 0.49) and (node.Z < 0.51) and (node.Z > 0.49):
             press_1d = node.GetSolutionStepValue(PRESSURE, 0)
             velX_1d = node.GetSolutionStepValue(VELOCITY_X, 0)
             velY_1d = node.GetSolutionStepValue(VELOCITY_Y, 0)
             velZ_1d = node.GetSolutionStepValue(VELOCITY_Z, 0)
-        elif (node.X < 0.0001) and (node.Y > 0.99999) and (node.Z > 0.99999):
-            press_2d = node.GetSolutionStepValue(PRESSURE, 0)
-            velX_2d = node.GetSolutionStepValue(VELOCITY_X, 0)
-            velY_2d = node.GetSolutionStepValue(VELOCITY_Y, 0)
-            velZ_2d = node.GetSolutionStepValue(VELOCITY_Z, 0)
 
     press_1 = press_1d - press_1o
-    press_2 = press_2d - press_2o
-
+    
     velX_1 = velX_1o - velX_1d
-    velX_2 = velX_2o - velX_2d
-
     velY_1 = velY_1o - velY_1d
-    velY_2 = velY_2o - velY_2d
-
     velZ_1 = velZ_1o - velZ_1d
-    velZ_2 = velZ_2o - velZ_2d
 
     benchmarking.Output(press_1, "Difference in pressure in test point 1")
     benchmarking.Output(velX_1, "Difference in x velocity in test point 1")
     benchmarking.Output(velY_1, "Difference in y velocity in test point 1")
     benchmarking.Output(velZ_1, "Difference in z velocity in test point 1")
-
-    benchmarking.Output(press_2, "Difference in pressure in test point 2")
-    benchmarking.Output(velX_2, "Difference in x velocity in test point 2")
-    benchmarking.Output(velY_2, "Difference in y velocity in test point 2")
-    benchmarking.Output(velZ_2, "Difference in z velocity in test point 2")
 
 # Json format solvers settings
 fluid_parameter_file = open("ProjectParametersFluid.json",'r')
@@ -140,7 +119,7 @@ print(destination_model_part)
 print(origin_model_part)
 
 search_radius_factor = 1.0
-mapper_max_iteration = 25
+mapper_max_iteration = 200
 mapper = NonConformant_OneSideMap.NonConformant_OneSideMap(destination_model_part, 
                                                            origin_model_part, 
                                                            search_radius_factor,
@@ -169,6 +148,8 @@ gid_io.FinalizeMesh()
 gid_io.InitializeResults(1, destination_model_part.GetMesh())
 gid_io.WriteNodalResults(PRESSURE, destination_model_part.Nodes, 0, 0)
 gid_io.WriteNodalResults(FORCE, destination_model_part.Nodes, 0, 0)
+gid_io.WriteNodalResults(VAUX_EQ_TRACTION, destination_model_part.Nodes, 0, 0)
+gid_io.WriteNodalResults(NODAL_MAUX, destination_model_part.Nodes, 0, 0)
 gid_io.WriteNodalResults(VELOCITY, destination_model_part.Nodes, 0, 0)
 gid_io.WriteNodalResults(IS_INTERFACE, destination_model_part.Nodes, 0, 0)
 gid_io.FinalizeResults()
@@ -181,6 +162,8 @@ gid_io.FinalizeMesh()
 gid_io.InitializeResults(2, origin_model_part.GetMesh())
 gid_io.WriteNodalResults(PRESSURE, origin_model_part.Nodes, 0, 0)
 gid_io.WriteNodalResults(POINT_LOAD, origin_model_part.Nodes, 0, 0)
+gid_io.WriteNodalResults(VAUX_EQ_TRACTION, origin_model_part.Nodes, 0, 0)
+gid_io.WriteNodalResults(NODAL_MAUX, origin_model_part.Nodes, 0, 0)
 gid_io.WriteNodalResults(VELOCITY, origin_model_part.Nodes, 0, 0)
 gid_io.WriteNodalResults(IS_INTERFACE, origin_model_part.Nodes, 0, 0)
 gid_io.FinalizeResults()
