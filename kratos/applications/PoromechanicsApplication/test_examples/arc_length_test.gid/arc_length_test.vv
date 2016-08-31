@@ -1,12 +1,12 @@
-BeginZE C:\Users\Administrator\Downloads\tests\arc_length_test.gid\arc_length_test.vv
-   x -0.044327497482299805 0.8843274712562561
-   y 0.85131961107254028 -0.65131956338882446
-   z -0.46468380093574524 0.46468380093574524
-   e 0.46432748436927795
+BeginZE /home/ipouplana/Descargas/arc_length_test.gid/arc_length_test.vv
+   x -0.0450626835227012634 0.885062634944915771
+   y 0.851319611072540283 -0.651319563388824463
+   z -0.464683800935745239 0.464683800935745239
+   e 0.464327484369277954
    v 0 0 0
    r 1
    m 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1
-   c 0.41997119784355164 0.099644839763641357 0
+   c 0.419971197843551636 0.0996448397636413574 0
    pd 0
    pno 0
    pfo 0
@@ -29,7 +29,7 @@ BeginZE C:\Users\Administrator\Downloads\tests\arc_length_test.gid\arc_length_te
    OGLStereo(EyeDistance) 0.075
    OGLStereo(LeftEyeDistance) 1 0 0 1
    OGLStereo(RightEyeDistance) 0 1 1 1
-EndZE C:\Users\Administrator\Downloads\tests\arc_length_test.gid\arc_length_test.vv
+EndZE /home/ipouplana/Descargas/arc_length_test.gid/arc_length_test.vv
 
 BeginMirror
    Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
