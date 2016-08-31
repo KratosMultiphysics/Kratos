@@ -1,10 +1,10 @@
 /*
- * File:   AdvancedNMPointsMapper.hpp
+ * File:   AdvancedNMPointsMapper.cpp
  * Author: jcotela
- * Co-author: VMataix
+ * Co-author: vmataix, rzorrilla
  *
  * Created on 19 January 2010, 10:20
- * Last update on 30 April 2016, 10:20
+ * Last update on 31 August 2016, 10:28
  */
 
 // System includes
@@ -14,7 +14,6 @@
 // Project includes
 #include "AdvancedNMPointsMapper.hpp"
 
-// TODO: Clean code, too much C/P
 // TODO: Clean code, use internal functions from Kratos, as Geometry.Area()....
 
 namespace Kratos
@@ -37,7 +36,7 @@ void GaussPointItem::Project(
         
         Point<3> point_projected;
         ProjectPointToPlane(pOriginCond->GetGeometry()[0],point_to_project,point_projected,Dist,mNormal);
-        
+                
         array_1d<double, 3> point_projected_local_coor;
         point_projected_local_coor = pOriginCond->GetGeometry().PointLocalCoordinates(point_projected_local_coor,point_projected);
         
@@ -82,7 +81,6 @@ void GaussPointItem::Project(
         // Keep distance positive, regardless of normal orientation
         Dist = (Res[2] < 0)? -Res[2] : Res[2] ;
     }
-
 }
 
 /***********************************************************************************/
@@ -137,15 +135,7 @@ void GaussPointItem::GetProjectedValue(
     }
     else if (mProjStatus == 2)   // Get Value from origin node
     {
-        if (dimension == 2)
-        {
-//            Value = 0.0;
-            Value = (mpOriginNode.lock())->FastGetSolutionStepValue(rOriginVar);
-        }
-        else
-        {
-            Value = (mpOriginNode.lock())->FastGetSolutionStepValue(rOriginVar);
-        }
+        Value = (mpOriginNode.lock())->FastGetSolutionStepValue(rOriginVar);
     }
     else   // mProjStatus == 0: Return 0
     {
@@ -196,15 +186,7 @@ void GaussPointItem::GetProjectedValue(
     }
     else if (mProjStatus == 2)   // Get Value from origin node
     {
-        if (dimension == 2)
-        {
-            Value = (mpOriginNode.lock())->FastGetSolutionStepValue(rOriginVar);
-           
-        }
-        else
-        {
-            Value = (mpOriginNode.lock())->FastGetSolutionStepValue(rOriginVar);
-        }
+        Value = (mpOriginNode.lock())->FastGetSolutionStepValue(rOriginVar);
     }
     else   // mProjStatus == 0: Return 0
     {
@@ -230,14 +212,13 @@ AdvancedNMPointsMapper::AdvancedNMPointsMapper(
     array_1d<double, 3> GPCoord; // Will store the coordinates of a condition's Gauss Points
     GPCoord = ZeroVector(3);
     array_1d<double, 3> Normal;
-    double Area;
 
     if (dimension == 2) // 2D case
     {
-
         boost::numeric::ublas::bounded_matrix<double,2,3> Nodes;
         boost::numeric::ublas::bounded_matrix<double,2,3> GaussPoints;
         boost::numeric::ublas::bounded_matrix<double,2,2> GPPos;
+        double Length;
         
         // 2 Gauss-Legendre point quadrature
         // eps = +-(1/3)^0.5
@@ -249,12 +230,11 @@ AdvancedNMPointsMapper::AdvancedNMPointsMapper(
         GPPos(1, 0) = (1.0+(+std::sqrt(1.0/3.0)))/2.0;
         GPPos(1, 1) = (1.0-(+std::sqrt(1.0/3.0)))/2.0;
 
-        for (
-            ModelPart::ConditionsContainerType::iterator cond_it = rDestinationModelPart.ConditionsBegin();
+        for (ModelPart::ConditionsContainerType::iterator cond_it = rDestinationModelPart.ConditionsBegin();
             cond_it != rDestinationModelPart.ConditionsEnd();
             cond_it++)
         {
-            CalcNormalAndArea(*cond_it.base(), Normal, Area,  dimension);
+            CalcNormalAndArea(*cond_it.base(), Normal, Length,  dimension);
 
             for(unsigned int i = 0; i < 2; i++)
             {
@@ -272,7 +252,7 @@ AdvancedNMPointsMapper::AdvancedNMPointsMapper(
                 {
                     GPCoord[l] = GaussPoints(k,l);
                 }
-                GaussPointItem::Pointer pGP = GaussPointItem::Pointer(new GaussPointItem(GPCoord, Area, Normal));
+                GaussPointItem::Pointer pGP = GaussPointItem::Pointer(new GaussPointItem(GPCoord, Length, Normal));
                 mGaussPointList.push_back( pGP );
             }
         }
@@ -286,7 +266,8 @@ AdvancedNMPointsMapper::AdvancedNMPointsMapper(
         // | G1x G1y G1z |   | 0.6 0.2 0.2 |   | Ax Ay Az |
         // | G2x G2y G2z | = | 0.2 0.6 0.2 | . | Bx By Bz |
         // | G3x G3y G3z |   | 0.2 0.2 0.6 |   | Cx Cy Cz |
-
+        
+        double Area;
         MatrixVar Nodes, GaussPoints, GPPos;
         GPPos(0,0) = 0.6;
         GPPos(0,1) = 0.2;
@@ -350,10 +331,9 @@ void AdvancedNMPointsMapper::FindNeighbours(double SearchRadiusFactor)
     double Radius, SearchRadius;
     double MaxRadius = 0.0;
 
-    for(
-        ModelPart::ConditionsContainerType::const_iterator cond_it = mrOriginModelPart.ConditionsBegin();
-        cond_it != mrOriginModelPart.ConditionsEnd();
-        cond_it++)
+    for(ModelPart::ConditionsContainerType::const_iterator cond_it = mrOriginModelPart.ConditionsBegin();
+            cond_it != mrOriginModelPart.ConditionsEnd();
+            cond_it++)
     {
         Point<3> Center;
         if (dimension == 2) // 2D case
@@ -397,7 +377,7 @@ void AdvancedNMPointsMapper::FindNeighbours(double SearchRadiusFactor)
             ProjectionlessGP.push_back( *gauss_it );
         }
     }
-
+    
     // Try to use a nearby node as reference for points that couldn't be projected to a condition
     if (ProjectionlessGP.size() != 0)
     {
@@ -411,10 +391,9 @@ void AdvancedNMPointsMapper::FindNeighbours(double SearchRadiusFactor)
         tree kdtree_nodes(ProjectionlessGP.begin(), ProjectionlessGP.end(), mBucketSize);
         SearchRadius = SearchRadiusFactor * MaxRadius;
 
-        for (
-            ModelPart::NodesContainerType::const_iterator node_it = mrOriginModelPart.NodesBegin();
-            node_it != mrOriginModelPart.NodesEnd();
-            node_it++)
+        for (ModelPart::NodesContainerType::const_iterator node_it = mrOriginModelPart.NodesBegin();
+                node_it != mrOriginModelPart.NodesEnd();
+                node_it++)
         {
             // Our tree uses GaussPointItem objects as input to sort
             GaussPointItem NodePos(node_it->Coordinates(), 0, ZeroVect);
@@ -473,7 +452,7 @@ void AdvancedNMPointsMapper::CalcNormalAndArea(
         v2[2] = 1.0;
     }
 
-    // Get the condition normal
+    // Compute the condition normal
     MathUtils<double>::CrossProduct(Normal,v1,v2);
 
     double NNorm = std::sqrt(Normal[0]*Normal[0] + Normal[1]*Normal[1] + Normal[2]*Normal[2]);
@@ -482,13 +461,12 @@ void AdvancedNMPointsMapper::CalcNormalAndArea(
     
     if (dimension ==2)
     {
-        Area = std::sqrt(v1[0]*v1[0] + v1[1]*v1[1] + v1[2]*v1[2]);
+        Area = std::sqrt(v1[0]*v1[0] + v1[1]*v1[1] + v1[2]*v1[2]); // Note that in 2D, the Area variable represents the condition length
     }
     else
     {
         Area = 0.5 * NNorm;
     }
-    //std::cout << Normal[0] << " " << Normal[1] << " " << Normal[2] << std::endl;
 }
 
 /***********************************************************************************/
@@ -1391,8 +1369,7 @@ void AdvancedNMPointsMapper::ScalarMap(
         Variable<double> & rDestVar,
         const int MaxIter,
         const double TolIter,
-        const bool sign_pos,
-        const bool distributed
+        const bool sign_pos
         )
 {
 
@@ -1461,12 +1438,6 @@ void AdvancedNMPointsMapper::ScalarMap(
             double CondLength = 0.0;
             mGaussPointList[GPi]->GetArea(CondLength); // Gets the length of the parent condition of the two points considered
             const double K = CondLength/2.0;
-            
-            // Store the nodal influence length of the condition we are looping on (stored in NODAL_MAUX variable)
-            //~ for (unsigned int i = 0; i < 2; i++)
-            //~ {
-                //~ cond_it->GetGeometry()[i].GetValue(NODAL_MAUX) += 0.5 * CondLength;
-            //~ }
     
             // Store in GPValues the projected value in the destiny condition Gauss Points
             // Note that currently the implementation is valid for only 2 GP
@@ -1566,17 +1537,6 @@ void AdvancedNMPointsMapper::ScalarMap(
                 std::cout << "WARNING: VectorMap did not converge in " << k + 1 << " iterations." << std::endl;
             }
         } // End of Iteration
-
-        if (distributed == true)
-        {
-            for (ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin();
-                    node_it != mrDestinationModelPart.NodesEnd();
-                    node_it++)
-            {
-                const double & NodeArea = node_it->GetValue(NODAL_MAUX);
-                node_it->FastGetSolutionStepValue(rDestVar) /= NodeArea;
-            }
-        }
     }
     
     else // 3D case
@@ -1709,17 +1669,6 @@ void AdvancedNMPointsMapper::ScalarMap(
                 std::cout << "WARNING: ScalarMap did not converge in " << k + 1 << " iterations." << std::endl;
             }
         } // End of Iteration
-
-        if (distributed == true)
-        {
-            for (ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin();
-                    node_it != mrDestinationModelPart.NodesEnd();
-                    node_it++)
-            {
-                const double & NodeArea = node_it->GetValue(NODAL_MAUX);
-                node_it->FastGetSolutionStepValue(rDestVar) /= NodeArea;
-            }
-        }
     }
 
 } // End of Map (scalar version)
@@ -2355,6 +2304,9 @@ void AdvancedNMPointsMapper::ComputeNodalLengthArea()
 
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void AdvancedNMPointsMapper::ComputeEquivalentTractions(
      const Variable<array_1d<double,3> >& rOriginVar,
      const int MaxIter,
@@ -2647,6 +2599,9 @@ void AdvancedNMPointsMapper::ComputeEquivalentTractions(
         } // End of Iteration
     }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void AdvancedNMPointsMapper::ComputeNodalLoadsFromTractions(
      const Variable<array_1d<double,3> >& rDestVar)

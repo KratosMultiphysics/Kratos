@@ -1,10 +1,10 @@
 /*
  * File:   AdvancedNMPointsMapper.hpp
  * Author: jcotela
- * Co-author: VMataix
+ * Co-author: vmataix, rzorrilla
  *
  * Created on 19 January 2010, 10:20
- * Last update on 30 April 2016, 10:20
+ * Last update on 28 August 2016, 10:28
  */
 
 #if !defined(KRATOS_ADVANCED_NM_POINTS_MAPPER_H_INCLUDED )
@@ -410,8 +410,7 @@ public:
             Variable<double> & rDestVar,
             const int MaxIter,
             const double TolIter,
-            const bool sign_pos,
-            const bool distributed
+            const bool sign_pos
             );
 
     /**
