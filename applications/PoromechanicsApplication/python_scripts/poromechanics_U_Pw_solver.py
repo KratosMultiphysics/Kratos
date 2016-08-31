@@ -13,7 +13,7 @@ def CreateSolver(main_model_part, custom_settings):
     return UPwSolver(main_model_part, custom_settings)
 
 
-class UPwSolver:
+class UPwSolver(object):
 
     ##constructor. the constructor shall only take care of storing the settings 
     ##and the pointer to the main_model part. This is needed since at the point of constructing the 
@@ -59,29 +59,17 @@ class UPwSolver:
             "min_radius_factor": 0.5,
             "builder": "Elimination",
             "linear_solver_settings":{
-                "solver_type": "BiConjugate_gradient_stabilized",
+                "solver_type": "BICGSTABSolver",
                 "tolerance": 1.0e-6,
                 "max_iteration": 100,
+                "scaling": true,
                 "verbosity": 0,
                 "preconditioner_type": "ILU0Preconditioner",
-                "scaling": true,
-                "velocity_block_preconditioner":{
-                    "krylov_type": "bicgstab",
-                    "tolerance" : 1.0e-3,
-                    "preconditioner_type" : "spai0",
-                    "max_iteration": 50
-                },
-                "pressure_block_preconditioner":{
-                    "krylov_type": "cg",
-                    "tolerance" : 1.0e-2,
-                    "preconditioner_type" : "spai0",
-                    "max_iteration": 50
-                },
                 "smoother_type": "ilu0",
                 "krylov_type": "gmres",
-                "gmres_krylov_space_dimension": 50,
                 "coarsening_type": "aggregation",
                 "provide_coordinates": false,
+                "gmres_krylov_space_dimension": 50,
                 "block_size": 1,
                 "use_block_matrices_if_possible" : true,
                 "coarse_enough" : 5000
@@ -139,7 +127,6 @@ class UPwSolver:
         
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             
-            # Here it would be the place to import restart data if required
             KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
             
             # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
