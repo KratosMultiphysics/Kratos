@@ -8,16 +8,16 @@ import pylab
 L0 = 2
 H0 = 1
 U0 = 0.05
+epsilon = H0 / L0
+epsilon_inv = 1.0 / epsilon
 A1 = 0.2
-A2 = 0.3
-DeltaX = 0.5555
+A2 = 0.4
+DeltaX = 0.
 n_points = 1000
 n_streamlines = 12
-n_periods = 0.5
+n_periods = 1
 Omega = 2 * math.pi / L0 * n_periods
-Phase0 = 0.5 * DeltaX
-n_particles = 100
-three_quarters = 3. / 4
+n_particles = 1000
 
 delta_0 = (A1 + A2) / (2 * H0)
 #alpha = 2 * math.pi * DeltaX / L0
@@ -88,24 +88,32 @@ my_phi_func = phi_function()
 
 def velocity_order_1(x, eta):    
     h = my_h_func.f(x)
+    h_inv = 1.0 / h
     hdx = my_h_func.df(x)
     hdx2 = my_h_func.df2(x)
     phi = my_phi_func.f(x)
     phidx = my_phi_func.df(x)
     phidx2 = my_phi_func.df2(x)
-    h_inv = 1.0 / h
     etadx = - (phidx + eta * hdx) * h_inv
+    etadx2 = h_inv ** 2 * (hdx * (phidx + eta * hdx) - h * (phidx2 + etadx * hdx + eta * hdx2))
+    one_minus_eta_2 = (1.0 - eta ** 2)
     
-    ux = three_quarters * (1.0 - eta ** 2) * h_inv
-    uz = three_quarters * (phidx + eta * hdx) * (1.0 - eta ** 2) * h_inv
+    UX =   0.75 * U0 * one_minus_eta_2 * h_inv
+    UZ = - 0.75 * U0 * epsilon * etadx * one_minus_eta_2
     
-    uxdx = - three_quarters * h_inv ** 2 * (2 * eta * etadx * h + (1. - eta ** 2) * hdx)
+    uxdx = - 0.75 * h_inv ** 2 * (2 * eta * etadx * h + one_minus_eta_2 * hdx)
     uxdz = - 1.5 * eta * h_inv ** 2
-    uzdx = three_quarters * (((phidx2 + etadx * hdx + eta * hdx2) * h - (phidx + eta * hdx) * hdx) * h_inv ** 2 * (1 - eta ** 2) - 2 * eta * etadx * h_inv * (phidx + eta * hdx))
-    uzdz = - uxdx
-    Dux = ux * uxdx / L0 + uz * uxdz / H0
-    Duz = ux * uzdx / L0 + uz * uzdz / H0
-    return U0 * ux, U0 * uz, U0 * Dux, U0 * Duz
+    uzdx = 0.75 * (2 * eta * etadx ** 2 - etadx2 * one_minus_eta_2)
+    
+    UXdX = U0 / L0 * uxdx
+    UZdX = U0 * epsilon / L0 * uzdx
+    UXdZ = U0 / H0 * uxdz
+    UZdZ = - UXdX
+    
+    DUX = UX * UXdX + UZ * UXdZ
+    DUZ = UX * UZdX + UZ * UZdZ
+    
+    return UX, UZ, DUX, DUZ
 
 
 x_points = np.linspace(0, L0, n_points)
@@ -144,7 +152,7 @@ print('alpha = ', alpha)
 print('gamma = ', gamma)
 for i in range(n_particles):
     x, eta = z_to_eta(randoms_horizontal[i] / L0, randoms_vertical[i] / H0)
-    ux, uz, Dux, Duz = velocity_order_1(x, eta)
-    pylab.arrow(randoms_horizontal[i], randoms_vertical[i], ux, uz, fc="k", ec="k",
+    UX, UZ, DUX, DUZ = velocity_order_1(x, eta)
+    pylab.arrow(randoms_horizontal[i], randoms_vertical[i], DUX, DUZ, fc="k", ec="k",
 head_width=0.05, head_length=0.1 )
 plt.show()
