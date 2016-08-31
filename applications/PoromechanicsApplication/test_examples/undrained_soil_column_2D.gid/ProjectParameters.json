@@ -39,12 +39,9 @@
         "min_radius_factor":                  0.5,
         "builder":                            "Elimination",
         "linear_solver_settings":             {
-            "solver_type":                    "Super_LU",
+            "solver_type":                    "SuperLUSolver",
             "tolerance":                      1.0e-5,
-            "max_iteration":                  100,
-            "preconditioner_type":            "ILU0Preconditioner",
-            "scaling":                        false,
-            "verbosity":                      0
+            "max_iteration":                  100
         },
         "problem_domain_sub_model_part_list": ["Body_Part-auto-1"],
         "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Solid_Displacement-auto-3","Fluid_Pressure-auto-1","Face_Load-auto-1","Normal_Fluid_Flux-auto-1"],
