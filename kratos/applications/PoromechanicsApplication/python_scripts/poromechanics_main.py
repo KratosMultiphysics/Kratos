@@ -5,19 +5,20 @@ import time as timer
 print (timer.ctime())
 initial_time = timer.perf_counter()
 
-
 ## Importing modules -----------------------------------------------------------------------------------------
 
-# Import Kratos
-from KratosMultiphysics import *
-# Import Applications
-from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.ExternalSolversApplication import *
-from KratosMultiphysics.PoromechanicsApplication import *
+# Import system python
+import os
+
+# Import kratos core and applications
+import KratosMultiphysics
+import KratosMultiphysics.SolidMechanicsApplication  as KratosSolid
+import KratosMultiphysics.ExternalSolversApplication as KratosSolvers
+import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 
 # Parsing the parameters
 parameter_file = open("ProjectParameters.json",'r')
-ProjectParameters = Parameters( parameter_file.read())
+ProjectParameters = KratosMultiphysics.Parameters( parameter_file.read())
 
 #Import solver module
 solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
@@ -33,7 +34,7 @@ import poromechanics_cleaning_utility
 ## Defining variables ----------------------------------------------------------------------------------------
 
 # Number of threads
-parallel=OpenMPUtils()
+parallel=KratosMultiphysics.OpenMPUtils()
 parallel.SetNumThreads(ProjectParameters["problem_data"]["OMP_threads"].GetInt())
 
 # Problem variables
@@ -52,8 +53,10 @@ FracturePropagation = ProjectParameters["solver_settings"]["fracture_propagation
 ## Model part ------------------------------------------------------------------------------------------------
 
 # Defining the model part
-main_model_part = ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
-main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, domain_size)
+main_model_part = KratosMultiphysics.ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
+main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
+main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, delta_time)
 Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main_model_part}
 
 # Construct the solver (main setting methods are located in the solver_module)
@@ -97,7 +100,7 @@ for process in list_of_processes:
 
 # Set TIME and DELTA_TIME and fill the previous steps of the buffer with the initial conditions
 time = time - (buffer_size-1)*delta_time
-main_model_part.ProcessInfo[TIME] = time
+main_model_part.ProcessInfo[KratosMultiphysics.TIME] = time
 for step in range(buffer_size-1):
     time = time + delta_time
     main_model_part.CloneTimeStep(time)
@@ -129,6 +132,7 @@ if FracturePropagation:
 while( (time+tol) <= end_time ):
     
     # Update temporal variables
+    delta_time = main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
     time = time + delta_time
     main_model_part.CloneTimeStep(time)
     
