@@ -80,7 +80,7 @@ class PartitionedFSISolver:
             "residual_absolute_tolerance": 1.0e-4,
             "max_iteration": 10,
             "linear_solver_settings":{
-                "solver_type": "Super LU",
+                "solver_type": "SuperLUSolver",
                 "max_iteration": 500,
                 "tolerance": 1e-9,
                 "scaling": false,
@@ -551,7 +551,7 @@ class PartitionedFSISolver:
             print("Computing time step ",self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS]," prediction...")
             # Get the previous step fluid interface nodal fluxes
             keep_sign = False
-            distribute_load = False
+            distribute_load = True
             self.interface_mapper.FluidToStructure_VectorMap(KratosMultiphysics.REACTION,
                                                              KratosSolid.POINT_LOAD,
                                                              keep_sign,
@@ -625,14 +625,14 @@ class PartitionedFSISolver:
         
         # Transfer fluid reaction to solid interface
         keep_sign = False
-        distribute_load = False
+        distribute_load = True
         self.interface_mapper.FluidToStructure_VectorMap(KratosMultiphysics.REACTION,
                                                          KratosSolid.POINT_LOAD,
                                                          keep_sign,
                                                          distribute_load)     
         
         # Solve structure problem
-        self.structure_solver.SolverPredict() # NOTE: If the Predict() is not performed not convergence is achieved...
+        self.structure_solver.SolverPredict() # NOTE: If the Predict() is not performed convergence is not achieved...
         self.structure_solver.SolverSolveSolutionStep()
         
         # Project the structure velocity onto the fluid interface
@@ -701,7 +701,7 @@ class PartitionedFSISolver:
 
         # Flux prediction is defined in terms of the fluid interface. Transfer it to the structure interface.
         keep_sign = False
-        distribute_load = False
+        distribute_load = True
         self.interface_mapper.FluidToStructure_VectorMap(KratosMultiphysics.FORCE,
                                                          KratosSolid.POINT_LOAD,
                                                          keep_sign,
