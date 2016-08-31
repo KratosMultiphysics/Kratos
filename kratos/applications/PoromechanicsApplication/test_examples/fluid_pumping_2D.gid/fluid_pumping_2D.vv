@@ -1,12 +1,12 @@
-BeginZE C:\Users\Administrator\Downloads\tests\fluid_pumping_2D.gid\fluid_pumping_2D.vv
-   x -4.5971064567565918 34.59710693359375
-   y 39.209709167480469 -24.209711074829102
-   z -22.866531372070313 22.866531372070313
+BeginZE /home/ipouplana/Descargas/fluid_pumping_2D.gid/fluid_pumping_2D.vv
+   x -4.62813282012939453 34.6281356811523438
+   y 39.2097091674804688 -24.2097110748291016
+   z -22.8665313720703125 22.8665313720703125
    e 17.5
    v 0 0 0
    r 1
    m 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1
-   c 9.6334915161132812 7.4846639633178711 0
+   c 9.63349151611328125 7.48466396331787109 0
    pd 0
    pno 0
    pfo 0
@@ -29,7 +29,7 @@ BeginZE C:\Users\Administrator\Downloads\tests\fluid_pumping_2D.gid\fluid_pumpin
    OGLStereo(EyeDistance) 0.075
    OGLStereo(LeftEyeDistance) 1 0 0 1
    OGLStereo(RightEyeDistance) 0 1 1 1
-EndZE C:\Users\Administrator\Downloads\tests\fluid_pumping_2D.gid\fluid_pumping_2D.vv
+EndZE /home/ipouplana/Descargas/fluid_pumping_2D.gid/fluid_pumping_2D.vv
 
 BeginMirror
    Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
