@@ -1524,7 +1524,7 @@ private:
         array_1d<double,2> AuxArray2;
             
         // Bifurcation
-        if(BifurcationFactor > PropagationFactor)
+        if(BifurcationFactor > 2.0*PropagationFactor) //TODO: BifurcationFactor must be clearly higher than PropagationFactor for a bifurcation to occur
         {
             double TopInitX = 0.0;
             double TopInitY = 0.0;
@@ -1582,7 +1582,7 @@ private:
             
             array_1d<double,2> TopInitCoordinates;
             array_1d<double,2> TopEndCoordinates;
-            double TopCosAngle;
+            double TopCosAngle = 1.0;
             
             TopInitCoordinates[0] = TopInitX/TopInitDen;
             TopInitCoordinates[1] = TopInitY/TopInitDen;
@@ -1601,7 +1601,7 @@ private:
             
             array_1d<double,2> BotInitCoordinates;
             array_1d<double,2> BotEndCoordinates;
-            double BotCosAngle;
+            double BotCosAngle = 1.0;
             
             BotInitCoordinates[0] = BotInitX/BotInitDen;
             BotInitCoordinates[1] = BotInitY/BotInitDen;
