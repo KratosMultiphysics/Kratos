@@ -145,8 +145,7 @@ print("***** NonConformant mapper created *****")
 print("***** Attempting transfer *****")
 # Map PRESSURE from fluid to structure
 keep_sign_1 = True
-distribute_load_1 = False
-mapper.FluidToStructure_ScalarMap(PRESSURE, PRESSURE, keep_sign_1, distribute_load_1)
+mapper.FluidToStructure_ScalarMap(PRESSURE, PRESSURE, keep_sign_1)
 
 # Map FORCE to POINT_LOAD
 keep_sign_2 = True
@@ -179,6 +178,8 @@ gid_io.FinalizeMesh()
 gid_io.InitializeResults(1, destination_model_part.GetMesh())
 gid_io.WriteNodalResults(PRESSURE, destination_model_part.Nodes, 0, 0)
 gid_io.WriteNodalResults(FORCE, destination_model_part.Nodes, 0, 0)
+gid_io.WriteNodalResults(VAUX_EQ_TRACTION, destination_model_part.Nodes, 0, 0)
+gid_io.WriteNodalResults(NODAL_MAUX, destination_model_part.Nodes, 0, 0)
 gid_io.WriteNodalResults(VELOCITY, destination_model_part.Nodes, 0, 0)
 gid_io.WriteNodalResults(IS_INTERFACE, destination_model_part.Nodes, 0, 0)
 gid_io.FinalizeResults()
@@ -191,6 +192,8 @@ gid_io.FinalizeMesh()
 gid_io.InitializeResults(2, origin_model_part.GetMesh())
 gid_io.WriteNodalResults(PRESSURE, origin_model_part.Nodes, 0, 0)
 gid_io.WriteNodalResults(POINT_LOAD, origin_model_part.Nodes, 0, 0)
+gid_io.WriteNodalResults(VAUX_EQ_TRACTION, origin_model_part.Nodes, 0, 0)
+gid_io.WriteNodalResults(NODAL_MAUX, origin_model_part.Nodes, 0, 0)
 gid_io.WriteNodalResults(VELOCITY, origin_model_part.Nodes, 0, 0)
 gid_io.WriteNodalResults(IS_INTERFACE, origin_model_part.Nodes, 0, 0)
 gid_io.FinalizeResults()
