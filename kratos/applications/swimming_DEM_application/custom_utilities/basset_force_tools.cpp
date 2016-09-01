@@ -128,14 +128,14 @@ void BassetForceTools::FillDaitcheVectors(const int N, const int order, const in
                      48 * OneOver315 * (       SWIMMING_POW_7(sqrt_j)         - 4 * SWIMMING_POW_7(sqrt_j_minus_2)  + 6 * SWIMMING_POW_7(sqrt_j_minus_3) - 4 * SWIMMING_POW_7(sqrt_j_minus_4)     + SWIMMING_POW_7(sqrt_j_minus_5)) - 168 * OneOver315 * SWIMMING_POW_5(sqrt_j)
                         + OneOver9   * (   4 * SWIMMING_POW_3(sqrt_j)         + 8 * SWIMMING_POW_3(sqrt_j_minus_2) - 12 * SWIMMING_POW_3(sqrt_j_minus_3) + 8 * SWIMMING_POW_3(sqrt_j_minus_4) - 2 * SWIMMING_POW_3(sqrt_j_minus_5)));
             Cns[j] = static_cast<double>(
-                    48 * OneOver315 *  (       SWIMMING_POW_7(sqrt_j_minus_4)  - 4 * SWIMMING_POW_7(sqrt_j_minus_3)  + 6 * SWIMMING_POW_7(sqrt_j_minus_2) - 3 * SWIMMING_POW_7(sqrt_j)) + 672 * OneOver315 * SWIMMING_POW_5(sqrt_j)
+                    48 * OneOver315 *  (       SWIMMING_POW_7(sqrt_j_minus_4) - 4 * SWIMMING_POW_7(sqrt_j_minus_3)  + 6 * SWIMMING_POW_7(sqrt_j_minus_2) - 3 * SWIMMING_POW_7(sqrt_j)) + 672 * OneOver315 * SWIMMING_POW_5(sqrt_j)
                         + OneOver9  *  (- 18 * SWIMMING_POW_3(sqrt_j)        - 12 * SWIMMING_POW_3(sqrt_j_minus_2)  + 8 * SWIMMING_POW_3(sqrt_j_minus_3) - 2 * SWIMMING_POW_3(sqrt_j_minus_4)));
             Dns[j] = static_cast<double>(
-                    48 * OneOver315 *  (   3 * SWIMMING_POW_7(sqrt_j)          - 4 * SWIMMING_POW_7(sqrt_j_minus_2)      + SWIMMING_POW_7(sqrt_j_minus_3)) - 24 * OneOver9 * SWIMMING_POW_5(sqrt_j)
-                         + OneOver9 *  (  36 * SWIMMING_POW_3(sqrt_j)          + 8 * SWIMMING_POW_3(sqrt_j_minus_2)  - 2 * SWIMMING_POW_3(sqrt_j_minus_3)));
+                    48 * OneOver315 *  (   3 * SWIMMING_POW_7(sqrt_j)         - 4 * SWIMMING_POW_7(sqrt_j_minus_2)      + SWIMMING_POW_7(sqrt_j_minus_3)) - 24 * OneOver9 * SWIMMING_POW_5(sqrt_j)
+                         + OneOver9 *  (  36 * SWIMMING_POW_3(sqrt_j)         + 8 * SWIMMING_POW_3(sqrt_j_minus_2)  - 2 * SWIMMING_POW_3(sqrt_j_minus_3)));
             Ens[j] = static_cast<double>(
-                    48 * OneOver315 *  (       SWIMMING_POW_7(sqrt_j_minus_2)      - SWIMMING_POW_7(sqrt_j)) + 336 * OneOver315 * SWIMMING_POW_5(sqrt_j)
-                         + OneOver9 *  (- 22 * SWIMMING_POW_3(sqrt_j)          - 2 * SWIMMING_POW_3(sqrt_j_minus_2)) + 2 * sqrt_j);
+                    48 * OneOver315 *  (       SWIMMING_POW_7(sqrt_j_minus_2)     - SWIMMING_POW_7(sqrt_j)) + 336 * OneOver315 * SWIMMING_POW_5(sqrt_j)
+                         + OneOver9 *  (- 22 * SWIMMING_POW_3(sqrt_j)         - 2 * SWIMMING_POW_3(sqrt_j_minus_2)) + 2 * sqrt_j);
         }
     }
 
