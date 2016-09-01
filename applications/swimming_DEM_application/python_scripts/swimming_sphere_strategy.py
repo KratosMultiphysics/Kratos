@@ -29,3 +29,6 @@ class SwimmingStrategy(BaseStrategy):
         self.CheckMomentumConservation()
 
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy (C++) Initialize function (initializes all elements and performs other necessary tasks before starting the time loop in Python)
+
+    def CreateCPlusPlusStrategy(self):
+         BaseStrategy.CreateCPlusPlusStrategy(self)
