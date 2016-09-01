@@ -19,14 +19,17 @@ class DiffusionSolverSettings:
 class MechanicalSolverSettings:
     analysis_type = "*GenData(Analysis_Type)"
     strategy_type = "*GenData(Strategy_Type)"
-    dofs_relative_tolerance = *GenData(DOFs_Relative_Tolerance)
-    residual_relative_tolerance = *GenData(Residual_Relative_Tolerance)
+    convergence_criterion = "*GenData(Convergence_Criterion)"
+    displacement_rel_tol = *GenData(Displacement_Relative_Tolerance)
+    displacement_abs_tol = *GenData(Displacement_Absolute_Tolerance)
+    residual_rel_tol = *GenData(Residual_Relative_Tolerance)
+    residual_abs_tol = *GenData(Residual_Absolute_Tolerance)
+    echo_level = 1
     max_iteration = *GenData(Max_Iterations,INT)
     linear_solver = "*GenData(Linear_Solver)"
     direct_solver = "*GenData(Direct_Solver_Type)"
     iterative_solver = "*GenData(Iterative_Solver_Type)"
     compute_reactions = *GenData(Write_Reactions)
-
 
 ## Boundary Conditions Data ---------------------------------------------------------------------------------------------------
 
