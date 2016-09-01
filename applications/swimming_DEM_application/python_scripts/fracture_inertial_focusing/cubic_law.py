@@ -112,10 +112,15 @@ def velocity_order_1(x, eta):
     
     DUX = UX * UXdX + UZ * UXdZ
     DUZ = UX * UZdX + UZ * UZdZ
-    
+       
     return UX, UZ, DUX, DUZ
 
-
+def GetFlowVariables(X, Z):
+    x, eta = z_to_eta(X / L0, Z / H0)
+    UX, UZ, DUX, DUZ = velocity_order_1(x, eta)
+    D = min(abs(Phi1(X) - Z), abs(Phi2(X) - Z))
+    return UX, UZ, DUX, DUZ, D
+    
 x_points = np.linspace(0, L0, n_points)
 x_points = [x for x in x_points]
 phi_1 = [Phi1(x) for x in x_points]
@@ -150,9 +155,10 @@ plt.scatter(randoms_horizontal, randoms_vertical)
 print('delta_0 = ', delta_0)
 print('alpha = ', alpha)
 print('gamma = ', gamma)
+
 for i in range(n_particles):
-    x, eta = z_to_eta(randoms_horizontal[i] / L0, randoms_vertical[i] / H0)
-    UX, UZ, DUX, DUZ = velocity_order_1(x, eta)
-    pylab.arrow(randoms_horizontal[i], randoms_vertical[i], DUX, DUZ, fc="k", ec="k",
-head_width=0.05, head_length=0.1 )
+    X = randoms_horizontal[i]
+    Z = randoms_vertical[i]
+    UX, UZ, DUX, DUZ, D = GetFlowVariables(X, Z)
+    pylab.arrow(X, Z, DUX, DUZ, fc = "k", ec = "k", head_width = 0.05, head_length = 0.1)
 plt.show()
