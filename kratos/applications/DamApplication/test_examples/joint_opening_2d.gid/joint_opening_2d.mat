@@ -1,0 +1,114 @@
+NUMBER: 1 MATERIAL: Concrete
+QUESTION: Element_Type#CB#(Standard,Interface)
+VALUE: Standard
+DEPENDENCIES: (Interface,HIDE,Standard_Constitutive_Law,#CURRENT#,RESTORE,Interface_Constitutive_Law,#CURRENT#,RESTORE,Minimum_Joint_Width,#CURRENT#,RESTORE,Critical_Displacement,#CURRENT#,RESTORE,Residual_Stress,#CURRENT#,RESTORE,Damage_Threshold,#CURRENT#,RESTORE,Friction_Coefficient,#CURRENT#)(Standard,RESTORE,Standard_Constitutive_Law,#CURRENT#,HIDE,Interface_Constitutive_Law,#CURRENT#,HIDE,Minimum_Joint_Width,#CURRENT#,HIDE,Critical_Displacement,#CURRENT#,HIDE,Residual_Stress,#CURRENT#,HIDE,Damage_Threshold,#CURRENT#,HIDE,Friction_Coefficient,#CURRENT#)
+QUESTION: Interface_Constitutive_Law#CB#(BilinearCohesive2DPlaneStrain,BilinearCohesive2DPlaneStress,BilinearCohesive3D)
+VALUE: BilinearCohesive2DPlaneStrain
+DEPENDENCIES: (BilinearCohesive2DPlaneStrain,HIDE,Thickness,1,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)(BilinearCohesive2DPlaneStress,RESTORE,Thickness,#CURRENT#,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)(BilinearCohesive3D,HIDE,Thickness,#CURRENT#,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)
+QUESTION: Standard_Constitutive_Law#CB##(LinearElastic2DPlaneStress,LinearElastic2DPlaneStrain,LinearElastic3D,ThermalLinearElastic2DPlaneStress,ThermalLinearElastic2DPlaneStrain,,ThermalLinearElastic3D)
+VALUE: LinearElastic2DPlaneStress
+DEPENDENCIES: (LinearElastic2DPlaneStrain,HIDE,Thickness,1,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)(LinearElastic2DPlaneStress,RESTORE,Thickness,#CURRENT#,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)(LinearElastic3D,HIDE,Thickness,#CURRENT#,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)(ThermalLinearElastic2DPlaneStress,RESTORE,Thickness,#CURRENT#,RESTORE,Thermal_Expansion_Coefficient,#CURRENT#)(ThermalLinearElastic2DPlaneStrain,HIDE,Thickness,1,RESTORE,Thermal_Expansion_Coefficient,#CURRENT#)(ThermalLinearElastic3D,HIDE,Thickness,#CURRENT#,RESTORE,Thermal_Expansion_Coefficient,#CURRENT#)
+QUESTION: Young_Modulus
+VALUE: 35.0e9
+HELP: Units in IS: N/m2
+QUESTION: Poisson_Ratio
+VALUE: 0.2
+QUESTION: Density
+VALUE: 2500
+HELP: Units in IS: Kg/m3
+QUESTION: Minimum_Joint_Width
+VALUE: 1.0e-3
+HELP: Units in IS: m
+QUESTION: Critical_Displacement
+VALUE: 0.05
+HELP: Units in IS: m
+QUESTION: Residual_Stress
+VALUE: 3.5e6
+HELP: Units in IS: N/m2
+QUESTION: Damage_Threshold
+VALUE: 0.04
+QUESTION: Friction_Coefficient
+VALUE: 0.4
+QUESTION: Thickness
+VALUE: 1.0
+HELP: Units in IS: m
+QUESTION: Thermal_Expansion_Coefficient
+VALUE: 10e-5
+HELP: Units in IS: ºC-1
+END MATERIAL
+NUMBER: 2 MATERIAL: Soil
+QUESTION: Element_Type#CB#(Standard,Interface)
+VALUE: Standard
+DEPENDENCIES: (Interface,HIDE,Standard_Constitutive_Law,#CURRENT#,RESTORE,Interface_Constitutive_Law,#CURRENT#,RESTORE,Minimum_Joint_Width,#CURRENT#,RESTORE,Critical_Displacement,#CURRENT#,RESTORE,Residual_Stress,#CURRENT#,RESTORE,Damage_Threshold,#CURRENT#,RESTORE,Friction_Coefficient,#CURRENT#)(Standard,RESTORE,Standard_Constitutive_Law,#CURRENT#,HIDE,Interface_Constitutive_Law,#CURRENT#,HIDE,Minimum_Joint_Width,#CURRENT#,HIDE,Critical_Displacement,#CURRENT#,HIDE,Residual_Stress,#CURRENT#,HIDE,Damage_Threshold,#CURRENT#,HIDE,Friction_Coefficient,#CURRENT#)
+QUESTION: Interface_Constitutive_Law#CB#(BilinearCohesive2DPlaneStrain,BilinearCohesive2DPlaneStress,BilinearCohesive3D)
+VALUE: BilinearCohesive2DPlaneStrain
+DEPENDENCIES: (BilinearCohesive2DPlaneStrain,HIDE,Thickness,1,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)(BilinearCohesive2DPlaneStress,RESTORE,Thickness,#CURRENT#,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)(BilinearCohesive3D,HIDE,Thickness,#CURRENT#,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)
+QUESTION: Standard_Constitutive_Law#CB##(LinearElastic2DPlaneStress,LinearElastic2DPlaneStrain,LinearElastic3D,ThermalLinearElastic2DPlaneStress,ThermalLinearElastic2DPlaneStrain,,ThermalLinearElastic3D)
+VALUE: LinearElastic2DPlaneStrain
+DEPENDENCIES: (LinearElastic2DPlaneStrain,HIDE,Thickness,1,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)(LinearElastic2DPlaneStress,RESTORE,Thickness,#CURRENT#,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)(LinearElastic3D,HIDE,Thickness,#CURRENT#,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)(ThermalLinearElastic2DPlaneStress,RESTORE,Thickness,#CURRENT#,RESTORE,Thermal_Expansion_Coefficient,#CURRENT#)(ThermalLinearElastic2DPlaneStrain,HIDE,Thickness,1,RESTORE,Thermal_Expansion_Coefficient,#CURRENT#)(ThermalLinearElastic3D,HIDE,Thickness,#CURRENT#,RESTORE,Thermal_Expansion_Coefficient,#CURRENT#)
+QUESTION: Young_Modulus
+VALUE: 1.0e6
+HELP: Units in IS: N/m2
+QUESTION: Poisson_Ratio
+VALUE: 0.2
+QUESTION: Density
+VALUE: 2500
+HELP: Units in IS: Kg/m3
+QUESTION: Minimum_Joint_Width
+VALUE: 1.0e-3
+HELP: Units in IS: m
+QUESTION: Critical_Displacement
+VALUE: 0.05
+HELP: Units in IS: m
+QUESTION: Residual_Stress
+VALUE: 3.5e6
+HELP: Units in IS: N/m2
+QUESTION: Damage_Threshold
+VALUE: 0.04
+QUESTION: Friction_Coefficient
+VALUE: 0.4
+QUESTION: Thickness
+VALUE: 1
+HELP: Units in IS: m
+QUESTION: Thermal_Expansion_Coefficient
+VALUE: 10e-5
+HELP: Units in IS: ºC-1
+END MATERIAL
+NUMBER: 3 MATERIAL: Joint
+QUESTION: Element_Type#CB#(Standard,Interface)
+VALUE: Interface
+DEPENDENCIES: (Interface,HIDE,Standard_Constitutive_Law,#CURRENT#,RESTORE,Interface_Constitutive_Law,#CURRENT#,RESTORE,Minimum_Joint_Width,#CURRENT#,RESTORE,Critical_Displacement,#CURRENT#,RESTORE,Residual_Stress,#CURRENT#,RESTORE,Damage_Threshold,#CURRENT#,RESTORE,Friction_Coefficient,#CURRENT#)(Standard,RESTORE,Standard_Constitutive_Law,#CURRENT#,HIDE,Interface_Constitutive_Law,#CURRENT#,HIDE,Minimum_Joint_Width,#CURRENT#,HIDE,Critical_Displacement,#CURRENT#,HIDE,Residual_Stress,#CURRENT#,HIDE,Damage_Threshold,#CURRENT#,HIDE,Friction_Coefficient,#CURRENT#)
+QUESTION: Interface_Constitutive_Law#CB#(BilinearCohesive2DPlaneStrain,BilinearCohesive2DPlaneStress,BilinearCohesive3D)
+VALUE: BilinearCohesive2DPlaneStress
+DEPENDENCIES: (BilinearCohesive2DPlaneStrain,HIDE,Thickness,1,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)(BilinearCohesive2DPlaneStress,RESTORE,Thickness,#CURRENT#,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)(BilinearCohesive3D,HIDE,Thickness,#CURRENT#,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)
+QUESTION: Standard_Constitutive_Law#CB##(LinearElastic2DPlaneStress,LinearElastic2DPlaneStrain,LinearElastic3D,ThermalLinearElastic2DPlaneStress,ThermalLinearElastic2DPlaneStrain,,ThermalLinearElastic3D)
+VALUE: LinearElastic2DPlaneStrain
+DEPENDENCIES: (LinearElastic2DPlaneStrain,HIDE,Thickness,1,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)(LinearElastic2DPlaneStress,RESTORE,Thickness,#CURRENT#,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)(LinearElastic3D,HIDE,Thickness,#CURRENT#,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)(ThermalLinearElastic2DPlaneStress,RESTORE,Thickness,#CURRENT#,RESTORE,Thermal_Expansion_Coefficient,#CURRENT#)(ThermalLinearElastic2DPlaneStrain,HIDE,Thickness,1,RESTORE,Thermal_Expansion_Coefficient,#CURRENT#)(ThermalLinearElastic3D,HIDE,Thickness,#CURRENT#,RESTORE,Thermal_Expansion_Coefficient,#CURRENT#)
+QUESTION: Young_Modulus
+VALUE: 1.0e6
+HELP: Units in IS: N/m2
+QUESTION: Poisson_Ratio
+VALUE: 0.2
+QUESTION: Density
+VALUE: 0
+HELP: Units in IS: Kg/m3
+QUESTION: Minimum_Joint_Width
+VALUE: 1.0e-3
+HELP: Units in IS: m
+QUESTION: Critical_Displacement
+VALUE: 0.05
+HELP: Units in IS: m
+QUESTION: Residual_Stress
+VALUE: 0.001
+HELP: Units in IS: N/m2
+QUESTION: Damage_Threshold
+VALUE: 0.04
+QUESTION: Friction_Coefficient
+VALUE: 0.4
+QUESTION: Thickness
+VALUE: 1
+HELP: Units in IS: m
+QUESTION: Thermal_Expansion_Coefficient
+VALUE: 10e-5
+HELP: Units in IS: ºC-1
+END MATERIAL
