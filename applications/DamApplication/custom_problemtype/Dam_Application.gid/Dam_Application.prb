@@ -85,12 +85,21 @@ QUESTION: Strategy_Type#CB#(Newton-Raphson)
 VALUE: Newton-Raphson
 QUESTION: Max_Iterations
 VALUE: 30
-QUESTION: DOFs_Relative_Tolerance
+QUESTION: Convergence_Criterion#CB#(Displacement_criterion,Residual_criterion,And_criterion)
+VALUE: And_criterion
+DEPENDENCIES: (Displacement_criterion,RESTORE,Displacement_Relative_Tolerance,#CURRENT#,RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,HIDE,Residual_Relative_Tolerance,#CURRENT#,HIDE,Residual_Absolute_Tolerance,#CURRENT#)(Residual_criterion,HIDE,Displacement_Relative_Tolerance,#CURRENT#,HIDE,Displacement_Absolute_Tolerance,#CURRENT#,RESTORE,Residual_Relative_Tolerance,#CURRENT#,RESTORE,Residual_Absolute_Tolerance,#CURRENT#)(And_criterion,RESTORE,Displacement_Relative_Tolerance,#CURRENT#,RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,RESTORE,Residual_Relative_Tolerance,#CURRENT#,RESTORE,Residual_Absolute_Tolerance,#CURRENT#)
+QUESTION: Displacement_Relative_Tolerance
 Value: 1.0E-4
-HELP: Tolerance for the Newton-Raphson Strategy
+HELP: Relative displacement tolerance for the Newton-Raphson Strategy
+QUESTION: Displacement_Absolute_Tolerance
+Value: 1.0E-8
+HELP: Absolute displacement tolerance for the Newton-Raphson Strategy
 QUESTION: Residual_Relative_Tolerance
-Value: 1.0E-3
-HELP: Tolerance for the Newton-Raphson Strategy
+Value: 1.0E-4
+HELP: Relative residual tolerance for the Newton-Raphson Strategy
+QUESTION: Residual_Absolute_Tolerance
+Value: 1.0E-8
+HELP: Absolute residual tolerance for the Newton-Raphson Strategy
 QUESTION: Linear_Solver#CB#(Direct,Iterative)
 Value: Direct
 DEPENDENCIES: (Direct,RESTORE,Direct_Solver_Type,#CURRENT#,HIDE,Iterative_Solver_Type,#CURRENT#)(Iterative,HIDE,Direct_Solver_Type,#CURRENT#,RESTORE,Iterative_Solver_Type,#CURRENT#)
