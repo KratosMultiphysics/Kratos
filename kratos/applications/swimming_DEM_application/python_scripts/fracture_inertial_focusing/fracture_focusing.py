@@ -657,7 +657,7 @@ import cubic_law
 
 n_particles = len(spheres_model_part.Nodes)
 cubic_law_pp = cubic_law.GetProblemParameters()
-cubic_law_pp.n_particles = n_particles
+cubic_law.GenerateRandomPositions(n_particles)
 cubic_law.PrintResult()
 i_particle = 0
 for node in spheres_model_part.Nodes:
@@ -791,11 +791,11 @@ while (time <= final_time):
 
             else:         
                 projection_module.ProjectFromFluid((time_final_DEM_substepping - time_dem) / Dt)             
-                
+                i_particle = 0
                 for node in spheres_model_part.Nodes:
                     X = node.X
                     Z = node.Z
-                    UX, UZ, DUX, DUZ, D = cubic_law.GetFlowVariables(X, Z)
+                    UX, UZ, DUX, DUZ, D = cubic_law.GetFlowVariables(i_particle, X, Z)
                     node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, UX)
                     node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, 0.0)
                     node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, UZ)            
@@ -809,7 +809,7 @@ while (time <= final_time):
                     if DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
                         solver.Solve() # only advance in space
                         #projection_module.InterpolateVelocity()  
-                        UX, UZ, DUX, DUZ, D = cubic_law.GetFlowVariables(node.X, node.Z)
+                        UX, UZ, DUX, DUZ, D = cubic_law.GetFlowVariables(i_particle, node.X, node.Z)
                         node.SetSolutionStepValue(SLIP_VELOCITY_X, UX)
                         node.SetSolutionStepValue(SLIP_VELOCITY_Z, UZ)       
                     else:
@@ -817,7 +817,7 @@ while (time <= final_time):
                             UX, UZ, DUX, DUZ, D = cubic_law.GetFlowVariables(X, Z)
                             node.SetSolutionStepValue(SLIP_VELOCITY_X, UX)
                             node.SetSolutionStepValue(SLIP_VELOCITY_Z, UZ)                                                                                              
-
+                    i_particle += 1
                 if quadrature_counter.Tick():
                     if pp.CFD_DEM.basset_force_type == 1 or pp.CFD_DEM.basset_force_type >= 3:
                         basset_force_tool.AppendIntegrandsWindow(spheres_model_part) 
@@ -831,7 +831,7 @@ while (time <= final_time):
         cluster_model_part.ProcessInfo[TIME]    = time_dem
 
         if not DEM_parameters.flow_in_porous_DEM_medium_option: # in porous flow particles remain static      
-            solver.Solve()        
+            solver.Solve()    
             #results_creator.Record(spheres_model_part, node_to_follow_id, time_dem)    
                 
         # Walls movement:
@@ -886,6 +886,8 @@ while (time <= final_time):
             projection_module.ComputePostProcessResults(spheres_model_part.ProcessInfo)
 
         post_utils.Writeresults(time)
+        cubic_law.PrintResult()
+
         out = 0
 
     out = out + Dt

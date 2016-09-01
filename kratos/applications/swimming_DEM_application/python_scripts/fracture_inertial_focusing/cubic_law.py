@@ -26,6 +26,13 @@ class ProblemParameters:
         self.gamma = (self.A2 - self.A1) / (self.A2 + self.A1)
         self.cos_semi_alpha = math.cos(0.5 * self.alpha)
         self.sin_semi_alpha = math.sin(0.5 * self.alpha)
+        self.eta_values = []
+        self.randoms_horizontal = []
+        self.randoms_vertical = []
+        self.vels_horizontal = []
+        self.vels_vertical = []        
+        self.accelerations_horizontal = []
+        self.accelerations_vertical = []
 
 pp = ProblemParameters()
 
@@ -120,10 +127,16 @@ def velocity_order_1(x, eta):
        
     return UX, UZ, DUX, DUZ
 
-def GetFlowVariables(X, Z):
+def GetFlowVariables(i, X, Z):
     x, eta = z_to_eta(X / pp.L0, Z / pp.H0)
     UX, UZ, DUX, DUZ = velocity_order_1(x, eta)
     D = min(abs(Phi1(X) - Z), abs(Phi2(X) - Z))
+    pp.randoms_horizontal[i]       = X
+    pp.randoms_vertical[i]         = Z
+    pp.vels_horizontal[i]          = UX
+    pp.vels_vertical[i]            = UZ      
+    pp.accelerations_horizontal[i] = DUX
+    pp.accelerations_vertical[i]   = DUZ   
     return UX, UZ, DUX, DUZ, D
     
 x_points = np.linspace(0, pp.L0, pp.n_points)
@@ -134,57 +147,64 @@ plt.axis('equal')
 plt.plot(x_points, phi_1, color='k', linewidth=2)
 plt.plot(x_points, phi_2, color='k', linewidth=2)
 
-# Generate random positions
-randoms_horizontal_guesses = np.random.uniform(0, 1.0 , pp.n_particles)
-objective_function = HorizontalDistributionMinusObjective(pp.L0, pp.H0, pp.A1, pp.A2, pp.DeltaX)
-i_value = 0
-randoms_horizontal = [0.0 for value in randoms_horizontal_guesses]
-randoms_vertical = [0.0 for value in randoms_horizontal]
+def GenerateRandomPositions(n_particles):
+    pp.n_particles = n_particles
+    randoms_horizontal_guesses = np.random.uniform(0, 1.0 , n_particles)
+    objective_function = HorizontalDistributionMinusObjective(pp.L0, pp.H0, pp.A1, pp.A2, pp.DeltaX)
+    pp.randoms_horizontal       = [0.0 for i in range(n_particles)]
+    pp.randoms_vertical         = [0.0 for i in range(n_particles)]
+    pp.vels_horizontal          = [0.0 for i in range(n_particles)]
+    pp.vels_vertical            = [0.0 for i in range(n_particles)]    
+    pp.accelerations_horizontal = [0.0 for i in range(n_particles)]
+    pp.accelerations_vertical   = [0.0 for i in range(n_particles)]
+    
+    i_value = 0
 
-for value in randoms_horizontal_guesses:
-    objective_function.SetObjective(value)
-    corrected_value = root_finder.FindRootBisection(objective_function, value)
-    randoms_horizontal[i_value] = corrected_value
-    randoms_vertical[i_value] = np.random.uniform(Phi1(corrected_value), Phi2(corrected_value))
-    i_value += 1
+    for value in randoms_horizontal_guesses:
+        objective_function.SetObjective(value)
+        corrected_value = root_finder.FindRootBisection(objective_function, value)
+        pp.randoms_horizontal[i_value] = corrected_value
+        pp.randoms_vertical[i_value] = np.random.uniform(Phi1(corrected_value), Phi2(corrected_value))
+        i_value += 1
 
-# Streamlines
-eta_values = np.linspace(-1, 1, pp.n_streamlines)
-eta_values = [value for value in eta_values]
-eta_values = eta_values[1:-1]
+    # Streamlines
+    pp.eta_values = np.linspace(-1, 1, pp.n_streamlines)
+    pp.eta_values = [value for value in pp.eta_values]
+    pp.eta_values = pp.eta_values[1:-1]
 
 def GetPositionAndFlowVariables(i):
-    X = randoms_horizontal[i]
-    Z = randoms_vertical[i] 
-    UX, UZ, DUX, DUZ, D = GetFlowVariables(X, Z)
+    X = pp.randoms_horizontal[i]
+    Z = pp.randoms_vertical[i] 
+    UX, UZ, DUX, DUZ, D = GetFlowVariables(i, X, Z)
     return X, Z, UX, UZ, DUX, DUZ, D
 
-for value in eta_values:
-    streamline_Z_values = [pp.H0 * eta_to_z(x / pp.L0, value)[1] for x in x_points]
-    plt.plot(x_points, streamline_Z_values, color='b', linestyle='dashed')
-plt.scatter(randoms_horizontal, randoms_vertical)
-print('delta_0 = ', pp.delta_0)
-print('alpha = ', pp.alpha)
-print('gamma = ', pp.gamma)
-derivatives_horizontal = [0.0 for i in range(pp.n_particles)]
-derivatives_vertical = [0.0 for i in range(pp.n_particles)]
-for i in range(pp.n_particles):
-    X = randoms_horizontal[i]
-    Z = randoms_vertical[i]      
-    UX, UZ, DUX, DUZ, D = GetFlowVariables(X, Z)
-    derivatives_horizontal[i] = DUX
-    derivatives_vertical[i] = DUZ
-
-moduli_inv = [1.0 / math.sqrt(derivatives_horizontal[i] ** 2 + derivatives_vertical[i] ** 2) for i in range(pp.n_particles)]
-max_modul_inv = min(moduli_inv)
-print(moduli_inv)
-print('max_modul_inv',max_modul_inv)
-size_coeff = max_modul_inv * 0.25 * pp.H0
 def PrintResult():
+    for value in pp.eta_values:
+        streamline_Z_values = [pp.H0 * eta_to_z(x / pp.L0, value)[1] for x in x_points]
+        plt.plot(x_points, streamline_Z_values, color='b', linestyle='dashed')
+    plt.scatter(pp.randoms_horizontal, pp.randoms_vertical)
+    print('delta_0 = ', pp.delta_0)
+    print('alpha = ', pp.alpha)
+    print('gamma = ', pp.gamma)
+
+
+    for i in range(pp.n_particles):
+        X = pp.randoms_horizontal[i]
+        Z = pp.randoms_vertical[i]      
+        UX, UZ, DUX, DUZ, D = GetFlowVariables(i, X, Z)
+        pp.vels_horizontal[i]          = UX
+        pp.vels_vertical[i]            = UZ        
+        pp.accelerations_horizontal[i] = DUX
+        pp.accelerations_vertical[i]   = DUZ
+
+    acc_moduli_inv = [1.0 / math.sqrt(pp.accelerations_horizontal[i] ** 2 + pp.accelerations_vertical[i] ** 2) for i in range(pp.n_particles)]
+    acc_max_modul_inv = min(acc_moduli_inv)
+    acc_size_coeff = acc_max_modul_inv * 0.25 * pp.H0
+
     for i in range(pp.n_particles): 
-        X = randoms_horizontal[i]
-        Z = randoms_vertical[i]  
-        DUX = derivatives_horizontal[i]
-        DUZ = derivatives_vertical[i]    
-        pylab.arrow(X, Z, DUX * size_coeff, DUZ * size_coeff, fc = "k", ec = "k", width = 0.001 * pp.H0, head_width = 0.02 * pp.H0, head_length = 0.04 * pp.H0)
+        X = pp.randoms_horizontal[i]
+        Z = pp.randoms_vertical[i]  
+        DUX = pp.accelerations_horizontal[i]
+        DUZ = pp.accelerations_vertical[i]    
+        pylab.arrow(X, Z, DUX * acc_size_coeff, DUZ * acc_size_coeff, fc = "k", ec = "k", width = 0.001 * pp.H0, head_width = 0.02 * pp.H0, head_length = 0.04 * pp.H0)
     plt.show()
