@@ -66,6 +66,7 @@ class NavierStokesSolver_VMSMonolithic:
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
+            "no_skin_parts":[""],
             "alpha":-0.3,
             "move_mesh_strategy": 0,
             "periodic": "periodic",
@@ -295,37 +296,36 @@ class NavierStokesSolver_VMSMonolithic:
     def SaveRestart(self):
         pass #one should write the restart file here
         
-    def Solve(self):
-
+    def DivergenceClearance(self):
+        
         if self.settings["divergence_clearance_steps"].GetInt() > 0:
             print("Calculating divergence-free initial condition")
-            ## initialize with a Stokes solution step
+            ## Initialize with a Stokes solution step
             try:
-                import KratosMultiphysics.ExternalSolversApplication as kes
-                smoother_type = kes.AMGCLSmoother.DAMPED_JACOBI
-                solver_type = kes.AMGCLIterativeSolverType.CG
+                import KratosMultiphysics.ExternalSolversApplication as KratosExternalSolvers
+                smoother_type = KratosExternalSolvers.AMGCLSmoother.DAMPED_JACOBI
+                solver_type = KratosExternalSolvers.AMGCLIterativeSolverType.CG
                 gmres_size = 50
                 max_iter = 200
                 tol = 1e-7
                 verbosity = 0
-                stokes_linear_solver = kes.AMGCLSolver(
-                    smoother_type,
-                    solver_type,
-                    tol,
-                    max_iter,
-                    verbosity,
-                    gmres_size)
+                stokes_linear_solver = KratosExternalSolvers.AMGCLSolver(smoother_type,
+                                                                         solver_type,
+                                                                         tol,
+                                                                         max_iter,
+                                                                         verbosity,
+                                                                         gmres_size)
             except:
                 pPrecond = DiagonalPreconditioner()
                 stokes_linear_solver = BICGSTABSolver(1e-9, 5000, pPrecond)
                 
             stokes_process = KratosCFD.StokesInitializationProcess(self.main_model_part,
-                                                             stokes_linear_solver,
-                                                             self.compute_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                                             KratosCFD.PATCH_INDEX)
-            ## copy periodic conditions to Stokes problem
+                                                                   stokes_linear_solver,
+                                                                   self.compute_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+                                                                   KratosCFD.PATCH_INDEX)
+            ## Copy periodic conditions to Stokes problem
             stokes_process.SetConditions(self.main_model_part.Conditions)
-            ## execute Stokes process
+            ## Execute Stokes process
             stokes_process.Execute()
             stokes_process = None
 
@@ -341,8 +341,6 @@ class NavierStokesSolver_VMSMonolithic:
             self.settings["divergence_clearance_steps"].SetInt(0)
             print("Finished divergence clearance.")
 
-        
-        
         ### THIS SECTION IS NOT REQUIRED NOW ###
         #~ if self.settings["reform_dofs_at_each_iteration"]:
             #~ if self.settings["use_slip_conditions"].GetBool():
@@ -353,8 +351,26 @@ class NavierStokesSolver_VMSMonolithic:
                 #~ KratosMultiphysics.neighbour_search.Execute()
         ### THIS SECTION IS NOT REQUIRED NOW ###
         
+    def SolverInitialize(self):
+        self.DivergenceClearance()
+        self.solver.Initialize()
+        
+    def SolverInitializeSolutionStep(self):
+        self.solver.InitializeSolutionStep()
+        
+    def SolverPredict(self):
+        self.solver.Predict()
+        
+    def SolverSolveSolutionStep(self):
+        self.solver.SolveSolutionStep()
+        
+    def SolverFinalizeSolutionStep(self):
+        self.solver.FinalizeSolutionStep()
+        
+    def Solve(self):
+        self.DivergenceClearance()
         self.solver.Solve()
-
+    
     def SetEchoLevel(self, level):
         self.solver.SetEchoLevel(level)
 
