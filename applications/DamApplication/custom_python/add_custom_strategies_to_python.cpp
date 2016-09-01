@@ -21,7 +21,7 @@
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "custom_strategies/strategies/dam_newton_raphson_strategy.hpp"
+//#include "custom_strategies/strategies/dam_newton_raphson_strategy.hpp"
 
 //builders and solvers
 
@@ -47,12 +47,12 @@ void  AddCustomStrategiesToPython()
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
     
-    typedef DamNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > DamNewtonRaphsonStrategyType;
+    //typedef DamNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > DamNewtonRaphsonStrategyType;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    class_< DamNewtonRaphsonStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("DamNewtonRaphsonStrategy", 
-        init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, double, double, int, bool, bool, bool >());
+    //class_< DamNewtonRaphsonStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("DamNewtonRaphsonStrategy", 
+    //    init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, double, double, int, bool, bool, bool >());
         
 }
 
