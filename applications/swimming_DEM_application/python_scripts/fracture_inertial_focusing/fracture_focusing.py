@@ -84,14 +84,14 @@ pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
 pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
 pp.CFD_DEM.basset_force_type = 4
-pp.CFD_DEM.print_BASSET_FORCE_option = 1
-pp.CFD_DEM.basset_force_integration_type = 1
+pp.CFD_DEM.print_BASSET_FORCE_option = 0
+pp.CFD_DEM.basset_force_integration_type = 4
 pp.CFD_DEM.n_init_basset_steps = 0
 pp.CFD_DEM.time_steps_per_quadrature_step = 1
 pp.CFD_DEM.delta_time_quadrature = pp.CFD_DEM.time_steps_per_quadrature_step * pp.CFD_DEM.MaxTimeStep
 pp.CFD_DEM.quadrature_order = 2
 pp.CFD_DEM.time_window = 0.01
-pp.CFD_DEM.number_of_exponentials = 1
+pp.CFD_DEM.number_of_exponentials = 8
 pp.CFD_DEM.number_of_quadrature_steps_in_window = int(pp.CFD_DEM.time_window / pp.CFD_DEM.delta_time_quadrature)
 #Z
 
@@ -587,7 +587,7 @@ DEM_to_fluid_counter         = swim_proc.Counter(1,
                                                  DEM_parameters.coupling_level_type)
 pressure_gradient_counter    = swim_proc.Counter(1, 
                                                  1, 
-                                                 DEM_parameters.coupling_level_type or pp.pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
+                                                 DEM_parameters.coupling_level_type or pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
 stationarity_counter         = swim_proc.Counter(DEM_parameters.time_steps_per_stationarity_step, 
                                                  1, 
                                                  DEM_parameters.stationary_problem_option)
@@ -641,45 +641,10 @@ import cmath
 import mpmath
 import matplotlib.pyplot as plt
 
-import chandelier_parameters as ch_pp
-import chandelier as ch
-import quadrature as quad
-sim = ch.AnalyticSimulator(ch_pp)
-
 post_utils.Writeresults(time)
-coors = [None] * 3
-exact_vel = [None] * 3 
-Dt_DEM_inv = 1.0 / Dt_DEM                    
-vel = [0., 0.0, 0.] 
-old_vel = [v for v in vel] 
-H = [0.] * 3
-H_old = [0.] * 3
-Delta_H = [0.] * 3 
-exact_Delta_H = [0.] * 3
-basset_force = [0.] * 3
-exact_basset_force = [0.] * 3 
-sim.CalculatePosition(coors, 0.0)      
-times = [0.0]
-radii = [1.0]
-integrands = []
-particle_mass = 4. / 3 * math.pi * ch_pp.a ** 3 * ch_pp.rho_p
-units_coefficient = 6 * ch_pp.a ** 2 * ch_pp.rho_f * math.sqrt(math.pi * ch_pp.nu)                        
 
 # Impose initial velocity to be the terminal velocity
-sim.CalculateNonDimensionalVars()
-terminal_velocity = sim.NDw0 * ch_pp.R * ch_pp.omega
 
-# NODE HISTORY RESULTS BEGIN
-scalar_vars = []
-vector_vars = [DISPLACEMENT]
-
-for node in spheres_model_part.Nodes:
-    node_to_follow_id = node.Id
-    node.SetSolutionStepValue(VELOCITY_Z, terminal_velocity)
-
-results_creator = swim_proc.ResultsFileCreator(spheres_model_part, node_to_follow_id, scalar_vars, vector_vars)
-# NODE HISTORY RESULTS END 
-# CHANDELLIER END
 N_steps = int(final_time / Dt_DEM) + 20
 
 if pp.CFD_DEM.basset_force_type > 0:
@@ -687,18 +652,38 @@ if pp.CFD_DEM.basset_force_type > 0:
 if pp.CFD_DEM.basset_force_type >= 3 or pp.CFD_DEM.basset_force_type == 1:
     basset_force_tool.FillHinsbergVectors(spheres_model_part, pp.CFD_DEM.number_of_exponentials, pp.CFD_DEM.number_of_quadrature_steps_in_window)
 
+# CUBIC LAW BEGIN
+import cubic_law
+
+n_particles = len(spheres_model_part.Nodes)
+cubic_law_pp = cubic_law.GetProblemParameters()
+cubic_law_pp.n_particles = n_particles
+cubic_law.PrintResult()
+i_particle = 0
 for node in spheres_model_part.Nodes:
-    node.SetSolutionStepValue(VELOCITY_Y, ch_pp.u0)    
-    node.SetSolutionStepValue(VELOCITY_Y, ch_pp.v0)
-    node.SetSolutionStepValue(VELOCITY_Z, 2. / 9 * 9.8 * ch_pp.a ** 2 / (ch_pp.nu * ch_pp.rho_f) * (ch_pp.rho_f - ch_pp.rho_p))
-    node.Fix(VELOCITY_Z)
-    node.SetSolutionStepValue(VELOCITY_OLD_X, ch_pp.u0)
-    node.SetSolutionStepValue(VELOCITY_OLD_Y, ch_pp.v0)
-    node.SetSolutionStepValue(VELOCITY_OLD_Z, 2. / 9 * 9.8 * ch_pp.a ** 2 / (ch_pp.nu * ch_pp.rho_f) * (ch_pp.rho_f - ch_pp.rho_p))
-    node.Fix(VELOCITY_OLD_Z)
-    node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, ch_pp.u0)
-    node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, ch_pp.v0)
-    node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, 0.0)   
+    X, Z, UX, UZ, DUX, DUZ, D = cubic_law.GetPositionAndFlowVariables(i_particle)
+    node.X = X
+    node.Z = Z
+    node.X0 = X
+    node.Z0 = Z
+    #node.SetSolutionStepValue(DISPLACEMENT_X, 0.0)   
+    #node.SetSolutionStepValue(DISPLACEMENT_Z, 0.0)   
+    node.SetSolutionStepValue(VELOCITY_X, UX)    
+    node.SetSolutionStepValue(VELOCITY_Y, 0.0)
+    node.SetSolutionStepValue(VELOCITY_Z, UZ)
+    node.Fix(VELOCITY_Y)
+    node.SetSolutionStepValue(VELOCITY_OLD_X, UX)
+    node.SetSolutionStepValue(VELOCITY_OLD_Y, 0.0)
+    node.SetSolutionStepValue(VELOCITY_OLD_Z, UZ)
+    node.Fix(VELOCITY_OLD_Y)
+    node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, UX)
+    node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, 0.0)
+    node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, UZ)   
+    i_particle += 1
+
+post_utils.Writeresults(time)
+    
+# CUBIC LAW END
 
 while (time <= final_time):
 
@@ -808,115 +793,36 @@ while (time <= final_time):
                 projection_module.ProjectFromFluid((time_final_DEM_substepping - time_dem) / Dt)             
                 
                 for node in spheres_model_part.Nodes:
-                    x = node.X
-                    y = node.Y
-                    z = node.Z
-                    r = math.sqrt(x ** 2 + y ** 2)
-                    omega = ch_pp.omega
-                    vx = - omega * y
-                    vy =   omega * x
-                    ax = - x * omega ** 2
-                    ay = - y * omega ** 2             
-                    node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, vx)
-                    node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, vy)
-                    node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, 0.0)            
-                    node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_X, ax)
-                    node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Y, ay)
-                    node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Z, 0.0)      
-                    node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_X, ax)
-                    node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_Y, ay)
-                    node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_Z, 0.0)       
+                    X = node.X
+                    Z = node.Z
+                    UX, UZ, DUX, DUZ, D = cubic_law.GetFlowVariables(X, Z)
+                    node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, UX)
+                    node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, 0.0)
+                    node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, UZ)            
+                    node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_X, DUX)
+                    node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Y, 0.0)
+                    node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Z, DUZ)      
+                    node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_X, DUX)
+                    node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_Y, 0.0)
+                    node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_Z, DUZ)       
 
                     if DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
                         solver.Solve() # only advance in space
                         #projection_module.InterpolateVelocity()  
-                        x = node.X
-                        y = node.Y
-                        r = math.sqrt(x ** 2 + y ** 2)
-                        new_vx = - omega * y
-                        new_vy =   omega * x
-                        node.SetSolutionStepValue(SLIP_VELOCITY_X, new_vx)
-                        node.SetSolutionStepValue(SLIP_VELOCITY_Y, new_vy)       
+                        UX, UZ, DUX, DUZ, D = cubic_law.GetFlowVariables(node.X, node.Z)
+                        node.SetSolutionStepValue(SLIP_VELOCITY_X, UX)
+                        node.SetSolutionStepValue(SLIP_VELOCITY_Z, UZ)       
                     else:
                         if pp.CFD_DEM.basset_force_type > 0:
-                            node.SetSolutionStepValue(SLIP_VELOCITY_X, vx)
-                            node.SetSolutionStepValue(SLIP_VELOCITY_Y, vy) 
-                          
-                    
-                    vp_x = node.GetSolutionStepValue(VELOCITY_X)
-                    vp_y = node.GetSolutionStepValue(VELOCITY_Y)
-                    vp_z = node.GetSolutionStepValue(VELOCITY_Z) 
-                    integrands.append([vx - vp_x, vy - vp_y, 0.])                                                                          
+                            UX, UZ, DUX, DUZ, D = cubic_law.GetFlowVariables(X, Z)
+                            node.SetSolutionStepValue(SLIP_VELOCITY_X, UX)
+                            node.SetSolutionStepValue(SLIP_VELOCITY_Z, UZ)                                                                                              
 
-                    if quadrature_counter.Tick():
-                        if pp.CFD_DEM.basset_force_type == 1 or pp.CFD_DEM.basset_force_type >= 3:
-                            basset_force_tool.AppendIntegrandsWindow(spheres_model_part) 
-                        elif pp.CFD_DEM.basset_force_type == 2:
-                            basset_force_tool.AppendIntegrands(spheres_model_part)     
-
-                    H_old[:] = H[:]
-                    if len(times) < pp.CFD_DEM.n_init_basset_steps:                        
-                        sim.CalculateBassetForce(basset_force, time_dem * ch_pp.omega)
-                        node.SetSolutionStepValue(BASSET_FORCE_X, basset_force[0])
-                        node.SetSolutionStepValue(BASSET_FORCE_Y, basset_force[1])    
-                        node.SetSolutionStepValue(BASSET_FORCE_Z, 0.)  
-                        sim.CalculatePosition(coors, time_dem * ch_pp.omega, exact_vel)    
-                        #print("\nEXACT", basset_force) 
-                        H[0] = H_old[0] + Dt_DEM / units_coefficient * basset_force[0]
-                        H[1] = H_old[1] + Dt_DEM / units_coefficient * basset_force[1]
-
-                        for node in spheres_model_part.Nodes:
-                            node.X = coors[0] * ch_pp.R
-                            node.Y = coors[1] * ch_pp.R
-                            node.Z = coors[2] * ch_pp.R
-                            x = node.X
-                            y = node.Y
-                            r = math.sqrt(x ** 2 + y ** 2)
-
-                            node.SetSolutionStepValue(DISPLACEMENT_X, coors[0] * ch_pp.R - ch_pp.x0)
-                            node.SetSolutionStepValue(DISPLACEMENT_Y, coors[1] * ch_pp.R - ch_pp.y0)
-                            node.SetSolutionStepValue(DISPLACEMENT_Z, coors[2] * ch_pp.R - ch_pp.z0)
-                            vp_x = exact_vel[0] * ch_pp.R * ch_pp.omega
-                            vp_y = exact_vel[1] * ch_pp.R * ch_pp.omega
-                            vp_z = exact_vel[2] * ch_pp.R * ch_pp.omega
-                            #node.SetSolutionStepValue(VELOCITY_X, vp_x)
-                            #node.SetSolutionStepValue(VELOCITY_Y, vp_y)
-                            #node.SetSolutionStepValue(VELOCITY_Z, vp_z)
-                            #node.SetSolutionStepValue(VELOCITY_OLD_X, vp_x)
-                            #node.SetSolutionStepValue(VELOCITY_OLD_Y, vp_y)
-                            #node.SetSolutionStepValue(VELOCITY_Z, vp_z)                            
-                    
-                    else:
-                        pass
-                        #sim.CalculateBassetForce(exact_basset_force, time_dem * ch_pp.omega)
-                        #sim.CalculatePosition(coors, time_dem * ch_pp.omega, exact_vel)
-                        #vp_x = exact_vel[0] * ch_pp.R / ch_pp.omega
-                        #vp_y = exact_vel[1] * ch_pp.R / ch_pp.omega
-                        #vp_z = exact_vel[2] * ch_pp.R / ch_pp.omega
-                        #H[0] = H_old[0] + Dt_DEM / units_coefficient * exact_basset_force[0]
-                        #H[1] = H_old[1] + Dt_DEM / units_coefficient * exact_basset_force[1]          
-                        #sqrt_h =  math.sqrt(Dt_DEM)
-                        #exact_Delta_H[0] = (H[0] - H_old[0]) / sqrt_h
-                        #exact_Delta_H[1] = (H[1] - H_old[1]) / sqrt_h
-                        ##Delta_H[0], Delta_H[1], Delta_H[2], present_coefficient = quad.DaitcheTimesAndIntegrands(times, integrands, 1)           
-                        #Delta_H = [d / sqrt_h for d in Delta_H]
-                        #basset_force[0] = units_coefficient * Dt_DEM_inv * (Delta_H[0])
-                        #basset_force[1] = units_coefficient * Dt_DEM_inv * (Delta_H[1])
-                        #print("\n integrands", integrands)
-                        #print("delta_time", times[-1]-times[-2])
-                        #print("DAITCHE", basset_force)                                                
-                        #print("EXACT", exact_basset_force)                   
-                        #print("\nDelta_H", Delta_H)
-                        #print("exact_Delta_H", exact_Delta_H)     
-                        #node.SetSolutionStepValue(BASSET_FORCE_X, basset_force[0])
-                        #node.SetSolutionStepValue(BASSET_FORCE_Y, basset_force[1])     
-                        #node.SetSolutionStepValue(BASSET_FORCE_Z, 0.) 
-                        #print("\nINTEGRANDS", integrands)
-                        #print("Delta_H",Delta_H)
-                        #print("present_coefficient", present_coefficient)
-                        #print("my n",len(times) - 2)
-                    times.append(time_dem)
-                    radii.append(r) 
+                if quadrature_counter.Tick():
+                    if pp.CFD_DEM.basset_force_type == 1 or pp.CFD_DEM.basset_force_type >= 3:
+                        basset_force_tool.AppendIntegrandsWindow(spheres_model_part) 
+                    elif pp.CFD_DEM.basset_force_type == 2:
+                        basset_force_tool.AppendIntegrands(spheres_model_part)     
 
         # performing the time integration of the DEM part
 
@@ -994,10 +900,6 @@ print("per DEM time step: " + "%.5f"%(simulation_elapsed_time/ DEM_step) + " s")
 sys.stdout.flush()
 
 dt_quad_over_dt = pp.CFD_DEM.delta_time_quadrature / pp.CFD_DEM.MaxTimeStep
-
-with open('radii' + str(int(dt_quad_over_dt)) + '.txt','w') as f: 
-    for i in range(len(radii)):
-        f.write(str(times[i]) + ' ' + str(radii[i]) + '\n')
 
 for i in drag_file_output_list:
     i.close()
