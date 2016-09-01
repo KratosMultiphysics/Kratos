@@ -90,8 +90,8 @@ pp.CFD_DEM.n_init_basset_steps = 0
 pp.CFD_DEM.time_steps_per_quadrature_step = 1
 pp.CFD_DEM.delta_time_quadrature = pp.CFD_DEM.time_steps_per_quadrature_step * pp.CFD_DEM.MaxTimeStep
 pp.CFD_DEM.quadrature_order = 2
-pp.CFD_DEM.time_window = 0.2
-pp.CFD_DEM.number_of_exponentials = 8
+pp.CFD_DEM.time_window = 0.01
+pp.CFD_DEM.number_of_exponentials = 1
 pp.CFD_DEM.number_of_quadrature_steps_in_window = int(pp.CFD_DEM.time_window / pp.CFD_DEM.delta_time_quadrature)
 #Z
 
@@ -363,6 +363,7 @@ if(pp.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmaras"):
             node.SetSolutionStepValue(TURBULENT_VISCOSITY, 0, 0.0)
             node.Fix(TURBULENT_VISCOSITY)
 
+solver.CreateCPlusPlusStrategy()
 solver.Initialize()    # Possible modifications of DELTA_TIME
 
 fluid_solver.Initialize()
@@ -848,7 +849,6 @@ while (time <= final_time):
                     integrands.append([vx - vp_x, vy - vp_y, 0.])                                                                          
 
                     if quadrature_counter.Tick():
-                        print('NOW', time_dem)
                         if pp.CFD_DEM.basset_force_type == 1 or pp.CFD_DEM.basset_force_type >= 3:
                             basset_force_tool.AppendIntegrandsWindow(spheres_model_part) 
                         elif pp.CFD_DEM.basset_force_type == 2:
@@ -887,20 +887,21 @@ while (time <= final_time):
                             #node.SetSolutionStepValue(VELOCITY_Z, vp_z)                            
                     
                     else:
+                        pass
                         #sim.CalculateBassetForce(exact_basset_force, time_dem * ch_pp.omega)
                         #sim.CalculatePosition(coors, time_dem * ch_pp.omega, exact_vel)
                         #vp_x = exact_vel[0] * ch_pp.R / ch_pp.omega
                         #vp_y = exact_vel[1] * ch_pp.R / ch_pp.omega
                         #vp_z = exact_vel[2] * ch_pp.R / ch_pp.omega
-                        H[0] = H_old[0] + Dt_DEM / units_coefficient * exact_basset_force[0]
-                        H[1] = H_old[1] + Dt_DEM / units_coefficient * exact_basset_force[1]          
-                        sqrt_h =  math.sqrt(Dt_DEM)
-                        exact_Delta_H[0] = (H[0] - H_old[0]) / sqrt_h
-                        exact_Delta_H[1] = (H[1] - H_old[1]) / sqrt_h
-                        #Delta_H[0], Delta_H[1], Delta_H[2], present_coefficient = quad.DaitcheTimesAndIntegrands(times, integrands, 1)           
-                        Delta_H = [d / sqrt_h for d in Delta_H]
-                        basset_force[0] = units_coefficient * Dt_DEM_inv * (Delta_H[0])
-                        basset_force[1] = units_coefficient * Dt_DEM_inv * (Delta_H[1])
+                        #H[0] = H_old[0] + Dt_DEM / units_coefficient * exact_basset_force[0]
+                        #H[1] = H_old[1] + Dt_DEM / units_coefficient * exact_basset_force[1]          
+                        #sqrt_h =  math.sqrt(Dt_DEM)
+                        #exact_Delta_H[0] = (H[0] - H_old[0]) / sqrt_h
+                        #exact_Delta_H[1] = (H[1] - H_old[1]) / sqrt_h
+                        ##Delta_H[0], Delta_H[1], Delta_H[2], present_coefficient = quad.DaitcheTimesAndIntegrands(times, integrands, 1)           
+                        #Delta_H = [d / sqrt_h for d in Delta_H]
+                        #basset_force[0] = units_coefficient * Dt_DEM_inv * (Delta_H[0])
+                        #basset_force[1] = units_coefficient * Dt_DEM_inv * (Delta_H[1])
                         #print("\n integrands", integrands)
                         #print("delta_time", times[-1]-times[-2])
                         #print("DAITCHE", basset_force)                                                
