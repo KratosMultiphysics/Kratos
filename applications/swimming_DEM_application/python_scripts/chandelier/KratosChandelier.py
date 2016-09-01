@@ -303,7 +303,7 @@ demio.Configure(DEM_parameters.problem_name,
 demio.SetOutputName(DEM_parameters.problem_name)
 
 os.chdir(post_path)
-
+solver.CreateCPlusPlusStrategy()
 demio.InitializeMesh(spheres_model_part,
                      rigid_face_model_part,
                      cluster_model_part,
