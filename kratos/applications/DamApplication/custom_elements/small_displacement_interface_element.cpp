@@ -121,70 +121,24 @@ int SmallDisplacementInterfaceElement<TDim,TNumNodes>::Check( const ProcessInfo&
 
 //----------------------------------------------------------------------------------------
 
-template< >
-void SmallDisplacementInterfaceElement<2,4>::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+template< unsigned int TDim, unsigned int TNumNodes >
+void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
     
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int element_size = 4 * 2;
+    GeometryType& rGeom = this->GetGeometry();
+    const unsigned int element_size = TNumNodes * TDim;
     unsigned int index = 0;
     
     if (rElementalDofList.size() != element_size)
       rElementalDofList.resize( element_size );
     
-    for (unsigned int i = 0; i < 4; i++)
-    {
-        rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
-        rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);        
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-//----------------------------------------------------------------------------------------
-
-template< >
-void SmallDisplacementInterfaceElement<3,6>::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-    
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int element_size = 6 * 3;
-    unsigned int index = 0;
-    
-    if (rElementalDofList.size() != element_size)
-      rElementalDofList.resize( element_size );
-    
-    for (unsigned int i = 0; i < 6; i++)
+    for (unsigned int i = 0; i < TNumNodes; i++)
     {
         rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
         rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
-        rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Z);
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-//----------------------------------------------------------------------------------------
-
-template< >
-void SmallDisplacementInterfaceElement<3,8>::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-    
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int element_size = 8 * 3;
-    unsigned int index = 0;
-    
-    if (rElementalDofList.size() != element_size)
-      rElementalDofList.resize( element_size );
-    
-    for (unsigned int i = 0; i < 8; i++)
-    {
-        rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
-        rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
-        rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Z);
+        if(TDim>2)
+            rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Z);
     }
 
     KRATOS_CATCH( "" )
@@ -237,7 +191,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateMassMatrix( Mat
             
         noalias(LocalRelDispVector) = prod(RotationMatrix,RelDispVector);
             
-        this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim], MinimumJointWidth,GPoint);
+        this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], MinimumJointWidth,GPoint);
 
         //InterfaceElementUtilities::CalculateNuElementMatrix(Nut,NContainer,GPoint);
         
@@ -297,7 +251,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep( Pr
     
         noalias(StrainVector) = prod(RotationMatrix,RelDispVector);
         
-        this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim], MinimumJointWidth, GPoint); //TODO PORQUE ES TDim -1
+        this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim-1], MinimumJointWidth, GPoint); //TODO PORQUE ES TDim -1
         
         noalias(Np) = row(NContainer,GPoint);
         
@@ -554,7 +508,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPo
             
             noalias(StrainVector) = prod(RotationMatrix,RelDispVector);
             
-            this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim], MinimumJointWidth, GPoint);
+            this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim-1], MinimumJointWidth, GPoint);
             
             noalias(Np) = row(NContainer,GPoint);
             
@@ -697,7 +651,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateStiffnessMatrix
         InterfaceElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
         noalias(RelDispVector) = prod(Variables.Nu,Variables.DisplacementVector);
         noalias(Variables.StrainVector) = prod(Variables.RotationMatrix,RelDispVector);
-        this->CheckAndCalculateJointWidth(Variables.JointWidth,ConstitutiveParameters,Variables.StrainVector[TDim], MinimumJointWidth, GPoint);
+        this->CheckAndCalculateJointWidth(Variables.JointWidth,ConstitutiveParameters,Variables.StrainVector[TDim-1], MinimumJointWidth, GPoint);
         
         
         //Compute constitutive tensor
@@ -756,7 +710,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateAll( MatrixType
         InterfaceElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
         noalias(RelDispVector) = prod(Variables.Nu,Variables.DisplacementVector);
         noalias(Variables.StrainVector) = prod(Variables.RotationMatrix,RelDispVector);
-        this->CheckAndCalculateJointWidth(Variables.JointWidth,ConstitutiveParameters,Variables.StrainVector[TDim], MinimumJointWidth, GPoint);
+        this->CheckAndCalculateJointWidth(Variables.JointWidth,ConstitutiveParameters,Variables.StrainVector[TDim-1], MinimumJointWidth, GPoint);
         
         //Compute BodyAcceleration
         ElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
@@ -764,6 +718,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateAll( MatrixType
         //Compute constitutive tensor and stresses
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
+        
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
         
@@ -817,7 +772,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateRHS( VectorType
         InterfaceElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
         noalias(RelDispVector) = prod(Variables.Nu,Variables.DisplacementVector);
         noalias(Variables.StrainVector) = prod(Variables.RotationMatrix,RelDispVector);        
-        this->CheckAndCalculateJointWidth(Variables.JointWidth,ConstitutiveParameters,Variables.StrainVector[TDim], MinimumJointWidth, GPoint);
+        this->CheckAndCalculateJointWidth(Variables.JointWidth,ConstitutiveParameters,Variables.StrainVector[TDim-1], MinimumJointWidth, GPoint);
 
         
         //Compute BodyAcceleration
