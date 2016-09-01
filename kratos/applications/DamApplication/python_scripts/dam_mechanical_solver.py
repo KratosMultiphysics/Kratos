@@ -42,8 +42,13 @@ def CreateSolver(model_part, config):
     dam_mechanical_solver = DamMechanicalSolver()
     
     #Setting the strategy type
-    dofs_rel_tol = config.dofs_relative_tolerance
-    residual_rel_tol = config.residual_relative_tolerance
+    convergence_criterion = config.convergence_criterion
+    dis_rel_tol = config.displacement_rel_tol
+    dis_abs_tol = config.displacement_abs_tol
+    res_rel_tol = config.residual_rel_tol
+    res_abs_tol = config.residual_abs_tol
+    echo_level = config.echo_level
+        
     max_iters = config.max_iteration
     compute_react = config.compute_reactions
 
@@ -78,10 +83,23 @@ def CreateSolver(model_part, config):
     if(config.linear_solver == "Iterative" and config.iterative_solver == "AMGCL"):
         builder_and_solver = ResidualBasedBlockBuilderAndSolver(linear_solver)        
 
-    if(config.strategy_type == "Newton-Raphson"):
-        dam_mechanical_solver.strategy = DamNewtonRaphsonStrategy(model_part,solution_scheme,builder_and_solver,dofs_rel_tol,residual_rel_tol,max_iters,compute_react,
-                                                                dam_mechanical_solver.reform_step_dofs,dam_mechanical_solver.move_mesh_flag)
+    #Convergence Criterion
+    if(convergence_criterion == "Displacement_criterion"):
+        convergence_criterion = DisplacementConvergenceCriterion(dis_rel_tol, dis_abs_tol)
+        convergence_criterion.SetEchoLevel(echo_level)
+    elif(convergence_criterion == "Residual_criterion"):
+        convergence_criterion = ResidualCriteria(res_rel_tol, res_abs_tol)
+        convergence_criterion.SetEchoLevel(echo_level)
+    elif(convergence_criterion == "And_criterion"):
+        Displacement = DisplacementConvergenceCriterion(dis_rel_tol, dis_abs_tol)
+        Displacement.SetEchoLevel(echo_level)
+        Residual = ResidualCriteria(res_rel_tol, res_abs_tol)
+        Residual.SetEchoLevel(echo_level)
+        convergence_criterion = AndCriteria(Residual, Displacement)
 
+    if(config.strategy_type == "Newton-Raphson"):
+        dam_mechanical_solver.strategy = ResidualBasedNewtonRaphsonStrategy(model_part,solution_scheme,linear_solver,convergence_criterion,builder_and_solver,max_iters,
+                                                                            compute_react,dam_mechanical_solver.reform_step_dofs,dam_mechanical_solver.move_mesh_flag)
 
 
     return dam_mechanical_solver
