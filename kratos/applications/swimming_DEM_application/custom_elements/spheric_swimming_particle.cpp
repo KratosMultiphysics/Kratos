@@ -138,7 +138,6 @@ void SphericSwimmingParticle<TBaseElement>::UpdateNodalValues(NodeType& node,
 
     if (mHasBassetForceNodalVar){
         noalias(node.FastGetSolutionStepValue(BASSET_FORCE))         = basset_force;
-        KRATOS_WATCH(basset_force)
     }
 
     if (mHasOldAdditionalForceVar){
@@ -505,7 +504,6 @@ void SphericSwimmingParticle<TBaseElement>::AddFdi(const int order, array_1d<dou
             const double f00 = historic_integrands[3];
             const double f01 = historic_integrands[4];
             const double f02 = historic_integrands[5];
-            KRATOS_WATCH(exp_1)
             F[0] += coeff * exp_1 * ((2 * exp_2 * (dt * beta) - dt * beta - 2)                                                * f00
                                    + (exp_2 * (4 - 4 * dt * beta) + 2 * beta * SWIMMING_POW_2(dt * beta) - 4)                 * f10
                                    + (exp_2 * (2 - 3 * dt * beta + 2 * 2 * beta * SWIMMING_POW_2(dt * beta)) + dt * beta - 2) * f20);
