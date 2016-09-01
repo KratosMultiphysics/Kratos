@@ -480,7 +480,7 @@ double SphericSwimmingParticle<TBaseElement>::Ki(const double alpha, const doubl
 template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::AddFdi(const int order, array_1d<double, 3>& F, const double t_win, const double alpha, const double beta, const double phi, const double dt, const vector<double>& historic_integrands, const array_1d<double, 3>& oldest_integrand)
 {
-    if (order == 1 || order == 2){
+    if (order == 1){
         const double beta_dt = beta * dt;
         const double coeff = - alpha / beta * std::exp(beta * (t_win - dt + dt * phi));
         const double coeff_N = 1 - Phi(beta_dt);
@@ -492,7 +492,7 @@ void SphericSwimmingParticle<TBaseElement>::AddFdi(const int order, array_1d<dou
     }
 
     else if (order == 2){
-        if (true){ // unstable
+        if (false){ // unstable
             const double coeff = 0.5 * alpha / (beta * SWIMMING_POW_2(dt * beta));
             const double exp_1 = std::exp(beta * (t_win - dt + dt * phi));
             const double exp_2 = std::exp(beta * dt);
