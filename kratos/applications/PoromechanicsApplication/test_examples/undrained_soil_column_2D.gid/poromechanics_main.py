@@ -109,7 +109,7 @@ for step in range(buffer_size-1):
 poromechanics_cleaning_utility.CleanPreviousFiles(problem_path)
 
 # Initialize GiD I/O
-computing_model_part = solver.GetComputeModelPart()
+computing_model_part = solver.GetComputingModelPart()
 gid_output = GiDOutputProcess(computing_model_part,problem_name,output_settings)
 gid_output.ExecuteInitialize()
 
