@@ -237,7 +237,7 @@ class FracturePropagationUtility:
         main_model_part.ProcessInfo[DELTA_TIME] = main_model_part_old.ProcessInfo[DELTA_TIME]
         
         # Initialize GiD I/O
-        computing_model_part = solver.GetComputeModelPart()
+        computing_model_part = solver.GetComputingModelPart()
         gid_output = GiDOutputProcess(computing_model_part,self.problem_name,output_settings)
         gid_output.ExecuteInitialize()
         
