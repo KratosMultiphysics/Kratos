@@ -9,21 +9,21 @@ class KratosProcessFactory(object):
         constructed_processes = []
         for i in range(0,process_list.size()):
             item = process_list[i]
-            module = __import__(item["implemented_in_module"].GetString())
-            interface_file = __import__(item["implemented_in_file"].GetString())
-            p = interface_file.Factory(item, self.Model)
+            kratos_module = __import__(item["kratos_module"].GetString())
+            python_module = __import__(item["python_module"].GetString())
+            p = python_module.Factory(item, self.Model)
             constructed_processes.append( p )
             #if( "implemented_in_python" in item): #check if implemented in python or in c++
                 #if item["implemented_in_python"] == True: #here we treat the case of python implemented processes
-                    #module = __import__(item["implemented_in_module"])
-                    #interface_file = __import__(item["implemented_in_file"])
-                    #p = interface_file.Factory(item, self.Model)
+                    #kratos_module = __import__(item["kratos_module"])
+                    #python_module = __import__(item["python_module"])
+                    #p = python_module.Factory(item, self.Model)
                     #constructed_processes.append( p )
                     
                 #else: #here we create c++ processes
-                    #module = __import__(item["implemented_in_module"])
-                    #interface_file = __import__(item["implemented_in_file"])
-                    #p = interface_file.Factory(item, self.Model)
+                    #kratos_module = __import__(item["kratos_module"])
+                    #python_module = __import__(item["python_module"])
+                    #p = python_module.Factory(item, self.Model)
                     #constructed_processes.append( p )
                     
             #else:

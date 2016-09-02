@@ -80,8 +80,8 @@ proc Fluid::write::getGravityProcessDict {} {
     set cz [write::getValue FLGravity Cz]
     #W "Gravity $value on \[$cx , $cy , $cz\]"
     set pdict [dict create]
-    dict set pdict "implemented_in_file" "process_factory"
-    dict set pdict "implemented_in_module" "KratosMultiphysics"
+    dict set pdict "python_module" "process_factory"
+    dict set pdict "kratos_module" "KratosMultiphysics"
     dict set pdict "process_name" "ApplyConstantVectorValueProcess"
     set params [dict create]
     dict set params "mesh_id" 0

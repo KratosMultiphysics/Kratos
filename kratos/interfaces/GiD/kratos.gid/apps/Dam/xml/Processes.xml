@@ -2,24 +2,24 @@
 <ProcessList>
    <!---  NODAL PROCESSES --> 
    <!---  Nodal Displacement, Acceleration -->
-  <Process n="ImposeVectorValueByComponentsProcess" pn="Impose vector value by components process" implemented_in_file="impose_vector_value_by_components_process"
-		implemented_in_module="KratosMultiphysics" help="This process fixes the selected components of a given vector variable">
+  <Process n="ImposeVectorValueByComponentsProcess" pn="Impose vector value by components process" python_module="impose_vector_value_by_components_process"
+		kratos_module="KratosMultiphysics" help="This process fixes the selected components of a given vector variable">
     <inputs>
         <parameter n="value" pn="Value" type="vector" fixity="Imposed" v="0.0,0.0,0.0"/>
     </inputs>
   </Process>
   
    <!---  Uniform tempereature -->
-  <Process n="ImposeUniformTemperatureProcess" pn="Impose vector value by components process" implemented_in_file="impose_uniform_temperature_process"
-		implemented_in_module="KratosMultiphysics.DamApplication" help="This process fixes the given scalar variable">
+  <Process n="ImposeUniformTemperatureProcess" pn="Impose vector value by components process" python_module="impose_uniform_temperature_process"
+		kratos_module="KratosMultiphysics.DamApplication" help="This process fixes the given scalar variable">
     <inputs>
         <parameter n="value" pn="Value" type="double" v="0.0" fixity="Imposed" />
     </inputs>
   </Process>   
    
   <!---  Bofang Temperature -->   
-  <Process n="ImposeBofangConditionProcess" pn="Impose Bofang scalar field value" implemented_in_file="impose_bofang_condition_process"
-		implemented_in_module="KratosMultiphysics.DamApplication" help="This process fixes the given scalar variable">
+  <Process n="ImposeBofangConditionProcess" pn="Impose Bofang scalar field value" python_module="impose_bofang_condition_process"
+		kratos_module="KratosMultiphysics.DamApplication" help="This process fixes the given scalar variable">
     <inputs>
         <parameter n="Gravity_Direction" pn="Gravity Direction" type="combo" v="Y" values="X,Y,Z" fixity="Imposed" />
         <parameter n="Reservoir_Bottom_Coordinate_in_Gravity_Direction" pn="Reservoir Bottom Coordinate in Gravity Direction" type="double" v="0.0"/>
@@ -35,8 +35,8 @@
   </Process>
     
    <!---  Thermal Parameters -->
-    <Process n="ImposeThermalParametersScalarValueProcess" pn="Impose thermal parameters for solving the thermal problem" implemented_in_file="impose_thermal_parameters_scalar_value_process"
-		implemented_in_module="KratosMultiphysics.DamApplication" help="This process fixes the given scalar variable">
+    <Process n="ImposeThermalParametersScalarValueProcess" pn="Impose thermal parameters for solving the thermal problem" python_module="impose_thermal_parameters_scalar_value_process"
+		kratos_module="KratosMultiphysics.DamApplication" help="This process fixes the given scalar variable">
     <inputs>
         <parameter n="ThermalDensity" pn="Density" type="double" v="2400"/>
         <parameter n="Conductivity" pn="Conductivity" type="double" v="1.0" />
@@ -46,8 +46,8 @@
 
 <!---  CONDITION PROCESSES --> 
 <!---  Point Loads -->       
-  <Process n="ApplyConstantVectorValueProcess" pn="Constant vector value" implemented_in_file="process_factory"
-		implemented_in_module="KratosMultiphysics" check="DirectorVectorNonZero direction"
+  <Process n="ApplyConstantVectorValueProcess" pn="Constant vector value" python_module="process_factory"
+		kratos_module="KratosMultiphysics" check="DirectorVectorNonZero direction"
 		help="This process ">
     <inputs>
       <parameter n="factor" pn="Factor" type="double" v="1.0"/>
@@ -56,8 +56,8 @@
   </Process>
   
 <!---  Line Loads & Surface Loads -->   
-  <Process n="ApplyVectorOnConditionsProcess" pn="Apply a vector value over a condition" implemented_in_file="apply_vector_on_conditions_process"
-		implemented_in_module="KratosMultiphysics.SolidMechanicsApplication" help="This process sets a vector variable value over a condition" check="DirectorVectorNonZero direction"> 
+  <Process n="ApplyVectorOnConditionsProcess" pn="Apply a vector value over a condition" python_module="apply_vector_on_conditions_process"
+		kratos_module="KratosMultiphysics.SolidMechanicsApplication" help="This process sets a vector variable value over a condition" check="DirectorVectorNonZero direction"> 
     <inputs>
       <parameter n="factor" pn="Modulus" type="double"  v="1.0"/>
       <parameter n="direction" pn="Direction" type="vector" v="0.0,0.0,0.0" unit_magnitude="0" units="0" />
@@ -65,16 +65,16 @@
   </Process>
   
 <!--- Normal Loads -->   
-  <Process n="ApplyScalarOnConditionsProcess" pn="Apply a scalar value over a condition" implemented_in_file="apply_scalar_on_conditions_process"
-		implemented_in_module="KratosMultiphysics.SolidMechanicsApplication" help="This process sets a scalar variable value over a condition" > 
+  <Process n="ApplyScalarOnConditionsProcess" pn="Apply a scalar value over a condition" python_module="apply_scalar_on_conditions_process"
+		kratos_module="KratosMultiphysics.SolidMechanicsApplication" help="This process sets a scalar variable value over a condition" > 
     <inputs>
         <parameter n="value" pn="Value" type="double" v="0.0" />
     </inputs>
   </Process>
   
 <!--- Hydrostatic Loads -->   
-  <Process n="HydrostaticConditionsProcess" pn="Apply a scalar value over a condition" implemented_in_file="impose_water_loads_condition_process"
-		implemented_in_module="KratosMultiphysics.DamApplication" help="This process sets a scalar variable value over a condition" > 
+  <Process n="HydrostaticConditionsProcess" pn="Apply a scalar value over a condition" python_module="impose_water_loads_condition_process"
+		kratos_module="KratosMultiphysics.DamApplication" help="This process sets a scalar variable value over a condition" > 
     <inputs>
         <parameter n="Modify" pn="Modify" type="bool" v="1"/>
         <parameter n="Gravity_Direction" pn="Gravity Direction" type="combo" v="Y" values="X,Y,Z"/>
@@ -85,8 +85,8 @@
   </Process>  
   
 <!--- Uplift Loads -->   
-  <Process n="UpliftConditionsProcess" pn="Apply a scalar value over a condition" implemented_in_file="impose_water_loads_condition_process"
-		implemented_in_module="KratosMultiphysics.DamApplication" help="This process sets a scalar variable value over a condition" > 
+  <Process n="UpliftConditionsProcess" pn="Apply a scalar value over a condition" python_module="impose_water_loads_condition_process"
+		kratos_module="KratosMultiphysics.DamApplication" help="This process sets a scalar variable value over a condition" > 
     <inputs>
         <parameter n="Modify" pn="Modify" type="bool" v="1"/>
         <parameter n="Gravity_Direction" pn="Gravity Direction" type="combo" v="Y" values="X,Y,Z" />
