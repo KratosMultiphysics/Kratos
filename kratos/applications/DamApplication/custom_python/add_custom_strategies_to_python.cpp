@@ -40,12 +40,12 @@ using namespace boost::python;
 void  AddCustomStrategiesToPython()
 {
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-    typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
-    typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
+    //typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    //typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    //typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    //typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+    //typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+    //typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
     
     //typedef DamNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > DamNewtonRaphsonStrategyType;
 
