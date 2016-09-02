@@ -33,7 +33,10 @@ class ProblemParameters:
         self.vels_vertical = []        
         self.accelerations_horizontal = []
         self.accelerations_vertical = []
-
+        self.x_points = []
+        self.phi_1 = []
+        self.phi_2 = []
+        
 pp = ProblemParameters()
 
 def GetProblemParameters():
@@ -139,15 +142,13 @@ def GetFlowVariables(i, X, Z):
     pp.accelerations_vertical[i]   = DUZ   
     return UX, UZ, DUX, DUZ, D
     
-x_points = np.linspace(0, pp.L0, pp.n_points)
-x_points = [x for x in x_points]
-phi_1 = [Phi1(x) for x in x_points]
-phi_2 = [Phi2(x) for x in x_points]
-plt.axis('equal')
-plt.plot(x_points, phi_1, color='k', linewidth=2)
-plt.plot(x_points, phi_2, color='k', linewidth=2)
+
 
 def GenerateRandomPositions(n_particles):
+    pp.x_points = np.linspace(0, pp.L0, pp.n_points)
+    pp.x_points = [x for x in pp.x_points]
+    pp.phi_1 = [Phi1(x) for x in pp.x_points]
+    pp.phi_2 = [Phi2(x) for x in pp.x_points]
     pp.n_particles = n_particles
     randoms_horizontal_guesses = np.random.uniform(0, 1.0 , n_particles)
     objective_function = HorizontalDistributionMinusObjective(pp.L0, pp.H0, pp.A1, pp.A2, pp.DeltaX)
@@ -178,10 +179,11 @@ def GetPositionAndFlowVariables(i):
     UX, UZ, DUX, DUZ, D = GetFlowVariables(i, X, Z)
     return X, Z, UX, UZ, DUX, DUZ, D
 
-def PrintResult():
+def PrintResult(time):
+
     for value in pp.eta_values:
-        streamline_Z_values = [pp.H0 * eta_to_z(x / pp.L0, value)[1] for x in x_points]
-        plt.plot(x_points, streamline_Z_values, color='b', linestyle='dashed')
+        streamline_Z_values = [pp.H0 * eta_to_z(x / pp.L0, value)[1] for x in pp.x_points]
+        plt.plot(pp.x_points, streamline_Z_values, color='b', linestyle='dashed')
     plt.scatter(pp.randoms_horizontal, pp.randoms_vertical)
     print('delta_0 = ', pp.delta_0)
     print('alpha = ', pp.alpha)
@@ -207,4 +209,8 @@ def PrintResult():
         DUX = pp.accelerations_horizontal[i]
         DUZ = pp.accelerations_vertical[i]    
         pylab.arrow(X, Z, DUX * acc_size_coeff, DUZ * acc_size_coeff, fc = "k", ec = "k", width = 0.001 * pp.H0, head_width = 0.02 * pp.H0, head_length = 0.04 * pp.H0)
-    plt.show()
+    plt.axis('equal')
+    plt.plot(pp.x_points, pp.phi_1, color='k', linewidth=2)
+    plt.plot(pp.x_points, pp.phi_2, color='k', linewidth=2)
+    plt.savefig('fracture_' + str(time) + '.png', bbox_inches='tight')
+    plt.close()
