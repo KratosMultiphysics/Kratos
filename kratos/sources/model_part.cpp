@@ -1103,7 +1103,7 @@ void ModelPart::PrintData(std::ostream& rOStream) const
         rOStream << "    Mesh " << i << " : " << std::endl;
         GetMesh(i).PrintData(rOStream, "    ");
     }
-
+    rOStream << std::endl;
     for (SubModelPartConstantIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
     {
         i_sub_model_part->PrintInfo(rOStream, "    ");

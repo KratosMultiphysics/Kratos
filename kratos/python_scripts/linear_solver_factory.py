@@ -63,7 +63,7 @@ def ConstructSolver(configuration):
     linear_solver = None
 
     #
-    if(solver_type == "Conjugate gradient" or solver_type == "Conjugate_gradient"):
+    if(solver_type == "Conjugate gradient" or solver_type == "Conjugate_gradient" or solver_type == "CGSolver"):
         precond = ConstructPreconditioner(configuration)
         max_it = configuration.max_iteration
         tol = configuration.tolerance
@@ -72,7 +72,7 @@ def ConstructSolver(configuration):
         else:
             linear_solver = CGSolver(tol, max_it, precond)
     #
-    elif(solver_type == "BiConjugate gradient stabilized" or solver_type == "BiConjugate_gradient_stabilized"):
+    elif(solver_type == "BiConjugate gradient stabilized" or solver_type == "BiConjugate_gradient_stabilized" or solver_type == "BICGSTABSolver"):
         precond = ConstructPreconditioner(configuration)
         max_it = configuration.max_iteration
         tol = configuration.tolerance
@@ -81,7 +81,7 @@ def ConstructSolver(configuration):
         else:
             linear_solver = BICGSTABSolver(tol, max_it, precond)
     #
-    elif(solver_type == "GMRES"):
+    elif(solver_type == "GMRES" or solver_type == "GMRESSolver"):
         import KratosMultiphysics.ExternalSolversApplication
         precond = ConstructPreconditioner(configuration)
         max_it = configuration.max_iteration
@@ -93,7 +93,7 @@ def ConstructSolver(configuration):
             linear_solver = KratosMultiphysics.ExternalSolversApplication.GMRESSolver(
                 tol, max_it, precond)
     #
-    elif(solver_type == "Deflated Conjugate gradient" or solver_type == "Deflated_Conjugate_gradient"):
+    elif(solver_type == "Deflated Conjugate gradient" or solver_type == "Deflated_Conjugate_gradient" or solver_type == "DeflatedCGSolver"):
         max_it = configuration.max_iteration
         tol = configuration.tolerance
 
@@ -126,10 +126,10 @@ def ConstructSolver(configuration):
             max_it,
             m)
     #
-    elif(solver_type == "Skyline LU factorization" or solver_type == "Skyline_LU_factorization"):
+    elif(solver_type == "Skyline LU factorization" or solver_type == "Skyline_LU_factorization" or solver_type == "SkylineLUFactorizationSolver"):
         linear_solver = SkylineLUFactorizationSolver()
     #
-    elif(solver_type == "Super LU" or solver_type == "Super_LU"):
+    elif(solver_type == "Super LU" or solver_type == "Super_LU" or solver_type == "SuperLUSolver"):
         import KratosMultiphysics.ExternalSolversApplication
         linear_solver = KratosMultiphysics.ExternalSolversApplication.SuperLUSolver(
         )
@@ -166,7 +166,7 @@ def ConstructSolver(configuration):
             tol, max_it, restart, DropTol, FillTol, ilu_level_of_fill)
 
     #
-    elif(solver_type == "PastixDirect"):
+    elif(solver_type == "PastixDirect" or solver_type == "PastixSolver"):
         import KratosMultiphysics.ExternalSolversApplication
         is_symmetric = False
         if hasattr(configuration, 'is_symmetric'):
