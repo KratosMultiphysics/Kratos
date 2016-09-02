@@ -506,6 +506,11 @@ public:
         return 1;
     }
 
+    virtual SizeType FacesNumber() const
+    {
+        return 0;
+    }
+
     ///@}
     ///@name Shape Function
     ///@{
