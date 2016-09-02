@@ -42,7 +42,7 @@ class NavierStokesSolver_FractionalStep:
             "dynamic_tau": 0.001,
             "compute_reactions": false,
             "divergence_clearance_steps": 0,
-            "reform_dofs_at_each_iteration": false,
+            "reform_dofs_at_each_step": false,
             "pressure_linear_solver_settings":  {
                 "solver_type"                    : "AMGCL",
                 "max_iteration"                  : 200,
@@ -197,7 +197,7 @@ class NavierStokesSolver_FractionalStep:
                                                                             self.settings.GetInt(),
                                                                             self.use_slip_conditions,
                                                                             MoveMeshFlag,
-                                                                            self.settings["reform_dofs_at_each_iteration]"].GetBool(),
+                                                                            self.settings["reform_dofs_at_each_step]"].GetBool(),
                                                                             KratosCFD.PATCH_INDEX)
                                                                   
         else:
@@ -206,7 +206,7 @@ class NavierStokesSolver_FractionalStep:
                                                                     self.settings["time_order"].GetInt(),
                                                                     self.use_slip_conditions,
                                                                     MoveMeshFlag,
-                                                                    self.settings["reform_dofs_at_each_iteration"].GetBool())
+                                                                    self.settings["reform_dofs_at_each_step"].GetBool())
                                                               
         self.solver_settings.SetEchoLevel(self.settings["echo_level"].GetInt())
 

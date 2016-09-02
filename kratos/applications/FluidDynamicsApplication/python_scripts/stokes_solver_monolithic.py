@@ -38,7 +38,7 @@ class StokesSolver:
             "time_order": 2,
             "dynamic_tau": 0.001,
             "compute_reactions": false,
-            "reform_dofs_at_each_iteration": false,
+            "reform_dofs_at_each_step": false,
             "volume_model_part_name" : "volume_model_part",
             "skin_parts":[""],
             "model_import_settings": {
@@ -164,7 +164,7 @@ class StokesSolver:
                                                                           builder_and_solver, 
                                                                           self.settings["maximum_iterations"].GetInt(),
                                                                           self.settings["compute_reactions"].GetBool(),
-                                                                          self.settings["reform_dofs_at_each_iteration"].GetBool(),
+                                                                          self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                           move_mesh_flag
                                                                           )
         

@@ -21,7 +21,7 @@
         "block_builder"                      : true,
         "line_search"                        : false,
         "clear_storage"                      : false,
-        "reform_dofs_at_each_iteration"      : true,
+        "reform_dofs_at_each_step"           : true,
         "convergence_criterion"              : "Residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
@@ -40,8 +40,8 @@
         "rotation_dofs"                      : false
     },
     "constraints_process_list" : [{
-        "implemented_in_file"   : "impose_vector_value_by_components_process",
-        "implemented_in_module" : "KratosMultiphysics",
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
         "process_name"          : "ImposeVectorValueByComponentsProcess",
         "Parameters"            : {
@@ -55,8 +55,8 @@
         }
     }],
     "loads_process_list"       : [{
-        "implemented_in_file"   : "apply_scalar_on_conditions_process",
-        "implemented_in_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "python_module"   : "apply_scalar_on_conditions_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
         "help"                  : "This process sets a vector variable value over a condition",
         "check"                 : "DirectorVectorNonZero direction",
         "process_name"          : "ApplyVectorOnConditionsProcess",
@@ -69,8 +69,8 @@
     }],
     "list_other_processes" :[
     {
-        "implemented_in_file"   : "contact_process",
-        "implemented_in_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "python_module"   : "contact_process",
+        "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
         "help"                  : "",
         "process_name"          : "ContactProcess",
         "Parameters"            : {
@@ -86,8 +86,8 @@
         }
     },
     {
-        "implemented_in_file"   : "from_json_check_result_process",
-        "implemented_in_module" : "KratosMultiphysics",
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"                  : "",
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
@@ -122,8 +122,8 @@
     },
     "json_check_process" : [
     {
-        "implemented_in_file"   : "from_json_check_result_process",
-        "implemented_in_module" : "KratosMultiphysics",
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"                  : "",
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
@@ -137,8 +137,8 @@
     ],
     "json_output_process" : [
     {
-        "implemented_in_file"   : "json_output_process",
-        "implemented_in_module" : "KratosMultiphysics",
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"                  : "",
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {

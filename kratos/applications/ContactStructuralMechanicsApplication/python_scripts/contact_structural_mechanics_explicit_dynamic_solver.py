@@ -45,7 +45,7 @@ class ExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solver.Expl
             "pressure_dofs": false,
             "compute_mortar_contact": false,
             "stabilization_factor": 1.0,
-            "reform_dofs_at_each_iteration": false,
+            "reform_dofs_at_each_step": false,
             "compute_reactions": true,
             "move_mesh_flag": true,
             "clear_storage": false,

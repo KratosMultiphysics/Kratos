@@ -20,7 +20,7 @@
         "rotation_dofs"                      : false,
         "pressure_dofs"                      : false,
         "stabilization_factor"               : 1.0,
-        "reform_dofs_at_each_iteration"      : false,
+        "reform_dofs_at_each_step"           : false,
         "line_search"                        : false,
         "compute_reactions"                  : true,
         "compute_contact_forces"             : false,
@@ -38,8 +38,8 @@
     },
     "constraints_process_list" : [
     {
-        "implemented_in_file"   : "impose_vector_value_by_components_process",
-        "implemented_in_module" : "KratosMultiphysics",
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
         "process_name"          : "ImposeVectorValueByComponentsProcess",
         "Parameters"            : {
@@ -53,8 +53,8 @@
         }
     },
     {
-        "implemented_in_file"   : "impose_vector_value_by_components_process",
-        "implemented_in_module" : "KratosMultiphysics",
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
         "process_name"          : "ImposeVectorValueByComponentsProcess",
         "Parameters"            : {
@@ -71,8 +71,8 @@
     "loads_process_list" : [],
     "list_other_processes" : [
     {
-        "implemented_in_file"   : "sprism_patch_bending_test_local_process",
-        "implemented_in_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+        "python_module"   : "sprism_patch_bending_test_local_process",
+        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
         "help"                  : "",
         "process_name"          : "ApplyLocalProcess",
         "Parameters"            : {
@@ -80,8 +80,8 @@
         }
     },
     {
-        "implemented_in_file"  :"sprism_process", 
-        "implemented_in_module":"KratosMultiphysics.StructuralMechanicsApplication", 
+        "python_module"  :"sprism_process", 
+        "kratos_module":"KratosMultiphysics.StructuralMechanicsApplication", 
         "help"                 : "", 
         "process_name"         : "SPRISMProcess",
         "Parameters":{

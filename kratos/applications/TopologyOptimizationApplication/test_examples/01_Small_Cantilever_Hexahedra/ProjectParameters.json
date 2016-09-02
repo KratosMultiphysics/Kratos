@@ -40,8 +40,8 @@
         "rotation_dofs"                      : false
     },
     "constraints_process_list" : [{
-        "implemented_in_file"   : "impose_vector_value_by_components_process",
-        "implemented_in_module" : "KratosMultiphysics",
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
         "process_name"          : "ImposeVectorValueByComponentsProcess",
         "Parameters"            : {
@@ -55,8 +55,8 @@
         }
     }],
     "loads_process_list"       : [{
-        "implemented_in_file"   : "process_factory",
-        "implemented_in_module" : "KratosMultiphysics",
+        "python_module"   : "process_factory",
+        "kratos_module" : "KratosMultiphysics",
         "check"                 : "DirectorVectorNonZero direction",
         "help"                  : "This process ",
         "process_name"          : "ApplyConstantVectorValueProcess",

@@ -40,7 +40,7 @@ class NavierStokesSolver_VMSMonolithic:
             "time_order": 2,
             "compute_reactions": false,
             "divergence_clearance_steps": 0,
-            "reform_dofs_at_each_iteration": true,
+            "reform_dofs_at_each_step": true,
             "relative_velocity_tolerance": 1e-5,
             "absolute_velocity_tolerance": 1e-7,
             "relative_pressure_tolerance": 1e-5,
@@ -267,7 +267,7 @@ class NavierStokesSolver_VMSMonolithic:
                                                                             builder_and_solver, 
                                                                             self.settings["maximum_iterations"].GetInt(), 
                                                                             self.settings["compute_reactions"].GetBool(),
-                                                                            self.settings["reform_dofs_at_each_iteration"].GetBool(), 
+                                                                            self.settings["reform_dofs_at_each_step"].GetBool(), 
                                                                             self.settings["MoveMeshFlag"].GetBool())
                                                          
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
@@ -342,7 +342,7 @@ class NavierStokesSolver_VMSMonolithic:
             print("Finished divergence clearance.")
 
         ### THIS SECTION IS NOT REQUIRED NOW ###
-        #~ if self.settings["reform_dofs_at_each_iteration"]:
+        #~ if self.settings["reform_dofs_at_each_step"]:
             #~ if self.settings["use_slip_conditions"].GetBool():
                 #~ self.normal_util.CalculateOnSimplex(self.main_model_part,
                                                     #~ self.compute_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
