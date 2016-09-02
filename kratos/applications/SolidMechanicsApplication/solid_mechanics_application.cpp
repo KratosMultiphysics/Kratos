@@ -347,7 +347,7 @@ namespace Kratos
     Serializer::Register( "IsotropicDamageSimoJuPlaneStrain2DLaw", mIsotropicDamageSimoJuPlaneStrain2DLaw );
     Serializer::Register( "IsotropicDamageSimoJuPlaneStress2DLaw", mIsotropicDamageSimoJuPlaneStress2DLaw );
 
-    //REGITER FOR SERIALIZATION
+    //REGISTER FOR SERIALIZATION
     //Linear Elastic Plastic laws
     //Serializer::Register( "LinearElasticPlastic3DLaw", mLinearElasticPlastic3DLaw );
     //Serializer::Register( "LinearElasticPlasticPlaneStrain2DLaw", mLinearElasticPlasticPlaneStrain2DLaw );

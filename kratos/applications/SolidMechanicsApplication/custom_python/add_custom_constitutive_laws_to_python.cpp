@@ -90,7 +90,6 @@
 
 namespace Kratos
 {
-
 namespace Python
 {
 
@@ -100,7 +99,6 @@ typedef FlowRule::Pointer                        FlowRulePointer;
 typedef YieldCriterion::Pointer            YieldCriterionPointer;
 typedef HardeningLaw::Pointer                HardeningLawPointer;
 typedef Properties::Pointer                    PropertiesPointer;
-typedef Mesh<Node<3>, Properties, Element, Condition>   MeshType;
 
 typedef ConstitutiveLaw                  ConstitutiveLawBaseType;
 typedef ConstitutiveLaw::Pointer          ConstitutiveLawPointer;

@@ -838,7 +838,7 @@ void ForceLoadCondition::CalculateAndAddExternalForces(VectorType& rRightHandSid
     mEnergy += inner_prod( ForceVector, Displacements );
 
 
-    //KRATOS_WATCH( rRightHandSideVector )
+    //std::cout<<" ForceVector ["<<this->Id()<<"]"<<rRightHandSideVector<<std::endl;
 
     KRATOS_CATCH( "" )
 }
