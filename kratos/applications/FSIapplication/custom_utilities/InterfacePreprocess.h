@@ -17,7 +17,7 @@
 #include "geometries/line_2d_2.h"
 #include "geometries/line_3d_2.h"
 #include "includes/define.h"
-#include "includes/deprecated_variables.h"
+//~ #include "includes/deprecated_variables.h"
 
 namespace Kratos
 {
@@ -47,11 +47,11 @@ public:
         // Check that we actually found something
         if( NodesCounter == 0)
         {
-            KRATOS_THROW_ERROR(std::invalid_argument,"No interface nodes found. Please check that nodes on both sides of the interface have been assigned IS_INTERFACE=1.0.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"No interface nodes found. Please check that nodes on both sides of the interface have been assigned INTERFACE=1.0.","");
         }
         if( CondCounter == 0)
         {
-            KRATOS_THROW_ERROR(std::invalid_argument,"No interface conditions found. Please check that nodes on both sides of the interface have been assigned IS_INTERFACE=1.0 and that the contact surfaces have been assigned conditions.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"No interface conditions found. Please check that nodes on both sides of the interface have been assigned INTERFACE=1.0 and that the contact surfaces have been assigned conditions.","");
         }
     }
 
@@ -77,7 +77,7 @@ public:
         unsigned int NodesCounter = 0;
         for (ModelPart::NodesContainerType::const_iterator node_it = rOriginPart.NodesBegin(); node_it != rOriginPart.NodesEnd(); node_it++)
         {
-            if (node_it->FastGetSolutionStepValue(IS_INTERFACE) == 1.0)
+            if (node_it->Is(INTERFACE) == true)
             {
                 InterfacePart.Nodes().push_back( *(node_it.base()) );
                 NodesCounter ++;
@@ -91,8 +91,8 @@ public:
         for (ModelPart::ConditionsContainerType::const_iterator cond_it = rOriginPart.ConditionsBegin(); cond_it != rOriginPart.ConditionsEnd(); cond_it++)
         {
             if (
-                ((*cond_it).GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE) == 1.0) &&
-                ((*cond_it).GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE) == 1.0))
+                ((*cond_it).GetGeometry()[0].Is(INTERFACE) == true) &&
+                ((*cond_it).GetGeometry()[1].Is(INTERFACE) == true))
             {
                 aux.push_back( *(cond_it.base()) );
                 CondCounter ++;
@@ -133,7 +133,7 @@ public:
         unsigned int NodesCounter = 0;
         for (ModelPart::NodesContainerType::const_iterator node_it = rOriginPart.NodesBegin(); node_it != rOriginPart.NodesEnd(); node_it++)
         {
-            if (node_it->FastGetSolutionStepValue(IS_INTERFACE) == 1.0)
+            if (node_it->Is(INTERFACE) == true)
             {
                 InterfacePart.Nodes().push_back( *(node_it.base()) );
                 NodesCounter ++;
@@ -152,7 +152,7 @@ public:
                 bool is_interface = true;  
                 for (unsigned int node = 0; node < number_nodes; node++)
                 {
-                    if ((*cond_it).GetGeometry()[node].FastGetSolutionStepValue(IS_INTERFACE) != 1.0)
+                    if ((*cond_it).GetGeometry()[node].Is(INTERFACE) != true)
                     {
                         is_interface = false;
                     }
