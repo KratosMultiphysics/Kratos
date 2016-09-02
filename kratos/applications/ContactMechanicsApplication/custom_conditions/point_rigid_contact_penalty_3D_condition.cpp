@@ -16,7 +16,7 @@
 
 #include "contact_mechanics_application_variables.h"
 
-#include "custom_conditions/custom_friction_laws/friction_law.hpp"
+#include "custom_friction/friction_law.hpp"
 
 namespace Kratos
 {
@@ -60,6 +60,14 @@ namespace Kratos
          const& ThisNodes,  PropertiesType::Pointer pProperties) const
    {
       return Condition::Pointer(new PointRigidContactPenalty3DCondition(NewId,GetGeometry().Create(ThisNodes), pProperties));
+   }
+
+   //************************************CLONE*******************************************
+   //************************************************************************************
+
+   Condition::Pointer PointRigidContactPenalty3DCondition::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const
+   {
+     return Condition::Pointer(new PointRigidContactPenalty3DCondition(NewId,GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall));
    }
 
 
@@ -251,22 +259,23 @@ namespace Kratos
       if( GetProperties().Has(PENALTY_PARAMETER) )
 	PenaltyParameter = GetProperties()[PENALTY_PARAMETER];
 
-      double ElasticModulus   = GetProperties()[YOUNG_MODULUS];
-
+      WeakPointerVector<Element >& rE = GetGeometry()[0].GetValue(NEIGHBOUR_ELEMENTS);
+      double ElasticModulus = 0;
+      if( GetProperties().Has(YOUNG_MODULUS) )
+	ElasticModulus = GetProperties()[YOUNG_MODULUS];
+      else
+	ElasticModulus = rE.front().GetProperties()[YOUNG_MODULUS];
+      
       // the Modified Cam Clay model does not have a constant Young modulus, so something similar to that is computed
       if (ElasticModulus <= 1.0e-5) {
-         std::vector<double> mModulus;
-         ProcessInfo SomeProcessInfo;
-         WeakPointerVector<Element > rN = GetGeometry()[0].GetValue(NEIGHBOUR_ELEMENTS);
-         ElasticModulus = 0.0;
-         int NumberOfSum = 0;
-         for ( unsigned int i = 0; i < rN.size(); i++)
-         {
-            rN[i].CalculateOnIntegrationPoints(EQUIVALENT_YOUNG_MODULUS, mModulus, SomeProcessInfo);
-            ElasticModulus += mModulus[0];
-            NumberOfSum += 1;
-         }
-         ElasticModulus /= double(NumberOfSum);
+	std::vector<double> mModulus;
+	ProcessInfo SomeProcessInfo;
+	for ( unsigned int i = 0; i < rN.size(); i++)
+	  {
+	    rE[i].CalculateOnIntegrationPoints(EQUIVALENT_YOUNG_MODULUS, mModulus, SomeProcessInfo);
+	    ElasticModulus += mModulus[0];
+	  }
+	ElasticModulus /= double(rN.size());
       }
 
       double factor = 4;

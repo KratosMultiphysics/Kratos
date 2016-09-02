@@ -23,6 +23,7 @@
 #include "includes/model_part.h"
 #include "utilities/beam_math_utilities.hpp"
 
+
 namespace Kratos
 {
 
@@ -123,6 +124,16 @@ protected:
       LowerPoint = InitialLowerPoint  + Displacement;
       Center     = InitialCenter    + Displacement;
     }
+
+    void Print()
+    {
+      std::cout<<" [--SPATIAL-BOX--] "<<std::endl;
+      std::cout<<"  [Center:"<<Center<<std::endl;
+      std::cout<<"  [UpperPoint:"<<UpperPoint<<std::endl;
+      std::cout<<"  [LowerPoint:"<<LowerPoint<<std::endl;
+      std::cout<<" [--------] "<<std::endl;
+    }
+
 
   } BoundingBoxVariables;
 
@@ -445,7 +456,7 @@ public:
     //**************************************************************************
 
 
-    virtual bool IsInside (const PointType& rPoint, double& rCurrentTime,  double Radius = 0)
+    virtual bool IsInside (const PointType& rPoint, double& rCurrentTime, double Radius = 0)
     {
 
       KRATOS_TRY
@@ -502,6 +513,21 @@ public:
 
       bool inside = true;
      
+      //check if the box is not set
+      unsigned int count = 0;
+      for(unsigned int i=0; i<mBox.Center.size(); i++)
+	{
+	  if( mBox.UpperPoint[i] == mBox.LowerPoint[i] )
+	    {
+	      count++;
+	    }
+	}
+
+      if( count == mBox.Center.size() )
+	return true;
+      //check if the box is not set
+
+
       PointType LocalPoint = rPoint;
       BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, LocalPoint);
 
@@ -683,15 +709,18 @@ public:
        return mBox.Center;
     }
 
+ 
     //**************************************************************************
     //**************************************************************************
 
     /// Compute inside holes
     std::vector<PointType > GetHoles(ModelPart &rModelPart)
     {
+      std::cout<<" GetHoles "<<std::endl;
+
       //Get inside point of the subdomains
-      ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin();
-      const unsigned int dimension = element_begin->GetGeometry().WorkingSpaceDimension();
+      ModelPart::ConditionsContainerType::iterator condition_begin = rModelPart.ConditionsBegin();
+      const unsigned int dimension = condition_begin->GetGeometry().WorkingSpaceDimension();
 
       unsigned int start=0;
       unsigned int NumberOfMeshes=rModelPart.NumberOfMeshes();
@@ -702,19 +731,33 @@ public:
       for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
 	{
 	  PointType Point(dimension);
-	  for(ModelPart::NodesContainerType::iterator in = rModelPart.NodesBegin(MeshId); in!=rModelPart.NodesEnd(MeshId); in++){
-	    if(in->IsNot(BOUNDARY) ){
-	      Point[0] = in->X();	
-	      Point[1] = in->Y();
+	  for(ModelPart::NodesContainerType::iterator in = rModelPart.NodesBegin(MeshId); in!=rModelPart.NodesEnd(MeshId); in++)
+	    {
+	      if(in->IsNot(BOUNDARY) ){
+		Point[0] = in->X();	
+		Point[1] = in->Y();
 
-	      if(dimension>2)
-		Point[2] = in->Z();		
+		if(dimension>2)
+		  Point[2] = in->Z();		
 
-	      Holes.push_back(Point);
-	      break;
+		Holes.push_back(Point);
+		break;
+	      }
+	      else{
+		array_1d<double, 3>& Normal = in->FastGetSolutionStepValue(NORMAL);
+
+		std::cout<<" Normal "<<Normal<<std::endl;
+		double tolerance = 0.25;
+
+		Point[0] = in->X() - Normal[0] * tolerance;
+		Point[1] = in->Y() - Normal[1] * tolerance;
+		if(dimension>2)
+		  Point[2] = in->Z() - Normal[2] * tolerance;
+		
+		Holes.push_back(Point);
+		break;
+	      }
 	    }
-
-	  }
 	}
 
       return Holes;

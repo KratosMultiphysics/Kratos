@@ -7,23 +7,51 @@
 //
 //
 
-#include "custom_conditions/custom_friction_laws/coulomb_adhesion_friction_law.hpp"
-
-#include "contact_mechanics_application_variables.h"
+#include "custom_friction/coulomb_adhesion_friction_law.hpp"
 
 namespace Kratos
 {
+
+  /**
+   * Constructor.
+   */
    CoulombAdhesionFrictionLaw::CoulombAdhesionFrictionLaw()
    {
-
    }
 
+
+  /**
+   * Destructor.
+   */
    CoulombAdhesionFrictionLaw::~CoulombAdhesionFrictionLaw()
    {
-
    }
 
 
+  /**
+   * Clone function (has to be implemented by any derived class)
+   * @return a pointer to a new instance of this constitutive law
+   * NOTE: implementation scheme:
+   *      ConstitutiveLaw::Pointer p_clone(new ConstitutiveLaw());
+   *      return p_clone;
+   */
+  FrictionLaw::Pointer CoulombAdhesionFrictionLaw::Clone() const
+  {
+    CoulombAdhesionFrictionLaw::Pointer p_clone(new CoulombAdhesionFrictionLaw(*this));
+    return p_clone;
+  }
+
+  /**
+   * Methods
+   */  
+  double CoulombAdhesionFrictionLaw::EvaluateHardening( const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables) 
+   {
+      return 0.0;
+   }
+
+  /**
+   * Methods
+   */
    double CoulombAdhesionFrictionLaw::EvaluateContactYield( const double& rTangentStress, const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables) 
    {
       double YieldFunction = fabs(rTangentStress) - rTangentVariables.FrictionCoefficient * fabs(rNormalStress) - rTangentVariables.Adhesion; 
@@ -31,13 +59,9 @@ namespace Kratos
 
    }
 
-   
-   double CoulombAdhesionFrictionLaw::EvaluateHardening( const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables) 
-   {
-      return 0.0;
-   }
-
-
+  /**
+   * Methods
+   */
    void CoulombAdhesionFrictionLaw::EvaluateYieldDerivativeRespectStress( double& rdF_dt, double & rdF_dp, const double& rTangentStress, const double& rNormalStress, const double& Gamma, FrictionLawVariables& rTangentVariables ) 
    {
 
@@ -45,4 +69,5 @@ namespace Kratos
       rdF_dp = - rTangentVariables.FrictionCoefficient;
    }
 
-} // end namespace Kratos
+
+} // namespace Kratos

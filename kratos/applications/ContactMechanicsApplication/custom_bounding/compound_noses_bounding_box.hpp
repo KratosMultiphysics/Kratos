@@ -169,7 +169,7 @@ public:
       CustomParameters.ValidateAndAssignDefaults(DefaultParameters);       
 
       unsigned int list_size = CustomParameters["parameters_list"].size();
-
+      
       Vector Radius         (list_size);
       Matrix Centers        (list_size,3);
       Vector RakeAngles     (list_size);
@@ -191,22 +191,22 @@ public:
 	  Convexities[i]     = NoseParameters["convexity"].GetInt();
 	}
 
-      Vector Velocity;
+      Vector Velocity(3);
       Velocity[0] = CustomParameters["velocity"][0].GetDouble();
       Velocity[1] = CustomParameters["velocity"][1].GetDouble();
       Velocity[2] = CustomParameters["velocity"][2].GetDouble();
 
-      Vector AngularVelocity;
+      Vector AngularVelocity(3);
       AngularVelocity[0] = CustomParameters["angular_velocity"][0].GetDouble();
       AngularVelocity[1] = CustomParameters["angular_velocity"][1].GetDouble();
       AngularVelocity[2] = CustomParameters["angular_velocity"][2].GetDouble();
 
-      Vector UpperPoint;
+      Vector UpperPoint(3);
       UpperPoint[0] = CustomParameters["upper_point"][0].GetDouble();
       UpperPoint[1] = CustomParameters["upper_point"][1].GetDouble();
       UpperPoint[2] = CustomParameters["upper_point"][2].GetDouble();
 
-      Vector LowerPoint;
+      Vector LowerPoint(3);
       LowerPoint[0] = CustomParameters["lower_point"][0].GetDouble();
       LowerPoint[1] = CustomParameters["lower_point"][1].GetDouble();
       LowerPoint[2] = CustomParameters["lower_point"][2].GetDouble();
@@ -330,7 +330,7 @@ public:
     //**************************************************************************
     //**************************************************************************
 
-    void UpdateBoxPosition(double & rCurrentTime)
+    void UpdateBoxPosition(const double & rCurrentTime)
     {
       
       PointType Displacement  =  this->GetBoxDisplacement(rCurrentTime);
@@ -343,6 +343,8 @@ public:
 	{
 	  mBoxNoses[i].Center =  mBoxNoses[i].InitialCenter + Displacement;
 	  BeamMathUtilsType::MapToCurrentLocalFrame(mBox.LocalQuaternion, mBoxNoses[i].Center);
+
+	  std::cout<<"   BOX NOSE center position "<<mBoxNoses[i].Center<<std::endl;
 	}
     }
 
@@ -359,11 +361,15 @@ public:
 
       if( is_inside ){
 
+	//std::cout<<" Local Point A "<<rPoint<<std::endl;
+
 	PointType LocalPoint = rPoint;
 	BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, LocalPoint);
 	BeamMathUtilsType::MapToCurrentLocalFrame(mBox.LocalQuaternion, LocalPoint);  
 
 	LocalPoint[2] = 0; //2D
+
+	//std::cout<<" Local Point B "<<rPoint<<std::endl;
 
 	unsigned int SelectedNose = BoxNoseSearch(LocalPoint);
 
@@ -386,22 +392,22 @@ public:
 	  case FreeSurface:      
 	    is_inside = false;
 	    // if( node_in )
-	    //   std::cout<<" Nose "<<SelectedNose<<" [ FreeSurface :"<<rPoint<<"]"<<std::endl;
+	    //std::cout<<" Nose "<<SelectedNose<<" [ FreeSurface :"<<rPoint<<"]"<<std::endl;
 	    break;
 	  case RakeSurface:      
 	    is_inside = true;
 	    // if( node_in )
-	    //   std::cout<<" Nose "<<SelectedNose<<" [ RakeSurface :"<<rPoint<<"]"<<std::endl;
+	    //std::cout<<" Nose "<<SelectedNose<<" [ RakeSurface :"<<rPoint<<"]"<<std::endl;
 	    break;
 	  case TipSurface:       
 	    is_inside = true;
 	    // if( node_in )
-	    //   std::cout<<" Nose "<<SelectedNose<<" [ TipSurface :"<<rPoint<<"]"<<std::endl;
+	    //std::cout<<" Nose "<<SelectedNose<<" [ TipSurface :"<<rPoint<<"]"<<std::endl;
 	    break;
 	  case ClearanceSurface: 
 	    is_inside = true;
 	    // if( node_in )
-	    //   std::cout<<" Nose "<<SelectedNose<<" [ ClearanceSurface :"<<rPoint<<"]"<<std::endl;
+	    //std::cout<<" Nose "<<SelectedNose<<" [ ClearanceSurface :"<<rPoint<<"]"<<std::endl;
 	    break;
 	  default:               
 	    is_inside = false;
@@ -546,6 +552,7 @@ public:
 
       }
 
+      //std::cout<<" ["<<is_inside<<"][ ContactFace: "<<ContactFace<<"; Normal: "<<rNormal<<"; GapNormal: "<< rGapNormal <<" ] "<<rPoint<<std::endl;
       return is_inside;
       
       KRATOS_CATCH("")
@@ -758,6 +765,8 @@ private:
 	      WallNose.Center[j] = rCenters(i,j);
 	    }
 	  
+	  WallNose.SetInitialValues();
+
 	  //set to local frame
 	  BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, WallNose.InitialCenter);
 	  BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, WallNose.Center);
@@ -782,6 +791,9 @@ private:
       mBox.UpperPoint = rUpperPoint;
       mBox.LowerPoint = rLowerPoint;
 
+      mBox.Center = 0.5 * ( rUpperPoint + rLowerPoint );
+      mBox.Radius = 0.5 * norm_2(rUpperPoint-rLowerPoint); 
+
       mBox.Velocity        = rVelocity;
       mBox.AngularVelocity = rAngularVelocity;
       
@@ -792,6 +804,8 @@ private:
       BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, mBox.AngularVelocity);
 
       mBox.SetInitialValues();
+
+      mBox.Print();
 
       mRigidBodyCenterSupplied = false;
 

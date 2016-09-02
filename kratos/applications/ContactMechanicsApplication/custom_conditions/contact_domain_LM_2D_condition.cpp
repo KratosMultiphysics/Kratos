@@ -12,7 +12,6 @@
 // External includes
 
 // Project includes
-#include "includes/kratos_flags.h"
 #include "custom_conditions/contact_domain_LM_2D_condition.hpp"
 
 #include "contact_mechanics_application_variables.h"

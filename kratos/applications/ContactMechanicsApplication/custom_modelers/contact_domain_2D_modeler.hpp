@@ -266,8 +266,17 @@ private:
 				      struct triangulateio& in,
 				      struct triangulateio& out);
     
+    /**
+     *  Set Nodes to mesh
+     */
+    void SetNodes(ModelPart& rModelPart,
+		  MeshingParametersType& rMeshingVariables);
 
 
+    //Set faces in the triangulateio before the Delaunay Tesselation
+    void SetFaces ( ModelPart &rModelPart,
+		    MeshingParametersType & rMeshingVariables,
+		    struct triangulateio &in );
     
   
     //Clear contact conditions in model_part

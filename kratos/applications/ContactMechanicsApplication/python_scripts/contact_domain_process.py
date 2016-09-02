@@ -19,7 +19,7 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
 
         KratosMultiphysics.Process.__init__(self)
         
-        self.model_part = Model[custom_settings["model_part_name"].GetString()]
+        self.main_model_part = Model[custom_settings["model_part_name"].GetString()]
     
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
@@ -38,7 +38,7 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.echo_level        = 1
-        self.domain_size       = self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.domain_size       = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         self.meshing_frequency = self.settings["meshing_frequency"].GetDouble()
         
         self.meshing_control_is_time = False
@@ -54,8 +54,8 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
         self.number_of_domains = domains_list.size()
         for i in range(0,self.number_of_domains):
             item = domains_list[i]
-            domain_module = __import__(item["python_file_name"].GetString())
-            domain = domain_module.CreateMeshingDomain(self.model_part,item)
+            domain_module = __import__(item["python_module"].GetString())
+            domain = domain_module.CreateMeshingDomain(self.main_model_part,item)
             self.meshing_domains.append(domain)
 
         # mesh modeler initial values
@@ -69,10 +69,41 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
                        
     #
     def ExecuteInitialize(self):
+           
+        # check restart
+        self.restart = False
+        if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True ):     
+            self.restart = True
+            self.step_count = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+            
+            if self.meshing_control_is_time:
+                self.next_meshing  = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] 
+            else:
+                self.next_meshing = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
 
-        # Execute initialize base class
-        if( self.model_part.ProcessInfo[MESHING_ACTIVE] == False ):
-            remesh_domains_process.RemesDomainsProcess.ExecuteInitialize(self)
+
+        # execute initialize base class
+        if( self.main_model_part.ProcessInfo[KratosPfemBase.INITIALIZED_DOMAINS] == False ):
+            self.InitializeDomains()
+
+        for domain in self.meshing_domains:
+            domain.Initialize()
+ 
+     ###
+
+    #
+    def ExecuteInitializeSolutionStep(self):
+        self.step_count += 1
+        if(self.IsMeshingStep()):
+            self.RemeshDomains()
+
+    #
+    def ExecuteBeforeOutputStep(self):
+        pass
+        
+    #
+    def ExecuteAfterOutputStep(self):
+        pass
 
     ###
 
@@ -80,10 +111,10 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
     def RemeshDomains(self):
 
         if( self.echo_level > 0 ):
-            print("::[Meshing_Process]:: CONTACT SEARCH", self.counter)
+            print("::[Meshing_Process]:: CONTACT SEARCH...( call:", self.counter,")")
             
         meshing_options = KratosMultiphysics.Flags()
-        self.model_meshing = KratosContact.ContactModelMeshing(self.model_part, meshing_options, self.echo_level)
+        self.model_meshing = KratosContact.ContactModelMeshing(self.main_model_part, meshing_options, self.echo_level)
         
         self.model_meshing.ExecuteInitialize()
 
@@ -92,11 +123,15 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
  
         self.model_meshing.ExecuteFinalize()
         
+        if(self.echo_level>1):
+            print("")
+            print(self.main_model_part)
+
         self.counter += 1 
 
 
         # schedule next meshing
-        if(self.meshing_frequency >= 0.0):
+        if(self.meshing_frequency > 0.0): # note: if == 0 always active
             if(self.meshing_control_is_time):
                 while(self.next_meshing <= time):
                     self.next_meshing += self.meshing_frequency

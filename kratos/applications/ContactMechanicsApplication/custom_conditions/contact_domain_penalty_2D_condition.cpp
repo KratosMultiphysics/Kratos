@@ -302,7 +302,7 @@ void ContactDomainPenalty2DCondition::CalculateExplicitFactors(GeneralVariables&
 
     //CHECK IF THE ELEMENT IS ACTIVE:
 
-    rVariables.Contact.Options.Set(SLIP,false); 
+    rVariables.Contact.Options.Set(SLIP,false);
 
     if(rVariables.Contact.CurrentGap.Normal<=0)   //if(EffectiveGap<0){
     {

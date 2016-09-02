@@ -209,7 +209,7 @@ private:
  public:
 
  
-    void CreateRigidBodyElement(ModelPart& rModelPart, 
+    void CreateRigidBodyElement(ModelPart& rMainModelPart,
     			        SpatialBoundingBox::Pointer pRigidBodyBox,
     				Parameters CustomParameters) 
     {
@@ -221,6 +221,7 @@ private:
                 "rigid_body_element_type": "TranslatoryRigidElement3D1N",
                 "fixed_body": true,
                 "compute_body_parameters": false,
+                "rigid_body_model_part_name": "RigidBodyDomain",
                 "rigid_body_parameters":{
                     "center_of_gravity": [0.0 ,0.0, 0.0],
                     "mass": 0.0,
@@ -238,7 +239,7 @@ private:
       bool BodyIsFixed = CustomParameters["fixed_body"].GetBool();
 
       //create properties for the rigid body
-      unsigned int NumberOfProperties = rModelPart.NumberOfProperties();
+      unsigned int NumberOfProperties = rMainModelPart.NumberOfProperties();
 
       PropertiesType::Pointer pProperties = PropertiesType::Pointer(new PropertiesType(NumberOfProperties));
      
@@ -248,13 +249,15 @@ private:
       Matrix LocalAxesMatrix   = IdentityMatrix(3);
 
       bool ComputeBodyParameters = CustomParameters["compute_body_parameters"].GetBool();
+      ModelPart& rRigidBodyModelPart = rMainModelPart.GetSubModelPart(CustomParameters["rigid_body_model_part_name"].GetString());
+
       if( ComputeBodyParameters ){
 	
-    	this->CalculateRigidBodyParameters( rModelPart, CenterOfGravity, InertiaTensor, LocalAxesMatrix, Mass, MeshId );
+    	this->CalculateRigidBodyParameters( rRigidBodyModelPart, CenterOfGravity, InertiaTensor, LocalAxesMatrix, Mass, MeshId );
       }
       else{
 	
-    	Parameters RigidBodyProperties = CustomParameters["rigid_body_paramters"];
+    	Parameters RigidBodyProperties = CustomParameters["rigid_body_parameters"];
 
     	Mass = RigidBodyProperties["mass"].GetDouble();
 	
@@ -272,22 +275,45 @@ private:
     	    LocalAxesMatrix(2,i)   = LocalAxesRow[2].GetDouble();
     	  } 
 
+	std::cout<<"  [ Mass "<<Mass<<" ]"<<std::endl;
+	std::cout<<"  [ CenterOfGravity "<<CenterOfGravity<<" ]"<<std::endl;
+	std::cout<<"  [ InertiaTensor "<<InertiaTensor<<" ]"<<std::endl;
+
+
       }
 
       pProperties->SetValue(NODAL_MASS, Mass);
       pProperties->SetValue(LOCAL_INERTIA_TENSOR, InertiaTensor);
       pProperties->SetValue(LOCAL_AXES_MATRIX, LocalAxesMatrix);
 
-      rModelPart.AddProperties(pProperties);
+      //add properties to model part
+      rMainModelPart.AddProperties(pProperties,NumberOfProperties);
 
       // create node for the rigid body center of gravity:
-      unsigned int LastNodeId  = rModelPart.Nodes().back().Id() + 1;
+      unsigned int LastNodeId  = rMainModelPart.Nodes().back().Id() + 1;
 
       NodeType::Pointer NodeCenterOfGravity;
-      this->CreateNode( NodeCenterOfGravity, rModelPart, CenterOfGravity, MeshId, LastNodeId, BodyIsFixed);
+      this->CreateNode( NodeCenterOfGravity, rMainModelPart, CenterOfGravity, MeshId, LastNodeId, BodyIsFixed);
+
+      //Set this node to the boundary model_part where it belongs to
+      unsigned int RigidBodyNodeId = rRigidBodyModelPart.Nodes().back().Id();
+      for(ModelPart::SubModelPartIterator i_mp= rMainModelPart.SubModelPartsBegin(); i_mp!=rMainModelPart.SubModelPartsEnd(); i_mp++)
+	{
+  
+	  if(i_mp->Is(BOUNDARY)){
+	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin(); i_node!= i_mp->NodesEnd(); i_node++)
+	      {
+		if( i_node->Id() == RigidBodyNodeId ){
+		  i_mp->AddNode(NodeCenterOfGravity);
+		  break;
+		}
+	      }
+	  }
+
+	}
 
       // set node variables
-      NodeCenterOfGravity->GetSolutionStepValue(VOLUME_ACCELERATION) = rModelPart.Nodes().back().GetSolutionStepValue(VOLUME_ACCELERATION);
+      NodeCenterOfGravity->GetSolutionStepValue(VOLUME_ACCELERATION) = rRigidBodyModelPart.Nodes().back().GetSolutionStepValue(VOLUME_ACCELERATION);
       
       // set node flags
       NodeCenterOfGravity->Set(MASTER);
@@ -296,25 +322,29 @@ private:
       // set node to the spatial bounding box
       pRigidBodyBox->SetRigidBodyCenter(NodeCenterOfGravity);
       
+
       // create rigid body element:
-      unsigned int LastElementId = rModelPart.Elements().back().Id() + 1;
+      unsigned int LastElementId = rMainModelPart.Elements().back().Id() + 1;
 
       std::string ElementName = CustomParameters["rigid_body_element_type"].GetString();
 
       GeometryType::Pointer pGeometry = GeometryType::Pointer(new Point3DType( NodeCenterOfGravity ));
       
-      ModelPart::NodesContainerType::Pointer pNodes =  rModelPart.pNodes();
+      ModelPart::NodesContainerType::Pointer pNodes =  rRigidBodyModelPart.pNodes();
      
       ElementType::Pointer pRigidBodyElement;
 
       //Rigid Body Element: 
-      if(  ElementName.compare("RigidBodyElement") == 0 ){
+      if( ElementName == "RigidBodyElement3D1N" || ElementName == "RigidBodyElement2D1N" ){
+	//std::cout<<" RigidBodyElement "<<std::endl;
     	pRigidBodyElement = ElementType::Pointer(new RigidBodyElement(LastElementId, pGeometry, pProperties, pNodes) );
       }
-      else if( ElementName.compare("TranslatoryRigidBodyElement") == 0 ){
+      else if( ElementName == "TranslatoryRigidBodyElement3D1N" || ElementName == "TranslatoryRigidBodyElement2D1N"){	
+	//std::cout<<" TranslatoryRigidBodyElement "<<std::endl;
     	pRigidBodyElement = ElementType::Pointer(new TranslatoryRigidBodyElement(LastElementId, pGeometry, pProperties, pNodes) );
       }
-      else if( ElementName.compare("RigidBodyEMCElement") == 0 ){
+      else if( ElementName == "RigidBodyEMCElement3D1N" || ElementName == "RigidBodyEMCElement2D1N" ){
+	//std::cout<<" RigidBodyEMCElement "<<std::endl;
     	//pRigidBodyElement = ElementType::Pointer(new RigidBodyEMCElement(LastElementId, pGeometry, pProperties, pNodes) );
       }
 
@@ -323,16 +353,16 @@ private:
       // ElementNodes.push_back(NodeCenterOfGravity);
       // ElementType const& rCloneElement = KratosComponents<ElementType>::Get(ElementName);
       // ElementType::Pointer pRigidBodyElement = rCloneElement.Create(LastElementId, ElementNodes, pProperties);
-      // rModelPart.AddElement(pRigidBodyElement);
+      // rRigidBodyModelPart.AddElement(pRigidBodyElement);
       
       // other posibility
       // std::vector<int> NodeIds;
       // NodeIds.push_back(LastNodeId);
-      // rModelPart.CreateNewElement(ElementName,LastElementId, NodeIds, pProperties);
+      // rRigidBodyModelPart.CreateNewElement(ElementName,LastElementId, NodeIds, pProperties);
 
-      rModelPart.AddElement(pRigidBodyElement);
+      rRigidBodyModelPart.AddElement(pRigidBodyElement);
 
-      std::cout<<"  [ RigidBodyElement Created : [NodeId:"<<LastNodeId<<"][Id:"<<LastElementId<<"] ("<<NodeCenterOfGravity->X()<<","<<NodeCenterOfGravity->Y()<<","<<NodeCenterOfGravity->Z()<<") ]"<<std::endl;
+      std::cout<<"  [ "<<ElementName<<" Created : [NodeId:"<<LastNodeId<<"] [ElementId:"<<LastElementId<<"] CG("<<NodeCenterOfGravity->X()<<","<<NodeCenterOfGravity->Y()<<","<<NodeCenterOfGravity->Z()<<") ]"<<std::endl;
 
 
       KRATOS_CATCH( "" )

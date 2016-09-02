@@ -7,16 +7,19 @@
 //
 //
 
+#include "custom_friction/friction_law.hpp"
 #include "contact_mechanics_application_variables.h"
 
 namespace Kratos
 {
 
+  KRATOS_CREATE_VARIABLE( std::string, FRICTION_LAW_NAME )
   KRATOS_CREATE_VARIABLE( FrictionLaw::Pointer, FRICTION_LAW )
 
   KRATOS_CREATE_VARIABLE( int, NUMBER_OF_ACTIVE_CONTACTS )
   KRATOS_CREATE_VARIABLE( int, NUMBER_OF_STICK_CONTACTS )
   KRATOS_CREATE_VARIABLE( int, NUMBER_OF_SLIP_CONTACTS )
+
   KRATOS_CREATE_VARIABLE( bool, FRICTION_ACTIVE )
 
   KRATOS_CREATE_VARIABLE( double, PENALTY_PARAMETER )

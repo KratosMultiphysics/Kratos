@@ -23,7 +23,7 @@
 #include "includes/variables.h"
 
 #include "custom_bounding/spatial_bounding_box.hpp"
-#include "custom_conditions/custom_friction_laws/friction_law.hpp"
+#include "custom_friction/friction_law.hpp"
 
 namespace Kratos
 {
@@ -79,7 +79,7 @@ protected:
      * Parameters to be used in the Condition as they are. 
      */
 
-   typedef struct
+    typedef struct
     {
         PointType Normal;        //normal direction
         PointType Tangent;       //tangent direction

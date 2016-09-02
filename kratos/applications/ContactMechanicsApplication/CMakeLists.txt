@@ -28,6 +28,7 @@ set( KRATOS_CONTACT_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_bounding_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_modelers_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_friction_laws_to_python.cpp
 
 	##conditions
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_domain_condition.cpp
@@ -49,9 +50,10 @@ set( KRATOS_CONTACT_MECHANICS_APPLICATION_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/translatory_rigid_body_element.cpp
 
 	##friction laws
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/custom_friction_laws/friction_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/custom_friction_laws/hardening_coulomb_friction_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/custom_friction_laws/coulomb_adhesion_friction_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_friction/friction_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_friction/hardening_coulomb_friction_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_friction/coulomb_adhesion_friction_law.cpp
+
 	##utilities
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/contact_domain_utilities.cpp
 
