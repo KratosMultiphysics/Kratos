@@ -93,6 +93,7 @@ pp.CFD_DEM.quadrature_order = 2
 pp.CFD_DEM.time_window = 0.01
 pp.CFD_DEM.number_of_exponentials = 8
 pp.CFD_DEM.number_of_quadrature_steps_in_window = int(pp.CFD_DEM.time_window / pp.CFD_DEM.delta_time_quadrature)
+pp.CFD_DEM.print_steps_per_plot_step = 1
 #Z
 
 # Import utilities from models
@@ -603,6 +604,9 @@ particles_results_counter    = swim_proc.Counter(DEM_parameters.print_particles_
 quadrature_counter           = swim_proc.Counter(pp.CFD_DEM.time_steps_per_quadrature_step, 
                                                  1, 
                                                  pp.CFD_DEM.print_BASSET_FORCE_option)
+plotting_counter             = swim_proc.Counter(pp.CFD_DEM.print_steps_per_plot_step, 
+                                                 1, 
+                                                 1)
 #G
 
 ##############################################################################
@@ -658,7 +662,7 @@ import cubic_law
 n_particles = len(spheres_model_part.Nodes)
 cubic_law_pp = cubic_law.GetProblemParameters()
 cubic_law.GenerateRandomPositions(n_particles)
-cubic_law.PrintResult()
+cubic_law.PrintResult(0.0)
 i_particle = 0
 for node in spheres_model_part.Nodes:
     X, Z, UX, UZ, DUX, DUZ, D = cubic_law.GetPositionAndFlowVariables(i_particle)
@@ -810,6 +814,13 @@ while (time <= final_time):
                         solver.Solve() # only advance in space
                         #projection_module.InterpolateVelocity()  
                         UX, UZ, DUX, DUZ, D = cubic_law.GetFlowVariables(i_particle, node.X, node.Z)
+                        if D < node.GetSolutionStepValue(RADIUS):
+                            node.SetSolutionStepValue(VELOCITY_X, 0.)
+                            node.SetSolutionStepValue(VELOCITY_Y, 0.)
+                            node.SetSolutionStepValue(VELOCITY_Z, 0.)
+                            node.Fix(VELOCITY_X)
+                            node.Fix(VELOCITY_Y)
+                            node.Fix(VELOCITY_Z)                            
                         node.SetSolutionStepValue(SLIP_VELOCITY_X, UX)
                         node.SetSolutionStepValue(SLIP_VELOCITY_Z, UZ)       
                     else:
@@ -886,7 +897,9 @@ while (time <= final_time):
             projection_module.ComputePostProcessResults(spheres_model_part.ProcessInfo)
 
         post_utils.Writeresults(time)
-        cubic_law.PrintResult()
+        
+        if plotting_counter.Tick():
+            cubic_law.PrintResult(time)
 
         out = 0
 
