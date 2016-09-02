@@ -382,6 +382,8 @@ public:
         TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mb = *mpb;
 
+	pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
+
 
         if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false)
         {
