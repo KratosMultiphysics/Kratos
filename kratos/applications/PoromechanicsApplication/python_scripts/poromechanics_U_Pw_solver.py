@@ -23,7 +23,7 @@ class UPwSolver(object):
     ##will be called once the model is already filled
     def __init__(self, main_model_part, custom_settings): 
         
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
+        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part    
         
         ##settings string in json format
@@ -129,8 +129,10 @@ class UPwSolver(object):
             
             KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
             
+            self.computing_model_part_name = "porous_computing_domain"
             # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
             aux_params = KratosMultiphysics.Parameters("{}")
+            aux_params.AddEmptyValue("computing_model_part_name").SetString(self.computing_model_part_name)
             aux_params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
             aux_params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
             
@@ -191,8 +193,8 @@ class UPwSolver(object):
 
         print ("Initialization UPwSolver finished")
     
-    def GetComputeModelPart(self):
-        return self.main_model_part.GetSubModelPart("solid_computational_model_part")
+    def GetComputingModelPart(self):
+        return self.main_model_part.GetSubModelPart(self.computing_model_part_name)
     
     def GetOutputVariables(self):
         pass
