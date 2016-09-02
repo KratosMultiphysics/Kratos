@@ -22,7 +22,7 @@ class ExplicitMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
     ##will be called once the model is already filled
     def __init__(self, main_model_part, custom_settings): 
         
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
+        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part    
         
         #TODO: remove unnecessary fields for the Explicit solver from the defaults
@@ -43,7 +43,7 @@ class ExplicitMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
             "rotation_dofs": false,
             "pressure_dofs": false,
             "stabilization_factor": 1.0,
-            "reform_dofs_at_each_iteration": false,
+            "reform_dofs_at_each_step": false,
             "compute_reactions": true,
             "move_mesh_flag": true,
             "clear_storage": false,
@@ -78,8 +78,8 @@ class ExplicitMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
 
         print("::[Mechanical Solver]:: -START-")
         
-        # Get the solid_computational_model_part 
-        self.compute_model_part = self.GetComputeModelPart()
+        # Get the solid computing model part
+        self.computing_model_part = self.GetComputingModelPart()
         
         # Solution scheme creation
         mechanical_scheme = self._GetSolutionScheme(self.settings["max_delta_time"].GetDouble(), 
@@ -90,7 +90,7 @@ class ExplicitMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
         # Mechanical solver creation
         self._CreateMechanicalSolver(mechanical_scheme,
                                      self.settings["compute_reactions"].GetBool(),
-                                     self.settings["reform_dofs_at_each_iteration"].GetBool(),
+                                     self.settings["reform_dofs_at_each_step"].GetBool(),
                                      self.settings["move_mesh_flag"].GetBool())
 
         # Set the stabilization factor
@@ -136,7 +136,7 @@ class ExplicitMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
         
     def _CreateMechanicalSolver(self, mechanical_scheme, compute_reactions, reform_step_dofs, move_mesh_flag):
 
-        self.mechanical_solver = KratosSolid.ExplicitStrategy(self.compute_model_part, 
+        self.mechanical_solver = KratosSolid.ExplicitStrategy(self.computing_model_part, 
                                                               mechanical_scheme, 
                                                               self.linear_solver, 
                                                               compute_reactions, 

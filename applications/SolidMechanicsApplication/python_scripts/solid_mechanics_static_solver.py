@@ -23,7 +23,7 @@ class StaticMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
     ##will be called once the model is already filled
     def __init__(self, main_model_part, custom_settings): 
         
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
+        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part    
         
         ##settings string in json format
@@ -42,7 +42,7 @@ class StaticMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
             "rotation_dofs": false,
             "pressure_dofs": false,
             "stabilization_factor": 1.0,
-            "reform_dofs_at_each_iteration": false,
+            "reform_dofs_at_each_step": false,
             "line_search": false,
             "compute_reactions": true,
             "compute_contact_forces": false,
@@ -82,8 +82,8 @@ class StaticMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
 
         print("::[Mechanical Solver]:: -START-")
         
-        # Get the solid_computational_model_part 
-        self.compute_model_part = self.GetComputeModelPart()
+        # Get the solid computing model part
+        self.computing_model_part = self.GetComputingModelPart()
                 
         # Solution scheme choice
         mechanical_scheme = self._GetSolutionScheme(self.settings["analysis_type"].GetString(), 
@@ -103,7 +103,7 @@ class StaticMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
                                      builder_and_solver,
                                      self.settings["max_iteration"].GetInt(),
                                      self.settings["compute_reactions"].GetBool(),
-                                     self.settings["reform_dofs_at_each_iteration"].GetBool(),
+                                     self.settings["reform_dofs_at_each_step"].GetBool(),
                                      self.settings["move_mesh_flag"].GetBool(),
                                      self.settings["component_wise"].GetBool(),
                                      self.settings["line_search"].GetBool())
@@ -142,7 +142,7 @@ class StaticMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
     def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search):
         
         if(component_wise):
-            self.mechanical_solver = KratosSolid.ComponentWiseNewtonRaphsonStrategy(self.compute_model_part, 
+            self.mechanical_solver = KratosSolid.ComponentWiseNewtonRaphsonStrategy(self.computing_model_part, 
                                                                                     mechanical_scheme, 
                                                                                     self.linear_solver, 
                                                                                     mechanical_convergence_criterion, 
@@ -153,7 +153,7 @@ class StaticMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
                                                                                     move_mesh_flag)
         else:
             if(line_search):
-                self.mechanical_solver = KratosSolid.ResidualBasedNewtonRaphsonLineSearchStrategy(self.compute_model_part, 
+                self.mechanical_solver = KratosSolid.ResidualBasedNewtonRaphsonLineSearchStrategy(self.computing_model_part, 
                                                                                                   mechanical_scheme, 
                                                                                                   self.linear_solver, 
                                                                                                   mechanical_convergence_criterion, 
@@ -165,7 +165,7 @@ class StaticMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
 
             else:
                 if self.settings["analysis_type"].GetString() == "Linear":
-                    self.mechanical_solver = KratosMultiphysics.ResidualBasedLinearStrategy(self.compute_model_part, 
+                    self.mechanical_solver = KratosMultiphysics.ResidualBasedLinearStrategy(self.computing_model_part, 
                                                                                             mechanical_scheme, 
                                                                                             self.linear_solver, 
                                                                                             builder_and_solver, 
@@ -175,7 +175,7 @@ class StaticMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
                                                                                             move_mesh_flag)
                 
                 else:
-                    self.mechanical_solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.compute_model_part, 
+                    self.mechanical_solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.computing_model_part, 
                                                                                                    mechanical_scheme, 
                                                                                                    self.linear_solver, 
                                                                                                    mechanical_convergence_criterion, 

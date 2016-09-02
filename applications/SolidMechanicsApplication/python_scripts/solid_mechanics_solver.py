@@ -22,7 +22,7 @@ class MechanicalSolver(object):
     ##will be called once the model is already filled
     def __init__(self, main_model_part, custom_settings): 
         
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
+        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part    
         
         ##settings string in json format
@@ -43,7 +43,7 @@ class MechanicalSolver(object):
             "rotation_dofs": false,
             "pressure_dofs": false,
             "stabilization_factor": 1.0,
-            "reform_dofs_at_each_iteration": false,
+            "reform_dofs_at_each_step": false,
             "line_search": false,
             "compute_reactions": true,
             "compute_contact_forces": false,
@@ -64,7 +64,7 @@ class MechanicalSolver(object):
                 "scaling": false,
                 "verbosity": 1
             },
-            "problem_domain_sub_model_part_list": ["solid_model_part"],
+            "problem_domain_sub_model_part_list": ["solid"],
             "processes_sub_model_part_list": [""]
         }
         """)
@@ -77,7 +77,7 @@ class MechanicalSolver(object):
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
         
-        print("Warining: Construction of Base Mechanical Solver finished")
+        print("Warning: Construction of Base Mechanical Solver finished")
 
         
     def Initialize(self):
@@ -154,14 +154,16 @@ class MechanicalSolver(object):
             KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
             print("    Import input model part.")
             
+            self.computing_model_part_name = "solid_computing_domain"
             # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
-            aux_params = KratosMultiphysics.Parameters("{}")
-            aux_params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
-            aux_params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
-            
-            # CheckAndPrepareModelProcess creates the solid_computational_model_part
+            params = KratosMultiphysics.Parameters("{}")
+            params.AddEmptyValue("computing_model_part_name").SetString(self.computing_model_part_name)
+            params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
+            params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])         
+
+            # CheckAndPrepareModelProcess creates the solid_computational model part
             import check_and_prepare_model_process_solid
-            check_and_prepare_model_process_solid.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
+            check_and_prepare_model_process_solid.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
             
             # Constitutive law import
             import constitutive_law_python_utility as constitutive_law_utils
@@ -197,20 +199,19 @@ class MechanicalSolver(object):
         elif(self.settings["model_import_settings"]["input_type"].GetString() == "rest"):
 
             problem_path = os.getcwd()
-            restart_path = os.path.join(problem_path, self.settings["model_import_settings"]["input_filename"].GetString() + "_" + self.settings["model_import_settings"]["input_file_label"].GetString() )
+            restart_path = os.path.join(problem_path, self.settings["model_import_settings"]["input_filename"].GetString() + "__" + self.settings["model_import_settings"]["input_file_label"].GetString() )
 
             if(os.path.exists(restart_path+".rest") == False):
                 print("    rest file does not exist , check the restart step selected ")
 
             # set serializer flag
-            self.serializer_flag = "SERIALIZER_NO_TRACE"      # binary
-            # self.serializer_flag = "SERIALIZER_TRACE_ERROR" # ascii
-            # self.serializer_flag = "SERIALIZER_TRACE_ALL"   # ascii
-            kratos_serializer_variable = KratosMultiphysics.KratosGlobals.GetVariable(self.serializer_flag)
+            self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE      # binary
+            # self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ERROR # ascii
+            # self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
 
-            serializer = Serializer(restart_path, kratos_serializer_variable)
+            serializer = KratosMultiphysics.Serializer(restart_path, self.serializer_flag)
 
-            serializer.Load(self.main_model_part.GetModelPartName(), self.main_model_part)
+            serializer.Load(self.main_model_part.Name, self.main_model_part)
             print("    Load input restart file.")
 
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
@@ -222,8 +223,8 @@ class MechanicalSolver(object):
         print ("::[Mechanical Solver]:: Model reading finished.")
  
         
-    def GetComputeModelPart(self):
-        return self.main_model_part.GetSubModelPart("solid_computational_model_part")
+    def GetComputingModelPart(self):
+        return self.main_model_part.GetSubModelPart(self.computing_model_part_name)
         
     def GetOutputVariables(self):
         pass
