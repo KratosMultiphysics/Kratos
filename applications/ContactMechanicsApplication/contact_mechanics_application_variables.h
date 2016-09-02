@@ -31,7 +31,6 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/kratos_application.h"
-#include "custom_conditions/custom_friction_laws/friction_law.hpp"
 
 // Core applications
 #include "pfem_base_application_variables.h"
@@ -39,7 +38,7 @@
 namespace Kratos
 {
 
-   KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_MECHANICS_APPLICATION, FrictionLaw::Pointer, FRICTION_LAW )
+   KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_MECHANICS_APPLICATION, std::string, FRICTION_LAW_NAME )
 
    KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_MECHANICS_APPLICATION, int, NUMBER_OF_ACTIVE_CONTACTS )
    KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_MECHANICS_APPLICATION, int, NUMBER_OF_STICK_CONTACTS )

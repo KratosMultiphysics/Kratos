@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
+import KratosMultiphysics.ContactMechanicsApplication as KratosContact
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -17,14 +18,9 @@ class ContactModeler(mesh_modeler.MeshModeler):
     #
     def __init__(self, main_model_part, meshing_parameters): 
         
-        self.echo_level             = 1
-        self.main_model_part        = main_model_part 
-        self.MeshingParameters      = meshing_parameters
+        mesh_modeler.MeshModeler.__init__(self, main_model_part, meshing_parameters)        
 
-        self.imposed_walls          = []
-        self.consider_imposed_walls = False      
-
-        print("Construction of Contact Modeler finished")
+        print("::[Contact_Mesh_Modeler]:: -BUILT-")
   
     #
     def Initialize(self, domain_size):
@@ -33,9 +29,9 @@ class ContactModeler(mesh_modeler.MeshModeler):
 
         # set mesh modeler
         if(self.domain_size == 2):
-            self.mesher = KratosPfemBase.ContactDomain2DModeler()
+            self.mesher = KratosContact.ContactDomain2DModeler()
         elif(self.domain_size == 3):
-            self.mesher = KratosPfemBase.ContactDomain3DModeler()
+            self.mesher = KratosContact.ContactDomain3DModeler()
 
         self.mesher.SetEchoLevel(self.echo_level)
         self.mesher.SetMeshingParameters(self.MeshingParameters)
@@ -64,7 +60,7 @@ class ContactModeler(mesh_modeler.MeshModeler):
             execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_FACES_TO_MESHER, True)
                               
         execution_options.Set(KratosPfemBase.ModelerUtilities.SELECT_TESSELLATION_ELEMENTS, True)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.KEEP_ISOLATED_NODES, False)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.KEEP_ISOLATED_NODES, True)
 
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
@@ -94,23 +90,26 @@ class ContactModeler(mesh_modeler.MeshModeler):
 
     #
     def SetPreMeshingProcesses(self):
-        #nothing to do: only reconnection    
+ 
+        # The order set is the order of execution:
 
-        ## in the mesh_utilities: set ids consecutives and calculate boundary normals
-
-        #clear contacts
-
-        pass
-     
+        # clear contact conditions
+        clear_contact_conditions= KratosContact.ClearContactConditions(self.main_model_part, self.echo_level)
+        self.mesher.SetPreMeshingProcess(clear_contact_conditions)
 
     #
     def SetPostMeshingProcesses(self):
 
         # The order set is the order of execution:
-   
-        # build contact conditions
+        
+        #select mesh elements
+        select_mesh_elements  = KratosPfemBase.SelectMeshElements(self.model_part, self.MeshingParameters, self.echo_level)
+        self.mesher.SetPostMeshingProcess(select_mesh_elements)
 
-        ## in the mesh_utilities: set ids not shared with elements to write in GiD
+        # build contact conditions
+        build_contact_conditions= KratosContact.BuildContactConditions(self.main_model_part, self.MeshingParameters, self.echo_level)
+        self.mesher.SetPostMeshingProcess(build_contact_conditions)
+        
     #
     def FinalizeMeshing(self):
         

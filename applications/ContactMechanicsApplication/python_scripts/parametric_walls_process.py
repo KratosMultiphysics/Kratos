@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # importing the Kratos Library
 import KratosMultiphysics 
 import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
+import KratosMultiphysics.ContactMechanicsApplication as KratosContact
 KratosMultiphysics.CheckForPreviousImport()
 
 def Factory(settings, Model):
@@ -16,7 +17,7 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
 
         KratosMultiphysics.Process.__init__(self)
         
-        self.model_part = Model[custom_settings["model_part_name"].GetString()]
+        self.main_model_part = Model[custom_settings["model_part_name"].GetString()]
     
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
@@ -33,7 +34,7 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.echo_level        = 1
-        self.domain_size       = self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.domain_size       = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         self.search_frequency  = self.settings["search_frequency"].GetDouble()
         
         self.search_control_is_time = False
@@ -49,8 +50,8 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
         self.number_of_walls = walls_list.size()
         for i in range(0,self.number_of_walls):
             item = walls_list[i]
-            parametric_wall_module = __import__(item["python_file_name"].GetString())
-            wall = parametric_wall_module.CreateParametricWall( Model, self.model_part, item)
+            parametric_wall_module = __import__(item["python_module"].GetString())
+            wall = parametric_wall_module.CreateParametricWall( self.main_model_part, item)
             self.parametric_walls.append(wall)
 
         # mesh modeler initial values
@@ -65,10 +66,46 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
     #
     def ExecuteInitialize(self):
 
+        # check restart
         self.restart = False
-        if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] ):
+        if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] ):
             self.restart = True
+            self.step_count = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+            
+            if self.search_control_is_time:
+                self.next_search  = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] 
+            else:
+                self.next_search = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+
+        # execute initialize base class
+        if( self.main_model_part.ProcessInfo[KratosPfemBase.INITIALIZED_DOMAINS] == False ):
+            self.InitializeDomains()
+
+        for wall in self.parametric_walls:
+            wall.Initialize();
+
+
+    #
+    def InitializeDomains(self):
+
+        # initialize the modeler 
+        print("::[Walls_Process]:: Initialize Domains ")
+            
+        import domain_utilities
+        domain_utils = domain_utilities.DomainUtilities()
         
+        # find node neighbours
+        domain_utils.SearchNodeNeighbours(self.main_model_part, self.echo_level)
+            
+        # find element neighbours
+        domain_utils.SearchElementNeighbours(self.main_model_part, self.echo_level)
+            
+        # set neighbour search performed
+        neighbour_search_performed = True
+               
+        self.main_model_part.ProcessInfo.SetValue(KratosPfemBase.INITIALIZED_DOMAINS, True)
+
+        print(self.main_model_part)
 
     ###
 
@@ -82,7 +119,10 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
             wall.InitializeSearch();
 
         #build all contacts :: when building check if the condition exists and clone it
-        self.SearchContact()
+        if(self.search_contact_active):
+            if(self.IsSearchStep()):
+                self.SearchContact()
+
 
     #
     def ExecuteFinalizeSolutionStep(self):
@@ -96,19 +136,24 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
     #
     def SearchContact(self):
 
-        if(self.search_contact_active):
 
-            if( self.echo_level > 0 ):
-                print("::[Walls_Process]:: CONTACT SEARCH...", self.counter)
+        if( self.echo_level > 0 ):
+            print("::[Walls_Process]:: CONTACT SEARCH...( call:", self.counter,")")
+            
+        self.wall_contact_model= KratosContact.ClearPointContactConditions(self.main_model_part, self.echo_level)
 
-            for wall in self.parametric_walls:
-                wall.ExecuteSearch();
-                
-            self.counter += 1 
+        self.wall_contact_model.ExecuteInitialize()
+
+        for wall in self.parametric_walls:
+            wall.ExecuteSearch();
+            
+        self.wall_contact_model.ExecuteFinalize()
+
+        self.counter += 1 
 
 
         # schedule next search
-        if(self.search_frequency >= 0.0):
+        if(self.search_frequency > 0.0): # note: if == 0 always active
             if(self.search_control_is_time):
                 while(self.next_search <= time):
                     self.next_search += self.search_frequency
@@ -126,7 +171,7 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
     def IsSearchStep(self):
 
         if(self.search_control_is_time):
-            #print( str(self.model_part.ProcessInfo[TIME])+">"+ str(self.next_search) )
-            return ( self.model_part.ProcessInfo[TIME] > self.next_search )
+            #print( str(self.main_model_part.ProcessInfo[TIME])+">"+ str(self.next_search) )
+            return ( self.main_model_part.ProcessInfo[TIME] > self.next_search )
         else:
             return ( self.step_count >= self.next_search )

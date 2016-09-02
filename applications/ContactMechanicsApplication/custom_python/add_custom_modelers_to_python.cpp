@@ -14,7 +14,6 @@
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 // Project includes
-#include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_modelers_to_python.h"
 

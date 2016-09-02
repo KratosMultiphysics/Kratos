@@ -7,29 +7,53 @@
 //
 //
 
-#include "custom_conditions/custom_friction_laws/hardening_coulomb_friction_law.hpp"
+#include "custom_friction/hardening_coulomb_friction_law.hpp"
 
 #include "contact_mechanics_application_variables.h"
 
 namespace Kratos
 {
+
+  /**
+   * Constructor.
+   */
    HardeningCoulombFrictionLaw::HardeningCoulombFrictionLaw()
    {
-
    }
 
+  /**
+   * Destructor.
+   */
    HardeningCoulombFrictionLaw::~HardeningCoulombFrictionLaw()
    {
-
    }
 
-   double HardeningCoulombFrictionLaw::EvaluateHardening( const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables) 
+  /**
+   * Clone function (has to be implemented by any derived class)
+   * @return a pointer to a new instance of this constitutive law
+   * NOTE: implementation scheme:
+   *      ConstitutiveLaw::Pointer p_clone(new ConstitutiveLaw());
+   *      return p_clone;
+   */
+  FrictionLaw::Pointer HardeningCoulombFrictionLaw::Clone() const
+  {
+    HardeningCoulombFrictionLaw::Pointer p_clone(new HardeningCoulombFrictionLaw(*this));
+    return p_clone;
+  }
+  
+  /**
+   * Methods
+   */
+  double HardeningCoulombFrictionLaw::EvaluateHardening( const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables) 
    {
       double aux = std::exp( rTangentVariables.Alpha * rPlasticSlip );
       double H = - aux * rTangentVariables.FrictionCoefficient * rTangentVariables.Alpha * fabs(rNormalStress);
       return H;
    }
 
+  /**
+   * Methods
+   */
    double HardeningCoulombFrictionLaw::EvaluateContactYield( const double& rTangentStress, const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables) 
    {
       double aux = std::exp( rTangentVariables.Alpha * rPlasticSlip );
@@ -38,6 +62,9 @@ namespace Kratos
 
    }
 
+  /**
+   * Methods
+   */
    void HardeningCoulombFrictionLaw::EvaluateYieldDerivativeRespectStress( double& rdF_dt, double & rdF_dp, const double& rTangentStress, const double& rNormalStress, const double& rGamma, FrictionLawVariables& rTangentVariables) 
    {
       rdF_dt = 1.0;
@@ -45,4 +72,5 @@ namespace Kratos
       double aux = std::exp( rTangentVariables.Alpha * rGamma );
       rdF_dp = - rTangentVariables.FrictionCoefficient * aux;
    }
+
 } // end namespace Kratos

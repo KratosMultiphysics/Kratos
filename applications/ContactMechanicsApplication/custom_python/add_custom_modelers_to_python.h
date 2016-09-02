@@ -23,12 +23,12 @@
 namespace Kratos
 {
 
-namespace Python
-{
+  namespace Python
+  {
 
-void  AddCustomModelersToPython();
+    void  AddCustomModelersToPython();
 
-}  // namespace Python.
+  }  // namespace Python.
 
 }  // namespace Kratos.
 

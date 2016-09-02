@@ -61,6 +61,14 @@ namespace Kratos
   }
 
 
+   //************************************CLONE*******************************************
+   //************************************************************************************
+
+   Condition::Pointer PointRigidContactPenalty2DCondition::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const
+   {
+     return Condition::Pointer(new PointRigidContactPenalty2DCondition(NewId,GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall));
+   }
+
   //************************************************************************************
   //************************************************************************************
 

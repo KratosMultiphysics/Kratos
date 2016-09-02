@@ -411,7 +411,7 @@ void ContactDomainCondition::Initialize()
 {
     KRATOS_TRY
 
-      std::cout<<" The position update on the iteration requires a modification in the condition "<<std::endl;
+    //std::cout<<" The position update on the iteration requires a modification in the condition "<<std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -514,7 +514,7 @@ void ContactDomainCondition::AddExplicitContribution(const VectorType& rRHSVecto
 
     if( rRHSVariable == CONTACT_FORCES_VECTOR && rDestinationVariable == CONTACT_FORCE )
       {
-
+	
 	for(unsigned int i=0; i< number_of_nodes; i++)
 	  {
 	    int index = dimension * i;
@@ -529,6 +529,19 @@ void ContactDomainCondition::AddExplicitContribution(const VectorType& rRHSVecto
 
 	    GetGeometry()[i].UnSetLock();
 	  }
+	
+	Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
+
+	MasterNode.SetLock();
+
+	array_1d<double, 3 >& ContactForce = MasterNode.FastGetSolutionStepValue(CONTACT_FORCE);
+	for(unsigned int j=0; j<dimension; j++)
+	  {
+	    ContactForce[j] += rRHSVector[dimension*number_of_nodes + j];
+	  }
+
+	MasterNode.UnSetLock();
+
       }
 
 
@@ -549,6 +562,18 @@ void ContactDomainCondition::AddExplicitContribution(const VectorType& rRHSVecto
 
 	    GetGeometry()[i].UnSetLock();
 	  }
+
+	Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
+
+	MasterNode.SetLock();
+
+	array_1d<double, 3 > &ForceResidual = MasterNode.FastGetSolutionStepValue(FORCE_RESIDUAL);
+	for(unsigned int j=0; j<dimension; j++)
+	  {
+	    ForceResidual[j] += rRHSVector[dimension*number_of_nodes + j];
+	  }
+
+	MasterNode.UnSetLock();
       }
 
     KRATOS_CATCH( "" )
@@ -1192,6 +1217,7 @@ void ContactDomainCondition::CalculateConditionSystem(LocalSystemComponents& rLo
 	      //contribution to contact forces
 	      this->CalculateAndAddRHS ( rLocalSystem, Variables, IntegrationWeight );
 
+	      this->AddExplicitContribution( rLocalSystem.GetRightHandSideVector(), CONTACT_FORCES_VECTOR, CONTACT_FORCE, rCurrentProcessInfo);
 	    }
 
 
@@ -1317,8 +1343,8 @@ inline void ContactDomainCondition::CalculateAndAddContactForces(VectorType& rRi
     Vector Nforce;
     Vector Tforce;
 
-    LocalVectorType NormalForce  (3,0.0);
-    LocalVectorType TangentForce (3,0.0);
+    // LocalVectorType NormalForce  (3,0.0);
+    // LocalVectorType TangentForce (3,0.0);
 
     unsigned int index=0;
     for (unsigned int ndi=0; ndi<size; ndi++)
@@ -1326,8 +1352,8 @@ inline void ContactDomainCondition::CalculateAndAddContactForces(VectorType& rRi
 	Nforce=ZeroVector( dimension );
         Tforce=ZeroVector( dimension );
 
-	NormalForce.clear();
-	TangentForce.clear();
+	// NormalForce.clear();
+	// TangentForce.clear();
 
         for (unsigned int i=0; i<dimension; i++)
         {
@@ -1346,19 +1372,26 @@ inline void ContactDomainCondition::CalculateAndAddContactForces(VectorType& rRi
 
 	    rRightHandSideVector[index] -=(Nforce[i] + Tforce[i]);
  
-	    NormalForce[i]  -= (Nforce[i])*rIntegrationWeight;
-	    TangentForce[i] -= (Tforce[i])*rIntegrationWeight;
+	    // NormalForce[i]  -= (Nforce[i])*rIntegrationWeight;
+	    // TangentForce[i] -= (Tforce[i])*rIntegrationWeight;
 
 	    index++;
         }
 	
+	// if( ndi < GetGeometry().PointsNumber() )
+	//   {
+	//     GetGeometry()[ndi].SetLock();
+	//     array_1d<double, 3>& ContactForce = GetGeometry()[ndi].FastGetSolutionStepValue(CONTACT_FORCE);
+	//     ContactForce += (NormalForce + TangentForce);
+	//     GetGeometry()[ndi].UnSetLock();
+	//   }
     }
 
 
     rRightHandSideVector  *=  rIntegrationWeight;
 
     // std::cout<<std::endl;
-    // std::cout<<" Fcontact "<<rRightHandSideVector<<std::endl;
+    // std::cout<<" Fcontact ["<<this->Id()<<"]"<<rRightHandSideVector<<std::endl;
 
 
     KRATOS_CATCH( "" )
@@ -1400,8 +1433,8 @@ void ContactDomainCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix
 
     rLeftHandSideMatrix *= rIntegrationWeight;
 
-    // std::cout<<std::endl;
-    // std::cout<<" Kcontact "<<rLeftHandSideMatrix<<std::endl;
+    //std::cout<<std::endl;
+    //std::cout<<" Kcontact ["<<this->Id()<<"]"<<rLeftHandSideMatrix<<std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -1633,5 +1666,4 @@ void ContactDomainCondition::load( Serializer& rSerializer )
 
 
 } // Namespace Kratos
-
 

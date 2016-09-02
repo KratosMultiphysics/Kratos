@@ -16,8 +16,7 @@
 
 #include "contact_mechanics_application_variables.h"
 
-#include "custom_conditions/custom_friction_laws/coulomb_adhesion_friction_law.hpp"
-#include "custom_conditions/custom_friction_laws/hardening_coulomb_friction_law.hpp"
+#include "custom_friction/hardening_coulomb_friction_law.hpp"
 
 namespace Kratos
 {
@@ -93,9 +92,9 @@ namespace Kratos
    //************************************CLONE*******************************************
    //************************************************************************************
 
-   Condition::Pointer PointRigidContactCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+   Condition::Pointer PointRigidContactCondition::Clone( IndexType NewId, NodesArrayType const& ThisNodes ) const
    {
-      return this->Create( NewId, rThisNodes, pGetProperties() );
+     return Condition::Pointer(new PointRigidContactCondition(NewId, GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall));
    }
 
 

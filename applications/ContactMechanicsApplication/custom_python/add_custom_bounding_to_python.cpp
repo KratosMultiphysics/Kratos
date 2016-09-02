@@ -38,33 +38,11 @@ namespace Python
 
   typedef SphereBoundingBox                   SphereBoundingBoxBaseType;
 
-  void Push_Back_Bounding_Box( BoundingBoxContainer& ThisBoundingBoxContainer,
-			       BoundingBoxPointer ThisBoundingBox )
-  {
-    ThisBoundingBoxContainer.push_back( ThisBoundingBox );
-  }
-
 
   void  AddCustomBoundingToPython()
   {
 
     using namespace boost::python;
-
-    //bounding box container
-    class_< BoundingBoxContainer >( "BoundingBoxContainer", init<>() )
-    .def( "PushBack", Push_Back_Bounding_Box )
-    ;
-
-
-    //spatial bounding box
-    class_<SpatialBoundingBox, BoundingBoxPointer, boost::noncopyable > 
-      ( "SpatialBoundingBox", 
-	init<Vector, Vector>() )
-      .def(init< Parameters >())
-      .def(init< Parameters& >())
-      .def("SetAxisymmetric",&SpatialBoundingBox::SetAxisymmetric)
-      .def("SetDimension",&SpatialBoundingBox::SetDimension)
-      ;
 
     //plane-wall
     class_<PlaneBoundingBox, bases<BoundingBoxBaseType>, boost::noncopyable > 

@@ -18,6 +18,7 @@
 #include "includes/constitutive_law.h"
 #include "includes/element.h"
 #include "includes/condition.h"
+#include "includes/kratos_flags.h"
 
 #include "custom_utilities/contact_domain_utilities.hpp"
 
