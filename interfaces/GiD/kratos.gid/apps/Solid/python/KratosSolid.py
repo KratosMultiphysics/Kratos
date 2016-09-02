@@ -116,7 +116,7 @@ for process in list_of_processes:
 
 #### START SOLUTION ####
 
-computing_model_part = solver.GetComputeModelPart()
+computing_model_part = solver.GetComputingModelPart()
 
 #### Output settings start ####
 
@@ -159,7 +159,7 @@ delta_time = ProjectParameters["problem_data"]["time_step"].GetDouble()
 
 
 # Solving the problem (time integration)
-while(time <= end_time):
+while(time < end_time):
 
     # current time parameters
     # main_model_part.ProcessInfo.GetPreviousStepInfo(1)[KratosMultiphysics.DELTA_TIME] = delta_time
@@ -177,13 +177,11 @@ while(time <= end_time):
 
     gid_output.ExecuteInitializeSolutionStep()
      
-   
     # solve time step
     solver.Solve()
 
     gid_output.ExecuteFinalizeSolutionStep()
-        
-
+    
     # processes to be executed at the end of the solution step
     for process in list_of_processes:
         process.ExecuteFinalizeSolutionStep()
@@ -220,7 +218,7 @@ tfp = timer.clock()
 # Measure wall time
 tfw = timer.time()
 
-print("::[KSM Simulation]:: [ Computing Time = (%.2f" % (tfp - t0p)," seconds process time) ( %.2f" % (tfw - t0w)," seconds wall time) ]")
+print("::[KSM Simulation]:: [ Elaspsed Time = (%.2f" % (tfp - t0p)," seconds process time) ( %.2f" % (tfw - t0w)," seconds wall time) ]")
 
 print(timer.ctime())
 

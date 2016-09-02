@@ -55,7 +55,7 @@ proc Pfem::write::GetNodalDataDict { } {
             set groupid [$group @n]
             set processDict [dict create]
             dict set processDict process_name "ApplyValuesToNodes"
-            dict set processDict implemented_in_module "KratosMultiphysics.PFEMBaseApplication"
+            dict set processDict kratos_module "KratosMultiphysics.PFEMBaseApplication"
             
             set params [dict create]
             set xp2 "./value"

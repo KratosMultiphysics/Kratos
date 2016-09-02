@@ -2,8 +2,8 @@
 
 <ProcessList>
     
-    <Process n="ApplyInletProcess" pn="Vector value" implemented_in_file="apply_constant_inlet_process"
-		implemented_in_module="KratosMultiphysics.FluidDynamicsApplication" check="DirectorVectorNonZero direction"
+    <Process n="ApplyInletProcess" pn="Vector value" python_module="apply_constant_inlet_process"
+		kratos_module="KratosMultiphysics.FluidDynamicsApplication" check="DirectorVectorNonZero direction"
         help="This process fixes the velocity values introduced in the interface. All the components are fixed.
               The values introduced by the user are directly imposed (no normalization of the vector)." >
 		<inputs>
@@ -11,16 +11,16 @@
 		</inputs>
     </Process>
 
-    <Process n="ApplyOutletProcess" pn="Scalar value" implemented_in_file="impose_scalar_value_process"
-        implemented_in_module="KratosMultiphysics.FluidDynamicsApplication">
+    <Process n="ApplyOutletProcess" pn="Scalar value" python_module="impose_scalar_value_process"
+        kratos_module="KratosMultiphysics.FluidDynamicsApplication">
 		<inputs>
 			<!--<parameter n="PressureType" pn="Pressure type" type="combo" v="Constant" values="Constant,Hydrostatic" help="Pressure will be setted.." state="[ShowInMode Developer]"/>-->
 			<parameter n="value" pn="Pressure" type="double" unit_magnitude="P" units="Pa"/>
 		</inputs>
     </Process>
 
-    <Process n="ApplyHydrostaticOutletProcess" pn="Scalar value" implemented_in_file="apply_hydrostatic_outlet_process"
-        implemented_in_module="KratosMultiphysics.FluidDynamicsApplication">
+    <Process n="ApplyHydrostaticOutletProcess" pn="Scalar value" python_module="apply_hydrostatic_outlet_process"
+        kratos_module="KratosMultiphysics.FluidDynamicsApplication">
 		<inputs>
 <!--
             checkStateByUniqueName not working for un "outlet_type". The function is only called when opening the BC in the tree but not called when switching values in the combobox.
@@ -34,49 +34,49 @@
 		</inputs>
     </Process>
 
-    <Process n="ApplySlipProcess" pn="Scalar value" implemented_in_file="apply_slip_process"
-        implemented_in_module="KratosMultiphysics.FluidDynamicsApplication">
+    <Process n="ApplySlipProcess" pn="Scalar value" python_module="apply_slip_process"
+        kratos_module="KratosMultiphysics.FluidDynamicsApplication">
 		<inputs>
 		</inputs>
     </Process>
   
-    <Process n="ApplyNoSlipProcess" pn="Scalar value" implemented_in_file="apply_noslip_process"
-        implemented_in_module="KratosMultiphysics.FluidDynamicsApplication">
+    <Process n="ApplyNoSlipProcess" pn="Scalar value" python_module="apply_noslip_process"
+        kratos_module="KratosMultiphysics.FluidDynamicsApplication">
 		<inputs>
 		</inputs>
     </Process>
   
-    <Process n="ApplyConstantVectorValueProcess" pn="Vector value" implemented_in_file="process_factory"
-        implemented_in_module="KratosMultiphysics" help="This process ">
+    <Process n="ApplyConstantVectorValueProcess" pn="Vector value" python_module="process_factory"
+        kratos_module="KratosMultiphysics" help="This process ">
     <inputs>
         <parameter n="factor" pn="Modulus" type="double"  v="1.0" unit_magnitude="0" units="0"/>
         <parameter n="direction" pn="Direction" type="vector" v="0.0,0.0,0.0" />
     </inputs>
     </Process>
   
-    <Process n="ApplyConstantScalarValueProcess" pn="Scalar value" implemented_in_file="process_factory"
-        implemented_in_module="KratosMultiphysics" help="This process ">
+    <Process n="ApplyConstantScalarValueProcess" pn="Scalar value" python_module="process_factory"
+        kratos_module="KratosMultiphysics" help="This process ">
     <inputs>
         <parameter n="value" pn="Value" type="double" unit_magnitude="0" units="0"/>
     </inputs>
     </Process>
     
-    <Process n="ImposeScalarValueProcess" pn="Impose vector value by components process" implemented_in_file="impose_scalar_value_process"
-		implemented_in_module="KratosMultiphysics" help="This process fixes the given scalar variable">
+    <Process n="ImposeScalarValueProcess" pn="Impose vector value by components process" python_module="impose_scalar_value_process"
+		kratos_module="KratosMultiphysics" help="This process fixes the given scalar variable">
     <inputs>
         <parameter n="value" pn="Value" type="double" v="0.0" unit_magnitude="P" units="Pa" />
     </inputs>
     </Process>
   
-    <Process n="ImposeVectorValueByComponentsProcess" pn="Impose vector value by components process" implemented_in_file="impose_vector_value_by_components_process"
-		implemented_in_module="KratosMultiphysics" help="This process fixes the selected components of a given vector variable">
+    <Process n="ImposeVectorValueByComponentsProcess" pn="Impose vector value by components process" python_module="impose_vector_value_by_components_process"
+		kratos_module="KratosMultiphysics" help="This process fixes the selected components of a given vector variable">
     <inputs>
         <parameter n="value" pn="Value" type="vector" fixity="Imposed" v="0.0,0.0,0.0" unit_magnitude="Velocity" units="m/s" />
     </inputs>
     </Process>
 
-    <Process n="ImposeVectorValueByDirectionProcess" pn="Impose vector value by direction process" implemented_in_file="impose_vector_value_by_direction_process"
-		implemented_in_module="KratosMultiphysics" help="This process fixes all the components of a given vector variable" check="DirectorVectorNonZero direction"> 
+    <Process n="ImposeVectorValueByDirectionProcess" pn="Impose vector value by direction process" python_module="impose_vector_value_by_direction_process"
+		kratos_module="KratosMultiphysics" help="This process fixes all the components of a given vector variable" check="DirectorVectorNonZero direction"> 
     <inputs>
         <parameter n="factor" pn="Modulus" type="double"  v="1.0" unit_magnitude="Velocity" units="m/s"/>
         <parameter n="direction" pn="Direction" type="vector" v="0.0,0.0,0.0" unit_magnitude="0" units="0" />

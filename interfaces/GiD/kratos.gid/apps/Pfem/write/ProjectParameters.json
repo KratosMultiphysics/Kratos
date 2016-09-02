@@ -35,8 +35,8 @@
         "processes_sub_model_part_list"      :["DISPLACEMENT_Displacement_Auto1","SelfWeight3D_Self_weight_Auto1"]
     },
     "problem_process_list" : [{
-        "implemented_in_file"   : "remesh_domains_process",
-        "implemented_in_module" : "KratosMultiphysics.PfemBaseApplication",
+        "python_module"   : "remesh_domains_process",
+        "kratos_module" : "KratosMultiphysics.PfemBaseApplication",
         "help"                  : "This process applies meshing to the problem domains",
         "process_name"          : "RemeshDomainsProcess",
         "Parameters"            : {
@@ -46,13 +46,13 @@
 	    "meshing_before_output" : true,
 	    "meshing_domains"       : [
 		{
-		    "python_file_name": "meshing_domain",
+		    "python_module": "meshing_domain",
 		    "mesh_id": 1,
 		    "sub_model_part_name": "sub_model_part_name",
 		    "alpha_shape": 2.4,
 		    "offset_factor": 0.0,
 		    "meshing_strategy":{
-			"python_file_name": "meshing_strategy",
+			"python_module": "meshing_strategy",
 			"meshing_frequency": 0,
 			"remesh": false,
 			"refine": false,
@@ -114,8 +114,8 @@
 	    ]
 	}
     },{
-        "implemented_in_file"   : "parametric_walls_process",
-        "implemented_in_module" : "KratosMultiphysics.ContactMechanicsApplication",
+        "python_module"   : "parametric_walls_process",
+        "kratos_module" : "KratosMultiphysics.ContactMechanicsApplication",
         "help"                  : "This process applies parametric walls and search contact",
         "process_name"          : "ParametricWallsProcess",
         "Parameters"            : {
@@ -124,7 +124,7 @@
             "search_frequency"     : 1.0,
 	    "parametric_walls" : [
 		{
-		    "python_file_name": "parametric_wall",
+		    "python_module": "parametric_wall",
 		    "mesh_id": 0,
 		    "sub_model_part_name" : "sub_model_part_name",
 		    "rigid_body_settings":{
@@ -139,7 +139,7 @@
 			}
 		    },
 		    "bounding_box_settings":{
-			"implemented_in_module": "KratosMultiphysics.ContactMechanicsApplication",
+			"kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
 			"bounding_box_type": "SpatialBoundingBox",
 			"bounding_box_parameters":{
 			    "parameters_list":[],
@@ -147,12 +147,12 @@
 			}
 		    },
 		    "contact_search_settings":{
-			"python_file_name": "parametric_wall_contact_search",
+			"python_module": "parametric_wall_contact_search",
 			"search_frequency": 0,            
 			"contact_parameters":{
 			    "contact_condition_type": "PointContactCondition2D1N",
 			    "friction_law_type": "FrictionLaw",
-			    "implemented_in_module": "KratosMultiphysics.ContactMechanicsApplication",
+			    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
 			    "variables_of_properties":{
 				"FRICTION_ACTIVE": false,
 				"MU_STATIC": 0.3,
@@ -168,8 +168,8 @@
 	    ]
 	}
     },{
-        "implemented_in_file"   : "contact_domain_process",
-        "implemented_in_module" : "KratosMultiphysics.ContactMechanicsApplication",
+        "python_module"   : "contact_domain_process",
+        "kratos_module" : "KratosMultiphysics.ContactMechanicsApplication",
         "help"                  : "This process applies contact domain search by remeshing outer boundaries",
         "process_name"          : "ContactDomainProcess",
         "Parameters"            : {
@@ -180,19 +180,19 @@
             "meshing_before_output" : true,
 	    "meshing_domains" : [
 		{
-		    "python_file_name": "contact_domain",
+		    "python_module": "contact_domain",
 		    "sub_model_part_name": "sub_model_part_name",
 		    "alpha_shape": 1.4,
 		    "offset_factor": 0.0,
 		    "meshing_strategy":{
-			"python_file_name": "contact_meshing_strategy",
+			"python_module": "contact_meshing_strategy",
 			"meshing_frequency": 0,
 			"remesh": true,
 			"constrained": false,
 			"contact_parameters":{
 			    "contact_condition_type": "ContactDomainLM2DCondition",
 			    "friction_law_type": "FrictionLaw",
-			    "implemented_in_module": "KratosMultiphysics.ContactMechanicsApplication",
+			    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
 			    "variables_of_properties":{
 				"FRICTION_ACTIVE": false,
 				"MU_STATIC": 0.3,
@@ -209,8 +209,8 @@
         }
     }],
     "constraints_process_list" : [{
-        "implemented_in_file"   : "impose_vector_value_by_components_process",
-        "implemented_in_module" : "KratosMultiphysics",
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
         "process_name"          : "ImposeVectorValueByComponentsProcess",
         "Parameters"            : {
@@ -224,8 +224,8 @@
         }
     }],
     "loads_process_list"       : [{
-        "implemented_in_file"   : "process_factory",
-        "implemented_in_module" : "KratosMultiphysics",
+        "python_module"   : "process_factory",
+        "kratos_module" : "KratosMultiphysics",
         "check"                 : "DirectorVectorNonZero direction",
         "help"                  : "This process ",
         "process_name"          : "ApplyConstantVectorValueProcess",
@@ -238,8 +238,8 @@
         }
     }],
     "output_process_list" : [{
-        "implemented_in_file"   : "restart_process",
-        "implemented_in_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "python_module"   : "restart_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
         "help"                  : "This process writes restart files",
         "process_name"          : "RestartProcess",
         "Parameters"            : {
