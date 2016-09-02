@@ -44,7 +44,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
             "rotation_dofs": false,
             "pressure_dofs": false,
             "stabilization_factor": 1.0,
-            "reform_dofs_at_each_iteration": false,
+            "reform_dofs_at_each_step": false,
             "line_search": false,
             "compute_reactions": true,
             "compute_contact_forces": false,

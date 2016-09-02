@@ -56,7 +56,7 @@ class Trilinos_NavierStokesSolver_FractionalStep:
             "dynamic_tau": 0.001,
             "compute_reactions": false,
             "divergence_clearance_steps": 0,
-            "reform_dofs_at_each_iteration": false,
+            "reform_dofs_at_each_step": false,
             "pressure_linear_solver_settings":  {
                 "solver_type"                    : "ML",
                 "max_iteration"                  : 200,
@@ -195,7 +195,7 @@ class Trilinos_NavierStokesSolver_FractionalStep:
                     self.settings["time_order"].GetInt(),
                     use_slip_conditions,
                     MoveMeshFlag,
-                    self.settings["reform_dofs_at_each_iteration]"].GetBool(),
+                    self.settings["reform_dofs_at_each_step]"].GetBool(),
                     PATCH_INDEX
                     )
                                                                   
@@ -207,7 +207,7 @@ class Trilinos_NavierStokesSolver_FractionalStep:
                     self.settings["time_order"].GetInt(),
                     use_slip_conditions,
                     MoveMeshFlag,
-                    self.settings["reform_dofs_at_each_iteration"].GetBool()
+                    self.settings["reform_dofs_at_each_step"].GetBool()
                     )
                                                               
         self.solver_settings.SetEchoLevel(self.settings["echo_level"].GetInt())

@@ -35,7 +35,7 @@ class LagrangianMPMSolver:
             "maximum_iterations": 10,
             "echo_level": 1,
             "compute_reactions": false,
-            "reform_dofs_at_each_iteration": true,
+            "reform_dofs_at_each_step": true,
             "relative_tolerance": 1e-5,
             "absolute_tolerance": 1e-7,
             "linear_solver_settings"        : {
@@ -142,7 +142,7 @@ class LagrangianMPMSolver:
                                                                             builder_and_solver, 
                                                                             self.settings["maximum_iterations"].GetInt(), 
                                                                             self.settings["compute_reactions"].GetBool(),
-                                                                            self.settings["reform_dofs_at_each_iteration"].GetBool(), 
+                                                                            self.settings["reform_dofs_at_each_step"].GetBool(), 
                                                                             MoveMeshFlag)
         
                                                          

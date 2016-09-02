@@ -24,7 +24,7 @@ class LaplacianSolver:
             "absolute_tolerance": 1e-9,
             "maximum_iterations": 10,
             "compute_reactions": false,
-            "reform_dofs_at_each_iteration": false,
+            "reform_dofs_at_each_step": false,
             "calculate_solution_norm" : false,
             "volume_model_part_name" : "volume_model_part",
             "skin_parts":[""],
@@ -67,7 +67,7 @@ class LaplacianSolver:
             #time_scheme, 
             #self.linear_solver,
             #self.settings["compute_reactions"].GetBool(), 
-            #self.settings["reform_dofs_at_each_iteration"].GetBool(), 
+            #self.settings["reform_dofs_at_each_step"].GetBool(), 
             #self.settings["calculate_solution_norm"].GetBool(), 
             #move_mesh_flag)
             
@@ -83,7 +83,7 @@ class LaplacianSolver:
             conv_criteria,
             max_iterations,
             self.settings["compute_reactions"].GetBool(), 
-            self.settings["reform_dofs_at_each_iteration"].GetBool(), 
+            self.settings["reform_dofs_at_each_step"].GetBool(), 
             move_mesh_flag)
         
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())

@@ -54,8 +54,8 @@ list_of_processes = []
 process_definition = ProjectParameters["boundary_conditions_process_list"]
 for i in range(process_definition.size()):
     item = process_definition[i]
-    module = __import__(item["implemented_in_module"].GetString())
-    interface_file = __import__(item["implemented_in_file"].GetString())
+    module = __import__(item["kratos_module"].GetString())
+    interface_file = __import__(item["python_module"].GetString())
     p = interface_file.Factory(item, Model)
     list_of_processes.append( p )
     print("done ",i)

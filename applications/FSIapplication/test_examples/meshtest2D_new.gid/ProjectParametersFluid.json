@@ -50,7 +50,7 @@
         "dynamic_tau"                     : 0.001,
         "compute_reactions"               : false,
         "divergence_clearance_steps"      : 0,
-        "reform_dofs_at_each_iteration"   : false,
+        "reform_dofs_at_each_step"        : false,
         "velocity_linear_solver_settings" : {
             "solver_type" : "SuperLUSolver",
             "scaling"     : false,
@@ -68,8 +68,8 @@
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [],
     "gravity"                          : [{
-        "implemented_in_file"   : "process_factory",
-        "implemented_in_module" : "KratosMultiphysics",
+        "python_module"   : "process_factory",
+        "kratos_module"   : "KratosMultiphysics",
         "process_name"          : "ApplyConstantVectorValueProcess",
         "Parameters"            : {
             "mesh_id"         : 0,

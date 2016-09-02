@@ -16,7 +16,7 @@
         },
         "buffer_size":                        2,
         "echo_level":                         1,
-        "reform_dofs_at_each_iteration":      false,
+        "reform_dofs_at_each_step":           false,
         "compute_reactions":                  false,
         "move_mesh_flag":                     true,
         "solution_type":                      "Quasi-Static",
@@ -77,8 +77,8 @@
         "Restart_Step":     0
     },
     "constraints_process_list": [{
-        "implemented_in_file":   "apply_constraint_vector_table_process",
-        "implemented_in_module": "KratosMultiphysics.PoromechanicsApplication",
+        "python_module":   "apply_constraint_vector_table_process",
+        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
         "process_name":          "ApplyConstraintVectorTableProcess",
         "Parameters":            {
             "mesh_id":         0,
@@ -90,8 +90,8 @@
             "table":           [0,0,0]
         }
     },{
-        "implemented_in_file":   "apply_constraint_vector_table_process",
-        "implemented_in_module": "KratosMultiphysics.PoromechanicsApplication",
+        "python_module":   "apply_constraint_vector_table_process",
+        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
         "process_name":          "ApplyConstraintVectorTableProcess",
         "Parameters":            {
             "mesh_id":         0,
@@ -103,8 +103,8 @@
             "table":           [0,0,0]
         }
     },{
-        "implemented_in_file":   "apply_pore_pressure_table_process",
-        "implemented_in_module": "KratosMultiphysics.PoromechanicsApplication",
+        "python_module":   "apply_pore_pressure_table_process",
+        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
         "process_name":          "ApplyPorePressureTableProcess",
         "Parameters":            {
             "mesh_id":              0,
@@ -119,8 +119,8 @@
             "specific_weight":      10000.0
         }
     },{
-        "implemented_in_file":   "apply_pore_pressure_table_process",
-        "implemented_in_module": "KratosMultiphysics.PoromechanicsApplication",
+        "python_module":   "apply_pore_pressure_table_process",
+        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
         "process_name":          "ApplyPorePressureTableProcess",
         "Parameters":            {
             "mesh_id":              0,
@@ -136,8 +136,8 @@
         }
     }],
     "loads_process_list": [{
-        "implemented_in_file":   "apply_load_vector_table_process",
-        "implemented_in_module": "KratosMultiphysics.PoromechanicsApplication",
+        "python_module":   "apply_load_vector_table_process",
+        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
         "process_name":          "ApplyLoadVectorTableProcess",
         "Parameters":            {
             "mesh_id":         0,
@@ -148,8 +148,8 @@
             "table":           [0,0,0]
         }
     },{
-        "implemented_in_file":   "apply_load_scalar_table_process",
-        "implemented_in_module": "KratosMultiphysics.PoromechanicsApplication",
+        "python_module":   "apply_load_scalar_table_process",
+        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
         "process_name":          "ApplyLoadScalarTableProcess",
         "Parameters":            {
             "mesh_id":         0,
@@ -159,8 +159,8 @@
             "table":           0
         }
     },{
-        "implemented_in_file":   "apply_load_vector_table_process",
-        "implemented_in_module": "KratosMultiphysics.PoromechanicsApplication",
+        "python_module":   "apply_load_vector_table_process",
+        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
         "process_name":          "ApplyLoadVectorTableProcess",
         "Parameters":            {
             "mesh_id":         0,

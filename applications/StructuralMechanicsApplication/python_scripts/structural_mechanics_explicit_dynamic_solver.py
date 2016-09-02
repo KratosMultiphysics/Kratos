@@ -43,7 +43,7 @@ class ExplicitMechanicalSolver(solid_mechanics_explicit_dynamic_solver.ExplicitM
             "rotation_dofs": false,
             "pressure_dofs": false,
             "stabilization_factor": 1.0,
-            "reform_dofs_at_each_iteration": false,
+            "reform_dofs_at_each_step": false,
             "compute_reactions": true,
             "move_mesh_flag": true,
             "clear_storage": false,

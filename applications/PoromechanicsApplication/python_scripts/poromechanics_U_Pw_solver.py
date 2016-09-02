@@ -36,7 +36,7 @@ class UPwSolver(object):
             },
             "buffer_size": 2,
             "echo_level": 0,
-            "reform_dofs_at_each_iteration": false,
+            "reform_dofs_at_each_step": false,
             "compute_reactions": false,
             "move_mesh_flag": true,
             "solution_type": "Quasi-Static",
@@ -279,7 +279,7 @@ class UPwSolver(object):
         
         max_iters = self.settings["max_iteration"].GetInt()
         compute_reactions = self.settings["compute_reactions"].GetBool()
-        reform_step_dofs = self.settings["reform_dofs_at_each_iteration"].GetBool()
+        reform_step_dofs = self.settings["reform_dofs_at_each_step"].GetBool()
         move_mesh_flag = self.settings["move_mesh_flag"].GetBool()
         
         if strategy_type == "Newton-Raphson":

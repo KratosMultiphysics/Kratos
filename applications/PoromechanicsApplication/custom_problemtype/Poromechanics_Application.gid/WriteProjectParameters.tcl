@@ -26,7 +26,7 @@ proc WriteProjectParameters { basename dir TableList} {
     puts $varfile "        \},"
     puts $varfile "        \"buffer_size\":                        2,"
     puts $varfile "        \"echo_level\":                         [GiD_AccessValue get gendata Echo_Level],"
-    puts $varfile "        \"reform_dofs_at_each_iteration\":      false,"
+    puts $varfile "        \"reform_dofs_at_each_step\":           false,"
     puts $varfile "        \"compute_reactions\":                  [GiD_AccessValue get gendata Write_Reactions],"
     puts $varfile "        \"move_mesh_flag\":                     true,"
     puts $varfile "        \"solution_type\":                      \"[GiD_AccessValue get gendata Solution_Type]\","
@@ -380,8 +380,8 @@ proc WriteProjectParameters { basename dir TableList} {
             set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] volumes]
             if {[llength $Entities] > 0} {
                 incr iGroup
-                puts $varfile "        \"implemented_in_file\":   \"apply_constraint_vector_table_process\","
-                puts $varfile "        \"implemented_in_module\": \"KratosMultiphysics.PoromechanicsApplication\","
+                puts $varfile "        \"python_module\":   \"apply_constraint_vector_table_process\","
+                puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
                 puts $varfile "        \"process_name\":          \"ApplyConstraintVectorTableProcess\","
                 puts $varfile "        \"Parameters\":            \{"
                 puts $varfile "            \"mesh_id\":         0,"
@@ -409,8 +409,8 @@ proc WriteProjectParameters { basename dir TableList} {
             set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] surfaces]
             if {[llength $Entities] > 0} {
                 incr iGroup
-                puts $varfile "        \"implemented_in_file\":   \"apply_constraint_vector_table_process\","
-                puts $varfile "        \"implemented_in_module\": \"KratosMultiphysics.PoromechanicsApplication\","
+                puts $varfile "        \"python_module\":   \"apply_constraint_vector_table_process\","
+                puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
                 puts $varfile "        \"process_name\":          \"ApplyConstraintVectorTableProcess\","
                 puts $varfile "        \"Parameters\":            \{"
                 puts $varfile "            \"mesh_id\":         0,"
@@ -438,8 +438,8 @@ proc WriteProjectParameters { basename dir TableList} {
             set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] lines]
             if {[llength $Entities] > 0} {
                 incr iGroup
-                puts $varfile "        \"implemented_in_file\":   \"apply_constraint_vector_table_process\","
-                puts $varfile "        \"implemented_in_module\": \"KratosMultiphysics.PoromechanicsApplication\","
+                puts $varfile "        \"python_module\":   \"apply_constraint_vector_table_process\","
+                puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
                 puts $varfile "        \"process_name\":          \"ApplyConstraintVectorTableProcess\","
                 puts $varfile "        \"Parameters\":            \{"
                 puts $varfile "            \"mesh_id\":         0,"
@@ -467,8 +467,8 @@ proc WriteProjectParameters { basename dir TableList} {
             set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] points]
             if {[llength $Entities] > 0} {
                 incr iGroup
-                puts $varfile "        \"implemented_in_file\":   \"apply_constraint_vector_table_process\","
-                puts $varfile "        \"implemented_in_module\": \"KratosMultiphysics.PoromechanicsApplication\","
+                puts $varfile "        \"python_module\":   \"apply_constraint_vector_table_process\","
+                puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
                 puts $varfile "        \"process_name\":          \"ApplyConstraintVectorTableProcess\","
                 puts $varfile "        \"Parameters\":            \{"
                 puts $varfile "            \"mesh_id\":         0,"
@@ -498,8 +498,8 @@ proc WriteProjectParameters { basename dir TableList} {
             set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] volumes]
             if {[llength $Entities] > 0} {
                 incr iGroup
-                puts $varfile "        \"implemented_in_file\":   \"apply_pore_pressure_table_process\","
-                puts $varfile "        \"implemented_in_module\": \"KratosMultiphysics.PoromechanicsApplication\","
+                puts $varfile "        \"python_module\":   \"apply_pore_pressure_table_process\","
+                puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
                 puts $varfile "        \"process_name\":          \"ApplyPorePressureTableProcess\","
                 puts $varfile "        \"Parameters\":            \{"
                 puts $varfile "            \"mesh_id\":              0,"
@@ -542,8 +542,8 @@ proc WriteProjectParameters { basename dir TableList} {
             set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] surfaces]
             if {[llength $Entities] > 0} {
                 incr iGroup
-                puts $varfile "        \"implemented_in_file\":   \"apply_pore_pressure_table_process\","
-                puts $varfile "        \"implemented_in_module\": \"KratosMultiphysics.PoromechanicsApplication\","
+                puts $varfile "        \"python_module\":   \"apply_pore_pressure_table_process\","
+                puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
                 puts $varfile "        \"process_name\":          \"ApplyPorePressureTableProcess\","
                 puts $varfile "        \"Parameters\":            \{"
                 puts $varfile "            \"mesh_id\":              0,"
@@ -586,8 +586,8 @@ proc WriteProjectParameters { basename dir TableList} {
             set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] lines]
             if {[llength $Entities] > 0} {
                 incr iGroup
-                puts $varfile "        \"implemented_in_file\":   \"apply_pore_pressure_table_process\","
-                puts $varfile "        \"implemented_in_module\": \"KratosMultiphysics.PoromechanicsApplication\","
+                puts $varfile "        \"python_module\":   \"apply_pore_pressure_table_process\","
+                puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
                 puts $varfile "        \"process_name\":          \"ApplyPorePressureTableProcess\","
                 puts $varfile "        \"Parameters\":            \{"
                 puts $varfile "            \"mesh_id\":              0,"
@@ -630,8 +630,8 @@ proc WriteProjectParameters { basename dir TableList} {
             set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] points]
             if {[llength $Entities] > 0} {
                 incr iGroup
-                puts $varfile "        \"implemented_in_file\":   \"apply_pore_pressure_table_process\","
-                puts $varfile "        \"implemented_in_module\": \"KratosMultiphysics.PoromechanicsApplication\","
+                puts $varfile "        \"python_module\":   \"apply_pore_pressure_table_process\","
+                puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
                 puts $varfile "        \"process_name\":          \"ApplyPorePressureTableProcess\","
                 puts $varfile "        \"Parameters\":            \{"
                 puts $varfile "            \"mesh_id\":              0,"
@@ -697,8 +697,8 @@ proc WriteProjectParameters { basename dir TableList} {
         set Groups [GiD_Info conditions Force groups]
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             incr iGroup
-            puts $varfile "        \"implemented_in_file\":   \"apply_load_vector_table_process\","
-            puts $varfile "        \"implemented_in_module\": \"KratosMultiphysics.PoromechanicsApplication\","
+            puts $varfile "        \"python_module\":   \"apply_load_vector_table_process\","
+            puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
             puts $varfile "        \"process_name\":          \"ApplyLoadVectorTableProcess\","
             puts $varfile "        \"Parameters\":            \{"
             puts $varfile "            \"mesh_id\":         0,"
@@ -724,8 +724,8 @@ proc WriteProjectParameters { basename dir TableList} {
         set Groups [GiD_Info conditions Face_Load groups]
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             incr iGroup
-            puts $varfile "        \"implemented_in_file\":   \"apply_load_vector_table_process\","
-            puts $varfile "        \"implemented_in_module\": \"KratosMultiphysics.PoromechanicsApplication\","
+            puts $varfile "        \"python_module\":   \"apply_load_vector_table_process\","
+            puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
             puts $varfile "        \"process_name\":          \"ApplyLoadVectorTableProcess\","
             puts $varfile "        \"Parameters\":            \{"
             puts $varfile "            \"mesh_id\":         0,"
@@ -751,8 +751,8 @@ proc WriteProjectParameters { basename dir TableList} {
         set Groups [GiD_Info conditions Normal_Load groups]
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             incr iGroup
-            puts $varfile "        \"implemented_in_file\":   \"apply_normal_load_table_process\","
-            puts $varfile "        \"implemented_in_module\": \"KratosMultiphysics.PoromechanicsApplication\","
+            puts $varfile "        \"python_module\":   \"apply_normal_load_table_process\","
+            puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
             puts $varfile "        \"process_name\":          \"ApplyNormalLoadTableProcess\","
             puts $varfile "        \"Parameters\":            \{"
             puts $varfile "            \"mesh_id\":              0,"
@@ -794,8 +794,8 @@ proc WriteProjectParameters { basename dir TableList} {
         set Groups [GiD_Info conditions Normal_Fluid_Flux groups]
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             incr iGroup
-            puts $varfile "        \"implemented_in_file\":   \"apply_load_scalar_table_process\","
-            puts $varfile "        \"implemented_in_module\": \"KratosMultiphysics.PoromechanicsApplication\","
+            puts $varfile "        \"python_module\":   \"apply_load_scalar_table_process\","
+            puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
             puts $varfile "        \"process_name\":          \"ApplyLoadScalarTableProcess\","
             puts $varfile "        \"Parameters\":            \{"
             puts $varfile "            \"mesh_id\":         0,"
@@ -820,8 +820,8 @@ proc WriteProjectParameters { basename dir TableList} {
         set Groups [GiD_Info conditions Interface_Face_Load groups]
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             incr iGroup
-            puts $varfile "        \"implemented_in_file\":   \"apply_load_vector_table_process\","
-            puts $varfile "        \"implemented_in_module\": \"KratosMultiphysics.PoromechanicsApplication\","
+            puts $varfile "        \"python_module\":   \"apply_load_vector_table_process\","
+            puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
             puts $varfile "        \"process_name\":          \"ApplyLoadVectorTableProcess\","
             puts $varfile "        \"Parameters\":            \{"
             puts $varfile "            \"mesh_id\":         0,"
@@ -847,8 +847,8 @@ proc WriteProjectParameters { basename dir TableList} {
         set Groups [GiD_Info conditions Interface_Normal_Fluid_Flux groups]
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             incr iGroup
-            puts $varfile "        \"implemented_in_file\":   \"apply_load_scalar_table_process\","
-            puts $varfile "        \"implemented_in_module\": \"KratosMultiphysics.PoromechanicsApplication\","
+            puts $varfile "        \"python_module\":   \"apply_load_scalar_table_process\","
+            puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
             puts $varfile "        \"process_name\":          \"ApplyLoadScalarTableProcess\","
             puts $varfile "        \"Parameters\":            \{"
             puts $varfile "            \"mesh_id\":         0,"
@@ -873,8 +873,8 @@ proc WriteProjectParameters { basename dir TableList} {
         set Groups [GiD_Info conditions Body_Acceleration groups]
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             incr iGroup
-            puts $varfile "        \"implemented_in_file\":   \"apply_load_vector_table_process\","
-            puts $varfile "        \"implemented_in_module\": \"KratosMultiphysics.PoromechanicsApplication\","
+            puts $varfile "        \"python_module\":   \"apply_load_vector_table_process\","
+            puts $varfile "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
             puts $varfile "        \"process_name\":          \"ApplyLoadVectorTableProcess\","
             puts $varfile "        \"Parameters\":            \{"
             puts $varfile "            \"mesh_id\":         0,"
