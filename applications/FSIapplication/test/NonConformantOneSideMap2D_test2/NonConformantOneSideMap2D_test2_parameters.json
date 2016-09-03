@@ -1,7 +1,7 @@
 {
     "structure_solver_settings" : {
         "problem_data"             : {
-            "problem_name"    : "NonConformantOneSideMap2D_test1",
+            "problem_name"    : "NonConformantOneSideMap2D_test2",
             "model_part_name" : "Structure",
             "domain_size"     : 2,
             "time_step"       : 1.1,
@@ -16,7 +16,7 @@
             "analysis_type"                      : "Linear",
             "model_import_settings"              : {
                 "input_type"     : "mdpa",
-                "input_filename" : "NonConformantOneSideMap2D_test1/solid_mesh"
+                "input_filename" : "NonConformantOneSideMap2D_test2/solid_mesh"
             },
             "line_search"                        : false,
             "convergence_criterion"              : "Residual_criterion",
@@ -39,7 +39,7 @@
             "Custom1" : ["0.0","0.5"]
         },
         "constraints_process_list" : [{
-            "python_module"         : "NonConformantOneSideMap2D_test1_structure_local_process",
+            "python_module"         : "NonConformantOneSideMap2D_test2_structure_local_process",
             "kratos_module"         : "KratosMultiphysics.FSIApplication",
             "help"                  : [],
             "process_name"          : "ApplyLocalProcess",
@@ -91,7 +91,7 @@
     },
     "fluid_solver_settings"     : {
             "problem_data"                     : {
-            "problem_name"    : "NonConformantOneSideMap2D_test1",
+            "problem_name"    : "NonConformantOneSideMap2D_test2",
             "model_part_name" : "MainModelPart",
             "domain_size"     : 2,
             "start_step"      : 0.0,
@@ -128,7 +128,7 @@
             "solver_type"                     : "navier_stokes_solver_fractionalstep",
             "model_import_settings"           : {
                 "input_type"     : "mdpa",
-                "input_filename" : "NonConformantOneSideMap2D_test1/fluid_mesh"
+                "input_filename" : "NonConformantOneSideMap2D_test2/fluid_mesh"
             },
             "predictor_corrector"             : false,
             "maximum_velocity_iterations"     : 4,
@@ -167,7 +167,7 @@
                 "model_part_name" : "Fluid_interface"
             }
         },{
-            "python_module"         : "NonConformantOneSideMap2D_test1_fluid_local_process",
+            "python_module"         : "NonConformantOneSideMap2D_test2_fluid_local_process",
             "kratos_module"         : "KratosMultiphysics.FSIApplication",
             "help"                  : [],
             "process_name"          : "ApplyLocalProcess",

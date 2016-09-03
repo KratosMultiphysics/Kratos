@@ -13,7 +13,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
 from SmallTests import NonConformantOneSideMap2D_test1 as TNonConformantOneSideMap2D_test1
-#~ from SmallTests import NonConformantOneSideMap2D_test2 as TNonConformantOneSideMap2D_test2
+from SmallTests import NonConformantOneSideMap2D_test2 as TNonConformantOneSideMap2D_test2
 #~ from SmallTests import NonConformantOneSideMap3D_test1 as TNonConformantOneSideMap3D_test1
 #~ from SmallTests import NonConformantOneSideMap3D_test2 as TNonConformantOneSideMap3D_test2
 
@@ -40,7 +40,7 @@ def AssambleTestSuites():
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
     smallSuite.addTest(TNonConformantOneSideMap2D_test1('test_execution'))
-    #~ smallSuite.addTest(TNonConformantOneSideMap2D_test2('test_execution'))
+    smallSuite.addTest(TNonConformantOneSideMap2D_test2('test_execution'))
     #~ smallSuite.addTest(TNonConformantOneSideMap3D_test1('test_execution'))
     #~ smallSuite.addTest(TNonConformantOneSideMap3D_test2('test_execution'))
 
@@ -57,8 +57,8 @@ def AssambleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            TNonConformantOneSideMap2D_test1
-            #~ TNonConformantOneSideMap2D_test2,
+            TNonConformantOneSideMap2D_test1,
+            TNonConformantOneSideMap2D_test2
             #~ TNonConformantOneSideMap3D_test1,
             #~ TNonConformantOneSideMap3D_test2,
             #~ TMokBenchmarkTest
