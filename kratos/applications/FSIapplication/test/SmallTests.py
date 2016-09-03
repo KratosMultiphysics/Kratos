@@ -47,8 +47,8 @@ class NonConformantOneSideMap2D_test1(MapperTestFactory):
     file_name = "NonConformantOneSideMap2D_test1/NonConformantOneSideMap2D_test1"
 
 
-#~ class NonConformantOneSideMap2D_test1(MapperTestFactory):
-    #~ file_name = "NonConformantOneSideMap2D_test2/NonConformantOneSideMap2D_test2"
+class NonConformantOneSideMap2D_test2(MapperTestFactory):
+    file_name = "NonConformantOneSideMap2D_test2/NonConformantOneSideMap2D_test2"
 
 
 #~ class NonConformantOneSideMap2D_test1(MapperTestFactory):
