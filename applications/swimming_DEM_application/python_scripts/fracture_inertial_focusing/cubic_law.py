@@ -9,20 +9,20 @@ class ProblemParameters:
     def __init__(self):
         self.L0 = 0.01
         self.H0 = 0.005
-        self.U0 = 0.01
+        self.U0 = 0.31297739987328533717
         self.epsilon = self.H0 / self.L0
         self.A1 = 0.001
-        self.A2 = 0.0005
-        self.DeltaX = 0.2
+        self.A2 = 0.001
+        self.DeltaX = self.L0 / 2
         self.n_points = 1000
         self.n_streamlines = 12
-        self.n_periods = 4
+        self.n_periods = 1
         self.Omega = 2 * math.pi / self.L0 * self.n_periods
         self.n_particles = 1000
 
         self.delta_0 = (self.A1 + self.A2) / (2 * self.H0)
-        #alpha = 2 * math.pi * self.DeltaX / self.L0
-        self.alpha = self.DeltaX
+        self.alpha = 2 * math.pi * self.DeltaX / self.L0
+        #self.alpha = self.DeltaX
         self.gamma = (self.A2 - self.A1) / (self.A2 + self.A1)
         self.cos_semi_alpha = math.cos(0.5 * self.alpha)
         self.sin_semi_alpha = math.sin(0.5 * self.alpha)
@@ -36,6 +36,36 @@ class ProblemParameters:
         self.x_points = []
         self.phi_1 = []
         self.phi_2 = []
+        self.delta_alpha = self.delta_0 * math.sin(self.alpha / 2)
+        self.h3 = 8 * (1 + self.delta_alpha ** 2) / (1 - 4 * self.delta_alpha ** 2) ** 2.5
+        self.J_h = 16 * math.pi ** 2 * self.delta_alpha ** 2 / (1 - 4 * self.delta_alpha ** 2) ** 1.5
+        self.J_phi = 16 * math.pi ** 2 * (self.delta_0 ** 2 - self.delta_alpha ** 2) * (1 + 8 * self.delta_alpha ** 2) / (1 - 4 * self.delta_alpha ** 2) ** 2.5
+        self.J_phi_h = self.gamma * self.J_h
+        self.beta = self.J_phi_h / self.J_h
+
+    def SetNonGeometricParameters(self, a, rho_p, rho_f, nu, gz):
+        self.a = a
+        self.rho = rho_p / rho_f
+        self.nu = nu
+        self.R = 2.0 / (2 * self.rho + 1)
+        self.tau = 2.0 / 9 * self.a ** 2 / self.nu / self.L0       
+        self.Fr = self.U0 ** 2 / (self.L0 * gz)
+        self.Gz = 1. / self.Fr        
+        self.gamma_z = 8. * self.Gz / (9 * self.epsilon * self.J_h)
+        
+    def PrintParameters(self):
+        print('tau = ', self.tau)
+        print('R = ', self.R)
+        print('epsilon = ', self.epsilon)
+        print('delta_0 = ', self.delta_0)
+        print('h3 = ', self.h3)
+        print('J_h = ', self.J_h)
+        print('J_phi = ', self.J_phi)
+        print('J_phi = ', self.J_phi)
+        print('J_phi_h = ', self.J_phi_h)
+        print('beta = ', self.beta)
+        print('gamma_z = ', self.gamma_z)
+        
         
 pp = ProblemParameters()
 
@@ -43,10 +73,10 @@ def GetProblemParameters():
     return pp
 
 def Phi1(X):
-    return - 0.5 * pp.H0 + pp.A1 * math.sin(pp.Omega * X - 0.5 * pp.DeltaX)
+    return - 0.5 * pp.H0 + pp.A1 * math.sin(pp.Omega * X - 0.5 * pp.alpha)
 
 def Phi2(X):
-    return   0.5 * pp.H0 + pp.A2 * math.sin(pp.Omega * X + 0.5 * pp.DeltaX) 
+    return   0.5 * pp.H0 + pp.A2 * math.sin(pp.Omega * X + 0.5 * pp.alpha) 
 
 
 class HorizontalDistributionMinusObjective:
@@ -120,6 +150,9 @@ def velocity_order_1(x, eta):
     uxdz = - 1.5 * eta * h_inv ** 2
     uzdx = 0.75 * (2 * eta * etadx ** 2 - etadx2 * one_minus_eta_2)
     
+    uxdx2 =   0.75 * h_inv ** 3 * (h * (4 * eta * etadx * hdx - one_minus_eta_2 * hdx2) - 2 * h ** 2 * (eta * etadx2 + etadx ** 2) + one_minus_eta_2 * hdx ** 2)
+    uzdz2 = - 1.5 * h_inv ** 2 * (2 * hdx * h_inv * eta - etadx)
+    
     UXdX = pp.U0 / pp.L0 * uxdx
     UZdX = pp.U0 * pp.epsilon / pp.L0 * uzdx
     UXdZ = pp.U0 / pp.H0 * uxdz
@@ -127,12 +160,15 @@ def velocity_order_1(x, eta):
     
     DUX = UX * UXdX + UZ * UXdZ
     DUZ = UX * UZdX + UZ * UZdZ
-       
-    return UX, UZ, DUX, DUZ
+    
+    DUX2 =   pp.U0 / pp.L0 ** 2      * uxdx2
+    DUZ2 = - pp.U0 / (pp.L0 * pp.H0) * uzdz2
+    
+    return UX, UZ, DUX, DUZ, DUX2, DUZ2
 
 def GetFlowVariables(i, X, Z):
     x, eta = z_to_eta(X / pp.L0, Z / pp.H0)
-    UX, UZ, DUX, DUZ = velocity_order_1(x, eta)
+    UX, UZ, DUX, DUZ, DUX2, DUZ2 = velocity_order_1(x, eta)
     D = min(abs(Phi1(X) - Z), abs(Phi2(X) - Z))
     pp.randoms_horizontal[i]       = X
     pp.randoms_vertical[i]         = Z
@@ -140,7 +176,7 @@ def GetFlowVariables(i, X, Z):
     pp.vels_vertical[i]            = UZ      
     pp.accelerations_horizontal[i] = DUX
     pp.accelerations_vertical[i]   = DUZ   
-    return UX, UZ, DUX, DUZ, D
+    return UX, UZ, DUX, DUZ, DUX2, DUZ2, D
     
 
 
@@ -176,7 +212,7 @@ def GenerateRandomPositions(n_particles):
 def GetPositionAndFlowVariables(i):
     X = pp.randoms_horizontal[i]
     Z = pp.randoms_vertical[i] 
-    UX, UZ, DUX, DUZ, D = GetFlowVariables(i, X, Z)
+    UX, UZ, DUX, DUZ, DUX2, DUZ2, D = GetFlowVariables(i, X, Z)
     return X, Z, UX, UZ, DUX, DUZ, D
 
 def PrintResult(time):
@@ -185,15 +221,12 @@ def PrintResult(time):
         streamline_Z_values = [pp.H0 * eta_to_z(x / pp.L0, value)[1] for x in pp.x_points]
         plt.plot(pp.x_points, streamline_Z_values, color='b', linestyle='dashed')
     plt.scatter(pp.randoms_horizontal, pp.randoms_vertical)
-    print('delta_0 = ', pp.delta_0)
-    print('alpha = ', pp.alpha)
-    print('gamma = ', pp.gamma)
 
 
     for i in range(pp.n_particles):
         X = pp.randoms_horizontal[i]
         Z = pp.randoms_vertical[i]      
-        UX, UZ, DUX, DUZ, D = GetFlowVariables(i, X, Z)
+        UX, UZ, DUX, DUZ, DUX2, DUZ2, D = GetFlowVariables(i, X, Z)
         pp.vels_horizontal[i]          = UX
         pp.vels_vertical[i]            = UZ        
         pp.accelerations_horizontal[i] = DUX
@@ -208,7 +241,9 @@ def PrintResult(time):
         Z = pp.randoms_vertical[i]  
         DUX = pp.accelerations_horizontal[i]
         DUZ = pp.accelerations_vertical[i]    
-        pylab.arrow(X, Z, DUX * acc_size_coeff, DUZ * acc_size_coeff, fc = "k", ec = "k", width = 0.001 * pp.H0, head_width = 0.02 * pp.H0, head_length = 0.04 * pp.H0)
+        UX = pp.vels_horizontal[i]
+        UZ = pp.vels_vertical[i]    
+        pylab.arrow(X, Z, UX * acc_size_coeff * 10, UZ * acc_size_coeff * 10, fc = "k", ec = "k", width = 0.001 * pp.H0, head_width = 0.02 * pp.H0, head_length = 0.04 * pp.H0)
     plt.axis('equal')
     plt.plot(pp.x_points, pp.phi_1, color='k', linewidth=2)
     plt.plot(pp.x_points, pp.phi_2, color='k', linewidth=2)
