@@ -45,8 +45,8 @@ def ConstructSolver(configuration):
     ################################## following solvers need importing the ExternalSolversApplication
     elif(solver_type == "GMRESSolver"):
         import KratosMultiphysics.ExternalSolversApplication
-        linear_solver = KratosMultiphysics.ExternalSolversApplication.GMRESSolver( configuration )
-    elif(solver_type == "SuperLUSolver"):
+        linear_solver = KratosMultiphysics.ExternalSolversApplication.GMRESSolver( configuration, ConstructPreconditioner(configuration) )
+    elif(solver_type == "SuperLUSolver" or solver_type=="Super LU" or solver_type=="Super_LU"):
         import KratosMultiphysics.ExternalSolversApplication
         linear_solver = KratosMultiphysics.ExternalSolversApplication.SuperLUSolver(configuration)
     elif(solver_type == "SuperLUIterativeSolver"):
