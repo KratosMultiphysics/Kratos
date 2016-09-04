@@ -242,8 +242,11 @@ void ModelPart::AddNode(ModelPart::NodeType::Pointer pNewNode, ModelPart::IndexT
 {
     if (IsSubModelPart())
         mpParentModelPart->AddNode(pNewNode, ThisIndex);
-
-    GetMesh(ThisIndex).AddNode(pNewNode);
+    
+    //node is only added if it does not exist (otherwise it already exists)
+    auto existing_node_it = this->GetMesh(ThisIndex).Nodes().find(pNewNode->Id());
+    if( existing_node_it == GetMesh(ThisIndex).NodesEnd())
+        GetMesh(ThisIndex).AddNode(pNewNode);
 }
 
 /** Inserts a node in the mesh with ThisIndex.
@@ -617,8 +620,11 @@ void ModelPart::AddElement(ModelPart::ElementType::Pointer pNewElement, ModelPar
 {
     if (IsSubModelPart())
         mpParentModelPart->AddElement(pNewElement, ThisIndex);
-
-    GetMesh(ThisIndex).AddElement(pNewElement);
+    
+    //node is only added if it does not exist (otherwise it already exists)
+    auto existing_element_it = this->GetMesh(ThisIndex).Elements().find(pNewElement->Id());
+    if( existing_element_it == GetMesh(ThisIndex).ElementsEnd())
+        GetMesh(ThisIndex).AddElement(pNewElement);
 }
 
 /** Inserts an element in the mesh with ThisIndex.
@@ -792,8 +798,11 @@ void ModelPart::AddCondition(ModelPart::ConditionType::Pointer pNewCondition, Mo
 {
     if (IsSubModelPart())
         mpParentModelPart->AddCondition(pNewCondition, ThisIndex);
-
-    GetMesh(ThisIndex).AddCondition(pNewCondition);
+    
+   //node is only added if it does not exist (otherwise it already exists)
+    auto existing_condition_it = this->GetMesh(ThisIndex).Conditions().find(pNewCondition->Id());
+    if( existing_condition_it == GetMesh(ThisIndex).ConditionsEnd())
+        GetMesh(ThisIndex).AddCondition(pNewCondition);
 }
 
 /** Inserts a condition in the mesh with ThisIndex.
