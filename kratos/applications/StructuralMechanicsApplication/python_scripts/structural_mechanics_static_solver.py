@@ -24,7 +24,7 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
     ##will be called once the model is already filled
     def __init__(self, main_model_part, custom_settings): 
         
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
+        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part    
         
         ##settings string in json format
@@ -109,7 +109,7 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
    
         print("::[Mechanical Solver]:: Variables ADDED")
 
-    def GetComputeModelPart(self):
+    def GetComputingModelPart(self):
         return self.main_model_part
     
     def Solve(self):
@@ -185,7 +185,7 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
         
         if(component_wise):
             self.mechanical_solver = KratosMultiphysics.SolidMechanicsApplication.ComponentWiseNewtonRaphsonStrategy(
-                                                                            self.compute_model_part, 
+                                                                            self.computing_model_part, 
                                                                             mechanical_scheme, 
                                                                             self.linear_solver, 
                                                                             mechanical_convergence_criterion, 
@@ -197,7 +197,7 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
         else:
             if(line_search):
                 self.mechanical_solver = KratosMultiphysics.SolidMechanicsApplication.ResidualBasedNewtonRaphsonLineSearchStrategy(
-                                                                            self.compute_model_part, 
+                                                                            self.computing_model_part, 
                                                                             mechanical_scheme, 
                                                                             self.linear_solver, 
                                                                             mechanical_convergence_criterion, 
@@ -210,7 +210,7 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
             else:
                 if self.settings["analysis_type"].GetString() == "Linear":
                     self.mechanical_solver = KratosMultiphysics.ResidualBasedLinearStrategy(
-                                                                            self.compute_model_part, 
+                                                                            self.computing_model_part, 
                                                                             mechanical_scheme, 
                                                                             self.linear_solver, 
                                                                             builder_and_solver, 
@@ -225,7 +225,7 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
                     max_recursive = self.settings["arc_length_settings"]["max_recursive"].GetInt()
                     factor_delta_lmax = self.settings["arc_length_settings"]["factor_delta_lmax"].GetDouble()
                     self.mechanical_solver = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedArcLengthStrategy(
-                                                                            self.compute_model_part, 
+                                                                            self.computing_model_part, 
                                                                             mechanical_scheme, 
                                                                             self.linear_solver, 
                                                                             mechanical_convergence_criterion, 
@@ -239,7 +239,7 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
 
                 else:
                     self.mechanical_solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
-                                                                            self.compute_model_part, 
+                                                                            self.computing_model_part, 
                                                                             mechanical_scheme, 
                                                                             self.linear_solver, 
                                                                             mechanical_convergence_criterion, 

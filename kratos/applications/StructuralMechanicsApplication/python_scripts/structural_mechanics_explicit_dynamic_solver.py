@@ -23,7 +23,7 @@ class ExplicitMechanicalSolver(solid_mechanics_explicit_dynamic_solver.ExplicitM
     ##will be called once the model is already filled
     def __init__(self, main_model_part, custom_settings): 
         
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
+        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part    
         
         #TODO: remove unnecessary fields for the Explicit solver from the defaults

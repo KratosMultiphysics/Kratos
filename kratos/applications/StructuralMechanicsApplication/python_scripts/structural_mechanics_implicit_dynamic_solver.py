@@ -23,7 +23,7 @@ class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
     ##will be called once the model is already filled
     def __init__(self, main_model_part, custom_settings): 
         
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
+        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part    
         
         ##settings string in json format
@@ -92,7 +92,7 @@ class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
    
         print("::[Mechanical Solver]:: Variables ADDED")
 
-    def GetComputeModelPart(self):
+    def GetComputingModelPart(self):
         return self.main_model_part
     
     def _GetSolutionScheme(self, scheme_type, component_wise, compute_contact_forces):
