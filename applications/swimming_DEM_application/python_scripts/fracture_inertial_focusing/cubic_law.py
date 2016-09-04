@@ -220,6 +220,10 @@ def PrintResult(time):
     for value in pp.eta_values:
         streamline_Z_values = [pp.H0 * eta_to_z(x / pp.L0, value)[1] for x in pp.x_points]
         plt.plot(pp.x_points, streamline_Z_values, color='b', linestyle='dashed')
+    
+    eta_critical = (2 * pp.beta + math.sqrt(5 + 4 * pp.beta ** 2)) / 5
+    streamline_Z_values = [pp.H0 * eta_to_z(x / pp.L0, eta_critical)[1] for x in pp.x_points]
+    plt.plot(pp.x_points, streamline_Z_values, color='r')
     plt.scatter(pp.randoms_horizontal, pp.randoms_vertical)
 
 
