@@ -9,10 +9,24 @@ class KratosProcessFactory(object):
         constructed_processes = []
         for i in range(0,process_list.size()):
             item = process_list[i]
-            kratos_module = __import__(item["kratos_module"].GetString())
-            python_module = __import__(item["python_module"].GetString())
-            p = python_module.Factory(item, self.Model)
-            constructed_processes.append( p )
+            if(item.Has("kratos_module")):
+                kratos_module = __import__(item["kratos_module"].GetString())
+            if(item.Has("python_module")):
+                python_module = __import__(item["python_module"].GetString())
+                p = python_module.Factory(item, self.Model)
+                constructed_processes.append( p )
+            elif(item.Has("implemented_in_module")):
+                print("************************************************************************")
+                print("******** WARNING USING THE OLD INTERFACE *******************************")
+                print("****** kratos_module or python_module should be prescribed instead of **")
+                print("****** implemented_in_module and implemented_in_file                  **")
+                print("****** old interface is deprecated and will be removed                **")
+                print("************************************************************************")
+                module = __import__(item["implemented_in_module"].GetString())
+                interface_file = __import__(item["implemented_in_file"].GetString())
+                p = interface_file.Factory(item, self.Model)
+                constructed_processes.append( p )
+
             #if( "implemented_in_python" in item): #check if implemented in python or in c++
                 #if item["implemented_in_python"] == True: #here we treat the case of python implemented processes
                     #kratos_module = __import__(item["kratos_module"])
