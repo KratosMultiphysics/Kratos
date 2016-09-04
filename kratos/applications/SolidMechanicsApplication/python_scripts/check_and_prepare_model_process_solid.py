@@ -36,18 +36,18 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         solid_computing_model_part.Set(KratosMultiphysics.ACTIVE)
         
         for node in self.main_model_part.Nodes:
-            solid_computing_model_part.Nodes.append(node)
+            solid_computing_model_part.AddNode(node,0)
  
         for part in solid_parts:
             part.Set(KratosMultiphysics.SOLID)
             for elem in part.Elements:
-                solid_computing_model_part.Elements.append(elem)
+                solid_computing_model_part.AddElement(elem,0)
             #for node in part.Nodes:
             #    solid_computing_model_part.Nodes.append(node)
             
         for part in processes_parts:
             part.Set(KratosMultiphysics.BOUNDARY)
             for cond in part.Conditions:
-                solid_computing_model_part.Conditions.append(cond)  
+                solid_computing_model_part.AddCondition(cond,0)  
                 
         print(solid_computing_model_part)
