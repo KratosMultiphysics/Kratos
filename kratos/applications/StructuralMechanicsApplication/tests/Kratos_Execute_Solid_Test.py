@@ -49,7 +49,7 @@ class Kratos_Execute_Test:
 
         # ### START SOLUTION ####
 
-        self.computing_model_part = self.solver.GetComputeModelPart()
+        self.computing_model_part = self.solver.GetComputingModelPart()
 
         # ### Output settings start ####
         self.problem_path = os.getcwd()
