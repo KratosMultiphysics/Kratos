@@ -13,8 +13,8 @@ def VelocityY(node):
 
 
 def BenchmarkCheck(VelX, VelY, P1, P2):
-    benchmarking.Output(VelX, "x velocity at center node", None, 0.001)
-    benchmarking.Output(VelY, "x velocity at center node", None, 0.001)
+    benchmarking.Output(VelX, "x velocity at center node", 0.001, None)
+    benchmarking.Output(VelY, "x velocity at center node", 0.001, None)
     benchmarking.Output(P1, "pressure at lower right corner", None, 0.01)
     benchmarking.Output(P2, "pressure at upper left corner", None, 0.01)
 
@@ -26,7 +26,6 @@ sys.path.append(kratos_path)
 sys.path.append(kratos_benchmarking_path)
 
 from KratosMultiphysics import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 
 import benchmarking
@@ -42,16 +41,16 @@ fluid_model_part = ModelPart("FluidPart")
 
 domain_size = 2
 problem_name = "trapezoid"
-dynamic_tau = 1.0
+dynamic_tau = 0.0
 oss_switch = 1
 print_output = False
 time_step = 0.1
-max_time = 1.0
+max_time = 10*time_step
 # assuming Density = 1.0, Viscosity = 1.0
 # mdpa assings this, as well as FLAG_VARIABLE=1.0 in the contour
 
 # Import solver and define solution step data
-import monolithic_solver_eulerian as monolithic_solver
+import vms_monolithic_solver as monolithic_solver
 monolithic_solver.AddVariables(fluid_model_part)
 
 # reading the fluid part
@@ -75,6 +74,7 @@ fluid_solver.rel_vel_tol = 1e-5  # default 1e-5
 fluid_solver.abs_vel_tol = 1e-7  # default 1e-7
 fluid_solver.rel_pres_tol = 1e-5
 fluid_solver.abs_pres_tol = 1e-7
+fluid_solver.max_iter = 10
 fluid_solver.dynamic_tau = dynamic_tau
 fluid_solver.oss_switch = oss_switch
 fluid_solver.Initialize()
@@ -134,6 +134,8 @@ while(time < final_time):
     if print_output and out == output_step:
         gid_io.WriteNodalResults(PRESSURE, fluid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(VELOCITY, fluid_model_part.Nodes, time, 0)
+        #gid_io.WriteNodalResults(ADVPROJ, fluid_model_part.Nodes, time, 0)
+        #gid_io.WriteNodalResults(DIVPROJ, fluid_model_part.Nodes, time, 0)
         out = 0
 
     out = out + 1

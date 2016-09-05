@@ -30,7 +30,6 @@ domain_size = ProjectParameters.domain_size
 import sys
 sys.path.append(ProjectParameters.kratos_path)
 from KratosMultiphysics import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.MeshingApplication import *
@@ -58,9 +57,6 @@ if(SolverType == "FractionalStep"):
     solver.AddVariables(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian"):
     import vms_monolithic_solver as solver
-    solver.AddVariables(fluid_model_part)
-elif(SolverType == "monolithic_solver_eulerian_compressible"):
-    import monolithic_solver_eulerian_compressible as solver
     solver.AddVariables(fluid_model_part)
 else:
     raise NameError("solver type not supported: options are FractionalStep  - monolithic_solver_eulerian")
@@ -119,8 +115,6 @@ fluid_model_part.SetBufferSize(3)
 if(SolverType == "FractionalStep"):
     solver.AddDofs(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian"):
-    solver.AddDofs(fluid_model_part)
-elif(SolverType == "monolithic_solver_eulerian_compressible"):
     solver.AddDofs(fluid_model_part)
 
 if(ProjectParameters.TurbulenceModel == "Spalart-Allmaras"):
@@ -279,17 +273,6 @@ if(SolverType == "FractionalStep"):
     fluid_solver.dynamic_tau = float(dynamic_tau)
     fluid_solver.compute_reactions = ProjectParameters.Calculate_reactions
 elif(SolverType == "monolithic_solver_eulerian"):
-    fluid_solver = solver.MonolithicSolver(fluid_model_part, domain_size)
-    fluid_solver.oss_switch = int(oss_switch)
-    fluid_solver.dynamic_tau = float(dynamic_tau)
-    fluid_solver.rel_vel_tol = ProjectParameters.velocity_relative_tolerance
-    fluid_solver.abs_vel_tol = ProjectParameters.velocity_absolute_tolerance
-    fluid_solver.rel_pres_tol = ProjectParameters.pressure_relative_tolerance
-    fluid_solver.abs_pres_tol = ProjectParameters.pressure_absolute_tolerance
-    fluid_solver.max_iter = ProjectParameters.max_iterations
-    fluid_solver.compute_reactions = ProjectParameters.Calculate_reactions
-    fluid_solver.linear_solver = monolithic_linear_solver
-elif(SolverType == "monolithic_solver_eulerian_compressible"):
     fluid_solver = solver.MonolithicSolver(fluid_model_part, domain_size)
     fluid_solver.oss_switch = int(oss_switch)
     fluid_solver.dynamic_tau = float(dynamic_tau)

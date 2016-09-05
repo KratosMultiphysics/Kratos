@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 domain_size = 2
 
-#SolverType = "pressure_splitting"
+#SolverType = "FractionalStep"
 SolverType = "monolithic_solver_eulerian"
 # Monolithic_Linear_Solver = "Skyline LU factorization"
 Monolithic_Linear_Solver = "BiConjugate gradient stabilized"
