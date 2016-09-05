@@ -389,8 +389,10 @@ namespace Kratos {
             }
 
             AddContributionToRepresentativeVolume(distance, radius_sum, calculation_area);
-
-            DEM_COPY_SECOND_TO_FIRST_3(mArrayOfOldDeltaDisplacements[i], DeltDisp);
+            
+            if (i < mContinuumInitialNeighborsSize) {
+                DEM_COPY_SECOND_TO_FIRST_3(mArrayOfOldDeltaDisplacements[i], DeltDisp);
+            }
         } // for each neighbor
         
         if (time_steps <= 1) {
