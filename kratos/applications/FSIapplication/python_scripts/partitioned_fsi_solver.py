@@ -313,7 +313,7 @@ class PartitionedFSISolver:
         self.structure_solver.SolverInitialize()
 
                 
-    def GetComputeModelPart(self):
+    def GetComputingModelPart(self):
         pass
         
         
@@ -474,7 +474,7 @@ class PartitionedFSISolver:
         
     def _SetStructureNeumannCondition(self):
         
-        structure_computational_submodelpart = self.structure_solver.main_model_part.GetSubModelPart("solid_computational_model_part")
+        structure_computational_submodelpart = self.structure_solver.main_model_part.GetSubModelPart("solid_computing_domain")
                 
         aux_count = 0
         for cond in self.structure_solver.main_model_part.Conditions:
