@@ -1,11 +1,11 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
 def BenchmarkCheck(Vel303x, Vel303y, Vel312, Vel322):
     benchmarking.Output(Vel303x, "x velocity at node 303", None, 1e-5)
     benchmarking.Output(Vel303y, "y velocity at node 303", None, 1e-5)
     benchmarking.Output(Vel312, "x velocity at node 312", None, 1e-5)
     benchmarking.Output(Vel322, "x velocity at node 312", None, 1e-5)
 
-#
 kratos_path = '../../../..'
 kratos_benchmarking_path = '../../../../benchmarking'  # kratos_root/benchmarking
 import sys
@@ -13,15 +13,12 @@ sys.path.append(kratos_path)
 sys.path.append(kratos_benchmarking_path)
 
 from KratosMultiphysics import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 
 import benchmarking
 
 # defining a model part for the fluid and one for the structure
 fluid_model_part = ModelPart("FluidPart")
-
-#
 
 #
 # Problem definition
@@ -39,7 +36,8 @@ density = 1.0
 viscosity = 0.01
 
 # Import solver and define solution step data
-import monolithic_solver_eulerian as monolithic_solver
+#~ import monolithic_solver_eulerian as monolithic_solver
+import vms_monolithic_solver as monolithic_solver
 monolithic_solver.AddVariables(fluid_model_part)
 
 # reading the fluid part
@@ -73,7 +71,7 @@ fluid_solver.solver = ResidualBasedNewtonRaphsonStrategy(fluid_solver.model_part
                                                          fluid_solver.linear_solver,
                                                          fluid_solver.conv_criteria,
                                                          fluid_solver.max_iter,
-                                                         fluid_solver.CalculateReactionFlag,
+                                                         fluid_solver.compute_reactions,
                                                          fluid_solver.ReformDofSetAtEachStep,
                                                          fluid_solver.MoveMeshFlag)
 (fluid_solver.solver).SetEchoLevel(fluid_solver.echo_level)

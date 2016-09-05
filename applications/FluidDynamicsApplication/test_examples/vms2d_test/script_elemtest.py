@@ -64,17 +64,11 @@ SolverType = ProjectParameters.SolverType
 if(SolverType == "FractionalStep"):
     import incompressible_fluid_solver
     incompressible_fluid_solver.AddVariables(fluid_model_part)
-elif(SolverType == "pressure_splitting"):
-    import decoupled_solver_eulerian
-    decoupled_solver_eulerian.AddVariables(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian"):
     import vms_monolithic_solver
     vms_monolithic_solver.AddVariables(fluid_model_part)
-elif(SolverType == "monolithic_solver_eulerian_compressible"):
-    import monolithic_solver_eulerian_compressible
-    monolithic_solver_eulerian_compressible.AddVariables(fluid_model_part)
 else:
-    raise NameError("solver type not supported: options are FractionalStep - pressure_splitting - monolithic_solver_eulerian")
+    raise NameError("solver type not supported: options are FractionalStep - monolithic_solver_eulerian")
 
 # introducing input file name
 input_file_name = ProjectParameters.problem_name
@@ -123,12 +117,8 @@ else:
 # adding dofs
 if(SolverType == "FractionalStep"):
     incompressible_fluid_solver.AddDofs(fluid_model_part)
-elif(SolverType == "pressure_splitting"):
-    decoupled_solver_eulerian.AddDofs(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian"):
     vms_monolithic_solver.AddDofs(fluid_model_part)
-elif(SolverType == "monolithic_solver_eulerian_compressible"):
-    monolithic_solver_eulerian_compressible.AddDofs(fluid_model_part)
 
 # If Lalplacian form = 2, free all pressure Dofs
 laplacian_form = ProjectParameters.laplacian_form
@@ -148,7 +138,7 @@ if(laplacian_form >= 2):
 
 # decoupled solver schemes: need solver for pressure and solver fol velocity
 
-if ProjectParameters.SolverType in ["pressure_splitting", "FractionalStep"]:
+if ProjectParameters.SolverType == "FractionalStep":
     # Velocity preconditioner
     try:
         if ProjectParameters.Velocity_Preconditioner_type == 'Diagonal':
@@ -216,7 +206,8 @@ if ProjectParameters.SolverType in ["pressure_splitting", "FractionalStep"]:
         pressure_linear_solver = SuperLUSolver()
     elif ProjectParameters.Pressure_Linear_Solver == "Parallel MKL Pardiso":
         pressure_linear_solver = ParallelMKLPardisoSolver()
-elif "monolithic_solver_eulerian":  # single coupled solver
+        
+elif ProjectParameters.SolverType == "monolithic_solver_eulerian":  # single coupled solver
     # preconditioner
     try:
         if ProjectParameters.Monolithic_Preconditioner_type == 'Diagonal':
@@ -272,26 +263,7 @@ if(SolverType == "FractionalStep"):
     fluid_solver.velocity_linear_solver = velocity_linear_solver
     fluid_solver.pressure_linear_solver = pressure_linear_solver
     fluid_solver.Initialize()
-if(SolverType == "pressure_splitting"):
-    fluid_solver = decoupled_solver_eulerian.DecoupledSolver(fluid_model_part, domain_size)
-    fluid_solver.oss_switch = ProjectParameters.use_orthogonal_subscales
-    fluid_solver.dynamic_tau = ProjectParameters.use_dt_in_stabilization
-    # Set the Bossak alpha here
-    # alpha = -0.1
-    # move_mesh_strategy = 0
-    # fluid_solver.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakScheme(alpha,move_mesh_strategy)
-    #
-    fluid_solver.rel_vel_tol = ProjectParameters.velocity_relative_tolerance
-    fluid_solver.abs_vel_tol = ProjectParameters.velocity_absolute_tolerance
-    fluid_solver.rel_pres_tol = ProjectParameters.pressure_relative_tolerance
-    fluid_solver.abs_pres_tol = ProjectParameters.pressure_absolute_tolerance
-    fluid_solver.use_inexact_newton = False
-    fluid_solver.max_iter = ProjectParameters.max_iterations
-    fluid_solver.CalculateReactions = ProjectParameters.Calculate_reactions
-    # Solver definition
-    fluid_solver.velocity_linear_solver = velocity_linear_solver
-    fluid_solver.pressure_linear_solver = pressure_linear_solver
-    fluid_solver.Initialize()
+    
 elif(SolverType == "monolithic_solver_eulerian"):
     fluid_solver = vms_monolithic_solver.MonolithicSolver(fluid_model_part, domain_size)
     fluid_solver.oss_switch = ProjectParameters.use_orthogonal_subscales
@@ -306,23 +278,7 @@ elif(SolverType == "monolithic_solver_eulerian"):
     fluid_solver.linear_solver = monolithic_linear_solver
     # fluid_solver.pressure_linear_solver = pressure_linear_solver
     fluid_solver.Initialize()
-elif(SolverType == "monolithic_solver_eulerian_compressible"):
-    fluid_solver = monolithic_solver_eulerian_compressible.MonolithicSolver(fluid_model_part, domain_size)
-    fluid_solver.oss_switch = ProjectParameters.use_orthogonal_subscales
-    fluid_solver.dynamic_tau = ProjectParameters.use_dt_in_stabilization
-    fluid_solver.rel_vel_tol = ProjectParameters.velocity_relative_tolerance
-    fluid_solver.abs_vel_tol = ProjectParameters.velocity_absolute_tolerance
-    fluid_solver.rel_pres_tol = ProjectParameters.pressure_relative_tolerance
-    fluid_solver.abs_pres_tol = ProjectParameters.pressure_absolute_tolerance
-    fluid_solver.max_iter = ProjectParameters.max_iterations
-    fluid_solver.CalculateReactions = ProjectParameters.Calculate_reactions
-    # Solver definition
-    fluid_solver.linear_solver = monolithic_linear_solver
-    # fluid_solver.velocity_linear_solver = velocity_linear_solver
-    # fluid_solver.pressure_linear_solver = pressure_linear_solver
-    fluid_solver.Initialize()
-
-
+    
 print("fluid solver created")
 
 # mesh to be printed (single mesh case)

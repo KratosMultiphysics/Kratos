@@ -14,7 +14,6 @@ import sys
 sys.path.append('../../../../')
 sys.path.append('../../../../benchmarking')
 from KratosMultiphysics import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 
 import benchmarking
