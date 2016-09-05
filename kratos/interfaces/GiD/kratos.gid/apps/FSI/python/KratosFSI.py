@@ -41,7 +41,7 @@ solver.AddDofs()
 ## Initialize GiD  I/O
 from gid_output_process import GiDOutputProcess
 
-gid_output_structure = GiDOutputProcess(solver.structure_solver.GetComputeModelPart(),
+gid_output_structure = GiDOutputProcess(solver.structure_solver.GetComputingModelPart(),
                                     ProjectParameters["structure_solver_settings"]["problem_data"]["problem_name"].GetString()+"_structure",
                                     ProjectParameters["structure_solver_settings"]["output_configuration"])
 
