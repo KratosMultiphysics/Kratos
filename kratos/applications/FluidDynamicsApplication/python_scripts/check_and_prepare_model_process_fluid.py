@@ -36,13 +36,13 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         fluid_computational_model_part.ProcessInfo = self.main_model_part.ProcessInfo
         
         for node in self.volume_model_part.Nodes:
-            fluid_computational_model_part.AddNode(node)
+            fluid_computational_model_part.AddNode(node,0)
         for elem in self.volume_model_part.Elements:
-            fluid_computational_model_part.AddElement(elem)
+            fluid_computational_model_part.AddElement(elem,0)
             
         for part in skin_parts:
             for cond in part.Conditions:
-                fluid_computational_model_part.AddCondition(cond)  
+                fluid_computational_model_part.AddCondition(cond,0)  
                 
         print(fluid_computational_model_part)
         
