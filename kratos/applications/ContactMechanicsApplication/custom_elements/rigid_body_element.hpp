@@ -154,6 +154,9 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Serializer constructor
+    RigidBodyElement() {};
+
     /// Default constructors
     RigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
@@ -427,7 +430,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    RigidBodyElement() {};
+
 
     ///@}
     ///@name Protected Operations

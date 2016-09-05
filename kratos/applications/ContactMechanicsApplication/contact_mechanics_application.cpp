@@ -39,17 +39,26 @@ namespace Kratos {
     std::cout << "Initializing KratosContactMechanicsApplication... " << std::endl;
 
 
+      //Register Rigid Bodies
+      Serializer::Register( "RigidBodyElement", mRigidBodyElement);
+      Serializer::Register( "TranslatoryRigidBodyElement", mTranslatoryRigidBodyElement);
+
       //Register Conditions
       KRATOS_REGISTER_CONDITION( "ContactDomainLMCondition2D3N", mContactDomainLMCondition2D3N )
       KRATOS_REGISTER_CONDITION( "ContactDomainPenaltyCondition2D3N", mContactDomainPenaltyCondition2D3N )
 
       KRATOS_REGISTER_CONDITION( "AxisymContactDomainLMCondition2D3N", mAxisymContactDomainLMCondition2D3N )
-      KRATOS_REGISTER_CONDITION( "AxisymContactDomainPenaltyCondition2D3N", mAxisymContactDomainPenaltyCondition2D3N )
-      
+      KRATOS_REGISTER_CONDITION( "AxisymContactDomainPenaltyCondition2D3N", mAxisymContactDomainPenaltyCondition2D3N )     	
+
+      Serializer::Register( "PointRigidContactPenalty2DCondition", mPointRigidContactPenalty2DCondition);
+      Serializer::Register( "PointRigidContactPenalty2DCondition", mPointRigidContactPenalty3DCondition);
+      Serializer::Register( "AxisymPointRigidContactPenalty2DCondition", mAxisymPointRigidContactPenalty2DCondition);
+
       //Register friction laws 
       Serializer::Register( "FrictionLaw", mFrictionLaw );
       Serializer::Register( "CoulombAdhesionFrictionLaw", mCoulombAdhesionFrictionLaw );
       Serializer::Register( "HardeningCoulombFrictionLaw", mHardeningCoulombFrictionLaw );
+
 
       //Register Variables
       KRATOS_REGISTER_VARIABLE( FRICTION_LAW_NAME )

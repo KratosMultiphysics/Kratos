@@ -76,6 +76,9 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Serializer constructor
+    TranslatoryRigidBodyElement() {};
+    
     /// Default constructors
     TranslatoryRigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
@@ -210,8 +213,7 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    TranslatoryRigidBodyElement() {};
-
+ 
     ///@}
     ///@name Protected Operations
     ///@{

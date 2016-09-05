@@ -212,12 +212,20 @@ private:
 	///@name Member Variables
 	///@{
 
+	//elements
+	const RigidBodyElement                                             mRigidBodyElement;
+	const TranslatoryRigidBodyElement                       mTranslatoryRigidBodyElement;
+
 	//conditions
 	const ContactDomainLM2DCondition                       mContactDomainLMCondition2D3N;
 	const ContactDomainPenalty2DCondition             mContactDomainPenaltyCondition2D3N;
 
 	const AxisymContactDomainLM2DCondition           mAxisymContactDomainLMCondition2D3N;
 	const AxisymContactDomainPenalty2DCondition mAxisymContactDomainPenaltyCondition2D3N;
+
+	const PointRigidContactPenalty2DCondition       mPointRigidContactPenalty2DCondition;
+	const PointRigidContactPenalty3DCondition       mPointRigidContactPenalty3DCondition;
+	const PointRigidContactPenalty3DCondition mAxisymPointRigidContactPenalty2DCondition;
 
 	//friction laws
 	const FrictionLaw                                                       mFrictionLaw;
