@@ -241,13 +241,25 @@ void ModelPart::ReduceTimeStep(ModelPart& rModelPart, double NewTime)
 void ModelPart::AddNode(ModelPart::NodeType::Pointer pNewNode, ModelPart::IndexType ThisIndex)
 {
     if (IsSubModelPart())
+    {
         mpParentModelPart->AddNode(pNewNode, ThisIndex);
-    
-    //node is only added if it does not exist (otherwise it already exists)
-    auto existing_node_it = this->GetMesh(ThisIndex).Nodes().find(pNewNode->Id());
-    if( existing_node_it == GetMesh(ThisIndex).NodesEnd())
         GetMesh(ThisIndex).AddNode(pNewNode);
+    }
+    else
+    {
+        auto existing_node_it = this->GetMesh(ThisIndex).Nodes().find(pNewNode->Id());
+        if( existing_node_it == GetMesh(ThisIndex).NodesEnd()) //node did not exist
+        {
+            GetMesh(ThisIndex).AddNode(pNewNode);
+        }
+        else //node did exist already
+        {
+            if(&(*existing_node_it) != (pNewNode.get()))//check if the pointee coincides
+                KRATOS_ERROR << "attempting to add pNewNode with Id :" << pNewNode->Id() << ", unfortunately a (different) node with the same Id already exists" << std::endl;
+        }
+    }
 }
+
 
 /** Inserts a node in the mesh with ThisIndex.
 */
@@ -619,12 +631,23 @@ void ModelPart::RemovePropertiesFromAllLevels(ModelPart::PropertiesType::Pointer
 void ModelPart::AddElement(ModelPart::ElementType::Pointer pNewElement, ModelPart::IndexType ThisIndex)
 {
     if (IsSubModelPart())
+    {
         mpParentModelPart->AddElement(pNewElement, ThisIndex);
-    
-    //node is only added if it does not exist (otherwise it already exists)
-    auto existing_element_it = this->GetMesh(ThisIndex).Elements().find(pNewElement->Id());
-    if( existing_element_it == GetMesh(ThisIndex).ElementsEnd())
         GetMesh(ThisIndex).AddElement(pNewElement);
+    }
+    else
+    {
+        auto existing_element_it = this->GetMesh(ThisIndex).Elements().find(pNewElement->Id());
+        if( existing_element_it == GetMesh(ThisIndex).ElementsEnd()) //node did not exist
+        {
+            GetMesh(ThisIndex).AddElement(pNewElement);
+        }
+        else //node did exist already
+        {
+            if(&(*existing_element_it) != (pNewElement.get()))//check if the pointee coincides
+                KRATOS_ERROR << "attempting to add pNewElement with Id :" << pNewElement->Id() << ", unfortunately a (different) element with the same Id already exists" << std::endl;
+        }
+    }
 }
 
 /** Inserts an element in the mesh with ThisIndex.
@@ -797,12 +820,23 @@ void ModelPart::RemoveElementsFromAllLevels(Flags identifier_flag)
 void ModelPart::AddCondition(ModelPart::ConditionType::Pointer pNewCondition, ModelPart::IndexType ThisIndex)
 {
     if (IsSubModelPart())
+    {
         mpParentModelPart->AddCondition(pNewCondition, ThisIndex);
-    
-   //node is only added if it does not exist (otherwise it already exists)
-    auto existing_condition_it = this->GetMesh(ThisIndex).Conditions().find(pNewCondition->Id());
-    if( existing_condition_it == GetMesh(ThisIndex).ConditionsEnd())
         GetMesh(ThisIndex).AddCondition(pNewCondition);
+    }
+    else
+    {
+        auto existing_condition_it = this->GetMesh(ThisIndex).Conditions().find(pNewCondition->Id());
+        if( existing_condition_it == GetMesh(ThisIndex).ConditionsEnd()) //node did not exist
+        {
+            GetMesh(ThisIndex).AddCondition(pNewCondition);
+        }
+        else //node did exist already
+        {
+            if(&(*existing_condition_it) != (pNewCondition.get()))//check if the pointee coincides
+                KRATOS_ERROR << "attempting to add pNewCondition with Id :" << pNewCondition->Id() << ", unfortunately a (different) condition with the same Id already exists" << std::endl;
+        }
+    }
 }
 
 /** Inserts a condition in the mesh with ThisIndex.
