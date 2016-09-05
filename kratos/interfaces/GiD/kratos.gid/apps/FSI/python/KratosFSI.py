@@ -45,7 +45,7 @@ gid_output_structure = GiDOutputProcess(solver.structure_solver.GetComputingMode
                                     ProjectParameters["structure_solver_settings"]["problem_data"]["problem_name"].GetString()+"_structure",
                                     ProjectParameters["structure_solver_settings"]["output_configuration"])
 
-gid_output_fluid = GiDOutputProcess(solver.fluid_solver.GetComputeModelPart(),
+gid_output_fluid = GiDOutputProcess(solver.fluid_solver.GetComputingModelPart(),
                                     ProjectParameters["fluid_solver_settings"]["problem_data"]["problem_name"].GetString()+"_fluid",
                                     ProjectParameters["fluid_solver_settings"]["output_configuration"])
 
