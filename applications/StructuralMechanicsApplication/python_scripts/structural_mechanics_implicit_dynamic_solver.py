@@ -82,6 +82,7 @@ class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
         
         print("Construction of MechanicalSolver finished")
 
+
     def AddVariables(self):
         
         solid_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver.AddVariables(self)
@@ -92,8 +93,6 @@ class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
    
         print("::[Mechanical Solver]:: Variables ADDED")
 
-    def GetComputingModelPart(self):
-        return self.main_model_part
     
     def _GetSolutionScheme(self, scheme_type, component_wise, compute_contact_forces):
 
