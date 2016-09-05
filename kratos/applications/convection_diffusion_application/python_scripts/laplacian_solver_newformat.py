@@ -130,7 +130,7 @@ class LaplacianSolver:
     def GetMinimumBufferSize(self):
         return 2;
     
-    def GetComputeModelPart(self):
+    def GetComputingModelPart(self):
         return self.main_model_part
         
     def GetOutputVariables(self):

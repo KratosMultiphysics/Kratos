@@ -114,7 +114,7 @@ for process in list_of_processes:
 
 #### START SOLUTION ####
 
-computing_model_part = solver.GetComputeModelPart()
+computing_model_part = solver.GetComputingModelPart()
 
 #### Output settings start ####
 
