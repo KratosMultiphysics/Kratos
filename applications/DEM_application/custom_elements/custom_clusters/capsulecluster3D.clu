@@ -1,0 +1,27 @@
+//
+// Cluster Name:        "capsulecluster3D"
+// Author:              Salva Latorre
+// Date:                $Date: 2016-9-5
+//
+
+Name
+capsulecluster3D
+
+Begin centers_and_radii
+0.0000 0.0 0.0 0.35
+0.2325 0.0 0.0 0.35
+0.4650 0.0 0.0 0.35
+0.6975 0.0 0.0 0.35
+0.9300 0.0 0.0 0.35
+End centers_and_radii
+
+Size
+2.56
+
+Volume
+0.89669
+
+Inertia per unit mass
+54.9223
+326.3578
+326.3578
