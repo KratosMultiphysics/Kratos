@@ -6,40 +6,44 @@
         "time_step"       : 0.001,
         "start_time"      : 0.0,
         "end_time"        : 0.002,
-        "echo_level"      : 0
+        "echo_level"      : 0,
+        "threads"         : 2
     },
     "solver_settings"          : {
-        "solver_type"                        : "solid_mechanics_implicit_dynamic_solver",
         "echo_level"                         : 0,
+        "buffer_size"                        : 2,
+        "solver_type"                        : "solid_mechanics_implicit_dynamic_solver",
         "solution_type"                      : "Dynamic",
         "time_integration_method"            : "Implicit",
         "scheme_type"                        : "Newmark",
         "model_import_settings"              : {
             "input_type"       : "mdpa",  
             "input_filename"   : "Particle Domain",
-	    "input_file_label" : 0
+	    "input_file_label" : "0"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "Residual_criterion",
+        "reform_dofs_at_each_step"           : true,
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 25,
         "linear_solver_settings"             : {
-            "solver_type" : "Super_LU",
-            "scaling"     : true,
-            "verbosity"   : 0
+             "solver_type" : "SuperLUSolver",
+             "tolerance"   : 1e-7,
+             "max_iteration" : 5000,
+             "scaling"     : false
         },
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
         "processes_sub_model_part_list"      :["DISPLACEMENT_Displacement_Auto1","SelfWeight3D_Self_weight_Auto1"]
     },
     "problem_process_list" : [{
         "python_module"   : "remesh_domains_process",
-        "kratos_module" : "KratosMultiphysics.PfemBaseApplication",
-        "help"                  : "This process applies meshing to the problem domains",
-        "process_name"          : "RemeshDomainsProcess",
-        "Parameters"            : {
+        "kratos_module"   : "KratosMultiphysics.PfemBaseApplication",
+        "help"            : "This process applies meshing to the problem domains",
+        "process_name"    : "RemeshDomainsProcess",
+        "Parameters"      : {
 	    "model_part_name"       : "model_part_name",
 	    "meshing_control_type"  : "step",
 	    "meshing_frequency"     : 1.0,
@@ -115,10 +119,10 @@
 	}
     },{
         "python_module"   : "parametric_walls_process",
-        "kratos_module" : "KratosMultiphysics.ContactMechanicsApplication",
-        "help"                  : "This process applies parametric walls and search contact",
-        "process_name"          : "ParametricWallsProcess",
-        "Parameters"            : {
+        "kratos_module"   : "KratosMultiphysics.ContactMechanicsApplication",
+        "help"            : "This process applies parametric walls and search contact",
+        "process_name"    : "ParametricWallsProcess",
+        "Parameters"      : {
 	    "model_part_name"      : "Solid Domain",
             "search_control_type"  : "step",
             "search_frequency"     : 1.0,
@@ -126,11 +130,12 @@
 		{
 		    "python_module": "parametric_wall",
 		    "mesh_id": 0,
-		    "sub_model_part_name" : "sub_model_part_name",
+		    "model_part_name" : "model_part_name",
 		    "rigid_body_settings":{
 			"rigid_body_element_type": "TranslatoryRigidElement3D1N",
 			"fixed_body": true,
-			"compute_parameters": false,
+			"compute_body_parameters": false,
+                        "rigid_body_model_part_name": "model_part_name",
 			"rigid_body_parameters":{
 			    "center_of_gravity": [0.0 ,0.0, 0.0],
 			    "mass":0.0,
@@ -147,8 +152,8 @@
 			}
 		    },
 		    "contact_search_settings":{
-			"python_module": "parametric_wall_contact_search",
-			"search_frequency": 0,            
+			"kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
+			"contact_search_type": "ParametricWallContactSearch",
 			"contact_parameters":{
 			    "contact_condition_type": "PointContactCondition2D1N",
 			    "friction_law_type": "FrictionLaw",
@@ -169,10 +174,10 @@
 	}
     },{
         "python_module"   : "contact_domain_process",
-        "kratos_module" : "KratosMultiphysics.ContactMechanicsApplication",
-        "help"                  : "This process applies contact domain search by remeshing outer boundaries",
-        "process_name"          : "ContactDomainProcess",
-        "Parameters"            : {
+        "kratos_module"   : "KratosMultiphysics.ContactMechanicsApplication",
+        "help"            : "This process applies contact domain search by remeshing outer boundaries",
+        "process_name"    : "ContactDomainProcess",
+        "Parameters"      : {
             "mesh_id"               : 0,
 	    "model_part_name"       : "model_part_name",
             "meshing_control_type"  : "step",
@@ -181,7 +186,7 @@
 	    "meshing_domains" : [
 		{
 		    "python_module": "contact_domain",
-		    "sub_model_part_name": "sub_model_part_name",
+		    "model_part_name": "sub_model_part_name",
 		    "alpha_shape": 1.4,
 		    "offset_factor": 0.0,
 		    "meshing_strategy":{
@@ -204,50 +209,53 @@
 			}
 		    },
 		    "elemental_variables_to_transfer":[ "CAUCHY_STRESS_VECTOR", "DEFORMATION_GRADIENT" ]
+		    "contact_sub_model_part_list": []
 		}
             ]
         }
     }],
     "constraints_process_list" : [{
-        "python_module"   : "impose_vector_value_by_components_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
+        "python_module"   : "assign_value_to_vector_components_process",
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+        "help"            : "This process imposes a constraint",
+        "process_name"    : "AssignValueToVectorComponentsProcess",
+        "Parameters"      : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
-            "value"           : [0.0,0.0,0.0]
+            "interval"        : [0.0, 100],
+            "time_function"   : "constant",
+            "imposed_components" : [true, false, false],
+            "value"           : [0.0, 0.0, 0.0]
         }
     }],
     "loads_process_list"       : [{
-        "python_module"   : "process_factory",
-        "kratos_module" : "KratosMultiphysics",
-        "check"                 : "DirectorVectorNonZero direction",
-        "help"                  : "This process ",
-        "process_name"          : "ApplyConstantVectorValueProcess",
-        "Parameters"            : {
+        "python_module"  : "assign_vector_to_conditions_process",
+        "kratos_module"  : "KratosMultiphysics.SolidMechanicsApplication",
+        "help"           : "This process assigns a load value on conditions",
+        "process_name"   : "AssignVectorToConditionsProcess",
+        "Parameters"     : {
             "mesh_id"         : 0,
-            "model_part_name" : "SelfWeight3D_Self_weight_Auto1",
-            "variable_name"   : "VOLUME_ACCELERATION",
-            "factor"          : 2.5,
-            "direction"       : [0.0,-1.0,0.0]
+            "model_part_name" : "load_y",
+            "variable_name"   : "LINE_LOAD",
+            "interval"        : [0.0, 100],
+            "time_function"   : "incremental",
+            "factor"          : 100,
+            "direction"       : [0,-1,0]
         }
     }],
     "output_process_list" : [{
         "python_module"   : "restart_process",
-        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
-        "help"                  : "This process writes restart files",
-        "process_name"          : "RestartProcess",
-        "Parameters"            : {
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+        "help"            : "This process writes restart files",
+        "process_name"    : "RestartProcess",
+        "Parameters"      : {
+            "model_part_name"     : "Solid Domain",
             "save_restart"        : true,
-            "restart_file_name"   : "problem_name",
+            "restart_file_name"   : "cutting_test_rigid_2D_json",
             "restart_file_label"  : "step",
-            "output_control_type" : "step",
-            "output_frequency"    : 1.0,
+            "output_control_type" : "time",
+            "output_frequency"    : 0,
             "json_output"         : false
         }
     }],
@@ -267,7 +275,9 @@
             "skin_output"         : false,
             "plane_output"        : [],
             "nodal_results"       : ["DISPLACEMENT","REACTION","VELOCITY","ACCELERATION"],
-            "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","VON_MISES_STRESS"]
+            "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","VON_MISES_STRESS"],
+	    "additional_list_files": []
+			    
         },
         "point_data_configuration"  : []
     }
