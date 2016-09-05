@@ -202,7 +202,7 @@ class NavierStokesSolver_VMSMonolithic:
     
     def Initialize(self):
         
-        self.compute_model_part = self.GetComputingModelPart()
+        self.computing_model_part = self.GetComputingModelPart()
         
         MoveMeshFlag = False
         
@@ -234,12 +234,12 @@ class NavierStokesSolver_VMSMonolithic:
         if self.settings["consider_periodic_conditions"].GetBool() == True:
             self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(self.settings["alpha"].GetDouble(),
                                                                                                 self.settings["move_mesh_strategy"].GetInt(),
-                                                                                                self.compute_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE], 
+                                                                                                self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE], 
                                                                                                 KratosCFD.PATCH_INDEX)
         else:
             self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(self.settings["alpha"].GetDouble(),
                                                                                             self.settings["move_mesh_strategy"].GetInt(),
-                                                                                            self.compute_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+                                                                                            self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
     
         # TODO: TURBULENCE MODELS ARE NOT ADDED YET
         #~ if self.turbulence_model is None:
@@ -321,7 +321,7 @@ class NavierStokesSolver_VMSMonolithic:
                 
             stokes_process = KratosCFD.StokesInitializationProcess(self.main_model_part,
                                                                    stokes_linear_solver,
-                                                                   self.compute_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+                                                                   self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                                                                    KratosCFD.PATCH_INDEX)
             ## Copy periodic conditions to Stokes problem
             stokes_process.SetConditions(self.main_model_part.Conditions)
@@ -345,7 +345,7 @@ class NavierStokesSolver_VMSMonolithic:
         #~ if self.settings["reform_dofs_at_each_step"]:
             #~ if self.settings["use_slip_conditions"].GetBool():
                 #~ self.normal_util.CalculateOnSimplex(self.main_model_part,
-                                                    #~ self.compute_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+                                                    #~ self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                                                     #~ KratosMultiphysics.IS_STRUCTURE)
             #~ if self.settings["use_spalart_allmaras"]:
                 #~ KratosMultiphysics.neighbour_search.Execute()

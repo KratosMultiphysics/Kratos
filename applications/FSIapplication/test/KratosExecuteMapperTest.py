@@ -93,11 +93,11 @@ class KratosExecuteMapperTest:
         #~ if (self.output_post == True):
             #~ from gid_output_process import GiDOutputProcess
             
-            #~ self.gid_output_structure = GiDOutputProcess(solid_solver.GetComputeModelPart(),
+            #~ self.gid_output_structure = GiDOutputProcess(solid_solver.GetComputingModelPart(),
                                         #~ ProjectParameters["structure_solver_settings"]["problem_data"]["problem_name"].GetString()+"_structure",
                                         #~ ProjectParameters["structure_solver_settings"]["output_configuration"])
 
-            #~ self.gid_output_fluid = GiDOutputProcess(fluid_solver.GetComputeModelPart(),
+            #~ self.gid_output_fluid = GiDOutputProcess(fluid_solver.GetComputingModelPart(),
                                     #~ ProjectParameters["fluid_solver_settings"]["problem_data"]["problem_name"].GetString()+"_fluid",
                                     #~ ProjectParameters["fluid_solver_settings"]["output_configuration"])
 

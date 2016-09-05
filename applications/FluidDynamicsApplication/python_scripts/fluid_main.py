@@ -67,7 +67,7 @@ for process in list_of_processes:
     print("b")
 
 #TODO: think if there is a better way to do this
-fluid_model_part = solver.GetComputeModelPart()
+fluid_model_part = solver.GetComputingModelPart()
 
 
 # initialize GiD  I/O

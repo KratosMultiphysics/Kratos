@@ -168,7 +168,7 @@ class DamMechanicalSolver:
     def Initialize(self):
     
         # Get the computational_model_part 
-        compute_model_part = self.GetComputeModelPart()
+        compute_model_part = self.GetComputingModelPart()
         
         # Builder and solver creation
         builder_and_solver = self.BuilderAndSolverCreator(self.settings["mechanical_settings"]["type_of_builder"].GetString(), self.linear_solver)
@@ -194,7 +194,7 @@ class DamMechanicalSolver:
 
         print ("Initialization DamSolver finished")
         
-    def GetComputeModelPart(self):
+    def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart("solid_computational_model_part")
     
     def GetOutputVariables(self):

@@ -160,7 +160,7 @@ for step in range(buffer_size-1):
 
 
 # Initialize GiD I/O
-computing_model_part = solver.GetComputeModelPart()
+computing_model_part = solver.GetComputingModelPart()
 gid_output = GiDOutputProcess(computing_model_part,problem_name,ProjectParameters["output_configuration"])
 gid_output.ExecuteInitialize()
 

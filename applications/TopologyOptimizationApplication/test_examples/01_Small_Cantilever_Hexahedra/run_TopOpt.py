@@ -91,7 +91,7 @@ for process in list_of_processes:
 #### START SOLUTION ####
 
 #TODO: think if there is a better way to do this
-computing_model_part = solver.GetComputeModelPart()
+computing_model_part = solver.GetComputingModelPart()
 
 
 #### output settings start ####

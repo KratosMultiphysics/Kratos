@@ -139,7 +139,7 @@ class StokesSolver:
         print ("model reading finished")
         
     def Initialize(self):
-        compute_model_part = self.GetComputeModelPart()
+        compute_model_part = self.GetComputingModelPart()
         
         self.bdf_process = kratoscore.ComputeBDFCoefficientsProcess(compute_model_part,2)
         
@@ -173,7 +173,7 @@ class StokesSolver:
 
         print("Construction stokes solver finished")
         
-    def GetComputeModelPart(self):
+    def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
         
     def GetOutputVariables(self):
@@ -189,10 +189,10 @@ class StokesSolver:
         self.bdf_process.Execute()
         
         if(self.settings["force_steady_state"].GetBool()):
-            bdf_vec = self.GetComputeModelPart().ProcessInfo[KratosMultiphysics.BDF_COEFFICIENTS]
+            bdf_vec = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.BDF_COEFFICIENTS]
             for i in range(len(bdf_vec)):
                 bdf_vec[i] = 0.0
-            self.GetComputeModelPart().ProcessInfo.SetValue(KratosMultiphysics.BDF_COEFFICIENTS, bdf_vec)
+            self.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.BDF_COEFFICIENTS, bdf_vec)
             
         self.fluid_solver.Solve()
         
@@ -200,10 +200,10 @@ class StokesSolver:
         self.bdf_process.Execute()
         
         if(self.settings["force_steady_state"].GetBool()):
-            bdf_vec = self.GetComputeModelPart().ProcessInfo[KratosMultiphysics.BDF_COEFFICIENTS]
+            bdf_vec = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.BDF_COEFFICIENTS]
             for i in range(len(bdf_vec)):
                 bdf_vec[i] = 0.0
-            self.GetComputeModelPart().ProcessInfo.SetValue(KratosMultiphysics.BDF_COEFFICIENTS, bdf_vec)
+            self.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.BDF_COEFFICIENTS, bdf_vec)
             
         self.fluid_solver.InitializeSolutionStep()
         

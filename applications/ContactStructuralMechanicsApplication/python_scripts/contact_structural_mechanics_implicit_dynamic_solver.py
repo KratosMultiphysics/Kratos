@@ -163,7 +163,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         
         if(component_wise):
             self.mechanical_solver = KratosMultiphysics.SolidMechanicsApplication.ComponentWiseNewtonRaphsonStrategy(
-                                                                            self.compute_model_part, 
+                                                                            self.computing_model_part, 
                                                                             mechanical_scheme, 
                                                                             self.linear_solver, 
                                                                             mechanical_convergence_criterion, 
@@ -175,7 +175,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         else:
             if(line_search):
                 self.mechanical_solver = KratosMultiphysics.SolidMechanicsApplication.ResidualBasedNewtonRaphsonLineSearchStrategy(
-                                                                            self.compute_model_part, 
+                                                                            self.computing_model_part, 
                                                                             mechanical_scheme, 
                                                                             self.linear_solver, 
                                                                             mechanical_convergence_criterion, 
@@ -188,7 +188,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
             else:
                 if self.settings["analysis_type"].GetString() == "Linear":
                     self.mechanical_solver = KratosMultiphysics.ResidualBasedLinearStrategy(
-                                                                            self.compute_model_part, 
+                                                                            self.computing_model_part, 
                                                                             mechanical_scheme, 
                                                                             self.linear_solver, 
                                                                             builder_and_solver, 
@@ -202,7 +202,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                         split_factor   = self.settings["split_factor"].GetDouble()
                         max_number_splits = self.settings["max_number_splits"].GetInt()
                         self.mechanical_solver = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactStrategy(
-                                                                                self.compute_model_part, 
+                                                                                self.computing_model_part, 
                                                                                 mechanical_scheme, 
                                                                                 self.linear_solver, 
                                                                                 mechanical_convergence_criterion, 
@@ -217,7 +217,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                         
                     else:
                         self.mechanical_solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
-                                                                                self.compute_model_part, 
+                                                                                self.computing_model_part, 
                                                                                 mechanical_scheme, 
                                                                                 self.linear_solver, 
                                                                                 mechanical_convergence_criterion, 

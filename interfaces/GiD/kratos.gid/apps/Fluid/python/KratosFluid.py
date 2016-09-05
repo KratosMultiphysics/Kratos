@@ -37,7 +37,7 @@ solver.AddDofs()
 
 ## Initialize GiD  I/O
 from gid_output_process import GiDOutputProcess
-gid_output = GiDOutputProcess(solver.GetComputeModelPart(),
+gid_output = GiDOutputProcess(solver.GetComputingModelPart(),
                               ProjectParameters["problem_data"]["problem_name"].GetString() ,
                               ProjectParameters["output_configuration"])
 
@@ -83,7 +83,7 @@ for process in list_of_processes:
     process.ExecuteInitialize()
 
 #TODO: think if there is a better way to do this
-fluid_model_part = solver.GetComputeModelPart()
+fluid_model_part = solver.GetComputingModelPart()
 
 ## Stepping and time settings
 Dt = ProjectParameters["problem_data"]["time_step"].GetDouble()

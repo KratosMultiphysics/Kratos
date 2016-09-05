@@ -180,7 +180,7 @@ class Trilinos_NavierStokesSolver_FractionalStep:
         self.EpetraComm = CreateCommunicator()
         
         
-        compute_model_part = self.GetComputeModelPart()
+        compute_model_part = self.GetComputingModelPart()
         
         MoveMeshFlag = False
         
@@ -233,7 +233,7 @@ class Trilinos_NavierStokesSolver_FractionalStep:
 
         print ("Initialization Trilinos_NavierStokesSolver_FractionalStep Finished")
         
-    def GetComputeModelPart(self):
+    def GetComputingModelPart(self):
         # Get as computational model part the "volume_model_part_name" in the ProjectParameters Json string
         #~ return self.main_model_part.GetSubModelPart(self.settings["volume_model_part_name"].GetString())
         

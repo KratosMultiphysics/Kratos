@@ -118,7 +118,7 @@ class LagrangianMPMSolver:
 
     def Initialize(self):
         
-        self.compute_model_part = self.GetComputeModelPart()
+        self.computing_model_part = self.GetComputingModelPart()
         
 
         
@@ -153,7 +153,7 @@ class LagrangianMPMSolver:
         #self.Check()
         print ("lagrangian MPM solver initialization finished.")
         
-    def GetComputeModelPart(self):
+    def GetComputingModelPart(self):
          return self.main_model_part
         
     def GetOutputVariables(self):
