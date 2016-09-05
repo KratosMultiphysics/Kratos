@@ -83,9 +83,9 @@ pp.CFD_DEM.material_acceleration_calculation_type = 0
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
 pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
-pp.CFD_DEM.basset_force_type = 4
-pp.CFD_DEM.print_BASSET_FORCE_option = 0
-pp.CFD_DEM.basset_force_integration_type = 4
+pp.CFD_DEM.basset_force_type = 0
+pp.CFD_DEM.print_BASSET_FORCE_option = 1
+pp.CFD_DEM.basset_force_integration_type = 0
 pp.CFD_DEM.n_init_basset_steps = 0
 pp.CFD_DEM.time_steps_per_quadrature_step = 1
 pp.CFD_DEM.delta_time_quadrature = pp.CFD_DEM.time_steps_per_quadrature_step * pp.CFD_DEM.MaxTimeStep
@@ -660,12 +660,32 @@ if pp.CFD_DEM.basset_force_type >= 3 or pp.CFD_DEM.basset_force_type == 1:
 import cubic_law
 
 n_particles = len(spheres_model_part.Nodes)
-cubic_law_pp = cubic_law.GetProblemParameters()
-cubic_law.GenerateRandomPositions(n_particles)
-cubic_law.PrintResult(0.0)
-i_particle = 0
+cubic_law_pp = cubic_law.ProblemParameters()
+cubic_law.GenerateRandomPositions(cubic_law_pp, n_particles)
+a = 0.
+rho_p = 0.
+rho_f = 0.
+nu = 0.
 for node in spheres_model_part.Nodes:
-    X, Z, UX, UZ, DUX, DUZ, D = cubic_law.GetPositionAndFlowVariables(i_particle)
+    a = node.GetSolutionStepValue(RADIUS)
+    break
+
+rho_p = spheres_model_part.GetProperties()[1][PARTICLE_DENSITY]
+
+for node in fluid_model_part.Nodes:
+    rho_f = node.GetSolutionStepValue(DENSITY)
+    nu = node.GetSolutionStepValue(VISCOSITY)
+    break
+
+cubic_law_pp.SetNonGeometricParameters(a, rho_p, rho_f, nu, DEM_parameters.GravityZ)
+print('nu',nu)
+cubic_law_pp.PrintParameters()
+cubic_law.PrintResult(cubic_law_pp, 0.0)
+
+i_particle = 0
+
+for node in spheres_model_part.Nodes:
+    X, Z, UX, UZ, DUX, DUZ, D = cubic_law.GetPositionAndFlowVariables(cubic_law_pp, i_particle)
     node.X = X
     node.Z = Z
     node.X0 = X
@@ -686,7 +706,7 @@ for node in spheres_model_part.Nodes:
     i_particle += 1
 
 post_utils.Writeresults(time)
-    
+pressure_gradient_counter.Deactivate(True)
 # CUBIC LAW END
 
 while (time <= final_time):
@@ -799,36 +819,50 @@ while (time <= final_time):
                 for node in spheres_model_part.Nodes:
                     X = node.X
                     Z = node.Z
-                    UX, UZ, DUX, DUZ, D = cubic_law.GetFlowVariables(i_particle, X, Z)
+                    UX, UZ, DUX, DUZ, DUX2, DUZ2, D = cubic_law.GetFlowVariables(cubic_law_pp, i_particle, X, Z)
                     node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, UX)
                     node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, 0.0)
-                    node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, UZ)            
+                    node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, UZ)                                      
                     node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_X, DUX)
                     node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Y, 0.0)
                     node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Z, DUZ)      
                     node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_X, DUX)
                     node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_Y, 0.0)
-                    node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_Z, DUZ)       
-
-                    if DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
-                        solver.Solve() # only advance in space
-                        #projection_module.InterpolateVelocity()  
-                        UX, UZ, DUX, DUZ, D = cubic_law.GetFlowVariables(i_particle, node.X, node.Z)
+                    node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_Z, DUZ)      
+                    node.SetSolutionStepValue(FLUID_VEL_LAPL_PROJECTED_X, DUX2)
+                    node.SetSolutionStepValue(FLUID_VEL_LAPL_PROJECTED_Y, 0.0)
+                    node.SetSolutionStepValue(FLUID_VEL_LAPL_PROJECTED_Z, DUZ2)
+                    i_particle += 1
+                    
+                if DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
+                    solver.Solve() # only advance in space
+                    #projection_module.InterpolateVelocity()
+                    i_particle = 0
+                    for node in spheres_model_part.Nodes:
+                        X = node.X
+                        Z = node.Z
+                          
+                        UX, UZ, DUX, DUZ, DUX2, DUZ2, D = cubic_law.GetFlowVariables(cubic_law_pp, i_particle, X, Z)
                         if D < node.GetSolutionStepValue(RADIUS):
                             node.SetSolutionStepValue(VELOCITY_X, 0.)
                             node.SetSolutionStepValue(VELOCITY_Y, 0.)
                             node.SetSolutionStepValue(VELOCITY_Z, 0.)
                             node.Fix(VELOCITY_X)
                             node.Fix(VELOCITY_Y)
-                            node.Fix(VELOCITY_Z)                            
-                        node.SetSolutionStepValue(SLIP_VELOCITY_X, UX)
-                        node.SetSolutionStepValue(SLIP_VELOCITY_Z, UZ)       
-                    else:
-                        if pp.CFD_DEM.basset_force_type > 0:
-                            UX, UZ, DUX, DUZ, D = cubic_law.GetFlowVariables(X, Z)
+                            node.Fix(VELOCITY_Z)   
+                        else:
+                            node.SetSolutionStepValue(SLIP_VELOCITY_X, UX)
+                            node.SetSolutionStepValue(SLIP_VELOCITY_Z, UZ)   
+                        i_particle += 1
+                else:
+                    if pp.CFD_DEM.basset_force_type > 0:
+                        for node in spheres_model_part.Nodes:
+                            X = node.X
+                            Z = node.Z
+                            UX, UZ, DUX, DUZ, DUX2, DUZ2, D = cubic_law.GetFlowVariables(cubic_law_pp, X, Z)
                             node.SetSolutionStepValue(SLIP_VELOCITY_X, UX)
                             node.SetSolutionStepValue(SLIP_VELOCITY_Z, UZ)                                                                                              
-                    i_particle += 1
+                    
                 if quadrature_counter.Tick():
                     if pp.CFD_DEM.basset_force_type == 1 or pp.CFD_DEM.basset_force_type >= 3:
                         basset_force_tool.AppendIntegrandsWindow(spheres_model_part) 
@@ -899,7 +933,7 @@ while (time <= final_time):
         post_utils.Writeresults(time)
         
         if plotting_counter.Tick():
-            cubic_law.PrintResult(time)
+            cubic_law.PrintResult(cubic_law_pp, time)
 
         out = 0
 
