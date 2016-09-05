@@ -202,7 +202,7 @@ class NavierStokesSolver_VMSMonolithic:
     
     def Initialize(self):
         
-        self.compute_model_part = self.GetComputeModelPart()
+        self.compute_model_part = self.GetComputingModelPart()
         
         MoveMeshFlag = False
         
@@ -280,7 +280,7 @@ class NavierStokesSolver_VMSMonolithic:
 
         print ("Monolithic solver initialization finished.")
         
-    def GetComputeModelPart(self):
+    def GetComputingModelPart(self):
         # Get as computational model part the "volume_model_part_name" in the ProjectParameters Json string
         #~ return self.main_model_part.GetSubModelPart(self.settings["volume_model_part_name"].GetString())
         
