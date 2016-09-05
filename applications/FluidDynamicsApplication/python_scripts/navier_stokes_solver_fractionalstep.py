@@ -184,7 +184,7 @@ class NavierStokesSolver_FractionalStep:
     def Initialize(self):
         
         
-        compute_model_part = self.GetComputeModelPart()
+        compute_model_part = self.GetComputingModelPart()
         
         MoveMeshFlag = False
         
@@ -235,7 +235,7 @@ class NavierStokesSolver_FractionalStep:
         
         print ("Initialization NavierStokesSolver_FractionalStep finished.")
         
-    def GetComputeModelPart(self):
+    def GetComputingModelPart(self):
         # Get as computational model part the "volume_model_part_name" in the ProjectParameters Json string
         #~ return self.main_model_part.GetSubModelPart(self.settings["volume_model_part_name"].GetString())
         
