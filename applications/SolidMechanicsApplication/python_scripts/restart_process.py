@@ -85,7 +85,12 @@ class RestartProcess(KratosMultiphysics.Process):
 
         # Copy to a restart folder the posterior files, delete from problem folder
         if( self.save_restart ):
-            self.CleanPosteriorFiles()
+            if self.output_control_is_time:
+                restart_input_label = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+                self.CleanPosteriorFiles(restart_input_label)
+            else:
+                restart_input_label = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
+                self.CleanPosteriorFiles(restart_input_label)
         else:
             self.CleanPreviousFiles()        
 
@@ -112,9 +117,6 @@ class RestartProcess(KratosMultiphysics.Process):
     #
     def SaveRestart(self):
         
-        if( self.echo_level > 0 ):
-            print("::[Restart]:: Save [ step:", self.counter,"][",self.next_output,"]")
-
         # Print the output
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         self.printed_step_count += 1
@@ -123,6 +125,9 @@ class RestartProcess(KratosMultiphysics.Process):
             label = time
         else:
             label = self.printed_step_count
+
+        if( self.echo_level > 0 ):
+            print("::[Restart]:: Save [ step:", self.counter,"] [ label:", label,"]")
 
         current_restart_path = self.restart_path + "__" + str(label)
 
@@ -196,7 +201,7 @@ class RestartProcess(KratosMultiphysics.Process):
     #
     def CleanPosteriorFiles(self, restart_step):
 
-        #print(" ::[Restart]:: Clean Post Restart Files)")
+        print(" ::[Restart]:: Clean Post Restart Files) [ STEP:",restart_step," ]")
 
         # remove posterior results after restart:
         file_ending_type = ".post.bin"
