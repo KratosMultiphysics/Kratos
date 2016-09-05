@@ -1758,6 +1758,7 @@ void RigidBodyElement::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
     rSerializer.save("InitialLocalQuaternion",mInitialLocalQuaternion);
+    rSerializer.save("RigidBodyNodes",mpNodes);
 
 }
 
@@ -1765,6 +1766,7 @@ void RigidBodyElement::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     rSerializer.load("InitialLocalQuaternion",mInitialLocalQuaternion);
+    rSerializer.load("RigidBodyNodes",mpNodes);
 }
 
 

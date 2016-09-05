@@ -183,7 +183,10 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /// Serialization constructor
+    PointRigidContactCondition(){};
+
+    /// Default constructor
     PointRigidContactCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
     PointRigidContactCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
@@ -414,7 +417,6 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    PointRigidContactCondition() {};
 
     /**
      * Currently selected integration methods

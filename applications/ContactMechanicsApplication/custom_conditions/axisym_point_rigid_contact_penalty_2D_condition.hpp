@@ -61,7 +61,10 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /// Serialization constructor
+    AxisymPointRigidContactPenalty2DCondition(){};
+
+    /// Default constructor
     AxisymPointRigidContactPenalty2DCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
     AxisymPointRigidContactPenalty2DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
@@ -125,10 +128,6 @@ public:
 protected:
     ///@name Protected static Member Variables
     ///@{
-
-    // A protected default constructor necessary for serialization
-    AxisymPointRigidContactPenalty2DCondition() {};
-
     ///@}
     ///@name Protected member Variables
     ///@{

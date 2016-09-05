@@ -83,6 +83,9 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Serialization constructor
+    PointRigidContactPenalty3DCondition(){};
+
     /// Default constructor.
     PointRigidContactPenalty3DCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
@@ -157,9 +160,6 @@ public:
 protected:
     ///@name Protected static Member Variables
     ///@{
-
-    // A protected default constructor necessary for serialization
-    PointRigidContactPenalty3DCondition() {};
 
     ///@}
     ///@name Protected member Variables
