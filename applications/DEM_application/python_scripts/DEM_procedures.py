@@ -249,7 +249,10 @@ class Procedures(object):
 
         # OTHER PROPERTIES
         model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
-
+        
+        if (Var_Translator(self.DEM_parameters.PostSkinSphere)):
+            model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)
+        
         # LOCAL AXIS
         if (Var_Translator(self.DEM_parameters.PostEulerAngles)):
             model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
@@ -1103,12 +1106,13 @@ class DEMIo(object):
         self.PushPrintVar(self.PostDampForces,       DAMP_FORCES,                  self.spheres_variables)
         self.PushPrintVar(self.PostRadius,           RADIUS,                       self.spheres_variables)
         self.PushPrintVar(self.PostExportId,         EXPORT_ID,                    self.spheres_variables)
-        self.PushPrintVar(self.PostSkinSphere,       SKIN_SPHERE,                  self.spheres_variables)
-        #self.PushPrintVar(                        1, DELTA_DISPLACEMENT,           self.spheres_variables)  # Debugging
-        #self.PushPrintVar(                        1, PARTICLE_ROTATION_ANGLE,      self.spheres_variables)  # Debugging
         self.PushPrintVar(self.PostTemperature,      TEMPERATURE,                  self.spheres_variables)
         self.PushPrintVar(self.PostHeatFlux,         HEATFLUX,                     self.spheres_variables)
-
+        #self.PushPrintVar(                        1, DELTA_DISPLACEMENT,           self.spheres_variables)  # Debugging
+        #self.PushPrintVar(                        1, PARTICLE_ROTATION_ANGLE,      self.spheres_variables)  # Debugging
+        if (Var_Translator(self.DEM_parameters.PostSkinSphere)):
+            self.PushPrintVar(self.PostSkinSphere,       SKIN_SPHERE,              self.spheres_variables)
+                        
         # NANO
         if self.DEM_parameters.ElementType == "SwimmingNanoParticle":
             self.PushPrintVar(self.PostHeatFlux, CATION_CONCENTRATION, self.spheres_variables)
