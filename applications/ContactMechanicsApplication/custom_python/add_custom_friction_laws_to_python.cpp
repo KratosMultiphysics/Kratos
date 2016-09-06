@@ -51,17 +51,17 @@ namespace Kratos
       	.def( "PushBack", Push_Back_Friction_Laws )
       	;
 
-      //Friction laws
-       class_< FrictionLaw, FrictionLaw::Pointer , boost::noncopyable >
+       //Friction laws
+       class_< FrictionLaw, FrictionLaw::Pointer, boost::noncopyable >
       	( "FrictionLaw",  init<>() )
 	 .def("Clone",&FrictionLaw::Clone)
 	 ;
 
-      class_< CoulombAdhesionFrictionLaw, bases< FrictionLawBaseType >, boost::noncopyable >
+       class_< CoulombAdhesionFrictionLaw, bases< FrictionLawBaseType >, boost::noncopyable >
       	( "CoulombAdhesionFrictionLaw",  init<>() )
       	;
 
-      class_< HardeningCoulombFrictionLaw, bases< CoulombFrictionLawBaseType >, boost::noncopyable >
+       class_< HardeningCoulombFrictionLaw, bases< CoulombFrictionLawBaseType >, boost::noncopyable >
        	( "HardeningCoulombFrictionLaw",  init<>() )
        	;
 
