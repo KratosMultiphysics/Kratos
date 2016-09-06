@@ -78,7 +78,7 @@ def initialize_time_parameters(benchmark_number):
     elif benchmark_number==10:
 
         final_time                      = 0.00015 #0.0005
-        dt                              = 2.0e-9  #3.6e-12 # Complies Rayleigh's condition
+        dt                              = 2.0e-8 #2.0e-9  #3.6e-12 # Complies Rayleigh's condition
         output_time_step                = 0.00001
         number_of_points_in_the_graphic = 10
         number_of_coeffs_of_restitution = 4
@@ -86,7 +86,7 @@ def initialize_time_parameters(benchmark_number):
     elif benchmark_number==11:
 
         final_time                      = 0.00015 #0.0005
-        dt                              = 2.0e-9 #3.6e-12 # Complies Rayleigh's condition
+        dt                              = 2.0e-8 #2.0e-9 #3.6e-12 # Complies Rayleigh's condition
         output_time_step                = 0.00001
         number_of_points_in_the_graphic = 10
         number_of_coeffs_of_restitution = 4
@@ -204,7 +204,7 @@ class Benchmark1:
     def __init__(self):
         self.initial_normal_vel = 10.0
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
 
         for node in modelpart.Nodes:
             if node.Id == 1:
@@ -274,7 +274,7 @@ class Benchmark2:
     def __init__(self):
         self.initial_normal_vel = -0.2
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
 
         for node in modelpart.Nodes:
             node.SetSolutionStepValue(VELOCITY_Z, self.initial_normal_vel)
@@ -344,7 +344,7 @@ class Benchmark3:
         self.initial_normal_vel = 0
         self.restitution_numbers_vector_list_outfile = None
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
 
         #number = 1.0/(number_of_points_in_the_graphic-1) * (iteration - 1)
 
@@ -465,7 +465,7 @@ class Benchmark4:
         self.rebound_angle_list_outfile = None
         self.tangential_restitution_coefficient_list_outfile = None
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
 
         self.degrees = 90 / (number_of_points_in_the_graphic + 1) * iteration
         self.initial_tangential_vel =  self.initial_module_vel * sin(self.degrees * pi / 180.0)
@@ -661,7 +661,7 @@ class Benchmark5:
         self.Vst_prima_div_mu_per_Vcn_prima_list_outfile = None
         self.r_w1_prima_div_mu_per_Vcn_list_outfile = None
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
 
         degrees = 90 / (number_of_points_in_the_graphic + 1) * iteration
         self.initial_tangential_vel =  -self.initial_normal_vel * tan(degrees * pi / 180.0)
@@ -819,7 +819,7 @@ class Benchmark6:
         self.beta_list_outfile = None
         self.Vst_prima_div_Vcn_prima_list_outfile = None
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
 
         degrees = 90 / (number_of_points_in_the_graphic + 1) * iteration
         self.initial_tangential_vel = -self.initial_normal_vel * tan(degrees * pi / 180.0) # Here is tangential of the contact point, only. In X axis
@@ -978,7 +978,7 @@ class Benchmark7:
         self.final_tangential_center_vel_list = []
         self.final_angular_vel_list = []
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
 
         initial_normal_vel = 0.2
         radius = 0.1
@@ -1136,7 +1136,7 @@ class Benchmark8:
         self.beta_list_outfile = None
         self.Vst_prima_div_Vcn_prima_list_outfile = None
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
 
         degrees = 90 - 90 / (number_of_points_in_the_graphic + 1) * iteration
         self.initial_tangential_vel =  self.initial_normal_vel * tan(degrees * pi / 180.0) # Here is tangential of the contact point, only
@@ -1295,7 +1295,7 @@ class Benchmark9:
         self.restitution_numbers_list = []
         self.restitution_numbers_vector_list_outfile = None
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
 
         if number_of_points_in_the_graphic == 1:
             number = 0
@@ -1927,7 +1927,7 @@ class Benchmark12: ########## ROLLING FRICTION
         
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
 
         self.angular_velocity_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.angular_velocity_list_outfile_name, 'w')
@@ -2018,7 +2018,7 @@ class Benchmark13: ########## DEM-FEM Facet
         
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
 
         self.velocity_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.velocity_list_outfile_name, 'w')
@@ -2104,7 +2104,7 @@ class Benchmark14: ########## DEM-FEM Edge
         
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
 
         self.velocity_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.velocity_list_outfile_name, 'w')
@@ -2188,7 +2188,7 @@ class Benchmark15: ########## DEM-FEM Vertex
         
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
 
         self.velocity_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.velocity_list_outfile_name, 'w')
@@ -2273,7 +2273,7 @@ class Benchmark16: ########## DEM-FEM Grid
         
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
 
         self.velocity_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.velocity_list_outfile_name, 'w')
@@ -2391,7 +2391,7 @@ class Benchmark17: ########## DEM-FEM Rolling
         
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
 
         self.error_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.error_list_outfile_name, 'w')
@@ -3294,12 +3294,6 @@ class Benchmark26:
         pass
 
 
-
-
-
-
-
-
 class Benchmark27:
 
     def __init__(self):
@@ -3462,14 +3456,6 @@ class Benchmark27:
                 self.rigid_graph.flush()
         self.rigid_graph_counter += 1
 
-
-
-
-
-
-
-
-
     def print_results(self, number_of_points_in_the_graphic, dt=0):
         error1, error2, error3 = self.compute_errors(self.restitution_numbers_vector_list_outfile_name)
         error4, error5, error6 = self.compute_rigid_errors(self.rigid_face_file)
@@ -3489,9 +3475,6 @@ class Benchmark27:
         else:
             error_file.write(" KO!........ Test 27 FAILED (finite elements)\n")
         error_file.close()
-
-
-
 
     def compute_errors(self, restitution_numbers_vector_list_outfile_name):
         reference_data = lines_DEM = list(range(0, 1000));
@@ -3520,10 +3503,6 @@ class Benchmark27:
         dem_error1/=summation_of_analytics_data
 
         print("Error in total force at the reference particle =", 100*dem_error1,"%")
-
-
-
-
 
         i = 0
         with open('paper_data/reference_graph_benchmark' + '27' + '.dat') as reference:
@@ -3576,14 +3555,11 @@ class Benchmark27:
 
         print("Error in delta displacement at the reference particle =", 100*dem_error3,"%")
 
-
-
         error1 = 100*dem_error1
         error2 = 100*dem_error2
         error3 = 100*dem_error3
 
         return error1, error2, error3
-
 
     def compute_rigid_errors(self, rigid_face_file):
         reference_data = lines_FEM = list(range(0, 1000));
@@ -3622,17 +3598,6 @@ class Benchmark27:
     def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
         pass
 
-
-
-
-
-
-
-
-
-
-
-
 def delete_archives():
 
     #.......................Removing extra files
@@ -3653,10 +3618,8 @@ def delete_archives():
     for to_erase_folder in folders_to_delete_list:
         shutil.rmtree(to_erase_folder)
 
-
 def print_gnuplot_files_on_screen(gnuplot_script_name):
     system('gnuplot -persist ' + gnuplot_script_name)
-
 
 def create_pdf_document(pdf_script_name):
     system('gnuplot -persist ' + pdf_script_name)
