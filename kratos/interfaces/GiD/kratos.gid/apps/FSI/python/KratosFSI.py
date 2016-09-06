@@ -23,8 +23,8 @@ fluid_main_model_part = ModelPart(ProjectParameters["fluid_solver_settings"]["pr
 fluid_main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["fluid_solver_settings"]["problem_data"]["domain_size"].GetInt())
 
 ###TODO replace this "model" for real one once available
-FluidModel = {ProjectParameters["structure_solver_settings"]["problem_data"]["model_part_name"].GetString() : structure_main_model_part}
-SolidModel = {ProjectParameters["fluid_solver_settings"]["problem_data"]["model_part_name"].GetString() : fluid_main_model_part}
+FluidModel = {ProjectParameters["fluid_solver_settings"]["problem_data"]["model_part_name"].GetString() : fluid_main_model_part}
+SolidModel = {ProjectParameters["structure_solver_settings"]["problem_data"]["model_part_name"].GetString() : structure_main_model_part}
 
 ## Solver construction
 solver_module = __import__("partitioned_fsi_solver") # Currently there is only one FSI solver up to date
