@@ -60,8 +60,9 @@ if "OMPI_COMM_WORLD_SIZE" in os.environ:
 else:
     # DEM Application
     import DEM_procedures
-    #import DEM_material_test_script
-
+    import DEM_material_test_script
+    model_part_reader = ModelPartIO
+    model_part_reader = ReorderConsecutiveFromGivenIdsModelPartIO
     print("Running under OpenMP........")
     
 
@@ -94,7 +95,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         KRATOSprint   = procedures.KRATOSprint
 
         # Preprocess the model
-        procedures.PreProcessModel(DEM_parameters)
+        #procedures.PreProcessModel(DEM_parameters)
 
         # Prepare modelparts
         spheres_model_part    = ModelPart("SpheresPart")
@@ -102,7 +103,6 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         cluster_model_part    = ModelPart("Cluster_Part")
         DEM_inlet_model_part  = ModelPart("DEMInletPart")
         mapping_model_part    = ModelPart("Mappingmodel_part")
-        contact_model_part    = ""
 
         # Constructing utilities objects
         creator_destructor = ParticleCreatorDestructor()
@@ -124,9 +124,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
 
 
         # Creating a solver object and set the search strategy
-        solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, \
-                                                 creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
-
+        solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
         
         # Add variables
         procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
@@ -150,7 +148,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         spheres_mp_filename         = problem_name + "DEM"
         DEM_parameters.problem_name = problem_name
 
-        model_part_io_spheres = ModelPartIO(spheres_mp_filename)
+        model_part_io_spheres = model_part_reader(spheres_mp_filename)
 
         # Perform the initial partition
         [model_part_io_spheres, spheres_model_part, MPICommSetup] = parallelutils.PerformInitialPartition(spheres_model_part, model_part_io_spheres, spheres_mp_filename)
@@ -160,7 +158,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         ###################################################### CHUNG, OOI BENCHMARKS
 
         benchmark.set_initial_data(spheres_model_part, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration)
-
+        
         ###################################################### CHUNG, OOI BENCHMARKS
 
         rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
@@ -227,14 +225,19 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         demio.InitializeMesh(spheres_model_part,
                              rigid_face_model_part,
                              cluster_model_part,
-                             contact_model_part,
+                     solver.contact_model_part,
                              mapping_model_part)
 
         os.chdir(post_path)
 
         # Perform a partition to balance the problem
+        solver.search_strategy = parallelutils.GetSearchStrategy(solver, spheres_model_part)
+        solver.CreateCPlusPlusStrategy()
+        solver.RebuildListOfDiscontinuumSphericParticles()
+        solver.SetNormalRadiiOnAllParticles()
+        solver.SetSearchRadiiOnAllParticles()
         parallelutils.Repart(spheres_model_part)
-        parallelutils.CalculateModelNewIds(spheres_model_part)
+		#parallelutils.CalculateModelNewIds(spheres_model_part)
 
         os.chdir(post_path)
 
@@ -289,18 +292,10 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
 
         first_print  = True; index_5 = 1; index_10  = 1; index_50  = 1; control = 0.0
 
-        if (DEM_parameters.ModelDataInfo == "ON"):
-            os.chdir(data_and_results)
-            if (DEM_parameters.ContactMeshOption == "ON"):
-              (coordination_number) = procedures.ModelData(spheres_model_part, contact_model_part, solver)       # calculates the mean number of neighbours the mean radius, etc..
-              KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
-              os.chdir(main_path)
-            else:
-              KRATOSprint("Activate Contact Mesh for ModelData information")
+        coordination_number = procedures.ModelData(spheres_model_part, solver.contact_model_part, solver)
+        KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
 
-        #if (DEM_parameters.Dempack):
-        #    if(mpi.rank == 0):
-        materialTest.PrintChart();
+        materialTest.PrintChart()
         materialTest.PrepareDataForGraph()
 
         ##############################################################################
@@ -400,15 +395,13 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
                 os.chdir(data_and_results)
 
                 demio.PrintMultifileLists(time, post_path)
-                os.chdir(main_path)
 
                 os.chdir(post_path)
 
                 if (DEM_parameters.ContactMeshOption == "ON"):
                     solver.PrepareContactElementsForPrinting()
 
-                demio.PrintResults(spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits)
-
+                demio.PrintResults(spheres_model_part, rigid_face_model_part, cluster_model_part, solver.contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits)
                 os.chdir(main_path)
 
                 time_old_print = time
@@ -456,7 +449,7 @@ DBC.delete_archives() #.......Removing some unuseful files
 
 # Freeing up memory
 objects_to_destroy = [demio, procedures, creator_destructor, dem_fem_search, solver, DEMFEMProcedures, post_utils, 
-                      cluster_model_part, rigid_face_model_part, spheres_model_part, DEM_inlet_model_part, mapping_model_part, contact_model_part]
+                      cluster_model_part, rigid_face_model_part, spheres_model_part, DEM_inlet_model_part, mapping_model_part]
 
 if (DEM_parameters.dem_inlet_option):
     objects_to_destroy.append(DEM_inlet)
