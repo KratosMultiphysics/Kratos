@@ -42,6 +42,10 @@ class ProblemParameters:
         self.J_phi = 16 * math.pi ** 2 * (self.delta_0 ** 2 - self.delta_alpha ** 2) * (1 + 8 * self.delta_alpha ** 2) / (1 - 4 * self.delta_alpha ** 2) ** 2.5
         self.J_phi_h = self.gamma * self.J_h
         self.beta = self.J_phi_h / self.J_h
+        
+        # Plotting options
+        self.plot_arrows = False
+
 
     def SetNonGeometricParameters(self, a, rho_p, rho_f, nu, gz):
         self.a = a
@@ -133,6 +137,12 @@ def eta_to_z(pp, x, eta):
     z = eta * h + phi
     return x, z
 
+def mod_eta_to_z(pp, x, eta):
+    phi, h = pp.h_and_phi_function.f_phi_h(x)
+    z = pp.epsilon * (eta * h + phi)
+    return x, z
+
+
 def velocity_order_1(pp, x, eta):    
     phi, phidx, phidx2, phidx3, h, hdx, hdx2, hdx3 = pp.h_and_phi_function.f(x)
     h_inv = 1.0 / h
@@ -197,9 +207,7 @@ def GetFlowVariables(pp, i, X, Z):
     pp.vels_vertical[i]            = UZ      
     pp.accelerations_horizontal[i] = DUX
     pp.accelerations_vertical[i]   = DUZ   
-    return UX, UZ, DUX, DUZ, DUX2, DUZ2, D
-    
-
+    return UX, UZ, DUX, DUZ, DUX2, DUZ2, D    
 
 def GenerateRandomPositions(pp, n_particles):
     pp.x_points = np.linspace(0, pp.L0, pp.n_points)
@@ -240,11 +248,11 @@ def PrintResult(pp, time):
 
     for value in pp.eta_values:
         streamline_Z_values = [pp.H0 * eta_to_z(pp, x / pp.L0, value)[1] for x in pp.x_points]
-        plt.plot(pp.x_points, streamline_Z_values, color='b', linestyle='dashed')
+        plt.plot(pp.x_points, streamline_Z_values, color = 'b', linestyle = 'dashed')
     
-    eta_critical = (2 * pp.beta + math.sqrt(5 + 4 * pp.beta ** 2)) / 5
-    streamline_Z_values = [pp.H0 * eta_to_z(pp, x / pp.L0, eta_critical)[1] for x in pp.x_points]
-    plt.plot(pp.x_points, streamline_Z_values, color='r')
+    eta_critical = 0.245806
+    streamline_Z_values = [-pp.L0 * mod_eta_to_z(pp, x / pp.L0, eta_critical)[1] for x in pp.x_points]
+    plt.plot(pp.x_points, streamline_Z_values, color = 'r')
     plt.scatter(pp.randoms_horizontal, pp.randoms_vertical)
 
 
@@ -256,19 +264,19 @@ def PrintResult(pp, time):
         pp.vels_vertical[i]            = UZ        
         pp.accelerations_horizontal[i] = DUX
         pp.accelerations_vertical[i]   = DUZ
-
-    acc_moduli_inv = [1.0 / math.sqrt(pp.accelerations_horizontal[i] ** 2 + pp.accelerations_vertical[i] ** 2) for i in range(pp.n_particles)]
-    acc_max_modul_inv = min(acc_moduli_inv)
-    acc_size_coeff = acc_max_modul_inv * 0.25 * pp.H0
-
-    for i in range(pp.n_particles): 
-        X = pp.randoms_horizontal[i]
-        Z = pp.randoms_vertical[i]  
-        DUX = pp.accelerations_horizontal[i]
-        DUZ = pp.accelerations_vertical[i]    
-        UX = pp.vels_horizontal[i]
-        UZ = pp.vels_vertical[i]    
-        pylab.arrow(X, Z, UX * acc_size_coeff * 10, UZ * acc_size_coeff * 10, fc = "k", ec = "k", width = 0.001 * pp.H0, head_width = 0.02 * pp.H0, head_length = 0.04 * pp.H0)
+    if pp.plot_arrows:
+        acc_moduli_inv = [1.0 / math.sqrt(pp.accelerations_horizontal[i] ** 2 + pp.accelerations_vertical[i] ** 2) for i in range(pp.n_particles)]
+        acc_max_modul_inv = min(acc_moduli_inv)
+        acc_size_coeff = acc_max_modul_inv * 0.25 * pp.H0
+        
+        for i in range(pp.n_particles): 
+            X = pp.randoms_horizontal[i]
+            Z = pp.randoms_vertical[i]  
+            DUX = pp.accelerations_horizontal[i]
+            DUZ = pp.accelerations_vertical[i]    
+            UX = pp.vels_horizontal[i]
+            UZ = pp.vels_vertical[i]    
+            pylab.arrow(X, Z, UX * acc_size_coeff * 10, UZ * acc_size_coeff * 10, fc = "k", ec = "k", width = 0.001 * pp.H0, head_width = 0.02 * pp.H0, head_length = 0.04 * pp.H0)
     plt.axis('equal')
     plt.plot(pp.x_points, pp.phi_1, color='k', linewidth=2)
     plt.plot(pp.x_points, pp.phi_2, color='k', linewidth=2)
