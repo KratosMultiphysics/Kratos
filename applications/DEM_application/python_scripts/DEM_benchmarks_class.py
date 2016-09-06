@@ -2415,10 +2415,10 @@ class Benchmark17: ########## DEM-FEM Rolling
             total_angular_velocity_err = 0.0
             
             for node in modelpart.Nodes:
-                if node.Id == 150:
+                if node.Id == 1:
                    velocity_1         = node.GetSolutionStepValue(VELOCITY_X)
                    angular_velocity_1 = node.GetSolutionStepValue(ANGULAR_VELOCITY_Z)
-                if node.Id == 151:
+                if node.Id == 2:
                    velocity_2         = node.GetSolutionStepValue(VELOCITY_X)
                    angular_velocity_2 = node.GetSolutionStepValue(ANGULAR_VELOCITY_Z)
 
