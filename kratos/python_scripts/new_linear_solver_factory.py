@@ -9,7 +9,7 @@ def ConstructPreconditioner(configuration):
     elif(configuration["preconditioner_type"].GetString() == "DiagonalPreconditioner"):
         return KratosMultiphysics.DiagonalPreconditioner()
     elif(configuration["preconditioner_type"].GetString() == "ILU0Preconditioner"):
-        return KratosMultiphysics.DiagonalPreconditioner() #ILU0Preconditioner()    
+        return KratosMultiphysics.ILU0Preconditioner()
     elif(configuration["preconditioner_type"].GetString() == "ILUPreconditioner"):
         return KratosMultiphysics.ILUPreconditioner() 
     else:
