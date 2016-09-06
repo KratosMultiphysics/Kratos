@@ -22,7 +22,7 @@ cmake .. \
 -DFSI_APPLICATION=ON                                                                            \
 -DFLUID_DYNAMICS_APPLICATION=ON                                                                 \
 -DMESHING_APPLICATION=ON                                                                        \
--DMULTISCALE_APPLICATION=ON                                                                     \
+-DMULTISCALE_APPLICATION=OFF                                                                    \
 -DPARTICLE_MECHANICS_APPLICATION=ON                                                             \
 -DPFEM_BASE_APPLICATION=ON                                                                      \
 -DPFEM_FLUID_DYNAMICS_APPLICATION=ON                                                            \
