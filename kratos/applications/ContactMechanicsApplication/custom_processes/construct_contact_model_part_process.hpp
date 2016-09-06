@@ -326,9 +326,12 @@ namespace Kratos
 	  ModelPart&  i_mp = mrModelPart.GetSubModelPart(*n_mp);
 
 	  //Get inside point of the subdomains
-	  ModelPart::ConditionsContainerType::iterator element_begin = i_mp.ConditionsBegin();
-	  const unsigned int dimension = element_begin->GetGeometry().WorkingSpaceDimension();
-	  
+	  unsigned int dimension = i_mp.GetProcessInfo()[DOMAIN_SIZE];
+	  if(i_mp.NumberOfConditions()){
+	    ModelPart::ConditionsContainerType::iterator element_begin = i_mp.ConditionsBegin();
+	    dimension = element_begin->GetGeometry().WorkingSpaceDimension();
+	  }
+
 	  bool hole_found = false;
 	  for(ModelPart::NodesContainerType::iterator i_node = i_mp.NodesBegin(mMeshId) ; i_node != i_mp.NodesEnd(mMeshId) ; i_node++)
 	    {
