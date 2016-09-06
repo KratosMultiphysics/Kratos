@@ -2042,7 +2042,7 @@ class Benchmark13: ########## DEM-FEM Facet
             total_velocity_z = 0.0
 
             for node in modelpart.Nodes:
-                if node.Id == 973:
+                if node.Id == 1:
                    velocity_x = node.GetSolutionStepValue(VELOCITY_X)
                    velocity_z = node.GetSolutionStepValue(VELOCITY_Z)
                    total_velocity_x += velocity_x
