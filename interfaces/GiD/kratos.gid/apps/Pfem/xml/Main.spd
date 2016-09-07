@@ -1,141 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?> 
   <container n="Pfem" pn="PFEM Data" icon="units" prefix="PFEM_" tree_state="open">
      <value n="SolutionType" pn="Solution type" un="SLSoluType,PFEM_SoluType" v="Dynamic" values="Static,Dynamic" help="Solution type" actualize_tree="1" state="hidden"/>
-    <include  n="Parts" active="1" path="apps/Pfem/xml/Parts.spd"/>
-    <!--<container n="Parts" pn="Parts" un="PFEM_Parts" help="" open="1">
-        <container n="Solids2D" pn="Solids" help="Solid Domains" open="0" state="[checkStateByUniqueName nDim 2D nDim 2Da]">
-            <condition n="Rigid" pn="Rigid"  un="PFEM_Rigid2DParts" ov="line,surface" ovm="Line,Triangle" help="">  
-                <value n="ImposedMotion" pn="Imposed Motion" un="PFEM_fixed_solid" v="Yes" values="Yes,No">
-                    <dependencies node="../value" actualize="1"/>
-                </value>
-                <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements ElementType Rigid]" state="normal">
-                  <dependencies node="../value" actualize="1" />
-                </value>
-                <value n="MeshingDomain" pn="Meshing domain" v="" values="[GetMeshingDomains]" state="normal"/>
-                <value n="VelocityX" pn="Velocity X" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} Yes]"/>
-                <value n="VelocityY" pn="Velocity Y" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} Yes]"/>
-                <value n="Mass" pn="Mass" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
-                <value n="Inertia" pn="Inertia" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>               
-                <value n="CenterOfGravityX" pn="center of gravity X" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
-                <value n="CenterOfGravityY" pn="center of gravity Y" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
-            </condition>
-            <condition n="Deformable" pn="Deformable" un="PFEM_Deformable2DParts" ov="surface" ovm="" help="" open="0">
-                <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements ElementType Solid]" state="normal">
-                  <dependencies node="../value" actualize="1" />
-                </value>
-                <value n="Material" pn="Material" editable='0' help="Choose a material from the database"
-                         values_tree='[give_materials_list]' value="Air" actualize_tree="1" state="normal">
-                        <edit_command n="Edit materials" pn="Edit materials" icon="material16" proc='edit_database_list'/>
-                        <dependencies node="../value" actualize="1"/>
-                </value>
-                <value n="MeshingDomain" pn="Meshing domain" v="" values="[GetMeshingDomains]" state="normal"/>
-            </condition>
-        </container>
-        <container n="Solids3D" pn="Solids" help="" open="0" state="[checkStateByUniqueName nDim 3D]" >
-            <condition n="Rigid" pn="Rigid" ov="surface,volume" un="PFEM_Rigid3DParts" ovm="Triangle,Tetrahedra" help="" open="0">  
-                <value n="ImposedMotion" pn="Imposed Motion" un="PFEM_fixed_solid" v="Yes" values="Yes,No" >
-                    <dependencies node="../value" actualize="1"/>
-                </value>
-                  <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements ElementType Rigid]" state="normal">
-                <dependencies node="../value" actualize="1" />
-              </value>
-                <value n="VelocityX" pn="Velocity X" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} Yes]"/>
-                <value n="VelocityY" pn="Velocity Y" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} Yes]"/>
-                <value n="VelocityZ" pn="Velocity Z" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} Yes]"/>
-                <value n="MeshingDomain" pn="Meshing domain" v="" values="[GetMeshingDomains]" state="normal"/>
-                <value n="Mass" pn="Mass" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
-                <value n="CenterOfGravityX" pn="center of gravity X" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
-                <value n="CenterOfGravityY" pn="center of gravity Y" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
-                <value n="CenterOfGravityZ" pn="center of gravity Z" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
-                <value n="PrincipalAxisOfInertia1" pn="Principal Axis Of Inertia 1" v="1.0 0.0 0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
-                <value n="PrincipalMomentOfInertia1" pn="Principal Moment Of Inertia 1" v="1.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
-                <value n="PrincipalAxisOfInertia2" pn="Principal Axis Of Inertia 2" v="0.0 1.0 0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
-                <value n="PrincipalMomentOfInertia2" pn="Principal Moment Of Inertia 2" v="1.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
-                <value n="PrincipalAxisOfInertia3" pn="Principal Axis Of Inertia 3" v="0.0 0.0 1.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
-                <value n="PrincipalMomentOfInertia3" pn="Principal Moment Of Inertia 3" v="1.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
-            </condition>
-            <condition n="Deformable" pn="Deformable"  ov="volume" un="PFEM_Deformable3DParts" ovm="Tetrahedra" help="" open="0">
-              <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements ElementType Solid]" state="normal">
-              <dependencies node="../value" actualize="1" />
-            </value>
-                <value n="Material" pn="Material" editable='0' help="Choose a material from the database"
-                         values_tree='[give_materials_list]' value="Air" actualize_tree="1" state="normal">
-                        <edit_command n="Edit materials" pn="Edit materials" icon="material16" proc='edit_database_list'/>
-                        <dependencies node="../value" actualize="1"/>
-                </value>
-                <value n="MeshingDomain" pn="Meshing domain" v="" values="[GetMeshingDomains]" state="normal"/>
-            </condition>
-        </container>
-        <condition n="Fluids2D" pn="Fluids" ov="surface" un="PFEM_Fluid2DParts" ovm="Triangle" help="" open="0" state="[checkStateByUniqueName nDim 2D nDim 2Da]">
-            <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements ElementType Fluid]" state="normal">
-              <dependencies node="../value" actualize="1" />
-            </value>
-            <value n="Material" pn="Material" editable='0' help="Choose a material from the database"
-                         values_tree='[give_materials_list]' value="Air" actualize_tree="1" state="normal">
-                        <edit_command n="Edit materials" pn="Edit materials" icon="material16" proc='edit_database_list'/>
-                        <dependencies node="../value" actualize="1"/>
-            </value>
-            <value n="MeshingDomain" pn="Meshing domain" v="" values="[GetMeshingDomains]" state="normal"/>
-        </condition>
-        <condition n="Fluids3D" pn="Fluids" ov="volume" un="PFEM_Fluid3DParts" ovm="Tetrahedra" help="" open="0" state="[checkStateByUniqueName nDim 3D]">
-            <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements ElementType Fluid]" state="normal">
-              <dependencies node="../value" actualize="1" />
-            </value>
-            <value n="Material" pn="Material" editable='0' help="Choose a material from the database"
-                         values_tree='[give_materials_list]' value="Air" actualize_tree="1" state="normal">
-                        <edit_command n="Edit materials" pn="Edit materials" icon="material16" proc='edit_database_list'/>
-                        <dependencies node="../value" actualize="1"/>
-            </value>
-            <value n="MeshingDomain" pn="Meshing domain" v="" values="[GetMeshingDomains]" state="normal"/>
-        </condition>
-    </container>-->
-    
+    <include n="Bodies" active="1" path="apps/Pfem/xml/Bodies.spd"/>
     <include n="Meshing Domains" active="1" path="apps/Pfem/xml/MeshingDomains.spd"/> 
-    <include n="Contact Domains" active="1" path="apps/Pfem/xml/ContactDomains.spd"/> 
+    <!--<include n="Contact Domains" active="1" path="apps/Pfem/xml/ContactDomains.spd"/> -->
     <include n="Intervals" active="0" path="apps/Common/xml/Intervals.spd"/>
     <include n="TimeFunctions" active="0" path="apps/Solid/xml/Functions.spd"/>
     <include n="Fields" active="0" path="apps/Solid/xml/Fields.spd"/>
     <include n="BoundaryConditions" active="1" path="apps/Solid/xml/BoundaryConditions.spd"/>
     <include n="Loads" active="1" path="apps/Solid/xml/Loads.spd"/>
-    <!---->
-    <!--<container n="AdvancedOptions" pn="Advanced Options" icon="aplicationTree.gif" help="Advanced Options" open="0" state="normal">-->
-    <!--    <value n="SolStratCombo" pn="Solution strategy" un="PFEM_SolStrat" v="" values="" dict="[GetSolutionStrategies]" actualize_tree="1" state="normal"/>-->
-    <!--    <value n="Scheme" pn="Scheme" un="PFEM_Scheme" v="" values="" dict="[GetSchemes]" state="[DisableIfUniqueName]"  actualize_tree="1"/>-->
-    <!--    <container n="Solution" pn="Solution strategy" help="Solution Strategy" open="0" icon="solstrategy.gif">-->
-    <!--        <value n="SolutionType" pn="Solution type" class="soluType" v="Dynamic-Implicit" ivalues="Quasi-Static,Dynamic-Implicit,Dynamic-Explicit" values="Quasi-Static,Dynamic-Implicit,Dynamic-Explicit" help="Solution type"/>-->
-    <!--        <container n="ParallelType" pn="Parallel type" class="Tab" open="0" icon="groupsTreeNew.gif">-->
-    <!--            <value n="ParallelSolutionType" pn="Parallel type" v="OpenMP" class="PSolutionType" ivalues="OpenMP,MPI" values="OpenMP,MPI" help=""/>-->
-    <!--            <value n="MPINumberOfProcessors" pn="Number of processors" v="2" PSolutionType="MPI" help="Number of processors"/>-->
-    <!--            <value n="OpenMPNumberOfThreads" pn="Number of threads" v="2" PSolutionType="OpenMP" help="Number of threads"/>-->
-    <!--        </container>-->
-    <!--        <container n="LinearSolver" pn="Linear solver" class="Tab" open="0" icon="groupsTreeNew.gif">-->
-    <!--            <value n="LinearSolverType" pn="Linear solver type" class="solverType" v="Direct" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>-->
-    <!--            <value n="DirectSolverType" pn="Direct solver type" solverType="Direct" v="SuperLU" ivalues="SkylineLUFactorization,SuperLU" values="SkylineLUFactorization,SuperLU" delvalues="PastixDirect" help=""/>-->
-    <!--            <value n="IterativeSolverType" pn="Iterative solver type" solverType="Iterative" v="ConjugateGradient" ivalues="ConjugateGradient,DeflatedCG,SuperLUIterative,GMRES,BCGS" values="ConjugateGradient,DeflatedCG,SuperLUIterative,GMRES,BCGS" delvalues="Pastix,AMGCL" help=""/>-->
-    <!--            <value n="Tolerance" pn="Solver tolerance" solverType="Iterative" v="1E-5" help=""/>-->
-    <!--            <value n="MaximumIteration" pn="Solver maximum iteration" solverType="Iterative" v="5000" help=""/>-->
-    <!--            <value n="PreconditionerType" pn="Preconditioner type" state="hidden" solverType="Iterative" v="ILU0" ivalues="None,Diagonal,ILU0" values="None,Diagonal,ILU0" help=""/>-->
-    <!--        </container>-->
-    <!--        <container n="Dynamic" pn="Time parameters" class="Tab" soluType="Quasi-Static,Dynamic-Implicit,Dynamic-Explicit" open="0" icon="groupsTreeNew.gif">-->
-    <!--            <value n="StartTime" pn="Start time" state="hidden" v="0.01" help=""/>-->
-    <!--            <value n="DeltaTime" pn="Time step" v="0.01" help=""/>-->
-    <!--            <value n="EndTime" pn="Total time" v="1" help=""/>-->
-    <!--            <value n="NumberOfSteps" pn="Number of Steps" state="hidden" v="1" help=""/>-->
-    <!--        </container>-->
-    <!--        <container n="Non-Linear" pn="Non-Linear solver" class="Tab"  soluType="Quasi-Static,Dynamic-Implicit" help="" open="0" icon="nonlinear.gif">-->
-    <!--            <value n="SolutionMethod" pn="Solution method" v="Newton-Raphson" ivalues="Newton-Raphson" values="Newton-Raphson" delvalues= "LineSearch,ArcLength" help=""/>-->
-    <!--            <value n="ConvergenceCriteria" pn="Convergence criteria" class="convCriteria" v="Residual" ivalues="Residual,Displacement,DisplacementAndResidual" values="Residual,Displacement,DisplacementAndResidual" delvalues="DisplacementOrResidual" help=""/>-->
-    <!--            <value n="ResidualConvergenceTolerance" pn="Residual convergence tolerance" convCriteria="Residual,DisplacementAndResidual,DisplacementOrResidual" v="1.0E-3" help="Residual convergence tolerance"/>-->
-    <!--            <value n="ResidualAbsoluteTolerance" pn="Residual absolute tolerance" convCriteria="Residual,DisplacementAndResidual,DisplacementOrResidual" v="1.0E-6" help="Residual absolute tolerance"/>-->
-    <!--            <value n="DisplacementConvergenceTolerance" pn="Displacement convergence tolerance" convCriteria="Displacement,DisplacementAndResidual,DisplacementOrResidual" v="1.0E-6" help="Displacement convergence tolerance"/>-->
-    <!--            <value n="DisplacementAbsoluteTolerance" pn="Displacement absolute tolerance" convCriteria="Displacement,DisplacementAndResidual,DisplacementOrResidual" v="1.0E-9" help="Displacement absolute tolerance"/>-->
-    <!--            <value n="MaximumIterations" pn="Maximum iterations" v="30" help="Newton-Raphson iterations stop when the maximum is reached"/>-->
-    <!--        </container>-->
-    <!--    </container>-->
-    <!--</container>-->
-    
     <include n="SolutionStrategy" active="1" path="apps/Pfem/xml/SolutionStrategy.spd"/>
     <include n="Results" active="1" path="apps/Common/xml/Results.spd"/>
-    
-  
   </container>
