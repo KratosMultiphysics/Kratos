@@ -165,6 +165,15 @@ namespace Kratos
 
 #define KRATOS_ERROR_IF_NOT(conditional) if(!(conditional)) throw Exception("Error: ", KRATOS_CODE_LOCATION)
 
+#ifdef KRATOS_DEBUG
+#define KRATOS_DEBUG_ERROR KRATOS_ERROR
+#define KRATOS_DEBUG_ERROR_IF(conditional) KRATOS_ERROR_IF(conditional)
+#define KRATOS_DEBUG_ERROR_IF_NOT(conditional)  KRATOS_ERROR_IF_NOT(conditional)
+#else
+#define KRATOS_DEBUG_ERROR if(false) KRATOS_ERROR
+#define KRATOS_DEBUG_ERROR_IF(conditional)  if(false) KRATOS_ERROR_IF(conditional)
+#define KRATOS_DEBUG_ERROR_IF_NOT(conditional)   if(false) KRATOS_ERROR_IF_NOT(conditional)
+#endif
   ///@}
   ///@name Input and output
   ///@{
@@ -175,7 +184,7 @@ namespace Kratos
   				    Exception& rThis);
 
   /// output stream function
-  std::ostream& operator << (std::ostream& rOStream, const Exception& rThis);
+  KRATOS_API(KRATOS_CORE) std::ostream& operator << (std::ostream& rOStream, const Exception& rThis);
 
 
   ///@}
