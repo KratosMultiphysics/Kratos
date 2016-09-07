@@ -98,12 +98,13 @@ public:
     /// Pointer definition of ModelPart
     KRATOS_CLASS_POINTER_DEFINITION(ModelPart);
 
-    typedef unsigned int IndexType;
+    typedef std::size_t IndexType;
 
-    typedef unsigned int SizeType;
+    typedef std::size_t SizeType;
 
     typedef Dof<double> DofType;
-    typedef PointerVectorSet<DofType, SetIdentityFunction<DofType> > DofsArrayType;
+    typedef PointerVectorSet<DofType, SetIdentityFunction<DofType>, std::less<SetIdentityFunction<DofType>::result_type>,
+	std::equal_to<SetIdentityFunction<DofType>::result_type>, DofType::Pointer> DofsArrayType;
 
     typedef Node < 3 > NodeType;
     typedef Properties PropertiesType;
