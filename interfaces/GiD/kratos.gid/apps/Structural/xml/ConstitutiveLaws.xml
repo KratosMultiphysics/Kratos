@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ConstitutiveLaws>
-    <CLaw n="HyperElasticPlasticUP3DLaw" pn="PLastic J2 U-P" dev="False" Type="3D" behaviour="Plastic" StrainSize="6" ImplementedInApplication="StructuralMechanicsApplication"
+    <CLaw n="HyperElasticPlasticUP3DLaw" pn="Plastic J2 U-P" dev="False" Type="3D" behaviour="Plastic" StrainSize="6" ImplementedInApplication="StructuralMechanicsApplication"
           help="NeoHookean HyperElastic Plastic J2 U-P Behaviour in 3D" Dimension="3D" LargeDeformation="True" RequiresLocalAxes="False" HybridType="U-P" >
         <inputs>
 			<parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="7850"/>

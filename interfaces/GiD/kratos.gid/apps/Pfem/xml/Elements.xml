@@ -15,6 +15,7 @@
     </TopologyFeatures>
     <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
+	  <filter field="ImplementedInApplication" value="FluidDynamicsApplication"/>
     </ConstitutiveLaw_FilterFeatures>
     <!--define list of NodalConditions-->
     <NodalConditions>     
@@ -38,6 +39,7 @@
     </TopologyFeatures>
     <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
+	  <filter field="n" value="None"/>
     </ConstitutiveLaw_FilterFeatures>
     <!--define list of NodalConditions-->
     <NodalConditions>     
@@ -58,6 +60,7 @@
     </TopologyFeatures>
     <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
+	  <filter field="n" value="None"/>
     </ConstitutiveLaw_FilterFeatures>
     <!--define list of NodalConditions-->
     <NodalConditions>     
@@ -78,6 +81,7 @@
     </TopologyFeatures>
     <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
+	  <filter field="n" value="None"/>
     </ConstitutiveLaw_FilterFeatures>
     <!--define list of NodalConditions-->
     <NodalConditions>     
@@ -98,6 +102,7 @@
     </TopologyFeatures>
     <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
+	  <filter field="n" value="None"/>
     </ConstitutiveLaw_FilterFeatures>
     <!--define list of NodalConditions-->
     <NodalConditions>     
@@ -121,6 +126,7 @@
     </TopologyFeatures>
     <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
+	  <filter field="ImplementedInApplication" value="SolidMechanicsApplication"/>
       <filter field="Type" value="PlaneStress,PlaneStrain"/>
       <filter field="Dimension" value="2D"/>
       <filter field="StrainSize" value="3"/>
@@ -153,6 +159,7 @@
     </TopologyFeatures>
     <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
+	  <filter field="ImplementedInApplication" value="SolidMechanicsApplication"/>
       <filter field="Type" value="Axisymmetric"/>
       <filter field="Dimension" value="2D"/>
       <filter field="StrainSize" value="4"/>
@@ -185,6 +192,7 @@
     </TopologyFeatures>
     <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
+	  <filter field="ImplementedInApplication" value="SolidMechanicsApplication"/>
       <filter field="Type" value="3D"/>
       <filter field="Dimension" value="3D"/>
       <filter field="StrainSize" value="6"/>
@@ -217,6 +225,7 @@
     </TopologyFeatures>
     <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
+	  <filter field="ImplementedInApplication" value="SolidMechanicsApplication"/>
       <filter field="Type" value="PlaneStress,PlaneStrain"/>
       <filter field="Dimension" value="2D"/>
       <filter field="StrainSize" value="3"/>
@@ -249,6 +258,7 @@
     </TopologyFeatures>
     <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
+	  <filter field="ImplementedInApplication" value="SolidMechanicsApplication"/>
       <filter field="Type" value="3D"/>
       <filter field="Dimension" value="3D"/>
       <filter field="StrainSize" value="6"/>
@@ -284,6 +294,7 @@
     </TopologyFeatures>
     <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
+	  <filter field="ImplementedInApplication" value="SolidMechanicsApplication"/>
       <filter field="Type" value="PlaneStress,PlaneStrain"/>
       <filter field="Dimension" value="2D"/>
       <filter field="StrainSize" value="3"/>
@@ -317,6 +328,7 @@
     </TopologyFeatures>
     <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
+	  <filter field="ImplementedInApplication" value="SolidMechanicsApplication"/>
       <filter field="Type" value="Axisymmetric"/>
       <filter field="Dimension" value="2D"/>
       <filter field="StrainSize" value="4"/>

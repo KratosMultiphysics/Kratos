@@ -155,7 +155,7 @@
     </CLaw>
     
     <!--hyper elastic plastic laws-->
-    <CLaw n="HyperElasticPlasticJ23DLaw" pn="PLastic J2" ProductionReady="ProductionReady" Type="3D" behaviour="Plastic" StrainSize="6" ImplementedInApplication="SolidMechanicsApplication"
+    <CLaw n="HyperElasticPlasticJ23DLaw" pn="Plastic J2" ProductionReady="ProductionReady" Type="3D" behaviour="Plastic" StrainSize="6" ImplementedInApplication="SolidMechanicsApplication"
           help="NeoHookean HyperElastic Plastic J2 Behaviour in 3D" Dimension="3D" LargeDeformation="True" RequiresLocalAxes="False" HybridType="False" >
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="7850"/>

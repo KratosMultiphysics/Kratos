@@ -66,8 +66,8 @@ proc Solid::write::getParametersDict { } {
     set solverSettingsDict [dict merge $solverSettingsDict [write::getSolutionStrategyParametersDict] ]
     set solverSettingsDict [dict merge $solverSettingsDict [write::getSolversParametersDict Solid] ]
     
-    dict set solverSettingsDict problem_domain_sub_model_part_list [getSubModelPartNames "SLParts"]
-    dict set solverSettingsDict processes_sub_model_part_list [getSubModelPartNames "SLNodalConditions" "SLLoads"]
+    dict set solverSettingsDict problem_domain_sub_model_part_list [write::getSubModelPartNames "SLParts"]
+    dict set solverSettingsDict processes_sub_model_part_list [write::getSubModelPartNames "SLNodalConditions" "SLLoads"]
     
     dict set projectParametersDict solver_settings $solverSettingsDict
     
@@ -104,28 +104,4 @@ proc Solid::write::getParametersDict { } {
 proc Solid::write::writeParametersEvent { } {
     write::WriteJSON [getParametersDict]
     write::SetParallelismConfiguration
-}
-
-proc Solid::write::getSubModelPartNames { args } {
-    set doc $gid_groups_conds::doc
-    set root [$doc documentElement]
-    
-    set listOfProcessedGroups [list ]
-    set groups [list ]
-    foreach un $args {
-        set xp1 "[spdAux::getRoute $un]/condition/group"
-        set xp2 "[spdAux::getRoute $un]/group"
-        set grs [$root selectNodes $xp1]
-        if {$grs ne ""} {lappend groups {*}$grs}
-        set grs [$root selectNodes $xp2]
-        if {$grs ne ""} {lappend groups {*}$grs}
-    }
-    foreach group $groups {
-        set groupName [$group @n]
-        set cid [[$group parent] @n]
-        set gname [::write::getMeshId $cid $groupName]
-        if {$gname ni $listOfProcessedGroups} {lappend listOfProcessedGroups $gname}
-    }
-    
-    return $listOfProcessedGroups
 }

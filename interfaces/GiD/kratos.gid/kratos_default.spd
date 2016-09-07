@@ -287,6 +287,11 @@
 	  return [spdAux::ProcActiveIfAnyPartState $domNode $args]
 	  ]]>
 	</proc>
+	  <proc n='ActiveIfRestartAvailable' args='args'>
+	  <![CDATA[
+	  return [spdAux::ProcActiveIfRestartAvailable $domNode $args]
+	  ]]>
+	</proc>
 	  
 		  <proc n='DisableIfUniqueName' args='args'>
 	  <![CDATA[
