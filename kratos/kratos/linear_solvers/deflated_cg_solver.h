@@ -327,7 +327,7 @@ private:
         {
             DeflationUtils::ConstructW(mmax_reduced_size, rA, mw, mAdeflated);
         }
-
+// KRATOS_WATCH("__LINE__")
         //fill reduced matrix mmAdeflated
         DeflationUtils::FillDeflatedMatrix(rA, mw, mAdeflated);
 
@@ -337,10 +337,10 @@ private:
         // When this is available through the LinearSolver interface, replace this.
         LUSkylineFactorization<TSparseSpaceType, TDenseSpaceType> Factorization;
         //mpLinearSolver = LinearSolverType::Pointer(new SkylineLUFactorizationSolver<TSparseSpaceType, TDenseSpaceType>);
-
+// KRATOS_WATCH(__LINE__)
         Factorization.copyFromCSRMatrix(mAdeflated);
         Factorization.factorize();
-
+// KRATOS_WATCH(__LINE__)
 //         std::cout << "********** Factorization done!" << std::endl;
         SparseVectorType r(full_size), t(full_size), d(full_size), p(full_size), q(full_size);
         SparseVectorType th(reduced_size), dh(reduced_size);
@@ -350,7 +350,7 @@ private:
 
         // r = rB - r
         TSparseSpaceType::ScaleAndAdd(1.00, rB, -1.00, r);
-
+// KRATOS_WATCH(__LINE__)
         // th = W^T * r -> form reduced problem
         DeflationUtils::ApplyWtranspose(mw, r, th);
         // 	TSparseSpaceType::TransposeMult(W, r, th);
@@ -374,13 +374,13 @@ private:
         // t = A * r
         //TSparseSpaceType::Mult(rA, r, t);
         this->PreconditionedMult(rA, r, t);
-
+// KRATOS_WATCH(__LINE__)
         // th = W^T * t
         DeflationUtils::ApplyWtranspose(mw, t, th);
 
         // Solve mAdeflated * th = dh
         Factorization.backForwardSolve(reduced_size, th, dh);
-
+// KRATOS_WATCH(__LINE__)
         // p = W * dh
         DeflationUtils::ApplyW(mw, dh, p);
 
@@ -397,7 +397,7 @@ private:
         double beta = 0;
 
         if (fabs(roh0) < 1.0e-30)   return false;
-
+// KRATOS_WATCH(__LINE__)
         do
         {
             TSparseSpaceType::Mult(rA, p, q);

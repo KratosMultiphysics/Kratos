@@ -197,12 +197,12 @@ public:
                 A.push_back(i,indices[j] , 0.00);
             }
         }
-        std::cout << "matrix constructed" << std::endl;
+//         std::cout << "matrix constructed" << std::endl;
 
         //now call aggregation function to color the nodes
         std::vector<int> w(rNodes.size());
         ConstructW(max_reduced_size, A, w, Adeflated);
-        std::cout << "aggregates constructed" << std::endl;
+//         std::cout << "aggregates constructed" << std::endl;
 
         //finally write the color to the nodes so that it can be visualized
         int counter = 0;
@@ -210,7 +210,7 @@ public:
         {
             in->FastGetSolutionStepValue(rVariable) = w[counter++];
         }
-        std::cout << "finished" << std::endl;
+//         std::cout << "finished" << std::endl;
     }
 
     ///this function constructs the structure of a smaller matrix using a technique taken from MIS aggregation
@@ -253,15 +253,16 @@ public:
             a_iterator++;
         }
 
-        std::cout << "********** NZS built!" << std::endl;
+//         std::cout << "********** NZS built!" << std::endl;
 
         // Count the number of non-zeros in deflatedA
         std::size_t NZ = 0;
         for (std::size_t i = 0; i < reduced_size; i++)
             NZ += deflatedANZ[i].size();
 
-        std::cout << "********** NZ = " << NZ << std::endl;
-        deflatedA.resize(reduced_size, reduced_size,NZ);
+//         std::cout << "********** NZ = " << NZ << std::endl;
+//         KRATOS_WATCH(reduced_size);
+        deflatedA = SparseMatrixType(reduced_size, reduced_size,NZ);
 
         // Insert the non-zero structure into deflatedA
         for(std::size_t i = 0 ; i < reduced_size ; i++)
@@ -271,15 +272,16 @@ public:
                 deflatedA.push_back(i,*j, 0.00);
             }
         }
+//         KRATOS_WATCH(__LINE__)
 
         if(reduced_size > max_reduced_size)
         {
             SparseMatrixType Areduced;
             std::vector<int> wsmaller;
-
+// KRATOS_WATCH(__LINE__)
             //need to reduce further!! - do it recursively
             ConstructW(max_reduced_size, deflatedA, wsmaller, Areduced);
-
+// KRATOS_WATCH(__LINE__)
             //now change deflatedA and w on the coarser size
             for(unsigned int i=0; i<full_size; i++)
             {
@@ -289,12 +291,12 @@ public:
             }
             deflatedA.clear();
             deflatedA = Areduced;
-
+// KRATOS_WATCH(__LINE__)
             reduced_size = wsmaller.size();
         }
 
-        KRATOS_WATCH(reduced_size);
-        std::cout << "reduction factor ="<<double(full_size)/double(reduced_size)<<std::endl;
+//         KRATOS_WATCH(reduced_size);
+//         std::cout << "reduction factor ="<<double(full_size)/double(reduced_size)<<std::endl;
 
 
         KRATOS_CATCH("")
@@ -433,7 +435,7 @@ public:
 
 
 
-        std::cout << "********** W^T * A * W built!" << std::endl;
+//         std::cout << "********** W^T * A * W built!" << std::endl;
 
 
         KRATOS_CATCH("");
