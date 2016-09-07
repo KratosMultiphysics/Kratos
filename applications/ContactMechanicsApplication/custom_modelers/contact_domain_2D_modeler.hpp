@@ -18,11 +18,11 @@
 #include "custom_modelers/triangular_mesh_2D_modeler.hpp"
 
 ///VARIABLES used:
-//Data:     MASTER_CONDITION, MASTER_ELEMENTS, MASTER_NODES, NORMAL
-//(props)   THICKNESS, PENALTY_PARAMETER, TAU_STAB, FRICTION_ACTIVE, MU_STATIC,MU_DYNAMIC 
-//StepData: OFFSET, NODAL_H, NORMAL, SHRINK_FACTOR
-//Flags:    (checked)  CONTACT(on conditions), BOUNDARY
-//          (set)      CONTACT(on conditions) 
+//Data:    
+//(props)   
+//StepData: 
+//Flags:    (checked)  
+//          (set)      
 //          (modified)  
 //          (reset)
 
@@ -81,19 +81,6 @@ public:
     typedef ModelerUtilities::MeshingParameters   MeshingParametersType;
     typedef ModelerUtilities::RefiningParameters   RefineParametersType;
 
-    typedef MeshDataTransferUtilities::TransferParameters  TransferParametersType;
-  
-
-    typedef Node<3>                                                       PointType;
-    typedef Node<3>::Pointer                                       PointPointerType;
-    typedef std::vector<PointPointerType>                        PointPointerVector;
-    typedef ModelPart::PropertiesType                                PropertiesType;
-    typedef ModelPart::PropertiesContainerType              PropertiesContainerType;
-    typedef ModelPart::MeshType                                            MeshType;
-    typedef ModelPart::ElementsContainerType                  ElementsContainerType;
-    typedef ModelPart::NodesContainerType                        NodesContainerType;
-    typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
-
 
     ///@}
     ///@name Life Cycle
@@ -114,42 +101,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    //*******************************************************************************************
-    //*******************************************************************************************
-
-    void TransferContactBoundaryData(ModelPart& rModelPart, 
-				     TransferParametersType& rParameters,
-				     bool initial);
-
-
-    //*******************************************************************************************
-    //*******************************************************************************************
-
-    void GenerateContactMesh (ModelPart& rModelPart,
-			      double PenaltyParameter = 1000,
-			      double StabilityParameter = 0.01,
-			      bool   FrictionFlag = false,
-			      double StaticFrictionCoefficient = 0.3,
-			      double DynamicFrictionCoefficient = 0.2);
-
-       
-
-
-    //*******************************************************************************************
-    //*******************************************************************************************
-    void GenerateContactDT(ModelPart& rModelPart,
-			   MeshingParametersType& rMeshingVariables,
-			   ContactVariables& rContactVariables);
-    
-
-
-    //*******************************************************************************************
-    //*******************************************************************************************
-    void GenerateContactCDT(ModelPart& rModelPart,
-			    MeshingParametersType& rMeshingVariables,
-			    ContactVariables& rContactVariables);
-
 
 
     ///@}
@@ -244,6 +195,16 @@ private:
     ///@name Private Operations
     ///@{
 
+     
+    //set nodes to a mesh
+    void SetNodes(ModelPart& rModelPart,
+		  MeshingParametersType& rMeshingVariables);
+
+
+    //set faces in the triangulateio before the Delaunay Tesselation
+    void SetFaces ( ModelPart &rModelPart,
+		    MeshingParametersType & rMeshingVariables,
+		    struct triangulateio &in );
 
     ///@}
     ///@name Private  Access
@@ -258,36 +219,7 @@ private:
     ///@}
     ///@name Unaccessible methods
     ///@{
-
-    void SetTriangulationShrankNodes (ModelPart& rModelPart,
-				      ModelPart::NodesContainerType&  rBoundaryNodes,
-				      MeshingParametersType& rMeshingVariables,
-				      ContactVariables& rContactVariables,
-				      struct triangulateio& in,
-				      struct triangulateio& out);
-    
-    /**
-     *  Set Nodes to mesh
-     */
-    void SetNodes(ModelPart& rModelPart,
-		  MeshingParametersType& rMeshingVariables);
-
-
-    //Set faces in the triangulateio before the Delaunay Tesselation
-    void SetFaces ( ModelPart &rModelPart,
-		    MeshingParametersType & rMeshingVariables,
-		    struct triangulateio &in );
-    
   
-    //Clear contact conditions in model_part
-    void ClearContactConditions (ModelPart& rModelPart);
-
-    //Build contact elements in model_part after the Delaunay Tesselation
-    void BuildContactConditions (ModelPart& rModelPart,
-				 ModelPart::NodesContainerType& rBoundaryNodes,
-				 MeshingParametersType& rMeshingVariables,
-				 ContactVariables& rContactVariables,
-				 struct triangulateio &out);
     ///@}
 
 }; // Class ContactDomain2DModeler
