@@ -211,19 +211,19 @@ public:
         {
             if(it->pGetDof(VELOCITY_X)->IsFixed() == true)
             {
-                mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_X) );
+                mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_X).get() );
                 mFixedVelocityDofValues.push_back( it->pGetDof(VELOCITY_X)->GetSolutionStepValue() );
             }
 
             if(it->pGetDof(VELOCITY_Y)->IsFixed() == true)
             {
-                mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_Y) );
+                mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_Y).get() );
                 mFixedVelocityDofValues.push_back( it->pGetDof(VELOCITY_Y)->GetSolutionStepValue() );
             }
 
             if(it->pGetDof(VELOCITY_Z)->IsFixed() == true)
             {
-                mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_Z) );
+                mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_Z).get() );
                 mFixedVelocityDofValues.push_back( it->pGetDof(VELOCITY_Z)->GetSolutionStepValue() );
             }
         }
@@ -378,19 +378,19 @@ public:
             {
                 if(it->pGetDof(VELOCITY_X)->IsFixed() == true)
                 {
-                    mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_X) );
+                    mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_X).get() );
                     mFixedVelocityDofValues.push_back( it->pGetDof(VELOCITY_X)->GetSolutionStepValue() );
                 }
 
                 if(it->pGetDof(VELOCITY_Y)->IsFixed() == true)
                 {
-                    mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_Y) );
+                    mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_Y).get() );
                     mFixedVelocityDofValues.push_back( it->pGetDof(VELOCITY_Y)->GetSolutionStepValue() );
                 }
 
                 if(it->pGetDof(VELOCITY_Z)->IsFixed() == true)
                 {
-                    mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_Z) );
+                    mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_Z).get() );
                     mFixedVelocityDofValues.push_back( it->pGetDof(VELOCITY_Z)->GetSolutionStepValue() );
                 }
             }

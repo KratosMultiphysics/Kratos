@@ -252,7 +252,7 @@ public:
                 index = --fix_id;
             else
                 index = free_id++;
-            BaseType::mDofSet.push_back( pDof );
+            BaseType::mDofSet.push_back( pDof.get() );
             pDof->SetEquationId(index);
             aux(index) = mActiveNodes(i);
 
