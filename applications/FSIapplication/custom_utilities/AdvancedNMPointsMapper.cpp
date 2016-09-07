@@ -1753,14 +1753,15 @@ void AdvancedNMPointsMapper::VectorMap(
                 cond_it != mrDestinationModelPart.ConditionsEnd();
                 cond_it++)
         {
+            
             double CondLength = 0.0;
             mGaussPointList[GPi]->GetArea(CondLength); // Gets the length of the parent condition of the two points considered
             const double K = CondLength/2.0;
     
             // Store in GPValues the projected value in the destiny condition Gauss Points
-            // Note that currently the implementation is valid for only 2 GP
-            array_1d<double, 6> GPValues = ZeroVect;
-            array_1d<double, 6> NodalValues = ZeroVect;
+            // Note that currently the implementation is valid for only 2 GP           
+            array_1d<double, 6> GPValues = ZeroVector(6);
+            array_1d<double, 6> NodalValues = ZeroVector(6);
             array_1d<double, 3> TempValues = ZeroVect;
             
             // Gauss point 1
@@ -2042,9 +2043,9 @@ void AdvancedNMPointsMapper::VectorMap(
                 mGaussPointList[3 * IV_iter]->GetArea(CondArea);
                 const double K = CondArea/12.0;
 
-                LocalRHS0 = ZeroVector(3);
-                LocalRHS1 = ZeroVector(3);
-                LocalRHS2 = ZeroVector(3);
+                LocalRHS0 = ZeroVect;
+                LocalRHS1 = ZeroVect;
+                LocalRHS2 = ZeroVect;
 
                 if (distributed == false)
                 {
