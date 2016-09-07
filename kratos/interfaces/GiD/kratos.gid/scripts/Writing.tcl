@@ -72,11 +72,15 @@ proc write::writeEvent { filename } {
     
     catch {CloseFile}
     OpenFile $filename
-    eval $wevent
-    #if {$errcode eq 0 && [catch {eval $wevent} fid] } {
-    #    W "Problem Writing Project Parameters block:\n$fid\nEnd problems"
-    #    set errcode 1
-    #}
+    if {$::kratos_debug} {
+        eval $wevent
+    } else {
+        if {$errcode eq 0 && [catch {eval $wevent} fid] } {
+            W "Problem Writing Project Parameters block:\n$fid\nEnd problems"
+            set errcode 1
+        }
+    }
+    
     catch {CloseFile}
 	
     #### Custom File Write ####
@@ -98,7 +102,7 @@ proc write::writeEvent { filename } {
 proc write::writeAppMDPA {appid} {
     variable MDPA_loop_control
     incr MDPA_loop_control
-    if {$MDPA_loop_control > 10} {error "Infinite loop on MDPA"}
+    if {$MDPA_loop_control > 10} {error "Infinite loop on MDPA - Check recursive or cyclic calls"}
     
     set errcode 0
     set activeapp [::apps::getAppById $appid]
@@ -109,11 +113,14 @@ proc write::writeAppMDPA {appid} {
     
     catch {CloseFile}
     OpenFile $filename
-    #eval $wevent
-    # Delegate in app
-    if { [catch {eval $wevent} fid] } {
-        W "Problem Writing MDPA block:\n$fid\nEnd problems"
-        set errcode 1
+    
+    if {$::kratos_debug} {
+        eval $wevent
+    } else {
+        if { [catch {eval $wevent} fid] } {
+            W "Problem Writing MDPA block:\n$fid\nEnd problems"
+            set errcode 1
+        }
     }
     catch {CloseFile}
     return $errcode
@@ -743,6 +750,32 @@ proc write::getSolutionStrategyParametersDict {} {
     }
     return $solverSettingsDict
 }
+
+
+proc write::getSubModelPartNames { args } {
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    
+    set listOfProcessedGroups [list ]
+    set groups [list ]
+    foreach un $args {
+        set xp1 "[spdAux::getRoute $un]/condition/group"
+        set xp2 "[spdAux::getRoute $un]/group"
+        set grs [$root selectNodes $xp1]
+        if {$grs ne ""} {lappend groups {*}$grs}
+        set grs [$root selectNodes $xp2]
+        if {$grs ne ""} {lappend groups {*}$grs}
+    }
+    foreach group $groups {
+        set groupName [$group @n]
+        set cid [[$group parent] @n]
+        set gname [::write::getMeshId $cid $groupName]
+        if {$gname ni $listOfProcessedGroups} {lappend listOfProcessedGroups $gname}
+    }
+    
+    return $listOfProcessedGroups
+}
+
 
 proc write::getSolversParametersDict { {appid ""} } {
     if {$appid eq ""} {

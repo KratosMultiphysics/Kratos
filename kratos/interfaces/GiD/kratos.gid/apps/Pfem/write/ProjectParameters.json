@@ -159,14 +159,14 @@
 			    "friction_law_type": "FrictionLaw",
 			    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
 			    "variables_of_properties":{
-				"FRICTION_ACTIVE": false,
-				"MU_STATIC": 0.3,
-				"MU_DYNAMIC": 0.2,
-				"PENALTY_PARAMETER": 1000,
-				"TANGENTIAL_PENALTY_RATIO": 0.1,
-				"TAU_STAB": 1
-			    }
-			}
+                    "FRICTION_ACTIVE": false,
+                    "MU_STATIC": 0.3,
+                    "MU_DYNAMIC": 0.2,
+                    "PENALTY_PARAMETER": 1000,
+                    "TANGENTIAL_PENALTY_RATIO": 0.1,
+                    "TAU_STAB": 1
+                    }
+                }
 		    }
 		}
 

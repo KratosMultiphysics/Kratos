@@ -66,8 +66,8 @@ proc Dam::write::getParametersDict { } {
     dict set projectParametersDict mechanical_settings $mechanicalSolverSettingsDict
     
     ### Boundary conditions processes
-    dict set projectParametersDict problem_domain_sub_model_part_list [getSubModelPartNames "DamParts"]
-    dict set projectParametersDict processes_sub_model_part_list [getSubModelPartNames "DamNodalConditions" "DamLoads"]
+    dict set projectParametersDict problem_domain_sub_model_part_list [write::getSubModelPartNames "DamParts"]
+    dict set projectParametersDict processes_sub_model_part_list [write::getSubModelPartNames "DamNodalConditions" "DamLoads"]
     dict set projectParametersDict nodal_processes_sub_model_part_list [write::getConditionsParametersDict DamNodalConditions "Nodal"]
     dict set projectParametersDict load_processes_sub_model_part_list [write::getConditionsParametersDict DamLoads ]
     
@@ -102,31 +102,4 @@ proc write::GetDefaultOutputDict {} {
     dict set outputDict "result_file_configuration" $resultDict
     return $outputDict
 }
-
-proc Dam::write::getSubModelPartNames { args } {
-    set doc $gid_groups_conds::doc
-    set root [$doc documentElement]
-    
-    set listOfProcessedGroups [list ]
-    set groups [list ]
-    foreach un $args {
-        set xp1 "[spdAux::getRoute $un]/condition/group"
-        set xp2 "[spdAux::getRoute $un]/group"
-        set grs [$root selectNodes $xp1]
-        if {$grs ne ""} {lappend groups {*}$grs}
-        set grs [$root selectNodes $xp2]
-        if {$grs ne ""} {lappend groups {*}$grs}
-    }
-    foreach group $groups {
-        set groupName [$group @n]
-        set cid [[$group parent] @n]
-        set gname [::write::getMeshId $cid $groupName]
-        if {$gname ni $listOfProcessedGroups} {lappend listOfProcessedGroups $gname}
-    }
-    
-    return $listOfProcessedGroups
-}
-
-
-
 
