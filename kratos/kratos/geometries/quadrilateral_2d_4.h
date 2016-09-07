@@ -341,18 +341,19 @@ public:
      * @return the local coordinates of all nodes
      */
     virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const
-    {
-        noalias( rResult ) = ZeroMatrix( 4, 2 );
-        rResult( 0, 0 ) = -1.0;
-        rResult( 0, 1 ) = -1.0;
-        rResult( 1, 0 ) =  1.0;
-        rResult( 1, 1 ) = -1.0;
-        rResult( 2, 0 ) =  1.0;
-        rResult( 2, 1 ) =  1.0;
-        rResult( 3, 0 ) = -1.0;
-        rResult( 3, 1 ) =  1.0;
-        return rResult;
-    }
+	{
+		if (rResult.size1() != 4 || rResult.size2() != 2)
+			rResult.resize(4, 2, false);
+		rResult(0, 0) = -1.0;
+		rResult(0, 1) = -1.0;
+		rResult(1, 0) = 1.0;
+		rResult(1, 1) = -1.0;
+		rResult(2, 0) = 1.0;
+		rResult(2, 1) = 1.0;
+		rResult(3, 0) = -1.0;
+		rResult(3, 1) = 1.0;
+		return rResult;
+	}
 
     //lumping factors for the calculation of the lumped mass matrix
     virtual Vector& LumpingFactors( Vector& rResult ) const
