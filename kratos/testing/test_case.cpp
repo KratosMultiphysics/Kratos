@@ -49,42 +49,30 @@ namespace Kratos
 
 		void TestCase::Run()
 		{
-			std::stringstream output_stream;
-			auto old_buffer(std::cout.rdbuf(output_stream.rdbuf()));
 			try {
 				Setup();
 				TestFunction();
 				TearDown();
 				mResult.SetToSucceed();
-				mResult.SetOutput(output_stream.str());
-				std::cout.rdbuf(old_buffer);
 			}
 			catch (Exception& e) {
 				mResult.SetToFailed();
-				mResult.SetOutput(output_stream.str());
-				std::cout.rdbuf(old_buffer);
 				std::stringstream buffer;
 				buffer << e.what() << " in " << e.where() << std::endl;
 				mResult.SetErrorMessage(buffer.str());
 			}
 			catch (std::exception& e) {
 				mResult.SetToFailed();
-				mResult.SetOutput(output_stream.str());
-				std::cout.rdbuf(old_buffer);
 				mResult.SetErrorMessage(e.what());
 			}
 			catch (...) {
 				mResult.SetToFailed();
-				mResult.SetOutput(output_stream.str());
-				std::cout.rdbuf(old_buffer);
 				mResult.SetErrorMessage("Unknown error");
 			}
 		}
 
 		void TestCase::Profile()
 		{
-			std::stringstream output_stream;
-			auto old_buffer(std::cout.rdbuf(output_stream.rdbuf()));
 			try {
 				auto start = std::chrono::steady_clock::now();
 				Setup();
@@ -103,20 +91,19 @@ namespace Kratos
 				mResult.SetRunElapsedTime(run_elapsed.count());
 				mResult.SetTearDownElapsedTime(tear_down_elapsed.count());
 				mResult.SetElapsedTime(elapsed.count());
-				std::cout.rdbuf(old_buffer);
 			}
 			catch (Exception& e) {
-				std::cout.rdbuf(old_buffer);
+				mResult.SetToFailed();
 				std::stringstream buffer;
 				buffer << e.what() << " in " << e.where() << std::endl;
 				mResult.SetErrorMessage(buffer.str());
 			}
 			catch (std::exception& e) {
-				std::cout.rdbuf(old_buffer);
+				mResult.SetToFailed();
 				mResult.SetErrorMessage(e.what());
 			}
 			catch (...) {
-				std::cout.rdbuf(old_buffer);
+				mResult.SetToFailed();
 				mResult.SetErrorMessage("Unknown error");
 			}
 		}
@@ -156,6 +143,11 @@ namespace Kratos
 		void TestCase::SetResult(TestCaseResult const& TheResult)
 		{
 			mResult = TheResult;
+		}
+
+
+		void TestCase::SetResultOutput(std::string const& TheResultOutput) {
+			mResult.SetOutput(TheResultOutput);
 		}
 
 		bool TestCase::IsEnabled()
