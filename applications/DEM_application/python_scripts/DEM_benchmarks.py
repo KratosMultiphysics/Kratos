@@ -34,7 +34,8 @@ elif benchmark_number in listCONT:
 elif benchmark_number == 27:
     import DEM_explicit_solver_var_UCS as DEM_parameters
 else:
-    KRATOSprint('Benchmark number does not exist')
+    print('Benchmark number does not exist')    
+    sys.exit()
 
 # Strategy object
 if   (DEM_parameters.ElementType == "SphericPartDEMElement3D"     or DEM_parameters.ElementType == "CylinderPartDEMElement2D"):
@@ -47,23 +48,22 @@ else:
     KRATOSprint('Error: Strategy unavailable. Select a different scheme element')    
 
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
-if "OMPI_COMM_WORLD_SIZE" in os.environ:
-    # Kratos MPI
+if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
+    print("Running under MPI...........")
     from KratosMultiphysics.MetisApplication import *
     from KratosMultiphysics.MPISearchApplication import *
     from KratosMultiphysics.mpi import *
-
-    # DEM Application MPI
     import DEM_procedures_mpi as DEM_procedures
-    #import DEM_material_test_script_mpi as DEM_material_test_script
-    print("Running under MPI...........")
+    import DEM_material_test_script_mpi as DEM_material_test_script    
+    def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
+        return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid=0, elemid=0, condid=0)
+         
 else:
-    # DEM Application
+    print("Running under OpenMP........")
     import DEM_procedures
     import DEM_material_test_script
-    model_part_reader = ModelPartIO
-    model_part_reader = ReorderConsecutiveFromGivenIdsModelPartIO
-    print("Running under OpenMP........")
+    def model_part_reader(modelpart, a=0, b=0, c=0):
+        return ModelPartIO(modelpart)
     
 
 ########################################################## CHUNG, OOI BENCHMARKS
