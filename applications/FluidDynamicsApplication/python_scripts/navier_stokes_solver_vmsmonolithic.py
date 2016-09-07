@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-import KratosMultiphysics.IncompressibleFluidApplication 
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -11,19 +10,19 @@ def CreateSolver(main_model_part, custom_settings):
     return NavierStokesSolver_VMSMonolithic(main_model_part, custom_settings)
 
 class NavierStokesSolver_VMSMonolithic:
-    
-    
-    ##constructor. the constructor shall only take care of storing the settings 
-    ##and the pointer to the main_model part. This is needed since at the point of constructing the 
+
+
+    ##constructor. the constructor shall only take care of storing the settings
+    ##and the pointer to the main_model part. This is needed since at the point of constructing the
     ##model part is still not filled and the variables are not yet allocated
     ##
-    ##real construction shall be delayed to the function "Initialize" which 
+    ##real construction shall be delayed to the function "Initialize" which
     ##will be called once the model is already filled
-    def __init__(self, main_model_part, custom_settings): 
-        
+    def __init__(self, main_model_part, custom_settings):
+
         #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part    
-        
+        self.main_model_part = main_model_part
+
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -76,22 +75,22 @@ class NavierStokesSolver_VMSMonolithic:
             "turbulence_model": "None",
             "use_spalart_allmaras": false
         }""")
-        
+
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-        
+
         #construct the linear solver
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         print("Construction of NavierStokesSolver_VMSMonolithic finished")
-        
+
     def GetMinimumBufferSize(self):
         return 3;
 
     def AddVariables(self):
-        
+
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
@@ -124,20 +123,20 @@ class NavierStokesSolver_VMSMonolithic:
                     #~ model_part.AddNodalSolutionStepVariable(MOLECULAR_VISCOSITY)
                     #~ model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
                     #~ model_part.AddNodalSolutionStepVariable(DISTANCE)
-        
+
         print("variables for the vms fluid solver added correctly")
 
     def ImportModelPart(self):
-        
+
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             #here it would be the place to import restart data if required
             KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
-            
+
             ##here we shall check that the input read has the shape we like
             aux_params = KratosMultiphysics.Parameters("{}")
             aux_params.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
             aux_params.AddValue("skin_parts",self.settings["skin_parts"])
-            
+
             #here we replace the dummy elements we read with proper elements
             self.settings.AddEmptyValue("element_replace_settings")
             if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
@@ -156,28 +155,28 @@ class NavierStokesSolver_VMSMonolithic:
                     """)
             else:
                 raise Exception("domain size is not 2 or 3")
-            
+
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
-            
+
             import check_and_prepare_model_process_fluid
             check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
-            
+
             #here we read the KINEMATIC VISCOSITY and DENSITY and we apply it to the nodes
             for el in self.main_model_part.Elements:
                 rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
                 kin_viscosity = el.Properties.GetValue(KratosMultiphysics.VISCOSITY)
                 break
-            
+
             KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
             KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
-            
+
         else:
             raise Exception("Other input options are not yet implemented.")
-        
+
         current_buffer_size = self.main_model_part.GetBufferSize()
         if(self.GetMinimumBufferSize() > current_buffer_size):
             self.main_model_part.SetBufferSize( self.GetMinimumBufferSize() )
-                
+
         print ("Model reading finished.")
 
 
@@ -199,17 +198,17 @@ class NavierStokesSolver_VMSMonolithic:
                     #~ for node in model_part.Nodes:
                         #~ node.AddDof(TURBULENT_VISCOSITY)
 
-    
+
     def Initialize(self):
-        
+
         self.computing_model_part = self.GetComputingModelPart()
-        
+
         MoveMeshFlag = False
-        
-        
+
+
         ### THIS SECTION IS NOT REQUIRED NOW ###
         #~ self.settings["use_slip_conditions"].SetBool(True) #ADDED TO AVOID ERROR WITH SELF.NORMAL_UTIL, IS THIS OK?
-        
+
         # check if slip conditions are defined
         #~ if self.settings["use_slip_conditions"].GetBool() == False:
             #~ for cond in self.main_model_part.Conditions:
@@ -223,24 +222,24 @@ class NavierStokesSolver_VMSMonolithic:
         #~ # Turbulence model
         #~ if self.use_spalart_allmaras:
             #~ self.activate_spalart_allmaras()
-        
+
         # creating the solution strategy
         self.conv_criteria = KratosCFD.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
                                                      self.settings["absolute_velocity_tolerance"].GetDouble(),
                                                      self.settings["relative_pressure_tolerance"].GetDouble(),
                                                      self.settings["absolute_pressure_tolerance"].GetDouble())
-             
-                                                                                             
+
+
         if self.settings["consider_periodic_conditions"].GetBool() == True:
             self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(self.settings["alpha"].GetDouble(),
                                                                                                 self.settings["move_mesh_strategy"].GetInt(),
-                                                                                                self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE], 
+                                                                                                self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                                                                                                 KratosCFD.PATCH_INDEX)
         else:
             self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(self.settings["alpha"].GetDouble(),
                                                                                             self.settings["move_mesh_strategy"].GetInt(),
                                                                                             self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
-    
+
         # TODO: TURBULENCE MODELS ARE NOT ADDED YET
         #~ if self.turbulence_model is None:
             #~ if self.periodic == True:
@@ -252,52 +251,52 @@ class NavierStokesSolver_VMSMonolithic:
         #~ else:
             #~ self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent\
                 #~ (self.alpha, self.move_mesh_strategy, self.domain_size, self.turbulence_model)
-            
+
         if self.settings["consider_periodic_conditions"].GetBool() == True:
-            builder_and_solver = KratosCFD.ResidualBasedBlockBuilderAndSolverPeriodic(self.linear_solver, 
-                                                                                KratosCFD.PATCH_INDEX) 
+            builder_and_solver = KratosCFD.ResidualBasedBlockBuilderAndSolverPeriodic(self.linear_solver,
+                                                                                KratosCFD.PATCH_INDEX)
         else:
             builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-        
-        
-        self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.main_model_part, 
-                                                                            self.time_scheme, 
-                                                                            self.linear_solver, 
+
+
+        self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.main_model_part,
+                                                                            self.time_scheme,
+                                                                            self.linear_solver,
                                                                             self.conv_criteria,
-                                                                            builder_and_solver, 
-                                                                            self.settings["maximum_iterations"].GetInt(), 
+                                                                            builder_and_solver,
+                                                                            self.settings["maximum_iterations"].GetInt(),
                                                                             self.settings["compute_reactions"].GetBool(),
-                                                                            self.settings["reform_dofs_at_each_step"].GetBool(), 
+                                                                            self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                             self.settings["MoveMeshFlag"].GetBool())
-                                                         
+
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         self.solver.Check()
-        
+
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.M, self.settings["regularization_coef"].GetDouble())
 
         print ("Monolithic solver initialization finished.")
-        
+
     def GetComputingModelPart(self):
         # Get as computational model part the "volume_model_part_name" in the ProjectParameters Json string
         #~ return self.main_model_part.GetSubModelPart(self.settings["volume_model_part_name"].GetString())
-        
+
         # Get as computational model part the submodelpart generated in CheckAndPrepareModelProcess
         return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
-        
+
     def GetOutputVariables(self):
         pass
-        
+
     def ComputeDeltaTime(self):
         pass
-        
+
     def SaveRestart(self):
         pass #one should write the restart file here
-        
+
     def DivergenceClearance(self):
-        
+
         if self.settings["divergence_clearance_steps"].GetInt() > 0:
             print("Calculating divergence-free initial condition")
             ## Initialize with a Stokes solution step
@@ -318,7 +317,7 @@ class NavierStokesSolver_VMSMonolithic:
             except:
                 pPrecond = DiagonalPreconditioner()
                 stokes_linear_solver = BICGSTABSolver(1e-9, 5000, pPrecond)
-                
+
             stokes_process = KratosCFD.StokesInitializationProcess(self.main_model_part,
                                                                    stokes_linear_solver,
                                                                    self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
@@ -350,32 +349,32 @@ class NavierStokesSolver_VMSMonolithic:
             #~ if self.settings["use_spalart_allmaras"]:
                 #~ KratosMultiphysics.neighbour_search.Execute()
         ### THIS SECTION IS NOT REQUIRED NOW ###
-        
+
     def SolverInitialize(self):
         self.DivergenceClearance()
         self.solver.Initialize()
-        
+
     def SolverInitializeSolutionStep(self):
         self.solver.InitializeSolutionStep()
-        
+
     def SolverPredict(self):
         self.solver.Predict()
-        
+
     def SolverSolveSolutionStep(self):
         self.solver.SolveSolutionStep()
-        
+
     def SolverFinalizeSolutionStep(self):
         self.solver.FinalizeSolutionStep()
-        
+
     def Solve(self):
         self.DivergenceClearance()
         self.solver.Solve()
-    
+
     def SetEchoLevel(self, level):
         self.solver.SetEchoLevel(level)
 
     def Clear(self):
         self.solver.Clear()
-        
+
     def Check(self):
         self.solver.Check()
