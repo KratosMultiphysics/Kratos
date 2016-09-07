@@ -107,8 +107,8 @@ public:
     //typedef Dof<TDataType> TDofType;
     //typedef PointerVectorSet<TDofType, IdentityFunction<TDofType> > DofsArrayType;
     /* 		typedef PointerVectorSet<TDofType, IndexedObject> DofsArrayType; */
-    typedef typename PointerVectorSet<TDofType, IndexedObject>::iterator DofIterator;
-    typedef typename PointerVectorSet<TDofType, IndexedObject>::const_iterator DofConstantIterator;
+    typedef typename DofsArrayType::iterator DofIterator;
+    typedef typename DofsArrayType::const_iterator DofConstantIterator;
     /*@} */
 
     /** Constructor.

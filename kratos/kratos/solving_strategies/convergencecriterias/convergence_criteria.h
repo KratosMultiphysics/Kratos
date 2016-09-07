@@ -93,8 +93,7 @@ public:
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
     typedef Dof<double> TDofType;
-    typedef PointerVectorSet<TDofType, SetIdentityFunction<TDofType> > DofsArrayType;
-    /* 		typedef PointerVectorSet<TDofType, IndexedObject> DofsArrayType; */
+    typedef ModelPart::DofsArrayType DofsArrayType;
 
     /** Counted pointer of ConvergenceCriteria */
     KRATOS_CLASS_POINTER_DEFINITION(ConvergenceCriteria);

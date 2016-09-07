@@ -365,11 +365,11 @@ public:
 
         for (WeakPointerVector< Node < 3 > >::iterator iii = mActiveNodes.begin(); iii != mActiveNodes.end(); iii++)
         {
-            BaseType::mDofSet.push_back(iii->pGetDof(mrVar_x));
-            BaseType::mDofSet.push_back(iii->pGetDof(mrVar_y));
+            BaseType::mDofSet.push_back(iii->pGetDof(mrVar_x).get());
+            BaseType::mDofSet.push_back(iii->pGetDof(mrVar_y).get());
 
             if (mdim == 3)
-                BaseType::mDofSet.push_back(iii->pGetDof(mrVar_z));
+                BaseType::mDofSet.push_back(iii->pGetDof(mrVar_z).get());
         }
 
         //throws an execption if there are no Degrees of freedom involved in the analysis
