@@ -66,7 +66,7 @@ namespace Kratos
 		  , mChunkSize(ChunkSize)
 	  {
 		  for (int i_thread = 0; i_thread < GetNumberOfThreads(); i_thread++)
-			  mThreadsPool.emplace_back(BlockSizeInBytes, ChunkSize);
+			  mThreadsPool.emplace_back(BlockSizeInBytes, ChunkSize, i_thread);
 	  }
 
       /// Destructor
@@ -87,18 +87,27 @@ namespace Kratos
 
 	  /// This function does not throw and returns zero if cannot allocate
 	  void* Allocate() {
-		  return mThreadsPool[GetThreadNumber()].Allocate();
+		  mThreadsPool[GetThreadNumber()].SetLock();
+		  void* p_result = mThreadsPool[GetThreadNumber()].Allocate();
+		  mThreadsPool[GetThreadNumber()].UnSetLock();
+		  return p_result;
 	  }
 
 	  void Deallocate(void* pPointrerToRelease) {
 
-		  if (mThreadsPool[GetThreadNumber()].Deallocate(pPointrerToRelease)) 
+		  mThreadsPool[GetThreadNumber()].SetLock();
+		  if (mThreadsPool[GetThreadNumber()].Deallocate(pPointrerToRelease))
+		  {
+			  mThreadsPool[GetThreadNumber()].UnSetLock();
 			  return;
+		  }
 
 		  for (int i_thread = 0; i_thread < GetNumberOfThreads(); i_thread++)
 			  if (i_thread != GetThreadNumber())
-				  if (mThreadsPool[i_thread].Deallocate(pPointrerToRelease))
+				  if (mThreadsPool[i_thread].Deallocate(pPointrerToRelease)) {
+					  mThreadsPool[i_thread].UnSetLock();
 					  return;
+				  }
 
 		  KRATOS_ERROR << "The Pointer with address " << pPointrerToRelease << " was not found in this pool" << std::endl;
 	  }
