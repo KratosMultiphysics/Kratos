@@ -79,7 +79,6 @@ namespace Kratos
 	  }
 
 	  static void Deallocate(void* pPointrerToRelease, std::size_t ObjectSizeInBytes) {
-#pragma omp critical
 		  GetPoolWithBlockSize(ObjectSizeInBytes)->Deallocate(pPointrerToRelease);
 	  }
 
@@ -98,15 +97,23 @@ namespace Kratos
 	  }
 
 	  static FixedSizeMemoryPool* GetPoolWithBlockSize(std::size_t BlockSize) {
-			  PoolsContainerType& r_pools = GetInstance().mPools;
+		  PoolsContainerType& r_pools = GetInstance().mPools;
+
+		  // I would avoid it by defining a max block size, but befor that I should profile to see if is really slows done. Pooyan.
+		  if (r_pools.size() <= BlockSize) { // This check is extra but is to avoid critical each time
 #pragma omp critical
 		  {
-			  if (r_pools.size() <= BlockSize)
+			  if (r_pools.size() <= BlockSize) // checking again to be sure some other thread doesn't change it meanwhile
 				  r_pools.resize(BlockSize + 1, nullptr);
+		  }
+		  }
 
-			  if (r_pools[BlockSize] == nullptr) {
+		  if (r_pools[BlockSize] == nullptr) { // This check is extra but is to avoid critical each time
+#pragma omp critical
+		  {
+			  if (r_pools[BlockSize] == nullptr) // checking again to be sure some other thread doesn't change it meanwhile
 				  r_pools[BlockSize] = new FixedSizeMemoryPool(BlockSize);
-			  }
+		  }
 		  }
 		  return r_pools[BlockSize];
 	  }

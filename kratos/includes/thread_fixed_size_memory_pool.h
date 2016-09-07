@@ -45,9 +45,11 @@ namespace Kratos
 
 		using SizeType = DataType;
 
+		using ChunkList = std::list<Chunk*>;
+
 	  ///@}
 
-		static constexpr SizeType MaximumEmptyChunksToKeep = 10;
+		static constexpr SizeType MaximumEmptyChunksToKeep = 100000000;
 
 	  ///@name Life Cycle
       ///@{
@@ -62,13 +64,14 @@ namespace Kratos
 	  ThreadFixedSizeMemoryPool(ThreadFixedSizeMemoryPool&& rOther) = default;
 
 	  /// The constructor to be called
-	  ThreadFixedSizeMemoryPool(std::size_t BlockSizeInBytes, SizeType ChunkSize)
+	  ThreadFixedSizeMemoryPool(std::size_t BlockSizeInBytes, SizeType ChunkSize, std::size_t ThreadNumber)
 		  : LockObject()
 		  , mBlockSizeInBytes(BlockSizeInBytes)
 		  , mChunkSize(ChunkSize)
-		  , mThreadNumber(GetThreadNumber())
+		  , mThreadNumber(ThreadNumber)
 		  , mChunks()
 		  , mAvailableChunks()
+		  , mNumberOfReleasedChunks(0)
 	  {
 	  }
 
@@ -94,18 +97,22 @@ namespace Kratos
 			  AddChunk();
 
 		  void* p_result = nullptr;
-		  Chunk& r_available_chunk = *(GetAvailableChunks().back());
+		  Chunk& r_available_chunk = *(GetAvailableChunks().front());
+		  if (r_available_chunk.IsReleased())
+			  r_available_chunk.Initialize();
+		  KRATOS_CHECK_IS_FALSE(r_available_chunk.IsFull());
 		  p_result = r_available_chunk.Allocate();
+		  KRATOS_DEBUG_CHECK_NOT_EQUAL(p_result, nullptr); 
 		  if (r_available_chunk.IsFull())
-			  mAvailableChunks.pop_back();
+			  mAvailableChunks.pop_front();
 		  return p_result;
 	  }
 
 	  bool Deallocate(void* pPointrerToRelease) {
 		  if (!mAvailableChunks.empty()) {
-			  Chunk* p_chunk = GetAvailableChunks().back();
-			  if (p_chunk->Has(pPointrerToRelease)) {
-				  DeallocateFromChunk(pPointrerToRelease, p_chunk);
+			  auto i_chunk = mAvailableChunks.begin();
+			  if ((*i_chunk)->Has(pPointrerToRelease)) {
+				  DeallocateFromAvailableChunk(pPointrerToRelease, i_chunk);
 				  return true;
 			  }
 		  }
@@ -113,7 +120,13 @@ namespace Kratos
 		  for (auto i_chunk = mChunks.begin(); i_chunk != mChunks.end(); i_chunk++)
 		  {
 			  if (i_chunk->Has(pPointrerToRelease)) {
-				  DeallocateFromChunk(pPointrerToRelease, &(*(i_chunk)));
+				  if (i_chunk->IsFull())
+					DeallocateFromFullChunk(pPointrerToRelease, &(*i_chunk));
+				  else {
+					  auto i_available_chunk = std::find(mAvailableChunks.begin(), mAvailableChunks.end(), &(*i_chunk));
+					  KRATOS_DEBUG_CHECK_NOT_EQUAL(i_available_chunk, mAvailableChunks.end()); // Un explicable!
+					  DeallocateFromAvailableChunk(pPointrerToRelease, i_available_chunk);
+				  }
 				  return true;
 			  }
 		  }
@@ -121,14 +134,12 @@ namespace Kratos
 		  return false;
 	  }
 
-	  void ReleaseChunk(Chunk* pChunk) {
-		  if (mAvailableChunks.size() > MaximumEmptyChunksToKeep) {
-			  pChunk->Release();
-		  }
-	  }
-
 	  void Release() {
 		  mChunks.clear();
+		  mNumberOfReleasedChunks += mChunks.size();
+		  mAvailableChunks.clear();
+		  for (auto i_chunk = mChunks.begin(); i_chunk != mChunks.end(); i_chunk++)
+			  mAvailableChunks.push_front(&(*i_chunk));
 	  }
 
 	  SizeType ChunkSize() const {
@@ -162,7 +173,7 @@ namespace Kratos
 	  }
 
 	  std::size_t GetNumberOfReleasedChunks() const {
-		  return mReleasedChunks.size();
+		  return mNumberOfReleasedChunks;
 	  }
 
 	  ///@}
@@ -214,8 +225,9 @@ namespace Kratos
 		SizeType mChunkSize;
 		std::size_t mThreadNumber;
 		std::list<Chunk> mChunks;
-		std::vector<Chunk*> mAvailableChunks;
-		std::vector<Chunk*> mReleasedChunks;
+		std::list<Chunk*> mAvailableChunks;
+		std::size_t mNumberOfReleasedChunks;
+
 
 
       ///@}
@@ -223,32 +235,40 @@ namespace Kratos
       ///@{
 
 		void AddChunk() {
+			if (mThreadNumber != GetThreadNumber())
+				KRATOS_ERROR;
 			KRATOS_DEBUG_CHECK_EQUAL(mThreadNumber, GetThreadNumber());
 
-			if (mReleasedChunks.empty())
-			{
 				mChunks.emplace_back(mBlockSizeInBytes, mChunkSize);
 				Chunk* p_available_chunk = &(mChunks.back());
 				p_available_chunk->Initialize();
-				mAvailableChunks.push_back(p_available_chunk);
-			}
-			else {
-				Chunk* p_available_chunk = mReleasedChunks.back();
-				mReleasedChunks.pop_back();
-				p_available_chunk->Initialize();
-				mAvailableChunks.push_back(p_available_chunk);
-			}
+				mAvailableChunks.push_front(p_available_chunk);
 		}
 
-		void DeallocateFromChunk(void* pPointrerToRelease, Chunk* pChunk) {
-			if (pChunk->IsFull()) // It will be available after deallocating but is not in the list yet
-				mAvailableChunks.push_back(pChunk);
-			pChunk->Deallocate(pPointrerToRelease);
-			if (pChunk->IsEmpty())
-				ReleaseChunk(pChunk);
+		void DeallocateFromAvailableChunk(void* pPointrerToRelease, ChunkList::iterator iChunk) {
+			(*iChunk)->Deallocate(pPointrerToRelease);
+			if ((*iChunk)->IsEmpty())
+				if (mAvailableChunks.size() - mNumberOfReleasedChunks > MaximumEmptyChunksToKeep)
+					ReleaseChunk(iChunk);
 		}
 
-		std::vector<Chunk*> const& GetAvailableChunks() {
+		void DeallocateFromFullChunk(void* pPointrerToRelease, Chunk* pChunk) {
+			// It will be available after deallocating but is not in the list yet
+			mAvailableChunks.push_front(pChunk);
+			auto i_chunk = mAvailableChunks.begin();
+			(*i_chunk)->Deallocate(pPointrerToRelease);
+			if ((*i_chunk)->IsEmpty()) // a rare case where a chunk has only one block! simptom of bad configuration
+				if (mAvailableChunks.size() - mNumberOfReleasedChunks > MaximumEmptyChunksToKeep)
+					ReleaseChunk(i_chunk);
+		}
+
+		void ReleaseChunk(ChunkList::iterator iChunk) {
+			//(*iChunk)->Release();
+			//mAvailableChunks.splice(mAvailableChunks.end(), mAvailableChunks, iChunk);
+			//mNumberOfReleasedChunks++;
+		}
+
+		std::list<Chunk*> const& GetAvailableChunks() {
 			return mAvailableChunks;
 		}
 

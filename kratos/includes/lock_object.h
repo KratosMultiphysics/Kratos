@@ -79,7 +79,9 @@ namespace Kratos
 
 	  /// Assignment operator.
 		LockObject& operator=(LockObject const& rOther) {
+#ifdef _OPENMP
 			mLock = rOther.mLock;
+#endif
 			return *this;
 		}
 
