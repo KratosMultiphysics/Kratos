@@ -103,8 +103,14 @@ public:
     typedef std::size_t SizeType;
 
     typedef Dof<double> DofType;
-    typedef PointerVectorSet<DofType, SetIdentityFunction<DofType>, std::less<SetIdentityFunction<DofType>::result_type>,
-	std::equal_to<SetIdentityFunction<DofType>::result_type>, DofType::Pointer> DofsArrayType;
+
+//     typedef PointerVectorSet<DofType, SetIdentityFunction<DofType> > DofsArrayType;
+    typedef PointerVectorSet<DofType, 
+                SetIdentityFunction<DofType>, 
+                std::less<SetIdentityFunction<DofType>::result_type>,
+                std::equal_to<SetIdentityFunction<DofType>::result_type>, 
+                DofType* > DofsArrayType;
+
 
     typedef Node < 3 > NodeType;
     typedef Properties PropertiesType;
