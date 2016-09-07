@@ -24,7 +24,7 @@ if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.envi
     import DEM_procedures_mpi as DEM_procedures
     import DEM_material_test_script_mpi as DEM_material_test_script    
     def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
-        return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid=0, elemid=0, condid=0)
+        return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
          
 else:
     print("Running under OpenMP........")
