@@ -4,6 +4,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.DamApplication import *
+from KratosMultiphysics.PoromechanicsApplication import *
 #check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
@@ -96,8 +97,10 @@ def CreateSolver(model_part, config):
         Residual = ResidualCriteria(res_rel_tol, res_abs_tol)
         Residual.SetEchoLevel(echo_level)
         convergence_criterion = AndCriteria(Residual, Displacement)
-
+        
     if(config.strategy_type == "Newton-Raphson"):
+        
+        model_part.ProcessInfo[IS_CONVERGED]=True
         dam_mechanical_solver.strategy = ResidualBasedNewtonRaphsonStrategy(model_part,solution_scheme,linear_solver,convergence_criterion,builder_and_solver,max_iters,
                                                                             compute_react,dam_mechanical_solver.reform_step_dofs,dam_mechanical_solver.move_mesh_flag)
 
