@@ -16,23 +16,23 @@ sys.path.insert(0,'')
 import DEM_explicit_solver_var as DEM_parameters
 
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
-if "OMPI_COMM_WORLD_SIZE" in os.environ:
-    # Kratos MPI
+if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
+    print("Running under MPI...........")
     from KratosMultiphysics.MetisApplication import *
     from KratosMultiphysics.MPISearchApplication import *
     from KratosMultiphysics.mpi import *
-    # DEM Application MPI
     import DEM_procedures_mpi as DEM_procedures
-    import DEM_material_test_script_mpi as DEM_material_test_script
-    print("Running under MPI...........")
-    model_part_reader = ReorderConsecutiveFromGivenIdsModelPartIO
+    import DEM_material_test_script_mpi as DEM_material_test_script    
+    def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
+        return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid=0, elemid=0, condid=0)
+         
 else:
-    # DEM Application
+    print("Running under OpenMP........")
     import DEM_procedures
     import DEM_material_test_script
-    model_part_reader = ModelPartIO
-    model_part_reader = ReorderConsecutiveFromGivenIdsModelPartIO
-    print("Running under OpenMP........")
+    def model_part_reader(modelpart, a=0, b=0, c=0):
+        return ModelPartIO(modelpart)
+    
 
 # TODO: Ugly fix. Change it. I don't like this to be in the main...
 # Strategy object
