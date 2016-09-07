@@ -415,17 +415,17 @@ private:
 
 
         //patch`s local code table
-        patchDofSet.push_back(inode->pGetDof(ROTATION_X));
-        patchDofSet.push_back(inode->pGetDof(ROTATION_Y));
+        patchDofSet.push_back(inode->pGetDof(ROTATION_X).get());
+        patchDofSet.push_back(inode->pGetDof(ROTATION_Y).get());
         if(TDim==3)
-            patchDofSet.push_back(inode->pGetDof(ROTATION_Z));
+            patchDofSet.push_back(inode->pGetDof(ROTATION_Z).get());
 
         for( WeakPointerVector< Node<3> >::iterator ind = neighbor_nds.begin(); ind!=neighbor_nds.end(); ind++)
         {
-            patchDofSet.push_back(ind->pGetDof(ROTATION_X));
-            patchDofSet.push_back(ind->pGetDof(ROTATION_Y));
+            patchDofSet.push_back(ind->pGetDof(ROTATION_X).get());
+            patchDofSet.push_back(ind->pGetDof(ROTATION_Y).get());
             if(TDim==3)
-                patchDofSet.push_back(ind->pGetDof(ROTATION_Z));
+                patchDofSet.push_back(ind->pGetDof(ROTATION_Z).get());
         }
 
         int local_index = 0;
