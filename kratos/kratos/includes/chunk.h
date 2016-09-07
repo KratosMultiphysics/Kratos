@@ -104,11 +104,15 @@ namespace Kratos
 		  SizeType i_block = 0;
 		  for (auto p = GetData(); i_block < GetNumberOfBlocks(); p += block_size_after_alignment)
 			  *p = ++i_block;
+
+		  KRATOS_DEBUG_CHECK_EQUAL(i_block, GetNumberOfAvailableBlocks());
 	  }
 
 	  /// This function does not throw and returns zero if cannot allocate
 	  void* Allocate() {
-		  KRATOS_DEBUG_CHECK_EQUAL(mOwnerThread, GetThreadNumber()); // Allocate should be called only by owner thread!
+		  KRATOS_DEBUG_CHECK_EQUAL(mOwnerThread, GetThreadNumber()); // Allocate should be called only by owner thread
+		  KRATOS_DEBUG_CHECK_NOT_EQUAL(mpData, nullptr);
+
 		  if (GetTotalNumberOfAvailableBlocks() == 0)
 			  return nullptr;
 
