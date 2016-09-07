@@ -1059,7 +1059,7 @@ public:
             //ccc = GetTickCount();
             for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin(); i != ElementalDofList.end(); ++i)
             {
-                Doftemp.push_back(*i);
+                Doftemp.push_back(i->get());
                 //mDofSet.push_back(*i);
             }
             //ddd += GetTickCount() - ccc;
@@ -1079,7 +1079,7 @@ public:
             for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin(); i != ElementalDofList.end(); ++i)
             {
                 //mDofSet.push_back(*i);
-                Doftemp.push_back(*i);
+                Doftemp.push_back(i->get());
             }
             //ddd += GetTickCount() - ccc;
         }
