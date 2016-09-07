@@ -392,7 +392,7 @@ public:
 
         for(WeakPointerVector< Node<3> >::iterator iii = mActiveNodes.begin(); iii!=mActiveNodes.end(); iii++)
         {
-            BaseType::mDofSet.push_back( iii->pGetDof(rVar) );
+            BaseType::mDofSet.push_back( iii->pGetDof(rVar).get() );
         }
 
         //throws an execption if there are no Degrees of freedom involved in the analysis
