@@ -847,7 +847,7 @@ public:
             for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin();
                     i != ElementalDofList.end(); ++i)
             {
-                BaseType::mDofSet.push_back(*i);
+                BaseType::mDofSet.push_back(i->get());
             }
         }
 
@@ -861,7 +861,7 @@ public:
             for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin();
                     i != ElementalDofList.end(); ++i)
             {
-                BaseType::mDofSet.push_back(*i);
+                BaseType::mDofSet.push_back(i->get());
             }
         }
 
