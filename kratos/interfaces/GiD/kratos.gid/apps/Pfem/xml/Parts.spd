@@ -15,6 +15,4 @@
 	  </value>-->
 	  <dynamicnode command="injectElementInputs" args=""/>
 	  <dynamicnode command="injectConstitutiveLawInputs" args=""/>
-	  <value n="MeshingStrategy" pn="Meshing strategy" v="" values="[GetMeshingDomains]" state="normal"/>
-	  <value n="ContactStrategy" pn="Contact strategy" v="" dict="[GetContactDomains]" state="normal"/>
 </condition>
