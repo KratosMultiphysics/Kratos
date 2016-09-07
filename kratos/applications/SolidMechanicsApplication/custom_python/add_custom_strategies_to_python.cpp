@@ -23,8 +23,10 @@
 
 //strategies
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
+
 #include "custom_strategies/strategies/component_wise_newton_raphson_strategy.hpp"
 #include "custom_strategies/strategies/residual_based_newton_raphson_line_search_strategy.hpp"
+#include "custom_strategies/strategies/residual_based_newton_raphson_line_search_implex_strategy.hpp"
 #include "custom_strategies/strategies/explicit_strategy.hpp" 
 
 //builders and solvers
@@ -63,11 +65,11 @@ void  AddCustomStrategiesToPython()
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
 
-
     //custom strategy types
     typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
     typedef ComponentWiseNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ComponentWiseNewtonRaphsonStrategyType;
     typedef ResidualBasedNewtonRaphsonLineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonLineSearchStrategyType;
+    typedef ResidualBasedNewtonRaphsonLineSearchImplexStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonLineSearchImplexStrategyType;
     typedef ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitStrategyType;
 
     //custom builder_and_solver types
@@ -198,6 +200,22 @@ void  AddCustomStrategiesToPython()
       .def("GetFinalizeSolutionStepFlag", &ResidualBasedNewtonRaphsonLineSearchStrategyType::GetFinalizeSolutionStepFlag)
       ;
      
+      
+      // Residual Based Newton-Raphson Line Search Implex Strategy
+      class_< ResidualBasedNewtonRaphsonLineSearchImplexStrategyType, 
+	      bases< BaseSolvingStrategyType >, boost::noncopyable >
+	(
+	 "ResidualBasedNewtonRaphsonLineSearchImplexStrategy",
+	 init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool>())
+	
+	.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
+	.def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::SetMaxIterationNumber)
+	.def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetMaxIterationNumber)
+	.def("SetInitializePerformedFlag", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::SetInitializePerformedFlag)
+	.def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetInitializePerformedFlag)
+	.def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::SetKeepSystemConstantDuringIterations)
+	.def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetKeepSystemConstantDuringIterations)
+	;
 
 
 }
