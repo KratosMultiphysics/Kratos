@@ -16,7 +16,6 @@
 
 
 /* System includes */
-#include <set>
 
 /* External includes */
 
