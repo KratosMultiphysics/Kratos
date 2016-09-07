@@ -104,7 +104,7 @@ public:
 
     /// Pointer definition of GearScheme
     KRATOS_CLASS_POINTER_DEFINITION(GearScheme);
-
+    typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
     typedef typename TSparseSpace::DataType TDataType;
     typedef typename TSparseSpace::MatrixType TSystemMatrixType;
     typedef typename TSparseSpace::VectorType TSystemVectorType;
@@ -113,9 +113,9 @@ public:
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
     typedef Dof<TDataType> TDofType;
-    typedef PointerVectorSet<TDofType, SetIdentityFunction<TDofType> > DofsArrayType;
+    typedef typename BaseType::DofsArrayType DofsArrayType;
 
-    typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
+
 
     ///@}
     ///@name Life Cycle
