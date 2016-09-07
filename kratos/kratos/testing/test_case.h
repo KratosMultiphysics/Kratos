@@ -34,9 +34,12 @@ namespace Kratos
 		{
 			template <typename TestType> class RegisterThisTest {
 			public:
-				RegisterThisTest()
+				RegisterThisTest(bool IsDisabled=false)
 				{
-					Tester::AddTestCase(new TestType);
+					TestType* p_test = new TestType;
+					if (IsDisabled)
+						p_test->Disable();
+					Tester::AddTestCase(p_test);
 				}
 			};
 
@@ -114,6 +117,8 @@ namespace Kratos
 			const TestCaseResult& GetResult() const;
 
 			void SetResult(TestCaseResult const& TheResult);
+
+			void SetResultOutput(std::string const& TheResultOutput);
 
 
 			///@}
@@ -230,6 +235,13 @@ const Kratos::Testing::Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_
 \
 void KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::TestFunction()
 
+#define KRATOS_DISABLED_TEST_CASE(TestCaseName) \
+KRATOS_TESTING_TEST_CASE_CLASS(TestCaseName, TestCase) \
+const Kratos::Testing::Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > \
+		KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mDummy(true); \
+\
+void KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::TestFunction()
+
 // This macro creates a fixture sub class of TestCase for given FixtureName
 // For example if the FixtureName is "ModelPartFixture" then the result is:
 // class ModelPartFixture : public TestCase
@@ -261,6 +273,13 @@ void TestFixtureName::TearDown()
 KRATOS_TESTING_TEST_CASE_CLASS(TestCaseName, TestFixtureName)  \
 const Kratos::Testing::Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > \
 		KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mDummy; \
+\
+void KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::TestFunction()
+
+#define KRATOS_DISABLED_TEST_CASE_WITH_FIXTURE(TestCaseName,TestFixtureName) \
+KRATOS_TESTING_TEST_CASE_CLASS(TestCaseName, TestFixtureName)  \
+const Kratos::Testing::Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > \
+		KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mDummy(true); \
 \
 void KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::TestFunction()
 

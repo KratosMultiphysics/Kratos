@@ -192,11 +192,32 @@ KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mAnotherDummy = Kratos::Testing:
 \
 void KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::TestFunction()
 
+// Disabled version of the macro to used
+#define KRATOS_DISABLED_TEST_CASE_IN_SUITE(TestCaseName, TestSuiteName) \
+KRATOS_TESTING_TEST_CASE_IN_SUITE_CLASS(TestCaseName, TestCase) \
+const Kratos::Testing::Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > \
+		KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mDummy(true); \
+const Kratos::Testing::Internals::AddThisTestToTestSuite \
+KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mAnotherDummy = Kratos::Testing::Internals::AddThisTestToTestSuite(KRATOS_TESTING_CONVERT_TO_STRING(Test##TestCaseName) \
+		,KRATOS_TESTING_CONVERT_TO_STRING(TestSuiteName)); \
+\
+void KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::TestFunction()
 
 #define KRATOS_TEST_CASE_WITH_FIXTURE_IN_SUITE(TestCaseName,TestFixtureName, TestSuiteName) \
 KRATOS_TESTING_TEST_CASE_IN_SUITE_CLASS(TestCaseName, TestFixtureName)  \
 const Kratos::Testing::Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > \
 		KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mDummy; \
+const Kratos::Testing::Internals::AddThisTestToTestSuite \
+KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mAnotherDummy = Kratos::Testing::Internals::AddThisTestToTestSuite(KRATOS_TESTING_CONVERT_TO_STRING(Test##TestCaseName) \
+		,KRATOS_TESTING_CONVERT_TO_STRING(TestSuiteName)); \
+\
+void KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::TestFunction()
+
+
+#define KRATOS_DISABLED_TEST_CASE_WITH_FIXTURE_IN_SUITE(TestCaseName,TestFixtureName, TestSuiteName) \
+KRATOS_TESTING_TEST_CASE_IN_SUITE_CLASS(TestCaseName, TestFixtureName)  \
+const Kratos::Testing::Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > \
+		KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mDummy(true); \
 const Kratos::Testing::Internals::AddThisTestToTestSuite \
 KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)::mAnotherDummy = Kratos::Testing::Internals::AddThisTestToTestSuite(KRATOS_TESTING_CONVERT_TO_STRING(Test##TestCaseName) \
 		,KRATOS_TESTING_CONVERT_TO_STRING(TestSuiteName)); \
