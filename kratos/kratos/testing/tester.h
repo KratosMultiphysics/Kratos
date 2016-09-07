@@ -194,7 +194,9 @@ namespace Kratos
 
 			static std::size_t NumberOfSelectedTestCases();
 
-			static void ShowProgress(std::size_t Current, std::size_t Total, const TestCase* const pTheTestCase);
+			static void StartShowProgress(std::size_t Current, std::size_t Total, const TestCase* const pTheTestCase);
+
+			static void EndShowProgress(std::size_t Current, std::size_t Total, const TestCase* const pTheTestCase);
 
 			static void ReportResults(std::ostream& rOStream, std::size_t NumberOfRunTests, double ElapsedTime);
 

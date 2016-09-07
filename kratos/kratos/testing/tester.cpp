@@ -253,8 +253,17 @@ namespace Kratos
 			i_test != GetInstance().mTestCases.end(); i_test++)
 			{
 				if (i_test->second->IsSelected()) {
-					i_test->second->Run();
-					ShowProgress(++test_number, number_of_run_tests, i_test->second);
+					StartShowProgress(test_number, number_of_run_tests, i_test->second);
+					if (GetInstance().mVerbosity != Verbosity::TESTS_OUTPUTS) {
+						std::stringstream output_stream;
+						auto old_buffer(std::cout.rdbuf(output_stream.rdbuf()));
+						i_test->second->Run();
+						i_test->second->SetResultOutput(output_stream.str());
+						std::cout.rdbuf(old_buffer);
+					}
+					else
+						i_test->second->Run();
+					EndShowProgress(++test_number, number_of_run_tests, i_test->second);
 				}
 			}
 
@@ -277,8 +286,9 @@ namespace Kratos
 			i_test != GetInstance().mTestCases.end(); i_test++)
 			{
 				if (i_test->second->IsSelected()) {
+					StartShowProgress(test_number, number_of_run_tests, i_test->second);
 					i_test->second->Profile();
-					ShowProgress(++test_number, number_of_run_tests, i_test->second);
+					EndShowProgress(++test_number, number_of_run_tests, i_test->second);
 				}
 			}
 
@@ -300,8 +310,17 @@ namespace Kratos
 			return result;
 		}
 
-		void Tester::ShowProgress(std::size_t Current, std::size_t Total, const TestCase* const pTheTestCase)
+		void Tester::StartShowProgress(std::size_t Current, std::size_t Total, const TestCase* const pTheTestCase)
 		{
+			if (GetInstance().mVerbosity >= Verbosity::TESTS_LIST)
+			{
+				std::cout << pTheTestCase->Name();
+			}
+		}
+
+		void Tester::EndShowProgress(std::size_t Current, std::size_t Total, const TestCase* const pTheTestCase)
+		{
+			constexpr std::size_t ok_culumn = 72;
 			if (GetInstance().mVerbosity == Verbosity::PROGRESS)
 				if (pTheTestCase->GetResult().IsSucceed())
 					std::cout << ".";
@@ -309,16 +328,19 @@ namespace Kratos
 					std::cout << "F";
 			else if (GetInstance().mVerbosity >= Verbosity::TESTS_LIST)
 			{
+				for (std::size_t i = pTheTestCase->Name().size(); i < ok_culumn; i++)
+					std::cout << " ";
+
 				if (pTheTestCase->GetResult().IsSucceed())
 				{
-					std::cout << "OK.     : "<< pTheTestCase->Name() << std::endl;
+					std::cout << " OK." << std::endl;
 					if (GetInstance().mVerbosity == Verbosity::TESTS_OUTPUTS)
 						std::cout << pTheTestCase->GetResult().GetOutput() << std::endl;
 				}
 				else
 				{
-					std::cout << "FAILED! : "<< pTheTestCase->Name()  << std::endl;
-					if(GetInstance().mVerbosity >= Verbosity::FAILED_TESTS_OUTPUTS)
+					std::cout << " FAILED!" << std::endl;
+					if (GetInstance().mVerbosity >= Verbosity::FAILED_TESTS_OUTPUTS)
 						std::cout << pTheTestCase->GetResult().GetOutput() << std::endl;
 				}
 			}
