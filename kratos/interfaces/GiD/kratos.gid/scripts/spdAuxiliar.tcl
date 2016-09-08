@@ -495,6 +495,7 @@ proc spdAux::ConvertAllUniqueNames {oldPrefix newPrefix} {
     spdAux::parseRoutes
 }
 
+# Modify the tree: field newValue UniqueName OptionalChild
 proc spdAux::SetValueOnTreeItem { field value name {it "" } } {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
@@ -506,9 +507,9 @@ proc spdAux::SetValueOnTreeItem { field value name {it "" } } {
         if {$it ne ""} {set node [$node find n $it]}
     }
     if {$node ne ""} {
-        gid_groups_conds::setAttributes [$node toXPath] {state hidden}
+        gid_groups_conds::setAttributes [$node toXPath] [list $field $value]
     } {
-        W "$name $it not found"
+        W "$name $it not found - Check GetFromXML.tcl file"
     }
 }
 
