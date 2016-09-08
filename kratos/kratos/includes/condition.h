@@ -855,7 +855,7 @@ public:
         }
         return 0;
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     //METHODS TO BE CLEANED: DEPRECATED start
