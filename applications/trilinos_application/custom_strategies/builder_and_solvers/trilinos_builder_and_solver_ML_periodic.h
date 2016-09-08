@@ -490,7 +490,7 @@ private:
     void CopyEquationId(ModelPart::NodeType& rOrigin,
                         ModelPart::NodeType& rDest)
     {
-        for (typename DofsArrayType::iterator itDof = rOrigin.GetDofs().begin(); itDof != rOrigin.GetDofs().end(); itDof++)
+        for ( Node<3>::DofsContainerType::iterator itDof = rOrigin.GetDofs().begin(); itDof != rOrigin.GetDofs().end(); itDof++)
             rDest.pGetDof( itDof->GetVariable() )->SetEquationId( itDof->EquationId() );
     }
 
