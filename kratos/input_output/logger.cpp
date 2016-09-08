@@ -2,12 +2,12 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand 
+//  Main authors:    Pooyan Dadvand
 //                   Carlos Roig
 //
 
@@ -15,7 +15,7 @@
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -33,20 +33,26 @@ namespace Kratos
 	Logger::~Logger()
 	{
 		auto outputs = GetOutputsInstance();
-		for (auto i_output = outputs.begin(); i_output != outputs.end(); i_output++)
-			i_output->WriteMessage(mCurrentMessage);
+		#pragma omp critical
+		{
+			for (auto i_output = outputs.begin(); i_output != outputs.end(); i_output++)
+				i_output->WriteMessage(mCurrentMessage);
+		}
 	}
 
 	void Logger::AddOutput(LoggerOutput const& TheOutput)
 	{
-		GetOutputsInstance().push_back(TheOutput);
+		#pragma omp critical
+		{
+		  GetOutputsInstance().push_back(TheOutput);
+		}
 	}
 
     std::string Logger::Info() const
 	{
 		return "Logger";
 	}
-      
+
       /// Print information about this object.
     void Logger::PrintInfo(std::ostream& rOStream) const
 	{
@@ -55,7 +61,7 @@ namespace Kratos
     void Logger::PrintData(std::ostream& rOStream) const
 	{
 	}
-	  
+
 	/// char stream function
 	Logger& Logger::operator << (const char * rString)
 	{
@@ -85,7 +91,5 @@ namespace Kratos
 	}
 
 
-  
+
 }  // namespace Kratos.
-
-
