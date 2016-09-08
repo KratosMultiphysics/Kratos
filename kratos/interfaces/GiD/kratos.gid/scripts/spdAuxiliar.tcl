@@ -585,6 +585,7 @@ proc spdAux::injectSolStratParams {basenode args} {
     set contnode [$basenode parent]
     set params [::Model::GetSolStratParams {*}$args]
     foreach {parname par} $params {
+        #W "$parname [$contnode find n $parname]"
         if {[$contnode find n $parname] eq ""} {
             set pn [$par getPublicName]
             set type [$par getType]
@@ -618,8 +619,6 @@ proc spdAux::injectSolStratParams {basenode args} {
             append node "/>"
             catch {
                 $contnode appendXML $node
-            
-                $contnode appendXML $node
                 set orig [$contnode lastChild]
                 set new [$orig cloneNode]
                 $orig delete
@@ -631,6 +630,7 @@ proc spdAux::injectSolStratParams {basenode args} {
     set params [::Model::GetSchemesParams {*}$args]
     
     foreach {parname par} $params {
+        #W "$parname [$contnode find n $parname]"
         if {[$contnode find n $parname] eq ""} {
             set pn [$par getPublicName]
             set type [$par getType]
@@ -1386,7 +1386,7 @@ proc spdAux::ProcCheckDimension { domNode args } {
     
     if {$checkdim eq $::Model::SpatialDimension} {return "normal"} else {return "hidden"}
 }
-proc spdAux::ProcgetStateFromXPathValue { domNode args } {
+proc spdAux::ProcgetStateFromXPathValue2 { domNode args } {
     set args {*}$args
     set arglist [split $args " "]
     set xpath {*}[lindex $arglist 0]
@@ -1396,6 +1396,15 @@ proc spdAux::ProcgetStateFromXPathValue { domNode args } {
     if {$pst == $checkvalue} { return "normal"} else {return "hidden"}
 }
 
+proc spdAux::ProcgetStateFromXPathValue { domNode args } {
+    set args {*}$args
+    set arglist [split $args " "]
+    set xpath {*}[lindex $arglist 0]
+    set checkvalue [split [lindex $arglist 1] ","]
+    set pst [$domNode selectNodes $xpath]
+    #W "xpath $xpath checkvalue $checkvalue pst $pst"
+    if {$pst in $checkvalue} { return "normal"} else {return "hidden"}
+}
 proc spdAux::ProcConditionState { domNode args } {
     
     set resp [::Model::CheckConditionState $domNode]
