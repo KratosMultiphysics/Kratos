@@ -56,47 +56,55 @@ namespace Python
 
 class PythonGenericFunctionUtility
 {
-public:
-    PythonGenericFunctionUtility( Variable<double>& rVariable, ModelPart::NodesContainerType& rNodes, PyObject* obj): mrVariable(rVariable), mrNodes(rNodes), mpy_obj(obj)
-    {}
+    public:
+        PythonGenericFunctionUtility(  ModelPart::NodesContainerType& rNodes, PyObject* obj): mrNodes(rNodes), mpy_obj(obj)
+        {}
 
-    void ApplyFunction(const double t)
-    {
-        //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
-        for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
+        void ApplyFunctionToScalar(const Variable<double>& rVariable, const double t)
         {
-            ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
-            const double value = CallFunction(i->X(), i->Y(), i->Z(), t);
-            i->FastGetSolutionStepValue(mrVariable) = value;
+            //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
+            for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
+            {
+                ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
+                const double value = CallFunction(i->X(), i->Y(), i->Z(), t);
+                i->FastGetSolutionStepValue(rVariable) = value;
+            }
         }
-    }
 
-    std::vector <double> ReturnFunction(const double t)
-    {
-        std::vector<double> values;
-        //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
-        for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
+        void ApplyFunctionToComponent(const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& rVariable, const double t)
         {
-            ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
-            const double value = CallFunction(i->X(), i->Y(), i->Z(), t);
-            values.push_back(value);
+            //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
+            for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
+            {
+                ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
+                const double value = CallFunction(i->X(), i->Y(), i->Z(), t);
+                i->FastGetSolutionStepValue(rVariable) = value;
+            }
         }
         
-        return values;
-    }
+        std::vector <double> ReturnFunction(const double t)
+        {
+            std::vector<double> values;
+            //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
+            for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
+            {
+                ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
+                const double value = CallFunction(i->X(), i->Y(), i->Z(), t);
+                values.push_back(value);
+            }
+            
+            return values;
+        }
+
+    private:
+        ModelPart::NodesContainerType& mrNodes;
+        PyObject* mpy_obj;
 
 
-
-private:
-    Variable<double> mrVariable;
-    ModelPart::NodesContainerType& mrNodes;
-    PyObject* mpy_obj;
-
-
-    double CallFunction(const double x, const double y, const double z, const double t)
-    {
-        return boost::python::call_method<double>(mpy_obj, "f", x,y,z,t);
-    }
+        double CallFunction(const double x, const double y, const double z, const double t)
+        {
+            return boost::python::call_method<double>(mpy_obj, "f", x,y,z,t);
+        }
 };
 
 void GenerateModelPart(ConnectivityPreserveModeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const char* ElementName, const char* ConditionName)
@@ -116,9 +124,10 @@ void AddUtilitiesToPython()
 {
     using namespace boost::python;
 
-    class_<PythonGenericFunctionUtility>("PythonGenericFunctionUtility", init<Variable<double>& , ModelPart::NodesContainerType& , PyObject*>() )
-    .def("ApplyFunction", &PythonGenericFunctionUtility::ApplyFunction)
-    .def("ReturnFunction", &PythonGenericFunctionUtility::ApplyFunction)
+    class_<PythonGenericFunctionUtility >("PythonGenericFunctionUtility", init<ModelPart::NodesContainerType& , PyObject*>() )
+    .def("ApplyFunction", &PythonGenericFunctionUtility::ApplyFunctionToScalar)
+    .def("ApplyFunction", &PythonGenericFunctionUtility::ApplyFunctionToComponent)
+     .def("ReturnFunction", &PythonGenericFunctionUtility::ReturnFunction)
     ;
 
 
