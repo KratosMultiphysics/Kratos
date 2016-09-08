@@ -197,6 +197,29 @@ DAMAGE_THRESHOLD          *MatProp(Damage_Threshold,real)
 FRICTION_COEFFICIENT      *MatProp(Friction_Coefficient,real)
 End Properties
 
+*elseif(strcmp(MatProp(Element_Type),"Damage")==0 && (strcmp(MatProp(Damage_Constitutive_Law),"RestoreSimoJuPlaneStrain2DLaw")==0 || strcmp(MatProp(Damage_Constitutive_Law),"RestoreSimoJuPlaneStress2DLaw")==0))
+Begin Properties  *MatNum
+CONSTITUTIVE_LAW_NAME     *MatProp(Damage_Constitutive_Law)
+DENSITY                   *MatProp(Density,real)
+YOUNG_MODULUS             *MatProp(Young_Modulus,real)
+POISSON_RATIO             *MatProp(Poisson_Ratio,real)
+DAMAGE_THRESHOLD          *MatProp(Damage_Threshold,real)
+STRENGTH_RATIO            *MatProp(Strength_Ratio,real)
+FRACTURE_ENERGY           *MatProp(Fracture_Energy,real)
+THICKNESS                 *MatProp(Thickness,real)
+End Properties
+
+*elseif(strcmp(MatProp(Element_Type),"Damage")==0 && (strcmp(MatProp(Damage_Constitutive_Law),"RestoreSimoJu3DLaw")==0))
+Begin Properties  *MatNum
+CONSTITUTIVE_LAW_NAME     *MatProp(Damage_Constitutive_Law)
+DENSITY                   *MatProp(Density,real)
+YOUNG_MODULUS             *MatProp(Young_Modulus,real)
+POISSON_RATIO             *MatProp(Poisson_Ratio,real)
+DAMAGE_THRESHOLD          *MatProp(Damage_Threshold,real)
+STRENGTH_RATIO            *MatProp(Strength_Ratio,real)
+FRACTURE_ENERGY           *MatProp(Fracture_Energy,real)
+End Properties
+
 *endif
 *end materials
 
