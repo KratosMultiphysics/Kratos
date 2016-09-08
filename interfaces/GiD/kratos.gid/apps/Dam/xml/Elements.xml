@@ -18,7 +18,7 @@
 
     <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
-      <filter field="Type" value="PlaneStress,PlaneStrain,ThermalPlaneStress,ThermalPlaneStrain"/>
+      <filter field="Type" value="PlaneStress,PlaneStrain,ThermalPlaneStress,ThermalPlaneStrain,DamageStrain,DamageStress"/>
       <filter field="Dimension" value="2D"/>
       <filter field="StrainSize" value="3"/>
     </ConstitutiveLaw_FilterFeatures>
@@ -61,7 +61,7 @@
 
     <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
-      <filter field="Type" value="Linear3D,Thermal3D"/>
+      <filter field="Type" value="Linear3D,Thermal3D,Damage3D"/>
       <filter field="Dimension" value="3D"/>
       <filter field="StrainSize" value="6"/>
     </ConstitutiveLaw_FilterFeatures>
@@ -102,7 +102,7 @@
 
     <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
-      <filter field="Type" value="Bilinear3D"/>
+      <filter field="Type" value="Interface3D"/>
     </ConstitutiveLaw_FilterFeatures>
 
     <!--define list of NodalConditions-->
@@ -128,7 +128,7 @@
     </outputs>
   </ElementItem>
  
-  <ElementItem n="SmallDisplacementIntefaceElement2D" pn="Joint Element" ImplementedInFile="small_displacement_interface_element.cpp"
+  <ElementItem n="SmallDisplacementInterfaceElement2D" pn="Joint Element" ImplementedInFile="small_displacement_interface_element.cpp"
 	       ImplementedInApplication="DamApplication" MinimumKratosVersion="13000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="2D" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" 
 	       ElementType="Joint" help="">
