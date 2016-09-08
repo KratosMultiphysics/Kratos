@@ -172,7 +172,7 @@ void BinghamViscoplasticFlowRule::CalculateScalingFactors(const RadialReturnVari
 	double DeltaHardening = 0;
 	
 	double eta = GetProperties().GetValue(VISCOSITY);
-    double dt = rReturnMappingVariables.DeltaTime;
+    //double dt = rReturnMappingVariables.DeltaTime;
 	
 	HardeningLaw::Parameters HardeningParameters;
 	HardeningParameters.SetTemperature(rReturnMappingVariables.Temperature);
