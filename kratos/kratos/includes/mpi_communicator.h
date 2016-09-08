@@ -305,13 +305,15 @@ public:
     
     virtual bool ScanSum(const double& send_partial, double& receive_accumulated)
     {
-        MPI_Scan(&send_partial, &receive_accumulated, 1, MPI_DOUBLE, MPI_SUM , MPI_COMM_WORLD);
+        double copy_of_send_partial = send_partial;
+        MPI_Scan(&copy_of_send_partial, &receive_accumulated, 1, MPI_DOUBLE, MPI_SUM , MPI_COMM_WORLD);
         return true;
     }
     
     virtual bool ScanSum(const int& send_partial, int& receive_accumulated)
     {
-        MPI_Scan(&send_partial, &receive_accumulated, 1, MPI_INT, MPI_SUM , MPI_COMM_WORLD);
+        int copy_of_send_partial = send_partial;
+        MPI_Scan(&copy_of_send_partial, &receive_accumulated, 1, MPI_INT, MPI_SUM , MPI_COMM_WORLD);
         return true;
     }
 
@@ -652,19 +654,19 @@ public:
 
     virtual bool SynchronizeElementalNonHistoricalVariable(Variable<vector<array_1d<double,3> > > const& ThisVariable)
     {
-        SynchronizeElementalNonHistoricalVariable<vector<array_1d<double,3> >,double>(ThisVariable);
+        SynchronizeHeterogeneousElementalNonHistoricalVariable<array_1d<double,3>,double>(ThisVariable);
         return true;
     }
     
     virtual bool SynchronizeElementalNonHistoricalVariable(Variable<vector<int> > const& ThisVariable)
     {
-        SynchronizeHeterogeneousElementalNonHistoricalVariable<vector<int>,int>(ThisVariable);
+        SynchronizeHeterogeneousElementalNonHistoricalVariable<int,int>(ThisVariable);
         return true;
     }
 
     virtual bool SynchronizeElementalNonHistoricalVariable(Variable<Vector> const& ThisVariable)
     {
-        SynchronizeHeterogeneousElementalNonHistoricalVariable<Vector,double>(ThisVariable);
+        SynchronizeHeterogeneousElementalNonHistoricalVariable<double,double>(ThisVariable);
         return true;
     }
 
@@ -1402,7 +1404,7 @@ private:
     
     
     template< class TDataType, class TSendType >
-    bool SynchronizeHeterogeneousElementalNonHistoricalVariable(Variable<TDataType> const& ThisVariable)
+    bool SynchronizeHeterogeneousElementalNonHistoricalVariable(Variable<vector<TDataType> > const& ThisVariable)
     {
         int rank;
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -1435,11 +1437,11 @@ private:
                 
                 unsigned int size_of_variable = 0;
 
-                // Filling the send buffer
+                // Filling the send buffer of sizes
                 std::vector<int> sent_vector_of_sizes(send_buffer_size, 0);
                 unsigned int position = 0;
                 for (ModelPart::ElementIterator i_element = r_local_elements.begin(); i_element != r_local_elements.end(); ++i_element) {
-                    TDataType& variable = i_element->GetValue(ThisVariable);
+                    vector<TDataType>& variable = i_element->GetValue(ThisVariable);
                     size_of_variable = variable.size();
                     sent_vector_of_sizes[position] = size_of_variable;
                     send_buffer_1[position] = size_of_variable;
@@ -1467,17 +1469,23 @@ private:
 
                 delete [] send_buffer_1;
                 delete [] receive_buffer_1;
-                               
-                ////////////STEP 2 : SEND ACTUAL VECTORS                
+                
+                ////////////////////////////////////////               
+                ////////////STEP 2 : SEND ACTUAL VECTORS
+                ////////////////////////////////////////
+                int size_of_each_component_of_the_vector = sizeof (TDataType) / sizeof (TSendType);
+                
                 int sent_total_size = 0;
                 for (int i=0; i< (int) sent_vector_of_sizes.size(); i++) {
                     sent_total_size += sent_vector_of_sizes[i];
                 }
+                sent_total_size *= size_of_each_component_of_the_vector;
                 
                 unsigned int received_total_size = 0;
                 for (int i=0; i< (int) received_vector_of_sizes.size(); i++) {
                     received_total_size += received_vector_of_sizes[i];
                 }
+                received_total_size *= size_of_each_component_of_the_vector;
 
                 TSendType* send_buffer_2 = new TSendType[sent_total_size];
                 TSendType* receive_buffer_2 = new TSendType[received_total_size];
@@ -1488,13 +1496,13 @@ private:
                 for (ModelPart::ElementIterator i_element = r_local_elements.begin(); i_element != r_local_elements.end(); ++i_element) {
 
                     int size_of_this_one = sent_vector_of_sizes[i];
-                    TDataType& variable_to_add = i_element->GetValue(ThisVariable);
+                    vector<TDataType>& variable_to_add = i_element->GetValue(ThisVariable);
                     
                     for (int j=0; j<size_of_this_one; j++){
-                        send_buffer_2[position + j] = variable_to_add[j];
+                        *(TDataType*) (send_buffer_2 + position + size_of_each_component_of_the_vector*j) = variable_to_add[j];
                     }
                     
-                    position += sent_vector_of_sizes[i];
+                    position += size_of_each_component_of_the_vector * sent_vector_of_sizes[i];
                     i++;
                 }
                 
@@ -1504,18 +1512,17 @@ private:
                 MPI_Status status2;
                 send_tag = i_color;
                 receive_tag = i_color;
-                MPI_Sendrecv(send_buffer_2, sent_total_size, ThisMPI_Datatype, destination, send_tag, receive_buffer_2, received_total_size, ThisMPI_Datatype, destination, receive_tag,
-                             MPI_COMM_WORLD, &status2);
+                MPI_Sendrecv(send_buffer_2, sent_total_size, ThisMPI_Datatype, destination, send_tag, receive_buffer_2, received_total_size, ThisMPI_Datatype, destination, receive_tag, MPI_COMM_WORLD, &status2);
 
                 position = 0, i=0;
                 for (ModelPart::ElementIterator i_element = r_ghost_elements.begin(); i_element != r_ghost_elements.end(); ++i_element) {                                      
-                    int size_of_this_one = received_vector_of_sizes[i];
-                    TDataType& variable_to_fill = i_element->GetValue(ThisVariable);  
-                    variable_to_fill.resize(size_of_this_one);
-                    for (int j=0; j<size_of_this_one; j++){
-                        variable_to_fill[j] =  receive_buffer_2[position + j];
+                    int size_of_this_vector = received_vector_of_sizes[i];
+                    vector<TDataType>& variable_to_fill = i_element->GetValue(ThisVariable);  
+                    variable_to_fill.resize(size_of_this_vector);
+                    for (int j=0; j<size_of_this_vector; j++){
+                        variable_to_fill[j] = *reinterpret_cast<TDataType*> (receive_buffer_2 + position + size_of_each_component_of_the_vector*j);
                     }
-                    position += size_of_this_one;
+                    position += size_of_each_component_of_the_vector * size_of_this_vector;
                     i++;
                 }
 
