@@ -26,4 +26,10 @@ def SetConstitutiveLaw(model_part):
             prop.SetValue(CONSTITUTIVE_LAW, BilinearCohesive2DLaw())
         elif(ConstitutiveLawName == "BilinearCohesive3DLaw"):
             prop.SetValue(CONSTITUTIVE_LAW, BilinearCohesive3DLaw())
+        elif(ConstitutiveLawName == "RestoreSimoJu3DLaw"):
+            prop.SetValue(CONSTITUTIVE_LAW, RestoreSimoJu3DLaw())
+        elif(ConstitutiveLawName == "RestoreSimoJuPlaneStrain2DLaw"):
+            prop.SetValue(CONSTITUTIVE_LAW, RestoreSimoJuPlaneStrain2DLaw())
+        elif(ConstitutiveLawName == "RestoreSimoJuPlaneStress2DLaw"):
+            prop.SetValue(CONSTITUTIVE_LAW, RestoreSimoJuPlaneStress2DLaw())
 
