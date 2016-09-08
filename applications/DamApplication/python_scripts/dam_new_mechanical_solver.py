@@ -124,14 +124,17 @@ class DamMechanicalSolver:
         print("Mechanical variables correctly added")
 
     def ImportModelPart(self):
-        
+                        
         if(self.settings["mechanical_settings"]["model_import_settings"]["input_type"].GetString() == "mdpa"):
             
             # Here it would be the place to import restart data if required
             KratosMultiphysics.ModelPartIO(self.settings["mechanical_settings"]["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
+            print("    Import input model part.")
             
+            self.computing_model_part_name = "solid_computing_domain"
             ## Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
             aux_params = KratosMultiphysics.Parameters("{}")
+            aux_params.AddEmptyValue("computing_model_part_name").SetString(self.computing_model_part_name)
             aux_params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
             aux_params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
             
@@ -195,7 +198,7 @@ class DamMechanicalSolver:
         print ("Initialization DamSolver finished")
         
     def GetComputingModelPart(self):
-        return self.main_model_part.GetSubModelPart("solid_computational_model_part")
+        return self.main_model_part.GetSubModelPart("solid_computing_domain")
     
     def GetOutputVariables(self):
         pass
