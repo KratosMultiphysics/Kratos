@@ -32,7 +32,7 @@ proc ::FSI::xml::MultiAppEvent {args} {
 
 
 proc FSI::xml::CustomTree { args } {
-    # Hide Results Cut planes
+    # Modify the tree: field newValue UniqueName OptionalChild
     spdAux::SetValueOnTreeItem v "Monolithic" FLSolStrat
     spdAux::SetValueOnTreeItem v "Yes" FLStratParams compute_reactions
 }
