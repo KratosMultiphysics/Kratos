@@ -646,7 +646,7 @@ public:
 
                 for ( typename Element::DofsVectorType::iterator i = ElementalDofList.begin() ; i != ElementalDofList.end() ; ++i )
                 {
-                    Doftemp.push_back( *i );
+                    Doftemp.push_back( i->get() );
                 }
             }
         }
@@ -664,8 +664,7 @@ public:
 
                 for ( typename Element::DofsVectorType::iterator i = ElementalDofList.begin() ; i != ElementalDofList.end() ; ++i )
                 {
-                    //mDofSet.push_back(*i);
-                    Doftemp.push_back( *i );
+                    Doftemp.push_back( i->get() );
                 }
             }
         }
@@ -933,13 +932,13 @@ public:
             //TODO: store back received dofs into Doftemp!!!
             for( typename NodesArrayType::iterator it = r_model_part.NodesBegin(); it != r_model_part.NodesEnd(); ++it )
             {
-                for( typename DofsArrayType::iterator jt = it->GetDofs().begin(); jt != it->GetDofs().end(); ++jt )
+                for( Node<3>::DofsContainerType::iterator jt = it->GetDofs().begin(); jt != it->GetDofs().end(); ++jt )
                 {
                     for( int j = 0; j < recv_size; j++ )
                     {
                         if( dofs_key_recv_buffer[j] == static_cast<int>(jt->GetVariable().Key() ) )
                         {
-                            Doftemp.push_back( *(jt.base()) );
+                            Doftemp.push_back( jt.base()->get() );
 //                             KRATOS_WATCH( dofs_index_recv_buffer[j] );
                         }
                     }

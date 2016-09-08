@@ -563,7 +563,7 @@ public:
 
             for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin() ; i != ElementalDofList.end() ; ++i)
             {
-                Doftemp.push_back(*i);
+                Doftemp.push_back( i->get() );
             }
         }
 
@@ -577,7 +577,7 @@ public:
             for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin() ; i != ElementalDofList.end() ; ++i)
             {
                 //mDofSet.push_back(*i);
-                Doftemp.push_back(*i);
+                Doftemp.push_back( i->get() );
             }
         }
 
@@ -673,14 +673,14 @@ public:
                 {
                     unsigned int key = remote_keys[i_color][counter++];
 
-                    ModelPart::DofsArrayType::iterator i_dof;
+                    Node<3>::DofsContainerType::iterator i_dof;
                     for (i_dof = it->GetDofs().begin() ; i_dof !=  it->GetDofs().end() ; i_dof++)
                         if (i_dof->GetVariable().Key() == key)
                             break;
                     if(i_dof == it->GetDofs().end())
                         KRATOS_THROW_ERROR(std::logic_error,"dof not found",*i_dof);
 
-                    Doftemp.push_back(*i_dof.base());
+                    Doftemp.push_back( i_dof.base()->get() );
 
                 }
             }
@@ -783,12 +783,12 @@ public:
                 {
                     unsigned int key = remote_keys[i_color][counter++];
 
-                    ModelPart::DofsArrayType::iterator i_dof;
+                    Node<3>::DofsContainerType::iterator i_dof;
                     for (i_dof = it->GetDofs().begin() ; i_dof !=  it->GetDofs().end() ; i_dof++)
                         if (i_dof->GetVariable().Key() == key)
                             break;
 
-                    Doftemp.push_back(*i_dof.base());
+                    Doftemp.push_back( i_dof.base()->get() );
 
                 }
             }

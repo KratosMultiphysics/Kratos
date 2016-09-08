@@ -576,8 +576,8 @@ public:
             for(ModelPart::NodesContainerType::iterator it =  r_model_part.NodesBegin();
                     it != r_model_part.NodesEnd(); it++)
             {
-                Doftemp.push_back(it->pGetDof(mrVar_x)  );
-                Doftemp.push_back(it->pGetDof(mrVar_y)  );
+                Doftemp.push_back(it->pGetDof(mrVar_x).get()  );
+                Doftemp.push_back(it->pGetDof(mrVar_y).get()  );
             }
         }
         else
@@ -585,9 +585,9 @@ public:
             for(ModelPart::NodesContainerType::iterator it = r_model_part.NodesBegin();
                     it != r_model_part.NodesEnd(); it++)
             {
-                Doftemp.push_back(it->pGetDof(mrVar_x)  );
-                Doftemp.push_back(it->pGetDof(mrVar_y)  );
-                Doftemp.push_back(it->pGetDof(mrVar_z)  );
+                Doftemp.push_back(it->pGetDof(mrVar_x).get()  );
+                Doftemp.push_back(it->pGetDof(mrVar_y).get()  );
+                Doftemp.push_back(it->pGetDof(mrVar_z).get()  );
             }
         }
 
