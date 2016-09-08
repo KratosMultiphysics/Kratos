@@ -71,7 +71,7 @@ class ApplyCustomFunctionProcess(KratosMultiphysics.Process):
         self.variable_utils = KratosMultiphysics.VariableUtils()
         
         self.tmp = aux_object_cpp_callback(self.compiled_function)
-        self.cpp_apply_function_utility = KratosMultiphysics.PythonGenericFunctionUtility(self.variable, self.mesh.Nodes, self.tmp ) 
+        self.cpp_apply_function_utility = KratosMultiphysics.PythonGenericFunctionUtility(self.mesh.Nodes, self.tmp ) 
             
         print("finished construction of ApplyCustomFunctionProcess Process")
     
@@ -98,13 +98,13 @@ class ApplyCustomFunctionProcess(KratosMultiphysics.Process):
                 #node.SetSolutionStepValue(self.variable,0,    self.function(node.X,node.Y,node.Z, current_time)    )
                 
             #ultimate version. calling custom defined function from c++
-            self.cpp_apply_function_utility.ApplyFunction(current_time)
+            self.cpp_apply_function_utility.ApplyFunction(self.variable, current_time)
             
     def ExecuteFinalizeSolutionStep(self):
         if self.free_outside_of_interval:
             current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         
-            if(current_time > self.interval[0] and  current_time<self.interval[1]):
+            if(current_time > self.interval[0].GetDouble() and  current_time<self.interval[1].GetDouble()):
                 
                 #here we free all of the nodes in the mesh
                 fix = False
