@@ -216,6 +216,8 @@ class MechanicalSolver(object):
 
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
 
+            print(self.main_model_part)
+
         else:
             raise Exception("Other input options are not yet implemented.")
         
