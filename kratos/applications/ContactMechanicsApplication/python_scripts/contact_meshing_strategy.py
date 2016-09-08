@@ -88,7 +88,7 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
         FrictionLaw = getattr(getattr(module, module_name), friction_law_type_name)
 
         friction_law = FrictionLaw()
-        #kratos can not define an custom application variable type
+        #properties have not python interface for this variable type
         #properties.SetValue( KratosContact.FRICTION_LAW, friction_law.Clone() )
 
         #properties.SetValue(KratosContact.FRICTION_LAW_NAME, friction_law_type_name )

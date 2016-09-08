@@ -51,6 +51,10 @@ namespace Kratos
       	.def( "PushBack", Push_Back_Friction_Laws )
       	;
 
+       class_<Variable<FrictionLaw::Pointer>, bases<VariableData>, boost::noncopyable >( "FrictionLawVariable", no_init )
+	 .def( self_ns::str( self ) )
+	 ;
+       
        //Friction laws
        class_< FrictionLaw, FrictionLaw::Pointer, boost::noncopyable >
       	( "FrictionLaw",  init<>() )
