@@ -431,7 +431,7 @@ KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangianQuadrilateral, COMPUTE_LHS_MATRIX_WIT
                                  ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        //const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         //create and initialize element variables:
         GeneralVariables Variables;
         
@@ -558,7 +558,7 @@ KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangianQuadrilateral, COMPUTE_LHS_MATRIX_WIT
     {
         KRATOS_TRY
 
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        //const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         
         //Define the stress measure
         rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
@@ -1098,7 +1098,7 @@ KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangianQuadrilateral, COMPUTE_LHS_MATRIX_WIT
                 
         
         
-        int MP_bool = this->GetValue(MP_BOOL);
+        //int MP_bool = this->GetValue(MP_BOOL);
         
         //std::cout<<" in InitializeSolutionStep2"<<std::endl;
             unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -1529,14 +1529,14 @@ void UpdatedLagrangianQuadrilateral::IterativeExtrapolation( ProcessInfo& rCurre
         KRATOS_TRY
 
 		
-		const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-		const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-		unsigned int voigtsize  = 3;
+		//const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+		//const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+		//unsigned int voigtsize  = 3;
             
-        if( dimension == 3 )
-        {
-            voigtsize  = 6;
-        }
+        //if( dimension == 3 )
+        //{
+            //voigtsize  = 6;
+        //}
         //Vector NodalStress = ZeroVector(voigtsize);
         array_1d<double,3> NodalStress;
         //create and initialize element variables:
@@ -1704,15 +1704,15 @@ void UpdatedLagrangianQuadrilateral::IterativeExtrapolation( ProcessInfo& rCurre
         array_1d<double,3> xg = this->GetValue(GAUSS_COORD);
         array_1d<double,3> MP_PreviousAcceleration = this->GetValue(MP_ACCELERATION);
         array_1d<double,3> MP_PreviousVelocity = this->GetValue(MP_VELOCITY);
-        double MP_Mass = this->GetValue(MP_MASS);
+        //double MP_Mass = this->GetValue(MP_MASS);
         array_1d<double,3> delta_xg = ZeroVector(3);
         array_1d<double,3> MP_Acceleration = ZeroVector(3);
         array_1d<double,3> MP_Velocity = ZeroVector(3);
-        double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
+        //double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
         
         
         rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, xg);
-        int MP_number = this->GetValue(MP_NUMBER);
+        //int MP_number = this->GetValue(MP_NUMBER);
         
         //double total_nodal_mass = 0.0;
         //for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -2592,367 +2592,367 @@ void UpdatedLagrangianQuadrilateral::IterativeExtrapolation( ProcessInfo& rCurre
 //************************************************************************************
 //************************************************************************************
 
-    void UpdatedLagrangianQuadrilateral::CalculateOnIntegrationPoints( const Variable<double>& rVariable, double& rOutput, ProcessInfo& rCurrentProcessInfo )
-    {
+    //void UpdatedLagrangianQuadrilateral::CalculateOnIntegrationPoints( const Variable<double>& rVariable, double& rOutput, ProcessInfo& rCurrentProcessInfo )
+    //{
         
-        rOutput = mConstitutiveLawVector->GetValue( rVariable, rOutput );
-    }
+        //rOutput = mConstitutiveLawVector->GetValue( rVariable, rOutput );
+    //}
 
 //************************************************************************************
 //************************************************************************************
 
-    void UpdatedLagrangianQuadrilateral::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, Vector& rOutput, ProcessInfo& rCurrentProcessInfo )
-    {
+    //void UpdatedLagrangianQuadrilateral::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, Vector& rOutput, ProcessInfo& rCurrentProcessInfo )
+    //{
 
-        KRATOS_TRY
-
-        
+        //KRATOS_TRY
 
         
 
-        if ( rVariable == CAUCHY_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR )
-        {   
-            //create and initialize element variables:
-            GeneralVariables Variables;
-            this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
-
-            //create constitutive law parameters:
-            ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-
-            //set constitutive law flags:
-            Flags &ConstitutiveLawOptions=Values.GetOptions();
-
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-
-            
-            //compute element kinematics B, F, DN_DX ...
-            this->CalculateKinematics(Variables, rCurrentProcessInfo);
-
-            //to take in account previous step writing
-            if( mFinalizedStep ){
-                this->GetHistoricalVariables(Variables);
-            }
-
-            //set general variables to constitutivelaw parameters
-            this->SetGeneralVariables(Variables,Values);
-
-            //call the constitutive law to update material variables
-            if( rVariable == CAUCHY_STRESS_VECTOR)
-                mConstitutiveLawVector->CalculateMaterialResponseCauchy(Values);
-            else
-                mConstitutiveLawVector->CalculateMaterialResponsePK2(Values);
-
-
-            rOutput = Variables.StressVector;
-
-
-        }
-
         
-        else if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR )
-        {
-            //create and initialize element variables:
-            GeneralVariables Variables;
-            this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+
+        //if ( rVariable == CAUCHY_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR )
+        //{   
+            ////create and initialize element variables:
+            //GeneralVariables Variables;
+            //this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+
+            ////create constitutive law parameters:
+            //ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+            ////set constitutive law flags:
+            //Flags &ConstitutiveLawOptions=Values.GetOptions();
+
+            //ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+            //ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
             
-            //compute element kinematics B, F, DN_DX ...
-            this->CalculateKinematics(Variables, rCurrentProcessInfo);
+            ////compute element kinematics B, F, DN_DX ...
+            //this->CalculateKinematics(Variables, rCurrentProcessInfo);
 
-            //to take in account previous step writing
-            if( mFinalizedStep ){
-                this->GetHistoricalVariables(Variables);
-                Variables.FT = prod(Variables.F,Variables.F0);
-            }
-
-            //Compute Green-Lagrange Strain
-            if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR )
-                this->CalculateGreenLagrangeStrain( Variables.FT, Variables.StrainVector );
-            else
-                this->CalculateAlmansiStrain( Variables.FT, Variables.StrainVector );
-
-            if ( rOutput.size() != Variables.StrainVector.size() )
-                rOutput.resize( Variables.StrainVector.size(), false );
-
-            rOutput = Variables.StrainVector;
-
-            
-
-        }
-        else
-        {
-          
-            rOutput = mConstitutiveLawVector->GetValue( rVariable , rOutput );
-            
-        }
-
-        KRATOS_CATCH( "" )
-    }
-
-//************************************************************************************
-//************************************************************************************
-
-    void UpdatedLagrangianQuadrilateral::CalculateOnIntegrationPoints( const Variable<Matrix >& rVariable, Matrix& rOutput, ProcessInfo& rCurrentProcessInfo )
-    {
-        KRATOS_TRY
-
-       
-        
-        const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
-       
-
-        if ( rVariable == CAUCHY_STRESS_TENSOR || rVariable == PK2_STRESS_TENSOR )
-        {
-            //std::vector<Vector> StressVector;
-            Vector StressVector;
-            if( rVariable == CAUCHY_STRESS_TENSOR )
-                this->CalculateOnIntegrationPoints( CAUCHY_STRESS_VECTOR, StressVector, rCurrentProcessInfo );
-            else
-                this->CalculateOnIntegrationPoints( PK2_STRESS_VECTOR, StressVector, rCurrentProcessInfo );
-
-            
-            if ( rOutput.size2() != dimension )
-                rOutput.resize( dimension, dimension, false );
-
-            rOutput = MathUtils<double>::StressVectorToTensor(StressVector);
-
-           
-        }
-        else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == ALMANSI_STRAIN_TENSOR)
-        {
-
-            
-            Vector StrainVector;
-            if( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
-                CalculateOnIntegrationPoints( GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
-            else
-                CalculateOnIntegrationPoints( ALMANSI_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
-
-            
-
-            if ( rOutput.size2() != dimension )
-                rOutput.resize( dimension, dimension, false );
-
-            rOutput = MathUtils<double>::StrainVectorToTensor(StrainVector);
-            
-        }
-        else if ( rVariable == CONSTITUTIVE_MATRIX )
-        {
-            //create and initialize element variables:
-            GeneralVariables Variables;
-            this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
-
-            //create constitutive law parameters:
-            ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-
-            //set constitutive law flags:
-            Flags &ConstitutiveLawOptions=Values.GetOptions();
-
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-            //ConstitutiveLawOptions.Set(ConstitutiveLaw::LAST_KNOWN_CONFIGURATION); //contact domain formulation UL
-
-            //compute element kinematics B, F, DN_DX ...
-            this->CalculateKinematics(Variables, rCurrentProcessInfo);
-
-            //set general variables to constitutivelaw parameters
-            this->SetGeneralVariables(Variables,Values);
-
-            //call the constitutive law to update material variables
-            //mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(Values); //contact domain formulation UL
-            mConstitutiveLawVector->CalculateMaterialResponseCauchy(Values); //contact domain formulation SL
-
-            if( rOutput.size2() != Variables.ConstitutiveMatrix.size2() )
-                rOutput.resize( Variables.ConstitutiveMatrix.size1() , Variables.ConstitutiveMatrix.size2() , false );
-
-            rOutput = Variables.ConstitutiveMatrix;
-
+            ////to take in account previous step writing
+            //if( mFinalizedStep ){
+                //this->GetHistoricalVariables(Variables);
             //}
 
+            ////set general variables to constitutivelaw parameters
+            //this->SetGeneralVariables(Variables,Values);
 
-        }
-        else if ( rVariable == DEFORMATION_GRADIENT )  // VARIABLE SET FOR TRANSFER PURPOUSES
-        {
-            //create and initialize element variables:
-            GeneralVariables Variables;
-            this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+            ////call the constitutive law to update material variables
+            //if( rVariable == CAUCHY_STRESS_VECTOR)
+                //mConstitutiveLawVector->CalculateMaterialResponseCauchy(Values);
+            //else
+                //mConstitutiveLawVector->CalculateMaterialResponsePK2(Values);
 
-           
-            //compute element kinematics B, F, DN_DX ...
-            this->CalculateKinematics(Variables, rCurrentProcessInfo);
 
-            if( rOutput.size2() != Variables.F.size2() )
-                rOutput.resize( Variables.F.size1() , Variables.F.size2() , false );
+            //rOutput = Variables.StressVector;
 
-            rOutput = Variables.F;
+
+        //}
+
+        
+        //else if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR )
+        //{
+            ////create and initialize element variables:
+            //GeneralVariables Variables;
+            //this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
 
             
-        }
-        else
-        {
-           
-            rOutput = mConstitutiveLawVector->GetValue( rVariable , rOutput );
+            ////compute element kinematics B, F, DN_DX ...
+            //this->CalculateKinematics(Variables, rCurrentProcessInfo);
+
+            ////to take in account previous step writing
+            //if( mFinalizedStep ){
+                //this->GetHistoricalVariables(Variables);
+                //Variables.FT = prod(Variables.F,Variables.F0);
+            //}
+
+            ////Compute Green-Lagrange Strain
+            //if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR )
+                //this->CalculateGreenLagrangeStrain( Variables.FT, Variables.StrainVector );
+            //else
+                //this->CalculateAlmansiStrain( Variables.FT, Variables.StrainVector );
+
+            //if ( rOutput.size() != Variables.StrainVector.size() )
+                //rOutput.resize( Variables.StrainVector.size(), false );
+
+            //rOutput = Variables.StrainVector;
+
             
-        }
+
+        //}
+        //else
+        //{
+          
+            //rOutput = mConstitutiveLawVector->GetValue( rVariable , rOutput );
+            
+        //}
+
+        //KRATOS_CATCH( "" )
+    //}
+
+//************************************************************************************
+//************************************************************************************
+
+    //void UpdatedLagrangianQuadrilateral::CalculateOnIntegrationPoints( const Variable<Matrix >& rVariable, Matrix& rOutput, ProcessInfo& rCurrentProcessInfo )
+    //{
+        //KRATOS_TRY
+
+       
+        
+        //const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+       
+
+        //if ( rVariable == CAUCHY_STRESS_TENSOR || rVariable == PK2_STRESS_TENSOR )
+        //{
+            ////std::vector<Vector> StressVector;
+            //Vector StressVector;
+            //if( rVariable == CAUCHY_STRESS_TENSOR )
+                //this->CalculateOnIntegrationPoints( CAUCHY_STRESS_VECTOR, StressVector, rCurrentProcessInfo );
+            //else
+                //this->CalculateOnIntegrationPoints( PK2_STRESS_VECTOR, StressVector, rCurrentProcessInfo );
+
+            
+            //if ( rOutput.size2() != dimension )
+                //rOutput.resize( dimension, dimension, false );
+
+            //rOutput = MathUtils<double>::StressVectorToTensor(StressVector);
+
+           
+        //}
+        //else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == ALMANSI_STRAIN_TENSOR)
+        //{
+
+            
+            //Vector StrainVector;
+            //if( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
+                //CalculateOnIntegrationPoints( GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
+            //else
+                //CalculateOnIntegrationPoints( ALMANSI_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
+
+            
+
+            //if ( rOutput.size2() != dimension )
+                //rOutput.resize( dimension, dimension, false );
+
+            //rOutput = MathUtils<double>::StrainVectorToTensor(StrainVector);
+            
+        //}
+        //else if ( rVariable == CONSTITUTIVE_MATRIX )
+        //{
+            ////create and initialize element variables:
+            //GeneralVariables Variables;
+            //this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+
+            ////create constitutive law parameters:
+            //ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+            ////set constitutive law flags:
+            //Flags &ConstitutiveLawOptions=Values.GetOptions();
+
+            //ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+            ////ConstitutiveLawOptions.Set(ConstitutiveLaw::LAST_KNOWN_CONFIGURATION); //contact domain formulation UL
+
+            ////compute element kinematics B, F, DN_DX ...
+            //this->CalculateKinematics(Variables, rCurrentProcessInfo);
+
+            ////set general variables to constitutivelaw parameters
+            //this->SetGeneralVariables(Variables,Values);
+
+            ////call the constitutive law to update material variables
+            ////mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(Values); //contact domain formulation UL
+            //mConstitutiveLawVector->CalculateMaterialResponseCauchy(Values); //contact domain formulation SL
+
+            //if( rOutput.size2() != Variables.ConstitutiveMatrix.size2() )
+                //rOutput.resize( Variables.ConstitutiveMatrix.size1() , Variables.ConstitutiveMatrix.size2() , false );
+
+            //rOutput = Variables.ConstitutiveMatrix;
+
+            ////}
+
+
+        //}
+        //else if ( rVariable == DEFORMATION_GRADIENT )  // VARIABLE SET FOR TRANSFER PURPOUSES
+        //{
+            ////create and initialize element variables:
+            //GeneralVariables Variables;
+            //this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+
+           
+            ////compute element kinematics B, F, DN_DX ...
+            //this->CalculateKinematics(Variables, rCurrentProcessInfo);
+
+            //if( rOutput.size2() != Variables.F.size2() )
+                //rOutput.resize( Variables.F.size1() , Variables.F.size2() , false );
+
+            //rOutput = Variables.F;
+
+            
+        //}
+        //else
+        //{
+           
+            //rOutput = mConstitutiveLawVector->GetValue( rVariable , rOutput );
+            
+        //}
                                                 
-        KRATOS_CATCH( "" )
-    }
+        //KRATOS_CATCH( "" )
+    //}
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
-    void UpdatedLagrangianQuadrilateral::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
-        double& rValues,
-        ProcessInfo& rCurrentProcessInfo )
-    {
-        if (rVariable == DETERMINANT_F){
+    //void UpdatedLagrangianQuadrilateral::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+        //double& rValues,
+        //ProcessInfo& rCurrentProcessInfo )
+    //{
+        //if (rVariable == DETERMINANT_F){
 
             
-            mDeterminantF0 = rValues;
-            mConstitutiveLawVector->SetValue(rVariable, rValues, rCurrentProcessInfo);
+            //mDeterminantF0 = rValues;
+            //mConstitutiveLawVector->SetValue(rVariable, rValues, rCurrentProcessInfo);
            
 
-        }
-        else{
+        //}
+        //else{
 
-            UpdatedLagrangianQuadrilateral::SetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-        }
-    }
+            //UpdatedLagrangianQuadrilateral::SetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+        //}
+    //}
 //********************************SET VECTOR VALUE************************************
 //************************************************************************************
 
-    void UpdatedLagrangianQuadrilateral::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable, Vector& rValues, ProcessInfo& rCurrentProcessInfo )
-    {
+    //void UpdatedLagrangianQuadrilateral::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable, Vector& rValues, ProcessInfo& rCurrentProcessInfo )
+    //{
        
-        mConstitutiveLawVector->SetValue( rVariable, rValues, rCurrentProcessInfo );
+        //mConstitutiveLawVector->SetValue( rVariable, rValues, rCurrentProcessInfo );
         
 
-    }
+    //}
 
 
 //*******************************SET MATRIX VALUE*************************************
 //************************************************************************************
 
-    void UpdatedLagrangianQuadrilateral::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, Matrix& rValues, ProcessInfo& rCurrentProcessInfo )
-    {
+    //void UpdatedLagrangianQuadrilateral::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, Matrix& rValues, ProcessInfo& rCurrentProcessInfo )
+    //{
     
-        mConstitutiveLawVector->SetValue( rVariable,
-                    rValues, rCurrentProcessInfo );
+        //mConstitutiveLawVector->SetValue( rVariable,
+                    //rValues, rCurrentProcessInfo );
         
 
-    }
+    //}
 //********************************SET CONSTITUTIVE VALUE******************************
 //************************************************************************************
 
-    void UpdatedLagrangianQuadrilateral::SetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
-        ConstitutiveLaw::Pointer& rValues,
-        ProcessInfo& rCurrentProcessInfo )
-    {
-        if(rVariable == CONSTITUTIVE_LAW)
-        {
+    //void UpdatedLagrangianQuadrilateral::SetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
+        //ConstitutiveLaw::Pointer& rValues,
+        //ProcessInfo& rCurrentProcessInfo )
+    //{
+        //if(rVariable == CONSTITUTIVE_LAW)
+        //{
             
-            mConstitutiveLawVector = rValues->Clone();
+            //mConstitutiveLawVector = rValues->Clone();
             
-        }
+        //}
 
-        if(rVariable == CONSTITUTIVE_LAW_POINTER)
-        {
+        //if(rVariable == CONSTITUTIVE_LAW_POINTER)
+        //{
             
-            mConstitutiveLawVector = rValues;
+            //mConstitutiveLawVector = rValues;
             
-        }
+        //}
 
-    }
+    //}
 //***************************GET DOUBLE VALUE*****************************************
 //************************************************************************************
 
-    void UpdatedLagrangianQuadrilateral::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
-            double& rValues,
-            ProcessInfo& rCurrentProcessInfo )
-    {    
-        if (rVariable == DETERMINANT_F){
+    //void UpdatedLagrangianQuadrilateral::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+            //double& rValues,
+            //ProcessInfo& rCurrentProcessInfo )
+    //{    
+        //if (rVariable == DETERMINANT_F){
 
             
-            rValues = mDeterminantF0;
+            //rValues = mDeterminantF0;
                 
-        }
-        else{       
+        //}
+        //else{       
             
-            rValues = mConstitutiveLawVector->GetValue( rVariable, rValues );
-        }
-    }
+            //rValues = mConstitutiveLawVector->GetValue( rVariable, rValues );
+        //}
+    //}
 
 //**************************GET VECTOR VALUE******************************************
 //************************************************************************************
 
-    void UpdatedLagrangianQuadrilateral::GetValueOnIntegrationPoints( const Variable<Vector>& rVariable, Vector& rValues, ProcessInfo& rCurrentProcessInfo )
-    {
+    //void UpdatedLagrangianQuadrilateral::GetValueOnIntegrationPoints( const Variable<Vector>& rVariable, Vector& rValues, ProcessInfo& rCurrentProcessInfo )
+    //{
         
-        if ( rVariable == PK2_STRESS_VECTOR ||  rVariable == CAUCHY_STRESS_VECTOR )
-        {
+        //if ( rVariable == PK2_STRESS_VECTOR ||  rVariable == CAUCHY_STRESS_VECTOR )
+        //{
 
-            CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+            //CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
-        }
-        else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR ||  rVariable == ALMANSI_STRAIN_VECTOR )
-        {
+        //}
+        //else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR ||  rVariable == ALMANSI_STRAIN_VECTOR )
+        //{
 
-            CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+            //CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
-        }
-        else
-        {
+        //}
+        //else
+        //{
 
            
-            rValues = mConstitutiveLawVector->GetValue( rVariable, rValues );
+            //rValues = mConstitutiveLawVector->GetValue( rVariable, rValues );
             
 
-        }
+        //}
 
 
-    }
+    //}
 
 //************************************************************************************
 //************************************************************************************
 
-    void UpdatedLagrangianQuadrilateral::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
-            Matrix& rValues, ProcessInfo& rCurrentProcessInfo )
-    {
+    //void UpdatedLagrangianQuadrilateral::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
+            //Matrix& rValues, ProcessInfo& rCurrentProcessInfo )
+    //{
         
         
-        if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR ||  rVariable == ALMANSI_STRAIN_TENSOR )
-        {
-            CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-        }
+        //if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR ||  rVariable == ALMANSI_STRAIN_TENSOR )
+        //{
+            //CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+        //}
 
-        if ( rVariable == PK2_STRESS_TENSOR ||  rVariable == CAUCHY_STRESS_TENSOR )
-        {
-            CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-        }
-        else
-        {
+        //if ( rVariable == PK2_STRESS_TENSOR ||  rVariable == CAUCHY_STRESS_TENSOR )
+        //{
+            //CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+        //}
+        //else
+        //{
             
-            rValues = mConstitutiveLawVector->GetValue( rVariable, rValues );
+            //rValues = mConstitutiveLawVector->GetValue( rVariable, rValues );
             
-        }
+        //}
         
-    }
+    //}
 //********************************GET CONSTITUTIVE VALUE******************************
 //************************************************************************************
 
-    void UpdatedLagrangianQuadrilateral::GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
-            ConstitutiveLaw::Pointer& rValues,
-            ProcessInfo& rCurrentProcessInfo )
-    {
+    //void UpdatedLagrangianQuadrilateral::GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
+            //ConstitutiveLaw::Pointer& rValues,
+            //ProcessInfo& rCurrentProcessInfo )
+    //{
 
-        if(rVariable == CONSTITUTIVE_LAW || rVariable == CONSTITUTIVE_LAW_POINTER)
-        {
+        //if(rVariable == CONSTITUTIVE_LAW || rVariable == CONSTITUTIVE_LAW_POINTER)
+        //{
             
-            rValues = mConstitutiveLawVector;
+            //rValues = mConstitutiveLawVector;
             
-        }
+        //}
 
-    }
+    //}
 //************************************************************************************
 //************************************************************************************
 
