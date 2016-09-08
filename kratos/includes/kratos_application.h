@@ -347,6 +347,23 @@ protected:
     ///@{
 
     //general conditions must be defined
+
+    //point conditions
+    const Condition  mPointCondition2D1N;
+    const Condition  mPointCondition3D1N;
+    //line conditions
+    const Condition  mLineCondition2D2N;
+    const Condition  mLineCondition2D3N;
+    const Condition  mLineCondition3D2N;
+    const Condition  mLineCondition3D3N;
+    //surface conditions
+    const Condition  mSurfaceCondition3D3N;
+    const Condition  mSurfaceCondition3D6N;
+    const Condition  mSurfaceCondition3D4N;
+    const Condition  mSurfaceCondition3D8N;
+    const Condition  mSurfaceCondition3D9N;
+
+    //deprecated conditions start
     const Condition  mCondition;
     const Condition  mCondition2D;
     const Condition  mCondition2D2N;
@@ -358,6 +375,7 @@ protected:
     const Condition  mCondition3D4N;
     const Condition  mCondition3D8N;
     const Condition  mCondition3D9N;
+    //deprecated conditions end
 
     // Periodic Condition 
     const PeriodicCondition mPeriodicCondition;
@@ -371,9 +389,9 @@ protected:
     const Element  mElement2D3N;
     const Element  mElement2D2N;	
 	
-    const Element mElement3D8N;
-    const Element mElement3D10N;
-    const Element mElement3D6N;
+    const Element  mElement3D8N;
+    const Element  mElement3D10N;
+    const Element  mElement3D6N;
 
 
     KratosComponents<VariableData>::ComponentsContainerType* mpVariableData;

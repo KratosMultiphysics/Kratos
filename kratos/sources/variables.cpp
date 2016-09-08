@@ -506,6 +506,23 @@ namespace Kratos
   //------------------------------------------------------------------------------//
 
   KratosApplication::KratosApplication() :
+
+    //point conditions
+    mPointCondition2D1N( 0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
+    mPointCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
+    //line conditions
+    mLineCondition2D2N( 0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mLineCondition2D3N( 0, Element::GeometryType::Pointer( new Line2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mLineCondition3D2N( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mLineCondition3D3N( 0, Element::GeometryType::Pointer( new Line3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    //surface conditions
+    mSurfaceCondition3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mSurfaceCondition3D6N( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) ),
+    mSurfaceCondition3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
+    mSurfaceCondition3D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
+    mSurfaceCondition3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9 ) ) ) ),
+
+    //deprecated conditions start
     mCondition2D( 0, Element::GeometryType::Pointer( new Geometry<Node<3> >( Element::GeometryType::PointsArrayType( 2  ) ) ) ), 
     mCondition2D2N( 0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2  ) ) ) ), 
     mCondition2D3N( 0, Element::GeometryType::Pointer( new Line2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3  ) ) ) ),
@@ -516,6 +533,8 @@ namespace Kratos
     mCondition3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
     mCondition3D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
     mCondition3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9 ) ) ) ),
+    //deprecated conditions end
+
     mPeriodicCondition(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2  ) ) ) ),
     mPeriodicConditionEdge(0, Element::GeometryType::Pointer( new Quadrilateral3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4  ) ) ) ),
     mPeriodicConditionCorner(0, Element::GeometryType::Pointer( new Hexahedra3D8<Node<3> >( Element::GeometryType::PointsArrayType( 8  ) ) ) ),
@@ -1016,6 +1035,23 @@ namespace Kratos
       Serializer::Register( "DofDouble", Dof<double>() );
 
       //Register specific conditions ( must be completed : conditions defined in kratos_application.h)
+
+      //point conditions
+      KRATOS_REGISTER_CONDITION( "PointCondition2D1N", mPointCondition2D1N );
+      KRATOS_REGISTER_CONDITION( "PointCondition3D1N", mPointCondition3D1N );
+      //line conditions
+      KRATOS_REGISTER_CONDITION( "LineCondition2D2N", mLineCondition2D2N );
+      KRATOS_REGISTER_CONDITION( "LineCondition2D3N", mLineCondition2D3N );
+      KRATOS_REGISTER_CONDITION( "LineCondition3D2N", mLineCondition3D2N );
+      KRATOS_REGISTER_CONDITION( "LineCondition3D3N", mLineCondition3D3N );
+      //surface conditions
+      KRATOS_REGISTER_CONDITION( "SurfaceCondition3D3N", mSurfaceCondition3D3N );
+      KRATOS_REGISTER_CONDITION( "SurfaceCondition3D6N", mSurfaceCondition3D6N );
+      KRATOS_REGISTER_CONDITION( "SurfaceCondition3D4N", mSurfaceCondition3D4N );
+      KRATOS_REGISTER_CONDITION( "SurfaceCondition3D8N", mSurfaceCondition3D8N );
+      KRATOS_REGISTER_CONDITION( "SurfaceCondition3D9N", mSurfaceCondition3D9N );
+
+      //deprecated conditions start
       KRATOS_REGISTER_CONDITION( "Condition2D", mCondition2D );
       KRATOS_REGISTER_CONDITION( "Condition2D2N", mCondition2D2N );
       KRATOS_REGISTER_CONDITION( "Condition2D3N", mCondition2D3N );
@@ -1026,6 +1062,8 @@ namespace Kratos
       KRATOS_REGISTER_CONDITION( "Condition3D4N", mCondition3D4N );
       KRATOS_REGISTER_CONDITION( "Condition3D8N", mCondition3D8N );
       KRATOS_REGISTER_CONDITION( "Condition3D9N", mCondition3D9N );
+      //deprecated conditions start
+
       KRATOS_REGISTER_CONDITION( "PeriodicCondition", mPeriodicCondition )
       KRATOS_REGISTER_CONDITION( "PeriodicConditionEdge", mPeriodicConditionEdge )
       KRATOS_REGISTER_CONDITION( "PeriodicConditionCorner", mPeriodicConditionCorner )
