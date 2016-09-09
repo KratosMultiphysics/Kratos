@@ -508,6 +508,24 @@ class TestModelPart(KratosUnittest.TestCase):
         ##next should throw an exception, since we try to add a node with Id1 which already exists
         with self.assertRaisesRegex(RuntimeError, "Error\: attempting to add pNewNode with Id \:1, unfortunately a \(different\) node with the same Id already exists\n"):
             sub2.AddNode( n1, 0 )
+            
+        #create two extra nodes in the model model_part2
+        n5 = model_part2.CreateNewNode(5,2.0,3.1,0.2)
+        n6 = model_part2.CreateNewNode(6,2.0,3.1,10.2)
+        
+        ### here we test adding a list of nodes at once
+        #now add node 4 and 5 to the model_part1 by Id - here it fails since we did not yet add node 4
+        with self.assertRaisesRegex(RuntimeError, "Error: the node with Id 4 does not exist in the root model part"):
+            sub1.AddNodes([4,5])
+            
+        model_part1.AddNode( n4, 0 )
+        model_part1.AddNode( n5, 0 )
+        
+        
+        sub1.AddNodes([4,5]) #now it works, since we already added the nodes
+        self.assertTrue( n4.Id in sub1.Nodes )
+        self.assertTrue( n5.Id in sub1.Nodes )
+        self.assertFalse( n5.Id in sub2.Nodes )
         
     def test_add_condition(self):
         model_part1 = ModelPart("Main")
@@ -535,9 +553,28 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertTrue( c3.Id in model_part1.Conditions )
         self.assertFalse( c3.Id in sub2.Conditions )
         
-        ##next should throw an exception, since we try to add a node with Id1 which already exists
+        ##next should throw an exception, since we try to add a condition with Id1 which already exists
         with self.assertRaisesRegex(RuntimeError, "Error\: attempting to add pNewCondition with Id \:1, unfortunately a \(different\) condition with the same Id already exists\n"):
             sub2.AddCondition( c1, 0 )
+            
+        ##now we add two conditions at once
+        c4 = model_part2.CreateNewCondition("Condition3D", 4, [1,3,4], model_part2.GetProperties()[1])
+        c5 = model_part2.CreateNewCondition("Condition3D", 5, [1,3,4], model_part2.GetProperties()[1])
+        
+        ### here we test adding a list of conditions at once
+        #now add node 4 and 5 to the model_part1 by Id - here it fails since we did not yet add node 4
+        with self.assertRaisesRegex(RuntimeError, "Error: the condition with Id 4 does not exist in the root model part"):
+            sub1.AddConditions([4,5])
+            
+        model_part1.AddCondition( c4, 0 )
+        model_part1.AddCondition( c5, 0 )
+        
+        
+        sub1.AddConditions([4,5]) #now it works, since we already added the nodes
+        self.assertTrue( c4.Id in sub1.Conditions )
+        self.assertTrue( c5.Id in sub1.Conditions )
+        self.assertFalse( c5.Id in sub2.Conditions )
+
             
     def test_add_element(self):
         model_part1 = ModelPart("Main")
@@ -568,6 +605,24 @@ class TestModelPart(KratosUnittest.TestCase):
         ##next should throw an exception, since we try to add a node with Id1 which already exists
         with self.assertRaisesRegex(RuntimeError, "Error\: attempting to add pNewElement with Id \:1, unfortunately a \(different\) element with the same Id already exists\n"):
             sub2.AddElement( c1, 0 )
+            
+        e4 = model_part2.CreateNewElement("Element2D2N", 4, [1,3], model_part2.GetProperties()[1])
+        e5 = model_part2.CreateNewElement("Element2D2N", 5, [1,3], model_part2.GetProperties()[1])
+
+            
+       ### here we test adding a list of elements at once
+        #now add node 4 and 5 to the model_part1 by Id - here it fails since we did not yet add node 4
+        with self.assertRaisesRegex(RuntimeError, "Error: the element with Id 4 does not exist in the root model part"):
+            sub1.AddElements([4,5])
+            
+        model_part1.AddElement( e4, 0 )
+        model_part1.AddElement( e5, 0 )
+        
+        
+        sub1.AddElements([4,5]) #now it works, since we already added the nodes
+        self.assertTrue( e4.Id in sub1.Elements )
+        self.assertTrue( e5.Id in sub1.Elements )
+        self.assertFalse( e5.Id in sub2.Elements )
             
 if __name__ == '__main__':
     KratosUnittest.main()
