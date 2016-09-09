@@ -19,6 +19,14 @@ proc Dam::xml::getUniqueName {name} {
     return Dam$name
 }
 
+
+proc ::Dam::xml::MultiAppEvent {args} {
+   if {$args eq "init"} {
+     spdAux::parseRoutes
+     spdAux::ConvertAllUniqueNames SL Dam
+   }
+}
+
 proc Dam::xml::ProcGetSchemes {domNode args} {
     set type_of_problem [lindex $args 0]
     
@@ -89,6 +97,19 @@ proc Dam::xml::ProcGetConstitutiveLaws {domNode args} {
                lappend goodList $cl
           }
           if {[string first "Therm" $type] ne -1 && $type_of_problem eq "Thermo-Mechanical"} {
+               lappend goodList $cl
+          }
+     }
+     set Claws $goodList
+     set goodList [list ]
+     set analysis_type [write::getValue DamAnalysisType]
+     set goodList [list ]
+     foreach cl $Claws {
+          set type [$cl getAttribute AnalysisType]
+          if {$analysis_type eq "Non-Linear"} {
+               lappend goodList $cl
+          }
+          if {$type ne "Non-Linear" && $analysis_type eq "Linear"} {
                lappend goodList $cl
           }
      }

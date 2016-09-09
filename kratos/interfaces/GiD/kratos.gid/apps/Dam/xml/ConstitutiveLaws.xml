@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ConstitutiveLaws>
     <!--3D laws-->
-    <CLaw n="LinearElastic3D" pn="Linear Elastic" ProductionReady="ProductionReady" Type="Linear3D" behaviour="Elastic" StrainSize="6" 
+    <CLaw n="LinearElastic3D" pn="Linear Elastic" ProductionReady="ProductionReady" Type="Linear3D" behaviour="Elastic" StrainSize="6" AnalysisType="Linear"
 	  help="Linear Elastic Behaviour in 3D" Dimension="3D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" AllowsAnisotropy="False" >
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2500"/>
@@ -12,7 +12,7 @@
             
         </outputs>
     </CLaw>
-    <CLaw n="ThermalLinearElastic3D" pn="Thermal Linear Elastic" ProductionReady="ProductionReady" Type="Thermal3D" behaviour="Elastic" StrainSize="6" 
+    <CLaw n="ThermalLinearElastic3D" pn="Thermal Linear Elastic" ProductionReady="ProductionReady" Type="Thermal3D" behaviour="Elastic" StrainSize="6"  AnalysisType="Linear"
 	  help="Thermal Linear Elastic Behaviour in 3D" Dimension="3D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" AllowsAnisotropy="False" >
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2500"/>
@@ -26,7 +26,7 @@
             <parameter n="THERMAL_STRAIN_TENSOR" pn="Thermal Strain" v="False" />
         </outputs>
     </CLaw>
-    <CLaw n="BilinearCohesive3D" pn="Bilinear Cohesive 3D" ProductionReady="ProductionReady" Type="Interface3D" behaviour="Elastic" StrainSize="6" 
+    <CLaw n="BilinearCohesive3D" pn="Bilinear Cohesive 3D" ProductionReady="ProductionReady" Type="Interface3D" behaviour="Elastic" StrainSize="6"  AnalysisType="Linear"
 	  help="Bilinear Cohesive law for problems in 3D" Dimension="3D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" AllowsAnisotropy="False" >
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2500"/>
@@ -42,7 +42,7 @@
             <parameter n="DAMAGE_VARIABLE" pn="Damage" v="False" />
         </outputs>
     </CLaw>
-    <CLaw n="RestoreSimoJu3DLaw" pn="Damage Restore Simo-Ju 3D" ProductionReady="ProductionReady" Type="Damage3D" behaviour="Elastic" StrainSize="6" 
+    <CLaw n="RestoreSimoJu3DLaw" pn="Damage Restore Simo-Ju 3D" ProductionReady="ProductionReady" Type="Damage3D" behaviour="Elastic" StrainSize="6" AnalysisType="Non-Linear"
 	  help="Restore Simo-Ju 3D Law for Damage" Dimension="3D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" AllowsAnisotropy="False" >
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2500"/>
@@ -59,7 +59,7 @@
     
     <!--2D laws-->
     <CLaw n="LinearElastic2DPlaneStrain" pn="Linear Elastic Plane Strain" ProductionReady="ProductionReady" Type="PlaneStrain" behaviour="Elastic" StrainSize="3"
-          help="Linear Elastic Behaviour in 2D Plane Strain" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" >
+          help="Linear Elastic Behaviour in 2D Plane Strain" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False"  AnalysisType="Linear">
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2500"/>
             <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="35.0e9" />
@@ -69,7 +69,7 @@
         </outputs>
     </CLaw>
     <CLaw n="LinearElastic2DPlaneStress" pn="Linear Elastic Plane Stress" ProductionReady="ProductionReady" Type="PlaneStress" behaviour="Elastic" StrainSize="3"
-          help="Linear Elastic Behaviour in 2D Plane Stress" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" >
+          help="Linear Elastic Behaviour in 2D Plane Stress" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False"  AnalysisType="Linear">
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2500"/>
             <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="35.0e9" />
@@ -80,7 +80,7 @@
         </outputs>
     </CLaw>
         <CLaw n="ThermalLinearElastic2DPlaneStrain" pn="Thermal Linear Elastic Plane Strain" ProductionReady="ProductionReady" Type="ThermalPlaneStrain" behaviour="Elastic" StrainSize="3"
-          help="Thermal Linear Elastic Behaviour in 2D Plane Strain" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" >
+          help="Thermal Linear Elastic Behaviour in 2D Plane Strain" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False"  AnalysisType="Linear">
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2500"/>
             <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="35.0e9" />
@@ -94,7 +94,7 @@
         </outputs>
     </CLaw>
     <CLaw n="ThermalLinearElastic2DPlaneStress" pn="Thermal Linear Elastic Plane Stress" ProductionReady="ProductionReady" Type="ThermalPlaneStress" behaviour="Elastic" StrainSize="3"
-          help="Thermal Linear Elastic Behaviour in 2D Plane Stress" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" >
+          help="Thermal Linear Elastic Behaviour in 2D Plane Stress" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False"  AnalysisType="Linear">
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2500"/>
             <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="35.0e9" />
@@ -142,7 +142,7 @@
         </outputs>
     </CLaw>
     <CLaw n="RestoreSimoJuPlaneStrain2DLaw" pn="Damage Restore Simo-Ju 2D Plane Strain" ProductionReady="ProductionReady" Type="DamageStrain" behaviour="Elastic" StrainSize="3"
-          help="Restore Simo-Ju 2D Plane Strain Law for Damage" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" >
+          help="Restore Simo-Ju 2D Plane Strain Law for Damage" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" AnalysisType="Non-Linear" >
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2500"/>
             <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="35.0e9" />
@@ -156,7 +156,7 @@
         </outputs>
     </CLaw>
     <CLaw n="RestoreSimoJuPlaneStress2DLaw" pn="Damage Restore Simo-Ju 2D Plane Stress" ProductionReady="ProductionReady" Type="DamageStress" behaviour="Elastic" StrainSize="3"
-          help="Restore Simo-Ju 2D Plane Stress Law for Damage" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" >
+          help="Restore Simo-Ju 2D Plane Stress Law for Damage" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" AnalysisType="Non-Linear">
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2500"/>
             <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="35.0e9" />

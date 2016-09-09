@@ -50,6 +50,7 @@ proc Dam::write::UpdateMaterials { } {
         set constlaw [dict get $props ConstitutiveLaw]
         # Modificar la ley constitutiva
         set newconstlaw $constlaw
+        if {$constlaw eq "BilinearCohesive2DPlaneStress" || $constlaw eq "BilinearCohesive2DPlaneStrain"} {set newconstlaw "BilinearCohesive2DLaw"}
         dict set matdict $mat CONSTITUTIVE_LAW_NAME $newconstlaw
     }
     write::setMatDict $matdict
