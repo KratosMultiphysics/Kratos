@@ -55,6 +55,7 @@
             "process_name"          : "SetInterfaceProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
+                "variable_name"   : "STRUCTURE_INTERFACE",
                 "model_part_name" : "Structure_interface"
             }
         }],
@@ -164,6 +165,7 @@
             "process_name"          : "SetInterfaceProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
+                "variable_name"   : "FLUID_INTERFACE",
                 "model_part_name" : "Fluid_interface"
             }
         },{
