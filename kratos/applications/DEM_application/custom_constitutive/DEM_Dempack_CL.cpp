@@ -203,7 +203,8 @@ namespace Kratos {
                 i_neighbour_count,
                 sliding,
                 search_control,
-                search_control_vector);
+                search_control_vector,
+                r_process_info);
 
         CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal,
                                    equiv_visco_damp_coeff_tangential,
@@ -523,7 +524,8 @@ namespace Kratos {
             int i_neighbour_count,
             bool& sliding,
             int search_control,
-            vector<int>& search_control_vector) {
+            vector<int>& search_control_vector,
+            const ProcessInfo& r_process_info) {
 
         KRATOS_TRY
 

@@ -263,7 +263,8 @@ namespace Kratos {
                                     i_neighbour_count,
                                     sliding,
                                     search_control,
-                                    search_control_vector);
+                                    search_control_vector,
+                                    r_process_info);
             /*DEM_KDEM::CalculateForces(r_process_info, 
                                         LocalElasticContactForce, 
                                         LocalDeltDisp, 
