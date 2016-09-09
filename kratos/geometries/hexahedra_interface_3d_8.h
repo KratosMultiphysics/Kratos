@@ -629,7 +629,7 @@ public:
     virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const
     {
         if ( rResult.size1() != 8 || rResult.size2() != 3 )
-            rResult.resize( 8, 3 );
+            rResult.resize( 8, 3 ,false);
 
         rResult( 0, 0 ) = -1.0;
         rResult( 0, 1 ) = -1.0;
@@ -717,7 +717,7 @@ public:
                               IntegrationMethod ThisMethod ) const
     {
         //setting up size of jacobian matrix
-        rResult.resize( 3, 2 );
+        rResult.resize( 3, 2, false );
         noalias(rResult) = ZeroMatrix(3,2);
         //derivatives of shape functions
         ShapeFunctionsGradientsType shape_functions_gradients =
@@ -772,7 +772,7 @@ public:
                               Matrix& DeltaPosition ) const
     {
         //setting up size of jacobian matrix
-        rResult.resize( 3, 2 );
+        rResult.resize( 3, 2 ,false);
         noalias(rResult) = ZeroMatrix(3,2);
         //derivatives of shape functions
         ShapeFunctionsGradientsType shape_functions_gradients =
@@ -819,7 +819,7 @@ public:
     virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
     {
         //setting up size of jacobian matrix
-        rResult.resize( 3, 2 );
+        rResult.resize( 3, 2 ,false );
         noalias(rResult) = ZeroMatrix(3,2);
         //derivatives of shape functions
         Matrix shape_functions_gradients;
@@ -1194,7 +1194,7 @@ public:
     virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
     {
         if ( rResult.size1() != 8 || rResult.size2() != 3 )
-            rResult.resize( 8, 3 );
+            rResult.resize( 8, 3 ,false);
 
         rResult = ZeroMatrix( 8, 3 );
 
@@ -1273,7 +1273,7 @@ public:
         //loop over all integration points
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            rResult[pnt].resize( 8, 3 );
+            rResult[pnt].resize( 8, 3,false );
 
             for ( int i = 0; i < 8; i++ )
             {
@@ -1337,7 +1337,7 @@ public:
 
             determinants_of_jacobian[pnt] = DetJ;
 
-            rResult[pnt].resize( 4, 3 );
+            rResult[pnt].resize( 4, 3 ,false);
 
             for ( int i = 0; i < 4; i++ )
             {

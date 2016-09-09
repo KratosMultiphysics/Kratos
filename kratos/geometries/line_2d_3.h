@@ -490,7 +490,7 @@ public:
     virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
     {
         //setting up size of jacobian matrix
-        rResult.resize( 2, 1 );
+        rResult.resize( 2, 1, false );
         //derivatives of shape functions
         ShapeFunctionsGradientsType shape_functions_gradients =
             CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
@@ -527,7 +527,7 @@ public:
     virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
     {
         //setting up size of jacobian matrix
-        rResult.resize( 2, 1 );
+        rResult.resize( 2, 1, false );
         //derivatives of shape functions
         Matrix shape_functions_gradients;
         shape_functions_gradients = ShapeFunctionsLocalGradients( shape_functions_gradients, rPoint );

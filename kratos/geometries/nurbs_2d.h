@@ -518,7 +518,7 @@ public:
         IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
         IntegrationPointsArrayType integration_points = all_integration_points[ThisMethod];
         double XiLocalCoordinates,EtaLocalCoordinates;
-        rResult.resize(2,2);
+        rResult.resize(2,2, false);
         XiLocalCoordinates = (mUpperXi - mLowerXi) / 2 * (1+integration_points[IntegrationPointIndex].X()) + mLowerXi;
         EtaLocalCoordinates = (mUpperEta - mLowerEta) / 2 * (1+integration_points[IntegrationPointIndex].Y())+mLowerEta;
         rResult = ElementGeometryDerivatives(XiLocalCoordinates,EtaLocalCoordinates);
@@ -545,7 +545,7 @@ public:
                               const CoordinatesArrayType& rPoint ) const
     {
 
-        rResult.resize(2,2);
+        rResult.resize(2,2, false);
         rResult = ElementGeometryDerivatives(rPoint[0],rPoint[1]);
         return rResult;
     }
@@ -571,7 +571,7 @@ public:
         JacobiansType Jacobian2D;
         Jacobian(Jacobian2D, ThisMethod );
         const unsigned int integration_points_number =  msGeometryData.IntegrationPointsNumber( ThisMethod );
-        rResult.resize(integration_points_number);
+        rResult.resize(integration_points_number, false);
 
         for (unsigned int i=0; i< integration_points_number; i++)
         {
@@ -985,7 +985,7 @@ public:
         const double& Xi = rCoordinates[0];
         const double& Eta = rCoordinates[1];
         
-        rResult.resize((mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1));
+        rResult.resize((mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1), false);
         rResult = ZeroVector((mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1));
         Matrix ShapeFunctionsValue = ElementGeometryNurbsFunctionsValues(Xi,Eta);
         for (unsigned int i=0;i<mPolynomialDegreeP+1;i++)
@@ -1046,11 +1046,11 @@ public:
 
         if (determinants_of_jacobian.size() != integration_points_number )
         {
-            determinants_of_jacobian.resize(integration_points_number);
+            determinants_of_jacobian.resize(integration_points_number, false);
         }
 
         //Allocating the memory for the Values of the shape functions
-        ShapeFunctionsValues.resize( integration_points_number,(mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1));
+        ShapeFunctionsValues.resize( integration_points_number,(mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1), false);
         ShapeFunctionsValues = ZeroMatrix(integration_points_number,(mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1));
 
         //calculating the local gradients and the shape functions derivatives
@@ -1079,7 +1079,7 @@ public:
 
 
             //Allocating the memory for the Derivatives of the shape functions
-            rResult[pnt].resize( this->Points().size(),2 );
+            rResult[pnt].resize( this->Points().size(),2 , false);
             rResult[pnt] = ZeroMatrix(this->Points().size(),2);
 
 
@@ -1108,7 +1108,7 @@ public:
     {
         const unsigned int integration_points_number = msGeometryData.IntegrationPointsNumber( ThisMethod );
         Matrix ShapeFunctionsValues;
-        ShapeFunctionsValues.resize( integration_points_number,(mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1));
+        ShapeFunctionsValues.resize( integration_points_number,(mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1),false);
         ShapeFunctionsValues = ZeroMatrix(integration_points_number,(mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1));
         rResult = ShapeFunctionsIntegrationPointsGradients(rResult,
                                                            determinants_of_jacobian,
@@ -1142,7 +1142,7 @@ public:
                                                 double Eta,
                                                 Matrix &rResult) const
     {
-        rResult.resize(mPolynomialDegreeP+1,mPolynomialDegreeQ+1);
+        rResult.resize(mPolynomialDegreeP+1,mPolynomialDegreeQ+1,false);
         rResult = ElementGeometryDerivatives(Xi,Eta);
         return rResult;
 
@@ -1209,7 +1209,7 @@ public:
     virtual Matrix& ShapeFunctionsGradients( Matrix& rResult,
                                              PointType& rPoint )
     {
-        rResult.resize(mPolynomialDegreeP+1,mPolynomialDegreeQ+1);
+        rResult.resize(mPolynomialDegreeP+1,mPolynomialDegreeQ+1,false);
         rResult = ElementGeometryDerivatives(rPoint[0],rPoint[1]);
         return rResult;
     }
@@ -1452,9 +1452,9 @@ public:
 
     void BaseVectors(double Xi, double Eta, Vector &gXi, Vector &gEta) const
     {
-        gXi.resize(3);
+        gXi.resize(3,false);
         gXi = ZeroVector(3);
-        gEta.resize(3);
+        gEta.resize(3,false);
         gEta = ZeroVector(3);
 
         Matrix XiDerivatives, EtaDerivatives;
@@ -1800,9 +1800,9 @@ private:
                                       Matrix &NurbsBasisFunctionDerivativesEta,
                                       Vector &NurbsFunctionsValues)const
     {
-        NurbsBasisFunctionDerivativesXi.resize(mPolynomialDegreeP+1,mPolynomialDegreeQ+1);
-        NurbsBasisFunctionDerivativesEta.resize(mPolynomialDegreeP+1,mPolynomialDegreeQ+1);
-        NurbsFunctionsValues.resize((mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1));
+        NurbsBasisFunctionDerivativesXi.resize(mPolynomialDegreeP+1,mPolynomialDegreeQ+1,false);
+        NurbsBasisFunctionDerivativesEta.resize(mPolynomialDegreeP+1,mPolynomialDegreeQ+1,false);
+        NurbsFunctionsValues.resize((mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1),false);
         NurbsBasisFunctionDerivativesXi = ZeroMatrix(mPolynomialDegreeP+1,mPolynomialDegreeQ+1);
         NurbsBasisFunctionDerivativesEta = ZeroMatrix(mPolynomialDegreeP+1,mPolynomialDegreeQ+1);
         NurbsFunctionsValues = ZeroVector((mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1));
@@ -2082,8 +2082,8 @@ private:
 
         for ( int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            d_Xi_shape_f_values[pnt].resize( mPolynomialDegreeP+1, mPolynomialDegreeQ+1);
-            d_Eta_shape_f_values[pnt].resize( mPolynomialDegreeP+1, mPolynomialDegreeQ+1);
+            d_Xi_shape_f_values[pnt].resize( mPolynomialDegreeP+1, mPolynomialDegreeQ+1,false);
+            d_Eta_shape_f_values[pnt].resize( mPolynomialDegreeP+1, mPolynomialDegreeQ+1,false);
             XiLocalCoordinates = (mUpperXi - mLowerXi) / 2 * (1+integration_points[pnt].X())+mLowerXi;
             EtaLocalCoordinates = (mUpperEta - mLowerEta) / 2 * (1+integration_points[pnt].Y())+mLowerEta;
             d_shape_f_values[pnt] = ElementGeometryDerivatives(XiLocalCoordinates,
