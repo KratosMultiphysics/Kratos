@@ -151,7 +151,8 @@ namespace Kratos {
                 int i_neighbour_count,
                 bool& sliding,
                 int search_control,
-                vector<int>& search_control_vector) {
+                                            vector<int>& search_control_vector,
+                                            const ProcessInfo& r_process_info) {
             KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateTangentialForces) should not be called.","")
         };
         

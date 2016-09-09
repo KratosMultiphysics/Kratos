@@ -100,7 +100,8 @@ namespace Kratos {
                 int i_neighbour_count,
                 bool& sliding,
                 int search_control,
-                vector<int>& search_control_vector) override;
+                vector<int>& search_control_vector,
+                const ProcessInfo& r_process_info) override;
         
         void AddContributionOfShearStrainParallelToBond(double LocalElasticContactForce[3], 
                                                     double LocalCoordSystem[3][3],
