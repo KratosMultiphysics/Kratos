@@ -94,7 +94,7 @@ class ContactModeler(mesh_modeler.MeshModeler):
         # The order set is the order of execution:
 
         # clear contact conditions
-        clear_contact_conditions= KratosContact.ClearContactConditions(self.main_model_part, self.echo_level)
+        clear_contact_conditions= KratosContact.ClearContactConditions(self.model_part, self.echo_level)
         self.mesher.SetPreMeshingProcess(clear_contact_conditions)
 
     #
@@ -107,7 +107,7 @@ class ContactModeler(mesh_modeler.MeshModeler):
         self.mesher.SetPostMeshingProcess(select_mesh_elements)
 
         # build contact conditions
-        build_contact_conditions= KratosContact.BuildContactConditions(self.main_model_part, self.MeshingParameters, self.echo_level)
+        build_contact_conditions= KratosContact.BuildContactConditions(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(build_contact_conditions)
         
     #

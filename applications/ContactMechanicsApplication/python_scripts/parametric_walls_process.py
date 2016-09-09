@@ -5,6 +5,8 @@ import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
 KratosMultiphysics.CheckForPreviousImport()
 
+from multiprocessing import Pool
+
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
@@ -132,6 +134,10 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
 
 
     ###
+    
+    #
+    def ExecuteSearch(wall):
+        wall.ExecuteSearch()
 
     #
     def SearchContact(self):
@@ -144,8 +150,20 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
 
         self.wall_contact_model.ExecuteInitialize()
 
+        #serial
         for wall in self.parametric_walls:
             wall.ExecuteSearch();
+
+        #parallel (not working pickling instances not enabled)
+        #walls_number = len(self.parametric_walls)
+        #if(walls_number>8):
+        #    walls_number = 8
+
+        #pool = Pool(walls_number)
+        #pool.map(self.ExecuteSearch,self.parametric_walls)
+        #pool.close()
+        #pool.joint()        
+
             
         self.wall_contact_model.ExecuteFinalize()
 
