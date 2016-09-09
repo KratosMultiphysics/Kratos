@@ -41,6 +41,12 @@ class ExplicitStrategy(BaseExplicitStrategy):
         else:
             self.poisson_effect_option = self.Var_Translator(Param.PoissonEffectOption)
 
+        if not hasattr(Param, "ShearStrainParallelToBondOption"):
+            self.shear_strain_parallel_to_bond_option = 0
+        else:
+            self.shear_strain_parallel_to_bond_option = self.Var_Translator(Param.ShearStrainParallelToBondOption)
+        
+
     def CreateCPlusPlusStrategy(self):
         self.SetVariablesAndOptions()
 
@@ -57,6 +63,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(FIXED_VEL_BOT, self.fixed_vel_bot)
         
         self.spheres_model_part.ProcessInfo.SetValue(POISSON_EFFECT_OPTION, self.poisson_effect_option)
+        self.spheres_model_part.ProcessInfo.SetValue(SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION, self.shear_strain_parallel_to_bond_option)
 
         ##################################
 
