@@ -1,7 +1,7 @@
 NUMBER: 1 MATERIAL: Concrete
 QUESTION: Element_Type#CB#(Standard,Interface)
 VALUE: Standard
-DEPENDENCIES: (Interface,HIDE,Standard_Constitutive_Law,#CURRENT#,RESTORE,Interface_Constitutive_Law,#CURRENT#,RESTORE,Minimum_Joint_Width,#CURRENT#,RESTORE,Critical_Displacement,#CURRENT#,RESTORE,Residual_Stress,#CURRENT#,RESTORE,Damage_Threshold,#CURRENT#,RESTORE,Friction_Coefficient,#CURRENT#)(Standard,RESTORE,Standard_Constitutive_Law,#CURRENT#,HIDE,Interface_Constitutive_Law,#CURRENT#,HIDE,Minimum_Joint_Width,#CURRENT#,HIDE,Critical_Displacement,#CURRENT#,HIDE,Residual_Stress,#CURRENT#,HIDE,Damage_Threshold,#CURRENT#,HIDE,Friction_Coefficient,#CURRENT#)
+DEPENDENCIES: (Interface,HIDE,Standard_Constitutive_Law,#CURRENT#,RESTORE,Interface_Constitutive_Law,#CURRENT#,RESTORE,Minimum_Joint_Width,#CURRENT#,RESTORE,Critical_Displacement,#CURRENT#,RESTORE,Yield_Stress,#CURRENT#,RESTORE,Damage_Threshold,#CURRENT#,RESTORE,Friction_Coefficient,#CURRENT#)(Standard,RESTORE,Standard_Constitutive_Law,#CURRENT#,HIDE,Interface_Constitutive_Law,#CURRENT#,HIDE,Minimum_Joint_Width,#CURRENT#,HIDE,Critical_Displacement,#CURRENT#,HIDE,Yield_Stress,#CURRENT#,HIDE,Damage_Threshold,#CURRENT#,HIDE,Friction_Coefficient,#CURRENT#)
 QUESTION: Interface_Constitutive_Law#CB#(BilinearCohesive2DPlaneStrain,BilinearCohesive2DPlaneStress,BilinearCohesive3D)
 VALUE: BilinearCohesive2DPlaneStrain
 DEPENDENCIES: (BilinearCohesive2DPlaneStrain,HIDE,Thickness,1,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)(BilinearCohesive2DPlaneStress,RESTORE,Thickness,#CURRENT#,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)(BilinearCohesive3D,HIDE,Thickness,#CURRENT#,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)
@@ -22,7 +22,7 @@ HELP: Units in IS: m
 QUESTION: Critical_Displacement
 VALUE: 0.05
 HELP: Units in IS: m
-QUESTION: Residual_Stress
+QUESTION: Yield_Stress
 VALUE: 3.5e6
 HELP: Units in IS: N/m2
 QUESTION: Damage_Threshold
