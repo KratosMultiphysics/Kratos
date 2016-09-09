@@ -261,20 +261,24 @@ protected:
 
         int number_of_element_nodes = ElementsConnectivities.begin()->size(); // here assuming that all elements are the same!!
 
-        int etype;
-        if(number_of_element_nodes == 3) // triangles
-            etype = 1;
-        else if(number_of_element_nodes == 4) // tetrahedra or quadilateral
-        {
-            if(mDimension == 2) // quadilateral
-                etype = 4;
-            else  // tetrahedra
-                etype = 2;
+        //int etype;
+        if(number_of_element_nodes == 3) { // triangles
+            //etype = 1;
         }
-        else if(number_of_element_nodes == 8) // hexahedra
-            etype = 3;
-        else
+        else if(number_of_element_nodes == 4) {// tetrahedra or quadilateral        
+            if(mDimension == 2){ // quadilateral
+                //etype = 4;
+            }
+            else  {// tetrahedra
+                //etype = 2;
+            }
+        }
+        else if(number_of_element_nodes == 8) { // hexahedra
+            //etype = 3;
+        }
+        else {
             KRATOS_THROW_ERROR(std::invalid_argument, "invalid element type with number of nodes : ", number_of_element_nodes);
+        }
 
         //int numflag = 0;
         //int number_of_partitions = static_cast<int>(mNumberOfPartitions);
