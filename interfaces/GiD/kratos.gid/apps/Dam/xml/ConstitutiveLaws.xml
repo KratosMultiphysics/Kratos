@@ -12,7 +12,6 @@
             
         </outputs>
     </CLaw>
-    
     <CLaw n="ThermalLinearElastic3D" pn="Thermal Linear Elastic" ProductionReady="ProductionReady" Type="Thermal3D" behaviour="Elastic" StrainSize="6" 
 	  help="Thermal Linear Elastic Behaviour in 3D" Dimension="3D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" AllowsAnisotropy="False" >
         <inputs>
@@ -24,7 +23,7 @@
         <outputs>
             <parameter n="THERMAL_STRESS_TENSOR" pn="Thermal Stress" v="False" />
             <parameter n="MECHANICAL_STRESS_TENSOR" pn="Mechanical Stress" v="False" />
-			<parameter n="THERMAL_STRAIN_TENSOR" pn="Thermal Strain" v="False" />
+            <parameter n="THERMAL_STRAIN_TENSOR" pn="Thermal Strain" v="False" />
         </outputs>
     </CLaw>
     <CLaw n="BilinearCohesive3D" pn="Bilinear Cohesive 3D" ProductionReady="ProductionReady" Type="Interface3D" behaviour="Elastic" StrainSize="6" 
@@ -40,7 +39,7 @@
             <parameter n="FRICTION_COEFFICIENT" pn="Friction Coefficient" v="0.4"/>
         </inputs>
         <outputs>
-            <parameter n="DAMAGE" pn="Damage" v="False" />
+            <parameter n="DAMAGE_VARIABLE" pn="Damage" v="False" />
         </outputs>
     </CLaw>
     <CLaw n="RestoreSimoJu3DLaw" pn="Damage Restore Simo-Ju 3D" ProductionReady="ProductionReady" Type="Damage3D" behaviour="Elastic" StrainSize="6" 
@@ -54,7 +53,7 @@
             <parameter n="FRACTURE_ENERGY" pn="Fracture_Energy" v="100.0"/>
         </inputs>
         <outputs>
-            <parameter n="DAMAGE" pn="Damage" v="False" />
+            <parameter n="DAMAGE_VARIABLE" pn="Damage" v="False" />
         </outputs>
     </CLaw>
     
@@ -67,7 +66,6 @@
             <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.20"/>
         </inputs>
         <outputs>
-            
         </outputs>
     </CLaw>
     <CLaw n="LinearElastic2DPlaneStress" pn="Linear Elastic Plane Stress" ProductionReady="ProductionReady" Type="PlaneStress" behaviour="Elastic" StrainSize="3"
@@ -79,7 +77,6 @@
             <parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />  
         </inputs>
         <outputs>
-            
         </outputs>
     </CLaw>
         <CLaw n="ThermalLinearElastic2DPlaneStrain" pn="Thermal Linear Elastic Plane Strain" ProductionReady="ProductionReady" Type="ThermalPlaneStrain" behaviour="Elastic" StrainSize="3"
@@ -93,7 +90,7 @@
         <outputs>
             <parameter n="THERMAL_STRESS_TENSOR" pn="Thermal Stress" v="False" />
             <parameter n="MECHANICAL_STRESS_TENSOR" pn="Mechanical Stress" v="False" />
-			<parameter n="THERMAL_STRAIN_TENSOR" pn="Thermal Strain" v="False" />
+            <parameter n="THERMAL_STRAIN_TENSOR" pn="Thermal Strain" v="False" />
         </outputs>
     </CLaw>
     <CLaw n="ThermalLinearElastic2DPlaneStress" pn="Thermal Linear Elastic Plane Stress" ProductionReady="ProductionReady" Type="ThermalPlaneStress" behaviour="Elastic" StrainSize="3"
@@ -108,10 +105,9 @@
         <outputs>
             <parameter n="THERMAL_STRESS_TENSOR" pn="Thermal Stress" v="False" />
             <parameter n="MECHANICAL_STRESS_TENSOR" pn="Mechanical Stress" v="False" />
-			<parameter n="THERMAL_STRAIN_TENSOR" pn="Thermal Strain" v="False" />
+            <parameter n="THERMAL_STRAIN_TENSOR" pn="Thermal Strain" v="False" />
         </outputs>
     </CLaw>
-
     <CLaw n="BilinearCohesive2DPlaneStrain" pn="Bilinear Cohesive Plane Strain" ProductionReady="ProductionReady" Type="InterfaceStrain" behaviour="Elastic" StrainSize="3"
           help="Bilinear Cohesive law for Plane Strain problems" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" >
         <inputs>
@@ -125,7 +121,7 @@
             <parameter n="FRICTION_COEFFICIENT" pn="Friction Coefficient" v="0.4"/>
         </inputs>
         <outputs>
-            <parameter n="DAMAGE" pn="Damage" v="False" />            
+            <parameter n="DAMAGE_VARIABLE" pn="Damage" v="False" />            
         </outputs>
     </CLaw>
     <CLaw n="BilinearCohesive2DPlaneStress" pn="Bilinear Cohesive Plane Stress" ProductionReady="ProductionReady" Type="InterfaceStress" behaviour="Elastic" StrainSize="3"
@@ -142,10 +138,9 @@
             <parameter n="FRICTION_COEFFICIENT" pn="Friction Coefficient" v="0.4"/>
         </inputs>
         <outputs>
-            <parameter n="DAMAGE" pn="Damage" v="False" />
+            <parameter n="DAMAGE_VARIABLE" pn="Damage" v="False" />
         </outputs>
     </CLaw>
-    
     <CLaw n="RestoreSimoJuPlaneStrain2DLaw" pn="Damage Restore Simo-Ju 2D Plane Strain" ProductionReady="ProductionReady" Type="DamageStrain" behaviour="Elastic" StrainSize="3"
           help="Restore Simo-Ju 2D Plane Strain Law for Damage" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" >
         <inputs>
@@ -157,7 +152,7 @@
             <parameter n="FRACTURE_ENERGY" pn="Fracture_Energy" v="100.0"/>
         </inputs>
         <outputs>
-            <parameter n="DAMAGE" pn="Damage" v="False" />
+            <parameter n="DAMAGE_VARIABLE" pn="Damage" v="False" />
         </outputs>
     </CLaw>
     <CLaw n="RestoreSimoJuPlaneStress2DLaw" pn="Damage Restore Simo-Ju 2D Plane Stress" ProductionReady="ProductionReady" Type="DamageStress" behaviour="Elastic" StrainSize="3"
@@ -172,7 +167,7 @@
             <parameter n="FRACTURE_ENERGY" pn="Fracture_Energy" v="100.0"/>
         </inputs>
         <outputs>
-            <parameter n="DAMAGE" pn="Damage" v="False" />
+            <parameter n="DAMAGE_VARIABLE" pn="Damage" v="False" />
         </outputs>
     </CLaw>
 </ConstitutiveLaws>
