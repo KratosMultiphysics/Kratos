@@ -11,6 +11,12 @@ def GetFilePath(fileName):
 class TestMaterialsInput(KratosUnittest.TestCase):
 
     def test_input(self):
+        try:
+            import KratosMultiphysics.SolidMechanicsApplication
+        except:
+            self.skipTest("KratosMultiphysics.SolidMechanicsApplication is not available")
+        
+        
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
