@@ -114,11 +114,6 @@ proc Kratos::InitGIDProject { dir } {
      
     Kratos::load_gid_groups_conds
     
-        # JG Sources will be in a different proc
-    foreach filename {tempCustomConds.tcl} {
-        uplevel 1 [list source [file join $dir libs $filename]]
-    }
-    
     Kratos::LoadEnvironment
     Kratos::ChangeMenus
     #set HeaderBackground [$doc selectNodes string(Infoproblemtype/Program/HeaderBackground)]
