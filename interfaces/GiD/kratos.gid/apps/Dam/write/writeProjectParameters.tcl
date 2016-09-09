@@ -70,8 +70,8 @@ proc Dam::write::getParametersDict { } {
     dict set projectParametersDict processes_sub_model_part_list [write::getSubModelPartNames "DamNodalConditions" "DamLoads"]
     dict set projectParametersDict nodal_processes_sub_model_part_list [write::getConditionsParametersDict DamNodalConditions "Nodal"]
     dict set projectParametersDict load_processes_sub_model_part_list [write::getConditionsParametersDict DamLoads ]
-    
-    
+    dict set projectParametersDict loads_sub_model_part_list []
+    dict set projectParametersDict loads_variable_list []
     ### GiD output configuration
     dict set projectParametersDict output_configuration [write::GetDefaultOutputDict]
         
