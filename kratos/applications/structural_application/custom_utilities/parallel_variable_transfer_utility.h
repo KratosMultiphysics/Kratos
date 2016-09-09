@@ -66,7 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "geometries/geometry.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
 #include "spaces/ublas_space.h"
-#include "spaces/parallel_ublas_space.h"
+// #include "spaces/parallel_ublas_space.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/tetrahedra_3d_4.h"
 
@@ -83,8 +83,9 @@ public:
     typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
     typedef Geometry<Node<3> >::GeometryType GeometryType;
     typedef Geometry<Node<3> >::CoordinatesArrayType CoordinatesArrayType;
-    typedef ParallelUblasSpace<double, CompressedMatrix, Vector> SpaceType;
-    typedef UblasSpace<double, Matrix, Vector> ParallelLocalSpaceType;
+//     typedef ParallelUblasSpace<double, CompressedMatrix, Vector> SpaceType;
+    typedef UblasSpace<double, Matrix, Vector> SpaceType
+    ;
 
     /**
      * Constructor.

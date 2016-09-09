@@ -99,7 +99,7 @@ void  AddCustomParallelStrategiesToPython()
 {
 #ifdef _OPENMP //nothing will be compiled if an openmp compiler is not found
     typedef UblasSpace<double, Matrix, Vector> ParallelLocalSpaceType;
-    typedef ParallelUblasSpace<double, CompressedMatrix, Vector> ParallelSparseSpaceType;
+    typedef UblasSpace<double, CompressedMatrix, Vector> ParallelSparseSpaceType;
 //			typedef UblasSpace<double, CompressedMatrix, Vector> ParallelSparseSpaceType;
 //std::cout << "ATTENTION Ublas space used instead of Parallel Ublas Space" << std::endl;
 

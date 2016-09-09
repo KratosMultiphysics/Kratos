@@ -18,9 +18,9 @@
 #include "python/add_equation_systems_to_python.h"
 #include "spaces/ublas_space.h"
 
-#ifdef _OPENMP
-#include "spaces/parallel_ublas_space.h"
-#endif
+// #ifdef _OPENMP
+// #include "spaces/parallel_ublas_space.h"
+// #endif
 #include "linear_solvers/direct_solver.h"
 #include "linear_solvers/iterative_solver.h"
 #include "external_includes/mkl_pardiso_solver.h"
@@ -45,7 +45,7 @@ void  AddLinearSolversToPython()
     typedef Preconditioner<SpaceType,  LocalSpaceType> PreconditionerType;
 
 #ifdef _OPENMP
-    typedef ParallelUblasSpace<double, CompressedMatrix, Vector> ParallelSpaceType;
+    typedef UblasSpace<double, CompressedMatrix, Vector> ParallelSpaceType;
     typedef UblasSpace<double, Matrix, Vector> ParallelLocalSpaceType;
     typedef LinearSolver<ParallelSpaceType,  ParallelLocalSpaceType> ParallelLinearSolverType;
     typedef Reorderer<ParallelSpaceType,  ParallelLocalSpaceType > ParallelReordererType;
