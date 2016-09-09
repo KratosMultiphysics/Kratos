@@ -59,7 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/timer.hpp>
 
-
+/*
 // Project includes
 #include "includes/define.h"
 #include "custom_python/add_custom_parallel_strategies_to_python.h"
@@ -67,7 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifdef _OPENMP //nothing will be compiled if an openmp compiler is not found
 
 #include "spaces/ublas_space.h"
-#include "spaces/parallel_ublas_space.h"
+// // // // // #include "spaces/parallel_ublas_space.h"
 
 //convergence criteria
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -86,7 +86,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
-#endif
+#endif*/
 
 namespace Kratos
 {
@@ -97,20 +97,20 @@ using namespace boost::python;
 
 void  AddCustomParallelStrategiesToPython()
 {
-#ifdef _OPENMP //nothing will be compiled if an openmp compiler is not found
-    typedef UblasSpace<double, Matrix, Vector> ParallelLocalSpaceType;
-    typedef UblasSpace<double, CompressedMatrix, Vector> ParallelSparseSpaceType;
-//			typedef UblasSpace<double, CompressedMatrix, Vector> ParallelSparseSpaceType;
-//std::cout << "ATTENTION Ublas space used instead of Parallel Ublas Space" << std::endl;
-
-    //typedef LinearSolver<ParallelSparseSpaceType, ParallelLocalSpaceType > ParallelLinearSolverType;
-    //typedef SolvingStrategy< ParallelSparseSpaceType, ParallelLocalSpaceType, ParallelLinearSolverType > ParallelBaseSolvingStrategyType;
-    typedef Scheme< ParallelSparseSpaceType, ParallelLocalSpaceType > ParallelBaseSchemeType;
-
-
-
-    typedef ResidualBasedPredictorCorrectorBossakScheme< ParallelSparseSpaceType, ParallelLocalSpaceType > ParallelResidualBasedPredictorCorrectorBossakSchemeType;
-    typedef ResidualBasedNewmarkScheme<ParallelSparseSpaceType, ParallelLocalSpaceType> ParallelResidualBasedNewmarkSchemeType;
+// #ifdef _OPENMP //nothing will be compiled if an openmp compiler is not found
+//     typedef UblasSpace<double, Matrix, Vector> ParallelLocalSpaceType;
+//     typedef UblasSpace<double, CompressedMatrix, Vector> ParallelSparseSpaceType;
+// //			typedef UblasSpace<double, CompressedMatrix, Vector> ParallelSparseSpaceType;
+// //std::cout << "ATTENTION Ublas space used instead of Parallel Ublas Space" << std::endl;
+// 
+//     //typedef LinearSolver<ParallelSparseSpaceType, ParallelLocalSpaceType > ParallelLinearSolverType;
+//     //typedef SolvingStrategy< ParallelSparseSpaceType, ParallelLocalSpaceType, ParallelLinearSolverType > ParallelBaseSolvingStrategyType;
+//     typedef Scheme< ParallelSparseSpaceType, ParallelLocalSpaceType > ParallelBaseSchemeType;
+// 
+// 
+// 
+//     typedef ResidualBasedPredictorCorrectorBossakScheme< ParallelSparseSpaceType, ParallelLocalSpaceType > ParallelResidualBasedPredictorCorrectorBossakSchemeType;
+//     typedef ResidualBasedNewmarkScheme<ParallelSparseSpaceType, ParallelLocalSpaceType> ParallelResidualBasedNewmarkSchemeType;
 
     //typedef ConvergenceCriteria< ParallelSparseSpaceType, ParallelLocalSpaceType > ParallelConvergenceCriteriaBaseType;
 
@@ -119,19 +119,23 @@ void  AddCustomParallelStrategiesToPython()
 
     //********************************************************************
     //********************************************************************
-
-    class_< ParallelResidualBasedPredictorCorrectorBossakSchemeType,
-            bases< ParallelBaseSchemeType >,  boost::noncopyable >
-            (
-                "ParallelResidualBasedPredictorCorrectorBossakScheme", init< double >()
-            );
-
-    class_< ParallelResidualBasedNewmarkSchemeType,
-            bases<ParallelBaseSchemeType >, boost::noncopyable >
-            (
-                "ParallelResidualBasedNewmarkScheme",init<double>()
-            );
-#endif
+    //by RICCARDO:
+    //PLEASE DO NOT UNCOMMENT THE FOLLOWING -- USE THE VERSION BASED ON THE STANDARD UBLAS SPACE (it is already parallel and better implemented)
+    //it is as simple as removing the "Parallel" keyword in the usage
+    //********************************************************************
+    //********************************************************************
+//     class_< ParallelResidualBasedPredictorCorrectorBossakSchemeType,
+//             bases< ParallelBaseSchemeType >,  boost::noncopyable >
+//             (
+//                 "ParallelResidualBasedPredictorCorrectorBossakScheme", init< double >()
+//             );
+// 
+//     class_< ParallelResidualBasedNewmarkSchemeType,
+//             bases<ParallelBaseSchemeType >, boost::noncopyable >
+//             (
+//                 "ParallelResidualBasedNewmarkScheme",init<double>()
+//             );
+// #endif
 
 }
 
