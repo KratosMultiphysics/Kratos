@@ -85,7 +85,7 @@ namespace Kratos
 
 
 
-	template<class TSparseSpace, 
+	template<class TSparseSpace,
 			 class TDenseSpace,
 			 class TReorderer = Reorderer<TSparseSpace, TDenseSpace> >
 	class RveLinearSystemOfEquations
@@ -110,7 +110,7 @@ namespace Kratos
 		typedef typename RveConstraintHandlerType::IndexContainerType IndexContainerType;
 
 	public:
-		
+
 		RveLinearSystemOfEquations(LinearSolverPointerType pLinearSolver)
 			: m_lin_solver(pLinearSolver)
 			, m_calculate_reactions(true)
@@ -134,9 +134,9 @@ namespace Kratos
 
 	public:
 
-		virtual void Begin(ModelPart& mp, 
+		virtual void Begin(ModelPart& mp,
 						   const RveGeometryDescriptor& geom,
-						   SchemePointerType& pScheme, 
+						   SchemePointerType& pScheme,
 						   RveConstraintHandlerPointerType& chandler)
 		{
 			//if(m_initialized)return; //COMMENTED BY STEFANO
@@ -150,7 +150,7 @@ namespace Kratos
 			m_initialized = true;
 		}
 
-		virtual void BuildRHS(ModelPart& mp, 
+		virtual void BuildRHS(ModelPart& mp,
 							  SchemePointerType& pScheme)
 		{
 			ElementsArrayType& pElements = mp.Elements();
@@ -185,7 +185,7 @@ namespace Kratos
 				this->CalculateReactions(mp, pScheme);
 		}
 
-		virtual void BuildRHS_Reduced(ModelPart& mp, 
+		virtual void BuildRHS_Reduced(ModelPart& mp,
 							  SchemePointerType& pScheme,
 							  const RveGeometryDescriptor::IndexContainerType& elem_subset)
 		{
@@ -213,7 +213,7 @@ namespace Kratos
 				this->CalculateReactions(mp, pScheme);
 		}
 
-		virtual void BuildLHS(ModelPart& mp, 
+		virtual void BuildLHS(ModelPart& mp,
 							  SchemePointerType& pScheme)
 		{
 			ElementsArrayType& pElements = mp.Elements();
@@ -245,7 +245,7 @@ namespace Kratos
 			this->m_lin_solver->InitializeSolutionStep(m_A, m_x, m_b);
 		}
 
-		virtual void Build(ModelPart& mp, 
+		virtual void Build(ModelPart& mp,
 						   SchemePointerType& pScheme)
 		{
 
@@ -342,7 +342,7 @@ namespace Kratos
 				m_x = VectorType();
 				m_r = VectorType();
 				m_A = SparseMatrixType();
-				
+
 				m_dofset = DofsArrayType();
 				m_equation_system_size = 0;
 
@@ -480,7 +480,7 @@ namespace Kratos
 					}
 				}
 			}
-			else 
+			else
 			{
 				for (unsigned int i_local = 0; i_local < local_size; i_local++)
 				{
@@ -488,7 +488,7 @@ namespace Kratos
 					//// MAZ_01 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 					//i_global = m_transformed_equation_ids[i_global];
 					//// MAZ_01 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-					//if (i_global < m_equation_system_size) 
+					//if (i_global < m_equation_system_size)
 					//{
 					//	m_b[i_global] += RHS_Contribution[i_local];
 					//}
@@ -500,7 +500,7 @@ namespace Kratos
 					unsigned int i_global_original = EquationId[i_local];
 					unsigned int i_global = m_transformed_equation_ids[i_global_original];
 					// MAZ_01 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-					if (i_global < m_equation_system_size) 
+					if (i_global < m_equation_system_size)
 					{
 						m_b[i_global] += RHS_Contribution[i_local];
 						if(i_global_original != i_global)
@@ -516,16 +516,16 @@ namespace Kratos
 			}
 		}
 
-		virtual void CalculateReactions(ModelPart& mp, 
+		virtual void CalculateReactions(ModelPart& mp,
 										SchemePointerType& pScheme)
 		{
-			for (DofsArrayType::ptr_iterator it2 = m_dofset.ptr_begin(); it2 != m_dofset.ptr_end(); ++it2)
+			for (DofsArrayType::iterator it2 = m_dofset.begin(); it2 != m_dofset.end(); ++it2)
 			{
-				Dof<double>::Pointer& dofp = *it2;
-				if (dofp->IsFixed())
+				Dof<double> &dofp = *it2;
+				if (dofp.IsFixed())
 				{
-					size_t i = dofp->EquationId() - m_equation_system_size;
-					dofp->GetSolutionStepReactionValue() = m_r[i];
+					size_t i = dofp.EquationId() - m_equation_system_size;
+					dofp.GetSolutionStepReactionValue() = m_r[i];
 				}
 			}
 		}

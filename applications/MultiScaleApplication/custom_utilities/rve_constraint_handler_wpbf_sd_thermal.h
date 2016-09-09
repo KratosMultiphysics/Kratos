@@ -63,7 +63,7 @@ namespace Kratos
 	* Rve Constrain Handler for Periodic Boundary Displacement Fluctuations
 	* in Small Displacement formulation
 	*/
-	template<class TSparseSpace, 
+	template<class TSparseSpace,
 			 class TDenseSpace>
 	class RveConstraintHandler_WPBF_SD_THERMAL : public RveConstraintHandler<TSparseSpace, TDenseSpace>
 	{
@@ -77,7 +77,7 @@ namespace Kratos
 		typedef typename ModelPart::DofsArrayType DofsArrayType;
 
 	public:
-		
+
 		RveConstraintHandler_WPBF_SD_THERMAL()
 			: BaseType()
 		{
@@ -88,8 +88,8 @@ namespace Kratos
 		}
 
 	public:
-		
-		virtual void AddConditions(ModelPart& mp, 
+
+		virtual void AddConditions(ModelPart& mp,
 								   const RveGeometryDescriptor& geom)
 		{
 			if(geom.Dimension() == 2)
@@ -118,7 +118,7 @@ namespace Kratos
 				//	// or
 				//	// int{ (ni*uj + nj*ui) dS } = 0
 				//	Element::GeometryType::Pointer cnd_geom( new Element::GeometryType(nodes) );
-				//	RveWeakPeriodicCondition2D2N::Pointer cnd(new 
+				//	RveWeakPeriodicCondition2D2N::Pointer cnd(new
 				//		RveWeakPeriodicCondition2D2N(cnd_id++, cnd_geom, cnd_prop));
 				//	mp.AddCondition(cnd);
 
@@ -128,7 +128,7 @@ namespace Kratos
 				//	// int{ (ni*uj - nj*ui) dS } = 0
 				//	Element::GeometryType::PointsArrayType nodes_skew = nodes;
 				//	Element::GeometryType::Pointer cnd_geom_skew( new Element::GeometryType(nodes_skew) );
-				//	RveWeakPeriodicCondition2D2N::Pointer cnd_skew(new 
+				//	RveWeakPeriodicCondition2D2N::Pointer cnd_skew(new
 				//		RveWeakPeriodicCondition2D2N(cnd_id++, cnd_geom_skew, cnd_prop));
 				//	cnd_skew->IsSkewSymmetricConstraint() = true;
 				//	mp.AddCondition(cnd_skew);
@@ -168,7 +168,7 @@ namespace Kratos
 				//			nodes.push_back(master_node_y);
 				//		}
 				//		Element::GeometryType::Pointer cnd_geom( new Element::GeometryType(nodes) );
-				//		RveWeakPeriodicCondition2D2N::Pointer cnd(new 
+				//		RveWeakPeriodicCondition2D2N::Pointer cnd(new
 				//			RveWeakPeriodicCondition2D2N(cnd_id++, cnd_geom, cnd_prop));
 				//		mp.AddCondition(cnd);
 
@@ -178,7 +178,7 @@ namespace Kratos
 				//			nodes_skew.push_back(nodes[i]);
 				//		nodes_skew.push_back(master_node_x);
 				//		Element::GeometryType::Pointer cnd_geom_skew( new Element::GeometryType(nodes_skew) );
-				//		RveWeakPeriodicCondition2D2N::Pointer cnd_skew(new 
+				//		RveWeakPeriodicCondition2D2N::Pointer cnd_skew(new
 				//			RveWeakPeriodicCondition2D2N(cnd_id++, cnd_geom_skew, cnd_prop));
 				//		cnd_skew->IsSkewSymmetricConstraint() = true;
 				//		mp.AddCondition(cnd_skew);*/
@@ -219,7 +219,7 @@ namespace Kratos
 						else
 							nodes.push_back(master_node_4);
 						Element::GeometryType::Pointer cnd_geom( new Element::GeometryType(nodes) );
-						RveWeakPeriodicCondition2D2N::Pointer cnd(new 
+						RveWeakPeriodicCondition2D2N::Pointer cnd(new
 							RveWeakPeriodicCondition2D2N(cnd_id++, cnd_geom, cnd_prop));
 						mp.AddCondition(cnd);
 
@@ -229,7 +229,7 @@ namespace Kratos
 							nodes_skew.push_back(nodes[i]);
 						nodes_skew.push_back(master_node_1);
 						Element::GeometryType::Pointer cnd_geom_skew( new Element::GeometryType(nodes_skew) );
-						RveWeakPeriodicCondition2D2N::Pointer cnd_skew(new 
+						RveWeakPeriodicCondition2D2N::Pointer cnd_skew(new
 							RveWeakPeriodicCondition2D2N(cnd_id++, cnd_geom_skew, cnd_prop));
 						cnd_skew->IsSkewSymmetricConstraint() = true;
 						mp.AddCondition(cnd_skew);*/
@@ -243,7 +243,7 @@ namespace Kratos
 			}
 		}
 
-		virtual void ApplyMacroScaleData(ModelPart& mp, 
+		virtual void ApplyMacroScaleData(ModelPart& mp,
 										 const RveGeometryDescriptor& geom,
 										 const RveMacroscaleData& macroScaleData)
 		{
@@ -277,11 +277,11 @@ namespace Kratos
 			}
 		}
 
-		virtual void FinalizeSolutionStep(ModelPart& mp, 
+		virtual void FinalizeSolutionStep(ModelPart& mp,
 										 const RveGeometryDescriptor& geom,
 										 const RveMacroscaleData& macroScaleData)
 		{
-			//const ModelPart::NodeType& ref_node = mp.GetNode(geom.CentroidNodeID());
+			const ModelPart::NodeType& ref_node = mp.GetNode(geom.ReferenceNodeID());
 			const double T_M = macroScaleData.Mean_Temp();
 			Vector grad_T_M = macroScaleData.StrainVector();
 			double T_m;
