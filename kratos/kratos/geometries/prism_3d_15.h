@@ -438,7 +438,7 @@ public:
     virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const
     {
         if ( rResult.size1() != 15 || rResult.size2() != 3 )
-            rResult.resize( 15, 3 );
+            rResult.resize( 15, 3, false );
 
         rResult( 0, 0 ) = 0.0;
         rResult( 0, 1 ) = 0.0;
@@ -685,7 +685,7 @@ public:
                               IntegrationMethod ThisMethod ) const
     {
         //setting up size of jacobian matrix
-        rResult.resize( 3, 3 );
+        rResult.resize( 3, 3, false );
         //derivatives of shape functions
         ShapeFunctionsGradientsType shape_functions_gradients =
             CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
@@ -734,7 +734,7 @@ public:
     virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
     {
         //setting up size of jacobian matrix
-        rResult.resize( 3, 3 );
+        rResult.resize( 3, 3, false );
         //derivatives of shape functions
 
         Matrix shape_functions_gradients  = ZeroMatrix( 15, 3 );
@@ -956,7 +956,7 @@ public:
         Jacobian( tempMatrix, rPoint );
 
         //setting up result matrix
-        rResult.resize( 3, 3 );
+        rResult.resize( 3, 3, false );
         double det;
         MathUtils<double>::InvertMatrix3( tempMatrix, rResult, det );
 
@@ -1182,7 +1182,7 @@ public:
         //loop over all integration points
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            rResult[pnt].resize( 15, 3 );
+            rResult[pnt].resize( 15, 3, false );
 
             for ( int i = 0; i < 15; i++ )
             {

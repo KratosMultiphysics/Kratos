@@ -550,7 +550,7 @@ public:
     virtual void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const
     {
         if(NumberNodesInFaces.size() != 3 )
-            NumberNodesInFaces.resize(3);
+            NumberNodesInFaces.resize(3,false);
         // Linear Triangles have elements of 2 nodes as faces
         NumberNodesInFaces[0]=2;
         NumberNodesInFaces[1]=2;
@@ -561,7 +561,7 @@ public:
     virtual void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const
     {
         if(NodesInFaces.size1() != 3 || NodesInFaces.size2() != 3)
-            NodesInFaces.resize(3,3);
+            NodesInFaces.resize(3,3,false);
 
         NodesInFaces(0,0)=0;//face or other node
         NodesInFaces(1,0)=1;
@@ -899,13 +899,13 @@ public:
         }
 
         if(rResult[0].size1() != 2 || rResult[0].size2() != 2 )
-            rResult[0].resize( 2, 2 );
+            rResult[0].resize( 2, 2,false );
 
         if(rResult[1].size1() != 2 || rResult[1].size2() != 2 )
-            rResult[1].resize( 2, 2 );
+            rResult[1].resize( 2, 2,false );
 
         if(rResult[2].size1() != 2 || rResult[2].size2() != 2 )
-            rResult[2].resize( 2, 2 );
+            rResult[2].resize( 2, 2,false );
 
         rResult[0]( 0, 0 ) = 0.0;
         rResult[0]( 0, 1 ) = 0.0;
@@ -945,13 +945,13 @@ public:
             rResult[i].swap( temp );
         }
 
-        rResult[0][0].resize( 2, 2 );
+        rResult[0][0].resize( 2, 2,false );
 
-        rResult[0][1].resize( 2, 2 );
-        rResult[1][0].resize( 2, 2 );
-        rResult[1][1].resize( 2, 2 );
-        rResult[2][0].resize( 2, 2 );
-        rResult[2][1].resize( 2, 2 );
+        rResult[0][1].resize( 2, 2,false );
+        rResult[1][0].resize( 2, 2,false );
+        rResult[1][1].resize( 2, 2,false );
+        rResult[2][0].resize( 2, 2,false );
+        rResult[2][1].resize( 2, 2,false );
 
         for ( int i = 0; i < 3; i++ )
         {

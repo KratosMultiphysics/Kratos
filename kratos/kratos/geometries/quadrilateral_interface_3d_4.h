@@ -993,7 +993,7 @@ public:
         //loop over all integration points
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            rResult[pnt].resize( 4, 2 );
+            rResult[pnt].resize( 4, 2, false );
 
             for ( int i = 0; i < 4; i++ )
             {
@@ -1113,7 +1113,7 @@ public:
     virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
             const CoordinatesArrayType& rPoint ) const
     {
-        rResult.resize( 4, 2 );
+        rResult.resize( 4, 2, false );
         noalias( rResult ) = ZeroMatrix( 4, 2 );
         rResult( 0, 0 ) = -0.25 * ( 1.0 - rPoint[1] );
         rResult( 0, 1 ) = -0.25 * ( 1.0 - rPoint[0] );
@@ -1139,7 +1139,7 @@ public:
      */
     virtual Matrix& ShapeFunctionsGradients( Matrix& rResult, PointType& rPoint )
     {
-        rResult.resize( 4, 2 );
+        rResult.resize( 4, 2, false );
         rResult( 0, 0 ) = -0.25 * ( 1.0 - rPoint.Y() );
         rResult( 0, 1 ) = -0.25 * ( 1.0 - rPoint.X() );
         rResult( 1, 0 ) = 0.25 * ( 1.0 - rPoint.Y() );
@@ -1167,11 +1167,11 @@ public:
             rResult.swap( temp );
         }
 
-        rResult[0].resize( 2, 2 );
+        rResult[0].resize( 2, 2, false );
 
-        rResult[1].resize( 2, 2 );
-        rResult[2].resize( 2, 2 );
-        rResult[3].resize( 2, 2 );
+        rResult[1].resize( 2, 2, false );
+        rResult[2].resize( 2, 2, false );
+        rResult[3].resize( 2, 2, false );
         rResult[0]( 0, 0 ) = 0.0;
         rResult[0]( 0, 1 ) = 0.25;
         rResult[0]( 1, 0 ) = 0.25;
@@ -1214,15 +1214,15 @@ public:
             rResult[i].swap( temp );
         }
 
-        rResult[0][0].resize( 2, 2 );
+        rResult[0][0].resize( 2, 2 , false);
 
-        rResult[0][1].resize( 2, 2 );
-        rResult[1][0].resize( 2, 2 );
-        rResult[1][1].resize( 2, 2 );
-        rResult[2][0].resize( 2, 2 );
-        rResult[2][1].resize( 2, 2 );
-        rResult[3][0].resize( 2, 2 );
-        rResult[3][1].resize( 2, 2 );
+        rResult[0][1].resize( 2, 2 , false);
+        rResult[1][0].resize( 2, 2 , false);
+        rResult[1][1].resize( 2, 2 , false);
+        rResult[2][0].resize( 2, 2 , false);
+        rResult[2][1].resize( 2, 2 , false);
+        rResult[3][0].resize( 2, 2 , false);
+        rResult[3][1].resize( 2, 2 , false);
 
         for ( int i = 0; i < 4; i++ )
         {

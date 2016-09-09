@@ -345,7 +345,7 @@ public:
     virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const
     {
         if ( rResult.size1() != 6 || rResult.size2() != 3 )
-            rResult.resize( 6, 3 );
+            rResult.resize( 6, 3, false );
 
         rResult( 0, 0 ) = 0.0;
         rResult( 0, 1 ) = 0.0;
@@ -511,7 +511,7 @@ public:
 		array_1d<double, 3> p1 = 0.5 * (BaseType::GetPoint( 1 ) + BaseType::GetPoint( 4 ));
 		array_1d<double, 3> p2 = 0.5 * (BaseType::GetPoint( 2 ) + BaseType::GetPoint( 5 ));
 		
-		rResult.resize( 3, 2 );
+		rResult.resize( 3, 2, false );
         rResult( 0, 0 ) = -( p0[0] ) + ( p1[0] ); //on the Gauss points (J is constant at each element)
         rResult( 1, 0 ) = -( p0[1] ) + ( p1[1] );
         rResult( 2, 0 ) = -( p0[2] ) + ( p1[2] );
@@ -589,7 +589,7 @@ public:
 		array_1d<double, 3> p1 = 0.5 * (BaseType::GetPoint( 1 ) + BaseType::GetPoint( 4 ));
 		array_1d<double, 3> p2 = 0.5 * (BaseType::GetPoint( 2 ) + BaseType::GetPoint( 5 ));
 		
-		rResult.resize( 3, 2 );
+		rResult.resize( 3, 2 , false);
         rResult( 0, 0 ) = -( p0[0] ) + ( p1[0] ); //on the Gauss points (J is constant at each element)
         rResult( 1, 0 ) = -( p0[1] ) + ( p1[1] );
         rResult( 2, 0 ) = -( p0[2] ) + ( p1[2] );
@@ -1007,7 +1007,7 @@ public:
         //loop over all integration points
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            rResult[pnt].resize( 6, 3 );
+            rResult[pnt].resize( 6, 3, false );
 
             for ( int i = 0; i < 6; i++ )
             {
@@ -1128,7 +1128,7 @@ public:
     virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
             const CoordinatesArrayType& rPoint ) const
     {
-        rResult.resize( 6, 3 );
+        rResult.resize( 6, 3, false );
         noalias( rResult ) = ZeroMatrix( 6, 3 );
         
         rResult( 0, 0 ) = -1.0 + rPoint[2];
@@ -1171,7 +1171,7 @@ public:
      */
     virtual Matrix& ShapeFunctionsGradients( Matrix& rResult, PointType& rPoint )
     {
-        rResult.resize( 6, 3 );
+        rResult.resize( 6, 3, false );
         noalias( rResult ) = ZeroMatrix( 6, 3 );
         
         rResult( 0, 0 ) = -1.0 + rPoint.Z();
@@ -1219,9 +1219,9 @@ public:
         
         //TODO: this is not correct for a prism
         
-        rResult[0].resize( 2, 2 );
-        rResult[1].resize( 2, 2 );
-        rResult[2].resize( 2, 2 );
+        rResult[0].resize( 2, 2 , false);
+        rResult[1].resize( 2, 2 , false);
+        rResult[2].resize( 2, 2 , false);
         
         rResult[0]( 0, 0 ) = 0.0;
         rResult[0]( 0, 1 ) = 0.0;
@@ -1263,12 +1263,12 @@ public:
         
         //TODO: this is not correct for a prism
         
-        rResult[0][0].resize( 2, 2 );
-        rResult[0][1].resize( 2, 2 );
-        rResult[1][0].resize( 2, 2 );
-        rResult[1][1].resize( 2, 2 );
-        rResult[2][0].resize( 2, 2 );
-        rResult[2][1].resize( 2, 2 );
+        rResult[0][0].resize( 2, 2 , false);
+        rResult[0][1].resize( 2, 2 , false);
+        rResult[1][0].resize( 2, 2 , false);
+        rResult[1][1].resize( 2, 2 , false);
+        rResult[2][0].resize( 2, 2 , false);
+        rResult[2][1].resize( 2, 2 , false);
 
         for ( int i = 0; i < 3; i++ )
         {

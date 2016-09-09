@@ -343,7 +343,7 @@ public:
      */
     virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const
     {
-        rResult.resize( 6, 2 );
+        rResult.resize( 6, 2,false );
         noalias( rResult ) = ZeroMatrix( 6, 2 );
         rResult( 0, 0 ) =  0.0;
         rResult( 0, 1 ) =  0.0;
@@ -659,7 +659,7 @@ public:
     virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
     {
         //setting up size of jacobian matrix
-        rResult.resize( 3, 2 );
+        rResult.resize( 3, 2 ,false);
         //derivatives of shape functions
         const ShapeFunctionsGradientsType& shape_functions_gradients =
             CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
@@ -733,7 +733,7 @@ public:
     virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
     {
         //setting up size of jacobian matrix
-        rResult.resize( 3, 2 );
+        rResult.resize( 3, 2 ,false);
         //derivatives of shape functions
         Matrix shape_functions_gradients;
         shape_functions_gradients = ShapeFunctionsLocalGradients(
@@ -1012,7 +1012,7 @@ public:
         //loop over all integration points
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            rResult[pnt].resize( 6, 2 );
+            rResult[pnt].resize( 6, 2 ,false);
 
             for ( int i = 0; i < 6; i++ )
             {
@@ -1169,7 +1169,7 @@ public:
     virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
             const CoordinatesArrayType& rPoint ) const
     {
-        rResult.resize( 6, 2 );
+        rResult.resize( 6, 2,false );
         double thirdCoord = 1 - rPoint[0] - rPoint[1];
         double thirdCoord_DX = -1;
         double thirdCoord_DY = -1;
@@ -1203,7 +1203,7 @@ public:
      */
     virtual Matrix& ShapeFunctionsGradients( Matrix& rResult, CoordinatesArrayType& rPoint )
     {
-        rResult.resize( 6, 2 );
+        rResult.resize( 6, 2 ,false);
         double thirdCoord = 1 - rPoint[0] - rPoint[1];
         double thirdCoord_DX = -1;
         double thirdCoord_DY = -1;
@@ -1240,12 +1240,12 @@ public:
             rResult.swap( temp );
         }
 
-        rResult[0].resize( 2, 2 );
-        rResult[1].resize( 2, 2 );
-        rResult[2].resize( 2, 2 );
-        rResult[3].resize( 2, 2 );
-        rResult[4].resize( 2, 2 );
-        rResult[5].resize( 2, 2 );
+        rResult[0].resize( 2, 2 ,false);
+        rResult[1].resize( 2, 2 ,false);
+        rResult[2].resize( 2, 2 ,false);
+        rResult[3].resize( 2, 2 ,false);
+        rResult[4].resize( 2, 2 ,false);
+        rResult[5].resize( 2, 2 ,false);
 
         rResult[0]( 0, 0 ) = 4.0;
         rResult[0]( 0, 1 ) = 4.0;
@@ -1293,19 +1293,19 @@ public:
             rResult[i].resize( this->PointsNumber() );
         }
 
-        rResult[0][0].resize( 2, 2 );
+        rResult[0][0].resize( 2, 2,false );
 
-        rResult[0][1].resize( 2, 2 );
-        rResult[1][0].resize( 2, 2 );
-        rResult[1][1].resize( 2, 2 );
-        rResult[2][0].resize( 2, 2 );
-        rResult[2][1].resize( 2, 2 );
-        rResult[3][0].resize( 2, 2 );
-        rResult[3][1].resize( 2, 2 );
-        rResult[4][0].resize( 2, 2 );
-        rResult[4][1].resize( 2, 2 );
-        rResult[5][0].resize( 2, 2 );
-        rResult[5][1].resize( 2, 2 );
+        rResult[0][1].resize( 2, 2,false );
+        rResult[1][0].resize( 2, 2,false );
+        rResult[1][1].resize( 2, 2 ,false);
+        rResult[2][0].resize( 2, 2 ,false);
+        rResult[2][1].resize( 2, 2 ,false);
+        rResult[3][0].resize( 2, 2 ,false);
+        rResult[3][1].resize( 2, 2 ,false);
+        rResult[4][0].resize( 2, 2 ,false);
+        rResult[4][1].resize( 2, 2 ,false);
+        rResult[5][0].resize( 2, 2 ,false);
+        rResult[5][1].resize( 2, 2 ,false);
 
 
         for ( int i = 0; i < 6; i++ )

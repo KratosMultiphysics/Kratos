@@ -329,7 +329,7 @@ public:
      */
     virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const
     {
-        rResult.resize( 3, 2 );
+        rResult.resize( 3, 2 ,false);
         noalias( rResult ) = ZeroMatrix( 3, 2 );
         rResult( 0, 0 ) =  0.0;
         rResult( 0, 1 ) =  0.0;
@@ -621,7 +621,7 @@ public:
                               IndexType IntegrationPointIndex,
                               IntegrationMethod ThisMethod ) const
     {
-        rResult.resize( 3, 2 );
+        rResult.resize( 3, 2,false );
         rResult( 0, 0 ) = -( BaseType::GetPoint( 0 ).X() ) + ( BaseType::GetPoint( 1 ).X() ); //on the Gauss points (J is constant at each element)
         rResult( 1, 0 ) = -( BaseType::GetPoint( 0 ).Y() ) + ( BaseType::GetPoint( 1 ).Y() );
         rResult( 2, 0 ) = -( BaseType::GetPoint( 0 ).Z() ) + ( BaseType::GetPoint( 1 ).Z() );
@@ -648,7 +648,7 @@ public:
      */
     virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
     {
-        rResult.resize( 3, 2 );
+        rResult.resize( 3, 2 ,false);
         rResult( 0, 0 ) = -( BaseType::GetPoint( 0 ).X() ) + ( BaseType::GetPoint( 1 ).X() );
         rResult( 1, 0 ) = -( BaseType::GetPoint( 0 ).Y() ) + ( BaseType::GetPoint( 1 ).Y() );
         rResult( 2, 0 ) = -( BaseType::GetPoint( 0 ).Z() ) + ( BaseType::GetPoint( 1 ).Z() );
@@ -961,7 +961,7 @@ public:
         //loop over all integration points
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            rResult[pnt].resize( 3, 2 );
+            rResult[pnt].resize( 3, 2,false );
 
             for ( int i = 0; i < 3; i++ )
             {
@@ -1081,7 +1081,7 @@ public:
     virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
             const CoordinatesArrayType& rPoint ) const
     {
-        rResult.resize( 3, 2 );
+        rResult.resize( 3, 2 ,false);
         noalias( rResult ) = ZeroMatrix( 3, 2 );
         rResult( 0, 0 ) = -1.0;
         rResult( 0, 1 ) = -1.0;
@@ -1105,7 +1105,7 @@ public:
      */
     virtual Matrix& ShapeFunctionsGradients( Matrix& rResult, PointType& rPoint )
     {
-        rResult.resize( 3, 2 );
+        rResult.resize( 3, 2,false );
         noalias( rResult ) = ZeroMatrix( 3, 2 );
         rResult( 0, 0 ) = -1.0;
         rResult( 0, 1 ) = -1.0;
@@ -1132,10 +1132,10 @@ public:
             rResult.swap( temp );
         }
 
-        rResult[0].resize( 2, 2 );
+        rResult[0].resize( 2, 2 ,false);
 
-        rResult[1].resize( 2, 2 );
-        rResult[2].resize( 2, 2 );
+        rResult[1].resize( 2, 2 ,false);
+        rResult[2].resize( 2, 2 ,false);
         rResult[0]( 0, 0 ) = 0.0;
         rResult[0]( 0, 1 ) = 0.0;
         rResult[0]( 1, 0 ) = 0.0;
@@ -1174,13 +1174,13 @@ public:
             rResult[i].swap( temp );
         }
 
-        rResult[0][0].resize( 2, 2 );
+        rResult[0][0].resize( 2, 2 ,false);
 
-        rResult[0][1].resize( 2, 2 );
-        rResult[1][0].resize( 2, 2 );
-        rResult[1][1].resize( 2, 2 );
-        rResult[2][0].resize( 2, 2 );
-        rResult[2][1].resize( 2, 2 );
+        rResult[0][1].resize( 2, 2 ,false);
+        rResult[1][0].resize( 2, 2 ,false);
+        rResult[1][1].resize( 2, 2 ,false);
+        rResult[2][0].resize( 2, 2 ,false);
+        rResult[2][1].resize( 2, 2 ,false);
 
         for ( int i = 0; i < 3; i++ )
         {
