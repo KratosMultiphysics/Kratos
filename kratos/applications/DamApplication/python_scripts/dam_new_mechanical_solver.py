@@ -77,6 +77,8 @@ class DamMechanicalSolver:
             "processes_sub_model_part_list"       : [""],
             "nodal_processes_sub_model_part_list" : [""],
             "load_processes_sub_model_part_list"  : [""],
+            "loads_sub_model_part_list": [],
+            "loads_variable_list": [],
             "output_configuration"                : {
                 "result_file_configuration" : {
                     "gidpost_flags"       : {
@@ -318,7 +320,29 @@ class DamMechanicalSolver:
                                                                             compute_reactions, 
                                                                             reform_step_dofs, 
                                                                             move_mesh_flag)
-            return self.solver
+                                                                            
+        else:
+            
+            # Arc-Length strategy
+            arc_length_params = KratosMultiphysics.Parameters("{}")
+            arc_length_params.AddEmptyValue("desired_iterations").SetInt(4)
+            arc_length_params.AddEmptyValue("max_radius_factor").SetDouble(20.0)
+            arc_length_params.AddEmptyValue("min_radius_factor").SetDouble(0.5)
+            arc_length_params.AddValue("loads_sub_model_part_list",self.settings["loads_sub_model_part_list"])
+            arc_length_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
+            
+            self.solver = KratosPoro.PoromechanicsRammArcLengthStrategy(self.main_model_part,
+                                                                   scheme,
+                                                                   self.linear_solver,
+                                                                   convergence_criterion,
+                                                                   builder_and_solver,
+                                                                   arc_length_params,
+                                                                   max_iters,
+                                                                   compute_reactions,
+                                                                   reform_step_dofs,
+                                                                   move_mesh_flag)
+            
+        return self.solver
                                         
             
             

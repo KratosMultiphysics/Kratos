@@ -74,6 +74,8 @@ class DamThermalSolver:
             "processes_sub_model_part_list"       : [""],
             "nodal_processes_sub_model_part_list" : [""],
             "load_processes_sub_model_part_list"  : [""],
+            "loads_sub_model_part_list": [],
+            "loads_variable_list": [],
             "output_configuration"                : {
                 "result_file_configuration" : {
                     "gidpost_flags"       : {
