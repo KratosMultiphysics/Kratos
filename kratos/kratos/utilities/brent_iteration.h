@@ -13,6 +13,9 @@
 #if !defined(KRATOS_BRENT_ITERATION_H_INCLUDED)
 #define  KRATOS_BRENT_ITERATION_H_INCLUDED
 
+#include <cmath>
+#include "includes/define.h"
+
 namespace Kratos
 {
 
