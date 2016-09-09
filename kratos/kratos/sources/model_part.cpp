@@ -288,9 +288,10 @@ void ModelPart::AddNodes(std::vector<IndexType>& NodeIds, IndexType ThisIndex)
             
             current_part->Nodes().Unique();
             
-            current_part = this->GetParentModelPart();
+            current_part = current_part->GetParentModelPart();
         }
     }
+    
     KRATOS_CATCH("");
 }
     
@@ -356,7 +357,6 @@ ModelPart::NodeType::Pointer ModelPart::CreateNewNode(ModelPart::IndexType Id, d
 
         return p_new_node;
     }
-    KRATOS_WATCH(Id)
     //verify if the node exists and eventually give back the existing node
     NodesContainerType::iterator existing_node_it = this->GetMesh(ThisIndex).Nodes().find(Id);
     if( existing_node_it != GetMesh(ThisIndex).NodesEnd())
@@ -713,7 +713,7 @@ void ModelPart::AddElements(std::vector<IndexType>& ElementIds, IndexType ThisIn
             
             current_part->Elements().Unique();
             
-            current_part = this->GetParentModelPart();
+            current_part = current_part->GetParentModelPart();
         }
     }
     KRATOS_CATCH("");
@@ -936,7 +936,7 @@ void ModelPart::AddConditions(std::vector<IndexType>& ConditionIds, IndexType Th
             
             current_part->Conditions().Unique();
             
-            current_part = this->GetParentModelPart();
+            current_part = current_part->GetParentModelPart();
         }
     }
     KRATOS_CATCH("");

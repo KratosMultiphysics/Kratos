@@ -350,7 +350,7 @@ public:
             
             current_part->Nodes().Unique();
             
-            current_part = this->GetParentModelPart();
+            current_part = current_part->GetParentModelPart();
         }
         
         KRATOS_CATCH("")
@@ -738,7 +738,7 @@ public:
             
             current_part->Elements().Unique();
             
-            current_part = this->GetParentModelPart();
+            current_part = current_part->GetParentModelPart();
         }
         
         KRATOS_CATCH("")
@@ -898,7 +898,7 @@ public:
             
             current_part->Conditions().Unique();
             
-            current_part = this->GetParentModelPart();
+            current_part = current_part->GetParentModelPart();
         }
         
         KRATOS_CATCH("")
