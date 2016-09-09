@@ -21,7 +21,6 @@
 #include "includes/kratos_parameters.h"
 #include "python/add_equation_systems_to_python.h"
 #include "spaces/ublas_space.h"
-//#include "spaces/parallel_ublas_space.h"
 
 #include "linear_solvers/direct_solver.h"
 #include "linear_solvers/iterative_solver.h"
