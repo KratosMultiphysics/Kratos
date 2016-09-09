@@ -308,6 +308,54 @@ public:
      */
     void AddNode(NodeType::Pointer pNewNode, IndexType ThisIndex = 0);
 
+    /** Inserts a list of nodes in a submodelpart provided their Id. Does nothing if applied to the top model part
+     */    
+    void AddNodes(std::vector<IndexType>& NodeIds, IndexType ThisIndex = 0);
+    
+    /** Inserts a list of pointers to nodes
+     */    
+    template<class TIteratorType >
+    void AddNodes(TIteratorType nodes_begin,  TIteratorType nodes_end, IndexType ThisIndex = 0)
+    {
+        KRATOS_TRY
+        ModelPart::NodesContainerType  aux;
+        ModelPart* root_model_part = &this->GetRootModelPart();
+        
+        for(TIteratorType it = nodes_begin; it!=nodes_end; it++)
+        {
+            auto it_found = root_model_part->Nodes().find(it->Id());
+            if(it_found != root_model_part->NodesEnd()) //node does not exist in the top model part
+            {
+                aux.push_back( *(it.base()) );
+            }
+            else //if it does exist verify it is the same node
+            {
+                if(&(*it_found) != (it->get()))//check if the pointee coincides
+                    KRATOS_ERROR << "attempting to add a new node with Id :" << it_found->Id() << ", unfortunately a (different) node with the same Id already exists" << std::endl;
+            }
+        }
+        
+        //now add to the root model part
+        for(auto it = aux.begin(); it!=aux.end(); it++)
+                root_model_part->Nodes().push_back( *(it.base()) );
+        root_model_part->Nodes().Unique();
+        
+        //add to all of the leaves
+        
+        ModelPart* current_part = this;
+        while(current_part->IsSubModelPart())
+        {
+            for(auto it = aux.begin(); it!=aux.end(); it++)
+                current_part->Nodes().push_back( *(it.base()) );
+            
+            current_part->Nodes().Unique();
+            
+            current_part = this->GetParentModelPart();
+        }
+        
+        KRATOS_CATCH("")
+    }
+
     /** Inserts a node in the current mesh.
      */
     NodeType::Pointer CreateNewNode(int Id, double x, double y, double z, VariablesList* pNewVariablesList, IndexType ThisIndex = 0);
@@ -647,6 +695,54 @@ public:
     /** Inserts a element in the current mesh.
      */
     void AddElement(ElementType::Pointer pNewElement, IndexType ThisIndex = 0);
+    
+    /** Inserts a list of elements to a submodelpart provided their Id. Does nothing if applied to the top model part
+     */    
+    void AddElements(std::vector<IndexType>& ElementIds, IndexType ThisIndex = 0);
+    
+    /** Inserts a list of pointers to nodes
+     */    
+    template<class TIteratorType >
+    void AddElements(TIteratorType elements_begin,  TIteratorType elements_end, IndexType ThisIndex = 0)
+    {
+        KRATOS_TRY
+        ModelPart::ElementsContainerType  aux;
+        ModelPart* root_model_part = &this->GetRootModelPart();
+        
+        for(TIteratorType it = elements_begin; it!=elements_end; it++)
+        {
+            auto it_found = root_model_part->Elements().find(it->Id());
+            if(it_found != root_model_part->ElementsEnd()) //node does not exist in the top model part
+            {
+                aux.push_back( *(it.base()) );
+            }
+            else //if it does exist verify it is the same node
+            {
+                if(&(*it_found) != (it->get()))//check if the pointee coincides
+                    KRATOS_ERROR << "attempting to add a new node with Id :" << it_found->Id() << ", unfortunately a (different) node with the same Id already exists" << std::endl;
+            }
+        }
+        
+        //now add to the root model part
+        for(auto it = aux.begin(); it!=aux.end(); it++)
+                root_model_part->Elements().push_back( *(it.base()) );
+        root_model_part->Elements().Unique();
+        
+        //add to all of the leaves
+        
+        ModelPart* current_part = this;
+        while(current_part->IsSubModelPart())
+        {
+            for(auto it = aux.begin(); it!=aux.end(); it++)
+                current_part->Elements().push_back( *(it.base()) );
+            
+            current_part->Elements().Unique();
+            
+            current_part = this->GetParentModelPart();
+        }
+        
+        KRATOS_CATCH("")
+    }
 
     /** Inserts an element in the current mesh.
      */
@@ -759,6 +855,54 @@ public:
     /** Inserts a condition in the current mesh.
      */
     void AddCondition(ConditionType::Pointer pNewCondition, IndexType ThisIndex = 0);
+    
+    /** Inserts a list of conditions to a submodelpart provided their Id. Does nothing if applied to the top model part
+     */    
+    void AddConditions(std::vector<IndexType>& ConditionIds, IndexType ThisIndex = 0);
+    
+    /** Inserts a list of pointers to nodes
+     */    
+    template<class TIteratorType >
+    void AddConditions(TIteratorType conditions_begin,  TIteratorType conditions_end, IndexType ThisIndex = 0)
+    {
+        KRATOS_TRY
+        ModelPart::ConditionsContainerType  aux;
+        ModelPart* root_model_part = &this->GetRootModelPart();
+        
+        for(TIteratorType it = conditions_begin; it!=conditions_end; it++)
+        {
+            auto it_found = root_model_part->Conditions().find(it->Id());
+            if(it_found != root_model_part->ConditionsEnd()) //node does not exist in the top model part
+            {
+                aux.push_back( *(it.base()) );
+            }
+            else //if it does exist verify it is the same node
+            {
+                if(&(*it_found) != (it->get()))//check if the pointee coincides
+                    KRATOS_ERROR << "attempting to add a new node with Id :" << it_found->Id() << ", unfortunately a (different) node with the same Id already exists" << std::endl;
+            }
+        }
+        
+        //now add to the root model part
+        for(auto it = aux.begin(); it!=aux.end(); it++)
+                root_model_part->Conditions().push_back( *(it.base()) );
+        root_model_part->Conditions().Unique();
+        
+        //add to all of the leaves
+        
+        ModelPart* current_part = this;
+        while(current_part->IsSubModelPart())
+        {
+            for(auto it = aux.begin(); it!=aux.end(); it++)
+                current_part->Conditions().push_back( *(it.base()) );
+            
+            current_part->Conditions().Unique();
+            
+            current_part = this->GetParentModelPart();
+        }
+        
+        KRATOS_CATCH("")
+    }
 
     /** Inserts a condition in the current mesh.
      */

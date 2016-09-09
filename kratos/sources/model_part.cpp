@@ -260,6 +260,41 @@ void ModelPart::AddNode(ModelPart::NodeType::Pointer pNewNode, ModelPart::IndexT
     }
 }
 
+/** Inserts a list of nodes in a submodelpart provided their Id. Does nothing if applied to the top model part
+*/    
+void ModelPart::AddNodes(std::vector<IndexType>& NodeIds, IndexType ThisIndex)
+{
+    KRATOS_TRY
+    if(IsSubModelPart()) //does nothing if we are on the top model part
+    {
+        //obtain from the root model part the corresponding list of nodes
+        ModelPart* root_model_part = &this->GetRootModelPart();
+        ModelPart::NodesContainerType  aux;
+        aux.reserve(NodeIds.size());
+        for(unsigned int i=0; i<NodeIds.size(); i++)
+        {
+            ModelPart::NodesContainerType::iterator it = root_model_part->Nodes().find(NodeIds[i]);
+            if(it!=root_model_part->NodesEnd())
+                aux.push_back(*(it.base()));
+            else
+                KRATOS_ERROR << "the node with Id " << NodeIds[i] << " does not exist in the root model part";
+        }
+        
+        ModelPart* current_part = this;
+        while(current_part->IsSubModelPart())
+        {
+            for(auto it = aux.begin(); it!=aux.end(); it++)
+                current_part->Nodes().push_back( *(it.base()) );
+            
+            current_part->Nodes().Unique();
+            
+            current_part = this->GetParentModelPart();
+        }
+    }
+    KRATOS_CATCH("");
+}
+    
+
 
 /** Inserts a node in the mesh with ThisIndex.
 */
@@ -650,6 +685,40 @@ void ModelPart::AddElement(ModelPart::ElementType::Pointer pNewElement, ModelPar
     }
 }
 
+/** Inserts a list of conditions to a submodelpart provided their Id. Does nothing if applied to the top model part
+*/    
+void ModelPart::AddElements(std::vector<IndexType>& ElementIds, IndexType ThisIndex)
+{
+    KRATOS_TRY
+    if(IsSubModelPart()) //does nothing if we are on the top model part
+    {
+        //obtain from the root model part the corresponding list of nodes
+        ModelPart* root_model_part = &this->GetRootModelPart();
+        ModelPart::ElementsContainerType  aux;
+        aux.reserve(ElementIds.size());
+        for(unsigned int i=0; i<ElementIds.size(); i++)
+        {
+            ModelPart::ElementsContainerType::iterator it = root_model_part->Elements().find(ElementIds[i]);
+            if(it!=root_model_part->ElementsEnd())
+                aux.push_back(*(it.base()));
+            else
+                KRATOS_ERROR << "the element with Id " << ElementIds[i] << " does not exist in the root model part";
+        }
+        
+        ModelPart* current_part = this;
+        while(current_part->IsSubModelPart())
+        {
+            for(auto it = aux.begin(); it!=aux.end(); it++)
+                current_part->Elements().push_back( *(it.base()) );
+            
+            current_part->Elements().Unique();
+            
+            current_part = this->GetParentModelPart();
+        }
+    }
+    KRATOS_CATCH("");
+}
+
 /** Inserts an element in the mesh with ThisIndex.
 */
 ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementName,
@@ -837,6 +906,40 @@ void ModelPart::AddCondition(ModelPart::ConditionType::Pointer pNewCondition, Mo
                 KRATOS_ERROR << "attempting to add pNewCondition with Id :" << pNewCondition->Id() << ", unfortunately a (different) condition with the same Id already exists" << std::endl;
         }
     }
+}
+
+/** Inserts a list of conditions to a submodelpart provided their Id. Does nothing if applied to the top model part
+*/    
+void ModelPart::AddConditions(std::vector<IndexType>& ConditionIds, IndexType ThisIndex)
+{
+    KRATOS_TRY
+    if(IsSubModelPart()) //does nothing if we are on the top model part
+    {
+        //obtain from the root model part the corresponding list of nodes
+        ModelPart* root_model_part = &this->GetRootModelPart();
+        ModelPart::ConditionsContainerType  aux;
+        aux.reserve(ConditionIds.size());
+        for(unsigned int i=0; i<ConditionIds.size(); i++)
+        {
+            ModelPart::ConditionsContainerType::iterator it = root_model_part->Conditions().find(ConditionIds[i]);
+            if(it!=root_model_part->ConditionsEnd())
+                aux.push_back(*(it.base()));
+            else
+                KRATOS_ERROR << "the condition with Id " << ConditionIds[i] << " does not exist in the root model part";
+        }
+        
+        ModelPart* current_part = this;
+        while(current_part->IsSubModelPart())
+        {
+            for(auto it = aux.begin(); it!=aux.end(); it++)
+                current_part->Conditions().push_back( *(it.base()) );
+            
+            current_part->Conditions().Unique();
+            
+            current_part = this->GetParentModelPart();
+        }
+    }
+    KRATOS_CATCH("");
 }
 
 /** Inserts a condition in the mesh with ThisIndex.
