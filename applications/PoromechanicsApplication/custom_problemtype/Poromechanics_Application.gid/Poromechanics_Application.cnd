@@ -102,7 +102,7 @@ HELP: Units in IS: m
 QUESTION: Critical_Displacement
 VALUE: 0.05
 HELP: Units in IS: m
-QUESTION: Residual_Stress
+QUESTION: Yield_Stress
 VALUE: 3.5e6
 HELP: Units in IS: N/m2
 QUESTION: Friction_Coefficient
