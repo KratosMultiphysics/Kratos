@@ -169,6 +169,11 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             """)
 
     def test_superlu(self):
+        try:
+            import KratosMultiphysics.ExternalSolversApplication
+        except:
+            self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
+
         self._RunParametrized("""
             {
                 "test_list" : [
@@ -190,7 +195,11 @@ class TestLinearSolvers(KratosUnittest.TestCase):
 
     ##@KratosUnittest.skipUnless(hasattr(KratosMultiphysics,  "PastixSolver"), "Pastix solver is not included in the compilation of the External Solvers Application")
     def test_pastix(self):
-        import KratosMultiphysics.ExternalSolversApplication
+        try:
+            import KratosMultiphysics.ExternalSolversApplication
+        except:
+            self.skipTest("ExternalSolversApplication is not available")
+            
         if( not hasattr(KratosMultiphysics.ExternalSolversApplication,  "PastixSolver") ):
             self.skipTest("Pastix solver is not included in the compilation of the External Solvers Application")
         
