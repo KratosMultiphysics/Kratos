@@ -52,10 +52,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(LOAD_FUNCTION_H_INCLUDED)
 #define LOAD_FUNCTION_H_INCLUDED
 
-
-#include "boost/python/list.hpp"
-
-
+#include <boost/python.hpp>
 
 namespace Kratos
 {
@@ -75,7 +72,7 @@ public:
 	};
 
 	KRATOS_CLASS_POINTER_DEFINITION( LoadFunction );
-	
+
 public:
 
 	LoadFunction() {}
@@ -100,7 +97,7 @@ public:
 	KRATOS_CLASS_POINTER_DEFINITION( PieceWiseLoadFunction );
 
 	typedef LoadFunction< TReal > MyBase;
-	
+
 	typedef typename LoadFunction< TReal >::ProlongationType ProlongationType;
 
 public:
@@ -111,14 +108,14 @@ public:
 	{
 		CheckInput();
 	}
-	
+
 	PieceWiseLoadFunction(const std::vector<TReal> & Xvalues, const std::vector<TReal> & Yvalues, ProlongationType prolongationType)
 		: mX(Xvalues), mY(Yvalues)
 		, mProlType(prolongationType)
 	{
 		CheckInput();
 	}
-	
+
 	PieceWiseLoadFunction(const boost::python::list & values)
 		: mProlType(MyBase::Constant)
 	{
@@ -140,7 +137,7 @@ public:
 		CheckInput();
 	}
 
-	~PieceWiseLoadFunction() 
+	~PieceWiseLoadFunction()
 	{
 	}
 
@@ -180,21 +177,21 @@ private:
 		if(n < 4) return;
 		if(n % 2 != 0) n -= 1;
 		n /= 2;
-        for(size_t i = 0; i < n; i++) {
+    for(size_t i = 0; i < n; i++) {
 			int index = i * 2;
 			mX.push_back(boost::python::extract<double>(pyl[index]));
 			mY.push_back(boost::python::extract<double>(pyl[index + 1]));
 		}
 	}
-	
+
 	inline void ProcessPythonList(const boost::python::list & plx, const boost::python::list & ply)
 	{
         int n = len(plx);
 		if(mX.size() > 0) mX.clear();
 		if(mY.size() > 0) mY.clear();
 		if(n < 2) return;
-        if(n != len(ply)) return;
-        for(int i = 0; i < n; i++) {
+    if(n != len(ply)) return;
+    for(int i = 0; i < n; i++) {
 			mX.push_back(boost::python::extract<double>(plx[i]));
 			mY.push_back(boost::python::extract<double>(ply[i]));
 		}
@@ -219,7 +216,7 @@ private:
 		}
 		return 0.0;
 	}
-	
+
 	inline TReal GetLinearFactorLeft(TReal currentTime)const
 	{
 		TReal x0 = mX[0];
@@ -234,7 +231,7 @@ private:
 		TReal timeRatio = relativeTime / deltaTime;
 		return y0 + timeRatio * deltaFactor;
 	}
-	
+
 	inline TReal GetLinearFactorRight(TReal currentTime)const
 	{
 		size_t i = mX.size();
@@ -254,13 +251,13 @@ private:
 	inline void CheckInput()
 	{
 		KRATOS_TRY
-		
+
 		if(mX.size() != mY.size())
 			KRATOS_THROW_ERROR(std::invalid_argument, "PieceWiseLoadFunction - X and Y vectors should have the same size", "");
-			
+
 		if(mX.size() < 2)
 			KRATOS_THROW_ERROR(std::invalid_argument, "PieceWiseLoadFunction - X vector should have at least 2 values", "");
-			
+
 		if(mY.size() < 2)
 			KRATOS_THROW_ERROR(std::invalid_argument, "PieceWiseLoadFunction - Y vector should have at least 2 values", "");
 
@@ -277,7 +274,7 @@ private:
 
 		KRATOS_CATCH("")
 	}
-	
+
 private:
 
 	TReal mTolerance;

@@ -62,7 +62,7 @@ namespace Kratos
 	* Rve Constrain Handler for Zero Boundary Temperature Fluctuations
 	* in Small Displacement formulation
 	*/
-	template<class TSparseSpace, 
+	template<class TSparseSpace,
 			 class TDenseSpace>
 	class RveConstraintHandler_ZBF_SD_THERMAL : public RveConstraintHandler<TSparseSpace, TDenseSpace>
 	{
@@ -74,7 +74,7 @@ namespace Kratos
 		typedef RveConstraintHandler<TSparseSpace, TDenseSpace> BaseType;
 
 	public:
-		
+
 		RveConstraintHandler_ZBF_SD_THERMAL()
 			: BaseType()
 		{
@@ -86,7 +86,7 @@ namespace Kratos
 
 	public:
 
-		virtual void ApplyMacroScaleData(ModelPart& mp, 
+		virtual void ApplyMacroScaleData(ModelPart& mp,
 										 const RveGeometryDescriptor& geom,
 										 const RveMacroscaleData& macroScaleData)
 		{
@@ -114,11 +114,11 @@ namespace Kratos
 			}
 		}
 
-		virtual void FinalizeSolutionStep(ModelPart& mp, 
+		virtual void FinalizeSolutionStep(ModelPart& mp,
 										 const RveGeometryDescriptor& geom,
 										 const RveMacroscaleData& macroScaleData)
 		{
-			//const ModelPart::NodeType& ref_node = mp.GetNode(geom.CentroidNodeID());
+			const ModelPart::NodeType& ref_node = mp.GetNode(geom.ReferenceNodeID());
 			const double T_M = macroScaleData.Mean_Temp();
 			Vector grad_T_M = macroScaleData.StrainVector();
 			double T_m;

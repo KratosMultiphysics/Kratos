@@ -61,9 +61,9 @@ void KratosMultiScaleApplication::Register()
 {
 	// calling base class register to register Kratos components
 	KratosApplication::Register();
-	std::cout << "      KRATOS  \   |  |   |  |  __  __| _ _|       " << std::endl;
-	std::cout << "             |\ / |  |   |  |      |     |        " << std::endl;
-	std::cout << "            _|  _|  \___/  _____| _|   ___| SCALE " << std::endl;
+	std::cout << "      KRATOS \\   |  |   |  |  __  __| _ _|       " << std::endl;
+	std::cout << "             |\\ / |  |   |  |      |     |        " << std::endl;
+	std::cout << "            _|  _|  \\___/  _____| _|   ___| SCALE " << std::endl;
 	std::cout << "Initializing KratosMultiScaleApplication..." << std::endl;
 
 	// Register variables
@@ -71,7 +71,7 @@ void KratosMultiScaleApplication::Register()
 	//KRATOS_REGISTER_VARIABLE(RVE_CLAW_MAP)
 
 	KRATOS_REGISTER_VARIABLE(INITIAL_TEMP_GRAD)
-	
+
 	KRATOS_REGISTER_VARIABLE(FLUX_RVE)
 	KRATOS_REGISTER_VARIABLE(HEAT_FLUX_RVE)
 	KRATOS_REGISTER_VARIABLE(HOMOGENIZED_CONDUCTIVITY)
@@ -104,7 +104,7 @@ void KratosMultiScaleApplication::Register()
 	KRATOS_REGISTER_VARIABLE(CONDUCT_MAT2)
 	KRATOS_REGISTER_VARIABLE(POISSON_MAT2)
 	KRATOS_REGISTER_VARIABLE(AIR_CONDUCTIVITY)
-	
+
 	// for rve
 	KRATOS_REGISTER_VARIABLE( RVE_CONSTITUTIVE_LAW_FLAG )
 	KRATOS_REGISTER_VARIABLE(RVE_DAMAGE_SURFACE_FLAG)
@@ -112,7 +112,7 @@ void KratosMultiScaleApplication::Register()
 	KRATOS_REGISTER_VARIABLE( RVE_DAMAGE_SURFACE_LIMIT )
 	KRATOS_REGISTER_VARIABLE(RVE_FULL_TEMPERATURE)
 	KRATOS_REGISTER_VARIABLE(TEMPERATURE_REACTION)
-	
+
 	KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( RVE_FULL_DISPLACEMENT )
 	KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( RVE_WPC_LAGRANGIAN_DOF )
 	KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( RVE_WPC_LAGRANGIAN_REACTION )
@@ -142,7 +142,7 @@ void KratosMultiScaleApplication::Register()
 	KRATOS_REGISTER_VARIABLE( GAP_INTERFACE)
 	KRATOS_REGISTER_VARIABLE( CONVECTION_DEGRADATION )
 	KRATOS_REGISTER_VARIABLE( EXPONENTIAL_DAMAGE )
-	
+
 	KRATOS_REGISTER_VARIABLE( DAMAGE_T_INTERFACE )
 	KRATOS_REGISTER_VARIABLE( DAMAGE_C_INTERFACE )
 	KRATOS_REGISTER_VARIABLE(DAMAGE_T)
@@ -261,4 +261,3 @@ void KratosMultiScaleApplication::Register()
 }
 
 }  // namespace Kratos.
-

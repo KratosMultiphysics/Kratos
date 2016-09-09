@@ -2,7 +2,6 @@
 ==============================================================================
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
-/*
 ==============================================================================
 KratosMultiScaleApplication
 A library based on:
@@ -62,7 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // External includes
 
 // Project includes
-#include "..\kratos\utilities\timer.h"
+#include "utilities/timer.h"
 #include "includes/define.h"
 #include "linear_solvers/direct_solver.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
@@ -567,11 +566,11 @@ public:
     typedef typename TSparseSpaceType::VectorType VectorType;
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
-	
+
 	typedef LUSkylineFactorizationV2<TSparseSpaceType, TDenseSpaceType> FactorizationType;
-	
+
 public:
-	
+
     SkylineLUFactorizationLinearSolverV2()
 		: m_pSolver(NULL)
 	{
@@ -585,7 +584,7 @@ public:
 private:
 
 public:
-	
+
 	void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
     }
@@ -619,7 +618,7 @@ public:
 
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
-        if(IsNotConsistent(rA, rX, rB)) return false;
+        if(this->IsNotConsistent(rA, rX, rB)) return false;
 		int n = TSparseSpaceType::Size(rX);
 		if(n < 1) return true;
 
@@ -632,7 +631,7 @@ public:
 
     bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
     {
-		if(IsNotConsistent(rA, rX, rB)) return false;
+		if(this->IsNotConsistent(rA, rX, rB)) return false;
 		int n = rX.size1();
 		if(n < 1) return true;
 		int nrhs = rX.size2();
@@ -666,7 +665,7 @@ public:
 private:
 
     SkylineLUFactorizationLinearSolverV2& operator=(const SkylineLUFactorizationLinearSolverV2& Other);
-	
+
 private:
 
 	FactorizationType* m_pSolver;
@@ -699,4 +698,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SKYLINE_LINEAR_SOLVER_V2_H_INCLUDED  defined 
+#endif // KRATOS_SKYLINE_LINEAR_SOLVER_V2_H_INCLUDED  defined
