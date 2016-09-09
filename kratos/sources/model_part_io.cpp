@@ -350,20 +350,22 @@ namespace Kratos
                 ReadNodalDataBlock(rThisModelPart);
             else if(word == "ElementalData")
                 ReadElementalDataBlock(rThisModelPart.Elements());
-			else if (word == "ConditionalData")
-				ReadConditionalDataBlock(rThisModelPart.Conditions());
-			else if(word == "CommunicatorData")
+            else if (word == "ConditionalData")
+                ReadConditionalDataBlock(rThisModelPart.Conditions());
+            else if(word == "CommunicatorData")
             {
                 ReadCommunicatorDataBlock(rThisModelPart.GetCommunicator(), rThisModelPart.Nodes());
                 //Adding the elements and conditions to the communicator
                 rThisModelPart.GetCommunicator().LocalMesh().Elements() = rThisModelPart.Elements();
                 rThisModelPart.GetCommunicator().LocalMesh().Conditions() = rThisModelPart.Conditions();
             }
-			else if (word == "Mesh")
-				ReadMeshBlock(rThisModelPart);
-			else if (word == "SubModelPart")
+            else if (word == "Mesh")
+                ReadMeshBlock(rThisModelPart);
+            else if (word == "SubModelPart")
+            {
 				ReadSubModelPartBlock(rThisModelPart, rThisModelPart);
-		}
+            }
+        }
         std::cout << "  [Total Lines Read : " << mNumberOfLines<<"]";
         std::cout << std::endl;
 	Timer::Stop("Reading Input");
@@ -2511,6 +2513,8 @@ namespace Kratos
 
 		SizeType node_id;
 		std::string word;
+                
+                std::vector<SizeType> ordered_ids;
 
 		while (!mpStream->eof())
 		{
@@ -2519,9 +2523,12 @@ namespace Kratos
 				break;
 
 			ExtractValue(word, node_id);
-			NodesContainerType::iterator i_node = FindKey(rMainModelPart.Nodes(), ReorderedNodeId(node_id), "Node");
-			rSubModelPart.AddNode(*(i_node.base()));
+                        ordered_ids.push_back(node_id);
 		}
+		
+		std::sort(ordered_ids.begin(), ordered_ids.end());
+                rSubModelPart.AddNodes(ordered_ids);
+
 		KRATOS_CATCH("")
 	}
 
@@ -2531,6 +2538,7 @@ namespace Kratos
 
 		SizeType element_id;
 		std::string word;
+                std::vector<SizeType> ordered_ids;
 
 		while (!mpStream->eof())
 		{
@@ -2539,9 +2547,11 @@ namespace Kratos
 				break;
 
 			ExtractValue(word, element_id);
-			ElementsContainerType::iterator i_element = FindKey(rMainModelPart.Elements(), ReorderedElementId(element_id), "Element");
-			rSubModelPart.AddElement(*(i_element.base()));
+                        ordered_ids.push_back(element_id);
 		}
+		std::sort(ordered_ids.begin(), ordered_ids.end());
+		rSubModelPart.AddElements(ordered_ids);
+                
 		KRATOS_CATCH("")
 	}
 
@@ -2551,6 +2561,7 @@ namespace Kratos
 
 		SizeType condition_id;
 		std::string word;
+                std::vector<SizeType> ordered_ids;
 
 		while (!mpStream->eof())
 		{
@@ -2559,9 +2570,11 @@ namespace Kratos
 				break;
 
 			ExtractValue(word, condition_id);
-			ConditionsContainerType::iterator i_condition = FindKey(rMainModelPart.Conditions(), ReorderedConditionId(condition_id), "Condition");
-			rSubModelPart.AddCondition(*(i_condition.base()));
+                        ordered_ids.push_back(condition_id);
 		}
+		std::sort(ordered_ids.begin(), ordered_ids.end());
+		rSubModelPart.AddConditions(ordered_ids);
+                
 		KRATOS_CATCH("")
 	}
 
@@ -2577,7 +2590,7 @@ namespace Kratos
         WriteInAllFiles(OutputFiles, block);
 
         WriteInAllFiles(OutputFiles, "End ModelPartData\n");
-        KRATOS_WATCH("DivideModelPartDataBlock completed");
+        
         KRATOS_CATCH("")
     }
 
@@ -2593,7 +2606,7 @@ namespace Kratos
         WriteInAllFiles(OutputFiles, block);
 
         WriteInAllFiles(OutputFiles, "End Table\n");
-        KRATOS_WATCH("DivideTableBlock completed");
+
         KRATOS_CATCH("")
     }
 
@@ -2609,7 +2622,7 @@ namespace Kratos
         WriteInAllFiles(OutputFiles, block);
 
         WriteInAllFiles(OutputFiles, "End Properties\n");
-        KRATOS_WATCH("DividePropertiesBlock completed");
+        
         KRATOS_CATCH("")
     }
 
@@ -2666,7 +2679,6 @@ namespace Kratos
         }
 
         WriteInAllFiles(OutputFiles, "End Nodes\n");
-        KRATOS_WATCH("DivideNodesBlock completed");
 
         KRATOS_CATCH("")
     }
@@ -2676,7 +2688,6 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        KRATOS_WATCH("DivideElementsBlock started");
 
         std::string word;
         std::string element_name;
@@ -2745,8 +2756,6 @@ namespace Kratos
         }
 
         WriteInAllFiles(OutputFiles, "\nEnd Elements\n");
-
-        KRATOS_WATCH("DivideElementsBlock completed");
 
         KRATOS_CATCH("")
     }
@@ -2826,8 +2835,6 @@ namespace Kratos
 
         WriteInAllFiles(OutputFiles, "\nEnd Conditions\n");
 
-        KRATOS_WATCH("DivideConditionsBlock completed");
-
         KRATOS_CATCH("")
     }
 
@@ -2890,8 +2897,6 @@ namespace Kratos
         }
 
         WriteInAllFiles(OutputFiles, "End NodalData\n");
-
-        KRATOS_WATCH("DivideNodalDataBlock completed");
 
         KRATOS_CATCH("")
     }
@@ -4059,7 +4064,5 @@ namespace Kratos
 		// This method is the one to be overriden by some reordering IO class
 		return ConditionId;
 	}
-
-
 
 }  // namespace Kratos.
