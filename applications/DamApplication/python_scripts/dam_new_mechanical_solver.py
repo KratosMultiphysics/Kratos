@@ -4,6 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication as KratosExternal
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.DamApplication as KratosDam
+import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 #check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
@@ -307,6 +308,7 @@ class DamMechanicalSolver:
         move_mesh_flag = self.settings["mechanical_settings"]["move_mesh_flag"].GetBool()
         
         if(strategy_type == "Newton-Raphson"):
+            self.main_model_part.ProcessInfo[KratosPoro.IS_CONVERGED]=True
             self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.main_model_part, 
                                                                             scheme, 
                                                                             self.linear_solver, 
