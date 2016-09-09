@@ -34,7 +34,7 @@
             <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.20"/>
             <parameter n="MINIMUM_JOINT_WIDTH" pn="Minimum Joint Width" v="1e-03"/>
             <parameter n="CRITICAL_DISPLACEMENT" pn="Critical Displacement" v="0.05"/>
-            <parameter n="RESIDUAL_STRESS" pn="Residual Stress" v="3.5e06"/>
+            <parameter n="YIELD_STRESS" pn="Yield Stress" v="3.5e06"/>
             <parameter n="DAMAGE_THRESHOLD" pn="Damage Threshold" v="0.04"/>
             <parameter n="FRICTION_COEFFICIENT" pn="Friction Coefficient" v="0.4"/>
         </inputs>
@@ -116,7 +116,7 @@
             <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.20"/>
             <parameter n="MINIMUM_JOINT_WIDTH" pn="Minimum Joint Width" v="1e-03"/>
             <parameter n="CRITICAL_DISPLACEMENT" pn="Critical Displacement" v="0.05"/>
-            <parameter n="RESIDUAL_STRESS" pn="Residual Stress" v="3.5e06"/>
+            <parameter n="YIELD_STRESS" pn="Yield Stress" v="3.5e06"/>
             <parameter n="DAMAGE_THRESHOLD" pn="Damage Threshold" v="0.04"/>
             <parameter n="FRICTION_COEFFICIENT" pn="Friction Coefficient" v="0.4"/>
         </inputs>
@@ -133,7 +133,7 @@
             <parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  /> 
             <parameter n="MINIMUM_JOINT_WIDTH" pn="Minimum Joint Width" v="1e-03"/>
             <parameter n="CRITICAL_DISPLACEMENT" pn="Critical Displacement" v="0.05"/>
-            <parameter n="RESIDUAL_STRESS" pn="Residual Stress" v="3.5e06"/>
+            <parameter n="YIELD_STRESS" pn="Yield Stress" v="3.5e06"/>
             <parameter n="DAMAGE_THRESHOLD" pn="Damage Threshold" v="0.04"/>
             <parameter n="FRICTION_COEFFICIENT" pn="Friction Coefficient" v="0.4"/>
         </inputs>
