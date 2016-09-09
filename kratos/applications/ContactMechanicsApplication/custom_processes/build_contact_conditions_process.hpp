@@ -113,16 +113,107 @@ namespace Kratos
       if( mEchoLevel > 0 )
 	std::cout<<" [ GENERATE NEW CONTACT ELEMENTS: "<<std::endl;
 
+      if( mrModelPart.Name() != mrRemesh.SubModelPartName )
+	std::cout<<" ModelPart Supplied do not corresponds to the Meshing Domain: ("<<mrModelPart.Name()<<" != "<<mrRemesh.SubModelPartName<<")"<<std::endl;
       
-      if( mrModelPart.Name() == mrRemesh.SubModelPartName ){
-	    
-	Execute(mrModelPart);
-      }
-      else{
-	    
-	ModelPart& rModelPart = mrModelPart.GetSubModelPart(mrRemesh.SubModelPartName);
-	Execute(rModelPart);
-      }
+      //*******************************************************************
+      //selecting elements
+      
+	if( !mrRemesh.MeshElementsSelectedFlag )  //Select Mesh Elements not performed  ... is needed to be done before building new elements
+	{  
+	  std::cout<<" ERROR : no selection of elements performed before building the elements "<<std::endl;
+	  SelectMeshElementsProcess SelectElements(mrModelPart,mrRemesh,mEchoLevel);
+	  SelectElements.Execute();
+	}
+
+
+      //*******************************************************************
+      //restore global ID's
+      int id=0;
+      for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(mMeshId) ; i_node != mrModelPart.NodesEnd(mMeshId) ; i_node++)
+	{
+	  id= i_node->Id();
+	  i_node->SetId( mrRemesh.NodalPreIds[ id ] );
+	}
+
+
+      //*******************************************************************
+      //set consecutive ids for global conditions
+      id=1;
+      for(ModelPart::ConditionsContainerType::iterator i_cond = mrModelPart.GetParentModelPart()->ConditionsBegin(mMeshId) ; i_cond != mrModelPart.GetParentModelPart()->ConditionsEnd(mMeshId) ; i_cond++)
+	{
+	  i_cond->SetId(id);
+	  id++;
+	}
+
+      //*******************************************************************
+      //properties to be used in the generation
+      Properties::Pointer pProperties = mrRemesh.GetProperties();
+
+      Condition const & rReferenceCondition=mrRemesh.GetReferenceCondition(); //contact element
+      
+      const unsigned int nds = rReferenceCondition.GetGeometry().size();
+
+      std::cout<<"   [START contact Element Generation "<<std::endl;
+
+      int& OutNumberOfElements = mrRemesh.OutMesh.GetNumberOfElements();
+      int* OutElementList      = mrRemesh.OutMesh.GetElementList();
+
+      int previous_id = mrModelPart.GetParentModelPart()->Conditions().back().Id();
+      id = previous_id;
+      for(int el = 0; el<OutNumberOfElements; el++)
+	{
+	  if(mrRemesh.PreservedElements[el])
+	    {
+	      Geometry<Node<3> > Vertices;
+	      for(unsigned int i=0; i<nds; i++)
+		{
+		  Vertices.push_back(mrModelPart.pGetNode(mrRemesh.NodalPreIds[OutElementList[el*nds+i]],mMeshId));
+		  Vertices.back().Set(CONTACT);	  
+		}
+	      
+	      id += 1;
+	      
+	      Condition::Pointer pContactCondition = rReferenceCondition.Create(id, Vertices, pProperties);
+	      
+
+	      //search the model part condition associated to this contact element MASTER CONDITION
+	      //assign the MASTER ELEMENT and the MASTER NODE
+				
+	      bool condition_found=false;
+	      ModelerUtilities ModelerUtils;
+	      Condition::Pointer pMasterCondition = ModelerUtils.FindMasterCondition(pContactCondition,mrModelPart.Conditions(),condition_found);
+
+	      if(!condition_found){
+
+		std::cout<<" MASTER CONDITION NOT FOUND: Contact Element Release "<<std::endl;
+		id -= 1;
+	      }
+	      else{
+
+		// std::cout<<" contact master "<<std::endl;
+		// pMasterCondition->GetValue(MASTER_ELEMENTS)[0].PrintInfo(std::cout);
+		// pMasterCondition->GetValue(MASTER_ELEMENTS)[0].PrintData(std::cout);
+		// pMasterCondition->GetValue(MASTER_ELEMENTS)[0].GetProperties().PrintData(std::cout);
+		// std::cout<<std::endl;
+
+		pContactCondition->SetValue(MASTER_CONDITION, pMasterCondition );
+		pContactCondition->SetValue(MASTER_ELEMENTS, pMasterCondition->GetValue(MASTER_ELEMENTS) );
+		pContactCondition->SetValue(MASTER_NODES, pMasterCondition->GetValue(MASTER_NODES) );
+		pContactCondition->SetValue(NORMAL, pMasterCondition->GetValue(NORMAL) );
+		pContactCondition->Set(CONTACT);
+
+		//setting new elements
+		mrModelPart.AddCondition(pContactCondition);
+
+	      }
+	    }
+	}
+      
+      std::cout<<"   [END   contact Elements Generation ["<<id-previous_id<<"] ]"<<std::endl;
+      
+      std::cout<<"   Total Conditions AFTER: ["<<mrModelPart.Conditions().size()<<"] ];"<<std::endl;
+
 
       if( mEchoLevel > 0 )
 	std::cout<<"   GENERATE NEW CONTACT ELEMENTS ]; "<<std::endl;
@@ -226,116 +317,6 @@ namespace Kratos
     ///@}
     ///@name Private Operators
     ///@{
-
-    //**************************************************************************
-    //**************************************************************************
-    void Execute(ModelPart& rModelPart)
-    {
-
-      KRATOS_TRY
-    
-      //*******************************************************************
-      //selecting elements
-      
-	if( !mrRemesh.MeshElementsSelectedFlag )  //Select Mesh Elements not performed  ... is needed to be done before building new elements
-	{  
-	  std::cout<<" ERROR : no selection of elements performed before building the elements "<<std::endl;
-	  SelectMeshElementsProcess SelectElements(rModelPart,mrRemesh,mEchoLevel);
-	  SelectElements.Execute();
-	}
-
-
-      //*******************************************************************
-      //restore global ID's
-      int id=0;
-      for(ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin(mMeshId) ; i_node != rModelPart.NodesEnd(mMeshId) ; i_node++)
-	{
-	  id= i_node->Id();
-	  i_node->SetId( mrRemesh.NodalPreIds[ id ] );
-	}
-
-
-      //*******************************************************************
-      //set consecutive ids for global conditions
-      id=1;
-      for(ModelPart::ConditionsContainerType::iterator i_cond = mrModelPart.ConditionsBegin(mMeshId) ; i_cond != mrModelPart.ConditionsEnd(mMeshId) ; i_cond++)
-	{
-	  i_cond->SetId(id);
-	  id++;
-	}
-
-      //*******************************************************************
-      //properties to be used in the generation
-      Properties::Pointer pProperties = mrRemesh.GetProperties();
-
-      Condition const & rReferenceCondition=mrRemesh.GetReferenceCondition(); //contact element
-      
-      const unsigned int nds = rReferenceCondition.GetGeometry().size();
-
-      std::cout<<"   [START contact Element Generation "<<std::endl;
-
-      int& OutNumberOfElements = mrRemesh.OutMesh.GetNumberOfElements();
-      int* OutElementList      = mrRemesh.OutMesh.GetElementList();
-
-      int previous_id = mrModelPart.Conditions().back().Id();
-      id = previous_id;
-      for(int el = 0; el<OutNumberOfElements; el++)
-	{
-	  if(mrRemesh.PreservedElements[el])
-	    {
-	      Geometry<Node<3> > Vertices;
-	      for(unsigned int i=0; i<nds; i++)
-		{
-		  Vertices.push_back(rModelPart.pGetNode(mrRemesh.NodalPreIds[OutElementList[el*nds+i]],mMeshId));
-		  Vertices.back().Set(CONTACT);	  
-		}
-	      
-	      id += 1;
-	      
-	      Condition::Pointer pContactCondition = rReferenceCondition.Create(id, Vertices, pProperties);
-	      
-
-	      //search the model part condition associated to this contact element MASTER CONDITION
-	      //assign the MASTER ELEMENT and the MASTER NODE
-				
-	      bool condition_found=false;
-	      ModelerUtilities ModelerUtils;
-	      Condition::Pointer pMasterCondition = ModelerUtils.FindMasterCondition(pContactCondition,rModelPart.Conditions(),condition_found);
-
-	      if(!condition_found){
-
-		std::cout<<" MASTER CONDITION NOT FOUND: Contact Element Release "<<std::endl;
-		id -= 1;
-	      }
-	      else{
-
-		// std::cout<<" contact master "<<std::endl;
-		// pMasterCondition->GetValue(MASTER_ELEMENTS)[0].PrintInfo(std::cout);
-		// pMasterCondition->GetValue(MASTER_ELEMENTS)[0].PrintData(std::cout);
-		// pMasterCondition->GetValue(MASTER_ELEMENTS)[0].GetProperties().PrintData(std::cout);
-		// std::cout<<std::endl;
-
-		pContactCondition->SetValue(MASTER_CONDITION, pMasterCondition );
-		pContactCondition->SetValue(MASTER_ELEMENTS, pMasterCondition->GetValue(MASTER_ELEMENTS) );
-		pContactCondition->SetValue(MASTER_NODES, pMasterCondition->GetValue(MASTER_NODES) );
-		pContactCondition->SetValue(NORMAL, pMasterCondition->GetValue(NORMAL) );
-		pContactCondition->Set(CONTACT);
-
-		//setting new elements
-		rModelPart.AddCondition(pContactCondition);
-		//mrModelPart.AddCondition(pContactCondition);
-	      }
-	    }
-	}
-      
-      std::cout<<"   [END   contact Elements Generation ["<<id-previous_id<<"] ]"<<std::endl;
-      
-      std::cout<<"   Total Conditions AFTER: ["<<rModelPart.Conditions().size()<<"] ];"<<std::endl;
-
-
-      KRATOS_CATCH( "" )
-   	
-    }
 
 
     ///@}

@@ -112,6 +112,8 @@ namespace Kratos
 
       KRATOS_TRY
 
+      this->ClearContactConditions();
+	
       //Update Boundary Normals before Contact Search   
       //(needed when meshing of the domains is not performed:
       // normal directions change with mesh movement)
@@ -330,6 +332,73 @@ namespace Kratos
     }
 
 
+
+
+    //**************************************************************************
+    //**************************************************************************
+
+    void ClearContactConditions()
+    {
+
+      KRATOS_TRY
+
+      //Clear contact conditions from computing domain
+      std::string ModelPartName;
+      for(ModelPart::SubModelPartIterator i_mp= mrMainModelPart.SubModelPartsBegin(); i_mp!=mrMainModelPart.SubModelPartsEnd(); i_mp++)
+	{
+	  if(i_mp->Is(SOLID) && i_mp->Is(ACTIVE))
+	    ModelPartName = i_mp->Name();
+	}
+      
+      ClearContactConditions(mrMainModelPart.GetSubModelPart(ModelPartName));
+
+      //Clear contact conditions from the main domain
+      ClearContactConditions(mrMainModelPart);
+
+      KRATOS_CATCH( "" )
+	
+    }
+    
+
+    //**************************************************************************
+    //**************************************************************************
+
+    void ClearContactConditions(ModelPart& rModelPart)
+    {
+
+      KRATOS_TRY
+
+      //*******************************************************************
+      //clearing contact conditions
+      //
+	
+      if( mEchoLevel >= 1 ){
+	std::cout<<" ["<<rModelPart.Name()<<" :: CONDITIONS [OLD:"<<rModelPart.NumberOfConditions();
+      }
+
+      ModelPart::ConditionsContainerType PreservedConditions;
+
+      for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ic++)
+	{
+
+	  if(ic->IsNot(CONTACT) && ic->GetGeometry().size() > 1){
+	    PreservedConditions.push_back(*(ic.base()));
+	  }
+	}
+      
+      rModelPart.Conditions().swap(PreservedConditions);
+	      
+      rModelPart.Conditions().Sort();
+      rModelPart.Conditions().Unique();
+
+      if( mEchoLevel >= 1 ){
+	std::cout<<" / NEW:"<<rModelPart.NumberOfConditions()<<"] "<<std::endl;
+      }
+
+      KRATOS_CATCH( "" )
+	
+    }
+    
     ///@}
     ///@name Private  Access
     ///@{

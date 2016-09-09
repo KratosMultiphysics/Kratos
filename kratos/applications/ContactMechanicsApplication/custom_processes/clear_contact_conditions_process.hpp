@@ -102,7 +102,7 @@ namespace Kratos
     virtual void Execute()
     {
       KRATOS_TRY
-
+	
       this->ClearContactConditions();
 
       KRATOS_CATCH(" ")   
@@ -214,26 +214,12 @@ namespace Kratos
       KRATOS_TRY
 
       //Clear contact conditions from contact domain
-      std::string ModelPartName;
-      for(ModelPart::SubModelPartIterator i_mp= mrModelPart.SubModelPartsBegin(); i_mp!=mrModelPart.SubModelPartsEnd(); i_mp++)
-	{
-	  if(i_mp->Is(CONTACT))
-	    ModelPartName = i_mp->Name();
-	}
-      
-      ClearContactConditions(mrModelPart.GetSubModelPart(ModelPartName));
+	if( mrModelPart.IsNot(CONTACT) )
+	  std::cout<<" ModelPart Supplied do not corresponds to the Contact Domain: ("<<mrModelPart.Name()<<")"<<std::endl;
 
-      //Clear contact conditions from computing domain
-      for(ModelPart::SubModelPartIterator i_mp= mrModelPart.SubModelPartsBegin(); i_mp!=mrModelPart.SubModelPartsEnd(); i_mp++)
-	{
-	  if(i_mp->Is(SOLID) && i_mp->Is(ACTIVE))
-	    ModelPartName = i_mp->Name();
-	}
-      
-      ClearContactConditions(mrModelPart.GetSubModelPart(ModelPartName));
 
-      //Clear contact conditions from the main domain
       ClearContactConditions(mrModelPart);
+
 
       KRATOS_CATCH( "" )
 	
