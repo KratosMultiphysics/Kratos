@@ -49,9 +49,9 @@ protected:
         
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ComputeEffectiveDisplacement(double& rEffectiveDisplacement,const Vector& StrainVector,const double& CriticalDisplacement);
+    void ComputeEquivalentStrain(double& rEquivalentStrain,const Vector& StrainVector,const double& CriticalDisplacement);
     
-    void ComputeEffectiveDisplacementContact(double& rEffectiveDisplacement,const Vector& StrainVector,const double& CriticalDisplacement);
+    void ComputeEquivalentStrainContact(double& rEquivalentStrain,const Vector& StrainVector,const double& CriticalDisplacement);
     
     
     void ComputeConstitutiveMatrixLoading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& JointStrength,
