@@ -14,7 +14,7 @@ if(${MULTISCALE_APPLICATION_USE_EIGEN} MATCHES ON)
 
 	message("Configuring Eigen")
 	message(${MULTISCALE_APPLICATION_EIGEN_DIR})
-	
+
 endif(${MULTISCALE_APPLICATION_USE_EIGEN} MATCHES ON)
 
 if(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
@@ -142,7 +142,7 @@ add_library(KratosMultiScaleApplication SHARED ${KRATOS_MULTISCALE_APPLICATION_S
 if(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 
 	message("link also MUMPS and OpenBLAS")
-	target_link_libraries( KratosMultiScaleApplication 
+	target_link_libraries( KratosMultiScaleApplication
 						   KratosCore
 						   ${BLAS_LIBRARIES}
 						   ${MUMPS_LIB} )
@@ -150,7 +150,7 @@ if(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 else(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 
 	message("MUMPS will not be linked")
-	target_link_libraries( KratosMultiScaleApplication 
+	target_link_libraries( KratosMultiScaleApplication
 						   KratosCore
 						   ${BLAS_LIBRARIES}
 						   ${LAPACK_LIBRARIES}
@@ -172,7 +172,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_target_properties(KratosMultiScaleApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-# changing the .dylib suffix to .so 
+# changing the .dylib suffix to .so
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosMultiScaleApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -183,18 +183,18 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 #
 ######################################################################################
 
-install( TARGETS 
-           KratosMultiScaleApplication 
-		 DESTINATION 
+install( TARGETS
+           KratosMultiScaleApplication
+		 DESTINATION
 		   libs )
 
 if(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 
 	message("install also MUMPS and OpenBLAS")
-	install( FILES 
+	install( FILES
 			  ${OPENBLAS_INSTALL_FILES}
 			  ${MUMPS_INSTALL_FILES}
-			DESTINATION 
+			DESTINATION
 			  libs )
 
 else(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
@@ -202,18 +202,18 @@ else(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 	message("MUMPS will not be installed")
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 		message("install OPENBLAS")
-		install( FILES 
+		install( FILES
 				${OPENBLAS_INSTALL_FILES}
-				DESTINATION 
+				DESTINATION
 				  libs )
 	else(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 		message("install BLAS")
-		install( FILES 
+		install( FILES
 				${BLAS_INSTALL_FILES}
-				DESTINATION 
+				DESTINATION
 				  libs )
 	endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	
+
 
 endif(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 
@@ -234,21 +234,21 @@ message("LAPACK library: " ${LAPACK_LIBRARIES})
 
 foreach( lapack_lib ${LAPACK_LIBRARIES})
 	message("checking dgels in library: " ${lapack_lib})
-	CHECK_LIBRARY_EXISTS(${LAPACK_LIBRARIES} "dgels" "" CHECK_HAVE_DGELS)
+	CHECK_LIBRARY_EXISTS(${lapack_lib} "dgels" "" CHECK_HAVE_DGELS)
 	if(CHECK_HAVE_DGELS)
 		message("found dgels")
 		add_definitions(-DMULTISCALE_APPLICATION_LAPACK_HAS_DGELS)
 		add_definitions(-DMULTISCALE_APPLICATION_LAPACK_DGELS=dgels)
 	else()
 		message("checking DGELS in library: " ${lapack_lib})
-		CHECK_LIBRARY_EXISTS(${LAPACK_LIBRARIES} "DGELS" "" CHECK_HAVE_DGELS_1)
+		CHECK_LIBRARY_EXISTS(${lapack_lib} "DGELS" "" CHECK_HAVE_DGELS_1)
 		if(CHECK_HAVE_DGELS_1)
 			message("found DGELS")
 			add_definitions(-DMULTISCALE_APPLICATION_LAPACK_HAS_DGELS)
 			add_definitions(-DMULTISCALE_APPLICATION_LAPACK_DGELS=DGELS)
 		else()
 			message("checking dgels_ in library: " ${lapack_lib})
-			CHECK_LIBRARY_EXISTS(${LAPACK_LIBRARIES} "dgels_" "" CHECK_HAVE_DGELS_2)
+			CHECK_LIBRARY_EXISTS(${lapack_lib} "dgels_" "" CHECK_HAVE_DGELS_2)
 			if(CHECK_HAVE_DGELS_2)
 				message("found dgels_")
 				add_definitions(-DMULTISCALE_APPLICATION_LAPACK_HAS_DGELS)
@@ -259,4 +259,3 @@ foreach( lapack_lib ${LAPACK_LIBRARIES})
 		endif()
 	endif()
 endforeach(lapack_lib)
-
