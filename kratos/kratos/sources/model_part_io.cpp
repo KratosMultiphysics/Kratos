@@ -397,10 +397,10 @@ namespace Kratos
      * to node k (counting from 0).
      * @return Number of nodes.
      */
-    std::size_t ModelPartIO::ReadNodalGraph(int **NodeIndices, int **NodeConnectivities)
+    std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& aux_connectivities) 
     {
         // 1. Define an auxiliary vector of vectors
-        ConnectivitiesContainerType aux_connectivities(0);
+        //ConnectivitiesContainerType aux_connectivities(0);
 
         // 2. Fill the auxiliary vector by reading elemental and conditional connectivities
         ResetInput();
@@ -441,8 +441,9 @@ namespace Kratos
             it->resize(unique_end - it->begin());
             num_entries += it->size();
         }
+        SizeType num_nodes = aux_connectivities.size();
 
-        // 4. Write connectivity data in CSR format
+        /*// 4. Write connectivity data in CSR format
         SizeType num_nodes = aux_connectivities.size();
         *NodeIndices = new int[num_nodes+1];
         (*NodeIndices)[0] = 0;
@@ -456,8 +457,8 @@ namespace Kratos
             for (std::vector<SizeType>::iterator entry_it = it->begin(); entry_it != it->end(); entry_it++)
                 (*NodeConnectivities)[aux_index++] = (*entry_it - 1); // substract 1 to make Ids start from 0
             (*NodeIndices)[++i] = aux_index;
-        }
-
+        }*/
+        
         return num_nodes;
     }
 
