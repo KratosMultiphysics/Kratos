@@ -67,6 +67,8 @@ public:
 
     #ifdef KRATOS_USE_METIS_5
       typedef idx_t idxtype;
+    #else 
+      typedef int idxtype;
     #endif
 
     /// Pointer definition of MetisDivideHeterogeneousInputInMemoryProcess
@@ -153,176 +155,183 @@ public:
         // Calculate the partitions and write the result into temporal streams
         if(mpi_rank == 0) {
           // Read nodal graph from input
-          int* NodeIndices = 0;
-          int* NodeConnectivities = 0;
+          
+        IO::ConnectivitiesContainerType KratosFormatNodeConnectivities;
 
-          SizeType NumNodes = BaseType::mrIO.ReadNodalGraph(&NodeIndices,&NodeConnectivities);
+        SizeType NumNodes = BaseType::mrIO.ReadNodalGraph(KratosFormatNodeConnectivities);
 
-          std::vector<int> NodePartition;
-          PartitionNodes(NumNodes,NodeIndices,NodeConnectivities,NodePartition);
+          // Write connectivity data in CSR format
+        idxtype* NodeIndices = 0;
+        idxtype* NodeConnectivities = 0;
+        
+        ConvertKratosToCSRFormat(KratosFormatNodeConnectivities, NodeIndices, NodeConnectivities); 
+        
+        std::vector<idxtype> NodePartition;
+        PartitionNodes(NumNodes,NodeIndices,NodeConnectivities,NodePartition);
 
-          // Liberate some memory we no longer need
-          delete [] NodeIndices;
-          delete [] NodeConnectivities;
+        // Free some memory we no longer need
+        delete [] NodeIndices;
+        delete [] NodeConnectivities;
 
-          // Partition elements
-          IO::ConnectivitiesContainerType ElementConnectivities;
-          SizeType NumElements =  BaseType::mrIO.ReadElementsConnectivities(ElementConnectivities);
-          if (NumElements != ElementConnectivities.size())
-          {
-              std::stringstream Msg;
-              Msg << std::endl;
-              Msg << "ERROR in MetisDivideHeterogenousInputProcess:" << std::endl;
-              Msg << "Read " << NumElements << " elements, but element list has " << ElementConnectivities.size() << " entries." << std::endl;
-              Msg << "Elements are most likely not correlatively numbered." << std::endl;
+        // Partition elements
+        IO::ConnectivitiesContainerType ElementConnectivities;
+        SizeType NumElements =  BaseType::mrIO.ReadElementsConnectivities(ElementConnectivities);
+        if (NumElements != ElementConnectivities.size())
+        {
+            std::stringstream Msg;
+            Msg << std::endl;
+            Msg << "ERROR in MetisDivideHeterogenousInputProcess:" << std::endl;
+            Msg << "Read " << NumElements << " elements, but element list has " << ElementConnectivities.size() << " entries." << std::endl;
+            Msg << "Elements are most likely not correlatively numbered." << std::endl;
 
-              KRATOS_THROW_ERROR(std::runtime_error,Msg.str(),"");
-          }
+            KRATOS_THROW_ERROR(std::runtime_error,Msg.str(),"");
+        }
 
-          std::vector<int> ElementPartition;
+        std::vector<idxtype> ElementPartition;
 
-          if (mSynchronizeConditions)
-              PartitionElementsSynchronous(NodePartition,ElementConnectivities,ElementPartition);
-          else
-              PartitionMesh(NodePartition,ElementConnectivities,ElementPartition);
+        if (mSynchronizeConditions)
+            PartitionElementsSynchronous(NodePartition,ElementConnectivities,ElementPartition);
+        else
+            PartitionMesh(NodePartition,ElementConnectivities,ElementPartition);
 
-          // Partition conditions
-          IO::ConnectivitiesContainerType ConditionConnectivities;
-          SizeType NumConditions = BaseType::mrIO.ReadConditionsConnectivities(ConditionConnectivities);
-          if (NumConditions != ConditionConnectivities.size())
-          {
-              std::stringstream Msg;
-              Msg << std::endl;
-              Msg << "ERROR in MetisDivideHeterogenousInputProcess:" << std::endl;
-              Msg << "Read " << NumConditions << " conditions, but condition list has " << ConditionConnectivities.size() << " entries." << std::endl;
-              Msg << "Conditions are most likely not correlatively numbered." << std::endl;
+        // Partition conditions
+        IO::ConnectivitiesContainerType ConditionConnectivities;
+        SizeType NumConditions = BaseType::mrIO.ReadConditionsConnectivities(ConditionConnectivities);
+        if (NumConditions != ConditionConnectivities.size())
+        {
+            std::stringstream Msg;
+            Msg << std::endl;
+            Msg << "ERROR in MetisDivideHeterogenousInputProcess:" << std::endl;
+            Msg << "Read " << NumConditions << " conditions, but condition list has " << ConditionConnectivities.size() << " entries." << std::endl;
+            Msg << "Conditions are most likely not correlatively numbered." << std::endl;
 
-              KRATOS_THROW_ERROR(std::runtime_error,Msg.str(),"");
-          }
+            KRATOS_THROW_ERROR(std::runtime_error,Msg.str(),"");
+        }
 
-          std::vector<int> ConditionPartition;
+        std::vector<idxtype> ConditionPartition;
 
-          if (mSynchronizeConditions)
-              PartitionConditionsSynchronous(NodePartition,ElementPartition,ConditionConnectivities,ElementConnectivities,ConditionPartition);
-          else
-              PartitionMesh(NodePartition,ConditionConnectivities,ConditionPartition);
+        if (mSynchronizeConditions)
+            PartitionConditionsSynchronous(NodePartition,ElementPartition,ConditionConnectivities,ElementConnectivities,ConditionPartition);
+        else
+            PartitionMesh(NodePartition,ConditionConnectivities,ConditionPartition);
 
-          // Detect hanging nodes (nodes that belong to a partition where no local elements have them) and send them to another partition.
-          // Hanging nodes should be avoided, as they can cause problems when setting the Dofs
-          RedistributeHangingNodes(NodePartition,ElementPartition,ElementConnectivities,ConditionPartition,ConditionConnectivities);
+        // Detect hanging nodes (nodes that belong to a partition where no local elements have them) and send them to another partition.
+        // Hanging nodes should be avoided, as they can cause problems when setting the Dofs
+        RedistributeHangingNodes(NodePartition,ElementPartition,ElementConnectivities,ConditionPartition,ConditionConnectivities);
 
-          // Coloring
-          GraphType DomainGraph = zero_matrix<int>(mNumberOfPartitions);
-          CalculateDomainsGraph(DomainGraph,NumElements,ElementConnectivities,NodePartition,ElementPartition);
-          CalculateDomainsGraph(DomainGraph,NumConditions,ConditionConnectivities,NodePartition,ConditionPartition);
+        // Coloring
+        GraphType DomainGraph = zero_matrix<int>(mNumberOfPartitions);
+        CalculateDomainsGraph(DomainGraph,NumElements,ElementConnectivities,NodePartition,ElementPartition);
+        CalculateDomainsGraph(DomainGraph,NumConditions,ConditionConnectivities,NodePartition,ConditionPartition);
 
-          int NumColors;
-          GraphType ColoredDomainGraph;
-          GraphColoringProcess(mNumberOfPartitions,DomainGraph,ColoredDomainGraph,NumColors).Execute();
+        int NumColors;
+        GraphType ColoredDomainGraph;
+        GraphColoringProcess(mNumberOfPartitions,DomainGraph,ColoredDomainGraph,NumColors).Execute();
 
-          if (mVerbosity > 0)
-          {
-              KRATOS_WATCH(NumColors);
-          }
+        if (mVerbosity > 0)
+        {
+            KRATOS_WATCH(NumColors);
+        }
 
-        	if (mVerbosity > 2)
-        	{
-              KRATOS_WATCH(ColoredDomainGraph);
-          }
-
-          // Write partition info into separate input files
-          IO::PartitionIndicesContainerType nodes_all_partitions;
-          IO::PartitionIndicesContainerType elements_all_partitions;
-          IO::PartitionIndicesContainerType conditions_all_partitions;
-
-          // Create lists containing all nodes/elements/conditions known to each partition
-          DividingNodes(nodes_all_partitions, ElementConnectivities, ConditionConnectivities, NodePartition, ElementPartition, ConditionPartition);
-          DividingElements(elements_all_partitions, ElementPartition);
-          DividingConditions(conditions_all_partitions, ConditionPartition);
-
-          if (mVerbosity > 1)
-          {
-              std::cout << "Final list of nodes known by each partition" << std::endl;
-              for(SizeType i = 0 ; i < NumNodes ; i++)
+              if (mVerbosity > 2)
               {
-                  std::cout << "Node #" << i+1 << "->";
-                  for(std::vector<std::size_t>::iterator j = nodes_all_partitions[i].begin() ; j != nodes_all_partitions[i].end() ; j++)
-                      std::cout << *j << ",";
-                  std::cout << std::endl;
-              }
-          }
-
-          IO::PartitionIndicesType io_nodes_partitions(NodePartition.begin(), NodePartition.end());
-          IO::PartitionIndicesType io_elements_partitions(ElementPartition.begin(), ElementPartition.end());
-          IO::PartitionIndicesType io_conditions_partitions(ConditionPartition.begin(), ConditionPartition.end());
-
-          // Write files
-          mrIO.DivideInputToPartitions(
-            streams, mNumberOfPartitions, ColoredDomainGraph,
-            io_nodes_partitions, io_elements_partitions, io_conditions_partitions,
-            nodes_all_partitions, elements_all_partitions, conditions_all_partitions
-          );
+            KRATOS_WATCH(ColoredDomainGraph);
         }
 
-        // Calculate the message and prepare the buffers
-        if(mpi_rank == 0) {
-          for(auto i = 0; i < mpi_size; i++) {
-            str[i] = stringbufs[i].str();
-            msgSendSize[i] = str[i].size();
-            mpi_send_buffer[i] = str[i].c_str();
-          }
+        // Write partition info into separate input files
+        IO::PartitionIndicesContainerType nodes_all_partitions;
+        IO::PartitionIndicesContainerType elements_all_partitions;
+        IO::PartitionIndicesContainerType conditions_all_partitions;
+
+        // Create lists containing all nodes/elements/conditions known to each partition
+        DividingNodes(nodes_all_partitions, ElementConnectivities, ConditionConnectivities, NodePartition, ElementPartition, ConditionPartition);
+        DividingElements(elements_all_partitions, ElementPartition);
+        DividingConditions(conditions_all_partitions, ConditionPartition);
+
+        if (mVerbosity > 1)
+        {
+            std::cout << "Final list of nodes known by each partition" << std::endl;
+            for(SizeType i = 0 ; i < NumNodes ; i++)
+            {
+                std::cout << "Node #" << i+1 << "->";
+                for(std::vector<std::size_t>::iterator j = nodes_all_partitions[i].begin() ; j != nodes_all_partitions[i].end() ; j++)
+                    std::cout << *j << ",";
+                std::cout << std::endl;
+            }
         }
 
-        // Send the message size to all processes
-        MPI_Scatter(msgSendSize,1,MPI_INT,&msgRecvSize[mpi_rank],1,MPI_INT,0,MPI_COMM_WORLD);
+        IO::PartitionIndicesType io_nodes_partitions(NodePartition.begin(), NodePartition.end());
+        IO::PartitionIndicesType io_elements_partitions(ElementPartition.begin(), ElementPartition.end());
+        IO::PartitionIndicesType io_conditions_partitions(ConditionPartition.begin(), ConditionPartition.end());
 
-        // Calculate the number of events:
-        auto NumberOfCommunicationEvents = 1 + mpi_size * !mpi_rank;
-        auto NumberOfCommunicationEventsIndex = 0;
+        // Write files
+        mrIO.DivideInputToPartitions(
+          streams, mNumberOfPartitions, ColoredDomainGraph,
+          io_nodes_partitions, io_elements_partitions, io_conditions_partitions,
+          nodes_all_partitions, elements_all_partitions, conditions_all_partitions
+        );
+      }
 
-        // Prepare the communication events
-        MPI_Request * reqs = new MPI_Request[NumberOfCommunicationEvents];
-        MPI_Status * stats = new MPI_Status[NumberOfCommunicationEvents];
-
-        // Set up all receive and send events
-        if( mpi_rank == 0) {
-          for(auto i = 0; i < mpi_size; i++) {
-            MPI_Isend(mpi_send_buffer[i],msgSendSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
-          }
+      // Calculate the message and prepare the buffers
+      if(mpi_rank == 0) {
+        for(auto i = 0; i < mpi_size; i++) {
+          str[i] = stringbufs[i].str();
+          msgSendSize[i] = str[i].size();
+          mpi_send_buffer[i] = str[i].c_str();
         }
+      }
 
-        // Recieve the buffers
-        mpi_recv_buffer[mpi_rank] = (char *)malloc(sizeof(char) * msgRecvSize[mpi_rank]);
-        MPI_Irecv(mpi_recv_buffer[mpi_rank],msgRecvSize[mpi_rank],MPI_CHAR,0,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+      // Send the message size to all processes
+      MPI_Scatter(msgSendSize,1,MPI_INT,&msgRecvSize[mpi_rank],1,MPI_INT,0,MPI_COMM_WORLD);
 
-        // Wait untill all communications finish
-        if( MPI_Waitall(NumberOfCommunicationEvents, reqs, stats) != MPI_SUCCESS )
-            KRATOS_THROW_ERROR(std::runtime_error,"Error in metis_partition_mem","")
+      // Calculate the number of events:
+      auto NumberOfCommunicationEvents = 1 + mpi_size * !mpi_rank;
+      auto NumberOfCommunicationEventsIndex = 0;
 
-        MPI_Barrier(MPI_COMM_WORLD);
+      // Prepare the communication events
+      MPI_Request * reqs = new MPI_Request[NumberOfCommunicationEvents];
+      MPI_Status * stats = new MPI_Status[NumberOfCommunicationEvents];
 
-        if(mpi_rank != 0) {
-          streams[mpi_rank]->write(mpi_recv_buffer[mpi_rank], msgRecvSize[mpi_rank]);
+      // Set up all receive and send events
+      if( mpi_rank == 0) {
+        for(auto i = 0; i < mpi_size; i++) {
+            char* aux_char = const_cast<char*>(mpi_send_buffer[i]);
+            MPI_Isend(aux_char,msgSendSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
         }
+      }
 
-        std::ofstream* p_ofstream = new std::ofstream("debug_modelpart_"+std::to_string(mpi_rank));
-        (*p_ofstream) << stringbufs[mpi_rank].str() << std::endl;
+      // Recieve the buffers
+      mpi_recv_buffer[mpi_rank] = (char *)malloc(sizeof(char) * msgRecvSize[mpi_rank]);
+      MPI_Irecv(mpi_recv_buffer[mpi_rank],msgRecvSize[mpi_rank],MPI_CHAR,0,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
 
-        // TODO: Try to come up with a better way to change the buffer.
-        ((ModelPartIO&)mrIO).SwapStreamSource(streams[mpi_rank]);
+      // Wait untill all communications finish
+      if( MPI_Waitall(NumberOfCommunicationEvents, reqs, stats) != MPI_SUCCESS )
+          KRATOS_THROW_ERROR(std::runtime_error,"Error in metis_partition_mem","")
 
-        // Free buffers
-        free(mpi_recv_buffer[mpi_rank]);
+      MPI_Barrier(MPI_COMM_WORLD);
 
-        delete [] reqs;
-        delete [] stats;
+      if(mpi_rank != 0) {
+        streams[mpi_rank]->write(mpi_recv_buffer[mpi_rank], msgRecvSize[mpi_rank]);
+      }
 
-        delete [] mpi_recv_buffer;
-        delete [] mpi_send_buffer;
-        delete [] str;
+      std::ofstream* p_ofstream = new std::ofstream("debug_modelpart_"+std::to_string(mpi_rank));
+      (*p_ofstream) << stringbufs[mpi_rank].str() << std::endl;
 
-        delete [] msgSendSize;
-        delete [] msgRecvSize;
+      // TODO: Try to come up with a better way to change the buffer.
+      ((ModelPartIO&)mrIO).SwapStreamSource(streams[mpi_rank]);
+
+      // Free buffers
+      free(mpi_recv_buffer[mpi_rank]);
+
+      delete [] reqs;
+      delete [] stats;
+
+      delete [] mpi_recv_buffer;
+      delete [] mpi_send_buffer;
+      delete [] str;
+
+      delete [] msgSendSize;
+      delete [] msgRecvSize;
     }
 
     ///@}
@@ -432,21 +441,21 @@ private:
      * @return Number of graph edges cut by Metis.
      */
     int PartitionNodes(SizeType NumNodes,
-                       int* NodeIndices,
-                       int* NodeConnectivities,
-                       std::vector<int>& rNodePartition)
+                       idxtype* NodeIndices,
+                       idxtype* NodeConnectivities,
+                       std::vector<idxtype>& rNodePartition)
     {
-        int n = static_cast<int>(NumNodes);     
+        idxtype n = static_cast<idxtype>(NumNodes);     
 
-        int nparts = static_cast<int>(BaseType::mNumberOfPartitions);
-        int edgecut;
+        idxtype nparts = static_cast<idxtype>(BaseType::mNumberOfPartitions);
+        idxtype edgecut;
         rNodePartition.resize(NumNodes);
 
 
         #ifndef KRATOS_USE_METIS_5
-            int wgtflag = 0; // Graph is not weighted
-            int numflag = 0; // Nodes are numbered from 0 (C style)
-           int options[5]; // options array
+            idxtype wgtflag = 0; // Graph is not weighted
+            idxtype numflag = 0; // Nodes are numbered from 0 (C style)
+           idxtype options[5]; // options array
            options[0] = 0; // use default options
 
           //old version
@@ -486,9 +495,9 @@ private:
     }
 
     /// Use the nodal partition data to assign elements or conditions to a partition.
-    void PartitionMesh(std::vector<int> const& NodePartition,
+    void PartitionMesh(std::vector<idxtype> const& NodePartition,
                        const IO::ConnectivitiesContainerType& rElemConnectivities,
-                       std::vector<int>& rElemPartition)
+                       std::vector<idxtype>& rElemPartition)
     {
         SizeType NumElements = rElemConnectivities.size();
         std::vector<int> PartitionWeights(BaseType::mNumberOfPartitions,0);
@@ -498,7 +507,7 @@ private:
 
         // Elements where all nodes belong to the same partition always go to that partition
         IO::ConnectivitiesContainerType::const_iterator itElem = rElemConnectivities.begin();
-        for (std::vector<int>::iterator itPart = rElemPartition.begin(); itPart != rElemPartition.end(); itPart++)
+        for (std::vector<idxtype>::iterator itPart = rElemPartition.begin(); itPart != rElemPartition.end(); itPart++)
         {
             int MyPartition = NodePartition[ (*itElem)[0] - 1 ]; // Node Ids start from 1
             SizeType NeighbourNodes = 1; // Nodes in the same partition
@@ -523,7 +532,7 @@ private:
         // Now distribute boundary elements
         itElem = rElemConnectivities.begin();
         int MaxWeight = 1.03 * NumElements / BaseType::mNumberOfPartitions;
-        for (std::vector<int>::iterator itPart = rElemPartition.begin(); itPart != rElemPartition.end(); itPart++)
+        for (std::vector<idxtype>::iterator itPart = rElemPartition.begin(); itPart != rElemPartition.end(); itPart++)
         {
             if (*itPart == -1) // If element is still unassigned
             {
@@ -595,9 +604,9 @@ private:
     }
 
     /// Partition the elements such that boundary elements are always assigned the majority partition.
-    void PartitionElementsSynchronous(std::vector<int> const& NodePartition,
+    void PartitionElementsSynchronous(std::vector<idxtype> const& NodePartition,
                        const IO::ConnectivitiesContainerType& rElemConnectivities,
-                       std::vector<int>& rElemPartition)
+                       std::vector<idxtype>& rElemPartition)
     {
         SizeType NumElements = rElemConnectivities.size();
         std::vector<int> PartitionWeights(BaseType::mNumberOfPartitions,0);
@@ -607,7 +616,7 @@ private:
 
         // Elements where all nodes belong to the same partition always go to that partition
         IO::ConnectivitiesContainerType::const_iterator itElem = rElemConnectivities.begin();
-        for (std::vector<int>::iterator itPart = rElemPartition.begin(); itPart != rElemPartition.end(); itPart++)
+        for (std::vector<idxtype>::iterator itPart = rElemPartition.begin(); itPart != rElemPartition.end(); itPart++)
         {
             int MyPartition = NodePartition[ (*itElem)[0] - 1 ]; // Node Ids start from 1
             SizeType NeighbourNodes = 1; // Nodes in the same partition
@@ -632,7 +641,7 @@ private:
         // Now distribute boundary elements
         itElem = rElemConnectivities.begin();
         //int MaxWeight = 1.03 * NumElements / BaseType::mNumberOfPartitions;
-        for (std::vector<int>::iterator itPart = rElemPartition.begin(); itPart != rElemPartition.end(); itPart++)
+        for (std::vector<idxtype>::iterator itPart = rElemPartition.begin(); itPart != rElemPartition.end(); itPart++)
         {
             if (*itPart == -1) // If element is still unassigned
             {
@@ -681,11 +690,11 @@ private:
     }
 
     /// Partition the conditions such that the condition is assigned the same partition as its parent element.
-    void PartitionConditionsSynchronous(const std::vector<int>& rNodePartition,
-			     const std::vector<int>& rElemPartition,
+    void PartitionConditionsSynchronous(const std::vector<idxtype>& rNodePartition,
+			     const std::vector<idxtype>& rElemPartition,
 			     const IO::ConnectivitiesContainerType& rCondConnectivities,
 			     const IO::ConnectivitiesContainerType& rElemConnectivities,
-			     std::vector<int>& rCondPartition)
+			     std::vector<idxtype>& rCondPartition)
     {
       SizeType NumElements = rElemConnectivities.size();
       SizeType NumConditions = rCondConnectivities.size();
@@ -701,7 +710,7 @@ private:
 
       // Conditions where all nodes belong to the same partition always go to that partition
       IO::ConnectivitiesContainerType::const_iterator itCond = rCondConnectivities.begin();
-      for (std::vector<int>::iterator itPart = rCondPartition.begin(); itPart != rCondPartition.end(); itPart++)
+      for (std::vector<idxtype>::iterator itPart = rCondPartition.begin(); itPart != rCondPartition.end(); itPart++)
       {
           int MyPartition = rNodePartition[ (*itCond)[0] - 1 ]; // Node Ids start from 1
           SizeType NeighbourNodes = 1; // Nodes in the same partition
@@ -725,7 +734,7 @@ private:
       // Now distribute boundary conditions
       itCond = rCondConnectivities.begin();
       //int MaxWeight = 1.03 * NumConditions / BaseType::mNumberOfPartitions;
-      for (std::vector<int>::iterator itPart = rCondPartition.begin(); itPart != rCondPartition.end(); itPart++)
+      for (std::vector<idxtype>::iterator itPart = rCondPartition.begin(); itPart != rCondPartition.end(); itPart++)
       {
           if (*itPart == -1) // If condition is still unassigned
           {
@@ -786,10 +795,10 @@ private:
     }
 
     void RedistributeHangingNodes(
-            std::vector<int>& rNodePartition,
-            std::vector<int> const& rElementPartition,
+            std::vector<idxtype>& rNodePartition,
+            std::vector<idxtype> const& rElementPartition,
             const IO::ConnectivitiesContainerType& rElementConnectivities,
-            std::vector<int> const& rConditionPartition,
+            std::vector<idxtype> const& rConditionPartition,
             const IO::ConnectivitiesContainerType& rConditionConnectivities)
     {
         std::vector<int> NodeUseCounts(rNodePartition.size(),0);
@@ -875,7 +884,7 @@ private:
     }
 
     void PrintDebugData(const std::string& rLabel,
-                        const std::vector<int>& rPartitionData)
+                        const std::vector<idxtype>& rPartitionData)
     {
         if (mVerbosity > 0)
         {
