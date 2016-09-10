@@ -616,6 +616,11 @@ public:
         return true;
 
     }
+    
+    virtual bool SynchronizeElementalFlags()
+    {
+        return true;
+    }
 
     virtual bool AssembleCurrentData(Variable<int> const& ThisVariable)
     {
