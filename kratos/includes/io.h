@@ -206,7 +206,7 @@ public:
         KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
     }
 
-    virtual std::size_t ReadNodalGraph(int** NodeIndices,int** NodeConnectivities)
+    virtual std::size_t ReadNodalGraph(ConnectivitiesContainerType& aux_connectivities)
     {
         KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "");
     }

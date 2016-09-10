@@ -165,7 +165,7 @@ public:
      * to node k (counting from 0).
      * @return Number of nodes.
      */
-    virtual std::size_t ReadNodalGraph(int **NodeIndices, int **NodeConnectivities);
+    virtual std::size_t ReadNodalGraph(ConnectivitiesContainerType& aux_connectivities);
 
     virtual void DivideInputToPartitions(SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
                                          PartitionIndicesType const& NodesPartitions,
