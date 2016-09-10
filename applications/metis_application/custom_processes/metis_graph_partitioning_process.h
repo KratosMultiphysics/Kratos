@@ -261,24 +261,30 @@ protected:
 
         int number_of_element_nodes = ElementsConnectivities.begin()->size(); // here assuming that all elements are the same!!
 
-        //int etype;
+        #ifndef KRATOS_USE_METIS_5
+        int etype;
         if(number_of_element_nodes == 3) { // triangles
-            //etype = 1;
+            etype = 1;
         }
         else if(number_of_element_nodes == 4) {// tetrahedra or quadilateral        
             if(mDimension == 2){ // quadilateral
-                //etype = 4;
+                etype = 4;
             }
             else  {// tetrahedra
-                //etype = 2;
+                etype = 2;
             }
         }
         else if(number_of_element_nodes == 8) { // hexahedra
-            //etype = 3;
+            etype = 3;
         }
         else {
             KRATOS_THROW_ERROR(std::invalid_argument, "invalid element type with number of nodes : ", number_of_element_nodes);
+        } 
+        #else
+        if(number_of_element_nodes != 3 && number_of_element_nodes != 4  && number_of_element_nodes != 8) {
+            KRATOS_THROW_ERROR(std::invalid_argument, "invalid element type with number of nodes : ", number_of_element_nodes);
         }
+        #endif
 
         //int numflag = 0;
         //int number_of_partitions = static_cast<int>(mNumberOfPartitions);
@@ -299,12 +305,12 @@ protected:
         int numflag = 0;
         int number_of_partitions = static_cast<int>(mNumberOfPartitions);
         int edgecut;
-            int ne = NumberOfElements;
-            int nn = NumberOfNodes;
-          METIS_PartMeshDual(&ne, &nn, elmnts, &etype, &numflag, &number_of_partitions, &edgecut, EPart, NPart);
+        int ne = NumberOfElements;
+        int nn = NumberOfNodes;
+        METIS_PartMeshDual(&ne, &nn, elmnts, &etype, &numflag, &number_of_partitions, &edgecut, EPart, NPart);
         #else
-           //METIS_PartMeshDual(&ne, &nn, elmnts, &etype, &numflag, &number_of_partitions, &edgecut, EPart, NPart);
-          KRATOS_WATCH("not implemented!!!")
+        //METIS_PartMeshDual(&ne, &nn, elmnts, &etype, &numflag, &number_of_partitions, &edgecut, EPart, NPart);
+        KRATOS_WATCH("not implemented!!!")
         #endif
 
         delete[] elmnts;

@@ -63,6 +63,8 @@ public:
       
     #ifdef KRATOS_USE_METIS_5
       typedef idx_t idxtype;
+    #else 
+      typedef int idxtype;
     #endif
 
     /// Pointer definition of MetisDivideHeterogeneousInputProcess
@@ -120,15 +122,21 @@ public:
     virtual void Execute()
     {
         // Read nodal graph from input
-        int* NodeIndices = 0;
-        int* NodeConnectivities = 0;
+        
+        IO::ConnectivitiesContainerType KratosFormatNodeConnectivities;
 
-        SizeType NumNodes = BaseType::mrIO.ReadNodalGraph(&NodeIndices,&NodeConnectivities);
-
-        std::vector<int> NodePartition;
+        SizeType NumNodes = BaseType::mrIO.ReadNodalGraph(KratosFormatNodeConnectivities);
+       
+        // Write connectivity data in CSR format
+        idxtype* NodeIndices = 0;
+        idxtype* NodeConnectivities = 0;
+        
+        ConvertKratosToCSRFormat(KratosFormatNodeConnectivities, NodeIndices, NodeConnectivities);                       
+        
+        std::vector<idxtype> NodePartition;
         PartitionNodes(NumNodes,NodeIndices,NodeConnectivities,NodePartition);
 
-        // Liberate some memory we no longer need
+        // Free some memory we no longer need
         delete [] NodeIndices;
         delete [] NodeConnectivities;
 
@@ -146,7 +154,7 @@ public:
             KRATOS_THROW_ERROR(std::runtime_error,Msg.str(),"");
         }
 
-        std::vector<int> ElementPartition;
+        std::vector<idxtype> ElementPartition;
 
         if (mSynchronizeConditions)
             PartitionElementsSynchronous(NodePartition,ElementConnectivities,ElementPartition);
@@ -167,7 +175,7 @@ public:
             KRATOS_THROW_ERROR(std::runtime_error,Msg.str(),"");
         }
 
-        std::vector<int> ConditionPartition;
+        std::vector<idxtype> ConditionPartition;
 
         if (mSynchronizeConditions)
             PartitionConditionsSynchronous(NodePartition,ElementPartition,ConditionConnectivities,ElementConnectivities,ConditionPartition);
@@ -336,21 +344,21 @@ private:
      * @return Number of graph edges cut by Metis.
      */
     int PartitionNodes(SizeType NumNodes,
-                       int* NodeIndices,
-                       int* NodeConnectivities,
-                       std::vector<int>& rNodePartition)
+                       idxtype* NodeIndices,
+                       idxtype* NodeConnectivities,
+                       std::vector<idxtype>& rNodePartition)
     {
-        int n = static_cast<int>(NumNodes);
+        idxtype n = static_cast<idxtype>(NumNodes);
 
-        int nparts = static_cast<int>(BaseType::mNumberOfPartitions);
-        int edgecut;
+        idxtype nparts = static_cast<idxtype>(BaseType::mNumberOfPartitions);
+        idxtype edgecut;
         rNodePartition.resize(NumNodes);
         
         
         #ifndef KRATOS_USE_METIS_5
-            int wgtflag = 0; // Graph is not weighted
-            int numflag = 0; // Nodes are numbered from 0 (C style)
-           int options[5]; // options array
+            idxtype wgtflag = 0; // Graph is not weighted
+            idxtype numflag = 0; // Nodes are numbered from 0 (C style)
+           idxtype options[5]; // options array
            options[0] = 0; // use default options
 
           //old version
@@ -390,9 +398,9 @@ private:
     }
 
     /// Use the nodal partition data to assign elements or conditions to a partition.
-    void PartitionMesh(std::vector<int> const& NodePartition,
+    void PartitionMesh(std::vector<idxtype> const& NodePartition,
                        const IO::ConnectivitiesContainerType& rElemConnectivities,
-                       std::vector<int>& rElemPartition)
+                       std::vector<idxtype>& rElemPartition)
     {
         SizeType NumElements = rElemConnectivities.size();
         std::vector<int> PartitionWeights(BaseType::mNumberOfPartitions,0);
@@ -402,7 +410,7 @@ private:
 
         // Elements where all nodes belong to the same partition always go to that partition
         IO::ConnectivitiesContainerType::const_iterator itElem = rElemConnectivities.begin();
-        for (std::vector<int>::iterator itPart = rElemPartition.begin(); itPart != rElemPartition.end(); itPart++)
+        for (std::vector<idxtype>::iterator itPart = rElemPartition.begin(); itPart != rElemPartition.end(); itPart++)
         {
             int MyPartition = NodePartition[ (*itElem)[0] - 1 ]; // Node Ids start from 1
             SizeType NeighbourNodes = 1; // Nodes in the same partition
@@ -427,7 +435,7 @@ private:
         // Now distribute boundary elements
         itElem = rElemConnectivities.begin();
         int MaxWeight = 1.03 * NumElements / BaseType::mNumberOfPartitions;
-        for (std::vector<int>::iterator itPart = rElemPartition.begin(); itPart != rElemPartition.end(); itPart++)
+        for (std::vector<idxtype>::iterator itPart = rElemPartition.begin(); itPart != rElemPartition.end(); itPart++)
         {
             if (*itPart == -1) // If element is still unassigned
             {
@@ -499,9 +507,9 @@ private:
     }
 
     /// Partition the elements such that boundary elements are always assigned the majority partition.
-    void PartitionElementsSynchronous(std::vector<int> const& NodePartition,
+    void PartitionElementsSynchronous(std::vector<idxtype> const& NodePartition,
                        const IO::ConnectivitiesContainerType& rElemConnectivities,
-                       std::vector<int>& rElemPartition)
+                       std::vector<idxtype>& rElemPartition)
     {
         SizeType NumElements = rElemConnectivities.size();
         std::vector<int> PartitionWeights(BaseType::mNumberOfPartitions,0);
@@ -511,7 +519,7 @@ private:
 
         // Elements where all nodes belong to the same partition always go to that partition
         IO::ConnectivitiesContainerType::const_iterator itElem = rElemConnectivities.begin();
-        for (std::vector<int>::iterator itPart = rElemPartition.begin(); itPart != rElemPartition.end(); itPart++)
+        for (std::vector<idxtype>::iterator itPart = rElemPartition.begin(); itPart != rElemPartition.end(); itPart++)
         {
             int MyPartition = NodePartition[ (*itElem)[0] - 1 ]; // Node Ids start from 1
             SizeType NeighbourNodes = 1; // Nodes in the same partition
@@ -536,7 +544,7 @@ private:
         // Now distribute boundary elements
         itElem = rElemConnectivities.begin();
         //int MaxWeight = 1.03 * NumElements / BaseType::mNumberOfPartitions;
-        for (std::vector<int>::iterator itPart = rElemPartition.begin(); itPart != rElemPartition.end(); itPart++)
+        for (std::vector<idxtype>::iterator itPart = rElemPartition.begin(); itPart != rElemPartition.end(); itPart++)
         {
             if (*itPart == -1) // If element is still unassigned
             {
@@ -585,11 +593,11 @@ private:
     }
 
     /// Partition the conditions such that the condition is assigned the same partition as its parent element.
-    void PartitionConditionsSynchronous(const std::vector<int>& rNodePartition,
-			     const std::vector<int>& rElemPartition,
+    void PartitionConditionsSynchronous(const std::vector<idxtype>& rNodePartition,
+			     const std::vector<idxtype>& rElemPartition,
 			     const IO::ConnectivitiesContainerType& rCondConnectivities,
 			     const IO::ConnectivitiesContainerType& rElemConnectivities,
-			     std::vector<int>& rCondPartition)
+			     std::vector<idxtype>& rCondPartition)
     {
       SizeType NumElements = rElemConnectivities.size();
       SizeType NumConditions = rCondConnectivities.size();
@@ -605,7 +613,7 @@ private:
 
       // Conditions where all nodes belong to the same partition always go to that partition
       IO::ConnectivitiesContainerType::const_iterator itCond = rCondConnectivities.begin();
-      for (std::vector<int>::iterator itPart = rCondPartition.begin(); itPart != rCondPartition.end(); itPart++)
+      for (std::vector<idxtype>::iterator itPart = rCondPartition.begin(); itPart != rCondPartition.end(); itPart++)
       {
           int MyPartition = rNodePartition[ (*itCond)[0] - 1 ]; // Node Ids start from 1
           SizeType NeighbourNodes = 1; // Nodes in the same partition
@@ -629,7 +637,7 @@ private:
       // Now distribute boundary conditions
       itCond = rCondConnectivities.begin();
       //int MaxWeight = 1.03 * NumConditions / BaseType::mNumberOfPartitions;
-      for (std::vector<int>::iterator itPart = rCondPartition.begin(); itPart != rCondPartition.end(); itPart++)
+      for (std::vector<idxtype>::iterator itPart = rCondPartition.begin(); itPart != rCondPartition.end(); itPart++)
       {
           if (*itPart == -1) // If condition is still unassigned
           {
@@ -690,10 +698,10 @@ private:
     }
 
     void RedistributeHangingNodes(
-            std::vector<int>& rNodePartition,
-            std::vector<int> const& rElementPartition,
+            std::vector<idxtype>& rNodePartition,
+            std::vector<idxtype> const& rElementPartition,
             const IO::ConnectivitiesContainerType& rElementConnectivities,
-            std::vector<int> const& rConditionPartition,
+            std::vector<idxtype> const& rConditionPartition,
             const IO::ConnectivitiesContainerType& rConditionConnectivities)
     {
         std::vector<int> NodeUseCounts(rNodePartition.size(),0);
@@ -779,7 +787,7 @@ private:
     }
 
     void PrintDebugData(const std::string& rLabel,
-                        const std::vector<int>& rPartitionData)
+                        const std::vector<idxtype>& rPartitionData)
     {
         if (mVerbosity > 0)
         {

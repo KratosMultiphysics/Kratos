@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
+#include "includes/io.h"
 #include "processes/process.h"
 #include "processes/graph_coloring_process.h"
 #include "includes/node.h"
@@ -114,6 +115,11 @@ public:
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
     typedef matrix<int> GraphType;
+    #ifdef KRATOS_USE_METIS_5
+      typedef idx_t idxtype;
+    #else 
+      typedef int idxtype;
+    #endif
 
     ///@}
     ///@name Life Cycle
@@ -490,7 +496,32 @@ protected:
         }
     }
 
+    void ConvertKratosToCSRFormat(IO::ConnectivitiesContainerType& KratosFormatNodeConnectivities, 
+                                    idxtype* NodeIndices, 
+                                    idxtype* NodeConnectivities)
+    {
+        SizeType num_entries = 0;
+        for (IO::ConnectivitiesContainerType::iterator it = KratosFormatNodeConnectivities.begin(); it != KratosFormatNodeConnectivities.end(); ++it)
+        {
+            num_entries += it->size();
+        }
+        
+        SizeType num_nodes = KratosFormatNodeConnectivities.size();
+        NodeIndices = new idxtype[num_nodes+1];
+        NodeIndices[0] = 0;
+        NodeConnectivities = new idxtype[num_entries];
 
+        SizeType i = 0;
+        SizeType aux_index = 0;
+        
+        for (IO::ConnectivitiesContainerType::iterator it = KratosFormatNodeConnectivities.begin(); it != KratosFormatNodeConnectivities.end(); ++it)
+        {
+            for (std::vector<SizeType>::iterator entry_it = it->begin(); entry_it != it->end(); entry_it++)
+                NodeConnectivities[aux_index++] = (*entry_it - 1); // substract 1 to make Ids start from 0
+            NodeIndices[++i] = aux_index;
+        }                
+        
+    }
 
     ///@}
     ///@name Protected  Access
