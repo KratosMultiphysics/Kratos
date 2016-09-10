@@ -9,15 +9,17 @@ namespace Kratos {
     void ContinuumExplicitSolverStrategy::Initialize() {
         KRATOS_TRY
 
-        std::cout << "------------------CONTINUUM SOLVER STRATEGY---------------------" << "\n" << std::endl;
-
         ModelPart& r_model_part = GetModelPart();
         ModelPart& fem_model_part = GetFemModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+        
+        if(r_model_part.GetCommunicator().MyPID() == 0) {
+            std::cout << "------------------CONTINUUM SOLVER STRATEGY---------------------" << "\n" << std::endl;
+        }        
 
         // Omp initializations
         mNumberOfThreads = OpenMPUtils::GetNumThreads();
-
+        
         std::cout << "          **************************************************" << std::endl;
         std::cout << "            Parallelism Info:  MPI number of nodes: " << r_model_part.GetCommunicator().TotalProcesses() << std::endl;
         if (r_model_part.GetCommunicator().TotalProcesses() > 1)
@@ -175,7 +177,9 @@ namespace Kratos {
             for (int i = 0; i < mNumberOfThreads; i++) {
                 if (r_process_info[SEARCH_CONTROL_VECTOR][i] == 1) {
                     r_process_info[SEARCH_CONTROL] = 1;
-                    std::cout << "From now on, the search is activated because some failure occurred " << std::endl;
+                    if(r_model_part.GetCommunicator().MyPID() == 0) {
+                        std::cout << "From now on, the search is activated because some failure occurred " << std::endl;
+                    }
                     break;
                 }
             }
@@ -458,8 +462,9 @@ namespace Kratos {
         int maxiteration = 100;
         double& added_search_distance = r_process_info[SEARCH_TOLERANCE];
 
-
-        std::cout << "Setting up Coordination Number by increasing or decreasing the search radius... " << std::endl;
+        if(r_model_part.GetCommunicator().MyPID() == 0) {
+            std::cout << "Setting up Coordination Number by increasing or decreasing the search radius... " << std::endl;
+        }
 
         if (in_coordination_number <= 0.0) {
             KRATOS_THROW_ERROR(std::runtime_error, "The specified Coordination Number is less or equal to zero, N.C. = ", in_coordination_number)
@@ -480,14 +485,19 @@ namespace Kratos {
         }//while
 
         if (iteration < maxiteration){
-            std::cout << "Coordination Number iterative procedure converged after " << iteration << " iterations, to value " << out_coordination_number << " using an extension of " << added_search_distance << ". " << "\n" << std::endl;
-            std::cout << "Standard deviation for achieved coordination number is " << standard_dev << ". " << "\n" << std::endl;
-            std::cout << "This means that most particles (about 68% of the total particles, assuming a normal distribution) have a coordination number within " <<  standard_dev << " contacts of the mean (" << out_coordination_number-standard_dev << "–" << out_coordination_number+standard_dev << " contacts). " << "\n" << std::endl;}
+            if(r_model_part.GetCommunicator().MyPID() == 0) {
+                std::cout << "Coordination Number iterative procedure converged after " << iteration << " iterations, to value " << out_coordination_number << " using an extension of " << added_search_distance << ". " << "\n" << std::endl;
+                std::cout << "Standard deviation for achieved coordination number is " << standard_dev << ". " << "\n" << std::endl;
+                std::cout << "This means that most particles (about 68% of the total particles, assuming a normal distribution) have a coordination number within " <<  standard_dev << " contacts of the mean (" << out_coordination_number-standard_dev << "–" << out_coordination_number+standard_dev << " contacts). " << "\n" << std::endl;
+            }
+        }
 
         else {
-            std::cout << "Coordination Number iterative procedure did NOT converge after " << iteration << " iterations. Coordination number reached is " << out_coordination_number << ". " << "\n" << std::endl;
-            KRATOS_THROW_ERROR(std::runtime_error, "Please use a Absolute tolerance instead ", " ")
+            if(r_model_part.GetCommunicator().MyPID() == 0) {
+                std::cout << "Coordination Number iterative procedure did NOT converge after " << iteration << " iterations. Coordination number reached is " << out_coordination_number << ". " << "\n" << std::endl;
+                KRATOS_THROW_ERROR(std::runtime_error, "Please use a Absolute tolerance instead ", " ")
                     //NOTE: if it doesn't converge, problems occur with contact mesh and rigid face contact.
+            }
         }
 
     } //SetCoordinationNumber
@@ -604,9 +614,11 @@ namespace Kratos {
             if (result == true) {particle_counter += 1;}
         }
 
+        GetModelPart().GetCommunicator().SynchronizeElementalFlags();
+        
         DestroyMarkedParticlesRebuildLists();
 
-        std::cout << "Mesh repair complete. " << particle_counter << " particles were removed. " << "\n" << std::endl;
+        std::cout << "Mesh repair complete. In MPI node " <<GetModelPart().GetCommunicator().MyPID()<<". "<< particle_counter << " particles were removed. " << "\n" << std::endl;
 
         KRATOS_CATCH("")
     }
