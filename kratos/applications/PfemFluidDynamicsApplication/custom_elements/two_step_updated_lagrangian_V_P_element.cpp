@@ -846,7 +846,7 @@ namespace Kratos {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
 
-    SizeType Index = 0;
+    //SizeType Index = 0;
    
     double velX=0;
     double velY=0;
@@ -871,7 +871,7 @@ namespace Kratos {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
 
-    SizeType Index = 0;
+    //SizeType Index = 0;
    
     double velX=0;
     double velY=0;

@@ -434,7 +434,7 @@ private:
 	int* OutElementList       = mrRemesh.OutMesh.GetElementList();
 
 	ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
-	ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin(mMeshId);
+	//ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin(mMeshId);
 	const unsigned int nds = element_begin->GetGeometry().size();
 	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes(mMeshId);
 
@@ -578,7 +578,7 @@ private:
     // }
 	 
     //writing the points coordinates in a vector and reordening the Id's
-    ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin(mMeshId);
+    //ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin(mMeshId);
 
     std::cout<<"mrModelPart.Nodes(mMeshId).size() "<<mrModelPart.Nodes(mMeshId).size()<<std::endl;
 
