@@ -55,7 +55,7 @@ namespace Kratos
       typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
       typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
       typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
-      typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
+      //typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
 
       //custom types
       // typedef FluidResidualBasedUwPStaticScheme< SparseSpaceType, LocalSpaceType > FluidResidualBasedUwPStaticSchemeType;
