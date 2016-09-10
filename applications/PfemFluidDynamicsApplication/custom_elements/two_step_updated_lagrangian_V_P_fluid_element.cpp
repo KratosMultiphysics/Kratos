@@ -491,7 +491,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
 									   const ShapeFunctionsType& rN,
 									   const double Weight)
  {
-   const SizeType NumNodes = this->GetGeometry().PointsNumber();
+   //const SizeType NumNodes = this->GetGeometry().PointsNumber();
    double coeff=1.0+TDim;
    // double ElemSize = this->ElementSize();
    // double Mij  = (Weight * ElemSize)/ (2* coeff) ;
@@ -666,7 +666,7 @@ void TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeBoundRHSVector(VectorT
 									 const ShapeFunctionsType& rN,
 									 const double Weight)
 {
-  const SizeType NumNodes = this->GetGeometry().PointsNumber();
+  //const SizeType NumNodes = this->GetGeometry().PointsNumber();
   double coeff=1.0+TDim;
   // double ElemSize = this->ElementSize();
   // double Mij  = Weight;
