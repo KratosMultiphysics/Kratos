@@ -565,9 +565,8 @@ namespace Kratos {
             SphericParticle* ini_cont_neighbour_iterator = mNeighbourElements[i];
             double other_radius = ini_cont_neighbour_iterator->GetRadius();
 
-            SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
             array_1d<double, 3> other_to_me_vect;
-            noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
+            noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - mNeighbourElements[i]->GetGeometry()[0].Coordinates();
             double distance = DEM_MODULUS_3(other_to_me_vect);
 
             double alpha = 1.0; // alpha = 1.0 means that the particle is completely inside another
