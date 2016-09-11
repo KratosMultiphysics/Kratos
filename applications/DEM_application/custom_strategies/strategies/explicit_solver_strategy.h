@@ -121,7 +121,8 @@ namespace Kratos {
                 typename ParticleCreatorDestructor::Pointer p_creator_destructor,
                 typename DEM_FEM_Search::Pointer p_dem_fem_search,
                 typename DEMIntegrationScheme::Pointer pScheme,
-                typename SpatialSearch::Pointer pSpSearch)
+                typename SpatialSearch::Pointer pSpSearch,
+                const bool do_search_balls = true)
         /*:
         BaseType(*(settings.r_model_part), true)*/ {
 
@@ -130,6 +131,7 @@ namespace Kratos {
             mpDemFemSearch = p_dem_fem_search;
             mpScheme = pScheme;
             mpSpSearch = pSpSearch;
+            mDoSearchBalls = do_search_balls;
             mMaxTimeStep = max_delta_time;
             mNStepSearch = n_step_search;
             mSafetyFactor = safety_factor;
@@ -294,6 +296,7 @@ namespace Kratos {
         typename DEM_FEM_Search::Pointer mpDemFemSearch;
         typename DEMIntegrationScheme::Pointer mpScheme;
         typename SpatialSearch::Pointer mpSpSearch;
+        bool mDoSearchBalls;
         VectorResultConditionsContainerType mRigidFaceResults;
         VectorDistanceType mRigidFaceResultsDistances;
         vector<unsigned int> mConditionPartition;
