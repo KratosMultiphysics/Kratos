@@ -815,6 +815,10 @@ namespace Kratos {
     void ExplicitSolverStrategy::SearchNeighbours() {
         KRATOS_TRY
 
+        if (! mDoSearchBalls){
+            return;
+        }
+
         ModelPart& r_model_part = GetModelPart();
 
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
