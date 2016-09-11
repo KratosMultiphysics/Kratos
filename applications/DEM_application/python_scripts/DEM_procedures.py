@@ -1023,8 +1023,8 @@ class MultifileList(object):
 class DEMIo(object):
 
     def __init__(self, DEM_parameters):
-        self.mixed_model_part      = ModelPart("Mixed_Part")
-        self.mixed_spheres_and_clusters_model_part = ModelPart("MixedSpheresAndClustersPart")
+        self.mixed_model_part                                     = ModelPart("Mixed_Part")
+        self.mixed_spheres_and_clusters_model_part                = ModelPart("MixedSpheresAndClustersPart")
         self.mixed_spheres_not_in_cluster_and_clusters_model_part = ModelPart("MixedSpheresNotInClusterAndClustersPart")
         
         # Printing variables
