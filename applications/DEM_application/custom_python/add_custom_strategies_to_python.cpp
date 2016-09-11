@@ -117,7 +117,7 @@ namespace Kratos
 
           class_< ExplicitSolverStrategy,  boost::noncopyable>
           (
-          "ExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
+          "ExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer, const bool>())
                   .def("Solve", &ExplicitSolverStrategy::Solve)
                   .def("Initialize", &ExplicitSolverStrategy::Initialize)
                   .def("SetSearchRadiiOnAllParticles", &ExplicitSolverStrategy::SetSearchRadiiOnAllParticles)
