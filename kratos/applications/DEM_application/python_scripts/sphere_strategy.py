@@ -23,7 +23,7 @@ class ExplicitStrategy:
         if not hasattr(Param, "AutomaticTimestep"):
             self.critical_time_option = 0
         else:
-            self.critical_time_option = self.Var_Translator(Param.AutomaticTimestep)    
+            self.critical_time_option = self.Var_Translator(Param.AutomaticTimestep)
                    
         self.trihedron_option        = self.Var_Translator(Param.PostEulerAngles)
         self.rotation_option         = self.Var_Translator(Param.RotationOption)
@@ -175,6 +175,7 @@ class ExplicitStrategy:
         self.spheres_model_part.ProcessInfo.SetValue(ROLLING_FRICTION_OPTION, self.rolling_friction_option)
 
         # SEARCH-RELATED
+        self.do_search_neighbours = True # Hard-coded until needed as an option
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_TOLERANCE, self.search_tolerance)
         self.spheres_model_part.ProcessInfo.SetValue(COORDINATION_NUMBER, self.coordination_number)
         self.spheres_model_part.ProcessInfo.SetValue(LOCAL_RESOLUTION_METHOD, self.local_resolution_method)
@@ -235,11 +236,11 @@ class ExplicitStrategy:
         if (self.Parameters.IntegrationScheme == 'Verlet_Velocity'):
             self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                              self.time_integration_scheme, self.search_strategy)
+                                                              self.time_integration_scheme, self.search_strategy, self.do_search_neighbours)
         else:
             self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                             self.time_integration_scheme, self.search_strategy)
+                                                             self.time_integration_scheme, self.search_strategy, self.do_search_neighbours)
 
     def Initialize(self):                                                             
     
@@ -392,4 +393,3 @@ class ExplicitStrategy:
             pre_utils = PreUtilities(self.spheres_model_part)
             pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
             print(properties)
-            
