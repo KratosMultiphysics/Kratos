@@ -149,6 +149,7 @@ public:
         mrMaxColor = 0;
         // Initializing the coloered graph. -1 means no connection
         // TODO: I have to change this part and create this matrix using max color number
+        mrDomainsColoredGraph.resize(mNumberOfPartitions, 2*mNumberOfPartitions,false);
         mrDomainsColoredGraph = ScalarMatrix(mNumberOfPartitions, 2*mNumberOfPartitions, -1.00);
 
         // Start coloring...
@@ -254,6 +255,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_GRAPH_COLORING_PROCESS_H_INCLUDED  defined 
-
-
+#endif // KRATOS_GRAPH_COLORING_PROCESS_H_INCLUDED  defined
