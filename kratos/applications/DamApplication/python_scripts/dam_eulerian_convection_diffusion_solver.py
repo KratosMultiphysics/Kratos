@@ -61,6 +61,9 @@ class DamThermalSolver:
                 "residual_relative_tolerance"     : 0.0001,
                 "residual_absolute_tolerance"     : 1e-9,
                 "max_iteration"                   : 10,
+                "max_radius_factor"               : 5.0,
+                "min_radius_factor"               : 0.5,
+                "max_iteration"                   : 10,
                 "echo_level"                      : 0,
                 "buffer_size"                     : 2,
                 "compute_reactions"               : true,
@@ -74,8 +77,8 @@ class DamThermalSolver:
             "processes_sub_model_part_list"       : [""],
             "nodal_processes_sub_model_part_list" : [""],
             "load_processes_sub_model_part_list"  : [""],
-            "loads_sub_model_part_list": [],
-            "loads_variable_list": [],
+            "loads_sub_model_part_list": [""],
+            "loads_variable_list": [""],
             "output_configuration"                : {
                 "result_file_configuration" : {
                     "gidpost_flags"       : {
