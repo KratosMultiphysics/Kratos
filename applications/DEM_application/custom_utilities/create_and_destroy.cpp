@@ -789,8 +789,19 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
 
         KRATOS_TRY
         
-        ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
-        ModelPart::NodesContainerType& rNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();       
+
+        DestroyParticles(r_model_part.GetCommunicator().LocalMesh());
+        DestroyParticles(r_model_part.GetCommunicator().GhostMesh());
+          
+        KRATOS_CATCH("")
+    }    
+    
+    void ParticleCreatorDestructor::DestroyParticles(ModelPart::MeshType& rMesh) {
+
+        KRATOS_TRY
+        
+        ElementsArrayType& rElements = rMesh.Elements();
+        ModelPart::NodesContainerType& rNodes = rMesh.Nodes();       
 
         if (rElements.size() != rNodes.size()) {
             KRATOS_THROW_ERROR(std::runtime_error, "While removing elements and nodes, the number of elements and the number of nodes are not the same in the ModelPart!", 0);
@@ -839,7 +850,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
             rNodes.erase(rNodes.ptr_begin() + good_nodes_counter, rNodes.ptr_end());  
         }    
         KRATOS_CATCH("")
-    }      
+    }  
 
 
     void ParticleCreatorDestructor::DestroyContactElements(ModelPart& r_model_part) {
