@@ -6,6 +6,10 @@ if(NOT (${DEM_APPLICATION} STREQUAL "ON"))
     message(SEND_ERROR "The DEM Application must be compiled before this one. Set DEM_APPLICATION=ON in the configure file.")
 endif(NOT (${DEM_APPLICATION} STREQUAL "ON"))
 
+if(NOT (${FLUID_DYNAMICS_APPLICATION} STREQUAL "ON"))
+    message(SEND_ERROR "The Fluid Dynamics Application must be compiled before this one. Set FLUID_DYNAMICS_APPLICATION=ON in the configure file.")
+endif(NOT (${FLUID_DYNAMICS_APPLICATION} STREQUAL "ON"))
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 #dependecies on other applications
