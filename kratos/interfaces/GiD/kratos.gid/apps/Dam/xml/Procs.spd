@@ -31,7 +31,7 @@
 		set pnames ""
 		set ids [list ]
 		set type_of_problem [lindex $args 0]
-		if {$type_of_problem eq "Mechanic"} {set n "NewtonRaphson"} {set n "Generic"}
+		if {$type_of_problem eq "Mechanic"} {set n [list "NewtonRaphson" "Arc-length"]} {set n "Generic"}
 		set Sols [::Model::GetSolutionStrategies [list n $n] ]
 		foreach ss $Sols {
 			lappend ids [$ss getName]

@@ -5,10 +5,10 @@
     <value n="AnalysisType" pn="Analysis type" un="DamAnalysisType" v="Linear" values="Linear,Non-Linear" help="Analysis type" state="[checkStateByUniqueName DamSoluType Quasi-Static]"/>
     
     <container n="MechanicalProblem" pn="Mechanical Problem"  state="normal" actualize_tree="1">
-        <value n="SolStratCombo" pn="Solution strategy" un="DamSolStrat,DamSolStratMech" v="" values="" dict="[GetSolutionStrategies Mechanic]" actualize_tree="1" state="disabled"/>
+        <value n="SolStratCombo" pn="Solution strategy" un="DamSolStrat,DamSolStratMech" v="" values="" dict="[GetSolutionStrategies Mechanic]" actualize_tree="1" state="normal"/>
         <value n="MechanicalScheme" pn="Scheme" un="DamScheme,DamMechanicalScheme" v="" values="" dict="[GetSchemes Mechanic]" actualize_tree="1"/>
-        <container n="SolStrat" pn="Solution strategy: Newton-Raphson"  state="normal" un="DamStratParams">
-            <dynamicnode command="injectSolStratParams" args="ImplementedInApplication Dam"/>
+        <container n="SolStrat" pn="Solution strategy parameters"  state="normal" un="DamStratParams">
+            <dynamicnode command="injectSolStratParams" args="App Dam"/>
         </container>
         <value n="TypeofBuilder" pn="Type of Builder" un="DamTypeofbuilder" v="Elimination" values="Elimination,Block"></value>
         <value n="TypeofSolver" pn="Type of Solver" un="DamTypeofsolver" v="Iterative" values="Direct,Iterative">
