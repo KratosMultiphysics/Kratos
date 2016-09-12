@@ -136,7 +136,6 @@
     <inputs>     
     </inputs>
     <outputs>
-      <parameter n="NEGATIVE_FACE_PRESSURE" pn="Normal Load" v="false"/>
     </outputs>
   </ConditionItem>
 
@@ -155,7 +154,6 @@
     <inputs> 
     </inputs>
     <outputs>
-      <parameter n="NEGATIVE_FACE_PRESSURE" pn="Normal Load" v="false"/>
     </outputs>
   </ConditionItem>
   
@@ -173,7 +171,6 @@
     <inputs>
     </inputs>
     <outputs>
-      <parameter n="NEGATIVE_FACE_PRESSURE" pn="Normal Load" v="false"/>
     </outputs>
   </ConditionItem>
   
@@ -193,7 +190,6 @@
     <inputs> 
     </inputs>
     <outputs>
-      <parameter n="NORMAL_LOAD" pn="Normal Load" v="false"/>
     </outputs>
   </ConditionItem>
   
@@ -211,7 +207,6 @@
       <parameter n="Gravity_Direction" pn="Gravity Direction" v="Y" values="X,Y,Z"/>
     </inputs>
     <outputs>
-      <parameter n="NEGATIVE_FACE_PRESSURE" pn="Normal Load" v="false"/>
     </outputs>
   </ConditionItem>
   
@@ -230,7 +225,6 @@
     <inputs> 
     </inputs>
     <outputs>
-      <parameter n="NEGATIVE_FACE_PRESSURE" pn="Normal Load" v="false"/>
     </outputs>
   </ConditionItem>
 
