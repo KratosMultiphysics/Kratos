@@ -64,6 +64,9 @@ class DamMechanicalSolver:
                 "residual_relative_tolerance"     : 0.0001,
                 "residual_absolute_tolerance"     : 1e-9,
                 "max_iteration"                   : 10,
+                "max_radius_factor"               : 5.0,
+                "min_radius_factor"               : 0.5,
+                "max_iteration"                   : 10,
                 "echo_level"                      : 0,
                 "buffer_size"                     : 2,
                 "compute_reactions"               : true,
@@ -77,8 +80,8 @@ class DamMechanicalSolver:
             "processes_sub_model_part_list"       : [""],
             "nodal_processes_sub_model_part_list" : [""],
             "load_processes_sub_model_part_list"  : [""],
-            "loads_sub_model_part_list": [],
-            "loads_variable_list": [],
+            "loads_sub_model_part_list": [""],
+            "loads_variable_list": [""],
             "output_configuration"                : {
                 "result_file_configuration" : {
                     "gidpost_flags"       : {
@@ -233,16 +236,16 @@ class DamMechanicalSolver:
     def LinearSolver(self, damTypeofSolver, solver_class):
     
         if(damTypeofSolver == "Direct"):
-            if(solver_class == "Super_LU"):
-                linear_solver = SuperLUSolver()
-            elif(solver_class == "Skyline_LU_factorization"):
-                linear_solver = SkylineLUFactorizationSolver()
+            if(solver_class == "SuperLU"):
+                linear_solver = KratosMultiphysics.ExternalSolversApplication.SuperLUSolver()
+            elif(solver_class == "SkylineLUFactorization"):
+                linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         elif(damTypeofSolver == "Iterative"):
             if(solver_class == "BICGSTAB"):
                 tolerance = 1e-5
                 max_iterations = 1000
                 precond = ILU0Preconditioner()
-                linear_solver = BICGSTABSolver(tolerance,max_iterations,precond)
+                linear_solver = KratosMultiphysics.BICGSTABSolver(tolerance,max_iterations,precond)
             elif(solver_class == "AMGCL"):
                 amgcl_smoother = KratosMultiphysics.ExternalSolversApplication.AMGCLSmoother.ILU0
                 amgcl_krylov_type = KratosMultiphysics.ExternalSolversApplication.AMGCLIterativeSolverType.BICGSTAB
@@ -325,9 +328,9 @@ class DamMechanicalSolver:
             
             # Arc-Length strategy
             arc_length_params = KratosMultiphysics.Parameters("{}")
-            arc_length_params.AddEmptyValue("desired_iterations").SetInt(4)
-            arc_length_params.AddEmptyValue("max_radius_factor").SetDouble(20.0)
-            arc_length_params.AddEmptyValue("min_radius_factor").SetDouble(0.5)
+            arc_length_params.AddValue("desired_iterations",self.settings["mechanical_settings"]["desired_iterations"])
+            arc_length_params.AddValue("max_radius_factor",self.settings["mechanical_settings"]["max_radius_factor"])
+            arc_length_params.AddValue("min_radius_factor",self.settings["mechanical_settings"]["min_radius_factor"])
             arc_length_params.AddValue("loads_sub_model_part_list",self.settings["loads_sub_model_part_list"])
             arc_length_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
             
