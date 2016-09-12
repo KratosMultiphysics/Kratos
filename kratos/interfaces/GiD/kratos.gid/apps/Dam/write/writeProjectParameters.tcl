@@ -52,7 +52,7 @@ proc Dam::write::getParametersDict { } {
     dict set mechanicalSolverSettingsDict model_import_settings $modelDict
     dict set mechanicalSolverSettingsDict solution_type [write::getValue DamSoluType]
     dict set mechanicalSolverSettingsDict analysis_type [write::getValue DamAnalysisType]
-    dict set mechanicalSolverSettingsDict strategy_type "Newton-Raphson"
+    dict set mechanicalSolverSettingsDict strategy_type [write::getValue DamSolStrat]
     set mechanicalSolverSettingsDict [dict merge $mechanicalSolverSettingsDict [write::getSolutionStrategyParametersDict] ]
     dict set mechanicalSolverSettingsDict type_of_builder [write::getValue DamTypeofbuilder]
     dict set mechanicalSolverSettingsDict type_of_solver [write::getValue DamTypeofsolver]
@@ -70,8 +70,11 @@ proc Dam::write::getParametersDict { } {
     dict set projectParametersDict processes_sub_model_part_list [write::getSubModelPartNames "DamNodalConditions" "DamLoads"]
     dict set projectParametersDict nodal_processes_sub_model_part_list [write::getConditionsParametersDict DamNodalConditions "Nodal"]
     dict set projectParametersDict load_processes_sub_model_part_list [write::getConditionsParametersDict DamLoads ]
+    set strategytype [write::getValue DamSolStrat]
+    if {$strategytype eq "Arc-length"} {
     dict set projectParametersDict loads_sub_model_part_list [write::getSubModelPartNames "DamLoads"]
     dict set projectParametersDict loads_variable_list [Dam::write::getVariableParametersDict DamLoads]
+    }
     ### GiD output configuration
     dict set projectParametersDict output_configuration [write::GetDefaultOutputDict]
         

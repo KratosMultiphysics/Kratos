@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <StrategyList>
-  <StrategyItem n="NewtonRaphson" pn="Newton Raphson"
+  <StrategyItem n="Newton-Raphson" pn="Newton Raphson"
                 ImplementedInFile="residualbased_newton_raphson_strategy.h"
                 ImplementedInApplication="Dam"
                 ImplementedInPythonFile="dam_new_mechanical_solver"
