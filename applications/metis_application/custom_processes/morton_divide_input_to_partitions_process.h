@@ -111,7 +111,7 @@ public:
 
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
-    typedef matrix<int> GraphType;
+    typedef GraphColoringProcess::GraphType GraphType;
 
     ///@}
     ///@name Life Cycle
@@ -162,7 +162,7 @@ public:
         IO::ConnectivitiesContainerType elements_connectivities;
         IO::ConnectivitiesContainerType conditions_connectivities;
         IO::NodesContainerType nodes_container;
-        
+
         int number_of_elements = mrIO.ReadElementsConnectivities(elements_connectivities);
 
         mrIO.ReadConditionsConnectivities(conditions_connectivities);
@@ -176,7 +176,9 @@ public:
         morton_partitioning_process.Execute();
 
 //         GraphType domains_graph = zero_matrix<int>(mNumberOfPartitions, mNumberOfPartitions);
-        GraphType domains_graph = ScalarMatrix(mNumberOfPartitions, mNumberOfPartitions, 1);
+        GraphType domains_graph(mNumberOfPartitions,mNumberOfPartitions);
+        domains_graph = ZeroMatrix(mNumberOfPartitions,mNumberOfPartitions);
+        
         GraphType domains_colored_graph;
 
         int colors_number;
@@ -212,7 +214,7 @@ public:
                                      nodes_all_partitions, elements_all_partitions, conditions_all_partitions);
         KRATOS_WATCH("DivideInputToPartitions finished")
         return;
-        
+
         KRATOS_CATCH("")
     }
 
@@ -574,6 +576,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MORTON_DIVIDE_INPUT_TO_PARTITIONS_PROCESS_INCLUDED defined 
-
-
+#endif // KRATOS_MORTON_DIVIDE_INPUT_TO_PARTITIONS_PROCESS_INCLUDED defined
