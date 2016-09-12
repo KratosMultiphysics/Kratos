@@ -13,8 +13,12 @@ proc ::Solid::Init { } {
     set ::Model::ValidSpatialDimensions [list 2D 2Da 3D]
     ::spdAux::CreateDimensionWindow
     set attributes [dict create]
+    
+    # Intervals only in developer mode
     dict set attributes UseIntervals 0
     if {$::Kratos::kratos_private(DevMode) eq "dev"} {dict set attributes UseIntervals 1}
+    
+    # Restart available
     dict set attributes UseRestart 1
 }
 

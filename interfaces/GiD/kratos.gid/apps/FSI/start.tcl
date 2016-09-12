@@ -2,6 +2,7 @@ namespace eval ::FSI {
     # Variable declaration
     variable dir
     variable prefix
+    variable attributes
 }
 
 proc ::FSI::Init { } {
@@ -14,6 +15,10 @@ proc ::FSI::Init { } {
     
     apps::LoadAppById "Fluid"
     apps::LoadAppById "Structural"
+    
+    # Intervals only in developer mode
+    dict set attributes UseIntervals 0
+    #if {$::Kratos::kratos_private(DevMode) eq "dev"} {dict set attributes UseIntervals 1}
     
     set ::Model::ValidSpatialDimensions [list 2D 3D]
     ::spdAux::CreateDimensionWindow
