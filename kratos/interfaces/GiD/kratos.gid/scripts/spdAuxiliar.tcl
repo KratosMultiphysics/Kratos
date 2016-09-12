@@ -1215,14 +1215,16 @@ proc spdAux::ProcGetSchemes {domNode args} {
     return [join $pnames ","]
 }
 
+proc spdAux::SetNoneValue {domNode} {
+    $domNode setAttribute v "None"
+    $domNode setAttribute values "None"
+    spdAux::RequestRefresh
+    return "None,None"
+}
+
 proc spdAux::ProcGetConstitutiveLaws { domNode args } {
     set Claws [Model::GetConstitutiveLaws]
-    if {[llength $Claws] == 0} {
-        $domNode setAttribute v "None"
-        $domNode setAttribute values "None"
-        spdAux::RequestRefresh
-        return "None,None"
-    }
+    if {[llength $Claws] == 0} { return [SetNoneValue $domNode] }
     #W "Const Laws que han pasado la criba: $Claws"
     set pnames [list ]
     foreach cl $Claws {
@@ -1233,6 +1235,7 @@ proc spdAux::ProcGetConstitutiveLaws { domNode args } {
     
     set Elementname [$domNode selectNodes {string(../value[@n='Element']/@v)}]
     set Claws [::Model::GetAvailableConstitutiveLaws $Elementname]
+    if {[llength $Claws] == 0} { return [SetNoneValue $domNode] }
     set names [list ]
     foreach cl $Claws {
         lappend names [$cl getName]
@@ -1249,12 +1252,7 @@ proc spdAux::ProcGetAllConstitutiveLaws { domNode args } {
     
     set Claws [Model::GetConstitutiveLaws]
     #W "Const Laws que han pasado la criba: $Claws"
-    if {[llength $Claws] == 0} {
-        $domNode setAttribute v "None"
-        $domNode setAttribute values "None"
-        spdAux::RequestRefresh
-        return "None,None"
-    }
+    if {[llength $Claws] == 0} { return [SetNoneValue $domNode] }
     #set names [list ]
     set pnames [list ]
     foreach cl $Claws {
