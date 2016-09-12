@@ -76,6 +76,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 #include "custom_strategies/strategies/residualbased_simple_steady_scheme.h"
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent.h"
+#include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent_no_reaction.h"
 #include "custom_strategies/strategies/gear_scheme.h"
 
 // convergence criteria
@@ -146,6 +147,13 @@ void  AddCustomStrategiesToPython()
             .def(init<unsigned int >())// constructor without a turbulence model
             .def(init<unsigned int,Kratos::Variable<double>&>())// constructor with a non-default flag for slip conditions
             ;
+
+	class_<ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction<SparseSpaceType, LocalSpaceType>,
+		bases< ResidualBasedPredictorCorrectorBDFSchemeTurbulent<SparseSpaceType, LocalSpaceType> >, boost::noncopyable >
+		("ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction", init<unsigned int, Process::Pointer >())
+		.def(init<unsigned int >())// constructor without a turbulence model
+		.def(init<unsigned int, Kratos::Variable<double>&>())// constructor with a non-default flag for slip conditions
+		;
             
     class_< GearScheme< SparseSpaceType, LocalSpaceType >,
             bases< BaseSchemeType >,  boost::noncopyable >
