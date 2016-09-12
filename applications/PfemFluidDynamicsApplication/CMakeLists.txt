@@ -6,6 +6,10 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
 
+if(NOT (${PFEM_BASE_APPLICATION} STREQUAL "ON"))
+    message(SEND_ERROR "The Pfem Base Application must be compiled before this one. Set PFEM_BASE_APPLICATION=ON in the configure file.")
+endif(NOT (${PFEM_BASE_APPLICATION} STREQUAL "ON"))
+
 if(NOT DEFINED ${INCLUDE_TRIANGLE})
   set(INCLUDE_TRIANGLE ON)
   set(TRIANGLE_INSTALL_DIR ${CMAKE_SOURCE_DIR}/external_libraries/triangle/)
