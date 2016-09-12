@@ -164,24 +164,6 @@ proc write::writeMaterials { {appid ""}} {
     }
 }
 
-#proc write::writeNodalCoordinatesOnParts { } {
-#    variable parts
-#    set doc $gid_groups_conds::doc
-#    set root [$doc documentElement]
-#    
-#    set xp1 "[spdAux::getRoute $parts]/group"
-#    set formats [dict create]
-#    set f "%5d %14.5f %14.5f %14.5f%.0s\n"
-#    foreach gNode [$root selectNodes $xp1] {
-#        set group [$gNode getAttribute n]
-#        dict set formats $group $f
-#    }
-#    WriteString "Begin Nodes"
-#    write_calc_data nodes $formats
-#    WriteString "End Nodes"
-#    WriteString "\n"
-#}
-
 proc write::writeNodalCoordinatesOnParts { } {
     variable parts
     

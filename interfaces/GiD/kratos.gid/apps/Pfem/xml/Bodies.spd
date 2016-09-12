@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="Bodies" pn="Bodies" icon="shells16" help="Select your group">
+<container n="Bodies" pn="Bodies" un="PFEM_Bodies" icon="shells16" help="Select your group">
     <blockdata n='Body' name='Body' editable="false" sequence='1' editable_name='unique'>
           <value n="BodyType" pn="Body type" v="" values="Fluid,Rigid_Body,Deformable_Body" dict="Fluid,Fluid,Rigid_Body,Rigid Body,Deformable_Body,Deformable Body" actualize_tree="1"/>
           <value n="MeshingStrategy" pn="Meshing strategy" v="" values="[GetMeshingDomains]" state="[getStateFromXPathValue {string(../value[@n='BodyType']/@v)} Deformable_Body]"/>
