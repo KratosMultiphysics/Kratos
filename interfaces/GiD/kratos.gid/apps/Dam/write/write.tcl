@@ -94,4 +94,39 @@ proc Dam::write::writeLoads { } {
     }
 }
 
+proc Dam::write::getVariableParametersDict {un {condition_type "Condition"}} {
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    
+    set xp1 "[spdAux::getRoute $un]/condition/group"
+    set groups [$root selectNodes $xp1]
+
+    foreach group $groups {
+        set groupName [$group @n]
+        #W "GROUP $groupName"
+        set cid [[$group parent] @n]
+        set groupId [::write::getMeshId $cid $groupName]
+        set condId [[$group parent] @n]
+        if {$condition_type eq "Condition"} {
+            set condition [::Model::getCondition $condId]
+        } {
+            set condition [::Model::getNodalConditionbyId $condId]
+        }
+        #W "Condition = $condition"
+        catch {
+            set variable_name [$condition getAttribute VariableName]
+            #W $variable_name
+            # "lindex" is a rough solution. Look for a better one.
+            if {$variable_name ne ""} {dict set paramDict variable_name [lindex $variable_name 0]}
+        }        
+        
+        return $variable_name
+    }
+}
+
+
+
+
+
+
 Dam::write::Init
