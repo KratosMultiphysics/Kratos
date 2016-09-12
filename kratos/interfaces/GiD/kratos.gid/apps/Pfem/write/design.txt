@@ -18,7 +18,7 @@ Bodies
 
 Meshing_Strategies
 
-(Select: No_Remesh, Remesh, Remesh and Refine )  en cada opció preguntar els paràmetres necessaris per la configuració del json. El Rigid_Solid_Body només No_Remesh. Habitualment hi haurà un sol Fluid_Body amb una única Meshing_Strategy, i cada Deformable_Solid_Body amb la seva meshing_strategy. 
+(Select: No_Remesh, Remesh, Remesh and Refine )  a cada opció preguntar els paràmetres necessaris per la configuració del json. El Rigid_Solid_Body només No_Remesh. Habitualment hi haurà un sol Fluid_Body amb una única Meshing_Strategy, i cada Deformable_Solid_Body amb la seva meshing_strategy. 
 
 
 Contact_Strategies

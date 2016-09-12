@@ -35,7 +35,14 @@
              "max_iteration" : 5000,
              "scaling"     : false
         },
-        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
+        "bodies_list": [
+            {"body_name":"body1",
+            "parts_list":["Part1"]
+            },
+            {"body_name":"body2",
+            "parts_list":["Part2","Part3"]
+            }
+        ],
         "processes_sub_model_part_list"      :["DISPLACEMENT_Displacement_Auto1","SelfWeight3D_Self_weight_Auto1"]
     },
     "problem_process_list" : [{
@@ -44,7 +51,7 @@
         "help"            : "This process applies meshing to the problem domains",
         "process_name"    : "RemeshDomainsProcess",
         "Parameters"      : {
-	    "model_part_name"       : "model_part_name",
+	    "model_part_name"       : "body1",
 	    "meshing_control_type"  : "step",
 	    "meshing_frequency"     : 1.0,
 	    "meshing_before_output" : true,
@@ -208,7 +215,7 @@
 			    }
 			}
 		    },
-		    "elemental_variables_to_transfer":[ "CAUCHY_STRESS_VECTOR", "DEFORMATION_GRADIENT" ]
+		    "elemental_variables_to_transfer":[ "CAUCHY_STRESS_VECTOR", "DEFORMATION_GRADIENT" ],
 		    "contact_sub_model_part_list": []
 		}
             ]
