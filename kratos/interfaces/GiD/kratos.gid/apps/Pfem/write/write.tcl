@@ -26,9 +26,21 @@ proc Pfem::write::writeModelPartEvent { } {
         write::writeElementConnectivities
     }
     Solid::write::writeConditions
-    Solid::write::writeMeshes
+    Pfem::write::writeMeshes
 }
 
+proc Pfem::write::writeMeshes { } {
+    
+    foreach part_un [GetPartsUN] {
+        write::initWriteData $part_un "PFEM_Materials"
+        write::writePartMeshes
+    }
+    # Solo Malla , no en conditions
+    write::writeNodalConditions "PFEM_NodalConditions"
+    
+    # A Condition y a meshes-> salvo lo que no tenga topologia
+    Solid::write::writeLoads
+}
 
 proc Pfem::write::GetPartsUN { } {
     customlib::UpdateDocument
@@ -38,13 +50,17 @@ proc Pfem::write::GetPartsUN { } {
     set i 0
     foreach part_node [$root selectNodes $xp1] {
         if {![$part_node hasAttribute "un"]} {
-            incr i
             set un "PFEM_Part$i"
+            while {[spdAux::getRoute $un] ne ""} {
+                incr i
+                set un "PFEM_Part$i"
+            }
             $part_node setAttribute un $un
             spdAux::setRoute $un [$part_node toXPath]
         }
         lappend lista [get_domnode_attribute $part_node un]
     }
+    customlib::UpdateDocument
     return $lista
 }
 # Custom files (Copy python scripts, write materials file...)

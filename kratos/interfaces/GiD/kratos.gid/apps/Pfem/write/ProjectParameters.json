@@ -19,7 +19,7 @@
         "model_import_settings"              : {
             "input_type"       : "mdpa",  
             "input_filename"   : "Particle Domain",
-	    "input_file_label" : "0"
+            "input_file_label" : "0"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "Residual_criterion",
