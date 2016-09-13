@@ -156,7 +156,7 @@
   
   <ConditionItem n="VelocityConstraints2D" pn="Custom velocity constraints" ImplementedInFile=".cpp" Interval="Total"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="2D" LocalSpaceDimension="2" SkinConditions="False" ElementType="Point,Line,Surface"  App="Fluid"
+	WorkingSpaceDimension="2D" LocalSpaceDimension="2" SkinConditions="False" ElementType="Point,Line"  App="Fluid"
     ProcessName="ImposeVectorValueByComponentsProcess" VariableName="VELOCITY" help=""  units="m/s" unit_magnitude="Velocity">
     <TopologyFeatures>
     </TopologyFeatures>
@@ -170,7 +170,7 @@
   
   <ConditionItem n="VelocityConstraints3D" pn="Custom velocity constraints" ImplementedInFile=".cpp" Interval="Total"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="Development" App="Fluid"
-	WorkingSpaceDimension="3D" LocalSpaceDimension="3" SkinConditions="False" ElementType="Point,Line,Surface,Volume" 
+	WorkingSpaceDimension="3D" LocalSpaceDimension="3" SkinConditions="False" ElementType="Point,Line,Surface" 
     ProcessName="ImposeVectorValueByComponentsProcess" VariableName="VELOCITY" help=""  units="m/s" unit_magnitude="Velocity">
     <TopologyFeatures>
     </TopologyFeatures>
