@@ -26,17 +26,14 @@ proc Kratos::ViewXML {root} {
 }
  proc Kratos::recurseInsert {w node parent} {
     set name [$node nodeName]
-    if {$name=="#text" || $name=="cdata"} {
-        set text [$node nodeValue]
-        set fill black
-    } else {
+    
         set text <$name
         foreach att [$node attributes] {
             catch {append text " $att=\"[$node getAttribute $att]\""}
         }
         append text >
         set fill blue
-    }
+    
     $w insert end $parent $node -text $text -fill $fill -open 1
     foreach child [$node childNodes] {recurseInsert $w $child $node}
  }
