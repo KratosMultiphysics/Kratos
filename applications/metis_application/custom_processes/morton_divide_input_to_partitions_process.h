@@ -177,8 +177,8 @@ public:
 
 //         GraphType domains_graph = zero_matrix<int>(mNumberOfPartitions, mNumberOfPartitions);
         GraphType domains_graph(mNumberOfPartitions,mNumberOfPartitions);
-        domains_graph = ZeroMatrix(mNumberOfPartitions,mNumberOfPartitions);
-        
+        domains_graph = ScalarMatrix(mNumberOfPartitions,mNumberOfPartitions,1);
+
         GraphType domains_colored_graph;
 
         int colors_number;
@@ -186,6 +186,8 @@ public:
         CalculateDomainsGraph(domains_graph, number_of_elements, elements_connectivities, nodes_partitions, elements_partitions);
 
         GraphColoringProcess(mNumberOfPartitions, domains_graph, domains_colored_graph, colors_number).Execute();
+
+        KRATOS_WATCH(domains_graph);
 
 // 			std::vector<DomainEntitiesIdContainer> domains_nodes;
         IO::PartitionIndicesContainerType nodes_all_partitions;
