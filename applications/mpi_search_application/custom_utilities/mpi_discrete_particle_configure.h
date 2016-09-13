@@ -183,11 +183,11 @@ public:
                   for (ElementsContainerType::iterator i_element = SendObjects[i].begin();
                       i_element != SendObjects[i].end(); ++i_element)
                   {
-                      mpi_send_buffer[i][index]   = i_element->GetGeometry()(0)->Id();
+                      mpi_send_buffer[i][index]   = i_element->GetGeometry()[0].Id();
 
-                      mpi_send_buffer_x[i][index] = i_element->GetGeometry()(0)->X0();
-                      mpi_send_buffer_y[i][index] = i_element->GetGeometry()(0)->Y0();
-                      mpi_send_buffer_z[i][index] = i_element->GetGeometry()(0)->Z0();
+                      mpi_send_buffer_x[i][index] = i_element->GetGeometry()[0].X0();
+                      mpi_send_buffer_y[i][index] = i_element->GetGeometry()[0].Y0();
+                      mpi_send_buffer_z[i][index] = i_element->GetGeometry()[0].Z0();
 
                       index++;
                   }

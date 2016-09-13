@@ -409,13 +409,13 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
               bool IsInGhostMesh = false;
 
               for(int i = 0; i < NumberOfRanks; i++)
-                  if((*neighbour_it)->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX) == communicator_ranks[i])
+                  if((*neighbour_it)->GetGeometry()[0].GetSolutionStepValue(PARTITION_INDEX) == communicator_ranks[i])
                       destination = i;
 
               if(destination > -1)
               {
                   for(IteratorType element_it = pGhostElements.begin(); !IsInGhostMesh && element_it != pGhostElements.end(); ++element_it)
-                      if((*element_it)->GetGeometry()(0)->Id() == (*neighbour_it)->GetGeometry()(0)->Id())
+                      if((*element_it)->GetGeometry()[0].Id() == (*neighbour_it)->GetGeometry()[0].Id())
                           IsInGhostMesh = true;
 
                   if(!IsInGhostMesh)
@@ -429,7 +429,7 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
                   ElementsContainerType::ContainerType& pMyGhostElements = mCommunicator.GhostMesh(destination).ElementsArray();
 
                   for(IteratorType element_it = pMyGhostElements.begin(); !IsInGhostMesh && element_it != pMyGhostElements.end(); ++element_it)
-                      if((*element_it)->GetGeometry()(0)->Id() == (*neighbour_it)->GetGeometry()(0)->Id())
+                      if((*element_it)->GetGeometry()[0].Id() == (*neighbour_it)->GetGeometry()[0].Id())
                           IsInGhostMesh = true;
 
                   if(!IsInGhostMesh)
