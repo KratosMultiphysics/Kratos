@@ -38,7 +38,6 @@ proc ::Pfem::xml::::CheckElementOutputState { domNode args } {
               lappend elemsactive [get_domnode_attribute $gNode v]
           }
      }
-     W $elemsactive
      set paramName [$domNode @n]
      return [::Model::CheckElementOutputState $elemsactive $paramName]
 }
