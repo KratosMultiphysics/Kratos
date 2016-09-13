@@ -177,6 +177,7 @@ class PartitionedFSISolver:
         self.coupling_algorithm = self.settings["coupling_solver_settings"]["coupling_scheme"].GetString()
         self.fluid_interface_submodelpart_name = self.settings["coupling_solver_settings"]["fluid_interfaces_list"][0].GetString()
         self.structure_interface_submodelpart_name = self.settings["coupling_solver_settings"]["structure_interfaces_list"][0].GetString()
+        coupling_utility_parameters = self.settings["coupling_solver_settings"]["coupling_strategy"]
         
         
         print("*** Partitioned FSI solver construction starts...")
@@ -194,9 +195,8 @@ class PartitionedFSISolver:
         print("* Fluid solver constructed.")
         
         # Construct the coupling partitioned strategy
-        coupling_utility_name = self.settings["coupling_solver_settings"]["coupling_strategy"]["solver_type"].GetString()
-        interface_utility_module = __import__(coupling_utility_name)       
-        self.coupling_utility = interface_utility_module.CreateInterfaceUtility(self.settings["coupling_solver_settings"]["coupling_strategy"])
+        import convergence_accelerator_factory     
+        self.coupling_utility = convergence_accelerator_factory.CreateConvergenceAccelerator(coupling_utility_parameters)
         print("* Coupling strategy constructed.")
         
         # Construct the ALE mesh solver
@@ -296,7 +296,8 @@ class PartitionedFSISolver:
             self._SetFluidNeumannCondition()
             
         # Set ALE mesh boundary conditions
-        self._SetFluidMeshBoundaryConditions()
+        # SUBSTITUTED BY A PROCESS. 
+        #~ self._SetFluidMeshBoundaryConditions()
         
         # Get interface problem sizes
         interface_problem_sizes = self._GetInterfaceProblemSizes()
@@ -311,6 +312,8 @@ class PartitionedFSISolver:
             
         self.fluid_solver.SolverInitialize()
         self.structure_solver.SolverInitialize()
+        self.coupling_utility.Initialize()
+        
 
                 
     def GetComputingModelPart(self):
@@ -333,7 +336,7 @@ class PartitionedFSISolver:
         
         self.fluid_solver.SolverInitializeSolutionStep()
         self.structure_solver.SolverInitializeSolutionStep()
-        self.coupling_utility.ExecuteInitializeSolutionStep()
+        self.coupling_utility.InitializeSolutionStep()
         
         self.fluid_solver.SolverPredict()
         self.structure_solver.SolverPredict()
@@ -345,9 +348,11 @@ class PartitionedFSISolver:
         ## Non-Linear interface coupling iteration ##
         for nl_it in range(1,self.max_nl_it+1):
             
+            self.coupling_utility.InitializeNonLinearIteration()
+            
             print("     NL-ITERATION ",nl_it,"STARTS.")
-            self.fluid_solver.main_model_part.ProcessInfo[KratosFSI.FSI_NL_ITERATION] = nl_it
-            self.structure_solver.main_model_part.ProcessInfo[KratosFSI.FSI_NL_ITERATION] = nl_it
+            self.fluid_solver.main_model_part.ProcessInfo[KratosFSI.CONVERGENCE_ACCELERATOR_ITERATION] = nl_it
+            self.structure_solver.main_model_part.ProcessInfo[KratosFSI.CONVERGENCE_ACCELERATOR_ITERATION] = nl_it
             
             # Residual computation
             print("     Residual computation starts...")
@@ -371,10 +376,8 @@ class PartitionedFSISolver:
                 # If convergence is not achieved, perform the correction of the prediction
                 print("     Performing non-linear iteration ",nl_it," correction.")               
                 
-                self.iteration_value = self.coupling_utility.InterfaceSolutionUpdate(self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS],
-                                                                                     nl_it,
-                                                                                     self.iteration_value,
-                                                                                     vel_residual)
+                self.coupling_utility.UpdateSolution(vel_residual,
+                                                     self.iteration_value)
 
                 # Move interface nodes
                 # If the correction is done over the velocity, the interface displacement must be done according the corrected velocity.
@@ -392,6 +395,8 @@ class PartitionedFSISolver:
                                                                          distribute_load)            # Project the structure interface displacement onto the fluid interface
                                                                          
                 self.mesh_solver.MoveNodes()
+                
+                self.coupling_utility.FinalizeNonLinearIteration()
                                                                             
         ## Mesh update 
         keep_sign = True
@@ -409,6 +414,7 @@ class PartitionedFSISolver:
         ## Finalize solution step ##
         self.fluid_solver.SolverFinalizeSolutionStep()
         self.structure_solver.SolverFinalizeSolutionStep()
+        self.coupling_utility.FinalizeSolutionStep()
        
 
     def SetEchoLevel(self, structure_echo_level, fluid_echo_level):
@@ -530,20 +536,28 @@ class PartitionedFSISolver:
                 aux_count+=1
                 
             
-    def _SetFluidMeshBoundaryConditions(self):
-        # Note that this function also initializes the interface displacement as 0 (the interface submodelpart is within the skin_parts group).
+    #~ def _SetFluidMeshBoundaryConditions(self):
+        #~ # Note that this function also initializes the interface displacement as 0 (the interface submodelpart is within the skin_parts group).
         
-        for i in range(self.settings["fluid_solver_settings"]["skin_parts"].size()):
-            skin_submodelpart_name = self.settings["fluid_solver_settings"]["skin_parts"][i].GetString()
-            skin_submodelpart_i = self.fluid_solver.main_model_part.GetSubModelPart(skin_submodelpart_name)
+        #~ # for i in range(self.settings["fluid_solver_settings"]["skin_parts"].size()):
+        #~ #    skin_submodelpart_name = self.settings["fluid_solver_settings"]["skin_parts"][i].GetString()
+        #~ #    skin_submodelpart_i = self.fluid_solver.main_model_part.GetSubModelPart(skin_submodelpart_name)
+        #~ for i in range(self.settings["fluid_solver_settings"]["no_skin_parts"].size()):
+            #~ no_skin_submodelpart_name = self.settings["fluid_solver_settings"]["no_skin_parts"][i].GetString()
+            #~ no_skin_submodelpart_i = self.fluid_solver.main_model_part.GetSubModelPart(no_skin_submodelpart_name)
             
-            for node in skin_submodelpart_i.Nodes:
-                node.Fix(KratosMultiphysics.DISPLACEMENT_X)
-                node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
-                node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
-                node.SetValue(KratosMultiphysics.DISPLACEMENT_X,0.0)
-                node.SetValue(KratosMultiphysics.DISPLACEMENT_Y,0.0)
-                node.SetValue(KratosMultiphysics.DISPLACEMENT_Z,0.0)
+            #~ # print(skin_submodelpart_i)
+            #~ # print(no_skin_submodelpart_i)
+            
+            #~ # for node in skin_submodelpart_i.Nodes:
+            #~ for node in no_skin_submodelpart_i.Nodes:
+                #~ print(node.Id)
+                #~ node.Fix(KratosMultiphysics.DISPLACEMENT_X)
+                #~ node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
+                #~ node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
+                #~ node.SetValue(KratosMultiphysics.DISPLACEMENT_X,0.0)
+                #~ node.SetValue(KratosMultiphysics.DISPLACEMENT_Y,0.0)
+                #~ node.SetValue(KratosMultiphysics.DISPLACEMENT_Z,0.0)
                 
     
     def _ComputeMeshPrediction(self):
