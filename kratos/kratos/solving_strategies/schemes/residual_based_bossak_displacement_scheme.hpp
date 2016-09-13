@@ -93,8 +93,11 @@ public:
         mAlpha.f = 0.0;
         mAlpha.m = rAlpham;
 
-        mNewmark.beta= (1.0 + mAlpha.f - mAlpha.m) * (1.0 + mAlpha.f - mAlpha.m) * 0.25;
-        mNewmark.gamma= 0.5 + mAlpha.f - mAlpha.m;
+        // Default values of the Newmark coefficients
+        double beta  = 0.25;
+        double gamma = 0.5;
+
+        CalculateNewmarkCoefficients(beta, gamma);
 
         // std::cout << " MECHANICAL SCHEME: The Bossak Time Integration Scheme [alpha_m= " << mAlpha.m << " beta= " << mNewmark.beta << " gamma= " << mNewmark.gamma << "]" <<std::endl;
 
@@ -140,6 +143,21 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * Recalculates the Newmark coefficients, taking into account the alpha parameters
+     * @param beta: The Newmark beta coefficient
+     * @param gamma: The Newmark gamma coefficient
+     */
+
+    void CalculateNewmarkCoefficients(
+            double beta,
+            double gamma
+            )
+    {
+        mNewmark.beta  = (1.0 + mAlpha.f - mAlpha.m) * (1.0 + mAlpha.f - mAlpha.m) * beta;
+        mNewmark.gamma = gamma + mAlpha.f - mAlpha.m;
+    }
 
     /**
      * Performing the update of the solution
@@ -404,6 +422,19 @@ public:
         Scheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(rModelPart, A, Dx, b);
 
         double DeltaTime = CurrentProcessInfo[DELTA_TIME];
+
+        double beta = 0.25;
+        if (CurrentProcessInfo.Has(NEWMARK_BETA))
+        {
+            beta = CurrentProcessInfo[NEWMARK_BETA];
+        }
+        double gamma = 0.5;
+        if (CurrentProcessInfo.Has(NEWMARK_GAMMA))
+        {
+            gamma = CurrentProcessInfo[NEWMARK_GAMMA];
+        }
+
+        CalculateNewmarkCoefficients(beta, gamma);
 
         if (DeltaTime < 1.0e-24)
         {
