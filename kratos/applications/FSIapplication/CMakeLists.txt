@@ -11,6 +11,7 @@ set( KRATOS_FSI_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/fsi_python_application.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_mappers_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_convergence_accelerators_to_python.cpp 
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/AdvancedNMPointsMapper.cpp
 )
