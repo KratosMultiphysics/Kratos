@@ -288,11 +288,12 @@ class SIMPMethod:
                 print("  Continuation Strategy for current iteration was UNACTIVE")
 
             # Write restart file every selected number of iterations
+            restart_filename = self.config.restart_output_file.replace(".mdpa","_"+str(opt_itr)+".mdpa")
             if (self.config.restart_write_frequency > 0):
                 if (opt_itr % self.config.restart_write_frequency == False):
                     print("\n::[Restart File]::")
                     print("  Saving file at iteration", opt_itr)
-                    self.io_utils.SaveOptimizationResults(self.config.restart_input_file, self.opt_model_part, self.config.restart_output_file)
+                    self.io_utils.SaveOptimizationResults(self.config.restart_input_file, self.opt_model_part, restart_filename)
 
             # Check convergence
             if opt_itr > 1:
@@ -302,7 +303,7 @@ class SIMPMethod:
                     print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
                     print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
                     print("\n  Maximal iterations of optimization problem reached!")
-                    self.io_utils.SaveOptimizationResults(self.config.restart_input_file, self.opt_model_part, self.config.restart_output_file)
+                    self.io_utils.SaveOptimizationResults(self.config.restart_input_file, self.opt_model_part, restart_filename)
                     break
 
                 # Check for relative tolerance
@@ -311,7 +312,7 @@ class SIMPMethod:
                     print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
                     print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
                     print("\n  Optimization problem converged within a relative objective tolerance of",self.config.relative_tolerance)
-                    self.io_utils.SaveOptimizationResults(self.config.restart_input_file, self.opt_model_part, self.config.restart_output_file)
+                    self.io_utils.SaveOptimizationResults(self.config.restart_input_file, self.opt_model_part, restart_filename)
                     break
 
             # Set X_PHYS_OLD to X_PHYS to update the value for the next simulation's "change percentage"

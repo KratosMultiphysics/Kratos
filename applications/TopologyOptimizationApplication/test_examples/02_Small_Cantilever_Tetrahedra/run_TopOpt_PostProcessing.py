@@ -34,7 +34,7 @@ GiDMultiFileFlag = "Single"
 # Read optimized model part from restart file
 optimized_model_part = ModelPart("optimized_model_part")
 optimized_model_part.AddNodalSolutionStepVariable(NORMAL)
-restart_file_name = "Small_Cantilever_Restart_File"
+restart_file_name = "Small_Cantilever_Restart_File_20"
 model_part_io = ModelPartIO(restart_file_name)
 model_part_io.ReadModelPart(optimized_model_part)
 
@@ -72,4 +72,4 @@ gid_io_3.write_results(1, extracted_surface_model_part, nodal_results, gauss_poi
 gid_io_3.finalize_results()
 
 # Write stl of extracted surface
-IOUtilities().WriteSurfaceAsSTLFile("extracted_surface.stl",extracted_surface_model_part)
+IOUtilities().WriteSurfaceAsSTLFile("smoothed_design_20.stl",extracted_surface_model_part)
