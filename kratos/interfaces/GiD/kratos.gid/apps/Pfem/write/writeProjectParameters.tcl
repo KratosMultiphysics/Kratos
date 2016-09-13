@@ -136,9 +136,12 @@ proc Pfem::write::GetPFEM_RemeshDict { } {
         dict set bodyDict meshing_strategy $meshing_strategyDict
         
         set spatial_bounding_boxDict [dict create ]
-        dict set spatial_bounding_boxDict "upper_point" [list 0.0 0.0 0.0]
-        dict set spatial_bounding_boxDict "lower_point" [list 0.0 0.0 0.0]
-        dict set spatial_bounding_boxDict "velocity" [list 0.0 0.0 0.0]
+        set upX [expr 0.0]; set upY [expr 0.0]; set upZ [expr 0.0]
+        dict set spatial_bounding_boxDict "upper_point" [list $upX $upY $upZ]
+        set lpX [expr 0.0]; set lpY [expr 0.0]; set lpZ [expr 0.0]
+        dict set spatial_bounding_boxDict "lower_point" [list $lpX $lpY $lpZ]
+        set vlX [expr 0.0]; set vlY [expr 0.0]; set vlZ [expr 0.0]
+        dict set spatial_bounding_boxDict "velocity" [list $vlX $vlY $vlZ]
         dict set bodyDict spatial_bounding_box $spatial_bounding_boxDict
         
         set refining_parametersDict [dict create ]
@@ -180,9 +183,12 @@ proc Pfem::write::GetPFEM_RemeshDict { } {
         
         set refining_boxDict [dict create]
         dict set refining_boxDict "refine_in_box_only" false
-        dict set refining_boxDict "upper_point" [list 0.0 0.0 0.0]
-        dict set refining_boxDict "lower_point" [list 0.0 0.0 0.0]
-        dict set refining_boxDict "velocity" [list 0.0 0.0 0.0]
+        set upX [expr 0.0]; set upY [expr 0.0]; set upZ [expr 0.0]
+        dict set refining_boxDict "upper_point" [list $upX $upY $upZ]
+        set lpX [expr 0.0]; set lpY [expr 0.0]; set lpZ [expr 0.0]
+        dict set refining_boxDict "lower_point" [list $lpX $lpY $lpZ]
+        set vlX [expr 0.0]; set vlY [expr 0.0]; set vlZ [expr 0.0]
+        dict set refining_boxDict "velocity" [list $vlX $vlY $vlZ]
         dict set refining_parametersDict refining_box $refining_boxDict
         
         dict set bodyDict refining_parameters $refining_parametersDict
