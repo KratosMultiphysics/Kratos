@@ -87,7 +87,7 @@ protected:
     virtual void ComputeConstitutiveMatrixUnloading(Matrix& rConstitutiveMatrix,const double& JointStrength,
                                                         const double& DamageThreshold,const double& CriticalDisplacement);
 
-    virtual void ComputeConstitutiveMatrixContactUnloading(Matrix& rConstitutiveMatrix,const double& YoungModulus,const double& FrictionCoefficient,
+    virtual void ComputeConstitutiveMatrixContactUnloading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
                                                             const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement);
                                                             
                                                             
