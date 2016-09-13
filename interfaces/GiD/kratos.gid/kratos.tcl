@@ -109,6 +109,10 @@ proc Kratos::InitGIDProject { dir } {
     foreach filename {Model.tcl Entity.tcl Parameter.tcl Topology.tcl Solver.tcl ConstitutiveLaw.tcl Condition.tcl Element.tcl SolutionStrategy.tcl Process.tcl} {
         uplevel 1 [list source [file join $dir scripts Model $filename]]
     }
+    # JG Sources will be in a different proc
+    foreach filename {SimpleXMLViewer.tcl} {
+        uplevel 1 [list source [file join $dir libs $filename]]
+    }
     
     set kratos_private(UseWizard) 0
      

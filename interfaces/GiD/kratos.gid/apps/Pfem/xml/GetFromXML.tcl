@@ -29,4 +29,18 @@ proc ::Pfem::xml::MultiAppEvent {args} {
    }
 }
 
+proc ::Pfem::xml::::CheckElementOutputState { domNode args } {
+     set elemsactive [list ]
+     foreach parts_un [Pfem::write::GetPartsUN] {
+          set parts_path [spdAux::getRoute $parts_un]
+          set xp1 "$parts_path/group/value\[@n='Element'\]"
+          foreach gNode [[customlib::GetBaseRoot] selectNodes $xp1] {
+              lappend elemsactive [get_domnode_attribute $gNode v]
+          }
+     }
+     W $elemsactive
+     set paramName [$domNode @n]
+     return [::Model::CheckElementOutputState $elemsactive $paramName]
+}
+
 Pfem::xml::Init

@@ -36,7 +36,6 @@
         return [join $pvalues ,]
      ]]>
     </proc>
-    
     <proc n='CheckNodalConditionStateSolid' args='args'>
 	  <![CDATA[
 	  # Overwritten the base function to add Solution Type restrictions
@@ -53,6 +52,13 @@
 			if {[::Model::CheckElementsNodalCondition $conditionId $elemnames $params]} {return "normal"} else {return "hidden"}
 		} {return "normal"}
 	  ]]>
-	</proc>		
+	</proc>
+	 <proc n='ElementOutputState' args='args'>
+	  <![CDATA[
+	  # Overwritten the base function due to Parts splitted
+		set resp [ ::Pfem::xml::::CheckElementOutputState $domNode]
+		if {$resp} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>	
 
 </container>
