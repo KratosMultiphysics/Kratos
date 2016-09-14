@@ -187,7 +187,7 @@ public:
 
         GraphColoringProcess(mNumberOfPartitions, domains_graph, domains_colored_graph, colors_number).Execute();
 
-        KRATOS_WATCH(domains_graph);
+        //KRATOS_WATCH(domains_graph);
 
 // 			std::vector<DomainEntitiesIdContainer> domains_nodes;
         IO::PartitionIndicesContainerType nodes_all_partitions;
