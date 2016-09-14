@@ -139,6 +139,7 @@ def ConstructListsOfResultsToPrint(pp):
     pp.dem_nodal_results = []
     pp.clusters_nodal_results = []
     pp.rigid_faces_nodal_results = []
+    pp.dem_nodal_results += ["SLIP_VELOCITY"]
 
     if DEM_parameters.PostRadius:
         pp.dem_nodal_results += ["RADIUS"]
