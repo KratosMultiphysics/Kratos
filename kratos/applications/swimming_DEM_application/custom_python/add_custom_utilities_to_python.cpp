@@ -270,7 +270,7 @@ using namespace boost::python;
         .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::AddFluidCouplingVariable)
         ;
 
-    class_<BinBasedDEMFluidCoupledMapping <3,SphericParticle> >
+    class_<BinBasedDEMFluidCoupledMapping <3, SphericParticle> >
             ("BinBasedDEMFluidCoupledMapping3D", init<double, int, int, int>())
         .def("InterpolateVelocity", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateVelocity)
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateFromFluidMesh)
@@ -282,7 +282,7 @@ using namespace boost::python;
         .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::AddFluidCouplingVariable)
         ;
     
-    class_<BinBasedDEMFluidCoupledMapping <3,NanoParticle> >
+    class_<BinBasedDEMFluidCoupledMapping <3, NanoParticle> >
             ("BinBasedNanoDEMFluidCoupledMapping3D", init<double, int, int, int>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromFluidMesh)
         .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromNewestFluidMesh)
