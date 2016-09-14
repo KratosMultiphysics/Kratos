@@ -242,12 +242,12 @@ public:
             {
                 for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++)
                 {
-                    ModelPart::NodeType::Pointer i_nod = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
-                    int element_partition = i_nod->GetSolutionStepValue(PARTITION_INDEX);
+                    ModelPart::NodeType& i_nod = (*particle_pointer_it)->GetGeometry()[i];
+                    const int element_partition = i_nod.FastGetSolutionStepValue(PARTITION_INDEX);
 
                     for(int j = 0; j < Dimension; j++)
                     {
-                        SendSetCentroid[element_partition*Dimension+j] += i_nod->Coordinate(j+1);
+                        SendSetCentroid[element_partition*Dimension+j] += i_nod.Coordinates()[j];
                     }
 
                     SendNumParticlesPerVirtualPartition[element_partition]++;
