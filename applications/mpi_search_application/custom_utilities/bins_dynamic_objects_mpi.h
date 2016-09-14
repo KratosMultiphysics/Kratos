@@ -349,11 +349,12 @@ public:
 
             NumberOfResults[objectCounter] = 0;
 
-            TConfigure::CalculateBoundingBox((*object_pointer_it), Low, High, Radius[objectCounter]);
+            const double this_object_radius = TConfigure::GetObjectRadius(*object_pointer_it);
+            TConfigure::CalculateBoundingBox((*object_pointer_it), Low, High, this_object_radius);
             Box.Set( CalculateCell(Low), CalculateCell(High), mN );
 
             //Actual search
-            SearchInRadiusExclusive((*object_pointer_it), Radius[objectCounter], ResultsPointer, ResultsDistancesPointer, NumberOfResults[objectCounter], MaxNumberOfResults, Box );
+            SearchInRadiusExclusive((*object_pointer_it), this_object_radius, ResultsPointer, ResultsDistancesPointer, NumberOfResults[objectCounter], MaxNumberOfResults, Box );
 
             //For each point with results < MaxResults and each process excluding ourself
             if(NumberOfResults[objectCounter] < MaxNumberOfResults)
@@ -388,7 +389,8 @@ public:
                         IteratorType itrObject = const_cast<typename ElementsContainerType::ContainerType& >(ThisObjects.GetContainer()).begin() + j;
 
                         SendObjectToProcess[i].push_back(*itrObject);
-                        SendRadiusToProcess[i][k] = TConfigure::GetObjectRadius(*itrObject, Radius[j]);
+                        const double this_object_radius = TConfigure::GetObjectRadius(*itrObject);
+                        SendRadiusToProcess[i][k] = TConfigure::GetObjectRadius(*itrObject, this_object_radius);
 
                         k++;
                     }
