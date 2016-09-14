@@ -494,6 +494,29 @@ public:
 	///@name Access
 	///@{
 
+    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+            std::vector<array_1d<double, 3 > >& rValues,
+            const ProcessInfo& rCurrentProcessInfo);
+
+
+    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+            std::vector<double>& rValues,
+            const ProcessInfo& rCurrentProcessInfo);
+
+
+    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+            std::vector<array_1d<double, 6 > >& rValues,
+            const ProcessInfo& rCurrentProcessInfo);
+
+    virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+            std::vector<Vector>& rValues,
+            const ProcessInfo& rCurrentProcessInfo);
+
+
+    virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+            std::vector<Matrix>& rValues,
+            const ProcessInfo& rCurrentProcessInfo);
+
 	///@}
 	///@name Inquiry
 	///@{
@@ -607,6 +630,7 @@ protected:
 				WallStress = rho * pow(tmp, 2.0 / (1.0 + Alpha));
 			}
 
+            //this->SetValue(Y_WALL,WallStress);
 			WallForce = (Area / static_cast<double>(TNumNodes)) * WallStress;
 
 			for(SizeType i=0; i < rGeometry.PointsNumber(); ++i)
@@ -680,11 +704,17 @@ private:
 	virtual void save(Serializer& rSerializer) const
 	{
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
+        rSerializer.save("mInitializeWasPerformed",mInitializeWasPerformed);
+        rSerializer.save("mMinEdgeLength",mMinEdgeLength);
+        rSerializer.save("mpElement",mpElement);
 	}
 
 	virtual void load(Serializer& rSerializer)
 	{
 		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
+        rSerializer.load("mInitializeWasPerformed",mInitializeWasPerformed);
+        rSerializer.load("mMinEdgeLength",mMinEdgeLength);
+        rSerializer.load("mpElement",mpElement);
 	}
 
 	///@}

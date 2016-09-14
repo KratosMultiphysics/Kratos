@@ -193,6 +193,81 @@ void FSWernerWengleWallCondition<3, 3>::GetDofList(
 	}
 }
 
+
+
+template<unsigned int TDim, unsigned int TNumNodes>
+void FSWernerWengleWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(
+        const Variable<array_1d<double,3> > &rVariable,
+        std::vector<array_1d<double,3> > &rValues,
+        const ProcessInfo &rCurrentProcessInfo)
+{
+    rValues.resize(1);
+    /* The cast is done to avoid modification of the element's data. Data modification
+     * would happen if rVariable is not stored now (would initialize a pointer to &rVariable
+     * with associated value of 0.0). This is catastrophic if the variable referenced
+     * goes out of scope.
+     */
+    const FSWernerWengleWallCondition* const_this = static_cast< const FSWernerWengleWallCondition* >(this);
+    rValues[0] = const_this->GetValue(rVariable);
+}
+
+
+template<unsigned int TDim, unsigned int TNumNodes>
+void FSWernerWengleWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    rValues.resize(1);
+    /*
+       The cast is done to avoid modification of the element's data. Data modification
+       would happen if rVariable is not stored now (would initialize a pointer to &rVariable
+       with associated value of 0.0). This is catastrophic if the variable referenced
+       goes out of scope.
+       */
+    const FSWernerWengleWallCondition* const_this = static_cast< const FSWernerWengleWallCondition* >(this);
+    rValues[0] = const_this->GetValue(rVariable);
+}
+
+
+template<unsigned int TDim, unsigned int TNumNodes>
+void FSWernerWengleWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(
+        const Variable<array_1d<double, 6 > >& rVariable,
+        std::vector<array_1d<double, 6 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    rValues.resize(1);
+    const FSWernerWengleWallCondition* const_this = static_cast< const FSWernerWengleWallCondition* >(this);
+    rValues[0] = const_this->GetValue(rVariable);
+}
+
+
+template<unsigned int TDim, unsigned int TNumNodes>
+void FSWernerWengleWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    rValues.resize(1);
+    const FSWernerWengleWallCondition* const_this = static_cast< const FSWernerWengleWallCondition* >(this);
+    rValues[0] = const_this->GetValue(rVariable);
+}
+
+
+template<unsigned int TDim, unsigned int TNumNodes>
+void FSWernerWengleWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    rValues.resize(1);
+    const FSWernerWengleWallCondition* const_this = static_cast< const FSWernerWengleWallCondition* >(this);
+    rValues[0] = const_this->GetValue(rVariable);
+}
+
+
+
+
 /**
  * @see FSWernerWengleWallCondition::CalculateWallParameters
  */
@@ -347,5 +422,8 @@ void FSWernerWengleWallCondition<3, 3>::CalculateWallParameters(
 
 	KRATOS_CATCH("");
 }
+
+template class FSWernerWengleWallCondition<2,2>;
+template class FSWernerWengleWallCondition<3,3>;
 
 } // namespace Kratos
