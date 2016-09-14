@@ -98,7 +98,7 @@ namespace Kratos
             ("SymplecticEulerOldVelocityScheme", init<>());
 		  
             class_< AdamsBashforthStrategy, bases<ExplicitSolverStrategy>, boost::noncopyable>
-            ("AdamsBashforthStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer, DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>());
+            ("AdamsBashforthStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer, DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer, const bool>());
 		}
 
 	}  // namespace Python.
