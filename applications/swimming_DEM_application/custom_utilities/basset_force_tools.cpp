@@ -143,9 +143,9 @@ void BassetForceTools::FillDaitcheVectors(const int N, const int order, const in
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-// This method precalculates values needed for the implementation of the method described by Von Hinsberg (2011)
-// The method requires the determination of m numbers ai and another numbers ti which deteermine m exponentials.
-// In the following particular values of these numbers are presented u to m = 8. These numbers were obtained by Casas and Ferrer (2016)
+// This method precalculates values needed for the implementation of the method described by van Hinsberg et al. (2011)
+// The method requires the determination of m numbers ai and m other numbers ti which determine m exponentials.The sum of these exponentials is unsed as an approximation to the tail of the Basset kernel
+// In the following particular values of these numbers are presented up to m = 10. These numbers were obtained by Casas and Ferrer (2016)
 void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m, const int n_quad_delta_times_window)
 {
     KRATOS_TRY
@@ -344,7 +344,7 @@ void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m,
     }
 
     else {
-        KRATOS_THROW_ERROR(std::invalid_argument, "Hinsberg's method is only implemented up to a number of exponentials m = 10.", m);
+        KRATOS_THROW_ERROR(std::invalid_argument, "van Hinsberg's method is only implemented up to a number of exponentials m = 10.", m);
     }
 
     const double e = std::exp(1);
@@ -387,7 +387,7 @@ void BassetForceTools::AppendIntegrands(ModelPart& r_model_part)
         historic_integrands.resize(n + 3);
         historic_integrands.insert_element(n,     slip_vel[0]);
         historic_integrands.insert_element(n + 1, slip_vel[1]);
-        historic_integrands.insert_element(n + 2, 0.0);
+        historic_integrands.insert_element(n + 2, slip_vel[2]);
     }
 }
 
@@ -411,13 +411,13 @@ void BassetForceTools::AppendIntegrandsImplicit(ModelPart& r_model_part)
             historic_integrands.resize(n + 9);
             historic_integrands.insert_element(n    , slip_vel[0]);
             historic_integrands.insert_element(n + 1, slip_vel[1]);
-            historic_integrands.insert_element(n + 2, 0.0);
+            historic_integrands.insert_element(n + 2, slip_vel[2]);
             historic_integrands.insert_element(n + 3, particle_vel[0]);
             historic_integrands.insert_element(n + 4, particle_vel[1]);
-            historic_integrands.insert_element(n + 5, 0.0);
+            historic_integrands.insert_element(n + 5, particle_vel[2]);
             historic_integrands.insert_element(n + 6, particle_vel[0]);
             historic_integrands.insert_element(n + 7, particle_vel[1]);
-            historic_integrands.insert_element(n + 8, 0.0);
+            historic_integrands.insert_element(n + 8, particle_vel[2]);
         }
         else {
             array_1d<double, 3> old_particle_vel;
@@ -427,7 +427,7 @@ void BassetForceTools::AppendIntegrandsImplicit(ModelPart& r_model_part)
             historic_integrands.resize(n + 3);
             historic_integrands.insert_element(n - 6, slip_vel[0]);
             historic_integrands.insert_element(n - 5, slip_vel[1]);
-            historic_integrands.insert_element(n - 4, 0.0);
+            historic_integrands.insert_element(n - 4, slip_vel[2]);
             historic_integrands.insert_element(n - 3, old_particle_vel[0]);
             historic_integrands.insert_element(n - 2, old_particle_vel[1]);
             historic_integrands.insert_element(n - 1, old_particle_vel[2]);
@@ -450,43 +450,48 @@ void BassetForceTools::AppendIntegrandsWindow(ModelPart& r_model_part)
 
         for (ElementIterator iparticle = r_model_part.ElementsBegin(); iparticle != r_model_part.ElementsEnd(); iparticle++){
             Node<3>& node = iparticle->GetGeometry()[0];
-            vector<double>& historic_integrands = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
+            if (node.IsNot(BLOCKED)){
+                vector<double>& historic_integrands = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
 
-            if (int(historic_integrands.size()) >= 3 * mNumberOfQuadratureStepsInWindow){
-                vector<double>& hinsberg_tail_contributions = node.GetValue(HINSBERG_TAIL_CONTRIBUTIONS);
-                hinsberg_tail_contributions[3 * mNumberOfExponentials]     = historic_integrands[0];
-                hinsberg_tail_contributions[3 * mNumberOfExponentials + 1] = historic_integrands[1];
-                hinsberg_tail_contributions[3 * mNumberOfExponentials + 2] = historic_integrands[2];
+                if (int(historic_integrands.size()) >= 3 * mNumberOfQuadratureStepsInWindow){
+                    vector<double>& hinsberg_tail_contributions = node.GetValue(HINSBERG_TAIL_CONTRIBUTIONS);
+                    hinsberg_tail_contributions.resize(3 * mNumberOfExponentials + 3); // in case there is an inlet and new particles with empty vectors come about
+                    hinsberg_tail_contributions[3 * mNumberOfExponentials]     = historic_integrands[0];
+                    hinsberg_tail_contributions[3 * mNumberOfExponentials + 1] = historic_integrands[1];
+                    hinsberg_tail_contributions[3 * mNumberOfExponentials + 2] = historic_integrands[2];
+                }
             }
         }
     }
 
     for (ElementIterator iparticle = r_model_part.ElementsBegin(); iparticle != r_model_part.ElementsEnd(); iparticle++){
         Node<3>& node = iparticle->GetGeometry()[0];
-        vector<double>& historic_integrands             = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
-        const array_1d<double, 3>& fluid_vel_projected  = node.FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
-        const array_1d<double, 3>& particle_vel         = node.FastGetSolutionStepValue(VELOCITY);
-        array_1d<double, 3> slip_vel;
-        noalias(slip_vel)                               = fluid_vel_projected - particle_vel;
-        int n = historic_integrands.size();
+        if (node.IsNot(BLOCKED)){
+            vector<double>& historic_integrands             = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
+            const array_1d<double, 3>& fluid_vel_projected  = node.FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
+            const array_1d<double, 3>& particle_vel         = node.FastGetSolutionStepValue(VELOCITY);
+            array_1d<double, 3> slip_vel;
+            noalias(slip_vel)                               = fluid_vel_projected - particle_vel;
+            int n = historic_integrands.size();
 
-        if (n < 3 * mNumberOfQuadratureStepsInWindow){ // list of integrands still growing
-            historic_integrands.resize(n + 3);
-            historic_integrands.insert_element(n,     slip_vel[0]);
-            historic_integrands.insert_element(n + 1, slip_vel[1]);
-            historic_integrands.insert_element(n + 2, 0.0);
-        }
-
-        else { // forget oldest integrand
-            for (int i = 0; i < n / 3 - 1; i++){
-                historic_integrands[3 * i]     = historic_integrands[3 * (i + 1)];
-                historic_integrands[3 * i + 1] = historic_integrands[3 * (i + 1) + 1];
-                historic_integrands[3 * i + 2] = historic_integrands[3 * (i + 1) + 2];
+            if (n < 3 * mNumberOfQuadratureStepsInWindow){ // list of integrands still growing
+                historic_integrands.resize(n + 3);
+                historic_integrands.insert_element(n,     slip_vel[0]);
+                historic_integrands.insert_element(n + 1, slip_vel[1]);
+                historic_integrands.insert_element(n + 2, slip_vel[2]);
             }
 
-            historic_integrands.insert_element(n - 3, slip_vel[0]);
-            historic_integrands.insert_element(n - 2, slip_vel[1]);
-            historic_integrands.insert_element(n - 1, 0.0);
+            else { // forget oldest integrand
+                for (int i = 0; i < n / 3 - 1; i++){
+                    historic_integrands[3 * i]     = historic_integrands[3 * (i + 1)];
+                    historic_integrands[3 * i + 1] = historic_integrands[3 * (i + 1) + 1];
+                    historic_integrands[3 * i + 2] = historic_integrands[3 * (i + 1) + 2];
+                }
+
+                historic_integrands.insert_element(n - 3, slip_vel[0]);
+                historic_integrands.insert_element(n - 2, slip_vel[1]);
+                historic_integrands.insert_element(n - 1, slip_vel[2]);
+            }
         }
     }
 }
