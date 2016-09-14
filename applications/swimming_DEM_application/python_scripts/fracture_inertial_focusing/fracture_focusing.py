@@ -78,6 +78,7 @@ pp.CFD_DEM = DEM_parameters
 pp.CFD_DEM.recover_gradient_option = True
 #pp.CFD_DEM.print_PRESSURE_GRADIENT_option = True
 DEM_parameters.fluid_domain_volume = 0.04 * math.pi # write down the volume you know it has
+pp.CFD_DEM.do_search_neighbours = 0
 pp.CFD_DEM.faxen_terms_type = 0
 pp.CFD_DEM.material_acceleration_calculation_type = 0
 pp.CFD_DEM.faxen_force_type = 0
