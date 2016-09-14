@@ -282,7 +282,6 @@ void InterpolateVelocity(
     KRATOS_TRY
 
     // setting interpolated variables to their default values
-    ResetDEMVariables(r_dem_model_part);
 
     array_1d<double, TDim + 1> N;
     const int max_results = 10000;
@@ -295,6 +294,7 @@ void InterpolateVelocity(
 
         if (p_particle->IsNot(BLOCKED)){
             Element::Pointer p_element;
+            ClearVariable(i_particle, SLIP_VELOCITY);
 
             // looking for the fluid element in which the DEM node falls
             bool is_found = bin_of_objects_fluid.FindPointOnMesh(p_particle->Coordinates(), N, p_element, results.begin(), max_results);
