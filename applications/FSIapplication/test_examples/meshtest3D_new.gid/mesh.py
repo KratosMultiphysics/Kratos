@@ -93,7 +93,7 @@ for node in origin_model_part.GetSubModelPart("Structure_interface").Nodes:
     node.SetSolutionStepValue(VELOCITY_X, 0, 1.0)
     node.SetSolutionStepValue(VELOCITY_Y, 0, 2.0)
     node.SetSolutionStepValue(VELOCITY_Z, 0, 3.0)
-    node.SetSolutionStepValue(IS_INTERFACE, 0, 1.0)
+    node.Set(INTERFACE)
 print("***** Origin mesh data assigned to nodes *****")
 
 for node in destination_model_part.GetSubModelPart("Fluid_interface").Nodes:
@@ -101,7 +101,7 @@ for node in destination_model_part.GetSubModelPart("Fluid_interface").Nodes:
     node.SetSolutionStepValue(FORCE_X, 0, 5.0)
     node.SetSolutionStepValue(FORCE_Y, 0, 6.0)
     node.SetSolutionStepValue(FORCE_Z, 0, 7.0)
-    node.SetSolutionStepValue(IS_INTERFACE, 0, 1.0)
+    node.Set(INTERFACE)
 print("***** Destination mesh data assigned to nodes *****")
 
 # Print original mesh
@@ -112,7 +112,6 @@ gid_io.FinalizeMesh()
 gid_io.InitializeResults(0, origin_model_part.GetMesh())
 gid_io.WriteNodalResults(PRESSURE, origin_model_part.Nodes, 0, 0)
 gid_io.WriteNodalResults(VELOCITY, origin_model_part.Nodes, 0, 0)
-gid_io.WriteNodalResults(IS_INTERFACE, origin_model_part.Nodes, 0, 0)
 gid_io.FinalizeResults()
 
 print(destination_model_part)
@@ -151,7 +150,6 @@ gid_io.WriteNodalResults(FORCE, destination_model_part.Nodes, 0, 0)
 gid_io.WriteNodalResults(VAUX_EQ_TRACTION, destination_model_part.Nodes, 0, 0)
 gid_io.WriteNodalResults(NODAL_MAUX, destination_model_part.Nodes, 0, 0)
 gid_io.WriteNodalResults(VELOCITY, destination_model_part.Nodes, 0, 0)
-gid_io.WriteNodalResults(IS_INTERFACE, destination_model_part.Nodes, 0, 0)
 gid_io.FinalizeResults()
 
 # Print (check) origin mesh (note that PRESSURE is mapped from the destiny mesh to the origin one)
@@ -165,7 +163,6 @@ gid_io.WriteNodalResults(POINT_LOAD, origin_model_part.Nodes, 0, 0)
 gid_io.WriteNodalResults(VAUX_EQ_TRACTION, origin_model_part.Nodes, 0, 0)
 gid_io.WriteNodalResults(NODAL_MAUX, origin_model_part.Nodes, 0, 0)
 gid_io.WriteNodalResults(VELOCITY, origin_model_part.Nodes, 0, 0)
-gid_io.WriteNodalResults(IS_INTERFACE, origin_model_part.Nodes, 0, 0)
 gid_io.FinalizeResults()
 
 # Interface fluxes equilibrium assessment
