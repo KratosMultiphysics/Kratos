@@ -86,7 +86,8 @@ namespace Kratos {
                 typename ParticleCreatorDestructor::Pointer p_creator_destructor,
                 typename DEM_FEM_Search::Pointer p_dem_fem_search,
                 typename DEMIntegrationScheme::Pointer pScheme,
-                typename SpatialSearch::Pointer pSpSearch):
+                typename SpatialSearch::Pointer pSpSearch,
+                const bool do_search_balls = true):
                 ExplicitSolverStrategy(settings,
                                        max_delta_time,
                                        n_step_search,
@@ -95,7 +96,8 @@ namespace Kratos {
                                        p_creator_destructor,
                                        p_dem_fem_search,
                                        pScheme,
-                                       pSpSearch)
+                                       pSpSearch,
+                                       do_search_balls)
         {
             mFirstStep = true;
             ExplicitSolverStrategy::GetParticleCreatorDestructor() = p_creator_destructor;
