@@ -57,13 +57,49 @@ namespace Kratos
 ///@{
 class Parameters
 {
+private:
+	///@name Nested clases
+	///@{
+	class iterator_adaptor : public std::iterator<std::forward_iterator_tag, Parameters>
+	{
+    using value_iterator = rapidjson::Value::MemberIterator;
+		value_iterator mValueIterator;
+    std::unique_ptr<Parameters> mpParameters;
+	public:
+		iterator_adaptor(value_iterator it, boost::shared_ptr<rapidjson::Document> pdoc) :mValueIterator(it), mpParameters(new Parameters(&it->value, pdoc)) {}
+		iterator_adaptor(const iterator_adaptor& it) : mValueIterator(it.mValueIterator), mpParameters(new Parameters(*(it.mpParameters))) {}
+		iterator_adaptor& operator++() { mValueIterator++; return *this; }
+		iterator_adaptor operator++(int) { iterator_adaptor tmp(*this); operator++(); return tmp; }
+		bool operator==(const iterator_adaptor& rhs) const { return mValueIterator == rhs.mValueIterator; }
+		bool operator!=(const iterator_adaptor& rhs) const { return mValueIterator != rhs.mValueIterator; }
+		Parameters& operator*() const { mpParameters->SetUnderlyingSotrage(&mValueIterator->value); return *mpParameters; }
+		Parameters* operator->() const { mpParameters->SetUnderlyingSotrage(&mValueIterator->value); return mpParameters.get(); }
+		value_iterator& base() { return mValueIterator; }
+		value_iterator const& base() const { return mValueIterator; }
+    std::string name() {return mValueIterator->name.GetString();}
+	};
+
+	// class const_iterator_adaptor : public std::iterator<std::forward_iterator_tag, data_type>
+	// {
+	// 	ptr_const_iterator map_iterator;
+	// public:
+	// 	const_iterator_adaptor(ptr_const_iterator it) :map_iterator(it) {}
+	// 	const_iterator_adaptor(const const_iterator_adaptor& it) : map_iterator(it.map_iterator) {}
+	// 	const_iterator_adaptor& operator++() { map_iterator++; return *this; }
+	// 	const_iterator_adaptor operator++(int) { const_iterator_adaptor tmp(*this); operator++(); return tmp; }
+	// 	bool operator==(const const_iterator_adaptor& rhs) const { return map_iterator == rhs.map_iterator; }
+	// 	bool operator!=(const const_iterator_adaptor& rhs) const { return map_iterator != rhs.map_iterator; }
+	// 	data_type const& operator*() const { return *(map_iterator->second); }
+	// 	data_type* operator->() const { return map_iterator->second; }
+	// 	ptr_const_iterator& base() { return map_iterator; }
+	// 	ptr_const_iterator const& base() const { return map_iterator; }
+	// };
+  ///@}
+
 public:
     KRATOS_CLASS_POINTER_DEFINITION(Parameters);
 
-    //ATTENTION: please DO NOT use this constructor. It assumes rapidjson and hence it should be considered as an implementation detail
-    Parameters(rapidjson::Value* pvalue, boost::shared_ptr<rapidjson::Document> pdoc): mpvalue(pvalue),mpdoc(pdoc)
-    {
-    }
+    using iterator = iterator_adaptor;
 
     Parameters(const std::string json_string)
     {
@@ -185,7 +221,6 @@ public:
         return mpvalue->HasMember(entry.c_str());
     }
 
-
     bool IsNumber()
     {
         return mpvalue->IsNumber();
@@ -214,6 +249,7 @@ public:
     {
         return mpvalue->IsObject();
     }
+
     double GetDouble()
     {
         if(mpvalue->IsNumber() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a number","");
@@ -260,6 +296,10 @@ public:
     }
 
 
+    iterator begin() { return iterator(this->mpvalue->MemberBegin(), mpdoc);}
+
+    iterator end() { return iterator(this->mpvalue->MemberEnd(), mpdoc);}
+
     //*******************************************************************************************************
     //methods for array
     unsigned int size()
@@ -303,10 +343,10 @@ public:
 
     /**This function is designed to verify that the parameters under testing match the
      * form prescribed by the defaults.
-     * If the parameters contain values that do not appear in the defaults, an error is thrown, 
+     * If the parameters contain values that do not appear in the defaults, an error is thrown,
      * whereas if a parameter is found in the defaults but not in the Parameters been tested,
      * it is copied to the parameters.
-     * 
+     *
      * this version of the function only walks one level, without descending in the branches
      */
     void ValidateAndAssignDefaults(Parameters& defaults)
@@ -382,11 +422,11 @@ public:
 
     /**This function is designed to verify that the parameters under testing match the
      * form prescribed by the defaults.
-     * If the parameters contain values that do not appear in the defaults, an error is thrown, 
+     * If the parameters contain values that do not appear in the defaults, an error is thrown,
      * whereas if a parameter is found in the defaults but not in the Parameters been tested,
      * it is copied to the parameters.
-     * 
-     * this version walks and validates the entire json tree below 
+     *
+     * this version walks and validates the entire json tree below
      * the point at which the function is called
     */
     void RecursivelyValidateAndAssignDefaults(Parameters& defaults)
@@ -496,12 +536,6 @@ public:
 
 
 
-    //ATTENTION: please DO NOT use this method. It is a low level accessor, and may change in the future
-    rapidjson::Value* GetUnderlyingStorage() const
-    {
-        return mpvalue;
-    }
-
     /// Turn back information as a string.
     virtual std::string Info() const
     {
@@ -518,8 +552,23 @@ public:
     virtual void PrintData(std::ostream& rOStream) const {};
 
 private:
+  //ATTENTION: please DO NOT use this constructor. It assumes rapidjson and hence it should be considered as an implementation detail
+  Parameters(rapidjson::Value* pvalue, boost::shared_ptr<rapidjson::Document> pdoc): mpvalue(pvalue),mpdoc(pdoc)
+  {
+  }
+
     rapidjson::Value* mpvalue;
     boost::shared_ptr<rapidjson::Document> mpdoc;
+
+    //ATTENTION: please DO NOT use this method. It is a low level accessor, and may change in the future
+    rapidjson::Value* GetUnderlyingStorage() const
+    {
+        return mpvalue;
+    }
+
+    void SetUnderlyingSotrage(rapidjson::Value* pNewValue){
+      mpvalue = pNewValue;
+    }
 
     void InternalSetValue(const Parameters& other_value)
     {
