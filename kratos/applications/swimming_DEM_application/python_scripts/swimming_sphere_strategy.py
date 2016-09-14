@@ -12,23 +12,28 @@ class SwimmingStrategy(BaseStrategy):
         BaseStrategy.Initialize(self)
         BaseStrategy.SetVariablesAndOptions(self)
 
-        if (self.Parameters.IntegrationScheme == 'Verlet_Velocity'):
-            self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
-                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                              self.time_integration_scheme, self.search_strategy)
-            
-        elif (self.Parameters.IntegrationScheme == 'Hybrid_Bashforth'):
-            self.cplusplus_strategy = AdamsBashforthStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
-                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                              self.time_integration_scheme, self.search_strategy)
-        else:
-            self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
-                                                             self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                             self.time_integration_scheme, self.search_strategy)
-
         self.CheckMomentumConservation()
 
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy (C++) Initialize function (initializes all elements and performs other necessary tasks before starting the time loop in Python)
 
     def CreateCPlusPlusStrategy(self):
-         BaseStrategy.CreateCPlusPlusStrategy(self)
+        self.SetVariablesAndOptions()
+        print('self.Parameters.IntegrationScheme',self.Parameters.IntegrationScheme)
+        print('self.Parameters.do_search_neighbours',self.Parameters.do_search_neighbours)
+
+        if (self.Parameters.IntegrationScheme == 'Verlet_Velocity'):
+            self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
+                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
+                                                              self.time_integration_scheme, self.search_strategy, self.Parameters.do_search_neighbours)
+
+        elif (self.Parameters.IntegrationScheme == 'Hybrid_Bashforth'):
+            self.cplusplus_strategy = AdamsBashforthStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
+                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
+                                                              self.time_integration_scheme, self.search_strategy, self.Parameters.do_search_neighbours)
+
+        else:
+            self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
+                                                             self.delta_option, self.creator_destructor, self.dem_fem_search,
+                                                             self.time_integration_scheme, self.search_strategy, self.Parameters.do_search_neighbours)
+
+
