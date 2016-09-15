@@ -137,7 +137,7 @@ namespace Kratos
 
           class_< IterativeSolverStrategy, bases< ExplicitSolverStrategy >,  boost::noncopyable>
           (
-          "IterativeSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
+          "IterativeSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer, const bool>())
 
           ;
 
