@@ -266,7 +266,7 @@ class FracturePropagationUtility:
         # delete auxiliary model_part
         del main_model_part_old
         
-        # Check new mesh (TODO: do something with the bool?)
+        # Check new mesh (TODO: create a new method that can be called from python to update the loads in the arc-length strategy)
         IsConverged = solver._CheckConvergence()
         
         return main_model_part,solver,list_of_processes,gid_output
