@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <NodalConditionList>
   <NodalConditionItem n="VELOCITY" pn="Velocity" ProcessName="ApplyConstantVectorValueProcess" VariableName="VELOCITY" Interval="Initial"
-					  ov="" unit_magnitude="Velocity" units="m/s" App="Fluid" ImplementedInApplication="FluidDynamicsApplication">
+					  unit_magnitude="Velocity" units="m/s" App="Fluid" ImplementedInApplication="FluidDynamicsApplication">
     <DefaultValues>
 	  <value n="factor" pn="Modulus" v="1.0" />
 	  <value n="direction" v="0.0,0.0,0.0" />
     </DefaultValues>
   </NodalConditionItem>
   <NodalConditionItem n="PRESSURE" pn="Pressure" ProcessName="ApplyConstantScalarValueProcess" VariableName="PRESSURE" Interval="Initial"
-					  ov="" unit_magnitude="P" units="Pa" App="Fluid" ImplementedInApplication="FluidDynamicsApplication">
+					  unit_magnitude="P" units="Pa" App="Fluid" ImplementedInApplication="FluidDynamicsApplication">
   </NodalConditionItem>
 </NodalConditionList>
