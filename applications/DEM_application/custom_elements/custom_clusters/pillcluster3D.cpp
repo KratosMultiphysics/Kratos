@@ -4,12 +4,11 @@
 //   Date:                $Date: 2006-11-27 16:07:33 $
 //   Revision:            $Revision: 1.1.1.1 $
 //
-//
-
 
 // System includes
 #include <string>
 #include <iostream>
+#include <stdlib.h>
 
 // External includes
 
@@ -19,11 +18,12 @@
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "DEM_application_variables.h"
 #include "includes/kratos_flags.h"
+#include "includes/variables.h"
+#include "custom_elements/spheric_continuum_particle.h"
 
 namespace Kratos {
-        
-    // using namespace GeometryFunctions;
 
+    
     PillCluster3D::PillCluster3D() : Cluster3D() {}
             
       
@@ -125,7 +125,7 @@ namespace Kratos {
         
         //double particle_density = this->SlowGetDensity(); /////////////////////////////USE FAST
          
-        //double cluster_volume = KRATOS_M_PI * 0.5 * 0.5 * cl * cl * 2.0 * 0.1 * cl; ////APPROXIMATE VOLUME, CALCULATE MORE EXACTLY
+        double cluster_volume = KRATOS_M_PI * 0.5 * 0.5 * cl * cl * 2.0 * 0.1 * cl; ////APPROXIMATE VOLUME, CALCULATE MORE EXACTLY
         
         //double cluster_mass = particle_density * cluster_volume;
         
@@ -136,7 +136,27 @@ namespace Kratos {
         base_principal_moments_of_inertia[0] = 0.25 * cluster_mass * 0.5 * 0.5 * cl * cl;
         base_principal_moments_of_inertia[1] = 0.25 * cluster_mass * 0.5 * 0.5 * cl * cl;
         base_principal_moments_of_inertia[2] = 0.50 * cluster_mass * 0.5 * 0.5 * cl * cl;
-         
+        
+        GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = cluster_mass;
+        GetGeometry()[0].FastGetSolutionStepValue(CLUSTER_VOLUME) = cluster_volume;
+        GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MATERIAL) = this->SlowGetParticleMaterial();
+        
+        const array_1d<double, 3>& EulerAngles = GetGeometry()[0].FastGetSolutionStepValue(EULER_ANGLES);
+        Quaternion<double>& Orientation = GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION);
+        Orientation = Quaternion<double>::FromEulerAngles(EulerAngles);
+        array_1d<double, 3> angular_velocity = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+        
+        array_1d<double, 3> angular_momentum;
+        double LocalTensor[3][3];
+        double GlobalTensor[3][3];
+        GeometryFunctions::ConstructLocalTensor(base_principal_moments_of_inertia, LocalTensor);
+        GeometryFunctions::QuaternionTensorLocal2Global(Orientation, LocalTensor, GlobalTensor);                   
+        GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensor, angular_velocity, angular_momentum);
+        noalias(this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_MOMENTUM)) = angular_momentum;
+        
+        array_1d<double, 3> local_angular_velocity;
+        GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
+        noalias(this->GetGeometry()[0].FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY)) = local_angular_velocity;
     }     
     
       
@@ -203,6 +223,7 @@ namespace Kratos {
     void PillCluster3D::Calculate(const Variable<Vector>& rVariable, Vector& Output, const ProcessInfo& r_process_info){}
     void PillCluster3D::Calculate(const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& r_process_info){}
     double PillCluster3D::SlowGetDensity()                                        { return GetProperties()[PARTICLE_DENSITY];}
+    int PillCluster3D::SlowGetParticleMaterial()                                  { return GetProperties()[PARTICLE_MATERIAL];}
 
 }  // namespace Kratos.
 

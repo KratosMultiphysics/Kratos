@@ -194,7 +194,8 @@ namespace Kratos
                 Matrix& Output,
                 const ProcessInfo& r_process_info);
    
-        double SlowGetDensity();    
+        double SlowGetDensity();
+        int SlowGetParticleMaterial();
 
 
       ///@}

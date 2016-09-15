@@ -195,7 +195,7 @@ namespace Kratos
                 const ProcessInfo& r_process_info);
    
         double SlowGetDensity();    
-
+        int SlowGetParticleMaterial();
 
       ///@}
       ///@name Access
