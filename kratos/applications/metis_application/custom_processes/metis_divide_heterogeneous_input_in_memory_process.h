@@ -164,7 +164,7 @@ public:
         idxtype* NodeIndices = 0;
         idxtype* NodeConnectivities = 0;
         
-        ConvertKratosToCSRFormat(KratosFormatNodeConnectivities, NodeIndices, NodeConnectivities); 
+        ConvertKratosToCSRFormat(KratosFormatNodeConnectivities, &NodeIndices, &NodeConnectivities); 
         
         std::vector<idxtype> NodePartition;
         PartitionNodes(NumNodes,NodeIndices,NodeConnectivities,NodePartition);

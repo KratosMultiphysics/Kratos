@@ -497,9 +497,12 @@ protected:
     }
 
     void ConvertKratosToCSRFormat(IO::ConnectivitiesContainerType& KratosFormatNodeConnectivities, 
-                                    idxtype* NodeIndices, 
-                                    idxtype* NodeConnectivities)
+                                    idxtype** NodeIndices, 
+                                    idxtype** NodeConnectivities)
     {
+        idxtype*& rNodeIndices = *NodeIndices;
+        idxtype*& rNodeConnectivities = *NodeConnectivities;
+
         SizeType num_entries = 0;
         for (IO::ConnectivitiesContainerType::iterator it = KratosFormatNodeConnectivities.begin(); it != KratosFormatNodeConnectivities.end(); ++it)
         {
@@ -507,9 +510,9 @@ protected:
         }
         
         SizeType num_nodes = KratosFormatNodeConnectivities.size();
-        NodeIndices = new idxtype[num_nodes+1];
-        NodeIndices[0] = 0;
-        NodeConnectivities = new idxtype[num_entries];
+        rNodeIndices = new idxtype[num_nodes+1];
+        rNodeIndices[0] = 0;
+        rNodeConnectivities = new idxtype[num_entries];
 
         SizeType i = 0;
         SizeType aux_index = 0;
@@ -517,8 +520,8 @@ protected:
         for (IO::ConnectivitiesContainerType::iterator it = KratosFormatNodeConnectivities.begin(); it != KratosFormatNodeConnectivities.end(); ++it)
         {
             for (std::vector<SizeType>::iterator entry_it = it->begin(); entry_it != it->end(); entry_it++)
-                NodeConnectivities[aux_index++] = (*entry_it - 1); // substract 1 to make Ids start from 0
-            NodeIndices[++i] = aux_index;
+                rNodeConnectivities[aux_index++] = (*entry_it - 1); // substract 1 to make Ids start from 0
+            rNodeIndices[++i] = aux_index;
         }                
         
     }
