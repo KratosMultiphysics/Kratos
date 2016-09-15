@@ -176,14 +176,14 @@ void RigidFace3D::CalculateElasticForces(VectorType& rElasticForces,
 void RigidFace3D::CalculateNormal(array_1d<double, 3>& rnormal){
 
     array_1d<double, 3> v1, v2;
+    Geometry<Node<3> >& geom = GetGeometry();
+    v1[0] = geom[1][0] - geom[0][0];
+    v1[1] = geom[1][1] - geom[0][1];
+    v1[2] = geom[1][2] - geom[0][2];
 
-    v1[0] = GetGeometry()[1].X() - GetGeometry()[0].X();
-    v1[1] = GetGeometry()[1].Y() - GetGeometry()[0].Y();
-    v1[2] = GetGeometry()[1].Z() - GetGeometry()[0].Z();
-
-    v2[0] = GetGeometry()[2].X() - GetGeometry()[0].X();
-    v2[1] = GetGeometry()[2].Y() - GetGeometry()[0].Y();
-    v2[2] = GetGeometry()[2].Z() - GetGeometry()[0].Z();
+    v2[0] = geom[2][0] - geom[0][0];
+    v2[1] = geom[2][1] - geom[0][1];
+    v2[2] = geom[2][2] - geom[0][2];
 
     MathUtils<double>::CrossProduct(rnormal, v1, v2);
 
