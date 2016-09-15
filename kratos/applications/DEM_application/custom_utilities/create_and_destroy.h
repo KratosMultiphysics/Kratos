@@ -27,7 +27,8 @@
 namespace Kratos {
         
 class ParticleCreatorDestructor {
-        
+friend class ExplicitSolverStrategy;
+
 public:
 
         static const std::size_t space_dim                  = 3; ///WARNING: generalize to 2d.
@@ -175,6 +176,8 @@ protected:
 
 private:
 
+    void SetDoSearchNeighbourElements(bool true_or_false){mDoSearchNeighbourElements = true_or_false;}
+
     array_1d<double, 3 > mHighPoint;
     array_1d<double, 3 > mLowPoint;
     array_1d<double, 3 > mStrictHighPoint;
@@ -183,7 +186,7 @@ private:
     double mStrictDiameter;
     double mScaleFactor;
     int mGreatestParticleId;
-
+    bool mDoSearchNeighbourElements;
     void Clear(ModelPart::NodesContainerType::iterator node_it, int step_data_size);
     inline void ClearVariables(ModelPart::NodesContainerType::iterator node_it, Variable<array_1d<double, 3 > >& rVariable);
     inline void ClearVariables(ParticleIterator particle_it, Variable<double>& rVariable);

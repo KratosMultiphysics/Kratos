@@ -27,6 +27,7 @@ namespace Kratos {
     /// Destructor.
 
     ParticleCreatorDestructor::~ParticleCreatorDestructor() {
+        mDoSearchNeighbourElements = true; // true by default. It should be set to false by the strategy (friend class) if appropriate
     }
 
     int ParticleCreatorDestructor::FindMaxNodeIdInModelPart(ModelPart& r_modelpart) {
@@ -391,12 +392,15 @@ namespace Kratos {
         else {
             array_1d<double, 3 > zero_vector(3, 0.0);
             SphericParticle* injector_spheric_particle = dynamic_cast<SphericParticle*> (injector_element.get());
-            injector_spheric_particle->mNeighbourElements.push_back(spheric_p_particle);
-            injector_spheric_particle->mNeighbourElasticContactForces.push_back(zero_vector);
-            injector_spheric_particle->mNeighbourTotalContactForces.push_back(zero_vector);
-            spheric_p_particle->mNeighbourElements.push_back(injector_spheric_particle);
-            spheric_p_particle->mNeighbourElasticContactForces.push_back(zero_vector);
-            spheric_p_particle->mNeighbourTotalContactForces.push_back(zero_vector);
+
+            if (mDoSearchNeighbourElements){ // there is no risk of contact so there is no need to track overlap
+                injector_spheric_particle->mNeighbourElements.push_back(spheric_p_particle);
+                injector_spheric_particle->mNeighbourElasticContactForces.push_back(zero_vector);
+                injector_spheric_particle->mNeighbourTotalContactForces.push_back(zero_vector);
+                spheric_p_particle->mNeighbourElements.push_back(injector_spheric_particle);
+                spheric_p_particle->mNeighbourElasticContactForces.push_back(zero_vector);
+                spheric_p_particle->mNeighbourTotalContactForces.push_back(zero_vector);
+            }
         }
 
         p_particle->Set(NEW_ENTITY);
@@ -651,12 +655,16 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         
         for (unsigned int i=0; i<p_cluster->GetNumberOfSpheres(); i++) { 
             SphericParticle* spheric_p_particle = p_cluster->GetSpheres()[i];
-            injector_spheric_particle->mNeighbourElements.push_back(spheric_p_particle);
-            injector_spheric_particle->mNeighbourElasticContactForces.push_back(zero_vector);
-            injector_spheric_particle->mNeighbourTotalContactForces.push_back(zero_vector);
-            spheric_p_particle->mNeighbourElements.push_back(injector_spheric_particle);
-            spheric_p_particle->mNeighbourElasticContactForces.push_back(zero_vector);
-            spheric_p_particle->mNeighbourTotalContactForces.push_back(zero_vector);
+
+            if (mDoSearchNeighbourElements){ // there is no risk of contact so there is no need to track overlap
+                injector_spheric_particle->mNeighbourElements.push_back(spheric_p_particle);
+                injector_spheric_particle->mNeighbourElasticContactForces.push_back(zero_vector);
+                injector_spheric_particle->mNeighbourTotalContactForces.push_back(zero_vector);
+                spheric_p_particle->mNeighbourElements.push_back(injector_spheric_particle);
+                spheric_p_particle->mNeighbourElasticContactForces.push_back(zero_vector);
+                spheric_p_particle->mNeighbourTotalContactForces.push_back(zero_vector);
+            }
+
             spheric_p_particle->Set(NEW_ENTITY);
             spheric_p_particle->GetGeometry()[0].Set(NEW_ENTITY);
             spheric_p_particle->SetFastProperties(p_fast_properties);
