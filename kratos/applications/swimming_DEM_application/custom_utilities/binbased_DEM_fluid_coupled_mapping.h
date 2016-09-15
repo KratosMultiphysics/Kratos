@@ -1120,7 +1120,8 @@ void Project(Element::Pointer p_elem,
     }
 
     else if (*r_destination_variable == FLUID_ACCEL_PROJECTED){
-        InterpolateAcceleration(p_elem, N, p_node, FLUID_ACCEL_PROJECTED);
+        //InterpolateAcceleration(p_elem, N, p_node, FLUID_ACCEL_PROJECTED);
+        Interpolate(p_elem, N, p_node, MATERIAL_ACCELERATION, FLUID_ACCEL_PROJECTED);
     }
 
     else if (*r_destination_variable == MATERIAL_FLUID_ACCEL_PROJECTED){
@@ -1967,7 +1968,7 @@ void FillVectorOfSwimmingSpheres(ModelPart& r_dem_model_part){
 //***************************************************************************************************************
 
 double inline CalculateDistance(Node<3>::Pointer a, SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>* b){
-    array_1d<double, 3> coor_a = a->Coordinates();   
+    array_1d<double, 3> coor_a = a->Coordinates();
     array_1d<double, 3> coor_b = b->GetGeometry()[0].Coordinates();
     return sqrt((coor_a[0] - coor_b[0]) * (coor_a[0] - coor_b[0]) + (coor_a[1] - coor_b[1]) * (coor_a[1] - coor_b[1]) + (coor_a[2] - coor_b[2]) * (coor_a[2] - coor_b[2]));
 }
