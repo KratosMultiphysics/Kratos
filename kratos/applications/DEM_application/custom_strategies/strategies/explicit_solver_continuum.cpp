@@ -618,7 +618,13 @@ namespace Kratos {
         
         DestroyMarkedParticlesRebuildLists();
 
-        std::cout << "Mesh repair complete. In MPI node " <<GetModelPart().GetCommunicator().MyPID()<<". "<< particle_counter << " particles were removed. " << "\n" << std::endl;
+        //std::cout << "Mesh repair complete. In MPI node " <<GetModelPart().GetCommunicator().MyPID()<<". "<< particle_counter << " particles were removed. " << "\n" << std::endl;
+        double total_spheres_removed = particle_counter;
+        GetModelPart().GetCommunicator().SumAll(total_spheres_removed);
+        
+        if(GetModelPart().GetCommunicator().MyPID() == 0) {
+            std::cout << "A total of "<<total_spheres_removed<<" spheres were removed due to excessive overlapping." << std::endl;
+        } 
 
         KRATOS_CATCH("")
     }
