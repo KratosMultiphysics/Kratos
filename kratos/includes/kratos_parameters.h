@@ -60,7 +60,7 @@ class Parameters
 private:
 	///@name Nested clases
 	///@{
-	class iterator_adaptor : public std::iterator<std::forward_iterator_tag, Parameters>
+  class iterator_adaptor : public std::iterator<std::forward_iterator_tag, Parameters>
 	{
     using value_iterator = rapidjson::Value::MemberIterator;
 		value_iterator mValueIterator;
@@ -79,27 +79,32 @@ private:
     std::string name() {return mValueIterator->name.GetString();}
 	};
 
-	// class const_iterator_adaptor : public std::iterator<std::forward_iterator_tag, data_type>
-	// {
-	// 	ptr_const_iterator map_iterator;
-	// public:
-	// 	const_iterator_adaptor(ptr_const_iterator it) :map_iterator(it) {}
-	// 	const_iterator_adaptor(const const_iterator_adaptor& it) : map_iterator(it.map_iterator) {}
-	// 	const_iterator_adaptor& operator++() { map_iterator++; return *this; }
-	// 	const_iterator_adaptor operator++(int) { const_iterator_adaptor tmp(*this); operator++(); return tmp; }
-	// 	bool operator==(const const_iterator_adaptor& rhs) const { return map_iterator == rhs.map_iterator; }
-	// 	bool operator!=(const const_iterator_adaptor& rhs) const { return map_iterator != rhs.map_iterator; }
-	// 	data_type const& operator*() const { return *(map_iterator->second); }
-	// 	data_type* operator->() const { return map_iterator->second; }
-	// 	ptr_const_iterator& base() { return map_iterator; }
-	// 	ptr_const_iterator const& base() const { return map_iterator; }
-	// };
-  ///@}
+  class const_iterator_adaptor : public std::iterator<std::forward_iterator_tag, Parameters>
+	{
+    using value_iterator = rapidjson::Value::ConstMemberIterator;
+		value_iterator mValueIterator;
+    std::unique_ptr<Parameters> mpParameters;
+	public:
+		const_iterator_adaptor(value_iterator it, boost::shared_ptr<rapidjson::Document> pdoc) :mValueIterator(it), mpParameters(new Parameters(const_cast<rapidjson::Value*>(&it->value), pdoc)) {}
+		const_iterator_adaptor(const const_iterator_adaptor& it) : mValueIterator(it.mValueIterator), mpParameters(new Parameters(*(it.mpParameters))) {}
+		const_iterator_adaptor& operator++() { mValueIterator++; return *this; }
+		const_iterator_adaptor operator++(int) { const_iterator_adaptor tmp(*this); operator++(); return tmp; }
+		bool operator==(const const_iterator_adaptor& rhs) const { return mValueIterator == rhs.mValueIterator; }
+		bool operator!=(const const_iterator_adaptor& rhs) const { return mValueIterator != rhs.mValueIterator; }
+		const Parameters& operator*() const { mpParameters->SetUnderlyingSotrage(const_cast<rapidjson::Value*>(&mValueIterator->value)); return *mpParameters; }
+		const Parameters* operator->() const { mpParameters->SetUnderlyingSotrage(const_cast<rapidjson::Value*>(&mValueIterator->value)); return mpParameters.get(); }
+		value_iterator& base() { return mValueIterator; }
+		value_iterator const& base() const { return mValueIterator; }
+    std::string name() {return mValueIterator->name.GetString();}
+	};
+
+	  ///@}
 
 public:
     KRATOS_CLASS_POINTER_DEFINITION(Parameters);
 
     using iterator = iterator_adaptor;
+    using const_iterator = const_iterator_adaptor;
 
     Parameters(const std::string json_string)
     {
@@ -216,51 +221,51 @@ public:
 
 
     //*******************************************************************************************************
-    bool Has(const std::string entry)
+    bool Has(const std::string entry) const
     {
         return mpvalue->HasMember(entry.c_str());
     }
 
-    bool IsNumber()
+    bool IsNumber() const
     {
         return mpvalue->IsNumber();
     }
-    bool IsDouble()
+    bool IsDouble() const
     {
         return mpvalue->IsDouble();
     }
-    bool IsInt()
+    bool IsInt() const
     {
         return mpvalue->IsInt();
     }
-    bool IsBool()
+    bool IsBool() const
     {
         return mpvalue->IsBool();
     }
-    bool IsString()
+    bool IsString() const
     {
         return mpvalue->IsString();
     }
-    bool IsArray()
+    bool IsArray() const
     {
         return mpvalue->IsArray();
     }
-    bool IsSubParameter()
+    bool IsSubParameter() const
     {
         return mpvalue->IsObject();
     }
 
-    double GetDouble()
+    double GetDouble() const
     {
         if(mpvalue->IsNumber() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a number","");
         return mpvalue->GetDouble();
     }
-    int GetInt()
+    int GetInt() const
     {
         if(mpvalue->IsNumber() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a number","");
         return mpvalue->GetInt();
     }
-    bool GetBool()
+    bool GetBool() const
     {
 		if (mpvalue->IsBool() == false)
 		{
@@ -269,7 +274,7 @@ public:
 		}
         return mpvalue->GetBool();
     }
-    std::string GetString()
+    std::string GetString() const
     {
         if(mpvalue->IsString() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a string","");
         return mpvalue->GetString();
@@ -300,9 +305,13 @@ public:
 
     iterator end() { return iterator(this->mpvalue->MemberEnd(), mpdoc);}
 
+    const_iterator begin() const { return const_iterator(this->mpvalue->MemberBegin(), mpdoc);}
+
+    const_iterator end() const { return const_iterator(this->mpvalue->MemberEnd(), mpdoc);}
+
     //*******************************************************************************************************
     //methods for array
-    unsigned int size()
+    unsigned int size() const
     {
         if(mpvalue->IsArray() == false)
             KRATOS_THROW_ERROR(std::invalid_argument,"size can only be queried if the value if of Array type","");
@@ -513,7 +522,7 @@ public:
 
 	void RecursivelyFindValue(
 		const rapidjson::Value& rbase_value,
-		const rapidjson::Value& rvalue_to_find)
+		const rapidjson::Value& rvalue_to_find) const
 	{
 		for (rapidjson::Value::ConstMemberIterator itr = rbase_value.MemberBegin(); itr != rbase_value.MemberEnd(); ++itr)
 		{
