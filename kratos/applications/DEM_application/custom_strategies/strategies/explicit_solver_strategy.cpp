@@ -317,7 +317,6 @@ namespace Kratos {
         KRATOS_TRY
         // 3. Get and Calculate the forces
         CleanEnergies();
-
         GetForce(); // Basically only calls CalculateRightHandSide( )
 
         //FastGetForce();
@@ -389,6 +388,7 @@ namespace Kratos {
         double dt = r_process_info[DELTA_TIME];
         const array_1d<double, 3>& gravity = r_process_info[GRAVITY];
         const int number_of_particles = (int) mListOfSphericParticles.size();
+
 
         #pragma omp parallel
         {
@@ -815,7 +815,7 @@ namespace Kratos {
     void ExplicitSolverStrategy::SearchNeighbours() {
         KRATOS_TRY
 
-        if (! mDoSearchBalls){
+        if (! mDoSearchNeighbourElements){
             return;
         }
 
