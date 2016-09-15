@@ -152,31 +152,40 @@ public:
         ProcessInfo& CurrentProcessInfo
     )
     {
-        KRATOS_TRY
-        //Initializing the non linear iteration for the current element
-        (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
+    	KRATOS_TRY
+		//Initializing the non linear iteration for the current element
+		(rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
 
-        //basic operations for the element considered
-        (rCurrentElement)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+    	//basic operations for the element considered
+    	(rCurrentElement)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
-        //Determine the new Youngs Modulus based on the assigned new density (X_PHYS)
-        double E_min     = (rCurrentElement)->GetValue(E_MIN);
-        double E_initial = (rCurrentElement)->GetValue(E_0);
-        double E_current = (rCurrentElement)->GetValue(YOUNG_MODULUS);
-        double penalty   = (rCurrentElement)->GetValue(PENAL);
-        double x_phys    = (rCurrentElement)->GetValue(X_PHYS);
 
-        double E_new     = (E_min + pow(x_phys, penalty) * (E_initial - E_min));
+    	//Determine the new Youngs Modulus based on the assigned new density (X_PHYS)
+    	double E_min     = (rCurrentElement)->GetValue(E_MIN);
+    	double E_initial = (rCurrentElement)->GetValue(E_0);
+    	double E_current = (rCurrentElement)->GetValue(YOUNG_MODULUS);
+    	double penalty   = (rCurrentElement)->GetValue(PENAL);
+    	double x_phys    = (rCurrentElement)->GetValue(X_PHYS);
 
-        //Calculate the factor that needs to be multiplied on the RHS and LHS respectively
-        double factor    = (1/E_current)*E_new;
-        LHS_Contribution = LHS_Contribution * factor;
-        RHS_Contribution = RHS_Contribution * factor;
+    	double E_new     = (E_min + pow(x_phys, penalty) * (E_initial - E_min));
 
-        //Continuation of the basic operations
-        (rCurrentElement)->EquationIdVector(EquationId,CurrentProcessInfo);
+    	//Calculate the factor that needs to be multiplied on the RHS and LHS
+    	double factor    = (1/E_current)*E_new;
 
-        KRATOS_CATCH( "" )
+    	// Factorize LHS and RHS according SIMP approach
+
+    	LocalSystemVectorType u_init(RHS_Contribution.size());
+    	LocalSystemVectorType v(RHS_Contribution.size());
+    	(rCurrentElement)->GetValuesVector(u_init);
+    	v = prod(LHS_Contribution,u_init);
+
+    	LHS_Contribution *= factor;
+    	RHS_Contribution += v - factor*v;
+
+    	//Continuation of the basic operations
+    	(rCurrentElement)->EquationIdVector(EquationId,CurrentProcessInfo);
+
+    	KRATOS_CATCH( "" )
     }
 
     /*@} */
