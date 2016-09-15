@@ -77,10 +77,10 @@
         "Restart_Step":     0
     },
     "constraints_process_list": [{
-        "python_module":   "apply_constraint_vector_table_process",
+        "python_module": "apply_constraint_vector_table_process",
         "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
-        "process_name":          "ApplyConstraintVectorTableProcess",
-        "Parameters":            {
+        "process_name":  "ApplyConstraintVectorTableProcess",
+        "Parameters":    {
             "mesh_id":         0,
             "model_part_name": "Solid_Displacement-auto-2",
             "variable_name":   "DISPLACEMENT",
@@ -90,10 +90,10 @@
             "table":           [0,0,0]
         }
     },{
-        "python_module":   "apply_constraint_vector_table_process",
+        "python_module": "apply_constraint_vector_table_process",
         "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
-        "process_name":          "ApplyConstraintVectorTableProcess",
-        "Parameters":            {
+        "process_name":  "ApplyConstraintVectorTableProcess",
+        "Parameters":    {
             "mesh_id":         0,
             "model_part_name": "Solid_Displacement-auto-1",
             "variable_name":   "DISPLACEMENT",
@@ -103,10 +103,10 @@
             "table":           [0,0,0]
         }
     },{
-        "python_module":   "apply_pore_pressure_table_process",
+        "python_module": "apply_pore_pressure_table_process",
         "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
-        "process_name":          "ApplyPorePressureTableProcess",
-        "Parameters":            {
+        "process_name":  "ApplyPorePressureTableProcess",
+        "Parameters":    {
             "mesh_id":              0,
             "model_part_name":      "Fluid_Pressure-auto-2",
             "variable_name":        "WATER_PRESSURE",
@@ -119,10 +119,10 @@
             "specific_weight":      10000.0
         }
     },{
-        "python_module":   "apply_pore_pressure_table_process",
+        "python_module": "apply_pore_pressure_table_process",
         "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
-        "process_name":          "ApplyPorePressureTableProcess",
-        "Parameters":            {
+        "process_name":  "ApplyPorePressureTableProcess",
+        "Parameters":    {
             "mesh_id":              0,
             "model_part_name":      "Fluid_Pressure-auto-1",
             "variable_name":        "WATER_PRESSURE",
@@ -136,10 +136,10 @@
         }
     }],
     "loads_process_list": [{
-        "python_module":   "apply_load_vector_table_process",
+        "python_module": "apply_load_vector_table_process",
         "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
-        "process_name":          "ApplyLoadVectorTableProcess",
-        "Parameters":            {
+        "process_name":  "ApplyLoadVectorTableProcess",
+        "Parameters":    {
             "mesh_id":         0,
             "model_part_name": "Face_Load-auto-1",
             "variable_name":   "FACE_LOAD",
@@ -148,10 +148,10 @@
             "table":           [0,0,0]
         }
     },{
-        "python_module":   "apply_load_scalar_table_process",
+        "python_module": "apply_load_scalar_table_process",
         "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
-        "process_name":          "ApplyLoadScalarTableProcess",
-        "Parameters":            {
+        "process_name":  "ApplyLoadScalarTableProcess",
+        "Parameters":    {
             "mesh_id":         0,
             "model_part_name": "Normal_Fluid_Flux-auto-1",
             "variable_name":   "NORMAL_FLUID_FLUX",
@@ -159,10 +159,10 @@
             "table":           0
         }
     },{
-        "python_module":   "apply_load_vector_table_process",
+        "python_module": "apply_load_vector_table_process",
         "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
-        "process_name":          "ApplyLoadVectorTableProcess",
-        "Parameters":            {
+        "process_name":  "ApplyLoadVectorTableProcess",
+        "Parameters":    {
             "mesh_id":         0,
             "model_part_name": "Body_Acceleration-auto-1",
             "variable_name":   "VOLUME_ACCELERATION",
