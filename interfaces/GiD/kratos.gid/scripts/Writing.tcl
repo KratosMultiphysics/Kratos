@@ -487,6 +487,15 @@ proc write::getEtype {ov group} {
 		    }
             set b 1
 	    }
+        if {[GiD_EntitiesGroups get $group elements -count -element_type Prism]} {
+            if {$b} {error "Multiple element types in $group over $ov"}
+		    switch $isquadratic {
+		        0 { set ret [list "Prism" 6]  }                
+		        1 { set ret [list "Prism" 15]  }                
+		        2 { set ret [list "Prism" 18]  }                
+		    }
+            set b 1
+	    }
     }
     
     return $ret
