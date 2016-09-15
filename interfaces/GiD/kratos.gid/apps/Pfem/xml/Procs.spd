@@ -59,6 +59,13 @@
 		set resp [ ::Pfem::xml::::CheckElementOutputState $domNode]
 		if {$resp} {return "normal"} else {return "hidden"}
 	  ]]>
-	</proc>	
+	</proc>
+	 
+	 
+	<proc n='GetElements' args='args'>
+	  <![CDATA[
+	  return [Pfem::xml::ProcGetElements $domNode $args]
+	  ]]>
+	</proc>
 
 </container>
