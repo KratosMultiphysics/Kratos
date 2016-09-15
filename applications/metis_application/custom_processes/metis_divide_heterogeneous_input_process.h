@@ -131,7 +131,7 @@ public:
         idxtype* NodeIndices = 0;
         idxtype* NodeConnectivities = 0;
         
-        ConvertKratosToCSRFormat(KratosFormatNodeConnectivities, NodeIndices, NodeConnectivities);                       
+        ConvertKratosToCSRFormat(KratosFormatNodeConnectivities, &NodeIndices, &NodeConnectivities);                       
         
         std::vector<idxtype> NodePartition;
         PartitionNodes(NumNodes,NodeIndices,NodeConnectivities,NodePartition);
@@ -354,41 +354,41 @@ private:
         idxtype edgecut;
         rNodePartition.resize(NumNodes);
         
-        
-        #ifndef KRATOS_USE_METIS_5
-            idxtype wgtflag = 0; // Graph is not weighted
-            idxtype numflag = 0; // Nodes are numbered from 0 (C style)
-           idxtype options[5]; // options array
-           options[0] = 0; // use default options
 
-          //old version
-           METIS_PartGraphKway(&n,NodeIndices,NodeConnectivities,NULL,NULL,&wgtflag,&numflag,&nparts,&options[0],&edgecut,&rNodePartition[0]);
-        #else
-           idx_t ncon = 1; //The number of balancing constraints. It should be at least 1.
-           
-           idx_t options[METIS_NOPTIONS];
-           METIS_SetDefaultOptions(options);
-           
-           int metis_return = METIS_PartGraphKway(&n,&ncon,NodeIndices,NodeConnectivities,NULL,NULL,NULL,&nparts,NULL,NULL,&options[0],&edgecut,&rNodePartition[0]);
-           
-           if(metis_return != 0)
-               std::cout << "metis returns the following error code :" << metis_return << std::endl;
-	   /*         int METIS PartGraphKway(
-            * idx t *nvtxs, 
-            * idx t *ncon, 
-            * idx t *xadj, 
-            * idx t *adjncy, 
-              idx t *vwgt,   NULL
-              idx t *vsize,  NULL
-              idx t *adjwgt,  NULL
-              idx t *nparts, 
-              real t *tpwgts, NULL
-              real t ubvec, NULL
-              idx t *options, 
-              idx t *objval, idx t *part)          
-	   */
-        #endif
-        
+#ifndef KRATOS_USE_METIS_5
+        idxtype wgtflag = 0; // Graph is not weighted
+        idxtype numflag = 0; // Nodes are numbered from 0 (C style)
+        idxtype options[5]; // options array
+        options[0] = 0; // use default options
+
+        //old version
+        METIS_PartGraphKway(&n,NodeIndices,NodeConnectivities,NULL,NULL,&wgtflag,&numflag,&nparts,&options[0],&edgecut,&rNodePartition[0]);
+#else
+        idx_t ncon = 1; //The number of balancing constraints. It should be at least 1.
+
+        idx_t options[METIS_NOPTIONS];
+        METIS_SetDefaultOptions(options);
+
+        int metis_return = METIS_PartGraphKway(&n,&ncon,NodeIndices,NodeConnectivities,NULL,NULL,NULL,&nparts,NULL,NULL,&options[0],&edgecut,&rNodePartition[0]);
+
+        if(metis_return != METIS_OK)
+            std::cout << "metis returns the following error code :" << metis_return << std::endl;
+        /*         int METIS PartGraphKway(
+         * idx_t *nvtxs, 
+         * idx_t *ncon, 
+         * idx_t *xadj, 
+         * idx_t *adjncy, 
+         * idx_t *vwgt,   NULL
+         * idx_t *vsize,  NULL
+         * idx_t *adjwgt,  NULL
+         * idx_t *nparts, 
+         * real_t *tpwgts, NULL
+         * real_t ubvec, NULL
+         * idx_t *options, 
+         * idx_t *objval, idx t *part)          
+         */
+#endif
+
 
 
         // Debug: print partition
