@@ -32,7 +32,7 @@
 	       ImplementedInApplication="PfemSolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="Developer"
 	       WorkingSpaceDimension="2D" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False,True"
 	       help="To be written by..."
-	       ElementType="Rigid">
+	       ElementType="Rigid_Body">
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
       <item GeometryType="Line" nodes="2" KratosName="Element2D2N"/>
@@ -53,7 +53,7 @@
 	       ImplementedInApplication="PfemSolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="Developer"
 	       WorkingSpaceDimension="2D" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False,True"
 	       help="To be written by..."
-	       ElementType="Rigid">
+	       ElementType="Rigid_Body">
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
       <item GeometryType="Triangle" nodes="3" KratosName="Element2D3N"/>
@@ -74,7 +74,7 @@
 	       ImplementedInApplication="PfemSolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="Developer"
 	       WorkingSpaceDimension="3D" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False,True"
 	       help="To be written by..."
-	       ElementType="Rigid">
+	       ElementType="Rigid_Body">
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
       <item GeometryType="Triangle" nodes="3" KratosName="Element3D3N"/>
@@ -95,7 +95,7 @@
 	       ImplementedInApplication="PfemSolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="Developer"
 	       WorkingSpaceDimension="3D" LocalSpaceDimension="3" RequiresLocalAxes="False" LargeDeformation="False,True"
 	       help="To be written by..."
-	       ElementType="Rigid">
+	       ElementType="Rigid_Body">
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
       <item GeometryType="Tetrahedra" nodes="3" KratosName="Element3D4N"/>
@@ -119,7 +119,7 @@
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="2D" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False,True"
 	       help="This element it implements a Updated Lagrangian approach to large deformation kinematics"
-	       ElementType="Solid">
+	       ElementType="Deformable_Body">
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
       <item GeometryType="Triangle" nodes="3" KratosName="UpdatedLagrangianElement2D3N"/>
@@ -152,7 +152,7 @@
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="2Da" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False,True"
 	       help="This element it implements a Updated Lagrangian approach to large deformation kinematics"
-	       ElementType="Solid">
+	       ElementType="Deformable_Body">
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
       <item GeometryType="Triangle" nodes="3" KratosName="AxisymUpdatedLagrangianElement2D3N"/>
@@ -185,7 +185,7 @@
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="3D" LocalSpaceDimension="3" RequiresLocalAxes="False" LargeDeformation="False,True"
 	       help="This element it implements a Updated Lagrangian approach to large deformation kinematics"
-	       ElementType="Solid">
+	       ElementType="Deformable_Body">
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
       <item GeometryType="Tetrahedra" nodes="4" KratosName="UpdatedLagrangianElement3D4N"/>
@@ -218,7 +218,7 @@
 	       ImplementedInApplication="PfemSolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="Developer"
 	       WorkingSpaceDimension="2D" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False,True"
 	       help="To be written by..."
-	       ElementType="Solid">
+	       ElementType="Deformable_Body">
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
       <item GeometryType="Triangle" nodes="3" KratosName="TotalUpdatedLagrangianElement2D3N"/>
@@ -251,7 +251,7 @@
 	       ImplementedInApplication="PfemSolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="Developer"
 	       WorkingSpaceDimension="3D" LocalSpaceDimension="3" RequiresLocalAxes="False" LargeDeformation="False,True"
 	       help="To be written by..."
-	       ElementType="Solid" >
+	       ElementType="Deformable_Body" >
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
       <item GeometryType="Tetrahedra" nodes="4" KratosName="TotalUpdatedLagrangianElement3D4N"/>
@@ -287,7 +287,7 @@
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="2D" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False,True"
 	       help="This element implements a Hybrid Displacement-Pressure Updated Lagrangian approach to large deformation kinematics"
-	       ElementType="Solid">
+	       ElementType="Deformable_Body">
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
       <item GeometryType="Triangle" nodes="3" KratosName="UpdatedLagrangianUPElement2D3N"/>
@@ -321,7 +321,7 @@
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="2Da" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False,True"
 	       help="This element it implements a Hybrid Displacement-Pressure Updated Lagrangian approach to large deformation kinematics"
-	       ElementType="Solid" >
+	       ElementType="Deformable_Body" >
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
       <item GeometryType="Triangle" nodes="3" KratosName="AxisymUpdatedLagrangianUPElement2D3N"/>
