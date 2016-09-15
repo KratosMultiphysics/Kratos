@@ -68,7 +68,7 @@ class FracturePropagationUtility:
             shutil.rmtree(str(self.last_state_path), ignore_errors=True)
             os.mkdir(str(self.last_state_path))
         
-        # Save list of files names
+        # Save list of files names (TODO: are all these files necessary?)
         self.list_of_files_names = []
         filename = str(self.problem_name)+".cnd"
         self.list_of_files_names.append(filename)
@@ -83,6 +83,8 @@ class FracturePropagationUtility:
         filename = str(self.problem_name)+".prb"
         self.list_of_files_names.append(filename)
         filename = str(self.problem_name)+".prj"
+        self.list_of_files_names.append(filename)
+        filename = str(self.problem_name)+".tree"
         self.list_of_files_names.append(filename)
         filename = str(self.problem_name)+".vv"
         self.list_of_files_names.append(filename)
