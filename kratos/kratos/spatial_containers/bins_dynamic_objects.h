@@ -566,6 +566,16 @@ public:
         return mCellSize;
     }
 
+    PointType& GetMinPoint()
+    {
+        return mMinPoint;
+    }
+
+    PointType& GetMaxPoint()
+    {
+        return mMaxPoint;
+    }
+
 
 
 //************************************************************************
