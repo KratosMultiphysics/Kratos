@@ -31,8 +31,8 @@ namespace Kratos
                          const boost::numeric::ublas::bounded_matrix<double, 4, 3 >& rShapeDeriv,
                          double& Viscosity, const double Area)
 	{
-		const double theta = 0.35;
-		const double Cohesion = 0.0;
+		double theta = 0.0;
+		double Cohesion = 0.0;
 
         double base_viscosity = Viscosity;
         
@@ -78,6 +78,8 @@ namespace Kratos
 			if (this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)<0.0)
 			{
 				pressure += this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
+				theta += this->GetGeometry()[i].FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE);
+                Cohesion += this->GetGeometry()[i].FastGetSolutionStepValue(YIELD_STRESS);
 				negative_nodes +=1.0;
 			}
 			//if (this->GetGeometry()[i].IsFixed(VELOCITY_X)==true) 
@@ -86,7 +88,9 @@ namespace Kratos
 		
 		
 		pressure /=negative_nodes;
-		
+		theta /=negative_nodes;
+        Cohesion /=negative_nodes;
+        
 		if (pressure<0.0)
 			pressure=0.0;
 		double YieldStress = Cohesion + tan(theta) * pressure;
