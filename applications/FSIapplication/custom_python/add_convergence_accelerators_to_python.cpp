@@ -19,6 +19,7 @@
 #include "custom_python/add_convergence_accelerators_to_python.h"
 #include "custom_utilities/convergence_accelerator.hpp"
 #include "custom_utilities/mvqn_convergence_accelerator.hpp"
+#include "custom_utilities/mvqn_recursive_convergence_accelerator.hpp"
 #include "custom_utilities/aitken_convergence_accelerator.hpp"
 
 namespace Kratos
@@ -58,6 +59,15 @@ void  AddConvergenceAcceleratorsToPython()
             .def("UpdateSolution", &MVQNFullJacobianConvergenceAccelerator<TSpace>::UpdateSolution)
             .def("FinalizeNonLinearIteration", &MVQNFullJacobianConvergenceAccelerator<TSpace>::FinalizeNonLinearIteration)
             .def("FinalizeSolutionStep", &MVQNFullJacobianConvergenceAccelerator<TSpace>::FinalizeSolutionStep)
+            ;
+            
+    // MVQN recursive convergence accelerator
+    class_< MVQNRecursiveJacobianConvergenceAccelerator <TSpace>, bases <BaseConvergenceAcceleratorType>, boost::noncopyable > ("MVQNRecursiveJacobianConvergenceAccelerator", init< double >())
+            .def("Initialize", &MVQNRecursiveJacobianConvergenceAccelerator<TSpace>::Initialize)
+            .def("InitializeSolutionStep", &MVQNRecursiveJacobianConvergenceAccelerator<TSpace>::InitializeSolutionStep)
+            .def("UpdateSolution", &MVQNRecursiveJacobianConvergenceAccelerator<TSpace>::UpdateSolution)
+            .def("FinalizeNonLinearIteration", &MVQNRecursiveJacobianConvergenceAccelerator<TSpace>::FinalizeNonLinearIteration)
+            .def("FinalizeSolutionStep", &MVQNRecursiveJacobianConvergenceAccelerator<TSpace>::FinalizeSolutionStep)
             ;
 
 }
