@@ -582,7 +582,7 @@ public:
 //************************************************************************
 
 
-private:
+protected:
 
 
     ///@}
@@ -1659,7 +1659,6 @@ private:
 
     ///@}
 
-private:
     ///@name Static Member Variables
     ///@{
 
@@ -1681,7 +1680,8 @@ private:
 
     CellContainerType mCells;  ///The bin
 
-
+private:
+  
     ///@}
     ///@name Private Operators
     ///@{
