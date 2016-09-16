@@ -336,14 +336,13 @@ private:
     {
         typedef FractionalStep<TDim> basetype;
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, basetype );
-        rSerializer.save("medge_areas",medge_areas);
     }
 
     virtual void load(Serializer& rSerializer)
     {
         typedef FractionalStep<TDim> basetype;
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, basetype );
-        rSerializer.load("medge_areas",medge_areas);
+        medge_areas = array_1d<double,(TDim-1)*3>( (TDim-1)*3, 0.0 );
     }
 
     ///@}
