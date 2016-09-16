@@ -283,14 +283,14 @@ public:
             {
                 for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++)
                 {
-                    ModelPart::NodeType::Pointer i_nod = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
+                    ModelPart::NodeType& i_nod = (*particle_pointer_it)->GetGeometry()[i];
 
                     int PartitionIndex = mpi_rank;
 
                     //Calcualte distance with my center first.
-                    double distX = i_nod->X() - SetCentroid[mpi_rank*Dimension+0];
-                    double distY = i_nod->Y() - SetCentroid[mpi_rank*Dimension+1];
-                    double distZ = i_nod->Z() - SetCentroid[mpi_rank*Dimension+2];
+                    double distX = i_nod.X() - SetCentroid[mpi_rank*Dimension+0];
+                    double distY = i_nod.Y() - SetCentroid[mpi_rank*Dimension+1];
+                    double distZ = i_nod.Z() - SetCentroid[mpi_rank*Dimension+2];
 
                     distX *= distX;
                     distY *= distY;
@@ -301,9 +301,9 @@ public:
 
                     for(int j = 0; j < mpi_size; j++)
                     {
-                        distX = i_nod->X() - SetCentroid[j*Dimension+0];
-                        distY = i_nod->Y() - SetCentroid[j*Dimension+1];
-                        distZ = i_nod->Z() - SetCentroid[j*Dimension+2];
+                        distX = i_nod.X() - SetCentroid[j*Dimension+0];
+                        distY = i_nod.Y() - SetCentroid[j*Dimension+1];
+                        distZ = i_nod.Z() - SetCentroid[j*Dimension+2];
 
                         distX *= distX;
                         distY *= distY;
@@ -319,7 +319,7 @@ public:
                     }
 
                     (*particle_pointer_it)->GetValue(PARTITION_INDEX) = PartitionIndex;
-                    i_nod->FastGetSolutionStepValue(PARTITION_INDEX) = PartitionIndex;
+                    i_nod.FastGetSolutionStepValue(PARTITION_INDEX) = PartitionIndex;
                 }
             }
         }
