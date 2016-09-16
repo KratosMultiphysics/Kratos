@@ -2,6 +2,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosMPISerchApplication ****")
 
+if(NOT (${DEM_APPLICATION} STREQUAL "ON"))
+    message(SEND_ERROR "The DEM Application must be compiled before this one. Set DEM_APPLICATION=ON in the configure file.")
+endif(NOT (${DEM_APPLICATION} STREQUAL "ON"))
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/DEM_application )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/mpi_search_application )
