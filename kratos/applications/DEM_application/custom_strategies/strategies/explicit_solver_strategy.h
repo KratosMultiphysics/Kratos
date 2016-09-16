@@ -249,7 +249,8 @@ namespace Kratos {
         void CalculateInitialMaxIndentations();
         void PrepareContactModelPart(ModelPart& r_model_part, ModelPart& mcontacts_model_part);
         void PrepareElementsForPrinting();
-        void SynchronizeSolidMesh(ModelPart& r_model_part);
+        void SynchronizeHistoricalVariables(ModelPart& r_model_part);
+        void SynchronizeRHS(ModelPart& r_model_part);
         void CleanEnergies();
         void GlobalDamping();
 
