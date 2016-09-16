@@ -118,6 +118,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(outlet_model_part.NumberOfConditions(), 1)
         self.assertEqual(outlet_model_part.NumberOfSubModelParts(), 0)
         
+    @KratosUnittest.expectedFailure
     def test_error_on_wrong_input(self):
         model_part = ModelPart("Main")
         model_part_io = ModelPartIO(GetFilePath("wrong_properties_input"))
