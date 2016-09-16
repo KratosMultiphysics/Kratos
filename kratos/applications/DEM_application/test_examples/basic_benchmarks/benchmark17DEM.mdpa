@@ -16,21 +16,21 @@ DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEMContinuumConstitutiveLaw
 End Properties
 
 Begin Nodes // GUI group identifier: dem celemid SphericPartDEMElement3D
-150 0.5 0.27959 0.5
-151 0.5 0.27959 2.0
+1 0.5 0.27959 0.5
+2 0.5 0.27959 2.0
 End Nodes
 
 Begin Elements SphericParticle3D   //  GUI group identifier: dem
-1 1 150
-2 1 151
+1 1 1
+2 1 2
 End Elements
 
 Begin NodalData RADIUS  // GUI group identifier: dem Elementid SphericPartDEMElement3D
-150 0 0.3
-151 0 0.3
+1 0 0.3
+2 0 0.3
 End NodalData
 
 Begin NodalData VELOCITY_X  // GUI group identifier: dem Elementid SphericPartDEMElement3D
-150 0 5
-151 0 5
+1 0 5
+2 0 5
 End NodalData

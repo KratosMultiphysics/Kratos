@@ -17,8 +17,8 @@ POISSON_RATIO 0.2
 End Properties
 
 Begin Nodes // GUI DEM-FEM-Wall group identifier: fem_fine
-1 5.00000 0.00000 0.00000
-2 5.00000 0.00000 1.00000
+61 5.00000 0.00000 0.00000
+62 5.00000 0.00000 1.00000
 52 0.00000 0.00000 0.00000
 54 0.00000 0.00000 1.00000
 End Nodes
@@ -82,7 +82,7 @@ Begin Nodes // GUI DEM-FEM-Wall group identifier: fem_gross
 End Nodes
 
 Begin Conditions RigidFace3D4N // GUI DEM-FEM-Wall group identifier: fem_fine
-2  0  54 2 1 52
+2  0  54 62 61 52
 End Conditions
 
 Begin Conditions RigidFace3D3N // GUI DEM-FEM-Wall group identifier: fem_gross
@@ -187,8 +187,8 @@ Begin MeshData // GUI DEM-FEM-Wall group identifier: fem_fine
 End MeshData
 
 Begin MeshNodes
-1
-2
+61
+62
 52
 54
 End MeshNodes
