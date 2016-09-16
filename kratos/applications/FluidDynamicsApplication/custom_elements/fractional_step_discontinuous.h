@@ -7,7 +7,7 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Jordi Cotela
+//  Main authors:    Riccardo Rossi
 //
 
 #if !defined(KRATOS_FRACTIONAL_STEP_DISCONTINUOUS_H_INCLUDED )
@@ -118,7 +118,8 @@ public:
      * @param NewId Index number of the new element (optional)
      */
     FractionalStepDiscontinuous(IndexType NewId = 0) :
-        FractionalStep<TDim>(NewId)
+        FractionalStep<TDim>(NewId),
+        medge_areas(array_1d<double,(TDim-1)*3 >( (TDim-1)*3, 0.0))
     {}
 
     /// Constructor using an array of nodes.
@@ -127,7 +128,8 @@ public:
      * @param ThisNodes An array containing the nodes of the new element
      */
     FractionalStepDiscontinuous(IndexType NewId, const NodesArrayType& ThisNodes) :
-        FractionalStep<TDim>(NewId, ThisNodes)
+        FractionalStep<TDim>(NewId, ThisNodes),
+        medge_areas(array_1d<double,(TDim-1)*3 >( (TDim-1)*3, 0.0))
     {}
 
     /// Constructor using a geometry object.
@@ -136,7 +138,8 @@ public:
      * @param pGeometry Pointer to a geometry object
      */
     FractionalStepDiscontinuous(IndexType NewId, GeometryType::Pointer pGeometry) :
-        FractionalStep<TDim>(NewId, pGeometry)
+        FractionalStep<TDim>(NewId, pGeometry),
+        medge_areas(array_1d<double,(TDim-1)*3 >( (TDim-1)*3, 0.0))
     {}
 
     /// Constuctor using geometry and properties.
@@ -146,7 +149,8 @@ public:
      * @param pProperties Pointer to the element's properties
      */
     FractionalStepDiscontinuous(IndexType NewId, GeometryType::Pointer pGeometry, Element::PropertiesType::Pointer pProperties) :
-        FractionalStep<TDim>(NewId, pGeometry, pProperties)
+        FractionalStep<TDim>(NewId, pGeometry, pProperties),
+        medge_areas(array_1d<double,(TDim-1)*3 >( (TDim-1)*3, 0.0))
     {}
 
     /// Destructor.
@@ -342,7 +346,6 @@ private:
     {
         typedef FractionalStep<TDim> basetype;
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, basetype );
-        medge_areas = array_1d<double,(TDim-1)*3>( (TDim-1)*3, 0.0 );
     }
 
     ///@}
