@@ -19,10 +19,14 @@
 #include <limits>
 #include <cmath>
 
+
+#include "spatial_containers/tree.h"
+#include "spatial_containers/cell.h"
+
 // Kratos includes
 #include "includes/define.h"
 #include "geometries/point.h"
-#include "containers/pointer_vector.h"
+#include "containers/pointer_vector_set.h"
 #include "utilities/indexed_object.h"
 #include "utilities/contact_pair.h"
 
@@ -82,10 +86,14 @@ public:
    * @param ContainerContactType  Container type for contacts
    * @param IteratorContactType   Iterator type for contacts
    */
-  typedef PointerVector<PointType>            PointContainerType;
+  typedef PointType                           ObjectType;
+  typedef PointerVectorSet<
+    ObjectType,
+    IndexedObject
+  >                                           ObjectContainerType;
 
-  typedef PointContainerType::ContainerType   ContainerType;
-  typedef PointContainerType::ContainerType   ResultContainerType;
+  typedef ObjectContainerType::ContainerType  ContainerType;
+  typedef ObjectContainerType::ContainerType  ResultContainerType;
   typedef ContactPair<PointerType>            ContactPairType;
 
   typedef ContainerType::iterator             IteratorType;
@@ -94,6 +102,9 @@ public:
 
   typedef std::vector<ContactPairType>        ContainerContactType;
   typedef ContainerContactType::iterator      IteratorContactType;
+
+  typedef double                              CoordinateType;
+  typedef Tvector<CoordinateType,Dimension>   CoordinateArray;
 
   ///@}
   ///@name Life Cycle
@@ -228,6 +239,16 @@ public:
     }
 
     distance = std::sqrt(pwdDistance);
+  }
+
+  /** Returns a radius associated to the object
+   * Returns a radius associated to the object
+   * @param  rObject the object
+   * @param  Radius  an extension factor.
+   * @return         0.0f always.
+   */
+  static inline double GetObjectRadius(const PointerType& rObject, const double& Radius) {
+    return 0.0f;
   }
 
   ///@}
