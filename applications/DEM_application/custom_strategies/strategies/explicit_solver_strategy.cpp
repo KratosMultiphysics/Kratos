@@ -329,7 +329,7 @@ namespace Kratos {
         }
 
         // 4. Synchronize (should be just FORCE and TORQUE)
-        SynchronizeSolidMesh(r_model_part);
+        SynchronizeRHS(r_model_part);
         KRATOS_CATCH("")
     }//ForceOperations;
 
@@ -1018,7 +1018,7 @@ namespace Kratos {
 
             #pragma omp single
             {
-                SynchronizeSolidMesh(GetModelPart());
+                SynchronizeHistoricalVariables(GetModelPart());
             }
             const int number_of_ghost_particles = (int) mListOfGhostSphericParticles.size();
 
@@ -1061,8 +1061,13 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void ExplicitSolverStrategy::SynchronizeSolidMesh(ModelPart& r_model_part) {
+    void ExplicitSolverStrategy::SynchronizeHistoricalVariables(ModelPart& r_model_part) {
         r_model_part.GetCommunicator().SynchronizeNodalSolutionStepsData();
+    }
+    
+    void ExplicitSolverStrategy::SynchronizeRHS(ModelPart& r_model_part) {
+        r_model_part.GetCommunicator().SynchronizeVariable(TOTAL_FORCES);
+        r_model_part.GetCommunicator().SynchronizeVariable(PARTICLE_MOMENT);
     }
 
     void ExplicitSolverStrategy::CleanEnergies() {
