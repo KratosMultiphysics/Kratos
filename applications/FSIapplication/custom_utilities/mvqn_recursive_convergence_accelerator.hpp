@@ -77,7 +77,7 @@ public:
      * Constructor.
      * MVQN convergence accelerator
      */
-    MVQNRecursiveJacobianConvergenceAccelerator( double rOmegaInitial = 0.825, unsigned int rJacobianBufferSize = 4 )
+    MVQNRecursiveJacobianConvergenceAccelerator( double rOmegaInitial = 0.825, unsigned int rJacobianBufferSize = 7 )
     {
         mOmega_0 = rOmegaInitial;
         mJacobianBufferSize = rJacobianBufferSize;
@@ -397,7 +397,8 @@ protected:
             
             std::cout << "Computed previous step Jacobian approximation for buffer size 1." << std::endl;
             
-            return (solA1 - solB1);
+            //~ return (solA1 - solB1);
+            return (solA1 + solB1);
         }
         else if (CurrentJacobianBufferSize == 2)
         {
@@ -406,7 +407,7 @@ protected:
             std::cout << "Computing previous step Jacobian approximation for buffer size 2..." << std::endl;
             
             solA1 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[1], mBufferObsMatrixW[1], rY);
-            //~ solB1 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixV[1], mBufferObsMatrixW[1], rY);
+            solB1 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixV[1], mBufferObsMatrixW[1], rY);
             
             solA2 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[0], mBufferObsMatrixV[0], solA1);
             solB2 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixW[0], mBufferObsMatrixW[0], solA1);
@@ -414,7 +415,8 @@ protected:
             std::cout << "Computed previous step Jacobian approximation for buffer size 2." << std::endl;
             
             //~ return (solA2 - solB2 - solB1);
-            return (solA2 - solB2);
+            //~ return (solA2 - solB2);
+            return (solA2 + solB2 + solB1);
         }
         else if (CurrentJacobianBufferSize == 3)
         {
@@ -422,11 +424,11 @@ protected:
             
             std::cout << "Computing previous step Jacobian approximation for buffer size 3..." << std::endl;
             
-            //~ solA1 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[2], mBufferObsMatrixW[2], rY);
-            //~ solB1 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixV[2], mBufferObsMatrixW[2], rY);
+            solA1 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[2], mBufferObsMatrixW[2], rY);
+            solB1 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixV[2], mBufferObsMatrixW[2], rY);
             
-            solA2 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[1], mBufferObsMatrixV[1], rY);
-            solB2 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixW[1], mBufferObsMatrixW[1], rY);
+            solA2 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[1], mBufferObsMatrixV[1], solA1);
+            solB2 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixW[1], mBufferObsMatrixW[1], solA1);
             
             solA3 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[0], mBufferObsMatrixV[0], solA2);
             solB3 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixW[0], mBufferObsMatrixW[0], solA2);
@@ -434,7 +436,8 @@ protected:
             std::cout << "Computed previous step Jacobian approximation for buffer size 3." << std::endl;
             
             //~ return (solA3 - solB3 - solB2 - solB1);
-            return (solA3 - solB3 - solB2);
+            //~ return (solA3 - solB3 - solB2);
+            return (solA3 + solB3 + solB2 + solB1);
             
         }
         else if (CurrentJacobianBufferSize == 4)
@@ -444,7 +447,7 @@ protected:
             std::cout << "Computing previous step Jacobian approximation for buffer size 4..." << std::endl;
             
             solA1 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[3], mBufferObsMatrixW[3], rY);
-            //~ solB1 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixV[3], mBufferObsMatrixW[3], rY);
+            solB1 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixV[3], mBufferObsMatrixW[3], rY);
             
             solA2 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[2], mBufferObsMatrixV[2], solA1);
             solB2 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixW[2], mBufferObsMatrixW[2], solA1);
@@ -458,7 +461,98 @@ protected:
             std::cout << "Computed previous step Jacobian approximation for buffer size 4." << std::endl;
             
             //~ return (solA4 - solB4 - solB3 - solB2 - solB1);
-            return (solA4 - solB4 - solB3 - solB2);
+            //~ return (solA4 - solB4 - solB3 - solB2);
+            return (solA4 + solB4 + solB3 + solB2 + solB1);
+        }
+        else if (CurrentJacobianBufferSize == 5)
+        {
+            VectorType solA1, solA2, solA3, solA4, solA5, solB1, solB2, solB3, solB4, solB5;
+            
+            std::cout << "Computing previous step Jacobian approximation for buffer size 4..." << std::endl;
+            
+            solA1 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[4], mBufferObsMatrixW[4], rY);
+            solB1 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixV[4], mBufferObsMatrixW[4], rY);
+            
+            solA2 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[3], mBufferObsMatrixW[3], solA1);
+            solB2 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixV[3], mBufferObsMatrixW[3], solA1);
+            
+            solA3 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[2], mBufferObsMatrixV[2], solA2);
+            solB3 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixW[2], mBufferObsMatrixW[2], solA2);
+            
+            solA4 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[1], mBufferObsMatrixV[1], solA3);
+            solB4 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixW[1], mBufferObsMatrixW[1], solA3);
+            
+            solA5 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[0], mBufferObsMatrixV[0], solA4);
+            solB5 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixW[0], mBufferObsMatrixW[0], solA4);
+            
+            std::cout << "Computed previous step Jacobian approximation for buffer size 5." << std::endl;
+            
+            //~ return (solA4 - solB4 - solB3 - solB2 - solB1);
+            //~ return (solA4 - solB4 - solB3 - solB2);
+            return (solA5 + solB5 + solB4 + solB3 + solB2 + solB1);
+        }
+        else if (CurrentJacobianBufferSize == 6)
+        {
+            VectorType solA1, solA2, solA3, solA4, solA5, solA6, solB1, solB2, solB3, solB4, solB5, solB6;
+            
+            std::cout << "Computing previous step Jacobian approximation for buffer size 4..." << std::endl;
+            
+            solA1 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[5], mBufferObsMatrixW[5], rY);
+            solB1 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixV[5], mBufferObsMatrixW[5], rY);
+            
+            solA2 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[4], mBufferObsMatrixW[4], solA1);
+            solB2 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixV[4], mBufferObsMatrixW[4], solA1);
+            
+            solA3 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[3], mBufferObsMatrixW[3], solA2);
+            solB3 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixV[3], mBufferObsMatrixW[3], solA2);
+            
+            solA4 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[2], mBufferObsMatrixV[2], solA3);
+            solB4 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixW[2], mBufferObsMatrixW[2], solA3);
+            
+            solA5 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[1], mBufferObsMatrixV[1], solA4);
+            solB5 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixW[1], mBufferObsMatrixW[1], solA4);
+            
+            solA6 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[0], mBufferObsMatrixV[0], solA5);
+            solB6 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixW[0], mBufferObsMatrixW[0], solA5);
+            
+            std::cout << "Computed previous step Jacobian approximation for buffer size 6." << std::endl;
+            
+            //~ return (solA4 - solB4 - solB3 - solB2 - solB1);
+            //~ return (solA4 - solB4 - solB3 - solB2);
+            return (solA6 + solB6 + solB5 + solB4 + solB3 + solB2 + solB1);
+        }
+        else if (CurrentJacobianBufferSize == 6)
+        {
+            VectorType solA1, solA2, solA3, solA4, solA5, solA6, solA7, solB1, solB2, solB3, solB4, solB5, solB6, solB7;
+            
+            std::cout << "Computing previous step Jacobian approximation for buffer size 4..." << std::endl;
+            
+            solA1 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[6], mBufferObsMatrixW[6], rY);
+            solB1 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixV[6], mBufferObsMatrixW[6], rY);
+            
+            solA2 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[5], mBufferObsMatrixW[5], solA1);
+            solB2 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixV[5], mBufferObsMatrixW[5], solA1);
+            
+            solA3 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[4], mBufferObsMatrixW[4], solA2);
+            solB3 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixV[4], mBufferObsMatrixW[4], solA2);
+            
+            solA4 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[3], mBufferObsMatrixV[3], solA3);
+            solB4 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixW[3], mBufferObsMatrixW[3], solA3);
+            
+            solA5 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[2], mBufferObsMatrixV[2], solA4);
+            solB5 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixW[2], mBufferObsMatrixW[2], solA4);
+            
+            solA6 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[1], mBufferObsMatrixV[1], solA5);
+            solB6 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixW[1], mBufferObsMatrixW[1], solA5);
+            
+            solA7 = ApplyJacobianCoefsToVectorA(mBufferObsMatrixV[0], mBufferObsMatrixV[0], solA6);
+            solB7 = ApplyJacobianCoefsToVectorB(mBufferObsMatrixW[0], mBufferObsMatrixW[0], solA6);
+            
+            std::cout << "Computed previous step Jacobian approximation for buffer size 6." << std::endl;
+            
+            //~ return (solA4 - solB4 - solB3 - solB2 - solB1);
+            //~ return (solA4 - solB4 - solB3 - solB2);
+            return (solA7 + solB7 + solB6 + solB5 + solB4 + solB3 + solB2 + solB1);
         }
                     
         KRATOS_CATCH( "" );
@@ -531,7 +625,8 @@ protected:
                 solA(i) += ObsMatrixV[j][i]*z[j];
             }
         }
-        solA -= WorkVector; 
+        //~ solA -= WorkVector; 
+        solA = WorkVector - solA; 
         
         return solA;
             
