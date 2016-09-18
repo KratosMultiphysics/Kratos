@@ -17,6 +17,8 @@ set( KRATOS_MPI_SEARCH_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp 
 )
 
+SET_SOURCE_FILES_PROPERTIES(${KRATOS_MPI_SEARCH_APPLICATION_SOURCES} PROPERTIES COMPILE_FLAGS -fno-strict-aliasing)
+
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosMPISearchApplication SHARED ${KRATOS_MPI_SEARCH_APPLICATION_SOURCES})
