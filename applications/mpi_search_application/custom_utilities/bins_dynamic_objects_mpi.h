@@ -452,6 +452,29 @@ private:
     mpObjectBins = new BinsObjectDynamic<TObjectConfigure>(ObjectsBegin, ObjectsEnd);
   }
 
+  void CalculateCustomCellSize(const std::vector<int> & magic) {
+    double totalDiff[3];
+    double max = 0;
+    int maxI = 0;
+    double size;
+
+    for(SizeType i = 0; i < Dimension; i++) {
+      totalDiff[i] = this->mMaxPoint[i]-this->mMinPoint[i];
+      if(totalDiff[i] > max) {
+        max = totalDiff[i];
+        maxI = i;
+      }
+    }
+
+    //size = max / magic;
+
+    for(SizeType i = 0; i < Dimension; i++) {
+      this->mN[i] = magic[i];
+      this->mCellSize[i] = totalDiff[i] / this->mN[i];
+      this->mInvCellSize[i] = 1.00 / this->mCellSize[i];
+    }
+  }
+
   /**
    * Generate the bins for the partitions
    * @param ObjectsBegin Iterator to the first local object
@@ -484,8 +507,10 @@ private:
     }
 
     // CoordinateType binsSize = (this->GetMaxPoint()[0] - this->GetMinPoint()[0]);
-    SizeType binsSize = mpi_size;
-    this->CalculateCellSize(binsSize);
+    // SizeType binsSize = 5e3;
+    // this->CalculateCellSize(binsSize);
+    std::vector<int> numberOfCells = {mpi_size, mpi_size, mpi_size};
+    this->CalculateCustomCellSize(numberOfCells);
     this->AllocateContainer();
 
     // Initialize the partition bins
@@ -579,6 +604,12 @@ private:
       SendRadiusToProcess[i].clear();
     }
 
+    int TotalToSend = 0;
+    int GlobalToSend = 0;
+
+    int TotalNumObjects = NumberOfObjects;
+    int GlobalNumObjects = 0;
+
     for(std::size_t i = 0; i < NumberOfObjects; i++) {
       auto ObjectItr = ObjectsBegin + i;
       auto extensionRadius = i < Radius.size() ? Radius[i] : 0.0f;
@@ -589,7 +620,7 @@ private:
 
       // Search the results
       NumberOfResults[i] = mpObjectBins->SearchObjectsInRadiusExclusive(
-        *ObjectItr, Radius[i],
+        *ObjectItr, extensionRadius,
         ResultsPointer, ResultsDistancesPointer,
         MaxNumberOfResults
       );
@@ -609,8 +640,16 @@ private:
           SendRadiusToProcess[j].push_back(ObjectRadius);
 
           SentObjectsMap[j*NumberOfObjects+i]=1;
+          TotalToSend++;
         }
       }
+    }
+
+    MPI_Reduce(&TotalToSend, &GlobalToSend, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&TotalNumObjects, &GlobalNumObjects, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+
+    if(mpi_rank == 0) {
+      std::cout << "Sending " << GlobalToSend << " out of " << GlobalNumObjects << std::endl;
     }
   }
 
