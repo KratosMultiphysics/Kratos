@@ -38,6 +38,7 @@ class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
             "buffer_size": 2,
             "solution_type": "Dynamic",
             "scheme_type": "Newmark",
+            "damp_factor_m" : -0.1,
             "time_integration_method": "Implicit",
             "analysis_type": "Non-Linear",
             "rotation_dofs": false,
