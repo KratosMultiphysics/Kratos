@@ -396,13 +396,6 @@ namespace Kratos {
             }
         } // for each neighbor
 
-        if (time_steps <= 1) {
-            std::ofstream outputfile("volumes.txt", std::ios_base::out | std::ios_base::app);
-            outputfile << "Id: " << this->Id() << "\n";
-            outputfile << "Representative volume: " << this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) << "\n";
-            outputfile.close();
-        }
-
         KRATOS_CATCH("")
     } //  ComputeBallToBallContactForce
 
