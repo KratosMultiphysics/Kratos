@@ -7,7 +7,8 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Denis Demidov
+//                   Riccardo Rossi
 //
 
 #if !defined(KRATOS_AMGCL_SOLVER )
