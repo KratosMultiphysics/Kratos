@@ -356,84 +356,6 @@ public:
         }
       }
 
-      // Merge the adjacency matrix
-      int * adjacent = new int[mpi_size];
-      int * send_adjacent = new int[mpi_size];
-
-      for (int i = 1; i < mpi_size; i++) {
-        if (mpi_rank == 0) {
-          MPI_Recv(adjacent, mpi_size , MPI_INT, i, i, MPI_COMM_WORLD, nullptr);
-          for (int j = 0; j < mpi_size ; j++) {
-            domains_graph(i, j) = std::max(adjacent[j],domains_graph(i, j));
-          }
-        } else if(mpi_rank == i) {
-          for (int j = 0; j < mpi_size ; j++) {
-            send_adjacent[j] = domains_graph(i, j);
-          }
-          MPI_Send(send_adjacent, mpi_size , MPI_INT, 0, i, MPI_COMM_WORLD);
-        }
-      }
-
-      // Debug print the file
-      std::fstream fs;
-      fs.open("DomainGraph." + std::to_string(mpi_rank) + ".dat", std::fstream::out);
-      for(int i = 0; i < mpi_size; i++) {
-        auto sum = 0;
-        for(int j = 0; j < mpi_size; j++) {
-          sum += domains_graph(i,j);
-          fs << domains_graph(i,j) << " ";
-        }
-        fs << "| " << sum << std::endl;
-      }
-
-      // Try to fix possible non-bidirectional communications ( why is this happening? )
-      for(int i = 0; i < mpi_size; i++) {
-        for(int j = 0; j < mpi_size; j++) {
-          if(domains_graph(i,j) != domains_graph(j,i)) {
-            std::cerr << "Inconsistence entry found while assembling domain_graph(" << i << "," << j << "). This should not happend. Please check your domain_graph." << std::endl;
-          }
-          auto ijcomm = std::max(domains_graph(i,j),domains_graph(j,i));
-          domains_graph(i,j) = domains_graph(j,i) = ijcomm;
-        }
-      }
-
-      // Update the new domains_colored_graph
-      int local_max_colors = 0;
-      int max_colors = 0;
-
-      if(mpi_rank == 0) {
-        GraphColoringProcess(mpi_size, domains_graph, domains_colored_graph, local_max_colors).Execute();
-      }
-
-      fs << "max_colors: " << local_max_colors << std::endl;
-      fs.close();
-      MPI_Allreduce(&local_max_colors, &max_colors, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
-
-      int * colors = new int[max_colors];
-      int * send_colors = new int[max_colors];
-
-      if(mpi_rank == 0) {
-        for (int j = 0; j < max_colors ; j++) {
-          colors[j] = domains_colored_graph(0, j);
-        }
-      }
-
-      for (int i = 1; i < mpi_size; i++) {
-        if (mpi_rank == 0) {
-          for (int j = 0; j < max_colors ; j++) {
-            send_colors[j] = domains_colored_graph(i, j);
-          }
-          MPI_Send(send_colors, max_colors , MPI_INT, i, i, MPI_COMM_WORLD);
-        } else if(mpi_rank == i) {
-          MPI_Recv(colors, max_colors , MPI_INT, 0, i, MPI_COMM_WORLD, nullptr);
-        }
-      }
-
-      MPI_Allreduce(&local_max_colors, &max_colors, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
-
-      // KRATOS_WATCH(domains_graph)
-      // KRATOS_WATCH(domains_colored_graph)
-
       // // Allocate space needed in the communicator
       mModelPart.GetCommunicator().SetNumberOfColors(max_colors);
 
@@ -442,26 +364,6 @@ public:
       //     mModelPart.GetCommunicator().GhostMesh(i).Nodes().clear();
       //     mModelPart.GetCommunicator().InterfaceMesh(i).Nodes().clear();
       // }
-
-      // Clean up the old nIndices
-      nIndices.resize(max_colors);
-      for(int i = 0; i < nIndices.size(); i++) {
-        nIndices[i] = -1;
-      }
-
-      // Fill the colors
-      if(max_colors > 64)
-        KRATOS_ERROR << "There are not enough colors in the world (The world has 64 colors) to paint your beatuiful graph. Not true anymore." << std::endl;
-      std::cout << "NEW COLORS: " << max_colors << std::endl;
-
-      for(int color = 0; color < mModelPart.GetCommunicator().GetNumberOfColors(); color++) {
-        auto pId = colors[color];
-        nIndices[color] = pId;
-        std::cout << "\t" << color << " --> " << nIndices[color] << " !=! " << pId << std::endl;
-      }
-
-      int maskSize = (max_colors / 32) + 1;
-      std::cerr << "maskSize: " << maskSize << std::endl;
 
       // Calculate the partition mask
       for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it) {
@@ -484,20 +386,10 @@ public:
           NodeToCutPlaneDist = fabs(NodeToCutPlaneDist);
 
           if (j != mpi_rank && NodeToCutPlaneDist <= max_radius * 2.0 ) {
-            // mask = 1;
+            mask = 1;
           }
         }
       }
-
-      std::cout << "HA" << std::endl;
-
-      // delete [] adjacent;
-      // delete [] send_adjacent;
-      // delete [] colors;
-      // delete [] send_colors;
-
-      std::cout << "H0" << std::endl;
-
     }
 
     ///@}
