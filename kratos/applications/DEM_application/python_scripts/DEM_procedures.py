@@ -1184,9 +1184,6 @@ class DEMIo(object):
     def AddMpiVariables(self):
         pass
 
-    def EnableMpiVariables(self):
-        pass
-
     def Configure(self, problem_name, encoding, file_system, contact_mesh_option):
         self.problem_name = problem_name
 

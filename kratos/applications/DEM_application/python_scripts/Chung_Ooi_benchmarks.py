@@ -162,7 +162,6 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
     demio.AddContactVariables()
     #
     demio.AddMpiVariables()
-    demio.EnableMpiVariables()
 
     demio.Configure(DEM_parameters.problem_name,
                     DEM_parameters.OutputFileType,

@@ -131,7 +131,7 @@ class DEMIo(DEM_procedures.DEMIo):
     def __init__(self, DEM_parameters):
         super(DEMIo,self).__init__(DEM_parameters)
 
-    def EnableMpiVariables(self):
+    def AddMpiVariables(self):
         self.spheres_variables.append(PARTITION_INDEX)
 
     def SetOutputName(self,name):
