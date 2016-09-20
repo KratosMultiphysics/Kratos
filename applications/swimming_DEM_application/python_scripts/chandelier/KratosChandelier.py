@@ -293,7 +293,6 @@ demio.AddClusterVariables()
 demio.AddContactVariables()
 # MPI
 demio.AddMpiVariables()
-demio.EnableMpiVariables()
 
 demio.Configure(DEM_parameters.problem_name,
                 DEM_parameters.OutputFileType,
