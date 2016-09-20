@@ -356,9 +356,6 @@ public:
         }
       }
 
-      // // Allocate space needed in the communicator
-      mModelPart.GetCommunicator().SetNumberOfColors(max_colors);
-
       // for (int i = 0; i < max_colors; i++) {
       //     mModelPart.GetCommunicator().LocalMesh(i).Nodes().clear();
       //     mModelPart.GetCommunicator().GhostMesh(i).Nodes().clear();
