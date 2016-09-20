@@ -332,7 +332,7 @@ public:
 
       // Claculate the domain matrix
       for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it) {
-        int myRank = (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(PARTITION_INDEX);
+        //int myRank = (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(PARTITION_INDEX);
 
         // This is done in a loop below
         // (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(PARTITION_MASK) = 0;
@@ -465,7 +465,7 @@ public:
 
       // Calculate the partition mask
       for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it) {
-        int myRank = (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(PARTITION_INDEX);
+        //int myRank = (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(PARTITION_INDEX);
         int & mask = (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(PARTITION_MASK);
 
         // New multimbyte mask

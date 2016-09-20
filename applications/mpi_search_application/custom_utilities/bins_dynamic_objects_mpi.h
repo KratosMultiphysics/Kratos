@@ -455,14 +455,14 @@ private:
   void CalculateCustomCellSize(const std::vector<int> & magic) {
     double totalDiff[3];
     double max = 0;
-    int maxI = 0;
-    double size;
+    //int maxI = 0;
+    //double size;
 
     for(SizeType i = 0; i < Dimension; i++) {
       totalDiff[i] = this->mMaxPoint[i]-this->mMinPoint[i];
       if(totalDiff[i] > max) {
         max = totalDiff[i];
-        maxI = i;
+        //maxI = i;
       }
     }
 
