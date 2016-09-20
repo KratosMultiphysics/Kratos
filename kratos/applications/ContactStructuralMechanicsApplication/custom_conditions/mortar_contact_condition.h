@@ -27,7 +27,8 @@
 #include "utilities/math_utils.h"
 #include "includes/kratos_flags.h"
 
-namespace Kratos {
+namespace Kratos 
+{
 
 ///@name Kratos Globals
 ///@{
@@ -35,7 +36,11 @@ namespace Kratos {
 ///@}
 ///@name Type Definitions
 ///@{
-
+    
+    typedef Point<3>                                  PointType;
+    typedef Node<3>                                    NodeType;
+    typedef Geometry<NodeType>                     GeometryType;
+    
 ///@}
 ///@name  Enum's
 ///@{
@@ -48,20 +53,95 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
+/** \brief ContactData 
+ * This data will be used to compute de external condition files
+ */ 
+struct ContactData
+{
+public:
+    
+    // Master and element geometries
+    GeometryType SlaveGeometry;
+    GeometryType MasterGeometry;
+    
+    // Gap function and its derivative variables
+    Vector Gaps;
+    
+    // The current Lagrange Multipliers
+    Matrix LagrangeMultipliers;
+    
+    // The normals of the nodes
+    Matrix NormalsMaster;
+    Matrix NormalsSlave;
+    
+    Matrix Tangent1Slave;
+    Matrix Tangent2Slave;
+    
+    // Delta time
+    double Dt;
+    
+    // Initializer method 
+    void Initialize(      
+            const GeometryType& GeometryInput,          // The geometry of the slave 
+            const unsigned int& rNumberOfSlaveNodes,    // Number of nodes of the slave
+            const unsigned int& rDimension              // 3D/2D physical space
+            )
+    {
+        SlaveGeometry  = GeometryInput;
+            
+        // Gap function and its derivative variables
+        Gaps = ZeroVector(rNumberOfSlaveNodes);
+        
+        // The current Lagrange Multipliers
+        LagrangeMultipliers = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
+        
+        // The normals of the nodes
+        NormalsSlave  = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
+        
+        Tangent1Slave = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
+        if (rDimension == 3)
+        {
+            Tangent2Slave = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
+        }
+        
+        // Delta time 
+        Dt = 0.0;
+    }
+    
+    // Updating the Master pair
+    void UpdateMasterPair(
+        const GeometryType& GeometryInput,          // The geometry of the current master
+        const unsigned int& rNumberOfMasterNodes,   // Number of nodes of the master
+        const unsigned int& rDimension             // 3D/2D physical space
+    )
+    {
+        MasterGeometry = GeometryInput; // Updating the geometry
+        
+        NormalsMaster = ZeroMatrix(rNumberOfMasterNodes, rDimension);
+        
+        for (unsigned int iNode = 0; iNode < rNumberOfMasterNodes; iNode++)
+        {
+            array_1d<double,3> normal = MasterGeometry[iNode].GetValue(NORMAL);
+            for (unsigned int iDof = 0; iDof < rDimension; iDof++)
+            {
+                NormalsMaster(iNode, iDof) = normal[iDof]; 
+            }
+        }
+    }
+};
+    
+    
 /** \brief MortarContactCondition
  * This is a contact condition which employes the mortar method with double lagrange multiplier 
  * The method has been taken from the Alexander Popps thesis:
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
  */
 class MortarContactCondition:
-                public Condition {
+                public Condition 
+{
 public:
         ///@name Type Definitions
         ///@{
-    
-        typedef Point<3>                                  PointType;
-        typedef Node<3>                                    NodeType;
-        typedef Geometry<NodeType>                     GeometryType;
         
         /// Counted pointer of MortarContactCondition
         KRATOS_CLASS_POINTER_DEFINITION( MortarContactCondition );
@@ -75,7 +155,7 @@ protected:
     {
     private:
         // Contact pair information
-        GeometryType* pMasterElement;   // Points to the master contact segment only
+        GeometryType* pMasterElement;   // Pointer to the master contact segment only
         unsigned int mMasterElementIndex;
 
     public:
@@ -88,19 +168,10 @@ protected:
         Matrix DN_De_Master;
         Matrix DN_De_Slave;
         Matrix DPhi_De_LagrangeMultipliers;
-         
-        // Gap function and its derivative variables
-        Vector Gaps;
-        
-        // The current Lagrange Multipliers
-        Matrix LagrangeMultipliers;
-        
-        // The normals of the nodes
-        Matrix Normals;
 
         // Determinant of slave cell's jacobian
         double DetJSlave;
-
+        
         /*
          * Jacobians in current configuration on all integration points of slave segment
          * Only those two variables contain info on all GP
@@ -113,12 +184,12 @@ protected:
         /********************************************************/
 
         // Initializer method 
-        void Initialize( 
+        void Initialize(
             const unsigned int& rLocalDimensionMaster,  // Xi local coordinate
             const unsigned int& rLocalDimensionSlave,   // Xi local coordinate
             const unsigned int& rNumberOfMasterNodes,   // 2-node line segment
             const unsigned int& rNumberOfSlaveNodes,    // 2-node line segment
-            const unsigned int& rDimension,             // 2D physical space
+            const unsigned int& rDimension,             // 3D/2D physical space
             const unsigned int& rIntegrationPointNumber // Number of integration points to be considered
             )
         {
@@ -141,26 +212,17 @@ protected:
             DN_De_Slave                  = ZeroMatrix( rNumberOfSlaveNodes ,  rLocalDimensionSlave );
             DPhi_De_LagrangeMultipliers  = ZeroMatrix( rNumberOfSlaveNodes ,  rLocalDimensionSlave );
 
-            // Gap function and its derivative variables
-            Gaps = ZeroVector(rNumberOfSlaveNodes);
-            
-            // The current Lagrange Multipliers
-            LagrangeMultipliers = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
-            
-            // The normals of the nodes
-            Normals = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
-
             // Jacobian of slave
             DetJSlave = 0.0;
-
+           
             // Jacobians on all integration points
             j_Slave.resize( rNumberOfSlaveNodes, 1, false );
         }
 
         /* Setters and getters for the master element */
-        void SetMasterElement( GeometryType& rSlaveElement ) 
+        void SetMasterElement( GeometryType& rMasterElement ) 
         { 
-            pMasterElement = &rSlaveElement;
+            pMasterElement = &rMasterElement;
         }
         
         GeometryType& GetMasterElement( ) 
@@ -436,9 +498,26 @@ public:
     /**
      * Initialize General Variables
      */
-    virtual void InitializeGeneralVariables( 
+    void InitializeGeneralVariables( 
         GeneralVariables& rVariables,
-        const unsigned int& rMasterElementIndex 
+        const ProcessInfo& rCurrentProcessInfo,
+        const unsigned int& rMasterElementIndex
+        );
+    
+    /**
+     * Initialize Contact data
+     */
+    void InitializeContactData( 
+        ContactData& rContactData,
+        const ProcessInfo& rCurrentProcessInfo
+        );
+    
+    /**
+     * Initialize General Variables
+     */
+    void UpdateContactData( 
+        ContactData& rContactData,
+        const unsigned int& rMasterElementIndex
         );
     
     /**
@@ -467,6 +546,7 @@ public:
     virtual void CalculateAndAddLHS( 
         LocalSystemComponents& rLocalSystem,
         GeneralVariables& rVariables,
+        const ContactData& rContactData,
         const unsigned int rPairIndex,
         const double& rIntegrationWeight
         );
@@ -486,13 +566,9 @@ public:
     void CalculateLocalLHS(
         MatrixType& rPairLHS,
         GeneralVariables& rVariables,
+        const ContactData& rContactData,
         const double& rIntegrationWeight 
         );
-    
-    /*
-     * 
-     */
-    bounded_matrix<double,12,12> ComputeGaussPointLHSContribution2D2N2N(GeneralVariables& rVariables);
     
     /*
      * Calculation and addition fo the vectors of the RHS of a contact pair
@@ -500,6 +576,7 @@ public:
     virtual void CalculateAndAddRHS( 
         LocalSystemComponents& rLocalSystem,
         GeneralVariables& rVariables,
+        const ContactData& rContactData,
         const unsigned int rPairIndex,
         const double& rIntegrationWeight
         );
@@ -519,13 +596,9 @@ public:
     void CalculateLocalRHS(
         VectorType& rPairRHS,
         GeneralVariables& rVariables,
+        const ContactData& rContactData,
         const double& rIntegrationWeight 
         );
-    
-    /*
-     * 
-     */
-    array_1d<double,12> ComputeGaussPointRHSContribution2D2N2N(GeneralVariables& rVariables);
     
     /***********************************************************************************/
     /**************** AUXILLIARY METHODS FOR CONDITION LHS CONTRIBUTION ****************/
