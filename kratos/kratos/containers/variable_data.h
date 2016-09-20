@@ -109,6 +109,11 @@ public:
 
     KeyType Key() const
     {
+        #ifdef KRATOS_DEBUG
+        if(mKey==0){
+            KRATOS_ERROR << "The variable " << mName << " is not registered!!" << std::endl;
+        }
+        #endif 
         return mKey;
     }
 
