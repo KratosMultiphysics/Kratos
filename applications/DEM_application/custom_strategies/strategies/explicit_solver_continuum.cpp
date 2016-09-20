@@ -473,6 +473,7 @@ namespace Kratos {
         while (fabs(out_coordination_number / in_coordination_number - 1.0) > 1e-3) {
             if (iteration >= maxiteration) break;
             iteration++;
+            if(r_model_part.GetCommunicator().MyPID() == 0) { std::cout<<" * "<<std::flush; }
             if (out_coordination_number == 0.0) {
                 std::cout << "Coordination Number method not supported in this case" << "\n" << std::endl;
                 KRATOS_THROW_ERROR(std::runtime_error, "The specified tangency method is not supported for this problem, please use absolute value instead", " ")
@@ -484,6 +485,8 @@ namespace Kratos {
             out_coordination_number = ComputeCoordinationNumber(standard_dev);
         }//while
 
+        if(r_model_part.GetCommunicator().MyPID() == 0) { std::cout<<std::endl;}
+        
         if (iteration < maxiteration){
             if(r_model_part.GetCommunicator().MyPID() == 0) {
                 std::cout << "Coordination Number iterative procedure converged after " << iteration << " iterations, to value " << out_coordination_number << " using an extension of " << added_search_distance << ". " << "\n" << std::endl;
