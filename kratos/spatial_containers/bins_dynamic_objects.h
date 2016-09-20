@@ -1278,7 +1278,7 @@ protected:
 
         for(IndexType I = Box.Axis[0].Begin() ; I <= Box.Axis[0].End() ; I += Box.Axis[0].Block, MinCell[0] += mCellSize[0], MaxCell[0] += mCellSize[0])
             if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell, Radius))
-                mCells[I].SearchObjectsInRaiusExclusive(ThisObject, Radius, Result, NumberOfResults, MaxNumberOfResults);
+                mCells[I].SearchObjectsInRadiusExclusive(ThisObject, Radius, Result, NumberOfResults, MaxNumberOfResults);
     }
 
     // Dimension = 2
@@ -1303,7 +1303,7 @@ protected:
             for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block, MinCell[0] += mCellSize[0], MaxCell[0] += mCellSize[0] )
             {
                 if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell, Radius))
-                    mCells[I].SearchObjectsInRaiusExclusive(ThisObject, Radius, Result, NumberOfResults, MaxNumberOfResults);
+                    mCells[I].SearchObjectsInRadiusExclusive(ThisObject, Radius, Result, NumberOfResults, MaxNumberOfResults);
             }
         }
     }
@@ -1681,7 +1681,7 @@ protected:
     CellContainerType mCells;  ///The bin
 
 private:
-  
+
     ///@}
     ///@name Private Operators
     ///@{
