@@ -200,7 +200,6 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         demio.AddContactVariables()
         #
         demio.AddMpiVariables()
-        demio.EnableMpiVariables()
 
         demio.Configure(DEM_parameters.problem_name,
                         DEM_parameters.OutputFileType,
