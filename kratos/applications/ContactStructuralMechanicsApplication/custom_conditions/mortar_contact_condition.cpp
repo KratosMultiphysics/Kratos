@@ -25,7 +25,7 @@
 /* Includes of particular contact conditions */
 #include "contact_2D_2N_2N.hpp"
 #include "contact_3D_3N_3N.hpp"
-// #include "contact_3D_4N_4N.hpp"
+#include "contact_3D_4N_4N.hpp"
 
 #include <algorithm>
 
@@ -1080,11 +1080,11 @@ void MortarContactCondition::CalculateLocalLHS(
             rPairLHS = rIntegrationWeight * ( Contact3D3N3N::ComputeGaussPointLHSInternalContribution( N1, N2, Phi, J, rContactData )
                                            +  Contact3D3N3N::ComputeGaussPointLHSContactContribution( N1, N2, Phi, J, rContactData ) );
         }
-//         else if (number_of_master_nodes == 4 &&  number_of_slave_nodes == 4)
-//         {
-//             rPairLHS = rIntegrationWeight * ( Contact3D4N4N::ComputeGaussPointLHSInternalContribution( N1, N2, Phi, J, rContactData )
-//                                            +  Contact3D4N4N::ComputeGaussPointLHSContactContribution( N1, N2, Phi, J, rContactData ) );
-//         }
+        else if (number_of_master_nodes == 4 &&  number_of_slave_nodes == 4)
+        {
+            rPairLHS = rIntegrationWeight * ( Contact3D4N4N::ComputeGaussPointLHSInternalContribution( N1, N2, Phi, J, rContactData )
+                                           +  Contact3D4N4N::ComputeGaussPointLHSContactContribution( N1, N2, Phi, J, rContactData ) );
+        }
         else
         {
             KRATOS_WATCH(number_of_master_nodes);
@@ -1203,9 +1203,6 @@ void MortarContactCondition::CalculateLocalRHS(
     const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
     const double J            = rVariables.DetJSlave;
     
-//     const double integration_point_gap = inner_prod(rContactData.Gaps, N1);
-//     KRATOS_WATCH(integration_point_gap);
-    
     if (dimension == 2)
     {
         if (number_of_master_nodes == 2 &&  number_of_slave_nodes == 2)
@@ -1226,11 +1223,11 @@ void MortarContactCondition::CalculateLocalRHS(
             rPairRHS = rIntegrationWeight * ( Contact3D3N3N::ComputeGaussPointRHSInternalContribution(N1, N2, Phi, J, rContactData)
                                             + Contact3D3N3N::ComputeGaussPointRHSContactContribution(N1, N2, Phi, J, rContactData) );
         }
-//         if (number_of_master_nodes == 4 &&  number_of_slave_nodes == 4)
-//         {
-//             rPairRHS = rIntegrationWeight * ( Contact3D4N4N::ComputeGaussPointRHSInternalContribution(N1, N2, Phi, J, rContactData)
-//                                             + Contact3D4N4N::ComputeGaussPointRHSContactContribution(N1, N2, Phi, J, rContactData) );
-//         }
+        if (number_of_master_nodes == 4 &&  number_of_slave_nodes == 4)
+        {
+            rPairRHS = rIntegrationWeight * ( Contact3D4N4N::ComputeGaussPointRHSInternalContribution(N1, N2, Phi, J, rContactData)
+                                            + Contact3D4N4N::ComputeGaussPointRHSContactContribution(N1, N2, Phi, J, rContactData) );
+        }
         else
         {
             KRATOS_WATCH(number_of_master_nodes);
