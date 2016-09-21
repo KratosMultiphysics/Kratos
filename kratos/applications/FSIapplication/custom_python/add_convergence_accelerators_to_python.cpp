@@ -62,12 +62,11 @@ void  AddConvergenceAcceleratorsToPython()
             ;
             
     // MVQN recursive convergence accelerator
-    class_< MVQNRecursiveJacobianConvergenceAccelerator <TSpace>, bases <BaseConvergenceAcceleratorType>, boost::noncopyable > ("MVQNRecursiveJacobianConvergenceAccelerator", init< double >())
+    class_< MVQNRecursiveJacobianConvergenceAccelerator <TSpace>, bases <BaseConvergenceAcceleratorType>, boost::noncopyable > ("MVQNRecursiveJacobianConvergenceAccelerator", init< double, int >())
             .def("Initialize", &MVQNRecursiveJacobianConvergenceAccelerator<TSpace>::Initialize)
             .def("InitializeSolutionStep", &MVQNRecursiveJacobianConvergenceAccelerator<TSpace>::InitializeSolutionStep)
             .def("UpdateSolution", &MVQNRecursiveJacobianConvergenceAccelerator<TSpace>::UpdateSolution)
             .def("FinalizeNonLinearIteration", &MVQNRecursiveJacobianConvergenceAccelerator<TSpace>::FinalizeNonLinearIteration)
-            .def("FinalizeSolutionStep", &MVQNRecursiveJacobianConvergenceAccelerator<TSpace>::FinalizeSolutionStep)
             ;
 
 }
