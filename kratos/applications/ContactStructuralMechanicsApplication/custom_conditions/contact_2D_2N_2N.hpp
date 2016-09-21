@@ -73,7 +73,7 @@ public:
     const double clhs9 =             J*N1[1];
     const double clhs10 =             -Phi[0]*clhs9;
     const double clhs11 =             -Phi[1]*clhs9;
-
+    
     lhs(0,0)=0;
     lhs(0,1)=0;
     lhs(0,2)=0;
@@ -235,22 +235,10 @@ public:
 {
     bounded_matrix<double,12,12> lhs;
     
-    const Matrix normalmaster = rContactData.NormalsMaster;
     const Matrix normalslave  = rContactData.NormalsSlave;
     const Matrix tan1slave    = rContactData.Tangent1Slave;
     const Matrix lm           = rContactData.LagrangeMultipliers;
     const double Dt           = rContactData.Dt;
-    
-    const Matrix X1 = GetCoordinates(rContactData, rContactData.SlaveGeometry, false);
-    const Matrix X2 = GetCoordinates(rContactData, rContactData.MasterGeometry, false);
-    const Matrix x1 = GetCoordinates(rContactData, rContactData.SlaveGeometry, true);
-    const Matrix x2 = GetCoordinates(rContactData, rContactData.MasterGeometry, true);
-    const Matrix u1 = GetVariableMatrix(rContactData, DISPLACEMENT, 0, rContactData.SlaveGeometry);
-    const Matrix u2 = GetVariableMatrix(rContactData, DISPLACEMENT, 0, rContactData.MasterGeometry);
-    const Matrix u1previous = GetVariableMatrix(rContactData, DISPLACEMENT, 1, rContactData.SlaveGeometry);
-    const Matrix u2previous = GetVariableMatrix(rContactData, DISPLACEMENT, 1, rContactData.MasterGeometry);
-    const Matrix v1 = GetVariableMatrix(rContactData, VELOCITY, 0, rContactData.SlaveGeometry); // TODO: Replace with the Bossak velocity
-    const Matrix v2 = GetVariableMatrix(rContactData, VELOCITY, 0, rContactData.MasterGeometry);
 
     const double clhs0 =             1.0/Dt;
     const double clhs1 =             J*N2[0]*Phi[0]*clhs0;
@@ -277,7 +265,7 @@ public:
     const double clhs22 =             Dt*normalslave(1,1);
     const double clhs23 =             clhs2*tan1slave(1,1) + clhs22*clhs4;
     const double clhs24 =             clhs22*clhs7 + clhs6*tan1slave(1,1);
-    
+
     lhs(0,0)=0;
     lhs(0,1)=0;
     lhs(0,2)=0;
@@ -460,7 +448,7 @@ public:
     rhs[9]=0;
     rhs[10]=0;
     rhs[11]=0;
-    
+
     return rhs;
 }
 
@@ -478,27 +466,17 @@ public:
     array_1d<double,12> rhs;
     
     const Matrix lm           = rContactData.LagrangeMultipliers;
-    const Matrix normalmaster = rContactData.NormalsMaster;
     const Matrix normalslave  = rContactData.NormalsSlave;
     const Matrix tan1slave    = rContactData.Tangent1Slave;
-    const double Dt           = rContactData.Dt;
-    
-    const Matrix X1 = GetCoordinates(rContactData, rContactData.SlaveGeometry, false);
-    const Matrix X2 = GetCoordinates(rContactData, rContactData.MasterGeometry, false);
-    const Matrix x1 = GetCoordinates(rContactData, rContactData.SlaveGeometry, true);
-    const Matrix x2 = GetCoordinates(rContactData, rContactData.MasterGeometry, true);
-    const Matrix u1 = GetVariableMatrix(rContactData, DISPLACEMENT, 0, rContactData.SlaveGeometry);
-    const Matrix u2 = GetVariableMatrix(rContactData, DISPLACEMENT, 0, rContactData.MasterGeometry);
-    const Matrix u1previous = GetVariableMatrix(rContactData, DISPLACEMENT, 1, rContactData.SlaveGeometry);
-    const Matrix u2previous = GetVariableMatrix(rContactData, DISPLACEMENT, 1, rContactData.MasterGeometry);
-    const Matrix v1 = GetVariableMatrix(rContactData, VELOCITY, 0, rContactData.SlaveGeometry); // TODO: Replace with the Bossak velocity
+    const Vector Gaps         = rContactData.Gaps;
+
+    const Matrix v1 = GetVariableMatrix(rContactData, VELOCITY, 0, rContactData.SlaveGeometry); 
     const Matrix v2 = GetVariableMatrix(rContactData, VELOCITY, 0, rContactData.MasterGeometry);
 
-    const double crhs0 =             1.0/Dt;
-    const double crhs1 =             J*Phi[0]*crhs0;
-    const double crhs2 =             Dt*((N1[0]*normalslave(0,0) + N1[1]*normalslave(1,0))*(N1[0]*(X1(0,0) + u1(0,0)) + N1[1]*(X1(1,0) + u1(1,0)) - N2[0]*(X2(0,0) + u2(0,0)) - N2[1]*(X2(1,0) + u2(1,0))) + (N1[0]*normalslave(0,1) + N1[1]*normalslave(1,1))*(N1[0]*(X1(0,1) + u1(0,1)) + N1[1]*(X1(1,1) + u1(1,1)) - N2[0]*(X2(0,1) + u2(0,1)) - N2[1]*(X2(1,1) + u2(1,1))));
-    const double crhs3 =             (N1[0]*tan1slave(0,0) + N1[1]*tan1slave(1,0))*(N1[0]*(u1(0,0) - u1previous(0,0)) + N1[1]*(u1(1,0) - u1previous(1,0)) - N2[0]*(u2(0,0) - u2previous(0,0)) - N2[1]*(u2(1,0) - u2previous(1,0))) + (N1[0]*tan1slave(0,1) + N1[1]*tan1slave(1,1))*(N1[0]*(u1(0,1) - u1previous(0,1)) + N1[1]*(u1(1,1) - u1previous(1,1)) - N2[0]*(u2(0,1) - u2previous(0,1)) - N2[1]*(u2(1,1) - u2previous(1,1)));
-    const double crhs4 =             J*Phi[1]*crhs0;
+    const double crhs1 =             J*Phi[0];
+    const double crhs2 =             inner_prod(Gaps, N1);
+    const double crhs3 =             (N1[0]*tan1slave(0,0) + N1[1]*tan1slave(1,0))*(N1[0]*v1(0, 0) + N1[1]*v1(1, 0) - N2[0]*v2(0, 0) - N2[1]*v2(1, 0)) + (N1[0]*tan1slave(0,1) + N1[1]*tan1slave(1,1))*(N1[0]*v1(0, 1) + N1[1]*v1(1, 1) - N2[0]*v2(0, 1) - N2[1]*v2(1, 1));
+    const double crhs4 =             J*Phi[1];
     
     rhs[0]=0;
     rhs[1]=0;
