@@ -83,6 +83,25 @@ public:
     }
 
     /**
+     * Old Jacobian pointer constructor with recursive previous Jacobian deleting.
+     * The Jacobian emulator will use information from the previous Jacobian
+     */
+    JacobianEmulator( boost::shared_ptr<JacobianEmulator> OldJacobianEmulatorPointer, unsigned int EmulatorBufferSize )
+    {        
+        mpOldJacobianEmulator = OldJacobianEmulatorPointer;
+                
+        // Get the last pointer out of buffer
+        JacobianEmulator::Pointer& p = mpOldJacobianEmulator->mpOldJacobianEmulator;
+        for(unsigned int i = 0; i < (EmulatorBufferSize-1); i++)
+        {
+            JacobianEmulator::Pointer& p = p->mpOldJacobianEmulator;
+        }
+        
+        // Destroy the one that goes out from max_steps
+        p.reset();
+    }
+
+    /**
      * Empty constructor.
      * The Jacobian emulator will consider the identity matrix as previous Jacobian
      */
@@ -93,6 +112,7 @@ public:
     /** 
      * Copy Constructor.
      */
+    //~ JacobianEmulator( const JacobianEmulator& rOther, int max_steps )
     JacobianEmulator( const JacobianEmulator& rOther )
     {
         mpOldJacobianEmulator = rOther.mpOldJacobianEmulator;
@@ -112,6 +132,17 @@ public:
     
     ///@name Operations
     ///@{
+
+    /**
+     * Projects the approximated Jacobian onto a vector
+     * @param rWorkVector: Vector in where the Jacobian is projected
+     */
+    void ApplyPrevStepJacobian(
+        const VectorType& rWorkVector,
+        VectorType& rProjectedVector)
+    {
+        mpOldJacobianEmulator->ApplyJacobian(rWorkVector, rProjectedVector);
+    }
 
     /**
      * Projects the approximated Jacobian onto a vector
@@ -198,17 +229,6 @@ public:
         }                                 
             
         rProjectedVector = (v - w); 
-
-        KRATOS_CATCH( "" );
-    }
-    
-    /**
-     * Clears the Jacobian buffer
-     */
-    void Clear() 
-    {
-        KRATOS_TRY;
-
 
         KRATOS_CATCH( "" );
     }
@@ -362,7 +382,7 @@ public:
      * Constructor.
      * MVQN convergence accelerator
      */
-    MVQNRecursiveJacobianConvergenceAccelerator( double rOmegaInitial = 0.825, unsigned int rJacobianBufferSize = 7 )
+    MVQNRecursiveJacobianConvergenceAccelerator( double rOmegaInitial = 0.825, unsigned int rJacobianBufferSize = 10 )
     {
         mOmega_0 = rOmegaInitial;
         mJacobianBufferSize = rJacobianBufferSize;
@@ -419,9 +439,18 @@ public:
         mConvergenceAcceleratorStep += 1;
         mConvergenceAcceleratorIteration = 0;   
         
-        // Construct the Jacobian emulator
-        typename JacobianEmulator<TSpace>::Pointer paux = boost::make_shared < JacobianEmulator<TSpace> > (mpCurrentJacobianEmulatorPointer); 
-        mpCurrentJacobianEmulatorPointer.swap(paux);
+        if (mConvergenceAcceleratorStep <= mJacobianBufferSize)
+        {
+            // Construct the Jacobian emulator
+            typename JacobianEmulator<TSpace>::Pointer paux = boost::make_shared < JacobianEmulator<TSpace> > (mpCurrentJacobianEmulatorPointer); 
+            mpCurrentJacobianEmulatorPointer.swap(paux);
+        }
+        else
+        {
+            // Construct the Jacobian emulator considering the recursive elimination
+            typename JacobianEmulator<TSpace>::Pointer paux = boost::make_shared < JacobianEmulator<TSpace> > (mpCurrentJacobianEmulatorPointer, mJacobianBufferSize); 
+            mpCurrentJacobianEmulatorPointer.swap(paux);
+        }   
                 
         KRATOS_CATCH( "" );
     }
@@ -455,7 +484,7 @@ public:
                 std::cout << "First step correction" << std::endl;
                 VectorType InitialCorrection(mProblemSize);
                 
-                mpPrevStepJacobianEmulatorPointer->ApplyJacobian(mResidualVector_1, InitialCorrection);
+                mpCurrentJacobianEmulatorPointer->ApplyPrevStepJacobian(mResidualVector_1, InitialCorrection);
                 rIterationGuess -= InitialCorrection;
             }
         }
@@ -510,7 +539,7 @@ public:
             
             MatrixType auxMat(aux_size, aux_size);
             MatrixType auxMatInv(aux_size, aux_size);
-                                        
+            
             for (unsigned int i = 0; i < aux_size; i++)
             {
                 auxMat(i,i) = TSpace::Dot(mpCurrentJacobianEmulatorPointer->mJacobianObsMatrixV[i],
@@ -524,19 +553,20 @@ public:
             }
             
             bool inversion_successful = InvertMatrix<>(auxMat, auxMatInv);
+                        
             if (inversion_successful == false) 
             {
                 KRATOS_ERROR << "Matrix inversion error within the Jacobian approximation computation!!";
             }
-            
+                        
             // t = V_k.T*r_k
             for (unsigned int i = 0; i < aux_size; i++)
             {
                 t(i) = TSpace::Dot(mpCurrentJacobianEmulatorPointer->mJacobianObsMatrixV[i], mResidualVector_1);
-            }          
-            
+            }
+                        
             // z = (V_k.T*V_k)^-1*t
-            TSpace::Mult(auxMatInv, t, z);                                        
+            TSpace::Mult(auxMatInv, t, z);
             
             // TODO: PARALLELIZE THIS OPERATION (it cannot be done with TSpace::Dot beacuse the obs matrices are stored by columns)
             // y = V_k*z - r_k
@@ -550,7 +580,7 @@ public:
             }
             y -= mResidualVector_1;
                         
-            //~ v = ApproximateJacobianOntoVector(y, mCurrentJacobianBufferSize);
+            std::cout << "ApplyJacobian call..." << std::endl;
             if (mpCurrentJacobianEmulatorPointer == nullptr)
             {
                 v = y;
@@ -559,6 +589,7 @@ public:
             {
                 mpCurrentJacobianEmulatorPointer->ApplyJacobian(y, v);
             }
+            std::cout << "ApplyJacobian finished." << std::endl;
             
             // w = W_k*z
             for (unsigned int i = 0; i < mProblemSize; i++)
@@ -589,19 +620,6 @@ public:
         mIterationValue_0 = mIterationValue_1;
         mResidualVector_0 = mResidualVector_1;
         mConvergenceAcceleratorIteration += 1;
-
-        KRATOS_CATCH( "" );
-    }
-    
-    /**
-     * Reset the convergence accelerator iterations counter
-     */
-    void FinalizeSolutionStep() override
-    {
-        KRATOS_TRY;
-          
-        mpPrevStepJacobianEmulatorPointer = boost::make_shared < JacobianEmulator<TSpace> > (mpCurrentJacobianEmulatorPointer);
-        (*mpPrevStepJacobianEmulatorPointer) = (*mpCurrentJacobianEmulatorPointer);
 
         KRATOS_CATCH( "" );
     }
@@ -645,7 +663,6 @@ protected:
     VectorType mIterationValue_0;                                               // Previous iteration guess
     VectorType mIterationValue_1;                                               // Current iteration guess
     
-    JacobianEmulatorPointerType mpPrevStepJacobianEmulatorPointer;              // Previous step Jacobian approximator pointer
     JacobianEmulatorPointerType mpCurrentJacobianEmulatorPointer;               // Current step Jacobian approximator pointer
     
     
@@ -673,7 +690,7 @@ protected:
 
         // create a working copy of the input
         T A(input);
-
+       
         // create a permutation matrix for the LU-factorization
         pmatrix pm(A.size1());
 
@@ -681,13 +698,13 @@ protected:
         int res = lu_factorize(A, pm);
         if (res != 0)
             return false;
-
+            
         // create identity matrix of "inverse"
         inverse.assign(identity_matrix<double> (A.size1()));
 
         // backsubstitute to get the inverse
-        lu_substitute(A, pm, inverse);
-
+        lu_substitute(A, pm, inverse);                   // THE ERROR IS IN HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        
         return true;
     }
 
