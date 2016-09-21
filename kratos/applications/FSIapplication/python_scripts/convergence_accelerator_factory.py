@@ -18,7 +18,8 @@ def CreateConvergenceAccelerator(configuration):
         convergence_accelerator = KratosFSI.MVQNFullJacobianConvergenceAccelerator(configuration["w_0"].GetDouble())
             
     elif(convergence_accelerator_type == "MVQN_recursive"):
-        convergence_accelerator = KratosFSI.MVQNRecursiveJacobianConvergenceAccelerator(configuration["w_0"].GetDouble())
+        convergence_accelerator = KratosFSI.MVQNRecursiveJacobianConvergenceAccelerator(configuration["w_0"].GetDouble(),
+                                                                                        configuration["buffer_size"].GetInt())
         
     else:
         raise Exception("Convergence accelerator not found. Asking for : " + convergence_accelerator_type)
