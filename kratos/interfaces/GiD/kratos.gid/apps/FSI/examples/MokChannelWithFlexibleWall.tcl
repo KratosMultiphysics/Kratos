@@ -9,12 +9,12 @@ proc FSI::examples::DrawMokChannelFlexibleWallGeometry {args} {
     GiD_Process Mescape 'Layers ChangeName Layer0 Fluid escape
     
     # Geometry creation
-    set coordinates [list 4.95 0 0 0 0 0 0 5 0 17.5 5 0 17.5 3 0 12.75 3 0 12.5 2.97 0 12.266 2.907 0 5 0 0]
+    set coordinates [list 0.5 0 0 0 0 0 0 0.5 0 1.75 0.5 0 1.75 0.3 0 1.35 0.3 0 1.3103 0.29881 0 1.2709 0.29453 0 1.232 0.28693 0 1.1937 0.27644 0 1.1565 0.26288 0 0.505 0 0]
     set fluidPoints [list ]
     foreach {x y z} $coordinates {
         lappend fluidPoints [GiD_Geometry create point append Fluid $x $y $z]
     }
-    set coordinates [list 5 2.5 0 4.95 2.5 0]
+    set coordinates [list 0.505 0.25 0 0.5 0.25 0]
     set fluidnterfacePoints [list ]
     foreach {x y z} $coordinates {
         lappend fluidnterfacePoints [GiD_Geometry create point append Fluid $x $y $z]
@@ -43,7 +43,7 @@ proc FSI::examples::DrawMokChannelFlexibleWallGeometry {args} {
     GiD_Process 'Layers ToUse Structure escape
     
     
-    set coordinates [list 5 0 0 5 2.5 0 4.95 2.5 0 4.95 0 0 ]
+    set coordinates [list 0.505 0 0 0.505 0.25 0 0.5 0.25 0 0.5 0 0 ]
     set strucPoints [list ]
     foreach {x y z} $coordinates {
         lappend strucPoints [GiD_Geometry create point append Structure $x $y $z]
@@ -204,7 +204,7 @@ proc FSI::examples::TreeAssignationMokChannelFlexibleWall {args} {
     gid_groups_conds::addF $structDisplacementGroup value {n valueZ wn {DISPLACEMENT _Z} pn {Value Z} help {} state {[CheckDimension 3D]} v 0.0}
     
     # Structural Interface
-    gid_groups_conds::addF "container\[@n='FSI'\]/container\[@n='Structural'\]/container\[@n='Loads'\]/condition\[@n='Interface$nd'\]" group {n StructureInterface}
+    gid_groups_conds::addF "container\[@n='FSI'\]/container\[@n='Structural'\]/container\[@n='Loads'\]/condition\[@n='StructureInterface$nd'\]" group {n StructureInterface}
 
     spdAux::RequestRefresh
 }
