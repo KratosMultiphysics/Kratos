@@ -98,7 +98,8 @@ public:
                 }
              }
          }
-
+         
+         // TODO: Remove if not needed anymore with the colocation
          if (dimension == 2)
          {
              if (number_nodes == 2)
@@ -192,7 +193,7 @@ public:
             dist = inner_prod(vector_points, Normal)/norm_2(Normal);
 
             CoordProjected = CoordDestiny + Vector * dist;
-            std::cout << " :: Warning: Zero projection vector. Projection using the condition vector instead." << std::endl;
+            std::cout << " :: Warning: Zero projection vector. Projection using the condition normal vector instead." << std::endl;
         }
         else if (std::abs(inner_prod(Vector, Normal) ) >= tol)
         {

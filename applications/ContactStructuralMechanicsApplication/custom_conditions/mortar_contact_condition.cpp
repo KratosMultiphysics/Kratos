@@ -24,7 +24,7 @@
 
 /* Includes of particular contact conditions */
 #include "contact_2D_2N_2N.hpp"
-// #include "contact_3D_3N_3N.hpp"
+#include "contact_3D_3N_3N.hpp"
 // #include "contact_3D_4N_4N.hpp"
 
 #include <algorithm>
@@ -648,8 +648,6 @@ void MortarContactCondition::CalculateConditionSystem(
     ContactData CurrentContactData;
 
     // Slave segment info
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_nodes_slave        = GetGeometry().PointsNumber( );
     const unsigned int number_of_elements_master = mThisMasterElements.size( );
     
     // Reading integration points
@@ -664,9 +662,7 @@ void MortarContactCondition::CalculateConditionSystem(
     this->InitializeContactData(CurrentContactData, rCurrentProcessInfo);
     
     for (unsigned int PairIndex = 0; PairIndex < number_of_elements_master; ++PairIndex)
-    {
-        const unsigned int num_nodes_master = mThisMasterElements[PairIndex]->GetGeometry( ).PointsNumber( );
-        
+    {   
         // Initialize general variables for the current master element
         this->InitializeGeneralVariables( Variables, rCurrentProcessInfo, PairIndex );
         
@@ -689,8 +685,7 @@ void MortarContactCondition::CalculateConditionSystem(
             
             if (integration_point_gap <= dist_tol)
             {
-                
-                KRATOS_WATCH(integration_point_gap);
+//                 KRATOS_WATCH(integration_point_gap);
                 
                 const double IntegrationWeight = integration_points[PointNumber].Weight();
                 
@@ -1080,21 +1075,21 @@ void MortarContactCondition::CalculateLocalLHS(
     }
     else
     {
-//         if (number_of_master_nodes == 3 &&  number_of_slave_nodes == 3)
-//         {
-//             rPairLHS = rIntegrationWeight * ( Contact3D3N3N::ComputeGaussPointLHSInternalContribution( N1, N2, Phi, J, rContactData )
-//                                            +  Contact3D3N3N::ComputeGaussPointLHSContactContribution( N1, N2, Phi, J, rContactData ) );
-//         }
+        if (number_of_master_nodes == 3 &&  number_of_slave_nodes == 3)
+        {
+            rPairLHS = rIntegrationWeight * ( Contact3D3N3N::ComputeGaussPointLHSInternalContribution( N1, N2, Phi, J, rContactData )
+                                           +  Contact3D3N3N::ComputeGaussPointLHSContactContribution( N1, N2, Phi, J, rContactData ) );
+        }
 //         else if (number_of_master_nodes == 4 &&  number_of_slave_nodes == 4)
 //         {
 //             rPairLHS = rIntegrationWeight * ( Contact3D4N4N::ComputeGaussPointLHSInternalContribution( N1, N2, Phi, J, rContactData )
 //                                            +  Contact3D4N4N::ComputeGaussPointLHSContactContribution( N1, N2, Phi, J, rContactData ) );
 //         }
-//         else
-//         {
+        else
+        {
             KRATOS_WATCH(number_of_master_nodes);
             KRATOS_THROW_ERROR( std::logic_error,  " COMBINATION OF GEOMETRIES NOT IMPLEMENTED. Number of slave elements: ", number_of_slave_nodes );
-//         }
+        }
     }
 }
 
@@ -1226,21 +1221,21 @@ void MortarContactCondition::CalculateLocalRHS(
     }
     else
     {
-//         if (number_of_master_nodes == 3 &&  number_of_slave_nodes == 3)
-//         {
-//             rPairRHS = rIntegrationWeight * ( Contact3D3N3N::ComputeGaussPointRHSInternalContribution(N1, N2, Phi, J, rContactData)
-//                                             + Contact3D3N3N::ComputeGaussPointRHSContactContribution(N1, N2, Phi, J, rContactData) );
-//         }
+        if (number_of_master_nodes == 3 &&  number_of_slave_nodes == 3)
+        {
+            rPairRHS = rIntegrationWeight * ( Contact3D3N3N::ComputeGaussPointRHSInternalContribution(N1, N2, Phi, J, rContactData)
+                                            + Contact3D3N3N::ComputeGaussPointRHSContactContribution(N1, N2, Phi, J, rContactData) );
+        }
 //         if (number_of_master_nodes == 4 &&  number_of_slave_nodes == 4)
 //         {
 //             rPairRHS = rIntegrationWeight * ( Contact3D4N4N::ComputeGaussPointRHSInternalContribution(N1, N2, Phi, J, rContactData)
 //                                             + Contact3D4N4N::ComputeGaussPointRHSContactContribution(N1, N2, Phi, J, rContactData) );
 //         }
-//         else
-//         {
+        else
+        {
             KRATOS_WATCH(number_of_master_nodes);
             KRATOS_THROW_ERROR( std::logic_error,  " COMBINATION OF GEOMETRIES NOT IMPLEMENTED. Number of slave elements: ", number_of_slave_nodes );
-//         }
+        }
     }
 }
 

@@ -26,6 +26,7 @@
 
 /* CONDITIONS */
 // Mortar conditions
+#include "custom_conditions/mortar_contact_condition.h"
 #include "custom_conditions/mortar_contact_2D_condition.hpp"
 #include "custom_conditions/mortar_contact_3D_condition.hpp"
 
@@ -198,6 +199,13 @@ private:
     const MortarContact3DCondition mMortarContactCondition3D4N;
     const MortarContact3DCondition mMortarContactCondition3D8N;
     const MortarContact3DCondition mMortarContactCondition3D9N;
+//     const MortarContactCondition mMortarContactCondition2D2N;
+//     const MortarContactCondition mMortarContactCondition2D3N;
+//     const MortarContactCondition mMortarContactCondition3D3N;
+//     const MortarContactCondition mMortarContactCondition3D6N;
+//     const MortarContactCondition mMortarContactCondition3D4N;
+//     const MortarContactCondition mMortarContactCondition3D8N;
+//     const MortarContactCondition mMortarContactCondition3D9N;
 
     ///@}
     ///@name Private Operators
