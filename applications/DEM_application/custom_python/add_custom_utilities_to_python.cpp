@@ -25,9 +25,9 @@
 #include "boost/python/extract.hpp"
 
 
-namespace Kratos{
+namespace Kratos {
 
-namespace Python{
+namespace Python {
 
 typedef ModelPart::NodesContainerType::iterator      PointIterator;
 typedef std::vector<array_1d<double, 3 > >           ComponentVectorType;
@@ -36,40 +36,39 @@ typedef SpatialSearch::NodesContainerType            NodesArrayType;
 
 boost::python::list Aux_MeasureTopHeight(PreUtilities& ThisPreUtils, ModelPart& rModelPart)
 {
-  double subtotal = 0.0;
-  double weight = 0.0;
-  ThisPreUtils.MeasureTopHeight(rModelPart,subtotal,weight);
-  
-  // Copy output to a Python list
-  boost::python::list Out;
-  boost::python::object py_subtotal(subtotal);
-  boost::python::object py_weight(weight);
-  Out.append( py_subtotal );
-  Out.append( py_weight );
-  return Out;
+    double subtotal = 0.0;
+    double weight = 0.0;
+    ThisPreUtils.MeasureTopHeight(rModelPart,subtotal,weight);
+
+    // Copy output to a Python list
+    boost::python::list Out;
+    boost::python::object py_subtotal(subtotal);
+    boost::python::object py_weight(weight);
+    Out.append( py_subtotal );
+    Out.append( py_weight );
+    return Out;
 }
 
 boost::python::list Aux_MeasureBotHeight(PreUtilities& ThisPreUtils, ModelPart& rModelPart)
 {
-  double subtotal = 0.0;
-  double weight = 0.0;
-  ThisPreUtils.MeasureBotHeight(rModelPart,subtotal,weight);
-  
-  // Copy output to a Python list
-  boost::python::list Out;
-  boost::python::object py_subtotal(subtotal);
-  boost::python::object py_weight(weight);
-  Out.append( py_subtotal );
-  Out.append( py_weight );
-  return Out;
+    double subtotal = 0.0;
+    double weight = 0.0;
+    ThisPreUtils.MeasureBotHeight(rModelPart,subtotal,weight);
+
+    // Copy output to a Python list
+    boost::python::list Out;
+    boost::python::object py_subtotal(subtotal);
+    boost::python::object py_weight(weight);
+    Out.append( py_subtotal );
+    Out.append( py_weight );
+    return Out;
 }
 
-
-void  AddCustomUtilitiesToPython() {
+void AddCustomUtilitiesToPython() {
     
     using namespace boost::python;
     
-      class_<ParticleCreatorDestructor, boost::noncopyable >
+    class_<ParticleCreatorDestructor, boost::noncopyable >
         ("ParticleCreatorDestructor", init<>())
         .def("CalculateSurroundingBoundingBox", &ParticleCreatorDestructor::CalculateSurroundingBoundingBox)
         .def("MarkParticlesForErasingGivenBoundingBox", &ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox)
@@ -89,13 +88,13 @@ void  AddCustomUtilitiesToPython() {
         .def("RenumberElementIdsFromGivenValue", &ParticleCreatorDestructor::RenumberElementIdsFromGivenValue)
         ;
       
-      class_<DEM_Inlet, boost::noncopyable >
+    class_<DEM_Inlet, boost::noncopyable >
         ("DEM_Inlet", init<ModelPart&>())
         .def("CreateElementsFromInletMesh", &DEM_Inlet::CreateElementsFromInletMesh)        
         .def("InitializeDEM_Inlet", &DEM_Inlet::InitializeDEM_Inlet) 
         ;
 
-     class_<SphericElementGlobalPhysicsCalculator, boost::noncopyable >
+    class_<SphericElementGlobalPhysicsCalculator, boost::noncopyable >
         ("SphericElementGlobalPhysicsCalculator", init<ModelPart&>())
         .def("CalculateTotalVolume", &SphericElementGlobalPhysicsCalculator::CalculateTotalVolume)
         .def("CalculateTotalMass", &SphericElementGlobalPhysicsCalculator::CalculateTotalMass)
@@ -110,33 +109,38 @@ void  AddCustomUtilitiesToPython() {
         .def("CalulateTotalAngularMomentum", &SphericElementGlobalPhysicsCalculator::CalulateTotalAngularMomentum)
         ;
 
-     void (DemSearchUtilities::*SearchNodeNeigboursDistancesMM)(ModelPart&,ModelPart&,const double&,const Variable<double>&) = &DemSearchUtilities::SearchNodeNeigboursDistances<Variable<double> >;
-     void (DemSearchUtilities::*SearchNodeNeigboursDistancesML)(NodesArrayType&,ModelPart&,const double&,const Variable<double>&) = &DemSearchUtilities::SearchNodeNeigboursDistances<Variable<double> >;
-     void (DemSearchUtilities::*SearchNodeNeigboursDistancesLM)(ModelPart&,NodesArrayType&,const double&,const Variable<double>&) = &DemSearchUtilities::SearchNodeNeigboursDistances<Variable<double> >;
-     void (DemSearchUtilities::*SearchNodeNeigboursDistancesLL)(NodesArrayType&,NodesArrayType&,const double&,const Variable<double>&) = &DemSearchUtilities::SearchNodeNeigboursDistances<Variable<double> >;
+    void (DemSearchUtilities::*SearchNodeNeigboursDistancesMM)(ModelPart&,ModelPart&,const double&,const Variable<double>&) = &DemSearchUtilities::SearchNodeNeigboursDistances<Variable<double> >;
+    void (DemSearchUtilities::*SearchNodeNeigboursDistancesML)(NodesArrayType&,ModelPart&,const double&,const Variable<double>&) = &DemSearchUtilities::SearchNodeNeigboursDistances<Variable<double> >;
+    void (DemSearchUtilities::*SearchNodeNeigboursDistancesLM)(ModelPart&,NodesArrayType&,const double&,const Variable<double>&) = &DemSearchUtilities::SearchNodeNeigboursDistances<Variable<double> >;
+    void (DemSearchUtilities::*SearchNodeNeigboursDistancesLL)(NodesArrayType&,NodesArrayType&,const double&,const Variable<double>&) = &DemSearchUtilities::SearchNodeNeigboursDistances<Variable<double> >;
 
-     class_<DemSearchUtilities, boost::noncopyable >
-         ("DemSearchUtilities", init<SpatialSearch::Pointer>())
-         .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesMM)
-         .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesML)
-         .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesLM)
-         .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesLL)
-         ;
+    class_<DemSearchUtilities, boost::noncopyable >
+        ("DemSearchUtilities", init<SpatialSearch::Pointer>())
+        .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesMM)
+        .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesML)
+        .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesLM)
+        .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesLL)
+        ;
 
-     class_<DEM_FEM_Search, boost::noncopyable >
+    class_<DEM_FEM_Search, boost::noncopyable >
         ("DEM_FEM_Search", init<>())
         .def("GetBBHighPoint", &DEM_FEM_Search::GetBBHighPoint)
         .def("GetBBLowPoint", &DEM_FEM_Search::GetBBLowPoint)
         ;
-        
-      class_<PreUtilities, boost::noncopyable >
+
+    class_<PreUtilities, boost::noncopyable >
         ("PreUtilities", init<ModelPart&>())
         .def("MeasureTopHeigh", Aux_MeasureTopHeight)        
         .def("MeasureBotHeigh", Aux_MeasureBotHeight)
         .def("SetClusterInformationInProperties", &PreUtilities::SetClusterInformationInProperties)
         ;
+      
+    class_<PreUtilities, boost::noncopyable >
+        ("PreUtilities", init<>())
+        .def("CreateCartesianSpecimenMdpa", &PreUtilities::CreateCartesianSpecimenMdpa)
+        ;
 
-     class_<PostUtilities, boost::noncopyable >
+    class_<PostUtilities, boost::noncopyable >
         ("PostUtilities", init<>())
         .def("VelocityTrap", &PostUtilities::VelocityTrap)
         .def("AddModelPartToModelPart", &PostUtilities::AddModelPartToModelPart)
@@ -148,24 +152,21 @@ void  AddCustomUtilitiesToPython() {
         .def("ComputeEulerAngles", &PostUtilities::ComputeEulerAngles)
         ;
      
-     class_<DEMFEMUtilities, boost::noncopyable >
+    class_<DEMFEMUtilities, boost::noncopyable >
         ("DEMFEMUtilities", init<>())
         .def("MoveAllMeshes", &DEMFEMUtilities::MoveAllMeshes)
         .def("CreateRigidFacesFromAllElements", &DEMFEMUtilities::CreateRigidFacesFromAllElements)     
         ;
 
-
-     class_<BenchmarkUtils, boost::noncopyable >
+    class_<BenchmarkUtils, boost::noncopyable >
         ("BenchmarkUtils", init<>())
         .def("ComputeHydrodynamicForces", &BenchmarkUtils::ComputeHydrodynamicForces)
         ;
-
      
-     class_<ReorderConsecutiveFromGivenIdsModelPartIO, ReorderConsecutiveFromGivenIdsModelPartIO::Pointer, bases<ReorderConsecutiveModelPartIO>,  boost::noncopyable>(
+    class_<ReorderConsecutiveFromGivenIdsModelPartIO, ReorderConsecutiveFromGivenIdsModelPartIO::Pointer, bases<ReorderConsecutiveModelPartIO>,  boost::noncopyable>(
         "ReorderConsecutiveFromGivenIdsModelPartIO",init<std::string const& >())
         .def(init<std::string const&, const int, const int, const int>())
-     ;       
-
+        ;       
     }
 
 }  // namespace Python
