@@ -71,7 +71,7 @@ public:
     Matrix LagrangeMultipliers;
     
     // The normals of the nodes
-    Matrix NormalsMaster;
+//     Matrix NormalsMaster;
     Matrix NormalsSlave;
     
     Matrix Tangent1Slave;
@@ -117,16 +117,17 @@ public:
     {
         MasterGeometry = GeometryInput; // Updating the geometry
         
-        NormalsMaster = ZeroMatrix(rNumberOfMasterNodes, rDimension);
-        
-        for (unsigned int iNode = 0; iNode < rNumberOfMasterNodes; iNode++)
-        {
-            array_1d<double,3> normal = MasterGeometry[iNode].GetValue(NORMAL);
-            for (unsigned int iDof = 0; iDof < rDimension; iDof++)
-            {
-                NormalsMaster(iNode, iDof) = normal[iDof]; 
-            }
-        }
+//         NormalsMaster = ZeroMatrix(rNumberOfMasterNodes, rDimension);
+//         
+//         for (unsigned int iNode = 0; iNode < rNumberOfMasterNodes; iNode++)
+//         {
+//             array_1d<double,3> normal = MasterGeometry[iNode].GetValue(NORMAL);
+// 
+//             for (unsigned int iDof = 0; iDof < rDimension; iDof++)
+//             {
+//                 NormalsMaster(iNode, iDof) = normal[iDof]; 
+//             }
+//         }
     }
 };
     

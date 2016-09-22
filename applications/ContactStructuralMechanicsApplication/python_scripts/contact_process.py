@@ -96,6 +96,25 @@ class ContactProcess(KratosMultiphysics.Process):
         #print("MODEL PART AFTER CREATING INTERFACE")
         #print(self.main_model_part)
         
+        # Appending the conditions created to the computing_model_part
+        computing_model_part = self.main_model_part.GetSubModelPart("solid_computing_domain") #NOTE: The name can change
+        
+        cond_index = 0
+        
+        #for cond in computing_model_part.Conditions:
+            #cond_index += 1
+        #del(cond)
+            
+        for cond in self.o_interface.Conditions:
+            computing_model_part.AddCondition(cond, cond_index)  
+            #cond_index += 1
+        del(cond)
+        
+        for cond in self.d_interface.Conditions:
+            computing_model_part.AddCondition(cond, cond_index)  
+            #cond_index += 1
+        del(cond)
+        
         self.contact_search = KratosMultiphysics.ContactStructuralMechanicsApplication.TreeContactSearch(self.o_interface, self.d_interface, self.max_number_results)
         
         if self.params["contact_type"].GetString() == "MortarMethod":
@@ -112,6 +131,9 @@ class ContactProcess(KratosMultiphysics.Process):
         pass
     
     def ExecuteInitializeSolutionStep(self):
+        #for cond in self.d_interface.Conditions:
+            #print(cond.Is(KratosMultiphysics.ACTIVE))
+        
         if self.params["contact_type"].GetString() == "MortarMethod":
             self.contact_search.CreateMortarConditions(self.search_factor, self.type_search, self.integration_order)
             #self.contact_search.CheckMortarConditions()
@@ -119,6 +141,9 @@ class ContactProcess(KratosMultiphysics.Process):
             self.contact_search.CreateNTNConditions(self.search_factor, self.type_search, self.integration_order)
         elif self.params["contact_type"].GetString() == "NTS":
             self.contact_search.CreateNTSConditions(self.search_factor, self.type_search, self.integration_order)
+            
+        #for cond in self.d_interface.Conditions:
+            #print(cond.Is(KratosMultiphysics.ACTIVE))
         
     def ExecuteFinalizeSolutionStep(self):
         pass
@@ -130,6 +155,9 @@ class ContactProcess(KratosMultiphysics.Process):
         if self.params["contact_type"].GetString() == "MortarMethod":
             self.contact_search.UpdatePointListMortar()
             self.contact_search.ClearMortarConditions()
-
+            
+        #for cond in self.d_interface.Conditions:
+            #print(cond.Is(KratosMultiphysics.ACTIVE))
+            
     def ExecuteFinalize(self):
         pass

@@ -129,7 +129,7 @@ public:
             const int thread = OpenMPUtils::ThisThread();
                     
             // Basic operations for the condition considered
-            (rCurrentCondition) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+            (rCurrentCondition)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
             (rCurrentCondition)->EquationIdVector(EquationId,CurrentProcessInfo);
 
@@ -160,7 +160,7 @@ public:
         ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY;
-
+        
         bool condition_is_active = true;
         if( (rCurrentCondition)->IsDefined(ACTIVE) == true)
         {
@@ -228,7 +228,7 @@ public:
     )
     {
         KRATOS_TRY;
-        
+
         // Initializes the non-linear iteration for all the elements
         ElementsArrayType& rElements = rModelPart.Elements();
         ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -329,7 +329,7 @@ public:
         )
     {
         KRATOS_TRY;
-        
+            
         // Finalizes solution step for all of the elements
         ElementsArrayType& rElements = rModelPart.Elements();
         ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -374,7 +374,7 @@ public:
                 {
                     condition_is_active = (itCond)->Is(ACTIVE);
                 }
-                
+               
                 if ( condition_is_active == true )
                 {
                     itCond->FinalizeSolutionStep(CurrentProcessInfo);
