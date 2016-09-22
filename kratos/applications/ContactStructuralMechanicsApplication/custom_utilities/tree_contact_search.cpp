@@ -376,35 +376,6 @@ void TreeContactSearch::CreateMortarConditions(
     unsigned int NumberPointsFound = 0;
     ClearMortarConditions(); // Clear the conditions
     
-    IntegrationMethod IntegrationOrder;
-
-    if (integration_order == 1)
-    {
-        IntegrationOrder = GeometryData::GI_GAUSS_1;
-    }
-    else if (integration_order == 2)
-    {
-        IntegrationOrder = GeometryData::GI_GAUSS_2;
-    }
-    else if (integration_order == 3)
-    {
-        IntegrationOrder = GeometryData::GI_GAUSS_3;
-    }
-    else if (integration_order == 4)
-    {
-        IntegrationOrder = GeometryData::GI_GAUSS_4;
-    }
-    else if (integration_order == 5)
-    {
-        IntegrationOrder = GeometryData::GI_GAUSS_5;
-    }
-    else
-    {
-        std::cout << "The number of integration points is not defined.  integration_order: "<< integration_order << std::endl;
-        std::cout << "Taking default number of integration points" << std::endl;
-        IntegrationOrder = mrOriginModelPart.ConditionsBegin()->GetGeometry().GetDefaultIntegrationMethod();
-    }
-    
     // Create a tree
     // It will use a copy of mNodeList (a std::vector which contains pointers)
     // Copying the list is required because the tree will reorder it for efficiency
@@ -454,7 +425,7 @@ void TreeContactSearch::CreateMortarConditions(
                     // Get the active check factor
                     const double ActiveCheckFactor = pCondDestination->GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
 
-                    MortarContainerFiller(pCondOrigin->GetGeometry().Center(), PointsFound[i], pCondDestination, pCondOrigin, ConditionPointersDestination, ActiveCheckFactor, IntegrationOrder, false);
+                    MortarContainerFiller(pCondOrigin->GetGeometry().Center(), PointsFound[i], pCondDestination, pCondOrigin, ConditionPointersDestination, ActiveCheckFactor, false);
                 }
             }
         }
@@ -510,7 +481,6 @@ void TreeContactSearch::MortarContainerFiller(
         const Condition::Pointer & pCond_2,
         std::vector<contact_container> *& ConditionPointers,
         const double ActiveCheckFactor,
-        const IntegrationMethod & IntegrationOrder,
         const bool orig_dest
         )
 {
@@ -530,7 +500,7 @@ void TreeContactSearch::MortarContainerFiller(
     }
     
     ContactUtilities::ContactContainerFiller(contact_container, ContactPoint, pCond_1, pCond_2, 
-                                             pCond_1->GetValue(NORMAL), pCond_2->GetValue(NORMAL), ActiveCheckFactor, IntegrationOrder); 
+                                             pCond_1->GetValue(NORMAL), pCond_2->GetValue(NORMAL), ActiveCheckFactor); 
          
     if (pCond_1->Is(ACTIVE) == true)
     {
