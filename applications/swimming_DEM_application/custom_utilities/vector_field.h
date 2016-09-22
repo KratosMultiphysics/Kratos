@@ -61,6 +61,8 @@ virtual void CalculateDivergence(const double time, const array_1d<double, 3>& c
 
 virtual void CalculateRotational(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& rot){}
 
+virtual void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& lapl){}
+
 //***************************************************************************************************************
 //***************************************************************************************************************
 
