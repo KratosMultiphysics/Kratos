@@ -514,7 +514,7 @@ public:
     void MortarContainerFiller(
         const Point<3>& OriginPoint,
         const PointType::Pointer PointFound,
-        const Condition::Pointer & pCond_1,
+        Condition::Pointer & pCond_1,
         const Condition::Pointer & pCond_2,
         std::vector<contact_container> *& ConditionPointers,
         const double ActiveCheckFactor,
