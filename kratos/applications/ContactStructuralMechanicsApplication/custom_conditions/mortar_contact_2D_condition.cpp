@@ -629,6 +629,13 @@ void MortarContact2DCondition::CalculateConditionSystem(
         }
     }
     
+//     std::cout << "--------------------------------------------------" << std::endl;
+//     KRATOS_WATCH(this->Id())
+//     MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix( );   
+//     VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector( );   
+//     KRATOS_WATCH(rLeftHandSideMatrix);
+//     KRATOS_WATCH(rRightHandSideVector);
+
     KRATOS_CATCH( "" );
 }
 

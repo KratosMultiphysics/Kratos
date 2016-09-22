@@ -89,18 +89,18 @@ public:
                 array_1d<double, 3> result;
                 if (aux_dist <= dist_tol) // NOTE: We don't use std::abs() because if the aux_dist is negative is penetrating, in fact we just consider dist_tol > 0 to have some tolerance and for the static schemes
                 {
-                    Geom1[index].Set(ACTIVE, true);
+//                     Geom1[index].Set(ACTIVE, true);
                     
                     // The following is the correct thing, but can give problems
-//                     if (Geom2.IsInside(ProjectedPoint, result) == true)
-//                     {
-// //                         // For debug purpose // NOTE: Look for using echo_level
-// //                         if (aux_dist < 0.0)
-// //                         {
-// //                             std::cout << "Penetration in node: " << Geom1[index].Id() << " of " << aux_dist << " m" << std::endl;
-// //                         }    
-//                         Geom1[index].Set(ACTIVE, true);
-//                     }
+                    if (Geom2.IsInside(ProjectedPoint, result) == true)
+                    {
+//                         // For debug purpose // NOTE: Look for using echo_level
+//                         if (aux_dist < 0.0)
+//                         {
+//                             std::cout << "Penetration in node: " << Geom1[index].Id() << " of " << aux_dist << " m" << std::endl;
+//                         }    
+                        Geom1[index].Set(ACTIVE, true);
+                    }
                 }
              }
          }
