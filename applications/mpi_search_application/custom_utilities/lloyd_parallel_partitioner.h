@@ -311,7 +311,7 @@ public:
     }
 
     void CalculatePartitionInterface(ModelPart& mModelPart, bool useNeighbourMask = true) {
-      auto & nIndices = mModelPart.GetCommunicator().NeighbourIndices();
+      //auto & nIndices = mModelPart.GetCommunicator().NeighbourIndices();
 
       ContainerType pElements = mModelPart.GetCommunicator().LocalMesh().ElementsArray();
       ContainerType pElementsMarked;
