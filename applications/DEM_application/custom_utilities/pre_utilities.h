@@ -102,8 +102,25 @@ class PreUtilities
         std::vector<int> top_nodes;
         std::vector<int> bottom_nodes;
         filename += "DEM.mdpa";
-        clock_t initial_time, final_time;
+        
         //
+        
+        std::ifstream infile(filename);
+        if(infile.good()) {
+            while(1){
+                std::cout << "\nThe file already exists. Do you want to overwrite it? (y/n) ";
+                char yn;
+                std::cin >> yn;
+                if(yn == 'n') {
+                    std::cout << "\nStopped.\n\n";
+                    exit(EXIT_FAILURE);
+                }
+                if(yn=='y') break;
+            }
+        }
+        
+        
+        clock_t initial_time, final_time;
         initial_time = clock();
         std::ofstream outputfile(filename, std::ios_base::out);
         outputfile << "Begin ModelPartData\nEnd ModelPartData\n\n";
