@@ -64,6 +64,7 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( ACTIVE_CHECK_FACTOR )                         // The factor employed to consider an active/inactive node
     KRATOS_REGISTER_VARIABLE( CONSTANT_ACT_INACT )                          // The constant that is considered for the check of active or inactive (when 0 it doesn't accept traction)
     KRATOS_REGISTER_VARIABLE( WEIGHTED_GAP )                                // The integrated gap employed in mortar formulation
+    KRATOS_REGISTER_VARIABLE( DELTA_NORMAL )                                // Directional derivative of the normal
 
     // Register the conditions
     // Mortar contact condition

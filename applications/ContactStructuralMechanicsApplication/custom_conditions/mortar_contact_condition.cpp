@@ -192,7 +192,7 @@ void MortarContactCondition::InitializeNonLinearIteration( ProcessInfo& rCurrent
     
         // Fill the condition
         ContactUtilities::ContactContainerFiller((*all_containers)[i_cond], pCond->GetGeometry().Center(), GetGeometry(), pCond->GetGeometry(), 
- this->GetValue(NORMAL), pCond->GetValue(NORMAL), ActiveCheckFactor, mThisIntegrationMethod);
+ this->GetValue(NORMAL), pCond->GetValue(NORMAL), ActiveCheckFactor);
     }
     
     KRATOS_CATCH( "" );

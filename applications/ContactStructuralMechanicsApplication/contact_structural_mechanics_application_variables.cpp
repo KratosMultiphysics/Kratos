@@ -23,5 +23,6 @@ KRATOS_CREATE_VARIABLE( Matrix, MORTAR_CONTACT_OPERATOR )                     //
 KRATOS_CREATE_VARIABLE( double, ACTIVE_CHECK_FACTOR )                         // The factor employed to consider an active/inactive node
 KRATOS_CREATE_VARIABLE( double, CONSTANT_ACT_INACT )                          // The constant that is considered for the check of active or inactive (when 0 it doesn't accept traction)
 KRATOS_CREATE_VARIABLE( double, WEIGHTED_GAP )                                // The integrated gap employed in mortar formulation
+KRATOS_CREATE_VARIABLE( Matrix, DELTA_NORMAL )                                // Directional derivative of the normal
 
 }

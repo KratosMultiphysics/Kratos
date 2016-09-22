@@ -518,7 +518,6 @@ public:
         const Condition::Pointer & pCond_2,
         std::vector<contact_container> *& ConditionPointers,
         const double ActiveCheckFactor,
-        const IntegrationMethod & IntegrationOrder,
         const bool orig_dest
         );
     
