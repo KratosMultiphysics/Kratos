@@ -66,6 +66,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/space_time_rule.h"
 #include "custom_utilities/space_time_set.h"
 #include "custom_utilities/field_utility.h"
+#include "custom_utilities/velocity_field.h"
+#include "custom_utilities/cellular_flow_field.h"
 #include "custom_utilities/basset_force_tools.h"
 
 namespace Kratos{
@@ -135,6 +137,19 @@ using namespace boost::python;
         ;
 
     class_<VectorField<3> > ("VectorField3D", boost::python::no_init)
+        ;
+
+    class_<VelocityField, bases<VectorField<3> > > ("VelocityField", boost::python::no_init)
+        .def("Evaluate", &VelocityField::Evaluate)
+        .def("CalculateTimeDerivative", &VelocityField::CalculateTimeDerivative)
+        .def("CalculateGradient", &VelocityField::CalculateGradient)
+        .def("CalculateDivergence", &VelocityField::CalculateDivergence)
+        .def("CalculateRotational", &VelocityField::CalculateRotational)
+        .def("CalculateLaplacian", &VelocityField::CalculateLaplacian)
+        .def("CalculateMaterialAcceleration", &VelocityField::CalculateMaterialAcceleration)
+        ;
+
+    class_<CellularFlowField, bases<VelocityField> > ("CellularFlowField",  init<const double, const double, const double, const double>())
         ;
 
     class_<LinearRealField, bases<RealField> > ("LinearRealField", init<const double&, const double&, const double&, RealFunction&, RealFunction&, RealFunction&>())
