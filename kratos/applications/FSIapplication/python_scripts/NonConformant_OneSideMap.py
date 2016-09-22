@@ -10,8 +10,8 @@ def AddVariables(fluid_model_part, structure_model_part):
     fluid_model_part.AddNodalSolutionStepVariable(NODAL_MAUX)  # Stores Nodal Area
     fluid_model_part.AddNodalSolutionStepVariable(PRESSURE)
     fluid_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-    fluid_model_part.AddNodalSolutionStepVariable(AUX)
-    fluid_model_part.AddNodalSolutionStepVariable(VAUX)
+    fluid_model_part.AddNodalSolutionStepVariable(MAPPER_SCALAR_PROJECTION_RHS)
+    fluid_model_part.AddNodalSolutionStepVariable(MAPPER_VECTOR_PROJECTION_RHS)
     fluid_model_part.AddNodalSolutionStepVariable(VAUX_EQ_TRACTION)
     fluid_model_part.AddNodalSolutionStepVariable(IS_INTERFACE)
     fluid_model_part.AddNodalSolutionStepVariable(NORMAL)
@@ -21,8 +21,8 @@ def AddVariables(fluid_model_part, structure_model_part):
     structure_model_part.AddNodalSolutionStepVariable(NODAL_MAUX)  # Stores Nodal Area
     structure_model_part.AddNodalSolutionStepVariable(PRESSURE)
     structure_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-    structure_model_part.AddNodalSolutionStepVariable(AUX)
-    structure_model_part.AddNodalSolutionStepVariable(VAUX)
+    structure_model_part.AddNodalSolutionStepVariable(MAPPER_SCALAR_PROJECTION_RHS)
+    structure_model_part.AddNodalSolutionStepVariable(MAPPER_VECTOR_PROJECTION_RHS)
     structure_model_part.AddNodalSolutionStepVariable(VAUX_EQ_TRACTION)
     structure_model_part.AddNodalSolutionStepVariable(IS_INTERFACE)
     structure_model_part.AddNodalSolutionStepVariable(NORMAL)
