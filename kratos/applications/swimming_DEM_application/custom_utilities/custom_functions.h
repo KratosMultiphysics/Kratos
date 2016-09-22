@@ -265,7 +265,7 @@ void RecoverSuperconvergentLaplacian(ModelPart& r_model_part, Variable<array_1d<
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
-void CalculateVectorMaterialDerivative(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_container_rate, Variable<array_1d<double, 3> >& material_derivative_container)
+void CalculateVectorMaterialDerivative(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& material_derivative_container)
 {
     std::cout << "Constructing the Material derivative by derivating nodal averages...\n";
     std::map <std::size_t, unsigned int> id_to_position;
