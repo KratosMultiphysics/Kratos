@@ -184,7 +184,7 @@ void TreeContactSearch::ClearConditions(ModelPart & rModelPart)
             cond_it->Set(ACTIVE, false);
             
             std::vector<contact_container> * ConditionPointers = cond_it->GetValue(CONTACT_CONTAINERS);
-//             std::vector<contact_container> *& ConditionPointers = cond_it->GetValue(CONTACT_CONTAINERS);
+//             auto & ConditionPointers = cond_it->GetValue(CONTACT_CONTAINERS);
             
             if (ConditionPointers != NULL)
             {
@@ -212,6 +212,7 @@ void TreeContactSearch::ClearConditions(ModelPart & rModelPart)
         if (node_it->Is(ACTIVE) == true)
         {
             node_it->Set( ACTIVE, false );
+            node_it->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0) = ZeroVector(3);
         }
     }
 }
@@ -450,8 +451,7 @@ void TreeContactSearch::CreateMortarConditions(
                     int & DestCondIntegrationOrder = pCondDestination->GetValue(INTEGRATION_ORDER_CONTACT);
                     DestCondIntegrationOrder = integration_order;
                     
-                    // Set the corresponding flags
-                    pCondDestination->Set(ACTIVE, true); 
+                    // Get the active check factor
                     const double ActiveCheckFactor = pCondDestination->GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
 
                     MortarContainerFiller(pCondOrigin->GetGeometry().Center(), PointsFound[i], pCondDestination, pCondOrigin, ConditionPointersDestination, ActiveCheckFactor, IntegrationOrder, false);
@@ -506,7 +506,7 @@ void TreeContactSearch::CheckMortarConditions()
 void TreeContactSearch::MortarContainerFiller(
         const Point<3>& OriginPoint,
         const PointType::Pointer PointFound,
-        const Condition::Pointer & pCond_1,
+        Condition::Pointer & pCond_1,
         const Condition::Pointer & pCond_2,
         std::vector<contact_container> *& ConditionPointers,
         const double ActiveCheckFactor,
@@ -529,10 +529,13 @@ void TreeContactSearch::MortarContainerFiller(
         ContactPoint = OriginPoint;
     }
     
-    ContactUtilities::ContactContainerFiller(contact_container, ContactPoint, pCond_1->GetGeometry(), pCond_2->GetGeometry(), 
+    ContactUtilities::ContactContainerFiller(contact_container, ContactPoint, pCond_1, pCond_2, 
                                              pCond_1->GetValue(NORMAL), pCond_2->GetValue(NORMAL), ActiveCheckFactor, IntegrationOrder); 
-        
-    ConditionPointers->push_back(contact_container);
+         
+    if (pCond_1->Is(ACTIVE) == true)
+    {
+        ConditionPointers->push_back(contact_container);
+    }
 }
 
 /***********************************************************************************/

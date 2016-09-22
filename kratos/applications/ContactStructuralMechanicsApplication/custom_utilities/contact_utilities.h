@@ -83,18 +83,24 @@ public:
                 double dist_tol = ActiveCheckFactor * Geom1.Length();
                 dist_tol = (dist_tol <= ActiveCheckFactor * Geom2.Length()) ? (ActiveCheckFactor * Geom2.Length()):dist_tol;
                 
+//                 KRATOS_WATCH(aux_dist);
+//                 KRATOS_WATCH(dist_tol);
+                
                 array_1d<double, 3> result;
                 if (aux_dist <= dist_tol) // NOTE: We don't use std::abs() because if the aux_dist is negative is penetrating, in fact we just consider dist_tol > 0 to have some tolerance and for the static schemes
                 {
-                    if (Geom2.IsInside(ProjectedPoint, result) == true)
-                    {
-//                         // For debug purpose // NOTE: Look for using echo_level
-//                         if (aux_dist < 0.0)
-//                         {
-//                             std::cout << "Penetration in node: " << Geom1[index].Id() << " of " << aux_dist << " m" << std::endl;
-//                         }    
-                        Geom1[index].Set(ACTIVE, true);
-                    }
+                    Geom1[index].Set(ACTIVE, true);
+                    
+                    // The following is the correct thing, but can give problems
+//                     if (Geom2.IsInside(ProjectedPoint, result) == true)
+//                     {
+// //                         // For debug purpose // NOTE: Look for using echo_level
+// //                         if (aux_dist < 0.0)
+// //                         {
+// //                             std::cout << "Penetration in node: " << Geom1[index].Id() << " of " << aux_dist << " m" << std::endl;
+// //                         }    
+//                         Geom1[index].Set(ACTIVE, true);
+//                     }
                 }
              }
          }
@@ -121,6 +127,33 @@ public:
          }
          
 //         contact_container.print();
+    }
+    
+    static inline void ContactContainerFiller(
+            contact_container & contact_container,
+            const Point<3>& ContactPoint,
+            Condition::Pointer & pCond_1,       // SLAVE
+            const Condition::Pointer & pCond_2, // MASTER
+            const array_1d<double, 3> & contact_normal1, // SLAVE
+            const array_1d<double, 3> & contact_normal2, // MASTER
+            const double ActiveCheckFactor,
+            const IntegrationMethod IntegrationOrder
+            )
+    {
+
+        ContactContainerFiller(contact_container, ContactPoint, pCond_1->GetGeometry(), pCond_2->GetGeometry(), contact_normal1, contact_normal2, ActiveCheckFactor, IntegrationOrder);
+        
+        Geometry<Node<3> > & Geom1 = pCond_1->GetGeometry();
+        const unsigned int number_nodes = Geom1.PointsNumber();
+        
+        for (unsigned int index = 0; index < number_nodes; index++)
+        {
+            if (Geom1[index].Is(ACTIVE) == true)
+            {
+                pCond_1->Set(ACTIVE, true);
+                break;
+            }
+        }
     }
 
     /***********************************************************************************/
