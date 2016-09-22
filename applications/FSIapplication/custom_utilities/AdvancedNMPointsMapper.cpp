@@ -745,7 +745,7 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(
                     node_it != mrDestinationModelPart.NodesEnd();
                     node_it++)
             {
-                node_it->GetValue(AUX) = 0.0;
+                node_it->GetValue(MAPPER_SCALAR_PROJECTION_RHS) = 0.0;
             }
 
             double LocalRHS0, LocalRHS1; // Local RHS for each node
@@ -775,8 +775,8 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(
                 LocalRHS1 = CondValues[1] - K * (1.0*LastSolution[0] + 2.0*LastSolution[1]);
                 // We are taking advantage of 1 Condition = 2 Gauss Points to iterate the interpolation results and the Gauss Point Vector Again
 
-                cond_it->GetGeometry()[0].GetValue(AUX) += LocalRHS0;
-                cond_it->GetGeometry()[1].GetValue(AUX) += LocalRHS1;
+                cond_it->GetGeometry()[0].GetValue(MAPPER_SCALAR_PROJECTION_RHS) += LocalRHS0;
+                cond_it->GetGeometry()[1].GetValue(MAPPER_SCALAR_PROJECTION_RHS) += LocalRHS1;
 
                 IV_iter++;
             }
@@ -794,7 +794,7 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(
                 const array_1d<double,3> NormalVector = node_it->GetValue(NORMAL);
                 const double & NodeLength = node_it->GetValue(NODAL_MAUX);
                 //node_it->FastGetSolutionStepValue(NODAL_MAUX) = NodeArea; // TEST: store nodal area so GiD can paint it later
-                double dVal = node_it->GetValue(AUX)/NodeLength;
+                double dVal = node_it->GetValue(MAPPER_SCALAR_PROJECTION_RHS)/NodeLength;
                 node_it->FastGetSolutionStepValue(rDestVar) += sign * dVal * NormalVector;
 
                 // Variables for convergence check
@@ -897,7 +897,7 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(
                     node_it != mrDestinationModelPart.NodesEnd();
                     node_it++)
             {
-                node_it->GetValue(AUX) = 0.0;
+                node_it->GetValue(MAPPER_SCALAR_PROJECTION_RHS) = 0.0;
             }
 
             array_1d<double, 3> LocalRHS;
@@ -923,7 +923,7 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(
 
                 for (unsigned int j = 0; j < 3 ; j++)
                 {
-                    cond_it->GetGeometry()[j].GetValue(AUX) += LocalRHS[j];
+                    cond_it->GetGeometry()[j].GetValue(MAPPER_SCALAR_PROJECTION_RHS) += LocalRHS[j];
                 }
 
                 IV_iter++;
@@ -942,7 +942,7 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(
                 const array_1d<double,3> NormalVector = node_it->GetValue(NORMAL);
                 const double & NodeArea = node_it->GetValue(NODAL_MAUX);
                 //node_it->FastGetSolutionStepValue(NODAL_MAUX) = NodeArea; // TEST: store nodal area so GiD can paint it later
-                double dVal = node_it->GetValue(AUX)/NodeArea;
+                double dVal = node_it->GetValue(MAPPER_SCALAR_PROJECTION_RHS)/NodeArea;
                 node_it->FastGetSolutionStepValue(rDestVar) += sign * dVal * NormalVector;
 
                 // Variables for convergence check
@@ -1100,7 +1100,7 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap( // Note: JUST 3D!!!!
                     node_it != mrDestinationModelPart.NodesEnd();
                     node_it++)
             {
-                node_it->GetValue(VAUX) = ZeroVect;
+                node_it->GetValue(MAPPER_VECTOR_PROJECTION_RHS) = ZeroVect;
             }
 
             array_1d<double, 3> LocalRHS0, LocalRHS1; // Local RHS for each node
@@ -1136,8 +1136,8 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap( // Note: JUST 3D!!!!
                 }
                 // We are taking advantage of 1 Condition = 2 Gauss Points to iterate the interpolation results and the Gauss Point Vector Again
 
-                cond_it->GetGeometry()[0].GetValue(VAUX) += LocalRHS0;
-                cond_it->GetGeometry()[1].GetValue(VAUX) += LocalRHS1;
+                cond_it->GetGeometry()[0].GetValue(MAPPER_VECTOR_PROJECTION_RHS) += LocalRHS0;
+                cond_it->GetGeometry()[1].GetValue(MAPPER_VECTOR_PROJECTION_RHS) += LocalRHS1;
 
                 IV_iter++;
             }
@@ -1155,7 +1155,7 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap( // Note: JUST 3D!!!!
             {
                 const array_1d<double,3> NormalVector = node_it->GetValue(NORMAL);
                 const double & NodeLength = node_it->GetValue(NODAL_MAUX);
-                dVal = node_it->GetValue(VAUX)/NodeLength;
+                dVal = node_it->GetValue(MAPPER_VECTOR_PROJECTION_RHS)/NodeLength;
                 node_it->FastGetSolutionStepValue(rDestVar) += sign * inner_prod(dVal, NormalVector);
 
                 // Variables for convergence check
@@ -1270,7 +1270,7 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap( // Note: JUST 3D!!!!
                     node_it != mrDestinationModelPart.NodesEnd();
                     node_it++)
             {
-                node_it->GetValue(VAUX) = ZeroVect;
+                node_it->GetValue(MAPPER_VECTOR_PROJECTION_RHS) = ZeroVect;
             }
 
             array_1d<double, 3> LocalRHS0, LocalRHS1, LocalRHS2; // Local RHS for each node
@@ -1309,9 +1309,9 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap( // Note: JUST 3D!!!!
                 }
                 // We are taking advantage of 1 Condition = 3 Gauss Points to iterate the interpolation results and the Gauss Point Vector Again
 
-                cond_it->GetGeometry()[0].GetValue(VAUX) += LocalRHS0;
-                cond_it->GetGeometry()[1].GetValue(VAUX) += LocalRHS1;
-                cond_it->GetGeometry()[2].GetValue(VAUX) += LocalRHS2;
+                cond_it->GetGeometry()[0].GetValue(MAPPER_VECTOR_PROJECTION_RHS) += LocalRHS0;
+                cond_it->GetGeometry()[1].GetValue(MAPPER_VECTOR_PROJECTION_RHS) += LocalRHS1;
+                cond_it->GetGeometry()[2].GetValue(MAPPER_VECTOR_PROJECTION_RHS) += LocalRHS2;
 
                 IV_iter++;
             }
@@ -1329,7 +1329,7 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap( // Note: JUST 3D!!!!
             {
                 const array_1d<double,3> NormalVector = node_it->GetValue(NORMAL);
                 const double & NodeArea = node_it->GetValue(NODAL_MAUX);
-                noalias(dVal) = node_it->GetValue(VAUX)/NodeArea;
+                noalias(dVal) = node_it->GetValue(MAPPER_VECTOR_PROJECTION_RHS)/NodeArea;
                 node_it->FastGetSolutionStepValue(rDestVar) += sign * inner_prod(dVal, NormalVector);
 
                 // Variables for convergence check
@@ -1466,7 +1466,7 @@ void AdvancedNMPointsMapper::ScalarMap(
                     node_it != mrDestinationModelPart.NodesEnd();
                     node_it++)
             {
-                node_it->GetValue(AUX) = 0.0;
+                node_it->GetValue(MAPPER_SCALAR_PROJECTION_RHS) = 0.0;
             }
 
             double LocalRHS0, LocalRHS1; // Local RHS for each node
@@ -1493,8 +1493,8 @@ void AdvancedNMPointsMapper::ScalarMap(
                 LocalRHS1 = CondValues[1] - K * (1.0*LastSolution[0] + 2.0*LastSolution[1]);
 
                 // We are taking advantage of 1 Condition = 2 Gauss Points to iterate the interpolation results and the Gauss Point Vector Again
-                cond_it->GetGeometry()[0].GetValue(AUX) += LocalRHS0;
-                cond_it->GetGeometry()[1].GetValue(AUX) += LocalRHS1;
+                cond_it->GetGeometry()[0].GetValue(MAPPER_SCALAR_PROJECTION_RHS) += LocalRHS0;
+                cond_it->GetGeometry()[1].GetValue(MAPPER_SCALAR_PROJECTION_RHS) += LocalRHS1;
 
                 IV_iter++;
             }
@@ -1511,7 +1511,7 @@ void AdvancedNMPointsMapper::ScalarMap(
                     node_it++)
             {
                 const double & NodeLength = node_it->GetValue(NODAL_MAUX);
-                dVal = node_it->GetValue(AUX)/NodeLength;
+                dVal = node_it->GetValue(MAPPER_SCALAR_PROJECTION_RHS)/NodeLength;
                 node_it->FastGetSolutionStepValue(rDestVar) += sign * dVal;
 
                 // Variables for convergence check
@@ -1600,7 +1600,7 @@ void AdvancedNMPointsMapper::ScalarMap(
                     node_it != mrDestinationModelPart.NodesEnd();
                     node_it++)
             {
-                node_it->GetValue(AUX) = 0.0;
+                node_it->GetValue(MAPPER_SCALAR_PROJECTION_RHS) = 0.0;
             }
 
             array_1d<double, 3> LocalRHS;
@@ -1625,7 +1625,7 @@ void AdvancedNMPointsMapper::ScalarMap(
 
                 for (unsigned int j = 0; j < 3 ; j++)
                 {
-                    cond_it->GetGeometry()[j].GetValue(AUX) += LocalRHS[j];
+                    cond_it->GetGeometry()[j].GetValue(MAPPER_SCALAR_PROJECTION_RHS) += LocalRHS[j];
                 }
 
                 IV_iter++;
@@ -1643,7 +1643,7 @@ void AdvancedNMPointsMapper::ScalarMap(
             {
                 const double & NodeArea = node_it->GetValue(NODAL_MAUX);
                 //node_it->FastGetSolutionStepValue(NODAL_MAUX) = NodeArea; // TEST: store nodal area so GiD can paint it later
-                double dVal = node_it->GetValue(AUX)/NodeArea;
+                double dVal = node_it->GetValue(MAPPER_SCALAR_PROJECTION_RHS)/NodeArea;
                 node_it->FastGetSolutionStepValue(rDestVar) += sign * dVal;
 
                 // Variables for convergence check
@@ -1816,7 +1816,7 @@ void AdvancedNMPointsMapper::VectorMap(
                     node_it != mrDestinationModelPart.NodesEnd();
                     node_it++)
             {
-                node_it->GetValue(VAUX) = ZeroVect;
+                node_it->GetValue(MAPPER_VECTOR_PROJECTION_RHS) = ZeroVect;
             }
 
             array_1d<double, 3> LocalRHS0, LocalRHS1; // Local RHS for each node
@@ -1860,8 +1860,8 @@ void AdvancedNMPointsMapper::VectorMap(
                 }
                 // We are taking advantage of 1 Condition = 2 Gauss Points to iterate the interpolation results and the Gauss Point Vector Again
 
-                cond_it->GetGeometry()[0].GetValue(VAUX) += LocalRHS0;
-                cond_it->GetGeometry()[1].GetValue(VAUX) += LocalRHS1;
+                cond_it->GetGeometry()[0].GetValue(MAPPER_VECTOR_PROJECTION_RHS) += LocalRHS0;
+                cond_it->GetGeometry()[1].GetValue(MAPPER_VECTOR_PROJECTION_RHS) += LocalRHS1;
 
                 IV_iter++;
             }
@@ -1880,7 +1880,7 @@ void AdvancedNMPointsMapper::VectorMap(
                         node_it++)
                 {
                     const double & NodeLength = node_it->GetValue(NODAL_MAUX);
-                    noalias(dVal) = node_it->GetValue(VAUX)/NodeLength;
+                    noalias(dVal) = node_it->GetValue(MAPPER_VECTOR_PROJECTION_RHS)/NodeLength;
                     node_it->FastGetSolutionStepValue(rDestVar) += sign * dVal;
 
                     // Variables for convergence check
@@ -1900,7 +1900,7 @@ void AdvancedNMPointsMapper::VectorMap(
                         node_it++)
                 {
                     const double & NodeLength = node_it->GetValue(NODAL_MAUX);
-                    noalias(dVal) = node_it->GetValue(VAUX)/NodeLength;
+                    noalias(dVal) = node_it->GetValue(MAPPER_VECTOR_PROJECTION_RHS)/NodeLength;
                     node_it->FastGetSolutionStepValue(VAUX_EQ_TRACTION) += sign * dVal;
 
                     // Variables for convergence check
@@ -2028,7 +2028,7 @@ void AdvancedNMPointsMapper::VectorMap(
                     node_it != mrDestinationModelPart.NodesEnd();
                     node_it++)
             {
-                node_it->GetValue(VAUX) = ZeroVect;
+                node_it->GetValue(MAPPER_VECTOR_PROJECTION_RHS) = ZeroVect;
             }
 
             array_1d<double, 3> LocalRHS0, LocalRHS1, LocalRHS2; // Local RHS for each node
@@ -2076,9 +2076,9 @@ void AdvancedNMPointsMapper::VectorMap(
                 }
                 // We are taking advantage of 1 Condition = 3 Gauss Points to iterate the interpolation results and the Gauss Point Vector Again
 
-                cond_it->GetGeometry()[0].GetValue(VAUX) += LocalRHS0;
-                cond_it->GetGeometry()[1].GetValue(VAUX) += LocalRHS1;
-                cond_it->GetGeometry()[2].GetValue(VAUX) += LocalRHS2;
+                cond_it->GetGeometry()[0].GetValue(MAPPER_VECTOR_PROJECTION_RHS) += LocalRHS0;
+                cond_it->GetGeometry()[1].GetValue(MAPPER_VECTOR_PROJECTION_RHS) += LocalRHS1;
+                cond_it->GetGeometry()[2].GetValue(MAPPER_VECTOR_PROJECTION_RHS) += LocalRHS2;
 
                 IV_iter++;
             }
@@ -2097,7 +2097,7 @@ void AdvancedNMPointsMapper::VectorMap(
                         node_it++)
                 {
                     const double & NodeArea = node_it->GetValue(NODAL_MAUX);
-                    noalias(dVal) = node_it->GetValue(VAUX)/NodeArea;
+                    noalias(dVal) = node_it->GetValue(MAPPER_VECTOR_PROJECTION_RHS)/NodeArea;
                     node_it->FastGetSolutionStepValue(rDestVar) += sign * dVal;
 
                     // Variables for convergence check
@@ -2117,7 +2117,7 @@ void AdvancedNMPointsMapper::VectorMap(
                         node_it++)
                 {
                     const double & NodeArea = node_it->GetValue(NODAL_MAUX);
-                    noalias(dVal) = node_it->GetValue(VAUX)/NodeArea;
+                    noalias(dVal) = node_it->GetValue(MAPPER_VECTOR_PROJECTION_RHS)/NodeArea;
                     node_it->FastGetSolutionStepValue(VAUX_EQ_TRACTION) += sign * dVal;
 
                     // Variables for convergence check
@@ -2348,7 +2348,7 @@ void AdvancedNMPointsMapper::ComputeEquivalentTractions(
                  node_it != mrOriginModelPart.NodesEnd();
                  node_it++)
             {
-                node_it->GetValue(VAUX) = ZeroVector(3);
+                node_it->GetValue(MAPPER_VECTOR_PROJECTION_RHS) = ZeroVector(3);
             }
             
             array_1d<double, 3> LocalRHS0, LocalRHS1; // Local RHS for each node
@@ -2400,8 +2400,8 @@ void AdvancedNMPointsMapper::ComputeEquivalentTractions(
                 }
 
                 // Accumulate the nodal RHS (localRHS)
-                cond_it->GetGeometry()[0].GetValue(VAUX) += LocalRHS0;
-                cond_it->GetGeometry()[1].GetValue(VAUX) += LocalRHS1;
+                cond_it->GetGeometry()[0].GetValue(MAPPER_VECTOR_PROJECTION_RHS) += LocalRHS0;
+                cond_it->GetGeometry()[1].GetValue(MAPPER_VECTOR_PROJECTION_RHS) += LocalRHS1;
             }
 
             // Solve
@@ -2416,7 +2416,7 @@ void AdvancedNMPointsMapper::ComputeEquivalentTractions(
                  node_it++)
             {
                 const double & NodeLength = node_it->GetValue(NODAL_MAUX);
-                noalias(dVal) = node_it->GetValue(VAUX)/NodeLength;              
+                noalias(dVal) = node_it->GetValue(MAPPER_VECTOR_PROJECTION_RHS)/NodeLength;              
                 node_it->FastGetSolutionStepValue(VAUX_EQ_TRACTION) += dVal;
 
                 // Variables for convergence check
@@ -2489,7 +2489,7 @@ void AdvancedNMPointsMapper::ComputeEquivalentTractions(
                  node_it != mrOriginModelPart.NodesEnd();
                  node_it++)
             {
-                node_it->GetValue(VAUX) = ZeroVector(3);
+                node_it->GetValue(MAPPER_VECTOR_PROJECTION_RHS) = ZeroVector(3);
             }
             
             array_1d<double, 3> LocalRHS0, LocalRHS1, LocalRHS2; // Local RHS for each node
@@ -2546,9 +2546,9 @@ void AdvancedNMPointsMapper::ComputeEquivalentTractions(
                 }
 
                 // Accumulate the nodal RHS (localRHS)
-                cond_it->GetGeometry()[0].GetValue(VAUX) += LocalRHS0;
-                cond_it->GetGeometry()[1].GetValue(VAUX) += LocalRHS1;
-                cond_it->GetGeometry()[2].GetValue(VAUX) += LocalRHS2;
+                cond_it->GetGeometry()[0].GetValue(MAPPER_VECTOR_PROJECTION_RHS) += LocalRHS0;
+                cond_it->GetGeometry()[1].GetValue(MAPPER_VECTOR_PROJECTION_RHS) += LocalRHS1;
+                cond_it->GetGeometry()[2].GetValue(MAPPER_VECTOR_PROJECTION_RHS) += LocalRHS2;
             }
 
             // Solve
@@ -2563,7 +2563,7 @@ void AdvancedNMPointsMapper::ComputeEquivalentTractions(
                  node_it++)
             {
                 const double & NodeArea = node_it->GetValue(NODAL_MAUX);
-                noalias(dVal) = node_it->GetValue(VAUX)/NodeArea;
+                noalias(dVal) = node_it->GetValue(MAPPER_VECTOR_PROJECTION_RHS)/NodeArea;
                 node_it->FastGetSolutionStepValue(VAUX_EQ_TRACTION) += dVal;
                 
                 // Variables for convergence check
