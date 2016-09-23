@@ -12,6 +12,11 @@ import os
 import sys
 import math
 
+#G
+from matplotlib import pyplot as plt
+import pylab
+#Z
+
 simulation_start_time = timer.clock()
 
 print(os.getcwd())
@@ -709,6 +714,36 @@ if pp.CFD_DEM.basset_force_type >= 3 or pp.CFD_DEM.basset_force_type == 1:
 
 post_utils.Writeresults(time)
 
+#G
+L = 1.0
+U = 0.1
+k = 2.72
+omega = 0*math.pi
+velocity_field = CellularFlowField(L , U , k, omega)
+
+
+#n_points = 25
+#coors = [L * i / (n_points - 1) for i in range(n_points)]
+
+#for i in range(n_points):
+    #for j in range(n_points):
+        #vel= Vector(3)
+        #coor= Vector(3)
+        #coor[0]=coors[i]
+        #coor[1]=coors[j]
+        #coor[2]=0
+        #velocity_field.Evaluate(0.,coor,vel)
+        #coeff = 0.1
+        #pylab.arrow(coor[0], coor[1], coeff*vel[0], coeff*vel[1], fc = "k", ec = "k", width = L * 1e-3, head_width = L * 5e-3, head_length = L * 8e-3)
+
+#plt.axis('equal')
+#axes = plt.gca()
+#axes.set_xlim([0.0,L])
+#axes.set_ylim([0.0,L])
+#plt.show()
+#print('vel',vel)
+#cacasS
+#Z
 while (time <= final_time):
 
     time = time + Dt
@@ -738,8 +773,22 @@ while (time <= final_time):
         sys.stdout.flush()
 
         if not pp.CFD_DEM.drag_force_type == 9:
-            fluid_solver.Solve()
-#G                     
+            #fluid_solver.Solve()
+#G
+            for node in fluid_model_part.Nodes:
+                vel= Vector(3)
+                mat_deriv= Vector(3)
+                coor= Vector(3)
+                coor[0]=node.X
+                coor[1]=node.Y
+                coor[2]=0
+                velocity_field.Evaluate(time,coor,vel)
+                velocity_field.Evaluate(time,coor,mat_deriv)
+                node.SetSolutionStepValue(VELOCITY_X, vel[0])
+                node.SetSolutionStepValue(VELOCITY_Y, vel[1])
+                node.SetSolutionStepValue(MATERIAL_ACCELERATION_X, mat_deriv[0])
+                node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y, mat_deriv[1])
+#Z
             if pp.CFD_DEM.laplacian_calculation_type == 1 and VELOCITY_LAPLACIAN in pp.fluid_vars:
                 current_step = fluid_model_part.ProcessInfo[FRACTIONAL_STEP]
                 print("\nSolving for the Laplacian...")
@@ -794,7 +843,28 @@ while (time <= final_time):
             custom_functions_tool.RecoverSuperconvergentLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
         if pp.CFD_DEM.material_acceleration_calculation_type == 1:
             custom_functions_tool.CalculateVectorMaterialDerivative(fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)    
+#G
+    for node in fluid_model_part.Nodes:
+        mat_deriv= Vector(3)
+        laplacian= Vector(3)
+        coor= Vector(3)
+        coor[0]=node.X
+        coor[1]=node.Y
+        coor[2]=0
+        velocity_field.CalculateMaterialAcceleration(time,coor,mat_deriv)
+        velocity_field.CalculateLaplacian(time,coor,laplacian)
+        calc_mat_deriv_0 = node.GetSolutionStepValue(MATERIAL_ACCELERATION_X)
+        calc_mat_deriv_1 = node.GetSolutionStepValue(MATERIAL_ACCELERATION_Y)        
+        module = max(math.sqrt(0.25 * (mat_deriv[0] + calc_mat_deriv_0) ** 2 + 0.25 * (mat_deriv[1] + calc_mat_deriv_1) ** 2), 1e-8)
 
+        node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,laplacian[0])
+        node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,laplacian[1])
+        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,(calc_mat_deriv_0 - mat_deriv[0]) / module)
+        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,(calc_mat_deriv_1 - mat_deriv[1]) / module)  
+        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,laplacian[0])
+        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,laplacian[1])
+        node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,0.0) 
+#Z
     print("Solving DEM... (", spheres_model_part.NumberOfElements(0), "elements )")
     sys.stdout.flush()
     first_dem_iter = True
