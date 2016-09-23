@@ -638,8 +638,8 @@ class DEMFEMProcedures(object):
             #os.chdir(self.graphs_path)
             for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
                 if (self.spheres_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
-                    self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]] = open(str(self.DEM_parameters.problem_name) + "_" + str( self.spheres_model_part.GetMesh((mesh_number))[TOP]) + "_particle_force_graph.grf", 'w');
-                    self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].write(str("#time").rjust(12)+" "+str("total_force_x").rjust(13)+" "+str("total_force_y").rjust(13)+" "+str("total_force_z").rjust(13)+" "+str("total_disp_y").rjust(13)+"\n")
+                    self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[IDENTIFIER]] = open(str(self.DEM_parameters.problem_name) + "_" + str( self.spheres_model_part.GetMesh((mesh_number))[IDENTIFIER]) + "_particle_force_graph.grf", 'w');
+                    self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[IDENTIFIER]].write(str("#time").rjust(12)+" "+str("total_force_x").rjust(13)+" "+str("total_force_y").rjust(13)+" "+str("total_force_z").rjust(13)+" "+str("total_disp_x").rjust(13)+" "+str("total_disp_y").rjust(13)+" "+str("total_disp_z").rjust(13)+"\n")
 
         def evaluate_computation_of_fem_results():
 
@@ -692,7 +692,7 @@ class DEMFEMProcedures(object):
     def close_balls_graph_files(self, spheres_model_part):
         for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
             if (self.spheres_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
-                self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].close()
+                self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[IDENTIFIER]].close()
 
     def MeasureForces(self):    # not used atm
 
@@ -777,20 +777,29 @@ class DEMFEMProcedures(object):
                             self.total_force_x = 0.0
                             self.total_force_y = 0.0
                             self.total_force_z = 0.0
+                            self.total_disp_x = 0.0
                             self.total_disp_y = 0.0
+                            self.total_disp_z = 0.0
 
                             for node in self.mesh_nodes:
                                 force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
                                 force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
                                 force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES)[2]
+                                disp_node_x = node.GetSolutionStepValue(DISPLACEMENT)[0]
                                 disp_node_y = node.GetSolutionStepValue(DISPLACEMENT)[1]
+                                disp_node_z = node.GetSolutionStepValue(DISPLACEMENT)[2]
                                 self.total_force_x += force_node_x
                                 self.total_force_y += force_node_y
                                 self.total_force_z += force_node_z
+                                self.total_disp_x += disp_node_x
                                 self.total_disp_y += disp_node_y
+                                self.total_disp_z += disp_node_z
 
-                            self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+" "+str("%.6g"%self.total_force_z).rjust(13)+" "+str("%.6g"%self.total_disp_y).rjust(13)+"\n")
-                            self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].flush()
+                            self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[IDENTIFIER]].write(str("%.8g"%time).rjust(12) +
+                            " " + str("%.6g"%self.total_force_x).rjust(13) + " " + str("%.6g"%self.total_force_y).rjust(13) +
+                            " " + str("%.6g"%self.total_force_z).rjust(13) + " " + str("%.6g"%self.total_disp_x).rjust(13) +
+                            " " + str("%.6g"%self.total_disp_y).rjust(13)  + " " + str("%.6g"%self.total_disp_z).rjust(13) + "\n")
+                            self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[IDENTIFIER]].flush()
 
             self.balls_graph_counter += 1
 
