@@ -57,6 +57,8 @@ virtual ~CellularFlowField(){}
 
 void UpdateCoordinates(const double time, const array_1d<double, 3>& coor);
 
+void UpdateCoordinates(const double time, const vector<double>& coor);
+
 //***************************************************************************************************************
 //***************************************************************************************************************
 

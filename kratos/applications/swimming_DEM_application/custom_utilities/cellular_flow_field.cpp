@@ -5,13 +5,23 @@ namespace Kratos
 
 void CellularFlowField::UpdateCoordinates(const double time, const array_1d<double, 3>& coor)
 {
-    mSinOmegaT = std::sin(mOmegaUOverL);
-    mCosOmegaT = std::cos(mOmegaUOverL);
+    mSinOmegaT = std::sin(mOmegaUOverL * time);
+    mCosOmegaT = std::cos(mOmegaUOverL * time);
     mSinPiX0   = std::sin(mPiOverL * coor[0]);
     mCosPiX0   = std::cos(mPiOverL * coor[0]);
     mSinPiX1   = std::sin(mPiOverL * coor[1]);
     mCosPiX1   = std::cos(mPiOverL * coor[1]);
 }
+
+//void CellularFlowField::UpdateCoordinates(const double time, const vector<double>& coor)
+//{
+//    mSinOmegaT = std::sin(mOmegaUOverL * time);
+//    mCosOmegaT = std::cos(mOmegaUOverL * time);
+//    mSinPiX0   = std::sin(mPiOverL * coor[0]);
+//    mCosPiX0   = std::cos(mPiOverL * coor[0]);
+//    mSinPiX1   = std::sin(mPiOverL * coor[1]);
+//    mCosPiX1   = std::cos(mPiOverL * coor[1]);
+//}
 
 // Values
 
