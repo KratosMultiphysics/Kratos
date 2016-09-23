@@ -62,6 +62,20 @@ virtual void CalculateMaterialAcceleration(const double time, const array_1d<dou
 
 virtual void UpdateCoordinates(const double time, const array_1d<double, 3>& coor){}
 
+void Evaluate(const double time, const vector<double>& coor, vector<double>& result);
+
+void CalculateTimeDerivative(const double time, const vector<double>& coor, vector<double>& result);
+
+double CalculateDivergence(const double time, const vector<double>& coor);
+
+void CalculateRotational(const double time, const vector<double>& coor, vector<double>& result);
+
+void CalculateLaplacian(const double time, const vector<double>& coor, vector<double>& result);
+
+virtual void CalculateMaterialAcceleration(const double time, const vector<double>& coor, vector<double>& result);
+
+//virtual void UpdateCoordinates(const double time, const vector<double>& coor){}
+
 
 //***************************************************************************************************************
 //***************************************************************************************************************
