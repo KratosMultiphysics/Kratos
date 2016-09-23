@@ -38,6 +38,8 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
             "echo_level": 0,
             "buffer_size": 2,
             "solution_type": "Dynamic",
+            "rayleigh_alpha": 0.0,
+            "rayleigh_beta":  0.0,
             "scheme_type": "Newmark",
             "damp_factor_m" : -0.1,
             "time_integration_method": "Implicit",
@@ -113,6 +115,9 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
     def _GetSolutionScheme(self, scheme_type, component_wise, compute_contact_forces):
 
         if(scheme_type == "Newmark") or (scheme_type == "Bossak"):
+            
+            self.main_model_part.ProcessInfo[KratosMultiphysics.SolidMechanicsApplication.RAYLEIGH_ALPHA] = self.settings["rayleigh_alpha"].GetDouble()
+            self.main_model_part.ProcessInfo[KratosMultiphysics.SolidMechanicsApplication.RAYLEIGH_BETA ] = self.settings["rayleigh_beta" ].GetDouble()
             
             if  self.settings["compute_mortar_contact"].GetBool():
                 if (scheme_type == "Newmark"):
