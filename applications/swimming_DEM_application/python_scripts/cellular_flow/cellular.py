@@ -777,17 +777,13 @@ while (time <= final_time):
 #G
             for node in fluid_model_part.Nodes:
                 vel= Vector(3)
-                mat_deriv= Vector(3)
                 coor= Vector(3)
                 coor[0]=node.X
                 coor[1]=node.Y
                 coor[2]=0
                 velocity_field.Evaluate(time,coor,vel)
-                velocity_field.Evaluate(time,coor,mat_deriv)
                 node.SetSolutionStepValue(VELOCITY_X, vel[0])
                 node.SetSolutionStepValue(VELOCITY_Y, vel[1])
-                node.SetSolutionStepValue(MATERIAL_ACCELERATION_X, mat_deriv[0])
-                node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y, mat_deriv[1])
 #Z
             if pp.CFD_DEM.laplacian_calculation_type == 1 and VELOCITY_LAPLACIAN in pp.fluid_vars:
                 current_step = fluid_model_part.ProcessInfo[FRACTIONAL_STEP]
@@ -853,17 +849,24 @@ while (time <= final_time):
         coor[2]=0
         velocity_field.CalculateMaterialAcceleration(time,coor,mat_deriv)
         velocity_field.CalculateLaplacian(time,coor,laplacian)
-        calc_mat_deriv_0 = node.GetSolutionStepValue(MATERIAL_ACCELERATION_X)
-        calc_mat_deriv_1 = node.GetSolutionStepValue(MATERIAL_ACCELERATION_Y)        
-        module = max(math.sqrt(0.25 * (mat_deriv[0] + calc_mat_deriv_0) ** 2 + 0.25 * (mat_deriv[1] + calc_mat_deriv_1) ** 2), 1e-8)
+        #calc_mat_deriv_0 = node.GetSolutionStepValue(MATERIAL_ACCELERATION_X)
+        #calc_mat_deriv_1 = node.GetSolutionStepValue(MATERIAL_ACCELERATION_Y) 
+        calc_laplacian_0 = node.GetSolutionStepValue(VELOCITY_LAPLACIAN_X)
+        calc_laplacian_1 = node.GetSolutionStepValue(VELOCITY_LAPLACIAN_Y)    
+        calc_laplacian_2 = node.GetSolutionStepValue(VELOCITY_LAPLACIAN_Z)     
+        module = max(math.sqrt(0.25 * (laplacian[0] + calc_laplacian_0) ** 2 + 0.25 * (laplacian[1] + calc_laplacian_1) ** 2), 1e-8)
 
-        node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,laplacian[0])
-        node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,laplacian[1])
-        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,(calc_mat_deriv_0 - mat_deriv[0]) / module)
-        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,(calc_mat_deriv_1 - mat_deriv[1]) / module)  
+        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,mat_deriv[0])
+        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,mat_deriv[1])
+        node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,(calc_laplacian_0 - laplacian[0]) / module)
+        node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,(calc_laplacian_1 - laplacian[1]) / module)  
+        node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,(calc_laplacian_2 - laplacian[2]) / module)  
+        node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,calc_laplacian_0)
+        node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,calc_laplacian_1)
+        node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,calc_laplacian_2)         
         #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,laplacian[0])
         #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,laplacian[1])
-        node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,0.0) 
+        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,laplacian[2]) 
 #Z
     print("Solving DEM... (", spheres_model_part.NumberOfElements(0), "elements )")
     sys.stdout.flush()
