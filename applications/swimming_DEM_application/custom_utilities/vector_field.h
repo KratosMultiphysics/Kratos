@@ -57,11 +57,21 @@ virtual void CalculateTimeDerivative(const double time, const array_1d<double, 3
 
 virtual void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d< array_1d<double, 3>, 3>& gradient){}
 
-virtual void CalculateDivergence(const double time, const array_1d<double, 3>& coor, double& div){}
+virtual double CalculateDivergence(const double time, const array_1d<double, 3>& coor){return 0.0;}
 
 virtual void CalculateRotational(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& rot){}
 
 virtual void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& lapl){}
+
+virtual void Evaluate(const double time, const vector<double>& coor, vector<double>& result){}
+
+virtual void CalculateTimeDerivative(const double time, const vector<double>& coor, vector<double>& result){}
+
+virtual void CalculateDivergence(const double time, const vector<double>& coor, double& div){}
+
+virtual void CalculateRotational(const double time, const vector<double>& coor, vector<double>& result){}
+
+virtual void CalculateLaplacian(const double time, const vector<double>& coor, vector<double>& result){}
 
 //***************************************************************************************************************
 //***************************************************************************************************************
