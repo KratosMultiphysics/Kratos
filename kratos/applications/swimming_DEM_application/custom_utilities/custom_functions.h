@@ -227,7 +227,7 @@ void RecoverSuperconvergentLaplacian(ModelPart& r_model_part, Variable<array_1d<
     // Solving least squares problem (Zhang, 2006)
     unsigned int n_relevant_terms = 6;
 
-    std::vector<array_1d <double, 3> > polynomial_coefficients; // vector to store, for each node, the correspondgin values of the polynomial coefficients relevant for the calculation of the laplacian
+    std::vector<array_1d <double, 3> > polynomial_coefficients; // vector to store, for each node, the corresponding values of the polynomial coefficients relevant for the calculation of the laplacian
     polynomial_coefficients.resize(n_relevant_terms);
 
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
@@ -254,9 +254,12 @@ void RecoverSuperconvergentLaplacian(ModelPart& r_model_part, Variable<array_1d<
         }
 
         array_1d <double, 3>& recovered_laplacian = inode->FastGetSolutionStepValue(laplacian_container);
-        recovered_laplacian[0] = polynomial_coefficients[0][0] + polynomial_coefficients[1][0] + 2 * polynomial_coefficients[3][0];
-        recovered_laplacian[1] = polynomial_coefficients[0][0] + polynomial_coefficients[2][0] + 2 * polynomial_coefficients[4][0];
-        recovered_laplacian[2] = polynomial_coefficients[1][0] + polynomial_coefficients[2][0] + 2 * polynomial_coefficients[5][0];
+        recovered_laplacian[0] = 2 * (polynomial_coefficients[3][0] + polynomial_coefficients[4][0] + polynomial_coefficients[5][0]);
+        recovered_laplacian[1] = 2 * (polynomial_coefficients[3][1] + polynomial_coefficients[4][1] + polynomial_coefficients[5][1]);
+        recovered_laplacian[2] = 2 * (polynomial_coefficients[3][2] + polynomial_coefficients[4][2] + polynomial_coefficients[5][2]);
+//        recovered_laplacian[0] = polynomial_coefficients[0][0] + polynomial_coefficients[1][0] + 2 * polynomial_coefficients[3][0];
+//        recovered_laplacian[1] = polynomial_coefficients[0][0] + polynomial_coefficients[2][0] + 2 * polynomial_coefficients[4][0];
+//        recovered_laplacian[2] = polynomial_coefficients[1][0] + polynomial_coefficients[2][0] + 2 * polynomial_coefficients[5][0];
     }
 
     mCalculatingTheLaplacian = false;
@@ -939,7 +942,6 @@ void SetNeighboursAndWeights(ModelPart& r_model_part)
 
         if (iteration >= n_max_iterations){ // giving up on this method, settling for the default method
             mSomeCloudsDontWork = true;
-            KRATOS_WATCH(mSomeCloudsDontWork)
             neigh_nodes.clear();
             inode->FastGetSolutionStepValue(NODAL_WEIGHTS).clear();
             std::cout << "Warning!, for the node with id " << inode->Id() << " it has not been possible to form an adequate cloud of neighbours\n";
@@ -1226,7 +1228,7 @@ bool SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node<3>::Pointer&
 
         std::vector<unsigned int> relevant_terms;
         relevant_terms.resize(n_relevant_terms);
-        double normalization = 1.0;
+        double normalization =  1.0;
 
         if (mCalculatingTheGradient){
             normalization = h_inv;
@@ -1277,7 +1279,7 @@ bool SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node<3>::Pointer&
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
-unsigned int GetNumberOfUniqueNeightbours(const int my_id, const WeakPointerVector<Element>& my_neighbour_elements)
+unsigned int GetNumberOfUniqueNeighbours(const int my_id, const WeakPointerVector<Element>& my_neighbour_elements)
 {
     std::vector<int> ids;
     ids.push_back(my_id);
