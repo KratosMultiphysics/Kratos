@@ -139,14 +139,32 @@ using namespace boost::python;
     class_<VectorField<3> > ("VectorField3D", boost::python::no_init)
         ;
 
+    typedef void (VelocityField::*Evaluate)(const double, const vector<double>&, vector<double>&);
+    Evaluate EvaluateVector = &VelocityField::Evaluate;
+
+    typedef void (VelocityField::*CalculateTimeDerivative)(const double, const vector<double>&, vector<double>&);
+    CalculateTimeDerivative CalculateTimeDerivativeVector = &VelocityField::CalculateTimeDerivative;
+
+    typedef double (VelocityField::*CalculateDivergence)(const double, const vector<double>&);
+    CalculateDivergence CalculateDivergenceVector = &VelocityField::CalculateDivergence;
+
+    typedef void (VelocityField::*CalculateRotational)(const double, const vector<double>&, vector<double>&);
+    CalculateRotational CalculateRotationalVector = &VelocityField::CalculateRotational;
+
+    typedef void (VelocityField::*CalculateLaplacian)(const double, const vector<double>&, vector<double>&);
+    CalculateLaplacian CalculateLaplacianVector = &VelocityField::CalculateLaplacian;
+
+    typedef void (VelocityField::*CalculateMaterialAcceleration)(const double, const vector<double>&, vector<double>&);
+    CalculateMaterialAcceleration CalculateMaterialAccelerationVector = &VelocityField::CalculateMaterialAcceleration;
+
     class_<VelocityField, bases<VectorField<3> > > ("VelocityField", boost::python::no_init)
-        .def("Evaluate", &VelocityField::Evaluate)
-        .def("CalculateTimeDerivative", &VelocityField::CalculateTimeDerivative)
+        .def("Evaluate", EvaluateVector)
+        .def("CalculateTimeDerivative", CalculateTimeDerivativeVector)
         .def("CalculateGradient", &VelocityField::CalculateGradient)
-        .def("CalculateDivergence", &VelocityField::CalculateDivergence)
-        .def("CalculateRotational", &VelocityField::CalculateRotational)
-        .def("CalculateLaplacian", &VelocityField::CalculateLaplacian)
-        .def("CalculateMaterialAcceleration", &VelocityField::CalculateMaterialAcceleration)
+        .def("CalculateDivergence", CalculateDivergenceVector)
+        .def("CalculateRotational", CalculateRotationalVector)
+        .def("CalculateLaplacian", CalculateLaplacianVector)
+        .def("CalculateMaterialAcceleration", CalculateMaterialAccelerationVector)
         ;
 
     class_<CellularFlowField, bases<VelocityField> > ("CellularFlowField",  init<const double, const double, const double, const double>())
