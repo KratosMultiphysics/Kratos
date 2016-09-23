@@ -450,98 +450,18 @@ public:
             const Geometry<Node<3> > & Geom
             )
     {
-        const unsigned int dimension = Geom.WorkingSpaceDimension();
-        
+        array_1d<double, 3> v1, v2;
         noalias(Normal) = ZeroVector(3);
         
-        // TODO: To calculate the normal I am going to use the Newell's method for quadrilateral, I recommend to find some way to compute in a way that it is possible to have the normal in the nodes and use the Nagata Patch
-        if (Geom.PointsNumber() == 2) // A linear line
+        // Geom normal is the sum of all nodal normals
+        // nodal normal = tangent_eta (or e3 in 2D) x tangent_xi
+        for ( unsigned int i = 0; i < Geom.PointsNumber( ); ++i )
         {
-            array_1d<double,3> v1,v2;
-
-            // Assuming plane X-Y
-            noalias(v1) = Geom[1].Coordinates() - Geom[0].Coordinates();
-            
-            noalias(v2) = ZeroVector(3);
-            v2[2] = 1.0;
-            
-            MathUtils<double>::CrossProduct(Normal,v1,v2);
-
-            double NNorm = std::sqrt(Normal[0] * Normal[0] + Normal[1] * Normal[1]);
-            Normal /= NNorm;
-        }
-        else if (Geom.PointsNumber() == 3) // A triangle or quadratic line
-        {
-            if (dimension == 2) // Quadratic line
-            {
-                boost::numeric::ublas::bounded_matrix<double, 3, 3 >  matrix_coeficients     = ZeroMatrix(3, 3);
-                boost::numeric::ublas::bounded_matrix<double, 3, 3 >  inv_matrix_coeficients = ZeroMatrix(3, 3);
-                boost::numeric::ublas::bounded_matrix<double, 3, 1 >  vector_coeficients     = ZeroMatrix(3, 1);
-                for (unsigned int i = 0; i < 3; i++)
-                {
-                    matrix_coeficients(i, 0) = Geom[i].X() * Geom[i].X();
-                    matrix_coeficients(i, 1) = Geom[i].X();
-                    matrix_coeficients(i, 2) = 1.0;
-
-                    vector_coeficients(i, 0) = Geom[i].Y();
-                }
-
-                StructuralMechanicsMathUtilities::InvMat3x3(matrix_coeficients, inv_matrix_coeficients);
-
-                boost::numeric::ublas::bounded_matrix<double, 3, 1 >  coeficients;
-                noalias(coeficients) = prod(inv_matrix_coeficients, vector_coeficients);
-
-                Normal[0] =   2.0 * Geom[1].X() * coeficients(0, 0) + coeficients(1, 0);
-                Normal[1] = - 1.0;
-                Normal[2] =   0.0;
-
-                double NNorm = std::sqrt(Normal[0] * Normal[0] + Normal[1] * Normal[1]);
-                Normal /= NNorm;
-            }
-            else // Triangle
-            {
-                array_1d<double,3> v1,v2;
-
-                noalias(v1) = Geom[1].Coordinates() - Geom[0].Coordinates();
-
-                noalias(v2) = Geom[2].Coordinates() - Geom[0].Coordinates();
-
-                MathUtils<double>::CrossProduct(Normal,v1,v2);
-
-                double NNorm = std::sqrt(Normal[0] * Normal[0] + Normal[1] * Normal[1] + Normal[2] * Normal[2]);
-                Normal /= NNorm;
-            }
-        }
-        else if (Geom.PointsNumber() == 4) // A quadrilateral
-        {
-            // Newell's method
-            for(unsigned int i = 0; i < Geom.PointsNumber(); i++)
-            {
-                unsigned int index_aux = i + 1;
-                if (i == Geom.PointsNumber() - 1)
-                {
-                    index_aux = 0;
-                }
-                
-                Normal[0] += (Geom[i].Y() - Geom[index_aux].Y()) *
-                             (Geom[i].Z() - Geom[index_aux].Z());
-
-                Normal[1] += (Geom[i].Z() - Geom[index_aux].Z()) *
-                             (Geom[i].X() - Geom[index_aux].X());
-
-                Normal[2] += (Geom[i].X() - Geom[index_aux].X()) *
-                             (Geom[i].Y() - Geom[index_aux].Y());
-            }
-
-            double NNorm = std::sqrt(Normal[0] * Normal[0] + Normal[1] * Normal[1] + Normal[2] * Normal[2]);
-            Normal /= NNorm;
-        }
-        else // The Newell's method can be used, but nodes must be reordered
-        {
-            KRATOS_THROW_ERROR( std::logic_error, " There is not any method to calculate the normal for this geometry. Number of nodes: ", Geom.PointsNumber() );
+            NodalTangents( v1, v2, Geom, i );
+            Normal += MathUtils<double>::CrossProduct( v2, v1 );
         }
         
-//         KRATOS_WATCH(Normal);
+        Normal /= norm_2( Normal );
     }
     
     /***********************************************************************************/
@@ -609,7 +529,7 @@ public:
         {
             if (node_it->Is(INTERFACE))
             {
-                noalias(node_it->GetValue(NORMAL)) = ZeroNormal;
+                noalias(node_it->GetValue(NORMAL)) = ZeroNormal; 
             }
         }
         
