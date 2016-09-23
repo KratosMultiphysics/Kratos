@@ -16,13 +16,15 @@
 /* External includes */
 #include "utilities/math_utils.h"
 #include <cmath>
-#include <numeric>
+//~ #include <numeric>
 
 /* Project includes */
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/ublas_interface.h"
 #include "convergence_accelerator.hpp"
+
+#include "custom_utilities/qr_utility.h"            //QR decomposition utility used in matrix inversion.
 
 namespace Kratos
 {
@@ -54,7 +56,8 @@ public:
 
     ///@name Type Definitions
     ///@{
-    KRATOS_CLASS_POINTER_DEFINITION( JacobianEmulator );
+    //KRATOS_CLASS_POINTER_DEFINITION( JacobianEmulator );
+    typedef typename std::unique_ptr< JacobianEmulator<TSpace> > Pointer;
     
     typedef typename TSpace::VectorType                 VectorType;
     typedef typename TSpace::MatrixType                 MatrixType;
@@ -77,28 +80,39 @@ public:
      * Old Jacobian pointer constructor.
      * The Jacobian emulator will use information from the previous Jacobian
      */
-    JacobianEmulator( boost::shared_ptr<JacobianEmulator> OldJacobianEmulatorPointer )
+    JacobianEmulator( JacobianEmulator::Pointer&& OldJacobianEmulatorPointer )
     {
-        mpOldJacobianEmulator = OldJacobianEmulatorPointer;
+        mpOldJacobianEmulator = std::unique_ptr<JacobianEmulator<TSpace> >(std::move(OldJacobianEmulatorPointer));
     }
 
     /**
      * Old Jacobian pointer constructor with recursive previous Jacobian deleting.
      * The Jacobian emulator will use information from the previous Jacobian
      */
-    JacobianEmulator( boost::shared_ptr<JacobianEmulator> OldJacobianEmulatorPointer, unsigned int EmulatorBufferSize )
+    JacobianEmulator( JacobianEmulator::Pointer&& OldJacobianEmulatorPointer, unsigned int EmulatorBufferSize )
     {        
-        mpOldJacobianEmulator = OldJacobianEmulatorPointer;
+        mpOldJacobianEmulator = std::unique_ptr<JacobianEmulator<TSpace> >(std::move(OldJacobianEmulatorPointer));
                 
         // Get the last pointer out of buffer
-        JacobianEmulator::Pointer& p = mpOldJacobianEmulator->mpOldJacobianEmulator;
-        for(unsigned int i = 0; i < (EmulatorBufferSize-1); i++)
+        JacobianEmulator* p = (mpOldJacobianEmulator->mpOldJacobianEmulator).get();
+        if(EmulatorBufferSize > 1)
         {
-            JacobianEmulator::Pointer& p = p->mpOldJacobianEmulator;
+            for(unsigned int i = 1; i < (EmulatorBufferSize); i++)
+            {
+                if(i == EmulatorBufferSize-1)
+                {
+                    (p->mpOldJacobianEmulator).release();
+                }
+                else
+                {
+                    p = (p->mpOldJacobianEmulator).get();
+                }
+            }
         }
-        
-        // Destroy the one that goes out from max_steps
-        p.reset();
+        else // If Jacobian buffer size equals 1 directly destroy the previous one
+        {
+            (mpOldJacobianEmulator->mpOldJacobianEmulator).release();
+        }
     }
 
     /**
@@ -141,7 +155,9 @@ public:
         const VectorType& rWorkVector,
         VectorType& rProjectedVector)
     {
+        //~ std::cout << "ApplyPrevStepJacobian starts..." << std::endl;
         mpOldJacobianEmulator->ApplyJacobian(rWorkVector, rProjectedVector);
+        //~ std::cout << "ApplyPrevStepJacobian finished." << std::endl;
     }
 
     /**
@@ -154,60 +170,44 @@ public:
     {
         KRATOS_TRY;
         
-        //~ std::cout << "STARTING ApplyJacobian..." << std::endl;
+        //~ std::cout << "STARTING ApplyJacobian..." << std::endl;       
+
+        VectorType y(mJacobianObsMatrixV[0].size());
+        VectorType w(mJacobianObsMatrixV[0].size());
+        VectorType v(mJacobianObsMatrixV[0].size());
+        Vector WorkVectorCopy(rWorkVector);
+        Vector zQR(mJacobianObsMatrixV.size());
         
-        unsigned int aux_size = mJacobianObsMatrixV.size();
-        unsigned int ProblemSize = mJacobianObsMatrixV[0].size();        
-        
-        VectorType t(aux_size);
-        VectorType z(aux_size);
-        VectorType y(ProblemSize);
-        VectorType w(ProblemSize);
-        VectorType v(ProblemSize);
-            
-        MatrixType auxMat(aux_size, aux_size);
-        MatrixType auxMatInv(aux_size, aux_size);
-                                        
-        for (unsigned int i = 0; i < aux_size; i++)
+        Matrix auxMatQR(mJacobianObsMatrixV[0].size(), mJacobianObsMatrixV.size());
+          
+        // Loop to store a std::vector<VectorType> type as Matrix type
+        for (unsigned int i = 0; i < mJacobianObsMatrixV[0].size(); i++)
         {
-            auxMat(i,i) = TSpace::Dot(mJacobianObsMatrixV[i], mJacobianObsMatrixV[i]);
-                        
-            for (unsigned int j = i+1; j < aux_size; j++)
+            for (unsigned int j = 0; j < mJacobianObsMatrixV.size(); j++)
             {
-                auxMat(i,j) = TSpace::Dot(mJacobianObsMatrixV[i], mJacobianObsMatrixV[j]);
-                auxMat(j,i) = auxMat(i,j);
+                auxMatQR(i,j) = mJacobianObsMatrixV[j](i);
             }
         }
-                
-        // CALL THE INVERT MATRIX FROM THE OTHER CLASS    
-        bool inversion_successful = InvertMatrix<>(auxMat, auxMatInv);
-        if (inversion_successful == false) 
-        {
-            KRATOS_ERROR << "Matrix inversion error within the Jacobian approximation computation!!";
-        }
-            
-        // t = V_k.T*r_k
-        for (unsigned int i = 0; i < aux_size; i++)
-        {
-            t(i) = TSpace::Dot(mJacobianObsMatrixV[i], rWorkVector);
-        }
-            
-        // z = (V_k.T*V_k)^-1*t
-        TSpace::Mult(auxMatInv, t, z);                                        
+        
+        // QR decomposition to compute ((V_k.T*V_k)^-1)*V_k.T*r_k
+        QR<double, row_major> QR_decomposition;
+        QR_decomposition.compute(mJacobianObsMatrixV[0].size(), mJacobianObsMatrixV.size(), &auxMatQR(0,0)); 
+        QR_decomposition.solve(&WorkVectorCopy[0], &zQR[0]);
             
         // TODO: PARALLELIZE THIS OPERATION (it cannot be done with TSpace::Dot beacuse the obs matrices are stored by columns)
-        // y = V_k*z - r_k
-        for (unsigned int i = 0; i < ProblemSize; i++)
+        // y = V_k*zQR - r_k
+        for (unsigned int i = 0; i < mJacobianObsMatrixV[0].size(); i++)
         {
             y(i) = 0.0;
-            for (unsigned int j = 0; j < aux_size; j++)
+            for (unsigned int j = 0; j < mJacobianObsMatrixV.size(); j++)
             {
-                y(i) += mJacobianObsMatrixV[j][i]*z[j];
+                y(i) += mJacobianObsMatrixV[j][i]*zQR[j];
             }
         }
-        y -= rWorkVector;                                            
+        y -= rWorkVector;
 
         //~ std::cout << "Applying previous step Jacobian..." << std::endl;
+        //~ std::cout << "mpOldJacobianEmulator VALUE IN APPLYJACOBIAN EMULATOR: " << &mpOldJacobianEmulator << std::endl;
         if (mpOldJacobianEmulator == nullptr)
         {
             v = y;
@@ -219,18 +219,20 @@ public:
         //~ std::cout << "Previous step Jacobian applied." << std::endl;
         
         // w = W_k*z
-        for (unsigned int i = 0; i < ProblemSize; i++)
+        for (unsigned int i = 0; i < mJacobianObsMatrixV[0].size(); i++)
         {
             w(i) = 0.0;
-            for (unsigned int j = 0; j < aux_size; j++)
+            for (unsigned int j = 0; j < mJacobianObsMatrixV.size(); j++)
             {
-                w(i) += mJacobianObsMatrixW[j][i]*z(j);
+                w(i) += mJacobianObsMatrixW[j][i]*zQR(j);
             }
-        }                                 
+        }              
             
         rProjectedVector = (v - w); 
 
         KRATOS_CATCH( "" );
+        
+        //~ std::cout << "FINISHED ApplyJacobian..." << std::endl;
     }
     
     ///@}
@@ -259,7 +261,7 @@ protected:
     ///@name Protected member Variables
     ///@{    
     
-    boost::shared_ptr<JacobianEmulator>     mpOldJacobianEmulator;   // Pointer to the old Jacobian            
+    std::unique_ptr<JacobianEmulator>     mpOldJacobianEmulator;   // Pointer to the old Jacobian            
 
     ///@}
     
@@ -269,38 +271,6 @@ protected:
     
     ///@name Protected Operations
     ///@{
-    ///@}
-        
-    /**
-     * Utility for matrix inversion
-     * @param input: Matrix to invert
-     * @param inverse: Inverted matrix
-     */ 
-    template<class T>
-    bool InvertMatrix(const T& input, T& inverse)
-    {
-        typedef permutation_matrix<std::size_t> pmatrix;
-
-        // create a working copy of the input
-        T A(input);
-
-        // create a permutation matrix for the LU-factorization
-        pmatrix pm(A.size1());
-
-        // perform LU-factorization
-        int res = lu_factorize(A, pm);
-        if (res != 0)
-            return false;
-
-        // create identity matrix of "inverse"
-        inverse.assign(identity_matrix<double> (A.size1()));
-
-        // backsubstitute to get the inverse
-        lu_substitute(A, pm, inverse);
-
-        return true;
-    }
-
     ///@}
     
     ///@name Protected  Access
@@ -424,7 +394,7 @@ public:
         KRATOS_TRY;
 
         JacobianEmulatorPointerType mpCurrentJacobianEmulatorPointer();   
-                        
+        
         KRATOS_CATCH( "" );
     }
     
@@ -442,14 +412,12 @@ public:
         if (mConvergenceAcceleratorStep <= mJacobianBufferSize)
         {
             // Construct the Jacobian emulator
-            typename JacobianEmulator<TSpace>::Pointer paux = boost::make_shared < JacobianEmulator<TSpace> > (mpCurrentJacobianEmulatorPointer); 
-            mpCurrentJacobianEmulatorPointer.swap(paux);
+            mpCurrentJacobianEmulatorPointer = std::unique_ptr< JacobianEmulator<TSpace> > (new JacobianEmulator<TSpace>(std::move(mpCurrentJacobianEmulatorPointer))); 
         }
         else
         {
             // Construct the Jacobian emulator considering the recursive elimination
-            typename JacobianEmulator<TSpace>::Pointer paux = boost::make_shared < JacobianEmulator<TSpace> > (mpCurrentJacobianEmulatorPointer, mJacobianBufferSize); 
-            mpCurrentJacobianEmulatorPointer.swap(paux);
+            mpCurrentJacobianEmulatorPointer = std::unique_ptr< JacobianEmulator<TSpace> > (new JacobianEmulator<TSpace>(std::move(mpCurrentJacobianEmulatorPointer), mJacobianBufferSize)); 
         }   
                 
         KRATOS_CATCH( "" );
@@ -483,6 +451,7 @@ public:
             {
                 std::cout << "First step correction" << std::endl;
                 VectorType InitialCorrection(mProblemSize);
+                //~ KRATOS_WATCH(InitialCorrection)
                 
                 mpCurrentJacobianEmulatorPointer->ApplyPrevStepJacobian(mResidualVector_1, InitialCorrection);
                 rIterationGuess -= InitialCorrection;
@@ -529,81 +498,10 @@ public:
             
             std::cout << "Jacobian approximation computation starts..." << std::endl;
             
-            unsigned int aux_size = mpCurrentJacobianEmulatorPointer->mJacobianObsMatrixV.size();
+            VectorType IterationCorrection(mProblemSize);
+            mpCurrentJacobianEmulatorPointer->ApplyJacobian(rResidualVector, IterationCorrection);
             
-            VectorType t(aux_size);
-            VectorType z(aux_size);
-            VectorType y(mProblemSize);
-            VectorType w(mProblemSize);
-            VectorType v(mProblemSize);
-            
-            MatrixType auxMat(aux_size, aux_size);
-            MatrixType auxMatInv(aux_size, aux_size);
-            
-            for (unsigned int i = 0; i < aux_size; i++)
-            {
-                auxMat(i,i) = TSpace::Dot(mpCurrentJacobianEmulatorPointer->mJacobianObsMatrixV[i],
-                                          mpCurrentJacobianEmulatorPointer->mJacobianObsMatrixV[i]);
-                for (unsigned int j = i+1; j < aux_size; j++)
-                {
-                    auxMat(i,j) = TSpace::Dot(mpCurrentJacobianEmulatorPointer->mJacobianObsMatrixV[i],
-                                              mpCurrentJacobianEmulatorPointer->mJacobianObsMatrixV[j]);
-                    auxMat(j,i) = auxMat(i,j);
-                }
-            }
-            
-            bool inversion_successful = InvertMatrix<>(auxMat, auxMatInv);
-                        
-            if (inversion_successful == false) 
-            {
-                KRATOS_ERROR << "Matrix inversion error within the Jacobian approximation computation!!";
-            }
-                        
-            // t = V_k.T*r_k
-            for (unsigned int i = 0; i < aux_size; i++)
-            {
-                t(i) = TSpace::Dot(mpCurrentJacobianEmulatorPointer->mJacobianObsMatrixV[i], mResidualVector_1);
-            }
-                        
-            // z = (V_k.T*V_k)^-1*t
-            TSpace::Mult(auxMatInv, t, z);
-            
-            // TODO: PARALLELIZE THIS OPERATION (it cannot be done with TSpace::Dot beacuse the obs matrices are stored by columns)
-            // y = V_k*z - r_k
-            for (unsigned int i = 0; i < mProblemSize; i++)
-            {
-                y(i) = 0.0;
-                for (unsigned int j = 0; j < aux_size; j++)
-                {
-                    y(i) += (mpCurrentJacobianEmulatorPointer->mJacobianObsMatrixV[j][i])*z[j];
-                }
-            }
-            y -= mResidualVector_1;
-                        
-            std::cout << "ApplyJacobian call..." << std::endl;
-            if (mpCurrentJacobianEmulatorPointer == nullptr)
-            {
-                v = y;
-            }
-            else
-            {
-                mpCurrentJacobianEmulatorPointer->ApplyJacobian(y, v);
-            }
-            std::cout << "ApplyJacobian finished." << std::endl;
-            
-            // w = W_k*z
-            for (unsigned int i = 0; i < mProblemSize; i++)
-            {
-                w(i) = 0.0;
-                for (unsigned int j = 0; j < aux_size; j++)
-                {
-                    w(i) += (mpCurrentJacobianEmulatorPointer->mJacobianObsMatrixW[j][i])*z(j);
-                }
-            }              
-            
-            // Perform the correction
-            rIterationGuess += (v - w); 
-            
+            rIterationGuess += IterationCorrection;            
         }              
 
         KRATOS_CATCH( "" );
@@ -677,37 +575,6 @@ protected:
     
     ///@name Protected Operations
     ///@{
-        
-    /**
-     * Utility for matrix inversion
-     * @param input: Matrix to invert
-     * @param inverse: Inverted matrix
-     */ 
-    template<class T>
-    bool InvertMatrix(const T& input, T& inverse)
-    {
-        typedef permutation_matrix<std::size_t> pmatrix;
-
-        // create a working copy of the input
-        T A(input);
-       
-        // create a permutation matrix for the LU-factorization
-        pmatrix pm(A.size1());
-
-        // perform LU-factorization
-        int res = lu_factorize(A, pm);
-        if (res != 0)
-            return false;
-            
-        // create identity matrix of "inverse"
-        inverse.assign(identity_matrix<double> (A.size1()));
-
-        // backsubstitute to get the inverse
-        lu_substitute(A, pm, inverse);                   // THE ERROR IS IN HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
-        return true;
-    }
-
     ///@}
     
     ///@name Protected  Access
