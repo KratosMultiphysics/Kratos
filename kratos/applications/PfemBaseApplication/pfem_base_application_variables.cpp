@@ -26,8 +26,9 @@ namespace Kratos
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( OFFSET )
   KRATOS_CREATE_VARIABLE(double, SHRINK_FACTOR )
 
-
   //domain definition
+  KRATOS_CREATE_VARIABLE(bool, INITIALIZED_DOMAINS )
+  KRATOS_CREATE_VARIABLE(std::string, MODEL_PART_NAME )
   KRATOS_CREATE_VARIABLE(unsigned int, DOMAIN_LABEL )
 
   //boundary definition
@@ -36,6 +37,9 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(WeakPointerVector< Element >, MASTER_ELEMENTS )
   KRATOS_CREATE_VARIABLE(WeakPointerVector< Node<3> >,    MASTER_NODES )
 
+  //condition variables
+  KRATOS_CREATE_VARIABLE(ConditionContainerType,   CHILDREN_CONDITIONS )
+  
   //modeler criteria
   KRATOS_CREATE_VARIABLE(double, MEAN_ERROR )
 

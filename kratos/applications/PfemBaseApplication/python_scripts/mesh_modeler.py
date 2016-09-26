@@ -21,8 +21,12 @@ class MeshModeler(object):
         self.imposed_walls          = []
         self.consider_imposed_walls = False      
 
-        print("Construction of Mesh Modeler finished")
+        self.model_part = self.main_model_part
+        if( self.main_model_part.Name != self.MeshingParameters.GetSubModelPartName() ):
+            self.model_part = self.main_model_part.GetSubModelPart(self.MeshingParameters.GetSubModelPartName())
 
+        print("::[Mesh_Modeler]::")
+        
     #
     def Initialize(self, domain_size):
         
@@ -113,7 +117,7 @@ class MeshModeler(object):
 
 
         # process to refine elements /refine boundary
-        refine_mesh_elements  = KratosPfemBase.SetElementNodesToRefineOnThreshold(self.main_model_part, self.MeshingParameters, self.echo_level)
+        refine_mesh_elements  = KratosPfemBase.SetElementNodesToRefineOnThreshold(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPreMeshingProcess(refine_mesh_elements)
         
         # process to refine boundary (considering or not imposed walls)        
@@ -126,16 +130,16 @@ class MeshModeler(object):
                 for sizei in range(0, len(rigid_wall_bbox)):
                     rigid_walls_container.PushBack( rigid_wall_bbox[sizei] )
 
-                refine_mesh_boundary = KratosPfemBase.ContactRefineMeshBoundary(self.main_model_part, rigid_walls_container, self.MeshingParameters,  self.echo_level)
+                refine_mesh_boundary = KratosPfemBase.ContactRefineMeshBoundary(self.model_part, rigid_walls_container, self.MeshingParameters,  self.echo_level)
                 self.mesher.SetPreMeshingProcess(refine_mesh_boundary)
 
         else:
-            refine_mesh_boundary = RefineMeshBoundary(self.main_model_part, self.RefiningParameters, self.echo_level)            
+            refine_mesh_boundary = RefineMeshBoundary(self.model_part, self.RefiningParameters, self.echo_level)            
             self.mesher.SetPreMeshingProcess(refine_mesh_boundary)
 
 
         # process to remove nodes / remove boundary
-        remove_mesh_nodes = KratosPfemBase.RemoveMeshNodes(self.main_model_part, self.MeshingParameters, self.echo_level)
+        remove_mesh_nodes = KratosPfemBase.RemoveMeshNodes(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPreMeshingProcess(remove_mesh_nodes)
 
         
@@ -144,20 +148,20 @@ class MeshModeler(object):
 
         # The order set is the order of execution:
 
-        #select mesh elements
-        generate_particles  = KratosPfemBase.GenerateNewNodes(self.main_model_part, self.MeshingParameters, self.echo_level)
+        #generate new particles
+        generate_particles  = KratosPfemBase.GenerateNewNodes(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(generate_particles)
 
         #select mesh elements
-        select_mesh_elements  = KratosPfemBase.SelectMeshElements(self.main_model_part, self.MeshingParameters, self.echo_level)
+        select_mesh_elements  = KratosPfemBase.SelectMeshElements(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(select_mesh_elements)
 
         #rebuild elements
-        rebuild_mesh_elements = KratosPfemBase.BuildMeshElements(self.main_model_part, self.MeshingParameters, self.echo_level)
+        rebuild_mesh_elements = KratosPfemBase.BuildMeshElements(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(rebuild_mesh_elements)
 
         #rebuild boundary
-        rebuild_mesh_boundary = KratosPfemBase.ReconstructMeshBoundary(self.main_model_part, self.MeshingParameters, self.echo_level)
+        rebuild_mesh_boundary = KratosPfemBase.ReconstructMeshBoundary(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(rebuild_mesh_boundary)
 
     #
@@ -185,9 +189,10 @@ class MeshModeler(object):
     #
     def ExecuteMeshing(self):
 
+
     
         self.InitializeMeshing()  #set execution flags and modeler flags
 
-        self.mesher.ExecuteMeshing(self.main_model_part)
+        self.mesher.ExecuteMeshing(self.model_part)
         
         self.FinalizeMeshing()    #set execution flags and modeler flags

@@ -53,6 +53,7 @@ public:
     /// Pointer definition of Process
     KRATOS_CLASS_POINTER_DEFINITION( GenerateNewNodesProcess );
 
+    typedef ModelPart::NodeType                   NodeType;
     typedef ModelPart::ConditionType         ConditionType;
     typedef ModelPart::PropertiesType       PropertiesType;
     typedef ConditionType::GeometryType       GeometryType;
@@ -93,7 +94,6 @@ public:
     ///@name Operations
     ///@{
 
-
     /// Execute method is used to execute the Process algorithms.
     virtual void Execute()
     {
@@ -102,110 +102,39 @@ public:
       if( mEchoLevel > 0 )
 	std::cout<<" [ GENERATE NEW NODES: "<<std::endl;
 
+      if( mrModelPart.Name() != mrRemesh.SubModelPartName )
+	std::cout<<" ModelPart Supplied do not corresponds to the Meshing Domain: ("<<mrModelPart.Name()<<" != "<<mrRemesh.SubModelPartName<<")"<<std::endl;
+
       //Find out where the new nodes belong to:
 
       //creating an auxiliary list for the new nodes
-      std::vector<Node<3>::Pointer > list_of_new_nodes;
-      //std::vector<int> local_ids;
+      std::vector<NodeType::Pointer > list_of_new_nodes;
       
-      //node to get the DOFs from
-      Node<3>::DofsContainerType& reference_dofs = (mrModelPart.NodesBegin(mMeshId))->GetDofs();
+      this->GenerateNewNodes(mrModelPart, list_of_new_nodes);
       
-      unsigned int initial_node_size = mrModelPart.Nodes().size()+1; //total model part node size
-      
-      ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
-      const unsigned int dimension = element_begin->GetGeometry().WorkingSpaceDimension();
-
-      double* OutPointList = mrRemesh.OutMesh.GetPointList();
-
-      int& InNumberOfPoints = mrRemesh.InMesh.GetNumberOfPoints();
-      int& OutNumberOfPoints = mrRemesh.OutMesh.GetNumberOfPoints();
-     
-      //if points were added, new nodes must be added to ModelPart
-      int j = 0;
-      if (OutNumberOfPoints > InNumberOfPoints)
-	{
-	  for(int i = InNumberOfPoints; i<OutNumberOfPoints; i++)
-	    {
-	      unsigned int id = initial_node_size + j ;
-	      int base = i*dimension;
-	    
-	      double& x = OutPointList[base];
-	      double& y = OutPointList[base+1];
-	      double  z = 0; 
-	      if(dimension==3)
-		z=OutPointList[base+2];
-	    
-	      //std::cout<<" domain node id "<<id<<" local id "<<i+1<<std::endl;
-	      //std::cout<<" node creation position ("<<x<<", "<<y<<")"<<std::endl;
-	      Node<3>::Pointer pnode = mrModelPart.CreateNewNode(id,x,y,z);
-		
-	      pnode->Set(NEW_ENTITY); //not boundary
-
-	      //set to the main mesh (Mesh 0) to avoid problems in the NodalPreIds (number of nodes: change) in other methods
-	      pnode->SetBufferSize(mrModelPart.NodesBegin(mMeshId)->GetBufferSize() );
-
-	      list_of_new_nodes.push_back( pnode );
-
-	      if(mrRemesh.InputInitializedFlag){
-		mrRemesh.NodalPreIds.push_back( pnode->Id() );
-		pnode->SetId(i+1);
-	      }
-	      //local_ids.push_back(i+1);
-
-	      //set to the main mesh (Mesh 0) to avoid problems in the NodalPreIds (number of nodes: change) in other methods
-	      if(mMeshId!=0)
-		mrModelPart.AddNode(pnode,mMeshId);
-
-	      //generating the dofs
-	      for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
-		{
-		  Node<3>::DofType& rDof = *iii;
-		  Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
-
-		  (p_new_dof)->FreeDof();
-		}
-		
-	      j++;
-
-	    }
-
-	}
-      
-      //Inserted nodes
-      mrRemesh.Info->InsertedNodes = OutNumberOfPoints-InNumberOfPoints;
-
       if( mEchoLevel > 0 )
 	std::cout <<"   [ GENERATED NODES: ( added: " << mrRemesh.Info->InsertedNodes <<" ) ]"<<std::endl;
-		
-      //if points were added project variables
-      if( list_of_new_nodes.size() > 0)
-	ProjectVariablesToNewNodes( list_of_new_nodes );
 
-
-      //set the coordinates to the original value
-      const array_1d<double,3> ZeroNormal(3,0.0);
       
-      for(std::vector<Node<3>::Pointer>::iterator it =  list_of_new_nodes.begin(); it!=list_of_new_nodes.end(); it++)
-	{
-	  const array_1d<double,3>& displacement = (*it)->FastGetSolutionStepValue(DISPLACEMENT);
-	  (*it)->X0() = (*it)->X() - displacement[0];
-	  (*it)->Y0() = (*it)->Y() - displacement[1];
-	  (*it)->Z0() = (*it)->Z() - displacement[2];
+      //project variables to new nodes from mesh elements
+      if( list_of_new_nodes.size() > 0)
+	this->ProjectVariablesToNewNodes( mrModelPart, list_of_new_nodes );
 
-	//correct contact_normal interpolation
-	  if( (*it)->SolutionStepsDataHas(CONTACT_FORCE) )
-	    noalias((*it)->GetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
-		    
-	  (*it)->SetValue(DOMAIN_LABEL,mMeshId);
-	  
+      //set node variables
+      for(std::vector<NodeType::Pointer>::iterator it =  list_of_new_nodes.begin(); it!=list_of_new_nodes.end(); it++)
+	{
+	  this->SetNewNodeVariables(mrModelPart,(*it));
 	}
 
+
+      this->SetNodesToModelPart(mrModelPart, list_of_new_nodes);
+      
       if( mEchoLevel > 0 )
 	std::cout<<"   GENERATE NEW NODES ]; "<<std::endl;
 
-    KRATOS_CATCH(" ")
-  }
+
+      KRATOS_CATCH(" ")
+    }
 
 
     /// this function is designed for being called at the beginning of the computations
@@ -311,8 +240,97 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+     
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+
+    void GenerateNewNodes(ModelPart& rModelPart, std::vector<NodeType::Pointer>& list_of_nodes)
+    {
+      KRATOS_TRY
+
+      NodeType::Pointer pNode;
+
+      //center
+      double xc = 0;
+      double yc = 0;
+      double zc = 0;
+      
+      //assign data to dofs
+      NodeType::DofsContainerType& ReferenceDofs = rModelPart.Nodes(mMeshId).front().GetDofs();
+
+      VariablesList& VariablesList = rModelPart.GetNodalSolutionStepVariablesList();
+
+      //unsigned int id = mrRemesh.MaxNodeIdNumber + 1;
+      unsigned int id = ModelerUtilities::GetMaxNodeId(rModelPart) + 1;
+
+      ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(mMeshId);	  
+      const unsigned int dimension = element_begin->GetGeometry().WorkingSpaceDimension();
+
+      double* OutPointList = mrRemesh.OutMesh.GetPointList();
+
+      int& InNumberOfPoints  = mrRemesh.InMesh.GetNumberOfPoints();
+      int& OutNumberOfPoints = mrRemesh.OutMesh.GetNumberOfPoints();
+ 
+
+      if (OutNumberOfPoints > InNumberOfPoints)
+	{
+	  for(int i = InNumberOfPoints; i<OutNumberOfPoints; i++)
+	    {
+	      int base = i*dimension;
+	      
+	      xc = OutPointList[base];
+	      yc = OutPointList[base+1];
+	      zc = 0; 
+	      if(dimension==3)
+		zc=OutPointList[base+2];
+
+	      //create a new node
+	      pNode = boost::make_shared< NodeType >( id, xc, yc, zc );
+
+	      //set new id
+	      if(mrRemesh.InputInitializedFlag){
+		mrRemesh.NodalPreIds.push_back( id );
+		pNode->SetId(i+1);
+		if( id > mrRemesh.MaxNodeIdNumber )
+		  mrRemesh.MaxNodeIdNumber = id;		
+	      }
+      
+	      //giving model part variables list to the node
+	      pNode->SetSolutionStepVariablesList(&VariablesList);
+	      
+	      //set buffer size
+	      pNode->SetBufferSize(rModelPart.GetBufferSize());
+
+	      //generating the dofs
+	      for(Node<3>::DofsContainerType::iterator i_dof = ReferenceDofs.begin(); i_dof != ReferenceDofs.end(); i_dof++)
+		{
+		  NodeType::DofType& rDof = *i_dof;
+		  NodeType::DofType::Pointer pNewDof = pNode->pAddDof( rDof );
+
+		  (pNewDof)->FreeDof();
+		}
+	            	          
+	      list_of_nodes.push_back(pNode);
+	      
+	      id++;     
+	      
+	    }
+			
+	}
+
+
+      //Inserted nodes
+      mrRemesh.Info->InsertedNodes = OutNumberOfPoints-InNumberOfPoints;
+
+      
+      KRATOS_CATCH( "" )
+    }
   
-    void ProjectVariablesToNewNodes(std::vector<Node<3>::Pointer >& rlist_of_new_nodes)			    
+    //**************************************************************************
+    //**************************************************************************
+
+    void ProjectVariablesToNewNodes(ModelPart& rModelPart, std::vector<NodeType::Pointer >& list_of_new_nodes)			    
     {
 
       KRATOS_TRY
@@ -330,25 +348,25 @@ private:
       //defintions for spatial search
       
       unsigned int  bucket_size = 20;
-      KdtreeType    NodesTree(rlist_of_new_nodes.begin(),rlist_of_new_nodes.end(),bucket_size);
+      KdtreeType    NodesTree(list_of_new_nodes.begin(),list_of_new_nodes.end(),bucket_size);
   
 
       //Find out where the new nodes belong to:
       std::vector<double> ShapeFunctionsN;    
-      std::vector<VariablesListDataValueContainer> VariablesListVector(rlist_of_new_nodes.size());
+      std::vector<VariablesListDataValueContainer> VariablesListVector(list_of_new_nodes.size());
       
-      VariablesList&  variables_list = mrModelPart.GetNodalSolutionStepVariablesList();
+      VariablesList&  variables_list = rModelPart.GetNodalSolutionStepVariablesList();
       
       //find the center and "radius" of the element
       double  radius = 0;
       Node<3> center(0,0.0,0.0,0.0);
       
-      unsigned int MaximumNumberOfPointsInRadius = rlist_of_new_nodes.size();
+      unsigned int MaximumNumberOfPointsInRadius = list_of_new_nodes.size();
       std::vector<Node<3>::Pointer> PointsInRadius (MaximumNumberOfPointsInRadius);
       std::vector<double>  PointsInRadiusDistances (MaximumNumberOfPointsInRadius);
       
       //geometry
-      ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
+      ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(mMeshId);	  
       const unsigned int nds = element_begin->GetGeometry().size();
 
       std::vector<std::vector<double> > ElementPointCoordinates(nds);
@@ -356,8 +374,8 @@ private:
       std::fill( PointCoordinates.begin(), PointCoordinates.end(), 0.0 );
       std::fill( ElementPointCoordinates.begin(), ElementPointCoordinates.end(), PointCoordinates );
       
-      for(ModelPart::ElementsContainerType::const_iterator ie = mrModelPart.ElementsBegin(mMeshId);
-	ie != mrModelPart.ElementsEnd(mMeshId); ie++)
+      for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(mMeshId);
+	ie != rModelPart.ElementsEnd(mMeshId); ie++)
 	{
 
 	  //coordinates
@@ -406,6 +424,50 @@ private:
 
     }
 
+
+      //*******************************************************************************************
+    //*******************************************************************************************
+
+    virtual bool SetNewNodeVariables(ModelPart& rModelPart, NodeType::Pointer& pNode)
+    {
+      KRATOS_TRY
+	           	      
+      //set model part
+      pNode->SetValue(MODEL_PART_NAME,rModelPart.Name());
+     
+      //set original position
+      const array_1d<double,3>& Displacement = pNode->FastGetSolutionStepValue(DISPLACEMENT);
+      pNode->X0() = pNode->X() - Displacement[0];
+      pNode->Y0() = pNode->Y() - Displacement[1];
+      pNode->Z0() = pNode->Z() - Displacement[2];
+      
+      //set contact force
+      pNode->FastGetSolutionStepValue(CONTACT_FORCE).clear();
+
+      
+      KRATOS_CATCH( "" )
+    }
+
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+ 
+    void SetNodesToModelPart(ModelPart& rModelPart, std::vector<NodeType::Pointer>& list_of_nodes)
+    {
+      KRATOS_TRY
+
+      if(list_of_nodes.size()){
+
+	//add new conditions: ( SOLID body model part )
+	for(std::vector<NodeType::Pointer>::iterator i_node = list_of_nodes.begin(); i_node!= list_of_nodes.end(); i_node++)
+	  {
+	    rModelPart.Nodes().push_back(*(i_node));
+	  }
+	
+      }
+      
+      KRATOS_CATCH( "" )
+    }
     ///@}
     ///@name Private  Access
     ///@{

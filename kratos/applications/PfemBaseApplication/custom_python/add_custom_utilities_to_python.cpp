@@ -115,6 +115,8 @@ namespace Kratos
       //***************DOMAIN SET**************//
       class_< ModelerUtilities, boost::noncopyable > ("ModelerUtilities", init<>())
 	.def("SetDomainLabels",&ModelerUtilities::SetDomainLabels)
+	.def("SetModelPartNameToConditions",&ModelerUtilities::SetModelPartNameToConditions)
+	.def("SetModelPartNameToNodes",&ModelerUtilities::SetModelPartNameToNodes)
 	.def("CheckCriticalRadius",&ModelerUtilities::CheckCriticalRadius)
 	.def_readonly("REMESH",&ModelerUtilities::REMESH)
 	.def_readonly("REFINE",&ModelerUtilities::REFINE)
@@ -277,6 +279,7 @@ namespace Kratos
 	.def("GetTransferParameters",&ModelerUtilities::MeshingParameters::GetTransferParameters)
 	.def("GetRefiningParameters",&ModelerUtilities::MeshingParameters::GetRefiningParameters)
 	.def("GetMeshId",&ModelerUtilities::MeshingParameters::GetMeshId)
+	.def("GetSubModelPartName",&ModelerUtilities::MeshingParameters::GetSubModelPartName)
 	.def("GetOptions",&ModelerUtilities::MeshingParameters::GetOptions)
 	.def("InitializeMeshing",&ModelerUtilities::MeshingParameters::InitializeMeshing)
 	.def("FinalizeMeshing",&ModelerUtilities::MeshingParameters::FinalizeMeshing)

@@ -20,6 +20,9 @@
 //Application includes
 #include "custom_python/add_custom_processes_to_python.h"
 
+//General model processes
+#include "custom_processes/construct_model_part_boundary_process.hpp"
+
 //Processes
 #include "custom_processes/elemental_neighbours_search_process.hpp"
 #include "custom_processes/nodal_neighbours_search_process.hpp"
@@ -92,6 +95,12 @@ namespace Kratos
 
       //***************BOUNDARY**************//
 
+      class_<ConstructModelPartBoundaryProcess, bases<ProcessBaseType>, boost::noncopyable >
+	(
+	 "ConstructModelPartBoundary", init<ModelPart&, std::string, int>()
+	 )
+	;
+
       class_<BuildMeshBoundaryProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
 	 "BuildMeshBoundary", init<ModelPart&, int, int>()
@@ -120,10 +129,10 @@ namespace Kratos
 	;
 
       class_<RefineMeshBoundaryProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "RefineMeshBoundary", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
-	 )
-	;
+      	(
+      	 "RefineMeshBoundary", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
+      	 )
+      	;
 
       class_<RemoveMeshNodesProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(

@@ -18,7 +18,7 @@
 // Project includes
 #include "custom_utilities/modeler_utilities.hpp"
 #include "custom_processes/nodal_neighbours_search_process.hpp"
-#include "custom_processes/build_mesh_boundary_process.hpp"
+#include "custom_processes/construct_model_part_boundary_process.hpp"
 
 #include "pfem_base_application_variables.h"
 
@@ -40,10 +40,16 @@ namespace Kratos
   ///@}
   ///@name Type Definitions
   ///@{
-  typedef  ModelPart::NodesContainerType NodesContainerType;
-  typedef  ModelPart::ElementsContainerType ElementsContainerType;
-  typedef  ModelPart::ConditionsContainerType ConditionsContainerType;
-  typedef  ModelPart::MeshType::GeometryType::PointsArrayType PointsArrayType;
+  typedef  ModelPart::ConditionType                                ConditionType;
+  typedef  ModelPart::NodesContainerType                      NodesContainerType;
+  typedef  ModelPart::ElementsContainerType                ElementsContainerType;
+  typedef  ModelPart::ConditionsContainerType            ConditionsContainerType;
+  typedef  ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
+
+  typedef PointerVectorSet<ConditionType, IndexedObject> ConditionsContainerType;
+  typedef ConditionsContainerType::iterator                    ConditionIterator;
+  typedef ConditionsContainerType::const_iterator      ConditionConstantIterator;
+  
   ///@}
   ///@name  Enum's
   ///@{
@@ -74,10 +80,10 @@ namespace Kratos
     ///@{
 
     /// Default constructor.
-    ModelStartEndMeshingProcess(ModelPart& rModelPart,
+    ModelStartEndMeshingProcess(ModelPart& rMainModelPart,
 				Flags Options,
 				int EchoLevel = 0)
-      : mrModelPart(rModelPart)
+      : mrMainModelPart(rMainModelPart)
     { 
       mOptions   = Options;
       mEchoLevel = EchoLevel;
@@ -128,8 +134,9 @@ namespace Kratos
     {
       KRATOS_TRY
       
-      // Restore mehses coherency
-      this->BuildModelPartMeshes();
+      // Restore meshes coherency
+      //this->BuildModelPartMeshes();
+      this->BuildModelPartStructure();
 
       // Perform searches for next processes (i.e. contact search)
       this->PerformModelSearches();
@@ -186,7 +193,7 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
-    ModelPart& mrModelPart;
+    ModelPart& mrMainModelPart;
 
     Flags mOptions;
 
@@ -209,11 +216,11 @@ namespace Kratos
 
       //Sort Conditions
       unsigned int consecutive_index = 1;
-      for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(); ic!=mrModelPart.ConditionsEnd(); ic++)
+      for(ModelPart::ConditionsContainerType::iterator ic = mrMainModelPart.ConditionsBegin(); ic!=mrMainModelPart.ConditionsEnd(); ic++)
 	(ic)->SetId(consecutive_index++);
 
-      mrModelPart.Conditions().Sort();
-      mrModelPart.Conditions().Unique();
+      mrMainModelPart.Conditions().Sort();
+      mrMainModelPart.Conditions().Unique();
 
 
       KRATOS_CATCH(" ")
@@ -232,11 +239,11 @@ namespace Kratos
 
       // Sort Elements
       unsigned int consecutive_index = 1;
-      for(ModelPart::ElementsContainerType::iterator ie = mrModelPart.ElementsBegin(); ie!=mrModelPart.ElementsEnd(); ie++)
+      for(ModelPart::ElementsContainerType::iterator ie = mrMainModelPart.ElementsBegin(); ie!=mrMainModelPart.ElementsEnd(); ie++)
 	ie->SetId(consecutive_index++);
 
-      mrModelPart.Elements().Sort();
-      mrModelPart.Elements().Unique();
+      mrMainModelPart.Elements().Sort();
+      mrMainModelPart.Elements().Unique();
 
       KRATOS_CATCH(" ")
 
@@ -254,8 +261,8 @@ namespace Kratos
 
       //Sort Nodes, set STRUCTURE nodes at end
       unsigned int consecutive_index = 1;
-      unsigned int reverse_index = mrModelPart.Nodes().size();
-      for(ModelPart::NodesContainerType::iterator in = mrModelPart.NodesBegin(); in!=mrModelPart.NodesEnd(); in++)
+      unsigned int reverse_index = mrMainModelPart.Nodes().size();
+      for(ModelPart::NodesContainerType::iterator in = mrMainModelPart.NodesBegin(); in!=mrMainModelPart.NodesEnd(); in++)
 	{
 	  if(in->IsNot(STRUCTURE) ){
 	    in->SetId(consecutive_index++);
@@ -265,8 +272,8 @@ namespace Kratos
 	  }
 	}
 
-      mrModelPart.Nodes().Sort();
-      mrModelPart.Nodes().Unique();
+      mrMainModelPart.Nodes().Sort();
+      mrMainModelPart.Nodes().Unique();
 
       KRATOS_CATCH(" ")
 
@@ -282,24 +289,44 @@ namespace Kratos
       KRATOS_TRY
 
       //Once all meshes are build, the main mesh Id=0 must be reassigned
-      ModelerUtilities ModelerUtils;
-
-      unsigned int NumberOfMeshes = mrModelPart.NumberOfMeshes();
+      unsigned int NumberOfMeshes = mrMainModelPart.NumberOfMeshes();
 
       if(NumberOfMeshes>1){
-	this->BuildTotalMesh(mrModelPart, mEchoLevel);
+	this->BuildTotalMesh(mrMainModelPart, mEchoLevel);
       }
       else{
-	this->CleanMeshFlags(mrModelPart,0);
+	this->CleanMeshFlags(mrMainModelPart,0);
       }
 
 
       KRATOS_CATCH(" ")
 
-     }
+    }
 
 
+    //*******************************************************************************************
+    //*******************************************************************************************
     
+    void BuildModelPartStructure()
+    {
+
+      KRATOS_TRY
+
+      //Once all model parts are build, the main model part must be reconstructed coherently
+      unsigned int NumberOfSubModelParts=mrMainModelPart.NumberOfSubModelParts();
+
+      if(NumberOfSubModelParts>0){
+	this->BuildTotalModelPart(mrMainModelPart, mEchoLevel);
+      }
+      else{
+	this->CleanMeshFlags(mrMainModelPart,0);
+      }
+
+
+      KRATOS_CATCH(" ")
+
+    }
+
     //*******************************************************************************************
     //*******************************************************************************************
     
@@ -309,20 +336,22 @@ namespace Kratos
       KRATOS_TRY
        
 	//NODAL NEIGHBOURS SEARCH
-	NodalNeighboursSearchProcess FindNeighbours(mrModelPart);
+	NodalNeighboursSearchProcess FindNeighbours(mrMainModelPart);
 	FindNeighbours.Execute();
 
 	//NODAL_H SEARCH	    
-	//FindNodalHProcess FindNodalH(mrModelPart);
+	//FindNodalHProcess FindNodalH(mrMainModelPart);
 	//FindNodalH.Execute();
 
 	//CONDITIONS MASTER_ELEMENTS and MASTER_NODES SEARCH
-	BuildMeshBoundaryProcess BuildBoundaryProcess(mrModelPart);
-	BuildBoundaryProcess.SearchConditionMasters();
+	//BuildMeshBoundaryProcess BuildBoundaryProcess(mrMainModelPart);
+	//BuildBoundaryProcess.SearchConditionMasters();
+	ConstructModelPartBoundaryProcess BuildBoundaryProcess(mrMainModelPart, mrMainModelPart.Name(), mEchoLevel);
+	BuildBoundaryProcess.SearchConditionMasters(mrMainModelPart);
 
 	//BOUNDARY NORMALS SEARCH and  SHRINKAGE FACTOR
 	BoundaryNormalsCalculationUtilities BoundaryComputation;
-	BoundaryComputation.CalculateMeshBoundaryNormals(mrModelPart, mEchoLevel);   
+	BoundaryComputation.CalculateBoundaryNormals(mrMainModelPart, mEchoLevel);   
 
 
       KRATOS_CATCH(" ")
@@ -346,7 +375,7 @@ namespace Kratos
 	//     if(Meshes[MeshId].Is( ModelerUtilities::REMESH )){
 	//       ChangeTipElementsUtilities TipElements;
 	//       if(mpMeshingVariables->AvoidTipElementsFlag){
-	// 	TipElements.SwapDiagonals(mrModelPart,MeshId);
+	// 	TipElements.SwapDiagonals(mrMainModelPart,MeshId);
 	//       }
 	//     }
 	//   }	
@@ -355,6 +384,330 @@ namespace Kratos
 
      }
 
+    //*******************************************************************************************
+    //*******************************************************************************************
+
+    void BuildTotalModelPart(ModelPart& rModelPart, int EchoLevel)
+    {
+
+      KRATOS_TRY
+
+      //Mesh Id=0
+      
+      if( EchoLevel > 0 )
+	std::cout<<"   [ START MODEL PART ["<<rModelPart.Name()<<"] [Elems=:"<<rModelPart.NumberOfElements()<<"|Nodes="<<rModelPart.NumberOfNodes()<<"|Conds="<<rModelPart.NumberOfConditions()<<"] ] "<<std::endl;      
+      
+      rModelPart.Nodes().clear();
+      rModelPart.Elements().clear();
+
+      //contact conditions are located on Mesh_0
+      ModelPart::ConditionsContainerType PreservedConditions;
+      
+      unsigned int nodeId=1;
+      unsigned int elemId=1;
+      unsigned int condId=1;
+      
+     
+      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
+	{
+	  if( (i_mp->Is(SOLID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(BOUNDARY) && i_mp->Is(RIGID)) ){ //only the solid domains (no computing) and the rigid body domains (rigid)
+
+	    if( EchoLevel > 0 )
+	      std::cout<<"    [ SUBMODEL PART ["<<i_mp->Name()<<"] [Elems="<<i_mp->NumberOfElements()<<"|Nodes="<<i_mp->NumberOfNodes()<<"|Conds="<<i_mp->NumberOfConditions()<<"] ] "<<std::endl;
+
+
+	    //Clean Nodes when redefining the main model part:
+	    const array_1d<double,3> ZeroNormal(3,0.0);
+	    ModelPart::NodesContainerType temporal_nodes;
+	    temporal_nodes.reserve(i_mp->Nodes().size());
+	    temporal_nodes.swap(i_mp->Nodes());
+
+	    if( !i_mp->NumberOfElements() ){	  
+	      for(ModelPart::NodesContainerType::iterator i_node = temporal_nodes.begin() ; i_node != temporal_nodes.end() ; i_node++)
+		{
+		  if( i_node->IsNot(TO_ERASE) ){
+		    (i_mp->Nodes()).push_back(*(i_node.base()));
+		    (rModelPart.Nodes()).push_back(*(i_node.base()));	
+		    rModelPart.Nodes().back().SetId(nodeId);
+		    nodeId+=1;
+		  }
+		}
+	    }
+	    else{
+
+	      for(ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin() ; i_elem != i_mp->ElementsEnd() ; i_elem++)
+		{
+		  if( i_elem->IsNot(TO_ERASE) ){					
+		  
+		    PointsArrayType& vertices=i_elem->GetGeometry().Points();
+		    for(unsigned int i=0; i<vertices.size(); i++)
+		      {
+			vertices[i].Set(BLOCKED);
+		      }
+		
+		    (rModelPart.Elements()).push_back(*(i_elem.base()));	
+		    rModelPart.Elements().back().SetId(elemId);
+		    elemId+=1;
+
+		  }
+		}
+	    
+	    
+	      for(ModelPart::NodesContainerType::iterator i_node = temporal_nodes.begin() ; i_node != temporal_nodes.end() ; i_node++)
+		{
+		  //i_node->PrintInfo(std::cout);
+		  //std::cout<<std::endl;
+
+		  if(i_node->Is(BLOCKED) || i_node->Is(RIGID))
+		    {
+		      
+		      i_node->Reset(ISOLATED);   //reset isolated
+		      i_node->Reset(NEW_ENTITY); //reset if was new 
+		      i_node->Reset(TO_REFINE);  //reset if was labeled to refine (to not duplicate boundary conditions)
+		      i_node->Reset(BLOCKED); 
+		      
+		      if( i_node->IsNot(TO_ERASE) ){
+
+			(i_mp->Nodes()).push_back(*(i_node.base()));
+			(rModelPart.Nodes()).push_back(*(i_node.base()));	
+			rModelPart.Nodes().back().SetId(nodeId);
+			nodeId+=1;
+			
+		      }
+
+		    }
+		  else{
+
+		    i_node->Set(ISOLATED);
+		    i_node->Reset(NEW_ENTITY); //reset if was new 
+		    i_node->Reset(TO_REFINE);  //reset if was labeled to refine (to not duplicate boundary conditions)
+		    i_node->Reset(BLOCKED); 
+
+		    if( mOptions.Is(ModelerUtilities::KEEP_ISOLATED_NODES) && i_node->IsNot(TO_ERASE) ){
+
+		      (i_mp->Nodes()).push_back(*(i_node.base()));
+		      (rModelPart.Nodes()).push_back(*(i_node.base()));	
+		      rModelPart.Nodes().back().SetId(nodeId);
+		      nodeId+=1;
+
+		    }
+		    
+		  }
+		
+		  if(i_node->Is(BOUNDARY)){
+
+		    if(i_node->IsNot(RIGID))
+		      i_node->Set(FREE_SURFACE);
+
+		  }
+		  else{
+
+		    if( i_node->SolutionStepsDataHas(CONTACT_FORCE) )
+		      noalias(i_node->GetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
+		  }
+				
+		}
+	    }
+	    //i_mp->Nodes().Sort();  
+	    
+	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
+	      {
+		if( i_cond->IsNot(TO_ERASE) ){
+		  i_cond->Reset(NEW_ENTITY); //reset here if the condition is inserted
+		  PreservedConditions.push_back(*(i_cond.base()));
+		  PreservedConditions.back().SetId(condId);
+		  condId+=1;	
+		}
+	      }
+
+	  }
+	}
+
+
+      this->BuildBoundaryModelParts(rModelPart,PreservedConditions);
+
+      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
+	{
+	  if( i_mp->Is(BOUNDARY) ){ //boundary model part
+
+	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
+	      {
+		if( i_cond->IsNot(TO_ERASE) ){
+		  i_cond->Reset(NEW_ENTITY); //reset here if the condition is inserted
+		  PreservedConditions.push_back(*(i_cond.base()));
+		  PreservedConditions.back().SetId(condId);
+		  condId+=1;	
+		}
+	      }
+	  }
+	  
+	}
+      
+      for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); i_cond++)
+	{
+	  if(i_cond->Is(CONTACT)){
+	    PreservedConditions.push_back(*(i_cond.base()));
+	    PreservedConditions.back().SetId(condId);
+	    condId+=1;
+	  }
+	}
+      
+      rModelPart.Conditions().swap(PreservedConditions);
+      
+      //Sort
+      rModelPart.Nodes().Sort();
+      rModelPart.Elements().Sort();
+      rModelPart.Conditions().Sort();     
+      
+      //Unique
+      rModelPart.Nodes().Unique();
+      rModelPart.Elements().Unique();
+      rModelPart.Conditions().Unique();
+      
+      //Sort Again to have coherent numeration for nodes (mesh with shared nodes)
+      unsigned int consecutive_index = 1;
+      for(ModelPart::NodesContainerType::iterator in = rModelPart.NodesBegin() ; in != rModelPart.NodesEnd() ; in++)
+	in->SetId(consecutive_index++);
+      
+      
+      this->BuildComputingDomain(rModelPart, EchoLevel);
+
+
+      if( EchoLevel > 0 )
+	std::cout<<"   [ END MODEL PART ["<<rModelPart.Name()<<"] [Elems=:"<<rModelPart.NumberOfElements()<<"|Nodes="<<rModelPart.NumberOfNodes()<<"|Conds="<<rModelPart.NumberOfConditions()<<"] ] "<<std::endl;      
+      
+
+      KRATOS_CATCH(" ")
+
+    }
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+ 
+    void BuildBoundaryModelParts(ModelPart& rModelPart, ModelPart::ConditionsContainerType& rPreservedConditions)
+    {
+      
+      KRATOS_TRY
+
+    	if(rPreservedConditions.size()){
+
+    	  //add new conditions: ( BOUNDARY model parts )
+    	  for(ModelPart::SubModelPartIterator i_mp= mrMainModelPart.SubModelPartsBegin() ; i_mp!=mrMainModelPart.SubModelPartsEnd(); i_mp++)
+    	    {
+    	      if( i_mp->Is(BOUNDARY) ){ //boundary model part
+
+    		this->CleanModelPartConditions(*i_mp);
+		
+    		for(ModelPart::ConditionsContainerType::iterator i_cond = rPreservedConditions.begin(); i_cond!= rPreservedConditions.end(); i_cond++)
+    		  {
+    		    ConditionsContainerType& ChildrenConditions = i_cond->GetValue(CHILDREN_CONDITIONS);
+
+    		    //this conditions are cloned, then the id has no coherence, must be renumbered at the end of the assignation
+    		    for (ConditionConstantIterator cn = ChildrenConditions.begin() ; cn != ChildrenConditions.end(); ++cn)
+    		      {
+    			if( cn->GetValue(MODEL_PART_NAME) == i_mp->Name() ){
+    			  i_mp->Conditions().push_back(*(cn.base()));
+    			}
+
+    		      }
+		  
+    		  }
+    	      }	      
+
+    	    } 
+	  
+    	}
+     
+	
+      KRATOS_CATCH( "" )
+    }
+
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+
+    void CleanModelPartConditions(ModelPart& rModelPart)
+    {
+      KRATOS_TRY
+
+	
+      //clean old conditions (TO_ERASE) and add new conditions (NEW_ENTITY)
+      ModelPart::ConditionsContainerType PreservedConditions;
+      PreservedConditions.reserve(rModelPart.Conditions().size());
+      PreservedConditions.swap(rModelPart.Conditions());
+      
+      for(ModelPart::ConditionsContainerType::iterator i_cond = PreservedConditions.begin(); i_cond!= PreservedConditions.end(); i_cond++)
+    	{
+    	  if(i_cond->IsNot(TO_ERASE))
+    	    rModelPart.Conditions().push_back(*(i_cond.base()));
+    	}
+	  	
+      KRATOS_CATCH( "" )
+    }
+    
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+
+    void BuildComputingDomain (ModelPart& rModelPart, int EchoLevel)
+    {
+      KRATOS_TRY
+	
+      std::string ComputingModelPartName;
+      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
+	{
+	  if( (i_mp->Is(ACTIVE) && i_mp->Is(SOLID)) ){ //solid_computing_domain
+	    ComputingModelPartName = i_mp->Name();
+	  }
+	}
+
+
+      ModelPart& rComputingModelPart = rModelPart.GetSubModelPart(ComputingModelPartName);
+
+      rComputingModelPart.Nodes().clear();
+      rComputingModelPart.Elements().clear();
+      rComputingModelPart.Conditions().clear();
+
+      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
+	{
+	  if( (i_mp->Is(SOLID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(BOUNDARY) && i_mp->Is(RIGID)) ){ 
+
+	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; i_node++)
+	      {
+		rComputingModelPart.AddNode(*(i_node.base()));
+	      }
+
+	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
+	      {
+		rComputingModelPart.AddCondition(*(i_cond.base()));
+	      }
+	  }
+
+	  if( (i_mp->Is(SOLID) && i_mp->IsNot(ACTIVE)) ){ 
+
+	    for(ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin() ; i_elem != i_mp->ElementsEnd() ; i_elem++)
+	      {
+		rComputingModelPart.AddElement(*(i_elem.base()));	
+	      }
+	  }
+	}
+
+      //Sort
+      rComputingModelPart.Nodes().Sort();
+      rComputingModelPart.Elements().Sort();
+      rComputingModelPart.Conditions().Sort();     
+      
+      //Unique
+      rComputingModelPart.Nodes().Unique();
+      rComputingModelPart.Elements().Unique();
+      rComputingModelPart.Conditions().Unique();
+      
+      if( EchoLevel > 0 )
+	std::cout<<"    [ SUBMODEL PART ["<<rComputingModelPart.Name()<<"] [Elems="<<rComputingModelPart.NumberOfElements()<<"|Nodes="<<rComputingModelPart.NumberOfNodes()<<"|Conds="<<rComputingModelPart.NumberOfConditions()<<"] ] "<<std::endl;
+
+ 
+      KRATOS_CATCH(" ")
+    }
 
     //*******************************************************************************************
     //*******************************************************************************************
@@ -526,7 +879,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  void CleanMeshFlags(ModelPart& rModelPart,ModelPart::IndexType MeshId)
+  void CleanMeshFlags(ModelPart& rModelPart, ModelPart::IndexType MeshId)
   {
     
     KRATOS_TRY

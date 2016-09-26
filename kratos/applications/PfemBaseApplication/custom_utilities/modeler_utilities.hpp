@@ -420,7 +420,6 @@ public:
       double   ReferenceThreshold;  //critical variable threshold value
       double   ReferenceError;      //critical error percentage
      
-
       SpatialBoundingBox::Pointer  RefiningBox;
       bool     RefiningBoxSetFlag;
 
@@ -490,7 +489,6 @@ public:
       {
 	mpErrorVariable = &rVariable;
       };
-
 
       Flags GetRefiningOptions()
       {
@@ -572,7 +570,8 @@ public:
 
       //Local execution variables
       bool InputInitializedFlag;
-
+      double MaxNodeIdNumber;
+      
       std::vector<int> NodalPreIds;
       std::vector<int> NodalNewIds; //deprecated in new mesher 
 
@@ -580,6 +579,8 @@ public:
       bool MeshElementsSelectedFlag;
 
       std::vector<std::vector<int> > NeighbourList; //deprecated in new mesher 
+
+      std::vector<bounded_vector<double, 3> > Holes;
 
       //modeler pointers to the mesh structures
       MeshContainer       InMesh;
@@ -590,7 +591,7 @@ public:
       RefiningParameters::Pointer       Refine;
       TransferParametersType::Pointer Transfer;
 
-      PropertiesType                Properties;
+      PropertiesType::Pointer       Properties;
      
       void Set(Flags ThisFlag)                           
       {
@@ -654,7 +655,7 @@ public:
       };
 
 
-      void SetProperties(PropertiesType rProperties)
+      void SetProperties(PropertiesType::Pointer rProperties)
       {
 	Properties=rProperties;
       };
@@ -689,13 +690,26 @@ public:
       {
 	mpReferenceCondition=&rCondition;
       };
-      
 
+      void SetHoles(std::vector<bounded_vector<double, 3> >& rHoles)
+      {
+	Holes = rHoles;
+      }
+            
+      std::vector<bounded_vector<double, 3> >& GetHoles()
+      {
+	return Holes;
+      }
+      
       int GetMeshId()
       {
 	return MeshId;
       };
 
+      std::string GetSubModelPartName()
+      {
+	return SubModelPartName;
+      };
 
       Flags GetOptions()
       {
@@ -717,7 +731,7 @@ public:
 	return Refine;
       };
 
-      PropertiesType const& GetProperties()
+      PropertiesType::Pointer GetProperties()
       {
 	return Properties;
       };
@@ -747,6 +761,8 @@ public:
 	InputInitializedFlag     = false;
 	MeshElementsSelectedFlag = false;
 
+	MaxNodeIdNumber   = 0;
+		
 	InMesh.Initialize();
 	OutMesh.Initialize();
 	MidMesh.Initialize();
@@ -793,6 +809,11 @@ public:
    
     void SetDomainLabels   (ModelPart& rModelPart);
 
+    void SetModelPartNameToConditions (ModelPart& rModelPart);
+    
+    void SetModelPartNameToNodes (ModelPart& rModelPart);
+  
+
     //*******************************************************************************************
     //*******************************************************************************************
 
@@ -837,6 +858,22 @@ public:
       return sqrt( (P1.X()-P2.X())*(P1.X()-P2.X()) + (P1.Y()-P2.Y())*(P1.Y()-P2.Y()) + (P1.Z()-P2.Z())*(P1.Z()-P2.Z()));
     };
 
+    static inline double CalculateBoundarySize(Geometry< Node<3> >& rGeometry)
+    {
+
+      if( rGeometry.size() == 2 ){
+	return CalculateSideLength (rGeometry[0],rGeometry[1]);
+      }
+      else if( rGeometry.size() == 3 ){
+	return 2*CalculateTriangleRadius(rGeometry);
+      }
+      else{
+	std::cout<<"BOUNDARY SIZE NOT COMPUTED :: geometry not correct"<<std::endl;
+	return 0;
+      }
+      
+    };
+    
     static inline double CalculateTriangleRadius(Geometry< Node<3> >& rGeometry)
     {
 
@@ -1157,6 +1194,68 @@ public:
     double CheckCriticalRadius (ModelPart& rModelPart, double rCriticalRadius, unsigned int MeshId);
 
 
+    //*******************************************************************************************
+    //*******************************************************************************************
+  
+    static inline unsigned int GetMaxNodeId(ModelPart& rModelPart)
+    {
+      KRATOS_TRY
+
+      unsigned int max_id = rModelPart.Nodes().back().Id();
+	
+      for(ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin(); i_node!= rModelPart.NodesEnd(); i_node++)
+	{
+	  if(i_node->Id() > max_id)
+	    max_id = i_node->Id();
+	}
+
+      return max_id;
+      
+      KRATOS_CATCH( "" )
+    }
+
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+  
+    static inline unsigned int GetMaxConditionId(ModelPart& rModelPart)
+    {
+      KRATOS_TRY
+
+      unsigned int max_id = rModelPart.Conditions().back().Id();
+
+      for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); i_cond++)
+	{
+	  if(i_cond->Id() > max_id)
+	    max_id = i_cond->Id();
+	}
+
+      return max_id;
+      
+      KRATOS_CATCH( "" )
+    }
+
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+  
+    static inline unsigned int GetMaxElementId(ModelPart& rModelPart)
+    {
+      KRATOS_TRY
+
+      unsigned int max_id = rModelPart.Elements().back().Id();
+
+      for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin(); i_elem!= rModelPart.ElementsEnd(); i_elem++)
+	{
+	  if(i_elem->Id() > max_id)
+	    max_id = i_elem->Id();
+	}
+
+      return max_id;
+      
+      KRATOS_CATCH( "" )
+    }
+    
     //*******************************************************************************************
     //*******************************************************************************************
 

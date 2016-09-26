@@ -340,6 +340,8 @@ namespace Kratos
     void CleanElementNeighbours(int MeshId = 0)
     {
 
+      KRATOS_TRY
+	
       NodesContainerType&    rNodes = mrModelPart.Nodes(MeshId);
       ElementsContainerType& rElems = mrModelPart.Elements(MeshId);
 
@@ -372,11 +374,14 @@ namespace Kratos
 	  ResetFlagOptions(*ie);
         }
 
+      KRATOS_CATCH( "" )
     }
 
 
     void PrintElementNeighbours(int MeshId = 0)
     {
+      KRATOS_TRY
+      
       NodesContainerType& rNodes = mrModelPart.Nodes(MeshId);
       ElementsContainerType& rElems = mrModelPart.Elements(MeshId);
 
@@ -412,6 +417,7 @@ namespace Kratos
 
       std::cout<<std::endl;
 
+      KRATOS_CATCH( "" )
     }
 
 
@@ -419,6 +425,8 @@ namespace Kratos
     bool KratosSearch(int MeshId = 0)
     {
 
+      KRATOS_TRY
+	
       ElementsContainerType& rElems = mrModelPart.Elements(MeshId);
 
       //first of all the neighbour nodes and neighbour elements arrays are initialized to the guessed size
@@ -597,11 +605,16 @@ namespace Kratos
 
 
       return true;
+
+
+      KRATOS_CATCH( "" )
     }
 
 
     bool LohnerSearch(int MeshId = 0)
     {
+
+      KRATOS_TRY
 
       NodesContainerType&    rNodes = mrModelPart.Nodes(MeshId);
       ElementsContainerType& rElems = mrModelPart.Elements(MeshId);
@@ -755,6 +768,7 @@ namespace Kratos
 
       return true;
 
+      KRATOS_CATCH( "" )
     }
 
     ///@}

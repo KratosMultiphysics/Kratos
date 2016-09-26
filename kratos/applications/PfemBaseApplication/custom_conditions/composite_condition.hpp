@@ -103,7 +103,7 @@ public:
     ///@{
 
 
-   SizeType NumberOfChildren() const
+    SizeType NumberOfChildren() const
     {
         return mChildConditions.size();
     }
@@ -500,6 +500,8 @@ private:
 
     ConditionsContainerType mChildConditions;
 
+    bool mInitializedChildren;
+    
     ///@}
     ///@name Private Operators
     ///@{
@@ -508,6 +510,9 @@ private:
     ///@name Private Operations
     ///@{
 
+    //initialize children from set value CHILDREN_CONDITIONS
+    void InitializeChildren();
+    
     //check problem type definition and if coincides return active true
     bool IsActive(ConditionIterator iChildCondition, const ProcessInfo& rCurrentProcessInfo);
 

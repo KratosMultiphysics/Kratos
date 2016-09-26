@@ -16,12 +16,10 @@ class ReconnectModeler(mesh_modeler.MeshModeler):
     
     #
     def __init__(self, main_model_part, meshing_parameters): 
-        
-        self.echo_level        = 1
-        self.main_model_part   = main_model_part 
-        self.MeshingParameters = meshing_parameters
 
-        print("Construction of ReconnectModeler finished")
+        mesh_modeler.MeshModeler.__init__(self, main_model_part, meshing_parameters)        
+
+        print("::[Reconnect_Modeler]:: -BUILT-")
   
     #
     def InitializeMeshing(self):

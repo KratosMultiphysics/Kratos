@@ -133,7 +133,7 @@ public:
 	  double* InElementSizeList = mrRemesh.InMesh.GetElementSizeList();
 
 	  int* OutElementList       = mrRemesh.OutMesh.GetElementList();
-
+	  
 	  ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin(mMeshId);
 
 	  //PREPARE THE NODAL_H as a variable to control the automatic point insertion
@@ -184,6 +184,7 @@ public:
 
 		  for(unsigned int pn=0; pn<nds; pn++)
 		    {
+		      
 		      InElementList[id*nds+pn]= OutElementList[el*nds+pn];
 		      
 		      vertices.push_back(*(nodes_begin + OutElementList[el*nds+pn]-1).base());
@@ -392,7 +393,8 @@ public:
 	  double* InElementSizeList = mrRemesh.InMesh.GetElementSizeList();
 	  
 	  int* OutElementList       = mrRemesh.OutMesh.GetElementList();
-	  
+
+	  	  
 	  ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin(mMeshId);	  
 	    
 	  for(int el = 0; el< OutNumberOfElements; el++)
@@ -402,6 +404,7 @@ public:
 		  Geometry<Node<3> > vertices;
 		  for(unsigned int pn=0; pn<nds; pn++)
 		    {
+		      
 		      InElementList[id*nds+pn]= OutElementList[el*nds+pn];
 		      vertices.push_back(*(nodes_begin + OutElementList[el*nds+pn]-1).base());		  
 		    }
@@ -410,8 +413,10 @@ public:
 		  mModelerUtilities.CalculateElementRadius(vertices, element_size);
 		  
 		  InElementSizeList[id] = nodal_h_non_refining_factor * element_size;
+
+		  id++;
 		}
-	      id++;
+
 	    }
 
       }

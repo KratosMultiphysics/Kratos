@@ -58,10 +58,13 @@ namespace Python
     .def( "PushBack", Push_Back_Bounding_Box )
     ;
 
-    //bounding box set
-    class_<SpatialBoundingBox, SpatialBoundingBox::Pointer, boost::noncopyable > 
+    //spatial bounding box
+    class_<SpatialBoundingBox, BoundingBoxPointer, boost::noncopyable > 
       ( "SpatialBoundingBox", 
-	init<Vector, double, Vector>() )
+	init<Vector, Vector>() )
+      .def(init< Parameters >())
+      .def(init< Parameters& >())
+      .def("SetAxisymmetric",&SpatialBoundingBox::SetAxisymmetric)
       .def("SetDimension",&SpatialBoundingBox::SetDimension)
       ;
      

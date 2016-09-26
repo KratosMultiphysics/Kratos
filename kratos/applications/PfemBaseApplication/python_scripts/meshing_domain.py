@@ -6,8 +6,8 @@ import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
-def CreateMeshingDomain(model_part, custom_settings):
-    return MeshingDomain(model_part, custom_settings)
+def CreateMeshingDomain(main_model_part, custom_settings):
+    return MeshingDomain(main_model_part, custom_settings)
 
 class MeshingDomain(object):
     
@@ -16,20 +16,20 @@ class MeshingDomain(object):
     ##
     ##real construction shall be delayed to the function "Initialize" which 
     ##will be called once the modeler is already filled
-    def __init__(self, model_part, custom_settings):
+    def __init__(self, main_model_part, custom_settings):
         
-        self.model_part = model_part    
+        self.main_model_part = main_model_part    
         
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-	    "python_file_name": "meshing_domain",
+	    "python_module": "meshing_domain",
             "mesh_id": 0,
-            "sub_model_part_name": "sub_model_part_name",
+            "model_part_name": "model_part_name",
             "alpha_shape": 2.4,
             "offset_factor": 0.0,
             "meshing_strategy":{
-               "python_file_name": "meshing_strategy",
+               "python_module": "meshing_strategy",
                "meshing_frequency": 0.0,
                "remesh": false,
                "refine": false,
@@ -95,19 +95,23 @@ class MeshingDomain(object):
         self.settings.ValidateAndAssignDefaults(default_settings)
         
         #construct the solving strategy
-        meshing_module = __import__(self.settings["meshing_strategy"]["python_file_name"].GetString())
-        self.MeshingStrategy = meshing_module.CreateMeshingStrategy(self.model_part, self.settings["meshing_strategy"])
+        meshing_module = __import__(self.settings["meshing_strategy"]["python_module"].GetString())
+        self.MeshingStrategy = meshing_module.CreateMeshingStrategy(self.main_model_part, self.settings["meshing_strategy"])
 
-        print("Construction of Mesh Modeler finished")
+        self.active_remeshing = False
+        if( self.settings["meshing_strategy"]["remesh"].GetBool() or self.settings["meshing_strategy"]["transfer"].GetBool() ):
+            self.active_remeshing = True
+        
+        print("::[Meshing_Domain]:: (",self.settings["model_part_name"].GetString()," ) -BUILT-")
         
 
     #### 
 
     def Initialize(self):
 
-        print("::[Mesh Domain]:: -START-")
+        print("::[Meshing Domain]:: -START-")
         
-        self.domain_size = self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         self.mesh_id     = self.settings["mesh_id"].GetInt()
 
         # Set MeshingParameters
@@ -116,7 +120,7 @@ class MeshingDomain(object):
         # Meshing Stratety
         self.MeshingStrategy.Initialize(self.MeshingParameters, self.domain_size)
         
-        print("::[Mesh Domain]:: -END- ")
+        print("::[Meshing Domain]:: -END- ")
 
     #
     def SetImposedWalls(self,imposed_walls): #must be set before initialize
@@ -222,7 +226,7 @@ class MeshingDomain(object):
         self.MeshingParameters.Initialize()
 
         self.MeshingParameters.SetMeshId(self.settings["mesh_id"].GetInt())
-        self.MeshingParameters.SetSubModelPartName(self.settings["sub_model_part_name"].GetString())
+        self.MeshingParameters.SetSubModelPartName(self.settings["model_part_name"].GetString())
  
         self.MeshingParameters.SetAlphaParameter(self.settings["alpha_shape"].GetDouble())
         self.MeshingParameters.SetOffsetFactor(self.settings["offset_factor"].GetDouble())
@@ -269,7 +273,9 @@ class MeshingDomain(object):
         # set the domain labels to mesh modeler
         critical_mesh_size = self.settings["refining_parameters"]["critical_size"].GetDouble()
 
-        critical_radius = self.modeler_utils.CheckCriticalRadius(self.model_part,critical_mesh_size,self.mesh_id)
+        critical_radius = self.modeler_utils.CheckCriticalRadius(self.main_model_part,critical_mesh_size,self.mesh_id)
         print(" CriticalRadius ", critical_radius)
 
         
+    def Active(self):
+        return self.active_remeshing

@@ -22,6 +22,8 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/model_part.h"
+#include "custom_utilities/modeler_utilities.hpp"
+
 #include "pfem_base_application_variables.h"
 
 ///VARIABLES used:
@@ -101,14 +103,15 @@ namespace Kratos
 
       ElementalErrorCalculation(rModelPart,ElementalError,elems_ids,MeshId,rVariable);
 
-      rNodalError.clear();
-      rNodalError.resize(rModelPart.NumberOfNodes(MeshId)+1);
+      if( !rNodalError.size() )
+	rNodalError.resize(rModelPart.NumberOfNodes(MeshId)+1);
+
       std::fill( rNodalError.begin(), rNodalError.end(), 100 );
-
-      rIds.clear();
-      rIds.resize(rModelPart.NumberOfNodes()+1);
+      
+      if( !rIds.size() )
+	rIds.resize(ModelerUtilities::GetMaxNodeId(rModelPart)+1);
+	
       std::fill( rIds.begin(), rIds.end(), 0 );
-
 
       double NodalMeanError  = 0;
     
@@ -126,8 +129,8 @@ namespace Kratos
 	      {
 		NodalMeanError += ElementalError[elems_ids[ne->Id()]];	    
 	      }
-	
-	    rIds[in->Id()]=id;
+	   	    
+	    rIds[in->Id()]   = id;
 	    rNodalError[id]  = NodalMeanError / double(neighb_elems.size());
 	
 	  }
@@ -156,16 +159,15 @@ namespace Kratos
       ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
 
-      std::vector<double>  ElementVariable(rModelPart.NumberOfElements(MeshId)+1);
+      std::vector<double>  ElementVariable(ModelerUtilities::GetMaxElementId(rModelPart)+1);
       std::fill( ElementVariable.begin(), ElementVariable.end(), 0 );
 
       std::vector<int> elems_ids;
-      elems_ids.resize(rModelPart.NumberOfElements()+1); //mesh 0
+      elems_ids.resize(ModelerUtilities::GetMaxElementId(rModelPart)+1); //mesh 0
       std::fill( elems_ids.begin(), elems_ids.end(), 0 );
 
-	
-      double VariableMax = 0; //-1e-25;
-      double VariableMin = 1e25;
+      double VariableMax = std::numeric_limits<double>::min();
+      double VariableMin = std::numeric_limits<double>::max();
 
       std::vector<double> Value(1);
 
@@ -190,10 +192,10 @@ namespace Kratos
 	}
 
 
-      std::vector<double>  NodalError(rModelPart.NumberOfNodes(MeshId)+1);
+      std::vector<double> NodalError(rModelPart.NumberOfNodes(MeshId)+1);
       std::fill( NodalError.begin(), NodalError.end(), 0 );
 
-      std::vector<int> nodes_ids (rModelPart.NumberOfNodes()+1); //mesh 0
+      std::vector<int> nodes_ids (ModelerUtilities::GetMaxNodeId(rModelPart)+1); //mesh 0
       std::fill( nodes_ids.begin(), nodes_ids.end(), 0 );
 
       double PatchSize  = 0;
@@ -250,10 +252,10 @@ namespace Kratos
 	}
 
 
-      rElementalError.resize(rModelPart.NumberOfElements(MeshId)+1);
+      rElementalError.resize(ModelerUtilities::GetMaxElementId(rModelPart)+1);
       std::fill( rElementalError.begin(), rElementalError.end(), 100 );
 
-      rIds.resize(rModelPart.NumberOfElements()+1); //mesh 0
+      rIds.resize(ModelerUtilities::GetMaxElementId(rModelPart)+1); //mesh 0
       std::fill( rIds.begin(), rIds.end(), 0 );
 
       double VariableVariation = VariableMax - VariableMin;

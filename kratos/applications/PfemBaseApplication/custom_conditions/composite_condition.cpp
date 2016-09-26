@@ -27,6 +27,7 @@ CompositeCondition::CompositeCondition( IndexType NewId, GeometryType::Pointer p
 {
   //DO NOT ADD DOFS HERE!!!
   this->Set(BOUNDARY);
+  mInitializedChildren = false;
 }
 
 
@@ -37,6 +38,7 @@ CompositeCondition::CompositeCondition( IndexType NewId, GeometryType::Pointer p
     : Condition( NewId, pGeometry, pProperties )
 {
   this->Set(BOUNDARY);
+  mInitializedChildren = false;
 }
 
 
@@ -59,6 +61,8 @@ CompositeCondition::CompositeCondition( CompositeCondition const& rOther)
   mChildConditions.swap(ChildConditionsTemporal);
 
   this->Set(BOUNDARY);
+
+  mInitializedChildren = rOther.mInitializedChildren;
 
 }
 
@@ -83,6 +87,10 @@ CompositeCondition&  CompositeCondition::operator=(CompositeCondition const& rOt
 
   this->Set(BOUNDARY);
 
+  this->SetValue(CHILDREN_CONDITIONS, mChildConditions);
+  
+  mInitializedChildren = rOther.mInitializedChildren;
+  
   return *this;
 }
 
@@ -117,6 +125,9 @@ Condition::Pointer CompositeCondition::Clone( IndexType NewId, NodesArrayType co
   
   CompositeCondition NewCompositeCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
+  if( this->mChildConditions.size() )
+    NewCompositeCondition.mInitializedChildren = true;
+  
   for (ConditionConstantIterator cn = this->mChildConditions.begin(); cn != this->mChildConditions.end(); ++cn)
     {
          Condition::Pointer pNewChildCondition;
@@ -125,7 +136,7 @@ Condition::Pointer CompositeCondition::Clone( IndexType NewId, NodesArrayType co
          // std::cout<<" Add Child "<<std::endl;
 	 //NewCompositeCondition.AddChild(*(cn.base())); //problems in split, previous geometry is preserved, clone is needed.
     }
-  
+
   return Condition::Pointer( new CompositeCondition(NewCompositeCondition) );
 }
 
@@ -143,6 +154,8 @@ CompositeCondition::~CompositeCondition()
 //************* SETTING METHODS
 //************************************************************************************
 //************************************************************************************
+
+  
 void CompositeCondition::AddChild(ConditionType::Pointer pNewChildCondition)
 {
   bool set = false;
@@ -408,9 +421,12 @@ void CompositeCondition::GetValueOnIntegrationPoints( const Variable<Matrix>& rV
 
 void CompositeCondition::Initialize()
 {
-    KRATOS_TRY
-      
-  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
+   KRATOS_TRY
+
+   if(mInitializedChildren == false)
+     this->InitializeChildren();
+     
+   for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       SetValueToChildren(MASTER_ELEMENTS);
       SetValueToChildren(MASTER_NODES);
@@ -419,13 +435,48 @@ void CompositeCondition::Initialize()
     }
  
 
-    KRATOS_CATCH( "" )
+   KRATOS_CATCH( "" )
 }
 
+//************************************************************************************
+//************************************************************************************
+  
+void CompositeCondition::InitializeChildren()
+{
+  KRATOS_TRY
 
+  if(!this->Has(CHILDREN_CONDITIONS)){
+    
+    this->SetValue(CHILDREN_CONDITIONS, mChildConditions);
+    
+  }
+  else{
 
-////************************************************************************************
-////************************************************************************************
+    if( mChildConditions.size() == 0 ){
+    
+      ConditionContainerType& ChildConditions = this->GetValue(CHILDREN_CONDITIONS);
+      
+      for (ConditionIterator cn = ChildConditions.begin() ; cn != ChildConditions.end(); ++cn)
+	{
+	  AddChild(*(cn.base()));
+	}
+      
+      this->SetValue(CHILDREN_CONDITIONS, mChildConditions);
+    }
+    else{
+
+      this->SetValue(CHILDREN_CONDITIONS, mChildConditions);
+    }
+    
+  }
+  
+  mInitializedChildren = true;
+  
+  KRATOS_CATCH("")
+}
+
+//************************************************************************************
+//************************************************************************************
 
 void CompositeCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
@@ -467,8 +518,8 @@ void CompositeCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInf
     }
 }
 
-////************************************************************************************
-////************************************************************************************
+//************************************************************************************
+//************************************************************************************
 
 void CompositeCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {

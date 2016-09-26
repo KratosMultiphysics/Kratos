@@ -90,9 +90,8 @@ namespace Kratos
 
     unsigned int start=0;
     unsigned int NumberOfMeshes=rModelPart.NumberOfMeshes();
-    if(NumberOfMeshes>1) 
-      start=1;
-      
+    if(NumberOfMeshes>1)
+      start=1;     
 
     for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
       {
@@ -105,17 +104,64 @@ namespace Kratos
 
   }
 
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void ModelerUtilities::SetModelPartNameToConditions(ModelPart& rModelPart)
+  {
+
+    unsigned int start=0;
+    unsigned int NumberOfSubModelParts=rModelPart.NumberOfSubModelParts();
+
+
+    if(NumberOfSubModelParts>0){
+      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
+	{ 
+	  if( i_mp->NumberOfElements() == 0 ){ // only model parts with conditions
+	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
+	      {      
+		i_cond->SetValue(MODEL_PART_NAME,i_mp->Name());
+	      }
+	  }
+	}
+    }
+      
+  }
+
 
   //*******************************************************************************************
   //*******************************************************************************************
 
- 
+  void ModelerUtilities::SetModelPartNameToNodes (ModelPart& rModelPart)
+  {
+
+    unsigned int start=0;
+    unsigned int NumberOfSubModelParts=rModelPart.NumberOfSubModelParts();
+
+
+    if(NumberOfSubModelParts>0){
+      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
+	{
+	  for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; i_node++)
+	    {
+	      
+	      i_node->SetValue(MODEL_PART_NAME,i_mp->Name());
+	    }
+	}
+    }
+      
+  }
+
+  
+  //*******************************************************************************************
+  //*******************************************************************************************
+
   bool ModelerUtilities::CheckSubdomain(Geometry<Node<3> >& rGeometry)
   {
 
     KRATOS_TRY
 
-    unsigned int DomainLabel = rGeometry[0].GetValue(DOMAIN_LABEL); //DOMAIN_LABEL must be set as nodal variable
+    std::string DomainName = rGeometry[0].GetValue(MODEL_PART_NAME); //MODEL_PART_NAME must be set as nodal variable
       
     int samesbd=0;
       
@@ -123,7 +169,7 @@ namespace Kratos
     
     for(unsigned int i=0; i<size; i++)
       {
-	if(DomainLabel!=rGeometry[i].GetValue(DOMAIN_LABEL))
+	if(DomainName!=rGeometry[i].GetValue(MODEL_PART_NAME))
 	  {
 	    samesbd++;
 	  }
@@ -137,6 +183,35 @@ namespace Kratos
 
     KRATOS_CATCH( "" )
   }
+
+ 
+  // bool ModelerUtilities::CheckSubdomain(Geometry<Node<3> >& rGeometry)
+  // {
+
+  //   KRATOS_TRY
+
+  //   unsigned int DomainLabel = rGeometry[0].GetValue(DOMAIN_LABEL); //DOMAIN_LABEL must be set as nodal variable
+      
+  //   int samesbd=0;
+      
+  //   const unsigned int size = rGeometry.size();
+    
+  //   for(unsigned int i=0; i<size; i++)
+  //     {
+  // 	if(DomainLabel!=rGeometry[i].GetValue(DOMAIN_LABEL))
+  // 	  {
+  // 	    samesbd++;
+  // 	  }
+  //     }
+      
+      
+  //   if(samesbd>0)
+  //     return false;
+
+  //   return true;
+
+  //   KRATOS_CATCH( "" )
+  // }
   
 
   //*******************************************************************************************
@@ -411,7 +486,8 @@ namespace Kratos
       {
 	for(unsigned int j=i+1; j<size; j++)
 	  {
-	    if( rGeometry[i].GetValue(DOMAIN_LABEL) == rGeometry[j].GetValue(DOMAIN_LABEL) )
+	    //if( rGeometry[i].GetValue(DOMAIN_LABEL) == rGeometry[j].GetValue(DOMAIN_LABEL) )
+	    if( rGeometry[i].GetValue(MODEL_PART_NAME) == rGeometry[j].GetValue(MODEL_PART_NAME) )
 	      {
 		rSlaveVertices[i]+=1;
 		rSlaveVertices[j]+=1;
@@ -1210,15 +1286,17 @@ namespace Kratos
 
 	  Geometry< Node<3> >& rConditionGeom = ic->GetGeometry();
 			
+	  //std::cout<<" General Conditions IDs ["<<rConditionGeom[0].Id()<<"] ["<<rConditionGeom[1].Id()<<"] "<<std::endl;
+
 	  for(unsigned int i=0; i<lpofa.size2();i++)
 	    {
-	      // std::cout<<" General Conditions IDs ["<<rConditionGeom[0].Id()<<"] ["<<rConditionGeom[1].Id()<<"] "<<std::endl;
-	      // std::cout<<" Local Conditions IDs ("<<i<<"):["<<rGeometry[lpofa(1,i)].Id()<<"] ["<<rGeometry[lpofa(2,i)].Id()<<"] "<<std::endl;
+	      
+	      //std::cout<<" Local Conditions IDs ("<<i<<"):["<<rGeometry[lpofa(1,i)].Id()<<"] ["<<rGeometry[lpofa(2,i)].Id()<<"] "<<std::endl;
 
 	      if( (   rConditionGeom[0].Id() == rGeometry[lpofa(1,i)].Id() 
 		      && rConditionGeom[1].Id() == rGeometry[lpofa(2,i)].Id() ) || 
 		  (   rConditionGeom[0].Id() == rGeometry[lpofa(2,i)].Id() 
-		      && rConditionGeom[1].Id() == rGeometry[lpofa(1,i)].Id() ) )
+		      && rConditionGeom[1].Id() == rGeometry[lpofa(1,i)].Id() )  )
 		{
 		  pMasterCondition= *(ic.base());
 		  condition_found=true;
@@ -1468,6 +1546,7 @@ namespace Kratos
 
     if(!rMeshingVariables.InputInitializedFlag){
 
+      rMeshingVariables.MaxNodeIdNumber = 0;
       if((int)rMeshingVariables.NodalPreIds.size() != NumberOfPoints)
 	rMeshingVariables.NodalPreIds.resize(NumberOfPoints+1);
       
@@ -1486,6 +1565,8 @@ namespace Kratos
 	if(!rMeshingVariables.InputInitializedFlag){
 	  rMeshingVariables.NodalPreIds[direct]=(nodes_begin + i)->Id();
 	  (nodes_begin + i)->SetId(direct);
+	  if( rMeshingVariables.NodalPreIds[direct] > rMeshingVariables.MaxNodeIdNumber)
+	    rMeshingVariables.MaxNodeIdNumber = rMeshingVariables.NodalPreIds[direct];
 	}
 
 	array_1d<double, 3>& Coordinates = (nodes_begin + i)->Coordinates();
