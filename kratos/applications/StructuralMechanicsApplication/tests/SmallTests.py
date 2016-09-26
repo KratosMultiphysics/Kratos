@@ -73,3 +73,9 @@ class ShellT3ThinBendingRollUpTests(StructuralMechanichsTestFactory):
 
 class ShellT3ThinDrillingRollUpTests(StructuralMechanichsTestFactory):
     file_name = "shell_test/Shell_T3_Thin__DrillingRollUp_test"
+
+class EigenQ4Thick2x2PlateTests(StructuralMechanichsTestFactory):
+    file_name = "eigen_test/Eigen_Q4_Thick_2x2_Plate_test"
+
+class EigenTL3D8NCubeTests(StructuralMechanichsTestFactory):
+    file_name = "eigen_test/Eigen_TL_3D8N_Cube_test"

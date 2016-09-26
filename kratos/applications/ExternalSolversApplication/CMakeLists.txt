@@ -47,7 +47,14 @@ else(${INCLUDE_PASTIX} MATCHES ON)
     set(PASTIX_LINK_LIB "")
 endif(${INCLUDE_PASTIX} MATCHES ON)
 
-
+if(${INCLUDE_FEAST} MATCHES ON)
+  if (NOT DEFINED FEAST_ROOT)
+    message(FATAL_ERROR "FEAST_ROOT is not set")
+  endif(NOT DEFINED FEAST_ROOT)
+  include_directories( ${FEAST_ROOT}/include )
+  link_directories( ${FEAST_ROOT}/lib/x64 )
+  add_definitions(-DINCLUDE_FEAST)
+endif(${INCLUDE_FEAST} MATCHES ON)
 
 ## generate variables with the sources
 set( KRATOS_EXTERNAL_SOLVERS_APPLICATION_SOURCES    
@@ -73,6 +80,11 @@ else(${EXCLUDE_ITSOL} MATCHES ON)
 		target_link_libraries(KratosExternalSolversApplication KratosCore superlu itsol_solvers )
 	endif(${INCLUDE_PASTIX} MATCHES ON)
 endif(${EXCLUDE_ITSOL} MATCHES ON)
+
+if(${INCLUDE_FEAST} MATCHES ON)
+  set(FEAST_LINK_LIBS feast ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} gfortran m)
+  target_link_libraries(KratosExternalSolversApplication ${FEAST_LINK_LIBS})
+endif(${INCLUDE_FEAST} MATCHES ON)
 
 set_target_properties(KratosExternalSolversApplication PROPERTIES PREFIX "")
 

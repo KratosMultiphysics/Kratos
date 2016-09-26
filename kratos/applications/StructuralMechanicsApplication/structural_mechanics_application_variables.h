@@ -30,6 +30,11 @@ namespace Kratos
 {
 typedef array_1d<double,3> Vector3;
 
+// Generalized eigenvalue problem
+KRATOS_DEFINE_VARIABLE( int, BUILD_LEVEL )
+KRATOS_DEFINE_VARIABLE( Vector, EIGENVALUE_VECTOR)
+KRATOS_DEFINE_VARIABLE( Matrix , EIGENVECTOR_MATRIX )
+
 // Geometrical
 KRATOS_DEFINE_VARIABLE( double, AREA )
 KRATOS_DEFINE_VARIABLE( double, IX )
