@@ -93,14 +93,26 @@ namespace Python
 
 using namespace boost::python;
 
+typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
+typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
+typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
+
+void Solve(TrilinosLinearSolverType& solver, 
+            TrilinosSparseSpaceType::MatrixType& rA, 
+            TrilinosSparseSpaceType::VectorType& rX, 
+            TrilinosSparseSpaceType::VectorType& rB
+            
+            )
+{
+    solver.Solve(rA,rX,rB);
+}
 
 void  AddLinearSolvers()
 {
-    typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
-    typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
+    
 
-    class_<TrilinosLinearSolverType, TrilinosLinearSolverType::Pointer > ("TrilinosLinearSolver");
+    class_<TrilinosLinearSolverType, TrilinosLinearSolverType::Pointer > ("TrilinosLinearSolver", init<>())
+    .def("Solve", Solve);
 
     class_<EpetraDefaultSetter, boost::noncopyable>("EpetraDefaultSetter",init<>())
     .def("SetDefaults", &EpetraDefaultSetter::SetDefaults);
@@ -109,18 +121,23 @@ void  AddLinearSolvers()
     class_<AztecSolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
     ("AztecSolver",
      init< Teuchos::ParameterList&, std::string, Teuchos::ParameterList&, double, int, int >())
+    .def(init<Parameters>())
     .def("SetScalingType", &AztecSolverType::SetScalingType)
     ;
 
     typedef AmesosSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmesosSolverType;
     class_<AmesosSolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
     ("AmesosSolver",
-     init<const std::string&, Teuchos::ParameterList& >());
+     init<const std::string&, Teuchos::ParameterList& >())
+    .def(init<Parameters>())
+    ;
 
     typedef MultiLevelSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > MLSolverType;
     class_<MLSolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
     ("MultiLevelSolver",
      init<Teuchos::ParameterList&, Teuchos::ParameterList&, double, int >())
+    .def(init<Parameters>())
+        
         .def("SetScalingType", &MLSolverType::SetScalingType)
         .def("SetReformPrecAtEachStep", &MLSolverType::SetReformPrecAtEachStep)
         ;
