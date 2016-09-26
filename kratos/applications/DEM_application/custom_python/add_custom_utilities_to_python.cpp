@@ -127,19 +127,19 @@ void AddCustomUtilitiesToPython() {
         .def("GetBBHighPoint", &DEM_FEM_Search::GetBBHighPoint)
         .def("GetBBLowPoint", &DEM_FEM_Search::GetBBLowPoint)
         ;
-
+    
+    class_<PreUtilities, boost::noncopyable >
+        ("PreUtilities", init<>())
+        .def("CreateCartesianSpecimenMdpa", &PreUtilities::CreateCartesianSpecimenMdpa)
+        ;
+    
     class_<PreUtilities, boost::noncopyable >
         ("PreUtilities", init<ModelPart&>())
         .def("MeasureTopHeigh", Aux_MeasureTopHeight)        
         .def("MeasureBotHeigh", Aux_MeasureBotHeight)
         .def("SetClusterInformationInProperties", &PreUtilities::SetClusterInformationInProperties)
         ;
-      
-    class_<PreUtilities, boost::noncopyable >
-        ("PreUtilities", init<>())
-        .def("CreateCartesianSpecimenMdpa", &PreUtilities::CreateCartesianSpecimenMdpa)
-        ;
-
+         
     class_<PostUtilities, boost::noncopyable >
         ("PostUtilities", init<>())
         .def("VelocityTrap", &PostUtilities::VelocityTrap)
