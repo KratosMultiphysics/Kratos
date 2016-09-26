@@ -1,46 +1,14 @@
-/*
-* =======================================================================*
-* kkkk   kkkk  kkkkkkkkkk   kkkkk    kkkkkkkkkk kkkkkkkkkk kkkkkkkkkK    *
-* kkkk  kkkk   kkkk   kkkk  kkkkkk   kkkkkkkkkk kkkkkkkkkk kkkkkkkkkK    *
-* kkkkkkkkk    kkkk   kkkk  kkkkkkk     kkkk    kkk    kkk  kkkk         *
-* kkkkkkkkk    kkkkkkkkkkk  kkkk kkk	kkkk    kkk    kkk    kkkk       *
-* kkkk  kkkk   kkkk  kkkk   kkkk kkkk   kkkk    kkk    kkk      kkkk     *
-* kkkk   kkkk  kkkk   kkkk  kkkk  kkkk  kkkk    kkkkkkkkkk  kkkkkkkkkk   *
-* kkkk    kkkk kkkk    kkkk kkkk   kkkk kkkk    kkkkkkkkkk  kkkkkkkkkk 	 *
-*                                                                        *
-* krATos: a fREe opEN sOURce CoDE for mULti-pHysIC aDaptIVe SoLVErS,     *
-* aN extEnsIBLe OBjeCt oRiEnTEd SOlutION fOR fInITe ELemEnt fORmULatIONs *
-* Copyleft by 2003 ciMNe                                                 *
-* Copyleft by 2003 originary authors Copyleft by 2003 your name          *
-* This library is free software; you can redistribute it and/or modify   *
-* it under the terms of the GNU Lesser General Public License as         *
-* published by the Free Software Foundation; either version 2.1 of       *
-* the License, or any later version.                                     *
-*                                                                        *
-* This library is distributed in the hope that it will be useful, but    *
-* WITHOUT ANY WARRANTY; without even the implied warranty of             *
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                   *
-* See the GNU Lesser General Public License for more details.            *
-*                                                                        *
-* You should have received a copy of the GNU Lesser General Public       *
-* License along with this library; if not, write to International Centre *
-* for Numerical Methods in Engineering (CIMNE),                          *
-* Edifici C1 - Campus Nord UPC, Gran Capità s/n, 08034 Barcelona.        *
-*                                                                        *
-* You can also contact us to the following email address:                *
-* kratos@cimne.upc.es                                                    *
-* or fax number: +34 93 401 65 17                                        *
-*                                                                        *
-* Created at Institute for Structural Mechanics                          *
-* Ruhr-University Bochum, Germany                                        *
-* Last modified by:    $Author: rrossi $  				 *
-* Date:                $Date: 2008-12-09 20:20:55 $			 *
-* Revision:            $Revision: 1.3 $ 				 *
-*========================================================================*
-* International Center of Numerical Methods in Engineering - CIMNE	 *
-* Barcelona - Spain 							 *
-*========================================================================*
-*/
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//
 
 #if !defined(KRATOS_AZTEC_SOLVER_H_INCLUDED )
 #define  KRATOS_AZTEC_SOLVER_H_INCLUDED
@@ -53,6 +21,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/kratos_parameters.h"
 #include "linear_solvers/linear_solver.h"
 
 //aztec solver includes
@@ -86,6 +55,122 @@ public:
     typedef typename TSparseSpaceType::VectorType VectorType;
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+    
+    AztecSolver(Parameters settings)
+    {
+        Parameters default_settings( R"(
+        {
+        "solver_type": "AztecSolver",
+        "tolerance" : 1.0e-6,
+        "max_iteration" : 200,
+        "preconditioner_type" : "None",
+        "overlap_level":1,
+        "gmres_krylov_space_dimension" : 100,
+        "scaling":false,
+        "verbosity":0,
+        "trilinos_aztec_parameter_list": {},
+        "trilinos_preconditioner_parameter_list": {}
+        }  )" );
+              
+        settings.ValidateAndAssignDefaults(default_settings);
+        
+        
+        //settings for the AZTEC solver
+        mtol = settings["tolerance"].GetDouble();
+        mmax_iter = settings["max_iteration"].GetDouble();
+
+        //IFpack settings
+        moverlap_level = settings["overlap_level"].GetInt();
+
+        mscaling_type = LeftScaling; //TODO: actually use the "scaling" parameters
+        
+        //assign the amesos parameter list, which may contain parameters IN TRILINOS INTERNAL FORMAT to mparameter_list
+        maztec_parameter_list = Teuchos::ParameterList();
+        
+        if(settings["verbosity"].GetInt() == 0)
+            maztec_parameter_list.set("AZ_output", "AZ_none");
+        else
+            maztec_parameter_list.set("AZ_output", settings["verbosity"].GetInt());
+        
+        //choose the solver type
+        if(settings["solver_type"].GetString() == "CGSolver")
+        {
+            maztec_parameter_list.set("AZ_solver", "AZ_cg");
+        }
+        else if(settings["solver_type"].GetString() == "BICGSTABSolver")
+        {
+            maztec_parameter_list.set("AZ_solver", "AZ_bicgstab");
+        }        
+        else if(settings["solver_type"].GetString() == "GMRESSolver")
+        {
+            maztec_parameter_list.set("AZ_solver", "AZ_gmres");
+            maztec_parameter_list.set("AZ_kspace", settings["gmres_krylov_space_dimension"].GetInt());
+        }  
+        else if(settings["solver_type"].GetString() == "AztecSolver")
+        {
+            //do nothing here. Leave full control to the user through the "trilinos_aztec_parameter_list"
+        }
+        else
+        {
+            KRATOS_ERROR << " the solver type specified : " << settings["solver_type"].GetString()  << " is not supported";
+        }
+        
+        
+        //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
+        for(auto it = settings["trilinos_aztec_parameter_list"].begin(); it != settings["trilinos_aztec_parameter_list"].end(); it++)
+        {
+            if(it->IsString()) maztec_parameter_list.set(it.name(), it->GetString());
+            else if(it->IsInt()) maztec_parameter_list.set(it.name(), it->GetInt());
+            else if(it->IsBool()) maztec_parameter_list.set(it.name(), it->GetBool());
+            else if(it->IsDouble()) maztec_parameter_list.set(it.name(), it->GetDouble());
+        }
+        
+        mpreconditioner_parameter_list = Teuchos::ParameterList();
+        if(settings["preconditioner_type"].GetString() == "DiagonalPreconditioner")
+        {
+            mIFPreconditionerType = "None";
+        }
+        else if(settings["preconditioner_type"].GetString() == "ILU0")
+        {
+            mIFPreconditionerType = "ILU";
+            mpreconditioner_parameter_list.set("fact: drop tolerance", 1e-9);
+            mpreconditioner_parameter_list.set("fact: level-of-fill", 1);
+        }
+        else if(settings["preconditioner_type"].GetString() == "ILUT")
+        {
+            mIFPreconditionerType = "ILU";
+            mpreconditioner_parameter_list.set("fact: drop tolerance", 1e-9);
+            mpreconditioner_parameter_list.set("fact: level-of-fill", 10);
+        }
+        else if(settings["preconditioner_type"].GetString() == "ICC")
+        {
+            mIFPreconditionerType = "ICC";
+            mpreconditioner_parameter_list.set("fact: drop tolerance", 1e-9);
+            mpreconditioner_parameter_list.set("fact: level-of-fill", 10);
+        }
+        else if(settings["preconditioner_type"].GetString() == "AmesosPreconditioner")
+        {
+            mIFPreconditionerType = "Amesos";
+            mpreconditioner_parameter_list.set("amesos: solver type", "Amesos_Klu");
+        }
+        else if(settings["preconditioner_type"].GetString() == "None")
+        {
+            mIFPreconditionerType = "AZ_none";
+        }
+        else
+            KRATOS_ERROR << "wrong choice for preconditioner_type. Selction was :" << settings["preconditioner_type"].GetString() << " Available choices are: None,ILU0,ILUT,ICC,AmesosPreconditioner";
+        
+        //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
+        for(auto it = settings["trilinos_preconditioner_parameter_list"].begin(); it != settings["trilinos_preconditioner_parameter_list"].end(); it++)
+        {
+            if(it->IsString()) mpreconditioner_parameter_list.set(it.name(), it->GetString());
+            else if(it->IsInt()) mpreconditioner_parameter_list.set(it.name(), it->GetInt());
+            else if(it->IsBool()) mpreconditioner_parameter_list.set(it.name(), it->GetBool());
+            else if(it->IsDouble()) mpreconditioner_parameter_list.set(it.name(), it->GetDouble());
+        }
+        
+        
+    }
 
     /**
      * Default constructor

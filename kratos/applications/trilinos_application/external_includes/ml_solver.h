@@ -1,46 +1,14 @@
-/*
-* =======================================================================*
-* kkkk   kkkk  kkkkkkkkkk   kkkkk    kkkkkkkkkk kkkkkkkkkk kkkkkkkkkK    *
-* kkkk  kkkk   kkkk   kkkk  kkkkkk   kkkkkkkkkk kkkkkkkkkk kkkkkkkkkK    *
-* kkkkkkkkk    kkkk   kkkk  kkkkkkk     kkkk    kkk    kkk  kkkk         *
-* kkkkkkkkk    kkkkkkkkkkk  kkkk kkk	kkkk    kkk    kkk    kkkk       *
-* kkkk  kkkk   kkkk  kkkk   kkkk kkkk   kkkk    kkk    kkk      kkkk     *
-* kkkk   kkkk  kkkk   kkkk  kkkk  kkkk  kkkk    kkkkkkkkkk  kkkkkkkkkk   *
-* kkkk    kkkk kkkk    kkkk kkkk   kkkk kkkk    kkkkkkkkkk  kkkkkkkkkk 	 *
-*                                                                        *
-* krATos: a fREe opEN sOURce CoDE for mULti-pHysIC aDaptIVe SoLVErS,     *
-* aN extEnsIBLe OBjeCt oRiEnTEd SOlutION fOR fInITe ELemEnt fORmULatIONs *
-* Copyleft by 2003 ciMNe                                                 *
-* Copyleft by 2003 originary authors Copyleft by 2003 your name          *
-* This library is free software; you can redistribute it and/or modify   *
-* it under the terms of the GNU Lesser General Public License as         *
-* published by the Free Software Foundation; either version 2.1 of       *
-* the License, or any later version.                                     *
-*                                                                        *
-* This library is distributed in the hope that it will be useful, but    *
-* WITHOUT ANY WARRANTY; without even the implied warranty of             *
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                   *
-* See the GNU Lesser General Public License for more details.            *
-*                                                                        *
-* You should have received a copy of the GNU Lesser General Public       *
-* License along with this library; if not, write to International Centre *
-* for Numerical Methods in Engineering (CIMNE),                          *
-* Edifici C1 - Campus Nord UPC, Gran Capità s/n, 08034 Barcelona.        *
-*                                                                        *
-* You can also contact us to the following email address:                *
-* kratos@cimne.upc.es                                                    *
-* or fax number: +34 93 401 65 17                                        *
-*                                                                        *
-* Created at Institute for Structural Mechanics                          *
-* Ruhr-University Bochum, Germany                                        *
-* Last modified by:    $Author: rrossi $  				 *
-* Date:                $Date: 2008-12-05 13:40:39 $			 *
-* Revision:            $Revision: 1.2 $ 				 *
-*========================================================================*
-* International Center of Numerical Methods in Engineering - CIMNE	 *
-* Barcelona - Spain 							 *
-*========================================================================*
-*/
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//
 
 #if !defined(KRATOS_MULTILEVEL_SOLVER_H_INCLUDED )
 #define  KRATOS_MULTILEVEL_SOLVER_H_INCLUDED
@@ -52,6 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/kratos_parameters.h"
 #include "linear_solvers/linear_solver.h"
 
 //aztec solver includes
@@ -91,9 +60,89 @@ public:
 
     typedef typename boost::shared_ptr< ML_Epetra::MultiLevelPreconditioner > MLPreconditionerPointerType;
 
-    /**
-     * Default constructor
-     */
+    MultiLevelSolver(Parameters settings)
+    {
+        Parameters default_settings( R"(
+        {
+        "solver_type": "MultiLevelSolver",
+        "tolerance" : 1.0e-6,
+        "max_iteration" : 200,
+        "max_levels" : 3,
+        "scaling":false,
+        "reform_preconditioner_at_each_step":true,
+        "symmetric":false,
+        "verbosity":0,
+        "trilinos_aztec_parameter_list": {},
+        "trilinos_ml_parameter_list": {}
+        }  )" );
+              
+        settings.ValidateAndAssignDefaults(default_settings);
+        
+        //settings for the AZTEC solver
+        mtol = settings["tolerance"].GetDouble();
+        mmax_iter = settings["max_iteration"].GetDouble();
+        mMLPrecIsInitialized = false;
+        mReformPrecAtEachStep = settings["reform_preconditioner_at_each_step"].GetBool();
+       
+        mScalingType = LeftScaling; //TODO: actually use the "scaling" parameters
+        
+        //assign the amesos parameter list, which may contain parameters IN TRILINOS INTERNAL FORMAT to mparameter_list
+        mAztecParameterList = Teuchos::ParameterList();
+        if(settings["verbosity"].GetInt() == 0)
+        {
+            mAztecParameterList.set("AZ_output", "AZ_none");
+            mAztecParameterList.set("AZ_solver", "AZ_bicgstab");
+        }
+        else
+        {
+            mAztecParameterList.set("AZ_output", settings["verbosity"].GetInt());
+            mAztecParameterList.set("AZ_solver", "AZ_gmres");
+        }
+        
+        //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
+        for(auto it = settings["trilinos_aztec_parameter_list"].begin(); it != settings["trilinos_aztec_parameter_list"].end(); it++)
+        {
+            if(it->IsString()) mAztecParameterList.set(it.name(), it->GetString());
+            else if(it->IsInt()) mAztecParameterList.set(it.name(), it->GetInt());
+            else if(it->IsBool()) mAztecParameterList.set(it.name(), it->GetBool());
+            else if(it->IsDouble()) mAztecParameterList.set(it.name(), it->GetDouble());
+        }
+        
+        mMLParameterList = Teuchos::ParameterList();
+        
+        if(settings["reform_preconditioner_at_each_step"].GetBool() == false)
+        {
+            ML_Epetra::SetDefaults("NSSA",mMLParameterList);
+            mMLParameterList.set("ML output", settings["verbosity"].GetInt());
+            mMLParameterList.set("max levels", settings["max_levels"].GetInt());
+            mMLParameterList.set("aggregation: type", "Uncoupled");
+            //mMLParameterListf.set("coarse: type", "Amesos-Superludist")
+        }
+        else
+        {
+            ML_Epetra::SetDefaults("SA",mMLParameterList);
+            mMLParameterList.set("ML output", settings["verbosity"].GetInt());
+            mMLParameterList.set("max levels", settings["max_levels"].GetInt());
+            mMLParameterList.set("increasing or decreasing", "increasing");
+            mMLParameterList.set("aggregation: type", "MIS");
+            //mMLParameterList.set("coarse: type", "Amesos-Superludist");
+            mMLParameterList.set("smoother: type", "Chebyshev");
+            mMLParameterList.set("smoother: sweeps", 3);
+            mMLParameterList.set("smoother: pre or post", "both");
+        }
+        
+        //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
+        for(auto it = settings["trilinos_ml_parameter_list"].begin(); it != settings["trilinos_ml_parameter_list"].end(); it++)
+        {
+            if(it->IsString()) mMLParameterList.set(it.name(), it->GetString());
+            else if(it->IsInt()) mMLParameterList.set(it.name(), it->GetInt());
+            else if(it->IsBool()) mMLParameterList.set(it.name(), it->GetBool());
+            else if(it->IsDouble()) mMLParameterList.set(it.name(), it->GetDouble());
+        }
+        
+        
+    }
+    
     MultiLevelSolver(Teuchos::ParameterList& aztec_parameter_list, Teuchos::ParameterList& ml_parameter_list, double tol, int nit_max)
     {
         mAztecParameterList = aztec_parameter_list;
@@ -101,8 +150,7 @@ public:
         mtol = tol;
         mmax_iter = nit_max;
         mScalingType = LeftScaling;
-        mMLPrecIsInitialized = false;
-        mReformPrecAtEachStep = true;
+        
     }
 
     /**
@@ -290,7 +338,7 @@ private:
     bool mReformPrecAtEachStep;
     double mtol;
     int mmax_iter;
-    int mndof;
+    int mndof  = 1;
 
     /**
      * Assignment operator.
