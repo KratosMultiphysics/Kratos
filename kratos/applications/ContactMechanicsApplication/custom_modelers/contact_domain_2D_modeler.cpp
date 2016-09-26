@@ -83,7 +83,8 @@ namespace Kratos
     int& NumberOfPoints   = InMesh.GetNumberOfPoints();
     
     if(!rMeshingVariables.InputInitializedFlag){
-      
+     
+      rMeshingVariables.MaxNodeIdNumber = 0; 
       if((int)rMeshingVariables.NodalPreIds.size() != NumberOfPoints)
 	rMeshingVariables.NodalPreIds.resize(NumberOfPoints+1);
       
@@ -103,6 +104,9 @@ namespace Kratos
 	if(!rMeshingVariables.InputInitializedFlag){
 	  rMeshingVariables.NodalPreIds[direct]=(nodes_begin + i)->Id();
 	  (nodes_begin + i)->SetId(direct);
+	  if( rMeshingVariables.NodalPreIds[direct] > rMeshingVariables.MaxNodeIdNumber )
+	    rMeshingVariables.MaxNodeIdNumber = rMeshingVariables.NodalPreIds[direct];
+
 	}
 	
 	array_1d<double, 3>& Coordinates = (nodes_begin + i)->Coordinates();
