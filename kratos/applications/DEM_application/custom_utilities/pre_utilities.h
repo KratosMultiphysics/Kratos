@@ -40,14 +40,14 @@ class PreUtilities
 
     KRATOS_CLASS_POINTER_DEFINITION(PreUtilities);
 
+    PreUtilities() {}
+    
     /// Default constructor
     PreUtilities(ModelPart& rModelPart)
     {
         //mInitialCenterOfMassAndMass = CalculateCenterOfMass(rModelPart);
         //mInitialMass                = CalculateTotalMass(rModelPart);
     }
-
-    PreUtilities() {}
     
     /// Destructor
     virtual ~PreUtilities() {}
