@@ -10,7 +10,7 @@
     },
     "solver_settings"          : {
         "solver_type"                        : "contact_structural_mechanics_static_solver",
-        "echo_level"                         : 1,
+        "echo_level"                         : 0,
         "solution_type"                      : "Static",
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
@@ -175,26 +175,6 @@
             "time_frequency"       : 1.00
         }
     }],
-    "output_configuration"     : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteConditions",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "step",
-            "output_control_type" : "step",
-            "output_frequency"    : 1.0,
-            "body_output"         : true,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","VECTOR_LAGRANGE_MULTIPLIER", "NORMAL"],
-            "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","VON_MISES_STRESS"]
-        },
-        "point_data_configuration"  : []
-    },
     "restart_options"          : {
         "SaveRestart"      : false,
         "RestartFrequency" : 0,

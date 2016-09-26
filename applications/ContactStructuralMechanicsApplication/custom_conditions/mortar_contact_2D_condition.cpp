@@ -160,10 +160,39 @@ void MortarContact2DCondition::InitializeSolutionStep( ProcessInfo& rCurrentProc
     mThisMasterElements.clear();
     mThisMasterElements.resize( all_containers->size( ) );
     
+    const double ActiveCheckFactor = GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
+    
     for ( unsigned int i_cond = 0; i_cond < all_containers->size(); ++i_cond )
     {
         mThisMasterElements[i_cond] = (*all_containers)[i_cond].condition;
+
+        // Fill the condition
+        Condition::Pointer& pCond = mThisMasterElements[i_cond]; 
+        ContactUtilities::ContactContainerFiller((*all_containers)[i_cond], pCond->GetGeometry().Center(), GetGeometry(), pCond->GetGeometry(), 
+                                                 this->GetValue(NORMAL), pCond->GetValue(NORMAL), ActiveCheckFactor);
     }
+    
+    KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MortarContact2DCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+{
+    
+/*
+ * 
+ * commented out because we should use the PDASS instead of the gap tolerance to update active and incactive during the iterations
+ * Gap tolerance should be used only at the beginning of the solution step to add additional "close" nodes to the active set
+ * the following lines have been merged with this->InitializeSolutionStep()
+ * 
+ */
+    
+    KRATOS_TRY;
+    
+    // Populate the vector of master elements
+    std::vector<contact_container> *& all_containers = this->GetValue(CONTACT_CONTAINERS);
     
     double ActiveCheckFactor = 0.005;
     if( GetProperties().Has(ACTIVE_CHECK_FACTOR) )
@@ -186,25 +215,9 @@ void MortarContact2DCondition::InitializeSolutionStep( ProcessInfo& rCurrentProc
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContact2DCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY;
-    
-    // TODO: Add things if needed
-    
-    KRATOS_CATCH( "" );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void MortarContact2DCondition::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
-    KRATOS_TRY;
-    
     // TODO: Add things if needed
-    
-    KRATOS_CATCH( "" );
 }
 
 /***********************************************************************************/
@@ -540,10 +553,9 @@ void MortarContact2DCondition::CalculateConditionSystem(
         // Weighted gaps
         VectorType& gn = ThisMortarConditionMatrices.NodalWeightedGaps;
         
-//          LOG_GENERAL(    BLUE, "Condition", "" )
-//          LOG_GENERAL( LT_BLUE, "|_ Master : ", Variables.GetMasterElement( )[0].Id( ) << ", " << Variables.GetMasterElement( )[1].Id( ) )
-//          LOG_GENERAL( LT_BLUE, "|_ Slave  : ",                GetGeometry( )[0].Id( ) << ", " <<                GetGeometry( )[1].Id( ) )
-//          LOG_GENERAL( LT_CYAN, "   |_ L_X : ", GetGeometry( )[0].FastGetSolutionStepValue( VECTOR_LAGRANGE_MULTIPLIER_X ) << ", " << GetGeometry( )[1].FastGetSolutionStepValue( VECTOR_LAGRANGE_MULTIPLIER_X ) )
+//         LOG_CONDITION_HEADER( Variables.GetMasterElement( ), GetGeometry( ) )
+        
+//         LOG_GENERAL( LT_CYAN, "   |_ L_X : ", GetGeometry( )[0].FastGetSolutionStepValue( VECTOR_LAGRANGE_MULTIPLIER_X ) << ", " << GetGeometry( )[1].FastGetSolutionStepValue( VECTOR_LAGRANGE_MULTIPLIER_X ) )
 
         double aux_integ_area = 0.0;
         
@@ -600,6 +612,13 @@ void MortarContact2DCondition::CalculateConditionSystem(
         }
     }
     
+//     std::cout << "--------------------------------------------------" << std::endl;
+//     KRATOS_WATCH(this->Id())
+//     MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix( );   
+//     VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector( );   
+//     KRATOS_WATCH(rLeftHandSideMatrix);
+//     KRATOS_WATCH(rRightHandSideVector);
+
     KRATOS_CATCH( "" );
 }
 
@@ -658,17 +677,20 @@ void MortarContact2DCondition::CalculateKinematics(
     Point<3> local_point;
     local_point.Coordinates() = ZeroVector(3);
     
-    if (mUseColocationIntegration == true)
-    {
-        local_point.Coordinate(1) = eta[0];
-        rVariables.SegmentProportion = 1.0;
-    }
-    else
-    {
-        local_point.Coordinate(1) = 0.5 * (1.0 - eta[0]) * current_container.local_coordinates_slave[0]
-                                  + 0.5 * (1.0 + eta[0]) * current_container.local_coordinates_slave[1];
-        rVariables.SegmentProportion = (current_container.local_coordinates_slave[1] - current_container.local_coordinates_slave[0])/2.0;
-    }
+//     if (mUseColocationIntegration == true)
+//     {
+//         local_point.Coordinate(1) = eta[0];
+//         rVariables.SegmentProportion = 1.0;
+//     }
+//     else
+//     {
+//         local_point.Coordinate(1) = 0.5 * (1.0 - eta[0]) * current_container.local_coordinates_slave[0]
+//                                   + 0.5 * (1.0 + eta[0]) * current_container.local_coordinates_slave[1];
+//         rVariables.SegmentProportion = (current_container.local_coordinates_slave[1] - current_container.local_coordinates_slave[0])/2.0;
+//     }
+    
+    local_point.Coordinate(1) = eta[0];
+    rVariables.SegmentProportion = 1.0;
     
     /* RESIZE MATRICES AND VECTORS */
     rVariables.Phi_LagrangeMultipliers.resize( number_of_slave_nodes, false );
@@ -793,11 +815,11 @@ void MortarContact2DCondition::MasterShapeFunctionValue(
     }
     else
     {
-        if( mUseColocationIntegration )
-        {
+//         if( mUseColocationIntegration )
+//         {
 //            std::cout << RED << "Integration pt is outside. Coords: " << local_point.Coordinates( ) << RESET << std::endl;
             rVariables.ColocationWeightCoeff = 0;
-        }
+//         }
     }
 }
 
@@ -1331,19 +1353,21 @@ void MortarContact2DCondition::CalculateAndAddLHS(
         this->CalculateAndAddContactStiffnessMatrix( LHS_contact_pair, rVariables, ThisMortarConditionMatrices );
         this->CalculateAndAddNormalGapLinearization( LHS_contact_pair, rVariables, ThisMortarConditionMatrices );
         
-//         /********** DEBUG **********/
-//         std::cout << CYAN;
-//         std::cout.precision(3);
-//         std::cout << "LHS_contact_pair " << "[ " << LHS_contact_pair.size1( ) << " x " << LHS_contact_pair.size2( ) << " ] :" << std::endl;
-//         for ( unsigned int i = 0; i < LHS_contact_pair.size1( ); ++i )
-//         {
-//             for ( unsigned int j = 0; j < LHS_contact_pair.size2( ); ++j )
-//                 std::cout << LHS_contact_pair(i,j) << "\t";
-//             std::cout << std::endl;
-//         }
-//         std::cout << std::endl;
-//         std::cout << RESET;
-//         /********** DEBUG **********/
+//         LOG_MATRIX_PRETTY( LHS_contact_pair )
+        
+//        /********** DEBUG **********/
+//        std::cout << CYAN;
+//        std::cout.precision(3);
+//        std::cout << "LHS_contact_pair " << "[ " << LHS_contact_pair.size1( ) << " x " << LHS_contact_pair.size2( ) << " ] :" << std::endl;
+//        for ( unsigned int i = 0; i < LHS_contact_pair.size1( ); ++i )
+//        {
+//            for ( unsigned int j = 0; j < LHS_contact_pair.size2( ); ++j )
+//                std::cout << LHS_contact_pair(i,j) << "\t";
+//            std::cout << std::endl;
+//        }
+//        std::cout << std::endl;
+//        std::cout << RESET;
+//        /********** DEBUG **********/
         
         // Assemble
         this->AssembleContactPairLHSToConditionSystem( rVariables.GetMasterElementIndex( ), LHS_contact_pair, rLeftHandSideMatrix );
@@ -1434,10 +1458,8 @@ void MortarContact2DCondition::CalculateAndAddRHS(
         // Calculate
         this->CalculateAndAddMortarContactOperator( RHS_contact_pair, rVariables, ThisMortarConditionMatrices );
         this->CalculateAndAddGap(                   RHS_contact_pair, rVariables, ThisMortarConditionMatrices );
-        
-//         std::cout << CYAN;
-//         /* DEBUG */KRATOS_WATCH( RHS_contact_pair )
-//         std::cout << RESET;
+
+//         LOG_VECTOR_PRETTY( RHS_contact_pair )
         
         // Assemble
         this->AssembleContactPairRHSToConditionSystem( rVariables.GetMasterElementIndex( ), RHS_contact_pair, rRightHandSideVector );
@@ -1639,7 +1661,7 @@ void MortarContact2DCondition::CalculateAndAddGap(
 //            rRightHandSideVector[ j + 1 ] -= gap_decomp[1];
             
             // for unilateral contact
-            rRightHandSideVector[ j     ] -= -gn[i_slave];
+            rRightHandSideVector[ j     ] += gn[i_slave];
 //            rRightHandSideVector[ j + 1 ] -= ( +normal[1]*lagrange_multiplier[0] - normal[0]*lagrange_multiplier[1] ); // tx*LMx + ty*LMy 
         }
         else

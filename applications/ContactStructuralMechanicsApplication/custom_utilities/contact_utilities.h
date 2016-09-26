@@ -63,72 +63,28 @@ public:
         // Define the basic information
         const unsigned int number_nodes = Geom1.PointsNumber();
         const unsigned int dimension = Geom1.WorkingSpaceDimension();
-        
-         for (unsigned int index = 0; index < number_nodes; index++)
-         {
-             if (Geom1[index].Is(ACTIVE) == false)
-             {
-                Point<3> ProjectedPoint;
-                double aux_dist = 0.0;
-                if (norm_2(Geom1[index].FastGetSolutionStepValue(NORMAL, 0)) < 1.0e-12)
-                {
-                    ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, contact_normal1);
-                }
-                else
-                {
-                    ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, Geom1[index].FastGetSolutionStepValue(NORMAL, 0));
-                }  
-                
-                double dist_tol = ActiveCheckFactor * Geom1.Length();
-                dist_tol = (dist_tol <= ActiveCheckFactor * Geom2.Length()) ? (ActiveCheckFactor * Geom2.Length()):dist_tol;
-                
-//                 KRATOS_WATCH(aux_dist);
-//                 KRATOS_WATCH(dist_tol);
-                
-                array_1d<double, 3> result;
-                if (aux_dist <= dist_tol) // NOTE: We don't use std::abs() because if the aux_dist is negative is penetrating, in fact we just consider dist_tol > 0 to have some tolerance and for the static schemes
-                {
-//                     Geom1[index].Set(ACTIVE, true);
-                    
-                    // The following is the correct thing, but can give problems
-                    if (Geom2.IsInside(ProjectedPoint, result) == true)
-                    {
-//                         // For debug purpose // NOTE: Look for using echo_level
-//                         if (aux_dist < 0.0)
-//                         {
-//                             std::cout << "Penetration in node: " << Geom1[index].Id() << " of " << aux_dist << " m" << std::endl;
-//                         }    
-                        Geom1[index].Set(ACTIVE, true);
-                    }
-                    else  
-                    {
-                        
-                    }
-                }
-             }
-         }
-         
-         if (dimension == 2)
-         {
-             if (number_nodes == 2)
-             {
-                 contact_container.local_coordinates_slave.clear();
-                 contact_container.local_coordinates_slave.resize(2);
-                 LocalLine2D2NProcess(contact_container.local_coordinates_slave, Geom1, Geom2, contact_normal1, contact_normal2);  
-             }
-             else
-             {
-                 KRATOS_THROW_ERROR( std::logic_error, "NOT IMPLEMENTED. Number of nodes:",  number_nodes);
-                 // TODO: IMPLEMENT MORE GEOMETRIES
-             }
-         }
-         else   // In 3D, we won't do triangulation of integration cells. We use colocation integration instead
-         {
-             contact_container.local_coordinates_slave.clear();
-             contact_container.local_coordinates_slave.resize(2);
-         }
-         
-//          contact_container.print();
+
+        InitializeActiveInactiveSets( Geom1, Geom2, contact_normal1, contact_normal2, ActiveCheckFactor );
+
+        if (dimension == 2)
+        {
+            if (number_nodes == 2)
+            {
+                contact_container.local_coordinates_slave.clear();
+                contact_container.local_coordinates_slave.resize(2);
+                LocalLine2D2NProcess(contact_container.local_coordinates_slave, Geom1, Geom2, contact_normal1, contact_normal2);  
+            }
+            else
+            {
+                KRATOS_THROW_ERROR( std::logic_error, "NOT IMPLEMENTED. Number of nodes:",  number_nodes);
+                // TODO: IMPLEMENT MORE GEOMETRIES
+            }
+        }
+        else   // In 3D, we won't use mortar segments. We use colocation integration instead
+        {
+            contact_container.local_coordinates_slave.clear();
+            contact_container.local_coordinates_slave.resize(0);
+        }
     }
     
     static inline void ContactContainerFiller(
@@ -157,6 +113,58 @@ public:
         }
     }
 
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    static inline void InitializeActiveInactiveSets(
+        Geometry<Node<3> > & Geom1, // SLAVE
+        Geometry<Node<3> > & Geom2, // MASTER
+        const array_1d<double, 3> & contact_normal1, // SLAVE
+        const array_1d<double, 3> & contact_normal2, // MASTER
+        const double ActiveCheckFactor
+        )
+    {
+        // Define the basic information
+        const unsigned int number_nodes = Geom1.PointsNumber();
+        const unsigned int dimension = Geom1.WorkingSpaceDimension();
+        
+         for (unsigned int index = 0; index < number_nodes; index++)
+         {
+             if (Geom1[index].Is(ACTIVE) == false)
+             {
+                Point<3> ProjectedPoint;
+                double aux_dist = 0.0;
+                if (norm_2(Geom1[index].FastGetSolutionStepValue(NORMAL, 0)) < 1.0e-12)
+                {
+                    ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, contact_normal1);
+                }
+                else
+                {
+                    ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, Geom1[index].FastGetSolutionStepValue(NORMAL, 0));
+                }  
+                
+                double dist_tol = ActiveCheckFactor;    // the actual gap tolerance is user-define instead of being a factor of the length
+//                double dist_tol = ActiveCheckFactor * Geom1.Length();
+//                dist_tol = (dist_tol <= ActiveCheckFactor * Geom2.Length()) ? (ActiveCheckFactor * Geom2.Length()):dist_tol;
+                
+                array_1d<double, 3> result;
+                // NOTE: We don't use std::abs() because if the aux_dist is negative is penetrating, in fact we just consider dist_tol > 0 to have some tolerance and for the static schemes
+                if (aux_dist <= dist_tol && Geom2.IsInside(ProjectedPoint, result))
+                {
+//                    // For debug purpose // NOTE: Look for using echo_level
+//                    if (aux_dist < 0.0)
+//                    {
+//                        std::cout << "Penetration in node: " << Geom1[index].Id() << " of " << aux_dist << " m" << std::endl;
+//                    }    
+                    Geom1[index].Set(ACTIVE, true);
+                }
+                else  
+                {
+                }
+             }
+         }
+    }
+    
     /***********************************************************************************/
     /***********************************************************************************/
     
@@ -859,6 +867,37 @@ public:
         }
     }
 
+    /**
+     * It changes from active to inactive and viceversa the nodes 
+     * @param Geom: Slave Geometry
+     * @param cn: Complementarity parameter, recommended but not necessarily the YOUNG_MODULUS
+     * @return The geometry with the active and inactive sets changed
+     */
+    
+    static inline void ReComputeActiveInactive(
+        GeometryType& rSlaveNodes,
+        const double cn
+        )
+    {
+        for( unsigned int i = 0; i < rSlaveNodes.PointsNumber(); ++i)
+        {
+            const array_1d<double,3> lagrange_multiplier = rSlaveNodes[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0);
+            const array_1d<double,3>        nodal_normal = rSlaveNodes[i].GetValue(NORMAL); 
+            const double lambda_n = inner_prod(lagrange_multiplier, nodal_normal);
+            
+            const double check = lambda_n - cn * rSlaveNodes[i].GetValue(WEIGHTED_GAP); 
+            
+            if (check >= 0.0)
+            {
+                rSlaveNodes[i].Set(ACTIVE, false);
+            }
+            else
+            {
+                rSlaveNodes[i].Set(ACTIVE, true);
+            }
+        }
+    }
+    
 private:
 };// class ContactUtilities
 }

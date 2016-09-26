@@ -24,7 +24,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
     ##will be called once the model is already filled
     def __init__(self, main_model_part, custom_settings): 
         
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
+        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part    
         
         ##settings string in json format
@@ -46,6 +46,9 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
             "analysis_type": "Non-Linear",
             "rotation_dofs": false,
             "pressure_dofs": false,
+            "damp_factor_m":-0.1,
+            "rayleigh_alpha":0.0,
+            "rayleigh_beta" :0.0,
             "stabilization_factor": 1.0,
             "reform_dofs_at_each_step": false,
             "line_search": false,
@@ -86,6 +89,9 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         
         print("Construction of MechanicalSolver finished")
 
+    #def GetComputingModelPart(self):
+        #return self.main_model_part
+
     def AddVariables(self):
         
         structural_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver.AddVariables(self)
@@ -97,6 +103,8 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)
             # Add weighted gap
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_GAP)
+            # ACTIVE
+#             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACTIVE)
    
         print("::[Mechanical Solver]:: Variables ADDED")
         
@@ -109,12 +117,15 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                 node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_X);
                 node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Y);
                 node.AddDof(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER_Z);
+                
 
         print("::[Mechanical Solver]:: DOF's ADDED")
     
     def _GetSolutionScheme(self, scheme_type, component_wise, compute_contact_forces):
 
         if(scheme_type == "Newmark") or (scheme_type == "Bossak"):
+            self.main_model_part.ProcessInfo[KratosMultiphysics.SolidMechanicsApplication.RAYLEIGH_ALPHA] = self.settings["rayleigh_alpha"].GetDouble()
+            self.main_model_part.ProcessInfo[KratosMultiphysics.SolidMechanicsApplication.RAYLEIGH_BETA ] = self.settings["rayleigh_beta" ].GetDouble()
             
             self.main_model_part.ProcessInfo[KratosMultiphysics.SolidMechanicsApplication.RAYLEIGH_ALPHA] = self.settings["rayleigh_alpha"].GetDouble()
             self.main_model_part.ProcessInfo[KratosMultiphysics.SolidMechanicsApplication.RAYLEIGH_BETA ] = self.settings["rayleigh_beta" ].GetDouble()

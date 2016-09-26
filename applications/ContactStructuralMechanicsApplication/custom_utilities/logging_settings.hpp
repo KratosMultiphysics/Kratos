@@ -40,41 +40,131 @@ enum LoggingLevel { none, info_warnings, system_matrices, debug };
 // Logging macros
 #define LOG_GENERAL(color, message, variable)\
     std::cout << color << message << variable;            \
-    LOG_RESET("")
+    RESET_LOG_SETTINGS
 
-#define LOG_RESET(suffix)\
-    std::cout << RESET << suffix << std::endl; 
+#define RESET_LOG_SETTINGS \
+    std::cout << RESET << std::endl; 
 
 #define LOG_DEBUG(variable)\
     std::cout << BOLD << YELLOW << #variable << " : " << LT_YELLOW << variable;            \
-    LOG_RESET("")
+    RESET_LOG_SETTINGS
                                                         
 #define LOG_INFO(variable)\
     std::cout << BOLD << GREEN  << #variable << " : " << LT_GREEN  << variable;            \
-    LOG_RESET("")
+    RESET_LOG_SETTINGS
 
 #define LOG_WARNING(variable)\
     std::cout << BOLD << RED    << #variable << " : " << LT_RED    << variable;            \
-    LOG_RESET("")
+    RESET_LOG_SETTINGS
                                                         
 #define LOG_DEBUG_HEADER(header, variable)\
     std::cout << BOLD << UNDERLINE << YELLOW << #header;                                   \
-    LOG_RESET("")                                                                          \
+    RESET_LOG_SETTINGS                                                                          \
     std::cout << BOLD <<              YELLOW << #variable << " : " << LT_YELLOW << variable\
-    LOG_RESET("")
+    RESET_LOG_SETTINGS
 
 #define LOG_INFO_HEADER(header, variable)\
     std::cout << BOLD << UNDERLINE << GREEN  << #header;                                   \
-    LOG_RESET("")                                                                          \
+    RESET_LOG_SETTINGS                                                                          \
     std::cout << BOLD <<              GREEN  << #variable << " : " <<  LT_GREEN << variable\
-    LOG_RESET("")
+    RESET_LOG_SETTINGS
                                              
 #define LOG_WARNING_HEADER(header, variable)\
     std::cout << BOLD << UNDERLINE << RED    << #header;                                   \
-    LOG_RESET("")                                                                          \
+    RESET_LOG_SETTINGS                                                                          \
     std::cout << BOLD <<              RED    << #variable << " : " <<  LT_RED   << variable\
-    LOG_RESET("")
-                                                        
+    RESET_LOG_SETTINGS
+                     
+////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////    MESSAGES OUTPUT SETTINGS    //////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+    
+#define DEBUG_MSG( message )\
+    std::cout << BOLD << GREEN << UNDERLINE << "DEBUG" << RESET << std::endl;\
+    std::cout << BOLD << GREEN << message << std::endl;
+
+#define INFO_MSG( message )\
+    std::cout << BOLD << DK_GREY << UNDERLINE << "INFO : " << RESET << std::endl;\
+    std::cout << BOLD << DK_GREY << message << std::endl;
+
+#define WARNING_MSG( message )\
+    std::cout << BOLD << YELLOW << UNDERLINE << "WARNING" << RESET << std::endl;\
+    std::cout << BOLD << YELLOW << message << std::endl;
+    
+#define ERROR_MSG( message, function )\
+    std::cout << BOLD << RED << UNDERLINE << "ERROR from " << function << RESET << std::endl;\
+    std::cout << BOLD << RED << message << std::endl;
+    
+
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////    TENSOR OUTPUT SETTINGS    //////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+
+/*
+ * DEFINE LOG SETTINGS
+ */
+#define TENSOR_LOG_SETTINGS \
+    std::cout << CYAN;\
+    std::cout.precision(1);\
+    std::scientific;\
+
+/*
+ * DEFINE FUNCTIONALITIES
+ */
+#define LOG_MATRIX_PRETTY( matrix )\
+    TENSOR_LOG_SETTINGS \
+    std::cout << #matrix << " : [ " << matrix.size1() << " x " << matrix.size2() << " ] :" << std::endl;\
+    for ( unsigned int i = 0; i < matrix.size1( ); ++i )\
+    {\
+        for ( unsigned int j = 0; j < matrix.size2( ); ++j )\
+            std::cout << matrix(i,j) << "\t";\
+        std::cout << std::endl;\
+    }\
+    std::cout << std::endl;\
+    RESET_LOG_SETTINGS
+    
+#define LOG_VECTOR_PRETTY( vector )\
+    TENSOR_LOG_SETTINGS \
+    std::cout << #vector << " : " << vector << std::endl;\
+    RESET_LOG_SETTINGS
+
+#define LOG_VECTOR3( array )\
+    TENSOR_LOG_SETTINGS \
+    std::cout << #array << " : " << array[0] << ", " << array[1] << ", " << array[2] << std::endl;\
+    RESET_LOG_SETTINGS
+    
+#define LOG_VECTOR2( array )\
+    TENSOR_LOG_SETTINGS \
+    std::cout << #array << " : " << array[0] << ", " << array[1] << std::endl;\
+    RESET_LOG_SETTINGS
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////    CONDITION OUTPUT SETTINGS    //////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+
+/*
+ * DEFINE LOG SETTINGS
+ */
+#define CONDITION_LOG_SETTINGS \
+    std::cout << BLUE << "Condition : " << std::endl; \
+    std::cout << LT_BLUE;\
+
+/*
+ * DEFINE FUNCTIONALITIES
+ */
+#define LOG_CONDITION_HEADER( master, slave ) \
+    CONDITION_LOG_SETTINGS \
+    std::cout << "|_ Master : "; \
+    for( unsigned int i = 0; i < master.PointsNumber( ) - 1; ++i ) \
+        std::cout << master[i].Id( ) << ", "; \
+    std::cout << master[master.PointsNumber( ) - 1].Id( ) << "\n";\
+    std::cout << "|_ Slave  : "; \
+    for( unsigned int i = 0; i < master.PointsNumber( ) - 1; ++i ) \
+        std::cout << slave[i].Id( ) << ", "; \
+    std::cout << slave[slave.PointsNumber( ) - 1].Id( ) << "\n";
+
+
 #endif /* LOGGING_SETTINGS_HPP_ */
 
 

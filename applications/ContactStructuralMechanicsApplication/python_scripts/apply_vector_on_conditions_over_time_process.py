@@ -81,5 +81,6 @@ class ApplyVaryingVectorOverTimeIntervalProcess(parent_process):
         curr_step_params.AddValue("factor",self.curr_factor)
         curr_step_params.AddValue("direction",self.curr_direction)
 
-        parent_process.__init__(self, self.Model, curr_step_params)
-        parent_process.ExecuteInitialize(self)
+        if( self.curr_factor.GetDouble() > 1e-9 ):
+            parent_process.__init__(self, self.Model, curr_step_params)
+            parent_process.ExecuteInitialize(self)

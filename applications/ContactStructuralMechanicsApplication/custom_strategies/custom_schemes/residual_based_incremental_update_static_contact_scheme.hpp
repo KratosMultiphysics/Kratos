@@ -81,7 +81,8 @@ public:
     
     ResidualBasedIncrementalUpdateStaticContactScheme()
         : ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>( )
-    {}
+    {
+    }
     
     /***********************************************************************************/
     /***********************************************************************************/
@@ -160,6 +161,86 @@ public:
         }
     }
     
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    virtual void InitializeConditions(
+        ModelPart& rModelPart)
+    {
+        KRATOS_TRY
+
+        if( this->mElementsAreInitialized==false )
+            KRATOS_THROW_ERROR(std::logic_error, "Before initilizing Conditions, initialize Elements FIRST","")
+
+        int NumThreads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector ConditionPartition;
+        OpenMPUtils::DivideInPartitions(rModelPart.Conditions().size(), NumThreads, ConditionPartition);
+
+        #pragma omp parallel
+        {
+            int k = OpenMPUtils::ThisThread();
+            typename ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin() + ConditionPartition[k];
+            typename ConditionsArrayType::iterator CondEnd = rModelPart.Conditions().begin() + ConditionPartition[k + 1];
+
+            for (typename ConditionsArrayType::iterator itCond = CondBegin; itCond != CondEnd; itCond++)
+            {
+                bool condition_is_active = true;
+                if( (itCond)->IsDefined(ACTIVE) == true)
+                {
+                    condition_is_active = (itCond)->Is(ACTIVE);
+                }
+                
+                if ( condition_is_active == true )
+                {
+                    itCond->Initialize(); //function to initialize the condition
+                }
+
+            }
+
+        }
+
+        this->mConditionsAreInitialized = true;
+        KRATOS_CATCH("")
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    virtual void InitializeSolutionStep(
+        ModelPart& r_model_part,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b
+    )
+    {
+        KRATOS_TRY
+        //initialize solution step for all of the elements
+        ElementsArrayType& pElements = r_model_part.Elements();
+        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+
+        for ( typename ElementsArrayType::iterator it = pElements.begin(); it != pElements.end(); ++it )
+        {
+            (it) -> InitializeSolutionStep(CurrentProcessInfo);
+        }
+
+        ConditionsArrayType& pConditions = r_model_part.Conditions();
+        for ( typename ConditionsArrayType::iterator it = pConditions.begin(); it != pConditions.end(); ++it )
+        {
+            bool condition_is_active = true;
+            if( (it)->IsDefined(ACTIVE) == true)
+            {
+                condition_is_active = (it)->Is(ACTIVE);
+            }
+            
+            if ( condition_is_active == true )
+            {
+                (it) -> InitializeSolutionStep(CurrentProcessInfo);
+            }
+
+        }
+        KRATOS_CATCH("")
+    }
+
     /***********************************************************************************/
     /***********************************************************************************/
     
