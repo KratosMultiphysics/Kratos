@@ -1,9 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last modified by:    $Author: rrossi $
-//   Date:                $Date: 2008-12-09 20:20:55 $
-//   Revision:            $Revision: 1.5 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
 //
 
 // System includes
@@ -145,14 +149,24 @@ TrilinosSparseSpaceType::IndexType Size(TrilinosSparseSpaceType& dummy, Trilinos
     return dummy.Size(rV);
 }
 
+TrilinosSparseSpaceType::IndexType Size1(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::MatrixType const& rM)
+{
+    return dummy.Size1(rM);
+}
+
+TrilinosSparseSpaceType::IndexType Size2(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::MatrixType const& rM)
+{
+    return dummy.Size2(rM);
+}
+
 void ResizeMatrix(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::MatrixType& A, unsigned int i1, unsigned int i2)
 {
     dummy.Resize(A, i1, i2);
 }
 
-void ResizeVector(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::VectorType& x, unsigned int i1)
+void ResizeVector(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::VectorPointerType& px, unsigned int i1)
 {
-    dummy.Resize(x, i1);
+    dummy.Resize(px, i1);
 }
 
 void SetToZeroMatrix(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::MatrixType& A)
@@ -218,6 +232,11 @@ Epetra_FECrsMatrix& GetMatRef(TrilinosSparseSpaceType::MatrixPointerType& dummy)
 Epetra_FEVector& GetVecRef(TrilinosSparseSpaceType::VectorPointerType& dummy)
 {
     return *dummy;
+}
+
+void SetValue(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::VectorType& x, std::size_t i, double value)
+{
+    dummy.SetValue(x,i,value);
 }
 
 
@@ -311,11 +330,14 @@ void  AddBasicOperations()
     .def("Mult", Mult)
     // 		 .def("TransposeMult", TransposeMult)
     .def("Size", Size)
+    .def("Size1", Size1)
+    .def("Size2", Size2)
     .def("UnaliasedAdd", UnaliasedAdd)
     .def("ScaleAndAdd", ScaleAndAdd)
-    .def("prova", prova)
     .def("CreateEmptyMatrixPointer", CreateEmptyMatrixPointer)
     .def("CreateEmptyVectorPointer", CreateEmptyVectorPointer)
+    .def("ReadMatrixMarketMatrix", &TrilinosSparseSpaceType::ReadMatrixMarket)
+    .def("SetValue", SetValue)
     ;
 
 
