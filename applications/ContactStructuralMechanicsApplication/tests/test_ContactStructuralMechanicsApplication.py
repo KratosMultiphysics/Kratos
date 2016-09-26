@@ -15,6 +15,9 @@ from SmallTests import SimplePatchNotMatchingATestContact as TSimplePatchNotMatc
 from SmallTests import SimplePatchNotMatchingBTestContact as TSimplePatchNotMatchingBTestContact
 from SmallTests import TaylorPatchTestContact as TTaylorPatchTestContact
 from SmallTests import HertzSimpleTestContact as THertzSimpleTestContact
+from SmallTests import ThreeDPatchMatchingTestContact as TThreeDPatchMatchingTestContact
+from SmallTests import ThreeDPatchNotMatchingTestContact as TThreeDPatchNonMatchingTestContact
+from SmallTests import TaylorPatchDynamicTestContact as TTaylorPatchDynamicTestContact
 
 ## NIGTHLY TESTS
 
@@ -41,6 +44,8 @@ def AssambleTestSuites():
     smallSuite.addTest(TSimplePatchNotMatchingBTestContact('test_execution'))
     smallSuite.addTest(TTaylorPatchTestContact('test_execution'))
     smallSuite.addTest(THertzSimpleTestContact('test_execution'))
+    smallSuite.addTest(TThreeDPatchMatchingTestContact('test_execution'))
+    smallSuite.addTest(TThreeDPatchNonMatchingTestContact('test_execution'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -56,8 +61,12 @@ def AssambleTestSuites():
             TSimplePatchTestContact,
             TSimplePatchNotMatchingATestContact,
             TSimplePatchNotMatchingBTestContact,
-            TTaylorPatchTestContact,
-            THertzSimpleTestContact
+#            TTaylorPatchTestContact, # Working in dynamic
+#            THertzSimpleTestContact.  # TODO: Fix this
+            TTaylorPatchDynamicTestContact
+#            TThreeDPatchMatchingTestContact, # TODO: Fix this!!!!
+#            TThreeDPatchNonMatchingTestContact # TODO: Fix this!!!!
+
         ])
     )
 
