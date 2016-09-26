@@ -30,7 +30,7 @@
     <solver n="MVQN_recursive" pn="Recursive MultiVector Quasi-Newton method" SolverType="FSICoupling">
         <inputs>
             <parameter n="w_0" pn="Initial relaxation parameter" type="double" v="0.825" help="Relaxation parameter for the first fixed point iteration."/>
-            <parameter n="buffer_size" pn="Jacobian buffer size" type="integer" v="10" help="Size of the previous step Jacobian buffer."/>
+            <parameter n="buffer_size" pn="Jacobian buffer size" type="integer" v="3" help="Size of the previous step Jacobian buffer."/>
         </inputs>
     </solver>
 
