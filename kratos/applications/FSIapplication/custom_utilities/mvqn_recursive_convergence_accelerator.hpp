@@ -102,6 +102,7 @@ public:
                 if(i == EmulatorBufferSize-1)
                 {
                     (p->mpOldJacobianEmulator).release();
+                    std::cout << "Out of buffer Jacobian emulator released." << std::endl;
                 }
                 else
                 {
@@ -112,6 +113,7 @@ public:
         else // If Jacobian buffer size equals 1 directly destroy the previous one
         {
             (mpOldJacobianEmulator->mpOldJacobianEmulator).release();
+            std::cout << "Out of buffer Jacobian emulator released." << std::endl;
         }
     }
 
