@@ -135,13 +135,13 @@ void TrescaYieldCriterion::CalculateStressInvariants( const Vector& rStressVecto
 
          rStressInvariants.J2InvSQ = 0.0;
          for (unsigned int i = 0; i <3; ++i) 
-              rStressInvariants.J2InvSQ += pow( StressMatrix(i,i) - rStressInvariants.MeanStress, 2.0);
+              rStressInvariants.J2InvSQ += pow( StressMatrix(i,i) - rStressInvariants.MeanStress, 2);
 
-         rStressInvariants.J2InvSQ += 2.0*pow( StressMatrix(0,1) , 2.0);
-         rStressInvariants.J2InvSQ += 2.0*pow( StressMatrix(0,2) , 2.0);
-         rStressInvariants.J2InvSQ += 2.0*pow( StressMatrix(1,2) , 2.0);
+         rStressInvariants.J2InvSQ += 2.0*pow( StressMatrix(0,1) , 2);
+         rStressInvariants.J2InvSQ += 2.0*pow( StressMatrix(0,2) , 2);
+         rStressInvariants.J2InvSQ += 2.0*pow( StressMatrix(1,2) , 2);
          
-         rStressInvariants.J2InvSQ = pow( rStressInvariants.J2InvSQ / 2.0, 1.0/2.0);
+         rStressInvariants.J2InvSQ = pow( rStressInvariants.J2InvSQ / 2.0, 0.5);
 
 
          // THIRD INVARIANT COMPUTATION
@@ -151,7 +151,7 @@ void TrescaYieldCriterion::CalculateStressInvariants( const Vector& rStressVecto
               StressMatrix(i,i) -= rStressInvariants.MeanStress;
 
           rStressInvariants.LodeAngle  = MathUtils<double>::Det( StressMatrix);
-          rStressInvariants.LodeAngle *= 3.0*pow( 3.0, 1.0/2.0) / 2.0;    
+          rStressInvariants.LodeAngle *= 3.0*pow( 3.0, 0.5) / 2.0;    
           rStressInvariants.LodeAngle /= pow( rStressInvariants.J2InvSQ, 3.0);
 
           // SHOULD BE LESS THAN ONE TO COMPUTE INVERSE SINUS
@@ -206,8 +206,8 @@ void TrescaYieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStres
  
         C2 =  std::cos( StressInvariants.LodeAngle) * ( 1.0 - std::tan( StressInvariants.LodeAngle) * std::tan( 3.0 * StressInvariants.LodeAngle) );
 
-        C3 = -pow( 3.0, 1.0/2.0)/2.0 * std::sin( StressInvariants.LodeAngle) / std::cos( 3.0* StressInvariants.LodeAngle) ;
-        C3 /= pow(StressInvariants.J2InvSQ, 2.0);
+        C3 = -pow( 3.0, 0.5)/2.0 * std::sin( StressInvariants.LodeAngle) / std::cos( 3.0* StressInvariants.LodeAngle) ;
+        C3 /= pow(StressInvariants.J2InvSQ, 2);
      }
      else {
 
@@ -215,7 +215,7 @@ void TrescaYieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStres
     
         C2 = StressInvariants.A + 2.0 * StressInvariants.B * std::sin ( 3.0 * StressInvariants.LodeAngle) ;
 
-        C3 = 3.0 / 2.0 * pow ( 3.0, 1.0/2.0) * StressInvariants.B / pow(StressInvariants.J2InvSQ, 2.0);
+        C3 = 3.0 / 2.0 * pow ( 3.0, 0.5) * StressInvariants.B / pow(StressInvariants.J2InvSQ, 2);
      } 
 
      Vector ShearStress = rStressVector;
@@ -232,16 +232,16 @@ void TrescaYieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStres
 
 
      // FALTER TERMES
-     C3Vector(0) = ShearStress(1)*ShearStress(2) - pow( ShearStress(4), 2.0); 
-     C3Vector(1) = ShearStress(2)*ShearStress(0) - pow( ShearStress(5), 2.0); 
-     C3Vector(2) = ShearStress(0)*ShearStress(1) - pow( ShearStress(3), 2.0); 
+     C3Vector(0) = ShearStress(1)*ShearStress(2) - pow( ShearStress(4), 2); 
+     C3Vector(1) = ShearStress(2)*ShearStress(0) - pow( ShearStress(5), 2); 
+     C3Vector(2) = ShearStress(0)*ShearStress(1) - pow( ShearStress(3), 2); 
 
      C3Vector(3) = 2.0 * ( ShearStress(4)*ShearStress(5) - ShearStress(2)*ShearStress(3));
      C3Vector(4) = 2.0 * ( ShearStress(5)*ShearStress(3) - ShearStress(0)*ShearStress(4));
      C3Vector(5) = 2.0 * ( ShearStress(3)*ShearStress(4) - ShearStress(1)*ShearStress(5));
 
      for (unsigned int i = 0; i < 3; ++i)
-         C3Vector(i) += pow(StressInvariants.J2InvSQ, 2.0) / 3.0;
+         C3Vector(i) += pow(StressInvariants.J2InvSQ, 2) / 3.0;
 
      rYieldFunctionD = C2*C2Vector + C3*C3Vector;
      //rYieldFunctionD /= YieldStress;

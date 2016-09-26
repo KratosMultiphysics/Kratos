@@ -214,9 +214,9 @@ void LinearCamClayExplicitFlowRule::load( Serializer& rSerializer)
 
 
    rH = (MeanStress-PreconsolidationStress) ;
-   rH *=  (PreconsolidationStress*(1.0-pow(Beta, 2.0)) - MeanStress) ;
+   rH *=  (PreconsolidationStress*(1.0-pow(Beta, 2)) - MeanStress) ;
    rH *= PreconsolidationStress/ ( OtherSlope - SwellingSlope);
-   rH *= 4.0 / pow(Beta, 4.0);
+   rH *= 4.0 / pow(Beta, 4;
 
 
 

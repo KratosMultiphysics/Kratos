@@ -277,15 +277,15 @@ double& NonLinearHenckyElasticPlastic3DLaw::GetValue(const Variable<double>& rTh
 
          double StressQ = 0.0;
          for (unsigned int i = 0; i <3; ++i) 
-              StressQ += pow( StressMatrix(i,i) - MeanStress, 2.0);
+              StressQ += pow( StressMatrix(i,i) - MeanStress, 2);
 
-          StressQ += 2.0*pow( StressMatrix(0,1) , 2.0);
-          StressQ += 2.0*pow( StressMatrix(0,2) , 2.0);
-          StressQ += 2.0*pow( StressMatrix(1,2) , 2.0);
+          StressQ += 2.0*pow( StressMatrix(0,1) , 2);
+          StressQ += 2.0*pow( StressMatrix(0,2) , 2);
+          StressQ += 2.0*pow( StressMatrix(1,2) , 2);
     
           if (rThisVariable== STRESS_INV_J2)  {
 
-              rValue = pow( 3.0/2.0*StressQ, 1.0/2.0);
+              rValue = pow( 3.0/2.0*StressQ, 0.5);
               return rValue; 
           }
 
@@ -302,7 +302,7 @@ double& NonLinearHenckyElasticPlastic3DLaw::GetValue(const Variable<double>& rTh
      
              ThirdInvariant = MathUtils<double>::Det( StressMatrix );
  
-             ThirdInvariant *= 3.0*pow( 3.0, 1.0/2.0) / 2.0;
+             ThirdInvariant *= 3.0*pow( 3.0, 0.5) / 2.0;
              ThirdInvariant /= pow( StressQ, 3.0/2.0);
              double Epsi = 1e-5;
              if (ThirdInvariant > 1.0-Epsi) {

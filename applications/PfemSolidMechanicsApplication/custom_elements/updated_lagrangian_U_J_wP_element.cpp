@@ -939,7 +939,7 @@ namespace Kratos
       he = GetElementSize( rVariables.DN_DX);
       StabilizationFactor = GetProperties()[STABILIZATION_FACTOR_WP];
 
-      StabilizationAlpha = pow(he, 2.0) * Caux / ( 6.0) - DeltaTime*Permeability; 
+      StabilizationAlpha = pow(he, 2) * Caux / ( 6.0) - DeltaTime*Permeability; 
       StabilizationAlpha *= StabilizationFactor;
 
       if (StabilizationAlpha < 0.0)
@@ -1090,7 +1090,7 @@ namespace Kratos
                const double& PreviousNodalJacobian = GetGeometry()[k].FastGetSolutionStepValue( JACOBIAN , 1 );
                double DeltaJacobian = CurrentNodalJacobian- PreviousNodalJacobian; 
 
-               SmallMatrix(i,j) -= consistent * DeltaJacobian / pow(ElementalNodalJacobian, 2.0) * rVariables.N[j];
+               SmallMatrix(i,j) -= consistent * DeltaJacobian / pow(ElementalNodalJacobian, 2) * rVariables.N[j];
             }
          }
       }
@@ -1198,7 +1198,7 @@ namespace Kratos
       he = GetElementSize( rVariables.DN_DX);
     	StabilizationFactor = GetProperties()[STABILIZATION_FACTOR_WP];
 
-      StabilizationAlpha = pow(he, 2.0) * Caux / ( 6.0) - DeltaTime*Permeability; 
+      StabilizationAlpha = pow(he, 2) * Caux / ( 6.0) - DeltaTime*Permeability; 
       StabilizationAlpha *= StabilizationFactor;
 
       if (StabilizationAlpha < 0.0)

@@ -23,23 +23,25 @@ proc InitGIDProject {dir} {
 
 	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "---"] 4 PRE "" "" ""
 
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Nodal Values"] 5 PRE "GidOpenConditions \"Nodal Values\"" "" ""
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Constraints"] 5 PRE "GidOpenConditions \"Constraints\"" "" ""
 
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Conditions"] 6 PRE "GidOpenConditions \"Conditions\"" "" ""
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Loads"] 6 PRE "GidOpenConditions \"Loads\"" "" ""
 
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Materials"] 7 PRE "GidOpenMaterials \"Materials\"" "" ""
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Nodal Values"] 7 PRE "GidOpenConditions \"Nodal Values\"" "" ""
 
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "---"] 8 PRE "" "" ""
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Materials"] 8 PRE "GidOpenMaterials \"Materials\"" "" ""
+
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "---"] 9 PRE "" "" ""
 	
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Problem Parameters"] 9 PRE "GidOpenProblemData \"Problem Parameters\"" "" ""
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Problem Parameters"] 10 PRE "GidOpenProblemData \"Problem Parameters\"" "" ""
 
 	# GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Data Units"] 9 PRE "GidOpenProblemData \"Data Units\"" "" ""
 
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "---"] 10 PRE "" "" ""
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "---"] 11 PRE "" "" ""
 
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Model Status"] 11 PRE "cond_report" "" ""
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Model Status"] 12 PRE "cond_report" "" ""
 	if { [string match "unix" $::tcl_platform(platform)] } {
-		GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Change Kratos Path"] 12 PRE "GetKratosPath" "" ""
+		GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Change Kratos Path"] 13 PRE "GetKratosPath" "" ""
 	}
 	GiDMenu::UpdateMenus
 	# Custom Menu
@@ -48,14 +50,13 @@ proc InitGIDProject {dir} {
 # Pass the path to kratos and the name of the problem to the Python script
 proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args } {
 
-    set filename [file join $dir "${basename}-3.dat"]
-
-    set varfile [open $filename a]
-    puts $varfile "problem_name = '${basename}'"
-    puts $varfile "problem_path = '${dir}'"
-    puts $varfile "kratos_path = '${::kaux::kratos_path}'"
-    puts $varfile ""
-    close $varfile
+    #set filename [file join $dir "${basename}-3.dat"]
+    #set varfile [open $filename a]
+    #puts $varfile "problem_name = '${basename}'"
+    #puts $varfile "problem_path = '${dir}'"
+    #puts $varfile "kratos_path = '${::kaux::kratos_path}'"
+    #puts $varfile ""
+    #close $varfile
 }
 
 proc JoinByComma { x } {
@@ -917,3 +918,25 @@ proc getCondId { elemId faceId } {
   return [expr { $condId + 1 }]
 }
 
+proc MyPrintFaceElement { element_id face_index } {
+
+  set condition_id [setCondId $element_id $face_index]
+  set element_data [GiD_Info Mesh Elements Any $element_id]
+
+  if { $face_index == 1 } {
+      set element_connectivities [lindex $element_data 1]
+      lappend element_connectivities [lindex $element_data end-2]
+      set material_id [lindex $element_data end]
+      return "$condition_id $material_id $element_connectivities"
+  } elseif { $face_index == 2 } {
+      set element_connectivities [lindex $element_data end-2]
+      lappend element_connectivities [lindex $element_data end-1]
+      set material_id [lindex $element_data end]
+      return "$condition_id $material_id $element_connectivities"
+  } else {
+      set element_connectivities [lindex $element_data end-1]
+      lappend element_connectivities [lindex $element_data 1]
+      set material_id [lindex $element_data end]
+      return "$condition_id $material_id $element_connectivities"
+  }
+}

@@ -145,7 +145,7 @@ namespace Kratos
          while (NotConverged) {
 
             //1 COMPUTE SOME ERROR
-            DeviatoricNorm2 = pow( Guess(1), 2.0) + 2.0*pow( Guess(2), 2.0);
+            DeviatoricNorm2 = pow( Guess(1), 2) + 2.0*pow( Guess(2), 2);
             ShearModulus = AlphaShear*ReferencePressure*std::exp( -Guess(0) / SwellingSlope) + ConstantShearModulus;
             Y(0) = -ReferencePressure *std::exp( - Guess(0) / SwellingSlope) * ( 1.0 + AlphaShear/SwellingSlope * DeviatoricNorm2) ;
             Y(1) = 2.0*ShearModulus*Guess(1);
@@ -155,7 +155,7 @@ namespace Kratos
             Residual = Y - Objective;
             error = 0.0;
             for (unsigned int i = 0; i < 3; ++i)
-               error += pow( Residual(i), 2.0);
+               error += pow( Residual(i), 2);
 
             if (error < 1.0e-10) {
                NotConverged = false;
@@ -180,7 +180,7 @@ namespace Kratos
             // (Try to solve some convergence problems)
             double dGNorm = 0.0;
             for (unsigned int i = 0; i <3 ; ++i)
-               dGNorm += pow( dGuess(i), 2.0);
+               dGNorm += pow( dGuess(i), 2);
             dGNorm = sqrt( dGNorm);
             if ( dGNorm > 0.01)
                dGuess *= 0.1;
@@ -212,10 +212,10 @@ namespace Kratos
          double PreconsolidationStress;
 
          double StressQ = 0.0;
-         StressQ = pow( Objective(1), 2.0) + 2.0*pow( Objective(2), 2.0);
+         StressQ = pow( Objective(1), 2) + 2.0*pow( Objective(2), 2);
          StressQ = sqrt(3.0/2.0) * sqrt(StressQ);
 
-         PreconsolidationStress = Objective(0) + pow ( StressQ / ShearM, 2.0) / Objective(0); 
+         PreconsolidationStress = Objective(0) + pow ( StressQ / ShearM, 2) / Objective(0); 
          ReferencePressure *= OCR;
 
          if ( PreconsolidationStress > -40.0 ) {

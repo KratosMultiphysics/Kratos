@@ -86,13 +86,13 @@ double& J2YieldCriterion::CalculateYieldCondition(double& rStateFunction, const 
    MeanStress /= 3.0;
 
    for (unsigned int i = 0; i<3; ++i)
-       rStateFunction += pow(rStressVector(i) - MeanStress, 2.0);
+       rStateFunction += pow(rStressVector(i) - MeanStress, 2);
 
    for (unsigned int i = 3; i<6; ++i)
-       rStateFunction += 2.0*pow(rStressVector(i), 2.0);
+       rStateFunction += 2.0*pow(rStressVector(i), 2);
 
 
-   rStateFunction = pow(3.0/2.0, 1.0/2.0)*pow( rStateFunction , 1.0/2.0);
+   rStateFunction = pow(3.0/2.0, 0.5)*pow( rStateFunction , 0.5);
 
    // ASSUMING THAT YIELD STRESS IS EQUAL TO S_u
 
@@ -122,15 +122,15 @@ void J2YieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStressVec
 
      for (unsigned int i = 0; i<3; ++i)  {
          ShearVector(i) = rStressVector(i) - MeanStress; 
-         denominador += pow( ShearVector(i), 2.0);
+         denominador += pow( ShearVector(i), 2);
      }
 
     for (unsigned int i = 3; i<6; ++i) {
          ShearVector(i) = 2.0*rStressVector(i);
-         denominador += 2.0*pow( ShearVector(i), 2.0);
+         denominador += 2.0*pow( ShearVector(i), 2);
      }
 
-     denominador = pow(3.0/2.0, 1.0/2.0)*pow(denominador, 1.0/2.0);
+     denominador = pow(3.0/2.0, 0.5)*pow(denominador, 0.5);
 
      rYieldFunctionD = ShearVector;
  

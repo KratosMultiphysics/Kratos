@@ -309,7 +309,7 @@ namespace Kratos
 
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-         rRightHandSideVector[indexp] -= rVariables.N[i] * (detFend - rVariables.detF0) / pow( detFend, 2.0) * rIntegrationWeight * ScalingConstant;
+         rRightHandSideVector[indexp] -= rVariables.N[i] * (detFend - rVariables.detF0) / pow( detFend, 2) * rIntegrationWeight * ScalingConstant;
 
          for ( unsigned int j = 0; j < number_of_nodes; j++ )
          {
@@ -411,7 +411,7 @@ namespace Kratos
             int indexup = dimension*j + j;
             for ( unsigned int k = 0; k < dimension; k++ )
             {
-               rLeftHandSideMatrix(indexp, indexup+k) += rVariables.detF0 * rVariables.N[i] * rVariables.DN_DX( j , k ) * rIntegrationWeight * ScalingConstant / pow(detFend, 2.0);
+               rLeftHandSideMatrix(indexp, indexup+k) += rVariables.detF0 * rVariables.N[i] * rVariables.DN_DX( j , k ) * rIntegrationWeight * ScalingConstant / pow(detFend, 2);
 
             }
          }

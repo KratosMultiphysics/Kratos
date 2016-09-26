@@ -176,14 +176,14 @@ namespace Kratos
       StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
 
 
-      StabilizationAlpha = pow(he, 2.0) * Caux / (6.0) - DeltaTime * Permeability / 2.0;
+      StabilizationAlpha = pow(he, 2) * Caux / (6.0) - DeltaTime * Permeability / 2.0;
 
       if (StabilizationAlpha < 0.0)
       {
          return;
       }
    
-      StabilizationAlpha *= 1.0/2.0  + 1.0 / 2.0 * tanh( pow(he, 2.0) * Caux / (Permeability* DeltaTime)  );
+      StabilizationAlpha *= 0.5  + 0.5 * tanh( pow(he, 2) * Caux / (Permeability* DeltaTime)  );
       StabilizationAlpha *= StabilizationFactor;
 
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -274,12 +274,12 @@ namespace Kratos
 
 
       // nova Manera
-      StabilizationAlpha = pow(he, 2.0) * Caux / (6.0) - DeltaTime * Permeability / 2.0;
+      StabilizationAlpha = pow(he, 2) * Caux / (6.0) - DeltaTime * Permeability / 2.0;
 
       if ( StabilizationAlpha < 0.0)
          return;
    
-      StabilizationAlpha *= 1.0/2.0  + 1.0 / 2.0 * tanh( pow(he, 2.0) * Caux / (Permeability* DeltaTime)  );
+      StabilizationAlpha *= 0.5  + 0.5 * tanh( pow(he, 2) * Caux / (Permeability* DeltaTime)  );
       StabilizationAlpha *= StabilizationFactor;
 
       if (StabilizationAlpha < 0.0)

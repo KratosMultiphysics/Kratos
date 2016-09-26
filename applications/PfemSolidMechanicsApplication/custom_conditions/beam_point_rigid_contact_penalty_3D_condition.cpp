@@ -432,8 +432,8 @@ namespace Kratos
 
 
        double SectionMeanRadius = GetProperties()[MEAN_RADIUS];
-       VectorType RadiusVector  = SectionMeanRadius * rVariables.Surface.Normal;
-       VectorType ContactTorque = MathUtils<double>::CrossProduct( RadiusVector, rVariables.Surface.Tangent);
+       PointType RadiusVector  = SectionMeanRadius * rVariables.Surface.Normal;
+       PointType ContactTorque = MathUtils<double>::CrossProduct( RadiusVector, rVariables.Surface.Tangent);
        ContactTorque *= TangentForceModulus;
 
        //std::cout<<" [ContactTorque]: "<<ContactTorque<<" [TangentForceModulus]: "<<TangentForceModulus<<std::endl;
@@ -524,10 +524,10 @@ namespace Kratos
 
        // }
 
-       VectorType WallDisplacement = mTangentialVariables.DeltaTime * this->mpRigidWall->Velocity();
+       PointType WallDisplacement = mTangentialVariables.DeltaTime * this->mpRigidWall->GetVelocity();
        
        rTangentRelativeMovement = 0.0;
-       VectorType TotalTangentRelativeMovement = ZeroVector(dimension);
+       PointType TotalTangentRelativeMovement = ZeroVector(dimension);
 
        for (unsigned int i = 0; i < dimension; ++i)
 	 {

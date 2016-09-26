@@ -265,7 +265,7 @@ namespace Kratos
       he = GetElementSize( rVariables.DN_DX);
     	StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
 
-      StabilizationAlpha = pow(he, 2.0) * Caux / ( 6.0) - DeltaTime*Permeability; 
+      StabilizationAlpha = pow(he, 2) * Caux / ( 6.0) - DeltaTime*Permeability; 
       StabilizationAlpha *= StabilizationFactor;
 
       if (StabilizationAlpha < 0.0)

@@ -22,7 +22,7 @@
 #include "includes/variables.h"
 #include "containers/array_1d.h"
 #include "includes/element.h"
-#include "solid_mechanics_application_variables.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

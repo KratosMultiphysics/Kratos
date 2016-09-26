@@ -16,6 +16,10 @@ QUESTION: Time_Step
 VALUE: 0.01
 QUESTION: Number_of_steps
 VALUE: 5
+QUESTION: Start_time
+VALUE: 0.0
+QUESTION: End_time
+VALUE: 0.0
 QUESTION: LineSearch#CB#(True,False)
 VALUE: False
 QUESTION: Implex#CB#(True,False)
@@ -66,8 +70,8 @@ VALUE: -57.7
 QUESTION: SX
 VALUE: -28.9
 TITLE:Solver
-QUESTION: Linear_Solver#CB#(Skyline_LU_factorization,Conjugate_gradient,Deflated_Conjugate_gradient,Super_LU,SuperLUIterativeSolver,PastixDirect,PastixIterative,AMGCL,GMRES,BiConjugate_gradient_stabilized)
-VALUE: Skyline_LU_factorization
+QUESTION: Linear_Solver#CB#(CGSolver,BICGSTABSolver,TFQMRSolver,DeflatedCGSolver,SkylineLUFactorizationSolver,GMRESSolver,SuperLUSolver,SuperLUIterativeSolver,PastixSolver,AMGCL,AMGCL_NS_Solver)
+VALUE: SuperLUSolver
 QUESTION: Linear_Solver_Tolerance
 VALUE: 1E-9
 QUESTION: Linear_Solver_Max_Iteration
@@ -106,11 +110,6 @@ VALUE: 0
 QUESTION: Constrained_Contact#CB#(False,True)
 VALUE: True
 QUESTION: Friction_Active#CB#(False,True)
-VALUE: False
-TITLE:Constraints
-QUESTION: Incremental_Load#CB#(False,True)
-VALUE: False
-QUESTION: Incremental_Displacement#CB#(False,True)
 VALUE: False
 TITLE:PostProcess
 QUESTION: Echo_Level

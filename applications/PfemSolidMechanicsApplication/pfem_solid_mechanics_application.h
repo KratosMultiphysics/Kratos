@@ -30,21 +30,9 @@
 
 // Core applications
 #include "solid_mechanics_application.h"
-#include "pfem_base_application.h"
+#include "contact_mechanics_application.h"
 
 //conditions
-#include "custom_conditions/wall_condition.hpp"
-
-#include "custom_conditions/contact_domain_condition.hpp"
-#include "custom_conditions/contact_domain_LM_2D_condition.hpp"
-#include "custom_conditions/contact_domain_penalty_2D_condition.hpp"
-#include "custom_conditions/axisym_contact_domain_LM_2D_condition.hpp"
-#include "custom_conditions/axisym_contact_domain_penalty_2D_condition.hpp"
-
-#include "custom_conditions/point_rigid_contact_condition.hpp"
-#include "custom_conditions/point_rigid_contact_penalty_3D_condition.hpp"
-#include "custom_conditions/point_rigid_contact_penalty_2D_condition.hpp"
-#include "custom_conditions/axisym_point_rigid_contact_penalty_2D_condition.hpp"
 #include "custom_conditions/axisym_point_rigid_contact_penalty_water_2D_condition.hpp"
 
 //elements
@@ -279,18 +267,6 @@ namespace Kratos
     const AxisymUpdatedLagrangianUwPElement          mAxisymUpdatedLagrangianUwPElement2D3N;
     const AxisymUpdatedLagrangianUwPStabElement  mAxisymUpdatedLagrangianUwPStabElement2D3N;
 
-
-    const Condition mCondition2D2N;
-    const Condition mCondition3D3N;
-
-    const WallCondition mWallCondition2D2N;
-    const WallCondition mWallCondition3D3N;
-
-    const ContactDomainLM2DCondition   mContactDomainLMCondition2D3N;
-    const ContactDomainPenalty2DCondition   mContactDomainPenaltyCondition2D3N;
-
-    const AxisymContactDomainLM2DCondition    mAxisymContactDomainLMCondition2D3N;
-    const AxisymContactDomainLM2DCondition    mAxisymContactDomainPenaltyCondition2D3N;
 
     //const NonLinearHenckyCamClayPlasticPlaneStrain2DLaw      mNonLinearHenckyCamClayPlasticPlaneStrain2DLaw;
     //const NonLinearHenckyCamClayPlasticAxisym2DLaw                mNonLinearHenckyCamClayPlasticAxisym2DLaw;

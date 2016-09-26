@@ -543,7 +543,7 @@ namespace Kratos
          // Look if the node is repeated or new. I have to think how i will save the information.
          double distance;
          for ( int prev = 0; prev != rMesh1.numberofpoints; prev++) {
-            distance = sqrt( pow(ThisNode(0)-Nodes(prev,0), 2.0) + pow(ThisNode(1)-Nodes(prev, 1), 2.0));
+            distance = sqrt( pow(ThisNode(0)-Nodes(prev,0), 2) + pow(ThisNode(1)-Nodes(prev, 1), 2));
             if (distance < Tolerance) {
                repeated = true;
                NodeDictionary[i] = prev+1;

@@ -213,7 +213,7 @@ namespace Kratos
             for ( unsigned int k = 0; k < dimension; ++k )
             {
 
-               rRightHandSideVector[indexp] -= rVariables.N[i]* Caux*(1.0/2.0) * he(k) *  rVariables.DN_DX(j,k) * DeltaPressure * rIntegrationWeight * ScalingConstant / rVariables.detF0;
+               rRightHandSideVector[indexp] -= rVariables.N[i]* Caux*(0.5) * he(k) *  rVariables.DN_DX(j,k) * DeltaPressure * rIntegrationWeight * ScalingConstant / rVariables.detF0;
 
             }
 
@@ -271,7 +271,7 @@ namespace Kratos
          {
 
             for ( unsigned int k = 0; k < dimension; ++k ) {
-               rLeftHandSideMatrix(indexpi, indexpj) += rVariables.N[i] * Caux*(1.0/2.0)*he(k) * rVariables.DN_DX(j,k) * rIntegrationWeight * ScalingConstant / (rVariables.detF0 );
+               rLeftHandSideMatrix(indexpi, indexpj) += rVariables.N[i] * Caux*(0.5)*he(k) * rVariables.DN_DX(j,k) * rIntegrationWeight * ScalingConstant / (rVariables.detF0 );
             }
 
             indexpj += (dimension + 1);
