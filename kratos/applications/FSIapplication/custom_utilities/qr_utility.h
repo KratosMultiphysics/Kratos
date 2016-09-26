@@ -109,7 +109,7 @@ class QR {
     public:
         QR() : m(0), n(0) {}
 
-        void compute(int rows, int cols, value_type *A) {
+        void compute(int rows, int cols, value_type *A, int max_cols = -1) {
             /*
              *  Ported from ZGEQR2
              *  ==================
@@ -151,12 +151,16 @@ class QR {
             n = cols;
             k = std::min(m, n);
 
-            const int row_stride = (Order == row_major ? n : 1);
-            const int col_stride = (Order == row_major ? 1 : m);
+            nmax = (max_cols < 0 ? n : max_cols);
 
             r = A;
 
-            tau.resize(k);
+            tau.resize(std::min(m, nmax));
+
+            if (k <= 0) return;
+
+            const int row_stride = (Order == row_major ? n : 1);
+            const int col_stride = (Order == row_major ? 1 : m);
 
             for(int i = 0, ii = 0; i < k; ++i, ii += row_stride + col_stride) {
                 // Generate elementary reflector H(i) to annihilate A[i+1:m)[i]
@@ -169,12 +173,39 @@ class QR {
                 }
             }
         }
+        
+        //~ void append_cols(int cols) {
+            //~ const int row_stride = (Order == row_major ? nmax : 1);
+            //~ const int col_stride = (Order == row_major ? 1 : m);
+
+            //~ int old_n = n;
+            //~ n += cols;
+
+            //~ precondition(n <= nmax, "Too many columns in QR::append_cols()");
+
+            //~ int old_k = k;
+            //~ k = std::min(m, n);
+
+            //~ for(int i = 0, ii = 0; i < k; ++i, ii += row_stride + col_stride) {
+                //~ if (i >= old_k) {
+                    //~ // Generate elementary reflector H(i) to annihilate A[i+1:m)[i]
+                    //~ tau[i] = gen_reflector(m-i, r[ii], r + ii + row_stride, row_stride);
+                //~ }
+
+                //~ if (i+1 < n) {
+                    //~ // Apply H(i)' to A[i:m)[i+1:n) from the left
+                    //~ int l = std::max(i, old_n-1);
+                    //~ apply_reflector(m-i, n-l-1, r + ii, row_stride, tau[i],
+                            //~ r + i * row_stride + (l + 1) * col_stride, row_stride, col_stride);
+                //~ }
+            //~ }
+        //~ }
 
         // Returns element of the matrix R.
         value_type R(int i, int j) const {
             if (j < i) return 0.0;
 
-            const int row_stride = (Order == row_major ? n : 1);
+            const int row_stride = (Order == row_major ? nmax : 1);
             const int col_stride = (Order == row_major ? 1 : m);
 
             return r[i*row_stride + j*col_stride];
@@ -182,7 +213,7 @@ class QR {
 
         // Returns element of the matrix Q.
         value_type Q(int i, int j) const {
-            const int row_stride = (Order == row_major ? n : 1);
+            const int row_stride = (Order == row_major ? nmax : 1);
             const int col_stride = (Order == row_major ? 1 : m);
 
             return q[i*row_stride + j*col_stride];
@@ -190,7 +221,7 @@ class QR {
 
         // Solves the system Q R x = f
         void solve(value_type *f, value_type *x) const {
-            const int row_stride = (Order == row_major ? n : 1);
+            const int row_stride = (Order == row_major ? nmax : 1);
             const int col_stride = (Order == row_major ? 1 : m);
 
             for(int i = 0, ii = 0; i < n; ++i, ii += row_stride + col_stride)
@@ -209,7 +240,7 @@ class QR {
         }
 
         // Computes Q explicitly.
-        void compute_q() {
+        void compute_q(int ncols = -1) {
             /*
              *  Ported from ZUNG2R
              *  ==================
@@ -224,9 +255,11 @@ class QR {
              *
              *  ==============================================================
              */
-            q.resize(n * m);
+            q.resize(m * nmax);
 
-            const int row_stride = (Order == row_major ? n : 1);
+            ncols = (ncols < 0 ? n : ncols);
+
+            const int row_stride = (Order == row_major ? nmax : 1);
             const int col_stride = (Order == row_major ? 1 : m);
 
             // Initialise columns k+1:n to zero.
@@ -234,15 +267,15 @@ class QR {
             // the unit matrix, but since k = min(n,m), the main diagonal is
             // never seen here].
             for(int i = 0, ia = 0; i < m; ++i, ia += row_stride)
-                for(int j = k, ja = k * col_stride; j < n; ++j, ja += col_stride)
-                    q[ia + ja] = 0.0;
+                for(int j = k, ja = k * col_stride; j < ncols; ++j, ja += col_stride)
+                        q[ia + ja] = (i == j ? 1.0 : 0.0);
 
             for(int i = k-1, ic = i * col_stride, ii = i*(row_stride + col_stride);
                     i >= 0; --i, ic -= col_stride, ii -= row_stride + col_stride)
             {
                 // Apply H(i) to A[i:m)[i+1:n) from the left
-                if (i < n-1)
-                    apply_reflector(m-i, n-i-1, r+ii, row_stride, tau[i], &q[ii+col_stride], row_stride, col_stride);
+                if (i < ncols-1)
+                    apply_reflector(m-i, ncols-i-1, r+ii, row_stride, tau[i], &q[ii+col_stride], row_stride, col_stride);
 
                 // Copy i-th reflector (including zeros and unit diagonal)
                 // to the column of Q to be processed next
@@ -260,7 +293,7 @@ class QR {
 
         static scalar_type sqr(scalar_type x) { return x * x; }
 
-        int m, n, k;
+        int m, n, k, nmax;
 
         value_type *r;
         std::vector<value_type> tau;
