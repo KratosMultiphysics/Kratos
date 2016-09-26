@@ -74,6 +74,11 @@ void KratosStructuralMechanicsApplication::Register()
     std::cout << "            _____/ \\__|_|   \\__,_|\\___|\\__|\\__,_|_|  \\__,_|_| MECHANICS     " << std::endl;
 
 
+    // Generalized eigenvalue problem
+    KRATOS_REGISTER_VARIABLE( BUILD_LEVEL )
+    KRATOS_REGISTER_VARIABLE( EIGENVALUE_VECTOR )
+    KRATOS_REGISTER_VARIABLE( EIGENVECTOR_MATRIX )
+
     // Geometrical
     KRATOS_REGISTER_VARIABLE( AREA )
     KRATOS_REGISTER_VARIABLE( IX )

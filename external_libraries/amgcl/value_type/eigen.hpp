@@ -50,7 +50,7 @@ namespace math {
 /// Scalar type of a non-scalar type.
 template <class T, int N, int M>
 struct scalar_of< Eigen::Matrix<T, N, M> > {
-    typedef T type;
+    typedef typename math::scalar_of<T>::type type;
 };
 
 /// RHS type corresponding to a non-scalar type.
@@ -107,7 +107,7 @@ struct inner_product_impl< Eigen::Matrix<T, N, M> >
 template <typename T, int N, int M>
 struct norm_impl< Eigen::Matrix<T, N, M> >
 {
-    static T get(const Eigen::Matrix<T, N, M> &x) {
+    static typename math::scalar_of<T>::type get(const Eigen::Matrix<T, N, M> &x) {
         return x.norm();
     }
 };

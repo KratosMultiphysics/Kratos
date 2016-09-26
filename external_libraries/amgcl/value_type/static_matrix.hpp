@@ -175,7 +175,7 @@ namespace math {
 /// Scalar type of a non-scalar type.
 template <class T, int N, int M>
 struct scalar_of< static_matrix<T, N, M> > {
-    typedef T type;
+    typedef typename scalar_of<T>::type type;
 };
 
 /// RHS type corresponding to a non-scalar type.
@@ -206,7 +206,7 @@ struct adjoint_impl< static_matrix<T, N, M> >
         static_matrix<T, M, N> y;
         for(int i = 0; i < N; ++i)
             for(int j = 0; j < M; ++j)
-                y(j,i) = x(i,j);
+                y(j,i) = math::adjoint(x(i,j));
         return y;
     }
 };
@@ -219,7 +219,7 @@ struct inner_product_impl< static_matrix<T, N, 1> >
     static T get(const static_matrix<T, N, 1> &x, const static_matrix<T, N, 1> &y) {
         T sum = math::zero<T>();
         for(int i = 0; i < N; ++i)
-            sum += x(i) * y(i);
+            sum += x(i) * math::adjoint(y(i));
         return sum;
     }
 };
@@ -236,7 +236,7 @@ struct inner_product_impl< static_matrix<T, N, M> >
             for(int j = 0; j < M; ++j) {
                 T sum = math::zero<T>();
                 for(int k = 0; k < N; ++k)
-                    sum += x(k,i) * y(k,j);
+                    sum += x(k,i) * math::adjoint(y(k,j));
                 p(i,j) = sum;
             }
         }
@@ -248,11 +248,11 @@ struct inner_product_impl< static_matrix<T, N, M> >
 template <typename T, int N, int M>
 struct norm_impl< static_matrix<T, N, M> >
 {
-    static T get(const static_matrix<T, N, M> &x) {
+    static typename math::scalar_of<T>::type get(const static_matrix<T, N, M> &x) {
         T s = math::zero<T>();
         for(int i = 0; i < N * M; ++i)
-            s += x(i) * x(i);
-        return sqrt(s);
+            s += x(i) * math::adjoint(x(i));
+        return sqrt(math::norm(s));
     }
 };
 
@@ -311,7 +311,7 @@ struct inverse_impl< static_matrix<T, N, N> >
     static static_matrix<T, N, N> get(static_matrix<T, N, N> A) {
         // Perform LU-factorization of A in-place
         for(int k = 0; k < N; ++k) {
-            T d = 1 / A(k,k);
+            T d = math::inverse(A(k,k));
             assert(!math::is_zero(d));
             for(int i = k+1; i < N; ++i) {
                 A(i,k) *= d;

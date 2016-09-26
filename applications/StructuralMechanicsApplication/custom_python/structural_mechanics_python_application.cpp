@@ -47,6 +47,10 @@ BOOST_PYTHON_MODULE(KratosStructuralMechanicsApplication)
     AddCrossSectionsToPython();
 
     //registering variables in python
+    // Generalized eigenvalue problem
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( EIGENVALUE_VECTOR )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( EIGENVECTOR_MATRIX )
+
     // cross section
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( SHELL_CROSS_SECTION )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( SHELL_CROSS_SECTION_OUTPUT_PLY_ID )

@@ -28,10 +28,12 @@
 // Strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/custom_strategies/residual_based_arc_length_strategy.hpp"
+#include "custom_strategies/custom_strategies/eigensolver_strategy.hpp"
 
 // Schemes
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
+#include "custom_strategies/custom_schemes/eigensolver_dynamic_scheme.hpp"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -58,13 +60,15 @@ void  AddCustomStrategiesToPython()
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
-    //typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
+    typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
     
     // Custom strategy types
     typedef ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedArcLengthStrategyType;
+    typedef EigensolverStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverStrategyType;
 
     // Custom scheme types
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
+    typedef EigensolverDynamicScheme< SparseSpaceType, LocalSpaceType > EigensolverDynamicSchemeType;
     
     // Custom convergence criterion types
 
@@ -80,6 +84,12 @@ void  AddCustomStrategiesToPython()
                 "ResidualBasedArcLengthStrategy", init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
                                                                 unsigned int, unsigned int, unsigned int,long double,bool, bool, bool>() )
             ;
+
+    // Eigensolver Strategy
+    class_< EigensolverStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
+            (
+                "EigensolverStrategy", init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer>() )
+            ;
              
     //********************************************************************
     //*************************SCHEME CLASSES*****************************
@@ -91,7 +101,14 @@ void  AddCustomStrategiesToPython()
             (
                 "ResidualBasedRelaxationScheme", init< double , double >() )
             .def("Initialize", &ResidualBasedRelaxationScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-            ;    
+            ;
+
+    // Eigensolver Scheme Type
+    class_< EigensolverDynamicSchemeType,
+            EigensolverDynamicSchemeType::Pointer, bases< BaseSchemeType >, boost::noncopyable >
+            (
+                "EigensolverDynamicScheme", init<>() )
+            ;
 
     //********************************************************************
     //*******************CONVERGENCE CRITERIA CLASSES*********************

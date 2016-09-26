@@ -16,6 +16,5 @@ def AssignMaterial(Properties):
         
     prop_id = 2;
     prop = Properties[prop_id]
-    mat = LinearElasticPlaneStrain2DLaw()
+    mat = LinearElasticPlaneStress2DLaw()
     prop.SetValue(CONSTITUTIVE_LAW, mat.Clone())
-        

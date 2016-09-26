@@ -29,6 +29,10 @@
 #include "external_includes/superlu_iterative_solver.h"
 #include "external_includes/gmres_solver.h"
 
+#ifdef INCLUDE_FEAST
+  #include "external_includes/feast_solver.h"
+#endif
+
 #ifndef EXCLUDE_ITSOL
   #include "external_includes/itsol_arms_solver.h"
 #endif
@@ -64,14 +68,20 @@ void  AddLinearSolversToPython()
     typedef IterativeSolver<SpaceType, LocalSpaceType> IterativeSolverType;
     typedef GMRESSolver<SpaceType, LocalSpaceType> GMRESSolverType;
     typedef Preconditioner<SpaceType,  LocalSpaceType> PreconditionerType;
-    
-    
 
     using namespace boost::python;
 
     //***************************************************************************
     //linear solvers
     //***************************************************************************
+#ifdef INCLUDE_FEAST
+    typedef FEASTSolver<SpaceType, LocalSpaceType> FEASTSolverType;
+    class_<FEASTSolverType, FEASTSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable >
+        ( "FEASTSolver", init<Parameters::Pointer>() )
+        ;
+#endif    
+          
+    
     class_<SuperLUSolverType, bases<DirectSolverType>, boost::noncopyable >
     ( "SuperLUSolver",
       init<>() )
