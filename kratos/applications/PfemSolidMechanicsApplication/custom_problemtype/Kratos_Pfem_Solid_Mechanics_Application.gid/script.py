@@ -1,543 +1,342 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
 #Activate it to import in the gdb path:
 #import sys
-#sys.path.append('/home/jmaria/kratos')
-#x = raw_input("stopped to allow debug: set breakpoints and press enter to continue");
+#sys.path.append('/home/cpuigbo/kratos')
+#x = input("stopped to allow debug: set breakpoints and press enter to continue");
 
-#
-# ***************GENERAL MAIN OF THE ANALISYS****************###
-#
+#### TIME MONITORING START ####
 
-# time control starts
-from time import *
-print(ctime())
-# measure process time
-t0p = clock()
-# measure wall time
-t0w = time()
+# Time control starts
+import time as timer
+print(timer.ctime())
+# Measure process time
+t0p = timer.clock()
+# Measure wall time
+t0w = timer.time()
 
-# ----------------------------------------------------------------#
-# --CONFIGURATIONS START--####################
-# Import the general variables read from the GiD
-import ProjectParameters as general_variables
-
-# setting the domain size for the problem to be solved
-domain_size = general_variables.domain_size
-
-#including kratos path
-from KratosMultiphysics import *
-
-#including Applications paths
-from KratosMultiphysics.ExternalSolversApplication    import *
-from KratosMultiphysics.SolidMechanicsApplication     import *
-from KratosMultiphysics.PfemBaseApplication           import *
-from KratosMultiphysics.PfemSolidMechanicsApplication import *
-
-#import the python utilities:
-import restart_utility                 as restart_utils
-import pfem_gid_output_utility         as gid_utils
-
-import pfem_conditions_python_utility  as condition_utils
-import list_files_python_utility       as files_utils
-
-import pfem_modeler_python_utility  as modeler_utils
-import rigid_wall_python_utility    as wall_utils
-import graph_plot_python_utility    as plot_utils
-
-import time_operation_utility       as operation_utils
-import solving_info_utility         as solving_info_utils
-
-#----------------
-# ------------------------#--FUNCTIONS START--#------------------#
-# ---------------------------------------------------------------#
-# --TIME MONITORING START--##################
 def StartTimeMeasuring():
-    # measure process time
-    time_ip = clock()
+    # Measure process time
+    time_ip = timer.clock()
     return time_ip
 
 def StopTimeMeasuring(time_ip, process, report):
-    # measure process time
-    time_fp = clock()
+    # Measure process time
+    time_fp = timer.clock()
     if( report ):
         used_time = time_fp - time_ip
-        print("::[KPFEM Simulation]:: [ %.2f" % round(used_time,2),"s", process," ] ")
-# --TIME MONITORING END --###################
+        print("::[KSM Simulation]:: [ %.2f" % round(used_time,2),"s", process," ] ")
 
-# --SET NUMBER OF THREADS --#################
+#### TIME MONITORING END ####
+
+#### SET NUMBER OF THREADS ####
 
 def SetParallelSize(num_threads):
-    parallel = OpenMPUtils()
+    parallel = KratosMultiphysics.OpenMPUtils()
     parallel.SetNumThreads(int(num_threads))
     print("::[KPFEM Simulation]:: [OMP USING",num_threads,"THREADS ]")
     #parallel.PrintOMPInfo()
     print(" ")
 
-# --SET NUMBER OF THREADS --#################
+#### SET NUMBER OF THREADS ####
 
-#------------------------#--FUNCTIONS END--#--------------------#
-#---------------------------------------------------------------#
+# Import system python
+import os
 
-# defining the type, the name and the path of the problem:
-echo_level   = general_variables.EchoLevel
-problem_type = general_variables.ProblemType
-problem_name = general_variables.problem_name
+# Import kratos core and applications
+import KratosMultiphysics
+import KratosMultiphysics.SolidMechanicsApplication     as KratosSolid
+import KratosMultiphysics.ExternalSolversApplication    as KratosSolvers
+import KratosMultiphysics.PfemBaseApplication           as KratosPfemBase
+import KratosMultiphysics.ContactMechanicsApplication   as KratosContact
+import KratosMultiphysics.PfemSolidMechanicsApplication as KratosPfemSolid
 
-#problem_path = general_variables.problem_path #fixed path
-problem_path = os.getcwd() #current path
+######################################################################################
+######################################################################################
+######################################################################################
 
-# defining a model part
-model_part = ModelPart("Solid Domain")
+#### PARSING THE PARAMETERS ####
 
-# defining solver settings
-SolverSettings = general_variables.SolverSettings
+# Import input
+parameter_file = open("ProjectParameters.json",'r')
+ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-# defining the model size to scale
-length_scale = 1.0
+#set echo level
+echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
 
-# --RIGID WALL OPTIONS START--################
-# set rigid wall contact if it is active:
-# activated instead of classical contact
-# set rigid wall configuration
-rigid_wall = wall_utils.RigidWallUtility(model_part, domain_size, general_variables.rigid_wall_config)
-
-# --RIGID WALL OPTIONS END--##################
-
-
-# --SET MESH MODELER START--##################
-
-remesh_domains = general_variables.RemeshDomains
-contact_search = general_variables.FindContacts
-rigid_wall_contact_search = general_variables.FindRigidWallContacts
-modeler = modeler_utils.ModelerUtility(model_part, domain_size, remesh_domains, contact_search, rigid_wall_contact_search)
-
-# print check
-if(echo_level>1):
-    print("::[KPFEM Simulation]:: MESH DOMAINS :", len(general_variables.MeshConditions))
-    for conditions in general_variables.MeshConditions:
-        print("::[KPFEM Simulation]:: --> Domain [", conditions["Subdomain"], "] ", conditions["MeshElement"])
-
-# --SET MESH MODELER END--####################
-
-
-# --READ AND SET MODEL FILES--###############
-
-# set the restart of the problem
-restart_step = general_variables.Restart_Step
-problem_restart = restart_utils.RestartUtility(model_part, problem_path, problem_name)
-
-# set the results file list of the problem (managed by the problem_restart and gid_print)
-print_lists = general_variables.PrintLists
-output_mode = general_variables.GidOutputConfiguration.GiDPostMode
-list_files = files_utils.ListFilesUtility(problem_path, problem_name, print_lists, output_mode);
-list_files.Initialize(general_variables.file_list);
-
-# --READ AND SET MODEL FILES END--############
-
-
-# --DEFINE CONDITIONS START--#################
-incr_disp = general_variables.Incremental_Displacement
-incr_load = general_variables.Incremental_Load
-rotation_dofs = SolverSettings.RotationDofs
-conditions    = condition_utils.ConditionsUtility(model_part, domain_size, incr_disp, incr_load, rotation_dofs);
-
-# --DEFINE CONDITIONS END--###################
-
-
-# --GID OUTPUT OPTIONS START--###############
-# set gid print options
-gid_print = gid_utils.GidOutputUtility(problem_name, general_variables.GidOutputConfiguration)
-
-# --GID OUTPUT OPTIONS END--##################
-
-# --PLOT GRAPHS OPTIONS START--###############
-
-plot_active = general_variables.PlotGraphs
-graph_plot = plot_utils.GraphPlotUtility(model_part, problem_path)
-
-# --PLOT GRAPHS OPTIONS END--#################
-
-# start problem initialization:
 print(" ")
 
 # defining the number of threads:
-num_threads = general_variables.NumberofThreads
-SetParallelSize(num_threads)
-
-# --DEFINE MAIN SOLVER START--################
+threads = ProjectParameters["problem_data"]["threads"].GetInt()
+SetParallelSize(threads)
 
 print(" ")
-print("::[KPFEM Simulation]:: [Time Step:", general_variables.time_step," echo:", echo_level,"]")
+print("::[KPFEM Simulation]:: [Time Step:", ProjectParameters["problem_data"]["time_step"].GetDouble()," echo:", echo_level,"]")
 
-# import solver file
-solver_constructor = __import__(SolverSettings.solver_type)
+#### Model_part settings start ####
 
-# construct the solver
-main_step_solver = solver_constructor.CreateSolver(model_part, SolverSettings)
+# Defining the model_part
+main_model_part = KratosMultiphysics.ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
 
-# --DEFINE MAIN SOLVER END--##################
+main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
+main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, ProjectParameters["problem_data"]["time_step"].GetDouble())
+main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, ProjectParameters["problem_data"]["start_time"].GetDouble())
 
+###TODO replace this "model" for real one once available in kratos core
+Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main_model_part}
 
-# --CONFIGURATIONS END--######################
-# ----------------------------------------------------------------#
+#construct the solver (main setting methods are located in the solver_module)
+solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
+solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_settings"])
 
+# Add variables (always before importing the model part)
+solver.AddVariables()
 
-# --START SOLUTION--######################
-#
-#initialize problem : load restart or initial start
-load_restart     = general_variables.LoadRestart
-save_restart     = general_variables.SaveRestart
+# Add PfemSolidMechanicsApplication Variables
+main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL);
+main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H);
 
-#set buffer size
-buffer_size = 3;
+main_model_part.AddNodalSolutionStepVariable(KratosPfemBase.OFFSET);
+main_model_part.AddNodalSolutionStepVariable(KratosPfemBase.SHRINK_FACTOR);
+main_model_part.AddNodalSolutionStepVariable(KratosPfemBase.MEAN_ERROR);
+main_model_part.AddNodalSolutionStepVariable(KratosPfemBase.RIGID_WALL);
 
-#define problem variables:
-solver_constructor.AddVariables( model_part, SolverSettings)
+main_model_part.AddNodalSolutionStepVariable(KratosSolid.DETERMINANT_F);
 
-# set PfemSolidApplicationVariables
-model_part.AddNodalSolutionStepVariable(NORMAL);
+main_model_part.AddNodalSolutionStepVariable(KratosPfemSolid.WALL_TIP_RADIUS);
+main_model_part.AddNodalSolutionStepVariable(KratosPfemSolid.WALL_REFERENCE_POINT);
 
-model_part.AddNodalSolutionStepVariable(OFFSET);
-model_part.AddNodalSolutionStepVariable(SHRINK_FACTOR);
-
-model_part.AddNodalSolutionStepVariable(MEAN_ERROR);
-model_part.AddNodalSolutionStepVariable(NODAL_H);
-
-model_part.AddNodalSolutionStepVariable(DETERMINANT_F);
-model_part.AddNodalSolutionStepVariable(CAUCHY_STRESS_VECTOR);
-model_part.AddNodalSolutionStepVariable(DEFORMATION_GRADIENT);
-
-# if hasattr(SolverSettings, "RigidWalls"):
-    # if SolverSettings.RigidWalls == True:
-model_part.AddNodalSolutionStepVariable(RIGID_WALL);
-model_part.AddNodalSolutionStepVariable(WALL_TIP_RADIUS);
-model_part.AddNodalSolutionStepVariable(WALL_REFERENCE_POINT);
+main_model_part.AddNodalSolutionStepVariable(KratosContact.CONTACT_STRESS);
 
 
+# Read model_part (note: the buffer_size is set here) (restart is read here)
+solver.ImportModelPart()
 
-#--- READ MODEL ------#
-if(load_restart == False):
-  
-  print("::[KPFEM Simulation]:: Reading -START- (MDPA FILE) ")
-
-  #remove results, restart, graph and list previous files
-  problem_restart.CleanPreviousFiles()
-  list_files.RemoveListFiles()
-
-  #reading the model
-  model_part_io = ModelPartIO(problem_name)
-  model_part_io.ReadModelPart(model_part)
- 
-  #set the buffer size
-  model_part.SetBufferSize(buffer_size)
-  #Note: the buffer size should be set once the mesh is read for the first time
-
-  print("::[KPFEM Simulation]:: Reading -END- ")
-
-  model_part.ProcessInfo[LOAD_RESTART] = 0
-    
-  #set the degrees of freedom
-  solver_constructor.AddDofs(model_part, SolverSettings)
-
-  #set the constitutive law
-  import constitutive_law_python_utility as constitutive_law_utils
-
-  constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(model_part,domain_size)
-  constitutive_law.Initialize()
-
+# Add dofs (always after importing the model part)
+if((main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
+    if(main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
+        solver.AddDofs()
 else:
+    solver.AddDofs()
 
-  print("::[KPFEM Simulation]:: Reading -RESTART- [FILE",restart_step,"]")
+# Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
+## Get the list of the submodel part in the object Model
+for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
+    part_name = ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
+    Model.update({part_name: main_model_part.GetSubModelPart(part_name)})
 
-  #reading the model from the restart file
-  problem_restart.Load(restart_step);
-
-  print("::[KPFEM Simulation]:: Reading -END- ")
-
-  model_part.ProcessInfo[LOAD_RESTART] = 1
-
-  #remove results, restart, graph and list posterior files
-  problem_restart.CleanPosteriorFiles(restart_step)
-  list_files.ReBuildListFiles()
+#### Model_part settings end ####
 
 
-# --RIGID WALL OPTIONS START--################
-# set rigid wall contact if it is active:
-# activated instead of classical contact
-# set rigid wall configuration
-rigid_wall = wall_utils.RigidWallUtility(model_part, domain_size, general_variables.rigid_wall_config)
-
-# --RIGID WALL OPTIONS END--##################
-
-
-
-# --BUILD MESH MODELER START--####################
-
-# build mesh modeler
-modeler.BuildMeshModelers(general_variables.mesh_modeler_config, rigid_wall)
-# set rigid walls
-#if(rigid_wall_contact_search):
-#    modeler.SetRigidWall(rigid_wall)
-
-# --BUILD MESH MODELER END--####################
-
-# --CONTACT SEARCH START--####################
-
-# build mesh modeler
-modeler.BuildContactModeler(general_variables.contact_modeler_config)
-
-# --CONTACT SEARCH END--######################
-
-
-#--- MODELER INITIALIZATION---#
-
-#set mesh searches and modeler
-modeler.InitializeDomains( load_restart ); ## due to the skin conditions at reloading
-
-# mesh size nodal h search
-if(load_restart == False):
-    modeler.SearchNodalH();
-
-#--- PRINT CONTROL ---#
-
-if(echo_level>=1):
+#print model_part and properties
+if(echo_level>1):
     print("")
-    print(model_part)
-    print(model_part.Properties[1])
+    print(main_model_part)
+    for properties in main_model_part.Properties:
+        print(properties)
 
-# --INITIALIZE--###########################
-#
+#### Processes settings start ####
 
-# set delta time in process info
-model_part.ProcessInfo[DELTA_TIME] = general_variables.time_step
+#obtain the list of the processes to be applied
 
-# solver initialize
-main_step_solver.Initialize()
-main_step_solver.SetRestart(load_restart) #calls strategy initialize if no restart
+import process_factory
+#the process order of execution is important
+list_of_processes  = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
+list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
+if(ProjectParameters.Has("problem_process_list")):
+    list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["problem_process_list"] )
+if(ProjectParameters.Has("output_process_list")):
+    list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["output_process_list"] )
+            
+#print list of constructed processes
+if(echo_level>1):
+    for process in list_of_processes:
+        print(process)
 
-# initial contact search
-modeler.InitialContactSearch()
+for process in list_of_processes:
+    process.ExecuteInitialize()
 
-#define time steps and loop range of steps
-time_step = model_part.ProcessInfo[DELTA_TIME]
-
-if(load_restart):  
-
-  buffer_size  = 0
-
-else:
-
-  model_part.ProcessInfo[TIME]                = 0
-  model_part.ProcessInfo[TIME_STEPS]          = 0
-  model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = time_step
-
-  conditions.Initialize(time_step);
-
-#initialize step operations
-starting_step  = model_part.ProcessInfo[TIME_STEPS]
-starting_time  = model_part.ProcessInfo[TIME]
-ending_step    = general_variables.nsteps
-ending_time    = general_variables.nsteps * time_step
+#### processes settings end ####
 
 
-output_print = operation_utils.TimeOperationUtility()
-gid_time_frequency = general_variables.GiDWriteFrequency
-output_print.InitializeTime(starting_time, ending_time, time_step, gid_time_frequency)
+# --PLOT GRAPHS OPTIONS START--###############
+#problem_path = os.getcwd() #current path
+#plot_active = general_variables.PlotGraphs
+#graph_plot = plot_utils.GraphPlotUtility(model_part, problem_path)
+# --PLOT GRAPHS OPTIONS END--#################
 
-restart_print = operation_utils.TimeOperationUtility()
-restart_time_frequency = general_variables.RestartFrequency
-restart_print.InitializeTime(starting_time, ending_time, time_step, restart_time_frequency)
+#### START SOLUTION ####
 
-mesh_generation = operation_utils.TimeOperationUtility()
-mesh_generation_frequency = modeler.GetRemeshFrequency()
-mesh_generation.InitializeTime(starting_time, ending_time, time_step, mesh_generation_frequency)
+computing_model_part = solver.GetComputingModelPart()
 
-contact_search = operation_utils.TimeOperationUtility()
-contact_search_frequency = general_variables.contact_modeler_config.contact_search_frequency
-contact_search.InitializeTime(starting_time, ending_time, time_step, contact_search_frequency)
+#### Output settings start ####
 
-rigid_wall_contact_search = operation_utils.TimeOperationUtility()
-rigid_wall_contact_search_frequency = 0
-rigid_wall_contact_search.InitializeTime(starting_time, ending_time, time_step, rigid_wall_contact_search_frequency)
+problem_path = os.getcwd()
+problem_name = ProjectParameters["problem_data"]["problem_name"].GetString()
 
-#initialize graph plot variables for time integration
-if( plot_active == True):
-  mesh_id     = 0 #general_variables.PlotMeshId
-  x_variable  = "DISPLACEMENT"
-  y_variable  = "CONTACT_FORCE"
-  graph_plot.Initialize(x_variable,y_variable,mesh_id)
+# Initialize GiD  I/O (gid outputs, file_lists)
+from gid_output_process import GiDOutputProcess
+output_settings = ProjectParameters["output_configuration"]
+gid_output = GiDOutputProcess(computing_model_part,
+                              problem_name,
+                              output_settings)
 
-graph_write= operation_utils.TimeOperationUtility()
-graph_write_frequency = general_variables.PlotFrequency
-graph_write.InitializeTime(starting_time, ending_time, time_step, graph_write_frequency)
+gid_output.ExecuteInitialize()
 
-solving_print = operation_utils.TimeOperationUtility()
-solving_time_frequency = gid_time_frequency
-solving_print.InitializeTime(starting_time, ending_time, time_step, solving_time_frequency)
+#### Output settings end ####
 
-# --TIME INTEGRATION--#######################
-#
-  
-#writing a single file
-gid_print.initialize_results(model_part)
-
-#initialize time integration variables
-current_time = starting_time
-current_step = starting_step
-
-# filling the buffer
-for step in range(0,buffer_size):
-
-  model_part.CloneTimeStep(current_time)
-  model_part.ProcessInfo[DELTA_TIME] = time_step
-  model_part.ProcessInfo[TIME_STEPS] = step-buffer_size
-
+## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
+solver.Initialize()
+solver.SetEchoLevel(echo_level)
+ 
 # writing a initial state results file
 current_id = 0
-if(load_restart == False):
-    if (general_variables.TryToSetTheWeight):
-        if (general_variables.TryToSetConstantWeight):
-            conditions.SetConstantWeight( general_variables.TryToSetWeightVertical, general_variables.TryToSetWeightHorizontal);
-        else:
-            conditions.SetWeight();
-    gid_print.write_results(model_part, general_variables.nodal_results, general_variables.gauss_points_results, current_time, current_step, current_id)
-    list_files.PrintListFiles(current_id);
+#if(load_restart == False):
+#    if (general_variables.TryToSetTheWeight):
+#        if (general_variables.TryToSetConstantWeight):
+#            conditions.SetConstantWeight( general_variables.TryToSetWeightVertical, general_variables.TryToSetWeightHorizontal);
+#        else:
+#            conditions.SetWeight();
 
 # set solver info starting parameters
-solving_info = solving_info_utils.SolvingInfoUtility(model_part, SolverSettings)
+# solving_info = solving_info_utils.SolvingInfoUtility(model_part, SolverSettings)
 
 print(" ")
 print("::[KPFEM Simulation]:: Analysis -START- ")
 
-# solving the problem
-while(current_time < ending_time):
+for process in list_of_processes:
+    process.ExecuteBeforeSolutionLoop()
 
-  # store previous time step
-  model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = time_step
-  # set new time step ( it can change when solve is called )
-  time_step = model_part.ProcessInfo[DELTA_TIME]
+# writing a initial state results file or single file (if no restart)
+if((main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
+    if(main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
+        gid_output.ExecuteBeforeSolutionLoop()
 
-  current_time = current_time + time_step
-  current_step = current_step + 1
+# Set time settings
+step       = main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+time       = main_model_part.ProcessInfo[KratosMultiphysics.TIME]
 
-  model_part.CloneTimeStep(current_time)
-  model_part.ProcessInfo[TIME] = current_time
+end_time   = ProjectParameters["problem_data"]["end_time"].GetDouble()
+delta_time = ProjectParameters["problem_data"]["time_step"].GetDouble()
 
-  # print process information:
-  print_info = solving_print.perform_time_operation(current_time)
-  if(print_info):
-      solving_info.print_step_info(current_time,current_step)
-  
-  # processes to be executed at the begining of the solution step
-  execute_rigid_wall_contact_search = rigid_wall_contact_search.perform_time_operation(current_time)
-  if(execute_rigid_wall_contact_search):
-      rigid_wall.ExecuteContactSearch()
 
-  #solving the solid problem 
-  clock_time = StartTimeMeasuring();
+#initialize graph plot variables for time integration
+#if( plot_active == True):
+#  mesh_id     = 0 #general_variables.PlotMeshId
+#  x_variable  = "DISPLACEMENT"
+#  y_variable  = "CONTACT_FORCE"
+#  graph_plot.Initialize(x_variable,y_variable,mesh_id)
 
-  #solve time step non-linear system
-  main_step_solver.Solve()
+#graph_write= operation_utils.TimeOperationUtility()
+#graph_write_frequency = general_variables.PlotFrequency
+#graph_write.InitializeTime(time, end_time, delta_time, graph_write_frequency)
 
-  StopTimeMeasuring(clock_time,"Solving", False);
+#solving_print = operation_utils.TimeOperationUtility()
+#solving_time_frequency = ProjectParameters["output_configuration"]["result_file_configuration"]["output_frequency"].GetDouble()
+#solving_print.InitializeTime(time, end_time, delta_time, solving_time_frequency)
 
-  #processes to be executed at the end of the solution step
-  rigid_wall.UpdatePosition()
 
-  #plot graphs
-  if(plot_active):
-    graph_plot.SetStepResult()
+# Solving the problem (time integration)
+while(time < end_time):
 
-  #incremental load
-  conditions.SetIncrementalLoad(current_step, time_step);
-  ##conditions.CorrectBoundaryConditions(current_step, time_step); ## function to remove load conditions from the contact...
+    # current time parameters
+    # main_model_part.ProcessInfo.GetPreviousSolutionStepInfo()[KratosMultiphysics.DELTA_TIME] = delta_time
+    delta_time = main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+    
+    time = time + delta_time
+    step = step + 1
+    
+    main_model_part.ProcessInfo[KratosMultiphysics.STEP] = step
+    main_model_part.CloneTimeStep(time) 
+
+    # print process information:
+    #print_info = solving_print.perform_time_operation(time)
+    #if(print_info):
+    #    solving_info.print_step_info(time,step)
+    
+    print(" [STEP:",step," TIME:",time,"]")
+
+    # processes to be executed at the begining of the solution step
+    for process in list_of_processes:
+        process.ExecuteInitializeSolutionStep()
       
-  #print the results at the end of the step
-  if(general_variables.WriteResults == "PreMeshing"):
-    execute_write = output_print.perform_time_operation(current_time)
-    if(execute_write):
-      clock_time=StartTimeMeasuring();
-      current_id = output_print.operation_id()
-      #print gid output file
-      gid_print.write_results(model_part,general_variables.nodal_results,general_variables.gauss_points_results,current_time,current_step,current_id)
-      #print on list files
-      list_files.PrintListFiles(current_id);
-      solving_info.set_print_info(execute_write, current_id)
-      StopTimeMeasuring(clock_time,"Writing Results", False);
+    gid_output.ExecuteInitializeSolutionStep()
 
-  # remesh domains
-  execute_meshing = mesh_generation.perform_time_operation(current_time)
-  if(execute_meshing):
-    modeler.RemeshDomains();
-    solving_info.set_meshing_info(execute_meshing,modeler.GetMeshingStep())
+    # solve time step
+    clock_time = StartTimeMeasuring();
 
-  # contact search
-  execute_contact_search = contact_search.perform_time_operation(current_time)
-  if(execute_contact_search or execute_meshing):
-    modeler.ContactSearch();
+    solver.Solve()
 
+    StopTimeMeasuring(clock_time,"Solving", False);
 
-  # print the results at the end of the step
-  if(general_variables.WriteResults == "PostMeshing"):
-    execute_write = output_print.perform_time_operation(current_time)
-    if(execute_write):
-      clock_time=StartTimeMeasuring();
-      current_id = output_print.operation_id()
-      #print gid output file
-      gid_print.write_results(model_part,general_variables.nodal_results,general_variables.gauss_points_results,current_time,current_step,current_id)
-      #print on list files
-      list_files.PrintListFiles(current_id);
-      solving_info.set_print_info(execute_write, current_id)
-      StopTimeMeasuring(clock_time,"Writing Results", False);
+    gid_output.ExecuteFinalizeSolutionStep()
 
+    # plot graphs
+    #if(plot_active):
+    #    graph_plot.SetStepResult()
 
-  # plot graphs
-  if(plot_active):
-    execute_plot = graph_write.perform_time_operation(current_time)
-    if(execute_plot):
-      current_id = output_print.operation_id()
-      graph_plot.Plot(current_id)
+    # processes to be executed at the end of the solution step
+    for process in list_of_processes:
+        process.ExecuteFinalizeSolutionStep()
 
-  # print restart file
-  if(save_restart):
-    execute_save = restart_print.perform_time_operation(current_time)
-    if(execute_save):
-      clock_time=StartTimeMeasuring();
-      current_id = output_print.operation_id()
-      problem_restart.Save(current_time,current_step,current_id)
-      solving_info.set_restart_info(execute_save,current_id)
-      StopTimeMeasuring(clock_time,"Writing Restart", False)
+    # processes to be executed before witting the output      
+    for process in list_of_processes:
+        process.ExecuteBeforeOutputStep()
+     
+    # write output results GiD: (frequency writing is controlled internally)
+    if(gid_output.IsOutputStep()):
+        gid_output.PrintOutput()
 
+    # processes to be executed after witting the output
+    for process in list_of_processes:
+        process.ExecuteAfterOutputStep()
 
-  solving_info.update_solving_info()
-  if(print_info):
-      solving_info.print_solving_info()
+    # plot graphs
+    #if(plot_active):
+    #    execute_plot = graph_write.perform_time_operation(time)
+    #    if(execute_plot):
+    #        current_id = output_print.operation_id()
+    #        graph_plot.Plot(current_id)
 
-  conditions.RestartImposedDisp()
+    # print restart file
+    #if(save_restart):
+    #    execute_save = restart_print.perform_time_operation(time)
+    #    if(execute_save):
+    #        clock_time=StartTimeMeasuring();
+    #        current_id = output_print.operation_id()
+    #        problem_restart.Save(time,step,current_id)
+    #        solving_info.set_restart_info(execute_save,current_id)
+    #        StopTimeMeasuring(clock_time,"Writing Restart", False)
 
-# --FINALIZE--############################
-#
+    #solving_info.update_solving_info()
+    #if(print_info):
+    #    solving_info.print_solving_info()
 
-# writing a single file
-gid_print.finalize_results()
+# Ending the problem (time integration finished)
+gid_output.ExecuteFinalize()
+
+for process in list_of_processes:
+    process.ExecuteFinalize()
 
 print("::[KPFEM Simulation]:: Analysis -END- ")
 print(" ")
 
-# --END--###############################
-#
+# Check solving information for any problem
+#~ solver.InfoCheck() # InfoCheck not implemented yet.
 
 # check solving information for any problem
-solving_info.info_check()
+# solving_info.info_check()
 
-# measure process time
-tfp = clock()
-# measure wall time
-tfw = time()
+#### END SOLUTION ####
 
-print("::[KPFEM Simulation]:: [ Computing Time = (%.2f" % (tfp - t0p)," seconds process time) ( %.2f" % (tfw - t0w)," seconds wall time) ]")
+# Measure process time
+tfp = timer.clock()
+# Measure wall time
+tfw = timer.time()
 
-print(ctime())
+print("::[KPFEM Simulation]:: [Elapsed Time = %.2f" % (tfp - t0p),"seconds] (%.2f" % (tfw - t0w),"seconds of cpu/s time)")
+
+print(timer.ctime())
 
 # to create a benchmark: add standard benchmark files and decomment next two lines 
 # rename the file to: run_test.py

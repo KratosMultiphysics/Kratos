@@ -72,18 +72,7 @@ namespace Kratos
     mUpdatedLagrangianUwPStabElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mUpdatedLagrangianUwPFICElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mAxisymUpdatedLagrangianUwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
-    mAxisymUpdatedLagrangianUwPStabElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
-   
-    mCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
-    mCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),    
-    mWallCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
-    mWallCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
-    mContactDomainLMCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
-    mContactDomainPenaltyCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
-    mAxisymContactDomainLMCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
-    mAxisymContactDomainPenaltyCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) )
-
-    
+    mAxisymUpdatedLagrangianUwPStabElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) )
   {}
   
   void KratosPfemSolidMechanicsApplication::Register()
@@ -101,10 +90,6 @@ namespace Kratos
     //Register Variables (variables created in pfem_solid_mechanics_application_variables.cpp)
 
     //solution
-    KRATOS_REGISTER_VARIABLE( NUMBER_OF_ACTIVE_CONTACTS )
-    KRATOS_REGISTER_VARIABLE( NUMBER_OF_STICK_CONTACTS )
-    KRATOS_REGISTER_VARIABLE( NUMBER_OF_SLIP_CONTACTS )
-
     KRATOS_REGISTER_VARIABLE( IMPOSED_WATER_PRESSURE )
     
     //material
@@ -143,24 +128,6 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( WALL_TIP_RADIUS )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WALL_REFERENCE_POINT )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WALL_VELOCITY )
-
-    //contact properties
-    KRATOS_REGISTER_VARIABLE( FRICTION_ACTIVE )
-    KRATOS_REGISTER_VARIABLE( PENALTY_PARAMETER )
-    KRATOS_REGISTER_VARIABLE( LAGRANGE_MULTIPLIER_NORMAL )
-    KRATOS_REGISTER_VARIABLE( LAGRANGE_MULTIPLIER_NORMAL_REACTION )
-    KRATOS_REGISTER_VARIABLE( TAU_STAB )
-    KRATOS_REGISTER_VARIABLE( MU_STATIC )
-    KRATOS_REGISTER_VARIABLE( MU_DYNAMIC )
-
-    // Contact postprocess
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( CONTACT_STRESS )
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( EFFECTIVE_CONTACT_STRESS )
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( EFFECTIVE_CONTACT_FORCE )
-    KRATOS_REGISTER_VARIABLE( CONTACT_ADHESION )
-    KRATOS_REGISTER_VARIABLE( CONTACT_FRICTION_ANGLE )
-    KRATOS_REGISTER_VARIABLE( TANGENTIAL_PENALTY_RATIO )
-    KRATOS_REGISTER_VARIABLE( CONTACT_PLASTIC_SLIP )
 
     // Material postprocess + invariants
     KRATOS_REGISTER_VARIABLE( PRECONSOLIDATION )
@@ -202,18 +169,6 @@ namespace Kratos
     KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUwPStabElement2D3N", mAxisymUpdatedLagrangianUwPStabElement2D3N )
 
     //Register Conditions
-
-    KRATOS_REGISTER_CONDITION( "Condition2D2N", mCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "Condition3D3N", mCondition3D3N )
-   
-    KRATOS_REGISTER_CONDITION( "WallCondition2D2N", mWallCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "WallCondition3D3N", mWallCondition3D3N )
-
-    KRATOS_REGISTER_CONDITION( "ContactDomainLMCondition2D3N", mContactDomainLMCondition2D3N )
-    KRATOS_REGISTER_CONDITION( "ContactDomainPenaltyCondition2D3N", mContactDomainPenaltyCondition2D3N )
-
-    KRATOS_REGISTER_CONDITION( "AxisymContactDomainLMCondition2D3N", mAxisymContactDomainLMCondition2D3N )
-    KRATOS_REGISTER_CONDITION( "AxisymContactDomainPenaltyCondition2D3N", mAxisymContactDomainPenaltyCondition2D3N )
 
 
     //Register Constitutive Laws

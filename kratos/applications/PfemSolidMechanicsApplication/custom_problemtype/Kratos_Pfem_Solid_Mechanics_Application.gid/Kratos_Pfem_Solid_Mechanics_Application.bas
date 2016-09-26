@@ -179,7 +179,7 @@ End Nodes
 
 *# Element blocks
 
-*Set cond surface_UpdatedLagrangianElement2D3N *elems
+*set cond surface_UpdatedLagrangianElement2D3N *elems
 *if(CondNumEntities > 0)
 Begin Elements UpdatedLagrangianElement2D3N
 *#// id prop_id	 n1	n2	n3	...
@@ -197,7 +197,7 @@ Begin Elements UpdatedLagrangianElement2D3N
 End Elements
 
 *endif
-*Set cond surface_UpdatedLagrangianUwPElement2D3N *elems
+*set cond surface_UpdatedLagrangianUwPElement2D3N *elems
 *if(CondNumEntities > 0)
 Begin Elements UpdatedLagrangianUwPElement2D3N
 *#// id prop_id	 n1	n2	n3	...
@@ -215,7 +215,7 @@ Begin Elements UpdatedLagrangianUwPElement2D3N
 End Elements
 
 *endif
-*Set cond surface_UpdatedLagrangianUwPStabElement2D3N *elems
+*set cond surface_UpdatedLagrangianUwPStabElement2D3N *elems
 *if(CondNumEntities > 0)
 Begin Elements UpdatedLagrangianUwPStabElement2D3N
 *#// id prop_id	 n1	n2	n3	...
@@ -233,7 +233,7 @@ Begin Elements UpdatedLagrangianUwPStabElement2D3N
 End Elements
 
 *endif
-*Set cond surface_AxisymUpdatedLagrangianUwPStabElement2D3N *elems
+*set cond surface_AxisymUpdatedLagrangianUwPStabElement2D3N *elems
 *if(CondNumEntities > 0)
 Begin Elements AxisymUpdatedLagrangianUwPStabElement2D3N
 *#// id prop_id	 n1	n2	n3	...
@@ -251,7 +251,7 @@ Begin Elements AxisymUpdatedLagrangianUwPStabElement2D3N
 End Elements
 
 *endif
-*Set cond surface_UpdatedLagrangianUPElement2D3N *elems
+*set cond surface_UpdatedLagrangianUPElement2D3N *elems
 *if(CondNumEntities > 0)
 Begin Elements UpdatedLagrangianUPElement2D3N
 *#// id prop_id	 n1	n2	n3	...
@@ -269,7 +269,7 @@ Begin Elements UpdatedLagrangianUPElement2D3N
 End Elements
 
 *endif
-*Set cond surface_UpdatedLagrangianUPStabElement2D3N *elems
+*set cond surface_UpdatedLagrangianUPStabElement2D3N *elems
 *if(CondNumEntities > 0)
 Begin Elements UpdatedLagrangianUPStabElement2D3N
 *#// id prop_id	 n1	n2	n3	...
@@ -287,7 +287,7 @@ Begin Elements UpdatedLagrangianUPStabElement2D3N
 End Elements
 
 *endif
-*Set cond surface_AxisymUpdatedLagrangianUPStabElement2D3N *elems
+*set cond surface_AxisymUpdatedLagrangianUPStabElement2D3N *elems
 *if(CondNumEntities > 0)
 Begin Elements AxisymUpdatedLagrangianUPStabElement2D3N
 *#// id prop_id	 n1	n2	n3	...
@@ -305,7 +305,7 @@ Begin Elements AxisymUpdatedLagrangianUPStabElement2D3N
 End Elements
 
 *endif
-*Set cond surface_AxisymUpdatedLagrangianElement2D3N *elems
+*set cond surface_AxisymUpdatedLagrangianElement2D3N *elems
 *if(CondNumEntities > 0)
 Begin Elements AxisymUpdatedLagrangianElement2D3N
 *#// id prop_id	 n1	n2	n3	...
@@ -323,7 +323,7 @@ Begin Elements AxisymUpdatedLagrangianElement2D3N
 End Elements
 
 *endif
-*Set cond surface_AxisymUpdatedLagrangianUPElement2D3N *elems
+*set cond surface_AxisymUpdatedLagrangianUPElement2D3N *elems
 *if(CondNumEntities > 0)
 Begin Elements AxisymUpdatedLagrangianUPElement2D3N
 *#// id prop_id	 n1	n2	n3	...
@@ -342,72 +342,16 @@ End Elements
 
 *endif
 *# Condition Blocks
-
-*# Line Condition Blocks
-
-*Set cond line_LineLoadCondition2D2N *OverFaceElements *CanRepeat
-*if(CondNumEntities > 0)
-Begin Conditions LineLoadCondition2D2N
-*#// id prop_id	 n1	n2	n3	...
-*loop elems *OnlyInCond
-*set var icond=operation(icond+1)
-*format "%i%i"
-*Tcl( setCondId *ElemsNum *CondElemFace ) *ElemsMat *GlobalNodes*\
-
-*end elems
-End Conditions
-
-*endif
-*Set cond line_LineLoadAxisymCondition2D2N *OverFaceElements *CanRepeat
-*if(CondNumEntities > 0)
-Begin Conditions LineLoadAxisymCondition2D2N
-*#// id prop_id	 n1	n2	n3	...
-*loop elems *OnlyInCond
-*set var icond=operation(icond+1)
-*format "%i%i"
-*Tcl( setCondId *ElemsNum *CondElemFace ) *ElemsMat *GlobalNodes*\
-
-*end elems
-End Conditions
-
-*endif
-
-*# Point Condition Blocks
-
-*Set cond point_PointLoadCondition2D1N *nodes
-*if(CondNumEntities > 0)
-Begin Conditions PointLoadCondition2D1N
-*loop nodes *OnlyInCond
-*set var icond=operation(icond+1)
-*format "%i%i%i"
-*Tcl( setCondId *NodesNum 0 ) 0 *NodesNum
-*end nodes
-End Conditions
-
-*endif
-*Set cond point_AxisymPointLoadCondition2D1N *nodes
-*if(CondNumEntities > 0)
-Begin Conditions AxisymPointLoadCondition2D1N
-*loop nodes *OnlyInCond
-*set var icond=operation(icond+1)
-*format "%i%i%i"
-*Tcl( setCondId *NodesNum 0 ) 0 *NodesNum
-*end nodes
-End Conditions
-
-*endif
-*# Group Condition Blocks
-
-*# Set the start number for each condition:
+*# start number for each condition type:
 *set var RigidWallsstart  = icond
 
-*Set cond group_RigidWalls *groups
+*set cond group_RigidWalls *groups
 *if(CondNumEntities > 0)
 *loop groups *OnlyInCond
 *if(strcmp(cond(Contact_Condition),"3D")==0)
-Begin Conditions WallCondition3D3N
+Begin Conditions SurfaceCondition3D3N
 *else
-Begin Conditions WallCondition2D2N
+Begin Conditions LineCondition2D2N
 *endif
 *#// id prop_id	 n1	n2	n3	...
 *set group *GroupName *elems
@@ -425,396 +369,69 @@ Begin Conditions WallCondition2D2N
 End Conditions
 
 *end groups
-
-
 *endif
-*# Variable Blocks
-
-*Set cond volume_DISPLACEMENT *nodes
-*Add cond surface_DISPLACEMENT *nodes
-*Add cond line_DISPLACEMENT *nodes
-*Add cond point_DISPLACEMENT *nodes
+*# Loads Block
+*set cond group_POINT_LOAD *groups
 *if(CondNumEntities > 0)
-*# Check if some node has its X value set
-*set var Xset=0
-*loop nodes *OnlyInCond
-*if(cond(DISPLACEMENT_X,int)==1)
-*set var Xset=1
-*endif
+*loop groups *OnlyInCond
+Begin Conditions *cond(ConditionType)
+*#// id prop_id	 n1	n2	n3	...
+*set group *GroupName *nodes
+*loop nodes *onlyingroup
+*format "%i%i%i"
+ *Tcl( setCondId *NodesNum 0 ) 0 *NodesNum
 *end nodes
-*if(Xset == 1)
-Begin NodalData DISPLACEMENT_X
-*loop nodes *OnlyInCond
-*if(cond(DISPLACEMENT_X,int)==1)
-*format "%i%i%10.5e"
-*NodesNum *cond(Fix_X) *cond(X_Value)
-*endif
-*end nodes
-End NodalData
+End Conditions
 
+*end groups
 *endif
-*#
-*# Check if some node has its Y value set
-*set var Yset=0
-*loop nodes *OnlyInCond
-*if(cond(DISPLACEMENT_Y,int)==1)
-*set var Yset=1
-*endif
-*end nodes
-*if(Yset == 1)
-Begin NodalData DISPLACEMENT_Y
-*loop nodes *OnlyInCond
-*if(cond(DISPLACEMENT_Y,int)==1)
-*format "%i%i%10.5e"
-*NodesNum *cond(Fix_Y) *cond(Y_Value)
-*endif
-*end nodes
-End NodalData
 
-*endif
-*#
-*# Check if some node has its Z value set
-*set var Zset=0
-*loop nodes *OnlyInCond
-*if(cond(DISPLACEMENT_Z,int)==1)
-*set var Zset=1
-*endif
-*end nodes
-*if(Zset == 1)
-Begin NodalData DISPLACEMENT_Z
-*loop nodes *OnlyInCond
-*if(cond(DISPLACEMENT_Z,int)==1)
-*format "%i%i%10.5e"
-*NodesNum *cond(Fix_Z) *cond(Z_Value)
-*endif
-*end nodes
-End NodalData
-
-*endif
-*endif
-*Set cond volume_VELOCITY *nodes
-*Add cond surface_VELOCITY *nodes
-*Add cond line_VELOCITY *nodes
-*Add cond point_VELOCITY *nodes
+*set cond group_LINE_LOAD *groups
 *if(CondNumEntities > 0)
-*# Check if some node has its X value set
-*set var Xset=0
-*loop nodes *OnlyInCond
-*if(cond(VELOCITY_X,int)==1)
-*set var Xset=1
-*endif
-*end nodes
-*if(Xset == 1)
-Begin NodalData VELOCITY_X
-*loop nodes *OnlyInCond
-*if(cond(VELOCITY_X,int)==1)
-*format "%i%i%10.5e"
-*NodesNum *cond(Fix_X) *cond(X_Value)
-*endif
-*end nodes
-End NodalData
+*loop groups *OnlyInCond
+Begin Conditions *cond(ConditionType)
+*#// id prop_id	 n1	n2	n3	...
+*set group *GroupName *faces
+*loop faces *onlyingroup
+ *Tcl(MyPrintFaceElement *FaceElemsNum *FaceIndex)
+*end faces
+End Conditions
 
+*end groups
 *endif
-*#
-*# Check if some node has its Y value set
-*set var Yset=0
-*loop nodes *OnlyInCond
-*if(cond(VELOCITY_Y,int)==1)
-*set var Yset=1
-*endif
-*end nodes
-*if(Yset == 1)
-Begin NodalData VELOCITY_Y
-*loop nodes *OnlyInCond
-*if(cond(VELOCITY_Y,int)==1)
-*format "%i%i%10.5e"
-*NodesNum *cond(Fix_Y) *cond(Y_Value)
-*endif
-*end nodes
-End NodalData
 
-*endif
-*#
-*# Check if some node has its Z value set
-*set var Zset=0
-*loop nodes *OnlyInCond
-*if(cond(VELOCITY_Z,int)==1)
-*set var Zset=1
-*endif
-*end nodes
-*if(Zset == 1)
-Begin NodalData VELOCITY_Z
-*loop nodes *OnlyInCond
-*if(cond(VELOCITY_Z,int)==1)
-*format "%i%i%10.5e"
-*NodesNum *cond(Fix_Z) *cond(Z_Value)
-*endif
-*end nodes
-End NodalData
-
-*endif
-*endif
-*Set cond volume_VOLUME_ACCELERATION *nodes
-*Add cond surface_VOLUME_ACCELERATION *nodes
+*set cond group_LINE_PRESSURE *groups
 *if(CondNumEntities > 0)
-*# Check if some node has its X value set
-*set var Xset=0
-*loop nodes *OnlyInCond
-*if(cond(VOLUME_ACCELERATION_X,int)==1)
-*set var Xset=1
-*endif
-*end nodes
-*if(Xset == 1)
-Begin NodalData VOLUME_ACCELERATION_X
-*loop nodes *OnlyInCond
-*if(cond(VOLUME_ACCELERATION_X,int)==1)
-*format "%i%i%10.5e"
-*NodesNum *cond(Fix_X) *cond(X_Value)
-*endif
-*end nodes
-End NodalData
+*loop groups *OnlyInCond
+Begin Conditions *cond(ConditionType)
+*#// id prop_id	 n1	n2	n3	...
+*set group *GroupName *faces
+*loop faces *onlyingroup
+ *Tcl(MyPrintFaceElement *FaceElemsNum *FaceIndex)
+*end faces
+End Conditions
 
+*end groups
 *endif
-*#
-*# Check if some node has its Y value set
-*set var Yset=0
-*loop nodes *OnlyInCond
-*if(cond(VOLUME_ACCELERATION_Y,int)==1)
-*set var Yset=1
-*endif
-*end nodes
-*if(Yset == 1)
-Begin NodalData VOLUME_ACCELERATION_Y
-*loop nodes *OnlyInCond
-*if(cond(VOLUME_ACCELERATION_Y,int)==1)
-*format "%i%i%10.5e"
-*NodesNum *cond(Fix_Y) *cond(Y_Value)
-*endif
-*end nodes
-End NodalData
 
-*endif
-*#
-*# Check if some node has its Z value set
-*set var Zset=0
-*loop nodes *OnlyInCond
-*if(cond(VOLUME_ACCELERATION_Z,int)==1)
-*set var Zset=1
-*endif
-*end nodes
-*if(Zset == 1)
-Begin NodalData VOLUME_ACCELERATION_Z
-*loop nodes *OnlyInCond
-*if(cond(VOLUME_ACCELERATION_Z,int)==1)
-*format "%i%i%10.5e"
-*NodesNum *cond(Fix_Z) *cond(Z_Value)
-*endif
-*end nodes
-End NodalData
-
-*endif
-*endif
-*Set cond line_LINE_LOAD *nodes
+*set cond group_POINT_MOMENT *groups
 *if(CondNumEntities > 0)
-*# Check if some node has its X value set
-*set var Xset=0
-*loop nodes *OnlyInCond
-*if(cond(LINE_LOAD_X,int)==1)
-*set var Xset=1
-*endif
+*loop groups *OnlyInCond
+Begin Conditions *cond(ConditionType)
+*#// id prop_id	 n1	n2	n3	...
+*set group *GroupName *nodes
+*loop nodes *onlyingroup
+*format "%i%i%i"
+ *Tcl( setCondId *NodesNum 0 ) 0 *NodesNum
 *end nodes
-*if(Xset == 1)
-Begin NodalData LINE_LOAD_X
-*loop nodes *OnlyInCond
-*if(cond(LINE_LOAD_X,int)==1)
-*format "%i%i%10.5e"
-*NodesNum *cond(Fix_X) *cond(X_Value)
-*endif
-*end nodes
-End NodalData
+End Conditions
 
+*end groups
 *endif
-*#
-*# Check if some node has its Y value set
-*set var Yset=0
-*loop nodes *OnlyInCond
-*if(cond(LINE_LOAD_Y,int)==1)
-*set var Yset=1
-*endif
-*end nodes
-*if(Yset == 1)
-Begin NodalData LINE_LOAD_Y
-*loop nodes *OnlyInCond
-*if(cond(LINE_LOAD_Y,int)==1)
-*format "%i%i%10.5e"
-*NodesNum *cond(Fix_Y) *cond(Y_Value)
-*endif
-*end nodes
-End NodalData
 
-*endif
-*#
-*# Check if some node has its Z value set
-*set var Zset=0
-*loop nodes *OnlyInCond
-*if(cond(LINE_LOAD_Z,int)==1)
-*set var Zset=1
-*endif
-*end nodes
-*if(Zset == 1)
-Begin NodalData LINE_LOAD_Z
-*loop nodes *OnlyInCond
-*if(cond(LINE_LOAD_Z,int)==1)
-*format "%i%i%10.5e"
-*NodesNum *cond(Fix_Z) *cond(Z_Value)
-*endif
-*end nodes
-End NodalData
-
-*endif
-*endif
-*Set cond surface_SURFACE_LOAD *nodes
-*if(CondNumEntities > 0)
-*# Check if some node has its X value set
-*set var Xset=0
-*loop nodes *OnlyInCond
-*if(cond(SURFACE_LOAD_X,int)==1)
-*set var Xset=1
-*endif
-*end nodes
-*if(Xset == 1)
-Begin NodalData SURFACE_LOAD_X
-*loop nodes *OnlyInCond
-*if(cond(SURFACE_LOAD_X,int)==1)
-*format "%i%i%10.5e"
-*NodesNum *cond(Fix_X) *cond(X_Value)
-*endif
-*end nodes
-End NodalData
-
-*endif
-*#
-*# Check if some node has its Y value set
-*set var Yset=0
-*loop nodes *OnlyInCond
-*if(cond(SURFACE_LOAD_Y,int)==1)
-*set var Yset=1
-*endif
-*end nodes
-*if(Yset == 1)
-Begin NodalData SURFACE_LOAD_Y
-*loop nodes *OnlyInCond
-*if(cond(SURFACE_LOAD_Y,int)==1)
-*format "%i%i%10.5e"
-*NodesNum *cond(Fix_Y) *cond(Y_Value)
-*endif
-*end nodes
-End NodalData
-
-*endif
-*#
-*# Check if some node has its Z value set
-*set var Zset=0
-*loop nodes *OnlyInCond
-*if(cond(SURFACE_LOAD_Z,int)==1)
-*set var Zset=1
-*endif
-*end nodes
-*if(Zset == 1)
-Begin NodalData SURFACE_LOAD_Z
-*loop nodes *OnlyInCond
-*if(cond(SURFACE_LOAD_Z,int)==1)
-*format "%i%i%10.5e"
-*NodesNum *cond(Fix_Z) *cond(Z_Value)
-*endif
-*end nodes
-End NodalData
-
-*endif
-*endif
-*Set cond point_POINT_LOAD *nodes
-*if(CondNumEntities > 0)
-*# Check if some node has its X value set
-*set var Xset=0
-*loop nodes *OnlyInCond
-*if(cond(POINT_LOAD_X,int)==1)
-*set var Xset=1
-*endif
-*end nodes
-*if(Xset == 1)
-Begin NodalData POINT_LOAD_X
-*loop nodes *OnlyInCond
-*if(cond(POINT_LOAD_X,int)==1)
-*format "%i%i%10.5e"
-*NodesNum *cond(Fix_X) *cond(X_Value)
-*endif
-*end nodes
-End NodalData
-
-*endif
-*#
-*# Check if some node has its Y value set
-*set var Yset=0
-*loop nodes *OnlyInCond
-*if(cond(POINT_LOAD_Y,int)==1)
-*set var Yset=1
-*endif
-*end nodes
-*if(Yset == 1)
-Begin NodalData POINT_LOAD_Y
-*loop nodes *OnlyInCond
-*if(cond(POINT_LOAD_Y,int)==1)
-*format "%i%i%10.5e"
-*NodesNum *cond(Fix_Y) *cond(Y_Value)
-*endif
-*end nodes
-End NodalData
-
-*endif
-*#
-*# Check if some node has its Z value set
-*set var Zset=0
-*loop nodes *OnlyInCond
-*if(cond(POINT_LOAD_Z,int)==1)
-*set var Zset=1
-*endif
-*end nodes
-*if(Zset == 1)
-Begin NodalData POINT_LOAD_Z
-*loop nodes *OnlyInCond
-*if(cond(POINT_LOAD_Z,int)==1)
-*format "%i%i%10.5e"
-*NodesNum *cond(Fix_Z) *cond(Z_Value)
-*endif
-*end nodes
-End NodalData
-
-*endif
-*endif
-*Set cond surface_POSITIVE_FACE_PRESSURE *nodes
-*Add cond line_POSITIVE_FACE_PRESSURE *nodes
-*if(CondNumEntities > 0)
-Begin NodalData POSITIVE_FACE_PRESSURE
-*loop nodes *OnlyInCond
-*format "%i%i%10.5e"
-*NodesNum *cond(Fixed) *cond(POSITIVE_FACE_PRESSURE)
-*end nodes
-End NodalData
-
-*endif
-*Set cond surface_WATER_PRESSURE *nodes
-*Add cond line_WATER_PRESSURE *nodes
-*if(CondNumEntities > 0)
-Begin NodalData WATER_PRESSURE
-*loop nodes *OnlyInCond
-*format "%i%i%10.5e"
-*NodesNum *cond(Fixed) *cond(WATER_PRESSURE)
-*end nodes
-End NodalData
-
-*endif
-*Set cond surface_WALL_TIP *nodes
-*Add cond line_WALL_TIP *nodes
+*# Nodal Data
+*set cond surface_WALL_TIP *nodes
+*add cond line_WALL_TIP *nodes
 *if(CondNumEntities > 0)
 Begin NodalData WALL_TIP_RADIUS
 *loop nodes *OnlyInCond
@@ -845,7 +462,7 @@ Begin NodalData WALL_REFERENCE_POINT_Z
 End NodalData
 
 *endif
-*Set cond group_RigidWalls *groups
+*set cond group_RigidWalls *groups
 *if(CondNumEntities > 0)
 Begin NodalData RIGID_WALL
 *loop groups *OnlyInCond
@@ -853,35 +470,29 @@ Begin NodalData RIGID_WALL
 *if(GroupNumEntities)
 *loop nodes *onlyingroup
 *format "%i%i%i"
-*NodesNum 0 *cond(Group_ID,int)
+*NodesNum 0 *GroupNum
 *end nodes
 *endif
 *end groups
 End NodalData
 
 *endif
-
-
-*# Mesh Blocks
-
-
-*# Mesh Blocks for Domain Remeshing and Contact
-
-*Set cond group_DeformableBodies *groups
+*# SubModelPart Blocks
+*set cond group_DeformableBodies *groups
 *if(CondNumEntities > 0)
 *loop groups *OnlyInCond
-Begin Mesh *cond(Group_ID)
+Begin SubModelPart *GroupName // *GroupNum
 
- Begin MeshNodes
+ Begin SubModelPartNodes
 *set group *GroupName *nodes
 *if(GroupNumEntities > 0)
 *loop nodes *onlyingroup
  *NodesNum
 *end nodes
 *endif
- End MeshNodes
+ End SubModelPartNodes
 
- Begin MeshElements
+ Begin SubModelPartElements
 *set group *GroupName *elems 
 *if(GroupNumEntities > 0) 
 *loop elems *onlyingroup 
@@ -889,80 +500,232 @@ Begin Mesh *cond(Group_ID)
  *ElemsNum
 *end elems
 *endif
- End MeshElements
+ End SubModelPartElements
       
- Begin MeshConditions
-*set group *GroupName *elems 
-*if(GroupNumEntities > 0) 
-*# Line Condition Blocks
-*set cond line_LineLoadCondition2D2N *OverFaceElements *CanRepeat
-*add cond line_LineLoadAxisymCondition2D2N *OverFaceElements *CanRepeat
-*if(CondNumEntities > 0)
-*loop elems *onlyincond *onlyingroup
-*format "%i"
- *Tcl( getCondId *ElemsNum *CondElemFace )
-*end elems
-*endif
-*endif
-*# Point Condition Blocks
-*set group *GroupName *nodes
-*if(GroupNumEntities > 0)
-*set cond point_PointLoadCondition2D1N *nodes
-*add cond point_AxisymPointLoadCondition2D1N *nodes
-*if(CondNumEntities > 0)	    
-*loop nodes *onlyincond *onlyingroup
-*set var point_conditions_num=operation(point_conditions_num+1)
-*format "%i"
- *Tcl( getCondId *NodesNum 0 )
-*end nodes
-*endif
-*endif
-*Set cond group_DeformableBodies *groups
- End MeshConditions
+ Begin SubModelPartConditions
+ End SubModelPartConditions
 
-End Mesh
-
+End SubModelPart
 *end groups    
 *endif
-
-
-*# Set the start number for each element and condition:
-*set var RigidWallsNum  = RigidWallsStart
-
-*Set cond group_RigidWalls *groups
+*set cond group_LINEAR_MOVEMENT *groups
 *if(CondNumEntities > 0)
 *loop groups *OnlyInCond
-Begin Mesh *cond(Group_ID)
+Begin SubModelPart *GroupName // *GroupNum
 
- Begin MeshNodes
+ Begin SubModelPartNodes
 *set group *GroupName *nodes
 *if(GroupNumEntities)
 *loop nodes *onlyingroup
  *NodesNum
 *end nodes
 *endif
- End MeshNodes
+ End SubModelPartNodes
 
- Begin MeshElements
- End MeshElements
+ Begin SubModelPartElements
+ End SubModelPartElements
       
- Begin MeshConditions
+ Begin SubModelPartConditions
+ End SubModelPartConditions
+
+End SubModelPart
+*end groups    
+*endif
+*set cond group_ANGULAR_MOVEMENT *groups
+*if(CondNumEntities > 0)
+*loop groups *OnlyInCond
+Begin SubModelPart *GroupName // *GroupNum
+
+ Begin SubModelPartNodes
+*set group *GroupName *nodes
+*if(GroupNumEntities)
+*loop nodes *onlyingroup
+ *NodesNum
+*end nodes
+*endif
+ End SubModelPartNodes
+
+ Begin SubModelPartElements
+ End SubModelPartElements
+      
+ Begin SubModelPartConditions
+ End SubModelPartConditions
+
+End SubModelPart
+*end groups    
+*endif
+*set cond group_POINT_LOAD *groups
+*if(CondNumEntities)
+*loop groups *OnlyInCond
+Begin SubModelPart *GroupName // *GroupNum
+
+ Begin SubModelPartNodes
+*set group *GroupName *nodes
+*if(GroupNumEntities)
+*loop nodes *onlyingroup
+ *NodesNum
+*end nodes
+*endif
+ End SubModelPartNodes
+
+ Begin SubModelPartElements
+ End SubModelPartElements
+      
+ Begin SubModelPartConditions
+*set group *GroupName *nodes
+*if(GroupNumEntities)
+*loop nodes *onlyingroup
+*format "%i"
+ *Tcl( getCondId *NodesNum 0 )
+*end nodes
+*endif
+ End SubModelPartConditions
+
+End SubModelPart
+*end groups    
+*endif
+*set cond group_LINE_LOAD *groups
+*if(CondNumEntities > 0)
+*loop groups *OnlyInCond
+Begin SubModelPart *GroupName // *GroupNum
+
+ Begin SubModelPartNodes
+*set group *GroupName *nodes
+*if(GroupNumEntities)
+*loop nodes *onlyingroup
+ *NodesNum
+*end nodes
+*endif
+ End SubModelPartNodes
+
+ Begin SubModelPartElements
+ End SubModelPartElements
+      
+ Begin SubModelPartConditions
+*set group *GroupName *faces
+*if(GroupNumEntities)
+*loop faces *onlyingroup
+ *Tcl( getCondId *FaceElemsNum *FaceIndex )
+*end faces
+*endif
+ End SubModelPartConditions
+
+End SubModelPart
+*end groups    
+*endif
+*set cond group_LINE_PRESSURE *groups
+*if(CondNumEntities > 0)
+*loop groups *OnlyInCond
+Begin SubModelPart *GroupName // *GroupNum
+
+ Begin SubModelPartNodes
+*set group *GroupName *nodes
+*if(GroupNumEntities)
+*loop nodes *onlyingroup
+ *NodesNum
+*end nodes
+*endif
+ End SubModelPartNodes
+
+ Begin SubModelPartElements
+ End SubModelPartElements
+      
+ Begin SubModelPartCondition
+*set group *GroupName *faces
+*if(GroupNumEntities)
+*loop faces *onlyingroup
+ *Tcl( getCondId *FaceElemsNum *FaceIndex )
+*end faces
+*endif
+ End SubModelPartConditions
+
+End SubModelPart
+*end groups    
+*endif
+*set cond group_POINT_MOMENT *groups
+*if(CondNumEntities > 0)
+*loop groups *OnlyInCond
+Begin SubModelPart *GroupName // *GroupNum
+
+ Begin SubModelPartNodes
+*set group *GroupName *nodes
+*if(GroupNumEntities)
+*loop nodes *onlyingroup
+ *NodesNum
+*end nodes
+*endif
+ End SubModelPartNodes
+
+ Begin SubModelPartElements
+ End SubModelPartElements
+      
+ Begin SubModelPartConditions
+*set group *GroupName *nodes
+*if(GroupNumEntities)
+*loop nodes *onlyingroup
+*format "%i"
+ *Tcl( getCondId *NodesNum 0 )
+*end nodes
+*endif
+ End SubModelPartConditions
+
+End SubModelPart
+*end groups    
+*endif
+*set cond group_VOLUME_ACCELERATION *groups
+*if(CondNumEntities > 0)
+*loop groups *OnlyInCond
+Begin SubModelPart *GroupName // *GroupNum
+
+ Begin SubModelPartNodes
+*set group *GroupName *nodes
+*if(GroupNumEntities)
+*loop nodes *onlyingroup
+ *NodesNum
+*end nodes
+*endif
+ End SubModelPartNodes
+
+ Begin SubModelPartElements
+ End SubModelPartElements
+      
+ Begin SubModelPartConditions
+ End SubModelPartConditions
+
+End SubModelPart
+*end groups    
+*endif
+*set cond group_RigidWalls *groups
+*if(CondNumEntities > 0)
+*loop groups *OnlyInCond
+Begin SubModelPart *GroupName // *GroupNum
+
+ Begin SubModelPartNodes
+*set group *GroupName *nodes
+*if(GroupNumEntities)
+*loop nodes *onlyingroup
+ *NodesNum
+*end nodes
+*endif
+ End SubModelPartNodes
+
+ Begin SubModelPartElements
+ End SubModelPartElements
+      
+ Begin SubModelPartConditions
 *set group *GroupName *elems 
 *if(GroupNumEntities) 
+*set var RigidWallsNum = 0
 *loop elems *onlyingroup 
 *set var RigidWallsNum=operation(RigidWallsNum+1)
 *format "%i"
  *RigidWallsNum
 *end elems
 *endif
- End MeshConditions
-
-End Mesh
-
+ End SubModelPartConditions
+End SubModelPart
 *end groups        
 *endif
-
-
 
 *# Note: About elements/conditions: it is important that point elements/conditions are added AFTER regular points/conditions to keep numeration of elemental/conditional data consistent.
 *# This is why point elements/conditions get their own blocks.

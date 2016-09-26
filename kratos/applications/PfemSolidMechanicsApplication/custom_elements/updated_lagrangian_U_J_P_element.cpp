@@ -1915,7 +1915,7 @@ namespace Kratos
 
       rElementVariables.voigtsize = 3;
       rElementVariables.Beta = 1.0/3.0;
-      rElementVariables.Alpha = 1.0/2.0;
+      rElementVariables.Alpha = 0.5;
       if ( dimension == 3) {
          rElementVariables.voigtsize = 6;
          rElementVariables.Alpha = 1.0/3.0;

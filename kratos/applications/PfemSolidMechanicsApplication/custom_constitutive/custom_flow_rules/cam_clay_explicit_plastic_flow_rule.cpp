@@ -129,10 +129,10 @@ void CamClayExplicitFlowRule::CalculateMeanStress(const double& rVolumetricStrai
 
     double DeviatoricStrain2Norm = 0.0;
     for (unsigned int i = 0; i < 3; ++i)
-	DeviatoricStrain2Norm += pow(rDeviatoricStrainVector(i), 2.0);
+	DeviatoricStrain2Norm += pow(rDeviatoricStrainVector(i), 2);
 
     for (unsigned int i = 3; i < 6; ++i)
-	DeviatoricStrain2Norm += 2.0*pow(rDeviatoricStrainVector(i)/2.0, 2.0);
+	DeviatoricStrain2Norm += 2.0*pow(rDeviatoricStrainVector(i)/2.0, 2);
 
     rMeanStress = -ReferencePressure*std::exp( -rVolumetricStrain / SwellingSlope) * (1.0 + 1.0*AlphaShear*DeviatoricStrain2Norm/SwellingSlope);
 
@@ -262,7 +262,7 @@ void CamClayExplicitFlowRule::ComputePlasticHardeningParameter(const Vector& rHe
 
 
    rH = (2.0*MeanStress-PreconsolidationStress) ;
- //  rH *=  (PreconsolidationStress*(1.0-pow(Beta, 2.0)) - MeanStress) ;
+ //  rH *=  (PreconsolidationStress*(1.0-pow(Beta, 2)) - MeanStress) ;
    rH *= (-MeanStress);
    rH *= PreconsolidationStress/ ( OtherSlope - SwellingSlope);
 //   rH *= 4.0;

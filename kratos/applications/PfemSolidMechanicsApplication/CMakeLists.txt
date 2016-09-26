@@ -36,8 +36,6 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_modelers_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_bounding_to_python.cpp
 
 	##elements
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_updated_lagrangian_element.cpp
@@ -50,18 +48,7 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 	##${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_wP_weight_element.cpp
 
 	##conditions
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/wall_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_domain_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_domain_LM_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_domain_penalty_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_contact_domain_LM_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_contact_domain_penalty_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_rigid_contact_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_rigid_contact_penalty_3D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_rigid_contact_penalty_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_point_rigid_contact_penalty_2D_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_point_rigid_contact_penalty_water_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/rigid_body_point_rigid_contact_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_rigid_contact_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_rigid_contact_penalty_3D_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_rigid_contact_LM_3D_condition.cpp
@@ -116,21 +103,13 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 
 
 	##friction laws
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/custom_friction_laws/friction_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/custom_friction_laws/hardening_coulomb_friction_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/custom_friction_laws/coulomb_adhesion_friction_law.cpp
-
 
 	##processes
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/set_mechanical_initial_state_process.cpp
 
 	##utilities
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/contact_domain_utilities.cpp
 	##${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/advanced_mesh_data_transfer_utilities.cpp
 
-
-	##modelers
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/contact_domain_2D_modeler.cpp
 
 )
 
@@ -138,7 +117,7 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 ## define library Kratos which defines the basic python interface
 add_library(KratosPfemSolidMechanicsApplication SHARED ${KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES})
 #####***target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore)
-target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore KratosSolidMechanicsApplication KratosPfemBaseApplication)
+target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore KratosSolidMechanicsApplication KratosContactMechanicsApplication)
 set_target_properties(KratosPfemSolidMechanicsApplication PROPERTIES PREFIX "")
 set_target_properties(KratosPfemSolidMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "PFEM_SOLID_MECHANICS_APPLICATION=EXPORT,API")
 

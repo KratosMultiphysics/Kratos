@@ -23,7 +23,6 @@
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "custom_strategies/strategies/residual_based_newton_raphson_line_search_implex_strategy.hpp"
 
 //convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -33,8 +32,6 @@
 #include "linear_solvers/linear_solver.h"
 
 //schemes
-#include "custom_strategies/schemes/residual_based_static_scheme.hpp"
-#include "custom_strategies/schemes/residual_based_newmark_scheme.hpp"
 #include "custom_strategies/schemes/residual_based_bossak_scheme.hpp"
 #include "custom_strategies/schemes/residual_based_contact_bossak_scheme.hpp"
 #include "custom_strategies/schemes/residual_based_U_wP_static_scheme.hpp"
@@ -60,11 +57,8 @@ namespace Kratos
 
       //custom strategy types
       typedef ResidualBasedUwPStaticScheme< SparseSpaceType, LocalSpaceType > ResidualBasedUwPStaticSchemeType;
-      typedef ResidualBasedNewtonRaphsonLineSearchImplexStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonLineSearchImplexStrategyType;
 
       //custom scheme types
-      typedef ResidualBasedStaticScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedStaticSchemeType;
-      typedef ResidualBasedNewmarkScheme< SparseSpaceType, LocalSpaceType > ResidualBasedNewmarkSchemeType;
       typedef ResidualBasedBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakSchemeType;
       typedef ResidualBasedContactBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedContactBossakSchemeType;    
 
@@ -79,25 +73,7 @@ namespace Kratos
       //********************************************************************
       //*************************SHCHEME CLASSES****************************
       //********************************************************************
-
-      // Static Scheme Type
-      class_< ResidualBasedStaticSchemeType,
-	      bases< BaseSchemeType >, boost::noncopyable >
-	(
-	 "ResidualBasedStaticScheme", init< >() )
-	
-	.def("Initialize", &ResidualBasedStaticScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-	;
-      
-      // Residual Based Newmark Scheme Type
-      class_< ResidualBasedNewmarkSchemeType,
-	      bases< BaseSchemeType >, boost::noncopyable >
-	(
-	 "ResidualBasedNewmarkScheme", init< double >() )
-	
-	.def("Initialize", &ResidualBasedNewmarkScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-	;
-      
+     
       // Residual Based Bossak Scheme Type
       class_< ResidualBasedBossakSchemeType,
 	      bases< BaseSchemeType >,  boost::noncopyable >
@@ -136,21 +112,6 @@ namespace Kratos
       //*************************STRATEGY CLASSES***************************
       //********************************************************************
       
-      // Residual Based Newton-Raphson Line Search Strategy
-      class_< ResidualBasedNewtonRaphsonLineSearchImplexStrategyType, 
-	      bases< BaseSolvingStrategyType >, boost::noncopyable >
-	(
-	 "ResidualBasedNewtonRaphsonLineSearchImplexStrategy",
-	 init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaBaseType::Pointer, int, bool, bool, bool>())
-	
-	.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaBaseType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
-	.def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::SetMaxIterationNumber)
-	.def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetMaxIterationNumber)
-	.def("SetInitializePerformedFlag", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::SetInitializePerformedFlag)
-	.def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetInitializePerformedFlag)
-	.def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::SetKeepSystemConstantDuringIterations)
-	.def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetKeepSystemConstantDuringIterations)
-	;
                              
     }
 

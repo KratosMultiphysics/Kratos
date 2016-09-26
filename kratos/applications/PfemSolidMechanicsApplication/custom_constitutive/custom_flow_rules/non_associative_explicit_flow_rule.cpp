@@ -289,8 +289,8 @@ bool& NonAssociativeExplicitPlasticFlowRule::EvaluateElastoPlasticUnloadingCondi
 
      for (unsigned int i = 0; i < 6; ++i) {
          Numerador += YieldFunctionD(i)*IncrementalElasticStress(i);
-         Denom1 += pow( YieldFunctionD(i), 2.0);
-         Denom2 += pow( IncrementalElasticStress(i), 2.0);
+         Denom1 += pow( YieldFunctionD(i), 2);
+         Denom2 += pow( IncrementalElasticStress(i), 2);
       }
 
       Denom1 = pow( Denom1*Denom2, 0.5);
@@ -404,10 +404,10 @@ void NonAssociativeExplicitPlasticFlowRule::ReturnStressToYieldSurface( RadialRe
             AlphaUpdate += DeltaGamma*AuxiliarDerivatives.PlasticPotentialD(j);
 
         for (unsigned int j = 0; j < 3; ++j)
-            rReturnMappingVariables.IncrementalPlasticShearStrain += pow(DeltaGamma*AuxiliarDerivatives.PlasticPotentialD(j) - AlphaUpdate/3.0, 2.0);
+            rReturnMappingVariables.IncrementalPlasticShearStrain += pow(DeltaGamma*AuxiliarDerivatives.PlasticPotentialD(j) - AlphaUpdate/3.0, 2);
 
         for (unsigned int j = 3; j < 6; ++j)
-            rReturnMappingVariables.IncrementalPlasticShearStrain += 2.0*pow(DeltaGamma*AuxiliarDerivatives.PlasticPotentialD(j) / 2.0, 2.0);
+            rReturnMappingVariables.IncrementalPlasticShearStrain += 2.0*pow(DeltaGamma*AuxiliarDerivatives.PlasticPotentialD(j) / 2.0, 2);
 
 
         Alpha += AlphaUpdate;
@@ -448,15 +448,15 @@ void NonAssociativeExplicitPlasticFlowRule::ReturnStressToYieldSurface( RadialRe
        double J2 = 0.0;
        for (unsigned int i = 0; i < 3; ++i) {
           SM(i,i) -= p;     
-          J2 += pow( SM(i,i)- p, 2.0);
+          J2 += pow( SM(i,i)- p, 2);
        }
        for (unsigned int i = 0; i < 6; ++i)
-          J2 += 2.0*pow( rStressVector(i), 2.0);
+          J2 += 2.0*pow( rStressVector(i), 2);
        J2 = sqrt(J2 / 2.0);
 
        double Lode = MathUtils<double>::Det( SM);
        Lode *= 3.0*sqrt(3.0) / 2.0;
-       Lode /= pow( J2, 3.0);
+       Lode /= pow( J2, 3);
 
        std::cout << " LODE " << std::asin( Lode) / 3.0 / 3.14159265359*180.0 << std::endl;
     }
@@ -668,12 +668,12 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateOneExplicitPlasticStep(cons
 
         rNewPlasticShearStrain = 0.0;
         for (unsigned int i = 0; i < 3; ++i)
-            rNewPlasticShearStrain += pow( DeltaGamma*AuxiliarDerivatives.PlasticPotentialD(i) - rNewEquivalentPlasticStrain, 2.0);
+            rNewPlasticShearStrain += pow( DeltaGamma*AuxiliarDerivatives.PlasticPotentialD(i) - rNewEquivalentPlasticStrain, 2);
 
         for (unsigned int i = 3; i < 6; ++i)
-            rNewPlasticShearStrain += pow( DeltaGamma*AuxiliarDerivatives.PlasticPotentialD(i), 2.0);
+            rNewPlasticShearStrain += pow( DeltaGamma*AuxiliarDerivatives.PlasticPotentialD(i), 2);
 
-        rNewPlasticShearStrain = pow( rNewPlasticShearStrain, 1.0/2.0) ;
+        rNewPlasticShearStrain = pow( rNewPlasticShearStrain, 0.5) ;
        
 
 }
@@ -714,8 +714,8 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateOneExplicitStep(const Matri
          rStressUpdateInformation.StressErrorMeasure = 0.0;
          double Denominador = 0.0;
          for (unsigned int i = 0; i<6; ++i) {
-            rStressUpdateInformation.StressErrorMeasure += pow( rNewStressVector(i) - FirstApproxStressVector(i), 2.0);
-            Denominador  += pow(rNewStressVector(i), 2.0);
+            rStressUpdateInformation.StressErrorMeasure += pow( rNewStressVector(i) - FirstApproxStressVector(i), 2);
+            Denominador  += pow(rNewStressVector(i), 2);
          }
           rStressUpdateInformation.StressErrorMeasure = 1.0* pow( rStressUpdateInformation.StressErrorMeasure/Denominador, 0.5);
 
@@ -835,7 +835,7 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateExplicitSolution( const Mat
  
       }
 
-      TimeStep *= 0.9* (pow( rTolerance / (StressUpdateInformation.StressErrorMeasure+ 1e-8), 1.0/2.0 ));
+      TimeStep *= 0.9* (pow( rTolerance / (StressUpdateInformation.StressErrorMeasure+ 1e-8), 0.5));
       TimeStep = std::max(TimeStep, MinTimeStep);
       TimeStep = std::min(TimeStep, MaxTimeStep);
   }

@@ -21,6 +21,7 @@
 #include "custom_utilities/modeler_utilities.hpp"
 #include "custom_processes/refine_mesh_boundary_process.hpp"
 
+#include "pfem_solid_mechanics_application_variables.h"
 ///VARIABLES used:
 //Data:     DOMAIN_LABEL(nodes)(set)g
 //StepData: NODAL_H, NORMAL, CONTACT_FORCE, DISPLACEMENT
@@ -57,10 +58,16 @@ public:
     /// Pointer definition of Process
     KRATOS_CLASS_POINTER_DEFINITION( ContactRefineMeshBoundaryProcess );
 
+    typedef ModelPart::NodeType                   NodeType;
     typedef ModelPart::ConditionType         ConditionType;
     typedef ModelPart::PropertiesType       PropertiesType;
     typedef ConditionType::GeometryType       GeometryType;
-    typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
+    typedef PointerVector<NodeType>        PointsArrayType;
+  
+    typedef PointerVectorSet<ConditionType, IndexedObject> ConditionsContainerType;
+    typedef ConditionsContainerType::iterator                    ConditionIterator;
+    typedef ConditionsContainerType::const_iterator      ConditionConstantIterator;
+ 
 
     struct RefineCounters
     {
@@ -104,14 +111,12 @@ public:
 
     /// Default constructor
     ContactRefineMeshBoundaryProcess(ModelPart& rModelPart,
-				     std::vector<SpatialBoundingBox::Pointer>& rRigidWalls,
+				     std::vector<SpatialBoundingBox::Pointer> mRigidWalls,
 				     ModelerUtilities::MeshingParameters& rRemeshingParameters,
 				     int EchoLevel) 
       :RefineMeshBoundaryProcess(rModelPart,rRemeshingParameters,EchoLevel)
     {    
-      mRigidWalls = rRigidWalls;
-      for(unsigned int i=0; i<rRigidWalls.size(); i++)
-	mRigidWalls[i] = rRigidWalls[i];
+
       
     }
 
@@ -158,55 +163,41 @@ public:
 	{
 
 	  std::vector<Point<3> > list_of_points;
-	  std::vector<Condition::Pointer> list_of_conditions;
+	  std::vector<ConditionType::Pointer> list_of_conditions;
 
 	  unsigned int conditions_size = mrModelPart.Conditions(mMeshId).size();
-	  list_of_points.reserve(conditions_size);
-	  list_of_conditions.reserve(conditions_size);
+	    
+	  if( mrModelPart.Name() == mrRemesh.SubModelPartName ){
 
+	    list_of_points.reserve(conditions_size);
+	    list_of_conditions.reserve(conditions_size);
+	    
+	    RefineContactBoundary(mrModelPart, list_of_points, list_of_conditions, LocalRefineInfo);
+	    
+	    RefineOtherBoundary(mrModelPart, list_of_points, list_of_conditions, LocalRefineInfo);
+	    
+	    BuildNewConditions(mrModelPart, list_of_points, list_of_conditions, LocalRefineInfo);
+	    
+	    CleanConditionsAndFlags(mrModelPart);
 
-	  //std::cout<<"   List of Conditions Reserved Size: "<<conditions_size<<std::endl;
-
-	  //*********************************************************************************
-	  // DEFORMABLE CONTACT CONDITIONS START
-	  //*********************************************************************************
-	  this->RefineContactBoundary(list_of_points,list_of_conditions,LocalRefineInfo);
-	  //*********************************************************************************
-	  // DEFORMABLE CONTACT CONDITIONS END
-	  //*********************************************************************************
-
-
-
-	  //*********************************************************************************
-	  // RIGID CONTACT CONDITIONS AND OTHER BOUNDARY CONDITIONS START
-	  //*********************************************************************************
-	  this->RefineOtherBoundary(list_of_points,list_of_conditions,LocalRefineInfo);
-	  //*********************************************************************************
-	  // RIGID CONTACT CONDITIONS AND OTHER BOUNDARY CONDITIONS END
-	  //*********************************************************************************
-
-
-
-	  //*********************************************************************************
-	  //                   DOFS AND NEW CONDITIONS REBUILD START                       //
-	  //*********************************************************************************
-	  this->BuildNewConditions(list_of_points,list_of_conditions,LocalRefineInfo);
-	  //*********************************************************************************
-	  //                   DOFS AND NEW CONDITIONS REBUILD END                         //
-	  //*********************************************************************************
-
-
-
-
-	  //*********************************************************************************
-	  //                   CLEAN CONDITIONS AND FLAGS START                            //
-	  //*********************************************************************************
-	  this->CleanConditionsAndFlags();
-	  //*********************************************************************************
-	  //                   CLEAN CONDITIONS AND FLAGS END                              //
-	  //*********************************************************************************
-
-
+	  }
+	  else{
+	    
+	    ModelPart& rModelPart = mrModelPart.GetSubModelPart(mrRemesh.SubModelPartName);
+	    
+	    conditions_size = rModelPart.Conditions(mMeshId).size();
+	    list_of_points.reserve(conditions_size);
+	    list_of_conditions.reserve(conditions_size);
+	    
+	    RefineContactBoundary(rModelPart, list_of_points, list_of_conditions, LocalRefineInfo);
+	    
+	    RefineOtherBoundary(rModelPart, list_of_points, list_of_conditions, LocalRefineInfo);
+	    
+	    BuildNewConditions(rModelPart, list_of_points, list_of_conditions, LocalRefineInfo);
+	    
+	    CleanConditionsAndFlags(rModelPart);
+	  }
+	    
 
 
 	} // REFINE END;
@@ -325,15 +316,15 @@ private:
     //*******************************************************************************************
     //*******************************************************************************************
 
-    void CleanConditionsAndFlags()
+    void CleanConditionsAndFlags(ModelPart& rModelPart)
     {
 
       KRATOS_TRY
 
       //swap conditions for a temporary use
       ModelPart::ConditionsContainerType TemporaryConditions;
-      TemporaryConditions.reserve(mrModelPart.Conditions(mMeshId).size());
-      TemporaryConditions.swap(mrModelPart.Conditions(mMeshId));
+      TemporaryConditions.reserve(rModelPart.Conditions(mMeshId).size());
+      TemporaryConditions.swap(rModelPart.Conditions(mMeshId));
 
       for(ModelPart::ConditionsContainerType::iterator ic = TemporaryConditions.begin(); ic!= TemporaryConditions.end(); ic++)
 	{
@@ -344,7 +335,7 @@ private:
 	    }
 	  
            if(ic->IsNot(TO_ERASE)){
-	     mrModelPart.AddCondition(*(ic.base()), mMeshId);
+	     rModelPart.AddCondition(*(ic.base()), mMeshId);
            }
            // else{
            //   std::cout<<"   Condition RELEASED:"<<ic->Id()<<std::endl;
@@ -360,18 +351,18 @@ private:
     //*******************************************************************************************
     //*******************************************************************************************
 
-    void BuildNewConditions( std::vector<Point<3> >& list_of_points, std::vector<Condition::Pointer>& list_of_conditions, RefineCounters& rLocalRefineInfo )
+    void BuildNewConditions( ModelPart& rModelPart, std::vector<Point<3> >& list_of_points, std::vector<ConditionType::Pointer>& list_of_conditions, RefineCounters& rLocalRefineInfo )
     {
 
       KRATOS_TRY
 	    
       //node to get the DOFs from
-      Node<3>::DofsContainerType& reference_dofs = (mrModelPart.NodesBegin(mMeshId))->GetDofs();
-      //unsigned int step_data_size = mrModelPart.GetNodalSolutionStepDataSize();
+      Node<3>::DofsContainerType& reference_dofs = (rModelPart.NodesBegin(mMeshId))->GetDofs();
+      //unsigned int step_data_size = rModelPart.GetNodalSolutionStepDataSize();
       double z = 0.0;
 
       unsigned int initial_node_size = mrModelPart.Nodes().size()+1; //total model part node size
-      unsigned int initial_cond_size = mrModelPart.Conditions().size()+1; //total model part node size        
+      unsigned int initial_cond_size = mrModelPart.Conditions().size()+1; //total model part node size       
 
       Node<3> new_point(0,0.0,0.0,0.0);
       
@@ -384,15 +375,15 @@ private:
 	  double& x= list_of_points[i].X();
 	  double& y= list_of_points[i].Y();
 
-	  Node<3>::Pointer pnode = mrModelPart.CreateNewNode(id,x,y,z);
+	  Node<3>::Pointer pnode = rModelPart.CreateNewNode(id,x,y,z);
 
 	  //set to the main mesh (Mesh 0) to avoid problems in the NodalPreIds (number of nodes: change) in other methods
 	  if(mMeshId!=0)
-	    mrModelPart.AddNode(pnode, mMeshId);
-	  //(mrModelPart.Nodes(mMeshId)).push_back(pnode);
+	    rModelPart.AddNode(pnode, mMeshId);
+	  //(rModelPart.Nodes(mMeshId)).push_back(pnode);
 
 
-	  pnode->SetBufferSize(mrModelPart.NodesBegin(mMeshId)->GetBufferSize() );
+	  pnode->SetBufferSize(rModelPart.NodesBegin(mMeshId)->GetBufferSize() );
 
 
 	  //assign data to dofs
@@ -414,7 +405,7 @@ private:
 	    }
 
 	  //assign data to dofs
-	  VariablesList& variables_list = mrModelPart.GetNodalSolutionStepVariablesList();		     
+	  VariablesList& variables_list = rModelPart.GetNodalSolutionStepVariablesList();		     
 	  
 	  PointsArrayType  PointsArray;
 	  PointsArray.push_back( rConditionGeometry(0) ); 
@@ -430,7 +421,7 @@ private:
 	  DataTransferUtilities.Interpolate2Nodes( geom, N, variables_list, *pnode);
 
 	  // //int cond_id = list_of_points[i].Id();
-	  // //Geometry< Node<3> >& rConditionGeometry = (*(mrModelPart.Conditions(mMeshId).find(cond_id).base()))->GetGeometry();
+	  // //Geometry< Node<3> >& rConditionGeometry = (*(rModelPart.Conditions(mMeshId).find(cond_id).base()))->GetGeometry();
 
 	  // unsigned int buffer_size = pnode->GetBufferSize();
 
@@ -491,10 +482,10 @@ private:
 
 	  id   = initial_cond_size+(i*2);
 
-	  Condition::Pointer pcond1      = list_of_conditions[i]->Clone(id, face1);
+	  ConditionType::Pointer pcond1      = list_of_conditions[i]->Clone(id, face1);
 	  //std::cout<<" ID"<<id<<" 1s "<<pcond1->GetGeometry()[0].Id()<<" "<<pcond1->GetGeometry()[1].Id()<<std::endl;
 	  id   = initial_cond_size+(i*2+1);
-	  Condition::Pointer pcond2      = list_of_conditions[i]->Clone(id, face2);
+	  ConditionType::Pointer pcond2      = list_of_conditions[i]->Clone(id, face2);
 	  //std::cout<<" ID"<<id<<" 2s "<<pcond2->GetGeometry()[0].Id()<<" "<<pcond2->GetGeometry()[1].Id()<<std::endl;
 
 	  pcond1->Set(NEW_ENTITY);
@@ -511,15 +502,15 @@ private:
 	  pcond2->SetValue(DEFORMATION_GRADIENT,list_of_conditions[i]->GetValue(DEFORMATION_GRADIENT));
 
 
-	  //std::cout<<" pcond0 "<<mrModelPart.NumberOfConditions(mMeshId)<<" "<<mrRemesh.Info->InsertedConditions<<std::endl;
+	  //std::cout<<" pcond0 "<<rModelPart.NumberOfConditions(mMeshId)<<" "<<mrRemesh.Info->InsertedConditions<<std::endl;
 
-	  mrModelPart.AddCondition(pcond1,mMeshId);
+	  rModelPart.AddCondition(pcond1,mMeshId);
 	  
-	  //std::cout<<" pcond1 "<<mrModelPart.NumberOfConditions(mMeshId)<<" "<<mrRemesh.Info->InsertedConditions<<std::endl;
+	  //std::cout<<" pcond1 "<<rModelPart.NumberOfConditions(mMeshId)<<" "<<mrRemesh.Info->InsertedConditions<<std::endl;
 
-	  mrModelPart.AddCondition(pcond2,mMeshId);
+	  rModelPart.AddCondition(pcond2,mMeshId);
 
-	  //std::cout<<" pcond2 "<<mrModelPart.NumberOfConditions(mMeshId)<<" "<<mrRemesh.Info->InsertedConditions<<std::endl;
+	  //std::cout<<" pcond2 "<<rModelPart.NumberOfConditions(mMeshId)<<" "<<mrRemesh.Info->InsertedConditions<<std::endl;
         }
 
 
@@ -530,12 +521,12 @@ private:
     //*******************************************************************************************
     //*******************************************************************************************
 
-    bool RefineContactBoundary(std::vector<Point<3> >& list_of_points, std::vector<Condition::Pointer>& list_of_conditions, RefineCounters& rLocalRefineInfo )
+    bool RefineContactBoundary(ModelPart& rModelPart, std::vector<Point<3> >& list_of_points, std::vector<ConditionType::Pointer>& list_of_conditions, RefineCounters& rLocalRefineInfo )
     {
 
       KRATOS_TRY
 	     
-      ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
+	//ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
       //***SIZES :::: parameters do define the tolerance in mesh size: 
 
@@ -544,7 +535,7 @@ private:
       double factor_for_non_tip_side   = 3.0; // will be multiplied for nodal_h of the master node to compare with boundary nodes average nodal_h in a contact conditio which master node do not belongs to a tip
       
       double size_for_tip_contact_side      = 0.4 * mrRemesh.Refine->CriticalSide; // length size for the contact tip side
-      double size_for_non_tip_contact_side  = 2.0 * mrRemesh.Refine->CriticalSide; //compared with contact size wich master node do not belongs to a tip
+      double size_for_non_tip_contact_side  = 2.0 * mrRemesh.Refine->CriticalSide; // compared with contact size which master node do not belongs to a tip
 
 
       //*********************************************************************************
@@ -552,14 +543,22 @@ private:
       //*********************************************************************************
 
       unsigned int nodes_on_wall_tip = 0;
-      for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(mMeshId); in!=mrModelPart.NodesEnd(mMeshId); in++)
+      double ContactFace = 0;
+      for(ModelPart::ConditionsContainerType::iterator i_cond =rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); i_cond++)
 	{
-	  if( mModelerUtilities.CheckNodeCloseWallTip(mRigidWalls,(*in),CurrentProcessInfo,factor_for_tip_radius) ){
-	    in->Set(TO_SPLIT);
-	    nodes_on_wall_tip ++;
+	  if( i_cond->Is(CONTACT) && i_cond->GetGeometry().size() == 1 ){
+	    
+	    // i_cond->GetValueOnIntegrationPoints(ContactFace, CONTACT_FACE, CurrentProcessInfo);
+
+	    if( int(ContactFace) == 2 ){ // tip
+
+	      i_cond->GetGeometry()[0].Set(TO_SPLIT);
+	      nodes_on_wall_tip ++;
+
+	    }
 	  }
-	  
 	}
+
       
       if( this->mEchoLevel > 0 )
         std::cout <<"   [ NODES ON WALL TIP: ( " <<nodes_on_wall_tip <<" ) ]"<<std::endl;
@@ -570,17 +569,17 @@ private:
 
 
       // std::vector<int> nodes_ids;
-      // nodes_ids.resize(mrModelPart.Conditions().size()); //mesh 0
+      // nodes_ids.resize(rModelPart.Conditions().size()); //mesh 0
       // std::fill( nodes_ids.begin(), nodes_ids.end(), 0 );
       
       //std::cout<<"   List of Conditions Reserved Size: "<<conditions_size<<std::endl;
       
-      double tool_radius= 0;
-      double side_length= 0;
+      double tool_radius = 0;
+      double side_length = 0;
       
-      bool size_insert      = false;
-      bool radius_insert    = false;
-      bool contact_active   = false;
+      bool size_insert     = false;
+      bool radius_insert   = false;
+      bool contact_active  = false;
 
       bool contact_semi_active = false;
       bool tool_project        = false;
@@ -611,7 +610,7 @@ private:
 
               Node<3>  MasterNode;
               bool condition_found = false;
-              Condition::Pointer MasterCondition  = mModelerUtilities.FindMasterCondition(*(ic.base()),MasterNode,mrModelPart.Conditions(mMeshId),condition_found);
+              ConditionType::Pointer MasterCondition  = mModelerUtilities.FindMasterCondition(*(ic.base()),MasterNode,rModelPart.Conditions(mMeshId),condition_found);
 
 
               if(condition_found){
@@ -627,7 +626,7 @@ private:
 
 		      tool_radius = MasterNode.FastGetSolutionStepValue( WALL_TIP_RADIUS );
 		      tip_center  = MasterNode.FastGetSolutionStepValue( WALL_REFERENCE_POINT );
-		      // WARNING THE UPDATED OF THE TIP CENTER IS NEEDED !!!!
+		      // WARNING THE UPDATE OF THE TIP CENTER IS NEEDED !!!!
 
 		      array_1d<double, 3 > radius;
 		      radius[0]=rConditionGeometry[0].X()-tip_center[0];
@@ -755,7 +754,7 @@ private:
 
 		      new_point.SetId(ic->Id()); //set condition Id
 
-		      Condition::Pointer ContactMasterCondition  = ic->GetValue(MASTER_CONDITION);
+		      ConditionType::Pointer ContactMasterCondition  = ic->GetValue(MASTER_CONDITION);
 
 
 		      if( (rConditionGeometry[0].Is(TO_SPLIT) && rConditionGeometry[1].Is(TO_SPLIT)) )
@@ -823,12 +822,12 @@ private:
     //*******************************************************************************************
     //*******************************************************************************************
 
-    bool RefineOtherBoundary(std::vector<Point<3> >& list_of_points, std::vector<Condition::Pointer>& list_of_conditions, RefineCounters& rLocalRefineInfo )
+    bool RefineOtherBoundary(ModelPart& rModelPart, std::vector<Point<3> >& list_of_points, std::vector<ConditionType::Pointer>& list_of_conditions, RefineCounters& rLocalRefineInfo )
     {
 
       KRATOS_TRY
 	     
-      ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
+      ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
       //***SIZES :::: parameters do define the tolerance in mesh size: 
 
@@ -862,7 +861,7 @@ private:
 
       //LOOP TO CONSIDER ALL SUBDOMAIN CONDITIONS
       double cond_counter=0;
-      for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(mMeshId); ic!= mrModelPart.ConditionsEnd(mMeshId); ic++)
+      for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(mMeshId); ic!= rModelPart.ConditionsEnd(mMeshId); ic++)
 	{
 	  cond_counter ++;
 	  bool refine_candidate = false;
@@ -962,7 +961,7 @@ private:
 
 		    if( on_radius ){
 
-		      ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
+		      ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 		      double Time = CurrentProcessInfo[TIME];  
 		      for( unsigned int i = 0; i <mRigidWalls.size(); i++ )
 			{
@@ -1205,7 +1204,7 @@ private:
 
 		    if( on_radius ){
 
-		      ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
+		      ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 		      double Time = CurrentProcessInfo[TIME];  
 		      for( unsigned int i = 0; i <mRigidWalls.size(); i++ )
 			{

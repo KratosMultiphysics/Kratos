@@ -675,7 +675,7 @@ namespace Kratos
 
        // }
 
-       VectorType WallDisplacement = mTangentialVariables.DeltaTime * this->mpRigidWall->Velocity();
+       VectorType WallDisplacement = mTangentialVariables.DeltaTime * this->mpRigidWall->GetVelocity();
        
        rTangentRelativeMovement = 0.0;
        VectorType TotalTangentRelativeMovement = ZeroVector(dimension);

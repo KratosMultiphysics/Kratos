@@ -106,10 +106,10 @@ namespace Kratos
 
       double DeviatoricStrain2Norm = 0.0;
       for (unsigned int i = 0; i < 3; ++i)
-         DeviatoricStrain2Norm += pow(rDeviatoricStrainVector(i), 2.0);
+         DeviatoricStrain2Norm += pow(rDeviatoricStrainVector(i), 2);
 
       for (unsigned int i = 3; i < 6; ++i)
-         DeviatoricStrain2Norm += 2.0*pow(rDeviatoricStrainVector(i)/2.0, 2.0);
+         DeviatoricStrain2Norm += 2.0*pow(rDeviatoricStrainVector(i)/2.0, 2);
 
       rMeanStress = -ReferencePressure*std::exp( -rVolumetricStrain / SwellingSlope) * (1.0 + 1.0*AlphaShear*DeviatoricStrain2Norm/SwellingSlope);
 
@@ -281,10 +281,10 @@ namespace Kratos
       // COMPUTE J2;
       double J2InvSQ = 0;
       for (unsigned int i = 0; i < 3; i++)
-         J2InvSQ += pow( StressV(i), 2.0);
+         J2InvSQ += pow( StressV(i), 2);
 
       for (unsigned int i = 0; i < 3; i++)
-         J2InvSQ += 2.0 * pow( StressV(i), 2.0);
+         J2InvSQ += 2.0 * pow( StressV(i), 2);
 
       J2InvSQ = sqrt( J2InvSQ/2.0);
 
@@ -306,7 +306,7 @@ namespace Kratos
                times *= 2.0;
             if ( j > 2 )
                times *= 2.0;
-            C2Matrix(i,j) -= times* StressV(i)*StressV(j) / pow( J2InvSQ, 2.0);
+            C2Matrix(i,j) -= times* StressV(i)*StressV(j) / pow( J2InvSQ, 2);
          }
       }
 

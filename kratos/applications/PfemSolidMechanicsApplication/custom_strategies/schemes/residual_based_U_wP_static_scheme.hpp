@@ -25,7 +25,7 @@
 #include "includes/variables.h"
 
 #include "pfem_solid_mechanics_application_variables.h"
-#include "custom_strategies/schemes/residual_based_static_scheme.hpp"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 
 namespace Kratos
 {
@@ -56,7 +56,7 @@ namespace Kratos
    /*@{ */
 
    template<class TSparseSpace, class TDenseSpace > //= DenseSpace<double>
-      class ResidualBasedUwPStaticScheme: public ResidualBasedStaticScheme<TSparseSpace,TDenseSpace>
+      class ResidualBasedUwPStaticScheme: public ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>
    {
 
       public:
@@ -87,7 +87,7 @@ namespace Kratos
          /** Constructor.
           */
          ResidualBasedUwPStaticScheme()
-            : ResidualBasedStaticScheme<TSparseSpace,TDenseSpace>()
+            : ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>()
          {
          }
 

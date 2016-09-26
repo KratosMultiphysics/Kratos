@@ -4,7 +4,7 @@ MATERIAL: Elastic
 QUESTION: Type#CB#(Elastic)
 VALUE: Elastic
 QUESTION: CONSTITUTIVE_LAW_NAME#CB#(LinearElastic3DLaw,HyperElastic3DLaw,HyperElasticUP3DLaw,LinearElasticPlaneStrain2DLaw,LinearElasticPlaneStress2DLaw,HyperElasticPlaneStrain2DLaw,HyperElasticUPPlaneStrain2DLaw,LinearElasticAxisym2DLaw,HyperElasticAxisym2DLaw,HyperElasticUPAxisym2DLaw)
-VALUE: LinearElastic
+VALUE: LinearElastic3DLaw
 QUESTION: DENSITY
 VALUE: 7.8e-6
 QUESTION: YOUNG_MODULUS
@@ -43,7 +43,7 @@ MATERIAL: Plastic
 QUESTION: Type#CB#(Plastic)
 VALUE: Plastic
 QUESTION: CONSTITUTIVE_LAW_NAME#CB#(HyperElasticPlasticJ23DLaw,HyperElasticPlasticJ2PlaneStrain2DLaw,HyperElasticPlasticUPJ2PlaneStrain2DLaw,HyperElasticPlasticJ2Axisym2DLaw,HenckyTrescaPlasticPlaneStrain2DLaw,HenckyTrescaPlasticAxisym2DLaw,HenckyPlasticUPTrescaPlaneStrain2DLaw,HenckyPlasticUPTrescaAxisym2DLaw,HenckyMohrCoulombPlasticPlaneStrain2DLaw,HenckyMohrCoulombPlasticAxisym2DLaw)
-VALUE: HyperElasticPlasticJ2
+VALUE: HyperElasticPlasticJ23DLaw
 DEPENDENCIES:(HyperElasticPlasticJ23DLaw,HIDE,HARDENING_MODEL,SIMO)
 DEPENDENCIES:(HyperElasticPlasticJ2PlaneStrain2DLaw,HIDE,HARDENING_MODEL,SIMO)
 DEPENDENCIES:(HyperElasticPlasticUPJ2PlaneStrain2DLaw,HIDE,HARDENING_MODEL,SIMO)

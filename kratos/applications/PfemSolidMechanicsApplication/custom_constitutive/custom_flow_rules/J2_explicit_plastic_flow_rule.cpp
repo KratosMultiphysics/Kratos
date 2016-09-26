@@ -135,12 +135,12 @@ void J2ExplicitFlowRule::CalculatePlasticPotentialDerivatives(const Vector& rStr
      Vector ShearVector = ZeroVector(6);
 
      for (unsigned int i = 0; i < 3; ++i) {
-         Denominador += pow( rStressVector(i) - MeanStress, 2.0);
+         Denominador += pow( rStressVector(i) - MeanStress, 2);
          ShearVector(i) = rStressVector(i) - MeanStress;
      }
 
      for (unsigned int i = 3; i < 6; ++i) {
-         Denominador += 2.0 * pow ( rStressVector(i) , 2.0);
+         Denominador += 2.0 * pow ( rStressVector(i) , 2);
          ShearVector(i) = 2.0 * rStressVector(i);
      }
 
