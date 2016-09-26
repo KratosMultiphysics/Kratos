@@ -231,7 +231,7 @@ class PartitionedFSISolver:
         self.mesh_solver_module.AddVariables(self.fluid_solver.main_model_part)
                 
         ## Mapper variables addition
-        NonConformant_OneSideMap.AddVariables(self.fluid_solver.main_model_part,self.structure_solver.main_model_part) # --> This mapper is using IS_INTERFACE (deprecated)
+        NonConformant_OneSideMap.AddVariables(self.fluid_solver.main_model_part,self.structure_solver.main_model_part)
                 
                 
     def ImportModelPart(self):
