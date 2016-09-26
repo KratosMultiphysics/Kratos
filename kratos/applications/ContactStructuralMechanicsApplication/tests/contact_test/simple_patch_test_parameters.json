@@ -21,7 +21,7 @@
         "block_builder"                      : true,
         "line_search"                        : false,
         "clear_storage"                      : false,
-        "reform_dofs_at_each_step"           : true,
+        "reform_dofs_at_each_step"      : true,
         "convergence_criterion"              : "Residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
@@ -36,7 +36,7 @@
             "verbosity"   : 0
         },
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto2","Parts_Parts_Auto3"],
-        "processes_sub_model_part_list"      : ["Parts_Parts_Auto2","Parts_Parts_Auto3","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","IMPOSE_DISP_Auto1"]
+        "processes_sub_model_part_list"      : ["Parts_Parts_Auto2","Parts_Parts_Auto3","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","IMPOSE_DISP_Auto1","DISPLACEMENT_Rolling_Punch"]
     },
     "constraints_process_list" : [{
         "python_module"   : "impose_vector_value_by_components_process",
@@ -75,7 +75,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "IMPOSE_DISP_Auto1",
             "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : false,
+            "is_fixed_x"      : true,
             "is_fixed_y"      : true,
             "is_fixed_z"      : false,
             "value"           : [0.0,-0.01,0.0]
@@ -95,10 +95,10 @@
             "destination_model_part_name" : "Parts_Parts_Auto2",
             "contact_type"                : "MortarMethod",
             "search_factor"               : 2.0,
-            "active_check_factor"         : 0.2,
+            "active_check_factor"         : 0.0002,
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
-            "integration_order"           : 5
+            "integration_order"           : 10
         }
     },
     {
@@ -115,7 +115,6 @@
         }
     }
     ],
-    "loads_process_list" : [],  
     "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {

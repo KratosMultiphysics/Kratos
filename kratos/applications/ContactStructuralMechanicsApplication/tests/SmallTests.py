@@ -52,10 +52,24 @@ class SimplePatchNotMatchingATestContact(StructuralMechanichsTestFactory):
     
 class SimplePatchNotMatchingBTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test/simple_patch_notmatching_b_test"
-    
+
     
 class TaylorPatchTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test/taylor_patch_test"
+
     
 class HertzSimpleTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test/hertz_simple_test"
+
+
+class ThreeDPatchMatchingTestContact(StructuralMechanichsTestFactory):
+    file_name = "contact_test/3D_contact_patch_matching_test"
+
+
+class ThreeDPatchNotMatchingTestContact(StructuralMechanichsTestFactory):
+    file_name = "contact_test/3D_contact_patch_nonmatching_test"
+
+    
+class TaylorPatchDynamicTestContact(StructuralMechanichsTestFactory):
+    file_name = "contact_test/taylor_patch_dynamic_test"
+    

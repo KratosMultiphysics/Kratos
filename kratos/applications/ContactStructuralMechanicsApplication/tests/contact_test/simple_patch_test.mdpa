@@ -179,3 +179,12 @@ Begin SubModelPart IMPOSE_DISP_Auto1 // Group Load on lines Auto1
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
+Begin SubModelPart DISPLACEMENT_Rolling_Punch // Group Rolling Punch // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+        24
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
