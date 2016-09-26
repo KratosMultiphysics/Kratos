@@ -25,34 +25,46 @@ class KratosExecuteConvergenceAcceleratorTest(KratosUnittest.TestCase):
         
         tol = self.settings["coupling_solver_settings"]["nl_tol"].GetDouble()
         max_it = self.settings["coupling_solver_settings"]["nl_max_it"].GetInt()
+        recursive_test = self.settings["coupling_solver_settings"]["recursive_test"].GetBool()
         
-        nl_it = 1
+        if recursive_test == True:
+            recursive_steps = 10
+        else:
+            recursive_steps = 1
+        
+        step = 1
         res_norm = 1.0
-        convergence = False
-        
-        # x_guess initialization
-        x_guess = Vector(6)
-        for i in range(0,len(x_guess)):
-            x_guess[i] = 0.0
-        
-        self.coupling_utility.InitializeSolutionStep()
-        
-        while (nl_it <= max_it):
+
+        while (step <= recursive_steps):
             
-            residual = ComputeResidual(x_guess)
-            res_norm = self.vector_space.TwoNorm(residual)
+            nl_it = 1
+            convergence = False
             
-            print("Iteration: ", nl_it," residual norm: ", res_norm)
-                        
-            if res_norm > tol:
-                self.coupling_utility.UpdateSolution(residual,
-                                                     x_guess)
-                self.coupling_utility.FinalizeNonLinearIteration()
-                nl_it += 1
-            else:
-                self.coupling_utility.FinalizeSolutionStep()
-                convergence = True
-                break 
+            # x_guess initialization
+            x_guess = Vector(6)
+            for i in range(0,len(x_guess)):
+                x_guess[i] = step
+            
+            self.coupling_utility.InitializeSolutionStep()
+            
+            while (nl_it <= max_it):
+                
+                residual = ComputeResidual(x_guess)
+                res_norm = self.vector_space.TwoNorm(residual)
+                
+                print("Iteration: ", nl_it," residual norm: ", res_norm)
+                            
+                if res_norm > tol:
+                    self.coupling_utility.UpdateSolution(residual, x_guess)
+                    self.coupling_utility.FinalizeNonLinearIteration()
+                    nl_it += 1
+                    
+                else:
+                    self.coupling_utility.FinalizeSolutionStep()
+                    convergence = True
+                    break
+                
+            step += 1
         
         # Check the obtained solution
         expected_RHS = Vector(6)

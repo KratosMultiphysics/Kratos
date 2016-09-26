@@ -81,9 +81,8 @@ class NonConformantOneSideMap2D_test2(MapperTestFactory):
 class ConvergenceAcceleratorTest(ConvergenceAcceleratorTestFactory):
     file_name_1 = "ConvergenceAcceleratorsTest/AitkenConvergenceAcceleratorTest"
     file_name_2 = "ConvergenceAcceleratorsTest/MVQNConvergenceAcceleratorTest"
+    file_name_3 = "ConvergenceAcceleratorsTest/MVQNRecursiveConvergenceAcceleratorTest"
     
     file_name_list = [file_name_1,
-                      file_name_2]
-
-#~ class NonConformantOneSideMap2D_test1(MapperTestFactory):
-    #~ file_name = "NonConformantOneSideMap3D_test2/NonConformantOneSideMap3D_test2"
+                      file_name_2,
+                      file_name_3]
