@@ -86,22 +86,7 @@
             "is_fixed_z"      : true,
             "value"           : [0.0,0.0,0.0]
         }
-    },{
-        "python_module"   : "impose_vector_value_by_components_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DispX",
-            "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : false,
-            "is_fixed_z"      : true,
-            "value"           : [0.0,0.0,0.0]
-        }
-    }
-    ],
+    }],
     "loads_process_list"       : [{
         "python_module"   : "apply_vector_on_conditions_process",
         "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
@@ -133,9 +118,22 @@
             "constant_active_inactive"    : 1000,
             "integration_order"           : 10
         }
+    },
+    {
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables"     : ["DISPLACEMENT_Y", "VECTOR_LAGRANGE_MULTIPLIER_Y"],
+            "input_file_name"     : "contact_test/taylor_patch_test_results.json",
+            "model_part_name"      : "Parts_punch",
+            "sub_model_part_name"  : "INTERFACE",
+            "time_frequency"       : 1.0
+        }
     }
     ],
-    "output_configuration"     : {
+    "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -167,6 +165,21 @@
             "model_part_name"      : "Parts_punch",
             "sub_model_part_name"  : "INTERFACE",
             "time_frequency"       : 1.0
+        }
+    }
+    ],
+    "json_output_process" : [
+    {
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "output_file_name"     : "contact_test/taylor_patch_test_results.json",
+            "model_part_name"      : "Parts_punch",
+            "sub_model_part_name"  : "INTERFACE",
+            "time_frequency"       : 1.00
         }
     }
     ],
