@@ -111,11 +111,11 @@ ModelPart::~ModelPart()
         delete i_sub_model_part.base()->second;
 
                 mpCommunicator->Clear();
-                
+
                 for(auto i_mesh = mMeshes.begin() ; i_mesh != mMeshes.end() ; i_mesh++)
                     i_mesh->Clear();
-                
-                
+
+
 		if (!IsSubModelPart())
 			delete mpVariablesList;
 	}
@@ -261,7 +261,7 @@ void ModelPart::AddNode(ModelPart::NodeType::Pointer pNewNode, ModelPart::IndexT
 }
 
 /** Inserts a list of nodes in a submodelpart provided their Id. Does nothing if applied to the top model part
-*/    
+*/
 void ModelPart::AddNodes(std::vector<IndexType>& NodeIds, IndexType ThisIndex)
 {
     KRATOS_TRY
@@ -279,22 +279,22 @@ void ModelPart::AddNodes(std::vector<IndexType>& NodeIds, IndexType ThisIndex)
             else
                 KRATOS_ERROR << "the node with Id " << NodeIds[i] << " does not exist in the root model part";
         }
-        
+
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
             for(auto it = aux.begin(); it!=aux.end(); it++)
                 current_part->Nodes().push_back( *(it.base()) );
-            
+
             current_part->Nodes().Unique();
-            
+
             current_part = current_part->GetParentModelPart();
         }
     }
-    
+
     KRATOS_CATCH("");
 }
-    
+
 
 
 /** Inserts a node in the mesh with ThisIndex.
@@ -310,17 +310,17 @@ ModelPart::NodeType::Pointer ModelPart::CreateNewNode(int Id, double x, double y
         return p_new_node;
     }
 
-    //verify if the node exists and eventually give back the existing node   
+    //verify if the node exists and eventually give back the existing node
     auto& root_nodes = this->Nodes(); //note that if we are here than we are working with the root model_part
     auto existing_node_it = root_nodes.find(Id);
     if( existing_node_it != root_nodes.end())
     {
         //the node already exists - now check if the position we ask for coincides with the one of the existing one
         double distance = sqrt( pow( existing_node_it->X() - x,2) + pow(existing_node_it->Y() - y,2) + pow(existing_node_it->Z() - z,2) );
-        
+
         if(distance > std::numeric_limits<double>::epsilon()*1000)
             KRATOS_ERROR << "trying to create a node with Id " << Id << " however a node with the same Id already exists in the root model part. Existing node coordinates are " << existing_node_it->Coordinates() << " coordinates of the nodes we are attempting to create are :" << x << " " << y << " " << z;
-        
+
         //if the node we attempt to create is in the same position as the one that is already there, we return the old one
         return *(existing_node_it.base());
     }
@@ -363,10 +363,10 @@ ModelPart::NodeType::Pointer ModelPart::CreateNewNode(ModelPart::IndexType Id, d
     {
         //the node already exists - now check if the position we ask for coincides with the one of the existing one
         double distance = sqrt( pow( existing_node_it->X() - x,2) + pow(existing_node_it->Y() - y,2) + pow(existing_node_it->Z() - z,2) );
-        
+
         if(distance > std::numeric_limits<double>::epsilon()*1000)
             KRATOS_ERROR << "trying to create a node with Id " << Id << " however a node with the same Id already exists in the root model part. Existing node coordinates are " << existing_node_it->Coordinates() << " coordinates of the nodes we are attempting to create are :" << x << " " << y << " " << z;
-        
+
         //if the node we attempt to create is in the same position as the one that is already there, we return the old one
         return *(existing_node_it.base());
     }
@@ -521,7 +521,7 @@ void ModelPart::RemoveNodesFromAllLevels(Flags identifier_flag)
 ModelPart& ModelPart::GetRootModelPart()
 {
     if (IsSubModelPart())
-        return mpParentModelPart->GetRootModelPart(); 
+        return mpParentModelPart->GetRootModelPart();
     else
         return *this;
 }
@@ -686,7 +686,7 @@ void ModelPart::AddElement(ModelPart::ElementType::Pointer pNewElement, ModelPar
 }
 
 /** Inserts a list of conditions to a submodelpart provided their Id. Does nothing if applied to the top model part
-*/    
+*/
 void ModelPart::AddElements(std::vector<IndexType>& ElementIds, IndexType ThisIndex)
 {
     KRATOS_TRY
@@ -704,15 +704,15 @@ void ModelPart::AddElements(std::vector<IndexType>& ElementIds, IndexType ThisIn
             else
                 KRATOS_ERROR << "the element with Id " << ElementIds[i] << " does not exist in the root model part";
         }
-        
+
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
             for(auto it = aux.begin(); it!=aux.end(); it++)
                 current_part->Elements().push_back( *(it.base()) );
-            
+
             current_part->Elements().Unique();
-            
+
             current_part = current_part->GetParentModelPart();
         }
     }
@@ -755,12 +755,12 @@ ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementN
         GetMesh(ThisIndex).AddElement(p_new_element);
         return p_new_element;
     }
-        
+
     auto existing_element_iterator = GetMesh(ThisIndex).Elements().find(Id);
     if(existing_element_iterator != GetMesh(ThisIndex).ElementsEnd() )
         KRATOS_ERROR << "trying to construct aen element with ID " << Id << " however an element with the same Id already exists";
 
-    
+
     //create the new element
     ElementType const& r_clone_element = KratosComponents<ElementType>::Get(ElementName);
     Element::Pointer p_element = r_clone_element.Create(Id, pElementNodes, pProperties);
@@ -909,7 +909,7 @@ void ModelPart::AddCondition(ModelPart::ConditionType::Pointer pNewCondition, Mo
 }
 
 /** Inserts a list of conditions to a submodelpart provided their Id. Does nothing if applied to the top model part
-*/    
+*/
 void ModelPart::AddConditions(std::vector<IndexType>& ConditionIds, IndexType ThisIndex)
 {
     KRATOS_TRY
@@ -927,15 +927,15 @@ void ModelPart::AddConditions(std::vector<IndexType>& ConditionIds, IndexType Th
             else
                 KRATOS_ERROR << "the condition with Id " << ConditionIds[i] << " does not exist in the root model part";
         }
-        
+
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
             for(auto it = aux.begin(); it!=aux.end(); it++)
                 current_part->Conditions().push_back( *(it.base()) );
-            
+
             current_part->Conditions().Unique();
-            
+
             current_part = current_part->GetParentModelPart();
         }
     }
@@ -976,15 +976,15 @@ ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string Cond
     if(existing_condition_iterator != GetMesh(ThisIndex).ConditionsEnd() )
     {
         KRATOS_ERROR << "trying to construct a condition with ID " << Id << " however a condition with the same Id already exists";
-        
+
 //         if(pConditionNodes.size() != existing_condition_iterator.size())
 //             KRATOS_ERROR << "trying to construct a condition with a different number of nodes. Element Id is ";
-//         
+//
 //         //check if the ids of nodes coincides
 //         bool nodes_are_matching = true;
 //         for(unsigned int i=0; i<pConditionNodes.size(); i++)
 //         {
-//             
+//
 //             if(pConditionNodes[i].Id() != existing_condition_iterator->GetGeometry()[i].Id())
 //             {
 //                 nodes_are_matching = false;
@@ -993,7 +993,7 @@ ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string Cond
 //         }
 //         if(nodes_are_matching == false)
 //             KRATOS_THROW_ERROR << "Error when attempting to construct condition with Id" << Id << " a condition with the same Id exists with the following geometry " << existing_condition_iterator->GetGeometry();
-//         
+//
 //         return *(existing_condition_iterator.base());
     }
 
@@ -1301,6 +1301,7 @@ void ModelPart::save(Serializer& rSerializer) const
     // I'm saving it as pointer so the nodes pointers will point to it as stored pointer. Pooyan.
     rSerializer.save("Variables List", mpVariablesList);
     rSerializer.save("Meshes", mMeshes);
+    rSerializer.save("SubModelParts", mSubModelParts);
 }
 
 void ModelPart::load(Serializer& rSerializer)
@@ -1312,6 +1313,8 @@ void ModelPart::load(Serializer& rSerializer)
     //VariablesList* p_list = &mVariablesList;
     rSerializer.load("Variables List", mpVariablesList);
     rSerializer.load("Meshes", mMeshes);
+    rSerializer.load("SubModelParts", mSubModelParts);
+
 }
 
 
