@@ -37,10 +37,10 @@
 #include "custom_modelers/mesh_modeler.hpp"
 
 ///VARIABLES used:
-//Data:     NEIGHBOUR_ELEMENTS
-//StepData: NORMAL, SHRINK_FACTOR, NODAL_H, CONTACT_FORCE, DISPLACEMENT
-//Flags:    (checked)  BOUNDARY, TO_ERASE, FREE_SURFACE, TO_REFINE, NEW_ENTITY
-//          (set)      TO_REFINE, TO_ERASE
+//Data:    
+//StepData: 
+//Flags:    (checked)  
+//          (set)      
 //          (modified)  
 //          (reset)
 
@@ -94,25 +94,6 @@ public:
     typedef ModelerUtilities::InfoParameters                     InfoParametersType;
     typedef ModelerUtilities::MeshingParameters               MeshingParametersType;
     typedef ModelerUtilities::RefiningParameters               RefineParametersType;
-
-    typedef Node<3>                                                       PointType;
-    typedef std::vector<PointType>                                      PointVector;
-    typedef Node<3>::Pointer                                       PointPointerType;
-    typedef std::vector<PointPointerType>                        PointPointerVector;
-    typedef PointPointerVector::iterator                 PointPointerVectorIterator;
-    typedef ModelPart::PropertiesType                                PropertiesType;
-    typedef ModelPart::PropertiesContainerType              PropertiesContainerType;
-    typedef ModelPart::MeshType                                            MeshType;
-    typedef ModelPart::ElementsContainerType                  ElementsContainerType;
-    typedef ModelPart::NodesContainerType                        NodesContainerType;
-    typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
-
-    //defintions for spatial search
-    typedef std::vector<double>                                      DistanceVector;
-    typedef std::vector<double>::iterator                          DistanceIterator;
-
-    typedef Bucket<3, PointType, PointPointerVector, PointPointerType, PointPointerVectorIterator, DistanceIterator > BucketType;
-    typedef Tree< KDTreePartition<BucketType> >                          KdtreeType; //Kdtree
 
     ///@}
     ///@name Life Cycle
@@ -191,104 +172,13 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    //*******************************************************************************************
-    //*******************************************************************************************
-    void GetFromContainer(ModelerUtilities::MeshContainer& rMesh, struct triangulateio& tr);
 
-    void SetToContainer(ModelerUtilities::MeshContainer& rMesh, struct triangulateio& tr);
+    //generate :: meshing step call to delaunay tessellation
+    void Generate(ModelPart& rModelPart, MeshingParametersType& rMeshingVariables);
 
-    void DeleteContainer(ModelerUtilities::MeshContainer& rMesh, struct triangulateio& tr);
-
-    //Set faces in the triangulateio before the Delaunay Tesselation
-    void BuildInput ( ModelPart &rModelPart,
-		      MeshingParametersType & rMeshingVariables,
-		      struct triangulateio &in);
-
-
-    //*******************************************************************************************
-    //*******************************************************************************************
-    void Generate(ModelPart& rModelPart,
-		  MeshingParametersType& rMeshingVariables);
-
-    //*******************************************************************************************
-    //*******************************************************************************************
-    void PerformTransferOnly(ModelPart& rModelPart,
-			     MeshingParametersType& rMeshingVariables,
-			     ModelPart::IndexType MeshId=0);
-    
-
+    //generate the Delaunay Tesselation
+    int  GenerateTessellation(MeshingParametersType& rMeshingVariables, struct triangulateio& in, struct triangulateio& out);
   
-    //*******************************************************************************************
-    //*******************************************************************************************
-
-    void GenerateDT (ModelPart& rModelPart,
-		     MeshingParametersType& rMeshingVariables,
-		     ModelPart::IndexType MeshId=0);
-    
-
-
-
-    //*******************************************************************************************
-    //*******************************************************************************************
-    void GenerateCDT(ModelPart& rModelPart,
-		     MeshingParametersType& rMeshingVariables,
-		     ModelPart::IndexType MeshId=0);
-    
-
-
-    //*******************************************************************************************
-    //*******************************************************************************************
-
-    void GenerateRDT(ModelPart& rModelPart,
-		     MeshingParametersType& rMeshingVariables,
-		     ModelPart::IndexType MeshId=0);
-    
-
-
-    //*******************************************************************************************
-    //*******************************************************************************************
-  
-    void GenerateRCDT(ModelPart& rModelPart,
-		      MeshingParametersType& rMeshingVariables,
-		      ModelPart::IndexType MeshId=0);
-        
-
-
-
-    //*******************************************************************************************
-    //*******************************************************************************************
-
-    //Select elements after the Delaunay Tesselation
-    void SelectMeshElements(ModelPart::NodesContainerType& rNodes,
-			    MeshingParametersType& rMeshingVariables,
-			    struct triangulateio& out);
-
-
-    //Select elements after the Delaunay Tesselation
-    void SelectMeshElements(ModelPart::NodesContainerType& rNodes,
-			    MeshingParametersType& rMeshingVariables,
-			    const int* rElementList,
-			    const int& rNumberOfElements);
-
-    //Generate the Delaunay Tesselation
-    int  GenerateTriangulation(Flags& MeshingOptions,
-			       Flags& RefiningOptions,
-			       struct triangulateio& in,
-			       struct triangulateio& out);
-
-    //Generate the Delaunay Tesselation
-    int  GenerateTessellation(MeshingParametersType& rMeshingVariables,
-			      struct triangulateio& in,
-			      struct triangulateio& out);
-  
-    //Free memory of the mesher
-    void ClearTrianglesList  ( struct triangulateio& tr );
-
-    void DeleteTrianglesList ( struct triangulateio& tr );
-    
-    void DeletePointsList    ( struct triangulateio& tr );
-
-    void FreeTrianglesList   ( struct triangulateio& tr );
 
     ///@}
     ///@name Protected  Access
@@ -328,7 +218,41 @@ private:
     ///@name Private Operations
     ///@{
 
+    //build the input for the mesher
+    void BuildInput ( ModelPart &rModelPart, MeshingParametersType & rMeshingVariables, struct triangulateio &in);
  
+    //set and get from mesh container in meshing variables
+    void GetFromContainer(ModelerUtilities::MeshContainer& rMesh, struct triangulateio& tr);
+
+    void SetToContainer(ModelerUtilities::MeshContainer& rMesh, struct triangulateio& tr);
+
+
+    //delete in/out structures
+    void DeleteInContainer(ModelerUtilities::MeshContainer& rMesh, struct triangulateio& tr);
+
+    void DeleteOutContainer(ModelerUtilities::MeshContainer& rMesh, struct triangulateio& tr);
+
+
+    //set faces in the triangulateio before the Delaunay Tesselation
+    virtual void SetFaces ( ModelPart &rModelPart, MeshingParametersType & rMeshingVariables, struct triangulateio &in );
+    
+
+    //print methods
+    void WriteTriangles      ( struct triangulateio& tr );
+
+    void WritePoints         ( struct triangulateio& tr );
+
+
+    //free memory of the mesher
+    void ClearTrianglesList  ( struct triangulateio& tr );
+
+    void DeleteTrianglesList ( struct triangulateio& tr );
+    
+    void DeletePointsList    ( struct triangulateio& tr );
+
+    void FreeTrianglesList   ( struct triangulateio& tr );
+
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -343,72 +267,7 @@ private:
     ///@name Unaccessible methods
     ///@{
   
-
-    //METHODS CALLED BEFORE TESSELLATION
-
-
-    //Set nodes in the triangulateio before the Delaunay Tesselation
-    void SetTriangulationNodes ( ModelPart &rModelPart,
-				 MeshingParametersType & rMeshingVariables,
-				 struct triangulateio &in,
-				 struct triangulateio &out,
-				 ModelPart::IndexType MeshId=0 );
-
-
-    //Set faces in the triangulateio before the Delaunay Tesselation
-    void SetFaces ( ModelPart &rModelPart,
-		    MeshingParametersType & rMeshingVariables,
-		    struct triangulateio &in );
-    
-
-    //recover the boundary position after an small offset when remeshing constrained
-    void RecoverBoundaryPreviousPosition ( ModelPart &rModelPart,
-					   MeshingParametersType & rMeshingVariables,
-					   struct triangulateio &in,
-					   struct triangulateio &out );
-
-
-
-    //METHODS CALLED AFTER TESSELLATION
-
-    //Build elements in model_part after the Delaunay Tesselation
-    void BuildMeshElements ( ModelPart& rModelPart,
-			     MeshingParametersType& rMeshingVariables,
-			     struct triangulateio& out,
-			     ModelPart::IndexType MeshId=0 );
-  
-  
-    //*******************************************************************************************
-    //*******************************************************************************************
-
-
-    //METHODS CALLED BEFORE REFINING THE TESSELLATION
-    void SetDissipativeElements ( ModelPart& rModelPart, 
-				  MeshingParametersType& rMeshingVariables,
-				  ModelPart::IndexType MeshId=0 );
-    
-
-    //METHODS CALLED AFTER REFINING THE TESSELLATION   
-    void RefineElements ( ModelPart &rModelPart,
-			  MeshingParametersType& rMeshingVariables,
-			  struct triangulateio &in,
-			  struct triangulateio &out,
-			  ModelPart::IndexType MeshId=0 );
-
-
-    void GenerateNewParticles ( ModelPart& rModelPart,
-				MeshingParametersType& rMeshingVariables,
-				struct triangulateio &in, 
-				struct triangulateio &out,
-				ModelPart::IndexType MeshId=0 );
-
-    //*******************************************************************************************
-    //*******************************************************************************************
-
-    void WriteTriangles      ( struct triangulateio& tr );
-    void WritePoints         ( struct triangulateio& tr );
-
-   ///@}
+    ///@}
 
 }; // Class TriangularMesh2DModeler
 

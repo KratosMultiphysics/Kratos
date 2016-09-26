@@ -69,26 +69,6 @@ public:
     typedef ModelerUtilities::MeshingParameters               MeshingParametersType;
     typedef ModelerUtilities::RefiningParameters               RefineParametersType;
 
-    typedef Node<3>                                                       PointType;
-    typedef std::vector<PointType>                                      PointVector;
-    typedef Node<3>::Pointer                                       PointPointerType;
-    typedef std::vector<PointPointerType>                        PointPointerVector;
-    typedef PointPointerVector::iterator                 PointPointerVectorIterator;
-    typedef ModelPart::PropertiesType                                PropertiesType;
-    typedef ModelPart::PropertiesContainerType              PropertiesContainerType;
-    typedef ModelPart::MeshType                                            MeshType;
-    typedef ModelPart::ElementsContainerType                  ElementsContainerType;
-    typedef ModelPart::NodesContainerType                        NodesContainerType;
-    typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
-
-    //defintions for spatial search
-    typedef std::vector<double>                                      DistanceVector;
-    typedef std::vector<double>::iterator                          DistanceIterator;
-
-    typedef Bucket<3, PointType, PointPointerVector, PointPointerType, PointPointerVectorIterator, DistanceIterator > BucketType;
-    typedef Tree< KDTreePartition<BucketType> >                          KdtreeType; //Kdtree
-
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -166,98 +146,12 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    //*******************************************************************************************
-    //*******************************************************************************************
-    void GetFromContainer(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr);
+    //generate :: meshing step call to delaunay tessellation
+    void Generate (ModelPart& rModelPart, MeshingParametersType& rMeshingVariables);
 
-    void SetToContainer(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr);
+    //generate the Delaunay Tesselation
+    int  GenerateTessellation(MeshingParametersType& rMeshingVariables, tetgenio& in, tetgenio& out);
 
-    void DeleteContainer(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr);
-
-    //Set faces in the triangulateio before the Delaunay Tesselation
-    void BuildInput ( ModelPart &rModelPart,
-		      MeshingParametersType & rMeshingVariables,
-		      tetgenio& in );
-
-    //*******************************************************************************************
-    //*******************************************************************************************
-    void Generate (ModelPart& rModelPart,
-		   MeshingParametersType& rMeshingVariables);
-
-    
-
-    //*******************************************************************************************
-    //*******************************************************************************************
-    void PerformTransferOnly(ModelPart& rModelPart,
-			     MeshingParametersType& rMeshingVariables,
-			     ModelPart::IndexType MeshId=0);
-    
-
-  
-    //*******************************************************************************************
-    //*******************************************************************************************
-
-    void GenerateDT(ModelPart& rModelPart,
-		    MeshingParametersType& rMeshingVariables,
-		    ModelPart::IndexType MeshId=0);
-    
-
-
-
-    //*******************************************************************************************
-    //*******************************************************************************************
-    void GenerateCDT(ModelPart& rModelPart,
-		     MeshingParametersType& rMeshingVariables,
-		     ModelPart::IndexType MeshId=0);
-    
-
-
-    //*******************************************************************************************
-    //*******************************************************************************************
-
-    void GenerateRDT(ModelPart& rModelPart,
-		     MeshingParametersType& rMeshingVariables,
-		     ModelPart::IndexType MeshId=0);
-    
-
-
-    //*******************************************************************************************
-    //*******************************************************************************************
-  
-    void GenerateRCDT(ModelPart& rModelPart,
-		      MeshingParametersType& rMeshingVariables,
-		      ModelPart::IndexType MeshId=0);
-        
-
-
-
-    //*******************************************************************************************
-    //*******************************************************************************************
-
-    //Select elements after the Delaunay Tesselation
-    void SelectMeshElements(ModelPart::NodesContainerType& rNodes,
-			    MeshingParametersType& rMeshingVariables,
-			    tetgenio& out);
-
-
-
-    //Generate the Delaunay Tesselation
-    int  GenerateTetrahedralization(Flags& MeshingOptions,
-				    Flags& RefiningOptions,
-				    tetgenio& in,
-				    tetgenio& out);
-
-    //Generate the Delaunay Tesselation
-    int  GenerateTessellation(MeshingParametersType& rMeshingVariables,
-			      tetgenio& in,
-			      tetgenio& out);
-
-    //Free memory of the mesher
-    void ClearTetgenIO ( tetgenio& tr );
-  
-    void DeleteTetrahedraList ( tetgenio& tr );
-
-    void DeletePointsList ( tetgenio& tr );
 
     ///@}
     ///@name Protected  Access
@@ -297,7 +191,39 @@ private:
     ///@name Private Operations
     ///@{
 
- 
+    //build the input for the mesher
+    void BuildInput ( ModelPart &rModelPart,
+		      MeshingParametersType & rMeshingVariables,
+		      tetgenio& in );
+
+    //set and get from mesh container in meshing variables
+    void GetFromContainer(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr);
+
+    void SetToContainer(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr);
+
+    //delete in/out structures
+    void DeleteInContainer(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr);
+
+    void DeleteOutContainer(ModelerUtilities::MeshContainer& rMesh, tetgenio& tr);
+
+    //set faces in the tetgenio before the Delaunay Tesselation
+    void SetFaces( ModelPart &rModelPart, MeshingParametersType & rMeshingVariables, tetgenio &in );
+
+    //check points
+    void CheckInOutPoints    ( tetgenio& in, tetgenio& out );
+
+    //print methods
+    void WriteTetrahedra     ( tetgenio& tr );
+
+    void WritePoints         ( tetgenio& tr );
+
+    //free memory of the mesher
+    void ClearTetgenIO ( tetgenio& tr );
+  
+    void DeleteTetrahedraList ( tetgenio& tr );
+
+    void DeletePointsList ( tetgenio& tr );
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -311,72 +237,8 @@ private:
     ///@}
     ///@name Unaccessible methods
     ///@{
-  
-
-    //METHODS CALLED BEFORE TESSELLATION
-
-
-    //Set nodes in the triangulateio before the Delaunay Tesselation
-    void SetTetrahedralizationNodes ( ModelPart &rModelPart,
-				      MeshingParametersType & rMeshingVariables,
-				      tetgenio &in,
-				      tetgenio &out,
-				      ModelPart::IndexType MeshId=0 );
-
-    //Set faces in the triangulateio before the Delaunay Tesselation
-    void SetFaces( ModelPart &rModelPart,
-		   MeshingParametersType & rMeshingVariables,
-		   tetgenio &in );
-
-
-    //recover the boundary position after an small offset when remeshing constrained
-    void RecoverBoundaryPreviousPosition ( ModelPart &rModelPart,
-					   MeshingParametersType & rMeshingVariables,
-					   tetgenio &in,
-					   tetgenio &out );
-
-
-
-    //METHODS CALLED AFTER TESSELLATION
-
-    //Build elements in model_part after the Delaunay Tesselation
-    void BuildMeshElements ( ModelPart& rModelPart,
-			     MeshingParametersType& rMeshingVariables,
-			     tetgenio& out,
-			     ModelPart::IndexType MeshId=0 );
- 
-
-    //*******************************************************************************************
-    //*******************************************************************************************
-
-
-    //METHODS CALLED BEFORE REFINING THE TESSELLATION
-    void SetDissipativeElements ( ModelPart& rModelPart, 
-				  MeshingParametersType& rMeshingVariables,
-				  ModelPart::IndexType MeshId=0 );
-       
-
-    //METHODS CALLED AFTER REFINING THE TESSELLATION   
-    void RefineElements ( ModelPart &rModelPart,
-			  MeshingParametersType& rMeshingVariables,
-			  tetgenio &in,
-			  tetgenio &out,
-			  ModelPart::IndexType MeshId=0 );
-
-    void GenerateNewParticles ( ModelPart& rModelPart,
-				MeshingParametersType& rMeshingVariables,
-				tetgenio &in, 
-				tetgenio &out,
-				ModelPart::IndexType MeshId=0 );
-
-    //*******************************************************************************************
-    //*******************************************************************************************
-
-    void CheckInOutPoints    ( tetgenio& in, tetgenio& out );
-    void WriteTetrahedra     ( tetgenio& tr );
-    void WritePoints         ( tetgenio& tr );
- 
-   ///@}
+   
+    ///@}
 
 }; // Class TetrahedralMesh3DModeler
 

@@ -20,7 +20,7 @@ class MeshingStrategy(object):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-             "python_file_name": "meshing_strategy",
+             "python_module": "meshing_strategy",
              "meshing_frequency": 0.0,
              "remesh": false,
              "refine": false,
@@ -42,11 +42,13 @@ class MeshingStrategy(object):
         self.imposed_walls          = []
         self.consider_imposed_walls = False      
 
-        print("Construction of Mesh Modeler finished")
+        #print("::[Modeler_Strategy]:: Construction of Mesh Strategy finished")
         
     #
     def Initialize(self,meshing_parameters,domain_size):
         
+        print("::[Meshing Strategy]:: -START-")
+
         #parameters
         self.mesh_id = meshing_parameters.GetMeshId()
 
@@ -88,12 +90,18 @@ class MeshingStrategy(object):
         #configure meshers: 
         self.SetMeshModelers();
         
+        self.model_part = self.main_model_part
+        if( self.main_model_part.Name != self.MeshingParameters.GetSubModelPartName() ):
+            self.model_part = self.main_model_part.GetSubModelPart(self.MeshingParameters.GetSubModelPartName())
+
         for mesher in self.mesh_modelers:
             mesher.Initialize(domain_size)
 
         self.number_of_nodes      = 0
         self.number_of_elements   = 0
         self.number_of_conditions = 0
+
+        print("::[Meshing Strategy]:: -END-")
         
     #
     def SetImposedWalls(self, imposed_walls): #must be set before initialize
@@ -118,8 +126,8 @@ class MeshingStrategy(object):
         elif( self.settings["transfer"].GetBool() ):
 
             modelers.append("transfer_modeler")
- 
-        print(" MeshID ",self.MeshingParameters.GetMeshId())
+
+        print("  [", self.MeshingParameters.GetSubModelPartName(),"model part ] (REMESH:",self.settings["remesh"].GetBool(),"/ REFINE:",self.settings["refine"].GetBool(),"/ TRANSFER:",self.settings["transfer"].GetBool(),")")
 
         for modeler in modelers:
             meshing_module =__import__(modeler)      
@@ -162,7 +170,7 @@ class MeshingStrategy(object):
         self.SetInfo()
 
         if( self.global_transfer == True ):
-            self.MeshDataTransfer.TransferElementalValuesToNodes(self.TransferParameters,self.main_model_part,self.mesh_id)
+            self.MeshDataTransfer.TransferElementalValuesToNodes(self.TransferParameters,self.model_part,self.mesh_id)
 
     #
     def FinalizeMeshGeneration(self):
@@ -177,12 +185,11 @@ class MeshingStrategy(object):
         if( self.global_transfer == True ):
             if(smoothing_required):
                 #smooth only on selected part based on a threshold variable
-                self.MeshDataTransfer.TransferNodalValuesToElementsOnThreshold(self.TransferParameters,refining_parameters,self.main_model_part,self.mesh_id)
+                self.MeshDataTransfer.TransferNodalValuesToElementsOnThreshold(self.TransferParameters,refining_parameters,self.model_part,self.mesh_id)
             else:
                 #smooth all domain
-                self.MeshDataTransfer.TransferNodalValuesToElements(self.TransferParameters,self.main_model_part,self.mesh_id)                  
-                
-        
+                self.MeshDataTransfer.TransferNodalValuesToElements(self.TransferParameters,self.model_part,self.mesh_id)                  
+                      
 
     #
     def GenerateMesh(self):
@@ -191,5 +198,5 @@ class MeshingStrategy(object):
 
         for mesher in self.mesh_modelers:
             mesher.ExecuteMeshing()
-
+        
         self.FinalizeMeshGeneration()

@@ -4,6 +4,8 @@ import KratosMultiphysics
 import KratosMultiphysics.PfemBaseApplication as KratosPfemBase
 KratosMultiphysics.CheckForPreviousImport()
 
+from multiprocessing import Pool
+
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
@@ -16,7 +18,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
 
         KratosMultiphysics.Process.__init__(self)
         
-        self.model_part = Model[custom_settings["model_part_name"].GetString()]
+        self.main_model_part = Model[custom_settings["model_part_name"].GetString()]
     
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
@@ -34,7 +36,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.echo_level        = 1
-        self.domain_size       = self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.domain_size       = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         self.meshing_frequency = self.settings["meshing_frequency"].GetDouble()
         
         self.meshing_control_is_time = False
@@ -50,146 +52,90 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         self.number_of_domains = domains_list.size()
         for i in range(0,self.number_of_domains):
             item = domains_list[i]
-            domain_module = __import__(item["python_file_name"].GetString())
-            domain = domain_module.CreateMeshingDomain(self.model_part,item)
+            domain_module = __import__(item["python_module"].GetString())
+            domain = domain_module.CreateMeshingDomain(self.main_model_part,item)
             self.meshing_domains.append(domain)
 
         # mesh modeler initial values
         self.remesh_domains_active = False
-        if( self.number_of_domains ):
-            self.remesh_domains_active = True
+        for domain in self.meshing_domains:
+            if( domain.Active() ):
+                self.remesh_domains_active = True
 
         self.neighbours_search_performed = False
         self.step_count   = 1
         self.counter      = 1
         self.next_meshing = 0.0
         self.meshing_before_output = self.settings["meshing_before_output"].GetBool()
-                       
+     
     #
     def ExecuteInitialize(self):
 
+        # check restart
         self.restart = False
-        if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] ):
-            self.restart = True
-        
-        # initialize the modeler 
-        if( self.remesh_domains_active ):        
-            print("::[Modeler_Utility]:: Initialize Domains ")
+        if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True ):
+            self.restart = True         
+            self.step_count = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
             
-            # find node neighbours
-            self.SearchNodeNeighbours()
-            
-            # find element neighbours
-            self.SearchElementNeighbours()
-            
-            # set neighbour search performed
-            self.neighbour_search_performed = True
+            if self.meshing_control_is_time:
+                self.next_meshing  = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] + self.meshing_frequency
+            else:
+                self.next_meshing = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + self.meshing_frequency
+        else:
+            self.meshing_output = self.meshing_frequency
 
-            # find skin and boundary normals
-            if(self.restart == False):
-                self.BuildMeshBoundary()
 
-                # search nodal h
-                self.SearchNodalH()
-            
-                
-            # set modeler utilities
-            self.modeler_utils = KratosPfemBase.ModelerUtilities()
+        self.main_model_part.ProcessInfo.SetValue(KratosPfemBase.INITIALIZED_DOMAINS, False);
 
-            # set the domain labels to mesh modeler
-            self.modeler_utils.SetDomainLabels(self.model_part)
+        # initialize modeler 
+        if( self.remesh_domains_active ):    
+
+            self.InitializeDomains()
 
             for domain in self.meshing_domains:
                 domain.Initialize()
-                domain.Check()
+                #domain.Check()
+                
 
     #
-    def SearchNodeNeighbours(self):
+    def InitializeDomains(self):
 
-        mesh_id = 0
-
-        # set search options:
-        number_of_avg_elems = 10
-        number_of_avg_nodes = 10
-
-        # define search utility
-        nodal_neighbour_search = KratosPfemBase.NodalNeighboursSearch(self.model_part, self.echo_level, number_of_avg_elems, number_of_avg_nodes, mesh_id)
-
-        # execute search:
-        nodal_neighbour_search.Execute()
-
-        print("::[Modeler_Utility]:: Nodal Search executed ")
-
-    #
-    def SearchElementNeighbours(self):
-
-        mesh_id = 0
-
-        # set search options:
-        number_of_avg_elems = 10
-         
-        # define search utility
-        elemental_neighbour_search = KratosPfemBase.ElementalNeighboursSearch(self.model_part, self.domain_size, self.echo_level, number_of_avg_elems, mesh_id)
-
-        # execute search:
-        elemental_neighbour_search.Execute()
-
-        if( self.echo_level > 0 ):
-            print("::[Modeler_Utility]:: Elemental Search executed ")
-
-
-    #
-    def BuildMeshBoundary(self):
-
-        mesh_id = 0
-
-        print("::[Modeler_Utility]:: Build Mesh Boundary ")
-        # set building options:
+        # initialize the modeler 
+        print("::[Remesh_Domains]:: Initialize Domains ")
+            
+        import domain_utilities
+        domain_utils = domain_utilities.DomainUtilities()
         
+        # find node neighbours
+        domain_utils.SearchNodeNeighbours(self.main_model_part, self.echo_level)
+            
+        # find element neighbours
+        domain_utils.SearchElementNeighbours(self.main_model_part, self.echo_level)
+            
+        # set neighbour search performed
+        self.neighbour_search_performed = True
 
-        # define building utility
-        skin_build = KratosPfemBase.BuildMeshBoundary(self.model_part, mesh_id, self.echo_level)
+        # set modeler utilities
+        self.modeler_utils = KratosPfemBase.ModelerUtilities()
+        
+        # set the domain labels to conditions
+        self.modeler_utils.SetModelPartNameToConditions(self.main_model_part)
+        
+        # find skin and boundary normals
+        if(self.restart == False):
+            domain_utils.ConstructModelPartBoundary(self.main_model_part, self.echo_level)
 
-        # execute building:
-        skin_build.Execute()
+            # search nodal h
+            if(self.neighbour_search_performed):
+                domain_utils.SearchNodalH(self.main_model_part, self.echo_level)
+                                       
+        # set the domain labels to nodes
+        self.modeler_utils.SetModelPartNameToNodes(self.main_model_part)
 
-        if( self.echo_level > 0 ):
-            print("::[Modeler_Utility]:: Mesh Boundary Build executed ")
+        self.main_model_part.ProcessInfo.SetValue(KratosPfemBase.INITIALIZED_DOMAINS, True)
 
-
-    ###
-
-    #
-    def SearchNodalH(self):
-
-        if(self.neighbour_search_performed):
-            # define search utility
-            nodal_h_search = KratosMultiphysics.FindNodalHProcess(self.model_part)
-            # execute search:
-            nodal_h_search.Execute()
-
-            # for node in self.model_part.Nodes:
-                # nodal_h  = node.GetSolutionStepValue(NODAL_H);
-                # print "nodal_h:",nodal_h
-
-            if( self.echo_level > 0 ):
-                print("::[Modeler_Utility]:: Nodal H Search executed ")
-
-    #
-    def ComputeBoundaryNormals(self):
-
-        # define calculation utility
-        normals_calculation = KratosPfemBase.BoundaryNormalsCalculation()
-
-        # execute calculation:
-        #(scaled normals)
-        normals_calculation.CalculateBoundaryNormals(self.model_part, self.echo_level)
-        #(unit normals)
-        # normals_calculation.CalculateBoundaryUnitNormals(model_part, self.echo_level)
-
-        if( self.echo_level > 0 ):
-            print("::[Modeler_Utility]:: Boundary Normals computed ")
-
+        print(self.main_model_part)
+            
 
     ###
 
@@ -203,7 +149,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         
         if(self.remesh_domains_active):
             if( self.meshing_before_output ):
-                if(self.IsMeshingStep):
+                if(self.IsMeshingStep()):
                     self.RemeshDomains()
         
     #
@@ -211,32 +157,49 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         
         if(self.remesh_domains_active):
             if( not self.meshing_before_output ):
-                if(self.IsMeshingStep):
+                if(self.IsMeshingStep()):
                     self.RemeshDomains()
 
     ###
 
     #
+    def ExecuteMeshing(domain):
+        domain.ExecuteMeshing()
+
+    #
     def RemeshDomains(self):
 
         if( self.echo_level > 0 ):
-            print("::[Meshing_Process]:: MESH DOMAIN...", self.counter)
+            print("::[Meshing_Process]:: MESHING DOMAIN...( call:", self.counter,")")
             
         meshing_options = KratosMultiphysics.Flags()
-        self.model_meshing = KratosPfemBase.ModelMeshing(self.model_part, meshing_options, self.echo_level)
+        self.model_meshing = KratosPfemBase.ModelMeshing(self.main_model_part, meshing_options, self.echo_level)
         
         self.model_meshing.ExecuteInitialize()
 
+        #serial
         for domain in self.meshing_domains:
-            domain.ExecuteMeshing();
- 
+            domain.ExecuteMeshing()
+        
+        
+        #parallel (not working pickling instances not enabled)
+        #domains_number = len(self.meshing_domains)
+        #if(domains_number>8):
+        #    domains_number = 8
+        
+        #pool = Pool(domains_number)
+        #pool.map(self.ExecuteMeshing,self.meshing_domains)
+        #pool.close()
+        #pool.joint()        
+        #
+        
         self.model_meshing.ExecuteFinalize()
         
         self.counter += 1 
 
 
         # schedule next meshing
-        if(self.meshing_frequency >= 0.0):
+        if(self.meshing_frequency > 0.0): # note: if == 0 always active
             if(self.meshing_control_is_time):
                 while(self.next_meshing <= time):
                     self.next_meshing += self.meshing_frequency
@@ -244,7 +207,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
                 while(self.next_meshing <= self.step_count):
                     self.next_meshing += self.meshing_frequency
                         
-
+                   
     #
     def GetMeshingStep(self):
         return self.counter
@@ -253,7 +216,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
     def IsMeshingStep(self):
 
         if(self.meshing_control_is_time):
-            #print( str(self.model_part.ProcessInfo[TIME])+">"+ str(self.next_meshing) )
-            return ( self.model_part.ProcessInfo[TIME] > self.next_meshing )
+            #print( str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME])+">"+ str(self.next_meshing) )
+            return ( self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] >= self.next_meshing )
         else:
             return ( self.step_count >= self.next_meshing )

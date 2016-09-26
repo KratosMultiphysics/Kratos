@@ -53,7 +53,6 @@ namespace Python
       .def("SetPostMeshingProcessVector",&MeshModeler::SetPostMeshingProcessVector)
       .def("SetModelerUtilities",&MeshModeler::SetModelerUtilities)
       .def("SetDataTransferUtilities",&MeshModeler::SetDataTransferUtilities)
-      .def("GenerateMesh",&MeshModeler::GenerateMesh)
       .def("SetEchoLevel",&MeshModeler::SetEchoLevel)
       .def("ExecuteMeshing",&MeshModeler::ExecuteMeshing)
       ;

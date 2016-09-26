@@ -128,10 +128,22 @@ public:
 	  if( mEchoLevel > 0 )
 	    std::cout<<"   Start Element Selection "<<OutNumberOfElements<<std::endl;
 
-	  ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
-	  const unsigned int nds = element_begin->GetGeometry().size();
-	  const unsigned int dimension = element_begin->GetGeometry().WorkingSpaceDimension();
-
+	  unsigned int nds = 3;
+	  unsigned int dimension = 2;
+	  if( mrModelPart.NumberOfElements() ){
+	    ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
+	    nds = element_begin->GetGeometry().size();
+	    dimension = element_begin->GetGeometry().WorkingSpaceDimension();
+	  }
+	  else if ( mrModelPart.NumberOfConditions() ){
+	    ModelPart::ConditionsContainerType::iterator condition_begin = mrModelPart.ConditionsBegin(mMeshId);
+	    dimension = condition_begin->GetGeometry().WorkingSpaceDimension();
+	    if( dimension == 3 ) //number of nodes of a tetrahedron
+	      nds = 4;
+	    else if( dimension == 2 ) //number of nodes of a triangle
+	      nds = 3;
+	  }
+	    
 	  int* OutElementList = mrRemesh.OutMesh.GetElementList();
 	 
 	  ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes(mMeshId);
@@ -356,10 +368,20 @@ public:
 
       if(mrRemesh.ExecutionOptions.IsNot(ModelerUtilities::KEEP_ISOLATED_NODES)){
 
+	unsigned int nds = 3;
+	if( mrModelPart.NumberOfElements() ){
+	  ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
+	  nds = element_begin->GetGeometry().size();
+	}
+	else if ( mrModelPart.NumberOfConditions() ){
+	  ModelPart::ConditionsContainerType::iterator condition_begin = mrModelPart.ConditionsBegin(mMeshId);
+	  unsigned int dimension = condition_begin->GetGeometry().WorkingSpaceDimension();
+	  if( dimension == 3 ) //number of nodes of a tetrahedron
+	    nds = 4;
+	  else if( dimension == 2 ) //number of nodes of a triangle
+	    nds = 3;
+	}
 
-	ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
-	const unsigned int nds = (*element_begin).GetGeometry().size();
-      
 	int* OutElementList = mrRemesh.OutMesh.GetElementList();
       
 	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes(mMeshId);

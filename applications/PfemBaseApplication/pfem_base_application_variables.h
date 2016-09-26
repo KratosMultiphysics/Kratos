@@ -29,6 +29,8 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
+//#include "containers/pointer_vector_set.h"
+//#include "utilities/indexed_object.h"
 
 
 namespace Kratos
@@ -37,6 +39,7 @@ namespace Kratos
   ///@{
   typedef array_1d<double,3> Vector3;
   typedef array_1d<double,6> Vector6;
+  typedef PointerVectorSet<Condition, IndexedObject> ConditionContainerType;
   ///@}
 
   ///@name Kratos Globals
@@ -51,6 +54,8 @@ namespace Kratos
 
 
   //domain definition
+  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_BASE_APPLICATION, bool, INITIALIZED_DOMAINS )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_BASE_APPLICATION, std::string, MODEL_PART_NAME )
   KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_BASE_APPLICATION, unsigned int, DOMAIN_LABEL )
 
 
@@ -60,7 +65,9 @@ namespace Kratos
   KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_BASE_APPLICATION, WeakPointerVector< Element >, MASTER_ELEMENTS )
   KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_BASE_APPLICATION, WeakPointerVector< Node<3> >,    MASTER_NODES )
 
-
+  //condition variables
+  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_BASE_APPLICATION, ConditionContainerType, CHILDREN_CONDITIONS)
+    
   //modeler criteria
   KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_BASE_APPLICATION, double, MEAN_ERROR )
 

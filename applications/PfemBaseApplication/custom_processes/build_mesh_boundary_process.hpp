@@ -117,6 +117,8 @@ namespace Kratos
 
     virtual void Execute()
     {
+      KRATOS_TRY
+	
       bool success=false;
 
       boost::timer auxiliary;
@@ -189,13 +191,17 @@ namespace Kratos
       if( mEchoLevel >= 1 )
 	std::cout<<"   -> Boundary Normals Computed <- "<<std::endl;
 
-    };
+     KRATOS_CATCH(" ")
+      
+    }
 
 
 
    bool SearchConditionMasters(int MeshId = 0)
     {
-
+      
+      KRATOS_TRY
+	
       unsigned int counter = 0;
       bool found=false;
 
@@ -303,6 +309,8 @@ namespace Kratos
 			
       return found;
 
+      KRATOS_CATCH(" ")    
+
     }
 
     ///@}
@@ -356,6 +364,7 @@ namespace Kratos
     ModelPart& mrModelPart;
 
     int mMeshId;
+    
     int mEchoLevel;
 
 
@@ -374,7 +383,8 @@ namespace Kratos
 
     virtual bool UniqueSkinSearch( int MeshId = 0 )
     {
-
+      KRATOS_TRY
+      
       if( mEchoLevel > 0 ){
 	std::cout<<" [ SET BOUNDARY CONDITIONS : "<<std::endl;
 	std::cout<<"   Initial Conditions : "<<mrModelPart.Conditions(MeshId).size()<<" [MESH:"<<MeshId<<"]"<<std::endl;
@@ -538,6 +548,9 @@ namespace Kratos
       this->AddOtherConditions(TemporaryConditions, PreservedConditions, ConditionId, MeshId);
 	
       return true;
+
+      KRATOS_CATCH(" ")
+     
     }
 
     //**************************************************************************
@@ -545,6 +558,7 @@ namespace Kratos
 
     bool FindCondition(Geometry< Node<3> >& rConditionGeometry,Geometry< Node<3> >& rGeometry , boost::numeric::ublas::matrix<unsigned int>& lpofa, boost::numeric::ublas::vector<unsigned int>& lnofa, unsigned int& iface)
     {
+      KRATOS_TRY
       
       // not equivalent geometry sizes for boundary conditions:
       if( rConditionGeometry.size() != lnofa[iface] )
@@ -595,7 +609,9 @@ namespace Kratos
 	}
 
       return false;
-  
+
+     KRATOS_CATCH(" ")
+      
     }
 
 
@@ -605,7 +621,8 @@ namespace Kratos
 
     bool FindConditionID(Geometry< Node<3> >& rConditionGeometry, int& MeshId)
     {
-
+      KRATOS_TRY
+      
       //check if the conditions belongs to the MeshId checking the nodes Id
       for(unsigned int i=0; i<rConditionGeometry.size(); i++)
 	{
@@ -617,6 +634,8 @@ namespace Kratos
 	}
 
       return false;
+
+      KRATOS_CATCH(" ")	   
     }
 
 
@@ -626,6 +645,9 @@ namespace Kratos
 
     void PrintSkin (ModelPart::IndexType MeshId=0)
     {
+
+      KRATOS_TRY
+	
       //PRINT SKIN:		
       std::cout<<" CONDITIONS: geometry nodes ("<<mrModelPart.Conditions(MeshId).size()<<")"<<std::endl;
 
@@ -650,6 +672,7 @@ namespace Kratos
 	}
       std::cout<<std::endl;
 
+      KRATOS_CATCH(" ")
     }
 
     //**************************************************************************
@@ -658,6 +681,9 @@ namespace Kratos
 
     virtual bool AddOtherConditions(ModelPart::ConditionsContainerType& rTemporaryConditions, std::vector<int>& PreservedConditions, unsigned int& rConditionId, int MeshId = 0 )
     {
+
+      KRATOS_TRY
+	
       //add all previous conditions not found in the skin search are added:
       for(ModelPart::ConditionsContainerType::iterator ic = rTemporaryConditions.begin(); ic!= rTemporaryConditions.end(); ic++)
 	{	
@@ -713,6 +739,8 @@ namespace Kratos
       }
 
       return all_assigned;
+      
+      KRATOS_CATCH(" ")
 
     }
 
@@ -759,6 +787,8 @@ namespace Kratos
     bool SkinSearch( int MeshId = 0 )
     {
 
+      KRATOS_TRY
+      
       if( mEchoLevel > 0 ){
 	std::cout<<" [ SET BOUNDARY CONDITIONS : "<<std::endl;
 	std::cout<<"   Initial Conditions : "<<mrModelPart.Conditions(MeshId).size()<<" [MESH:"<<MeshId<<"]"<<std::endl;
@@ -943,6 +973,9 @@ namespace Kratos
       this->AddOtherConditions(TemporaryConditions, PreservedConditions, ConditionId, MeshId);
 	
       return true;
+
+      KRATOS_CATCH(" ")
+      
     }
 
 
@@ -951,6 +984,8 @@ namespace Kratos
 
     void SetGlobalConditions()
     {
+
+      KRATOS_TRY
 
       if( mEchoLevel >= 1 ){
 	std::cout<<" [MESH:0]: "<<std::endl;
@@ -1003,6 +1038,7 @@ namespace Kratos
       if( mEchoLevel >= 1 )
 	std::cout<<" [NEW TOTAL CONDITIONS: "<<mrModelPart.NumberOfConditions()<<"] "<<std::endl;
 
+      KRATOS_CATCH(" ")     
     }
 
 

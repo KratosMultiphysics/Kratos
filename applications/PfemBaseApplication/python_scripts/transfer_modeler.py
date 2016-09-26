@@ -17,11 +17,9 @@ class TransferModeler(mesh_modeler.MeshModeler):
     #
     def __init__(self, main_model_part, meshing_parameters): 
         
-        self.echo_level        = 0
-        self.main_model_part   = main_model_part 
-        self.MeshingParameters = meshing_parameters
+        mesh_modeler.MeshModeler.__init__(self, main_model_part, meshing_parameters)
 
-        print("Construction of RecoonectModeler finished")
+        print("::[Transfer_Modeler]:: -BUILT-")
   
     #
     def InitializeMeshing(self):
@@ -59,10 +57,10 @@ class TransferModeler(mesh_modeler.MeshModeler):
         #self.mesher.SetPostMeshingProcess(select_mesh_elements)
 
         #rebuild elements
-        rebuild_mesh_elements = KratosPfemBase.BuildMeshElements(self.main_model_part, self.MeshingParameters, self.echo_level)
+        rebuild_mesh_elements = KratosPfemBase.BuildMeshElements(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(rebuild_mesh_elements)
 
         #rebuild boundary
-        rebuild_mesh_boundary = KratosPfemBase.ReconstructMeshBoundary(self.main_model_part, self.MeshingParameters, self.echo_level)
+        rebuild_mesh_boundary = KratosPfemBase.ReconstructMeshBoundary(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(rebuild_mesh_boundary)
 

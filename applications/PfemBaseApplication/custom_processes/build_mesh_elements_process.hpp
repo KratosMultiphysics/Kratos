@@ -67,6 +67,7 @@ namespace Kratos
     /// Pointer definition of BuildMeshElementsProcess
     KRATOS_CLASS_POINTER_DEFINITION( BuildMeshElementsProcess );
 
+    typedef ModelPart::NodeType                   NodeType;
     typedef ModelPart::ConditionType         ConditionType;
     typedef ModelPart::PropertiesType       PropertiesType;
     typedef ConditionType::GeometryType       GeometryType;
@@ -109,6 +110,12 @@ namespace Kratos
     virtual void Execute()
     {
       KRATOS_TRY
+
+      if( mEchoLevel > 0 )
+	std::cout<<" [ GENERATE NEW ELEMENTS: "<<std::endl;
+
+      if( mrModelPart.Name() != mrRemesh.SubModelPartName )
+	std::cout<<" ModelPart Supplied do not corresponds to the Meshing Domain: ("<<mrModelPart.Name()<<" != "<<mrRemesh.SubModelPartName<<")"<<std::endl;
     
       //*******************************************************************
       //selecting elements
@@ -143,8 +150,8 @@ namespace Kratos
 
 
       //properties to be used in the generation
-      int number_properties = mrModelPart.NumberOfProperties();
-      Properties::Pointer properties = mrModelPart.GetMesh(mMeshId).pGetProperties(number_properties-1);
+      int number_properties = mrModelPart.GetParentModelPart()->NumberOfProperties();
+      Properties::Pointer properties = mrModelPart.GetParentModelPart()->GetMesh(mMeshId).pGetProperties(number_properties-1);
       ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
       
       ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin(mMeshId);
@@ -158,11 +165,11 @@ namespace Kratos
       
       const unsigned int nds = element_begin->GetGeometry().size();
 
-      int& OutNumberOfElements =  mrRemesh.OutMesh.GetNumberOfElements();
-      int* OutElementList = mrRemesh.OutMesh.GetElementList();
+      int& OutNumberOfElements = mrRemesh.OutMesh.GetNumberOfElements();
+      int* OutElementList      = mrRemesh.OutMesh.GetElementList();
 
-      std::vector<Node<3>::Pointer>    list_of_element_centers;
-      std::vector<Geometry<Node<3> > > list_of_element_vertices; //is this list needed?
+      std::vector<NodeType::Pointer>    list_of_element_centers;
+      std::vector<Geometry<NodeType > > list_of_element_vertices; //is this list needed?
       //find the center and "radius" of the element
       double xc=0;
       double yc=0;
@@ -179,8 +186,8 @@ namespace Kratos
 	{
 	  if(mrRemesh.PreservedElements[el])
 	    {
-	      Geometry<Node<3> > vertices;
-	      std::vector<int >  neighbours (nds);
+	      Geometry<NodeType> vertices;
+	      std::vector<int>   neighbours (nds);
 	      
 	      for(unsigned int i=0; i<nds; i++)
 		{
@@ -198,7 +205,7 @@ namespace Kratos
 	      
 	      
 	      //*******************************************************************
-	      //1) Store Preserved elements in an array of vertices (Geometry<Node<3> > vertices;)
+	      //1) Store Preserved elements in an array of vertices (Geometry<NodeType > vertices;)
 	      
 	      
 	      if( vertices.size() == 3 ){
@@ -218,8 +225,8 @@ namespace Kratos
 	      //std::cout<<" XC ["<<id<<"]: ("<<xc<<" "<<yc<<") "<<std::endl;
 	      //std::cout<<" vertices "<<vertices[0].X()<<" "<<vertices[2].X()<<std::endl;
 	      //*******************************************************************
-	      
-	      Node<3>::Pointer p_center = Node<3>::Pointer( new Node<3> (id,xc,yc,zc) );
+
+	      NodeType::Pointer p_center = boost::make_shared< NodeType >( id, xc, yc, zc );
 	      
 	      //*******************************************************************
 	      //2) Create list_of_centers 
@@ -297,13 +304,17 @@ namespace Kratos
       //*******************************************************************
       
       //8) Filling the neighbour list
-      SetElementNeighbours();
+      SetElementNeighbours(mrModelPart);
 
       //*******************************************************************
       
-      KRATOS_CATCH( "" )
-   	
-    };
+      
+      if( mEchoLevel > 0 )
+	std::cout<<"   GENERATE NEW ELEMENTS ]; "<<std::endl;
+
+
+      KRATOS_CATCH(" ")
+    }
 
 
     ///@}
@@ -401,16 +412,20 @@ namespace Kratos
     ///@name Private Operators
     ///@{
 
-    void SetElementNeighbours()
+
+    //**************************************************************************
+    //**************************************************************************
+
+    void SetElementNeighbours(ModelPart& rModelPart)
     {
       KRATOS_TRY
 
 	if( mEchoLevel > 0 ){
 	  std::cout<<" [ SET ELEMENT NEIGHBOURS : "<<std::endl;
-	  std::cout<<"   Initial Faces : "<<mrModelPart.Conditions(mMeshId).size()<<std::endl;
+	  std::cout<<"   Initial Faces : "<<rModelPart.Conditions(mMeshId).size()<<std::endl;
 	}
 
-      ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin(mMeshId);	  
+      ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(mMeshId);	  
 
       const unsigned int nds = element_begin->GetGeometry().size();
 
@@ -418,8 +433,8 @@ namespace Kratos
 
       int facecounter=0;
       int Id = 0;
-      for(ModelPart::ElementsContainerType::const_iterator iii = mrModelPart.ElementsBegin(mMeshId);
-	  iii != mrModelPart.ElementsEnd(mMeshId); iii++)
+      for(ModelPart::ElementsContainerType::const_iterator iii = rModelPart.ElementsBegin(mMeshId);
+	  iii != rModelPart.ElementsEnd(mMeshId); iii++)
 	{
 	  
 	  for(unsigned int i= 0; i<mrRemesh.PreservedElements.size(); i++)

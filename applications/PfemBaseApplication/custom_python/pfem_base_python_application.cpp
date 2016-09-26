@@ -44,6 +44,7 @@ namespace Kratos
       AddCustomBoundingToPython();
       
       //registering variables in python ( if must to be seen from python )
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE( INITIALIZED_DOMAINS )
       KRATOS_REGISTER_IN_PYTHON_VARIABLE( RIGID_WALL )
       KRATOS_REGISTER_IN_PYTHON_VARIABLE( MEAN_ERROR )
       KRATOS_REGISTER_IN_PYTHON_VARIABLE( OFFSET )

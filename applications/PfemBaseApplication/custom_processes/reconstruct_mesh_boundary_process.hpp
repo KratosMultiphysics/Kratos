@@ -119,6 +119,8 @@ namespace Kratos
 
     virtual void Execute()
     {
+      KRATOS_TRY
+      
       bool success=false;
 
       boost::timer auxiliary;
@@ -138,8 +140,9 @@ namespace Kratos
 	    std::cout<<" [ Search performed in Time = "<<auxiliary.elapsed()<<" ]"<<std::endl;
             //PrintSkin(mMeshId);
         }
-  	
-    };
+
+      KRATOS_CATCH(" ")
+    }
 
 
     ///@}
@@ -202,6 +205,8 @@ namespace Kratos
     bool UniqueSkinSearch( int MeshId = 0 )
     {
 
+      KRATOS_TRY
+      
       if( mEchoLevel >= 0 ){
 	std::cout<<" [ SET BOUNDARY CONDITIONS : "<<std::endl;
 	std::cout<<"   Initial Conditions : "<<mrModelPart.Conditions(MeshId).size()<<" [MESH:"<<MeshId<<"]"<<std::endl;
@@ -508,8 +513,7 @@ namespace Kratos
 
 			}
 
-
-		      mrModelPart.AddCondition(p_cond, MeshId);
+		      mrModelPart.Conditions(MeshId).push_back(p_cond);
 		    }
 		    // Set new conditions: end
 		  }
@@ -523,6 +527,8 @@ namespace Kratos
       this->AddOtherConditions(TemporaryConditions, PreservedConditions, ConditionId, MeshId);
 	
       return true;
+
+      KRATOS_CATCH( "" )
     }
 
 
@@ -531,6 +537,8 @@ namespace Kratos
 
     bool AddOtherConditions(ModelPart::ConditionsContainerType& rTemporaryConditions, std::vector<int>& PreservedConditions, unsigned int& rConditionId, int MeshId = 0 )
     {
+      KRATOS_TRY
+      
       //add all previous conditions not found in the skin search are added:
       for(ModelPart::ConditionsContainerType::iterator ic = rTemporaryConditions.begin(); ic!= rTemporaryConditions.end(); ic++)
 	{		    
@@ -569,7 +577,7 @@ namespace Kratos
 	    Condition::Pointer p_cond = ic->Clone(rConditionId, FaceNodes);
 	    p_cond->Data() = ic->Data();
 
-	    mrModelPart.AddCondition(p_cond,MeshId);
+	    mrModelPart.Conditions(MeshId).push_back(p_cond);
 	    //mrModelPart.Conditions(MeshId).push_back(ic->Clone(rConditionId,FaceNodes));
 
 	    // if( mEchoLevel > 0 ){
@@ -601,6 +609,8 @@ namespace Kratos
       }
 
       return all_assigned;
+
+      KRATOS_CATCH( "" )
     }
 
     ///@}
@@ -650,7 +660,9 @@ namespace Kratos
 
     bool SearchConditionMasters(int MeshId = 0)
     {
-
+      
+      KRATOS_TRY
+	
       unsigned int counter = 0;
       bool found=false;
 
@@ -757,6 +769,8 @@ namespace Kratos
       }
 			
       return found;
+      
+      KRATOS_CATCH(" ")
 
     }
 
@@ -767,6 +781,7 @@ namespace Kratos
 
     bool FindNodeInCondition(Geometry< Node<3> >& rConditionGeometry,Geometry< Node<3> >& rGeometry , boost::numeric::ublas::matrix<unsigned int>& lpofa, boost::numeric::ublas::vector<unsigned int>& lnofa, unsigned int& iface)
     {
+      KRATOS_TRY
       
       // not equivalent geometry sizes for boundary conditions:
       if( rConditionGeometry.size() != lnofa[iface] )
@@ -817,7 +832,8 @@ namespace Kratos
 	}
 
       return false;
-  
+
+      KRATOS_CATCH(" ")     
     }
 
     ///@}
@@ -874,5 +890,7 @@ namespace Kratos
 
 
 }  // namespace Kratos.
+
+
 
 #endif // KRATOS_RECONSTRUCT_MESH_BOUNDARY_PROCESS_H_INCLUDED  defined 

@@ -328,7 +328,7 @@ private:
 		array_1d<double,3>& normal = (it)->GetValue(NORMAL);
 		noalias(normal) = An/norm_2(An);
 
-		// 				(it)->SetValue(NORMAL,An);
+		//std::cout<<" Normal ["<<it->Id()<<"] "<<normal<<std::endl;
 	}
 
 	static void CalculateUnityNormal3D(ConditionsContainerType::iterator it, array_1d<double,3>& An,
@@ -350,7 +350,6 @@ private:
 		array_1d<double,3>& normal = (it)->GetValue(NORMAL);
 
 		noalias(normal) = An/norm_2(An);
-		//noalias((it)->GetValue(NORMAL)) = An;
 	}
 
 
@@ -1148,7 +1147,7 @@ private:
 
 		
 		  if(mEchoLevel > 0) 
-		    std::cout<<"  [ Normals_Shrinkage (BoundaryNodes:"<<boundary_nodes<<")[SET:"<<boundary_nodes-not_assigned<<" / NOT_SET:"<<not_assigned<<"] ][Mesh:"<<MeshId<<"]"<<std::endl;
+		    std::cout<<"  ["<<rModelPart.Name()<<" :: NORMALS SHRINKAGE (BOUNDARY NODES:"<<boundary_nodes<<") [SET:"<<boundary_nodes-not_assigned<<" / NOT_SET:"<<not_assigned<<"] "<<std::endl;
 
 
 		}
