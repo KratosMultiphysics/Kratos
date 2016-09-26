@@ -3,8 +3,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosPfemSolidMechanicsApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../ContactMechanicsApplication )
+
 
 if(NOT (${SOLID_MECHANICS_APPLICATION} STREQUAL "ON"))
     message(SEND_ERROR "The Solid Mechanics Application must be compiled before this one. Set SOLID_MECHANICS_APPLICATION=ON in the configure file.")
@@ -13,6 +15,11 @@ endif(NOT (${SOLID_MECHANICS_APPLICATION} STREQUAL "ON"))
 if(NOT (${PFEM_BASE_APPLICATION} STREQUAL "ON"))
     message(SEND_ERROR "The Pfem Base Application must be compiled before this one. Set PFEM_BASE_APPLICATION=ON in the configure file.")
 endif(NOT (${PFEM_BASE_APPLICATION} STREQUAL "ON"))
+
+if(NOT (${CONTACT_MECHANICS_APPLICATION} STREQUAL "ON"))
+    message(SEND_ERROR "The Contact Mechanics Application must be compiled before this one. Set CONTACT_MECHANICS_APPLICATION=ON in the configure file.")
+endif(NOT (${CONTACT_MECHANICS_APPLICATION} STREQUAL "ON"))
+
 
 if(NOT DEFINED ${INCLUDE_TRIANGLE})
   set(INCLUDE_TRIANGLE ON)
