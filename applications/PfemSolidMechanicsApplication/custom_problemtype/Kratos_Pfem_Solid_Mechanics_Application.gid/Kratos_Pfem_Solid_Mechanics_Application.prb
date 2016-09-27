@@ -14,8 +14,6 @@ QUESTION: Explicit_Scheme_Type#CB#(CentralDifferences,Hamilton)
 VALUE: CentralDifferences
 QUESTION: Time_Step
 VALUE: 0.01
-QUESTION: Number_of_steps
-VALUE: 5
 QUESTION: Start_time
 VALUE: 0.0
 QUESTION: End_time
