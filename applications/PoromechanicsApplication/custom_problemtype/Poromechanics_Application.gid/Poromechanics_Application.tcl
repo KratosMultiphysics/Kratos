@@ -52,12 +52,10 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
         # Define GiDPath
         if {[regexp -all {\\} $gidexe] > 0} {
             # Windows
-            set gidexe [string trimright $gidexe \\gid.exe]
             regsub -all {\\} $gidexe {/} gidexe
-        } else {
-            # Unix
-            set gidexe [string trimright $gidexe /gid.exe]
         }
+        set gidexe [string trimright $gidexe gid.exe]
+        
         source [file join $problemtypedir FracturePropagation2D.tcl]
         WriteInitialFracturesData $dir $gidexe
     }
