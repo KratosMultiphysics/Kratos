@@ -65,8 +65,11 @@ proc Pfem::write::GetPartsUN { } {
 }
 # Custom files (Copy python scripts, write materials file...)
 proc Pfem::write::writeCustomFilesEvent { } {
-
+    
+    write::CopyFileIntoModel "python/script.py"
+    write::RenameFileInModel "script.py" "MainKratos.py"
+    
+    #write::RenameFileInModel "ProjectParameters.json" "ProjectParameters.py"
 }
-
 
 Pfem::write::Init
