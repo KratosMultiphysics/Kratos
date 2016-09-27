@@ -85,7 +85,7 @@ public:
   enum { Dimension = TPartConfigure::Dimension };
 
   /// Point
-  typedef typename TPartConfigure::PointType              PointType;
+  typedef typename TObjectConfigure::PointType            PointType;
 
   /// Container
   typedef typename TObjectConfigure::ObjectType           ObjectType;
@@ -99,6 +99,7 @@ public:
 
   /// Search Structures
   typedef typename TPartConfigure::PointType              PartPointType;
+  typedef typename TPartConfigure::ObjectType             PartObjectType;
   typedef typename TPartConfigure::PointerType            PartPtrType;
 
   /// Note: Please note that cell store TPartConfigure
@@ -214,7 +215,10 @@ public:
   /** Default constructor
    * Default constructor
    */
-  virtual ~BinsObjectDynamicMpi() {}
+  virtual ~BinsObjectDynamicMpi() {
+    // TODO: ObjectBins needs to be deleted!!!!!
+    delete mpObjectBins;
+  }
 
 
   /** Searches objects in the cell.
@@ -434,6 +438,20 @@ private:
    */
   BinsObjectDynamicMpi() {}
 
+  double ReduceMaxRadius(IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd) {
+    // Max Radius Ugly fix
+    double local_max_radius = 0.0f;
+    double max_radius = 0.0f;
+    for (IteratorType ObjectItr = ObjectsBegin; ObjectItr != ObjectsEnd; ObjectItr++) {
+      const double Radius = TObjectConfigure::GetObjectRadius(*ObjectItr, 0.0f);
+      if(Radius > local_max_radius) local_max_radius = Radius;
+    }
+
+    MPI_Allreduce(&local_max_radius, &max_radius, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+
+    return max_radius;
+  }
+
   /**
    * Initializes mpi_rank and mpi_size for the given mpi communicator.
    * If no mpi communicator is provided MPI_COMM_WORLD is used as default.
@@ -452,6 +470,10 @@ private:
     mpObjectBins = new BinsObjectDynamic<TObjectConfigure>(ObjectsBegin, ObjectsEnd);
   }
 
+  /**
+   * [CalculateCustomCellSize description]
+   * @param magic [description]
+   */
   void CalculateCustomCellSize(const std::vector<int> & magic) {
     double totalDiff[3];
     double max = 0;
@@ -482,6 +504,7 @@ private:
    * @param mpiComm      Communicator to use ( default MPI_COMM_WORLD )
    */
   void GeneratePartitionBins(IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd, MPI_Comm mpiComm = MPI_COMM_WORLD) {
+
     // Calculate the boundingBox Of this bins
     std::vector<double> localMinPoint(Dimension);
     std::vector<double> localMaxPoint(Dimension);
@@ -492,10 +515,24 @@ private:
     auto & binsObjectMinPoint = mpObjectBins->GetMinPoint();
     auto & binsObjectMaxPoint = mpObjectBins->GetMaxPoint();
 
-    for(std::size_t i = 0; i < Dimension; i++) {
-      localMinPoint[i] = binsObjectMinPoint[i];
-      localMaxPoint[i] = binsObjectMaxPoint[i];
+    double maxRadius = ReduceMaxRadius(ObjectsBegin, ObjectsEnd);
+
+    for(int d = 0; d < Dimension; d++) {
+      localMinPoint[d] = (*ObjectsBegin)->GetGeometry()[0][d];
+      localMaxPoint[d] = (*ObjectsBegin)->GetGeometry()[0][d];
     }
+
+    for(IteratorType objectItr = ObjectsBegin; objectItr != ObjectsEnd; objectItr++) {
+      for(int d = 0; d < Dimension; d++) {
+        localMinPoint[d] = localMinPoint[d] < (*objectItr)->GetGeometry()[0][d] ? localMinPoint[d] : (*objectItr)->GetGeometry()[0][d];
+        localMaxPoint[d] = localMaxPoint[d] > (*objectItr)->GetGeometry()[0][d] ? localMaxPoint[d] : (*objectItr)->GetGeometry()[0][d];
+      }
+    }
+
+    // for(std::size_t i = 0; i < Dimension; i++) {
+    //   localMinPoint[i] = binsObjectMinPoint[i];
+    //   localMaxPoint[i] = binsObjectMaxPoint[i];
+    // }
 
     // Share the boundingbox of all bins
     MPI_Allreduce(&localMinPoint[0], &globalMinPoint[0], Dimension, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
@@ -507,9 +544,10 @@ private:
     }
 
     // CoordinateType binsSize = (this->GetMaxPoint()[0] - this->GetMinPoint()[0]);
-    // SizeType binsSize = 5e3;
+    // SizeType binsSize = mpi_size * 4;
     // this->CalculateCellSize(binsSize);
-    std::vector<int> numberOfCells = {mpi_size, mpi_size, mpi_size};
+    int thirdSqrt = std::round(std::pow(mpi_size*10,1.0f/3.0f));
+    std::vector<int> numberOfCells = {thirdSqrt, thirdSqrt, thirdSqrt};
     this->CalculateCustomCellSize(numberOfCells);
     this->AllocateContainer();
 
@@ -520,18 +558,18 @@ private:
     }
 
     for(std::size_t i = 0; i < numCells; i++) {
-      PartPtrType cellPartitions = PartPtrType(new PartPointType());
+      PartPtrType cellPartitions = PartPtrType(new PartObjectType());
       this->mCells[i].Add(cellPartitions);
     }
 
     // For every object in this bins, mark the local and global vectors of the partition bins in the
     // cell from empty (0) to occupied (1)
-    PointType Low, High;
+    PointType Low, High, Center;
     SearchStructureType Box;
 
     for(IteratorType objectItr = ObjectsBegin; objectItr != ObjectsEnd; objectItr++) {
-      TPartConfigure::CalculateBoundingBox(*objectItr, Low, High);
-      Box.Set( this->CalculateCell(Low), this->CalculateCell(High), this->mN );
+      TPartConfigure::CalculateCenter(*objectItr, Center);
+      Box.Set( this->CalculateCell(Center), this->CalculateCell(Center), this->mN );
 
       FillPartition(Box, *objectItr);
     }
@@ -545,8 +583,8 @@ private:
    * 2. Merge the local partitions with the remote partitions from every process
    */
   void SynchronaizePartitionsInCell() {
-    for(std::size_t i = 0; i < this->mCells.size(); i++) {
-      auto & cellPartitions = (*(this->mCells[i].GetObject(0)))();
+    for(std::size_t cellId = 0; cellId < this->mCells.size(); cellId++) {
+      auto & cellPartitions = (*(this->mCells[cellId].GetObject(0)))();
 
       // Calculate the number of neighbours that will be sent to the process "p" from process "q"
       int sendSize = cellPartitions.size();
@@ -567,11 +605,24 @@ private:
       MPI_Allgather(&sendBuffer[0], recvMaxSize, MPI_INT, &recvBuffer[0], recvMaxSize, MPI_INT, MPI_COMM_WORLD);
 
       for(int i = 0; i < mpi_size; i++) {
-        for(int j = 0; j < recvSize[i]; j++) {
-          cellPartitions.insert(recvBuffer[i*recvMaxSize+j]);
+        if(i != mpi_rank) {
+          for(int j = 0; j < recvSize[i]; j++) {
+            cellPartitions.insert(recvBuffer[i*recvMaxSize+j]);
+          }
         }
       }
     }
+
+    auto meanPartsPerCell = 0.0f;
+    auto CellsWithOne = 0.0f;
+    for(std::size_t i = 0; i < this->mCells.size(); i++) {
+      meanPartsPerCell += (*(this->mCells[i].GetObject(0)))().size();
+      if((*(this->mCells[i].GetObject(0)))().size() == 1) {
+        CellsWithOne++;
+      }
+    }
+
+    meanPartsPerCell /= this->mCells.size();
   }
 
   /** SearchInRadiusLocal
@@ -610,6 +661,8 @@ private:
     int TotalNumObjects = NumberOfObjects;
     int GlobalNumObjects = 0;
 
+    double maxRadius = ReduceMaxRadius(ObjectsBegin, ObjectsEnd);
+
     for(std::size_t i = 0; i < NumberOfObjects; i++) {
       auto ObjectItr = ObjectsBegin + i;
       auto extensionRadius = i < Radius.size() ? Radius[i] : 0.0f;
@@ -620,12 +673,17 @@ private:
 
       // Search the results
       NumberOfResults[i] = mpObjectBins->SearchObjectsInRadiusExclusive(
-        *ObjectItr, extensionRadius,
+        *ObjectItr, ObjectRadius,
         ResultsPointer, ResultsDistancesPointer,
         MaxNumberOfResults
       );
 
-      TPartConfigure::CalculateBoundingBox(*ObjectItr, Low, High, ObjectRadius);
+      TObjectConfigure::CalculateBoundingBox(*ObjectItr, Low, High);
+      for(int i = 0; i < Dimension; i++) {
+        Low[i] -= maxRadius;
+        High[i] += maxRadius;
+      }
+
       Box.Set( this->CalculateCell(Low), this->CalculateCell(High), this->mN);
 
       // Search the partitions
@@ -649,7 +707,7 @@ private:
     MPI_Reduce(&TotalNumObjects, &GlobalNumObjects, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
     if(mpi_rank == 0) {
-      std::cout << "Sending " << GlobalToSend << " out of " << GlobalNumObjects << std::endl;
+      std::cout << "Sending " << GlobalToSend << " unic objects out of " << GlobalNumObjects << std::endl;
     }
   }
 
@@ -670,6 +728,9 @@ private:
       Communicator * MpiCommunicator) {
 
     std::vector<int> RecvObjectSize(mpi_size, 0);
+
+    int TotalToSend = 0;
+    int GlobalToSend = 0;
 
     // Calculate remote points
     for(int i = 0; i < mpi_size; i++) {
@@ -708,12 +769,20 @@ private:
             MaxNumberOfResults
           );
 
+          TotalToSend += RemoteResultsSize[i][j];
+
           for(ResultIteratorType result_it = TempResults.begin(); result_it != RemoteResultsPointer; ++result_it) {
             TObjectConfigure::UpdateLocalInterface(MpiCommunicator, *result_it, destination);
             RemoteResults[i].push_back(*result_it);
           }
         }
       }
+    }
+
+    MPI_Reduce(&TotalToSend, &GlobalToSend, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+
+    if(mpi_rank == 0) {
+      std::cout << "Found total of " << GlobalToSend << " non-unique objects among all partitions" << std::endl;
     }
   }
 
@@ -887,7 +956,7 @@ private:
         MinCell[0] = MinBox[0];
         MaxCell[0] = MaxBox[0];
         for(IndexType I = II + Box.Axis[0].Begin(); I <= II + Box.Axis[0].End(); I += Box.Axis[0].Block, MinCell[0]+=this->mCellSize[0], MaxCell[0]+=this->mCellSize[0]) {
-          if(TPartConfigure::IntersectionBox(i_object, MinCell, MaxCell, Radius)) {
+          if(TPartConfigure::IntersectionBox(i_object, MinCell, MaxCell, Radius) || true) {
             auto & cellPartitions = (*(this->mCells[I].GetObject(0)))();
             partitionList.insert(cellPartitions.begin(), cellPartitions.end());
           }
