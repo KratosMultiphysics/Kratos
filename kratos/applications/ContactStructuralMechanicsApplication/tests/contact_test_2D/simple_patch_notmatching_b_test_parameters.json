@@ -15,7 +15,7 @@
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "contact_test/simple_patch_notmatching_b_test"
+            "input_filename" : "contact_test_2D/simple_patch_notmatching_b_test"
         },
         "compute_mortar_contact"             : true,
         "block_builder"                      : true,
@@ -98,7 +98,7 @@
             "active_check_factor"         : 0.002,
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
-            "integration_order"           : 10
+            "integration_order"           : 5
         }
     },
     {
@@ -108,7 +108,7 @@
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
             "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "input_file_name"      : "contact_test/simple_patch_notmatching_b_test_results.json",
+            "input_file_name"      : "contact_test_2D/simple_patch_notmatching_b_test_results.json",
             "model_part_name"      : "Parts_Parts_Auto3",
             "sub_model_part_name"  : "INTERFACE",
             "time_frequency"       : 1.00
@@ -143,7 +143,7 @@
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
             "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "input_file_name"      : "contact_test/simple_patch_notmatching_b_test_results.json",
+            "input_file_name"      : "contact_test_2D/simple_patch_notmatching_b_test_results.json",
             "model_part_name"      : "Parts_Parts_Auto3",
             "sub_model_part_name"  : "INTERFACE",
             "time_frequency"       : 1.00
@@ -158,7 +158,7 @@
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "output_file_name"     : "contact_test/simple_patch_notmatching_b_test_results.json",
+            "output_file_name"     : "contact_test_2D/simple_patch_notmatching_b_test_results.json",
             "model_part_name"      : "Parts_Parts_Auto3",
             "sub_model_part_name"  : "INTERFACE",
             "time_frequency"       : 1.00

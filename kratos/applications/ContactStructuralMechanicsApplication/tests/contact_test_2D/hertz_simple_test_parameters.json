@@ -15,7 +15,7 @@
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "contact_test/hertz_simple_test"
+            "input_filename" : "contact_test_2D/hertz_simple_test"
         },
         "compute_mortar_contact"             : true,
         "block_builder"                      : true,
@@ -92,7 +92,7 @@
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
             "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "input_file_name"      : "contact_test/hertz_simple_test_results.json",
+            "input_file_name"      : "contact_test_2D/hertz_simple_test_results.json",
             "model_part_name"      : "Parts_parts_hemisphere",
             "sub_model_part_name"  : "INTERFACE",
             "time_frequency"       : 1.00
@@ -127,7 +127,7 @@
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
             "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "input_file_name"      : "contact_test/hertz_simple_test_results.json",
+            "input_file_name"      : "contact_test_2D/hertz_simple_test_results.json",
             "model_part_name"      : "Parts_parts_hemisphere",
             "sub_model_part_name"  : "INTERFACE",
             "time_frequency"       : 1.00
@@ -142,7 +142,7 @@
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "output_file_name"     : "contact_test/hertz_simple_test_results.json",
+            "output_file_name"     : "contact_test_2D/hertz_simple_test_results.json",
             "model_part_name"      : "Parts_parts_hemisphere",
             "sub_model_part_name"  : "INTERFACE",
             "time_frequency"       : 1.00
