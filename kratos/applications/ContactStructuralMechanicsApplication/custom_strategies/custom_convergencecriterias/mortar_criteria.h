@@ -87,7 +87,6 @@ public:
     MortarConvergenceCriteria( MortarConvergenceCriteria const& rOther )
       :BaseType(rOther)
       ,mInitialPreviousState(rOther.mInitialPreviousState)
-//       ,mPreviousState(rOther.mPreviousState)
     {
     }
 
@@ -129,7 +128,6 @@ public:
                     {
                         node_it->GetValue(AUXILIAR_BOOLEAN) = false;
                     }
-//                     mPreviousState.push_back(aux_bool);   
                 }
             }
             
@@ -143,7 +141,6 @@ public:
         NodesArrayType::iterator it_node_begin = pNode.ptr_begin();
         NodesArrayType::iterator it_node_end   = pNode.ptr_end();
         
-//         unsigned int aux_index = 0;
         for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
         {
             if (node_it->Is(INTERFACE))
@@ -162,7 +159,6 @@ public:
                     node_it->GetValue(AUXILIAR_BOOLEAN) = aux_bool;
                     is_converged = false;
                 }
-//                 aux_index += 1;
             }
         }
         
@@ -284,7 +280,6 @@ private:
     ///@{
 
     bool       mInitialPreviousState;
-//     std::vector<bool> mPreviousState;
     
     ///@}
     ///@name Private Operators
