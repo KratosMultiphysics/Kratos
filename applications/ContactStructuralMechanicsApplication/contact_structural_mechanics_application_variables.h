@@ -77,6 +77,8 @@ KRATOS_DEFINE_VARIABLE( double, ACTIVE_CHECK_FACTOR )                         //
 KRATOS_DEFINE_VARIABLE( double, CONSTANT_ACT_INACT )                          // The constant that is considered for the check of active or inactive (when 0 it doesn't accept traction)
 KRATOS_DEFINE_VARIABLE( double, WEIGHTED_GAP )                                // The integrated gap employed in mortar formulation
 KRATOS_DEFINE_VARIABLE( Matrix, DELTA_NORMAL )                                // Directional derivative of the normal
+KRATOS_DEFINE_VARIABLE( bool, AUXILIAR_BOOLEAN )                              // Auxiliar boolean to check
+
 }
 
 #endif	/* KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED */
