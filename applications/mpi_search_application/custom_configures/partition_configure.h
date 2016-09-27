@@ -64,14 +64,14 @@ public:
    */
   static constexpr auto Dimension = 3;
 
-  /** PartitionPoint to store data inside the bins points.
+  /** PartitionObject to store data inside the bins points.
    * This is a current workaround the be able to store data inside the bins without
    * loosing its geometrical information.
-   * [] Operator access the point info as if it were a CoordinateArray or PointType.
+   * [] Operator access the point info as if it were a CoordinateArray or ObjectType.
    * () Operator access the extension.
    */
   template<class T>
-  class PartitionPoint: public BaseConfigure::PointType {
+  class PartitionObject: public BaseConfigure::ObjectType {
     public:
       T & operator()() { return container;};
     private:
@@ -82,8 +82,10 @@ public:
    * @param PointType   Set of integers
    * @param PointerType Pointer to Set of integers
    */
-  typedef PartitionPoint<std::unordered_set<int>>     PointType;
-  typedef boost::shared_ptr<PointType>                PointerType;
+  typedef typename BaseConfigure::PointType           PointType;
+
+  typedef PartitionObject<std::unordered_set<int>>    ObjectType;
+  typedef boost::shared_ptr<ObjectType>               PointerType;
   typedef typename BaseConfigure::PointerType         BasePointerType;
 
   /** Additional types needed by the bins.
@@ -129,7 +131,6 @@ public:
   ///@{
 
   /** Calculates the bounding box for the given object.
-   * Does not apply for sets.
    * @param rObject    Point for which the bounding box will be calculated.
    * @param rLowPoint  Lower point of the boundingbox.
    * @param rHighPoint Higher point of the boundingbox.
@@ -139,7 +140,6 @@ public:
   }
 
   /** Calculates the bounding box for the given object extended with a Radius.
-   * Does not apply for sets.
    * @param rObject    Point for which the bounding box will be calculated.
    * @param rLowPoint  Lower point of the boundingbox.
    * @param rHighPoint Higher point of the boundingbox.
@@ -149,8 +149,15 @@ public:
     BaseConfigure::CalculateBoundingBox(rObject, rLowPoint, rHighPoint, Radius);
   }
 
+  /** Calculates the Center of the object.
+   * @param rObject        Point for which the bounding box will be calculated.
+   * @param rCentralPoint  The center point of the object.
+   */
+  static inline void CalculateCenter(const BasePointerType& rObject, PointType& rCentralPoint) {
+    BaseConfigure::CalculateCenter(rObject, rCentralPoint);
+  }
+
   /** Tests the intersection of two objects
-   * Does not apply for sets.
    * @param  rObj_1 First point of the tests
    * @param  rObj_2 Second point of the tests
    * @return        Boolean indicating the result of the intersection test described.
@@ -160,7 +167,6 @@ public:
   }
 
   /** Tests the intersection of two objects extended with a given radius.
-   * Does not apply for sets.
    * @param  rObj_1 First point of the tests
    * @param  rObj_2 Second point of the tests
    * @param  Radius The extension radius to be applied in the intersection.
@@ -171,7 +177,6 @@ public:
   }
 
   /** Tests the intersection of one object with a boundingbox descrived by 'rLowPoint' and 'rHighPoint'.
-   * Does not apply for sets.
    * @param  rObject    Point of the tests.
    * @param  rLowPoint  Lower point of the boundingbox.
    * @param  rHighPoint Higher point of the boundingbox.
@@ -182,7 +187,6 @@ public:
   }
 
   /** Tests the intersection of one object with a boundingbox descrived by 'rLowPoint' and 'rHighPoint'.
-   * Does not apply for sets.
    * @param  rObject    Point of the tests.
    * @param  rLowPoint  Lower point of the boundingbox.
    * @param  rHighPoint Higher point of the boundingbox.
@@ -194,7 +198,6 @@ public:
   }
 
   /** Calculates the distance betwen two objects.
-   * Does not apply for sets.
    * @param rObj_1      First point.
    * @param rLowPoint   Lower point.
    * @param rHighPoint  Higher point of the boundingbox.
@@ -203,6 +206,9 @@ public:
   static inline void Distance(const BasePointerType& rObj_1, const BasePointerType& rObj_2, double& distance) {
     BaseConfigure::Distance(rObj_1, rObj_2, distance);
   }
+
+  static std::vector<double> mMinPoint;
+  static std::vector<double> mMaxPoint;
 
   ///@}
   ///@name Access
@@ -311,6 +317,24 @@ private:
   ///@}
 
 }; // Class PartitionConfigure
+
+template<class BaseConfigure>
+std::vector<double> PartitionConfigure<BaseConfigure>::mMinPoint = [] {
+  std::vector<double> v;
+  for(std::size_t i = 0; i < PartitionConfigure<BaseConfigure>::Dimension; i++) {
+    v.push_back(0);
+  }
+  return v;
+}();
+
+template<class BaseConfigure>
+std::vector<double> PartitionConfigure<BaseConfigure>::mMaxPoint = [] {
+  std::vector<double> v;
+  for(std::size_t i = 0; i < PartitionConfigure<BaseConfigure>::Dimension; i++) {
+    v.push_back(0);
+  }
+  return v;
+}();
 
 ///@}
 

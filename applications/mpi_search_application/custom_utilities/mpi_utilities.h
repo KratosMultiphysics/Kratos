@@ -399,12 +399,10 @@ namespace Kratos
                   MaxNodeRadius = NodeRadius > MaxNodeRadius ? NodeRadius : MaxNodeRadius;
               }
 
-          LloydParallelPartitioner<Configure> partitioner;
-          partitioner.LloydsBasedPartitioner(rModelPart,MaxNodeRadius,CalculateBoundary);
+          LloydParallelPartitioner<Configure> partitioner(pLocalElements.begin(), pLocalElements.end());
 
+          partitioner.SerialPartition();
           MigrateElements(rModelPart);
-
-          partitioner.CalculatePartitionInterface(rModelPart);
 
           Timer::SetOuputFile("TimesPartitioner");
           Timer::PrintTimingInformation();
