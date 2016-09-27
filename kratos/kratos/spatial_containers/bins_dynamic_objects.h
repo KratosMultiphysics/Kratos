@@ -576,7 +576,33 @@ public:
         return mMaxPoint;
     }
 
+    IndexArray  CalculateCell( const PointType& ThisPoint )
+    {
+        IndexArray IndexCell;
+        for(SizeType i = 0 ; i < Dimension ; i++)
+            IndexCell[i] = CalculatePosition(ThisPoint[i],i);
+        return IndexCell;
+    }
 
+    IndexType CalculateIndex( const PointType& ThisPoint )
+    {
+        IndexType Index = 0;
+        for(SizeType iDim = Dimension-1 ; iDim > 0 ; iDim--)
+        {
+            Index += CalculatePosition(ThisPoint[iDim],iDim);
+            Index *= mN[iDim-1];
+        }
+        Index += CalculatePosition(ThisPoint[0],0);
+        return Index;
+    }
+
+    IndexType CalculatePosition( CoordinateType const& ThisCoord, const SizeType& ThisDimension )
+    {
+        CoordinateType d_index = (ThisCoord - mMinPoint[ThisDimension]) * mInvCellSize[ThisDimension];
+        IndexType index = static_cast<IndexType>( (d_index < 0.00) ? 0.00 : d_index );
+        return  (index > mN[ThisDimension]-1) ? mN[ThisDimension]-1 : index;
+
+    }
 
 //************************************************************************
 //************************************************************************
@@ -1429,29 +1455,6 @@ protected:
 //************************************************************************
 //************************************************************************
 
-    IndexArray  CalculateCell( const PointType& ThisPoint )
-    {
-        IndexArray IndexCell;
-        for(SizeType i = 0 ; i < Dimension ; i++)
-            IndexCell[i] = CalculatePosition(ThisPoint[i],i);
-        return IndexCell;
-    }
-
-    IndexType CalculateIndex( const PointType& ThisPoint )
-    {
-        IndexType Index = 0;
-        for(SizeType iDim = Dimension-1 ; iDim > 0 ; iDim--)
-        {
-            Index += CalculatePosition(ThisPoint[iDim],iDim);
-            Index *= mN[iDim-1];
-        }
-        Index += CalculatePosition(ThisPoint[0],0);
-        return Index;
-    }
-
-//************************************************************************
-//************************************************************************
-
     // Dimension = 1
     void FillObject( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box, const PointerType& i_object)
     {
@@ -1611,17 +1614,6 @@ protected:
                 }
             }
         }
-    }
-
-//************************************************************************
-//************************************************************************
-
-    IndexType CalculatePosition( CoordinateType const& ThisCoord, const SizeType& ThisDimension )
-    {
-        CoordinateType d_index = (ThisCoord - mMinPoint[ThisDimension]) * mInvCellSize[ThisDimension];
-        IndexType index = static_cast<IndexType>( (d_index < 0.00) ? 0.00 : d_index );
-        return  (index > mN[ThisDimension]-1) ? mN[ThisDimension]-1 : index;
-
     }
 
 
