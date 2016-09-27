@@ -87,7 +87,7 @@ public:
     MortarConvergenceCriteria( MortarConvergenceCriteria const& rOther )
       :BaseType(rOther)
       ,mInitialPreviousState(rOther.mInitialPreviousState)
-      ,mPreviousState(rOther.mPreviousState)
+//       ,mPreviousState(rOther.mPreviousState)
     {
     }
 
@@ -121,12 +121,15 @@ public:
             {
                 if (node_it->Is(INTERFACE))
                 {
-                    bool aux_bool = false;
                     if (node_it->Is(ACTIVE))
                     {
-                        aux_bool = true;
+                        node_it->GetValue(AUXILIAR_BOOLEAN) = true;
                     }
-                    mPreviousState.push_back(aux_bool);   
+                    else
+                    {
+                        node_it->GetValue(AUXILIAR_BOOLEAN) = false;
+                    }
+//                     mPreviousState.push_back(aux_bool);   
                 }
             }
             
@@ -140,22 +143,26 @@ public:
         NodesArrayType::iterator it_node_begin = pNode.ptr_begin();
         NodesArrayType::iterator it_node_end   = pNode.ptr_end();
         
-        unsigned int aux_index = 0;
+//         unsigned int aux_index = 0;
         for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
         {
             if (node_it->Is(INTERFACE))
             {
-                bool aux_bool = false;
+                bool aux_bool;
                 if (node_it->Is(ACTIVE))
                 {
                     aux_bool = true;
                 }
-                if (mPreviousState[aux_index] != aux_bool)
+                else
+                {
+                    aux_bool = false;
+                }
+                if (node_it->GetValue(AUXILIAR_BOOLEAN) != aux_bool)
                 {                            
-                    mPreviousState[aux_index] = aux_bool;
+                    node_it->GetValue(AUXILIAR_BOOLEAN) = aux_bool;
                     is_converged = false;
                 }
-                aux_index += 1;
+//                 aux_index += 1;
             }
         }
         
@@ -277,7 +284,7 @@ private:
     ///@{
 
     bool       mInitialPreviousState;
-    std::vector<bool> mPreviousState;
+//     std::vector<bool> mPreviousState;
     
     ///@}
     ///@name Private Operators
