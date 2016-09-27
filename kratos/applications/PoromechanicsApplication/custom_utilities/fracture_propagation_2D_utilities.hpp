@@ -1388,6 +1388,11 @@ private:
                         this->FractureLineSearch(MyFractureLine,DamageFactor,*(rAuxPropagationVariables.TopBackFracturePoints[i]),
                                                 rAuxPropagationVariables.TopFrontFracturePoints[j],rAuxPropagationVariables.RotationMatrix,PropagationLength);                            
                     }
+                    for(unsigned int j = 0; j < rAuxPropagationVariables.BotFrontFracturePoints.size(); j++)
+                    {
+                        this->FractureLineSearch(MyFractureLine,DamageFactor,*(rAuxPropagationVariables.TopBackFracturePoints[i]),
+                                                rAuxPropagationVariables.BotFrontFracturePoints[j],rAuxPropagationVariables.RotationMatrix,PropagationLength);                            
+                    }
                     if(DamageFactor > 0.0)
                     {
                         MyFractureLine.pInitPoint = rAuxPropagationVariables.TopBackFracturePoints[i];
@@ -1434,6 +1439,11 @@ private:
                         this->FractureLineSearch(MyFractureLine,DamageFactor,*(rAuxPropagationVariables.BotBackFracturePoints[i]),
                                                 rAuxPropagationVariables.BotFrontFracturePoints[j],rAuxPropagationVariables.RotationMatrix,PropagationLength);                            
                     }
+                    for(unsigned int j = 0; j < rAuxPropagationVariables.TopFrontFracturePoints.size(); j++)
+                    {
+                        this->FractureLineSearch(MyFractureLine,DamageFactor,*(rAuxPropagationVariables.BotBackFracturePoints[i]),
+                                                rAuxPropagationVariables.TopFrontFracturePoints[j],rAuxPropagationVariables.RotationMatrix,PropagationLength);                            
+                    }
                     if(DamageFactor > 0.0)
                     {
                         MyFractureLine.pInitPoint = rAuxPropagationVariables.BotBackFracturePoints[i];
@@ -1469,17 +1479,19 @@ private:
         // Compute bifurcation and propagation factors
         double PropagationFactor = 0.0;
         double PropagationFactorDenominator = 0.0;
-        double BifurcationFactor = 0.0;
-        double BifurcationFactorDenominator = 0.0;
+        double TopBifurcationFactor = 0.0;
+        double TopBifurcationFactorDenominator = 0.0;
+        double BotBifurcationFactor = 0.0;
+        double BotBifurcationFactorDenominator = 0.0;
         
-        #pragma omp parallel sections reduction(+:PropagationFactor,PropagationFactorDenominator,BifurcationFactor,BifurcationFactorDenominator)
+        #pragma omp parallel sections reduction(+:PropagationFactor,PropagationFactorDenominator,TopBifurcationFactor,TopBifurcationFactorDenominator,BotBifurcationFactor,BotBifurcationFactorDenominator)
         {
             // TopBackFractureLines
             #pragma omp section
             {
                 for(unsigned int i = 0; i < TopBackFractureLines.size(); i++)
                 {
-                    this->TopBifurcationFactors(PropagationFactor,PropagationFactorDenominator,BifurcationFactor,BifurcationFactorDenominator,TopBackFractureLines[i],PropagationLength);
+                    this->TopBifurcationFactors(PropagationFactor,PropagationFactorDenominator,TopBifurcationFactor,TopBifurcationFactorDenominator,TopBackFractureLines[i],PropagationLength);
                 }
             }
             // TopFrontFractureLines
@@ -1487,7 +1499,7 @@ private:
             {
                 for(unsigned int i = 0; i < TopFrontFractureLines.size(); i++)
                 {
-                    this->TopBifurcationFactors(PropagationFactor,PropagationFactorDenominator,BifurcationFactor,BifurcationFactorDenominator,TopFrontFractureLines[i],PropagationLength);
+                    this->TopBifurcationFactors(PropagationFactor,PropagationFactorDenominator,TopBifurcationFactor,TopBifurcationFactorDenominator,TopFrontFractureLines[i],PropagationLength);
                 }
             }
             // BotBackFractureLines
@@ -1495,7 +1507,7 @@ private:
             {
                 for(unsigned int i = 0; i < BotBackFractureLines.size(); i++)
                 {
-                    this->BotBifurcationFactors(PropagationFactor,PropagationFactorDenominator,BifurcationFactor,BifurcationFactorDenominator,BotBackFractureLines[i],PropagationLength);
+                    this->BotBifurcationFactors(PropagationFactor,PropagationFactorDenominator,BotBifurcationFactor,BotBifurcationFactorDenominator,BotBackFractureLines[i],PropagationLength);
                 }
             }
             // BotFrontFractureLines
@@ -1503,7 +1515,7 @@ private:
             {
                 for(unsigned int i = 0; i < BotFrontFractureLines.size(); i++)
                 {
-                    this->BotBifurcationFactors(PropagationFactor,PropagationFactorDenominator,BifurcationFactor,BifurcationFactorDenominator,BotFrontFractureLines[i],PropagationLength);
+                    this->BotBifurcationFactors(PropagationFactor,PropagationFactorDenominator,BotBifurcationFactor,BotBifurcationFactorDenominator,BotFrontFractureLines[i],PropagationLength);
                 }
             }
         }
@@ -1511,10 +1523,14 @@ private:
             PropagationFactor = PropagationFactor/PropagationFactorDenominator;
         else
             PropagationFactor = 0.0;
-        if(BifurcationFactorDenominator > 1.0e-20)
-            BifurcationFactor = BifurcationFactor/BifurcationFactorDenominator;
+        if(TopBifurcationFactorDenominator > 1.0e-20)
+            TopBifurcationFactor = TopBifurcationFactor/TopBifurcationFactorDenominator;
         else
-            BifurcationFactor = 0.0;
+            TopBifurcationFactor = 0.0;
+        if(BotBifurcationFactorDenominator > 1.0e-20)
+            BotBifurcationFactor = BotBifurcationFactor/BotBifurcationFactorDenominator;
+        else
+            BotBifurcationFactor = 0.0;
         
         // Compute Propagation Coordinates
         bool SimplePropagation = true;
@@ -1524,8 +1540,13 @@ private:
         array_1d<double,2> AuxArray2;
             
         // Bifurcation
-        if(BifurcationFactor > 2.0*PropagationFactor) //TODO: BifurcationFactor must be clearly higher than PropagationFactor for a bifurcation to occur
+        if(TopBifurcationFactor > PropagationFactor && BotBifurcationFactor > PropagationFactor && PropagationFactor < 0.25)
         {
+            SimplePropagation = false;
+            
+            Bifurcation MyBifurcation;
+            MyBifurcation.MotherFractureId = MotherFractureId;
+            
             double TopInitX = 0.0;
             double TopInitY = 0.0;
             double TopInitDen = 0.0;
@@ -1538,6 +1559,7 @@ private:
             double BotEndX = 0.0;
             double BotEndY = 0.0;
             double BotEndDen = 0.0;
+            
             #pragma omp parallel sections reduction(+:TopInitX,TopInitY,TopInitDen,TopEndX,TopEndY,TopEndDen,BotInitX,BotInitY,BotInitDen,BotEndX,BotEndY,BotEndDen)
             {
                 // TopBackFractureLines
@@ -1578,96 +1600,65 @@ private:
                 }
             }
             
-            double Distance;
-            
             array_1d<double,2> TopInitCoordinates;
             array_1d<double,2> TopEndCoordinates;
-            double TopCosAngle = 1.0;
-            
             TopInitCoordinates[0] = TopInitX/TopInitDen;
             TopInitCoordinates[1] = TopInitY/TopInitDen;
             TopEndCoordinates[0] = TopEndX/TopEndDen;
             TopEndCoordinates[1] = TopEndY/TopEndDen;
             
-            noalias(AuxArray2) = TopEndCoordinates - TopInitCoordinates;
-            Distance = sqrt(AuxArray2[0]*AuxArray2[0]+AuxArray2[1]*AuxArray2[1]);
-            if(Distance > 0.0)
-            {
-                AuxArray2[0] = AuxArray2[0]/Distance;
-                AuxArray2[1] = AuxArray2[1]/Distance;
-                noalias(AuxArray1) = prod(rAuxPropagationVariables.RotationMatrix,AuxArray2);
-                TopCosAngle = AuxArray1[0];
-            }
-            
             array_1d<double,2> BotInitCoordinates;
             array_1d<double,2> BotEndCoordinates;
-            double BotCosAngle = 1.0;
-            
             BotInitCoordinates[0] = BotInitX/BotInitDen;
             BotInitCoordinates[1] = BotInitY/BotInitDen;
             BotEndCoordinates[0] = BotEndX/BotEndDen;
             BotEndCoordinates[1] = BotEndY/BotEndDen;
             
             
-            noalias(AuxArray2) = BotEndCoordinates - BotInitCoordinates;
-            Distance = sqrt(AuxArray2[0]*AuxArray2[0]+AuxArray2[1]*AuxArray2[1]);
-            if(Distance > 0.0)
-            {
-                AuxArray2[0] = AuxArray2[0]/Distance;
-                AuxArray2[1] = AuxArray2[1]/Distance;
-                noalias(AuxArray1) = prod(rAuxPropagationVariables.RotationMatrix,AuxArray2);
-                BotCosAngle = AuxArray1[0];
-            }
+            noalias(AuxArray1) = prod(rAuxPropagationVariables.RotationMatrix,TopInitCoordinates);
+            noalias(AuxArray2) = prod(rAuxPropagationVariables.RotationMatrix,TopEndCoordinates);
+            this->ComputeNewTipPoint(MyBifurcation.TopTipCoordinates,AuxArray1,AuxArray2,
+                        rAuxPropagationVariables.TipLocalCoordinates,PropagationLength,rAuxPropagationVariables.RotationMatrix);
             
-            // Check that bifurcation angle is wide enough (CosAngle < 0.9 -> Angle must be grater than 25º) // TODO: this could be an imput parameter...
-            if(TopCosAngle < 0.9 && BotCosAngle < 0.9)
-            {
-                SimplePropagation = false;
-                
-                Bifurcation MyBifurcation;
-                
-                MyBifurcation.MotherFractureId = MotherFractureId;
-                                
-                noalias(AuxArray1) = prod(rAuxPropagationVariables.RotationMatrix,TopInitCoordinates);
-                noalias(AuxArray2) = prod(rAuxPropagationVariables.RotationMatrix,TopEndCoordinates);
-                this->ComputeNewTipPoint(MyBifurcation.TopTipCoordinates,AuxArray1,AuxArray2,
-                            rAuxPropagationVariables.TipLocalCoordinates,PropagationLength,rAuxPropagationVariables.RotationMatrix);
-                
-                noalias(AuxArray1) = prod(rAuxPropagationVariables.RotationMatrix,BotInitCoordinates);
-                noalias(AuxArray2) = prod(rAuxPropagationVariables.RotationMatrix,BotEndCoordinates);
-                this->ComputeNewTipPoint(MyBifurcation.BotTipCoordinates,AuxArray1,AuxArray2,
-                            rAuxPropagationVariables.TipLocalCoordinates,PropagationLength,rAuxPropagationVariables.RotationMatrix);
-                
-                noalias(AuxArray1) = rAuxPropagationVariables.TipLocalCoordinates;
-                AuxArray1[1] += 0.5*PropagationWidth;
-                noalias(AuxArray2) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
-                MyBifurcation.TopInitCoordinates[0] = AuxArray2[0];
-                MyBifurcation.TopInitCoordinates[1] = AuxArray2[1];
-                MyBifurcation.TopInitCoordinates[2] = 0.0;
-                
-                noalias(AuxArray1) = rAuxPropagationVariables.TipLocalCoordinates;
-                AuxArray1[1] -= 0.5*PropagationWidth;
-                noalias(AuxArray2) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
-                MyBifurcation.BotInitCoordinates[0] = AuxArray2[0];
-                MyBifurcation.BotInitCoordinates[1] = AuxArray2[1];
-                MyBifurcation.BotInitCoordinates[2] = 0.0;
-
-                noalias(AuxArray1) = rAuxPropagationVariables.TipLocalCoordinates;
-                AuxArray1[0] += PropagationWidth;
-                noalias(AuxArray2) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
-                MyBifurcation.LinkCoordinates[0] = AuxArray2[0];
-                MyBifurcation.LinkCoordinates[1] = AuxArray2[1];
-                MyBifurcation.LinkCoordinates[2] = 0.0;
-                                
-                rPropagationData.BifurcationVector.push_back(MyBifurcation);
-            }
+            noalias(AuxArray1) = prod(rAuxPropagationVariables.RotationMatrix,BotInitCoordinates);
+            noalias(AuxArray2) = prod(rAuxPropagationVariables.RotationMatrix,BotEndCoordinates);
+            this->ComputeNewTipPoint(MyBifurcation.BotTipCoordinates,AuxArray1,AuxArray2,
+                        rAuxPropagationVariables.TipLocalCoordinates,PropagationLength,rAuxPropagationVariables.RotationMatrix);
+            
+            noalias(AuxArray1) = rAuxPropagationVariables.TipLocalCoordinates;
+            AuxArray1[1] += 0.5*PropagationWidth;
+            noalias(AuxArray2) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
+            MyBifurcation.TopInitCoordinates[0] = AuxArray2[0];
+            MyBifurcation.TopInitCoordinates[1] = AuxArray2[1];
+            MyBifurcation.TopInitCoordinates[2] = 0.0;
+            
+            noalias(AuxArray1) = rAuxPropagationVariables.TipLocalCoordinates;
+            AuxArray1[1] -= 0.5*PropagationWidth;
+            noalias(AuxArray2) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
+            MyBifurcation.BotInitCoordinates[0] = AuxArray2[0];
+            MyBifurcation.BotInitCoordinates[1] = AuxArray2[1];
+            MyBifurcation.BotInitCoordinates[2] = 0.0;
+            
+            noalias(AuxArray1) = rAuxPropagationVariables.TipLocalCoordinates;
+            AuxArray1[0] += PropagationWidth;
+            noalias(AuxArray2) = prod(trans(rAuxPropagationVariables.RotationMatrix),AuxArray1);
+            MyBifurcation.LinkCoordinates[0] = AuxArray2[0];
+            MyBifurcation.LinkCoordinates[1] = AuxArray2[1];
+            MyBifurcation.LinkCoordinates[2] = 0.0;
+            
+            rPropagationData.BifurcationVector.push_back(MyBifurcation);
         }
+        
         // Propagation
         if(SimplePropagation == true)
         {
+            Propagation MyPropagation;
+            MyPropagation.MotherFractureId = MotherFractureId;
+            
             double TipX = 0.0;
             double TipY = 0.0;
             double TipDen = 0.0;
+            
             #pragma omp parallel sections reduction(+:TipX,TipY,TipDen)
             {
                 // TopFrontFractureLines
@@ -1688,12 +1679,10 @@ private:
                 }
             }
             
-            Propagation MyPropagation;
-            
-            MyPropagation.MotherFractureId = MotherFractureId;
-            
             AuxArray1[0] = TipX/TipDen;
             AuxArray1[1] = TipY/TipDen;
+            
+            
             noalias(AuxArray2) = prod(rAuxPropagationVariables.RotationMatrix,AuxArray1);
             this->ComputeNewTipPoint(MyPropagation.TipCoordinates,rAuxPropagationVariables.TipLocalCoordinates,AuxArray2,
                         rAuxPropagationVariables.TipLocalCoordinates,PropagationLength,rAuxPropagationVariables.RotationMatrix);
@@ -1711,7 +1700,7 @@ private:
             MyPropagation.BotInitCoordinates[0] = AuxArray2[0];
             MyPropagation.BotInitCoordinates[1] = AuxArray2[1];
             MyPropagation.BotInitCoordinates[2] = 0.0;
-                        
+            
             rPropagationData.PropagationVector.push_back(MyPropagation);
         }
     }
@@ -1795,8 +1784,8 @@ private:
     void TopBifurcationFactors(
         double& rPropagationFactor,
         double& rPropagationFactorDenominator,
-        double& rBifurcationFactor,
-        double& rBifurcationFactorDenominator,
+        double& rTopBifurcationFactor,
+        double& rTopBifurcationFactorDenominator,
         const FractureLine& TopFractureLine,
         const double& PropagationLength)
     {
@@ -1806,16 +1795,14 @@ private:
         // Propagation
         if(TopFractureLine.Slope <= 0.0)
         {
-            rPropagationFactor += LineWeight*exp(-4.0*LineTipDistance*LineTipDistance/(PropagationLength*PropagationLength))*LineDamage*TopFractureLine.CosAngle;
-            
-            rPropagationFactorDenominator += LineWeight*exp(-4.0*LineTipDistance*LineTipDistance/(PropagationLength*PropagationLength))*TopFractureLine.CosAngle;
+            rPropagationFactor += LineWeight*exp(-4.0*LineTipDistance*LineTipDistance/(PropagationLength*PropagationLength))*LineDamage;
+            rPropagationFactorDenominator += LineWeight*exp(-4.0*LineTipDistance*LineTipDistance/(PropagationLength*PropagationLength));
         }
         // Bifurcation
         else
         {
-            rBifurcationFactor += LineWeight*exp(-4.0*LineTipDistance*LineTipDistance/(PropagationLength*PropagationLength))*LineDamage*TopFractureLine.CosAngle;
-            
-            rBifurcationFactorDenominator += LineWeight*exp(-4.0*LineTipDistance*LineTipDistance/(PropagationLength*PropagationLength))*TopFractureLine.CosAngle;
+            rTopBifurcationFactor += LineWeight*exp(-4.0*LineTipDistance*LineTipDistance/(PropagationLength*PropagationLength))*LineDamage;
+            rTopBifurcationFactorDenominator += LineWeight*exp(-4.0*LineTipDistance*LineTipDistance/(PropagationLength*PropagationLength));
         }
     }
 
@@ -1824,8 +1811,8 @@ private:
     void BotBifurcationFactors(
         double& rPropagationFactor,
         double& rPropagationFactorDenominator,
-        double& rBifurcationFactor,
-        double& rBifurcationFactorDenominator,
+        double& rBotBifurcationFactor,
+        double& rBotBifurcationFactorDenominator,
         const FractureLine& BotFractureLine,
         const double& PropagationLength)
     {
@@ -1835,16 +1822,14 @@ private:
         // Propagation
         if(BotFractureLine.Slope >= 0.0)
         {
-            rPropagationFactor += LineWeight*exp(-4.0*LineTipDistance*LineTipDistance/(PropagationLength*PropagationLength))*LineDamage*BotFractureLine.CosAngle;
-            
-            rPropagationFactorDenominator += LineWeight*exp(-4.0*LineTipDistance*LineTipDistance/(PropagationLength*PropagationLength))*BotFractureLine.CosAngle;
+            rPropagationFactor += LineWeight*exp(-4.0*LineTipDistance*LineTipDistance/(PropagationLength*PropagationLength))*LineDamage;
+            rPropagationFactorDenominator += LineWeight*exp(-4.0*LineTipDistance*LineTipDistance/(PropagationLength*PropagationLength));
         }
         // Bifurcation
         else
         {
-            rBifurcationFactor += LineWeight*exp(-4.0*LineTipDistance*LineTipDistance/(PropagationLength*PropagationLength))*LineDamage*BotFractureLine.CosAngle;
-            
-            rBifurcationFactorDenominator += LineWeight*exp(-4.0*LineTipDistance*LineTipDistance/(PropagationLength*PropagationLength))*BotFractureLine.CosAngle;
+            rBotBifurcationFactor += LineWeight*exp(-4.0*LineTipDistance*LineTipDistance/(PropagationLength*PropagationLength))*LineDamage;
+            rBotBifurcationFactorDenominator += LineWeight*exp(-4.0*LineTipDistance*LineTipDistance/(PropagationLength*PropagationLength));
         }
     }
 
