@@ -341,6 +341,44 @@ TriangleGaussLegendreIntegrationPoints4::IntegrationPointsArrayType TriangleGaus
 #undef KRATOS_TRI_G4_Nb1
 #undef KRATOS_TRI_G4_Nb2
 
+#define KRATOS_TRI_G5_wa 0.025422453185103408460
+#define KRATOS_TRI_G5_wb 0.058393137863189683013
+#define KRATOS_TRI_G5_wc 0.041425537809186787597
+#define KRATOS_TRI_G5_N1 0.87382197101699554332
+#define KRATOS_TRI_G5_N2 0.063089014491502228340
+#define KRATOS_TRI_G5_N3 0.50142650965817915742
+#define KRATOS_TRI_G5_N4 0.24928674517091042129
+#define KRATOS_TRI_G5_N5 0.053145049844816947353
+#define KRATOS_TRI_G5_N6 0.31035245103378440542
+#define KRATOS_TRI_G5_N7 0.63650249912139864723
+TriangleGaussLegendreIntegrationPoints5::IntegrationPointsArrayType TriangleGaussLegendreIntegrationPoints5::msIntegrationPoints =
+{
+    {
+	IntegrationPointType( KRATOS_TRI_G5_N1, KRATOS_TRI_G5_N2, KRATOS_TRI_G5_wa ),
+        IntegrationPointType( KRATOS_TRI_G5_N2, KRATOS_TRI_G5_N1, KRATOS_TRI_G5_wa ),
+        IntegrationPointType( KRATOS_TRI_G5_N2, KRATOS_TRI_G5_N2, KRATOS_TRI_G5_wa ),
+        IntegrationPointType( KRATOS_TRI_G5_N3, KRATOS_TRI_G5_N4, KRATOS_TRI_G5_wb ),
+        IntegrationPointType( KRATOS_TRI_G5_N4, KRATOS_TRI_G5_N3, KRATOS_TRI_G5_wb ),
+        IntegrationPointType( KRATOS_TRI_G5_N4, KRATOS_TRI_G5_N4, KRATOS_TRI_G5_wb ),
+	IntegrationPointType( KRATOS_TRI_G5_N5, KRATOS_TRI_G5_N6, KRATOS_TRI_G5_wc ),
+        IntegrationPointType( KRATOS_TRI_G5_N6, KRATOS_TRI_G5_N5, KRATOS_TRI_G5_wc ),
+        IntegrationPointType( KRATOS_TRI_G5_N5, KRATOS_TRI_G5_N7, KRATOS_TRI_G5_wc ),
+        IntegrationPointType( KRATOS_TRI_G5_N6, KRATOS_TRI_G5_N7, KRATOS_TRI_G5_wc ),
+        IntegrationPointType( KRATOS_TRI_G5_N7, KRATOS_TRI_G5_N5, KRATOS_TRI_G5_wc ),
+        IntegrationPointType( KRATOS_TRI_G5_N7, KRATOS_TRI_G5_N6, KRATOS_TRI_G5_wc )
+    }
+};
+#undef KRATOS_TRI_G5_wa
+#undef KRATOS_TRI_G5_wb
+#undef KRATOS_TRI_G5_wc
+#undef KRATOS_TRI_G5_N1
+#undef KRATOS_TRI_G5_N2
+#undef KRATOS_TRI_G5_N3
+#undef KRATOS_TRI_G5_N4
+#undef KRATOS_TRI_G5_N5
+#undef KRATOS_TRI_G5_N6
+#undef KRATOS_TRI_G5_N7
+
 TriangleGaussRadauIntegrationPoints1::IntegrationPointsArrayType TriangleGaussRadauIntegrationPoints1::msIntegrationPoints =
 {
     {
