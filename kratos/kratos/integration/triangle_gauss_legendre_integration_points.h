@@ -159,7 +159,10 @@ public:
 
     typedef IntegrationPointType::PointType PointType;
 
-    static SizeType IntegrationPointsNumber()    {  return 6; }
+    static SizeType IntegrationPointsNumber()    
+    {  
+        return 6; 
+    }
 
     static IntegrationPointsArrayType& IntegrationPoints()
     {
@@ -192,6 +195,68 @@ private:
     static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class TriangleGaussLegendreIntegrationPoints4
+
+class KRATOS_API(KRATOS_CORE) TriangleGaussLegendreIntegrationPoints5
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(TriangleGaussLegendreIntegrationPoints5);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 2;
+
+    typedef IntegrationPoint<2> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 12> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()    
+    {  
+        return 12; 
+    }
+
+    static IntegrationPointsArrayType& IntegrationPoints()
+    {
+        const double wa = 0.025422453185103408460;
+        const double wb = 0.058393137863189683013;
+        const double wc = 0.041425537809186787597;
+        
+        const double N1 = 0.87382197101699554332;
+        const double N2 = 0.063089014491502228340;
+        const double N3 = 0.50142650965817915742;
+        const double N4 = 0.24928674517091042129;
+        const double N5 = 0.053145049844816947353;
+        const double N6 = 0.31035245103378440542;
+        const double N7 = 0.63650249912139864723;
+
+	msIntegrationPoints[0]  = IntegrationPointType( N1, N2, wa );
+        msIntegrationPoints[1]  = IntegrationPointType( N2, N1, wa );
+        msIntegrationPoints[2]  = IntegrationPointType( N2, N2, wa );
+        msIntegrationPoints[3]  = IntegrationPointType( N3, N4, wb );
+        msIntegrationPoints[4]  = IntegrationPointType( N4, N3, wb );
+        msIntegrationPoints[5]  = IntegrationPointType( N4, N4, wb );
+	msIntegrationPoints[6]  = IntegrationPointType( N5, N6, wc );
+        msIntegrationPoints[7]  = IntegrationPointType( N6, N5, wc );
+        msIntegrationPoints[8]  = IntegrationPointType( N5, N7, wc );
+        msIntegrationPoints[9]  = IntegrationPointType( N6, N7, wc );
+        msIntegrationPoints[10] = IntegrationPointType( N7, N5, wc );
+        msIntegrationPoints[11] = IntegrationPointType( N7, N6, wc );
+        return msIntegrationPoints;
+    }
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Triangle Gauss-Legendre quadrature 5 ";
+        return buffer.str();
+    }
+protected:
+
+private:
+
+    static IntegrationPointsArrayType msIntegrationPoints;
+
+}; // Class TriangleGaussLegendreIntegrationPoints5
 
 
 ///@name Type Definitions

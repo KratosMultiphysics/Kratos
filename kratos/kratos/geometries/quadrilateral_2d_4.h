@@ -25,6 +25,7 @@
 // Project includes
 #include "geometries/line_2d_2.h"
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
+#include "integration/quadrilateral_collocation_integration_points.h"
 
 
 
@@ -958,6 +959,18 @@ private:
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints3,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints4,
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralGaussLegendreIntegrationPoints5,
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralCollocationIntegrationPoints1,
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralCollocationIntegrationPoints2,
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralCollocationIntegrationPoints3,
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralCollocationIntegrationPoints4,
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralCollocationIntegrationPoints5,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
@@ -979,7 +992,19 @@ private:
                 Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::GI_GAUSS_3 ),
                 Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_4 )
+                    GeometryData::GI_GAUSS_4 ),
+                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_GAUSS_5 ),
+                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_EXTENDED_GAUSS_1 ),
+                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_EXTENDED_GAUSS_2 ),
+                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_EXTENDED_GAUSS_3 ),
+                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_EXTENDED_GAUSS_4 ),
+                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_EXTENDED_GAUSS_5 )
             }
         };
         return shape_functions_values;
@@ -998,6 +1023,12 @@ private:
                 Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_2 ),
                 Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_3 ),
                 Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_4 ),
+                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_5 ),
+                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_1 ),
+                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_2 ),
+                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_3 ),
+                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_4 ),
+                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_5 ),
             }
         };
         return shape_functions_local_gradients;
