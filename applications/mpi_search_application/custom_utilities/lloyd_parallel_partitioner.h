@@ -1,50 +1,14 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: Carlos Roig $
-//   Date:                $Date: 13-08-2012 $
-//   Revision:            $Revision: 1.1.1.1 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Carlos A. Roig
 //
-
 
 #if !defined(KRATOS_LLOYD_PARALLEL_PARTITIONER_H_INCLUDED)
 #define  KRATOS_LLOYD_PARALLEL_PARTITIONER_H_INCLUDED
@@ -160,239 +124,230 @@ public:
     ///@{
 
     /// Default constructor.
-    LloydParallelPartitioner() {
+    LloydParallelPartitioner(IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd)
+        : mObjectsBegin(ObjectsBegin), mObjectsEnd(ObjectsEnd), mNumberOfObjects(ObjectsEnd-ObjectsBegin) {
+
       MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
       MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+
+      // std::cout << "Begining partitioning" << std::endl;
+
+      mpPartitionBins = new BinsObjectDynamicMpi<TConfigure>(mObjectsBegin, mObjectsEnd);
+      mNumberOfCells = mpPartitionBins->GetCellContainer().size();
+
+      if(mNumberOfCells < mpi_size) {
+        KRATOS_ERROR << "Error: Number of cells in the bins must be at least equal to mpi_size." << std::endl;
+      }
+
+      if(mNumberOfCells % mpi_size) {
+        // KRATOS_WARNING << "Warning: Number of cells is not multiple of mpi_size. Heavy imbalance may occur." << std::endl;
+        std::cout << "Warning: Number of cells is not multiple of mpi_size. Heavy imbalance may occur." << std::endl;
+      }
+
+      if(mNumberOfCells < 10 * mpi_size) {
+        // KRATOS_WARNING << "Warning: Number of cells is small. Partition Shape may be sub-optimal." << std::endl;
+        std::cout << "Warning: Number of cells is small. Partition Shape may be sub-optimal." << std::endl;
+      }
+    }
+
+    void SerialPartition() {
+      std::vector<int> LocalObjectsPerCell(mNumberOfCells, 0);
+      std::vector<int> GlobalObjectsPerCell(mNumberOfCells, 0);
+
+      std::vector<int> CellPartition(mNumberOfCells, 0);
+
+      std::vector<int> CellsPerPartition(mpi_size, 0);
+      std::vector<int> ObjectsPerPartition(mpi_size, 0);
+
+      int LocalNumberOfObjects = mObjectsEnd - mObjectsBegin;
+      int GlobalNumberOfObjects = 0;
+
+      PointType ObjectCenter;
+
+      // Calculate objects per cell
+      for(std::size_t i = 0; i < mNumberOfObjects; i++) {
+        auto ObjectItr = mObjectsBegin + i;
+        TConfigure::CalculateCenter(*ObjectItr, ObjectCenter);
+        auto cellId = mpPartitionBins->CalculateIndex(ObjectCenter);
+        LocalObjectsPerCell[cellId]++;
+      }
+
+      MPI_Allreduce(&LocalNumberOfObjects, &GlobalNumberOfObjects, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+      MPI_Allreduce(&LocalObjectsPerCell[0], &GlobalObjectsPerCell[0], mNumberOfCells, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+      int MeanObjectsPerPartition = GlobalNumberOfObjects / mpi_size;
+      // std::cout << "GlobalNumberOfObjects: " << GlobalNumberOfObjects << " MeanObjectsPerPartition: " << MeanObjectsPerPartition << std::endl;
+
+      // Assing each cell to the closest partition center
+      // TODO: this is currently very unbalanced
+      for(std::size_t cellId = 0, partitionId = 0; cellId < mNumberOfCells; cellId++) {
+        if(ObjectsPerPartition[partitionId] < MeanObjectsPerPartition || partitionId == mpi_size - 1) {
+        } else {
+          // std::cout << "(" << mpi_rank << ") " << "Jump part at: " << ObjectsPerPartition[partitionId] << std::endl;
+          partitionId++;
+        }
+        ObjectsPerPartition[partitionId] += GlobalObjectsPerCell[cellId];
+        CellPartition[cellId] = partitionId;
+      }
+
+      // Assign the partition to the objects based on their cell
+      for(std::size_t i = 0; i < mNumberOfObjects; i++) {
+        auto ObjectItr = mObjectsBegin + i;
+
+        TConfigure::CalculateCenter(*ObjectItr, ObjectCenter);
+
+        auto cellId = mpPartitionBins->CalculateIndex(ObjectCenter);
+
+        (*ObjectItr)->GetValue(PARTITION_INDEX) = CellPartition[cellId];
+        for (unsigned int j = 0; j < (*ObjectItr)->GetGeometry().PointsNumber(); j++) {
+          ModelPart::NodeType::Pointer NodePtr = (*ObjectItr)->GetGeometry().pGetPoint(j);
+          NodePtr->FastGetSolutionStepValue(PARTITION_INDEX) = CellPartition[cellId];
+        }
+      }
+
+      // std::cout << "Ending partitioning" << std::endl;
+    }
+
+    void VoronoiiPartition() {
+
+      std::vector<int> ObjectsPerCell(mNumberOfCells, 0);
+      std::vector<int> CellPartition(mNumberOfCells, 0);
+      std::vector<double> CellDistances(mNumberOfCells, std::numeric_limits<double>::max());
+      std::vector<PointType> CellCenter(mNumberOfCells, PointType(0, 0, 0));
+
+      std::vector<int> CellsPerPartition(mpi_size, 0);
+      std::vector<int> ObjectsPerPartition(mpi_size, 0);
+      std::vector<PointType> PartitionCenters(mpi_size);
+
+      std::vector<double> mpiSendPartCenter(mpi_size * Dimension, 0.0f);
+      std::vector<double> mpiRecvPartCenter(mpi_size * Dimension, 0.0f);
+      std::vector<int> mpiSendPartNum(mpi_size, 0);
+      std::vector<int> mpiRecvPartNum(mpi_size, 0);
+
+      PointType ObjectCenter;
+
+      for(std::size_t i = 0; i < mNumberOfObjects; i++) {
+        auto ObjectItr = mObjectsBegin + i;
+
+        TConfigure::CalculateCenter(*ObjectItr, ObjectCenter);
+
+        auto CellIndex = mpPartitionBins->CalculateIndex(ObjectCenter);
+
+        ObjectsPerCell[CellIndex]++;
+        for(int d = 0; d < Dimension; d++) {
+          CellCenter[CellIndex][d] += ObjectCenter[d];
+        }
+      }
+
+      // Obtain the wheighted center of each cell.
+      for(std::size_t i = 0; i < mNumberOfCells; i++) {
+        for(int d = 0; d < Dimension; d++) {
+          CellCenter[i][d] /= ObjectsPerCell[i];
+        }
+      }
+
+      // Assign a random origin to each partition.
+      auto minPoint = mpPartitionBins->GetMinPoint();
+      auto maxPoint = mpPartitionBins->GetMaxPoint();
+      auto boxSize  = maxPoint - minPoint;
+
+      std::srand(256);
+
+      for(int i = 0; i < mpi_size; i++) {
+        ObjectsPerPartition[i] = 1;
+        for(int d = 0; d < Dimension; d++) {
+          PartitionCenters[i][d] = minPoint[d] + ((double)std::rand() / (double)RAND_MAX) * boxSize[d];
+        }
+      }
+
+      // While not converged
+      auto MaxIterations = 1e1;
+      for(std::size_t iterations = 0; iterations < MaxIterations; iterations++ ) {
+
+        // Assing each cell to the closest partition center
+        for(std::size_t cellId = 0; cellId < mNumberOfCells; cellId++) {
+          if(ObjectsPerCell[cellId] != 0) {
+            for(int i = 0; i < mpi_size; i++) {
+              double cubeDistance = 0.0f;
+
+              for(int d = 0; d < Dimension; d++) {
+                cubeDistance +=
+                  (CellCenter[cellId][d] - PartitionCenters[i][d]) *
+                  (CellCenter[cellId][d] - PartitionCenters[i][d]);
+              }
+
+              if(cubeDistance < CellDistances[cellId]) {
+                CellDistances[cellId] = cubeDistance;
+                CellPartition[cellId] = i;
+              }
+            }
+          }
+        }
+
+        // Update the center of the partitions
+        for(int i = 0; i < mpi_size; i++) {
+          CellsPerPartition[i] = 0;
+          ObjectsPerPartition[i] = 0;
+          for(int d = 0; d < Dimension; d++) {
+            PartitionCenters[i][d] = 0.0f;
+          }
+        }
+
+        for(std::size_t cellId = 0; cellId < mNumberOfCells; cellId++) {
+          if(ObjectsPerCell[cellId] != 0) {
+            CellsPerPartition[CellPartition[cellId]]++;
+            ObjectsPerPartition[CellPartition[cellId]] += ObjectsPerCell[cellId];
+            for(int d = 0; d < Dimension; d++) {
+              PartitionCenters[CellPartition[cellId]][d] += CellCenter[cellId][d];
+            }
+          }
+        }
+
+        // Prepare the comm
+        for(int i = 0; i < mpi_size; i++) {
+          mpiSendPartNum[i] = CellsPerPartition[i];
+          for(int d = 0; d < Dimension; d++) {
+            mpiSendPartCenter[i*Dimension+d] = PartitionCenters[i][d];
+          }
+        }
+
+        MPI_Allreduce(&mpiSendPartNum[0], &mpiRecvPartNum[0], mpi_size, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+        MPI_Allreduce(&mpiSendPartCenter[0], &mpiRecvPartCenter[0], Dimension * mpi_size, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+
+        for(int i = 0; i < mpi_size; i++) {
+          for(int d = 0; d < Dimension; d++) {
+            PartitionCenters[i][d] = mpiRecvPartCenter[i*Dimension+d] / mpiRecvPartNum[i];
+          }
+        }
+      }
+
+      // Assign the partition to the objects based on their cell
+      for(std::size_t i = 0; i < mNumberOfObjects; i++) {
+        auto ObjectItr = mObjectsBegin + i;
+
+        TConfigure::CalculateCenter(*ObjectItr, ObjectCenter);
+
+        auto CellIndex = mpPartitionBins->CalculateIndex(ObjectCenter);
+
+        (*ObjectItr)->GetValue(PARTITION_INDEX) = CellPartition[CellIndex];
+        for (unsigned int i = 0; i < (*ObjectItr)->GetGeometry().PointsNumber(); i++) {
+          ModelPart::NodeType::Pointer NodePtr = (*ObjectItr)->GetGeometry().pGetPoint(i);
+          NodePtr->FastGetSolutionStepValue(PARTITION_INDEX) = CellPartition[CellIndex];
+        }
+      }
+
+      std::cout << "Ending partitioning" << std::endl;
     }
 
     /// Destructor.
     virtual ~LloydParallelPartitioner() {
-    }
-
-    Vector MeanPoint;
-    Vector Normal;
-    Vector Plane;
-    Vector Dot;
-
-    //Lloyd based partitioning
-    void LloydsBasedPartitioner(ModelPart& mModelPart, double MaxNodeRadius, int CalculateBoundary) {
-      //Elements
-      ContainerType& pElements = mModelPart.GetCommunicator().LocalMesh().ElementsArray();
-
-      //Stuff
-      double * SetCentroid = new double[mpi_size*Dimension];
-      double * SendSetCentroid = new double[mpi_size*Dimension];
-
-      //Boundary conditions
-      MeanPoint.resize(mpi_size*Dimension,false);
-      Normal.resize(mpi_size*Dimension,false);
-      Plane.resize(mpi_size,false);
-      Dot.resize(mpi_size,false);
-
-      //Define algorthm iterations (maybe is a good idea pass this as a parameter)
-      int NumIterations = 100;
-
-      //Calcualate Partitions
-      CalculatePartitions(pElements,NumIterations,SetCentroid,SendSetCentroid);
-
-      //Calculate boundaries
-      for(int i = 0; i < mpi_size; i++) {
-        Dot[i] = 0;
-        Plane[i] = 0;
-
-        for(int j = 0; j < Dimension; j++) {
-          MeanPoint[i*Dimension+j] = (SetCentroid[i*Dimension+j] + SetCentroid[mpi_rank*Dimension+j])/2;
-          Normal[i*Dimension+j]    = (SetCentroid[i*Dimension+j] - SetCentroid[mpi_rank*Dimension+j]);
-          Dot[i]                  += Normal[i*Dimension+j] * Normal[i*Dimension+j];
-          Plane[i]                -= Normal[i*Dimension+j] * MeanPoint[i*Dimension+j];
-        }
-
-        Dot[i] = sqrt(Dot[i]);
-      }
-
-      delete [] SetCentroid;
-      delete [] SendSetCentroid;
-    }
-
-    /**
-     * Calcuate the partition for all elements and nodes. This function must correctly set
-     * PARTICLE_INDEX variable for each element and node.
-     * @param pElements: List of all elements to be calcualted.
-     * @param iterations: Number of iterations.
-     **/
-    void CalculatePartitions(ContainerType& pElements, const int &NumIterations, double SetCentroid[], double SendSetCentroid[]) {
-      int * NumParticlesPerVirtualPartition = new int[mpi_size];
-      int * SendNumParticlesPerVirtualPartition = new int[mpi_size];
-
-      for(int iterations = 0; iterations < NumIterations; iterations++) {
-        for(int i = 0; i < mpi_size; i++) {
-          SendNumParticlesPerVirtualPartition[i] = 0;
-
-          for(int j = 0; j < Dimension; j++) {
-            SendSetCentroid[i*Dimension+j] = 0;
-          }
-        }
-
-        for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it) {
-          for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++) {
-            ModelPart::NodeType::Pointer i_nod = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
-            int element_partition = i_nod->GetSolutionStepValue(PARTITION_INDEX);
-
-            for(int j = 0; j < Dimension; j++) {
-              SendSetCentroid[element_partition*Dimension+j] += i_nod->Coordinate(j+1);
-            }
-
-            SendNumParticlesPerVirtualPartition[element_partition]++;
-          }
-        }
-
-        MPI_Allreduce(SendSetCentroid,SetCentroid,mpi_size*Dimension,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-        MPI_Allreduce(SendNumParticlesPerVirtualPartition,NumParticlesPerVirtualPartition,mpi_size,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
-
-        // Set the centroids
-        if(NumParticlesPerVirtualPartition[mpi_rank] == 0) {
-          for(int j = 0; j < Dimension; j++) {
-              SendSetCentroid[mpi_rank*Dimension+j] = 0;
-              SetCentroid[mpi_rank*Dimension+j] = 0;
-          }
-        } else {
-          for(int i = 0; i < mpi_size; i++) {
-            for(int j = 0; j < Dimension; j++) {
-              SendSetCentroid[i*Dimension+j] /= NumParticlesPerVirtualPartition[i];
-              SetCentroid[i*Dimension+j] /= NumParticlesPerVirtualPartition[i];
-            }
-          }
-        }
-
-        //Continue with the partitioning
-        for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it) {
-          for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++) {
-            ModelPart::NodeType::Pointer i_nod = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
-
-            int PartitionIndex = mpi_rank;
-
-            //Calcualte distance with my center first.
-            double distX = i_nod->X() - SetCentroid[mpi_rank*Dimension+0];
-            double distY = i_nod->Y() - SetCentroid[mpi_rank*Dimension+1];
-            double distZ = i_nod->Z() - SetCentroid[mpi_rank*Dimension+2];
-
-            distX *= distX;
-            distY *= distY;
-            distZ *= distZ;
-
-            double dist = (distX+distY+distZ);
-            double min_dist = dist;
-
-            for(int j = 0; j < mpi_size; j++) {
-              distX = i_nod->X() - SetCentroid[j*Dimension+0];
-              distY = i_nod->Y() - SetCentroid[j*Dimension+1];
-              distZ = i_nod->Z() - SetCentroid[j*Dimension+2];
-
-              distX *= distX;
-              distY *= distY;
-              distZ *= distZ;
-
-              double TheyDist = (distX+distY+distZ);
-
-              if (TheyDist < min_dist) {
-                min_dist = TheyDist;
-                PartitionIndex = j;
-              }
-            }
-
-            (*particle_pointer_it)->GetValue(PARTITION_INDEX) = PartitionIndex;
-            i_nod->FastGetSolutionStepValue(PARTITION_INDEX) = PartitionIndex;
-          }
-        }
-      }
-
-      delete [] NumParticlesPerVirtualPartition;
-      delete [] SendNumParticlesPerVirtualPartition;
-    }
-
-    void CalculatePartitionInterface(ModelPart& mModelPart, bool useNeighbourMask = true) {
-      //auto & nIndices = mModelPart.GetCommunicator().NeighbourIndices();
-
-      ContainerType pElements = mModelPart.GetCommunicator().LocalMesh().ElementsArray();
-      ContainerType pElementsMarked;
-
-      matrix<int> domains_graph = ScalarMatrix(mpi_size, mpi_size, 0);
-      matrix<int> domains_colored_graph;
-
-      // MPI_Status status;
-
-      double max_radius = 0.0;
-
-      for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it) {
-        const double Radius = TConfigure::GetObjectRadius(*particle_pointer_it);
-        if(Radius > max_radius) max_radius = Radius;
-      }
-
-      mModelPart.GetCommunicator().MaxAll(max_radius); //Max Radius across partitions
-
-      // Claculate the domain matrix
-      for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it) {
-        //int myRank = (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(PARTITION_INDEX);
-
-        // This is done in a loop below
-        // (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(PARTITION_MASK) = 0;
-
-        for(int j = 0; j < mpi_size; j++) {
-          double NodeToCutPlaneDist = 0;
-
-          NodeToCutPlaneDist += (*particle_pointer_it)->GetGeometry()[0].X() * Normal[j*Dimension+0];
-          NodeToCutPlaneDist += (*particle_pointer_it)->GetGeometry()[0].Y() * Normal[j*Dimension+1];
-          NodeToCutPlaneDist += (*particle_pointer_it)->GetGeometry()[0].Z() * Normal[j*Dimension+2];
-
-          NodeToCutPlaneDist += Plane[j];
-          NodeToCutPlaneDist /= Dot[j];
-
-          NodeToCutPlaneDist = fabs(NodeToCutPlaneDist);
-
-          if (j != mpi_rank && NodeToCutPlaneDist <= max_radius * 2.0 ) {
-            domains_graph(mpi_rank, j) = 1;
-            domains_graph(j, mpi_rank) = 1;
-          }
-        }
-      }
-
-      // for (int i = 0; i < max_colors; i++) {
-      //     mModelPart.GetCommunicator().LocalMesh(i).Nodes().clear();
-      //     mModelPart.GetCommunicator().GhostMesh(i).Nodes().clear();
-      //     mModelPart.GetCommunicator().InterfaceMesh(i).Nodes().clear();
-      // }
-
-      // Calculate the partition mask
-      for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it) {
-        //int myRank = (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(PARTITION_INDEX);
-        int & mask = (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(PARTITION_MASK);
-
-        // New multimbyte mask
-        mask = 0;
-
-        for(int j = 0; j < mpi_size; j++) {
-          double NodeToCutPlaneDist = 0;
-
-          NodeToCutPlaneDist += (*particle_pointer_it)->GetGeometry()[0].X() * Normal[j*Dimension+0];
-          NodeToCutPlaneDist += (*particle_pointer_it)->GetGeometry()[0].Y() * Normal[j*Dimension+1];
-          NodeToCutPlaneDist += (*particle_pointer_it)->GetGeometry()[0].Z() * Normal[j*Dimension+2];
-
-          NodeToCutPlaneDist += Plane[j];
-          NodeToCutPlaneDist /= Dot[j];
-
-          NodeToCutPlaneDist = fabs(NodeToCutPlaneDist);
-
-          if (j != mpi_rank && NodeToCutPlaneDist <= max_radius * 2.0 ) {
-            mask = 1;
-          }
-        }
-      }
+      delete mpPartitionBins;
     }
 
     ///@}
     ///@name Protected Operations
     ///@{
-
 
     ///@}
     ///@name Protected  Access
@@ -420,34 +375,20 @@ private:
     ///@name Member Variables
     ///@{
 
-    PointType    mMinPoint;
-    PointType    mMaxPoint;
-
-    CoordinateArray  mCellSize;
-    CoordinateArray  mInvCellSize;
-    SizeArray        mN;
-
-    CellContainerType mCells;  ///The bin
-
     ///@}
     ///@name MPI Variables
     ///@{
 
     int mpi_rank;
     int mpi_size;
-    int mpi_total_elements;
 
-    int ParticlesInDomain;
-    int IdealParticlesInDomain;
+    int mNumberOfObjects;
+    int mNumberOfCells;
 
-    vector<int> mpi_connectivity;
-    vector<vector<double> > mpi_MinPoints;
-    vector<vector<double> > mpi_MaxPoints;
+    IteratorType mObjectsBegin;
+    IteratorType mObjectsEnd;
 
-    vector<PointType> mMinBoundingBox;
-    vector<PointType> mMaxBoundingBox;
-
-    static double MyDimish;
+    BinsObjectDynamicMpi<TConfigure> * mpPartitionBins;
 
     ///@}
     ///@name Private Operators
@@ -488,12 +429,10 @@ private:
 public:
     /// Assignment operator.
     LloydParallelPartitioner<TConfigure> & operator=(const LloydParallelPartitioner<TConfigure> & rOther) {
-      mMinPoint            = rOther.mMinPoint;
-      mMaxPoint            = rOther.mMaxPoint;
-      mCellSize            = rOther.mCellSize;
-      mInvCellSize         = rOther.mInvCellSize;
-      mN                   = rOther.mN;
-      mCells               = rOther.mCells;
+      mObjectsBegin = rOther.mObjectsBegin;
+      mObjectsEnd = rOther.mObjectsEnd;
+
+      mpPartitionBins = rOther.mpPartitionBins;
 
       return *this;
     }
