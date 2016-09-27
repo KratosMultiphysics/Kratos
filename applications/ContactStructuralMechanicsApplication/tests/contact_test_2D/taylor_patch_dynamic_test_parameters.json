@@ -19,7 +19,7 @@
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "contact_test/taylor_patch_dynamic_test"
+            "input_filename" : "contact_test_2D/taylor_patch_dynamic_test"
         },
         "compute_mortar_contact"             : true,
         "block_builder"                      : true,
@@ -133,7 +133,7 @@
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
             "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "input_file_name"      : "contact_test/taylor_patch_dynamic_test_results.json",
+            "input_file_name"      : "contact_test_2D/taylor_patch_dynamic_test_results.json",
             "model_part_name"      : "Parts_punch",
             "sub_model_part_name"  : "INTERFACE",
             "time_frequency"       : 12.00
@@ -168,7 +168,7 @@
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
             "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "input_file_name"      : "contact_test/taylor_patch_dynamic_test_results.json",
+            "input_file_name"      : "contact_test_2D/taylor_patch_dynamic_test_results.json",
             "model_part_name"      : "Parts_punch",
             "sub_model_part_name"  : "INTERFACE",
             "time_frequency"       : 12.00
@@ -183,7 +183,7 @@
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "output_file_name"     : "contact_test/taylor_patch_dynamic_test_results.json",
+            "output_file_name"     : "contact_test_2D/taylor_patch_dynamic_test_results.json",
             "model_part_name"      : "Parts_punch",
             "sub_model_part_name"  : "INTERFACE",
             "time_frequency"       : 12.00

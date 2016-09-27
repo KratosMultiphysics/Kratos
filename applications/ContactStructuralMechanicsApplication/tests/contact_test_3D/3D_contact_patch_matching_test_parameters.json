@@ -15,7 +15,7 @@
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "contact_test/3D_contact_patch_nonmatching_test"
+            "input_filename" : "contact_test_3D/3D_contact_patch_matching_test"
         },
         "compute_mortar_contact"             : true,
         "block_builder"                      : true,
@@ -169,7 +169,7 @@
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
             "check_variables"      : ["VECTOR_LAGRANGE_MULTIPLIER_Y","DISPLACEMENT_Y"],
-            "input_file_name"      : "contact_test/3D_contact_patch_nonmatching_test_results.json",
+            "input_file_name"      : "contact_test_3D/3D_contact_patch_matching_test_results.json",
             "model_part_name"      : "Parts_Part_punch",
             "sub_model_part_name"  : "INTERFACE",
             "time_frequency"       : 1.00

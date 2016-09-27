@@ -1,6 +1,6 @@
 {
     "problem_data"             : {
-        "problem_name"    : "taylor_patch_test",
+        "problem_name"    : "simple_patch_test",
         "model_part_name" : "Structure",
         "domain_size"     : 2,
         "time_step"       : 1.1,
@@ -15,34 +15,28 @@
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "contact_test/taylor_patch_test"
+            "input_filename" : "contact_test_2D/simple_patch_test"
         },
         "compute_mortar_contact"             : true,
         "block_builder"                      : true,
         "line_search"                        : false,
-        "clear_storage"                      : true,
-        "reform_dofs_at_each_step"	     : true,
+        "clear_storage"                      : false,
+        "reform_dofs_at_each_step"      : true,
         "convergence_criterion"              : "Residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
-        "split_factor"						 : 0.0,
-        "max_number_splits"					 : 0,
         "max_iteration"                      : 10,
+        "split_factor"                          : 10.0,
+        "max_number_splits"             : 3,
         "linear_solver_settings"             : {
             "solver_type" : "SuperLUSolver",
             "scaling"     : false,
             "verbosity"   : 0
         },
-        "problem_domain_sub_model_part_list" : ["Parts_foundation","Parts_punch"],
-        "processes_sub_model_part_list"      : ["Parts_foundation",
-        										"Parts_punch",
-        										"DISPLACEMENT_fixed_support",
-        										"DISPLACEMENT_rolling_support_y",
-        										"DISPLACEMENT_rolling_support_x",
-        										"LineLoad2D_line_load"
-        										]
+        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto2","Parts_Parts_Auto3"],
+        "processes_sub_model_part_list"      : ["Parts_Parts_Auto2","Parts_Parts_Auto3","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","IMPOSE_DISP_Auto1","DISPLACEMENT_Rolling_Punch"]
     },
     "constraints_process_list" : [{
         "python_module"   : "impose_vector_value_by_components_process",
@@ -51,21 +45,7 @@
         "process_name"          : "ImposeVectorValueByComponentsProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_fixed_support",
-            "variable_name"   : "DISPLACEMENT",
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : true,
-            "is_fixed_z"      : true,
-            "value"           : [0.0,0.0,0.0]
-        }
-    },{
-        "python_module"   : "impose_vector_value_by_components_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "ImposeVectorValueByComponentsProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_rolling_support_y",
+            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
             "variable_name"   : "DISPLACEMENT",
             "is_fixed_x"      : false,
             "is_fixed_y"      : true,
@@ -79,44 +59,46 @@
         "process_name"          : "ImposeVectorValueByComponentsProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_rolling_support_x",
+            "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
             "variable_name"   : "DISPLACEMENT",
             "is_fixed_x"      : true,
-            "is_fixed_y"      : false,
+            "is_fixed_y"      : true,
             "is_fixed_z"      : true,
             "value"           : [0.0,0.0,0.0]
         }
-    }],
-    "loads_process_list"       : [{
-        "python_module"   : "apply_vector_on_conditions_process",
-        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
-        "help"                  : "This process sets a vector variable value over a condition",
-        "check"                 : "DirectorVectorNonZero direction",
-        "process_name"          : "ApplyVectorOnConditionsProcess",
+    },{
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "ImposeVectorValueByComponentsProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
-            "model_part_name" : "LineLoad2D_line_load",
-            "variable_name"   : "LINE_LOAD",
-            "factor"          : 10,
-            "direction"       : [0.0,-1.0,0.0]
+            "model_part_name" : "IMPOSE_DISP_Auto1",
+            "variable_name"   : "DISPLACEMENT",
+            "is_fixed_x"      : true,
+            "is_fixed_y"      : true,
+            "is_fixed_z"      : false,
+            "value"           : [0.0,-0.01,0.0]
         }
-    }],
-    "list_other_processes" :[{
+    }
+    ],
+    "loads_process_list"       : [],
+    "list_other_processes" :[
+    {
         "python_module"   : "contact_process",
         "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
         "help"                  : "",
         "process_name"          : "ContactProcess",
         "Parameters"            : {
             "model_part_name"             : "Structure",
-            "origin_model_part_name"      : "Parts_foundation",
-            "destination_model_part_name" : "Parts_punch",
+            "origin_model_part_name"      : "Parts_Parts_Auto3",
+            "destination_model_part_name" : "Parts_Parts_Auto2",
             "contact_type"                : "MortarMethod",
             "search_factor"               : 2.0,
-            "active_check_factor"	  	  : 0.02,
-	    	"max_number_results"          : 1000,
+            "active_check_factor"         : 0.0002,
+            "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
-            "constant_active_inactive"    : 1000,
-            "integration_order"           : 10
+            "integration_order"           : 5
         }
     },
     {
@@ -125,11 +107,11 @@
         "help"                  : "",
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
-            "check_variables"     : ["DISPLACEMENT_Y", "VECTOR_LAGRANGE_MULTIPLIER_Y"],
-            "input_file_name"     : "contact_test/taylor_patch_test_results.json",
-            "model_part_name"      : "Parts_punch",
+            "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "input_file_name"      : "contact_test_2D/simple_patch_test_results.json",
+            "model_part_name"      : "Parts_Parts_Auto3",
             "sub_model_part_name"  : "INTERFACE",
-            "time_frequency"       : 1.0
+            "time_frequency"       : 1.00
         }
     }
     ],
@@ -153,18 +135,18 @@
         },
         "point_data_configuration"  : []
     },
-    "check_json_results_process" : [
+    "json_check_process" : [
     {
         "python_module"   : "from_json_check_result_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "",
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
-            "check_variables"     : ["DISPLACEMENT_Y", "VECTOR_LAGRANGE_MULTIPLIER_Y"],
-            "input_file_name"     : "contact_test/taylor_patch_test_results.json",
-            "model_part_name"      : "Parts_punch",
+            "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "input_file_name"      : "contact_test_2D/simple_patch_test_results.json",
+            "model_part_name"      : "Parts_Parts_Auto3",
             "sub_model_part_name"  : "INTERFACE",
-            "time_frequency"       : 1.0
+            "time_frequency"       : 1.00
         }
     }
     ],
@@ -176,8 +158,8 @@
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "output_file_name"     : "contact_test/taylor_patch_test_results.json",
-            "model_part_name"      : "Parts_punch",
+            "output_file_name"     : "contact_test_2D/simple_patch_test_results.json",
+            "model_part_name"      : "Parts_Parts_Auto3",
             "sub_model_part_name"  : "INTERFACE",
             "time_frequency"       : 1.00
         }
