@@ -4,7 +4,7 @@
           <value n="BodyType" pn="Body type" v="" values="Fluid,Rigid_Body,Deformable_Body" dict="Fluid,Fluid,Rigid_Body,Rigid Body,Deformable_Body,Deformable Body" actualize_tree="1"/>
           <value n="MeshingStrategy" pn="Meshing strategy" v="" values="[GetMeshingDomains]" state="[getStateFromXPathValue {string(../value[@n='BodyType']/@v)} Fluid,Deformable_Body]"/>
           <value n="ContactStrategy" pn="Contact strategy" v="NO_CONTACT_STRATEGY" values="NO_CONTACT_STRATEGY,DEFORMABLE_SKIN_CONTACT,RIGID_CONTACT"
-                 dict="NO_CONTACT_STRATEGY,No contact strategy,DEFORMABLE_SKIN_CONTACT,Deformable skin contact,RIGID_CONTACT,Rigid contect" state="[getStateFromXPathValue {string(../value[@n='BodyType']/@v)} Deformable_Body,Rigid_Body]" />
+                 dict="NO_CONTACT_STRATEGY,No contact strategy,DEFORMABLE_SKIN_CONTACT,Deformable skin contact,RIGID_CONTACT,Rigid contact" state="[getStateFromXPathValue {string(../value[@n='BodyType']/@v)} Deformable_Body,Rigid_Body]" />
           <condition n="Parts" pn="Parts" ov="point,line,surface,volume">
             <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements]" state="normal" >
                 <dependencies node="../value" actualize="1" />

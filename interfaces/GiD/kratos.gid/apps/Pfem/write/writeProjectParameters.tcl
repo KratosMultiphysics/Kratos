@@ -106,7 +106,7 @@ proc Pfem::write::GetPFEM_RemeshDict { } {
     dict set resultDict "process_name" "RemeshDomainsProcess"
     
     set paramsDict [dict create]
-    dict set paramsDict "model_part_name" "model_part_name"
+    dict set paramsDict "model_part_name" "Main Domain"
     dict set paramsDict "meshing_control_type" "step"
     dict set paramsDict "meshing_frequency" 1.0
     dict set paramsDict "meshing_before_output" true
@@ -204,14 +204,17 @@ proc Pfem::write::GetPFEM_RemeshDict { } {
 proc Pfem::write::GetPFEM_ProblemDataDict { } {
     set problemDataDict [dict create]
     dict set problemDataDict problem_name [file tail [GiD_Info Project ModelName]]
-    
+
+    dict set problemDataDict model_part_name "Main Domain"
     set nDim $::Model::SpatialDimension
+    set nDim [expr [string range [write::getValue nDim] 0 0] ]
     dict set problemDataDict domain_size $nDim
-    
+   
     dict set problemDataDict time_step [write::getValue PFEM_TimeParameters DeltaTime]
     dict set problemDataDict start_time [write::getValue PFEM_TimeParameters StartTime]
     dict set problemDataDict end_time [write::getValue PFEM_TimeParameters EndTime]
     dict set problemDataDict echo_level [write::getValue Results EchoLevel]
+    dict set problemDataDict threads 1
     
     return $problemDataDict
 }
