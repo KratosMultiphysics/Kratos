@@ -235,6 +235,7 @@ proc Pfem::write::GetPFEM_SolverSettingsDict { } {
     set modelDict [dict create]
     dict set modelDict input_type "mdpa"
     dict set modelDict input_filename [file tail [GiD_Info Project ModelName]]
+    dict set modelDict input_file_label 0
     dict set solverSettingsDict model_import_settings $modelDict
     
     # Solution strategy parameters and Solvers
