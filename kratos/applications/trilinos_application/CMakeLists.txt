@@ -37,7 +37,8 @@ if(TRILINOS_USE_AMGCL MATCHES ON)
     endif()
 
     ##including the amgcl, which is header only
-    set(AMGCL_ROOT $ENV{AMGCL_ROOT} CACHE STRING "AMGCL root")
+#     set(AMGCL_ROOT $ENV{AMGCL_ROOT} CACHE STRING "AMGCL root")
+    set(AMGCL_ROOT "../../external_libraries" )
     message(STATUS "Found AMGCL at ${AMGCL_ROOT}")
     include_directories(${AMGCL_ROOT})
     
@@ -61,7 +62,6 @@ set( KRATOS_TRILINOS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_communicator_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_first.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_zoltan_processes_to_python.cpp
     ${CMAKE_SOURCE_DIR}/applications/ALEapplication/custom_elements/laplacian_meshmoving_element.cpp
     ${CMAKE_SOURCE_DIR}/applications/ALEapplication/custom_elements/structural_meshmoving_element.cpp
