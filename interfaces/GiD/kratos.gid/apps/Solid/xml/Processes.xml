@@ -28,7 +28,7 @@
 <!--
   Processes for conditions
 -->
-  <Process n="AssingVectorToConditionsProcess" pn="Assign a vector value on a condition" python_module="assing_vector_to_conditions_process"
+  <Process n="AssignVectorToConditionsProcess" pn="Assign a vector value on a condition" python_module="assing_vector_to_conditions_process"
 	   kratos_module="KratosMultiphysics.SolidMechanicsApplication" help="This process sets a vector variable value over a condition" check="DirectorVectorNonZero direction"> 
     <inputs>
       <parameter n="factor" pn="Modulus" type="double"  v="1.0"/>
@@ -36,7 +36,7 @@
     </inputs>
   </Process>
 
-  <Process n="AssingScalarToConditionsProcess" pn="Apply a scalar value over a condition" python_module="assing_scalar_to_conditions_process"
+  <Process n="AssignScalarToConditionsProcess" pn="Apply a scalar value over a condition" python_module="assing_scalar_to_conditions_process"
 	   kratos_module="KratosMultiphysics.SolidMechanicsApplication" help="This process sets a scalar variable value over a condition" > 
     <inputs>
       <parameter n="value" pn="Value" type="double" v="0.0" />

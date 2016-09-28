@@ -103,7 +103,7 @@
   <ConditionItem n="LineLoad2D" pn="Load on lines" ImplementedInFile="assign_value_and_direction_to_vector_process" Interval="Total"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Line" ProcessName="AssingVectorToConditionsProcess" help="Load on lines, load vector referred to global axes"
+	ElementType="Line" ProcessName="AssignVectorToConditionsProcess" help="Load on lines, load vector referred to global axes"
 	units="N/m" unit_magnitude="F/L" VariableName="LINE_LOAD">
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="LineLoadCondition2D2N"/>
@@ -119,7 +119,7 @@
   <ConditionItem n="LineLoad2DAxisym" pn="Load on lines" ImplementedInFile="assign_vector_to_conditions_process" Interval="Total"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2Da" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Line" ProcessName="AssingVectorToConditionsProcess" help="Load on lines, load vector referred to global axes"
+	ElementType="Line" ProcessName="AssignVectorToConditionsProcess" help="Load on lines, load vector referred to global axes"
 	units="N/m" unit_magnitude="F/L" VariableName="LINE_LOAD">
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="AxisymLineLoadCondition2D2N"/>
@@ -135,7 +135,7 @@
   <ConditionItem n="SurfaceLoad3D" pn="Load on surfaces" ImplementedInFile="assign_vector_to_conditions_process" Interval="Total"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Surface"  ProcessName="AssingVectorToConditionsProcess" help="Load on surfaces, load vector referred to global axes"
+	ElementType="Surface"  ProcessName="AssignVectorToConditionsProcess" help="Load on surfaces, load vector referred to global axes"
 	units="N/m^2" unit_magnitude="F/L^2" VariableName="SURFACE_LOAD">
     <TopologyFeatures>
       <item  GeometryType="Triangle"      nodes="3" KratosName="SurfaceLoadCondition3D3N"/>
