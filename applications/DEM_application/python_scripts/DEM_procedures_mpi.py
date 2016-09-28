@@ -72,11 +72,12 @@ class Procedures(DEM_procedures.Procedures):
         total_max = reduce(lambda x,y: max(x,y), node_max_gath)
         return total_max
         
+        
 
     def KRATOSprint(self, message):
         if (mpi.rank == 0):
             print(message)
-            sys.stdout.flush()
+            self.Flush(sys.stdout)
 
 
 class DEMFEMProcedures(DEM_procedures.DEMFEMProcedures):

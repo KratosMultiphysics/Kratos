@@ -3,7 +3,6 @@
 //
 //README::::look to the key word "VERSION" if you want to find all the points where you have to change something so that you can pass from a kdtree to a bin data search structure;
 
-//#include "DEM_application.h"
 #include "create_and_destroy.h"
 #include "../custom_elements/spheric_continuum_particle.h"
 #include "../custom_elements/cluster3D.h"
@@ -199,6 +198,7 @@ namespace Kratos {
                                                                     Node < 3 > ::Pointer& reference_node,
                                                                     double radius,
                                                                     Properties& params,
+                                                                    ModelPart& r_sub_model_part_with_parameters,
                                                                     bool has_sphericity,
                                                                     bool has_rotation,
                                                                     bool initial) {
@@ -230,8 +230,8 @@ namespace Kratos {
                 r_modelpart.Nodes().push_back(pnew_node);
             }
                         
-            array_1d<double, 3 > velocity = params[VELOCITY];
-            double max_rand_deviation_angle = params[MAX_RAND_DEVIATION_ANGLE];
+            array_1d<double, 3 > velocity = r_sub_model_part_with_parameters[VELOCITY];
+            double max_rand_deviation_angle = r_sub_model_part_with_parameters[MAX_RAND_DEVIATION_ANGLE];
             AddRandomPerpendicularVelocityToGivenVelocity(velocity, max_rand_deviation_angle);
             pnew_node->FastGetSolutionStepValue(VELOCITY) = velocity;
             pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL];
@@ -276,6 +276,7 @@ namespace Kratos {
                                                                     int aId,
                                                                     Node < 3 > ::Pointer& reference_node,
                                                                     Properties& params,
+                                                                    ModelPart& r_sub_model_part_with_parameters,
                                                                     bool has_sphericity,
                                                                     bool has_rotation,
                                                                     bool initial) {
@@ -307,8 +308,8 @@ namespace Kratos {
                 r_modelpart.Nodes().push_back(pnew_node);
             }
                         
-            array_1d<double, 3 > velocity = params[VELOCITY];
-            double max_rand_deviation_angle = params[MAX_RAND_DEVIATION_ANGLE];
+            array_1d<double, 3 > velocity = r_sub_model_part_with_parameters[VELOCITY];
+            double max_rand_deviation_angle = r_sub_model_part_with_parameters[MAX_RAND_DEVIATION_ANGLE];
             AddRandomPerpendicularVelocityToGivenVelocity(velocity, max_rand_deviation_angle);
             pnew_node->FastGetSolutionStepValue(VELOCITY) = velocity;
             pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL];
@@ -352,6 +353,7 @@ namespace Kratos {
                                                                         Node < 3 > ::Pointer reference_node,
                                                                         Element::Pointer injector_element,
                                                                         Properties::Pointer r_params,
+                                                                        ModelPart& r_sub_model_part_with_parameters,
                                                                         const Element& r_reference_element,
                                                                         PropertiesProxy* p_fast_properties,
                                                                         bool has_sphericity,
@@ -361,22 +363,22 @@ namespace Kratos {
         KRATOS_TRY
         Node<3>::Pointer pnew_node;
 
-        double radius = (*r_params)[RADIUS];
+        double radius = r_sub_model_part_with_parameters[RADIUS];
         double max_radius = 1.5 * radius;
 
         if (initial) {
             radius = max_radius;
         } else {
-            double std_deviation = (*r_params)[STANDARD_DEVIATION];
-            std::string distribution_type = (*r_params)[PROBABILITY_DISTRIBUTION];
+            double std_deviation = r_sub_model_part_with_parameters[STANDARD_DEVIATION];
+            std::string distribution_type = r_sub_model_part_with_parameters[PROBABILITY_DISTRIBUTION];
             double min_radius = 0.5 * radius;
             
             if (distribution_type == "normal") radius = rand_normal(radius, std_deviation, max_radius, min_radius);
             else if (distribution_type == "lognormal") radius = rand_lognormal(radius, std_deviation, max_radius, min_radius);
-            else KRATOS_THROW_ERROR(std::runtime_error, "Unknown probability distribution.", "")
+            else KRATOS_THROW_ERROR(std::runtime_error, "Unknown probability distribution in submodelpart ", r_sub_model_part_with_parameters.Name())
         }
 
-        NodeCreatorWithPhysicalParameters(r_modelpart, pnew_node, r_Elem_Id, reference_node, radius, *r_params, has_sphericity, has_rotation, initial);
+        NodeCreatorWithPhysicalParameters(r_modelpart, pnew_node, r_Elem_Id, reference_node, radius, *r_params, r_sub_model_part_with_parameters, has_sphericity, has_rotation, initial);
 
         Geometry<Node<3> >::PointsArrayType nodelist;
         
@@ -563,11 +565,12 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
     }       
     
     void ParticleCreatorDestructor::ClusterCreatorWithPhysicalParameters(ModelPart& r_spheres_modelpart,
-                                                                         ModelPart& r_clusters_modelpart,
+                                                                         ModelPart& r_clusters_modelpart,                                                                         
                                                                          int r_Elem_Id,
                                                                          Node<3>::Pointer reference_node,
                                                                          Element::Pointer injector_element,
                                                                          Properties::Pointer r_params,
+                                                                         ModelPart& r_sub_model_part_with_parameters,
                                                                          const Element& r_reference_element,
                                                                          PropertiesProxy* p_fast_properties,
                                                                          bool has_sphericity,
@@ -580,20 +583,20 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         
         Node<3>::Pointer pnew_node;
 
-        double radius = (*r_params)[RADIUS];
+        double radius = r_sub_model_part_with_parameters[RADIUS];
         double min_radius = 0.5 * radius; //TODO: this is a little bit arbitrary
         double max_radius = 1.5 * radius; //TODO: this is a little bit arbitrary
 
         array_1d<double, 3> euler_angles;        
         
-        double std_deviation = (*r_params)[STANDARD_DEVIATION];
-        std::string distribution_type = (*r_params)[PROBABILITY_DISTRIBUTION];
+        double std_deviation = r_sub_model_part_with_parameters[STANDARD_DEVIATION];
+        std::string distribution_type = r_sub_model_part_with_parameters[PROBABILITY_DISTRIBUTION];
 
         if (distribution_type == "normal") radius = rand_normal(radius, std_deviation, max_radius, min_radius);
         else if (distribution_type == "lognormal") radius = rand_lognormal(radius, std_deviation, max_radius, min_radius);
-        else KRATOS_THROW_ERROR(std::runtime_error, "Unknown probability distribution.", "")
+        else KRATOS_THROW_ERROR(std::runtime_error, "Unknown probability distribution in submodelpart ", r_sub_model_part_with_parameters.Name())
 
-        NodeForClustersCreatorWithPhysicalParameters(r_clusters_modelpart, pnew_node, r_Elem_Id, reference_node, *r_params, has_sphericity, has_rotation, false);
+        NodeForClustersCreatorWithPhysicalParameters(r_clusters_modelpart, pnew_node, r_Elem_Id, reference_node, *r_params, r_sub_model_part_with_parameters, has_sphericity, has_rotation, false);
         
         pnew_node->FastGetSolutionStepValue(CHARACTERISTIC_LENGTH) = radius * 2.0; //Cluster specific. Can be removed
         
@@ -604,7 +607,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         Element::Pointer p_new_cluster = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
         Kratos::Cluster3D* p_cluster = dynamic_cast<Kratos::Cluster3D*> (p_new_cluster.get());
                     
-        if ((*r_params)[RANDOM_EULER_ANGLES]) {
+        if (r_sub_model_part_with_parameters[RANDOM_EULER_ANGLES]) {
             
             double random_factor = 2.0 * KRATOS_M_PI / RAND_MAX;
             euler_angles[0] = random_factor * rand();
@@ -612,15 +615,15 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
             euler_angles[2] = random_factor * rand();                
         }
         else {
-            euler_angles[0] = (*r_params)[EULER_ANGLES][0];
-            euler_angles[1] = (*r_params)[EULER_ANGLES][1];
-            euler_angles[2] = (*r_params)[EULER_ANGLES][2];
+            euler_angles[0] = r_sub_model_part_with_parameters[EULER_ANGLES][0];
+            euler_angles[1] = r_sub_model_part_with_parameters[EULER_ANGLES][1];
+            euler_angles[2] = r_sub_model_part_with_parameters[EULER_ANGLES][2];
         }
         
         p_cluster->SetOrientation(euler_angles);
         p_cluster->Initialize(r_process_info); 
         
-        const bool is_breakable = (*r_params)[BREAKABLE_CLUSTER]; //THIS IS NOT THREAD SAFE!!!
+        const bool is_breakable = r_sub_model_part_with_parameters[BREAKABLE_CLUSTER]; //THIS IS NOT THREAD SAFE!!!
         
         if (!is_breakable) {  
             mMaxNodeId++; //This must be done before CreateParticles because the creation of particles accesses mMaxNodeId to choose what Id is assigned to the new nodes/spheres
@@ -648,7 +651,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
             double search_tolerance = 0.02 * radius;
             p_cluster->SetInitialNeighbours(search_tolerance);
             p_cluster->CreateContinuumConstitutiveLaws();
-            p_cluster->SetInitialConditionsToSpheres((*r_params)[VELOCITY]);            
+            p_cluster->SetInitialConditionsToSpheres(r_sub_model_part_with_parameters[VELOCITY]);            
         }
         
         array_1d<double, 3 > zero_vector(3, 0.0);
@@ -972,6 +975,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
                 Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k; 
 
                 if ((*particle_pointer_it)->Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
+                if ((*particle_pointer_it)->Is(BLOCKED)) continue;
 
                 const array_1d<double, 3 >& coor = (*particle_pointer_it)->GetGeometry()[0].Coordinates();
                 bool include = true;
@@ -992,6 +996,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
                 ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin() + k;                
 
                 if ((*node_pointer_it)->Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
+                if ((*node_pointer_it)->Is(BLOCKED)) continue;
                 const array_1d<double, 3 >& coor = (*node_pointer_it)->Coordinates();
                 bool include = true;
 

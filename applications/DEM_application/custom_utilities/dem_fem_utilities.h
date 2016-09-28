@@ -13,7 +13,6 @@
 #include "utilities/openmp_utils.h"
 #include "GeometryFunctions.h"
 #include "utilities/timer.h"
-//#include "DEM_application.h"
 
 /* External includes */
 #ifdef _OPENMP

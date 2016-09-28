@@ -715,38 +715,50 @@ namespace Kratos {
         const ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
         const double time = r_process_info[TIME];
 
-        for (ModelPart::MeshesContainerType::iterator mesh_it = r_model_part.GetMeshes().begin(); mesh_it != r_model_part.GetMeshes().end(); ++mesh_it) {
+        for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = r_model_part.SubModelPartsBegin(); sub_model_part != r_model_part.SubModelPartsEnd(); ++sub_model_part) {
 
             double vel_start = 0.0, vel_stop = std::numeric_limits<double>::max();
-            if ((*mesh_it).Has(VELOCITY_START_TIME)) {
-                vel_start = (*mesh_it)[VELOCITY_START_TIME];
+            if ((*sub_model_part).Has(VELOCITY_START_TIME)) {
+                vel_start = (*sub_model_part)[VELOCITY_START_TIME];
             }
-            if ((*mesh_it).Has(VELOCITY_STOP_TIME)) {
-                vel_stop = (*mesh_it)[VELOCITY_STOP_TIME];
+            if ((*sub_model_part).Has(VELOCITY_STOP_TIME)) {
+                vel_stop = (*sub_model_part)[VELOCITY_STOP_TIME];
             }
 
             if (time < vel_start || time > vel_stop) continue;
-
-            NodesArrayType& pNodes = mesh_it->Nodes();
-
-            if ((*mesh_it).Has(IMPOSED_VELOCITY_X_VALUE)) {
-                SetFlagAndVariableToNodes(DEMFlags::FIXED_VEL_X, VELOCITY_X, (*mesh_it)[IMPOSED_VELOCITY_X_VALUE], pNodes);
+            
+            NodesArrayType& pNodes = sub_model_part->Nodes();     
+            
+//            bool is_rigid_body = (*sub_model_part)[RIGID_BODY_MOTION];
+//            if(is_rigid_body){
+//                SetFlagAndVariableToNodes(DEMFlags::FIXED_VEL_X, VELOCITY_X, 0.0, pNodes);
+//                SetFlagAndVariableToNodes(DEMFlags::FIXED_VEL_Y, VELOCITY_Y, 0.0, pNodes);
+//                SetFlagAndVariableToNodes(DEMFlags::FIXED_VEL_Z, VELOCITY_Z, 0.0, pNodes);
+//                SetFlagAndVariableToNodes(DEMFlags::FIXED_ANG_VEL_X, ANGULAR_VELOCITY_X, 0.0, pNodes);
+//                SetFlagAndVariableToNodes(DEMFlags::FIXED_ANG_VEL_Y, ANGULAR_VELOCITY_Y, 0.0, pNodes);
+//                SetFlagAndVariableToNodes(DEMFlags::FIXED_ANG_VEL_Z, ANGULAR_VELOCITY_Z, 0.0, pNodes);
+//            }
+//            else {                   
+            if ((*sub_model_part).Has(IMPOSED_VELOCITY_X_VALUE)) {
+                SetFlagAndVariableToNodes(DEMFlags::FIXED_VEL_X, VELOCITY_X, (*sub_model_part)[IMPOSED_VELOCITY_X_VALUE], pNodes);
             }
-            if ((*mesh_it).Has(IMPOSED_VELOCITY_Y_VALUE)) {
-                SetFlagAndVariableToNodes(DEMFlags::FIXED_VEL_Y, VELOCITY_Y, (*mesh_it)[IMPOSED_VELOCITY_Y_VALUE], pNodes);
+            if ((*sub_model_part).Has(IMPOSED_VELOCITY_Y_VALUE)) {
+                SetFlagAndVariableToNodes(DEMFlags::FIXED_VEL_Y, VELOCITY_Y, (*sub_model_part)[IMPOSED_VELOCITY_Y_VALUE], pNodes);
             }
-            if ((*mesh_it).Has(IMPOSED_VELOCITY_Z_VALUE)) {
-                SetFlagAndVariableToNodes(DEMFlags::FIXED_VEL_Z, VELOCITY_Z, (*mesh_it)[IMPOSED_VELOCITY_Z_VALUE], pNodes);
+            if ((*sub_model_part).Has(IMPOSED_VELOCITY_Z_VALUE)) {
+                SetFlagAndVariableToNodes(DEMFlags::FIXED_VEL_Z, VELOCITY_Z, (*sub_model_part)[IMPOSED_VELOCITY_Z_VALUE], pNodes);
             }
-            if ((*mesh_it).Has(IMPOSED_ANGULAR_VELOCITY_X_VALUE)) {
-                SetFlagAndVariableToNodes(DEMFlags::FIXED_ANG_VEL_X, ANGULAR_VELOCITY_X, (*mesh_it)[IMPOSED_ANGULAR_VELOCITY_X_VALUE], pNodes);
+            if ((*sub_model_part).Has(IMPOSED_ANGULAR_VELOCITY_X_VALUE)) {
+                SetFlagAndVariableToNodes(DEMFlags::FIXED_ANG_VEL_X, ANGULAR_VELOCITY_X, (*sub_model_part)[IMPOSED_ANGULAR_VELOCITY_X_VALUE], pNodes);
             }
-            if ((*mesh_it).Has(IMPOSED_ANGULAR_VELOCITY_Y_VALUE)) {
-                SetFlagAndVariableToNodes(DEMFlags::FIXED_ANG_VEL_Y, ANGULAR_VELOCITY_Y, (*mesh_it)[IMPOSED_ANGULAR_VELOCITY_Y_VALUE], pNodes);
+            if ((*sub_model_part).Has(IMPOSED_ANGULAR_VELOCITY_Y_VALUE)) {
+                SetFlagAndVariableToNodes(DEMFlags::FIXED_ANG_VEL_Y, ANGULAR_VELOCITY_Y, (*sub_model_part)[IMPOSED_ANGULAR_VELOCITY_Y_VALUE], pNodes);
             }
-            if ((*mesh_it).Has(IMPOSED_ANGULAR_VELOCITY_Z_VALUE)) {
-                SetFlagAndVariableToNodes(DEMFlags::FIXED_ANG_VEL_Z, ANGULAR_VELOCITY_Z, (*mesh_it)[IMPOSED_ANGULAR_VELOCITY_Z_VALUE], pNodes);
+            if ((*sub_model_part).Has(IMPOSED_ANGULAR_VELOCITY_Z_VALUE)) {
+                SetFlagAndVariableToNodes(DEMFlags::FIXED_ANG_VEL_Z, ANGULAR_VELOCITY_Z, (*sub_model_part)[IMPOSED_ANGULAR_VELOCITY_Z_VALUE], pNodes);
             }
+            //}
+            
         } // for each mesh
         KRATOS_CATCH("")
     }
@@ -755,27 +767,27 @@ namespace Kratos {
         KRATOS_TRY
         ModelPart& r_model_part = GetModelPart();
 
-        for (ModelPart::MeshesContainerType::iterator mesh_it = r_model_part.GetMeshes().begin(); mesh_it != r_model_part.GetMeshes().end(); ++mesh_it) {
+        for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = r_model_part.SubModelPartsBegin(); sub_model_part != r_model_part.SubModelPartsEnd(); ++sub_model_part) {
 
-            NodesArrayType& pNodes = mesh_it->Nodes();
+            NodesArrayType& pNodes = sub_model_part->Nodes();
 
-            if ((*mesh_it).Has(INITIAL_VELOCITY_X_VALUE)) {
-                SetVariableToNodes(VELOCITY_X, (*mesh_it)[INITIAL_VELOCITY_X_VALUE], pNodes);
+            if ((*sub_model_part).Has(INITIAL_VELOCITY_X_VALUE)) {
+                SetVariableToNodes(VELOCITY_X, (*sub_model_part)[INITIAL_VELOCITY_X_VALUE], pNodes);
             }
-            if ((*mesh_it).Has(INITIAL_VELOCITY_Y_VALUE)) {
-                SetVariableToNodes(VELOCITY_Y, (*mesh_it)[INITIAL_VELOCITY_Y_VALUE], pNodes);
+            if ((*sub_model_part).Has(INITIAL_VELOCITY_Y_VALUE)) {
+                SetVariableToNodes(VELOCITY_Y, (*sub_model_part)[INITIAL_VELOCITY_Y_VALUE], pNodes);
             }
-            if ((*mesh_it).Has(INITIAL_VELOCITY_Z_VALUE)) {
-                SetVariableToNodes(VELOCITY_Z, (*mesh_it)[INITIAL_VELOCITY_Z_VALUE], pNodes);
+            if ((*sub_model_part).Has(INITIAL_VELOCITY_Z_VALUE)) {
+                SetVariableToNodes(VELOCITY_Z, (*sub_model_part)[INITIAL_VELOCITY_Z_VALUE], pNodes);
             }
-            if ((*mesh_it).Has(INITIAL_ANGULAR_VELOCITY_X_VALUE)) {
-                SetVariableToNodes(ANGULAR_VELOCITY_X, (*mesh_it)[INITIAL_ANGULAR_VELOCITY_X_VALUE], pNodes);
+            if ((*sub_model_part).Has(INITIAL_ANGULAR_VELOCITY_X_VALUE)) {
+                SetVariableToNodes(ANGULAR_VELOCITY_X, (*sub_model_part)[INITIAL_ANGULAR_VELOCITY_X_VALUE], pNodes);
             }
-            if ((*mesh_it).Has(INITIAL_ANGULAR_VELOCITY_Y_VALUE)) {
-                SetVariableToNodes(ANGULAR_VELOCITY_Y, (*mesh_it)[INITIAL_ANGULAR_VELOCITY_Y_VALUE], pNodes);
+            if ((*sub_model_part).Has(INITIAL_ANGULAR_VELOCITY_Y_VALUE)) {
+                SetVariableToNodes(ANGULAR_VELOCITY_Y, (*sub_model_part)[INITIAL_ANGULAR_VELOCITY_Y_VALUE], pNodes);
             }
-            if ((*mesh_it).Has(INITIAL_ANGULAR_VELOCITY_Z_VALUE)) {
-                SetVariableToNodes(ANGULAR_VELOCITY_Z, (*mesh_it)[INITIAL_ANGULAR_VELOCITY_Z_VALUE], pNodes);
+            if ((*sub_model_part).Has(INITIAL_ANGULAR_VELOCITY_Z_VALUE)) {
+                SetVariableToNodes(ANGULAR_VELOCITY_Z, (*sub_model_part)[INITIAL_ANGULAR_VELOCITY_Z_VALUE], pNodes);
             }
         } // for each mesh
 

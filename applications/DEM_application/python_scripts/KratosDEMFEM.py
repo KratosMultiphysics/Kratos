@@ -329,17 +329,6 @@ while (time < DEM_parameters.FinalTime):
     cluster_model_part.ProcessInfo[TIME]          = time
     cluster_model_part.ProcessInfo[DELTA_TIME]    = dt
     cluster_model_part.ProcessInfo[TIME_STEPS]    = step
-
-    # Perform a partition to balance the problem
-    #if(not(step%(a-1))):
-        #parallelutils.Repart(spheres_model_part)
-        #parallelutils.CalculateModelNewIds(spheres_model_part)
-    
-    #### MATERIAL TEST LOAD&UNLOAD  ####################
-    #materialTest.ApplyMovementbySteps(time)
-    
-    #### GENERAL TEST LOAD&UNLOAD  #####################
-    #DEMFEMProcedures.ApplyMovementbySteps(time)
     
     #### SOLVE #########################################
     solver.Solve()
@@ -372,7 +361,6 @@ while (time < DEM_parameters.FinalTime):
     materialTest.PrintGraph(time)
     
     #### GENERAL FORCE GRAPHS ############################
-    #DEMFEMProcedures.MeasureForces()
     DEMFEMProcedures.PrintGraph(time)
     #DEMFEMProcedures.PrintBallsGraph(time)
 
@@ -385,7 +373,6 @@ while (time < DEM_parameters.FinalTime):
         KRATOSprint("                        ("+ str(spheres_model_part.NumberOfElements(0)) + " elements)")
         KRATOSprint("                        ("+ str(spheres_model_part.NumberOfNodes(0)) + " nodes)")
         KRATOSprint("")
-        sys.stdout.flush()
 
         os.chdir(data_and_results)
 

@@ -18,6 +18,9 @@ class MaterialTest(DEM_material_test_script.MaterialTest):
 
   def Initialize(self):
       super(MaterialTest,self).Initialize()
+      
+  def Flush(self,a):
+      pass
 
   def PrepareTests(self):
       ##Fixing horizontally top and bot
@@ -53,8 +56,8 @@ class MaterialTest(DEM_material_test_script.MaterialTest):
 
         print ('Initial Height of the Model: ' + str(self.height)+'\n')
 
-        if(self.parameters.PredefinedSkinOption == "ON" ):
-          print ("ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF")
+        #if(self.parameters.PredefinedSkinOption == "ON" ):
+        #  print ("ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF")
 
         (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area,y_top_total,weight_top, y_bot_total, weight_bot) = self.CylinderSkinDetermination()
 

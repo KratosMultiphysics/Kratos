@@ -2,7 +2,6 @@
 // Author: Miguel AngelCeligueta, maceli@cimne.upc.edu
 //
 
-//#include "DEM_application.h"
 #include "custom_utilities/GeometryFunctions.h"
 #include "custom_elements/cluster3D.h"
 #include "dem_integration_scheme.h"

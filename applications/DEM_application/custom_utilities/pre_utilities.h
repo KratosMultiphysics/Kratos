@@ -4,7 +4,6 @@
 // Project includes
 #include "utilities/timer.h"
 #include "includes/variables.h"
-//#include "DEM_application.h"
 
 /* System includes */
 #include <limits>
@@ -83,12 +82,12 @@ class PreUtilities
         cl_info.mInertias[2] = boost::python::extract<double>(inertias[2]);
 
         p_properties->SetValue(CLUSTER_INFORMATION, cl_info);
-    }
+    }        
 
     void CreateCartesianSpecimenMdpa(std::string filename) {
         
         // We have a prismatic specimen of dimensions 1m x 1m x 2m
-        const double side = 1.0;
+        const double side = 0.15;
         int divisions;
         std::cout << "\nEnter the number of divisions: ";
         std::cin >> divisions;
@@ -123,20 +122,40 @@ class PreUtilities
         clock_t initial_time, final_time;
         initial_time = clock();
         std::ofstream outputfile(filename, std::ios_base::out);
-        outputfile << "Begin ModelPartData\nEnd ModelPartData\n\n";
-        outputfile << "Begin Properties 1\nPARTICLE_DENSITY 2550.0\nYOUNG_MODULUS 1e7\n";
-        outputfile << "POISSON_RATIO 0.20\nPARTICLE_FRICTION 0.5773502691896257\n";
-        outputfile << "PARTICLE_COHESION 0.0\nCOEFFICIENT_OF_RESTITUTION 0.2\n";
-        outputfile << "PARTICLE_MATERIAL 1\nROLLING_FRICTION 0.01\n";
-        outputfile << "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_KDEM\nKT_FACTOR 1.0\n";
-        outputfile << "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Hertz_viscous_Coulomb\n";
-        outputfile << "CONTACT_TAU_ZERO 25000000\nCONTACT_SIGMA_MIN 5000000\n";
-        outputfile << "CONTACT_INTERNAL_FRICC 1\nEnd Properties\n\nBegin Nodes\n";
+        outputfile << "Begin ModelPartData\nEnd ModelPartData\n\n";        
+        outputfile << "Begin Properties 1\n";
+        outputfile << "PARTICLE_DENSITY 2550.0\n";
+        outputfile << "YOUNG_MODULUS 35e9\n";
+        outputfile << "POISSON_RATIO 0.20\n";
+        outputfile << "PARTICLE_FRICTION 0.5773502691896257\n";
+        outputfile << "PARTICLE_COHESION 0.0\n";
+        outputfile << "COEFFICIENT_OF_RESTITUTION 0.2\n";
+        outputfile << "PARTICLE_MATERIAL 1\n";
+        outputfile << "ROLLING_FRICTION 0.01\n";
+        outputfile << "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_Dempack\n";
+        outputfile << "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Linear_viscous_Coulomb\n";
+        outputfile << "SLOPE_LIMIT_COEFF_C1 24\n";
+        outputfile << "SLOPE_LIMIT_COEFF_C2 28\n";
+        outputfile << "SLOPE_LIMIT_COEFF_C3 1\n";
+        outputfile << "SLOPE_FRACTION_N1 1\n";
+        outputfile << "SLOPE_FRACTION_N2 1\n";
+        outputfile << "SLOPE_FRACTION_N3 35e9\n";
+        outputfile << "YOUNG_MODULUS_PLASTIC 1000\n";
+        outputfile << "PLASTIC_YIELD_STRESS 0.2\n";
+        outputfile << "DAMAGE_FACTOR 1\n";
+        outputfile << "SHEAR_ENERGY_COEF 1\n";
+        outputfile << "CONTACT_TAU_ZERO 5\n";
+        outputfile << "CONTACT_SIGMA_MIN 1\n";
+        outputfile << "CONTACT_INTERNAL_FRICC 20\n";
+        outputfile << "End Properties\n";
+        
+        outputfile << "\nBegin Nodes\n";
+
         // Improve coordinate precision
-        for (int k = 0; k < 2 * divisions; k++) {
-            for (int j = 0; j < divisions; j++) {
+        for (int k = 0; k < divisions; k++) {
+            for (int j = 0; j < 2* divisions; j++) {
                 for (int i = 0; i < divisions; i++) {
-                    outputfile << ++node_counter << " " << (1 + 2 * i) * radius << " " << (1 + 2 * j) * radius << " " << (1 + 2 * k) * radius << '\n';
+                    outputfile << ++node_counter << " " << (1 + 2 * i) * radius - 0.5*side << " " << (1 + 2 * j) * radius << " " << (1 + 2 * k) * radius - 0.5*side << '\n';
                     if ((i == 0) || (j == 0) || (k == 0) || (i == divisions - 1) || (j == divisions - 1) || (k == 2 * divisions - 1)) skin_nodes.push_back(node_counter);
                     if (k == 0) bottom_nodes.push_back(node_counter);
                     if (k == 2 * divisions - 1) top_nodes.push_back(node_counter);
@@ -144,20 +163,25 @@ class PreUtilities
             }
         }
         //
-        outputfile << "End Nodes\n\nBegin Elements SphericContinuumParticle3D\n";
+        outputfile << "End Nodes\n";
+        outputfile << "\nBegin Elements SphericContinuumParticle3D\n";
         for (int i = 1; i <= node_counter; i++) outputfile << i << " 1 " << i << '\n';
-        outputfile << "End Elements\n\nBegin NodalData RADIUS\n";
+        outputfile << "End Elements\n";
+        outputfile <<  "\nBegin NodalData RADIUS\n";
         for (int i = 1; i <= node_counter; i++) outputfile << i << " 0 " << radius << '\n';
-        outputfile << "End NodalData\n\nBegin NodalData COHESIVE_GROUP // whole specimen\n";
+        outputfile << "End NodalData\n";
+        outputfile << "\nBegin NodalData COHESIVE_GROUP // whole specimen\n";
         for (int i = 1; i <= node_counter; i++) outputfile << i << " 0 1\n";
-        outputfile << "End NodalData\n\nBegin NodalData COHESIVE_GROUP // bottom nodes\n";
-        for (std::vector<int>::iterator it_bottom = bottom_nodes.begin(); it_bottom != bottom_nodes.end(); it_bottom++) outputfile << *it_bottom << " 0 1\n";
-        outputfile << "End NodalData\n\nBegin NodalData COHESIVE_GROUP // top nodes\n";
-        for (std::vector<int>::iterator it_top = top_nodes.begin(); it_top != top_nodes.end(); it_top++) outputfile << *it_top << " 0 1\n";
-        outputfile << "End NodalData\n\nBegin NodalData SKIN_SPHERE\n";
+        outputfile << "End NodalData\n";
+        //outputfile << "\nBegin NodalData COHESIVE_GROUP // bottom nodes\n";
+        //for (std::vector<int>::iterator it_bottom = bottom_nodes.begin(); it_bottom != bottom_nodes.end(); it_bottom++) outputfile << *it_bottom << " 0 1\n";
+        //outputfile << "End NodalData\n\nBegin NodalData COHESIVE_GROUP // top nodes\n";
+        //for (std::vector<int>::iterator it_top = top_nodes.begin(); it_top != top_nodes.end(); it_top++) outputfile << *it_top << " 0 1\n";
+        //outputfile << "End NodalData\n";
+        outputfile << "\nBegin NodalData SKIN_SPHERE\n";
         for (std::vector<int>::iterator it_skin = skin_nodes.begin(); it_skin != skin_nodes.end(); it_skin++) outputfile << *it_skin << " 0 1\n";
         outputfile << "End NodalData\n\n";
-        outputfile << "Begin Mesh 1 // bottom nodes\n  Begin MeshData\n  VELOCITY_START_TIME 0.0\n";
+        /*outputfile << "Begin Mesh 1 // bottom nodes\n  Begin MeshData\n  VELOCITY_START_TIME 0.0\n";
         outputfile << "  FORCE_INTEGRATION_GROUP 0\n  VELOCITY_STOP_TIME 100.0\n  TOP 0\n";
         outputfile << "  IMPOSED_VELOCITY_Z_VALUE 0.0005\n  BOTTOM 0\n  End MeshData\n  Begin MeshNodes\n";
         for (std::vector<int>::iterator it_bottom = bottom_nodes.begin(); it_bottom != bottom_nodes.end(); it_bottom++) outputfile << "  " << *it_bottom << '\n';
@@ -166,7 +190,7 @@ class PreUtilities
         outputfile << "  FORCE_INTEGRATION_GROUP 0\n  VELOCITY_STOP_TIME 100.0\n  TOP 0\n";
         outputfile << "  IMPOSED_VELOCITY_Z_VALUE -0.0005\n  BOTTOM 0\n  End MeshData\n  Begin MeshNodes\n";
         for (std::vector<int>::iterator it_top = top_nodes.begin(); it_top != top_nodes.end(); it_top++) outputfile << "  " << *it_top << '\n';
-        outputfile << "  End MeshNodes\nEnd Mesh\n";
+        outputfile << "  End MeshNodes\nEnd Mesh\n";*/
         outputfile.close();
         final_time = clock();
         double elapsed_time = (double(final_time) - double(initial_time)) / CLOCKS_PER_SEC;

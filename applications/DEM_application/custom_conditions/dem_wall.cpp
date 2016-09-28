@@ -4,7 +4,6 @@
 
 // Project includes
 #include "custom_conditions/dem_wall.h"
-//#include "DEM_application.h"
 #include "custom_utilities/GeometryFunctions.h"
 
 namespace Kratos

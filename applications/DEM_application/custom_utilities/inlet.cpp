@@ -6,7 +6,6 @@
 #include <string>
 #include <iostream>
 
-//#include "DEM_application.h"
 #include "inlet.h"
 #include "create_and_destroy.h"
 #include "custom_elements/spheric_particle.h"
@@ -84,18 +83,18 @@ namespace Kratos {
         }
                
         int mesh_number = 0;
-        
-        // For the next loop, take into account that the set of meshes of the modelpart is a full array with no gaps. If mesh i is not defined in mdpa, then it is created empty!
-        for (ModelPart::MeshesContainerType::iterator mesh_it = mInletModelPart.GetMeshes().begin() + 1; mesh_it != mInletModelPart.GetMeshes().end(); ++mesh_it) {      
-            
+                
+        for (ModelPart::SubModelPartsContainerType::iterator mesh_it = mInletModelPart.SubModelPartsBegin(); mesh_it != mInletModelPart.SubModelPartsEnd(); ++mesh_it) {
             mesh_number++;
+            ModelPart& mp = *mesh_it;
+
             int mesh_size = mesh_it->NumberOfNodes();
             if (!mesh_size) continue;
             ModelPart::NodesContainerType::ContainerType all_nodes = mesh_it->NodesArray();
-            std::string& identifier = mInletModelPart.GetProperties(mesh_number)[IDENTIFIER];
-            mInletModelPart.GetProperties(mesh_number)[INLET_INITIAL_VELOCITY] = mInletModelPart.GetProperties(mesh_number)[VELOCITY];
+            std::string& identifier = mp[IDENTIFIER];
+            mp[INLET_INITIAL_VELOCITY] = mp[LINEAR_VELOCITY]; //This is the velocity of the moving injector particles
             
-            array_1d<double, 3>& inlet_velocity = mInletModelPart.GetProperties(mesh_number)[VELOCITY];
+            array_1d<double, 3>& inlet_velocity = mp[VELOCITY]; //This is the velocity of the injected particles
             
             if ((inlet_velocity[0] == 0.0) &&
                 (inlet_velocity[1] == 0.0) &&
@@ -104,13 +103,13 @@ namespace Kratos {
                 KRATOS_THROW_ERROR(std::runtime_error, "The inlet velocity cannot be zero for group ", identifier);
             }
             
-            double max_rand_dev_angle = mInletModelPart.GetProperties(mesh_number)[MAX_RAND_DEVIATION_ANGLE];
+            double max_rand_dev_angle = mp[MAX_RAND_DEVIATION_ANGLE];
             if (max_rand_dev_angle < 0.0 || max_rand_dev_angle > 89.5) {
                 
                 KRATOS_THROW_ERROR(std::runtime_error, "The velocity deviation angle must be between 0 and 90 degrees for group ", identifier);
             }
             
-            int general_properties_id = mInletModelPart.GetProperties(mesh_number).Id();  
+            int general_properties_id = mInletModelPart.GetProperties(mp[PROPERTIES_ID]).Id();  
             PropertiesProxy* p_fast_properties = NULL;
             
             for (unsigned int i = 0; i < mFastProperties.size(); i++) {
@@ -119,7 +118,7 @@ namespace Kratos {
                     p_fast_properties = &(mFastProperties[i]);
                     break;
                 }
-                mLastInjectionTimes[mesh_number - 1] = mInletModelPart.GetProperties(mesh_number)[INLET_START_TIME];
+                mLastInjectionTimes[mesh_number - 1] = mp[INLET_START_TIME];
             }
             
             Element::Pointer dummy_element_pointer;
@@ -128,12 +127,15 @@ namespace Kratos {
             else ElementNameString = "SphericParticle3D";
             const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
             
+            Properties::Pointer p_properties = mInletModelPart.pGetProperties(mp[PROPERTIES_ID]);
+            
             for (int i = 0; i < mesh_size; i++) {                
                 Element* p_element = creator.ElementCreatorWithPhysicalParameters(r_modelpart,
                                                              max_Id+1,
                                                              all_nodes[i],
                                                              dummy_element_pointer,
-                                                             mInletModelPart.pGetProperties(mesh_number),
+                                                             p_properties,
+                                                             mp,
                                                              r_reference_element,
                                                              p_fast_properties,
                                                              mBallsModelPartHasSphericity,
@@ -273,18 +275,18 @@ namespace Kratos {
         DettachClusters(r_clusters_modelpart, max_Id);
                 
         int mesh_number = 0;
-        for (ModelPart::MeshesContainerType::iterator mesh_it  = mInletModelPart.GetMeshes().begin() + 1;
-                                                      mesh_it != mInletModelPart.GetMeshes().end()      ; ++mesh_it)
-        {            
+        //for (ModelPart::MeshesContainerType::iterator mesh_it  = mInletModelPart.GetMeshes().begin() + 1; mesh_it != mInletModelPart.GetMeshes().end(); ++mesh_it) {  
+        for (ModelPart::SubModelPartsContainerType::iterator mesh_it = mInletModelPart.SubModelPartsBegin(); mesh_it != mInletModelPart.SubModelPartsEnd(); ++mesh_it) {
             mesh_number++;
+            ModelPart& mp = *mesh_it;
 
-            if (r_modelpart.GetProcessInfo()[TIME] < mInletModelPart.GetProperties(mesh_number)[INLET_START_TIME]) continue;
+            if (r_modelpart.GetProcessInfo()[TIME] < mp[INLET_START_TIME]) continue;
             
             const int mesh_size_elements = mesh_it->NumberOfElements();
             
             ModelPart::ElementsContainerType::ContainerType all_elements = mesh_it->ElementsArray();
                         
-            if (r_modelpart.GetProcessInfo()[TIME] > mInletModelPart.GetProperties(mesh_number)[INLET_STOP_TIME]) {
+            if (r_modelpart.GetProcessInfo()[TIME] > mp[INLET_STOP_TIME]) {
                 if (mLayerRemoved[mesh_number]) continue;
                 for (int i = 0; i < mesh_size_elements; i++) {                   
                     all_elements[i]->Set(TO_ERASE);
@@ -297,7 +299,7 @@ namespace Kratos {
             int total_mesh_size_accross_mpi_processes = mesh_size_elements; //temporary value until reduction is done
             r_modelpart.GetCommunicator().SumAll(total_mesh_size_accross_mpi_processes);
             const double this_mpi_process_portion_of_inlet_mesh = (double) mesh_size_elements / (double) total_mesh_size_accross_mpi_processes;
-            double num_part_surface_time = mInletModelPart.GetProperties(mesh_number)[INLET_NUMBER_OF_PARTICLES];
+            double num_part_surface_time = mp[INLET_NUMBER_OF_PARTICLES];
             num_part_surface_time *= this_mpi_process_portion_of_inlet_mesh;
             const double delta_t = current_time - mLastInjectionTimes[mesh_number - 1]; // FLUID DELTA_T CAN BE USED ALSO, it will depend on how often we call this function
             double surface = 1.0; //inlet_surface, this should probably be projected to velocity vector
@@ -337,7 +339,7 @@ namespace Kratos {
                 }
                
                 PropertiesProxy* p_fast_properties = NULL;
-                int general_properties_id = mInletModelPart.GetProperties(mesh_number).Id();  
+                int general_properties_id = mInletModelPart.GetProperties(mp[PROPERTIES_ID]).Id();  
                 for (unsigned int i = 0; i < mFastProperties.size(); i++) {
                     int fast_properties_id = mFastProperties[i].GetId(); 
                     if (fast_properties_id == general_properties_id) {  
@@ -346,11 +348,11 @@ namespace Kratos {
                     }
                 }
                 
-                const array_1d<double, 3> angular_velocity = (*mesh_it)[ANGULAR_VELOCITY];
+                const array_1d<double, 3> angular_velocity = mp[ANGULAR_VELOCITY];
                 const double mod_angular_velocity = MathUtils<double>::Norm3(angular_velocity);
-                const double angular_velocity_start_time = (*mesh_it)[ANGULAR_VELOCITY_START_TIME];
-                const double angular_velocity_stop_time = (*mesh_it)[ANGULAR_VELOCITY_STOP_TIME];
-                const double angular_period = (*mesh_it)[ANGULAR_VELOCITY_PERIOD];
+                const double angular_velocity_start_time = mp[ANGULAR_VELOCITY_START_TIME];
+                const double angular_velocity_stop_time = mp[ANGULAR_VELOCITY_STOP_TIME];
+                const double angular_period = mp[ANGULAR_VELOCITY_PERIOD];
                 array_1d<double, 3> angular_velocity_changed;
                 const double time = r_modelpart.GetProcessInfo()[TIME];
                 array_1d<double, 3> new_axes1;
@@ -362,21 +364,24 @@ namespace Kratos {
                 GeometryFunctions::RotateGridOfNodes(time, angular_velocity_start_time, angular_velocity_stop_time, angular_velocity_changed,
                                                      angular_period, mod_angular_velocity, angular_velocity, new_axes1, new_axes2, new_axes3);
                  
-                array_1d<double, 3> inlet_velocity = mInletModelPart.GetProperties(mesh_number)[INLET_INITIAL_VELOCITY];
+                array_1d<double, 3> inlet_velocity = mp[INLET_INITIAL_VELOCITY];
                 // Dot product to compute the updated inlet velocity from the initial one:
-                mInletModelPart.GetProperties(mesh_number)[VELOCITY] = new_axes1 * inlet_velocity[0] + new_axes2 * inlet_velocity[1] + new_axes3 * inlet_velocity[2];
+                mp[LINEAR_VELOCITY] = new_axes1 * inlet_velocity[0] + new_axes2 * inlet_velocity[1] + new_axes3 * inlet_velocity[2];
                 
-                std::string& ElementNameString = mInletModelPart.GetProperties(mesh_number)[ELEMENT_TYPE];
+                std::string& ElementNameString = mp[ELEMENT_TYPE];
                 const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
+                
+                Properties::Pointer p_properties = mInletModelPart.pGetProperties(mp[PROPERTIES_ID]);
                
-                if (mInletModelPart.GetProperties(mesh_number)[CONTAINS_CLUSTERS] == false) {
+                if (mp[CONTAINS_CLUSTERS] == false) {
                
                     for (int i = 0; i < number_of_particles_to_insert; i++) {
                         Element* p_element = creator.ElementCreatorWithPhysicalParameters(r_modelpart,                                                                     
                                                                                         max_Id+1, 
                                                                                         inserting_elements[i]->GetGeometry()(0), 
                                                                                         inserting_elements[i],
-                                                                                        mInletModelPart.pGetProperties(mesh_number), 
+                                                                                        p_properties, 
+                                                                                        mp,
                                                                                         r_reference_element, 
                                                                                         p_fast_properties, 
                                                                                         mBallsModelPartHasSphericity, 
@@ -402,7 +407,8 @@ namespace Kratos {
                                                                      max_Id+1, 
                                                                      inserting_elements[i]->GetGeometry()(0), 
                                                                      inserting_elements[i],
-                                                                     mInletModelPart.pGetProperties(mesh_number), 
+                                                                     p_properties,
+                                                                     mp,
                                                                      r_reference_element, 
                                                                      p_fast_properties, 
                                                                      mBallsModelPartHasSphericity, 

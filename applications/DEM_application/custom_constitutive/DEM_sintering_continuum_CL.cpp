@@ -7,13 +7,10 @@
 #include <cmath>
 
 // Project includes
-//#include "DEM_application.h"
 #include "DEM_KDEM_CL.h"
 #include "DEM_sintering_continuum_CL.h"
 #include "custom_elements/spheric_continuum_particle.h"
 #include "custom_elements/sintering_spheric_continuum_particle.h"
-//#include "custom_elements/spheric_particle.h"
-//using namespace std;
 
 namespace Kratos {
 

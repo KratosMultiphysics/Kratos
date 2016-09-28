@@ -7,4 +7,8 @@ from KratosMultiphysics import *
 import KratosMultiphysics.DEMApplication as DEMapp
 import sys
 
+if len(sys.argv) < 2:
+    print ("You must specify the name of the file to be printed. The string 'DEM.mdpa' will be appended to the provided string. ")
+    sys.exit()
+
 DEMapp.PreUtilities().CreateCartesianSpecimenMdpa(sys.argv[1])

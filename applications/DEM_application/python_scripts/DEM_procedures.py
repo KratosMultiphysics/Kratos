@@ -118,6 +118,9 @@ class PostUtils(object):
 
         self.previous_vector_of_inner_nodes = []
         self.previous_time = 0.0;
+        
+    def Flush(self,a):
+        a.flush()
 
     def ComputeMeanVelocitiesinTrap(self, file_name, time_dem, compute_flow):
 
@@ -175,7 +178,7 @@ class PostUtils(object):
                 tmp = tmp + "\n"
 
                 f.write(tmp)
-                f.flush()
+                self.Flush(f)
 
     def PrintEulerAngles(self, model_part):
         PostUtilities().ComputeEulerAngles(model_part)
@@ -587,9 +590,12 @@ class Procedures(object):
     def PreProcessModel(self, DEM_parameters):
         pass
 
+    def Flush(self,a):
+        a.flush()
+    
     def KRATOSprint(self,message):
         print(message)
-        sys.stdout.flush()
+        self.Flush(sys.stdout)
 
 
 # #~CHARLIE~# Aixo no ho entenc
@@ -613,6 +619,7 @@ class DEMFEMProcedures(object):
         self.spheres_model_part = spheres_model_part
         self.RigidFace_model_part = RigidFace_model_part
         #self.solver = solver
+        self.aux = AuxiliaryUtilities()
 
         self.fem_mesh_nodes = []
 
@@ -624,22 +631,27 @@ class DEMFEMProcedures(object):
             self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
         os.chdir(self.graphs_path)
         #self.graph_forces = open(self.DEM_parameters.problem_name +"_force_graph.grf", 'w')
+        
+        def Flush(self,a):
+            a.flush()
 
         def open_graph_files(self, RigidFace_model_part):
             #os.chdir(self.graphs_path)
-            for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
-                if (self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
-                    self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]] = open(str(self.DEM_parameters.problem_name) + "_" + str( self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]) + "_force_graph.grf", 'w')
-                    self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].write(str("#time").rjust(12)+" "+str("total_force[0]").rjust(13)+" "+str("total_force[1]").rjust(13)+" "+str("total_force[2]").rjust(13)+" "+str("total_moment[0]").rjust(13)+" "+str("total_moment[1]").rjust(13)+" "+str("total_moment[2]").rjust(13)+"\n")
+            for mesh_number in range(0, self.RigidFace_model_part.NumberOfSubModelParts()):
+                if (self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
+                    identifier = self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, IDENTIFIER)
+                    self.graph_forces[identifier] = open(str(self.DEM_parameters.problem_name) + "_" + str(identifier) + "_force_graph.grf", 'w')
+                    self.graph_forces[identifier].write(str("#time").rjust(12)+" "+str("total_force[0]").rjust(13)+" "+str("total_force[1]").rjust(13)+" "+str("total_force[2]").rjust(13)+" "+str("total_moment[0]").rjust(13)+" "+str("total_moment[1]").rjust(13)+" "+str("total_moment[2]").rjust(13)+"\n")
 
         self.graph_forces = {}
 
         def open_balls_graph_files(self, spheres_model_part):
             #os.chdir(self.graphs_path)
-            for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
-                if (self.spheres_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
-                    self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[IDENTIFIER]] = open(str(self.DEM_parameters.problem_name) + "_" + str( self.spheres_model_part.GetMesh((mesh_number))[IDENTIFIER]) + "_particle_force_graph.grf", 'w');
-                    self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[IDENTIFIER]].write(str("#time").rjust(12)+" "+str("total_force_x").rjust(13)+" "+str("total_force_y").rjust(13)+" "+str("total_force_z").rjust(13)+" "+str("total_disp_x").rjust(13)+" "+str("total_disp_y").rjust(13)+" "+str("total_disp_z").rjust(13)+"\n")
+            for mesh_number in range(0, self.spheres_model_part.NumberOfSubModelParts()):
+                if (self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
+                    identifier = self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, IDENTIFIER)
+                    self.particle_graph_forces[identifier] = open(str(self.DEM_parameters.problem_name) + "_" + str(identifier) + "_particle_force_graph.grf", 'w');
+                    self.particle_graph_forces[identifier].write(str("#time").rjust(12)+" "+str("total_force_x").rjust(13)+" "+str("total_force_y").rjust(13)+" "+str("total_force_z").rjust(13)+" "+str("total_disp_y").rjust(13)+"\n")
 
         def evaluate_computation_of_fem_results():
 
@@ -660,9 +672,9 @@ class DEMFEMProcedures(object):
             else:
                 dem_nodal_area = Var_Translator(self.DEM_parameters.PostNodalArea)
             integration_groups        = False
-            if self.RigidFace_model_part.NumberOfMeshes() > 1:
-                for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
-                    if (self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
+            if self.RigidFace_model_part.NumberOfSubModelParts() > 1:
+                for mesh_number in range(0, self.RigidFace_model_part.NumberOfSubModelParts()):
+                    if (self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
                         integration_groups = True
                         break
             if (elastic_forces or contact_forces or dem_pressure or tangential_elastic_forces or shear_stress or dem_nodal_area or integration_groups):
@@ -685,33 +697,16 @@ class DEMFEMProcedures(object):
         evaluate_computation_of_fem_results()
 
     def close_graph_files(self, RigidFace_model_part):
-        for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
-            if (self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
-                self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].close()
+        for mesh_number in range(0, self.RigidFace_model_part.NumberOfSubModelParts()):
+            if (self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
+                identifier = self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, IDENTIFIER)
+                self.graph_forces[identifier].close()
 
     def close_balls_graph_files(self, spheres_model_part):
-        for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
-            if (self.spheres_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
-                self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[IDENTIFIER]].close()
-
-    def MeasureForces(self):    # not used atm
-
-        if self.TestType == "None":
-            if self.RigidFace_model_part.NumberOfMeshes() > 1:
-                for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
-                    if (self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
-                        self.fem_mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
-                        self.total_force_x = 0.0
-                        self.total_force_y = 0.0
-                        self.total_force_z = 0.0
-
-                        for node in self.fem_mesh_nodes:
-                            force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
-                            force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-                            force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES)[2]
-                            self.total_force_x += force_node_x
-                            self.total_force_y += force_node_y
-                            self.total_force_z += force_node_z
+        for mesh_number in range(0, self.spheres_model_part.NumberOfSubModelParts()):
+            if (self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
+                identifier = self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, IDENTIFIER)
+                self.particle_graph_forces[identifier].close()
 
     def PrintPoisson(self, model_part, DEM_parameters, filename, time):
         
@@ -730,11 +725,11 @@ class DEMFEMProcedures(object):
         if self.DEM_parameters.TestType == "None":
             if (self.graph_counter == self.graph_frequency):
                 self.graph_counter = 0
-                if self.RigidFace_model_part.NumberOfMeshes() > 1:
+                if self.RigidFace_model_part.NumberOfSubModelParts() > 1:
 
-                    for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
-                        if (self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
-                            mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
+                    for mesh_number in range(0, self.RigidFace_model_part.NumberOfSubModelParts()):
+                        if (self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
+                            mesh_nodes = self.aux.GetIthSubModelPartNodes(self.RigidFace_model_part,mesh_number)
 
                             total_force = Array3()
 
@@ -748,12 +743,13 @@ class DEMFEMProcedures(object):
                             total_moment[1] = 0.0
                             total_moment[2] = 0.0
 
-                            rotation_center = self.RigidFace_model_part.GetMesh(mesh_number)[ROTATION_CENTER]
+                            rotation_center = self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, ROTATION_CENTER)
 
                             PostUtilities().IntegrationOfForces(mesh_nodes, total_force, rotation_center, total_moment)
 
-                            self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_force[0]).rjust(13)+" "+str("%.6g"%total_force[1]).rjust(13)+" "+str("%.6g"%total_force[2]).rjust(13)+" "+str("%.6g"%total_moment[0]).rjust(13)+" "+str("%.6g"%total_moment[1]).rjust(13)+" "+str("%.6g"%total_moment[2]).rjust(13)+"\n")
-                            self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].flush()
+                            identifier = self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, IDENTIFIER)
+                            self.graph_forces[identifier].write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_force[0]).rjust(13)+" "+str("%.6g"%total_force[1]).rjust(13)+" "+str("%.6g"%total_force[2]).rjust(13)+" "+str("%.6g"%total_moment[0]).rjust(13)+" "+str("%.6g"%total_moment[1]).rjust(13)+" "+str("%.6g"%total_moment[2]).rjust(13)+"\n")
+                            self.graph_forces[identifier].flush()
 
             self.graph_counter += 1
 
@@ -769,11 +765,11 @@ class DEMFEMProcedures(object):
             if (self.balls_graph_counter == self.graph_frequency):
                 self.balls_graph_counter = 0
 
-                if self.spheres_model_part.NumberOfMeshes() > 1:
-                    for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
+                if self.spheres_model_part.NumberOfSubModelParts() > 1:
+                    for mesh_number in range(0, self.spheres_model_part.NumberOfSubModelParts()):
 
-                        if(self.spheres_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
-                            self.mesh_nodes = self.spheres_model_part.GetMesh(mesh_number).Nodes
+                        if(self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
+                            self.mesh_nodes = self.aux.GetIthSubModelPartNodes(self.spheres_model_part,mesh_number)
                             self.total_force_x = 0.0
                             self.total_force_y = 0.0
                             self.total_force_z = 0.0
@@ -795,11 +791,11 @@ class DEMFEMProcedures(object):
                                 self.total_disp_y += disp_node_y
                                 self.total_disp_z += disp_node_z
 
-                            self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[IDENTIFIER]].write(str("%.8g"%time).rjust(12) +
-                            " " + str("%.6g"%self.total_force_x).rjust(13) + " " + str("%.6g"%self.total_force_y).rjust(13) +
-                            " " + str("%.6g"%self.total_force_z).rjust(13) + " " + str("%.6g"%self.total_disp_x).rjust(13) +
+                            self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].write(str("%.8g"%time).rjust(12)+
+                            " " + str("%.6g"%self.total_force_x).rjust(13) + " " + str("%.6g"%self.total_force_y).rjust(13)+
+                            " " + str("%.6g"%self.total_force_z).rjust(13) + " " + str("%.6g"%self.total_disp_y).rjust(13)+
                             " " + str("%.6g"%self.total_disp_y).rjust(13)  + " " + str("%.6g"%self.total_disp_z).rjust(13) + "\n")
-                            self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[IDENTIFIER]].flush()
+                            self.Flush(self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[IDENTIFIER]])
 
             self.balls_graph_counter += 1
 
@@ -828,9 +824,9 @@ class DEMFEMProcedures(object):
                 vy = distance * w * math.cos(w * time)
                 #vz = - distance * rpm * math.sin(1.0)
 
-                for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
-                    if(self.spheres_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
-                        self.mesh_nodes = self.spheres_model_part.GetMesh(mesh_number).Nodes
+                for mesh_number in range(0, self.spheres_model_part.NumberOfSubModelParts()):
+                    if(self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
+                        self.mesh_nodes = self.aux.GetIthSubModelPartNodes(self.spheres_model_part,mesh_number)
 
                         for node in self.mesh_nodes:
 
@@ -852,17 +848,17 @@ class DEMFEMProcedures(object):
                  #vz = - distance * rpm * math.sin(1.0)
                  radius = 1.0001
 
-                 for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
-                     if(self.spheres_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
-                        self.mesh_nodes = self.spheres_model_part.GetMesh(mesh_number).Nodes
+                 for mesh_number in range(0, self.spheres_model_part.NumberOfSubModelParts()):
+                     if(self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
+                        self.mesh_nodes = self.aux.GetIthSubModelPartNodes(self.spheres_model_part,mesh_number)
 
                         for node in self.mesh_nodes:
 
                             node.SetSolutionStepValue(RADIUS, radius)
 
-                 for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
-                     if(self.spheres_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
-                         self.mesh_nodes = self.spheres_model_part.GetMesh(mesh_number).Nodes
+                 for mesh_number in range(0, self.spheres_model_part.NumberOfSubModelParts()):
+                     if(self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
+                         self.mesh_nodes = self.aux.GetIthSubModelPartNodes(self.spheres_model_part,mesh_number)
 
                          for node in self.mesh_nodes:
 
@@ -870,49 +866,6 @@ class DEMFEMProcedures(object):
                              node.SetSolutionStepValue(VELOCITY_Y, vy)
                              node.Fix(VELOCITY_X)
                              node.Fix(VELOCITY_Y)
-
-
-    def ApplyMovementbySteps(self,time):
-
-
-            if (time < 0.001e-0 ) :
-
-                #while ( time < self.DEM_parameters.FinalTime):
-                #print("TIME STEP BEGINS.  STEP:"+str(time)+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-
-                vy = 0.1
-                for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
-                    if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
-                        self.mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
-
-                        for node in self.mesh_nodes:
-
-                              node.SetSolutionStepValue(VELOCITY_Y, vy)
-                              node.Fix(VELOCITY_Y)
-
-            if (time > 0.001e-0 ) and (time < 1e-1 ) :
-
-                vy = 10
-                for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
-                    if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
-                        self.mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
-
-                        for node in self.mesh_nodes:
-
-                              node.SetSolutionStepValue(VELOCITY_Y, vy)
-                              node.Fix(VELOCITY_Y)
-
-            else :
-
-                vy = 0.1
-                for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
-                    if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
-                        self.mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
-
-                        for node in self.mesh_nodes:
-
-                            node.SetSolutionStepValue(VELOCITY_Y, vy)
-                            node.Fix(VELOCITY_Y)
 
 
 class Report(object):
@@ -1016,10 +969,6 @@ class MaterialTest(object):
         if (self.TestType != "None"):
             self.script.PrintChart()
 
-    def ApplyMovementbySteps(self, time):
-        if (self.TestType != "None"):
-            self.script.ApplyMovementbySteps(time)
-
 
 class MultifileList(object):
 
@@ -1088,6 +1037,9 @@ class DEMIo(object):
             self.PostBoundingBox = getattr(self.DEM_parameters, "PostBoundingBox", 0)
 
         self.continuum_element_types = ["SphericContPartDEMElement3D","CylinderContPartDEMElement2D"]
+        
+    def Flush(self,a):
+        a.flush
 
     def PushPrintVar(self, variable, name, print_list):
         if (Var_Translator(variable)):
@@ -1239,7 +1191,7 @@ class DEMIo(object):
                 else:
                     mfilelist.file.write(self.GetMultiFileListName(mfilelist.name)+"_"+"%.12g"%time+".post.msh\n")
                     mfilelist.file.write(self.GetMultiFileListName(mfilelist.name)+"_"+"%.12g"%time+".post.res\n")
-                mfilelist.file.flush()
+                self.Flush(mfilelist.file)
                 mfilelist.index = 0
             mfilelist.index += 1
             
