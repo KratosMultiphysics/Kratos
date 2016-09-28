@@ -200,7 +200,7 @@ public:
         std::set<std::string> available_smoothers = {"spai0","ilu0","damped_jacobi","gauss_seidel","chebyshev"};
         std::set<std::string> available_solvers = {"gmres","bicgstab","cg","bicgstabl","lgmres","fgmres"};
         std::set<std::string> available_coarsening = {"ruge_stuben","aggregation","smoothed_aggregation","smoothed_aggr_emin"};
-
+        std::set<std::string> available_direct = {"skyline_lu","pastix"};
         std::stringstream msg;
         
         
@@ -227,6 +227,12 @@ public:
             msg << "admissible values are : ruge_stuben,aggregation,smoothed_aggregation,smoothed_aggr_emin" << std::endl;
             KRATOS_THROW_ERROR(std::invalid_argument," coarsening_type is invalid: available possibilities are : ",msg.str());
         }
+        if(available_direct.find(rParameters["direct_solver"].GetString()) == available_direct.end())
+        {
+            msg << "currently prescribed direct_solver : " << rParameters["direct_solver"].GetString()  << std::endl;
+            msg << "admissible values are : skyline_lu, pastix" << std::endl;
+            KRATOS_THROW_ERROR(std::invalid_argument," coarsening_type is invalid: available possibilities are : ",msg.str());
+        }
 
         //OUTER SOLVER CONFIGURATION
         mprm.put("isolver.type", rParameters["krylov_type"].GetString());
@@ -238,39 +244,12 @@ public:
             rParameters["krylov_type"].GetString() == "lgmres" || 
             rParameters["krylov_type"].GetString() == "fgmres")
         {
-            KRATOS_WATCH("********************************");
             mprm.put("isolver.M",  rParameters["gmres_krylov_space_dimension"].GetInt());
         }
         
         
         //setting the direct_solver
         mprm.put("dsolver.type",  rParameters["direct_solver"].GetString());
-        
-//         {
-//    "local": {
-//        "relax": {
-//            "type": "ilu0"
-//        },
-//        "coarsening": {
-//            "type": "aggregation",
-//            "aggr": {
-//                "block_size": "1"
-//            }
-//        }
-//    },
-//    "isolver": {
-//        "type": "gmres"
-//    },
-//    "dsolver" : {
-//         "type" : "skyline_lu"
-//     }
-//    "num_def_vec": "1",
-//    "def_vec": "0x2db4580"
-// }
-        
-        
-        
-        
         
         mprm.put("local.relax.type", rParameters["local_solver"]["smoother_type"].GetString());
         mprm.put("local.coarsening.type",  rParameters["local_solver"]["coarsening_type"].GetString());
@@ -285,14 +264,7 @@ public:
             muse_block_matrices_if_possible = false;
             rParameters["use_block_matrices_if_possible"].SetBool(false);
         }
-        
-        
-        
-//         #ifdef AMGCL_HAVE_PASTIX
-//         mdirect_solver = amgcl::runtime::mpi::dsolver::pastix;
-// #else
-//         mdirect_solver = amgcl::runtime::mpi::dsolver::skyline_lu;
-// #endif
+
 
     }
 

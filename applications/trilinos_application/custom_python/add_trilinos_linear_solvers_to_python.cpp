@@ -73,17 +73,7 @@
 #include "external_includes/amesos_solver.h"
 #include "external_includes/ml_solver.h"
 
-#ifdef AMGCL_INCLUDED
-    #include "external_includes/amgcl_solver.h"
-#endif
-
-//configuration files
-// #include "../../incompressible_fluid_application/custom_strategies/strategies/solver_configuration.h"
-// #include "custom_strategies/strategies/trilinos_fractionalstep_configuration.h"
-// #include "../../incompressible_fluid_application/custom_strategies/strategies/fractional_step_strategy.h"
-// #include "../../incompressible_fluid_application/incompressible_fluid_application.h"
-
-
+#include "external_includes/amgcl_solver.h"
 
 namespace Kratos
 {
@@ -130,6 +120,7 @@ void  AddLinearSolvers()
     ("AmesosSolver",
      init<const std::string&, Teuchos::ParameterList& >())
     .def(init<Parameters>())
+    .def(init<Parameters>())
     ;
 
     typedef MultiLevelSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > MLSolverType;
@@ -142,40 +133,12 @@ void  AddLinearSolvers()
         .def("SetReformPrecAtEachStep", &MLSolverType::SetReformPrecAtEachStep)
         ;
 
-    #ifdef AMGCL_INCLUDED
-//          enum_<TrilinosAmgclSettings::AMGCLSmoother>("AMGCLSmoother")
-//             .value("SPAI0", TrilinosAmgclSettings::SPAI0)
-//             .value("ILU0", TrilinosAmgclSettings::ILU0)
-//             .value("DAMPED_JACOBI",TrilinosAmgclSettings::DAMPED_JACOBI)
-//             .value("GAUSS_SEIDEL",TrilinosAmgclSettings::GAUSS_SEIDEL)
-//             .value("MULTICOLOR_GAUSS_SEIDEL",TrilinosAmgclSettings::MULTICOLOR_GAUSS_SEIDEL)         
-//             ;
-//         
-//         enum_<TrilinosAmgclSettings::AMGCLIterativeSolverType>("AMGCLIterativeSolverType")
-//             .value("GMRES", TrilinosAmgclSettings::GMRES)
-//             .value("BICGSTAB", TrilinosAmgclSettings::BICGSTAB)
-//             .value("CG",TrilinosAmgclSettings::CG)
-//             .value("BICGSTAB_WITH_GMRES_FALLBACK",TrilinosAmgclSettings::BICGSTAB_WITH_GMRES_FALLBACK)
-//             .value("BICGSTAB2",TrilinosAmgclSettings::BICGSTAB2)
-//             ;
-//             
-//         enum_<TrilinosAmgclSettings::AMGCLCoarseningType>("AMGCLCoarseningType")
-//             .value("RUGE_STUBEN", TrilinosAmgclSettings::RUGE_STUBEN)
-//             .value("AGGREGATION", TrilinosAmgclSettings::AGGREGATION)
-//             .value("SA",TrilinosAmgclSettings::SA)
-//             .value("SA_EMIN",TrilinosAmgclSettings::SA_EMIN)
-//             ;
-  
         typedef AmgclMPISolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclMPISolverType;
         class_<AmgclMPISolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
             ("AmgclMPISolver",init<Parameters>()) //init<double, int,int,bool >())
-//             .def(init<TrilinosAmgclSettings::AMGCLSmoother,TrilinosAmgclSettings::AMGCLIterativeSolverType,TrilinosAmgclSettings::AMGCLCoarseningType,double,int,int,bool>())
             .def("SetDoubleParameter", &AmgclMPISolverType::SetDoubleParameter)
             .def("SetIntParameter", &AmgclMPISolverType::SetIntParameter)
             ;
-            
-
-    #endif
     
     enum_<AztecScalingType>("AztecScalingType")
     .value("NoScaling", NoScaling)
