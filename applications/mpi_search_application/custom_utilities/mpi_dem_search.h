@@ -144,12 +144,12 @@ public:
       }
     }
 
-    mCommunicator.SynchronizeNodalSolutionStepsData();
+    //mCommunicator.SynchronizeNodalSolutionStepsData();
 
     // Finally sort model for correct sync
     Sort_Modelpart();
 
-    mCommunicator.SynchronizeNodalSolutionStepsData();
+    //mCommunicator.SynchronizeNodalSolutionStepsData();
 
     KRATOS_CATCH(" ")
   }
