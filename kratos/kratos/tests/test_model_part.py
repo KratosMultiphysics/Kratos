@@ -623,6 +623,27 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertTrue( e4.Id in sub1.Elements )
         self.assertTrue( e5.Id in sub1.Elements )
         self.assertFalse( e5.Id in sub2.Elements )
-            
+        
+    def test_model_part_iterators(self):
+        model_part1 = ModelPart("Main")
+        sub1 = model_part1.CreateSubModelPart("sub1")
+        sub2 = model_part1.CreateSubModelPart("sub2")
+        
+        subsub1 = sub1.CreateSubModelPart("subsub1")
+        
+        names = set(["sub1","sub2"])
+        
+        counter = 0
+        
+        for subpart in model_part1.SubModelParts:
+            part_name = subpart.Name
+            if part_name in names:
+                counter+=1
+                
+            if(subpart.Name == "sub1"):
+                for subsubpart in subpart.SubModelParts:
+                    self.assertEqual(subsubpart.Name,"subsub1")
+        self.assertEqual(counter, 2)
+        
 if __name__ == '__main__':
     KratosUnittest.main()
