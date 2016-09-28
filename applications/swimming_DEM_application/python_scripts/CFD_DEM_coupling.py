@@ -8,7 +8,7 @@ from KratosMultiphysics.SwimmingDEMApplication import *
 
 class ProjectionModule:
 
-    def __init__(self, fluid_model_part, balls_model_part, FEM_DEM_model_part, dimension, pp):
+    def __init__(self, fluid_model_part, balls_model_part, FEM_DEM_model_part, dimension, pp, flow_field = None):
 
         self.fluid_model_part            = fluid_model_part
         self.particles_model_part        = balls_model_part
@@ -21,7 +21,8 @@ class ProjectionModule:
         self.n_particles_in_depth        = pp.CFD_DEM.n_particles_in_depth
         self.meso_scale_length           = pp.CFD_DEM.meso_scale_length
         self.shape_factor                = pp.CFD_DEM.shape_factor
-
+        self.do_impose_flow_from_field   = pp.CFD_DEM.do_impose_flow_from_field
+        self.flow_field                  = flow_field
         if (self.dimension == 3):
 
             if pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
@@ -47,6 +48,10 @@ class ProjectionModule:
         for var in pp.coupling_fluid_vars:
             self.projector.AddFluidCouplingVariable(var)
 
+        for var in pp.coupling_dem_vars:
+            if var == FLUID_VEL_PROJECTED or var == FLUID_ACCEL_PROJECTED or var == FLUID_VEL_LAPL_PROJECTED:
+                self.projector.AddDEMVariablesToImpose(var)
+
         # calculating the fluid nodal areas that are needed for the coupling
 
         self.area_calculator = CalculateNodalAreaProcess(self.fluid_model_part, self.dimension)
@@ -65,6 +70,9 @@ class ProjectionModule:
 
     def ProjectFromNewestFluid(self):
         self.projector.InterpolateFromNewestFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid)
+
+    def ImposeFluidFlowOnParticles(self):
+        self.projector.ImposeFlowOnDEMFromField(self.flow_field, self.particles_model_part)
 
     def ProjectFromParticles(self, recalculate_neigh = True):
 
