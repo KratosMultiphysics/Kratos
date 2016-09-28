@@ -33,6 +33,7 @@ THE SOFTWARE.
 
 #include <boost/type_traits.hpp>
 #include <amgcl/backend/interface.hpp>
+#include <amgcl/value_type/interface.hpp>
 
 namespace amgcl {
 namespace backend {
@@ -46,8 +47,10 @@ struct use_builtin_matrix_ops : boost::false_type {};
 template <class Alpha, class Matrix, class Vector1, class Beta, class Vector2>
 struct spmv_impl<
     Alpha, Matrix, Vector1, Beta, Vector2,
-    typename boost::enable_if<
-        typename detail::use_builtin_matrix_ops<Matrix>::type
+    typename boost::enable_if_c<
+        detail::use_builtin_matrix_ops<Matrix>::value &&
+        math::static_rows<typename value_type<Matrix>::type>::value == math::static_rows<typename value_type<Vector1>::type>::value &&
+        math::static_rows<typename value_type<Matrix>::type>::value == math::static_rows<typename value_type<Vector2>::type>::value
         >::type
     >
 {
