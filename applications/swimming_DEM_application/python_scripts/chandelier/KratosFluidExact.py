@@ -76,6 +76,7 @@ pp.CFD_DEM = DEM_parameters
 
 #G
 pp.CFD_DEM.recover_gradient_option = True
+pp.CFD_DEM.do_search_neighbours = False
 #pp.CFD_DEM.print_PRESSURE_GRADIENT_option = True
 DEM_parameters.fluid_domain_volume = 0.04 * math.pi # write down the volume you know it has
 pp.CFD_DEM.faxen_terms_type = 0
@@ -83,7 +84,7 @@ pp.CFD_DEM.material_acceleration_calculation_type = 0
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
 pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
-pp.CFD_DEM.basset_force_type = 4
+pp.CFD_DEM.basset_force_type = 0
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
 pp.CFD_DEM.basset_force_integration_type = 1
 pp.CFD_DEM.n_init_basset_steps = 0
@@ -93,6 +94,9 @@ pp.CFD_DEM.quadrature_order = 2
 pp.CFD_DEM.time_window = 0.01
 pp.CFD_DEM.number_of_exponentials = 1
 pp.CFD_DEM.number_of_quadrature_steps_in_window = int(pp.CFD_DEM.time_window / pp.CFD_DEM.delta_time_quadrature)
+pp.CFD_DEM.print_steps_per_plot_step = 1
+pp.CFD_DEM.PostCationConcentration = False
+pp.CFD_DEM.do_impose_flow_from_field = True
 #Z
 
 # Import utilities from models
