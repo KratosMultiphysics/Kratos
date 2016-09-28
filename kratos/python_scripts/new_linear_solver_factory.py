@@ -56,11 +56,9 @@ def ConstructSolver(configuration):
         import KratosMultiphysics.ExternalSolversApplication
         linear_solver = KratosMultiphysics.ExternalSolversApplication.PastixSolver(configuration)
     elif(solver_type == "AMGCL"):
-        import KratosMultiphysics.ExternalSolversApplication
-        linear_solver = KratosMultiphysics.ExternalSolversApplication.AMGCLSolver(configuration)
+        linear_solver = KratosMultiphysics.AMGCLSolver(configuration)
     elif(solver_type == "AMGCL_NS_Solver"):
-        import KratosMultiphysics.ExternalSolversApplication
-        linear_solver = KratosMultiphysics.ExternalSolversApplication.AMGCL_NS_Solver(configuration)
+        linear_solver = KratosMultiphysics.AMGCL_NS_Solver(configuration)
         
         
         
