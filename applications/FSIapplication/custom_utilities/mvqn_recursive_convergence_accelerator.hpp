@@ -57,20 +57,16 @@ public:
     ///@name Type Definitions
     ///@{
     //KRATOS_CLASS_POINTER_DEFINITION( JacobianEmulator );
-    typedef typename std::unique_ptr< JacobianEmulator<TSpace> > Pointer;
+    typedef typename std::unique_ptr< JacobianEmulator<TSpace> >        Pointer;
     
-    typedef typename TSpace::VectorType                 VectorType;
-    typedef typename TSpace::MatrixType                 MatrixType;
+    typedef typename TSpace::VectorType                              VectorType;
+    typedef typename TSpace::MatrixType                              MatrixType;
     
     
     ///@}
 
     ///@name Public member Variables
-    ///@{
-
-    std::vector<VectorType>             mJacobianObsMatrixV; // Residual increment observation matrix
-    std::vector<VectorType>             mJacobianObsMatrixW; // Solution increment observation matrix
-    
+    ///@{    
     ///@}
 
     ///@name Life Cycle
@@ -101,8 +97,8 @@ public:
             {
                 if(i == EmulatorBufferSize-1)
                 {
-                    (p->mpOldJacobianEmulator).release();
-                    std::cout << "Out of buffer Jacobian emulator released." << std::endl;
+                    (p->mpOldJacobianEmulator).reset();
+                    std::cout << "Out of buffer Jacobian emulator reset." << std::endl;
                 }
                 else
                 {
@@ -112,8 +108,8 @@ public:
         }
         else // If Jacobian buffer size equals 1 directly destroy the previous one
         {
-            (mpOldJacobianEmulator->mpOldJacobianEmulator).release();
-            std::cout << "Out of buffer Jacobian emulator released." << std::endl;
+            (mpOldJacobianEmulator->mpOldJacobianEmulator).reset();
+            std::cout << "Out of buffer Jacobian emulator reset." << std::endl;
         }
     }
 
@@ -152,89 +148,165 @@ public:
     /**
      * Projects the approximated Jacobian onto a vector
      * @param rWorkVector: Vector in where the Jacobian is projected
+     * @param rProjectedVector: Projected vector output
      */
     void ApplyPrevStepJacobian(
         const VectorType& rWorkVector,
         VectorType& rProjectedVector)
-    {
-        //~ std::cout << "ApplyPrevStepJacobian starts..." << std::endl;
-        mpOldJacobianEmulator->ApplyJacobian(rWorkVector, rProjectedVector);
-        //~ std::cout << "ApplyPrevStepJacobian finished." << std::endl;
+    {                
+        // Security check for the empty observation matrices case (when no correction has been done in the previous step)
+        if (mpOldJacobianEmulator->mJacobianObsMatrixV.size() != 0)
+        {
+            mpOldJacobianEmulator->ApplyJacobian(rWorkVector, rProjectedVector);
+        }
+        else
+        {
+            mpOldJacobianEmulator->ApplyPrevStepJacobian(rWorkVector, rProjectedVector);            
+        }
     }
 
     /**
      * Projects the approximated Jacobian onto a vector
      * @param rWorkVector: Vector in where the Jacobian is projected
+     * @param rProjectedVector: Projected vector output
      */
     void ApplyJacobian(
         const VectorType& rWorkVector,
         VectorType& rProjectedVector)
     {
         KRATOS_TRY;
-        
-        //~ std::cout << "STARTING ApplyJacobian..." << std::endl;       
-
-        VectorType y(mJacobianObsMatrixV[0].size());
-        VectorType w(mJacobianObsMatrixV[0].size());
-        VectorType v(mJacobianObsMatrixV[0].size());
-        Vector WorkVectorCopy(rWorkVector);
-        Vector zQR(mJacobianObsMatrixV.size());
-        
-        Matrix auxMatQR(mJacobianObsMatrixV[0].size(), mJacobianObsMatrixV.size());
-          
-        // Loop to store a std::vector<VectorType> type as Matrix type
-        for (unsigned int i = 0; i < mJacobianObsMatrixV[0].size(); i++)
+                
+        // Security check for the empty observation matrices case (when no correction has been done in the previous step)
+        if (mJacobianObsMatrixV.size() == 0)
         {
-            for (unsigned int j = 0; j < mJacobianObsMatrixV.size(); j++)
+            if (mpOldJacobianEmulator != nullptr) // Consider the previous step Jacobian
             {
-                auxMatQR(i,j) = mJacobianObsMatrixV[j](i);
+                mpOldJacobianEmulator->ApplyJacobian(rWorkVector, rProjectedVector);
             }
-        }
-        
-        // QR decomposition to compute ((V_k.T*V_k)^-1)*V_k.T*r_k
-        QR<double, row_major> QR_decomposition;
-        QR_decomposition.compute(mJacobianObsMatrixV[0].size(), mJacobianObsMatrixV.size(), &auxMatQR(0,0)); 
-        QR_decomposition.solve(&WorkVectorCopy[0], &zQR[0]);
-            
-        // TODO: PARALLELIZE THIS OPERATION (it cannot be done with TSpace::Dot beacuse the obs matrices are stored by columns)
-        // y = V_k*zQR - r_k
-        for (unsigned int i = 0; i < mJacobianObsMatrixV[0].size(); i++)
-        {
-            y(i) = 0.0;
-            for (unsigned int j = 0; j < mJacobianObsMatrixV.size(); j++)
+            else // When the empty JacobianEmulator has no PreviousJacobianEmulator consider the identity matrix as Jacobian
             {
-                y(i) += mJacobianObsMatrixV[j][i]*zQR[j];
+                TSpace::Copy(rWorkVector, rProjectedVector);
             }
-        }
-        y -= rWorkVector;
-
-        //~ std::cout << "Applying previous step Jacobian..." << std::endl;
-        //~ std::cout << "mpOldJacobianEmulator VALUE IN APPLYJACOBIAN EMULATOR: " << &mpOldJacobianEmulator << std::endl;
-        if (mpOldJacobianEmulator == nullptr)
-        {
-            v = y;
         }
         else
         {
-            mpOldJacobianEmulator->ApplyJacobian(y, v);
-        }
-        //~ std::cout << "Previous step Jacobian applied." << std::endl;
-        
-        // w = W_k*z
-        for (unsigned int i = 0; i < mJacobianObsMatrixV[0].size(); i++)
-        {
-            w(i) = 0.0;
+            VectorType y(TSpace::Size(mJacobianObsMatrixV[0]));
+            VectorType w(TSpace::Size(mJacobianObsMatrixV[0]));
+            VectorType WorkVectorCopy(rWorkVector);
+            VectorType zQR(mJacobianObsMatrixV.size());
+            Matrix auxMatQR(TSpace::Size(mJacobianObsMatrixV[0]), mJacobianObsMatrixV.size());
+                          
+            // Loop to store a std::vector<VectorType> type as Matrix type
+            for (unsigned int i = 0; i < TSpace::Size(mJacobianObsMatrixV[0]); i++)
+            {
+                for (unsigned int j = 0; j < mJacobianObsMatrixV.size(); j++)
+                {
+                    auxMatQR(i,j) = mJacobianObsMatrixV[j](i);
+                }
+            }
+                    
+            // QR decomposition to compute ((V_k.T*V_k)^-1)*V_k.T*r_k
+            // TODO: Implement an if(!frozen) to avoid the recomputation of the inverse matrix each time the OldJacobianEmulator is called
+            mQR_decomposition.compute(TSpace::Size(mJacobianObsMatrixV[0]), mJacobianObsMatrixV.size(), &auxMatQR(0,0)); 
+            mQR_decomposition.solve(&WorkVectorCopy[0], &zQR[0]);
+                        
+            // TODO: PARALLELIZE THIS OPERATION (it cannot be done with TSpace::Dot beacuse the obs matrices are stored by columns)
+            // y = V_k*zQR - r_k
+            TSpace::SetToZero(y);
             for (unsigned int j = 0; j < mJacobianObsMatrixV.size(); j++)
             {
-                w(i) += mJacobianObsMatrixW[j][i]*zQR(j);
+                TSpace::UnaliasedAdd(y,zQR(j), mJacobianObsMatrixV[j]);
             }
-        }              
+            TSpace::UnaliasedAdd(y, -1.0, rWorkVector);
+                    
+            if (mpOldJacobianEmulator == nullptr)
+            {
+                rProjectedVector = y;
+            }
+            else
+            {
+                mpOldJacobianEmulator->ApplyJacobian(y, rProjectedVector);
+            }
             
-        rProjectedVector = (v - w); 
+            // w = W_k*z
+            TSpace::SetToZero(w);
+            for (unsigned int j = 0; j < mJacobianObsMatrixV.size(); j++)
+            {
+                TSpace::UnaliasedAdd(w, zQR(j), mJacobianObsMatrixW[j]);
+            }
+            
+            rProjectedVector -= w; 
+            
+        }
 
         KRATOS_CATCH( "" );
         
-        //~ std::cout << "FINISHED ApplyJacobian..." << std::endl;
+    }
+    
+    /**
+    * Appends a new column to the observation matrix V
+    * @param newColV: new column to be appended
+    */
+    void AppendColToV(const VectorType& rNewColV)
+    {
+        KRATOS_TRY;
+        
+        mJacobianObsMatrixV.push_back(rNewColV);
+        
+        KRATOS_CATCH( "" );
+    }
+    
+    /**
+    * Appends a new column to the observation matrix W
+    * @param newColW: new column to be appended
+    */
+    void AppendColToW(const VectorType& rNewColW)
+    {
+        KRATOS_TRY;
+        
+        mJacobianObsMatrixW.push_back(rNewColW);
+        
+        KRATOS_CATCH( "" );
+    }
+    
+    /**
+    * Drops the oldest column and appends a new column to the observation matrix V
+    * @param newColV: new column to be appended
+    */
+    void DropAndAppendColToV(const VectorType& rNewColV)
+    {
+        KRATOS_TRY;
+        
+        // Observation matrices size are close to the interface DOFs number. Old columns are to be dropped.
+        for (unsigned int i = 0; i < (TSpace::Size(mJacobianObsMatrixV[0])-1); i++)
+        {
+            mJacobianObsMatrixV[i] = mJacobianObsMatrixV[i+1];
+        }
+        
+        // Substitute the last column by the new information.
+        mJacobianObsMatrixV.back() = rNewColV;
+        
+        KRATOS_CATCH( "" );
+    }
+    
+    /**
+    * Drops the oldest column and appends a new column to the observation matrix W
+    * @param newColW: new column to be appended
+    */
+    void DropAndAppendColToW(const VectorType& rNewColW)
+    {
+        KRATOS_TRY;
+        
+        // Observation matrices size are close to the interface DOFs number. Old columns are to be dropped.
+        for (unsigned int i = 0; i < (TSpace::Size(mJacobianObsMatrixV[0])-1); i++)
+        {
+            mJacobianObsMatrixW[i] = mJacobianObsMatrixW[i+1];
+        }
+        
+        // Substitute the last column by the new information.
+        mJacobianObsMatrixW.back() = rNewColW;
+        
+        KRATOS_CATCH( "" );
     }
     
     ///@}
@@ -262,9 +334,12 @@ protected:
     
     ///@name Protected member Variables
     ///@{    
-    
-    std::unique_ptr<JacobianEmulator>     mpOldJacobianEmulator;   // Pointer to the old Jacobian            
+    QR<double, row_major> mQR_decomposition;                        // QR decomposition object
 
+    Pointer                             mpOldJacobianEmulator;      // Pointer to the old Jacobian            
+    
+    std::vector<VectorType>             mJacobianObsMatrixV;        // Residual increment observation matrix
+    std::vector<VectorType>             mJacobianObsMatrixW;        // Solution increment observation matrix
     ///@}
     
     ///@name Protected Operators
@@ -439,8 +514,8 @@ public:
       
         mProblemSize = rResidualVector.size();
       
-        mResidualVector_1 = rResidualVector;
-        mIterationValue_1 = rIterationGuess;
+        TSpace::Copy(rResidualVector, mResidualVector_1);
+        TSpace::Copy(rIterationGuess, mIterationValue_1);
         
         if (mConvergenceAcceleratorIteration == 0)
         {
@@ -453,7 +528,6 @@ public:
             {
                 std::cout << "First step correction" << std::endl;
                 VectorType InitialCorrection(mProblemSize);
-                //~ KRATOS_WATCH(InitialCorrection)
                 
                 mpCurrentJacobianEmulatorPointer->ApplyPrevStepJacobian(mResidualVector_1, InitialCorrection);
                 rIterationGuess -= InitialCorrection;
@@ -477,23 +551,15 @@ public:
             if (mConvergenceAcceleratorIteration <= mProblemSize)
             {
                 // Append the new information to the existent observation matrices
-                (mpCurrentJacobianEmulatorPointer)->mJacobianObsMatrixV.push_back(newColV);
-                (mpCurrentJacobianEmulatorPointer)->mJacobianObsMatrixW.push_back(newColW);
+                (mpCurrentJacobianEmulatorPointer)->AppendColToV(newColV);
+                (mpCurrentJacobianEmulatorPointer)->AppendColToW(newColW);
                 
                 std::cout << "Observation matrices new information appended" << std::endl;
             }
             else
-            {                
-                // Observation matrices size are close to the interface DOFs number. Old columns are to be dropped.
-                for (unsigned int i = 0; i < (mProblemSize-1); i++)
-                {
-                    (mpCurrentJacobianEmulatorPointer)->mJacobianObsMatrixV[i] = (mpCurrentJacobianEmulatorPointer)->mJacobianObsMatrixV[i+1];
-                    (mpCurrentJacobianEmulatorPointer)->mJacobianObsMatrixW[i] = (mpCurrentJacobianEmulatorPointer)->mJacobianObsMatrixW[i+1];
-                }
-                
-                // Substitute the last column by the new information.
-                (mpCurrentJacobianEmulatorPointer)->mJacobianObsMatrixV.back() = newColV;
-                (mpCurrentJacobianEmulatorPointer)->mJacobianObsMatrixW.back() = newColW;
+            {                                
+                (mpCurrentJacobianEmulatorPointer)->DropAndAppendColToV(newColV);
+                (mpCurrentJacobianEmulatorPointer)->DropAndAppendColToW(newColW);
                                 
                 std::cout << "Observation matrices size is kept (oldest column is dropped)" << std::endl;
             }
@@ -517,8 +583,9 @@ public:
         KRATOS_TRY;
 
         // Variables update
-        mIterationValue_0 = mIterationValue_1;
-        mResidualVector_0 = mResidualVector_1;
+        TSpace::Copy(mIterationValue_1, mIterationValue_0);
+        TSpace::Copy(mResidualVector_1, mResidualVector_0);
+        
         mConvergenceAcceleratorIteration += 1;
 
         KRATOS_CATCH( "" );
