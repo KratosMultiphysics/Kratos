@@ -37,13 +37,23 @@ KRATOS_CLASS_POINTER_DEFINITION(CellularFlowField);
 
 /// Default constructor.
 
-CellularFlowField():VelocityField(),mL(1.0), mU(0.0), mK(2.72), mOmega(KRATOS_M_PI){}
+CellularFlowField():VelocityField(),mL(1.0), mU(0.0), mK(2.72), mOmega(KRATOS_M_PI)
+{
+    mPiOverL = 0.5 * KRATOS_M_PI / mL;
+    mOmegaUOverL = 0.5 * mOmega * mU / mL;
+
+    unsigned int number_of_threads = omp_get_max_threads();
+    ResizeVectorsForParallelism(number_of_threads);
+}
 
 CellularFlowField(const double wavelength, const double mean_flow_speed, const double oscillation_relative_amplitude, const double oscillation_angular_frequency)
                  :VelocityField(), mL(0.5 * wavelength), mU(mean_flow_speed), mK(oscillation_relative_amplitude), mOmega(oscillation_angular_frequency)
 {
     mPiOverL = 0.5 * KRATOS_M_PI / mL;
     mOmegaUOverL = 0.5 * mOmega * mU / mL;
+
+    unsigned int number_of_threads = omp_get_max_threads();
+    ResizeVectorsForParallelism(number_of_threads);
 }
 
 
@@ -57,9 +67,9 @@ virtual ~CellularFlowField(){}
 
 void ResizeVectorsForParallelism(const unsigned int n_threads);
 
-void UpdateCoordinates(const double time, const array_1d<double, 3>& coor, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
+void UpdateCoordinates(const double time, const array_1d<double, 3>& coor, const unsigned int i_thread = 1);
 
-void UpdateCoordinates(const double time, const vector<double>& coor, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
+void UpdateCoordinates(const double time, const vector<double>& coor, const unsigned int i_thread = 1);
 
 //***************************************************************************************************************
 //***************************************************************************************************************
