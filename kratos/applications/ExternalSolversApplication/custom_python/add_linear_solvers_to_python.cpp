@@ -40,11 +40,6 @@
 #ifdef INCLUDE_PASTIX
   #include "external_includes/pastix_solver.h"
 #endif
-
-#ifndef EXCLUDE_AMGCL
-  #include "external_includes/amgcl_solver.h"
-  #include "external_includes/amgcl_ns_solver.h"
-#endif
   
 
 namespace Kratos
@@ -55,14 +50,9 @@ namespace Python
 void  AddLinearSolversToPython()
 {
     typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
-    //      typedef ParallelUblasSpace<double, CompressedMatrix, Vector> ParallelSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    // typedef UblasSpace<double, Matrix, Vector> ParallelLocalSpaceType;
     typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
-    //typedef LinearSolver<ParallelSpaceType,  ParallelLocalSpaceType> ParallelLinearSolverType;
     typedef DirectSolver<SpaceType,  LocalSpaceType> DirectSolverType;
-    //typedef Reorderer<ParallelSpaceType,  ParallelLocalSpaceType > ParallelReordererType;
-    //typedef DirectSolver<ParallelSpaceType,  ParallelLocalSpaceType, ParallelReordererType > ParallelDirectSolverType;
     typedef SuperLUSolver<SpaceType,  LocalSpaceType> SuperLUSolverType;
     typedef SuperLUIterativeSolver<SpaceType,  LocalSpaceType> SuperLUIterativeSolverType;
     typedef IterativeSolver<SpaceType, LocalSpaceType> IterativeSolverType;
@@ -108,46 +98,6 @@ void  AddLinearSolversToPython()
     .def(init<double,int,int,int,bool>())
     .def(init<Parameters>());
     ;
-#endif
-
-#ifndef EXCLUDE_AMGCL
-     enum_<AMGCLSmoother>("AMGCLSmoother")
-    .value("SPAI0", SPAI0)
-    .value("ILU0", ILU0)
-    .value("DAMPED_JACOBI",DAMPED_JACOBI)
-    .value("GAUSS_SEIDEL",GAUSS_SEIDEL)
-    .value("CHEBYSHEV",CHEBYSHEV)
-    ;
-    
-    enum_<AMGCLIterativeSolverType>("AMGCLIterativeSolverType")
-    .value("GMRES", GMRES)
-    .value("BICGSTAB", BICGSTAB)
-    .value("CG",CG)
-    .value("BICGSTAB_WITH_GMRES_FALLBACK",BICGSTAB_WITH_GMRES_FALLBACK)
-    .value("BICGSTAB2",BICGSTAB2)
-    ;
-    
-    enum_<AMGCLCoarseningType>("AMGCLCoarseningType")
-    .value("RUGE_STUBEN", RUGE_STUBEN)
-    .value("AGGREGATION", AGGREGATION)
-    .value("SA",SA)
-    .value("SA_EMIN",SA_EMIN)
-    ;
-    
-
-    
-    typedef AMGCLSolver<SpaceType,  LocalSpaceType> AMGCLSolverType;
-    class_<AMGCLSolverType, bases<LinearSolverType>, boost::noncopyable >
-    ( "AMGCLSolver",init<AMGCLSmoother,AMGCLIterativeSolverType,double,int,int,int>() )
-    .def(init<AMGCLSmoother,AMGCLIterativeSolverType,AMGCLCoarseningType ,double,int,int,int, bool>())
-    .def(init<Parameters>())
-    ;
-    
-   typedef AMGCL_NS_Solver<SpaceType,  LocalSpaceType> AMGCL_NS_SolverType;
-   class_<AMGCL_NS_SolverType, bases<LinearSolverType>, boost::noncopyable >
-   ( "AMGCL_NS_Solver", init<Parameters>())
-   ;
-    
 #endif
     
     class_<GMRESSolverType, bases<IterativeSolverType>, boost::noncopyable >

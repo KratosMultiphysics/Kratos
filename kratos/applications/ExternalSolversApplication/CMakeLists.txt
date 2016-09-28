@@ -27,10 +27,6 @@ else(${EXCLUDE_ITSOL} MATCHES ON)
     include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/ITSOL_2/INC  )
 endif(${EXCLUDE_ITSOL} MATCHES ON)
 
-if(${EXCLUDE_AMGCL} MATCHES ON)
-    add_definitions(-DEXCLUDE_AMGCL)
-endif(${EXCLUDE_AMGCL} MATCHES ON)
-
 if(${INCLUDE_PASTIX} MATCHES ON)
     add_definitions(-DINCLUDE_PASTIX)
     include_directories( ${PASTIX_INSTALL_DIR} )
