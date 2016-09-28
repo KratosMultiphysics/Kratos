@@ -88,18 +88,30 @@ class TestLinearSolvers(KratosUnittest.TestCase):
 
         
  
-
-    #def test_amesos(self):
-        #self._RunParametrized("""
-            #{
-                #"test_list" : [
-                    #{
-                        #"solver_type" : "Super LU",
-                        #"scaling" : false
-                    #}
-                #]
-            #}
-            #""")
+    @KratosUnittest.expectedFailure
+    def test_amesos_superludist(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "SuperLUSolver",
+                        "scaling" : false
+                    }
+                ]
+            }
+            """)
+        
+    def test_amesos_klu(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "Klu",
+                        "scaling" : false
+                    }
+                ]
+            }
+            """)
         
     def test_aztec_cg(self):
         self._RunParametrized("""

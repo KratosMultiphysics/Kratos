@@ -72,6 +72,12 @@ public:
         }
         
         mSolverName = settings["solver_type"].GetString();
+        
+        //check if the solver is available and throw an error otherwise
+        Amesos Factory;
+        
+        if(!Factory.Query(mSolverName))
+            KRATOS_ERROR << "attempting to use Amesos solver " << mSolverName << " unfortunately the current compilation of trilinos does not include it";
     }
 
     /**
@@ -81,6 +87,12 @@ public:
     {
         mparameter_list = parameter_list;
         mSolverName = SolverName;
+        
+        //check if the solver is available and throw an error otherwise
+        Amesos Factory;
+        if(!Factory.Query(mSolverName))
+            KRATOS_ERROR << "attempting to use Amesos solver " << mSolverName << " unfortunately the current compilation of trilinos does not include it";
+
     }
 
     /**
