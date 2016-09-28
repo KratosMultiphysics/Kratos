@@ -1,46 +1,14 @@
-/*
-* =======================================================================*
-* kkkk   kkkk  kkkkkkkkkk   kkkkk    kkkkkkkkkk kkkkkkkkkk kkkkkkkkkK    *
-* kkkk  kkkk   kkkk   kkkk  kkkkkk   kkkkkkkkkk kkkkkkkkkk kkkkkkkkkK    *
-* kkkkkkkkk    kkkk   kkkk  kkkkkkk     kkkk    kkk    kkk  kkkk         *
-* kkkkkkkkk    kkkkkkkkkkk  kkkk kkk	kkkk    kkk    kkk    kkkk       *
-* kkkk  kkkk   kkkk  kkkk   kkkk kkkk   kkkk    kkk    kkk      kkkk     *
-* kkkk   kkkk  kkkk   kkkk  kkkk  kkkk  kkkk    kkkkkkkkkk  kkkkkkkkkk   *
-* kkkk    kkkk kkkk    kkkk kkkk   kkkk kkkk    kkkkkkkkkk  kkkkkkkkkk 	 *
-*                                                                        *
-* krATos: a fREe opEN sOURce CoDE for mULti-pHysIC aDaptIVe SoLVErS,     *
-* aN extEnsIBLe OBjeCt oRiEnTEd SOlutION fOR fInITe ELemEnt fORmULatIONs *
-* Copyleft by 2003 ciMNe                                                 *
-* Copyleft by 2003 originary authors Copyleft by 2003 your name          *
-* This library is free software; you can redistribute it and/or modify   *
-* it under the terms of the GNU Lesser General Public License as         *
-* published by the Free Software Foundation; either version 2.1 of       *
-* the License, or any later version.                                     *
-*                                                                        *
-* This library is distributed in the hope that it will be useful, but    *
-* WITHOUT ANY WARRANTY; without even the implied warranty of             *
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                   *
-* See the GNU Lesser General Public License for more details.            *
-*                                                                        *
-* You should have received a copy of the GNU Lesser General Public       *
-* License along with this library; if not, write to International Centre *
-* for Numerical Methods in Engineering (CIMNE),                          *
-* Edifici C1 - Campus Nord UPC, Gran Capità s/n, 08034 Barcelona.        *
-*                                                                        *
-* You can also contact us to the following email address:                *
-* kratos@cimne.upc.es                                                    *
-* or fax number: +34 93 401 65 17                                        *
-*                                                                        *
-* Created at Institute for Structural Mechanics                          *
-* Ruhr-University Bochum, Germany                                        *
-* Last modified by:    $Author: rrossi $  				 *
-* Date:                $Date: 2008-11-27 09:27:23 $			 *
-* Revision:            $Revision: 1.1 $ 				 *
-*========================================================================*
-* International Center of Numerical Methods in Engineering - CIMNE	 *
-* Barcelona - Spain 							 *
-*========================================================================*
-*/
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//
 
 #if !defined(KRATOS_AMESOS_SOLVER_H_INCLUDED )
 #define  KRATOS_AMESOS_SOLVER_H_INCLUDED
@@ -79,6 +47,32 @@ public:
     typedef typename TSparseSpaceType::VectorType VectorType;
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+    
+    AmesosSolver(Parameters settings)
+    {
+        Parameters default_settings( R"(
+        {
+        "solver_type": "Superludist",
+        "scaling":false,
+        "trilinos_amesos_parameter_list": {
+            }
+        }  )" );
+        
+        settings.ValidateAndAssignDefaults(default_settings);
+        
+        //assign the amesos parameter list, which may contain parameters IN TRILINOS INTERNAL FORMAT to mparameter_list
+        mparameter_list = Teuchos::ParameterList();
+        for(auto it = settings["trilinos_amesos_parameter_list"].begin(); it != settings["trilinos_amesos_parameter_list"].end(); it++)
+        {
+            if(it->IsString()) mparameter_list.set(it.name(), it->GetString());
+            else if(it->IsInt()) mparameter_list.set(it.name(), it->GetInt());
+            else if(it->IsBool()) mparameter_list.set(it.name(), it->GetBool());
+            else if(it->IsDouble()) mparameter_list.set(it.name(), it->GetDouble());
+            
+        }
+        
+        mSolverName = settings["solver_type"].GetString();
+    }
 
     /**
      * Default constructor

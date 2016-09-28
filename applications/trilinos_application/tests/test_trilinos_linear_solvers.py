@@ -80,8 +80,9 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         nproc = KratosMultiphysics.mpi.mpi.size
         target_norm = tolerance*space.TwoNorm(pboriginal.GetReference())*nproc #multiplying by nproc the target tolerance to give some slack. Not really nice :-(
 
-        #print("target_norm   :",target_norm)
-        #print("achieved_norm :",achieved_norm)
+        if(achieved_norm > target_norm):
+            print("target_norm   :",target_norm)
+            print("achieved_norm :",achieved_norm)
         self.assertTrue(achieved_norm <= target_norm)
 
 
@@ -100,7 +101,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             #}
             #""")
         
-    def test_cg(self):
+    def test_aztec_cg(self):
         self._RunParametrized("""
             {
                 "test_list" : [
@@ -141,7 +142,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
         
-    def test_gmres(self):
+    def test_aztec_gmres(self):
         self._RunParametrized("""
             {
                 "test_list" : [
@@ -222,22 +223,65 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)         
    
-    def test_amgcl_solver(self):
+    def test_amgcl_mpi_solver_cg(self):
         self._RunParametrized("""
             {
                 "test_list" : [
                     {
                     "solver_type": "AmgclMPISolver",
-                    "tolerance" : 1.0e-6,
-                    "max_iteration" : 200,
+                    "tolerance":1.0e-9,
                     "scaling":false,
+                    "krylov_type":"cg",
                     "verbosity":0
                     }
                 ]
             }
-            """)   
+            """) 
+        
+    def test_amgcl_mpi_solver_bicgstab(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                    "solver_type": "AmgclMPISolver",
+                    "scaling":false,
+                    "tolerance":1.0e-9,
+                    "krylov_type":"bicgstab",
+                    "verbosity":0
+                    }
+                ]
+            }
+            """) 
+        
+    def test_amgcl_mpi_solver_bicgstabl(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                    "solver_type": "AmgclMPISolver",
+                    "tolerance":1.0e-9,
+                    "scaling":false,
+                    "krylov_type":"bicgstabl",
+                    "verbosity":0
+                    }
+                ]
+            }
+            """) 
 
-
+    def test_amgcl_mpi_solver_gmres(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                    "solver_type": "AmgclMPISolver",
+                    "tolerance":1.0e-9,
+                    "scaling":false,
+                    "krylov_type":"gmres",
+                    "verbosity":0
+                    }
+                ]
+            }
+            """) 
 
         
 if __name__ == '__main__':

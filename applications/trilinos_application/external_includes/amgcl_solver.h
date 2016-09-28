@@ -1,36 +1,33 @@
-/*
-Kratos Multi-Physics - Amgcl-MPI solver
-
-Copyright (c) 2014, Pooyan Dadvand, Riccardo Rossi, Denis Demidov CIMNE (International Center for Numerical Methods in Engineering)
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-    Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-    Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or
-    other materials provided with the distribution.
-    All advertising materials mentioning features or use of this software must display the following acknowledgement:
-    This product includes Kratos Multi-Physics technology.
-    Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Denis Demidov
+//                   Riccardo Rossi
+//
 
 
 #if !defined(KRATOS_AMGCL_MPI_SOLVER_H_INCLUDED )
 #define  KRATOS_AMGCL_MPI_SOLVER_H_INCLUDED
 
-// #define BOOST_NUMERIC_BINDINGS_SUPERLU_PRINT
+
+#ifndef AMGCL_PARAM_UNKNOWN
+#  define AMGCL_PARAM_UNKNOWN(name)                                            \
+      std::cerr << "AMGCL WARNING: unknown parameter " << name << std::endl
+#endif
+
 
 // External includes
 #include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
+#include "includes/kratos_parameters.h"
 #include "linear_solvers/linear_solver.h"
 
 //aztec solver includes
@@ -39,7 +36,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIB
 //#include "Teuchos_ParameterList.hpp"
 
 
-#include <amgcl/amgcl.hpp>
+#include <amgcl/amg.hpp>
 #include <amgcl/adapter/epetra.hpp>
 // #include <amgcl/coarsening/plain_aggregates.hpp>
 // #include <amgcl/coarsening/pointwise_aggregates.hpp>
@@ -48,10 +45,14 @@ ARISING IN ANY WAY OUT OF THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIB
 // //#include <amgcl/relaxation/spai0.hpp>
 // #include <amgcl/relaxation/ilu0.hpp>
 // #include <amgcl/solver/bicgstabl.hpp>
-#include <amgcl/mpi/subdomain_deflation.hpp>
 #include <amgcl/profiler.hpp>
 
-#include <amgcl/mpi/runtime.hpp>
+#include <amgcl/make_solver.hpp>
+#include <amgcl/runtime.hpp>
+#include <amgcl/mpi/direct_solver.hpp>
+#include <amgcl/mpi/subdomain_deflation.hpp>
+
+#include <boost/property_tree/json_parser.hpp> //needed to print AMGCL internal settings
 
 namespace amgcl {
     profiler<> prof;
@@ -59,26 +60,6 @@ namespace amgcl {
 
 namespace Kratos
 {
-
-class TrilinosAmgclSettings
-{
-public:
-
-    enum AMGCLSmoother
-    {
-        SPAI0, ILU0,DAMPED_JACOBI,GAUSS_SEIDEL,CHEBYSHEV,MULTICOLOR_GAUSS_SEIDEL
-    };
-
-    enum AMGCLIterativeSolverType
-    {
-        GMRES,BICGSTAB,CG,BICGSTAB_WITH_GMRES_FALLBACK,BICGSTAB2
-    };
-
-    enum AMGCLCoarseningType
-    {
-        RUGE_STUBEN,AGGREGATION,SA,SA_EMIN
-    };
-};
 
 
 
@@ -182,134 +163,135 @@ public:
     typedef typename TSparseSpaceType::VectorType VectorType;
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
-
-    /**
-     * Default constructor
-     */
-    AmgclMPISolver( double tol, int nit_max, int verbosity=0, bool use_linear_deflation=true)
+    
+    
+    AmgclMPISolver(Parameters rParameters)
     {
-        mtol = tol;
-        mmax_iter = nit_max;
-        mverbosity = verbosity;
-        muse_linear_deflation = use_linear_deflation;
 
 
-        mprm.put("amg.coarse_enough",500);
-        mprm.put("amg.coarsening.aggr.eps_strong",0);
-        mprm.put("solver.tol", tol);
-        mprm.put("solver.maxiter", nit_max);
+        Parameters default_parameters( R"(
+                                   {
+                                       "solver_type" : "AmgclMPISolver",
+                                       "scaling": false,
+                                       "verbosity" : 1,
+                                       "max_iteration": 100,
+                                       "krylov_type": "gmres",
+                                       "gmres_krylov_space_dimension": 100,
+                                       "tolerance": 1e-6,
+                                       "use_block_matrices_if_possible" : false,
+                                       "local_solver" :
+                                       {
+                                            "smoother_type":"ilu0",
+                                            "coarsening_type": "aggregation",
+                                            "provide_coordinates": false,
+                                            "block_size": 1,
+                                            "coarse_enough" : 5000
+                                       },
+                                       "direct_solver" : "skyline_lu"
+                                   }  )" );
 
-        //setting default options - for non symm system
-        mcoarsening = amgcl::runtime::coarsening::smoothed_aggregation;
-        mrelaxation = amgcl::runtime::relaxation::ilu0;
-        miterative_solver = amgcl::runtime::solver::bicgstabl;
 
-#ifdef AMGCL_HAVE_PASTIX
-        mdirect_solver = amgcl::runtime::direct_solver::pastix;
-#else
-        mdirect_solver = amgcl::runtime::direct_solver::skyline_lu;
-#endif
-
-    }
-
-    AmgclMPISolver( TrilinosAmgclSettings::AMGCLSmoother smoother,
-                    TrilinosAmgclSettings::AMGCLIterativeSolverType solver,
-                    TrilinosAmgclSettings::AMGCLCoarseningType coarsening,
-                    double tol,
-                    int nit_max,
-                    int verbosity=0,
-                    bool use_linear_deflation=true
-                  )
-    {
-        mtol = tol;
-        mmax_iter = nit_max;
-        mverbosity = verbosity;
-        muse_linear_deflation = use_linear_deflation;
-
-        mprm.put("amg.coarse_enough",500);
-        mprm.put("amg.coarsening.aggr.eps_strong",0);
-        mprm.put("solver.tol", tol);
-        mprm.put("solver.maxiter", nit_max);
-
-        //choose smoother
-        switch(smoother)
-        {
-        case TrilinosAmgclSettings::SPAI0:
-            mrelaxation = amgcl::runtime::relaxation::spai0;
-            break;
-        case TrilinosAmgclSettings::ILU0:
-            mrelaxation = amgcl::runtime::relaxation::ilu0;
-            break;
-        case TrilinosAmgclSettings::DAMPED_JACOBI:
-            mrelaxation = amgcl::runtime::relaxation::damped_jacobi;
-            break;
-        case TrilinosAmgclSettings::GAUSS_SEIDEL:
-            mrelaxation = amgcl::runtime::relaxation::gauss_seidel;
-            break;
-        case TrilinosAmgclSettings::CHEBYSHEV:
-            mrelaxation = amgcl::runtime::relaxation::chebyshev;
-            break;
-        case TrilinosAmgclSettings::MULTICOLOR_GAUSS_SEIDEL:
-            mrelaxation = amgcl::runtime::relaxation::multicolor_gauss_seidel;
-            break;
-            
-        default:
-            KRATOS_THROW_ERROR(std::logic_error,"default case is selected for amgcl_mpi smoother, while it should be prescribed explicitly" , "");
-        };
-
-        switch(solver)
-        {
-            case TrilinosAmgclSettings::GMRES:
-                miterative_solver = amgcl::runtime::solver::gmres;
-                break;
-            case TrilinosAmgclSettings::BICGSTAB:
-                miterative_solver = amgcl::runtime::solver::bicgstab;
-                break;
-            case TrilinosAmgclSettings::CG:
-                miterative_solver = amgcl::runtime::solver::cg;
-                break;
-            case TrilinosAmgclSettings::BICGSTAB2:
-                miterative_solver = amgcl::runtime::solver::bicgstabl;
-                break;
-            case TrilinosAmgclSettings::BICGSTAB_WITH_GMRES_FALLBACK:
-            {
-                KRATOS_THROW_ERROR(std::logic_error,"sorry BICGSTAB_WITH_GMRES_FALLBACK not implemented","")
-                break;
-            }
-            default:
-                KRATOS_THROW_ERROR(std::logic_error,"default case is selected for amgcl_mpi solver, while it should be prescribed explicitly" , "");
-        };
-
-        switch(coarsening)
-        {
-        case TrilinosAmgclSettings::RUGE_STUBEN:
-            mcoarsening = amgcl::runtime::coarsening::ruge_stuben;
-            break;
-        case TrilinosAmgclSettings::AGGREGATION:
-            mcoarsening = amgcl::runtime::coarsening::aggregation;
-            break;
-        case TrilinosAmgclSettings::SA:
-            mcoarsening = amgcl::runtime::coarsening::smoothed_aggregation;
-            break;
-        case TrilinosAmgclSettings::SA_EMIN:
-            mcoarsening = amgcl::runtime::coarsening::smoothed_aggr_emin;
-            break;
-        default:
-            KRATOS_THROW_ERROR(std::logic_error,"default case is selected for amgcl_mpi coarsening, while it should be prescribed explicitly" , "");
+        //now validate agains defaults -- this also ensures no type mismatch
+        rParameters.ValidateAndAssignDefaults(default_parameters);
         
-        };
+        mverbosity = rParameters["verbosity"].GetInt();
 
+        //validate if values are admissible
+        std::set<std::string> available_smoothers = {"spai0","ilu0","damped_jacobi","gauss_seidel","chebyshev"};
+        std::set<std::string> available_solvers = {"gmres","bicgstab","cg","bicgstabl"};
+        std::set<std::string> available_coarsening = {"ruge_stuben","aggregation","smoothed_aggregation","smoothed_aggr_emin"};
 
-        //setting default options - for non symm system
-//         mcoarsening = amgcl::runtime::coarsening::smoothed_aggregation;
+        std::stringstream msg;
+        
+        
+        //////////////////////////////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////////////////////////////
+        //define the LOCAL SOLVER
+        //////////////////////////////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////////////////////////////
+        if(available_smoothers.find(rParameters["local_solver"]["smoother_type"].GetString()) == available_smoothers.end())
+        {
+            msg << "currently prescribed smoother_type : " << rParameters["local_solver"]["smoother_type"].GetString() << std::endl;
+            msg << "admissible values are : spai0,ilu0,damped_jacobi,gauss_seidel,chebyshev"<< std::endl;
+            KRATOS_THROW_ERROR(std::invalid_argument," smoother_type is invalid: ",msg.str());
+        }
+        if(available_solvers.find(rParameters["krylov_type"].GetString()) == available_solvers.end())
+        {
+            msg << "currently prescribed krylov_type : " << rParameters["krylov_type"].GetString() << std::endl;
+            msg << "admissible values are : gmres,bicgstab,cg,bicgstabl"<< std::endl;
+            KRATOS_THROW_ERROR(std::invalid_argument," krylov_type is invalid: available possibilities are : ",msg.str());
+        }
+        if(available_coarsening.find(rParameters["local_solver"]["coarsening_type"].GetString()) == available_coarsening.end())
+        {
+            msg << "currently prescribed coarsening_type : " << rParameters["local_solver"]["coarsening_type"].GetString() << std::endl;
+            msg << "admissible values are : ruge_stuben,aggregation,smoothed_aggregation,smoothed_aggr_emin" << std::endl;
+            KRATOS_THROW_ERROR(std::invalid_argument," coarsening_type is invalid: available possibilities are : ",msg.str());
+        }
 
-#ifdef AMGCL_HAVE_PASTIX
-        mdirect_solver = amgcl::runtime::direct_solver::pastix;
-#else
-        mdirect_solver = amgcl::runtime::direct_solver::skyline_lu;
-#endif
+        //OUTER SOLVER CONFIGURATION
+        mprm.put("isolver.type", rParameters["krylov_type"].GetString());
+        mprm.put("isolver.tol", rParameters["tolerance"].GetDouble());
+        mprm.put("isolver.maxiter", rParameters["max_iteration"].GetInt());
+        //TODO: here is global
+
+        if(rParameters["krylov_type"].GetString() == "gmres")
+        {
+            KRATOS_WATCH("********************************");
+            mprm.put("isolver.M",  rParameters["gmres_krylov_space_dimension"].GetInt());
+        }
+        
+        
+//         {
+//    "local": {
+//        "relax": {
+//            "type": "ilu0"
+//        },
+//        "coarsening": {
+//            "type": "aggregation",
+//            "aggr": {
+//                "block_size": "1"
+//            }
+//        }
+//    },
+//    "isolver": {
+//        "type": "gmres"
+//    },
+//    "dsolver" : {
+//         "type" : "skyline_lu"
+//     }
+//    "num_def_vec": "1",
+//    "def_vec": "0x2db4580"
+// }
+        
+        
+        
+        
+        
+        mprm.put("local.relax.type", rParameters["local_solver"]["smoother_type"].GetString());
+        mprm.put("local.coarsening.type",  rParameters["local_solver"]["coarsening_type"].GetString());
+
+//         muse_block_matrices_if_possible = rParameters["local_solver"]["use_block_matrices_if_possible"].GetBool();
+
+        
+
+        if(mprovide_coordinates==true && muse_block_matrices_if_possible==true)
+        {
+            std::cout << "sorry coordinates can not be provided when using block matrices, hence setting muse_block_matrices_if_possible to false" << std::endl;
+            muse_block_matrices_if_possible = false;
+            rParameters["use_block_matrices_if_possible"].SetBool(false);
+        }
+        
+        
+        
+//         #ifdef AMGCL_HAVE_PASTIX
+//         mdirect_solver = amgcl::runtime::mpi::dsolver::pastix;
+// #else
+//         mdirect_solver = amgcl::runtime::mpi::dsolver::skyline_lu;
+// #endif
+
     }
 
+ 
     //put("solver.M", 100) --> to set the size of the gmres search space
     //put("amg.ncycle", 2) --> to do more swipes...
     void SetDoubleParameter(std::string param_name, const double value)
@@ -344,23 +326,50 @@ public:
         
           
         amgcl::mpi::communicator world(MPI_COMM_WORLD);
-        if (world.rank == 0) std::cout << "World size: " << world.size << std::endl;
+        if (mverbosity >=0 && world.rank == 0) std::cout << "World size: " << world.size << std::endl;
 
         int chunk = rA.NumMyRows();
         boost::iterator_range<double*> xrange(rX.Values(), rX.Values() + chunk);
         boost::iterator_range<double*> frange(rB.Values(), rB.Values() + chunk);
 
         //set block size
-        mprm.put("amg.coarsening.aggr.block_size",mndof);
+        mprm.put("local.coarsening.aggr.block_size",mndof);
 
-//         prof.tic("setup");
+        boost::function<double(ptrdiff_t, unsigned)> dv;
+        if(muse_linear_deflation == false )
+        {
+            if(mpconstant_def_space == nullptr)
+            {
+                //this is in case of emergency if we were not able to compute the deflation step in another way
+                std::size_t dim = 1;
+                mpconstant_def_space = boost::make_shared<constant_deflation_space>(rA.NumMyRows(), mndof,dim);
+            }
+            dv = *mpconstant_def_space;;
+        }
+        else
+        {
+            if(mplinear_def_space == nullptr)
+            {
+                KRATOS_ERROR << "the linear deformation space was not correctly constructed" ;
+            }
+            dv = *mplinear_def_space;;
+        }
+        
+        mprm.put("num_def_vec", mpconstant_def_space->mdim);
+        mprm.put("def_vec", &dv);
+        
+        if(mverbosity > 1 && world.rank == 0)
+            write_json(std::cout, mprm);
+  
         typedef
-        amgcl::runtime::mpi::subdomain_deflation< amgcl::backend::builtin<double>  > SDD;
+            amgcl::mpi::subdomain_deflation<
+                amgcl::runtime::relaxation::as_preconditioner< amgcl::backend::builtin<double> >,
+                amgcl::runtime::iterative_solver,
+                amgcl::runtime::mpi::direct_solver<double>
+            > SDD;
 
-        if(muse_linear_deflation == true)
-        {
             prof.tic("setup");
-            SDD solve(mcoarsening, mrelaxation, miterative_solver, mdirect_solver, world, amgcl::backend::map(rA), *mplinear_def_space, mprm );
+            SDD solve(world, amgcl::backend::map(rA), mprm);
             double tm_setup = prof.toc("setup");
 
             prof.tic("Solve");
@@ -373,13 +382,18 @@ public:
 
             if (rA.Comm().MyPID() == 0)
             {
+                if(mverbosity > 0)
+                {
                 std::cout
                         << "------- AMGCL -------\n" << std::endl
                         << "Iterations      : " << iters   << std::endl
                         << "Error           : " << resid   << std::endl
                         << "amgcl setup time: " << tm_setup   << std::endl
-                        << "amgcl solve time: " << solve_tm   << std::endl//;
-                        << prof                      << std::endl;
+                        << "amgcl solve time: " << solve_tm   << std::endl;
+                }
+                        
+                if(mverbosity > 1)
+                       std::cout << prof  << std::endl;
             }
 
 
@@ -387,39 +401,6 @@ public:
             return true;
 
 
-        }
-        else //use constant deflation
-        {
-            prof.tic("setup");
-            SDD solve(mcoarsening, mrelaxation, miterative_solver, mdirect_solver, world, amgcl::backend::map(rA), *mpconstant_def_space, mprm );
-            double tm_setup = prof.toc("setup");
-
-            //         double tm_setup = prof.toc("setup");
-
-            prof.tic("Solve");
-            size_t iters;
-            double resid;
-            boost::tie(iters, resid) = solve(frange, xrange);
-            double solve_tm = prof.toc("Solve");
-
-
-
-            if (rA.Comm().MyPID() == 0)
-            {
-                std::cout
-                        << "------- AMGCL -------\n" << std::endl
-                        << "Iterations      : " << iters   << std::endl
-                        << "Error           : " << resid   << std::endl
-                        << "amgcl setup time: " << tm_setup   << std::endl
-                        << "amgcl solve time: " << solve_tm   << std::endl//;
-                        << prof                      << std::endl;
-            }
-
-
-
-            return true;
-
-        }
 
 
 
@@ -637,17 +618,19 @@ private:
 
     double mtol;
     int mmax_iter;
-    int mndof;
+    int mndof = 1;
     int mverbosity;
-    bool muse_linear_deflation;
+    bool muse_linear_deflation = false;
+    bool mprovide_coordinates = false;
+    bool muse_block_matrices_if_possible = false;
 
-    boost::shared_ptr< deflation_space    > mplinear_def_space;
-    boost::shared_ptr< constant_deflation_space    > mpconstant_def_space;
+    boost::shared_ptr< deflation_space    > mplinear_def_space = nullptr;
+    boost::shared_ptr< constant_deflation_space    > mpconstant_def_space = nullptr;
 
-    amgcl::runtime::coarsening::type mcoarsening;
-    amgcl::runtime::relaxation::type mrelaxation;
-    amgcl::runtime::solver::type miterative_solver;
-    amgcl::runtime::direct_solver::type mdirect_solver;
+//     amgcl::runtime::coarsening::type mcoarsening;
+//     amgcl::runtime::relaxation::type mrelaxation;
+//     amgcl::runtime::solver::type miterative_solver;
+//     amgcl::runtime::mpi::dsolver::type mdirect_solver;
 
     boost::property_tree::ptree mprm;
 
