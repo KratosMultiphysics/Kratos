@@ -132,9 +132,9 @@ class RestartProcess(KratosMultiphysics.Process):
         current_restart_path = self.restart_path + "__" + str(label)
 
         # set serializer flag
-        self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE  # binary
+        # self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE  # binary
         # self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ERROR # ascii
-        # self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
+        self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
         
         serializer = KratosMultiphysics.Serializer(current_restart_path, self.serializer_flag)
         

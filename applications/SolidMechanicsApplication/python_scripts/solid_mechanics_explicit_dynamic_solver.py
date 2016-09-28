@@ -58,6 +58,7 @@ class ExplicitMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
                 "scaling": false,
                 "verbosity": 1
             },
+            "bodies_list": [],
             "problem_domain_sub_model_part_list": ["solid_model_part"],
             "processes_sub_model_part_list": [""]
         }
