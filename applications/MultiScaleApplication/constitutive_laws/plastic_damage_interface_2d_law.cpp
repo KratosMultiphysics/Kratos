@@ -1928,7 +1928,7 @@ namespace Kratos
 					}
 					if(dl2>0.0 && (yield_mode==2 || yield_mode==4)) {
 						double ovs = dl2*data.eta_over_dt;
-						ovs = std::min(ovs,abs(tra(1)));
+						ovs = std::min(ovs,std::abs(tra(1)));
 						double damage_S = 1.0-c/data.c;
 						tra(1)=sign_tau*(std::abs(tra(1))-ovs+(1.0-damage_S)*ovs);
 					}
