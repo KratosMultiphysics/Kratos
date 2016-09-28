@@ -2609,7 +2609,7 @@ namespace Kratos
         KRATOS_TRY
         std::string block;
 
-        WriteInAllFiles(OutputFiles, "Begin ModelPartData");
+        WriteInAllFiles(OutputFiles, "Begin ModelPartData\n");
 
         ReadBlock(block, "ModelPartData");
         WriteInAllFiles(OutputFiles, block);
