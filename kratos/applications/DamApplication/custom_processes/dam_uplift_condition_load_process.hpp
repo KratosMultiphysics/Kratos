@@ -46,13 +46,14 @@ public:
                 "Gravity_Direction"                                     : "Y",
                 "Uplift_Direction"                                      : "X",
                 "Reservoir_Bottom_Coordinate_in_Gravity_Direction"      : 0.0,
-                "Upstream_Coordinate_at_Base_Dam_in_Uplift_Direction"   : 0.0,
-                "Base_of_dam"                                           : 0.0,
+                "Upstream_Coordinate"                                   : [0.0,0.0,0.0],
+                "Downstream_Coordinate"                                 : [0.0,0.0,0.0],
+                "Upstream_Longitudinal_Coordinate"                      : [0.0,0.0,0.0],
                 "Spe_weight"                                            : 0.0,
                 "Water_level"                                           : 10,
                 "Drains"                                                : false,
                 "Height_drain"                                          : 0.0,
-                "Position_drain"                                        : 0.0,
+                "Distance"                                              : 0.0,
                 "Effectiveness"                                         : 0.0
             }  )" );
             
@@ -60,7 +61,7 @@ public:
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
         // So that an error is thrown if they don't exist
         rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"];
-        rParameters["Upstream_Coordinate_at_Base_Dam_in_Uplift_Direction"];
+        rParameters["Upstream_Coordinate"];
         rParameters["variable_name"];
         rParameters["model_part_name"];
 
@@ -71,16 +72,29 @@ public:
         mvariable_name = rParameters["variable_name"].GetString();
         mis_fixed = rParameters["is_fixed"].GetBool();
         mgravity_direction = rParameters["Gravity_Direction"].GetString();
-        muplift_direction = rParameters["Uplift_Direction"].GetString();
         mreference_coordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
-        mreference_coordinate_uplift = rParameters["Upstream_Coordinate_at_Base_Dam_in_Uplift_Direction"].GetDouble();
         mspecific = rParameters["Spe_weight"].GetDouble();
-        mbase_dam = rParameters["Base_of_dam"].GetDouble();
+        
+        // Getting the values of the coordinates (reference value)
+        mx_0.resize(3,false);
+        mx_0[0] = rParameters["Upstream_Coordinate"][0].GetDouble();
+        mx_0[1] = rParameters["Upstream_Coordinate"][1].GetDouble();
+        mx_0[2] = rParameters["Upstream_Coordinate"][2].GetDouble();
+        
+        mx_1.resize(3,false);
+        mx_1[0] = rParameters["Downstream_Coordinate"][0].GetDouble();
+        mx_1[1] = rParameters["Downstream_Coordinate"][1].GetDouble();
+        mx_1[2] = rParameters["Downstream_Coordinate"][2].GetDouble();
+        
+        mx_2.resize(3,false);
+        mx_2[0] = rParameters["Upstream_Longitudinal_Coordinate"][0].GetDouble();
+        mx_2[1] = rParameters["Upstream_Longitudinal_Coordinate"][1].GetDouble();
+        mx_2[2] = rParameters["Upstream_Longitudinal_Coordinate"][2].GetDouble();        
         
         // Drains
         mdrain = rParameters["Drains"].GetBool();
         mheight_drain = rParameters["Height_drain"].GetDouble();
-        mlength_drain = rParameters["Position_drain"].GetDouble();
+        mdistance_drain = rParameters["Distance"].GetDouble();
         meffectiveness_drain = rParameters["Effectiveness"].GetDouble();
         
         // TODO: PARAMETERS MUST BE GOT FROM THE TABLE
@@ -108,11 +122,19 @@ public:
         
         KRATOS_TRY;
         
+        //Defining necessary variables
         Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
-        
         const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        boost::numeric::ublas::bounded_matrix<double,3,3> RotationMatrix;
         
-        int direction, up_direction;
+        // Computing the rotation matrix accoding with the introduced points by the user
+        this->CalculateRotationMatrix(RotationMatrix);
+        array_1d<double,3> newCoordinate;
+        array_1d<double,3> auxiliar_vector;
+        array_1d<double,3> reference_vector;
+
+        // Gravity direction for computing the hydrostatic pressure
+        int direction;
         
         if( mgravity_direction == "X")
             direction = 1;
@@ -121,13 +143,8 @@ public:
         else if( mgravity_direction == "Z")
             direction = 3;
             
-        if( muplift_direction == "X")
-            up_direction = 1;
-        else if( muplift_direction == "Y")
-            up_direction = 2;
-        else if( muplift_direction == "Z")
-            up_direction = 3;
-              
+        // Computing the reference vector (coordinates)    
+        reference_vector = prod(RotationMatrix,mx_0);
                 
         if(nnodes != 0)
         {
@@ -138,27 +155,35 @@ public:
             if( mdrain == true)
             {
 				double coefficient_effectiveness = 1.0 - meffectiveness_drain;
-				double aux_drain = coefficient_effectiveness *(mwater_level - mheight_drain)* ((mbase_dam-mlength_drain)/mbase_dam) + mheight_drain;
-				
+				double aux_drain = coefficient_effectiveness *(mwater_level - mheight_drain)* ((mbase_dam-mdistance_drain)/mbase_dam) + mheight_drain;
+
 				#pragma omp parallel for
 				for(int i = 0; i<nnodes; i++)
 				{
 					ModelPart::NodesContainerType::iterator it = it_begin + i;
+                    
+                    auxiliar_vector.resize(3,false);                    
+                    auxiliar_vector[0] = it->Coordinate(1);
+                    auxiliar_vector[1] = it->Coordinate(2);
+                    auxiliar_vector[2] = it->Coordinate(3);
+                    
+                    // Computing the new coordinates                                        
+                    newCoordinate = prod(RotationMatrix,auxiliar_vector);
 
 					if(mis_fixed)
 					{
 						it->Fix(var);
 					}
-					
-					if ( (it->Coordinate(up_direction) +0.000001) <= (mreference_coordinate_uplift + mlength_drain ))
-					{						
-						muplift_pressure = (mspecific*((ref_coord-aux_drain)- (it->Coordinate(direction))))*(1.0-((1.0/(mlength_drain))*(fabs( (it->Coordinate(up_direction)) - mreference_coordinate_uplift)))) + mspecific*aux_drain;
-					}
-					else
-					{
-						muplift_pressure = (mspecific*((mreference_coordinate+aux_drain)- (it->Coordinate(direction))))*(1.0-((1.0/(mbase_dam - mlength_drain))*(fabs( (it->Coordinate(up_direction)) - (mreference_coordinate_uplift+mlength_drain)))));
-					}
-					
+		
+                    // We compute the first part of the uplift law 
+                    muplift_pressure = (mspecific*((ref_coord-aux_drain)- (it->Coordinate(direction))))*(1.0-((1.0/(mdistance_drain))*(fabs( (newCoordinate(0)) - reference_vector(0))))) + mspecific*aux_drain;
+                    
+                    // If uplift pressure is greater than the limit we compute the second part and we update the value
+                        if(muplift_pressure <= mspecific*aux_drain)
+                        {
+                            muplift_pressure = (mspecific*((mreference_coordinate+aux_drain)- (it->Coordinate(direction))))*(1.0-((1.0/(mbase_dam - mdistance_drain))*(fabs( (newCoordinate(0)) - (reference_vector(0)+mdistance_drain)))));
+                        }
+                        
 					if(muplift_pressure<0.0)
 					{
 						it->FastGetSolutionStepValue(var)=0.0;
@@ -176,21 +201,27 @@ public:
 				for(int i = 0; i<nnodes; i++)
 				{
 					ModelPart::NodesContainerType::iterator it = it_begin + i;
+                    
+                    auxiliar_vector.resize(3,false);                    
+                    auxiliar_vector[0] = it->Coordinate(1);
+                    auxiliar_vector[1] = it->Coordinate(2);
+                    auxiliar_vector[2] = it->Coordinate(3);
+                    
+                    newCoordinate = prod(RotationMatrix,auxiliar_vector);
 
 					if(mis_fixed)
 					{
 						it->Fix(var);
 					}
 				
-					muplift_pressure = (mspecific*(ref_coord- (it->Coordinate(direction))))*(1.0-((1.0/mbase_dam)*(fabs( (it->Coordinate(up_direction)) - mreference_coordinate_uplift))));
-					
+					muplift_pressure = (mspecific*(ref_coord- (it->Coordinate(direction))))*(1.0-((1.0/mbase_dam)*(fabs(newCoordinate(0)-reference_vector(0)))));
+                    
 					if(muplift_pressure<0.0)
 					{
 						it->FastGetSolutionStepValue(var)=0.0;
 					}
 					else
 					{
-						KRATOS_WATCH(muplift_pressure)
 						it->FastGetSolutionStepValue(var) = muplift_pressure;
 					}
 				}
@@ -200,6 +231,48 @@ public:
         KRATOS_CATCH("");
     }
     
+    void CalculateRotationMatrix(boost::numeric::ublas::bounded_matrix<double,3,3>& rRotationMatrix)
+    {
+        KRATOS_TRY;
+        
+        //Unitary vector in uplift direction
+        array_1d<double,3> V_uplift;      
+        V_uplift = (mx_1 - mx_0);
+        mbase_dam= norm_2(V_uplift);
+        double inv_norm_uplift = 1.0/norm_2(V_uplift);
+        V_uplift[0] *= inv_norm_uplift;
+        V_uplift[1] *= inv_norm_uplift;
+        V_uplift[2] *= inv_norm_uplift;
+        
+        //Unitary vector in longitudinal direction
+        array_1d<double,3> V_longitudinal;
+        V_longitudinal = (mx_2 - mx_0);
+        double inv_norm_longitudinal = 1.0/norm_2(V_longitudinal);
+        V_longitudinal[0] *= inv_norm_longitudinal;
+        V_longitudinal[1] *= inv_norm_longitudinal;
+        V_longitudinal[2] *= inv_norm_longitudinal;
+        
+        //Unitary vector in local z direction
+        array_1d<double,3> V_normal;
+        MathUtils<double>::CrossProduct( V_normal, V_uplift, V_longitudinal);
+                
+        //Rotation Matrix
+        rRotationMatrix(0,0) = V_uplift[0];
+        rRotationMatrix(0,1) = V_uplift[1];
+        rRotationMatrix(0,2) = V_uplift[2];
+        
+        rRotationMatrix(1,0) = V_longitudinal[0];
+        rRotationMatrix(1,1) = V_longitudinal[1];
+        rRotationMatrix(1,2) = V_longitudinal[2];
+        
+        rRotationMatrix(2,0) = V_normal[0];
+        rRotationMatrix(2,1) = V_normal[1];
+        rRotationMatrix(2,2) = V_normal[2];
+        
+        KRATOS_CATCH( "" )
+        
+    }
+
     /// Turn back information as a string.
     std::string Info() const
     {
@@ -227,19 +300,20 @@ protected:
     std::size_t mmesh_id;
     std::string mvariable_name;
     std::string mgravity_direction;
-    std::string muplift_direction;
     bool mis_fixed;
     double mreference_coordinate;
-    double mreference_coordinate_uplift;
     double mspecific;
     double mbase_dam;
     double mwater_level;
     bool mdrain;
     double mheight_drain;
-    double mlength_drain;
+    double mdistance_drain;
     double meffectiveness_drain;
     double muplift_pressure;
-
+    Vector mx_0;
+    Vector mx_1;
+    Vector mx_2;   
+    
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
