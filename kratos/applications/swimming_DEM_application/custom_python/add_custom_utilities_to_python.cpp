@@ -66,9 +66,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/space_time_rule.h"
 #include "custom_utilities/space_time_set.h"
 #include "custom_utilities/field_utility.h"
+#include "custom_utilities/vector_field.h"
 #include "custom_utilities/velocity_field.h"
 #include "custom_utilities/cellular_flow_field.h"
 #include "custom_utilities/basset_force_tools.h"
+#include "custom_utilities/statistics/sampling_tool.h"
 
 namespace Kratos{
 
@@ -138,23 +140,22 @@ using namespace boost::python;
 
     class_<VectorField<3> > ("VectorField3D", boost::python::no_init)
         ;
-
-    typedef void (VelocityField::*Evaluate)(const double, const vector<double>&, vector<double>&);
+    typedef void (VelocityField::*Evaluate)(const double, const vector<double>&, vector<double>&, const unsigned int, const unsigned int);
     Evaluate EvaluateVector = &VelocityField::Evaluate;
 
-    typedef void (VelocityField::*CalculateTimeDerivative)(const double, const vector<double>&, vector<double>&);
+    typedef void (VelocityField::*CalculateTimeDerivative)(const double, const vector<double>&, vector<double>&, const unsigned int n_threads, const unsigned int i_thread);
     CalculateTimeDerivative CalculateTimeDerivativeVector = &VelocityField::CalculateTimeDerivative;
 
-    typedef double (VelocityField::*CalculateDivergence)(const double, const vector<double>&);
+    typedef double (VelocityField::*CalculateDivergence)(const double, const vector<double>&, const unsigned int n_threads, const unsigned int i_thread);
     CalculateDivergence CalculateDivergenceVector = &VelocityField::CalculateDivergence;
 
-    typedef void (VelocityField::*CalculateRotational)(const double, const vector<double>&, vector<double>&);
+    typedef void (VelocityField::*CalculateRotational)(const double, const vector<double>&, vector<double>&, const unsigned int n_threads, const unsigned int i_thread);
     CalculateRotational CalculateRotationalVector = &VelocityField::CalculateRotational;
 
-    typedef void (VelocityField::*CalculateLaplacian)(const double, const vector<double>&, vector<double>&);
+    typedef void (VelocityField::*CalculateLaplacian)(const double, const vector<double>&, vector<double>&, const unsigned int n_threads, const unsigned int i_thread);
     CalculateLaplacian CalculateLaplacianVector = &VelocityField::CalculateLaplacian;
 
-    typedef void (VelocityField::*CalculateMaterialAcceleration)(const double, const vector<double>&, vector<double>&);
+    typedef void (VelocityField::*CalculateMaterialAcceleration)(const double, const vector<double>&, vector<double>&, const unsigned int n_threads, const unsigned int i_thread);
     CalculateMaterialAcceleration CalculateMaterialAccelerationVector = &VelocityField::CalculateMaterialAcceleration;
 
     class_<VelocityField, bases<VectorField<3> > > ("VelocityField", boost::python::no_init)
@@ -233,16 +234,19 @@ using namespace boost::python;
 
     typedef void (FieldUtility::*ImposeDoubleFieldOnNodes)(Variable<double>&, const double, RealField::Pointer, ModelPart&, const ProcessInfo&, const bool);
     typedef void (FieldUtility::*ImposeVectorFieldOnNodes)(Variable<array_1d<double, 3> >&, const array_1d<double, 3>, VectorField<3>::Pointer, ModelPart&, const ProcessInfo&, const bool);
+    typedef void (FieldUtility::*ImposeVelocityFieldOnNodes)(ModelPart&, const VariablesList&);
 
     ImposeDoubleFieldOnNodes ImposeDoubleField = &FieldUtility::ImposeFieldOnNodes;
     ImposeVectorFieldOnNodes ImposeVectorField = &FieldUtility::ImposeFieldOnNodes;
+    ImposeVelocityFieldOnNodes ImposeVelocityField = &FieldUtility::ImposeFieldOnNodes;
 
-    class_<FieldUtility> ("FieldUtility", init<SpaceTimeSet::Pointer>())
+    class_<FieldUtility> ("FieldUtility", init<SpaceTimeSet::Pointer, VectorField<3>::Pointer>())
         .def("MarkNodesInside", &FieldUtility::MarkNodesInside)
         .def("EvaluateFieldAtPoint", EvaluateDoubleField)
         .def("EvaluateFieldAtPoint", EvaluateVectorField)
         .def("ImposeFieldOnNodes", ImposeDoubleField)
         .def("ImposeFieldOnNodes", ImposeVectorField)
+        .def("ImposeFieldOnNodes", ImposeVelocityField)
         ;
 
     class_<CustomFunctionsCalculator <2> > ("CustomFunctionsCalculator2D", init<>())
@@ -286,21 +290,26 @@ using namespace boost::python;
     class_<BinBasedDEMFluidCoupledMapping <2, SphericParticle> >
             ("BinBasedDEMFluidCoupledMapping2D", init<double, int, int, int, int>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::InterpolateFromFluidMesh)
+        .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ImposeFlowOnDEMFromField)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::InterpolateFromDEMMesh)
         .def("HomogenizeFromDEMMesh", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::HomogenizeFromDEMMesh)
         .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ComputePostProcessResults)
         .def("AddDEMCouplingVariable", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::AddDEMCouplingVariable)
         .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::AddFluidCouplingVariable)
+        .def("AddDEMVariablesToImpose", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::AddDEMVariablesToImpose)
         ;
+
 
     class_<BinBasedDEMFluidCoupledMapping <2, NanoParticle> >
             ("BinBasedNanoDEMFluidCoupledMapping2D", init<double, int, int, int, int>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::InterpolateFromFluidMesh)
+        .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ImposeFlowOnDEMFromField)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::InterpolateFromDEMMesh)
         .def("HomogenizeFromDEMMesh", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::HomogenizeFromDEMMesh)
         .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::ComputePostProcessResults)
         .def("AddDEMCouplingVariable", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::AddDEMCouplingVariable)
         .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::AddFluidCouplingVariable)
+        .def("AddDEMVariablesToImpose", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::AddDEMVariablesToImpose)
         ;
 
     class_<BinBasedDEMFluidCoupledMapping <3, SphericParticle> >
@@ -308,21 +317,25 @@ using namespace boost::python;
         .def("InterpolateVelocity", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateVelocity)
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateFromFluidMesh)
         .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateFromNewestFluidMesh)
+        .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::ImposeFlowOnDEMFromField)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateFromDEMMesh)
         .def("HomogenizeFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::HomogenizeFromDEMMesh)
         .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::ComputePostProcessResults)
         .def("AddDEMCouplingVariable", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::AddDEMCouplingVariable)
         .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::AddFluidCouplingVariable)
+        .def("AddDEMVariablesToImpose", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::AddDEMVariablesToImpose)
         ;
     
     class_<BinBasedDEMFluidCoupledMapping <3, NanoParticle> >
             ("BinBasedNanoDEMFluidCoupledMapping3D", init<double, int, int, int>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromFluidMesh)
         .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromNewestFluidMesh)
+        .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::ImposeFlowOnDEMFromField)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromDEMMesh)
         .def("HomogenizeFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::HomogenizeFromDEMMesh)
         .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::ComputePostProcessResults)
         .def("AddDEMCouplingVariable", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddDEMCouplingVariable)
+        .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddFluidCouplingVariable)
         .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddFluidCouplingVariable)
         ;
 
