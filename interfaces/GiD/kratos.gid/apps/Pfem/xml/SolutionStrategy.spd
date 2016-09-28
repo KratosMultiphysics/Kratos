@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="SolStrat" pn="Solution" un="PFEM_StratSection" help="Solution Strategy">
-	  <value n="SolStratCombo" pn="Solution strategy" un="PFEM_SolStrat" v="" values="" dict="[GetSolutionStrategies]" actualize_tree="1" state="normal"/>
-	  <value n="Scheme" pn="Scheme" un="PFEM_Scheme" v="" values="" dict="[GetSchemes]" state="[DisableIfUniqueName]"  actualize_tree="1"/>
+          <value n="SolutionType" pn="Solution type" un="PFEM_SoluType" v="Dynamic" values="Static,Dynamic" help="Solution type" actualize_tree="1"/>
+	  <value n="SolStratCombo" pn="Solution strategy" un="PFEM_SolStrat" v="" values="" dict="[GetSolutionStrategies]" actualize_tree="1" state="[DisableIfUniqueName PFEM_SoluType Dynamic]"/>
+	  <value n="Scheme" pn="Scheme" un="PFEM_Scheme" v="" values="" dict="[GetSchemes]" state="[DisableIfUniqueName PFEM_SoluType Dynamic]"  actualize_tree="1"/>
+	  <value n="LinearType" pn="Linear type" un="PFEM_LinearType" v="Linear" values="Linear,Non-Linear" help="Linear type" state="[checkStateByUniqueName PFEM_SoluType Static]"/>
       <container n="TimeParameters" pn="Time parameters" un="PFEM_TimeParameters" help="Problem parameters" state="[checkStateByUniqueName SLSoluType Dynamic]" >
 			<value n="StartTime" pn="Start time" v="0.0" help=""/>
 			<value n="EndTime" pn="End time" v="1.0" help=""/>
