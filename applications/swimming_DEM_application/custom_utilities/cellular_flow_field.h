@@ -42,8 +42,8 @@ CellularFlowField():VelocityField(),mL(1.0), mU(0.0), mK(2.72), mOmega(KRATOS_M_
 CellularFlowField(const double wavelength, const double mean_flow_speed, const double oscillation_relative_amplitude, const double oscillation_angular_frequency)
                  :VelocityField(), mL(0.5 * wavelength), mU(mean_flow_speed), mK(oscillation_relative_amplitude), mOmega(oscillation_angular_frequency)
 {
-    mPiOverL = KRATOS_M_PI / mL;
-    mOmegaUOverL = mOmega * mU / mL;
+    mPiOverL = 0.5 * KRATOS_M_PI / mL;
+    mOmegaUOverL = 0.5 * mOmega * mU / mL;
 }
 
 
@@ -55,9 +55,11 @@ virtual ~CellularFlowField(){}
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void UpdateCoordinates(const double time, const array_1d<double, 3>& coor);
+void ResizeVectorsForParallelism(const unsigned int n_threads);
 
-void UpdateCoordinates(const double time, const vector<double>& coor);
+void UpdateCoordinates(const double time, const array_1d<double, 3>& coor, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
+
+void UpdateCoordinates(const double time, const vector<double>& coor, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
 
 //***************************************************************************************************************
 //***************************************************************************************************************
@@ -114,61 +116,61 @@ protected:
 
 // Values
 
-double U0();
-double U1();
-double U2();
+double U0(unsigned int i_thread = 1);
+double U1(unsigned int i_thread = 1);
+double U2(unsigned int i_thread = 1);
 
 // First-order derivatives
 
-double U0DT();
-double U0D0();
-double U0D1();
-double U0D2();
+double U0DT(unsigned int i_thread = 1);
+double U0D0(unsigned int i_thread = 1);
+double U0D1(unsigned int i_thread = 1);
+double U0D2(unsigned int i_thread = 1);
 
-double U1DT();
-double U1D0();
-double U1D1();
-double U1D2();
+double U1DT(unsigned int i_thread = 1);
+double U1D0(unsigned int i_thread = 1);
+double U1D1(unsigned int i_thread = 1);
+double U1D2(unsigned int i_thread = 1);
 
-double U2DT();
-double U2D0();
-double U2D1();
-double U2D2();
+double U2DT(unsigned int i_thread = 1);
+double U2D0(unsigned int i_thread = 1);
+double U2D1(unsigned int i_thread = 1);
+double U2D2(unsigned int i_thread = 1);
 
 // Second-order derivatives
 
-double U0DTDT();
-double U0DTD0();
-double U0DTD1();
-double U0DTD2();
-double U0D0D0();
-double U0D0D1();
-double U0D0D2();
-double U0D1D1();
-double U0D1D2();
-double U0D2D2();
+double U0DTDT(unsigned int i_thread = 1);
+double U0DTD0(unsigned int i_thread = 1);
+double U0DTD1(unsigned int i_thread = 1);
+double U0DTD2(unsigned int i_thread = 1);
+double U0D0D0(unsigned int i_thread = 1);
+double U0D0D1(unsigned int i_thread = 1);
+double U0D0D2(unsigned int i_thread = 1);
+double U0D1D1(unsigned int i_thread = 1);
+double U0D1D2(unsigned int i_thread = 1);
+double U0D2D2(unsigned int i_thread = 1);
 
-double U1DTDT();
-double U1DTD0();
-double U1DTD1();
-double U1DTD2();
-double U1D0D0();
-double U1D0D1();
-double U1D0D2();
-double U1D1D1();
-double U1D1D2();
-double U1D2D2();
+double U1DTDT(unsigned int i_thread = 1);
+double U1DTD0(unsigned int i_thread = 1);
+double U1DTD1(unsigned int i_thread = 1);
+double U1DTD2(unsigned int i_thread = 1);
+double U1D0D0(unsigned int i_thread = 1);
+double U1D0D1(unsigned int i_thread = 1);
+double U1D0D2(unsigned int i_thread = 1);
+double U1D1D1(unsigned int i_thread = 1);
+double U1D1D2(unsigned int i_thread = 1);
+double U1D2D2(unsigned int i_thread = 1);
 
-double U2DTDT();
-double U2DTD0();
-double U2DTD1();
-double U2DTD2();
-double U2D0D0();
-double U2D0D1();
-double U2D0D2();
-double U2D1D1();
-double U2D1D2();
-double U2D2D2();
+double U2DTDT(unsigned int i_thread = 1);
+double U2DTD0(unsigned int i_thread = 1);
+double U2DTD1(unsigned int i_thread = 1);
+double U2DTD2(unsigned int i_thread = 1);
+double U2D0D0(unsigned int i_thread = 1);
+double U2D0D1(unsigned int i_thread = 1);
+double U2D0D2(unsigned int i_thread = 1);
+double U2D1D1(unsigned int i_thread = 1);
+double U2D1D2(unsigned int i_thread = 1);
+double U2D2D2(unsigned int i_thread = 1);
 
 ///@}
 ///@name Protected Operations
@@ -206,12 +208,12 @@ double mK;
 double mPiOverL;
 double mOmegaUOverL;
 double mOmega;
-double mSinOmegaT;
-double mCosOmegaT;
-double mSinPiX0;
-double mCosPiX0;
-double mSinPiX1;
-double mCosPiX1;
+std::vector<double> mSinOmegaT;
+std::vector<double> mCosOmegaT;
+std::vector<double> mSinPiX0;
+std::vector<double> mCosPiX0;
+std::vector<double> mSinPiX1;
+std::vector<double> mCosPiX1;
 
 ///@}
 ///@name Private Operators
