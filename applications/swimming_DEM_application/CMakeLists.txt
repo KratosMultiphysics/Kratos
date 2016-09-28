@@ -38,6 +38,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/cellular_flow_field.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/statistics/sampling_tool.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/space_time_set.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/derivative_recovery.cpp
 )
 
 
