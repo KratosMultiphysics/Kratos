@@ -63,8 +63,10 @@ proc Pfem::write::GetPartsUN { } {
     customlib::UpdateDocument
     return $lista
 }
+
 # Custom files (Copy python scripts, write materials file...)
 proc Pfem::write::writeCustomFilesEvent { } {
+    Solid::write::WriteMaterialsFile
     
     write::CopyFileIntoModel "python/script.py"
     write::RenameFileInModel "script.py" "MainKratos.py"
