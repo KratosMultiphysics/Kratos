@@ -699,6 +699,164 @@ double CalculateGlobalFluidVolume(ModelPart& r_fluid_model_part)
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
+template<class matrix_T>
+double determinant(boost::numeric::ublas::matrix_expression<matrix_T> const& mat_r)
+{
+  double det = 1.0;
+
+  matrix_T mLu(mat_r() );
+  boost::numeric::ublas::permutation_matrix<std::size_t> pivots(mat_r().size1() );
+
+  int is_singular = lu_factorize(mLu, pivots);
+
+  if (!is_singular)
+  {
+    for (std::size_t i=0; i < pivots.size(); ++i)
+    {
+      if (pivots(i) != i)
+        det *= -1.0;
+
+      det *= mLu(i,i);
+    }
+  }
+  else
+    det = 0.0;
+
+  return det;
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+const boost::numeric::ublas::matrix<double> Inverse(
+  const boost::numeric::ublas::matrix<double>& m)
+{
+  assert(m.size1() == m.size2() && "Can only calculate the inverse of square matrices");
+
+  switch(m.size1())
+  {
+    case 1:
+    {
+      assert(m.size1() == 1 && m.size2() == 1 && "Only for 1x1 matrices");
+      const double determinant = CalcDeterminant(m);
+      assert(determinant != 0.0);
+      assert(m(0,0) != 0.0 && "Cannot take the inverse of matrix [0]");
+      boost::numeric::ublas::matrix<double> n(1,1);
+      n(0,0) =  1.0 / determinant;
+      return n;
+    }
+    case 2:
+    {
+      assert(m.size1() == 2 && m.size2() == 2 && "Only for 2x2 matrices");
+      const double determinant = CalcDeterminant(m);
+      assert(determinant != 0.0);
+      const double a = m(0,0);
+      const double b = m(0,1);
+      const double c = m(1,0);
+      const double d = m(1,1);
+      boost::numeric::ublas::matrix<double> n(2,2);
+      n(0,0) =  d / determinant;
+      n(0,1) = -b / determinant;
+      n(1,0) = -c / determinant;
+      n(1,1) =  a / determinant;
+      return n;
+    }
+    case 3:
+    {
+      assert(m.size1() == 3 && m.size2() == 3 && "Only for 3x3 matrices");
+      const double determinant = CalcDeterminant(m);
+      assert(determinant != 0.0);
+      const double a = m(0,0);
+      const double b = m(0,1);
+      const double c = m(0,2);
+      const double d = m(1,0);
+      const double e = m(1,1);
+      const double f = m(1,2);
+      const double g = m(2,0);
+      const double h = m(2,1);
+      const double k = m(2,2);
+      boost::numeric::ublas::matrix<double> n(3,3);
+      const double new_a =  ((e*k)-(f*h)) / determinant;
+      const double new_b = -((d*k)-(f*g)) / determinant;
+      const double new_c =  ((d*h)-(e*g)) / determinant;
+      const double new_d = -((b*k)-(c*h)) / determinant;
+      const double new_e =  ((a*k)-(c*g)) / determinant;
+      const double new_f = -((a*h)-(b*g)) / determinant;
+      const double new_g =  ((b*f)-(c*e)) / determinant;
+      const double new_h = -((a*f)-(c*d)) / determinant;
+      const double new_k =  ((a*e)-(b*d)) / determinant;
+      n(0,0) = new_a;
+      n(1,0) = new_b;
+      n(2,0) = new_c;
+      n(0,1) = new_d;
+      n(1,1) = new_e;
+      n(2,1) = new_f;
+      n(0,2) = new_g;
+      n(1,2) = new_h;
+      n(2,2) = new_k;
+      return n;
+    }
+    default:
+    {
+      //Use blockwise inversion
+      //Matrix::Chop returns a std::vector
+      //[ A at [0]   B at [1] ]
+      //[ C at [2]   D at [4] ]
+      const std::vector<boost::numeric::ublas::matrix<double> > v = Chop(m);
+      const boost::numeric::ublas::matrix<double>& a = v[0];
+      assert(a.size1() == a.size2());
+      const boost::numeric::ublas::matrix<double>  a_inv = Inverse(a);
+      const boost::numeric::ublas::matrix<double>& b = v[1];
+      const boost::numeric::ublas::matrix<double>& c = v[2];
+      const boost::numeric::ublas::matrix<double>& d = v[3];
+      const boost::numeric::ublas::matrix<double> term
+        = d
+        - prod(
+            boost::numeric::ublas::matrix<double>(prod(c,a_inv)),
+            b
+          );
+      const boost::numeric::ublas::matrix<double> term_inv = Inverse(term);
+      const boost::numeric::ublas::matrix<double> new_a
+        = a_inv
+        + boost::numeric::ublas::matrix<double>(prod(
+            boost::numeric::ublas::matrix<double>(prod(
+              boost::numeric::ublas::matrix<double>(prod(
+                boost::numeric::ublas::matrix<double>(prod(
+                  a_inv,
+                  b)),
+                term_inv)),
+             c)),
+            a_inv));
+
+      const boost::numeric::ublas::matrix<double> new_b
+        =
+        - boost::numeric::ublas::matrix<double>(prod(
+            boost::numeric::ublas::matrix<double>(prod(
+              a_inv,
+              b)),
+            term_inv));
+
+      const boost::numeric::ublas::matrix<double> new_c
+        =
+        - boost::numeric::ublas::matrix<double>(prod(
+            boost::numeric::ublas::matrix<double>(prod(
+              term_inv,
+              c)),
+            a_inv));
+
+      const boost::numeric::ublas::matrix<double> new_d = term_inv;
+      std::vector<boost::numeric::ublas::matrix<double> > w;
+      w.push_back(new_a);
+      w.push_back(new_b);
+      w.push_back(new_c);
+      w.push_back(new_d);
+      const boost::numeric::ublas::matrix<double> result = Unchop(w);
+      return result;
+    }
+  }
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
 
 private:
 
@@ -1384,34 +1542,6 @@ double CalculateTheMinumumEdgeLength(ModelPart& r_model_part)
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
-template<class matrix_T>
-double determinant(boost::numeric::ublas::matrix_expression<matrix_T> const& mat_r)
-{
-  double det = 1.0;
-
-  matrix_T mLu(mat_r() );
-  boost::numeric::ublas::permutation_matrix<std::size_t> pivots(mat_r().size1() );
-
-  int is_singular = lu_factorize(mLu, pivots);
-
-  if (!is_singular)
-  {
-    for (std::size_t i=0; i < pivots.size(); ++i)
-    {
-      if (pivots(i) != i)
-        det *= -1.0;
-
-      det *= mLu(i,i);
-    }
-  }
-  else
-    det = 0.0;
-
-  return det;
-}
-
-//**************************************************************************************************************************************************
-//**************************************************************************************************************************************************
 // The following block of functions is used to calculate explicit matrix inverses and was taken from
 // Richel BilderBeek's website (http://www.richelbilderbeek.nl/CppUblasMatrixExample6.htm), and it is
 // transcribed here with a very minor modification
@@ -1520,134 +1650,6 @@ const boost::numeric::ublas::matrix<double> Unchop(
   assert(v[2].size2() + v[3].size2() == m.size2());
 
   return m;
-}
-
-const boost::numeric::ublas::matrix<double> Inverse(
-  const boost::numeric::ublas::matrix<double>& m)
-{
-  assert(m.size1() == m.size2() && "Can only calculate the inverse of square matrices");
-
-  switch(m.size1())
-  {
-    case 1:
-    {
-      assert(m.size1() == 1 && m.size2() == 1 && "Only for 1x1 matrices");
-      const double determinant = CalcDeterminant(m);
-      assert(determinant != 0.0);
-      assert(m(0,0) != 0.0 && "Cannot take the inverse of matrix [0]");
-      boost::numeric::ublas::matrix<double> n(1,1);
-      n(0,0) =  1.0 / determinant;
-      return n;
-    }
-    case 2:
-    {
-      assert(m.size1() == 2 && m.size2() == 2 && "Only for 2x2 matrices");
-      const double determinant = CalcDeterminant(m);
-      assert(determinant != 0.0);
-      const double a = m(0,0);
-      const double b = m(0,1);
-      const double c = m(1,0);
-      const double d = m(1,1);
-      boost::numeric::ublas::matrix<double> n(2,2);
-      n(0,0) =  d / determinant;
-      n(0,1) = -b / determinant;
-      n(1,0) = -c / determinant;
-      n(1,1) =  a / determinant;
-      return n;
-    }
-    case 3:
-    {
-      assert(m.size1() == 3 && m.size2() == 3 && "Only for 3x3 matrices");
-      const double determinant = CalcDeterminant(m);
-      assert(determinant != 0.0);
-      const double a = m(0,0);
-      const double b = m(0,1);
-      const double c = m(0,2);
-      const double d = m(1,0);
-      const double e = m(1,1);
-      const double f = m(1,2);
-      const double g = m(2,0);
-      const double h = m(2,1);
-      const double k = m(2,2);
-      boost::numeric::ublas::matrix<double> n(3,3);
-      const double new_a =  ((e*k)-(f*h)) / determinant;
-      const double new_b = -((d*k)-(f*g)) / determinant;
-      const double new_c =  ((d*h)-(e*g)) / determinant;
-      const double new_d = -((b*k)-(c*h)) / determinant;
-      const double new_e =  ((a*k)-(c*g)) / determinant;
-      const double new_f = -((a*h)-(b*g)) / determinant;
-      const double new_g =  ((b*f)-(c*e)) / determinant;
-      const double new_h = -((a*f)-(c*d)) / determinant;
-      const double new_k =  ((a*e)-(b*d)) / determinant;
-      n(0,0) = new_a;
-      n(1,0) = new_b;
-      n(2,0) = new_c;
-      n(0,1) = new_d;
-      n(1,1) = new_e;
-      n(2,1) = new_f;
-      n(0,2) = new_g;
-      n(1,2) = new_h;
-      n(2,2) = new_k;
-      return n;
-    }
-    default:
-    {
-      //Use blockwise inversion
-      //Matrix::Chop returns a std::vector
-      //[ A at [0]   B at [1] ]
-      //[ C at [2]   D at [4] ]
-      const std::vector<boost::numeric::ublas::matrix<double> > v = Chop(m);
-      const boost::numeric::ublas::matrix<double>& a = v[0];
-      assert(a.size1() == a.size2());
-      const boost::numeric::ublas::matrix<double>  a_inv = Inverse(a);
-      const boost::numeric::ublas::matrix<double>& b = v[1];
-      const boost::numeric::ublas::matrix<double>& c = v[2];
-      const boost::numeric::ublas::matrix<double>& d = v[3];
-      const boost::numeric::ublas::matrix<double> term
-        = d
-        - prod(
-            boost::numeric::ublas::matrix<double>(prod(c,a_inv)),
-            b
-          );
-      const boost::numeric::ublas::matrix<double> term_inv = Inverse(term);
-      const boost::numeric::ublas::matrix<double> new_a
-        = a_inv
-        + boost::numeric::ublas::matrix<double>(prod(
-            boost::numeric::ublas::matrix<double>(prod(
-              boost::numeric::ublas::matrix<double>(prod(
-                boost::numeric::ublas::matrix<double>(prod(
-                  a_inv,
-                  b)),
-                term_inv)),
-             c)),
-            a_inv));
-
-      const boost::numeric::ublas::matrix<double> new_b
-        =
-        - boost::numeric::ublas::matrix<double>(prod(
-            boost::numeric::ublas::matrix<double>(prod(
-              a_inv,
-              b)),
-            term_inv));
-
-      const boost::numeric::ublas::matrix<double> new_c
-        =
-        - boost::numeric::ublas::matrix<double>(prod(
-            boost::numeric::ublas::matrix<double>(prod(
-              term_inv,
-              c)),
-            a_inv));
-
-      const boost::numeric::ublas::matrix<double> new_d = term_inv;
-      std::vector<boost::numeric::ublas::matrix<double> > w;
-      w.push_back(new_a);
-      w.push_back(new_b);
-      w.push_back(new_c);
-      w.push_back(new_d);
-      const boost::numeric::ublas::matrix<double> result = Unchop(w);
-      return result;
-    }
-  }
 }
 
 //**************************************************************************************************************************************************
