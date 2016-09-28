@@ -168,9 +168,6 @@ def ConstructListsOfResultsToPrint(pp):
         if pp.CFD_DEM.print_PRESSURE_GRAD_PROJECTED_option:
             pp.dem_nodal_results += ["PRESSURE_GRAD_PROJECTED"]
 
-        if pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option:
-            pp.dem_nodal_results += ["MATERIAL_FLUID_ACCEL_PROJECTED"]
-
         if pp.CFD_DEM.print_HYDRODYNAMIC_FORCE_option:
             pp.dem_nodal_results += ["HYDRODYNAMIC_FORCE"]
 
