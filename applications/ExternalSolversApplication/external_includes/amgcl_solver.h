@@ -86,8 +86,6 @@ public:
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
-//only include validation with c++11 since raw_literals do not exist in c++03
-
     AMGCLSolver(Parameters rParameters)
     {
 
@@ -113,31 +111,10 @@ public:
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         //validate if values are admissible
-//         std::set<std::string> available_smoothers = {"spai0","ilu0","damped_jacobi","gauss_seidel","chebyshev"};
-//         std::set<std::string> available_solvers = {"gmres","bicgstab","cg","bicgstabl","bicgstab_with_gmres_fallback"};
-//         std::set<std::string> available_coarsening = {"ruge_stuben","aggregation","smoothed_aggregation","smoothed_aggr_emin"};
-        std::set<std::string> available_smoothers;
-        available_smoothers.insert("spai0");
-        available_smoothers.insert("spai1");
-        available_smoothers.insert("ilu0");
-        available_smoothers.insert("ilut");
-        available_smoothers.insert("iluk");
-        available_smoothers.insert("damped_jacobi");
-        available_smoothers.insert("gauss_seidel");
-        available_smoothers.insert("chebyshev");
+        std::set<std::string> available_smoothers = {"spai0","ilu0","ilut","iluk","damped_jacobi","gauss_seidel","chebyshev"};
+        std::set<std::string> available_solvers = {"gmres","bicgstab","cg","bicgstabl","lgmres", "bicgstab_with_gmres_fallback"};
+        std::set<std::string> available_coarsening = {"ruge_stuben","aggregation","smoothed_aggregation","smoothed_aggr_emin"};
 
-        std::set<std::string> available_solvers;
-        available_solvers.insert("gmres");
-        available_solvers.insert("bicgstab");
-        available_solvers.insert("cg");
-        available_solvers.insert("bicgstabl");
-        available_solvers.insert("bicgstab_with_gmres_fallback");
-
-        std::set<std::string> available_coarsening;
-        available_coarsening.insert("ruge_stuben");
-        available_coarsening.insert("aggregation");
-        available_coarsening.insert("smoothed_aggregation");
-        available_coarsening.insert("smoothed_aggr_emin");
         std::stringstream msg;
 
         if(available_smoothers.find(rParameters["smoother_type"].GetString()) == available_smoothers.end())
@@ -169,7 +146,7 @@ public:
         mverbosity=rParameters["verbosity"].GetInt();
         mgmres_size = rParameters["gmres_krylov_space_dimension"].GetInt();
 
-        if(rParameters["solver_type"].GetString() == "gmres")
+        if(rParameters["solver_type"].GetString() == "gmres" || rParameters["solver_type"].GetString() == "lgmres")
         {
             mprm.put("solver.M",  mgmres_size);
         }
