@@ -42,7 +42,7 @@ void SetModelPartName(ModelPart& rModelPart, std::string const& NewName)
     rModelPart.Name() = NewName;
 }
 
-std::string GetModelPartName(ModelPart const& rModelPart)
+const std::string GetModelPartName(ModelPart const& rModelPart)
 {
     return rModelPart.Name();
 }
@@ -78,7 +78,7 @@ Node < 3 > ::Pointer ModelPartCreateNewNode(ModelPart& rModelPart, int Id, doubl
     return rModelPart.CreateNewNode(Id, x, y, z);
 }
 
-Element::Pointer ModelPartCreateNewElement(ModelPart& rModelPart, std::string ElementName, ModelPart::IndexType Id, boost::python::list& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
+Element::Pointer ModelPartCreateNewElement(ModelPart& rModelPart, const std::string ElementName, ModelPart::IndexType Id, boost::python::list& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
 {
     Geometry< Node < 3 > >::PointsArrayType pElementNodeList;
     
@@ -89,7 +89,7 @@ Element::Pointer ModelPartCreateNewElement(ModelPart& rModelPart, std::string El
     return rModelPart.CreateNewElement(ElementName, Id, pElementNodeList, pProperties);
 }
 
-Condition::Pointer ModelPartCreateNewCondition(ModelPart& rModelPart, std::string ConditionName, ModelPart::IndexType Id, boost::python::list& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
+Condition::Pointer ModelPartCreateNewCondition(ModelPart& rModelPart, const std::string ConditionName, ModelPart::IndexType Id, boost::python::list& NodeIdList, ModelPart::PropertiesType::Pointer pProperties)
 {  
     Geometry< Node < 3 > >::PointsArrayType pConditionNodeList;
     
@@ -507,7 +507,17 @@ void AddElementsByIds(ModelPart& rModelPart, boost::python::list& ElementIdList 
     
     rModelPart.AddElements(ElementIds);
 }
-    
+
+const ModelPart::SubModelPartIterator GetSubModelPartBegin(ModelPart& rModelPart)
+{
+    return rModelPart.SubModelPartsBegin();
+}
+
+const ModelPart::SubModelPartIterator GetSubModelPartEnd(ModelPart& rModelPart)
+{
+    return rModelPart.SubModelPartsEnd();
+}
+
 template<class TDataType>
 bool CommunicatorAssembleCurrentData(Communicator& rCommunicator, Variable<TDataType> const& ThisVariable)
 {
@@ -685,6 +695,7 @@ void AddModelPartToPython()
                 .def("AddConditions",AddConditionsByIds)
                 .def("AddElement", &ModelPart::AddElement)
                 .def("AddElements",AddElementsByIds)
+                .add_property("SubModelParts", boost::python::range<return_value_policy<reference_existing_object > >(GetSubModelPartBegin, GetSubModelPartEnd) )
 		//.def("",&ModelPart::)
 		.def(self_ns::str(self))
 		;
