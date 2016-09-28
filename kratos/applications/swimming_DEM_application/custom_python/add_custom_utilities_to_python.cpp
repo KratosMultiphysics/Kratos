@@ -140,22 +140,22 @@ using namespace boost::python;
 
     class_<VectorField<3> > ("VectorField3D", boost::python::no_init)
         ;
-    typedef void (VelocityField::*Evaluate)(const double, const vector<double>&, vector<double>&, const unsigned int, const unsigned int);
+    typedef void (VelocityField::*Evaluate)(const double, const vector<double>&, vector<double>&, const unsigned int);
     Evaluate EvaluateVector = &VelocityField::Evaluate;
 
-    typedef void (VelocityField::*CalculateTimeDerivative)(const double, const vector<double>&, vector<double>&, const unsigned int n_threads, const unsigned int i_thread);
+    typedef void (VelocityField::*CalculateTimeDerivative)(const double, const vector<double>&, vector<double>&, const unsigned int);
     CalculateTimeDerivative CalculateTimeDerivativeVector = &VelocityField::CalculateTimeDerivative;
 
-    typedef double (VelocityField::*CalculateDivergence)(const double, const vector<double>&, const unsigned int n_threads, const unsigned int i_thread);
+    typedef double (VelocityField::*CalculateDivergence)(const double, const vector<double>&, const unsigned int);
     CalculateDivergence CalculateDivergenceVector = &VelocityField::CalculateDivergence;
 
-    typedef void (VelocityField::*CalculateRotational)(const double, const vector<double>&, vector<double>&, const unsigned int n_threads, const unsigned int i_thread);
+    typedef void (VelocityField::*CalculateRotational)(const double, const vector<double>&, vector<double>&, const unsigned int );
     CalculateRotational CalculateRotationalVector = &VelocityField::CalculateRotational;
 
-    typedef void (VelocityField::*CalculateLaplacian)(const double, const vector<double>&, vector<double>&, const unsigned int n_threads, const unsigned int i_thread);
+    typedef void (VelocityField::*CalculateLaplacian)(const double, const vector<double>&, vector<double>&, const unsigned int );
     CalculateLaplacian CalculateLaplacianVector = &VelocityField::CalculateLaplacian;
 
-    typedef void (VelocityField::*CalculateMaterialAcceleration)(const double, const vector<double>&, vector<double>&, const unsigned int n_threads, const unsigned int i_thread);
+    typedef void (VelocityField::*CalculateMaterialAcceleration)(const double, const vector<double>&, vector<double>&, const unsigned int);
     CalculateMaterialAcceleration CalculateMaterialAccelerationVector = &VelocityField::CalculateMaterialAcceleration;
 
     class_<VelocityField, bases<VectorField<3> > > ("VelocityField", boost::python::no_init)
