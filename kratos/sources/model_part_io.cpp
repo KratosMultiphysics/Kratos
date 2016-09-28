@@ -636,8 +636,17 @@ namespace Kratos
 
         return false;
     }
+    
+    void ModelPartIO::ReadSubModelPartDataBlock(ModelPart& rModelPart)
+    {
+        KRATOS_TRY
+        
+        ReadModelPartDataBlock(rModelPart, true);
+        
+        KRATOS_CATCH("")
+    }
 
-    void ModelPartIO::ReadModelPartDataBlock(ModelPart& rModelPart)
+    void ModelPartIO::ReadModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart)
     {
         KRATOS_TRY
 
@@ -646,8 +655,14 @@ namespace Kratos
         while(!mpStream->eof())
         {
             ReadWord(variable_name);
-            if(CheckEndBlock("ModelPartData", variable_name))
-                break;
+            if(!is_submodelpart){
+                if(CheckEndBlock("ModelPartData", variable_name))
+                    break;
+            }
+            else {
+                if(CheckEndBlock("SubModelPartData", variable_name))
+                    break;
+            }
             if(KratosComponents<Variable<double> >::Has(variable_name))
             {
                 std::string value;
@@ -684,6 +699,15 @@ namespace Kratos
             else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
             {
                 ReadVectorialValue(rModelPart[KratosComponents<Variable<Matrix> >::Get(variable_name)]);
+            }
+            else if(KratosComponents<Variable<std::string> >::Has(variable_name))
+            {
+                std::string value;
+		std::string  temp;
+
+                ReadWord(value); // reading value
+                ExtractValue(value,temp);
+                rModelPart[KratosComponents<Variable<std::string> >::Get(variable_name)] = temp;
             }
             else
             {
@@ -2441,7 +2465,7 @@ namespace Kratos
 
 			ReadBlockName(word);
 			if (word == "SubModelPartData")
-				ReadModelPartDataBlock(r_sub_model_part);
+				ReadSubModelPartDataBlock(r_sub_model_part);
 			else if (word == "SubModelPartTables")
 				ReadSubModelPartTablesBlock(rMainModelPart, r_sub_model_part);
 			else if (word == "SubModelPartProperties")
@@ -2524,7 +2548,7 @@ namespace Kratos
 				break;
 
 			ExtractValue(word, node_id);
-                        ordered_ids.push_back(node_id);
+                        ordered_ids.push_back(ReorderedNodeId(node_id));
 		}
 		
 		std::sort(ordered_ids.begin(), ordered_ids.end());
@@ -2548,7 +2572,7 @@ namespace Kratos
 				break;
 
 			ExtractValue(word, element_id);
-                        ordered_ids.push_back(element_id);
+                        ordered_ids.push_back(ReorderedElementId(element_id));
 		}
 		std::sort(ordered_ids.begin(), ordered_ids.end());
 		rSubModelPart.AddElements(ordered_ids);
@@ -2571,7 +2595,7 @@ namespace Kratos
 				break;
 
 			ExtractValue(word, condition_id);
-                        ordered_ids.push_back(condition_id);
+                        ordered_ids.push_back(ReorderedConditionId(condition_id));
 		}
 		std::sort(ordered_ids.begin(), ordered_ids.end());
 		rSubModelPart.AddConditions(ordered_ids);

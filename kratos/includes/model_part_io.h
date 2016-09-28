@@ -301,7 +301,7 @@ protected:
 
     bool CheckEndBlock(std::string const& BlockName, std::string& rWord);
 
-    void ReadModelPartDataBlock(ModelPart& rModelPart);
+    void ReadModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart=false);
 
 	template<class TablesContainerType>
     void ReadTableBlock(TablesContainerType& rTables);
@@ -391,19 +391,21 @@ protected:
 
     void ReadMeshPropertiesBlock(ModelPart& rModelPart, MeshType& rMesh);
 
-	void ReadSubModelPartBlock(ModelPart& rMainModelPart, ModelPart& rParentModelPart);
+    void ReadSubModelPartBlock(ModelPart& rMainModelPart, ModelPart& rParentModelPart);
 
-	void ReadSubModelPartTablesBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
+    void ReadSubModelPartDataBlock(ModelPart& rModelPart);
 
-	void ReadSubModelPartPropertiesBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
+    void ReadSubModelPartTablesBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
 
-	void ReadSubModelPartNodesBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
+    void ReadSubModelPartPropertiesBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
 
-	void ReadSubModelPartElementsBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
+    void ReadSubModelPartNodesBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
 
-	void ReadSubModelPartConditionsBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
+    void ReadSubModelPartElementsBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
 
-	void DivideModelPartDataBlock(OutputFilesContainerType& OutputFiles);
+    void ReadSubModelPartConditionsBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
+
+    void DivideModelPartDataBlock(OutputFilesContainerType& OutputFiles);
 
     void DivideTableBlock(OutputFilesContainerType& OutputFiles);
 
