@@ -266,7 +266,9 @@ class RVEModelerSolid:
 					for iclone in elem_rvemdpa_clone_list:
 						self.stored_rvemdpa_clones.append(iclone)
 				# ... e la copio nel modeler secondario (che non dovra generarla!!!!!)
-				self.SecondaryRveModeler.stored_rvemdpa_clones = self.stored_rvemdpa_clones
+                                
+				if self.SecondaryRveModeler is not None:
+				    self.SecondaryRveModeler.stored_rvemdpa_clones = self.stored_rvemdpa_clones
 				
 			# initialize the output
 			self.__initialize_output()
