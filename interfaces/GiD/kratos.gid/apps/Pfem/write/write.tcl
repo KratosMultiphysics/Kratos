@@ -2,6 +2,7 @@ namespace eval Pfem::write {
 }
 
 proc Pfem::write::Init { } {
+    Solid::write::AddValidApps "Pfem"
 }
 
 proc Pfem::write::writeParametersEvent { } {

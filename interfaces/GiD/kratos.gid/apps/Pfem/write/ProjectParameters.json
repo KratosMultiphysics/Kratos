@@ -248,7 +248,7 @@
             "interval"        : [0.0, 100],
             "time_function"   : "incremental",
             "factor"          : 100,
-            "direction"       : [0,-1,0]
+            "direction"       : [0.0,-1.0,0.0]
         }
     }],
     "output_process_list" : [{
