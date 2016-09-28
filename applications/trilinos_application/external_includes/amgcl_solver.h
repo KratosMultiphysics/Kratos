@@ -175,7 +175,7 @@ public:
                                        "scaling": false,
                                        "verbosity" : 1,
                                        "max_iteration": 100,
-                                       "krylov_type": "gmres",
+                                       "krylov_type": "fgmres",
                                        "gmres_krylov_space_dimension": 100,
                                        "tolerance": 1e-6,
                                        "use_block_matrices_if_possible" : false,
@@ -198,7 +198,7 @@ public:
 
         //validate if values are admissible
         std::set<std::string> available_smoothers = {"spai0","ilu0","damped_jacobi","gauss_seidel","chebyshev"};
-        std::set<std::string> available_solvers = {"gmres","bicgstab","cg","bicgstabl"};
+        std::set<std::string> available_solvers = {"gmres","bicgstab","cg","bicgstabl","lgmres","fgmres"};
         std::set<std::string> available_coarsening = {"ruge_stuben","aggregation","smoothed_aggregation","smoothed_aggr_emin"};
 
         std::stringstream msg;
@@ -234,12 +234,17 @@ public:
         mprm.put("isolver.maxiter", rParameters["max_iteration"].GetInt());
         //TODO: here is global
 
-        if(rParameters["krylov_type"].GetString() == "gmres")
+        if(rParameters["krylov_type"].GetString() == "gmres" || 
+            rParameters["krylov_type"].GetString() == "lgmres" || 
+            rParameters["krylov_type"].GetString() == "fgmres")
         {
             KRATOS_WATCH("********************************");
             mprm.put("isolver.M",  rParameters["gmres_krylov_space_dimension"].GetInt());
         }
         
+        
+        //setting the direct_solver
+        mprm.put("dsolver.type",  rParameters["direct_solver"].GetString());
         
 //         {
 //    "local": {
@@ -362,8 +367,14 @@ public:
             write_json(std::cout, mprm);
   
         typedef
+//             amgcl::mpi::subdomain_deflation<
+//                 amgcl::runtime::relaxation::as_preconditioner< amgcl::backend::builtin<double> >,
+//                 amgcl::runtime::iterative_solver,
+//                 amgcl::runtime::mpi::direct_solver<double>
+//             > SDD;
+            
             amgcl::mpi::subdomain_deflation<
-                amgcl::runtime::relaxation::as_preconditioner< amgcl::backend::builtin<double> >,
+                amgcl::runtime::amg< amgcl::backend::builtin<double> >,
                 amgcl::runtime::iterative_solver,
                 amgcl::runtime::mpi::direct_solver<double>
             > SDD;
