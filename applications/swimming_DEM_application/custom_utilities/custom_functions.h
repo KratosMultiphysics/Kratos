@@ -1251,6 +1251,13 @@ bool SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node<3>::Pointer&
         nodal_weights.resize(n_relevant_terms * n_nodal_neighs);
         matrix<double>AtransAinv(n_poly_terms, n_poly_terms);
         noalias(AtransAinv) = Inverse(AtransA);
+//        for (unsigned i = 0; i < n_poly_terms; i++){
+//            for (unsigned j = 0; j < n_poly_terms; j++){
+//                if (abs(AtransAinv(i,j))>1e6){
+//                    return false;
+//                }
+//            }
+//        }
         matrix<double>AtransAinvAtrans(n_poly_terms, n_nodal_neighs);
         noalias(AtransAinvAtrans) = prod(AtransAinv, trans(A));
 
@@ -1269,7 +1276,7 @@ bool SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node<3>::Pointer&
             const array_1d <double, 3>& rel_coordinates = (neigh_nodes[i].Coordinates() - origin) * h_inv;
             abs_difference += fabs(SecondDegreeGenericPolynomial(C, rel_coordinates) - SecondDegreeTestPolynomial(rel_coordinates));
         }
-
+//        abs_difference = abs(C(7, 0) - 1.0) + abs(C(8, 0) - 1.0) + abs(C(8, 0) - 1.0);
         const double tolerance = 0.001; // recommended by E Ortega
 
         return (abs_difference > tolerance? false : true);
