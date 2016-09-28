@@ -62,9 +62,9 @@ proc FSI::examples::DrawMokChannelFlexibleWallGeometry {args} {
     
     if {$::Model::SpatialDimension eq "3D"} {
         GiD_Process 'Layers Off Structure escape Mescape
-        GiD_Process Utilities Copy Surfaces Duplicate DoExtrude Volumes MaintainLayers Translation FNoJoin 0.0,0.0,0.0 FNoJoin 0.0,0.0,1.0 1 escape Mescape
+        GiD_Process Utilities Copy Surfaces Duplicate DoExtrude Volumes MaintainLayers Translation FNoJoin 0.0,0.0,0.0 FNoJoin 0.0,0.0,0.5 1 escape Mescape
         GiD_Process 'Layers On Structure escape 'Layers Off Fluid escape Mescape
-        GiD_Process Utilities Copy Surfaces Duplicate DoExtrude Volumes MaintainLayers Translation FNoJoin 0.0,0.0,0.0 FNoJoin 0.0,0.0,1.0 2 escape Mescape
+        GiD_Process Utilities Copy Surfaces Duplicate DoExtrude Volumes MaintainLayers Translation FNoJoin 0.0,0.0,0.0 FNoJoin 0.0,0.0,0.5 2 escape Mescape
         GiD_Process 'Layers On Fluid escape 
         GiD_Process 'Layers Transparent Fluid 127 escape 
     }
@@ -84,19 +84,22 @@ proc FSI::examples::DrawMokChannelFlexibleWallGeometry {args} {
 
     # Group entities
     if {$::Model::SpatialDimension eq "3D"} {
-        GiD_Groups create FluidFixedDisplacement
+        GiD_Groups create FluidFixedDisplacement_full
+        GiD_Groups create FluidFixedDisplacement_lat
         GiD_EntitiesGroups assign Fluid volumes 1
         GiD_EntitiesGroups assign Structure volumes 2
         GiD_EntitiesGroups assign Inlet surfaces 4
         GiD_EntitiesGroups assign Outlet surfaces 6
-        GiD_EntitiesGroups assign NoSlip surfaces {1 3 7 8 9 10 14}
-        GiD_EntitiesGroups assign Slip surfaces 5
-        GiD_EntitiesGroups assign FluidFixedDisplacement surfaces {1 14}
-        GiD_EntitiesGroups assign FluidInterface surfaces {11 12 13}
-        GiD_EntitiesGroups assign FixedDisplacement surfaces 18
-        GiD_EntitiesGroups assign StructureInterface surfaces {2 15 16 17 19}
+        GiD_EntitiesGroups assign NoSlip surfaces {3 7 8 9 10 11 12 13}
+        GiD_EntitiesGroups assign Slip surfaces {1 5 17} 
+        GiD_EntitiesGroups assign FluidFixedDisplacement_full surfaces {3 4 5 6 7 8 9 10 11 12 13}
+        GiD_EntitiesGroups assign FluidFixedDisplacement_lat surfaces {1 17}
+        GiD_EntitiesGroups assign FluidInterface surfaces {14 15 16}
+        GiD_EntitiesGroups assign FixedDisplacement surfaces {21}
+        GiD_EntitiesGroups assign StructureInterface surfaces {18 19 20}
         
     } {
+        GiD_Groups create FluidALEMeshBC
         GiD_EntitiesGroups assign Fluid surfaces 1
         GiD_EntitiesGroups assign Structure surfaces 2
         GiD_EntitiesGroups assign Inlet lines 2
@@ -105,6 +108,7 @@ proc FSI::examples::DrawMokChannelFlexibleWallGeometry {args} {
         GiD_EntitiesGroups unassign NoSlip lines {2 3 4}
         GiD_EntitiesGroups assign Slip lines 3
         GiD_EntitiesGroups assign FluidInterface lines $fluidinteractionLines
+        GiD_EntitiesGroups assign FluidALEMeshBC lines $fluidLines
         GiD_EntitiesGroups assign FixedDisplacement lines [lindex $strucLines end]
         GiD_EntitiesGroups assign StructureInterface lines [lrange $strucLines 0 end-1]
     }
@@ -152,11 +156,29 @@ proc FSI::examples::TreeAssignationMokChannelFlexibleWall {args} {
     
     # Displacement 3D
     if {$nd eq "3D"} {
-        set fluidDisplacement "$fluidConditions/condition\[@n='DISPLACEMENT'\]"
-        gid_groups_conds::addF $fluidDisplacement group {n FluidFixedDisplacement ov surface}
-        set fluidDisplacementGroup "$fluidDisplacement/group\[@n='FluidFixedDisplacement'\]"
-        gid_groups_conds::addF $fluidDisplacementGroup value {n FixX pn {X Imposed} values 1,0 help {} state {} v 0}
-        gid_groups_conds::addF $fluidDisplacementGroup value {n FixY pn {Y Imposed} values 1,0 help {} state {} v 0}
+        set fluidDisplacement "$fluidConditions/condition\[@n='ALEMeshDisplacementBC3D'\]"
+        gid_groups_conds::addF $fluidDisplacement group {n FluidFixedDisplacement_full ov surface}
+        set fluidDisplacementGroup_full "$fluidDisplacement/group\[@n='FluidFixedDisplacement_full'\]"
+        gid_groups_conds::addF $fluidDisplacementGroup_full value {n FixX pn {X Imposed} values 1,0 help {} state {} v 1}
+        gid_groups_conds::addF $fluidDisplacementGroup_full value {n FixY pn {Y Imposed} values 1,0 help {} state {} v 1}
+        gid_groups_conds::addF $fluidDisplacementGroup_full value {n FixZ pn {Z Imposed} values 1,0 help {} state {[CheckDimension 3D]} v 1}
+        gid_groups_conds::addF $fluidDisplacementGroup_full value {n valueX wn {DISPLACEMENT _X} pn {Value X} help {} state {} v 0.0}
+        gid_groups_conds::addF $fluidDisplacementGroup_full value {n valueY wn {DISPLACEMENT _Y} pn {Value Y} help {} state {} v 0.0}
+        gid_groups_conds::addF $fluidDisplacementGroup_full value {n valueZ wn {DISPLACEMENT _Z} pn {Value Z} help {} state {[CheckDimension 3D]} v 0.0}
+        gid_groups_conds::addF $fluidDisplacement group {n FluidFixedDisplacement_lat ov surface}
+        set fluidDisplacementGroup_lat "$fluidDisplacement/group\[@n='FluidFixedDisplacement_lat'\]"
+        gid_groups_conds::addF $fluidDisplacementGroup_lat value {n FixX pn {X Imposed} values 1,0 help {} state {} v 0}
+        gid_groups_conds::addF $fluidDisplacementGroup_lat value {n FixY pn {Y Imposed} values 1,0 help {} state {} v 0}
+        gid_groups_conds::addF $fluidDisplacementGroup_lat value {n FixZ pn {Z Imposed} values 1,0 help {} state {[CheckDimension 3D]} v 1}
+        gid_groups_conds::addF $fluidDisplacementGroup_lat value {n valueX wn {DISPLACEMENT _X} pn {Value X} help {} state {} v 0.0}
+        gid_groups_conds::addF $fluidDisplacementGroup_lat value {n valueY wn {DISPLACEMENT _Y} pn {Value Y} help {} state {} v 0.0}
+        gid_groups_conds::addF $fluidDisplacementGroup_lat value {n valueZ wn {DISPLACEMENT _Z} pn {Value Z} help {} state {[CheckDimension 3D]} v 0.0}
+    } {
+        set fluidDisplacement "$fluidConditions/condition\[@n='ALEMeshDisplacementBC2D'\]"
+        gid_groups_conds::addF $fluidDisplacement group {n FluidALEMeshBC ov line}
+        set fluidDisplacementGroup "$fluidDisplacement/group\[@n='FluidALEMeshBC'\]"
+        gid_groups_conds::addF $fluidDisplacementGroup value {n FixX pn {X Imposed} values 1,0 help {} state {} v 1}
+        gid_groups_conds::addF $fluidDisplacementGroup value {n FixY pn {Y Imposed} values 1,0 help {} state {} v 1}
         gid_groups_conds::addF $fluidDisplacementGroup value {n FixZ pn {Z Imposed} values 1,0 help {} state {[CheckDimension 3D]} v 1}
         gid_groups_conds::addF $fluidDisplacementGroup value {n valueX wn {DISPLACEMENT _X} pn {Value X} help {} state {} v 0.0}
         gid_groups_conds::addF $fluidDisplacementGroup value {n valueY wn {DISPLACEMENT _Y} pn {Value Y} help {} state {} v 0.0}
