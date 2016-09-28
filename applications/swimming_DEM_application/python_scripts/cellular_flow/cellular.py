@@ -85,8 +85,7 @@ pp.CFD_DEM.faxen_terms_type = 0
 pp.CFD_DEM.material_acceleration_calculation_type = 1
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
-pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
-pp.CFD_DEM.basset_force_type = 4
+pp.CFD_DEM.basset_force_type = 0
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
 pp.CFD_DEM.basset_force_integration_type = 2
 pp.CFD_DEM.n_init_basset_steps = 0
@@ -98,6 +97,8 @@ pp.CFD_DEM.number_of_exponentials = 8
 pp.CFD_DEM.number_of_quadrature_steps_in_window = int(pp.CFD_DEM.time_window / pp.CFD_DEM.delta_time_quadrature)
 pp.CFD_DEM.print_steps_per_plot_step = 1
 pp.CFD_DEM.PostCationConcentration = False
+pp.CFD_DEM.do_impose_flow_from_field = False
+pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
 #Z
 
 # NANO BEGIN
@@ -715,10 +716,10 @@ if pp.CFD_DEM.basset_force_type >= 3 or pp.CFD_DEM.basset_force_type == 1:
 post_utils.Writeresults(time)
 
 #G
-L = 1.0
-U = 0.1
+L = 0.1
+U = 0.3
 k = 2.72
-omega = 0*math.pi
+omega = math.pi
 velocity_field = CellularFlowField(L , U , k, omega)
 
 
@@ -732,7 +733,7 @@ velocity_field = CellularFlowField(L , U , k, omega)
         #coor[0]=coors[i]
         #coor[1]=coors[j]
         #coor[2]=0
-        #velocity_field.Evaluate(0.,coor,vel)
+        #velocity_field.Evaluate(0.,coor,vel,1,0)
         #coeff = 0.1
         #pylab.arrow(coor[0], coor[1], coeff*vel[0], coeff*vel[1], fc = "k", ec = "k", width = L * 1e-3, head_width = L * 5e-3, head_length = L * 8e-3)
 
@@ -781,13 +782,13 @@ while (time <= final_time):
                 coor[0]=node.X
                 coor[1]=node.Y
                 coor[2]=node.Z
-                velocity_field.Evaluate(time,coor,vel)
-                #node.SetSolutionStepValue(VELOCITY_X, vel[0])
-                #node.SetSolutionStepValue(VELOCITY_Y, vel[1])
-                #node.SetSolutionStepValue(VELOCITY_Z, vel[2])
-                node.SetSolutionStepValue(VELOCITY_X, 7*node.X**2 + 6 * node.Y + 19)
-                node.SetSolutionStepValue(VELOCITY_Y,  9 *node.X**2 - 8 * node.Y**2 +30*node.X)
-                node.SetSolutionStepValue(VELOCITY_Z, 0.0)                
+                velocity_field.Evaluate(time,coor,vel,0)
+                node.SetSolutionStepValue(VELOCITY_X, vel[0])
+                node.SetSolutionStepValue(VELOCITY_Y, vel[1])
+                node.SetSolutionStepValue(VELOCITY_Z, vel[2])
+                #node.SetSolutionStepValue(VELOCITY_X, 7*node.X**2 + 6 * node.Y + 19)
+                #node.SetSolutionStepValue(VELOCITY_Y,  9 *node.X**2 - 8 * node.Y**2 +30*node.X)
+                #node.SetSolutionStepValue(VELOCITY_Z, 0.0)                
 #Z
             if pp.CFD_DEM.laplacian_calculation_type == 1 and VELOCITY_LAPLACIAN in pp.fluid_vars:
                 current_step = fluid_model_part.ProcessInfo[FRACTIONAL_STEP]
@@ -844,44 +845,48 @@ while (time <= final_time):
         if pp.CFD_DEM.material_acceleration_calculation_type == 1:
             custom_functions_tool.CalculateVectorMaterialDerivative(fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)    
 #G
+    
     for node in fluid_model_part.Nodes:
         mat_deriv= Vector(3)
         laplacian= Vector(3)
         coor= Vector(3)
         coor[0]=node.X
         coor[1]=node.Y
-        coor[2]=0
-        velocity_field.CalculateMaterialAcceleration(time,coor,mat_deriv)
-        velocity_field.CalculateLaplacian(time,coor,laplacian)
+        coor[2]=0        
+        velocity_field.CalculateMaterialAcceleration(time,coor,mat_deriv,0)
+        velocity_field.CalculateLaplacian(time,coor,laplacian,0)        
         calc_mat_deriv_0 = node.GetSolutionStepValue(MATERIAL_ACCELERATION_X)
         calc_mat_deriv_1 = node.GetSolutionStepValue(MATERIAL_ACCELERATION_Y) 
         calc_mat_deriv_2 = node.GetSolutionStepValue(MATERIAL_ACCELERATION_Z) 
         calc_laplacian_0 = node.GetSolutionStepValue(VELOCITY_LAPLACIAN_X)
         calc_laplacian_1 = node.GetSolutionStepValue(VELOCITY_LAPLACIAN_Y)    
         calc_laplacian_2 = node.GetSolutionStepValue(VELOCITY_LAPLACIAN_Z)  
-        module_mat_deriv = 0.5 * max(math.sqrt((mat_deriv[0] + calc_mat_deriv_0) ** 2 + (mat_deriv[1] + calc_mat_deriv_1) ** 2 + (mat_deriv[2] + calc_mat_deriv_2) ** 2), 1e-8)       
-        module_laplacian = 0.5 * max(math.sqrt((laplacian[0] + calc_laplacian_0) ** 2 + (laplacian[1] + calc_laplacian_1) ** 2 + (laplacian[2] + calc_laplacian_2) ** 2), 1e-8)
-        laplacian[0] = 14
-        laplacian[1] = 2
-        laplacian[2] = 0
+        #module_mat_deriv = 0.5 * max(math.sqrt((mat_deriv[0] + calc_mat_deriv_0) ** 2 + (mat_deriv[1] + calc_mat_deriv_1) ** 2 + (mat_deriv[2] + calc_mat_deriv_2) ** 2), 1e-8)       
+        #module_laplacian = 0.5 * max(math.sqrt((laplacian[0] + calc_laplacian_0) ** 2 + (laplacian[1] + calc_laplacian_1) ** 2 + (laplacian[2] + calc_laplacian_2) ** 2), 1e-8)
+        module_mat_deriv = max(math.sqrt(mat_deriv[0] ** 2 + mat_deriv[1] ** 2 + mat_deriv[2] ** 2), 1e-8)       
+        module_laplacian = max(math.sqrt(laplacian[0] ** 2 + laplacian[1] ** 2 + laplacian[2] ** 2), 1e-8)
+        
+        #laplacian[0] = 14
+        #laplacian[1] = 2
+        #laplacian[2] = 0
 
-        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,(calc_mat_deriv_0 - mat_deriv[0]) / module_mat_deriv)
-        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,(calc_mat_deriv_1 - mat_deriv[1]) / module_mat_deriv)  
-        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,(calc_mat_deriv_2 - mat_deriv[2]) / module_mat_deriv)  
-        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,calc_mat_deriv_0)
-        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,calc_mat_deriv_1)
-        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,calc_mat_deriv_2)         
+        node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,(calc_mat_deriv_0 - mat_deriv[0]) / module_mat_deriv)
+        node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,(calc_mat_deriv_1 - mat_deriv[1]) / module_mat_deriv)  
+        node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,(calc_mat_deriv_2 - mat_deriv[2]) / module_mat_deriv)  
+        node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,calc_mat_deriv_0)
+        node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,calc_mat_deriv_1)
+        node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,calc_mat_deriv_2)         
         #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,mat_deriv[0])
         #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,mat_deriv[1])
         #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,mat_deriv[2])
         
         
-        node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,(calc_laplacian_0 - laplacian[0]) / module_laplacian)
-        node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,(calc_laplacian_1 - laplacian[1]) / module_laplacian)  
-        node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,(calc_laplacian_2 - laplacian[2]) / module_laplacian)  
-        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,calc_laplacian_0)
-        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,calc_laplacian_1)
-        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,calc_laplacian_2)         
+        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,(calc_laplacian_0 - laplacian[0]))
+        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,(calc_laplacian_1 - laplacian[1]))  
+        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,(calc_laplacian_2 - laplacian[2]))  
+        node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,calc_laplacian_0)
+        node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,calc_laplacian_1)
+        node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,calc_laplacian_2)         
         #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,laplacian[0])
         #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,laplacian[1])
         #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,laplacian[2]) 
