@@ -25,6 +25,7 @@
 #include "utilities/openmp_utils.h"
 #include "real_functions.h"
 #include "vector_field.h"
+#include "swimming_DEM_application.h"
 
 
 namespace Kratos
@@ -46,34 +47,35 @@ virtual ~VelocityField(){}
 
 //***************************************************************************************************************
 //***************************************************************************************************************
-void Evaluate(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& vector);
+void Evaluate(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& vector, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
 
-void CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& deriv);
+void CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& deriv, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
 
-void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d< array_1d<double, 3>, 3>& gradient);
+void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d< array_1d<double, 3>, 3>& gradient, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
 
-void CalculateDivergence(const double time, const array_1d<double, 3>& coor, double& div);
+void CalculateDivergence(const double time, const array_1d<double, 3>& coor, double& div, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
 
-void CalculateRotational(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& rot);
+void CalculateRotational(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& rot, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
 
-void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& lapl);
+void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& lapl, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
 
-virtual void CalculateMaterialAcceleration(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& accel);
+virtual void CalculateMaterialAcceleration(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& accel, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
 
-virtual void UpdateCoordinates(const double time, const array_1d<double, 3>& coor){}
+virtual void UpdateCoordinates(const double time, const array_1d<double, 3>& coor, const unsigned int n_threads = 1, const unsigned int i_thread = 1){}
 
-void Evaluate(const double time, const vector<double>& coor, vector<double>& result);
+void Evaluate(const double time, const vector<double>& coor, vector<double>& result, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
 
-void CalculateTimeDerivative(const double time, const vector<double>& coor, vector<double>& result);
+void CalculateTimeDerivative(const double time, const vector<double>& coor, vector<double>& result, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
 
-double CalculateDivergence(const double time, const vector<double>& coor);
+double CalculateDivergence(const double time, const vector<double>& coor, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
 
-void CalculateRotational(const double time, const vector<double>& coor, vector<double>& result);
+void CalculateRotational(const double time, const vector<double>& coor, vector<double>& result, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
 
-void CalculateLaplacian(const double time, const vector<double>& coor, vector<double>& result);
+void CalculateLaplacian(const double time, const vector<double>& coor, vector<double>& result, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
 
-virtual void CalculateMaterialAcceleration(const double time, const vector<double>& coor, vector<double>& result);
+virtual void CalculateMaterialAcceleration(const double time, const vector<double>& coor, vector<double>& result, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
 
+void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed);
 //virtual void UpdateCoordinates(const double time, const vector<double>& coor){}
 
 
@@ -140,61 +142,61 @@ protected:
 ///@{
 // Values
 
-virtual double U0(){return 0.0;}
-virtual double U1(){return 0.0;}
-virtual double U2(){return 0.0;}
+virtual double U0(unsigned int i_thread = 1){return 0.0;}
+virtual double U1(unsigned int i_thread = 1){return 0.0;}
+virtual double U2(unsigned int i_thread = 1){return 0.0;}
 
 // First-order derivatives
 
-virtual double U0DT(){return 0.0;}
-virtual double U0D0(){return 0.0;}
-virtual double U0D1(){return 0.0;}
-virtual double U0D2(){return 0.0;}
+virtual double U0DT(unsigned int i_thread = 1){return 0.0;}
+virtual double U0D0(unsigned int i_thread = 1){return 0.0;}
+virtual double U0D1(unsigned int i_thread = 1){return 0.0;}
+virtual double U0D2(unsigned int i_thread = 1){return 0.0;}
 
-virtual double U1DT(){return 0.0;}
-virtual double U1D0(){return 0.0;}
-virtual double U1D1(){return 0.0;}
-virtual double U1D2(){return 0.0;}
+virtual double U1DT(unsigned int i_thread = 1){return 0.0;}
+virtual double U1D0(unsigned int i_thread = 1){return 0.0;}
+virtual double U1D1(unsigned int i_thread = 1){return 0.0;}
+virtual double U1D2(unsigned int i_thread = 1){return 0.0;}
 
-virtual double U2DT(){return 0.0;}
-virtual double U2D0(){return 0.0;}
-virtual double U2D1(){return 0.0;}
-virtual double U2D2(){return 0.0;}
+virtual double U2DT(unsigned int i_thread = 1){return 0.0;}
+virtual double U2D0(unsigned int i_thread = 1){return 0.0;}
+virtual double U2D1(unsigned int i_thread = 1){return 0.0;}
+virtual double U2D2(unsigned int i_thread = 1){return 0.0;}
 
 // Second-order derivatives
 
-virtual double U0DTDT(){return 0.0;}
-virtual double U0DTD0(){return 0.0;}
-virtual double U0DTD1(){return 0.0;}
-virtual double U0DTD2(){return 0.0;}
-virtual double U0D0D0(){return 0.0;}
-virtual double U0D0D1(){return 0.0;}
-virtual double U0D0D2(){return 0.0;}
-virtual double U0D1D1(){return 0.0;}
-virtual double U0D1D2(){return 0.0;}
-virtual double U0D2D2(){return 0.0;}
+virtual double U0DTDT(unsigned int i_thread = 1){return 0.0;}
+virtual double U0DTD0(unsigned int i_thread = 1){return 0.0;}
+virtual double U0DTD1(unsigned int i_thread = 1){return 0.0;}
+virtual double U0DTD2(unsigned int i_thread = 1){return 0.0;}
+virtual double U0D0D0(unsigned int i_thread = 1){return 0.0;}
+virtual double U0D0D1(unsigned int i_thread = 1){return 0.0;}
+virtual double U0D0D2(unsigned int i_thread = 1){return 0.0;}
+virtual double U0D1D1(unsigned int i_thread = 1){return 0.0;}
+virtual double U0D1D2(unsigned int i_thread = 1){return 0.0;}
+virtual double U0D2D2(unsigned int i_thread = 1){return 0.0;}
 
-virtual double U1DTDT(){return 0.0;}
-virtual double U1DTD0(){return 0.0;}
-virtual double U1DTD1(){return 0.0;}
-virtual double U1DTD2(){return 0.0;}
-virtual double U1D0D0(){return 0.0;}
-virtual double U1D0D1(){return 0.0;}
-virtual double U1D0D2(){return 0.0;}
-virtual double U1D1D1(){return 0.0;}
-virtual double U1D1D2(){return 0.0;}
-virtual double U1D2D2(){return 0.0;}
+virtual double U1DTDT(unsigned int i_thread = 1){return 0.0;}
+virtual double U1DTD0(unsigned int i_thread = 1){return 0.0;}
+virtual double U1DTD1(unsigned int i_thread = 1){return 0.0;}
+virtual double U1DTD2(unsigned int i_thread = 1){return 0.0;}
+virtual double U1D0D0(unsigned int i_thread = 1){return 0.0;}
+virtual double U1D0D1(unsigned int i_thread = 1){return 0.0;}
+virtual double U1D0D2(unsigned int i_thread = 1){return 0.0;}
+virtual double U1D1D1(unsigned int i_thread = 1){return 0.0;}
+virtual double U1D1D2(unsigned int i_thread = 1){return 0.0;}
+virtual double U1D2D2(unsigned int i_thread = 1){return 0.0;}
 
-virtual double U2DTDT(){return 0.0;}
-virtual double U2DTD0(){return 0.0;}
-virtual double U2DTD1(){return 0.0;}
-virtual double U2DTD2(){return 0.0;}
-virtual double U2D0D0(){return 0.0;}
-virtual double U2D0D1(){return 0.0;}
-virtual double U2D0D2(){return 0.0;}
-virtual double U2D1D1(){return 0.0;}
-virtual double U2D1D2(){return 0.0;}
-virtual double U2D2D2(){return 0.0;}
+virtual double U2DTDT(unsigned int i_thread = 1){return 0.0;}
+virtual double U2DTD0(unsigned int i_thread = 1){return 0.0;}
+virtual double U2DTD1(unsigned int i_thread = 1){return 0.0;}
+virtual double U2DTD2(unsigned int i_thread = 1){return 0.0;}
+virtual double U2D0D0(unsigned int i_thread = 1){return 0.0;}
+virtual double U2D0D1(unsigned int i_thread = 1){return 0.0;}
+virtual double U2D0D2(unsigned int i_thread = 1){return 0.0;}
+virtual double U2D1D1(unsigned int i_thread = 1){return 0.0;}
+virtual double U2D1D2(unsigned int i_thread = 1){return 0.0;}
+virtual double U2D2D2(unsigned int i_thread = 1){return 0.0;}
 
 ///@}
 ///@name Protected Inquiry
@@ -240,6 +242,8 @@ private:
 ///@}
 ///@name Un accessible methods
 ///@{
+
+bool VariableIsInList(const VariablesList var_list, const VariableData& var);
 
 /// Assignment operator.
 VelocityField & operator=(VelocityField const& rOther);
