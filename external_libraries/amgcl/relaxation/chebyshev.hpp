@@ -89,8 +89,6 @@ class chebyshev {
                 p( Backend::create_vector(rows(A), backend_prm) ),
                 q( Backend::create_vector(rows(A), backend_prm) )
         {
-            typedef value_type V;
-
             scalar_type hi = spectral_radius(A);
             scalar_type lo = hi * prm.lower;
 
