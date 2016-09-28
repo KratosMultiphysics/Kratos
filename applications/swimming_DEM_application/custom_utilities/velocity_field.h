@@ -39,7 +39,6 @@ KRATOS_CLASS_POINTER_DEFINITION(VelocityField);
 /// Default constructor.
 
 VelocityField():VectorField<3>(){}
-
 /// Destructor.
 
 virtual ~VelocityField(){}
@@ -47,33 +46,33 @@ virtual ~VelocityField(){}
 
 //***************************************************************************************************************
 //***************************************************************************************************************
-void Evaluate(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& vector, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
+void Evaluate(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& vector, const unsigned int i_thread = 1);
 
-void CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& deriv, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
+void CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& deriv, const unsigned int i_thread = 1);
 
-void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d< array_1d<double, 3>, 3>& gradient, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
+void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d< array_1d<double, 3>, 3>& gradient, const unsigned int i_thread = 1);
 
-void CalculateDivergence(const double time, const array_1d<double, 3>& coor, double& div, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
+void CalculateDivergence(const double time, const array_1d<double, 3>& coor, double& div, const unsigned int i_thread = 1);
 
-void CalculateRotational(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& rot, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
+void CalculateRotational(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& rot, const unsigned int i_thread = 1);
 
-void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& lapl, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
+void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& lapl, const unsigned int i_thread = 1);
 
-virtual void CalculateMaterialAcceleration(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& accel, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
+virtual void CalculateMaterialAcceleration(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& accel, const unsigned int i_thread = 1);
 
-virtual void UpdateCoordinates(const double time, const array_1d<double, 3>& coor, const unsigned int n_threads = 1, const unsigned int i_thread = 1){}
+virtual void UpdateCoordinates(const double time, const array_1d<double, 3>& coor, const unsigned int i_thread = 1){}
 
-void Evaluate(const double time, const vector<double>& coor, vector<double>& result, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
+void Evaluate(const double time, const vector<double>& coor, vector<double>& result, const unsigned int i_thread = 1);
 
-void CalculateTimeDerivative(const double time, const vector<double>& coor, vector<double>& result, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
+void CalculateTimeDerivative(const double time, const vector<double>& coor, vector<double>& result, const unsigned int i_thread = 1);
 
-double CalculateDivergence(const double time, const vector<double>& coor, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
+double CalculateDivergence(const double time, const vector<double>& coor, const unsigned int i_thread = 1);
 
-void CalculateRotational(const double time, const vector<double>& coor, vector<double>& result, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
+void CalculateRotational(const double time, const vector<double>& coor, vector<double>& result, const unsigned int i_thread = 1);
 
-void CalculateLaplacian(const double time, const vector<double>& coor, vector<double>& result, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
+void CalculateLaplacian(const double time, const vector<double>& coor, vector<double>& result, const unsigned int i_thread = 1);
 
-virtual void CalculateMaterialAcceleration(const double time, const vector<double>& coor, vector<double>& result, const unsigned int n_threads = 1, const unsigned int i_thread = 1);
+virtual void CalculateMaterialAcceleration(const double time, const vector<double>& coor, vector<double>& result, const unsigned int i_thread = 1);
 
 void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed);
 //virtual void UpdateCoordinates(const double time, const vector<double>& coor){}
