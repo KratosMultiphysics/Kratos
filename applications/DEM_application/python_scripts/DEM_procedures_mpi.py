@@ -7,11 +7,9 @@ from KratosMultiphysics.MPISearchApplication import *
 from KratosMultiphysics.mpi import *
 
 import DEM_procedures
-
 import DEM_material_test_script_mpi as DEM_material_test_script
 
-#import MPIer
-
+from glob import glob
 
 class MdpaCreator(DEM_procedures.MdpaCreator):
 
@@ -72,8 +70,12 @@ class Procedures(DEM_procedures.Procedures):
         total_max = reduce(lambda x,y: max(x,y), node_max_gath)
         return total_max
         
+    def DeleteFiles(self):
+        if (mpi.rank == 0):
+            files_to_delete_list = glob('*.time')
+            for to_erase_file in files_to_delete_list:
+                os.remove(to_erase_file)
         
-
     def KRATOSprint(self, message):
         if (mpi.rank == 0):
             print(message)

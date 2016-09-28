@@ -4,8 +4,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import time as timer
 import os
 import sys
-#import math
-from glob import glob
 
 # Kratos
 from KratosMultiphysics import *
@@ -431,7 +429,5 @@ if (DEM_parameters.dem_inlet_option):
 for obj in objects_to_destroy:
     del obj
 
-files_to_delete_list = glob('*.time')
-for to_erase_file in files_to_delete_list:
-    os.remove(to_erase_file)
+procedures.DeleteFiles()
 

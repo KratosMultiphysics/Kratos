@@ -8,7 +8,7 @@ import DEM_material_test_script
 import os
 import shutil
 import sys
-
+from glob import glob
 
 def Var_Translator(variable):
 
@@ -587,6 +587,11 @@ class Procedures(object):
 
         creator_destructor.CalculateSurroundingBoundingBox(spheres_model_part, clusters_model_part, rigid_faces_model_part, self.bounding_box_enlargement_factor, self.automatic_bounding_box_OPTION)
 
+    def DeleteFiles(self):
+        files_to_delete_list = glob('*.time')
+        for to_erase_file in files_to_delete_list:
+            os.remove(to_erase_file)
+
     def PreProcessModel(self, DEM_parameters):
         pass
 
@@ -865,8 +870,7 @@ class DEMFEMProcedures(object):
                              node.SetSolutionStepValue(VELOCITY_X, vx)
                              node.SetSolutionStepValue(VELOCITY_Y, vy)
                              node.Fix(VELOCITY_X)
-                             node.Fix(VELOCITY_Y)
-
+                             node.Fix(VELOCITY_Y)        
 
 class Report(object):
 
