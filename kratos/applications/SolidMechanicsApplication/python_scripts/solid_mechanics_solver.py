@@ -64,6 +64,7 @@ class MechanicalSolver(object):
                 "scaling": false,
                 "verbosity": 1
             },
+            "bodies_list": [],
             "problem_domain_sub_model_part_list": ["solid"],
             "processes_sub_model_part_list": [""]
         }
@@ -204,15 +205,16 @@ class MechanicalSolver(object):
             if(os.path.exists(restart_path+".rest") == False):
                 print("    rest file does not exist , check the restart step selected ")
 
+            print("    Load input restart file:",restart_path)
             # set serializer flag
-            self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE      # binary
+            # self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE      # binary
             # self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ERROR # ascii
-            # self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
+            self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
 
             serializer = KratosMultiphysics.Serializer(restart_path, self.serializer_flag)
 
             serializer.Load(self.main_model_part.Name, self.main_model_part)
-            print("    Load input restart file.")
+            print("    Restart file loaded.")
 
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
 
