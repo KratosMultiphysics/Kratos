@@ -419,47 +419,34 @@ namespace Kratos {
     {
         if (mod_angular_velocity >= 0.0 || MathUtils<double>::Norm3(linear_velocity) >= 0.0) {
 
-            vector<unsigned int> node_partition;
-
-            #ifdef _OPENMP
-            int number_of_threads = omp_get_max_threads();
-            #else
-            int number_of_threads = 1;
-            #endif
-            OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
-
             #pragma omp parallel for
-            for (int k = 0; k < number_of_threads; k++) {
+            for (int k = 0; k < (int)pNodes.size(); k++) {
 
                 array_1d<double, 3> local_coordinates = ZeroVector(3);
                 array_1d<double, 3> relative_position = ZeroVector(3);
 
-                ModelPart::NodesContainerType::iterator i_begin = pNodes.ptr_begin() + node_partition[k];
-                ModelPart::NodesContainerType::iterator i_end = pNodes.ptr_begin() + node_partition[k + 1];
+                ModelPart::NodeIterator node = pNodes.begin() + k;
 
-                for (ModelPart::NodeIterator node = i_begin; node != i_end; ++node) {
+                noalias(local_coordinates) = node->GetInitialPosition().Coordinates() - initial_center;
+                noalias(relative_position) = new_axes1 * local_coordinates[0] + new_axes2 * local_coordinates[1] + new_axes3 * local_coordinates[2];
+                array_1d<double, 3> old_coordinates;
+                noalias(old_coordinates) = node->Coordinates();
+                array_1d<double, 3> velocity_due_to_rotation;
+                array_1d<double, 3>& velocity = node->FastGetSolutionStepValue(VELOCITY);
 
-                    noalias(local_coordinates) = node->GetInitialPosition().Coordinates() - initial_center;
-                    noalias(relative_position) = new_axes1 * local_coordinates[0] + new_axes2 * local_coordinates[1] + new_axes3 * local_coordinates[2];
-                    array_1d<double, 3> old_coordinates;
-                    noalias(old_coordinates) = node->Coordinates();
-                    array_1d<double, 3> velocity_due_to_rotation;
-                    array_1d<double, 3>& velocity = node->FastGetSolutionStepValue(VELOCITY);
-                    
-                    CrossProduct(angular_velocity_changed, relative_position, velocity_due_to_rotation);
-                    noalias(velocity) = linear_velocity_changed + velocity_due_to_rotation;            
+                CrossProduct(angular_velocity_changed, relative_position, velocity_due_to_rotation);
+                noalias(velocity) = linear_velocity_changed + velocity_due_to_rotation;            
 
-                    if (!fixed_mesh) {
-                        // NEW POSITION
-                        noalias(node->Coordinates()) = center_position + relative_position;
-                        // DISPLACEMENT
-                        noalias(node->FastGetSolutionStepValue(DISPLACEMENT)) = node->Coordinates() - node->GetInitialPosition().Coordinates();
-                        noalias(node->FastGetSolutionStepValue(DELTA_DISPLACEMENT)) = node->Coordinates() - old_coordinates;
-                    } else {
-                        (node->FastGetSolutionStepValue(DISPLACEMENT)).clear(); //Set values to zero
-                        noalias(node->FastGetSolutionStepValue(DELTA_DISPLACEMENT)) = velocity * dt; //But still there must be some delta_displacement (or motion won't be detected by the spheres!)
-                    }
-                }
+                if (!fixed_mesh) {
+                    // NEW POSITION
+                    noalias(node->Coordinates()) = center_position + relative_position;
+                    // DISPLACEMENT
+                    noalias(node->FastGetSolutionStepValue(DISPLACEMENT)) = node->Coordinates() - node->GetInitialPosition().Coordinates();
+                    noalias(node->FastGetSolutionStepValue(DELTA_DISPLACEMENT)) = node->Coordinates() - old_coordinates;
+                } else {
+                    (node->FastGetSolutionStepValue(DISPLACEMENT)).clear(); //Set values to zero
+                    noalias(node->FastGetSolutionStepValue(DELTA_DISPLACEMENT)) = velocity * dt; //But still there must be some delta_displacement (or motion won't be detected by the spheres!)
+                }    
             }
         }
     }

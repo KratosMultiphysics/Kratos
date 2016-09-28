@@ -7,7 +7,6 @@
 #include "custom_utilities/create_and_destroy.h"
 #include "custom_utilities/GeometryFunctions.h"
 #include "custom_elements/Particle_Contact_Element.h"
-//#include "DEM_application.h"
 
 #ifdef _OPENMP
 #include <omp.h>

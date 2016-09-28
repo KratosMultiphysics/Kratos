@@ -60,6 +60,7 @@ public:
                                            Node < 3 > ::Pointer & reference_node,
                                            double radius,
                                            Properties& params,
+                                           ModelPart& r_sub_model_part_with_parameters,
                                            bool has_sphericity,
                                            bool has_rotation,
                                            bool initial);
@@ -69,6 +70,7 @@ public:
                                                       int aId,
                                                       Node < 3 > ::Pointer& reference_node,
                                                       Properties& params,
+                                                      ModelPart& r_sub_model_part_with_parameters,
                                                       bool has_sphericity,
                                                       bool has_rotation,
                                                       bool initial);
@@ -78,6 +80,7 @@ public:
                                               Node < 3 > ::Pointer reference_node, 
                                               Element::Pointer injector_element,
                                               Properties::Pointer r_params,
+                                              ModelPart& r_sub_model_part_with_parameters,
                                               const Element& r_reference_element,
                                               PropertiesProxy* p_fast_properties,
                                               bool has_sphericity,
@@ -91,6 +94,7 @@ public:
                                             Node < 3 > ::Pointer reference_node,
                                             Element::Pointer injector_element,
                                             Properties::Pointer r_params,
+                                            ModelPart& r_sub_model_part_with_parameters,
                                             const Element& r_reference_element,
                                             PropertiesProxy* p_fast_properties,
                                             bool has_sphericity,

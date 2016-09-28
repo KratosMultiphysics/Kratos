@@ -1,7 +1,5 @@
 
 #include <iostream>
-//#include "DEM_application.h"
-//#include "custom_elements/spheric_particle.h"
 #include "dem_kdem_2d_cl.h"
 #include "custom_elements/spheric_continuum_particle.h"
 

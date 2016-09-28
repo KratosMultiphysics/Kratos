@@ -30,8 +30,10 @@ else:
     print("Running under OpenMP........")
     import DEM_procedures
     import DEM_material_test_script
-    def model_part_reader(modelpart, a=0, b=0, c=0):
-        return ModelPartIO(modelpart)
+    #def model_part_reader(modelpart, a=0, b=0, c=0):
+    #    return ModelPartIO(modelpart)
+    def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
+        return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
     
 
 # TODO: Ugly fix. Change it. I don't like this to be in the main...
@@ -170,13 +172,6 @@ main_path = os.getcwd()
 os.chdir(main_path)
 
 KRATOSprint("\nInitializing Problem...")
-
-#poisson = 1
-#if poisson:
-#    os.chdir(main_path)
-#    files_to_delete_list = glob('*.txt')
-#    for to_erase_file in files_to_delete_list:
-#        os.remove(to_erase_file)
 
 # Initialize GiD-IO
 demio.AddGlobalVariables()
@@ -328,27 +323,15 @@ while (time < DEM_parameters.FinalTime):
     cluster_model_part.ProcessInfo[TIME]          = time
     cluster_model_part.ProcessInfo[DELTA_TIME]    = dt
     cluster_model_part.ProcessInfo[TIME_STEPS]    = step
-
-    # Perform a partition to balance the problem
-    #if(not(step%(a-1))):
-        #parallelutils.Repart(spheres_model_part)
-        #parallelutils.CalculateModelNewIds(spheres_model_part)
-    
-    #### MATERIAL TEST LOAD&UNLOAD  ####################
-    #materialTest.ApplyMovementbySteps(time)
-    
-    #### GENERAL TEST LOAD&UNLOAD  #####################
-    #DEMFEMProcedures.ApplyMovementbySteps(time)
-    #DEMFEMProcedures.ApplyNodalRotation(time)
     
     #### SOLVE #########################################
     solver.Solve()
-    
+            
     # Walls movement:
     mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
     mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
     mesh_motion.MoveAllMeshes(DEM_inlet_model_part, time, dt)
-    
+
     #### TIME CONTROL ##################################
     
     # adding DEM elements by the inlet:
@@ -371,7 +354,6 @@ while (time < DEM_parameters.FinalTime):
     materialTest.PrintGraph(time)
     
     #### GENERAL FORCE GRAPHS ############################
-    #DEMFEMProcedures.MeasureForces()
     DEMFEMProcedures.PrintGraph(time)
     DEMFEMProcedures.PrintBallsGraph(time)
 
@@ -390,7 +372,6 @@ while (time < DEM_parameters.FinalTime):
         KRATOSprint("                        ("+ str(spheres_model_part.NumberOfElements(0)) + " elements)")
         KRATOSprint("                        ("+ str(spheres_model_part.NumberOfNodes(0)) + " nodes)")
         KRATOSprint("")
-        sys.stdout.flush()
 
         os.chdir(data_and_results)
 

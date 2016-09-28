@@ -1,7 +1,6 @@
 // Last modified by: S. Latorre (CIMNE)
 // Date: October 2015
 
-//#include "DEM_application.h"
 #include "DEM_discontinuum_constitutive_law.h"
 #include "custom_elements/spheric_particle.h"
 

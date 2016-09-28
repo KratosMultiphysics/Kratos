@@ -10,8 +10,6 @@
 #include <iostream>
 // Project includes
 #include "includes/define.h"
-//#include "discrete_element.h"
-//#include "DEM_application.h"
 #include "spheric_continuum_particle.h"
 #include "custom_utilities/GeometryFunctions.h"
 #include "custom_utilities/AuxiliaryFunctions.h"

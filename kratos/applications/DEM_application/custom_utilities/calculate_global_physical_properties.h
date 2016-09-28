@@ -8,11 +8,8 @@
 // Project includes
 #include "utilities/timer.h"
 #include "custom_utilities/create_and_destroy.h"
-
 #include "custom_elements/Particle_Contact_Element.h"
-
 #include "includes/variables.h"
-//#include "DEM_application.h"
 
 /* System includes */
 #include <limits>

@@ -1,4 +1,3 @@
-//#include "DEM_application.h"
 #include "DEM_continuum_constitutive_law.h"
 #include "custom_elements/spheric_continuum_particle.h"
 

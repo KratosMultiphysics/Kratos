@@ -6,7 +6,6 @@
 #include "custom_elements/Particle_Contact_Element.h"
 #include "utilities/math_utils.h"
 #include "DEM_application_variables.h"
-//#include "DEM_application.h"
 
 namespace Kratos
 {

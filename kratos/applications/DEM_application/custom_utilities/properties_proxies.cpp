@@ -11,7 +11,6 @@
 
 // Project includes
 
-//#include "DEM_application.h"
 #include "properties_proxies.h"
 
 namespace Kratos {

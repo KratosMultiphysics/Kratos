@@ -6,7 +6,6 @@
 
 
 // Project includes
-//#include "DEM_application.h"
 #include "DEM_Dempack_dev_CL.h"
 //#include "custom_elements/spheric_particle.h"
 #include "custom_elements/spheric_continuum_particle.h"

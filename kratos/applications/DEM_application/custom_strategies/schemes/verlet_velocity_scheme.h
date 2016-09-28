@@ -19,7 +19,6 @@
 #include "includes/model_part.h"
 #include "custom_utilities/GeometryFunctions.h"
 #include "utilities/quaternion.h"
-//#include "DEM_application.h"
 
 namespace Kratos {
 

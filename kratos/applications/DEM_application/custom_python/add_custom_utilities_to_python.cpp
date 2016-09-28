@@ -20,6 +20,7 @@
 #include "custom_utilities/benchmark_utilities.h" 
 #include "custom_utilities/inlet.h"
 #include "custom_utilities/reorder_consecutive_from_given_ids_model_part_io.h"
+#include "custom_utilities/AuxiliaryUtilities.h" 
 
 #include "boost/python/list.hpp"
 #include "boost/python/extract.hpp"
@@ -163,8 +164,27 @@ void AddCustomUtilitiesToPython() {
     class_<ReorderConsecutiveFromGivenIdsModelPartIO, ReorderConsecutiveFromGivenIdsModelPartIO::Pointer, bases<ReorderConsecutiveModelPartIO>,  boost::noncopyable>(
         "ReorderConsecutiveFromGivenIdsModelPartIO",init<std::string const& >())
         .def(init<std::string const&, const int, const int, const int>())
-        ;       
+        ;  
+    
+    class_<AuxiliaryUtilities, boost::noncopyable > 
+        ("AuxiliaryUtilities", init<>())
+        .def("GetIthSubModelPartIsForceIntegrationGroup", &AuxiliaryUtilities::GetIthSubModelPartIsForceIntegrationGroup)
+        .def("GetIthSubModelPartName", &AuxiliaryUtilities::GetIthSubModelPartName)
+        .def("GetIthSubModelPartIdentifier", &AuxiliaryUtilities::GetIthSubModelPartIdentifier)
+        .def("GetIthSubModelPartData", &AuxiliaryUtilities::GetIthSubModelPartData<double>)    
+        .def("GetIthSubModelPartData", &AuxiliaryUtilities::GetIthSubModelPartData<int>)    
+        .def("GetIthSubModelPartData", &AuxiliaryUtilities::GetIthSubModelPartData<array_1d<double,3> >)    
+        .def("GetIthSubModelPartData", &AuxiliaryUtilities::GetIthSubModelPartData<std::string>) 
+        .def("GetIthSubModelPartNodes", &AuxiliaryUtilities::GetIthSubModelPartNodes)          
+        ;
+    
     }
+
+
+/*ModelPart::NodesContainerType::Pointer ModelPartGetNodes1(ModelPart& rModelPart)
+{
+	return rModelPart.pNodes();
+}*/
 
 }  // namespace Python
 

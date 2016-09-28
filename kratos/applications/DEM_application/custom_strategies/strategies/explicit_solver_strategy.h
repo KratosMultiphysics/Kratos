@@ -8,16 +8,12 @@
 #if !defined(KRATOS_EXPLICIT_SOLVER_STRATEGY)
 #define KRATOS_EXPLICIT_SOLVER_STRATEGY
 
-// /* External includes */
-
-// System includes
 
 // Project includes
 #include "utilities/timer.h"
 #include "custom_elements/Particle_Contact_Element.h"
 #include "includes/variables.h"
 #include "includes/deprecated_variables.h"
-//#include "DEM_application.h"
 
 /* System includes */
 #include <limits>
@@ -32,9 +28,6 @@
 
 #define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
 
-//#include "boost/smart_ptr.hpp"
-
-/* Project includes */
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"

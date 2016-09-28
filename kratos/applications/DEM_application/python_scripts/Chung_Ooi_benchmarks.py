@@ -333,7 +333,6 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
         materialTest.PrintGraph(time)
 
         #### GENERAL FORCE GRAPHS ############################
-        #DEMFEMProcedures.MeasureForces()
         DEMFEMProcedures.PrintGraph(time)
         DEMFEMProcedures.PrintBallsGraph(time)  
 
@@ -345,8 +344,7 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
             '''KRATOSprint("*******************  PRINTING RESULTS FOR GID  ***************************")
             KRATOSprint("                        ("+ str(spheres_model_part.NumberOfElements(0)) + " elements)")
             KRATOSprint("                        ("+ str(spheres_model_part.NumberOfNodes(0)) + " nodes)")
-            KRATOSprint("")
-            sys.stdout.flush()'''
+            KRATOSprint("")'''
 
             os.chdir(data_and_results)
 

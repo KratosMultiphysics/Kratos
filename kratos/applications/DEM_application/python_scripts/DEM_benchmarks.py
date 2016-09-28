@@ -376,7 +376,6 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
             materialTest.PrintGraph(time)
 
             #### GENERAL FORCE GRAPHS ############################
-            #DEMFEMProcedures.MeasureForces()
             DEMFEMProcedures.PrintGraph(time)
             benchmark.generate_graph_points(spheres_model_part, rigid_face_model_part, time, output_time_step, dt)
 
@@ -388,8 +387,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
                 '''KRATOSprint("*******************  PRINTING RESULTS FOR GID  ***************************")
                 KRATOSprint("                        ("+ str(spheres_model_part.NumberOfElements(0)) + " elements)")
                 KRATOSprint("                        ("+ str(spheres_model_part.NumberOfNodes(0)) + " nodes)")
-                KRATOSprint("")
-                sys.stdout.flush()'''
+                KRATOSprint("")'''
 
                 os.chdir(data_and_results)
 

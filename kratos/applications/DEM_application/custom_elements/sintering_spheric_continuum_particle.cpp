@@ -14,7 +14,6 @@
 #include "sintering_spheric_continuum_particle.h"
 #include "custom_utilities/GeometryFunctions.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
-//#include "DEM_application.h"
 #include "utilities/openmp_utils.h"
 #include "DEM_application_variables.h"
 
