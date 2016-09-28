@@ -1,49 +1,14 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2008-11-19 16:12:53 $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
 //
-
 
 #if !defined(KRATOS_TRILINOS_SPACE_H_INCLUDED )
 #define  KRATOS_TRILINOS_SPACE_H_INCLUDED
@@ -74,7 +39,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Epetra_IntSerialDenseVector.h"
 #include "Epetra_SerialDenseMatrix.h"
 #include "Epetra_SerialDenseVector.h"
-
+#include "EpetraExt_CrsMatrixIn.h"
 
 // Project includes
 #include "includes/define.h"
@@ -320,7 +285,20 @@ public:
     // 	{
     // 	  return inner_prod(row(rA, i), rX);
     // 	}
+    void SetValue(VectorType& rX, IndexType i, double value)
+    {
+        Epetra_IntSerialDenseVector indices(1);
+        Epetra_SerialDenseVector values(1);
+        indices[0] = i;
+        values[0] = value;
 
+        int ierr = rX.ReplaceGlobalValues(indices, values);
+        if(ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
+        
+        ierr = rX.GlobalAssemble(Insert,true); //Epetra_CombineMode mode=Add);
+        if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure when attempting to insert value in function SetValue", "");
+
+    }
 
     /// rX = A
 
@@ -337,7 +315,17 @@ public:
 
     static void Resize(VectorType& rX, SizeType n)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Resize is not defined for Trilinos Sparse Vector", "")
+        KRATOS_THROW_ERROR(std::logic_error, "Resize is not defined for a reference to Trilinos Vector - need to use the version passing a Pointer", "")
+    }
+    
+    static void Resize(VectorPointerType& pX, SizeType n)
+    {
+//         if(pX != NULL)
+//             KRATOS_ERROR << "trying to resize a null pointer" ;
+        int global_elems = n;
+        Epetra_Map Map(global_elems, 0, pX->Comm());
+        VectorPointerType pNewEmptyX = boost::make_shared<VectorType>(Map);
+        pX.swap(pNewEmptyX);
     }
 
     // 	static void Clear(MatrixType& rA)
@@ -551,6 +539,60 @@ public:
 
     }
 
+    void ReadMatrixMarket(const std::string FileName, MatrixPointerType& pA)
+    {
+        KRATOS_TRY
+        
+        Epetra_CrsMatrix* pp = nullptr;
+
+        int error_code = EpetraExt::MatrixMarketFileToCrsMatrix(FileName.c_str(), pA->Comm(), pp);
+        
+        if(error_code != 0)
+            KRATOS_ERROR << "error thrown while reading Matrix Market file "<<FileName<< " error code is : " << error_code;
+        
+
+        const Epetra_CrsGraph& rGraph = pp->Graph();
+        MatrixPointerType paux = boost::make_shared<Epetra_FECrsMatrix>( ::Copy, rGraph, false );
+        
+        int NumMyRows = rGraph.RowMap().NumMyElements();
+
+        int* MyGlobalElements = new int[NumMyRows];
+        rGraph.RowMap().MyGlobalElements(MyGlobalElements);
+        
+        
+        for(IndexType i=0; i< NumMyRows; i++)
+        {
+//             std::cout << pA->Comm().MyPID() << " : I=" << i << std::endl;
+            IndexType GlobalRow = MyGlobalElements[i];
+            
+            int NumEntries;
+            std::size_t Length = pp->NumGlobalEntries(GlobalRow);  // length of Values and Indices
+
+            double* Values = new double[Length];     // extracted values for this row
+            int* Indices = new int[Length];          // extracted global column indices for the corresponding values
+
+            error_code = pp->ExtractGlobalRowCopy(GlobalRow, Length, NumEntries, Values, Indices);
+            
+            if(error_code != 0)
+                KRATOS_ERROR << "error thrown in ExtractGlobalRowCopy : " << error_code;
+
+            error_code = paux->ReplaceGlobalValues(GlobalRow, Length, Values, Indices);
+            
+            if(error_code != 0)
+                KRATOS_ERROR << "error thrown in ReplaceGlobalValues : " << error_code;
+            
+            delete [] Values;
+            delete [] Indices;
+        }
+        
+        paux->GlobalAssemble();
+        pA.swap(paux);
+        delete [] MyGlobalElements;
+//         std::cout << pp << std::endl;
+        delete pp;
+        
+        KRATOS_CATCH("");
+    }
 
 
     ///@}

@@ -143,33 +143,33 @@ void  AddLinearSolvers()
         ;
 
     #ifdef AMGCL_INCLUDED
-         enum_<TrilinosAmgclSettings::AMGCLSmoother>("AMGCLSmoother")
-            .value("SPAI0", TrilinosAmgclSettings::SPAI0)
-            .value("ILU0", TrilinosAmgclSettings::ILU0)
-            .value("DAMPED_JACOBI",TrilinosAmgclSettings::DAMPED_JACOBI)
-            .value("GAUSS_SEIDEL",TrilinosAmgclSettings::GAUSS_SEIDEL)
-            .value("MULTICOLOR_GAUSS_SEIDEL",TrilinosAmgclSettings::MULTICOLOR_GAUSS_SEIDEL)         
-            ;
-        
-        enum_<TrilinosAmgclSettings::AMGCLIterativeSolverType>("AMGCLIterativeSolverType")
-            .value("GMRES", TrilinosAmgclSettings::GMRES)
-            .value("BICGSTAB", TrilinosAmgclSettings::BICGSTAB)
-            .value("CG",TrilinosAmgclSettings::CG)
-            .value("BICGSTAB_WITH_GMRES_FALLBACK",TrilinosAmgclSettings::BICGSTAB_WITH_GMRES_FALLBACK)
-            .value("BICGSTAB2",TrilinosAmgclSettings::BICGSTAB2)
-            ;
-            
-        enum_<TrilinosAmgclSettings::AMGCLCoarseningType>("AMGCLCoarseningType")
-            .value("RUGE_STUBEN", TrilinosAmgclSettings::RUGE_STUBEN)
-            .value("AGGREGATION", TrilinosAmgclSettings::AGGREGATION)
-            .value("SA",TrilinosAmgclSettings::SA)
-            .value("SA_EMIN",TrilinosAmgclSettings::SA_EMIN)
-            ;
+//          enum_<TrilinosAmgclSettings::AMGCLSmoother>("AMGCLSmoother")
+//             .value("SPAI0", TrilinosAmgclSettings::SPAI0)
+//             .value("ILU0", TrilinosAmgclSettings::ILU0)
+//             .value("DAMPED_JACOBI",TrilinosAmgclSettings::DAMPED_JACOBI)
+//             .value("GAUSS_SEIDEL",TrilinosAmgclSettings::GAUSS_SEIDEL)
+//             .value("MULTICOLOR_GAUSS_SEIDEL",TrilinosAmgclSettings::MULTICOLOR_GAUSS_SEIDEL)         
+//             ;
+//         
+//         enum_<TrilinosAmgclSettings::AMGCLIterativeSolverType>("AMGCLIterativeSolverType")
+//             .value("GMRES", TrilinosAmgclSettings::GMRES)
+//             .value("BICGSTAB", TrilinosAmgclSettings::BICGSTAB)
+//             .value("CG",TrilinosAmgclSettings::CG)
+//             .value("BICGSTAB_WITH_GMRES_FALLBACK",TrilinosAmgclSettings::BICGSTAB_WITH_GMRES_FALLBACK)
+//             .value("BICGSTAB2",TrilinosAmgclSettings::BICGSTAB2)
+//             ;
+//             
+//         enum_<TrilinosAmgclSettings::AMGCLCoarseningType>("AMGCLCoarseningType")
+//             .value("RUGE_STUBEN", TrilinosAmgclSettings::RUGE_STUBEN)
+//             .value("AGGREGATION", TrilinosAmgclSettings::AGGREGATION)
+//             .value("SA",TrilinosAmgclSettings::SA)
+//             .value("SA_EMIN",TrilinosAmgclSettings::SA_EMIN)
+//             ;
   
         typedef AmgclMPISolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclMPISolverType;
         class_<AmgclMPISolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
-            ("AmgclMPISolver",init<double, int,int,bool >())
-            .def(init<TrilinosAmgclSettings::AMGCLSmoother,TrilinosAmgclSettings::AMGCLIterativeSolverType,TrilinosAmgclSettings::AMGCLCoarseningType,double,int,int,bool>())
+            ("AmgclMPISolver",init<Parameters>()) //init<double, int,int,bool >())
+//             .def(init<TrilinosAmgclSettings::AMGCLSmoother,TrilinosAmgclSettings::AMGCLIterativeSolverType,TrilinosAmgclSettings::AMGCLCoarseningType,double,int,int,bool>())
             .def("SetDoubleParameter", &AmgclMPISolverType::SetDoubleParameter)
             .def("SetIntParameter", &AmgclMPISolverType::SetIntParameter)
             ;
