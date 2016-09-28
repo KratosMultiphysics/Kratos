@@ -36,9 +36,9 @@ KRATOS_CLASS_POINTER_DEFINITION(FieldUtility);
 
 /// Default constructor.
 
-FieldUtility(): mDomain(){}
+FieldUtility(): mDomain(), mpVectorField(){}
 
-FieldUtility(SpaceTimeSet::Pointer s): mDomain(s){}
+FieldUtility(SpaceTimeSet::Pointer p_sts, VectorField<3>::Pointer p_vector_field): mDomain(p_sts), mpVectorField(p_vector_field){}
 
 /// Destructor.
 
@@ -98,7 +98,7 @@ array_1d<double, 3> EvaluateFieldAtPoint(const double& time,
 //***************************************************************************************************************
 
 
-void ImposeFieldOnNodes(Variable<double>& destination_variable,
+virtual void ImposeFieldOnNodes(Variable<double>& destination_variable,
                      const double default_value,
                      RealField::Pointer formula,
                      ModelPart& r_model_part,
@@ -131,7 +131,7 @@ void ImposeFieldOnNodes(Variable<double>& destination_variable,
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void ImposeFieldOnNodes(Variable<array_1d<double, 3> >& destination_variable,
+virtual void ImposeFieldOnNodes(Variable<array_1d<double, 3> >& destination_variable,
                      const array_1d<double, 3> default_value,
                      VectorField<3>::Pointer formula,
                      ModelPart& r_model_part,
@@ -161,6 +161,14 @@ void ImposeFieldOnNodes(Variable<array_1d<double, 3> >& destination_variable,
             formula->Evaluate(time, coor, destination_value);
         }
     }
+}
+
+//***************************************************************************************************************
+//***************************************************************************************************************
+
+virtual void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed)
+{
+    mpVectorField->ImposeFieldOnNodes(r_model_part, variables_to_be_imposed);
 }
 
 //***************************************************************************************************************
@@ -249,6 +257,7 @@ private:
 ///@{
 RealField::Pointer mFormula;
 SpaceTimeSet::Pointer mDomain;
+VectorField<3>::Pointer mpVectorField;
 std::vector<bool> mIsInArray;
 ///@}
 ///@name Private Operators
