@@ -62,7 +62,11 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         
         target_norm = tolerance*space.TwoNorm(boriginal)
 
-        self.assertTrue(achieved_norm < target_norm)
+        if(achieved_norm > target_norm):
+            print(settings.PrettyPrintJsonString())
+            print("achieved_norm",achieved_norm)
+            print("target_norm",target_norm)
+        self.assertTrue(achieved_norm <= target_norm)
 
         
     def test_tfqmr_in_core(self):
@@ -290,8 +294,34 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                         "block_size": 1,
                         "use_block_matrices_if_possible" : true,
                         "coarse_enough" : 100
-                    },
+                    },                    
                     {
+
+                        "solver_type" : "AMGCL",
+                        "smoother_type":"iluk",
+                        "krylov_type": "lgmres",
+                        "coarsening_type": "aggregation",
+                        "max_iteration": 300,
+                        "provide_coordinates": false,
+                        "gmres_krylov_space_dimension": 100,
+                        "verbosity" : 0,
+                        "tolerance": 1e-6,
+                        "scaling": false,
+                        "block_size": 1,
+                        "use_block_matrices_if_possible" : true,
+                        "coarse_enough" : 100
+                    }
+                ]
+            }
+            """)
+        
+        
+        
+    def test_amgcl_bicgstabl(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                {
 
                         "solver_type" : "AMGCL",
                         "smoother_type":"iluk",
@@ -306,8 +336,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                         "block_size": 1,
                         "use_block_matrices_if_possible" : true,
                         "coarse_enough" : 100
-                    }
-                ]
+                }]
             }
             """)
         
