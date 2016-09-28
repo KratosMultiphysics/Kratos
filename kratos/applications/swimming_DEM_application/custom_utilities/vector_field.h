@@ -1,13 +1,5 @@
-
 #if !defined(KRATOS_VECTOR_FIELD_H)
 #define KRATOS_VECTOR_FIELD_H
-
-// /* External includes */
-
-// System includes
-
-// Project includes
-#include "includes/variables.h"
 
 /* System includes */
 #include <limits>
@@ -23,9 +15,11 @@
 
 /* Project includes */
 #include "includes/define.h"
+#include "includes/variables.h"
 #include "utilities/openmp_utils.h"
 #include "real_functions.h"
-
+#include "includes/variables.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -51,27 +45,31 @@ virtual ~VectorField(){}
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-virtual void Evaluate(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& vector){}
+virtual void Evaluate(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& vector, const unsigned int n_threads = 1, const unsigned int i_thread = 1){}
 
-virtual void CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& deriv){}
+virtual void CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& deriv, const unsigned int n_threads = 1, const unsigned int i_thread = 1){}
 
-virtual void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d< array_1d<double, 3>, 3>& gradient){}
+virtual void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d< array_1d<double, 3>, 3>& gradient, const unsigned int n_threads = 1, const unsigned int i_thread = 1){}
 
-virtual double CalculateDivergence(const double time, const array_1d<double, 3>& coor){return 0.0;}
+virtual double CalculateDivergence(const double time, const array_1d<double, 3>& coor, const unsigned int n_threads = 1, const unsigned int i_thread = 1){return 0.0;}
 
-virtual void CalculateRotational(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& rot){}
+virtual void CalculateRotational(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& rot, const unsigned int n_threads = 1, const unsigned int i_thread = 1){}
 
-virtual void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& lapl){}
+virtual void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& lapl, const unsigned int n_threads = 1, const unsigned int i_thread = 1){}
 
-virtual void Evaluate(const double time, const vector<double>& coor, vector<double>& result){}
+virtual void Evaluate(const double time, const vector<double>& coor, vector<double>& result, const unsigned int n_threads = 1, const unsigned int i_thread = 1){}
 
-virtual void CalculateTimeDerivative(const double time, const vector<double>& coor, vector<double>& result){}
+virtual void CalculateTimeDerivative(const double time, const vector<double>& coor, vector<double>& result, const unsigned int n_threads = 1, const unsigned int i_thread = 1){}
 
-virtual void CalculateDivergence(const double time, const vector<double>& coor, double& div){}
+virtual void CalculateDivergence(const double time, const vector<double>& coor, double& div, const unsigned int n_threads = 1, const unsigned int i_thread = 1){}
 
-virtual void CalculateRotational(const double time, const vector<double>& coor, vector<double>& result){}
+virtual void CalculateRotational(const double time, const vector<double>& coor, vector<double>& result, const unsigned int n_threads = 1, const unsigned int i_thread = 1){}
 
-virtual void CalculateLaplacian(const double time, const vector<double>& coor, vector<double>& result){}
+virtual void CalculateLaplacian(const double time, const vector<double>& coor, vector<double>& result, const unsigned int n_threads = 1, const unsigned int i_thread = 1){}
+
+virtual void ResizeVectorsForParallelism(const unsigned int n_threads){}
+
+virtual void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed){}
 
 //***************************************************************************************************************
 //***************************************************************************************************************
