@@ -57,7 +57,7 @@ proc Pfem::write::GetPFEM_ContactDict { } {
     
     set paramsDict [dict create ]
     dict set paramsDict "mesh_id" 0
-    dict set paramsDict "model_part_name" "model_part_name"
+    dict set paramsDict "model_part_name" "Main Domain"
     dict set paramsDict "meshing_control_type" "step"
     dict set paramsDict "meshing_frequency" 1.0
     dict set paramsDict "meshing_before_output" true
@@ -245,8 +245,8 @@ proc Pfem::write::GetPFEM_SolverSettingsDict { } {
     foreach part_un [Pfem::write::GetPartsUN] {
         lappend listsubmodelparts {*}[write::getSubModelPartNames $part_un]
     }
-    dict set solverSettingsDict problem_domain_sub_model_part_list $listsubmodelparts
     dict set solverSettingsDict bodies_list [GetBodiesList]
+    dict set solverSettingsDict problem_domain_sub_model_part_list $listsubmodelparts
     dict set solverSettingsDict processes_sub_model_part_list [write::getSubModelPartNames "PFEM_NodalConditions" "PFEM_Loads"]
     
     return $solverSettingsDict

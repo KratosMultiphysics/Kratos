@@ -1,7 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "problem_name",
-        "model_part_name" : "model_part_name",
+        "model_part_name" : "Main Model",
         "domain_size"     : 3,
         "time_step"       : 0.001,
         "start_time"      : 0.0,
@@ -51,7 +51,7 @@
         "help"            : "This process applies meshing to the problem domains",
         "process_name"    : "RemeshDomainsProcess",
         "Parameters"      : {
-	    "model_part_name"       : "body1",
+	    "model_part_name"       : "Main Model",
 	    "meshing_control_type"  : "step",
 	    "meshing_frequency"     : 1.0,
 	    "meshing_before_output" : true,
@@ -59,7 +59,7 @@
 		{
 		    "python_module": "meshing_domain",
 		    "mesh_id": 1,
-		    "sub_model_part_name": "sub_model_part_name",
+		    "model_part_name": "body_1",
 		    "alpha_shape": 2.4,
 		    "offset_factor": 0.0,
 		    "meshing_strategy":{
