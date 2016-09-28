@@ -96,7 +96,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
 
     UpdateNodalValues(node, non_contact_force_not_altered, non_contact_moment, weight, buoyancy, drag_force, virtual_mass_force, basset_force, saffman_lift_force, magnus_lift_force, force_reduction_coeff, r_current_process_info);
     // The basset force has a different temporal treatment, so first we apply the scheme to the rest of the forces
-    // And then we add the Basset force (minus the term proportional to the current acceleration, which is treted inplicityly)
+    // and then we add the Basset force (minus the term proportional to the current acceleration, which is treted implicitly)
     noalias(non_contact_force) += basset_force;
     non_contact_force *= force_reduction_coeff;
     mFirstStep = false;
@@ -171,7 +171,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBuoyancy(NodeType& node, arra
     }
 
     else {
-        const double volume = TBaseElement::CalculateVolume();
+        const double volume = CalculateVolume();
 
         if (mBuoyancyForceType == 2 || mDragForceType == 2){ // Maxey-Riley form of buoyancy (minus the fluid acceleration term); Weatherford
             noalias(buoyancy) =  - gravity * mFluidDensity * volume;
