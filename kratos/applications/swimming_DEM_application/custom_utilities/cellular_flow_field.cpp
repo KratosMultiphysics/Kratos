@@ -13,7 +13,7 @@ void CellularFlowField::ResizeVectorsForParallelism(const unsigned int n_threads
     mCosPiX1.resize(n_threads);
 }
 
-void CellularFlowField::UpdateCoordinates(const double time, const array_1d<double, 3>& coor, const unsigned int n_threads, const unsigned int i_thread)
+void CellularFlowField::UpdateCoordinates(const double time, const array_1d<double, 3>& coor, const unsigned int i_thread)
 {
     mSinOmegaT[i_thread] = std::sin(mOmegaUOverL * time);
     mCosOmegaT[i_thread] = std::cos(mOmegaUOverL * time);
