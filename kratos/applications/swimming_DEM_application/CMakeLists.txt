@@ -32,9 +32,12 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/terminal_velocity_scheme.cpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/symplectic_euler_old_velocity_scheme.cpp      
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/strategies/adams_bashforth_strategy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/binbased_DEM_fluid_coupled_mapping.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/basset_force_tools.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/velocity_field.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/cellular_flow_field.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/statistics/sampling_tool.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/space_time_set.cpp
 )
 
 
