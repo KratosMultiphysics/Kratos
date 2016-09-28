@@ -1,6 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ProcessList>
+
+  <Process n="AssignValueAndDirectionToVectorProcess" pn="Impose vector value by direction process" python_module="assign_value_and_direction_to_vector_process"
+	   kratos_module="KratosMultiphysics.SolidMechanicsApplication" help="This process fixes all the components of a given vector variable" check="DirectorVectorNonZero direction"> 
+    <inputs>
+        <parameter n="factor" pn="Modulus" type="double"  v="1.0"/>
+        <parameter n="direction" pn="Direction" type="vector" v="0.0,0.0,0.0" unit_magnitude="0" units="0" />
+    </inputs>
+  </Process>
     
+  <Process n="AssignValueToVectorComponentsProcess" pn="Assign a vector value process" python_module="assign_value_to_vector_components_process"
+           kratos_module="KratosMultiphysics.SolidMechanicsApplication"
+	   help="This process fixes the selected components of a given vector variable">
+    <inputs>
+      <parameter n="value" pn="Value" type="vector" fixity="Imposed" v="0.0,0.0,0.0"/>
+    </inputs>
+  </Process>
+
+  <Process n="AssignValueToScalarProcess" pn="Assign a scalar value process" python_module="assign_value_to_scalar_value_process"
+	   kratos_module="KratosMultiphysics.SolidMechanicsApplication"
+	   help="This process fixes the given scalar variable">
+    <inputs>
+      <parameter n="value" pn="Value" type="double" v="0.0" />
+    </inputs>
+  </Process>
+  
+<!--
+  Processes for conditions
+-->
+  <Process n="AssingVectorToConditionsProcess" pn="Assign a vector value on a condition" python_module="assing_vector_to_conditions_process"
+	   kratos_module="KratosMultiphysics.SolidMechanicsApplication" help="This process sets a vector variable value over a condition" check="DirectorVectorNonZero direction"> 
+    <inputs>
+      <parameter n="factor" pn="Modulus" type="double"  v="1.0"/>
+      <parameter n="direction" pn="Direction" type="vector" v="0.0,0.0,0.0" unit_magnitude="0" units="0" />
+    </inputs>
+  </Process>
+
+  <Process n="AssingScalarToConditionsProcess" pn="Apply a scalar value over a condition" python_module="assing_scalar_to_conditions_process"
+	   kratos_module="KratosMultiphysics.SolidMechanicsApplication" help="This process sets a scalar variable value over a condition" > 
+    <inputs>
+      <parameter n="value" pn="Value" type="double" v="0.0" />
+    </inputs>
+  </Process>
+
+  
+<!--
+  deprecated
+-->  
+  
   <Process n="ApplyConstantVectorValueProcess" pn="Constant vector value" python_module="process_factory"
 		kratos_module="KratosMultiphysics" check="DirectorVectorNonZero direction"
 		help="This process ">
@@ -10,7 +57,7 @@
     </inputs>
   </Process>
   
-  <Process n="ApplyConstantScalarValueProcess" pn="Constant calar value" python_module="process_factory"
+  <Process n="ApplyConstantScalarValueProcess" pn="Constant scalar value" python_module="process_factory"
         kratos_module="KratosMultiphysics"
 		help="This process ">
     <inputs>
@@ -40,9 +87,7 @@
     </inputs>
   </Process>
   
-<!--
-  Processes for conditions
--->
+
   <Process n="ApplyVectorOnConditionsProcess" pn="Apply a vector value over a condition" python_module="apply_vector_on_conditions_process"
 		kratos_module="KratosMultiphysics.SolidMechanicsApplication" help="This process sets a vector variable value over a condition" check="DirectorVectorNonZero direction"> 
     <inputs>
