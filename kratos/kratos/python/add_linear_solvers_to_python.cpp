@@ -1,23 +1,15 @@
-// Kratos Multi-Physics
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-// Copyright (c) 2016 Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+//  Main authors:    Riccardo Rossi
 //
-// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-// 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
-// 			This product includes Kratos Multi-Physics technology.
-// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 // System includes
@@ -50,6 +42,8 @@
 #include "linear_solvers/power_iteration_eigenvalue_solver.h"
 #include "linear_solvers/deflated_gmres_solver.h"
 
+#include "linear_solvers/amgcl_solver.h"
+#include "linear_solvers/amgcl_ns_solver.h"
 
 
 namespace Kratos
@@ -192,10 +186,43 @@ void  AddLinearSolversToPython()
     .def(self_ns::str(self))
     ;
 
-//	typedef SuperLUSolver<SparseSpaceType, LocalSpaceType> SuperLUSolverType;
-//	class_<SuperLUSolverType, bases<DirectSolverType>, boost::noncopyable >
-//		( "SuperLUSolver",
-//			init<>() )
+     enum_<AMGCLSmoother>("AMGCLSmoother")
+    .value("SPAI0", SPAI0)
+    .value("ILU0", ILU0)
+    .value("DAMPED_JACOBI",DAMPED_JACOBI)
+    .value("GAUSS_SEIDEL",GAUSS_SEIDEL)
+    .value("CHEBYSHEV",CHEBYSHEV)
+    ;
+    
+    enum_<AMGCLIterativeSolverType>("AMGCLIterativeSolverType")
+    .value("GMRES", GMRES)
+    .value("BICGSTAB", BICGSTAB)
+    .value("CG",CG)
+    .value("BICGSTAB_WITH_GMRES_FALLBACK",BICGSTAB_WITH_GMRES_FALLBACK)
+    .value("BICGSTAB2",BICGSTAB2)
+    ;
+    
+    enum_<AMGCLCoarseningType>("AMGCLCoarseningType")
+    .value("RUGE_STUBEN", RUGE_STUBEN)
+    .value("AGGREGATION", AGGREGATION)
+    .value("SA",SA)
+    .value("SA_EMIN",SA_EMIN)
+    ;
+    
+    
+    typedef AMGCLSolver<SpaceType,  LocalSpaceType> AMGCLSolverType;
+    class_<AMGCLSolverType, bases<LinearSolverType>, boost::noncopyable >
+    ( "AMGCLSolver",init<AMGCLSmoother,AMGCLIterativeSolverType,double,int,int,int>() )
+    .def(init<AMGCLSmoother,AMGCLIterativeSolverType,AMGCLCoarseningType ,double,int,int,int, bool>())
+    .def(init<Parameters>())
+    ;
+    
+   typedef AMGCL_NS_Solver<SpaceType,  LocalSpaceType> AMGCL_NS_SolverType;
+   class_<AMGCL_NS_SolverType, bases<LinearSolverType>, boost::noncopyable >
+   ( "AMGCL_NS_Solver", init<Parameters>())
+   ;
+    
+
 }
 
 }  // namespace Python.
