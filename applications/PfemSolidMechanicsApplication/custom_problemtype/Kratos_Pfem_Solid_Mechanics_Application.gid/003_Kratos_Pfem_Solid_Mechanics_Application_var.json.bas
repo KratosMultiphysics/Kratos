@@ -302,9 +302,11 @@
 			"bounding_box_type": "PlaneBoundingBox",
 			"bounding_box_parameters":{
 			    "parameters_list":[
+			      {
 				"point": [*cond(Wall_Plane,1), *cond(Wall_Plane,2), *cond(Wall_Plane,3)],
 			    	"normal": [*cond(Wall_Plane,4), *cond(Wall_Plane,5), *cond(Wall_Plane,6)],
 				"convexity": *cond(Wall_Circle,5)
+			      }
 			    ],
 			    "velocity" : [*tcl(JoinByComma *cond(Linear_Velocity))]
 			}
@@ -312,9 +314,11 @@
 			"bounding_box_type": "CircleBoundingBox",
 			"bounding_box_parameters":{
 			    "parameters_list":[
+			      {
 				"center": [*cond(Wall_Circle,1), *cond(Wall_Circle,2), *cond(Wall_Circle,3)],
 				"radius": *cond(Wall_Circle,4),
 				"convexity": *cond(Wall_Circle,5)
+			      }
 			    ],
 			    "velocity" : [0.0, 0.0, 0.0]
 			}
