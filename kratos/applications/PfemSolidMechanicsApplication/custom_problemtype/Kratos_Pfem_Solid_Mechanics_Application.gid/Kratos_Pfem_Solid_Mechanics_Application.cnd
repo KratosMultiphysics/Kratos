@@ -426,16 +426,17 @@ QUESTION: Critical_Tip_Radius
 VALUE: 0.0004
 QUESTION: Refine_on_box_only#CB#(False,True)
 VALUE: False
-DEPENDENCIES:(True,RESTORE,Center_box,#CURRENT#,RESTORE,Velocity_box,#CURRENT#,RESTORE,Radius_box,#CURRENT#)
-DEPENDENCIES:(False,HIDE,Center_box,#CURRENT#,HIDE,Velocity_box,#CURRENT#,HIDE,Radius_box,#CURRENT#)
-QUESTION: Center_box
+DEPENDENCIES:(True,RESTORE,Upper_Point_rbox,#CURRENT#,RESTORE,Lower_Point_rbox,#CURRENT#,RESTORE,Velocity_rbox,#CURRENT#)
+DEPENDENCIES:(False,HIDE,Upper_Point_rbox,#CURRENT#,HIDE,Lower_Point_rbox,#CURRENT#,HIDE,Velocity_rbox,#CURRENT#)
+QUESTION: Upper_Point_rbox
 VALUE:  0 0 0
 TKWIDGET: GidUtils::TkwidgetGetVector3D
-QUESTION: Velocity_box
+QUESTION: Lower_Point_rbox
 VALUE:  0 0 0
 TKWIDGET: GidUtils::TkwidgetGetVector3D
-QUESTION: Radius_box
-VALUE: 0
+QUESTION: Velocity_rbox
+VALUE:  0 0 0
+TKWIDGET: GidUtils::TkwidgetGetVector3D
 QUESTION: LSInterpolation
 VALUE: 0
 END CONDITION
