@@ -186,9 +186,9 @@
 		},              
 		"refining_box":{
 			"refine_in_box_only": *tcl(string tolower *cond(Refine_on_box_only)),
-			"radius":  *cond(Radius_box),
-			"center": [*tcl(JoinByComma *cond(Center_box))],
-			"velocity": [*tcl(JoinByComma *cond(Velocity_box))]
+			"upper_point": [*tcl(JoinByComma *cond(Upper_Point_rbox))],
+			"lower_point": [*tcl(JoinByComma *cond(Lower_Point_rbox))],
+			"velocity": [*tcl(JoinByComma *cond(Velocity_rbox))]
 		}
 	    },            
 	    "elemental_variables_to_transfer":[ "CAUCHY_STRESS_VECTOR", "DEFORMATION_GRADIENT" ]

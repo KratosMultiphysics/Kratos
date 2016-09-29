@@ -14,8 +14,41 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         self.solid_model_part_names     = Parameters["problem_domain_sub_model_part_list"]
         self.processes_model_part_names = Parameters["processes_sub_model_part_list"]
 
-    def Execute(self):
+        self.bodies_parts_list = []
+        if( Parameters.Has("bodies_list") ):
+            self.bodies_parts_list = Parameters["bodies_list"]
         
+        
+    def Execute(self):
+
+        
+        #construct body model parts:
+        if( len(self.bodies_parts_list) != 0 ):
+            for i in range(len(self.bodies_parts_list)):
+                #create body model part
+                body_model_part_name = self.bodies_parts_list[i]["body_name"].GetString()
+                self.main_model_part.CreateSubModelPart(body_model_part_name)
+                body_model_part = self.main_model_part.GetSubModelPart(body_model_part_name)
+                
+                print("[Model_Prepare]::Body Creation", body_model_part_name)
+                body_model_part.ProcessInfo = self.main_model_part.ProcessInfo
+                body_model_part.Properties  = self.main_model_part.Properties
+
+                #build body from their parts
+                body_parts_name_list = self.bodies_parts_list[i]["parts_list"]
+                body_parts_list = []
+                for j in range(len(body_parts_name_list)):
+                    body_parts_list.append(self.main_model_part.GetSubModelPart(body_parts_name_list[j].GetString()))
+                    
+                for part in body_parts_list:
+                    for node in part.Nodes:
+                        body_model_part.Nodes.append(node)
+                    for elem in part.Elements:
+                        body_model_part.AddElement(elem,0)
+                    for cond in part.Conditions:
+                        body_model_part.AddCondition(cond,0) 
+
+        #construct the computing model part:
         solid_parts = []
         for i in range(self.solid_model_part_names.size()):
             solid_parts.append(self.main_model_part.GetSubModelPart(self.solid_model_part_names[i].GetString()))
