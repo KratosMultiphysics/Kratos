@@ -213,8 +213,8 @@ namespace Kratos
       }
 
       //properties to be used in the generation
-      int number_properties = mrModelPart.NumberOfProperties();
-      Properties::Pointer properties = mrModelPart.GetMesh().pGetProperties(number_properties-1);
+      int number_properties = mrModelPart.GetParentModelPart()->NumberOfProperties();
+      Properties::Pointer properties = mrModelPart.GetParentModelPart()->pGetProperties(number_properties-1);
 			
       //reset the boundary flag in all nodes
       for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(MeshId); in!=mrModelPart.NodesEnd(MeshId); in++)
