@@ -1302,6 +1302,8 @@ void ModelPart::save(Serializer& rSerializer) const
     // I'm saving it as pointer so the nodes pointers will point to it as stored pointer. Pooyan.
     rSerializer.save("Variables List", mpVariablesList);
     rSerializer.save("Meshes", mMeshes);
+    // Recursive save:
+    //rSerializer.save("ParentModelPart", mpParentModelPart); 
     rSerializer.save("SubModelParts", mSubModelParts);
 }
 
@@ -1314,6 +1316,8 @@ void ModelPart::load(Serializer& rSerializer)
     //VariablesList* p_list = &mVariablesList;
     rSerializer.load("Variables List", mpVariablesList);
     rSerializer.load("Meshes", mMeshes);
+    // Recursive load:
+    //rSerializer.load("ParentModelPart", mpParentModelPart);
     rSerializer.load("SubModelParts", mSubModelParts);
 
 }
