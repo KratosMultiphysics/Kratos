@@ -98,6 +98,7 @@ namespace Kratos
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedNewtonRaphsonLineSearchImplexStrategy );
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    
     typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 
     typedef typename BaseType::TDataType TDataType;
@@ -163,9 +164,9 @@ namespace Kratos
 
       //setting up the default builder and solver
       mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer
-	(
-	 new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (mpLinearSolver)
-	 );
+                           (
+			    new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (mpLinearSolver)
+			   );
 
       //set flags to start correcty the calculations
       mSolutionStepIsInitialized = false;
