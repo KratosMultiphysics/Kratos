@@ -83,6 +83,10 @@ def DofsWithReactions():
 #
 # ======================================================================================
 
+class ALGO_TYPE:
+	FULL_NEWTON=1
+	KRYLOV_NEWTON=2
+	
 class SolutionStage:
 
 	# ==================================================================================
@@ -108,7 +112,9 @@ class SolutionStage:
 				CalculateTangent = True,
 				Parallel = True,
 				CustomOpMechanical = None,
-				CustomOpThermal = None):
+				CustomOpThermal = None,
+				AlgorithmMechanical = ALGO_TYPE.FULL_NEWTON,
+				AlgorithmThermal = ALGO_TYPE.FULL_NEWTON):
 		
 		# Parallelism
 		self.Parallel = Parallel
@@ -153,31 +159,56 @@ class SolutionStage:
 		# Results IO
 		self.ResultsIO = ResultsIO
 		
-		# Create and initialize the mechanical solver
-		self.SolverMechanical = StaticGeneralStrategy(
-			self.ModelPartMechanical,
-			self.TimeSchemeMechanical,
-			self.LinearSolverMechanical,
-			self.ConvergenceCriteriaMechanical,
-			self.BuilderAndSolverMechanical,
-			self.MaxIterations,
-			self.CalculateReactions,
-			self.ReformDofSetAtEachStep,
-			self.MoveMesh)
+		# Create and initialize the solver
+		if(AlgorithmMechanical == ALGO_TYPE.FULL_NEWTON):
+			self.SolverMechanical = StaticGeneralStrategy(
+				self.ModelPartMechanical,
+				self.TimeSchemeMechanical,
+				self.LinearSolverMechanical,
+				self.ConvergenceCriteriaMechanical,
+				self.BuilderAndSolverMechanical,
+				self.MaxIterations,
+				self.CalculateReactions,
+				self.ReformDofSetAtEachStep,
+				self.MoveMesh)
+		elif(AlgorithmMechanical == ALGO_TYPE.KRYLOV_NEWTON):
+			self.SolverMechanical = StaticGeneralStrategyKrylovNewton(
+				self.ModelPartMechanical,
+				self.TimeSchemeMechanical,
+				self.LinearSolverMechanical,
+				self.ConvergenceCriteriaMechanical,
+				self.BuilderAndSolverMechanical,
+				self.MaxIterations,
+				self.CalculateReactions,
+				self.ReformDofSetAtEachStep,
+				self.MoveMesh)				
 		self.SolverMechanical.SetKeepSystemConstantDuringIterations(not CalculateTangent)
 		self.SolverMechanical.Check();
 		self.SolverMechanical.SetEchoLevel(1);
-		# Create and initialize the thermal solver
-		self.SolverThermal = StaticGeneralStrategy(
-			self.ModelPartThermal,
-			self.TimeSchemeThermal,
-			self.LinearSolverThermal,
-			self.ConvergenceCriteriaThermal,
-			self.BuilderAndSolverThermal,
-			self.MaxIterations,
-			self.CalculateReactions,
-			self.ReformDofSetAtEachStep,
-			self.MoveMesh)
+		
+		# Create and initialize the solver
+		if(AlgorithmThermal == ALGO_TYPE.FULL_NEWTON):
+			self.SolverThermal = StaticGeneralStrategy(
+				self.ModelPartThermal,
+				self.TimeSchemeThermal,
+				self.LinearSolverThermal,
+				self.ConvergenceCriteriaThermal,
+				self.BuilderAndSolverThermal,
+				self.MaxIterations,
+				self.CalculateReactions,
+				self.ReformDofSetAtEachStep,
+				self.MoveMesh)
+		elif(AlgorithmThermal == ALGO_TYPE.KRYLOV_NEWTON):
+			self.SolverThermal = StaticGeneralStrategyKrylovNewton(
+				self.ModelPartThermal,
+				self.TimeSchemeThermal,
+				self.LinearSolverThermal,
+				self.ConvergenceCriteriaThermal,
+				self.BuilderAndSolverThermal,
+				self.MaxIterations,
+				self.CalculateReactions,
+				self.ReformDofSetAtEachStep,
+				self.MoveMesh)
 		self.SolverThermal.SetKeepSystemConstantDuringIterations(not CalculateTangent)
 		self.SolverThermal.Check();
 		self.SolverThermal.SetEchoLevel(1);
@@ -289,9 +320,9 @@ class SolutionStage:
 			temp_converged_flag = self.SolverThermal.IsConverged()
 			temp_nl_iter_number = float(self.ModelPartThermal.ProcessInfo[NL_ITERATION_NUMBER])
 			if(temp_converged_flag):
-				print(" #----------------------- SOLVE MECHANIC PART ------------------------# ")
+				print(" #----------------------- SOLVE MECHANICAL PART ------------------------# ")
 				self.SolverMechanical.Solve()
-				print(" #---------------------- MECHANIC PART SOLVED ------------------------# ")
+				print(" #---------------------- MECHANICAL PART SOLVED ------------------------# ")
 				temp_converged_flag = self.SolverMechanical.IsConverged()
 				# print('temp_converged_flag',temp_converged_flag)
 				temp_nl_iter_number = max(temp_nl_iter_number,float(self.ModelPartMechanical.ProcessInfo[NL_ITERATION_NUMBER]))
@@ -435,7 +466,9 @@ class SolutionStageWithDamageInfo:
 				CalculateTangent = True,
 				Parallel = True,
 				CustomOpMechanical = None,
-				CustomOpThermal = None):
+				CustomOpThermal = None,
+				AlgorithmMechanical = ALGO_TYPE.FULL_NEWTON,
+				AlgorithmThermal = ALGO_TYPE.FULL_NEWTON):
 		
 		# Parallelism
 		self.Parallel = Parallel
@@ -480,31 +513,56 @@ class SolutionStageWithDamageInfo:
 		# Results IO
 		self.ResultsIO = ResultsIO
 		
-		# Create and initialize the mechanical solver
-		self.SolverMechanical = StaticGeneralStrategy(
-			self.ModelPartMechanical,
-			self.TimeSchemeMechanical,
-			self.LinearSolverMechanical,
-			self.ConvergenceCriteriaMechanical,
-			self.BuilderAndSolverMechanical,
-			self.MaxIterations,
-			self.CalculateReactions,
-			self.ReformDofSetAtEachStep,
-			self.MoveMesh)
+		# Create and initialize the solver
+		if(AlgorithmMechanical == ALGO_TYPE.FULL_NEWTON):
+			self.SolverMechanical = StaticGeneralStrategy(
+				self.ModelPartMechanical,
+				self.TimeSchemeMechanical,
+				self.LinearSolverMechanical,
+				self.ConvergenceCriteriaMechanical,
+				self.BuilderAndSolverMechanical,
+				self.MaxIterations,
+				self.CalculateReactions,
+				self.ReformDofSetAtEachStep,
+				self.MoveMesh)
+		elif(AlgorithmMechanical == ALGO_TYPE.KRYLOV_NEWTON):
+			self.SolverMechanical = StaticGeneralStrategyKrylovNewton(
+				self.ModelPartMechanical,
+				self.TimeSchemeMechanical,
+				self.LinearSolverMechanical,
+				self.ConvergenceCriteriaMechanical,
+				self.BuilderAndSolverMechanical,
+				self.MaxIterations,
+				self.CalculateReactions,
+				self.ReformDofSetAtEachStep,
+				self.MoveMesh)				
 		self.SolverMechanical.SetKeepSystemConstantDuringIterations(not CalculateTangent)
 		self.SolverMechanical.Check();
 		self.SolverMechanical.SetEchoLevel(1);
-		# Create and initialize the thermal solver
-		self.SolverThermal = StaticGeneralStrategy(
-			self.ModelPartThermal,
-			self.TimeSchemeThermal,
-			self.LinearSolverThermal,
-			self.ConvergenceCriteriaThermal,
-			self.BuilderAndSolverThermal,
-			self.MaxIterations,
-			self.CalculateReactions,
-			self.ReformDofSetAtEachStep,
-			self.MoveMesh)
+		
+		# Create and initialize the solver
+		if(AlgorithmThermal == ALGO_TYPE.FULL_NEWTON):
+			self.SolverThermal = StaticGeneralStrategy(
+				self.ModelPartThermal,
+				self.TimeSchemeThermal,
+				self.LinearSolverThermal,
+				self.ConvergenceCriteriaThermal,
+				self.BuilderAndSolverThermal,
+				self.MaxIterations,
+				self.CalculateReactions,
+				self.ReformDofSetAtEachStep,
+				self.MoveMesh)
+		elif(AlgorithmThermal == ALGO_TYPE.KRYLOV_NEWTON):
+			self.SolverThermal = StaticGeneralStrategyKrylovNewton(
+				self.ModelPartThermal,
+				self.TimeSchemeThermal,
+				self.LinearSolverThermal,
+				self.ConvergenceCriteriaThermal,
+				self.BuilderAndSolverThermal,
+				self.MaxIterations,
+				self.CalculateReactions,
+				self.ReformDofSetAtEachStep,
+				self.MoveMesh)
 		self.SolverThermal.SetKeepSystemConstantDuringIterations(not CalculateTangent)
 		self.SolverThermal.Check();
 		self.SolverThermal.SetEchoLevel(1);
@@ -583,7 +641,8 @@ class SolutionStageWithDamageInfo:
 		increment_max = self.TimeLine.MaxIncrement
 		
 		counter = 0 #Counter for the damaged surfaces
-		damage_limit_surf = [self.ModelPartMechanical.ProcessInfo[RVE_DAMAGE_SURFACE_LIMIT]];
+		# damage_limit_surf = [self.ModelPartMechanical.ProcessInfo[RVE_DAMAGE_SURFACE_LIMIT]];
+		damage_limit_surf = [0.001,0.005,0.01,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,0.99,0.995,0.999,0.9995,0.9999];
 		damage_reached_flag = 0
 		num_surf = len(damage_limit_surf)
 		# begin time incrementation loop
@@ -605,9 +664,9 @@ class SolutionStageWithDamageInfo:
 			self.ModelPartMechanical.ProcessInfo[DELTA_TIME] = current_delta_time
 			self.ModelPartThermal.ProcessInfo = self.ModelPartMechanical.ProcessInfo
 			
-			#Stefano mod for multiple damage surface					
+			#Stefano mod for multiple damage surface	
 			self.ModelPartMechanical.ProcessInfo[RVE_DAMAGE_SURFACE_LIMIT] = damage_limit_surf[counter]
-			filename = "d" + str(damage_limit_surf[counter]) + "_20.txt"
+			filename = "d" + str(damage_limit_surf[counter]) + "_15.txt"
 			print(filename)
 			# filename = "d" + str(damage_limit_surf) + "_8.txt"
 			########
@@ -625,7 +684,7 @@ class SolutionStageWithDamageInfo:
 			temp_converged_flag = self.SolverThermal.IsConverged()
 			temp_nl_iter_number = float(self.ModelPartThermal.ProcessInfo[NL_ITERATION_NUMBER])
 			if(temp_converged_flag):
-				print(" #----------------------- SOLVE MECHANIC PART ------------------------# ")
+				print(" #----------------------- SOLVE MECHANICAL PART ------------------------# ")
 				self.SolverMechanical.Solve()
 				temp_converged_flag = self.SolverMechanical.IsConverged()
 				temp_nl_iter_number = max(temp_nl_iter_number,float(self.ModelPartMechanical.ProcessInfo[NL_ITERATION_NUMBER]))
@@ -688,25 +747,22 @@ class SolutionStageWithDamageInfo:
 							print("")
 							print("")
 							print("")
-							# print("             Final Damage: ", damage_limit_surf[counter], " Reached!")
-							print("             Final Damage: ", damage_limit_surf, " Reached!")
+							print("             Final Damage: ", damage_limit_surf[counter], " Reached!")
+							# print("             Final Damage: ", damage_limit_surf, " Reached!")
 							print("")
 							print("")
 							print("")
 							print ("------------------------------------------------------------------------")
 							# Print Results
 							strain = self.ModelPartMechanical.Elements[1].GetValuesOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_TENSOR, self.ModelPartMechanical.ProcessInfo)
-							print(strain)
 							stress = self.ModelPartMechanical.Elements[1].GetValuesOnIntegrationPoints(RVE_GENERAL_STRESS_TENSOR, self.ModelPartMechanical.ProcessInfo)
-							print(stress)
 							C 	   = self.ModelPartMechanical.Elements[1].GetValuesOnIntegrationPoints(HOMOGENIZED_CONST_TENS, self.ModelPartMechanical.ProcessInfo)
-							print(C)
 							tag = self.ModelPartMechanical.ProcessInfo[ACTUAL_TAG]
-							print(tag)
 							reached_damage = self.ModelPartMechanical.Elements[1].GetValuesOnIntegrationPoints(EQUIVALENT_DAMAGE, self.ModelPartMechanical.ProcessInfo)
 							print(reached_damage)
-							print(reached_damage)
-							if (reached_damage[0][0] >= 0.99*damage_limit_surf[counter]) & (reached_damage[0][0] <= 1.01*damage_limit_surf[counter]):
+							damage_error = abs(reached_damage[0][0]-damage_limit_surf[counter])/damage_limit_surf[counter]
+							# if (reached_damage[0][0] >= 0.99*damage_limit_surf[counter]) & (reached_damage[0][0] <= 1.01*damage_limit_surf[counter]):
+							if (damage_error < 0.01):
 							# if (reached_damage[0][0] >= 0.99*damage_limit_surf) & (reached_damage[0][0] <= 1.01*damage_limit_surf):
 								if (len(strain[0]) == 4):
 									ofile.write(str(reached_damage[0]) + "   " + str(tag[0]) + "," + str(tag[1]) + "   " + str(strain[0][0]) + " " + str(strain[0][3]) + " " + str(strain[0][1]) + "   " + str(stress[0][0]) + " " + str(stress[0][3]) + " " + str(stress[0][1]) + "   " + str(C[0])+ '\n')
@@ -742,7 +798,9 @@ class SolutionStageWithDamageInfo:
 							tag = self.ModelPartMechanical.ProcessInfo[ACTUAL_TAG]
 							reached_damage = self.ModelPartMechanical.Elements[1].GetValuesOnIntegrationPoints(EQUIVALENT_DAMAGE, self.ModelPartMechanical.ProcessInfo)
 							print(reached_damage)
-							if (reached_damage[0][0] >= 0.99*damage_limit_surf[counter]) & (reached_damage[0][0] <= 1.01*damage_limit_surf[counter]):
+							damage_error = abs(reached_damage[0][0]-damage_limit_surf[counter])/damage_limit_surf[counter]
+							# if (reached_damage[0][0] >= 0.99*damage_limit_surf[counter]) & (reached_damage[0][0] <= 1.01*damage_limit_surf[counter]):
+							if (damage_error < 0.01):
 							# if (reached_damage[0][0] >= 0.99*damage_limit_surf) & (reached_damage[0][0] <= 1.01*damage_limit_surf):
 								if (len(strain[0]) == 4):
 									ofile.write(str(reached_damage[0]) + "   " + str(tag[0]) + "," + str(tag[1]) + "   " + str(strain[0][0]) + " " + str(strain[0][3]) + " " + str(strain[0][1]) + "   " + str(stress[0][0]) + " " + str(stress[0][3]) + " " + str(stress[0][1]) + "   " + str(C[0])+ '\n')
@@ -779,7 +837,8 @@ class SolutionStageWithDamageInfo:
 					break
 		# Print Results
 		if (damage_reached_flag == 0):
-			ofile = open(filename, "a")
+			fname = "NotEnoughStrain_" + str(damage_limit_surf[counter]) + ".txt"
+			ofile = open(fname, "a")
 			strain = self.ModelPartMechanical.Elements[1].GetValuesOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_TENSOR, self.ModelPartMechanical.ProcessInfo)
 			stress = self.ModelPartMechanical.Elements[1].GetValuesOnIntegrationPoints(RVE_GENERAL_STRESS_TENSOR, self.ModelPartMechanical.ProcessInfo)
 			C 	   = self.ModelPartMechanical.Elements[1].GetValuesOnIntegrationPoints(HOMOGENIZED_CONST_TENS, self.ModelPartMechanical.ProcessInfo)

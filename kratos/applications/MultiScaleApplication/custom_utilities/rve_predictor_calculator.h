@@ -149,7 +149,11 @@ namespace Kratos
 
 		void PredictStress2D(const Vector& trial_macro_scale_strain_vector, Vector& stress_vector, double& lch_macro, Matrix& const_tens, double& EquivalentDamage, double& EquivalentDamageConverged);
 
-		void CalculateFractureEnergy(const Matrix& TractionHistInfo);
+		void ReconstructStrain(Vector& eps, double& radius, Vector& Theta);
+		
+		void CalculateFractureEnergy(Vector& radius, Vector& Theta, Vector& sigma_xx, Vector& sigma_yy, Vector& sigma_xy);
+
+		void CheckFractureEnergy(Vector& radius, Vector& Theta, Vector& sigma_xx, Vector& sigma_yy, Vector& sigma_xy, double& gf);
 
 		void CalculateAlpha(double& lch_macro);
 
@@ -175,7 +179,7 @@ namespace Kratos
 		double triDimInterpolate(array_1d<array_1d<array_1d<double, 4>, 4>, 4> p, double x, double y, double z, Matrix F) const;
 
 		double quadDimInterpolate(array_1d<array_1d<array_1d<array_1d<double, 4>, 4>, 4>, 4> p, double x, double y, double z, double h, Matrix F) const;
-		
+
 		double pentaDimInterpolate(array_1d<array_1d<array_1d<array_1d<array_1d<double, 4>, 4>, 4>, 4>, 4> p, double x, double y, double z, double h, double k, Matrix F) const;
 
 		double nDimInterpolate(size_t n, double* p, double coordinates[], Matrix& F) const;
@@ -254,6 +258,8 @@ namespace Kratos
 
 		size_t m_dimension;
 		double m_domain_size;
+
+		size_t m_position_biggest_ft;
 
 	}; // class RvePredictor
 
