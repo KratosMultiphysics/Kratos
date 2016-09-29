@@ -1,9 +1,9 @@
 cmake_minimum_required (VERSION 2.8.6)
 # configuration
-set(CMAKE_C_COMPILER "/usr/bin/gcc")
-set(CMAKE_INSTALL_RPATH "/home/youruser/kratos/libs")
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH "TRUE")
-set(CMAKE_CXX_COMPILER "/usr/bin/g++")
+# set(CMAKE_C_COMPILER "/usr/bin/gcc")
+# set(CMAKE_INSTALL_RPATH "/home/youruser/kratos/libs")
+# set(CMAKE_INSTALL_RPATH_USE_LINK_PATH "TRUE")
+# set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse3 -std=c++11 ")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse3 ")
 set(CMAKE_BUILD_TYPE "Release")
