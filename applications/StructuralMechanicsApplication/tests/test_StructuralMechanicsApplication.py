@@ -9,6 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
+from SmallTests import SimpleMeshMovingTest as TSimpleMeshMovingTest
 from SmallTests import DynamicBossakTests as TDynamicBossakTests
 from SmallTests import DynamicNewmarkTests as TDynamicNewmarkTests
 from SmallTests import SprismMembranePatchTests as TSprismMembranePatchTests
@@ -40,6 +41,7 @@ def AssambleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
+    smallSuite.addTest(TSimpleMeshMovingTest('test_execution'))
     smallSuite.addTest(TDynamicBossakTests('test_execution'))
     smallSuite.addTest(TDynamicNewmarkTests('test_execution'))
     smallSuite.addTest(TSprismMembranePatchTests('test_execution'))
@@ -62,6 +64,7 @@ def AssambleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
+            TSimpleMeshMovingTest,
             TDynamicBossakTests,
             TDynamicNewmarkTests,
             TSprismMembranePatchTests,
