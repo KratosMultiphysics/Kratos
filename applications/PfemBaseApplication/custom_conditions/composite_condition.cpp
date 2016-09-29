@@ -999,12 +999,14 @@ void CompositeCondition::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
     rSerializer.save("mChildConditions",mChildConditions);
+    rSerializer.save("mInitializedChildren",mInitializedChildren);
 }
 
 void CompositeCondition::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
     rSerializer.load("mChildConditions",mChildConditions);
+    rSerializer.load("mInitializedChildren",mInitializedChildren);
 }
 
 

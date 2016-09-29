@@ -149,13 +149,14 @@ class MechanicalSolver(object):
         
         print("::[Mechanical Solver]:: Model reading starts.")
 
+        self.computing_model_part_name = "solid_computing_domain"
+        
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             
             
             KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
             print("    Import input model part.")
             
-            self.computing_model_part_name = "solid_computing_domain"
             # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
             params = KratosMultiphysics.Parameters("{}")
             params.AddEmptyValue("computing_model_part_name").SetString(self.computing_model_part_name)
