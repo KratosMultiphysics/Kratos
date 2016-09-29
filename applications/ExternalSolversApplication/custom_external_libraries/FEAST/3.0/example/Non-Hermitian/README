@@ -1,0 +1,32 @@
+////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////  The  FEAST Eigenvalue Solver     ///////////////////////////
+//////////// ///////////////////////////////////////////////////////////////////////////////
+Author: Eric Polizzi  
+        Department of Electrical and Computer Engineering
+        University of Massachusetts, Amherst                           
+E-mail: polizzi@ecs.umass.edu (for FEAST realted questions please use:  feastsolver@gmail.com)              
+web   : http://www.ecs.umass.edu/~polizzi/feast  
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+FEAST EXAMPLE:     -Selected examples for Fortran, C, Fortran-MPI, C-MPI are provided in this directory
+
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    !!!!Please correct accordingly compiler and libraries paths, change compiler options  in file make.inc !!!!
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+                  - Note that in order to compile the Fortran examples, a F90 compiler is needed 
+                   (However, all feast drivers are compatible with F77 calling interfaces and drivers can
+                    be easily rewritten in F77 if needed)
+                  
+                  -The examples deal with two systems: system1 (a real symmetric generalized eigenvalue problem), 
+                                                       system2 (a complex Hermitian standard eigenvalue problem),
+
+                  -Those systems are solved using the different feast_dense, feast_banded, and feast_sparse drivers.
+
+                  -See Instructions in the FEAST documentation section "FEAST Applications"
+
+
+                     
+

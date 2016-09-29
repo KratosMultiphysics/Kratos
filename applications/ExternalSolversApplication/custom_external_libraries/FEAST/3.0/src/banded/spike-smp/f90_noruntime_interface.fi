@@ -1,0 +1,201 @@
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! FILE created  by Huiying Xu 2007
+!!      modified by Eric Polizzi 2009 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+    interface 
+
+         double precision function wdsin(x)
+         double precision :: x
+         end function wdsin
+
+         double precision function wdcos(x)
+         double precision :: x
+         end function wdcos
+
+         real function wssin(x)
+         real :: x
+         end function wssin
+
+         real function wscos(x)
+         real :: x
+         end function wscos
+ 
+        subroutine wallocate_3i(A, firstNo, secondNo, thirdNo, alloc_info)  
+        integer, dimension(:,:,:),pointer :: A   
+        integer :: firstNo   
+        integer :: secondNo   
+        integer :: thirdNo 
+	integer :: alloc_info
+        end subroutine wallocate_3i  
+   
+        subroutine wallocate_2i(A, rowNo, columNo, alloc_info)  
+        integer, dimension(:,:),pointer :: A  
+        integer :: rowNo  
+        integer :: columNo  
+	integer :: alloc_info
+        end subroutine wallocate_2i 
+  
+        subroutine wallocate_1i(A, element_No, alloc_info)   
+        integer, dimension(:),pointer :: A   
+        integer :: element_No   
+	integer :: alloc_info
+        end subroutine wallocate_1i   
+  
+        subroutine wallocate_3d(A, firstNo, secondNo, thirdNo, alloc_info)   
+        double precision, dimension(:,:,:),pointer :: A   
+        integer :: firstNo   
+        integer :: secondNo 
+        integer :: thirdNo   
+	integer :: alloc_info
+        end subroutine wallocate_3d   
+ 
+        subroutine wallocate_2d(A, rowNo, columNo, alloc_info)  
+        double precision, dimension(:,:),pointer :: A  
+        integer :: rowNo  
+        integer :: columNo  
+	integer :: alloc_info
+        end subroutine wallocate_2d  
+  
+        subroutine wallocate_1d(A, element_No, alloc_info)   
+        double precision, dimension(:),pointer :: A   
+        integer :: element_No   
+	integer :: alloc_info
+        end subroutine wallocate_1d   
+
+
+        subroutine wallocate_3z(A, firstNo, secondNo, thirdNo, alloc_info)   
+        complex(kind=kind(1.0d0)),dimension(:,:,:),pointer :: A   
+        integer :: firstNo   
+        integer :: secondNo 
+        integer :: thirdNo   
+	integer :: alloc_info
+        end subroutine wallocate_3z   
+ 
+        subroutine wallocate_2z(A, rowNo, columNo, alloc_info)  
+        complex(kind=kind(1.0d0)),dimension(:,:),pointer :: A  
+        integer :: rowNo  
+        integer :: columNo  
+	integer :: alloc_info
+        end subroutine wallocate_2z  
+  
+        subroutine wallocate_1z(A, element_No, alloc_info)   
+        complex(kind=kind(1.0d0)), dimension(:),pointer :: A   
+        integer :: element_No   
+	integer :: alloc_info
+        end subroutine wallocate_1z   
+
+        subroutine wallocate_3s(A, firstNo, secondNo, thirdNo, alloc_info)   
+        real, dimension(:,:,:),pointer :: A   
+        integer :: firstNo   
+        integer :: secondNo 
+        integer :: thirdNo   
+	integer :: alloc_info
+        end subroutine wallocate_3s
+ 
+        subroutine wallocate_2s(A, rowNo, columNo, alloc_info)  
+        real, dimension(:,:),pointer :: A  
+        integer :: rowNo  
+        integer :: columNo  
+	integer :: alloc_info
+        end subroutine wallocate_2s  
+  
+        subroutine wallocate_1s(A, element_No, alloc_info)   
+        real, dimension(:),pointer :: A   
+        integer :: element_No   
+	integer :: alloc_info
+        end subroutine wallocate_1s   
+
+
+        subroutine wallocate_3c(A, firstNo, secondNo, thirdNo, alloc_info)   
+        complex,dimension(:,:,:),pointer :: A   
+        integer :: firstNo   
+        integer :: secondNo 
+        integer :: thirdNo   
+	integer :: alloc_info
+        end subroutine wallocate_3c   
+ 
+        subroutine wallocate_2c(A, rowNo, columNo, alloc_info)  
+        complex,dimension(:,:),pointer :: A  
+        integer :: rowNo  
+        integer :: columNo  
+	integer :: alloc_info
+        end subroutine wallocate_2c  
+  
+        subroutine wallocate_1c(A, element_No, alloc_info)   
+        complex, dimension(:),pointer :: A   
+        integer :: element_No   
+	integer :: alloc_info
+        end subroutine wallocate_1c   
+
+
+        subroutine wdeallocate_3i(A)    
+        integer, dimension(:,:,:),pointer :: A    
+        end subroutine wdeallocate_3i  
+ 
+        subroutine wdeallocate_2i(A)   
+        integer, dimension(:,:),pointer :: A   
+        end subroutine wdeallocate_2i   
+   
+        subroutine wdeallocate_1i(A)    
+        integer, dimension(:),pointer :: A    
+        end subroutine wdeallocate_1i    
+ 
+        subroutine wdeallocate_3d(A)   
+        double precision, dimension(:,:,:),pointer :: A   
+        end subroutine wdeallocate_3d   
+ 
+        subroutine wdeallocate_2d(A)  
+        double precision, dimension(:,:),pointer :: A  
+        end subroutine wdeallocate_2d
+  
+        subroutine wdeallocate_1d(A)   
+        double precision, dimension(:),pointer :: A   
+        end subroutine wdeallocate_1d 
+
+        subroutine wdeallocate_3z(A)   
+         complex(kind=kind(1.0d0)), dimension(:,:,:),pointer :: A   
+        end subroutine wdeallocate_3z   
+ 
+        subroutine wdeallocate_2z(A)  
+         complex(kind=kind(1.0d0)), dimension(:,:),pointer :: A  
+        end subroutine wdeallocate_2z
+  
+        subroutine wdeallocate_1z(A)   
+        complex(kind=kind(1.0d0)), dimension(:),pointer :: A   
+        end subroutine wdeallocate_1z 
+ 
+        subroutine wdeallocate_3s(A)   
+        real, dimension(:,:,:),pointer :: A   
+        end subroutine wdeallocate_3s   
+ 
+        subroutine wdeallocate_2s(A)  
+        real, dimension(:,:),pointer :: A  
+        end subroutine wdeallocate_2s
+  
+        subroutine wdeallocate_1s(A)   
+        real, dimension(:),pointer :: A   
+        end subroutine wdeallocate_1s 
+
+        subroutine wdeallocate_3c(A)   
+         complex, dimension(:,:,:),pointer :: A   
+        end subroutine wdeallocate_3c   
+ 
+        subroutine wdeallocate_2c(A)  
+         complex, dimension(:,:),pointer :: A  
+        end subroutine wdeallocate_2c
+  
+        subroutine wdeallocate_1c(A)   
+        complex, dimension(:),pointer :: A   
+        end subroutine wdeallocate_1c 
+ 
+
+
+    end interface 
+
+
+
+
+
+
+

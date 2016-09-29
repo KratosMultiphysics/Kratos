@@ -45,7 +45,7 @@ endif(${INCLUDE_PASTIX} MATCHES ON)
 
 if(${INCLUDE_FEAST} MATCHES ON)
   if (NOT DEFINED FEAST_ROOT)
-    message(FATAL_ERROR "FEAST_ROOT is not set")
+    set(FEAST_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/FEAST/3.0 )
   endif(NOT DEFINED FEAST_ROOT)
   include_directories( ${FEAST_ROOT}/include )
   link_directories( ${FEAST_ROOT}/lib/x64 )
