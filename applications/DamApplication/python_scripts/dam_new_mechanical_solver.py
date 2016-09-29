@@ -247,13 +247,13 @@ class DamMechanicalSolver:
                 precond = ILU0Preconditioner()
                 linear_solver = KratosMultiphysics.BICGSTABSolver(tolerance,max_iterations,precond)
             elif(solver_class == "AMGCL"):
-                amgcl_smoother = KratosMultiphysics.ExternalSolversApplication.AMGCLSmoother.ILU0
-                amgcl_krylov_type = KratosMultiphysics.ExternalSolversApplication.AMGCLIterativeSolverType.BICGSTAB
+                amgcl_smoother = KratosMultiphysics.AMGCLSmoother.ILU0
+                amgcl_krylov_type = KratosMultiphysics.AMGCLIterativeSolverType.BICGSTAB
                 tolerance = 1e-5
                 max_iterations = 1000
                 verbosity = 0 #0->shows no information, 1->some information, 2->all the information
                 gmres_size = 50
-                linear_solver =  KratosMultiphysics.ExternalSolversApplication.AMGCLSolver(amgcl_smoother,amgcl_krylov_type,tolerance,max_iterations,verbosity,gmres_size)
+                linear_solver =  KratosMultiphysics.AMGCLSolver(amgcl_smoother,amgcl_krylov_type,tolerance,max_iterations,verbosity,gmres_size)
                   
         return linear_solver
     
