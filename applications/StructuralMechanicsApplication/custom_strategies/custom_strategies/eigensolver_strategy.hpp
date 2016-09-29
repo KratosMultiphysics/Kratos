@@ -543,7 +543,7 @@ private:
 
         // NOTE: dofs are assumed to be numbered consecutively
         #pragma omp parallel for firstprivate(NumDofs)
-        for(std::size_t k = 0; k<NumDofs; k++)
+        for(int k = 0; k<NumDofs; k++)
         {
             auto dof_iterator = std::begin(rDofSet) + k;
             ScalingFactors[k] = (dof_iterator->IsFixed()) ? 0.0 : 1.0;
@@ -555,7 +555,7 @@ private:
 
         // if there is a line of all zeros, put one on the diagonal
         #pragma omp parallel for firstprivate(SystemSize)
-        for(std::size_t k = 0; k < SystemSize; ++k)
+        for(int k = 0; k < SystemSize; ++k)
         {
             std::size_t ColBegin = ARowIndices[k];
             std::size_t ColEnd = ARowIndices[k+1];
@@ -571,7 +571,7 @@ private:
         }
 
         #pragma omp parallel for
-        for (std::size_t k = 0; k < SystemSize; ++k)
+        for (int k = 0; k < SystemSize; ++k)
         {
             std::size_t ColBegin = ARowIndices[k];
             std::size_t ColEnd = ARowIndices[k+1];
