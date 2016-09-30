@@ -226,7 +226,7 @@ proc Pfem::write::GetPFEM_SolverSettingsDict { } {
     dict set solverSettingsDict solver_type $strategy_write_name
     #~ dict set solverSettingsDict domain_size [expr $nDim]
     dict set solverSettingsDict echo_level [write::getValue Results EchoLevel]
-    dict set solverSettingsDict solution_type [write::getValue PFEM_SoluType]
+    dict set solverSettingsDict solution_type [write::getValue PFEM_AnalysisType]
     
     dict set solverSettingsDict time_integration_method [write::getValue PFEM_SolStrat]
     dict set solverSettingsDict scheme_type [write::getValue PFEM_Scheme]
