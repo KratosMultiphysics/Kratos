@@ -178,14 +178,9 @@ public:
 
       // Assing each cell to the closest partition center
       // TODO: this is currently very unbalanced
-      for(std::size_t cellId = 0, partitionId = 0; cellId < mNumberOfCells; cellId++) {
-        if(ObjectsPerPartition[partitionId] < MeanObjectsPerPartition || partitionId == mpi_size - 1) {
-        } else {
-          // std::cout << "(" << mpi_rank << ") " << "Jump part at: " << ObjectsPerPartition[partitionId] << std::endl;
-          partitionId++;
-        }
-        ObjectsPerPartition[partitionId] += mpiRecvObjectsPerCell[cellId];
-        CellPartition[cellId] = partitionId;
+      for(std::size_t cellId = 0; cellId < mNumberOfCells; cellId++) {
+        ObjectsPerPartition[cellId] += mpiRecvObjectsPerCell[cellId];
+        CellPartition[cellId] = cellId;
       }
 
       std::cout << "Partititon " << mpi_rank << ": " << ObjectsPerPartition[mpi_rank] << std::endl;
