@@ -75,7 +75,7 @@ sudo apt-get install -y libio-socket-ssl-perl  libdigest-hmac-perl  libterm-read
 ##################
 
 cd ${HOME}
-tar -zcvf /tmp/logs_gcc.tar.gz ${LOG_DIR}/configure_gcc.log ${LOG_DIR}/compile_gcc.log ${LOG_DIR}/unittest_gcc.log
+tar -zcvf /tmp/logs_gcc.tar.gz ${LOG_DIR}/*
 ./smtp-cli --host=${KRATOS_MAIL_SERVER} --enable-auth --user ${KRATOS_MAIL_USER} --password ${KRATOS_MAIL_PASSWD}  --to ${MAIL_TO} --body-plain ${MAIL_GCC} --attach /tmp/logs_gcc.tar.gz --subject "Kratos Nightly Report" --mail-from "kratosmultiphysics@gmail.com" --from "Kratos Nightly Report GCC"
 
 ## Give the email some time to be queued and delivered
