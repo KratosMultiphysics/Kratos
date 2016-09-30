@@ -119,8 +119,13 @@ procedures.AddMpiVariables(rigid_face_model_part)
 spheres_mp_filename   = DEM_parameters.problem_name + "DEM"
 model_part_io_spheres = model_part_reader(spheres_mp_filename)
 
-# Perform the initial partition
-[model_part_io_spheres, spheres_model_part, MPICommSetup] = parallelutils.PerformInitialPartition(spheres_model_part, model_part_io_spheres, spheres_mp_filename)
+if (hasattr(DEM_parameters, "do_not_perform_initial_partition") and DEM_parameters.do_not_perform_initial_partition == 1):
+    pass
+else:
+    parallelutils.PerformInitialPartition(model_part_io_spheres)
+
+[model_part_io_spheres, spheres_model_part, MPICommSetup] = parallelutils.SetCommunicator(spheres_model_part, model_part_io_spheres, spheres_mp_filename)
+
 
 model_part_io_spheres.ReadModelPart(spheres_model_part)
 
@@ -272,16 +277,6 @@ KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
 materialTest.PrintChart()
 materialTest.PrepareDataForGraph()
 
-##############################################################################
-#                                                                            #
-#    MAIN LOOP                                                               #
-#                                                                            #
-##############################################################################
-
-report.total_steps_expected = int(DEM_parameters.FinalTime / dt)
-
-KRATOSprint(report.BeginReport(timer))
-
 mesh_motion = DEMFEMUtilities()
 
 # creating a Post Utils object that executes several post-related tasks
@@ -303,6 +298,13 @@ if nodeplotter: #Related to debugging
     plotter = plot_variables.variable_plotter(spheres_model_part, list_of_nodes_ids) #Related to debugging
 
 
+##############################################################################
+#                                                                            #
+#    MAIN LOOP                                                               #
+#                                                                            #
+##############################################################################
+report.total_steps_expected = int(DEM_parameters.FinalTime / dt)
+KRATOSprint(report.BeginReport(timer))
 
 while (time < DEM_parameters.FinalTime):
     
@@ -322,15 +324,16 @@ while (time < DEM_parameters.FinalTime):
     cluster_model_part.ProcessInfo[DELTA_TIME]    = dt
     cluster_model_part.ProcessInfo[TIME_STEPS]    = step
     
+    
     #### SOLVE #########################################
     solver.Solve()
-            
+    ####################################################
+    
     # Walls movement:
     mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
     mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
     mesh_motion.MoveAllMeshes(DEM_inlet_model_part, time, dt)
 
-    #### TIME CONTROL ##################################
     
     # adding DEM elements by the inlet:
     if (DEM_parameters.dem_inlet_option):
@@ -403,21 +406,17 @@ while (time < DEM_parameters.FinalTime):
 #                                                                            #
 ##############################################################################
 
+# Print times and more info
+KRATOSprint(report.FinalReport(timer))
+
 demio.FinalizeMesh()
 materialTest.FinalizeGraphs()
 DEMFEMProcedures.FinalizeGraphs(rigid_face_model_part)
 DEMFEMProcedures.FinalizeBallsGraphs(spheres_model_part)
 
-# Charlie: This didn't exist. I replaced it with the line above
-#if((DEM_parameters.TestType == "None")):
-#    Procedures.FinalizeGraphs()
-
 demio.CloseMultifiles()
 
 os.chdir(main_path)
-
-# Print times and more info
-KRATOSprint(report.FinalReport(timer))
 
 # Freeing up memory
 objects_to_destroy = [demio, procedures, creator_destructor, dem_fem_search, solver, DEMFEMProcedures, post_utils, 

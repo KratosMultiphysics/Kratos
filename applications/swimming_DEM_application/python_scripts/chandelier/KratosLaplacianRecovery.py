@@ -226,8 +226,12 @@ mixed_model_part = ModelPart("MixedPart")
 spheres_mp_filename   = DEM_parameters.problem_name + "DEM"
 model_part_io_spheres = ModelPartIO(spheres_mp_filename)
 
-# Perform the initial partition
-[model_part_io_spheres, spheres_model_part, MPICommSetup] = parallelutils.PerformInitialPartition(spheres_model_part, model_part_io_spheres, spheres_mp_filename)
+if (hasattr(DEM_parameters, "do_not_perform_initial_partition") and DEM_parameters.do_not_perform_initial_partition == 1):
+    pass
+else:
+    parallelutils.PerformInitialPartition(model_part_io_spheres)
+
+[model_part_io_spheres, spheres_model_part, MPICommSetup] = parallelutils.SetCommunicator(spheres_model_part, model_part_io_spheres, spheres_mp_filename)
 
 model_part_io_spheres.ReadModelPart(spheres_model_part)
 

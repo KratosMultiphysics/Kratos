@@ -1508,8 +1508,12 @@ class ParallelUtils(object):
     def CalculateModelNewIds(self, spheres_model_part):
         pass
 
-    def PerformInitialPartition(self, model_part, model_part_io_solid, input_file_name):
-        return [model_part_io_solid, model_part, '']
+    def PerformInitialPartition(self, model_part):
+        pass
+    
+    def SetCommunicator(self, spheres_model_part, model_part_io_spheres, spheres_mp_filename):
+        MPICommSetup = 0
+        return [model_part_io_spheres, spheres_model_part, MPICommSetup]
 
     def GetSearchStrategy(self, solver, model_part):
         return solver.search_strategy

@@ -70,7 +70,6 @@ namespace Kratos {
         MeshRepairOperations();
         SearchNeighbours();
 
-
         if (BaseType::GetDeltaOption() == 2) {
             SetCoordinationNumber(r_model_part);
         }
