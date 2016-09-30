@@ -421,6 +421,7 @@ void BassetForceTools::AppendIntegrandsImplicit(ModelPart& r_model_part)
         }
         else {
             array_1d<double, 3> old_particle_vel;
+            // we are using the last positions to store the old particle velocities which are not stored anywhere else
             old_particle_vel[0] = historic_integrands[n - 3];
             old_particle_vel[1] = historic_integrands[n - 2];
             old_particle_vel[2] = historic_integrands[n - 1];
