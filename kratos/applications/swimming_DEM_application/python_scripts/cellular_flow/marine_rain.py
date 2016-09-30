@@ -85,15 +85,15 @@ pp.CFD_DEM.faxen_terms_type = 0
 pp.CFD_DEM.material_acceleration_calculation_type = 1
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
-pp.CFD_DEM.basset_force_type = 0
+pp.CFD_DEM.basset_force_type = 4
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
 pp.CFD_DEM.basset_force_integration_type = 2
 pp.CFD_DEM.n_init_basset_steps = 0
 pp.CFD_DEM.time_steps_per_quadrature_step = 1
 pp.CFD_DEM.delta_time_quadrature = pp.CFD_DEM.time_steps_per_quadrature_step * pp.CFD_DEM.MaxTimeStep
 pp.CFD_DEM.quadrature_order = 2
-pp.CFD_DEM.time_window = 0.01
-pp.CFD_DEM.number_of_exponentials = 8
+pp.CFD_DEM.time_window = 0.1
+pp.CFD_DEM.number_of_exponentials = 10
 pp.CFD_DEM.number_of_quadrature_steps_in_window = int(pp.CFD_DEM.time_window / pp.CFD_DEM.delta_time_quadrature)
 pp.CFD_DEM.print_steps_per_plot_step = 1
 pp.CFD_DEM.PostCationConcentration = False
@@ -350,8 +350,7 @@ if (DEM_parameters.BoundingBoxOption == "ON"):
 solver.search_strategy = parallelutils.GetSearchStrategy(solver, spheres_model_part)
 
 # Creating the fluid solver
-fluid_solver = solver_module.CreateSolver(
-    fluid_model_part, SolverSettings)
+fluid_solver = solver_module.CreateSolver(fluid_model_part, SolverSettings)
 
 Dt_DEM = DEM_parameters.MaxTimeStep
 
@@ -718,7 +717,6 @@ for node in fluid_model_part.Nodes:
 N_steps = int(final_time / Dt_DEM) + 20
 
 if pp.CFD_DEM.basset_force_type > 0:
-    print(N_steps)
     basset_force_tool.FillDaitcheVectors(N_steps, pp.CFD_DEM.quadrature_order, pp.CFD_DEM.time_steps_per_quadrature_step)
 if pp.CFD_DEM.basset_force_type >= 3 or pp.CFD_DEM.basset_force_type == 1:
     basset_force_tool.FillHinsbergVectors(spheres_model_part, pp.CFD_DEM.number_of_exponentials, pp.CFD_DEM.number_of_quadrature_steps_in_window)
@@ -763,7 +761,7 @@ while (time <= final_time):
                 coor[0]=node.X
                 coor[1]=node.Y
                 coor[2]=node.Z
-                flow_field.Evaluate(time,coor,vel,1,1)
+                flow_field.Evaluate(time,coor,vel,0)
                 node.SetSolutionStepValue(VELOCITY_X, vel[0])
                 node.SetSolutionStepValue(VELOCITY_Y, vel[1])
                 node.SetSolutionStepValue(VELOCITY_Z, vel[2])
@@ -856,7 +854,11 @@ while (time <= final_time):
                 if DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
                     solver.Solve() # only advance in space  
                     projection_module.InterpolateVelocity()
-        
+                    
+                #G        
+
+                projection_module.ImposeFluidFlowOnParticles()
+                #Z        
                 if quadrature_counter.Tick():            
                     if pp.CFD_DEM.basset_force_type == 1 or pp.CFD_DEM.basset_force_type >= 3:                        
                         basset_force_tool.AppendIntegrandsWindow(spheres_model_part) 
@@ -868,9 +870,6 @@ while (time <= final_time):
         spheres_model_part.ProcessInfo[TIME]    = time_dem
         rigid_face_model_part.ProcessInfo[TIME] = time_dem
         cluster_model_part.ProcessInfo[TIME]    = time_dem
-#G        
-        projection_module.ImposeFluidFlowOnParticles()
-#Z        
 
         if not DEM_parameters.flow_in_porous_DEM_medium_option: # in porous flow particles remain static      
             solver.Solve()
