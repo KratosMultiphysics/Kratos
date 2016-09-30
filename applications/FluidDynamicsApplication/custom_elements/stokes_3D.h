@@ -182,8 +182,7 @@ public:
                 data.vnn(i,k) = vel_nn[k];
                 data.f(i,k)   = body_force[k];
             }
-            
-            
+                        
             data.p[i] = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
             data.rho[i] = GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
         }
@@ -387,16 +386,22 @@ public:
         for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
         {
             if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+                KRATOS_THROW_ERROR(std::invalid_argument,"Missing VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
             if(this->GetGeometry()[i].SolutionStepsDataHas(PRESSURE) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE variable on solution step data for node ",this->GetGeometry()[i].Id());
+                KRATOS_THROW_ERROR(std::invalid_argument,"Missing PRESSURE variable on solution step data for node ",this->GetGeometry()[i].Id());
             if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
                     this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
                     this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY component degree of freedom on node ",this->GetGeometry()[i].Id());
+                KRATOS_THROW_ERROR(std::invalid_argument,"Missing VELOCITY component degree of freedom on node ",this->GetGeometry()[i].Id());
             if(this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE component degree of freedom on node ",this->GetGeometry()[i].Id());
+                KRATOS_THROW_ERROR(std::invalid_argument,"Missing PRESSURE component degree of freedom on node ",this->GetGeometry()[i].Id());
         }
+        
+        // Check constitutive law
+        if(mp_constitutive_law == nullptr)
+            KRATOS_ERROR << "The constitutive law was not set. Cannot proceed.";
+            
+        mp_constitutive_law->Check(GetProperties(),GetGeometry(),rCurrentProcessInfo);
 
         return 0;
 
@@ -629,6 +634,7 @@ protected:
         //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element. 
         //this is ok under the hypothesis that no history dependent behaviour is employed
         mp_constitutive_law->CalculateMaterialResponseCauchy(Values);
+        
     }
     
     
@@ -638,7 +644,7 @@ protected:
 
         mp_constitutive_law = GetProperties()[CONSTITUTIVE_LAW]->Clone();
         mp_constitutive_law->InitializeMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues(), 0 ) );
-
+        
         KRATOS_CATCH( "" )
     }
 
@@ -661,7 +667,7 @@ protected:
 
 
 protected:
-    ConstitutiveLaw::Pointer mp_constitutive_law;
+    ConstitutiveLaw::Pointer mp_constitutive_law = nullptr;
 
 private:
     ///@name Static Member Variables
