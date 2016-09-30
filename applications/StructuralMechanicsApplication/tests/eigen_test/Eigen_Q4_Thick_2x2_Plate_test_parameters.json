@@ -31,8 +31,8 @@
         "rotation_dofs"                      : true
     },
     "constraints_process_list" : [{
-        "implemented_in_file"   : "impose_vector_value_by_components_process",
-        "implemented_in_module" : "KratosMultiphysics",
+        "python_module"   : "impose_vector_value_by_components_process",
+        "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
         "process_name"          : "ImposeVectorValueByComponentsProcess",
         "Parameters"            : {
@@ -47,8 +47,8 @@
     }],
     "loads_process_list"       : [],
     "list_other_processes" :[{
-        "implemented_in_module" : "KratosMultiphysics.StructuralMechanicsApplication",
-        "implemented_in_file"   : "check_eigenvalues_process",
+        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+        "python_module"   : "check_eigenvalues_process",
         "help"                  : "",
         "process_name"          : "CheckEigenvaluesProcess",
         "Parameters"            : {
