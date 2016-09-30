@@ -133,14 +133,11 @@ void VelocityField::ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesL
     bool must_impose_fluid_velocity_laplacian = VariableIsInList(variables_to_be_imposed, FLUID_VEL_LAPL_PROJECTED);
     const double time = r_model_part.GetProcessInfo()[TIME];
 
-    #pragma omp parallel firstprivate(must_impose_fluid_velocity, must_impose_fluid_acceleration, must_impose_fluid_velocity_laplacian, time)
+    //#pragma omp parallel firstprivate(must_impose_fluid_velocity, must_impose_fluid_acceleration, must_impose_fluid_velocity_laplacian, time)
     {
-
-        #pragma omp barrier
-
         unsigned int thread_number = omp_get_thread_num();
 
-        #pragma omp for
+        //#pragma omp for
         for (int i = 0; i < (int)r_model_part.Nodes().size(); i++){
             ModelPart::NodesContainerType::iterator i_particle = r_model_part.NodesBegin() + i;
             Node<3>::Pointer p_node = *(i_particle.base());
@@ -150,7 +147,9 @@ void VelocityField::ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesL
                 array_1d<double, 3> fluid_vel;
                 Evaluate(time, coor, fluid_vel, thread_number);
                 array_1d<double, 3>& fluid_vel_projected = p_node->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
+                array_1d<double, 3>& slip_vel = p_node->FastGetSolutionStepValue(SLIP_VELOCITY);
                 noalias(fluid_vel_projected) = fluid_vel;
+                noalias(slip_vel) = fluid_vel;
             }
 
             if (must_impose_fluid_acceleration){
