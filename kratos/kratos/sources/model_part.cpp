@@ -1295,6 +1295,7 @@ void ModelPart::PrintData(std::ostream& rOStream, std::string const& PrefixStrin
 void ModelPart::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DataValueContainer);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
     rSerializer.save("Name", mName);
     rSerializer.save("Buffer Size", mBufferSize);
     rSerializer.save("ProcessInfo", mpProcessInfo);
@@ -1302,23 +1303,23 @@ void ModelPart::save(Serializer& rSerializer) const
     // I'm saving it as pointer so the nodes pointers will point to it as stored pointer. Pooyan.
     rSerializer.save("Variables List", mpVariablesList);
     rSerializer.save("Meshes", mMeshes);
-    // Recursive save:
-    //rSerializer.save("ParentModelPart", mpParentModelPart); 
     rSerializer.save("SubModelParts", mSubModelParts);
 }
 
 void ModelPart::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DataValueContainer);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
     rSerializer.load("Name", mName);
     rSerializer.load("Buffer Size", mBufferSize);
     rSerializer.load("ProcessInfo", mpProcessInfo);
     //VariablesList* p_list = &mVariablesList;
     rSerializer.load("Variables List", mpVariablesList);
     rSerializer.load("Meshes", mMeshes);
-    // Recursive load:
-    //rSerializer.load("ParentModelPart", mpParentModelPart);
     rSerializer.load("SubModelParts", mSubModelParts);
+
+    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
+    i_sub_model_part->SetParentModelPart(this);
 
 }
 

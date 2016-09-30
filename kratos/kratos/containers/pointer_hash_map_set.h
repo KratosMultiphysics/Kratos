@@ -510,7 +510,7 @@ private:
 
 		for (size_type i = 0; i < size; i++)
 		{
-			pointer p = new TDataType;
+ 		        pointer p = nullptr;// new TDataType;
 			rSerializer.load("E", p);
 			insert(p);
 		}

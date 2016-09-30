@@ -85,7 +85,7 @@ class RestartProcess(KratosMultiphysics.Process):
 
         # Copy to a restart folder the posterior files, delete from problem folder
         if( self.save_restart ):
-            if self.output_control_is_time:
+            if self.output_label_is_time:
                 restart_input_label = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
                 self.CleanPosteriorFiles(restart_input_label)
             else:
