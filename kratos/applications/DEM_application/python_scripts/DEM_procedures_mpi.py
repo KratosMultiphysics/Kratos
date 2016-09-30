@@ -156,20 +156,23 @@ class ParallelUtils(DEM_procedures.ParallelUtils):
     def CalculateModelNewIds(self, balls_model_part):
         self.mpi_utilities.CalculateModelNewIds(balls_model_part, 40000)
 
-    def PerformInitialPartition(self, spheres_model_part, model_part_io_spheres, spheres_mp_filename):
+    def PerformInitialPartition(self, model_part_io_spheres):
         domain_size = 3
 
-        print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "before performing the division")
+        #print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "before performing the division")
         number_of_partitions = mpi.size
         
         if mpi.rank == 0:
-            print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "start partition process")
+            #print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "start partition process")
             partitioner = MetisDivideNodalInputToPartitionsProcess(model_part_io_spheres, number_of_partitions, domain_size);
             partitioner.Execute() 
 
-        print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "division performed")
+        #print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "division performed")
         mpi.world.barrier()
+        #return model_part_io_spheres
 
+    def SetCommunicator(self, spheres_model_part, model_part_io_spheres, spheres_mp_filename):
+        
         MPICommSetup = SetMPICommunicatorProcess(spheres_model_part)
         MPICommSetup.Execute()
 
