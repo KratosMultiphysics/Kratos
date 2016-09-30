@@ -6,9 +6,9 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication )
 
 
-if(NOT (${PFEM_BASE_APPLICATION} STREQUAL "ON"))
+if(NOT (${PFEM_BASE_APPLICATION} MATCHES "ON"))
     message(SEND_ERROR "The Pfem Base Application must be compiled before this one. Set PFEM_BASE_APPLICATION=ON in the configure file.")
-endif(NOT (${PFEM_BASE_APPLICATION} STREQUAL "ON"))
+endif(NOT (${PFEM_BASE_APPLICATION} MATCHES "ON"))
 
 if(NOT DEFINED ${INCLUDE_TRIANGLE})
   set(INCLUDE_TRIANGLE ON)
