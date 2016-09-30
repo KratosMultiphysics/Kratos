@@ -241,6 +241,27 @@ protected:
         { 
             return mMasterElementIndex; 
         }
+        
+        void print( )
+        {
+            KRATOS_WATCH( N_Slave );
+            KRATOS_WATCH( N_Master );
+            KRATOS_WATCH( Phi_LagrangeMultipliers );
+//             KRATOS_WATCH( DN_De_Slave );
+//             KRATOS_WATCH( DN_De_Master );
+//             KRATOS_WATCH( DPhi_De_LagrangeMultipliers );
+            
+//             KRATOS_WATCH( ColocationWeightCoeff );
+//             KRATOS_WATCH( pMasterElement->Center( ).Coordinates( ) );
+//             KRATOS_WATCH( mMasterElementIndex );
+            
+//             KRATOS_WATCH( IntegrationPointNormalGap );
+//             KRATOS_WATCH( IntegrationPointNormalVector );
+//             KRATOS_WATCH( j_Master );
+            KRATOS_WATCH( j_Slave );
+            KRATOS_WATCH( DetJSlave );
+//             KRATOS_WATCH( SegmentProportion );
+        }
     };
 
    /**
@@ -530,7 +551,7 @@ public:
     /**
      * Calculate condition kinematics
      */
-    void CalculateKinematics( 
+    bool CalculateKinematics( 
         GeneralVariables& rVariables,
         const double& rPointNumber,
         const unsigned int& rPairIndex,
@@ -606,7 +627,7 @@ public:
     /*
      * Calculates the values of the shape functions for the master element
      */
-    void MasterShapeFunctionValue(
+    bool MasterShapeFunctionValue(
         GeneralVariables& rVariables,
         const PointType& local_point 
     );
