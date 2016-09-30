@@ -144,13 +144,6 @@ int Newtonian3DLaw::Check(const Properties& rMaterialProperties,
     if(DYNAMIC_VISCOSITY.Key() == 0 || rMaterialProperties[DYNAMIC_VISCOSITY]<= 0.00)
         KRATOS_THROW_ERROR( std::invalid_argument,"DYNAMIC_VISCOSITY has Key zero or invalid value ", "" )
 
-    if(YIELD_STRESS.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"YIELD_STRESS has Key zero invalid value ", "" )
-
-    if(REGULARIZATION_COEFFICIENT.Key() == 0 || rMaterialProperties[REGULARIZATION_COEFFICIENT]<=0.00)
-        KRATOS_THROW_ERROR( std::invalid_argument,"REGULARIZATION_COEFFICIENT has Key zero or invalid value ", "" )
-
-
     return 0;
 
 }
