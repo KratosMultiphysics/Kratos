@@ -79,6 +79,7 @@ KRATOS_DEFINE_VARIABLE( double, WEIGHTED_GAP )                                //
 KRATOS_DEFINE_VARIABLE( Matrix, DELTA_NORMAL )                                // Directional derivative of the normal
 KRATOS_DEFINE_VARIABLE( bool, AUXILIAR_BOOLEAN )                              // Auxiliar boolean to check
 
+KRATOS_DEFINE_VARIABLE( bool, IS_ACTIVE_SET )                                 // A bool storing whether the node is in the active set or not
 }
 
 #endif	/* KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED */

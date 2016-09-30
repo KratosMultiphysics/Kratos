@@ -67,6 +67,8 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( DELTA_NORMAL )                                // Directional derivative of the normal
     KRATOS_REGISTER_VARIABLE( AUXILIAR_BOOLEAN )                            // Auxiliar boolean to check
     
+    KRATOS_REGISTER_VARIABLE( IS_ACTIVE_SET )                               // A bool storing whether the node is in the active set or not
+    
     // Register the conditions
     // Mortar contact condition
     KRATOS_REGISTER_CONDITION( "MortarContactCondition2D2N", mMortarContactCondition2D2N );

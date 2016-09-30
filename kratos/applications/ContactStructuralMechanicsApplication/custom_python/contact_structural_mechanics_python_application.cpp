@@ -52,6 +52,7 @@ BOOST_PYTHON_MODULE(KratosContactStructuralMechanicsApplication)
     // CONTACT
     /* Mortar contact */
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( WEIGHTED_GAP )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( IS_ACTIVE_SET )
 }
 
 

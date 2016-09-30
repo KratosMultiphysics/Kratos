@@ -100,19 +100,6 @@
             "type_search"                 : "InRadius",
             "integration_order"           : 5
         }
-    },
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "input_file_name"      : "contact_test_2D/simple_patch_test_results.json",
-            "model_part_name"      : "Parts_Parts_Auto3",
-            "sub_model_part_name"  : "INTERFACE",
-            "time_frequency"       : 1.00
-        }
     }
     ],
     "_output_configuration"     : {
@@ -150,7 +137,7 @@
         }
     }
     ],
-    "json_output_process" : [
+    "_json_output_process" : [
     {
         "python_module"   : "json_output_process",
         "kratos_module" : "KratosMultiphysics",

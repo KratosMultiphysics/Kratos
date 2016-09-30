@@ -63,10 +63,10 @@ def AssambleTestSuites():
             TSimplePatchNotMatchingATestContact,
             TSimplePatchNotMatchingBTestContact,
             TTaylorPatchTestContact,
-            TTaylorPatchDynamicTestContact,
-            #THertzSimpleTestContact,
+            THertzSimpleTestContact,
             TThreeDPatchMatchingTestContact,
             TThreeDPatchNonMatchingTestContact,
+            TTaylorPatchDynamicTestContact
         ])
     )
 

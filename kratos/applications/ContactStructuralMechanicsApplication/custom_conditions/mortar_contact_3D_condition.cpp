@@ -136,12 +136,8 @@ void MortarContact3DCondition::Initialize( )
         }
         else
         {
-            //            std::cout << "The number of integration points is not defined.  INTEGRATION_ORDER_CONTACT: "<< this->GetValue(INTEGRATION_ORDER_CONTACT) << std::endl;
-            //            std::cout << "Options are: 1, 2, 3, 4, 5  " << std::endl;
-            //            std::cout << "Taking default number of integration points (INTEGRATION_ORDER_CONTACT = 1)  " << std::endl;
-            //            mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-            std::cout << "The number of integration points is not defined for Gauss quadrature. Using colocation integration with "
-                << this->GetValue(INTEGRATION_ORDER_CONTACT) << " points." << std::endl;
+//            std::cout << "The number of integration points is not defined for Gauss quadrature. Using colocation integration with "
+//                << this->GetValue(INTEGRATION_ORDER_CONTACT) << " points." << std::endl;
             mUseColocationIntegration = true;
             mColocationIntegration.Initialize( this->GetValue(INTEGRATION_ORDER_CONTACT) );
         }
@@ -167,9 +163,25 @@ void MortarContact3DCondition::InitializeSolutionStep( ProcessInfo& rCurrentProc
     mThisMasterElements.clear();
     mThisMasterElements.resize( all_containers->size( ) );
     
+    const double ActiveCheckFactor = GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
+    
     for ( unsigned int i_cond = 0; i_cond < all_containers->size(); ++i_cond )
     {
         mThisMasterElements[i_cond] = (*all_containers)[i_cond].condition;
+
+        // Fill the condition
+        Condition::Pointer& pCond = mThisMasterElements[i_cond];
+        
+//        ContactUtilities::ContactContainerFiller((*all_containers)[i_cond], pCond->GetGeometry().Center(), GetGeometry(), pCond->GetGeometry(), 
+//                                                 this->GetValue(NORMAL), pCond->GetValue(NORMAL), ActiveCheckFactor);
+        
+        // Initializes only via gap tolerance for the first step in the solution
+        // Do the mortar segmentation in all time steps
+        if( rCurrentProcessInfo[TIME] == 0.0 )
+        {
+            ContactUtilities::InitializeActiveInactiveSets( GetGeometry(), pCond->GetGeometry(), this->GetValue(NORMAL), pCond->GetValue(NORMAL), ActiveCheckFactor );
+        }
+        ContactUtilities::GenerateMortarSegmentsProcess( (*all_containers)[i_cond], GetGeometry(), pCond->GetGeometry(), this->GetValue(NORMAL), pCond->GetValue(NORMAL) );
     }
     
     KRATOS_CATCH( "" );
@@ -180,27 +192,53 @@ void MortarContact3DCondition::InitializeSolutionStep( ProcessInfo& rCurrentProc
 
 void MortarContact3DCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
-    KRATOS_TRY;
+    
+/*
+ * 
+ * commented out because we should use the PDASS instead of the gap tolerance to update active and incactive during the iterations
+ * Gap tolerance should be used only at the beginning of the solution step to add additional "close" nodes to the active set
+ * the following lines have been merged with this->InitializeSolutionStep()
+ * 
+ */
+    
+//    KRATOS_TRY;
+//    
+//    // Populate the vector of master elements
+//    std::vector<contact_container> *& all_containers = this->GetValue(CONTACT_CONTAINERS);
+//    
+//    double ActiveCheckFactor = 0.005;
+//    if( GetProperties().Has(ACTIVE_CHECK_FACTOR) )
+//    {
+//        ActiveCheckFactor = GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
+//    }
+//    
+//    for ( unsigned int i_cond = 0; i_cond < all_containers->size(); ++i_cond )
+//    {
+//        Condition::Pointer pCond = (*all_containers)[i_cond].condition;
+//    
+//        // Fill the condition
+//        ContactUtilities::ContactContainerFiller((*all_containers)[i_cond], pCond->GetGeometry().Center(), GetGeometry(), pCond->GetGeometry(), 
+//                                                 this->GetValue(NORMAL), pCond->GetValue(NORMAL), ActiveCheckFactor);
+//    }
+//    
+//    KRATOS_CATCH( "" );
     
     // Populate the vector of master elements
-    std::vector<contact_container> *& all_containers = this->GetValue(CONTACT_CONTAINERS);
-    
-    double ActiveCheckFactor = 0.005;
-    if( GetProperties().Has(ACTIVE_CHECK_FACTOR) )
-    {
-        ActiveCheckFactor = GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
-    }
+    std::vector<contact_container> * all_containers = this->GetValue(CONTACT_CONTAINERS);
+    mThisMasterElements.clear();
+    mThisMasterElements.resize( all_containers->size( ) );
     
     for ( unsigned int i_cond = 0; i_cond < all_containers->size(); ++i_cond )
     {
-        Condition::Pointer pCond = (*all_containers)[i_cond].condition;
-    
+        mThisMasterElements[i_cond] = (*all_containers)[i_cond].condition;
+
         // Fill the condition
-        ContactUtilities::ContactContainerFiller((*all_containers)[i_cond], pCond->GetGeometry().Center(), GetGeometry(), pCond->GetGeometry(), 
-                                                 this->GetValue(NORMAL), pCond->GetValue(NORMAL), ActiveCheckFactor);
+        Condition::Pointer& pCond = mThisMasterElements[i_cond];
+        
+        // Initializes only via gap tolerance for the first step in the solution
+        // Do the mortar segmentation in all time steps
+        ContactUtilities::GenerateMortarSegmentsProcess( (*all_containers)[i_cond], GetGeometry(), pCond->GetGeometry(), this->GetValue(NORMAL), pCond->GetValue(NORMAL) );
     }
-    
-    KRATOS_CATCH( "" );
 }
 
 /***********************************************************************************/
@@ -208,7 +246,11 @@ void MortarContact3DCondition::InitializeNonLinearIteration( ProcessInfo& rCurre
 
 void MortarContact3DCondition::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
+    KRATOS_TRY;
+    
     // TODO: Add things if needed
+    
+    KRATOS_CATCH( "" );
 }
 
 /***********************************************************************************/
@@ -518,7 +560,6 @@ void MortarContact3DCondition::CalculateConditionSystem(
     // Slave segment info
     const unsigned int number_of_nodes_slave     = GetGeometry().PointsNumber( );
     const unsigned int number_of_elements_master = mThisMasterElements.size( );
-//     const unsigned int local_dimension_slave     = GetGeometry().LocalSpaceDimension( );
     
     // Reading integration points
 //    const GeometryType::IntegrationPointsArrayType& integration_points = mUseColocationIntegration ?
@@ -540,7 +581,6 @@ void MortarContact3DCondition::CalculateConditionSystem(
         // Master segment info
         const GeometryType& current_master_element = Variables.GetMasterElement( );
         const unsigned int& number_of_nodes_master = current_master_element.PointsNumber( );
-//         const unsigned int& local_dimension_master = current_master_element.LocalSpaceDimension( );
 
         // Compute mortar condition matrices
         MortarConditionMatrices ThisMortarConditionMatrices;
@@ -549,7 +589,7 @@ void MortarContact3DCondition::CalculateConditionSystem(
         // Weighted gaps
         VectorType& gn = ThisMortarConditionMatrices.NodalWeightedGaps;
         
-//         LOG_CONDITION_HEADER( Variables.GetMasterElement( ), GetGeometry( ) )
+      //  LOG_CONDITION_HEADER( Variables.GetMasterElement( ), GetGeometry( ) )
         
         double aux_integ_area = 0;
         
@@ -619,12 +659,10 @@ void MortarContact3DCondition::InitializeGeneralVariables(
     // Slave segment info
     GeometryType& current_slave_element = this->GetGeometry();
     const unsigned int number_of_nodes_slave = current_slave_element.PointsNumber();
-//     const unsigned int local_dimension_slave = current_slave_element.LocalSpaceDimension();
 
     // Master segment info
     GeometryType& current_master_element = mThisMasterElements[rMasterElementIndex]->GetGeometry();
     const unsigned int number_of_nodes_master = current_master_element.PointsNumber();
-//     const unsigned int local_dimension_master = current_master_element.LocalSpaceDimension();
 
     // Slave element info
     rVariables.Initialize(number_of_nodes_master, number_of_nodes_slave, dimension );
@@ -888,7 +926,6 @@ void MortarContact3DCondition::CalculateDeltaDetJSlave(
    const unsigned int dimension = 3;
    const unsigned int num_slave_nodes  = GetGeometry( ).PointsNumber( );
 
-//    const double& det_J_s     = rVariables.DetJSlave;
    const VectorType& DN_Dxi  = column( rVariables.DN_De_Slave, 0 );
    const VectorType& DN_Deta = column( rVariables.DN_De_Slave, 1 );
    const VectorType& J_xi    = column( rVariables.j_Slave, 0 );

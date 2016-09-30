@@ -60,31 +60,9 @@ public:
             const double ActiveCheckFactor
             )
     {
-        // Define the basic information
-        const unsigned int number_nodes = Geom1.PointsNumber();
-        const unsigned int dimension = Geom1.WorkingSpaceDimension();
-
+        // The original code was split into two methods to be more handy.. nothing actually is changed
         InitializeActiveInactiveSets( Geom1, Geom2, contact_normal1, contact_normal2, ActiveCheckFactor );
-
-        if (dimension == 2)
-        {
-            if (number_nodes == 2)
-            {
-                contact_container.local_coordinates_slave.clear();
-                contact_container.local_coordinates_slave.resize(2);
-                LocalLine2D2NProcess(contact_container.local_coordinates_slave, Geom1, Geom2, contact_normal1, contact_normal2);  
-            }
-            else
-            {
-                KRATOS_THROW_ERROR( std::logic_error, "NOT IMPLEMENTED. Number of nodes:",  number_nodes);
-                // TODO: IMPLEMENT MORE GEOMETRIES
-            }
-        }
-        else   // In 3D, we won't use mortar segments. We use colocation integration instead
-        {
-            contact_container.local_coordinates_slave.clear();
-            contact_container.local_coordinates_slave.resize(0);
-        }
+        GenerateMortarSegmentsProcess( contact_container, Geom1, Geom2, contact_normal1, contact_normal2 );
     }
     
     static inline void ContactContainerFiller(
@@ -126,7 +104,6 @@ public:
     {
         // Define the basic information
         const unsigned int number_nodes = Geom1.PointsNumber();
-        const unsigned int dimension = Geom1.WorkingSpaceDimension();
         
          for (unsigned int index = 0; index < number_nodes; index++)
          {
@@ -157,12 +134,49 @@ public:
 //                        std::cout << "Penetration in node: " << Geom1[index].Id() << " of " << aux_dist << " m" << std::endl;
 //                    }    
                     Geom1[index].Set(ACTIVE, true);
+                    Geom1[index].GetSolutionStepValue( IS_ACTIVE_SET ) = true;
                 }
                 else  
                 {
                 }
              }
          }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    static inline void GenerateMortarSegmentsProcess(
+        contact_container & contact_container,
+        Geometry<Node<3> > & Geom1, // SLAVE
+        Geometry<Node<3> > & Geom2, // MASTER
+        const array_1d<double, 3> & contact_normal1, // SLAVE
+        const array_1d<double, 3> & contact_normal2 // MASTER
+        )
+    {
+        // Define the basic information
+        const unsigned int number_nodes = Geom1.PointsNumber();
+        const unsigned int dimension = Geom1.WorkingSpaceDimension();
+        
+        if (dimension == 2)
+        {
+            if (number_nodes == 2)
+            {
+                contact_container.local_coordinates_slave.clear();
+                contact_container.local_coordinates_slave.resize(2);
+                LocalLine2D2NProcess(contact_container.local_coordinates_slave, Geom1, Geom2, contact_normal1, contact_normal2);  
+            }
+            else
+            {
+                KRATOS_THROW_ERROR( std::logic_error, "NOT IMPLEMENTED. Number of nodes:",  number_nodes);
+                // TODO: IMPLEMENT MORE GEOMETRIES
+            }
+        }
+        else   // In 3D, we won't use mortar segments. We use colocation integration instead
+        {
+            contact_container.local_coordinates_slave.clear();
+            contact_container.local_coordinates_slave.resize(0);
+        }
     }
     
     /***********************************************************************************/
@@ -562,7 +576,6 @@ public:
         }
         
         // Applied laziness - MUST be calculated BEFORE normalizing the normals
-//        if( dimension == 2 ) // TEMP until 3D is implemented
         ComputeDeltaNodesMeanNormalModelPart( ModelPart );
         
         // Normalize normal vectors
@@ -850,50 +863,39 @@ public:
         
         for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
         {
-            const array_1d<double,3> lagrange_multiplier = node_it->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0);
-            const array_1d<double,3>        nodal_normal = node_it->GetValue(NORMAL); 
-            const double lambda_n = inner_prod(lagrange_multiplier, nodal_normal);
-            
-            const double check = lambda_n - cn * node_it->GetValue(WEIGHTED_GAP); 
-            
-            if (check >= 0.0)
+            if (node_it->Is(INTERFACE))
             {
-                node_it->Set(ACTIVE, false);
-            }
-            else
-            {
-                node_it->Set(ACTIVE, true);
-            }
-        }
-    }
+                const array_1d<double,3> lagrange_multiplier = node_it->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0);
+                const array_1d<double,3>        nodal_normal = node_it->GetValue(NORMAL); 
+                const double lambda_n = inner_prod(lagrange_multiplier, nodal_normal);
 
-    /**
-     * It changes from active to inactive and viceversa the nodes 
-     * @param Geom: Slave Geometry
-     * @param cn: Complementarity parameter, recommended but not necessarily the YOUNG_MODULUS
-     * @return The geometry with the active and inactive sets changed
-     */
-    
-    static inline void ReComputeActiveInactive(
-        GeometryType& rSlaveNodes,
-        const double cn
-        )
-    {
-        for( unsigned int i = 0; i < rSlaveNodes.PointsNumber(); ++i)
-        {
-            const array_1d<double,3> lagrange_multiplier = rSlaveNodes[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0);
-            const array_1d<double,3>        nodal_normal = rSlaveNodes[i].GetValue(NORMAL); 
-            const double lambda_n = inner_prod(lagrange_multiplier, nodal_normal);
-            
-            const double check = lambda_n - cn * rSlaveNodes[i].GetValue(WEIGHTED_GAP); 
-            
-            if (check >= 0.0)
-            {
-                rSlaveNodes[i].Set(ACTIVE, false);
-            }
-            else
-            {
-                rSlaveNodes[i].Set(ACTIVE, true);
+                const double check = lambda_n - cn * node_it->GetValue(WEIGHTED_GAP);
+
+                if (check <= 0.0)
+                {
+                    node_it->Set(ACTIVE, false);
+                    node_it->GetSolutionStepValue( IS_ACTIVE_SET ) = false;
+                }
+                else
+                {
+                    node_it->Set(ACTIVE, true);
+                    node_it->GetSolutionStepValue( IS_ACTIVE_SET ) = true;
+                }
+                
+
+//                /// DEBUG ///
+//                if( node_it->Id() == 616 || node_it->Id() == 629 )
+//                {
+//                    DEBUG_MSG( "Recomputing the active/inactive sets using PDASS" )
+//                    KRATOS_WATCH( node_it->Id( ) )
+//                    LOG_VECTOR3( lagrange_multiplier )
+//                    LOG_VECTOR3( node_it->GetValue(NORMAL) )
+//                    LOG_SCALAR( node_it->GetValue(WEIGHTED_GAP) )
+//                    LOG_SCALAR( check )
+//                    LOG_SCALAR( lambda_n )
+//                    LOG_SCALAR( node_it->Is( ACTIVE ) )
+//                }
+//                /// DEBUG ///
             }
         }
     }

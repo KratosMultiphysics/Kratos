@@ -162,7 +162,10 @@
             "constant_active_inactive"    : 100,
             "integration_order"           : 10
         }
-    },{
+    }
+    ],
+    "json_check_process" : [
+    {
         "python_module"   : "from_json_check_result_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "",
@@ -174,7 +177,23 @@
             "sub_model_part_name"  : "INTERFACE",
             "time_frequency"       : 1.00
         }
-    }],
+    }
+    ],
+    "_json_output_process" : [
+    {
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables"     : ["VECTOR_LAGRANGE_MULTIPLIER_Y","DISPLACEMENT_Y"],
+            "output_file_name"     : "contact_test_3D/3D_contact_patch_nonmatching_test_results.json",
+            "model_part_name"      : "Parts_Part_punch",
+            "sub_model_part_name"  : "INTERFACE",
+            "time_frequency"       : 1.00
+        }
+    }
+    ],
     "restart_options"          : {
         "SaveRestart"      : false,
         "RestartFrequency" : 0,
