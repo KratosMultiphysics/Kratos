@@ -103,8 +103,8 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)
             # Add weighted gap
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_GAP)
-            # ACTIVE
-#             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACTIVE)
+            # ACTIVE/INACTIVE
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.IS_ACTIVE_SET)
    
         print("::[Mechanical Solver]:: Variables ADDED")
         

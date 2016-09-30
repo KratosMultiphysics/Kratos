@@ -25,5 +25,6 @@ KRATOS_CREATE_VARIABLE( double, CONSTANT_ACT_INACT )                          //
 KRATOS_CREATE_VARIABLE( double, WEIGHTED_GAP )                                // The integrated gap employed in mortar formulation
 KRATOS_CREATE_VARIABLE( Matrix, DELTA_NORMAL )                                // Directional derivative of the normal
 KRATOS_CREATE_VARIABLE( bool, AUXILIAR_BOOLEAN )                              // Auxiliar boolean to check
+KRATOS_CREATE_VARIABLE( bool, IS_ACTIVE_SET )                                 // A bool storing whether the node is in the active set or not 
 
 }

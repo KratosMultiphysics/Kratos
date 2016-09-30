@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.StructuralMechanicsApplication import *
+from KratosMultiphysics.StructuralMechanicsApplication import * # TODO: Just import!!!!
 
 import os
 import process_factory
@@ -42,8 +42,13 @@ class Kratos_Execute_Test:
         # Obtain the list of the processes to be applied
         self.list_of_processes = process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["constraints_process_list"])
         self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["loads_process_list"])
-        self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["list_other_processes"])
-
+        if (ProjectParameters.Has("list_other_processes") == True):
+            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["list_other_processes"])
+        if (ProjectParameters.Has("json_check_process") == True):
+            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["json_check_process"])
+        if (ProjectParameters.Has("json_output_process") == True):
+            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["json_output_process"])
+        
         for process in self.list_of_processes:
             process.ExecuteInitialize()
 

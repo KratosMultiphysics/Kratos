@@ -118,19 +118,6 @@
             "constant_active_inactive"    : 1000,
             "integration_order"           : 10
         }
-    },
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"     : ["DISPLACEMENT_Y", "VECTOR_LAGRANGE_MULTIPLIER_Y"],
-            "input_file_name"     : "contact_test_2D/taylor_patch_test_results.json",
-            "model_part_name"      : "Parts_punch",
-            "sub_model_part_name"  : "INTERFACE",
-            "time_frequency"       : 1.0
-        }
     }
     ],
     "_output_configuration"     : {
@@ -153,7 +140,7 @@
         },
         "point_data_configuration"  : []
     },
-    "check_json_results_process" : [
+    "_check_json_results_process" : [
     {
         "python_module"   : "from_json_check_result_process",
         "kratos_module" : "KratosMultiphysics",

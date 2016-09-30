@@ -38,12 +38,12 @@
 enum LoggingLevel { none, info_warnings, system_matrices, debug };
 
 // Logging macros
+#define RESET_LOG_SETTINGS \
+    std::cout << RESET << std::endl; 
+
 #define LOG_GENERAL(color, message, variable)\
     std::cout << color << message << variable;            \
     RESET_LOG_SETTINGS
-
-#define RESET_LOG_SETTINGS \
-    std::cout << RESET << std::endl; 
 
 #define LOG_DEBUG(variable)\
     std::cout << BOLD << YELLOW << #variable << " : " << LT_YELLOW << variable;            \
@@ -81,19 +81,23 @@ enum LoggingLevel { none, info_warnings, system_matrices, debug };
     
 #define DEBUG_MSG( message )\
     std::cout << BOLD << GREEN << UNDERLINE << "DEBUG" << RESET << std::endl;\
-    std::cout << BOLD << GREEN << message << std::endl;
+    std::cout << BOLD << GREEN << message << std::endl;\
+    RESET_LOG_SETTINGS
 
 #define INFO_MSG( message )\
     std::cout << BOLD << DK_GREY << UNDERLINE << "INFO : " << RESET << std::endl;\
-    std::cout << BOLD << DK_GREY << message << std::endl;
+    std::cout << BOLD << DK_GREY << message << std::endl;\
+    RESET_LOG_SETTINGS
 
 #define WARNING_MSG( message )\
     std::cout << BOLD << YELLOW << UNDERLINE << "WARNING" << RESET << std::endl;\
-    std::cout << BOLD << YELLOW << message << std::endl;
+    std::cout << BOLD << YELLOW << message << std::endl;\
+    RESET_LOG_SETTINGS
     
 #define ERROR_MSG( message, function )\
     std::cout << BOLD << RED << UNDERLINE << "ERROR from " << function << RESET << std::endl;\
-    std::cout << BOLD << RED << message << std::endl;
+    std::cout << BOLD << RED << message << std::endl;\
+    RESET_LOG_SETTINGS
     
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -120,22 +124,26 @@ enum LoggingLevel { none, info_warnings, system_matrices, debug };
             std::cout << matrix(i,j) << "\t";\
         std::cout << std::endl;\
     }\
-    std::cout << std::endl;\
     RESET_LOG_SETTINGS
     
 #define LOG_VECTOR_PRETTY( vector )\
     TENSOR_LOG_SETTINGS \
-    std::cout << #vector << " : " << vector << std::endl;\
+    std::cout << #vector << " : " << vector;\
     RESET_LOG_SETTINGS
 
 #define LOG_VECTOR3( array )\
     TENSOR_LOG_SETTINGS \
-    std::cout << #array << " : " << array[0] << ", " << array[1] << ", " << array[2] << std::endl;\
+    std::cout << #array << " : " << array[0] << ", " << array[1] << ", " << array[2];\
     RESET_LOG_SETTINGS
     
 #define LOG_VECTOR2( array )\
     TENSOR_LOG_SETTINGS \
-    std::cout << #array << " : " << array[0] << ", " << array[1] << std::endl;\
+    std::cout << #array << " : " << array[0] << ", " << array[1];\
+    RESET_LOG_SETTINGS
+
+#define LOG_SCALAR( scalar )\
+    TENSOR_LOG_SETTINGS \
+    std::cout << #scalar << " : " << scalar;\
     RESET_LOG_SETTINGS
 
 
@@ -162,7 +170,8 @@ enum LoggingLevel { none, info_warnings, system_matrices, debug };
     std::cout << "|_ Slave  : "; \
     for( unsigned int i = 0; i < master.PointsNumber( ) - 1; ++i ) \
         std::cout << slave[i].Id( ) << ", "; \
-    std::cout << slave[slave.PointsNumber( ) - 1].Id( ) << "\n";
+    std::cout << slave[slave.PointsNumber( ) - 1].Id( ) << "\n";\
+    RESET_LOG_SETTINGS
 
 
 #endif /* LOGGING_SETTINGS_HPP_ */
