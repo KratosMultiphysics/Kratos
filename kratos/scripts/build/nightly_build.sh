@@ -1,7 +1,10 @@
 #!/bin/bash
 
 ## Step0: Define
-LOG_DIR=/tmp
+cd /tmp
+mkdir logs
+
+LOG_DIR=/tmp/logs
 MAIL_GCC=${HOME}/mail_gcc
 MAIL_CLANG=${HOME}/mail_clang
 MAIL_TO=${MAIL_TO_ADDRESS}
@@ -56,6 +59,8 @@ echo -n "Linking Error       : "  >> ${MAIL_GCC};
 grep -c "cannot find" ${LOG_DIR}/compile_gcc.log >> ${MAIL_GCC};
 grep "cannot find" ${LOG_DIR}/compile_gcc.log >> ${MAIL_GCC};
 echo "\n" >> ${MAIL_GCC}
+echo -n ${LOG_DIR}/configure_gcc.log >> ${MAIL_GCC};
+echo "\n" >> ${MAIL_GCC}
 echo "UnitTests:    \n" >> ${MAIL_GCC}
 echo "============= \n" >> ${MAIL_GCC}
 cat ${LOG_DIR}/unittest_gcc.log >> ${MAIL_GCC};
@@ -70,13 +75,17 @@ sudo apt-get install -y libio-socket-ssl-perl  libdigest-hmac-perl  libterm-read
 ##################
 
 cd ${HOME}
-tar -zcvf ${LOG_DIR}/logs_gcc.tar.gz ${LOG_DIR}/configure_gcc.log ${LOG_DIR}/compile_gcc.log ${LOG_DIR}/unittest_gcc.log
-./smtp-cli --host=${KRATOS_MAIL_SERVER} --enable-auth --user ${KRATOS_MAIL_USER} --password ${KRATOS_MAIL_PASSWD}  --to ${MAIL_TO} --body-plain ${MAIL_GCC} --attach ${LOG_DIR}/logs_gcc.tar.gz --subject "Kratos Nightly Report" --mail-from "kratosmultiphysics@gmail.com" --from "Kratos Nightly Report GCC"
+tar -zcvf /tmp/logs_gcc.tar.gz ${LOG_DIR}/configure_gcc.log ${LOG_DIR}/compile_gcc.log ${LOG_DIR}/unittest_gcc.log
+./smtp-cli --host=${KRATOS_MAIL_SERVER} --enable-auth --user ${KRATOS_MAIL_USER} --password ${KRATOS_MAIL_PASSWD}  --to ${MAIL_TO} --body-plain ${MAIL_GCC} --attach /tmp/logs_gcc.tar.gz --subject "Kratos Nightly Report" --mail-from "kratosmultiphysics@gmail.com" --from "Kratos Nightly Report GCC"
+
+## Give the email some time to be queued and delivered
+sleep 300 # 5 minutes
 
 ## ------------------------------------------------------ ##
 
 ## Cleanup previous installation
 
+rm ${LOG_DIR}/*
 cd ${HOME}/Kratos
 rm -rf libs
 
@@ -112,6 +121,8 @@ echo -n "Linking Error       : "  >> ${MAIL_CLANG};
 grep -c "cannot find" ${LOG_DIR}/compile_clang.log >> ${MAIL_CLANG};
 grep "cannot find" ${LOG_DIR}/compile_clang.log >> ${MAIL_CLANG};
 echo "\n" >> ${MAIL_CLANG}
+echo -n ${LOG_DIR}/configure_clang.log >> ${MAIL_CLANG};
+echo "\n" >> ${MAIL_CLANG}
 echo "UnitTests:    \n" >> ${MAIL_CLANG}
 echo "============= \n" >> ${MAIL_CLANG}
 cat ${LOG_DIR}/unittest_clang.log >> ${MAIL_CLANG};
@@ -121,13 +132,13 @@ cat ${LOG_DIR}/unittest_clang.log >> ${MAIL_CLANG};
 # cat ${LOG_DIR}/benchmarking_clang.log >> ${MAIL_CLANG};
 
 cd ${HOME}
-tar -zcvf ${LOG_DIR}/logs_clang.tar.gz ${LOG_DIR}/configure_clang.log ${LOG_DIR}/compile_clang.log ${LOG_DIR}/unittest_clang.log
-./smtp-cli --host=${KRATOS_MAIL_SERVER} --enable-auth --user ${KRATOS_MAIL_USER} --password ${KRATOS_MAIL_PASSWD}  --to ${MAIL_TO} --body-plain ${MAIL_CLANG} --attach ${LOG_DIR}/logs_clang.tar.gz --subject "Kratos Nightly Report" --mail-from "kratosmultiphysics@gmail.com" --from "Kratos Nightly Report CLANG"
+tar -zcvf /tmp/logs_clang.tar.gz ${LOG_DIR}/*
+./smtp-cli --host=${KRATOS_MAIL_SERVER} --enable-auth --user ${KRATOS_MAIL_USER} --password ${KRATOS_MAIL_PASSWD}  --to ${MAIL_TO} --body-plain ${MAIL_CLANG} --attach /tmp/logs_clang.tar.gz --subject "Kratos Nightly Report" --mail-from "kratosmultiphysics@gmail.com" --from "Kratos Nightly Report CLANG"
 
 ## Step4: Finish
 
 ## Give the email some time to be queued and delivered
-sleep 150 # 2.5 minutes
+sleep 300 # 5 minutes
 
 ## Stop the machine
 shutdown -h now
