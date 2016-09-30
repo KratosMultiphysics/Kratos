@@ -151,16 +151,14 @@ public:
     }
 
     void SerialPartition() {
-      std::vector<int> LocalObjectsPerCell(mNumberOfCells, 0);
-      std::vector<int> GlobalObjectsPerCell(mNumberOfCells, 0);
+      std::vector<int> mpiSendObjectsPerCell(mNumberOfCells, 0);
+      std::vector<int> mpiRecvObjectsPerCell(mNumberOfCells, 0);
 
       std::vector<int> CellPartition(mNumberOfCells, 0);
-
-      std::vector<int> CellsPerPartition(mpi_size, 0);
       std::vector<int> ObjectsPerPartition(mpi_size, 0);
 
-      int LocalNumberOfObjects = mObjectsEnd - mObjectsBegin;
-      int GlobalNumberOfObjects = 0;
+      int mpiSendNumberOfObjects = mObjectsEnd - mObjectsBegin;
+      int mpiRecvNumberOfObjects = 0;
 
       PointType ObjectCenter;
 
@@ -169,14 +167,14 @@ public:
         auto ObjectItr = mObjectsBegin + i;
         TConfigure::CalculateCenter(*ObjectItr, ObjectCenter);
         auto cellId = mpPartitionBins->CalculateIndex(ObjectCenter);
-        LocalObjectsPerCell[cellId]++;
+        mpiSendObjectsPerCell[cellId]++;
       }
 
-      MPI_Allreduce(&LocalNumberOfObjects, &GlobalNumberOfObjects, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-      MPI_Allreduce(&LocalObjectsPerCell[0], &GlobalObjectsPerCell[0], mNumberOfCells, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+      MPI_Allreduce(&mpiSendNumberOfObjects, &mpiRecvNumberOfObjects, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+      MPI_Allreduce(&mpiSendObjectsPerCell[0], &mpiRecvObjectsPerCell[0], mNumberOfCells, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
-      int MeanObjectsPerPartition = GlobalNumberOfObjects / mpi_size;
-      // std::cout << "GlobalNumberOfObjects: " << GlobalNumberOfObjects << " MeanObjectsPerPartition: " << MeanObjectsPerPartition << std::endl;
+      int MeanObjectsPerPartition = mpiRecvNumberOfObjects / mpi_size;
+      // std::cout << "mpiRecvNumberOfObjects: " << mpiRecvNumberOfObjects << " MeanObjectsPerPartition: " << MeanObjectsPerPartition << std::endl;
 
       // Assing each cell to the closest partition center
       // TODO: this is currently very unbalanced
@@ -186,9 +184,11 @@ public:
           // std::cout << "(" << mpi_rank << ") " << "Jump part at: " << ObjectsPerPartition[partitionId] << std::endl;
           partitionId++;
         }
-        ObjectsPerPartition[partitionId] += GlobalObjectsPerCell[cellId];
+        ObjectsPerPartition[partitionId] += mpiRecvObjectsPerCell[cellId];
         CellPartition[cellId] = partitionId;
       }
+
+      std::cout << "Partititon " << mpi_rank << ": " << ObjectsPerPartition[mpi_rank] << std::endl;
 
       // Assign the partition to the objects based on their cell
       for(std::size_t i = 0; i < mNumberOfObjects; i++) {
@@ -210,10 +210,14 @@ public:
 
     void VoronoiiPartition() {
 
-      std::vector<int> ObjectsPerCell(mNumberOfCells, 0);
+      std::vector<int> mpiSendObjectsPerCell(mNumberOfCells, 0);
+      std::vector<int> mpiRecvObjectsPerCell(mNumberOfCells, 0);
+
       std::vector<int> CellPartition(mNumberOfCells, 0);
       std::vector<double> CellDistances(mNumberOfCells, std::numeric_limits<double>::max());
-      std::vector<PointType> CellCenter(mNumberOfCells, PointType(0, 0, 0));
+
+      std::vector<double> mpiSendCellCenter(mNumberOfCells * Dimension, 0.0f);
+      std::vector<double> mpiRecvCellCenter(mNumberOfCells * Dimension, 0.0f);
 
       std::vector<int> CellsPerPartition(mpi_size, 0);
       std::vector<int> ObjectsPerPartition(mpi_size, 0);
@@ -221,6 +225,7 @@ public:
 
       std::vector<double> mpiSendPartCenter(mpi_size * Dimension, 0.0f);
       std::vector<double> mpiRecvPartCenter(mpi_size * Dimension, 0.0f);
+
       std::vector<int> mpiSendPartNum(mpi_size, 0);
       std::vector<int> mpiRecvPartNum(mpi_size, 0);
 
@@ -233,16 +238,19 @@ public:
 
         auto CellIndex = mpPartitionBins->CalculateIndex(ObjectCenter);
 
-        ObjectsPerCell[CellIndex]++;
+        mpiSendObjectsPerCell[CellIndex]++;
         for(int d = 0; d < Dimension; d++) {
-          CellCenter[CellIndex][d] += ObjectCenter[d];
+          mpiSendCellCenter[CellIndex*Dimension+d] += ObjectCenter[d];
         }
       }
 
+      MPI_Allreduce(&mpiSendObjectsPerCell[0], &mpiRecvObjectsPerCell[0], mNumberOfCells * Dimension, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+      MPI_Allreduce(&mpiSendCellCenter[0], &mpiRecvCellCenter[0], mNumberOfCells * Dimension, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
       // Obtain the wheighted center of each cell.
-      for(std::size_t i = 0; i < mNumberOfCells; i++) {
+      for(std::size_t cellId = 0; cellId < mNumberOfCells; cellId++) {
         for(int d = 0; d < Dimension; d++) {
-          CellCenter[i][d] /= ObjectsPerCell[i];
+          mpiRecvCellCenter[cellId*Dimension+d] /= mpiRecvObjectsPerCell[cellId];
         }
       }
 
@@ -266,14 +274,14 @@ public:
 
         // Assing each cell to the closest partition center
         for(std::size_t cellId = 0; cellId < mNumberOfCells; cellId++) {
-          if(ObjectsPerCell[cellId] != 0) {
+          if(mpiRecvObjectsPerCell[cellId] != 0) {
             for(int i = 0; i < mpi_size; i++) {
               double cubeDistance = 0.0f;
 
               for(int d = 0; d < Dimension; d++) {
                 cubeDistance +=
-                  (CellCenter[cellId][d] - PartitionCenters[i][d]) *
-                  (CellCenter[cellId][d] - PartitionCenters[i][d]);
+                  (mpiRecvCellCenter[cellId*Dimension+d] - PartitionCenters[i][d]) *
+                  (mpiRecvCellCenter[cellId*Dimension+d] - PartitionCenters[i][d]);
               }
 
               if(cubeDistance < CellDistances[cellId]) {
@@ -294,11 +302,11 @@ public:
         }
 
         for(std::size_t cellId = 0; cellId < mNumberOfCells; cellId++) {
-          if(ObjectsPerCell[cellId] != 0) {
+          if(mpiRecvObjectsPerCell[cellId] != 0) {
             CellsPerPartition[CellPartition[cellId]]++;
-            ObjectsPerPartition[CellPartition[cellId]] += ObjectsPerCell[cellId];
+            ObjectsPerPartition[CellPartition[cellId]] += mpiRecvObjectsPerCell[cellId];
             for(int d = 0; d < Dimension; d++) {
-              PartitionCenters[CellPartition[cellId]][d] += CellCenter[cellId][d];
+              PartitionCenters[CellPartition[cellId]][d] += mpiRecvCellCenter[cellId*Dimension+d];
             }
           }
         }
