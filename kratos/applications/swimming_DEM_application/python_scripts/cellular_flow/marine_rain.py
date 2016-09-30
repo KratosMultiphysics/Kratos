@@ -85,7 +85,7 @@ pp.CFD_DEM.faxen_terms_type = 0
 pp.CFD_DEM.material_acceleration_calculation_type = 1
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
-pp.CFD_DEM.basset_force_type = 4
+pp.CFD_DEM.basset_force_type = 0
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
 pp.CFD_DEM.basset_force_integration_type = 2
 pp.CFD_DEM.n_init_basset_steps = 0
@@ -726,6 +726,17 @@ if pp.CFD_DEM.basset_force_type >= 3 or pp.CFD_DEM.basset_force_type == 1:
     basset_force_tool.FillHinsbergVectors(spheres_model_part, pp.CFD_DEM.number_of_exponentials, pp.CFD_DEM.number_of_quadrature_steps_in_window)
 
 post_utils.Writeresults(time)
+
+import random
+for node in spheres_model_part.Nodes:
+    rand_x = 2 * L * random.random()
+    rand_y = 2 * L * random.random()
+    node.X = rand_x
+    node.Y = rand_y
+    displx = node.GetSolutionStepValue(DISPLACEMENT_X)
+    disply = node.GetSolutionStepValue(DISPLACEMENT_Y)
+    node.SetSolutionStepValue(DISPLACEMENT_X, displx + rand_x)
+    node.SetSolutionStepValue(DISPLACEMENT_Y, disply + rand_y)
 
 while (time <= final_time):
 
