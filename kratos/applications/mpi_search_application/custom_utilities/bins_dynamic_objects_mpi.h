@@ -546,7 +546,7 @@ private:
     // CoordinateType binsSize = (this->GetMaxPoint()[0] - this->GetMinPoint()[0]);
     // SizeType binsSize = mpi_size * 4;
     // this->CalculateCellSize(binsSize);
-    int thirdSqrt = std::round(std::pow(mpi_size*10,1.0f/3.0f));
+    int thirdSqrt =  2 * std::ceil(std::pow(mpi_size*10,1.0f/3.0f));
     std::vector<int> numberOfCells = {thirdSqrt, thirdSqrt, thirdSqrt};
     this->CalculateCustomCellSize(numberOfCells);
     this->AllocateContainer();
