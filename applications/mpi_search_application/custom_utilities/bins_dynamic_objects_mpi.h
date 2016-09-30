@@ -543,11 +543,12 @@ private:
       this->mMaxPoint[i] = globalMaxPoint[i];
     }
 
-    // CoordinateType binsSize = (this->GetMaxPoint()[0] - this->GetMinPoint()[0]);
-    // SizeType binsSize = mpi_size * 4;
-    // this->CalculateCellSize(binsSize);
-    int thirdSqrt = std::ceil(std::pow(mpi_size*10,1.0f/3.0f));
-    std::vector<int> numberOfCells = {thirdSqrt, thirdSqrt, thirdSqrt};
+    int findex;
+    std::vector<int> numberOfCells = {2, 2, 3};
+    while(numberOfCells[0]*numberOfCells[1]*numberOfCells[2] != mpi_size) {
+      numberOfCells[findex++] *= 2;
+      findex %= 3;
+    }
     this->CalculateCustomCellSize(numberOfCells);
     this->AllocateContainer();
 
