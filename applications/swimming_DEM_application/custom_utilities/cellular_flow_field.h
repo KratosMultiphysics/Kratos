@@ -39,19 +39,18 @@ KRATOS_CLASS_POINTER_DEFINITION(CellularFlowField);
 
 CellularFlowField():VelocityField(),mL(1.0), mU(0.0), mK(2.72), mOmega(KRATOS_M_PI)
 {
-    mPiOverL = 0.5 * KRATOS_M_PI / mL;
-    mOmegaUOverL = 0.5 * mOmega * mU / mL;
-
+    mPiOverL = KRATOS_M_PI / mL;
+    mOmegaUOverL = mOmega * mU / mL;
     unsigned int number_of_threads = omp_get_max_threads();
     ResizeVectorsForParallelism(number_of_threads);
 }
 
-CellularFlowField(const double wavelength, const double mean_flow_speed, const double oscillation_relative_amplitude, const double oscillation_angular_frequency)
-                 :VelocityField(), mL(0.5 * wavelength), mU(mean_flow_speed), mK(oscillation_relative_amplitude), mOmega(oscillation_angular_frequency)
+CellularFlowField(const double half_wavelength, const double max_flow_speed, const double oscillation_relative_amplitude, const double oscillation_angular_frequency)
+                 :VelocityField(), mL(half_wavelength), mU(max_flow_speed), mK(oscillation_relative_amplitude), mOmega(oscillation_angular_frequency)
 {
-    mPiOverL = 0.5 * KRATOS_M_PI / mL;
-    mOmegaUOverL = 0.5 * mOmega * mU / mL;
 
+    mPiOverL = KRATOS_M_PI / mL;
+    mOmegaUOverL = mOmega * mU / mL;
     unsigned int number_of_threads = omp_get_max_threads();
     ResizeVectorsForParallelism(number_of_threads);
 }
