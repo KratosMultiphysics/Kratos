@@ -758,7 +758,7 @@ void MortarContactCondition::CalculateConditionSystem(
                 this->CalculateAndAddRHS( rLocalSystem, RHS_contact_pair, PairIndex, current_master_element );
             }
             
-//             std::cout << "--------------------------------------------------" << std::endl;
+////             std::cout << "--------------------------------------------------" << std::endl;
 //             KRATOS_WATCH(this->Id());
 //             KRATOS_WATCH(PairIndex);
 // //             KRATOS_WATCH(LHS_contact_pair);
@@ -939,7 +939,8 @@ bool MortarContactCondition::CalculateKinematics(
     
     // SHAPE FUNCTION DERIVATIVES
     rVariables.DN_De_Slave  =  slave_nodes.ShapeFunctionsLocalGradients( rVariables.DN_De_Slave , local_point );
-    rVariables.DPhi_De_LagrangeMultipliers = LagrangeMultiplierShapeFunctionLocalGradient( local_point.Coordinate(1), local_point.Coordinate(2) );
+    rVariables.DPhi_De_LagrangeMultipliers = slave_nodes.ShapeFunctionsLocalGradients( rVariables.DN_De_Slave , local_point );// TODO: This could be needed in the future to be different than the standart shape functions
+//    rVariables.DPhi_De_LagrangeMultipliers = LagrangeMultiplierShapeFunctionLocalGradient( local_point.Coordinate(1), local_point.Coordinate(2) );
     
     // MASTER CONDITION
     const bool inside = this->MasterShapeFunctionValue( rVariables, local_point);
@@ -1002,13 +1003,12 @@ void MortarContactCondition::CalculateAndAddLHS(
     const unsigned int number_of_master_nodes = current_master_element.PointsNumber( );
     const unsigned int number_of_total_nodes = number_of_slave_nodes + number_of_master_nodes;
         
-    unsigned int index_1,index_2 = 0;
+    unsigned int index_1 = 0;
     for (unsigned int i_slave = 0; i_slave < number_of_slave_nodes; ++i_slave )
     {
-        Matrix normal_tangent_matrix;
-        normal_tangent_matrix.resize(dimension, dimension);
-            
-        const array_1d<double, 3> normal = GetGeometry()[i_slave].GetValue(NORMAL);
+        Matrix tangent_matrix;
+        tangent_matrix.resize(dimension - 1, dimension);
+
         array_1d<double, 3> tangent1;
         array_1d<double, 3> tangent2;
         ContactUtilities::NodalTangents(tangent1, tangent2, GetGeometry(), i_slave);
@@ -1016,24 +1016,14 @@ void MortarContactCondition::CalculateAndAddLHS(
         tangent2 /= norm_2(tangent2);
         for (unsigned int i = 0; i < dimension; i++)
         {
-            normal_tangent_matrix(0, i) = normal[i];
-            normal_tangent_matrix(1, i) = tangent1[i];
+            tangent_matrix(0, i) = tangent1[i];
             if (dimension == 3)
             {
-                normal_tangent_matrix(2, i) = tangent2[i];
+                tangent_matrix(1, i) = tangent2[i];
             }
         }
         
         index_1 = (number_of_total_nodes + i_slave) * dimension;
-        
-        for (unsigned int j_slave = 0; j_slave < number_of_slave_nodes; ++j_slave )
-        {
-            index_2 = j_slave * dimension;   
-            subrange(LHS_contact_pair, index_1, index_1 + dimension, index_2, index_2 + dimension)  = prod(normal_tangent_matrix, subrange(LHS_contact_pair, index_1, index_1 + dimension, index_2, index_2 + dimension) );
-            
-            index_2 = (number_of_master_nodes + j_slave) * dimension;
-            subrange(LHS_contact_pair, index_1, index_1 + dimension, index_2, index_2 + dimension)  = prod(normal_tangent_matrix, subrange(LHS_contact_pair, index_1, index_1 + dimension, index_2, index_2 + dimension) );
-        }
         
         // We impose a 0 zero LM in the inactive nodes
         if (GetGeometry( )[i_slave].Is(ACTIVE) == false)
@@ -1043,7 +1033,7 @@ void MortarContactCondition::CalculateAndAddLHS(
         // And the tangent direction (sliding)
         else
         {            
-            subrange(LHS_contact_pair, index_1 + 1, index_1 + dimension, index_1 , index_1 + dimension) = subrange(normal_tangent_matrix, 1, dimension, 0, dimension);
+            subrange(LHS_contact_pair, index_1 + 1, index_1 + dimension, index_1 , index_1 + dimension) = subrange(tangent_matrix, 0, dimension - 1, 0, dimension);
         }
     }
     
@@ -1204,15 +1194,7 @@ void MortarContactCondition::CalculateAndAddRHS(
         // And the tangent direction (sliding)
         else
         {
-            const array_1d<double, 3> normal = GetGeometry()[i_slave].GetValue(NORMAL);   
-            const Vector aux_rhs = subrange(RHS_contact_pair, index, index + dimension);
-            
-            subrange(RHS_contact_pair, index, index + dimension) = ZeroVector(dimension);
-            
-            for (unsigned int i = 0; i < dimension; i++)
-            {
-                RHS_contact_pair[index] += normal[i] * aux_rhs[i];
-            }
+            subrange(RHS_contact_pair, index + 1, index + dimension) = ZeroVector(dimension - 1);
         }
     }
     
