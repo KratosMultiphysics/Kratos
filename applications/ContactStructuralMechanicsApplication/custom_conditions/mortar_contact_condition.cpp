@@ -1118,7 +1118,6 @@ void MortarContactCondition::CalculateLocalLHS(
     GeometryType& master_nodes = rVariables.GetMasterElement( );
     const unsigned int number_of_master_nodes = master_nodes.PointsNumber( );
     const unsigned int number_of_slave_nodes  =  slave_nodes.PointsNumber( );
-    const unsigned int number_of_total_nodes  = number_of_slave_nodes + number_of_master_nodes;
     
     const Vector N1           = rVariables.N_Slave;
     const Vector N2           = rVariables.N_Master;
@@ -1144,9 +1143,8 @@ void MortarContactCondition::CalculateLocalLHS(
         if (number_of_master_nodes == 3 &&  number_of_slave_nodes == 3)
         {
             rPairLHS += rIntegrationWeight * ( Contact3D3N3N::ComputeGaussPointLHSInternalContribution( N1, N2, Phi, detJ, rContactData )
-                                           +  Contact3D3N3N::ComputeGaussPointLHSContactContribution( N1, N2, Phi, detJ, rContactData ) );
-//                                            +  Contact3D3N3N::ComputeGaussPointLHSNormalContactContribution( N1, N2, Phi, detJ, rContactData ) //);
-//                                            +  Contact3D3N3N::ComputeGaussPointLHSTangentContactContribution( N1, N2, Phi, detJ, rContactData ) );
+                                            +  Contact3D3N3N::ComputeGaussPointLHSNormalContactContribution( N1, N2, Phi, detJ, rContactData ) //);
+                                            +  Contact3D3N3N::ComputeGaussPointLHSTangentContactContribution( N1, N2, Phi, detJ, rContactData ) );
         }
         else if (number_of_master_nodes == 4 &&  number_of_slave_nodes == 4)
         {
@@ -1281,7 +1279,6 @@ void MortarContactCondition::CalculateLocalRHS(
     GeometryType& master_nodes = rVariables.GetMasterElement( );
     const unsigned int number_of_master_nodes = master_nodes.PointsNumber( );
     const unsigned int number_of_slave_nodes  =  slave_nodes.PointsNumber( );
-    const unsigned int number_of_total_nodes  = number_of_slave_nodes + number_of_master_nodes;
     
     const Vector N1           = rVariables.N_Slave;
     const Vector N2           = rVariables.N_Master;
@@ -1307,9 +1304,8 @@ void MortarContactCondition::CalculateLocalRHS(
         if (number_of_master_nodes == 3 &&  number_of_slave_nodes == 3)
         {
             rPairRHS += rIntegrationWeight * ( Contact3D3N3N::ComputeGaussPointRHSInternalContribution(N1, N2, Phi, detJ, rContactData)
-                                             + Contact3D3N3N::ComputeGaussPointRHSContactContribution(N1, N2, Phi, detJ, rContactData) );
-//                                              + Contact3D3N3N::ComputeGaussPointRHSNormalContactContribution(N1, N2, Phi, detJ, rContactData) //);
-//                                              + Contact3D3N3N::ComputeGaussPointRHSTangentContactContribution(N1, N2, Phi, detJ, rContactData) );
+                                             + Contact3D3N3N::ComputeGaussPointRHSNormalContactContribution(N1, N2, Phi, detJ, rContactData) //);
+                                             + Contact3D3N3N::ComputeGaussPointRHSTangentContactContribution(N1, N2, Phi, detJ, rContactData) );
         }
         if (number_of_master_nodes == 4 &&  number_of_slave_nodes == 4)
         {
