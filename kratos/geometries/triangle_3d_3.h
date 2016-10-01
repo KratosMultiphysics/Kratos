@@ -16,7 +16,7 @@
 // Project includes
 #include "geometries/line_3d_2.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
-// #include "integration/triangle_collocation_integration_points.h"
+#include "integration/triangle_collocation_integration_points.h"
 
 namespace Kratos
 {
@@ -1336,12 +1336,14 @@ private:
             {
                 Quadrature<TriangleGaussLegendreIntegrationPoints1, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<TriangleGaussLegendreIntegrationPoints3, 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
-//                 Quadrature<TriangleCollocationIntegrationPoints1, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-//                 Quadrature<TriangleCollocationIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-//                 Quadrature<TriangleCollocationIntegrationPoints3, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-//                 Quadrature<TriangleCollocationIntegrationPoints4, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-//                 Quadrature<TriangleCollocationIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
+                Quadrature<TriangleGaussLegendreIntegrationPoints3, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<TriangleGaussLegendreIntegrationPoints4, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<TriangleCollocationIntegrationPoints1, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<TriangleCollocationIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<TriangleCollocationIntegrationPoints3, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<TriangleCollocationIntegrationPoints4, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<TriangleCollocationIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
 //             IntegrationPointsContainerType integration_points =
@@ -1369,17 +1371,21 @@ private:
                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::GI_GAUSS_2 ),
                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3 )
-//                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-//                     GeometryData::GI_EXTENDED_GAUSS_1 ),
-//                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-//                     GeometryData::GI_EXTENDED_GAUSS_2 ),
-//                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-//                     GeometryData::GI_EXTENDED_GAUSS_3 ),
-//                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-//                     GeometryData::GI_EXTENDED_GAUSS_4 ),
-//                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-//                     GeometryData::GI_EXTENDED_GAUSS_5 )
+                    GeometryData::GI_GAUSS_3 ),
+                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_GAUSS_4 ),
+                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_GAUSS_5 ),
+                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                     GeometryData::GI_EXTENDED_GAUSS_1 ),
+                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                     GeometryData::GI_EXTENDED_GAUSS_2 ),
+                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                     GeometryData::GI_EXTENDED_GAUSS_3 ),
+                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                     GeometryData::GI_EXTENDED_GAUSS_4 ),
+                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                     GeometryData::GI_EXTENDED_GAUSS_5 )
             }
         };
         return shape_functions_values;
@@ -1396,12 +1402,14 @@ private:
             {
                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_1 ),
                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_2 ),
-                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_3 )
-//                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_1 ),
-//                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_2 ),
-//                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_3 ),
-//                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_4 ),
-//                 Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_5 )
+                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_3 ),
+                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_4 ),
+                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_5 ),
+                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_1 ),
+                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_2 ),
+                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_3 ),
+                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_4 ),
+                Triangle3D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_5 )
             }
         };
         return shape_functions_local_gradients;
