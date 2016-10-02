@@ -464,13 +464,13 @@ public:
     ///@{
     
     //~ /**
-     //~ * Construct the initial Jacobian emulator --> IS IT NECESSARY? IF IT IS A MEMBER VAR. IT IS ALREADY EMPTY?¿
+     //~ * Construct the initial Jacobian emulator
      //~ */
     void Initialize() override
     {
         KRATOS_TRY;
-
-        JacobianEmulatorPointerType mpCurrentJacobianEmulatorPointer();   
+ 
+        mpCurrentJacobianEmulatorPointer = std::unique_ptr< JacobianEmulator <TSpace> > (new JacobianEmulator<TSpace>());   
         
         KRATOS_CATCH( "" );
     }
