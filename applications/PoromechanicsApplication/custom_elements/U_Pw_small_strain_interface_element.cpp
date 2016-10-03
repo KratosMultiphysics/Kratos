@@ -608,14 +608,25 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
 template< >
 void UPwSmallStrainInterfaceElement<2,4>::CalculateInitialGap(const GeometryType& Geom)
 {
+    const double& MinimumJointWidth = this->GetProperties()[MINIMUM_JOINT_WIDTH];
+    
     mInitialGap.resize(2);
+    mIsOpen.resize(2);
     
     array_1d<double,3> Vx;
     noalias(Vx) = Geom.GetPoint( 3 ) - Geom.GetPoint( 0 );
     mInitialGap[0] = norm_2(Vx);
+    if(mInitialGap[0] < MinimumJointWidth)
+        mIsOpen[0] = false;
+    else
+        mIsOpen[0] = true;
 
     noalias(Vx) = Geom.GetPoint( 2 ) - Geom.GetPoint( 1 );
     mInitialGap[1] = norm_2(Vx);
+    if(mInitialGap[1] < MinimumJointWidth)
+        mIsOpen[1] = false;
+    else
+        mIsOpen[1] = true;
 }
 
 //----------------------------------------------------------------------------------------
@@ -623,17 +634,32 @@ void UPwSmallStrainInterfaceElement<2,4>::CalculateInitialGap(const GeometryType
 template< >
 void UPwSmallStrainInterfaceElement<3,6>::CalculateInitialGap(const GeometryType& Geom)
 {
+    const double& MinimumJointWidth = this->GetProperties()[MINIMUM_JOINT_WIDTH];
+    
     mInitialGap.resize(3);
+    mIsOpen.resize(3);
     
     array_1d<double,3> Vx;
     noalias(Vx) = Geom.GetPoint( 3 ) - Geom.GetPoint( 0 );
     mInitialGap[0] = norm_2(Vx);
-
+    if(mInitialGap[0] < MinimumJointWidth)
+        mIsOpen[0] = false;
+    else
+        mIsOpen[0] = true;
+    
     noalias(Vx) = Geom.GetPoint( 4 ) - Geom.GetPoint( 1 );
     mInitialGap[1] = norm_2(Vx);
-
+    if(mInitialGap[1] < MinimumJointWidth)
+        mIsOpen[1] = false;
+    else
+        mIsOpen[1] = true;
+    
     noalias(Vx) = Geom.GetPoint( 5 ) - Geom.GetPoint( 2 );
     mInitialGap[2] = norm_2(Vx);
+    if(mInitialGap[2] < MinimumJointWidth)
+        mIsOpen[2] = false;
+    else
+        mIsOpen[2] = true;
 }
 
 //----------------------------------------------------------------------------------------
@@ -641,20 +667,39 @@ void UPwSmallStrainInterfaceElement<3,6>::CalculateInitialGap(const GeometryType
 template< >
 void UPwSmallStrainInterfaceElement<3,8>::CalculateInitialGap(const GeometryType& Geom)
 {
+    const double& MinimumJointWidth = this->GetProperties()[MINIMUM_JOINT_WIDTH];
+    
     mInitialGap.resize(4);
+    mIsOpen.resize(4);
     
     array_1d<double,3> Vx;
     noalias(Vx) = Geom.GetPoint( 4 ) - Geom.GetPoint( 0 );
     mInitialGap[0] = norm_2(Vx);
-
+    if(mInitialGap[0] < MinimumJointWidth)
+        mIsOpen[0] = false;
+    else
+        mIsOpen[0] = true;
+    
     noalias(Vx) = Geom.GetPoint( 5 ) - Geom.GetPoint( 1 );
     mInitialGap[1] = norm_2(Vx);
-
+    if(mInitialGap[1] < MinimumJointWidth)
+        mIsOpen[1] = false;
+    else
+        mIsOpen[1] = true;
+    
     noalias(Vx) = Geom.GetPoint( 6 ) - Geom.GetPoint( 2 );
     mInitialGap[2] = norm_2(Vx);
-
+    if(mInitialGap[2] < MinimumJointWidth)
+        mIsOpen[2] = false;
+    else
+        mIsOpen[2] = true;
+    
     noalias(Vx) = Geom.GetPoint( 7 ) - Geom.GetPoint( 3 );
     mInitialGap[3] = norm_2(Vx);
+    if(mInitialGap[3] < MinimumJointWidth)
+        mIsOpen[3] = false;
+    else
+        mIsOpen[3] = true;
 }
 
 //----------------------------------------------------------------------------------------
@@ -1072,15 +1117,29 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CheckAndCalculateJointWidth
     
     rConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY); // No contact between interfaces
     
-    if(rJointWidth < 0.0)
+    // Initally open joint
+    if(mIsOpen[GPoint]==true)
     {
-        rConstitutiveParameters.Reset(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY); // Contact between interfaces
-        rNormalRelDisp = rJointWidth;
-        rJointWidth = MinimumJointWidth;
+        if(rJointWidth < MinimumJointWidth)
+        {
+            rConstitutiveParameters.Reset(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY); // Contact between interfaces
+            rNormalRelDisp = rJointWidth - MinimumJointWidth;
+            rJointWidth = MinimumJointWidth;
+        }
     }
-    else if(rJointWidth < MinimumJointWidth)
+    // Initally closed joint
+    else
     {
-        rJointWidth = MinimumJointWidth;
+        if(rJointWidth < 0.0)
+        {
+            rConstitutiveParameters.Reset(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY); // Contact between interfaces
+            rNormalRelDisp = rJointWidth;
+            rJointWidth = MinimumJointWidth;
+        }
+        else if(rJointWidth < MinimumJointWidth)
+        {
+            rJointWidth = MinimumJointWidth;
+        }
     }
 }
 
