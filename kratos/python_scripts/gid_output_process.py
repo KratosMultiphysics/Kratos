@@ -157,6 +157,11 @@ class GiDOutputProcess(Process):
 
         self.output_frequency = result_file_configuration["output_frequency"].GetDouble()
 
+        # get .post.lst files
+        additional_list_file_data = result_file_configuration["additional_list_files"]
+        additional_list_files = [ additional_list_file_data[i].GetInt() for i in range(0,additional_list_file_data.size()) ]
+
+        
         # Set current time parameters
         if(  self.model_part.ProcessInfo[IS_RESTARTED] == True ):
             self.step_count = self.model_part.ProcessInfo[STEP]
@@ -167,11 +172,11 @@ class GiDOutputProcess(Process):
             else:
                 self.next_output = self.model_part.ProcessInfo[STEP]
 
-
-        # Create .post.lst files
-        additional_list_file_data = result_file_configuration["additional_list_files"]
-        additional_list_files = [ additional_list_file_data[i].GetInt() for i in range(0,additional_list_file_data.size()) ]
-        self.__initialize_listfiles(additional_list_files)
+            # Restart .post.lst files
+            self.__restart_list_files(additional_list_files)
+        else:
+            # Create .post.lst files
+            self.__initialize_list_files(additional_list_files)
 
         # Process point recording data
         if self.point_output_process is not None:
@@ -336,7 +341,7 @@ class GiDOutputProcess(Process):
 
             self.__define_output_plane(cut_data)
 
-    def __initialize_listfiles(self,additional_frequencies):
+    def __initialize_list_files(self,additional_frequencies):
         '''Set up .post.lst files for global and cut results.
         If we have only one tipe of output (volume or cut), the
         list file is called <gid_model_name>.post.lst. When we have
@@ -500,7 +505,7 @@ class GiDOutputProcess(Process):
         elif self.post_mode == GiDPostMode.GiD_PostAsciiZipped:
             ext = ".post.res"  # ??? CHECK!
         else:
-            return # No support for listfiles in this format
+            return # No support for list_files in this format
 
         if step_label is None:
             pretty_label = ""
@@ -508,17 +513,93 @@ class GiDOutputProcess(Process):
             pretty_label = "_{0:.12g}".format(step_label) # floating point format
         else:
             pretty_label = "_{0}".format(step_label) # int format
-
+            
         if self.body_io is not None:
             for freq,f in self.volume_list_files:
                 if (self.printed_step_count % freq) == 0:
                     f.write("{0}{1}{2}\n".format(self.volume_file_name,pretty_label,ext))
                     f.flush()
-
+        
         if self.cut_io is not None:
             for freq,f in self.cut_list_files:
                 if (self.printed_step_count % freq) == 0:
                     f.write("{0}{1}{2}\n".format(self.cut_file_name,pretty_label,ext))
                     f.flush()
 
+    #
+    def __restart_list_files(self,additional_frequencies):
 
+        self.__remove_list_files()
+        
+        self.__initialize_list_files(additional_frequencies)
+
+        if self.post_mode == GiDPostMode.GiD_PostBinary:
+            ext = ".post.bin"
+        elif self.post_mode == GiDPostMode.GiD_PostAscii:
+            ext = ".post.res"
+        elif self.post_mode == GiDPostMode.GiD_PostAsciiZipped:
+            ext = ".post.res"
+        else:
+            return # No support for list_files in this format
+
+
+        # Rebuild List Files from existing problem build
+        file_id   = []
+
+        path = os.getcwd()
+        
+        for f in os.listdir(path):
+
+            if(f.endswith(ext)):
+                    
+                #if f.name = problem_tested_145.post.bin
+                file_parts = f.split('_')  # you get ["problem","tested","145.post.bin"]
+                num_parts  = len(file_parts) 
+                    
+                end_parts  = file_parts[num_parts-1].split(".") # you get ["145","post","bin"]
+                print_id   = end_parts[0] # you get "145"
+
+                if( print_id != "0" ):
+                    file_id.append(int(print_id))
+  
+            file_id.sort()
+
+        for step_label in file_id:
+
+            if step_label is None:
+                pretty_label = ""
+            elif self.output_label_is_time:
+                pretty_label = "_{0:.12g}".format(step_label) # floating point format
+            else:
+                pretty_label = "_{0}".format(step_label) # int format
+
+            if self.body_io is not None:
+                for freq,f in self.volume_list_files:
+                    list_file_name = "{0}{1}{2}\n".format(self.volume_file_name,pretty_label,ext)
+                    if (step_label % freq) == 0:
+                        f.write(list_file_name)
+                        f.flush()
+
+            if self.cut_io is not None:
+                for freq,f in self.cut_list_files:
+                    list_file_name = "{0}{1}{2}\n".format(self.cut_file_name,pretty_label,ext)
+                    if (step_label % freq) == 0:
+                        f.write(list_file_name)
+                        f.flush()
+
+    #
+    def __remove_list_files(self):
+
+        path = os.getcwd()
+        
+        # remove previous list files:
+        if(os.path.exists(path) == False):
+            print(" Problem Path do not exists , check the Problem Path selected ")
+        else:
+            filelist = [f for f in os.listdir(os.getcwd()) if f.endswith(".lst")]
+            for f in filelist:
+                if(os.path.exists(f)):
+                    try:
+                        os.remove(f)
+                    except WindowsError:
+                        pass
