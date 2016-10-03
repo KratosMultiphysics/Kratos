@@ -59,7 +59,7 @@ echo -n "Linking Error       : "  >> ${MAIL_GCC};
 grep -c "cannot find" ${LOG_DIR}/compile_gcc.log >> ${MAIL_GCC};
 grep "cannot find" ${LOG_DIR}/compile_gcc.log >> ${MAIL_GCC};
 echo "\n" >> ${MAIL_GCC}
-echo -n ${LOG_DIR}/configure_gcc.log >> ${MAIL_GCC};
+cat ${LOG_DIR}/configure_gcc.log >> ${MAIL_GCC};
 echo "\n" >> ${MAIL_GCC}
 echo "UnitTests:    \n" >> ${MAIL_GCC}
 echo "============= \n" >> ${MAIL_GCC}
@@ -121,7 +121,7 @@ echo -n "Linking Error       : "  >> ${MAIL_CLANG};
 grep -c "cannot find" ${LOG_DIR}/compile_clang.log >> ${MAIL_CLANG};
 grep "cannot find" ${LOG_DIR}/compile_clang.log >> ${MAIL_CLANG};
 echo "\n" >> ${MAIL_CLANG}
-echo -n ${LOG_DIR}/configure_clang.log >> ${MAIL_CLANG};
+cat ${LOG_DIR}/configure_clang.log >> ${MAIL_CLANG};
 echo "\n" >> ${MAIL_CLANG}
 echo "UnitTests:    \n" >> ${MAIL_CLANG}
 echo "============= \n" >> ${MAIL_CLANG}
