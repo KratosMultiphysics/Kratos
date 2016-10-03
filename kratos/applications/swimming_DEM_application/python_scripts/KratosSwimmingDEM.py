@@ -77,7 +77,7 @@ DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi #
 pp.CFD_DEM = DEM_parameters
 pp.CFD_DEM.do_search_neighbours = False
 pp.CFD_DEM.faxen_terms_type = 0
-pp.CFD_DEM.material_acceleration_calculation_type = 0
+pp.CFD_DEM.material_acceleration_calculation_type = 1
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
 pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
@@ -88,11 +88,13 @@ pp.CFD_DEM.n_init_basset_steps = 0
 pp.CFD_DEM.time_steps_per_quadrature_step = 1
 pp.CFD_DEM.delta_time_quadrature = pp.CFD_DEM.time_steps_per_quadrature_step * pp.CFD_DEM.MaxTimeStep
 pp.CFD_DEM.quadrature_order = 2
-pp.CFD_DEM.time_window = 0.01
-pp.CFD_DEM.number_of_exponentials = 8
+pp.CFD_DEM.time_window = 0.1
+pp.CFD_DEM.number_of_exponentials = 10
 pp.CFD_DEM.number_of_quadrature_steps_in_window = int(pp.CFD_DEM.time_window / pp.CFD_DEM.delta_time_quadrature)
 pp.CFD_DEM.print_steps_per_plot_step = 1
 pp.CFD_DEM.PostCationConcentration = False
+pp.CFD_DEM.do_impose_flow_from_field = False
+pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
 #Z
 
 # NANO BEGIN
@@ -348,8 +350,7 @@ if (DEM_parameters.BoundingBoxOption == "ON"):
 solver.search_strategy = parallelutils.GetSearchStrategy(solver, spheres_model_part)
 
 # Creating the fluid solver
-fluid_solver = solver_module.CreateSolver(
-    fluid_model_part, SolverSettings)
+fluid_solver = solver_module.CreateSolver(fluid_model_part, SolverSettings)
 
 Dt_DEM = DEM_parameters.MaxTimeStep
 
