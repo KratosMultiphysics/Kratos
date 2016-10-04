@@ -652,103 +652,47 @@ proc spdAux::injectSolStratParams {basenode args} {
 
 
 proc spdAux::injectNodalConditions { basenode args} {
-    set nodalconds [$basenode parent]
-    #W "cosas $args"
-    
-    set AppUsesIntervals [apps::ExecuteOnApp [GetAppIdFromNode $nodalconds] GetAttribute UseIntervals]
-    if {$AppUsesIntervals eq ""} {set AppUsesIntervals 0}
-    
     if {$args eq "{}"} {
         set nodal_conditions [::Model::getAllNodalConditions]
     } {
         set nodal_conditions [::Model::GetNodalConditions {*}$args]
     }
-    foreach nc $nodal_conditions {
-        set inputs [list ]
-        set n [$nc getName]
-        set pn [$nc getPublicName]
-        set help [$nc getHelp]
-        set ov  [$nc getOv]
-        set estado [$nc getAttribute state]
-        if {$estado eq ""} {set estado CheckNodalConditionState}
-        set node "<condition n='$n' pn='$pn' ov='$ov'  ovm='' icon='shells16' help='$help' state='\[$estado\]' update_proc='RefreshTree'>"
-        #set inputs [$nc getInputs]
-        set process [::Model::GetProcess [$nc getProcessName]]
-        set units [$nc getAttribute "units"]
-        set um [$nc getAttribute "unit_magnitude"]
-        foreach processinput [$process getInputs] {lappend inputs $processinput}
-        foreach {inName in} $inputs {
-            set pn [$in getPublicName]
-            set type [$in getType]
-            set v [$in getDv]
-            set fix [$in getFixity]
-            set help [$in getHelp]
-            foreach key [$nc getDefaults $inName] {
-                set $key [$nc getDefault $inName $key]
-            }
-            if {$type eq "vector"} {
-                lassign [split $v ","] v1 v2 v3
-                if {$fix ne 0} {
-                    append node "
-                        <value n='FixX' pn='X $fix' v='1' values='1,0' help=''/>
-                        <value n='FixY' pn='Y $fix' v='1' values='1,0' help=''/>
-                        <value n='FixZ' pn='Z $fix' v='1' values='1,0' help='' state='\[CheckDimension 3D\]'/>"
-                }
-                append node "
-                    <value n='${inName}X' wn='[concat $n "_X"]' pn='${pn} X' v='$v1' help='$help' />
-                    <value n='${inName}Y' wn='[concat $n "_Y"]' pn='${pn} Y' v='$v2' help='$help' />
-                    <value n='${inName}Z' wn='[concat $n "_Z"]' pn='${pn} Z' v='$v3' help='$help'  state='\[CheckDimension 3D\]'/>
-                    "
-            } elseif { $type eq "combo" } {
-                set values [join [$in getValues] ","]
-                if {$fix ne 0} {
-                    append node "<value n='Fix' pn='$fix' v='1' values='1,0' help=''/>"
-                }
-                append node "<value n='$inName' pn='$pn' v='$v' values='$values' help='$help'/>"
-            } elseif { $type eq "bool" } {
-                set values "true,false"
-                if {$fix ne 0} {
-                    append node "<value n='Fix' pn='$fix' v='1' values='1,0' help=''/>"
-                }
-                append node "<value n='$inName' pn='$pn' v='$v' values='$values' help='$help'/>"
-            } else {
-                if {$fix ne 0} {
-                    append node "<value n='Fix' pn='$fix' v='1' values='1,0' help=''/>"
-                }
-                append node "<value n='$inName' pn='$pn' v='$v'  units='$units'  unit_magnitude='$um'  help='$help'/>"
-            }
-        }
-        set CondUsesIntervals [$nc getAttribute "Interval"]
-        if {$AppUsesIntervals && $CondUsesIntervals ne "False"} {
-            append node "<value n='Interval' pn='Time interval' v='$CondUsesIntervals' values='\[getIntervals\]'  help='$help'/>"
-        }
-        append node "</condition>"
-        $nodalconds appendXML $node
-    }
-    
+    spdAux::_injectCondsToTree $basenode $nodal_conditions "nodal"
     $basenode delete
 }
 
 proc spdAux::injectConditions { basenode args} {
+    set conditions [::Model::GetConditions {*}$args]
+    spdAux::_injectCondsToTree $basenode $conditions
+    $basenode delete
+}
+
+proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
     set conds [$basenode parent]
-    
     set AppUsesIntervals [apps::ExecuteOnApp [GetAppIdFromNode $conds] GetAttribute UseIntervals]
     if {$AppUsesIntervals eq ""} {set AppUsesIntervals 0}
     
-    set loads [::Model::GetConditions {*}$args]
-    foreach ld $loads {
-        set n [$ld getName]
-        set pn [$ld getPublicName]
-        set help [$ld getHelp]
-        set etype [join [string tolower [$ld getAttribute ElementType]] ,]
-        #set inputs [$ld getInputs]
-        set units [$ld getAttribute "units"]
-        set um [$ld getAttribute "unit_magnitude"]
-        #W "A ver con: [$ld getProcessName]"
-        set process [::Model::GetProcess [$ld getProcessName]]
+    foreach cnd $cond_list {
+        set n [$cnd getName]
+        set pn [$cnd getPublicName]
+        set help [$cnd getHelp]
+        set etype ""
+        if {$cond_type eq "nodal"} {
+            set etype [$cnd getOv]
+        } else {
+            set etype [join [string tolower [$cnd getAttribute ElementType]] ,]
+        }
+        if {$etype eq ""} {set etype "point,line,surface,volume"}
+        set units [$cnd getAttribute "units"]
+        set um [$cnd getAttribute "unit_magnitude"]
+        set process [::Model::GetProcess [$cnd getProcessName]]
         set check [$process getAttribute "check"]
-        #W "$pn $check"
-        set node "<condition n='$n' pn='$pn' ov='$etype' ovm='' icon='shells16' help='$help' state='\[ConditionState\]' update_proc='$check'>"
+        set state "ConditionState"
+        if {$cond_type eq "nodal"} {
+            set state [$cnd getAttribute state]
+            if {$state eq ""} {set estado CheckNodalConditionState}
+        }
+        set node "<condition n='$n' pn='$pn' ov='$etype' ovm='' icon='shells16' help='$help' state='\[$state\]' update_proc='$check'>"
         #foreach processinput [$process getInputs] {lappend inputs $processinput}
         set inputs [$process getInputs] 
         foreach {inName in} $inputs {
@@ -759,8 +703,8 @@ proc spdAux::injectConditions { basenode args} {
             set help [$in getHelp]
             set state [$in getAttribute "state"]
             if {$state eq ""} {set state "normal"}
-            foreach key [$ld getDefaults $inName] {
-                set $key [$ld getDefault $inName $key]
+            foreach key [$cnd getDefaults $inName] {
+                set $key [$cnd getDefault $inName $key]
             }
             if {$type eq "vector"} {
                 lassign [split $v ","] v1 v2 v3
@@ -795,16 +739,15 @@ proc spdAux::injectConditions { basenode args} {
             }
         }
         
-        set CondUsesIntervals [$ld getAttribute "Interval"]
+        set CondUsesIntervals [$cnd getAttribute "Interval"]
         if {$AppUsesIntervals && $CondUsesIntervals ne "False"} {
             append node "<value n='Interval' pn='Time interval' v='$CondUsesIntervals' values='\[getIntervals\]'  help='$help'/>"
         }
         append node "</condition>"
         $conds appendXML $node
     }
-    $basenode delete
+    
 }
-
 proc spdAux::injectElementInputs { basenode args} {
     set parts [$basenode parent]
     set inputs [::Model::GetAllElemInputs]
@@ -1250,6 +1193,12 @@ proc spdAux::ProcGetSolvers { domNode args } {
     return [join $pnames ","]
     
 }
+proc spdAux::ProcConditionState { domNode args } {
+    
+    set resp [::Model::CheckConditionState $domNode]
+    if {$resp} {return "normal"} else {return "hidden"}
+}
+
 proc spdAux::ProcCheckNodalConditionState { domNode args } {
     
     set nodeApp [GetAppIdFromNode $domNode]
@@ -1366,12 +1315,6 @@ proc spdAux::ProcgetStateFromXPathValue { domNode args } {
     #W "xpath $xpath checkvalue $checkvalue pst $pst"
     if {$pst in $checkvalue} { return "normal"} else {return "hidden"}
 }
-proc spdAux::ProcConditionState { domNode args } {
-    
-    set resp [::Model::CheckConditionState $domNode]
-    if {$resp} {return "normal"} else {return "hidden"}
-}
-
 proc spdAux::ProcSolStratParamState { domNode args } {
     
     set resp [::spdAux::SolStratParamState $domNode]
