@@ -14,8 +14,8 @@
 /* System includes */
 
 /* External includes */
-#include "utilities/math_utils.h"
-#include <cmath>
+//~ #include "utilities/math_utils.h"
+//~ #include <cmath>
 //~ #include <numeric>
 
 /* Project includes */
@@ -56,7 +56,6 @@ public:
 
     ///@name Type Definitions
     ///@{
-    //KRATOS_CLASS_POINTER_DEFINITION( JacobianEmulator );
     typedef typename std::unique_ptr< JacobianEmulator<TSpace> >        Pointer;
     
     typedef typename TSpace::VectorType                              VectorType;
@@ -74,18 +73,18 @@ public:
 
     /**
      * Old Jacobian pointer constructor.
-     * The Jacobian emulator will use information from the previous Jacobian
+     * The inverse Jacobian emulator will use information from the previous Jacobian
      */
-    JacobianEmulator( JacobianEmulator::Pointer&& OldJacobianEmulatorPointer )
+    JacobianEmulator( Pointer&& OldJacobianEmulatorPointer )
     {
         mpOldJacobianEmulator = std::unique_ptr<JacobianEmulator<TSpace> >(std::move(OldJacobianEmulatorPointer));
     }
 
     /**
      * Old Jacobian pointer constructor with recursive previous Jacobian deleting.
-     * The Jacobian emulator will use information from the previous Jacobian
+     * The inverse Jacobian emulator will use information from the previous Jacobian
      */
-    JacobianEmulator( JacobianEmulator::Pointer&& OldJacobianEmulatorPointer, unsigned int EmulatorBufferSize )
+    JacobianEmulator( Pointer&& OldJacobianEmulatorPointer, unsigned int EmulatorBufferSize )
     {        
         mpOldJacobianEmulator = std::unique_ptr<JacobianEmulator<TSpace> >(std::move(OldJacobianEmulatorPointer));
                 
@@ -98,7 +97,7 @@ public:
                 if(i == EmulatorBufferSize-1)
                 {
                     (p->mpOldJacobianEmulator).reset();
-                    std::cout << "Out of buffer Jacobian emulator reset." << std::endl;
+                    //~ std::cout << "Out of buffer Jacobian emulator reset." << std::endl;
                 }
                 else
                 {
@@ -109,13 +108,13 @@ public:
         else // If Jacobian buffer size equals 1 directly destroy the previous one
         {
             (mpOldJacobianEmulator->mpOldJacobianEmulator).reset();
-            std::cout << "Out of buffer Jacobian emulator reset." << std::endl;
+            //~ std::cout << "Out of buffer Jacobian emulator reset." << std::endl;
         }
     }
 
     /**
      * Empty constructor.
-     * The Jacobian emulator will consider the identity matrix as previous Jacobian
+     * The Jacobian emulator will consider minus the identity matrix as previous Jacobian
      */
     JacobianEmulator( )
     {
@@ -146,14 +145,14 @@ public:
     ///@{
 
     /**
-     * Projects the approximated Jacobian onto a vector
-     * @param rWorkVector: Vector in where the Jacobian is projected
+     * Projects the previous step approximated inverse Jacobian onto a vector
+     * @param rWorkVector: Vector in where the inverse Jacobian is to be projected
      * @param rProjectedVector: Projected vector output
      */
     void ApplyPrevStepJacobian(
         const VectorType& rWorkVector,
         VectorType& rProjectedVector)
-    {                
+    {                       
         // Security check for the empty observation matrices case (when no correction has been done in the previous step)
         if (mpOldJacobianEmulator->mJacobianObsMatrixV.size() != 0)
         {
@@ -161,13 +160,13 @@ public:
         }
         else
         {
-            mpOldJacobianEmulator->ApplyPrevStepJacobian(rWorkVector, rProjectedVector);            
+            TSpace::Assign(rProjectedVector,-1.0,rWorkVector); // Consider minus the identity matrix as inverse Jacobian
         }
     }
 
     /**
-     * Projects the approximated Jacobian onto a vector
-     * @param rWorkVector: Vector in where the Jacobian is projected
+     * Projects the approximated inverse Jacobian onto a vector
+     * @param rWorkVector: Vector in where the inverse Jacobian is to be projected
      * @param rProjectedVector: Projected vector output
      */
     void ApplyJacobian(
@@ -175,17 +174,17 @@ public:
         VectorType& rProjectedVector)
     {
         KRATOS_TRY;
-                
+        
         // Security check for the empty observation matrices case (when no correction has been done in the previous step)
         if (mJacobianObsMatrixV.size() == 0)
         {
-            if (mpOldJacobianEmulator != nullptr) // Consider the previous step Jacobian
+            if (mpOldJacobianEmulator != nullptr) // If it is available, consider the previous step Jacobian
             {
                 mpOldJacobianEmulator->ApplyJacobian(rWorkVector, rProjectedVector);
             }
-            else // When the empty JacobianEmulator has no PreviousJacobianEmulator consider the identity matrix as Jacobian
+            else // When the JacobianEmulator has no PreviousJacobianEmulator consider minus the identity matrix as inverse Jacobian
             {
-                TSpace::Copy(rWorkVector, rProjectedVector);
+                TSpace::Assign(rProjectedVector,-1.0,rWorkVector);
             }
         }
         else
@@ -221,11 +220,13 @@ public:
                     
             if (mpOldJacobianEmulator == nullptr)
             {
-                rProjectedVector = y;
+                rProjectedVector = y; // Consider minus the identity as previous step Jacobian
             }
             else
             {
-                mpOldJacobianEmulator->ApplyJacobian(y, rProjectedVector);
+                VectorType y_minus(y);
+                TSpace::Assign(y_minus,-1.0,y);
+                mpOldJacobianEmulator->ApplyJacobian(y_minus, rProjectedVector); // The minus comes from the fact that we want to apply r_k - V_k*zQR
             }
             
             // w = W_k*z
@@ -235,7 +236,7 @@ public:
                 TSpace::UnaliasedAdd(w, zQR(j), mJacobianObsMatrixW[j]);
             }
             
-            rProjectedVector -= w; 
+            rProjectedVector += w; 
             
         }
 
@@ -418,8 +419,6 @@ public:
 
     typedef typename BaseType::MatrixType                                            MatrixType;
     typedef typename BaseType::MatrixPointerType                              MatrixPointerType;
-    
-    //~ typedef typename BaseType::SizeType                                    SizeType;   
 
     ///@}
     ///@name Life Cycle
@@ -464,7 +463,7 @@ public:
     ///@{
     
     //~ /**
-     //~ * Construct the initial Jacobian emulator
+     //~ * Construct the initial inverse Jacobian emulator
      //~ */
     void Initialize() override
     {
@@ -488,12 +487,12 @@ public:
         
         if (mConvergenceAcceleratorStep <= mJacobianBufferSize)
         {
-            // Construct the Jacobian emulator
+            // Construct the inverse Jacobian emulator
             mpCurrentJacobianEmulatorPointer = std::unique_ptr< JacobianEmulator<TSpace> > (new JacobianEmulator<TSpace>(std::move(mpCurrentJacobianEmulatorPointer))); 
         }
         else
         {
-            // Construct the Jacobian emulator considering the recursive elimination
+            // Construct the inverse Jacobian emulator considering the recursive elimination
             mpCurrentJacobianEmulatorPointer = std::unique_ptr< JacobianEmulator<TSpace> > (new JacobianEmulator<TSpace>(std::move(mpCurrentJacobianEmulatorPointer), mJacobianBufferSize)); 
         }   
                 
@@ -502,9 +501,9 @@ public:
 
     /**
      * Performs the solution update 
-     * The correction is computed using a Jacobian approximation obtained with the MVQN (MultiVector Quasi-Newton method).
+     * The correction is computed using an inverse Jacobian approximation obtained with a recursive matrix-free version of the MVQN (MultiVector Quasi-Newton method).
      * @param rResidualVector: Residual vector from the residual evaluation
-     * @param rIterationGuess: Current iteration guess to be corrected. Should be initialized to zero outside the convergence accelerator.
+     * @param rIterationGuess: Current iteration guess to be corrected. Should be initialized outside the convergence accelerator.
      */
     void UpdateSolution(
         const VectorType& rResidualVector,
@@ -521,21 +520,22 @@ public:
         {
             if (mConvergenceAcceleratorStep == 1)
             {
-                // The very first correction of the problem is done with a point iteration 
+                // The very first correction of the problem is done with a fixed point iteration 
                 rIterationGuess += mOmega_0*mResidualVector_1;                
             }
             else
             {
-                std::cout << "First step correction" << std::endl;
+                //~ std::cout << "First step correction" << std::endl;
                 VectorType InitialCorrection(mProblemSize);
                 
+                // The first correction of the current step is done with the previous step inverse Jacobian approximation
                 mpCurrentJacobianEmulatorPointer->ApplyPrevStepJacobian(mResidualVector_1, InitialCorrection);
-                rIterationGuess -= InitialCorrection;
+                rIterationGuess -= InitialCorrection; // Recall the minus sign coming from the Taylor expansion of the residual (Newton-Raphson)
             }
         }
         else
         {
-            std::cout << "Gathering information" << std::endl;
+            //~ std::cout << "Gathering information" << std::endl;
             
             // Gather the new observation matrices column information
             VectorType newColV(mProblemSize);
@@ -554,22 +554,23 @@ public:
                 (mpCurrentJacobianEmulatorPointer)->AppendColToV(newColV);
                 (mpCurrentJacobianEmulatorPointer)->AppendColToW(newColW);
                 
-                std::cout << "Observation matrices new information appended" << std::endl;
+                //~ std::cout << "Observation matrices new information appended" << std::endl;
             }
             else
             {                                
                 (mpCurrentJacobianEmulatorPointer)->DropAndAppendColToV(newColV);
                 (mpCurrentJacobianEmulatorPointer)->DropAndAppendColToW(newColW);
                                 
-                std::cout << "Observation matrices size is kept (oldest column is dropped)" << std::endl;
+                //~ std::cout << "Observation matrices size is kept (oldest column is dropped)" << std::endl;
             }
             
-            std::cout << "Jacobian approximation computation starts..." << std::endl;
+            //~ std::cout << "Jacobian approximation computation starts..." << std::endl;
             
+            // Apply the current step inverse Jacobian emulator to the residual vector
             VectorType IterationCorrection(mProblemSize);
             mpCurrentJacobianEmulatorPointer->ApplyJacobian(rResidualVector, IterationCorrection);
             
-            rIterationGuess += IterationCorrection;            
+            rIterationGuess -= IterationCorrection; // Recall the minus sign coming from the Taylor expansion of the residual (Newton-Raphson)
         }              
 
         KRATOS_CATCH( "" );
@@ -631,10 +632,6 @@ protected:
     VectorType mIterationValue_1;                                               // Current iteration guess
     
     JacobianEmulatorPointerType mpCurrentJacobianEmulatorPointer;               // Current step Jacobian approximator pointer
-    
-    
-    //std::vector<VectorType> mObsMatrixV;            // Residual increment observation matrix
-    //std::vector<VectorType> mObsMatrixW;            // Solution increment observation matrix
     
     ///@}
     
