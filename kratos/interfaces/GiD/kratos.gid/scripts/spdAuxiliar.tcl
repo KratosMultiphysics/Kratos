@@ -650,45 +650,6 @@ proc spdAux::injectSolStratParams {basenode args} {
 }
 
 
-proc spdAux::injectProcesses {basenode args} {
-    set procsnode [$basenode parent]
-    set procs [::Model::getAllProcs]
-    foreach proc $procs {
-        set n [$proc getName]
-        set pn [$proc getPublicName]
-        set help [$proc getHelp]
-        
-        set node "<condition n='$n' pn='$pn' ov='point,line,surface,volume'  ovm='' icon='shells16' help='$help'  >"
-        foreach {n input} [$proc getInputs] {
-            set n [$input getName]
-            set pn [$input getPublicName]
-            set type [$input getType]
-            set v [$input getDv]
-            set state [$input getAttribute state]
-            #W "$n $type $v $state"
-            if {$type eq "vector"} {
-                set v1 [lindex [split $v ","] 0]
-                set v2 [lindex [split $v ","] 1]
-                set v3 [lindex [split $v ","] 2]
-                append node "
-                    <value n='[concat $n "_X"]'  pn='X Value' v='$v1' help='' />
-                    <value n='[concat $n "_Y"]'  pn='Y Value' v='$v2' help='' />
-                    <value n='[concat $n "_Z"]'  pn='Z Value' v='$v3' help='' />
-                    "
-            } elseif {$type eq "bool"} {
-                append node "<value n='$n' pn='$n' v='$v' values='Yes,No'  help=''/>"
-            } elseif {$type eq "String"} {
-                append node "<value n='$n' pn='$n' v='$v' state='$state'  help=''/>"
-            } else {
-                append node "<value n='$n' pn='$n' v='$v'  help=''/>"
-            }
-        }
-        append node "</condition>"
-        #W $node
-        catch {$procsnode appendXML $node}
-    }
-    $basenode delete
-}
 
 proc spdAux::injectNodalConditions { basenode args} {
     set nodalconds [$basenode parent]
@@ -783,6 +744,7 @@ proc spdAux::injectConditions { basenode args} {
         #set inputs [$ld getInputs]
         set units [$ld getAttribute "units"]
         set um [$ld getAttribute "unit_magnitude"]
+        #W "A ver con: [$ld getProcessName]"
         set process [::Model::GetProcess [$ld getProcessName]]
         set check [$process getAttribute "check"]
         #W "$pn $check"
