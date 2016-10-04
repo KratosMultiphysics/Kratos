@@ -835,36 +835,22 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
         foreach {inputName in_obj} $process_parameters {
             set in_type [$in_obj getType]
             if {$in_type eq "vector"} {
-            
-                if {[$in_obj getFixity] eq "Imposed"} {
-                    set is_fixed_x [expr True]
-                    set is_fixed_y [expr True]
-                    set is_fixed_z [expr True]
-                    if {[$group find n FixX] ne ""} {
-                        set is_fixed_x [expr [get_domnode_attribute [$group find n FixX] v] ? True : False]
-                    }
-                    if {[$group find n FixY] ne ""} {
-                        set is_fixed_y [expr [get_domnode_attribute [$group find n FixY] v] ? True : False]
-                    }
-                    if {[$group find n FixZ] ne ""} {
-                        set is_fixed_z [expr [get_domnode_attribute [$group find n FixZ] v] ? True : False]
-                    }
-                    dict set paramDict is_fixed_x $is_fixed_x
-                    dict set paramDict is_fixed_y $is_fixed_y
-                    dict set paramDict is_fixed_z $is_fixed_z    
+                if {[$in_obj getAttribute vectorType] eq "bool"} {
+                    set ValX [expr [get_domnode_attribute [$group find n ${inputName}X] v] ? True : False]
+                    set ValY [expr [get_domnode_attribute [$group find n ${inputName}Y] v] ? True : False]
+                    set ValZ [expr False]
+                    catch {set ValZ [expr [get_domnode_attribute [$group find n ${inputName}Z] v] ? True : False]}
+                    dict set paramDict $inputName [list $ValX $ValY $ValZ]
+                } {
+                    set ValX [expr [get_domnode_attribute [$group find n ${inputName}X] v] ]
+                    set ValY [expr [get_domnode_attribute [$group find n ${inputName}Y] v] ] 
+                    set ValZ [expr 0.0]
+                    catch {set ValZ [expr [get_domnode_attribute [$group find n ${inputName}Z] v]]}
+                    dict set paramDict $inputName [list $ValX $ValY $ValZ]
                 }
-            
-                set ValX [expr [get_domnode_attribute [$group find n ${inputName}X] v] ]
-                set ValY [expr [get_domnode_attribute [$group find n ${inputName}Y] v] ] 
-                set ValZ [expr 0.0]
-                catch {set ValZ [expr [get_domnode_attribute [$group find n ${inputName}Z] v]]}
-                dict set paramDict $inputName [list $ValX $ValY $ValZ]
+                
             } elseif {$in_type eq "double" || $in_type eq "integer"} {
                 set value [get_domnode_attribute [$group find n $inputName] v] 
-                if {[$group find n Fix] ne ""} {
-                    set is_fixed [expr [get_domnode_attribute [$group find n Fix] v] ? True : False]
-                    dict set paramDict is_fixed $is_fixed
-                }
                 dict set paramDict $inputName [expr $value]
             } elseif {$in_type eq "bool"} {
                 set value [get_domnode_attribute [$group find n $inputName] v] 

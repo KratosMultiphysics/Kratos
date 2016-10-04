@@ -49,7 +49,6 @@
     <Process n="ApplyConstantVectorValueProcess" pn="Vector value" python_module="process_factory"
         kratos_module="KratosMultiphysics" help="This process ">
     <inputs>
-        <parameter n="factor" pn="Modulus" type="double"  v="1.0" unit_magnitude="0" units="0"/>
         <parameter n="direction" pn="Direction" type="vector" v="0.0,0.0,0.0" />
     </inputs>
     </Process>
@@ -71,7 +70,10 @@
     <Process n="ImposeVectorValueByComponentsProcess" pn="Impose vector value by components process" python_module="impose_vector_value_by_components_process"
 		kratos_module="KratosMultiphysics" help="This process fixes the selected components of a given vector variable">
     <inputs>
-        <parameter n="value" pn="Value" type="vector" fixity="Imposed" v="0.0,0.0,0.0" unit_magnitude="Velocity" units="m/s" />
+		<parameter n="is_fixed_X" pn="Imposed X" type="bool" v="1"/>
+		<parameter n="is_fixed_Y" pn="Imposed Y" type="bool" v="1"/>
+		<parameter n="is_fixed_Z" pn="Imposed Z" type="bool" v="1" state="[CheckDimension 3D]"/>
+        <parameter n="value" pn="Value" type="vector" v="0.0,0.0,0.0" unit_magnitude="Velocity" units="m/s" />
     </inputs>
     </Process>
 

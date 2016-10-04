@@ -21,8 +21,6 @@ oo::class create Parameter {
     variable units
     variable unitMagnitude
     
-    variable fix
-    
     constructor {n pn t v u um h {vs ""} {pvs "" }} {
         next $n
         variable type
@@ -34,7 +32,6 @@ oo::class create Parameter {
         
         variable units
         variable unitMagnitude
-        variable fix
         
         variable actualize
         
@@ -64,7 +61,6 @@ oo::class create Parameter {
             }
         } else {set pvalues $values}
         
-        set fix 0
         set actualize 0
     }
     
@@ -84,12 +80,9 @@ oo::class create Parameter {
     method getUnits { } {variable units; return $units}
     method setUnitMagnitude {u} {variable unitMagnitude; set unitMagnitude $u}
     method getUnitMagnitude { } {variable unitMagnitude; return $unitMagnitude}
-    method setFixity {u} {variable fix; set fix $u}
-    method getFixity { } {variable fix; return $fix}
     
     method getDepN {} {variable depname; return $depname}
     method getDepV {} {variable depv; return $depv}
-    
     
     method setActualize {u} {variable actualize; set actualize $u}
     method getActualize { } {variable actualize; return $actualize}
@@ -113,11 +106,7 @@ proc Model::ParseInputParamNode {st in} {
     set unitMagnitude ""
     catch {set units [$in @units]}
     catch {set unitMagnitude [$in @unit_magnitude]}
-    set fi ""
-    catch {set fi [$in @fixity]}
     set input [::Model::Parameter new $n $pn $t $v $units $unitMagnitude $h $vs $pvs]
-    if {$fi eq ""} {set fi 0}
-    $input setFixity $fi
     if {[$in hasChildNodes]} {$input setActualize 1}
     foreach att [$in attributes] {
         #W "$n $att"

@@ -10,6 +10,7 @@ proc Solid::xml::Init { } {
      Model::getElements Elements.xml
      Model::getNodalConditions NodalConditions.xml
      Model::getConstitutiveLaws ConstitutiveLaws.xml
+     Model::getProcesses DeprecatedProcesses.xml
      Model::getProcesses Processes.xml
      Model::getConditions Conditions.xml
      Model::getSolvers "../../Common/xml/Solvers.xml"

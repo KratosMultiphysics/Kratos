@@ -5,7 +5,10 @@
   <Process n="ImposeVectorValueByComponentsProcess" pn="Impose vector value by components process" python_module="impose_vector_value_by_components_process"
 		kratos_module="KratosMultiphysics" help="This process fixes the selected components of a given vector variable">
     <inputs>
-        <parameter n="value" pn="Value" type="vector" fixity="Imposed" v="0.0,0.0,0.0"/>
+        <parameter n="is_fixed_X" pn="Imposed X" type="bool" v="1"/>
+		<parameter n="is_fixed_Y" pn="Imposed Y" type="bool" v="1"/>
+		<parameter n="is_fixed_Z" pn="Imposed Z" type="bool" v="1" state="[CheckDimension 3D]"/>
+        <parameter n="value" pn="Value" type="vector" v="0.0,0.0,0.0"/>
     </inputs>
   </Process>
   
@@ -13,7 +16,8 @@
   <Process n="ImposeUniformTemperatureProcess" pn="Impose vector value by components process" python_module="impose_uniform_temperature_process"
 		kratos_module="KratosMultiphysics.DamApplication" help="This process fixes the given scalar variable">
     <inputs>
-        <parameter n="value" pn="Value" type="double" v="0.0" fixity="Imposed" />
+		<parameter n="is_fixed" pn="Imposed" type="bool" v="1"/>
+        <parameter n="value" pn="Value" type="double" v="0.0"/>
     </inputs>
   </Process>   
    
@@ -21,7 +25,8 @@
   <Process n="ImposeBofangConditionProcess" pn="Impose Bofang scalar field value" python_module="impose_bofang_condition_process"
 		kratos_module="KratosMultiphysics.DamApplication" help="This process fixes the given scalar variable">
     <inputs>
-        <parameter n="Gravity_Direction" pn="Gravity Direction" type="combo" v="Y" values="X,Y,Z" fixity="Imposed" />
+		<parameter n="is_fixed" pn="Imposed" type="bool" v="1"/>
+        <parameter n="Gravity_Direction" pn="Gravity Direction" type="combo" v="Y" values="X,Y,Z" />
         <parameter n="Reservoir_Bottom_Coordinate_in_Gravity_Direction" pn="Reservoir Bottom Coordinate in Gravity Direction" type="double" v="0.0"/>
         <parameter n="Surface_Temp" pn="Surface Temperature" type="double" v="0.0"/>
         <parameter n="Bottom_Temp" pn="Bottom Temperature" type="double" v="0.0"/>
