@@ -37,6 +37,7 @@ THE SOFTWARE.
 #include <boost/multi_array.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/range/algorithm.hpp>
+#include <boost/math/special_functions/fpclassify.hpp>
 
 #include <amgcl/backend/interface.hpp>
 #include <amgcl/solver/detail/default_inner_product.hpp>
