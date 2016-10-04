@@ -690,7 +690,7 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
         set state "ConditionState"
         if {$cond_type eq "nodal"} {
             set state [$cnd getAttribute state]
-            if {$state eq ""} {set estado CheckNodalConditionState}
+            if {$state eq ""} {set state "CheckNodalConditionState"}
         }
         set node "<condition n='$n' pn='$pn' ov='$etype' ovm='' icon='shells16' help='$help' state='\[$state\]' update_proc='$check'>"
         #foreach processinput [$process getInputs] {lappend inputs $processinput}
@@ -699,7 +699,6 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
             set pn [$in getPublicName]
             set type [$in getType]
             set v [$in getDv]
-            set fix [$in getFixity]
             set help [$in getHelp]
             set state [$in getAttribute "state"]
             if {$state eq ""} {set state "normal"}
@@ -707,34 +706,28 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
                 set $key [$cnd getDefault $inName $key]
             }
             if {$type eq "vector"} {
+                set vector_type [$in getAttribute "vectorType"]
                 lassign [split $v ","] v1 v2 v3
-                if {$fix ne 0} {
+                if {$vector_type eq "bool"} {
                     append node "
-                        <value n='FixX' pn='X $fix' v='1' values='1,0' help=''/>
-                        <value n='FixY' pn='Y $fix' v='1' values='1,0' help=''/>
-                        <value n='FixZ' pn='Z $fix' v='1' values='1,0' help='' state='\[CheckDimension 3D\]'/>"
-                }
-                append node "
+                        <value n='${inName}X' wn='[concat $n "_X"]' pn='X ${pn}' v='$v1' values='1,0' help=''/>
+                        <value n='${inName}Y' wn='[concat $n "_Y"]' pn='Y ${pn}' v='$v2' values='1,0' help=''/>
+                        <value n='${inName}Z' wn='[concat $n "_Z"]' pn='Z ${pn}' v='$v3' values='1,0' help='' state='\[CheckDimension 3D\]'/>"
+                } {
+                    append node "
                     <value n='${inName}X' wn='[concat $n "_X"]' pn='${pn} X' v='$v1' help='$help' />
                     <value n='${inName}Y' wn='[concat $n "_Y"]' pn='${pn} Y' v='$v2' help='$help' />
                     <value n='${inName}Z' wn='[concat $n "_Z"]' pn='${pn} Z' v='$v3' help='$help'  state='\[CheckDimension 3D\]'/>
                     "
+                }
+                
             } elseif { $type eq "combo" } {
                 set values [join [$in getValues] ","]
-                if {$fix ne 0} {
-                    append node "<value n='Fix' pn='$fix' v='1' values='1,0' help=''/>"
-                }
                 append node "<value n='$inName' pn='$pn' v='$v' values='$values' state='$state' help='$help'/>"
             } elseif { $type eq "bool" } {
-                set values "true,false"
-                if {$fix ne 0} {
-                    append node "<value n='Fix' pn='$fix' v='$v' values='1,0' help=''/>"
-                }
-                append node "<value n='$inName' pn='$pn' v='$v' values='$values'  help='$help'/>"
+                set values "1,0"
+                append node "<value n='$inName' pn='$pn' v='$v' values='$values'  help='$help' state='$state'/>"
             } else {
-                if {$fix ne 0} {
-                    append node "<value n='Fix' pn='$fix' v='1' values='1,0' help=''/>"
-                }
                 append node "<value n='$inName' pn='$pn' v='$v'  units='$units'  unit_magnitude='$um'  help='$help'/>"
             }
         }
