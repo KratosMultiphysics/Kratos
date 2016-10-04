@@ -539,7 +539,7 @@ private:
         const std::size_t SystemSize = rA.size1();
         std::vector<double> ScalingFactors(SystemSize);
         auto& rDofSet = this->pGetBuilderAndSolver()->GetDofSet();
-        const std::size_t NumDofs = rDofSet.size();
+        const int NumDofs = static_cast<int>(rDofSet.size());
 
         // NOTE: dofs are assumed to be numbered consecutively
         #pragma omp parallel for firstprivate(NumDofs)
@@ -555,7 +555,7 @@ private:
 
         // if there is a line of all zeros, put one on the diagonal
         #pragma omp parallel for firstprivate(SystemSize)
-        for(int k = 0; k < SystemSize; ++k)
+        for(int k = 0; k < static_cast<int>(SystemSize); ++k)
         {
             std::size_t ColBegin = ARowIndices[k];
             std::size_t ColEnd = ARowIndices[k+1];
@@ -571,7 +571,7 @@ private:
         }
 
         #pragma omp parallel for
-        for (int k = 0; k < SystemSize; ++k)
+        for (int k = 0; k < static_cast<int>(SystemSize); ++k)
         {
             std::size_t ColBegin = ARowIndices[k];
             std::size_t ColEnd = ARowIndices[k+1];
@@ -579,7 +579,7 @@ private:
             {
                 // row dof is fixed. zero off-diagonal columns and factor diagonal
                 for (std::size_t j = ColBegin; j < ColEnd; ++j)
-                    if (AColIndices[j] != k)
+                    if (static_cast<int>(AColIndices[j]) != k)
                         AValues[j] = 0.0;
                     else
                         AValues[j] *= Factor;
