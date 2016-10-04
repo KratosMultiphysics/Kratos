@@ -153,7 +153,7 @@ public:
                     {
                         mJac_n(i,j) = 0.0;
                     }
-                    mJac_n(i,i) = 1.0;
+                    mJac_n(i,i) = -1.0;
                 }
             }
             else
