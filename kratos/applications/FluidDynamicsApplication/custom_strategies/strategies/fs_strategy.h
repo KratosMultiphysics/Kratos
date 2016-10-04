@@ -1122,7 +1122,8 @@ private:
 
                 for (ModelPart::ConditionIterator itCond = CondBegin; itCond != CondEnd; ++itCond)
                 {
-                    const double FlagValue = itCond->GetValue(IS_STRUCTURE);
+                    const Condition& rCond = *itCond;
+                    const double& FlagValue = rCond.GetValue(IS_STRUCTURE);
                     if (FlagValue != 0.0)
                     {
 
