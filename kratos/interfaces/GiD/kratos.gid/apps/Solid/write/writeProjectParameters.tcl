@@ -72,11 +72,6 @@ proc Solid::write::getParametersDict { } {
     
     dict set projectParametersDict solver_settings $solverSettingsDict
     
-    # List of intervals
-    if {$::Kratos::kratos_private(DevMode) eq "dev"} {
-        dict set projectParametersDict intervals_list [write::getIntervalsDict]
-    }
-    
     # Lists of processes
     dict set projectParametersDict constraints_process_list [write::getConditionsParametersDict SLNodalConditions "Nodal"]
     

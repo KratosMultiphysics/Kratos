@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ConditionList>
-  <ConditionItem n="Inlet2D" pn="Inlet velocity" ImplementedInFile=".cpp" Interval="Total"
+  <ConditionItem n="Inlet2D" pn="Inlet velocity" ImplementedInFile=".cpp" Interval="False"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" VariableName="VELOCITY" App="Fluid"
 	ElementType="Line" ProcessName="ImposeVectorValueByDirectionProcess" help="" units="m/s" unit_magnitude="Velocity">
@@ -15,7 +15,7 @@
     </outputs>
   </ConditionItem>
   
-  <ConditionItem n="Inlet3D" pn="Inlet velocity" ImplementedInFile=".cpp" Interval="Total"
+  <ConditionItem n="Inlet3D" pn="Inlet velocity" ImplementedInFile=".cpp" Interval="False"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="2" SkinConditions="True" VariableName="VELOCITY" App="Fluid"
 	ElementType="Surface" ProcessName="ImposeVectorValueByDirectionProcess" help="" units="m/s" unit_magnitude="Velocity">
@@ -30,7 +30,7 @@
     </outputs>
   </ConditionItem>
   
-  <ConditionItem n="Outlet2D" pn="Outlet pressure" ImplementedInFile=".cpp" Interval="Total"
+  <ConditionItem n="Outlet2D" pn="Outlet pressure" ImplementedInFile=".cpp" Interval="False"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" VariableName="PRESSURE" App="Fluid"
 	ElementType="Point,Line" ProcessName="ApplyOutletProcess" help="Fixes the pressure to a constant scalar value."  units="Pa" unit_magnitude="P">
@@ -46,7 +46,7 @@
     </outputs>
   </ConditionItem>
   
-  <ConditionItem n="HydrostaticOutlet2D" pn="Hydrostatic outlet pressure" ImplementedInFile=".cpp" Interval="Total"
+  <ConditionItem n="HydrostaticOutlet2D" pn="Hydrostatic outlet pressure" ImplementedInFile=".cpp" Interval="False"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" VariableName="EXTERNAL_PRESSURE" App="Fluid"
 	ElementType="Line" ProcessName="ApplyHydrostaticOutletProcess" help="Applies a hydrostatic external pressure distribution" >
@@ -61,7 +61,7 @@
     </outputs>
   </ConditionItem>
   
-  <ConditionItem n="Outlet3D" pn="Outlet pressure" ImplementedInFile=".cpp" Interval="Total"
+  <ConditionItem n="Outlet3D" pn="Outlet pressure" ImplementedInFile=".cpp" Interval="False"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="2" SkinConditions="True" VariableName="PRESSURE" App="Fluid"
 	ElementType="Point,Line,Surface" ProcessName="ApplyOutletProcess" help="Fixes the pressure to a constant scalar value."  units="Pa" unit_magnitude="P">
@@ -78,7 +78,7 @@
     </outputs>
   </ConditionItem>
   
-  <ConditionItem n="HydrostaticOutlet3D" pn="Hydrostatic outlet pressure" ImplementedInFile=".cpp" Interval="Total"
+  <ConditionItem n="HydrostaticOutlet3D" pn="Hydrostatic outlet pressure" ImplementedInFile=".cpp" Interval="False"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="1" SkinConditions="True" VariableName="EXTERNAL_PRESSURE" App="Fluid"
 	ElementType="Line" ProcessName="ApplyHydrostaticOutletProcess" help="Applies a hydrostatic external pressure distribution" >
@@ -154,7 +154,7 @@
     </outputs>
   </ConditionItem>
   
-  <ConditionItem n="VelocityConstraints2D" pn="Custom velocity constraints" ImplementedInFile=".cpp" Interval="Total"
+  <ConditionItem n="VelocityConstraints2D" pn="Custom velocity constraints" ImplementedInFile=".cpp" Interval="False"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="2" SkinConditions="False" ElementType="Point,Line"  App="Fluid"
     ProcessName="ImposeVectorValueByComponentsProcess" VariableName="VELOCITY" help=""  units="m/s" unit_magnitude="Velocity">
@@ -168,7 +168,7 @@
     </outputs>
   </ConditionItem>
   
-  <ConditionItem n="VelocityConstraints3D" pn="Custom velocity constraints" ImplementedInFile=".cpp" Interval="Total"
+  <ConditionItem n="VelocityConstraints3D" pn="Custom velocity constraints" ImplementedInFile=".cpp" Interval="False"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="Development" App="Fluid"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="3" SkinConditions="False" ElementType="Point,Line,Surface" 
     ProcessName="ImposeVectorValueByComponentsProcess" VariableName="VELOCITY" help=""  units="m/s" unit_magnitude="Velocity">
