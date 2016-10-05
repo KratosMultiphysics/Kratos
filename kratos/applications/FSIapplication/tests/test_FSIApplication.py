@@ -15,6 +15,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from SmallTests import NonConformantOneSideMap2D_test1 as TNonConformantOneSideMap2D_test1
 from SmallTests import NonConformantOneSideMap2D_test2 as TNonConformantOneSideMap2D_test2
 from SmallTests import ConvergenceAcceleratorTest as TConvergenceAcceleratorTest
+from SmallTests import FSIProblemEmulatorTest as TFSIProblemEmulatorTest
 #~ from SmallTests import NonConformantOneSideMap3D_test2 as TNonConformantOneSideMap3D_test2
 
 ## NIGTHLY TESTS
@@ -42,6 +43,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TNonConformantOneSideMap2D_test1('test_execution'))
     smallSuite.addTest(TNonConformantOneSideMap2D_test2('test_execution'))
     smallSuite.addTest(TConvergenceAcceleratorTest('test_execution'))
+    smallSuite.addTest(TFSIProblemEmulatorTest('test_execution'))
     #~ smallSuite.addTest(TNonConformantOneSideMap3D_test2('test_execution'))
 
     # Create a test suit with the selected tests plus all small tests
@@ -59,7 +61,8 @@ def AssambleTestSuites():
         KratosUnittest.TestLoader().loadTestsFromTestCases([
             TNonConformantOneSideMap2D_test1,
             TNonConformantOneSideMap2D_test2,
-            TConvergenceAcceleratorTest
+            TConvergenceAcceleratorTest,
+            TFSIProblemEmulatorTest
             #~ TNonConformantOneSideMap3D_test2,
             #~ TMokBenchmarkTest
             #####TTurekBenchmarkTest
