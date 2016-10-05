@@ -220,7 +220,7 @@ class PartitionedFSISolver:
 
     def AddVariables(self):
         ## Structure variables addition
-        # Standard CFD variables addition
+        # Standard CSM variables addition
         self.structure_solver.AddVariables()
         
         ## Fluid variables addition
@@ -646,7 +646,7 @@ class PartitionedFSISolver:
                                                          distribute_load)     
         
         # Solve structure problem
-        self.structure_solver.SolverPredict() # NOTE: If the Predict() is not performed convergence is not achieved...
+        #~ self.structure_solver.SolverPredict() # NOTE: If the Predict() is not performed convergence is not achieved...
         self.structure_solver.SolverSolveSolutionStep()
         
         # Project the structure velocity onto the fluid interface
@@ -722,7 +722,7 @@ class PartitionedFSISolver:
                                                          distribute_load)             
         
         # Solve structure problem
-        self.structure_solver.SolverPredict() # NOTE: If the Predict() is not performed not convergence is achieved...
+        #~ self.structure_solver.SolverPredict() # NOTE: If the Predict() is not performed not convergence is achieved...
         self.structure_solver.SolverSolveSolutionStep()    
         
         # Project the structure velocity onto the fluid interface
