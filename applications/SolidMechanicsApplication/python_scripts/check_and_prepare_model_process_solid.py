@@ -23,8 +23,8 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
         
         #construct body model parts:
-        if( len(self.bodies_parts_list) != 0 ):
-            for i in range(len(self.bodies_parts_list)):
+        if( self.bodies_parts_list.size() != 0 ):
+            for i in range(self.bodies_parts_list.size()):
                 #create body model part
                 body_model_part_name = self.bodies_parts_list[i]["body_name"].GetString()
                 self.main_model_part.CreateSubModelPart(body_model_part_name)
@@ -37,7 +37,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                 #build body from their parts
                 body_parts_name_list = self.bodies_parts_list[i]["parts_list"]
                 body_parts_list = []
-                for j in range(len(body_parts_name_list)):
+                for j in range(body_parts_name_list.size()):
                     body_parts_list.append(self.main_model_part.GetSubModelPart(body_parts_name_list[j].GetString()))
                     
                 for part in body_parts_list:
