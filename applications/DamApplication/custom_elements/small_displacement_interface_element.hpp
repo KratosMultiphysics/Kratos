@@ -126,12 +126,10 @@ protected:
     };
     
     // Member Variables
-    
     GeometryData::IntegrationMethod mThisIntegrationMethod;
-    
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-    
-    Vector mInitialGap;
+    std::vector<double> mInitialGap;
+    std::vector<bool> mIsOpen;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
