@@ -23,7 +23,7 @@ class AssignValueAndDirectionToVectorProcess(KratosMultiphysics.Process):
              "variable_name": "VARIABLE_NAME",
              "interval": [0.0, 0.0],
              "time_function": "constant",
-             "factor" : 0.0,
+             "modulus" : 0.0,
              "direction": [0.0, 0.0, 0.0]
         }
         """)
@@ -62,7 +62,7 @@ class AssignValueAndDirectionToVectorProcess(KratosMultiphysics.Process):
         self.FixDofsProcesses     = []
         self.FreeDofsProcesses    = []
 
-        factor = self.settings["factor"].GetDouble();
+        modulus = self.settings["modulus"].GetDouble();
 
         direction   = []
         scalar_prod = 0 
@@ -75,7 +75,7 @@ class AssignValueAndDirectionToVectorProcess(KratosMultiphysics.Process):
         self.value = []
         if( norm != 0.0 ):
             for j in direction:
-                self.value.append( j*factor/norm )
+                self.value.append( j*modulus/norm )
         else:
             for j in direction:
                 self.value.append(0.0)

@@ -470,7 +470,7 @@
 	    "time_function"   : "*cond(Time_Function_Name)",
 *endif
 *endif
-            "factor"          : *cond(Value),
+            "modulus"         : *cond(Value),
             "direction"       : [*tcl(JoinByComma *cond(Direction))]
 	    }
 *if( Counter == numberloads )
@@ -512,7 +512,7 @@
 	    "time_function"   : "*cond(Time_Function_Name)",
 *endif
 *endif
-            "factor"          : *cond(Value),
+            "modulus"         : *cond(Value),
             "direction"       : [*tcl(JoinByComma *cond(Direction))]
 	    }
 *if( Counter == numberloads )
