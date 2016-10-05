@@ -2,6 +2,7 @@
 ==============================================================================
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
+/*
 ==============================================================================
 KratosMultiScaleApplication
 A library based on:
@@ -566,11 +567,11 @@ public:
     typedef typename TSparseSpaceType::VectorType VectorType;
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
-
+	
 	typedef LUSkylineFactorizationV2<TSparseSpaceType, TDenseSpaceType> FactorizationType;
-
+	
 public:
-
+	
     SkylineLUFactorizationLinearSolverV2()
 		: m_pSolver(NULL)
 	{
@@ -584,7 +585,7 @@ public:
 private:
 
 public:
-
+	
 	void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
     }
@@ -655,7 +656,7 @@ public:
 
     void  PrintInfo(std::ostream& rOStream) const
     {
-		std::cout << "Eigenlib LU Linear\n";
+		std::cout << "Skyline LU Factorization Linear\n";
     }
 
     void  PrintData(std::ostream& rOStream) const
@@ -665,7 +666,7 @@ public:
 private:
 
     SkylineLUFactorizationLinearSolverV2& operator=(const SkylineLUFactorizationLinearSolverV2& Other);
-
+	
 private:
 
 	FactorizationType* m_pSolver;
@@ -698,4 +699,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SKYLINE_LINEAR_SOLVER_V2_H_INCLUDED  defined
+#endif // KRATOS_SKYLINE_LINEAR_SOLVER_V2_H_INCLUDED  defined 

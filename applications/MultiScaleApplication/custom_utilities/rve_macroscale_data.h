@@ -102,6 +102,7 @@ namespace Kratos
 					 const RveGeometryDescriptor& geomdes)
 		{
 			mStrainVector = param_macro.GetStrainVector();
+			//std::cout << "SetData -> mStrainVector = " << mStrainVector << std::endl;
 			/**
 			we can get also other stuff like:
 			TEMPERATURE on nodes (geom[i].FastGet,....) and interpolate them with (params.GetShapeFunc...)
