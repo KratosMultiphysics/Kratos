@@ -17,17 +17,26 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         model_part1.CreateNewElement("Element2D3N", 1, [1,2,3], model_part1.GetProperties()[1])
         model_part1.CreateNewElement("Element2D3N", 2, [1,2,4], model_part1.GetProperties()[1])
         
+        model_part1.CreateNewCondition("Condition2D2N", 2, [2,4], model_part1.GetProperties()[1])
+        
         new_model_part = KratosMultiphysics.ModelPart("Other")
         modeler = KratosMultiphysics.ConnectivityPreserveModeler()
         modeler.GenerateModelPart(model_part1, new_model_part, "Element2D3N", "Condition2D2N")
         
         self.assertEqual(len(model_part1.Nodes) , len(new_model_part.Nodes))
+        self.assertEqual(len(model_part1.Conditions) , len(new_model_part.Conditions))
+        self.assertEqual(len(model_part1.Elements) , len(new_model_part.Elements))
         
         ##assign a value to an element in model_part1, the corresponding element in the other model part will not be changed
         model_part1.Elements[1].SetValue(KratosMultiphysics.DISTANCE, 1.0)
         self.assertEqual(model_part1.Elements[1].GetValue(KratosMultiphysics.DISTANCE) , 1.0)
         self.assertEqual(new_model_part.Elements[1].GetValue(KratosMultiphysics.DISTANCE) , 0.0)
-        
+    
+        ##assign a value to an element in model_part1, the corresponding element in the other model part will not be changed
+        model_part1.Conditions[1].SetValue(KratosMultiphysics.DISTANCE, 1.0)
+        self.assertEqual(model_part1.Conditions[1].GetValue(KratosMultiphysics.DISTANCE) , 1.0)
+        self.assertEqual(new_model_part.Conditions[1].GetValue(KratosMultiphysics.DISTANCE) , 0.0)
+
         #assign a value to a node of new_model_part --> affects both model parts
         new_model_part.Nodes[1].SetSolutionStepValue(KratosMultiphysics.DISTANCE,0,2.0)
         self.assertEqual(model_part1.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DISTANCE)   , 2.0) 
