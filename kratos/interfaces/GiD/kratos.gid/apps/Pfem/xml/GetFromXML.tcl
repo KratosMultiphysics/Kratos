@@ -126,7 +126,7 @@ proc Pfem::xml::ProcCheckNodalConditionStateSolid {domNode args} {
 			foreach elem $elems { lappend elemnames [$elem @v]}
 			set elemnames [lsort -unique $elemnames]
 			
-			set solutionType [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute PFEM_AnalysisType]] v]
+			set solutionType [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute PFEM_SolutionType]] v]
 			set params [list analysis_type $solutionType]
 			if {[::Model::CheckElementsNodalCondition $conditionId $elemnames $params]} {return "normal"} else {return "hidden"}
 		} {return "normal"}
