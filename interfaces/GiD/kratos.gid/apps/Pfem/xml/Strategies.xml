@@ -134,6 +134,59 @@
   </schemes>
   
 </StrategyItem>
+<StrategyItem n="GenericSolStrat" pn="Generic solution" SolutionType="Static"
+                ImplementedInFile="mechanical_strategy.cpp"
+                ImplementedInApplication="SolidMechanicsApplication"
+                ImplementedInPythonFile="solid_mechanics_static_solver"
+                MinimumKratosVersion="8500" App="Solid"
+                ProductionReady="ProductionReady"
+                help="Default solver Super LU">
+    
+    <!-- list of options to be filled -->
+    <parameter_list> 
+
+        <parameter n="line_search" pn="Line search" type="bool" v="false" values="false,true"
+            help="Switch on/off line search"/> 
+        <parameter n="convergence_criterion" pn="Convergence criterion" type="combo" v="Residual_criterion" 
+         values ="Residual_criterion,Displacement_criterion,And_criterion,Or_criterion" 
+         pvalues ="Residual criterion,Displacement criterion,And criterion,Or criterion" 
+         help="These are the available convergence criteria for the nonlinear iteration">      
+            <parameter n="displacement_relative_tolerance" pn="Displacement relative tolerance" type="double" v="1e-4" parent="Displacement_criterion,And_criterion,Or_criterion" 
+               help="Relative displacement tolerance employed in the nonlinear iteration"/>      
+            <parameter n="displacement_absolute_tolerance" pn="Displacement absolute tolerance" type="double" v="1e-9" parent="Displacement_criterion,And_criterion,Or_criterion" 
+               help="Absolute displacement tolerance employed in the nonlinear iteration"/>      
+            <parameter n="residual_relative_tolerance" pn="Residual relative tolerance" type="double" v="1e-4" parent="Residual_criterion,And_criterion,Or_criterion" 
+               help="Relative residual tolerance employed in the nonlinear iteration"/>      
+            <parameter n="residual_absolute_tolerance" pn="Residual absolute tolerance" type="double" v="1e-9" parent="Residual_criterion,And_criterion,Or_criterion" 
+               help="Absolute residual tolerance employed in the nonlinear iteration"/>
+        </parameter>
+        <parameter n="max_iteration" pn="Maximum iterations" type="integer" v="10" 
+           help="This number will break the iterative loop when reached"/> 
+    </parameter_list>
+    
+    <linearSolvers>
+      <linearSolverItem n="linear_solver_settings" pn="Linear Solver" >
+        <filterFeatures>
+		   <filter field="SolverType" value="Standard"/>
+        </filterFeatures>
+		<defaults>
+		  <solver n="SuperLUSolver">
+		  </solver>
+		</defaults>
+      </linearSolverItem>     
+    </linearSolvers>
+	
+	<schemes>
+	  <scheme n="GenericScheme" pn="Generic scheme" ProductionReady="ProductionReady">
+          <parameter_list>
+		  </parameter_list>
+		  <element_filters>
+			 <filter field="ImplementedInApplication" value="SolidMechanicsApplication,PfemSolidMechanicsApplication"/>
+		  </element_filters>
+	  </scheme>
+	</schemes>
+	
+</StrategyItem>
 <StrategyItem n="TwoStepVPStrategy" pn="Fractional Step (Fluid)" SolutionType="Dynamic"
 	      ImplementedInFile="two_step_v_p_solver.py"
 	      ImplementedInApplication="PfemFluidDynamicsApplication"

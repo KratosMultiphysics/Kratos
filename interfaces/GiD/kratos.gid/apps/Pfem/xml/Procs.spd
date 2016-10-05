@@ -32,5 +32,43 @@
 	  return [Pfem::xml::ProcGetElements $domNode $args]
 	  ]]>
 	</proc>
+	<proc n='SolutionTypeState' args='args'>
+	  <![CDATA[
+	  return [Pfem::xml::ProcSolutionTypeState $domNode $args]
+	  ]]>
+	</proc>
+	
+	
+		 	<proc n='GetSolutionStrategiesPFEM' args='args'>
+	  <![CDATA[
+	  
+		set names ""
+		set pnames ""
+		set solutionType [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute PFEM_SolutionType]] v]
+		set Sols [::Model::GetSolutionStrategies [list "SolutionType" $solutionType] ]
+        set ids [list ]
+		set domainType [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute PFEM_DomainType]] v]
+		set filter "Solid,Pfem"
+		if {$domainType eq "Solids"} {set filter "Solid"}
+		if {$domainType eq "Fluids"} {set filter "Pfem"}
+		foreach ss $Sols {
+			if {[$ss getAttribute "App"] in [split $filter ","]} {
+				lappend ids [$ss getName]
+				append names [$ss getName] ","
+				append pnames [$ss getName] "," [$ss getPublicName] ","
+			}
+		}
+		set names [string range $names 0 end-1]
+		set pnames [string range $pnames 0 end-1]
+		
+		$domNode setAttribute values $names
+			set dv [lindex $ids 0]
+			if {[$domNode getAttribute v] eq ""} {$domNode setAttribute v $dv}
+			if {[$domNode getAttribute v] ni $ids} {$domNode setAttribute v $dv}
+		spdAux::RequestRefresh
+		return $pnames
+	  
+	  ]]>
+	</proc>
 
 </container>

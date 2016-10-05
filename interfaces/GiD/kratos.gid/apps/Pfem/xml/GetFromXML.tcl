@@ -132,4 +132,23 @@ proc Pfem::xml::ProcCheckNodalConditionStateSolid {domNode args} {
 		} {return "normal"}
 }
 
+proc Pfem::xml::ProcSolutionTypeState {domNode args} {
+     set domain_type_un PFEM_DomainType
+     set domain_type_route [spdAux::getRoute $domain_type_un]
+     set state normal
+     if {$domain_type_route ne ""} {
+         set domain_type_node [$domNode selectNodes $domain_type_route]
+         set domain_type_value [get_domnode_attribute $domain_type_node v]
+         
+         if {$domain_type_value eq "Fluids"} {
+               $domNode setAttribute values Dynamic 
+               $domNode setAttribute v Dynamic
+               set state disabled
+         } {
+               $domNode setAttribute values "Dynamic,Static"
+               set state normal
+         }
+     } {return $state}
+}
+
 Pfem::xml::Init
