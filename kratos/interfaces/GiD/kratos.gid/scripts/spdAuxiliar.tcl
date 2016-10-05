@@ -728,7 +728,8 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
                 set values "1,0"
                 append node "<value n='$inName' pn='$pn' v='$v' values='$values'  help='$help' state='$state'/>"
             } else {
-                append node "<value n='$inName' pn='$pn' v='$v'  units='$units'  unit_magnitude='$um'  help='$help'/>"
+                append node "<value n='$inName' pn='$pn' v='$v'   help='$help'/>"
+                #append node "<value n='$inName' pn='$pn' v='$v'  units='$units'  unit_magnitude='$um'  help='$help'/>"
             }
         }
         
@@ -752,7 +753,7 @@ proc spdAux::injectElementInputs { basenode args} {
         set help [$in getHelp] 
         set v [$in getDv]
         #set node "<value n='$inName' pn='$pn' state='\[PartParamState\]' v='-' units='$units' unit_magnitude='$um' help='$help' />"
-        set node "<value n='$inName' pn='$pn' state='\[PartParamState\]' v='$v' units='$units' unit_magnitude='$um' help='$help' />"
+        set node "<value n='$inName' pn='$pn' state='\[PartParamState\]' v='$v' help='$help' />"
         catch {
                 $parts appendXML $node
                 set orig [$parts lastChild]
@@ -779,7 +780,8 @@ proc spdAux::injectConstitutiveLawInputs { basenode  args} {
             set um [$in getUnitMagnitude]
             set help [$in getHelp]
             set v [$in getDv]
-            set node "<value n='$inName' pn='$pn' state='\[PartParamState\]' v='$v' units='$units' unit_magnitude='$um' help='$help' />"
+            #set node "<value n='$inName' pn='$pn' state='\[PartParamState\]' v='$v' units='$units' unit_magnitude='$um' help='$help' />"
+            set node "<value n='$inName' pn='$pn' state='\[PartParamState\]' v='$v' help='$help' />"
             catch {
                 $parts appendXML $node
                 set orig [$parts lastChild]
