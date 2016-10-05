@@ -147,10 +147,10 @@ proc apps::LoadAppById {appid} {
     }
 }
 
-proc apps::isRelease {appId} {
+proc apps::isPublic {appId} {
     set app [getAppById $appId]
     if {$app eq ""} {return 0}
-    return [$app isRelease]
+    return [$app isPublic]
 }
 
 proc apps::CheckElemState {elem inputid {arg ""} } {
@@ -180,7 +180,7 @@ oo::class create App {
         variable writeParametersEvent
         variable writeCustomEvent
         variable prefix
-        variable release
+        variable public
         
         set name $n
         set publicname $n
@@ -195,7 +195,7 @@ oo::class create App {
         append writeCustomEvent "::write"
         append writeCustomEvent "::writeCustomFilesEvent"
         set prefix ""
-        set release 0
+        set public 0
     }
     
     method activate { } {
@@ -238,13 +238,13 @@ oo::class create App {
         $f {*}$args
 	}
     
-    method setRelease {v} {
-        variable release
-        set release $v
+    method setPublic {v} {
+        variable public
+        set public $v
     }
-    method isRelease { } {
-        variable release
-        return $release
+    method isPublic { } {
+        variable public
+        return $public
     }
 }
 

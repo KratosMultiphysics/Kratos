@@ -7,13 +7,13 @@
   <hiddenfield n="activeapp" active="0" v="" state="disabled"/>
   <value n="nDim" pn="Dimension" un="nDim" v="undefined" state="disabled" values="undefined,2D,2Da,3D" dict="undefined,Undefined,2D,2D,2Da,2D axisymmetric,3D,3D"/>
   
-  <appLink n="Structural" pn="Structural" active="0" appid="Structural" prefix="ST" release="1"/>
-  <appLink n="Solid" pn="Solid" active="0" appid="Solid" prefix="SL"/>
-  <appLink n="Fluid" pn="Fluid" active="0" appid="Fluid" prefix="FL"  release="1"/>
-  <appLink n="FSI" pn="FSI" active="0" appid="FSI" prefix="FSI"  release="0"/>
-  <appLink n="Pfem" pn="Pfem" active="0" appid="Pfem" prefix="PFEM_"/>
-  <appLink n="StenosisWizard" pn="Stenosis Wizard" active="0" appid="StenosisWizard" prefix="StenosisWizard"/>
-  <appLink n="Dam" pn="Dam" active="0" appid="Dam" prefix="Dam"/>
+  <appLink n="Structural"		public="1" pn="Structural" active="0" appid="Structural" prefix="ST"/>
+  <appLink n="Solid" 			public="1" pn="Solid" active="0" appid="Solid" prefix="SL"/>
+  <appLink n="Fluid" 			public="1" pn="Fluid" active="0" appid="Fluid" prefix="FL"/>
+  <appLink n="FSI" 				public="1" pn="FSI" active="0" appid="FSI" prefix="FSI"/>
+  <appLink n="Pfem" 			public="1" pn="Pfem" active="0" appid="Pfem" prefix="PFEM_"/>
+  <appLink n="StenosisWizard" 	public="1" pn="Stenosis Wizard" active="0" appid="StenosisWizard" prefix="StenosisWizard"/>
+  <appLink n="Dam" 				public="1" pn="Dam" active="0" appid="Dam" prefix="Dam"/>
   
   <blockdata n="units" pn="Units" icon="units">
     <value n='units_mesh' pn='Mesh units' unit_mesh_definition="1"/>
