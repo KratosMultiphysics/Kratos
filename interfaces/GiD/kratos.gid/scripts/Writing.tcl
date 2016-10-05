@@ -934,9 +934,12 @@ proc write::getIntervalsDict { { un "Intervals" } {appid "" } } {
             set xpend "value\[@n='EndTime'\]"
             set ininode [$intNode selectNodes $xpini]
             set endnode [$intNode selectNodes $xpend]
-            set ini [expr [get_domnode_attribute $ininode v]]
-            set end [get_domnode_attribute $endnode v]
-            if {$end ne "end" && $end ne "End"} {set end [expr [get_domnode_attribute $endnode v]] }
+            set ini ""
+            set end ""
+            catch {set ini [expr [get_domnode_attribute $ininode v]]}
+            catch {set end [expr [get_domnode_attribute $endnode v]]}
+            if {$ini eq ""} {set ini [get_domnode_attribute $ininode v]}
+            if {$end eq ""} {set end [get_domnode_attribute $endnode v]}
             dict set intervalsDict $name [list $ini $end]
         }
     }
@@ -948,10 +951,6 @@ proc write::getInterval { interval {un "Intervals"} {appid "" }  } {
     set intervals [write::getIntervalsDict $un]
     foreach int [dict keys $intervals] {
         if {$int eq $interval} {lassign [dict get $intervals $int] ini end}
-    }
-    if {$end eq "end" || $end eq "End"} {
-        if {$appid eq ""} {set appid [apps::getActiveAppId]}
-        set end [write::getValue [apps::getAppUniqueName $appid TimeParameters] EndTime]
     }
     return [list $ini $end]
 }
