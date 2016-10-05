@@ -641,8 +641,7 @@ class SolutionStageWithDamageInfo:
 		increment_max = self.TimeLine.MaxIncrement
 		
 		counter = 0 #Counter for the damaged surfaces
-		# damage_limit_surf = [self.ModelPartMechanical.ProcessInfo[RVE_DAMAGE_SURFACE_LIMIT]];
-		damage_limit_surf = [0.001,0.005,0.01,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,0.99,0.995,0.999,0.9995,0.9999];
+		damage_limit_surf = [self.ModelPartMechanical.ProcessInfo[RVE_DAMAGE_SURFACE_LIMIT]];
 		damage_reached_flag = 0
 		num_surf = len(damage_limit_surf)
 		# begin time incrementation loop
@@ -747,8 +746,8 @@ class SolutionStageWithDamageInfo:
 							print("")
 							print("")
 							print("")
-							print("             Final Damage: ", damage_limit_surf[counter], " Reached!")
-							# print("             Final Damage: ", damage_limit_surf, " Reached!")
+							# print("             Final Damage: ", damage_limit_surf[counter], " Reached!")
+							print("             Final Damage: ", damage_limit_surf, " Reached!")
 							print("")
 							print("")
 							print("")
@@ -760,9 +759,7 @@ class SolutionStageWithDamageInfo:
 							tag = self.ModelPartMechanical.ProcessInfo[ACTUAL_TAG]
 							reached_damage = self.ModelPartMechanical.Elements[1].GetValuesOnIntegrationPoints(EQUIVALENT_DAMAGE, self.ModelPartMechanical.ProcessInfo)
 							print(reached_damage)
-							damage_error = abs(reached_damage[0][0]-damage_limit_surf[counter])/damage_limit_surf[counter]
-							# if (reached_damage[0][0] >= 0.99*damage_limit_surf[counter]) & (reached_damage[0][0] <= 1.01*damage_limit_surf[counter]):
-							if (damage_error < 0.01):
+							if (reached_damage[0][0] >= 0.99*damage_limit_surf[counter]) & (reached_damage[0][0] <= 1.01*damage_limit_surf[counter]):
 							# if (reached_damage[0][0] >= 0.99*damage_limit_surf) & (reached_damage[0][0] <= 1.01*damage_limit_surf):
 								if (len(strain[0]) == 4):
 									ofile.write(str(reached_damage[0]) + "   " + str(tag[0]) + "," + str(tag[1]) + "   " + str(strain[0][0]) + " " + str(strain[0][3]) + " " + str(strain[0][1]) + "   " + str(stress[0][0]) + " " + str(stress[0][3]) + " " + str(stress[0][1]) + "   " + str(C[0])+ '\n')
@@ -798,9 +795,7 @@ class SolutionStageWithDamageInfo:
 							tag = self.ModelPartMechanical.ProcessInfo[ACTUAL_TAG]
 							reached_damage = self.ModelPartMechanical.Elements[1].GetValuesOnIntegrationPoints(EQUIVALENT_DAMAGE, self.ModelPartMechanical.ProcessInfo)
 							print(reached_damage)
-							damage_error = abs(reached_damage[0][0]-damage_limit_surf[counter])/damage_limit_surf[counter]
-							# if (reached_damage[0][0] >= 0.99*damage_limit_surf[counter]) & (reached_damage[0][0] <= 1.01*damage_limit_surf[counter]):
-							if (damage_error < 0.01):
+							if (reached_damage[0][0] >= 0.99*damage_limit_surf[counter]) & (reached_damage[0][0] <= 1.01*damage_limit_surf[counter]):
 							# if (reached_damage[0][0] >= 0.99*damage_limit_surf) & (reached_damage[0][0] <= 1.01*damage_limit_surf):
 								if (len(strain[0]) == 4):
 									ofile.write(str(reached_damage[0]) + "   " + str(tag[0]) + "," + str(tag[1]) + "   " + str(strain[0][0]) + " " + str(strain[0][3]) + " " + str(strain[0][1]) + "   " + str(stress[0][0]) + " " + str(stress[0][3]) + " " + str(stress[0][1]) + "   " + str(C[0])+ '\n')

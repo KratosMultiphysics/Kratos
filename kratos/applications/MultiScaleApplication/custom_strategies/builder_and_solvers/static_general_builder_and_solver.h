@@ -190,7 +190,7 @@ public:
             //contributions to the system
             LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
             LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-
+			
             //vector containing the localization in the system of the different
             //terms
             Element::EquationIdVectorType EquationId;
@@ -205,7 +205,7 @@ public:
             {
                 //calculate elemental contribution
                 pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-
+				
                 //assemble the elemental contribution
                 Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, lock_array);
 
@@ -467,7 +467,7 @@ public:
 
         //getting the array of the conditions
         ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
-
+		
          //resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
 
@@ -510,10 +510,10 @@ public:
         //creating an array of lock variables of the size of the system vector
         /*std::vector< omp_lock_t > lock_array(b.size());*/
 	    int total_size = b.size();
-	    if (BaseType::mCalculateReactionsFlag)
+	    if (BaseType::mCalculateReactionsFlag) 
 			total_size += (*BaseType::mpReactionsVector).size();
 	    std::vector< omp_lock_t > lock_array(total_size);
-
+	
         //int b_size = b.size();
         for (int i = 0; i < total_size; i++)
             omp_init_lock(&lock_array[i]);
@@ -530,7 +530,7 @@ public:
             KRATOS_WATCH( number_of_threads )
             KRATOS_WATCH( element_partition )
         }
-
+		
         double start_prod = omp_get_wtime();
 
         #pragma omp parallel for
@@ -604,10 +604,10 @@ public:
         }
 
 #endif
-
+		
 		mTotalBuildTime += Timer::GetTime() - time_begin;
     }
-
+    
     void SetUpDofSet(typename TSchemeType::Pointer pScheme, ModelPart& r_model_part)
     {
         KRATOS_TRY;
@@ -1081,7 +1081,7 @@ private:
             }
         }
     }
-
+	
 	void AssembleRHS(TSystemVectorType& b,
                      const LocalSystemVectorType& RHS_Contribution,
                      Element::EquationIdVectorType& EquationId,
@@ -1119,7 +1119,7 @@ private:
 				}
                 else   //on "fixed" DOFs
 				{
-					// bug fixed: lock_array now has dimension(=num_free + num_fixed) if
+					// bug fixed: lock_array now has dimension(=num_free + num_fixed) if 
 					// calculate reaction is needed
 					omp_set_lock(&lock_array[i_global/* - BaseType::mEquationSystemSize*/]);
                     ReactionsVector[i_global - BaseType::mEquationSystemSize] -= RHS_Contribution[i_local];
@@ -1136,3 +1136,4 @@ private:
 }
 
 #endif /* KRATOS_STATIC_GENERAL_BUILDER_AND_SOLVER  defined */
+

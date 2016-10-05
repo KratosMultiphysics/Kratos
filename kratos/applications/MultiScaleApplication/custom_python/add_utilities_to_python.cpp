@@ -228,6 +228,7 @@ void AddUtilitiesToPython()
 	def("AddPeriodicCondition", &AddPeriodicCondition);
 
 	def("RveCloneModelPart", &RveUtilities::CloneModelPart);
+	def("RveCloneModelPart2Physics", &RveUtilities::CloneModelPart2Physics);
 	def("ReorientNarrowQuads", &RveUtilities::ReorientNarrowQuads);
 	def("ReorientQuadsX", &RveUtilities::ReorientQuadsX);
 	def("ReorientQuadsY", &RveUtilities::ReorientQuadsY);
@@ -287,10 +288,7 @@ void AddUtilitiesToPython()
 	// RVE -  These should be moved to .. AddRveToPython
 	//
 	// ===============================================================================
-
-
-	def("RveCloneModelPart", &RveUtilities::CloneModelPart);
-	def("RveCloneModelPart2Physics", &RveUtilities::CloneModelPart2Physics);
+	
 	typedef UblasSpace<double, CompressedMatrix, Vector>   SparseSpaceType;
 	typedef UblasSpace<double, Matrix, Vector>			   LocalSpaceType;
 	typedef LinearSolver<SparseSpaceType, LocalSpaceType>  LinearSolverBaseType;

@@ -62,7 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	template<class TSparseSpace,
+	template<class TSparseSpace, 
 			 class TDenseSpace>
 	class RveConstraintHandler
 	{
@@ -84,7 +84,7 @@ namespace Kratos
 		typedef std::vector< double > DoubleContainerType;
 
 	public:
-
+		
 		RveConstraintHandler()
 		{
 		}
@@ -95,9 +95,9 @@ namespace Kratos
 
 	public:
 
-		virtual void SetupDofSet(ModelPart& mp,
+		virtual void SetupDofSet(ModelPart& mp, 
 								 const RveGeometryDescriptor& geom,
-								 SchemePointerType& pScheme,
+								 SchemePointerType& pScheme, 
 								 DofsArrayType& dofset)
 		{
 			ElementsArrayType& pElements = mp.Elements();
@@ -125,9 +125,9 @@ namespace Kratos
 			dofset = temp;
 		}
 
-		virtual void SetUpSystem(ModelPart& mp,
+		virtual void SetUpSystem(ModelPart& mp, 
 								 const RveGeometryDescriptor& geom,
-								 DofsArrayType& dofset,
+								 DofsArrayType& dofset, 
 								 size_t& equation_system_size,
 								 IndexContainerType& transformed_equation_ids,
 								 IndexContainerType& equation_id_flag)
@@ -159,7 +159,7 @@ namespace Kratos
 			equation_system_size = fix_id;
 		}
 
-		virtual void AddConditions(ModelPart& mp,
+		virtual void AddConditions(ModelPart& mp, 
 								   const RveGeometryDescriptor& geom)
 		{
 			/**
@@ -170,7 +170,7 @@ namespace Kratos
 				rve.addcondition(minimalcondition2D(...))*/
 		}
 
-		virtual void ApplyMacroScaleData(ModelPart& mp,
+		virtual void ApplyMacroScaleData(ModelPart& mp, 
 										 const RveGeometryDescriptor& geom,
 										 const RveMacroscaleData& macroScaleData)
 		{
@@ -178,8 +178,8 @@ namespace Kratos
 			// for each element
 			//    element->SetValueOnGaussP(INITIAL_STRAIN, -macroScaleData.StrainVector())
 		}
-
-		virtual void FinalizeSolutionStep(ModelPart& mp,
+		
+		virtual void FinalizeSolutionStep(ModelPart& mp, 
 										 const RveGeometryDescriptor& geom,
 										 const RveMacroscaleData& macroScaleData)
 		{
@@ -187,7 +187,7 @@ namespace Kratos
 
 		// MAZ_01 +++++++++++++++++++++++++++++++++++++++++++++++
 		// this method can be used to modifiy the standard update
-		// made by the scheme.
+		// made by the scheme. 
 		// TODO:
 		// check if this is better than creating ad-hoc schemes
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++

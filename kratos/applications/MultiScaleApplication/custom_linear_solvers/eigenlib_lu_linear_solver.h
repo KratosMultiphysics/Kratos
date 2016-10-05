@@ -179,7 +179,7 @@ public:
 
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
-        if(IsNotConsistent(rA, rX, rB)) return false;
+		if (this->IsNotConsistent(rA, rX, rB)) return false;
 		int n = rX.size();
 		if(n < 1) return true;
 
@@ -192,7 +192,7 @@ public:
 
     bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
     {
-		if(IsNotConsistent(rA, rX, rB)) return false;
+		if (this->IsNotConsistent(rA, rX, rB)) return false;
 		int n = rX.size1();
 		if(n < 1) return true;
 		int nrhs = rX.size2();
