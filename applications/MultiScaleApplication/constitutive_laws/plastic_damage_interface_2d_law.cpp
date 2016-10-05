@@ -700,7 +700,7 @@ namespace Kratos
 		double c3    = d.c3;
 		double c4    = d.c4;
 		// fracture energy
-		double lch   = d.lch;
+		//double lch   = d.lch;
 		double Gdis = GfIII; // /lch; // note: already regularized in initialize data
 		// auto-computed stress parameters
 		double si = sp;
@@ -796,7 +796,7 @@ namespace Kratos
 		double c3 = d.c3;
 		double c4 = d.c4;
 		// fracture energy
-		double lch   = d.lch;
+		//double lch   = d.lch;
 		double Gdis = GfIII; // /lch; // note: already regularized in initialize data
 		// auto-computed stress parameters
 		double si = sp;
@@ -1601,9 +1601,9 @@ namespace Kratos
 	void PlasticDamageInterface2DLaw::CalculateAll(Parameters& rValues)
 	{
 		// get some references
-		const ProcessInfo&  pinfo = rValues.GetProcessInfo();
-		const GeometryType& geom  = rValues.GetElementGeometry();
-		const Properties&   props = rValues.GetMaterialProperties();
+		//const ProcessInfo&  pinfo = rValues.GetProcessInfo();
+		//const GeometryType& geom  = rValues.GetElementGeometry();
+		//const Properties&   props = rValues.GetMaterialProperties();
 
 		// input and output
 		Vector strain = rValues.GetStrainVector();
@@ -1688,7 +1688,7 @@ namespace Kratos
 		noalias(pt) = prod(p,trat);
 		double f3 = 0.5 * inner_prod(trat,pt) - fc*fc;
 		f3 *= CHULAFUN(trat(0));
-		double f30 = f3;
+		//double f30 = f3;
 
 		// compute a tolerance parameter for the evaluation of yielding
 		double tolarance_0 = RMAP_TOL;

@@ -1103,7 +1103,7 @@ namespace Kratos
 		for(SizeType intp_id = 0; intp_id < integrationPoints.size()/2; intp_id++)
 		{
 			// the current integration point
-			const GeometryType::IntegrationPointType& ip = integrationPoints[intp_id];
+			//const GeometryType::IntegrationPointType& ip = integrationPoints[intp_id];
 
 			// jacobianobian and local transformation
 			CalculateJacobianAndTransformationMatrix(intp_id, delta_position, jacobian, J, iR);
@@ -1226,7 +1226,7 @@ namespace Kratos
 		for(SizeType intp_id = 0; intp_id < integrationPoints.size()/2; intp_id++)
 		{
 			// the current integration point
-			const GeometryType::IntegrationPointType& ip = integrationPoints[intp_id];
+			//const GeometryType::IntegrationPointType& ip = integrationPoints[intp_id];
 
 			// jacobianobian and local transformation
 			CalculateJacobianAndTransformationMatrix(intp_id, delta_position, jacobian, J, iR);

@@ -126,10 +126,10 @@ namespace Kratos
 			if(mHasTemperature)
 			{
 				mhomogen_alpha = 0.0;
-				double alpha(0.0);
+				//double alpha(0.0);
 				double totalVolume(0.0);
 				double iterpolated_temp = 0.0;
-				double T0 = 0.0; // param_macro.GetMaterialProperties()[AMBIENT_TEMPERATURE]; // TODO: reference temp!!!!
+				double T0 = param_macro.GetMaterialProperties().Has(AMBIENT_TEMPERATURE) ? param_macro.GetMaterialProperties()[AMBIENT_TEMPERATURE] : 0.0;
 				const Vector& N = param_macro.GetShapeFunctionsValues();
 
 				const Element::GeometryType& geom_macro = param_macro.GetElementGeometry();

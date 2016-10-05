@@ -98,8 +98,8 @@ namespace Kratos
 			// Reed T_Data
 			double alpha(0.0);
 			double totalVolume(0.0);
-			double T0 = param_macro.GetMaterialProperties()[AMBIENT_TEMPERATURE]; // TODO: reference temp!!!!
-			const Vector& N = param_macro.GetShapeFunctionsValues();
+			//double T0 = param_macro.GetMaterialProperties().Has(AMBIENT_TEMPERATURE) ? param_macro.GetMaterialProperties()[AMBIENT_TEMPERATURE] : 0.0;
+			//const Vector& N = param_macro.GetShapeFunctionsValues();
 
 
 			//ProcessInfo& procInfo = modp_micro.GetProcessInfo();

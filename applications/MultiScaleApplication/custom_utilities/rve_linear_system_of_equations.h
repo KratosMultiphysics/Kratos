@@ -189,7 +189,7 @@ namespace Kratos
 							  SchemePointerType& pScheme,
 							  const RveGeometryDescriptor::IndexContainerType& elem_subset)
 		{
-			ElementsArrayType& pElements = mp.Elements();
+			//ElementsArrayType& pElements = mp.Elements();
 
 			TSparseSpace::SetToZero(m_b);
 			if(m_calculate_reactions)

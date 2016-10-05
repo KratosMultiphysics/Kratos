@@ -444,10 +444,10 @@ namespace Kratos
 			data.K_2 = props[CONDUCT_MAT2];
 			data.nu_2 = props[POISSON_MAT2];
 
-			double Ft_mec = props[YIELD_STRESS_T];
-			double C0_mec = props[INITIAL_COHESION];
-			double normal_scaling_factor = Ft_mec / data.Ks;
-			double tangential_scaling_factor = C0_mec / data.Kg;
+			//double Ft_mec = props[YIELD_STRESS_T];
+			//double C0_mec = props[INITIAL_COHESION];
+			//double normal_scaling_factor = Ft_mec / data.Ks;
+			//double tangential_scaling_factor = C0_mec / data.Kg;
 
 			data.Ft = props[YIELD_STRESS_T]; //Ft_mec * normal_scaling_factor;
 
@@ -650,7 +650,7 @@ namespace Kratos
 		Vector perturbedStrainVector(n);
 		Vector stressPerturbation(n);
 
-		for (int j = 0; j < n; j++)
+		for (size_t j = 0; j < n; j++)
 		{
 			// save internal variables
 			double save_k1 = mK1;

@@ -373,7 +373,7 @@ namespace Kratos
 											   RveMacroscaleData& macroScaleData,
 											   Vector& S)
 		{
-			ProcessInfo& processInfo = mp.GetProcessInfo();
+			//ProcessInfo& processInfo = mp.GetProcessInfo();
 
 			if(S.size() != 3) S.resize(3, false);
 			noalias(S) = ZeroVector(3);
@@ -450,7 +450,7 @@ namespace Kratos
 											   RveMacroscaleData& macroScaleData,
 											   Vector& S)
 		{
-			ProcessInfo& processInfo = mp.GetProcessInfo();
+			//ProcessInfo& processInfo = mp.GetProcessInfo();
 
 			if(S.size() != 6) S.resize(6, false);
 			noalias(S) = ZeroVector(6);

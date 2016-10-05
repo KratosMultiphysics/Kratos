@@ -1807,9 +1807,9 @@ namespace Kratos
 		noalias(stress_vector)  = (1.0 - m_damage_t)*data.ST;
 		noalias(stress_vector) += (1.0 - m_damage_c)*data.SC;
 		
-		double d1 = m_damage_t;
-		double d2 = m_damage_c;
-		double dd = std::max(d1, d2);
+		//double d1 = m_damage_t;
+		//double d2 = m_damage_c;
+		//double dd = std::max(d1, d2);
 		//std::cout << "m_damage_limit :" << m_damage_limit << std::endl;
 		//if (dd > data.damage_limit) {
 		//	m_error_code = -1.0;
