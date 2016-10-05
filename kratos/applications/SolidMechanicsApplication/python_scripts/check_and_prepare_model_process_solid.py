@@ -15,7 +15,9 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         self.processes_model_part_names = Parameters["processes_sub_model_part_list"]
 
         self.bodies_parts_list = []
+        self.bodies_list = False
         if( Parameters.Has("bodies_list") ):
+            self.bodies_parts = True
             self.bodies_parts_list = Parameters["bodies_list"]
         
         
@@ -23,7 +25,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
         
         #construct body model parts:
-        if( self.bodies_parts_list.size() != 0 ):
+        if( self.bodies_list == True ):
             for i in range(self.bodies_parts_list.size()):
                 #create body model part
                 body_model_part_name = self.bodies_parts_list[i]["body_name"].GetString()
