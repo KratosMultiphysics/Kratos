@@ -82,10 +82,10 @@ proc spdAux::processAppIncludes { root } {
         set appid [$elem getAttribute "appid"]
         set pn [$elem getAttribute "pn"]
         set prefix [$elem getAttribute "prefix"]
-        set release 0
-        catch {set release [$elem getAttribute "release"]}
+        set public 0
+        catch {set public [$elem getAttribute "public"]}
         set app [apps::NewApp $appid $pn $prefix]
-        $app setRelease $release
+        $app setPublic $public
         if {$active} {
             set dir $::Kratos::kratos_private(Path)
             set f [file join $dir apps $appid xml Main.spd]
@@ -180,7 +180,7 @@ proc spdAux::CreateWindow {} {
     set col 0
     set row 0
     foreach appname $appspn appid $appsid {
-        if {$::Kratos::kratos_private(DevMode) eq "dev" || [apps::isRelease $appname]} {
+        if {[apps::isPublic $appid]} {
             set img [::apps::getImgFrom $appid]
             ttk::button $w.information.img$appid -image $img -command [list apps::setActiveApp $appid]
             ttk::label $w.information.text$appid -text $appname
