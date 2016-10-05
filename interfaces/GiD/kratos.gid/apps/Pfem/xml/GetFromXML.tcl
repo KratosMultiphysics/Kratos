@@ -83,4 +83,53 @@ proc Pfem::xml::ProcGetElements {domNode args} {
      return $diction
 }
 
+proc Pfem::xml::ProcGetMeshingDomains {domNode args} {
+     set basepath [spdAux::getRoute "PFEM_meshing_domains"]
+        set values [list ]
+        foreach meshing_domain [[$domNode selectNodes $basepath] childNodes] {
+            #W [$meshing_domain asXML]
+            lappend values [get_domnode_attribute $meshing_domain name]
+        }
+        if {[get_domnode_attribute $domNode v] eq ""} {
+            $domNode setAttribute v [lindex $values 0]
+        }
+        return [join $values ,]
+}
+
+proc Pfem::xml::ProcGetContactDomains {domNode args} {
+     set basepath [spdAux::getRoute "PFEM_contact_domains"]
+        set values [list ]
+        set pvalues [list ]
+		catch {
+			foreach contact_domain [[$domNode selectNodes $basepath] childNodes] {
+				#W [$contact_domain asXML]
+				lappend values [get_domnode_attribute $contact_domain n]
+				lappend pvalues [get_domnode_attribute $contact_domain n]
+				lappend pvalues [get_domnode_attribute $contact_domain pn]
+			}
+		}
+		$domNode setAttribute values [join $values ,]
+		
+        if {[get_domnode_attribute $domNode v] eq "" || [get_domnode_attribute $domNode v] ni $values} {
+            $domNode setAttribute v [lindex $values 0]
+        }
+        return [join $pvalues ,]
+}
+
+proc Pfem::xml::ProcCheckNodalConditionStateSolid {domNode args} {
+     # Overwritten the base function to add Solution Type restrictions
+		set parts_un PFEM_Parts
+	    if {[spdAux::getRoute $parts_un] ne ""} {
+			set conditionId [$domNode @n]
+			set elems [$domNode selectNodes "[spdAux::getRoute $parts_un]/group/value\[@n='Element'\]"]
+			set elemnames [list ]
+			foreach elem $elems { lappend elemnames [$elem @v]}
+			set elemnames [lsort -unique $elemnames]
+			
+			set solutionType [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute PFEM_AnalysisType]] v]
+			set params [list analysis_type $solutionType]
+			if {[::Model::CheckElementsNodalCondition $conditionId $elemnames $params]} {return "normal"} else {return "hidden"}
+		} {return "normal"}
+}
+
 Pfem::xml::Init
