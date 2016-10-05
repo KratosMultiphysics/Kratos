@@ -120,14 +120,7 @@ void CloneModelPart(ModelPart& source, ModelPart& clone)
 		for (DofsContainerType::iterator dof_iter = source_dof_container.begin(); dof_iter != source_dof_container.end(); ++dof_iter)
 		{
 			NodeType::DofType& idof = *dof_iter;
-			//KRATOS_WATCH(idof.GetVariable().Key());
 			clone_dof_container.insert(clone_dof_container.begin(), boost::make_shared<NodeType::DofType>(idof));
-		}
-
-		for (DofsContainerType::iterator dof_jiter = clone_dof_container.begin(); dof_jiter != clone_dof_container.end(); ++dof_jiter)
-		{
-			NodeType::DofType& jdof = *dof_jiter;
-			//KRATOS_WATCH(jdof.GetVariable().Key());
 		}
 
 		clone.Nodes().push_back(p_clone_node);
@@ -316,8 +309,8 @@ void ReorientQuadsY(ModelPart& mp, Properties::IndexType id)
 	
 void CloneModelPart2Physics(ModelPart& source, ModelPart& clone_primary, ModelPart& clone)
 {
-	typedef ModelPart::NodeType NodeType;
-	typedef NodeType::DofsContainerType DofsContainerType;
+	//typedef ModelPart::NodeType NodeType;
+	//typedef NodeType::DofsContainerType DofsContainerType;
 
 	// Tables
 	//if(clone.NumberOfTables() > 0) clone.TablesArray().clear();

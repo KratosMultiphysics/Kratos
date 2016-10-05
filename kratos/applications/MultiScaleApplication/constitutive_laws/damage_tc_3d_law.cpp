@@ -775,7 +775,7 @@ namespace Kratos
 
 		CalculationData data;
 
-		bool verb = m_verbose;
+		//bool verb = m_verbose;
 		this->InitializeCalculationData(props, geom, rValues.GetShapeFunctionsValues(), pinfo, data);
 		this->CalculateMaterialResponseInternal(strain_vector, stress_vector, data);
 		m_verbose = false;
@@ -1098,9 +1098,9 @@ namespace Kratos
 			data.C0.resize(6,6,false);
 		data.C0.clear();
 		
-		double c1 = data.E / (1.0 - data.nu * data.nu);
-		double c2 = c1 * data.nu;
-		double c3 = c1 * (1.0 - data.nu) / 2.0;
+		//double c1 = data.E / (1.0 - data.nu * data.nu);
+		//double c2 = c1 * data.nu;
+		//double c3 = c1 * (1.0 - data.nu) / 2.0;
 
 		data.C0(0, 0) = (data.E*(1.0 - data.nu) / ((1.0 + data.nu)*(1.0 - 2.0*data.nu)));
 		data.C0(1, 1) = data.C0(0, 0);

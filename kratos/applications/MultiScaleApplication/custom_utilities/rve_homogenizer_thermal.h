@@ -111,7 +111,7 @@ namespace Kratos
 											RveMacroscaleData& macroScaleData,
 											Vector& S)
 		{
-			ProcessInfo& processInfo = mp.GetProcessInfo();
+			//ProcessInfo& processInfo = mp.GetProcessInfo();
 
 			size_t ndim = geomDescriptor.Dimension(); // 2D or 3D
 			if (S.size() != ndim) S.resize(ndim, false);

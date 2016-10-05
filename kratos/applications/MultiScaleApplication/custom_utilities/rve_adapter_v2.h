@@ -1853,7 +1853,7 @@ protected:
 	{
 		//std::cout << "IN - PredictorCalculation\n";
 		mIntegrationErrorCode = 0;
-		bool IsElastic = false;
+		//bool IsElastic = false;
 		//std::cout << "mRveNonLinearFlag_converged: " << mRveNonLinearFlag_converged << std::endl;
 		mRveNonLinearFlag = mRveNonLinearFlag_converged;
 		mEquivalentDamage = mEquivalentDamage_converged;
@@ -2263,18 +2263,18 @@ protected:
 	}
 
 protected:
-
-	// RVE components
+    
+    // RVE components
 
 	ModelPart::Pointer                    mpModelPart;
 	RveMacroscaleData::Pointer            mpMacroscaleData;
 	RveGeometryDescriptor::Pointer        mpGeometryDescriptor;
+	RvePredictorCalculator::Pointer		  mpPredictorCalculator;
 	RveConstraintHandlerPointerType       mpConstraintHandler;
 	RveLinearSystemOfEquationsPointerType mpLinearSOE;
 	RveHomogenizerPointerType             mpHomogenizer;
 	SchemePointerType                     mpScheme;
 	ConvergenceCriteriaPointerType        mpConvergenceCriteria;
-	RvePredictorCalculator::Pointer		  mpPredictorCalculator;
 
 	// RVE Generator handler (sarà un componente appena possibile...)
 
@@ -2282,6 +2282,12 @@ protected:
 	bool   mRveGenerationRequested;
 	double mRveNonLinearFlag;
 	double mRveNonLinearFlag_converged;
+    
+    // RVE Prediction
+	double mEquivalentDamage;
+	double mEquivalentDamage_converged;
+
+    size_t m_count_dam;
 
 	// RVE Custom operations (coming soon...)
 
@@ -2312,13 +2318,9 @@ protected:
 	Matrix mC0;
 
 	Vector mRveGeneralStressVector;
-	double mEquivalentDamage;
-	double mEquivalentDamage_converged;
 
-		size_t m_count_dam;
-
-		double mHomoCTE;
-		double mHomoConduct;
+	double mHomoCTE;
+	double mHomoConduct;
 
 	Vector mPredictStressVector;
 	

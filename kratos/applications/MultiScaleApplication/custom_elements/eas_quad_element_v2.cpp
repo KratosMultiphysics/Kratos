@@ -555,7 +555,7 @@ namespace Kratos
 
         GeometryType & geom = this->GetGeometry();
 
-        for(int i = 0; i < geom.PointsNumber(); i++)
+        for(size_t i = 0; i < geom.PointsNumber(); i++)
         {
 #ifdef EASQ4_DRILLING_DOF
 			int index = i * 3;
@@ -579,7 +579,7 @@ namespace Kratos
 
         GeometryType & geom = this->GetGeometry();
 
-        for (int i = 0; i < geom.PointsNumber(); i++)
+        for (size_t i = 0; i < geom.PointsNumber(); i++)
         {
             NodeType & iNode = geom[i];
 
@@ -661,7 +661,7 @@ namespace Kratos
 
         const GeometryType & geom = GetGeometry();
 
-        for (int i = 0; i < geom.PointsNumber(); i++)
+        for (size_t i = 0; i < geom.PointsNumber(); i++)
         {
             const NodeType & iNode = geom[i];
            
@@ -688,7 +688,7 @@ namespace Kratos
 
         const GeometryType & geom = GetGeometry();
 
-        for (int i = 0; i < geom.PointsNumber(); i++)
+        for (size_t i = 0; i < geom.PointsNumber(); i++)
         {
             const NodeType & iNode = geom[i];
 			const array_1d<double,3>& vel = iNode.FastGetSolutionStepValue(VELOCITY, Step);
@@ -714,7 +714,7 @@ namespace Kratos
 
         const GeometryType & geom = GetGeometry();
 
-        for (int i = 0; i < geom.PointsNumber(); i++)
+        for (size_t i = 0; i < geom.PointsNumber(); i++)
         {
             const NodeType & iNode = geom[i];
 			const array_1d<double,3>& acc = iNode.FastGetSolutionStepValue(ACCELERATION, Step);
@@ -903,7 +903,7 @@ namespace Kratos
                                                      std::vector<double>& rValues,
                                                      const ProcessInfo& rCurrentProcessInfo)
     {
-		unsigned int numgp = mConstitutiveLawVector.size();
+		size_t numgp = mConstitutiveLawVector.size();
         if(rValues.size() != numgp)
             rValues.resize(numgp);
 		
@@ -987,7 +987,7 @@ namespace Kratos
 		}
 #endif
 
-        for(int i = 0; i < numgp; i++) {
+        for(size_t i = 0; i < numgp; i++) {
 			rValues[i] = 0.0;
             mConstitutiveLawVector[i]->GetValue(rVariable, rValues[i]);
 		}
@@ -997,11 +997,11 @@ namespace Kratos
                                                      std::vector<Vector>& rValues,
                                                      const ProcessInfo& rCurrentProcessInfo)
     {
-		unsigned int numgp = mConstitutiveLawVector.size();
+		size_t numgp = mConstitutiveLawVector.size();
 		if(rValues.size() != numgp)
             rValues.resize(numgp);
 
-        for(int i = 0; i < numgp; i++) {
+        for(size_t i = 0; i < numgp; i++) {
             mConstitutiveLawVector[i]->GetValue(rVariable, rValues[i]);
 		}
     }
@@ -1010,7 +1010,7 @@ namespace Kratos
                                                      std::vector<Matrix>& rValues,
                                                      const ProcessInfo& rCurrentProcessInfo)
 	{
-		unsigned int numgp = mConstitutiveLawVector.size();
+		size_t numgp = mConstitutiveLawVector.size();
 		if(rValues.size() != numgp)
 			rValues.resize(numgp);
 
@@ -1421,7 +1421,7 @@ namespace Kratos
 		// Gauss Loop.
 		const GeometryType::IntegrationPointsArrayType& integration_points = geom.IntegrationPoints(mThisIntegrationMethod);
 		const GeometryType::ShapeFunctionsGradientsType& local_gradients = geom.ShapeFunctionsLocalGradients(mThisIntegrationMethod);
-        for(int i = 0; i < integration_points.size(); i++)
+        for(size_t i = 0; i < integration_points.size(); i++)
         {
             // get a reference of the current integration point and shape functions
             const GeometryType::IntegrationPointType & ip = integration_points[i];

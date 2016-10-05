@@ -419,7 +419,13 @@ namespace Kratos
 			const Properties& rMaterialProperties,
 			const GeometryType& rElementGeometry,
 			const ProcessInfo& rCurrentProcessInfo);
+	private:
 
+		///@name Static Member Variables
+		///@{
+		bool m_initialized;
+		///@}
+		
 	protected:
 
 		///@name Protected static Member Variables
@@ -459,7 +465,6 @@ namespace Kratos
 
 		///@name Static Member Variables
 		///@{
-		bool m_initialized;
 		///@}
 
 		///@name Member Variables

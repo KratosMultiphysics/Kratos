@@ -236,10 +236,6 @@ void KratosMultiScaleApplication::Register()
 	KRATOS_REGISTER_VARIABLE( DISCONTINUITY_DIRECTION )
 	KRATOS_REGISTER_VARIABLE( LAMBDA_OUTPUT )
 
-    // constitutive
-    KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW_POINTER )
-
-
 	// Register Elements
 
 	KRATOS_REGISTER_ELEMENT( "SmallDisplacementInterfaceElement2D4N", mSmallDisplacementInterfaceElement2D4N )
