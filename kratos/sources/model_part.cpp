@@ -278,7 +278,7 @@ void ModelPart::AddNodes(std::vector<IndexType>& NodeIds, IndexType ThisIndex)
             if(it!=root_model_part->NodesEnd())
                 aux.push_back(*(it.base()));
             else
-                KRATOS_ERROR << "the node with Id " << NodeIds[i] << " does not exist in the root model part";
+                KRATOS_ERROR << "while adding nodes to submodelpart, the node with Id " << NodeIds[i] << " does not exist in the root model part";
         }
 
         ModelPart* current_part = this;
