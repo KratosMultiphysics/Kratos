@@ -51,12 +51,11 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
 
         if (mDragForceType == 11) {
             const array_1d<double, 3>& fluid_vel_laplacian = node.FastGetSolutionStepValue(FLUID_VEL_LAPL_PROJECTED);
-            noalias(mSlipVel) -= mRadius * mRadius / 6.0 * fluid_vel_laplacian; // add Faxen term
+            noalias(mSlipVel) -= mRadius * mRadius / 6.0 * fluid_vel_laplacian; // adding Faxen term
         }
     }
 
     mNormOfSlipVel = SWIMMING_MODULUS_3(mSlipVel);
-    double added_mass_coefficient = 0.0; // it is to be modified by those forces that have a contribution proportional to the particle acceleration
     array_1d<double, 3> weight = ZeroVector(3);
     array_1d<double, 3> buoyancy;
     array_1d<double, 3> drag_force;
@@ -68,17 +67,17 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
 
     // The decomposition of forces that is considered here follows Jackson (The Dynamics of Fluidized Particles, 2000);
     // so that the role of f_n1 therein is played by non_contact_force here
-    TBaseElement::ComputeAdditionalForces(weight, non_contact_moment, r_current_process_info, gravity); // Could add domething else than weight
+    TBaseElement::ComputeAdditionalForces(weight, non_contact_moment, r_current_process_info, gravity); // Could be adding something else apart from weight
     ComputeBuoyancy(node, buoyancy, gravity, r_current_process_info);
     ComputeDragForce(node, drag_force, r_current_process_info);
-    ComputeVirtualMassForce(node, added_mass_coefficient, virtual_mass_force, r_current_process_info);
+    ComputeVirtualMassForce(node, virtual_mass_force, r_current_process_info);
     ComputeSaffmanLiftForce(node, saffman_lift_force, r_current_process_info);
     ComputeMagnusLiftForce(node, magnus_lift_force, r_current_process_info);
     ComputeHydrodynamicTorque(node, non_contact_moment, r_current_process_info);
     ComputeBrownianMotionForce(node, brownian_motion_force, r_current_process_info);
-    ComputeBassetForce(node, added_mass_coefficient, basset_force, r_current_process_info);
+    ComputeBassetForce(node, basset_force, r_current_process_info);
 
-    // Adding all forces except Basset's
+    // Adding all forces except Basset's, since they get averaged in time in a different way
     noalias(non_contact_force) += drag_force
                                 + virtual_mass_force
                                 + saffman_lift_force
@@ -87,7 +86,8 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
                                 + buoyancy
                                 + weight;
 
-    double force_reduction_coeff = mRealMass / (mRealMass + added_mass_coefficient);
+    double force_reduction_coeff = mRealMass / (mRealMass + mLastVirtualMassAddedMass + mLastBassetForceAddedMass);
+
     array_1d<double, 3> non_contact_force_not_altered = non_contact_force;
 
     if (mHasOldAdditionalForceVar && !mFirstStep){
@@ -95,7 +95,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
     }
 
     UpdateNodalValues(node, non_contact_force_not_altered, non_contact_moment, weight, buoyancy, drag_force, virtual_mass_force, basset_force, saffman_lift_force, magnus_lift_force, force_reduction_coeff, r_current_process_info);
-    // The basset force has a different temporal treatment, so first we apply the scheme to the rest of the forces
+    // The Basset force has a different temporal treatment, so first we apply the scheme to the rest of the forces
     // and then we add the Basset force (minus the term proportional to the current acceleration, which is treted implicitly)
     noalias(non_contact_force) += basset_force;
     non_contact_force *= force_reduction_coeff;
@@ -107,7 +107,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
 // Here nodal values are modified to record DEM forces that we want to print. In Kratos this is an exception since nodal values are meant to be modified only outside the element. Here it was not possible.
 template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::UpdateNodalValues(NodeType& node,
-                                                              const array_1d<double, 3>& non_contact_or_basset_force,
+                                                              const array_1d<double, 3>& non_contact_nor_basset_force,
                                                               const array_1d<double, 3>& non_contact_moment,
                                                               const array_1d<double, 3>& weight,
                                                               const array_1d<double, 3>& buoyancy,
@@ -119,7 +119,7 @@ void SphericSwimmingParticle<TBaseElement>::UpdateNodalValues(NodeType& node,
                                                               const double& force_reduction_coeff,
                                                               const ProcessInfo& r_current_process_info)
 {
-    noalias(node.FastGetSolutionStepValue(HYDRODYNAMIC_FORCE))       = force_reduction_coeff * (non_contact_or_basset_force + basset_force - buoyancy - weight);
+    noalias(node.FastGetSolutionStepValue(HYDRODYNAMIC_FORCE))       = force_reduction_coeff * (non_contact_nor_basset_force + basset_force - buoyancy - weight);
     noalias(node.FastGetSolutionStepValue(BUOYANCY))                 = buoyancy;
     array_1d<double, 3>& total_force = node.FastGetSolutionStepValue(TOTAL_FORCES);
     total_force *= force_reduction_coeff;
@@ -132,16 +132,16 @@ void SphericSwimmingParticle<TBaseElement>::UpdateNodalValues(NodeType& node,
         noalias(node.FastGetSolutionStepValue(DRAG_FORCE))           = drag_force;
     }
 
-    if (mHasVirtualMassForceNodalVar){ // This only includes the part proportional to the fluid acceleration, since the particle acceleration is treated implicitly
+    if (mHasVirtualMassForceNodalVar){ // This only includes the part proportional to the fluid acceleration (undisturbed flow plus added mass terms), since the particle acceleration is treated implicitly. It is added later by the strategy, which calls Calculate here, once the current acceleration is available
         noalias(node.FastGetSolutionStepValue(VIRTUAL_MASS_FORCE))   = virtual_mass_force;
     }
 
     if (mHasBassetForceNodalVar){
-        noalias(node.FastGetSolutionStepValue(BASSET_FORCE))         = basset_force;
+        noalias(node.FastGetSolutionStepValue(BASSET_FORCE))         = basset_force; // This does not include the current-time contribution of the acceleration, which is treated implicitly. It is added later by the strategy, which calls Calculate here, once the current acceleration is available
     }
 
     if (mHasOldAdditionalForceVar){
-        noalias(node.FastGetSolutionStepValue(ADDITIONAL_FORCE_OLD)) = non_contact_or_basset_force;
+        noalias(node.FastGetSolutionStepValue(ADDITIONAL_FORCE_OLD)) = non_contact_nor_basset_force;
     }
 
     if (mHasLiftForceNodalVar){
@@ -156,9 +156,9 @@ void SphericSwimmingParticle<TBaseElement>::UpdateNodalValues(NodeType& node,
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::ApplyNumericalAveragingWithOldForces(NodeType& node, array_1d<double, 3>& non_contact_or_basset_force, const ProcessInfo& r_current_process_info)
+void SphericSwimmingParticle<TBaseElement>::ApplyNumericalAveragingWithOldForces(NodeType& node, array_1d<double, 3>& non_contact_nor_basset_force, const ProcessInfo& r_current_process_info)
 {
-    noalias(non_contact_or_basset_force) = 0.5 * (3 * non_contact_or_basset_force - node.FastGetSolutionStepValue(ADDITIONAL_FORCE_OLD));
+    noalias(non_contact_nor_basset_force) = 0.5 * (3 * non_contact_nor_basset_force - node.FastGetSolutionStepValue(ADDITIONAL_FORCE_OLD));
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -205,7 +205,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeDragForce(NodeType& node, arr
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(NodeType& node, double& added_mass_coefficient, array_1d<double, 3>& virtual_mass_force, const ProcessInfo& r_current_process_info)
+void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(NodeType& node, array_1d<double, 3>& virtual_mass_force, const ProcessInfo& r_current_process_info)
 {
     if (mVirtualMassForceType == 0 || node.IsNot(INSIDE) || node.Is(BLOCKED)){ // case of identically null virtual mass force
         noalias(virtual_mass_force) = ZeroVector(3);
@@ -222,7 +222,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(NodeType& no
         }
 
         else {
-            noalias(slip_acc) = fluid_acc; // the particle acceleration is treated implicitly through the added_mass_coefficient
+            noalias(slip_acc) = fluid_acc; // the particle acceleration is treated implicitly through the added_mass
 
             if (mDragForceType == 11) {
                 const array_1d<double, 3>& fluid_vel_laplacian_rate = node.FastGetSolutionStepValue(FLUID_VEL_LAPL_RATE_PROJECTED);
@@ -243,7 +243,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(NodeType& no
         }
 
         const double volume = CalculateVolume();
-        added_mass_coefficient += virtual_mass_coeff * mFluidDensity * volume;
+        mLastVirtualMassAddedMass = virtual_mass_coeff * mFluidDensity * volume;
         noalias(virtual_mass_force) = mFluidDensity * volume * (virtual_mass_coeff * slip_acc + fluid_acc); // here we add the part of buoyancy due to the acceleration of the fluid (pressure drag)
     }
 }
@@ -662,7 +662,7 @@ void SphericSwimmingParticle<TBaseElement>::AddHinsbergTailContributionStrict(No
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(NodeType& node, double &added_mass_coefficient, array_1d<double, 3>& basset_force, const ProcessInfo& r_current_process_info)
+void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(NodeType& node, array_1d<double, 3>& basset_force, const ProcessInfo& r_current_process_info)
 {
     if (mBassetForceType == 0 || node.IsNot(INSIDE) || node.Is(BLOCKED)){ // case of identically null virtual mass force
         noalias(basset_force) = ZeroVector(3);
@@ -699,8 +699,8 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(NodeType& node, d
             fractional_derivative_of_slip_vel -= mOldBassetTerm + mOldDaitchePresentCoefficient * (old_vel - vel); // the second term corresponds to the part that was treated implicitly in the last step minus a part that was added but did not correspond to the basset term
             mOldBassetTerm = basset_term;
             mOldDaitchePresentCoefficient = present_coefficient;
+            mLastBassetForceAddedMass = basset_force_coeff * sqrt_of_quad_h_q * present_coefficient;
 
-            added_mass_coefficient += basset_force_coeff * sqrt_of_quad_h_q * present_coefficient;
             noalias(basset_force) = basset_force_coeff * sqrt_of_quad_h_q / delta_time * fractional_derivative_of_slip_vel;
         }
 
@@ -915,6 +915,25 @@ void SphericSwimmingParticle<TBaseElement>::AdditionalCalculate(const Variable<d
 
     else if (rVariable == TIME){
         Output = mInitialTime;
+    }
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+template < class TBaseElement >
+void SphericSwimmingParticle<TBaseElement>::Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& r_process_info)
+{
+    if (rVariable == VIRTUAL_MASS_FORCE) {
+        const array_1d<double, 3 > total_forces = GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
+        Output -= mLastVirtualMassAddedMass / mRealMass * total_forces;
+    }
+
+    else if (rVariable == BASSET_FORCE) {
+        const array_1d<double, 3 > total_forces = GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
+        Output -= mLastBassetForceAddedMass / mRealMass * total_forces;
+    }
+
+    else {
+        TBaseElement::Calculate(rVariable, Output, r_process_info);
     }
 }
 //**************************************************************************************************************************************************
@@ -1394,6 +1413,9 @@ void SphericSwimmingParticle<TBaseElement>::Initialize(const ProcessInfo& r_proc
     mSphericity                  = node.SolutionStepsDataHas(PARTICLE_SPHERICITY);
     mHasDragCoefficientVar       = node.SolutionStepsDataHas(DRAG_COEFFICIENT);
     mHasOldAdditionalForceVar    = node.SolutionStepsDataHas(ADDITIONAL_FORCE_OLD);
+    mLastVirtualMassAddedMass    = 0.0;
+    mLastBassetForceAddedMass    = 0.0;
+
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
