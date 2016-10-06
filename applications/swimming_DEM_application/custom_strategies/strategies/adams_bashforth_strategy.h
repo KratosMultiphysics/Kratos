@@ -110,6 +110,10 @@ namespace Kratos {
 
         double Solve();
 
+    protected:
+
+        void ReconstructForces(ModelPart& r_model_part);
+
     private:
         bool mFirstStep;
     }; // Class AdamsBashforthStrategy
