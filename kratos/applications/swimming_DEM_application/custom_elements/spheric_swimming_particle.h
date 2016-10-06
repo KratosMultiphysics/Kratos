@@ -51,17 +51,17 @@ namespace Kratos
       ///@{
 
       /// Default constructor.
-      SphericSwimmingParticle():TBaseElement(){};
-      SphericSwimmingParticle(IndexType NewId, GeometryType::Pointer pGeometry):TBaseElement(NewId, pGeometry){};
-      SphericSwimmingParticle(IndexType NewId, NodesArrayType const& ThisNodes):TBaseElement(NewId, ThisNodes){};
-      SphericSwimmingParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties):TBaseElement(NewId, pGeometry, pProperties){};
+      SphericSwimmingParticle():TBaseElement(){}
+      SphericSwimmingParticle(IndexType NewId, GeometryType::Pointer pGeometry):TBaseElement(NewId, pGeometry){}
+      SphericSwimmingParticle(IndexType NewId, NodesArrayType const& ThisNodes):TBaseElement(NewId, ThisNodes){}
+      SphericSwimmingParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties):TBaseElement(NewId, pGeometry, pProperties){}
 
       Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {          
         return Element::Pointer(new SphericSwimmingParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
       };
 
       /// Destructor.
-      virtual ~SphericSwimmingParticle(){};
+      virtual ~SphericSwimmingParticle(){}
 
       
       void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, const ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity);
@@ -96,12 +96,15 @@ namespace Kratos
       static std::vector<double> mAlphas;
       static std::vector<double> mBetas;
 
+      void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& r_process_info);
+
+
     protected:
         
         void ComputeBuoyancy(NodeType& node, array_1d<double, 3>& buoyancy, const array_1d<double,3>& gravity, const ProcessInfo& r_current_process_info);
         void ComputeDragForce(NodeType& node, array_1d<double, 3>& drag_force, const ProcessInfo& r_current_process_info);
-        void ComputeVirtualMassForce(NodeType& node, double & added_mass_coefficient, array_1d<double, 3>& virtual_mass_force, const ProcessInfo& r_current_process_info);
-        void ComputeBassetForce(NodeType& node, double & added_mass_coefficient, array_1d<double, 3>& basset_force, const ProcessInfo& r_current_process_info);
+        void ComputeVirtualMassForce(NodeType& node, array_1d<double, 3>& virtual_mass_force, const ProcessInfo& r_current_process_info);
+        void ComputeBassetForce(NodeType& node, array_1d<double, 3>& basset_force, const ProcessInfo& r_current_process_info);
         void ComputeSaffmanLiftForce(NodeType& node, array_1d<double, 3>& lift_force, const ProcessInfo& r_current_process_info);
         void ComputeMagnusLiftForce(NodeType& node, array_1d<double, 3>& lift_force, const ProcessInfo& r_current_process_info);
         void ComputeHydrodynamicTorque(NodeType& node, array_1d<double, 3>& hydro_torque, const ProcessInfo& r_current_process_info);
@@ -212,6 +215,8 @@ namespace Kratos
       double mLastTimeStep;
       double mInitialTime;
       double mOldDaitchePresentCoefficient;
+      double mLastVirtualMassAddedMass;
+      double mLastBassetForceAddedMass;
       array_1d<double, 3> mSlipVel;
       array_1d<double, 3> mOldBassetTerm;
 
