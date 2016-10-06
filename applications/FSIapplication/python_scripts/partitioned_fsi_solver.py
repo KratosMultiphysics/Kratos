@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Import utilities
-import NonConformant_OneSideMap             # Import non-conformant mapper
+import NonConformant_OneSideMap                # Import non-conformant mapper
 
 # Import libraries
 #~ import time as timemodule                   # Import time library as timemodule (avoid interferences with "time" var)
@@ -276,8 +276,8 @@ class PartitionedFSISolver:
         self.domain_size = self._GetDomainSize()      
                         
         # Construct the interface mapper
-        ### NOTE: The old mapper in FSI app is used --> Move to mortar mapper asap.
-        ### NOTE2: The flag "INTERFACE" ("IS_INTERFACE" if the old mapper is used) has to be set to the interface nodes before the mapper construction.
+        # Recall, to set the INTERFACE flag in both the fluid and solid interface before the mapper construction
+        # Currently this is done with the FSI application Python process set_interface_process.py
         search_radius_factor = 2.0
         mapper_max_iterations = 50
         mapper_tolerance = 1e-5
@@ -294,10 +294,6 @@ class PartitionedFSISolver:
         # Set the Neumann B.C. in the fluid interface
         if self.coupling_algorithm == "NeumannNeumann":
             self._SetFluidNeumannCondition()
-            
-        # Set ALE mesh boundary conditions
-        # SUBSTITUTED BY A PROCESS. 
-        #~ self._SetFluidMeshBoundaryConditions()
         
         # Get interface problem sizes
         interface_problem_sizes = self._GetInterfaceProblemSizes()
@@ -368,8 +364,8 @@ class PartitionedFSISolver:
             
             # Check convergence
             if nl_res_norm < self.nl_tol:
-                print("    NON-LINEAR ITERATION CONVERGENCE ACHIEVED")
-                print("    Total non-linear iterations: ",nl_it," NL residual norm: ",nl_res_norm)
+                print("     NON-LINEAR ITERATION CONVERGENCE ACHIEVED")
+                print("     Total non-linear iterations: ",nl_it," NL residual norm: ",nl_res_norm)
                 break 
                 
             else:
@@ -409,7 +405,7 @@ class PartitionedFSISolver:
         
         ## Compute the mesh residual
         mesh_res_norm = self._ComputeMeshResidual()
-        print("    Mesh residual norm: ",mesh_res_norm)
+        print("     Mesh residual norm: ",mesh_res_norm)
                         
         ## Finalize solution step ##
         self.fluid_solver.SolverFinalizeSolutionStep()
@@ -526,7 +522,7 @@ class PartitionedFSISolver:
         
             for node in interface_submodelpart_i.Nodes:
                 
-                # NOTE: THIS CONDITION IS LOCAL IN MY MACHINE, DECIDE WHAT TO DO.
+                # NOTE: THIS CONDITION REMAINS TO BE IMPLEMENTED IN THE FluidDynamicsApplication, DECIDE WHAT TO DO.
                 # Create the fluid load condition
                 if self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
                     fluid_computational_volume_submodelpart.CreateNewCondition("PointForce2Dfluid",aux_count,[node.Id],self.fluid_solver.main_model_part.Properties[0]) 
@@ -534,30 +530,6 @@ class PartitionedFSISolver:
                     fluid_computational_volume_submodelpart.CreateNewCondition("PointForce3Dfluid",aux_count,[node.Id],self.fluid_solver.main_model_part.Properties[0]) 
                 
                 aux_count+=1
-                
-            
-    #~ def _SetFluidMeshBoundaryConditions(self):
-        #~ # Note that this function also initializes the interface displacement as 0 (the interface submodelpart is within the skin_parts group).
-        
-        #~ # for i in range(self.settings["fluid_solver_settings"]["skin_parts"].size()):
-        #~ #    skin_submodelpart_name = self.settings["fluid_solver_settings"]["skin_parts"][i].GetString()
-        #~ #    skin_submodelpart_i = self.fluid_solver.main_model_part.GetSubModelPart(skin_submodelpart_name)
-        #~ for i in range(self.settings["fluid_solver_settings"]["no_skin_parts"].size()):
-            #~ no_skin_submodelpart_name = self.settings["fluid_solver_settings"]["no_skin_parts"][i].GetString()
-            #~ no_skin_submodelpart_i = self.fluid_solver.main_model_part.GetSubModelPart(no_skin_submodelpart_name)
-            
-            #~ # print(skin_submodelpart_i)
-            #~ # print(no_skin_submodelpart_i)
-            
-            #~ # for node in skin_submodelpart_i.Nodes:
-            #~ for node in no_skin_submodelpart_i.Nodes:
-                #~ print(node.Id)
-                #~ node.Fix(KratosMultiphysics.DISPLACEMENT_X)
-                #~ node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
-                #~ node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
-                #~ node.SetValue(KratosMultiphysics.DISPLACEMENT_X,0.0)
-                #~ node.SetValue(KratosMultiphysics.DISPLACEMENT_Y,0.0)
-                #~ node.SetValue(KratosMultiphysics.DISPLACEMENT_Z,0.0)
                 
     
     def _ComputeMeshPrediction(self):
@@ -646,7 +618,6 @@ class PartitionedFSISolver:
                                                          distribute_load)     
         
         # Solve structure problem
-        #~ self.structure_solver.SolverPredict() # NOTE: If the Predict() is not performed convergence is not achieved...
         self.structure_solver.SolverSolveSolutionStep()
         
         # Project the structure velocity onto the fluid interface
@@ -722,7 +693,6 @@ class PartitionedFSISolver:
                                                          distribute_load)             
         
         # Solve structure problem
-        #~ self.structure_solver.SolverPredict() # NOTE: If the Predict() is not performed not convergence is achieved...
         self.structure_solver.SolverSolveSolutionStep()    
         
         # Project the structure velocity onto the fluid interface
@@ -777,6 +747,7 @@ class PartitionedFSISolver:
                 mesh_res_norm += (velocity_fluid[0]-mesh_velocity[0])**2 + (velocity_fluid[1]-mesh_velocity[1])**2
                                  
         elif self.domain_size == 3:
+            for node in self._GetFluidInterfaceSubmodelPart().Nodes:
                 velocity_fluid = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0)
                 mesh_velocity = node.GetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY,0)
             
