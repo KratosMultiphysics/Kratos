@@ -42,3 +42,4 @@ cmake .. \
 -DTRILINOS_APPLICATION=OFF                                                                      \
 -DTRILINOS_ROOT=\"UNSET\"                                                                       \
 -DINSTALL_EMBEDDED_PYTHON=ON                                                                    \
+-DINCLUDE_FEAST=ON                                                                              \
