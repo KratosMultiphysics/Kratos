@@ -38,8 +38,12 @@ double CellularFlowField::U2(unsigned int i){return 0.0;}
 // First-order derivatives
 
 double CellularFlowField::U0DT(unsigned int i)
-{
-    return   mU * mK * mOmegaUOverL * mCosOmegaT[i] * mSinPiX0[i] * mCosPiX1[i];
+{   if (mOmega == 0.0){
+        return 0.0;
+    }
+    else {
+        return   mU * mK * mOmegaUOverL * mCosOmegaT[i] * mSinPiX0[i] * mCosPiX1[i];
+    }
 }
 double CellularFlowField::U0D0(unsigned int i)
 {
@@ -52,8 +56,12 @@ double CellularFlowField::U0D1(unsigned int i)
 double CellularFlowField::U0D2(unsigned int i){return 0.0;}
 
 double CellularFlowField::U1DT(unsigned int i)
-{
-    return - mU * mK * mOmegaUOverL * mCosOmegaT[i] * mCosPiX0[i] * mSinPiX1[i];
+{   if (mOmega == 0.0){
+        return 0.0;
+    }
+    else {
+        return - mU * mK * mOmegaUOverL * mCosOmegaT[i] * mCosPiX0[i] * mSinPiX1[i];
+    }
 }
 double CellularFlowField::U1D0(unsigned int i)
 {
@@ -72,16 +80,29 @@ double CellularFlowField::U2D2(unsigned int i){return 0.0;}
 // Second-order derivatives
 
 double CellularFlowField::U0DTDT(unsigned int i)
-{
-    return - mU * mK * mOmegaUOverL * mOmegaUOverL * mSinOmegaT[i] * mSinPiX0[i] * mCosPiX1[i];
+{   if (mOmega == 0.0){
+        return 0.0;
+    }
+    else {
+        return - mU * mK * mOmegaUOverL * mOmegaUOverL * mSinOmegaT[i] * mSinPiX0[i] * mCosPiX1[i];
+    }
 }
 double CellularFlowField::U0DTD0(unsigned int i)
 {
-    return   mU * mOmegaUOverL * mCosOmegaT[i] * mPiOverL * mCosPiX0[i] * mCosPiX1[i];
+    if (mOmega == 0.0){
+            return 0.0;
+    }
+    else {
+        return   mU * mOmegaUOverL * mCosOmegaT[i] * mPiOverL * mCosPiX0[i] * mCosPiX1[i];
+    }
 }
 double CellularFlowField::U0DTD1(unsigned int i)
-{
-    return - mU * mK * mOmegaUOverL * mCosOmegaT[i] * mPiOverL * mSinPiX0[i] * mSinPiX1[i];
+{   if (mOmega == 0.0){
+        return 0.0;
+    }
+    else {
+        return - mU * mK * mOmegaUOverL * mCosOmegaT[i] * mPiOverL * mSinPiX0[i] * mSinPiX1[i];
+    }
 }
 double CellularFlowField::U0DTD2(unsigned int i){return 0.0;}
 double CellularFlowField::U0D0D0(unsigned int i)
@@ -101,16 +122,28 @@ double CellularFlowField::U0D1D2(unsigned int i){return 0.0;}
 double CellularFlowField::U0D2D2(unsigned int i){return 0.0;}
 
 double CellularFlowField::U1DTDT(unsigned int i)
-{
-    return - mU * mK * mOmegaUOverL * mOmegaUOverL * mSinOmegaT[i] * mSinPiX0[i] * mCosPiX1[i];
+{   if (mOmega == 0.0){
+        return 0.0;
+    }
+    else {
+        return - mU * mK * mOmegaUOverL * mOmegaUOverL * mSinOmegaT[i] * mSinPiX0[i] * mCosPiX1[i];
+    }
 }
 double CellularFlowField::U1DTD0(unsigned int i)
-{
-    return   mU * mK * mOmegaUOverL * mCosOmegaT[i] * mPiOverL * mSinPiX0[i] * mSinPiX1[i];
+{   if (mOmega == 0.0){
+        return 0.0;
+    }
+    else {
+        return   mU * mK * mOmegaUOverL * mCosOmegaT[i] * mPiOverL * mSinPiX0[i] * mSinPiX1[i];
+    }
 }
 double CellularFlowField::U1DTD1(unsigned int i)
-{
-    return - mU * mK * mOmegaUOverL * mCosOmegaT[i] * mPiOverL * mCosPiX0[i] * mCosPiX1[i];
+{   if (mOmega == 0.0){
+        return 0.0;
+    }
+    else {
+        return - mU * mK * mOmegaUOverL * mCosOmegaT[i] * mPiOverL * mCosPiX0[i] * mCosPiX1[i];
+    }
 }
 double CellularFlowField::U1DTD2(unsigned int i){return 0.0;}
 double CellularFlowField::U1D0D0(unsigned int i)
