@@ -65,8 +65,9 @@ proc Pfem::xml::ProcGetElements {domNode args} {
      set pnames [list ]
      set BodyType [get_domnode_attribute [[[$domNode parent] parent] selectNodes "value\[@n='BodyType'\]"] v]
      set argums [list ElementType $BodyType]
-     
+     update
      foreach elem $elems {
+          #W [$elem getName]
          if {[$elem cumple $argums]} {
              lappend names [$elem getName]
              lappend pnames [$elem getName] 
@@ -148,7 +149,26 @@ proc Pfem::xml::ProcSolutionTypeState {domNode args} {
                $domNode setAttribute values "Dynamic,Static"
                set state normal
          }
-     } {return $state}
+     }
+     return $state
+}
+
+proc Pfem::xml::ProcGetBodyTypeValues {domNode args} {
+     set domain_type_un PFEM_DomainType
+     set domain_type_route [spdAux::getRoute $domain_type_un]
+     set values "Fluid,Rigid,Solid"
+     if {$domain_type_route ne ""} {
+         set domain_type_node [$domNode selectNodes $domain_type_route]
+         set domain_type_value [get_domnode_attribute $domain_type_node v]
+         
+         if {$domain_type_value eq "Fluids"} {
+               set values "Fluid,Rigid"
+         }
+         if {$domain_type_value eq "Solids"} {
+               set values "Rigid,Solid"
+         }
+     }
+     return $values
 }
 
 Pfem::xml::Init

@@ -37,6 +37,11 @@
 	  return [Pfem::xml::ProcSolutionTypeState $domNode $args]
 	  ]]>
 	</proc>
+	<proc n='GetBodyTypeValues' args='args'>
+	  <![CDATA[
+	  return [Pfem::xml::ProcGetBodyTypeValues $domNode $args]
+	  ]]>
+	</proc>
 	
 	
 		 	<proc n='GetSolutionStrategiesPFEM' args='args'>

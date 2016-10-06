@@ -40,6 +40,7 @@ proc spdAux::RequestRefresh {} {
 proc spdAux::TryRefreshTree { } {
     variable refreshTreeTurn
     #W "HI"
+    update
     if {$refreshTreeTurn} {
         #W "there"
         catch {
