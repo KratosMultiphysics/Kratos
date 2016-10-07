@@ -54,6 +54,7 @@ namespace Kratos
 namespace Python
 {
 
+    
 class PythonGenericFunctionUtility
 {
     public:
@@ -138,7 +139,8 @@ void AddUtilitiesToPython()
 
     class_<VariableUtils > ("VariableUtils", init<>())
     .def("SetVectorVar", &VariableUtils::SetVectorVar)
-    .def("SetScalarVar", &VariableUtils::SetScalarVar)
+    .def("SetScalarVar", &VariableUtils::SetScalarVar< Variable<double> >)
+    .def("SetScalarVar", &VariableUtils::SetScalarVar< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >)
     .def("SaveVectorVar", &VariableUtils::SaveVectorVar)
     .def("SaveScalarVar", &VariableUtils::SaveScalarVar)
     .def("SelectNodeList", &VariableUtils::SelectNodeList)
