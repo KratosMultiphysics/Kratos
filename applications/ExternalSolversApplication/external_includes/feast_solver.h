@@ -390,7 +390,7 @@ private:
         double Epsout;
         DenseVectorType Residual(SearchDimension);
         std::vector<std::complex<double> > IntegrationNodes, IntegrationWeights;
-        SystemSize = rMassMatrix.size1();
+        SystemSize = static_cast<int>(rMassMatrix.size1());
         matrix<double,column_major> work(SystemSize,SearchDimension);
         matrix<std::complex<double>,column_major> zwork(SystemSize,SearchDimension);
         matrix<double,column_major> Aq(SearchDimension,SearchDimension);
@@ -458,19 +458,19 @@ private:
                 case 11:
                 {
                     // solve the linear system for one quadrature point
-                    for (std::size_t j=0; j < FEAST_Params[22]; j++)
+                    for (int j=0; j < FEAST_Params[22]; j++)
                     {
-                        for (std::size_t i=0; i < SystemSize; i++)
+                        for (int i=0; i < SystemSize; i++)
                             b[i] = zwork(i,j);
                         Solver.Solve(b,x);
-                        for (std::size_t i=0; i < SystemSize; i++)
+                        for (int i=0; i < SystemSize; i++)
                             zwork(i,j) = x[i];
                     }
                 } break;
                 case 30:
                 {
                     // multiply Kx
-                    for (std::size_t i=0; i < FEAST_Params[24]; i++)
+                    for (int i=0; i < FEAST_Params[24]; i++)
                     {
                         int k = FEAST_Params[23]-1+i;
                         noalias(column(work,k)) = prod(rStiffnessMatrix,row(rEigenvectors,k));
@@ -479,7 +479,7 @@ private:
                 case 40:
                 {
                     // multiply Mx
-                    for (std::size_t i=0; i < FEAST_Params[24]; i++)
+                    for (int i=0; i < FEAST_Params[24]; i++)
                     {
                         int k = FEAST_Params[23]-1+i;
                         noalias(column(work,k)) = prod(rMassMatrix,row(rEigenvectors,k));
