@@ -85,7 +85,7 @@ pp.CFD_DEM.faxen_terms_type = 0
 pp.CFD_DEM.material_acceleration_calculation_type = 1
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
-pp.CFD_DEM.basset_force_type = 0
+pp.CFD_DEM.basset_force_type = 4
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
 pp.CFD_DEM.basset_force_integration_type = 2
 pp.CFD_DEM.n_init_basset_steps = 0
@@ -505,7 +505,7 @@ if DEM_parameters.coupling_level_type:
     L = 0.1
     U = 0.3
     k = 2.72
-    omega = math.pi
+    omega = 0*math.pi
     flow_field = CellularFlowField(L , U , k, omega)
     space_time_set = SpaceTimeSet()
     field_utility = FieldUtility(space_time_set, flow_field)
@@ -515,6 +515,9 @@ if DEM_parameters.coupling_level_type:
 
 # creating a custom functions calculator for the implementation of additional custom functions
 custom_functions_tool = swim_proc.FunctionsCalculator(pp)
+
+# creating a derivative recovery tool to calculate the necessary derivatives from the fluid solution (gradient, laplacian, material acceleration...)
+derivative_recovery_tool = DerivativeRecoveryTool3D(fluid_model_part)
 
 # creating a basset_force tool to perform the operations associated with the calculation of this force along the path of each particle
 if pp.CFD_DEM.basset_force_type > 0:
@@ -829,15 +832,15 @@ while (time <= final_time):
 
     if pressure_gradient_counter.Tick():
         if pp.CFD_DEM.gradient_calculation_type == 2:
-            custom_functions_tool.RecoverSuperconvergentGradient(fluid_model_part, PRESSURE, PRESSURE_GRADIENT)
+            derivative_recovery_tool.RecoverSuperconvergentGradient(fluid_model_part, PRESSURE, PRESSURE_GRADIENT)
         elif pp.CFD_DEM.gradient_calculation_type == 1:            
             custom_functions_tool.CalculatePressureGradient(fluid_model_part)            
         if pp.CFD_DEM.laplacian_calculation_type == 1:
-            custom_functions_tool.CalculateVectorLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
+            derivative_recovery_tool.CalculateVectorLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
         elif pp.CFD_DEM.laplacian_calculation_type == 2:
-            custom_functions_tool.RecoverSuperconvergentLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
+            derivative_recovery_tool.RecoverSuperconvergentLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
         if pp.CFD_DEM.material_acceleration_calculation_type == 1:
-            custom_functions_tool.CalculateVectorMaterialDerivative(fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)    
+            derivative_recovery_tool.CalculateVectorMaterialDerivative(fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)    
 
     print("Solving DEM... (", spheres_model_part.NumberOfElements(0), "elements )")
     sys.stdout.flush()
