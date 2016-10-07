@@ -24,6 +24,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NODAL_MASS)
     model_part.AddNodalSolutionStepVariable(BODY_FORCE)
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
+    model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
 
 def AddDofs(model_part):
     for node in model_part.Nodes:
