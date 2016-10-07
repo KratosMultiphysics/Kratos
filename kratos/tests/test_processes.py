@@ -167,7 +167,7 @@ class TestProcesses(KratosUnittest.TestCase):
                                 "variable_name"        : "DISPLACEMENT",
                                 "interval"             : [11.0, 15.0],
                                 "imposed_components"   : [true,false,true],
-                                "value"                : [10.0, "3*t", "x+y"],
+                                "value"                : [10.0, "3*t", "t"],
                                 "local_axes"           : {}
                             }   
                     }
@@ -259,7 +259,7 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), 0.0) #not applied!! 
             self.assertFalse(node.IsFixed(DISPLACEMENT_Y)) 
             
-            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), node.X + node.Y) 
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 12.0) 
             self.assertTrue(node.IsFixed(DISPLACEMENT_Z))
                                          
         for process in list_of_processes:
