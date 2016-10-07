@@ -976,11 +976,11 @@ class MaterialTest(object):
 
 class MultifileList(object):
 
-    def __init__(self,name,step):
+    def __init__(self, name, step):
         self.index = 0
         self.step = step
         self.name = name
-        self.file = open("_list_"+self.name+"_"+str(step)+".post.lst","w")
+        self.file = open("_list_" + self.name + "_" + str(step) + ".post.lst","w")
 
 
 class DEMIo(object):
@@ -1043,7 +1043,7 @@ class DEMIo(object):
         self.continuum_element_types = ["SphericContPartDEMElement3D","CylinderContPartDEMElement2D"]
         
     def Flush(self,a):
-        a.flush
+        a.flush()
 
     def PushPrintVar(self, variable, name, print_list):
         if (Var_Translator(variable)):
@@ -1185,11 +1185,11 @@ class DEMIo(object):
             mfilelist.file.write("Multiple\n")
             mfilelist.index = 1
 
-    def PrintMultifileLists(self,time, post_path):
+    def PrintMultifileLists(self, time, post_path):
         for mfilelist in self.multifilelists:
 
             if mfilelist.index == mfilelist.step:
-
+                
                 if (self.encoding == GiDPostMode.GiD_PostBinary):
                     mfilelist.file.write(self.GetMultiFileListName(mfilelist.name)+"_"+"%.12g"%time+".post.bin\n")
                 else:
