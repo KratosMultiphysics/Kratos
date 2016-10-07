@@ -83,7 +83,7 @@ class MaterialTest(object):
       self.PrepareTestOedometric()
       
   def Flush(self,a):
-      a.flush
+      a.flush()
 
   def PrepareTestOedometric(self):
       if(self.parameters.TestType == "Oedometric"):
