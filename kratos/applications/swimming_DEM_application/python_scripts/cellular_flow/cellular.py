@@ -81,7 +81,6 @@ DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi #
 #G
 pp.CFD_DEM = DEM_parameters
 pp.CFD_DEM.do_search_neighbours = False
-pp.CFD_DEM.faxen_terms_type = 0
 pp.CFD_DEM.material_acceleration_calculation_type = 1
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
@@ -507,6 +506,9 @@ if DEM_parameters.coupling_level_type:
 # creating a custom functions calculator for the implementation of additional custom functions
 custom_functions_tool = swim_proc.FunctionsCalculator(pp)
 
+# creating a derivative recovery tool to calculate the necessary derivatives from the fluid solution (gradient, laplacian, material acceleration...)
+derivative_recovery_tool = DerivativeRecoveryTool3D(fluid_model_part)
+
 # creating a basset_force tool to perform the operations associated with the calculation of this force along the path of each particle
 if pp.CFD_DEM.basset_force_type > 0:
     basset_force_tool = swim_proc.BassetForceTools()
@@ -839,15 +841,15 @@ while (time <= final_time):
 
     if pressure_gradient_counter.Tick():
         if pp.CFD_DEM.gradient_calculation_type == 2:
-            custom_functions_tool.RecoverSuperconvergentGradient(fluid_model_part, PRESSURE, PRESSURE_GRADIENT)
+            derivative_recovery_tool.RecoverSuperconvergentGradient(fluid_model_part, PRESSURE, PRESSURE_GRADIENT)
         elif pp.CFD_DEM.gradient_calculation_type == 1:            
             custom_functions_tool.CalculatePressureGradient(fluid_model_part)            
         if pp.CFD_DEM.laplacian_calculation_type == 1:
-            custom_functions_tool.CalculateVectorLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
+            derivative_recovery_tool.CalculateVectorLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
         elif pp.CFD_DEM.laplacian_calculation_type == 2:
-            custom_functions_tool.RecoverSuperconvergentLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
+            derivative_recovery_tool.RecoverSuperconvergentLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
         if pp.CFD_DEM.material_acceleration_calculation_type == 1:
-            custom_functions_tool.CalculateVectorMaterialDerivative(fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)    
+            derivative_recovery_tool.CalculateVectorMaterialDerivative(fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)    
 #G
     
     for node in fluid_model_part.Nodes:
@@ -877,23 +879,23 @@ while (time <= final_time):
         node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,(calc_mat_deriv_0 - mat_deriv[0]) / module_mat_deriv)
         node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,(calc_mat_deriv_1 - mat_deriv[1]) / module_mat_deriv)  
         node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,(calc_mat_deriv_2 - mat_deriv[2]) / module_mat_deriv)  
-        node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,calc_mat_deriv_0)
-        node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,calc_mat_deriv_1)
-        node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,calc_mat_deriv_2)         
-        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,mat_deriv[0])
-        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,mat_deriv[1])
-        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,mat_deriv[2])
+        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,calc_mat_deriv_0)
+        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,calc_mat_deriv_1)
+        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,calc_mat_deriv_2)         
+        node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,mat_deriv[0])
+        node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,mat_deriv[1])
+        node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,mat_deriv[2])
         
         
         #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,(calc_laplacian_0 - laplacian[0]))
         #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,(calc_laplacian_1 - laplacian[1]))  
         #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,(calc_laplacian_2 - laplacian[2]))  
-        node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,calc_laplacian_0)
-        node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,calc_laplacian_1)
-        node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,calc_laplacian_2)         
-        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,laplacian[0])
-        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,laplacian[1])
-        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,laplacian[2]) 
+        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,calc_laplacian_0)
+        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,calc_laplacian_1)
+        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,calc_laplacian_2)         
+        node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,laplacian[0])
+        node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,laplacian[1])
+        node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,laplacian[2]) 
 #Z
     print("Solving DEM... (", spheres_model_part.NumberOfElements(0), "elements )")
     sys.stdout.flush()
