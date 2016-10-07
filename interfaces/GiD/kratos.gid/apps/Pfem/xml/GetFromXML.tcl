@@ -46,13 +46,10 @@ proc Pfem::xml::ProcGetElements {domNode args} {
      set nodeApp [spdAux::GetAppIdFromNode $domNode]
      set sol_stratUN [apps::getAppUniqueName $nodeApp SolStrat]
      set schemeUN [apps::getAppUniqueName $nodeApp Scheme]
-     if {[get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] v] eq ""} {
-         get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] dict
-     }
-     if {[get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $schemeUN]] v] eq ""} {
-          get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $schemeUN]] dict
-     }
      
+     get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] dict
+     get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $schemeUN]] dict
+    
      #W "solStrat $sol_stratUN sch $schemeUN"
      set solStratName [::write::getValue $sol_stratUN]
      set schemeName [write::getValue $schemeUN]
@@ -64,6 +61,7 @@ proc Pfem::xml::ProcGetElements {domNode args} {
      set names [list ]
      set pnames [list ]
      set BodyType [get_domnode_attribute [[[$domNode parent] parent] selectNodes "value\[@n='BodyType'\]"] v]
+     #W $BodyType
      set argums [list ElementType $BodyType]
      update
      foreach elem $elems {
