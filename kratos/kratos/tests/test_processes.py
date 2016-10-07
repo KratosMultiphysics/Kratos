@@ -117,6 +117,15 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part_io = ModelPartIO(GetFilePath("test_model_part_io"))
         model_part_io.ReadModelPart(model_part)
         
+        #reset all data
+        for node in model_part.Nodes:
+            node.Free(DISPLACEMENT_X)
+            node.Free(DISPLACEMENT_Y)
+            node.Free(DISPLACEMENT_Z)
+            node.SetSolutionStepValue(DISPLACEMENT_X,0,0.0)
+            node.SetSolutionStepValue(DISPLACEMENT_Y,0,0.0)
+            node.SetSolutionStepValue(DISPLACEMENT_Z,0,0.0)
+            
         settings = Parameters(
             """
             {
@@ -148,6 +157,19 @@ class TestProcesses(KratosUnittest.TestCase):
                                 "axes"  : [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ] 
                             }
                         }
+                    },
+                    {
+                        "python_module"   : "experimental_assign_vector_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"          : "AssignVectorProcess",
+                        "Parameters"            : {
+                                "model_part_name"      : "Main",
+                                "variable_name"        : "DISPLACEMENT",
+                                "interval"             : [11.0, 15.0],
+                                "imposed_components"   : [true,false,true],
+                                "value"                : [10.0, "3*t", "x+y"],
+                                "local_axes"           : {}
+                            }   
                     }
                 ]
                 }
@@ -158,6 +180,11 @@ class TestProcesses(KratosUnittest.TestCase):
         
         import process_factory
         list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+        
+        for node in model_part.Nodes:
+            self.assertFalse(node.IsFixed(DISPLACEMENT_X))
+            self.assertFalse(node.IsFixed(DISPLACEMENT_Y))
+            self.assertFalse(node.IsFixed(DISPLACEMENT_Z))
         
         ############################################################
         ##time = 3 - both within the active interval
@@ -173,6 +200,8 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(VISCOSITY), node.X+100.0*node.Y*t**2)
             self.assertTrue(node.IsFixed(VISCOSITY))
             self.assertTrue(node.IsFixed(DISPLACEMENT_X))
+            self.assertFalse(node.IsFixed(DISPLACEMENT_Y))
+            self.assertFalse(node.IsFixed(DISPLACEMENT_Z))
                              
         for process in list_of_processes:
             process.ExecuteFinalizeSolutionStep()
@@ -182,11 +211,18 @@ class TestProcesses(KratosUnittest.TestCase):
         for node in model_part.Nodes:
             self.assertFalse(node.IsFixed(VISCOSITY))
             self.assertFalse(node.IsFixed(DISPLACEMENT_X))
-                             
+            self.assertFalse(node.IsFixed(DISPLACEMENT_Y))
+            self.assertFalse(node.IsFixed(DISPLACEMENT_Z))
+            
         ############################################################
         ##time = 3 - DISPLACEMENT_X is not in the active interval
         model_part.CloneTimeStep(6.0)
         
+        for node in model_part.Nodes:
+            self.assertFalse(node.IsFixed(DISPLACEMENT_X))
+            self.assertFalse(node.IsFixed(DISPLACEMENT_Y))
+            self.assertFalse(node.IsFixed(DISPLACEMENT_Z))
+            
         for process in list_of_processes:
             process.ExecuteInitializeSolutionStep()
 
@@ -207,6 +243,28 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertFalse(node.IsFixed(VISCOSITY))
             self.assertFalse(node.IsFixed(DISPLACEMENT_X))
 
+        ############################################################
+        ##time = 12 - DISPLACEMENT applied as a vector. x,z components fixed, y component not imposed 
+        model_part.CloneTimeStep(12.0)
+        
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        ##verify the result
+        t = model_part.ProcessInfo[TIME]
+        for node in model_part.Nodes:
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), 10.0)
+            self.assertTrue(node.IsFixed(DISPLACEMENT_X)) 
+            
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), 0.0) #not applied!! 
+            self.assertFalse(node.IsFixed(DISPLACEMENT_Y)) 
+            
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), node.X + node.Y) 
+            self.assertTrue(node.IsFixed(DISPLACEMENT_Z))
+                                         
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+        
 
 
 if __name__ == '__main__':
