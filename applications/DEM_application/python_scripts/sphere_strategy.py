@@ -187,6 +187,7 @@ class ExplicitStrategy:
         # TIME RELATED PARAMETERS
         self.spheres_model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
 
+        os.chdir("..")
         for properties in self.spheres_model_part.Properties:
             self.ModifyProperties(properties)
 
@@ -195,7 +196,7 @@ class ExplicitStrategy:
 
         for properties in self.cluster_model_part.Properties:
             self.ModifyProperties(properties)
-
+        
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
         self.settings = ExplicitSolverSettings()
@@ -393,3 +394,4 @@ class ExplicitStrategy:
             pre_utils = PreUtilities(self.spheres_model_part)
             pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
             print(properties)
+        
