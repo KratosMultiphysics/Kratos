@@ -80,6 +80,9 @@ SphericParticle::~SphericParticle(){
 void SphericParticle::Initialize(const ProcessInfo& r_process_info)
 {
     KRATOS_TRY
+    
+    SetValue(NEIGHBOUR_IDS, boost::numeric::ublas::vector<int>());
+    
     MemberDeclarationFirstStep(r_process_info);
 
     NodeType& node = GetGeometry()[0];
@@ -379,7 +382,6 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(boost::numeric::ublas::
     mTempNeighbourElasticContactForces.resize(new_size);
     mTempNeighbourTotalContactForces.resize(new_size);
 
-    SetValue(NEIGHBOUR_IDS, boost::numeric::ublas::vector<int>());
     boost::numeric::ublas::vector<int>& vector_of_ids_of_neighbours = GetValue(NEIGHBOUR_IDS);
 
     for (unsigned int i = 0; i < new_size; i++) {
@@ -392,8 +394,6 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(boost::numeric::ublas::
         }
 
         mTempNeighboursIds[i] = mNeighbourElements[i]->Id();
-
-
 
         for (unsigned int j = 0; j < vector_of_ids_of_neighbours.size(); j++) {
             if (int(mTempNeighboursIds[i]) == vector_of_ids_of_neighbours[j] && vector_of_ids_of_neighbours[j] != -1) {
@@ -1567,7 +1567,7 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToOtherRea
                                                                                     double RelVel[3], //IN GLOBAL AXES
                                                                                     double OldLocalCoordSystem[3][3],
                                                                                     double LocalCoordSystem[3][3],
-                                                                                    SphericParticle* neighbour_iterator){}
+                                                                                    SphericParticle* neighbour_iterator) {}
 
 void SphericParticle::SendForcesToFEM(){};
 
