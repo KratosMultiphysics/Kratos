@@ -126,11 +126,28 @@ void VelocityField::CalculateMaterialAcceleration(const double time, const vecto
     accel[2] = vel_rate[2] + u0 * grad[2][0] + u1 * grad[2][1] + u2 * grad[2][2];
 }
 
+void VelocityField::CalculateAccelerationFollowingTheParticle(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& accel, const array_1d<double, 3>& particle_vel, const unsigned int i)
+{
+    UpdateCoordinates(time, coor, i);
+    double u0 = particle_vel[0];
+    double u1 = particle_vel[1];
+    double u2 = particle_vel[2];
+    array_1d<double, 3> vel_rate;
+    array_1d< array_1d<double, 3>, 3> grad;
+    CalculateTimeDerivative(time, coor, vel_rate);
+    CalculateGradient(time, coor, grad);
+
+    accel[0] = vel_rate[0] + u0 * grad[0][0] + u1 * grad[0][1] + u2 * grad[0][2];
+    accel[1] = vel_rate[1] + u0 * grad[1][0] + u1 * grad[1][1] + u2 * grad[1][2];
+    accel[2] = vel_rate[2] + u0 * grad[2][0] + u1 * grad[2][1] + u2 * grad[2][2];
+}
+
 void VelocityField::ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed)
 {
-    bool must_impose_fluid_velocity           = VariableIsInList(variables_to_be_imposed, FLUID_VEL_PROJECTED);
-    bool must_impose_fluid_acceleration       = VariableIsInList(variables_to_be_imposed, FLUID_ACCEL_PROJECTED);
-    bool must_impose_fluid_velocity_laplacian = VariableIsInList(variables_to_be_imposed, FLUID_VEL_LAPL_PROJECTED);
+    bool must_impose_fluid_velocity                            = VariableIsInList(variables_to_be_imposed, FLUID_VEL_PROJECTED);
+    bool must_impose_fluid_acceleration                        = VariableIsInList(variables_to_be_imposed, FLUID_ACCEL_PROJECTED);
+    bool must_impose_fluid_acceleration_following_the_particle = VariableIsInList(variables_to_be_imposed, FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED);
+    bool must_impose_fluid_velocity_laplacian                  = VariableIsInList(variables_to_be_imposed, FLUID_VEL_LAPL_PROJECTED);
     const double time = r_model_part.GetProcessInfo()[TIME];
 
     //#pragma omp parallel firstprivate(must_impose_fluid_velocity, must_impose_fluid_acceleration, must_impose_fluid_velocity_laplacian, time)
@@ -156,6 +173,14 @@ void VelocityField::ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesL
                 array_1d<double, 3> fluid_accel;
                 CalculateMaterialAcceleration(time, coor, fluid_accel, thread_number);
                 array_1d<double, 3>& fluid_accel_projected = p_node->FastGetSolutionStepValue(FLUID_ACCEL_PROJECTED);
+                noalias(fluid_accel_projected) = fluid_accel;
+            }
+
+            if (must_impose_fluid_acceleration_following_the_particle){
+                const array_1d<double, 3> particle_vel = p_node->FastGetSolutionStepValue(VELOCITY);
+                array_1d<double, 3> fluid_accel;
+                CalculateAccelerationFollowingTheParticle(time, coor, fluid_accel, particle_vel, thread_number);
+                array_1d<double, 3>& fluid_accel_projected = p_node->FastGetSolutionStepValue(FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED);
                 noalias(fluid_accel_projected) = fluid_accel;
             }
 

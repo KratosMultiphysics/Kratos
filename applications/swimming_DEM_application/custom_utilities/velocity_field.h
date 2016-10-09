@@ -60,6 +60,8 @@ void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, arra
 
 virtual void CalculateMaterialAcceleration(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& accel, const unsigned int i_thread = 1);
 
+virtual void CalculateAccelerationFollowingTheParticle(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& accel, const array_1d<double, 3>& particle_vel, const unsigned int i);
+
 virtual void UpdateCoordinates(const double time, const array_1d<double, 3>& coor, const unsigned int i_thread = 1){}
 
 void Evaluate(const double time, const vector<double>& coor, vector<double>& result, const unsigned int i_thread = 1);
