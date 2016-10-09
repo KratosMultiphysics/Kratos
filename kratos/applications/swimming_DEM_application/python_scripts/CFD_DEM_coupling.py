@@ -49,8 +49,9 @@ class ProjectionModule:
             self.projector.AddFluidCouplingVariable(var)
 
         for var in pp.coupling_dem_vars:
-            if var == FLUID_VEL_PROJECTED or var == FLUID_ACCEL_PROJECTED or var == FLUID_VEL_LAPL_PROJECTED:
+            if var == FLUID_VEL_PROJECTED or var == FLUID_ACCEL_PROJECTED or var == FLUID_VEL_LAPL_PROJECTED or var == FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED:
                 self.projector.AddDEMVariablesToImpose(var)
+            self.projector.AddDEMVariablesToImpose(SLIP_VELOCITY)
 
         # calculating the fluid nodal areas that are needed for the coupling
 
