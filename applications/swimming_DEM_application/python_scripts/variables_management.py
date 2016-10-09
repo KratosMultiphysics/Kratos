@@ -187,7 +187,10 @@ def ConstructListsOfResultsToPrint(pp):
             pp.dem_nodal_results += ["FLUID_VEL_LAPL_RATE_PROJECTED"]
 
         if pp.CFD_DEM.print_FLUID_ACCEL_PROJECTED_option:
-            pp.dem_nodal_results += ["FLUID_ACCEL_PROJECTED"]            
+            pp.dem_nodal_results += ["FLUID_ACCEL_PROJECTED"]
+
+        if pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option:
+            pp.dem_nodal_results += ["FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED"]
 
         if pp.CFD_DEM.print_FLUID_FRACTION_PROJECTED_option:
             pp.dem_nodal_results += ["FLUID_FRACTION_PROJECTED"]
@@ -306,6 +309,7 @@ def ConstructListsOfVariablesForCoupling(pp):
         pp.coupling_dem_vars += [HYDRODYNAMIC_MOMENT]
         pp.coupling_dem_vars += [MATERIAL_FLUID_ACCEL_PROJECTED]
         pp.coupling_dem_vars += [FLUID_ACCEL_PROJECTED]
+        pp.coupling_dem_vars += [FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED]
         pp.coupling_dem_vars += [ADDITIONAL_FORCE] # Here for safety for the moment
 
         if pp.CFD_DEM.include_faxen_terms_option:
