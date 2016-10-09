@@ -240,7 +240,7 @@ using namespace boost::python;
     ImposeVectorFieldOnNodes ImposeVectorField = &FieldUtility::ImposeFieldOnNodes;
     ImposeVelocityFieldOnNodes ImposeVelocityField = &FieldUtility::ImposeFieldOnNodes;
 
-    class_<FieldUtility> ("FieldUtility", init<SpaceTimeSet::Pointer, VectorField<3>::Pointer>())
+    class_<FieldUtility> ("FieldUtility", init<SpaceTimeSet::Pointer, VectorField<3>::Pointer, const double, const double >())
         .def("MarkNodesInside", &FieldUtility::MarkNodesInside)
         .def("EvaluateFieldAtPoint", EvaluateDoubleField)
         .def("EvaluateFieldAtPoint", EvaluateVectorField)
@@ -310,7 +310,6 @@ using namespace boost::python;
         .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::AddFluidCouplingVariable)
         .def("AddDEMVariablesToImpose", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::AddDEMVariablesToImpose)
         ;
-
 
     class_<BinBasedDEMFluidCoupledMapping <2, NanoParticle> >
             ("BinBasedNanoDEMFluidCoupledMapping2D", init<double, int, int, int, int>())
