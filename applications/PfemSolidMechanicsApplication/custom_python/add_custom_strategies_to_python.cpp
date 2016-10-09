@@ -49,11 +49,11 @@ namespace Kratos
       typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
       //base types
-      typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-      typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-      typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
+      //typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+      //typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+      //typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
       typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
-      typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
+      //typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
 
       //custom strategy types
       typedef ResidualBasedUwPStaticScheme< SparseSpaceType, LocalSpaceType > ResidualBasedUwPStaticSchemeType;
