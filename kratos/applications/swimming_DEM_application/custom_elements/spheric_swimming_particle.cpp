@@ -86,7 +86,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
                                 + buoyancy
                                 + weight;
 
-    double force_reduction_coeff = mRealMass / (mRealMass + mLastVirtualMassAddedMass + mLastBassetForceAddedMass);
+    const double force_reduction_coeff = mRealMass / (mRealMass + mLastVirtualMassAddedMass + mLastBassetForceAddedMass);
 
     array_1d<double, 3> non_contact_force_not_altered = non_contact_force;
 
@@ -194,8 +194,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeDragForce(NodeType& node, arr
     }
 
     else { // calculating the 'dimensional' drag coefficient, i.e., the factor by which the slip velocity must be multiplied to yield the drag force
-        ProcessInfo const& const_current_process_info = r_current_process_info;
-        double drag_coeff = ComputeDragCoefficient(const_current_process_info);
+        double drag_coeff = ComputeDragCoefficient(r_current_process_info);
 
         ApplyDragPorosityModification(drag_coeff);
 
@@ -213,16 +212,26 @@ void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(NodeType& no
     }
 
     else {
+        // Unperturbed flow force contribution
         const array_1d<double, 3>& fluid_acc = node.FastGetSolutionStepValue(FLUID_ACCEL_PROJECTED);
+        
+        // Virtual mass force contribution
         array_1d<double, 3> slip_acc;
-
+        
         if (mFluidModelType == 0){ // fluid velocity is modified as a post-process
             const array_1d<double, 3>& particle_acc = 1 / GetMass() * GetForce();
             noalias(slip_acc) = fluid_acc / mFluidFraction - particle_acc;
         }
 
         else {
-            noalias(slip_acc) = fluid_acc; // the particle acceleration is treated implicitly through the added_mass
+
+            if (mVirtualMassForceType == 12){
+                noalias(slip_acc) = node.FastGetSolutionStepValue(FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED); // the particle acceleration is treated implicitly through the added_mass
+            }
+
+            else {
+                noalias(slip_acc) = fluid_acc; // the particle acceleration is treated implicitly through the added_mass
+            }
 
             if (mDragForceType == 11) {
                 const array_1d<double, 3>& fluid_vel_laplacian_rate = node.FastGetSolutionStepValue(FLUID_VEL_LAPL_RATE_PROJECTED);
@@ -230,6 +239,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(NodeType& no
             }
         }
 
+        // Virtual mass force coefficient
         double virtual_mass_coeff = 0.5; // inviscid case
 
         if (mVirtualMassForceType == 2 || mVirtualMassForceType == 4) { // Zuber (1964) (moderate values of solid fraction)
@@ -242,9 +252,9 @@ void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(NodeType& no
             virtual_mass_coeff *= 2.1 - 0.132 / (SWIMMING_POW_2(acc_number) + 0.12);
         }
 
-        const double volume = CalculateVolume();
-        mLastVirtualMassAddedMass = virtual_mass_coeff * mFluidDensity * volume;
-        noalias(virtual_mass_force) = mFluidDensity * volume * (virtual_mass_coeff * slip_acc + fluid_acc); // here we add the part of buoyancy due to the acceleration of the fluid (pressure drag)
+        const double fluid_mass = mFluidDensity * CalculateVolume();
+        mLastVirtualMassAddedMass = virtual_mass_coeff * fluid_mass;
+        noalias(virtual_mass_force) = fluid_mass * (virtual_mass_coeff * slip_acc + fluid_acc); // here we add the part of buoyancy due to the acceleration of the fluid (pressure drag)
     }
 }
 //**************************************************************************************************************************************************
