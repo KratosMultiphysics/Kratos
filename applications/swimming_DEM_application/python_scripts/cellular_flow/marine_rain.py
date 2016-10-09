@@ -85,7 +85,7 @@ pp.CFD_DEM.faxen_terms_type = 0
 pp.CFD_DEM.material_acceleration_calculation_type = 1
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
-pp.CFD_DEM.basset_force_type = 4
+pp.CFD_DEM.basset_force_type = 0
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
 pp.CFD_DEM.basset_force_integration_type = 2
 pp.CFD_DEM.n_init_basset_steps = 0
@@ -99,6 +99,7 @@ pp.CFD_DEM.print_steps_per_plot_step = 1
 pp.CFD_DEM.PostCationConcentration = False
 pp.CFD_DEM.do_impose_flow_from_field = True
 pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
+pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = True
 #Z
 
 # NANO BEGIN
@@ -503,12 +504,12 @@ if DEM_parameters.coupling_level_type:
     projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, spheres_model_part, rigid_face_model_part, domain_size, pp)
     #G
     L = 0.1
-    U = 0.3
+    U = 0.189
     k = 2.72
     omega = 0*math.pi
     flow_field = CellularFlowField(L , U , k, omega)
     space_time_set = SpaceTimeSet()
-    field_utility = FieldUtility(space_time_set, flow_field)
+    field_utility = FieldUtility(space_time_set, flow_field,1000.0,1e-6)
     projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, spheres_model_part, rigid_face_model_part, domain_size, pp, field_utility)
     #Z
     projection_module.UpdateDatabase(h_min)
@@ -718,7 +719,7 @@ scheme = ResidualBasedIncrementalUpdateStaticScheme()
 post_process_strategy = ResidualBasedLinearStrategy(fluid_model_part, scheme, linear_solver, False, True, False, False)
 number=0
 for node in fluid_model_part.Nodes:
-    number += 1
+    number += 1 
 #Z
 
 N_steps = int(final_time / Dt_DEM) + 20
@@ -728,21 +729,46 @@ if pp.CFD_DEM.basset_force_type > 0:
 if pp.CFD_DEM.basset_force_type >= 3 or pp.CFD_DEM.basset_force_type == 1:
     basset_force_tool.FillHinsbergVectors(spheres_model_part, pp.CFD_DEM.number_of_exponentials, pp.CFD_DEM.number_of_quadrature_steps_in_window)
 
-post_utils.Writeresults(time)
-
 import random
+from random import randint
+
+N_positions = 20
+possible_xs = [2 * L * (i + 1) / N_positions for i in range(N_positions)]
+
 for node in spheres_model_part.Nodes:
     rand_x = 2 * L * random.random()
-    rand_y = 2 * L * random.random()
+    rand_y = pp.CFD_DEM.BoundingBoxMinY + (pp.CFD_DEM.BoundingBoxMaxY - pp.CFD_DEM.BoundingBoxMinY) * random.random()
+    init_x = node.X 
+    init_y = node.Y
+    #rand_x = possible_xs[randint(0, N_positions - 1)]
+    #rand_y = possible_xs[randint(0, N_positions - 1)]
     node.X = rand_x
     node.Y = rand_y
     displx = node.GetSolutionStepValue(DISPLACEMENT_X)
     disply = node.GetSolutionStepValue(DISPLACEMENT_Y)
-    node.SetSolutionStepValue(DISPLACEMENT_X, displx + rand_x)
-    node.SetSolutionStepValue(DISPLACEMENT_Y, disply + rand_y)
+    node.SetSolutionStepValue(DISPLACEMENT_X, rand_x - init_x)
+    node.SetSolutionStepValue(DISPLACEMENT_Y, rand_y - init_y)
+
+
+for node in spheres_model_part.Nodes:
+    vel= Vector(3)
+    coor= Vector(3)
+    coor[0]=node.X
+    coor[1]=node.Y
+    coor[2]=node.Z
+    flow_field.Evaluate(time,coor,vel,0)
+    node.SetSolutionStepValue(VELOCITY_X, vel[0])
+    node.SetSolutionStepValue(VELOCITY_Y, vel[1])
+    node.SetSolutionStepValue(VELOCITY_Z, vel[2])
+    node.SetSolutionStepValue(VELOCITY_OLD_X, vel[0])
+    node.SetSolutionStepValue(VELOCITY_OLD_Y, vel[1])
+    node.SetSolutionStepValue(VELOCITY_OLD_Z, vel[2])   
+    
+    
+projection_module.ImposeFluidFlowOnParticles()
+post_utils.Writeresults(time)
 
 while (time <= final_time):
-
     time = time + Dt
     step += 1
     fluid_model_part.CloneTimeStep(time)
@@ -764,7 +790,6 @@ while (time <= final_time):
         embedded.ApplyEmbeddedBCsToBalls(spheres_model_part, DEM_parameters)
 
     # solving the fluid part
-
     if step >= 3 and not stationarity:
         print("Solving Fluid... (", fluid_model_part.NumberOfElements(0), "elements )")
         sys.stdout.flush()
@@ -773,16 +798,16 @@ while (time <= final_time):
 #G            
             #fluid_solver.Solve()
 
-            for node in fluid_model_part.Nodes:
-                vel= Vector(3)
-                coor= Vector(3)
-                coor[0]=node.X
-                coor[1]=node.Y
-                coor[2]=node.Z
-                flow_field.Evaluate(time,coor,vel,0)
-                node.SetSolutionStepValue(VELOCITY_X, vel[0])
-                node.SetSolutionStepValue(VELOCITY_Y, vel[1])
-                node.SetSolutionStepValue(VELOCITY_Z, vel[2])
+            #for node in fluid_model_part.Nodes:
+                #vel= Vector(3)
+                #coor= Vector(3)
+                #coor[0]=node.X
+                #coor[1]=node.Y
+                #coor[2]=node.Z
+                #flow_field.Evaluate(time,coor,vel,0)
+                #node.SetSolutionStepValue(VELOCITY_X, vel[0])
+                #node.SetSolutionStepValue(VELOCITY_Y, vel[1])
+                #node.SetSolutionStepValue(VELOCITY_Z, vel[2])
 #Z                
             if pp.CFD_DEM.laplacian_calculation_type == 1 and VELOCITY_LAPLACIAN in pp.fluid_vars:
                 current_step = fluid_model_part.ProcessInfo[FRACTIONAL_STEP]
@@ -868,14 +893,23 @@ while (time <= final_time):
 
             else:
                 projection_module.ProjectFromFluid((time_final_DEM_substepping - time_dem) / Dt)
-
+                projection_module.ImposeFluidFlowOnParticles()
                 if DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
                     solver.Solve() # only advance in space  
-                    projection_module.InterpolateVelocity()
+                #projection_module.InterpolateVelocity()
                     
                 #G        
 
-                projection_module.ImposeFluidFlowOnParticles()
+                for node in spheres_model_part.Nodes:
+                    vel= Vector(3)
+                    coor= Vector(3)
+                    coor[0]=node.X
+                    coor[1]=node.Y
+                    coor[2]=node.Z
+                    flow_field.Evaluate(time,coor,vel,0)
+                    node.SetSolutionStepValue(SLIP_VELOCITY_X, vel[0])
+                    node.SetSolutionStepValue(SLIP_VELOCITY_Y, vel[1])
+                    node.SetSolutionStepValue(SLIP_VELOCITY_Z, vel[2])
                 #Z        
                 if quadrature_counter.Tick():            
                     if pp.CFD_DEM.basset_force_type == 1 or pp.CFD_DEM.basset_force_type >= 3:                        
@@ -902,7 +936,7 @@ while (time <= final_time):
         # adding DEM elements by the inlet:
         if (DEM_parameters.dem_inlet_option):
             DEM_inlet.CreateElementsFromInletMesh(spheres_model_part, cluster_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.              
-
+        
         #first_dem_iter = False
 
     if DEM_parameters.ElementType == "SwimmingNanoParticle":
@@ -949,7 +983,7 @@ while (time <= final_time):
 
         post_utils.Writeresults(time)
         out = 0
-
+    
     out = out + Dt
 
 swimming_DEM_gid_io.finalize_results()
