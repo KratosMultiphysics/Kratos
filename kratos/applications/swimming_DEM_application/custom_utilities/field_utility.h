@@ -38,7 +38,8 @@ KRATOS_CLASS_POINTER_DEFINITION(FieldUtility);
 
 FieldUtility(): mDomain(), mpVectorField(){}
 
-FieldUtility(SpaceTimeSet::Pointer p_sts, VectorField<3>::Pointer p_vector_field): mDomain(p_sts), mpVectorField(p_vector_field){}
+FieldUtility(SpaceTimeSet::Pointer p_sts, VectorField<3>::Pointer p_vector_field, const double fluid_density = 1000.0, const double fluid_kinematic_viscosity = 1e-6):
+    mDomain(p_sts), mpVectorField(p_vector_field), mFluidDensity(fluid_density), mFluidViscosity(fluid_kinematic_viscosity){}
 
 /// Destructor.
 
@@ -60,6 +61,7 @@ void MarkNodesInside(ModelPart& r_model_part, const ProcessInfo& r_current_proce
         double coor_y = node_it->Y();
         double coor_z = node_it->Z();
         bool is_in = mDomain->IsIn(time, coor_x, coor_y, coor_z);
+        node_it->Set(INSIDE, is_in);
         mIsInArray[i] = is_in;
     }
 }
@@ -168,6 +170,19 @@ virtual void ImposeFieldOnNodes(Variable<array_1d<double, 3> >& destination_vari
 
 virtual void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed)
 {
+    const unsigned int nnodes = r_model_part.Nodes().size();
+
+    MarkNodesInside(r_model_part, r_model_part.GetProcessInfo());
+
+    #pragma omp parallel for
+    for (int i = 0; i < (int)nnodes; ++i){
+        ModelPart::NodeIterator node_it = r_model_part.NodesBegin() + i;
+        double& fluid_viscosity = node_it->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
+        double& fluid_density = node_it->FastGetSolutionStepValue(FLUID_DENSITY_PROJECTED);
+        fluid_viscosity = mFluidViscosity;
+        fluid_density = mFluidDensity;
+    }
+
     mpVectorField->ImposeFieldOnNodes(r_model_part, variables_to_be_imposed);
 }
 
@@ -259,6 +274,8 @@ RealField::Pointer mFormula;
 SpaceTimeSet::Pointer mDomain;
 VectorField<3>::Pointer mpVectorField;
 std::vector<bool> mIsInArray;
+double mFluidDensity;
+double mFluidViscosity;
 ///@}
 ///@name Private Operators
 ///@{
