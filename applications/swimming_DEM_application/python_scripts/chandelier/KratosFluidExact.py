@@ -97,6 +97,8 @@ pp.CFD_DEM.number_of_quadrature_steps_in_window = int(pp.CFD_DEM.time_window / p
 pp.CFD_DEM.print_steps_per_plot_step = 1
 pp.CFD_DEM.PostCationConcentration = False
 pp.CFD_DEM.do_impose_flow_from_field = True
+pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
+pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = False
 #Z
 
 # Import utilities from models
@@ -342,8 +344,7 @@ if (DEM_parameters.BoundingBoxOption == "ON"):
 solver.search_strategy = parallelutils.GetSearchStrategy(solver, spheres_model_part)
 
 # Creating the fluid solver
-fluid_solver = solver_module.CreateSolver(
-    fluid_model_part, SolverSettings)
+fluid_solver = solver_module.CreateSolver(fluid_model_part, SolverSettings)
 
 Dt_DEM = DEM_parameters.MaxTimeStep
 
@@ -495,6 +496,9 @@ if DEM_parameters.coupling_level_type:
 # creating a custom functions calculator for the implementation of additional custom functions
 custom_functions_tool = swim_proc.FunctionsCalculator(pp)
 
+# creating a derivative recovery tool to calculate the necessary derivatives from the fluid solution (gradient, laplacian, material acceleration...)
+derivative_recovery_tool = DerivativeRecoveryTool3D(fluid_model_part)
+
 # creating a basset_force tool to perform the operations associated with the calculation of this force along the path of each particle
 if pp.CFD_DEM.basset_force_type > 0:
     basset_force_tool = swim_proc.BassetForceTools()
@@ -591,10 +595,10 @@ embedded_counter             = swim_proc.Counter(1,
                                                  DEM_parameters.embedded_option)  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
 DEM_to_fluid_counter         = swim_proc.Counter(1, 
                                                  1, 
-                                                 DEM_parameters.coupling_level_type)
+                                                 DEM_parameters.coupling_level_type > 1)
 pressure_gradient_counter    = swim_proc.Counter(1, 
                                                  1, 
-                                                 DEM_parameters.coupling_level_type or pp.pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
+                                                 DEM_parameters.coupling_level_type or pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
 stationarity_counter         = swim_proc.Counter(DEM_parameters.time_steps_per_stationarity_step, 
                                                  1, 
                                                  DEM_parameters.stationary_problem_option)
@@ -708,7 +712,6 @@ for node in spheres_model_part.Nodes:
     node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, 0.0)   
 
 while (time <= final_time):
-
     time = time + Dt
     step += 1
     fluid_model_part.CloneTimeStep(time)
@@ -730,9 +733,7 @@ while (time <= final_time):
         embedded.ApplyEmbeddedBCsToBalls(spheres_model_part, DEM_parameters)
 
     # solving the fluid part
-
     if step >= 3 and not stationarity:
-
         print("Solving Fluid... (", fluid_model_part.NumberOfElements(0), "elements )")
         sys.stdout.flush()
 
@@ -783,15 +784,15 @@ while (time <= final_time):
 
     if pressure_gradient_counter.Tick():
         if pp.CFD_DEM.gradient_calculation_type == 2:
-            custom_functions_tool.RecoverSuperconvergentGradient(fluid_model_part, PRESSURE, PRESSURE_GRADIENT)
+            derivative_recovery_tool.RecoverSuperconvergentGradient(fluid_model_part, PRESSURE, PRESSURE_GRADIENT)
         elif pp.CFD_DEM.gradient_calculation_type == 1:            
             custom_functions_tool.CalculatePressureGradient(fluid_model_part)            
         if pp.CFD_DEM.laplacian_calculation_type == 1:
-            custom_functions_tool.CalculateVectorLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
+            derivative_recovery_tool.CalculateVectorLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
         elif pp.CFD_DEM.laplacian_calculation_type == 2:
-            custom_functions_tool.RecoverSuperconvergentLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
+            derivative_recovery_tool.RecoverSuperconvergentLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
         if pp.CFD_DEM.material_acceleration_calculation_type == 1:
-            custom_functions_tool.CalculateVectorMaterialDerivative(fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)    
+            derivative_recovery_tool.CalculateVectorMaterialDerivative(fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)    
 
     print("Solving DEM... (", spheres_model_part.NumberOfElements(0), "elements )")
     sys.stdout.flush()
@@ -932,7 +933,7 @@ while (time <= final_time):
         cluster_model_part.ProcessInfo[TIME]    = time_dem
 
         if not DEM_parameters.flow_in_porous_DEM_medium_option: # in porous flow particles remain static      
-            solver.Solve()        
+            solver.Solve()
             #results_creator.Record(spheres_model_part, node_to_follow_id, time_dem)    
                 
         # Walls movement:
@@ -945,6 +946,7 @@ while (time <= final_time):
         # adding DEM elements by the inlet:
         if (DEM_parameters.dem_inlet_option):
             DEM_inlet.CreateElementsFromInletMesh(spheres_model_part, cluster_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.              
+        
         #first_dem_iter = False
 
     #### PRINTING GRAPHS ####
@@ -980,7 +982,7 @@ while (time <= final_time):
         io_tools.PrintParticlesResults(pp.variables_to_print_in_file, time, spheres_model_part)
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
-
+    
     if output_time <= out and DEM_parameters.coupling_scheme_type == "UpdatedFluid":
 
         if DEM_parameters.coupling_level_type:
@@ -988,7 +990,7 @@ while (time <= final_time):
 
         post_utils.Writeresults(time)
         out = 0
-
+    
     out = out + Dt
 
 swimming_DEM_gid_io.finalize_results()
