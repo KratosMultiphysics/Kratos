@@ -140,7 +140,8 @@ static GP_CONST char * strElementType[]= {
   "Prism",
   "Pyramid",
   "Sphere",
-  "Circle"
+  "Circle",
+  "Point"
 };
 
 GP_CONST char * GetElementTypeName( GiD_ElementType type )
@@ -167,6 +168,7 @@ int ValidateConnectivity(GiD_ElementType etype , int NNode)
   case GiD_Point:
   case GiD_Sphere:
   case GiD_Circle:
+  case GiD_Cluster:
     error = (NNode != 1);
     break;
   case GiD_Linear:
@@ -1061,6 +1063,96 @@ int GiD_fWriteCircleMat(GiD_FILE fd, int id, int nid, double r,
   FD2FILE(fd,File);
 
   return _GiD_WriteCircleMat(File, id, nid, r, nx, ny, nz, mat);
+}
+
+/*
+ *  Write a cluster element member at the current Elements Block.
+ *  A cluster element is defined by:
+ *
+ *     id: element id
+ *
+ *     nid: node center given by the node id specified previously in
+ *          the coordinate block.
+ *  
+ */
+
+int _GiD_WriteCluster(CPostFile *File, int id, int nid)
+{
+  /* state checking */
+  assert(CheckState(POST_MESH_ELEM, File->level_mesh));    
+  /* keep on the same state */
+  CPostFile_WriteInteger(File, id, 0);
+  CPostFile_WriteInteger(File, nid, 1);
+  if (CPostFile_IsBinary(File)) {
+    CPostFile_WriteInteger(File, 1, 1);    
+  }
+  return 0;
+}
+
+int GiD_WriteCluster(int id, int nid)
+{
+#ifdef HDF5
+  if(PostMode==GiD_PostHDF5){
+    return GiD_WriteCluster_HDF5(id,nid);
+  }
+#endif
+
+  return _GiD_WriteCluster(outputMesh, id, nid);
+}
+
+int GiD_fWriteCluster(GiD_FILE fd, int id, int nid)
+{
+  CPostFile *File = NULL;
+
+  FD2FILE(fd,File);
+
+  return _GiD_WriteCluster(File, id, nid);
+}
+
+/*
+ *  Write a cluster element member at the current Elements
+ *  Block. Providing also a material identification.
+ *  
+ *  A cluster element is defined by:
+ *
+ *     id: element id
+ *
+ *     nid: node center given by the node id specified previously in
+ *          the coordinate block.
+ *
+ *     mat: material identification.
+ *  
+ */
+
+int _GiD_WriteClusterMat(CPostFile * File, int id, int nid, int mat)
+{
+  /* state checking */
+  assert(CheckState(POST_MESH_ELEM, File->level_mesh));    
+  /* keep on the same state */
+  CPostFile_WriteInteger(File, id,  0);
+  CPostFile_WriteInteger(File, nid, 1);
+  CPostFile_WriteInteger(File, mat, 2);
+  return 0;
+}
+
+int GiD_WriteClusterMat(int id, int nid, int mat)
+{
+#ifdef HDF5
+  if(PostMode==GiD_PostHDF5){
+    return GiD_WriteClusterMat_HDF5(id,nid,mat);
+  }
+#endif
+
+  return _GiD_WriteClusterMat(outputMesh, id, nid, mat);
+}
+
+int GiD_fWriteClusterMat(GiD_FILE fd, int id, int nid, int mat)
+{
+  CPostFile *File = NULL;
+
+  FD2FILE(fd,File);
+
+  return _GiD_WriteClusterMat(File, id, nid, mat);
 }
 
 /* ---------------------------------------------------------------------------

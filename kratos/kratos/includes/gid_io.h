@@ -1214,7 +1214,54 @@ void WriteCircleMesh( MeshType& rThisMesh )
         KRATOS_CATCH("")
     }//WriteCircleMesh
 
+void WriteClusterMesh( MeshType& rThisMesh )
+    {
+        KRATOS_TRY
 
+        Timer::Start("Writing Mesh");
+
+        GiD_fBeginMesh(mMeshFile, "Kratos Mesh",GiD_3D,GiD_Cluster,1);
+        GiD_fBeginCoordinates(mMeshFile);
+        for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
+                node_iterator != rThisMesh.NodesEnd();
+                ++node_iterator)
+        {
+            if ( mWriteDeformed == WriteUndeformed )
+                GiD_fWriteCoordinates( mMeshFile, node_iterator->Id(), node_iterator->X0(),
+                                      node_iterator->Y0(), node_iterator->Z0() );
+            else if ( mWriteDeformed == WriteDeformed )
+                GiD_fWriteCoordinates( mMeshFile, node_iterator->Id(), node_iterator->X(),
+                                      node_iterator->Y(), node_iterator->Z() );
+            else
+                KRATOS_THROW_ERROR( std::logic_error,"undefined WriteDeformedMeshFlag","" );
+        }
+        GiD_fEndCoordinates( mMeshFile );
+
+        GiD_fBeginElements( mMeshFile );
+
+        /*for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
+                node_iterator != rThisMesh.NodesEnd();
+                ++node_iterator)
+        {
+            nodes_id[0] = node_iterator->Id();
+            GiD_fWriteClusterMat(mMeshFile, node_iterator->Id(), nodes_id[0], node_iterator->FastGetSolutionStepValue(RADIUS), node_iterator->FastGetSolutionStepValue(PARTICLE_MATERIAL));
+//             mNodeList.push_back(*node_iterator);
+        }*/
+        
+        for ( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
+                element_iterator != rThisMesh.ElementsEnd();
+                ++element_iterator)
+        {
+            unsigned int node_id = element_iterator->GetGeometry()[0].Id();
+            GiD_fWriteClusterMat(mMeshFile, node_id, node_id, element_iterator->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MATERIAL)/*element_iterator->GetProperties().Id()*/);
+        }
+        GiD_fEndElements( mMeshFile );
+        GiD_fEndMesh( mMeshFile);
+
+        Timer::Stop("Writing Mesh");
+
+        KRATOS_CATCH("")
+    }//WriteClusterMesh
 
 
 
