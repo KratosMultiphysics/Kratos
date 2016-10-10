@@ -1538,9 +1538,10 @@ private:
         int MotherFractureId = rParameters["fractures_list"][itFracture]["id"].GetInt();
         array_1d<double,2> AuxArray1;
         array_1d<double,2> AuxArray2;
-            
+        
         // Bifurcation
-        if(TopBifurcationFactor > PropagationFactor && BotBifurcationFactor > PropagationFactor && PropagationFactor < 0.25)
+        if(PropagationFactor < 0.25 &&
+            TopBifurcationFactor > 0.75 && BotBifurcationFactor > 0.75)
         {
             SimplePropagation = false;
             
