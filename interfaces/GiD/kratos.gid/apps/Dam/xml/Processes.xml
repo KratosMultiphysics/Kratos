@@ -36,6 +36,7 @@
         <parameter n="Water_level" pn="Water Level" type="double" v="0.0"/>
         <parameter n="Outer_temp" pn="Dry Temperature " type="double" v="0.0"/>
         <parameter n="Month" pn="Month" type="integer" v="0.0"/>
+        <parameter n="Table" pn="Table filename" type="file" v=""/>
     </inputs>
   </Process>
     

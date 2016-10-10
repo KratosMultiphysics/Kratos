@@ -142,7 +142,7 @@ proc write::writeTables { } {
 proc write::writeMaterials { {appid ""}} {
     variable mat_dict
     
-    set exclusionList [list "MID" "APPID" "ConstitutiveLaw" "Material"]
+    set exclusionList [list "MID" "APPID" "ConstitutiveLaw" "Material" "Element"]
     # We print all the material data directly from the saved dictionary
     foreach material [dict keys $mat_dict] {
         set matapp [dict get $mat_dict $material APPID]
@@ -224,7 +224,7 @@ proc write::processMaterials { } {
             foreach valueNode $us {
                 set name [$valueNode getAttribute n]
                 set state [get_domnode_attribute $valueNode state]
-                if {$state eq "normal" && $name ne "Element"} {
+                if {$state eq "normal"} {
                     # All the introduced values are translated to 'm' and 'kg' with the help of this function
                     set value [gid_groups_conds::convert_value_to_default $valueNode]
                     
@@ -1065,3 +1065,16 @@ proc write::RenameFileInModel { src target } {
 }
 
 write::Init
+
+
+proc write::WriteAssignedValues {condNode} {
+    set assignedVector [list 1 0 1]
+    set valuesVector [list 0.0 null 0.0]
+    
+    for {set i 0} {$i<3} {incr i} {
+        set assigned [lindex $assignedVector $i]
+        if {!$assigned} {set assignedVector [lreplace $assignedVector $i $i null]}
+    }
+    set ret [dict create value $valuesVector]
+    return $ret
+}
