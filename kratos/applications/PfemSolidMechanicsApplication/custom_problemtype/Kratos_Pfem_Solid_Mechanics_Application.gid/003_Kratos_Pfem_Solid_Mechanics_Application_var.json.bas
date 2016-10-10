@@ -1,7 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "*tcl(file tail [GiD_Info Project ModelName])",
-        "model_part_name" : "Solid Domain",
+        "model_part_name" : "Main_Domain",
         "domain_size"     : *GenData(DOMAIN_SIZE,INT),
 	"time_step"       : *GenData(Time_Step),
         "start_time"      : *GenData(Start_Time),
@@ -45,7 +45,6 @@
         },
         "line_search"                        : *tcl(string tolower *GenData(LineSearch)),
         "convergence_criterion"              : "Residual_criterion",
-
         "reform_dofs_at_each_step"           : true,
         "displacement_relative_tolerance"    : *GenData(Convergence_Tolerance),
         "displacement_absolute_tolerance"    : *GenData(Absolute_Tolerance),
@@ -58,8 +57,32 @@
              "max_iteration" : *GenData(Linear_Solver_Max_Iteration,INT),
              "scaling"     : false
          },
+	"bodies_list":[
+*set cond group_DeformableBodies *groups
+*add cond group_RigidWalls *groups
+*if(CondNumEntities > 0)
+*set var GroupNumber = 0
+*loop groups *OnlyInCond
+*set var GroupNumber=operation(GroupNumber+1)
+*end groups
+*set var Counter = 0
+*loop groups *OnlyInCond
+*set var Counter=operation(Counter+1)
+     	 {
+     	 "body_type": "*cond(StructuralType)",
+     	 "body_name": "*cond(StructuralType)_*GroupName",
+     	 "parts_list": ["*GroupName"]
+*if( Counter == GroupNumber )
+     	 }
+*else
+     	 },
+*end
+*end groups
+*endif
+	],
         "problem_domain_sub_model_part_list" : [
 *set cond group_DeformableBodies *groups
+*add cond group_RigidWalls *groups
 *if(CondNumEntities > 0)
 *set var GroupNumber = 0
 *loop groups *OnlyInCond
@@ -69,13 +92,13 @@
 *loop groups *OnlyInCond
 *set var Counter=operation(Counter+1)
 *if( Counter == GroupNumber )
-         "*GroupName"
+     	 "*GroupName"
 *else
-	 "*GroupName",
+     	 "*GroupName",
 *end
 *end groups
 *endif
-      	],
+	],
         "processes_sub_model_part_list" : [
 *set cond group_RigidWalls *groups
 *add cond group_LINEAR_MOVEMENT *groups
@@ -94,13 +117,13 @@
 *loop groups *OnlyInCond
 *set var Counter=operation(Counter+1)
 *if( Counter == GroupNumber )
-         "*GroupName"
+     	 "*GroupName"
 *else
-	 "*GroupName",
+     	 "*GroupName",
 *end
 *end groups
 *endif
-      	]
+	]
     },
     "problem_process_list" : [{
         "python_module"   : "remesh_domains_process",
@@ -108,7 +131,7 @@
         "help"            : "This process applies meshing to the problem domains",
         "process_name"    : "RemeshDomainsProcess",
         "Parameters"      : {
-	    "model_part_name"       : "Solid Domain",
+	    "model_part_name"       : "Main_Domain",
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 0.0,
             "meshing_before_output" : true,
@@ -125,7 +148,7 @@
             {
 		"python_module": "meshing_domain",
 		"mesh_id": 0,
-		"model_part_name": "*GroupName",
+		"model_part_name": "*cond(StructuralType)_*GroupName",
 		"alpha_shape": 2.4,
 		"offset_factor": *GenData(Offset_Factor),
 		"meshing_strategy":{
@@ -208,7 +231,7 @@
         "process_name"     : "ContactDomainProcess",
         "Parameters"       : {
             "mesh_id"               : 0,
-	    "model_part_name"       : "Solid Domain",
+	    "model_part_name"       : "Main_Domain",
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 0.0,
             "meshing_before_output" : true,
@@ -249,9 +272,9 @@
 *loop groups *OnlyInCond
 *set var Counter=operation(Counter+1)
 *if( Counter == GroupNumber )
-         "*GroupName"
+         "*cond(StructuralType)_*GroupName"
 *else
-	 "*GroupName",
+	 "*cond(StructuralType)_*GroupName",
 *end
 *end groups
 *endif
@@ -272,7 +295,7 @@
         "help"            : "This process applies parametric walls and search contact",
         "process_name"    : "ParametricWallsProcess",
         "Parameters"      : {
-	    "model_part_name"      : "Solid Domain",
+	    "model_part_name"      : "Main_Domain",
             "search_control_type"  : "step",
             "search_frequency"     : 0.0,
 	    "parametric_walls" : [
@@ -283,12 +306,12 @@
 		{
 		    "python_module": "parametric_wall",
 		    "mesh_id": 0,
-		    "model_part_name" : "*GroupName",
+		    "model_part_name" : "*cond(StructuralType)_*GroupName",
 		    "rigid_body_settings":{
 			"rigid_body_element_type": "TranslatoryRigidBodyElement2D1N",
 			"fixed_body": true,
 			"compute_body_parameters": *tcl(string tolower *cond(Compute_Weight_Centroid_and_Inertia)),
-			"rigid_body_model_part_name": "*GroupName",
+			"rigid_body_model_part_name": "*cond(StructuralType)_*GroupName",
 			"rigid_body_parameters":{
 			    "center_of_gravity": [*tcl(JoinByComma *cond(Centroid))],
 			    "mass": *cond(Mass),
@@ -570,7 +593,7 @@
         "help"            : "This process writes restart files",
         "process_name"    : "RestartProcess",
         "Parameters"      : {
-            "model_part_name"     : "Solid Domain",
+            "model_part_name"     : "Main_Domain",
             "save_restart"        : *tcl(string tolower *GenData(Print_Restart)),
             "restart_file_name"   : "*tcl(file tail [GiD_Info Project ModelName])",
             "restart_file_label"  : "step",
