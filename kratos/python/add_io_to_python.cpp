@@ -66,6 +66,10 @@ void WriteCircleMesh( GidIO<>& dummy, GidIO<>::MeshType& rThisMesh )
     dummy.WriteCircleMesh( rThisMesh );
 }
 
+void WriteClusterMesh( GidIO<>& dummy, GidIO<>::MeshType& rThisMesh )
+{
+    dummy.WriteClusterMesh( rThisMesh );
+}
 
 void WriteMesh( GidIO<>& dummy, GidIO<>::MeshType& rThisMesh )
 {
@@ -208,6 +212,7 @@ void  AddIOToPython()
     .def("WriteNodeMesh",WriteNodeMesh)
     .def("WriteSphereMesh",WriteSphereMesh)
     .def("WriteCircleMesh",WriteCircleMesh)
+    .def("WriteClusterMesh",WriteClusterMesh)
 
     .def("InitializeMesh",&GidIO<>::InitializeMesh)
     .def("FinalizeMesh",&GidIO<>::FinalizeMesh)

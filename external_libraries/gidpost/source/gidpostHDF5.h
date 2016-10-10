@@ -34,6 +34,8 @@ int GiD_WriteSphere_HDF5(int id, int nid, double r);
 int GiD_WriteSphereMat_HDF5(int id, int nid, double r, int mat);
 int GiD_WriteCircle_HDF5(int id, int nid, double r,double nx, double ny, double nz);
 int GiD_WriteCircleMat_HDF5(int id, int nid, double r,double nx, double ny, double nz, int mat);
+int GiD_WriteCluster_HDF5(int id, int nid);
+int GiD_WriteClusterMat_HDF5(int id, int nid, int mat);
 
 /*################################################################################
 *#    Results file

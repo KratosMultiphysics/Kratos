@@ -66,7 +66,7 @@ int GiD_BeginMesh_HDF5(GP_CONST char * MeshName,GiD_Dimension Dim, GiD_ElementTy
 {
   char meshN[1024],buf[1024];
   char* enames[]={"NoElement","Point","Linear","Triangle","Quadrilateral","Tetrahedra","Hexahedra","Prism","Pyramid",
-      "Sphere","Circle"};
+      "Sphere","Circle","Point"};
   
   hdf5c_create_group("Meshes");
   current_mesh_num++;
@@ -165,6 +165,7 @@ int GiD_BeginElements_HDF5()
   switch(current_mesh_etype){
     case GiD_Sphere: num_int=3; num_real=1; break;
     case GiD_Circle: num_int=3; num_real=4; break;
+    case GiD_Cluster: num_int=3; break;
     default: num_int=current_mesh_nnode+2; break;
   }
   sprintf(setN,"Meshes/%d/Elements",current_mesh_num);
@@ -265,6 +266,37 @@ int GiD_WriteCircleMat_HDF5(int id, int nid, double r,double nx, double ny, doub
   return 0;
 }
 
+/*
+ *  Write a cluster element member at the current Elements Block.
+ *  A cluster element is defined by:
+ *
+ *     id: element id
+ *
+ *     nid: node center given by the node id specified previously in
+ *          the coordinate block.
+ *  
+ */
+
+int GiD_WriteCluster_HDF5(int id, int nid)
+{
+  int intvalues[3];
+  intvalues[0]=id;
+  intvalues[1]=nid;
+  intvalues[2]=0;
+  hdf5c_addto_dataset(current_mesh_dataset_id,intvalues);
+  return 0;
+}
+
+int GiD_WriteClusterMat_HDF5(int id, int nid, int mat)
+{
+  int intvalues[3];
+  intvalues[0]=id;
+  intvalues[1]=nid;
+  intvalues[2]=mat;
+  hdf5c_addto_dataset(current_mesh_dataset_id,intvalues);
+  return 0;
+}
+
 int GiD_OpenPostResultFile_HDF5(GP_CONST char * FileName)
 {
   int ret;
@@ -295,7 +327,7 @@ int GiD_BeginGaussPoint_HDF5(GP_CONST char * name, GiD_ElementType EType,GP_CONS
 {
   char gpN[1024],buf[1024];
   char* enames[]={"NoElement","Point","Linear","Triangle","Quadrilateral","Tetrahedra","Hexahedra","Prism","Pyramid",
-      "Sphere","Circle"};
+      "Sphere","Circle","Point"};
 
   hdf5c_create_group("GaussPoints");
   current_gauss_points_num++;
