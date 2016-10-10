@@ -33,6 +33,7 @@
 #include "custom_processes/bofang_condition_temperature_process.hpp"
 #include "custom_processes/dam_hydro_condition_load_process.hpp"
 #include "custom_processes/dam_uplift_condition_load_process.hpp"
+#include "custom_processes/dam_uplift_circular_condition_load_process.hpp"
 
 namespace Kratos
 {
@@ -94,14 +95,16 @@ void  AddCustomProcessesToPython()
     // Hydrostatic condition
     class_< DamHydroConditionLoadProcess, bases< Process >, boost::noncopyable > ( "DamHydroConditionLoadProcess",
         init < ModelPart&, Parameters>());
+        
     // Uplift Condition
-    
     class_< DamUpliftConditionLoadProcess, bases< Process >, boost::noncopyable > ( "DamUpliftConditionLoadProcess",
         init < ModelPart&, Parameters>());
+    
+    // Uplift Condition for arch dams   
+    class_< DamUpliftCircularConditionLoadProcess, bases< Process >, boost::noncopyable > ( "DamUpliftCircularConditionLoadProcess",
+        init < ModelPart&, Parameters>());
         
-        
-        
-              
+
 }
 
 }  // namespace Python.
