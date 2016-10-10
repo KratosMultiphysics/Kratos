@@ -140,6 +140,13 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
     elastic_force.clear();
     contact_force.clear();
     rigid_element_force.clear();
+    
+    if (this->Is(DEMFlags::HAS_ROTATION)) {
+        if (this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
+            array_1d<double, 3>& rolling_resistance_moment = this->GetGeometry()[0].FastGetSolutionStepValue(ROLLING_RESISTANCE_MOMENT);
+            rolling_resistance_moment.clear();
+        }
+    }
 
     bool multi_stage_RHS = false;
 
@@ -660,6 +667,8 @@ void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
     // ROLLING FRICTION
     if (this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
 
+        array_1d<double, 3>& rolling_resistance_moment = this->GetGeometry()[0].FastGetSolutionStepValue(ROLLING_RESISTANCE_MOMENT);
+        
         double equiv_rolling_friction_coeff       = GetRollingFriction() * GetInteractionRadius();
 
         if (!wall) {
@@ -696,8 +705,12 @@ void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
                 mContactMoment[0] += MR[0] * equiv_rolling_friction_coeff;
                 mContactMoment[1] += MR[1] * equiv_rolling_friction_coeff;
                 mContactMoment[2] += MR[2] * equiv_rolling_friction_coeff;
+                rolling_resistance_moment[0] += MR[0] * equiv_rolling_friction_coeff;
+                rolling_resistance_moment[1] += MR[1] * equiv_rolling_friction_coeff;
+                rolling_resistance_moment[2] += MR[2] * equiv_rolling_friction_coeff;
             }
             else {
+                rolling_resistance_moment = - mContactMoment;      
                 mContactMoment = - rInitialRotaMoment;
             }
         } // if (equiv_rolling_friction_coeff != 0.0)
@@ -1502,21 +1515,24 @@ void SphericParticle::Calculate(const Variable<double>& rVariable, double& Outpu
         return;
     }
 
-    if (rVariable == PARTICLE_KINEMATIC_ENERGY) {
+    if (rVariable == PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY) {
 
       const array_1d<double, 3>& vel = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
       double square_of_celerity      = vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2];
 
       Output = 0.5 * (GetMass() * square_of_celerity);
-
-      if (this->Is(DEMFlags::HAS_ROTATION)){
-          const array_1d<double, 3> ang_vel = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-          const double moment_of_inertia    = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
-          double square_of_angular_celerity = ang_vel[0] * ang_vel[0] + ang_vel[1] * ang_vel[1] + ang_vel[2] * ang_vel[2];
-          Output += 0.5 * moment_of_inertia * square_of_angular_celerity;
-      }
-
+      
       return;
+    }
+    
+    if (rVariable == PARTICLE_ROTATIONAL_KINEMATIC_ENERGY) {
+
+        const array_1d<double, 3> ang_vel = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+        const double moment_of_inertia    = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+        double square_of_angular_celerity = ang_vel[0] * ang_vel[0] + ang_vel[1] * ang_vel[1] + ang_vel[2] * ang_vel[2];
+        Output = 0.5 * moment_of_inertia * square_of_angular_celerity;
+      
+        return;
     }
 
     AdditionalCalculate(rVariable, Output, r_process_info);

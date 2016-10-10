@@ -81,6 +81,9 @@ namespace Kratos {
             
             class_<DEM_compound_constitutive_law<DEM_D_Linear_viscous_Coulomb, DEM_D_DMT_Cohesive_Law>, bases< DEM_D_Linear_viscous_Coulomb >, boost::noncopyable >("DEM_D_Linear_viscous_Coulomb_DMT", init<>())
                     ;
+                    
+            class_<DEM_D_Linear_Custom_Constants, bases< DEM_D_Linear_viscous_Coulomb >, boost::noncopyable >("DEM_D_Linear_Custom_Constants",init<>())
+                    ;
             
             // DEM Continuum Constitutive Laws:  
 
@@ -124,9 +127,6 @@ namespace Kratos {
                     ;
             
             class_<DEM_ExponentialHC, bases< DEMContinuumConstitutiveLaw >, boost::noncopyable >("DEM_ExponentialHC",init<>())
-                    ;
-            
-            class_<DEM_D_Linear_Custom_Constants, bases< DEM_D_Linear_viscous_Coulomb >, boost::noncopyable >("DEM_D_Linear_Custom_Constants",init<>())
                     ;
         }
 

@@ -1,5 +1,4 @@
-
-
+// Project includes
 #include "symplectic_euler_scheme.h"
 
 namespace Kratos {

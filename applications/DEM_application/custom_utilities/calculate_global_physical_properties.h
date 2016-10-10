@@ -284,7 +284,7 @@ class SphericElementGlobalPhysicsCalculator
       //***************************************************************************************************************
       //***************************************************************************************************************
 
-      double CalculateKinematicEnergy(ModelPart& r_model_part)
+      double CalculateTranslationalKinematicEnergy(ModelPart& r_model_part)
       {
           OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
@@ -294,16 +294,41 @@ class SphericElementGlobalPhysicsCalculator
           for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
-                  double particle_kinematic_energy = 0.0;
+                  double particle_translational_kinematic_energy = 0.0;
                   
-                  (it)->Calculate(PARTICLE_KINEMATIC_ENERGY, particle_kinematic_energy, r_model_part.GetProcessInfo());
-                  
-                  kinematic_energy += particle_kinematic_energy;
+                  (it)->Calculate(PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY, particle_translational_kinematic_energy, r_model_part.GetProcessInfo());
+                 
+                  kinematic_energy += particle_translational_kinematic_energy;
                 }
 
             }
 
           return kinematic_energy;
+      }
+      
+      //***************************************************************************************************************
+      //***************************************************************************************************************
+      
+      double CalculateRotationalKinematicEnergy(ModelPart& r_model_part)
+      {
+          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+
+          double rotational_kinematic_energy = 0.0;
+
+          #pragma omp parallel for reduction(+ : rotational_kinematic_energy)
+          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+
+              for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
+                  double particle_rotational_kinematic_energy = 0.0;
+                  
+                  (it)->Calculate(PARTICLE_ROTATIONAL_KINEMATIC_ENERGY, particle_rotational_kinematic_energy, r_model_part.GetProcessInfo());
+                 
+                  rotational_kinematic_energy += particle_rotational_kinematic_energy;
+                }
+
+            }
+
+          return rotational_kinematic_energy;
       }
       
       //***************************************************************************************************************
