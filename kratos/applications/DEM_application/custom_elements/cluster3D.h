@@ -69,6 +69,7 @@ namespace Kratos
         virtual void SetInitialConditionsToSpheres(const array_1d<double,3>& velocity);
         virtual void SetInitialNeighbours(const double search_tolerance);
         virtual void CreateContinuumConstitutiveLaws();
+        virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
    
         double GetSqrtOfRealMass();
         virtual double SlowGetDensity();

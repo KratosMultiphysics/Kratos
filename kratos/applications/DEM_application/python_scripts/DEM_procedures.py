@@ -249,6 +249,7 @@ class Procedures(object):
             model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
             if (Var_Translator(self.DEM_parameters.RollingFrictionOption)):
                 model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION)
+                model_part.AddNodalSolutionStepVariable(ROLLING_RESISTANCE_MOMENT)
 
         # OTHER PROPERTIES
         model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
@@ -1018,6 +1019,7 @@ class DEMIo(object):
         self.PostAngularVelocity          = getattr(self.DEM_parameters, "PostAngularVelocity", 0)
         self.PostParticleMoment           = getattr(self.DEM_parameters, "PostParticleMoment", 0)
         self.PostEulerAngles              = getattr(self.DEM_parameters, "PostEulerAngles", 0)
+        self.PostRollingResistanceMoment  = getattr(self.DEM_parameters, "PostRollingResistanceMoment", 0)
         self.PostLocalContactForce        = getattr(self.DEM_parameters, "PostLocalContactForce", 0)
         self.PostFailureCriterionState    = getattr(self.DEM_parameters, "PostFailureCriterionState", 0)
         self.PostContactFailureId         = getattr(self.DEM_parameters, "PostContactFailureId", 0)
@@ -1077,6 +1079,9 @@ class DEMIo(object):
         self.PushPrintVar(self.PostHeatFlux,         HEATFLUX,                     self.spheres_variables)
         #self.PushPrintVar(                        1, DELTA_DISPLACEMENT,           self.spheres_variables)  # Debugging
         #self.PushPrintVar(                        1, PARTICLE_ROTATION_ANGLE,      self.spheres_variables)  # Debugging
+        if (Var_Translator(self.DEM_parameters.RotationOption)):
+            if (Var_Translator(self.DEM_parameters.RollingFrictionOption)):
+                self.PushPrintVar( self.PostRollingResistanceMoment, ROLLING_RESISTANCE_MOMENT, self.spheres_variables)
         if (hasattr(self.DEM_parameters, "PostSkinSphere")):
             if (Var_Translator(self.DEM_parameters.PostSkinSphere)):
                 self.PushPrintVar(self.PostSkinSphere,       SKIN_SPHERE,              self.spheres_variables)
@@ -1226,7 +1231,7 @@ class DEMIo(object):
 
             self.gid_io.InitializeMesh(0.0)
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
-            self.gid_io.WriteNodeMesh(cluster_model_part.GetCommunicator().LocalMesh())
+            self.gid_io.WriteClusterMesh(cluster_model_part.GetCommunicator().LocalMesh())
             self.gid_io.WriteMesh(mapping_model_part.GetCommunicator().LocalMesh())         #MIQUEL MAPPING
             if (self.DEM_parameters.ElementType == "CylinderContPartDEMElement2D"):
                 self.gid_io.WriteCircleMesh(spheres_model_part.GetCommunicator().LocalMesh())
@@ -1274,7 +1279,7 @@ class DEMIo(object):
                 self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
 
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
-            self.gid_io.WriteNodeMesh(cluster_model_part.GetCommunicator().LocalMesh())
+            self.gid_io.WriteClusterMesh(cluster_model_part.GetCommunicator().LocalMesh())
             self.gid_io.WriteMesh(mapping_model_part.GetCommunicator().LocalMesh()) #MSIMSI MIQUEL MAPPING
             #Compute and print the graphical bounding box if active in time
             if ((getattr(self.DEM_parameters, "BoundingBoxOption", 0) == "ON") and (time >= bounding_box_time_limits[0] and time <= bounding_box_time_limits[1])):

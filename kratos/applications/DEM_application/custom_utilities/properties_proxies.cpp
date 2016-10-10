@@ -56,9 +56,9 @@ namespace Kratos {
     double* PropertiesProxy::pGetParticleCohesion()                                           { return  mParticleCohesion;                  }
     void    PropertiesProxy::SetParticleCohesionFromProperties(double* particle_cohesion)     { mParticleCohesion = particle_cohesion;      }
     
-    double  PropertiesProxy::GetParticleKNormal()                                            { return *mParticleKNormal;                }
-    double* PropertiesProxy::pGetParticleKNormal()                                           { return  mParticleKNormal;                }
-    void    PropertiesProxy::SetParticleKNormalFromProperties(double* particle_k_normal)     { mParticleKNormal = particle_k_normal;    }
+    double  PropertiesProxy::GetParticleKNormal()                                             { return *mParticleKNormal;                   }
+    double* PropertiesProxy::pGetParticleKNormal()                                            { return  mParticleKNormal;                   }
+    void    PropertiesProxy::SetParticleKNormalFromProperties(double* particle_k_normal)      { mParticleKNormal = particle_k_normal;       }
     
     double  PropertiesProxy::GetParticleKTangential()                                            { return *mParticleKTangential;                }
     double* PropertiesProxy::pGetParticleKTangential()                                           { return  mParticleKTangential;                }

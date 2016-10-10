@@ -227,7 +227,36 @@ namespace Kratos {
             p_continuum_spheric_particle->CreateContinuumConstitutiveLaws();
         }         
     }
+    
+    void Cluster3D::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info)
+    {
+        KRATOS_TRY
         
+        if (rVariable == PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY) {
+            
+            const array_1d<double, 3>& vel = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+            double square_of_celerity      = vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2];
+            double particle_mass           = this->GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
+            
+            Output = 0.5 * (particle_mass * square_of_celerity);
+            
+            return;
+        }
+            
+        if (rVariable == PARTICLE_ROTATIONAL_KINEMATIC_ENERGY) {
+                
+            const array_1d<double, 3> moments_of_inertia = this->GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
+            const array_1d<double, 3> local_ang_vel      = this->GetGeometry()[0].FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY);
+            
+            Output = 0.5 * (moments_of_inertia[0] * local_ang_vel[0] * local_ang_vel[0] + moments_of_inertia[1] * local_ang_vel[1] * local_ang_vel[1] + moments_of_inertia[2] * local_ang_vel[2] * local_ang_vel[2]);
+           
+            return;
+        }
+
+        KRATOS_CATCH("")
+
+    } //Calculate
+
     void Cluster3D::UpdateLinearDisplacementAndVelocityOfSpheres() {
         Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
         array_1d<double, 3>& cluster_velocity = central_node.FastGetSolutionStepValue(VELOCITY);
