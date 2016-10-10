@@ -70,6 +70,7 @@ namespace Kratos {
                 mIniNeighbourFailureId.push_back(0);
                 array_1d<double, 3> vector_of_zeros(3,0.0);
                 mArrayOfOldDeltaDisplacements.push_back(vector_of_zeros);
+                mArrayOfDeltaDisplacements.push_back(vector_of_zeros);
                 ContinuumInitialNeighborsElements.push_back(neighbour_iterator);
                 continuum_ini_size++;
 
@@ -211,6 +212,18 @@ namespace Kratos {
         return effectiveVolumeRadius;
     }
 
+    
+    void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
+{
+    KRATOS_TRY
+    SphericParticle::InitializeSolutionStep(r_process_info);
+    
+    for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
+        DEM_COPY_SECOND_TO_FIRST_3(mArrayOfOldDeltaDisplacements[i], mArrayOfDeltaDisplacements[i]);
+    }
+    
+    KRATOS_CATCH("")
+}
 
     void SphericContinuumParticle::ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
                                                                  array_1d<double, 3>& rContactForce,
@@ -392,7 +405,7 @@ namespace Kratos {
             AddContributionToRepresentativeVolume(distance, radius_sum, calculation_area);
 
             if (i < mContinuumInitialNeighborsSize) {
-                DEM_COPY_SECOND_TO_FIRST_3(mArrayOfOldDeltaDisplacements[i], DeltDisp);
+                DEM_COPY_SECOND_TO_FIRST_3(mArrayOfDeltaDisplacements[i], DeltDisp);
             }
         } // for each neighbor
 
