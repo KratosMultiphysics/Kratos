@@ -345,7 +345,7 @@ End Elements
 *# start number for each condition type:
 *set var RigidWallsstart  = icond
 
-*set cond group_RigidWalls *groups
+*set cond group_RigidBodies *groups
 *if(CondNumEntities > 0)
 *loop groups *OnlyInCond
 *if(strcmp(cond(Contact_Condition),"3D")==0)
@@ -462,7 +462,7 @@ Begin NodalData WALL_REFERENCE_POINT_Z
 End NodalData
 
 *endif
-*set cond group_RigidWalls *groups
+*set cond group_RigidBodies *groups
 *if(CondNumEntities > 0)
 Begin NodalData RIGID_WALL
 *loop groups *OnlyInCond
@@ -695,7 +695,7 @@ Begin SubModelPart *GroupName // *GroupNum
 End SubModelPart
 *end groups    
 *endif
-*set cond group_RigidWalls *groups
+*set cond group_RigidBodies *groups
 *if(CondNumEntities > 0)
 *loop groups *OnlyInCond
 Begin SubModelPart *GroupName // *GroupNum

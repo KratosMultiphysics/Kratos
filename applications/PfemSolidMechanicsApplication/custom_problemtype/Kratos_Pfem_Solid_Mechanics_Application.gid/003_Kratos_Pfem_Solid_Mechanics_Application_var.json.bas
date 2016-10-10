@@ -59,7 +59,7 @@
          },
 	"bodies_list":[
 *set cond group_DeformableBodies *groups
-*add cond group_RigidWalls *groups
+*add cond group_RigidBodies *groups
 *if(CondNumEntities > 0)
 *set var GroupNumber = 0
 *loop groups *OnlyInCond
@@ -82,7 +82,7 @@
 	],
         "problem_domain_sub_model_part_list" : [
 *set cond group_DeformableBodies *groups
-*add cond group_RigidWalls *groups
+*add cond group_RigidBodies *groups
 *if(CondNumEntities > 0)
 *set var GroupNumber = 0
 *loop groups *OnlyInCond
@@ -100,7 +100,7 @@
 *endif
 	],
         "processes_sub_model_part_list" : [
-*set cond group_RigidWalls *groups
+*set cond group_RigidBodies *groups
 *add cond group_LINEAR_MOVEMENT *groups
 *add cond group_ANGULAR_MOVEMENT *groups
 *add cond group_POINT_LOAD *groups
@@ -284,9 +284,11 @@
         }
 *endif
 *set var numberofwalls= 0
-*set cond group_RigidWalls *groups
+*set cond group_RigidBodies *groups
 *loop groups *OnlyInCond
+*if(strcmp(cond(Parametric_Wall),"True")==0)
 *set var numberofwalls(int)=Operation(numberofwalls(int)+1)
+*endif
 *end groups
 *if( numberofwalls > 0 )
     },{	
@@ -300,8 +302,9 @@
             "search_frequency"     : 0.0,
 	    "parametric_walls" : [
 *set var Counter = 0
-*set cond group_RigidWalls *groups
-*loop groups *OnlyInCond    
+*set cond group_RigidBodies *groups
+*loop groups *OnlyInCond
+*if(strcmp(cond(Parametric_Wall),"True")==0)
 *set var Counter=operation(Counter+1)
 		{
 		    "python_module": "parametric_wall",
@@ -367,7 +370,7 @@
 			}
 
 *endif
-		    },
+		    },		    
 		    "contact_search_settings":{
 			"kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
 			"contact_search_type": "ParametricWallContactSearch",
@@ -389,6 +392,55 @@
 		}
 *else
 		},
+*endif
+*endif
+*end groups
+	    ]
+	}
+*set var numberofrigidbodies= 0
+*set cond group_RigidBodies *groups
+*loop groups *OnlyInCond
+*if(strcmp(cond(Parametric_Wall),"False")==0)
+*set var numberofrigidbodies(int)=Operation(numberofrigidbodies(int)+1)
+*endif
+*end groups
+*if( numberofrigidbodies > 0 )
+    },{	
+        "python_module"   : "rigid_body_process",
+        "kratos_module"   : "KratosMultiphysics.ContactMechanicsApplication",
+        "help"            : "This process creates a rigid body",
+        "process_name"    : "RigidBodyProcess",
+        "Parameters"      : {
+	    "model_part_name"      : "Main_Domain",
+            "search_control_type"  : "step",
+            "search_frequency"     : 0.0,
+	    "rigid_bodies" : [
+*set var Counter = 0
+*set cond group_RigidBodies *groups
+*loop groups *OnlyInCond
+*if(strcmp(cond(Parametric_Wall),"False")==0)
+*set var Counter=operation(Counter+1)
+		{
+		    "python_module": "rigid_body",
+		    "mesh_id": 0,
+		    "model_part_name" : "*cond(StructuralType)_*GroupName",
+		    "rigid_body_settings":{
+			"rigid_body_element_type": "TranslatoryRigidBodyElement2D1N",
+			"fixed_body": true,
+			"compute_body_parameters": *tcl(string tolower *cond(Compute_Weight_Centroid_and_Inertia)),
+			"rigid_body_model_part_name": "*cond(StructuralType)_*GroupName",
+			"rigid_body_parameters":{
+			    "center_of_gravity": [*tcl(JoinByComma *cond(Centroid))],
+			    "mass": *cond(Mass),
+			    "main_inertias": [*cond(LocalInertiaTensor,1), *cond(LocalInertiaTensor,2), *cond(LocalInertiaTensor,3)],
+			    "main_axes": [ [*tcl(JoinByComma *cond(LocalAxisX))], [*tcl(JoinByComma *cond(LocalAxisY))], [*tcl(JoinByComma *cond(LocalAxisZ))] ]
+			}
+		    }
+*if( Counter == numberofwalls )
+		}
+*else
+		},
+*endif
 *endif
 *end groups
 	    ]

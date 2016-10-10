@@ -442,7 +442,7 @@ VALUE: 0
 END CONDITION
 
 
-CONDITION: group_RigidWalls
+CONDITION: group_RigidBodies
 CONDTYPE: over groups
 # CONDMESHTYPE: over body elements
 GROUPALLOW: lines surfaces elements
@@ -451,10 +451,10 @@ VALUE: 0
 STATE: HIDDEN
 QUESTION: StructuralType#CB#(Rigid)
 VALUE: Rigid
-QUESTION: Rigid_Wall_Contact#CB#(False,True)
+QUESTION: Parametric_Wall#CB#(False,True)
 VALUE: False
-DEPENDENCIES:(True,RESTORE,Contact_Condition,#CURRENT#,RESTORE,Penalty_Parameter,#CURRENT#,RESTORE,Wall_Type,#CURRENT#,RESTORE,Imposed_Movement,#CURRENT#)
-DEPENDENCIES:(#DEFAULT#,HIDE,Contact_Condition,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#,HIDE,Wall_Type,#CURRENT#,HIDE,Wall_Plane,#CURRENT#,HIDE,Wall_Circle,#CURRENT#,HIDE,Wall_Noses,#CURRENT#,HIDE,Imposed_Movement,False)
+DEPENDENCIES:(True,RESTORE,Contact_Condition,#CURRENT#,RESTORE,Penalty_Parameter,#CURRENT#,RESTORE,Wall_Type,#CURRENT#)
+DEPENDENCIES:(#DEFAULT#,HIDE,Contact_Condition,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#,HIDE,Wall_Type,#CURRENT#,HIDE,Wall_Plane,#CURRENT#,HIDE,Wall_Circle,#CURRENT#,HIDE,Wall_Noses,#CURRENT#)
 QUESTION: Contact_Condition#CB#(PointContactPenaltyCondition2D1N,AxisymPointContactPenaltyCondition2D1N,AxisymPointWaterContactPenaltyCondition2D1N,PointContactPenaltyCondition3D1N)
 VALUE: PointContactPenaltyCondition2D1N
 QUESTION: Penalty_Parameter
