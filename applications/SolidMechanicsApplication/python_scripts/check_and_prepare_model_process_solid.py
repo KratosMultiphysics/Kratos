@@ -117,7 +117,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         for part in processes_parts:
             part.Set(KratosMultiphysics.BOUNDARY)
             for cond in part.Conditions:
-                computing_model_part.AddCondition(cond,0)  
+                computing_model_part.AddCondition(cond,0)
 
 
         #delete body parts:
