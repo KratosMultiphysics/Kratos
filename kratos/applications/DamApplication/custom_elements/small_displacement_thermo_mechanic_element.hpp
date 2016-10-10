@@ -12,6 +12,8 @@
 #include "includes/serializer.h"
 #include "custom_elements/small_displacement_element.hpp"
 
+#include "custom_utilities/element_utilities.hpp"
+
 #include "dam_application_variables.h"
 
 namespace Kratos
@@ -42,6 +44,16 @@ public:
     
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
     
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    void Initialize();
+    
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+
+    void SaveGPStress(Matrix& rStressContainer, const Vector& StressVector, const unsigned int& VoigtSize, const unsigned int& GPoint);
+
+    void ExtrapolateGPStress(const Matrix& StressContainer, const unsigned int& Dim, const unsigned int& VoigtSize);
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /**
