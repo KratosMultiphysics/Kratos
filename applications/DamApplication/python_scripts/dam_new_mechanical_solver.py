@@ -126,6 +126,9 @@ class DamMechanicalSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
         #add volume acceleration
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+        
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_CAUCHY_STRESS_TENSOR)
 
         print("Mechanical variables correctly added")
 
@@ -268,12 +271,27 @@ class DamMechanicalSolver:
         return builder_and_solver
         
     def SchemeCreator(self, solution_type):
-        if(solution_type == "Quasi-Static"):
-            scheme =  KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        elif(solution_type == "Dynamic"):
-            damp_factor_m = -0.01
-            scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
-            
+        
+        smoothing = "No"
+        
+        for i in range(self.settings["output_configuration"]["result_file_configuration"]["nodal_results"].size()):
+            outputs = self.settings["output_configuration"]["result_file_configuration"]["nodal_results"][i].GetString()
+            if (outputs == "NODAL_CAUCHY_STRESS_TENSOR"):
+                smoothing = "Yes"
+        
+        if(smoothing == "Yes"):
+            if (solution_type == "Quasi-Static"):       
+                scheme =  KratosDam.IncrementalUpdateStaticSmoothingScheme()
+            else:
+                damp_factor_m = -0.01
+                scheme = KratosDam.BossakDisplacementSmoothingScheme(damp_factor_m)
+        else:
+            if (solution_type == "Quasi-Static"):
+                scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+            else:
+                damp_factor_m = -0.01
+                scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
+                
         return scheme
          
          

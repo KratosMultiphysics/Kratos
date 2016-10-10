@@ -24,6 +24,9 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NEGATIVE_FACE_PRESSURE)
     #add volume acceleration
     model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION)
+    
+    model_part.AddNodalSolutionStepVariable(NODAL_AREA)
+    model_part.AddNodalSolutionStepVariable(NODAL_CAUCHY_STRESS_TENSOR)
 
     print("Variables correctly added")
 
@@ -38,7 +41,7 @@ def AddDofs(model_part):
     print("DOFs correctly added")
 
 
-def CreateSolver(model_part, config):
+def CreateSolver(model_part, config, results):
 
     dam_mechanical_solver = DamMechanicalSolver()
     
@@ -72,13 +75,20 @@ def CreateSolver(model_part, config):
             gmres_size = 50
             linear_solver = AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tolerance,max_iterations,verbosity,gmres_size)
 
-    #Setting the solution scheme (quasi-static, dynamic)
-    if(config.analysis_type == "Quasi-Static"):
-        solution_scheme = ResidualBasedIncrementalUpdateStaticScheme()
-    elif(config.analysis_type == "Dynamic"):
-        damp_factor_m = -0.01
-        solution_scheme = ResidualBasedBossakDisplacementScheme(damp_factor_m)
-
+    #Setting the solution scheme (quasi-static, dynamic) and the possibility to plot Nodal Cauchy stress tensor
+    if("NODAL_CAUCHY_STRESS_TENSOR" in results):
+        if (config.analysis_type == "Quasi-Static"):       
+            solution_scheme = IncrementalUpdateStaticSmoothingScheme()
+        else:
+            damp_factor_m = -0.01
+            solution_scheme = BossakDisplacementSmoothingScheme(damp_factor_m)
+    else:
+        if (config.analysis_type == "Quasi-Static"):
+            solution_scheme = ResidualBasedIncrementalUpdateStaticScheme()
+        else:
+            damp_factor_m = -0.01
+            solution_scheme = ResidualBasedBossakDisplacementScheme(damp_factor_m)     
+        
     #Setting the builder_and_solver
     builder_and_solver = ResidualBasedEliminationBuilderAndSolver(linear_solver)
     if(config.linear_solver == "Iterative" and config.iterative_solver == "AMGCL"):
