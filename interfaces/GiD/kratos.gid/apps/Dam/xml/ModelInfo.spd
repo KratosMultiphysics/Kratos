@@ -24,7 +24,7 @@
         <value n="ThermalScheme" pn="Scheme" un="DamMechanicalSchemeTherm" v=""  values="" dict="[GetSchemes Thermal]" actualize_tree="1"/>
         <value n="ReferenceTemperature" pn="Reference Temeperature" un="DamReferenceTemperature" v="Reservoir_Information" values="Reservoir_Information,Transitory" actualize_tree="1"/>
         <container n="TransitoryInformation" pn="Transitory Information" state="[checkStateByUniqueName DamReferenceTemperature Transitory]"  actualize_tree="1">
-            <value n="InitialValue" pn="intial Value" v="10.0" actualize_tree="1"/>
+            <value n="InitialValue" pn="Intial Value" v="10.0" actualize_tree="1"/>
             <value n="MonthJoint" pn="Month of Joint Inyection" v="January"  values="January,February,March,April" actualize_tree="1"/>
         </container> 
     </container> 
