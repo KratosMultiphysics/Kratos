@@ -728,6 +728,8 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
             } elseif { $type eq "bool" } {
                 set values "1,0"
                 append node "<value n='$inName' pn='$pn' v='$v' values='$values'  help='$help' state='$state'/>"
+            } elseif { $type eq "file" } {
+                append node "<value n='$inName' pn='$pn' v='$v' values=' ' dict='\[FileDict\]' function='\[W hola\]' help='$help' state='$state'/>"
             } else {
                 append node "<value n='$inName' pn='$pn' v='$v'   help='$help'/>"
                 #append node "<value n='$inName' pn='$pn' v='$v'  units='$units'  unit_magnitude='$um'  help='$help'/>"
@@ -1405,6 +1407,36 @@ proc spdAux::ProcShowInMode { domNode args } {
     if {$::Kratos::kratos_private(DevMode) eq "release"} {
         if {$kw eq "Developer"} {return "hidden"} {return "normal"}
     }
+}
+
+
+proc spdAux::LoadModelFiles { } {
+    customlib::UpdateDocument
+    foreach elem [[customlib::GetBaseRoot] getElementsByTagName "file"] {
+        FileSelector::AddFile [$elem @n]
+    }
+}
+proc spdAux::SaveModelFile { fileid } {
+    customlib::UpdateDocument
+    FileSelector::AddFile $fileid
+    gid_groups_conds::addF {container[@n='files']} file [list n ${fileid}]
+}
+
+proc spdAux::AddFile { domNode } {
+    FileSelector::InitWindow "spdAux::UpdateFileField" $domNode
+}
+proc spdAux::UpdateFileField { fileid domNode} {
+    if {$fileid ne ""} {
+        $domNode setAttribute v $fileid
+        spdAux::SaveModelFile $fileid
+        RequestRefresh 
+    }
+}
+proc spdAux::ProcGetFilesValues { } {
+    lappend listilla "- No file"
+    lappend listilla {*}[FileSelector::GetAllFiles]
+    lappend listilla "- Add new file"
+    return [join $listilla ","]
 }
 
 proc spdAux::ProcGetIntervals {domNode args} {
