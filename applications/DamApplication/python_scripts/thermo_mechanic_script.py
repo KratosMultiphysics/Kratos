@@ -122,7 +122,7 @@ thermal_diffusion_solver.Initialize()
 thermal_diffusion_solver.SetEchoLevel(0)
 
 # Define and initialize the mechanical solver
-solid_mechanics_solver = mechanical_solver.CreateSolver(model_part, ProjectParameters.MechanicalSolverSettings)
+solid_mechanics_solver = mechanical_solver.CreateSolver(model_part, ProjectParameters.MechanicalSolverSettings, ProjectParameters.nodal_results)
 solid_mechanics_solver.Initialize()
 
 # Initialize imposed conditions
