@@ -91,7 +91,7 @@
   
 <!--- Uplift Loads -->   
   <Process n="UpliftConditionsProcess" pn="Apply a scalar value over a condition" python_module="impose_water_loads_condition_process"
-		kratos_module="KratosMultiphysics.DamApplication" help="This process sets a scalar variable value over a condition" > 
+		kratos_module="KratosMultiphysics.DamApplication" help="This process sets a scalar value according its law over a condition" > 
     <inputs>
         <parameter n="Modify" pn="Modify" type="bool" v="1"/>
         <parameter n="Gravity_Direction" pn="Gravity Direction" type="combo" v="Y" values="X,Y,Z" />
@@ -101,7 +101,25 @@
         <parameter n="Upstream_Longitudinal_Coordinate" pn="Upstream Longitudinal Coordinate" type="vector" v="0.0,0.0,0.0"/>
         <parameter n="Spe_weight" pn="Specific Weight" type="double" v="10000"/>
         <parameter n="Water_level" pn="Water Level" type="double" v="0.0"/>
-        <parameter n="Drains" pn="Drains" un="DamDrains" type="bool" v="1"/>
+        <parameter n="Drains" pn="Drains" un="DamDrains" type="bool" v="0"/>
+        <parameter n="Height_drain" pn="Height of Drain" type="double" v="0.0"/>
+        <parameter n="Distance" pn="Distance of Drain" type="double" v="0.0"/>
+        <parameter n="Effectiveness" pn="Effectivesness" type="double" v="0.0"/>
+    </inputs>
+  </Process>    
+  
+  <Process n="CircularUpliftConditionsProcess" pn="Apply a scalar value over a condition for arc dams" python_module="impose_water_loads_condition_process"
+		kratos_module="KratosMultiphysics.DamApplication" help="This process sets a scalar value according its law over a condition" > 
+    <inputs>
+        <parameter n="Modify" pn="Modify" type="bool" v="1"/>
+        <parameter n="Gravity_Direction" pn="Gravity Direction" type="combo" v="Y" values="X,Y,Z" />
+        <parameter n="Reservoir_Bottom_Coordinate_in_Gravity_Direction" pn="Reservoir Bottom Coordinate in Gravity Direction" type="double" v="0.0"/>
+        <parameter n="Upstream_Coordinate_first_bracket" pn="Upstream Coordinate First Bracket" type="vector" v="0.0,0.0,0.0"/>
+        <parameter n="Downstream_Coordinate_first_bracket" pn="Downstream Coordinate First Bracket" type="vector" v="0.0,0.0,0.0"/>
+        <parameter n="Focus" pn="Focus" type="vector" v="0.0,0.0,0.0"/>
+        <parameter n="Spe_weight" pn="Specific Weight" type="double" v="10000"/>
+        <parameter n="Water_level" pn="Water Level" type="double" v="0.0"/>
+        <parameter n="Drains" pn="Drains" un="DamDrains" type="bool" v="0"/>
         <parameter n="Height_drain" pn="Height of Drain" type="double" v="0.0"/>
         <parameter n="Distance" pn="Distance of Drain" type="double" v="0.0"/>
         <parameter n="Effectiveness" pn="Effectivesness" type="double" v="0.0"/>

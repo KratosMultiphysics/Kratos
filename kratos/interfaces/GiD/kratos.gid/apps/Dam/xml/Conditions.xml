@@ -194,7 +194,7 @@
   </ConditionItem>
   
    <!---  Conditions: UPLIFT PRESSURE LOADS --> 
-  <ConditionItem n="UpliftLinePressure2D" pn="Uplift Pressure" ImplementedInFile="apply_scalar_on_conditions_processs"
+  <ConditionItem n="StraightUpliftLinePressure2D" pn="Uplift Pressure" ImplementedInFile="apply_scalar_on_conditions_processs"
 	ImplementedInApplication="DamApplication" MinimumKratosVersion="13000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Line" ProcessName="UpliftConditionsProcess" help="Uplift pressure on lines, oriented pointing against the line outer normal"
@@ -210,7 +210,7 @@
     </outputs>
   </ConditionItem>
   
-  <ConditionItem n="UpliftSurfacePressure3D" pn="Uplift Pressure" ImplementedInFile="apply_scalar_on_conditions_process"
+  <ConditionItem n="StraightUpliftSurfacePressure3D" pn="Uplift Pressure" ImplementedInFile="apply_scalar_on_conditions_process"
 	ImplementedInApplication="DamApplication" MinimumKratosVersion="13000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Surface" ProcessName="UpliftConditionsProcess" help="Uplift Pressure on surfaces, oriented pointing against the surface outer normal"
@@ -228,5 +228,21 @@
     </outputs>
   </ConditionItem>
 
-
+  <ConditionItem n="CircularUpliftSurfacePressure3D" pn="Circular Uplift Pressure" ImplementedInFile="apply_scalar_on_conditions_process"
+	ImplementedInApplication="DamApplication" MinimumKratosVersion="13000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="3D" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" 
+	ElementType="Surface" ProcessName="CircularUpliftConditionsProcess" help="Uplift Pressure on surfaces, oriented pointing against the surface outer normal"
+	VariableName="NEGATIVE_FACE_PRESSURE">
+    <TopologyFeatures>
+      <item  GeometryType="Triangle"      nodes="3" KratosName="SurfaceLoadCondition3D3N"/>
+      <item  GeometryType="Triangle"      nodes="6" KratosName="SurfaceLoadCondition3D6N"/>
+      <item  GeometryType="Quadrilateral" nodes="4" KratosName="SurfaceLoadCondition3D4N"/>
+      <item  GeometryType="Quadrilateral" nodes="8" KratosName="SurfaceLoadCondition3D8N"/>
+      <item  GeometryType="Quadrilateral" nodes="9" KratosName="SurfaceLoadCondition3D9N"/>
+    </TopologyFeatures>
+    <inputs> 
+    </inputs>
+    <outputs>
+    </outputs>
+  </ConditionItem>
 </ConditionList>
