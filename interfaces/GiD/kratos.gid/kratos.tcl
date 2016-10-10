@@ -58,6 +58,7 @@ proc LoadGIDProject { filespd } {
 proc SaveGIDProject { filespd } {
     gid_groups_conds::save_spd_file $filespd
     Kratos::RegisterEnvironment
+    FileSelector::CopyFilesIntoModel [file dirname $filespd]
 }
 
 proc BeforeTransformProblemType { file oldproblemtype newproblemtype } {
@@ -71,6 +72,7 @@ proc AfterTransformProblemType { filename oldproblemtype newproblemtype } {
 }
 
 proc AfterWriteCalcFileGIDProject { filename errorflag } {
+    FileSelector::CopyFilesIntoModel [file dirname $filename]
     catch {write::Init}
     set errcode [::write::writeEvent $filename]
     if {$errcode} {return "-cancel-"}
