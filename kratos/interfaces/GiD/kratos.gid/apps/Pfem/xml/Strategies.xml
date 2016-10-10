@@ -68,7 +68,7 @@
 	</parameter_list>
 	
         <element_filters>
-	  <filter field="ImplementedInApplication" value="SolidMechanicsApplication,PfemSolidMechanicsApplication"/>
+	  <filter field="ImplementedInApplication" value="SolidMechanicsApplication,PfemSolidMechanicsApplication,ContactMechanicsApplication"/>
         </element_filters>
 	
       </scheme>
@@ -128,7 +128,7 @@
 	    <parameter n="Gamma" pn="Gamma" type="double" v="0.5" help="T"/> -->
       </parameter_list>
       <element_filters>
-	<filter field="ImplementedInApplication" value="SolidMechanicsApplication,PfemSolidMechanicsApplication"/>
+	<filter field="ImplementedInApplication" value="SolidMechanicsApplication,PfemSolidMechanicsApplication,ContactMechanicsApplication"/>
       </element_filters>
     </scheme>
   </schemes>
@@ -181,7 +181,7 @@
           <parameter_list>
 		  </parameter_list>
 		  <element_filters>
-			 <filter field="ImplementedInApplication" value="SolidMechanicsApplication,PfemSolidMechanicsApplication"/>
+			 <filter field="ImplementedInApplication" value="SolidMechanicsApplication,PfemSolidMechanicsApplication,ContactMechanicsApplication"/>
 		  </element_filters>
 	  </scheme>
 	</schemes>
@@ -236,7 +236,7 @@
       <parameter_list>
       </parameter_list>
       <element_filters>
-	<filter field="ImplementedInApplication" value="PfemFluidDynamicsApplication"/>
+	<filter field="ImplementedInApplication" value="PfemFluidDynamicsApplication,ContactMechanicsApplication"/>
       </element_filters>
       </scheme> -->
   </schemes>
