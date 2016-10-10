@@ -21,11 +21,15 @@ class ImposeWaterLoadsConditionProcess(Process):
 
             self.components_process_list.append(DamHydroConditionLoadProcess(model_part, settings))
             
-        if "Uplift" in settings["model_part_name"].GetString():
+        if "Straight" in settings["model_part_name"].GetString():
             
             self.components_process_list.append(DamUpliftConditionLoadProcess(model_part, settings))
             
+        if "Circular" in settings["model_part_name"].GetString():
             
+            self.components_process_list.append(DamUpliftCircularConditionLoadProcess(model_part, settings))
+            
+        
     def ExecuteInitialize(self):
 
         for component in self.components_process_list:
