@@ -449,6 +449,8 @@ GROUPALLOW: lines surfaces elements
 QUESTION: Automatic
 VALUE: 0
 STATE: HIDDEN
+QUESTION: StructuralType#CB#(Rigid)
+VALUE: Rigid
 QUESTION: Rigid_Wall_Contact#CB#(False,True)
 VALUE: False
 DEPENDENCIES:(True,RESTORE,Contact_Condition,#CURRENT#,RESTORE,Penalty_Parameter,#CURRENT#,RESTORE,Wall_Type,#CURRENT#,RESTORE,Imposed_Movement,#CURRENT#)
