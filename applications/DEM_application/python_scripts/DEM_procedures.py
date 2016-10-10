@@ -1079,9 +1079,10 @@ class DEMIo(object):
         self.PushPrintVar(self.PostHeatFlux,         HEATFLUX,                     self.spheres_variables)
         #self.PushPrintVar(                        1, DELTA_DISPLACEMENT,           self.spheres_variables)  # Debugging
         #self.PushPrintVar(                        1, PARTICLE_ROTATION_ANGLE,      self.spheres_variables)  # Debugging
-        if (Var_Translator(self.DEM_parameters.RotationOption)):
-            if (Var_Translator(self.DEM_parameters.RollingFrictionOption)):
-                self.PushPrintVar( self.PostRollingResistanceMoment, ROLLING_RESISTANCE_MOMENT, self.spheres_variables)
+        if (hasattr(self.DEM_parameters, "PostRollingResistanceMoment")):
+            if (Var_Translator(self.DEM_parameters.RotationOption)):
+                if (Var_Translator(self.DEM_parameters.RollingFrictionOption)):
+                    self.PushPrintVar( self.PostRollingResistanceMoment, ROLLING_RESISTANCE_MOMENT, self.spheres_variables)
         if (hasattr(self.DEM_parameters, "PostSkinSphere")):
             if (Var_Translator(self.DEM_parameters.PostSkinSphere)):
                 self.PushPrintVar(self.PostSkinSphere,       SKIN_SPHERE,              self.spheres_variables)
