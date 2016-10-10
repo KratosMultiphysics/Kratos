@@ -21,12 +21,12 @@
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
-//#include "custom_strategies/strategies/dam_newton_raphson_strategy.hpp"
 
 //builders and solvers
 
 //schemes
-
+#include "custom_strategies/schemes/incrementalupdate_static_smoothing_scheme.hpp"
+#include "custom_strategies/schemes/bossak_displacement_smoothing_scheme.hpp"
 
 
 namespace Kratos
@@ -39,21 +39,28 @@ using namespace boost::python;
 
 void  AddCustomStrategiesToPython()
 {
-
-    //typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    //typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    //typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    //typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-    //typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
-    //typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
     
-    //typedef DamNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > DamNewtonRaphsonStrategyType;
+    //custom scheme types
+    typedef IncrementalUpdateStaticSmoothingScheme< SparseSpaceType, LocalSpaceType >  IncrementalUpdateStaticSmoothingSchemeType;     
+    typedef BossakDisplacementSmoothingScheme< SparseSpaceType, LocalSpaceType >  BossakDisplacementSmoothingSchemeType;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    //class_< DamNewtonRaphsonStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("DamNewtonRaphsonStrategy", 
-    //    init < ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer, double, double, int, bool, bool, bool >());
-        
+    class_< IncrementalUpdateStaticSmoothingSchemeType,
+            bases< BaseSchemeType >,  boost::noncopyable >
+            (
+            "IncrementalUpdateStaticSmoothingScheme", init< >() 
+            );
+
+    class_< BossakDisplacementSmoothingSchemeType,
+            bases< BaseSchemeType >,  boost::noncopyable >
+            (
+            "BossakDisplacementSmoothingScheme", init< double >() 
+            );
+
 }
 
 }  // namespace Python.
