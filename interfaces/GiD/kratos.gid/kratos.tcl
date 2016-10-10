@@ -50,6 +50,8 @@ proc LoadGIDProject { filespd } {
         after idle Kratos::upgrade_problemtype
     }
     #spdAux::reactiveApp
+    update
+    spdAux::LoadModelFiles
 }
 
 # Save GiD project files (save XML Tdom structure to spd file)
@@ -110,14 +112,14 @@ proc Kratos::InitGIDProject { dir } {
         uplevel 1 [list source [file join $dir scripts Model $filename]]
     }
     # JG Sources will be in a different proc
-    foreach filename {SimpleXMLViewer.tcl} {
+    foreach filename {SimpleXMLViewer.tcl FileManager.tcl} {
         uplevel 1 [list source [file join $dir libs $filename]]
     }
     
     set kratos_private(UseWizard) 0
      
     Kratos::load_gid_groups_conds
-    
+    customlib::UpdateDocument
     Kratos::LoadEnvironment
     Kratos::ChangeMenus
     #set HeaderBackground [$doc selectNodes string(Infoproblemtype/Program/HeaderBackground)]
@@ -127,7 +129,8 @@ proc Kratos::InitGIDProject { dir } {
 
     spdAux::processIncludes
     spdAux::parseRoutes
-    
+    update
+    spdAux::LoadModelFiles
     
     after 100 [list gid_groups_conds::close_all_windows]
     after 500 [list spdAux::CreateWindow]
