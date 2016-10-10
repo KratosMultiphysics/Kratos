@@ -57,6 +57,7 @@ namespace Kratos
         void SetInitialSphereContacts(ProcessInfo& r_process_info);
         void SetInitialFemContacts();
         void CreateContinuumConstitutiveLaws();
+        void InitializeSolutionStep(ProcessInfo& r_process_info) override;
         void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
         void CorrectRepresentativeVolume(double& rRepresentative_Volume, bool& is_smaller_than_sphere) override;
 
@@ -105,6 +106,7 @@ namespace Kratos
         unsigned int mInitialNeighborsSize;
         std::vector<Kratos::DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
         std::vector<array_1d<double, 3> > mArrayOfOldDeltaDisplacements;
+        std::vector<array_1d<double, 3> > mArrayOfDeltaDisplacements;
         Matrix* mOldSymmStressTensor;
 
     protected:
