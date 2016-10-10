@@ -40,6 +40,7 @@
 #include "add_containers_to_python.h"
 #include "add_processes_to_python.h"
 #include "add_model_part_to_python.h"
+#include "add_model_to_python.h"
 #include "add_io_to_python.h"
 #include "add_mesh_to_python.h"
 #include "add_modeler_to_python.h"
@@ -110,6 +111,7 @@ BOOST_PYTHON_MODULE(Kratos)
     AddProcessesToPython();
     AddIOToPython();
     AddModelPartToPython();
+    AddModelToPython();
     AddNodeToPython();
     AddPropertiesToPython();
     AddMeshToPython();
