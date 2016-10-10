@@ -504,7 +504,7 @@ if DEM_parameters.coupling_level_type:
     projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, spheres_model_part, rigid_face_model_part, domain_size, pp)
     #G
     L = 0.1
-    U = 0.189
+    U = 0.3
     k = 2.72
     omega = 0*math.pi
     flow_field = CellularFlowField(L , U , k, omega)
