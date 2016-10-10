@@ -18,6 +18,7 @@ typedef void *GiDOutput_Handle;
 //  GiD_Pyramid=8
 //  GiD_Sphere=9
 //  GiD_Circle=10
+//  GiD_Cluster=11
 
 
 //FUNCTIONS OF THE LIBRARY
