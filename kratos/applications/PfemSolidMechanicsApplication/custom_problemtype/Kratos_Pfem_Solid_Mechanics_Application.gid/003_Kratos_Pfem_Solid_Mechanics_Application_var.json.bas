@@ -425,7 +425,7 @@
 		    "mesh_id": 0,
 		    "model_part_name" : "*cond(StructuralType)_*GroupName",
 		    "rigid_body_settings":{
-			"rigid_body_element_type": "TranslatoryRigidBodyElement2D1N",
+			"rigid_body_element_type": "RigidBodyElement2D1N",
 			"fixed_body": true,
 			"compute_body_parameters": *tcl(string tolower *cond(Compute_Weight_Centroid_and_Inertia)),
 			"rigid_body_model_part_name": "*cond(StructuralType)_*GroupName",
