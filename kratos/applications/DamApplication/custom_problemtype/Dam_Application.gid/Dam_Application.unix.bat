@@ -19,8 +19,8 @@ cp "${3}/../../python_scripts/thermo_mechanic_script.py" "${2}/"
 
 #Linux
 #Setting PATHs for kratos
-export PYTHONPATH="/path/to/kratos:$PYTHONPATH"
-export LD_LIBRARY_PATH="/path/to/kratos/libs:/path/to/boost/stage/lib:$LD_LIBRARY_PATH"
+export PYTHONPATH="/home/lgracia/kratos:$PYTHONPATH"
+export LD_LIBRARY_PATH="/home/lgracia/kratos/libs:/home/lgracia/boost/stage/lib:$LD_LIBRARY_PATH"
 #Setting PATH for Python 3
 export PATH="/usr/bin/python3:$PATH"
 
