@@ -172,7 +172,7 @@ void HyperElasticViscoplastic3DLaw::InitializeMaterial( const Properties& rMater
 						   const Vector& rShapeFunctionsValues )
 {
 
-  HyperElasticViscoplastic3DLaw::InitializeMaterial(rMaterialProperties,rElementGeometry,rShapeFunctionsValues);
+  HyperElastic3DLaw::InitializeMaterial(rMaterialProperties,rElementGeometry,rShapeFunctionsValues);
 
   mElasticLeftCauchyGreen       = identity_matrix<double> (3);
 
