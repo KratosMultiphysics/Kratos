@@ -1025,16 +1025,7 @@ void MortarContactCondition::CalculateAndAddLHS(
         
         index_1 = (number_of_total_nodes + i_slave) * dimension;
         
-        // We impose a 0 zero LM in the inactive nodes
-        if (GetGeometry( )[i_slave].Is(ACTIVE) == false)
-        {
-            subrange(LHS_contact_pair, index_1, index_1 + dimension, index_1, index_1 + dimension) = IdentityMatrix(dimension, dimension);
-        }
-        // And the tangent direction (sliding)
-        else
-        {            
-            subrange(LHS_contact_pair, index_1 + 1, index_1 + dimension, index_1 , index_1 + dimension) = subrange(tangent_matrix, 0, dimension - 1, 0, dimension);
-        }
+        subrange(LHS_contact_pair, index_1 + 1, index_1 + dimension, index_1 , index_1 + dimension) = subrange(tangent_matrix, 0, dimension - 1, 0, dimension);
     }
     
     if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
@@ -1185,15 +1176,9 @@ void MortarContactCondition::CalculateAndAddRHS(
     for (unsigned int i_slave = 0; i_slave < number_of_slave_nodes; ++i_slave )
     {
         index = (number_of_total_nodes + i_slave) * dimension; 
-        if (GetGeometry( )[i_slave].Is(ACTIVE) == false)
-        {
-            subrange(RHS_contact_pair, index, index + dimension) = ZeroVector(dimension);
-        }
-        // And the tangent direction (sliding)
-        else
-        {
-            subrange(RHS_contact_pair, index + 1, index + dimension) = ZeroVector(dimension - 1);
-        }
+        
+        // Tangent direction (sliding)
+        subrange(RHS_contact_pair, index + 1, index + dimension) = ZeroVector(dimension - 1);
     }
     
     if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
