@@ -493,7 +493,6 @@ public:
         if( !VerifyIsInside( geom, point_in, true, error_msg) ) succesful=false;
         if( !VerifyIsInside( geom, point_out, false, error_msg) ) succesful=false;
         if( !VerfiyShapeFunctionsValues(geom,point_in,error_msg) ) succesful = false;
-        if( !VerfiyShapeFunctionsValues(geom,point_out,error_msg) ) succesful = false;
 
         if(succesful == false)
             KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
