@@ -46,7 +46,7 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
         elif(search_control_type == "step"):
             self.search_control_is_time = False
 
-        #construct meshing domains
+        #construct parametric wall domains
         self.parametric_walls = []
         walls_list = self.settings["parametric_walls"]
         self.number_of_walls = walls_list.size()
