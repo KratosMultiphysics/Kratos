@@ -77,6 +77,8 @@ class DamMechanicalSolver:
                 "solver_class"                    : "AMGCL"
             },
             "problem_domain_sub_model_part_list"  : [""],
+            "problem_domain_body_sub_model_part_list"  : [""],
+            "problem_domain_joint_sub_model_part_list" : [""],
             "processes_sub_model_part_list"       : [""],
             "nodal_processes_sub_model_part_list" : [""],
             "load_processes_sub_model_part_list"  : [""],
@@ -247,7 +249,7 @@ class DamMechanicalSolver:
             if(solver_class == "BICGSTAB"):
                 tolerance = 1e-5
                 max_iterations = 1000
-                precond = ILU0Preconditioner()
+                precond = KratosMultiphysics.ILU0Preconditioner()
                 linear_solver = KratosMultiphysics.BICGSTABSolver(tolerance,max_iterations,precond)
             elif(solver_class == "AMGCL"):
                 amgcl_smoother = KratosMultiphysics.AMGCLSmoother.ILU0
