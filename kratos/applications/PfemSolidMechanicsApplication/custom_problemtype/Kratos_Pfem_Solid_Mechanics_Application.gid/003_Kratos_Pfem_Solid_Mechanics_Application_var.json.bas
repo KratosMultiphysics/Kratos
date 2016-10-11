@@ -291,10 +291,10 @@
 *endif
 *end groups
 *if( numberofwalls > 0 )
-    },{	
-        "python_module"   : "parametric_walls_process",
-        "kratos_module"   : "KratosMultiphysics.ContactMechanicsApplication",
+    },{
         "help"            : "This process applies parametric walls and search contact",
+	"kratos_module"   : "KratosMultiphysics.ContactMechanicsApplication", 	       
+        "python_module"   : "parametric_walls_process",
         "process_name"    : "ParametricWallsProcess",
         "Parameters"      : {
 	    "model_part_name"      : "Main_Domain",
@@ -406,25 +406,22 @@
 *endif
 *end groups
 *if( numberofrigidbodies > 0 )
-    },{	
-        "python_module"   : "rigid_body_process",
-        "kratos_module"   : "KratosMultiphysics.ContactMechanicsApplication",
-        "help"            : "This process creates a rigid body",
-        "process_name"    : "RigidBodyProcess",
-        "Parameters"      : {
-	    "model_part_name"      : "Main_Domain",
-            "search_control_type"  : "step",
-            "search_frequency"     : 0.0,
-	    "rigid_bodies" : [
+    },{
+        "help"         : "This process creates the rigid bodies of the model",
+        "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
+        "python_module": "rigid_body_process",
+        "process_name" : "RigidBodyProcess",
+	"Parameters"   : {
+	    "model_part_name" : "Main_Domain",
+	    "rigid_bodies"    : [
 *set var Counter = 0
 *set cond group_RigidBodies *groups
 *loop groups *OnlyInCond
 *if(strcmp(cond(Parametric_Wall),"False")==0)
 *set var Counter=operation(Counter+1)
 		{
-		    "python_module": "rigid_body",
-		    "mesh_id": 0,
-		    "model_part_name" : "*cond(StructuralType)_*GroupName",
+		    "python_module"  : "rigid_body",
+		    "model_part_name": "*cond(StructuralType)_*GroupName",
 		    "rigid_body_settings":{
 			"rigid_body_element_type": "RigidBodyElement2D1N",
 			"fixed_body": true,
@@ -445,7 +442,7 @@
 *endif
 *end groups
 	    ]
-	}
+    	}
 *endif
     }],
     "constraints_process_list" : [
