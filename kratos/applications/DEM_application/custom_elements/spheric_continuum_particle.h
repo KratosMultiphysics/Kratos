@@ -57,7 +57,7 @@ namespace Kratos
         void SetInitialSphereContacts(ProcessInfo& r_process_info);
         void SetInitialFemContacts();
         void CreateContinuumConstitutiveLaws();
-        void InitializeSolutionStep(ProcessInfo& r_process_info) override;
+        //void InitializeSolutionStep(ProcessInfo& r_process_info) override;
         void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
         void CorrectRepresentativeVolume(double& rRepresentative_Volume, bool& is_smaller_than_sphere) override;
 

@@ -213,7 +213,7 @@ namespace Kratos {
     }
 
     
-    void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
+    /*void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
 {
     KRATOS_TRY
     SphericParticle::InitializeSolutionStep(r_process_info);
@@ -223,7 +223,7 @@ namespace Kratos {
     }
     
     KRATOS_CATCH("")
-}
+}*/
 
     void SphericContinuumParticle::ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
                                                                  array_1d<double, 3>& rContactForce,
@@ -446,6 +446,10 @@ namespace Kratos {
             (*mOldSymmStressTensor)(0,0)=(*mSymmStressTensor)(0,0); (*mOldSymmStressTensor)(0,1)=(*mSymmStressTensor)(0,1); (*mOldSymmStressTensor)(0,2)=(*mSymmStressTensor)(0,2);
             (*mOldSymmStressTensor)(1,0)=(*mSymmStressTensor)(1,0); (*mOldSymmStressTensor)(1,1)=(*mSymmStressTensor)(1,1); (*mOldSymmStressTensor)(1,2)=(*mSymmStressTensor)(1,2);
             (*mOldSymmStressTensor)(2,0)=(*mSymmStressTensor)(2,0); (*mOldSymmStressTensor)(2,1)=(*mSymmStressTensor)(2,1); (*mOldSymmStressTensor)(2,2)=(*mSymmStressTensor)(2,2);
+        }
+        
+        for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
+            DEM_COPY_SECOND_TO_FIRST_3(mArrayOfOldDeltaDisplacements[i], mArrayOfDeltaDisplacements[i]);
         }
 
         SphericParticle::FinalizeSolutionStep(r_process_info);
