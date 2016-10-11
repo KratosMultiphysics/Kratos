@@ -76,7 +76,7 @@
      	 }
 *else
      	 },
-*end
+*endif
 *end groups
 *endif
 	],
@@ -95,7 +95,7 @@
      	 "*GroupName"
 *else
      	 "*GroupName",
-*end
+*endif
 *end groups
 *endif
 	],
@@ -120,7 +120,7 @@
      	 "*GroupName"
 *else
      	 "*GroupName",
-*end
+*endif
 *end groups
 *endif
 	]
@@ -275,7 +275,7 @@
          "*cond(StructuralType)_*GroupName"
 *else
 	 "*cond(StructuralType)_*GroupName",
-*end
+*endif
 *end groups
 *endif
       	            ]
@@ -397,6 +397,7 @@
 *end groups
 	    ]
 	}
+*endif	
 *set var numberofrigidbodies= 0
 *set cond group_RigidBodies *groups
 *loop groups *OnlyInCond
