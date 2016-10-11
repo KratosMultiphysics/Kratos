@@ -219,7 +219,7 @@ public:
     bool TestTetrahedra3D4N(  )
     {
         GenerateNodes();
-        
+
         std::stringstream error_msg;
         Tetrahedra3D4<Node<3> > geom( mModelPart.pGetNode(4), mModelPart.pGetNode(3), mModelPart.pGetNode(17), mModelPart.pGetNode(19) );
 
@@ -249,7 +249,7 @@ public:
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_3, error_msg);
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_4, error_msg);
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
-        
+
         if(succesful == false)
             KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
 
@@ -258,13 +258,13 @@ public:
         return succesful;
 
     }
-    
+
     bool TestTetrahedra3D10N(  )
     {
         GenerateNodes();
 
         std::stringstream error_msg;
-        
+
         Tetrahedra3D10<Node<3> > geom( mModelPart.pGetNode(1), mModelPart.pGetNode(3), mModelPart.pGetNode(7), mModelPart.pGetNode(19),
                                         mModelPart.pGetNode(2), mModelPart.pGetNode(5), mModelPart.pGetNode(4), mModelPart.pGetNode(10),
                                         mModelPart.pGetNode(11), mModelPart.pGetNode(13)
@@ -293,14 +293,14 @@ public:
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
-        
+
         if(succesful == false)
             KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
 
         return succesful;
 
     }
-    
+
     bool TestTriangle2D3N(  )
     {
         GenerateNodes();
@@ -336,7 +336,7 @@ public:
 //         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
-        
+
         if(succesful == false)
             KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
 
@@ -374,7 +374,7 @@ public:
 //         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
-        
+
         if(succesful == false)
             KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
 
@@ -411,7 +411,7 @@ public:
 //         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
-        
+
         if(succesful == false)
             KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
 
@@ -450,7 +450,7 @@ public:
 //         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
-        
+
         if(succesful == false)
             KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
 
@@ -488,8 +488,13 @@ public:
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_4, error_msg);
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
 
-        error_msg << std::endl;
-        
+        array_1d<double,3> point_in(3,1.0/3.0);
+        array_1d<double,3> point_out(3,5.0);
+        if( !VerifyIsInside( geom, point_in, true, error_msg) ) succesful=false;
+        if( !VerifyIsInside( geom, point_out, false, error_msg) ) succesful=false;
+        if( !VerfiyShapeFunctionsValues(geom,point_in,error_msg) ) succesful = false;
+        if( !VerfiyShapeFunctionsValues(geom,point_out,error_msg) ) succesful = false;
+
         if(succesful == false)
             KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
 
@@ -532,7 +537,7 @@ public:
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
-        
+
         if(succesful == false)
             KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
 
@@ -588,7 +593,7 @@ public:
 //         VerifyStrainExactness( geom, GeometryData::GI_EXTENDED_GAUSS_5, error_msg);
 
         error_msg << std::endl;
-        
+
         if(succesful == false)
         {
             KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
@@ -630,7 +635,7 @@ public:
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
-        
+
         if(succesful == false)
             KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
 
@@ -731,7 +736,7 @@ private:
 
         Element::GeometryType::JacobiansType J0;
         J0= geom.Jacobian( J0, ThisMethod );
-        
+
         Vector determinants;
         geom.DeterminantOfJacobian(determinants, ThisMethod);
 
@@ -741,13 +746,13 @@ private:
 
             //calculating and storing inverse of the jacobian and the parameters needed
             double DetJ0 = MathUtils<double>::Det( J0[PointNumber] );
-            
+
             if( std::abs(determinants[PointNumber] - DetJ0)/std::abs(DetJ0) > 1e-13)
             {
                 error_msg << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " --> " << " determinant as computed from DeterminantOfJacobian does not match the value computed by taking the determinant of J "  << std::endl;
                 return true;
             }
-            
+
 
             //calculating the total area
             area += DetJ0 * IntegrationWeight;
@@ -836,7 +841,7 @@ private:
             //untested functions to be tested
             Element::GeometryType::ShapeFunctionsGradientsType DN_DX_geom;
             geom.ShapeFunctionsIntegrationPointsGradients( DN_DX_geom, ThisMethod );
-            
+
             Element::GeometryType::JacobiansType Jinv;
             geom.InverseOfJacobian(Jinv, ThisMethod);
 
@@ -861,15 +866,15 @@ private:
                 {
                     error_msg << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " -->  " << std::endl;
                      error_msg << "     error: shape function gradients are wrongly calculated in function ShapeFunctionsIntegrationPointsGradients: DN_DX_geom " << DN_DX_geom[PointNumber] << " vs " << DN_DX << std::endl;
-                    error_msg << " norm_frobenius(DN_DX_geom[PointNumber] - DN_DX)/norm_frobenius(DN_DX) = " << norm_frobenius(DN_DX_geom[PointNumber] - DN_DX)/norm_frobenius(DN_DX) <<std::endl; 
+                    error_msg << " norm_frobenius(DN_DX_geom[PointNumber] - DN_DX)/norm_frobenius(DN_DX) = " << norm_frobenius(DN_DX_geom[PointNumber] - DN_DX)/norm_frobenius(DN_DX) <<std::endl;
                 }
                 if(norm_frobenius(Jinv[PointNumber] - InvJ0)/norm_frobenius(InvJ0) > 1e-13)
                 {
                     error_msg << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " --> " << std::endl;
                      error_msg << "     error: shape function gradients are wrongly calculated in function ShapeFunctionsIntegrationPointsGradients: DN_DX_geom " << DN_DX_geom[PointNumber] << " vs " << DN_DX << std::endl;
-                    error_msg << " norm_frobenius(Jinv[PointNumber] - InvJ0)/norm_frobenius(InvJ0) = " << norm_frobenius(Jinv[PointNumber] - InvJ0)/norm_frobenius(InvJ0) <<std::endl; 
+                    error_msg << " norm_frobenius(Jinv[PointNumber] - InvJ0)/norm_frobenius(InvJ0) = " << norm_frobenius(Jinv[PointNumber] - InvJ0)/norm_frobenius(InvJ0) <<std::endl;
                 }
-                
+
                 CalculateB(B, DN_DX, number_of_nodes, dim);
 
                 //calculate a displacement_field which varies linearly in the space
@@ -971,6 +976,54 @@ private:
         }
 
         KRATOS_CATCH( "" )
+    }
+
+    bool VerifyIsInside(
+        Geometry< Node<3> >& geom,
+        Geometry< Node<3> >::CoordinatesArrayType& global_coordinates,
+        bool expected_result,
+        std::stringstream& error_msg)
+    {
+      Geometry< Node<3> >::CoordinatesArrayType local_coordinates;
+      if( geom.IsInside(global_coordinates,local_coordinates) == expected_result )
+        return true;
+      else
+      {
+        error_msg << "Geometry Type = " << GetGeometryName(geom) << " and point = " << global_coordinates << std::endl;
+        error_msg << "Failed VerifyIsInside test. Expected result was: ";
+        error_msg << ( (expected_result) ? "inside" : "outside" );
+        return false;
+      }
+    }
+
+    bool VerfiyShapeFunctionsValues(
+        Geometry< Node<3> >& geom,
+        Geometry< Node<3> >::CoordinatesArrayType& global_coordinates,
+        std::stringstream& error_msg)
+    {
+      Geometry< Node<3> >::CoordinatesArrayType local_coordinates;
+      geom.PointLocalCoordinates( local_coordinates, global_coordinates );
+
+      Vector shape_functions = ZeroVector(geom.size());
+      geom.ShapeFunctionsValues(shape_functions,local_coordinates);
+
+      array_1d<double,3> residual = global_coordinates;
+      for(unsigned int i=0; i<geom.size(); i++)
+      {
+           residual -= shape_functions[i]*geom[i].Coordinates();
+      }
+
+      if( norm_2(residual) < 1e-15 )
+      {
+        return true;
+      }
+      else
+      {
+        error_msg << "Geometry Type = " << GetGeometryName(geom) << " and point = " << global_coordinates << std::endl;
+        error_msg << "Failed VerfiyShapeFunctionsValues test." << std::endl;
+        error_msg << "The difference between exact and interpolated coordinates was : " << residual << std::endl;
+        return false;
+      }
     }
 
     std::string GetIntegrationName(Geometry< Node<3> >& geom, Geometry<Node<3> >::IntegrationMethod ThisMethod)
@@ -1122,6 +1175,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_GEOMETRY_TEST_H_INCLUDED  defined 
-
-
+#endif // KRATOS_GEOMETRY_TEST_H_INCLUDED  defined
