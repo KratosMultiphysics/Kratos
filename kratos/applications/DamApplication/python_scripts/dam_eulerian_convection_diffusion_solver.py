@@ -74,6 +74,8 @@ class DamThermalSolver:
                 "solver_class"                    : "AMGCL"
             },
             "problem_domain_sub_model_part_list"  : [""],
+            "problem_domain_body_sub_model_part_list"  : [""],
+            "problem_domain_joint_sub_model_part_list" : [""],
             "processes_sub_model_part_list"       : [""],
             "nodal_processes_sub_model_part_list" : [""],
             "load_processes_sub_model_part_list"  : [""],
