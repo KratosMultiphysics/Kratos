@@ -162,6 +162,12 @@ public:
                 KRATOS_THROW_ERROR(std::invalid_argument,"PointLocaltion::Find() input error: Could not extract x,y,z cooridinates from input rThisPoint.", "");
             }
         }
+        else if ( rGeom.GetGeometryFamily() == GeometryData::Kratos_Hexahedra && rGeom.WorkingSpaceDimension() == 3)
+        {
+            rAreaCoordinates.resize(8);
+            rAreaCoordinates = ZeroVector(8);
+            ElemId = this->FindHexa(rThisPoint[0],rThisPoint[1],rThisPoint[2],rAreaCoordinates);
+        }
         else
         {
             KRATOS_THROW_ERROR(std::invalid_argument,"PointLocaltion::Find() called using an unsupported geometry (works for triangles in 2D or tetrahedra in 3D).", "");
@@ -569,7 +575,64 @@ public:
     }
 
 
+    int FindHexa( double mxpoint, double mypoint, double mzpoint, Vector& Avector)
+    {
+      KRATOS_TRY;
 
+
+      //ModelPart::ElementsContainerType& rElements = r_model_part.Elements();
+      melem = 0;
+      array_1d<double,8> N(8,0.0);
+      misinside = false ;
+      array_1d<double,3> ThisPoint(3,0.0);
+      ThisPoint[0] = mxpoint;
+      ThisPoint[1] = mypoint;
+      ThisPoint[2] = mzpoint;
+
+      for(ModelPart::ElementsContainerType::iterator i = m_model_part.ElementsBegin();
+              i!=m_model_part.ElementsEnd(); i++)
+      {
+          melem = i->Id();
+
+          Geometry< Node<3> >& geom = i->GetGeometry();
+
+          misinside = IsInsideHexa( geom, ThisPoint, Avector);
+
+          if (misinside==true) break ;       //if it's inside this element then there's no need to keep searching
+      }
+
+
+      if (misinside == false) melem = 0 ; //if it has found no element after the loop we set melem to zero, this will tell the .py file that there's no elem
+
+      return melem; //note: It's THE ELEMENT ID!! (it's NOT the position (current-begin))
+
+      KRATOS_CATCH ("");
+    }
+
+    bool IsInsideHexa( Geometry< Node<3> >& rGeom, const array_1d<double,3>&  ThisPoint, Vector& rN)
+    {
+        // Cheap check: are we inside the bounding box?
+        Node<3> High(0,0.0,0.0,0.0);
+        Node<3> Low(0,0.0,0.0,0.0);
+        rGeom.BoundingBox(Low,High);
+        array_1d<double,3> LocalCoordinates(3,0.0);
+
+        if ( (Low.X() <= ThisPoint[0]) && (High.X() >= ThisPoint[0]) &&
+             (Low.Y() <= ThisPoint[1]) && (High.Y() >= ThisPoint[1]) &&
+             (Low.Z() <= ThisPoint[2]) && (High.Z() >= ThisPoint[2])   )
+        {
+            if( rGeom.IsInside(ThisPoint,LocalCoordinates) )
+            {
+                rN.resize(8);
+                rN = ZeroVector(8);
+                rGeom.ShapeFunctionsValues(rN,LocalCoordinates);
+
+                return true;
+            }
+        }
+
+        return false;
+    }
 
 
     ///@}
