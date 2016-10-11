@@ -95,13 +95,11 @@ proc Dam::xml::ProcGetConstitutiveLaws {domNode args} {
           set type [$cl getAttribute Type]
           if {[string first "Therm" $type] eq -1 && $type_of_problem ne "Thermo-Mechanical"} {
                lappend goodList $cl
-          }
-          if {[string first "Therm" $type] ne -1 && $type_of_problem eq "Thermo-Mechanical"} {
+          } elseif {[string first "Therm" $type] ne -1 && $type_of_problem eq "Thermo-Mechanical"} {
                lappend goodList $cl
-          }
+          } elseif {[string first "Interface" $type] ne -1} {lappend goodList $cl}
      }
      set Claws $goodList
-     set goodList [list ]
      set analysis_type [write::getValue DamAnalysisType]
      set goodList [list ]
      foreach cl $Claws {
@@ -121,19 +119,14 @@ proc Dam::xml::ProcGetConstitutiveLaws {domNode args} {
          return "None"
      }
      set names [list ]
-     set pnames [list ]
      foreach cl $Claws {
          lappend names [$cl getName]
-         lappend pnames [$cl getName] 
-         lappend pnames [$cl getPublicName]
      }
      set values [join $names ","]
-     $domNode setAttribute values $values
-     set diction [join $pnames ","]
      if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
      spdAux::RequestRefresh
      
-     return $diction
+     return $values
 }
 
 Dam::xml::Init

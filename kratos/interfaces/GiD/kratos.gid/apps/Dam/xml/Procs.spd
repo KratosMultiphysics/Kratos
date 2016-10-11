@@ -7,16 +7,6 @@
 	  ]]>
 	</proc>
 	
-	   <proc n='UpdateDictAndReturnState' args='args'>
-          <![CDATA[
-				set dict [Dam::xml::ProcGetConstitutiveLaws $domNode]
-				$domNode setAttribute dict $dict
-				set values [split [get_domnode_attribute $domNode values] ","]
-				set value [get_domnode_attribute $domNode v]
-				if {$value ni $values} {set value [lindex $values 0]; $domNode setAttribute v $value}
-				return "normal"
-          ]]>
-        </proc>
 	  <proc n='SolStratParamState' args='args'>
 	  <![CDATA[
 		    

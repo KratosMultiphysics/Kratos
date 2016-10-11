@@ -48,6 +48,11 @@
 	  return [spdAux::ProcGetConstitutiveLaws $domNode $args]
 	  ]]>
 	</proc>
+	<proc n='GetAllConstitutiveLaws' args='args'>
+	  <![CDATA[
+	  return [spdAux::ProcGetAllConstitutiveLaws $domNode $args]
+	  ]]>
+	</proc>
 		<proc n='GetSolvers' args='args'>
 	  <![CDATA[
 	return [spdAux::ProcGetSolvers $domNode $args]
