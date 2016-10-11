@@ -172,7 +172,7 @@
             <parameter n="DELTA_PLASTIC_STRAIN" pn="Plastic Strain Rate"/>
         </outputs>
     </CLaw>
-    <CLaw n="HyperElasticPlasticJ2PlaneStrain2DLaw" pn="PLastic J2 Plane Strain" ProductionReady="ProductionReady" Type="PlaneStrain" behaviour="Plastic" StrainSize="3" ImplementedInApplication="SolidMechanicsApplication"
+    <CLaw n="HyperElasticPlasticJ2PlaneStrain2DLaw" pn="Plastic J2 Plane Strain" ProductionReady="ProductionReady" Type="PlaneStrain" behaviour="Plastic" StrainSize="3" ImplementedInApplication="SolidMechanicsApplication"
           help="NeoHookean HyperElastic Plastic J2 Behaviour in 2D Plane Strain" Dimension="2D" LargeDeformation="True" RequiresLocalAxes="False" HybridType="False" >
         <inputs>
 			<parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="7850"/>
@@ -189,7 +189,7 @@
             <parameter n="DELTA_PLASTIC_STRAIN" pn="Plastic Strain Rate"/>
         </outputs>
     </CLaw>
-    <CLaw n="HyperElasticPlasticJ2Axisym2DLaw" pn="PLastic J2" ProductionReady="ProductionReady" Type="Axisymmetric" behaviour="Plastic" StrainSize="4" ImplementedInApplication="SolidMechanicsApplication"
+    <CLaw n="HyperElasticPlasticJ2Axisym2DLaw" pn="Plastic J2" ProductionReady="ProductionReady" Type="Axisymmetric" behaviour="Plastic" StrainSize="4" ImplementedInApplication="SolidMechanicsApplication"
           help="NeoHookean HyperElastic Plastic J2 Behaviour in 2D Axisymmetric" Dimension="2Da" LargeDeformation="True" RequiresLocalAxes="False" HybridType="False" >
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="7850"/>
@@ -206,7 +206,7 @@
             <parameter n="DELTA_PLASTIC_STRAIN" pn="Plastic Strain Rate"/>
         </outputs>
     </CLaw>
-    <CLaw n="HyperElasticPlasticUPJ23DLaw" pn="PLastic J2 U-P" ProductionReady="ProductionReady" Type="3D" behaviour="Plastic" StrainSize="6" ImplementedInApplication="SolidMechanicsApplication"
+    <CLaw n="HyperElasticPlasticUPJ23DLaw" pn="Plastic J2 U-P" ProductionReady="ProductionReady" Type="3D" behaviour="Plastic" StrainSize="6" ImplementedInApplication="SolidMechanicsApplication"
           help="NeoHookean HyperElastic Plastic J2 U-P Behaviour in 3D" Dimension="3D" LargeDeformation="True" RequiresLocalAxes="False" HybridType="U-P" >
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="7850"/>
@@ -223,7 +223,7 @@
             <parameter n="DELTA_PLASTIC_STRAIN" pn="Plastic Strain Rate"/>
         </outputs>
     </CLaw>
-    <CLaw n="HyperElasticPlasticUPPlaneStrain2DLaw" pn="PLastic J2 U-P Plane Strain" ProductionReady="ProductionReady" Type="PlaneStrain" behaviour="Plastic" StrainSize="3"  ImplementedInApplication="SolidMechanicsApplication"
+    <CLaw n="HyperElasticPlasticUPPlaneStrain2DLaw" pn="Plastic J2 U-P Plane Strain" ProductionReady="ProductionReady" Type="PlaneStrain" behaviour="Plastic" StrainSize="3"  ImplementedInApplication="SolidMechanicsApplication"
           help="NeoHookean HyperElastic Plastic J2 U-P Behaviour in 2D Plane Strain" Dimension="2D" LargeDeformation="True" RequiresLocalAxes="False" HybridType="U-P" >
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="7850"/>
@@ -240,7 +240,7 @@
             <parameter n="DELTA_PLASTIC_STRAIN" pn="Delta Plastic Strain"/>
         </outputs>
     </CLaw>
-    <CLaw n="HyperElasticPlasticUPJ2Axisym2DLaw" pn="PLastic J2 U-P" ProductionReady="ProductionReady" Type="Axisymmetric" behaviour="Plastic" StrainSize="4" ImplementedInApplication="SolidMechanicsApplication"
+    <CLaw n="HyperElasticPlasticUPJ2Axisym2DLaw" pn="Plastic J2 U-P" ProductionReady="ProductionReady" Type="Axisymmetric" behaviour="Plastic" StrainSize="4" ImplementedInApplication="SolidMechanicsApplication"
           help="NeoHookean HyperElastic Plastic J2 U-P Behaviour in 2D Axisymmetric" Dimension="2Da" LargeDeformation="True" RequiresLocalAxes="False" HybridType="U-P" >
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="7850"/>
