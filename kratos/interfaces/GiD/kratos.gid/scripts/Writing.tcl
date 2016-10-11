@@ -224,7 +224,7 @@ proc write::processMaterials { } {
             foreach valueNode $us {
                 set name [$valueNode getAttribute n]
                 set state [get_domnode_attribute $valueNode state]
-                if {$state eq "normal"} {
+                if {$state ne "hidden"} {
                     # All the introduced values are translated to 'm' and 'kg' with the help of this function
                     set value [gid_groups_conds::convert_value_to_default $valueNode]
                     
