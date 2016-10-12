@@ -515,7 +515,7 @@ class TestModelPart(KratosUnittest.TestCase):
         
         ### here we test adding a list of nodes at once
         #now add node 4 and 5 to the model_part1 by Id - here it fails since we did not yet add node 4
-        with self.assertRaisesRegex(RuntimeError, "Error: the node with Id 4 does not exist in the root model part"):
+        with self.assertRaisesRegex(RuntimeError, "Error: while adding nodes to submodelpart, the node with Id 4 does not exist in the root model part"):
             sub1.AddNodes([4,5])
             
         model_part1.AddNode( n4, 0 )
