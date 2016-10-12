@@ -758,7 +758,7 @@ void MortarContactCondition::CalculateConditionSystem(
                 this->CalculateAndAddRHS( rLocalSystem, RHS_contact_pair, PairIndex, current_master_element );
             }
             
-////             std::cout << "--------------------------------------------------" << std::endl;
+//             std::cout << "--------------------------------------------------" << std::endl;
 //             KRATOS_WATCH(this->Id());
 //             KRATOS_WATCH(PairIndex);
 // //             KRATOS_WATCH(LHS_contact_pair);
@@ -1113,15 +1113,14 @@ void MortarContactCondition::CalculateLocalLHS(
     const Vector N1           = rVariables.N_Slave;
     const Vector N2           = rVariables.N_Master;
     const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
+//     const Matrix DPhi         = rVariables.DPhi_De_LagrangeMultipliers;
     const double detJ         = rVariables.DetJSlave; 
 
     if (dimension == 2)
     {
         if (number_of_master_nodes == 2 &&  number_of_slave_nodes == 2)
         {
-            rPairLHS += rIntegrationWeight * ( Contact2D2N2N::ComputeGaussPointLHSInternalContribution( N1, N2, Phi, detJ, rContactData )
-                                            +  Contact2D2N2N::ComputeGaussPointLHSNormalContactContribution( N1, N2, Phi, detJ, rContactData ) 
-                                            +  Contact2D2N2N::ComputeGaussPointLHSTangentContactContribution( N1, N2, Phi, detJ, rContactData ) );
+            rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointLHS( N1, N2, Phi, detJ, rContactData );
         }
         else
         {
@@ -1153,6 +1152,7 @@ void MortarContactCondition::CalculateLocalLHS(
             KRATOS_THROW_ERROR( std::logic_error,  " COMBINATION OF GEOMETRIES NOT IMPLEMENTED. Number of slave elements: ", number_of_slave_nodes );
         }
     }
+    
 }
 
 /***********************************************************************************/
@@ -1268,15 +1268,14 @@ void MortarContactCondition::CalculateLocalRHS(
     const Vector N1           = rVariables.N_Slave;
     const Vector N2           = rVariables.N_Master;
     const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
+//     const Matrix DPhi         = rVariables.DPhi_De_LagrangeMultipliers;
     const double detJ         = rVariables.DetJSlave;
     
     if (dimension == 2)
     {
         if (number_of_master_nodes == 2 &&  number_of_slave_nodes == 2)
         {
-            rPairRHS += rIntegrationWeight * ( Contact2D2N2N::ComputeGaussPointRHSInternalContribution(N1, N2, Phi, detJ, rContactData)
-                                             + Contact2D2N2N::ComputeGaussPointRHSNormalContactContribution(N1, N2, Phi, detJ, rContactData) //);
-                                             + Contact2D2N2N::ComputeGaussPointRHSTangentContactContribution(N1, N2, Phi, detJ, rContactData) );
+            rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointRHS(N1, N2, Phi, detJ, rContactData);
         }
         else
         {
@@ -1308,6 +1307,8 @@ void MortarContactCondition::CalculateLocalRHS(
             KRATOS_THROW_ERROR( std::logic_error,  " COMBINATION OF GEOMETRIES NOT IMPLEMENTED. Number of slave elements: ", number_of_slave_nodes );
         }
     }
+    
+    
 }
 
 /***********************************************************************************/
