@@ -3,9 +3,9 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 
-class TestModelPart(KratosUnittest.TestCase):
+class TestModel(KratosUnittest.TestCase):
 
-    def test_model_part_sub_model_parts(self):
+    def test_model(self):
         model_part = KratosMultiphysics.ModelPart("Main")
         model_part.CreateSubModelPart("Inlets")
         model_part.CreateSubModelPart("Temp")
@@ -31,7 +31,7 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(len(model_part.Nodes), 1)
         self.assertEqual(len(outlet.Nodes), 1)
         self.assertEqual(len(aaa.Nodes), 1)
-        
+
         #self.assertEqual(model["Main"], model_part )
         #self.assertEqual(model["Main.Outlet"].Info(), outlet.Info() )
         #self.assertEqual(model["Main.Outlet.aaa"].Info(), aaa.Info() )
