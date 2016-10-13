@@ -154,7 +154,7 @@ namespace Kratos {
             CalculateMaxTimeStep();
         }
 
-        r_process_info[PARTICLE_INELASTIC_FRICTIONAL_WORK] = 0.0;
+        r_process_info[PARTICLE_INELASTIC_FRICTIONAL_ENERGY] = 0.0;
 
         // 5. Finalize Solution Step.
         //FinalizeSolutionStep();
@@ -1087,11 +1087,12 @@ namespace Kratos {
 
         ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
         double& total_elastic_energy = r_process_info[PARTICLE_ELASTIC_ENERGY];
-        double& total_damping_energy = r_process_info[PARTICLE_INELASTIC_VISCODAMPING_ENERGY];
         total_elastic_energy = 0.0;
-        total_damping_energy = 0.0;
-        //total_friccional_work       = 0.0;
-
+        double& total_inelastic_frictional_energy = r_process_info[PARTICLE_INELASTIC_FRICTIONAL_ENERGY];
+        total_inelastic_frictional_energy  = 0.0;
+        double& total_inelastic_viscodamping_energy = r_process_info[PARTICLE_INELASTIC_VISCODAMPING_ENERGY];
+        total_inelastic_viscodamping_energy  = 0.0;
+        
         KRATOS_CATCH("")
     }
 

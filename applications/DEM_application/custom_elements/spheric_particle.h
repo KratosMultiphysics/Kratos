@@ -128,6 +128,12 @@ virtual double GetParticleKTangential();
 void   SetParticleKTangentialFromProperties(double* particle_k_tangential);
 
 array_1d<double, 3>& GetForce();
+double mElasticEnergy;
+virtual double& GetElasticEnergy();
+double mInelasticFrictionalEnergy;
+virtual double& GetInelasticFrictionalEnergy();
+double mInelasticViscodampingEnergy;
+virtual double& GetInelasticViscodampingEnergy();
 
 PropertiesProxy* GetFastProperties();
 void   SetFastProperties(PropertiesProxy* pProps);

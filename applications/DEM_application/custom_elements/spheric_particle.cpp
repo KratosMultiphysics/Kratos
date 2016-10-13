@@ -1163,6 +1163,8 @@ void SphericParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
 
     mRadius = this->GetGeometry()[0].FastGetSolutionStepValue(RADIUS); //Just in case someone is overwriting the radius in Python
     this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) = 0.0;
+    double& elastic_energy = this->GetElasticEnergy();
+    elastic_energy = 0.0;
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
@@ -1534,6 +1536,24 @@ void SphericParticle::Calculate(const Variable<double>& rVariable, double& Outpu
       
         return;
     }
+    
+    if (rVariable == PARTICLE_ELASTIC_ENERGY) {
+        
+        Output = GetElasticEnergy();
+        
+    }
+
+    if (rVariable == PARTICLE_INELASTIC_FRICTIONAL_ENERGY) {
+        
+        Output = GetInelasticFrictionalEnergy();
+        
+    }
+    
+    if (rVariable == PARTICLE_INELASTIC_VISCODAMPING_ENERGY) {
+        
+        Output = GetInelasticViscodampingEnergy();
+        
+    }
 
     AdditionalCalculate(rVariable, Output, r_process_info);
 
@@ -1622,6 +1642,9 @@ double SphericParticle::GetParticleKNormal()                                    
 double SphericParticle::GetParticleKTangential()                                         { return GetFastProperties()->GetParticleKTangential();       }
 
 array_1d<double, 3>& SphericParticle::GetForce()                                         { return GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);}
+double&              SphericParticle::GetElasticEnergy()                                 { return mElasticEnergy; }
+double&              SphericParticle::GetInelasticFrictionalEnergy()                     { return mInelasticFrictionalEnergy; }
+double&              SphericParticle::GetInelasticViscodampingEnergy()                   { return mInelasticViscodampingEnergy; }
 
 void   SphericParticle::SetYoungFromProperties(double* young)                            { GetFastProperties()->SetYoungFromProperties( young);                             }
 void   SphericParticle::SetRollingFrictionFromProperties(double* rolling_friction)       { GetFastProperties()->SetRollingFrictionFromProperties( rolling_friction);        }

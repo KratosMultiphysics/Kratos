@@ -35,17 +35,17 @@ namespace Kratos {
         void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta = 0.0);
 
         void CalculateForces(const ProcessInfo& r_process_info,
-                            const double OldLocalElasticContactForce[3],
-                            double LocalElasticContactForce[3],
-                            double LocalDeltDisp[3],
-                            double LocalRelVel[3],            
-                            double indentation,
-                            double previous_indentation,
-                            double ViscoDampingLocalContactForce[3],
-                            double& cohesive_force,
-                            SphericParticle* element1,
-                            SphericParticle* element2,
-                            bool& sliding);
+                             const double OldLocalElasticContactForce[3],
+                             double LocalElasticContactForce[3],
+                             double LocalDeltDisp[3],
+                             double LocalRelVel[3],            
+                             double indentation,
+                             double previous_indentation,
+                             double ViscoDampingLocalContactForce[3],
+                             double& cohesive_force,
+                             SphericParticle* element1,
+                             SphericParticle* element2,
+                             bool& sliding);
 
         void CalculateForcesWithFEM(ProcessInfo& r_process_info,
                                     const double OldLocalElasticContactForce[3],
@@ -67,8 +67,8 @@ namespace Kratos {
                                             const double indentation);
 
         double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element,
-                                            DEMWall* const wall,
-                                            const double indentation);
+                                                   DEMWall* const wall,
+                                                   const double indentation);
 
         template <class NeighbourClassType>
         void CalculateTangentialForceWithNeighbour(const double normal_contact_force,
@@ -80,7 +80,9 @@ namespace Kratos {
                                                    SphericParticle* const element,
                                                    NeighbourClassType* const neighbour,
                                                    double indentation,
-                                                   double previous_indentation);
+                                                   double previous_indentation,
+                                                   double& ActualTotalShearForce, 
+                                                   double& MaximumAdmisibleShearForce);
 
         void CalculateViscoDampingForce(double LocalRelVel[3],
                                         double ViscoDampingLocalContactForce[3],
@@ -91,6 +93,30 @@ namespace Kratos {
                                         double ViscoDampingLocalContactForce[3],
                                         SphericParticle* const element,
                                         DEMWall* const wall);
+        
+        void CalculateElasticEnergyDEM(double& elastic_energy,
+                                       double indentation,
+                                       double LocalElasticContactForce[3]);
+
+        void CalculateInelasticFrictionalEnergyDEM(double& inelastic_frictional_energy,
+                                                   double& ActualTotalShearForce,
+                                                   double& MaximumAdmisibleShearForce);
+        
+        void CalculateInelasticViscodampingEnergyDEM(double& inelastic_viscodamping_energy,
+                                                     double ViscoDampingLocalContactForce[3],
+                                                     double LocalDeltDisp[3]);
+        
+        void CalculateElasticEnergyFEM(double& elastic_energy,
+                                       double indentation,
+                                       double LocalElasticContactForce[3]);
+
+        void CalculateInelasticFrictionalEnergyFEM(double& inelastic_frictional_energy,
+                                                   double& ActualTotalShearForce,
+                                                   double& MaximumAdmisibleShearForce);
+        
+        void CalculateInelasticViscodampingEnergyFEM(double& inelastic_viscodamping_energy,
+                                                     double ViscoDampingLocalContactForce[3],
+                                                     double LocalDeltDisp[3]);
                             
     private:
 
@@ -105,7 +131,7 @@ namespace Kratos {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMDiscontinuumConstitutiveLaw)
                     //rSerializer.load("MyMemberName",myMember);
         }
-        
+
     }; //class DEM_D_Hertz_viscous_Coulomb
 
 } /* namespace Kratos.*/
