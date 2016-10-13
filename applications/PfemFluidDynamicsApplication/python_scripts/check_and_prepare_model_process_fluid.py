@@ -19,13 +19,9 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         self.main_model_part = main_model_part
         
         self.computing_model_part_name  = Parameters["computing_model_part_name"].GetString()
-        print("Parameters.Has problem_domain_sub_model_part_list ?")
         if( Parameters.Has("problem_domain_sub_model_part_list") ):
-            print("Parameters.Has processes_sub_model_part_list")       
             self.sub_model_part_names     = Parameters["problem_domain_sub_model_part_list"]
-        print("Parameters.Has processes_sub_model_part_list ?")
         if( Parameters.Has("processes_sub_model_part_list") ):
-            print("Parameters.Has processes_sub_model_part_list")
             self.processes_model_part_names = Parameters["processes_sub_model_part_list"]
 
         self.bodies_parts_list = []

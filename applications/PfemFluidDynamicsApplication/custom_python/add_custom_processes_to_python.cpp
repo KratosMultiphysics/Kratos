@@ -20,24 +20,17 @@
 //Application includes
 #include "custom_python/add_custom_processes_to_python.h"
 
-
-// #include "custom_processes/elemental_neighbours_search_process.hpp"
-// #include "custom_processes/nodal_neighbours_search_process.hpp"
-// #include "custom_processes/model_volume_calculation_process.hpp"
-// #include "custom_processes/refine_mesh_elements_on_threshold_process.hpp" 
-
 //PreMeshing processes
+#include "includes/model_part.h"
 
 //MiddleMeshing processes
-#include "custom_processes/refine_mesh_elements_on_size_process.hpp"
-
-#include "custom_processes/build_mesh_boundary_process_for_fluids.hpp"
-
-#include "custom_processes/remove_mesh_nodes_process_for_fluids.hpp"
+// #include "custom_processes/refine_mesh_elements_on_size_process.hpp"
+#include "custom_processes/remove_mesh_nodes_for_fluids_process.hpp"
 
 //PostMeshing processes
-#include "custom_processes/select_mesh_elements_process.hpp"
-#include "custom_processes/generate_new_nodes_for_homogeneous_mesh_process.hpp"
+#include "custom_processes/select_mesh_elements_for_fluids_process.hpp"
+#include "custom_processes/generate_new_nodes_before_meshing_process.hpp"
+#include "custom_processes/model_start_end_meshing_for_fluids_process.hpp"
 
 //Processes
 
@@ -54,40 +47,30 @@ namespace Kratos
 
       using namespace boost::python;
       typedef Process                                         ProcessBaseType;
+      typedef ModelStartEndMeshingProcess     ModelStartEndMeshingProcessType;
 
-      class_<BuildMeshBoundaryProcessForFluids, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "BuildMeshBoundaryForFluids", init<ModelPart&, int, int, int>()
-      	 )
-      	;
-
-      class_<RefineMeshElementsOnSizeProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "SetElementsToRefineOnSize", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
-	 )
-	;
-
-      class_<RemoveMeshNodesProcessForFluids, bases<ProcessBaseType>, boost::noncopyable >
+      class_<RemoveMeshNodesForFluidsProcess, bases<ProcessBaseType>, boost::noncopyable >
       	(
       	 "RemoveMeshNodesForFluids", init<ModelPart&, ModelerUtilities::MeshingParameters&, int>()
       	 )
       	;
 
-       // class_<ReconstructMeshBoundaryProcessForFluids, bases<ProcessBaseType>, boost::noncopyable >
-       // 	(
-       // 	 "ReconstructMeshBoundaryForFluids", init<ModelPart&, ModelerUtilities::MeshingParameters&, int>()
-       // 	 )
-       // 	; 
 
-      class_<GenerateNewNodesForHomogeneousMeshProcess, bases<ProcessBaseType>, boost::noncopyable >
+      class_<GenerateNewNodesBeforeMeshingProcess, bases<ProcessBaseType>, boost::noncopyable >
       	(
-      	 "GenerateNewNodesForHomogeneousMesh", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
+      	 "GenerateNewNodesBeforeMeshing", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
       	 )
       	;
 
-      class_<SelectMeshElementsProcess, bases<ProcessBaseType>, boost::noncopyable >
+      class_<SelectMeshElementsForFluidsProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "SelectMeshElements", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
+	 "SelectMeshElementsForFluids", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
+	 )
+	;
+
+      class_<ModelStartEndMeshingForFluidsProcess, bases<ModelStartEndMeshingProcessType>, boost::noncopyable >
+	(
+	 "ModelMeshingForFluids", init<ModelPart&, Flags, int>()
 	 )
 	;
 

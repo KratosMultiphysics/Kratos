@@ -132,7 +132,7 @@ public:
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         bool CalculateReactionFlag = false,
-        bool ReformDofSetAtEachStep = false, //false //!!!!!!!!!!!!!!!!!!!
+        bool ReformDofSetAtEachStep = true, //false //!!!!!!!!!!!!!!!!!!!
         bool CalculateNormDxFlag = false,
         bool MoveMeshFlag = false            //false //!!!!!!!!!!!!!!!!!!!
     )
@@ -157,6 +157,9 @@ public:
                                  new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (mpLinearSolver)
                              );
 
+
+	std::cout<<"GaussSeidelLinearStrategy GaussSeidelLinearStrategy GaussSeidelLinearStrategy"<<std::endl;
+
         //set flag to start correcty the calculations
         mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
@@ -166,6 +169,7 @@ public:
 
         //tells to the Builder And Solver if the system matrix and vectors need to
         //be reshaped at each step or not
+	mReformDofSetAtEachStep=true;
         GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
 
         //set EchoLevel to the default value (only time is displayed)
@@ -185,13 +189,15 @@ public:
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
         bool CalculateReactionFlag = false,
-        bool ReformDofSetAtEachStep = false,
+        bool ReformDofSetAtEachStep = true,
         bool CalculateNormDxFlag = false,
         bool MoveMeshFlag = false
     )
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
     {
         KRATOS_TRY
+
+	std::cout<<"......GaussSeidelLinearStrategy GaussSeidelLinearStrategy GaussSeidelLinearStrategy"<<std::endl;
 
         mCalculateReactionsFlag = CalculateReactionFlag;
         mReformDofSetAtEachStep = ReformDofSetAtEachStep;
@@ -215,6 +221,7 @@ public:
 
         //tells to the Builder And Solver if the system matrix and vectors need to
         //be reshaped at each step or not
+	mReformDofSetAtEachStep=true;
         GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
 
         //set EchoLevel to the default value (only time is displayed)
@@ -277,6 +284,7 @@ public:
     void SetReformDofSetAtEachStepFlag(bool flag)
     {
         mReformDofSetAtEachStep = flag;
+	mReformDofSetAtEachStep=true;
         GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
     }
 
@@ -340,6 +348,7 @@ public:
      */
     //**********************************************************************
 
+
     double Solve()
     {
         KRATOS_TRY
@@ -373,18 +382,21 @@ public:
         /*     mSolutionStepIsInitialized = true; // !!!!!!!!!!!!!!!!!!!!!!!!! */
         /* } */
 
-	InitializeSolutionStep(); // !!!!!!!!!!!!!!!!!!!!!!!!!
+	/* InitializeSolutionStep(); // !!!!!!!!!!!!!!!!!!!!!!!!! */
 
         //updates the database with a prediction of the solution
-        Predict();
+	std::cout << "PREDICT " << std::endl;
+	Predict();
 
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mb = *mpb;
 
+	std::cout << "BUILD AND SOLVE" << std::endl;
 
         if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false)
         {
+	  std::cout << "first BUILD AND SOLVE" << std::endl;
             TSparseSpace::SetToZero(mA);
             TSparseSpace::SetToZero(mDx);
             TSparseSpace::SetToZero(mb);
@@ -396,6 +408,7 @@ public:
         }
         else
         {
+	  std::cout << "other BUILD AND SOLVE" << std::endl;
             TSparseSpace::SetToZero(mDx);
             TSparseSpace::SetToZero(mb);
             pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
@@ -446,16 +459,16 @@ public:
         pScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
         pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
 
-        //deallocate the systemvectors if needed
-        if (mReformDofSetAtEachStep == true)
-        {
-            if (rank == 0 && BaseType::GetEchoLevel() > 0) std::cout << "Clearing System" << std::endl;
-            this->Clear();
-            //std::cout << "Clearing System" << std::endl;
-            //TSparseSpace::ClearData(mA);
-            //TSparseSpace::ClearData(mDx);
-            //TSparseSpace::ClearData(mb);
-        }
+        /* //deallocate the systemvectors if needed */
+        /* if (mReformDofSetAtEachStep == true) */
+        /* { */
+        /*     if (rank == 0 && BaseType::GetEchoLevel() > 0) std::cout << "Clearing System" << std::endl; */
+        /*     this->Clear(); */
+        /*     //std::cout << "Clearing System" << std::endl; */
+        /*     //TSparseSpace::ClearData(mA); */
+        /*     //TSparseSpace::ClearData(mDx); */
+        /*     //TSparseSpace::ClearData(mb); */
+        /* } */
 
         //Cleaning memory after the solution
         pScheme->Clean();
@@ -666,53 +679,176 @@ private:
 
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
         typename TSchemeType::Pointer pScheme = GetScheme();
-
         int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 
-        if (BaseType::GetEchoLevel() > 2 && rank == 0)
-            std::cout << "entering in the  InitializeSolutionStep of the GaussSeidelLinearStrategy" << std::endl;
+	ProcessInfo& pCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+        this->SetEchoLevel(1);
 
+        //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
+        //if the operations needed were already performed this does nothing
+        if (mInitializeWasPerformed == false)
+	  {
+            Initialize();
+            mInitializeWasPerformed = true;
+	  }
+
+        //prints informations about the current time
+        if (BaseType::GetEchoLevel() != 0 && rank == 0)
+	  {
+            std::cout << " " << std::endl;
+            std::cout << "GAUSS SEIDEL(1st solve) CurrentTime = " << pCurrentProcessInfo[TIME] << std::endl;
+	  }
+
+	std::cout << "gauss seidel: InitializeSolutionStep" <<" rank " <<rank<<" BaseType::GetEchoLevel() "<<BaseType::GetEchoLevel()<<std::endl;
 
         //loop to reform the dofset
         boost::timer system_construction_time;
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         /* if (pBuilderAndSolver->GetDofSetIsInitializedFlag() == false || mReformDofSetAtEachStep == true) */
         /* { */
-            boost::timer setup_dofs_time;
-            //setting up the list of the DOFs to be solved
-            pBuilderAndSolver->SetUpDofSet(pScheme, BaseType::GetModelPart());
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                std::cout << "setup_dofs_time : " << setup_dofs_time.elapsed() << std::endl;
+	boost::timer setup_dofs_time;
+	//setting up the list of the DOFs to be solved
+	pBuilderAndSolver->SetUpDofSet(pScheme, BaseType::GetModelPart());
+	if (BaseType::GetEchoLevel() > 0 && rank == 0)
+	  std::cout << "setup_dofs_time : " << setup_dofs_time.elapsed() << std::endl;
 
-            //shaping correctly the system
-            boost::timer setup_system_time;
-            pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                std::cout << "setup_system_time : " << setup_system_time.elapsed() << std::endl;
+	//shaping correctly the system
+	boost::timer setup_system_time;
+	pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
+	if (BaseType::GetEchoLevel() > 0 && rank == 0)
+	  std::cout << "setup_system_time : " << setup_system_time.elapsed() << std::endl;
 
-            //setting up the Vectors involved to the correct size
-            boost::timer system_matrix_resize_time;
-            pBuilderAndSolver->ResizeAndInitializeVectors(mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
-            if (BaseType::GetEchoLevel() > 0 && rank == 0)
-                std::cout << "system_matrix_resize_time : " << system_matrix_resize_time.elapsed() << std::endl;
-	    /* } */ // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	//setting up the Vectors involved to the correct size
+	boost::timer system_matrix_resize_time;
+	pBuilderAndSolver->ResizeAndInitializeVectors(mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
+	if (BaseType::GetEchoLevel() > 0 && rank == 0)
+	  std::cout << "system_matrix_resize_time : " << system_matrix_resize_time.elapsed() << std::endl;
+	/* } */ // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         if (BaseType::GetEchoLevel() > 0 && rank == 0)
-            std::cout << "System Construction Time : " << system_construction_time.elapsed() << std::endl;
+	  std::cout << "System Construction Time : " << system_construction_time.elapsed() << std::endl;
 
 
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mb = *mpb;
 
-        //initial operations ... things that are constant over the Solution Step
-        pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
 
         //initial operations ... things that are constant over the Solution Step
-        pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+	std::cout << "pBuilderAndSolver->IInitializeSolutionStep.... "<< std::endl;
+	boost::timer initialize_solution_step;
+	pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+	if (BaseType::GetEchoLevel() > 0 && rank == 0)
+	  std::cout << "initialize_solution_step : " << initialize_solution_step.elapsed() << std::endl;
+
+	std::cout << "....done! "<< std::endl;
+        //initial operations ... things that are constant over the Solution Step
+     	std::cout << "pScheme->InitializeSolutionStep.... "<< std::endl;
+	boost::timer scheme_initialize_solution_step;
+	pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+	if (BaseType::GetEchoLevel() > 0 && rank == 0)
+	  std::cout << "scheme initialize_solution_step : " <<  scheme_initialize_solution_step.elapsed() << std::endl;
+     	std::cout << "... done!! "<< std::endl;
+
+    //updates the database with a prediction of the solution
+	std::cout << "PREDICT " << std::endl;
+	Predict();
+
+        mA = *mpA;
+        mDx = *mpDx;
+        mb = *mpb;
+
+	std::cout << "BUILD AND SOLVE" << std::endl;
+
+        if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false)
+        {
+	  std::cout << "first BUILD AND SOLVE" << std::endl;
+            TSparseSpace::SetToZero(mA);
+            TSparseSpace::SetToZero(mDx);
+            TSparseSpace::SetToZero(mb);
+            // passing smart pointers instead of references here
+            // to prevent dangling pointer to system matrix when
+            // reusing ml preconditioners in the trilinos tpl
+            pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
+            BaseType::mStiffnessMatrixIsBuilt = true;
+        }
+        else
+        {
+	  std::cout << "other BUILD AND SOLVE" << std::endl;
+            TSparseSpace::SetToZero(mDx);
+            TSparseSpace::SetToZero(mb);
+            pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
+        }
+
+        if (BaseType::GetEchoLevel() == 3) //if it is needed to print the debug info
+        {
+            std::cout << "SystemMatrix = " << mA << std::endl;
+            std::cout << "solution obtained = " << mDx << std::endl;
+            std::cout << "RHS  = " << mb << std::endl;
+        }
+        if (this->GetEchoLevel() == 4) //print to matrix market file
+        {
+            std::stringstream matrix_market_name;
+            matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] <<  ".mm";
+            TSparseSpace::WriteMatrixMarketMatrix((char*) (matrix_market_name.str()).c_str(), mA, false);
+            
+            std::stringstream matrix_market_vectname;
+            matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm.rhs";
+            TSparseSpace::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), mb);
+        }
+
+        //update results
+        DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();
+        pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+
+        //move the mesh if needed
+       if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+
+       BaseType::MoveMesh(); // !!!!!!!!!!!!!!!!!
+        //calculate if needed the norm of Dx
+        /* double normDx = 0.00; */
+        /* if (mCalculateNormDxFlag == true) */
+        /* { */
+        /*     normDx = TSparseSpace::TwoNorm(mDx); */
+        /* } */
+
+        //calculate reactions if required
+        if (mCalculateReactionsFlag == true)
+        {
+            pBuilderAndSolver->CalculateReactions(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
+        }
+
+        //Finalisation of the solution step,
+        //operations to be done after achieving convergence, for example the
+        //Final Residual Vector (mb) has to be saved in there
+        //to avoid error accumulation
+        pScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+        pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+
+        /* //deallocate the systemvectors if needed */
+        /* if (mReformDofSetAtEachStep == true) */
+        /* { */
+        /*     if (rank == 0 && BaseType::GetEchoLevel() > 0) std::cout << "Clearing System" << std::endl; */
+        /*     this->Clear(); */
+        /*     //std::cout << "Clearing System" << std::endl; */
+        /*     //TSparseSpace::ClearData(mA); */
+        /*     //TSparseSpace::ClearData(mDx); */
+        /*     //TSparseSpace::ClearData(mb); */
+        /* } */
+
+        //Cleaning memory after the solution
+        pScheme->Clean();
+
+        /* //reset flags for next step */
+         /* mSolutionStepIsInitialized = false;  // !!!!!!!!!!!!!!!!!!!!!! */
+
+        /* return normDx; */
+
+
 
 
         KRATOS_CATCH("")
     }
+
 
     //**********************************************************************
     //**********************************************************************

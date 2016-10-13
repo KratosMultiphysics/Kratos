@@ -17,10 +17,12 @@ class FluidMeshingStrategy(meshing_strategy.MeshingStrategy):
 
     def SetMeshModelers(self):
 
+        print("::[Fluid Meshing Strategy]:: SET MESH MODELER")
+
         modelers = []        
         if( self.settings["remesh"].GetBool() and self.settings["refine"].GetBool() ):
             modelers.append("fluid_pre_refining_modeler")
-            modelers.append("fluid_post_refining_modeler")
+            #modelers.append("fluid_post_refining_modeler")
         elif( self.settings["remesh"].GetBool() ):
             modelers.append("reconnect_modeler")
         elif( self.settings["transfer"].GetBool() ):
