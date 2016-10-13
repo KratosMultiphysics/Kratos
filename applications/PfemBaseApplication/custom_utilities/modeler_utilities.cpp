@@ -1012,6 +1012,57 @@ namespace Kratos
 
   
   //returns false if it should be removed
+  bool ModelerUtilities::AlphaShape(double AlphaParameter, Geometry<Node<3> >& rGeometry, const unsigned int dimension, const double MeanMeshSize)
+  {
+    KRATOS_TRY
+   
+    const unsigned int size      = rGeometry.size();
+
+    //calculate geometry radius and volume
+    double Radius = 0;
+    double Volume = 0;
+    std::vector<Vector > Vertices;
+    Vector Vertex = ZeroVector(3);
+    for(unsigned int i = 0; i < size; i++)
+      {
+	Vertex[0] = rGeometry[i].X();
+	Vertex[1] = rGeometry[i].Y();
+	Vertex[2] = rGeometry[i].Z();
+
+	Vertices.push_back(Vertex);
+      }
+ 
+
+    Radius = ComputeRadius(Radius, Volume, Vertices, dimension);
+
+    // double CriticalVolume = 1e-12 * pow(h, size-1);
+    double AlphaRadius    = AlphaParameter * MeanMeshSize;
+
+    if( Radius<0 ) //degenerated element
+      {
+	std::cout<<" Sliver (radius) "<<Radius<<" (alpha_volume) "<<Volume<<std::endl;
+	return false;
+      }
+    else
+      {
+	if( Radius < AlphaRadius )
+	  {
+	    // std::cout<<"  ACCEPTED!"<<std::endl;
+	    return true;
+	  }
+	else
+	  {
+	    // std::cout<<"  ERASED!"<<std::endl;
+	    return false;
+	  }
+      }
+
+
+    KRATOS_CATCH( "" )
+  }
+
+
+  //returns false if it should be removed
   bool ModelerUtilities::AlphaShape(double AlphaParameter, Geometry<Node<3> >& rGeometry, const unsigned int dimension)
   {
     KRATOS_TRY
@@ -1568,6 +1619,8 @@ namespace Kratos
 	  if( rMeshingVariables.NodalPreIds[direct] > rMeshingVariables.MaxNodeIdNumber)
 	    rMeshingVariables.MaxNodeIdNumber = rMeshingVariables.NodalPreIds[direct];
 	}
+	(nodes_begin + i)->Reset(INTERFACE); 
+	(nodes_begin + i)->Reset(FREE_SURFACE);
 
 	array_1d<double, 3>& Coordinates = (nodes_begin + i)->Coordinates();
 

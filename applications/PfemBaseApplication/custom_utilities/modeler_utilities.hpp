@@ -416,7 +416,7 @@ public:
       double   CriticalRadius;      //critical area   size
       double   CriticalSide;        //critical length size
 
-      
+      double   MeanVolume;      //critical area   size
       double   ReferenceThreshold;  //critical variable threshold value
       double   ReferenceError;      //critical error percentage
      
@@ -446,10 +446,46 @@ public:
 	Alpha = rAlpha;
       };
 
+      void ComputeAndSetMeanVolume(ModelPart& rModelPart)
+      {
+      	KRATOS_TRY
+	  MeanVolume=0;
+	double countNode=0;
+	
+	for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin() ; i_elem != rModelPart.ElementsEnd() ; i_elem++)
+	  {
+	    double volume=i_elem->GetGeometry().Volume();
+	    MeanVolume+=volume;
+	    countNode+=1.0;
+	  }
+
+
+	if(countNode!=0)
+	  MeanVolume/=countNode;
+
+
+      	KRATOS_CATCH(" ")
+
+      	  }
+
+
+      void SetMeanVolume( const double rMeanVolume )
+      {
+	MeanVolume = rMeanVolume;
+      };
+
       void SetCriticalRadius( const double rCriticalRadius )
       {
 	CriticalRadius = rCriticalRadius;
       };
+
+      void SetInitialRadius(const double rInitialRadius)
+      {
+      	KRATOS_TRY
+	  InitialRadius=rInitialRadius;
+      	KRATOS_CATCH(" ")
+
+      	  }
 
       void SetCriticalSide( const double rCriticalSide )
       {
@@ -523,6 +559,7 @@ public:
 	Alpha               = 0;
 	InitialRadius       = 0;
 	CriticalRadius      = 0;  
+	MeanVolume          = 0;  
 	CriticalSide        = 0;  
 	ReferenceThreshold  = 0;
 	ReferenceError      = 0;
@@ -840,6 +877,7 @@ public:
 
     //returns false if it should be removed
     bool AlphaShape         (double AlphaParameter, Geometry<Node<3> >& rGeometry, const unsigned int dimension);
+    bool AlphaShape         (double AlphaParameter, Geometry<Node<3> >& rGeometry, const unsigned int dimension, const double MeanMeshSize);
 
     //returns false if it should be removed
     bool ShrankAlphaShape   (double AlphaParameter, Geometry<Node<3> >& rGeometry, double& rOffsetFactor, const unsigned int dimension);
@@ -1193,6 +1231,7 @@ public:
 
     double CheckCriticalRadius (ModelPart& rModelPart, double rCriticalRadius, unsigned int MeshId);
 
+    double GetMeanRadius (ModelPart& rModelPart, double& rCriticalRadius, unsigned int MeshId = 0);
 
     //*******************************************************************************************
     //*******************************************************************************************
