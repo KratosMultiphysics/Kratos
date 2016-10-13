@@ -80,18 +80,19 @@ DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi #
 
 #G
 pp.CFD_DEM = DEM_parameters
+pp.CFD_DEM.recover_gradient_option = True
 pp.CFD_DEM.do_search_neighbours = False
 pp.CFD_DEM.faxen_terms_type = 0
 pp.CFD_DEM.material_acceleration_calculation_type = 1
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
-pp.CFD_DEM.basset_force_type = 0
+pp.CFD_DEM.basset_force_type = 1
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
-pp.CFD_DEM.basset_force_integration_type = 2
-pp.CFD_DEM.n_init_basset_steps = 0
+pp.CFD_DEM.basset_force_integration_type = 1
+pp.CFD_DEM.n_init_basset_steps = 2
 pp.CFD_DEM.time_steps_per_quadrature_step = 1
 pp.CFD_DEM.delta_time_quadrature = pp.CFD_DEM.time_steps_per_quadrature_step * pp.CFD_DEM.MaxTimeStep
-pp.CFD_DEM.quadrature_order = 2
+pp.CFD_DEM.quadrature_order = 1
 pp.CFD_DEM.time_window = 0.1
 pp.CFD_DEM.number_of_exponentials = 10
 pp.CFD_DEM.number_of_quadrature_steps_in_window = int(pp.CFD_DEM.time_window / pp.CFD_DEM.delta_time_quadrature)
@@ -100,6 +101,10 @@ pp.CFD_DEM.PostCationConcentration = False
 pp.CFD_DEM.do_impose_flow_from_field = True
 pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
 pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = True
+
+# Making the fluid step an exact multiple of the DEM step
+pp.Dt = int(pp.Dt / pp.CFD_DEM.MaxTimeStep) * pp.CFD_DEM.MaxTimeStep
+print(pp.Dt)
 #Z
 
 # NANO BEGIN
@@ -501,17 +506,17 @@ if DEM_parameters.coupling_level_type:
     elif spheres_model_part.NumberOfElements(0) == 0:
         DEM_parameters.meso_scale_length  = 1.0
 
-    projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, spheres_model_part, rigid_face_model_part, domain_size, pp)
     #G
     L = 0.1
     U = 0.3
     k = 2.72
-    omega = 0*math.pi
+    omega = math.pi
     flow_field = CellularFlowField(L , U , k, omega)
     space_time_set = SpaceTimeSet()
     field_utility = FieldUtility(space_time_set, flow_field,1000.0,1e-6)
-    projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, spheres_model_part, rigid_face_model_part, domain_size, pp, field_utility)
     #Z
+
+    projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, spheres_model_part, rigid_face_model_part, domain_size, pp, field_utility)
     projection_module.UpdateDatabase(h_min)
 
 # creating a custom functions calculator for the implementation of additional custom functions
@@ -722,13 +727,6 @@ for node in fluid_model_part.Nodes:
     number += 1 
 #Z
 
-N_steps = int(final_time / Dt_DEM) + 20
-
-if pp.CFD_DEM.basset_force_type > 0:
-    basset_force_tool.FillDaitcheVectors(N_steps, pp.CFD_DEM.quadrature_order, pp.CFD_DEM.time_steps_per_quadrature_step)
-if pp.CFD_DEM.basset_force_type >= 3 or pp.CFD_DEM.basset_force_type == 1:
-    basset_force_tool.FillHinsbergVectors(spheres_model_part, pp.CFD_DEM.number_of_exponentials, pp.CFD_DEM.number_of_quadrature_steps_in_window)
-
 import random
 from random import randint
 
@@ -763,10 +761,19 @@ for node in spheres_model_part.Nodes:
     node.SetSolutionStepValue(VELOCITY_OLD_X, vel[0])
     node.SetSolutionStepValue(VELOCITY_OLD_Y, vel[1])
     node.SetSolutionStepValue(VELOCITY_OLD_Z, vel[2])   
-    
-    
+    node.SetSolutionStepValue(SLIP_VELOCITY_X, vel[0])
+    node.SetSolutionStepValue(SLIP_VELOCITY_Y, vel[1])
+    node.SetSolutionStepValue(SLIP_VELOCITY_Z, vel[2])
+
 projection_module.ImposeFluidFlowOnParticles()
 post_utils.Writeresults(time)
+
+N_steps = int(final_time / Dt_DEM) + 20
+
+if pp.CFD_DEM.basset_force_type > 0:
+    basset_force_tool.FillDaitcheVectors(N_steps, pp.CFD_DEM.quadrature_order, pp.CFD_DEM.time_steps_per_quadrature_step)
+if pp.CFD_DEM.basset_force_type >= 3 or pp.CFD_DEM.basset_force_type == 1:
+    basset_force_tool.FillHinsbergVectors(spheres_model_part, pp.CFD_DEM.number_of_exponentials, pp.CFD_DEM.number_of_quadrature_steps_in_window)
 
 while (time <= final_time):
     time = time + Dt
@@ -925,7 +932,7 @@ while (time <= final_time):
 
         if not DEM_parameters.flow_in_porous_DEM_medium_option: # in porous flow particles remain static      
             solver.Solve()
-
+        
         # Walls movement:
         mesh_motion.MoveAllMeshes(rigid_face_model_part, time, Dt)
         mesh_motion.MoveAllMeshes(spheres_model_part, time, Dt)
