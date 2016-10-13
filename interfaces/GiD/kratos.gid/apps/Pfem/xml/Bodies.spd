@@ -10,7 +10,7 @@
         <dependencies node="../value" actualize="1" />
       </value>
       <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" v=""
-             values="" dict="[GetConstitutiveLaws]" state="[UpdateDictAndReturnState]">
+             values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]">
         <dependencies node="../value" actualize="1"/>
       </value>
       <dynamicnode command="injectElementInputs" args=""/>
