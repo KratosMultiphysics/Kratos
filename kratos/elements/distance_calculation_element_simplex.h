@@ -199,8 +199,6 @@ public:
                                       VectorType& rRightHandSideVector,
                                       ProcessInfo& rCurrentProcessInfo)
     {
-        //KRATOS_WATCH(this->Id())
-                
         const unsigned int number_of_points = TDim+1;
 
         boost::numeric::ublas::bounded_matrix<double, TDim+1, TDim > DN_DX;
@@ -216,6 +214,12 @@ public:
         double Area;
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
         
+        double h = 0.0;
+        if(TDim == 2)
+            h = sqrt(2.0*Area);
+        else
+            h = pow(6.0*Area, 0.333333333);
+        
         //get distances at the nodes
         array_1d<double, TDim+1 > distances;
         for(unsigned int i=0; i<number_of_points; i++)
@@ -224,6 +228,7 @@ public:
         }
 
         const unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
+    
         if(step == 1) //solve a poisson problem with a positive/negative heat source depending on the sign of the existing distance function
         {
             //compute distance on gauss point
@@ -275,7 +280,7 @@ public:
 
             //compute RHS ad grad N_i \cdot ( 1/norm_grad * grad - grad) 
             //and multiply everything by grad_norm
-            rRightHandSideVector = Area*(1.0 - grad_norm)* prod(DN_DX,grad);
+            noalias(rRightHandSideVector) = Area*(1.0 - grad_norm)* prod(DN_DX,grad);
             
                         
             //compute the LHS as an approximation of the tangent. 
@@ -289,8 +294,8 @@ public:
             //P2 = 1.0/(grad_norm + eps) * dot(DN_DX * outer(n,n) * DN_DX.transpose() )
             //unfortunately the numerical experiments tell that this in too unstable to be used unless a very 
             //good initial approximation is used
-//            noalias(rLeftHandSideMatrix) = (Area*(grad_norm - 1.0))*prod(DN_DX,trans(DN_DX) ); //RISKY!!
-            noalias(rLeftHandSideMatrix) = Area*std::max(grad_norm,1e-6)*prod( DN_DX,trans(DN_DX) );
+//            noalias(rLeftHandSideMatrix) = (Area*(grad_norm - 1.0))*rod(DN_DX,trans(DN_DX) ); //RISKY!!
+            noalias(rLeftHandSideMatrix) = Area*std::max(grad_norm,1e-2/h)*prod( DN_DX,trans(DN_DX) );
         }
         
         
@@ -303,14 +308,19 @@ public:
         }
         
         if(positives> 0  && negatives>0) //the element is cut by the interface
-        {         
+        {   
+            array_1d<double,3> x0; //point on the cut
+            
+            //****************************************************************
+            //here impose the constraint that the zero is mantained
+            //****************************************************************
             //compute a penalty factor by inspecting the diagonal of the LHS
             double penalty = 0.0;
             for(unsigned int i=0; i<TDim+1; i++)
             {
                 penalty = std::max( penalty, fabs( rLeftHandSideMatrix(i,i) ) );
             }
-            penalty *= 1e3; //1e6;
+            penalty *= 1e2; //1e6;
             
             //now loop over all the edges and 
             for(unsigned int i=0; i<TDim; i++)
@@ -326,15 +336,43 @@ public:
                         rLeftHandSideMatrix(i,j) += penalty*Ni*Nj;
                         rLeftHandSideMatrix(j,i) += penalty*Nj*Ni;
                         rLeftHandSideMatrix(j,j) += penalty*Nj*Nj;
+                        
+                        noalias(x0) = Ni*GetGeometry()[i].Coordinates() + Nj*GetGeometry()[j].Coordinates();
                     }
                 }
             }
+            /*
+            if(step == 2)
+            {*/
+                //****************************************************************
+                //here impose (more weakly) that exact distance are mantained
+                //****************************************************************
+                array_1d<double,TDim+1> dexact;
+                
+                //compute normal
+                array_1d<double,TDim> n = prod(trans(DN_DX),distances);
+                n /= (norm_2(n) + 1e-30);
+                
+                //find exact distances
+                for(unsigned int i=0; i<TDim; i++)
+                {
+                    array_1d<double,3> dx = GetGeometry()[i].Coordinates() - x0;
+                    dexact[i] = inner_prod(n, dx);
+                }
+                
+                //impose constraint
+                penalty *= 0.1;
+                for(unsigned int i=0; i<TDim; i++)
+                {
+                    rLeftHandSideMatrix(i,i) += penalty;
+                    rRightHandSideVector(i) += penalty*(dexact[i] - distances[i]);
+                }
+//             }
             
+             ImposeBCs(rLeftHandSideMatrix, rRightHandSideVector, distances);
         }
         
-//        KRATOS_WATCH(rLeftHandSideMatrix);
-//        KRATOS_WATCH(rRightHandSideVector);
-
+        
     }
 
 
@@ -355,6 +393,11 @@ public:
 
         for (unsigned int i = 0; i < number_of_nodes; i++)
             rResult[i] = GetGeometry()[i].GetDof(DISTANCE).EquationId();
+        
+        
+//         for (unsigned int i = 0; i < number_of_nodes; i++)
+//             std::cout << rResult[i] << " " ;
+//         std::cout << std::endl;
     }
 
     /// Returns a list of the element's Dofs
@@ -439,7 +482,17 @@ public:
         KRATOS_CATCH("");
     }
 
-
+    void Initialize()
+    {
+    }
+    
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                        ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_ERROR << "should not enter here" << std::endl;
+        if (rRightHandSideVector.size() != 0)
+	  rRightHandSideVector.resize(0, false);
+    }
     ///@}
     ///@name Inquiry
     ///@{
@@ -486,7 +539,112 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
+    void ImposeBCs(Matrix& lhs,
+                   Vector& rhs,
+                   const Vector& distances
+         )
+    {
+        Matrix positive_side_lhs = ZeroMatrix(lhs.size1(), lhs.size2());
+        Matrix negative_side_lhs = ZeroMatrix(lhs.size1(), lhs.size2());
+        Vector positive_side_rhs = ZeroVector(rhs.size());
+        Vector negative_side_rhs = ZeroVector(rhs.size());
 
+        CondenseLocally(lhs,rhs, distances,  1.0, positive_side_lhs, positive_side_rhs);
+        CondenseLocally(lhs,rhs, distances,  -1.0, negative_side_lhs, negative_side_rhs);
+        noalias(lhs) = positive_side_lhs + negative_side_lhs;
+        noalias(rhs) = positive_side_rhs + negative_side_rhs;
+    }
+    
+    // | A11 A12 | x1  =   b1
+    // | A21 A22 | x2  =   b2
+    //
+    //solving the second equation
+    //x2 = A22inv * (b2 - A21*x1)
+    //
+    //substitutiting into the first
+    //(A11 - A12*A22inv*A21)*x1 = b1 - A12*A22inv*b2
+    //
+    void CondenseLocally( const Matrix& A, 
+                          const Vector& b,
+                          const Vector& distances, 
+                          const double sign,
+                          Matrix& output,
+                          Vector& output_rhs
+        
+    )
+    {
+        //count outer nodes to be condensed
+        std::vector<unsigned int> inner_indices; 
+        inner_indices.reserve(TDim+1);
+        std::vector<unsigned int> outer_indices;
+        outer_indices.reserve(TDim+1);
+        for(unsigned int i=0; i<distances.size(); i++)
+        {
+            if(distances[i]*sign < 0.0)
+                outer_indices.push_back(i);
+            else
+                inner_indices.push_back(i);
+        }
+        
+        Matrix A11(inner_indices.size(),inner_indices.size(),0.0);
+        Matrix A12(inner_indices.size(),outer_indices.size(),0.0);
+        Matrix A21(outer_indices.size(),inner_indices.size(),0.0);
+        Matrix A22(outer_indices.size(),outer_indices.size(),0.0);
+        Vector b1(inner_indices.size());
+        Vector b2(outer_indices.size());
+        for(unsigned int i=0; i<inner_indices.size(); i++)
+        {
+            b1[i] = b[inner_indices[i]];
+            for(unsigned int j=0; j<inner_indices.size(); j++)
+            {
+                A11(i,j) = A(inner_indices[i], inner_indices[j]);
+                
+            }
+            for(unsigned int j=0; j<outer_indices.size(); j++)
+            {
+                A12(i,j) = A(inner_indices[i], outer_indices[j]);
+            }
+        }
+
+        for(unsigned int i=0; i<outer_indices.size(); i++)
+        {
+            b2[i] = b[outer_indices[i]];
+            for(unsigned int j=0; j<inner_indices.size(); j++)
+            {
+                A21(i,j) = A(outer_indices[i], inner_indices[j]);
+            }
+            for(unsigned int j=0; j<outer_indices.size(); j++)
+            {
+                A22(i,j) = A(outer_indices[i], outer_indices[j]);
+            }
+        }
+        
+        double detA22;
+        Matrix A22inv(outer_indices.size(), outer_indices.size());
+        MathUtils<double>::InvertMatrix(A22, A22inv, detA22); //here i should invert the matrix
+        if(detA22 < 1e-30)
+        {
+            KRATOS_ERROR << "impossible to inverte the local matrix for element " << this->Id() << " matrix is " << A22 << " distances are: " << distances << std::endl;
+        }
+        
+        //A11 -= A12*A22inv*A21;
+        Matrix tmp = prod(A22inv,A21);
+        noalias(A11) -= prod(A12,tmp);
+        
+        Vector btmp = prod(A22inv, b2);
+        noalias(b1) -= prod( A12,btmp);
+                
+        //assemble to output matrix
+        for(unsigned int i=0; i<inner_indices.size(); i++)
+        {
+            output_rhs(inner_indices[i]) = b1[i];
+            for(unsigned int j=0; j<inner_indices.size(); j++)
+            {
+                output(inner_indices[i], inner_indices[j]) = A11(i,j);
+            }
+        }
+        
+    }
 
     ///@}
     ///@name Protected Operations
