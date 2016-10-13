@@ -252,6 +252,45 @@ namespace Kratos {
            
             return;
         }
+        
+        if (rVariable == PARTICLE_ELASTIC_ENERGY) {
+            
+            double particle_elastic_energy = 0.0;
+            
+            for (unsigned int i=0; i<mListOfSphericParticles.size(); i++) {
+                particle_elastic_energy += mListOfSphericParticles[i]->GetElasticEnergy();
+            }
+            
+            Output = particle_elastic_energy;
+                      
+            return;
+        }
+
+        if (rVariable == PARTICLE_INELASTIC_FRICTIONAL_ENERGY) {
+            
+            double particle_frictional_energy = 0.0;
+            
+            for (unsigned int i=0; i<mListOfSphericParticles.size(); i++) {
+                particle_frictional_energy += mListOfSphericParticles[i]->GetInelasticFrictionalEnergy();
+            }
+            
+            Output = particle_frictional_energy;
+                      
+            return;
+        }
+        
+        if (rVariable == PARTICLE_INELASTIC_VISCODAMPING_ENERGY) {
+            
+            double particle_viscodamping_energy = 0.0;
+            
+            for (unsigned int i=0; i<mListOfSphericParticles.size(); i++) {
+                particle_viscodamping_energy += mListOfSphericParticles[i]->GetInelasticViscodampingEnergy();
+            }
+            
+            Output = particle_viscodamping_energy;
+                      
+            return;
+        }
 
         KRATOS_CATCH("")
 

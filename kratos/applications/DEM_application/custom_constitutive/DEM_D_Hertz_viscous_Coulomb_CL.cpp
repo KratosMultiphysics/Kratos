@@ -1,4 +1,4 @@
-//Authors: M.A. Celigueta and S. Latorre (CIMNE)
+// Authors: M.A. Celigueta and S. Latorre (CIMNE)
 // Date: October 2015
 
 #include "DEM_D_Hertz_viscous_Coulomb_CL.h"
@@ -16,13 +16,13 @@ namespace Kratos {
     void DEM_D_Hertz_viscous_Coulomb::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
         std::cout << "\nAssigning DEM_D_Hertz_viscous_Coulomb to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-    }   
-    
+    }
+
     std::string DEM_D_Hertz_viscous_Coulomb::GetTypeOfLaw() {
         std::string type_of_law = "Hertz";
         return type_of_law;
     }
-    
+
     ///////////////////////// 
     // DEM-DEM INTERACTION //
     /////////////////////////
@@ -87,8 +87,23 @@ namespace Kratos {
         double other_vel_module = sqrt(other_vel[0] * other_vel[0] + other_vel[1] * other_vel[1] + other_vel[2] * other_vel[2]);
         element1->GetGeometry()[0].FastGetSolutionStepValue(SPRAYED_MATERIAL) += 0.00001 * other_vel_module;
         */
+        double ActualTotalShearForce;
+        double MaximumAdmisibleShearForce;
+        
         CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
-                                              sliding, element1, element2, indentation, previous_indentation);
+                                              sliding, element1, element2, indentation, previous_indentation, ActualTotalShearForce, MaximumAdmisibleShearForce);
+        
+        double elastic_energy = element1->GetElasticEnergy();
+        CalculateElasticEnergyDEM(elastic_energy, indentation, LocalElasticContactForce);
+
+        if(sliding){
+            double& inelastic_frictional_energy = element1->GetInelasticFrictionalEnergy();
+            CalculateInelasticFrictionalEnergyDEM(inelastic_frictional_energy, ActualTotalShearForce, MaximumAdmisibleShearForce);
+        }
+        
+        double& inelastic_viscodamping_energy = element1->GetInelasticViscodampingEnergy();
+        CalculateInelasticViscodampingEnergyDEM(inelastic_viscodamping_energy, ViscoDampingLocalContactForce, LocalDeltDisp);
+        
     }
 
     void DEM_D_Hertz_viscous_Coulomb::CalculateViscoDampingForce(double LocalRelVel[3],
@@ -121,7 +136,7 @@ namespace Kratos {
         
         const double my_radius           = element->GetRadius(); //Get equivalent Radius
         const double effective_radius    = my_radius - ini_delta;
-        const double my_young            = element->GetYoung(); //Get equivalent Young's Modulus
+        const double my_young            = element->GetYoung();  //Get equivalent Young's Modulus
         const double walls_young         = wall->GetYoung();
         const double my_poisson          = element->GetPoisson();
         const double walls_poisson       = wall->GetPoisson();
@@ -160,7 +175,7 @@ namespace Kratos {
                                                              SphericParticle* const element,
                                                              DEMWall* const wall,
                                                              bool& sliding) {
-                
+
         InitializeContactWithFEM(element, wall, indentation);
         
         LocalElasticContactForce[2] = CalculateNormalForce(indentation);
@@ -175,8 +190,22 @@ namespace Kratos {
             ViscoDampingLocalContactForce[2] = -1.0 * LocalElasticContactForce[2];
         }
         
+        double ActualTotalShearForce;
+        double MaximumAdmisibleShearForce;
+        
         CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
-                                        sliding, element, wall, indentation, previous_indentation);
+                                        sliding, element, wall, indentation, previous_indentation, ActualTotalShearForce, MaximumAdmisibleShearForce);
+        
+        double& elastic_energy = element->GetElasticEnergy();
+        CalculateElasticEnergyFEM(elastic_energy, indentation, LocalElasticContactForce);//MSIMSI
+        
+        if(sliding){
+            double& inelastic_frictional_energy = element->GetInelasticFrictionalEnergy();
+            CalculateInelasticFrictionalEnergyFEM(inelastic_frictional_energy, ActualTotalShearForce, MaximumAdmisibleShearForce);
+        }
+        
+        double& inelastic_viscodamping_energy = element->GetInelasticViscodampingEnergy();
+        CalculateInelasticViscodampingEnergyFEM(inelastic_viscodamping_energy, ViscoDampingLocalContactForce, LocalDeltDisp);
     }
       
     template<class NeighbourClassType>
@@ -189,11 +218,13 @@ namespace Kratos {
                                                                             SphericParticle* const element,
                                                                             NeighbourClassType* const neighbour,
                                                                             double indentation,
-                                                                            double previous_indentation) {                       
+                                                                            double previous_indentation,
+                                                                            double& ActualTotalShearForce,
+                                                                            double& MaximumAdmisibleShearForce) {
                 
         if (previous_indentation < indentation) {
-                LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - mKt * LocalDeltDisp[0];
-                LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - mKt * LocalDeltDisp[1];
+            LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - mKt * LocalDeltDisp[0];
+            LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - mKt * LocalDeltDisp[1];
         }
         else {
             const double minoring_factor = sqrt (indentation / previous_indentation);
@@ -205,13 +236,13 @@ namespace Kratos {
         const double wall_tg_of_friction_angle  = neighbour->GetTgOfFrictionAngle();
         const double equiv_tg_of_fri_ang        = 0.5 * (my_tg_of_friction_angle + wall_tg_of_friction_angle);    
         
-        const double MaximumAdmisibleShearForce = normal_contact_force * equiv_tg_of_fri_ang;
+        MaximumAdmisibleShearForce = normal_contact_force * equiv_tg_of_fri_ang;
         
         const double tangential_contact_force_0 = LocalElasticContactForce[0] + ViscoDampingLocalContactForce[0];
         const double tangential_contact_force_1 = LocalElasticContactForce[1] + ViscoDampingLocalContactForce[1];
         
-        const double ActualTotalShearForce = sqrt(tangential_contact_force_0 * tangential_contact_force_0 + tangential_contact_force_1 * tangential_contact_force_1);
-                
+        ActualTotalShearForce = sqrt(tangential_contact_force_0 * tangential_contact_force_0 + tangential_contact_force_1 * tangential_contact_force_1);
+
         if (ActualTotalShearForce > MaximumAdmisibleShearForce) {
             
             const double ActualElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
@@ -280,6 +311,47 @@ namespace Kratos {
     
     double DEM_D_Hertz_viscous_Coulomb::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation){
         return 0.0;
+    }
+
+    //MSIMSI
+    void DEM_D_Hertz_viscous_Coulomb::CalculateElasticEnergyDEM(double& elastic_energy, double indentation, double LocalElasticContactForce[3])
+    {
+        double normal_elastic         = 0.20*LocalElasticContactForce[2]*indentation; //each ball in a contact with another ball receives half the contact energy
+        double tangential_elastic     = 0.25*(LocalElasticContactForce[0]*LocalElasticContactForce[0]+LocalElasticContactForce[1]*LocalElasticContactForce[1])/mKt; //each ball in a contact with another ball receives half the contact energy
+        elastic_energy += normal_elastic; 
+        elastic_energy += tangential_elastic;
+    }
+
+    void DEM_D_Hertz_viscous_Coulomb::CalculateInelasticFrictionalEnergyDEM(double& inelastic_frictional_energy, double& ActualTotalShearForce, double& MaximumAdmisibleShearForce)
+    {
+        double frictional_energy = 0.25*(ActualTotalShearForce*ActualTotalShearForce-MaximumAdmisibleShearForce*MaximumAdmisibleShearForce)/mKt;
+        inelastic_frictional_energy += frictional_energy; 
+    }
+    
+    void DEM_D_Hertz_viscous_Coulomb::CalculateInelasticViscodampingEnergyDEM(double& inelastic_viscodamping_energy, double ViscoDampingLocalContactForce[3], double LocalDeltDisp[3])
+    {
+        double viscodamping_energy = 0.5*sqrt(ViscoDampingLocalContactForce[0]*ViscoDampingLocalContactForce[0]*LocalDeltDisp[0]*LocalDeltDisp[0]+ViscoDampingLocalContactForce[1]*ViscoDampingLocalContactForce[1]*LocalDeltDisp[1]*LocalDeltDisp[1]+ViscoDampingLocalContactForce[2]*ViscoDampingLocalContactForce[2]*LocalDeltDisp[2]*LocalDeltDisp[2]);
+        inelastic_viscodamping_energy += viscodamping_energy; 
+    }
+    
+    void DEM_D_Hertz_viscous_Coulomb::CalculateElasticEnergyFEM(double& elastic_energy, double indentation, double LocalElasticContactForce[3])
+    {
+        double normal_elastic     = 0.40*LocalElasticContactForce[2]*indentation; //each ball in a contact with a wall receives all the contact energy
+        double tangential_elastic = 0.50*(LocalElasticContactForce[0]*LocalElasticContactForce[0]+LocalElasticContactForce[1]*LocalElasticContactForce[1])/mKt;
+        elastic_energy += normal_elastic; 
+        elastic_energy += tangential_elastic;
+    }
+    
+    void DEM_D_Hertz_viscous_Coulomb::CalculateInelasticFrictionalEnergyFEM(double& inelastic_frictional_energy, double& ActualTotalShearForce, double& MaximumAdmisibleShearForce)
+    {
+        double frictional_energy = 0.50*(ActualTotalShearForce*ActualTotalShearForce-MaximumAdmisibleShearForce*MaximumAdmisibleShearForce)/mKt;
+        inelastic_frictional_energy += frictional_energy; 
+    }
+    
+    void DEM_D_Hertz_viscous_Coulomb::CalculateInelasticViscodampingEnergyFEM(double& inelastic_viscodamping_energy, double ViscoDampingLocalContactForce[3], double LocalDeltDisp[3])
+    {
+        double viscodamping_energy = sqrt(ViscoDampingLocalContactForce[0]*ViscoDampingLocalContactForce[0]*LocalDeltDisp[0]*LocalDeltDisp[0]+ViscoDampingLocalContactForce[1]*ViscoDampingLocalContactForce[1]*LocalDeltDisp[1]*LocalDeltDisp[1]+ViscoDampingLocalContactForce[2]*ViscoDampingLocalContactForce[2]*LocalDeltDisp[2]*LocalDeltDisp[2]);
+        inelastic_viscodamping_energy += viscodamping_energy; 
     }
 
 } // namespace Kratos

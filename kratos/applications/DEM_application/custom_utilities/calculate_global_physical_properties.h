@@ -333,6 +333,81 @@ class SphericElementGlobalPhysicsCalculator
       
       //***************************************************************************************************************
       //***************************************************************************************************************
+      
+      double CalculateElasticEnergy(ModelPart& r_model_part)
+      {
+          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+
+          double elastic_energy = 0.0;
+          
+          #pragma omp parallel for reduction(+ : elastic_energy)
+          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+
+              for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
+                  double particle_elastic_energy = 0.0;
+                  
+                  (it)->Calculate(PARTICLE_ELASTIC_ENERGY, particle_elastic_energy, r_model_part.GetProcessInfo());
+                  
+                  elastic_energy += particle_elastic_energy;
+                  
+                }
+
+            }
+            
+          return elastic_energy;
+      }
+      
+      //***************************************************************************************************************
+      //***************************************************************************************************************
+      
+      double CalculateInelasticFrictionalEnergy(ModelPart& r_model_part)
+      {
+          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+
+          double frictional_energy = 0.0;
+          
+          #pragma omp parallel for reduction(+ : frictional_energy)
+          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+
+              for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
+                  double particle_frictional_energy = 0.0;
+                  
+                  (it)->Calculate(PARTICLE_INELASTIC_FRICTIONAL_ENERGY, particle_frictional_energy, r_model_part.GetProcessInfo());
+                  
+                  frictional_energy += particle_frictional_energy;
+                  
+                }
+
+            }
+            
+          return frictional_energy;
+      }
+      
+      double CalculateInelasticViscodampingEnergy(ModelPart& r_model_part)
+      {
+          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+
+          double viscodamping_energy = 0.0;
+          
+          #pragma omp parallel for reduction(+ : viscodamping_energy)
+          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+
+              for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
+                  double particle_viscodamping_energy = 0.0;
+                  
+                  (it)->Calculate(PARTICLE_INELASTIC_VISCODAMPING_ENERGY, particle_viscodamping_energy, r_model_part.GetProcessInfo());
+                  
+                  viscodamping_energy += particle_viscodamping_energy;
+                  
+                }
+
+            }
+            
+          return viscodamping_energy;
+      }
+      
+      //***************************************************************************************************************
+      //***************************************************************************************************************
 
       array_1d<double, 3> CalculateTotalMomentum(ModelPart& r_model_part)
       {

@@ -2,12 +2,10 @@
 //   Date: July 2015
 
 #if !defined(DEM_D_LINEAR_VISCOUS_COULOMB_CL_H_INCLUDED)
-#define  DEM_D_LINEAR_VISCOUS_COULOMB_CL_H_INCLUDED
+#define DEM_D_LINEAR_VISCOUS_COULOMB_CL_H_INCLUDED
 
 #include <string>
 #include <iostream>
-
-//#include "DEM_application.h"
 #include "DEM_discontinuum_constitutive_law.h"
 
 namespace Kratos {
@@ -15,11 +13,14 @@ namespace Kratos {
     class SphericParticle;
 
     class DEM_D_Linear_viscous_Coulomb : public DEMDiscontinuumConstitutiveLaw {
+
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Linear_viscous_Coulomb);
 
         DEM_D_Linear_viscous_Coulomb() {}
+
+        ~DEM_D_Linear_viscous_Coulomb() {}
 
         void Initialize(const ProcessInfo& r_process_info);
 
@@ -27,11 +28,10 @@ namespace Kratos {
         
         std::string GetTypeOfLaw();
 
-        ~DEM_D_Linear_viscous_Coulomb() {}
-
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;
 
         void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation);  
+        
         void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta = 0.0);
 
         void CalculateForces(const ProcessInfo& r_process_info,
@@ -80,7 +80,9 @@ namespace Kratos {
                                                    SphericParticle* const element,
                                                    NeighbourClassType* const neighbour,
                                                    double indentation,
-                                                   double previous_indentation);
+                                                   double previous_indentation,
+                                                   double& ActualTotalShearForce, 
+                                                   double& MaximumAdmisibleShearForce);
 
         void CalculateViscoDampingForce(double LocalRelVel[3],
                                         double ViscoDampingLocalContactForce[3],
@@ -91,10 +93,35 @@ namespace Kratos {
                                         double ViscoDampingLocalContactForce[3],
                                         SphericParticle* const element,
                                         DEMWall* const wall);
-    private:
         
-        friend class Serializer;
+        void CalculateElasticEnergyDEM(double& elastic_energy,
+                                       double indentation,
+                                       double LocalElasticContactForce[3]);
 
+        void CalculateInelasticFrictionalEnergyDEM(double& inelastic_frictional_energy,
+                                                   double& ActualTotalShearForce,
+                                                   double& MaximumAdmisibleShearForce);
+        
+        void CalculateInelasticViscodampingEnergyDEM(double& inelastic_viscodamping_energy,
+                                                     double ViscoDampingLocalContactForce[3],
+                                                     double LocalDeltDisp[3]);
+        
+        void CalculateElasticEnergyFEM(double& elastic_energy,
+                                       double indentation,
+                                       double LocalElasticContactForce[3]);
+
+        void CalculateInelasticFrictionalEnergyFEM(double& inelastic_frictional_energy,
+                                                   double& ActualTotalShearForce,
+                                                   double& MaximumAdmisibleShearForce);
+        
+        void CalculateInelasticViscodampingEnergyFEM(double& inelastic_viscodamping_energy,
+                                                     double ViscoDampingLocalContactForce[3],
+                                                     double LocalDeltDisp[3]);
+                            
+    private:
+
+        friend class Serializer;
+        
         virtual void save(Serializer& rSerializer) const {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEMDiscontinuumConstitutiveLaw)
                     //rSerializer.save("MyMemberName",myMember);
@@ -104,7 +131,8 @@ namespace Kratos {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMDiscontinuumConstitutiveLaw)
                     //rSerializer.load("MyMemberName",myMember);
         }
-    }; //class DEM_D_Hertz_viscous_Linear
+
+    }; //class DEM_D_Linear_viscous_Coulomb
 
 } /* namespace Kratos.*/
 #endif /* DEM_D_LINEAR_VISCOUS_COULOMB_CL_H_INCLUDED  defined */
