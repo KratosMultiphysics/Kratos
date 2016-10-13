@@ -142,7 +142,7 @@ class ModelerUtility:
         mesh_id = 0
 
         # define building utility
-        skin_build = KratosPfemFluid.BuildMeshBoundaryForFluids(self.model_part, self.domain_size, self.echo_level, mesh_id)
+        skin_build = KratosPfemFluid.BuildMeshBoundaryForFluids(self.model_part, self.echo_level, mesh_id)
  
         # execute building:
         skin_build.Execute()
@@ -165,11 +165,17 @@ class ModelerUtility:
             print("::[Modeler_Utility]:: Nodal H Search executed ")
 
         #
-    def CheckInitialRadius(self):
+    def ComputeAverageMeshParameters(self):
      
         mesh_id = 0
         for domain in self.meshing_domains:
-            domain.CheckInitialRadius()       
+            domain.ComputeAverageMeshParameters()       
+#
+    def ComputeInitialAverageMeshParameters(self):
+     
+        mesh_id = 0
+        for domain in self.meshing_domains:
+            domain.ComputeInitialAverageMeshParameters()       
 #
 
     def BuildMeshModelersNEW(self, meshing_domains ):
@@ -300,7 +306,6 @@ class ModelerUtility:
             self.RefiningParameters.SetCriticalRadius(critical_mesh_size)                       
             self.RefiningParameters.SetCriticalSide(critical_mesh_side)
 
-            #critical_radius=self.modeler_utils.ComputeInitialMeanRadius(self.model_part)                       
 
             # set mesh refinement in box
             box_refinement_only = parameters["RefineOnBoxOnly"]
@@ -419,7 +424,13 @@ class ModelerUtility:
                 print("::[Modeler_Utility]:: MESH DOMAIN...", self.counter)
 
             meshing_options = KratosMultiphysics.Flags()
-            self.model_meshing =  KratosPfemBase.ModelMeshing(self.model_part, meshing_options, self.echo_level)
+            self.modeler_utils = KratosPfemBase.ModelerUtilities()
+
+
+            meshing_options.Set(self.modeler_utils.KEEP_ISOLATED_NODES, True)
+
+            #self.model_meshing =  KratosPfemBase.ModelMeshing(self.model_part, meshing_options, self.echo_level)
+            self.model_meshing =  KratosPfemFluid.ModelMeshingForFluids(self.model_part, meshing_options, self.echo_level)
 
             self.model_meshing.ExecuteInitialize()
          
@@ -450,7 +461,9 @@ class ModelerUtility:
             #meshing_options = Flags()
             meshing_options = KratosMultiphysics.Flags()
 
-            self.model_meshing = ModelMeshing(self.model_part, meshing_options, self.echo_level)
+            #self.model_meshing = ModelMeshing(self.model_part, meshing_options, self.echo_level)
+            self.model_meshing = KratosPfemFluid.ModelMeshingForFluids(self.model_part, meshing_options, self.echo_level)
+
             ##self.model_meshing = ModelMeshingForFluids(self.model_part, meshing_options, self.echo_level)
 
             self.model_meshing.ExecuteInitialize()

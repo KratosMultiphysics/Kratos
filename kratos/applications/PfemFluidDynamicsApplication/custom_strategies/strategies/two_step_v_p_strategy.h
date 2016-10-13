@@ -143,6 +143,7 @@ public:
         KRATOS_TRY;
 
         BaseType::SetEchoLevel(1);
+	std::cout<<"TwoStepVPStrategy TwoStepVPStrategY TwoStepVPStrategy TwoStepVPStrategy"<<std::endl;
 
         // Check that input parameters are reasonable and sufficient.
         this->Check();
@@ -282,16 +283,30 @@ public:
 	  std::cout<<"predictor-corrector strategy"<<std::endl;
 
 	  bool Converged = false;
-
+	  boost::timer solve_step_time;
 	  // Iterative solution for pressure
 	  for(unsigned int it = 0; it < mMaxPressureIter; ++it)
             {
 	      if ( BaseType::GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)
 		std::cout << "----- > iteration: " << it << std::endl;
+	      boost::timer solve_iteration_time;
+	      if(it==0){
+		std::cout << "FIRST SOLVE  " << it << std::endl;
+		NormDp = this->FirstIterationSolution();
+		std::cout << "solve_interation_time : " << solve_iteration_time.elapsed() << std::endl; 
+		Converged = this->CheckPressureConvergence(NormDp);
+	      }else if(it==(mMaxPressureIter-1)){
+		std::cout << "LAST SOLVE  " << it << std::endl;
+		NormDp = this->LastIterationSolution();
+		std::cout << "solve_interation_time : " << solve_iteration_time.elapsed() << std::endl; 
+		Converged = this->CheckAndMonitorPressureConvergence(NormDp);
+	      }else{
+		std::cout << "SOLVE THE ITERATION NUMBER  " << it << std::endl;
+		NormDp = this->SolveStep();
+		std::cout << "solve_interation_time : " << solve_iteration_time.elapsed() << std::endl; 
+		Converged = this->CheckPressureConvergence(NormDp);
+	      }
 
-	      NormDp = this->SolveStep();
-
-	      Converged = this->CheckPressureConvergence(NormDp);
 
 	      if ( Converged && it>2)
                 {
@@ -302,6 +317,9 @@ public:
             }
 	  if (!Converged && BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
 	    std::cout << "Predictor-corrector iterations did not converge." << std::endl;
+
+	  std::cout << "solve_step_time : " << solve_step_time.elapsed() << std::endl;
+
 
         }
       else
@@ -716,14 +734,6 @@ protected:
 
 	  std::cout<<"-------- m o m e n t u m   e q u a t i o n s ----------"<<std::endl;
 	  NormDv = mpMomentumStrategy->Solve();
-	  //            // Compute projections (for stabilization)
-	  //            rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,4);
-	  //            this->ComputeSplitOssProjections(rModelPart);
-
-	  //            // Additional steps // Moved to end of step
-	  //            for (std::vector<Process::Pointer>::iterator iExtraSteps = mExtraIterationSteps.begin();
-	  //                 iExtraSteps != mExtraIterationSteps.end(); ++iExtraSteps)
-	  //                (*iExtraSteps)->Execute();
 	  std::cout<<"-------------- s o l v e d ! ------------------"<<std::endl;
 
 	  // Check convergence
@@ -744,9 +754,9 @@ protected:
       if (!Converged && BaseType::GetEchoLevel() > 0 && Rank == 0)
 	std::cout << "Fractional velocity iterations did not converge." << std::endl;
 
-      // Compute projections (for stabilization)
-      rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,4);
-      this->ComputeSplitOssProjections(rModelPart);
+      /* // Compute projections (for stabilization) */
+      /* rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,4); */
+      /* this->ComputeSplitOssProjections(rModelPart); */
 
       // 2. Pressure solution (store pressure variation in PRESSURE_OLD_IT)
       rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,5);
@@ -808,6 +818,280 @@ protected:
       return NormDp;
     }
 
+
+
+    double LastIterationSolution()
+    {
+      ModelPart& rModelPart = BaseType::GetModelPart();
+
+      // 1. Fractional step momentum iteration
+      rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
+
+      bool Converged = false;
+      int Rank = rModelPart.GetCommunicator().MyPID();
+      double NormDv = 0;
+      for(unsigned int it = 0; it < mMaxVelocityIter; ++it)
+	{
+	  if ( BaseType::GetEchoLevel() > 1 && Rank == 0)
+	    std::cout << "Momentum iteration " << it << std::endl;
+
+	  // build momentum system and solve for fractional step velocity increment
+	  rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
+
+/* #pragma omp parallel */
+/* 	  { */
+/*             ModelPart::ElementIterator ElemBegin; */
+/*             ModelPart::ElementIterator ElemEnd; */
+/*             OpenMPUtils::PartitionedIterators(rModelPart.Elements(),ElemBegin,ElemEnd); */
+/* 	    int count=0; */
+/*             for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem ) */
+/* 	      { */
+/* 		count++; */
+/* 	      } */
+/* 	    std::cout << "          number of elements " <<count<<std::endl; */
+/* 	  } */
+
+
+
+#pragma omp parallel
+	  {
+	    ModelPart::NodeIterator NodesBegin;
+	    ModelPart::NodeIterator NodesEnd;
+	    OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
+
+	    for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
+	      {
+
+		if(itNode->Is(ISOLATED)){
+		  /* // Initialize BDF2 coefficients */
+		  /* ProcessInfo rCurrentProcessInfo=rModelPart.GetProcessInfo(); */
+		  itNode->FastGetSolutionStepValue(PRESSURE) = 0.0;
+		  itNode->FastGetSolutionStepValue(ACCELERATION_Y,0) = -9.81;
+		  itNode->FastGetSolutionStepValue(ACCELERATION_Y,1) = -9.81;
+		  itNode->FastGetSolutionStepValue(ACCELERATION_X,0) = 0;
+		  itNode->FastGetSolutionStepValue(ACCELERATION_X,1) = 0;
+		  /* std::cout<<" .............two_step VP strategy ISOLATED NODE !!! "<<itNode->Id()<<std::endl; */
+		}
+	      }
+	  }
+
+	  std::cout<<"-------- m o m e n t u m   e q u a t i o n s ----------"<<std::endl;
+	  NormDv = mpMomentumStrategy->Solve();
+	  std::cout<<"-------------- s o l v e d ! ------------------"<<std::endl;
+
+	  // Check convergence
+	  Converged = this->CheckAndMonitorFractionalStepConvergence(NormDv);
+	  /* Converged =false; */
+	  /* if(it==0){ */
+	  /*   Converged =true; */
+	  /* } */
+	  if (Converged)
+	    {
+	      /* if ( BaseType::GetEchoLevel() > 0 && Rank == 0){ */
+	      /* 	std::cout << "Fract  ional velocity converged in " << it+1 << " iterations." << std::endl; */
+	      /* } */
+	      break;
+	    }
+	}
+
+      if (!Converged && BaseType::GetEchoLevel() > 0 && Rank == 0)
+	std::cout << "Fractional velocity iterations did not converge." << std::endl;
+
+      /* // Compute projections (for stabilization) */
+      /* rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,4); */
+      /* this->ComputeSplitOssProjections(rModelPart); */
+
+      // 2. Pressure solution (store pressure variation in PRESSURE_OLD_IT)
+      rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,5);
+
+
+#pragma omp parallel
+      {
+	ModelPart::NodeIterator NodesBegin;
+	ModelPart::NodeIterator NodesEnd;
+	OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
+
+	for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
+	  {
+	    const double OldPress = itNode->FastGetSolutionStepValue(PRESSURE);
+	    itNode->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -OldPress;
+	  }
+      }
+
+      std::cout<<"-------- c o n t i n u i t y   e q u a t i o n ----------"<<std::endl;
+      if (BaseType::GetEchoLevel() > 0 && Rank == 0){
+	/* std::cout << "Calcula ting Pressure." << std::endl; */
+      }
+      /* this->CalculateDisplacements(); */
+
+      double NormDp = mpPressureStrategy->Solve();
+      std::cout << "The norm of pressure is: " << NormDp << std::endl;
+
+#pragma omp parallel
+      {
+	ModelPart::NodeIterator NodesBegin;
+	ModelPart::NodeIterator NodesEnd;
+	OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
+
+	for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode){
+	  itNode->FastGetSolutionStepValue(PRESSURE_OLD_IT) += itNode->FastGetSolutionStepValue(PRESSURE);
+	}
+      }
+
+
+
+      // 3. Compute end-of-step velocity
+      /* if (BaseType::GetEchoLevel() > 0 && Rank == 0){ */
+      /* 	/\* std::cout << "Upd ating Velocity." << std::endl; *\/ */
+      /* } */
+     
+      /* rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,6); */
+
+      /* this->CalculateEndOfStepVelocity(); */
+      
+        /* mpPressureStrategy->Clear(); */
+        /* double NormDu = mpPressureStrategy->Solve(); */
+        /* mpPressureStrategy->Clear() */;
+
+      // Additional steps
+      for (std::vector<Process::Pointer>::iterator iExtraSteps = mExtraIterationSteps.begin();
+	   iExtraSteps != mExtraIterationSteps.end(); ++iExtraSteps)
+	(*iExtraSteps)->Execute();
+
+      return NormDp;
+    }
+
+
+
+    double FirstIterationSolution()
+    {
+
+      std::cout<<"-------- -------- FirstIterationSolution() -------- ----------"<<std::endl;
+
+      ModelPart& rModelPart = BaseType::GetModelPart();
+
+      // 1. Fractional step momentum iteration
+      rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
+
+      bool Converged = false;
+      int Rank = rModelPart.GetCommunicator().MyPID();
+      double NormDv = 0;
+      for(unsigned int it = 0; it < mMaxVelocityIter; ++it)
+	{
+	  if ( BaseType::GetEchoLevel() > 1 && Rank == 0)
+	    std::cout << "Momentum iteration " << it << std::endl;
+
+	  // build momentum system and solve for fractional step velocity increment
+	  rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
+
+#pragma omp parallel
+	  {
+	    ModelPart::NodeIterator NodesBegin;
+	    ModelPart::NodeIterator NodesEnd;
+	    OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
+
+	    for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
+	      {
+
+		if(itNode->Is(ISOLATED)){
+		  /* // Initialize BDF2 coefficients */
+		  /* ProcessInfo rCurrentProcessInfo=rModelPart.GetProcessInfo(); */
+		  itNode->FastGetSolutionStepValue(PRESSURE) = 0.0;
+		  itNode->FastGetSolutionStepValue(ACCELERATION_Y,0) = -9.81;
+		  itNode->FastGetSolutionStepValue(ACCELERATION_Y,1) = -9.81;
+		  itNode->FastGetSolutionStepValue(ACCELERATION_X,0) = 0;
+		  itNode->FastGetSolutionStepValue(ACCELERATION_X,1) = 0;
+		  itNode->FastGetSolutionStepValue(ACCELERATION_Z,0) = 0;
+		  itNode->FastGetSolutionStepValue(ACCELERATION_Z,1) = 0;
+		  /* std::cout<<" .............two_step VP strategy ISOLATED NODE !!! "<<itNode->Id()<<std::endl; */
+		}
+	      }
+	  }
+#pragma omp parallel
+        {
+            ModelPart::ElementIterator ElemBegin;
+            ModelPart::ElementIterator ElemEnd;
+            OpenMPUtils::PartitionedIterators(rModelPart.Elements(),ElemBegin,ElemEnd);
+
+            for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
+	      {
+		double ElementalVolume =  (itElem)->GetGeometry().Volume();
+		/* double CriticalVolume=0.001*mrRemesh.Refine->MeanVolume; */
+		double CriticalVolume=0;
+		if(ElementalVolume<CriticalVolume){
+		  (itElem)->Reset(ACTIVE);
+		  std::cout<<"RESET ACTIVE FOR THIS SLIVER! \t";
+		  std::cout<<"its volume is "<<ElementalVolume<<" vs CriticalVolume "<<CriticalVolume<<std::endl;
+		}else{
+		  (itElem)->Set(ACTIVE);
+		}
+	      }
+	}
+        
+
+	  std::cout<<"-------- m o m e n t u m   e q u a t i o n s ----------"<<std::endl;
+	  mpMomentumStrategy->InitializeSolutionStep(); 
+	  std::cout<<"-------------- s o l v e d ! ------------------"<<std::endl;
+
+	  // Check convergence
+	  Converged = this->CheckFractionalStepConvergence(NormDv);
+
+	  if (Converged)
+	    {
+	      break;
+	    }
+	}
+
+      if (!Converged && BaseType::GetEchoLevel() > 0 && Rank == 0)
+	std::cout << "Fractional velocity iterations did not converge." << std::endl;
+
+      /* // Compute projections (for stabilization) */
+      /* rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,4); */
+      /* this->ComputeSplitOssProjections(rModelPart); */
+
+      // 2. Pressure solution (store pressure variation in PRESSURE_OLD_IT)
+      rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,5);
+
+
+#pragma omp parallel
+      {
+	ModelPart::NodeIterator NodesBegin;
+	ModelPart::NodeIterator NodesEnd;
+	OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
+
+	for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
+	  {
+	    const double OldPress = itNode->FastGetSolutionStepValue(PRESSURE);
+	    itNode->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -OldPress;
+	  }
+      }
+
+      std::cout<<"-------- c o n t i n u i t y   e q u a t i o n ----------"<<std::endl;
+    
+      double NormDp = 0;
+      mpPressureStrategy->InitializeSolutionStep();
+      std::cout << "The norm of pressure is: " << NormDp << std::endl;
+
+#pragma omp parallel
+      {
+	ModelPart::NodeIterator NodesBegin;
+	ModelPart::NodeIterator NodesEnd;
+	OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
+
+	for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode){
+	  itNode->FastGetSolutionStepValue(PRESSURE_OLD_IT) += itNode->FastGetSolutionStepValue(PRESSURE);
+	}
+      }
+
+      // Additional steps
+      for (std::vector<Process::Pointer>::iterator iExtraSteps = mExtraIterationSteps.begin();
+	   iExtraSteps != mExtraIterationSteps.end(); ++iExtraSteps)
+	(*iExtraSteps)->Execute();
+
+      return NormDp;
+    }
+
+  
     bool CheckFractionalStepConvergence(const double NormDv)
     {
         ModelPart& rModelPart = BaseType::GetModelPart();
@@ -852,6 +1136,70 @@ protected:
             return false;
     }
 
+
+
+
+    bool CheckAndMonitorFractionalStepConvergence(const double NormDv)
+    {
+        ModelPart& rModelPart = BaseType::GetModelPart();
+
+        double NormV = 0.00;
+
+#pragma omp parallel reduction(+:NormV)
+        {
+            ModelPart::NodeIterator NodeBegin;
+            ModelPart::NodeIterator NodeEnd;
+            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodeBegin,NodeEnd);
+
+            for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
+            {
+                const array_1d<double,3> &Vel = itNode->FastGetSolutionStepValue(VELOCITY);
+
+                for (unsigned int d = 0; d < 3; ++d)
+                    NormV += Vel[d] * Vel[d];
+            }
+        }
+
+        BaseType::GetModelPart().GetCommunicator().SumAll(NormV);
+
+        NormV = sqrt(NormV);
+
+        if (NormV == 0.0) NormV = 1.00;
+
+	std::cout << "The norm of velocity increment is: " << NormDv << std::endl;
+	std::cout << "The norm of velocity is: " << NormV << std::endl;
+
+        double Ratio = NormDv / NormV;
+
+        if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0){
+	  std::cout << "Fractional velocity relative error: " << Ratio << "mVelocityTolerance: " << mVelocityTolerance<< std::endl;
+	}
+	if(Ratio>0.05){
+	  std::cout << "BAD CONVERGENCE!!!!! I GO AHEAD WITH THE PREVIOUS VELOCITY AND PRESSURE FIELDS"<< std::endl;
+#pragma omp parallel reduction(+:NormV)
+	  {
+            ModelPart::NodeIterator NodeBegin;
+            ModelPart::NodeIterator NodeEnd;
+            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodeBegin,NodeEnd);
+
+            for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
+	      {
+                itNode->FastGetSolutionStepValue(VELOCITY,0)=itNode->FastGetSolutionStepValue(VELOCITY,1);
+                itNode->FastGetSolutionStepValue(PRESSURE,0)=itNode->FastGetSolutionStepValue(PRESSURE,1);
+	      }
+	  }
+	}
+	
+        if (Ratio < mVelocityTolerance)
+        {
+            return true;
+        }
+        else
+            return false;
+    }
+
+
+
     bool CheckPressureConvergence(const double NormDp)
     {
         ModelPart& rModelPart = BaseType::GetModelPart();
@@ -891,62 +1239,119 @@ protected:
     }
 
 
-    void ComputeSplitOssProjections(ModelPart& rModelPart)
+
+    bool CheckAndMonitorPressureConvergence(const double NormDp)
     {
-        const array_1d<double,3> Zero(3,0.0);
+        ModelPart& rModelPart = BaseType::GetModelPart();
 
-        array_1d<double,3> Out(3,0.0);
+        double NormP = 0.00;
 
-#pragma omp parallel
+#pragma omp parallel reduction(+:NormP)
         {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
+            ModelPart::NodeIterator NodeBegin;
+            ModelPart::NodeIterator NodeEnd;
+            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodeBegin,NodeEnd);
 
-            for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
+            for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
             {
-                itNode->FastGetSolutionStepValue(CONV_PROJ) = Zero;
-                itNode->FastGetSolutionStepValue(PRESS_PROJ) = Zero;
-                itNode->FastGetSolutionStepValue(DIVPROJ) = 0.0;
-                itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
+                const double Pr = itNode->FastGetSolutionStepValue(PRESSURE);
+                NormP += Pr * Pr;
             }
         }
 
-#pragma omp parallel
+        BaseType::GetModelPart().GetCommunicator().SumAll(NormP);
+
+        NormP = sqrt(NormP);
+
+        if (NormP == 0.0) NormP = 1.00;
+
+        double Ratio = NormDp / NormP;
+
+        if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
+            std::cout << "Pressure relative error: " << Ratio << std::endl;
+
+	if(Ratio>0.05){
+	  std::cout << "BAD CONVERGENCE!!!!! I GO AHEAD WITH THE PREVIOUS PRESSURE AND VELOCITY FIELDS"<< std::endl;
+#pragma omp parallel reduction(+:NormP)
+	  {
+            ModelPart::NodeIterator NodeBegin;
+            ModelPart::NodeIterator NodeEnd;
+            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodeBegin,NodeEnd);
+
+            for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
+	      {
+                itNode->FastGetSolutionStepValue(VELOCITY,0)=itNode->FastGetSolutionStepValue(VELOCITY,1);
+                itNode->FastGetSolutionStepValue(PRESSURE,0)=itNode->FastGetSolutionStepValue(PRESSURE,1);
+	      }
+	  }
+	}
+
+        if (Ratio < mPressureTolerance)
         {
-            ModelPart::ElementIterator ElemBegin;
-            ModelPart::ElementIterator ElemEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Elements(),ElemBegin,ElemEnd);
-
-            for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
-            {
-                itElem->Calculate(CONV_PROJ,Out,rModelPart.GetProcessInfo());
-            }
+            return true;
         }
-
-        rModelPart.GetCommunicator().AssembleCurrentData(CONV_PROJ);
-        rModelPart.GetCommunicator().AssembleCurrentData(PRESS_PROJ);
-        rModelPart.GetCommunicator().AssembleCurrentData(DIVPROJ);
-        rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
-
-        // If there are periodic conditions, add contributions from both sides to the periodic nodes
-        this->PeriodicConditionProjectionCorrection(rModelPart);
-
-#pragma omp parallel
-        {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-            for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
-            {
-                const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                itNode->FastGetSolutionStepValue(CONV_PROJ) /= NodalArea;
-                itNode->FastGetSolutionStepValue(PRESS_PROJ) /= NodalArea;
-                itNode->FastGetSolutionStepValue(DIVPROJ) /= NodalArea;
-            }
-        }
+        else
+            return false;
     }
+
+
+
+/*     void ComputeSplitOssProjections(ModelPart& rModelPart) */
+/*     { */
+/*         const array_1d<double,3> Zero(3,0.0); */
+
+/*         array_1d<double,3> Out(3,0.0); */
+
+/* #pragma omp parallel */
+/*         { */
+/*             ModelPart::NodeIterator NodesBegin; */
+/*             ModelPart::NodeIterator NodesEnd; */
+/*             OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd); */
+
+/*             for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode ) */
+/*             { */
+/*                 itNode->FastGetSolutionStepValue(CONV_PROJ) = Zero; */
+/*                 itNode->FastGetSolutionStepValue(PRESS_PROJ) = Zero; */
+/*                 itNode->FastGetSolutionStepValue(DIVPROJ) = 0.0; */
+/*                 itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0; */
+/*             } */
+/*         } */
+
+/* #pragma omp parallel */
+/*         { */
+/*             ModelPart::ElementIterator ElemBegin; */
+/*             ModelPart::ElementIterator ElemEnd; */
+/*             OpenMPUtils::PartitionedIterators(rModelPart.Elements(),ElemBegin,ElemEnd); */
+
+/*             for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem ) */
+/*             { */
+/*                 itElem->Calculate(CONV_PROJ,Out,rModelPart.GetProcessInfo()); */
+/*             } */
+/*         } */
+
+/*         rModelPart.GetCommunicator().AssembleCurrentData(CONV_PROJ); */
+/*         rModelPart.GetCommunicator().AssembleCurrentData(PRESS_PROJ); */
+/*         rModelPart.GetCommunicator().AssembleCurrentData(DIVPROJ); */
+/*         rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA); */
+
+/*         // If there are periodic conditions, add contributions from both sides to the periodic nodes */
+/*         this->PeriodicConditionProjectionCorrection(rModelPart); */
+
+/* #pragma omp parallel */
+/*         { */
+/*             ModelPart::NodeIterator NodesBegin; */
+/*             ModelPart::NodeIterator NodesEnd; */
+/*             OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd); */
+
+/*             for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode ) */
+/*             { */
+/*                 const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA); */
+/*                 itNode->FastGetSolutionStepValue(CONV_PROJ) /= NodalArea; */
+/*                 itNode->FastGetSolutionStepValue(PRESS_PROJ) /= NodalArea; */
+/*                 itNode->FastGetSolutionStepValue(DIVPROJ) /= NodalArea; */
+/*             } */
+/*         } */
+/*     } */
 
     void CalculateEndOfStepVelocity()
     {

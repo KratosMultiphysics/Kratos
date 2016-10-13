@@ -18,7 +18,7 @@
 
 namespace Kratos {
 
-  /*
+  /* 
    * public TwoStepUpdatedLagrangianVPFluidElement<TDim> functions
    */
 
@@ -29,14 +29,6 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
   // return p_clone;
 
   TwoStepUpdatedLagrangianVPFluidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
-
-  if ( NewElement.mOldFgrad.size() != this->mOldFgrad.size() )
-    NewElement.mOldFgrad.resize(this->mOldFgrad.size());
-
-  for(unsigned int i=0; i<this->mOldFgrad.size(); i++)
-    {
-      NewElement.mOldFgrad[i] = this->mOldFgrad[i];
-    }
 
 
   if ( NewElement.mCurrentTotalCauchyStress.size() != this->mCurrentTotalCauchyStress.size() )
@@ -89,11 +81,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
     // LargeDisplacementElement::Initialize();
     const GeometryType& rGeom = this->GetGeometry();
     SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
-    const unsigned int dimension       = rGeom.WorkingSpaceDimension();
- 
-    //Resize historic deformation gradient
-    if ( this->mOldFgrad.size() != integration_points_number )
-      this->mOldFgrad.resize( integration_points_number ); 
+    // const unsigned int dimension       = rGeom.WorkingSpaceDimension();
 
     if ( this->mCurrentTotalCauchyStress.size() != integration_points_number )
       this->mCurrentTotalCauchyStress.resize( integration_points_number );
@@ -114,7 +102,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
       }
     for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
       {
-        this->mOldFgrad[PointNumber] = identity_matrix<double> (dimension);
+        // this->mOldFgrad[PointNumber] = identity_matrix<double> (dimension);
 	this->mCurrentTotalCauchyStress[PointNumber] = ZeroVector(voigtsize);
 	this->mCurrentDeviatoricCauchyStress[PointNumber] = ZeroVector(voigtsize);
 	this->mUpdatedTotalCauchyStress[PointNumber] = ZeroVector(voigtsize);
@@ -152,22 +140,27 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
    template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeMaterialParameters(double& DeviatoricCoeff,
 									       double& VolumetricCoeff,
-									       double timeStep)
+									       double timeStep,
+									       const ShapeFunctionsType& N)
    {
-     const double FluidBulkModulus = 2150000000.0;
-     const double FluidViscosity = 0.001;
-     // const double FluidViscosity = 5;
-     // FirstLame = timeStep*PoissonRatio*YoungModulus/((1.0+PoissonRatio)*(1.0-2.0*PoissonRatio)); 
+     double FluidBulkModulus=0;
+     double FluidViscosity=0;
+     this->EvaluateInPoint(FluidViscosity,VISCOSITY,N);
+     this->EvaluateInPoint(FluidBulkModulus,BULK_MODULUS,N);
+
+     if(FluidBulkModulus==0){
+       std::cout<<"FluidBulkModulus was 0 !!!!!!!!"<<std::endl;
+       FluidBulkModulus = 2150000000.0;
+     }
+
+     if(FluidViscosity==0){
+       std::cout<<"FluidViscosity was 0 !!!!!!!!"<<std::endl;
+       FluidViscosity = 0.001;
+     }
      DeviatoricCoeff = FluidViscosity;
      VolumetricCoeff = FluidBulkModulus*timeStep;
 
-    // const double YoungModulus = 100000000.0;
-    // const double PoissonRatio = 0.495;
- 
-    // // FirstLame = timeStep*PoissonRatio*YoungModulus/((1.0+PoissonRatio)*(1.0-2.0*PoissonRatio)); 
-    // DeviatoricCoeff = timeStep*YoungModulus/(1.0+PoissonRatio)*0.5;
-    // // BulkModulus = FirstLame + 2.0*SecondLame/3.0;
-    // VolumetricCoeff = timeStep*PoissonRatio*YoungModulus/((1.0+PoissonRatio)*(1.0-2.0*PoissonRatio)) + 2.0*DeviatoricCoeff/3.0;
+
   }
 
 
@@ -486,13 +479,13 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
 
   }
 
- template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeBoundLHSMatrix(Matrix& BoundLHSMatrix,
+ template< >
+  void TwoStepUpdatedLagrangianVPFluidElement<2>::ComputeBoundLHSMatrix(Matrix& BoundLHSMatrix,
 									   const ShapeFunctionsType& rN,
 									   const double Weight)
  {
-   //const SizeType NumNodes = this->GetGeometry().PointsNumber();
-   double coeff=1.0+TDim;
+   const SizeType NumNodes = this->GetGeometry().PointsNumber();
+   double coeff=1.0+2;
    // double ElemSize = this->ElementSize();
    // double Mij  = (Weight * ElemSize)/ (2* coeff) ;
    double Mij  = Weight/ coeff;
@@ -503,115 +496,139 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
    // if((rGeom[0].Is(FREE_SURFACE) || rGeom[0].Is(RIGID) ) && rGeom[1].Is(FREE_SURFACE)  ){
    // if(!rGeom[0].Is(RIGID)){
    if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE) ){
-    
-     //  	BoundLHSMatrix(0,0) +=  Mij;
-     //  }
-     //  if(!rGeom[1].Is(RIGID)){
-     //  	 BoundLHSMatrix(1,1) +=  Mij;
-     //  }
      BoundLHSMatrix(0,0) +=  Mij;
      BoundLHSMatrix(1,1) +=  Mij;
    }
-   // if((rGeom[2].Is(FREE_SURFACE) || rGeom[2].Is(RIGID) ) && (rGeom[0].Is(FREE_SURFACE)  || rGeom[0].Is(RIGID)) && !(rGeom[2].Is(RIGID) && rGeom[0].Is(RIGID))){
-   // if((rGeom[2].Is(FREE_SURFACE) || rGeom[2].Is(RIGID) )  && rGeom[0].Is(FREE_SURFACE)  ){
    if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE) ){
-     //   if(!rGeom[0].Is(RIGID)){
-     // 	BoundLHSMatrix(0,0) +=  Mij;
-     // }
-     // if(!rGeom[2].Is(RIGID)){
-     // 	BoundLHSMatrix(2,2) +=  Mij;
-     // }
      BoundLHSMatrix(0,0) +=  Mij;
      BoundLHSMatrix(2,2) +=  Mij;
    }
 
-   // if((rGeom[1].Is(FREE_SURFACE) || rGeom[1].Is(RIGID) ) && (rGeom[2].Is(FREE_SURFACE)  || rGeom[2].Is(RIGID)) && !(rGeom[1].Is(RIGID) && rGeom[2].Is(RIGID))){
-   // if((rGeom[1].Is(FREE_SURFACE) || rGeom[1].Is(RIGID) )  && rGeom[2].Is(FREE_SURFACE)  ){
    if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE) ){
-
-     // if(!rGeom[1].Is(RIGID)){
-     // 	BoundLHSMatrix(1,1) +=  Mij;
-     //  }
-     //  if(!rGeom[2].Is(RIGID)){
-     // 	BoundLHSMatrix(2,2) +=  Mij;
-     //  }
      BoundLHSMatrix(1,1) +=  Mij;
      BoundLHSMatrix(2,2) +=  Mij;
    }
 
-   if(rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(RIGID) && rGeom[2].Is(RIGID)){
-     BoundLHSMatrix(0,0) +=  Mij;
-     BoundLHSMatrix(1,1) +=  Mij*0.25;
-     BoundLHSMatrix(2,2) +=  Mij*0.25;
-     // array_1d<double, 3>  Normal;
-     // Normal    = rGeom[1].FastGetSolutionStepValue(NORMAL);
-     // double normNormal=norm_2(Normal);
-     // if(normNormal>1){
-     //   BoundLHSMatrix(1,1) +=  Mij;
-     // }else{
-     //   Normal    = rGeom[2].FastGetSolutionStepValue(NORMAL);
-     //   normNormal=norm_2(Normal);
-     //   if(normNormal>1){
-     // 	 BoundLHSMatrix(2,2) +=  Mij;
-     //   }
-     // }
+
+   if((rGeom[0].Is(FREE_SURFACE) && (rGeom[1].Is(RIGID) || rGeom[2].Is(RIGID))) ||
+      (rGeom[1].Is(FREE_SURFACE) && (rGeom[0].Is(RIGID) || rGeom[2].Is(RIGID))) ||
+      (rGeom[2].Is(FREE_SURFACE) && (rGeom[0].Is(RIGID) || rGeom[1].Is(RIGID))) ){
+ 
+     for (SizeType i = 0; i < NumNodes; ++i)
+       {
+	 if(rGeom[i].Is(FREE_SURFACE) || rGeom[i].Is(RIGID)){
+	   WeakPointerVector<Element >& rNeighbours = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
+	   unsigned int NumberOfNeighbours = rNeighbours.size();
+	   if(NumberOfNeighbours>0){
+	     BoundLHSMatrix(i,i) +=  Mij/double(NumberOfNeighbours);
+	   }else{
+	     BoundLHSMatrix(i,i) +=  Mij;
+	   }
+	 }
+       }
    }
-   if(rGeom[1].Is(FREE_SURFACE) && rGeom[0].Is(RIGID) && rGeom[2].Is(RIGID)){
-     BoundLHSMatrix(1,1) +=  Mij;
-     BoundLHSMatrix(0,0) +=  Mij*0.25;
-     BoundLHSMatrix(2,2) +=  Mij*0.25;
-     // array_1d<double, 3>  Normal;
-     // Normal    = rGeom[0].FastGetSolutionStepValue(NORMAL);
-     // double normNormal=norm_2(Normal);
-     // if(normNormal>1){
-     //   BoundLHSMatrix(0,0) +=  Mij;
-     // }else{
-     //   Normal    = rGeom[2].FastGetSolutionStepValue(NORMAL);
-     //   normNormal=norm_2(Normal);
-     //   if(normNormal>1){
-     // 	 BoundLHSMatrix(2,2) +=  Mij;
-     //   }
-     // }
-   }
-   if(rGeom[2].Is(FREE_SURFACE) && rGeom[0].Is(RIGID) && rGeom[1].Is(RIGID)){
-     BoundLHSMatrix(2,2) +=  Mij;
-     BoundLHSMatrix(0,0) +=  Mij*0.25;
-     BoundLHSMatrix(1,1) +=  Mij*0.25;
-     // array_1d<double, 3>  Normal;
-     // Normal    = rGeom[0].FastGetSolutionStepValue(NORMAL);
-     // double normNormal=norm_2(Normal);
-     // if(normNormal>1){
-     //   BoundLHSMatrix(0,0) +=  Mij;
-     // }else{
-     //   Normal    = rGeom[1].FastGetSolutionStepValue(NORMAL);
-     //   normNormal=norm_2(Normal);
-     //   if(normNormal>1){
-     // 	 BoundLHSMatrix(1,1) +=  Mij;
-     //   }
-     // }
-   }
+
+   // if(rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(RIGID) && rGeom[2].Is(RIGID)){
+   //   BoundLHSMatrix(0,0) +=  Mij;
+   //   BoundLHSMatrix(1,1) +=  Mij*0.25;
+   //   BoundLHSMatrix(2,2) +=  Mij*0.25;
+   // }
+   // if(rGeom[1].Is(FREE_SURFACE) && rGeom[0].Is(RIGID) && rGeom[2].Is(RIGID)){
+   //   BoundLHSMatrix(1,1) +=  Mij;
+   //   BoundLHSMatrix(0,0) +=  Mij*0.25;
+   //   BoundLHSMatrix(2,2) +=  Mij*0.25;
+   // }
+   // if(rGeom[2].Is(FREE_SURFACE) && rGeom[0].Is(RIGID) && rGeom[1].Is(RIGID)){
+   //   BoundLHSMatrix(2,2) +=  Mij;
+   //   BoundLHSMatrix(0,0) +=  Mij*0.25;
+   //   BoundLHSMatrix(1,1) +=  Mij*0.25;
+   // }
    
-   if(rGeom[0].Is(RIGID) && (rGeom[1].Is(FREE_SURFACE) || rGeom[2].Is(FREE_SURFACE))){
-     WeakPointerVector<Element >& rNeighbours = rGeom[0].GetValue(NEIGHBOUR_ELEMENTS);
-     unsigned int NumberOfNeighbours = rNeighbours.size();
-     if(NumberOfNeighbours<3){
+   // if(rGeom[0].Is(RIGID) && (rGeom[1].Is(FREE_SURFACE) || rGeom[2].Is(FREE_SURFACE))){
+   //   WeakPointerVector<Element >& rNeighbours = rGeom[0].GetValue(NEIGHBOUR_ELEMENTS);
+   //   unsigned int NumberOfNeighbours = rNeighbours.size();
+   //   if(NumberOfNeighbours<3){
+   //     BoundLHSMatrix(0,0) +=  Mij;
+   //   }
+   // }
+   // if(rGeom[1].Is(RIGID) && (rGeom[0].Is(FREE_SURFACE) || rGeom[2].Is(FREE_SURFACE))){
+   //   WeakPointerVector<Element >& rNeighbours = rGeom[1].GetValue(NEIGHBOUR_ELEMENTS);
+   //   unsigned int NumberOfNeighbours = rNeighbours.size();
+   //   if(NumberOfNeighbours<3){
+   //     BoundLHSMatrix(1,1) +=  Mij;
+   //   }
+   // }
+   // if(rGeom[2].Is(RIGID) && (rGeom[1].Is(FREE_SURFACE) || rGeom[0].Is(FREE_SURFACE))){
+   //   WeakPointerVector<Element >& rNeighbours = rGeom[2].GetValue(NEIGHBOUR_ELEMENTS);
+   //   unsigned int NumberOfNeighbours = rNeighbours.size();
+   //   if(NumberOfNeighbours<3){
+   //     BoundLHSMatrix(2,2) +=  Mij;
+   //   }
+   // }
+
+
+ }
+
+ template<  >
+  void TwoStepUpdatedLagrangianVPFluidElement<3>::ComputeBoundLHSMatrix(Matrix& BoundLHSMatrix,
+									   const ShapeFunctionsType& rN,
+									   const double Weight)
+ {
+   // std::cout<<"TwoStepUpdatedLagrangianVPFluidElement ADAPTATION TO 3D REQUIRED!!!"<<std::endl;
+   const SizeType NumNodes = this->GetGeometry().PointsNumber();
+   double coeff=1.0+3.0;
+   // double ElemSize = this->ElementSize();
+   // double Mij  = (Weight * ElemSize)/ (2* coeff) ;
+   double Mij  = Weight/ coeff;
+   // Mij*=2.0;
+   GeometryType& rGeom = this->GetGeometry();
+   uint numBoundary=0;
+   uint numFreeSurf=0;
+   for (SizeType i = 0; i < NumNodes; ++i)
+     {
+       if(rGeom[i].Is(FREE_SURFACE) || rGeom[i].Is(RIGID)){
+	 numBoundary++;
+	 if(rGeom[i].Is(FREE_SURFACE)){
+	   numFreeSurf++;
+	 }
+       }
+ 
+     }
+   if(numBoundary>2){
+
+     if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
        BoundLHSMatrix(0,0) +=  Mij;
-     }
-   }
-   if(rGeom[1].Is(RIGID) && (rGeom[0].Is(FREE_SURFACE) || rGeom[2].Is(FREE_SURFACE))){
-     WeakPointerVector<Element >& rNeighbours = rGeom[0].GetValue(NEIGHBOUR_ELEMENTS);
-     unsigned int NumberOfNeighbours = rNeighbours.size();
-     if(NumberOfNeighbours<3){
        BoundLHSMatrix(1,1) +=  Mij;
-     }
-   }
-   if(rGeom[2].Is(RIGID) && (rGeom[1].Is(FREE_SURFACE) || rGeom[0].Is(FREE_SURFACE))){
-     WeakPointerVector<Element >& rNeighbours = rGeom[0].GetValue(NEIGHBOUR_ELEMENTS);
-     unsigned int NumberOfNeighbours = rNeighbours.size();
-     if(NumberOfNeighbours<3){
        BoundLHSMatrix(2,2) +=  Mij;
+     }else if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
+       BoundLHSMatrix(0,0) +=  Mij;
+       BoundLHSMatrix(1,1) +=  Mij;
+       BoundLHSMatrix(3,3) +=  Mij;
+     }else if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
+       BoundLHSMatrix(0,0) +=  Mij;
+       BoundLHSMatrix(2,2) +=  Mij;
+       BoundLHSMatrix(3,3) +=  Mij;
+     }else if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
+       BoundLHSMatrix(1,1) +=  Mij;
+       BoundLHSMatrix(2,2) +=  Mij;
+       BoundLHSMatrix(3,3) +=  Mij;
+     }else if(numFreeSurf>0){
+       if(rGeom[0].Is(FREE_SURFACE) || rGeom[0].Is(RIGID)){
+	 BoundLHSMatrix(0,0) +=  Mij;
+       }
+       if(rGeom[1].Is(FREE_SURFACE) || rGeom[1].Is(RIGID)){
+	 BoundLHSMatrix(1,1) +=  Mij;
+       }
+       if(rGeom[2].Is(FREE_SURFACE) || rGeom[2].Is(RIGID)){
+	 BoundLHSMatrix(2,2) +=  Mij;
+       }
+       if(rGeom[3].Is(FREE_SURFACE) || rGeom[3].Is(RIGID)){
+	 BoundLHSMatrix(3,3) +=  Mij;
+       }
      }
    }
+
+
 
 
  }
@@ -661,13 +678,13 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
 
  //  }
 
-template< unsigned int TDim >
-void TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeBoundRHSVector(VectorType& BoundRHSVector,
+template< >
+void TwoStepUpdatedLagrangianVPFluidElement<2>::ComputeBoundRHSVector(VectorType& BoundRHSVector,
 									 const ShapeFunctionsType& rN,
 									 const double Weight)
 {
-  //const SizeType NumNodes = this->GetGeometry().PointsNumber();
-  double coeff=1.0+TDim;
+  const SizeType NumNodes = this->GetGeometry().PointsNumber();
+  double coeff=1.0+2.0;
   // double ElemSize = this->ElementSize();
   // double Mij  = Weight;
   double Mij  = Weight/ coeff;
@@ -722,80 +739,92 @@ void TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeBoundRHSVector(VectorT
     BoundRHSVector[2] +=  Mij;
   }
 
-  if(rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(RIGID) && rGeom[2].Is(RIGID)){
-    BoundRHSVector[0] +=  Mij;
-    BoundRHSVector[1] +=  Mij*0.25;
-    BoundRHSVector[2] +=  Mij*0.25;
-    // array_1d<double, 3>  Normal;
-    // Normal    = rGeom[1].FastGetSolutionStepValue(NORMAL);
-    // double normNormal=norm_2(Normal);
-    // if(normNormal>1){
-    //   BoundRHSVector[1] +=  Mij;
-    // }else{
-    //   Normal    = rGeom[2].FastGetSolutionStepValue(NORMAL);
-    //   normNormal=norm_2(Normal);
-    //   if(normNormal>1){
-    // 	BoundRHSVector[2] +=  Mij;
-    //   }
-    // }
 
-  }
-  if(rGeom[1].Is(FREE_SURFACE) && rGeom[0].Is(RIGID) && rGeom[2].Is(RIGID)){
-    BoundRHSVector[1] +=  Mij;
-    BoundRHSVector[0] +=  Mij*0.25;
-    BoundRHSVector[2] +=  Mij*0.25;
-    // array_1d<double, 3>  Normal;
-    // Normal    = rGeom[0].FastGetSolutionStepValue(NORMAL);
-    // double normNormal=norm_2(Normal);
-    // if(normNormal>1){
-    //   BoundRHSVector[0] +=  Mij;
-    // }else{
-    //   Normal    = rGeom[2].FastGetSolutionStepValue(NORMAL);
-    //   normNormal=norm_2(Normal);
-    //   if(normNormal>1){
-    // 	BoundRHSVector[2] +=  Mij;
-    //   }
-    // }
-  }
-  if(rGeom[2].Is(FREE_SURFACE) && rGeom[0].Is(RIGID) && rGeom[1].Is(RIGID)){
-    BoundRHSVector[2] +=  Mij;
-    BoundRHSVector[0] +=  Mij*0.25;
-    BoundRHSVector[1] +=  Mij*0.25;
-    // array_1d<double, 3>  Normal;
-    // Normal    = rGeom[0].FastGetSolutionStepValue(NORMAL);
-    // double normNormal=norm_2(Normal);
-    // if(normNormal>1){
-    //   BoundRHSVector[0] +=  Mij;
-    // }else{
-    //   Normal    = rGeom[1].FastGetSolutionStepValue(NORMAL);
-    //   normNormal=norm_2(Normal);
-    //   if(normNormal>1){
-    // 	BoundRHSVector[1] +=  Mij;
-    //   }
-    // }
+  // if((rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(RIGID) && rGeom[2].Is(RIGID)) ||
+  //    (rGeom[1].Is(FREE_SURFACE) && rGeom[0].Is(RIGID) && rGeom[2].Is(RIGID)) ||
+  //    (rGeom[2].Is(FREE_SURFACE) && rGeom[0].Is(RIGID) && rGeom[1].Is(RIGID)) ){
+  if((rGeom[0].Is(FREE_SURFACE) && (rGeom[1].Is(RIGID) || rGeom[2].Is(RIGID))) ||
+     (rGeom[1].Is(FREE_SURFACE) && (rGeom[0].Is(RIGID) || rGeom[2].Is(RIGID))) ||
+     (rGeom[2].Is(FREE_SURFACE) && (rGeom[0].Is(RIGID) || rGeom[1].Is(RIGID))) ){
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+	if(rGeom[i].Is(FREE_SURFACE) || rGeom[i].Is(RIGID)){
+	  WeakPointerVector<Element >& rNeighbours = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
+	  unsigned int NumberOfNeighbours = rNeighbours.size();
+	  if(NumberOfNeighbours>0){
+	    BoundRHSVector[i] +=  Mij/double(NumberOfNeighbours);
+	  }else{
+	    BoundRHSVector[i] +=  Mij;
+	  }
+	}
+      }
   }
 
-   if(rGeom[0].Is(RIGID) && (rGeom[1].Is(FREE_SURFACE) || rGeom[2].Is(FREE_SURFACE))){
-     WeakPointerVector<Element >& rNeighbours = rGeom[0].GetValue(NEIGHBOUR_ELEMENTS);
-     unsigned int NumberOfNeighbours = rNeighbours.size();
-     if(NumberOfNeighbours<3){
-       BoundRHSVector[0] +=  Mij;
-     }
-   }
-   if(rGeom[1].Is(RIGID) && (rGeom[0].Is(FREE_SURFACE) || rGeom[2].Is(FREE_SURFACE))){
-     WeakPointerVector<Element >& rNeighbours = rGeom[0].GetValue(NEIGHBOUR_ELEMENTS);
-     unsigned int NumberOfNeighbours = rNeighbours.size();
-     if(NumberOfNeighbours<3){
-       BoundRHSVector[1] +=  Mij;
-     }
-   }
-   if(rGeom[2].Is(RIGID) && (rGeom[1].Is(FREE_SURFACE) || rGeom[0].Is(FREE_SURFACE))){
-     WeakPointerVector<Element >& rNeighbours = rGeom[0].GetValue(NEIGHBOUR_ELEMENTS);
-     unsigned int NumberOfNeighbours = rNeighbours.size();
-     if(NumberOfNeighbours<3){
-       BoundRHSVector[2] +=  Mij;
-     }
-   }
+
+
+}
+
+
+template<  >
+void TwoStepUpdatedLagrangianVPFluidElement<3>::ComputeBoundRHSVector(VectorType& BoundRHSVector,
+									 const ShapeFunctionsType& rN,
+									 const double Weight)
+{
+  const SizeType NumNodes = this->GetGeometry().PointsNumber();
+  double coeff=1.0+3.0;
+  // double ElemSize = this->ElementSize();
+  // double Mij  = Weight;
+  double Mij  = Weight/ coeff;
+
+  GeometryType& rGeom = this->GetGeometry();
+
+  uint numBoundary=0;
+   uint numFreeSurf=0;
+  for (SizeType i = 0; i < NumNodes; ++i)
+    {
+      if(rGeom[i].Is(FREE_SURFACE) || rGeom[i].Is(RIGID)){
+	numBoundary++;
+	 if(rGeom[i].Is(FREE_SURFACE)){
+	   numFreeSurf++;
+	 }
+	}
+    }
+  if(numBoundary>2){
+    if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
+      BoundRHSVector[0] +=  Mij;
+      BoundRHSVector[1] +=  Mij;
+      BoundRHSVector[2] +=  Mij;
+    }else if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
+      BoundRHSVector[0] +=  Mij;
+      BoundRHSVector[1] +=  Mij;
+      BoundRHSVector[3] +=  Mij;
+    }else if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
+      BoundRHSVector[0] +=  Mij;
+      BoundRHSVector[2] +=  Mij;
+      BoundRHSVector[3] +=  Mij;
+    }else if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
+      BoundRHSVector[1] +=  Mij;
+      BoundRHSVector[2] +=  Mij;
+      BoundRHSVector[3] +=  Mij;
+    }else  if(numFreeSurf>0){
+      if(rGeom[0].Is(FREE_SURFACE) || rGeom[0].Is(RIGID)){
+	BoundRHSVector[0] +=  Mij;
+      }
+      if(rGeom[1].Is(FREE_SURFACE) || rGeom[1].Is(RIGID)){
+	BoundRHSVector[1] +=  Mij;
+      }
+      if(rGeom[2].Is(FREE_SURFACE) || rGeom[2].Is(RIGID)){
+	BoundRHSVector[2] +=  Mij;
+      }
+      if(rGeom[3].Is(FREE_SURFACE) || rGeom[3].Is(RIGID)){
+	BoundRHSVector[3] +=  Mij;
+      }
+    }
+  }
+
+
+
+
 
 
 }
@@ -989,15 +1018,16 @@ template< unsigned int TDim >
 
 
 template< unsigned int TDim>
-void TwoStepUpdatedLagrangianVPFluidElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
+bool TwoStepUpdatedLagrangianVPFluidElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
 									const ProcessInfo& rCurrentProcessInfo,
-									unsigned int g)
+									unsigned int g,
+									const ShapeFunctionsType& N)
 {
-
-  this->CalcStrainRateUpdated(rElementalVariables,rCurrentProcessInfo,g);
+  bool computeElement=false;
+  computeElement=this->CalcStrainRateUpdated(rElementalVariables,rCurrentProcessInfo,g);
   const double TimeStep=0.5/rCurrentProcessInfo[BDF_COEFFICIENTS][2];
-  this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
-
+  this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g,N);
+  return computeElement;
 } 
 
 
@@ -1056,7 +1086,7 @@ void TwoStepUpdatedLagrangianVPFluidElement<TDim>:: InitializeElementalVariables
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPFluidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,double TimeStep, unsigned int g)
+void TwoStepUpdatedLagrangianVPFluidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,double TimeStep, unsigned int g,const ShapeFunctionsType& N)
 {
 
   rElementalVariables.CurrentTotalCauchyStress=mCurrentTotalCauchyStress[g];
@@ -1065,7 +1095,7 @@ void TwoStepUpdatedLagrangianVPFluidElement<2>:: CalcElasticPlasticCauchySplitte
   double CurrSecondLame  = 0;
   double CurrBulkModulus = 0;
 
-  this->ComputeMaterialParameters(CurrSecondLame,CurrBulkModulus,TimeStep);
+  this->ComputeMaterialParameters(CurrSecondLame,CurrBulkModulus,TimeStep,N);
  
   double CurrFirstLame  = 0;
   CurrFirstLame  =CurrBulkModulus - 2.0*CurrSecondLame/3.0;
@@ -1117,7 +1147,7 @@ void TwoStepUpdatedLagrangianVPFluidElement<2>:: CalcElasticPlasticCauchySplitte
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPFluidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
+void TwoStepUpdatedLagrangianVPFluidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g,const ShapeFunctionsType& N)
 {
 
 
@@ -1127,7 +1157,7 @@ void TwoStepUpdatedLagrangianVPFluidElement<3>:: CalcElasticPlasticCauchySplitte
   double CurrSecondLame  = 0;
   double CurrBulkModulus = 0;
 
-  this->ComputeMaterialParameters(CurrSecondLame,CurrBulkModulus,TimeStep);
+  this->ComputeMaterialParameters(CurrSecondLame,CurrBulkModulus,TimeStep,N);
  
   double CurrFirstLame  = 0;
   CurrFirstLame  =CurrBulkModulus - 2.0*CurrSecondLame/3.0;

@@ -16,7 +16,7 @@
 // External includes
 
 
-// Project includes
+// Project includes 
 #include "containers/array_1d.h"
 #include "includes/define.h"
 #include "includes/element.h"
@@ -349,7 +349,7 @@ namespace Kratos
       ///@name Protected member Variables
       ///@{
 
-      std::vector< Matrix > mOldFgrad;
+      /* std::vector< Matrix > mOldFgrad; */
       std::vector< Vector > mCurrentTotalCauchyStress;
       std::vector< Vector > mCurrentDeviatoricCauchyStress;
       std::vector< Vector > mUpdatedTotalCauchyStress;
@@ -374,7 +374,8 @@ namespace Kratos
 
       virtual void ComputeMaterialParameters (double& DeviatoricCoeff,
 					      double& VolumetricCoeff,
-					      double timeStep){};
+					      double timeStep,
+					      const ShapeFunctionsType& N){};
       
       void VelocityEquationIdVector(EquationIdVectorType& rResult,
 				    ProcessInfo& rCurrentProcessInfo);
@@ -508,11 +509,12 @@ namespace Kratos
 					      const ShapeFunctionDerivativesType& rShapeDeriv,
 					      const double Weight){};
       
-      virtual void CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
+      virtual bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
 					const ProcessInfo& rCurrentProcessInfo,
-					unsigned int g){};
+					unsigned int g,
+					const ShapeFunctionsType& N){return true;};
 
-      void CalcStrainRateUpdated(ElementalVariables & rElementalVariables,
+      bool CalcStrainRateUpdated(ElementalVariables & rElementalVariables,
 				 const ProcessInfo& rCurrentProcessInfo,
 				 unsigned int g);
 
@@ -561,12 +563,15 @@ namespace Kratos
 			MatrixType &Fgrad,
 			MatrixType &VelDefgrad);
 	
-      void CheckStrain3(VectorType &SpatialDefRate,
+      bool CheckStrain3(VectorType &SpatialDefRate,
 			MatrixType &SpatialVelocityGrad);
+
+      bool CheckSliverElements();
 	
       virtual void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 						    double TimeStep,
-						    unsigned int g){};
+						    unsigned int g,
+						    const ShapeFunctionsType& N){};
 
       virtual void CalculateTauFIC(double& TauOne,
 				   double ElemSize,

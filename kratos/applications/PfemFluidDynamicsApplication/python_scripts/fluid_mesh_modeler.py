@@ -75,31 +75,10 @@ class FluidMeshModeler(mesh_modeler.MeshModeler):
   
 
     #
-   #
-    def SetPostMeshingProcesses(self):
-
-        # The order set is the order of execution:
-
-        #select mesh elements
-        generate_particles  = KratosPfemBase.GenerateNewNodes(self.main_model_part, self.MeshingParameters, self.echo_level)
-        self.mesher.SetPostMeshingProcess(generate_particles)
-
-        #select mesh elements
-        #select_mesh_elements  = KratosPfemBase.SelectMeshElements(self.main_model_part, self.MeshingParameters, self.echo_level)
-        #self.mesher.SetPostMeshingProcess(select_mesh_elements)
-        select_mesh_elements  = KratosPfemFluid.SelectMeshElements(self.main_model_part, self.MeshingParameters, self.echo_level)
-        self.mesher.SetPostMeshingProcess(select_mesh_elements)
-
-        #rebuild elements
-        rebuild_mesh_elements = KratosPfemBase.BuildMeshElements(self.main_model_part, self.MeshingParameters, self.echo_level)
-        self.mesher.SetPostMeshingProcess(rebuild_mesh_elements)
-
-        #rebuild boundary
-        rebuild_mesh_boundary = KratosPfemBase.ReconstructMeshBoundary(self.main_model_part, self.MeshingParameters, self.echo_level)
-        self.mesher.SetPostMeshingProcess(rebuild_mesh_boundary)
-
 
     def FinalizeMeshing(self):
+
+        print("::[fluid_mesh_modeler]:: -START FinalizeMeshing-")
         
         # reset execution flags: to unset the options to be executed in methods and processes
         execution_options = KratosMultiphysics.Flags()

@@ -14,7 +14,7 @@
  
 // Project includes
 #include "custom_elements/two_step_updated_lagrangian_V_P_solid_element.h"
-#include "includes/cfd_variables.h"
+#include "includes/cfd_variables.h" 
 
 namespace Kratos {
 
@@ -28,15 +28,6 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
   // return Element::Pointer( BaseType::Clone(NewId,rThisNodes) );
   TwoStepUpdatedLagrangianVPSolidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
   
-
-  if ( NewElement.mOldFgrad.size() != this->mOldFgrad.size() )
-    NewElement.mOldFgrad.resize(this->mOldFgrad.size());
-
-  for(unsigned int i=0; i<this->mOldFgrad.size(); i++)
-    {
-      NewElement.mOldFgrad[i] = this->mOldFgrad[i];
-    }
-
 
   if ( NewElement.mCurrentTotalCauchyStress.size() != this->mCurrentTotalCauchyStress.size() )
     NewElement.mCurrentTotalCauchyStress.resize(this->mCurrentTotalCauchyStress.size());
@@ -85,11 +76,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
     // LargeDisplacementElement::Initialize();
     const GeometryType& rGeom = this->GetGeometry();
     SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
-    const unsigned int dimension       = rGeom.WorkingSpaceDimension();
- 
-    //Resize historic deformation gradient
-    if ( this->mOldFgrad.size() != integration_points_number )
-      this->mOldFgrad.resize( integration_points_number ); 
+    // const unsigned int dimension       = rGeom.WorkingSpaceDimension();
 
     if ( this->mCurrentTotalCauchyStress.size() != integration_points_number )
       this->mCurrentTotalCauchyStress.resize( integration_points_number );
@@ -110,7 +97,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
       }
     for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
       {
-        this->mOldFgrad[PointNumber] = identity_matrix<double> (dimension);
+        // this->mOldFgrad[PointNumber] = identity_matrix<double> (dimension);
 	this->mCurrentTotalCauchyStress[PointNumber] = ZeroVector(voigtsize);
 	this->mCurrentDeviatoricCauchyStress[PointNumber] = ZeroVector(voigtsize);
 	this->mUpdatedTotalCauchyStress[PointNumber] = ZeroVector(voigtsize);
@@ -147,9 +134,13 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPSolidElement<TDim>::ComputeMaterialParameters(double& DeviatoricCoeff,
 									       double& VolumetricCoeff,
-									       double timeStep)
+									       double timeStep,
+									       const ShapeFunctionsType& N)
   {
 
+  
+    // double YoungModulus=this->pGetProperties()[YOUNG_MODULUS];
+    // double PoissonRatio=this->pGetProperties()[POISSON_RATIO];
     const double YoungModulus = 100000000.0;
     const double PoissonRatio = 0.495;
  
@@ -571,15 +562,17 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 
 
 template< unsigned int TDim>
-void TwoStepUpdatedLagrangianVPSolidElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
+bool TwoStepUpdatedLagrangianVPSolidElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
 									const ProcessInfo& rCurrentProcessInfo,
-									unsigned int g)
+									unsigned int g,
+									const ShapeFunctionsType& N)
 {
 
-  this->CalcStrainRateUpdated(rElementalVariables,rCurrentProcessInfo,g);
+  bool computeElement=false;
+  computeElement=this->CalcStrainRateUpdated(rElementalVariables,rCurrentProcessInfo,g);
   const double TimeStep=0.5/rCurrentProcessInfo[BDF_COEFFICIENTS][2];
-  this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
-
+  this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g,N);
+  return computeElement;
 } 
 
 
@@ -617,7 +610,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: InitializeElementalVariables
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPSolidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,double TimeStep, unsigned int g)
+void TwoStepUpdatedLagrangianVPSolidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,double TimeStep, unsigned int g,const ShapeFunctionsType& N)
 {
 
   rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
@@ -626,7 +619,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<2>:: CalcElasticPlasticCauchySplitte
   double CurrSecondLame  = 0;
   double CurrBulkModulus = 0;
 
-  this->ComputeMaterialParameters(CurrSecondLame,CurrBulkModulus,TimeStep);
+  this->ComputeMaterialParameters(CurrSecondLame,CurrBulkModulus,TimeStep,N);
  
   double CurrFirstLame  = 0;
   CurrFirstLame  =CurrBulkModulus - 2.0*CurrSecondLame/3.0;
@@ -679,7 +672,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<2>:: CalcElasticPlasticCauchySplitte
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPSolidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
+void TwoStepUpdatedLagrangianVPSolidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g,const ShapeFunctionsType& N)
 {
 
 
@@ -689,7 +682,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<3>:: CalcElasticPlasticCauchySplitte
   double CurrSecondLame  = 0;
   double CurrBulkModulus = 0;
 
-  this->ComputeMaterialParameters(CurrSecondLame,CurrBulkModulus,TimeStep);
+  this->ComputeMaterialParameters(CurrSecondLame,CurrBulkModulus,TimeStep,N);
  
   double CurrFirstLame   = 0;
   CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;

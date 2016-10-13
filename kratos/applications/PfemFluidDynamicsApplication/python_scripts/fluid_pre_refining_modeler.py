@@ -21,7 +21,11 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
         self.echo_level        = 1
         self.main_model_part   = main_model_part 
         self.MeshingParameters = meshing_parameters
-
+        
+        self.model_part = self.main_model_part
+        if( self.main_model_part.Name != self.MeshingParameters.GetSubModelPartName() ):
+            self.model_part = self.main_model_part.GetSubModelPart(self.MeshingParameters.GetSubModelPartName())
+            
         print("Construction of the Pre Refining Modeler finished")
            
     #
@@ -37,7 +41,7 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
         execution_options = KratosMultiphysics.Flags()
     
         execution_options.Set(KratosPfemBase.ModelerUtilities.INITIALIZE_MESHER_INPUT, True)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.FINALIZE_MESHER_INPUT,  False)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.FINALIZE_MESHER_INPUT,  True)
 
         execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_NODES_TO_MESHER, True)
         execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_ELEMENTS_TO_MESHER, False)
@@ -47,7 +51,7 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
             execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_FACES_TO_MESHER, True)
 
         execution_options.Set(KratosPfemBase.ModelerUtilities.SELECT_TESSELLATION_ELEMENTS, True)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.KEEP_ISOLATED_NODES, False)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.KEEP_ISOLATED_NODES, True)
 
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
@@ -70,7 +74,12 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
             if( meshing_options.Is(KratosPfemBase.ModelerUtilities.CONSTRAINED) ):
                 modeler_flags = "pnBJFMYYQ"
             else:
-                modeler_flags = "nJFMQO4/4"
+                #modeler_flags = "rQYYCCJF"
+                #modeler_flags = "nQMu0"
+                modeler_flags ="nJFu0";
+                #modeler_flags ="VJFu0"; #PSOLID
+                #modeler_flags ="rMfjYYaq2.5nQ";
+                #modeler_flags = "nJFMQO4/4"
 
         self.MeshingParameters.SetTessellationFlags(modeler_flags)
         self.MeshingParameters.SetTessellationInfo(modeler_info)
@@ -81,9 +90,16 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
         
         print("::[fluid_pre_refining_modeler]:: -START SetPreMeshingProcesses-")
 
-        remove_mesh_nodes = KratosPfemFluid.RemoveMeshNodesForFluids(self.main_model_part, self.MeshingParameters, self.echo_level)
+        refining_parameters = self.MeshingParameters.GetRefiningParameters()
+        refining_options = refining_parameters.GetRefiningOptions()
+
+
+        remove_mesh_nodes = KratosPfemFluid.RemoveMeshNodesForFluids(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPreMeshingProcess(remove_mesh_nodes)
-     
+
+        if( refining_options.Is(KratosPfemBase.ModelerUtilities.REFINE_INSERT_NODES) ):
+            generate_new_nodes  = KratosPfemFluid.GenerateNewNodesBeforeMeshing(self.model_part, self.MeshingParameters, self.echo_level)
+            self.mesher.SetPreMeshingProcess(generate_new_nodes)
 
     #
     def SetPostMeshingProcesses(self):
@@ -95,20 +111,35 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
         refining_parameters = self.MeshingParameters.GetRefiningParameters()
         refining_options = refining_parameters.GetRefiningOptions()
 
+
         #select mesh elements
-        select_mesh_elements  = KratosPfemFluid.SelectMeshElements(self.main_model_part, self.MeshingParameters, self.echo_level)
+        select_mesh_elements  = KratosPfemFluid.SelectMeshElementsForFluids(self.model_part, self.MeshingParameters, self.echo_level)
+        #select_mesh_elements  = KratosPfemBase.SelectMeshElements(self.main_model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(select_mesh_elements)
+        #rebuild elements
+        #rebuild_mesh_elements = KratosPfemBase.BuildMeshElements(self.main_model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        #self.mesher.SetPostMeshingProcess(rebuild_mesh_elements)
+
+
 
 
         if( refining_options.Is(KratosPfemBase.ModelerUtilities.REFINE_ADD_NODES) ):
-            select_refine_elements = KratosPfemBase.SetElementsToRefineOnSize(self.main_model_part, self.MeshingParameters, self.echo_level)
+            select_refine_elements = KratosPfemBase.SetElementsToRefineOnSize(self.model_part, self.MeshingParameters, self.echo_level)
             self.mesher.SetPostMeshingProcess(select_refine_elements)
 
-        if( refining_options.Is(KratosPfemBase.ModelerUtilities.REFINE_INSERT_NODES) ):
-            select_refine_elements = KratosPfemFluid.SetElementsToRefineOnSize(self.main_model_part, self.MeshingParameters, self.echo_level)
-            self.mesher.SetPostMeshingProcess(select_refine_elements)
-            generate_new_nodes  = KratosPfemFluid.GenerateNewNodesForHomogeneousMesh(self.main_model_part, self.MeshingParameters, self.echo_level)
-            self.mesher.SetPostMeshingProcess(generate_new_nodes)
+      #rebuild elements
+        #rebuild_mesh_elements = KratosPfemBase.BuildMeshElements(self.model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+        rebuild_mesh_elements = KratosPfemBase.BuildMeshElements(self.model_part, self.MeshingParameters, self.echo_level)
+        self.mesher.SetPostMeshingProcess(rebuild_mesh_elements)
+
+        #rebuild boundary
+        rebuild_mesh_boundary = KratosPfemBase.ReconstructMeshBoundary(self.model_part, self.MeshingParameters, self.echo_level)
+        self.mesher.SetPostMeshingProcess(rebuild_mesh_boundary)
+
+
+        #if( refining_options.Is(KratosPfemBase.ModelerUtilities.REFINE_INSERT_NODES) ):
+            #select_refine_elements = KratosPfemFluid.SetElementsToRefineOnSize(self.model_part, self.MeshingParameters, self.mesh_id, self.echo_level)
+            #self.mesher.SetPostMeshingProcess(select_refine_elements)
 
 
     #
@@ -139,6 +170,6 @@ class PreRefiningModeler(fluid_mesh_modeler.FluidMeshModeler):
         execution_options.Set(KratosPfemBase.ModelerUtilities.FINALIZE_MESHER_INPUT,  True)
 
         execution_options.Set(KratosPfemBase.ModelerUtilities.SELECT_TESSELLATION_ELEMENTS, True)
-        execution_options.Set(KratosPfemBase.ModelerUtilities.KEEP_ISOLATED_NODES, False)
+        execution_options.Set(KratosPfemBase.ModelerUtilities.KEEP_ISOLATED_NODES, True)
 
         self.MeshingParameters.SetExecutionOptions(execution_options)

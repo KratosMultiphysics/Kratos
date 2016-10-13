@@ -15,7 +15,7 @@
 
 // External includes
 
-
+ 
 // Project includes
 #include "containers/array_1d.h"
 #include "includes/define.h"
@@ -199,12 +199,6 @@ namespace Kratos
 
       virtual void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo);
 
-      /* /// Calculate the element's local contribution to the system for the current step. */
-      /* virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, */
-      /* 					VectorType& rRightHandSideVector, */
-      /* 					ProcessInfo& rCurrentProcessInfo); */
-
-
       virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 					 ProcessInfo& rCurrentProcessInfo)
       {
@@ -229,18 +223,12 @@ namespace Kratos
        * @param rResult A vector containing the global Id of each row
        * @param rCurrentProcessInfo the current process info object (unused)
        */
-      /* virtual void EquationIdVector(EquationIdVectorType& rResult, */
-      /* 				    ProcessInfo& rCurrentProcessInfo); */
-
+ 
       /// Returns a list of the element's Dofs
       /**
        * @param ElementalDofList the list of DOFs
        * @param rCurrentProcessInfo the current process info instance
        */
-      /* virtual void GetDofList(DofsVectorType& rElementalDofList, */
-      /* 			      ProcessInfo& rCurrentProcessInfo); */
-
-      /* virtual GeometryData::IntegrationMethod GetIntegrationMethod() const; */
 
       virtual void UpdateCauchyStress(unsigned int g);
 
@@ -318,105 +306,20 @@ namespace Kratos
       ///@name Protected Operations
       ///@{
 
-      /* void CalculateLocalMomentumEquations(MatrixType& rLeftHandSideMatrix, */
-      /* 					   VectorType& rRightHandSideVector, */
-      /* 					   ProcessInfo& rCurrentProcessInfo); */
-
-      /* virtual void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix, */
-      /* 							 VectorType& rRightHandSideVector, */
-      /* 							 ProcessInfo& rCurrentProcessInfo); */
-
       void ComputeMaterialParameters (double& DeviatoricCoeff,
 				      double& VolumetricCoeff,
-				      double timeStep);
+				      double timeStep,
+				      const ShapeFunctionsType& N);
 
-      
-      /* void VelocityEquationIdVector(EquationIdVectorType& rResult, */
-      /* 				    ProcessInfo& rCurrentProcessInfo); */
+   
 
-      /* void PressureEquationIdVector(EquationIdVectorType& rResult, */
-      /* 				    ProcessInfo& rCurrentProcessInfo); */
-
-      /* void GetVelocityDofList(DofsVectorType& rElementalDofList, */
-      /* 			      ProcessInfo& rCurrentProcessInfo); */
-
-      /* void GetPressureDofList(DofsVectorType& rElementalDofList, */
-      /* 			      ProcessInfo& rCurrentProcessInfo); */
-
-
-      /* void CalcMeanPressure(double& meanPressure, */
-      /* 			    const int Step); */
-      
-
-      /* void GetPressureValues(Vector& rValues, */
-      /* 			     const int Step = 0); */
-
-      /* void GetVelocityValues(Vector& rValues, */
-      /* 			     const int Step = 0); */
-
-      /* void GetPositions(Vector& rValues); */
-
-      /* void GetUpdatedPositions(Vector& rValues, */
-      /* 			       const ProcessInfo& rCurrentProcessInfo); */
-
-      /* void GetAccelerationValues(Vector& rValues, */
-      /* 				 const int Step = 0); */
-
-      /* /// Determine integration point weights and shape funcition derivatives from the element's geometry. */
-      /* virtual void CalculateGeometryData(ShapeFunctionDerivativesArrayType& rDN_DX, */
-      /* 					 Matrix& rNContainer, */
-      /* 					 Vector& rGaussWeights); */
-
-      /* double ElementSize(/\*ShapeFunctionDerivativesType& rDN_DX*\/); */
-
-
-      /* /\** */
-      /*  * @brief EquivalentStrainRate Calculate the second invariant of the strain rate tensor GammaDot = (2SijSij)^0.5. */
-      /*  * */
-      /*  * @note Our implementation of non-Newtonian consitutive models such as Bingham relies on this funcition being */
-      /*  * defined on all fluid elements. */
-      /*  * */
-      /*  * @param rDN_DX Shape function derivatives at the integration point. */
-      /*  * @return GammaDot = (2SijSij)^0.5. */
-      /*  *\/ */
-      /* double EquivalentStrainRate(const ShapeFunctionDerivativesType &rDN_DX) const; */
-
-
-      /// Add integration point contribution to the mass matrix.
       /**
        * A constistent mass matrix is used.
        * @param rMassMatrix The local matrix where the result will be added.
        * @param rN Elemental shape functions.
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
        */
-      /* void ComputeMomentumMassTerm(Matrix& rMassMatrix, */
-      /* 				   const ShapeFunctionsType& rN, */
-      /* 				   const double Weight); */
-
-      /* void ComputeLumpedMassMatrix(Matrix& rMassMatrix, */
-      /* 				   const double Weight); */
-
-    
-      /* virtual void AddExternalForces( Vector& rRHSVector, */
-      /* 				      const double Density, */
-      /* 				      const array_1d<double,3>& rBodyForce, */
-      /* 				      const ShapeFunctionsType& rN, */
-      /* 				      const double Weight); */
-      
-      /* virtual void AddInternalForces( Vector& rRHSVector, */
-      /* 				      const ShapeFunctionDerivativesType& rDN_DX, */
-      /* 				      ElementalVariables& rElementalVariables, */
-      /* 				      const double Weight); */
-
-      /* virtual  void AddDynamicForces(Vector& rRHSVector, */
-      /* 				     const double Weight, */
-      /* 				     const double TimeStep); */
-
-      /* virtual void AddDeviatoricInternalForces( Vector& rRHSVector, */
-      /* 						const ShapeFunctionDerivativesType& rDN_DX, */
-      /* 						ElementalVariables& rElementalVariables, */
-      /* 						const double Weight); */
-
+   
       void ComputeMeanValueMaterialTangentMatrix(ElementalVariables& rElementalVariables,
 						 double& MeanValue,
 						 const ShapeFunctionDerivativesType& rShapeDeriv,
@@ -461,61 +364,15 @@ namespace Kratos
 				     const double Weight);
 
 
-      void CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
+      bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
 				const ProcessInfo& rCurrentProcessInfo,
-				unsigned int g);
-
-     /*  void CalcStrainRateUpdated(ElementalVariables & rElementalVariables, */
-     /* 				 const ProcessInfo& rCurrentProcessInfo, */
-     /* 				 unsigned int g); */
-
-     /*  void CalcVelDefGrad(const ShapeFunctionDerivativesType& rDN_DX, */
-     /* 			  MatrixType &FgradVel, */
-     /* 			  MatrixType &invFgradVel, */
-     /* 			  double &FVelJacobian); */
-
-     /* void CalcFGrad(const ShapeFunctionDerivativesType& rDN_DX, */
-     /* 		    MatrixType &Fgrad, */
-     /* 		    MatrixType &invFgrad, */
-     /* 		    double &FJacobian, */
-     /* 		    const ProcessInfo& rCurrentProcessInfo); */
-
-     /*  void CalcVolumetricDefRate(const ShapeFunctionDerivativesType& rDN_DX, */
-     /* 				 double &volumetricDefRate, */
-     /* 				 MatrixType &invGradDef); */
-
-     /*  void CalcVolDefRateFromSpatialVelGrad(double &volumetricDefRate, */
-     /* 					    MatrixType &SpatialVelocityGrad); */
-
-
-     /*  void CalcSpatialVelocityGrad(MatrixType &invFgrad, */
-     /* 				   MatrixType &VelDefgrad, */
-     /* 				   MatrixType &SpatialVelocityGrad); */
-
-     /*  void CalcMDGreenLagrangeMaterial(MatrixType &Fgrad, */
-     /* 				       MatrixType &VelDefgrad,  */
-     /* 				       VectorType &MDGreenLagrangeMaterial); */
-
-     /*  void CalcSpatialDefRate(VectorType &MDGreenLagrangeMaterial, */
-     /* 			      MatrixType &invFgrad, */
-     /* 			      VectorType &SpatialDefRate); */
-
-     /*  void CalcDeviatoricInvariant(VectorType &SpatialDefRate, */
-     /* 				   double &DeviatoricInvariant); */
-
-     /*  void CheckStrain1(double &VolumetricDefRate, */
-     /* 			MatrixType &SpatialVelocityGrad); */
-
-     /*  void CheckStrain2(MatrixType &SpatialVelocityGrad, */
-     /* 			MatrixType &Fgrad, */
-     /* 			MatrixType &VelDefgrad); */
-	
-     /*  void CheckStrain3(VectorType &SpatialDefRate, */
-     /* 			MatrixType &SpatialVelocityGrad); */
+				unsigned int g,
+				const ShapeFunctionsType& N);
 	
       void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 					    double TimeStep,
-					    unsigned int g);
+					    unsigned int g,
+					    const ShapeFunctionsType& N);
 
       virtual void CalculateTauFIC(double& TauOne,
 				   double ElemSize,
