@@ -16,8 +16,10 @@ import test_geometries
 import test_linear_solvers
 import test_processes
 import test_importing
+import test_connectivity_preserve_modeler
 import test_model
 import test_redistance
+
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -46,6 +48,7 @@ def AssambleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_linear_solvers.TestLinearSolvers]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_processes.TestProcesses]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_importing.TestImporting]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_connectivity_preserve_modeler.TestConnectivityPreserveModeler]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model.TestModel]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_redistance.TestRedistance]))
     
@@ -71,8 +74,10 @@ def AssambleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_linear_solvers.TestLinearSolvers]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_processes.TestProcesses]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_importing.TestImporting]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_connectivity_preserve_modeler.TestConnectivityPreserveModeler]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model.TestModel]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_redistance.TestRedistance]))
+
     
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
@@ -85,6 +90,8 @@ def AssambleTestSuites():
             test_geometries.TestGeometry,
             test_linear_solvers.TestLinearSolvers,
             test_processes.TestProcesses,
+            test_importing.TestImporting,
+            test_connectivity_preserve_modeler.TestConnectivityPreserveModeler,
             test_importing.TestImporting,
             test_model.TestModel,
             test_redistance.TestRedistance
