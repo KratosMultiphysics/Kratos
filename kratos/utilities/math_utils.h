@@ -173,14 +173,25 @@ public:
         inverts matrices of order 2 and 3
              */
     //***********************************************************************
-    static inline void InvertMatrix(const MatrixType& InputMatrix,
+    static void InvertMatrix(const MatrixType& InputMatrix,
                                     MatrixType& InvertedMatrix,
                                     TDataType& InputMatrixDet)
     {
         unsigned int size = InputMatrix.size2();
 
-        if (size==2) InvertMatrix2(InputMatrix,InvertedMatrix,InputMatrixDet);
-        else InvertMatrix3(InputMatrix,InvertedMatrix,InputMatrixDet);
+        if(size==1)
+        {
+            if(InvertedMatrix.size1() != 1 || InvertedMatrix.size2() != 1)
+                InvertedMatrix.resize(1,1,false);
+            InvertedMatrix(0,0) = 1.0/InputMatrix(0,0);
+            InputMatrixDet = InputMatrix(0,0);
+        }
+        else if (size==2) 
+        {
+            InvertMatrix2(InputMatrix,InvertedMatrix,InputMatrixDet);
+        }
+        else if (size==3) 
+            InvertMatrix3(InputMatrix,InvertedMatrix,InputMatrixDet);
     }
 
     //***********************************************************************
@@ -197,7 +208,7 @@ public:
     {
         KRATOS_TRY
         if(InvertedMatrix.size1() != 3 || InvertedMatrix.size2() != 3)
-            InvertedMatrix.resize(3,3);
+            InvertedMatrix.resize(3,3,false);
 
         //filling the inverted matrix with the algebraic complements
         //first column
@@ -236,7 +247,8 @@ public:
                               TDataType& InputMatrixDet)
     {
         KRATOS_TRY
-        InvertedMatrix.resize(2,2);
+        if(InvertedMatrix.size1() != 2 || InvertedMatrix.size2() != 2)
+            InvertedMatrix.resize(2,2,false);
 
         InputMatrixDet = InputMatrix(0,0)*InputMatrix(1,1)-InputMatrix(0,1)*InputMatrix(1,0);
 
