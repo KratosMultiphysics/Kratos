@@ -405,8 +405,11 @@ namespace Kratos
   {
     KRATOS_TRY
 
+
+
     //deinitialize and initialize again to null input 
-    tr.deinitialize();
+    //tr.deinitialize();
+    DeleteTetrahedraList(tr);
     tr.initialize();
   
     //delete modeler container
@@ -422,8 +425,10 @@ namespace Kratos
   {
     KRATOS_TRY
 
+	 
     //deinitialize and initialize again to null input 
-    tr.deinitialize();
+    //tr.deinitialize();
+    DeleteTetrahedraList(tr);
     tr.initialize();
   
     //delete modeler container
