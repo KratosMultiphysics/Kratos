@@ -140,22 +140,22 @@ using namespace boost::python;
 
     class_<VectorField<3> > ("VectorField3D", boost::python::no_init)
         ;
-    typedef void (VelocityField::*Evaluate)(const double, const vector<double>&, vector<double>&, const unsigned int);
+    typedef void (VelocityField::*Evaluate)(const double, const vector<double>&, vector<double>&, const int);
     Evaluate EvaluateVector = &VelocityField::Evaluate;
 
-    typedef void (VelocityField::*CalculateTimeDerivative)(const double, const vector<double>&, vector<double>&, const unsigned int);
+    typedef void (VelocityField::*CalculateTimeDerivative)(const double, const vector<double>&, vector<double>&, const int);
     CalculateTimeDerivative CalculateTimeDerivativeVector = &VelocityField::CalculateTimeDerivative;
 
-    typedef double (VelocityField::*CalculateDivergence)(const double, const vector<double>&, const unsigned int);
+    typedef double (VelocityField::*CalculateDivergence)(const double, const vector<double>&, const int);
     CalculateDivergence CalculateDivergenceVector = &VelocityField::CalculateDivergence;
 
-    typedef void (VelocityField::*CalculateRotational)(const double, const vector<double>&, vector<double>&, const unsigned int );
+    typedef void (VelocityField::*CalculateRotational)(const double, const vector<double>&, vector<double>&, const int);
     CalculateRotational CalculateRotationalVector = &VelocityField::CalculateRotational;
 
-    typedef void (VelocityField::*CalculateLaplacian)(const double, const vector<double>&, vector<double>&, const unsigned int );
+    typedef void (VelocityField::*CalculateLaplacian)(const double, const vector<double>&, vector<double>&, const int);
     CalculateLaplacian CalculateLaplacianVector = &VelocityField::CalculateLaplacian;
 
-    typedef void (VelocityField::*CalculateMaterialAcceleration)(const double, const vector<double>&, vector<double>&, const unsigned int);
+    typedef void (VelocityField::*CalculateMaterialAcceleration)(const double, const vector<double>&, vector<double>&, const int);
     CalculateMaterialAcceleration CalculateMaterialAccelerationVector = &VelocityField::CalculateMaterialAcceleration;
 
     class_<VelocityField, bases<VectorField<3> > > ("VelocityField", boost::python::no_init)
