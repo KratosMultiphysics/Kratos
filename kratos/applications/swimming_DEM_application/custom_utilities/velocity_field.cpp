@@ -2,104 +2,104 @@
 
 namespace Kratos
 {
-void VelocityField::Evaluate(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& vector, const unsigned int i)
+void VelocityField::Evaluate(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& vector, const int i_thread)
 {
-    UpdateCoordinates(time, coor, i);
-    vector[0] = U0(i);
-    vector[1] = U1(i);
-    vector[2] = U2(i);
+    UpdateCoordinates(time, coor, i_thread);
+    vector[0] = U0(i_thread);
+    vector[1] = U1(i_thread);
+    vector[2] = U2(i_thread);
 }
 
-void VelocityField::Evaluate(const double time, const vector<double>& coor, vector<double>& result, const unsigned int i)
+void VelocityField::Evaluate(const double time, const vector<double>& coor, vector<double>& result, const int i_thread)
 {
-    UpdateCoordinates(time, coor, i);
-    result[0] = U0(i);
-    result[1] = U1(i);
-    result[2] = U2(i);
+    UpdateCoordinates(time, coor, i_thread);
+    result[0] = U0(i_thread);
+    result[1] = U1(i_thread);
+    result[2] = U2(i_thread);
 }
 
-void VelocityField::CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& deriv, const unsigned int i)
+void VelocityField::CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& deriv, const int i_thread)
 {
-    UpdateCoordinates(time, coor, i);
-    deriv[0] = U0DT(i);
-    deriv[1] = U1DT(i);
-    deriv[2] = U2DT(i);
+    UpdateCoordinates(time, coor, i_thread);
+    deriv[0] = U0DT(i_thread);
+    deriv[1] = U1DT(i_thread);
+    deriv[2] = U2DT(i_thread);
 }
 
-void VelocityField::CalculateTimeDerivative(const double time, const vector<double>& coor, vector<double>& deriv, const unsigned int i)
+void VelocityField::CalculateTimeDerivative(const double time, const vector<double>& coor, vector<double>& deriv, const int i_thread)
 {
-    UpdateCoordinates(time, coor, i);
-    deriv[0] = U0DT(i);
-    deriv[1] = U1DT(i);
-    deriv[2] = U2DT(i);
+    UpdateCoordinates(time, coor, i_thread);
+    deriv[0] = U0DT(i_thread);
+    deriv[1] = U1DT(i_thread);
+    deriv[2] = U2DT(i_thread);
 }
 
-
-void VelocityField::CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d< array_1d<double, 3>, 3>& gradient, const unsigned int i)
+void VelocityField::CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d< array_1d<double, 3>, 3>& gradient, const int i_thread)
 {
-    UpdateCoordinates(time, coor, i);
-    gradient[0][0] = U0D0(i);
-    gradient[0][1] = U0D1(i);
-    gradient[0][2] = U0D2(i);
-    gradient[1][0] = U1D0(i);
-    gradient[1][1] = U1D1(i);
-    gradient[1][2] = U1D2(i);
-    gradient[2][0] = U2D0(i);
-    gradient[2][1] = U2D1(i);
-    gradient[2][2] = U2D2(i);
+    UpdateCoordinates(time, coor, i_thread);
+    gradient[0][0] = U0D0(i_thread);
+    gradient[0][1] = U0D1(i_thread);
+    gradient[0][2] = U0D2(i_thread);
+    gradient[1][0] = U1D0(i_thread);
+    gradient[1][1] = U1D1(i_thread);
+    gradient[1][2] = U1D2(i_thread);
+    gradient[2][0] = U2D0(i_thread);
+    gradient[2][1] = U2D1(i_thread);
+    gradient[2][2] = U2D2(i_thread);
 }
 
-void VelocityField::CalculateDivergence(const double time, const array_1d<double, 3>& coor, double& div, const unsigned int i)
+double VelocityField::CalculateDivergence(const double time, const array_1d<double, 3>& coor, const int i_thread)
 {
-    UpdateCoordinates(time, coor, i);
-    div = U0D0(i) + U1D1(i) + U2D2(i);
-}
-
-double VelocityField::CalculateDivergence(const double time, const vector<double>& coor, const unsigned int i)
-{
-    UpdateCoordinates(time, coor, i);
-    double div = U0D0(i) + U1D1(i) + U2D2(i);
+    UpdateCoordinates(time, coor, i_thread);
+    double div = U0D0(i_thread) + U1D1(i_thread) + U2D2(i_thread);
     return div;
 }
 
-void VelocityField::CalculateRotational(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& rot, const unsigned int i)
+double VelocityField::CalculateDivergence(const double time, const vector<double>& coor, const int i_thread)
 {
-    UpdateCoordinates(time, coor, i);
-    rot[0] = U2D1(i) - U1D2(i);
-    rot[1] = U0D2(i) - U2D0(i);
-    rot[2] = U1D0(i) - U0D1(i);
+    UpdateCoordinates(time, coor, i_thread);
+    double div = U0D0(i_thread) + U1D1(i_thread) + U2D2(i_thread);
+    return div;
 }
 
-void VelocityField::CalculateRotational(const double time, const vector<double>& coor, vector<double>& rot, const unsigned int i)
+void VelocityField::CalculateRotational(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& rot, const int i_thread)
 {
-    UpdateCoordinates(time, coor, i);
-    rot[0] = U2D1(i) - U1D2(i);
-    rot[1] = U0D2(i) - U2D0(i);
-    rot[2] = U1D0(i) - U0D1(i);
+    UpdateCoordinates(time, coor, i_thread);
+    rot[0] = U2D1(i_thread) - U1D2(i_thread);
+    rot[1] = U0D2(i_thread) - U2D0(i_thread);
+    rot[2] = U1D0(i_thread) - U0D1(i_thread);
 }
 
-void VelocityField::CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& lapl, const unsigned int i)
+void VelocityField::CalculateRotational(const double time, const vector<double>& coor, vector<double>& rot, const int i_thread)
 {
-    UpdateCoordinates(time, coor, i);
-    lapl[0] = U0D0D0(i) + U0D1D1(i) + U0D2D2(i);
-    lapl[1] = U1D0D0(i) + U1D1D1(i) + U1D2D2(i);
-    lapl[2] = U2D0D0(i) + U2D1D1(i) + U2D2D2(i);
+    UpdateCoordinates(time, coor, i_thread);
+    rot[0] = U2D1(i_thread) - U1D2(i_thread);
+    rot[1] = U0D2(i_thread) - U2D0(i_thread);
+    rot[2] = U1D0(i_thread) - U0D1(i_thread);
 }
 
-void VelocityField::CalculateLaplacian(const double time, const vector<double>& coor, vector<double>& lapl, const unsigned int i)
+void VelocityField::CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& lapl, const int i_thread)
 {
-    UpdateCoordinates(time, coor, i);
-    lapl[0] = U0D0D0(i) + U0D1D1(i) + U0D2D2(i);
-    lapl[1] = U1D0D0(i) + U1D1D1(i) + U1D2D2(i);
-    lapl[2] = U2D0D0(i) + U2D1D1(i) + U2D2D2(i);
+    UpdateCoordinates(time, coor, i_thread);
+    lapl[0] = U0D0D0(i_thread) + U0D1D1(i_thread) + U0D2D2(i_thread);
+    lapl[1] = U1D0D0(i_thread) + U1D1D1(i_thread) + U1D2D2(i_thread);
+    lapl[2] = U2D0D0(i_thread) + U2D1D1(i_thread) + U2D2D2(i_thread);
 }
 
-void VelocityField::CalculateMaterialAcceleration(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& accel, const unsigned int i)
+void VelocityField::CalculateLaplacian(const double time, const vector<double>& coor, vector<double>& lapl, const int i_thread)
 {
-    UpdateCoordinates(time, coor, i);
-    double u0 = U0(i);
-    double u1 = U1(i);
-    double u2 = U2(i);
+    UpdateCoordinates(time, coor, i_thread);
+    lapl[0] = U0D0D0(i_thread) + U0D1D1(i_thread) + U0D2D2(i_thread);
+    lapl[1] = U1D0D0(i_thread) + U1D1D1(i_thread) + U1D2D2(i_thread);
+    lapl[2] = U2D0D0(i_thread) + U2D1D1(i_thread) + U2D2D2(i_thread);
+}
+
+void VelocityField::CalculateMaterialAcceleration(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& accel, const int i_thread)
+{
+    UpdateCoordinates(time, coor, i_thread);
+    double u0 = U0(i_thread);
+    double u1 = U1(i_thread);
+    double u2 = U2(i_thread);
     array_1d<double, 3> vel_rate;
     array_1d< array_1d<double, 3>, 3> grad;
     CalculateTimeDerivative(time, coor, vel_rate);
@@ -110,12 +110,12 @@ void VelocityField::CalculateMaterialAcceleration(const double time, const array
     accel[2] = vel_rate[2] + u0 * grad[2][0] + u1 * grad[2][1] + u2 * grad[2][2];
 }
 
-void VelocityField::CalculateMaterialAcceleration(const double time, const vector<double>& coor, vector<double>& accel, const unsigned int i)
+void VelocityField::CalculateMaterialAcceleration(const double time, const vector<double>& coor, vector<double>& accel, const int i_thread)
 {
-    UpdateCoordinates(time, coor, i);
-    double u0 = U0(i);
-    double u1 = U1(i);
-    double u2 = U2(i);
+    UpdateCoordinates(time, coor, i_thread);
+    double u0 = U0(i_thread);
+    double u1 = U1(i_thread);
+    double u2 = U2(i_thread);
     array_1d<double, 3> vel_rate;
     array_1d< array_1d<double, 3>, 3> grad;
     CalculateTimeDerivative(time, coor, vel_rate);
@@ -126,9 +126,9 @@ void VelocityField::CalculateMaterialAcceleration(const double time, const vecto
     accel[2] = vel_rate[2] + u0 * grad[2][0] + u1 * grad[2][1] + u2 * grad[2][2];
 }
 
-void VelocityField::CalculateAccelerationFollowingTheParticle(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& accel, const array_1d<double, 3>& particle_vel, const unsigned int i)
+void VelocityField::CalculateAccelerationFollowingTheParticle(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& accel, const array_1d<double, 3>& particle_vel, const int i_thread)
 {
-    UpdateCoordinates(time, coor, i);
+    UpdateCoordinates(time, coor, i_thread);
     double u0 = particle_vel[0];
     double u1 = particle_vel[1];
     double u2 = particle_vel[2];
@@ -152,7 +152,7 @@ void VelocityField::ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesL
 
     //#pragma omp parallel firstprivate(must_impose_fluid_velocity, must_impose_fluid_acceleration, must_impose_fluid_velocity_laplacian, time)
     {
-        unsigned int thread_number = omp_get_thread_num();
+        int thread_number = omp_get_thread_num();
 
         //#pragma omp for
         for (int i = 0; i < (int)r_model_part.Nodes().size(); i++){

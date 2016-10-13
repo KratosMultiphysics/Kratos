@@ -45,29 +45,29 @@ virtual ~VectorField(){}
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-virtual void Evaluate(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& vector, const unsigned int n_threads = 1, const unsigned int i_thread = 1){}
+virtual void Evaluate(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& vector, const int i_thread = 0){}
 
-virtual void CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& deriv, const unsigned int n_threads = 1, const unsigned int i_thread = 1){}
+virtual void CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& deriv, const int i_thread = 0){}
 
-virtual void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d< array_1d<double, 3>, 3>& gradient, const unsigned int n_threads = 1, const unsigned int i_thread = 1){}
+virtual void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d< array_1d<double, 3>, 3>& gradient, const int i_thread = 0){}
 
-virtual double CalculateDivergence(const double time, const array_1d<double, 3>& coor, const unsigned int n_threads = 1, const unsigned int i_thread = 1){return 0.0;}
+virtual double CalculateDivergence(const double time, const array_1d<double, 3>& coor, const int i_thread = 0){return 0.0;}
 
-virtual void CalculateRotational(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& rot, const unsigned int n_threads = 1, const unsigned int i_thread = 1){}
+virtual void CalculateRotational(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& rot, const int i_thread = 0){}
 
-virtual void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& lapl, const unsigned int n_threads = 1, const unsigned int i_thread = 1){}
+virtual void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& lapl, const int i_thread = 0){}
 
-virtual void Evaluate(const double time, const vector<double>& coor, vector<double>& result, const unsigned int n_threads = 1, const unsigned int i_thread = 1){}
+virtual void Evaluate(const double time, const vector<double>& coor, vector<double>& result, const int i_thread = 0){}
 
-virtual void CalculateTimeDerivative(const double time, const vector<double>& coor, vector<double>& result, const unsigned int n_threads = 1, const unsigned int i_thread = 1){}
+virtual void CalculateTimeDerivative(const double time, const vector<double>& coor, vector<double>& result, const int i_thread = 0){}
 
-virtual void CalculateDivergence(const double time, const vector<double>& coor, double& div, const unsigned int n_threads = 1, const unsigned int i_thread = 1){}
+virtual double CalculateDivergence(const double time, const vector<double>& coor, const int i_thread = 0){return 0.0;}
 
-virtual void CalculateRotational(const double time, const vector<double>& coor, vector<double>& result, const unsigned int n_threads = 1, const unsigned int i_thread = 1){}
+virtual void CalculateRotational(const double time, const vector<double>& coor, vector<double>& result, const int i_thread = 0){}
 
-virtual void CalculateLaplacian(const double time, const vector<double>& coor, vector<double>& result, const unsigned int n_threads = 1, const unsigned int i_thread = 1){}
+virtual void CalculateLaplacian(const double time, const vector<double>& coor, vector<double>& result, const int i_thread = 0){}
 
-virtual void ResizeVectorsForParallelism(const unsigned int n_threads){}
+virtual void ResizeVectorsForParallelism(const int n_threads){}
 
 virtual void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed){}
 
