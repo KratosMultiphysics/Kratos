@@ -45,6 +45,15 @@
         },
         "line_search"                        : *tcl(string tolower *GenData(LineSearch)),
         "convergence_criterion"              : "Residual_criterion",
+*if(strcmp(GenData(DOFS),"ROTATIONS")==0)
+        "rotation_dofs"                      : true,
+*endif
+*if(strcmp(GenData(DOFS),"U-P")==0)
+        "pressure_dofs"                      : true,
+*endif
+*if( strcmp(GenData(DOFS),"U-P")==0 || strcmp(GenData(DOFS),"U-wP")==0)
+        "stabilization_factor"               : *GenData(Stabilization_Factor),
+*endif
         "reform_dofs_at_each_step"           : true,
         "displacement_relative_tolerance"    : *GenData(Convergence_Tolerance),
         "displacement_absolute_tolerance"    : *GenData(Absolute_Tolerance),
@@ -69,8 +78,8 @@
 *loop groups *OnlyInCond
 *set var Counter=operation(Counter+1)
      	 {
-     	 "body_type": "*cond(StructuralType)",
-     	 "body_name": "*cond(StructuralType)_*GroupName",
+     	 "body_type": "*cond(Structural_Type)",
+     	 "body_name": "*cond(Structural_Type)_*GroupName",
      	 "parts_list": ["*GroupName"]
 *if( Counter == GroupNumber )
      	 }
@@ -81,8 +90,6 @@
 *endif
 	],
         "problem_domain_sub_model_part_list" : [
-*set cond group_DeformableBodies *groups
-*add cond group_RigidBodies *groups
 *if(CondNumEntities > 0)
 *set var GroupNumber = 0
 *loop groups *OnlyInCond
@@ -100,8 +107,7 @@
 *endif
 	],
         "processes_sub_model_part_list" : [
-*set cond group_RigidBodies *groups
-*add cond group_LINEAR_MOVEMENT *groups
+*set cond group_LINEAR_MOVEMENT *groups
 *add cond group_ANGULAR_MOVEMENT *groups
 *add cond group_POINT_LOAD *groups
 *add cond group_LINE_LOAD *groups
@@ -126,9 +132,9 @@
 	]
     },
     "problem_process_list" : [{
-        "python_module"   : "remesh_domains_process",
-        "kratos_module"   : "KratosMultiphysics.PfemBaseApplication",
         "help"            : "This process applies meshing to the problem domains",
+        "kratos_module"   : "KratosMultiphysics.PfemBaseApplication",
+        "python_module"   : "remesh_domains_process",
         "process_name"    : "RemeshDomainsProcess",
         "Parameters"      : {
 	    "model_part_name"       : "Main_Domain",
@@ -148,7 +154,7 @@
             {
 		"python_module": "meshing_domain",
 		"mesh_id": 0,
-		"model_part_name": "*cond(StructuralType)_*GroupName",
+		"model_part_name": "*cond(Structural_Type)_*GroupName",
 		"alpha_shape": 2.4,
 		"offset_factor": *GenData(Offset_Factor),
 		"meshing_strategy":{
@@ -225,9 +231,9 @@
         }
 *if(strcmp(GenData(FindContacts),"True")==0)
     },{
+        "help"             : "This process applies contact domain search by remeshing outer boundaries",    
+        "kratos_module"    : "KratosMultiphysics.ContactMechanicsApplication",   
         "python_module"    : "contact_domain_process",
-        "kratos_module"    : "KratosMultiphysics.ContactMechanicsApplication",
-        "help"             : "This process applies contact domain search by remeshing outer boundaries",
         "process_name"     : "ContactDomainProcess",
         "Parameters"       : {
             "mesh_id"               : 0,
@@ -248,8 +254,8 @@
 			"constrained": *tcl(string tolower *GenData(Constrained_Contact)),
 			"contact_parameters":{
 			    "contact_condition_type": "*GenData(ContactCondition)",
+			    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",			    
 			    "friction_law_type": "HardeningCoulombFrictionLaw",
-			    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
 			    "variables_of_properties":{
 				"FRICTION_ACTIVE": *tcl(string tolower *GenData(Friction_Active)),
 				"MU_STATIC": 0.3,
@@ -272,9 +278,9 @@
 *loop groups *OnlyInCond
 *set var Counter=operation(Counter+1)
 *if( Counter == GroupNumber )
-         "*cond(StructuralType)_*GroupName"
+         "*cond(Structural_Type)_*GroupName"
 *else
-	 "*cond(StructuralType)_*GroupName",
+	 "*cond(Structural_Type)_*GroupName",
 *endif
 *end groups
 *endif
@@ -309,12 +315,12 @@
 		{
 		    "python_module": "parametric_wall",
 		    "mesh_id": 0,
-		    "model_part_name" : "*cond(StructuralType)_*GroupName",
+		    "model_part_name" : "*cond(Structural_Type)_*GroupName",
 		    "rigid_body_settings":{
-			"rigid_body_element_type": "TranslatoryRigidBodyElement2D1N",
+			"rigid_body_element_type": "*cond(Rigid_Element)",
 			"fixed_body": true,
 			"compute_body_parameters": *tcl(string tolower *cond(Compute_Weight_Centroid_and_Inertia)),
-			"rigid_body_model_part_name": "*cond(StructuralType)_*GroupName",
+			"rigid_body_model_part_name": "*cond(Structural_Type)_*GroupName",
 			"rigid_body_parameters":{
 			    "center_of_gravity": [*tcl(JoinByComma *cond(Centroid))],
 			    "mass": *cond(Mass),
@@ -376,8 +382,8 @@
 			"contact_search_type": "ParametricWallContactSearch",
 			"contact_parameters":{
 			    "contact_condition_type": "*cond(Contact_Condition)",
+			    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",			    
 			    "friction_law_type": "HardeningCoulombFrictionLaw",
-			    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
 			    "variables_of_properties":{
 				"FRICTION_ACTIVE": false,
 				"MU_STATIC": 0.3,
@@ -409,7 +415,7 @@
     },{
         "help"         : "This process creates the rigid bodies of the model",
         "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
-        "python_module": "rigid_body_process",
+        "python_module": "rigid_bodies_process",
         "process_name" : "RigidBodyProcess",
 	"Parameters"   : {
 	    "model_part_name" : "Main_Domain",
@@ -421,12 +427,12 @@
 *set var Counter=operation(Counter+1)
 		{
 		    "python_module"  : "rigid_body",
-		    "model_part_name": "*cond(StructuralType)_*GroupName",
+		    "model_part_name": "*cond(Structural_Type)_*GroupName",
 		    "rigid_body_settings":{
 			"rigid_body_element_type": "RigidBodyElement2D1N",
-			"fixed_body": true,
+			"fixed_body": false,
 			"compute_body_parameters": *tcl(string tolower *cond(Compute_Weight_Centroid_and_Inertia)),
-			"rigid_body_model_part_name": "*cond(StructuralType)_*GroupName",
+			"rigid_body_model_part_name": "*cond(Structural_Type)_*GroupName",
 			"rigid_body_parameters":{
 			    "center_of_gravity": [*tcl(JoinByComma *cond(Centroid))],
 			    "mass": *cond(Mass),
@@ -434,7 +440,7 @@
 			    "main_axes": [ [*tcl(JoinByComma *cond(LocalAxisX))], [*tcl(JoinByComma *cond(LocalAxisY))], [*tcl(JoinByComma *cond(LocalAxisZ))] ]
 			}
 		    }
-*if( Counter == numberofwalls )
+*if( Counter == numberofrigidbodies )
 		}
 *else
 		},
@@ -458,9 +464,9 @@
 *loop groups *OnlyInCond       
 *set var Counter=operation(Counter+1)
         {
-        "python_module"   : "assign_value_to_vector_components_process",
+        "help"            : "This process imposes a constraint",	
         "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
-        "help"            : "This process imposes a constraint",
+        "python_module"   : "assign_value_to_vector_components_process",
         "process_name"    : "AssignValueToVectorComponentsProcess",
         "Parameters"      : {
             "mesh_id"         : 0,
@@ -514,9 +520,9 @@
 *loop groups *OnlyInCond       
 *set var Counter=operation(Counter+1)
         {
+        "help"            : "This process assigns a load value on conditions",	
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",	
         "python_module"   : "assign_vector_to_conditions_process",
-        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
-        "help"            : "This process assigns a load value on conditions",
         "process_name"    : "AssignVectorToConditionsProcess",
         "Parameters"      : {
             "mesh_id"         : 0,
@@ -556,9 +562,9 @@
 *loop groups *OnlyInCond       
 *set var Counter=operation(Counter+1)
         {
-        "python_module"   : "assign_value_and_direction_to_vector_process",
+        "help"            : "This process applies a volume acceleration",	
         "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
-        "help"            : "This process applies a volume acceleration",
+        "python_module"   : "assign_value_and_direction_to_vector_process",
         "process_name"    : "AssignValueAndDirectionToVectorProcess",
         "Parameters"      : {
             "mesh_id"         : 0,
@@ -599,9 +605,9 @@
 *set var Counter=operation(Counter+1)
 *set var Counter=operation(Counter+1)
         }
-        "python_module"   : "assign_scalar_to_conditions_process",
+        "help"            : "This process applies a pressure load",	
         "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
-        "help"            : "This process applies a pressure load",
+        "python_module"   : "assign_scalar_to_conditions_process",
         "process_name"    : "AssignScalarToConditionsProcess",
         "Parameters"      : {
             "mesh_id"         : 0,
@@ -638,9 +644,9 @@
 *end groups
     ],
     "output_process_list" : [{
+        "help"            : "This process writes restart files",    
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",    
         "python_module"   : "restart_process",
-        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
-        "help"            : "This process writes restart files",
         "process_name"    : "RestartProcess",
         "Parameters"      : {
             "model_part_name"     : "Main_Domain",

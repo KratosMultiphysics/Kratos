@@ -8,6 +8,45 @@ class DomainUtilities(object):
     #
     def __init__(self):
         pass
+
+    #
+    def InitializeDomains(self, model_part, echo_level):
+
+        if( model_part.ProcessInfo[KratosPfemBase.INITIALIZED_DOMAINS] == False ):
+            
+            # initialize the modeler 
+            print("::[Domain_Utilities]:: Initialize", model_part.Name)
+                   
+            # find node neighbours
+            self.SearchNodeNeighbours(model_part, echo_level)
+            
+            # find element neighbours
+            self.SearchElementNeighbours(model_part, echo_level)
+            
+
+            # set modeler utilities
+            modeler_utils = KratosPfemBase.ModelerUtilities()
+        
+            # set the domain labels to conditions
+            modeler_utils.SetModelPartNameToConditions(model_part)
+        
+            # find skin and boundary normals
+            if( model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
+                # construct boundary of a volumetric body domain
+                self.ConstructModelPartBoundary(model_part, echo_level)
+
+                # search nodal h
+                self.SearchNodalH(model_part, echo_level)
+                                       
+            # set the domain labels to nodes
+            modeler_utils.SetModelPartNameToNodes(model_part)
+
+            model_part.ProcessInfo.SetValue(KratosPfemBase.INITIALIZED_DOMAINS, True)
+
+            print("::[Domain_Utilities]:: Resultant ModelPart")
+            print(model_part)
+            
+        
     #
     def SearchNodeNeighbours(self, model_part, echo_level):
 

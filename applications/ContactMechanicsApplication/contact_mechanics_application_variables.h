@@ -28,9 +28,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/variables.h"
-#include "includes/kratos_application.h"
 
 // Core applications
 #include "pfem_base_application_variables.h"

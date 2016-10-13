@@ -370,7 +370,6 @@ VALUE: 0
 STATE: HIDDEN
 END CONDITION
 
-
 # Conditions related to domain identification
 
 BOOK: Model Domains
@@ -382,7 +381,7 @@ GROUPALLOW: surfaces volumes elements
 QUESTION: Automatic
 VALUE: 0
 STATE: HIDDEN
-QUESTION: StructuralType#CB#(Beam,Shell,Membrane,Solid)
+QUESTION: Structural_Type#CB#(Beam,Shell,Membrane,Solid)
 VALUE: Solid
 DEPENDENCIES:(Solid,RESTORE,Transfer,#CURRENT#,RESTORE,Remesh,#CURRENT#)
 DEPENDENCIES:(#DEFAULT#,HIDE,Transfer,#CURRENT#,HIDE,Remesh,#CURRENT#)
@@ -449,12 +448,14 @@ GROUPALLOW: lines surfaces elements
 QUESTION: Automatic
 VALUE: 0
 STATE: HIDDEN
-QUESTION: StructuralType#CB#(Rigid)
+QUESTION: Structural_Type#CB#(Rigid)
 VALUE: Rigid
+QUESTION: Rigid_Element#CB#(TranslatoryRigidBodyElement2D1N,TranslatoryRigidBodyElement3D1N,RigidBodyElement2D1N,RigidBodyElement3D1N,RigidBodyEMCElement2D1N,RigidBodyEMCElement3D1N)
+VALUE: TranslatoryRigidBodyElement2D1N
 QUESTION: Parametric_Wall#CB#(False,True)
 VALUE: False
-DEPENDENCIES:(True,RESTORE,Contact_Condition,#CURRENT#,RESTORE,Penalty_Parameter,#CURRENT#,RESTORE,Wall_Type,#CURRENT#)
-DEPENDENCIES:(#DEFAULT#,HIDE,Contact_Condition,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#,HIDE,Wall_Type,#CURRENT#,HIDE,Wall_Plane,#CURRENT#,HIDE,Wall_Circle,#CURRENT#,HIDE,Wall_Noses,#CURRENT#)
+DEPENDENCIES:(True,RESTORE,Contact_Condition,#CURRENT#,RESTORE,Penalty_Parameter,#CURRENT#,RESTORE,Wall_Type,#CURRENT#,HIDE,Body_Surface,True)
+DEPENDENCIES:(#DEFAULT#,HIDE,Contact_Condition,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#,HIDE,Wall_Type,#CURRENT#,HIDE,Wall_Plane,#CURRENT#,HIDE,Wall_Circle,#CURRENT#,HIDE,Wall_Noses,#CURRENT#,RESTORE,Body_Surface,#CURRENT#)
 QUESTION: Contact_Condition#CB#(PointContactPenaltyCondition2D1N,AxisymPointContactPenaltyCondition2D1N,AxisymPointWaterContactPenaltyCondition2D1N,PointContactPenaltyCondition3D1N)
 VALUE: PointContactPenaltyCondition2D1N
 QUESTION: Penalty_Parameter
@@ -483,6 +484,10 @@ TKWIDGET: GidUtils::TkwidgetGetVector3D
 QUESTION: Rotation_Center
 VALUE:  0 0 0
 TKWIDGET: GidUtils::TkwidgetGetVector3D
+QUESTION: Body_Surface#CB#(False,True)
+VALUE: False
+DEPENDENCIES:(True,SET,Compute_Weight_Centroid_and_Inertia,False)
+DEPENDENCIES:(False,RESTORE,Compute_Weight_Centroid_and_Inertia,#DEFAULT#)
 QUESTION: Compute_Weight_Centroid_and_Inertia#CB#(False,True)
 VALUE: False
 DEPENDENCIES:(#DEFAULT#,RESTORE,Mass,#CURRENT#,RESTORE,Centroid,#CURRENT#,RESTORE,LocalInertiaTensor,#CURRENT#,RESTORE,LocalAxisX,#CURRENT#,RESTORE,LocalAxisY,#CURRENT#,RESTORE,LocalAxisZ,#CURRENT#,RESTORE,Imposed_Movement,#CURRENT#)

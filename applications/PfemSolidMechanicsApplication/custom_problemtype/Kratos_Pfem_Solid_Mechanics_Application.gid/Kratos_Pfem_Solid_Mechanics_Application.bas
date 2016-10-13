@@ -341,14 +341,45 @@ Begin Elements AxisymUpdatedLagrangianUPElement2D3N
 End Elements
 
 *endif
+*set cond group_RigidBodies *groups
+*if(CondNumEntities > 0)
+*loop groups *OnlyInCond
+*if(strcmp(cond(Parametric_Wall),"False")==0)
+*if(strcmp(cond(Body_Surface),"False")==0)
+*if(GenData(DOMAIN_SIZE,INT) == 3)
+Begin Elements Element3D4N
+*else
+Begin Elements Element2D3N
+*endif
+*#// id prop_id	 n1	n2	n3	...
+*set group *GroupName *elems
+*loop elems *onlyingroup
+*set var ielem=operation(ielem+1)
+*set var i=0
+*set var j=ElemsNnode
+*format "%i%i%i%i%i"
+*ielem *ElemsMat *\
+*for(i=1;i<=j;i=i+1)*\
+ *ElemsConec(*i)*\
+*end
+
+*end elems
+End Elements
+
+*endif
+*endif
+*end groups
+*endif
+
 *# Condition Blocks
 *# start number for each condition type:
-*set var RigidWallsstart  = icond
+*set var RigidWallsstart = icond
 
 *set cond group_RigidBodies *groups
 *if(CondNumEntities > 0)
 *loop groups *OnlyInCond
-*if(strcmp(cond(Contact_Condition),"3D")==0)
+*if(strcmp(cond(Body_Surface),"True")==0)
+*if(GenData(DOMAIN_SIZE,INT) == 3)
 Begin Conditions SurfaceCondition3D3N
 *else
 Begin Conditions LineCondition2D2N
@@ -368,6 +399,7 @@ Begin Conditions LineCondition2D2N
 *end elems
 End Conditions
 
+*endif
 *end groups
 *endif
 *# Loads Block
@@ -464,8 +496,9 @@ End NodalData
 *endif
 *set cond group_RigidBodies *groups
 *if(CondNumEntities > 0)
-Begin NodalData RIGID_WALL
 *loop groups *OnlyInCond
+*if(strcmp(cond(Parametric_Wall),"True")==0)
+Begin NodalData RIGID_WALL
 *set group *GroupName *nodes
 *if(GroupNumEntities)
 *loop nodes *onlyingroup
@@ -473,8 +506,10 @@ Begin NodalData RIGID_WALL
 *NodesNum 0 *GroupNum
 *end nodes
 *endif
-*end groups
 End NodalData
+
+*endif
+*end groups
 
 *endif
 *# SubModelPart Blocks
@@ -695,6 +730,9 @@ Begin SubModelPart *GroupName // *GroupNum
 End SubModelPart
 *end groups    
 *endif
+
+*set var RigidWallsElemNum = 0
+*set var RigidWallsCondNum = 0
 *set cond group_RigidBodies *groups
 *if(CondNumEntities > 0)
 *loop groups *OnlyInCond
@@ -710,17 +748,28 @@ Begin SubModelPart *GroupName // *GroupNum
  End SubModelPartNodes
 
  Begin SubModelPartElements
+*if(strcmp(cond(Body_Surface),"False")==0)
+*set group *GroupName *elems 
+*if(GroupNumEntities) 
+*loop elems *onlyingroup 
+*set var RigidWallsElemNum=operation(RigidWallsElemNum+1)
+*format "%i"
+ *RigidWallsElemNum
+*end elems
+*endif
+*endif
  End SubModelPartElements
       
  Begin SubModelPartConditions
+*if(strcmp(cond(Body_Surface),"True")==0)
 *set group *GroupName *elems 
 *if(GroupNumEntities) 
-*set var RigidWallsNum = 0
 *loop elems *onlyingroup 
-*set var RigidWallsNum=operation(RigidWallsNum+1)
+*set var RigidWallsCondNum=operation(RigidWallsCondNum+1)
 *format "%i"
- *RigidWallsNum
+ *RigidWallsCondNum
 *end elems
+*endif
 *endif
  End SubModelPartConditions
 End SubModelPart

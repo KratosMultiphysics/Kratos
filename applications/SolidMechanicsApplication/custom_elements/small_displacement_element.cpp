@@ -864,7 +864,56 @@ void SmallDisplacementElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSi
 
 void SmallDisplacementElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
 {
+  KRATOS_TRY
+      
+  //mass matrix
+  const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+  const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+  unsigned int MatSize = dimension * number_of_nodes;
 
+  MatrixType MassMatrix   = ZeroMatrix( MatSize, MatSize );
+  
+  double CurrentDensity = GetProperties()[DENSITY];
+
+  //acceleration vector
+  Vector CurrentAccelerationVector   = ZeroVector( MatSize );
+  this->GetSecondDerivativesVector(CurrentAccelerationVector, 0);
+  
+  double AlphaM = 0.0;
+  if( rCurrentProcessInfo.Has(BOSSAK_ALPHA) ){
+    AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
+    Vector PreviousAccelerationVector  = ZeroVector( MatSize );
+    this->GetSecondDerivativesVector(PreviousAccelerationVector, 1);
+    CurrentAccelerationVector *= (1.0-AlphaM);
+    CurrentAccelerationVector +=  AlphaM * (PreviousAccelerationVector);
+  }
+   
+  unsigned int indexi = 0;
+  unsigned int indexj = 0;
+
+  for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+      for ( unsigned int k = 0; k < dimension; k++ )
+	{	  
+	  indexj = 0;
+	  for ( unsigned int j = 0; j < number_of_nodes; j++ )
+	    {
+	      
+	      MassMatrix(indexi+k,indexj+k) += rVariables.N[i] * rVariables.N[j] * CurrentDensity * rIntegrationWeight;
+	      indexj += dimension;
+	    }
+
+	}
+      
+      indexi += dimension;
+    }
+
+
+  rRightHandSideVector = prod( MassMatrix, CurrentAccelerationVector );
+  
+  //KRATOS_WATCH( rRightHandSideVector )
+  
+  KRATOS_CATCH( "" )  
 }
 
 
@@ -1727,6 +1776,218 @@ Vector& SmallDisplacementElement::CalculateVolumeForce( Vector& rVolumeForce, Ge
     return rVolumeForce;
 
     KRATOS_CATCH( "" )
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+void SmallDisplacementElement::CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    //1.-Calculate Tangent Inertia Matrix:
+    this->CalculateDampingMatrix( rLeftHandSideMatrix, rCurrentProcessInfo );
+
+    double MatSize = rLeftHandSideMatrix.size1();
+
+    //2.-Calculate Inertial Forces:
+    if ( rRightHandSideVector.size() != MatSize )
+      rRightHandSideVector.resize( MatSize, false );
+      
+    rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
+
+    //acceleration vector
+    Vector CurrentVelocityVector   = ZeroVector( MatSize );
+    this->GetFirstDerivativesVector(CurrentVelocityVector, 0);
+      
+    rRightHandSideVector = prod( rLeftHandSideMatrix, CurrentVelocityVector );
+      
+
+    KRATOS_CATCH( "" )
+}
+  
+//************************************************************************************
+//************************************************************************************
+
+void SmallDisplacementElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+
+    bool ComputeDynamicTangent = false;
+    if( rCurrentProcessInfo.Has(COMPUTE_DYNAMIC_TANGENT) ){
+
+      if(rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true){
+	ComputeDynamicTangent = true;
+      }
+    }
+
+    if( ComputeDynamicTangent == true ){
+
+      //create local system components
+      LocalSystemComponents LocalSystem;
+
+      //calculation flags 
+      LocalSystem.CalculationFlags.Set(SmallDisplacementElement::COMPUTE_RHS_VECTOR);
+      LocalSystem.CalculationFlags.Set(SmallDisplacementElement::COMPUTE_LHS_MATRIX);
+    
+      //Initialize sizes for the system components:
+      this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
+
+      //Set Variables to Local system components
+      LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
+      LocalSystem.SetRightHandSideVector(rRightHandSideVector);
+	
+      //Calculate elemental system
+      CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );
+
+    }
+    else{
+
+      //1.-Calculate Tangent Inertia Matrix:
+      this->CalculateMassMatrix( rLeftHandSideMatrix, rCurrentProcessInfo );
+
+      double MatSize = rLeftHandSideMatrix.size1();
+
+      //2.-Calculate Inertial Forces:
+      if ( rRightHandSideVector.size() != MatSize )
+	rRightHandSideVector.resize( MatSize, false );
+      
+      rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
+
+      //acceleration vector
+      Vector CurrentAccelerationVector   = ZeroVector( MatSize );
+      this->GetSecondDerivativesVector(CurrentAccelerationVector, 0);
+      
+      double AlphaM = 0.0;
+      if( rCurrentProcessInfo.Has(BOSSAK_ALPHA) ){
+	AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
+	Vector PreviousAccelerationVector  = ZeroVector( MatSize );
+	this->GetSecondDerivativesVector(PreviousAccelerationVector, 1);
+	CurrentAccelerationVector *= (1.0-AlphaM);
+	CurrentAccelerationVector +=  AlphaM * (PreviousAccelerationVector);
+      }
+
+      rRightHandSideVector = prod( rLeftHandSideMatrix, CurrentAccelerationVector );
+      
+    }
+
+
+    KRATOS_CATCH( "" )
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+void SmallDisplacementElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+      
+    bool ComputeDynamicTangent = false;
+    if( rCurrentProcessInfo.Has(COMPUTE_DYNAMIC_TANGENT) )
+      if(rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true)
+	ComputeDynamicTangent = true;
+    
+    if( ComputeDynamicTangent == true ){
+
+      //create local system components
+      LocalSystemComponents LocalSystem;
+
+      //calculation flags   
+      LocalSystem.CalculationFlags.Set(SmallDisplacementElement::COMPUTE_LHS_MATRIX);
+
+      VectorType RightHandSideVector = Vector();
+
+      //Initialize sizes for the system components:
+      this->InitializeSystemMatrices( rLeftHandSideMatrix, RightHandSideVector,  LocalSystem.CalculationFlags );
+	
+      //Set Variables to Local system components
+      LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
+      LocalSystem.SetRightHandSideVector(RightHandSideVector);
+	
+      //Calculate elemental system
+      CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );    
+
+    }
+    else{
+
+      //1.-Calculate Tangent Inertia Matrix:
+      this->CalculateMassMatrix( rLeftHandSideMatrix, rCurrentProcessInfo );
+
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void SmallDisplacementElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    bool ComputeDynamicTangent = false;
+    if( rCurrentProcessInfo.Has(COMPUTE_DYNAMIC_TANGENT) )
+      if(rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true)
+	ComputeDynamicTangent = true;
+    
+    if( ComputeDynamicTangent == true ){
+
+      //create local system components
+      LocalSystemComponents LocalSystem;
+
+      //calculation flags
+      LocalSystem.CalculationFlags.Set(SmallDisplacementElement::COMPUTE_RHS_VECTOR);
+
+      MatrixType LeftHandSideMatrix = Matrix();
+
+      //Initialize sizes for the system components:
+      this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
+
+      //Set Variables to Local system components
+      LocalSystem.SetLeftHandSideMatrix(LeftHandSideMatrix);
+      LocalSystem.SetRightHandSideVector(rRightHandSideVector);
+
+      //Calculate elemental system
+      CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );
+ 
+    }
+    else{
+
+      MatrixType LeftHandSideMatrix = Matrix();
+
+      //1.-Calculate Tangent Inertia Matrix:
+      this->CalculateMassMatrix( LeftHandSideMatrix, rCurrentProcessInfo );
+
+      double MatSize = LeftHandSideMatrix.size1();
+
+      //2.-Calculate Inertial Forces:
+      if ( rRightHandSideVector.size() != MatSize )
+	rRightHandSideVector.resize( MatSize, false );
+      
+      rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
+      
+      //acceleration vector
+      Vector CurrentAccelerationVector   = ZeroVector( MatSize );
+      this->GetSecondDerivativesVector(CurrentAccelerationVector, 0);
+      
+      double AlphaM = 0.0;
+      if( rCurrentProcessInfo.Has(BOSSAK_ALPHA) ){
+	AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
+	Vector PreviousAccelerationVector  = ZeroVector( MatSize );
+	this->GetSecondDerivativesVector(PreviousAccelerationVector, 1);
+	CurrentAccelerationVector *= (1.0-AlphaM);
+	CurrentAccelerationVector +=  AlphaM * (PreviousAccelerationVector);
+      }
+      
+      rRightHandSideVector = prod( LeftHandSideMatrix, CurrentAccelerationVector );
+      
+    }
+
+
+    KRATOS_CATCH( "" )   
 }
 
 

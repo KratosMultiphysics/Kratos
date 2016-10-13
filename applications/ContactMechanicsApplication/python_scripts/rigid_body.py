@@ -74,9 +74,9 @@ class RigidBody(object):
             }],
             "velocity" : [0.0, 0.0, 0.0]
         }
-        """))
+        """)
 
-        box_parameters = box_settings[parameters_list][0]
+        box_parameters = box_settings["parameters_list"][0]
         
         upper_point = self.GetUpperPoint(self.rigid_body_model_part)
         counter = 0

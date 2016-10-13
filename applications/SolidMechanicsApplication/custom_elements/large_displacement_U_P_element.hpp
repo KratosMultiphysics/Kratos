@@ -221,6 +221,24 @@ protected:
                                     double& rIntegrationWeight);
 
     /**
+     * Calculation and addition of the matrices of the LHS
+     */
+
+    virtual void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, 
+					   GeneralVariables& rVariables, 
+					   ProcessInfo& rCurrentProcessInfo, 
+					   double& rIntegrationWeight);
+
+    /**
+     * Calculation and addition of the vectors of the RHS
+     */
+
+    virtual void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, 
+					   GeneralVariables& rVariables, 
+					   ProcessInfo& rCurrentProcessInfo, 
+					   double& rIntegrationWeight);
+    
+    /**
      * Calculation of the Material Stiffness Matrix. Kuum = BT * D * B
      */
     virtual void CalculateAndAddKuum(MatrixType& rK,

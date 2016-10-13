@@ -76,8 +76,8 @@ public:
 
 private:
 
-    // //************************************************************************************
-    // //************************************************************************************
+    //************************************************************************************
+    //************************************************************************************
 
     void CalculateRigidBodyParameters(ModelPart& rModelPart, Vector& rCenterOfGravity, Matrix& rInertiaTensor, Matrix& rLocalAxesMatrix, double& rMass, unsigned int& MeshId)
     {
@@ -301,11 +301,12 @@ private:
 	{
   
 	  if(i_mp->Is(BOUNDARY)){
+	    std::cout<<" boundary model part "<<i_mp->Name()<<std::endl;
 	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin(); i_node!= i_mp->NodesEnd(); i_node++)
 	      {
 		if( i_node->Id() == RigidBodyNodeId ){
 		  i_mp->AddNode(NodeCenterOfGravity);
-		  break;
+		  std::cout<<" node set "<<std::endl;
 		}
 	      }
 	  }
@@ -361,7 +362,19 @@ private:
       // rRigidBodyModelPart.CreateNewElement(ElementName,LastElementId, NodeIds, pProperties);
 
       rRigidBodyModelPart.AddElement(pRigidBodyElement);
+      rRigidBodyModelPart.AddNode(NodeCenterOfGravity);
 
+      //add rigid body element to computing model part:
+      std::string ComputingModelPartName;
+      for(ModelPart::SubModelPartIterator i_mp= rMainModelPart.SubModelPartsBegin() ; i_mp!=rMainModelPart.SubModelPartsEnd(); i_mp++)
+	{
+	  if( (i_mp->Is(ACTIVE)) ){ //computing_domain
+	    pRigidBodyElement->Set(ACTIVE,true);
+	    rMainModelPart.GetSubModelPart(i_mp->Name()).AddElement(pRigidBodyElement);
+	    rMainModelPart.GetSubModelPart(i_mp->Name()).AddNode(NodeCenterOfGravity);
+	  }
+	}
+      
       std::cout<<"  [ "<<ElementName<<" Created : [NodeId:"<<LastNodeId<<"] [ElementId:"<<LastElementId<<"] CG("<<NodeCenterOfGravity->X()<<","<<NodeCenterOfGravity->Y()<<","<<NodeCenterOfGravity->Z()<<") ]"<<std::endl;
 
 

@@ -812,47 +812,50 @@ void LargeDisplacementElement::PrintElementCalculation(LocalSystemComponents& rL
 
 void LargeDisplacementElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
+    KRATOS_TRY
+      
+    //contributions of the stiffness matrix calculated on the reference configuration
+    if( rLocalSystem.CalculationFlags.Is( LargeDisplacementElement::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+      {
+	std::vector<MatrixType>& rLeftHandSideMatrices = rLocalSystem.GetLeftHandSideMatrices();
+	const std::vector< Variable< MatrixType > >& rLeftHandSideVariables = rLocalSystem.GetLeftHandSideVariables();
 
-  //contributions of the stiffness matrix calculated on the reference configuration
-  if( rLocalSystem.CalculationFlags.Is( LargeDisplacementElement::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
-    {
-      std::vector<MatrixType>& rLeftHandSideMatrices = rLocalSystem.GetLeftHandSideMatrices();
-      const std::vector< Variable< MatrixType > >& rLeftHandSideVariables = rLocalSystem.GetLeftHandSideVariables();
-
-      for( unsigned int i=0; i<rLeftHandSideVariables.size(); i++ )
-	{
-	  bool calculated = false;
-	  if( rLeftHandSideVariables[i] == MATERIAL_STIFFNESS_MATRIX ){
-	    // operation performed: add Km to the rLefsHandSideMatrix
-	    this->CalculateAndAddKuum( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight );
-	    calculated = true;
-	  }
+	for( unsigned int i=0; i<rLeftHandSideVariables.size(); i++ )
+	  {
+	    bool calculated = false;
+	    if( rLeftHandSideVariables[i] == MATERIAL_STIFFNESS_MATRIX ){
+	      // operation performed: add Km to the rLefsHandSideMatrix
+	      this->CalculateAndAddKuum( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight );
+	      calculated = true;
+	    }
 	  
-	  if( rLeftHandSideVariables[i] == GEOMETRIC_STIFFNESS_MATRIX ){
-	    // operation performed: add Kg to the rLefsHandSideMatrix
-	    this->CalculateAndAddKuug( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight );
-	    calculated = true;
-	  }
-
-	  if(calculated == false)
-	    {
-	      KRATOS_THROW_ERROR(std::logic_error, " ELEMENT can not supply the required local system variable: ",rLeftHandSideVariables[i])
+	    if( rLeftHandSideVariables[i] == GEOMETRIC_STIFFNESS_MATRIX ){
+	      // operation performed: add Kg to the rLefsHandSideMatrix
+	      this->CalculateAndAddKuug( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight );
+	      calculated = true;
 	    }
 
-	}
-    } 
-  else{
+	    if(calculated == false)
+	      {
+		KRATOS_THROW_ERROR(std::logic_error, " ELEMENT can not supply the required local system variable: ",rLeftHandSideVariables[i])
+		  }
+
+	  }
+      } 
+    else{
     
-    MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix(); 
+      MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix(); 
 
-    // operation performed: add Km to the rLefsHandSideMatrix
-    this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+      // operation performed: add Km to the rLefsHandSideMatrix
+      this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
-    // operation performed: add Kg to the rLefsHandSideMatrix
-    this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-  }
+      // operation performed: add Kg to the rLefsHandSideMatrix
+      this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    }
 
     //KRATOS_WATCH( rLeftHandSideMatrix )
+  
+    KRATOS_CATCH( "" )  
 }
 
 
@@ -861,7 +864,8 @@ void LargeDisplacementElement::CalculateAndAddLHS(LocalSystemComponents& rLocalS
 
 void LargeDisplacementElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
-
+    KRATOS_TRY
+      
     //contribution of the internal and external forces
     if( rLocalSystem.CalculationFlags.Is( LargeDisplacementElement::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
     {
@@ -902,7 +906,8 @@ void LargeDisplacementElement::CalculateAndAddRHS(LocalSystemComponents& rLocalS
 
       //KRATOS_WATCH( rRightHandSideVector )
     }
-
+    
+    KRATOS_CATCH( "" )
 }
 
 
@@ -911,7 +916,8 @@ void LargeDisplacementElement::CalculateAndAddRHS(LocalSystemComponents& rLocalS
 
 void LargeDisplacementElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
 {
-
+  KRATOS_TRY
+    
   //mass matrix
   const unsigned int number_of_nodes = GetGeometry().PointsNumber();
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -950,8 +956,9 @@ void LargeDisplacementElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSi
       indexi += dimension;
     }
 
-
   //KRATOS_WATCH( rLeftHandSideMatrix )
+  
+  KRATOS_CATCH( "" )
 }
 
 
@@ -960,7 +967,60 @@ void LargeDisplacementElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSi
 
 void LargeDisplacementElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
 {
+  KRATOS_TRY
+      
+  //mass matrix
+  const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+  const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+  unsigned int MatSize = dimension * number_of_nodes;
 
+  MatrixType MassMatrix   = ZeroMatrix( MatSize, MatSize );
+  
+  //compute point volume change
+  double PointVolumeChange = 0;
+  PointVolumeChange = this->CalculateVolumeChange( PointVolumeChange, rVariables );
+      
+  double CurrentDensity = PointVolumeChange * GetProperties()[DENSITY];
+
+  //acceleration vector
+  Vector CurrentAccelerationVector   = ZeroVector( MatSize );
+  this->GetSecondDerivativesVector(CurrentAccelerationVector, 0);
+  
+  double AlphaM = 0.0;
+  if( rCurrentProcessInfo.Has(BOSSAK_ALPHA) ){
+    AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
+    Vector PreviousAccelerationVector  = ZeroVector( MatSize );
+    this->GetSecondDerivativesVector(PreviousAccelerationVector, 1);
+    CurrentAccelerationVector *= (1.0-AlphaM);
+    CurrentAccelerationVector +=  AlphaM * (PreviousAccelerationVector);
+  }
+   
+  unsigned int indexi = 0;
+  unsigned int indexj = 0;
+
+  for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+      for ( unsigned int k = 0; k < dimension; k++ )
+	{	  
+	  indexj = 0;
+	  for ( unsigned int j = 0; j < number_of_nodes; j++ )
+	    {
+	      
+	      MassMatrix(indexi+k,indexj+k) += rVariables.N[i] * rVariables.N[j] * CurrentDensity * rIntegrationWeight;
+	      indexj += dimension;
+	    }
+
+	}
+      
+      indexi += dimension;
+    }
+
+
+  rRightHandSideVector = prod( MassMatrix, CurrentAccelerationVector );
+  
+  //KRATOS_WATCH( rRightHandSideVector )
+  
+  KRATOS_CATCH( "" )    
 }
 
 
@@ -969,12 +1029,16 @@ void LargeDisplacementElement::CalculateAndAddDynamicRHS(VectorType& rRightHandS
 
 double& LargeDisplacementElement::CalculateIntegrationWeight(double& rIntegrationWeight)
 {
+    KRATOS_TRY
+      
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     if( dimension == 2 )
         rIntegrationWeight *= GetProperties()[THICKNESS];
 
     return rIntegrationWeight;
+
+    KRATOS_CATCH( "" )
 }
 
 
@@ -983,6 +1047,8 @@ double& LargeDisplacementElement::CalculateIntegrationWeight(double& rIntegratio
 
 void LargeDisplacementElement::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
+    KRATOS_TRY
+      
     //create local system components
     LocalSystemComponents LocalSystem;
 
@@ -1000,6 +1066,8 @@ void LargeDisplacementElement::CalculateRightHandSide( VectorType& rRightHandSid
 
     //Calculate elemental system
     this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
@@ -1008,6 +1076,8 @@ void LargeDisplacementElement::CalculateRightHandSide( VectorType& rRightHandSid
 
 void LargeDisplacementElement::CalculateRightHandSide( std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables, ProcessInfo& rCurrentProcessInfo )
 {
+    KRATOS_TRY
+  
     //create local system components
     LocalSystemComponents LocalSystem;
 
@@ -1034,6 +1104,8 @@ void LargeDisplacementElement::CalculateRightHandSide( std::vector< VectorType >
 
     //Calculate elemental system
     this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+
+    KRATOS_CATCH( "" )
 }
 
 
@@ -1043,6 +1115,8 @@ void LargeDisplacementElement::CalculateRightHandSide( std::vector< VectorType >
 
 void LargeDisplacementElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
 {
+    KRATOS_TRY
+      
     //create local system components
     LocalSystemComponents LocalSystem;
 
@@ -1061,6 +1135,7 @@ void LargeDisplacementElement::CalculateLeftHandSide( MatrixType& rLeftHandSideM
     //Calculate elemental system
     this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 
+    KRATOS_CATCH( "" )
 }
 
 
@@ -1069,6 +1144,8 @@ void LargeDisplacementElement::CalculateLeftHandSide( MatrixType& rLeftHandSideM
 
 void LargeDisplacementElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
+    KRATOS_TRY
+      
     //create local system components
     LocalSystemComponents LocalSystem;
 
@@ -1102,6 +1179,7 @@ void LargeDisplacementElement::CalculateLocalSystem( MatrixType& rLeftHandSideMa
 
     }
 
+    KRATOS_CATCH( "" )
 }
 
 
@@ -1111,6 +1189,8 @@ void LargeDisplacementElement::CalculateLocalSystem( MatrixType& rLeftHandSideMa
 
 void LargeDisplacementElement::CalculatePerturbedLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
 {
+    KRATOS_TRY
+      
     //create local system components
     LocalSystemComponents LocalSystem;
 
@@ -1166,6 +1246,7 @@ void LargeDisplacementElement::CalculatePerturbedLeftHandSide( MatrixType& rLeft
 	value = original;
       }
 
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
@@ -1177,6 +1258,8 @@ void LargeDisplacementElement::CalculateLocalSystem( std::vector< MatrixType >& 
 						     const std::vector< Variable< VectorType > >& rRHSVariables,
 						     ProcessInfo& rCurrentProcessInfo )
 {
+    KRATOS_TRY
+      
     //create local system components
     LocalSystemComponents LocalSystem;
 
@@ -1220,6 +1303,7 @@ void LargeDisplacementElement::CalculateLocalSystem( std::vector< MatrixType >& 
     //Calculate elemental system
     this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 
+    KRATOS_CATCH( "" )
 }
 
 
@@ -1228,6 +1312,8 @@ void LargeDisplacementElement::CalculateLocalSystem( std::vector< MatrixType >& 
 
 void LargeDisplacementElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
+    KRATOS_TRY
+      
     ClearNodalForces();
 
     for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
@@ -1238,6 +1324,7 @@ void LargeDisplacementElement::InitializeSolutionStep( ProcessInfo& rCurrentProc
 
     mFinalizedStep = false;
 
+    KRATOS_CATCH( "" )
 }
 
 
@@ -1832,6 +1919,218 @@ Vector& LargeDisplacementElement::CalculateVolumeForce( Vector& rVolumeForce, Ge
     KRATOS_CATCH( "" )
 }
 
+//************************************************************************************
+//************************************************************************************
+
+void LargeDisplacementElement::CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    //1.-Calculate Tangent Inertia Matrix:
+    this->CalculateDampingMatrix( rLeftHandSideMatrix, rCurrentProcessInfo );
+
+    double MatSize = rLeftHandSideMatrix.size1();
+
+    //2.-Calculate Inertial Forces:
+    if ( rRightHandSideVector.size() != MatSize )
+      rRightHandSideVector.resize( MatSize, false );
+      
+    rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
+
+    //acceleration vector
+    Vector CurrentVelocityVector   = ZeroVector( MatSize );
+    this->GetFirstDerivativesVector(CurrentVelocityVector, 0);
+      
+    rRightHandSideVector = prod( rLeftHandSideMatrix, CurrentVelocityVector );
+      
+
+    KRATOS_CATCH( "" )
+}
+  
+//************************************************************************************
+//************************************************************************************
+
+void LargeDisplacementElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+
+    bool ComputeDynamicTangent = false;
+    if( rCurrentProcessInfo.Has(COMPUTE_DYNAMIC_TANGENT) ){
+
+      if(rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true){
+	ComputeDynamicTangent = true;
+      }
+    }
+
+    if( ComputeDynamicTangent == true ){
+
+      //create local system components
+      LocalSystemComponents LocalSystem;
+
+      //calculation flags 
+      LocalSystem.CalculationFlags.Set(LargeDisplacementElement::COMPUTE_RHS_VECTOR);
+      LocalSystem.CalculationFlags.Set(LargeDisplacementElement::COMPUTE_LHS_MATRIX);
+    
+      //Initialize sizes for the system components:
+      this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
+
+      //Set Variables to Local system components
+      LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
+      LocalSystem.SetRightHandSideVector(rRightHandSideVector);
+	
+      //Calculate elemental system
+      CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );
+
+    }
+    else{
+
+      //1.-Calculate Tangent Inertia Matrix:
+      this->CalculateMassMatrix( rLeftHandSideMatrix, rCurrentProcessInfo );
+
+      double MatSize = rLeftHandSideMatrix.size1();
+
+      //2.-Calculate Inertial Forces:
+      if ( rRightHandSideVector.size() != MatSize )
+	rRightHandSideVector.resize( MatSize, false );
+      
+      rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
+
+      //acceleration vector
+      Vector CurrentAccelerationVector   = ZeroVector( MatSize );
+      this->GetSecondDerivativesVector(CurrentAccelerationVector, 0);
+      
+      double AlphaM = 0.0;
+      if( rCurrentProcessInfo.Has(BOSSAK_ALPHA) ){
+	AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
+	Vector PreviousAccelerationVector  = ZeroVector( MatSize );
+	this->GetSecondDerivativesVector(PreviousAccelerationVector, 1);
+	CurrentAccelerationVector *= (1.0-AlphaM);
+	CurrentAccelerationVector +=  AlphaM * (PreviousAccelerationVector);
+      }
+
+      rRightHandSideVector = prod( rLeftHandSideMatrix, CurrentAccelerationVector );
+      
+    }
+
+
+    KRATOS_CATCH( "" )
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+void LargeDisplacementElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+      
+    bool ComputeDynamicTangent = false;
+    if( rCurrentProcessInfo.Has(COMPUTE_DYNAMIC_TANGENT) )
+      if(rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true)
+	ComputeDynamicTangent = true;
+    
+    if( ComputeDynamicTangent == true ){
+
+      //create local system components
+      LocalSystemComponents LocalSystem;
+
+      //calculation flags   
+      LocalSystem.CalculationFlags.Set(LargeDisplacementElement::COMPUTE_LHS_MATRIX);
+
+      VectorType RightHandSideVector = Vector();
+
+      //Initialize sizes for the system components:
+      this->InitializeSystemMatrices( rLeftHandSideMatrix, RightHandSideVector,  LocalSystem.CalculationFlags );
+	
+      //Set Variables to Local system components
+      LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
+      LocalSystem.SetRightHandSideVector(RightHandSideVector);
+	
+      //Calculate elemental system
+      CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );    
+
+    }
+    else{
+
+      //1.-Calculate Tangent Inertia Matrix:
+      this->CalculateMassMatrix( rLeftHandSideMatrix, rCurrentProcessInfo );
+
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LargeDisplacementElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    bool ComputeDynamicTangent = false;
+    if( rCurrentProcessInfo.Has(COMPUTE_DYNAMIC_TANGENT) )
+      if(rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true)
+	ComputeDynamicTangent = true;
+    
+    if( ComputeDynamicTangent == true ){
+
+      //create local system components
+      LocalSystemComponents LocalSystem;
+
+      //calculation flags
+      LocalSystem.CalculationFlags.Set(LargeDisplacementElement::COMPUTE_RHS_VECTOR);
+
+      MatrixType LeftHandSideMatrix = Matrix();
+
+      //Initialize sizes for the system components:
+      this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
+
+      //Set Variables to Local system components
+      LocalSystem.SetLeftHandSideMatrix(LeftHandSideMatrix);
+      LocalSystem.SetRightHandSideVector(rRightHandSideVector);
+
+      //Calculate elemental system
+      CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );
+ 
+    }
+    else{
+
+      MatrixType LeftHandSideMatrix = Matrix();
+
+      //1.-Calculate Tangent Inertia Matrix:
+      this->CalculateMassMatrix( LeftHandSideMatrix, rCurrentProcessInfo );
+
+      double MatSize = LeftHandSideMatrix.size1();
+
+      //2.-Calculate Inertial Forces:
+      if ( rRightHandSideVector.size() != MatSize )
+	rRightHandSideVector.resize( MatSize, false );
+      
+      rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
+      
+      //acceleration vector
+      Vector CurrentAccelerationVector   = ZeroVector( MatSize );
+      this->GetSecondDerivativesVector(CurrentAccelerationVector, 0);
+      
+      double AlphaM = 0.0;
+      if( rCurrentProcessInfo.Has(BOSSAK_ALPHA) ){
+	AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
+	Vector PreviousAccelerationVector  = ZeroVector( MatSize );
+	this->GetSecondDerivativesVector(PreviousAccelerationVector, 1);
+	CurrentAccelerationVector *= (1.0-AlphaM);
+	CurrentAccelerationVector +=  AlphaM * (PreviousAccelerationVector);
+      }
+      
+      rRightHandSideVector = prod( LeftHandSideMatrix, CurrentAccelerationVector );
+      
+    }
+
+
+    KRATOS_CATCH( "" )   
+}
+
+  
 //************************************************************************************
 //************************************************************************************
 

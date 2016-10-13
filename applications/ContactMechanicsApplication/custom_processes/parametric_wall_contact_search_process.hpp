@@ -108,8 +108,8 @@ namespace Kratos
       Parameters DefaultParameters( R"(
             {
                    "contact_condition_type": "PointContactCondition2D1N",
-                   "friction_law_type": "FrictionLaw",
                    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
+                   "friction_law_type": "FrictionLaw",
                    "variables_of_properties":{
                      "FRICTION_ACTIVE": false,
                      "MU_STATIC": 0.3,
@@ -128,7 +128,7 @@ namespace Kratos
       //create condition prototype:
       mpConditionType = CreateConditionPrototype( CustomParameters );
 
-      std::cout<<" ConditionPointer "<<*mpConditionType<<std::endl;
+      //std::cout<<" ConditionPointer "<<*mpConditionType<<std::endl;
 
       if(mpConditionType == NULL)
 	std::cout<<" ERROR:: PROTOTYPE CONTACT WALL CONDITION NOT DEFINED PROPERLY "<<std::endl;

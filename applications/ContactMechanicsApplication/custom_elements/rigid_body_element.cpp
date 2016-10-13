@@ -567,8 +567,9 @@ void RigidBodyElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSyst
     GeneralVariables Variables;
     this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
 
-    // std::cout<<" Displacement "<<GetGeometry()[0].FastGetSolutionStepValue( DISPLACEMENT )<<std::endl;
-    // std::cout<<" Rotation     "<<GetGeometry()[0].FastGetSolutionStepValue( ROTATION )<<std::endl;
+    std::cout<<" ID "<<this->Id()<<std::endl;
+    std::cout<<" Displacement "<<GetGeometry()[0].FastGetSolutionStepValue( DISPLACEMENT )<<std::endl;
+    std::cout<<" Rotation     "<<GetGeometry()[0].FastGetSolutionStepValue( ROTATION )<<std::endl;
 
     //Compute Rigid Body Properties:
     this->CalculateRigidBodyProperties(Variables.RigidBody);
@@ -683,8 +684,8 @@ void RigidBodyElement::CalculateAndAddExternalForces(VectorType& rRightHandSideV
     
     }
 
-    // std::cout<<" Rigid Element Gravity "<<GravityLoad<<std::endl;
-    // std::cout<<" rRightHandSideVector "<<rRightHandSideVector<<std::endl;
+    std::cout<<" Rigid Element Gravity "<<GravityLoad<<std::endl;
+    std::cout<<" rRightHandSideVector "<<rRightHandSideVector<<std::endl;
 
     KRATOS_CATCH( "" )
 
@@ -1561,22 +1562,28 @@ void RigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
  
      array_1d<double,3> Radius;
 
-     Node<3>& rCenterOfGravity = this->GetGeometry()[0];
-
-     array_1d<double, 3 >&  Center              = rCenterOfGravity.GetInitialPosition();
-     array_1d<double, 3 >&  Displacement        = rCenterOfGravity.FastGetSolutionStepValue(DISPLACEMENT);
-     array_1d<double, 3 >&  Rotation            = rCenterOfGravity.FastGetSolutionStepValue(ROTATION);
-     array_1d<double, 3 >&  StepRotation        = rCenterOfGravity.FastGetSolutionStepValue(STEP_ROTATION);
-     array_1d<double, 3 >&  DeltaRotation       = rCenterOfGravity.FastGetSolutionStepValue(DELTA_ROTATION);
+     Node<3>::Pointer rCenterOfGravity = this->GetGeometry()(0);
      
-     array_1d<double, 3 >&  Velocity            = rCenterOfGravity.FastGetSolutionStepValue(VELOCITY);
-     array_1d<double, 3 >&  Acceleration        = rCenterOfGravity.FastGetSolutionStepValue(ACCELERATION);
-     array_1d<double, 3 >&  AngularVelocity     = rCenterOfGravity.FastGetSolutionStepValue(ANGULAR_VELOCITY);
-     array_1d<double, 3 >&  AngularAcceleration = rCenterOfGravity.FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+     if( rCenterOfGravity->Is(SLAVE) ){
+       Element& MasterElement = this->GetGeometry()[0].GetValue(MASTER_ELEMENTS).back();
+       rCenterOfGravity = MasterElement.GetGeometry()(0); 
+     }
+
+     array_1d<double, 3 >&  Center              = rCenterOfGravity->GetInitialPosition();
+     
+     array_1d<double, 3 >&  Displacement        = rCenterOfGravity->FastGetSolutionStepValue(DISPLACEMENT);
+     array_1d<double, 3 >&  Rotation            = rCenterOfGravity->FastGetSolutionStepValue(ROTATION);
+     array_1d<double, 3 >&  StepRotation        = rCenterOfGravity->FastGetSolutionStepValue(STEP_ROTATION);
+     array_1d<double, 3 >&  DeltaRotation       = rCenterOfGravity->FastGetSolutionStepValue(DELTA_ROTATION);
+     
+     array_1d<double, 3 >&  Velocity            = rCenterOfGravity->FastGetSolutionStepValue(VELOCITY);
+     array_1d<double, 3 >&  Acceleration        = rCenterOfGravity->FastGetSolutionStepValue(ACCELERATION);
+     array_1d<double, 3 >&  AngularVelocity     = rCenterOfGravity->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+     array_1d<double, 3 >&  AngularAcceleration = rCenterOfGravity->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
      
      //std::cout<<" [  MasterElement "<<this->Id() ];
      //std::cout<<" [ Rotation:"<<Rotation<<",StepRotation:"<<StepRotation<<",DeltaRotation:"<<DeltaRotation<<"]"<<std::endl;
-     //std::cout<<" [ Velocity:"<<Velocity<<",Acceleration:"<<Acceleration<<",Displacement:"<<Displacement<<",DeltaDisplacement"<<Displacement-rCenterOfGravity.FastGetSolutionStepValue(DISPLACEMENT,1)<<"]"<<std::endl;
+     //std::cout<<" [ Velocity:"<<Velocity<<",Acceleration:"<<Acceleration<<",Displacement:"<<Displacement<<",DeltaDisplacement"<<Displacement-rCenterOfGravity->FastGetSolutionStepValue(DISPLACEMENT,1)<<"]"<<std::endl;
      
      for (NodesContainerType::iterator i = mpNodes->begin(); i != mpNodes->end(); ++i)
        {	

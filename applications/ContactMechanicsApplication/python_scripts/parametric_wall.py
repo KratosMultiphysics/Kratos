@@ -54,7 +54,6 @@ class ParametricWall(object):
                "contact_parameters":{
                    "contact_condition_type": "PointContactCondition2D1N",
                    "friction_law_type": "FrictionLaw",
-                   "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
                    "variables_of_properties":{
                      "FRICTION_ACTIVE": false,
                      "MU_STATIC": 0.3,
@@ -148,6 +147,8 @@ class ParametricWall(object):
         smodule_name = (search_module.split("."))[-1]
         SearchProcess = getattr(getattr(smodule, smodule_name), search_type_name)
 
+        print("::[Parametric_Wall]:: Contact Model Part",self.contact_model_part_name)
+        
         self.SearchStrategy = SearchProcess(self.main_model_part, self.contact_model_part_name, self.wall_bounding_box, self.settings["contact_search_settings"]["contact_parameters"])
 
         print("::[Parametric_Wall]:: -BUILT-")
