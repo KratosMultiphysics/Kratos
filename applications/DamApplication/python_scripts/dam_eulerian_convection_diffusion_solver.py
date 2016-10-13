@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 #importing the Kratos Library
 import KratosMultiphysics 
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
+import KratosMultiphysics.DamApplication as KratosDam
 #check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
@@ -198,9 +199,11 @@ class DamThermalSolver:
         pDiagPrecond = KratosMultiphysics.DiagonalPreconditioner()
         self.linear_solver = KratosMultiphysics.BICGSTABSolver(1e-9, 5000, pDiagPrecond)
         
+        parameters = self.settings        
            
-        self.solver = KratosConvDiff.ResidualBasedEulerianConvectionDiffusionStrategy(self.main_model_part,
+        self.solver = KratosDam.DamEulerianConvectionDiffusionStrategy(self.main_model_part,
                                                                                 self.linear_solver,
+                                                                                parameters,
                                                                                 self.ReformDofAtEachIteration,
                                                                                 domain_size)
         return self.solver
