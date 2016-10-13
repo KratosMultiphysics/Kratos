@@ -102,24 +102,27 @@ ModelPart::ModelPart(ModelPart const& rOther)
 /// Destructor.
 ModelPart::~ModelPart()
 {
-    for (NodeIterator i_node = NodesBegin(); i_node != NodesEnd(); i_node++)
-    {
-        if (i_node->pGetVariablesList() == mpVariablesList)
-            i_node->ClearSolutionStepsData();
-    }
-
-    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-        delete i_sub_model_part.base()->second;
-
-                mpCommunicator->Clear();
-
-                for(auto i_mesh = mMeshes.begin() ; i_mesh != mMeshes.end() ; i_mesh++)
-                    i_mesh->Clear();
-
-
-		if (!IsSubModelPart())
-			delete mpVariablesList;
+    if (!IsSubModelPart()){
+      
+      for (NodeIterator i_node = NodesBegin(); i_node != NodesEnd(); i_node++)
+	{
+	  if (i_node->pGetVariablesList() == mpVariablesList)
+	    i_node->ClearSolutionStepsData();
 	}
+    }
+      
+    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
+      delete i_sub_model_part.base()->second;
+
+    mpCommunicator->Clear();
+
+    for(auto i_mesh = mMeshes.begin() ; i_mesh != mMeshes.end() ; i_mesh++)
+      i_mesh->Clear();
+    
+
+    if (!IsSubModelPart())
+      delete mpVariablesList;
+}
 
 
 /// Assignment operator.
@@ -1166,7 +1169,7 @@ void  ModelPart::RemoveSubModelPart(std::string const& ThisSubModelPartName)
 
     // deallocate the sub model part
     delete i_sub_model_part.base()->second;
-
+   
     // now erase the pointer from the list
     mSubModelParts.erase(ThisSubModelPartName);
 }
@@ -1185,7 +1188,7 @@ void  ModelPart::RemoveSubModelPart(ModelPart& ThisSubModelPart)
 
         // deallocate the sub model part
         delete i_sub_model_part.base()->second;
-
+    
     mSubModelParts.erase(name);
 }
 
@@ -1196,7 +1199,7 @@ void ModelPart::SetBufferSize(ModelPart::IndexType NewBufferSize)
         //	KRATOS_ERROR << "Calling the SetBufferSize method of the sub model part " << Name()
         //	<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
 
-        for(SubModelPartIterator i_sub_model_part = mSubModelParts.begin(); i_sub_model_part != mSubModelParts.end(); i_sub_model_part++)
+    for(SubModelPartIterator i_sub_model_part = mSubModelParts.begin(); i_sub_model_part != mSubModelParts.end(); i_sub_model_part++)
         {
             i_sub_model_part->mBufferSize = NewBufferSize;
         }

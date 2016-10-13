@@ -1194,6 +1194,51 @@ void LargeDisplacementUPElement::CalculateDampingMatrix( MatrixType& rDampingMat
     KRATOS_CATCH( "" )
 }
 
+//************************************************************************************
+//************************************************************************************
+
+void LargeDisplacementUPElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+{
+  KRATOS_TRY
+    
+  this->CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
+
+  //KRATOS_WATCH( rLeftHandSideMatrix )
+  
+  KRATOS_CATCH( "" )
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+void LargeDisplacementUPElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+{
+  KRATOS_TRY
+      
+  //mass matrix
+  MatrixType LeftHandSideMatrix = Matrix();
+  this->CalculateMassMatrix(LeftHandSideMatrix, rCurrentProcessInfo);
+
+  //acceleration vector
+  Vector CurrentAccelerationVector = ZeroVector( LeftHandSideMatrix.size1() );
+  this->GetSecondDerivativesVector(CurrentAccelerationVector, 0);
+  
+  double AlphaM = 0.0;
+  if( rCurrentProcessInfo.Has(BOSSAK_ALPHA) ){
+    AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
+    Vector PreviousAccelerationVector  = ZeroVector( LeftHandSideMatrix.size1() );
+    this->GetSecondDerivativesVector(PreviousAccelerationVector, 1);
+    CurrentAccelerationVector *= (1.0-AlphaM);
+    CurrentAccelerationVector +=  AlphaM * (PreviousAccelerationVector);
+  }
+   
+  rRightHandSideVector = prod( LeftHandSideMatrix, CurrentAccelerationVector );
+  
+  //KRATOS_WATCH( rRightHandSideVector )
+  
+  KRATOS_CATCH( "" )    
+}
 
 //************************************************************************************
 //************************************************************************************

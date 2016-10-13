@@ -178,7 +178,7 @@ class MechanicalSolver(object):
             constitutive_law.Initialize();
             print("    Constitutive law initialized.")
 
-
+            # Set buffer size
             self.main_model_part.SetBufferSize( self.settings["buffer_size"].GetInt() )
         
             current_buffer_size = self.main_model_part.GetBufferSize()
@@ -186,8 +186,8 @@ class MechanicalSolver(object):
                 current_buffer_size = self.GetMinimumBufferSize()
 
             self.main_model_part.SetBufferSize( current_buffer_size )
-
-            #fill buffer
+            
+            # Fill buffer
             delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
             time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
             time = time - delta_time * (current_buffer_size)

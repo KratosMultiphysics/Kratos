@@ -123,7 +123,8 @@ else:
 ## Get the list of the submodel part in the object Model
 for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
     part_name = ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
-    Model.update({part_name: main_model_part.GetSubModelPart(part_name)})
+    if( main_model_part.HasSubModelPart(part_name) ):
+        Model.update({part_name: main_model_part.GetSubModelPart(part_name)})
 
 #### Model_part settings end ####
 

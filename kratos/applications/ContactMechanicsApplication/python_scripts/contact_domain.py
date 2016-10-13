@@ -40,8 +40,8 @@ class ContactDomain(meshing_domain.MeshingDomain):
                "constrained": false,
                "contact_parameters":{
                    "contact_condition_type": "ContactDomainLM2DCondition",
-                   "friction_law_type": "FrictionLaw",
                    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
+                   "friction_law_type": "FrictionLaw",
                    "variables_of_properties":{
                        "FRICTION_ACTIVE": false,
                        "MU_STATIC": 0.3,

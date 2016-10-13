@@ -48,42 +48,14 @@ class RigidBodiesProcess(KratosMultiphysics.Process):
     #
     def ExecuteInitialize(self):
 
-        # check restart
-        self.restart = False
-        if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] ):
-            self.restart = True
-
-            # execute initialize base class
-        if( self.main_model_part.ProcessInfo[KratosPfemBase.INITIALIZED_DOMAINS] == False ):
-            self.InitializeDomains()
+        # initialize rigid body domains
+        print("::[RigidBodies_Process]:: Initialize Domains ")
+        import domain_utilities
+        domain_utils = domain_utilities.DomainUtilities()
+        domain_utils.InitializeDomains(self.main_model_part,self.echo_level)
 
         for body in self.rigid_bodies:
             body.Initialize();
-
-
-    #
-    def InitializeDomains(self):
-
-        # initialize the modeler 
-        print("::[RigidBodies_Process]:: Initialize Domains ")
-
-        #TODO: customize it for RIGID BODIES:
-        
-        import domain_utilities
-        domain_utils = domain_utilities.DomainUtilities()
-        
-        # find node neighbours
-        domain_utils.SearchNodeNeighbours(self.main_model_part, self.echo_level)
-            
-        # find element neighbours
-        domain_utils.SearchElementNeighbours(self.main_model_part, self.echo_level)
-            
-        # set neighbour search performed
-        neighbour_search_performed = True
-               
-        self.main_model_part.ProcessInfo.SetValue(KratosPfemBase.INITIALIZED_DOMAINS, True)
-
-        print(self.main_model_part)
 
     ###
 

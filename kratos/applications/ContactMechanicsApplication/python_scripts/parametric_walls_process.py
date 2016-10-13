@@ -79,35 +79,14 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
             else:
                 self.next_search = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
 
-        # execute initialize base class
-        if( self.main_model_part.ProcessInfo[KratosPfemBase.INITIALIZED_DOMAINS] == False ):
-            self.InitializeDomains()
+        # initialize wall domains
+        print("::[Walls_Process]:: Initialize Domains ")
+        import domain_utilities
+        domain_utils = domain_utilities.DomainUtilities()
+        domain_utils.InitializeDomains(self.main_model_part,self.echo_level)
 
         for wall in self.parametric_walls:
             wall.Initialize();
-
-
-    #
-    def InitializeDomains(self):
-
-        # initialize the modeler 
-        print("::[Walls_Process]:: Initialize Domains ")
-            
-        import domain_utilities
-        domain_utils = domain_utilities.DomainUtilities()
-        
-        # find node neighbours
-        domain_utils.SearchNodeNeighbours(self.main_model_part, self.echo_level)
-            
-        # find element neighbours
-        domain_utils.SearchElementNeighbours(self.main_model_part, self.echo_level)
-            
-        # set neighbour search performed
-        neighbour_search_performed = True
-               
-        self.main_model_part.ProcessInfo.SetValue(KratosPfemBase.INITIALIZED_DOMAINS, True)
-
-        print(self.main_model_part)
 
     ###
 

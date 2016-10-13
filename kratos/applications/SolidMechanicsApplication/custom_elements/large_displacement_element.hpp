@@ -475,6 +475,47 @@ public:
 				ProcessInfo& rCurrentProcessInfo);
 
     /**
+     * this is called during the assembling process in order
+     * to calculate the first derivatives contributions for the LHS and RHS
+     * @param rLeftHandSideMatrix: the elemental left hand side matrix
+     * @param rRightHandSideVector: the elemental right hand side
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+						VectorType& rRightHandSideVector,
+						ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate the second derivatives contributions for the LHS and RHS 
+     * @param rLeftHandSideMatrix: the elemental left hand side matrix
+     * @param rRightHandSideVector: the elemental right hand side
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+						VectorType& rRightHandSideVector,
+						ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate the elemental left hand side matrix for the second derivatives constributions
+     * @param rLeftHandSideMatrix: the elemental left hand side matrix
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+				       ProcessInfo& rCurrentProcessInfo);
+
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate the elemental right hand side vector for the second derivatives constributions
+     * @param rRightHandSideVector: the elemental right hand side vector
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
+				       ProcessInfo& rCurrentProcessInfo);
+
+    /**
       * this is called during the assembling process in order
       * to calculate the elemental mass matrix
       * @param rMassMatrix: the elemental mass matrix

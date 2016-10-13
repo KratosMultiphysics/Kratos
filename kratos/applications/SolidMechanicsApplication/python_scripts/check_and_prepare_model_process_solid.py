@@ -36,7 +36,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                 self.main_model_part.CreateSubModelPart(body_model_part_name)
                 body_model_part = self.main_model_part.GetSubModelPart(body_model_part_name)
                 
-                print("[Model_Prepare]::Body Creation", body_model_part_name)
+                print("::[Model_Prepare]::Body Created :", body_model_part_name)
                 body_model_part.ProcessInfo = self.main_model_part.ProcessInfo
                 body_model_part.Properties  = self.main_model_part.Properties
 
@@ -120,15 +120,17 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                 computing_model_part.AddCondition(cond,0)
 
 
-        #delete body parts:
-        #if( self.bodies_list == True ):
-        #    for i in range(self.bodies_parts_list.size()):
-        #        #get body parts
-        #        body_parts_name_list = self.bodies_parts_list[i]["parts_list"]
-        #        for j in range(body_parts_name_list.size()):
-        #            self.main_model_part.RemoveSubModelPart(body_parts_name_list[j].GetString())
-                    
+        #delete body parts: (materials have to be already assigned)
+        if( self.bodies_list == True ):
+            for i in range(self.bodies_parts_list.size()):
+               #get body parts
+                body_parts_name_list = self.bodies_parts_list[i]["parts_list"]
+                for j in range(body_parts_name_list.size()):
+                    self.main_model_part.RemoveSubModelPart(body_parts_name_list[j].GetString())
+                    print("::[Model_Prepare]::Body Part Removed:", body_parts_name_list[j].GetString())
+       
         #for part in domain_parts:
-        #    self.main_model_part.RemoveSubModelPart(part.Name)
+        #    self.main_model_part.RemoveSubModelPart(part)
+        #    print("Removed SubModelPart:", part.Name)
           
-        print(computing_model_part)
+        print(computing_model_part)       

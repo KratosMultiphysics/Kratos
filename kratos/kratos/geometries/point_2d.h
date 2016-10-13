@@ -542,7 +542,7 @@ public:
     */
     virtual std::string Info() const
     {
-        return "a point load in 2D space";
+        return "a point geometry in 2D space";
     }
 
     /** Print information about this object.
@@ -553,7 +553,7 @@ public:
     */
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "a point load in 2D space";
+        rOStream << "a point geometry in 2D space";
     }
 
     /** Print geometry's data into given stream. Prints it's points
@@ -566,7 +566,7 @@ public:
     */
     virtual void PrintData(std::ostream& rOStream) const
     {
-        rOStream << "a point load in 2D space";
+        rOStream << "a point geometry in 2D space";
     }
 
 

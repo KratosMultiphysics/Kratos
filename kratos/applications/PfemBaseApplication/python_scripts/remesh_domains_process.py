@@ -62,7 +62,6 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
             if( domain.Active() ):
                 self.remesh_domains_active = True
 
-        self.neighbours_search_performed = False
         self.step_count   = 1
         self.counter      = 1
         self.next_meshing = 0.0
@@ -84,58 +83,20 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         else:
             self.meshing_output = self.meshing_frequency
 
-
         self.main_model_part.ProcessInfo.SetValue(KratosPfemBase.INITIALIZED_DOMAINS, False);
-
-        # initialize modeler 
+        
+        # initialize all meshing domains 
         if( self.remesh_domains_active ):    
 
-            self.InitializeDomains()
+            print("::[Meshing_Process]:: Initialize Domains")
+            import domain_utilities
+            domain_utils = domain_utilities.DomainUtilities()
+            domain_utils.InitializeDomains(self.main_model_part,self.echo_level)
 
             for domain in self.meshing_domains:
                 domain.Initialize()
                 #domain.Check()
-                
-
-    #
-    def InitializeDomains(self):
-
-        # initialize the modeler 
-        print("::[Remesh_Domains]:: Initialize Domains ")
-            
-        import domain_utilities
-        domain_utils = domain_utilities.DomainUtilities()
-        
-        # find node neighbours
-        domain_utils.SearchNodeNeighbours(self.main_model_part, self.echo_level)
-            
-        # find element neighbours
-        domain_utils.SearchElementNeighbours(self.main_model_part, self.echo_level)
-            
-        # set neighbour search performed
-        self.neighbour_search_performed = True
-
-        # set modeler utilities
-        self.modeler_utils = KratosPfemBase.ModelerUtilities()
-        
-        # set the domain labels to conditions
-        self.modeler_utils.SetModelPartNameToConditions(self.main_model_part)
-        
-        # find skin and boundary normals
-        if(self.restart == False):
-            domain_utils.ConstructModelPartBoundary(self.main_model_part, self.echo_level)
-
-            # search nodal h
-            if(self.neighbour_search_performed):
-                domain_utils.SearchNodalH(self.main_model_part, self.echo_level)
-                                       
-        # set the domain labels to nodes
-        self.modeler_utils.SetModelPartNameToNodes(self.main_model_part)
-
-        self.main_model_part.ProcessInfo.SetValue(KratosPfemBase.INITIALIZED_DOMAINS, True)
-
-        print(self.main_model_part)
-            
+                         
 
     ###
 

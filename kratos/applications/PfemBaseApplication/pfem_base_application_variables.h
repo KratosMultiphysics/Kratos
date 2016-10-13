@@ -27,10 +27,9 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/kratos_application.h"
 #include "includes/variables.h"
-//#include "containers/pointer_vector_set.h"
-//#include "utilities/indexed_object.h"
+#include "includes/kratos_flags.h"
+#include "includes/kratos_application.h"
 
 
 namespace Kratos
