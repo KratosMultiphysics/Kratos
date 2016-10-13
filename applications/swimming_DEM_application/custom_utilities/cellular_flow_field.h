@@ -64,11 +64,11 @@ virtual ~CellularFlowField(){}
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void ResizeVectorsForParallelism(const unsigned int n_threads);
+void ResizeVectorsForParallelism(const int n_threads) override;
 
-void UpdateCoordinates(const double time, const array_1d<double, 3>& coor, const unsigned int i_thread = 1);
+void UpdateCoordinates(const double time, const array_1d<double, 3>& coor, const int i_thread = 0) override;
 
-void UpdateCoordinates(const double time, const vector<double>& coor, const unsigned int i_thread = 1);
+void UpdateCoordinates(const double time, const vector<double>& coor, const int i_thread = 0) override;
 
 //***************************************************************************************************************
 //***************************************************************************************************************
@@ -125,61 +125,61 @@ protected:
 
 // Values
 
-double U0(unsigned int i_thread = 1);
-double U1(unsigned int i_thread = 1);
-double U2(unsigned int i_thread = 1);
+double U0(const int i_thread = 0) override;
+double U1(const int i_thread = 0) override;
+double U2(const int i_thread = 0) override;
 
 // First-order derivatives
 
-double U0DT(unsigned int i_thread = 1);
-double U0D0(unsigned int i_thread = 1);
-double U0D1(unsigned int i_thread = 1);
-double U0D2(unsigned int i_thread = 1);
+double U0DT(const int i_thread = 0) override;
+double U0D0(const int i_thread = 0) override;
+double U0D1(const int i_thread = 0) override;
+double U0D2(const int i_thread = 0) override;
 
-double U1DT(unsigned int i_thread = 1);
-double U1D0(unsigned int i_thread = 1);
-double U1D1(unsigned int i_thread = 1);
-double U1D2(unsigned int i_thread = 1);
+double U1DT(const int i_thread = 0) override;
+double U1D0(const int i_thread = 0) override;
+double U1D1(const int i_thread = 0) override;
+double U1D2(const int i_thread = 0) override;
 
-double U2DT(unsigned int i_thread = 1);
-double U2D0(unsigned int i_thread = 1);
-double U2D1(unsigned int i_thread = 1);
-double U2D2(unsigned int i_thread = 1);
+double U2DT(const int i_thread = 0) override;
+double U2D0(const int i_thread = 0) override;
+double U2D1(const int i_thread = 0) override;
+double U2D2(const int i_thread = 0) override;
 
 // Second-order derivatives
 
-double U0DTDT(unsigned int i_thread = 1);
-double U0DTD0(unsigned int i_thread = 1);
-double U0DTD1(unsigned int i_thread = 1);
-double U0DTD2(unsigned int i_thread = 1);
-double U0D0D0(unsigned int i_thread = 1);
-double U0D0D1(unsigned int i_thread = 1);
-double U0D0D2(unsigned int i_thread = 1);
-double U0D1D1(unsigned int i_thread = 1);
-double U0D1D2(unsigned int i_thread = 1);
-double U0D2D2(unsigned int i_thread = 1);
+double U0DTDT(const int i_thread = 0) override;
+double U0DTD0(const int i_thread = 0) override;
+double U0DTD1(const int i_thread = 0) override;
+double U0DTD2(const int i_thread = 0) override;
+double U0D0D0(const int i_thread = 0) override;
+double U0D0D1(const int i_thread = 0) override;
+double U0D0D2(const int i_thread = 0) override;
+double U0D1D1(const int i_thread = 0) override;
+double U0D1D2(const int i_thread = 0) override;
+double U0D2D2(const int i_thread = 0) override;
 
-double U1DTDT(unsigned int i_thread = 1);
-double U1DTD0(unsigned int i_thread = 1);
-double U1DTD1(unsigned int i_thread = 1);
-double U1DTD2(unsigned int i_thread = 1);
-double U1D0D0(unsigned int i_thread = 1);
-double U1D0D1(unsigned int i_thread = 1);
-double U1D0D2(unsigned int i_thread = 1);
-double U1D1D1(unsigned int i_thread = 1);
-double U1D1D2(unsigned int i_thread = 1);
-double U1D2D2(unsigned int i_thread = 1);
+double U1DTDT(const int i_thread = 0) override;
+double U1DTD0(const int i_thread = 0) override;
+double U1DTD1(const int i_thread = 0) override;
+double U1DTD2(const int i_thread = 0) override;
+double U1D0D0(const int i_thread = 0) override;
+double U1D0D1(const int i_thread = 0) override;
+double U1D0D2(const int i_thread = 0) override;
+double U1D1D1(const int i_thread = 0) override;
+double U1D1D2(const int i_thread = 0) override;
+double U1D2D2(const int i_thread = 0) override;
 
-double U2DTDT(unsigned int i_thread = 1);
-double U2DTD0(unsigned int i_thread = 1);
-double U2DTD1(unsigned int i_thread = 1);
-double U2DTD2(unsigned int i_thread = 1);
-double U2D0D0(unsigned int i_thread = 1);
-double U2D0D1(unsigned int i_thread = 1);
-double U2D0D2(unsigned int i_thread = 1);
-double U2D1D1(unsigned int i_thread = 1);
-double U2D1D2(unsigned int i_thread = 1);
-double U2D2D2(unsigned int i_thread = 1);
+double U2DTDT(const int i_thread = 0) override;
+double U2DTD0(const int i_thread = 0) override;
+double U2DTD1(const int i_thread = 0) override;
+double U2DTD2(const int i_thread = 0) override;
+double U2D0D0(const int i_thread = 0) override;
+double U2D0D1(const int i_thread = 0) override;
+double U2D0D2(const int i_thread = 0) override;
+double U2D1D1(const int i_thread = 0) override;
+double U2D1D2(const int i_thread = 0) override;
+double U2D2D2(const int i_thread = 0) override;
 
 ///@}
 ///@name Protected Operations
