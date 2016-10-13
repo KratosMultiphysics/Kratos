@@ -15,6 +15,7 @@ void BassetForceTools::FillDaitcheVectors(const int N, const int order, const in
     if (!N){
         return;
     }
+
     std::vector<double>& Ajs = SphericSwimmingParticle<SphericParticle>::mAjs;
     std::vector<double>& Bns = SphericSwimmingParticle<SphericParticle>::mBns;
     std::vector<double>& Cns = SphericSwimmingParticle<SphericParticle>::mCns;
