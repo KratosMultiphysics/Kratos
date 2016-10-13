@@ -273,7 +273,6 @@ double SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(int order, u
         }
     }
 
-
     else if (order == 2){
         if (n > 3){
             if (j < n - 1){
@@ -693,6 +692,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(NodeType& node, a
             double present_coefficient;
             const double sqrt_of_quad_h_q = std::sqrt(quadrature_delta_time);
             const double last_h_over_h = latest_quadrature_time_step / quadrature_delta_time;
+
             CalculateExplicitFractionalDerivative(node, fractional_derivative_of_slip_vel, present_coefficient, historic_integrands, last_h_over_h, n_steps_per_quad_step);
 
             if (mBassetForceType == 3){
