@@ -387,7 +387,7 @@ namespace Kratos
     //*******************************************************************************************
     //*******************************************************************************************
 
-    void BuildTotalModelPart(ModelPart& rModelPart, int EchoLevel)
+    virtual void BuildTotalModelPart(ModelPart& rModelPart, int EchoLevel)
     {
 
       KRATOS_TRY
@@ -649,7 +649,7 @@ namespace Kratos
     //*******************************************************************************************
     //*******************************************************************************************
 
-    void BuildComputingDomain (ModelPart& rModelPart, int EchoLevel)
+    virtual void BuildComputingDomain (ModelPart& rModelPart, int EchoLevel)
     {
       KRATOS_TRY
 	
