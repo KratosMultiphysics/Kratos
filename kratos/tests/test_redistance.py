@@ -4,6 +4,10 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 import math
 
+def GetFilePath(fileName):
+    import os
+    return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
+
 class TestRedistance(KratosUnittest.TestCase):
 
     def _ExpectedDistance(self,x,y,z):
@@ -18,7 +22,7 @@ class TestRedistance(KratosUnittest.TestCase):
     def test_model_part_sub_model_parts(self):
         model_part = KratosMultiphysics.ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        KratosMultiphysics.ModelPartIO("coarse_sphere").ReadModelPart(model_part)
+        KratosMultiphysics.ModelPartIO(GetFilePath("coarse_sphere")).ReadModelPart(model_part)
         model_part.SetBufferSize(2)
 
 
