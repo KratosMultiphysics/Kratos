@@ -431,8 +431,10 @@ public:
     {
         // TODO: Add calculation of normal to geometry.h 
         array_1d<double,3> & Normal = pCond->GetValue(NORMAL);
+        array_1d<double,3> & TangentXi = pCond->GetValue(TANGENT_XI);
+        array_1d<double,3> & TangentEta = pCond->GetValue(TANGENT_ETA);
         
-        GeometryNormal(Normal, pCond->GetGeometry());
+        GeometryNormal(Normal, TangentXi, TangentEta, pCond->GetGeometry());
     }
     
     /***********************************************************************************/
@@ -469,21 +471,34 @@ public:
 
     static inline void GeometryNormal(
             array_1d<double,3> & Normal,
+            array_1d<double,3> & TangentXi,
+            array_1d<double,3> & TangentEta,
             const Geometry<Node<3> > & Geom
             )
     {
-        array_1d<double, 3> v1, v2;
-        noalias(Normal) = ZeroVector(3);
+        noalias(Normal)     = ZeroVector(3);
         
         // Geom normal is the sum of all nodal normals
         // nodal normal = tangent_eta (or e3 in 2D) x tangent_xi
         for ( unsigned int i = 0; i < Geom.PointsNumber( ); ++i )
         {
-            NodalTangents( v1, v2, Geom, i );
-            Normal += MathUtils<double>::CrossProduct( v2, v1 );
+            NodalTangents( TangentXi, TangentEta, Geom, i );
+            Normal += MathUtils<double>::CrossProduct( TangentEta, TangentXi );
         }
         
-        Normal /= norm_2( Normal );
+        Normal     /= norm_2( Normal );
+        TangentXi  /= norm_2( TangentXi );
+        TangentEta /= norm_2( TangentEta );
+    }
+        
+    static inline void GeometryNormal(
+            array_1d<double,3> & Normal,
+            const Geometry<Node<3> > & Geom
+            )
+    {
+        array_1d<double,3> TangentXi, TangentEta;
+        
+        GeometryNormal(Normal, TangentXi, TangentEta, Geom);
     }
     
     /***********************************************************************************/
@@ -541,7 +556,7 @@ public:
 //         const unsigned int dimension = ModelPart.ConditionsBegin()->WorkingSpaceDimension();
         
         // Initialize normal vectors
-        const array_1d<double,3> ZeroNormal = ZeroVector(3);
+        const array_1d<double,3> ZeroVect = ZeroVector(3);
         
         NodesArrayType& pNode  = ModelPart.Nodes();
         NodesArrayType::iterator it_node_begin = pNode.ptr_begin();
@@ -551,7 +566,9 @@ public:
         {
             if (node_it->Is(INTERFACE))
             {
-                noalias(node_it->GetValue(NORMAL)) = ZeroNormal; 
+                noalias(node_it->GetValue(NORMAL)) = ZeroVect; 
+                noalias(node_it->GetValue(TANGENT_XI)) = ZeroVect; 
+                noalias(node_it->GetValue(TANGENT_ETA)) = ZeroVect; 
             }
         }
         
@@ -566,11 +583,15 @@ public:
             {
                 ConditionNormal(*(cond_it.base()));
                 
-                const array_1d<double, 3> & rNormal = cond_it->GetValue(NORMAL);
+                const array_1d<double, 3> & rNormal     = cond_it->GetValue(NORMAL);
+                const array_1d<double, 3> & rTangentXi  = cond_it->GetValue(TANGENT_XI);
+                const array_1d<double, 3> & rTangentEta = cond_it->GetValue(TANGENT_ETA);
                 
                 for (unsigned int i = 0; i < cond_it->GetGeometry().PointsNumber(); i++)
                 {
                     noalias( cond_it->GetGeometry()[i].GetValue(NORMAL) ) += rNormal;
+                    noalias( cond_it->GetGeometry()[i].GetValue(TANGENT_XI) ) += rTangentXi;
+                    noalias( cond_it->GetGeometry()[i].GetValue(TANGENT_ETA) ) += rTangentEta;
                 }
             }
         }
@@ -586,11 +607,15 @@ public:
         {
             if (node_it->Is(INTERFACE))
             {
-                const double norm = norm_2(node_it->GetValue(NORMAL));
+                const double norm_normal     = norm_2(node_it->GetValue(NORMAL));
+                const double norm_tangentxi  = norm_2(node_it->GetValue(TANGENT_XI));
+                const double norm_tangenteta = norm_2(node_it->GetValue(TANGENT_ETA));
                 
-                if (norm > tol)
+                if (norm_normal > tol)
                 {
-                    node_it->GetValue(NORMAL)  /= norm;
+                    node_it->GetValue(NORMAL)      /= norm_normal;
+                    node_it->GetValue(TANGENT_XI)  /= norm_tangentxi;
+                    node_it->GetValue(TANGENT_ETA) /= norm_tangenteta;
                 }
             }
         }
