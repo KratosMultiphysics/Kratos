@@ -124,7 +124,15 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             part.Set(KratosMultiphysics.BOUNDARY)
             for cond in part.Conditions:
                 fluid_computing_model_part.AddCondition(cond,0)  
-                
+
+        #delete body parts: (materials have to be already assigned)
+        if( self.bodies_list == True ):
+            for i in range(self.bodies_parts_list.size()):
+               #get body parts
+                body_parts_name_list = self.bodies_parts_list[i]["parts_list"]
+                for j in range(body_parts_name_list.size()):
+                    self.main_model_part.RemoveSubModelPart(body_parts_name_list[j].GetString())
+                    print("::[Model_Prepare]::Body Part Removed:", body_parts_name_list[j].GetString())                
         #for part in domain_parts:
         #    self.main_model_part.RemoveSubModelPart(part.Name)
 
