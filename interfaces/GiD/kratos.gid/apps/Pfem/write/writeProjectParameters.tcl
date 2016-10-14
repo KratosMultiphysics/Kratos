@@ -263,7 +263,7 @@ proc Pfem::write::GetBodiesList { } {
     foreach body_node [$root selectNodes $xp1] {
         set body [dict create]
         set name [$body_node @name]
-        set body_type_path "/value\[@n='BodyType'\]"
+        set body_type_path ".//value\[@n='BodyType'\]"
         set body_type [get_domnode_attribute [$body_node selectNodes $body_type_path] v]
         set parts [list ]
         foreach part_node [$body_node selectNodes "./condition/group"] {
