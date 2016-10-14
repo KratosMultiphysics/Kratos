@@ -48,42 +48,42 @@ Begin NodalData COHESIVE_GROUP  // GUI group identifier: cohesive
 141 0 1
 End NodalData
 
-Begin Mesh 1 // GUI conditionid DEM-ForceIntegrationGroup group identifier: ball1
-  Begin MeshData // GUI Groupid: ball1
+Begin SubModelPart 1 // GUI conditionid DEM-ForceIntegrationGroup group identifier: ball1
+  Begin SubModelPartData // GUI Groupid: ball1
 
     VELOCITY_START_TIME  0.0
     VELOCITY_STOP_TIME  10
     FORCE_INTEGRATION_GROUP  1
     TOP  1
     BOTTOM  0
-  End MeshData
+  End SubModelPartData
 
  
- Begin MeshNodes
+ Begin SubModelPartNodes
        140
- End MeshNodes
+ End SubModelPartNodes
  
-End Mesh
+End SubModelPart
 
-Begin Mesh 2 // GUI conditionid DEM-ForceIntegrationGroup group identifier: ball2
-  Begin MeshData // GUI Groupid: ball2
+Begin SubModelPart 2 // GUI conditionid DEM-ForceIntegrationGroup group identifier: ball2
+  Begin SubModelPartData // GUI Groupid: ball2
 
     VELOCITY_START_TIME  0.0
     VELOCITY_STOP_TIME  10
     FORCE_INTEGRATION_GROUP  1
     TOP  2
     BOTTOM  0
-  End MeshData
+  End SubModelPartData
 
  
- Begin MeshNodes
+ Begin SubModelPartNodes
        141
- End MeshNodes
+ End SubModelPartNodes
  
-End Mesh
+End SubModelPart
 
-Begin Mesh 3 // GUI conditionid DEM-VelocityBC group identifier: ball1
-  Begin MeshData // GUI Groupid: ball1
+Begin SubModelPart 3 // GUI conditionid DEM-VelocityBC group identifier: ball1
+  Begin SubModelPartData // GUI Groupid: ball1
 
     IMPOSED_VELOCITY_X_VALUE  0
     VELOCITY_START_TIME  0.0
@@ -91,17 +91,17 @@ Begin Mesh 3 // GUI conditionid DEM-VelocityBC group identifier: ball1
     FORCE_INTEGRATION_GROUP  1
     TOP  1
     BOTTOM  0
-  End MeshData
+  End SubModelPartData
 
  
- Begin MeshNodes
+ Begin SubModelPartNodes
        140
- End MeshNodes
+ End SubModelPartNodes
  
-End Mesh
+End SubModelPart
 
-Begin Mesh 4 // GUI conditionid DEM-VelocityBC group identifier: ball2
-  Begin MeshData // GUI Groupid: ball2
+Begin SubModelPart 4 // GUI conditionid DEM-VelocityBC group identifier: ball2
+  Begin SubModelPartData // GUI Groupid: ball2
 
     IMPOSED_VELOCITY_X_VALUE  0.1
     VELOCITY_START_TIME  0.0
@@ -109,12 +109,12 @@ Begin Mesh 4 // GUI conditionid DEM-VelocityBC group identifier: ball2
     FORCE_INTEGRATION_GROUP  1
     TOP  2
     BOTTOM  0
-  End MeshData
+  End SubModelPartData
 
  
- Begin MeshNodes
+ Begin SubModelPartNodes
        141
- End MeshNodes
+ End SubModelPartNodes
  
-End Mesh
+End SubModelPart
 
