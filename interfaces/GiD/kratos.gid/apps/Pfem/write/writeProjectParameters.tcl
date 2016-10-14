@@ -120,11 +120,13 @@ proc Pfem::write::GetPFEM_RemeshDict { } {
         dict set bodyDict "alpha_shape" 2.4
         dict set bodyDict "offset_factor" 0.0
         
+        set remesh false
+        set refine false
         set meshing_strategyDict [dict create ]
         dict set meshing_strategyDict "python_module" "meshing_strategy"
         dict set meshing_strategyDict "meshing_frequency" 0
-        dict set meshing_strategyDict "remesh" false
-        dict set meshing_strategyDict "refine" false
+        dict set meshing_strategyDict "remesh" $remesh
+        dict set meshing_strategyDict "refine" $refine
         dict set meshing_strategyDict "reconnect" false
         dict set meshing_strategyDict "transfer" false
         dict set meshing_strategyDict "constrained" false
@@ -261,10 +263,13 @@ proc Pfem::write::GetBodiesList { } {
     foreach body_node [$root selectNodes $xp1] {
         set body [dict create]
         set name [$body_node @name]
+        set body_type_path "/value\[@n='BodyType'\]"
+        set body_type [get_domnode_attribute [$body_node selectNodes $body_type_path] v]
         set parts [list ]
         foreach part_node [$body_node selectNodes "./condition/group"] {
             lappend parts [write::getMeshId "Parts" [$part_node @n]]
         }
+        dict set body "body_type" $body_type
         dict set body "body_name" $name
         dict set body "parts_list" $parts
         lappend bodiesList $body
