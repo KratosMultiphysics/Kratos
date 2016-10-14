@@ -271,7 +271,7 @@ public:
 	      // if(numboundary>=nds-1)
 	      // 	Alpha*=1.8;
 
-	      if(!numboundary<nds){
+	      if(numboundary>nds){
 	      	Alpha*=1.05;
 	      }
 
