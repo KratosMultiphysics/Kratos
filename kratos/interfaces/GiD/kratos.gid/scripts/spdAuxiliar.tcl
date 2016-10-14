@@ -1125,51 +1125,34 @@ proc spdAux::SetNoneValue {domNode} {
     return "None,None"
 }
 
+#This should go to values
 proc spdAux::ProcGetConstitutiveLaws { domNode args } {
-    set Claws [Model::GetConstitutiveLaws]
-    if {[llength $Claws] == 0} { return [SetNoneValue $domNode] }
-    #W "Const Laws que han pasado la criba: $Claws"
-    set pnames [list ]
-    foreach cl $Claws {
-        lappend pnames [$cl getName] 
-        lappend pnames [$cl getPublicName]
-    }
-    set diction [join $pnames ","]
-    
     set Elementname [$domNode selectNodes {string(../value[@n='Element']/@v)}]
     set Claws [::Model::GetAvailableConstitutiveLaws $Elementname]
+    #W "Const Laws que han pasado la criba: $Claws"
     if {[llength $Claws] == 0} { return [SetNoneValue $domNode] }
     set names [list ]
     foreach cl $Claws {
         lappend names [$cl getName]
     }
     set values [join $names ","]
-    
-    $domNode setAttribute values $values
-    if {[get_domnode_attribute $domNode v] eq "" || [get_domnode_attribute $domNode v] ni $values} {$domNode setAttribute v [lindex $names 0]}
+    if {[get_domnode_attribute $domNode v] eq "" || [get_domnode_attribute $domNode v] ni $names} {$domNode setAttribute v [lindex $names 0]}
     spdAux::RequestRefresh
     
-    return $diction
+    return $values
 }
+#This should go to dict
 proc spdAux::ProcGetAllConstitutiveLaws { domNode args } {
-    
     set Claws [Model::GetConstitutiveLaws]
-    #W "Const Laws que han pasado la criba: $Claws"
     if {[llength $Claws] == 0} { return [SetNoneValue $domNode] }
-    #set names [list ]
     set pnames [list ]
     foreach cl $Claws {
-        #lappend names [$cl getName]
         lappend pnames [$cl getName] 
         lappend pnames [$cl getPublicName]
     }
-    #set values [join $names ","]
-    
-    #$domNode setAttribute values $values
     set diction [join $pnames ","]
-    #if {[get_domnode_attribute $domNode v] eq "" || [get_domnode_attribute $domNode v] ni $values} {$domNode setAttribute v [lindex $names 0]}
-    spdAux::RequestRefresh
-    
+    #spdAux::RequestRefresh
+
     return $diction
 }
 proc spdAux::ProcGetSolvers { domNode args } {

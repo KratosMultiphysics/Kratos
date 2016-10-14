@@ -60,7 +60,8 @@ proc Pfem::xml::ProcGetElements {domNode args} {
      #W "************************************************************************"
      set names [list ]
      set pnames [list ]
-     set BodyType [get_domnode_attribute [[[$domNode parent] parent] selectNodes "value\[@n='BodyType'\]"] v]
+     set blockNode [Pfem::xml::FindMyBlocknode $domNode]
+     set BodyType [get_domnode_attribute [$blockNode selectNodes "value\[@n='BodyType'\]"] v]
      #W $BodyType
      set argums [list ElementType $BodyType]
      update
@@ -80,6 +81,20 @@ proc Pfem::xml::ProcGetElements {domNode args} {
      if {[get_domnode_attribute $domNode v] ni $names} {$domNode setAttribute v [lindex $names 0]}
      #spdAux::RequestRefresh
      return $diction
+}
+
+proc Pfem::xml::FindMyBlocknode {domNode} {
+     set top 10
+     set ret ""
+     for {set i 0} {$i < $top} {incr i} {
+          if {[$domNode nodeName] eq "blockdata"} {
+               set ret $domNode
+               break
+          } else {
+               set domNode [$domNode parent]     
+          }
+     }
+     return $ret
 }
 
 proc Pfem::xml::ProcGetMeshingDomains {domNode args} {
@@ -167,6 +182,34 @@ proc Pfem::xml::ProcGetBodyTypeValues {domNode args} {
          }
      }
      return $values
+}
+
+proc Pfem::xml::ProcGetSolutionStrategiesPFEM {domNode args} {
+     set names ""
+     set pnames ""
+     set solutionType [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute PFEM_SolutionType]] v]
+     set Sols [::Model::GetSolutionStrategies [list "SolutionType" $solutionType] ]
+     set ids [list ]
+     set domainType [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute PFEM_DomainType]] v]
+     set filter "Solid,Pfem"
+     if {$domainType eq "Solids"} {set filter "Solid"}
+     if {$domainType eq "Fluids"} {set filter "Pfem"}
+     foreach ss $Sols {
+         if {[$ss getAttribute "App"] in [split $filter ","]} {
+             lappend ids [$ss getName]
+             append names [$ss getName] ","
+             append pnames [$ss getName] "," [$ss getPublicName] ","
+         }
+     }
+     set names [string range $names 0 end-1]
+     set pnames [string range $pnames 0 end-1]
+     
+     $domNode setAttribute values $names
+         set dv [lindex $ids 0]
+         if {[$domNode getAttribute v] eq ""} {$domNode setAttribute v $dv}
+         if {[$domNode getAttribute v] ni $ids} {$domNode setAttribute v $dv}
+     spdAux::RequestRefresh
+     return $pnames
 }
 
 Pfem::xml::Init
