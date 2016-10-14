@@ -1,113 +1,101 @@
+
 # DEM General Options
 Dimension                        = 3
-drag_modifier_type               = 3
-project_from_particles_option    = 0
-consider_lift_force_option       = 0
+PeriodicDomainOption             = "OFF"
 BoundingBoxOption                = "ON"
-BoundingBoxEnlargementFactor     = 1.1
-AutomaticBoundingBoxOption       = "OFF"
 BoundingBoxEnlargementFactor     = 1.0
-BoundingBoxMaxX                  = 1e3
-BoundingBoxMaxY                  = 1e3
-BoundingBoxMaxZ                  = 1e3
-BoundingBoxMinX                  = -1e3
-BoundingBoxMinY                  = -1e3
-BoundingBoxMinZ                  = -1e3
+AutomaticBoundingBoxOption       = "OFF"
+BoundingBoxMaxX                  =  1.00000e+01
+BoundingBoxMaxY                  =  1.00000e+01
+BoundingBoxMaxZ                  =  1.00000e+01
+BoundingBoxMinX                  = -1.00000e+01
+BoundingBoxMinY                  = -1.00000e+01
+BoundingBoxMinZ                  = -1.00000e+01
+
 dem_inlet_option                 = 0
 GravityX                         = 0.0
 GravityY                         = 0.0
 GravityZ                         = 0.0
+
 VelocityTrapOption               = 0
 RotationOption                   = "ON"
-Dempack                          = "ON"
 CleanIndentationsOption          = "OFF"
-RemoveBallsInEmbeddedOption      = 1
 DeltaOption                      = "Absolute"
 SearchTolerance                  = 0.0
 CoordinationNumber               = 10
-AmplifiedSearchRadiusExtension   = 1.10000e+00
+AmplifiedSearchRadiusExtension   = 1.1
 ModelDataInfo                    = "OFF"
 VirtualMassCoefficient           = 1.0
 RollingFrictionOption            = "OFF"
+PoissonEffectOption              = "OFF"
+ShearStrainParallelToBondOption  = "OFF"
 DontSearchUntilFailure           = "OFF"
-ContactMeshOption                = "OFF"
+ContactMeshOption                = "ON"
 OutputFileType                   = "Binary"
 Multifile                        = "multiple_files"
-HorizontalFixVel                 = "ON"
 
 # Solution Strategy
-IntegrationScheme                = "Forward_Euler"
+
+IntegrationScheme                = "Forward_Euler" #"Verlet_Velocity"   #"Symplectic_Euler" Forward_Euler
 AutomaticTimestep                = "OFF"
 DeltaTimeSafetyFactor            = 1.0
 MaxTimeStep                      = 1e-5
 FinalTime                        = 0.01
 ControlTime                      = 100.0
 NeighbourSearchFrequency         = 1
-PeriodicDomainOption             = 0
-
-# Constitutive Parameters
-MaterialModel                    = "1DPlasticity"
-G1                               = 0.0
-G2                               = 0.0
-G3                               = 0.0
-MaxDef                           = 0.0
-FailureCriterionType             = "Uncoupled"
-AreaFactor                       = 1.00000e+00
-LocalContactDamping              = "Normal"
-LocalDampingFactor               = 1.0 #0.9
-GlobalForceReduction             = 0.0 #0.2
 
 # Material Test
 TestType                         = "None"
 ConfinementPressure              = 0.0
 LoadingVelocityTop               = 0.0
 LoadingVelocityBot               = 0.0
-FemPlates                        = "OFF"
-StressStrainOption               = "OFF"
+StressStrainOption               = 1
 MeshType                         = "Current"
 MeshPath                         = "0"
 SpecimenLength                   = 0.30
 SpecimenDiameter                 = 0.15
 MeasuringSurface                 = 0.01767145867644375
+
 ElementType                      = "SphericContPartDEMElement3D"
 
 # PostProcess Results
+
 GraphExportFreq                  = 1e-5
-VelTrapGraphExportFreq           = 1e-3
+VelTrapGraphExportFreq           = 1e0
 OutputTimeStep                   = 1e-3
-PostDisplacement                 = "1"
-PostVelocity                     = "1"
-PostElasticForces                = "1"
-PostContactForces                = "1"
-PostRigidElementForces           = "1"
-PostTangentialElasticForces      = "0"
-PostPressure                     = "0"
-PostTotalForces                  = "1"
-PostShearStress                  = "0"
-PostNonDimensionalVolumeWear     = "0"
-PostNodalArea                    = "0"
-PostRHS                          = "1"
-PostDampForces                   = "0"
-PostAppliedForces                = "0"
-PostRadius                       = "0"
-PostGroupId                      = "0"
-PostExportId                     = "0"
-PostSkinSphere                   = "0"
+Granulometry                     = "No"
+PostDisplacement                 = 1
+PostVelocity                     = 1
+PostElasticForces                = 1
+PostContactForces                = 0
+PostRigidElementForces           = 0
+PostTangentialElasticForces      = 0
+PostTotalForces                  = 1
+PostShearStress                  = 1
+PostNonDimensionalVolumeWear     = 0
+PostNodalArea                    = 0
+PostStressStrainOption           = 1
+PostTemperature                  = 0
+PostHeatFlux                     = 0
+PostSkinSphere                   = 1
+PostPoissonRatio                 = 0
+PostRHS                          = 0
+PostDampForces                   = 0
+PostAppliedForces                = 0
+PostRadius                       = 0
+PostGroupId                      = 0
+PostExportId                     = 0
 PostAngularVelocity              = 1
-PostParticleMoment               = 0
+PostParticleMoment               = 1
 PostEulerAngles                  = 0
-PostContactSigma                 = 0
-PostContactTau                   = 0
-PostLocalContactForce            = 0
+PostContactSigma                 = 1
+PostContactTau                   = 1
+PostLocalContactForce            = 1
 PostFailureCriterionState        = 0
-PostContactFailureId             = 0
+PostContactFailureId             = 1
 PostMeanContactArea              = 0
-PostStressStrainOption           = 0
+PostBoundingBox                  = 0
+PostPressure                     = 0
 
-# FROM CND:
-PredefinedSkinOption             = "OFF"
-MeanRadius                       = 0.0001
-
-# Declare Python Variables
-problem_name                     = "benchmark20"
-kratos_path                      = "D:\Kratos"
+#
+problem_name="benchmark20"
