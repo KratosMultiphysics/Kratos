@@ -39,7 +39,7 @@ KRATOS_CLASS_POINTER_DEFINITION(CellularFlowField);
 
 CellularFlowField():VelocityField(),mL(1.0), mU(0.0), mK(2.72), mOmega(KRATOS_M_PI)
 {
-    mPiOverL = KRATOS_M_PI / mL;
+    mOneOverL = 1.0 / mL;
     mOmegaUOverL = mOmega * mU / mL;
     unsigned int number_of_threads = omp_get_max_threads();
     ResizeVectorsForParallelism(number_of_threads);
@@ -49,7 +49,7 @@ CellularFlowField(const double half_wavelength, const double max_flow_speed, con
                  :VelocityField(), mL(half_wavelength), mU(max_flow_speed), mK(oscillation_relative_amplitude), mOmega(oscillation_angular_frequency)
 {
 
-    mPiOverL = KRATOS_M_PI / mL;
+    mOneOverL = 1.0 / mL;
     mOmegaUOverL = mOmega * mU / mL;
     unsigned int number_of_threads = omp_get_max_threads();
     ResizeVectorsForParallelism(number_of_threads);
@@ -214,7 +214,7 @@ private:
 double mL;
 double mU;
 double mK;
-double mPiOverL;
+double mOneOverL;
 double mOmegaUOverL;
 double mOmega;
 std::vector<double> mSinOmegaT;
