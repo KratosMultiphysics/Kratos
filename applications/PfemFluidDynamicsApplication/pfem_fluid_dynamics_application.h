@@ -52,8 +52,6 @@
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_plastic_plane_stress_2D_law.hpp"
 
-#include "custom_conditions/wall_condition.h"
-
 #include "geometries/triangle_3d_3.h"
 #include "geometries/line_2d.h"
 
@@ -239,13 +237,9 @@ namespace Kratos
     const TwoStepUpdatedLagrangianVPFluidElement<2> mTwoStepUpdatedLagrangianVPFluidElement2D;
     /// 3D two step element for solid
     const TwoStepUpdatedLagrangianVPFluidElement<3> mTwoStepUpdatedLagrangianVPFluidElement3D;
+    
 
-
-    const WallCondition<2,2> mWallCondition2D;
-    const WallCondition<3,3> mWallCondition3D;
-
-
-     ///@} 
+    ///@} 
     ///@name Private Operators
     ///@{ 
 
