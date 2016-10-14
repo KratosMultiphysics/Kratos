@@ -51,7 +51,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::Initialize()
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-int SmallDisplacementInterfaceElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo ) // TODO: ESTO ES NECESARIO???
+int SmallDisplacementInterfaceElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo ) 
 {
     KRATOS_TRY
     
