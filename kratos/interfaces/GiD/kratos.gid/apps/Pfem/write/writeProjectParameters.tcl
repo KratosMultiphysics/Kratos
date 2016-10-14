@@ -1,6 +1,7 @@
 
 # Project Parameters
 proc Pfem::write::getParametersDict { } {
+    Pfem::write::CalculateMyVariables
     set projectParametersDict [dict create]
     
     ##### Problem data #####
@@ -49,6 +50,7 @@ proc Pfem::write::GetPFEM_ProblemProcessList { } {
 }
 
 proc Pfem::write::GetPFEM_ContactDict { } {
+    variable bodies_list
     set resultDict [dict create ]
     dict set resultDict "python_module" "contact_domain_process"
     dict set resultDict "kratos_module" "KratosMultiphysics.ContactMechanicsApplication"
@@ -62,8 +64,7 @@ proc Pfem::write::GetPFEM_ContactDict { } {
     dict set paramsDict "meshing_frequency" 1.0
     dict set paramsDict "meshing_before_output" true
     
-    set bodies_list [list ]
-    foreach body [Pfem::write::GetBodiesList] {
+    foreach body $bodies_list {
         set bodyDict [dict create ]
         dict set bodyDict "python_module" "contact_domain"
         dict set bodyDict "model_part_name" [dict get $body body_name]
@@ -91,14 +92,15 @@ proc Pfem::write::GetPFEM_ContactDict { } {
                 dict set contact_parametersDict variables_of_properties $variables_of_propertiesDict
             dict set meshing_strategyDict contact_parameters $contact_parametersDict
         dict set bodyDict meshing_strategy $meshing_strategyDict
-        lappend bodies_list $bodyDict
+        lappend bodies $bodyDict
     }
-    dict set paramsDict meshing_domains $bodies_list
+    dict set paramsDict meshing_domains $bodies
     dict set resultDict Parameters $paramsDict
     return $resultDict
 }
 
 proc Pfem::write::GetPFEM_RemeshDict { } {
+    variable bodies_list
     set resultDict [dict create ]
     dict set resultDict "python_module" "remesh_domains_process"
     dict set resultDict "kratos_module" "KratosMultiphysics.PfemBaseApplication"
@@ -110,18 +112,17 @@ proc Pfem::write::GetPFEM_RemeshDict { } {
     dict set paramsDict "meshing_control_type" "step"
     dict set paramsDict "meshing_frequency" 1.0
     dict set paramsDict "meshing_before_output" true
-    
-    set bodies_list [list ]
-    foreach body [Pfem::write::GetBodiesList] {
+    set meshing_domains_list [list ]
+    foreach body $bodies_list {
         set bodyDict [dict create ]
+        set body_name [dict get $body body_name]
         dict set bodyDict "python_module" "meshing_domain"
         dict set bodyDict "mesh_id" 1
-        dict set bodyDict "model_part_name" [dict get $body body_name]
+        dict set bodyDict "model_part_name" $body_name
         dict set bodyDict "alpha_shape" 2.4
         dict set bodyDict "offset_factor" 0.0
-        
-        set remesh false
-        set refine false
+        set remesh [write::getStringBinaryFromValue [Pfem::write::GetRemeshProperty $body_name "Remesh"]]
+        set refine [write::getStringBinaryFromValue [Pfem::write::GetRemeshProperty $body_name "Refine"]]
         set meshing_strategyDict [dict create ]
         dict set meshing_strategyDict "python_module" "meshing_strategy"
         dict set meshing_strategyDict "meshing_frequency" 0
@@ -196,11 +197,32 @@ proc Pfem::write::GetPFEM_RemeshDict { } {
         dict set bodyDict refining_parameters $refining_parametersDict
         
         dict set bodyDict "elemental_variables_to_transfer" [list "CAUCHY_STRESS_VECTOR" "DEFORMATION_GRADIENT"]
-        lappend bodies_list $bodyDict
+        lappend meshing_domains_list $bodyDict
     }
-    dict set paramsDict meshing_domains $bodies_list
+    dict set paramsDict meshing_domains $meshing_domains_list
     dict set resultDict Parameters $paramsDict
     return $resultDict
+}
+
+proc Pfem::write::GetRemeshProperty { body_name property } {
+    set ret ""
+    set root [customlib::GetBaseRoot]
+    set xp1 "[spdAux::getRoute "PFEM_Bodies"]/blockdata"
+    set remesh_name ""
+    foreach body_node [$root selectNodes $xp1] {
+        if {[$body_node @name] eq $body_name} {
+            set remesh_name [get_domnode_attribute [$body_node selectNodes ".//value\[@n='MeshingStrategy'\]"] v]
+            break
+        }
+    }
+    if {$remesh_name ne ""} {
+        variable remesh_domains_dict
+        if {[dict exists $remesh_domains_dict ${remesh_name} $property]} {
+            set ret [dict get $remesh_domains_dict ${remesh_name} $property]
+        }
+    }
+    if {$ret eq ""} {set ret false}
+    return $ret
 }
 
 proc Pfem::write::GetPFEM_ProblemDataDict { } {
@@ -222,6 +244,7 @@ proc Pfem::write::GetPFEM_ProblemDataDict { } {
 }
 
 proc Pfem::write::GetPFEM_SolverSettingsDict { } {
+    variable bodies_list
     set solverSettingsDict [dict create]
     set currentStrategyId [write::getValue PFEM_SolStrat]
     set strategy_write_name [[::Model::GetSolutionStrategy $currentStrategyId] getAttribute "ImplementedInPythonFile"]
@@ -248,14 +271,14 @@ proc Pfem::write::GetPFEM_SolverSettingsDict { } {
     foreach part_un [Pfem::write::GetPartsUN] {
         lappend listsubmodelparts {*}[write::getSubModelPartNames $part_un]
     }
-    dict set solverSettingsDict bodies_list [GetBodiesList]
+    dict set solverSettingsDict bodies_list $bodies_list
     dict set solverSettingsDict problem_domain_sub_model_part_list $listsubmodelparts
     dict set solverSettingsDict processes_sub_model_part_list [write::getSubModelPartNames "PFEM_NodalConditions" "PFEM_Loads"]
     
     return $solverSettingsDict
 }
 
-proc Pfem::write::GetBodiesList { } {
+proc Pfem::write::ProcessBodiesList { } {
     customlib::UpdateDocument
     set bodiesList [list ]
     set root [customlib::GetBaseRoot]
@@ -320,3 +343,24 @@ proc Pfem::write::GetNodalDataDict { } {
     
     return $NodalData
 }
+
+proc Pfem::write::ProcessRemeshDomainsDict { } {
+    customlib::UpdateDocument
+    set domains_dict [dict create ]
+    set root [customlib::GetBaseRoot]
+    set xp1 "[spdAux::getRoute "PFEM_meshing_domains"]/blockdata"
+    foreach domain_node [$root selectNodes $xp1] {
+        set name [$domain_node @name]
+        foreach part_node [$domain_node selectNodes "./value"] {
+            dict set domains_dict $name [get_domnode_attribute $part_node n] [get_domnode_attribute $part_node v]
+        }
+    }
+    return $domains_dict
+}
+
+proc Pfem::write::CalculateMyVariables { } {
+    variable bodies_list
+    set bodies_list [Pfem::write::ProcessBodiesList]
+    variable remesh_domains_dict
+    set remesh_domains_dict [Pfem::write::ProcessRemeshDomainsDict]
+ }

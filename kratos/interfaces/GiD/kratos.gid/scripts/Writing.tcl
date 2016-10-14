@@ -1011,6 +1011,9 @@ proc write::isBooleanFalse {value} {
 
 proc write::getStringBinaryValue { name { it "" } } {
     set v [getValue $name $it]
+    return [write::getStringBinaryFromValue $v]
+}
+proc write::getStringBinaryFromValue {v} {
     set goodList [list "Yes" "1" "yes" "ok" "YES" "Ok" "OK" "True" "TRUE" "true"]
     if {$v in $goodList} {return "True" } {return "False"}
 }

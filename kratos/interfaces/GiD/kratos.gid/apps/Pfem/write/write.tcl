@@ -1,7 +1,13 @@
 namespace eval Pfem::write {
+    variable remesh_domains_dict
+    variable bodies_list
 }
 
 proc Pfem::write::Init { } {
+    variable remesh_domains_dict
+    set remesh_domains [dict create ]
+    variable bodies_list
+    set bodies_list [list ]
     Solid::write::AddValidApps "Pfem"
 }
 
