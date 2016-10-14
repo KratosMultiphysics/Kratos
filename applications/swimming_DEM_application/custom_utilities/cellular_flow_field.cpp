@@ -17,20 +17,20 @@ void CellularFlowField::UpdateCoordinates(const double time, const array_1d<doub
 {
     mSinOmegaT[i_thread] = std::sin(mOmegaUOverL * time);
     mCosOmegaT[i_thread] = std::cos(mOmegaUOverL * time);
-    mSinPiX0[i_thread]   = std::sin(mPiOverL * coor[0]);
-    mCosPiX0[i_thread]   = std::cos(mPiOverL * coor[0]);
-    mSinPiX1[i_thread]   = std::sin(mPiOverL * coor[1]);
-    mCosPiX1[i_thread]   = std::cos(mPiOverL * coor[1]);
+    mSinPiX0[i_thread]   = std::sin(mOneOverL * coor[0]);
+    mCosPiX0[i_thread]   = std::cos(mOneOverL * coor[0]);
+    mSinPiX1[i_thread]   = std::sin(mOneOverL * coor[1]);
+    mCosPiX1[i_thread]   = std::cos(mOneOverL * coor[1]);
 }
 
 void CellularFlowField::UpdateCoordinates(const double time, const vector<double>& coor, const int i_thread)
 {
     mSinOmegaT[i_thread] = std::sin(mOmegaUOverL * time);
     mCosOmegaT[i_thread] = std::cos(mOmegaUOverL * time);
-    mSinPiX0[i_thread]   = std::sin(mPiOverL * coor[0]);
-    mCosPiX0[i_thread]   = std::cos(mPiOverL * coor[0]);
-    mSinPiX1[i_thread]   = std::sin(mPiOverL * coor[1]);
-    mCosPiX1[i_thread]   = std::cos(mPiOverL * coor[1]);
+    mSinPiX0[i_thread]   = std::sin(mOneOverL * coor[0]);
+    mCosPiX0[i_thread]   = std::cos(mOneOverL * coor[0]);
+    mSinPiX1[i_thread]   = std::sin(mOneOverL * coor[1]);
+    mCosPiX1[i_thread]   = std::cos(mOneOverL * coor[1]);
 }
 
 // Values
@@ -57,11 +57,11 @@ double CellularFlowField::U0DT(const int i)
 }
 double CellularFlowField::U0D0(const int i)
 {
-    return   mU * (1.0 + mK * mSinOmegaT[i]) * mPiOverL * mCosPiX0[i] * mCosPiX1[i];
+    return   mU * (1.0 + mK * mSinOmegaT[i]) * mOneOverL * mCosPiX0[i] * mCosPiX1[i];
 }
 double CellularFlowField::U0D1(const int i)
 {
-    return - mU * (1.0 + mK * mSinOmegaT[i]) * mPiOverL * mSinPiX0[i] * mSinPiX1[i];
+    return - mU * (1.0 + mK * mSinOmegaT[i]) * mOneOverL * mSinPiX0[i] * mSinPiX1[i];
 }
 double CellularFlowField::U0D2(const int i){return 0.0;}
 
@@ -75,11 +75,11 @@ double CellularFlowField::U1DT(const int i)
 }
 double CellularFlowField::U1D0(const int i)
 {
-    return   mU * (1.0 + mK * mSinOmegaT[i]) * mPiOverL * mSinPiX0[i] * mSinPiX1[i];
+    return   mU * (1.0 + mK * mSinOmegaT[i]) * mOneOverL * mSinPiX0[i] * mSinPiX1[i];
 }
 double CellularFlowField::U1D1(const int i)
 {
-    return - mU * (1.0 + mK * mSinOmegaT[i]) * mPiOverL * mCosPiX0[i] * mCosPiX1[i];
+    return - mU * (1.0 + mK * mSinOmegaT[i]) * mOneOverL * mCosPiX0[i] * mCosPiX1[i];
 }
 double CellularFlowField::U1D2(const int i){return 0.0;}
 double CellularFlowField::U2DT(const int i){return 0.0;}
@@ -103,7 +103,7 @@ double CellularFlowField::U0DTD0(const int i)
             return 0.0;
     }
     else {
-        return   mU * mOmegaUOverL * mCosOmegaT[i] * mPiOverL * mCosPiX0[i] * mCosPiX1[i];
+        return   mU * mOmegaUOverL * mCosOmegaT[i] * mOneOverL * mCosPiX0[i] * mCosPiX1[i];
     }
 }
 double CellularFlowField::U0DTD1(const int i)
@@ -111,22 +111,22 @@ double CellularFlowField::U0DTD1(const int i)
         return 0.0;
     }
     else {
-        return - mU * mK * mOmegaUOverL * mCosOmegaT[i] * mPiOverL * mSinPiX0[i] * mSinPiX1[i];
+        return - mU * mK * mOmegaUOverL * mCosOmegaT[i] * mOneOverL * mSinPiX0[i] * mSinPiX1[i];
     }
 }
 double CellularFlowField::U0DTD2(const int i){return 0.0;}
 double CellularFlowField::U0D0D0(const int i)
 {
-    return - mU * (1.0 + mK * mSinOmegaT[i]) * mPiOverL * mPiOverL * mSinPiX0[i] * mCosPiX1[i];
+    return - mU * (1.0 + mK * mSinOmegaT[i]) * mOneOverL * mOneOverL * mSinPiX0[i] * mCosPiX1[i];
 }
 double CellularFlowField::U0D0D1(const int i)
 {
-    return - mU * (1.0 + mK * mSinOmegaT[i]) * mPiOverL * mPiOverL * mCosPiX0[i] * mSinPiX1[i];
+    return - mU * (1.0 + mK * mSinOmegaT[i]) * mOneOverL * mOneOverL * mCosPiX0[i] * mSinPiX1[i];
 }
 double CellularFlowField::U0D0D2(const int i){return 0.0;}
 double CellularFlowField::U0D1D1(const int i)
 {
-    return - mU * (1.0 + mK * mSinOmegaT[i]) * mPiOverL * mPiOverL * mSinPiX0[i] * mCosPiX1[i];
+    return - mU * (1.0 + mK * mSinOmegaT[i]) * mOneOverL * mOneOverL * mSinPiX0[i] * mCosPiX1[i];
 }
 double CellularFlowField::U0D1D2(const int i){return 0.0;}
 double CellularFlowField::U0D2D2(const int i){return 0.0;}
@@ -144,7 +144,7 @@ double CellularFlowField::U1DTD0(const int i)
         return 0.0;
     }
     else {
-        return   mU * mK * mOmegaUOverL * mCosOmegaT[i] * mPiOverL * mSinPiX0[i] * mSinPiX1[i];
+        return   mU * mK * mOmegaUOverL * mCosOmegaT[i] * mOneOverL * mSinPiX0[i] * mSinPiX1[i];
     }
 }
 double CellularFlowField::U1DTD1(const int i)
@@ -152,22 +152,22 @@ double CellularFlowField::U1DTD1(const int i)
         return 0.0;
     }
     else {
-        return - mU * mK * mOmegaUOverL * mCosOmegaT[i] * mPiOverL * mCosPiX0[i] * mCosPiX1[i];
+        return - mU * mK * mOmegaUOverL * mCosOmegaT[i] * mOneOverL * mCosPiX0[i] * mCosPiX1[i];
     }
 }
 double CellularFlowField::U1DTD2(const int i){return 0.0;}
 double CellularFlowField::U1D0D0(const int i)
 {
-    return   mU * (1.0 + mK * mSinOmegaT[i]) * mPiOverL * mPiOverL * mCosPiX0[i] * mSinPiX1[i];
+    return   mU * (1.0 + mK * mSinOmegaT[i]) * mOneOverL * mOneOverL * mCosPiX0[i] * mSinPiX1[i];
 }
 double CellularFlowField::U1D0D1(const int i)
 {
-    return   mU * (1.0 + mK * mSinOmegaT[i]) * mPiOverL * mPiOverL * mSinPiX0[i] * mCosPiX1[i];
+    return   mU * (1.0 + mK * mSinOmegaT[i]) * mOneOverL * mOneOverL * mSinPiX0[i] * mCosPiX1[i];
 }
 double CellularFlowField::U1D0D2(const int i){return 0.0;}
 double CellularFlowField::U1D1D1(const int i)
 {
-    return   mU * (1.0 + mK * mSinOmegaT[i]) * mPiOverL * mPiOverL * mCosPiX0[i] * mSinPiX1[i];
+    return   mU * (1.0 + mK * mSinOmegaT[i]) * mOneOverL * mOneOverL * mCosPiX0[i] * mSinPiX1[i];
 }
 double CellularFlowField::U1D1D2(const int i){return 0.0;}
 double CellularFlowField::U1D2D2(const int i){return 0.0;}
