@@ -7,6 +7,7 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 #dependecies on other applications
 include_directories( ${CMAKE_SOURCE_DIR}/applications/SolidMechanicsApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/PoromechanicsApplication )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/convection_diffusion_application )
 
 ## generate variables with the sources
 set( KRATOS_DAM_APPLICATION_SOURCES   
@@ -30,7 +31,7 @@ set( KRATOS_DAM_APPLICATION_SOURCES
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosDamApplication SHARED ${KRATOS_DAM_APPLICATION_SOURCES})
-target_link_libraries(KratosDamApplication KratosCore KratosSolidMechanicsApplication KratosPoromechanicsApplication)
+target_link_libraries(KratosDamApplication KratosCore KratosSolidMechanicsApplication KratosPoromechanicsApplication KratosConvectionDiffusionApplication)
 set_target_properties(KratosDamApplication PROPERTIES PREFIX "")
 install(TARGETS KratosDamApplication DESTINATION libs )
 
