@@ -86,7 +86,7 @@ pp.CFD_DEM.faxen_terms_type = 0
 pp.CFD_DEM.material_acceleration_calculation_type = 1
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
-pp.CFD_DEM.basset_force_type = 1
+pp.CFD_DEM.basset_force_type = 4
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
 pp.CFD_DEM.basset_force_integration_type = 1
 pp.CFD_DEM.n_init_basset_steps = 2
@@ -511,9 +511,9 @@ if DEM_parameters.coupling_level_type:
     U = 0.3
     k = 2.72
     omega = math.pi
-    flow_field = CellularFlowField(L , U , k, omega)
+    flow_field = CellularFlowField(L, U, k, omega)
     space_time_set = SpaceTimeSet()
-    field_utility = FieldUtility(space_time_set, flow_field,1000.0,1e-6)
+    field_utility = FieldUtility(space_time_set, flow_field, 1000.0, 1e-6)
     #Z
 
     projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, spheres_model_part, rigid_face_model_part, domain_size, pp, field_utility)
@@ -730,7 +730,8 @@ for node in fluid_model_part.Nodes:
 import random
 from random import randint
 
-N_positions = 20
+N_positions = 100
+L *= math.pi
 possible_xs = [2 * L * (i + 1) / N_positions for i in range(N_positions)]
 
 for node in spheres_model_part.Nodes:
@@ -738,8 +739,8 @@ for node in spheres_model_part.Nodes:
     rand_y = pp.CFD_DEM.BoundingBoxMinY + (pp.CFD_DEM.BoundingBoxMaxY - pp.CFD_DEM.BoundingBoxMinY) * random.random()
     init_x = node.X 
     init_y = node.Y
-    #rand_x = possible_xs[randint(0, N_positions - 1)]
-    #rand_y = possible_xs[randint(0, N_positions - 1)]
+    rand_x = possible_xs[randint(0, N_positions - 1)]
+    rand_y = possible_xs[randint(0, N_positions - 1)]
     node.X = rand_x
     node.Y = rand_y
     displx = node.GetSolutionStepValue(DISPLACEMENT_X)
