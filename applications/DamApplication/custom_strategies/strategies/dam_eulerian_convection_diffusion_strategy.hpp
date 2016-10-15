@@ -262,7 +262,7 @@ protected:
                 {
                     for(int i = 0; i < NElems; i++)
                     {
-                        ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
+                        //ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
                         //pElem = Element::Pointer(new EulerianConvectionDiffusionElement<2,4>( (*itElem).Id(), (*itElem).pGetGeometry(),(*itElem).pGetProperties() ) );
                         //MeshElems.push_back(pElem);
                     }
@@ -283,7 +283,7 @@ protected:
                 {
                     for(int i = 0; i < NElems; i++)
                     {
-                        ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
+                        //ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
                         //pElem = Element::Pointer(new EulerianConvectionDiffusionElement<3,8>( (*itElem).Id(), (*itElem).pGetGeometry(),(*itElem).pGetProperties() ) );
                         //MeshElems.push_back(pElem);
                     }
