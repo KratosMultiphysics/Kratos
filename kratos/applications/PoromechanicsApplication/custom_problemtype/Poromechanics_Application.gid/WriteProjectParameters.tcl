@@ -64,7 +64,7 @@ proc WriteProjectParameters { basename dir TableList} {
         puts $varfile "            \"block_size\":                     1,"
         puts $varfile "            \"use_block_matrices_if_possible\": true,"
         puts $varfile "            \"coarse_enough\":                  5000"
-    } elseif {[GiD_AccessValue get gendata Solver_Type]=="CGSolver" || [GiD_AccessValue get gendata Solver_Type]=="BICGSTABSolver" || [GiD_AccessValue get gendata Solver_Type]=="TFQMRSolver"} {
+    } elseif {[GiD_AccessValue get gendata Solver_Type]=="BICGSTABSolver"} {
         puts $varfile "            \"solver_type\":                    \"[GiD_AccessValue get gendata Solver_Type]\","
         puts $varfile "            \"tolerance\":                      1.0e-5,"
         puts $varfile "            \"max_iteration\":                  100,"
