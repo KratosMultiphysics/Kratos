@@ -80,6 +80,9 @@ public:
     // Delta time
     double Dt;
     
+    // Augmentation parameter
+    double epsilon;
+    
     // Initializer method 
     void Initialize(      
             const GeometryType& GeometryInput,          // The geometry of the slave 
@@ -106,6 +109,9 @@ public:
         
         // Delta time 
         Dt = 0.0;
+        
+        // Augmentation parameter
+        epsilon = 0.0;
     }
     
     // Updating the Master pair
