@@ -316,7 +316,7 @@ public:
     /***********************************************************************************/
     /***********************************************************************************/
     
-    /**
+    /** TODO: Remove this if not necessary
      * This function calculates the local coordinates of the projected line for the mortar condition
      * @param Geom1 and Geom2: The geometries of the slave and master respectively
      * @param contact_normal1 and contact_normal2: The normals of the slave and master respectively
