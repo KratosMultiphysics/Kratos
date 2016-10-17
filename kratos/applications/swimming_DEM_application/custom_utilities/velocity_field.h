@@ -76,9 +76,9 @@ void CalculateLaplacian(const double time, const vector<double>& coor, vector<do
 
 virtual void CalculateMaterialAcceleration(const double time, const vector<double>& coor, vector<double>& result, const int i_thread = 0);
 
-void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed);
+void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed) override;
 
-void ImposeVelocityOnNodes(ModelPart& r_model_part, const VariableData& container_variable);
+void ImposeVelocityOnNodes(ModelPart& r_model_part, const VariableData& container_variable) override;
 
 virtual void UpdateCoordinates(const double time, const vector<double>& coor, const int i_thread = 0){}
 //***************************************************************************************************************
@@ -95,20 +95,20 @@ virtual void UpdateCoordinates(const double time, const vector<double>& coor, co
 
 /// Turn back information as a stemplate<class T, std::size_t dim> tring.
 
-virtual std::string Info() const
+virtual std::string Info() const override
 {
     return "";
 }
 
 /// Print information about this object.
 
-virtual void PrintInfo(std::ostream& rOStream) const
+virtual void PrintInfo(std::ostream& rOStream) const override
 {
 }
 
 /// Print object's data.
 
-virtual void PrintData(std::ostream& rOStream) const
+virtual void PrintData(std::ostream& rOStream) const override
 {
 }
 
