@@ -110,7 +110,7 @@ public:
         const TSystemVectorType& b
     )
     {
-        // TODO: Add the criteria of AUXILIAR_STICK
+        // TODO: Add the criteria of AUXILIAR_SLIP
         if (mInitialPreviousState == false)
         {
             NodesArrayType& pNode  = rModelPart.Nodes();

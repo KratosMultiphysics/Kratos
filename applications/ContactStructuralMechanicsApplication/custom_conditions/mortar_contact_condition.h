@@ -84,6 +84,9 @@ public:
     double epsilon_normal;
     double epsilon_tangent;
     
+    // Friction coefficient
+    double mu_coulomb;
+    
     // Initializer method 
     void Initialize(      
             const GeometryType& GeometryInput,          // The geometry of the slave 
@@ -112,8 +115,11 @@ public:
         Dt = 0.0;
         
         // Augmentation parameter
-        epsilon_normal = 0.0;
+        epsilon_normal  = 0.0;
         epsilon_tangent = 0.0;
+        
+        // Friction coefficient
+        mu_coulomb = 0.0;
     }
     
     // Updating the Master pair
