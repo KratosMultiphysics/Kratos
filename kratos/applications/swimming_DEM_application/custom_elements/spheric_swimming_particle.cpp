@@ -439,27 +439,24 @@ double SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(int order, u
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template < class TBaseElement >\
+template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::CalculateExplicitFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, vector<double>& historic_integrands, const double last_h_over_h, const int n_steps_per_quad_step)
 {
-    fractional_derivative = ZeroVector(3);
     const int N = historic_integrands.size() - 3;
     const int n = (int)N / 3;
-    array_1d<double, 3> integrand;
+    double fast_fractional_derivative[3];
 
     for (int j = 0; j < n + 1; j++){
         double coefficient = GetDaitcheCoefficient(mQuadratureOrder, n + 1, j + 1, last_h_over_h, n_steps_per_quad_step);
         for (int i_comp = 0; i_comp < 3; i_comp++){
             unsigned int integrand_position = N - 3 * j + i_comp;
-            integrand[i_comp] = historic_integrands[integrand_position];
+            fast_fractional_derivative[i_comp] += coefficient * historic_integrands[integrand_position];
         }
-        fractional_derivative += coefficient * integrand;
     }
 
-    integrand = node.FastGetSolutionStepValue(SLIP_VELOCITY) - node.FastGetSolutionStepValue(VELOCITY);
-
     present_coefficient = GetDaitcheCoefficient(mQuadratureOrder, n + 1, 0, last_h_over_h, n_steps_per_quad_step);
-    fractional_derivative += present_coefficient * integrand;
+    noalias(fractional_derivative) = present_coefficient * (node.FastGetSolutionStepValue(SLIP_VELOCITY) - node.FastGetSolutionStepValue(VELOCITY));
+    SWIMMING_ADD_SECOND_TO_FIRST(fractional_derivative, fast_fractional_derivative)
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
