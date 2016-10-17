@@ -41,7 +41,7 @@ proc spdAux::TryRefreshTree { } {
     variable refreshTreeTurn
     #W "HI"
     update
-    if {$refreshTreeTurn} {
+    if {$refreshTreeTurn && 0} {
         #W "there"
         catch {
             set foc [focus]
@@ -758,12 +758,12 @@ proc spdAux::injectElementInputs { basenode args} {
         #set node "<value n='$inName' pn='$pn' state='\[PartParamState\]' v='-' units='$units' unit_magnitude='$um' help='$help' />"
         set node "<value n='$inName' pn='$pn' state='\[PartParamState\]' v='$v' help='$help' />"
         catch {
-                $parts appendXML $node
-                set orig [$parts lastChild]
-                set new [$orig cloneNode]
-                $orig delete
-                $parts insertBefore $new $basenode
-            }
+            $parts appendXML $node
+            set orig [$parts lastChild]
+            set new [$orig cloneNode]
+            $orig delete
+            $parts insertBefore $new $basenode
+        }
         
         #set originxpath "[$parts toXPath]/value\[@n='Material'\]"
         #set relativexpath "../value\[@n='$inName'\]"
@@ -1082,7 +1082,7 @@ proc spdAux::ProcGetSolutionStrategies {domNode args} {
     #W "dv $dv"
     if {[$domNode getAttribute v] eq ""} {$domNode setAttribute v $dv}
     if {[$domNode getAttribute v] ni $ids} {$domNode setAttribute v $dv}
-    spdAux::RequestRefresh
+    #spdAux::RequestRefresh
     return $pnames
 }
 
@@ -1121,7 +1121,7 @@ proc spdAux::ProcGetSchemes {domNode args} {
 proc spdAux::SetNoneValue {domNode} {
     $domNode setAttribute v "None"
     $domNode setAttribute values "None"
-    spdAux::RequestRefresh
+    #spdAux::RequestRefresh
     return "None,None"
 }
 
@@ -1137,7 +1137,7 @@ proc spdAux::ProcGetConstitutiveLaws { domNode args } {
     }
     set values [join $names ","]
     if {[get_domnode_attribute $domNode v] eq "" || [get_domnode_attribute $domNode v] ni $names} {$domNode setAttribute v [lindex $names 0]}
-    spdAux::RequestRefresh
+    #spdAux::RequestRefresh
     
     return $values
 }
@@ -1244,7 +1244,7 @@ proc spdAux::ProcSolverParamState { domNode args } {
         set resp [::Model::getSolverParamState $solverid $id]
     }
     
-    spdAux::RequestRefresh
+    #spdAux::RequestRefresh
     if {$resp} {return "normal"} else {return "hidden"}
 }
 proc spdAux::ProcPartParamValue { domNode args } {
@@ -1256,7 +1256,6 @@ proc spdAux::ProcPartParamValue { domNode args } {
     return [spdAux::CheckPartParamValue $node $matname]
 }
 proc spdAux::ProcPartParamState { domNode args } {
-    
     set resp [::Model::CheckElemParamState $domNode]
     if {$resp eq "0"} {
         set id [$domNode getAttribute n]
@@ -1264,6 +1263,8 @@ proc spdAux::ProcPartParamState { domNode args } {
         if {$constLaw eq ""} {return hidden}
         set resp [Model::CheckConstLawParamState $constLaw $id]
     }
+    
+    #W "Calculando estado de [$domNode @pn] : $resp"
     if {$resp} {return "normal"} else {return "hidden"}
 }
 proc spdAux::ProcSolverEntryState { domNode args } {
