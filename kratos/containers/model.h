@@ -56,7 +56,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class Model
+  class KRATOS_API(KRATOS_CORE)  Model
     {
     public:
       ///@name Type Definitions
