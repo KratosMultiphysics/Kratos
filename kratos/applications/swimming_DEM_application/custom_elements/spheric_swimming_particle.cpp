@@ -15,7 +15,6 @@
 #include "swimming_DEM_application.h"
 #include "spheric_swimming_particle.h"
 #include "../applications/DEM_application/custom_utilities/GeometryFunctions.h"
-#include "../applications/DEM_application/custom_utilities/AuxiliaryFunctions.h"
 
 namespace Kratos
 {
@@ -262,7 +261,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(NodeType& no
 template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(int order, unsigned int n, unsigned int j, const double last_h_over_h, const int n_steps_per_quad_step)
 {
-    const int l = floor(last_h_over_h * n_steps_per_quad_step + 0.5) - 1;
+    const int l = (int)(last_h_over_h * n_steps_per_quad_step + 0.5) - 1;
 
     if (order == 1){
         if (j < n){
