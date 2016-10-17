@@ -79,12 +79,6 @@ class ContactProcess(KratosMultiphysics.Process):
         elif self.params["contact_type"].GetString() == "NTS":
             condition_name = "NTSContact"
         
-        if (condition_name == "MortarContact"):
-            for node in self.d_interface.Nodes:
-                node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_GAP, 1.0e9) # Large Value
-                node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_SLIP, 1.0e9) # Large Value
-            del node
-        
         #print("MODEL PART BEFORE CREATING INTERFACE")
         #print(self.main_model_part) 
         
@@ -136,6 +130,11 @@ class ContactProcess(KratosMultiphysics.Process):
             #print(cond.Is(KratosMultiphysics.ACTIVE))
         
         if self.params["contact_type"].GetString() == "MortarMethod":
+            for node in self.d_interface.Nodes:
+                node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_GAP,  0.0) 
+                node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_SLIP, 0.0)
+            del node
+            
             self.contact_search.CreateMortarConditions(self.search_factor, self.type_search, self.integration_order)
             #self.contact_search.CheckMortarConditions()
         elif self.params["contact_type"].GetString() == "NTN":

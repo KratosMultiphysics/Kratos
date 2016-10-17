@@ -653,9 +653,9 @@ void MortarContactCondition::CalculateConditionSystem(
                                                                          GetGeometry( ).IntegrationPoints( mThisIntegrationMethod );
                                                                          
     double ActiveCheckFactor = 0.005;
-    if( GetProperties().Has(NORMAL_AUGMENTATION_FACTOR) )
+    if( GetProperties().Has(ACTIVE_CHECK_FACTOR) )
     {
-        ActiveCheckFactor = GetProperties().GetValue(NORMAL_AUGMENTATION_FACTOR);
+        ActiveCheckFactor = GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
     }
     
     this->InitializeContactData(CurrentContactData, rCurrentProcessInfo);
@@ -702,11 +702,12 @@ void MortarContactCondition::CalculateConditionSystem(
                 for (unsigned int iNode = 0; iNode < number_of_nodes_slave; iNode++)
                 {
                     aux_int_gap[iNode] += IntegrationWeight * integration_point_gap * Variables.DetJSlave * Variables.Phi_LagrangeMultipliers[iNode];
+//                     aux_int_slip[iNode] += IntegrationWeight * integration_point_slip * Variables.DetJSlave * Variables.Phi_LagrangeMultipliers[iNode];
                 }
                 
                 const array_1d<double, 3> lm_gp     = prod(trans(CurrentContactData.LagrangeMultipliers), Variables.Phi_LagrangeMultipliers);
                 const array_1d<double, 3> normal_gp = prod(trans(CurrentContactData.NormalsSlave), Variables.N_Slave);
-                const double augmented_normal_lm = inner_prod(normal_gp, lm_gp) - CurrentContactData.epsilon_normal * inner_prod(CurrentContactData.Gaps, Variables.N_Slave);
+                const double augmented_normal_lm = inner_prod(normal_gp, lm_gp) - CurrentContactData.epsilon_normal * integration_point_gap;
                 
                 const array_1d<double, 3> tangent_xi_gp  = prod(trans(CurrentContactData.Tangent1Slave), Variables.N_Slave);
                 const array_1d<double, 3> tangent_eta_gp = prod(trans(CurrentContactData.Tangent2Slave), Variables.N_Slave);
@@ -714,7 +715,8 @@ void MortarContactCondition::CalculateConditionSystem(
                 const double tangent_eta_lm = inner_prod(tangent_eta_gp, lm_gp);
                 const double tangent_lm = std::sqrt(tangent_xi_lm * tangent_xi_lm + tangent_eta_lm * tangent_eta_lm); 
                 const array_1d<double, 3> tangent_gp =  (tangent_xi_lm/tangent_lm) * tangent_xi_gp + (tangent_eta_lm/tangent_lm) * tangent_eta_gp; // NOTE: Are you sure?
-                const double augmented_tangent_lm = tangent_lm; // TODO: Finish this!!
+                const double augmented_tangent_lm = 0.0;
+//                 const double augmented_tangent_lm = std::abs(tangent_lm + CurrentContactData.epsilon_tangent * integration_point_slip) - CurrentContactData.mu_coulomb * augmented_normal_lm; // TODO: Finish this!!
                 
                 // Calculation of the matrix is required
                 if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_LHS_MATRIX ) ||
@@ -760,11 +762,9 @@ void MortarContactCondition::CalculateConditionSystem(
 //             LOG_VECTOR_PRETTY( RHS_contact_pair );
             
             for (unsigned int iNode = 0; iNode < number_of_nodes_slave; iNode++)
-            {                
-                if (GetGeometry()[iNode].GetValue(WEIGHTED_GAP) > aux_int_gap[iNode])
-                {
-                    GetGeometry()[iNode].GetValue(WEIGHTED_GAP) = aux_int_gap[iNode]; // Saving the smallest one
-                }
+            {
+                GetGeometry()[iNode].GetValue(WEIGHTED_GAP) += aux_int_gap[iNode]; 
+//                 GetGeometry()[iNode].GetValue(WEIGHTED_SLIP) += aux_int_slip[iNode]; 
             }
         }
     }
@@ -854,8 +854,18 @@ void MortarContactCondition::InitializeContactData(
         }
     }
     
-    rContactData.epsilon_normal  = GetProperties().GetValue(NORMAL_AUGMENTATION_FACTOR);
-    rContactData.epsilon_tangent = GetProperties().GetValue(TANGENT_AUGMENTATION_FACTOR);
+    if (GetProperties().Has(NORMAL_AUGMENTATION_FACTOR) == true)
+    {
+        rContactData.epsilon_normal  = GetProperties().GetValue(NORMAL_AUGMENTATION_FACTOR);
+    }
+    if (GetProperties().Has(TANGENT_AUGMENTATION_FACTOR) == true)
+    {
+        rContactData.epsilon_tangent = GetProperties().GetValue(TANGENT_AUGMENTATION_FACTOR);
+    }
+    if (GetProperties().Has(FRICTION_COEFFICIENT) == true)
+    {
+        rContactData.mu_coulomb = GetProperties().GetValue(FRICTION_COEFFICIENT);
+    }        
 }
 
 /***********************************************************************************/

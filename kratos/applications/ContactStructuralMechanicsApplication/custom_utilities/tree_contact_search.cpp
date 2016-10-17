@@ -405,6 +405,9 @@ void TreeContactSearch::CreateMortarConditions(
 //             CondOri->GetGeometry().BoundingBox(MinPoint, MaxPoint);
 //             NumberPointsFound= Tree_conds.SearchInBox(MinPoint, MaxPoint, PointsFound.begin(), PointsDistances.begin(), mallocation);
 //         }
+//         else if (type_search == 1) // TODO: Complete search in k-DOP
+//         {
+//         }
         else
         {
             KRATOS_THROW_ERROR( std::logic_error, " The type search declared does not exist!!!!. type_search = ", type_search );
