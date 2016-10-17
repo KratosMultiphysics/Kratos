@@ -838,20 +838,19 @@ void MortarContactCondition::InitializeContactData(
     /* Set Delta time */
     rContactData.Dt = rCurrentProcessInfo[DELTA_TIME];
     
-    /* NORMALS AND LM */ 
+    /* LM */
+    rContactData.LagrangeMultipliers = ContactUtilities::GetVariableMatrix(GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); 
+            
+    /* NORMALS AND TANGENTS */ 
     for (unsigned int iNode = 0; iNode < number_of_slave_nodes; iNode++)
     {
         const array_1d<double,3> normal = GetGeometry()[iNode].GetValue(NORMAL);
         const array_1d<double,3> tangent1 = GetGeometry()[iNode].GetValue(TANGENT_XI);
         const array_1d<double,3> tangent2 = GetGeometry()[iNode].GetValue(TANGENT_ETA);
         
-        array_1d<double,3> lm = GetGeometry()[iNode].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0);
-        
         for (unsigned int iDof = 0; iDof < dimension; iDof++)
         {
             rContactData.NormalsSlave(iNode, iDof) = normal[iDof]; 
-            rContactData.LagrangeMultipliers(iNode, iDof) = lm[iDof];
-            
             rContactData.Tangent1Slave(iNode, iDof) = tangent1[iDof];
             if (dimension == 3)
             {
@@ -868,7 +867,7 @@ void MortarContactCondition::InitializeContactData(
     {
         rContactData.epsilon_tangent = GetProperties().GetValue(TANGENT_AUGMENTATION_FACTOR);
     }
-    if (GetProperties().Has(FRICTION_COEFFICIENT) == true)
+    if (GetProperties().Has(FRICTION_COEFFICIENT) == true) // TODO: Friction coefficient is supposed to be in Variables (different for each GP, like a CL)
     {
         rContactData.mu_coulomb = GetProperties().GetValue(FRICTION_COEFFICIENT);
     }        
