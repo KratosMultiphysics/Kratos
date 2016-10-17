@@ -27,7 +27,7 @@ virtual ~TimeDependant1DPorosityField(){}
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-double Evaluate(const double time, const array_1d<double, 3>& coor)
+double Evaluate(const double time, const array_1d<double, 3>& coor) override
 {
     return ((coor[1] - 2) / (2 * time - mC));
 }
@@ -35,7 +35,7 @@ double Evaluate(const double time, const array_1d<double, 3>& coor)
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-double CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor)
+double CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor) override
 {
     return (2 * (2 - coor[1]) / ((2 * time - 4) * (2 * time - mC)));
 }
@@ -43,7 +43,7 @@ double CalculateTimeDerivative(const double time, const array_1d<double, 3>& coo
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& gradient)
+void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& gradient) override
 {
     gradient[0] = 0.0;
     gradient[1] = 1.0 / (2 * time - mC);
@@ -53,7 +53,7 @@ void CalculateGradient(const double time, const array_1d<double, 3>& coor, array
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& laplacian)
+void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& laplacian) override
 {
     laplacian = ZeroVector(3);
 }
