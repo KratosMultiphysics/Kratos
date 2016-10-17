@@ -60,7 +60,7 @@
         <parameter_list>
 	</parameter_list>
         <element_filters>
-	  <filter field="ImplementedInApplication" value="SolidMechanicsApplication,PfemSolidMechanicsApplication"/>
+	  <filter field="ImplementedInApplication" value="SolidMechanicsApplication,PfemSolidMechanicsApplication,ContactMechanicsApplication"/>
         </element_filters>
       </scheme>
       <scheme n="Bossak" pn="Bossak" help="Scheme for dynamic problems with high frequency accelerations damping" ProductionReady="ProductionReady">
