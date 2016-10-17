@@ -16,8 +16,11 @@ namespace Kratos
 {
     namespace AuxiliaryFunctions
     {
-	   	 
-	  
+        static inline int swimming_DEM_floor(double x)
+        {
+          int i = (int)x; /* truncate */
+          return i - ( i > x ); /* convert trunc to floor */
+        }
     }
 }
 #endif	/* _SWIMMING_DEM_AUXILIARY_FUNCTIONS_H */
