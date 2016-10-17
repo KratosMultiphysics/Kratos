@@ -86,13 +86,13 @@ pp.CFD_DEM.faxen_terms_type = 0
 pp.CFD_DEM.material_acceleration_calculation_type = 1
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
-pp.CFD_DEM.basset_force_type = 4
+pp.CFD_DEM.basset_force_type = 2
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
 pp.CFD_DEM.basset_force_integration_type = 1
 pp.CFD_DEM.n_init_basset_steps = 2
 pp.CFD_DEM.time_steps_per_quadrature_step = 1
 pp.CFD_DEM.delta_time_quadrature = pp.CFD_DEM.time_steps_per_quadrature_step * pp.CFD_DEM.MaxTimeStep
-pp.CFD_DEM.quadrature_order = 1
+pp.CFD_DEM.quadrature_order = 2
 pp.CFD_DEM.time_window = 0.1
 pp.CFD_DEM.number_of_exponentials = 10
 pp.CFD_DEM.number_of_quadrature_steps_in_window = int(pp.CFD_DEM.time_window / pp.CFD_DEM.delta_time_quadrature)
@@ -733,20 +733,27 @@ from random import randint
 N_positions = 100
 L *= math.pi
 possible_xs = [2 * L * (i + 1) / N_positions for i in range(N_positions)]
+i_position = 0
 
 for node in spheres_model_part.Nodes:
     rand_x = 2 * L * random.random()
     rand_y = pp.CFD_DEM.BoundingBoxMinY + (pp.CFD_DEM.BoundingBoxMaxY - pp.CFD_DEM.BoundingBoxMinY) * random.random()
     init_x = node.X 
     init_y = node.Y
-    rand_x = possible_xs[randint(0, N_positions - 1)]
-    rand_y = possible_xs[randint(0, N_positions - 1)]
+    #rand_x = possible_xs[randint(0, N_positions - 1)]
+    #rand_y = possible_xs[randint(0, N_positions - 1)]
+    #rand_x = possible_xs[min(i_position // N_positions, N_positions - 1)]
+    #rand_y = possible_xs[min(i_position // N_positions, N_positions - 1)]   
+    rand_x = possible_xs[i_position // N_positions]
+    rand_y = possible_xs[i_position % N_positions]    
     node.X = rand_x
     node.Y = rand_y
     displx = node.GetSolutionStepValue(DISPLACEMENT_X)
     disply = node.GetSolutionStepValue(DISPLACEMENT_Y)
     node.SetSolutionStepValue(DISPLACEMENT_X, rand_x - init_x)
     node.SetSolutionStepValue(DISPLACEMENT_Y, rand_y - init_y)
+    i_position += 1
+    
 
 
 for node in spheres_model_part.Nodes:
@@ -900,25 +907,13 @@ while (time <= final_time):
                 projection_module.ProjectFromNewestFluid()
 
             else:
-                projection_module.ProjectFromFluid((time_final_DEM_substepping - time_dem) / Dt)
+                #projection_module.ProjectFromFluid((time_final_DEM_substepping - time_dem) / Dt)
                 projection_module.ImposeFluidFlowOnParticles()
                 if DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
                     solver.Solve() # only advance in space  
-                #projection_module.InterpolateVelocity()
-                    
-                #G        
-
-                for node in spheres_model_part.Nodes:
-                    vel= Vector(3)
-                    coor= Vector(3)
-                    coor[0]=node.X
-                    coor[1]=node.Y
-                    coor[2]=node.Z
-                    flow_field.Evaluate(time,coor,vel,0)
-                    node.SetSolutionStepValue(SLIP_VELOCITY_X, vel[0])
-                    node.SetSolutionStepValue(SLIP_VELOCITY_Y, vel[1])
-                    node.SetSolutionStepValue(SLIP_VELOCITY_Z, vel[2])
-                #Z        
+                #projection_module.InterpolateVelocity()                                           
+                projection_module.ImposeVelocityOnDEMFromField()
+                #G 
                 if quadrature_counter.Tick():            
                     if pp.CFD_DEM.basset_force_type == 1 or pp.CFD_DEM.basset_force_type >= 3:                        
                         basset_force_tool.AppendIntegrandsWindow(spheres_model_part) 
