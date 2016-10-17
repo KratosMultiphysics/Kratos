@@ -410,7 +410,7 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        int& mNeighbourFailureId_count = element1->mIniNeighbourFailureId[i_neighbour_count];
+        int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
 
         Properties& element1_props = element1->GetProperties();
         Properties& element2_props = element2->GetProperties();
@@ -435,17 +435,17 @@ namespace Kratos {
             mShearEnergyCoef = 0.5*(element1_props[SHEAR_ENERGY_COEF] + element2_props[SHEAR_ENERGY_COEF]);
         }
 
-        double degradation = 1.0; //Tangential. With degradation:
+        double degradation = 1.0;               //Tangential. With degradation:
 
         if (i_neighbour_count < int(element1->mContinuumInitialNeighborsSize)) {
-            if (indentation >= 0.0) { //COMPRESSION
+            if (indentation >= 0.0) {           //COMPRESSION
                 degradation = mHistoryDegradation;
             } else {
                 degradation = (1.0 - mHistoryDamage);
             }
         }
 
-        if (mNeighbourFailureId_count == 0) { //This means it has not broken
+        if (failure_type == 0) {                //This means it has not broken
 
             if (mHistoryShearFlag == 0.0) {
 
@@ -467,7 +467,6 @@ namespace Kratos {
 
             if (contact_tau > tau_strength) {
                 mHistoryShearFlag = 1.0;
-
             }
 
             if (mHistoryShearFlag != 0.0) {
@@ -483,18 +482,16 @@ namespace Kratos {
                 }
 
                 double aux = (1.0 - damage_tau) * (tau_strength / contact_tau);
-
                 LocalElasticContactForce[0] = aux * LocalElasticContactForce[0];
                 LocalElasticContactForce[1] = aux * LocalElasticContactForce[1];
 
-                failure_criterion_state = 1.0;
-
-                //failure_criterion_state = (1+mShearEnergyCoef*damage_tau) /(1+mShearEnergyCoef);
-                //if(contact_sigma<0){ failure_criterion_state = GeometryFunctions::max( failure_criterion_state, -contact_sigma / mTensionLimit ); }
+                //failure_criterion_state = 1.0;                        // *revisar
+                failure_criterion_state = (1+mShearEnergyCoef*damage_tau) /(1+mShearEnergyCoef);  // *revisar
+                if(contact_sigma<0){ failure_criterion_state = GeometryFunctions::max( failure_criterion_state, -contact_sigma / mTensionLimit ); }   // *revisar
 
                 if (damage_tau >= 1.0) {
-                    mNeighbourFailureId_count = 2; // shear
-                    //failure_criterion_state = 1.0;    //
+                    failure_type = 2;                   // shear
+                    failure_criterion_state = 1.0;      // *revisar
                     sliding = true;
                 }
             } else {
@@ -506,7 +503,7 @@ namespace Kratos {
             }
         }
         if (search_control == 0) {
-            if (mNeighbourFailureId_count != 0) {
+            if (failure_type != 0) {
                 search_control_vector[OpenMPUtils::ThisThread()] = 1;
             }
         }
@@ -534,9 +531,10 @@ namespace Kratos {
             vector<int>& search_control_vector,
             const ProcessInfo& r_process_info) {
 
-        KRATOS_TRY
+
 
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
+
         LocalElasticContactForce[0] -= kt_el * LocalDeltDisp[0]; // 0: first tangential
         LocalElasticContactForce[1] -= kt_el * LocalDeltDisp[1]; // 1: second tangential
 
@@ -544,13 +542,14 @@ namespace Kratos {
                                   + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
 
-        if (failure_type == 0) { //This means it has not broken
+        if (failure_type == 0) {                                //This means it has not broken
             Properties& element1_props = element1->GetProperties();
             Properties& element2_props = element2->GetProperties();
             const double mTauZero = 0.5 * 1e6 * (element1_props[CONTACT_TAU_ZERO] + element2_props[CONTACT_TAU_ZERO]);
             const double mInternalFriction = 0.5 * (element1_props[CONTACT_INTERNAL_FRICC] + element2_props[CONTACT_INTERNAL_FRICC]);
 
-            contact_tau = ShearForceNow / calculation_area;
+
+            contact_tau = ShearForceNow / calculation_area
             contact_sigma = LocalElasticContactForce[2] / calculation_area;
 
             double tau_strength = mTauZero;
@@ -578,7 +577,7 @@ namespace Kratos {
             }
         }
 
-        KRATOS_CATCH("")
+
     }
 */
 
