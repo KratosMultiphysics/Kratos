@@ -129,6 +129,15 @@ public:
                     {
                         node_it->GetValue(AUXILIAR_ACTIVE) = false;
                     }
+                    
+                    if (node_it->Is(SLIP))
+                    {
+                        node_it->GetValue(AUXILIAR_SLIP) = true;
+                    }
+                    else
+                    {
+                        node_it->GetValue(AUXILIAR_SLIP) = false;
+                    }
                 }
             }
             
@@ -146,18 +155,35 @@ public:
         {
             if (node_it->Is(INTERFACE))
             {
-                bool aux_bool;
+                // NORMAL DIRECTION
+                bool aux_bool_normal;
                 if (node_it->Is(ACTIVE))
                 {
-                    aux_bool = true;
+                    aux_bool_normal = true;
                 }
                 else
                 {
-                    aux_bool = false;
+                    aux_bool_normal = false;
                 }
-                if (node_it->GetValue(AUXILIAR_ACTIVE) != aux_bool)
+                if (node_it->GetValue(AUXILIAR_ACTIVE) != aux_bool_normal)
                 {                            
-                    node_it->GetValue(AUXILIAR_ACTIVE) = aux_bool;
+                    node_it->GetValue(AUXILIAR_ACTIVE) = aux_bool_normal;
+                    is_converged = false;
+                }
+                
+                // TANGENT DIRECTION
+                bool aux_bool_tangent;
+                if (node_it->Is(SLIP))
+                {
+                    aux_bool_tangent = true;
+                }
+                else
+                {
+                    aux_bool_tangent = false;
+                }
+                if (node_it->GetValue(AUXILIAR_SLIP) != aux_bool_tangent)
+                {                            
+                    node_it->GetValue(AUXILIAR_SLIP) = aux_bool_tangent;
                     is_converged = false;
                 }
             }
