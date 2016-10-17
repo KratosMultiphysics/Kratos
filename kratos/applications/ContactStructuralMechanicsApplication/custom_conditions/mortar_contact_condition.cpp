@@ -24,10 +24,9 @@
 #include <algorithm>
 
 /* Includes of particular contact conditions */
-#include "contact_2D_2N_2N_active.hpp"
-#include "contact_2D_2N_2N_inactive.hpp"
-#include "contact_3D_3N_3N_active.hpp"
-#include "contact_3D_4N_4N_active.hpp"
+#include "contact_2D_2N_2N.hpp"
+#include "contact_3D_3N_3N.hpp"
+#include "contact_3D_4N_4N.hpp"
 
 // Logging format include
 #include "custom_utilities/logging_settings.hpp"
@@ -143,7 +142,7 @@ void MortarContactCondition::InitializeSolutionStep( ProcessInfo& rCurrentProces
     mThisMasterElements.clear();
     mThisMasterElements.resize( all_containers->size( ) );
     
-    const double ActiveCheckFactor = GetProperties().GetValue(ACTIVE_CHECK_FACTOR); // TODO: Change the name of the variable to AUGMENTATION_CONSTANT (ALM)
+    const double ActiveCheckFactor = GetProperties().GetValue(ACTIVE_CHECK_FACTOR); 
     
     for ( unsigned int i_cond = 0; i_cond < all_containers->size(); ++i_cond )
     {
@@ -654,9 +653,9 @@ void MortarContactCondition::CalculateConditionSystem(
                                                                          GetGeometry( ).IntegrationPoints( mThisIntegrationMethod );
                                                                          
     double ActiveCheckFactor = 0.005;
-    if( GetProperties().Has(ACTIVE_CHECK_FACTOR) )
+    if( GetProperties().Has(NORMAL_AUGMENTATION_FACTOR) )
     {
-        ActiveCheckFactor = GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
+        ActiveCheckFactor = GetProperties().GetValue(NORMAL_AUGMENTATION_FACTOR);
     }
     
     this->InitializeContactData(CurrentContactData, rCurrentProcessInfo);
@@ -705,18 +704,30 @@ void MortarContactCondition::CalculateConditionSystem(
                     aux_int_gap[iNode] += IntegrationWeight * integration_point_gap * Variables.DetJSlave * Variables.Phi_LagrangeMultipliers[iNode];
                 }
                 
+                const array_1d<double, 3> lm_gp     = prod(trans(CurrentContactData.LagrangeMultipliers), Variables.Phi_LagrangeMultipliers);
+                const array_1d<double, 3> normal_gp = prod(trans(CurrentContactData.NormalsSlave), Variables.N_Slave);
+                const double augmented_normal_lm = inner_prod(normal_gp, lm_gp) - CurrentContactData.epsilon_normal * inner_prod(CurrentContactData.Gaps, Variables.N_Slave);
+                
+                const array_1d<double, 3> tangent_xi_gp  = prod(trans(CurrentContactData.Tangent1Slave), Variables.N_Slave);
+                const array_1d<double, 3> tangent_eta_gp = prod(trans(CurrentContactData.Tangent2Slave), Variables.N_Slave);
+                const double tangent_xi_lm = inner_prod(tangent_xi_gp, lm_gp);
+                const double tangent_eta_lm = inner_prod(tangent_eta_gp, lm_gp);
+                const double tangent_lm = std::sqrt(tangent_xi_lm * tangent_xi_lm + tangent_eta_lm * tangent_eta_lm); 
+                const array_1d<double, 3> tangent_gp =  (tangent_xi_lm/tangent_lm) * tangent_xi_gp + (tangent_eta_lm/tangent_lm) * tangent_eta_gp; // NOTE: Are you sure?
+                const double augmented_tangent_lm = tangent_lm; // TODO: Finish this!!
+                
                 // Calculation of the matrix is required
                 if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_LHS_MATRIX ) ||
                         rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
                 {
-                    this->CalculateLocalLHS( LHS_contact_pair, Variables, CurrentContactData, IntegrationWeight );
+                    this->CalculateLocalLHS( LHS_contact_pair, Variables, CurrentContactData, IntegrationWeight, augmented_normal_lm, augmented_tangent_lm );
                 }
 
                 // Calculation of the vector is required
                 if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_RHS_VECTOR ) ||
                         rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
                 {
-                    this->CalculateLocalRHS( RHS_contact_pair, Variables, CurrentContactData, IntegrationWeight );
+                    this->CalculateLocalRHS( RHS_contact_pair, Variables, CurrentContactData, IntegrationWeight, augmented_normal_lm, augmented_tangent_lm );
                 }
             }
         }
@@ -749,7 +760,7 @@ void MortarContactCondition::CalculateConditionSystem(
 //             LOG_VECTOR_PRETTY( RHS_contact_pair );
             
             for (unsigned int iNode = 0; iNode < number_of_nodes_slave; iNode++)
-            {
+            {                
                 if (GetGeometry()[iNode].GetValue(WEIGHTED_GAP) > aux_int_gap[iNode])
                 {
                     GetGeometry()[iNode].GetValue(WEIGHTED_GAP) = aux_int_gap[iNode]; // Saving the smallest one
@@ -843,7 +854,8 @@ void MortarContactCondition::InitializeContactData(
         }
     }
     
-    rContactData.epsilon = 0.0; //= GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
+    rContactData.epsilon_normal  = GetProperties().GetValue(NORMAL_AUGMENTATION_FACTOR);
+    rContactData.epsilon_tangent = GetProperties().GetValue(TANGENT_AUGMENTATION_FACTOR);
 }
 
 /***********************************************************************************/
@@ -982,38 +994,38 @@ void MortarContactCondition::CalculateAndAddLHS(
     const unsigned int number_of_master_nodes = current_master_element.PointsNumber( );
     const unsigned int number_of_total_nodes = number_of_slave_nodes + number_of_master_nodes;
         
-//     unsigned int index_1 = 0;
-//     for (unsigned int i_slave = 0; i_slave < number_of_slave_nodes; ++i_slave )
-//     {
-//         Matrix tangent_matrix;
-//         tangent_matrix.resize(dimension - 1, dimension);
-// 
-//         const array_1d<double, 3> tangent1 = GetGeometry()[i_slave].GetValue(TANGENT_XI);
-//         const array_1d<double, 3> tangent2 = GetGeometry()[i_slave].GetValue(TANGENT_ETA);
-//         for (unsigned int i = 0; i < dimension; i++)
+    unsigned int index_1 = 0;
+    for (unsigned int i_slave = 0; i_slave < number_of_slave_nodes; ++i_slave )
+    {
+        Matrix tangent_matrix;
+        tangent_matrix.resize(dimension - 1, dimension);
+
+        const array_1d<double, 3> tangent1 = GetGeometry()[i_slave].GetValue(TANGENT_XI);
+        const array_1d<double, 3> tangent2 = GetGeometry()[i_slave].GetValue(TANGENT_ETA);
+        for (unsigned int i = 0; i < dimension; i++)
+        {
+            tangent_matrix(0, i) = tangent1[i];
+            if (dimension == 3)
+            {
+                tangent_matrix(1, i) = tangent2[i];
+            }
+        }
+        
+        index_1 = (number_of_total_nodes + i_slave) * dimension;
+        
+//         // We impose a 0 zero LM in the inactive nodes
+//         if (GetGeometry( )[i_slave].Is(ACTIVE) == false)
 //         {
-//             tangent_matrix(0, i) = tangent1[i];
-//             if (dimension == 3)
-//             {
-//                 tangent_matrix(1, i) = tangent2[i];
-//             }
+//             subrange(LHS_contact_pair, index_1, index_1 + dimension, index_1, index_1 + dimension) = IdentityMatrix(dimension, dimension);
 //         }
-//         
-//         index_1 = (number_of_total_nodes + i_slave) * dimension;
-//         
-// //         // We impose a 0 zero LM in the inactive nodes
-// //         if (GetGeometry( )[i_slave].Is(ACTIVE) == false)
-// //         {
-// //             subrange(LHS_contact_pair, index_1, index_1 + dimension, index_1, index_1 + dimension) = IdentityMatrix(dimension, dimension);
-// //         }
-// //         // And the tangent direction (sliding)
-// //         else
-// //         {            
-// //             subrange(LHS_contact_pair, index_1 + 1, index_1 + dimension, index_1 , index_1 + dimension) = subrange(tangent_matrix, 0, dimension - 1, 0, dimension);
-// //         }
-//         
-//          subrange(LHS_contact_pair, index_1 + 1, index_1 + dimension, index_1 , index_1 + dimension) = subrange(tangent_matrix, 0, dimension - 1, 0, dimension);
-//     }
+//         // And the tangent direction (sliding)
+//         else
+//         {            
+//             subrange(LHS_contact_pair, index_1 + 1, index_1 + dimension, index_1 , index_1 + dimension) = subrange(tangent_matrix, 0, dimension - 1, 0, dimension);
+//         }
+        
+         subrange(LHS_contact_pair, index_1 + 1, index_1 + dimension, index_1 , index_1 + dimension) = tangent_matrix;
+    }
     
     if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
     {
@@ -1087,7 +1099,9 @@ void MortarContactCondition::CalculateLocalLHS(
     MatrixType& rPairLHS,
     GeneralVariables& rVariables,
     const ContactData& rContactData,
-    const double& rIntegrationWeight 
+    const double& rIntegrationWeight,
+    const double& augmented_normal_lm,
+    const double& augmented_tangent_lm
     )
 {
     /* DEFINITIONS */
@@ -1103,21 +1117,25 @@ void MortarContactCondition::CalculateLocalLHS(
 //     const Matrix DPhi         = rVariables.DPhi_De_LagrangeMultipliers;
     const double detJ         = rVariables.DetJSlave; 
     
-//     const array_1d<double, 3> lm_gp     = prod(trans(rContactData.LagrangeMultipliers), N1); // TODO: Move this outside and thing how to consider active/inactive GP without gap and using the augmented LM
-//     const array_1d<double, 3> normal_gp = prod(trans(rContactData.NormalsSlave), N1);
-//     const double augmented_normal_lm = inner_prod(normal_gp, lm_gp) + rContactData.epsilon * inner_prod(rContactData.Gaps, N1);
     
     if (dimension == 2)
     {
         if (number_of_master_nodes == 2 &&  number_of_slave_nodes == 2)
         {
-//             if (augmented_normal_lm <= 0.0)
-//             {
-                rPairLHS += rIntegrationWeight * ContactActive2D2N2N::ComputeGaussPointLHS( N1, N2, Phi, detJ, rContactData );
-//             }
+            if (augmented_normal_lm <= 0.0)
+            {
+                // Normal direction
+                rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointSlipLHS( N1, N2, Phi, detJ, rContactData );
+                
+                // Slip
+                rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointActiveLHS( N1, N2, Phi, detJ, rContactData );
+//                 // Stick
+//                 rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointStickLHS( N1, N2, Phi, detJ, rContactData );
+            }
 //             else
-//             {
-//                 rPairLHS += rIntegrationWeight * ContactInactive2D2N2N::ComputeGaussPointLHS( N1, N2, Phi, detJ, rContactData );
+//             {        
+//                 // Normal direction
+//                 rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointInactiveLHS( N1, N2, Phi, detJ, rContactData );
 //             }
         }
         else
@@ -1130,13 +1148,13 @@ void MortarContactCondition::CalculateLocalLHS(
     {
         if (number_of_master_nodes == 3 &&  number_of_slave_nodes == 3)
         {
-//             rPairLHS += rIntegrationWeight *  ContactActive3D3N3N::ComputeGaussPointLHS( N1, N2, Phi, detJ, rContactData );                          
+//             rPairLHS += rIntegrationWeight *  Contact3D3N3N::ComputeGaussPointLHS( N1, N2, Phi, detJ, rContactData );                          
         }
         else if (number_of_master_nodes == 4 &&  number_of_slave_nodes == 4)
         {
             const Matrix DN1 = rVariables.DN_De_Slave;
             
-//             rPairLHS += rIntegrationWeight * ContactActive3D4N4N::ComputeGaussPointLHS( N1, N2, Phi, detJ, rContactData );
+//             rPairLHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointLHS( N1, N2, Phi, detJ, rContactData );
         }
         else
         {
@@ -1257,7 +1275,9 @@ void MortarContactCondition::CalculateLocalRHS(
     VectorType& rPairRHS,
     GeneralVariables& rVariables,
     const ContactData& rContactData,
-    const double& rIntegrationWeight 
+    const double& rIntegrationWeight,
+    const double& augmented_normal_lm,
+    const double& augmented_tangent_lm
     )
 {
     /* DEFINITIONS */
@@ -1270,24 +1290,25 @@ void MortarContactCondition::CalculateLocalRHS(
     const Vector N1           = rVariables.N_Slave;
     const Vector N2           = rVariables.N_Master;
     const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
-//     const Matrix DPhi         = rVariables.DPhi_De_LagrangeMultipliers;
     const double detJ         = rVariables.DetJSlave;
-    
-//     const array_1d<double, 3> lm_gp     = prod(trans(rContactData.LagrangeMultipliers), N1);
-//     const array_1d<double, 3> normal_gp = prod(trans(rContactData.NormalsSlave), N1);
-//     const double augmented_normal_lm = inner_prod(normal_gp, lm_gp) + rContactData.epsilon * inner_prod(rContactData.Gaps, N1);
     
     if (dimension == 2)
     {
         if (number_of_master_nodes == 2 &&  number_of_slave_nodes == 2)
         {
-//             if (augmented_normal_lm <= 0.0)
-//             {
-                rPairRHS += rIntegrationWeight * ContactActive2D2N2N::ComputeGaussPointRHS(N1, N2, Phi, detJ, rContactData);
-//             }
+            if (augmented_normal_lm <= 0.0)
+            {
+                rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointActiveRHS(N1, N2, Phi, detJ, rContactData);
+                
+                // Slip
+                rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointSlipRHS(N1, N2, Phi, detJ, rContactData);
+                
+//                 // Stick
+//                 rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointStickRHS(N1, N2, Phi, detJ, rContactData);
+            }
 //             else
 //             {
-//                 rPairRHS += rIntegrationWeight * ContactInactive2D2N2N::ComputeGaussPointRHS(N1, N2, Phi, detJ, rContactData);
+//                 rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointInactiveRHS(N1, N2, Phi, detJ, rContactData);
 //             }
         }
         else
@@ -1300,7 +1321,7 @@ void MortarContactCondition::CalculateLocalRHS(
     {
         if (number_of_master_nodes == 3 &&  number_of_slave_nodes == 3)
         {
-//             rPairRHS += rIntegrationWeight *  ContactActive3D3N3N::ComputeGaussPointRHS(N1, N2, Phi, detJ, rContactData);
+//             rPairRHS += rIntegrationWeight *  Contact3D3N3N::ComputeGaussPointRHS(N1, N2, Phi, detJ, rContactData);
         }
         if (number_of_master_nodes == 4 &&  number_of_slave_nodes == 4)
         {

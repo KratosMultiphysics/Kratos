@@ -81,7 +81,8 @@ public:
     double Dt;
     
     // Augmentation parameter
-    double epsilon;
+    double epsilon_normal;
+    double epsilon_tangent;
     
     // Initializer method 
     void Initialize(      
@@ -111,7 +112,8 @@ public:
         Dt = 0.0;
         
         // Augmentation parameter
-        epsilon = 0.0;
+        epsilon_normal = 0.0;
+        epsilon_tangent = 0.0;
     }
     
     // Updating the Master pair
@@ -696,7 +698,9 @@ public:
         MatrixType& rPairLHS,
         GeneralVariables& rVariables,
         const ContactData& rContactData,
-        const double& rIntegrationWeight 
+        const double& rIntegrationWeight,
+        const double& augmented_normal_lm,
+        const double& augmented_tangent_lm
         );
     
     /*
@@ -725,7 +729,9 @@ public:
         VectorType& rPairRHS,
         GeneralVariables& rVariables,
         const ContactData& rContactData,
-        const double& rIntegrationWeight 
+        const double& rIntegrationWeight,
+        const double& augmented_normal_lm,
+        const double& augmented_tangent_lm
         );
     
     /***********************************************************************************/

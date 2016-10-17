@@ -879,7 +879,9 @@ public:
     
     static inline void ReComputeActiveInactive(
         ModelPart & rModelPart, 
-        const double cn
+        const double cn,
+        const double ct,
+        const double mu
         )
     {
         NodesArrayType& pNode  = rModelPart.Nodes();
@@ -894,9 +896,9 @@ public:
                 const array_1d<double,3>        nodal_normal = node_it->GetValue(NORMAL); 
                 const double lambda_n = inner_prod(lagrange_multiplier, nodal_normal);
 
-                const double check = lambda_n - cn * node_it->GetValue(WEIGHTED_GAP);
+                const double check_normal = lambda_n - cn * node_it->GetValue(WEIGHTED_GAP);
 
-                if (check <= 0.0)
+                if (check_normal <= 0.0)
                 {
                     node_it->Set(ACTIVE, false);
                     node_it->GetSolutionStepValue( IS_ACTIVE_SET ) = false;
@@ -907,20 +909,23 @@ public:
                     node_it->GetSolutionStepValue( IS_ACTIVE_SET ) = true;
                 }
                 
-
-//                /// DEBUG ///
-//                if( node_it->Id() == 616 || node_it->Id() == 629 )
-//                {
-//                    DEBUG_MSG( "Recomputing the active/inactive sets using PDASS" )
-//                    KRATOS_WATCH( node_it->Id( ) )
-//                    LOG_VECTOR3( lagrange_multiplier )
-//                    LOG_VECTOR3( node_it->GetValue(NORMAL) )
-//                    LOG_SCALAR( node_it->GetValue(WEIGHTED_GAP) )
-//                    LOG_SCALAR( check )
-//                    LOG_SCALAR( lambda_n )
-//                    LOG_SCALAR( node_it->Is( ACTIVE ) )
-//                }
-//                /// DEBUG ///
+                // TODO: Activate in the future
+//                 const array_1d<double, 3> nodal_tangent_xi  = node_it->GetValue(TANGENT_XI); 
+//                 const array_1d<double, 3> nodal_tangent_eta = node_it->GetValue(TANGENT_ETA);
+//                 const double tangent_xi_lm = inner_prod(nodal_tangent_xi, lagrange_multiplier);
+//                 const double tangent_eta_lm = inner_prod(nodal_tangent_eta, lagrange_multiplier);
+//                 const double lambda_t = std::sqrt(tangent_xi_lm * tangent_xi_lm + tangent_eta_lm * tangent_eta_lm); 
+//                 
+//                 const double check_tangent = std::abs(lambda_t + ct * node_it->GetValue(WEIGHTED_SLIP)) - mu * check_normal;
+//                 
+//                 if (check_tangent < 0.0)
+//                 {
+//                     node_it->Set(SLIP, false);
+//                 }
+//                 else
+//                 {
+//                     node_it->Set(SLIP, true);
+//                 }
             }
         }
     }

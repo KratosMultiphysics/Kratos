@@ -110,6 +110,7 @@ public:
         const TSystemVectorType& b
     )
     {
+        // TODO: Add the criteria of AUXILIAR_STICK
         if (mInitialPreviousState == false)
         {
             NodesArrayType& pNode  = rModelPart.Nodes();
@@ -122,11 +123,11 @@ public:
                 {
                     if (node_it->Is(ACTIVE))
                     {
-                        node_it->GetValue(AUXILIAR_BOOLEAN) = true;
+                        node_it->GetValue(AUXILIAR_ACTIVE) = true;
                     }
                     else
                     {
-                        node_it->GetValue(AUXILIAR_BOOLEAN) = false;
+                        node_it->GetValue(AUXILIAR_ACTIVE) = false;
                     }
                 }
             }
@@ -154,9 +155,9 @@ public:
                 {
                     aux_bool = false;
                 }
-                if (node_it->GetValue(AUXILIAR_BOOLEAN) != aux_bool)
+                if (node_it->GetValue(AUXILIAR_ACTIVE) != aux_bool)
                 {                            
-                    node_it->GetValue(AUXILIAR_BOOLEAN) = aux_bool;
+                    node_it->GetValue(AUXILIAR_ACTIVE) = aux_bool;
                     is_converged = false;
                 }
             }

@@ -139,7 +139,8 @@ void TreeContactSearch::InitializeConditions(
         cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
 //         cond_it->GetValue(CONTACT_CONTAINERS)->reserve(mallocation); 
         cond_it->GetProperties().SetValue(ACTIVE_CHECK_FACTOR, rActiveCheckFactor);
-        cond_it->GetProperties().SetValue(CONSTANT_ACT_INACT,  rConstantActInact);
+        cond_it->GetProperties().SetValue(NORMAL_AUGMENTATION_FACTOR,   rConstantActInact);
+        cond_it->GetProperties().SetValue(TANGENT_AUGMENTATION_FACTOR,  rConstantActInact); // TODO: Add another variable for the tangent
     }
 }
 
