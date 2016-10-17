@@ -75,6 +75,9 @@ class ProjectionModule:
     def ImposeFluidFlowOnParticles(self):
         self.projector.ImposeFlowOnDEMFromField(self.flow_field, self.particles_model_part)
 
+    def ImposeVelocityOnDEMFromField(self):
+        self.projector.ImposeVelocityOnDEMFromField(self.flow_field, self.particles_model_part)
+
     def ProjectFromParticles(self, recalculate_neigh = True):
 
         if (self.coupling_type != 3):
