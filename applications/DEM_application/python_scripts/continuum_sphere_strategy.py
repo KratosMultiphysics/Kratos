@@ -18,8 +18,21 @@ class ExplicitStrategy(BaseExplicitStrategy):
         if (self.delta_option > 0):
             self.case_option = 2     #MSIMSI. only 2 cases, with delta or without but continuum always.
 
-        self.fixed_vel_top = Param.LoadingVelocityTop
-        self.fixed_vel_bot = Param.LoadingVelocityBot
+
+
+        if not hasattr(Param, "LoadingVelocityTop"):
+            self.fixed_vel_top = 0
+        else:
+            self.fixed_vel_top = Param.LoadingVelocityTop
+
+        if not hasattr(Param, "LoadingVelocityBot"):
+            self.fixed_vel_bot = 0
+        else:
+            self.fixed_vel_bot = Param.LoadingVelocityBot
+
+
+        #self.fixed_vel_top = Param.LoadingVelocityTop
+        #self.fixed_vel_bot = Param.LoadingVelocityBot
 
         if (self.Var_Translator(Param.DontSearchUntilFailure)):
             print ("Search is not active until a bond is broken.")
@@ -27,7 +40,12 @@ class ExplicitStrategy(BaseExplicitStrategy):
             if (len(fem_model_part.Nodes) > 0 or Param.TestType== "BTS"):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
                 print ("WARNING: Search should be activated since there might contact with FEM.")
 
-        self.test_type = Param.TestType
+        if not hasattr(Param, "TestType"):
+            self.test_type = "None"
+        else:
+            self.test_type = Param.TestType
+
+        #self.test_type = Param.TestType
 
         self.amplified_continuum_search_radius_extension = Param.AmplifiedSearchRadiusExtension
         

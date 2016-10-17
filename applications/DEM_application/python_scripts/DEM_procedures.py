@@ -611,7 +611,10 @@ class DEMFEMProcedures(object):
 
         # GLOBAL VARIABLES OF THE SCRIPT
         self.DEM_parameters = DEM_parameters
-        self.TestType = self.DEM_parameters.TestType
+
+        if not hasattr(DEM_parameters, "TestType"):
+            self.TestType = "None"
+        # self.TestType = self.DEM_parameters.TestType
 
         # Initialization of member variables
         # SIMULATION FLAGS
@@ -686,7 +689,7 @@ class DEMFEMProcedures(object):
             if (elastic_forces or contact_forces or dem_pressure or tangential_elastic_forces or shear_stress or dem_nodal_area or integration_groups):
                 self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_FEM_RESULTS_OPTION, 1)
 
-        self.particle_graph_forces = {}
+        self.particle_graph_forces = {}                    
 
         if self.TestType == "None":
             open_graph_files(self, RigidFace_model_part)
@@ -728,7 +731,7 @@ class DEMFEMProcedures(object):
     
     def PrintGraph(self, time):
 
-        if self.DEM_parameters.TestType == "None":
+        if not hasattr(self.DEM_parameters, "TestType"):
             if (self.graph_counter == self.graph_frequency):
                 self.graph_counter = 0
                 if self.RigidFace_model_part.NumberOfSubModelParts() > 1:
@@ -761,13 +764,12 @@ class DEMFEMProcedures(object):
 
     def FinalizeGraphs(self,RigidFace_model_part):
 
-        if self.DEM_parameters.TestType == "None":
+        if not hasattr(self.DEM_parameters, "TestType"):
             self.close_graph_files(RigidFace_model_part)
 
     def PrintBallsGraph(self, time):
 
-        if self.TestType == "None":
-
+        if not hasattr(self.DEM_parameters, "TestType"):
             if (self.balls_graph_counter == self.graph_frequency):
                 self.balls_graph_counter = 0
 
@@ -807,7 +809,7 @@ class DEMFEMProcedures(object):
 
     def FinalizeBallsGraphs(self,spheres_model_part):
 
-        if self.DEM_parameters.TestType == "None":
+        if not hasattr(self.DEM_parameters, "TestType"):
             self.close_balls_graph_files(spheres_model_part)
 
 
@@ -947,7 +949,11 @@ class MaterialTest(object):
         pass
 
     def Initialize(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part):
-        self.TestType = DEM_parameters.TestType
+
+        if not hasattr(DEM_parameters, "TestType"):
+            self.TestType = "None"
+        else:
+            self.TestType = DEM_parameters.TestType
 
         if (self.TestType != "None"):
             self.script = DEM_material_test_script.MaterialTest(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
