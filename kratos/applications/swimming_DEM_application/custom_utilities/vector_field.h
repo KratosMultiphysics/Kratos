@@ -71,6 +71,8 @@ virtual void ResizeVectorsForParallelism(const int n_threads){}
 
 virtual void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed){}
 
+virtual void ImposeVelocityOnNodes(ModelPart& r_model_part, const VariableData& container_variable){}
+
 //***************************************************************************************************************
 //***************************************************************************************************************
 

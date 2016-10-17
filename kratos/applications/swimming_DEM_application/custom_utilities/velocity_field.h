@@ -78,6 +78,8 @@ virtual void CalculateMaterialAcceleration(const double time, const vector<doubl
 
 void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed);
 
+void ImposeVelocityOnNodes(ModelPart& r_model_part, const VariableData& container_variable);
+
 virtual void UpdateCoordinates(const double time, const vector<double>& coor, const int i_thread = 0){}
 //***************************************************************************************************************
 //***************************************************************************************************************
