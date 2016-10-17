@@ -20,11 +20,14 @@ KRATOS_CREATE_VARIABLE( std::vector<contact_container>*, CONTACT_CONTAINERS ) //
 KRATOS_CREATE_VARIABLE( Element::Pointer , ELEMENT_POINTER )                  // A pointer to the element belonging to this condition
 KRATOS_CREATE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                     // The integration order computed in the contact
 KRATOS_CREATE_VARIABLE( Matrix, MORTAR_CONTACT_OPERATOR )                     // Mortar Contact Operator
-KRATOS_CREATE_VARIABLE( double, ACTIVE_CHECK_FACTOR )                         // The factor employed to consider an active/inactive node
-KRATOS_CREATE_VARIABLE( double, CONSTANT_ACT_INACT )                          // The constant that is considered for the check of active or inactive (when 0 it doesn't accept traction)
+KRATOS_CREATE_VARIABLE( double, ACTIVE_CHECK_FACTOR )                         // The factor employed to search an active/inactive node
+KRATOS_CREATE_VARIABLE( double, NORMAL_AUGMENTATION_FACTOR )                  // The constant that is considered for the check of active or inactive (when 0 it doesn't accept traction)
+KRATOS_CREATE_VARIABLE( double, TANGENT_AUGMENTATION_FACTOR )                 // The constant that is considered for the check if the node is slip/stick
 KRATOS_CREATE_VARIABLE( double, WEIGHTED_GAP )                                // The integrated gap employed in mortar formulation
+KRATOS_CREATE_VARIABLE( double, WEIGHTED_SLIP )                               // The integrated slip employed in mortar formulation
 KRATOS_CREATE_VARIABLE( Matrix, DELTA_NORMAL )                                // Directional derivative of the normal
-KRATOS_CREATE_VARIABLE( bool, AUXILIAR_BOOLEAN )                              // Auxiliar boolean to check
+KRATOS_CREATE_VARIABLE( bool, AUXILIAR_ACTIVE )                               // Auxiliar boolean to check if the node is active or not
+KRATOS_CREATE_VARIABLE( bool, AUXILIAR_SLIP )                                 // Auxiliar boolean to check if the node is stick or not
 KRATOS_CREATE_VARIABLE( bool, IS_ACTIVE_SET )                                 // A bool storing whether the node is in the active set or not 
 
 }

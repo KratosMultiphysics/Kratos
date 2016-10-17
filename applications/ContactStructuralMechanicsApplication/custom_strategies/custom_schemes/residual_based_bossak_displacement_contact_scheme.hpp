@@ -382,9 +382,26 @@ public:
             }
         }
         
-        // Recompute Active/Inactive nodes 
-        const double cn = rElements[0].GetProperties().GetValue(CONSTANT_ACT_INACT); 
-        ContactUtilities::ReComputeActiveInactive( rModelPart, cn ); 
+        // Recompute Active/Inactive nodes // TODO: Consider these parameters associated to the conditions
+        double cn = 0.0;
+        if (rElements[0].GetProperties().Has(NORMAL_AUGMENTATION_FACTOR) == true)
+        {
+            cn = rElements[0].GetProperties().GetValue(NORMAL_AUGMENTATION_FACTOR); 
+        }
+        
+        double ct = 0.0;
+        if (rElements[0].GetProperties().Has(TANGENT_AUGMENTATION_FACTOR) == true)
+        {
+            ct = rElements[0].GetProperties().GetValue(TANGENT_AUGMENTATION_FACTOR); 
+        }
+        
+        double mu = 0.0;
+        if (rElements[0].GetProperties().Has(FRICTION_COEFFICIENT) == true)
+        {
+            mu = rElements[0].GetProperties().GetValue(FRICTION_COEFFICIENT); 
+        }
+        
+        ContactUtilities::ReComputeActiveInactive( rModelPart, cn, ct, mu ); 
         
         KRATOS_CATCH("");
     }
@@ -458,9 +475,26 @@ public:
             }
         }
         
-        // Recompute Active/Inactive nodes 
-        const double cn = rElements[0].GetProperties().GetValue(CONSTANT_ACT_INACT); 
-        ContactUtilities::ReComputeActiveInactive( rModelPart, cn ); 
+        // Recompute Active/Inactive nodes // TODO: Consider these parameters associated to the conditions
+        double cn = 0.0;
+        if (rElements[0].GetProperties().Has(NORMAL_AUGMENTATION_FACTOR) == true)
+        {
+            cn = rElements[0].GetProperties().GetValue(NORMAL_AUGMENTATION_FACTOR); 
+        }
+        
+        double ct = 0.0;
+        if (rElements[0].GetProperties().Has(TANGENT_AUGMENTATION_FACTOR) == true)
+        {
+            ct = rElements[0].GetProperties().GetValue(TANGENT_AUGMENTATION_FACTOR); 
+        }
+        
+        double mu = 0.0;
+        if (rElements[0].GetProperties().Has(FRICTION_COEFFICIENT) == true)
+        {
+            mu = rElements[0].GetProperties().GetValue(FRICTION_COEFFICIENT); 
+        }
+        
+        ContactUtilities::ReComputeActiveInactive( rModelPart, cn, ct, mu ); 
         
         KRATOS_CATCH("");
     }

@@ -61,14 +61,16 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( INTEGRATION_ORDER_CONTACT )                   // The integration order computed in the contact
     KRATOS_REGISTER_VARIABLE( ELEMENT_POINTER )                             // A pointer to the element belonging to this condition
     KRATOS_REGISTER_VARIABLE( MORTAR_CONTACT_OPERATOR )                     // Mortar Contact Operator
-    KRATOS_REGISTER_VARIABLE( ACTIVE_CHECK_FACTOR )                         // The factor employed to consider an active/inactive node
-    KRATOS_REGISTER_VARIABLE( CONSTANT_ACT_INACT )                          // The constant that is considered for the check of active or inactive (when 0 it doesn't accept traction)
+    KRATOS_REGISTER_VARIABLE( ACTIVE_CHECK_FACTOR )                         // The factor employed to serach an active/inactive node
+    KRATOS_REGISTER_VARIABLE( NORMAL_AUGMENTATION_FACTOR )                  // The constant that is considered for the check of active or inactive (when 0 it doesn't accept traction)
+    KRATOS_REGISTER_VARIABLE( TANGENT_AUGMENTATION_FACTOR )                 // The constant that is considered for the check if the node is slip/stick
     KRATOS_REGISTER_VARIABLE( WEIGHTED_GAP )                                // The integrated gap employed in mortar formulation
+    KRATOS_REGISTER_VARIABLE( WEIGHTED_SLIP )                               // The integrated slip employed in mortar formulation
     KRATOS_REGISTER_VARIABLE( DELTA_NORMAL )                                // Directional derivative of the normal
-    KRATOS_REGISTER_VARIABLE( AUXILIAR_BOOLEAN )                            // Auxiliar boolean to check
-    
-    KRATOS_REGISTER_VARIABLE( IS_ACTIVE_SET )                               // A bool storing whether the node is in the active set or not
-    
+    KRATOS_REGISTER_VARIABLE( AUXILIAR_ACTIVE )                             // Auxiliar boolean to check if the node is active or not
+    KRATOS_REGISTER_VARIABLE( AUXILIAR_SLIP )                               // Auxiliar boolean to check if the node is stick or not
+    KRATOS_REGISTER_VARIABLE( IS_ACTIVE_SET )                               // A bool storing whether the node is in the active set or not               
+
     // Register the conditions
     // Mortar contact condition
     KRATOS_REGISTER_CONDITION( "MortarContactCondition2D2N", mMortarContactCondition2D2N );

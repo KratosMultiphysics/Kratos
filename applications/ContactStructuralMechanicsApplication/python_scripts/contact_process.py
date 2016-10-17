@@ -82,6 +82,7 @@ class ContactProcess(KratosMultiphysics.Process):
         if (condition_name == "MortarContact"):
             for node in self.d_interface.Nodes:
                 node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_GAP, 1.0e9) # Large Value
+                node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_SLIP, 1.0e9) # Large Value
             del node
         
         #print("MODEL PART BEFORE CREATING INTERFACE")
