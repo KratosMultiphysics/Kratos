@@ -14,5 +14,4 @@
 	  </value>-->
 	  <dynamicnode command="injectElementInputs" args=""/>
 	  <dynamicnode command="injectConstitutiveLawInputs" args=""/>
-	  <!--<value n="test" pn="test" v="9" state="[Recalc]" />-->
 </condition>

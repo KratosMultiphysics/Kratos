@@ -41,7 +41,7 @@ proc spdAux::TryRefreshTree { } {
     variable refreshTreeTurn
     #W "HI"
     update
-    if {$refreshTreeTurn && 0} {
+    if {$refreshTreeTurn} {
         #W "there"
         catch {
             set foc [focus]
@@ -285,6 +285,16 @@ proc spdAux::SwitchDimAndCreateWindow { ndim } {
         after 100 [list gid_groups_conds::open_conditions menu ]
         spdAux::TryRefreshTree
     }
+}
+
+proc spdAux::ForceExtremeLoad { } {
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    foreach contNode [$root getElementsByTagName "container"] {
+        W "Opening [$contNode  @n]"
+        $contNode setAttribute tree_state "open"
+    }
+    gid_groups_conds::actualize_conditions_window
 }
 
 proc spdAux::getImagePathDim { dim } {
@@ -1063,27 +1073,24 @@ proc spdAux::ProcGetElements { domNode args } {
 }
 
 proc spdAux::ProcGetSolutionStrategies {domNode args} {
-    set names ""
-    set pnames ""
-    
+    set names [list ]
+    set pnames [list ]
+    #W $args
     set Sols [::Model::GetSolutionStrategies {*}$args]
     #W $Sols
-    set ids [list ]
     foreach ss $Sols {
-        lappend ids [$ss getName]
-        append names [$ss getName] ","
-        append pnames [$ss getName] "," [$ss getPublicName] ","
+        lappend names [$ss getName]
+        lappend pnames [$ss getName]
+        lappend pnames [$ss getPublicName] 
     }
-    set names [string range $names 0 end-1]
-    set pnames [string range $pnames 0 end-1]
     
-    $domNode setAttribute values $names
-    set dv [lindex $ids 0]
+    $domNode setAttribute values [join $names ","]
+    set dv [lindex $names 0]
     #W "dv $dv"
     if {[$domNode getAttribute v] eq ""} {$domNode setAttribute v $dv}
-    if {[$domNode getAttribute v] ni $ids} {$domNode setAttribute v $dv}
-    #spdAux::RequestRefresh
-    return $pnames
+    if {[$domNode getAttribute v] ni $names} {$domNode setAttribute v $dv}
+    spdAux::RequestRefresh
+    return [join $pnames ","]
 }
 
 proc spdAux::ProcGetSchemes {domNode args} {
