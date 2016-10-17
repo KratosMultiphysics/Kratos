@@ -176,6 +176,7 @@ void AddDEMVariablesToImpose(const VariableData& r_variable){
 
 void InterpolateFromFluidMesh(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid, const double alpha);
 void ImposeFlowOnDEMFromField(FieldUtility& r_flow, ModelPart& r_dem_model_part);
+void ImposeVelocityOnDEMFromField(FieldUtility& r_flow, ModelPart& r_dem_model_part);
 void InterpolateVelocity(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid);
 void UpdateOldVelocity(ModelPart& r_dem_model_part);
 void UpdateOldAdditionalForce(ModelPart& r_dem_model_part);

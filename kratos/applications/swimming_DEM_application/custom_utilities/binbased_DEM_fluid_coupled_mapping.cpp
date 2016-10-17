@@ -108,7 +108,8 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
 
     KRATOS_CATCH("")
 }
-
+//***************************************************************************************************************
+//***************************************************************************************************************
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ImposeFlowOnDEMFromField(
     FieldUtility& r_flow,
@@ -117,6 +118,19 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ImposeFl
     KRATOS_TRY
 
     r_flow.ImposeFieldOnNodes(r_dem_model_part, mDEMVariablesToBeImposed);
+
+    KRATOS_CATCH("")
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
+void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ImposeVelocityOnDEMFromField(
+    FieldUtility& r_flow,
+    ModelPart& r_dem_model_part)
+{
+    KRATOS_TRY
+
+    r_flow.ImposeVelocityOnNodes(r_dem_model_part, SLIP_VELOCITY);
 
     KRATOS_CATCH("")
 }
