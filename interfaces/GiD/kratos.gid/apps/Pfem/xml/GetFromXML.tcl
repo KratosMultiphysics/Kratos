@@ -169,7 +169,7 @@ proc Pfem::xml::ProcSolutionTypeState {domNode args} {
 proc Pfem::xml::ProcGetBodyTypeValues {domNode args} {
      set domain_type_un PFEM_DomainType
      set domain_type_route [spdAux::getRoute $domain_type_un]
-     set values "Fluid,Rigid,Solid"
+     set values "Fluid,Solid,Rigid"
      if {$domain_type_route ne ""} {
          set domain_type_node [$domNode selectNodes $domain_type_route]
          set domain_type_value [get_domnode_attribute $domain_type_node v]
@@ -191,25 +191,25 @@ proc Pfem::xml::ProcGetSolutionStrategiesPFEM {domNode args} {
      set Sols [::Model::GetSolutionStrategies [list "SolutionType" $solutionType] ]
      set ids [list ]
      set domainType [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute PFEM_DomainType]] v]
-     set filter "Solid,Pfem"
+     set filter [list Solid Pfem]
      if {$domainType eq "Solids"} {set filter "Solid"}
      if {$domainType eq "Fluids"} {set filter "Pfem"}
-     foreach ss $Sols {
-         if {[$ss getAttribute "App"] in [split $filter ","]} {
-             lappend ids [$ss getName]
-             append names [$ss getName] ","
-             append pnames [$ss getName] "," [$ss getPublicName] ","
-         }
-     }
-     set names [string range $names 0 end-1]
-     set pnames [string range $pnames 0 end-1]
      
-     $domNode setAttribute values $names
-         set dv [lindex $ids 0]
-         if {[$domNode getAttribute v] eq ""} {$domNode setAttribute v $dv}
-         if {[$domNode getAttribute v] ni $ids} {$domNode setAttribute v $dv}
+     foreach ss $Sols {
+          if {[$ss getAttribute "App"] in $filter} {
+               lappend names [$ss getName]
+               lappend pnames [$ss getName]
+               lappend pnames [$ss getPublicName]
+          }
+     }
+    
+     $domNode setAttribute values [join $names ","]
+     set dv [lindex $names 0]
+     #W "dv $dv"
+     if {[$domNode getAttribute v] eq ""} {$domNode setAttribute v $dv}
+     if {[$domNode getAttribute v] ni $names} {$domNode setAttribute v $dv}
      spdAux::RequestRefresh
-     return $pnames
+     return [join $pnames ","]
 }
 
 Pfem::xml::Init
