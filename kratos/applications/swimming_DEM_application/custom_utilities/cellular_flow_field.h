@@ -84,20 +84,20 @@ void UpdateCoordinates(const double time, const vector<double>& coor, const int 
 
 /// Turn back information as a stemplate<class T, std::size_t dim> tring.
 
-virtual std::string Info() const
+virtual std::string Info() const override
 {
     return "";
 }
 
 /// Print information about this object.
 
-virtual void PrintInfo(std::ostream& rOStream) const
+virtual void PrintInfo(std::ostream& rOStream) const override
 {
 }
 
 /// Print object's data.
 
-virtual void PrintData(std::ostream& rOStream) const
+virtual void PrintData(std::ostream& rOStream) const override
 {
 }
 
