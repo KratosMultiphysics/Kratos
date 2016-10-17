@@ -86,7 +86,7 @@ pp.CFD_DEM.faxen_terms_type = 0
 pp.CFD_DEM.material_acceleration_calculation_type = 1
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
-pp.CFD_DEM.basset_force_type = 2
+pp.CFD_DEM.basset_force_type = 4
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
 pp.CFD_DEM.basset_force_integration_type = 1
 pp.CFD_DEM.n_init_basset_steps = 2
@@ -104,7 +104,6 @@ pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = True
 
 # Making the fluid step an exact multiple of the DEM step
 pp.Dt = int(pp.Dt / pp.CFD_DEM.MaxTimeStep) * pp.CFD_DEM.MaxTimeStep
-print(pp.Dt)
 #Z
 
 # NANO BEGIN
@@ -782,6 +781,16 @@ if pp.CFD_DEM.basset_force_type > 0:
     basset_force_tool.FillDaitcheVectors(N_steps, pp.CFD_DEM.quadrature_order, pp.CFD_DEM.time_steps_per_quadrature_step)
 if pp.CFD_DEM.basset_force_type >= 3 or pp.CFD_DEM.basset_force_type == 1:
     basset_force_tool.FillHinsbergVectors(spheres_model_part, pp.CFD_DEM.number_of_exponentials, pp.CFD_DEM.number_of_quadrature_steps_in_window)
+
+
+#input_variables_file = open("C:/input_variables_file.txt", "w")
+
+#from pprint import pprint
+#for var in vars(pp):
+    #pprint(var)
+    
+#input_variables_file.close()
+
 
 while (time <= final_time):
     time = time + Dt
