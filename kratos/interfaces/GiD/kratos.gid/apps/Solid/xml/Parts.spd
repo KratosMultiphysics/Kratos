@@ -3,7 +3,7 @@
 	  <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements]" state="normal" >
 			<dependencies node="../value" actualize="1" />
 	  </value>
-	  <value n="ConstitutiveLaw" pn="Constitutive law" v=""
+	  <value n="ConstitutiveLaw" pn="Constitutive law" v="" actualize_tree="1"
 			 values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]">
 			<dependencies node="../value" actualize="1"/>
 	  </value>
@@ -14,5 +14,4 @@
 	  </value>-->
 	  <dynamicnode command="injectElementInputs" args=""/>
 	  <dynamicnode command="injectConstitutiveLawInputs" args=""/>
-	  <!--<value n="test" pn="test" v="9" state="[Recalc]" />-->
 </condition>
