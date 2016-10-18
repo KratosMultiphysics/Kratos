@@ -103,14 +103,15 @@ void TreeContactSearch::InitializeNTSConditions()
 
 void TreeContactSearch::InitializeMortarConditions(
     const double rActiveCheckFactor,
-    const double rConstantActInact
+    const double rAugmentationNormal,
+    const double rAugmentationTangent
     )
 {
     // Destination model part
-    InitializeConditions(mrDestinationModelPart, rActiveCheckFactor, rConstantActInact);
+    InitializeConditions(mrDestinationModelPart, rActiveCheckFactor, rAugmentationNormal, rAugmentationTangent);
     
     // Origin model part
-    InitializeConditions(mrOriginModelPart, rActiveCheckFactor, rConstantActInact);
+    InitializeConditions(mrOriginModelPart, rActiveCheckFactor, rAugmentationNormal, rAugmentationTangent);
 }
 
 /***********************************************************************************/
@@ -127,7 +128,8 @@ void TreeContactSearch::InitializeNodes(ModelPart & rModelPart)
 void TreeContactSearch::InitializeConditions(
     ModelPart & rModelPart,
     const double rActiveCheckFactor,
-    const double rConstantActInact
+    const double rAugmentationNormal,
+    const double rAugmentationTangent
     )
 {
     ConditionsArrayType& pCond  = rModelPart.Conditions();
@@ -139,8 +141,8 @@ void TreeContactSearch::InitializeConditions(
         cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
 //         cond_it->GetValue(CONTACT_CONTAINERS)->reserve(mallocation); 
         cond_it->GetProperties().SetValue(ACTIVE_CHECK_FACTOR, rActiveCheckFactor);
-        cond_it->GetProperties().SetValue(NORMAL_AUGMENTATION_FACTOR,   rConstantActInact);
-        cond_it->GetProperties().SetValue(TANGENT_AUGMENTATION_FACTOR,  rConstantActInact); // TODO: Add another variable for the tangent
+        cond_it->GetProperties().SetValue(NORMAL_AUGMENTATION_FACTOR,   rAugmentationNormal);
+        cond_it->GetProperties().SetValue(TANGENT_AUGMENTATION_FACTOR,  rAugmentationTangent);
     }
 }
 

@@ -106,7 +106,8 @@
             "active_check_factor"	  	  : 3e-4,
 	    	"max_number_results"          : 1000,
             "type_search"                 : "InRadius",
-            "constant_active_inactive"    : 200,
+            "augmentation_normal"         : 200,
+            "augmentation_tangent"        : 200,
             "integration_order"           : 10
         }
     }

@@ -156,10 +156,11 @@
             "destination_model_part_name" : "Parts_Part_punch",
             "contact_type"                : "MortarMethod",
             "search_factor"               : 1.0,
-            "active_check_factor"	  	  : 2e-3,
-	    	"max_number_results"          : 1000,
+            "active_check_factor"	  : 2e-3,
+            "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
-            "constant_active_inactive"    : 100,
+            "augmentation_normal"         : 100,
+            "augmentation_tangent"        : 100,
             "integration_order"           : 10
         }
     }

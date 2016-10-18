@@ -355,7 +355,8 @@ public:
     
     void InitializeMortarConditions(
         const double rActiveCheckFactor,
-        const double rConstantActInact
+        const double rAugmentationNormal,
+        const double rAugmentationTangent
         );
 
     /**
@@ -371,7 +372,8 @@ public:
     void InitializeConditions(
         ModelPart & rModelPart, 
         const double rActiveCheckFactor,
-        const double rConstantActInact
+        const double rAugmentationNormal,
+        const double rAugmentationTangent
         );
 
     /**
