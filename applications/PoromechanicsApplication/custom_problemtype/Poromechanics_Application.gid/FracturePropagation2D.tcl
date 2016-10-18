@@ -208,8 +208,9 @@ proc WriteInitialFracturesData { dir gidpath } {
     puts $varfile "        \"gid_path\":                             \"$gidpath\","
     puts $varfile "        \"propagation_length\":                   [GiD_AccessValue get gendata Propagation_Length],"
     puts $varfile "        \"propagation_damage\":                   [GiD_AccessValue get gendata Propagation_Damage],"
-    puts $varfile "        \"propagation_frequency\":                [GiD_AccessValue get gendata Propagation_Frequency],"
     puts $varfile "        \"propagation_width\":                    [GiD_AccessValue get gendata Propagation_Width],"
+    puts $varfile "        \"propagation_cosangle\":                 [GiD_AccessValue get gendata Propagation_CosAngle],"
+    puts $varfile "        \"propagation_frequency\":                [GiD_AccessValue get gendata Propagation_Frequency],"
     # body_domain_sub_model_part_list
     set PutStrings \[
     set Groups [GiD_Info conditions Body_Part groups]
@@ -490,7 +491,8 @@ proc GenerateNewFractures { dir PropagationData } {
         GiD_Process Mescape Meshing AssignSizes Lines [expr { [GiD_AccessValue get gendata Propagation_Width]*1.25 }] \
             [expr { [GiD_Info Geometry MaxNumLines]-1 }] [GiD_Info Geometry MaxNumLines] escape escape
         GiD_Process Mescape Meshing AssignSizes Points 0.0 [dict get $FracturesDict $MotherFractureId TipPoint Id] escape escape
-        GiD_Process Mescape Meshing AssignSizes Points [expr { [GiD_AccessValue get gendata Propagation_Width]*0.25 }] [GiD_Info Geometry MaxNumPoints] escape escape
+        #GiD_Process Mescape Meshing AssignSizes Points [expr { [GiD_AccessValue get gendata Propagation_Width]*0.25 }] [GiD_Info Geometry MaxNumPoints] escape escape
+        GiD_Process Mescape Meshing AssignSizes Points [GiD_AccessValue get gendata Propagation_Width] [GiD_Info Geometry MaxNumPoints] escape escape
         
         ## Replace $FracturesDict $MotherFractureId by the new fracture
         dict set FracturesDict $MotherFractureId TopPoint Id [dict get $FracturesDict $MotherFractureId TipPoint Id]
@@ -645,7 +647,9 @@ proc GenerateNewFractures { dir PropagationData } {
                 [expr { [GiD_Info Geometry MaxNumLines]-3 }] [expr { [GiD_Info Geometry MaxNumLines]-4 }] \
                 [expr { [GiD_Info Geometry MaxNumLines]-5 }] [expr { [GiD_Info Geometry MaxNumLines]-6 }] escape escape
             GiD_Process Mescape Meshing AssignSizes Points 0.0 [dict get $FracturesDict $MotherFractureId TipPoint Id] escape escape
-            GiD_Process Mescape Meshing AssignSizes Points [expr { [GiD_AccessValue get gendata Propagation_Width]*0.25 }] \
+            #GiD_Process Mescape Meshing AssignSizes Points [expr { [GiD_AccessValue get gendata Propagation_Width]*0.25 }] \
+            #    [expr { [GiD_Info Geometry MaxNumPoints]-1 }] [GiD_Info Geometry MaxNumPoints] escape escape
+            GiD_Process Mescape Meshing AssignSizes Points [GiD_AccessValue get gendata Propagation_Width] \
                 [expr { [GiD_Info Geometry MaxNumPoints]-1 }] [GiD_Info Geometry MaxNumPoints] escape escape
             GiD_Process Mescape Meshing Structured Surfaces [GiD_Info Geometry MaxNumSurfaces] escape 1 [GiD_Info Geometry MaxNumLines] escape escape
             
@@ -797,7 +801,9 @@ proc GenerateNewFractures { dir PropagationData } {
                 [expr { [GiD_Info Geometry MaxNumLines]-3 }] [expr { [GiD_Info Geometry MaxNumLines]-4 }] \
                 [expr { [GiD_Info Geometry MaxNumLines]-5 }] [expr { [GiD_Info Geometry MaxNumLines]-6 }] escape escape
             GiD_Process Mescape Meshing AssignSizes Points 0.0 [dict get $FracturesDict $MotherFractureId TipPoint Id] escape escape
-            GiD_Process Mescape Meshing AssignSizes Points [expr { [GiD_AccessValue get gendata Propagation_Width]*0.25 }] \
+            #GiD_Process Mescape Meshing AssignSizes Points [expr { [GiD_AccessValue get gendata Propagation_Width]*0.25 }] \
+            #    [expr { [GiD_Info Geometry MaxNumPoints]-1 }] [GiD_Info Geometry MaxNumPoints] escape escape
+            GiD_Process Mescape Meshing AssignSizes Points [GiD_AccessValue get gendata Propagation_Width] \
                 [expr { [GiD_Info Geometry MaxNumPoints]-1 }] [GiD_Info Geometry MaxNumPoints] escape escape
             GiD_Process Mescape Meshing Structured Surfaces [GiD_Info Geometry MaxNumSurfaces] escape 1 [GiD_Info Geometry MaxNumLines] escape escape
             
@@ -900,8 +906,9 @@ proc GenerateNewFractures { dir PropagationData } {
     puts $varfile "        \"gid_path\":                                 \"[lindex $PropagationData 0]\","
     puts $varfile "        \"propagation_length\":                       [GiD_AccessValue get gendata Propagation_Length],"
     puts $varfile "        \"propagation_damage\":                       [GiD_AccessValue get gendata Propagation_Damage],"
-    puts $varfile "        \"propagation_frequency\":                    [GiD_AccessValue get gendata Propagation_Frequency],"
     puts $varfile "        \"propagation_width\":                        [GiD_AccessValue get gendata Propagation_Width],"
+    puts $varfile "        \"propagation_cosangle\":                     [GiD_AccessValue get gendata Propagation_CosAngle],"
+    puts $varfile "        \"propagation_frequency\":                    [GiD_AccessValue get gendata Propagation_Frequency],"
     # body_domain_sub_model_part_list
     set PutStrings \[
     set Groups [GiD_Info conditions Body_Part groups]
