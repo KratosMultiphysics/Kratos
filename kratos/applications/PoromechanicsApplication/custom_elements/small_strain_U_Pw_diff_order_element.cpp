@@ -813,9 +813,10 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
                 if (Dim>2)
                     BodyAcceleration[2] += Variables.Nu[i]*Variables.BodyAcceleration[Index++];
             }
-
-            Vector GradPressureTerm = prod(trans(Variables.GradNpT),Variables.PressureVector);
-            GradPressureTerm -= GetProperties()[DENSITY_WATER]*BodyAcceleration;
+            
+            Vector GradPressureTerm(Dim);
+            noalias(GradPressureTerm) = prod(trans(Variables.GradNpT),Variables.PressureVector);
+            noalias(GradPressureTerm) -= GetProperties()[DENSITY_WATER]*BodyAcceleration;
 
             Vector AuxFluidFlux = ZeroVector(Dim);
             AuxFluidFlux = - 1.0/Variables.DynamicViscosity * prod(Variables.IntrinsicPermeability, GradPressureTerm );
