@@ -84,7 +84,9 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
 
         # execute initialize base class
         if( self.main_model_part.ProcessInfo[KratosPfemBase.INITIALIZED_DOMAINS] == False ):
-            self.InitializeDomains()
+            import domain_utilities
+            domain_utils = domain_utilities.DomainUtilities()
+            domain_utils.InitializeDomains(self.main_model_part,self.echo_level)
 
         for domain in self.meshing_domains:
             domain.Initialize()
@@ -123,7 +125,7 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
  
         self.model_meshing.ExecuteFinalize()
         
-        if(self.echo_level>1):
+        if(self.echo_level>0):
             print("")
             print(self.main_model_part)
 
@@ -140,5 +142,5 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
                     self.next_meshing += self.meshing_frequency
                         
 
-
+        
 
