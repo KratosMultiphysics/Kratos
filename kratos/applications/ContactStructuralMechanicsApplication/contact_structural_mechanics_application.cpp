@@ -70,6 +70,8 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( AUXILIAR_ACTIVE )                             // Auxiliar boolean to check if the node is active or not
     KRATOS_REGISTER_VARIABLE( AUXILIAR_SLIP )                               // Auxiliar boolean to check if the node is stick or not
     KRATOS_REGISTER_VARIABLE( IS_ACTIVE_SET )                               // A bool storing whether the node is in the active set or not               
+    KRATOS_REGISTER_VARIABLE( GAP_GP )                                      // A double storing the gap of the GP
+    KRATOS_REGISTER_VARIABLE( SLIP_GP )                                     // A double storing the slip of the GP
 
     // Register the conditions
     // Mortar contact condition

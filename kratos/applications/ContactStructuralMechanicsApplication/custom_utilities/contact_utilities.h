@@ -909,23 +909,22 @@ public:
                     node_it->GetSolutionStepValue( IS_ACTIVE_SET ) = true;
                 }
                 
-                // TODO: Activate in the future
-//                 const array_1d<double, 3> nodal_tangent_xi  = node_it->GetValue(TANGENT_XI); 
-//                 const array_1d<double, 3> nodal_tangent_eta = node_it->GetValue(TANGENT_ETA);
-//                 const double tangent_xi_lm = inner_prod(nodal_tangent_xi, lagrange_multiplier);
-//                 const double tangent_eta_lm = inner_prod(nodal_tangent_eta, lagrange_multiplier);
-//                 const double lambda_t = std::sqrt(tangent_xi_lm * tangent_xi_lm + tangent_eta_lm * tangent_eta_lm); 
-//                 
-//                 const double check_tangent = std::abs(lambda_t + ct * node_it->GetValue(WEIGHTED_SLIP)) - mu * check_normal;
-//                 
-//                 if (check_tangent < 0.0)
-//                 {
-//                     node_it->Set(SLIP, false);
-//                 }
-//                 else
-//                 {
-//                     node_it->Set(SLIP, true);
-//                 }
+                const array_1d<double, 3> nodal_tangent_xi  = node_it->GetValue(TANGENT_XI); 
+                const array_1d<double, 3> nodal_tangent_eta = node_it->GetValue(TANGENT_ETA);
+                const double tangent_xi_lm = inner_prod(nodal_tangent_xi, lagrange_multiplier);
+                const double tangent_eta_lm = inner_prod(nodal_tangent_eta, lagrange_multiplier);
+                const double lambda_t = std::sqrt(tangent_xi_lm * tangent_xi_lm + tangent_eta_lm * tangent_eta_lm); 
+                
+                const double check_tangent = std::abs(lambda_t + ct * node_it->GetValue(WEIGHTED_SLIP)) - mu * check_normal;
+                
+                if (check_tangent < 0.0)
+                {
+                    node_it->Set(SLIP, false);
+                }
+                else
+                {
+                    node_it->Set(SLIP, true);
+                }
             }
         }
     }
@@ -979,7 +978,33 @@ public:
     
     for (unsigned int iNode = 0; iNode < number_of_nodes; iNode++)
     {
-        array_1d<double, 3> Value = nodes[iNode].FastGetSolutionStepValue(rVarName, step);
+        const array_1d<double, 3> Value = nodes[iNode].FastGetSolutionStepValue(rVarName, step);
+        for (unsigned int iDof = 0; iDof < dimension; iDof++)
+        {
+            VarMatrix(iNode, iDof) = Value[iDof];
+        }
+    }
+    
+    return VarMatrix;
+}
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    static inline Matrix GetVariableMatrix(
+        const GeometryType& nodes,
+        const Variable<array_1d<double,3> >& rVarName
+        )
+{
+    /* DEFINITIONS */
+    const unsigned int dimension = nodes.WorkingSpaceDimension();
+    const unsigned int number_of_nodes  =  nodes.PointsNumber( );
+    
+    Matrix VarMatrix(number_of_nodes, dimension);
+    
+    for (unsigned int iNode = 0; iNode < number_of_nodes; iNode++)
+    {
+        const array_1d<double, 3> Value = nodes[iNode].GetValue(rVarName);
         for (unsigned int iDof = 0; iDof < dimension; iDof++)
         {
             VarMatrix(iNode, iDof) = Value[iDof];
