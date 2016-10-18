@@ -82,6 +82,8 @@ KRATOS_DEFINE_VARIABLE( Matrix, DELTA_NORMAL )                                //
 KRATOS_DEFINE_VARIABLE( bool, AUXILIAR_ACTIVE )                               // Auxiliar boolean to check if the node is active or not
 KRATOS_DEFINE_VARIABLE( bool, AUXILIAR_SLIP )                                 // Auxiliar boolean to check if the node is stick or not
 KRATOS_DEFINE_VARIABLE( bool, IS_ACTIVE_SET )                                 // A bool storing whether the node is in the active set or not
+KRATOS_DEFINE_VARIABLE( double, GAP_GP )                                      // A double storing the gap of the GP
+KRATOS_DEFINE_VARIABLE( double, SLIP_GP )                                     // A double storing the slip of the GP
 }       
 
 #endif	/* KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED */
