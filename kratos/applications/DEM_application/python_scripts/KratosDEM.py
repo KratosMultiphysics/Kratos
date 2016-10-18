@@ -259,9 +259,10 @@ if (DEM_parameters.dem_inlet_option):
   
 DEMFEMProcedures = DEM_procedures.DEMFEMProcedures(DEM_parameters, graphs_path, spheres_model_part, rigid_face_model_part)
 
-if (DEM_parameters.EnergyCalculationOption):
-    os.chdir(graphs_path)
-    DEMEnergyCalculator = DEM_procedures.DEMEnergyCalculator(DEM_parameters, spheres_model_part, cluster_model_part, "EnergyPlot.grf")
+if (hasattr(DEM_parameters, "EnergyCalculationOption")):
+    if (DEM_parameters.EnergyCalculationOption):
+        os.chdir(graphs_path)
+        DEMEnergyCalculator = DEM_procedures.DEMEnergyCalculator(DEM_parameters, spheres_model_part, cluster_model_part, "EnergyPlot.grf")
 
 materialTest.Initialize(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
 
@@ -362,8 +363,9 @@ while (time < DEM_parameters.FinalTime):
     DEMFEMProcedures.PrintGraph(time)
     DEMFEMProcedures.PrintBallsGraph(time)
 
-    if (DEM_parameters.EnergyCalculationOption):
-        DEMEnergyCalculator.CalculateEnergyAndPlot(time)
+    if (hasattr(DEM_parameters, "EnergyCalculationOption")):
+        if (DEM_parameters.EnergyCalculationOption):
+            DEMEnergyCalculator.CalculateEnergyAndPlot(time)
 
     #### GiD IO ##########################################
     time_to_print = time - time_old_print
@@ -420,7 +422,9 @@ demio.FinalizeMesh()
 materialTest.FinalizeGraphs()
 DEMFEMProcedures.FinalizeGraphs(rigid_face_model_part)
 DEMFEMProcedures.FinalizeBallsGraphs(spheres_model_part)
-DEMEnergyCalculator.FinilizeEnergyPlot()
+if (hasattr(DEM_parameters, "EnergyCalculationOption")):
+    if (DEM_parameters.EnergyCalculationOption):
+        DEMEnergyCalculator.FinilizeEnergyPlot()
 
 demio.CloseMultifiles()
 
