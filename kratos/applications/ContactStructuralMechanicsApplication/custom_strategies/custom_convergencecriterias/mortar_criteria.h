@@ -145,7 +145,9 @@ public:
             return false;
         }
         
-        bool is_converged = true;
+        bool is_converged        = true;
+        bool active_is_converged = true;
+        bool slip_is_converged   = true;
         
         NodesArrayType& pNode  = rModelPart.Nodes();
         NodesArrayType::iterator it_node_begin = pNode.ptr_begin();
@@ -168,7 +170,7 @@ public:
                 if (node_it->GetValue(AUXILIAR_ACTIVE) != aux_bool_normal)
                 {                            
                     node_it->GetValue(AUXILIAR_ACTIVE) = aux_bool_normal;
-                    is_converged = false;
+                    active_is_converged = false;
                 }
                 
                 // TANGENT DIRECTION
@@ -184,8 +186,10 @@ public:
                 if (node_it->GetValue(AUXILIAR_SLIP) != aux_bool_tangent)
                 {                            
                     node_it->GetValue(AUXILIAR_SLIP) = aux_bool_tangent;
-                    is_converged = false;
+                    slip_is_converged = false;
                 }
+                
+                is_converged = active_is_converged && slip_is_converged;
             }
         }
         
@@ -193,11 +197,19 @@ public:
         {
             if (is_converged == true)
             {
-                std::cout << "Convergence is achieved in ACTIVE/INACTIVE mortar nodes check" << std::endl;
+                std::cout << "Convergence is achieved in ACTIVE/INACTIVE and STICK/SLIP mortar nodes check" << std::endl;
+            }
+            else if ((not active_is_converged && slip_is_converged ) == true)
+            {
+                std::cout << "Convergence is not achieved in ACTIVE/INACTIVE mortar nodes check. RECALCULATING...." << std::endl;
+            }
+            else if ((active_is_converged && not slip_is_converged ) == true)
+            {
+                std::cout << "Convergence is not achieved in STICK/SLIP mortar nodes check. RECALCULATING...." << std::endl;
             }
             else
             {
-                std::cout << "Convergence is not achieved in ACTIVE/INACTIVE mortar nodes check. RECALCULATING...." << std::endl;
+                std::cout << "Convergence is not achieved in ACTIVE/INACTIVE and STICK/SLIP mortar nodes check. RECALCULATING...." << std::endl;
             }
         }
         
