@@ -77,8 +77,8 @@ namespace Kratos
     //Register Variables (variables created in pfem_fluid_dynamics_application_variables.cpp)
 
     // Material postprocess + invariants
-    KRATOS_REGISTER_VARIABLE(M_MODULUS)  
-    KRATOS_REGISTER_VARIABLE(PATCH_INDEX);
+    // KRATOS_REGISTER_VARIABLE(M_MODULUS)  
+    // KRATOS_REGISTER_VARIABLE(PATCH_INDEX);
     KRATOS_REGISTER_VARIABLE(FREESURFACE);
     KRATOS_REGISTER_VARIABLE(INTERF);
     KRATOS_REGISTER_VARIABLE( RIGID_WALL )

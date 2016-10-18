@@ -283,8 +283,6 @@ class QuasiIncompressibleFluidSolver:
             VISCOSITY, "VISCOSITY", self.model_part.Nodes, restart_file)
         new_restart_utilities.PrintRestart_ScalarVariable(
             BULK_MODULUS, "BULK_MODULUS", self.model_part.Nodes, restart_file)
-        new_restart_utilities.PrintRestart_ScalarVariable(
-            BULK_MODULUS, "BULK_MODULUS", self.model_part.Nodes, restart_file)
         restart_file.close()
 
     def GetComputingModelPart(self):
@@ -526,7 +524,7 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(Y_WALL)
     model_part.AddNodalSolutionStepVariable(NORMAL)
     # Stokes needs it (in case periodic conditions are required)
-    model_part.AddNodalSolutionStepVariable(PATCH_INDEX)
+    # model_part.AddNodalSolutionStepVariable(PATCH_INDEX)
 
 
     print("variables for the two step v p solver added correctly")

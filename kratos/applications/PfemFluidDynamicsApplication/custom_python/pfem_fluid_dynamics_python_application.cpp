@@ -51,8 +51,8 @@ namespace Kratos
       //registering variables in python ( if must to be seen from python )
 
       // some post process variables + stress invariants
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE( M_MODULUS )
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE(PATCH_INDEX);
+      // KRATOS_REGISTER_IN_PYTHON_VARIABLE( M_MODULUS )
+      // KRATOS_REGISTER_IN_PYTHON_VARIABLE(PATCH_INDEX);
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(FREESURFACE);
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(INTERF);
 

@@ -221,7 +221,7 @@ while(time <= final_time):
             print("RemeshDomains()")
             process.RemeshFluidDomains();
 
-        #solver.NodalChecksAndAssignations()
+        solver.NodalChecksAndAssignations()
 
         print("Solve()")
         solver.Solve()
