@@ -125,7 +125,7 @@ public:
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+    
     void InitializeSolutionStep(
         ModelPart& r_model_part,
         TSystemMatrixType& A,
@@ -135,29 +135,25 @@ public:
         KRATOS_TRY
         
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-        
-        #pragma omp parallel
+
+        int NElems = static_cast<int>(r_model_part.Elements().size());
+        ModelPart::ElementsContainerType::iterator el_begin = r_model_part.ElementsBegin();
+
+        #pragma omp parallel for
+        for(int i = 0; i < NElems; i++)
         {
-            ModelPart::ElementIterator ElemBegin;
-            ModelPart::ElementIterator ElemEnd;
-            OpenMPUtils::PartitionedIterators(r_model_part.Elements(),ElemBegin,ElemEnd);
-            
-            for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
-            {
-                itElem -> InitializeSolutionStep(CurrentProcessInfo);
-            }
+            ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
+            itElem -> InitializeSolutionStep(CurrentProcessInfo);
         }
         
-        #pragma omp parallel
+        int NCons = static_cast<int>(r_model_part.Conditions().size());
+        ModelPart::ConditionsContainerType::iterator con_begin = r_model_part.ConditionsBegin();
+        
+        #pragma omp parallel for
+        for(int i = 0; i < NCons; i++)
         {
-            ModelPart::ConditionIterator CondBegin;
-            ModelPart::ConditionIterator CondEnd;
-            OpenMPUtils::PartitionedIterators(r_model_part.Conditions(),CondBegin,CondEnd);
-
-            for (ModelPart::ConditionIterator itCond = CondBegin; itCond != CondEnd; ++itCond)
-            {
-                itCond -> InitializeSolutionStep(CurrentProcessInfo);
-            }
+            ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
+            itCond -> InitializeSolutionStep(CurrentProcessInfo);
         }
         
         KRATOS_CATCH("")
@@ -187,28 +183,24 @@ public:
         
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
         
-        #pragma omp parallel
+        int NElems = static_cast<int>(r_model_part.Elements().size());
+        ModelPart::ElementsContainerType::iterator el_begin = r_model_part.ElementsBegin();
+
+        #pragma omp parallel for
+        for(int i = 0; i < NElems; i++)
         {
-            ModelPart::ElementIterator ElemBegin;
-            ModelPart::ElementIterator ElemEnd;
-            OpenMPUtils::PartitionedIterators(r_model_part.Elements(),ElemBegin,ElemEnd);
-            
-            for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
-            {
-                itElem -> InitializeNonLinearIteration(CurrentProcessInfo);
-            }
+            ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
+            itElem -> InitializeNonLinearIteration(CurrentProcessInfo);
         }
         
-        #pragma omp parallel
-        {            
-            ModelPart::ConditionIterator CondBegin;
-            ModelPart::ConditionIterator CondEnd;
-            OpenMPUtils::PartitionedIterators(r_model_part.Conditions(),CondBegin,CondEnd);
-
-            for (ModelPart::ConditionIterator itCond = CondBegin; itCond != CondEnd; ++itCond)
-            {
-                itCond -> InitializeNonLinearIteration(CurrentProcessInfo);
-            }
+        int NCons = static_cast<int>(r_model_part.Conditions().size());
+        ModelPart::ConditionsContainerType::iterator con_begin = r_model_part.ConditionsBegin();
+        
+        #pragma omp parallel for
+        for(int i = 0; i < NCons; i++)
+        {
+            ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
+            itCond -> InitializeNonLinearIteration(CurrentProcessInfo);
         }
         
         KRATOS_CATCH("")
@@ -226,28 +218,24 @@ public:
         
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
         
-        #pragma omp parallel
+        int NElems = static_cast<int>(r_model_part.Elements().size());
+        ModelPart::ElementsContainerType::iterator el_begin = r_model_part.ElementsBegin();
+
+        #pragma omp parallel for
+        for(int i = 0; i < NElems; i++)
         {
-            ModelPart::ElementIterator ElemBegin;
-            ModelPart::ElementIterator ElemEnd;
-            OpenMPUtils::PartitionedIterators(r_model_part.Elements(),ElemBegin,ElemEnd);
-            
-            for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
-            {
-                itElem -> FinalizeNonLinearIteration(CurrentProcessInfo);
-            }
+            ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
+            itElem -> FinalizeNonLinearIteration(CurrentProcessInfo);
         }
         
-        #pragma omp parallel
-        {            
-            ModelPart::ConditionIterator CondBegin;
-            ModelPart::ConditionIterator CondEnd;
-            OpenMPUtils::PartitionedIterators(r_model_part.Conditions(),CondBegin,CondEnd);
-
-            for (ModelPart::ConditionIterator itCond = CondBegin; itCond != CondEnd; ++itCond)
-            {
-                itCond -> FinalizeNonLinearIteration(CurrentProcessInfo);
-            }
+        int NCons = static_cast<int>(r_model_part.Conditions().size());
+        ModelPart::ConditionsContainerType::iterator con_begin = r_model_part.ConditionsBegin();
+        
+        #pragma omp parallel for
+        for(int i = 0; i < NCons; i++)
+        {
+            ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
+            itCond -> FinalizeNonLinearIteration(CurrentProcessInfo);
         }
         
         KRATOS_CATCH("")
@@ -379,7 +367,7 @@ public:
         TSystemVectorType& b)
     {
         KRATOS_TRY
-
+        
         int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector DofSetPartition;
         OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
@@ -422,36 +410,34 @@ protected:
         KRATOS_TRY
 
         //Update Acceleration, Velocity and DtPressure
+        array_1d<double,3> DeltaDisplacement;
+        array_1d<double,3> PreviousAcceleration;
+        array_1d<double,3> PreviousVelocity;
+        double DeltaPressure;
+        double PreviousDtPressure;
         
-        #pragma omp parallel
+        const int NNodes = static_cast<int>(r_model_part.Nodes().size());
+        ModelPart::NodesContainerType::iterator node_begin = r_model_part.NodesBegin();
+        
+        #pragma omp parallel for private(DeltaDisplacement,PreviousAcceleration,PreviousVelocity,DeltaPressure,PreviousDtPressure)
+        for(int i = 0; i < NNodes; i++)
         {
-            array_1d<double,3> DeltaDisplacement;
-            array_1d<double,3> PreviousAcceleration;
-            array_1d<double,3> PreviousVelocity;
-            double DeltaPressure;
-            double PreviousDtPressure;
-        
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(r_model_part.Nodes(),NodesBegin,NodesEnd);
+            ModelPart::NodesContainerType::iterator itNode = node_begin + i;
+            
+            array_1d<double,3>& CurrentAcceleration = itNode->FastGetSolutionStepValue(ACCELERATION);
+            array_1d<double,3>& CurrentVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
+            noalias(DeltaDisplacement) = itNode->FastGetSolutionStepValue(DISPLACEMENT) - itNode->FastGetSolutionStepValue(DISPLACEMENT, 1);
+            noalias(PreviousAcceleration) = itNode->FastGetSolutionStepValue(ACCELERATION, 1);
+            noalias(PreviousVelocity) = itNode->FastGetSolutionStepValue(VELOCITY, 1);
+            
+            noalias(CurrentAcceleration) = 1.0/(mBeta*mDeltaTime*mDeltaTime)*(DeltaDisplacement - mDeltaTime*PreviousVelocity - (0.5-mBeta)*mDeltaTime*mDeltaTime*PreviousAcceleration);
+            noalias(CurrentVelocity) = PreviousVelocity + (1.0-mGamma)*mDeltaTime*PreviousAcceleration + mGamma*mDeltaTime*CurrentAcceleration;
+            
+            double& CurrentDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE);
+            DeltaPressure = itNode->FastGetSolutionStepValue(WATER_PRESSURE) - itNode->FastGetSolutionStepValue(WATER_PRESSURE, 1);
+            PreviousDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE, 1);
 
-            for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-            {
-                array_1d<double,3>& CurrentAcceleration = itNode->FastGetSolutionStepValue(ACCELERATION);
-                array_1d<double,3>& CurrentVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
-                noalias(DeltaDisplacement) = itNode->FastGetSolutionStepValue(DISPLACEMENT) - itNode->FastGetSolutionStepValue(DISPLACEMENT, 1);
-                noalias(PreviousAcceleration) = itNode->FastGetSolutionStepValue(ACCELERATION, 1);
-                noalias(PreviousVelocity) = itNode->FastGetSolutionStepValue(VELOCITY, 1);
-                
-                noalias(CurrentAcceleration) = 1.0/(mBeta*mDeltaTime*mDeltaTime)*(DeltaDisplacement - mDeltaTime*PreviousVelocity - (0.5-mBeta)*mDeltaTime*mDeltaTime*PreviousAcceleration);
-                noalias(CurrentVelocity) = PreviousVelocity + (1.0-mGamma)*mDeltaTime*PreviousAcceleration + mGamma*mDeltaTime*CurrentAcceleration;
-                
-                double& CurrentDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE);
-                DeltaPressure = itNode->FastGetSolutionStepValue(WATER_PRESSURE) - itNode->FastGetSolutionStepValue(WATER_PRESSURE, 1);
-                PreviousDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE, 1);
-
-                CurrentDtPressure = 1.0/(mTheta*mDeltaTime)*(DeltaPressure - (1.0-mTheta)*mDeltaTime*PreviousDtPressure);
-            }
+            CurrentDtPressure = 1.0/(mTheta*mDeltaTime)*(DeltaPressure - (1.0-mTheta)*mDeltaTime*PreviousDtPressure);
         }
         
         KRATOS_CATCH( "" )
