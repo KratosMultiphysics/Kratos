@@ -842,21 +842,11 @@ void MortarContactCondition::InitializeContactData(
     rContactData.LagrangeMultipliers = ContactUtilities::GetVariableMatrix(GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); 
             
     /* NORMALS AND TANGENTS */ 
-    for (unsigned int iNode = 0; iNode < number_of_slave_nodes; iNode++)
+    rContactData.NormalsSlave = ContactUtilities::GetVariableMatrix(GetGeometry(), NORMAL,       0); 
+    rContactData.Tangent1Slave = ContactUtilities::GetVariableMatrix(GetGeometry(), TANGENT_XI,  0); 
+    if (dimension == 3)
     {
-        const array_1d<double,3> normal = GetGeometry()[iNode].GetValue(NORMAL);
-        const array_1d<double,3> tangent1 = GetGeometry()[iNode].GetValue(TANGENT_XI);
-        const array_1d<double,3> tangent2 = GetGeometry()[iNode].GetValue(TANGENT_ETA);
-        
-        for (unsigned int iDof = 0; iDof < dimension; iDof++)
-        {
-            rContactData.NormalsSlave(iNode, iDof) = normal[iDof]; 
-            rContactData.Tangent1Slave(iNode, iDof) = tangent1[iDof];
-            if (dimension == 3)
-            {
-                rContactData.Tangent2Slave(iNode, iDof) = tangent2[iDof];
-            }
-        }
+        rContactData.Tangent2Slave = ContactUtilities::GetVariableMatrix(GetGeometry(), TANGENT_ETA, 0); 
     }
     
     if (GetProperties().Has(NORMAL_AUGMENTATION_FACTOR) == true)
@@ -1525,7 +1515,7 @@ void MortarContactCondition::CalculateOnIntegrationPoints(
         rOutput.resize( number_of_integration_pts, false );
     }
 
-    if ( rVariable == PRESSURE )
+    if ( rVariable == NORMAL_CONTACT_STRESS || rVariable == TANGENTIAL_CONTACT_STRESS  )
     {
         // TODO: This depends of the constitutive law, which the condition is not supposed to have...we can copy the Cl of the parent element
     
