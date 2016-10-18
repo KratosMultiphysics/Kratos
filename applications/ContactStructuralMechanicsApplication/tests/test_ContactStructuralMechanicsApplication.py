@@ -15,6 +15,7 @@ from SmallTests import SimplePatchNotMatchingATestContact as TSimplePatchNotMatc
 from SmallTests import SimplePatchNotMatchingBTestContact as TSimplePatchNotMatchingBTestContact
 from SmallTests import TaylorPatchTestContact as TTaylorPatchTestContact
 from SmallTests import HertzSimpleTestContact as THertzSimpleTestContact
+from SmallTests import HertzSimpleSphereTestContact as THertzSimpleSphereTestContact
 from SmallTests import ThreeDPatchMatchingTestContact as TThreeDPatchMatchingTestContact
 from SmallTests import ThreeDPatchNotMatchingTestContact as TThreeDPatchNonMatchingTestContact
 from SmallTests import TaylorPatchDynamicTestContact as TTaylorPatchDynamicTestContact
@@ -42,8 +43,9 @@ def AssambleTestSuites():
     smallSuite.addTest(TSimplePatchTestContact('test_execution'))
     smallSuite.addTest(TSimplePatchNotMatchingATestContact('test_execution'))
     smallSuite.addTest(TSimplePatchNotMatchingBTestContact('test_execution'))
+    smallSuite.addTest(THertzSimpleTestContact('test_execution'))
     smallSuite.addTest(TTaylorPatchTestContact('test_execution'))
-#     smallSuite.addTest(THertzSimpleTestContact('test_execution'))
+    smallSuite.addTest(THertzSimpleSphereTestContact('test_execution'))
     smallSuite.addTest(TThreeDPatchMatchingTestContact('test_execution'))
     smallSuite.addTest(TThreeDPatchNonMatchingTestContact('test_execution'))
     smallSuite.addTest(TTaylorPatchDynamicTestContact('test_execution'))
@@ -64,6 +66,7 @@ def AssambleTestSuites():
             TSimplePatchNotMatchingBTestContact,
             TTaylorPatchTestContact,
             THertzSimpleTestContact,
+            THertzSimpleSphereTestContact,
             TThreeDPatchMatchingTestContact,
             TThreeDPatchNonMatchingTestContact,
             TTaylorPatchDynamicTestContact

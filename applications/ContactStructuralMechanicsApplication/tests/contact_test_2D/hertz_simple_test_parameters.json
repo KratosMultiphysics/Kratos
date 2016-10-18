@@ -26,9 +26,9 @@
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
-        "residual_absolute_tolerance"       : 1e-9,
-        "max_iteration"                             : 2,
-        "split_factor"                                 : 10.0,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "split_factor"                       : 10.0,
         "max_number_splits"                    : 3,
         "linear_solver_settings"             : {
             "solver_type" : "SuperLUSolver",
@@ -78,7 +78,7 @@
             "origin_model_part_name"      : "Parts_parts_plate",       
             "destination_model_part_name" : "Parts_parts_hemisphere",            
             "contact_type"                : "MortarMethod",
-            "search_factor"               : 2.0,
+            "search_factor"               : 5.0,
             "active_check_factor"	  : 0.005,
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
@@ -101,8 +101,8 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","VECTOR_LAGRANGE_MULTIPLIER", "NORMAL"],
-            "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","VON_MISES_STRESS"]
+            "nodal_results"       : ["DISPLACEMENT","REACTION","VECTOR_LAGRANGE_MULTIPLIER"],
+            "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","VON_MISES_STRESS","NORMAL_CONTACT_STRESS","TANGENTIAL_CONTACT_STRESS", "GAP_GP", "SLIP_GP"]
         },
         "point_data_configuration"  : []
     },

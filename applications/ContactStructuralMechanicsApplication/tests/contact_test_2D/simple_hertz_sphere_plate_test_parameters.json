@@ -5,17 +5,12 @@
         "domain_size"     : 2,
         "time_step"       : 0.11,
         "start_time"      : 0.0,
-        "end_time"        : 20.0,
+        "end_time"        : 0.1,
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "contact_structural_mechanics_implicit_dynamic_solver",
+        "solver_type"                        : "contact_structural_mechanics_static_solver",
         "echo_level"                         : 0,
-        "solution_type"                      : "Dynamic",
-        "scheme_type"						 : "Bossak",
-        "damp_factor_m"						 : -0.3,
-        "rayleigh_alpha"					 : 15.0,
-        "rayleigh_beta"						 : 0.001,
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
@@ -31,8 +26,8 @@
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
-        "split_factor"						 : 0.0,
-        "max_number_splits"					 : 0,
+        "split_factor"			     : 0.0,
+        "max_number_splits"		     : 0,
         "max_iteration"                      : 20,
         "linear_solver_settings"             : {
             "solver_type" : "SuperLUSolver",
@@ -103,8 +98,8 @@
             "destination_model_part_name" : "Parts_parts_hemisphere",            
             "contact_type"                : "MortarMethod",
             "search_factor"               : 1.0,
-            "active_check_factor"	  	  : 3e-4,
-	    	"max_number_results"          : 1000,
+            "active_check_factor"	  : 3e-3,
+	    	"max_number_results"      : 1000,
             "type_search"                 : "InRadius",
             "augmentation_normal"         : 200,
             "augmentation_tangent"        : 200,
@@ -158,7 +153,7 @@
             "skin_output"         : false,
             "plane_output"        : [],
             "nodal_results"       : ["DISPLACEMENT", "VECTOR_LAGRANGE_MULTIPLIER", "IS_ACTIVE_SET"],
-            "gauss_point_results" : []
+            "gauss_point_results" :  ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","VON_MISES_STRESS","NORMAL_CONTACT_STRESS","TANGENTIAL_CONTACT_STRESS", "GAP_GP", "SLIP_GP"]
         },
         "point_data_configuration"  : []
     },
