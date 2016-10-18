@@ -173,21 +173,21 @@ public:
                     active_is_converged = false;
                 }
                 
-                // TANGENT DIRECTION
-                bool aux_bool_tangent;
-                if (node_it->Is(SLIP))
-                {
-                    aux_bool_tangent = true;
-                }
-                else
-                {
-                    aux_bool_tangent = false;
-                }
-                if (node_it->GetValue(AUXILIAR_SLIP) != aux_bool_tangent)
-                {                            
-                    node_it->GetValue(AUXILIAR_SLIP) = aux_bool_tangent;
-                    slip_is_converged = false;
-                }
+//                 // TANGENT DIRECTION
+//                 bool aux_bool_tangent;
+//                 if (node_it->Is(SLIP))
+//                 {
+//                     aux_bool_tangent = true;
+//                 }
+//                 else
+//                 {
+//                     aux_bool_tangent = false;
+//                 }
+//                 if (node_it->GetValue(AUXILIAR_SLIP) != aux_bool_tangent)
+//                 {                            
+//                     node_it->GetValue(AUXILIAR_SLIP) = aux_bool_tangent;
+//                     slip_is_converged = false;
+//                 }
                 
                 is_converged = active_is_converged && slip_is_converged;
             }
