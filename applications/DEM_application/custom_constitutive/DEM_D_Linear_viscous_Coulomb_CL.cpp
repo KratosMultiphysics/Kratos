@@ -89,10 +89,10 @@ namespace Kratos {
         CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
                                               sliding, element1, element2, indentation, previous_indentation, ActualTotalShearForce, MaximumAdmisibleShearForce);
         
-        double elastic_energy = element1->GetElasticEnergy();
+        double& elastic_energy = element1->GetElasticEnergy();
         CalculateElasticEnergyDEM(elastic_energy, indentation, LocalElasticContactForce);
 
-        if(sliding){
+        if(sliding && MaximumAdmisibleShearForce != 0.0){
             double& inelastic_frictional_energy = element1->GetInelasticFrictionalEnergy();
             CalculateInelasticFrictionalEnergyDEM(inelastic_frictional_energy, ActualTotalShearForce, MaximumAdmisibleShearForce);
         }
@@ -199,7 +199,7 @@ namespace Kratos {
         double& elastic_energy = element->GetElasticEnergy();
         CalculateElasticEnergyFEM(elastic_energy, indentation, LocalElasticContactForce);//MSIMSI
         
-        if(sliding){
+        if(sliding && MaximumAdmisibleShearForce != 0.0){
             double& inelastic_frictional_energy = element->GetInelasticFrictionalEnergy();
             CalculateInelasticFrictionalEnergyFEM(inelastic_frictional_energy, ActualTotalShearForce, MaximumAdmisibleShearForce);
         }

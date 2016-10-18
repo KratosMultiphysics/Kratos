@@ -74,6 +74,23 @@ namespace Kratos {
         double* pGetParticleKTangential();
         void    SetParticleKTangentialFromProperties(double* particle_k_tangential);
         
+        //Conical damage    
+        double  GetParticleContactRadius();
+        double* pGetParticleContactRadius();
+        void    SetParticleContactRadiusFromProperties(double* particle_contact_radius);
+    
+        double  GetParticleMaxStress();
+        double* pGetParticleMaxStress();
+        void    SetParticleMaxStressFromProperties(double* particle_max_stress);
+    
+        double  GetParticleAlpha();
+        double* pGetParticleAlpha();
+        void    SetParticleAlphaFromProperties(double* particle_alpha);
+    
+        double  GetParticleGamma();
+        double* pGetParticleGamma();
+        void    SetParticleGammaFromProperties(double* particle_gamma);
+        
         PropertiesProxy operator= (PropertiesProxy props);
                        
     private:
@@ -90,6 +107,11 @@ namespace Kratos {
         double* mParticleCohesion;
         double* mParticleKNormal;
         double* mParticleKTangential;
+        //Conical damage    
+        double* mParticleContactRadius;
+        double* mParticleMaxStress;
+        double* mParticleAlpha;
+        double* mParticleGamma;        
                 
         friend class Serializer;
 
