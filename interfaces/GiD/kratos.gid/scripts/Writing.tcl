@@ -184,7 +184,7 @@ proc write::writeNodalCoordinates { } {
     # End Nodes
     
     WriteString "Begin Nodes"
-    customlib::WriteCoordinates "%5d %14.5f %14.5f %14.5f%.0s\n"
+    customlib::WriteCoordinates "%5d %14.10f %14.10f %14.10f\n"
     WriteString "End Nodes"
     WriteString "\n"
 }
@@ -850,8 +850,19 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
                 }
                 
             } elseif {$in_type eq "double" || $in_type eq "integer"} {
-                set value [get_domnode_attribute [$group find n $inputName] v] 
-                dict set paramDict $inputName [expr $value]
+                set printed 0
+                if {[$in_obj getAttribute "function"] eq "1"} {
+                    if {[get_domnode_attribute [$group find n "ByFunction"] v]  eq "Yes"} {
+                        set funcinputName "function_$inputName"
+                        set value [get_domnode_attribute [$group find n $funcinputName] v]
+                        dict set paramDict $inputName $value
+                        set printed 1
+                    }
+                } 
+                if {!$printed} {
+                    set value [get_domnode_attribute [$group find n $inputName] v] 
+                    dict set paramDict $inputName [expr $value]
+                }
             } elseif {$in_type eq "bool"} {
                 set value [get_domnode_attribute [$group find n $inputName] v] 
                 set value [expr $value ? True : False]
@@ -899,7 +910,6 @@ proc write::GetMeshFromCondition { base_UN condition_id } {
         set meshid [getMeshId $condition_id $group]
         lappend meshes $meshid
     }
-    
     return $meshes
 }
 
