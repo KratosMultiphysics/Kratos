@@ -44,10 +44,10 @@ void RestoreSimoJuPlaneStress2DLaw::GetLawFeatures(Features& rFeatures)
 	//rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
 
 	//Set the strain size
-	rFeatures.mStrainSize = 3;
+	rFeatures.mStrainSize = GetStrainSize();
 
 	//Set the spacedimension
-	rFeatures.mSpaceDimension = 2;
+	rFeatures.mSpaceDimension = WorkingSpaceDimension();
 }
 
 //----------------------------------------------------------------------------------------
