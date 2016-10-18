@@ -179,7 +179,6 @@ namespace Kratos {
                 array_1d<double, 3 >& angular_acceleration,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
-
         KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateRotationalVariables) shouldn't be accessed, use derived class instead", 0);
     }
 
@@ -196,7 +195,6 @@ namespace Kratos {
                 const bool Fix_Ang_vel[3]) {
         KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateRotationalVariables) shouldn't be accessed, use derived class instead", 0);
     }
-
     
     void DEMIntegrationScheme::QuaternionCalculateMidAngularVelocities(
                 const Quaternion<double>& Orientation,

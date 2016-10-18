@@ -31,6 +31,7 @@
 #include "custom_constitutive/DEM_D_Bentonite_Colloid_CL.h"
 #include "custom_constitutive/DEM_D_DMT_cohesive_law.h"
 #include "custom_constitutive/dem_d_linear_custom_constants_cl.h"
+#include "custom_constitutive/DEM_D_Conical_damage_CL.h"
 #include "custom_constitutive/DEM_KDEM_fabric_CL.h"
 #include "custom_constitutive/DEM_ExponentialHC_CL.h"
 
@@ -120,6 +121,11 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(double, DAMPING_GAMMA)  
   KRATOS_CREATE_VARIABLE(double, K_NORMAL)
   KRATOS_CREATE_VARIABLE(double, K_TANGENTIAL)
+  KRATOS_CREATE_VARIABLE(double, CONTACT_RADIUS)
+  KRATOS_CREATE_VARIABLE(double, MAX_STRESS)
+  KRATOS_CREATE_VARIABLE(double, ALPHA)
+  KRATOS_CREATE_VARIABLE(double, GAMMA)
+  KRATOS_CREATE_VARIABLE(double, ALPHA_FUNCTION)
   KRATOS_CREATE_VARIABLE(double, EXCENTRICITY)
   KRATOS_CREATE_VARIABLE(double, EXCENTRICITY_STANDARD_DEVIATION)
   KRATOS_CREATE_VARIABLE(double, FABRIC_COEFFICIENT)
@@ -470,6 +476,11 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(DAMPING_GAMMA)
     KRATOS_REGISTER_VARIABLE(K_NORMAL)
     KRATOS_REGISTER_VARIABLE(K_TANGENTIAL)
+    KRATOS_REGISTER_VARIABLE(CONTACT_RADIUS)
+    KRATOS_REGISTER_VARIABLE(MAX_STRESS)
+    KRATOS_REGISTER_VARIABLE(ALPHA)
+    KRATOS_REGISTER_VARIABLE(ALPHA_FUNCTION)
+    KRATOS_REGISTER_VARIABLE(GAMMA)
     KRATOS_REGISTER_VARIABLE(EXCENTRICITY)
     KRATOS_REGISTER_VARIABLE(EXCENTRICITY_STANDARD_DEVIATION)
     KRATOS_REGISTER_VARIABLE(FABRIC_COEFFICIENT)
@@ -716,6 +727,7 @@ namespace Kratos
     Serializer::Register("DEM_D_Bentonite_Colloid", DEM_D_Bentonite_Colloid());
     Serializer::Register("DEM_D_DMT_Cohesive_Law", DEM_D_DMT_Cohesive_Law());
     Serializer::Register("DEM_D_Linear_Custom_Constants", DEM_D_Linear_Custom_Constants());
+    Serializer::Register("DEM_D_Conical_damage", DEM_D_Conical_damage());
     
     Serializer::Register("DEM_Dempack", DEM_Dempack());
     Serializer::Register("DEM_Dempack2D", DEM_Dempack2D());    

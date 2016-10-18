@@ -63,7 +63,24 @@ namespace Kratos {
     double  PropertiesProxy::GetParticleKTangential()                                            { return *mParticleKTangential;                }
     double* PropertiesProxy::pGetParticleKTangential()                                           { return  mParticleKTangential;                }
     void    PropertiesProxy::SetParticleKTangentialFromProperties(double* particle_k_tangential) { mParticleKTangential = particle_k_tangential;}
-        
+    
+    //Conical damage    
+    double  PropertiesProxy::GetParticleContactRadius()                                              { return *mParticleContactRadius;                   }
+    double* PropertiesProxy::pGetParticleContactRadius()                                             { return  mParticleContactRadius;                   }
+    void    PropertiesProxy::SetParticleContactRadiusFromProperties(double* particle_contact_radius) { mParticleContactRadius = particle_contact_radius; }
+    
+    double  PropertiesProxy::GetParticleMaxStress()                                           { return *mParticleMaxStress;                  }
+    double* PropertiesProxy::pGetParticleMaxStress()                                          { return  mParticleMaxStress;                  }
+    void    PropertiesProxy::SetParticleMaxStressFromProperties(double* particle_max_stress)  { mParticleMaxStress = particle_max_stress;    }
+    
+    double  PropertiesProxy::GetParticleAlpha()                                               { return *mParticleAlpha;                      }
+    double* PropertiesProxy::pGetParticleAlpha()                                              { return  mParticleAlpha;                      }
+    void    PropertiesProxy::SetParticleAlphaFromProperties(double* particle_alpha)           { mParticleAlpha = particle_alpha;             }
+    
+    double  PropertiesProxy::GetParticleGamma()                                               { return *mParticleGamma;                      }
+    double* PropertiesProxy::pGetParticleGamma()                                              { return  mParticleGamma;                      }
+    void    PropertiesProxy::SetParticleGammaFromProperties(double* particle_gamma)           { mParticleGamma = particle_gamma;             }
+    
     PropertiesProxy PropertiesProxy::operator= (PropertiesProxy props) {
           
         mId                       = props.GetId();
@@ -158,6 +175,19 @@ namespace Kratos {
             
             aux_pointer = &(props_it->GetValue(K_TANGENTIAL));
             vector_of_proxies[properties_counter].SetParticleKTangentialFromProperties(aux_pointer);
+            
+            aux_pointer = &(props_it->GetValue(CONTACT_RADIUS));
+            vector_of_proxies[properties_counter].SetParticleContactRadiusFromProperties(aux_pointer);
+            
+            aux_pointer = &(props_it->GetValue(MAX_STRESS));
+            vector_of_proxies[properties_counter].SetParticleMaxStressFromProperties(aux_pointer);
+            
+            aux_pointer = &(props_it->GetValue(ALPHA));
+            vector_of_proxies[properties_counter].SetParticleAlphaFromProperties(aux_pointer);
+            
+            aux_pointer = &(props_it->GetValue(GAMMA));
+            vector_of_proxies[properties_counter].SetParticleGammaFromProperties(aux_pointer);
+            
             
             properties_counter++;
         }      

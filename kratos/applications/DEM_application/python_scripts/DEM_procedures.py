@@ -184,6 +184,71 @@ class PostUtils(object):
         PostUtilities().ComputeEulerAngles(model_part)
 
 
+class DEMEnergyCalculator(object):
+    
+    def __init__(self, DEM_parameters, spheres_model_part, cluster_model_part, energy_plot):
+        
+        self.DEM_parameters = DEM_parameters
+        self.SpheresModelPart = spheres_model_part;
+        self.ClusterModelPart = cluster_model_part;
+        self.energy_plot = open(energy_plot, 'w');
+        self.SpheresEnergyUtil = SphericElementGlobalPhysicsCalculator(spheres_model_part);
+        self.ClusterEnergyUtil = SphericElementGlobalPhysicsCalculator(cluster_model_part);
+        self.PotentialEnergyReferencePoint          = Array3();
+        self.PotentialEnergyReferencePoint[0]       = self.DEM_parameters.PotentialEnergyReferencePointX;
+        self.PotentialEnergyReferencePoint[1]       = self.DEM_parameters.PotentialEnergyReferencePointY;
+        self.PotentialEnergyReferencePoint[2]       = self.DEM_parameters.PotentialEnergyReferencePointZ;
+        self.translational_kinematic_energy         = 0.0;
+        self.rotational_kinematic_energy            = 0.0;
+        self.kinematic_energy                       = 0.0;
+        self.potential_energy                       = 0.0;
+        self.elastic_energy                         = 0.0;
+        self.inelastic_frictonal_energy             = 0.0;
+        self.inelastic_viscodamping_energy          = 0.0;
+        self.external_energy                        = 0.0;
+        self.total_energy                           = 0.0;
+        self.graph_frequency                        = int(self.DEM_parameters.GraphExportFreq/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME));
+        self.energy_graph_counter                   = 0;
+        self.energy_plot.write(str("#time").rjust(9)+" "+str("trans_kinematic_energy").rjust(22)+" "+str("rot_kinematic_energy").rjust(20)+" "+str("kinematic_energy").rjust(16)+" "+str("potential_energy").rjust(16)+" "+str("elastic_energy").rjust(14)+" "+str("frictonal_energy").rjust(16)+" "+str("viscodamping_energy").rjust(19)+" "+str("total_energy").rjust(12)+"\n")
+        
+    def CalculateEnergyAndPlot(self, time):
+        
+        if (self.energy_graph_counter == self.graph_frequency):
+            self.energy_graph_counter = 0
+
+            self.CalculateEnergy();
+            self.PlotEnergyGraph(time);
+
+        self.energy_graph_counter += 1
+
+    def CalculateEnergy(self):
+
+        self.translational_kinematic_energy = self.SpheresEnergyUtil.CalculateTranslationalKinematicEnergy(self.SpheresModelPart) + self.ClusterEnergyUtil.CalculateTranslationalKinematicEnergy(self.ClusterModelPart);
+        self.rotational_kinematic_energy    = self.SpheresEnergyUtil.CalculateRotationalKinematicEnergy(self.SpheresModelPart) + self.ClusterEnergyUtil.CalculateRotationalKinematicEnergy(self.ClusterModelPart);
+        self.kinematic_energy               = self.translational_kinematic_energy + self.rotational_kinematic_energy;
+        self.potential_energy               = self.SpheresEnergyUtil.CalculateGravitationalPotentialEnergy(self.SpheresModelPart,self.PotentialEnergyReferencePoint) + self.ClusterEnergyUtil.CalculateGravitationalPotentialEnergy(self.ClusterModelPart,self.PotentialEnergyReferencePoint);
+        self.elastic_energy                 = self.SpheresEnergyUtil.CalculateElasticEnergy(self.SpheresModelPart) + self.ClusterEnergyUtil.CalculateElasticEnergy(self.ClusterModelPart);
+        self.inelastic_frictional_energy    = self.SpheresEnergyUtil.CalculateInelasticFrictionalEnergy(self.SpheresModelPart) + self.ClusterEnergyUtil.CalculateInelasticFrictionalEnergy(self.ClusterModelPart);
+        self.inelastic_viscodamping_energy  = self.SpheresEnergyUtil.CalculateInelasticViscodampingEnergy(self.SpheresModelPart) + self.ClusterEnergyUtil.CalculateInelasticViscodampingEnergy(self.ClusterModelPart);
+        self.total_energy                   = self.kinematic_energy + self.potential_energy + self.elastic_energy + self.inelastic_frictional_energy + self.inelastic_viscodamping_energy;
+        
+    def PlotEnergyGraph(self,time):
+
+        plot_kinematic               = self.kinematic_energy
+        plot_translational_kinematic = self.translational_kinematic_energy
+        plot_rotational_kinematic    = self.rotational_kinematic_energy
+        plot_gravitational           = self.potential_energy
+        plot_elastic                 = self.elastic_energy
+        plot_inelastic_frictional    = self.inelastic_frictional_energy
+        plot_inelastic_viscodamping  = self.inelastic_viscodamping_energy
+        plot_total                   = self.total_energy
+        self.energy_plot.write( str("%.8g"%time).rjust(9)+" "+str("%.6g"%plot_translational_kinematic).rjust(22)+" "+str("%.6g"%plot_rotational_kinematic).rjust(20)+" "+str("%.6g"%plot_kinematic).rjust(16)+" "+str("%.6g"%plot_gravitational).rjust(16)+" "+str("%.6g"%plot_elastic).rjust(14)+" "+str("%.6g"%plot_inelastic_frictional).rjust(16)+" "+str("%.6g"%plot_inelastic_viscodamping).rjust(19)+" "+str("%.6g"%plot_total).rjust(12)+'\n' )
+        
+    def FinilizeEnergyPlot(self):
+
+        self.energy_plot.close
+
+
 class Procedures(object):
 
     def __init__(self, DEM_parameters):
@@ -691,9 +756,8 @@ class DEMFEMProcedures(object):
 
         self.particle_graph_forces = {}                    
 
-        if self.TestType == "None":
-            open_graph_files(self, RigidFace_model_part)
-            open_balls_graph_files(self,spheres_model_part)
+        open_graph_files(self, RigidFace_model_part)
+        open_balls_graph_files(self,spheres_model_part)
 
         # SIMULATION SETTINGS
         self.bounding_box_enlargement_factor = self.DEM_parameters.BoundingBoxEnlargementFactor
