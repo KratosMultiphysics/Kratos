@@ -95,21 +95,13 @@ class ContactProcess(KratosMultiphysics.Process):
         
         # Appending the conditions created to the computing_model_part
         computing_model_part = self.main_model_part.GetSubModelPart("solid_computing_domain") #NOTE: The name can change
-        
-        cond_index = 0
-        
-        #for cond in computing_model_part.Conditions:
-            #cond_index += 1
-        #del(cond)
             
         for cond in self.o_interface.Conditions:
-            computing_model_part.AddCondition(cond, cond_index)  
-            #cond_index += 1
+            computing_model_part.AddCondition(cond)  
         del(cond)
         
         for cond in self.d_interface.Conditions:
-            computing_model_part.AddCondition(cond, cond_index)  
-            #cond_index += 1
+            computing_model_part.AddCondition(cond)  
         del(cond)
         
         self.contact_search = KratosMultiphysics.ContactStructuralMechanicsApplication.TreeContactSearch(self.o_interface, self.d_interface, self.max_number_results)
@@ -132,7 +124,7 @@ class ContactProcess(KratosMultiphysics.Process):
             #print(cond.Is(KratosMultiphysics.ACTIVE))
         
         if self.params["contact_type"].GetString() == "MortarMethod":
-            for node in self.d_interface.Nodes:
+            for node in self.d_interface.Nodes: # TODO: Do this in each nonlinear iteration
                 node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_GAP,  0.0) 
                 node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_SLIP, 0.0)
             del node
