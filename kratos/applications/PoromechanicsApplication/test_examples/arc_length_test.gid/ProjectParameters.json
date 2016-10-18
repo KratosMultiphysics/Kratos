@@ -4,7 +4,7 @@
         "model_part_name":      "PorousDomain",
         "domain_size":          2,
         "start_time":           0.0,
-        "end_time":             50.0,
+        "end_time":             50,
         "time_step":            1.0,
         "OMP_threads":          1
     },

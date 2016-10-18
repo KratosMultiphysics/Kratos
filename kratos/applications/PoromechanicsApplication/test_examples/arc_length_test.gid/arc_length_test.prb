@@ -6,7 +6,7 @@ QUESTION: Start_Time
 VALUE: 0.0
 HELP: Units in IS: s
 QUESTION: End_Time
-VALUE: 50.0
+VALUE: 50
 HELP: Units in IS: s
 QUESTION: Delta_Time
 VALUE: 1.0
@@ -27,6 +27,9 @@ QUESTION: Propagation_Damage
 VALUE: 0.5
 QUESTION: Propagation_Width
 VALUE: 0.01
+QUESTION: Propagation_CosAngle
+VALUE: 0.0
+HELP: Cosinus of the angle defining the front sector of straight propagation. It ranges from 0.0 (only straight propagation) to 1.0 (only bifurcation).
 QUESTION: Propagation_Frequency
 VALUE: 1
 HELP: Number of steps after which the fracture propagation will be checked.
@@ -74,9 +77,9 @@ VALUE: 0.5
 HELP: Times the initial radius. In order to use a constant radius, choose the same value for Min Radius Factor and Max Radius Factor
 QUESTION: Builder#CB#(Elimination,Block)
 VALUE: Elimination
-QUESTION: Solver_Type#CB#(SkylineLUFactorizationSolver,SuperLUSolver,CGSolver,BICGSTABSolver,TFQMRSolver,DeflatedCGSolver,GMRESSolver,SuperLUIterativeSolver,AMGCL)
+QUESTION: Solver_Type#CB#(SkylineLUFactorizationSolver,SuperLUSolver,BICGSTABSolver,AMGCL)
 VALUE: SuperLUSolver
-HELP: SkylineLUFactorizationSolver and SuperLUSolver are direct solvers. The rest are iterative solvers.
+HELP: SkylineLUFactorizationSolver and SuperLUSolver are direct solvers. BICGSTABSolver and AMGCL are iterative solvers.
 QUESTION: Scaling#CB#(true,false)
 VALUE: false
 QUESTION: Verbosity
