@@ -102,20 +102,20 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                         values_json = self.data["NODE_"+str(node.Id)][out.GetString() ]
                         value_json = linear_interpolation(time, input_time_list, values_json)
                         #value_json = np.interp(time, input_time_list, values_json)
-                        self.assertAlmostEqual(value, value_json, 5)
+                        self.assertAlmostEqual(value, value_json, 4)
                     else: # It is a vector
                         values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_X"]
                         value_json = linear_interpolation(time, input_time_list, values_json)
                         #value_json = np.interp(time, input_time_list, values_json)
-                        self.assertAlmostEqual(value[0], value_json, 5)
+                        self.assertAlmostEqual(value[0], value_json, 4)
                         values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_Y"]
                         value_json = linear_interpolation(time, input_time_list, values_json)
                         #value_json = np.interp(time, input_time_list, values_json)
-                        self.assertAlmostEqual(value[1], value_json, 5)
+                        self.assertAlmostEqual(value[1], value_json, 4)
                         values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_Z"]
                         value_json = linear_interpolation(time, input_time_list, values_json)
                         #value_json = np.interp(time, input_time_list, values_json)
-                        self.assertAlmostEqual(value[2], value_json, 5)
+                        self.assertAlmostEqual(value[2], value_json, 4)
               
     def ExecuteBeforeOutputStep(self):
         pass
