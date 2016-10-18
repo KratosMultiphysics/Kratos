@@ -213,13 +213,14 @@ class DEMEnergyCalculator(object):
         
     def CalculateEnergyAndPlot(self, time):
         
-        if (self.energy_graph_counter == self.graph_frequency):
-            self.energy_graph_counter = 0
+        if not hasattr(self.DEM_parameters, "TestType"):
+            if (self.energy_graph_counter == self.graph_frequency):
+                self.energy_graph_counter = 0
 
-            self.CalculateEnergy();
-            self.PlotEnergyGraph(time);
+                self.CalculateEnergy();
+                self.PlotEnergyGraph(time);
 
-        self.energy_graph_counter += 1
+            self.energy_graph_counter += 1
 
     def CalculateEnergy(self):
 
@@ -756,8 +757,9 @@ class DEMFEMProcedures(object):
 
         self.particle_graph_forces = {}                    
 
-        open_graph_files(self, RigidFace_model_part)
-        open_balls_graph_files(self,spheres_model_part)
+        if not hasattr(self.DEM_parameters, "TestType"):
+            open_graph_files(self, RigidFace_model_part)
+            open_balls_graph_files(self,spheres_model_part)
 
         # SIMULATION SETTINGS
         self.bounding_box_enlargement_factor = self.DEM_parameters.BoundingBoxEnlargementFactor
