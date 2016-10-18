@@ -64,6 +64,7 @@ void TreeContactSearch::AuxConstructor(
         cond_it->Set( ACTIVE, rActive ); // NOTE: It is supposed to be already false, just in case   
 //         cond_it->Set( SLAVE,  rSlave);
         cond_it->Set( MASTER, rMaster);
+        cond_it->Set( CONTACT, true); // NOTE: Always true
     }
     
     NodesArrayType& pNode               = rModelPart.Nodes();
@@ -141,8 +142,8 @@ void TreeContactSearch::InitializeConditions(
         cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
 //         cond_it->GetValue(CONTACT_CONTAINERS)->reserve(mallocation); 
         cond_it->GetProperties().SetValue(ACTIVE_CHECK_FACTOR, rActiveCheckFactor);
-        cond_it->GetProperties().SetValue(NORMAL_AUGMENTATION_FACTOR,   rAugmentationNormal);
-        cond_it->GetProperties().SetValue(TANGENT_AUGMENTATION_FACTOR,  rAugmentationTangent);
+        cond_it->GetProperties().SetValue(NORMAL_AUGMENTATION_FACTOR,  rAugmentationNormal);
+        cond_it->GetProperties().SetValue(TANGENT_AUGMENTATION_FACTOR, rAugmentationTangent);
     }
 }
 
