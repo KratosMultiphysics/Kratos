@@ -145,14 +145,14 @@ class PfemFluidSolver:
         #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
         #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
         #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.Y_WALL)
+        # self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PATCH_INDEX)
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
 
-        # AFranci variables
+        # PFEM fluid variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FREESURFACE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INTERF)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PATCH_INDEX)
 
         print("::[Pfem Fluid Solver]:: Variables ADDED")
                 

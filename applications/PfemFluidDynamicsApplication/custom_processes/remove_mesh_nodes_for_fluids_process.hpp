@@ -327,8 +327,13 @@ private:
       {
 	if( i_node->IsNot(TO_ERASE) ){
 	  (rModelPart.Nodes(MeshId)).push_back(*(i_node.base()));	
+//	  if(i_node->Id()>24880){
+//		    std::cout<<" NOT ERASED NODE: "<<i_node->Id()<<"  COORDINATES "<<i_node->Coordinates()<<std::endl;
+//		  }	 
+	
 	}
 	else{
+//		  std::cout<<"   ERASED NODE: "<<i_node->Id()<<"  COORDINATES "<<i_node->Coordinates()<<std::endl;
 	  if( i_node->Is(BOUNDARY) )
 	    std::cout<<"   BOUNDARY NODE RELEASED "<<i_node->Id()<<std::endl;
 	}

@@ -142,7 +142,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
             
     def BuildMeshBoundaryForFluids(self):
 
-        print("::[Modeler_Utility]:: Build Mesh Boundary for fluids ")
+        print("::[Remesh_Fluid_Domains_Process]:: Build Mesh Boundary for fluids ")
         # set building options:
         mesh_id = 0
 
