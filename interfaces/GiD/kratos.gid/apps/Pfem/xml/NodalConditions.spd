@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="NodalConditions" pn="Nodal conditions" un="BANodalConditions" >
-	  <dynamicnode command="injectNodalConditions" args=""/>
+<container n="Boundary Conditions" pn="Boundary conditions" un="Pfem_NodalConditions" >
+	  <dynamicnode command="injectNodalConditions" args="App Solid"/>
 </container>

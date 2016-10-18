@@ -52,9 +52,9 @@ proc Pfem::write::GetPFEM_ProblemProcessList { } {
 proc Pfem::write::GetPFEM_ContactDict { } {
     variable bodies_list
     set resultDict [dict create ]
-    dict set resultDict "python_module" "contact_domain_process"
-    dict set resultDict "kratos_module" "KratosMultiphysics.ContactMechanicsApplication"
     dict set resultDict "help" "This process applies contact domain search by remeshing outer boundaries"
+    dict set resultDict "kratos_module" "KratosMultiphysics.ContactMechanicsApplication"
+    dict set resultDict "python_module" "contact_domain_process"
     dict set resultDict "process_name" "ContactDomainProcess"
     
     set paramsDict [dict create ]
@@ -67,7 +67,7 @@ proc Pfem::write::GetPFEM_ContactDict { } {
     foreach body $bodies_list {
         set bodyDict [dict create ]
         dict set bodyDict "python_module" "contact_domain"
-        dict set bodyDict "model_part_name" [dict get $body body_name]
+        dict set bodyDict "model_part_name" "Contact_Domain"
         dict set bodyDict "alpha_shape" 1.4
         dict set bodyDict "offset_factor" 0.0
         
@@ -78,7 +78,7 @@ proc Pfem::write::GetPFEM_ContactDict { } {
             dict set meshing_strategyDict "constrained" false
             
                 set contact_parametersDict [dict create ]
-                dict set contact_parametersDict "contact_condition_type" "ContactDomainLM2DCondition"
+                dict set contact_parametersDict "contact_condition_type" "ContactDomainLMCondition2D3N"
                 dict set contact_parametersDict "friction_law_type" "FrictionLaw"
                 dict set contact_parametersDict "kratos_module" "KratosMultiphysics.ContactMechanicsApplication"
                 
@@ -102,9 +102,9 @@ proc Pfem::write::GetPFEM_ContactDict { } {
 proc Pfem::write::GetPFEM_RemeshDict { } {
     variable bodies_list
     set resultDict [dict create ]
-    dict set resultDict "python_module" "remesh_domains_process"
-    dict set resultDict "kratos_module" "KratosMultiphysics.PfemBaseApplication"
     dict set resultDict "help" "This process applies meshing to the problem domains"
+    dict set resultDict "kratos_module" "KratosMultiphysics.PfemBaseApplication"
+    dict set resultDict "python_module" "remesh_domains_process"
     dict set resultDict "process_name" "RemeshDomainsProcess"
     
     set paramsDict [dict create]
@@ -171,14 +171,14 @@ proc Pfem::write::GetPFEM_RemeshDict { } {
         dict set refining_parametersDict remove_boundary $remove_boundaryDict
         
         set refine_elementsDict [dict create]
-        dict set refine_elementsDict "apply_removal" false
+        dict set refine_elementsDict "apply_refinement" false
         dict set refine_elementsDict "on_distance" false
         dict set refine_elementsDict "on_threshold" false
         dict set refine_elementsDict "on_error" false
         dict set refining_parametersDict refine_elements $refine_elementsDict
         
         set refine_boundaryDict [dict create]
-        dict set refine_boundaryDict "apply_removal" false
+        dict set refine_boundaryDict "apply_refinement" false
         dict set refine_boundaryDict "on_distance" false
         dict set refine_boundaryDict "on_threshold" false
         dict set refine_boundaryDict "on_error" false
@@ -252,9 +252,15 @@ proc Pfem::write::GetPFEM_SolverSettingsDict { } {
     #~ dict set solverSettingsDict domain_size [expr $nDim]
     dict set solverSettingsDict echo_level [write::getValue Results EchoLevel]
     dict set solverSettingsDict solution_type [write::getValue PFEM_SolutionType]
+
+    set solutiontype [write::getValue PFEM_SolutionType]
     
-    dict set solverSettingsDict time_integration_method [write::getValue PFEM_SolStrat]
-    dict set solverSettingsDict scheme_type [write::getValue PFEM_Scheme]
+    if {$solutiontype eq "Static"} {
+        dict set solverSettingsDict analysis_type [write::getValue PFEM_LinearType]
+    } elseif {$solutiontype eq "Dynamic"} {
+        dict set solverSettingsDict time_integration_method [write::getValue PFEM_SolStrat]
+        dict set solverSettingsDict scheme_type [write::getValue PFEM_Scheme]
+    }
     
     # model import settings
     set modelDict [dict create]
@@ -314,7 +320,7 @@ proc Pfem::write::GetNodalDataDict { } {
             set groupid [$group @n]
             set processDict [dict create]
             dict set processDict process_name "ApplyValuesToNodes"
-            dict set processDict kratos_module "KratosMultiphysics.PFEMBaseApplication"
+            dict set processDict kratos_module "KratosMultiphysics.PfemBaseApplication"
             
             set params [dict create]
             set xp2 "./value"

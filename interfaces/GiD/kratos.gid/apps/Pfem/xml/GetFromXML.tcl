@@ -178,7 +178,7 @@ proc Pfem::xml::ProcGetBodyTypeValues {domNode args} {
                set values "Fluid,Rigid"
          }
          if {$domain_type_value eq "Solids"} {
-               set values "Rigid,Solid"
+               set values "Solid,Rigid"
          }
      }
      return $values
