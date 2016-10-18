@@ -84,9 +84,6 @@ public:
     double epsilon_normal;
     double epsilon_tangent;
     
-    // Friction coefficient
-    double mu_coulomb;
-    
     // Initializer method 
     void Initialize(      
             const GeometryType& GeometryInput,          // The geometry of the slave 
@@ -117,9 +114,6 @@ public:
         // Augmentation parameter
         epsilon_normal  = 0.0;
         epsilon_tangent = 0.0;
-        
-        // Friction coefficient
-        mu_coulomb = 0.0;
     }
     
     // Updating the Master pair
@@ -193,7 +187,10 @@ protected:
          * other variables contain info only on the currently-calculated GP
          */
         Matrix j_Slave;
-
+        
+        // Friction coefficient
+        double mu;
+        
         /********************************************************/
         /******************** STRUCT METHODS ********************/
         /********************************************************/
@@ -232,6 +229,9 @@ protected:
            
             // Jacobians on all integration points
             j_Slave.resize( rNumberOfSlaveNodes, 1, false );
+            
+            // Friction coefficient
+            mu = 0.0;
         }
 
         /* Setters and getters for the master element */
@@ -756,6 +756,19 @@ public:
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
     /******************************************************************/
 
+    double AugmentedNormalLM(
+        const GeneralVariables& rVariables,
+        const ContactData& rContactData 
+    );
+    
+    double AugmentedTangentLM(
+        const GeneralVariables& rVariables,
+        const ContactData& rContactData,
+        const GeometryType& current_master_element, 
+        const double& augmented_normal_lm,
+        double& integration_point_slip 
+    );
+    
     void GetNodalDeltaMovements( 
         Vector& rValues,
         const int& rNode 

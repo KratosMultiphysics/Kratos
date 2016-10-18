@@ -192,20 +192,20 @@ private:
 
     /* CONDITIONS*/
     // Mortar conditions
-     const MortarContact2DCondition mMortarContactCondition2D2N;
-     const MortarContact2DCondition mMortarContactCondition2D3N;
-     const MortarContact3DCondition mMortarContactCondition3D3N;
-     const MortarContact3DCondition mMortarContactCondition3D6N;
-     const MortarContact3DCondition mMortarContactCondition3D4N;
-     const MortarContact3DCondition mMortarContactCondition3D8N;
-     const MortarContact3DCondition mMortarContactCondition3D9N;
-//    const MortarContactCondition mMortarContactCondition2D2N;
-//    const MortarContactCondition mMortarContactCondition2D3N;
-//    const MortarContactCondition mMortarContactCondition3D3N;
-//    const MortarContactCondition mMortarContactCondition3D6N;
-//    const MortarContactCondition mMortarContactCondition3D4N;
-//    const MortarContactCondition mMortarContactCondition3D8N;
-//    const MortarContactCondition mMortarContactCondition3D9N;
+    const MortarContact2DCondition mMortarContactCondition2D2N;
+    const MortarContact2DCondition mMortarContactCondition2D3N;
+    const MortarContact3DCondition mMortarContactCondition3D3N;
+    const MortarContact3DCondition mMortarContactCondition3D6N;
+    const MortarContact3DCondition mMortarContactCondition3D4N;
+    const MortarContact3DCondition mMortarContactCondition3D8N;
+    const MortarContact3DCondition mMortarContactCondition3D9N;
+//     const MortarContactCondition mMortarContactCondition2D2N;
+//     const MortarContactCondition mMortarContactCondition2D3N;
+//     const MortarContactCondition mMortarContactCondition3D3N;
+//     const MortarContactCondition mMortarContactCondition3D6N;
+//     const MortarContactCondition mMortarContactCondition3D4N;
+//     const MortarContactCondition mMortarContactCondition3D8N;
+//     const MortarContactCondition mMortarContactCondition3D9N;
 
     ///@}
     ///@name Private Operators
