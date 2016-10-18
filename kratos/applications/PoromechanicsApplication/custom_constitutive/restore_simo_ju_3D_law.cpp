@@ -73,8 +73,9 @@ void RestoreSimoJu3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     FlowRule::RadialReturnVariables ReturnMappingVariables;
     ReturnMappingVariables.initialize();
     // Strain and Stress matrices
-    Matrix AuxMatrix = MathUtils<double>::StrainVectorToTensor(rStrainVector);
-    const unsigned int Dim = AuxMatrix.size1();
+    const unsigned int Dim = this->WorkingSpaceDimension();
+    Matrix AuxMatrix(Dim,Dim);
+    noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
     ReturnMappingVariables.StrainMatrix.resize(Dim,Dim,false);
     noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
     ReturnMappingVariables.TrialIsoStressMatrix.resize(Dim,Dim,false);
@@ -139,8 +140,9 @@ void RestoreSimoJu3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
     FlowRule::RadialReturnVariables ReturnMappingVariables;
     ReturnMappingVariables.initialize();
     // Strain and Stress matrices
-    Matrix AuxMatrix = MathUtils<double>::StrainVectorToTensor(rStrainVector);
-    const unsigned int Dim = AuxMatrix.size1();
+    const unsigned int Dim = this->WorkingSpaceDimension();
+    Matrix AuxMatrix(Dim,Dim);
+    noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
     ReturnMappingVariables.StrainMatrix.resize(Dim,Dim,false);
     noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
     ReturnMappingVariables.TrialIsoStressMatrix.resize(Dim,Dim,false);
