@@ -125,7 +125,7 @@ class AssignValueToVectorComponentsProcess(KratosMultiphysics.Process):
 
                     if( self.interval_string != "initial" ):
                         fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
-                        #self.FixDofsProcesses.append(fix_dof_process)
+                        self.FixDofsProcesses.append(fix_dof_process)
                         free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
                         self.FreeDofsProcesses.append(free_dof_process)
                     
