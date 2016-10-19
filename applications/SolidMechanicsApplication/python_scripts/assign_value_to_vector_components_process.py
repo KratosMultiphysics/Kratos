@@ -93,9 +93,10 @@ class AssignValueToVectorComponentsProcess(KratosMultiphysics.Process):
 
         # in dynamic problems derivated variables can be fixed
         self.fix_derivated_variable = False
-        #if( self.variable_name == "ACCELERATION" or self.variable_name == "VELOCITY" ):
+        if( self.variable_name == "ACCELERATION" or self.variable_name == "VELOCITY" ):
             #self.derivated_variable_name = "DISPLACEMENT"
-            #self.fix_derivated_variable = True
+            self.derivated_variable_name = "ACCELERATION"
+            self.fix_derivated_variable = True
 
         if( self.variable_name == "ANGULAR_ACCELERATION" or self.variable_name == "ANGULAR_VELOCITY" ):
             self.derivated_variable_name = "ROTATION"
@@ -118,7 +119,7 @@ class AssignValueToVectorComponentsProcess(KratosMultiphysics.Process):
 
                     if( self.interval_string != "initial" ):
                         fix_dof_process  =  KratosSolid.FixScalarDofProcess(self.model_part, params)
-                        self.FixDofsProcesses.append(fix_dof_process)
+                        #self.FixDofsProcesses.append(fix_dof_process)
                         free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
                         self.FreeDofsProcesses.append(free_dof_process)
                     
