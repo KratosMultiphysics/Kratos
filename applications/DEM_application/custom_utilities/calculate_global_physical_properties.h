@@ -273,16 +273,16 @@ class SphericElementGlobalPhysicsCalculator
 
       double CalculateGravitationalPotentialEnergy(ModelPart& r_model_part, const array_1d<double, 3> reference_point)
       {
-          double potential_energy;
+          double gravitational_energy;
           const double total_mass                               = CalculateTotalMass(r_model_part);
-          if (total_mass == 0)  potential_energy = 0.0;
+          if (total_mass == 0)  gravitational_energy = 0.0;
           else {
               const array_1d<double, 3>& gravity                    = r_model_part.GetProcessInfo()[GRAVITY];
               const array_1d<double, 3> center_of_mass              = CalculateCenterOfMass(r_model_part);
               const array_1d<double, 3> center_of_mass_to_reference = reference_point - center_of_mass;
-              potential_energy = total_mass * (center_of_mass_to_reference[0] * gravity[0] + center_of_mass_to_reference[1] * gravity[1] + center_of_mass_to_reference[2] * gravity[2]);       
+              gravitational_energy = total_mass * (center_of_mass_to_reference[0] * gravity[0] + center_of_mass_to_reference[1] * gravity[1] + center_of_mass_to_reference[2] * gravity[2]);       
           }
-          return potential_energy;
+          return gravitational_energy;
       }
 
       //***************************************************************************************************************
