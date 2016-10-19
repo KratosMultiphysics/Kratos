@@ -1368,7 +1368,7 @@ private:
         double BotBifurcationFactor = 0.0;
         double BotBifurcationFactorDenominator = 0.0;
 
-        #pragma omp parallel sections reduction(+:PropagationFactor,PropagationFactorDenominator,TopBifurcationFactor,TopBifurcationFactorDenominator,BotBifurcationFactor,BotBifurcationFactorDenominator)
+        #pragma omp parallel sections reduction(+:PropagationFactor,PropagationFactorDenominator)
         {
             #pragma omp section
             {
