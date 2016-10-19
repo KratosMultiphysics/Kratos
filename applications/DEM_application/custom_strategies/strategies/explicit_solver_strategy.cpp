@@ -872,9 +872,7 @@ namespace Kratos {
 
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
-                mListOfSphericParticles[i]->ComputeNewNeighboursHistoricalData(mTempNeighboursIds,
-                        mTempNeighbourElasticContactForces,
-                        mTempNeighbourTotalContactForces);
+                mListOfSphericParticles[i]->ComputeNewNeighboursHistoricalData(mTempNeighboursIds, mTempNeighbourElasticContactForces);
             }
         }
 
