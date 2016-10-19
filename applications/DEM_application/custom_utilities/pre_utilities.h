@@ -118,6 +118,7 @@ class PreUtilities
             }
         }
         
+        std::cout << "\nGenerating mesh...\n\n";
         
         clock_t initial_time, final_time;
         initial_time = clock();
@@ -151,12 +152,17 @@ class PreUtilities
         
         outputfile << "\nBegin Nodes\n";
 
-        // Improve coordinate precision
-        for (int k = 0; k < divisions; k++) {
-            for (int j = 0; j < 2* divisions; j++) {
-                for (int i = 0; i < divisions; i++) {
+        // Relative sizes according to axes:
+        int ai=1;
+        int aj=2;
+        int ak=1;
+        
+        //Generation of the samble
+        for (int k = 0; k < ai*divisions; k++) {
+            for (int j = 0; j < aj* divisions; j++) {
+                for (int i = 0; i < ak*divisions; i++) {
                     outputfile << ++node_counter << " " << (1 + 2 * i) * radius - 0.5*side << " " << (1 + 2 * j) * radius << " " << (1 + 2 * k) * radius - 0.5*side << '\n';
-                    if ((i == 0) || (j == 0) || (k == 0) || (i == divisions - 1) || (j == divisions - 1) || (k == 2 * divisions - 1)) skin_nodes.push_back(node_counter);
+                    if ((i == 0) || (j == 0) || (k == 0) || (i == ai* divisions - 1) || (j == aj*divisions - 1) || (k ==  ak*divisions - 1)) skin_nodes.push_back(node_counter);
                     if (k == 0) bottom_nodes.push_back(node_counter);
                     if (k == 2 * divisions - 1) top_nodes.push_back(node_counter);
                 }
@@ -194,6 +200,7 @@ class PreUtilities
         outputfile.close();
         final_time = clock();
         double elapsed_time = (double(final_time) - double(initial_time)) / CLOCKS_PER_SEC;
+        std::cout << "\nfinished!\n\n";
         std::cout << "\nTotal number of elements: " << node_counter << '\n';
         std::cout << "\nTime required to create the mdpa file: " << elapsed_time << " seconds\n\n";
     } 
