@@ -210,7 +210,7 @@ void SphericParticle::CollectCalculateRightHandSide(ProcessInfo& r_process_info)
 {
     KRATOS_TRY
 
-    for (unsigned int i = 0; i < mNeighbourElements.size(); i++){
+    /*for (unsigned int i = 0; i < mNeighbourElements.size(); i++){
         SphericParticle* ineighbour = mNeighbourElements[i];
 
         if (this->Is(NEW_ENTITY) && ineighbour->Is(NEW_ENTITY)) continue;
@@ -231,7 +231,7 @@ void SphericParticle::CollectCalculateRightHandSide(ProcessInfo& r_process_info)
             }
         }
     }
-
+*/
     KRATOS_CATCH( "" )
 }
 
@@ -380,20 +380,17 @@ void SphericParticle::CalculateLocalAngularMomentum(array_1d<double, 3>& r_angul
 }
 
 void SphericParticle::ComputeNewNeighboursHistoricalData(boost::numeric::ublas::vector<int>& mTempNeighboursIds,
-                                                         std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
-                                                         std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces)
+                                                         std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces)
 {
     unsigned int new_size = mNeighbourElements.size();
     array_1d<double, 3> vector_of_zeros = ZeroVector(3);
     mTempNeighboursIds.resize(new_size);
     mTempNeighbourElasticContactForces.resize(new_size);
-    mTempNeighbourTotalContactForces.resize(new_size);
 
     boost::numeric::ublas::vector<int>& vector_of_ids_of_neighbours = GetValue(NEIGHBOUR_IDS);
 
     for (unsigned int i = 0; i < new_size; i++) {
         noalias(mTempNeighbourElasticContactForces[i]) = vector_of_zeros;
-        noalias(mTempNeighbourTotalContactForces[i]) = vector_of_zeros;
 
         if (mNeighbourElements[i] == NULL) { // This is required by the continuum sphere which reorders the neighbors
             mTempNeighboursIds[i] = -1;
@@ -405,7 +402,6 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(boost::numeric::ublas::
         for (unsigned int j = 0; j < vector_of_ids_of_neighbours.size(); j++) {
             if (int(mTempNeighboursIds[i]) == vector_of_ids_of_neighbours[j] && vector_of_ids_of_neighbours[j] != -1) {
                 noalias(mTempNeighbourElasticContactForces[i]) = mNeighbourElasticContactForces[j];
-                noalias(mTempNeighbourTotalContactForces[i])   = mNeighbourTotalContactForces[j];
                 break;
             }
         }
@@ -413,7 +409,6 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(boost::numeric::ublas::
 
     vector_of_ids_of_neighbours.swap(mTempNeighboursIds);
     mNeighbourElasticContactForces.swap(mTempNeighbourElasticContactForces);
-    mNeighbourTotalContactForces.swap(mTempNeighbourTotalContactForces);
 }
 
 void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
@@ -641,7 +636,7 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
 }
 
 void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
-                                     array_1d<double, 3>& Force,
+                                     double Force[3],
                                      array_1d<double, 3>& rInitialRotaMoment,
                                      double LocalCoordSystem2[3],
                                      SphericParticle* p_neighbour,
@@ -783,6 +778,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         double LocalContactForce[3]             = {0.0};
         double GlobalContactForce[3]            = {0.0};
         double LocalElasticContactForce[3]      = {0.0};
+        double LocalElasticExtraContactForce[3] = {0.0};        
         double GlobalElasticContactForce[3]     = {0.0};
         double ViscoDampingLocalContactForce[3] = {0.0};
         double cohesive_force                   =  0.0;
@@ -804,7 +800,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         ComputeOtherBallToBallForces(other_ball_to_ball_forces);
 
         // Transforming to global forces and adding up
-        AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce,
+        AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce, LocalElasticContactForce, LocalElasticExtraContactForce, GlobalContactForce,
                               GlobalElasticContactForce, ViscoDampingLocalContactForce, cohesive_force, other_ball_to_ball_forces, r_elastic_force, r_contact_force, i, r_process_info);
 
         // ROTATION FORCES
@@ -814,7 +810,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
                 noalias(rInitialRotaMoment) = coeff_acc * ang_velocity; // the moment needed to stop the spin in one time step
             }
 
-            ComputeMoments(LocalElasticContactForce[2], mNeighbourTotalContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], ineighbour, indentation);
+            ComputeMoments(LocalElasticContactForce[2], GlobalContactForce, rInitialRotaMoment, LocalCoordSystem[2], ineighbour, indentation);
         }
 
         if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
@@ -928,9 +924,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
 
             rigid_element_force[0] -= GlobalContactForce[0];
             rigid_element_force[1] -= GlobalContactForce[1];
-            rigid_element_force[2] -= GlobalContactForce[2];
-            array_1d<double, 3> GlobalContactForce_array;
-            DEM_COPY_SECOND_TO_FIRST_3(GlobalContactForce_array,GlobalContactForce)
+            rigid_element_force[2] -= GlobalContactForce[2];            
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
                 if (this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
@@ -938,7 +932,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
                     noalias(rInitialRotaMoment) = coeff_acc * AngularVel; // the moment needed to stop the spin in one time step
                 }
 
-              ComputeMoments(LocalElasticContactForce[2], GlobalContactForce_array, rInitialRotaMoment, LocalCoordSystem[2], this, indentation, true); //WARNING: sending itself as the neighbor!!
+              ComputeMoments(LocalElasticContactForce[2], GlobalContactForce, rInitialRotaMoment, LocalCoordSystem[2], this, indentation, true); //WARNING: sending itself as the neighbor!!
             }
 
             //WEAR
@@ -1341,6 +1335,7 @@ void SphericParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
                                             double LocalCoordSystem[3][3],
                                             double LocalContactForce[3],
                                             double LocalElasticContactForce[3],
+                                            double LocalElasticExtraContactForce[3],
                                             double GlobalContactForce[3],
                                             double GlobalElasticContactForce[3],
                                             double ViscoDampingLocalContactForce[3],
@@ -1352,7 +1347,7 @@ void SphericParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
                                             ProcessInfo& r_process_info)
 {
     for (unsigned int index = 0; index < 3; index++) {
-        LocalContactForce[index] = LocalElasticContactForce[index] + ViscoDampingLocalContactForce[index] + other_ball_to_ball_forces[index];
+        LocalContactForce[index] = LocalElasticContactForce[index] + LocalElasticExtraContactForce[index] + ViscoDampingLocalContactForce[index] + other_ball_to_ball_forces[index];
     }
     LocalContactForce[2] -= cohesive_force;
 
@@ -1363,7 +1358,6 @@ void SphericParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
 
     // Saving contact forces (We need to, since tangential elastic force is history-dependent)
     DEM_COPY_SECOND_TO_FIRST_3(mNeighbourElasticContactForces[i_neighbour_count], GlobalElasticContactForce)
-    DEM_COPY_SECOND_TO_FIRST_3(mNeighbourTotalContactForces[i_neighbour_count], GlobalContactForce)
     DEM_ADD_SECOND_TO_FIRST(mContactForce, GlobalContactForce)
     DEM_ADD_SECOND_TO_FIRST(r_elastic_force, GlobalElasticContactForce)
     DEM_ADD_SECOND_TO_FIRST(r_contact_force, GlobalContactForce)

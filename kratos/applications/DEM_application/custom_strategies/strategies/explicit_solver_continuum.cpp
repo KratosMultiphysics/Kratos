@@ -243,7 +243,6 @@ namespace Kratos {
         {
             boost::numeric::ublas::vector<int> TempNeighboursIds; //We are passing all these temporal vectors as arguments because creating them inside the function is slower (memory allocation and deallocation)
             std::vector<array_1d<double, 3> > TempNeighbourElasticContactForces;
-            std::vector<array_1d<double, 3> > TempNeighbourTotalContactForces;
             std::vector<SphericParticle*> TempNeighbourElements;
 
             const int number_of_particles = (int) mListOfSphericContinuumParticles.size();
@@ -251,9 +250,7 @@ namespace Kratos {
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
                 mListOfSphericContinuumParticles[i]->ReorderAndRecoverInitialPositionsAndFilter(TempNeighbourElements);
-                mListOfSphericContinuumParticles[i]->ComputeNewNeighboursHistoricalData(TempNeighboursIds,
-                        TempNeighbourElasticContactForces,
-                        TempNeighbourTotalContactForces);
+                mListOfSphericContinuumParticles[i]->ComputeNewNeighboursHistoricalData(TempNeighboursIds, TempNeighbourElasticContactForces);
             }
         }
 

@@ -459,7 +459,6 @@ namespace Kratos {
                     p_continuum_particle_i->mContinuumInitialNeighborsSize++;
                     p_continuum_particle_i->mInitialNeighborsSize++;
                     p_continuum_particle_i->mNeighbourElasticContactForces.push_back(zero_vector);
-                    p_continuum_particle_i->mNeighbourTotalContactForces.push_back(zero_vector);
                     
                     
                     p_continuum_particle_j->mNeighbourElements.push_back(p_continuum_particle_i);
@@ -469,7 +468,6 @@ namespace Kratos {
                     p_continuum_particle_j->mContinuumInitialNeighborsSize++;
                     p_continuum_particle_j->mInitialNeighborsSize++; 
                     p_continuum_particle_j->mNeighbourElasticContactForces.push_back(zero_vector);
-                    p_continuum_particle_j->mNeighbourTotalContactForces.push_back(zero_vector);
                 }
             }   
         }
