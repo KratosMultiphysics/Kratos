@@ -113,13 +113,13 @@ public:
         // TODO: Add the criteria of AUXILIAR_SLIP
         if (mInitialPreviousState == false)
         {
-            NodesArrayType& pNode  = rModelPart.Nodes();
+            NodesArrayType& pNode  = rModelPart.GetSubModelPart("Contact").Nodes();
             NodesArrayType::iterator it_node_begin = pNode.ptr_begin();
             NodesArrayType::iterator it_node_end   = pNode.ptr_end();
             
             for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
             {
-                if (node_it->Is(INTERFACE))
+                if (node_it->Is(SLAVE))
                 {
                     if (node_it->Is(ACTIVE))
                     {
@@ -149,13 +149,13 @@ public:
         bool active_is_converged = true;
         bool slip_is_converged   = true;
         
-        NodesArrayType& pNode  = rModelPart.Nodes();
+        NodesArrayType& pNode  = rModelPart.GetSubModelPart("Contact").Nodes();
         NodesArrayType::iterator it_node_begin = pNode.ptr_begin();
         NodesArrayType::iterator it_node_end   = pNode.ptr_end();
         
         for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
         {
-            if (node_it->Is(INTERFACE))
+            if (node_it->Is(SLAVE))
             {
                 // NORMAL DIRECTION
                 bool aux_bool_normal;

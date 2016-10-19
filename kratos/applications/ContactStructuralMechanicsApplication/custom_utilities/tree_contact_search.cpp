@@ -39,10 +39,10 @@ TreeContactSearch::TreeContactSearch(
     mallocation(allocation_size)
 {
     // Destination model part
-    AuxConstructor(mrDestinationModelPart, false, false);
+    AuxConstructor(mrDestinationModelPart, false, true, false);
     
     // Origin model part
-    AuxConstructor(mrOriginModelPart, false, true);
+    AuxConstructor(mrOriginModelPart, false, false, true);
 }
 
 /***********************************************************************************/
@@ -51,7 +51,7 @@ TreeContactSearch::TreeContactSearch(
 void TreeContactSearch::AuxConstructor(
     ModelPart & rModelPart,
     const bool rActive,
-//     const bool rSlave,
+    const bool rSlave,
     const bool rMaster
     ) 
 {
@@ -73,6 +73,7 @@ void TreeContactSearch::AuxConstructor(
     
     for(NodesArrayType::iterator node_it = node_begin; node_it!=node_end; node_it++)
     {
+        node_it->Set( SLAVE,   rSlave );  
         node_it->Set( ACTIVE, rActive );  // NOTE: It is supposed to be already false, just in case   
     }
 }
