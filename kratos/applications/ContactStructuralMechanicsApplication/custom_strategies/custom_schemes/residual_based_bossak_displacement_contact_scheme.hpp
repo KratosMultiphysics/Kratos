@@ -254,7 +254,7 @@ public:
         }
 
         // Update normal of the conditions
-        ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart ); 
+        ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart.GetSubModelPart("Contact") ); 
         
         // Initializes the non-linear iteration for all the conditions
         ConditionsArrayType& rConditions = rModelPart.Conditions();
@@ -355,7 +355,7 @@ public:
         }
     
         // Update normal of the conditions
-        ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart ); 
+        ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart.GetSubModelPart("Contact") ); 
         
         // Finalizes solution step for all the conditions
         ConditionsArrayType& rConditions = rModelPart.Conditions();
@@ -429,7 +429,7 @@ public:
         }
                 
         // Update normal of the conditions
-        ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart ); 
+        ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart.GetSubModelPart("Contact") ); 
         
         // Finalizes non linear iteration for all the conditions
         ConditionsArrayType& rConditions = rModelPart.Conditions();
