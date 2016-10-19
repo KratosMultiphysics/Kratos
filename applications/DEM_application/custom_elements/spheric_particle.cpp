@@ -115,6 +115,13 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
     else                                           {node.Set(DEMFlags::FIXED_ANG_VEL_Y,false);}
     if (node.GetDof(ANGULAR_VELOCITY_Z).IsFixed()) {node.Set(DEMFlags::FIXED_ANG_VEL_Z,true);}
     else                                           {node.Set(DEMFlags::FIXED_ANG_VEL_Z,false);}
+    
+    double& elastic_energy = this->GetElasticEnergy();
+    elastic_energy = 0.0;
+    double& inelastic_frictional_energy = this->GetInelasticFrictionalEnergy();
+    inelastic_frictional_energy = 0.0;
+    double& inelastic_viscodamping_energy = this->GetInelasticViscodampingEnergy();
+    inelastic_viscodamping_energy = 0.0;
 
     mBoundDeltaDispSq = 0.0;
 
