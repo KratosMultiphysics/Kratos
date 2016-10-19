@@ -108,9 +108,6 @@ class StaticMechanicalSolver(solid_mechanics_static_solver.StaticMechanicalSolve
             self.main_model_part.ProcessInfo[KratosMultiphysics.StructuralMechanicsApplication.LAMBDA] = 0.00;
    
         print("::[Mechanical Solver]:: Variables ADDED")
-
-    def GetComputingModelPart(self):
-        return self.main_model_part
     
     def Solve(self):
         
