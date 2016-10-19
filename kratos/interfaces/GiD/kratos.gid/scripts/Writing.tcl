@@ -1025,7 +1025,7 @@ proc write::getStringBinaryValue { name { it "" } } {
 }
 proc write::getStringBinaryFromValue {v} {
     set goodList [list "Yes" "1" "yes" "ok" "YES" "Ok" "OK" "True" "TRUE" "true"]
-    if {$v in $goodList} {return "True" } {return "False"}
+    if {$v in $goodList} {return "true" } {return "false"}
 }
  
 proc write::OpenFile { fn } {
