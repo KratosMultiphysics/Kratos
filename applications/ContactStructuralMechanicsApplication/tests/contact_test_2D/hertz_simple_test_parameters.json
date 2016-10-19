@@ -81,12 +81,14 @@
             "search_factor"               : 5.0,
             "active_check_factor"	  : 0.005,
             "max_number_results"          : 1000,
+            "augmentation_normal"         : 1e9,
+            "augmentation_tangent"        : 1e9,
             "type_search"                 : "InRadius",
-            "integration_order"         : 5
+            "integration_order"           : 5
         }
     }
     ],
-    "_output_configuration"     : {
+    "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -106,7 +108,7 @@
         },
         "point_data_configuration"  : []
     },
-    "json_check_process" : [
+    "_json_check_process" : [
     {
         "python_module"   : "from_json_check_result_process",
         "kratos_module" : "KratosMultiphysics",
