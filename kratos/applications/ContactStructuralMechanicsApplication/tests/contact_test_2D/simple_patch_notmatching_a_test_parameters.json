@@ -100,7 +100,7 @@
             "type_search"                 : "InRadius",
             "augmentation_normal"         : 1000,
             "augmentation_tangent"        : 1000,
-            "integration_order"           : 5
+            "integration_order"           : 4
         }
     }
     ],

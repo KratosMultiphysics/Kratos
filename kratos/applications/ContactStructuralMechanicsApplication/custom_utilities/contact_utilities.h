@@ -20,6 +20,7 @@
 #include "geometries/point.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
@@ -579,7 +580,7 @@ public:
         
         for(ConditionsArrayType::iterator cond_it = it_cond_begin; cond_it!=it_cond_end; cond_it++)
         {
-            if (cond_it->Is(ACTIVE) || cond_it->Is(MASTER))
+            if (cond_it->Is(ACTIVE) || cond_it->Is(MASTER)) // TODO: Substitute with CONTACT (not working!!!)
             {
                 ConditionNormal(*(cond_it.base()));
                 
@@ -666,7 +667,7 @@ public:
         // Sum the directional derivatives of the adjacent segments
         for(ConditionsArrayType::iterator cond_it = it_cond_begin; cond_it!=it_cond_end; cond_it++)
         {
-            if (cond_it->Is(ACTIVE) || cond_it->Is(MASTER))
+            if (cond_it->Is(ACTIVE) || cond_it->Is(MASTER)) // TODO: Substitute with CONTACT (not working!!!)
             {
                 const array_1d<double, 3> ne = cond_it->GetValue(NORMAL);   // normalized condition normal
                 Matrix ne_o_ne = subrange( outer_prod( ne, ne ), 0, dimension, 0, dimension );
@@ -873,59 +874,136 @@ public:
     /**
      * It changes from active to inactive and viceversa the nodes 
      * @param ModelPart: The model part to compute
-     * @param cn: Kind of penalty, not necessarily the YOUNG_MODULUS
      * @return The modelparts with the conditions changed
      */
     
-    static inline void ReComputeActiveInactive(
-        ModelPart & rModelPart, 
-        const double cn,
-        const double ct,
-        const double mu
-        )
+    static inline void ReComputeActiveInactive(ModelPart & rModelPart)
     {
-        NodesArrayType& pNode  = rModelPart.Nodes();
-        NodesArrayType::iterator it_node_begin = pNode.ptr_begin();
-        NodesArrayType::iterator it_node_end   = pNode.ptr_end();
+        // TODO: If works make it parallell (it is difficult, be careful with the repeated nodes) 
+       
+        ConditionsArrayType& pCond = rModelPart.GetSubModelPart("Contact").Conditions();
+        ConditionsArrayType::iterator it_cond_begin = pCond.ptr_begin();
+        ConditionsArrayType::iterator it_cond_end   = pCond.ptr_end();
         
-        for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
+        for(ConditionsArrayType::iterator cond_it = it_cond_begin; cond_it!=it_cond_end; cond_it++)
         {
-            if (node_it->Is(INTERFACE))
+            bool condition_is_active = false; // It is supposed to be always defined
+            if( (cond_it)->IsDefined(ACTIVE) == true)
             {
-                const array_1d<double,3> lagrange_multiplier = node_it->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0);
-                const array_1d<double,3>        nodal_normal = node_it->GetValue(NORMAL); 
-                const double lambda_n = inner_prod(lagrange_multiplier, nodal_normal);
+                condition_is_active = (cond_it)->Is(ACTIVE);
+            }
+            
+            if ( condition_is_active == true )
+            {
+                // Recompute Active/Inactive nodes
+                double cn = 0.0;
+                if (cond_it->GetProperties().Has(NORMAL_AUGMENTATION_FACTOR) == true)
+                {
+                    cn = cond_it->GetProperties().GetValue(NORMAL_AUGMENTATION_FACTOR); 
+                }
+                
+                double ct = 0.0;
+                if (cond_it->GetProperties().Has(TANGENT_AUGMENTATION_FACTOR) == true)
+                {
+                    ct = cond_it->GetProperties().GetValue(TANGENT_AUGMENTATION_FACTOR); 
+                }
+                
+                double mu = 0.0; //TODO: Consider a weighted friction coefficient instead for each node
+                if (cond_it->GetProperties().Has(FRICTION_COEFFICIENT) == true)
+                {
+                    mu = cond_it->GetProperties().GetValue(FRICTION_COEFFICIENT); 
+                }
+    
+                Geometry<Node<3> > & CondGeometry = cond_it->GetGeometry();
+    
+                for(unsigned int node_it = 0; node_it!=CondGeometry.PointsNumber(); node_it++)
+                {
+                    if (CondGeometry[node_it].Is(VISITED) == false)
+                    {
+                        const array_1d<double,3> lagrange_multiplier = CondGeometry[node_it].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0);
+                        const array_1d<double,3>        nodal_normal = CondGeometry[node_it].GetValue(NORMAL); 
+                        const double lambda_n = inner_prod(lagrange_multiplier, nodal_normal);
 
-                const double check_normal = lambda_n - cn * node_it->GetValue(WEIGHTED_GAP);
+                        const double check_normal = lambda_n - cn * CondGeometry[node_it].GetValue(WEIGHTED_GAP);
 
-                if (check_normal <= 0.0)
-                {
-                    node_it->Set(ACTIVE, false);
-                    node_it->GetSolutionStepValue( IS_ACTIVE_SET ) = false;
-                }
-                else
-                {
-                    node_it->Set(ACTIVE, true);
-                    node_it->GetSolutionStepValue( IS_ACTIVE_SET ) = true;
-                }
-                
-                const array_1d<double, 3> nodal_tangent_xi  = node_it->GetValue(TANGENT_XI); 
-                const array_1d<double, 3> nodal_tangent_eta = node_it->GetValue(TANGENT_ETA);
-                const double tangent_xi_lm = inner_prod(nodal_tangent_xi, lagrange_multiplier);
-                const double tangent_eta_lm = inner_prod(nodal_tangent_eta, lagrange_multiplier);
-                const double lambda_t = std::sqrt(tangent_xi_lm * tangent_xi_lm + tangent_eta_lm * tangent_eta_lm); 
-                
-                const double check_tangent = std::abs(lambda_t + ct * node_it->GetValue(WEIGHTED_SLIP)) - mu * check_normal;
-                
-                if (check_tangent < 0.0)
-                {
-                    node_it->Set(SLIP, false);
-                }
-                else
-                {
-                    node_it->Set(SLIP, true);
+                        if (check_normal <= 0.0)
+                        {
+                            CondGeometry[node_it].Set(ACTIVE, false);
+                            CondGeometry[node_it].GetSolutionStepValue( IS_ACTIVE_SET ) = false;
+                        }
+                        else
+                        {
+                            CondGeometry[node_it].Set(ACTIVE, true);
+                            CondGeometry[node_it].GetSolutionStepValue( IS_ACTIVE_SET ) = true;
+                        }
+                        
+                        const array_1d<double, 3> nodal_tangent_xi  = CondGeometry[node_it].GetValue(TANGENT_XI); 
+                        const array_1d<double, 3> nodal_tangent_eta = CondGeometry[node_it].GetValue(TANGENT_ETA);
+                        const double tangent_xi_lm  = inner_prod(nodal_tangent_xi,  lagrange_multiplier);
+                        const double tangent_eta_lm = inner_prod(nodal_tangent_eta, lagrange_multiplier);
+                        const double lambda_t = std::sqrt(tangent_xi_lm * tangent_xi_lm + tangent_eta_lm * tangent_eta_lm); 
+                        
+                        const double check_tangent = std::abs(lambda_t + ct * CondGeometry[node_it].GetValue(WEIGHTED_SLIP)) - mu * check_normal;
+                        
+                        if (check_tangent < 0.0)
+                        {
+                            CondGeometry[node_it].Set(SLIP, false);
+                        }
+                        else
+                        {
+                            CondGeometry[node_it].Set(SLIP, true);
+                        }
+                        
+                        CondGeometry[node_it].Set(VISITED, true);
+                    }
                 }
             }
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    /**
+     * It resets the value of the weighted gap and slip 
+     * @param ModelPart: The model part to compute
+     * @return The modelparts with the conditions changed
+     */
+    
+    static inline void ResetWeightedGapSlip(ModelPart & rModelPart)
+    {
+        // TODO: Repair the parallelization
+        NodesArrayType& rNodes = rModelPart.GetSubModelPart("Contact").Nodes();
+
+//         const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+//         OpenMPUtils::PartitionVector NodePartition;
+//         OpenMPUtils::DivideInPartitions(rNodes.size(), NumThreads, NodePartition);
+//         
+//         #pragma omp parallel
+//         {
+//             const unsigned int k = OpenMPUtils::ThisThread();
+// 
+//             typename NodesArrayType::iterator NodeBegin = rNodes.begin() + NodePartition[k];
+//             typename NodesArrayType::iterator NodeEnd   = rNodes.begin() + NodePartition[k + 1];
+// 
+//             for (typename NodesArrayType::iterator itNode = NodeBegin; itNode != NodeEnd; itNode++)
+//             {
+//                 itNode->Set(VISITED, false);
+//                 itNode->GetValue(WEIGHTED_GAP)  = 0.0;
+//                 itNode->GetValue(WEIGHTED_SLIP) = 0.0;
+//             }
+//         } 
+        
+        auto numNodes = rNodes.end() -rNodes.begin();
+        
+//         #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto nodeItr = rNodes.begin() + i;
+            
+            nodeItr->Set(VISITED, false);
+            nodeItr->GetValue(WEIGHTED_GAP)  = 0.0;
+            nodeItr->GetValue(WEIGHTED_SLIP) = 0.0;
         }
     }
     

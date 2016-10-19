@@ -98,7 +98,7 @@
             "active_check_factor"         : 0.002,
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
-            "integration_order"           : 5
+            "integration_order"           : 4
         }
     }
     ],

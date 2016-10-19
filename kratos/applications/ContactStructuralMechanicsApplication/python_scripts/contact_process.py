@@ -34,8 +34,8 @@ class ContactProcess(KratosMultiphysics.Process):
             "search_factor"               : 1.5,
             "active_check_factor"         : 0.01,
             "max_number_results"          : 1000,
-            "augmentation_normal"         : 1.0e9,
-            "augmentation_tangent"        : 1.0e9,
+            "augmentation_normal"         : 1.0e0,
+            "augmentation_tangent"        : 1.0e0,
             "type_search"                 : "InRadius",
             "integration_order"           : 5
         }
@@ -64,11 +64,18 @@ class ContactProcess(KratosMultiphysics.Process):
         
     def ExecuteInitialize(self):
         
+        # Appending the conditions created to the computing_model_part
+        computing_model_part = self.main_model_part.GetSubModelPart("solid_computing_domain")
+        computing_model_part.CreateSubModelPart("Contact")
+        interface_computing_model_part = computing_model_part.GetSubModelPart("Contact")
+        
         for node in self.o_interface.Nodes:
+            interface_computing_model_part.AddNode(node, 0)  
             node.Set(KratosMultiphysics.INTERFACE,True)
         del(node)
         
         for node in self.d_interface.Nodes:
+            interface_computing_model_part.AddNode(node, 0)
             node.Set(KratosMultiphysics.INTERFACE,True)
         del(node)
         
@@ -92,21 +99,6 @@ class ContactProcess(KratosMultiphysics.Process):
 
         #print("MODEL PART AFTER CREATING INTERFACE")
         #print(self.main_model_part)
-        
-        # Appending the conditions created to the computing_model_part
-        computing_model_part = self.main_model_part.GetSubModelPart("solid_computing_domain") #NOTE: The name can change
-            
-        computing_model_part.CreateSubModelPart("Contact")
-        
-        interface_computing_model_part = computing_model_part.GetSubModelPart("Contact")
-        
-        for node in self.o_interface.Nodes:
-            interface_computing_model_part.AddNode(node, 0)  
-        del(node)
-        
-        for node in self.d_interface.Nodes:
-            interface_computing_model_part.AddNode(node, 0)
-        del(node)
         
         for cond in self.o_interface.Conditions:
             interface_computing_model_part.AddCondition(cond)    
@@ -135,12 +127,7 @@ class ContactProcess(KratosMultiphysics.Process):
         #for cond in self.d_interface.Conditions:
             #print(cond.Is(KratosMultiphysics.ACTIVE))
         
-        if self.params["contact_type"].GetString() == "MortarMethod":
-            for node in self.d_interface.Nodes: # TODO: Do this in each nonlinear iteration
-                node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_GAP,  0.0) 
-                node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_SLIP, 0.0)
-            del node
-            
+        if self.params["contact_type"].GetString() == "MortarMethod":            
             self.contact_search.CreateMortarConditions(self.search_factor, self.type_search, self.integration_order)
             #self.contact_search.CheckMortarConditions()
         elif self.params["contact_type"].GetString() == "NTN":

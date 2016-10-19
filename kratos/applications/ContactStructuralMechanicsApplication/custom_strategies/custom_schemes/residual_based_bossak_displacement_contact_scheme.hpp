@@ -229,6 +229,9 @@ public:
     {
         KRATOS_TRY;
 
+        // It resets the weighted gap and slip 
+        ContactUtilities::ResetWeightedGapSlip(rModelPart);
+        
         // Initializes the non-linear iteration for all the elements
         ElementsArrayType& rElements = rModelPart.Elements();
         ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -381,27 +384,8 @@ public:
                 }
             }
         }
-        
-        // Recompute Active/Inactive nodes // TODO: Consider these parameters associated to the conditions
-        double cn = 0.0;
-        if (rElements[0].GetProperties().Has(NORMAL_AUGMENTATION_FACTOR) == true)
-        {
-            cn = rElements[0].GetProperties().GetValue(NORMAL_AUGMENTATION_FACTOR); 
-        }
-        
-        double ct = 0.0;
-        if (rElements[0].GetProperties().Has(TANGENT_AUGMENTATION_FACTOR) == true)
-        {
-            ct = rElements[0].GetProperties().GetValue(TANGENT_AUGMENTATION_FACTOR); 
-        }
-        
-        double mu = 0.0;
-        if (rElements[0].GetProperties().Has(FRICTION_COEFFICIENT) == true)
-        {
-            mu = rElements[0].GetProperties().GetValue(FRICTION_COEFFICIENT); 
-        }
-        
-        ContactUtilities::ReComputeActiveInactive( rModelPart, cn, ct, mu ); 
+       
+        ContactUtilities::ReComputeActiveInactive( rModelPart ); 
         
         KRATOS_CATCH("");
     }
@@ -475,26 +459,7 @@ public:
             }
         }
         
-        // Recompute Active/Inactive nodes // TODO: Consider these parameters associated to the conditions
-        double cn = 0.0;
-        if (rElements[0].GetProperties().Has(NORMAL_AUGMENTATION_FACTOR) == true)
-        {
-            cn = rElements[0].GetProperties().GetValue(NORMAL_AUGMENTATION_FACTOR); 
-        }
-        
-        double ct = 0.0;
-        if (rElements[0].GetProperties().Has(TANGENT_AUGMENTATION_FACTOR) == true)
-        {
-            ct = rElements[0].GetProperties().GetValue(TANGENT_AUGMENTATION_FACTOR); 
-        }
-        
-        double mu = 0.0;
-        if (rElements[0].GetProperties().Has(FRICTION_COEFFICIENT) == true)
-        {
-            mu = rElements[0].GetProperties().GetValue(FRICTION_COEFFICIENT); 
-        }
-        
-        ContactUtilities::ReComputeActiveInactive( rModelPart, cn, ct, mu ); 
+        ContactUtilities::ReComputeActiveInactive( rModelPart); 
         
         KRATOS_CATCH("");
     }

@@ -50,9 +50,12 @@ BOOST_PYTHON_MODULE(KratosContactStructuralMechanicsApplication)
 
     // CONDITIONS
     // CONTACT
-    /* Mortar contact */
+    /* Mortar contact */ // TODO: Add the descriptions!!
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( ACTIVE_CHECK_FACTOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( WEIGHTED_GAP )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( WEIGHTED_SLIP )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( AUXILIAR_ACTIVE )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( AUXILIAR_SLIP )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( ACTIVE_CHECK_FACTOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( NORMAL_AUGMENTATION_FACTOR )  // The constant that is considered for the check of active or inactive (when 0 it doesn't accept traction)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( TANGENT_AUGMENTATION_FACTOR ) // The constant that is considered for the check if the node is slip/stick
