@@ -81,26 +81,26 @@ namespace Kratos {
                                                    NeighbourClassType* const neighbour,
                                                    double indentation,
                                                    double previous_indentation,
-                                                   double& ActualTotalShearForce, 
+                                                   double& AuxElasticShearForce, 
                                                    double& MaximumAdmisibleShearForce);
 
         void CalculateViscoDampingForce(double LocalRelVel[3],
                                         double ViscoDampingLocalContactForce[3],
                                         SphericParticle* const element1,
                                         SphericParticle* const element2);
-        
+
         void CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
                                         double ViscoDampingLocalContactForce[3],
                                         SphericParticle* const element,
                                         DEMWall* const wall);
-        
+
         void CalculateElasticEnergyDEM(double& elastic_energy,
                                        double indentation,
                                        double LocalElasticContactForce[3]);
 
         void CalculateInelasticFrictionalEnergyDEM(double& inelastic_frictional_energy,
-                                                   double& ActualTotalShearForce,
-                                                   double& MaximumAdmisibleShearForce);
+                                                   double& AuxElasticShearForce,
+                                                   double LocalElasticContactForce[3]);
         
         void CalculateInelasticViscodampingEnergyDEM(double& inelastic_viscodamping_energy,
                                                      double ViscoDampingLocalContactForce[3],
@@ -111,8 +111,8 @@ namespace Kratos {
                                        double LocalElasticContactForce[3]);
 
         void CalculateInelasticFrictionalEnergyFEM(double& inelastic_frictional_energy,
-                                                   double& ActualTotalShearForce,
-                                                   double& MaximumAdmisibleShearForce);
+                                                   double& AuxElasticShearForce,
+                                                   double LocalElasticContactForce[3]);
         
         void CalculateInelasticViscodampingEnergyFEM(double& inelastic_viscodamping_energy,
                                                      double ViscoDampingLocalContactForce[3],
