@@ -1,6 +1,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import math
+import sys
 
 ## This proces sets the value of a vector variable component-by-component.
 ## In this case, the fixicity is given by the user and some of the components may not be fixed.
