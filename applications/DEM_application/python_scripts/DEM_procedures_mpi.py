@@ -42,13 +42,12 @@ class Procedures(DEM_procedures.Procedures):
         root             = main_path + '/' + problem_name
 
         post_path        = root + '_Post_Files'
-        list_path        = root + '_Post_Lists'
         data_and_results = root + '_Results_and_Data'
         graphs_path      = root + '_Graphs'
         MPI_results      = root + '_MPI_results'
 
         if mpi.rank == 0:
-            for directory in [post_path, list_path, data_and_results, graphs_path, MPI_results]:
+            for directory in [post_path, data_and_results, graphs_path, MPI_results]:
                 if not os.path.isdir(directory):
                     os.makedirs(str(directory))
 
@@ -131,8 +130,8 @@ class MultifileList(object):
 
 class DEMIo(DEM_procedures.DEMIo):
 
-    def __init__(self, DEM_parameters):
-        super(DEMIo,self).__init__(DEM_parameters)
+    def __init__(self, DEM_parameters, post_path):
+        super(DEMIo,self).__init__(DEM_parameters, post_path)
 
     def AddMpiVariables(self):
         self.spheres_variables.append(PARTITION_INDEX)
