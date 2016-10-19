@@ -20,7 +20,7 @@ class ApplyVectorOnConditionsProcess(KratosMultiphysics.Process):
         if( type(self.var) != KratosMultiphysics.Array1DVariable3 ):
             raise Exception("Variable type is incorrect. Must be a three-component vector.")
     
-        self.factor = settings["factor"].GetDouble();
+        self.factor = settings["modulus"].GetDouble();
 
         self.direction = [settings["direction"][0].GetDouble(),settings["direction"][1].GetDouble(),settings["direction"][2].GetDouble()]
 
