@@ -64,7 +64,7 @@ void TreeContactSearch::AuxConstructor(
         cond_it->Set( ACTIVE, rActive ); // NOTE: It is supposed to be already false, just in case   
 //         cond_it->Set( SLAVE,  rSlave);
         cond_it->Set( MASTER, rMaster);
-        cond_it->Set( CONTACT, true); // NOTE: Always true
+//         cond_it->Set( CONTACT, true); // NOTE: Always true
     }
     
     NodesArrayType& pNode               = rModelPart.Nodes();

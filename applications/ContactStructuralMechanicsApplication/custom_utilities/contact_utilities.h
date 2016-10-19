@@ -63,7 +63,7 @@ public:
     {
         // The original code was split into two methods to be more handy.. nothing actually is changed
         InitializeActiveInactiveSets( Geom1, Geom2, contact_normal1, contact_normal2, ActiveCheckFactor );
-        GenerateMortarSegmentsProcess( contact_container, Geom1, Geom2, contact_normal1, contact_normal2 );
+        GenerateMortarSegmentsProcess( contact_container, Geom1, Geom2, contact_normal1, contact_normal2 ); //NOTE: Remove in the future
     }
     
     static inline void ContactContainerFiller(
@@ -121,7 +121,8 @@ public:
                     ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, Geom1[index].FastGetSolutionStepValue(NORMAL, 0));
                 }  
                 
-                double dist_tol = ActiveCheckFactor;    // the actual gap tolerance is user-define instead of being a factor of the length
+                // TODO: Think about this
+                double dist_tol = ActiveCheckFactor;    // The actual gap tolerance is user-define instead of being a factor of the length
 //                double dist_tol = ActiveCheckFactor * Geom1.Length();
 //                dist_tol = (dist_tol <= ActiveCheckFactor * Geom2.Length()) ? (ActiveCheckFactor * Geom2.Length()):dist_tol;
                 
@@ -147,12 +148,12 @@ public:
     /***********************************************************************************/
     /***********************************************************************************/
 
-    static inline void GenerateMortarSegmentsProcess(
+    static inline void GenerateMortarSegmentsProcess( // TODO: Remove this in the future
         contact_container & contact_container,
         Geometry<Node<3> > & Geom1, // SLAVE
         Geometry<Node<3> > & Geom2, // MASTER
         const array_1d<double, 3> & contact_normal1, // SLAVE
-        const array_1d<double, 3> & contact_normal2 // MASTER
+        const array_1d<double, 3> & contact_normal2  // MASTER
         )
     {
         // Define the basic information
@@ -297,7 +298,7 @@ public:
     /***********************************************************************************/
     
     /**
-     * calculates the distance between nodes
+     * Calculates the distance between nodes
      * @param PointOrigin: A point in the plane
      * @param PointDestiny: The point to be projected
      */
@@ -307,9 +308,9 @@ public:
             const Point<3>& PointDestiny
             )
     {
-        double dist = std::sqrt((PointOrigin.Coordinate(1) - PointDestiny.Coordinate(1)) * (PointOrigin.Coordinate(1) - PointDestiny.Coordinate(1))
-                              + (PointOrigin.Coordinate(2) - PointDestiny.Coordinate(2)) * (PointOrigin.Coordinate(2) - PointDestiny.Coordinate(2))
-                              + (PointOrigin.Coordinate(3) - PointDestiny.Coordinate(3)) * (PointOrigin.Coordinate(3) - PointDestiny.Coordinate(3)));
+        const double dist = std::sqrt((PointOrigin.Coordinate(1) - PointDestiny.Coordinate(1)) * (PointOrigin.Coordinate(1) - PointDestiny.Coordinate(1))
+                                    + (PointOrigin.Coordinate(2) - PointDestiny.Coordinate(2)) * (PointOrigin.Coordinate(2) - PointDestiny.Coordinate(2))
+                                    + (PointOrigin.Coordinate(3) - PointDestiny.Coordinate(3)) * (PointOrigin.Coordinate(3) - PointDestiny.Coordinate(3)));
         
         return dist;
     }
@@ -407,7 +408,7 @@ public:
         {
             noalias(aux_vector) = Center.Coordinates() - pCond->GetGeometry()[i].Coordinates();;
             
-            double tmp = inner_prod(aux_vector, aux_vector);
+            const double tmp = inner_prod(aux_vector, aux_vector);
 
             if(tmp > Radius)
             {
@@ -431,8 +432,8 @@ public:
     static inline void ConditionNormal(Condition::Pointer pCond)
     {
         // TODO: Add calculation of normal to geometry.h 
-        array_1d<double,3> & Normal = pCond->GetValue(NORMAL);
-        array_1d<double,3> & TangentXi = pCond->GetValue(TANGENT_XI);
+        array_1d<double,3> & Normal     = pCond->GetValue(NORMAL);
+        array_1d<double,3> & TangentXi  = pCond->GetValue(TANGENT_XI);
         array_1d<double,3> & TangentEta = pCond->GetValue(TANGENT_ETA);
         
         GeometryNormal(Normal, TangentXi, TangentEta, pCond->GetGeometry());
@@ -454,7 +455,7 @@ public:
         array_1d<double,3> normal = ZeroVector(3);
         for( unsigned int iNode = 0; iNode < Geom.PointsNumber(); ++iNode )
         {
-            normal += N[iNode] * Geom[iNode].GetValue(NORMAL); // The opposite direction
+            normal += N[iNode] * Geom[iNode].GetValue(NORMAL); 
         }
         
         normal = normal/norm_2(normal); // It is suppossed to be already unitary (just in case)
@@ -477,7 +478,7 @@ public:
             const Geometry<Node<3> > & Geom
             )
     {
-        noalias(Normal)     = ZeroVector(3);
+        noalias(Normal) = ZeroVector(3);
         
         // Geom normal is the sum of all nodal normals
         // nodal normal = tangent_eta (or e3 in 2D) x tangent_xi
@@ -567,8 +568,8 @@ public:
         {
             if (node_it->Is(INTERFACE))
             {
-                noalias(node_it->GetValue(NORMAL)) = ZeroVect; 
-                noalias(node_it->GetValue(TANGENT_XI)) = ZeroVect; 
+                noalias(node_it->GetValue(NORMAL))      = ZeroVect; 
+                noalias(node_it->GetValue(TANGENT_XI))  = ZeroVect; 
                 noalias(node_it->GetValue(TANGENT_ETA)) = ZeroVect; 
             }
         }
@@ -580,7 +581,7 @@ public:
         
         for(ConditionsArrayType::iterator cond_it = it_cond_begin; cond_it!=it_cond_end; cond_it++)
         {
-            if (cond_it->Is(ACTIVE) || cond_it->Is(MASTER)) // TODO: Substitute with CONTACT (not working!!!)
+            if (cond_it->Is(ACTIVE) || cond_it->Is(MASTER))
             {
                 ConditionNormal(*(cond_it.base()));
                 
@@ -590,13 +591,14 @@ public:
                 
                 for (unsigned int i = 0; i < cond_it->GetGeometry().PointsNumber(); i++)
                 {
-                    noalias( cond_it->GetGeometry()[i].GetValue(NORMAL) ) += rNormal;
-                    noalias( cond_it->GetGeometry()[i].GetValue(TANGENT_XI) ) += rTangentXi;
+                    noalias( cond_it->GetGeometry()[i].GetValue(NORMAL) )      += rNormal;
+                    noalias( cond_it->GetGeometry()[i].GetValue(TANGENT_XI) )  += rTangentXi;
                     noalias( cond_it->GetGeometry()[i].GetValue(TANGENT_ETA) ) += rTangentEta;
                 }
             }
         }
         
+        // TODO: This is just for the Mohamed conditions, remove if not used!!!!
         // Applied laziness - MUST be calculated BEFORE normalizing the normals
         ComputeDeltaNodesMeanNormalModelPart( ModelPart );
         
@@ -669,7 +671,7 @@ public:
         // Sum the directional derivatives of the adjacent segments
         for(ConditionsArrayType::iterator cond_it = it_cond_begin; cond_it!=it_cond_end; cond_it++)
         {
-            if (cond_it->Is(ACTIVE) || cond_it->Is(MASTER)) // TODO: Substitute with CONTACT (not working!!!)
+            if (cond_it->Is(ACTIVE) || cond_it->Is(MASTER)) 
             {
                 const array_1d<double, 3> ne = cond_it->GetValue(NORMAL);   // normalized condition normal
                 Matrix ne_o_ne = subrange( outer_prod( ne, ne ), 0, dimension, 0, dimension );
@@ -817,7 +819,7 @@ public:
                 }
                 else
                 {
-                    KRATOS_THROW_ERROR( std::logic_error, "Bad dimension provided to calculate DELTA_NORMAL. Dimension = ", dimension )
+                    KRATOS_THROW_ERROR( std::logic_error, "Bad dimension provided to calculate DELTA_NORMAL. Dimension = ", dimension );
                 }
             }
         }
@@ -975,7 +977,6 @@ public:
     static inline void ResetWeightedGapSlip(ModelPart & rModelPart)
     {
         // TODO: Repair the parallelization
-        // TODO: Add to consider just slave conditions
         NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
 
 //         const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
