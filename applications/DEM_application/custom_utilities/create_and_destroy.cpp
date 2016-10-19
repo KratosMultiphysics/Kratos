@@ -398,10 +398,8 @@ namespace Kratos {
             if (mDoSearchNeighbourElements){ // there is no risk of contact so there is no need to track overlap
                 injector_spheric_particle->mNeighbourElements.push_back(spheric_p_particle);
                 injector_spheric_particle->mNeighbourElasticContactForces.push_back(zero_vector);
-                injector_spheric_particle->mNeighbourTotalContactForces.push_back(zero_vector);
                 spheric_p_particle->mNeighbourElements.push_back(injector_spheric_particle);
                 spheric_p_particle->mNeighbourElasticContactForces.push_back(zero_vector);
-                spheric_p_particle->mNeighbourTotalContactForces.push_back(zero_vector);
             }
         }
 
@@ -662,10 +660,8 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
             if (mDoSearchNeighbourElements){ // there is no risk of contact so there is no need to track overlap
                 injector_spheric_particle->mNeighbourElements.push_back(spheric_p_particle);
                 injector_spheric_particle->mNeighbourElasticContactForces.push_back(zero_vector);
-                injector_spheric_particle->mNeighbourTotalContactForces.push_back(zero_vector);
                 spheric_p_particle->mNeighbourElements.push_back(injector_spheric_particle);
                 spheric_p_particle->mNeighbourElasticContactForces.push_back(zero_vector);
-                spheric_p_particle->mNeighbourTotalContactForces.push_back(zero_vector);
             }
 
             spheric_p_particle->Set(NEW_ENTITY);

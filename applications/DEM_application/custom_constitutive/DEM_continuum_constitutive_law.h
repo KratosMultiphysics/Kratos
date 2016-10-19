@@ -96,6 +96,7 @@ namespace Kratos {
         virtual void CalculateForces(const ProcessInfo& r_process_info,
                 double OldLocalElasticContactForce[3],
                 double LocalElasticContactForce[3],
+                double LocalElasticExtraContactForce[3],
                 double LocalCoordSystem[3][3],
                 double LocalDeltDisp[3],
                 const double kn_el,
@@ -136,7 +137,9 @@ namespace Kratos {
             KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateNormalForces) should not be called.","")
         }
 
-        virtual void CalculateTangentialForces(double LocalElasticContactForce[3],
+        virtual void CalculateTangentialForces(double OldLocalElasticContactForce[3],
+                double LocalElasticContactForce[3],
+                double LocalElasticExtraContactForce[3],
                 double LocalCoordSystem[3][3],
                 double LocalDeltDisp[3],                
                 const double kt_el,

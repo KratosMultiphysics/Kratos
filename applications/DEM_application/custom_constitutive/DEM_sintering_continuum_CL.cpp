@@ -198,6 +198,7 @@ namespace Kratos {
         void DEM_sintering_continuum::CalculateForces(const ProcessInfo& r_process_info,
                                                     double OldLocalElasticContactForce[3],
                                                     double LocalElasticContactForce[3],
+                                                    double LocalElasticExtraContactForce[3],
                                                     double LocalCoordSystem[3][3],
                                                     double LocalDeltDisp[3],
                                                     const double kn_el,
@@ -245,7 +246,9 @@ namespace Kratos {
                                                 element2,
                                                 i_neighbour_count);
 
-            CalculateTangentialForces(LocalElasticContactForce,
+            CalculateTangentialForces(OldLocalElasticContactForce,
+                                    LocalElasticContactForce,
+                                    LocalElasticExtraContactForce,
                                     LocalCoordSystem,
                                     LocalDeltDisp,                                    
                                     kt_el,

@@ -174,8 +174,7 @@ virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "SphericPartic
 /// Print object's data.
 virtual void PrintData(std::ostream& rOStream) const {}
 
-virtual void ComputeNewNeighboursHistoricalData(boost::numeric::ublas::vector<int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
-                                                std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces);
+virtual void ComputeNewNeighboursHistoricalData(boost::numeric::ublas::vector<int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces);
 
 virtual void ComputeNewRigidFaceNeighboursHistoricalData();
 std::vector<SphericParticle*>     mNeighbourElements;
@@ -189,7 +188,6 @@ std::vector< array_1d<double,3> > mConditionContactPoints;
 std::vector<array_1d<double, 3> > mNeighbourRigidFacesTotalContactForce;
 std::vector<array_1d<double, 3> > mNeighbourRigidFacesElasticContactForce;
 std::vector<array_1d<double, 3> > mNeighbourElasticContactForces;
-std::vector<array_1d<double, 3> > mNeighbourTotalContactForces;
 
 virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
 virtual void MemberDeclarationFirstStep(const ProcessInfo& r_process_info);
@@ -261,7 +259,7 @@ virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotationMatrix(do
                                                                                 SphericParticle* p_neighbour);
 
 virtual void ComputeMoments(double normalLocalElasticContactForce,
-                      array_1d<double, 3>& GlobalElasticContactForces,
+                      double GlobalElasticContactForces[3],
                       array_1d<double, 3>& rInitialRotaMoment,
                       double LocalCoordSystem_2[3],
                       SphericParticle* neighbour_iterator,
@@ -276,6 +274,7 @@ virtual void AddUpForcesAndProject(double OldCoordSystem[3][3],
                     double LocalCoordSystem[3][3],
                     double LocalContactForce[3],
                     double LocalElasticContactForce[3],
+                    double LocalElasticExtraContactForce[3],                    
                     double GlobalContactForce[3],
                     double GlobalElasticContactForce[3],
                     double ViscoDampingLocalContactForce[3],

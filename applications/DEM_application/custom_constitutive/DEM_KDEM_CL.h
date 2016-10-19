@@ -45,6 +45,7 @@ namespace Kratos {
         void CalculateForces(const ProcessInfo& r_process_info,
                              double OldLocalElasticContactForce[3],
                              double LocalElasticContactForce[3],
+                             double LocalElasticExtraContactForce[3],
                              double LocalCoordSystem[3][3],
                              double LocalDeltDisp[3],
                              const double kn_el,
@@ -85,7 +86,9 @@ namespace Kratos {
 
 
 
-        void CalculateTangentialForces(double LocalElasticContactForce[3],
+        void CalculateTangentialForces(double OldLocalElasticContactForce[3],
+                double LocalElasticContactForce[3],
+                double LocalElasticExtraContactForce[3],
                 double LocalCoordSystem[3][3],             
                 double LocalDeltDisp[3],                
                 const double kt_el,
@@ -103,11 +106,10 @@ namespace Kratos {
                 vector<int>& search_control_vector,
                 const ProcessInfo& r_process_info) override;
         
-        void AddContributionOfShearStrainParallelToBond(double LocalElasticContactForce[3], 
+        void AddContributionOfShearStrainParallelToBond(double OldLocalElasticContactForce[3],
+                                                    double LocalElasticExtraContactForce[3], 
                                                     double LocalCoordSystem[3][3],
                                                     const double kt_el,
-                                                    const double equiv_shear,
-                                                    const int i_neighbour_count,
                                                     const double calculation_area,
                                                     SphericContinuumParticle* element1, 
                                                     SphericContinuumParticle* element2);

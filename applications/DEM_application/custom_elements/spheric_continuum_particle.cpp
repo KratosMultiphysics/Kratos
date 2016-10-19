@@ -9,21 +9,21 @@
 namespace Kratos {
 
     SphericContinuumParticle::SphericContinuumParticle():SphericParticle() {
-      mOldSymmStressTensor = NULL;
+      //mOldSymmStressTensor = NULL;
     }
 
     SphericContinuumParticle::SphericContinuumParticle(IndexType NewId, GeometryType::Pointer pGeometry) : SphericParticle(NewId, pGeometry){
-      mOldSymmStressTensor = NULL;
+      //mOldSymmStressTensor = NULL;
     }
 
     SphericContinuumParticle::SphericContinuumParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : SphericParticle(NewId, pGeometry, pProperties){
-      mOldSymmStressTensor = NULL;
+      //mOldSymmStressTensor = NULL;
     }
 
     SphericContinuumParticle::SphericContinuumParticle(IndexType NewId, NodesArrayType const& ThisNodes)
     : SphericParticle(NewId, ThisNodes){
-      mOldSymmStressTensor = NULL;
+      //mOldSymmStressTensor = NULL;
     }
 
     Element::Pointer SphericContinuumParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {
@@ -33,10 +33,10 @@ namespace Kratos {
     /// Destructor
 
     SphericContinuumParticle::~SphericContinuumParticle() {
-        if (mOldSymmStressTensor!=NULL) {
+        /*if (mOldSymmStressTensor!=NULL) {
             delete mOldSymmStressTensor;
             mOldSymmStressTensor = NULL;
-        }
+        }*/
     }
 
     void SphericContinuumParticle::SetInitialSphereContacts(ProcessInfo& r_process_info) {
@@ -69,8 +69,8 @@ namespace Kratos {
                 mIniNeighbourDelta[continuum_ini_size] = initial_delta;
                 mIniNeighbourFailureId.push_back(0);
                 array_1d<double, 3> vector_of_zeros(3,0.0);
-                mArrayOfOldDeltaDisplacements.push_back(vector_of_zeros);
-                mArrayOfDeltaDisplacements.push_back(vector_of_zeros);
+                //mArrayOfOldDeltaDisplacements.push_back(vector_of_zeros);
+                //mArrayOfDeltaDisplacements.push_back(vector_of_zeros);
                 ContinuumInitialNeighborsElements.push_back(neighbour_iterator);
                 continuum_ini_size++;
 
@@ -304,6 +304,7 @@ namespace Kratos {
 
             double LocalDeltDisp[3] = {0.0};
             double LocalElasticContactForce[3] = {0.0}; // 0: first tangential, // 1: second tangential, // 2: normal force
+            double LocalElasticExtraContactForce[3] = {0.0};
             double GlobalElasticContactForce[3] = {0.0};
             double OldLocalElasticContactForce[3] = {0.0};
 
@@ -317,7 +318,7 @@ namespace Kratos {
             GlobalElasticContactForce[1] = mNeighbourElasticContactForces[i][1];
             GlobalElasticContactForce[2] = mNeighbourElasticContactForces[i][2];
 
-            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce);
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce); //TODO: can we remove this? We should overwrite LocalElasticContactForce afterwards
 
             double ViscoDampingLocalContactForce[3] = {0.0};
             double equiv_visco_damp_coeff_normal;
@@ -333,6 +334,7 @@ namespace Kratos {
                 mContinuumConstitutiveLawArray[i]->CalculateForces(r_process_info,
                                                                    OldLocalElasticContactForce,
                                                                    LocalElasticContactForce,
+                                                                   LocalElasticExtraContactForce,
                                                                    LocalCoordSystem,
                                                                    LocalDeltDisp,
                                                                    kn_el,
@@ -369,15 +371,13 @@ namespace Kratos {
             double GlobalContactForce[3] = {0.0};
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR) && (i < mContinuumInitialNeighborsSize)) { // We leave apart the discontinuum neighbors (the same for the walls). The neighbor would not be able to do the same if we activate it.
-
-                mContinuumConstitutiveLawArray[i]->AddPoissonContribution(equiv_poisson, LocalCoordSystem, LocalElasticContactForce[2],
-                                                                          calculation_area, mSymmStressTensor, this, neighbour_iterator, r_process_info);
+                mContinuumConstitutiveLawArray[i]->AddPoissonContribution(equiv_poisson, LocalCoordSystem, LocalElasticContactForce[2], calculation_area, mSymmStressTensor, this, neighbour_iterator, r_process_info);
             }
 
             array_1d<double, 3> other_ball_to_ball_forces(3,0.0);
             ComputeOtherBallToBallForces(other_ball_to_ball_forces);
 
-            AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce,
+            AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce, LocalElasticContactForce, LocalElasticExtraContactForce, GlobalContactForce,
                                   GlobalElasticContactForce, ViscoDampingLocalContactForce, 0.0, other_ball_to_ball_forces, rElasticForce, rContactForce, i, r_process_info); //TODO: replace the 0.0 with an actual cohesive force for discontinuum neighbours
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
@@ -385,7 +385,7 @@ namespace Kratos {
                     const double coeff_acc      = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) / dt;
                     noalias(rInitialRotaMoment) = coeff_acc * ang_vel; // the moment needed to stop the spin in a single time step
                 }
-                ComputeMoments(LocalElasticContactForce[2], mNeighbourTotalContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator, indentation);
+                ComputeMoments(LocalElasticContactForce[2], GlobalContactForce, rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator, indentation);
                 if (i < mContinuumInitialNeighborsSize && mIniNeighbourFailureId[i] == 0) {
                     mContinuumConstitutiveLawArray[i]->ComputeParticleRotationalMoments(this, neighbour_iterator, equiv_young, distance, calculation_area,
                                                                                         LocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment, equiv_poisson, indentation);
@@ -399,14 +399,20 @@ namespace Kratos {
             }
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR) && (i < mContinuumInitialNeighborsSize)) {
-                AddNeighbourContributionToStressTensor(GlobalElasticContactForce, LocalCoordSystem[2], distance, radius_sum, this);
+                double GlobalElasticExtraContactForce[3] = {0.0};
+                GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalElasticExtraContactForce, GlobalElasticExtraContactForce);
+                double TotalGlobalElasticContactForce[3];
+                TotalGlobalElasticContactForce[0] = GlobalElasticContactForce[0] + GlobalElasticExtraContactForce[0];
+                TotalGlobalElasticContactForce[1] = GlobalElasticContactForce[1] + GlobalElasticExtraContactForce[1];
+                TotalGlobalElasticContactForce[2] = GlobalElasticContactForce[2] + GlobalElasticExtraContactForce[2];
+                AddNeighbourContributionToStressTensor(TotalGlobalElasticContactForce, LocalCoordSystem[2], distance, radius_sum, this);
             }
 
             AddContributionToRepresentativeVolume(distance, radius_sum, calculation_area);
 
-            if (i < mContinuumInitialNeighborsSize) {
+            /*if (i < mContinuumInitialNeighborsSize) {
                 DEM_COPY_SECOND_TO_FIRST_3(mArrayOfDeltaDisplacements[i], DeltDisp);
-            }
+            }*/
         } // for each neighbor
 
         KRATOS_CATCH("")
@@ -442,15 +448,15 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
+        /*if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
             (*mOldSymmStressTensor)(0,0)=(*mSymmStressTensor)(0,0); (*mOldSymmStressTensor)(0,1)=(*mSymmStressTensor)(0,1); (*mOldSymmStressTensor)(0,2)=(*mSymmStressTensor)(0,2);
             (*mOldSymmStressTensor)(1,0)=(*mSymmStressTensor)(1,0); (*mOldSymmStressTensor)(1,1)=(*mSymmStressTensor)(1,1); (*mOldSymmStressTensor)(1,2)=(*mSymmStressTensor)(1,2);
             (*mOldSymmStressTensor)(2,0)=(*mSymmStressTensor)(2,0); (*mOldSymmStressTensor)(2,1)=(*mSymmStressTensor)(2,1); (*mOldSymmStressTensor)(2,2)=(*mSymmStressTensor)(2,2);
-        }
+        }*/
         
-        for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
+        /*for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
             DEM_COPY_SECOND_TO_FIRST_3(mArrayOfOldDeltaDisplacements[i], mArrayOfDeltaDisplacements[i]);
-        }
+        }*/
 
         SphericParticle::FinalizeSolutionStep(r_process_info);
 
@@ -686,13 +692,13 @@ namespace Kratos {
 
         SphericParticle::Initialize(r_process_info);
 
-        if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
+        /*if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
             mOldSymmStressTensor  = new Matrix(3,3);
             *mOldSymmStressTensor = ZeroMatrix(3,3);
         }
         else {
             mOldSymmStressTensor = NULL;
-        }
+        }*/
 
         mSkinSphere     = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
         mContinuumGroup = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);
