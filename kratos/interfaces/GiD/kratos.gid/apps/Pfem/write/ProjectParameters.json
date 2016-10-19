@@ -186,38 +186,38 @@
         "process_name"    : "ContactDomainProcess",
         "Parameters"      : {
             "mesh_id"               : 0,
-	    "model_part_name"       : "model_part_name",
+            "model_part_name"       : "model_part_name",
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 1.0,
             "meshing_before_output" : true,
-	    "meshing_domains" : [
-		{
-		    "python_module": "contact_domain",
-		    "model_part_name": "sub_model_part_name",
-		    "alpha_shape": 1.4,
-		    "offset_factor": 0.0,
-		    "meshing_strategy":{
-			"python_module": "contact_meshing_strategy",
-			"meshing_frequency": 0,
-			"remesh": true,
-			"constrained": false,
-			"contact_parameters":{
-			    "contact_condition_type": "ContactDomainLM2DCondition",
-			    "friction_law_type": "FrictionLaw",
-			    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
-			    "variables_of_properties":{
-				"FRICTION_ACTIVE": false,
-				"MU_STATIC": 0.3,
-				"MU_DYNAMIC": 0.2,
-				"PENALTY_PARAMETER": 1000,
-				"TANGENTIAL_PENALTY_RATIO": 0.1,
-				"TAU_STAB": 1
-			    }
-			}
-		    },
-		    "elemental_variables_to_transfer":[ "CAUCHY_STRESS_VECTOR", "DEFORMATION_GRADIENT" ],
-		    "contact_sub_model_part_list": []
-		}
+            "meshing_domains" : [
+                {
+                    "python_module": "contact_domain",
+                    "model_part_name": "sub_model_part_name",
+                    "alpha_shape": 1.4,
+                    "offset_factor": 0.0,
+                    "meshing_strategy":{
+                        "python_module": "contact_meshing_strategy",
+                        "meshing_frequency": 0,
+                        "remesh": true,
+                        "constrained": false,
+                        "contact_parameters":{
+                            "contact_condition_type": "ContactDomainLM2DCondition",
+                            "friction_law_type": "FrictionLaw",
+                            "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
+                            "variables_of_properties":{
+                                "FRICTION_ACTIVE": false,
+                                "MU_STATIC": 0.3,
+                                "MU_DYNAMIC": 0.2,
+                                "PENALTY_PARAMETER": 1000,
+                                "TANGENTIAL_PENALTY_RATIO": 0.1,
+                                "TAU_STAB": 1
+                            }
+                        }
+                    },
+                    "elemental_variables_to_transfer":[ "CAUCHY_STRESS_VECTOR", "DEFORMATION_GRADIENT" ],
+                    "contact_bodies_list": ["body1"]
+                }
             ]
         }
     }],
@@ -257,7 +257,7 @@
         "help"            : "This process writes restart files",
         "process_name"    : "RestartProcess",
         "Parameters"      : {
-            "model_part_name"     : "Solid Domain",
+            "model_part_name"     : "Main Model",
             "save_restart"        : true,
             "restart_file_name"   : "cutting_test_rigid_2D_json",
             "restart_file_label"  : "step",
