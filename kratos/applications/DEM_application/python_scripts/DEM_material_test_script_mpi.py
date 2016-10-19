@@ -99,29 +99,22 @@ class MaterialTest(DEM_material_test_script.MaterialTest):
     prepare_check_gath = [0,0,0,0]
     self.total_check = 0
 
-    for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
+    for mesh_number in range(0, self.RigidFace_model_part.NumberOfSubModelParts()): 
+        if (self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, TOP)):
+            self.top_mesh_nodes = self.aux.GetIthSubModelPartNodes(self.RigidFace_model_part,mesh_number)
+            prepare_check[0] = 1
+        if (self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, BOTTOM)):
+            self.bot_mesh_nodes = self.aux.GetIthSubModelPartNodes(self.RigidFace_model_part,mesh_number)
+            prepare_check[1] = 1
 
-      if(self.RigidFace_model_part.GetMesh(mesh_number)[TOP]):
-
-        self.top_mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
-        prepare_check[0] = 1
-
-      if(self.RigidFace_model_part.GetMesh(mesh_number)[BOTTOM]):
-
-        self.bot_mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
-        prepare_check[1] = 1
-
-    for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
-
-      if(self.spheres_model_part.GetMesh(mesh_number)[TOP]):
-
-        self.top_mesh_nodes = self.spheres_model_part.GetMesh(mesh_number).Nodes
-        prepare_check[2] = -1
-
-      if(self.spheres_model_part.GetMesh(mesh_number)[BOTTOM]):
-
-        self.bot_mesh_nodes = self.spheres_model_part.GetMesh(mesh_number).Nodes
-        prepare_check[3] = -1
+    for mesh_number in range(0, self.spheres_model_part.NumberOfSubModelParts()): 
+        if (self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, TOP)):
+            self.top_mesh_nodes = self.aux.GetIthSubModelPartNodes(self.spheres_model_part,mesh_number)
+            prepare_check[2] = -1
+            
+        if (self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, BOTTOM)):
+            self.bot_mesh_nodes = self.aux.GetIthSubModelPartNodes(self.spheres_model_part,mesh_number)
+            prepare_check[3] = -1
 
     prepare_check_gath[0] = mpi.gather(mpi.world,prepare_check[0],0)
     prepare_check_gath[1] = mpi.gather(mpi.world,prepare_check[1],0)
