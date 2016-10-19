@@ -81,7 +81,12 @@ pp.CFD_DEM.faxen_terms_type = 1
 
 # Import utilities from models
 procedures    = DEM_procedures.Procedures(DEM_parameters)
-demio         = DEM_procedures.DEMIo(DEM_parameters)
+
+# Creating necessary directories
+main_path = os.getcwd()
+[post_path,data_and_results,graphs_path,MPI_results] = procedures.CreateDirectories(str(main_path),str(DEM_parameters.problem_name))
+
+demio         = DEM_procedures.DEMIo(DEM_parameters, post_path)
 report        = DEM_procedures.Report()
 parallelutils = DEM_procedures.ParallelUtils()
 materialTest  = DEM_procedures.MaterialTest()
@@ -271,9 +276,7 @@ for node in fluid_model_part.Nodes:
     y = node.GetSolutionStepValue(Y_WALL, 0)
     node.SetValue(Y_WALL, y)
 
-# Creating necessary directories
-main_path = os.getcwd()
-[post_path,data_and_results,graphs_path,MPI_results] = procedures.CreateDirectories(str(main_path),str(DEM_parameters.problem_name))
+
 
 os.chdir(main_path)
 
