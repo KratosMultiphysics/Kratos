@@ -633,6 +633,8 @@ public:
 
     static inline void ComputeDeltaNodesMeanNormalModelPart(ModelPart & ModelPart)
     {
+        // TODO: Add parallelization
+        
         // Conditions
         ConditionsArrayType& pCond  = ModelPart.Conditions();
         ConditionsArrayType::iterator it_cond_begin = pCond.ptr_begin();
@@ -887,7 +889,7 @@ public:
         
         for(ConditionsArrayType::iterator cond_it = it_cond_begin; cond_it!=it_cond_end; cond_it++)
         {
-            bool condition_is_active = false; // It is supposed to be always defined
+            bool condition_is_active = false; // It is supposed to be always defined, and with this only the slave conditions will be taken into account
             if( (cond_it)->IsDefined(ACTIVE) == true)
             {
                 condition_is_active = (cond_it)->Is(ACTIVE);
@@ -967,24 +969,25 @@ public:
     /**
      * It resets the value of the weighted gap and slip 
      * @param ModelPart: The model part to compute
-     * @return The modelparts with the conditions changed
+     * @return The modelparts with the nodes changed
      */
     
     static inline void ResetWeightedGapSlip(ModelPart & rModelPart)
     {
         // TODO: Repair the parallelization
-        NodesArrayType& rNodes = rModelPart.GetSubModelPart("Contact").Nodes();
+        // TODO: Add to consider just slave conditions
+        NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
 
 //         const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
 //         OpenMPUtils::PartitionVector NodePartition;
-//         OpenMPUtils::DivideInPartitions(rNodes.size(), NumThreads, NodePartition);
+//         OpenMPUtils::DivideInPartitions(pNode.size(), NumThreads, NodePartition);
 //         
 //         #pragma omp parallel
 //         {
 //             const unsigned int k = OpenMPUtils::ThisThread();
 // 
-//             typename NodesArrayType::iterator NodeBegin = rNodes.begin() + NodePartition[k];
-//             typename NodesArrayType::iterator NodeEnd   = rNodes.begin() + NodePartition[k + 1];
+//             typename NodesArrayType::iterator NodeBegin = pNode.begin() + NodePartition[k];
+//             typename NodesArrayType::iterator NodeEnd   = pNode.begin() + NodePartition[k + 1];
 // 
 //             for (typename NodesArrayType::iterator itNode = NodeBegin; itNode != NodeEnd; itNode++)
 //             {
@@ -994,16 +997,19 @@ public:
 //             }
 //         } 
         
-        auto numNodes = rNodes.end() -rNodes.begin();
+        auto numNodes = pNode.end() - pNode.begin();
         
 //         #pragma omp parallel for 
         for(unsigned int i = 0; i < numNodes; i++) 
         {
-            auto nodeItr = rNodes.begin() + i;
+            auto itNode = pNode.begin() + i;
             
-            nodeItr->Set(VISITED, false);
-            nodeItr->GetValue(WEIGHTED_GAP)  = 0.0;
-            nodeItr->GetValue(WEIGHTED_SLIP) = 0.0;
+            if (itNode->Is(SLAVE))
+            {
+                itNode->Set(VISITED, false);
+                itNode->GetValue(WEIGHTED_GAP)  = 0.0;
+                itNode->GetValue(WEIGHTED_SLIP) = 0.0;
+            }
         }
     }
     

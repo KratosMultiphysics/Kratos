@@ -323,7 +323,7 @@ public:
     void AuxConstructor(
         ModelPart & rModelPart,
         const bool rActive,
-//         const bool rSlave,
+        const bool rSlave,
         const bool rMaster
         ); 
     
