@@ -251,15 +251,21 @@ proc Pfem::write::GetPFEM_SolverSettingsDict { } {
     dict set solverSettingsDict solver_type $strategy_write_name
     #~ dict set solverSettingsDict domain_size [expr $nDim]
     dict set solverSettingsDict echo_level [write::getValue Results EchoLevel]
-    dict set solverSettingsDict solution_type [write::getValue PFEM_SolutionType]
 
-    set solutiontype [write::getValue PFEM_SolutionType]
+    set problemtype [write::getValue PFEM_DomainType]
+
+    if {$problemtype ne "Fluids"} {
     
-    if {$solutiontype eq "Static"} {
-        dict set solverSettingsDict analysis_type [write::getValue PFEM_LinearType]
-    } elseif {$solutiontype eq "Dynamic"} {
-        dict set solverSettingsDict time_integration_method [write::getValue PFEM_SolStrat]
-        dict set solverSettingsDict scheme_type [write::getValue PFEM_Scheme]
+	dict set solverSettingsDict solution_type [write::getValue PFEM_SolutionType]
+
+	set solutiontype [write::getValue PFEM_SolutionType]
+    
+	if {$solutiontype eq "Static"} {
+	    dict set solverSettingsDict analysis_type [write::getValue PFEM_LinearType]
+	} elseif {$solutiontype eq "Dynamic"} {
+	    dict set solverSettingsDict time_integration_method [write::getValue PFEM_SolStrat]
+	    dict set solverSettingsDict scheme_type [write::getValue PFEM_Scheme]
+	}
     }
     
     # model import settings
