@@ -66,6 +66,7 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( TANGENT_AUGMENTATION_FACTOR )                 // The constant that is considered for the check if the node is slip/stick
     KRATOS_REGISTER_VARIABLE( WEIGHTED_GAP )                                // The integrated gap employed in mortar formulation
     KRATOS_REGISTER_VARIABLE( WEIGHTED_SLIP )                               // The integrated slip employed in mortar formulation
+    KRATOS_REGISTER_VARIABLE( WEIGHTED_FRICTION )                           // The integrated friction employed in mortar formulation
     KRATOS_REGISTER_VARIABLE( DELTA_NORMAL )                                // Directional derivative of the normal
     KRATOS_REGISTER_VARIABLE( AUXILIAR_ACTIVE )                             // Auxiliar boolean to check if the node is active or not
     KRATOS_REGISTER_VARIABLE( AUXILIAR_SLIP )                               // Auxiliar boolean to check if the node is stick or not

@@ -25,6 +25,7 @@ KRATOS_CREATE_VARIABLE( double, NORMAL_AUGMENTATION_FACTOR )                  //
 KRATOS_CREATE_VARIABLE( double, TANGENT_AUGMENTATION_FACTOR )                 // The constant that is considered for the check if the node is slip/stick
 KRATOS_CREATE_VARIABLE( double, WEIGHTED_GAP )                                // The integrated gap employed in mortar formulation
 KRATOS_CREATE_VARIABLE( double, WEIGHTED_SLIP )                               // The integrated slip employed in mortar formulation
+KRATOS_CREATE_VARIABLE( double, WEIGHTED_FRICTION )                           // The integrated friction employed in mortar formulation
 KRATOS_CREATE_VARIABLE( Matrix, DELTA_NORMAL )                                // Directional derivative of the normal
 KRATOS_CREATE_VARIABLE( bool, AUXILIAR_ACTIVE )                               // Auxiliar boolean to check if the node is active or not
 KRATOS_CREATE_VARIABLE( bool, AUXILIAR_SLIP )                                 // Auxiliar boolean to check if the node is stick or not

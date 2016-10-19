@@ -88,6 +88,8 @@ class ExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solver.Expl
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_GAP)
             # Add weighted slip
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_SLIP)
+            # Add weighted friction
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_FRICTION)
             # Add normal augmentation factor
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.NORMAL_AUGMENTATION_FACTOR)
             # Add tangent augmentation factor
