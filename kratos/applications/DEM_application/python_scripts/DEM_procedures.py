@@ -111,8 +111,7 @@ class PostUtils(object):
         self.post_utilities = PostUtilities()
 
         self.vel_trap_graph_counter = 0
-        self.dem_io = DEMIo(DEM_parameters)
-        self.vel_trap_graph_frequency = int(self.dem_io.VelTrapGraphExportFreq/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
+        self.vel_trap_graph_frequency = int(DEM_parameters.VelTrapGraphExportFreq/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
         if self.vel_trap_graph_frequency < 1:
             self.vel_trap_graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -281,6 +280,24 @@ class Procedures(object):
 
         # MODEL
         self.domain_size = self.DEM_parameters.Dimension
+        
+    def AddAllVariablesInAllModelParts(self, solver, scheme, spheres_model_part, cluster_model_part, DEM_inlet_model_part, rigid_face_model_part, DEM_parameters):
+        self.AddCommonVariables(spheres_model_part, DEM_parameters)
+        self.AddSpheresVariables(spheres_model_part, DEM_parameters)
+        self.AddMpiVariables(spheres_model_part)
+        solver.AddAdditionalVariables(spheres_model_part, DEM_parameters)
+        scheme.AddSpheresVariables(spheres_model_part)
+        self.AddCommonVariables(cluster_model_part, DEM_parameters)
+        self.AddClusterVariables(cluster_model_part, DEM_parameters)
+        self.AddMpiVariables(cluster_model_part)
+        scheme.AddClustersVariables(cluster_model_part)
+        self.AddCommonVariables(DEM_inlet_model_part, DEM_parameters)
+        self.AddSpheresVariables(DEM_inlet_model_part, DEM_parameters)
+        solver.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)  
+        scheme.AddSpheresVariables(DEM_inlet_model_part)
+        self.AddCommonVariables(rigid_face_model_part, DEM_parameters)
+        self.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
+        self.AddMpiVariables(rigid_face_model_part)
 
     def AddCommonVariables(self, model_part, DEM_parameters):
         model_part.AddNodalSolutionStepVariable(VELOCITY)
@@ -407,6 +424,12 @@ class Procedures(object):
 
     def AddMpiVariables(self, model_part):
         pass
+    
+    def SetUpBufferSizeInAllModelParts(self, spheres_model_part, spheres_b_size, cluster_model_part, clusters_b_size, DEM_inlet_model_part, inlet_b_size, rigid_face_model_part, rigid_b_size):
+        spheres_model_part.SetBufferSize(spheres_b_size)
+        cluster_model_part.SetBufferSize(clusters_b_size)
+        DEM_inlet_model_part.SetBufferSize(inlet_b_size)
+        rigid_face_model_part.SetBufferSize(rigid_b_size)
 
     def ModelData(self, spheres_model_part, contact_model_part, solver):
 
@@ -706,10 +729,11 @@ class DEMFEMProcedures(object):
             self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
         os.chdir(self.graphs_path)
         #self.graph_forces = open(self.DEM_parameters.problem_name +"_force_graph.grf", 'w')
+        self.mesh_motion = DEMFEMUtilities()
         
         def Flush(self,a):
             a.flush()
-
+                    
         def open_graph_files(self, RigidFace_model_part):
             #os.chdir(self.graphs_path)
             for mesh_number in range(0, self.RigidFace_model_part.NumberOfSubModelParts()):
@@ -770,6 +794,24 @@ class DEMFEMProcedures(object):
             self.stress_strain_option = Var_Translator(self.DEM_parameters.StressStrainOption)
 
         evaluate_computation_of_fem_results()
+        
+    def MoveAllMeshes(self, rigid_face_model_part, spheres_model_part, DEM_inlet_model_part, time, dt):
+        self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
+        self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
+        self.mesh_motion.MoveAllMeshes(DEM_inlet_model_part, time, dt)
+    
+    def UpdateTimeInModelParts(self, spheres_model_part, rigid_face_model_part, cluster_model_part, time,dt,step):
+        spheres_model_part.ProcessInfo[TIME]          = time
+        spheres_model_part.ProcessInfo[DELTA_TIME]    = dt
+        spheres_model_part.ProcessInfo[TIME_STEPS]    = step
+
+        rigid_face_model_part.ProcessInfo[TIME]       = time
+        rigid_face_model_part.ProcessInfo[DELTA_TIME] = dt
+        rigid_face_model_part.ProcessInfo[TIME_STEPS] = step
+
+        cluster_model_part.ProcessInfo[TIME]          = time
+        cluster_model_part.ProcessInfo[DELTA_TIME]    = dt
+        cluster_model_part.ProcessInfo[TIME_STEPS]    = step  
 
     def close_graph_files(self, RigidFace_model_part):
         for mesh_number in range(0, self.RigidFace_model_part.NumberOfSubModelParts()):
@@ -1049,7 +1091,8 @@ class MaterialTest(object):
 
 class MultifileList(object):
 
-    def __init__(self, name, step):
+    def __init__(self, post_path, name, step):
+        os.chdir(post_path)
         self.index = 0
         self.step = step
         self.name = name
@@ -1058,7 +1101,8 @@ class MultifileList(object):
 
 class DEMIo(object):
 
-    def __init__(self, DEM_parameters):
+    def __init__(self, DEM_parameters, post_path):
+        self.post_path = post_path
         self.mixed_model_part                                     = ModelPart("Mixed_Part")
         self.mixed_spheres_and_clusters_model_part                = ModelPart("MixedSpheresAndClustersPart")
         self.mixed_spheres_not_in_cluster_and_clusters_model_part = ModelPart("MixedSpheresNotInClusterAndClustersPart")
@@ -1116,8 +1160,31 @@ class DEMIo(object):
 
         self.continuum_element_types = ["SphericContPartDEMElement3D","CylinderContPartDEMElement2D"]
         
+        self.multifiles = (
+            MultifileList(self.post_path, DEM_parameters.problem_name, 1),
+            MultifileList(self.post_path, DEM_parameters.problem_name, 2),
+            MultifileList(self.post_path, DEM_parameters.problem_name, 5),
+            MultifileList(self.post_path, DEM_parameters.problem_name,10),
+            MultifileList(self.post_path, DEM_parameters.problem_name,20),
+            MultifileList(self.post_path, DEM_parameters.problem_name,50),
+            )
+            
+        self.SetMultifileLists(self.multifiles)
+        
     def Flush(self,a):
         a.flush()
+        
+    def Initialize(self, DEM_parameters):
+        self.AddGlobalVariables()
+        self.AddSpheresVariables()
+        self.AddSpheresAndClustersVariables()
+        self.AddSpheresNotInClusterAndClustersVariables()
+        self.AddFEMBoundaryVariables()
+        self.AddClusterVariables()
+        self.AddContactVariables()
+        self.AddMpiVariables()
+        self.Configure(DEM_parameters.problem_name, DEM_parameters.OutputFileType, DEM_parameters.Multifile, DEM_parameters.ContactMeshOption)
+        self.SetOutputName(DEM_parameters.problem_name)
 
     def PushPrintVar(self, variable, name, print_list):
         if (Var_Translator(variable)):
