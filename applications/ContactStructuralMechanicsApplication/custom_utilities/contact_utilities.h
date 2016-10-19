@@ -555,8 +555,7 @@ public:
     {
         // Tolerance
         const double tol = 1.0e-14;
-//         const unsigned int dimension = ModelPart.ConditionsBegin()->WorkingSpaceDimension();
-        
+
         // Initialize normal vectors
         const array_1d<double,3> ZeroVect = ZeroVector(3);
         
@@ -566,12 +565,9 @@ public:
         
         for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
         {
-            if (node_it->Is(INTERFACE))
-            {
-                noalias(node_it->GetValue(NORMAL))      = ZeroVect; 
-                noalias(node_it->GetValue(TANGENT_XI))  = ZeroVect; 
-                noalias(node_it->GetValue(TANGENT_ETA)) = ZeroVect; 
-            }
+            noalias(node_it->GetValue(NORMAL))      = ZeroVect; 
+            noalias(node_it->GetValue(TANGENT_XI))  = ZeroVect; 
+            noalias(node_it->GetValue(TANGENT_ETA)) = ZeroVect; 
         }
         
         // Sum all the nodes normals
@@ -608,18 +604,15 @@ public:
         
         for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
         {
-            if (node_it->Is(INTERFACE))
+            const double norm_normal     = norm_2(node_it->GetValue(NORMAL));
+            const double norm_tangentxi  = norm_2(node_it->GetValue(TANGENT_XI));
+            const double norm_tangenteta = norm_2(node_it->GetValue(TANGENT_ETA));
+            
+            if (norm_normal > tol)
             {
-                const double norm_normal     = norm_2(node_it->GetValue(NORMAL));
-                const double norm_tangentxi  = norm_2(node_it->GetValue(TANGENT_XI));
-                const double norm_tangenteta = norm_2(node_it->GetValue(TANGENT_ETA));
-                
-                if (norm_normal > tol)
-                {
-                    node_it->GetValue(NORMAL)      /= norm_normal;
-                    node_it->GetValue(TANGENT_XI)  /= norm_tangentxi;
-                    node_it->GetValue(TANGENT_ETA) /= norm_tangenteta;
-                }
+                node_it->GetValue(NORMAL)      /= norm_normal;
+                node_it->GetValue(TANGENT_XI)  /= norm_tangentxi;
+                node_it->GetValue(TANGENT_ETA) /= norm_tangenteta;
             }
         }
     }
@@ -662,10 +655,7 @@ public:
         // Initialize the normal and tangential directional derivatives
         for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
         {
-            if (node_it->Is(INTERFACE))
-            {
-                node_it->GetValue(DELTA_NORMAL) = ZeroDeltaNormal;
-            }
+            node_it->GetValue(DELTA_NORMAL) = ZeroDeltaNormal;
         }
 
         // Sum the directional derivatives of the adjacent segments
@@ -830,19 +820,16 @@ public:
 
         for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
         {
-            if (node_it->Is(INTERFACE))
+            const array_1d<double, 3> & nj = node_it->GetValue(NORMAL); // nodal non-normalized normal (this function is called before normalization)
+            
+            Matrix nj_o_nj = subrange( outer_prod( nj, nj ), 0, dimension, 0, dimension );
+            const double nj_norm = norm_2( nj );
+            const double nj_norm_3 = nj_norm * nj_norm * nj_norm;
+            
+            if ( nj_norm_3 > tol )
             {
-                const array_1d<double, 3> & nj = node_it->GetValue(NORMAL); // nodal non-normalized normal (this function is called before normalization)
-                
-                Matrix nj_o_nj = subrange( outer_prod( nj, nj ), 0, dimension, 0, dimension );
-                const double nj_norm = norm_2( nj );
-                const double nj_norm_3 = nj_norm * nj_norm * nj_norm;
-                
-                if ( nj_norm_3 > tol )
-                {
-                    const Matrix Cj = I / nj_norm - nj_o_nj / nj_norm_3;
-                    node_it->GetValue(DELTA_NORMAL) = prod( Cj, node_it->GetValue(DELTA_NORMAL) );
-                }
+                const Matrix Cj = I / nj_norm - nj_o_nj / nj_norm_3;
+                node_it->GetValue(DELTA_NORMAL) = prod( Cj, node_it->GetValue(DELTA_NORMAL) );
             }
         }
     }
@@ -912,11 +899,11 @@ public:
                     ct = cond_it->GetProperties().GetValue(TANGENT_AUGMENTATION_FACTOR); 
                 }
                 
-                double mu = 0.0; //TODO: Consider a weighted friction coefficient instead for each node
-                if (cond_it->GetProperties().Has(FRICTION_COEFFICIENT) == true)
-                {
-                    mu = cond_it->GetProperties().GetValue(FRICTION_COEFFICIENT); 
-                }
+//                 double mu = 0.0; //TODO: Consider a weighted friction coefficient instead for each node
+//                 if (cond_it->GetProperties().Has(FRICTION_COEFFICIENT) == true)
+//                 {
+//                     mu = cond_it->GetProperties().GetValue(FRICTION_COEFFICIENT); 
+//                 }
     
                 Geometry<Node<3> > & CondGeometry = cond_it->GetGeometry();
     
@@ -924,6 +911,7 @@ public:
                 {
                     if (CondGeometry[node_it].Is(VISITED) == false)
                     {
+                        const double mu = CondGeometry[node_it].GetValue(WEIGHTED_FRICTION);
                         const array_1d<double,3> lagrange_multiplier = CondGeometry[node_it].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0);
                         const array_1d<double,3>        nodal_normal = CondGeometry[node_it].GetValue(NORMAL); 
                         const double lambda_n = inner_prod(lagrange_multiplier, nodal_normal);
@@ -1008,8 +996,9 @@ public:
             if (itNode->Is(SLAVE))
             {
                 itNode->Set(VISITED, false);
-                itNode->GetValue(WEIGHTED_GAP)  = 0.0;
-                itNode->GetValue(WEIGHTED_SLIP) = 0.0;
+                itNode->GetValue(WEIGHTED_GAP)      = 0.0;
+                itNode->GetValue(WEIGHTED_SLIP)     = 0.0;
+                itNode->GetValue(WEIGHTED_FRICTION) = 0.0;
             }
         }
     }

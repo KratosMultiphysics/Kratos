@@ -664,8 +664,9 @@ void MortarContactCondition::CalculateConditionSystem(
         // Master segment info
         const GeometryType& current_master_element = Variables.GetMasterElement( );
         
-        Vector aux_int_gap  = ZeroVector(number_of_nodes_slave);
-        Vector aux_int_slip = ZeroVector(number_of_nodes_slave);
+        Vector aux_int_gap      = ZeroVector(number_of_nodes_slave);
+        Vector aux_int_slip     = ZeroVector(number_of_nodes_slave);
+        Vector aux_int_friction = ZeroVector(number_of_nodes_slave);
         
         const unsigned int pair_size = GetGeometry().WorkingSpaceDimension() * ( current_master_element.PointsNumber( ) + 2 * GetGeometry( ).PointsNumber( ) ); 
         MatrixType LHS_contact_pair = ZeroMatrix(pair_size, pair_size);
@@ -716,8 +717,9 @@ void MortarContactCondition::CalculateConditionSystem(
                 
                 for (unsigned int iNode = 0; iNode < number_of_nodes_slave; iNode++)
                 {
-                    aux_int_gap[iNode]  += IntegrationWeight * integration_point_gap  * Variables.DetJSlave * Variables.Phi_LagrangeMultipliers[iNode];
-                    aux_int_slip[iNode] += IntegrationWeight * integration_point_slip * Variables.DetJSlave * Variables.Phi_LagrangeMultipliers[iNode];
+                    aux_int_gap[iNode]      += IntegrationWeight * integration_point_gap  * Variables.DetJSlave * Variables.Phi_LagrangeMultipliers[iNode];
+                    aux_int_slip[iNode]     += IntegrationWeight * integration_point_slip * Variables.DetJSlave * Variables.Phi_LagrangeMultipliers[iNode];
+                    aux_int_friction[iNode] += IntegrationWeight * Variables.mu           * Variables.DetJSlave * Variables.Phi_LagrangeMultipliers[iNode];
                 }
             }
         }
@@ -751,8 +753,9 @@ void MortarContactCondition::CalculateConditionSystem(
             
             for (unsigned int iNode = 0; iNode < number_of_nodes_slave; iNode++)
             {
-                GetGeometry()[iNode].GetValue(WEIGHTED_GAP)  += aux_int_gap[iNode]; 
-                GetGeometry()[iNode].GetValue(WEIGHTED_SLIP) += aux_int_slip[iNode]; 
+                GetGeometry()[iNode].GetValue(WEIGHTED_GAP)      += aux_int_gap[iNode]; 
+                GetGeometry()[iNode].GetValue(WEIGHTED_SLIP)     += aux_int_slip[iNode]; 
+                GetGeometry()[iNode].GetValue(WEIGHTED_FRICTION) += aux_int_friction[iNode]; 
             }
         }
     }
