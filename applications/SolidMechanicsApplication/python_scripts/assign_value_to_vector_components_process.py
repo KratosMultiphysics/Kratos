@@ -3,6 +3,7 @@ import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
 ## This proces sets the value of a vector variable component-by-component.
 ## In this case, the fixicity is given by the user and some of the components may not be fixed.
+import sys
 
 def Factory(custom_settings, Model):
     if(type(custom_settings) != KratosMultiphysics.Parameters):
@@ -20,7 +21,7 @@ class AssignValueToVectorComponentsProcess(KratosMultiphysics.Process):
              "model_part_name": "MODEL_PART_NAME",
              "mesh_id": 0,
              "variable_name": "VARIABLE_NAME",           
-             "interval": [0.0, 0.0],
+             "interval": [0.0, "End"],
              "time_function": "constant",
              "imposed_components": [false, false, false],
              "value": [0.0, 0.0, 0.0]
@@ -39,11 +40,17 @@ class AssignValueToVectorComponentsProcess(KratosMultiphysics.Process):
         self.model_part    = Model[self.settings["model_part_name"].GetString()]
         self.variable_name = self.settings["variable_name"].GetString()
 
-        self.interval      = []
+        self.interval  = []
         self.interval.append(self.settings["interval"][0].GetDouble());
-        self.interval.append(self.settings["interval"][1].GetDouble());
-        
-        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.settings["interval"][1].GetDouble())
+        if( self.settings["interval"][1].IsString() ):
+            if( self.settings["interval"][1].GetString() == "End" ):
+                self.interval.append(sys.float_info.max)
+        elif( self.settings["interval"][1].IsDouble() ):
+            self.interval.append(self.settings["interval"][1].GetDouble());
+
+        print("Interval",self.interval[0], self.interval[1])
+            
+        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
 
         self.function_string   = self.settings["time_function"].GetString()
         if( self.function_string == "constant" ):

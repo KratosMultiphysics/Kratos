@@ -21,7 +21,7 @@ class AssignValueAndDirectionToVectorProcess(KratosMultiphysics.Process):
              "model_part_name": "MODEL_PART_NAME",
              "mesh_id": 0,
              "variable_name": "VARIABLE_NAME",
-             "interval": [0.0, 0.0],
+             "interval": [0.0, "End"],
              "time_function": "constant",
              "modulus" : 0.0,
              "direction": [0.0, 0.0, 0.0]
@@ -41,9 +41,13 @@ class AssignValueAndDirectionToVectorProcess(KratosMultiphysics.Process):
         self.model_part    = Model[self.settings["model_part_name"].GetString()]
         self.variable_name = self.settings["variable_name"].GetString()
 
-        self.interval      = []
+        self.interval  = []
         self.interval.append(self.settings["interval"][0].GetDouble());
-        self.interval.append(self.settings["interval"][1].GetDouble());
+        if( self.settings["interval"][1].IsString() ):
+            if( self.settings["interval"][1].GetString() == "End" ):
+                self.interval.append(sys.float_info.max)
+        elif( self.settings["interval"][1].IsDouble() ):
+            self.interval.append(self.settings["interval"][1].GetDouble());
         
         self.function_string   = self.settings["time_function"].GetString()
         if( self.function_string == "constant" ):
