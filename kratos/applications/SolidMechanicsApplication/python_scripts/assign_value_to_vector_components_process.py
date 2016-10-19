@@ -93,9 +93,9 @@ class AssignValueToVectorComponentsProcess(KratosMultiphysics.Process):
 
         # in dynamic problems derivated variables can be fixed
         self.fix_derivated_variable = False
-        if( self.variable_name == "ACCELERATION" or self.variable_name == "VELOCITY" ):
-            self.derivated_variable_name = "DISPLACEMENT"
-            self.fix_derivated_variable = True
+        #if( self.variable_name == "ACCELERATION" or self.variable_name == "VELOCITY" ):
+            #self.derivated_variable_name = "DISPLACEMENT"
+            #self.fix_derivated_variable = True
 
         if( self.variable_name == "ANGULAR_ACCELERATION" or self.variable_name == "ANGULAR_VELOCITY" ):
             self.derivated_variable_name = "ROTATION"
