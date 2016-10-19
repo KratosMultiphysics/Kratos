@@ -96,14 +96,26 @@ class ContactProcess(KratosMultiphysics.Process):
         # Appending the conditions created to the computing_model_part
         computing_model_part = self.main_model_part.GetSubModelPart("solid_computing_domain") #NOTE: The name can change
             
+        computing_model_part.CreateSubModelPart("Contact")
+        
+        interface_computing_model_part = computing_model_part.GetSubModelPart("Contact")
+        
+        for node in self.o_interface.Nodes:
+            interface_computing_model_part.AddNode(node, 0)  
+        del(node)
+        
+        for node in self.d_interface.Nodes:
+            interface_computing_model_part.AddNode(node, 0)
+        del(node)
+        
         for cond in self.o_interface.Conditions:
-            computing_model_part.AddCondition(cond)  
+            interface_computing_model_part.AddCondition(cond)    
         del(cond)
         
         for cond in self.d_interface.Conditions:
-            computing_model_part.AddCondition(cond)  
+            interface_computing_model_part.AddCondition(cond)  
         del(cond)
-        
+
         self.contact_search = KratosMultiphysics.ContactStructuralMechanicsApplication.TreeContactSearch(self.o_interface, self.d_interface, self.max_number_results)
         
         if self.params["contact_type"].GetString() == "MortarMethod":
