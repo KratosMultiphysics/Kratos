@@ -391,7 +391,71 @@ protected:
     /**@name Protected Operations*/
     /*@{ */
 
+  virtual void GenerateMeshPart(int dimension)
+  {
+    mpConvectionModelPart = ModelPart::Pointer( new ModelPart("ConvectionPart",1) );
 
+	mpConvectionModelPart->SetProcessInfo(  BaseType::GetModelPart().pGetProcessInfo() );
+    mpConvectionModelPart->SetBufferSize( BaseType::GetModelPart().GetBufferSize());
+
+    //initializing mesh nodes
+    mpConvectionModelPart->Nodes() = BaseType::GetModelPart().Nodes();
+
+    //creating mesh elements
+    ModelPart::ElementsContainerType& MeshElems = mpConvectionModelPart->Elements();
+    Element::Pointer pElem;
+
+    if(dimension == 2)
+    {
+        for(ModelPart::ElementsContainerType::iterator it= BaseType::GetModelPart().ElementsBegin(); it != BaseType::GetModelPart().ElementsEnd(); ++it)
+         {
+            Element::GeometryType& rGeom = it->GetGeometry();
+            const unsigned int& NumNodes = rGeom.size();
+            
+            if (NumNodes == 3)
+            {
+              pElem = Element::Pointer(new EulerianConvectionDiffusionElement<2,3>(
+                      (*it).Id(),
+                      (*it).pGetGeometry(),
+                      (*it).pGetProperties() ) );
+              MeshElems.push_back(pElem);
+            }
+            else if(NumNodes == 4)
+            {
+                pElem = Element::Pointer(new EulerianConvectionDiffusionElement<2,4>(
+                      (*it).Id(),
+                      (*it).pGetGeometry(),
+                      (*it).pGetProperties() ) );
+              MeshElems.push_back(pElem);
+            }
+        }
+    }
+    else
+    {
+        for(ModelPart::ElementsContainerType::iterator it= BaseType::GetModelPart().ElementsBegin(); it != BaseType::GetModelPart().ElementsEnd(); ++it) 
+        {
+            Element::GeometryType& rGeom = it->GetGeometry();
+            const unsigned int& NumNodes = rGeom.size();
+            
+            if (NumNodes == 4)
+            {
+              pElem = Element::Pointer(new EulerianConvectionDiffusionElement<3,4>(
+                      (*it).Id(),
+                      (*it).pGetGeometry(),
+                      (*it).pGetProperties() ) );
+              MeshElems.push_back(pElem);
+            }
+            else if(NumNodes == 8)
+            {
+                pElem = Element::Pointer(new EulerianConvectionDiffusionElement<3,8>(
+                      (*it).Id(),
+                      (*it).pGetGeometry(),
+                      (*it).pGetProperties() ) );
+              MeshElems.push_back(pElem);
+            }        
+         }
+    }
+  }
 
     /*@} */
     /**@name Protected  Access */
@@ -425,9 +489,6 @@ private:
     int mdimension;
 
 
-
-
-
     /*@} */
     /**@name Private Operators*/
     /*@{ */
@@ -436,51 +497,9 @@ private:
     /**@name Private Operations*/
     /*@{ */
 
-  void GenerateMeshPart(int dimension)
-  {
-    mpConvectionModelPart = ModelPart::Pointer( new ModelPart("ConvectionPart",1) );
-
-	mpConvectionModelPart->SetProcessInfo(  BaseType::GetModelPart().pGetProcessInfo() );
-    mpConvectionModelPart->SetBufferSize( BaseType::GetModelPart().GetBufferSize());
-
-    //initializing mesh nodes
-    mpConvectionModelPart->Nodes() = BaseType::GetModelPart().Nodes();
-
-    //creating mesh elements
-    ModelPart::ElementsContainerType& MeshElems = mpConvectionModelPart->Elements();
-    Element::Pointer pElem;
-
-    if(dimension == 2)
-    for(ModelPart::ElementsContainerType::iterator it
-        = BaseType::GetModelPart().ElementsBegin();
-
-        it != BaseType::GetModelPart().ElementsEnd(); ++it) {
-
-      pElem = Element::Pointer(new EulerianConvectionDiffusionElement<2,3>(
-              (*it).Id(),
-              (*it).pGetGeometry(),
-              (*it).pGetProperties() ) );
-      MeshElems.push_back(pElem);
-    }
-
-    if(dimension == 3)
-    for(ModelPart::ElementsContainerType::iterator it
-        = BaseType::GetModelPart().ElementsBegin();
-
-        it != BaseType::GetModelPart().ElementsEnd(); ++it) {
-
-      pElem = Element::Pointer(new EulerianConvectionDiffusionElement<3,4>(
-              (*it).Id(),
-              (*it).pGetGeometry(),
-              (*it).pGetProperties() ) );
-      MeshElems.push_back(pElem);
-    }
-  }
-
     /*@} */
     /**@name Private  Access */
     /*@{ */
-
 
     /*@} */
     /**@name Private Inquiry */

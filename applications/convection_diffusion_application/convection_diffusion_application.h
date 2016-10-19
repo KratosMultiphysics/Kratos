@@ -210,7 +210,9 @@ private:
     ///@{
 
     const EulerianConvectionDiffusionElement<2,3>  mEulerianConvDiff2D;
+    const EulerianConvectionDiffusionElement<2,4>  mEulerianConvDiff2D4N;
     const EulerianConvectionDiffusionElement<3,4>  mEulerianConvDiff3D;
+    const EulerianConvectionDiffusionElement<3,8>  mEulerianConvDiff3D8N;
     const EulerianDiffusionElement<2,3>  mEulerianDiffusion2D;
     const EulerianDiffusionElement<3,4>  mEulerianDiffusion3D;
 
