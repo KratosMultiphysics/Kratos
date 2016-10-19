@@ -87,7 +87,7 @@ namespace Kratos {
                                                    const double equiv_young,
                                                    double indentation,
                                                    double previous_indentation,
-                                                   double& ActualTotalShearForce, 
+                                                   double& AuxElasticShearForce, 
                                                    double& MaximumAdmisibleShearForce);
 
         void CalculateViscoDampingForce(double LocalRelVel[3],
@@ -105,8 +105,8 @@ namespace Kratos {
                                        double LocalElasticContactForce[3]);
 
         void CalculateInelasticFrictionalEnergyDEM(double& inelastic_frictional_energy,
-                                                   double& ActualTotalShearForce,
-                                                   double& MaximumAdmisibleShearForce);
+                                                   double& AuxElasticShearForce,
+                                                   double LocalElasticContactForce[3]);
         
         void CalculateInelasticViscodampingEnergyDEM(double& inelastic_viscodamping_energy,
                                                      double ViscoDampingLocalContactForce[3],
@@ -117,8 +117,8 @@ namespace Kratos {
                                        double LocalElasticContactForce[3]);
 
         void CalculateInelasticFrictionalEnergyFEM(double& inelastic_frictional_energy,
-                                                   double& ActualTotalShearForce,
-                                                   double& MaximumAdmisibleShearForce);
+                                                   double& AuxElasticShearForce,
+                                                   double LocalElasticContactForce[3]);
         
         void CalculateInelasticViscodampingEnergyFEM(double& inelastic_viscodamping_energy,
                                                      double ViscoDampingLocalContactForce[3],
