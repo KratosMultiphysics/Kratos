@@ -117,7 +117,7 @@ proc Pfem::write::GetPFEM_RemeshDict { } {
         set bodyDict [dict create ]
         set body_name [dict get $body body_name]
         dict set bodyDict "python_module" "meshing_domain"
-        dict set bodyDict "mesh_id" 1
+        dict set bodyDict "mesh_id" 0
         dict set bodyDict "model_part_name" $body_name
         dict set bodyDict "alpha_shape" 2.4
         dict set bodyDict "offset_factor" 0.0
