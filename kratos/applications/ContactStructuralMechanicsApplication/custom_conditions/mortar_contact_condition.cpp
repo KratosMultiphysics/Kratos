@@ -651,13 +651,6 @@ void MortarContactCondition::CalculateConditionSystem(
     const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
                                                                          mColocationIntegration.IntegrationPoints( ) :
                                                                          GetGeometry( ).IntegrationPoints( mThisIntegrationMethod );
-                                                                         
-    double ActiveCheckFactor = 1.0; // TODO: Figure how to consider this!!!!!
-//     if( GetProperties().Has(ACTIVE_CHECK_FACTOR) )
-//     {
-//         ActiveCheckFactor = GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
-//     }
-    
     this->InitializeContactData(rContactData, rCurrentProcessInfo);
     
     for (unsigned int PairIndex = 0; PairIndex < number_of_elements_master; ++PairIndex)
@@ -691,10 +684,7 @@ void MortarContactCondition::CalculateConditionSystem(
             // Calculate the gap in the integration node and check tolerance
             const double integration_point_gap = inner_prod(rContactData.Gaps, Variables.N_Slave);
             
-            double dist_tol = ActiveCheckFactor * GetGeometry().Length();
-            dist_tol = (dist_tol <= ActiveCheckFactor * current_master_element.Length()) ? (ActiveCheckFactor * current_master_element.Length()):dist_tol;
-            
-            if (inside == true && integration_point_gap <= dist_tol)
+            if (inside == true)
             {
                 const double IntegrationWeight = integration_points[PointNumber].Weight();
                 total_weight += IntegrationWeight;
@@ -1565,12 +1555,6 @@ void MortarContactCondition::CalculateOnIntegrationPoints(
     const std::vector<double> zero_vector (number_of_integration_pts, 0.0);
     rOutput = zero_vector;
     
-    double ActiveCheckFactor = 1.0; // TODO: Figure how to consider this!!!!!
-//     if( GetProperties().Has(ACTIVE_CHECK_FACTOR) )
-//     {
-//         ActiveCheckFactor = GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
-//     }
-    
     this->InitializeContactData(rContactData, rCurrentProcessInfo);
     
     for (unsigned int PairIndex = 0; PairIndex < number_of_elements_master; ++PairIndex)
@@ -1592,10 +1576,8 @@ void MortarContactCondition::CalculateOnIntegrationPoints(
             
             // Calculate the gap in the integration node and check tolerance
             const double integration_point_gap = inner_prod(rContactData.Gaps, Variables.N_Slave);
-            
-            double dist_tol = ActiveCheckFactor * GetGeometry().Length();
-            dist_tol = (dist_tol <= ActiveCheckFactor * current_master_element.Length()) ? (ActiveCheckFactor * current_master_element.Length()):dist_tol;
-            if (inside == true && integration_point_gap <= dist_tol)
+
+            if (inside == true)
             {
                 if (rVariable == NORMAL_CONTACT_STRESS || rVariable == TANGENTIAL_CONTACT_STRESS || rVariable == SLIP_GP)
                 {
