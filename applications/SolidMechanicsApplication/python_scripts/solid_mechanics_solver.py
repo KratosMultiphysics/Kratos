@@ -149,7 +149,7 @@ class MechanicalSolver(object):
         
         print("::[Mechanical Solver]:: Model reading starts.")
 
-        self.computing_model_part_name = "solid_computing_domain"
+        self.computing_model_part_name = "computing_domain"
         
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             
