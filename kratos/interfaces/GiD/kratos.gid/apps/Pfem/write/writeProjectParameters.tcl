@@ -44,7 +44,12 @@ proc Pfem::write::getParametersDict { } {
 }
 proc Pfem::write::GetPFEM_ProblemProcessList { } {
     set resultList [list ]
-    lappend resultList [GetPFEM_RemeshDict]
+    set problemtype [write::getValue PFEM_DomainType]
+    if {$problemtype eq "Fluids"} {
+	lappend resultList [GetPFEM_FluidRemeshDict]
+    } else {
+	lappend resultList [GetPFEM_RemeshDict]
+    }
     lappend resultList [GetPFEM_ContactDict]
     return $resultList
 }
@@ -173,6 +178,115 @@ proc Pfem::write::GetPFEM_RemeshDict { } {
         set refine_elementsDict [dict create]
         dict set refine_elementsDict "apply_refinement" false
         dict set refine_elementsDict "on_distance" false
+        dict set refine_elementsDict "on_threshold" false
+        dict set refine_elementsDict "on_error" false
+        dict set refining_parametersDict refine_elements $refine_elementsDict
+        
+        set refine_boundaryDict [dict create]
+        dict set refine_boundaryDict "apply_refinement" false
+        dict set refine_boundaryDict "on_distance" false
+        dict set refine_boundaryDict "on_threshold" false
+        dict set refine_boundaryDict "on_error" false
+        dict set refining_parametersDict refine_boundary $refine_boundaryDict
+        
+        set refining_boxDict [dict create]
+        dict set refining_boxDict "refine_in_box_only" false
+        set upX [expr 0.0]; set upY [expr 0.0]; set upZ [expr 0.0]
+        dict set refining_boxDict "upper_point" [list $upX $upY $upZ]
+        set lpX [expr 0.0]; set lpY [expr 0.0]; set lpZ [expr 0.0]
+        dict set refining_boxDict "lower_point" [list $lpX $lpY $lpZ]
+        set vlX [expr 0.0]; set vlY [expr 0.0]; set vlZ [expr 0.0]
+        dict set refining_boxDict "velocity" [list $vlX $vlY $vlZ]
+        dict set refining_parametersDict refining_box $refining_boxDict
+        
+        dict set bodyDict refining_parameters $refining_parametersDict
+        
+        dict set bodyDict "elemental_variables_to_transfer" [list "CAUCHY_STRESS_VECTOR" "DEFORMATION_GRADIENT"]
+        lappend meshing_domains_list $bodyDict
+    }
+    dict set paramsDict meshing_domains $meshing_domains_list
+    dict set resultDict Parameters $paramsDict
+    return $resultDict
+}
+
+
+
+proc Pfem::write::GetPFEM_FluidRemeshDict { } {
+    variable bodies_list
+    set resultDict [dict create ]
+    dict set resultDict "help" "This process applies meshing to the problem domains"
+    dict set resultDict "kratos_module" "KratosMultiphysics.PfemBaseApplication"
+    set problemtype [write::getValue PFEM_DomainType]
+
+    dict set resultDict "python_module" "remesh_fluid_domains_process"
+    dict set resultDict "process_name" "RemeshFluidDomainsProcess" 
+
+    set paramsDict [dict create]
+    dict set paramsDict "model_part_name" "Main Domain"
+    dict set paramsDict "meshing_control_type" "step"
+    dict set paramsDict "meshing_frequency" 1.0
+    dict set paramsDict "meshing_before_output" true
+    set meshing_domains_list [list ]
+    foreach body $bodies_list {
+        set bodyDict [dict create ]
+        set body_name [dict get $body body_name]
+	dict set bodyDict "mesh_id" 0
+        dict set bodyDict "model_part_name" $body_name
+	dict set bodyDict "python_module" "fluid_meshing_domain"
+	dict set bodyDict "alpha_shape" 1.3
+        dict set bodyDict "offset_factor" 0.0
+        set remesh [write::getStringBinaryFromValue [Pfem::write::GetRemeshProperty $body_name "Remesh"]]
+        set refine [write::getStringBinaryFromValue [Pfem::write::GetRemeshProperty $body_name "Refine"]]
+        set meshing_strategyDict [dict create ]
+	dict set meshing_strategyDict "python_module" "fluid_meshing_strategy"
+        dict set meshing_strategyDict "meshing_frequency" 0
+        dict set meshing_strategyDict "remesh" $remesh
+        dict set meshing_strategyDict "refine" $refine
+        dict set meshing_strategyDict "reconnect" false
+        dict set meshing_strategyDict "transfer" false
+        dict set meshing_strategyDict "constrained" false
+        dict set meshing_strategyDict "mesh_smoothing" false
+        dict set meshing_strategyDict "variables_smoothing" false
+        dict set meshing_strategyDict "elemental_variables_to_smooth" [list "DETERMINANT_F" ]
+        dict set meshing_strategyDict "reference_element_type" "TwoStepUpdatedLagrangianVPFluidElement2D"
+        dict set meshing_strategyDict "reference_condition_type" "CompositeCondition2D2N"
+        dict set bodyDict meshing_strategy $meshing_strategyDict
+        
+        set spatial_bounding_boxDict [dict create ]
+        set upX [expr 0.0]; set upY [expr 0.0]; set upZ [expr 0.0]
+        dict set spatial_bounding_boxDict "upper_point" [list $upX $upY $upZ]
+        set lpX [expr 0.0]; set lpY [expr 0.0]; set lpZ [expr 0.0]
+        dict set spatial_bounding_boxDict "lower_point" [list $lpX $lpY $lpZ]
+        set vlX [expr 0.0]; set vlY [expr 0.0]; set vlZ [expr 0.0]
+        dict set spatial_bounding_boxDict "velocity" [list $vlX $vlY $vlZ]
+        dict set bodyDict spatial_bounding_box $spatial_bounding_boxDict
+        
+        set refining_parametersDict [dict create ]
+        dict set refining_parametersDict "critical_size" 0.0
+        dict set refining_parametersDict "threshold_variable" "PLASTIC_STRAIN"
+        dict set refining_parametersDict "reference_threshold" 0.0
+        dict set refining_parametersDict "error_variable" "NORM_ISOCHORIC_STRESS"
+        dict set refining_parametersDict "reference_error" 0.0
+        dict set refining_parametersDict "add_nodes" false
+        dict set refining_parametersDict "insert_nodes" true
+        
+        set remove_nodesDict [dict create]
+        dict set remove_nodesDict "apply_removal" true
+        dict set remove_nodesDict "on_distance" true
+        dict set remove_nodesDict "on_threshold" false
+        dict set remove_nodesDict "on_error" false
+        dict set refining_parametersDict remove_nodes $remove_nodesDict
+        
+        set remove_boundaryDict [dict create]
+        dict set remove_boundaryDict "apply_removal" false
+        dict set remove_boundaryDict "on_distance" false
+        dict set remove_boundaryDict "on_threshold" false
+        dict set remove_boundaryDict "on_error" false
+        dict set refining_parametersDict remove_boundary $remove_boundaryDict
+        
+        set refine_elementsDict [dict create]
+        dict set refine_elementsDict "apply_refinement" true
+        dict set refine_elementsDict "on_distance" true
         dict set refine_elementsDict "on_threshold" false
         dict set refine_elementsDict "on_error" false
         dict set refining_parametersDict refine_elements $refine_elementsDict
