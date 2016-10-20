@@ -97,7 +97,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_line_load",
             "variable_name"   : "LINE_LOAD",
-            "factor"          : 10,
+            "modulus"         : 10,
             "direction"       : [0.0,-1.0,0.0]
         }
     }],
