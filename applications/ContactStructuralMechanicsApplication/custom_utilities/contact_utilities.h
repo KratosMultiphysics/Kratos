@@ -967,9 +967,9 @@ public:
     
     static inline void ResetWeightedGapSlip(ModelPart & rModelPart)
     {
-        // TODO: Repair the parallelization
         NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
 
+        // TODO: Ask Riccardo what is better
 //         const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
 //         OpenMPUtils::PartitionVector NodePartition;
 //         OpenMPUtils::DivideInPartitions(pNode.size(), NumThreads, NodePartition);
@@ -984,14 +984,15 @@ public:
 //             for (typename NodesArrayType::iterator itNode = NodeBegin; itNode != NodeEnd; itNode++)
 //             {
 //                 itNode->Set(VISITED, false);
-//                 itNode->GetValue(WEIGHTED_GAP)  = 0.0;
-//                 itNode->GetValue(WEIGHTED_SLIP) = 0.0;
+//                 itNode->GetValue(WEIGHTED_GAP)      = 0.0;
+//                 itNode->GetValue(WEIGHTED_GAP)      = 0.0;
+//                 itNode->GetValue(WEIGHTED_FRICTION) = 0.0;
 //             }
 //         } 
         
         auto numNodes = pNode.end() - pNode.begin();
         
-//         #pragma omp parallel for 
+        #pragma omp parallel for 
         for(unsigned int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
