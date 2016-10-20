@@ -9,7 +9,7 @@ proc Pfem::xml::Init { } {
     Model::getSolutionStrategies Strategies.xml
     Model::getElements Elements.xml
     Model::getConstitutiveLaws "../../Solid/xml/ConstitutiveLaws.xml"
-    Model::getConstitutiveLaws "../../Fluid/xml/ConstitutiveLaws.xml"
+    Model::getConstitutiveLaws "../../Pfem/xml/ConstitutiveLaws.xml"
     Model::getProcesses "../../Solid/xml/Processes.xml"
     Model::getNodalConditions "../../Solid/xml/NodalConditions.xml"
     Model::getConditions "../../Solid/xml/Conditions.xml"
