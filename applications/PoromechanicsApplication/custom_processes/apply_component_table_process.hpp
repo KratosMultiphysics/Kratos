@@ -64,6 +64,7 @@ public:
         
         unsigned int TableId = rParameters["table"].GetInt();
         mpTable = model_part.pGetTable(TableId);
+        mTimeUnitConverter = model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
         
         KRATOS_CATCH("");
     }
@@ -120,8 +121,9 @@ public:
         typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
         component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
         
-        double value = mpTable->GetValue(mr_model_part.GetProcessInfo()[TIME]);
-
+        const double Time = mr_model_part.GetProcessInfo()[TIME]/mTimeUnitConverter;
+        double value = mpTable->GetValue(Time);
+        
         const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
 
         if(nnodes != 0)
@@ -169,6 +171,7 @@ protected:
     bool mis_fixed;
     double minitial_value;
     TableType::Pointer mpTable;
+    double mTimeUnitConverter;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
