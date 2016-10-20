@@ -37,6 +37,7 @@ public:
         
         unsigned int TableId = rParameters["table"].GetInt();
         mpTable = model_part.pGetTable(TableId);
+        mTimeUnitConverter = model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
         
         KRATOS_CATCH("");
     }
@@ -60,7 +61,8 @@ public:
         
         Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
         
-        double reference_coordinate = mpTable->GetValue(mr_model_part.GetProcessInfo()[TIME]);
+        const double Time = mr_model_part.GetProcessInfo()[TIME]/mTimeUnitConverter;
+        double reference_coordinate = mpTable->GetValue(Time);
         
         const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
 
@@ -113,6 +115,7 @@ protected:
     /// Member Variables
 
     TableType::Pointer mpTable;
+    double mTimeUnitConverter;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     

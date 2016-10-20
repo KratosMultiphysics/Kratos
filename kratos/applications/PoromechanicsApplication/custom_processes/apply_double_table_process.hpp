@@ -79,8 +79,9 @@ public:
         
         Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
         
-        double value = mpTable->GetValue(mr_model_part.GetProcessInfo()[TIME]);
-
+        const double Time = mr_model_part.GetProcessInfo()[TIME]/mTimeUnitConverter;
+        double value = mpTable->GetValue(Time);
+        
         const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
 
         if(nnodes != 0)
