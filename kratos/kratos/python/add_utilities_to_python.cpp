@@ -292,6 +292,8 @@ void AddUtilitiesToPython()
     class_<OpenMPUtils > ("OpenMPUtils", init<>())
     .def("SetNumThreads", &OpenMPUtils::SetNumThreads)
     .staticmethod("SetNumThreads")
+    .def("GetNumThreads", &OpenMPUtils::GetNumThreads)
+    .staticmethod("GetNumThreads")
     .def("PrintOMPInfo", &OpenMPUtils::PrintOMPInfo)
     .staticmethod("PrintOMPInfo")
     ;
