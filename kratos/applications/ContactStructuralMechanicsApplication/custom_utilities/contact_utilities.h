@@ -522,17 +522,25 @@ public:
         Matrix J_i = ZeroMatrix( dimension, local_dim ); 
         Geom.Jacobian( J_i, Geom[i_node].Coordinates( ) );
 
-        t1 = column(J_i, 0);
-        
         if( dimension == 2 )
         {
-            t2 = ZeroVector(3);
-            t2[2] = 1.0;
+            // t1 (axis-direction)
+            t1[0] = J_i(0, 0);
+            t1[1] = J_i(1, 0);
             t1[2] = 0.0;
+            // t2 (z-direction)
+            t2[0] = 0.0;
+            t2[1] = 0.0;
+            t2[2] = 1.0;
         }
-        else if( dimension == 3 )
+        else // We can use just else, if it is not 2D it is 3D 
         {
-            t2 = column(J_i, 1);
+            for (unsigned int i = 0; i < 3; i++)
+            {
+                // Using the Jacobian tangent directions 
+                t1[i] = J_i(i, 0);
+                t2[i] = J_i(i, 1);
+            }
         }
         else
         {
