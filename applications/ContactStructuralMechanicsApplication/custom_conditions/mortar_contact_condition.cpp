@@ -691,14 +691,14 @@ void MortarContactCondition::CalculateConditionSystem(
                 total_weight += IntegrationWeight;
                
                 // The normal LM augmented
-                const double augmented_normal_lm = this->AugmentedNormalLM(Variables, rContactData);
+                const double augmented_normal_lm = this->AugmentedNormalLM(Variables, rContactData, integration_point_gap);
                 
                 // The slip of th GP
                 double integration_point_slip;
                 
                 // The tangent LM augmented
 //                 const double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, augmented_normal_lm, integration_point_slip);
-                double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, augmented_normal_lm, integration_point_slip);
+                double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, integration_point_slip);
                 augmented_tangent_lm = 0.0;
                 
                 // Calculation of the matrix is required
@@ -1100,7 +1100,7 @@ void MortarContactCondition::CalculateLocalLHS(
                 // Contact active
                 rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointSlipLHS( N1, N2, Phi, detJ, rContactData );
                 
-                if (augmented_tangent_lm >= 0.0)
+                if (std::abs(augmented_tangent_lm) >= - rVariables.mu * augmented_normal_lm)
                 {
                     // Slip
                     rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointActiveLHS( N1, N2, Phi, detJ, rContactData ); // TODO: I need to reformulate this!!!!
@@ -1132,7 +1132,7 @@ void MortarContactCondition::CalculateLocalLHS(
 //                 // Contact active
 //                 rPairLHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointSlipLHS( N1, N2, Phi, detJ, rContactData );
 //                 
-//                 if (augmented_tangent_lm >= 0.0)
+//                 if (std::abs(augmented_tangent_lm) >= - rVariables.mu * augmented_normal_lm)
 //                 {
 //                     // Slip
 //                     rPairLHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointActiveLHS( N1, N2, Phi, detJ, rContactData ); // TODO: I need to reformulate this!!!!
@@ -1158,7 +1158,7 @@ void MortarContactCondition::CalculateLocalLHS(
 //                 // Contact active
 //                 rPairLHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointSlipLHS( N1, N2, Phi, detJ, rContactData );
 //                 
-//                 if (augmented_tangent_lm >= 0.0)
+//                 if (std::abs(augmented_tangent_lm) >= - rVariables.mu * augmented_normal_lm)
 //                 {
 //                     // Slip
 //                     rPairLHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointActiveLHS( N1, N2, Phi, detJ, rContactData ); // TODO: I need to reformulate this!!!!
@@ -1300,7 +1300,7 @@ void MortarContactCondition::CalculateLocalRHS(
                 // Contact active
                 rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointActiveRHS(N1, N2, Phi, detJ, rContactData);
                 
-                if (augmented_tangent_lm >= 0.0)
+                if (std::abs(augmented_tangent_lm) >= - rVariables.mu * augmented_normal_lm)
                 {
                     // Slip
                     rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointSlipRHS(N1, N2, Phi, detJ, rContactData); // TODO: I need to reformulate this!!!!
@@ -1331,7 +1331,7 @@ void MortarContactCondition::CalculateLocalRHS(
 //             {
 //                 // Contact active
 //                 rPairRHS += rIntegrationWeight *  Contact3D3N3N::ComputeGaussPointRHS(N1, N2, Phi, detJ, rContactData);
-//                 if (augmented_tangent_lm >= 0.0)
+//                 if (std::abs(augmented_tangent_lm) >= - rVariables.mu * augmented_normal_lm)
 //                 {
 //                     // Slip
 //                     rPairRHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointSlipRHS(N1, N2, Phi, detJ, rContactData);
@@ -1356,7 +1356,7 @@ void MortarContactCondition::CalculateLocalRHS(
 //             {
 //                 // Contact active
 //                 rPairRHS += rIntegrationWeight *  Contact3D4N4N::ComputeGaussPointRHS(N1, N2, Phi, detJ, rContactData);
-//                 if (augmented_tangent_lm >= 0.0)
+//                 if (std::abs(augmented_tangent_lm) >= - rVariables.mu * augmented_normal_lm)
 //                 {
 //                     // Slip
 //                     rPairRHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointSlipRHS(N1, N2, Phi, detJ, rContactData);
@@ -1585,7 +1585,7 @@ void MortarContactCondition::CalculateOnIntegrationPoints(
                 if (rVariable == NORMAL_CONTACT_STRESS || rVariable == TANGENTIAL_CONTACT_STRESS || rVariable == SLIP_GP)
                 {
                     // The normal LM augmented
-                    const double augmented_normal_lm = this->AugmentedNormalLM(Variables, rContactData);
+                    const double augmented_normal_lm = this->AugmentedNormalLM(Variables, rContactData, integration_point_gap);
                     
                     if ( rVariable == NORMAL_CONTACT_STRESS )
                     {
@@ -1597,7 +1597,7 @@ void MortarContactCondition::CalculateOnIntegrationPoints(
                         double integration_point_slip;
                     
                         // The tangent LM augmented
-                        const double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, augmented_normal_lm, integration_point_slip);
+                        const double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, integration_point_slip);
                         
                         if ( rVariable == TANGENTIAL_CONTACT_STRESS )
                         {
@@ -1627,7 +1627,8 @@ void MortarContactCondition::CalculateOnIntegrationPoints(
 
 double MortarContactCondition::AugmentedNormalLM(
     const GeneralVariables& rVariables,
-    const ContactData& rContactData 
+    const ContactData& rContactData,
+    const double& integration_point_gap
     )
 {
     // The LM of the GP
@@ -1637,7 +1638,7 @@ double MortarContactCondition::AugmentedNormalLM(
     const array_1d<double, 3> normal_gp = prod(trans(rContactData.NormalsSlave), rVariables.N_Slave);
     
     // The LM in the tangent direction
-    const double augmented_normal_lm = inner_prod(normal_gp, lm_gp) - rContactData.epsilon_normal * inner_prod(rContactData.Gaps, rVariables.N_Slave);
+    const double augmented_normal_lm = inner_prod(normal_gp, lm_gp) - rContactData.epsilon_normal * integration_point_gap;
                 
     return augmented_normal_lm;
 }
@@ -1649,7 +1650,6 @@ double MortarContactCondition::AugmentedTangentLM(
     const GeneralVariables& rVariables,
     const ContactData& rContactData,
     const GeometryType& current_master_element, 
-    const double& augmented_normal_lm,
     double& integration_point_slip
     )
 {    
@@ -1677,7 +1677,7 @@ double MortarContactCondition::AugmentedTangentLM(
     integration_point_slip = inner_prod(vector_integration_point_slip, tangent_gp);
 
     // The augmented LM in the tangent direction
-    const double augmented_tangent_lm = std::abs(tangent_lm + rContactData.epsilon_tangent * integration_point_slip) - rVariables.mu * augmented_normal_lm; 
+    const double augmented_tangent_lm = tangent_lm + rContactData.epsilon_tangent * integration_point_slip; 
     
     return augmented_tangent_lm;
 }

@@ -758,14 +758,14 @@ public:
 
     double AugmentedNormalLM(
         const GeneralVariables& rVariables,
-        const ContactData& rContactData 
+        const ContactData& rContactData,
+        const double& integration_point_gap
     );
     
     double AugmentedTangentLM(
         const GeneralVariables& rVariables,
         const ContactData& rContactData,
         const GeometryType& current_master_element, 
-        const double& augmented_normal_lm,
         double& integration_point_slip 
     );
     
