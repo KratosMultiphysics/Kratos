@@ -57,6 +57,7 @@ main_model_part = KratosMultiphysics.ModelPart(ProjectParameters["problem_data"]
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, delta_time)
+main_model_part.ProcessInfo.SetValue(KratosPoro.TIME_UNIT_CONVERTER, 1.0)
 Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main_model_part}
 
 # Construct the solver (main setting methods are located in the solver_module)
