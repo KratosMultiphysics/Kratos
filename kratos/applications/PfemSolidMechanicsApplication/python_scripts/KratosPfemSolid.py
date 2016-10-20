@@ -99,7 +99,7 @@ solver.AddVariables()
 
 # Add PfemSolidMechanicsApplication Variables
 import pfem_solid_variables  
-pfem_solid_variables.AddVariables(self.main_model_part) 
+pfem_solid_variables.AddVariables(main_model_part) 
 
 # Read model_part (note: the buffer_size is set here) (restart is read here)
 solver.ImportModelPart()

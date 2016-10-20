@@ -11,7 +11,7 @@ import KratosMultiphysics.PfemSolidMechanicsApplication as KratosPfemSolid
 KratosMultiphysics.CheckForPreviousImport()
 
 
-def AddVariables(self, main_model_part):
+def AddVariables(main_model_part):
 
     main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL);
     main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H);
