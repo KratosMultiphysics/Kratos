@@ -31,6 +31,7 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
 add_library(KratosParticleMechanicsApplication SHARED ${KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES})
 target_link_libraries(KratosParticleMechanicsApplication KratosCore KratosSolidMechanicsApplication )
 set_target_properties(KratosParticleMechanicsApplication PROPERTIES PREFIX "")
+set_target_properties(KratosParticleMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "PARTICLE_MECHANICS_APPLICATION=EXPORT,API")
 install(TARGETS KratosParticleMechanicsApplication DESTINATION libs )
 
 
