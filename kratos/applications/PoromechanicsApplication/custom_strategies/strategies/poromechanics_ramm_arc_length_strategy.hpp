@@ -255,7 +255,7 @@ public:
             {
                 NormDx = TSparseSpace::TwoNorm(mDx);
                 
-                if( (NormDx/mNormxEquilibrium) > 1.0e3 || (fabs(DLambda)/fabs(mLambda-mDLambdaStep)) > 1.0e3 )
+                if( (NormDx/mNormxEquilibrium) > 1.0e3 || (std::abs(DLambda)/std::abs(mLambda-mDLambdaStep)) > 1.0e3 )
                 {
                     is_converged = false;
                     break;
