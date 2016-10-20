@@ -34,6 +34,7 @@ cmake .. \
 -DSTRUCTURAL_MECHANICS_APPLICATION=ON                                                           \
 -DSWIMMING_DEM_APPLICATION=ON                                                                   \
 -DTHERMO_MECHANICAL_APPLICATION=ON                                                              \
+-DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=ON                                                   \
 -DMKL_SOLVERS_APPLICATION=OFF                                                                   \
 -DMKLSOLVER_INCLUDE_DIR=\"UNSET\"                                                               \
 -DMKLSOLVER_LIB_DIR=\"UNSET\"                                                                   \
