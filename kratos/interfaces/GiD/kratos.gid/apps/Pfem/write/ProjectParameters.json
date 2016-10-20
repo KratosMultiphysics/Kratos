@@ -180,6 +180,48 @@
 	    ]
 	}
     },{
+        "help"         : "This process creates the rigid bodies of the model",
+        "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
+        "python_module": "rigid_bodies_process",
+        "process_name" : "RigidBodyProcess",
+        "Parameters"   : {
+            "model_part_name" : "Main_Domain",
+            "rigid_bodies"    : [
+                {
+                    "python_module"  : "rigid_body",
+                    "model_part_name": "Rigid_Body_Volume",
+                    "rigid_body_settings":{
+                        "rigid_body_element_type": "RigidBodyElement2D1N",
+                        "fixed_body": false,
+                        "compute_body_parameters": true,
+                        "rigid_body_model_part_name": "Rigid_Body_Volume",
+                        "rigid_body_parameters":{
+                            "center_of_gravity": [0,0,0],
+                            "mass": 0,
+                            "main_inertias": [0, 0, 0],
+                            "main_axes": [ [1,0,0], [0,1,0], [0,0,1] ]
+                        }
+                    }
+                },
+                {
+                    "python_module"  : "rigid_body",
+                    "model_part_name": "Rigid_Body_Surface",
+                    "rigid_body_settings":{
+                        "rigid_body_element_type": "RigidBodyElement2D1N",
+                        "fixed_body": false,
+                        "compute_body_parameters": false,
+                        "rigid_body_model_part_name": "Rigid_Body_Surface",
+                        "rigid_body_parameters":{
+                            "center_of_gravity": [2,0,0],
+                            "mass": 1,
+                            "main_inertias": [1, 1, 1],
+                            "main_axes": [ [1,0,0], [0,1,0], [0,0,1] ]
+                        }
+                    }
+                }
+            ]
+            }
+    },{
         "python_module"   : "contact_domain_process",
         "kratos_module"   : "KratosMultiphysics.ContactMechanicsApplication",
         "help"            : "This process applies contact domain search by remeshing outer boundaries",
