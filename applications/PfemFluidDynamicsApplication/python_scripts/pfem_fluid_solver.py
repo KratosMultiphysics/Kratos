@@ -45,15 +45,18 @@ class PfemFluidSolver:
             "maximum_pressure_iterations": 7,
             "velocity_tolerance": 1e-5,
             "pressure_tolerance": 1e-5,
-            "pressure_linear_solver_config":  {
+            "pressure_linear_solver_settings":  {
                 "solver_type"                    : "AMGCL",
                 "max_iteration"                  : 1000,
                 "tolerance"                      : 1e-12,
+                "provide_coordinates"            : true,
                 "scaling"                        : false,
                 "smoother_type"                  : "damped_jacobi",
-                "krylov_type"                    : "cg"
+                "krylov_type"                    : "cg",
+                "coarsening_type"                : "aggregation",
+                "verbosity"                      : 0
             },
-            "velocity_linear_solver_config": {
+            "velocity_linear_solver_settings": {
                 "solver_type"                    : "bicgstab",
                 "max_iteration"                  : 10000,
                 "tolerance"                      : 1e-12,
@@ -79,8 +82,8 @@ class PfemFluidSolver:
        
         #construct the linear solver
         import linear_solver_factory
-        self.pressure_linear_solver = linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_config"])
-        self.velocity_linear_solver = linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_config"])
+        self.pressure_linear_solver = linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_settings"])
+        self.velocity_linear_solver = linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
 
         self.compute_reactions = self.settings["compute_reactions"].GetBool()
 
