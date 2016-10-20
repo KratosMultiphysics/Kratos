@@ -45,6 +45,14 @@ ProjectParameters = KratosMultiphysics.Parameters( parameter_file.read())
 # Set echo level
 echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
 
+# Number of threads:
+parallel = KratosMultiphysics.OpenMPUtils()
+num_threads =  parallel.GetNumThreads()
+print("::[KSM Simulation]:: [OMP USING",num_threads,"THREADS ]")
+
+print(" ")
+print("::[KSM Simulation]:: [Time Step:", ProjectParameters["problem_data"]["time_step"].GetDouble()," echo:", echo_level,"]")
+
 #### Model_part settings start ####
 
 # Defining the model_part
@@ -54,6 +62,7 @@ main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, ProjectPara
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, ProjectParameters["problem_data"]["time_step"].GetDouble())
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, ProjectParameters["problem_data"]["start_time"].GetDouble())
 
+###TODO replace this "model" for real one once available in kratos core
 Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main_model_part}
 
 #construct the solver (main setting methods are located in the solver_module)
@@ -219,7 +228,7 @@ tfp = timer.clock()
 # Measure wall time
 tfw = timer.time()
 
-print("::[KSM Simulation]:: [ Elaspsed Time = (%.2f" % (tfp - t0p)," seconds process time) ( %.2f" % (tfw - t0w)," seconds wall time) ]")
+print("::[KSM Simulation]:: [Elapsed Time = %.2f" % (tfp - t0p),"seconds] (%.2f" % (tfw - t0w),"seconds of cpu/s time)")
 
 print(timer.ctime())
 
