@@ -472,7 +472,7 @@ public:
 
     /** This method calculate and return area or surface area of
     this geometry depending to it's dimension. For one dimensional
-    geometry it returns zero, for two dimensional it gives area
+    geometry it returns length, for two dimensional it gives area
     and for three dimensional geometries it gives surface area.
 
     @return double value contains area or surface

@@ -822,21 +822,23 @@ public:
         return rResult;
     }
 
-    /** This method gives you number of all edges of this
-    geometry. This method will gives you number of all the edges
-    with one dimension less than this geometry. for example a
-    triangle would return three or a tetrahedral would return
-    four but won't return nine related to its six edge lines.
-
+    /** EdgesNumber
     @return SizeType containes number of this geometry edges.
-    @see Edges()
-    @see Edge()
     */
     virtual SizeType EdgesNumber() const
     {
         return 3;
     }
 
+
+    /** FacesNumber
+    @return SizeType containes number of this geometry edges/faces.
+    */
+    virtual SizeType FacesNumber() const
+    {
+      return EdgesNumber();
+    }
+    
     /** This method gives you all edges of this geometry. This
     method will gives you all the edges with one dimension less
     than this geometry. for example a triangle would return
@@ -856,11 +858,6 @@ public:
         edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
         edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 0 ) ) );
         return edges;
-    }
-
-    virtual SizeType FacesNumber() const
-    {
-        return 0;
     }
 
     /**
