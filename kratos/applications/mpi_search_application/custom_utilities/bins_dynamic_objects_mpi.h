@@ -221,6 +221,28 @@ public:
   }
 
 
+  /**
+   * [SearchPartitionInRadius description]
+   * @param Box           [description]
+   * @param i_object      [description]
+   * @param partitionList [description]
+   * @param Radius        [description]
+   */
+  void SearchPartition(SearchStructureType & Box, const PointerType& i_object, std::unordered_set<std::size_t> & partitionList) {
+    GetPartition(Box, i_object, partitionList);
+  }
+
+  /**
+   * [SearchPartitionInRadius description]
+   * @param Box           [description]
+   * @param i_object      [description]
+   * @param partitionList [description]
+   * @param Radius        [description]
+   */
+  void SearchPartitionInRadius(SearchStructureType & Box, const PointerType& i_object, std::unordered_set<std::size_t> & partitionList, double Radius) {
+    GetPartitionInRadius(Box, i_object, partitionList, Radius);
+  }
+
   /** Searches objects in the cell.
    * Searches the objects in the same cell as 'ThisPoint'. the behaviour of this operation is highly variable
    * as a Point may be in cells of different size in different partitions.
@@ -543,12 +565,13 @@ private:
       this->mMaxPoint[i] = globalMaxPoint[i];
     }
 
-    int findex;
-    std::vector<int> numberOfCells = {2, 2, 3};
+    int findex = 1;
+    std::vector<int> numberOfCells = {2, 2, 2};
     while(numberOfCells[0]*numberOfCells[1]*numberOfCells[2] != mpi_size) {
       numberOfCells[findex++] *= 2;
       findex %= 3;
     }
+    
     this->CalculateCustomCellSize(numberOfCells);
     this->AllocateContainer();
 
@@ -679,6 +702,7 @@ private:
         MaxNumberOfResults
       );
 
+      // Search the partitions
       TObjectConfigure::CalculateBoundingBox(*ObjectItr, Low, High);
       for(int i = 0; i < Dimension; i++) {
         Low[i] -= maxRadius;
@@ -687,7 +711,6 @@ private:
 
       Box.Set( this->CalculateCell(Low), this->CalculateCell(High), this->mN);
 
-      // Search the partitions
       std::unordered_set<std::size_t> partitionList;
       this->GetPartitionInRadius(Box, *ObjectItr, partitionList, ObjectRadius);
       // this->GetPartitionInRadius(Box, *ObjectItr, partitionList, Radius[i]);
@@ -749,32 +772,40 @@ private:
           }
         }
 
-        RecvObjectSize[i] = RemoteObjects[i].size();
-        RemoteResults[i].reserve((MaxNumberOfResults+1)*RecvObjectSize[i]);
-        RemoteResultsSize[i].resize(RemoteRadius[i].size());
+        if(destination == -1 && RemoteObjects[i].size() != 0) {
+          KRATOS_WATCH(MpiCommunicator->NeighbourIndices());
+          KRATOS_ERROR << "Process " << mpi_rank << " trying to process results from process " << i << " but can't find neighbour index" << std::endl;
+        }
 
-        std::vector<double> TempResultsDistances(MaxNumberOfResults);
+        if(destination != -1 ) {
 
-        for(int j = 0; j < RecvObjectSize[i]; j++) {
+          RecvObjectSize[i] = RemoteObjects[i].size();
+          RemoteResults[i].reserve((MaxNumberOfResults+1)*RecvObjectSize[i]);
+          RemoteResultsSize[i].resize(RemoteRadius[i].size());
 
-          DistanceIteratorType RemoteDistancesPointer = TempResultsDistances.begin(); //Useless
-          ResultContainerType  TempResults(MaxNumberOfResults);
-          ResultIteratorType   RemoteResultsPointer = TempResults.begin();
+          std::vector<double> TempResultsDistances(MaxNumberOfResults);
 
-          *RemoteDistancesPointer = 0;
+          for(int j = 0; j < RecvObjectSize[i]; j++) {
 
-          // Remote Search
-          RemoteResultsSize[i][j] = mpObjectBins->SearchObjectsInRadiusExclusive(
-            RemoteObjects[i].GetContainer()[j], RemoteRadius[i][j],
-            RemoteResultsPointer, RemoteDistancesPointer,
-            MaxNumberOfResults
-          );
+            DistanceIteratorType RemoteDistancesPointer = TempResultsDistances.begin(); //Useless
+            ResultContainerType  TempResults(MaxNumberOfResults);
+            ResultIteratorType   RemoteResultsPointer = TempResults.begin();
 
-          TotalToSend += RemoteResultsSize[i][j];
+            *RemoteDistancesPointer = 0;
 
-          for(ResultIteratorType result_it = TempResults.begin(); result_it != RemoteResultsPointer; ++result_it) {
-            TObjectConfigure::UpdateLocalInterface(MpiCommunicator, *result_it, destination);
-            RemoteResults[i].push_back(*result_it);
+            // Remote Search
+            RemoteResultsSize[i][j] = mpObjectBins->SearchObjectsInRadiusExclusive(
+              RemoteObjects[i].GetContainer()[j], RemoteRadius[i][j],
+              RemoteResultsPointer, RemoteDistancesPointer,
+              MaxNumberOfResults
+            );
+
+            TotalToSend += RemoteResultsSize[i][j];
+
+            for(ResultIteratorType result_it = TempResults.begin(); result_it != RemoteResultsPointer; ++result_it) {
+              TObjectConfigure::UpdateLocalInterface(MpiCommunicator, *result_it, destination);
+              RemoteResults[i].push_back(*result_it);
+            }
           }
         }
       }

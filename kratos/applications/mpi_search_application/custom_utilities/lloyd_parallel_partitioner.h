@@ -31,11 +31,13 @@
 #include "custom_utilities/bins_dynamic_objects_mpi.h"
 #include "processes/graph_coloring_process.h"
 
-int compareFunction(const void * a, const void * b)
-{
-    return ( *(int*)a - *(int*)b );
-}
+// Graph coloring
+#include "processes/graph_coloring_process.h"
 
+// TODO: This procedure seems unused. Maybe can be removed.
+int compareFunction(const void * a, const void * b) {
+  return ( *(int*)a - *(int*)b );
+}
 
 namespace Kratos
 {
@@ -114,7 +116,8 @@ public:
     typedef typename TreeNodeType::IteratorIteratorType   IteratorIteratorType;
     typedef typename TreeNodeType::SearchStructureType    SearchStructureType;
 
-    PointerType CommunicationToken;
+    // Graph coloring process type
+    typedef typename GraphColoringProcess::GraphType      GraphType;
 
     /// Pointer definition of BinsObjectDynamic
     KRATOS_CLASS_POINTER_DEFINITION(LloydParallelPartitioner);
@@ -136,18 +139,32 @@ public:
       mNumberOfCells = mpPartitionBins->GetCellContainer().size();
 
       if(mNumberOfCells < mpi_size) {
-        KRATOS_ERROR << "Error: Number of cells in the bins must be at least equal to mpi_size." << std::endl;
+        KRATOS_ERROR << "Error: Number of cells in the bins must be at least equal to mpi_size. " << mNumberOfCells << std::endl;
       }
 
       if(mNumberOfCells % mpi_size) {
         // KRATOS_WARNING << "Warning: Number of cells is not multiple of mpi_size. Heavy imbalance may occur." << std::endl;
-        std::cout << "Warning: Number of cells is not multiple of mpi_size. Heavy imbalance may occur." << std::endl;
+        std::cout << "Warning: Number of cells is not multiple of mpi_size. Heavy imbalance may occur. " << mNumberOfCells << std::endl;
       }
 
       if(mNumberOfCells < 10 * mpi_size) {
         // KRATOS_WARNING << "Warning: Number of cells is small. Partition Shape may be sub-optimal." << std::endl;
-        std::cout << "Warning: Number of cells is small. Partition Shape may be sub-optimal." << std::endl;
+        std::cout << "Warning: Number of cells is small. Partition Shape may be sub-optimal. " << mNumberOfCells << std::endl;
       }
+    }
+
+    double ReduceMaxRadius(IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd) {
+      // Max Radius Ugly fix
+      double local_max_radius = 0.0f;
+      double max_radius = 0.0f;
+      for (IteratorType ObjectItr = ObjectsBegin; ObjectItr != ObjectsEnd; ObjectItr++) {
+        const double Radius = TConfigure::GetObjectRadius(*ObjectItr, 0.0f);
+        if(Radius > local_max_radius) local_max_radius = Radius;
+      }
+
+      MPI_Allreduce(&local_max_radius, &max_radius, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+
+      return max_radius;
     }
 
     void SerialPartition() {
@@ -161,6 +178,9 @@ public:
       int mpiRecvNumberOfObjects = 0;
 
       PointType ObjectCenter;
+      PointType Low, High;
+
+      SearchStructureType Box;
 
       // Calculate objects per cell
       for(std::size_t i = 0; i < mNumberOfObjects; i++) {
@@ -226,6 +246,8 @@ public:
 
       PointType ObjectCenter;
 
+      // 1 - Calculate the centers of the cells based on the objects inside
+      // TODO: Parallelize this (non-trivial)
       for(std::size_t i = 0; i < mNumberOfObjects; i++) {
         auto ObjectItr = mObjectsBegin + i;
 
@@ -239,25 +261,28 @@ public:
         }
       }
 
+      // 1.1 - Communicate the number of objects per cell and the local sum of object coordinates
       MPI_Allreduce(&mpiSendObjectsPerCell[0], &mpiRecvObjectsPerCell[0], mNumberOfCells * Dimension, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
       MPI_Allreduce(&mpiSendCellCenter[0], &mpiRecvCellCenter[0], mNumberOfCells * Dimension, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
-      // Obtain the wheighted center of each cell.
+      // 1.2 - Obtain the wheighted center of each cell with the data of all processes
+      #pragma omp parallel for
       for(std::size_t cellId = 0; cellId < mNumberOfCells; cellId++) {
         for(int d = 0; d < Dimension; d++) {
           mpiRecvCellCenter[cellId*Dimension+d] /= mpiRecvObjectsPerCell[cellId];
         }
       }
 
-      // Assign a random origin to each partition.
+      // 2 - Assign a random origin to each partition.
       auto minPoint = mpPartitionBins->GetMinPoint();
       auto maxPoint = mpPartitionBins->GetMaxPoint();
       auto boxSize  = maxPoint - minPoint;
 
+      // Change this if we want real random
+      // !!!!!MAKE SURE THIS IS THE SAME ON EVERY PARTITION OR IT WON'T WORK!!!!!
       std::srand(256);
 
       for(int i = 0; i < mpi_size; i++) {
-        ObjectsPerPartition[i] = 1;
         for(int d = 0; d < Dimension; d++) {
           PartitionCenters[i][d] = minPoint[d] + ((double)std::rand() / (double)RAND_MAX) * boxSize[d];
         }
@@ -274,9 +299,8 @@ public:
               double cubeDistance = 0.0f;
 
               for(int d = 0; d < Dimension; d++) {
-                cubeDistance +=
-                  (mpiRecvCellCenter[cellId*Dimension+d] - PartitionCenters[i][d]) *
-                  (mpiRecvCellCenter[cellId*Dimension+d] - PartitionCenters[i][d]);
+                // Manhattan distance shoudl prevent problems with the discretization of the space
+                cubeDistance += std::abs(mpiRecvCellCenter[cellId*Dimension+d] - PartitionCenters[i][d]);
               }
 
               if(cubeDistance < CellDistances[cellId]) {
@@ -287,6 +311,8 @@ public:
           }
         }
 
+        // At this point no synch should be needed
+
         // Update the center of the partitions
         for(int i = 0; i < mpi_size; i++) {
           CellsPerPartition[i] = 0;
@@ -296,6 +322,9 @@ public:
           }
         }
 
+        // if(mpi_rank == 0) {
+        //   std::cout << mNumberOfCells << std::endl;
+        // }
         for(std::size_t cellId = 0; cellId < mNumberOfCells; cellId++) {
           if(mpiRecvObjectsPerCell[cellId] != 0) {
             CellsPerPartition[CellPartition[cellId]]++;
@@ -304,24 +333,24 @@ public:
               PartitionCenters[CellPartition[cellId]][d] += mpiRecvCellCenter[cellId*Dimension+d];
             }
           }
+          // if(mpi_rank == 0) {
+          //   for(int i = 0; i < mpi_size; i++) {
+          //     std::cout << "Iteration: " << cellId << " Partition " << i << " has " << CellsPerPartition[i] << " Cells" << std::endl;
+          //   }
+          // }
         }
 
-        // Prepare the comm
-        for(int i = 0; i < mpi_size; i++) {
-          mpiSendPartNum[i] = CellsPerPartition[i];
+        for(std::size_t partId = 0; partId < mpi_size; partId++) {
           for(int d = 0; d < Dimension; d++) {
-            mpiSendPartCenter[i*Dimension+d] = PartitionCenters[i][d];
+            PartitionCenters[partId][d] /= CellsPerPartition[partId]++;
           }
         }
+      }
 
-        MPI_Allreduce(&mpiSendPartNum[0], &mpiRecvPartNum[0], mpi_size, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-        MPI_Allreduce(&mpiSendPartCenter[0], &mpiRecvPartCenter[0], Dimension * mpi_size, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-
-
+      if(mpi_rank == 0) {
+        std::cout << mNumberOfCells << std::endl;
         for(int i = 0; i < mpi_size; i++) {
-          for(int d = 0; d < Dimension; d++) {
-            PartitionCenters[i][d] = mpiRecvPartCenter[i*Dimension+d] / mpiRecvPartNum[i];
-          }
+          std::cout << "Partition " << i << " has " << CellsPerPartition[i] << " Cells" << std::endl;
         }
       }
 
@@ -341,6 +370,48 @@ public:
       }
 
       std::cout << "Ending partitioning" << std::endl;
+    }
+
+    void UpdateDomainGraph(IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd, GraphType & domainGraph) {
+      PointType ObjectCenter;
+      PointType Low, High;
+
+      SearchStructureType Box;
+
+      mObjectsBegin = ObjectsBegin;
+      mObjectsEnd = ObjectsEnd;
+      mNumberOfObjects = ObjectsEnd-ObjectsBegin;
+
+      // Rebuild the bins
+      free(mpPartitionBins);
+      mpPartitionBins = new BinsObjectDynamicMpi<TConfigure>(mObjectsBegin, mObjectsEnd);
+
+      // Assign the partition to the objects based on their cell
+      double maxRadius = ReduceMaxRadius(mObjectsBegin, mObjectsEnd);
+
+      for(std::size_t i = 0; i < mNumberOfObjects; i++) {
+        auto ObjectItr = mObjectsBegin + i;
+
+        TConfigure::CalculateBoundingBox(*ObjectItr, Low, High);
+        for(int i = 0; i < Dimension; i++) {
+          Low[i] -= maxRadius;
+          High[i] += maxRadius;
+        }
+
+        Box.Set( mpPartitionBins->CalculateCell(Low), mpPartitionBins->CalculateCell(High), mpPartitionBins->GetDivisions());
+
+        std::unordered_set<std::size_t> partitionSet;
+        auto ObjectRadius = TConfigure::GetObjectRadius(*ObjectItr, 0.0f);
+        mpPartitionBins->SearchPartitionInRadius(Box, *ObjectItr, partitionSet, ObjectRadius);
+
+        std::vector<std::size_t> partitionList(partitionSet.begin(), partitionSet.end());
+
+        for(int i = 0; i < partitionList.size(); i++) {
+          domainGraph(mpi_rank, mpi_rank) = 1;
+          domainGraph(partitionList[i], mpi_rank) = 1;
+          domainGraph(mpi_rank, partitionList[i]) = 1;
+        }
+      }
     }
 
     /// Destructor.

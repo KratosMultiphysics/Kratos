@@ -34,6 +34,7 @@
 
 /* Search */
 #include "custom_utilities/lloyd_parallel_partitioner.h"
+#include "processes/graph_coloring_process.h"
 
 namespace Kratos
 {
@@ -78,6 +79,8 @@ namespace Kratos
       typedef SearchType::ElementsContainerType      ElementsContainerType;
       typedef SearchType::NodesContainerType         NodesContainerType;
       typedef SearchType::ConditionsContainerType    ConditionsContainerType;
+
+      typedef GraphColoringProcess::GraphType        GraphType;
 
 
       ///@}
@@ -346,7 +349,7 @@ namespace Kratos
       **/
       void MigrateElements(ModelPart& rModelPart)
       {
-          KRATOS_TRY
+          // KRATOS_TRY
 
           int mpi_rank;
           int mpi_size;
@@ -376,12 +379,23 @@ namespace Kratos
               MigrateMeshElementsId(rModelPart,SendObjectsId,RecvObjectsId,i);
           }
 
-          KRATOS_CATCH("")
+          // KRATOS_CATCH("")
       }
 
       void ParallelPartitioning(ModelPart& rModelPart, bool extension_option, int CalculateBoundary)
       {
           KRATOS_TRY
+
+          int mpi_rank;
+          int mpi_size;
+
+          MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+          MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+
+          typedef GraphColoringProcess::GraphType GraphType;
+          GraphType domains_graph(mpi_size, mpi_size, 0);
+          GraphType global_domains_graph(mpi_size, mpi_size, 0);
+          GraphType domains_colored_graph;
 
           ElementsContainerType::ContainerType& pLocalElements = rModelPart.GetCommunicator().LocalMesh().ElementsArray();
 
@@ -391,21 +405,52 @@ namespace Kratos
           //if (extension_option) search_tolerance = rCurrentProcessInfo[SEARCH_TOLERANCE];
 
           static double MaxNodeRadius = 0.0f;
-          if(MaxNodeRadius == 0.0f) //TODO
-              for (ElementsContainerType::ContainerType::iterator particle_pointer_it = pLocalElements.begin(); particle_pointer_it != pLocalElements.end(); ++particle_pointer_it)
-              {
-                  double NodeRadius = Configure::GetObjectRadius(*particle_pointer_it);
-                  //double NodeRadius = search_tolerance + (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-                  MaxNodeRadius = NodeRadius > MaxNodeRadius ? NodeRadius : MaxNodeRadius;
-              }
+          if(MaxNodeRadius == 0.0f) {//TODO
+            for (ElementsContainerType::ContainerType::iterator particle_pointer_it = pLocalElements.begin(); particle_pointer_it != pLocalElements.end(); ++particle_pointer_it) {
+              double NodeRadius = Configure::GetObjectRadius(*particle_pointer_it);
+              //double NodeRadius = search_tolerance + (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+              MaxNodeRadius = NodeRadius > MaxNodeRadius ? NodeRadius : MaxNodeRadius;
+            }
+          }
+
+          int colors_number;
 
           LloydParallelPartitioner<Configure> partitioner(pLocalElements.begin(), pLocalElements.end());
 
+          if(mpi_rank == 0) {
+            KRATOS_WATCH(domains_graph)
+          }
+
           partitioner.SerialPartition();
           MigrateElements(rModelPart);
+          partitioner.UpdateDomainGraph(pLocalElements.begin(), pLocalElements.end(), domains_graph);
 
-          Timer::SetOuputFile("TimesPartitioner");
-          Timer::PrintTimingInformation();
+          MPI_Allreduce(&domains_graph(0,0), &global_domains_graph(0, 0), mpi_size*mpi_size, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+
+          GraphColoringProcess(mpi_size, global_domains_graph, domains_colored_graph, colors_number).Execute();
+
+          //allocate space needed in the communicator
+          rModelPart.GetCommunicator().SetNumberOfColors(colors_number);
+          rModelPart.GetCommunicator().NeighbourIndices().resize(colors_number);
+
+          // Resize the neighbour index vector with the new value
+          Communicator::NeighbourIndicesContainerType& neighbours_indices = rModelPart.GetCommunicator().NeighbourIndices();
+          if(neighbours_indices.size() != static_cast<unsigned int>(colors_number)) {
+            neighbours_indices.resize(colors_number,false);
+          }
+
+          // Reset the list of the neighbour numbers with the ones calculated in global_domains_graph
+          for(int i = 0; i  < colors_number; i++) {
+            neighbours_indices[i] = domains_colored_graph(mpi_rank,i);
+          }
+
+          // Adding local, ghost and interface meshes to ModelPart if is necessary
+          int number_of_meshes =  ModelPart::Kratos_Ownership_Size + colors_number; // (all + local + ghost) + (colors_number for interfaces)
+          if(rModelPart.GetMeshes().size() < static_cast<unsigned int>(number_of_meshes)) {
+            for(int i = rModelPart.GetMeshes().size() ; i < number_of_meshes ; i++) {
+              rModelPart.GetMeshes().push_back(boost::make_shared<ModelPart::MeshType>());
+            }
+          }
 
           KRATOS_CATCH("")
       }
