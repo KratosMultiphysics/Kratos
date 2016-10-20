@@ -44,7 +44,7 @@ class AssignValueToScalarProcess(KratosMultiphysics.Process):
         if( self.settings["interval"][1].IsString() ):
             if( self.settings["interval"][1].GetString() == "End" ):
                 self.interval.append(sys.float_info.max)
-        elif( self.settings["interval"][1].IsDouble() ):
+        elif( self.settings["interval"][1].IsDouble() or  self.settings["interval"][1].IsInt() ):
             self.interval.append(self.settings["interval"][1].GetDouble());
 
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
