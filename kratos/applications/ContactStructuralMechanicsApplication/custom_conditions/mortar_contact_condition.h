@@ -759,14 +759,16 @@ public:
     double AugmentedNormalLM(
         const GeneralVariables& rVariables,
         const ContactData& rContactData,
-        const double& integration_point_gap
+        const double& integration_point_gap,
+        const unsigned int& dimension
     );
     
     double AugmentedTangentLM(
         const GeneralVariables& rVariables,
         const ContactData& rContactData,
         const GeometryType& current_master_element, 
-        double& integration_point_slip 
+        double& integration_point_slip,
+        const unsigned int& dimension
     );
     
     void GetNodalDeltaMovements( 

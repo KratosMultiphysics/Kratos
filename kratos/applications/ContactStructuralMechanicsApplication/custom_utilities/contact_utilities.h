@@ -542,11 +542,6 @@ public:
                 t2[i] = J_i(i, 1);
             }
         }
-        else
-        {
-            std::cout << "\033[31m" << "Error in: " << __PRETTY_FUNCTION__ << "\033[0m" << std::endl;
-            KRATOS_THROW_ERROR( std::logic_error, "Can't calculate nodal tangents. Bad dimension provided. Dimension = ", dimension );
-        }
         
     }
     
