@@ -28,7 +28,7 @@
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
-        "split_factor"                          : 10.0,
+        "split_factor"                       : 10.0,
         "max_number_splits"             : 3,
         "linear_solver_settings"             : {
             "solver_type" : "SuperLUSolver",

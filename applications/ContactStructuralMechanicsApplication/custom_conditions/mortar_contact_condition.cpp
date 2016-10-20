@@ -644,6 +644,7 @@ void MortarContactCondition::CalculateConditionSystem(
     ContactData rContactData;
 
     // Slave segment info
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int number_of_elements_master = mThisMasterElements.size( );
     const unsigned int number_of_nodes_slave     = GetGeometry().PointsNumber();
     
@@ -668,7 +669,7 @@ void MortarContactCondition::CalculateConditionSystem(
         Vector aux_int_slip     = ZeroVector(number_of_nodes_slave);
         Vector aux_int_friction = ZeroVector(number_of_nodes_slave);
         
-        const unsigned int pair_size = GetGeometry().WorkingSpaceDimension() * ( current_master_element.PointsNumber( ) + 2 * GetGeometry( ).PointsNumber( ) ); 
+        const unsigned int pair_size = dimension * ( current_master_element.PointsNumber( ) + 2 * GetGeometry( ).PointsNumber( ) ); 
         MatrixType LHS_contact_pair = ZeroMatrix(pair_size, pair_size);
         VectorType RHS_contact_pair = ZeroVector(pair_size);
         
@@ -691,14 +692,14 @@ void MortarContactCondition::CalculateConditionSystem(
                 total_weight += IntegrationWeight;
                
                 // The normal LM augmented
-                const double augmented_normal_lm = this->AugmentedNormalLM(Variables, rContactData, integration_point_gap);
+                const double augmented_normal_lm = this->AugmentedNormalLM(Variables, rContactData, integration_point_gap, dimension);
                 
                 // The slip of th GP
                 double integration_point_slip;
                 
                 // The tangent LM augmented
-//                 const double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, augmented_normal_lm, integration_point_slip);
-                double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, integration_point_slip);
+//                 const double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, augmented_normal_lm, integration_point_slip, dimension);
+                double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, integration_point_slip, dimension);
                 augmented_tangent_lm = 0.0;
                 
                 // Calculation of the matrix is required
@@ -1541,6 +1542,7 @@ void MortarContactCondition::CalculateOnIntegrationPoints(
     ContactData rContactData;
 
     // Slave segment info
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int number_of_elements_master = mThisMasterElements.size( );
     const unsigned int number_of_nodes_slave     = GetGeometry().PointsNumber();
     
@@ -1585,7 +1587,7 @@ void MortarContactCondition::CalculateOnIntegrationPoints(
                 if (rVariable == NORMAL_CONTACT_STRESS || rVariable == TANGENTIAL_CONTACT_STRESS || rVariable == SLIP_GP)
                 {
                     // The normal LM augmented
-                    const double augmented_normal_lm = this->AugmentedNormalLM(Variables, rContactData, integration_point_gap);
+                    const double augmented_normal_lm = this->AugmentedNormalLM(Variables, rContactData, integration_point_gap, dimension);
                     
                     if ( rVariable == NORMAL_CONTACT_STRESS )
                     {
@@ -1597,7 +1599,7 @@ void MortarContactCondition::CalculateOnIntegrationPoints(
                         double integration_point_slip;
                     
                         // The tangent LM augmented
-                        const double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, integration_point_slip);
+                        const double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, integration_point_slip, dimension);
                         
                         if ( rVariable == TANGENTIAL_CONTACT_STRESS )
                         {
@@ -1628,17 +1630,34 @@ void MortarContactCondition::CalculateOnIntegrationPoints(
 double MortarContactCondition::AugmentedNormalLM(
     const GeneralVariables& rVariables,
     const ContactData& rContactData,
-    const double& integration_point_gap
+    const double& integration_point_gap,
+    const unsigned int& dimension
     )
 {
-    // The LM of the GP
-    const array_1d<double, 3> lm_gp     = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
+    double augmented_normal_lm; 
     
-    // The normal of the GP
-    const array_1d<double, 3> normal_gp = prod(trans(rContactData.NormalsSlave), rVariables.N_Slave);
+    if (dimension == 2)
+    {
+        // The LM of the GP 
+        const array_1d<double, 2> lm_gp     = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
     
-    // The LM in the tangent direction
-    const double augmented_normal_lm = inner_prod(normal_gp, lm_gp) - rContactData.epsilon_normal * integration_point_gap;
+        // The normal of the GP
+        const array_1d<double, 2> normal_gp = prod(trans(rContactData.NormalsSlave), rVariables.N_Slave);
+        
+        // The LM in the tangent direction
+        augmented_normal_lm  = inner_prod(normal_gp, lm_gp) - rContactData.epsilon_normal * integration_point_gap;
+    }
+    else // If it is not 2D it is 3D
+    {
+        // The LM of the GP 
+        const array_1d<double, 3> lm_gp     = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
+    
+        // The normal of the GP
+        const array_1d<double, 3> normal_gp = prod(trans(rContactData.NormalsSlave), rVariables.N_Slave);
+            
+        // The LM in the tangent direction
+        augmented_normal_lm  = inner_prod(normal_gp, lm_gp) - rContactData.epsilon_normal * integration_point_gap;
+    }
                 
     return augmented_normal_lm;
 }
@@ -1650,34 +1669,61 @@ double MortarContactCondition::AugmentedTangentLM(
     const GeneralVariables& rVariables,
     const ContactData& rContactData,
     const GeometryType& current_master_element, 
-    double& integration_point_slip
+    double& integration_point_slip,
+    const unsigned int& dimension
     )
 {    
-    // The LM of the GP
-    const array_1d<double, 3> lm_gp     = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
-    
-    // The tangents of the GP
-    const array_1d<double, 3> tangent_xi_gp  = prod(trans(rContactData.Tangent1Slave), rVariables.N_Slave);
-    const array_1d<double, 3> tangent_eta_gp = prod(trans(rContactData.Tangent2Slave), rVariables.N_Slave);
-    
-    // The tangential LM
-    const double tangent_xi_lm  = inner_prod(tangent_xi_gp, lm_gp);
-    const double tangent_eta_lm = inner_prod(tangent_eta_gp, lm_gp);
-    const double tangent_lm = std::sqrt(tangent_xi_lm * tangent_xi_lm + tangent_eta_lm * tangent_eta_lm); 
-    
-    // The resultant direction of the LM
-    const array_1d<double, 3>& tangent_gp =  (tangent_xi_lm * tangent_xi_gp + tangent_eta_lm * tangent_eta_gp)/tangent_lm; // NOTE: This is the direction of the slip (using the LM as reference)
-    
-    // The velocities matrices
-    const Matrix v1 = ContactUtilities::GetVariableMatrix(GetGeometry(),          VELOCITY, 0); 
-    const Matrix v2 = ContactUtilities::GetVariableMatrix(current_master_element, VELOCITY, 0);
-    
-    // The slip of the LM
-    const array_1d<double, 3> vector_integration_point_slip = rContactData.Dt * (prod(trans(v1), rVariables.N_Slave) - prod(trans(v2), rVariables.N_Master));
-    integration_point_slip = inner_prod(vector_integration_point_slip, tangent_gp);
+    double augmented_tangent_lm; 
+    if (dimension == 2)
+    {
+        // The LM of the GP 
+        const array_1d<double, 2> lm_gp = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
+        
+        // The tangents of the GP
+        const array_1d<double, 2> tangent_gp = prod(trans(rContactData.Tangent1Slave), rVariables.N_Slave);
+        
+        // The tangential LM
+        const double tangent_lm  = inner_prod(tangent_gp, lm_gp);
+        
+        // The velocities matrices
+        const Matrix v1 = ContactUtilities::GetVariableMatrix(GetGeometry(),          VELOCITY, 0); 
+        const Matrix v2 = ContactUtilities::GetVariableMatrix(current_master_element, VELOCITY, 0);
+        
+        // The slip of the LM
+        const array_1d<double, 2> vector_integration_point_slip = rContactData.Dt * (prod(trans(v1), rVariables.N_Slave) - prod(trans(v2), rVariables.N_Master));
+        integration_point_slip = inner_prod(vector_integration_point_slip, tangent_gp);
 
-    // The augmented LM in the tangent direction
-    const double augmented_tangent_lm = tangent_lm + rContactData.epsilon_tangent * integration_point_slip; 
+        // The augmented LM in the tangent direction
+        augmented_tangent_lm = tangent_lm + rContactData.epsilon_tangent * integration_point_slip; 
+    }
+    else
+    {
+        // The LM of the GP 
+        const array_1d<double, 3> lm_gp     = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
+        
+        // The tangents of the GP
+        const array_1d<double, 3> tangent_xi_gp  = prod(trans(rContactData.Tangent1Slave), rVariables.N_Slave);
+        const array_1d<double, 3> tangent_eta_gp = prod(trans(rContactData.Tangent2Slave), rVariables.N_Slave);
+        
+        // The tangential LM
+        const double tangent_xi_lm  = inner_prod(tangent_xi_gp, lm_gp);
+        const double tangent_eta_lm = inner_prod(tangent_eta_gp, lm_gp);
+        const double tangent_lm = std::sqrt(tangent_xi_lm * tangent_xi_lm + tangent_eta_lm * tangent_eta_lm); 
+        
+        // The resultant direction of the LM
+        const array_1d<double, 3>& tangent_gp =  (tangent_xi_lm * tangent_xi_gp + tangent_eta_lm * tangent_eta_gp)/tangent_lm; // NOTE: This is the direction of the slip (using the LM as reference)
+        
+        // The velocities matrices
+        const Matrix v1 = ContactUtilities::GetVariableMatrix(GetGeometry(),          VELOCITY, 0); 
+        const Matrix v2 = ContactUtilities::GetVariableMatrix(current_master_element, VELOCITY, 0);
+        
+        // The slip of the LM
+        const array_1d<double, 3> vector_integration_point_slip = rContactData.Dt * (prod(trans(v1), rVariables.N_Slave) - prod(trans(v2), rVariables.N_Master));
+        integration_point_slip = inner_prod(vector_integration_point_slip, tangent_gp);
+
+        // The augmented LM in the tangent direction
+        augmented_tangent_lm = tangent_lm + rContactData.epsilon_tangent * integration_point_slip; 
+    }
     
     return augmented_tangent_lm;
 }
