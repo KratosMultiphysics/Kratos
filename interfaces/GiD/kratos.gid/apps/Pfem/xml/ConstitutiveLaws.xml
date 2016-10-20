@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ConstitutiveLaws>
+    <!--linear elastic laws-->
+	<CLaw n="Newtonian" pn="Newtonian" ProductionReady="ProductionReady" help="Newtonian fluid" App="Pfem" ImplementedInApplication="PfemFluidDynamicsApplication">
+        <inputs>
+            <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="1000"/>
+            <parameter n="VISCOSITY" pn="Dynamic viscosity" unit_magnitude="Pa T" units="Pa s" v="1e-3" help="Set the dynamic viscosity."/>
+            <parameter n="BULK_MODULUS" pn="Bulk modulus" unit_magnitude="Pa" units="Pa" v="2.1e+9" help="Set the bulk modulus."/>
+        </inputs>
+        <outputs>
+        </outputs>
+    </CLaw>
+</ConstitutiveLaws>
