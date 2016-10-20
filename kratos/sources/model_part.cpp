@@ -1227,7 +1227,7 @@ int ModelPart::Check(ProcessInfo& rCurrentProcessInfo) const
 /// Turn back information as a string.
 std::string ModelPart::Info() const
 {
-    return mName + " model part";
+    return "-" + mName + "- model part";
 }
 
 /// Print information about this object.
