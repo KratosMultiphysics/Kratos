@@ -1885,7 +1885,7 @@ bool TwoStepUpdatedLagrangianVPElement<TDim>::CheckSliverElements()
 
     GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
-    for (unsigned int n = 0; n < NumNodes; ++n)
+    for (unsigned int n = 0; n < NumNodes; n++)
       {
 	if(rGeom[n].Is(INTERFACE)){
 	  sliverNodes++;
