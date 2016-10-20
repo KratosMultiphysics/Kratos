@@ -380,24 +380,24 @@ End Elements
 *loop groups *OnlyInCond
 *if(strcmp(cond(Body_Surface),"True")==0)
 *if(GenData(DOMAIN_SIZE,INT) == 3)
-Begin Conditions SurfaceCondition3D3N
+Begin Elements Element3D3N
 *else
-Begin Conditions LineCondition2D2N
+Begin Elements Element2D2N
 *endif
 *#// id prop_id	 n1	n2	n3	...
 *set group *GroupName *elems
 *loop elems *onlyingroup
-*set var icond=operation(icond+1)
+*set var ielem=operation(ielem+1)
 *set var i=0
 *set var j=ElemsNnode
 *format "%i%i%i%i%i"
-*icond *ElemsMat *\
+*ielem *ElemsMat *\
 *for(i=1;i<=j;i=i+1)*\
  *ElemsConec(*i)*\
 *end
 
 *end elems
-End Conditions
+End Elements
 
 *endif
 *end groups
@@ -748,7 +748,6 @@ Begin SubModelPart *GroupName // *GroupNum
  End SubModelPartNodes
 
  Begin SubModelPartElements
-*if(strcmp(cond(Body_Surface),"False")==0)
 *set group *GroupName *elems 
 *if(GroupNumEntities) 
 *loop elems *onlyingroup 
@@ -757,20 +756,9 @@ Begin SubModelPart *GroupName // *GroupNum
  *RigidWallsElemNum
 *end elems
 *endif
-*endif
  End SubModelPartElements
       
  Begin SubModelPartConditions
-*if(strcmp(cond(Body_Surface),"True")==0)
-*set group *GroupName *elems 
-*if(GroupNumEntities) 
-*loop elems *onlyingroup 
-*set var RigidWallsCondNum=operation(RigidWallsCondNum+1)
-*format "%i"
- *RigidWallsCondNum
-*end elems
-*endif
-*endif
  End SubModelPartConditions
 End SubModelPart
 *end groups        
