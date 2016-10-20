@@ -315,7 +315,7 @@ namespace Kratos {
             pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL];
         }
 
-        if (has_rotation && pnew_node->SolutionStepsDataHas(PARTICLE_ROTATION_DAMP_RATIO) ) {
+        if (has_rotation && pnew_node->SolutionStepsDataHas(PARTICLE_ROTATION_DAMP_RATIO)) {
             pnew_node->FastGetSolutionStepValue(PARTICLE_ROTATION_DAMP_RATIO) = params[PARTICLE_ROTATION_DAMP_RATIO];
         }
 
@@ -395,7 +395,7 @@ namespace Kratos {
             array_1d<double, 3 > zero_vector(3, 0.0);
             SphericParticle* injector_spheric_particle = dynamic_cast<SphericParticle*> (injector_element.get());
 
-            if (mDoSearchNeighbourElements){ // there is no risk of contact so there is no need to track overlap
+            if (mDoSearchNeighbourElements) { // there is no risk of contact so there is no need to track overlap
                 injector_spheric_particle->mNeighbourElements.push_back(spheric_p_particle);
                 injector_spheric_particle->mNeighbourElasticContactForces.push_back(zero_vector);
                 spheric_p_particle->mNeighbourElements.push_back(injector_spheric_particle);
@@ -500,12 +500,12 @@ namespace Kratos {
 
         Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*> (p_particle.get());
 
+        spheric_p_particle->SetFastProperties(p_fast_properties);
+        spheric_p_particle->Initialize(r_modelpart.GetProcessInfo());        
         spheric_p_particle->SetRadius(radius);
         spheric_p_particle->SetSearchRadius(radius);
-        spheric_p_particle->SetSearchRadiusWithFem(radius);
-        spheric_p_particle->SetFastProperties(p_fast_properties);
-        spheric_p_particle->SetMass(cluster_mass);
-        spheric_p_particle->MemberDeclarationFirstStep(r_modelpart.GetProcessInfo());        
+        spheric_p_particle->SetSearchRadiusWithFem(radius);        
+        spheric_p_particle->SetMass(cluster_mass);        
         spheric_p_particle->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
         spheric_p_particle->Set(DEMFlags::BELONGS_TO_A_CLUSTER, true);
         spheric_p_particle->SetClusterId(cluster_id);        
@@ -540,19 +540,19 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
 
         Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*> (p_particle.get());
 
+        spheric_p_particle->SetFastProperties(p_fast_properties);
+        spheric_p_particle->Initialize(r_modelpart.GetProcessInfo()); 
         spheric_p_particle->SetRadius(radius);
         spheric_p_particle->SetSearchRadius(radius);
-        spheric_p_particle->SetSearchRadiusWithFem(radius);
-        spheric_p_particle->SetFastProperties(p_fast_properties);
+        spheric_p_particle->SetSearchRadiusWithFem(radius);        
         spheric_p_particle->SetMass(spheric_p_particle->GetDensity() * spheric_p_particle->CalculateVolume());
-        spheric_p_particle->MemberDeclarationFirstStep(r_modelpart.GetProcessInfo()); //Sets rotation flag
         if (spheric_p_particle->Is(DEMFlags::HAS_ROTATION)) {
             spheric_p_particle->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = spheric_p_particle->CalculateMomentOfInertia();
         }               
         spheric_p_particle->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
         spheric_p_particle->Set(DEMFlags::BELONGS_TO_A_CLUSTER, true);
         spheric_p_particle->SetClusterId(-1);        
-        spheric_p_particle->CreateDiscontinuumConstitutiveLaws(r_modelpart.GetProcessInfo());                      
+        spheric_p_particle->CreateDiscontinuumConstitutiveLaws(r_modelpart.GetProcessInfo());
 
         #pragma omp critical
         {        
@@ -621,7 +621,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         p_cluster->SetOrientation(euler_angles);
         p_cluster->Initialize(r_process_info); 
         
-        const bool is_breakable = r_sub_model_part_with_parameters[BREAKABLE_CLUSTER]; //THIS IS NOT THREAD SAFE!!!
+        const bool is_breakable = (*r_params)[BREAKABLE_CLUSTER]; //THIS IS NOT THREAD SAFE!!!
         
         if (!is_breakable) {  
             mMaxNodeId++; //This must be done before CreateParticles because the creation of particles accesses mMaxNodeId to choose what Id is assigned to the new nodes/spheres
@@ -657,7 +657,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         for (unsigned int i=0; i<p_cluster->GetNumberOfSpheres(); i++) { 
             SphericParticle* spheric_p_particle = p_cluster->GetSpheres()[i];
 
-            if (mDoSearchNeighbourElements){ // there is no risk of contact so there is no need to track overlap
+            if (mDoSearchNeighbourElements) { // there is no risk of contact so there is no need to track overlap
                 injector_spheric_particle->mNeighbourElements.push_back(spheric_p_particle);
                 injector_spheric_particle->mNeighbourElasticContactForces.push_back(zero_vector);
                 spheric_p_particle->mNeighbourElements.push_back(injector_spheric_particle);
