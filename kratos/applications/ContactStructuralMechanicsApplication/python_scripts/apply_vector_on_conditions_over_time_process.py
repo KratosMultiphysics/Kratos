@@ -78,7 +78,7 @@ class ApplyVaryingVectorOverTimeIntervalProcess(parent_process):
         curr_step_params.AddValue("model_part_name",self.computation_model_part)
         curr_step_params.AddValue("mesh_id",self.mesh_id)
         curr_step_params.AddValue("variable_name",self.variable_name)
-        curr_step_params.AddValue("factor",self.curr_factor)
+        curr_step_params.AddValue("modulus",self.curr_factor)
         curr_step_params.AddValue("direction",self.curr_direction)
 
         if( self.curr_factor.GetDouble() > 1e-9 ):
