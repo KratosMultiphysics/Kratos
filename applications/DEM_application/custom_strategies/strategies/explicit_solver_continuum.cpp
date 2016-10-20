@@ -7,13 +7,14 @@
 namespace Kratos {
 
     void ContinuumExplicitSolverStrategy::Initialize() {
+        
         KRATOS_TRY
 
         ModelPart& r_model_part = GetModelPart();
         ModelPart& fem_model_part = GetFemModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         
-        if(r_model_part.GetCommunicator().MyPID() == 0) {
+        if (r_model_part.GetCommunicator().MyPID() == 0) {
             std::cout << "------------------CONTINUUM SOLVER STRATEGY---------------------" << "\n" << std::endl;
         }        
 
@@ -192,7 +193,9 @@ namespace Kratos {
 
             if (is_time_to_search_neighbours) {
 
-                if (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]) {
+                CalculateMaxSearchDistance(); //Modifies r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION] // Must be called before the bounding box or it uses unexistent elements
+
+	        if (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]) {
 
                     BoundingBoxUtility();
                 } else {
@@ -203,7 +206,6 @@ namespace Kratos {
                 RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles); //These lists are necessary for the loop in SearchNeighbours
                 RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
 
-                CalculateMaxSearchDistance(); //Modifies r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]
                 BaseType::SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_TOLERANCE] + r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION], 1.0);
                 SearchNeighbours(); //the amplification factor has been modified after the first search.
 
