@@ -2,8 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import time as timer
 import os
 import sys
-#from math import sin, cos
-#import shutil
 
 # Kratos
 from KratosMultiphysics import *
@@ -22,6 +20,13 @@ listDISCONT = list(range(1,12))
 listROLLFR  = list(range(12,13))
 listDEMFEM  = list(range(13,18))
 listCONT    = list(range(20,27))
+
+'''
+listDISCONT = list(range(3,4)) #list(range(1,12))
+listROLLFR  = [] #list(range(12,13))
+listDEMFEM  = [] #list(range(13,18))
+listCONT    = [] #list(range(20,27))
+'''
 
 if benchmark_number in listDISCONT:
     import DEM_explicit_solver_var as DEM_parameters
@@ -56,14 +61,16 @@ if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.envi
     import DEM_procedures_mpi as DEM_procedures
     import DEM_material_test_script_mpi as DEM_material_test_script    
     def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
-        return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid=0, elemid=0, condid=0)
+        return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
          
 else:
     print("Running under OpenMP........")
     import DEM_procedures
     import DEM_material_test_script
-    def model_part_reader(modelpart, a=0, b=0, c=0):
-        return ModelPartIO(modelpart)
+    #def model_part_reader(modelpart, a=0, b=0, c=0):
+    #    return ModelPartIO(modelpart)
+    def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
+        return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
     
 
 ########################################################## CHUNG, OOI BENCHMARKS
@@ -86,7 +93,10 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
 
         # Import utilities from models
         procedures    = DEM_procedures.Procedures(DEM_parameters)
-        demio         = DEM_procedures.DEMIo(DEM_parameters)
+        # Creating necessary directories
+        main_path = os.getcwd()
+        [post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name))
+        demio         = DEM_procedures.DEMIo(DEM_parameters, post_path)
         report        = DEM_procedures.Report()
         parallelutils = DEM_procedures.ParallelUtils()
         materialTest  = DEM_procedures.MaterialTest()
@@ -126,28 +136,13 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         # Creating a solver object and set the search strategy
         solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
         
-        # Add variables
-        procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
-        procedures.AddSpheresVariables(spheres_model_part, DEM_parameters)
-        procedures.AddMpiVariables(spheres_model_part)
-        solver.AddAdditionalVariables(spheres_model_part, DEM_parameters)
-        scheme.AddSpheresVariables(spheres_model_part)
-        procedures.AddCommonVariables(cluster_model_part, DEM_parameters)
-        procedures.AddClusterVariables(cluster_model_part, DEM_parameters)
-        procedures.AddMpiVariables(cluster_model_part)
-        scheme.AddClustersVariables(cluster_model_part)
-        procedures.AddCommonVariables(DEM_inlet_model_part, DEM_parameters)
-        procedures.AddSpheresVariables(DEM_inlet_model_part, DEM_parameters)
-        solver.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)  
-        scheme.AddSpheresVariables(DEM_inlet_model_part)
-        procedures.AddCommonVariables(rigid_face_model_part, DEM_parameters)
-        procedures.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
-        procedures.AddMpiVariables(rigid_face_model_part)
+        procedures.AddAllVariablesInAllModelParts(solver, scheme, spheres_model_part, cluster_model_part, DEM_inlet_model_part, rigid_face_model_part, DEM_parameters)
 
         problem_name                = 'benchmark' + str(benchmark_number)
         spheres_mp_filename         = problem_name + "DEM"
         DEM_parameters.problem_name = problem_name
 
+        os.chdir(main_path)
         model_part_io_spheres = model_part_reader(spheres_mp_filename)
 
         if (hasattr(DEM_parameters, "do_not_perform_initial_partition") and DEM_parameters.do_not_perform_initial_partition == 1):
@@ -155,9 +150,10 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         else:
             parallelutils.PerformInitialPartition(model_part_io_spheres)
 
+        os.chdir(main_path)
         [model_part_io_spheres, spheres_model_part, MPICommSetup] = parallelutils.SetCommunicator(spheres_model_part, model_part_io_spheres, spheres_mp_filename)
 
-        model_part_io_spheres.ReadModelPart(spheres_model_part)
+        model_part_io_spheres.ReadModelPart(spheres_model_part) #########################3??????????????????????
 
         ###################################################### CHUNG, OOI BENCHMARKS
 
@@ -165,84 +161,48 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         
         ###################################################### CHUNG, OOI BENCHMARKS
 
+        max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
+        max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(spheres_model_part)
+        old_max_elem_Id_spheres = max_elem_Id
+        max_cond_Id = creator_destructor.FindMaxElementIdInModelPart(spheres_model_part)        
         rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
-        model_part_io_fem = ModelPartIO(rigidFace_mp_filename)
+        model_part_io_fem = model_part_reader(rigidFace_mp_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
         model_part_io_fem.ReadModelPart(rigid_face_model_part)
 
+        max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
+        max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(rigid_face_model_part)
+        max_cond_Id = creator_destructor.FindMaxElementIdInModelPart(rigid_face_model_part)        
         clusters_mp_filename = 'benchmark' + "DEM_Clusters"
-        model_part_io_clusters = ModelPartIO(clusters_mp_filename)
+        model_part_io_clusters = model_part_reader(clusters_mp_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
         model_part_io_clusters.ReadModelPart(cluster_model_part)
 
+        max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(cluster_model_part)
+        max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(cluster_model_part)
+        max_cond_Id = creator_destructor.FindMaxElementIdInModelPart(cluster_model_part)        
         DEM_Inlet_filename = 'benchmark' + "DEM_Inlet"  
-        model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
+        model_part_io_demInlet = model_part_reader(DEM_Inlet_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
         model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
 
         # Setting up the buffer size
-        spheres_model_part.SetBufferSize(1)
-        cluster_model_part.SetBufferSize(1)
-        DEM_inlet_model_part.SetBufferSize(1)
-        rigid_face_model_part.SetBufferSize(1)
-
+        procedures.SetUpBufferSizeInAllModelParts(spheres_model_part, 1, cluster_model_part, 1, DEM_inlet_model_part, 1, rigid_face_model_part, 1)
         # Adding dofs
         solver.AddDofs(spheres_model_part)
         solver.AddDofs(cluster_model_part)
         solver.AddDofs(DEM_inlet_model_part)
 
-        # Creating necessary directories
-        main_path = os.getcwd()
-        [post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name))
-
         os.chdir(main_path)
 
         KRATOSprint("Initializing Problem....")
 
-        # Initialize GiD-IO
-        demio.AddGlobalVariables()
-        demio.AddSpheresVariables()
-        demio.AddFEMBoundaryVariables()
-        demio.AddClusterVariables()
-        demio.AddContactVariables()
-        #
-        demio.AddMpiVariables()
-
-        demio.Configure(DEM_parameters.problem_name,
-                        DEM_parameters.OutputFileType,
-                        DEM_parameters.Multifile,
-                        DEM_parameters.ContactMeshOption)
-
-        demio.SetOutputName(DEM_parameters.problem_name)
+        demio.Initialize(DEM_parameters)
 
         os.chdir(post_path)
-
-        multifiles = (
-            DEM_procedures.MultifileList(DEM_parameters.problem_name,1 ),
-            DEM_procedures.MultifileList(DEM_parameters.problem_name,2 ),
-            DEM_procedures.MultifileList(DEM_parameters.problem_name,5 ),
-            DEM_procedures.MultifileList(DEM_parameters.problem_name,10),
-            DEM_procedures.MultifileList(DEM_parameters.problem_name,20),
-            DEM_procedures.MultifileList(DEM_parameters.problem_name,50),
-            )
-
-        demio.SetMultifileLists(multifiles)
-        os.chdir(post_path)
-        demio.InitializeMesh(spheres_model_part,
-                             rigid_face_model_part,
-                             cluster_model_part,
-                     solver.contact_model_part,
-                             mapping_model_part)
-
-        os.chdir(post_path)
+        demio.InitializeMesh(spheres_model_part,rigid_face_model_part, cluster_model_part, solver.contact_model_part, mapping_model_part)
 
         # Perform a partition to balance the problem
         solver.search_strategy = parallelutils.GetSearchStrategy(solver, spheres_model_part)
-        solver.CreateCPlusPlusStrategy()
-        solver.RebuildListOfDiscontinuumSphericParticles()
-        solver.SetNormalRadiiOnAllParticles()
-        solver.SetSearchRadiiOnAllParticles()
+        solver.BeforeInitialize()
         parallelutils.Repart(spheres_model_part)
-		#parallelutils.CalculateModelNewIds(spheres_model_part)
-
-        os.chdir(post_path)
 
         # Setting up the BoundingBox
         bounding_box_time_limits = []
@@ -250,38 +210,32 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
             procedures.SetBoundingBox(spheres_model_part, cluster_model_part, rigid_face_model_part, creator_destructor)
             bounding_box_time_limits = [solver.bounding_box_start_time, solver.bounding_box_stop_time]
         
-        # Creating a solver object and set the search strategy
-        # solver                 = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, DEM_parameters)
-        solver.search_strategy = parallelutils.GetSearchStrategy(solver, spheres_model_part)
+        #Finding the max id of the nodes... (it is necessary for anything that will add spheres to the spheres_model_part, for instance, the INLETS and the CLUSTERS read from mdpa file.
+        max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
+        max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(spheres_model_part)
+        max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
+        max_cluster_node_Id = creator_destructor.FindMaxNodeIdInModelPart(cluster_model_part)
 
-        solver.Initialize()    # Possible modifications of DELTA_TIME
+        max_Id = max(max_FEM_node_Id, max_node_Id, max_elem_Id, max_cluster_node_Id)
+        creator_destructor.SetMaxNodeId(max_Id)    
 
-        if (DEM_parameters.ContactMeshOption =="ON"):
-            contact_model_part = solver.contact_model_part
+        #Strategy Initialization
+        os.chdir(main_path)
+        solver.Initialize() # Possible modifications of number of elements and number of nodes
 
-        # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation  
-        # Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
-
-        if (DEM_parameters.dem_inlet_option):    
-            max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
-            max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
-
-            if ( max_FEM_node_Id > max_node_Id):
-                max_node_Id = max_FEM_node_Id
-
-            creator_destructor.SetMaxNodeId(max_node_Id)                            
-
-            for properties in DEM_inlet_model_part.Properties:
-
-                    DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME];
-                    DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
-                    DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)             
-
-            # constructing the inlet and intializing it (must be done AFTER the spheres_model_part Initialize)    
+        #Constructing a model part for the DEM inlet. It contains the DEM elements to be released during the simulation  
+        #Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
+        if (DEM_parameters.dem_inlet_option):
+            #Constructing the inlet and initializing it (must be done AFTER the spheres_model_part Initialize)    
             DEM_inlet = DEM_Inlet(DEM_inlet_model_part)    
-            DEM_inlet.InitializeDEM_Inlet(spheres_model_part, creator_destructor)
+            DEM_inlet.InitializeDEM_Inlet(spheres_model_part, creator_destructor, solver.continuum_type)
 
         DEMFEMProcedures = DEM_procedures.DEMFEMProcedures(DEM_parameters, graphs_path, spheres_model_part, rigid_face_model_part)
+
+        if (hasattr(DEM_parameters, "EnergyCalculationOption")):
+            if (DEM_parameters.EnergyCalculationOption):
+                os.chdir(graphs_path)
+                DEMEnergyCalculator = DEM_procedures.DEMEnergyCalculator(DEM_parameters, spheres_model_part, cluster_model_part, "EnergyPlot.grf")
 
         materialTest.Initialize(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
 
@@ -300,6 +254,10 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
 
         materialTest.PrintChart()
         materialTest.PrepareDataForGraph()
+
+        post_utils = DEM_procedures.PostUtils(DEM_parameters, spheres_model_part)
+
+        step = 0
 
         ##############################################################################
         #                                                                            #
@@ -333,33 +291,16 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
             time = time + dt
             step += 1
 
-            spheres_model_part.ProcessInfo[TIME]            = time
-            spheres_model_part.ProcessInfo[DELTA_TIME]      = dt
-            spheres_model_part.ProcessInfo[TIME_STEPS]      = step
+            DEMFEMProcedures.UpdateTimeInModelParts(spheres_model_part, rigid_face_model_part, cluster_model_part, time,dt,step) 
 
-            rigid_face_model_part.ProcessInfo[TIME]         = time
-            rigid_face_model_part.ProcessInfo[DELTA_TIME]   = dt
-            rigid_face_model_part.ProcessInfo[TIME_STEPS]   = step
-
-            cluster_model_part.ProcessInfo[TIME]            = time
-            cluster_model_part.ProcessInfo[DELTA_TIME]      = dt
-            cluster_model_part.ProcessInfo[TIME_STEPS]      = step
-
-            #### GENERAL TEST LOAD&UNLOAD  ######################
-            
-            benchmark.ApplyNodalRotation(time, dt, spheres_model_part)
-
-            #walls movement:
-            mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
-            #########mesh_motion.MoveSphereMeshes(spheres_model_part, time, dt)
-
+            benchmark.ApplyNodalRotation(time, dt, spheres_model_part)            
             #### SOLVE #########################################
             
             #benchmark.ApplyNodalRotation(time, dt, spheres_model_part)
             solver.Solve()
             #benchmark.ApplyNodalRotation(time, dt, spheres_model_part)
             
-            #### TIME CONTROL ##################################
+            DEMFEMProcedures.MoveAllMeshes(rigid_face_model_part, spheres_model_part, DEM_inlet_model_part, time, dt)
 
             # adding DEM elements by the inlet:
             if (DEM_parameters.dem_inlet_option):
@@ -399,6 +340,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
 
                 os.chdir(post_path)
 
+                solver.PrepareElementsForPrinting()
                 if (DEM_parameters.ContactMeshOption == "ON"):
                     solver.PrepareContactElementsForPrinting()
 
