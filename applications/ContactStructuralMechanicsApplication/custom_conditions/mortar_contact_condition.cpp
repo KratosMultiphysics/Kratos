@@ -881,7 +881,6 @@ bool MortarContactCondition::CalculateKinematics(
     )
 {
     /* DEFINITIONS */
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     GeometryType& slave_nodes  = GetGeometry( );
     GeometryType& master_nodes = rVariables.GetMasterElement( );
     const unsigned int number_of_master_nodes = master_nodes.PointsNumber( );
@@ -1194,13 +1193,7 @@ void MortarContactCondition::CalculateAndAddRHS(
     const unsigned int rPairIndex,
     const GeometryType& current_master_element
     )
-{
-    /* DEFINITIONS */
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_slave_nodes = GetGeometry( ).PointsNumber( );
-    const unsigned int number_of_master_nodes = current_master_element.PointsNumber( );
-    const unsigned int number_of_total_nodes = number_of_slave_nodes + number_of_master_nodes;
-    
+{   
     if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
     {
         /* COMPONENT-WISE RHS VECTOR */
