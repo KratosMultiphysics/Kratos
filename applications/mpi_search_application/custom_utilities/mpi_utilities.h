@@ -303,7 +303,6 @@ namespace Kratos
 
           //wait untill all communications finish
           MPI_Waitall(NumberOfCommunicationEvents, reqs, stats);
-
           MPI_Barrier(MPI_COMM_WORLD);
 
           for(int i = 0; i < mpi_size; i++)
@@ -319,9 +318,6 @@ namespace Kratos
 
               MPI_Barrier(MPI_COMM_WORLD);
           }
-
-          for(int i = 0; i < mpi_size; i++)
-          std::cout << "From process " << i << " sent/recieved: " << SendObjectsId[i].size() << " - " << RecvObjectsId[i].size() << std::endl;
 
           BuildNewMeshPartitions(rModelPart,RecvObjectsId,groupId);
 
