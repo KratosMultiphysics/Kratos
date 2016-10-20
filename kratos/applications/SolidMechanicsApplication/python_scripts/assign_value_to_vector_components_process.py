@@ -47,9 +47,7 @@ class AssignValueToVectorComponentsProcess(KratosMultiphysics.Process):
                 self.interval.append(sys.float_info.max)
         elif( self.settings["interval"][1].IsDouble() ):
             self.interval.append(self.settings["interval"][1].GetDouble());
-
-        print("Interval",self.interval[0], self.interval[1])
-            
+           
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
 
         self.function_string   = self.settings["time_function"].GetString()
