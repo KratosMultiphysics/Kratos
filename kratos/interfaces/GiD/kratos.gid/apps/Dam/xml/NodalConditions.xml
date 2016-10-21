@@ -7,9 +7,11 @@
     </outputs>
   </NodalConditionItem>
    
+<!--
   <NodalConditionItem  n="ACCELERATION" pn="Acceleration" ProcessName="ImposeVectorValueByComponentsProcess" VariableName="ACCELERATION"
                         analysis_type="Quasi-Static,Dynamic"  TypeofProblem="Mechanical,Thermo-Mechanical" unit_magnitude="Acceleration" units="m/s^2">
   </NodalConditionItem>
+-->
     
   <NodalConditionItem  n="INITIALTEMPERATURE" pn="Initial Temperature" ProcessName="ImposeUniformTemperatureProcess" VariableName="TEMPERATURE"
 					   analysis_type="Quasi-Static,Dynamic" TypeofProblem="Thermo-Mechanical" >
