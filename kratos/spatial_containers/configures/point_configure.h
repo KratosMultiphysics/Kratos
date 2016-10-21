@@ -148,6 +148,14 @@ public:
     rHighPoint = *rObject + radiusExtension;
   }
 
+  /** Calculates the Center of the object.
+   * @param rObject        Point for which the bounding box will be calculated.
+   * @param rCentralPoint  The center point of the object.
+   */
+  static inline void CalculateCenter(const PointerType& rObject, PointType& rCentralPoint) {
+    rCentralPoint = *rObject;
+  }
+
   /** Tests the intersection of two objects
    * For this configuation file, tests if the two points are the same within a Epsilon tolerance range.
    * @param  rObj_1 First point of the tests
@@ -232,7 +240,7 @@ public:
    * @param distance    The euclidean distance between 'rObj_1' and 'rObj_2'.
    */
   static inline void Distance(const PointerType& rObj_1, const PointerType& rObj_2, double& distance) {
-    auto pwdDistance = 0;
+    double pwdDistance = 0.0f;
 
     for(std::size_t i = 0; i < Dimension; i++) {
       pwdDistance += std::pow((*rObj_2)[i] - (*rObj_2)[i], 2);
