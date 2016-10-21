@@ -39,7 +39,7 @@
     </TopologyFeatures>
     <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
-	  <filter field="ImplementedInApplication" value="FluidDynamicsApplication"/>
+	  <filter field="ImplementedInApplication" value="PfemFluidDynamicsApplication"/>
     </ConstitutiveLaw_FilterFeatures>
     <!--define list of NodalConditions-->
     <NodalConditions>     
