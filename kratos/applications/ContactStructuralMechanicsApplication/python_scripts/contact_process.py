@@ -65,7 +65,7 @@ class ContactProcess(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
         
         # Appending the conditions created to the computing_model_part
-        computing_model_part = self.main_model_part.GetSubModelPart("solid_computing_domain")
+        computing_model_part = self.main_model_part.GetSubModelPart("computing_domain")
         computing_model_part.CreateSubModelPart("Contact")
         interface_computing_model_part = computing_model_part.GetSubModelPart("Contact")
         
