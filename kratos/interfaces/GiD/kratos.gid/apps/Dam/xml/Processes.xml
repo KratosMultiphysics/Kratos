@@ -29,14 +29,15 @@
         <parameter n="Gravity_Direction" pn="Gravity Direction" type="combo" v="Y" values="X,Y,Z" />
         <parameter n="Reservoir_Bottom_Coordinate_in_Gravity_Direction" pn="Reservoir Bottom Coordinate in Gravity Direction" type="double" v="0.0"/>
         <parameter n="Surface_Temp" pn="Surface Temperature" type="double" v="0.0"/>
+        <parameter n="Surface_Temp_Table" pn="Surface temperature table filename" type="tablefile" v=""/>
         <parameter n="Bottom_Temp" pn="Bottom Temperature" type="double" v="0.0"/>
         <parameter n="Height_Dam" pn="Height Dam" type="double" v="0.0"/>
+        <parameter n="Height_Table" pn="Height table filename" type="tablefile" v=""/>
         <parameter n="Temperature_Amplitude" pn="Temperature Amplitude" type="double" v="0.0"/>
         <parameter n="Day_Ambient_Temp" pn="Day" type="integer" v="0.0"/>
         <parameter n="Water_level" pn="Water Level" type="double" v="0.0"/>
         <parameter n="Outer_temp" pn="Dry Temperature " type="double" v="0.0"/>
         <parameter n="Month" pn="Month" type="integer" v="0.0"/>
-        <parameter n="Table" pn="Table filename" type="file" v=""/>
     </inputs>
   </Process>
     

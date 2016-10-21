@@ -24,15 +24,12 @@ proc Pfem::write::getParametersDict { } {
     ##### loads_process_list
     dict set projectParametersDict loads_process_list [write::getConditionsParametersDict SLLoads]
     
+    ##### Restart
+    set output_process_list [GetPFEM_OutputProcessList]
+    dict set projectParametersDict output_process_list $projectParametersDict
+
     ##### output_configuration
     dict set projectParametersDict output_configuration [write::GetDefaultOutputDict]
-    # restart options
-    set restartDict [dict create ]
-    dict set restartDict SaveRestart false
-    dict set restartDict RestartFrequency 0
-    dict set restartDict LoadRestart false
-    dict set restartDict Restart_Step 0
-    dict set projectParametersDict restart_options $restartDict
     
     # Constraints data
     set contraintsDict [dict create ]
@@ -41,6 +38,11 @@ proc Pfem::write::getParametersDict { } {
     dict set projectParametersDict constraints_data $contraintsDict
     
     return $projectParametersDict
+}
+proc Pfem::write::GetPFEM_OutputProcessList { } {
+    set resultList [list]
+    lappend resultList [write::GetRestartProcess]
+    return $resultList
 }
 proc Pfem::write::GetPFEM_ProblemProcessList { } {
     set resultList [list ]

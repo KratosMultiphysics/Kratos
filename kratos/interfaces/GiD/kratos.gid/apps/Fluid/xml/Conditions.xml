@@ -33,7 +33,7 @@
   <ConditionItem n="Outlet2D" pn="Outlet pressure" ImplementedInFile=".cpp" Interval="False"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="1" SkinConditions="True" VariableName="PRESSURE" App="Fluid"
-	ElementType="Point,Line" ProcessName="ApplyOutletProcess" help="Fixes the pressure to a constant scalar value."  units="Pa" unit_magnitude="P">
+	ElementType="Point,Line" ProcessName="ApplyOutletProcess" help="Fixes the pressure"  units="Pa" unit_magnitude="P">
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="WallCondition2D2N"/>
       <item  GeometryType="Point" nodes="1" KratosName="WallCondition2D1N"/>

@@ -80,8 +80,11 @@ proc Dam::write::getParametersDict { } {
     dict set projectParametersDict problem_domain_body_sub_model_part_list $body_part_list
     dict set projectParametersDict problem_domain_joint_sub_model_part_list $joint_part_list
     dict set projectParametersDict processes_sub_model_part_list [write::getSubModelPartNames "DamNodalConditions" "DamLoads"]
-    dict set projectParametersDict nodal_processes_sub_model_part_list [write::getConditionsParametersDict DamNodalConditions "Nodal"]
-    dict set projectParametersDict load_processes_sub_model_part_list [write::getConditionsParametersDict DamLoads ]
+    set nodal_process_list [write::getConditionsParametersDict DamNodalConditions "Nodal"]
+    set load_process_list [write::getConditionsParametersDict DamLoads ]
+    
+    dict set projectParametersDict nodal_processes_sub_model_part_list [Dam::write::ChangeFileNameforTableid $nodal_process_list]
+    dict set projectParametersDict load_processes_sub_model_part_list [Dam::write::ChangeFileNameforTableid $load_process_list]
     set strategytype [write::getValue DamSolStrat]
     if {$strategytype eq "Arc-length"} {
         dict set projectParametersDict loads_sub_model_part_list [write::getSubModelPartNames "DamLoads"]
@@ -91,6 +94,24 @@ proc Dam::write::getParametersDict { } {
     dict set projectParametersDict output_configuration [write::GetDefaultOutputDict]
         
     return $projectParametersDict
+}
+
+proc Dam::write::ChangeFileNameforTableid { processList } {
+    set returnList [list ]
+    foreach nodalProcess $processList {
+        set processName [dict get $nodalProcess process_name]
+        set process [::Model::GetProcess $processName]
+        set params [$process getInputs]
+        foreach {paramName param} $params {
+            if {[$param getType] eq "tablefile"} {
+                set filename [dict get $nodalProcess Parameters $paramName]
+                set value [Dam::write::GetTableidFromFileid $filename]
+                dict set nodalProcess Parameters $paramName $value
+            }
+        }
+        lappend returnList $nodalProcess
+    }
+    return $returnList
 }
 
 proc Dam::write::writeParametersEvent { } {

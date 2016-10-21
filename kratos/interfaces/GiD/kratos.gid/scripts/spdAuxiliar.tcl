@@ -738,11 +738,31 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
             } elseif { $type eq "bool" } {
                 set values "1,0"
                 append node "<value n='$inName' pn='$pn' v='$v' values='$values'  help='$help' state='$state'/>"
-            } elseif { $type eq "file" } {
-                append node "<value n='$inName' pn='$pn' v='$v' values='\[GetFilesValues\]' update_proc='AddFile' menu_update='AddFile' help='$help' state='$state'/>"
+            } elseif { $type eq "file" || $type eq "tablefile" } {
+                append node "<value n='$inName' pn='$pn' v='$v' values='\[GetFilesValues\]' update_proc='AddFile' menu_update='AddFile' help='$help' state='$state' type='$type'/>"
             } else {
-                append node "<value n='$inName' pn='$pn' v='$v'   help='$help'/>"
-                #append node "<value n='$inName' pn='$pn' v='$v'  units='$units'  unit_magnitude='$um'  help='$help'/>"
+                append node "<value n='$inName' pn='$pn' v='$v'  units='$units'  unit_magnitude='$um'  help='$help'/>"
+                if {[$in getAttribute "function"] eq "1"} {
+                    set fname "function_$inName"
+                    set nodev "../value\[@n='$inName'\]"
+                    set nodef "../value\[@n='$fname'\]"
+                    append node "<value n='$fname' pn='Function' v='' help='$help'/>"
+                    append node "<value n='ByFunction' pn='By function' v='No' values='Yes,No'  actualize_tree='1'>
+                                    <dependencies value='No' node=\""
+                    append node $nodev
+                    append node "\" att1='state' v1='normal'/>
+                                    <dependencies value='Yes'  node=\""
+                    append node $nodev
+                    append node "\" att1='state' v1='hidden'/>
+                                    <dependencies value='No' node=\""
+                    append node $nodef
+                    append node "\" att1='state' v1='hidden'/>
+                                    <dependencies value='Yes'  node=\""
+                    append node $nodef
+                    append node "\" att1='state' v1='normal'/>
+                                  </value>"
+                }
+                #append node "<value n='$inName' pn='$pn' v='$v'   help='$help'/>"
             }
         }
         

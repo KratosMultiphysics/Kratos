@@ -347,46 +347,51 @@ proc write::getMeshId {cid group} {
     }
 }
 
-proc write::writeGroupMesh { cid group {what "Elements"} {iniend ""} } {
+proc write::writeGroupMesh { cid group {what "Elements"} {iniend ""} {tableid ""} } {
     variable meshes
     variable groups_type_name
     
     set gtn $groups_type_name
     if {![dict exists $meshes [list $cid ${group}]]} {
-	set mid [expr [llength [dict keys $meshes]] +1]
-	if {$gtn ne "Mesh"} {
-	    set underscoredGroup [string map {" " " "} $group]
-	    regsub -all { +} $group "_" underscoredGroup
-	    set mid "${cid}_${underscoredGroup}"
-	}
-	dict set meshes [list $cid ${group}] $mid
-	set gdict [dict create]
-	set f "%10i\n"
-	set f [subst $f]
-	dict set gdict $group $f
-	WriteString "Begin $gtn $mid // Group $group // Subtree $cid"
-	WriteString "    Begin ${gtn}Nodes"
-	GiD_WriteCalculationFile nodes -sorted $gdict
-	WriteString "    End ${gtn}Nodes"
-	WriteString "    Begin ${gtn}Elements"
-	if {$what eq "Elements"} {
-	    GiD_WriteCalculationFile elements -sorted $gdict
-	}
-	WriteString "    End ${gtn}Elements"
-	WriteString "    Begin ${gtn}Conditions"
-	if {$what eq "Conditions"} {
-	    #GiD_WriteCalculationFile elements -sorted $gdict
-	    if {$iniend ne ""} {
-		#W $iniend
-		foreach {ini end} $iniend {
-		    for {set i $ini} {$i<=$end} {incr i} {
-		        WriteString [format %10d $i]
-		    }
-		}
-	    }
-	}
-	WriteString "    End ${gtn}Conditions"
-	WriteString "End $gtn"
+        set mid [expr [llength [dict keys $meshes]] +1]
+        if {$gtn ne "Mesh"} {
+            set underscoredGroup [string map {" " " "} $group]
+            regsub -all { +} $group "_" underscoredGroup
+            set mid "${cid}_${underscoredGroup}"
+        }
+        dict set meshes [list $cid ${group}] $mid
+        set gdict [dict create]
+        set f "%10i\n"
+        set f [subst $f]
+        dict set gdict $group $f
+        WriteString "Begin $gtn $mid // Group $group // Subtree $cid"
+        if {$tableid ne ""} {
+            WriteString "    Begin SubModelPartTables"
+            WriteString "    $tableid"
+            WriteString "    End SubModelPartTables"
+        }
+        WriteString "    Begin ${gtn}Nodes"
+        GiD_WriteCalculationFile nodes -sorted $gdict
+        WriteString "    End ${gtn}Nodes"
+        WriteString "    Begin ${gtn}Elements"
+        if {$what eq "Elements"} {
+            GiD_WriteCalculationFile elements -sorted $gdict
+        }
+        WriteString "    End ${gtn}Elements"
+        WriteString "    Begin ${gtn}Conditions"
+        if {$what eq "Conditions"} {
+            #GiD_WriteCalculationFile elements -sorted $gdict
+            if {$iniend ne ""} {
+            #W $iniend
+            foreach {ini end} $iniend {
+                for {set i $ini} {$i<=$end} {incr i} {
+                    WriteString [format %10d $i]
+                }
+            }
+            }
+        }
+        WriteString "    End ${gtn}Conditions"
+        WriteString "End $gtn"
     }
 }
 
@@ -896,6 +901,49 @@ proc write::GetResultsList { un {cnd ""} } {
     }
     return $result
 }
+    
+    #"output_process_list" : [{
+    #    "python_module"   : "restart_process",
+    #    "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+    #    "help"            : "This process writes restart files",
+    #    "process_name"    : "RestartProcess",
+    #    "Parameters"      : {
+    #        "model_part_name"     : "Main Model",
+    #        "save_restart"        : true,
+    #        "restart_file_name"   : "cutting_test_rigid_2D_json",
+    #        "restart_file_label"  : "step",
+    #        "output_control_type" : "time",
+    #        "output_frequency"    : 0,
+    #        "json_output"         : false
+    #    }
+    #}],
+
+proc write::GetRestartProcess { {un ""} {name "" } } {
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    
+    set resultDict [dict create ]
+    if {$un eq ""} {set un "Results"}
+    if {$name eq ""} {set name "RestartOptions"}
+    
+    set xp "[spdAux::getRoute $un]/value\[@n = 'SaveRestart'\]/"
+    dict set resultDict "python_module" "restart_process"
+    dict set resultDict "kratos_module" "KratosMultiphysics.SolidMechanicsApplication"
+    dict set resultDict "help" "This process writes restart files"
+    dict set resultDict "process_name" "RestartProcess"
+    
+    set params [dict create]
+    set saveValue [write::getStringBinaryValue $un SaveRestart]
+    dict set resultDict "process_name" "RestartProcess"
+    if {$saveValue} {
+        
+
+        dict set params "restart_file_name" [file tail [GiD_Info Project ModelName]]
+        set xp1 "[spdAux::getRoute $un]/container\[@n = '$name'\]/value"
+    }
+    dict set resultDict "Parameters" $params
+    return $resultDict
+}
 
 proc write::GetMeshFromCondition { base_UN condition_id } {
     set doc $gid_groups_conds::doc
@@ -988,8 +1036,16 @@ proc write::Duration { int_time } {
     return [join $timeList]
 }
  
+proc write::getValueByNode { node } {
+    if {[get_domnode_attribute $node v] eq ""} {
+        catch {get_domnode_attribute $node dict}
+    }
+    set v ""
+    catch {set v [expr [get_domnode_attribute $node v]]}
+    if {$v eq "" } {set v [get_domnode_attribute $node v]}
+    return $v
+}
 proc write::getValue { name { it "" } } {
-    # quitar de aqui!!!! Cuello de botella
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     ##
@@ -997,13 +1053,7 @@ proc write::getValue { name { it "" } } {
     set node [$root selectNodes $xp]
     if {$it ne ""} {set node [$node find n $it]}
     
-    if {[get_domnode_attribute $node v] eq ""} {
-	catch {get_domnode_attribute $node dict}
-    }
-    set v ""
-    catch {set v [expr [get_domnode_attribute $node v]]}
-    if {$v eq "" } {set v [get_domnode_attribute $node v]}
-    return $v
+    return [getValueByNode $node]
  }
  
 proc write::isBoolean {value} {

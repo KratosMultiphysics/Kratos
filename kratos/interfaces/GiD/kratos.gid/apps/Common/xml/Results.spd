@@ -31,7 +31,6 @@
     </container>
     <value n="SaveRestart" pn="Save restart" v="No" values="Yes,No" actualize_tree="1" state="[ActiveIfRestartAvailable]"/>
     <container n="RestartOptions" pn="Restart options" state="[getStateFromXPathValue {string(../value[@n='SaveRestart']/@v)} Yes]">
-        <value n="restart_file_name" pn="Restart filename" v="restart.rest" />
         <value n="restart_file_label" pn="Restart file label" v="step" values="step"/>
         <value n="output_control_type" pn="Output control type" v="step" values="step" />
         <value n="output_frequency" pn="Output frequency" v="1" />

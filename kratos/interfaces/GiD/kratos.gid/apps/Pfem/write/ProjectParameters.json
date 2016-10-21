@@ -133,52 +133,52 @@
 	    "model_part_name"      : "Solid Domain",
             "search_control_type"  : "step",
             "search_frequency"     : 1.0,
-	    "parametric_walls" : [
-		{
-		    "python_module": "parametric_wall",
-		    "mesh_id": 0,
-		    "model_part_name" : "model_part_name",
-		    "rigid_body_settings":{
-			"rigid_body_element_type": "TranslatoryRigidElement3D1N",
-			"fixed_body": true,
-			"compute_body_parameters": false,
-                        "rigid_body_model_part_name": "model_part_name",
-			"rigid_body_parameters":{
-			    "center_of_gravity": [0.0 ,0.0, 0.0],
-			    "mass":0.0,
-			    "main_inertias": [0.0, 0.0, 0.0],
-			    "main_axes": [ [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ]
-			}
-		    },
-		    "bounding_box_settings":{
-			"kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
-			"bounding_box_type": "SpatialBoundingBox",
-			"bounding_box_parameters":{
-			    "parameters_list":[],
-			    "velocity" : [0.0, 0.0, 0.0]
-			}
-		    },
-		    "contact_search_settings":{
-			"kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
-			"contact_search_type": "ParametricWallContactSearch",
-			"contact_parameters":{
-			    "contact_condition_type": "PointContactCondition2D1N",
-			    "friction_law_type": "FrictionLaw",
-			    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
-			    "variables_of_properties":{
-                    "FRICTION_ACTIVE": false,
-                    "MU_STATIC": 0.3,
-                    "MU_DYNAMIC": 0.2,
-                    "PENALTY_PARAMETER": 1000,
-                    "TANGENTIAL_PENALTY_RATIO": 0.1,
-                    "TAU_STAB": 1
+            "parametric_walls" : [
+                {
+                    "python_module": "parametric_wall",
+                    "mesh_id": 0,
+                    "model_part_name" : "model_part_name",
+                    "rigid_body_settings":{
+                    "rigid_body_element_type": "TranslatoryRigidElement3D1N",
+                    "fixed_body": true,
+                    "compute_body_parameters": false,
+                                "rigid_body_model_part_name": "model_part_name",
+                    "rigid_body_parameters":{
+                        "center_of_gravity": [0.0 ,0.0, 0.0],
+                        "mass":0.0,
+                        "main_inertias": [0.0, 0.0, 0.0],
+                        "main_axes": [ [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ]
+                    }
+                    },
+                    "bounding_box_settings":{
+                    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
+                    "bounding_box_type": "SpatialBoundingBox",
+                    "bounding_box_parameters":{
+                        "parameters_list":[],
+                        "velocity" : [0.0, 0.0, 0.0]
+                    }
+                    },
+                    "contact_search_settings":{
+                    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
+                    "contact_search_type": "ParametricWallContactSearch",
+                    "contact_parameters":{
+                        "contact_condition_type": "PointContactCondition2D1N",
+                        "friction_law_type": "FrictionLaw",
+                        "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
+                        "variables_of_properties":{
+                            "FRICTION_ACTIVE": false,
+                            "MU_STATIC": 0.3,
+                            "MU_DYNAMIC": 0.2,
+                            "PENALTY_PARAMETER": 1000,
+                            "TANGENTIAL_PENALTY_RATIO": 0.1,
+                            "TAU_STAB": 1
+                            }
+                        }
                     }
                 }
-		    }
-		}
-
-	    ]
-	}
+    
+            ]
+        }
     },{
         "help"         : "This process creates the rigid bodies of the model",
         "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
