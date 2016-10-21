@@ -14,8 +14,7 @@
     <Process n="ApplyOutletProcess" pn="Scalar value" python_module="impose_scalar_value_process"
         kratos_module="KratosMultiphysics.FluidDynamicsApplication">
 		<inputs>
-			<!--<parameter n="PressureType" pn="Pressure type" type="combo" v="Constant" values="Constant,Hydrostatic" help="Pressure will be setted.." state="[ShowInMode Developer]"/>-->
-			<parameter n="value" pn="Pressure" type="double" unit_magnitude="P" units="Pa"/>
+			<parameter n="value" pn="Pressure" function="1" type="double" unit_magnitude="P" units="Pa"/>
 		</inputs>
     </Process>
 

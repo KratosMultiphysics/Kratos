@@ -88,7 +88,7 @@ proc Fluid::write::getGravityProcessDict {} {
     set partgroup [write::getPartsMeshId]
     dict set params "model_part_name" [concat [lindex $partgroup 0]]
     dict set params "variable_name" "BODY_FORCE"
-    dict set params "factor" $value
+    dict set params "modulus" $value
     dict set params "direction" [list $cx $cy $cz]
     dict set pdict "Parameters" $params
     
