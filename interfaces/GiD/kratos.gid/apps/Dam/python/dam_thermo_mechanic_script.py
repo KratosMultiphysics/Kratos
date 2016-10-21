@@ -91,6 +91,8 @@ elif(time_converter=="Hours"):              # Factor to pass from hours to secon
 else:                                       # No changes
     time_unit_converter = 1.0               
 
+main_model_part.ProcessInfo[TIME_UNIT_CONVERTER] = time_unit_converter
+
 #Thermal Parameters
 if (type_of_problem == "Thermo-Mechanical"):
     
@@ -164,7 +166,6 @@ computing_model_part = solver.GetComputingModelPart()
 gid_output = GiDOutputProcess(computing_model_part,problem_name,ProjectParameters["output_configuration"])
 gid_output.ExecuteInitialize()
 
-
 #Initializa the mechanical solver
 solver.Initialize()
 thermal_solver.Initialize()
@@ -177,7 +178,6 @@ for process in list_of_processes:
 
 # Set the results 
 gid_output.ExecuteBeforeSolutionLoop()
-
 
 ################################# TEMPORAL LOOP ####3########################## 
 
@@ -196,15 +196,11 @@ while( (current_time+tol) < ending_time ):
     print("--------------------------------------------------")
     print("STEP",current_step," - TIME","%.5f" % current_time)
     
-    # Update imposed conditions
-    #conditions_util.UpdateImposedConditions(model_part,current_step)
-
     # Solve thermal step
     clock_time = clock()
     thermal_solver.Solve()
     print("Thermal Solving Time = ","%.5f" % (clock() - clock_time)," seconds")
-    
-    
+        
     # Solve mechanical step
     clock_time = clock()
     solver.Solve()
