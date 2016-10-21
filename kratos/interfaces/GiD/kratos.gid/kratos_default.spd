@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?><!-- -*- coding: utf-8; mode: SGML -*- -->
-<Kratos_data version='5.0.1'> 
+<Kratos_data show_menubutton_about="0" version='5.0.1'> 
   <groups/>
   <units>
   </units>
