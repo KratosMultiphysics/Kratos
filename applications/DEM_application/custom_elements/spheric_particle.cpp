@@ -548,6 +548,7 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
     GeometryFunctions::CrossProduct(my_delta_rotation,    my_arm_vector,    my_delta_disp_at_contact_point_due_to_rotation);
     GeometryFunctions::CrossProduct(other_delta_rotation, other_arm_vector, other_delta_disp_at_contact_point_due_to_rotation);
 
+
     // Contribution of the rotation
     RelDeltDisp[0] += my_delta_disp_at_contact_point_due_to_rotation[0] - other_delta_disp_at_contact_point_due_to_rotation[0];
     RelDeltDisp[1] += my_delta_disp_at_contact_point_due_to_rotation[1] - other_delta_disp_at_contact_point_due_to_rotation[1];
@@ -566,6 +567,7 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
         const array_1d<double, 3>& neigh_angular_vel = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
         const double other_young = p_neighbour->GetYoung();
         const double my_young = GetYoung();
+
 
         array_1d<double, 3> temp_angular_vel;
         noalias(temp_angular_vel) = angular_vel;
@@ -637,9 +639,11 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
         RelVel[2] += vel[2] - other_vel[2];
 
         // Contribution of the rotation velocity
-        DeltDisp[0] += (new_axes1[0] - e1[0] - new_axes2[0] + e2[0]);
-        DeltDisp[1] += (new_axes1[1] - e1[1] - new_axes2[1] + e2[1]);
-        DeltDisp[2] += (new_axes1[2] - e1[2] - new_axes2[2] + e2[2]);
+
+
+        DeltDisp[0] += (new_axes1[0] - new_axes2[0]) + (e2[0] - e1[0]);
+        DeltDisp[1] += (new_axes1[1] - new_axes2[1]) + (e2[1] - e1[1]);
+        DeltDisp[2] += (new_axes1[2] - new_axes2[2]) + (e2[2] - e1[2]);
 }
 
 void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
@@ -1283,7 +1287,16 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
         //The following operation symmetrizes the tensor. We will work with the symmetric stress tensor always, because the non-symmetric one is being filled while forces are being calculated
         for (int i = 0; i < 3; i++) {
             for (int j = i; j < 3; j++) {
-                (*mSymmStressTensor)(i,j) = (*mSymmStressTensor)(j,i) = 0.5 * ((*mStressTensor)(i,j) + (*mStressTensor)(j,i));
+                //(*mSymmStressTensor)(i,j) = (*mSymmStressTensor)(j,i) = 0.5 * ((*mStressTensor)(i,j) + (*mStressTensor)(j,i));
+                 (*mSymmStressTensor)(i,j) = (*mSymmStressTensor)(j,i) = std::max (fabs((*mStressTensor)(i,j)), fabs((*mStressTensor)(j,i)));
+
+                //                unsigned int element_id = this->Id();
+                //                if (element_id == 6) {
+                //                    for (int i = 0; i < 3; i++) {
+                //                        for (int j = 0; j < 3; j++) {
+                //                            std::cout << (*mStressTensor)(i,j) << "\n";}}
+                //                    std::cout <<  "newloop \n";
+                //                }
             }
         }
     }
@@ -1353,6 +1366,7 @@ void SphericParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
                                             const unsigned int i_neighbour_count,
                                             ProcessInfo& r_process_info)
 {
+
     for (unsigned int index = 0; index < 3; index++) {
         LocalContactForce[index] = LocalElasticContactForce[index] + LocalElasticExtraContactForce[index] + ViscoDampingLocalContactForce[index] + other_ball_to_ball_forces[index];
     }
