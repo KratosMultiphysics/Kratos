@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="Results" pn="Results" un="Results" icon="results16" state="normal" open="1">
     <value n="OutputDeltaTime" pn="Output delta time" v="1.0" help="Output delta time" state="normal"/>
-    <value n="File" pn="File" v="-" values="[GetFilesValues]" update_proc="AddFile" />
     <container n="OnElement" pn="On element" un="ElementResults" state="[ActiveIfAnyPartState]">
         <dynamicnode command="injectElementOutputs" args=""/>
         <dynamicnode command="injectConstitutiveLawOutputs" args=""/>

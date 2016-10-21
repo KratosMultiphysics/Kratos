@@ -206,6 +206,4 @@ proc Dam::write::GetPrinTables {} {
     return $listaTablas
 }
 
-
-
 Dam::write::Init
