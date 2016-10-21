@@ -214,7 +214,7 @@ public:
     {
         KRATOS_TRY
 
-        std::cout << " Update " << std::endl;
+        //std::cout << " Update " << std::endl;
         //update of displacement (by DOF)
         for (typename DofsArrayType::iterator i_dof = rDofSet.begin(); i_dof != rDofSet.end(); ++i_dof)
         {
@@ -277,7 +277,7 @@ public:
         TSystemVectorType& b
     )
     {
-        std::cout << " Prediction " << std::endl;
+        //std::cout << " Prediction " << std::endl;
         array_1d<double, 3 > DeltaDisplacement;
 
         
@@ -515,8 +515,8 @@ public:
         double NormAcc = 1.0;
         double NormDeltaVel = 1.0;
         double NormDeltaAcc = 1.0;
-        double TolVel = 5.0e-3;
-        double TolAcc = 5.0e-3;
+        double TolVel = 5.0e-4;
+        double TolAcc = 5.0e-4;
         int ItNum = 1;
         //for (unsigned int i = 0; i<20; i++)// 
         //while(RatioNormVel > TolVel || RatioNormAcc > TolAcc)
@@ -606,45 +606,44 @@ public:
 
                
                     
-                    if (i->HasDofFor(DISPLACEMENT_X))
-                {
-                    DeltaNodalVelocity[0] = NodalMomentum[0]/NodalMass;
-                    DeltaNodalAcceleration[0] = NodalInertia[0]/NodalMass;
+                    //if (i->HasDofFor(DISPLACEMENT_X))
+                //{
+                    //DeltaNodalVelocity[0] = NodalMomentum[0]/NodalMass;
+                    //DeltaNodalAcceleration[0] = NodalInertia[0]/NodalMass;
                     
-                }
-                if (i->HasDofFor(DISPLACEMENT_Y))
-                {
-                    DeltaNodalVelocity[1] = NodalMomentum[1]/NodalMass;
-                    DeltaNodalAcceleration[1] = NodalInertia[1]/NodalMass;
+                //}
+                //if (i->HasDofFor(DISPLACEMENT_Y))
+                //{
+                    //DeltaNodalVelocity[1] = NodalMomentum[1]/NodalMass;
+                    //DeltaNodalAcceleration[1] = NodalInertia[1]/NodalMass;
                     
-                }
-                if (i->HasDofFor(DISPLACEMENT_Z))
-                {
-                    DeltaNodalVelocity[2] = NodalMomentum[2]/NodalMass;
-                    DeltaNodalAcceleration[2] = NodalInertia[2]/NodalMass;
+                //}
+                //if (i->HasDofFor(DISPLACEMENT_Z))
+                //{
+                    //DeltaNodalVelocity[2] = NodalMomentum[2]/NodalMass;
+                    //DeltaNodalAcceleration[2] = NodalInertia[2]/NodalMass;
                     
-                }            
-                    
+                //}             
   
 //************************************************************************************************************************************************************                    
                     
-                    //if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
-                    //{
-                        //DeltaNodalVelocity[0] = NodalMomentum[0]/NodalMass;
-                        //DeltaNodalAcceleration[0] = NodalInertia[0]/NodalMass;
-                    //}
-                    //else
-                    //{
-                        //DeltaNodalVelocity[0] = 0.0;
-                        //DeltaNodalAcceleration[0] = 0.0;
+                    if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
+                    {
+                        DeltaNodalVelocity[0] = NodalMomentum[0]/NodalMass;
+                        DeltaNodalAcceleration[0] = NodalInertia[0]/NodalMass;
+                    }
+                    else
+                    {
+                        DeltaNodalVelocity[0] = 0.0;
+                        DeltaNodalAcceleration[0] = 0.0;
                         
-                    //}
-                    //if ((i->pGetDof(DISPLACEMENT_Y))->IsFixed() == false)
-                    //{
+                    }
+                    if ((i->pGetDof(DISPLACEMENT_Y))->IsFixed() == false)
+                    {
                        
                         
-                        //DeltaNodalAcceleration[1] = NodalInertia[1]/NodalMass;
-                        //DeltaNodalVelocity[1] = NodalMomentum[1]/NodalMass;
+                        DeltaNodalAcceleration[1] = NodalInertia[1]/NodalMass;
+                        DeltaNodalVelocity[1] = NodalMomentum[1]/NodalMass;
                         
                         
                         ////if ((i)->Id() == 69 || (i)->Id() == 55 || (i)->Id() == 61)
@@ -656,27 +655,27 @@ public:
                             ////std::cout<<"NodalMomentum[1] "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(NODAL_MOMENTUM)[1]<<std::endl;
                             ////std::cout<<"NodalMass "<<(i)->Id() << "\t" <<(i)->FastGetSolutionStepValue(NODAL_MASS)<<std::endl;
                         ////}                        
-                    //}
-                    //else
-                    //{
-                        //DeltaNodalVelocity[1] = 0.0;
-                        //DeltaNodalAcceleration[1] = 0.0;
+                    }
+                    else
+                    {
+                        DeltaNodalVelocity[1] = 0.0;
+                        DeltaNodalAcceleration[1] = 0.0;
                         
-                    //}
-                    //if (i->HasDofFor(DISPLACEMENT_Z))
-                    //{
-                        //if ((i->pGetDof(DISPLACEMENT_Z))->IsFixed() == false)
-                        //{
-                            //DeltaNodalVelocity[2] = NodalMomentum[2]/NodalMass;
-                            //DeltaNodalAcceleration[2] = NodalInertia[2]/NodalMass;
-                        //}
-                        //else
-                        //{
-                            //DeltaNodalVelocity[2] = 0.0;
-                            //DeltaNodalAcceleration[2] = 0.0;
+                    }
+                    if (i->HasDofFor(DISPLACEMENT_Z))
+                    {
+                        if ((i->pGetDof(DISPLACEMENT_Z))->IsFixed() == false)
+                        {
+                            DeltaNodalVelocity[2] = NodalMomentum[2]/NodalMass;
+                            DeltaNodalAcceleration[2] = NodalInertia[2]/NodalMass;
+                        }
+                        else
+                        {
+                            DeltaNodalVelocity[2] = 0.0;
+                            DeltaNodalAcceleration[2] = 0.0;
                             
-                        //}
-                    //}
+                        }
+                    }
 //************************************************************************************************************************************************************                    
                     //(i)->FastGetSolutionStepValue(VELOCITY,1) += DeltaNodalVelocity;
                     //(i)->FastGetSolutionStepValue(ACCELERATION,1) += DeltaNodalAcceleration;
@@ -753,8 +752,8 @@ public:
 			
             
             
-            std::cout<< " RatioNormVel "<< RatioNormVel << std::endl;
-            std::cout<< " RatioNormAcc "<< RatioNormAcc << std::endl;
+            //std::cout<< " RatioNormVel "<< RatioNormVel << std::endl;
+            //std::cout<< " RatioNormAcc "<< RatioNormAcc << std::endl;
             ++ItNum;
         }
         
@@ -853,22 +852,34 @@ public:
         //double TotalEnergy = 0.0;
         //double KineticEnergy = 0.0;
         //double StrainEnergy = 0.0;
+//********************************************************************************************************************************************* 
         for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
                 i != rModelPart.NodesEnd(); ++i)
         {
             array_1d<double, 3 > & NodalVelocity = (i)->FastGetSolutionStepValue(VELOCITY,0);
             array_1d<double, 3 > & NodalAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION,0);
-            
+            //if ((i)->Id() == 1998)// || (i)->Id() == 2790 || (i)->Id() == 2721 )
+            //{
+				//std::cout<<"FINALIZE "<<std::endl;
+				//std::cout<<"NodalVelocity "<<(i)->Id()<<NodalVelocity<<std::endl;
+				//std::cout<<"NodalAcceleration "<<(i)->Id()<<NodalAcceleration<<std::endl;
+			//}
             //NODAL VELOCITY AND NODAL ACCELERATION ARE SET TO ZERO FOR FIXED NODE, BEFORE MAPPING FROM NODES TO PARTICLES
-            //THE NODAL INFORMATION
+            //THE NODAL INFORMATION (I am not sure..)
             if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == true)
                 {
-                    NodalVelocity.clear();
-                    NodalAcceleration.clear();
+                    NodalVelocity[0] = 0.0;
+                    NodalAcceleration[0] = 0.0;
+                    
+                }
+            if ((i->pGetDof(DISPLACEMENT_Y))->IsFixed() == true)
+                {
+                    NodalVelocity[1] = 0.0;
+                    NodalAcceleration[1] = 0.0;
                     
                 }
         }
-
+//********************************************************************************************************************************************* 
         int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
         OpenMPUtils::DivideInPartitions(rElements.size(), NumThreads, ElementPartition);
