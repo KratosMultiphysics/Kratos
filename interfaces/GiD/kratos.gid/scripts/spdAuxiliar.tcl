@@ -739,7 +739,7 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
                 set values "1,0"
                 append node "<value n='$inName' pn='$pn' v='$v' values='$values'  help='$help' state='$state'/>"
             } elseif { $type eq "file" || $type eq "tablefile" } {
-                append node "<value n='$inName' pn='$pn' v='$v' values='\[GetFilesValues\]' update_proc='AddFile' menu_update='AddFile' help='$help' state='$state' type='$type'/>"
+                append node "<value n='$inName' pn='$pn' v='$v' values='\[GetFilesValues\]' update_proc='AddFile' help='$help' state='$state' type='$type'/>"
             } else {
                 append node "<value n='$inName' pn='$pn' v='$v'  units='$units'  unit_magnitude='$um'  help='$help'/>"
                 if {[$in getAttribute "function"] eq "1"} {
