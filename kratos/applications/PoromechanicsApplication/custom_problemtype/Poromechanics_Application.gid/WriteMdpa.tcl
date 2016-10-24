@@ -764,7 +764,8 @@ proc WriteMdpa { basename dir } {
                 # UPwSmallStrainInterfaceElement3D6N
                 puts $varfile "Begin Elements UPwSmallStrainInterfaceElement3D6N"
                 for {set j 0} {$j < [llength $Entities]} {incr j} {
-                    set Connectivities [Triangle2D6Connectivities [lindex $Entities $j]]
+                    #set Connectivities [Triangle2D6Connectivities [lindex $Entities $j]]
+                    set Connectivities [PrismInterface3D6Connectivities [lindex $Entities $j]]
                     puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                 }
                 puts $varfile "End Elements"
@@ -786,7 +787,8 @@ proc WriteMdpa { basename dir } {
                 # UPwSmallStrainInterfaceElement3D8N
                 puts $varfile "Begin Elements UPwSmallStrainInterfaceElement3D8N"
                 for {set j 0} {$j < [llength $Entities]} {incr j} {
-                    set Connectivities [Hexahedron3D8Connectivities [lindex $Entities $j]]
+                    #set Connectivities [Hexahedron3D8Connectivities [lindex $Entities $j]]
+                    set Connectivities [HexahedronInterface3D8Connectivities [lindex $Entities $j]]
                     puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                 }
                 puts $varfile "End Elements"
@@ -795,7 +797,7 @@ proc WriteMdpa { basename dir } {
                 # UPwSmallStrainLinkInterfaceElement3D8N
                 puts $varfile "Begin Elements UPwSmallStrainLinkInterfaceElement3D8N"
                 for {set j 0} {$j < [llength $Entities]} {incr j} {
-                    set Connectivities [HexahedronInterface3D8Connectivities [lindex $Entities $j]]
+                    set Connectivities [Hexahedron3D8Connectivities [lindex $Entities $j]]
                     puts $varfile "  [lindex $Entities $j]  $ElemsMat  $Connectivities"
                 }
                 puts $varfile "End Elements"
@@ -2296,7 +2298,7 @@ proc TetrahedronInterface3D6Connectivities { ElemId } {
     #if {$cosangle > -1.0e-20} {
         #set Connectivities "$N1(Id) $N2(Id) $N3(Id) $N4(Id) $N2(Id) $N3(Id)"
     #} else {
-        #W "Reordering nodes of interface element"
+        ##W "Reordering nodes of interface element"
         #set Connectivities "$N1(Id) $N3(Id) $N2(Id) $N4(Id) $N3(Id) $N2(Id)"
     #}
     
@@ -2305,73 +2307,68 @@ proc TetrahedronInterface3D6Connectivities { ElemId } {
 
 #-------------------------------------------------------------------------------
 
-#proc PrismInterface3D6Connectivities { ElemId } {
+proc PrismInterface3D6Connectivities { ElemId } {
 
-    ## Obtaining element nodes
-    #set ElementInfo [GiD_Mesh get element $ElemId]
-    ##ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
-    #set N1(Id) [lindex $ElementInfo 3]
-    #set N2(Id) [lindex $ElementInfo 4]
-    #set N3(Id) [lindex $ElementInfo 5]
-    #set N4(Id) [lindex $ElementInfo 6]
-    #set N5(Id) [lindex $ElementInfo 7]
-    #set N6(Id) [lindex $ElementInfo 8]
+    # Obtaining element nodes
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    set N1(Id) [lindex $ElementInfo 3]
+    set N2(Id) [lindex $ElementInfo 4]
+    set N3(Id) [lindex $ElementInfo 5]
+    set N4(Id) [lindex $ElementInfo 6]
+    set N5(Id) [lindex $ElementInfo 7]
+    set N6(Id) [lindex $ElementInfo 8]
     
-    ## Obtaining nodes coordinates
-    #set NCoord [lindex [GiD_Info Coordinates $N1(Id)] 0]
-    #set N1(x) [lindex $NCoord 0]
-    #set N1(y) [lindex $NCoord 1]
-    #set N1(z) [lindex $NCoord 2]
-    #set NCoord [lindex [GiD_Info Coordinates $N2(Id)] 0]
-    #set N2(x) [lindex $NCoord 0]
-    #set N2(y) [lindex $NCoord 1]
-    #set N2(z) [lindex $NCoord 2]
-    #set NCoord [lindex [GiD_Info Coordinates $N3(Id)] 0]
-    #set N3(x) [lindex $NCoord 0]
-    #set N3(y) [lindex $NCoord 1]
-    #set N3(z) [lindex $NCoord 2]
-    #set NCoord [lindex [GiD_Info Coordinates $N4(Id)] 0]
-    #set N4(x) [lindex $NCoord 0]
-    #set N4(y) [lindex $NCoord 1]
-    #set N4(z) [lindex $NCoord 2]
+    # Obtaining element volume
+    set Volume [lindex [GiD_Info list_entities -more Elements $ElemId] 20]
+    set Volume [string trimleft $Volume "Volume="]
     
-    ## Compute vector from node 1 to node 4
-    #set Vup(x) [expr { $N4(x)-$N1(x) }]
-    #set Vup(y) [expr { $N4(y)-$N1(y) }]
-    #set Vup(z) [expr { $N4(z)-$N1(z) }]
-    
-    ## Compute vector from node 1 to node 2
-    #set V12(x) [expr { $N2(x)-$N1(x) }]
-    #set V12(y) [expr { $N2(y)-$N1(y) }]
-    #set V12(z) [expr { $N2(z)-$N1(z) }]
-    ## Compute vector from node 1 to node 3
-    #set V13(x) [expr { $N3(x)-$N1(x) }]
-    #set V13(y) [expr { $N3(y)-$N1(y) }]
-    #set V13(z) [expr { $N3(z)-$N1(z) }]
-    
-    ## Compute cross product between V12 and V13
-    #set Vn(x) [expr { $V12(y)*$V13(z)-$V12(z)*$V13(y) }]
-    #set Vn(y) [expr { $V12(z)*$V13(x)-$V12(x)*$V13(z) }]
-    #set Vn(z) [expr { $V12(x)*$V13(y)-$V12(y)*$V13(x) }]
-    
-    ## Compute cos(angle) between Vup and Vn
-    #set cosangle [expr { $Vup(x)*$Vn(x)+$Vup(y)*$Vn(y)+$Vup(z)*$Vn(z)}]
-    
-    ## Check Connectivities
-    #if {$cosangle > -1.0e-20} {
-        #set Connectivities "$N1(Id) $N2(Id) $N3(Id) $N4(Id) $N5(Id) $N6(Id)"
-    #} else {
+    # Check Connectivities
+    if {$Volume > -1.0e-15} {
+        set Connectivities "$N1(Id) $N2(Id) $N3(Id) $N4(Id) $N5(Id) $N6(Id)"
+    } else {
         #W "Reordering nodes of interface element"
-        #set Connectivities "$N1(Id) $N3(Id) $N2(Id) $N4(Id) $N6(Id) $N5(Id)"
-    #}
+        set Connectivities "$N1(Id) $N3(Id) $N2(Id) $N4(Id) $N6(Id) $N5(Id)"
+    }
     
-    #return $Connectivities
-#}
+    return $Connectivities
+}
+
+#-------------------------------------------------------------------------------
+
+proc HexahedronInterface3D8Connectivities { ElemId } {
+
+    # Obtaining element nodes
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    set N1(Id) [lindex $ElementInfo 3]
+    set N2(Id) [lindex $ElementInfo 4]
+    set N3(Id) [lindex $ElementInfo 5]
+    set N4(Id) [lindex $ElementInfo 6]
+    set N5(Id) [lindex $ElementInfo 7]
+    set N6(Id) [lindex $ElementInfo 8]
+    set N7(Id) [lindex $ElementInfo 9]
+    set N8(Id) [lindex $ElementInfo 10]
+    
+    # Obtaining element volume
+    set Volume [lindex [GiD_Info list_entities -more Elements $ElemId] 22]
+    set Volume [string trimleft $Volume "Volume="]
+    
+    # Check Connectivities
+    if {$Volume > -1.0e-15} {
+        set Connectivities "$N1(Id) $N2(Id) $N3(Id) $N4(Id) $N5(Id) $N6(Id) $N7(Id) $N8(Id)"
+    } else {
+        #W "Reordering nodes of interface element"
+        set Connectivities "$N1(Id) $N4(Id) $N3(Id) $N2(Id) $N5(Id) $N8(Id) $N7(Id) $N6(Id)"
+    }
+    
+    return $Connectivities
+}
 
 #-------------------------------------------------------------------------------
 
 #proc HexahedronInterface3D8Connectivities { ElemId } {
-
+    
     ## Obtaining element nodes
     #set ElementInfo [GiD_Mesh get element $ElemId]
     ##ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
@@ -2397,117 +2394,50 @@ proc TetrahedronInterface3D6Connectivities { ElemId } {
     #set N3(x) [lindex $NCoord 0]
     #set N3(y) [lindex $NCoord 1]
     #set N3(z) [lindex $NCoord 2]
+    #set NCoord [lindex [GiD_Info Coordinates $N4(Id)] 0]
+    #set N4(x) [lindex $NCoord 0]
+    #set N4(y) [lindex $NCoord 1]
+    #set N4(z) [lindex $NCoord 2]
     #set NCoord [lindex [GiD_Info Coordinates $N5(Id)] 0]
     #set N5(x) [lindex $NCoord 0]
     #set N5(y) [lindex $NCoord 1]
     #set N5(z) [lindex $NCoord 2]
-
-    ## Compute vector from node 1 to node 5
-    #set Vup(x) [expr { $N5(x)-$N1(x) }]
-    #set Vup(y) [expr { $N5(y)-$N1(y) }]
-    #set Vup(z) [expr { $N5(z)-$N1(z) }]
+    #set NCoord [lindex [GiD_Info Coordinates $N6(Id)] 0]
+    #set N6(x) [lindex $NCoord 0]
+    #set N6(y) [lindex $NCoord 1]
+    #set N6(z) [lindex $NCoord 2]
+    #set NCoord [lindex [GiD_Info Coordinates $N7(Id)] 0]
+    #set N7(x) [lindex $NCoord 0]
+    #set N7(y) [lindex $NCoord 1]
+    #set N7(z) [lindex $NCoord 2]
+    #set NCoord [lindex [GiD_Info Coordinates $N8(Id)] 0]
+    #set N8(x) [lindex $NCoord 0]
+    #set N8(y) [lindex $NCoord 1]
+    #set N8(z) [lindex $NCoord 2]
     
-    ## Compute vector from node 1 to node 2
-    #set V12(x) [expr { $N2(x)-$N1(x) }]
-    #set V12(y) [expr { $N2(y)-$N1(y) }]
-    #set V12(z) [expr { $N2(z)-$N1(z) }]
-    ## Compute vector from node 1 to node 3
-    #set V13(x) [expr { $N3(x)-$N1(x) }]
-    #set V13(y) [expr { $N3(y)-$N1(y) }]
-    #set V13(z) [expr { $N3(z)-$N1(z) }]
+    ## Computing element lengths
+    #set lx [expr { sqrt( (0.25*($N2(x)+$N6(x)+$N3(x)+$N7(x)-$N1(x)-$N5(x)-$N4(x)-$N8(x)))**2 + (0.25*($N2(y)+$N6(y)+$N3(y)+$N7(y)-$N1(y)-$N5(y)-$N4(y)-$N8(y)))**2 + (0.25*($N2(z)+$N6(z)+$N3(z)+$N7(z)-$N1(z)-$N5(z)-$N4(z)-$N8(z)))**2 ) }]
+    #set ly [expr { sqrt( (0.25*($N3(x)+$N4(x)+$N7(x)+$N8(x)-$N1(x)-$N2(x)-$N5(x)-$N6(x)))**2 + (0.25*($N3(y)+$N4(y)+$N7(y)+$N8(y)-$N1(y)-$N2(y)-$N5(y)-$N6(y)))**2 + (0.25*($N3(z)+$N4(z)+$N7(z)+$N8(z)-$N1(z)-$N2(z)-$N5(z)-$N6(z)))**2 ) }]
+    #set lz [expr { sqrt( (0.25*($N5(x)+$N6(x)+$N7(x)+$N8(x)-$N1(x)-$N2(x)-$N3(x)-$N4(x)))**2 + (0.25*($N5(y)+$N6(y)+$N7(y)+$N8(y)-$N1(y)-$N2(y)-$N3(y)-$N4(y)))**2 + (0.25*($N5(z)+$N6(z)+$N7(z)+$N8(z)-$N1(z)-$N2(z)-$N3(z)-$N4(z)))**2 ) }]
     
-    ## Compute cross product between V12 and V13
-    #set Vn(x) [expr { $V12(y)*$V13(z)-$V12(z)*$V13(y) }]
-    #set Vn(y) [expr { $V12(z)*$V13(x)-$V12(x)*$V13(z) }]
-    #set Vn(z) [expr { $V12(x)*$V13(y)-$V12(y)*$V13(x) }]
-    
-    ## Compute cos(angle) between Vup and Vn
-    #set cosangle [expr { $Vup(x)*$Vn(x)+$Vup(y)*$Vn(y)+$Vup(z)*$Vn(z) }]
-        
-    ## Check Connectivities
-    #if {$cosangle > -1.0e-20} {
-        #set Connectivities "$N1(Id) $N2(Id) $N3(Id) $N4(Id) $N5(Id) $N6(Id) $N7(Id) $N8(Id)"
+    #if {$lz <= $lx} {
+        #if {$lz <= $ly} {
+            ## lz <= lx && lz <= ly
+            #set Connectivities "$N1(Id) $N2(Id) $N3(Id) $N4(Id) $N5(Id) $N6(Id) $N7(Id) $N8(Id)"
+        #} else {
+            ## ly < lz <= lx
+            #set Connectivities "$N1(Id) $N4(Id) $N8(Id) $N5(Id) $N2(Id) $N3(Id) $N7(Id) $N6(Id)"
+        #}
+    #} elseif {$ly <= $lx} {
+        ## ly <= lx < lz
+        #set Connectivities "$N1(Id) $N4(Id) $N8(Id) $N5(Id) $N2(Id) $N3(Id) $N7(Id) $N6(Id)"
     #} else {
-        #W "Reordering nodes of interface element"
-        #set Connectivities "$N1(Id) $N4(Id) $N3(Id) $N2(Id) $N5(Id) $N8(Id) $N7(Id) $N6(Id)"
+        ## lx < lz && lx < ly
+        #set Connectivities "$N1(Id) $N5(Id) $N6(Id) $N2(Id) $N4(Id) $N8(Id) $N7(Id) $N3(Id)"
     #}
     
     #return $Connectivities
 #}
-
-#-------------------------------------------------------------------------------
-
-proc HexahedronInterface3D8Connectivities { ElemId } {
-    
-    # Obtaining element nodes
-    set ElementInfo [GiD_Mesh get element $ElemId]
-    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
-    set N1(Id) [lindex $ElementInfo 3]
-    set N2(Id) [lindex $ElementInfo 4]
-    set N3(Id) [lindex $ElementInfo 5]
-    set N4(Id) [lindex $ElementInfo 6]
-    set N5(Id) [lindex $ElementInfo 7]
-    set N6(Id) [lindex $ElementInfo 8]
-    set N7(Id) [lindex $ElementInfo 9]
-    set N8(Id) [lindex $ElementInfo 10]
-    
-    # Obtaining nodes coordinates
-    set NCoord [lindex [GiD_Info Coordinates $N1(Id)] 0]
-    set N1(x) [lindex $NCoord 0]
-    set N1(y) [lindex $NCoord 1]
-    set N1(z) [lindex $NCoord 2]
-    set NCoord [lindex [GiD_Info Coordinates $N2(Id)] 0]
-    set N2(x) [lindex $NCoord 0]
-    set N2(y) [lindex $NCoord 1]
-    set N2(z) [lindex $NCoord 2]
-    set NCoord [lindex [GiD_Info Coordinates $N3(Id)] 0]
-    set N3(x) [lindex $NCoord 0]
-    set N3(y) [lindex $NCoord 1]
-    set N3(z) [lindex $NCoord 2]
-    set NCoord [lindex [GiD_Info Coordinates $N4(Id)] 0]
-    set N4(x) [lindex $NCoord 0]
-    set N4(y) [lindex $NCoord 1]
-    set N4(z) [lindex $NCoord 2]
-    set NCoord [lindex [GiD_Info Coordinates $N5(Id)] 0]
-    set N5(x) [lindex $NCoord 0]
-    set N5(y) [lindex $NCoord 1]
-    set N5(z) [lindex $NCoord 2]
-    set NCoord [lindex [GiD_Info Coordinates $N6(Id)] 0]
-    set N6(x) [lindex $NCoord 0]
-    set N6(y) [lindex $NCoord 1]
-    set N6(z) [lindex $NCoord 2]
-    set NCoord [lindex [GiD_Info Coordinates $N7(Id)] 0]
-    set N7(x) [lindex $NCoord 0]
-    set N7(y) [lindex $NCoord 1]
-    set N7(z) [lindex $NCoord 2]
-    set NCoord [lindex [GiD_Info Coordinates $N8(Id)] 0]
-    set N8(x) [lindex $NCoord 0]
-    set N8(y) [lindex $NCoord 1]
-    set N8(z) [lindex $NCoord 2]
-    
-    # Computing element lengths
-    set lx [expr { sqrt( (0.25*($N2(x)+$N6(x)+$N3(x)+$N7(x)-$N1(x)-$N5(x)-$N4(x)-$N8(x)))**2 + (0.25*($N2(y)+$N6(y)+$N3(y)+$N7(y)-$N1(y)-$N5(y)-$N4(y)-$N8(y)))**2 + (0.25*($N2(z)+$N6(z)+$N3(z)+$N7(z)-$N1(z)-$N5(z)-$N4(z)-$N8(z)))**2 ) }]
-    set ly [expr { sqrt( (0.25*($N3(x)+$N4(x)+$N7(x)+$N8(x)-$N1(x)-$N2(x)-$N5(x)-$N6(x)))**2 + (0.25*($N3(y)+$N4(y)+$N7(y)+$N8(y)-$N1(y)-$N2(y)-$N5(y)-$N6(y)))**2 + (0.25*($N3(z)+$N4(z)+$N7(z)+$N8(z)-$N1(z)-$N2(z)-$N5(z)-$N6(z)))**2 ) }]
-    set lz [expr { sqrt( (0.25*($N5(x)+$N6(x)+$N7(x)+$N8(x)-$N1(x)-$N2(x)-$N3(x)-$N4(x)))**2 + (0.25*($N5(y)+$N6(y)+$N7(y)+$N8(y)-$N1(y)-$N2(y)-$N3(y)-$N4(y)))**2 + (0.25*($N5(z)+$N6(z)+$N7(z)+$N8(z)-$N1(z)-$N2(z)-$N3(z)-$N4(z)))**2 ) }]
-    
-    if {$lz <= $lx} {
-        if {$lz <= $ly} {
-            # lz <= lx && lz <= ly
-            set Connectivities "$N1(Id) $N2(Id) $N3(Id) $N4(Id) $N5(Id) $N6(Id) $N7(Id) $N8(Id)"
-        } else {
-            # ly < lz <= lx
-            set Connectivities "$N1(Id) $N4(Id) $N8(Id) $N5(Id) $N2(Id) $N3(Id) $N7(Id) $N6(Id)"
-        }
-    } elseif {$ly <= $lx} {
-        # ly <= lx < lz
-        set Connectivities "$N1(Id) $N4(Id) $N8(Id) $N5(Id) $N2(Id) $N3(Id) $N7(Id) $N6(Id)"
-    } else {
-        # lx < lz && lx < ly
-        set Connectivities "$N1(Id) $N5(Id) $N6(Id) $N2(Id) $N4(Id) $N8(Id) $N7(Id) $N3(Id)"
-    }
-    
-    return $Connectivities
-}
 
 #-------------------------------------------------------------------------------
 
