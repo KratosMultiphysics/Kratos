@@ -97,6 +97,8 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
 
             for domain in self.meshing_domains:
                 domain.Initialize()
+                print( "ComputeInitialAverageMeshParameters")
+                domain.ComputeInitialAverageMeshParameters()      
                 #domain.Check()
                 
 
@@ -153,7 +155,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         # execute building:
         skin_build.Execute()
 
-        print("::[Modeler_Utility]:: Mesh Boundary Build executed ")
+        print("::[Remesh_Fluid_Domains_Process]:: Mesh Boundary Build executed ")
 
     ###
 
@@ -161,6 +163,8 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
     def ExecuteInitializeSolutionStep(self):
 
         self.step_count += 1
+        for domain in self.meshing_domains:
+            domain.ComputeAverageMeshParameters()     
 
     #
     def ExecuteBeforeOutputStep(self):
@@ -168,7 +172,8 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         if(self.remesh_domains_active):
             if( self.meshing_before_output ):
                 if(self.IsMeshingStep()):
-                    self.RemeshDomains()
+                    print("::[Remesh_Fluid_Domains_Process]:: RemeshFluidDomains ")
+                    self.RemeshFluidDomains()
         
     #
     def ExecuteAfterOutputStep(self):
@@ -241,17 +246,6 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
             return ( self.step_count >= self.next_meshing )
 
     #
-    def ComputeAverageMeshParameters(self):
-     
-        for domain in self.meshing_domains:
-            domain.ComputeAverageMeshParameters()     
-
-    #
-    def ComputeInitialAverageMeshParameters(self):
-        print( "ComputeInitialAverageMeshParameters")
-        for domain in self.meshing_domains:
-            domain.ComputeInitialAverageMeshParameters()       
-#
 
     def RemeshFluidDomains(self):
 
