@@ -26,7 +26,7 @@ proc Pfem::write::getParametersDict { } {
     
     ##### Restart
     set output_process_list [GetPFEM_OutputProcessList]
-    dict set projectParametersDict output_process_list $projectParametersDict
+    dict set projectParametersDict output_process_list $output_process_list
 
     ##### output_configuration
     dict set projectParametersDict output_configuration [write::GetDefaultOutputDict]
