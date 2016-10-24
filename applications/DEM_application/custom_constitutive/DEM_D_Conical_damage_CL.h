@@ -30,13 +30,13 @@ namespace Kratos {
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;
 
-        void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double equiv_radius, const double equiv_young, const double equiv_shear, const double indentation);
+        void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, double& equiv_radius, double& equiv_young, double& equiv_shear, const double indentation);
+
+        void DamageContact(SphericParticle* const element1, SphericParticle* const element2, double& equiv_radius, double& equiv_young, double& equiv_shear, double& indentation, const double normal_contact_force);
         
-        void DamageContact(SphericParticle* const element1, SphericParticle* const element2, double equiv_radius, const double equiv_young, const double equiv_shear, const double indentation, const double normal_contact_force);
+        void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, double& effective_radius, double& equiv_young, double& equiv_shear, const double indentation);
         
-        void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double effective_radius, const double equiv_young, const double equiv_shear, const double indentation, const double ini_delta = 0.0);
-        
-        void DamageContactWithFEM(SphericParticle* const element, DEMWall* const wall, double effective_radius, const double equiv_young, const double equiv_shear, const double indentation, const double normal_contact_force, const double ini_delta = 0.0);
+        void DamageContactWithFEM(SphericParticle* const element, DEMWall* const wall, double& effective_radius, double& equiv_young, double& equiv_shear, double& indentation, const double normal_contact_force);
 
         void CalculateForces(const ProcessInfo& r_process_info,
                              const double OldLocalElasticContactForce[3],
@@ -137,7 +137,7 @@ namespace Kratos {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMDiscontinuumConstitutiveLaw)
                     //rSerializer.load("MyMemberName",myMember);
         }
-        
+
     }; //class DEM_D_Conical_damage
 
 } /* namespace Kratos.*/
