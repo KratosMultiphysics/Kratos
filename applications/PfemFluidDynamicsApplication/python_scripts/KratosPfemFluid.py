@@ -175,9 +175,11 @@ if((main_model_part.ProcessInfo).Has(IS_RESTARTED)):
         gid_output.ExecuteBeforeSolutionLoop()
 
 # Set time settings
+step = 0
 time       =  PProjectParameters["problem_data"]["start_time"].GetDouble()
-final_time   = PProjectParameters["problem_data"]["end_time"].GetDouble()
-Dt = PProjectParameters["problem_data"]["time_step"].GetDouble()
+
+end_time   = PProjectParameters["problem_data"]["end_time"].GetDouble()
+delta_time = PProjectParameters["problem_data"]["time_step"].GetDouble()
 
 # Check tetrahedral mesh for wrong orientation
 throw_errors = False
@@ -186,67 +188,47 @@ orientation_check.Execute()
 
 print("here the MODEL_PART = ", main_model_part)
 
-out = 0
-step = 0
 
-current_id = 0
+while(time <= end_time):
 
-while(time <= final_time):
+    delta_time = main_model_part.ProcessInfo[DELTA_TIME]
 
-    time = time + Dt
+    time = time + delta_time
     step = step + 1
 
     main_model_part.ProcessInfo[STEP] = step
     main_model_part.CloneTimeStep(time) 
 
-    # processes to be executed at the begining of the solution step
+    print(" [STEP:",step," TIME:",time,"]")
 
-
-    print("STEP = ", step)
-    print("TIME = ", time)
-
-    if(step >= 2):
-        for process in list_of_processes:
-            process.ExecuteInitializeSolutionStep()
-
-        gid_output.ExecuteInitializeSolutionStep()
+    for process in list_of_processes:
+        process.ExecuteInitializeSolutionStep()
+        
+    gid_output.ExecuteInitializeSolutionStep()
      
-        clock_time = StartTimeMeasuring();
-        
-        if(step == 2):
-            process.ComputeInitialAverageMeshParameters()
-        
-        process.ComputeAverageMeshParameters()
+    clock_time = StartTimeMeasuring();
+
+
+    # processes to be executed before witting the output      
+    for process in list_of_processes:
+        process.ExecuteBeforeOutputStep()
  
+    solver.NodalChecksAndAssignations()
+    
+    print("Solve()")
+    solver.Solve()
 
-        execute_meshing = True
-        # remesh domains
-        if(execute_meshing):
-            print("RemeshDomains()")
-            process.RemeshFluidDomains();
+    print("write gid results...")
+    gid_output.PrintOutput()
 
-        solver.NodalChecksAndAssignations()
+    solver.InitializeStressStrain()
 
-        print("Solve()")
-        solver.Solve()
+    # processes to be executed after witting the output
+    for process in list_of_processes:
+        process.ExecuteAfterOutputStep()
 
-        print("write gid results...")
-        gid_output.PrintOutput()
-        #graph_printer.PrintGraphs(time)
+    print(" ...gid results written")
 
-        solver.InitializeStressStrain()
-        #fluid_solver.InitializeStressStrain()
-
-        # processes to be executed after witting the output
-        for process in list_of_processes:
-            process.ExecuteAfterOutputStep()
-
-        current_id=current_id+1
-        out = 0
-        print(" ...gid results written")
-
-
-    out = out + Dt
 gid_output.ExecuteFinalize()
 
 for process in list_of_processes:
