@@ -63,9 +63,9 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                     for node in part.Nodes:
                         body_model_part.AddNode(node,0)
                         #body_model_part.Nodes.append(node)
-                        if (body_model_part_type=="fluid"):
+                        if (body_model_part_type=="Fluid"):
                             node.Set(KratosMultiphysics.FLUID)
-                        if (body_model_part_type=="rigid"):
+                        if (body_model_part_type=="Rigid"):
                             node.Set(KratosMultiphysics.RIGID)
                             node.Set(KratosMultiphysics.BOUNDARY)
                     for elem in part.Elements:
@@ -73,10 +73,10 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                     for cond in part.Conditions:
                         body_model_part.AddCondition(cond,0) 
 
-                if( body_model_part_type == "fluid" ):
+                if( body_model_part_type == "Fluid" ):
                     body_model_part.Set(KratosMultiphysics.FLUID)
                     fluid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))
-                if( body_model_part_type == "rigid" ):
+                if( body_model_part_type == "Rigid" ):
                     body_model_part.Set(KratosMultiphysics.RIGID)
                     rigid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))
 
