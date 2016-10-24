@@ -860,6 +860,39 @@ public:
         return edges;
     }
 
+
+    //Connectivities of faces required
+    virtual void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const
+    {
+        if(NumberNodesInFaces.size() != 3 )
+            NumberNodesInFaces.resize(3,false);
+        // Linear Triangles have elements of 2 nodes as faces
+        NumberNodesInFaces[0]=2;
+        NumberNodesInFaces[1]=2;
+        NumberNodesInFaces[2]=2;
+
+    }
+
+    virtual void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const
+    {
+        if(NodesInFaces.size1() != 3 || NodesInFaces.size2() != 3)
+            NodesInFaces.resize(3,3,false);
+
+        NodesInFaces(0,0)=0;//face or other node
+        NodesInFaces(1,0)=1;
+        NodesInFaces(2,0)=2;
+
+        NodesInFaces(0,1)=1;//face or other node 
+        NodesInFaces(1,1)=2;
+        NodesInFaces(2,1)=0;
+
+        NodesInFaces(0,2)=2;//face or other node
+        NodesInFaces(1,2)=0;
+        NodesInFaces(2,2)=1;
+
+    }
+
+    
     /**
      * Returns all faces of the current geometry.
      * This is only implemented for 3D geometries, since 2D geometries
