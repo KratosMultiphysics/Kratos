@@ -347,7 +347,7 @@ proc write::getMeshId {cid group} {
     }
 }
 
-proc write::writeGroupMesh { cid group {what "Elements"} {iniend ""} {tableid ""} } {
+proc write::writeGroupMesh { cid group {what "Elements"} {iniend ""} {tableid_list ""} } {
     variable meshes
     variable groups_type_name
     
@@ -365,9 +365,11 @@ proc write::writeGroupMesh { cid group {what "Elements"} {iniend ""} {tableid ""
         set f [subst $f]
         dict set gdict $group $f
         WriteString "Begin $gtn $mid // Group $group // Subtree $cid"
-        if {$tableid ne ""} {
+        if {$tableid_list ne ""} {
             WriteString "    Begin SubModelPartTables"
-            WriteString "    $tableid"
+            foreach tableid $tableid_list {
+                WriteString "    $tableid"
+            }
             WriteString "    End SubModelPartTables"
         }
         WriteString "    Begin ${gtn}Nodes"

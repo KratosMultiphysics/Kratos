@@ -95,9 +95,12 @@ proc Dam::write::writeNodalConditions { keyword } {
     foreach group $groups {
         set condid [[$group parent] @n]
         set groupid [$group @n]
-        set tableid ""
+        set tableid [list ]
         if {[dict exists $TableDict $condid $groupid]} {
-            set tableid [dict get $TableDict $condid $groupid tableid]
+            set groupdict [dict get $TableDict $condid $groupid]
+            foreach valueid [dict keys $groupdict] {
+                lappend tableid [dict get $groupdict $valueid tableid]
+            }
         }
         ::write::writeGroupMesh $condid $groupid "nodal" "" $tableid
     }
@@ -114,9 +117,12 @@ proc Dam::write::writeLoads { } {
         set condid [get_domnode_attribute [$group parent] n]
         set groupid [get_domnode_attribute $group n]
         #W "Writing mesh of Load $condid $groupid"
-        set tableid ""
+        set tableid [list ]
         if {[dict exists $TableDict $condid $groupid]} {
-            set tableid [dict get $TableDict $condid $groupid tableid]
+            set groupdict [dict get $TableDict $condid $groupid]
+            foreach valueid [dict keys $groupdict] {
+                lappend tableid [dict get $groupdict $valueid tableid]
+            }
         }
         #W "table $tableid"
         if {$groupid in [dict keys $ConditionsDictGroupIterators]} {
@@ -161,8 +167,10 @@ proc Dam::write::GetTableidFromFileid { filename } {
     variable TableDict
     foreach condid [dict keys $TableDict] {
         foreach groupid [dict keys [dict get $TableDict $condid]] {
-            if {[dict get $TableDict $condid $groupid fileid] eq $filename} {
-                return [dict get $TableDict $condid $groupid tableid]
+            foreach valueid [dict keys [dict get $TableDict $condid $groupid]] {
+                if {[dict get $TableDict $condid $groupid $valueid fileid] eq $filename} {
+                    return [dict get $TableDict $condid $groupid $valueid tableid]
+                }
             }
         }
     }
@@ -172,10 +180,11 @@ proc Dam::write::GetTableidFromFileid { filename } {
 proc Dam::write::writeTables { } {
     variable TableDict
     foreach table [GetPrinTables] {
-        lassign $table tableid fileid condid groupid
-        dict set TableDict $condid $groupid tableid $tableid
-        dict set TableDict $condid $groupid fileid $fileid
+        lassign $table tableid fileid condid groupid valueid
+        dict set TableDict $condid $groupid $valueid tableid $tableid
+        dict set TableDict $condid $groupid $valueid fileid $fileid
         write::WriteString "Begin Table $tableid"
+        # Acordarse de tratar los archivos que llevan el punto delante, significa que estan en la carpeta del modelo
         set data [GidUtils::ReadFile $fileid]
         write::WriteString [string map {; { }} $data]
         write::WriteString "End Table"
@@ -194,10 +203,11 @@ proc Dam::write::GetPrinTables {} {
         set xpathCond "[spdAux::getRoute $unique_name]/condition/group/value\[@type='tablefile'\]"
         foreach node [$root selectNodes $xpathCond] {
             set fileid [get_domnode_attribute $node v]
+            set valueid [get_domnode_attribute $node n]
             set groupid [get_domnode_attribute [$node parent] n]
             set condid [get_domnode_attribute [[$node parent] parent] n]
             if {$fileid ne "" && $fileid ni $listaFiles} {
-                lappend listaTablas [list $num $fileid $condid $groupid]
+                lappend listaTablas [list $num $fileid $condid $groupid $valueid]
                 lappend listaFiles $fileid
                 incr num
             }
