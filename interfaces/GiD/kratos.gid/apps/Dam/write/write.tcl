@@ -185,6 +185,14 @@ proc Dam::write::writeTables { } {
         dict set TableDict $condid $groupid $valueid fileid $fileid
         write::WriteString "Begin Table $tableid"
         # Acordarse de tratar los archivos que llevan el punto delante, significa que estan en la carpeta del modelo
+        W $fileid
+        if {[string index $fileid 0] eq "."} {
+            W $fileid
+            set modelname [GiD_Info project ModelName]
+            set filename [string range $fileid 2 end]
+            set fileid [file join "$modelname.gid" $filename]
+            W $fileid
+        }
         set data [GidUtils::ReadFile $fileid]
         write::WriteString [string map {; { }} $data]
         write::WriteString "End Table"
@@ -195,6 +203,7 @@ proc Dam::write::writeTables { } {
 proc Dam::write::GetPrinTables {} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
+    FileSelector::CopyFilesIntoModel [file join [GiD_Info project ModelName] ".gid"]
     set listaTablas [list ]
     set listaFiles [list ]
     set num 1
