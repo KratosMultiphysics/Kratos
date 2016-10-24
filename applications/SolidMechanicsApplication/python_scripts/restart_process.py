@@ -238,6 +238,14 @@ class RestartProcess(KratosMultiphysics.Process):
                     pass
 
     #
+    def IsInt(self,s):
+        try: 
+            int(s)
+            return True
+        except ValueError:
+            return False
+        
+    #
     def CleanPosteriorFileType(self, restart_step, file_ending_type):
 
         if(os.path.exists(self.problem_path) == False):
@@ -253,11 +261,13 @@ class RestartProcess(KratosMultiphysics.Process):
                     end_parts  = file_parts[num_parts-1].split(".") # you get ["145","post","bin"]
                     print_id   = end_parts[0] # you get "145"
 
-                    if( int(print_id)>restart_step ):
-                        filelist.append(f)
+                    if( self.IsInt(print_id) ):
+                        if( int(print_id) > int(restart_step) ):
+                            filelist.append(f)
 
             for f in filelist:
                 try:
                     os.remove(f)
                 except WindowsError:
                     pass
+
