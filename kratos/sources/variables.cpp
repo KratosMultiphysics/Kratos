@@ -540,12 +540,12 @@ namespace Kratos
     mPeriodicCondition(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2  ) ) ) ),
     mPeriodicConditionEdge(0, Element::GeometryType::Pointer( new Quadrilateral3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4  ) ) ) ),
     mPeriodicConditionCorner(0, Element::GeometryType::Pointer( new Hexahedra3D8<Node<3> >( Element::GeometryType::PointsArrayType( 8  ) ) ) ),
-    mElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4  ) ) ) ),
-    mElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3  ) ) ) ),
     mElement2D2N( 0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2  ) ) ) ),
-    mElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),	
-    mElement3D10N(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(Element::GeometryType::PointsArrayType(10)))),
-    mElement3D6N(0, Element::GeometryType::Pointer(new Prism3D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
+    mElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3  ) ) ) ),
+    mElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3  ) ) ) ),
+    mElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4  ) ) ) ),
+    mElement3D6N( 0, Element::GeometryType::Pointer( new Prism3D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),    mElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),	
+    mElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10<Node<3> >(Element::GeometryType::PointsArrayType(10)))),
     mpVariableData( KratosComponents<VariableData>::pGetComponents() ),
     mpIntVariables( KratosComponents<Variable<int> >::pGetComponents() ),
     mpUnsignedIntVariables( KratosComponents<Variable<unsigned int> >::pGetComponents() ),
@@ -1073,13 +1073,13 @@ namespace Kratos
       KRATOS_REGISTER_CONDITION( "PeriodicConditionCorner", mPeriodicConditionCorner )
 
       //Register specific elements ( must be completed : elements defined in kratos_appliction.h)
-      KRATOS_REGISTER_ELEMENT( "Element3D4N", mElement3D4N )
-      KRATOS_REGISTER_ELEMENT( "Element2D3N", mElement2D3N )
-      KRATOS_REGISTER_ELEMENT("Element3D10N", mElement3D10N)
-      KRATOS_REGISTER_ELEMENT("Element3D8N", mElement3D8N)
-      KRATOS_REGISTER_ELEMENT("Element3D6N", mElement3D6N)
       KRATOS_REGISTER_ELEMENT( "Element2D2N", mElement2D2N )
-   
+      KRATOS_REGISTER_ELEMENT( "Element2D3N", mElement2D3N )
+      KRATOS_REGISTER_ELEMENT( "Element3D3N", mElement3D3N )
+      KRATOS_REGISTER_ELEMENT( "Element3D4N", mElement3D4N )
+      KRATOS_REGISTER_ELEMENT( "Element3D6N", mElement3D6N )
+      KRATOS_REGISTER_ELEMENT( "Element3D8N", mElement3D8N )   
+      KRATOS_REGISTER_ELEMENT( "Element3D10N", mElement3D10N )
       //Register general geometries:
 
       //Points:
