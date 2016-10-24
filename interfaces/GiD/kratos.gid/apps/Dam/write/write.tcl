@@ -184,14 +184,10 @@ proc Dam::write::writeTables { } {
         dict set TableDict $condid $groupid $valueid tableid $tableid
         dict set TableDict $condid $groupid $valueid fileid $fileid
         write::WriteString "Begin Table $tableid"
-        # Acordarse de tratar los archivos que llevan el punto delante, significa que estan en la carpeta del modelo
-        W $fileid
         if {[string index $fileid 0] eq "."} {
-            W $fileid
             set modelname [GiD_Info project ModelName]
             set filename [string range $fileid 2 end]
             set fileid [file join "$modelname.gid" $filename]
-            W $fileid
         }
         set data [GidUtils::ReadFile $fileid]
         write::WriteString [string map {; { }} $data]
