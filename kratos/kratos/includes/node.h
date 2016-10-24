@@ -137,7 +137,7 @@ public:
         , mInitialPosition()
     {
         CreateSolutionStepData();
-
+	mDofs.SetMaxBufferSize(0);
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
 #endif
@@ -205,6 +205,7 @@ public:
         , mInitialPosition(NewX, NewY, NewZ)
     {
         CreateSolutionStepData();
+	mDofs.SetMaxBufferSize(0);
 
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
@@ -222,6 +223,7 @@ public:
         , mInitialPosition(rThisPoint)
     {
         CreateSolutionStepData();
+	mDofs.SetMaxBufferSize(0);
 
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
@@ -312,6 +314,7 @@ public:
         , mInitialPosition(rOtherCoordinates)
     {
         CreateSolutionStepData();
+	mDofs.SetMaxBufferSize(0);
 
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
@@ -332,6 +335,7 @@ public:
         , mInitialPosition()
     {
         CreateSolutionStepData();
+	mDofs.SetMaxBufferSize(0);
 
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
@@ -348,6 +352,7 @@ public:
         , mSolutionStepsNodalData(pVariablesList,ThisData,NewQueueSize)
         , mInitialPosition(NewX, NewY, NewZ)
     {
+	mDofs.SetMaxBufferSize(0);
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
 #endif
