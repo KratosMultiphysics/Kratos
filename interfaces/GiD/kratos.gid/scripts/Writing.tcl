@@ -936,13 +936,21 @@ proc write::GetRestartProcess { {un ""} {name "" } } {
     
     set params [dict create]
     set saveValue [write::getStringBinaryValue $un SaveRestart]
-    dict set resultDict "process_name" "RestartProcess"
-    if {$saveValue} {
-        
 
-        dict set params "restart_file_name" [file tail [GiD_Info Project ModelName]]
-        set xp1 "[spdAux::getRoute $un]/container\[@n = '$name'\]/value"
-    }
+    dict set resultDict "process_name" "RestartProcess"
+    dict set params "model_part_name" "Main Domain"
+    dict set params "save_restart" $saveValue
+    dict set params "restart_file_name" [file tail [GiD_Info Project ModelName]]
+    set xp1 "[spdAux::getRoute $un]/container\[@n = '$name'\]/value"
+    set file_label [getValue $un RestartFileLabel]
+    dict set params "restart_file_label" $file_label
+    set output_control [getValue $un RestartControlType]
+    dict set params "output_control_type" $output_control
+    if {$output_control eq "time"} {dict set params "output_frequency" [getValue $un RestartDeltaTime]} {dict set params "output_frequency" [getValue $un RestartDeltaStep]}
+    set jsonoutput [write::getStringBinaryValue $un json_output]
+    dict set params "json_output" $jsonoutput
+	
+    
     dict set resultDict "Parameters" $params
     return $resultDict
 }
