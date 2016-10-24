@@ -86,7 +86,7 @@ namespace Kratos {
             class_<DEM_D_Linear_Custom_Constants, bases< DEM_D_Linear_viscous_Coulomb >, boost::noncopyable >("DEM_D_Linear_Custom_Constants",init<>())
                     ;
                     
-            class_<DEM_D_Conical_damage, bases< DEMDiscontinuumConstitutiveLaw >, boost::noncopyable >("DEM_D_Conical_damage",init<>())
+            class_<DEM_D_Conical_damage, bases< DEM_D_Hertz_viscous_Coulomb >, boost::noncopyable >("DEM_D_Conical_damage",init<>())
                     ;
             
             // DEM Continuum Constitutive Laws:  
