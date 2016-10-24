@@ -698,22 +698,20 @@ void MortarContactCondition::CalculateConditionSystem(
                 double integration_point_slip;
                 
                 // The tangent LM augmented
-//                 const double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, augmented_normal_lm, integration_point_slip, dimension);
-                double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, integration_point_slip, dimension);
-                augmented_tangent_lm = 0.0;
+                const double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, integration_point_slip, dimension);
                 
                 // Calculation of the matrix is required
                 if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_LHS_MATRIX ) ||
                         rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
                 {
-                    this->CalculateLocalLHS( LHS_contact_pair, Variables, rContactData, IntegrationWeight, augmented_normal_lm, augmented_tangent_lm );
+                    this->CalculateLocalLHS( LHS_contact_pair, Variables, rContactData, IntegrationWeight, augmented_normal_lm, augmented_tangent_lm, integration_point_gap,  integration_point_slip );
                 }
 
                 // Calculation of the vector is required
                 if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_RHS_VECTOR ) ||
                         rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
                 {
-                    this->CalculateLocalRHS( RHS_contact_pair, Variables, rContactData, IntegrationWeight, augmented_normal_lm, augmented_tangent_lm );
+                    this->CalculateLocalRHS( RHS_contact_pair, Variables, rContactData, IntegrationWeight, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip );
                 }
                 
                 for (unsigned int iNode = 0; iNode < number_of_nodes_slave; iNode++)
@@ -1074,7 +1072,9 @@ void MortarContactCondition::CalculateLocalLHS(
     const ContactData& rContactData,
     const double& rIntegrationWeight,
     const double& augmented_normal_lm,
-    const double& augmented_tangent_lm
+    const double& augmented_tangent_lm,
+    const double& integration_point_gap,
+    const double& integration_point_slip
     )
 {
     /* DEFINITIONS */
@@ -1098,23 +1098,24 @@ void MortarContactCondition::CalculateLocalLHS(
             if (augmented_normal_lm <= 0.0)
             {
                 // Contact active
-                rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointActiveLHS( N1, N2, Phi, detJ, rContactData );
+                rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointActiveLHS( N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
                 
-                if (std::abs(augmented_tangent_lm) >= - rVariables.mu * augmented_normal_lm)
+                if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
                 {
                     // Slip
-                    rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointSlipLHS( N1, N2, Phi, detJ, rContactData ); // TODO: I need to reformulate this!!!!
+//                     rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointStickLHS( N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+                    rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointSlipLHS( N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
                 }
                 else
                 {
                     // Stick
-                    rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointStickLHS( N1, N2, Phi, detJ, rContactData ); // TODO: I need to reformulate this!!!!
+                    rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointStickLHS( N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
                 }
             }
 //             else
 //             {        
 //                 // Contact inactive
-//                 rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointInactiveLHS( N1, N2, Phi, detJ, rContactData );
+//                 rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointInactiveLHS( N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
 //             }
         }
         else
@@ -1130,23 +1131,23 @@ void MortarContactCondition::CalculateLocalLHS(
 //             if (augmented_normal_lm <= 0.0)
 //             {
 //                 // Contact active
-//                 rPairLHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointActiveLHS( N1, N2, Phi, detJ, rContactData );
+//                 rPairLHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointActiveLHS( N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
 //                 
-//                 if (std::abs(augmented_tangent_lm) >= - rVariables.mu * augmented_normal_lm)
+//                 if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
 //                 {
 //                     // Slip
-//                     rPairLHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointSlipLHS( N1, N2, Phi, detJ, rContactData ); // TODO: I need to reformulate this!!!!
+//                     rPairLHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointSlipLHS( N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
 //                 }
 //                 else
 //                 {
 //                     // Stick
-//                     rPairLHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointStickLHS( N1, N2, Phi, detJ, rContactData ); // TODO: I need to reformulate this!!!!
+//                     rPairLHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointStickLHS( N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
 //                 }
 //             }
 //             else
 //             {        
 //                 // Contact inactive
-//                 rPairLHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointInactiveLHS( N1, N2, Phi, detJ, rContactData );
+//                 rPairLHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointInactiveLHS( N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
 //             }                       
         }
         else if (number_of_master_nodes == 4 &&  number_of_slave_nodes == 4)
@@ -1156,23 +1157,23 @@ void MortarContactCondition::CalculateLocalLHS(
 //             if (augmented_normal_lm <= 0.0)
 //             {
 //                 // Contact active
-//                 rPairLHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointActiveLHS( N1, N2, Phi, detJ, rContactData );
+//                 rPairLHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointActiveLHS( N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
 //                 
-//                 if (std::abs(augmented_tangent_lm) >= - rVariables.mu * augmented_normal_lm)
+//                 if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
 //                 {
 //                     // Slip
-//                     rPairLHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointSlipLHS( N1, N2, Phi, detJ, rContactData ); // TODO: I need to reformulate this!!!!
+//                     rPairLHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointSlipLHS( N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
 //                 }
 //                 else
 //                 {
 //                     // Stick
-//                     rPairLHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointStickLHS( N1, N2, Phi, detJ, rContactData ); // TODO: I need to reformulate this!!!!
+//                     rPairLHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointStickLHS( N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
 //                 }
 //             }
 //             else
 //             {        
 //                 // Contact inactive
-//                 rPairLHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointInactiveLHS( N1, N2, Phi, detJ, rContactData );
+//                 rPairLHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointInactiveLHS( N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
 //             }      
         }
         else
@@ -1270,7 +1271,9 @@ void MortarContactCondition::CalculateLocalRHS(
     const ContactData& rContactData,
     const double& rIntegrationWeight,
     const double& augmented_normal_lm,
-    const double& augmented_tangent_lm
+    const double& augmented_tangent_lm,
+    const double& integration_point_gap,
+    const double& integration_point_slip
     )
 {
     /* DEFINITIONS */
@@ -1289,26 +1292,27 @@ void MortarContactCondition::CalculateLocalRHS(
     {
         if (number_of_master_nodes == 2 &&  number_of_slave_nodes == 2)
         {
-            if (augmented_normal_lm <= 0.0)
+            if (augmented_normal_lm <= 0.0) 
             {
                 // Contact active
-                rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointActiveRHS(N1, N2, Phi, detJ, rContactData);
+                rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointActiveRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
                 
-                if (std::abs(augmented_tangent_lm) >= - rVariables.mu * augmented_normal_lm)
+                if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
                 {
                     // Slip
-                    rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointSlipRHS(N1, N2, Phi, detJ, rContactData); // TODO: I need to reformulate this!!!!
+//                     rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointStickRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+                    rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointSlipRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
                 }
                 else
                 {
                     // Stick
-                    rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointStickRHS(N1, N2, Phi, detJ, rContactData); // TODO: I need to reformulate this!!!!
+                    rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointStickRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
                 }
             }
 //             else
 //             {
 //                 // Contact inactive
-//                 rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointInactiveRHS(N1, N2, Phi, detJ, rContactData);
+//                 rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointInactiveRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
 //             }
         }
         else
@@ -1324,22 +1328,22 @@ void MortarContactCondition::CalculateLocalRHS(
 //             if (augmented_normal_lm <= 0.0)
 //             {
 //                 // Contact active
-//                 rPairRHS += rIntegrationWeight *  Contact3D3N3N::ComputeGaussPointRHS(N1, N2, Phi, detJ, rContactData);
-//                 if (std::abs(augmented_tangent_lm) >= - rVariables.mu * augmented_normal_lm)
+//                 rPairRHS += rIntegrationWeight *  Contact3D3N3N::ComputeGaussPointRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+//                 if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
 //                 {
 //                     // Slip
-//                     rPairRHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointSlipRHS(N1, N2, Phi, detJ, rContactData);
+//                     rPairRHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointSlipRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
 //                 }
 //                 else
 //                 {
 //                     // Stick
-//                     rPairRHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointStickRHS(N1, N2, Phi, detJ, rContactData); 
+//                     rPairRHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointStickRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip); 
 //                 }
 //             }
 //             else
 //             {
 //                 // Contact inactive
-//                 rPairRHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointInactiveRHS(N1, N2, Phi, detJ, rContactData);
+//                 rPairRHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointInactiveRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
 //             }
         }
         if (number_of_master_nodes == 4 &&  number_of_slave_nodes == 4)
@@ -1349,22 +1353,22 @@ void MortarContactCondition::CalculateLocalRHS(
 //             if (augmented_normal_lm <= 0.0)
 //             {
 //                 // Contact active
-//                 rPairRHS += rIntegrationWeight *  Contact3D4N4N::ComputeGaussPointRHS(N1, N2, Phi, detJ, rContactData);
-//                 if (std::abs(augmented_tangent_lm) >= - rVariables.mu * augmented_normal_lm)
+//                 rPairRHS += rIntegrationWeight *  Contact3D4N4N::ComputeGaussPointRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+//                 if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
 //                 {
 //                     // Slip
-//                     rPairRHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointSlipRHS(N1, N2, Phi, detJ, rContactData);
+//                     rPairRHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointSlipRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
 //                 }
 //                 else
 //                 {
 //                     // Stick
-//                     rPairRHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointStickRHS(N1, N2, Phi, detJ, rContactData); 
+//                     rPairRHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointStickRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip); 
 //                 }
 //             }
 //             else
 //             {
 //                 // Contact inactive
-//                 rPairRHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointInactiveRHS(N1, N2, Phi, detJ, rContactData);
+//                 rPairRHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointInactiveRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
 //             }
         }
         else

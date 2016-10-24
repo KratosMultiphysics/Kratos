@@ -706,7 +706,9 @@ public:
         const ContactData& rContactData,
         const double& rIntegrationWeight,
         const double& augmented_normal_lm,
-        const double& augmented_tangent_lm
+        const double& augmented_tangent_lm,
+        const double& integration_point_gap,
+        const double& integration_point_slip
         );
     
     /*
@@ -737,7 +739,9 @@ public:
         const ContactData& rContactData,
         const double& rIntegrationWeight,
         const double& augmented_normal_lm,
-        const double& augmented_tangent_lm
+        const double& augmented_tangent_lm,
+        const double& integration_point_gap,
+        const double& integration_point_slip
         );
     
     /***********************************************************************************/
