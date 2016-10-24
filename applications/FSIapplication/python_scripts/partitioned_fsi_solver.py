@@ -148,7 +148,7 @@ class PartitionedFSISolver:
             "move_interface"    : true,
             "mesh_prediction"   : true,
             "coupling_strategy" : {
-                "solver_type"       : "relaxation_strategy",
+                "solver_type"       : "Relaxation",
                 "acceleration_type" : "Aitken",
                 "w_0"               : 0.825
                 },
