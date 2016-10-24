@@ -110,9 +110,10 @@ public:
                               ModelPart& base_model_part,
                                           typename LinearSolverType::Pointer plinear_solver,
                                           double max_cfl = 1.0,
-                                          double cross_wind_stabilization_factor = 0.7
+                                          double cross_wind_stabilization_factor = 0.7,
+										  int max_substeps=0
                                          )
-        :mr_base_model_part(base_model_part), mrLevelSetVar(rLevelSetVar), mmax_allowed_cfl(max_cfl)
+        :mr_base_model_part(base_model_part), mrLevelSetVar(rLevelSetVar), mmax_allowed_cfl(max_cfl), mMaxSubsteps(max_substeps)
     {
         KRATOS_TRY
 
@@ -231,8 +232,12 @@ public:
             
             //emulate clone time step by copying the new distance onto the old one
             i=0;
-            for (ModelPart::NodesContainerType::iterator iii = mp_distance_model_part->NodesBegin(); iii != mp_distance_model_part->NodesEnd(); iii++)
+			int  nnodes = mp_distance_model_part->NodesBegin()->size();
+			//for (ModelPart::NodesContainerType::iterator iii = mp_distance_model_part->NodesBegin(); iii != mp_distance_model_part->NodesEnd(); iii++)
+#pragma omp parallel for
+			for (int t = 0; t < nnodes; t++)
             {
+				ModelPart::NodesContainerType::iterator iii = mp_distance_model_part->NodesBegin()+t;
                 iii->FastGetSolutionStepValue(mrLevelSetVar,1) = iii->FastGetSolutionStepValue(mrLevelSetVar);
 
                 const array_1d<double,3>& vold = mvold[i];
@@ -253,8 +258,12 @@ public:
         
         //reset the velocities and levelset values to the one saved before the solution process
         i = 0;
-        for (ModelPart::NodesContainerType::iterator iii = mp_distance_model_part->NodesBegin(); iii != mp_distance_model_part->NodesEnd(); iii++)
-        {
+        //for (ModelPart::NodesContainerType::iterator iii = mp_distance_model_part->NodesBegin(); iii != mp_distance_model_part->NodesEnd(); iii++)
+		int  nnodes = mp_distance_model_part->NodesBegin()->size();
+#pragma omp parallel for
+		for (int t = 0; t < nnodes; t++)
+		{
+			ModelPart::NodesContainerType::iterator iii = mp_distance_model_part->NodesBegin() + t;
             iii->FastGetSolutionStepValue(mrLevelSetVar,1) = mold_dist[i];
             
             const array_1d<double,3>& vold = mvold[i];
@@ -339,6 +348,7 @@ protected:
     bool mdistance_part_is_initialized;
     unsigned int mmax_iterations;
     ModelPart::Pointer mp_distance_model_part;
+	int mMaxSubsteps;
 
     std::vector< double > mold_dist;
     std::vector< array_1d<double,3> > mv, mvold;
@@ -416,7 +426,11 @@ protected:
         const double dt = mp_distance_model_part->GetProcessInfo()[DELTA_TIME];
         
         double max_cfl_found = 0.0;
-// //         #pragma omp parallel for reduce(min: min_cfl_found)
+		// Vector where each thread will store its maximum (VS does not support OpenMP reduce max)
+		int NumThreads = OpenMPUtils::GetNumThreads();
+		std::vector<double> list_of_max_local_cfl(NumThreads, 0.0);
+
+#pragma omp parallel shared(list_of_max_local_cfl)
         for(unsigned int it=0; it<nelem; it++)
         {
             ModelPart::ElementsContainerType::iterator iii = el_begin+it;
@@ -427,7 +441,8 @@ protected:
             array_1d<double, TDim+1 > N;
             double vol;
             GeometryUtils::CalculateGeometryData(geom, DN_DX, N, vol);
-            
+			int k = OpenMPUtils::ThisThread();
+			double& max_cfl = list_of_max_local_cfl[k];
             //compute h
             double h=0.0;
             for(unsigned int i=0; i<TDim+1; i++)
@@ -453,15 +468,19 @@ protected:
 
             double cfl_local = vnorm/h;
             
-            if(cfl_local > max_cfl_found) max_cfl_found = cfl_local;
+            if(cfl_local > max_cfl) max_cfl = cfl_local;
         }
+		// Now we get the maximum at each thread level
+		for (int k=0; k < NumThreads;k++) 
+		if (max_cfl_found < list_of_max_local_cfl[k]) max_cfl_found = list_of_max_local_cfl[k];
+		
         
         max_cfl_found *= dt;
         
         int nsteps = static_cast<unsigned int>(max_cfl_found/mmax_allowed_cfl); 
         if(nsteps < 1) nsteps=1;
-        
-        //KRATOS_WATCH(nsteps)
+		// now we compare with the maximum set
+		if (mMaxSubsteps > 0 && mMaxSubsteps < nsteps) nsteps = mMaxSubsteps;
         
         
         return nsteps;
