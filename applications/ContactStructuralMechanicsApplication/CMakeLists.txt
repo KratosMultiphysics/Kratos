@@ -7,6 +7,7 @@ include_directories( ${CMAKE_SOURCE_DIR}/applications/SolidMechanicsApplication 
 include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/ContactStructuralMechanicsApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/MeshingApplication )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/FSIapplication )
 
 ## generate variables with the sources
 set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES

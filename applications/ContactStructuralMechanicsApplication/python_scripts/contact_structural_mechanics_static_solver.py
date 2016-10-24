@@ -4,6 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.ContactStructuralMechanicsApplication
+import KratosMultiphysics.FSIApplication
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -45,7 +46,8 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
             "line_search": false,
             "compute_reactions": true,
             "compute_contact_forces": false,
-            "compute_mortar_contact": false,
+            "compute_mortar_contact": true,
+            "accelerate_convergence": false,
             "block_builder": false,
             "clear_storage": false,
             "component_wise": false,
@@ -77,6 +79,14 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                 "amp": 1.618,
                 "etmxa": 5,
                 "etmna": 0.1
+            },
+            "convergence_accelerator":{
+                "solver_type"       : "Relaxation",
+                "acceleration_type" : "Aitken",
+                "w_0"               :  0.35,
+                "max_nl_iterations" :  10,
+                "nl_tol"            :  1.0e-5,
+                "buffer_size"       :  10
             },
             "problem_domain_sub_model_part_list": ["solid_model_part"],
             "processes_sub_model_part_list": [""]
@@ -250,7 +260,26 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                                                                             move_mesh_flag)
 
                 else:
-                    if  self.settings["compute_mortar_contact"].GetBool():
+                    if  self.settings["accelerate_convergence"].GetBool():
+                        import convergence_accelerator_factory     
+                        self.coupling_utility = convergence_accelerator_factory.CreateConvergenceAccelerator(self.settings["convergence_accelerator"])
+                        max_nl_it = self.settings["convergence_accelerator"]["max_nl_iterations"].GetInt()
+                        nl_tol = self.settings["convergence_accelerator"]["nl_tol"].GetDouble()
+                        self.mechanical_solver = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactAcceleratedStrategy(
+                                                                                self.computing_model_part, 
+                                                                                mechanical_scheme, 
+                                                                                self.linear_solver, 
+                                                                                mechanical_convergence_criterion, 
+                                                                                builder_and_solver, 
+                                                                                max_iters, 
+                                                                                compute_reactions, 
+                                                                                reform_step_dofs, 
+                                                                                move_mesh_flag,
+                                                                                self.coupling_utility,
+                                                                                max_nl_it,
+                                                                                nl_tol
+                                                                                )
+                    elif  self.settings["compute_mortar_contact"].GetBool():
                         split_factor   = self.settings["split_factor"].GetDouble()
                         max_number_splits = self.settings["max_number_splits"].GetInt()
                         self.mechanical_solver = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactStrategy(
