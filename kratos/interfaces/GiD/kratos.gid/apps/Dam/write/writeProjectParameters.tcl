@@ -103,7 +103,7 @@ proc Dam::write::ChangeFileNameforTableid { processList } {
         set process [::Model::GetProcess $processName]
         set params [$process getInputs]
         foreach {paramName param} $params {
-            if {[$param getType] eq "tablefile"} {
+            if {[$param getType] eq "tablefile" && [dict exists $nodalProcess Parameters $paramName] } {
                 set filename [dict get $nodalProcess Parameters $paramName]
                 set value [Dam::write::GetTableidFromFileid $filename]
                 dict set nodalProcess Parameters $paramName $value
