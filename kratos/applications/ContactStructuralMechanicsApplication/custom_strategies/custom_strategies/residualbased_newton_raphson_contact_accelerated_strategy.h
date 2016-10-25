@@ -126,7 +126,8 @@ public:
         bool MoveMeshFlag = false,
         typename TConvergenceAcceleratorType::Pointer pConvergenceAccelerator = nullptr,
         unsigned int MaxNumberConvergenceAccelerationIterations = 20,
-        double ConvergenceAccelerationTolerance = 1.0e-5,
+        double ConvergenceAccelerationRelativeTolerance = 1.0e-5,
+        double ConvergenceAccelerationAbsoluteTolerance = 1.0e-3,
         bool UpdateSystem = false
     )
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
@@ -151,7 +152,8 @@ public:
         
         // Setting convergence acceleration parameters 
         mMaxNumberConvergenceAccelerationIterations = MaxNumberConvergenceAccelerationIterations;
-        mConvergenceAccelerationTolerance = ConvergenceAccelerationTolerance;
+        mConvergenceAccelerationRelativeTolerance = ConvergenceAccelerationRelativeTolerance;
+        mConvergenceAccelerationAbsoluteTolerance = ConvergenceAccelerationAbsoluteTolerance;
         mUpdateSystem = UpdateSystem;
 
         // Saving the linear solver
@@ -212,7 +214,8 @@ public:
         bool MoveMeshFlag = false,
         typename TConvergenceAcceleratorType::Pointer pConvergenceAccelerator = nullptr,
         unsigned int MaxNumberConvergenceAccelerationIterations = 20,
-        double ConvergenceAccelerationTolerance = 1.0e-5,
+        double ConvergenceAccelerationRelativeTolerance = 1.0e-5,
+        double ConvergenceAccelerationAbsoluteTolerance = 1.0e-3,
         bool UpdateSystem = false
     )
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
@@ -237,7 +240,8 @@ public:
         
         // Setting convergence acceleration parameters 
         mMaxNumberConvergenceAccelerationIterations = MaxNumberConvergenceAccelerationIterations;
-        mConvergenceAccelerationTolerance = ConvergenceAccelerationTolerance;
+        mConvergenceAccelerationRelativeTolerance = ConvergenceAccelerationRelativeTolerance;
+        mConvergenceAccelerationAbsoluteTolerance = ConvergenceAccelerationAbsoluteTolerance;
         mUpdateSystem = UpdateSystem;
         
         // Saving the linear solver
@@ -938,11 +942,13 @@ public:
 
             const double nl_res_norm = TSparseSpace::TwoNorm(residual_vector);
             
+            const double ratio_nl_res_norm = nl_res_norm/mReferenceResidual;
+            
             // Check convergence
-            if (nl_res_norm < mConvergenceAccelerationTolerance)
+            if (ratio_nl_res_norm <= mConvergenceAccelerationRelativeTolerance || nl_res_norm <= mConvergenceAccelerationAbsoluteTolerance)
             {
                 std::cout << "\tNON-LINEAR ITERATION FOR THE CONVERGENCE ACCELERATION ACHIEVED" << std::endl;
-                std::cout << "\tTotal non-linear iterations "<< nl_it + 1 << " NL residual norm: " << nl_res_norm << std::endl;
+                std::cout << "\tTotal non-linear iterations "<< nl_it + 1 << " NL residual norm: " << nl_res_norm << " Ratio NL residual norm: " << ratio_nl_res_norm << std::endl;
                 break;
             }
             else
@@ -950,7 +956,7 @@ public:
                 // If convergence is not achieved, perform the correction of the prediction
 //                 if (BaseType::mEchoLevel > 0)
 //                 {
-                    std::cout << "\tPerforming non-linear iteration " << nl_it + 1 << " NL residual norm: " << nl_res_norm   << std::endl;
+                    std::cout << "\tPerforming non-linear iteration " << nl_it + 1 << " NL residual norm: " << nl_res_norm << " Ratio NL residual norm: " << ratio_nl_res_norm << std::endl;
 //                 }
 
                 mpConvergenceAccelerator->UpdateSolution(residual_vector, mDx);
@@ -991,6 +997,8 @@ public:
         
         InitiliazeCycle(is_converged, ResidualIsUpdated, iteration_number, pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb);
        
+        mReferenceResidual = TSparseSpace::TwoNorm(mb - prod(mA, mDx));
+        
         IterationCycle(is_converged, ResidualIsUpdated, iteration_number, pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb);
 
         // Plots a warning if the maximum number of iterations 
@@ -1065,9 +1073,13 @@ protected:
     
     unsigned int mMaxNumberConvergenceAccelerationIterations;
     
-    double mConvergenceAccelerationTolerance;
+    double mConvergenceAccelerationRelativeTolerance;
+    
+    double mConvergenceAccelerationAbsoluteTolerance;
     
     bool mUpdateSystem;
+    
+    double mReferenceResidual;
 
     typename TLinearSolver::Pointer mpLinearSolver;
 
