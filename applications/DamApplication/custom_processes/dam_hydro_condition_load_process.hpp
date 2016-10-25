@@ -25,6 +25,8 @@ class DamHydroConditionLoadProcess : public Process
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION(DamHydroConditionLoadProcess);
+    
+    typedef Table<double,double> TableType;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -46,7 +48,8 @@ public:
                 "Gravity_Direction"                                     : "Y",
                 "Reservoir_Bottom_Coordinate_in_Gravity_Direction"      : 0.0,
                 "Spe_weight"                                            : 0.0,
-                "Water_level"                                           : 0.0
+                "Water_level"                                           : 0.0,
+                "Water_Table"                                           : 0 
             }  )" );
             
         
@@ -65,11 +68,15 @@ public:
         mgravity_direction = rParameters["Gravity_Direction"].GetString();
         mreference_coordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
         mspecific = rParameters["Spe_weight"].GetDouble();
+        mwater_level = rParameters["Water_level"].GetDouble();
+        
+        mtime_unit_converter = mr_model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
+        mTableId = rParameters["Water_Table"].GetInt();
+        
+        if(mTableId != 0)
+            mpTable = model_part.pGetTable(mTableId);
 
         
-        // TODO: PARAMETERS MUST BE GOT FROM THE TABLE
-        mwater_level = rParameters["Water_level"].GetDouble();
-
         KRATOS_CATCH("");
     }
 
@@ -89,10 +96,66 @@ public:
 
     void ExecuteInitialize()
     {
+        KRATOS_TRY;
+        
+        Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
+        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        int direction;
+        
+        if( mgravity_direction == "X")
+            direction = 1;
+        else if( mgravity_direction == "Y")
+            direction = 2;
+        else if( mgravity_direction == "Z")
+            direction = 3;
+                            
+        if(nnodes != 0)
+        {
+            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+
+            #pragma omp parallel for
+            for(int i = 0; i<nnodes; i++)
+            {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+                if(mis_fixed)
+                {
+                    it->Fix(var);
+                }
+                
+                double ref_coord = mreference_coordinate + mwater_level;
+                double pressure = (mspecific*(ref_coord- (it->Coordinate(direction))));
+                
+                if(pressure>0.0)
+                {
+                    it->FastGetSolutionStepValue(var) = pressure;
+                }
+                else
+                {
+                    it->FastGetSolutionStepValue(var)=0.0;
+                }
+            }            
+        }
+        
+        KRATOS_CATCH("");
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void ExecuteInitializeSolutionStep()
+    {
         
         KRATOS_TRY;
         
         Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
+        
+        // Getting the values of table in case that it exist        
+        if(mTableId != 0)
+        { 
+            double time = mr_model_part.GetProcessInfo()[TIME];
+            time = time/mtime_unit_converter;
+            mwater_level = mpTable->GetValue(time);
+        }
         
         const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
         
@@ -167,6 +230,9 @@ protected:
     double mreference_coordinate;
     double mspecific;
     double mwater_level;
+    double mtime_unit_converter;
+    TableType::Pointer mpTable;
+    int mTableId;
 
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

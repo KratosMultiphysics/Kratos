@@ -26,6 +26,8 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(DamUpliftCircularConditionLoadProcess);
 
+    typedef Table<double,double> TableType;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
@@ -53,7 +55,8 @@ public:
                 "Drains"                                                : false,
                 "Height_drain"                                          : 0.0,
                 "Distance"                                              : 0.0,
-                "Effectiveness"                                         : 0.0
+                "Effectiveness"                                         : 0.0,
+                "table"                                                 : 0 
             }  )" );
             
         
@@ -94,9 +97,13 @@ public:
         mheight_drain = rParameters["Height_drain"].GetDouble();
         mdistance_drain = rParameters["Distance"].GetDouble();
         meffectiveness_drain = rParameters["Effectiveness"].GetDouble();
-        
-        // TODO: PARAMETERS MUST BE GOT FROM THE TABLE
         mwater_level = rParameters["Water_level"].GetInt();
+
+        mtime_unit_converter = mr_model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
+        mTableId = rParameters["table"].GetInt();
+        
+        if(mTableId != 0)
+            mpTable = model_part.pGetTable(mTableId);
 
         KRATOS_CATCH("");
     }
@@ -124,6 +131,144 @@ public:
         Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
         const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
         array_1d<double,3> auxiliar_vector;
+        
+        // Gravity direction for computing the hydrostatic pressure
+        int direction;
+        int radius_comp_1;
+        int radius_comp_2;
+        
+        if( mgravity_direction == "X")
+        {
+            direction = 1;
+            radius_comp_1 = 1;
+            radius_comp_2 = 2;
+        }
+        else if( mgravity_direction == "Y")
+        {
+            direction = 2;
+            radius_comp_1 = 0;
+            radius_comp_2 = 2;
+        }
+        else if( mgravity_direction == "Z")
+        {
+            direction = 3;
+            radius_comp_1 = 0;
+            radius_comp_2 = 1;
+        }
+        
+        // Computation of the angle in radians for each bracket
+        //double tetha = (mangle*2*pi)/(mnum_brackets*360);
+        
+        // Computation of radius for Upstream and Downstream
+        double up_radius = norm_2(mfocus - mupstream);
+        double down_radius = norm_2(mfocus - mdownstream);
+        double width_dam = up_radius - down_radius;
+                
+        if(nnodes != 0)
+        {
+            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            
+            double ref_coord = mreference_coordinate + mwater_level;
+            
+            if( mdrain == true)
+            {
+				double coefficient_effectiveness = 1.0 - meffectiveness_drain;
+				double aux_drain = coefficient_effectiveness *(mwater_level - mheight_drain)* ((width_dam-mdistance_drain)/width_dam) + mheight_drain;
+
+				#pragma omp parallel for
+				for(int i = 0; i<nnodes; i++)
+				{
+					ModelPart::NodesContainerType::iterator it = it_begin + i;
+                    
+                    auxiliar_vector.resize(3,false);                    
+                    auxiliar_vector[0] = mfocus[0] - (it->Coordinate(1));
+                    auxiliar_vector[1] = mfocus[1] - (it->Coordinate(2));
+                    auxiliar_vector[2] = mfocus[2] - (it->Coordinate(3));
+                    
+                    //// Computing the new coordinates                                        
+                    double current_radius = sqrt(auxiliar_vector[radius_comp_1]*auxiliar_vector[radius_comp_1] + auxiliar_vector[radius_comp_2]*auxiliar_vector[radius_comp_2]);
+
+					if(mis_fixed)
+					{
+						it->Fix(var);
+					}
+		
+                    //// We compute the first part of the uplift law 
+                    muplift_pressure = mspecific*((ref_coord -aux_drain) - (it->Coordinate(direction)))*(1.0 - ((1.0/mdistance_drain)*(fabs(current_radius-up_radius)))) + (mspecific * aux_drain); 
+                                       
+                    //// If uplift pressure is greater than the limit we compute the second part and we update the value
+                    if(muplift_pressure <= mspecific*aux_drain)
+                    {
+                        muplift_pressure = (mspecific*((mreference_coordinate + aux_drain)-(it->Coordinate(direction))))*(1.0 - ((1.0/(width_dam - mdistance_drain))*(fabs(current_radius-(up_radius-mdistance_drain)))));
+                    }
+                        
+					if(muplift_pressure<0.0)
+					{
+						it->FastGetSolutionStepValue(var)=0.0;
+					}
+					else
+					{
+						it->FastGetSolutionStepValue(var) = muplift_pressure;
+					}
+				}
+					
+			}
+			else
+			{
+				#pragma omp parallel for
+				for(int i = 0; i<nnodes; i++)
+				{
+					ModelPart::NodesContainerType::iterator it = it_begin + i;
+                    
+                    auxiliar_vector.resize(3,false);                    
+                    auxiliar_vector[0] = mfocus[0] - (it->Coordinate(1));
+                    auxiliar_vector[1] = mfocus[1] - (it->Coordinate(2));
+                    auxiliar_vector[2] = mfocus[2] - (it->Coordinate(3));
+                    
+                    // Computing the current distance to the focus.                    
+                    double current_radius = sqrt(auxiliar_vector[radius_comp_1]*auxiliar_vector[radius_comp_1] + auxiliar_vector[radius_comp_2]*auxiliar_vector[radius_comp_2]);
+                    
+					if(mis_fixed)
+					{
+						it->Fix(var);
+					}
+				
+					muplift_pressure = mspecific*(ref_coord - (it->Coordinate(direction)))*(1.0 - (1.0/width_dam)*(fabs(current_radius-up_radius)));
+                    
+					if(muplift_pressure<0.0)
+					{
+						it->FastGetSolutionStepValue(var)=0.0;
+					}
+					else
+					{
+						it->FastGetSolutionStepValue(var) = muplift_pressure;
+					}
+				}
+			}            
+        }
+        
+        KRATOS_CATCH("");
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void ExecuteInitializeSolutionStep()
+    {
+        
+        KRATOS_TRY;
+        
+        //Defining necessary variables
+        Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
+        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        array_1d<double,3> auxiliar_vector;
+        
+        // Getting the values of table in case that it exist        
+        if(mTableId != 0 )
+        { 
+            double time = mr_model_part.GetProcessInfo()[TIME];
+            time = time/mtime_unit_converter;
+            mwater_level = mpTable->GetValue(time);
+        }
 
 
         // Gravity direction for computing the hydrostatic pressure
@@ -283,7 +428,10 @@ protected:
     double muplift_pressure;
     Vector mupstream;
     Vector mdownstream;
-    Vector mfocus;   
+    Vector mfocus;
+    double mtime_unit_converter;
+    TableType::Pointer mpTable;
+    int mTableId;  
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
