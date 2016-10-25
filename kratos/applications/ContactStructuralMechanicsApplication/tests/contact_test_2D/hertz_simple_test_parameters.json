@@ -88,7 +88,7 @@
         }
     }
     ],
-    "output_configuration"     : {
+    "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -108,7 +108,7 @@
         },
         "point_data_configuration"  : []
     },
-    "_json_check_process" : [
+    "json_check_process" : [
     {
         "python_module"   : "from_json_check_result_process",
         "kratos_module" : "KratosMultiphysics",
