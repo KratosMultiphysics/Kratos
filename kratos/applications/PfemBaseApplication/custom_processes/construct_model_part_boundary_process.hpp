@@ -389,7 +389,7 @@ namespace Kratos
 	std::cout<<" [ Initial Conditions : "<<rModelPart.Conditions().size()<<std::endl;
       }
 
-      if( !rModelPart.Elements().size() || (rModelPart.Is(ACTIVE) && rModelPart.Is(SOLID)) ){
+      if( !rModelPart.Elements().size() || (rModelPart.Is(ACTIVE)) ){
 	if( mEchoLevel > 0 ){
 	  std::cout<<" [ Final Conditions   : "<<rModelPart.Conditions().size()<<std::endl;
 	}
@@ -819,7 +819,7 @@ namespace Kratos
       std::string ComputingModelPartName;
       for(ModelPart::SubModelPartIterator i_mp= mrMainModelPart.SubModelPartsBegin(); i_mp!=mrMainModelPart.SubModelPartsEnd(); i_mp++)
 	{
-	  if(i_mp->Is(SOLID) && i_mp->Is(ACTIVE))
+	  if( i_mp->Is(ACTIVE) )
 	    ComputingModelPartName = i_mp->Name();
 	}
       
@@ -882,7 +882,7 @@ namespace Kratos
 
 	for(ModelPart::SubModelPartIterator i_mp= mrMainModelPart.SubModelPartsBegin(); i_mp!=mrMainModelPart.SubModelPartsEnd(); i_mp++)
 	  {
-	    if( !(i_mp->Is(SOLID) && i_mp->Is(ACTIVE)) && !(i_mp->Is(CONTACT)) ){
+	    if( !( i_mp->Is(ACTIVE) && !(i_mp->Is(CONTACT)) ){
 	      //std::cout<<" ModelPartName "<<i_mp->Name()<<" conditions "<<i_mp->NumberOfConditions()<<std::endl;
 	      for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
 		{
