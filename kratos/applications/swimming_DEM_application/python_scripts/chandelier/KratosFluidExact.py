@@ -8,13 +8,38 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 # Python imports
 import time as timer
+init_time = timer.time()
 import os
+os.system('cls' if os.name == 'nt' else 'clear')
 import sys
+sys.path.append("/home/gcasas/kratos")
+
+class Logger(object):
+    def __init__(self):
+        self.terminal = sys.stdout
+        self.path_to_console_out_file = "console_output.txt"
+        self.log = open(self.path_to_console_out_file, "a")
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)  
+
+    def flush(self):
+        #this flush method is needed for python 3 compatibility.
+        #this handles the flush command by doing nothing.
+        #you might want to specify some extra behavior here.
+        pass    
+
+sys.stdout = Logger()
 import math
+
+#G
+from matplotlib import pyplot as plt
+import pylab
+#Z
 
 simulation_start_time = timer.clock()
 
-print(os.getcwd())
 # Kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.ExternalSolversApplication import *
@@ -30,7 +55,6 @@ sys.path.insert(0,'')
 import DEM_explicit_solver_var as DEM_parameters
 
 # import the configuration data as read from the GiD
-print(os.getcwd())
 import ProjectParameters as pp # MOD
 import define_output
 
@@ -75,15 +99,20 @@ pp.CFD_DEM = DEM_parameters
 ##############################################################################
 
 #G
+file_name, j, k, current_run_path = sys.argv
+print(j, k)
+M = int(j)
+TIME_WINDOW = 5 * pp.CFD_DEM.MaxTimeStep * 2 ** int(k)
+sys.path.append(current_run_path)
+
 pp.CFD_DEM.recover_gradient_option = True
 pp.CFD_DEM.do_search_neighbours = False
-#pp.CFD_DEM.print_PRESSURE_GRADIENT_option = True
+#pp.CFD_DEM.print_PRESSURE_GRADIENT_option = False
 DEM_parameters.fluid_domain_volume = 0.04 * math.pi # write down the volume you know it has
 pp.CFD_DEM.faxen_terms_type = 0
 pp.CFD_DEM.material_acceleration_calculation_type = 0
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
-pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
 pp.CFD_DEM.basset_force_type = 4
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
 pp.CFD_DEM.basset_force_integration_type = 1
@@ -91,18 +120,21 @@ pp.CFD_DEM.n_init_basset_steps = 2
 pp.CFD_DEM.time_steps_per_quadrature_step = 1
 pp.CFD_DEM.delta_time_quadrature = pp.CFD_DEM.time_steps_per_quadrature_step * pp.CFD_DEM.MaxTimeStep
 pp.CFD_DEM.quadrature_order = 2
-pp.CFD_DEM.time_window = 0.05
-pp.CFD_DEM.number_of_exponentials = 10
+pp.CFD_DEM.time_window = TIME_WINDOW
+pp.CFD_DEM.number_of_exponentials = M
 pp.CFD_DEM.number_of_quadrature_steps_in_window = int(pp.CFD_DEM.time_window / pp.CFD_DEM.delta_time_quadrature)
 pp.CFD_DEM.print_steps_per_plot_step = 1
 pp.CFD_DEM.PostCationConcentration = False
 pp.CFD_DEM.do_impose_flow_from_field = True
 pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
 pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = False
-
+number_of_vectors_to_be_kept_in_memory = pp.CFD_DEM.time_window / pp.CFD_DEM.MaxTimeStep * pp.CFD_DEM.time_steps_per_quadrature_step + pp.CFD_DEM.number_of_exponentials 
+print('\nNumber of vectors to be kept in memory: ', number_of_vectors_to_be_kept_in_memory)
 # Making the fluid step an exact multiple of the DEM step
 pp.Dt = int(pp.Dt / pp.CFD_DEM.MaxTimeStep) * pp.CFD_DEM.MaxTimeStep
-print(pp.Dt)
+
+# Creating a code for the used input variables
+run_code = swim_proc.CreadeRunCode(pp)
 #Z
 
 # Import utilities from models
@@ -302,9 +334,12 @@ for node in fluid_model_part.Nodes:
     y = node.GetSolutionStepValue(Y_WALL, 0)
     node.SetValue(Y_WALL, y)
 
-
+# Creating necessary directories
+main_path = os.getcwd()
+[post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name), run_code)
 
 os.chdir(main_path)
+swim_proc.CopyInputFilesIntoFolder(main_path, post_path)
 
 KRATOSprint("\nInitializing Problem...")
 
@@ -717,12 +752,16 @@ for node in spheres_model_part.Nodes:
     node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, ch_pp.u0)
     node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, ch_pp.v0)
     node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, 0.0)   
+r = 0
+x = 0
+y = 0
 
 while (time <= final_time):
     time = time + Dt
     step += 1
     fluid_model_part.CloneTimeStep(time)
     print("\n", "TIME = ", time)
+    print('ELAPSED TIME = ', timer.time() - init_time)
     sys.stdout.flush()
 
     if DEM_parameters.coupling_scheme_type  == "UpdatedDEM":
@@ -1014,6 +1053,21 @@ dt_quad_over_dt = pp.CFD_DEM.delta_time_quadrature / pp.CFD_DEM.MaxTimeStep
 with open('radii' + str(int(dt_quad_over_dt)) + '.txt','w') as f: 
     for i in range(len(radii)):
         f.write(str(times[i]) + ' ' + str(radii[i]) + '\n')
+os.chdir(main_path)
+sys.stdout.path_to_console_out_file
+os.rename(sys.stdout.path_to_console_out_file, post_path + '/' + sys.stdout.path_to_console_out_file)
+import shutil
+folder_name = post_path + '_FINISHED_AT_t=' + str(round(time, 1))
+try:
+    shutil.rmtree(folder_name)
+except OSError:
+    pass
 
+os.rename(post_path, folder_name)
+final_position_file = open(folder_name + "/final_position", 'w')
+final_position_file.write(str(x) + ' ' + str(y))
+final_position_file.close()
+from shutil import copyfile
+copyfile(folder_name + "/final_position", main_path + "/final_position")
 for i in drag_file_output_list:
     i.close()
