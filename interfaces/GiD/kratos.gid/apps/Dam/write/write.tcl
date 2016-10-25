@@ -19,6 +19,7 @@ proc Dam::write::Init { } {
     # key = file path
     # value = id table
     variable TableDict
+    catch {unset TableDict}
     set TableDict [dict create]
 }
 
@@ -179,20 +180,24 @@ proc Dam::write::GetTableidFromFileid { filename } {
 
 proc Dam::write::writeTables { } {
     variable TableDict
+    set printed_tables [list ]
     foreach table [GetPrinTables] {
         lassign $table tableid fileid condid groupid valueid
         dict set TableDict $condid $groupid $valueid tableid $tableid
         dict set TableDict $condid $groupid $valueid fileid $fileid
-        write::WriteString "Begin Table $tableid"
-        if {[string index $fileid 0] eq "."} {
-            set modelname [GiD_Info project ModelName]
-            set filename [string range $fileid 2 end]
-            set fileid [file join "$modelname.gid" $filename]
+        if {$tableid ni $printed_tables} {
+            lappend printed_tables $tableid
+            write::WriteString "Begin Table $tableid // $fileid"
+            if {[string index $fileid 0] eq "."} {
+                set modelname [GiD_Info project ModelName]
+                set filename [string range $fileid 2 end]
+                set fileid [file join "$modelname.gid" $filename]
+            }
+            set data [GidUtils::ReadFile $fileid]
+            write::WriteString [string map {; { }} $data]
+            write::WriteString "End Table"
+            write::WriteString ""
         }
-        set data [GidUtils::ReadFile $fileid]
-        write::WriteString [string map {; { }} $data]
-        write::WriteString "End Table"
-        write::WriteString ""
     }
 }
 
@@ -202,7 +207,7 @@ proc Dam::write::GetPrinTables {} {
     FileSelector::CopyFilesIntoModel [file join [GiD_Info project ModelName] ".gid"]
     set listaTablas [list ]
     set listaFiles [list ]
-    set num 1
+    set num 0
     set origins [list "DamLoads" "DamNodalConditions"]
     foreach unique_name $origins {
         set xpathCond "[spdAux::getRoute $unique_name]/condition/group/value\[@type='tablefile'\]"
@@ -211,10 +216,21 @@ proc Dam::write::GetPrinTables {} {
             set valueid [get_domnode_attribute $node n]
             set groupid [get_domnode_attribute [$node parent] n]
             set condid [get_domnode_attribute [[$node parent] parent] n]
-            if {$fileid ne "" && $fileid ni $listaFiles} {
-                lappend listaTablas [list $num $fileid $condid $groupid $valueid]
-                lappend listaFiles $fileid
-                incr num
+            #W $condid
+            if {$fileid ne ""} {
+                if {$fileid ni $listaFiles} {
+                    lappend listaFiles $fileid
+                    incr num
+                    set tableid $num
+                } else {
+                    set tableid 0
+                    foreach table $listaTablas {
+                        lassign $table tableid2 fileid2 condid2 groupid2 valueid2
+                        if {$fileid2 eq $fileid} {set tableid $tableid2; break}
+                    }
+                }
+                #W "$tableid $fileid $condid $groupid $valueid"
+                lappend listaTablas [list $tableid $fileid $condid $groupid $valueid]
             }
         }
     }
