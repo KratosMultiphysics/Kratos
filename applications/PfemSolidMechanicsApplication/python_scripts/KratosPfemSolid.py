@@ -70,7 +70,7 @@ print(" ")
 # defining the number of threads:
 threads = ProjectParameters["problem_data"]["threads"].GetInt()
 SetParallelSize(threads)
-num_threads = GetParallelSize
+num_threads = GetParallelSize()
 print("::[KPFEM Simulation]:: [OMP USING",num_threads,"THREADS ]")
 #parallel.PrintOMPInfo()
 
@@ -237,11 +237,11 @@ while(time < end_time):
     gid_output.ExecuteInitializeSolutionStep()
 
     # solve time step
-    clock_time = StartTimeMeasuring();
+    clock_time = StartTimeMeasuring()
 
     solver.Solve()
 
-    StopTimeMeasuring(clock_time,"Solving", False);
+    StopTimeMeasuring(clock_time,"Solving", False)
 
     gid_output.ExecuteFinalizeSolutionStep()
 
