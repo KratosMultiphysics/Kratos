@@ -139,7 +139,7 @@ public:
     {
 
         CreateSolutionStepData();
-	mDofs.SetMaxBufferSize(0);
+// 	mDofs.SetMaxBufferSize(0);
 
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
@@ -212,7 +212,7 @@ public:
         , mnode_lock()
     {
         CreateSolutionStepData();
-	mDofs.SetMaxBufferSize(0);
+// 	mDofs.SetMaxBufferSize(0);
 
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
@@ -234,7 +234,7 @@ public:
     {
 
         CreateSolutionStepData();
-	mDofs.SetMaxBufferSize(0);
+// 	mDofs.SetMaxBufferSize(0);
 
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
@@ -271,7 +271,7 @@ public:
     {
 
         CreateSolutionStepData();
-	mDofs.SetMaxBufferSize(0);
+// 	mDofs.SetMaxBufferSize(0);
 
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
@@ -294,7 +294,7 @@ public:
         , mnode_lock()
     {
         CreateSolutionStepData();
-	mDofs.SetMaxBufferSize(0);
+// 	mDofs.SetMaxBufferSize(0);
 
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
@@ -314,7 +314,7 @@ public:
         , mInitialPosition(NewX, NewY, NewZ)
         , mnode_lock()
     {
-	mDofs.SetMaxBufferSize(0);
+// 	mDofs.SetMaxBufferSize(0);
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
 #endif
@@ -1071,7 +1071,7 @@ public:
         typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
         mDofs.insert(mDofs.begin(), p_new_dof);
         
-        if(!mDofs.IsSorted())
+//         if(!mDofs.IsSorted())
             mDofs.Sort();
         
         return *p_new_dof;
@@ -1093,7 +1093,7 @@ public:
         typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction);
         mDofs.insert(mDofs.begin(), p_new_dof);
         
-        if(!mDofs.IsSorted())
+//         if(!mDofs.IsSorted())
             mDofs.Sort();
         
         return *p_new_dof;        
