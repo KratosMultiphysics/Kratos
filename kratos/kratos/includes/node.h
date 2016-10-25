@@ -135,12 +135,18 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition()
+        , mnode_lock()
     {
+
         CreateSolutionStepData();
 	mDofs.SetMaxBufferSize(0);
+
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
 #endif
+        
+
+
     }
 
     Node(IndexType NewId )
@@ -151,13 +157,11 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition()
+        , mnode_lock()
     {
         KRATOS_THROW_ERROR(std::logic_error, "calling the default constructor for the node ... illegal operation!!","");
         CreateSolutionStepData();
 
-#ifdef _OPENMP
-        omp_init_lock(&mnode_lock);
-#endif
     }
 
     /// 1d constructor.
@@ -169,12 +173,13 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition(NewX)
+        , mnode_lock()
     {
-        CreateSolutionStepData();
-
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
 #endif
+        CreateSolutionStepData();
+
     }
 
     /// 2d constructor.
@@ -186,12 +191,13 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition(NewX, NewY)
+        , mnode_lock()
     {
-        CreateSolutionStepData();
-
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
 #endif
+        CreateSolutionStepData();
+
     }
 
     /// 3d constructor.
@@ -203,6 +209,7 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition(NewX, NewY, NewZ)
+        , mnode_lock()
     {
         CreateSolutionStepData();
 	mDofs.SetMaxBufferSize(0);
@@ -210,6 +217,8 @@ public:
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
 #endif
+
+
     }
 
     /// Point constructor.
@@ -221,83 +230,29 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition(rThisPoint)
+        , mnode_lock()
     {
+
         CreateSolutionStepData();
 	mDofs.SetMaxBufferSize(0);
 
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
 #endif
+
+
     }
 
     /** Copy constructor. Initialize this node with given node.*/
     Node(Node const& rOtherNode) = delete;
-//         : BaseType(rOtherNode)
-//         , IndexedObject(rOtherNode)
-//         , Flags(rOtherNode)
-//         , mData(rOtherNode.mData)
-//         , mSolutionStepsNodalData(rOtherNode.mSolutionStepsNodalData)
-//         , mInitialPosition(rOtherNode.mInitialPosition)
-//     {
-//         //TODO ... this copy constructor should be removed sometimes as it is often source of error
-//         //KRATOS_THROW_ERROR(std::logic_error, "copying Nodes is not allowed", "");
-// 
-//         // Deep copying the dofs
-//         for(typename DofsContainerType::const_iterator i_dof = rOtherNode.mDofs.begin() ; i_dof != rOtherNode.mDofs.end() ; i_dof++)
-//            pAddDof(*i_dof);
-// 
-// #ifdef _OPENMP
-//         omp_init_lock(&mnode_lock);
-// #endif
-//     }
 
     /** Copy constructor from a node with different dimension.*/
     template<SizeType TOtherDimension>
     Node(Node<TOtherDimension> const& rOtherNode) = delete;
-//         : BaseType(rOtherNode)
-//         , IndexedObject(rOtherNode)
-//         , Flags(rOtherNode)
-//         , mDofs(rOtherNode.mDofs)
-//         , mData(rOtherNode.mData)
-//         , mSolutionStepsNodalData(rOtherNode.mSolutionStepsNodalData)
-//         , mInitialPosition(rOtherNode.mInitialPosition)
-//     {
-// 
-// #ifdef _OPENMP
-//         omp_init_lock(&mnode_lock);
-// #endif
-//     }
 
     /** Copy constructor from a point with different dimension.*/
     template<SizeType TOtherDimension>
     Node(IndexType NewId, Point<TOtherDimension> const& rThisPoint) = delete;
-//         : BaseType(rThisPoint)
-//         , IndexedObject(NewId)
-//         , Flags()
-//         , mDofs()
-//         , mData()
-//         , mSolutionStepsNodalData()
-//         , mInitialPosition(rThisPoint)
-//     {
-//         CreateSolutionStepData();
-// 
-// #ifdef _OPENMP
-//         omp_init_lock(&mnode_lock);
-// #endif
-//     }
-
-//     Node(Node&& rOtherNode)
-//     {
-//         this->Coordinates() = rOtherNode.Coordinates();
-// //         (*this) = (*rOtherNode); //move the coordinates
-//         this->Flags = rOtherNode.Flags;
-//         mData = rOtherNode.mData;
-//         mSolutionStepsNodalData = rOtherNode.mSolutionStepsNodalData;
-//         mInitialPosition = rOtherNode.mInitialPosition;
-//         mDofs = rOtherNode.mDofs;
-//         mnode_lock = rOtherNode.mnode_lock;
-//     }
-
     
     
     /** 
@@ -312,13 +267,16 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition(rOtherCoordinates)
+        , mnode_lock()
     {
+
         CreateSolutionStepData();
 	mDofs.SetMaxBufferSize(0);
 
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
 #endif
+
     }
 
 
@@ -333,6 +291,7 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition()
+        , mnode_lock()
     {
         CreateSolutionStepData();
 	mDofs.SetMaxBufferSize(0);
@@ -340,6 +299,8 @@ public:
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
 #endif
+
+
     }
 
     /// 3d with variables list and data constructor.
@@ -351,6 +312,7 @@ public:
         , mData()
         , mSolutionStepsNodalData(pVariablesList,ThisData,NewQueueSize)
         , mInitialPosition(NewX, NewY, NewZ)
+        , mnode_lock()
     {
 	mDofs.SetMaxBufferSize(0);
 #ifdef _OPENMP
@@ -846,13 +808,37 @@ public:
     template<class TVariableType>
     inline void Fix(const TVariableType& rDofVariable)
     {
-        pAddDof(rDofVariable)->FixDof();
+        typename DofsContainerType::iterator i_dof = mDofs.find(rDofVariable);
+        if(i_dof != mDofs.end())
+        {
+            i_dof->FixDof();
+        }
+        else
+        {
+            #ifdef KRATOS_DEBUG
+            if(OpenMPUtils::IsInParallel() != 0)
+                KRATOS_ERROR << "attempting to Fix the variable: " << rThisVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
+            #endif 
+            pAddDof(rDofVariable)->FixDof();
+        }
     }
 
     template<class TVariableType>
     inline void Free(const TVariableType& rDofVariable)
     {
-        pAddDof(rDofVariable)->FreeDof();
+        typename DofsContainerType::iterator i_dof = mDofs.find(rDofVariable);
+        if(i_dof != mDofs.end())
+        {
+            i_dof->FreeDof();
+        }
+        else
+        {
+            #ifdef KRATOS_DEBUG
+            if(OpenMPUtils::IsInParallel() != 0)
+                KRATOS_ERROR << "attempting to Fix the variable: " << rThisVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
+            #endif 
+            pAddDof(rDofVariable)->FreeDof();
+        }
     }
 
     IndexType GetBufferSize()
@@ -1013,7 +999,7 @@ public:
         typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
         mDofs.insert(mDofs.begin(), p_new_dof);
         
-        if(!mDofs.IsSorted())
+//         if(!mDofs.IsSorted())
             mDofs.Sort();
         
         return p_new_dof;
@@ -1038,7 +1024,7 @@ public:
 
         p_new_dof->SetSolutionStepsData(&mSolutionStepsNodalData);
         
-        if(!mDofs.IsSorted())
+//         if(!mDofs.IsSorted())
             mDofs.Sort();
 
         return p_new_dof;
@@ -1063,7 +1049,7 @@ public:
         typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction);
         mDofs.insert(mDofs.begin(), p_new_dof);
         
-        if(!mDofs.IsSorted())
+//         if(!mDofs.IsSorted())
             mDofs.Sort();
         
         return p_new_dof;
@@ -1180,9 +1166,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-#ifdef _OPENMP
-    omp_lock_t mnode_lock;
-#endif
 
 
     ///@}
@@ -1233,6 +1216,9 @@ private:
     ///Initial Position of the node
     PointType mInitialPosition;
 
+#ifdef _OPENMP
+    omp_lock_t mnode_lock;
+#endif
 
     ///@}
     ///@name Private Operators
