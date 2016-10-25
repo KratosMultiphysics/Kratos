@@ -194,7 +194,7 @@ public:
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2)
     {
         double rObj_2_to_rObj_1[3];
-        PeriodicSubtract(rObj_1->GetGeometry()[0], rObj_2->GetGeometry()[0], rObj_2_to_rObj_1);
+        PeriodicSubstract(rObj_1->GetGeometry()[0], rObj_2->GetGeometry()[0], rObj_2_to_rObj_1);
         
         double distance_2 = DEM_INNER_PRODUCT_3(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
 
@@ -208,7 +208,7 @@ public:
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double& radius_1)
     {
         double rObj_2_to_rObj_1[3];
-        PeriodicSubtract(rObj_1->GetGeometry()[0], rObj_2->GetGeometry()[0], rObj_2_to_rObj_1);
+        PeriodicSubstract(rObj_1->GetGeometry()[0], rObj_2->GetGeometry()[0], rObj_2_to_rObj_1);
 
         double distance_2 = DEM_INNER_PRODUCT_3(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
 
@@ -287,7 +287,7 @@ public:
     static inline void Distance(const PointerType& rObj_1, const PointerType& rObj_2, double& distance)
     {
         double rObj_2_to_rObj_1[3];
-        PeriodicSubtract(rObj_1->GetGeometry()[0], rObj_2->GetGeometry()[0], rObj_2_to_rObj_1);
+        PeriodicSubstract(rObj_1->GetGeometry()[0], rObj_2->GetGeometry()[0], rObj_2_to_rObj_1);
         distance = DEM_MODULUS_3(rObj_2_to_rObj_1);
     }
     
@@ -371,8 +371,12 @@ private:
         return (0.0 < value) - (value < 0.0);
     }
 
-    static inline void PeriodicSubtract(const array_1d<double, 3>& a, const array_1d<double, 3>& b, double c[3])
+    static inline void PeriodicSubstract(const array_1d<double, 3>& a, const array_1d<double, 3>& b, double c[3])
     {
+        for (unsigned int i = 0; i < 3; i++){
+                c[i] = a[i] - b[i];
+        }
+        
         if (mDomainIsPeriodic){ // Periods have been set (the domain is periodic)
             for (unsigned int i = 0; i < 3; i++){
                 c[i] = a[i] - b[i];
