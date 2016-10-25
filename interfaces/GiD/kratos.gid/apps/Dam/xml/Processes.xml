@@ -11,7 +11,7 @@
         <parameter n="value" pn="Value" type="vector" v="0.0,0.0,0.0"/>
         <parameter n="Value_X_Table" pn="Value X table filename" type="tablefile" v=""/>
         <parameter n="Value_Y_Table" pn="Value Y table filename" type="tablefile" v=""/>
-        <parameter n="Value_Z_Table" pn="Value Z table filename" type="tablefile" v=""/>
+        <parameter n="Value_Z_Table" pn="Value Z table filename" type="tablefile" v="" state="[CheckDimension 3D]"/>
     </inputs>
   </Process>
   
