@@ -27,7 +27,7 @@ namespace Kratos {
     // DEM-DEM INTERACTION //
     /////////////////////////
     
-    void DEM_D_Conical_damage::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, double& equiv_radius, double& equiv_young, double& equiv_shear, const double indentation) {
+    void DEM_D_Conical_damage::InitializeDamageContact(SphericParticle* const element1, SphericParticle* const element2, double& equiv_radius, double& equiv_young, double& equiv_shear, const double indentation) {
         //Get equivalent Radius
         const double my_radius       = element1->GetParticleContactRadius();
         const double other_radius    = element2->GetParticleContactRadius();
@@ -84,7 +84,7 @@ namespace Kratos {
    
         double equiv_radius, equiv_young, equiv_shear;
 
-        InitializeContact(element1, element2, equiv_radius, equiv_young, equiv_shear, indentation);
+        InitializeDamageContact(element1, element2, equiv_radius, equiv_young, equiv_shear, indentation);
         
         LocalElasticContactForce[2]  = CalculateNormalForce(indentation);
         cohesive_force               = CalculateCohesiveNormalForce(element1, element2, indentation);
@@ -159,7 +159,7 @@ namespace Kratos {
     // DEM-FEM INTERACTION //
     /////////////////////////
     
-    void DEM_D_Conical_damage::InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, double& effective_radius, double& equiv_young, double& equiv_shear, const double indentation) {
+    void DEM_D_Conical_damage::InitializeDamageContactWithFEM(SphericParticle* const element, DEMWall* const wall, double& effective_radius, double& equiv_young, double& equiv_shear, const double indentation) {
         //Get effective Radius
         effective_radius           = element->GetParticleContactRadius();
 
@@ -212,7 +212,7 @@ namespace Kratos {
 
         double effective_radius, equiv_young, equiv_shear;
         
-        InitializeContactWithFEM(element, wall, effective_radius, equiv_young, equiv_shear, indentation);
+        InitializeDamageContactWithFEM(element, wall, effective_radius, equiv_young, equiv_shear, indentation);
         
         LocalElasticContactForce[2] = CalculateNormalForce(indentation);
         cohesive_force              = CalculateCohesiveNormalForceWithFEM(element, wall, indentation);
