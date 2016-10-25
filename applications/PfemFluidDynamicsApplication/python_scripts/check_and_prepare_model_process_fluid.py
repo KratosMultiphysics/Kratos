@@ -8,6 +8,21 @@ from KratosMultiphysics.PfemSolidMechanicsApplication import *
 #from KratosMultiphysics.PfemBaseApplication import *
 #from KratosMultiphysics.PfemFluidDynamicsApplication import *
 
+import time as timer
+
+def StartTimeMeasuring():
+    # Measure process time
+    time_ip = timer.clock()
+    return time_ip
+
+def StopTimeMeasuring(time_ip, process, report):
+    # Measure process time
+    time_fp = timer.clock()
+    if( report ):
+        used_time = time_fp - time_ip
+        print("::[PFEM_FLUID_MODEL]:: [ %.2f" % round(used_time,2),"s", process," ] ")
+
+
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
@@ -131,8 +146,11 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                #get body parts
                 body_parts_name_list = self.bodies_parts_list[i]["parts_list"]
                 for j in range(body_parts_name_list.size()):
+                    clock_time = StartTimeMeasuring();
                     self.main_model_part.RemoveSubModelPart(body_parts_name_list[j].GetString())
-                    print("::[Model_Prepare]::Body Part Removed:", body_parts_name_list[j].GetString())                
+                    StopTimeMeasuring(clock_time,"RemovingSubModelPart", True);
+                    print("::[Model_Prepare]::Body Part Removed:", body_parts_name_list[j].GetString())
+                    
         #for part in domain_parts:
         #    self.main_model_part.RemoveSubModelPart(part.Name)
 
