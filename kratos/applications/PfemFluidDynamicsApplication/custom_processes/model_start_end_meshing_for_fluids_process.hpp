@@ -411,14 +411,11 @@ namespace Kratos
 	      {
 		rComputingModelPart.AddCondition(*(i_cond.base()));
 	      }
-	  }
 
-	  // if( (i_mp->Is(SOLID) && i_mp->IsNot(ACTIVE)) ){ 
-	  if( (i_mp->Is(ACTIVE) && i_mp->Is(SOLID)) || (i_mp->Is(FLUID) && i_mp->IsNot(ACTIVE)) ){ 
-
+	    
 	    for(ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin() ; i_elem != i_mp->ElementsEnd() ; i_elem++)
 	      {
-		rComputingModelPart.AddElement(*(i_elem.base()));	
+		rComputingModelPart.AddElement(*(i_elem.base()));
 	      }
 	  }
 	}
