@@ -354,7 +354,6 @@ private:
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-		std::cout<<" Var "<<rVar<<std::endl;
 		it->Fix(rVar);
                 
             }
