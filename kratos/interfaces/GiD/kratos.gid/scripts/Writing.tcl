@@ -295,10 +295,10 @@ proc write::writeConditions { baseUN } {
     
     set xp1 "[spdAux::getRoute $baseUN]/condition/group"
     set iter 1
-    foreach group [$root selectNodes $xp1] {
-        set condid [[$group parent] @n]
-        set groupid [get_domnode_attribute $group n]
-        if {[$group hasAttribute ov]} {set ov [$group getAttribute ov]} {set ov [[$group parent ] getAttribute ov]}
+    foreach groupNode [$root selectNodes $xp1] {
+        set condid [[$groupNode parent] @n]
+        set groupid [get_domnode_attribute $groupNode n]
+        if {[$groupNode hasAttribute ov]} {set ov [$groupNode getAttribute ov]} {set ov [[$groupNode parent ] getAttribute ov]}
         set cond [::Model::getCondition $condid]
         lassign [write::getEtype $ov $groupid] etype nnodes
         set kname [$cond getTopologyKratosName $etype $nnodes]

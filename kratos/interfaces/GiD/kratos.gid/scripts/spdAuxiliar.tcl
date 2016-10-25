@@ -90,11 +90,7 @@ proc spdAux::processAppIncludes { root } {
         if {$active} {
             set dir $::Kratos::kratos_private(Path)
             set f [file join $dir apps $appid xml Main.spd]
-            # Only keep pn2 when minimum GiD version > 12.1.11d
-            set pn1 ""; set pn2 "";
-            catch {set pn1 [customlib::processIncludesRecurse $f $dir]; set processedAppnode $pn1}
-            catch {set pn2 [customlib::ProcessIncludesRecurse $f $dir]; set processedAppnode $pn2}
-            #set processedAppnode [customlib::processIncludesRecurse $f $dir]
+            set processedAppnode [customlib::ProcessIncludesRecurse $f $dir]
             $root insertBefore $processedAppnode $elem
             $elem delete
         }
@@ -283,8 +279,10 @@ proc spdAux::SwitchDimAndCreateWindow { ndim } {
     
     if {$TreeVisibility} {
         after 100 [list gid_groups_conds::open_conditions menu ]
+        spdAux::PreChargeTree
         spdAux::TryRefreshTree
     }
+    
 }
 
 proc spdAux::ForceExtremeLoad { } {
@@ -1458,4 +1456,19 @@ proc spdAux::ProcGetIntervals {domNode args} {
     }
     set res [spdAux::ListToValues $lista]
     return $res
+}
+
+proc spdAux::PreChargeTree { } {
+    return ""
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    
+    foreach field [list value condition container] {
+        foreach cndNode [$root getElementsByTagName $field] {
+            set a [get_domnode_attribute $cndNode dict]
+            set a [get_domnode_attribute $cndNode values]
+            set a [get_domnode_attribute $cndNode v]
+            #W [get_domnode_attribute $cndNode n]
+        }
+    }
 }
