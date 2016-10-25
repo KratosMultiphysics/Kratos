@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<container n="Reservoir_information" pn="Reservoir Information" icon="reservoir16" help="Information of the reservoir, month of the year (Bofang Formulation), water level, temperature of computations" state="normal">
-    
-</container>
-    
