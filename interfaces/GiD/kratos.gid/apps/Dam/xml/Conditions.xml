@@ -5,8 +5,8 @@
   <ConditionItem n="SelfWeight3D" pn="Self weight" ImplementedInFile="process_factory"
 	ImplementedInApplication="DamApplication" MinimumKratosVersion="13000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Volume" ProcessName="ApplyConstantVectorValueProcess" VariableName="VOLUME_ACCELERATION"
-    help="Self weight application by means of the ApplyConstantVectorValueProcess in the core" units="m/s^2" unit_magnitude="Acceleration">
+	ElementType="Volume" ProcessName="ApplyLoadVectorDamTableProcess" VariableName="VOLUME_ACCELERATION"
+    help="Self weight application by means of the ApplyLoadVectorDamTableProcess in the core" units="m/s^2" unit_magnitude="Acceleration">
     <TopologyFeatures>
     </TopologyFeatures>
     <inputs>
@@ -23,8 +23,8 @@
   <ConditionItem n="SelfWeight2D" pn="Self weight" ImplementedInFile="process_factory"
 	ImplementedInApplication="DamApplication" MinimumKratosVersion="13000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Surface"  ProcessName="ApplyConstantVectorValueProcess" VariableName="VOLUME_ACCELERATION"
-    help="Self weight application by means of the ApplyConstantVectorValueProcess in the core" units="m/s^2" unit_magnitude="Acceleration">
+	ElementType="Surface"  ProcessName="ApplyLoadVectorDamTableProcess" VariableName="VOLUME_ACCELERATION"
+    help="Self weight application by means of the ApplyLoadVectorDamTableProcess in the core" units="m/s^2" unit_magnitude="Acceleration">
     <TopologyFeatures>
     </TopologyFeatures>
     <inputs>
@@ -42,7 +42,7 @@
   <ConditionItem n="PointLoad2D" pn="Point Load" ImplementedInFile="process_factory"
 	ImplementedInApplication="DamApplication" MinimumKratosVersion="13000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Point" ProcessName="ApplyConstantVectorValueProcess" help="Load on points, load vector referred to global axes"
+	ElementType="Point" ProcessName="ApplyLoadVectorDamTableProcess" help="Load on points, load vector referred to global axes"
 	units='N'  unit_magnitude='F' VariableName="POINT_LOAD">
     <TopologyFeatures>
       <item  GeometryType="Point" nodes="1" KratosName="PointLoadCondition2D1N"/>
@@ -57,7 +57,7 @@
   <ConditionItem n="PointLoad3D" pn="Point Load" ImplementedInFile="process_factory"
 	ImplementedInApplication="DamApplication" MinimumKratosVersion="13000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Point" ProcessName="ApplyConstantVectorValueProcess" help="Load on points, load vector referred to global axes"
+	ElementType="Point" ProcessName="ApplyLoadVectorDamTableProcess" help="Load on points, load vector referred to global axes"
 	units='N'  unit_magnitude='F' VariableName="POINT_LOAD">
     <TopologyFeatures>
       <item  GeometryType="Point" nodes="1" KratosName="PointLoadCondition3D1N"/>
@@ -73,7 +73,7 @@
   <ConditionItem n="LineLoad2D" pn="Line Load" ImplementedInFile="process_factory"
 	ImplementedInApplication="DamApplication" MinimumKratosVersion="13000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Line" ProcessName="ApplyVectorOnConditionsProcess" help="Load on lines, load vector referred to global axes"
+	ElementType="Line" ProcessName="ApplyLoadVectorDamTableProcess" help="Load on lines, load vector referred to global axes"
 	units='N/m' unit_magnitude='F/L' VariableName="LINE_LOAD">
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="LineLoadCondition2D2N"/>
@@ -89,7 +89,7 @@
     <ConditionItem n="LineLoad3D" pn="Line Load" ImplementedInFile="process_factory"
 	ImplementedInApplication="DamApplication" MinimumKratosVersion="13000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Line" ProcessName="ApplyVectorOnConditionsProcess" help="Load on lines, load vector referred to global axes"
+	ElementType="Line" ProcessName="ApplyLoadVectorDamTableProcess" help="Load on lines, load vector referred to global axes"
 	units='N/m' unit_magnitude='F/L' VariableName="LINE_LOAD">
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="LineLoadCondition3D2N"/>
@@ -107,7 +107,7 @@
   <ConditionItem n="SurfaceLoad3D" pn="Suface Load" ImplementedInFile="apply_vector_on_conditions_process"
 	ImplementedInApplication="DamApplication" MinimumKratosVersion="13000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" 
-	units='N/m^2' unit_magnitude='F/L^2' ElementType="Surface"  ProcessName="ApplyVectorOnConditionsProcess" help="Load on surfaces, load vector referred to global axes"
+	units='N/m^2' unit_magnitude='F/L^2' ElementType="Surface"  ProcessName="ApplyLoadVectorDamTableProcess" help="Load on surfaces, load vector referred to global axes"
 	VariableName="SURFACE_LOAD">
     <TopologyFeatures>
       <item  GeometryType="Triangle"      nodes="3" KratosName="SurfaceLoadCondition3D3N"/>
@@ -127,7 +127,7 @@
     <ConditionItem n="LinePressure2D" pn="Normal Load" ImplementedInFile="apply_scalar_on_conditions_processs"
 	ImplementedInApplication="DamApplication" MinimumKratosVersion="13000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Line" ProcessName="ApplyScalarOnConditionsProcess" help="Normal pressure on lines, oriented pointing against the line outer normal"
+	ElementType="Line" ProcessName="ApplyLoadScalarTableProcess" help="Normal pressure on lines, oriented pointing against the line outer normal"
 	units='N/m^2' unit_magnitude='F/L^2' VariableName="NEGATIVE_FACE_PRESSURE">
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="LineLoadCondition2D2N"/>
@@ -142,7 +142,7 @@
   <ConditionItem n="SurfacePressure3D" pn="Normal Load" ImplementedInFile="apply_scalar_on_conditions_process"
 	ImplementedInApplication="DamApplication" MinimumKratosVersion="13000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Surface" ProcessName="ApplyScalarOnConditionsProcess" help="Normal Pressure on surfaces, oriented pointing against the surface outer normal"
+	ElementType="Surface" ProcessName="ApplyLoadScalarTableProcess" help="Normal Pressure on surfaces, oriented pointing against the surface outer normal"
 	units='N/m^2' unit_magnitude='F/L^2' VariableName="NEGATIVE_FACE_PRESSURE">
     <TopologyFeatures>
       <item  GeometryType="Triangle"      nodes="3" KratosName="SurfaceLoadCondition3D3N"/>

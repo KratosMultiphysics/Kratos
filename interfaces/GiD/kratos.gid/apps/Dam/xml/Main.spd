@@ -4,7 +4,6 @@
     <include n="Parts" active="1" path="apps/Dam/xml/Parts.spd"/>
     <include n="DirichletBoundaryConditions" active="1" path="apps/Dam/xml/DirichletBoundaryConditions.spd"/>
     <include n="Loads" active="1" path="apps/Dam/xml/Loads.spd"/> 
-    <include n="ReservoirInformation" active="1" path="apps/Dam/xml/ReservoirInformation.spd"/>
     <include n="Solution" active="1" path="apps/Dam/xml/Solution.spd"/> 
     <include n="Results" active="1" path="apps/Dam/xml/Results.spd"/>            
   </container>
