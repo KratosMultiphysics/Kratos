@@ -236,7 +236,7 @@ public:
           floatge(rHighPoint[1] + radius,center_of_particle[1]) && 
           floatge(rHighPoint[2] + radius,center_of_particle[2]));
 
-        if ((mDomainPeriods[0] > 0.0) && !intersect){
+        if (mDomainIsPeriodic && !intersect){
             double closest_representative_coor[3] = {center_of_particle[0], center_of_particle[1], center_of_particle[2]};
             double box_center[3] = {0.5 * (rLowPoint[0] + rHighPoint[0]), 0.5 * (rLowPoint[1] + rHighPoint[1]), 0.5 * (rLowPoint[2] + rHighPoint[2])};
             TransformToClosestPeriodicCoordinates(box_center, closest_representative_coor);
@@ -268,7 +268,7 @@ public:
             floatge(rHighPoint[1] + radius,center_of_particle[1]) &&
             floatge(rHighPoint[2] + radius,center_of_particle[2]));
 
-        if ((mDomainPeriods[0] > 0.0) && !intersect){
+        if (mDomainIsPeriodic && !intersect){
             double closest_representative_coor[3] = {center_of_particle[0], center_of_particle[1], center_of_particle[2]};
             double box_center[3] = {0.5 * (rLowPoint[0] + rHighPoint[0]), 0.5 * (rLowPoint[1] + rHighPoint[1]), 0.5 * (rLowPoint[2] + rHighPoint[2])};
             TransformToClosestPeriodicCoordinates(box_center, closest_representative_coor);
@@ -373,7 +373,7 @@ private:
 
     static inline void PeriodicSubtract(const array_1d<double, 3>& a, const array_1d<double, 3>& b, double c[3])
     {
-        if (mDomainPeriods[0] > 0.0){ // Periods have been set (the domain is periodic)
+        if (mDomainIsPeriodic){ // Periods have been set (the domain is periodic)
             for (unsigned int i = 0; i < 3; i++){
                 c[i] = a[i] - b[i];
                 if (fabs(c[i]) > 0.5 * mDomainPeriods[i]) c[i] -= GetSign(c[i]) * mDomainPeriods[i];
