@@ -41,6 +41,7 @@ proc spdAux::TryRefreshTree { } {
     variable refreshTreeTurn
     #W "HI"
     update
+    update idletasks
     if {$refreshTreeTurn} {
         #W "there"
         catch {
@@ -1084,8 +1085,8 @@ proc spdAux::ProcGetElements { domNode args } {
     set values [join $names ","]
     
     $domNode setAttribute values $values
-    if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
-    if {[get_domnode_attribute $domNode v] ni $names} {$domNode setAttribute v [lindex $names 0]}
+    if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]; spdAux::RequestRefresh}
+    if {[get_domnode_attribute $domNode v] ni $names} {$domNode setAttribute v [lindex $names 0]; spdAux::RequestRefresh}
     #spdAux::RequestRefresh
     return $diction
 }
@@ -1105,9 +1106,9 @@ proc spdAux::ProcGetSolutionStrategies {domNode args} {
     $domNode setAttribute values [join $names ","]
     set dv [lindex $names 0]
     #W "dv $dv"
-    if {[$domNode getAttribute v] eq ""} {$domNode setAttribute v $dv}
-    if {[$domNode getAttribute v] ni $names} {$domNode setAttribute v $dv}
-    spdAux::RequestRefresh
+    if {[$domNode getAttribute v] eq ""} {$domNode setAttribute v $dv; spdAux::RequestRefresh}
+    if {[$domNode getAttribute v] ni $names} {$domNode setAttribute v $dv; spdAux::RequestRefresh}
+    
     return [join $pnames ","]
 }
 

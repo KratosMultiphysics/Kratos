@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="ModelType" pn="Modelling" help="Model information" state="normal">
+<container n="ModelType" pn="Modelling" help="Model information" state="normal" tree_state="open">
   <value n="DomainType" pn="Domain type" un="PFEM_DomainType" v="Fluids" values="Fluids,Solids,Coupled" help="Type of problem to be solved" actualize_tree="1"/>
-  <container n="AnalysisType" pn="Analysis type" un="PFEM_AnalysisType" help="Problem parameters" actualize_tree="1" state="normal" >
+  <container n="AnalysisType" pn="Analysis type" un="PFEM_AnalysisType" help="Problem parameters" actualize_tree="1" state="normal" tree_state="open">
     <value n="SolutionType" pn="Solution type" un="PFEM_SolutionType" v="Dynamic" values="Static,Dynamic" help="Solution type" actualize_tree="1" state="[SolutionTypeState]"/>
     <value n="SolStratCombo" pn="Solving strategy" un="PFEM_SolStrat" v="" values="" dict="[GetSolutionStrategiesPFEM]" actualize_tree="1" state="[DisableIfUniqueName PFEM_SolutionType Dynamic]"/>
     <value n="Scheme" pn="Scheme" un="PFEM_Scheme" v="" values="" dict="[GetSchemes]" state="[DisableIfUniqueName PFEM_SolutionType Dynamic]"  actualize_tree="1"/>
