@@ -344,7 +344,7 @@ public:
                 for (int k = 0; k< static_cast<int> (rNodes.size()); k++)
                 {
                     ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
-                    i->Fix(rVar);
+                    i->pAddDof(rVar)->FixDof();
                 }
             }
             else
@@ -353,7 +353,8 @@ public:
                 for (int k = 0; k< static_cast<int> (rNodes.size()); k++)
                 {
                     ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
-                    i->Free(rVar);
+                    i->pAddDof(rVar)->FreeDof();
+//                     i->Free(rVar);
                 }
             }
         }
