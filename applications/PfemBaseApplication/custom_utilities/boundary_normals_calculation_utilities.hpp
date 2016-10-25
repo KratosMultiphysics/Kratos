@@ -232,7 +232,6 @@ public:
 	  }
 	  else if ( dimension == 3 ){
 	    
-
 	    ConditionsContainerType& rConditions = rModelPart.Conditions(MeshId);	    
 	    ElementsContainerType& rElements = rModelPart.Elements(MeshId);
 
@@ -336,6 +335,9 @@ private:
 	{
 		Geometry<Node<3> >& pGeometry = (it)->GetGeometry();
 
+		if(pGeometry.size()<3)
+		  std::cout<<" Warning 3D geometry with only 2 nodes :: multiple normal definitions "<<std::endl;
+		
 		v1[0] = pGeometry[1].X() - pGeometry[0].X();
 		v1[1] = pGeometry[1].Y() - pGeometry[0].Y();
 		v1[2] = pGeometry[1].Z() - pGeometry[0].Z();
@@ -446,7 +448,7 @@ private:
  			    ((rNodes[in]).GetSolutionStepValue(NORMAL)).clear();
 		}
 
-		const unsigned int dimension = (rConditions.begin())->WorkingSpaceDimension();
+		const unsigned int dimension = (rConditions.begin())->GetGeometry().Dimension();
 
 		//calculating the normals and storing on the conditions
 		array_1d<double,3> An;
@@ -501,7 +503,7 @@ private:
  			    ((rNodes[in]).GetSolutionStepValue(NORMAL)).clear();
 		}
 
-		const unsigned int dimension = (rElements.begin())->WorkingSpaceDimension();
+		const unsigned int dimension = (rElements.begin())->GetGeometry().Dimension();
 
 		//calculating the normals and storing on the conditions
 		array_1d<double,3> An;
