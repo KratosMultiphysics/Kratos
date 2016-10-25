@@ -146,8 +146,8 @@ public:
     /// LHS and RHS contributions of the complete system
     virtual void CalculateSystemContributions(
         Element::Pointer rCurrentElement,
-        LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemVectorType& RHS_Contribution,
+        LocalSystemMatrixType& LSH,
+        LocalSystemVectorType& RHS,
         Element::EquationIdVectorType& EquationId,
         ProcessInfo& CurrentProcessInfo
     )
@@ -157,7 +157,7 @@ public:
 		(rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
 
     	//basic operations for the element considered
-    	(rCurrentElement)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+    	(rCurrentElement)->CalculateLocalSystem(LSH,RHS,CurrentProcessInfo);
 
 
     	//Determine the new Youngs Modulus based on the assigned new density (X_PHYS)
@@ -173,14 +173,10 @@ public:
     	double factor    = (1/E_current)*E_new;
 
     	// Factorize LHS and RHS according SIMP approach
-
-    	LocalSystemVectorType u_init(RHS_Contribution.size());
-    	LocalSystemVectorType v(RHS_Contribution.size());
-    	(rCurrentElement)->GetValuesVector(u_init);
-    	v = prod(LHS_Contribution,u_init);
-
-    	LHS_Contribution *= factor;
-    	RHS_Contribution += v - factor*v;
+    	// Note that when this function is called, all the contributions from the force conditions are missing.
+    	// I.e. RHS = -K*u_init. Hence we can directly factorize LHS and RHS to obtained the modified stiffnesses
+    	LSH *= factor;
+    	RHS *= factor;
 
     	//Continuation of the basic operations
     	(rCurrentElement)->EquationIdVector(EquationId,CurrentProcessInfo);
