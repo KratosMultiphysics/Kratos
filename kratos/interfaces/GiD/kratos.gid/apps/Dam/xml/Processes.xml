@@ -2,13 +2,16 @@
 <ProcessList>
    <!---  NODAL PROCESSES --> 
    <!---  Nodal Displacement, Acceleration -->
-  <Process n="ImposeVectorValueByComponentsProcess" pn="Impose vector value by components process" python_module="impose_vector_value_by_components_process"
-		kratos_module="KratosMultiphysics" help="This process fixes the selected components of a given vector variable">
+  <Process n="ImposeVectorValueByComponentsProcess" pn="Impose vector value by components process" python_module="apply_constraint_vector_dam_table_process"
+		kratos_module="KratosMultiphysics.DamApplication" help="This process fixes the selected components of a given vector variable">
     <inputs>
         <parameter n="is_fixed_X" pn="Imposed X" type="bool" v="1"/>
 		<parameter n="is_fixed_Y" pn="Imposed Y" type="bool" v="1"/>
 		<parameter n="is_fixed_Z" pn="Imposed Z" type="bool" v="1" state="[CheckDimension 3D]"/>
         <parameter n="value" pn="Value" type="vector" v="0.0,0.0,0.0"/>
+        <parameter n="Value_X_Table" pn="Value X table filename" type="tablefile" v=""/>
+        <parameter n="Value_Y_Table" pn="Value Y table filename" type="tablefile" v=""/>
+        <parameter n="Value_Z_Table" pn="Value Z table filename" type="tablefile" v=""/>
     </inputs>
   </Process>
   
@@ -18,6 +21,7 @@
     <inputs>
 		<parameter n="is_fixed" pn="Imposed" type="bool" v="1"/>
         <parameter n="value" pn="Value" type="double" v="0.0"/>
+        <parameter n="table" pn="Uniform Temperature table filename" type="tablefile" v=""/>
     </inputs>
   </Process>   
    
@@ -29,15 +33,16 @@
         <parameter n="Gravity_Direction" pn="Gravity Direction" type="combo" v="Y" values="X,Y,Z" />
         <parameter n="Reservoir_Bottom_Coordinate_in_Gravity_Direction" pn="Reservoir Bottom Coordinate in Gravity Direction" type="double" v="0.0"/>
         <parameter n="Surface_Temp" pn="Surface Temperature" type="double" v="0.0"/>
-        <parameter n="Surface_Temp_Table" pn="Surface temperature table filename" type="tablefile" v=""/>
         <parameter n="Bottom_Temp" pn="Bottom Temperature" type="double" v="0.0"/>
         <parameter n="Height_Dam" pn="Height Dam" type="double" v="0.0"/>
-        <parameter n="Height_Table" pn="Height table filename" type="tablefile" v=""/>
         <parameter n="Temperature_Amplitude" pn="Temperature Amplitude" type="double" v="0.0"/>
         <parameter n="Day_Ambient_Temp" pn="Day" type="integer" v="0.0"/>
         <parameter n="Water_level" pn="Water Level" type="double" v="0.0"/>
+        <parameter n="Water_level_Table" pn="Water Level table filename" type="tablefile" v=""/>
         <parameter n="Outer_temp" pn="Dry Temperature " type="double" v="0.0"/>
+        <parameter n="Outer_temp_Table" pn="Outer Temperature table filename" type="tablefile" v=""/>
         <parameter n="Month" pn="Month" type="integer" v="0.0"/>
+        <parameter n="Month_Table" pn="Month table filename" type="tablefile" v=""/>
     </inputs>
   </Process>
     
@@ -53,29 +58,32 @@
 
 <!---  CONDITION PROCESSES --> 
 <!---  Point Loads -->       
-  <Process n="ApplyConstantVectorValueProcess" pn="Constant vector value" python_module="process_factory"
-		kratos_module="KratosMultiphysics" check="DirectorVectorNonZero direction"
+  <Process n="ApplyLoadVectorDamTableProcess" pn="Constant vector value" python_module="apply_load_vector_dam_table_process"
+		kratos_module="KratosMultiphysics.DamApplication" check="DirectorVectorNonZero direction"
 		help="This process ">
     <inputs>
       <parameter n="modulus" pn="Modulus" type="double" v="1.0"/>
-      <parameter n="direction" pn="Direction" type="vector" v="0.0,0.0,-1.0" />
+      <parameter n="direction" pn="Direction" type="vector" v="0.0,0.0,0.0" />
+      <parameter n="table" pn="Value table filename" type="tablefile" v=""/>
     </inputs>
   </Process>
   
 <!---  Line Loads & Surface Loads -->   
-  <Process n="ApplyVectorOnConditionsProcess" pn="Apply a vector value over a condition" python_module="apply_vector_on_conditions_process"
-		kratos_module="KratosMultiphysics.SolidMechanicsApplication" help="This process sets a vector variable value over a condition" check="DirectorVectorNonZero direction"> 
+  <Process n="ApplyLoadVectorDamTableProcess" pn="Apply a vector value over a condition" python_module="apply_load_vector_dam_table_proces"
+		kratos_module="KratosMultiphysics.DamApplication" help="This process sets a vector variable value over a condition" check="DirectorVectorNonZero direction"> 
     <inputs>
       <parameter n="modulus" pn="Modulus" type="double"  v="1.0"/>
       <parameter n="direction" pn="Direction" type="vector" v="0.0,0.0,0.0" unit_magnitude="0" units="0" />
+      <parameter n="table" pn="Value table filename" type="tablefile" v=""/>
     </inputs>
   </Process>
   
 <!--- Normal Loads -->   
-  <Process n="ApplyScalarOnConditionsProcess" pn="Apply a scalar value over a condition" python_module="apply_scalar_on_conditions_process"
+  <Process n="ApplyLoadScalarTableProcess" pn="Apply a scalar value over a condition" python_module="apply_load_scalar_table_process"
 		kratos_module="KratosMultiphysics.SolidMechanicsApplication" help="This process sets a scalar variable value over a condition" > 
     <inputs>
         <parameter n="value" pn="Value" type="double" v="0.0" />
+        <parameter n="table" pn="Value table filename" type="tablefile" v=""/>
     </inputs>
   </Process>
   
@@ -88,6 +96,7 @@
         <parameter n="Reservoir_Bottom_Coordinate_in_Gravity_Direction" pn="Reservoir Bottom Coordinate in Gravity Direction" type="double" v="0.0"/>
         <parameter n="Spe_weight" pn="Specific Weight" type="double" v="10000"/>
         <parameter n="Water_level" pn="Water Level" type="double" v="0.0"/>
+        <parameter n="Water_Table" pn="Water Level table filename" type="tablefile" v=""/>
     </inputs>
   </Process>  
   
@@ -103,6 +112,7 @@
         <parameter n="Upstream_Longitudinal_Coordinate" pn="Upstream Longitudinal Coordinate" type="vector" v="0.0,0.0,0.0"/>
         <parameter n="Spe_weight" pn="Specific Weight" type="double" v="10000"/>
         <parameter n="Water_level" pn="Water Level" type="double" v="0.0"/>
+        <parameter n="Water_Table" pn="Water Level table filename" type="tablefile" v=""/>
         <parameter n="Drains" pn="Drains" un="DamDrains" type="bool" v="0"/>
         <parameter n="Height_drain" pn="Height of Drain" type="double" v="0.0"/>
         <parameter n="Distance" pn="Distance of Drain" type="double" v="0.0"/>
@@ -121,6 +131,7 @@
         <parameter n="Focus" pn="Focus" type="vector" v="0.0,0.0,0.0"/>
         <parameter n="Spe_weight" pn="Specific Weight" type="double" v="10000"/>
         <parameter n="Water_level" pn="Water Level" type="double" v="0.0"/>
+        <parameter n="Water_Table" pn="Water Level table filename" type="tablefile" v=""/>
         <parameter n="Drains" pn="Drains" un="DamDrains" type="bool" v="0"/>
         <parameter n="Height_drain" pn="Height of Drain" type="double" v="0.0"/>
         <parameter n="Distance" pn="Distance of Drain" type="double" v="0.0"/>
