@@ -63,7 +63,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
             "displacement_relative_tolerance": 1.0e-4,
             "displacement_absolute_tolerance": 1.0e-9,
             "residual_relative_tolerance": 1.0e-4,
-            "residual_absolute_tolerance": 1.0e-4,
+            "residual_absolute_tolerance": 1.0e-9,
             "max_iteration": 10,
             "split_factor": 10.0,
             "max_number_splits": 3,
@@ -80,7 +80,8 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                 "acceleration_type" : "Aitken",
                 "w_0"               :  0.35,
                 "max_nl_iterations" :  10,
-                "nl_tol"            :  1.0e-5,
+                "nl_relative_tol"   :  1.0e-4,
+                "nl_absolute_tol"   :  1.0e-9,
                 "update_system"     :  false,
                 "buffer_size"       :  10
             },
@@ -243,7 +244,8 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                         import convergence_accelerator_factory     
                         self.coupling_utility = convergence_accelerator_factory.CreateConvergenceAccelerator(self.settings["convergence_accelerator"])
                         max_nl_it = self.settings["convergence_accelerator"]["max_nl_iterations"].GetInt()
-                        nl_tol = self.settings["convergence_accelerator"]["nl_tol"].GetDouble()
+                        nl_relative_tol = self.settings["convergence_accelerator"]["nl_relative_tol"].GetDouble()
+                        nl_absolute_tol = self.settings["convergence_accelerator"]["nl_absolute_tol"].GetDouble()
                         update_system = self.settings["convergence_accelerator"]["update_system"].GetBool()
                         self.mechanical_solver = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactAcceleratedStrategy(
                                                                                 self.computing_model_part, 
@@ -257,7 +259,8 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                                                                                 move_mesh_flag,
                                                                                 self.coupling_utility,
                                                                                 max_nl_it,
-                                                                                nl_tol,
+                                                                                nl_relative_tol,
+                                                                                nl_absolute_tol,
                                                                                 update_system
                                                                                 )
                     elif  self.settings["compute_mortar_contact"].GetBool():
