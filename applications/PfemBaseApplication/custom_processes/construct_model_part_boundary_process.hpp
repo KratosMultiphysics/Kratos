@@ -882,7 +882,7 @@ namespace Kratos
 
 	for(ModelPart::SubModelPartIterator i_mp= mrMainModelPart.SubModelPartsBegin(); i_mp!=mrMainModelPart.SubModelPartsEnd(); i_mp++)
 	  {
-	    if( !( i_mp->Is(ACTIVE) && !(i_mp->Is(CONTACT)) ){
+	    if( !(i_mp->Is(ACTIVE)) && !(i_mp->Is(CONTACT)) ){
 	      //std::cout<<" ModelPartName "<<i_mp->Name()<<" conditions "<<i_mp->NumberOfConditions()<<std::endl;
 	      for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
 		{
