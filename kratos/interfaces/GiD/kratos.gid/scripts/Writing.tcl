@@ -242,38 +242,50 @@ proc write::writeElementConnectivities { } {
     variable parts
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    variable mat_dict
     
     set xp1 "[spdAux::getRoute $parts]/group"
-    set material_number 0
     foreach gNode [$root selectNodes $xp1] {
-        set formats ""
-        set group [get_domnode_attribute $gNode n]
-        if { [dict exists $mat_dict $group] } {          
-            set mid [dict get $mat_dict $group MID]
-            if {[$gNode hasAttribute ov]} {set ov [get_domnode_attribute $gNode ov] } {set ov [get_domnode_attribute [$gNode parent] ov] }
-            #W $ov
-            lassign [getEtype $ov $group] etype nnodes
-            #W "$group $ov -> $etype $nnodes"
-            if {$nnodes ne ""} {
-                set formats [GetFormatDict $group $mid $nnodes]
-                if {$etype ne "none"} {
-                    set kelemtype [get_domnode_attribute [$gNode selectNodes ".//value\[@n='Element']"] v]
-                    set elem [::Model::getElement $kelemtype]
-                    #W $kelemtype
-                    set top [$elem getTopologyFeature $etype $nnodes]
-                    if {$top eq ""} {W "Element $kelemtype not available for $ov entities on group $group"; continue}
+        write::writeGroupElementConnectivities $gNode
+    } 
+}
+
+# gNode must be a tree group, have a value n = Element
+proc write::writeGroupElementConnectivities { gNode } {
+    variable mat_dict
+    set formats ""
+    set group [get_domnode_attribute $gNode n]
+    if { [dict exists $mat_dict $group] } {          
+        set mid [dict get $mat_dict $group MID]
+        if {[$gNode hasAttribute ov]} {set ov [get_domnode_attribute $gNode ov] } {set ov [get_domnode_attribute [$gNode parent] ov] }
+        lassign [getEtype $ov $group] etype nnodes
+        if {$nnodes ne ""} {
+            set formats [GetFormatDict $group $mid $nnodes]
+            if {$etype ne "none"} {
+                set kelemtype [get_domnode_attribute [$gNode selectNodes ".//value\[@n='Element']"] v]
+                set elem [::Model::getElement $kelemtype]
+                #W $kelemtype
+                set top [$elem getTopologyFeature $etype $nnodes]
+                if {$top ne ""} {
                     set kratosElemName [$top getKratosName]
-                    WriteString "Begin Elements $kratosElemName// GUI group identifier: $group" 
+                    WriteString "Begin Elements $kratosElemName// GUI group identifier: $group"
+                    # formats -> tcl dict -> key : group id | value : format of printable information
+                    # "%10d [format "%10d" $mid] [string repeat "%10d " $num]\n"
+                    # "%10d 1 %10d %10d %10d %10d" -> Tetrahedra with property 1 assigned
                     GiD_WriteCalculationFile connectivities $formats
                     WriteString "End Elements"
-                    WriteString ""     
-                } 
+                    WriteString ""
+                } else {
+                    error [= "Element $kelemtype not available for $ov entities on group $group"]
+                }
             } else {
-                error [= "Error on $group -  no known element type"]
-            } 
-        }
-    } 
+                error [= "You have not assigned a proper entity to group $group"]
+            }
+        } else {
+            error [= "You have not assigned a proper entity to group $group"]
+        } 
+    } else {
+        error [= "Group $group not in the material database. Call write::initWriteData first"]
+    }
 }
 
 proc write::writeConditions { baseUN } {
@@ -413,8 +425,8 @@ proc write::writeNodalConditions { keyword } {
     }
 }
 
-proc write::GetFormatDict { groupid n num} {
-    set f "%10d [format "%10d" $n] [string repeat "%10d " $num]\n"
+proc write::GetFormatDict { groupid mid num} {
+    set f "%10d [format "%10d" $mid] [string repeat "%10d " $num]\n"
     return [dict create $groupid $f]
 }
 
