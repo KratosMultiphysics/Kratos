@@ -47,7 +47,6 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
             "compute_reactions": true,
             "compute_contact_forces": false,
             "compute_mortar_contact": true,
-            "accelerate_convergence": false,
             "block_builder": false,
             "clear_storage": false,
             "component_wise": false,
@@ -80,12 +79,14 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                 "etmxa": 5,
                 "etmna": 0.1
             },
+            "accelerate_convergence": false,
             "convergence_accelerator":{
                 "solver_type"       : "Relaxation",
                 "acceleration_type" : "Aitken",
                 "w_0"               :  0.35,
                 "max_nl_iterations" :  10,
                 "nl_tol"            :  1.0e-5,
+                "update_system"     :  false,
                 "buffer_size"       :  10
             },
             "problem_domain_sub_model_part_list": ["solid_model_part"],
@@ -265,6 +266,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                         self.coupling_utility = convergence_accelerator_factory.CreateConvergenceAccelerator(self.settings["convergence_accelerator"])
                         max_nl_it = self.settings["convergence_accelerator"]["max_nl_iterations"].GetInt()
                         nl_tol = self.settings["convergence_accelerator"]["nl_tol"].GetDouble()
+                        update_system = self.settings["convergence_accelerator"]["update_system"].GetBool()
                         self.mechanical_solver = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactAcceleratedStrategy(
                                                                                 self.computing_model_part, 
                                                                                 mechanical_scheme, 
@@ -277,7 +279,8 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                                                                                 move_mesh_flag,
                                                                                 self.coupling_utility,
                                                                                 max_nl_it,
-                                                                                nl_tol
+                                                                                nl_tol,
+                                                                                update_system
                                                                                 )
                     elif  self.settings["compute_mortar_contact"].GetBool():
                         split_factor   = self.settings["split_factor"].GetDouble()

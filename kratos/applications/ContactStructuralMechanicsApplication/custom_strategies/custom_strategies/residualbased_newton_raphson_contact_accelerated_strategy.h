@@ -126,7 +126,8 @@ public:
         bool MoveMeshFlag = false,
         typename TConvergenceAcceleratorType::Pointer pConvergenceAccelerator = nullptr,
         unsigned int MaxNumberConvergenceAccelerationIterations = 20,
-        double ConvergenceAccelerationTolerance = 1.0e-5
+        double ConvergenceAccelerationTolerance = 1.0e-5,
+        bool UpdateSystem = false
     )
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
     {
@@ -151,6 +152,7 @@ public:
         // Setting convergence acceleration parameters 
         mMaxNumberConvergenceAccelerationIterations = MaxNumberConvergenceAccelerationIterations;
         mConvergenceAccelerationTolerance = ConvergenceAccelerationTolerance;
+        mUpdateSystem = UpdateSystem;
 
         // Saving the linear solver
         mpLinearSolver = pNewLinearSolver;
@@ -210,7 +212,8 @@ public:
         bool MoveMeshFlag = false,
         typename TConvergenceAcceleratorType::Pointer pConvergenceAccelerator = nullptr,
         unsigned int MaxNumberConvergenceAccelerationIterations = 20,
-        double ConvergenceAccelerationTolerance = 1.0e-5
+        double ConvergenceAccelerationTolerance = 1.0e-5,
+        bool UpdateSystem = false
     )
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
     {
@@ -235,6 +238,7 @@ public:
         // Setting convergence acceleration parameters 
         mMaxNumberConvergenceAccelerationIterations = MaxNumberConvergenceAccelerationIterations;
         mConvergenceAccelerationTolerance = ConvergenceAccelerationTolerance;
+        mUpdateSystem = UpdateSystem;
         
         // Saving the linear solver
         mpLinearSolver = pNewLinearSolver;
@@ -833,20 +837,16 @@ public:
                 std::cout << "ATTENTION: no free DOFs!! " << std::endl;
             }
             
-            // Updating the results stored in the database
-            rDofSet = pBuilderAndSolver->GetDofSet();
-            pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-
-            // Move the mesh if needed
-            if (BaseType::MoveMeshFlag() == true) 
+            if (mUpdateSystem == true)
             {
-                BaseType::MoveMesh();
+                // Updating the results stored in the database
+                UpdateDatabase(pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb);
             }
-
-            pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
             
-            // TODO: Check if it is correct
-            ConvergenceAcceleratorStep(pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb);
+            ConvergenceAcceleratorStep(pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb); // TODO: Check if it is correct
+            
+            // Updating the results stored in the database
+            UpdateDatabase(pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb);
             
             ResidualIsUpdated = false;
 
@@ -866,9 +866,43 @@ public:
     }
     
     /**
+     * Here the database is updated
+     * @param pScheme: The integration scheme
+     * @param pNewLinearSolver: The linear solver employed
+     * @param pBuilderAndSolver: The builder and solver considered
+     * @param rDofSet: The set of degrees of freedom
+     * @param mA: The LHS of the problem
+     * @return mDx: The solution to the problem
+     */
+    void UpdateDatabase(
+        typename TSchemeType::Pointer& pScheme,
+        typename TBuilderAndSolverType::Pointer& pBuilderAndSolver,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& mA,
+        TSystemVectorType& mDx,
+        TSystemVectorType& mb
+    )
+    {
+        rDofSet = pBuilderAndSolver->GetDofSet();
+        pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+
+        // Move the mesh if needed
+        if (BaseType::MoveMeshFlag() == true) 
+        {
+            BaseType::MoveMesh();
+        }
+
+        pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
+    }
+        
+    /**
      * Here the accelerator is computed to get the new residual
-     * @param mDx is the correction vector
-     * @param mb is the residual vector
+     * @param pScheme: The integration scheme
+     * @param pNewLinearSolver: The linear solver employed
+     * @param pBuilderAndSolver: The builder and solver considered
+     * @param rDofSet: The set of degrees of freedom
+     * @param mA: The LHS of the problem
+     * @return mDx: The solution to the problem
      */
     void ConvergenceAcceleratorStep(
         typename TSchemeType::Pointer& pScheme,
@@ -889,14 +923,20 @@ public:
                 std::cout << "Calculating the residual of the convergence acceleration" << std::endl;
             }
             
-            mb = prod(mA, mDx); // TODO: Maybe not the most efficient way to do it
+            if (mUpdateSystem == true)
+            {
+                pBuilderAndSolver->Build(pScheme, BaseType::GetModelPart(),mA, mb);
+            }
+
+            TSystemVectorType residual_vector = mb - prod(mA, mDx); // TODO: Maybe this is not the correct thing to do
             
             // Calculating the norm of the residual
             if (BaseType::mEchoLevel > 0)
             {
                 std::cout << "Calculating the norm of the residual of the convergence acceleration" << std::endl;
             }
-            const double nl_res_norm = TSparseSpace::TwoNorm(mb);
+
+            const double nl_res_norm = TSparseSpace::TwoNorm(residual_vector);
             
             // Check convergence
             if (nl_res_norm < mConvergenceAccelerationTolerance)
@@ -912,9 +952,15 @@ public:
 //                 {
                     std::cout << "\tPerforming non-linear iteration " << nl_it + 1 << " NL residual norm: " << nl_res_norm   << std::endl;
 //                 }
-                
-                mpConvergenceAccelerator->UpdateSolution(mb, mDx);
+
+                mpConvergenceAccelerator->UpdateSolution(residual_vector, mDx);
                 mpConvergenceAccelerator->FinalizeNonLinearIteration(); 
+                
+                if (mUpdateSystem == true)
+                {
+                    // Updating the results stored in the database
+                    UpdateDatabase(pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb);
+                }
             }
             
             mpConvergenceAccelerator->FinalizeSolutionStep();
@@ -1020,6 +1066,8 @@ protected:
     unsigned int mMaxNumberConvergenceAccelerationIterations;
     
     double mConvergenceAccelerationTolerance;
+    
+    bool mUpdateSystem;
 
     typename TLinearSolver::Pointer mpLinearSolver;
 
