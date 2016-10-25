@@ -3,13 +3,31 @@
 # It has been conceived by adding the DEM part and the interaction on top of an original fluid-only script (see kratos/applications/FluidDynamicswApplication)
 # Some parts of the original fluid script have been kept practically untouched and are clearly marked.
 # Whenever a minor modification has been made on one of these parts, the corresponding line is indicated with a comment: # MOD.
-
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Python imports
+from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import time as timer
+init_time = timer.time()
 import os
+os.system('cls' if os.name == 'nt' else 'clear')
 import sys
+
+class Logger(object):
+    def __init__(self):
+        self.terminal = sys.stdout
+        self.path_to_console_out_file = "console_output.txt"
+        self.log = open(self.path_to_console_out_file, "a")
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)  
+
+    def flush(self):
+        #this flush method is needed for python 3 compatibility.
+        #this handles the flush command by doing nothing.
+        #you might want to specify some extra behavior here.
+        pass    
+
+sys.stdout = Logger()
 import math
 
 #G
@@ -19,7 +37,6 @@ import pylab
 
 simulation_start_time = timer.clock()
 
-print(os.getcwd())
 # Kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.ExternalSolversApplication import *
@@ -35,7 +52,6 @@ sys.path.insert(0,'')
 import DEM_explicit_solver_var as DEM_parameters
 
 # import the configuration data as read from the GiD
-print(os.getcwd())
 import ProjectParameters as pp # MOD
 import define_output
 
@@ -77,7 +93,6 @@ DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi #
 #    INITIALIZE                                                              #
 #                                                                            #
 ##############################################################################
-
 #G
 pp.CFD_DEM = DEM_parameters
 pp.CFD_DEM.recover_gradient_option = True
@@ -86,24 +101,28 @@ pp.CFD_DEM.faxen_terms_type = 0
 pp.CFD_DEM.material_acceleration_calculation_type = 1
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
-pp.CFD_DEM.basset_force_type = 4
+pp.CFD_DEM.basset_force_type = 0
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
 pp.CFD_DEM.basset_force_integration_type = 1
 pp.CFD_DEM.n_init_basset_steps = 2
 pp.CFD_DEM.time_steps_per_quadrature_step = 1
 pp.CFD_DEM.delta_time_quadrature = pp.CFD_DEM.time_steps_per_quadrature_step * pp.CFD_DEM.MaxTimeStep
 pp.CFD_DEM.quadrature_order = 2
-pp.CFD_DEM.time_window = 0.1
-pp.CFD_DEM.number_of_exponentials = 10
+pp.CFD_DEM.time_window = 0.03
+pp.CFD_DEM.number_of_exponentials = 5
 pp.CFD_DEM.number_of_quadrature_steps_in_window = int(pp.CFD_DEM.time_window / pp.CFD_DEM.delta_time_quadrature)
 pp.CFD_DEM.print_steps_per_plot_step = 1
 pp.CFD_DEM.PostCationConcentration = False
 pp.CFD_DEM.do_impose_flow_from_field = True
 pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
 pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = True
-
+number_of_vectors_to_be_kept_in_memory = pp.CFD_DEM.time_window / pp.CFD_DEM.MaxTimeStep * pp.CFD_DEM.time_steps_per_quadrature_step + pp.CFD_DEM.number_of_exponentials 
+print('\nNumber of vectors to be kept in memory: ', number_of_vectors_to_be_kept_in_memory)
 # Making the fluid step an exact multiple of the DEM step
 pp.Dt = int(pp.Dt / pp.CFD_DEM.MaxTimeStep) * pp.CFD_DEM.MaxTimeStep
+
+# Creating a code for the used input variables
+run_code = swim_proc.CreadeRunCode(pp)
 #Z
 
 # NANO BEGIN
@@ -313,9 +332,12 @@ for node in fluid_model_part.Nodes:
     y = node.GetSolutionStepValue(Y_WALL, 0)
     node.SetValue(Y_WALL, y)
 
-
+# Creating necessary directories
+main_path = os.getcwd()
+[post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name), run_code)
 
 os.chdir(main_path)
+swim_proc.CopyInputFilesIntoFolder(main_path, post_path)
 
 KRATOSprint("\nInitializing Problem...")
 
@@ -800,6 +822,7 @@ while (time <= final_time):
     step += 1
     fluid_model_part.CloneTimeStep(time)
     print("\n", "TIME = ", time)
+    print('ELAPSED TIME = ', timer.time() - init_time)
     sys.stdout.flush()
 
     if DEM_parameters.coupling_scheme_type  == "UpdatedDEM":
@@ -1009,6 +1032,10 @@ print("Elapsed time: " + "%.5f"%(simulation_elapsed_time) + " s ")
 print("per fluid time step: " + "%.5f"%(simulation_elapsed_time/ step) + " s ")
 print("per DEM time step: " + "%.5f"%(simulation_elapsed_time/ DEM_step) + " s")
 sys.stdout.flush()
+os.chdir(main_path)
+sys.stdout.path_to_console_out_file
+os.rename(sys.stdout.path_to_console_out_file, post_path + '/' + sys.stdout.path_to_console_out_file)
+os.rename(post_path, post_path + '_FINISHED_AT_t=' + str(round(time, 1)))
 
 for i in drag_file_output_list:
     i.close()
