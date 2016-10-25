@@ -152,7 +152,7 @@ for process in list_of_processes:
 
 
 # Set ProcessInfo variables and fill the previous steps of the buffer with the initial conditions
-current_time = -(buffer_size-1)*delta_time
+current_time = current_time-(buffer_size-1)*delta_time
 main_model_part.ProcessInfo[TIME] = current_time #current_time and TIME = 0 after filling the buffer
 
 
@@ -182,19 +182,20 @@ gid_output.ExecuteBeforeSolutionLoop()
 ################################# TEMPORAL LOOP ####3########################## 
 
 while( (current_time+tol) < ending_time ):
-
-    for process in list_of_processes:
-        process.ExecuteInitializeSolutionStep()
-
-
-    gid_output.ExecuteInitializeSolutionStep()
-
+    
     # Update temporal variables
+    delta_time = main_model_part.ProcessInfo[DELTA_TIME]
     current_time = current_time + delta_time
     current_step = current_step + 1
     main_model_part.CloneTimeStep(current_time)
     print("--------------------------------------------------")
     print("STEP",current_step," - TIME","%.5f" % current_time)
+    
+    for process in list_of_processes:
+        process.ExecuteInitializeSolutionStep()
+
+    gid_output.ExecuteInitializeSolutionStep()
+    
     
     # Solve thermal step
     clock_time = clock()
