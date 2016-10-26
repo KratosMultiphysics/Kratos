@@ -159,7 +159,7 @@ public:
         noalias(rHighPoint) = rObject->GetGeometry()[0];
         noalias(rLowPoint)  = rObject->GetGeometry()[0];
         
-        SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*rObject);        
+        SphericParticle* p_particle = static_cast<SphericParticle*>(&*rObject);        
         double radius = p_particle->GetSearchRadius();        
 
         for(std::size_t i = 0; i < 3; i++)
@@ -174,7 +174,7 @@ public:
         noalias(rHighPoint) = rObject->GetGeometry()[0];
         noalias(rLowPoint)  = rObject->GetGeometry()[0];
         
-        SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*rObject);        
+        SphericParticle* p_particle = static_cast<SphericParticle*>(&*rObject);        
         double radius = p_particle->GetSearchRadius();   
         
         for(std::size_t i = 0; i < 3; i++)
@@ -198,8 +198,8 @@ public:
         
         double distance_2 = DEM_INNER_PRODUCT_3(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
 
-        SphericParticle* p_particle1 = dynamic_cast<SphericParticle*>(&*rObj_1);
-        SphericParticle* p_particle2 = dynamic_cast<SphericParticle*>(&*rObj_2);
+        SphericParticle* p_particle1 = static_cast<SphericParticle*>(&*rObj_1);
+        SphericParticle* p_particle2 = static_cast<SphericParticle*>(&*rObj_2);
         double radius_sum      = p_particle1->GetSearchRadius() + p_particle2->GetSearchRadius();
         bool intersect         = floatle((distance_2 - radius_sum * radius_sum),0);
         return intersect;
@@ -212,8 +212,8 @@ public:
 
         double distance_2 = DEM_INNER_PRODUCT_3(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
 
-        SphericParticle* p_particle1 = dynamic_cast<SphericParticle*>(&*rObj_1);
-        SphericParticle* p_particle2 = dynamic_cast<SphericParticle*>(&*rObj_2);
+        SphericParticle* p_particle1 = static_cast<SphericParticle*>(&*rObj_1);
+        SphericParticle* p_particle2 = static_cast<SphericParticle*>(&*rObj_2);
         double radius_sum      = p_particle1->GetSearchRadius() + p_particle2->GetSearchRadius();
         bool intersect         = floatle((distance_2 - radius_sum * radius_sum),0);
         return intersect;
@@ -225,7 +225,7 @@ public:
     {
         const array_1d<double, 3>& center_of_particle = rObject->GetGeometry()[0];
  
-        SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*rObject);
+        SphericParticle* p_particle = static_cast<SphericParticle*>(&*rObject);
         const double& radius = p_particle->GetSearchRadius();
 
         bool intersect = (
@@ -252,12 +252,11 @@ public:
         return  intersect;
     }
 
-    static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint, const double& Radius)
+    static inline bool IntersectionBox(const PointerType& rObject, const PointType& rLowPoint, const PointType& rHighPoint, const double& Radius)
     {
         const array_1d<double, 3>& center_of_particle = rObject->GetGeometry()[0];
 
-        //double radius = Radius;//Cambien el radi del objecte de cerca per el gran, aixi no tindria que petar res
-        SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*rObject);
+        SphericParticle* p_particle = static_cast<SphericParticle*>(&*rObject);
         const double& radius = p_particle->GetSearchRadius();
         
         bool intersect = (
@@ -298,7 +297,7 @@ public:
     
     static inline double GetObjectRadius(const PointerType& rObject)
     {
-        SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*rObject);
+        SphericParticle* p_particle = static_cast<SphericParticle*>(&*rObject);
         return p_particle->GetSearchRadius();        
     }
 
