@@ -1369,12 +1369,13 @@ proc spdAux::ProcDisableIfUniqueName { domNode args } {
         if {$node eq ""} {
             set total 0
             {W "Warning: state of [$domNode @n]"}
-        }
-        set realval [get_domnode_attribute $node v]
-        if {$realval eq ""} {W "Warning: Check unique name $un"}
-        if {[lsearch $val $realval] == -1} {
-            set total 0
-            break
+        } else {
+            set realval [get_domnode_attribute $node v]
+            if {$realval eq ""} {W "Warning: Check unique name $un"}
+            if {[lsearch $val $realval] == -1} {
+                set total 0
+                break
+            } 
         }
     }
     if {!$total} {return "normal"} else {return "disabled"}
