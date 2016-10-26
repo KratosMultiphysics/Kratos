@@ -234,11 +234,6 @@ public:
 
     }
 
-    std::string GetNameConvergenceCriterion()
-    {
-        return "Residual";
-    }
-
     /*@} */
     /**@name Operations */
     /*@{ */
