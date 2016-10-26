@@ -412,8 +412,11 @@ namespace Kratos
       // create condition prototype
       std::string ConditionName = CustomParameters["contact_condition_type"].GetString();  
 
-      unsigned int LastConditionId  = mrMainModelPart.Conditions().back().Id() + 1;
+      unsigned int LastConditionId = 1;
+      if( mrMainModelPart.NumberOfConditions() != 0 )
+	LastConditionId = mrMainModelPart.Conditions().back().Id() + 1;
 
+      
       if(  ConditionName == "PointContactPenaltyCondition2D1N" ){
       	return ConditionType::Pointer(new PointRigidContactPenalty2DCondition(LastConditionId, pGeometry, mpProperties, mpParametricWall));
       }

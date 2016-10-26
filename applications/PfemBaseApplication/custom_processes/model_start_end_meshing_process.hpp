@@ -410,7 +410,7 @@ namespace Kratos
      
       for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
 	{
-	  if( (i_mp->Is(SOLID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(RIGID)) ){ //only the solid domains (no computing) and the rigid body domains (rigid)
+	  if( (i_mp->IsNot(BOUNDARY) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(RIGID)) ){ //only the solid domains (no computing) and the rigid body domains (rigid)
 
 	    if( EchoLevel > 0 )
 	      std::cout<<"    [ SUBMODEL PART ["<<i_mp->Name()<<"] [Elems="<<i_mp->NumberOfElements()<<"|Nodes="<<i_mp->NumberOfNodes()<<"|Conds="<<i_mp->NumberOfConditions()<<"] ] "<<std::endl;
@@ -589,6 +589,7 @@ namespace Kratos
       
       KRATOS_TRY
 
+      
     	if(rPreservedConditions.size()){
 
     	  //add new conditions: ( BOUNDARY model parts )
@@ -632,16 +633,20 @@ namespace Kratos
 
 	
       //clean old conditions (TO_ERASE) and add new conditions (NEW_ENTITY)
-      ModelPart::ConditionsContainerType PreservedConditions;
-      PreservedConditions.reserve(rModelPart.Conditions().size());
-      PreservedConditions.swap(rModelPart.Conditions());
+      // ModelPart::ConditionsContainerType PreservedConditions;
+      // PreservedConditions.reserve(rModelPart.Conditions().size());
+      // PreservedConditions.swap(rModelPart.Conditions());
       
-      for(ModelPart::ConditionsContainerType::iterator i_cond = PreservedConditions.begin(); i_cond!= PreservedConditions.end(); i_cond++)
-    	{
-    	  if(i_cond->IsNot(TO_ERASE))
-    	    rModelPart.Conditions().push_back(*(i_cond.base()));
-    	}
-	  	
+      // for(ModelPart::ConditionsContainerType::iterator i_cond = PreservedConditions.begin(); i_cond!= PreservedConditions.end(); i_cond++)
+      // 	{
+      // 	  if(i_cond->IsNot(TO_ERASE))
+      // 	    rModelPart.Conditions().push_back(*(i_cond.base()));
+      // 	}
+
+      if( rModelPart.Is(BOUNDARY) )
+	rModelPart.Conditions().clear();
+
+	
       KRATOS_CATCH( "" )
     }
     
@@ -656,7 +661,7 @@ namespace Kratos
       std::string ComputingModelPartName;
       for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
 	{
-	  if( (i_mp->Is(ACTIVE) && i_mp->Is(SOLID)) ){ //solid_computing_domain
+	  if( i_mp->Is(ACTIVE) ){ //computing_domain
 	    ComputingModelPartName = i_mp->Name();
 	  }
 	}
@@ -670,7 +675,7 @@ namespace Kratos
 
       for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
 	{
-	  if( (i_mp->Is(SOLID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(RIGID)) ){ 
+	  if( (i_mp->IsNot(BOUNDARY) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(RIGID)) ){ 
 
 	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; i_node++)
 	      {
@@ -681,9 +686,6 @@ namespace Kratos
 	      {
 		rComputingModelPart.AddCondition(*(i_cond.base()));
 	      }
-	  }
-
-	  if( (i_mp->Is(SOLID) && i_mp->IsNot(ACTIVE)) ){ 
 
 	    for(ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin() ; i_elem != i_mp->ElementsEnd() ; i_elem++)
 	      {
