@@ -1361,12 +1361,15 @@ proc spdAux::ProcActiveIfRestartAvailable { domNode args } {
 }
 
 proc spdAux::ProcDisableIfUniqueName { domNode args } {
-    
     set total 1
     foreach {un val} {*}$args {
         set xpath [spdAux::getRoute $un]
         spdAux::insertDependencies $domNode $un
         set node [$domNode selectNodes $xpath]
+        if {$node eq ""} {
+            set total 0
+            {W "Warning: state of [$domNode @n]"}
+        }
         set realval [get_domnode_attribute $node v]
         if {$realval eq ""} {W "Warning: Check unique name $un"}
         if {[lsearch $val $realval] == -1} {
@@ -1374,7 +1377,7 @@ proc spdAux::ProcDisableIfUniqueName { domNode args } {
             break
         }
     }
-    if {$total} {return "normal"} else {return "disabled"}
+    if {!$total} {return "normal"} else {return "disabled"}
 }
 proc spdAux::ProcCheckGeometry { domNode args } {
     
