@@ -53,7 +53,7 @@
 
   <!--rigid elements-->
   <!--updated lagrangian-->
-  <ElementItem n="RigidLagrangianElement2D2N" pn="Rigid Wall" ImplementedInFile="none.cpp"
+  <ElementItem n="SurfaceRigidLagrangianElement2D2N" pn="Rigid Wall" ImplementedInFile="none.cpp"
 	       ImplementedInApplication="ContactMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="Developer"
 	       WorkingSpaceDimension="2D" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False,True"
 	       help="To be written by..."
@@ -116,14 +116,14 @@
     <outputs>
     </outputs>
   </ElementItem>
-  <ElementItem n="RigidLagrangianElement3D3N" pn="Rigid Body" ImplementedInFile="none.cpp"
+  <ElementItem n="RigidLagrangianElement3D4N" pn="Rigid Body" ImplementedInFile="none.cpp"
 	       ImplementedInApplication="ContactMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="Developer"
 	       WorkingSpaceDimension="3D" LocalSpaceDimension="3" RequiresLocalAxes="False" LargeDeformation="False,True"
 	       help="To be written by..."
 	       ElementType="Rigid">
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
-      <item GeometryType="Tetrahedra" nodes="3" KratosName="Element3D4N"/>
+      <item GeometryType="Tetrahedra" nodes="4" KratosName="Element3D4N"/>
     </TopologyFeatures>
     <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
