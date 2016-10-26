@@ -309,7 +309,7 @@
 		return [spdAux::ProcCheckGeometry $domNode $args]
 	  ]]>
 	</proc>
-	  <proc n='Updateme' args='args'>
+	  <proc n='UpdateTree' args='args'>
 	  <![CDATA[
 	  gid_groups_conds::actualize_conditions_window
 	  ]]>
