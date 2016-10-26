@@ -2,8 +2,6 @@
 //   Date:                $Date: 20151209
 //   Revision:            $Revision: 1.2 $
 //
-//
-
 
 #if !defined(KRATOS_DEM_APPLICATION_H_INCLUDED)
 #define KRATOS_DEM_APPLICATION_H_INCLUDED
@@ -21,6 +19,7 @@
 #include "custom_elements/spheric_particle.h"
 #include "custom_elements/spheric_continuum_particle.h"
 #include "custom_elements/nanoparticle.h"
+#include "custom_elements/ice_continuum_particle.h"
 #include "custom_elements/Particle_Contact_Element.h"
 #include "custom_elements/cluster3D.h"
 #include "custom_elements/thermal_spheric_particle.h"
@@ -90,6 +89,7 @@ private:
     const SphericParticle mSphericParticle3D;
     const NanoParticle mNanoParticle3D;
     const SphericContinuumParticle mSphericContinuumParticle3D; 
+    const IceContinuumParticle mIceContinuumParticle3D; 
     const ThermalSphericParticle<SphericContinuumParticle> mThermalSphericContinuumParticle3D;  
     const ThermalSphericParticle<SphericParticle> mThermalSphericParticle3D;  
     const SinteringSphericContinuumParticle mSinteringSphericContinuumParticle3D;
@@ -110,7 +110,7 @@ private:
     const BeadCluster3D  mBeadCluster3D;
     const MAPcond    mMapCon3D3N;
 
-    //       static const ApplicationCondition  msApplicationCondition;
+    // static const ApplicationCondition  msApplicationCondition;
     KratosDEMApplication& operator=(KratosDEMApplication const& rOther);
 
     /// Copy constructor.
