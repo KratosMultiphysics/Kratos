@@ -947,7 +947,7 @@ public:
                 std::cout << "\tPerforming convergence acceleration non-linear iteration " << nl_it << std::endl;
             }
                 
-            if (CCForCAType.find("ResidualConvergenceCriterion") != std::string::npos) // TODO: Check the name
+            if (CCForCAType.find("ResidualCriteria") != std::string::npos) // TODO: Check the name
             {
                 // Calculate the new displacement
                 mpConvergenceAccelerator->UpdateSolution(mb, auxDx);
