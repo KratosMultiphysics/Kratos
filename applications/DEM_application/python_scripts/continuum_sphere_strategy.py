@@ -18,8 +18,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
         if (self.delta_option > 0):
             self.case_option = 2     #MSIMSI. only 2 cases, with delta or without but continuum always.
 
-
-
         if not hasattr(Param, "LoadingVelocityTop"):
             self.fixed_vel_top = 0
         else:
@@ -29,7 +27,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
             self.fixed_vel_bot = 0
         else:
             self.fixed_vel_bot = Param.LoadingVelocityBot
-
 
         #self.fixed_vel_top = Param.LoadingVelocityTop
         #self.fixed_vel_bot = Param.LoadingVelocityBot
@@ -64,6 +61,11 @@ class ExplicitStrategy(BaseExplicitStrategy):
         else:
             self.shear_strain_parallel_to_bond_option = self.Var_Translator(Param.ShearStrainParallelToBondOption)
         
+        if not hasattr(Param, "IceOption"):
+            self.ice_option = 0
+        else:
+            self.ice_option = self.Var_Translator(Param.IceOption)
+        
 
     def CreateCPlusPlusStrategy(self):
         self.SetVariablesAndOptions()
@@ -82,6 +84,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         
         self.spheres_model_part.ProcessInfo.SetValue(POISSON_EFFECT_OPTION, self.poisson_effect_option)
         self.spheres_model_part.ProcessInfo.SetValue(SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION, self.shear_strain_parallel_to_bond_option)
+        self.spheres_model_part.ProcessInfo.SetValue(ICE_OPTION, self.ice_option)
 
         ##################################
 
