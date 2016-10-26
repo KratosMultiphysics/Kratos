@@ -444,13 +444,13 @@ void SphericSwimmingParticle<TBaseElement>::CalculateExplicitFractionalDerivativ
 {
     const int N = historic_integrands.size() - 3;
     const int n = (int)N / 3;
-    double fast_fractional_derivative[3];
+    double fast_fractional_derivative[3] = {0.0};
 
     for (int j = 0; j < n + 1; j++){
         double coefficient = GetDaitcheCoefficient(mQuadratureOrder, n + 1, j + 1, last_h_over_h, n_steps_per_quad_step);
         for (int i_comp = 0; i_comp < 3; i_comp++){
-            unsigned int integrand_position = N - 3 * j + i_comp;
-            fast_fractional_derivative[i_comp] += coefficient * historic_integrands[integrand_position];
+            unsigned int integrand_component_position = N - 3 * j + i_comp;
+            fast_fractional_derivative[i_comp] += coefficient * historic_integrands[integrand_component_position];
         }
     }
 
