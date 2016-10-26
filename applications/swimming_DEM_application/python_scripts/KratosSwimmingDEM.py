@@ -8,6 +8,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 # Python imports
 import time as timer
+init_time = timer.time()
 import os
 import sys
 import math
@@ -96,6 +97,8 @@ pp.CFD_DEM.PostCationConcentration = False
 pp.CFD_DEM.do_impose_flow_from_field = False
 pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
 pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = True
+# Making the fluid step an exact multiple of the DEM step
+pp.Dt = int(pp.Dt / pp.CFD_DEM.MaxTimeStep) * pp.CFD_DEM.MaxTimeStep
 #Z
 
 # NANO BEGIN
@@ -305,7 +308,9 @@ for node in fluid_model_part.Nodes:
     y = node.GetSolutionStepValue(Y_WALL, 0)
     node.SetValue(Y_WALL, y)
 
-
+# Creating necessary directories
+main_path = os.getcwd()
+[post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name), run_code)
 
 os.chdir(main_path)
 
@@ -727,6 +732,7 @@ while (time <= final_time):
     step += 1
     fluid_model_part.CloneTimeStep(time)
     print("\n", "TIME = ", time)
+    print('ELAPSED TIME = ', timer.time() - init_time)
     sys.stdout.flush()
 
     if DEM_parameters.coupling_scheme_type  == "UpdatedDEM":
