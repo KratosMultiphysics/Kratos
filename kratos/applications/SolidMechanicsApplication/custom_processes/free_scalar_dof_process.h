@@ -354,7 +354,8 @@ private:
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-		it->Free(rVar);
+		it->pAddDof(rVar)->FreeDof();
+		//it->Free(rVar);
                 
             }
         }
