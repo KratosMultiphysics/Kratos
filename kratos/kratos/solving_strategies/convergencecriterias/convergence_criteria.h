@@ -265,11 +265,6 @@ public:
     )
     {
     }
-    
-    virtual std::string GetNameConvergenceCriterion()
-    {
-        return "";
-    }
 
     /**
      * This function is designed to be called once to perform all the checks needed

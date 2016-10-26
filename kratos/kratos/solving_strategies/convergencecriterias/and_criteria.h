@@ -200,12 +200,6 @@ public:
         mpsecond_criterion->FinalizeSolutionStep(r_model_part,rDofSet,A,Dx,b);
     }
 
-
-    std::string GetNameConvergenceCriterion()
-    {
-        return "And";
-    }
-
     /*@} */
     /**@name Operations */
     /*@{ */

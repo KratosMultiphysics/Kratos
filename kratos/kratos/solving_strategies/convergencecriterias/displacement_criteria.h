@@ -226,11 +226,6 @@ public:
 
     }
 
-    std::string GetNameConvergenceCriterion()
-    {
-        return "Displacement";
-    }
-
     /*@} */
     /**@name Operations */
     /*@{ */
