@@ -581,7 +581,7 @@ proc spdAux::injectSolvers {basenode args} {
             set un [apps::getAppUniqueName $appid "$stn$n"]
             set container "<container help='$help' n='$n' pn='$pn' un='$un' state='\[SolverEntryState\]' solstratname='$stn' >"
             set defsolver [lindex [$se getDefaultSolvers] 0]
-            append container "<value n='Solver' pn='Solver' v='$defsolver' values='' dict='\[GetSolvers\]' actualize='1' update_proc='Updateme'/>"
+            append container "<value n='Solver' pn='Solver' v='$defsolver' values='' dict='\[GetSolvers\]' actualize='1' update_proc='UpdateTree'/>"
             #append container "<dependencies node='../value' actualize='1'/>"
             #append container "</value>"
             append container $paramsnodes
@@ -1083,9 +1083,9 @@ proc spdAux::ProcGetElements { domNode args } {
     }
     set diction [join $pnames ","]
     set values [join $names ","]
-    
+    #W "[get_domnode_attribute $domNode v] $names"
     $domNode setAttribute values $values
-    if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]; spdAux::RequestRefresh}
+    if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
     if {[get_domnode_attribute $domNode v] ni $names} {$domNode setAttribute v [lindex $names 0]; spdAux::RequestRefresh}
     #spdAux::RequestRefresh
     return $diction
