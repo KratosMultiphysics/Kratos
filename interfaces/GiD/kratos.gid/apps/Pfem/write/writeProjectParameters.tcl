@@ -141,8 +141,14 @@ proc Pfem::write::GetPFEM_RemeshDict { } {
         dict set meshing_strategyDict "mesh_smoothing" false
         dict set meshing_strategyDict "variables_smoothing" false
         dict set meshing_strategyDict "elemental_variables_to_smooth" [list "DETERMINANT_F" ]
-        dict set meshing_strategyDict "reference_element_type" "Element2D3N"
-        dict set meshing_strategyDict "reference_condition_type" "CompositeCondition2D2N"
+	set nDim $::Model::SpatialDimension
+	if {$nDim eq "3D"} {
+	    dict set meshing_strategyDict "reference_element_type" "Element3D4N"
+	    dict set meshing_strategyDict "reference_condition_type" "CompositeCondition3D3N"
+	} else {
+	    dict set meshing_strategyDict "reference_element_type" "Element2D3N"
+	    dict set meshing_strategyDict "reference_condition_type" "CompositeCondition2D2N"
+	} 
         dict set bodyDict meshing_strategy $meshing_strategyDict
         
         set spatial_bounding_boxDict [dict create ]
@@ -235,7 +241,12 @@ proc Pfem::write::GetPFEM_FluidRemeshDict { } {
 	dict set bodyDict "mesh_id" 0
         dict set bodyDict "model_part_name" $body_name
 	dict set bodyDict "python_module" "fluid_meshing_domain"
-	dict set bodyDict "alpha_shape" 1.3
+	set nDim $::Model::SpatialDimension
+	if {$nDim eq "3D"} {
+	    dict set bodyDict "alpha_shape" 1.4
+	} else {
+	    dict set bodyDict "alpha_shape" 1.3
+	}
         dict set bodyDict "offset_factor" 0.0
         set remesh [write::getStringBinaryFromValue [Pfem::write::GetRemeshProperty $body_name "Remesh"]]
         set refine [write::getStringBinaryFromValue [Pfem::write::GetRemeshProperty $body_name "Refine"]]
@@ -250,8 +261,13 @@ proc Pfem::write::GetPFEM_FluidRemeshDict { } {
         dict set meshing_strategyDict "mesh_smoothing" false
         dict set meshing_strategyDict "variables_smoothing" false
         dict set meshing_strategyDict "elemental_variables_to_smooth" [list "DETERMINANT_F" ]
-        dict set meshing_strategyDict "reference_element_type" "TwoStepUpdatedLagrangianVPFluidElement2D"
-        dict set meshing_strategyDict "reference_condition_type" "CompositeCondition2D2N"
+	if {$nDim eq "3D"} {
+	    dict set meshing_strategyDict "reference_element_type" "TwoStepUpdatedLagrangianVPFluidElement3D"
+	    dict set meshing_strategyDict "reference_condition_type" "CompositeCondition3D3N"
+	} else {
+	    dict set meshing_strategyDict "reference_element_type" "TwoStepUpdatedLagrangianVPFluidElement2D"
+	    dict set meshing_strategyDict "reference_condition_type" "CompositeCondition2D2N"
+	} 
         dict set bodyDict meshing_strategy $meshing_strategyDict
         
         set spatial_bounding_boxDict [dict create ]
