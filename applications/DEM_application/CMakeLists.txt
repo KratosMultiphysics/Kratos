@@ -16,6 +16,7 @@ set( KRATOS_DEM_APPLICATION_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spheric_particle.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/nanoparticle.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spheric_continuum_particle.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ice_continuum_particle.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/thermal_spheric_particle.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/sintering_spheric_continuum_particle.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/Particle_Contact_Element.cpp
