@@ -517,6 +517,67 @@ class ResultsFileCreator:
                     line += str('%.17f' % entry) + ' '
                 f.write(line + ' \n')
 
+# The following function creates a run_code to be appended to the name of the PostFiles directory for the benchmark marine_rain (2013 Guseva)
+def CreadeRunCode(pp):
+    code = []
+
+    if pp.CFD_DEM.basset_force_type > 0:
+        history_or_not = 'H'
+    else:
+        history_or_not = 'NH'
+
+    code.append(history_or_not)
+
+    if pp.CFD_DEM.basset_force_type == 4:
+        method_name = 'Hinsberg'
+        number_of_exponentials = 'm=' + str(pp.CFD_DEM.number_of_exponentials)
+        time_window = 'tw=' + str(pp.CFD_DEM.time_window)
+        code.append(method_name)
+        code.append(number_of_exponentials)
+        code.append(time_window)
+
+    elif pp.CFD_DEM.basset_force_type > 0:
+        method_name = 'Daitche'
+        code.append(method_name)
+    else:
+        method_name = pp.CFD_DEM.IntegrationScheme
+        code.append(method_name)
+
+    DEM_dt = 'Dt=' + str(pp.CFD_DEM.MaxTimeStep)
+    code.append(DEM_dt)
+
+    if pp.CFD_DEM.basset_force_type > 0:
+        phi = 'phi=' + str(round(1 / pp.CFD_DEM.time_steps_per_quadrature_step, 3))
+        code.append(phi)
+
+    quadrature_order = 'QuadOrder=' + str(pp.CFD_DEM.quadrature_order)
+    code.append(quadrature_order)
+
+    return '_' + '_'.join(code)
+
+def CopyInputFilesIntoFolder(files_path, folder_path):
+    import glob, os, shutil
+    input_data_directory = folder_path + "/InputData"
+    if not os.path.isdir(input_data_directory):
+        os.makedirs(str(input_data_directory))
+
+    file_endings = ["*.mdpa", "DEM_explicit_solver_var.py", "ProjectParameters.py", "marine_rain.py", "*.geo", "*.dat", "*.msh"]
+    for ending in file_endings:
+        files = glob.iglob(os.path.join(files_path, ending))
+
+        for file in files:
+            if os.path.isfile(file):
+                shutil.copy2(file, input_data_directory)
+
+def PrintPositionsToFile(coors, method, j_var, k_var, main_path):
+    with open(main_path + '/coors_' + str(method) + str(j_var) + str(k_var) + '.txt','w') as fout:
+        for coor in coors:
+            line = ''
+
+            for comp in coor:
+                line += str(comp) + ' '
+            fout.write(line + '\n')
+
 class StationarityAssessmentTool:
 
     def __init__(self, max_pressure_variation_rate_tol, custom_functions_tool):
