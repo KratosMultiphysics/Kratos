@@ -158,7 +158,7 @@
             "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "input_file_name"      : "contact_test_2D/taylor_patch_dynamic_test_results.json",
             "model_part_name"      : "Parts_punch",
-            "sub_model_part_name"  : "INTERFACE",
+            "sub_model_part_name"  : "Interface",
             "time_frequency"       : 15.00
         }
     }
@@ -173,7 +173,7 @@
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "output_file_name"     : "contact_test_2D/taylor_patch_dynamic_test_results.json",
             "model_part_name"      : "Parts_punch",
-            "sub_model_part_name"  : "INTERFACE",
+            "sub_model_part_name"  : "Interface",
             "time_frequency"       : 15.00
         }
     }
