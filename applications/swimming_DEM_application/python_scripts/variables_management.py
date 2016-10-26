@@ -252,7 +252,8 @@ def ConstructListsOfResultsToPrint(pp):
             pp.nodal_results.remove(var)
             
     if (not pp.CFD_DEM.print_PRESSURE_option):
-        pp.nodal_results.remove("PRESSURE")
+        if "PRESSURE" in pp.nodal_results:
+            pp.nodal_results.remove("PRESSURE")
 
     EliminateRepeatedValuesFromList(pp.nodal_results)
     EliminateRepeatedValuesFromList(pp.dem_nodal_results)
