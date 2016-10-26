@@ -378,7 +378,7 @@ End Elements
 *set cond group_RigidBodies *groups
 *if(CondNumEntities > 0)
 *loop groups *OnlyInCond
-*if(strcmp(cond(Body_Surface),"True")==0)
+*if(strcmp(cond(Body_Surface),"True")==0 || strcmp(cond(Parametric_Wall),"True")==0)
 *if(GenData(DOMAIN_SIZE,INT) == 3)
 Begin Elements Element3D3N
 *else
@@ -749,11 +749,10 @@ Begin SubModelPart *GroupName // *GroupNum
 
  Begin SubModelPartElements
 *set group *GroupName *elems 
-*if(GroupNumEntities) 
+*if(GroupNumEntities > 0) 
 *loop elems *onlyingroup 
-*set var RigidWallsElemNum=operation(RigidWallsElemNum+1)
 *format "%i"
- *RigidWallsElemNum
+ *ElemsNum
 *end elems
 *endif
  End SubModelPartElements
