@@ -84,6 +84,7 @@ namespace Kratos {
         void SetInitialFemContacts();
         void FinalizeSolutionStep();
         void FinalizeSolutionStepFEM();
+        void MarkNewSkinParticles();
 
         virtual void Add_As_Own(ModelPart& r_model_part, ModelPart& mcontacts_model_part, ParticleWeakIteratorType_ptr continuum_ini_neighbour_iterator, Element::Pointer p_contact_element) {
             KRATOS_TRY
