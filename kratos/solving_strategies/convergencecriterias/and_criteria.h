@@ -201,7 +201,10 @@ public:
     }
 
 
-
+    std::string GetNameConvergenceCriterion()
+    {
+        return "And";
+    }
 
     /*@} */
     /**@name Operations */

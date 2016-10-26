@@ -155,29 +155,37 @@ public:
             CalculateReferenceNorm(rDofSet);
 
             if(mFinalCorrectionNorm == 0)
+            {
                 ratio = 0.0;
+            }
             else
             {
                 if(mReferenceDispNorm == 0)
-                    KRATOS_THROW_ERROR(std::logic_error, "NaN norm is detected", "")
+                {
+                    KRATOS_THROW_ERROR(std::logic_error, "NaN norm is detected", "");
+                }
                 ratio = mFinalCorrectionNorm/mReferenceDispNorm;
             }
-            double aaa = SparseSpaceType::Size(Dx);
+            const double aaa = SparseSpaceType::Size(Dx);
 
-            double AbsoluteNorm = (mFinalCorrectionNorm/sqrt(aaa));
+            const double AbsoluteNorm = (mFinalCorrectionNorm/sqrt(aaa));
 
             if (this->GetEchoLevel() >= 1)
-	      std::cout << "DISPLACEMENT CRITERION :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << AbsoluteNorm << "; ]" << std::endl;
+            {
+                std::cout << "DISPLACEMENT CRITERION :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << AbsoluteNorm << "; ]" << std::endl;
+            }
 
-	    r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
-	    r_model_part.GetProcessInfo()[RESIDUAL_NORM] = AbsoluteNorm;
+            r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
+            r_model_part.GetProcessInfo()[RESIDUAL_NORM] = AbsoluteNorm;
 
             if ( ratio <= mRatioTolerance  ||  AbsoluteNorm<mAlwaysConvergedNorm )  //  || (mFinalCorrectionNorm/x.size())<=1e-7)
             {
-	      if (this->GetEchoLevel() >= 1)
-		std::cout << "Convergence is achieved" << std::endl;
-	      
-	      return true;
+                if (this->GetEchoLevel() >= 1)
+                {
+                    std::cout << "Convergence is achieved" << std::endl;
+                }
+
+                return true;
             }
             else
             {
@@ -213,9 +221,15 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    ) {}
+    )
+    {
 
+    }
 
+    std::string GetNameConvergenceCriterion()
+    {
+        return "Displacement";
+    }
 
     /*@} */
     /**@name Operations */

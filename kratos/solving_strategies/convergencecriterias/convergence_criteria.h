@@ -266,6 +266,11 @@ public:
     {
     }
     
+    virtual std::string GetNameConvergenceCriterion()
+    {
+        return "";
+    }
+
     /**
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
