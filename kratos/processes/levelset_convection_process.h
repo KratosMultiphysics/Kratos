@@ -232,12 +232,8 @@ public:
             
             //emulate clone time step by copying the new distance onto the old one
             i=0;
-			int  nnodes = mp_distance_model_part->NodesBegin()->size();
-			//for (ModelPart::NodesContainerType::iterator iii = mp_distance_model_part->NodesBegin(); iii != mp_distance_model_part->NodesEnd(); iii++)
-#pragma omp parallel for
-			for (int t = 0; t < nnodes; t++)
+            for (ModelPart::NodesContainerType::iterator iii = mp_distance_model_part->NodesBegin(); iii != mp_distance_model_part->NodesEnd(); iii++)
             {
-				ModelPart::NodesContainerType::iterator iii = mp_distance_model_part->NodesBegin()+t;
                 iii->FastGetSolutionStepValue(mrLevelSetVar,1) = iii->FastGetSolutionStepValue(mrLevelSetVar);
 
                 const array_1d<double,3>& vold = mvold[i];
@@ -258,12 +254,8 @@ public:
         
         //reset the velocities and levelset values to the one saved before the solution process
         i = 0;
-        //for (ModelPart::NodesContainerType::iterator iii = mp_distance_model_part->NodesBegin(); iii != mp_distance_model_part->NodesEnd(); iii++)
-		int  nnodes = mp_distance_model_part->NodesBegin()->size();
-#pragma omp parallel for
-		for (int t = 0; t < nnodes; t++)
-		{
-			ModelPart::NodesContainerType::iterator iii = mp_distance_model_part->NodesBegin() + t;
+        for (ModelPart::NodesContainerType::iterator iii = mp_distance_model_part->NodesBegin(); iii != mp_distance_model_part->NodesEnd(); iii++)
+        {
             iii->FastGetSolutionStepValue(mrLevelSetVar,1) = mold_dist[i];
             
             const array_1d<double,3>& vold = mvold[i];
