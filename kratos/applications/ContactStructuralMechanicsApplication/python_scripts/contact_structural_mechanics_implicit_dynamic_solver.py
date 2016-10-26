@@ -76,14 +76,19 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
             },
             "accelerate_convergence": false,
             "convergence_accelerator":{
-                "solver_type"       : "Relaxation",
-                "acceleration_type" : "Aitken",
-                "w_0"               :  0.35,
-                "max_nl_iterations" :  10,
-                "nl_relative_tol"   :  1.0e-4,
-                "nl_absolute_tol"   :  1.0e-9,
-                "update_system"     :  false,
-                "buffer_size"       :  10
+                    "solver_type"       : "Relaxation",
+                    "acceleration_type" : "Aitken",
+                    "w_0"               :  0.01,
+                    "reduction_coefficient" :  0.1,
+                    "max_nl_iterations" :  2,
+                    "convergence_criterion": "Displacement_criterion",
+                    "echo_level": 0,
+                    "displacement_relative_tolerance"   :  1.0e-3,
+                    "displacement_absolute_tolerance"   :  1.0e-6,
+                    "residual_relative_tolerance"   :  1.0e-3,
+                    "residual_absolute_tolerance"   :  1.0e-6,
+                    "update_system"     :  false,
+                    "buffer_size"       :  10
             },
             "processes_sub_model_part_list": [""],
             "problem_domain_sub_model_part_list": ["solid_model_part"]
@@ -241,12 +246,14 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                     
                 else:
                     if  self.settings["accelerate_convergence"].GetBool():
+                        params = self.settings["convergence_accelerator"]
                         import convergence_accelerator_factory     
-                        self.coupling_utility = convergence_accelerator_factory.CreateConvergenceAccelerator(self.settings["convergence_accelerator"])
-                        max_nl_it = self.settings["convergence_accelerator"]["max_nl_iterations"].GetInt()
-                        nl_relative_tol = self.settings["convergence_accelerator"]["nl_relative_tol"].GetDouble()
-                        nl_absolute_tol = self.settings["convergence_accelerator"]["nl_absolute_tol"].GetDouble()
-                        update_system = self.settings["convergence_accelerator"]["update_system"].GetBool()
+                        self.coupling_utility = convergence_accelerator_factory.CreateConvergenceAccelerator(params)
+                        max_nl_it = params["max_nl_iterations"].GetInt()
+                        import convergence_criteria_factory
+                        convergence_criterion_CA = (convergence_criteria_factory.convergence_criterion(params)).mechanical_convergence_criterion
+                        reduction_coefficient = params["reduction_coefficient"].GetDouble()
+                        update_system = params["update_system"].GetBool()
                         self.mechanical_solver = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactAcceleratedStrategy(
                                                                                 self.computing_model_part, 
                                                                                 mechanical_scheme, 
@@ -259,8 +266,8 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                                                                                 move_mesh_flag,
                                                                                 self.coupling_utility,
                                                                                 max_nl_it,
-                                                                                nl_relative_tol,
-                                                                                nl_absolute_tol,
+                                                                                reduction_coefficient,
+                                                                                convergence_criterion_CA,
                                                                                 update_system
                                                                                 )
                     elif  self.settings["compute_mortar_contact"].GetBool():
