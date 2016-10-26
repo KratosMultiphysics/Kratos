@@ -925,9 +925,6 @@ public:
      
         bool is_converged = false;
 
-//         TSparseSpace::SetToZero(mDx);
-//         TSparseSpace::SetToZero(mb);
-                        
         std::cout << "\t--------------------------------" << std::endl;
         std::cout << "\tCONVERGENCE ACCELERATION STARTED" << std::endl;
         
@@ -940,13 +937,10 @@ public:
                         
             is_converged = mpConvergenceCriteriaForConvergenceAccelerator->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
-//             KRATOS_WATCH(mb);
-//             KRATOS_WATCH(mDx);
-            
-//             if (this->GetEchoLevel() != 0)
-//             {
+            if (this->GetEchoLevel() != 0)
+            {
                 std::cout << "\tPerforming convergence acceleration non-linear iteration " << nl_it << std::endl;
-//             }
+            }
                 
             if (mCCForCAType.find("Residual") != std::string::npos)
             {
@@ -1001,9 +995,6 @@ public:
             }
            
             mpConvergenceAccelerator->FinalizeNonLinearIteration(); 
-            
-//             KRATOS_WATCH(mb);
-//             KRATOS_WATCH(mDx);
 
             is_converged = mpConvergenceCriteriaForConvergenceAccelerator->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);            
         }
