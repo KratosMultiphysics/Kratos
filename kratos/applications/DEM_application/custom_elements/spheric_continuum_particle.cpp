@@ -4,7 +4,7 @@
 //
 
 #include "spheric_continuum_particle.h"
-
+#include <cmath>
 
 namespace Kratos {
 
@@ -51,7 +51,7 @@ namespace Kratos {
         unsigned int neighbours_size = mNeighbourElements.size();
         mIniNeighbourIds.resize(neighbours_size);
         mIniNeighbourDelta.resize(neighbours_size);
-
+        
         for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
 
             SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
@@ -62,8 +62,7 @@ namespace Kratos {
             double radius_sum = GetRadius() + neighbour_iterator->GetRadius();
             double initial_delta = radius_sum - distance;
             int r_other_continuum_group = neighbour_iterator->mContinuumGroup; // finding out neighbor's Continuum Group Id
-
-            if ((r_other_continuum_group  == this->mContinuumGroup) && (this->mContinuumGroup != 0)) {
+            if ((r_other_continuum_group == this->mContinuumGroup) && (this->mContinuumGroup != 0)) {
 
                 mIniNeighbourIds[continuum_ini_size]   = neighbour_iterator->Id();
                 mIniNeighbourDelta[continuum_ini_size] = initial_delta;
@@ -75,7 +74,6 @@ namespace Kratos {
                 continuum_ini_size++;
 
             } else {
-
                 DiscontinuumInitialNeighborsIds.push_back(neighbour_iterator->Id());
                 DiscontinuumInitialNeighborsDeltas.push_back(initial_delta);
                 DiscontinuumInitialNeighborsElements.push_back(neighbour_iterator);
@@ -213,17 +211,18 @@ namespace Kratos {
     }
 
     
-    /*void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
-{
-    KRATOS_TRY
-    SphericParticle::InitializeSolutionStep(r_process_info);
+    /*void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info) {
     
-    for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
-        DEM_COPY_SECOND_TO_FIRST_3(mArrayOfOldDeltaDisplacements[i], mArrayOfDeltaDisplacements[i]);
-    }
+        KRATOS_TRY
+        
+        SphericParticle::InitializeSolutionStep(r_process_info);
     
-    KRATOS_CATCH("")
-}*/
+        for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
+            DEM_COPY_SECOND_TO_FIRST_3(mArrayOfOldDeltaDisplacements[i], mArrayOfDeltaDisplacements[i]);
+        }
+    
+        KRATOS_CATCH("")
+    }*/
 
     void SphericContinuumParticle::ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
                                                                  array_1d<double, 3>& rContactForce,
@@ -232,6 +231,7 @@ namespace Kratos {
                                                                  const double dt,
                                                                  const bool multi_stage_RHS) {
         KRATOS_TRY
+        
         const int time_steps = r_process_info[TIME_STEPS];
         const int& search_control = r_process_info[SEARCH_CONTROL];
         vector<int>& search_control_vector = r_process_info[SEARCH_CONTROL_VECTOR];
@@ -421,7 +421,6 @@ namespace Kratos {
     void SphericContinuumParticle::AddContributionToRepresentativeVolume(const double distance,
                                                                          const double radius_sum,
                                                                          const double contact_area) {
-
         KRATOS_TRY
 
         double gap = distance - radius_sum;
@@ -440,7 +439,6 @@ namespace Kratos {
 
         if (*mSkinSphere && is_smaller_than_sphere) rRepresentative_Volume *= 1.5; // This is the quotient between the volume of the cylinder circumscribed about a sphere and the latter
                                                                                    // So the minimum volume for a skin sphere is that of a cylinder
-
         KRATOS_CATCH("")
     }
 
@@ -467,11 +465,29 @@ namespace Kratos {
         }
 
         // the elemental variable is copied to a nodal variable in order to export the results onto GiD Post. Also a casting to double is necessary for GiD interpretation.
+        
+        KRATOS_CATCH("")
+    }
+    
+    void SphericContinuumParticle::MarkNewSkinParticlesDueToBreakage() {
+        
+        KRATOS_TRY
+        
+        for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
+            
+            if (mNeighbourElements[i] == NULL) {
+                *mSkinSphere = 1.0;
+                break;
+            }
+        }
+
         KRATOS_CATCH("")
     }
 
     void SphericContinuumParticle::ReorderAndRecoverInitialPositionsAndFilter(std::vector<SphericParticle*>& TempNeighbourElements) {
+        
         KRATOS_TRY
+        
         unsigned int current_neighbors_size = mNeighbourElements.size();
         unsigned int initial_neighbors_size = mIniNeighbourIds.size();
         TempNeighbourElements.resize(initial_neighbors_size);
@@ -516,7 +532,7 @@ namespace Kratos {
                     mBondElements[i] = NULL;
                 }
                 if ((mNeighbourElements[i] == NULL) && (mIniNeighbourFailureId[i] == 0)) {
-                    mIniNeighbourFailureId[i] = 6; // Breakage due to search (neighbour not broken was not found during search)
+                    mIniNeighbourFailureId[i] = 6; // Breakage due to search (neighbor not broken was not found during search)
                 }
             }
         }
@@ -564,13 +580,15 @@ namespace Kratos {
         double max_local_search = 0.0;
 
         for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
-	    if(mNeighbourElements[i] == NULL) continue;
+	    if (mNeighbourElements[i] == NULL) continue;
             SphericContinuumParticle* r_continuum_ini_neighbour = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
             double search_dist = mContinuumConstitutiveLawArray[i]->LocalMaxSearchDistance(i, this, r_continuum_ini_neighbour);
-            if (search_dist > max_local_search) { (max_local_search = search_dist); }
+            if (search_dist > max_local_search) max_local_search = search_dist;
         }
-        return max_local_search;
-        KRATOS_CATCH("")
+        
+	return max_local_search;
+        
+	KRATOS_CATCH("")
     }
 
     bool SphericContinuumParticle::OverlappedParticleRemoval() {
@@ -668,6 +686,7 @@ namespace Kratos {
     }
 
     void SphericContinuumParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) {
+        
         KRATOS_TRY
 
         if (rVariable == DELTA_TIME) {
@@ -706,11 +725,11 @@ namespace Kratos {
 
     double SphericContinuumParticle::GetInitialDelta(int index) {
         if (index < (int) mIniNeighbourDelta.size()) return mIniNeighbourDelta[index];
-        else  return 0.0;
+        else return 0.0;
     }
 
     double SphericContinuumParticle::GetInitialDeltaWithFEM(int index) {
-        if(index< (int) mFemIniNeighbourDelta.size()) return mFemIniNeighbourDelta[index];
+        if (index < (int) mFemIniNeighbourDelta.size()) return mFemIniNeighbourDelta[index];
         else return 0.0;
     }
 
@@ -733,6 +752,49 @@ namespace Kratos {
         if ((time_steps == 0) || (acumulated_damage > bond->mUnidimendionalDamage)) {
             bond->mUnidimendionalDamage = acumulated_damage;
         }
+        KRATOS_CATCH("")
+    }
+    
+    void SphericContinuumParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force,
+                                              array_1d<double, 3>& externally_applied_moment,
+                                              const ProcessInfo& r_process_info,
+                                              const array_1d<double,3>& gravity)
+    {
+        KRATOS_TRY
+        
+        SphericParticle::ComputeAdditionalForces(externally_applied_force, externally_applied_moment, r_process_info, gravity);   
+
+        if (r_process_info[ICE_OPTION]) ComputeIceForces(this, externally_applied_force, gravity);   
+                
+        KRATOS_CATCH("")
+    }
+    
+    void SphericContinuumParticle::ComputeIceForces(SphericContinuumParticle* continuum_particle,
+                                                    array_1d<double, 3>& externally_applied_force,
+                                                    const array_1d<double,3>& gravity) {
+        KRATOS_TRY
+        
+        double Z_coord = continuum_particle->GetGeometry()[0].Coordinates()[2];
+        double water_density = 1000.0; // Should go to problem type
+        double radius = continuum_particle->GetRadius();
+        array_1d<double, 3> velocity = continuum_particle->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+        double velocity_module = 1.0; //sqrt(velocity[0] * velocity[0] + velocity[1] * velocity[1] * velocity[2] * velocity[2]); // This would correspond to a quadratic drag law
+        
+        double water_level = 0.225; //  0.0; // Should go to problem type
+        double Cd = 3.0; //2.0; // Should go to problem type
+        
+        // Adding buoyancy and drag. Now a linear (with the velocity) drag law is implemented
+        if (Z_coord < water_level) {
+            // Buoyancy:
+            // noalias(externally_applied_force) -= this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) * water_density * gravity;
+            noalias(externally_applied_force) -= 8.0 * radius * radius * radius * water_density * gravity;
+            if (continuum_particle->IsSkin()) {
+                DEM_MULTIPLY_BY_SCALAR_3(velocity, 0.5 * Cd * velocity_module * water_density * 4.0 * radius * radius); // The correct area is still to be known
+                // Drag force:
+                noalias(externally_applied_force) -= velocity;              
+            }
+        }
+
         KRATOS_CATCH("")
     }
 
