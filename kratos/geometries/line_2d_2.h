@@ -618,6 +618,29 @@ public:
     {
       return EdgesNumber();
     }
+
+
+
+    //Connectivities of faces required
+    virtual void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const
+    {
+        if(NumberNodesInFaces.size() != 2 )
+            NumberNodesInFaces.resize(2,false);
+        // Lines have 1 node in edges/faces
+        NumberNodesInFaces[0]=1;
+        NumberNodesInFaces[1]=1;
+
+    }
+
+    virtual void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const
+    {
+        if(NodesInFaces.size1() != 2 || NodesInFaces.size2() != 2)
+            NodesInFaces.resize(2,2,false);
+
+        NodesInFaces(0,0)=0;//face or other node
+        NodesInFaces(1,0)=1;
+
+    }
     
     ///@}
     ///@name Shape Function
