@@ -171,6 +171,9 @@ namespace Kratos {
     }
 
     void ContinuumExplicitSolverStrategy::SearchDEMOperations(ModelPart& r_model_part, bool has_mpi) {
+        
+        
+        
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
 
         if (r_process_info[SEARCH_CONTROL] == 0) {
@@ -207,7 +210,11 @@ namespace Kratos {
                 RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
 
                 BaseType::SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_TOLERANCE] + r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION], 1.0);
+                
                 SearchNeighbours(); //the amplification factor has been modified after the first search.
+                
+                        
+
 
                 RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles); //These lists are necessary because the elements in this partition might have changed.
                 RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
@@ -223,6 +230,9 @@ namespace Kratos {
                 BaseType::RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);
 
                 ComputeNewNeighboursHistoricalData();
+                
+                MarkNewSkinParticles();
+                
                 r_process_info[SEARCH_CONTROL] = 2;
                 //if (r_process_info[BOUNDING_BOX_OPTION] == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
                 if (r_process_info[CONTACT_MESH_OPTION] == 1) {
@@ -236,6 +246,26 @@ namespace Kratos {
         }
         //Synch this var.
         r_model_part.GetCommunicator().MaxAll(r_process_info[SEARCH_CONTROL]);
+        
+        
+
+    }
+
+    void ContinuumExplicitSolverStrategy::MarkNewSkinParticles() {
+        
+        KRATOS_TRY
+
+        #pragma omp parallel
+        {
+            const int number_of_particles = (int)mListOfSphericContinuumParticles.size();
+
+            #pragma omp for
+            for (int i = 0; i < number_of_particles; i++) {
+                mListOfSphericContinuumParticles[i]->MarkNewSkinParticlesDueToBreakage();
+            }
+        }
+
+        KRATOS_CATCH("")
     }
 
     void ContinuumExplicitSolverStrategy::ComputeNewNeighboursHistoricalData() {
