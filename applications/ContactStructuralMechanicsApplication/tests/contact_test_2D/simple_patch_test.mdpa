@@ -93,7 +93,7 @@ Begin SubModelPart Parts_Parts_Auto2 // Group Parts Auto2 // Subtree Parts
     Begin SubModelPartConditions
     End SubModelPartConditions
     
-    Begin SubModelPart INTERFACE
+    Begin SubModelPart Interface
         Begin SubModelPartNodes
             5
             7
@@ -129,7 +129,7 @@ Begin SubModelPart Parts_Parts_Auto3 // Group Parts Auto3 // Subtree Parts
     Begin SubModelPartConditions
     End SubModelPartConditions
     
-    Begin SubModelPart INTERFACE
+    Begin SubModelPart Interface
         Begin SubModelPartNodes
             9
             11

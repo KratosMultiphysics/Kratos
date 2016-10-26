@@ -13743,7 +13743,7 @@ Begin SubModelPart Parts_parts_hemisphere // Group parts_hemisphere // Subtree P
     End SubModelPartElements
     Begin SubModelPartConditions
     End SubModelPartConditions
-    Begin SubModelPart INTERFACE
+    Begin SubModelPart Interface
         Begin SubModelPartNodes
 			122
 			126
@@ -14123,7 +14123,7 @@ Begin SubModelPart Parts_parts_plate // Group parts_plate // Subtree Parts
     End SubModelPartElements
     Begin SubModelPartConditions
     End SubModelPartConditions
-    Begin SubModelPart INTERFACE
+    Begin SubModelPart Interface
         Begin SubModelPartNodes
                         118
 			127

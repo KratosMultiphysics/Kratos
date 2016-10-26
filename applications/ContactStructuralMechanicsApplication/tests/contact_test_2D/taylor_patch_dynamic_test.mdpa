@@ -135,7 +135,7 @@ Begin SubModelPart Parts_foundation // Group foundation // Subtree Parts
     End SubModelPartElements
     Begin SubModelPartConditions
     End SubModelPartConditions
-	Begin SubModelPart INTERFACE
+	Begin SubModelPart Interface
 	    Begin SubModelPartNodes
 	    	11
 	    	12
@@ -183,7 +183,7 @@ Begin SubModelPart Parts_punch // Group punch // Subtree Parts
     End SubModelPartElements
     Begin SubModelPartConditions
     End SubModelPartConditions
-	Begin SubModelPart INTERFACE
+	Begin SubModelPart Interface
 	    Begin SubModelPartNodes
 	    	5
 	    	6

@@ -50,8 +50,8 @@ class ContactProcess(KratosMultiphysics.Process):
         self.o_model_part = model_part[self.params["origin_model_part_name"].GetString()]
         self.d_model_part = model_part[self.params["destination_model_part_name"].GetString()]
         
-        self.o_interface = self.o_model_part.GetSubModelPart("INTERFACE")
-        self.d_interface = self.d_model_part.GetSubModelPart("INTERFACE")
+        self.o_interface = self.o_model_part.GetSubModelPart("Interface")
+        self.d_interface = self.d_model_part.GetSubModelPart("Interface")
         
         self.search_factor            = self.params["search_factor"].GetDouble() 
         self.active_check_factor      = self.params["active_check_factor"].GetDouble() 
