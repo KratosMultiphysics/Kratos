@@ -25,9 +25,14 @@
 #include "custom_utilities/contact_utilities.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
-#include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/variable_utils.h"
+
+// Convergence criterias
+#include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "solving_strategies/convergencecriterias/residual_criteria.h"
+#include "solving_strategies/convergencecriterias/displacement_criteria.h"
+#include "solving_strategies/convergencecriterias/and_criteria.h"
 
 // Default builder and solver
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
@@ -154,7 +159,6 @@ public:
         mMaxNumberConvergenceAccelerationIterations = MaxNumberConvergenceAccelerationIterations;
         mReductionCoefficient = ReductionCoefficient;
         mpConvergenceCriteriaForConvergenceAccelerator = pConvergenceCriteriaForConvergenceAccelerator;
-        mCCForCAType = pConvergenceCriteriaForConvergenceAccelerator->GetNameConvergenceCriterion();
         mUpdateSystem = UpdateSystem;
 
         // Saving the linear solver
@@ -243,7 +247,6 @@ public:
         mMaxNumberConvergenceAccelerationIterations = MaxNumberConvergenceAccelerationIterations;
         mReductionCoefficient = ReductionCoefficient;
         mpConvergenceCriteriaForConvergenceAccelerator = pConvergenceCriteriaForConvergenceAccelerator;
-        mCCForCAType = pConvergenceCriteriaForConvergenceAccelerator->GetNameConvergenceCriterion();
         mUpdateSystem = UpdateSystem;
         
         // Saving the linear solver
@@ -924,7 +927,9 @@ public:
         // Here we start the non-linear iteration of the convergence accelerator
      
         bool is_converged = false;
-
+        
+        std::string CCForCAType = typeid(*mpConvergenceCriteriaForConvergenceAccelerator).name();
+        
         std::cout << "\t--------------------------------" << std::endl;
         std::cout << "\tCONVERGENCE ACCELERATION STARTED" << std::endl;
         
@@ -942,7 +947,7 @@ public:
                 std::cout << "\tPerforming convergence acceleration non-linear iteration " << nl_it << std::endl;
             }
                 
-            if (mCCForCAType.find("Residual") != std::string::npos)
+            if (CCForCAType.find("ResidualConvergenceCriterion") != std::string::npos) // TODO: Check the name
             {
                 // Calculate the new displacement
                 mpConvergenceAccelerator->UpdateSolution(mb, auxDx);
@@ -961,7 +966,7 @@ public:
                     mb -= prod(mA, auxDx);
                 }
             }
-            else if (mCCForCAType.find("Displacement") != std::string::npos)
+            else if (CCForCAType.find("DisplacementConvergenceCriterion") != std::string::npos)
             {
                 // Calculate the new displacement
                 mpConvergenceAccelerator->UpdateSolution(mDx, auxDx);
@@ -972,7 +977,7 @@ public:
                 // Update residual variables
                 mDx -= auxDx;
             }
-            else if (mCCForCAType.find("And") != std::string::npos)
+            else if (CCForCAType.find("AndConvergenceCriterion") != std::string::npos) // TODO: Check the name
             {
                 // Calculate the new displacement
                 mpConvergenceAccelerator->UpdateSolution(mb, auxDx);
@@ -1114,8 +1119,6 @@ protected:
     unsigned int mMaxNumberConvergenceAccelerationIterations;
     
     typename TConvergenceCriteriaType::Pointer mpConvergenceCriteriaForConvergenceAccelerator;
-    
-    std::string mCCForCAType;
     
     bool mUpdateSystem;
     
