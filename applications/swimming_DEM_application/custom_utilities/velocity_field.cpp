@@ -102,8 +102,8 @@ void VelocityField::CalculateMaterialAcceleration(const double time, const array
     double u2 = U2(i_thread);
     array_1d<double, 3> vel_rate;
     array_1d< array_1d<double, 3>, 3> grad;
-    CalculateTimeDerivative(time, coor, vel_rate);
-    CalculateGradient(time, coor, grad);
+    CalculateTimeDerivative(time, coor, vel_rate, i_thread);
+    CalculateGradient(time, coor, grad, i_thread);
 
     accel[0] = vel_rate[0] + u0 * grad[0][0] + u1 * grad[0][1] + u2 * grad[0][2];
     accel[1] = vel_rate[1] + u0 * grad[1][0] + u1 * grad[1][1] + u2 * grad[1][2];
@@ -118,8 +118,8 @@ void VelocityField::CalculateMaterialAcceleration(const double time, const vecto
     double u2 = U2(i_thread);
     array_1d<double, 3> vel_rate;
     array_1d< array_1d<double, 3>, 3> grad;
-    CalculateTimeDerivative(time, coor, vel_rate);
-    CalculateGradient(time, coor, grad);
+    CalculateTimeDerivative(time, coor, vel_rate, i_thread);
+    CalculateGradient(time, coor, grad, i_thread);
 
     accel[0] = vel_rate[0] + u0 * grad[0][0] + u1 * grad[0][1] + u2 * grad[0][2];
     accel[1] = vel_rate[1] + u0 * grad[1][0] + u1 * grad[1][1] + u2 * grad[1][2];
@@ -134,8 +134,8 @@ void VelocityField::CalculateAccelerationFollowingTheParticle(const double time,
     double u2 = particle_vel[2];
     array_1d<double, 3> vel_rate;
     array_1d< array_1d<double, 3>, 3> grad;
-    CalculateTimeDerivative(time, coor, vel_rate);
-    CalculateGradient(time, coor, grad);
+    CalculateTimeDerivative(time, coor, vel_rate, i_thread);
+    CalculateGradient(time, coor, grad, i_thread);
 
     accel[0] = vel_rate[0] + u0 * grad[0][0] + u1 * grad[0][1] + u2 * grad[0][2];
     accel[1] = vel_rate[1] + u0 * grad[1][0] + u1 * grad[1][1] + u2 * grad[1][2];
@@ -150,45 +150,45 @@ void VelocityField::ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesL
     bool must_impose_fluid_velocity_laplacian                  = VariableIsInList(variables_to_be_imposed, FLUID_VEL_LAPL_PROJECTED);
     const double time = r_model_part.GetProcessInfo()[TIME];
 
-    //#pragma omp parallel firstprivate(must_impose_fluid_velocity, must_impose_fluid_acceleration, must_impose_fluid_velocity_laplacian, time)
-    {
+    #pragma omp parallel for firstprivate(must_impose_fluid_velocity, must_impose_fluid_acceleration, must_impose_fluid_velocity_laplacian, time)
+    for (int i = 0; i < (int)r_model_part.Nodes().size(); i++){
         int thread_number = omp_get_thread_num();
+        ModelPart::NodesContainerType::iterator i_particle = r_model_part.NodesBegin() + i;
+        Node<3>::Pointer p_node = *(i_particle.base());
+        const array_1d<double, 3>& coor = p_node->Coordinates();
+        UpdateCoordinates(time, coor, thread_number);
+        LockCoordinates(thread_number);
 
-        //#pragma omp for
-        for (int i = 0; i < (int)r_model_part.Nodes().size(); i++){
-            ModelPart::NodesContainerType::iterator i_particle = r_model_part.NodesBegin() + i;
-            Node<3>::Pointer p_node = *(i_particle.base());
-            const array_1d<double, 3>& coor = p_node->Coordinates();
-
-            if (must_impose_fluid_velocity){
-                array_1d<double, 3> fluid_vel;
-                Evaluate(time, coor, fluid_vel, thread_number);
-                array_1d<double, 3>& fluid_vel_projected = p_node->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
-                noalias(fluid_vel_projected) = fluid_vel;
-            }
-
-            if (must_impose_fluid_acceleration){
-                array_1d<double, 3> fluid_accel;
-                CalculateMaterialAcceleration(time, coor, fluid_accel, thread_number);
-                array_1d<double, 3>& fluid_accel_projected = p_node->FastGetSolutionStepValue(FLUID_ACCEL_PROJECTED);
-                noalias(fluid_accel_projected) = fluid_accel;
-            }
-
-            if (must_impose_fluid_acceleration_following_the_particle){
-                const array_1d<double, 3> particle_vel = p_node->FastGetSolutionStepValue(VELOCITY);
-                array_1d<double, 3> fluid_accel;
-                CalculateAccelerationFollowingTheParticle(time, coor, fluid_accel, particle_vel, thread_number);
-                array_1d<double, 3>& fluid_accel_projected = p_node->FastGetSolutionStepValue(FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED);
-                noalias(fluid_accel_projected) = fluid_accel;
-            }
-
-            if (must_impose_fluid_velocity_laplacian){
-                array_1d<double, 3> fluid_laplacian;
-                CalculateLaplacian(time, coor, fluid_laplacian, thread_number);
-                array_1d<double, 3>& fluid_laplacian_projected = p_node->FastGetSolutionStepValue(FLUID_VEL_LAPL_PROJECTED);
-                noalias(fluid_laplacian_projected) = fluid_laplacian;
-            }
+        if (must_impose_fluid_velocity){
+            array_1d<double, 3> fluid_vel;
+            Evaluate(time, coor, fluid_vel, thread_number);
+            array_1d<double, 3>& fluid_vel_projected = p_node->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
+            noalias(fluid_vel_projected) = fluid_vel;
         }
+
+        if (must_impose_fluid_acceleration){
+            array_1d<double, 3> fluid_accel;
+            CalculateMaterialAcceleration(time, coor, fluid_accel, thread_number);
+            array_1d<double, 3>& fluid_accel_projected = p_node->FastGetSolutionStepValue(FLUID_ACCEL_PROJECTED);
+            noalias(fluid_accel_projected) = fluid_accel;
+        }
+
+        if (must_impose_fluid_acceleration_following_the_particle){
+            const array_1d<double, 3> particle_vel = p_node->FastGetSolutionStepValue(VELOCITY);
+            array_1d<double, 3> fluid_accel;
+            CalculateAccelerationFollowingTheParticle(time, coor, fluid_accel, particle_vel, thread_number);
+            array_1d<double, 3>& fluid_accel_projected = p_node->FastGetSolutionStepValue(FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED);
+            noalias(fluid_accel_projected) = fluid_accel;
+        }
+
+        if (must_impose_fluid_velocity_laplacian){
+            array_1d<double, 3> fluid_laplacian;
+            CalculateLaplacian(time, coor, fluid_laplacian, thread_number);
+            array_1d<double, 3>& fluid_laplacian_projected = p_node->FastGetSolutionStepValue(FLUID_VEL_LAPL_PROJECTED);
+            noalias(fluid_laplacian_projected) = fluid_laplacian;
+        }
+
+        UnlockCoordinates(thread_number);
     }
 }
 
