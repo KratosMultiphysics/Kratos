@@ -11,28 +11,44 @@ void CellularFlowField::ResizeVectorsForParallelism(const int n_threads)
     mCosPiX0.resize(n_threads);
     mSinPiX1.resize(n_threads);
     mCosPiX1.resize(n_threads);
+    mCoordinatesAreUpToDate.resize(n_threads);
+    for (int i = 0; i < n_threads; i++){
+        mCoordinatesAreUpToDate[i] = false;
+    }
 }
-
 void CellularFlowField::UpdateCoordinates(const double time, const array_1d<double, 3>& coor, const int i_thread)
 {
-    mSinOmegaT[i_thread] = std::sin(mOmegaUOverL * time);
-    mCosOmegaT[i_thread] = std::cos(mOmegaUOverL * time);
-    mSinPiX0[i_thread]   = std::sin(mOneOverL * coor[0]);
-    mCosPiX0[i_thread]   = std::cos(mOneOverL * coor[0]);
-    mSinPiX1[i_thread]   = std::sin(mOneOverL * coor[1]);
-    mCosPiX1[i_thread]   = std::cos(mOneOverL * coor[1]);
+    if (!mCoordinatesAreUpToDate[i_thread]){
+        mSinOmegaT[i_thread] = std::sin(mOmegaUOverL * time);
+        mCosOmegaT[i_thread] = std::cos(mOmegaUOverL * time);
+        mSinPiX0[i_thread]   = std::sin(mOneOverL * coor[0]);
+        mCosPiX0[i_thread]   = std::cos(mOneOverL * coor[0]);
+        mSinPiX1[i_thread]   = std::sin(mOneOverL * coor[1]);
+        mCosPiX1[i_thread]   = std::cos(mOneOverL * coor[1]);
+    }
 }
 
 void CellularFlowField::UpdateCoordinates(const double time, const vector<double>& coor, const int i_thread)
 {
-    mSinOmegaT[i_thread] = std::sin(mOmegaUOverL * time);
-    mCosOmegaT[i_thread] = std::cos(mOmegaUOverL * time);
-    mSinPiX0[i_thread]   = std::sin(mOneOverL * coor[0]);
-    mCosPiX0[i_thread]   = std::cos(mOneOverL * coor[0]);
-    mSinPiX1[i_thread]   = std::sin(mOneOverL * coor[1]);
-    mCosPiX1[i_thread]   = std::cos(mOneOverL * coor[1]);
+    if (!mCoordinatesAreUpToDate[i_thread]){
+        mSinOmegaT[i_thread] = std::sin(mOmegaUOverL * time);
+        mCosOmegaT[i_thread] = std::cos(mOmegaUOverL * time);
+        mSinPiX0[i_thread]   = std::sin(mOneOverL * coor[0]);
+        mCosPiX0[i_thread]   = std::cos(mOneOverL * coor[0]);
+        mSinPiX1[i_thread]   = std::sin(mOneOverL * coor[1]);
+        mCosPiX1[i_thread]   = std::cos(mOneOverL * coor[1]);
+    }
 }
 
+void CellularFlowField::LockCoordinates(const int i_thread)
+{
+    mCoordinatesAreUpToDate[i_thread] = 1;
+}
+
+void CellularFlowField::UnlockCoordinates(const int i_thread)
+{
+    mCoordinatesAreUpToDate[i_thread] = 0;
+}
 // Values
 
 double CellularFlowField::U0(const int i)
