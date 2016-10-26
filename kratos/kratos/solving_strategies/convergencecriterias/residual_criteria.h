@@ -162,26 +162,36 @@ public:
             double b_size = TSparseSpace::Size(b);
 
 
-            if(mInitialResidualNorm == 0.00) ratio = 0.00;
+            if(mInitialResidualNorm == 0.00)
+            {
+                ratio = 0.00;
+            }
 
-            else ratio = mCurrentResidualNorm/mInitialResidualNorm;
+            else
+            {
+                ratio = mCurrentResidualNorm/mInitialResidualNorm;
+            }
 
             if (r_model_part.GetCommunicator().MyPID() == 0)
-	      if (this->GetEchoLevel() == 1)
-                std::cout << "RESIDUAL CRITERION :: Ratio = " << ratio  << ";  Norm   = " << mCurrentResidualNorm/b_size << std::endl;
+            {
+                if (this->GetEchoLevel() == 1)
+                {
+                    std::cout << "RESIDUAL CRITERION :: Ratio = " << ratio  << ";  Norm   = " << mCurrentResidualNorm/b_size << std::endl;
+                }
+            }
 
-	    r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
-	    r_model_part.GetProcessInfo()[RESIDUAL_NORM] = mCurrentResidualNorm/b_size;
+            r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
+            r_model_part.GetProcessInfo()[RESIDUAL_NORM] = mCurrentResidualNorm/b_size;
 
-            if (
-                ratio <= mRatioTolerance
-                ||
-                (mCurrentResidualNorm/b_size) <mAlwaysConvergedNorm
-            )
+            if (ratio <= mRatioTolerance || (mCurrentResidualNorm/b_size) <mAlwaysConvergedNorm)
             {
                 if (r_model_part.GetCommunicator().MyPID() == 0)
-		  if (this->GetEchoLevel() == 1)
-                    std::cout << "Convergence is achieved" << std::endl;
+                {
+                    if (this->GetEchoLevel() == 1)
+                    {
+                        std::cout << "Convergence is achieved" << std::endl;
+                    }
+                }
                 return true;
             }
             else
@@ -194,9 +204,6 @@ public:
             return true;
         }
     }
-
-
-
 
     void Initialize(
         ModelPart& r_model_part
@@ -222,9 +229,15 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    ) {}
+    )
+    {
 
+    }
 
+    std::string GetNameConvergenceCriterion()
+    {
+        return "Residual";
+    }
 
     /*@} */
     /**@name Operations */
