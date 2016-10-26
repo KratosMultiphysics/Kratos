@@ -126,8 +126,8 @@ public:
         bool MoveMeshFlag = false,
         typename TConvergenceAcceleratorType::Pointer pConvergenceAccelerator = nullptr,
         unsigned int MaxNumberConvergenceAccelerationIterations = 20,
-        double ConvergenceAccelerationRelativeTolerance = 1.0e-5,
-        double ConvergenceAccelerationAbsoluteTolerance = 1.0e-3,
+        double ReductionCoefficient = 0.1,
+        typename TConvergenceCriteriaType::Pointer pConvergenceCriteriaForConvergenceAccelerator = nullptr,
         bool UpdateSystem = false
     )
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
@@ -152,8 +152,9 @@ public:
         
         // Setting convergence acceleration parameters 
         mMaxNumberConvergenceAccelerationIterations = MaxNumberConvergenceAccelerationIterations;
-        mConvergenceAccelerationRelativeTolerance = ConvergenceAccelerationRelativeTolerance;
-        mConvergenceAccelerationAbsoluteTolerance = ConvergenceAccelerationAbsoluteTolerance;
+        mReductionCoefficient = ReductionCoefficient;
+        mpConvergenceCriteriaForConvergenceAccelerator = pConvergenceCriteriaForConvergenceAccelerator;
+        mCCForCAType = pConvergenceCriteriaForConvergenceAccelerator->GetNameConvergenceCriterion();
         mUpdateSystem = UpdateSystem;
 
         // Saving the linear solver
@@ -214,8 +215,8 @@ public:
         bool MoveMeshFlag = false,
         typename TConvergenceAcceleratorType::Pointer pConvergenceAccelerator = nullptr,
         unsigned int MaxNumberConvergenceAccelerationIterations = 20,
-        double ConvergenceAccelerationRelativeTolerance = 1.0e-5,
-        double ConvergenceAccelerationAbsoluteTolerance = 1.0e-3,
+        double ReductionCoefficient = 0.1,
+        typename TConvergenceCriteriaType::Pointer pConvergenceCriteriaForConvergenceAccelerator = nullptr,
         bool UpdateSystem = false
     )
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
@@ -240,8 +241,9 @@ public:
         
         // Setting convergence acceleration parameters 
         mMaxNumberConvergenceAccelerationIterations = MaxNumberConvergenceAccelerationIterations;
-        mConvergenceAccelerationRelativeTolerance = ConvergenceAccelerationRelativeTolerance;
-        mConvergenceAccelerationAbsoluteTolerance = ConvergenceAccelerationAbsoluteTolerance;
+        mReductionCoefficient = ReductionCoefficient;
+        mpConvergenceCriteriaForConvergenceAccelerator = pConvergenceCriteriaForConvergenceAccelerator;
+        mCCForCAType = pConvergenceCriteriaForConvergenceAccelerator->GetNameConvergenceCriterion();
         mUpdateSystem = UpdateSystem;
         
         // Saving the linear solver
@@ -417,7 +419,7 @@ public:
 
         if (mInitializeWasPerformed == false)
         {
-            //pointers needed in the solution
+            // Pointers needed in the solution
             typename TSchemeType::Pointer pScheme = GetScheme();
             typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
 
@@ -439,14 +441,19 @@ public:
                 pScheme->InitializeConditions(BaseType::GetModelPart());
             }
 
-            //initialisation of the convergence criteria
+            // Initialisation of the convergence criteria
             if (mpConvergenceCriteria->mConvergenceCriteriaIsInitialized == false)
             {
                 mpConvergenceCriteria->Initialize(BaseType::GetModelPart());
             }
             
-            // TODO: Check if correct
-            mpConvergenceAccelerator->Initialize();
+            // Initialisation of the convergence criteria for the convergence accelerator
+            if (mpConvergenceCriteriaForConvergenceAccelerator->mConvergenceCriteriaIsInitialized == false)
+            {
+                mpConvergenceCriteriaForConvergenceAccelerator->Initialize(BaseType::GetModelPart());
+            }
+            
+            mpConvergenceAccelerator->Initialize(); // TODO: Check if correct
 
             mInitializeWasPerformed = true;
         }
@@ -800,7 +807,7 @@ public:
             BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number; 
             
             CoutSolvingProblem();
-        
+           
             pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
 
             is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
@@ -841,16 +848,10 @@ public:
                 std::cout << "ATTENTION: no free DOFs!! " << std::endl;
             }
             
-            if (mUpdateSystem == true)
-            {
-                // Updating the results stored in the database
-                UpdateDatabase(pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb);
-            }
-            
-            ConvergenceAcceleratorStep(pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb); // TODO: Check if it is correct
-            
             // Updating the results stored in the database
-            UpdateDatabase(pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb);
+            UpdateDatabase(pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb, BaseType::MoveMeshFlag());
+            
+            pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
             
             ResidualIsUpdated = false;
 
@@ -866,6 +867,10 @@ public:
                 }
                 is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
             }
+
+            // The convergence accelerator is applied
+            mpConvergenceCriteriaForConvergenceAccelerator->InitializeSolutionStep(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+            is_converged = ConvergenceAcceleratorStep(pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb); // TODO: Check if it is correct
         }
     }
     
@@ -884,19 +889,18 @@ public:
         DofsArrayType& rDofSet,
         TSystemMatrixType& mA,
         TSystemVectorType& mDx,
-        TSystemVectorType& mb
+        TSystemVectorType& mb,
+        const bool MoveMesh
     )
     {
         rDofSet = pBuilderAndSolver->GetDofSet();
         pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
         // Move the mesh if needed
-        if (BaseType::MoveMeshFlag() == true) 
+        if (MoveMesh == true) 
         {
             BaseType::MoveMesh();
         }
-
-        pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
     }
         
     /**
@@ -908,7 +912,7 @@ public:
      * @param mA: The LHS of the problem
      * @return mDx: The solution to the problem
      */
-    void ConvergenceAcceleratorStep(
+    bool ConvergenceAcceleratorStep(
         typename TSchemeType::Pointer& pScheme,
         typename TBuilderAndSolverType::Pointer& pBuilderAndSolver,
         DofsArrayType& rDofSet,
@@ -918,60 +922,107 @@ public:
     )
     {
         // Here we start the non-linear iteration of the convergence accelerator
-        for (unsigned int nl_it = 0; nl_it < mMaxNumberConvergenceAccelerationIterations; nl_it++)
-        {
+     
+        bool is_converged = false;
+
+//         TSparseSpace::SetToZero(mDx);
+//         TSparseSpace::SetToZero(mb);
+                        
+        std::cout << "\t--------------------------------" << std::endl;
+        std::cout << "\tCONVERGENCE ACCELERATION STARTED" << std::endl;
+        
+        TSystemVectorType auxDx = mReductionCoefficient * mDx;
+        
+        unsigned int nl_it = 0; 
+        while (is_converged == false && nl_it++ < mMaxNumberConvergenceAccelerationIterations)
+        {            
             mpConvergenceAccelerator->InitializeNonLinearIteration();
-            
-            if (BaseType::mEchoLevel > 0)
-            {
-                std::cout << "Calculating the residual of the convergence acceleration" << std::endl;
-            }
-            
-            if (mUpdateSystem == true)
-            {
-                pBuilderAndSolver->Build(pScheme, BaseType::GetModelPart(),mA, mb);
-            }
+                        
+            is_converged = mpConvergenceCriteriaForConvergenceAccelerator->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
-            TSystemVectorType residual_vector = mb - prod(mA, mDx); // TODO: Maybe this is not the correct thing to do
+//             KRATOS_WATCH(mb);
+//             KRATOS_WATCH(mDx);
             
-            // Calculating the norm of the residual
-            if (BaseType::mEchoLevel > 0)
-            {
-                std::cout << "Calculating the norm of the residual of the convergence acceleration" << std::endl;
-            }
-
-            const double nl_res_norm = TSparseSpace::TwoNorm(residual_vector);
-            
-            const double ratio_nl_res_norm = nl_res_norm/mReferenceResidual;
-            
-            // Check convergence
-            if (ratio_nl_res_norm <= mConvergenceAccelerationRelativeTolerance || nl_res_norm <= mConvergenceAccelerationAbsoluteTolerance)
-            {
-                std::cout << "\tNON-LINEAR ITERATION FOR THE CONVERGENCE ACCELERATION ACHIEVED" << std::endl;
-                std::cout << "\tTotal non-linear iterations "<< nl_it + 1 << " NL residual norm: " << nl_res_norm << " Ratio NL residual norm: " << ratio_nl_res_norm << std::endl;
-                break;
-            }
-            else
-            {
-                // If convergence is not achieved, perform the correction of the prediction
-//                 if (BaseType::mEchoLevel > 0)
-//                 {
-                    std::cout << "\tPerforming non-linear iteration " << nl_it + 1 << " NL residual norm: " << nl_res_norm << " Ratio NL residual norm: " << ratio_nl_res_norm << std::endl;
-//                 }
-
-                mpConvergenceAccelerator->UpdateSolution(residual_vector, mDx);
-                mpConvergenceAccelerator->FinalizeNonLinearIteration(); 
+//             if (this->GetEchoLevel() != 0)
+//             {
+                std::cout << "\tPerforming convergence acceleration non-linear iteration " << nl_it << std::endl;
+//             }
                 
+            if (mCCForCAType.find("Residual") != std::string::npos)
+            {
+                // Calculate the new displacement
+                mpConvergenceAccelerator->UpdateSolution(mb, auxDx);
+                
+                // Update the database
+                UpdateDatabase(pScheme, pBuilderAndSolver, rDofSet, mA, auxDx, mb, BaseType::MoveMeshFlag());
+                
+                // Update residual variables
                 if (mUpdateSystem == true)
                 {
-                    // Updating the results stored in the database
-                    UpdateDatabase(pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb);
+    //                 pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb);
+                    pBuilderAndSolver->Build(pScheme, BaseType::GetModelPart(),mA, mb);
+                }
+                else
+                {
+                    mb -= prod(mA, auxDx);
                 }
             }
+            else if (mCCForCAType.find("Displacement") != std::string::npos)
+            {
+                // Calculate the new displacement
+                mpConvergenceAccelerator->UpdateSolution(mDx, auxDx);
+                
+                // Update the database
+                UpdateDatabase(pScheme, pBuilderAndSolver, rDofSet, mA, auxDx, mb, BaseType::MoveMeshFlag());
+                
+                // Update residual variables
+                mDx -= auxDx;
+            }
+            else if (mCCForCAType.find("And") != std::string::npos)
+            {
+                // Calculate the new displacement
+                mpConvergenceAccelerator->UpdateSolution(mb, auxDx);
+                mpConvergenceAccelerator->UpdateSolution(mDx, auxDx);
+                
+                // Update the database
+                UpdateDatabase(pScheme, pBuilderAndSolver, rDofSet, mA, auxDx, mb, BaseType::MoveMeshFlag());
+                
+                // Update residual variables
+                mDx -= auxDx;
+                if (mUpdateSystem == true)
+                {
+    //                 pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb);
+                    pBuilderAndSolver->Build(pScheme, BaseType::GetModelPart(),mA, mb);
+                }
+                else
+                {
+                    mb -= prod(mA, auxDx);
+                }
+            }
+           
+            mpConvergenceAccelerator->FinalizeNonLinearIteration(); 
             
-            mpConvergenceAccelerator->FinalizeSolutionStep();
+//             KRATOS_WATCH(mb);
+//             KRATOS_WATCH(mDx);
+
+            is_converged = mpConvergenceCriteriaForConvergenceAccelerator->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);            
         }
         
+        if (is_converged == true)
+        {
+            std::cout << "\tNON-LINEAR ITERATION FOR THE CONVERGENCE ACCELERATION ACHIEVED" << std::endl;
+            std::cout << "\tTotal non-linear iterations "<< nl_it << std::endl;
+            std::cout << "\t--------------------------------" << std::endl;
+        }
+        else
+        {
+            std::cout << "\tCONVERGENCE ACCELERATION FINISHED" << std::endl;
+            std::cout << "\t--------------------------------" << std::endl;
+        }
+        
+        mpConvergenceAccelerator->FinalizeSolutionStep();
+        
+        return is_converged;
     }
     
     /**
@@ -996,8 +1047,6 @@ public:
         bool ResidualIsUpdated = false;
         
         InitiliazeCycle(is_converged, ResidualIsUpdated, iteration_number, pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb);
-       
-        mReferenceResidual = TSparseSpace::TwoNorm(mb - prod(mA, mDx));
         
         IterationCycle(is_converged, ResidualIsUpdated, iteration_number, pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb);
 
@@ -1073,13 +1122,13 @@ protected:
     
     unsigned int mMaxNumberConvergenceAccelerationIterations;
     
-    double mConvergenceAccelerationRelativeTolerance;
+    typename TConvergenceCriteriaType::Pointer mpConvergenceCriteriaForConvergenceAccelerator;
     
-    double mConvergenceAccelerationAbsoluteTolerance;
+    std::string mCCForCAType;
     
     bool mUpdateSystem;
     
-    double mReferenceResidual;
+    double mReductionCoefficient;
 
     typename TLinearSolver::Pointer mpLinearSolver;
 

@@ -23,8 +23,18 @@ class convergence_criterion:
         if(echo_level > 1):
             print("::[Mechanical Solver]:: CONVERGENCE CRITERION : ", convergence_criterion_parameters["convergence_criterion"].GetString())
 
+        rotation_dofs = False
+        if(convergence_criterion_parameters.Has("rotation_dofs")):
+            if(convergence_criterion_parameters["rotation_dofs"].GetBool()):
+                rotation_dofs = True
+                
+        component_wise = False
+        if(convergence_criterion_parameters.Has("component_wise")):
+            if(convergence_criterion_parameters["component_wise"].GetBool()):
+                component_wise = True
+        
         # Convergence criteria if there are rotation DOFs in the problem
-        if(convergence_criterion_parameters["rotation_dofs"].GetBool()):
+        if(rotation_dofs == True):
             if(convergence_criterion_parameters["convergence_criterion"].GetString() == "Displacement_criterion"):
                 self.mechanical_convergence_criterion = KratosSolid.DisplacementCriteria(D_RT, D_AT)
                 self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
@@ -54,7 +64,7 @@ class convergence_criterion:
                 self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
                 
             elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "Residual_criterion"):
-                if(convergence_criterion_parameters["component_wise"].GetBool()):
+                if(component_wise == True):
                     self.mechanical_convergence_criterion = KratosSolid.ComponentWiseResidualConvergenceCriterion(R_RT, R_AT)
                 else:
                     self.mechanical_convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
@@ -63,7 +73,7 @@ class convergence_criterion:
             elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "And_criterion"):
                 Displacement = KratosSolid.DisplacementConvergenceCriterion(D_RT, D_AT)
                 Displacement.SetEchoLevel(echo_level)
-                if(convergence_criterion_parameters["component_wise"].GetBool()):
+                if(component_wise == True):
                     Residual = KratosSolid.ComponentWiseResidualConvergenceCriterion(R_RT, R_AT)
                 else:
                     Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
@@ -73,7 +83,7 @@ class convergence_criterion:
             elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "Or_criterion"):
                 Displacement = KratosSolid.DisplacementConvergenceCriterion(D_RT, D_AT)
                 Displacement.SetEchoLevel(echo_level)
-                if(convergence_criterion_parameters["component_wise"].GetBool()):
+                if(component_wise == True):
                     Residual = KratosSolid.ComponentWiseResidualConvergenceCriterion(R_RT, R_AT)
                 else:
                     Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
