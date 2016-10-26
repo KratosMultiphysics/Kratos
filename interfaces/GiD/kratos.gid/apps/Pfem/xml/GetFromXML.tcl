@@ -42,7 +42,45 @@ proc ::Pfem::xml::::CheckElementOutputState { domNode args } {
     return [::Model::CheckElementOutputState $elemsactive $paramName]
 }
 
-proc Pfem::xml::ProcGetElements {domNode args} {
+proc Pfem::xml::ProcGetElementsDict {domNode args} {
+    set names [list ]
+    set blockNode [Pfem::xml::FindMyBlocknode $domNode]
+    set BodyType [get_domnode_attribute [$blockNode selectNodes "value\[@n='BodyType'\]"] v]
+    #W $BodyType
+    set argums [list ElementType $BodyType]
+    set elems [Pfem::xml::GetElements $domNode $args]
+    foreach elem $elems {
+        #W [$elem getName]
+        if {[$elem cumple $argums]} {
+            lappend pnames [$elem getName] 
+            lappend pnames [$elem getPublicName]
+        }
+    }
+    set diction [join $pnames ","]
+    return $diction
+}
+proc Pfem::xml::ProcGetElementsValues {domNode args} {
+    set names [list ]
+    set blockNode [Pfem::xml::FindMyBlocknode $domNode]
+    set BodyType [get_domnode_attribute [$blockNode selectNodes "value\[@n='BodyType'\]"] v]
+
+    set argums [list ElementType $BodyType]
+    set elems [Pfem::xml::GetElements $domNode $args]
+    foreach elem $elems {
+        if {[$elem cumple $argums]} {
+            lappend names [$elem getName]
+        }
+    }
+    set values [join $names ","]
+    
+    if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
+    if {[get_domnode_attribute $domNode v] ni $names} {$domNode setAttribute v [lindex $names 0]}
+
+    return $values
+}
+
+proc Pfem::xml::GetElements {domNode args} {
+    
     set nodeApp [spdAux::GetAppIdFromNode $domNode]
     set sol_stratUN [apps::getAppUniqueName $nodeApp SolStrat]
     set schemeUN [apps::getAppUniqueName $nodeApp Scheme]
@@ -50,37 +88,11 @@ proc Pfem::xml::ProcGetElements {domNode args} {
     get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] dict
     get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $schemeUN]] dict
     
-    #W "solStrat $sol_stratUN sch $schemeUN"
     set solStratName [::write::getValue $sol_stratUN]
     set schemeName [write::getValue $schemeUN]
-    #W "$solStratName $schemeName"
-    #W "************************************************************************"
-    #W "$nodeApp $solStratName $schemeName"
     set elems [::Model::GetAvailableElements $solStratName $schemeName]
-    #W "************************************************************************"
-    set names [list ]
-    set pnames [list ]
-    set blockNode [Pfem::xml::FindMyBlocknode $domNode]
-    set BodyType [get_domnode_attribute [$blockNode selectNodes "value\[@n='BodyType'\]"] v]
-    #W $BodyType
-    set argums [list ElementType $BodyType]
-    update
-    foreach elem $elems {
-        #W [$elem getName]
-        if {[$elem cumple $argums]} {
-            lappend names [$elem getName]
-            lappend pnames [$elem getName] 
-            lappend pnames [$elem getPublicName]
-        }
-    }
-    set diction [join $pnames ","]
-    set values [join $names ","]
     
-    $domNode setAttribute values $values
-    if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
-    if {[get_domnode_attribute $domNode v] ni $names} {$domNode setAttribute v [lindex $names 0]}
-    #spdAux::RequestRefresh
-    return $diction
+    return $elems
 }
 
 proc Pfem::xml::FindMyBlocknode {domNode} {

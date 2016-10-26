@@ -25,9 +25,14 @@
 		if {$resp} {return "normal"} else {return "hidden"}
 	  ]]>
 	</proc>
-	<proc n='GetElements' args='args'>
+	<proc n='GetElementsDict' args='args'>
 	  <![CDATA[
-	  return [Pfem::xml::ProcGetElements $domNode $args]
+	  return [Pfem::xml::ProcGetElementsDict $domNode $args]
+	  ]]>
+	</proc>
+	<proc n='GetElementsValues' args='args'>
+	  <![CDATA[
+	  return [Pfem::xml::ProcGetElementsValues $domNode $args]
 	  ]]>
 	</proc>
 	<proc n='SolutionTypeState' args='args'>
