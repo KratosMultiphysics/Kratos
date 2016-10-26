@@ -51,8 +51,8 @@ CellularFlowField(const double half_wavelength, const double max_flow_speed, con
 
     mOneOverL = 1.0 / mL;
     mOmegaUOverL = mOmega * mU / mL;
-    unsigned int number_of_threads = omp_get_max_threads();
-    ResizeVectorsForParallelism(number_of_threads);
+    unsigned int maximum_number_of_threads = omp_get_max_threads();
+    ResizeVectorsForParallelism(maximum_number_of_threads);
 }
 
 
@@ -63,13 +63,15 @@ virtual ~CellularFlowField(){}
 
 //***************************************************************************************************************
 //***************************************************************************************************************
-
 void ResizeVectorsForParallelism(const int n_threads) override;
 
 void UpdateCoordinates(const double time, const array_1d<double, 3>& coor, const int i_thread = 0) override;
 
 void UpdateCoordinates(const double time, const vector<double>& coor, const int i_thread = 0) override;
 
+void LockCoordinates(const int i_thread = 0);
+
+void UnlockCoordinates(const int i_thread = 0);
 //***************************************************************************************************************
 //***************************************************************************************************************
 
@@ -211,12 +213,14 @@ private:
 ///@}
 ///@name Member r_variables
 ///@{
+
 double mL;
 double mU;
 double mK;
 double mOneOverL;
 double mOmegaUOverL;
 double mOmega;
+std::vector<int> mCoordinatesAreUpToDate;
 std::vector<double> mSinOmegaT;
 std::vector<double> mCosOmegaT;
 std::vector<double> mSinPiX0;
