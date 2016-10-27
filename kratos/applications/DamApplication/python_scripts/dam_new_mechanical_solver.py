@@ -150,8 +150,8 @@ class DamMechanicalSolver:
             aux_params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
             
             ## CheckAndPrepareModelProcess creates the solid_computational_model_part
-            import check_and_prepare_model_process_solid
-            check_and_prepare_model_process_solid.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
+            import check_and_prepare_model_process_poro
+            check_and_prepare_model_process_poro.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
             
             # Constitutive law import
             import constitutive_law_utility
