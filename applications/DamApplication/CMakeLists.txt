@@ -14,8 +14,7 @@ set( KRATOS_DAM_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/dam_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/dam_application_variables.cpp
     
-    ${CMAKE_SOURCE_DIR}/applications/convection_diffusion_application/custom_elements/eulerian_conv_diff.cpp
-    
+        
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/dam_python_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
