@@ -132,12 +132,34 @@ class MechanicalSolver(object):
             node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y);
             node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z);
             
+        if(self.settings["solution_type"].GetString() == "Dynamic"):
+            for node in self.main_model_part.Nodes:
+                # adding first derivatives as dofs
+                node.AddDof(KratosMultiphysics.VELOCITY_X);
+                node.AddDof(KratosMultiphysics.VELOCITY_Y);
+                node.AddDof(KratosMultiphysics.VELOCITY_Z);
+                # adding second derivatives as dofs
+                node.AddDof(KratosMultiphysics.ACCELERATION_X);
+                node.AddDof(KratosMultiphysics.ACCELERATION_Y);
+                node.AddDof(KratosMultiphysics.ACCELERATION_Z);                
+            
         if self.settings["rotation_dofs"].GetBool():
             for node in self.main_model_part.Nodes:
                 node.AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X);
                 node.AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y);
                 node.AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z);
                 
+        if(self.settings["solution_type"].GetString() == "Dynamic" and self.settings["rotation_dofs"].GetBool()):
+            for node in self.main_model_part.Nodes:       
+                # adding first derivatives as dofs
+                node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_X);
+                node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Y);
+                node.AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Z);
+                # adding second derivatives as dofs
+                node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_X);
+                node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Y);
+                node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Z);
+                    
         if self.settings["pressure_dofs"].GetBool():                
             for node in self.main_model_part.Nodes:
                 node.AddDof(KratosMultiphysics.PRESSURE, KratosSolid.PRESSURE_REACTION);
@@ -248,6 +270,29 @@ class MechanicalSolver(object):
             self.Clear()
             
         self.mechanical_solver.Solve()
+
+    # solve :: sequencial calls
+    
+    def InitializeStrategy(self):
+        if self.settings["clear_storage"].GetBool():
+            self.Clear()
+
+        self.mechanical_solver.Initialize()
+
+    def InitializeSolutionStep(self):
+        self.mechanical_solver.InitializeSolutionStep()
+
+    def Predict(self):
+        self.mechanical_solver.Predict()
+
+    def SolveSolutionStep(self):
+        self.mechanical_solver.SolveSolutionStep()
+
+    def FinalizeSolutionStep(self):
+        self.mechanical_solver.FinalizeSolutionStep()
+
+    # solve :: sequencial calls
+        
 
     def SetEchoLevel(self, level):
         self.mechanical_solver.SetEchoLevel(level)
