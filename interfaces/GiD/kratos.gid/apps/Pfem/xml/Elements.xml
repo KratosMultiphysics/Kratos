@@ -18,7 +18,9 @@
 	  <filter field="ImplementedInApplication" value="PfemFluidDynamicsApplication"/>
     </ConstitutiveLaw_FilterFeatures>
     <!--define list of NodalConditions-->
-    <NodalConditions>     
+    <NodalConditions> 
+      <NodalCondition n="VELOCITY"/>
+      <NodalCondition n="PRESSURE"/>    
     </NodalConditions>
     <inputs>
     </inputs>
@@ -42,7 +44,9 @@
 	  <filter field="ImplementedInApplication" value="PfemFluidDynamicsApplication"/>
     </ConstitutiveLaw_FilterFeatures>
     <!--define list of NodalConditions-->
-    <NodalConditions>     
+    <NodalConditions> 
+      <NodalCondition n="VELOCITY"/>
+      <NodalCondition n="PRESSURE"/>        
     </NodalConditions>
     <inputs>
     </inputs>
