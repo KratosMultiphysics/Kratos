@@ -11,8 +11,6 @@
 //
 
 
-
-
 #if !defined(KRATOS_CONDITION_H_INCLUDED )
 #define  KRATOS_CONDITION_H_INCLUDED
 
@@ -173,6 +171,7 @@ public:
     Condition(Condition const& rOther)
         : BaseType(rOther)
         , Flags(rOther)
+        , mData(rOther.mData)
         , mpProperties(rOther.mpProperties)
     {
     }
