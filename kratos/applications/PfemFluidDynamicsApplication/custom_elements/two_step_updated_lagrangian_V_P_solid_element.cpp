@@ -141,6 +141,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
   
     // double YoungModulus=this->pGetProperties()[YOUNG_MODULUS];
     // double PoissonRatio=this->pGetProperties()[POISSON_RATIO];
+    std::cout<<"I am setting from inside YoungModulus = 100000000.0 ... work in progress...."<<std::endl;
     const double YoungModulus = 100000000.0;
     const double PoissonRatio = 0.495;
  
@@ -456,19 +457,20 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 										   const ShapeFunctionDerivativesType& rDN_DX,
 										   const SizeType i)
   {
-
-    // Evaluate the pressure and pressure gradient at this point (for the G * P_n term)
+    // // Evaluate the pressure and pressure gradient at this point (for the G * P_n term)
     array_1d<double,TDim> OldPressureGradient(TDim,0.0);
     this->EvaluateGradientInPoint(OldPressureGradient,PRESSURE,rDN_DX);
     double RHSi = 0;
-    for (SizeType d = 0; d < TDim; ++d)
-      {
-	RHSi += rDN_DX(i,d) * Tau * ( Density  * ( BodyForce[d] ) - OldPressureGradient[d]  );
-	
-	if(d==2){
-	  RHSi += - rDN_DX(i,d) * Tau * ( Density * 9.81 );
+    if( this->GetGeometry()[i].SolutionStepsDataHas(VOLUME_ACCELERATION) ){ // it must be checked once at the begining only
+      array_1d<double, 3 >& VolumeAcceleration = this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+
+      for (SizeType d = 0; d < TDim; ++d)
+	{
+	  // RHSi += rDN_DX(i,d) * Tau * ( - OldPressureGradient[d]  );
+	  RHSi += - rDN_DX(i,d) * Tau * ( Density * VolumeAcceleration[d] );
+
 	}
-      }
+    }
     rRightHandSideVector[i] += Weight * RHSi;
 
   }

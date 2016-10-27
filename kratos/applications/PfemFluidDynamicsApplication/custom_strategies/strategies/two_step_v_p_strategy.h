@@ -307,7 +307,6 @@ public:
 		Converged = this->CheckPressureConvergence(NormDp);
 	      }
 
-
 	      if ( Converged && it>2)
                 {
 		  if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
@@ -315,6 +314,26 @@ public:
 		  break;
                 }
             }
+
+	    ModelPart::NodeIterator NodesBegin;
+	    ModelPart::NodeIterator NodesEnd;
+	    OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
+	    const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+
+	    for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
+	      {
+
+		if(itNode->Is(ISOLATED)){
+		  if(itNode->SolutionStepsDataHas(VOLUME_ACCELERATION)){
+		    array_1d<double, 3 >& VolumeAcceleration = itNode->FastGetSolutionStepValue(VOLUME_ACCELERATION);
+		    itNode->FastGetSolutionStepValue(ACCELERATION,0) = VolumeAcceleration;
+		    itNode->FastGetSolutionStepValue(VELOCITY,0) += VolumeAcceleration*rCurrentProcessInfo[DELTA_TIME];
+		    /* std::cout << "set velocity to isolated node." << std::endl; */
+		    itNode->FastGetSolutionStepValue(PRESSURE) = 0.0; 
+		  }
+		}
+	      }
+
 	  if (!Converged && BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
 	    std::cout << "Predictor-corrector iterations did not converge." << std::endl;
 
@@ -397,28 +416,11 @@ public:
         // Reset original fractional step index
         rCurrentProcessInfo.SetValue(FRACTIONAL_STEP,OriginalStep);
 
-	/* Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS]; */
-
-        /* for (ModelPart::NodeIterator i = rModelPart.NodesBegin(); */
-        /*         i != rModelPart.NodesEnd(); ++i) */
-        /* { */
-
-           
-        /*     array_1d<double, 3 > & CurrentVelocity      = (i)->FastGetSolutionStepValue(VELOCITY, 0); */
-        /*     array_1d<double, 3 > & PreviousVelocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1); */
-
-        /*     array_1d<double, 3 > & CurrentAcceleration  = (i)->FastGetSolutionStepValue(ACCELERATION, 0); */
-        /*     array_1d<double, 3 > & PreviousAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1); */
-
-        /*     UpdateAcceleration (CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity,BDFcoeffs); */
-
-        /* } */
     }
 
 
     void CalculateAccelerations()
     {
-      std::cout<<"Calculate Accelerations"<<std::endl;
       ModelPart& rModelPart = BaseType::GetModelPart();
       ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
       Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
@@ -431,18 +433,12 @@ public:
 
 	  array_1d<double, 3 > & CurrentVelocity      = (i)->FastGetSolutionStepValue(VELOCITY, 0);
 	  array_1d<double, 3 > & PreviousVelocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
-	  /* array_1d<double, 3 > & OldVelocity          = (i)->FastGetSolutionStepValue(VELOCITY, 2); */
 
 	  array_1d<double, 3 > & CurrentAcceleration  = (i)->FastGetSolutionStepValue(ACCELERATION, 0);
 	  array_1d<double, 3 > & PreviousAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
 
-	  /* UpdateAcceleration (CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity,BDFcoeffs); */
-
-	  if((i)->Is(ISOLATED) ){
-	    (i)->FastGetSolutionStepValue(ACCELERATION_Y, 0)=-9.81;
-	    (i)->FastGetSolutionStepValue(ACCELERATION_Y, 1)=-9.81;
-	  }else{
-	    UpdateAccelerations ( CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity, BDFcoeffs);
+	  if(!(i)->Is(ISOLATED)){
+	    UpdateAccelerations (CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity,BDFcoeffs);
 	  }
         }
     }
@@ -695,42 +691,6 @@ protected:
 	  // build momentum system and solve for fractional step velocity increment
 	  rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
 
-/* #pragma omp parallel */
-/* 	  { */
-/*             ModelPart::ElementIterator ElemBegin; */
-/*             ModelPart::ElementIterator ElemEnd; */
-/*             OpenMPUtils::PartitionedIterators(rModelPart.Elements(),ElemBegin,ElemEnd); */
-/* 	    int count=0; */
-/*             for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem ) */
-/* 	      { */
-/* 		count++; */
-/* 	      } */
-/* 	    std::cout << "          number of elements " <<count<<std::endl; */
-/* 	  } */
-
-
-
-#pragma omp parallel
-	  {
-	    ModelPart::NodeIterator NodesBegin;
-	    ModelPart::NodeIterator NodesEnd;
-	    OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-	    for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-	      {
-
-		if(itNode->Is(ISOLATED)){
-		  /* // Initialize BDF2 coefficients */
-		  /* ProcessInfo rCurrentProcessInfo=rModelPart.GetProcessInfo(); */
-		  itNode->FastGetSolutionStepValue(PRESSURE) = 0.0;
-		  itNode->FastGetSolutionStepValue(ACCELERATION_Y,0) = -9.81;
-		  itNode->FastGetSolutionStepValue(ACCELERATION_Y,1) = -9.81;
-		  itNode->FastGetSolutionStepValue(ACCELERATION_X,0) = 0;
-		  itNode->FastGetSolutionStepValue(ACCELERATION_X,1) = 0;
-		  /* std::cout<<" .............two_step VP strategy ISOLATED NODE !!! "<<itNode->Id()<<std::endl; */
-		}
-	      }
-	  }
 
 	  std::cout<<"-------- m o m e n t u m   e q u a t i o n s ----------"<<std::endl;
 	  NormDv = mpMomentumStrategy->Solve();
@@ -838,42 +798,6 @@ protected:
 	  // build momentum system and solve for fractional step velocity increment
 	  rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
 
-/* #pragma omp parallel */
-/* 	  { */
-/*             ModelPart::ElementIterator ElemBegin; */
-/*             ModelPart::ElementIterator ElemEnd; */
-/*             OpenMPUtils::PartitionedIterators(rModelPart.Elements(),ElemBegin,ElemEnd); */
-/* 	    int count=0; */
-/*             for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem ) */
-/* 	      { */
-/* 		count++; */
-/* 	      } */
-/* 	    std::cout << "          number of elements " <<count<<std::endl; */
-/* 	  } */
-
-
-
-#pragma omp parallel
-	  {
-	    ModelPart::NodeIterator NodesBegin;
-	    ModelPart::NodeIterator NodesEnd;
-	    OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-	    for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-	      {
-
-		if(itNode->Is(ISOLATED)){
-		  /* // Initialize BDF2 coefficients */
-		  /* ProcessInfo rCurrentProcessInfo=rModelPart.GetProcessInfo(); */
-		  itNode->FastGetSolutionStepValue(PRESSURE) = 0.0;
-		  itNode->FastGetSolutionStepValue(ACCELERATION_Y,0) = -9.81;
-		  itNode->FastGetSolutionStepValue(ACCELERATION_Y,1) = -9.81;
-		  itNode->FastGetSolutionStepValue(ACCELERATION_X,0) = 0;
-		  itNode->FastGetSolutionStepValue(ACCELERATION_X,1) = 0;
-		  /* std::cout<<" .............two_step VP strategy ISOLATED NODE !!! "<<itNode->Id()<<std::endl; */
-		}
-	      }
-	  }
 
 	  std::cout<<"-------- m o m e n t u m   e q u a t i o n s ----------"<<std::endl;
 	  NormDv = mpMomentumStrategy->Solve();
@@ -984,29 +908,6 @@ protected:
 	  // build momentum system and solve for fractional step velocity increment
 	  rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
 
-#pragma omp parallel
-	  {
-	    ModelPart::NodeIterator NodesBegin;
-	    ModelPart::NodeIterator NodesEnd;
-	    OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-	    for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-	      {
-
-		if(itNode->Is(ISOLATED)){
-		  /* // Initialize BDF2 coefficients */
-		  /* ProcessInfo rCurrentProcessInfo=rModelPart.GetProcessInfo(); */
-		  itNode->FastGetSolutionStepValue(PRESSURE) = 0.0;
-		  itNode->FastGetSolutionStepValue(ACCELERATION_Y,0) = -9.81;
-		  itNode->FastGetSolutionStepValue(ACCELERATION_Y,1) = -9.81;
-		  itNode->FastGetSolutionStepValue(ACCELERATION_X,0) = 0;
-		  itNode->FastGetSolutionStepValue(ACCELERATION_X,1) = 0;
-		  itNode->FastGetSolutionStepValue(ACCELERATION_Z,0) = 0;
-		  itNode->FastGetSolutionStepValue(ACCELERATION_Z,1) = 0;
-		  /* std::cout<<" .............two_step VP strategy ISOLATED NODE !!! "<<itNode->Id()<<std::endl; */
-		}
-	      }
-	  }
 #pragma omp parallel
         {
             ModelPart::ElementIterator ElemBegin;
