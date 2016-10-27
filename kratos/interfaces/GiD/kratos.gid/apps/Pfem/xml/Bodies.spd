@@ -9,7 +9,7 @@
     <value n="MeshingStrategy" pn="Meshing strategy" v="" values="[GetMeshingDomains]" state="[getStateFromXPathValue {string(../value[@n='BodyType']/@v)} Fluid,Solid]"/>
     <value n="ContactStrategy" pn="Contact strategy" v="NO_CONTACT_STRATEGY" values="NO_CONTACT_STRATEGY,DEFORMABLE_SKIN_CONTACT,RIGID_CONTACT"
            dict="NO_CONTACT_STRATEGY,No contact strategy,DEFORMABLE_SKIN_CONTACT,Deformable skin contact,RIGID_CONTACT,Rigid contact" state="[getStateFromXPathValue {string(../value[@n='BodyType']/@v)} Solid,Rigid]" />
-    <condition n="Parts" pn="Parts" ov="point,line,surface,volume" update_proc="[UpdateTree]">
+    <condition n="Parts" pn="Parts" ov="point,line,surface,volume" un="[GetPartUN]" update_proc="[UpdateTree]">
       <value n="Element" pn="Element" actualize="1" values="[GetElementsValues]" v="" dict="[GetElementsDict]" state="normal" >
         <dependencies node="../value" actualize="1" />
       </value>
