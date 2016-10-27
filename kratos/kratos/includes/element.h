@@ -11,16 +11,6 @@
 //
 
 
-
-
-
-
-
-
-
-
-
-
 #if !defined(KRATOS_ELEMENT_H_INCLUDED )
 #define  KRATOS_ELEMENT_H_INCLUDED
 
@@ -179,6 +169,7 @@ public:
     Element(Element const& rOther)
         : BaseType(rOther)
         , Flags(rOther)
+        , mData(rOther.mData)
         , mpProperties(rOther.mpProperties)
     {
     }
