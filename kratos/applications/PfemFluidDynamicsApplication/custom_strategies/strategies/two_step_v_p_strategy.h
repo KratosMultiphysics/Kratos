@@ -351,6 +351,8 @@ public:
       if (mReformDofSet)
 	this->Clear();
 
+      this->InitializeStressStrain();
+
       return NormDp;
     }
 
