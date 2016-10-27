@@ -49,6 +49,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
     def Execute(self):
         print("Execute check_and_prepare_model_process_fluid")
 
+
         #construct body model parts:
         fluid_body_model_parts = []
         rigid_body_model_parts = []
@@ -75,18 +76,28 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                 body_model_part_type = self.bodies_parts_list[i]["body_type"].GetString()
 
                 for part in body_parts_list:
+                    
+                    clock_time = StartTimeMeasuring()
                     for node in part.Nodes:
-                        body_model_part.AddNode(node,0)
-                        #body_model_part.Nodes.append(node)
+                        #body_model_part.AddNode(node,0)
+                        body_model_part.Nodes.append(node)
                         if (body_model_part_type=="Fluid"):
                             node.Set(KratosMultiphysics.FLUID)
                         if (body_model_part_type=="Rigid"):
                             node.Set(KratosMultiphysics.RIGID)
                             node.Set(KratosMultiphysics.BOUNDARY)
+                    StopTimeMeasuring(clock_time,"1. for node in part.Nodes", True);
+
+                    clock_time = StartTimeMeasuring()
                     for elem in part.Elements:
-                        body_model_part.AddElement(elem,0)
+                        #body_model_part.AddElement(elem,0)
+                        body_model_part.Elements.append(elem)
+                    StopTimeMeasuring(clock_time,"1. part.Elements", True);
+                    clock_time = StartTimeMeasuring()
                     for cond in part.Conditions:
-                        body_model_part.AddCondition(cond,0) 
+                        #body_model_part.AddCondition(cond,0) 
+                        body_model_part.Conditions.append(cond) 
+                    StopTimeMeasuring(clock_time,"1. part.Conditions", True);
 
                 if( body_model_part_type == "Fluid" ):
                     body_model_part.Set(KratosMultiphysics.FLUID)
@@ -97,11 +108,15 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
                 print(body_model_part)
 
+            clock_time = StartTimeMeasuring()
+
             for fluid_part in fluid_body_model_parts:
                 for rigid_part in rigid_body_model_parts:
                     for node in rigid_part.Nodes:
                         if( node.IsNot(KratosMultiphysics.FLUID) ):
-                            fluid_part.AddNode(node,0)
+                            #fluid_part.AddNode(node,0)
+                            fluid_part.Nodes.append(node)
+            StopTimeMeasuring(clock_time,"1.rigid_body_model_parts  part.Nodes", True);
 
 
             
@@ -146,9 +161,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                #get body parts
                 body_parts_name_list = self.bodies_parts_list[i]["parts_list"]
                 for j in range(body_parts_name_list.size()):
-                    clock_time = StartTimeMeasuring();
                     self.main_model_part.RemoveSubModelPart(body_parts_name_list[j].GetString())
-                    StopTimeMeasuring(clock_time,"RemovingSubModelPart", True);
                     print("::[Model_Prepare]::Body Part Removed:", body_parts_name_list[j].GetString())
                     
         #for part in domain_parts:

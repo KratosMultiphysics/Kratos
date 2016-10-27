@@ -267,7 +267,6 @@ namespace Kratos {
       //   break;
       // }
 
-
       // Shape functions and integration points
       ShapeFunctionDerivativesArrayType DN_DX;
       Matrix NContainer;
@@ -433,8 +432,8 @@ namespace Kratos {
       double ElemSize = this->ElementSize();
       double Tau=0;
 
-      MatrixType BulkVelMatrix = ZeroMatrix(NumNodes,NumNodes);
-      MatrixType BulkAccMatrix = ZeroMatrix(NumNodes,NumNodes);
+      // MatrixType BulkVelMatrix = ZeroMatrix(NumNodes,NumNodes);
+      // MatrixType BulkAccMatrix = ZeroMatrix(NumNodes,NumNodes);
       MatrixType BulkVelMatrixLump = ZeroMatrix(NumNodes,NumNodes);
       MatrixType BulkAccMatrixLump = ZeroMatrix(NumNodes,NumNodes);
       MatrixType BoundLHSMatrix = ZeroMatrix(NumNodes,NumNodes);
@@ -473,16 +472,12 @@ namespace Kratos {
 
 	    this->EvaluateInPoint(BodyForce,BODY_FORCE,N);
 
-
 	    // Stabilization parameters
 	    array_1d<double,3> ConvVel(3,0.0);
 	    // this->EvaluateConvVelocity(ConvVel,N);
 	    double Viscosity = 0;
 	    this->EvaluateInPoint(Viscosity,VISCOSITY,N);
-	    // Viscosity=0.001;
-	    // Density=1000;
 
-	    // Viscosity=GetProperties()[VISCOSITY];
 	    if(Viscosity==0){
 	      std::cout<<"viscosity was 0 ";
 	      Viscosity=0.001;
@@ -498,18 +493,16 @@ namespace Kratos {
 	    this->CalculateTauFIC(Tau,ElemSize,ConvVel,Density,DeviatoricCoeff,rCurrentProcessInfo);
 
 	    double BulkCoeff =GaussWeight/(VolumetricCoeff);
-	    this->ComputeBulkMatrixForPressureVel(BulkVelMatrix,N,BulkCoeff);
+	    // this->ComputeBulkMatrixForPressureVel(BulkVelMatrix,N,BulkCoeff);
 	    this->ComputeBulkMatrixForPressureVelLump(BulkVelMatrixLump,N,BulkCoeff);
 	    rLeftHandSideMatrix+=BulkVelMatrixLump;
 
 	    double BulkStabCoeff=BulkCoeff*Tau*Density/TimeStep;
-	    this->ComputeBulkMatrixForPressureAcc(BulkAccMatrix,N,BulkStabCoeff);
+	    // this->ComputeBulkMatrixForPressureAcc(BulkAccMatrix,N,BulkStabCoeff);
 	    this->ComputeBulkMatrixForPressureAccLump(BulkAccMatrixLump,N,BulkStabCoeff);
 	    rLeftHandSideMatrix+=BulkAccMatrixLump;
 	    // this->AddStabilizationMatrixLHS(rLeftHandSideMatrix,BulkAccMatrix,N,BulkStabCoeff);
 
-	    //double BoundLHSCoeff=2.0*Tau/ElemSize*1000;
-	    // double BoundLHSCoeff=2.0*Tau/ElemSize*1000;
 	    double BoundLHSCoeff=Tau*ElemSize*ElemSize/GaussWeight;
 	    this->ComputeBoundLHSMatrix(BoundLHSMatrix,N,BoundLHSCoeff);
 	    rLeftHandSideMatrix+=BoundLHSMatrix;
@@ -517,10 +510,7 @@ namespace Kratos {
 	    double NProjSpatialDefRate=0;
 	    double NAcc=0;
 	    this->CalcNormalProjectionsForBoundRHSVector(rElementalVariables.SpatialDefRate,NAcc,NProjSpatialDefRate);
-	    // double BoundRHSCoeff=Tau*GaussWeight*(Density*NAcc-4.0/ElemSize*NProjSpatialDefRate);
 	    double BoundRHSCoeff=Tau*ElemSize*Density*NAcc-BoundLHSCoeff*2.0*NProjSpatialDefRate*DeviatoricCoeff;
-	    // double BoundRHSCoeff=BoundLHSCoeff*(ElemSize*Density*NAcc*0.5-2.0*NProjSpatialDefRate*DeviatoricCoeff);
-	    // std::cout<<"   B[i] "<<BoundRHSVector[i];
 	    this->ComputeBoundRHSVector(BoundRHSVector,N,BoundRHSCoeff);
 
 	    VectorType UpdatedPressure;
@@ -577,12 +567,23 @@ namespace Kratos {
 		// }
 	      }
 
-	  }else{
-	    for (SizeType n = 0; n < NumNodes; ++n)
-	      {
-		rGeom[n].Set(INTERFACE); //I set interface in order to not compute it in the continuity equation and the next non-linear iterations
-	      }
+	  }else
+	    {
+	      const double GaussWeight = GaussWeights[g];
+	      const ShapeFunctionsType& N = row(NContainer,g);
+	      this->ComputeMaterialParameters(DeviatoricCoeff,VolumetricCoeff,TimeStep,N);
+	      double BulkCoeff =GaussWeight/(VolumetricCoeff);
+	      // this->ComputeBulkMatrixForPressureVel(BulkVelMatrix,N,BulkCoeff);
+	      this->ComputeBulkMatrixForPressureVelLump(BulkVelMatrixLump,N,BulkCoeff);
+	      rLeftHandSideMatrix+=BulkVelMatrixLump;
+	      for (SizeType n = 0; n < NumNodes; ++n)
+		{
+		  rGeom[n].Set(INTERFACE); //I set interface in order to not compute it in the continuity equation and the next non-linear iterations
+		}
+
+
 	  }
+
 	}
 
     }
@@ -682,8 +683,6 @@ namespace Kratos {
 
     KRATOS_CATCH("");
   }
-
-
 
 
 
@@ -1190,8 +1189,8 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
 
 template< unsigned int TDim>
 bool TwoStepUpdatedLagrangianVPElement<TDim>::CalcStrainRateUpdated(ElementalVariables & rElementalVariables,
-									 const ProcessInfo &rCurrentProcessInfo,
-									 unsigned int g)
+								    const ProcessInfo &rCurrentProcessInfo,
+								    unsigned int g)
 {
 
   ShapeFunctionDerivativesArrayType DN_DX;
@@ -2009,20 +2008,23 @@ bool TwoStepUpdatedLagrangianVPElement<TDim>::CheckSliverElements()
     for (SizeType i = 0; i < NumNodes; ++i)
       {
 
-        // Build RHS
-        for (SizeType d = 0; d < TDim; ++d)
-	  {
-            // Body force
-            // double RHSi = Density * rN[i] * rBodyForce[d];
-            double RHSi = 0;
+	if( this->GetGeometry()[i].SolutionStepsDataHas(VOLUME_ACCELERATION) ){ // it must be checked once at the begining only
+	  array_1d<double, 3 >& VolumeAcceleration = this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
 
-	    if(d==1){
-	      RHSi = - Density * rN[i] * 9.81;
-	    } 
-	    rRHSVector[FirstRow+d] += Weight * RHSi;
-	  }
+	  // Build RHS
+	  for (SizeType d = 0; d < TDim; ++d)
+	    {
+	      // Body force
+	      // double RHSi = Density * rN[i] * rBodyForce[d];
+	      double RHSi = 0;
+	      RHSi =  Density * rN[i] * VolumeAcceleration[d];
+ 
+	      rRHSVector[FirstRow+d] += Weight * RHSi;
+	    }
 
+	}
         FirstRow += TDim;
+
       }
   }
 

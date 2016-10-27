@@ -152,6 +152,8 @@ class PfemFluidSolver:
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+
 
         # PFEM fluid variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FREESURFACE)
@@ -168,7 +170,9 @@ class PfemFluidSolver:
             node.AddDof(KratosMultiphysics.VELOCITY_X)
             node.AddDof(KratosMultiphysics.VELOCITY_Y)
             node.AddDof(KratosMultiphysics.VELOCITY_Z)
-
+            node.AddDof(KratosMultiphysics.DISPLACEMENT_X)
+            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y)
+            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
         print("::[Pfem Fluid Solver]:: DOF's ADDED")
                       
         
