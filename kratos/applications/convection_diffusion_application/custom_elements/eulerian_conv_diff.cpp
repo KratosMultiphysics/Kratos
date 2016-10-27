@@ -129,7 +129,7 @@ namespace Kratos
         Ncontainer = Geom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
 
         // Getting the values of Current Process Info and computing the value of h
-        this-> GetValues(Variables,rCurrentProcessInfo);
+        this-> GetNodalValues(Variables,rCurrentProcessInfo);
         double h = this->ComputeH(DN_DX);
         
         //Computing the divergence
@@ -259,7 +259,7 @@ namespace Kratos
 //---------------------------------------------------------------------------------------- 
     
     template< unsigned int TDim, unsigned int TNumNodes >
-    void EulerianConvectionDiffusionElement<TDim,TNumNodes>::GetValues(ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+    void EulerianConvectionDiffusionElement<TDim,TNumNodes>::GetNodalValues(ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
     {       
         ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         
