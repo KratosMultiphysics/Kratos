@@ -171,6 +171,11 @@ for process in list_of_processes:
 
 computing_model_part = solver.GetComputingModelPart()
 
+## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
+solver.Initialize()
+solver.InitializeStrategy()
+solver.SetEchoLevel(echo_level)
+
 #### Output settings start ####
 
 problem_path = os.getcwd()
@@ -187,10 +192,6 @@ gid_output.ExecuteInitialize()
 
 #### Output settings end ####
 
-## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
-solver.Initialize()
-solver.SetEchoLevel(echo_level)
- 
 # writing a initial state results file
 current_id = 0
 #if(load_restart == False):
@@ -267,7 +268,13 @@ while(time < end_time):
     # solve time step
     clock_time = StartTimeMeasuring();
 
-    solver.Solve()
+    solver.InitializeSolutionStep()
+
+    solver.Predict()
+
+    solver.SolveSolutionStep()
+
+    solver.FinalizeSolutionStep()
 
     StopTimeMeasuring(clock_time,"Solving", False);
 
