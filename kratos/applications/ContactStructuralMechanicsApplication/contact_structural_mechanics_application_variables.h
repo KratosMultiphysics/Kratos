@@ -33,38 +33,28 @@ typedef array_1d<double,3> Vector3;
 struct contact_container 
 {
     Condition::Pointer                 condition;
-    std::vector<double>  local_coordinates_slave;
   
     ~contact_container(){}
     
     void clear()
     {
         condition = nullptr;
-        local_coordinates_slave.clear();
     }
     
     void print()
     {
        KRATOS_WATCH(condition);
        std::cout << std::endl;
-       for (unsigned int i = 0; i < local_coordinates_slave.size(); i++)
-       {
-            std::cout << "local_coordinates_slave_" << i << " " << local_coordinates_slave[i] << std::endl;
-       }
-       std::cout << std::endl;
-       
     }
     
     void save( Serializer& rSerializer ) const
     {
         rSerializer.save("condition",                               condition);
-        rSerializer.save("local_coordinates_slave",   local_coordinates_slave);
     }
 
     void load( Serializer& rSerializer )
     {
         rSerializer.load("condition",                              condition);
-        rSerializer.load("local_coordinates_slave",  local_coordinates_slave);
     }
 };
 // CONDITIONS

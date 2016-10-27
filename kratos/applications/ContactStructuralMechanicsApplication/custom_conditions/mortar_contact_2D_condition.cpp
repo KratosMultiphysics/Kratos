@@ -173,16 +173,9 @@ void MortarContact2DCondition::InitializeSolutionStep( ProcessInfo& rCurrentProc
         // Fill the condition
         Condition::Pointer& pCond = mThisMasterElements[i_cond];
         
-//        ContactUtilities::ContactContainerFiller((*all_containers)[i_cond], pCond->GetGeometry().Center(), GetGeometry(), pCond->GetGeometry(), 
-//                                                 this->GetValue(NORMAL), pCond->GetValue(NORMAL), ActiveCheckFactor);
+        ContactUtilities::ContactContainerFiller((*all_containers)[i_cond], pCond->GetGeometry().Center(), GetGeometry(), pCond->GetGeometry(), 
+                                                this->GetValue(NORMAL), pCond->GetValue(NORMAL), ActiveCheckFactor);
         
-        // Initializes only via gap tolerance for the first step in the solution
-        // Do the mortar segmentation in all time steps
-        if( rCurrentProcessInfo[TIME] == 0.0 )
-        {
-            ContactUtilities::InitializeActiveInactiveSets( GetGeometry(), pCond->GetGeometry(), this->GetValue(NORMAL), pCond->GetValue(NORMAL), ActiveCheckFactor );
-        }
-        ContactUtilities::GenerateMortarSegmentsProcess( (*all_containers)[i_cond], GetGeometry(), pCond->GetGeometry(), this->GetValue(NORMAL), pCond->GetValue(NORMAL) );
     }
     
     KRATOS_CATCH( "" );
@@ -223,23 +216,6 @@ void MortarContact2DCondition::InitializeNonLinearIteration( ProcessInfo& rCurre
 //    }
 //    
 //    KRATOS_CATCH( "" );
-    
-    // Populate the vector of master elements
-    std::vector<contact_container> * all_containers = this->GetValue(CONTACT_CONTAINERS);
-    mThisMasterElements.clear();
-    mThisMasterElements.resize( all_containers->size( ) );
-    
-    for ( unsigned int i_cond = 0; i_cond < all_containers->size(); ++i_cond )
-    {
-        mThisMasterElements[i_cond] = (*all_containers)[i_cond].condition;
-
-        // Fill the condition
-        Condition::Pointer& pCond = mThisMasterElements[i_cond];
-        
-        // Initializes only via gap tolerance for the first step in the solution
-        // Do the mortar segmentation in all time steps
-        ContactUtilities::GenerateMortarSegmentsProcess( (*all_containers)[i_cond], GetGeometry(), pCond->GetGeometry(), this->GetValue(NORMAL), pCond->GetValue(NORMAL) );
-    }
 }
 
 /***********************************************************************************/

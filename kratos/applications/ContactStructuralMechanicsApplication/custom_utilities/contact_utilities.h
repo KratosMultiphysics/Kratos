@@ -61,48 +61,6 @@ public:
             const double ActiveCheckFactor
             )
     {
-        // The original code was split into two methods to be more handy.. nothing actually is changed
-        InitializeActiveInactiveSets( Geom1, Geom2, contact_normal1, contact_normal2, ActiveCheckFactor );
-        GenerateMortarSegmentsProcess( contact_container, Geom1, Geom2, contact_normal1, contact_normal2 ); //NOTE: Remove in the future
-    }
-    
-    static inline void ContactContainerFiller(
-            contact_container & contact_container,
-            const Point<3>& ContactPoint,
-            Condition::Pointer & pCond_1,       // SLAVE
-            const Condition::Pointer & pCond_2, // MASTER
-            const array_1d<double, 3> & contact_normal1, // SLAVE
-            const array_1d<double, 3> & contact_normal2, // MASTER
-            const double ActiveCheckFactor
-            )
-    {
-
-        ContactContainerFiller(contact_container, ContactPoint, pCond_1->GetGeometry(), pCond_2->GetGeometry(), contact_normal1, contact_normal2, ActiveCheckFactor);
-        
-        Geometry<Node<3> > & Geom1 = pCond_1->GetGeometry();
-        const unsigned int number_nodes = Geom1.PointsNumber();
-        
-        for (unsigned int index = 0; index < number_nodes; index++)
-        {
-            if (Geom1[index].Is(ACTIVE) == true)
-            {
-                pCond_1->Set(ACTIVE, true);
-                break;
-            }
-        }
-    }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    static inline void InitializeActiveInactiveSets(
-        Geometry<Node<3> > & Geom1, // SLAVE
-        Geometry<Node<3> > & Geom2, // MASTER
-        const array_1d<double, 3> & contact_normal1, // SLAVE
-        const array_1d<double, 3> & contact_normal2, // MASTER
-        const double ActiveCheckFactor
-        )
-    {
         // Define the basic information
         const unsigned int number_nodes = Geom1.PointsNumber();
         
@@ -120,11 +78,11 @@ public:
                 {
                     ProjectDirection(Geom2, Geom1[index], ProjectedPoint, aux_dist, Geom1[index].FastGetSolutionStepValue(NORMAL, 0));
                 }  
-                
+              
                 // TODO: Think about this
                 double dist_tol = ActiveCheckFactor;    // The actual gap tolerance is user-define instead of being a factor of the length
-//                double dist_tol = ActiveCheckFactor * Geom1.Length();
-//                dist_tol = (dist_tol <= ActiveCheckFactor * Geom2.Length()) ? (ActiveCheckFactor * Geom2.Length()):dist_tol;
+//                 double dist_tol = ActiveCheckFactor * Geom1.Length();
+//                 dist_tol = (dist_tol <= ActiveCheckFactor * Geom2.Length()) ? (ActiveCheckFactor * Geom2.Length()):dist_tol;
                 
                 array_1d<double, 3> result;
                 // NOTE: We don't use std::abs() because if the aux_dist is negative is penetrating, in fact we just consider dist_tol > 0 to have some tolerance and for the static schemes
@@ -138,48 +96,48 @@ public:
                     Geom1[index].Set(ACTIVE, true);
                     Geom1[index].GetSolutionStepValue( IS_ACTIVE_SET ) = true;
                 }
-                else  
-                {
-                }
              }
          }
     }
     
-    /***********************************************************************************/
-    /***********************************************************************************/
-
-    static inline void GenerateMortarSegmentsProcess( // TODO: Remove this in the future
-        contact_container & contact_container,
-        Geometry<Node<3> > & Geom1, // SLAVE
-        Geometry<Node<3> > & Geom2, // MASTER
-        const array_1d<double, 3> & contact_normal1, // SLAVE
-        const array_1d<double, 3> & contact_normal2  // MASTER
-        )
+    static inline void ContactContainerFiller(
+            contact_container & contact_container,
+            const Point<3>& ContactPoint,
+            Condition::Pointer & pCond_1,       // SLAVE
+            const Condition::Pointer & pCond_2, // MASTER
+            const array_1d<double, 3> & contact_normal1, // SLAVE
+            const array_1d<double, 3> & contact_normal2, // MASTER
+            const double ActiveCheckFactor
+            )
     {
-        // Define the basic information
-        const unsigned int number_nodes = Geom1.PointsNumber();
-        const unsigned int dimension = Geom1.WorkingSpaceDimension();
-        
-        if (dimension == 2)
-        {
-            if (number_nodes == 2)
-            {
-                contact_container.local_coordinates_slave.clear();
-                contact_container.local_coordinates_slave.resize(2);
-                LocalLine2D2NProcess(contact_container.local_coordinates_slave, Geom1, Geom2, contact_normal1, contact_normal2);  
-            }
-            else
-            {
-                KRATOS_THROW_ERROR( std::logic_error, "NOT IMPLEMENTED. Number of nodes:",  number_nodes);
-                // TODO: IMPLEMENT MORE GEOMETRIES
-            }
-        }
-        else   // In 3D, we won't use mortar segments. We use colocation integration instead
-        {
-            contact_container.local_coordinates_slave.clear();
-            contact_container.local_coordinates_slave.resize(0);
-        }
+
+        ContactContainerFiller(contact_container, ContactPoint, pCond_1->GetGeometry(), pCond_2->GetGeometry(), contact_normal1, contact_normal2, ActiveCheckFactor);
+        CheckActibityCondition(pCond_1);
     }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    /**
+     * Checks if the conditions should be active or inactive
+     * @param pCond: The condition to check
+     */
+    
+     static inline void CheckActibityCondition(Condition::Pointer & pCond)
+     {
+        Geometry<Node<3> > & Geom1 = pCond->GetGeometry();
+        const unsigned int number_nodes = Geom1.PointsNumber();
+        
+        for (unsigned int index = 0; index < number_nodes; index++)
+        {
+            if (Geom1[index].Is(ACTIVE) == true)
+            {
+                pCond->Set(ACTIVE, true);
+                break;
+            }
+        }
+     }
+    
     
     /***********************************************************************************/
     /***********************************************************************************/
@@ -901,13 +859,7 @@ public:
                 {
                     ct = cond_it->GetProperties().GetValue(TANGENT_AUGMENTATION_FACTOR); 
                 }
-                
-//                 double mu = 0.0; //TODO: Consider a weighted friction coefficient instead for each node
-//                 if (cond_it->GetProperties().Has(FRICTION_COEFFICIENT) == true)
-//                 {
-//                     mu = cond_it->GetProperties().GetValue(FRICTION_COEFFICIENT); 
-//                 }
-    
+
                 Geometry<Node<3> > & CondGeometry = cond_it->GetGeometry();
     
                 for(unsigned int node_it = 0; node_it!=CondGeometry.PointsNumber(); node_it++)
@@ -919,9 +871,9 @@ public:
                         const array_1d<double,3>        nodal_normal = CondGeometry[node_it].GetValue(NORMAL); 
                         const double lambda_n = inner_prod(lagrange_multiplier, nodal_normal);
 
-                        const double check_normal = lambda_n - cn * CondGeometry[node_it].GetValue(WEIGHTED_GAP);
-
-                        if (check_normal <= 0.0)
+                        const double augmented_normal_presssure = lambda_n - cn * CondGeometry[node_it].GetValue(WEIGHTED_GAP);
+                        
+                        if (augmented_normal_presssure <= 0.0)
                         {
                             CondGeometry[node_it].Set(ACTIVE, false);
                             CondGeometry[node_it].GetSolutionStepValue( IS_ACTIVE_SET ) = false;
@@ -938,9 +890,9 @@ public:
                         const double tangent_eta_lm = inner_prod(nodal_tangent_eta, lagrange_multiplier);
                         const double lambda_t = std::sqrt(tangent_xi_lm * tangent_xi_lm + tangent_eta_lm * tangent_eta_lm); 
                         
-                        const double check_tangent = std::abs(lambda_t + ct * CondGeometry[node_it].GetValue(WEIGHTED_SLIP)) - mu * check_normal;
+                        const double augmented_tangent_presssure = std::abs(lambda_t + ct * CondGeometry[node_it].GetValue(WEIGHTED_SLIP)) - mu * augmented_normal_presssure;
                         
-                        if (check_tangent < 0.0)
+                        if (augmented_tangent_presssure < 0.0)
                         {
                             CondGeometry[node_it].Set(SLIP, false);
                         }
@@ -1091,13 +1043,6 @@ public:
     
     return VarMatrix;
 }
-//     /***********************************************************************************/
-//     /***********************************************************************************/
-//     
-//     template <typename T> int sgn(T val) 
-//     {
-//         return (T(0) < val) - (val < T(0));
-//     }
     
 private:
 };// class ContactUtilities
