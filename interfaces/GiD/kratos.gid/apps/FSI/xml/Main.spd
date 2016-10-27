@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
   
-    <container n="FSI" pn="FSI" icon="units" prefix="FSI" tree_state="open">
+    <container n="FSI" pn="FSI" icon="units" prefix="FSI" tree_state="open" open_window="0">
 
-        <container n="Fluid" pn="Fluid" icon="units" prefix="FL" tree_state="open">
+        <container n="Fluid" pn="Fluid" icon="units" prefix="FL" tree_state="open" open_window="0">
             <include n="AnalysisType" active="1" path="apps/Fluid/xml/AnalysisType.spd"/>
             <include n="Parts" active="1" path="apps/Fluid/xml/Parts.spd"/>
             <include n="InitialConditions" active="1" path="apps/Fluid/xml/InitialConditions.spd"/>
@@ -11,7 +11,7 @@
            <include n="Results" active="1" path="apps/FSI/xml/ResultsFluid.spd"/>
         </container>
     
-        <container n="Structural" pn="Structure" icon="units" prefix="ST" tree_state="open">
+        <container n="Structural" pn="Structure" icon="units" prefix="ST" tree_state="open" open_window="0">
             <include n="StageInfo" active="1" path="apps/Structural/xml/StageInfo.spd"/>
             <include n="Parts" active="1" path="apps/Solid/xml/Parts.spd"/>
             <include n="Intervals" active="1" path="apps/Common/xml/Intervals.spd"/>
@@ -21,7 +21,7 @@
             <include n="Results" active="1" path="apps/FSI/xml/ResultsStructural.spd"/>
         </container>
     
-        <container n="FSI" pn="Coupling" icon="units" prefix="FSI" tree_state="open">
+        <container n="FSI" pn="Coupling" icon="units" prefix="FSI" tree_state="open" open_window="0">
             <include n="AnalysisType" active="1" path="apps/FSI/xml/AnalysisType.spd"/>
             <include n="SolutionStrategy" active="1" path="apps/FSI/xml/SolutionStrategy.spd"/>
             <include n="Results" active="0" path="apps/FSI/xml/Results.spd"/>

@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="SolStratST" pn="Solution" un="SLStratSection,STStratSection" help="Solution Strategy">
+<container n="SolStratST" pn="Solution" un="SLStratSection,STStratSection" help="Solution Strategy" open_window="0">
     
     <!--<include n="Parallelism" active="1" path="apps/Common/xml/Parallelism.spd"/> -->
     
     <dynamicnode command="injectSolvers" args="ImplementedInApplication SolidMechanicsApplication,StructuralMechanicsApplication"/>
     
-    <container n="StratParams" pn="Strategy parameters" un="SLStratParams,STStratParams" icon="groupsTreeNew.gif"  state="normal" >
+    <container n="StratParams" pn="Strategy parameters" un="SLStratParams,STStratParams" icon="groupsTreeNew.gif"  state="normal" open_window="0">
         <dynamicnode command="injectSolStratParams" args="ImplementedInApplication SolidMechanicsApplication,StructuralMechanicsApplication"/>
     </container>
     
-    <container n="TimeParameters" pn="Time parameters" un="SLTimeParameters,STTimeParameters" help="Problem parameters" state="[checkStateByUniqueName SLSoluType Dynamic]" >
+    <container n="TimeParameters" pn="Time parameters" un="SLTimeParameters,STTimeParameters" help="Problem parameters" state="[checkStateByUniqueName SLSoluType Dynamic]" open_window="0">
         <value n="StartTime" pn="Start time" v="0.0" help=""/>
         <value n="EndTime" pn="End time" v="1.0" help=""/>
         <value n="DeltaTime"  pn="Delta time" v="0.01" help=""/>

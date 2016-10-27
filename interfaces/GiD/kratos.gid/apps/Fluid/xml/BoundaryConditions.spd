@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="BoundaryConditions" pn="Conditions" un="FLBC" icon="constraints16" >
+<container n="BoundaryConditions" pn="Conditions" un="FLBC" icon="constraints16" open_window="0">
 	  <dynamicnode command="injectConditions" args="ImplementedInApplication FluidApplication"/>
 </container>

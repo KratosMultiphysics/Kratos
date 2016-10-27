@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="Solution" pn="Solution" icon="solution16" help="Solution" state="normal">
-    <container n="TimeParameters" pn="Time Parameters" un="DamTimeParameters" state="normal" actualize_tree="1"> 
+<container n="Solution" pn="Solution" icon="solution16" help="Solution" state="normal" open_window="0">
+    <container n="TimeParameters" pn="Time Parameters" un="DamTimeParameters" state="normal" actualize_tree="1" open_window="0"> 
         <value n="TimeScale" pn="Time Scale" un="DamTimeScale" v="Seconds" values="Seconds,Hours,Days,Months" actualize_tree="1"/>
         <value n="DeltaTime" pn="Delta Time" un="DamDeltaTime" v="1" type="double" help="Units: provided by time scale"/>
         <value n="EndingTime" pn="Ending Time" un="DamEndingTime" v="10" type="double" help="Units: provided by time scale"/>

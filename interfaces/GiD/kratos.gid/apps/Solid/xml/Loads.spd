@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="Loads" pn="Loads" un="SLLoads" icon="loads" >
+<container n="Loads" pn="Loads" un="SLLoads" icon="loads" open_window="0">
 	  <dynamicnode command="injectConditions" args="ImplementedInApplication SolidMechanicsApplication"/>
 </container>
