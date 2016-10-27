@@ -226,4 +226,19 @@ proc Pfem::xml::ProcGetSolutionStrategiesPFEM {domNode args} {
     return [join $pnames ","]
 }
 
+proc Pfem::xml::ProcGetPartUN {domNode args} {
+    customlib::UpdateDocument
+    set root [customlib::GetBaseRoot]
+    set xp1 "[spdAux::getRoute "PFEM_Bodies"]/blockdata/condition"
+    set i 0
+    foreach part_node [$root selectNodes $xp1] {
+        if {$part_node eq $domNode} {
+              break
+        } {incr i}
+    }
+    set un "PFEM_Part$i"
+    #$domNode setAttribute curr_un $un
+    return $un
+}
+
 Pfem::xml::Init

@@ -50,5 +50,8 @@
 	  return [Pfem::xml::ProcGetSolutionStrategiesPFEM $domNode $args]
 	  ]]>
 	</proc>
+	<proc n='GetPartUN' args='args'>
+		return [Pfem::xml::ProcGetPartUN $domNode $args]
+	</proc>
 
 </container>
