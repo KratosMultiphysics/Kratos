@@ -55,7 +55,7 @@ void  AddCustomStrategiesToPython()
     typedef BossakDisplacementSmoothingScheme< SparseSpaceType, LocalSpaceType >  BossakDisplacementSmoothingSchemeType;
     
     //custom strategies types
-    typedef DamEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > DamEulerianConvectionDiffusionStrategy;
+    typedef DamEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > DamEulerianConvectionDiffusionStrategyType;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -65,7 +65,7 @@ void  AddCustomStrategiesToPython()
     class_< BossakDisplacementSmoothingSchemeType, bases< BaseSchemeType >, boost::noncopyable >("BossakDisplacementSmoothingScheme",
         init< double >());
             
-    class_< DamEulerianConvectionDiffusionStrategy, bases< BaseSolvingStrategyType >, boost::noncopyable >("DamEulerianConvectionDiffusionStrategy", 
+    class_< DamEulerianConvectionDiffusionStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("DamEulerianConvectionDiffusionStrategy", 
         init < ModelPart&, LinearSolverType::Pointer, Parameters&, bool, int >());
 
 }
