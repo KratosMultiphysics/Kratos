@@ -50,6 +50,7 @@ import KratosMultiphysics.ExternalSolversApplication    as KratosSolvers
 import KratosMultiphysics.PfemBaseApplication           as KratosPfemBase
 import KratosMultiphysics.ContactMechanicsApplication   as KratosContact
 import KratosMultiphysics.PfemSolidMechanicsApplication as KratosPfemSolid
+import KratosMultiphysics.PfemFluidDynamicsApplication  as KratosPfemFluid
 
 ######################################################################################
 ######################################################################################
