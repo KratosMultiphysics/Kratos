@@ -275,73 +275,6 @@ public:
     
     /***********************************************************************************/
     /***********************************************************************************/
-    
-    /** TODO: Remove this if not necessary
-     * This function calculates the local coordinates of the projected line for the mortar condition
-     * @param Geom1 and Geom2: The geometries of the slave and master respectively
-     * @param contact_normal1 and contact_normal2: The normals of the slave and master respectively
-     * @param IntegrationOrder: The integration order   
-     * @return local_coordinates_slave and local_coordinates_master: The local coordinates of the pojected points of the line
-     */
-    
-    static inline void LocalLine2D2NProcess(
-        std::vector<double> & local_coordinates_slave,
-        Geometry<Node<3> > & Geom1, // SLAVE
-        Geometry<Node<3> > & Geom2, // MASTER
-        const array_1d<double, 3> & contact_normal1, // SLAVE
-        const array_1d<double, 3> & contact_normal2 // MASTER
-    )
-    {   
-        // Define auxiliar values
-        Point<3> ProjectedPoint;
-        
-        // Domain 1
-        for (unsigned int index_1 = 0; index_1 < Geom1.PointsNumber(); index_1++)
-        {
-             double aux_dist = 0.0;
-             if (norm_2(Geom1[index_1].GetValue(NORMAL)) < 1.0e-12)
-             {
-                 ProjectDirection(Geom2, Geom1[index_1], ProjectedPoint, aux_dist, contact_normal1);
-             }
-             else
-             {
-                 ProjectDirection(Geom2, Geom1[index_1], ProjectedPoint, aux_dist, Geom1[index_1].GetValue(NORMAL));
-             }  
-
-             array_1d<double, 3> projected_local_coor_1;
-             const bool in_out_1 = Geom2.IsInside(ProjectedPoint, projected_local_coor_1);
-             array_1d<double, 3> local_coor_1 = Geom1.PointLocalCoordinates(local_coor_1, Geom1[index_1]);
-                              
-             if (in_out_1 == true)
-             {
-                 local_coordinates_slave[index_1]  = local_coor_1[0];
-             }
-             else
-             {
-                 // Domain 2
-                 double proj_dist = 2.0;
-                 for (unsigned int index_2 = 0; index_2 < Geom2.PointsNumber(); index_2++)
-                 {
-                     ProjectDirection(Geom1,  Geom2[index_2], ProjectedPoint, aux_dist, - contact_normal1);
-
-                     array_1d<double, 3> projected_local_coor_2;
-                     const bool in_out_2 = Geom1.IsInside(ProjectedPoint, projected_local_coor_2);
-
-                     if (in_out_2 == true)
-                     {
-                         if( std::abs( projected_local_coor_2[0] - local_coor_1[0] ) <= proj_dist )
-                         {
-                             proj_dist = std::abs(projected_local_coor_2[0] - local_coor_1[0] );
-                             local_coordinates_slave[index_1]  = projected_local_coor_2[0];
-                         }
-                     }
-                }
-            }
-        }
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
 
     /**
      * This function calculates the center and radius of the geometry of a condition
@@ -920,27 +853,6 @@ public:
     static inline void ResetWeightedGapSlip(ModelPart & rModelPart)
     {
         NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
-
-        // TODO: Ask Riccardo what is better
-//         const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-//         OpenMPUtils::PartitionVector NodePartition;
-//         OpenMPUtils::DivideInPartitions(pNode.size(), NumThreads, NodePartition);
-//         
-//         #pragma omp parallel
-//         {
-//             const unsigned int k = OpenMPUtils::ThisThread();
-// 
-//             typename NodesArrayType::iterator NodeBegin = pNode.begin() + NodePartition[k];
-//             typename NodesArrayType::iterator NodeEnd   = pNode.begin() + NodePartition[k + 1];
-// 
-//             for (typename NodesArrayType::iterator itNode = NodeBegin; itNode != NodeEnd; itNode++)
-//             {
-//                 itNode->Set(VISITED, false);
-//                 itNode->GetValue(WEIGHTED_GAP)      = 0.0;
-//                 itNode->GetValue(WEIGHTED_GAP)      = 0.0;
-//                 itNode->GetValue(WEIGHTED_FRICTION) = 0.0;
-//             }
-//         } 
         
         auto numNodes = pNode.end() - pNode.begin();
         
