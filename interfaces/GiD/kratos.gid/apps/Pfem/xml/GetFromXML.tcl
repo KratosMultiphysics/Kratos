@@ -237,6 +237,7 @@ proc Pfem::xml::ProcGetPartUN {domNode args} {
         } {incr i}
     }
     set un "PFEM_Part$i"
+    spdAux::setRoute $un [$part_node toXPath]
     #$domNode setAttribute curr_un $un
     return $un
 }

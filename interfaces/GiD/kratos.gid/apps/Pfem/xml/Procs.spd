@@ -51,7 +51,9 @@
 	  ]]>
 	</proc>
 	<proc n='GetPartUN' args='args'>
+		<![CDATA[
 		return [Pfem::xml::ProcGetPartUN $domNode $args]
+		]]>
 	</proc>
 
 </container>
