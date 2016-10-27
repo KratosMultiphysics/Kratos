@@ -483,13 +483,13 @@ private:
 		    NewPressures[CountNodes]=NewPressure;
 		    std::cout<<NewPositions[CountNodes][0]<<" "<<NewPositions[CountNodes][1]<<"_volume_ "<<ElementalVolume<<std::endl;
 
-		    if(freesurfaceNodes<2){
+		    if(freesurfaceNodes<3){
 		      midPointInterpolation[CountNodes]=false;
 		    }else{
 		      midPointInterpolation[CountNodes]=true;
 		    }
 		    CountNodes++;
-		  }else if (freesurfaceNodes<2){
+		  }else if (freesurfaceNodes<3){
 
 		    for(int nn= 0; nn< ElementsToRefine; nn++)
 		      {
@@ -538,7 +538,7 @@ private:
 			    NewVelocities[nn]=NewVelocity;
 			    NewAccelerations[nn]=NewAcceleration;
 			    NewPressures[nn]=NewPressure;
-			    if(freesurfaceNodes<2){
+			    if(freesurfaceNodes<3){
 			      midPointInterpolation[CountNodes]=false;
 			    }else{
 			      midPointInterpolation[CountNodes]=true;
@@ -696,7 +696,7 @@ private:
 		  NewVelocities[CountNodes]=NewVelocity;
 		  NewAccelerations[CountNodes]=NewAcceleration;
 		  NewPressures[CountNodes]=NewPressure;
-		  if(freesurfaceNodes<2){
+		  if(freesurfaceNodes<3){
 		    midPointInterpolation[CountNodes]=false;
 		  }else{
 		    midPointInterpolation[CountNodes]=true;
@@ -763,7 +763,7 @@ private:
 			  NewVelocities[nn]=NewVelocity;
 			  NewAccelerations[nn]=NewAcceleration;
 			  NewPressures[nn]=NewPressure;
-			  if(freesurfaceNodes<2){
+			  if(freesurfaceNodes<3){
 			    midPointInterpolation[CountNodes]=false;
 			  }else{
 			    midPointInterpolation[CountNodes]=true;
