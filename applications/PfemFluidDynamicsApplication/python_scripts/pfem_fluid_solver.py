@@ -272,7 +272,33 @@ class PfemFluidSolver:
         #self.fluid_solver.CalculateDisplacements()  # DISPLACEMENTS
         self.fluid_solver.CalculateHistoricalVariables()  # STRESS-STRAIN
 
+    # solve :: sequencial calls
+    
+    def InitializeStrategy(self):
+        if self.settings["clear_storage"].GetBool():
+            self.Clear()
+
+        self.fluid_solver.Initialize()
+
+    def InitializeSolutionStep(self):
+        self.fluid_solver.InitializeSolutionStep()
+
+    def Predict(self):
+        self.fluid_solver.Predict()
+
+    def SolveSolutionStep(self):
+        self.fluid_solver.SolveSolutionStep()
+
+    def FinalizeSolutionStep(self):
+        self.fluid_solver.FinalizeSolutionStep()
         
+        self.fluid_solver.CalculateAccelerations()  # ACCELERATION
+        #self.fluid_solver.CalculateDisplacements()  # DISPLACEMENTS
+        self.fluid_solver.CalculateHistoricalVariables()  # STRESS-STRAIN
+
+    # solve :: sequencial calls
+
+    
     def SetEchoLevel(self, level):
         self.fluid_solver.SetEchoLevel(level)
 
