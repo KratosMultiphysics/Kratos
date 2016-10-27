@@ -164,16 +164,24 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
 
         self.step_count += 1
         for domain in self.meshing_domains:
-            domain.ComputeAverageMeshParameters()     
+            domain.ComputeAverageMeshParameters()  
 
-    #
-    def ExecuteBeforeOutputStep(self):
-        
         if(self.remesh_domains_active):
             if( self.meshing_before_output ):
                 if(self.IsMeshingStep()):
                     print("::[Remesh_Fluid_Domains_Process]:: RemeshFluidDomains ")
                     self.RemeshFluidDomains()
+   
+
+    #
+    def ExecuteBeforeOutputStep(self):
+        
+        pass
+        #if(self.remesh_domains_active):
+             #if( self.meshing_before_output ):
+                # if(self.IsMeshingStep()):
+                   #  print("::[Remesh_Fluid_Domains_Process]:: RemeshFluidDomains ")
+                    # self.RemeshFluidDomains()
         
     #
     def ExecuteAfterOutputStep(self):
