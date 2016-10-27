@@ -132,7 +132,7 @@ print('\nNumber of vectors to be kept in memory: ', number_of_vectors_to_be_kept
 # Making the fluid step an exact multiple of the DEM step
 pp.Dt = int(pp.Dt / pp.CFD_DEM.MaxTimeStep) * pp.CFD_DEM.MaxTimeStep
 # Creating a code for the used input variables
-run_code = swim_proc.CreadeRunCode(pp)
+run_code = swim_proc.CreateRunCode(pp)
 #Z
 
 # Creating swimming DEM procedures
