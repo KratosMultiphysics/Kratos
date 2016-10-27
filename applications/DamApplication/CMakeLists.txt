@@ -14,13 +14,17 @@ set( KRATOS_DAM_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/dam_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/dam_application_variables.cpp
     
+    ${CMAKE_SOURCE_DIR}/applications/convection_diffusion_application/custom_elements/eulerian_conv_diff.cpp
+    
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/dam_python_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
     
+
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_thermo_mechanic_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_interface_element.cpp
+    
     
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_linear_elastic_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_linear_elastic_2D_plane_strain.cpp
