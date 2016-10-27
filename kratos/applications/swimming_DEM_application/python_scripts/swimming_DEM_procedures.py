@@ -518,7 +518,7 @@ class ResultsFileCreator:
                 f.write(line + ' \n')
 
 # The following function creates a run_code to be appended to the name of the PostFiles directory for the benchmark marine_rain (2013 Guseva)
-def CreadeRunCode(pp):
+def CreateRunCode(pp):
     code = []
 
     if pp.CFD_DEM.basset_force_type > 0:
