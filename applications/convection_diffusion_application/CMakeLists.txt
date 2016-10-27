@@ -28,6 +28,9 @@ set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_SOURCES
 add_library(KratosConvectionDiffusionApplication SHARED ${KRATOS_CONVECTION_DIFFUSION_APPLICATION_SOURCES})
 target_link_libraries(KratosConvectionDiffusionApplication KratosCore )
 set_target_properties(KratosConvectionDiffusionApplication PROPERTIES PREFIX "")
+set_target_properties(KratosConvectionDiffusionApplication PROPERTIES COMPILE_DEFINITIONS "CONVECTION_DIFFUSION_APPLICATION=EXPORT,API")
+install(TARGETS KratosConvectionDiffusionApplication DESTINATION libs )
+
 
 # changing the .dll suffix to .pyd 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
