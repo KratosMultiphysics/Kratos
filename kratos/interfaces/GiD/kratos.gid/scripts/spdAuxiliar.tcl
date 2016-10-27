@@ -579,7 +579,7 @@ proc spdAux::injectSolvers {basenode args} {
             set help [$se getHelp]
             set appid [GetAppIdFromNode [$basenode parent]]
             set un [apps::getAppUniqueName $appid "$stn$n"]
-            set container "<container help='$help' n='$n' pn='$pn' un='$un' state='\[SolverEntryState\]' solstratname='$stn' >"
+            set container "<container help='$help' n='$n' pn='$pn' un='$un' state='\[SolverEntryState\]' solstratname='$stn' open_window='0'>"
             set defsolver [lindex [$se getDefaultSolvers] 0]
             append container "<value n='Solver' pn='Solver' v='$defsolver' values='' dict='\[GetSolvers\]' actualize='1' update_proc='UpdateTree'/>"
             #append container "<dependencies node='../value' actualize='1'/>"
@@ -1368,7 +1368,7 @@ proc spdAux::ProcDisableIfUniqueName { domNode args } {
         set node [$domNode selectNodes $xpath]
         if {$node eq ""} {
             set total 0
-            {W "Warning: state of [$domNode @n]"}
+            W "Warning: state of [$domNode @n]"
         } else {
             set realval [get_domnode_attribute $node v]
             if {$realval eq ""} {W "Warning: Check unique name $un"}

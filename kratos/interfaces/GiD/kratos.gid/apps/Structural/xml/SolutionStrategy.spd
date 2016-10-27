@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="SolStrat" pn="Solution" un="SLStratSection" help="Solution Strategy">
+<container n="SolStrat" pn="Solution" un="SLStratSection" help="Solution Strategy" open_window="0">
     
-      <container n="TimeParameters" pn="Time parameters" un="SLTimeParameters" help="Problem parameters" state="[checkStateByUniqueName STSoluType Dynamic]" >
+      <container n="TimeParameters" pn="Time parameters" un="SLTimeParameters" help="Problem parameters" state="[checkStateByUniqueName STSoluType Dynamic]" open_window="0">
 			<value n="StartTime" pn="Start time" v="0.0" help=""/>
 			<value n="EndTime" pn="End time" v="1.0" help=""/>
 			<value n="DeltaTime"  pn="Delta time" v="0.1" help=""/>
 			<!--<value n="UseAutomaticDeltaTime" pn="Automatic Delta time" v="Fixed"  values="Fixed,Automatic" help="Select the Delta time option to be used"/>-->
       </container>
       
-	  <container n="StratParams" pn="Strategy parameters" un="SLStratParams" icon="groupsTreeNew.gif"  state="normal" >
+	  <container n="StratParams" pn="Strategy parameters" un="SLStratParams" icon="groupsTreeNew.gif"  state="normal" open_window="0">
                  <dynamicnode command="injectSolStratParams" args="ImplementedInApplication {SolidMechanicsApplication StructuralMechanicsApplication}"/>
 	  </container>
       

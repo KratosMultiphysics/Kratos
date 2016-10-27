@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="Boundary Conditions" pn="Boundary conditions" un="Pfem_NodalConditions" >
+<container n="Boundary Conditions" pn="Boundary conditions" un="Pfem_NodalConditions" open_window="0">
 	  <dynamicnode command="injectNodalConditions" args="App Solid"/>
 </container>

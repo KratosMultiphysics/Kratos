@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="SolutionStratFL" pn="Solution" help="Solution Strategy" >
+<container n="SolutionStratFL" pn="Solution" help="Solution Strategy" open_window="0">
     
     <!--<include n="Parallelism" active="1" path="apps/Common/xml/Parallelism.spd"/> -->
     
     <dynamicnode command="injectSolvers" args="ImplementedInApplication FluidDynamicsApplication"/>
     
-    <container n="StratParams" pn="Strategy parameters" un="FLStratParams" icon="groupsTreeNew.gif" state="normal" >
+    <container n="StratParams" pn="Strategy parameters" un="FLStratParams" icon="groupsTreeNew.gif" state="normal" open_window="0">
         <dynamicnode command="injectSolStratParams" args="ImplementedInApplication FluidDynamicsApplication"/>
     </container>
 	  
-    <container n="Gravity" pn="Gravity" un="FLGravity" help="Body forces" >
+    <container n="Gravity" pn="Gravity" un="FLGravity" help="Body forces" open_window="0">
         <value n="GravityValue" pn="Gravity value" v="0.0" help="Gravity value" unit_magnitude="Acceleration" units="m/s^2"  />
         <value n="Cx" pn="Cx" v="0.0" help="X Vector"/>
         <value n="Cy" pn="Cy" v="-1.0" help="Y Vector"/>
         <value n="Cz" pn="Cz" v="0.0" help="Z Vector" state="[CheckDimension 3D]"/>
     </container>
     
-    <container n="TimeParameters" pn="Time parameters" un="FLTimeParameters" help="Time parameters" >
+    <container n="TimeParameters" pn="Time parameters" un="FLTimeParameters" help="Time parameters" open_window="0">
         <value n="StartTime" pn="Start time" v="0.0" help=""/>
         <value n="EndTime" pn="End time" v="1" help=""/>
         <value n="DeltaTime" pn="Delta time" v="0.01" help=""/>

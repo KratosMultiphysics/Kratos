@@ -15,12 +15,12 @@
   <appLink n="StenosisWizard" 	public="1" pn="Stenosis Wizard" active="0" appid="StenosisWizard" prefix="StenosisWizard"/>
   <appLink n="Dam" 				public="1" pn="Dam" active="0" appid="Dam" prefix="Dam"/>
   
-  <blockdata n="units" pn="Units" icon="units">
+  <blockdata n="units" pn="Units" icon="units" open_window="0">
     <value n='units_mesh' pn='Mesh units' unit_mesh_definition="1"/>
     <value n='units_system' pn='Units system' units_system_definition="1">
       <dependencies node="//*[@unit_definition or @unit_mesh_definition='1']" att1='change_units_system' v1='{@v}'/> 
     </value>      
-    <container n="basic_units" pn="Basic units" icon="units" help="Basic units to be used in the analysis.">
+    <container n="basic_units" pn="Basic units" icon="units" help="Basic units to be used in the analysis." open_window="0">
       <value n='units_length' pn='Length' unit_definition="L"/>     
       <value n='units_mass' pn='Mass' unit_definition="M"/>          
     </container>

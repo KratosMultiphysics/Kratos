@@ -15,6 +15,10 @@ proc Solid::xml::Init { } {
      Model::getConditions Conditions.xml
      Model::getSolvers "../../Common/xml/Solvers.xml"
      #Model::getSolvers Solvers.xml
+     
+     # Contact example
+     Model::getProcesses ContactProcesses.xml
+     Model::getConditions ContactConditions.xml
 }
 
 proc Solid::xml::getUniqueName {name} {
