@@ -278,19 +278,22 @@ class PfemFluidSolver:
         if self.settings["clear_storage"].GetBool():
             self.Clear()
 
-        self.fluid_solver.Initialize()
+        #self.fluid_solver.Initialize()
 
     def InitializeSolutionStep(self):
-        self.fluid_solver.InitializeSolutionStep()
+        pass
+        #self.fluid_solver.InitializeSolutionStep()
 
     def Predict(self):
-        self.fluid_solver.Predict()
+        pass
+        #self.fluid_solver.Predict()
 
     def SolveSolutionStep(self):
-        self.fluid_solver.SolveSolutionStep()
+        #self.fluid_solver.SolveSolutionStep()
+        self.fluid_solver.Solve()
 
     def FinalizeSolutionStep(self):
-        self.fluid_solver.FinalizeSolutionStep()
+        #self.fluid_solver.FinalizeSolutionStep()
         
         self.fluid_solver.CalculateAccelerations()  # ACCELERATION
         #self.fluid_solver.CalculateDisplacements()  # DISPLACEMENTS
