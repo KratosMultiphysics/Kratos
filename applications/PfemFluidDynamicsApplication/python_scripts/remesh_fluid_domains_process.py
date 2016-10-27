@@ -181,7 +181,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         if(self.remesh_domains_active):
             if( not self.meshing_before_output ):
                 if(self.IsMeshingStep()):
-                    self.RemeshDomains()
+                    self.RemeshFluidDomains()
 
     ###
 
