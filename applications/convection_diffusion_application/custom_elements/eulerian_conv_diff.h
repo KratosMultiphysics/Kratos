@@ -79,6 +79,10 @@ public:
 
     /// Default constructor.
 
+    EulerianConvectionDiffusionElement() : Element()
+    {
+    }
+    
     EulerianConvectionDiffusionElement(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
     {}
@@ -104,7 +108,9 @@ public:
     void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo);
     
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-
+	
+	void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+	
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     virtual std::string Info() const
@@ -122,7 +128,7 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
-
+	
     struct ElementVariables
     {
         double theta;
@@ -140,24 +146,15 @@ protected:
         array_1d< array_1d<double,3 >, TNumNodes> v;
         array_1d< array_1d<double,3 >, TNumNodes> vold;
     };
-
-    ///TODO: Checkear todo con mucho cuidado.
-    
+	
     void InitializeEulerianElement(ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo);
     
     void CalculateGeometry(boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim>& rDN_DX, double& rVolume); 
 
     double ComputeH(boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim>& rDN_DX);
 
-    void GetValues(ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo);
-    
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-
-
-    EulerianConvectionDiffusionElement() : Element()
-    {
-    }
-
+    void GetNodalValues(ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo);
+	
     // Member Variables
 
 
