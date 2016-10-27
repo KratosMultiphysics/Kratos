@@ -133,9 +133,9 @@ number_of_vectors_to_be_kept_in_memory = pp.CFD_DEM.time_window / pp.CFD_DEM.Max
 print('\nNumber of vectors to be kept in memory: ', number_of_vectors_to_be_kept_in_memory)
 # Making the fluid step an exact multiple of the DEM step
 pp.Dt = int(pp.Dt / pp.CFD_DEM.MaxTimeStep) * pp.CFD_DEM.MaxTimeStep
-
+pp.viscosity_modification_type = 0.0
 # Creating a code for the used input variables
-run_code = swim_proc.CreadeRunCode(pp)
+run_code = swim_proc.CreateRunCode(pp)
 #Z
 
 # Creating swimming DEM procedures
@@ -180,7 +180,7 @@ pp.fluid_fraction_fields.append(field1)
 
 # building lists of variables for which memory is to be allocated
 # TEMPORARY, HORRIBLE !!!
-pp.viscosity_modification_type = 0.0
+
 
 vars_man.ConstructListsOfVariables(pp)
 #_____________________________________________________________________________________________________________________________________
