@@ -21,6 +21,7 @@
 #include "convection_diffusion_application.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
 #include "includes/convection_diffusion_settings.h"
+#include "custom_elements/eulerian_conv_diff.h"
 
 // Application includes
 #include "dam_application_variables.h"
