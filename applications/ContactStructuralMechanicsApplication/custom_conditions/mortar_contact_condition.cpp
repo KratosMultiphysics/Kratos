@@ -957,22 +957,31 @@ void MortarContactCondition::CalculateAndAddLHS(
     unsigned int index_1 = 0;
     for (unsigned int i_slave = 0; i_slave < number_of_slave_nodes; ++i_slave )
     {
-        Matrix tangent_matrix;
-        tangent_matrix.resize(dimension - 1, dimension);
+//         // We impose a 0 zero LM in the inactive nodes
+//         if (GetGeometry( )[i_slave].Is(ACTIVE) == false)
+//         {
+//             subrange(LHS_contact_pair, index_1, index_1 + dimension, index_1, index_1 + dimension) = IdentityMatrix(dimension, dimension);
+//         }
+//         // And the tangent direction (sliding)
+//         else
+//         {            
+            Matrix tangent_matrix;
+            tangent_matrix.resize(dimension - 1, dimension);
 
-        const array_1d<double, 3> tangent1 = GetGeometry()[i_slave].GetValue(TANGENT_XI);
-        const array_1d<double, 3> tangent2 = GetGeometry()[i_slave].GetValue(TANGENT_ETA);
-        for (unsigned int i = 0; i < dimension; i++)
-        {
-            tangent_matrix(0, i) = tangent1[i];
-            if (dimension == 3)
+            const array_1d<double, 3> tangent1 = GetGeometry()[i_slave].GetValue(TANGENT_XI);
+            const array_1d<double, 3> tangent2 = GetGeometry()[i_slave].GetValue(TANGENT_ETA);
+            for (unsigned int i = 0; i < dimension; i++)
             {
-                tangent_matrix(1, i) = tangent2[i];
+                tangent_matrix(0, i) = tangent1[i];
+                if (dimension == 3)
+                {
+                    tangent_matrix(1, i) = tangent2[i];
+                }
             }
-        }
-        
-        index_1 = (number_of_total_nodes + i_slave) * dimension;
-        subrange(LHS_contact_pair, index_1 + 1, index_1 + dimension, index_1 , index_1 + dimension) = tangent_matrix;
+            
+            index_1 = (number_of_total_nodes + i_slave) * dimension;
+            subrange(LHS_contact_pair, index_1 + 1, index_1 + dimension, index_1 , index_1 + dimension) = tangent_matrix;
+//         }
     }
     
     if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
@@ -1172,6 +1181,25 @@ void MortarContactCondition::CalculateAndAddRHS(
     const GeometryType& current_master_element
     )
 {   
+    
+//     /* DEFINITIONS */
+//     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+//     const unsigned int number_of_slave_nodes = GetGeometry( ).PointsNumber( );
+//     const unsigned int number_of_master_nodes = current_master_element.PointsNumber( );
+//     const unsigned int number_of_total_nodes = number_of_slave_nodes + number_of_master_nodes;
+//         
+//     unsigned int index = 0;
+//     
+//     for (unsigned int i_slave = 0; i_slave < number_of_slave_nodes; ++i_slave )
+//     {
+//         index = (number_of_total_nodes + i_slave) * dimension; 
+// 
+//         if (GetGeometry( )[i_slave].Is(ACTIVE) == false)
+//         {
+//             subrange(RHS_contact_pair, index, index + dimension) = ZeroVector(dimension);
+//         }
+//     }
+        
     if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
     {
         /* COMPONENT-WISE RHS VECTOR */
