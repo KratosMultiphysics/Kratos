@@ -37,7 +37,6 @@
 // Convergence accelerators
 #include "../FSIapplication/custom_utilities/convergence_accelerator.hpp"
 
-// TODO: Try to derive it directly from the one in the core
 // TODO: Extend the descriptions
 
 namespace Kratos {
@@ -265,7 +264,7 @@ public:
         CoutSolvingProblem();
 
         pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-        is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+        is_converged = BaseType::mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
         // Function to perform the building and the solving phase.
         if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false)
@@ -313,16 +312,16 @@ public:
         {
             // Initialisation of the convergence criteria
             rDofSet = pBuilderAndSolver->GetDofSet();
-            mpConvergenceCriteria->InitializeSolutionStep(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+            BaseType::mpConvergenceCriteria->InitializeSolutionStep(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
-            if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
+            if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag() == true)
             {
                 TSparseSpace::SetToZero(mb);
 
                 pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb);
             }
 
-            is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+            is_converged = BaseType::mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
         }
     }
  
@@ -353,7 +352,7 @@ public:
         )
     {
         // Iteration Cicle... performed only for NonLinearProblems
-        while (is_converged == false && iteration_number++ < mMaxIterationNumber)
+        while (is_converged == false && iteration_number++ < BaseType::mMaxIterationNumber)
         {
             // Setting the number of iteration
             BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number; 
@@ -362,7 +361,7 @@ public:
            
             pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
 
-            is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+            is_converged = BaseType::mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
             // Call the linear system solver to find the correction mDx for the
             // It is not called if there is no system to solve
@@ -412,7 +411,7 @@ public:
 
             if (is_converged == true)
             {
-                if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
+                if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag() == true)
                 {
                     TSparseSpace::SetToZero(mb);
 
@@ -420,7 +419,7 @@ public:
                     ResidualIsUpdated = true;
                     //std::cout << "mb is calculated" << std::endl;
                 }
-                is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+                is_converged = BaseType::mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
             }
         }
     }
@@ -495,9 +494,9 @@ public:
 
         DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();
 
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb = *mpb;
+        TSystemMatrixType& mA = *BaseType::mpA;
+        TSystemVectorType& mDx = *BaseType::mpDx;
+        TSystemVectorType& mb = *BaseType::mpb;
 
         //  Initializing the parameters of the Newton-Raphson cicle
         unsigned int iteration_number = 1;
@@ -509,7 +508,7 @@ public:
         IterationCycle(is_converged, ResidualIsUpdated, iteration_number, pScheme, pBuilderAndSolver, rDofSet, mA, mDx, mb);
 
         // Plots a warning if the maximum number of iterations 
-        if (iteration_number >= mMaxIterationNumber && is_converged == false  && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+        if (iteration_number >= BaseType::mMaxIterationNumber && is_converged == false  && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
         {            
             MaxIterationsExceeded();
         }
@@ -524,7 +523,7 @@ public:
         }
 
         // Calculate reactions if required
-        if (mCalculateReactionsFlag == true)
+        if (BaseType::mCalculateReactionsFlag == true)
         {
             pBuilderAndSolver->CalculateReactions(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
         }
@@ -557,56 +556,9 @@ protected:
     ///@name Protected member Variables
     ///@{
     
-    typename TSchemeType::Pointer mpScheme;
-    
     typename TConvergenceAcceleratorType::Pointer mpConvergenceAccelerator;
     
     double mReductionCoefficient;
-
-    typename TLinearSolver::Pointer mpLinearSolver;
-
-    typename TBuilderAndSolverType::Pointer mpBuilderAndSolver;
-
-    typename TConvergenceCriteriaType::Pointer mpConvergenceCriteria;
-
-    TSystemVectorPointerType mpDx;
-    TSystemVectorPointerType mpb;
-    TSystemMatrixPointerType mpA;
-
-    /**
-     * Flag telling if it is needed to reform the DofSet at each
-     * solution step or if it is possible to form it just once
-     * - true  => reforme at each time step
-     * - false => form just one (more efficient)
-     * Default = false
-     */
-    bool mReformDofSetAtEachStep;
-
-    /**
-    * Flag telling if it is needed or not to compute the reactions
-    * default = true
-    */
-    bool mCalculateReactionsFlag;
-
-    /**
-    * Flag telling if the solution step is initialized
-    */
-    bool mSolutionStepIsInitialized;
-
-    /**
-    * Maximum number of iteratiosn, default 30
-    */
-    unsigned int mMaxIterationNumber;
-
-    /**
-    * Flag telling if the itialize was performed
-    */
-    bool mInitializeWasPerformed;
-
-    /**
-    * Flag to allow keeping system matrix constant during iterations
-    */
-    bool mKeepSystemConstantDuringIterations;
 
     ///@}
     ///@name Protected Operators
@@ -641,7 +593,7 @@ protected:
 
         BaseType::Check();
 
-        mpConvergenceCriteria->Check(BaseType::GetModelPart());
+        BaseType::mpConvergenceCriteria->Check(BaseType::GetModelPart());
 
         return 0;
 
