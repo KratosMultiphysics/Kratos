@@ -118,8 +118,8 @@ namespace Kratos {
             class_<DEM_KDEM, bases< DEMContinuumConstitutiveLaw >, boost::noncopyable >("DEM_KDEM",init<>())
                     ;
 
-			class_<DEM_sintering_continuum, bases< DEMContinuumConstitutiveLaw >, boost::noncopyable >("DEM_sintering_continuum", init<>())
-				    ;
+            class_<DEM_sintering_continuum, bases< DEMContinuumConstitutiveLaw >, boost::noncopyable >("DEM_sintering_continuum", init<>())
+                    ;
             
             class_<DEM_KDEMFabric, bases< DEM_KDEM >, boost::noncopyable >("DEM_KDEMFabric",init<>())
                     ;
