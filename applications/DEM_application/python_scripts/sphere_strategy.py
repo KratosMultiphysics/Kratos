@@ -15,10 +15,10 @@ class ExplicitStrategy:
 
         self.Parameters              = Param
         
-        if not (hasattr(Param, "StressStrainOption")):
+        if not (hasattr(Param, "PostStressStrainOption")):
             self.stress_strain_option = 0
         else:
-            self.stress_strain_option = self.Var_Translator(Param.StressStrainOption)
+            self.stress_strain_option = self.Var_Translator(Param.PostStressStrainOption)
             
         if not hasattr(Param, "AutomaticTimestep"):
             self.critical_time_option = 0
