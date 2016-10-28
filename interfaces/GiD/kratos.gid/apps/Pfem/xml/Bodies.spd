@@ -4,7 +4,6 @@
     <value n="BodyType" pn="Body type" v="" values="[GetBodyTypeValues]" actualize="1">
       <dependencies node="../value" actualize="1"/>
       <dependencies node="../condition/value" actualize="1"/>
-      <dependencies node="../condition/group/value" actualize="1"/>
     </value>
     <value n="MeshingStrategy" pn="Meshing strategy" v="" values="[GetMeshingDomains]" state="[getStateFromXPathValue {string(../value[@n='BodyType']/@v)} Fluid,Solid]"/>
     <value n="ContactStrategy" pn="Contact strategy" v="NO_CONTACT_STRATEGY" values="NO_CONTACT_STRATEGY,DEFORMABLE_SKIN_CONTACT,RIGID_CONTACT"
