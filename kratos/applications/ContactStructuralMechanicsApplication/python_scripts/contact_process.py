@@ -122,6 +122,7 @@ class ContactProcess(KratosMultiphysics.Process):
                 ZeroVector[1] = 0.0
                 ZeroVector[2] = 0.0
                 node.SetValue(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER, ZeroVector)
+                #node.Set(KratosMultiphysics.SLAVE, True) # TODO: This is not supposed o be necessary
             del node
             
             self.contact_search.CreatePointListMortar()
