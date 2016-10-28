@@ -73,7 +73,7 @@ public:
                 "is_fixed_x": false,
                 "is_fixed_y": false,
                 "is_fixed_z": false,
-                "factor" : 1.0,
+                "modulus" : 1.0,
                 "direction": [1.0, 0.0, 0.0]
             }  )" );
         
@@ -83,9 +83,9 @@ public:
         {
             KRATOS_THROW_ERROR(std::runtime_error,"direction vector is not a vector or it does not have size 3. Direction vector currently passed",parameters.PrettyPrintJsonString());
         }
-        if(parameters["factor"].IsNumber() == false)
+        if(parameters["modulus"].IsNumber() == false)
         {
-            KRATOS_THROW_ERROR(std::runtime_error,"factor shall be a number. Parameter list in which is included is :", parameters.PrettyPrintJsonString());
+            KRATOS_THROW_ERROR(std::runtime_error,"modulus shall be a number. Parameter list in which is included is :", parameters.PrettyPrintJsonString());
         }
         if(parameters["variable_name"].IsString()  == false)
         {
@@ -106,9 +106,9 @@ public:
         this->Set(Y_COMPONENT_FIXED,  parameters["is_fixed_y"].GetBool());
         this->Set(Z_COMPONENT_FIXED,  parameters["is_fixed_z"].GetBool());
         
-        // Get the factor and variable name
+        // Get the modulus and variable name
         mvariable_name = parameters["variable_name"].GetString();
-        mfactor = parameters["factor"].GetDouble();
+        mmodulus = parameters["modulus"].GetDouble();
 //         mvalue = parameters["value"].GetDouble();
         
         mdirection.resize(3,false);
@@ -168,11 +168,11 @@ public:
     
     ApplyConstantVectorValueProcess(ModelPart& model_part, 
                               const Variable< array_1d<double, 3 > >& rVariable, 
-                              const double factor,
+                              const double modulus,
                               const Vector direction, 
                               std::size_t mesh_id,
                               Flags options
-                                   ) : Process(options) , mr_model_part(model_part), mfactor(factor),mdirection(direction),mmesh_id(mesh_id)
+                                   ) : Process(options) , mr_model_part(model_part), mmodulus(modulus),mdirection(direction),mmesh_id(mesh_id)
     {
         KRATOS_TRY;
         
@@ -254,7 +254,7 @@ public:
     virtual void ExecuteInitialize()
     {       
         //compute the value to be applied
-        array_1d<double,3> value = mfactor*mdirection;
+        array_1d<double,3> value = mmodulus*mdirection;
         typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
         
         component_type varx = KratosComponents< component_type >::Get(mvariable_name+std::string("_X"));
@@ -345,7 +345,7 @@ protected:
     
     ModelPart& mr_model_part;
     std::string mvariable_name;
-    double mfactor;
+    double mmodulus;
     Vector mdirection;
     std::size_t mmesh_id;
 
