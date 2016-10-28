@@ -79,7 +79,7 @@ def MatrixB(DN):
 def grad_sym_voigtform(DN, x):
     dim = DN.shape[1]
     nnodes = DN.shape[0]
-    print(nnodes, dim, x.shape)
+    #~ print(nnodes, dim, x.shape)
 
     B = MatrixB(DN)
     
