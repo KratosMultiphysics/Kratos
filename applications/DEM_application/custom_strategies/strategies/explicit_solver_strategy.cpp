@@ -1,4 +1,4 @@
-//        
+//
 // Author: Miguel AngelCeligueta, maceli@cimne.upc.edu
 //
 
@@ -10,10 +10,10 @@ namespace Kratos {
         //This function is called for the local mesh and the ghost mesh, so mListOfSphericElements must not be used here.
         KRATOS_TRY
 
-                const int number_of_particles = (int) rCustomListOfSphericParticles.size();
+        const int number_of_particles = (int) rCustomListOfSphericParticles.size();
         #pragma omp parallel for
         for (int i = 0; i < number_of_particles; i++) {
-            rCustomListOfSphericParticles[i]->SetFastProperties(mFastProperties);
+          rCustomListOfSphericParticles[i]->SetFastProperties(mFastProperties);
         }
         return;
         KRATOS_CATCH("")
@@ -253,8 +253,8 @@ namespace Kratos {
         SearchDEMOperations(r_model_part);
         SearchFEMOperations(r_model_part);
         ForceOperations(r_model_part);
-        PerformTimeIntegrationOfMotion();        
-        FinalizeSolutionStep();        
+        PerformTimeIntegrationOfMotion();
+        FinalizeSolutionStep();
 
         return 0.00;
 
@@ -417,7 +417,7 @@ namespace Kratos {
 
     void ExplicitSolverStrategy::InitializeSolutionStep() {
         KRATOS_TRY
-                        
+
         ModelPart& r_model_part = GetModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
@@ -463,7 +463,7 @@ namespace Kratos {
 
         } // loop threads OpenMP
         KRATOS_CATCH("")
-    }    
+    }
 
     void ExplicitSolverStrategy::InitializeElements() {
         KRATOS_TRY
@@ -535,14 +535,14 @@ namespace Kratos {
 
                 Condition::GeometryType& geom = it->GetGeometry();
                 double Element_Area = geom.Area();
-                
+
                 it->CalculateRightHandSide(rhs_cond, r_process_info);
                 DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
                 p_wall->CalculateElasticForces(rhs_cond_elas, r_process_info);
                 array_1d<double, 3> Normal_to_Element;
                 p_wall->CalculateNormal(Normal_to_Element);
                 const unsigned int& dim = geom.WorkingSpaceDimension();
-               
+
                 for (unsigned int i = 0; i < geom.size(); i++) { //talking about each of the three nodes of the condition
                     //we are studying a certain condition here
                     index = i * dim; //*2;
@@ -565,7 +565,7 @@ namespace Kratos {
                     //node_pressure actually refers to normal force. Pressure is actually computed later in function Calculate_Nodal_Pressures_and_Stresses()
                     node_pressure += MathUtils<double>::Abs(GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element));
                     noalias(node_rhs_tang) += rhs_cond_comp - GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element) * Normal_to_Element;
-                    
+
                     geom[i].UnSetLock();
                 }
             }
@@ -726,9 +726,9 @@ namespace Kratos {
             }
 
             if (time < vel_start || time > vel_stop) continue;
-            
-            NodesArrayType& pNodes = sub_model_part->Nodes();     
-            
+
+            NodesArrayType& pNodes = sub_model_part->Nodes();
+
 //            bool is_rigid_body = (*sub_model_part)[RIGID_BODY_MOTION];
 //            if(is_rigid_body){
 //                SetFlagAndVariableToNodes(DEMFlags::FIXED_VEL_X, VELOCITY_X, 0.0, pNodes);
@@ -738,7 +738,7 @@ namespace Kratos {
 //                SetFlagAndVariableToNodes(DEMFlags::FIXED_ANG_VEL_Y, ANGULAR_VELOCITY_Y, 0.0, pNodes);
 //                SetFlagAndVariableToNodes(DEMFlags::FIXED_ANG_VEL_Z, ANGULAR_VELOCITY_Z, 0.0, pNodes);
 //            }
-//            else {                   
+//            else {
             if ((*sub_model_part).Has(IMPOSED_VELOCITY_X_VALUE)) {
                 SetFlagAndVariableToNodes(DEMFlags::FIXED_VEL_X, VELOCITY_X, (*sub_model_part)[IMPOSED_VELOCITY_X_VALUE], pNodes);
             }
@@ -758,7 +758,7 @@ namespace Kratos {
                 SetFlagAndVariableToNodes(DEMFlags::FIXED_ANG_VEL_Z, ANGULAR_VELOCITY_Z, (*sub_model_part)[IMPOSED_ANGULAR_VELOCITY_Z_VALUE], pNodes);
             }
             //}
-            
+
         } // for each mesh
         KRATOS_CATCH("")
     }
@@ -803,7 +803,7 @@ namespace Kratos {
         }
         KRATOS_CATCH("")
     }
-    
+
     void ExplicitSolverStrategy::SetNormalRadiiOnAllParticles(ModelPart& r_model_part) {
         KRATOS_TRY
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
@@ -836,12 +836,10 @@ namespace Kratos {
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
         if (!number_of_elements) return;
 
-        r_model_part.GetCommunicator().GhostMesh().ElementsArray().clear();
-
         GetResults().resize(number_of_elements);
         GetResultsDistances().resize(number_of_elements);
 
-        mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetArrayOfAmplifiedRadii(), this->GetResults(), this->GetResultsDistances());        
+        mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetArrayOfAmplifiedRadii(), this->GetResults(), this->GetResultsDistances());
         const int number_of_particles = (int) mListOfSphericParticles.size();
 
         #pragma omp parallel for schedule(dynamic, 100) //schedule(guided)
@@ -851,7 +849,7 @@ namespace Kratos {
                 Element* p_neighbour_element = (*neighbour_it).get();
                 SphericParticle* p_spheric_neighbour_particle = dynamic_cast<SphericParticle*> (p_neighbour_element);
                 if (mListOfSphericParticles[i]->Is(DEMFlags::BELONGS_TO_A_CLUSTER) && (mListOfSphericParticles[i]->GetClusterId() == p_spheric_neighbour_particle->GetClusterId())) continue;
-                mListOfSphericParticles[i]->mNeighbourElements.push_back(p_spheric_neighbour_particle);                                
+                mListOfSphericParticles[i]->mNeighbourElements.push_back(p_spheric_neighbour_particle);
             }
             this->GetResults()[i].clear();
             this->GetResultsDistances()[i].clear();
@@ -989,11 +987,11 @@ namespace Kratos {
             }//loop over temporal neighbours
 
             //swap
-            
-            temporal_neigh.swap(neighbour_rigid_faces);           
+
+            temporal_neigh.swap(neighbour_rigid_faces);
             temporal_contact_weights.swap(neighbour_weights);
             temporal_contact_types.swap(neighbor_contact_types);
-            
+
             this->GetRigidFaceResults()[i].clear();
             this->GetRigidFaceResultsDistances()[i].clear();
         }//for particles
@@ -1074,7 +1072,7 @@ namespace Kratos {
     void ExplicitSolverStrategy::SynchronizeHistoricalVariables(ModelPart& r_model_part) {
         r_model_part.GetCommunicator().SynchronizeNodalSolutionStepsData();
     }
-    
+
     void ExplicitSolverStrategy::SynchronizeRHS(ModelPart& r_model_part) {
         r_model_part.GetCommunicator().SynchronizeVariable(TOTAL_FORCES);
         r_model_part.GetCommunicator().SynchronizeVariable(PARTICLE_MOMENT);
@@ -1090,7 +1088,7 @@ namespace Kratos {
         total_inelastic_frictional_energy  = 0.0;
         double& total_inelastic_viscodamping_energy = r_process_info[PARTICLE_INELASTIC_VISCODAMPING_ENERGY];
         total_inelastic_viscodamping_energy  = 0.0;
-        
+
         KRATOS_CATCH("")
     }
 
