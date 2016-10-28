@@ -167,10 +167,12 @@ public:
     virtual void InitializeConditions(
         ModelPart& rModelPart)
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         if( this->mElementsAreInitialized==false )
+        {
             KRATOS_THROW_ERROR(std::logic_error, "Before initilizing Conditions, initialize Elements FIRST","")
+        }
 
         int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ConditionPartition;
@@ -178,7 +180,7 @@ public:
 
         #pragma omp parallel
         {
-            int k = OpenMPUtils::ThisThread();
+            const unsigned int k = OpenMPUtils::ThisThread();
             typename ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin() + ConditionPartition[k];
             typename ConditionsArrayType::iterator CondEnd = rModelPart.Conditions().begin() + ConditionPartition[k + 1];
 
@@ -194,13 +196,11 @@ public:
                 {
                     itCond->Initialize(); //function to initialize the condition
                 }
-
             }
-
         }
 
         this->mConditionsAreInitialized = true;
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
     
     /***********************************************************************************/
@@ -213,7 +213,8 @@ public:
         TSystemVectorType& b
     )
     {
-        KRATOS_TRY
+        KRATOS_TRY;
+        
         //initialize solution step for all of the elements
         ElementsArrayType& pElements = r_model_part.Elements();
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
@@ -238,7 +239,8 @@ public:
             }
 
         }
-        KRATOS_CATCH("")
+        
+        KRATOS_CATCH("");
     }
 
     /***********************************************************************************/

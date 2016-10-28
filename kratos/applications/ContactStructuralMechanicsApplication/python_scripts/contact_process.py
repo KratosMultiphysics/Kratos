@@ -111,6 +111,19 @@ class ContactProcess(KratosMultiphysics.Process):
         self.contact_search = KratosMultiphysics.ContactStructuralMechanicsApplication.TreeContactSearch(self.o_interface, self.d_interface, self.max_number_results)
         
         if self.params["contact_type"].GetString() == "MortarMethod":
+            
+            # Initilialize weighted variables and LM
+            for node in self.d_interface.Nodes:
+                node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_GAP, 0.0)
+                node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_SLIP, 0.0)
+                node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_FRICTION, 0.0)
+                ZeroVector = KratosMultiphysics.Vector(3) 
+                ZeroVector[0] = 0.0
+                ZeroVector[1] = 0.0
+                ZeroVector[2] = 0.0
+                node.SetValue(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER, ZeroVector)
+            del node
+            
             self.contact_search.CreatePointListMortar()
             self.contact_search.InitializeMortarConditions(self.active_check_factor, self.augmentation_normal, self.augmentation_tangent)
         elif self.params["contact_type"].GetString() == "NTN":

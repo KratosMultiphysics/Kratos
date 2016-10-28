@@ -65,7 +65,7 @@ public:
         const unsigned int number_nodes = Geom1.PointsNumber();
         
          for (unsigned int index = 0; index < number_nodes; index++)
-         {
+         {   
              if (Geom1[index].Is(ACTIVE) == false)
              {
                 Point<3> ProjectedPoint;
