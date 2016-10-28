@@ -279,7 +279,7 @@ while (time < DEM_parameters.FinalTime):
             DEMFEMProcedures.PrintPoisson(spheres_model_part, DEM_parameters, "Poisson_ratio.txt", time)
             
         if DEM_parameters.PostEulerAngles:
-            post_utils.PrintEulerAngles(spheres_model_part)
+            post_utils.PrintEulerAngles(spheres_model_part, cluster_model_part)
 
         KRATOSprint("*******************  PRINTING RESULTS FOR GID  ***************************")
         KRATOSprint("                        ("+ str(spheres_model_part.NumberOfElements(0)) + " elements)")
@@ -295,7 +295,7 @@ while (time < DEM_parameters.FinalTime):
             solver.PrepareContactElementsForPrinting()
         
         demio.PrintResults(spheres_model_part, rigid_face_model_part, cluster_model_part, solver.contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits)
-        os.chdir(main_path)        
+        os.chdir(main_path)
 
         time_old_print = time
    

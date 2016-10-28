@@ -179,8 +179,8 @@ class PostUtils(object):
                 f.write(tmp)
                 self.Flush(f)
 
-    def PrintEulerAngles(self, model_part):
-        PostUtilities().ComputeEulerAngles(model_part)
+    def PrintEulerAngles(self, spheres_model_part, cluster_model_part):
+        PostUtilities().ComputeEulerAngles(spheres_model_part, cluster_model_part)
 
 
 class DEMEnergyCalculator(object):
@@ -403,7 +403,8 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(DELTA_ROTATION)
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
         model_part.AddNodalSolutionStepVariable(LOCAL_ANGULAR_VELOCITY)
-        model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
+        model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL)
+        model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG)
 
         # FORCES
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
@@ -421,6 +422,10 @@ class Procedures(object):
 
         # OTHER PROPERTIES
         model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
+        
+        # LOCAL AXIS
+        if (Var_Translator(self.DEM_parameters.PostEulerAngles)):
+            model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
     def AddMpiVariables(self, model_part):
         pass
