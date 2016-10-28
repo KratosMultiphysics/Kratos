@@ -54,7 +54,9 @@ Condition::Pointer LineLoad3DCondition::Create(IndexType NewId, NodesArrayType c
 //************************************************************************************
 Condition::Pointer LineLoad3DCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
-  return (this->Create( NewId, rThisNodes, pGetProperties() ) );
+  LineLoad3DCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+  //-----------//      
+  return Condition::Pointer( new LineLoad3DCondition(NewCondition) );
 }
 
 

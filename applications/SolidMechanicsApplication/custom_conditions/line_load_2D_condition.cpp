@@ -54,7 +54,11 @@ Condition::Pointer LineLoad2DCondition::Create(IndexType NewId, NodesArrayType c
 //************************************************************************************
 Condition::Pointer LineLoad2DCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
-  return (this->Create( NewId, rThisNodes, pGetProperties() ) );
+  
+  LineLoad2DCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+  //-----------//      
+  return Condition::Pointer( new LineLoad2DCondition(NewCondition) );
+
 }
 
 

@@ -1,5 +1,6 @@
 # import Kratos
 from KratosMultiphysics import *
+from KratosMultiphysics.PfemBaseApplication import *
 from KratosMultiphysics.ContactMechanicsApplication import *
 
 # Import Kratos "wrapper" for unittests
