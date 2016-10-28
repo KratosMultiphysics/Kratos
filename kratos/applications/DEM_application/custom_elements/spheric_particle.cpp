@@ -1287,16 +1287,12 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
         //The following operation symmetrizes the tensor. We will work with the symmetric stress tensor always, because the non-symmetric one is being filled while forces are being calculated
         for (int i = 0; i < 3; i++) {
             for (int j = i; j < 3; j++) {
-                //(*mSymmStressTensor)(i,j) = (*mSymmStressTensor)(j,i) = 0.5 * ((*mStressTensor)(i,j) + (*mStressTensor)(j,i));
-                 (*mSymmStressTensor)(i,j) = (*mSymmStressTensor)(j,i) = std::max (fabs((*mStressTensor)(i,j)), fabs((*mStressTensor)(j,i)));
-
-                //                unsigned int element_id = this->Id();
-                //                if (element_id == 6) {
-                //                    for (int i = 0; i < 3; i++) {
-                //                        for (int j = 0; j < 3; j++) {
-                //                            std::cout << (*mStressTensor)(i,j) << "\n";}}
-                //                    std::cout <<  "newloop \n";
-                //                }
+                if(fabs((*mStressTensor)(i,j)) > fabs((*mStressTensor)(j,i))) {
+                    (*mSymmStressTensor)(i,j) = (*mSymmStressTensor)(j,i);
+                }
+                else {
+                    (*mSymmStressTensor)(i,j) = (*mStressTensor)(j,i);
+                }
             }
         }
     }
