@@ -1,55 +1,17 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: Nelson Lafontaine $
-//   Date:                $Date: 29-09-2010 $
-//   Revision:            $Revision: 1.1.1.1 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-//
-
+//  Main authors:       Nelson Lafontaine
+//                      Carlos A. Roig
 
 #if !defined(KRATOS_BINS_DYNAMIC_OBJECTS_CONTAINER_H_INCLUDED)
 #define  KRATOS_BINS_DYNAMIC_OBJECTS_CONTAINER_H_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -65,7 +27,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
 
 namespace Kratos
 {
@@ -94,519 +55,681 @@ namespace Kratos
 /** Detail class definition.
 */
 template<class TConfigure>
-class BinsObjectDynamic
-{
+class BinsObjectDynamic {
 public:
-    ///@name Type Definitions
-    ///@{
+  ///@name Type Definitions
+  ///@{
 
-    enum { Dimension = TConfigure::Dimension };
+  enum { Dimension = TConfigure::Dimension };
 
-    typedef TConfigure                                   Configure;
-    typedef typename TConfigure::PointType               PointType;
-    typedef typename TConfigure::PointerType             PointerType;
-    typedef typename TConfigure::ContainerType           ContainerType;
-    typedef typename TConfigure::IteratorType            IteratorType;
-    typedef typename TConfigure::ResultContainerType     ResultContainerType;
-    typedef typename TConfigure::ResultIteratorType      ResultIteratorType;
-    typedef typename TConfigure::DistanceIteratorType    DistanceIteratorType;
+  typedef TConfigure                                   Configure;
+  typedef typename TConfigure::PointType               PointType;
+  typedef typename TConfigure::PointerType             PointerType;
+  typedef typename TConfigure::ContainerType           ContainerType;
+  typedef typename TConfigure::IteratorType            IteratorType;
+  typedef typename TConfigure::ResultContainerType     ResultContainerType;
+  typedef typename TConfigure::ResultIteratorType      ResultIteratorType;
+  typedef typename TConfigure::DistanceIteratorType    DistanceIteratorType;
 
-    typedef Cell<Configure> CellType;
-    typedef std::vector<CellType> CellContainerType;
-    typedef typename CellContainerType::iterator CellContainerIterator;
+  typedef Cell<Configure> CellType;
+  typedef std::vector<CellType> CellContainerType;
+  typedef typename CellContainerType::iterator CellContainerIterator;
 
-    typedef TreeNode<Dimension, PointType, PointerType, IteratorType,  typename TConfigure::DistanceIteratorType> TreeNodeType;
-    typedef typename TreeNodeType::CoordinateType  CoordinateType;  // double
-    typedef typename TreeNodeType::SizeType        SizeType;        // std::size_t
-    typedef typename TreeNodeType::IndexType       IndexType;       // std::size_t
-
-
-    typedef Tvector<IndexType,Dimension>      IndexArray;
-    typedef Tvector<SizeType,Dimension>       SizeArray;
-    typedef Tvector<CoordinateType,Dimension> CoordinateArray;
-
-    ///Contact Pair
-    typedef typename TConfigure::ContainerContactType  ContainerContactType;
-    typedef typename TConfigure::IteratorContactType IteratorContactType;
-
-    ///typedef TreeNodeType LeafType;
-    typedef typename TreeNodeType::IteratorIteratorType IteratorIteratorType;
-    typedef typename TreeNodeType::SearchStructureType  SearchStructureType;
+  typedef TreeNode<Dimension, PointType, PointerType, IteratorType,  typename TConfigure::DistanceIteratorType> TreeNodeType;
+  typedef typename TreeNodeType::CoordinateType  CoordinateType;  // double
+  typedef typename TreeNodeType::SizeType        SizeType;        // std::size_t
+  typedef typename TreeNodeType::IndexType       IndexType;       // std::size_t
 
 
-    /// Pointer definition of BinsObjectDynamic
-    KRATOS_CLASS_POINTER_DEFINITION(BinsObjectDynamic);
+  typedef Tvector<IndexType,Dimension>      IndexArray;
+  typedef Tvector<SizeType,Dimension>       SizeArray;
+  typedef Tvector<CoordinateType,Dimension> CoordinateArray;
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
+  ///Contact Pair
+  typedef typename TConfigure::ContainerContactType  ContainerContactType;
+  typedef typename TConfigure::IteratorContactType IteratorContactType;
 
-    /// Default constructor.
-    BinsObjectDynamic() {}
-    /// Constructor de bins a bounding box
+  ///typedef TreeNodeType LeafType;
+  typedef typename TreeNodeType::IteratorIteratorType IteratorIteratorType;
+  typedef typename TreeNodeType::SearchStructureType  SearchStructureType;
 
+  /// Pointer definition of BinsObjectDynamic
+  KRATOS_CLASS_POINTER_DEFINITION(BinsObjectDynamic);
 
-    BinsObjectDynamic (IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd)
-        : mObjectsBegin(ObjectsBegin), mObjectsEnd(ObjectsEnd)
-    {
-        mObjectsSize = SearchUtils::PointerDistance(mObjectsBegin,mObjectsEnd);
-        CalculateBoundingBox();           // Calculate mMinPoint, mMaxPoint
-        CalculateCellSize(mObjectsSize);  // Calculate number of Cells
-        AllocateContainer();              // Allocate cell list
-        GenerateBins();                   // Fill Cells with objects
+  ///@}
+  ///@name Life Cycle
+  ///@{
 
+  /// Default constructor.
+  BinsObjectDynamic() {}
+  /// Constructor de bins a bounding box
+
+  BinsObjectDynamic (IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd)
+      : mObjectsBegin(ObjectsBegin), mObjectsEnd(ObjectsEnd) {
+
+    mObjectsSize = SearchUtils::PointerDistance(mObjectsBegin,mObjectsEnd);
+    CalculateBoundingBox();           // Calculate mMinPoint, mMaxPoint
+    CalculateCellSize(mObjectsSize);  // Calculate number of Cells
+    AllocateContainer();              // Allocate cell list
+    GenerateBins();                   // Fill Cells with objects
+  }
+
+  BinsObjectDynamic (IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd, CoordinateType CellSize)
+      : mObjectsBegin(ObjectsBegin), mObjectsEnd(ObjectsEnd) {
+
+    mObjectsSize = SearchUtils::PointerDistance(mObjectsBegin,mObjectsEnd);
+    CalculateBoundingBox();           // Calculate mMinPoint, mMaxPoint
+    CalculateCellSize(CellSize);      // Calculate number of Cells
+    AllocateContainer();              // Allocate cell list
+    GenerateBins();                   // Fill Cells with objects
+  }
+
+  BinsObjectDynamic (const PointType& MinPoint, const PointType& MaxPoint, CoordinateType CellSize)
+      : mObjectsSize(0), mObjectsBegin(0), mObjectsEnd(0) {
+
+    for(SizeType i = 0; i < Dimension; i++) {
+      mMinPoint[i] = MinPoint[i];
+      mMaxPoint[i] = MaxPoint[i];
     }
 
-    BinsObjectDynamic (IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd, CoordinateType CellSize)
-        : mObjectsBegin(ObjectsBegin), mObjectsEnd(ObjectsEnd)
-    {
-        mObjectsSize = SearchUtils::PointerDistance(mObjectsBegin,mObjectsEnd);
-        CalculateBoundingBox();           // Calculate mMinPoint, mMaxPoint
-        CalculateCellSize(CellSize);  // Calculate number of Cells
-        AllocateContainer();              // Allocate cell list
-        GenerateBins();                   // Fill Cells with objects
+    CalculateCellSize(CellSize);
+    AllocateContainer();
+  }
 
+  BinsObjectDynamic (const PointType& MinPoint, const PointType& MaxPoint, SizeType NumPoints)
+      : mObjectsSize(0), mObjectsBegin(0), mObjectsEnd(0) {
+
+    for(SizeType i = 0; i < Dimension; i++) {
+      mMinPoint[i] = MinPoint[i];
+      mMaxPoint[i] = MaxPoint[i];
     }
 
-    BinsObjectDynamic (const PointType& MinPoint, const PointType& MaxPoint, CoordinateType CellSize)
-        : mObjectsSize(0), mObjectsBegin(0), mObjectsEnd(0)
-    {
+    CalculateCellSize(NumPoints);
+    AllocateContainer();
+  }
 
-        for(SizeType i = 0 ; i < Dimension ; i++)
-        {
-            mMinPoint[i] = MinPoint[i];
-            mMaxPoint[i] = MaxPoint[i];
-        }
-        CalculateCellSize(CellSize);
-        AllocateContainer();
+  /// Destructor.
+  virtual ~BinsObjectDynamic() {}
+
+  /// Single search API
+
+  /**
+   * [SearchObjects description]
+   * @param  ThisObject [description]
+   * @param  Result     [description]
+   * @return            [description]
+   */
+  SizeType SearchObjects(PointerType& ThisObject, ResultContainerType& Result) {
+    PointType Low, High;
+    SearchStructureType Box;
+
+    TConfigure::CalculateBoundingBox(ThisObject, Low, High);
+    Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+    SearchInBoxLocal(ThisObject, Result, Box );
+
+    return Result.size();
+  }
+
+  /**
+   * [SearchObjects description]
+   * @param  ThisObject         [description]
+   * @param  Result             [description]
+   * @param  MaxNumberOfResults [description]
+   * @return                    [description]
+   */
+  SizeType SearchObjects(PointerType& ThisObject, ResultIteratorType& Result, const SizeType& MaxNumberOfResults) {
+    PointType Low, High;
+    SearchStructureType Box;
+    SizeType NumberOfResults = 0;
+
+    TConfigure::CalculateBoundingBox(ThisObject, Low, High);
+    Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+    SearchInBoxLocal(ThisObject, Result, NumberOfResults, MaxNumberOfResults, Box );
+
+    return NumberOfResults;
+  }
+
+  /**
+   * [SearchObjectsInCell description]
+   * @param  ThisPoint          [description]
+   * @param  Result             [description]
+   * @return                    [description]
+   */
+  SizeType SearchObjectsInCell(const PointType& ThisPoint, ResultIteratorType Result) {
+    /// Missing API for 'SearchObjectsInCell' without 'MaxNumberOfResults'
+    KRATOS_ERROR << "Missing implementation of SearchObjectsInCell(PointerType, ResultIteratorType)" << std::endl;
+  }
+
+  /**
+   * [SearchObjectsInCell description]
+   * @param  ThisPoint          [description]
+   * @param  Result             [description]
+   * @param  MaxNumberOfResults [description]
+   * @return                    [description]
+   */
+  SizeType SearchObjectsInCell(const PointType& ThisPoint, ResultIteratorType Result, const SizeType& MaxNumberOfResults) {
+    IndexType icell = CalculateIndex(ThisPoint);
+
+    if(mCells[icell].Size() < MaxNumberOfResults) {
+      for(IteratorType i_object = mCells[icell].Begin() ; i_object != mCells[icell].End(); i_object++, Result++) {
+        *Result = *i_object;
+      }
+      return mCells[icell].Size();
+    } else {
+      return -1;
+    }
+  }
+
+  /**
+   * [SearchObjectsExclusive description]
+   * @param  ThisObject         [description]
+   * @param  Result             [description]
+   * @param  MaxNumberOfResults [description]
+   * @return                    [description]
+   */
+  SizeType SearchObjectsExclusive(PointerType& ThisObject, ResultIteratorType& Result) {
+    PointType Low, High;
+    SearchStructureType Box;
+
+    TConfigure::CalculateBoundingBox(ThisObject, Low, High);
+    Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+    SearchObjectLocalExclusive(ThisObject, Result, Box );
+
+    return Result.size();
+  }
+
+  /**
+   * [SearchObjectsExclusive description]
+   * @param  ThisObject         [description]
+   * @param  Result             [description]
+   * @param  MaxNumberOfResults [description]
+   * @return                    [description]
+   */
+  SizeType SearchObjectsExclusive(PointerType& ThisObject, ResultIteratorType& Result, const SizeType& MaxNumberOfResults) {
+    PointType Low, High;
+    SearchStructureType Box;
+    SizeType NumberOfResults = 0;
+
+    TConfigure::CalculateBoundingBox(ThisObject, Low, High);
+    Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+    SearchObjectLocalExclusive(ThisObject, Result, NumberOfResults, MaxNumberOfResults, Box );
+
+    return NumberOfResults;
+  }
+
+  /**
+   * [SearchObjectsInRadius description]
+   * @param  ThisObject [description]
+   * @param  Radius     [description]
+   * @param  Results    [description]
+   * @return            [description]
+   */
+  SizeType SearchObjectsInRadius(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results) {
+    /// Missing API for 'SearchObjectsInRadius' without 'MaxNumberOfResults'
+    KRATOS_ERROR << "Missing implementation of SearchObjectsInRadius(PointerType, const double, ResultIteratorType)" << std::endl;
+  }
+
+  /**
+   * [SearchObjectsInRadius description]
+   * @param  ThisObject         [description]
+   * @param  Radius             [description]
+   * @param  Results            [description]
+   * @param  MaxNumberOfResults [description]
+   * @return                    [description]
+   */
+  SizeType SearchObjectsInRadius(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results, const SizeType& MaxNumberOfResults) {
+    PointType Low, High;
+    SearchStructureType Box;
+    SizeType NumberOfResults = 0;
+
+    TConfigure::CalculateBoundingBox(ThisObject, Low, High, Radius);
+    Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+    SearchInRadius(ThisObject, Radius, Results, NumberOfResults, MaxNumberOfResults, Box );
+
+    return NumberOfResults;
+  }
+
+  /**
+   * [SearchObjectsInRadius description]
+   * @param  ThisObject      [description]
+   * @param  Radius          [description]
+   * @param  Results         [description]
+   * @param  ResultDistances [description]
+   * @return                 [description]
+   */
+  SizeType SearchObjectsInRadius(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results, DistanceIteratorType ResultDistances) {
+    /// Missing API for 'SearchObjectsInRadius' without 'MaxNumberOfResults'
+    KRATOS_ERROR << "Missing implementation of SearchObjectsInRadius(PointerType, const double, ResultIteratorType, DistanceIteratorType)" << std::endl;
+  }
+
+  /**
+   * [SearchObjectsInRadius description]
+   * @param  ThisObject         [description]
+   * @param  Radius             [description]
+   * @param  Results            [description]
+   * @param  ResultDistances    [description]
+   * @param  MaxNumberOfResults [description]
+   * @return                    [description]
+   */
+  SizeType SearchObjectsInRadius(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results, DistanceIteratorType ResultDistances, const SizeType& MaxNumberOfResults) {
+    PointType Low, High;
+    SearchStructureType Box;
+    SizeType NumberOfResults = 0;
+
+    TConfigure::CalculateBoundingBox(ThisObject, Low, High, Radius);
+    Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+    SearchInRadius(ThisObject, Radius, Results, ResultDistances, NumberOfResults, MaxNumberOfResults, Box );
+
+    return NumberOfResults;
+  }
+
+  /**
+   * [SearchObjectsInRadiusExclusive description]
+   * @param  ThisObject         [description]
+   * @param  Radius             [description]
+   * @param  Results            [description]
+   * @param  MaxNumberOfResults [description]
+   * @return                    [description]
+   */
+  SizeType SearchObjectsInRadiusExclusive(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results) {
+    /// Missing API for 'SearchObjectsInRadiusExclusive' without 'MaxNumberOfResults'
+    KRATOS_ERROR << "Missing implementation of SearchObjectsInRadiusExclusive(PointerType, const double, ResultIteratorType)" << std::endl;
+  }
+
+  /**
+   * [SearchObjectsInRadiusExclusive description]
+   * @param  ThisObject         [description]
+   * @param  Radius             [description]
+   * @param  Results            [description]
+   * @param  MaxNumberOfResults [description]
+   * @return                    [description]
+   */
+  SizeType SearchObjectsInRadiusExclusive(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results, const SizeType& MaxNumberOfResults) {
+    PointType Low, High;
+    SearchStructureType Box;
+    SizeType NumberOfResults = 0;
+
+    TConfigure::CalculateBoundingBox(ThisObject, Low, High, Radius);
+    Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+    SearchInRadiusExclusive(ThisObject, Radius, Results, NumberOfResults, MaxNumberOfResults, Box );
+
+    return NumberOfResults;
+  }
+
+  /**
+   * [SearchObjectsInRadiusExclusive description]
+   * @param  ThisObject      [description]
+   * @param  Radius          [description]
+   * @param  Results         [description]
+   * @param  ResultDistances [description]
+   * @return                 [description]
+   */
+  SizeType SearchObjectsInRadiusExclusive(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results, DistanceIteratorType ResultDistances) {
+    /// Missing API for 'SearchObjectsInRadiusExclusive' without 'MaxNumberOfResults'
+    KRATOS_ERROR << "Missing implementation of SearchObjectsInRadiusExclusive(PointerType, const double, ResultIteratorType, DistanceIteratorType)" << std::endl;
+  }
+
+  /**
+   * [SearchObjectsInRadiusExclusive description]
+   * @param  ThisObject         [description]
+   * @param  Radius             [description]
+   * @param  Results            [description]
+   * @param  ResultDistances    [description]
+   * @param  MaxNumberOfResults [description]
+   * @return                    [description]
+   */
+  SizeType SearchObjectsInRadiusExclusive(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results, DistanceIteratorType ResultDistances, const SizeType& MaxNumberOfResults) {
+    PointType Low, High;
+    SearchStructureType Box;
+    SizeType NumberOfResults = 0;
+
+    TConfigure::CalculateBoundingBox(ThisObject, Low, High, Radius);
+    Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+    SearchInRadiusExclusive(ThisObject, Radius, Results, ResultDistances, NumberOfResults, MaxNumberOfResults, Box );
+
+    return NumberOfResults;
+  }
+
+  /// Batch search API (needs to be extended with the missing functions)
+
+  /**
+   * [SearchObjectsInRadius description]
+   * @param ThisObjects        [description]
+   * @param NumberOfObjects    [description]
+   * @param Radius             [description]
+   * @param Results            [description]
+   * @param NumberOfResults    [description]
+   * @param MaxNumberOfResults [description]
+   */
+  void SearchObjectsInRadius(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults) {
+    PointType Low, High;
+    SearchStructureType Box;
+
+    #pragma omp parallel for private(Low,High,Box)
+    for(int i = 0; i < static_cast<int>(NumberOfObjects); i++) {
+      ResultIteratorType ResultsPointer            = Results[i].begin();
+
+      NumberOfResults[i] = 0;
+
+      TConfigure::CalculateBoundingBox(ThisObjects[i], Low, High, Radius[i]);
+      Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+
+      SearchInRadius(ThisObjects[i], Radius[i], ResultsPointer, NumberOfResults[i], MaxNumberOfResults, Box );
+    }
+  }
+
+  /**
+   * [SearchObjectsInRadius description]
+   * @param ThisObjects        [description]
+   * @param NumberOfObjects    [description]
+   * @param Radius             [description]
+   * @param Results            [description]
+   * @param ResultsDistances   [description]
+   * @param NumberOfResults    [description]
+   * @param MaxNumberOfResults [description]
+   */
+  void SearchObjectsInRadius(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results, std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults) {
+    PointType Low, High;
+    SearchStructureType Box;
+
+    #pragma omp parallel for private(Low,High,Box)
+    for(int i = 0; i < static_cast<int>(NumberOfObjects); i++) {
+      ResultIteratorType ResultsPointer            = Results[i].begin();
+      DistanceIteratorType ResultsDistancesPointer = ResultsDistances[i].begin();
+
+      NumberOfResults[i] = 0;
+
+      TConfigure::CalculateBoundingBox(ThisObjects[i], Low, High, Radius[i]);
+      Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+
+      SearchInRadius(ThisObjects[i], Radius[i], ResultsPointer, ResultsDistancesPointer, NumberOfResults[i], MaxNumberOfResults, Box );
+    }
+  }
+
+  /**
+   * [SearchObjectsInRadiusExclusive description]
+   * @param ThisObjects        [description]
+   * @param NumberOfObjects    [description]
+   * @param Radius             [description]
+   * @param Results            [description]
+   * @param NumberOfResults    [description]
+   * @param MaxNumberOfResults [description]
+   */
+  void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults) {
+    PointType Low, High;
+    SearchStructureType Box;
+
+    #pragma omp parallel for private(Low,High,Box)
+    for(int i = 0; i < static_cast<int>(NumberOfObjects); i++) {
+      ResultIteratorType ResultsPointer            = Results[i].begin();
+
+      NumberOfResults[i] = 0;
+
+      TConfigure::CalculateBoundingBox(ThisObjects[i], Low, High, Radius[i]);
+      Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+
+      SearchInRadiusExclusive(ThisObjects[i], Radius[i], ResultsPointer, NumberOfResults[i], MaxNumberOfResults, Box );
+    }
+  }
+
+  /**
+   * [SearchObjectsInRadiusExclusive description]
+   * @param ThisObjects        [description]
+   * @param NumberOfObjects    [description]
+   * @param Radius             [description]
+   * @param Results            [description]
+   * @param ResultsDistances   [description]
+   * @param NumberOfResults    [description]
+   * @param MaxNumberOfResults [description]
+   */
+  void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results, std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults) {
+    PointType Low, High;
+    SearchStructureType Box;
+
+    #pragma omp parallel for private(Low,High,Box)
+    for(int i = 0; i < static_cast<int>(NumberOfObjects); i++) {
+      ResultIteratorType ResultsPointer            = Results[i].begin();
+      DistanceIteratorType ResultsDistancesPointer = ResultsDistances[i].begin();
+
+      NumberOfResults[i] = 0;
+
+      TConfigure::CalculateBoundingBox(ThisObjects[i], Low, High, Radius[i]);
+      Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+
+      SearchInRadiusExclusive(ThisObjects[i], Radius[i], ResultsPointer, ResultsDistancesPointer, NumberOfResults[i], MaxNumberOfResults, Box );
+    }
+  }
+
+  /// Contact search API
+
+  /**
+   * [SearchContact description]
+   * NOTE[Charlie]: Why this function does not return the number of results like the others?
+   * @param Result [description]
+   */
+  void SearchContact(ContainerContactType& Result) {
+    for (CellContainerIterator icell = mCells.begin() ; icell!= mCells.end(); icell++) {
+      icell->SearchContact(Result);
+    }
+  }
+
+  /**
+   * [SearchContact description]
+   * @param  Result             [description]
+   * @param  MaxNumberOfResults [description]
+   * @return                    [description]
+   */
+  SizeType SearchContact(IteratorContactType& Result, const SizeType& MaxNumberOfResults ) {
+    SizeType NumberOfResults = 0;
+    for (CellContainerIterator icell = mCells.begin() ; icell!= mCells.end(); icell++) {
+      icell->SearchContact(Result, NumberOfResults, MaxNumberOfResults);
+    }
+    return NumberOfResults;
+  }
+
+  /// Add/Remove
+
+  /**
+   * [AddObject description]
+   * @param ThisObject [description]
+   */
+  void AddObject(const PointerType& ThisObject) {
+    PointType Low, High;
+    SearchStructureType Box;
+
+    TConfigure::CalculateBoundingBox(ThisObject, Low, High);
+    Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+    FillObject(Box,ThisObject);
+
+    mObjectsSize++;
+  }
+
+  /**
+   * [RemoveObject description]
+   * @param ThisObject [description]
+   */
+  void RemoveObject(const PointerType& ThisObject) {
+    PointType Low, High;
+    SearchStructureType Box;
+
+    TConfigure::CalculateBoundingBox(ThisObject, Low, High);
+    Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+    RemoveObjectLocal(Box,ThisObject);
+
+    mObjectsSize--;
+  }
+
+  ///@}
+  ///@name Operators
+  ///@{
+
+
+  ///@}
+  ///@name Operations
+  ///@{
+
+
+  ///@}
+  ///@name Access
+  ///@{
+
+
+  ///@}
+  ///@name Inquiry
+  ///@{
+
+
+  ///@}
+  ///@name Input and output
+  ///@{
+
+  /// Turn back information as a string.
+  virtual std::string Info() const {
+    return "BinsObjectDynamic" ;
+  }
+
+  /** Print information about this object.
+   * Print information about this object.
+   * @param rOStream [description]
+   */
+  virtual void PrintInfo(std::ostream& rOStream) const {
+    rOStream << Info();
+  }
+
+  /** Print object's data.
+   * Print object's data.
+   * @param rOStream [description]
+   * @param Perfix   [description]
+   */
+  virtual void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const {
+    rOStream << " BinsSize: ";
+    for(SizeType i = 0 ; i < Dimension ; i++) {
+        rOStream << "[" << mN[i] << "]";
+    }
+    rOStream << std::endl;
+    rOStream << "  CellSize: ";
+    for(SizeType i = 0 ; i < Dimension ; i++) {
+        rOStream << "[" << mCellSize[i] << "]";
+    }
+    rOStream << std::endl;
+    SizeType nn = 0;
+    for(SizeType i = 0 ; i < mCells.size(); i++) {
+        nn += mCells[i].Size();
+    }
+    rOStream << "NumPointers: " << nn << std::endl;
+  }
+
+  /** Print Size of Container
+   * Print Size of Container
+   * @param rout [description]
+   */
+  void PrintSize(std::ostream& rout) {
+    rout << " BinsSize: ";
+    for(SizeType i = 0 ; i < Dimension ; i++) {
+      rout << "[" << mN[i] << "]";
+    }
+    rout << std::endl;
+  }
+
+  /** Print Limits Points of the Container
+   * Print Limits Points of the Container
+   * @param rout [description]
+   */
+  void PrintBox(std::ostream& rout) {
+    rout << " BinsBox: Min [";
+    mMinPoint.Print(rout);
+    rout <<       "];  Max [";
+    mMaxPoint.Print(rout);
+    rout <<       "];  Size [";
+    mCellSize.Print(rout);
+    rout << "]" << std::endl;
+  }
+
+  /**
+   * [GetCellContainer description]
+   * @return [description]
+   */
+  CellContainerType& GetCellContainer() {
+    return mCells;
+  }
+
+  /**
+   * [GetDivisions description]
+   * @return [description]
+   */
+  SizeArray& GetDivisions() {
+    return mN;
+  }
+
+  /**
+   * [GetCellSize description]
+   * @return [description]
+   */
+  CoordinateArray& GetCellSize() {
+    return mCellSize;
+  }
+
+  /**
+   * [GetMinPoint description]
+   * @return [description]
+   */
+  PointType& GetMinPoint() {
+    return mMinPoint;
+  }
+
+  /**
+   * [GetMaxPoint description]
+   * @return [description]
+   */
+  PointType& GetMaxPoint() {
+    return mMaxPoint;
+  }
+
+  /**
+   * [CalculateCell description]
+   * @param  ThisPoint [description]
+   * @return           [description]
+   */
+  IndexArray  CalculateCell(const PointType& ThisPoint) {
+    IndexArray IndexCell;
+
+    for(SizeType i = 0 ; i < Dimension ; i++) {
+      IndexCell[i] = CalculatePosition(ThisPoint[i],i);
     }
 
-    BinsObjectDynamic (const PointType& MinPoint, const PointType& MaxPoint, SizeType NumPoints)
-        : mObjectsSize(0), mObjectsBegin(0), mObjectsEnd(0)
-    {
+    return IndexCell;
+  }
 
-        for(SizeType i = 0 ; i < Dimension ; i++)
-        {
-            mMinPoint[i] = MinPoint[i];
-            mMaxPoint[i] = MaxPoint[i];
-        }
-        CalculateCellSize(NumPoints);
-        AllocateContainer();
+  /**
+   * [CalculateIndex description]
+   * @param  ThisPoint [description]
+   * @return           [description]
+   */
+  IndexType CalculateIndex(const PointType& ThisPoint) {
+    IndexType Index = 0;
+
+    for(SizeType iDim = Dimension-1 ; iDim > 0 ; iDim--) {
+      Index += CalculatePosition(ThisPoint[iDim],iDim);
+      Index *= mN[iDim-1];
     }
 
-
-    /// Destructor.
-    virtual ~BinsObjectDynamic() {}
-
-
-//************************************************************************
-//************************************************************************
-    SizeType SearchObjectsInCell(const PointType& ThisPoint, ResultIteratorType Result, const SizeType& MaxNumberOfResults)
-    {
-        IndexType icell = CalculateIndex(ThisPoint);
-
-        /*for(IndexType I = 0; I< Dimension; I++)*/
-        if(mCells[icell].Size() < MaxNumberOfResults)
-        {
-            for(IteratorType i_object = mCells[icell].Begin() ; i_object != mCells[icell].End(); i_object++, Result++)
-                *Result = *i_object;
-            return mCells[icell].Size();
-        }
-        else
-            return -1;
-
-    }
-//************************************************************************
-//************************************************************************
-
-
-    SizeType SearchObjects(PointerType& ThisObject, ResultIteratorType& Result,  const SizeType& MaxNumberOfResults )
-    {
-        PointType Low, High;
-        SearchStructureType Box;
-        SizeType NumberOfResults = 0;
-        TConfigure::CalculateBoundingBox(ThisObject, Low, High);
-        Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-        SearchInBoxLocal(ThisObject, Result, NumberOfResults, MaxNumberOfResults, Box );
-        return NumberOfResults;
-    }
-
-
-//************************************************************************
-//************************************************************************
-
-    SizeType SearchObjects(PointerType& ThisObject, ResultContainerType& Result)
-    {
-        PointType Low, High;
-        SearchStructureType Box;
-        TConfigure::CalculateBoundingBox(ThisObject, Low, High);
-        Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-        SearchInBoxLocal(ThisObject, Result, Box );
-        return Result.size();
-    }
-
-//************************************************************************
-//************************************************************************
-
-    SizeType SearchObjectsExclusive(PointerType& ThisObject, ResultIteratorType& Result,  const SizeType& MaxNumberOfResults )
-    {
-        PointType Low, High;
-        SearchStructureType Box;
-        SizeType NumberOfResults = 0;
-        TConfigure::CalculateBoundingBox(ThisObject, Low, High);
-        Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-        SearchObjectLocalExclusive(ThisObject, Result, NumberOfResults, MaxNumberOfResults, Box );
-        return NumberOfResults;
-    }
-
-
-//************************************************************************
-//************************************************************************
-
-    SizeType SearchObjectsExclusive(PointerType& ThisObject, ResultContainerType& Result)
-    {
-        PointType Low, High;
-        SearchStructureType Box;
-        TConfigure::CalculateBoundingBox(ThisObject, Low, High);
-        Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-        SearchObjectLocalExclusive(ThisObject, Result, Box );
-        return Result.size();
-    }
-
-//************************************************************************
-//************************************************************************
-
-    SizeType SearchObjectsInRadius(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results,
-                                   const SizeType& MaxNumberOfResults)
-    {
-        PointType Low, High;
-        SearchStructureType Box;
-        SizeType NumberOfResults = 0;
-        TConfigure::CalculateBoundingBox(ThisObject, Low, High, Radius);
-        Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-        SearchInRadius(ThisObject, Radius, Results, NumberOfResults, MaxNumberOfResults, Box );
-        return NumberOfResults;
-    }
-
-//************************************************************************
-//************************************************************************
-
-    SizeType SearchObjectsInRadiusExclusive(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results,
-                                            const SizeType& MaxNumberOfResults)
-    {
-        PointType Low, High;
-        SearchStructureType Box;
-        SizeType NumberOfResults = 0;
-        TConfigure::CalculateBoundingBox(ThisObject, Low, High, Radius);
-        Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-        SearchInRadiusExclusive(ThisObject, Radius, Results, NumberOfResults, MaxNumberOfResults, Box );
-        return NumberOfResults;
-    }
-
-//************************************************************************
-//************************************************************************
-
-    SizeType SearchObjectsInRadius(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results,
-                                   DistanceIteratorType ResultDistances, const SizeType& MaxNumberOfResults)
-    {
-        PointType Low, High;
-        SearchStructureType Box;
-        SizeType NumberOfResults = 0;
-        TConfigure::CalculateBoundingBox(ThisObject, Low, High, Radius);
-        Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-        SearchInRadius(ThisObject, Radius, Results, ResultDistances, NumberOfResults, MaxNumberOfResults, Box );
-        return NumberOfResults;
-    }
-
-//************************************************************************
-//************************************************************************
-
-    SizeType SearchObjectsInRadiusExclusive(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results,
-                                        DistanceIteratorType ResultDistances, const SizeType& MaxNumberOfResults)
-    {
-        PointType Low, High;
-        SearchStructureType Box;
-        SizeType NumberOfResults = 0;
-        TConfigure::CalculateBoundingBox(ThisObject, Low, High, Radius);
-        Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-        SearchInRadiusExclusive(ThisObject, Radius, Results, ResultDistances, NumberOfResults, MaxNumberOfResults, Box );
-        return NumberOfResults;
-    }
-
-//************************************************************************
-//************************************************************************
-
-    void SearchObjectsInRadius(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results,
-                               std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults)
-    {
-        PointType Low, High;
-        SearchStructureType Box;
-
-        #pragma omp parallel for private(Low,High,Box)
-        for(int i = 0; i < static_cast<int>(NumberOfObjects); i++)
-        {
-            ResultIteratorType ResultsPointer            = Results[i].begin();
-
-            NumberOfResults[i] = 0;
-
-            TConfigure::CalculateBoundingBox(ThisObjects[i], Low, High, Radius[i]);
-            Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-
-            SearchInRadius(ThisObjects[i], Radius[i], ResultsPointer, NumberOfResults[i], MaxNumberOfResults, Box );
-        }
-
-    }
-
-//************************************************************************
-//************************************************************************
-
-    void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results,
-                                    std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults)
-    {
-        PointType Low, High;
-        SearchStructureType Box;
-
-        #pragma omp parallel for private(Low,High,Box)
-        for(int i = 0; i < static_cast<int>(NumberOfObjects); i++)
-        {
-            ResultIteratorType ResultsPointer            = Results[i].begin();
-
-            NumberOfResults[i] = 0;
-
-            TConfigure::CalculateBoundingBox(ThisObjects[i], Low, High, Radius[i]);
-            Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-
-            SearchInRadiusExclusive(ThisObjects[i], Radius[i], ResultsPointer, NumberOfResults[i], MaxNumberOfResults, Box );
-        }
-
-    }
-
-//************************************************************************
-//************************************************************************
-
-    void SearchObjectsInRadius(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results,
-                               std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults)
-    {
-        PointType Low, High;
-        SearchStructureType Box;
-
-        #pragma omp parallel for private(Low,High,Box)
-        for(int i = 0; i < static_cast<int>(NumberOfObjects); i++)
-        {
-            ResultIteratorType ResultsPointer            = Results[i].begin();
-            DistanceIteratorType ResultsDistancesPointer = ResultsDistances[i].begin();
-
-            NumberOfResults[i] = 0;
-
-            TConfigure::CalculateBoundingBox(ThisObjects[i], Low, High, Radius[i]);
-            Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-
-            SearchInRadius(ThisObjects[i], Radius[i], ResultsPointer, ResultsDistancesPointer, NumberOfResults[i], MaxNumberOfResults, Box );
-        }
-
-    }
-
-//************************************************************************
-//************************************************************************
-
-    void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results,
-                                    std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults)
-    {
-        PointType Low, High;
-        SearchStructureType Box;
-
-        #pragma omp parallel for private(Low,High,Box)
-        for(int i = 0; i < static_cast<int>(NumberOfObjects); i++)
-        {
-            ResultIteratorType ResultsPointer            = Results[i].begin();
-            DistanceIteratorType ResultsDistancesPointer = ResultsDistances[i].begin();
-
-            NumberOfResults[i] = 0;
-
-            TConfigure::CalculateBoundingBox(ThisObjects[i], Low, High, Radius[i]);
-            Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-
-            SearchInRadiusExclusive(ThisObjects[i], Radius[i], ResultsPointer, ResultsDistancesPointer, NumberOfResults[i], MaxNumberOfResults, Box );
-        }
-
-    }
-
-//************************************************************************
-//************************************************************************
-
-    void SearchContact(ContainerContactType& Result)
-    {
-        for (CellContainerIterator icell = mCells.begin() ; icell!= mCells.end(); icell++)
-            icell->SearchContact(Result);
-    }
-
-//************************************************************************
-//************************************************************************
-
-    SizeType SearchContact(IteratorContactType& Result, const SizeType& MaxNumberOfResults )
-    {
-        SizeType NumberOfResults = 0;
-        for (CellContainerIterator icell = mCells.begin() ; icell!= mCells.end(); icell++)
-        {
-            icell->SearchContact(Result, NumberOfResults, MaxNumberOfResults);
-        }
-        return NumberOfResults;
-    }
-
-//************************************************************************
-//************************************************************************
-
-    void AddObject(const PointerType& ThisObject)
-    {
-        PointType Low, High;
-        SearchStructureType Box;
-        TConfigure::CalculateBoundingBox(ThisObject, Low, High);
-        Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-        FillObject(Box,ThisObject);
-        mObjectsSize++;
-    }
-
-    void RemoveObject(const PointerType& ThisObject)
-    {
-        PointType Low, High;
-        SearchStructureType Box;
-        TConfigure::CalculateBoundingBox(ThisObject, Low, High);
-        Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-        RemoveObjectLocal(Box,ThisObject);
-        mObjectsSize--;
-    }
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        return "BinsObjectDynamic" ;
-    }
-
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << Info();
-    }
-
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const
-    {
-        rOStream << " BinsSize: ";
-        for(SizeType i = 0 ; i < Dimension ; i++)
-            rOStream << "[" << mN[i] << "]";
-        rOStream << std::endl;
-        rOStream << "  CellSize: ";
-        for(SizeType i = 0 ; i < Dimension ; i++)
-            rOStream << "[" << mCellSize[i] << "]";
-        rOStream << std::endl;
-        SizeType nn = 0;
-        for(SizeType i = 0 ; i < mCells.size(); i++)
-            nn += mCells[i].Size();
-        rOStream << "NumPointers: " << nn << std::endl;
-    }
-
-    /// Print Size of Container
-    void PrintSize( std::ostream& rout )
-    {
-        rout << " BinsSize: ";
-        for(SizeType i = 0 ; i < Dimension ; i++)
-            rout << "[" << mN[i] << "]";
-        rout << std::endl;
-    }
-
-    /// Print Limits Points of the Container
-    void PrintBox( std::ostream& rout )
-    {
-        rout << " BinsBox: Min [";
-        mMinPoint.Print(rout);
-        rout <<       "];  Max [";
-        mMaxPoint.Print(rout);
-        rout <<       "];  Size [";
-        mCellSize.Print(rout);
-        rout << "]" << std::endl;
-    }
-
-
-    CellContainerType& GetCellContainer()
-    {
-        return mCells;
-    }
-
-    SizeArray& GetDivisions()
-    {
-        return mN;
-    }
-
-    CoordinateArray& GetCellSize()
-    {
-        return mCellSize;
-    }
-
-    PointType& GetMinPoint()
-    {
-        return mMinPoint;
-    }
-
-    PointType& GetMaxPoint()
-    {
-        return mMaxPoint;
-    }
-
-    IndexArray  CalculateCell( const PointType& ThisPoint )
-    {
-        IndexArray IndexCell;
-        for(SizeType i = 0 ; i < Dimension ; i++)
-            IndexCell[i] = CalculatePosition(ThisPoint[i],i);
-        return IndexCell;
-    }
-
-    IndexType CalculateIndex( const PointType& ThisPoint )
-    {
-        IndexType Index = 0;
-        for(SizeType iDim = Dimension-1 ; iDim > 0 ; iDim--)
-        {
-            Index += CalculatePosition(ThisPoint[iDim],iDim);
-            Index *= mN[iDim-1];
-        }
-        Index += CalculatePosition(ThisPoint[0],0);
-        return Index;
-    }
-
-    IndexType CalculatePosition( CoordinateType const& ThisCoord, const SizeType& ThisDimension )
-    {
-        CoordinateType d_index = (ThisCoord - mMinPoint[ThisDimension]) * mInvCellSize[ThisDimension];
-        IndexType index = static_cast<IndexType>( (d_index < 0.00) ? 0.00 : d_index );
-        return  (index > mN[ThisDimension]-1) ? mN[ThisDimension]-1 : index;
-
-    }
-
-//************************************************************************
-//************************************************************************
-
+    Index += CalculatePosition(ThisPoint[0],0);
+
+    return Index;
+  }
+
+  /**
+   * [CalculatePosition description]
+   * @param  ThisCoord     [description]
+   * @param  ThisDimension [description]
+   * @return               [description]
+   */
+  IndexType CalculatePosition(CoordinateType const& ThisCoord, const SizeType& ThisDimension) {
+    CoordinateType d_index = (ThisCoord - mMinPoint[ThisDimension]) * mInvCellSize[ThisDimension];
+    IndexType index = static_cast<IndexType>( (d_index < 0.00) ? 0.00 : d_index );
+
+    return  (index > mN[ThisDimension]-1) ? mN[ThisDimension]-1 : index;
+  }
 
 protected:
 
