@@ -171,7 +171,7 @@ public:
 
         if( this->mElementsAreInitialized==false )
         {
-            KRATOS_THROW_ERROR(std::logic_error, "Before initilizing Conditions, initialize Elements FIRST","")
+            KRATOS_THROW_ERROR(std::logic_error, "Before initilizing Conditions, initialize Elements FIRST","");
         }
 
         int NumThreads = OpenMPUtils::GetNumThreads();
