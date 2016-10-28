@@ -1288,10 +1288,10 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
         for (int i = 0; i < 3; i++) {
             for (int j = i; j < 3; j++) {
                 if(fabs((*mStressTensor)(i,j)) > fabs((*mStressTensor)(j,i))) {
-                    (*mSymmStressTensor)(j,i) = (*mSymmStressTensor)(i,j);
+                    (*mSymmStressTensor)(i,j) = (*mSymmStressTensor)(j,i) = (*mStressTensor)(i,j);
                 }
                 else {
-                    (*mSymmStressTensor)(i,j) = (*mStressTensor)(j,i);
+                    (*mSymmStressTensor)(i,j) = (*mSymmStressTensor)(j,i) = (*mStressTensor)(j,i);
                 }
             }
         }
