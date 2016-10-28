@@ -807,6 +807,27 @@ namespace Kratos {
         Orientation.ToEulerAngles(EulerAngles);
     }
     
+    static inline void UpdateOrientation(Quaternion<double>& Orientation, const array_1d<double, 3>& DeltaRotation)
+    {
+        Quaternion<double> DeltaOrientation = Quaternion<double>::Identity();
+                        
+        array_1d<double, 3 > theta = DeltaRotation;
+        DEM_MULTIPLY_BY_SCALAR_3(theta, 0.5);
+
+        double thetaMag = DEM_MODULUS_3(theta);
+        const double epsilon = std::numeric_limits<double>::epsilon();
+                  
+        if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
+            double aux = (1 - thetaMag * thetaMag / 6);
+            DeltaOrientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+        }
+        else {
+            double aux = sin(thetaMag)/thetaMag;
+            DeltaOrientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+        }
+        Orientation = DeltaOrientation * Orientation;
+    }
+    
     static inline void UpdateOrientation(const Quaternion<double>& Orientation, Quaternion<double>& NewOrientation, const array_1d<double, 3>& DeltaRotation)
     {
         Quaternion<double> DeltaOrientation = Quaternion<double>::Identity();

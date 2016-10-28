@@ -289,18 +289,19 @@ namespace Kratos {
         } //ComputePoisson2D
         
         
-        void ComputeEulerAngles(ModelPart& rModelPart) {
+        void ComputeEulerAngles(ModelPart& rSpheresModelPart, ModelPart& rClusterModelPart) {
 
-            ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+            ProcessInfo& r_process_info = rSpheresModelPart.GetProcessInfo();
             bool if_trihedron_option = (bool) r_process_info[TRIHEDRON_OPTION];
             
             typedef ModelPart::NodesContainerType NodesArrayType;
-            NodesArrayType& pNodes = rModelPart.GetCommunicator().LocalMesh().Nodes();
+            NodesArrayType& pSpheresNodes = rSpheresModelPart.GetCommunicator().LocalMesh().Nodes();
+            NodesArrayType& pClusterNodes = rClusterModelPart.GetCommunicator().LocalMesh().Nodes();
 
             #pragma omp parallel for
-            for (int k = 0; k < (int) pNodes.size(); k++) {
+            for (int k = 0; k < (int) pSpheresNodes.size(); k++) {
                 
-                ModelPart::NodeIterator i_iterator = pNodes.ptr_begin() + k;
+                ModelPart::NodeIterator i_iterator = pSpheresNodes.ptr_begin() + k;
                 Node < 3 > & i = *i_iterator;
                 
                 array_1d<double, 3 >& rotated_angle = i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
@@ -309,7 +310,18 @@ namespace Kratos {
                     array_1d<double, 3 >& EulerAngles = i.FastGetSolutionStepValue(EULER_ANGLES);
                     GeometryFunctions::UpdateOrientation(EulerAngles, rotated_angle);
                 } // if_trihedron_option && Not BELONGS_TO_A_CLUSTER
-            }//for Node      
+            }//for Node
+            
+            #pragma omp parallel for
+            for (int k = 0; k < (int) pClusterNodes.size(); k++) {
+                
+                ModelPart::NodeIterator i_iterator = pClusterNodes.ptr_begin() + k;
+                Node < 3 > & i = *i_iterator;
+                
+                Quaternion<double>& Orientation = i.FastGetSolutionStepValue(ORIENTATION);
+                array_1d<double, 3 >& EulerAngles = i.FastGetSolutionStepValue(EULER_ANGLES);
+                Orientation.ToEulerAngles(EulerAngles);
+            }//for Node            
         } //ComputeEulerAngles
         
         
