@@ -685,35 +685,39 @@ public:
     return mMaxPoint;
   }
 
-  /**
-   * [CalculateCell description]
-   * @param  ThisPoint [description]
-   * @return           [description]
+  /** Calculates the IndexArray (x[,y[,z]]) of the provided object.
+   * Calculates the IndexArray (x[,y[,z]]) of the provided object.
+   * The provided object must provide its coordinates through the [] operator.
+   * @param  ThisObject Input Object
+   * @return            Cell coordinates of 'ThisObject' in the bins
    */
-  IndexArray  CalculateCell(const PointType& ThisPoint) {
+  template<class GenericCoordType>
+  IndexArray CalculateCell(const GenericCoordType& ThisObject) {
     IndexArray IndexCell;
 
     for(SizeType i = 0 ; i < Dimension ; i++) {
-      IndexCell[i] = CalculatePosition(ThisPoint[i],i);
+      IndexCell[i] = CalculatePosition(ThisObject[i],i);
     }
 
     return IndexCell;
   }
 
-  /**
-   * [CalculateIndex description]
-   * @param  ThisPoint [description]
-   * @return           [description]
+  /** Calculates the Index of the provided object.
+   * Calculates the Index of the provided object.
+   * The provided object must provide its coordinates through the [] operator.
+   * @param  ThisObject Input Object
+   * @return            Cell index of 'ThisObject' in the bins
    */
-  IndexType CalculateIndex(const PointType& ThisPoint) {
+  template<class GenericCoordType>
+  IndexType CalculateIndex(const GenericCoordType& ThisObject) {
     IndexType Index = 0;
 
     for(SizeType iDim = Dimension-1 ; iDim > 0 ; iDim--) {
-      Index += CalculatePosition(ThisPoint[iDim],iDim);
+      Index += CalculatePosition(ThisObject[iDim],iDim);
       Index *= mN[iDim-1];
     }
 
-    Index += CalculatePosition(ThisPoint[0],0);
+    Index += CalculatePosition(ThisObject[0],0);
 
     return Index;
   }
