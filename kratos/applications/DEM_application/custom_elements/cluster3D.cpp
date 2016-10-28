@@ -128,9 +128,13 @@ namespace Kratos {
         GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = reference_inertias[2] * cluster_volume * squared_scaling_factor_times_density;
          
         array_1d<double, 3> base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);  
-        const array_1d<double, 3>& EulerAngles = GetGeometry()[0].FastGetSolutionStepValue(EULER_ANGLES);
+
+        const double& OrientationReal = GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION_REAL);
+        const array_1d<double, 3>& OrientationImag = GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION_IMAG);
         Quaternion<double>& Orientation = GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION);
-        Orientation = Quaternion<double>::FromEulerAngles(EulerAngles);
+        Orientation = Quaternion<double>(OrientationReal, OrientationImag[0], OrientationImag[1], OrientationImag[2]);
+        Orientation.normalize();
+
         array_1d<double, 3> angular_velocity = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
         
         array_1d<double, 3> angular_momentum;
@@ -147,8 +151,9 @@ namespace Kratos {
     }
     
     
-    void Cluster3D::SetOrientation(const array_1d<double, 3>& euler_angles) {        
-        noalias(this->GetGeometry()[0].FastGetSolutionStepValue(EULER_ANGLES)) = euler_angles;        
+    void Cluster3D::SetOrientation(const double& OrientationReal, const array_1d<double, 3>& OrientationImag) {
+        this->GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION_REAL) = OrientationReal;
+        noalias(this->GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION_IMAG)) = OrientationImag;
     }
 
     void Cluster3D::CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part, PropertiesProxy* p_fast_properties){        
