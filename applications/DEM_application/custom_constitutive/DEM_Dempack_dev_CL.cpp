@@ -48,6 +48,10 @@ namespace Kratos {
         double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
         kn_el = equiv_young * calculation_area / initial_dist;
         kt_el = equiv_shear * calculation_area / initial_dist;
+        std::ofstream outputfile("knkt.txt", std::ios_base::out | std::ios_base::app);
+        outputfile << kn_el << " " << kt_el << "\n";
+        outputfile.close();
+
         KRATOS_CATCH("")  
     }
 
@@ -219,128 +223,140 @@ namespace Kratos {
 
 
       /////// check old tangential forces calculations with unstable rotations
+/*
+    void DEM_Dempack_dev::CalculateTangentialForces(double OldLocalElasticContactForce[3],
+            double LocalElasticContactForce[3],
+            double LocalElasticExtraContactForce[3],
+            double LocalCoordSystem[3][3],
+            double LocalDeltDisp[3],
+            const double kt_el,
+            const double equiv_shear,
+            double& contact_sigma,
+            double& contact_tau,
+            double indentation,
+            double calculation_area,
+            double& failure_criterion_state,
+            SphericContinuumParticle* element1,
+            SphericContinuumParticle* element2,
+            int i_neighbour_count,
+            bool& sliding,
+            int search_control,
+            vector<int>& search_control_vector,
+            const ProcessInfo& r_process_info) {
 
-//    void DEM_Dempack_dev::CalculateTangentialForces(double LocalElasticContactForce[3],
-//            double LocalDeltDisp[3],
-//            const double kt_el,
-//            double& contact_sigma,
-//            double& contact_tau,
-//            double indentation,
-//            double calculation_area,
-//            double& failure_criterion_state,
-//            SphericContinuumParticle* element1,
-//            SphericContinuumParticle* element2,
-//            int i_neighbour_count,
-//            bool& sliding,
-//            int search_control,
-//            vector<int>& search_control_vector) {
-
-//        KRATOS_TRY
-
-//        int& mNeighbourFailureId_count = element1->mIniNeighbourFailureId[i_neighbour_count];
-
-//        Properties& element1_props = element1->GetProperties();
-//        Properties& element2_props = element2->GetProperties();
-
-//        double mTensionLimit;
-//        double mTauZero;
-//        double mInternalFriccion;
-//        double mShearEnergyCoef;
-
-//        if (&element1_props == &element2_props) {
-
-//            mTensionLimit = element1_props[CONTACT_SIGMA_MIN]*1e6;
-//            mTauZero = element1_props[CONTACT_TAU_ZERO]*1e6;
-//            mInternalFriccion = element1_props[CONTACT_INTERNAL_FRICC];
-//            mShearEnergyCoef = element1_props[SHEAR_ENERGY_COEF];
-//        }
-//        else{
-
-//            mTensionLimit = 0.5*1e6*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]);
-//            mTauZero = 0.5*1e6*(element1_props[CONTACT_TAU_ZERO] + element2_props[CONTACT_TAU_ZERO]);
-//            mInternalFriccion = 0.5*(element1_props[CONTACT_INTERNAL_FRICC] + element2_props[CONTACT_INTERNAL_FRICC]);
-//            mShearEnergyCoef = 0.5*(element1_props[SHEAR_ENERGY_COEF] + element2_props[SHEAR_ENERGY_COEF]);
-//        }
-
-//        double degradation = 1.0; //Tangential. With degradation:
-
-//        if (i_neighbour_count < int(element1->mContinuumInitialNeighborsSize)) {
-//            if (indentation >= 0.0) { //COMPRESSION
-//                degradation = mHistoryDegradation;
-//            } else {
-//                degradation = (1.0 - mHistoryDamage);
-//            }
-//        }
-
-//        if (mNeighbourFailureId_count == 0) { //This means it has not broken
-
-//            if (mHistoryShearFlag == 0.0) {
-
-//                LocalElasticContactForce[0] += -degradation * kt_el * LocalDeltDisp[0]; // 0: first tangential
-//                LocalElasticContactForce[1] += -degradation * kt_el * LocalDeltDisp[1]; // 1: second tangential
-//            }
-
-//            double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
-//                    + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
-
-//            contact_tau = ShearForceNow / calculation_area;
-//            contact_sigma = LocalElasticContactForce[2] / calculation_area;
-
-//            double tau_strength = mTauZero;
-
-//            if (contact_sigma >= 0) {
-//                tau_strength = mTauZero + mInternalFriccion * contact_sigma;
-//            }
-
-//            if (contact_tau > tau_strength) {
-//                mHistoryShearFlag = 1.0;
-
-//            }
-
-//            if (mHistoryShearFlag != 0.0) {
-
-//                double increment_disp = sqrt(LocalDeltDisp[0] * LocalDeltDisp[0] + LocalDeltDisp[1] * LocalDeltDisp[1]);
-//                mHistoryDisp += increment_disp;
-
-//                double u1_tau = tau_strength * calculation_area / kt_el;
-//                double damage_tau = 1.0;
-
-//                if (mShearEnergyCoef != 0.0) {
-//                    damage_tau = mHistoryDisp / (u1_tau * (mShearEnergyCoef));
-//                }
-
-//                double aux = (1.0 - damage_tau) * (tau_strength / contact_tau);
-
-//                LocalElasticContactForce[0] = aux * LocalElasticContactForce[0];
-//                LocalElasticContactForce[1] = aux * LocalElasticContactForce[1];
-
-//                failure_criterion_state = 1.0;
-
-//                //failure_criterion_state = (1+mShearEnergyCoef*damage_tau) /(1+mShearEnergyCoef);
-//                //if(contact_sigma<0){ failure_criterion_state = GeometryFunctions::max( failure_criterion_state, -contact_sigma / mTensionLimit ); }
-
-//                if (damage_tau >= 1.0) {
-//                    mNeighbourFailureId_count = 2; // shear
-//                    //failure_criterion_state = 1.0;    //
-//                    sliding = true;
-//                }
-//            } else {
-
-//                if (contact_sigma < 0) {
-//                    failure_criterion_state = GeometryFunctions::max(contact_tau / tau_strength, -contact_sigma / mTensionLimit);
-//                } else failure_criterion_state = contact_tau / tau_strength;
-//                if (failure_criterion_state > 1.0) failure_criterion_state = 1.0;
-//            }
-//        }
-//        if (search_control == 0) {
-//            if (mNeighbourFailureId_count != 0) {
-//                search_control_vector[OpenMPUtils::ThisThread()] = 1;
-//            }
-//        }
-//    KRATOS_CATCH("")
-//    }
+        int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
 
 
+        double rmin = element1->GetRadius();
+        const double other_radius = element2->GetRadius();
+        if (other_radius < rmin) rmin = other_radius;
+        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
+
+        Properties& element1_props = element1->GetProperties();
+        Properties& element2_props = element2->GetProperties();
+
+        if (r_process_info[SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION]) {
+            AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce, LocalElasticExtraContactForce, LocalCoordSystem, kt_el, calculation_area,  element1, element2);
+        }
+
+        double mTensionLimit;
+        double mTauZero;
+        double mInternalFriccion;
+        double mShearEnergyCoef;
+
+        if (&element1_props == &element2_props) {
+
+            mTensionLimit = element1_props[CONTACT_SIGMA_MIN]*1e6;
+            mTauZero = element1_props[CONTACT_TAU_ZERO]*1e6;
+            mInternalFriccion = element1_props[CONTACT_INTERNAL_FRICC];
+            mShearEnergyCoef = element1_props[SHEAR_ENERGY_COEF];
+        }
+        else{
+
+            mTensionLimit = 0.5*1e6*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]);
+            mTauZero = 0.5*1e6*(element1_props[CONTACT_TAU_ZERO] + element2_props[CONTACT_TAU_ZERO]);
+            mInternalFriccion = 0.5*(element1_props[CONTACT_INTERNAL_FRICC] + element2_props[CONTACT_INTERNAL_FRICC]);
+            mShearEnergyCoef = 0.5*(element1_props[SHEAR_ENERGY_COEF] + element2_props[SHEAR_ENERGY_COEF]);
+        }
+
+        double degradation = 1.0; //Tangential. With degradation:
+
+        if (i_neighbour_count < int(element1->mContinuumInitialNeighborsSize)) {
+            if (indentation >= 0.0) { //COMPRESSION
+                degradation = mHistoryDegradation;
+            } else {
+                degradation = (1.0 - mHistoryDamage);
+            }
+        }
+
+        if (failure_type == 0) { //This means it has not broken
+
+            if (mHistoryShearFlag == 0.0) {
+
+                LocalElasticContactForce[0] += -degradation * kt_el * LocalDeltDisp[0]; // 0: first tangential
+                LocalElasticContactForce[1] += -degradation * kt_el * LocalDeltDisp[1]; // 1: second tangential
+            }
+
+            double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
+                    + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+
+            contact_tau = ShearForceNow / calculation_area;
+            contact_sigma = LocalElasticContactForce[2] / calculation_area;
+
+            double tau_strength = mTauZero;
+
+            if (contact_sigma >= 0) {
+                tau_strength = mTauZero + mInternalFriccion * contact_sigma;
+            }
+
+            if (contact_tau > tau_strength) {
+                mHistoryShearFlag = 1.0;
+
+            }
+
+            if (mHistoryShearFlag != 0.0) {
+
+                double increment_disp = sqrt(LocalDeltDisp[0] * LocalDeltDisp[0] + LocalDeltDisp[1] * LocalDeltDisp[1]);
+                mHistoryDisp += increment_disp;
+
+                double u1_tau = tau_strength * calculation_area / kt_el;
+                double damage_tau = 1.0;
+
+                if (mShearEnergyCoef != 0.0) {
+                    damage_tau = mHistoryDisp / (u1_tau * (mShearEnergyCoef));
+                }
+
+                double aux = (1.0 - damage_tau) * (tau_strength / contact_tau);
+
+                LocalElasticContactForce[0] = aux * LocalElasticContactForce[0];
+                LocalElasticContactForce[1] = aux * LocalElasticContactForce[1];
+
+                failure_criterion_state = 1.0;
+
+                //failure_criterion_state = (1+mShearEnergyCoef*damage_tau) /(1+mShearEnergyCoef);
+                //if(contact_sigma<0){ failure_criterion_state = GeometryFunctions::max( failure_criterion_state, -contact_sigma / mTensionLimit ); }
+
+                if (damage_tau >= 1.0) {
+                    failure_type = 2; // shear
+                    //failure_criterion_state = 1.0;    //
+                    sliding = true;
+                }
+            } else {
+
+                if (contact_sigma < 0) {
+                    failure_criterion_state = GeometryFunctions::max(contact_tau / tau_strength, -contact_sigma / mTensionLimit);
+                } else failure_criterion_state = contact_tau / tau_strength;
+                if (failure_criterion_state > 1.0) failure_criterion_state = 1.0;
+            }
+        }
+        if (search_control == 0) {
+            if (failure_type != 0) {
+                search_control_vector[OpenMPUtils::ThisThread()] = 1;
+            }
+        }
+    }
+
+*/
 
 
     void DEM_Dempack_dev::CalculateTangentialForces(double OldLocalElasticContactForce[3],
@@ -364,7 +380,7 @@ namespace Kratos {
             const ProcessInfo& r_process_info) {
 
         KRATOS_TRY
-
+        const int time_steps = r_process_info[TIME_STEPS];
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
         LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - kt_el * LocalDeltDisp[0]; // 0: first tangential
         LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - kt_el * LocalDeltDisp[1]; // 1: second tangential
@@ -381,14 +397,14 @@ namespace Kratos {
         if (other_radius < rmin) rmin = other_radius;
         double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
 
-        if (failure_type == 0) { //This means it has not broken
+        if (failure_type == 0) { // This means it has not broken
             Properties& element1_props = element1->GetProperties();
             Properties& element2_props = element2->GetProperties();
             const double mTauZero = 0.5 * 1e6 * (element1_props[CONTACT_TAU_ZERO] + element2_props[CONTACT_TAU_ZERO]);
             const double mInternalFriction = 0.5 * (element1_props[CONTACT_INTERNAL_FRICC] + element2_props[CONTACT_INTERNAL_FRICC]);
 
-            contact_tau = ShearForceNow / effective_calculation_area;
-            contact_sigma = LocalElasticContactForce[2] / effective_calculation_area;
+            contact_tau = ShearForceNow / calculation_area;
+            contact_sigma = LocalElasticContactForce[2] / calculation_area;
 
             double tau_strength = mTauZero;
 
@@ -403,7 +419,6 @@ namespace Kratos {
         else {
             const double equiv_tg_of_fri_ang = 0.5 * (element1->GetTgOfFrictionAngle() + element2->GetTgOfFrictionAngle());
             double Frictional_ShearForceMax = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
-
             if (Frictional_ShearForceMax < 0.0) {
                 Frictional_ShearForceMax = 0.0;
             }
@@ -418,8 +433,6 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-
-
     
     void DEM_Dempack_dev::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                     SphericContinuumParticle* neighbor,
@@ -433,6 +446,8 @@ namespace Kratos {
                                                     double indentation) {}//ComputeParticleRotationalMoments
 
 
+
+
     void DEM_Dempack_dev::AddContributionOfShearStrainParallelToBond(double OldLocalElasticContactForce[3],
                                                               double LocalElasticExtraContactForce[3],
                                                               double LocalCoordSystem[3][3],
@@ -441,43 +456,36 @@ namespace Kratos {
                                                               SphericContinuumParticle* element1,
                                                               SphericContinuumParticle* element2) {
 
-        /*if (element1->mSymmStressTensor == NULL || element1->mOldSymmStressTensor == NULL) return; //
+
+
+        if (element1->mSymmStressTensor == NULL /*|| element1->mOldSymmStressTensor == NULL*/) return;
         if(element1->IsSkin() || element2->IsSkin()) return;
+        //unsigned int element_id = element1->Id();
+        //unsigned int element_id2 = element2->Id();
 
         double average_stress_tensor[3][3];
-        double average_old_stress_tensor[3][3];
 
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 average_stress_tensor[i][j]     = 0.5 * ((*(element1->mSymmStressTensor   ))(i,j) + (*(element2->mSymmStressTensor   ))(i,j));
-                average_old_stress_tensor[i][j] = 0.5 * ((*(element1->mOldSymmStressTensor))(i,j) + (*(element2->mOldSymmStressTensor))(i,j));
             }
         }
 
         double current_sigma_local[3][3];
-        double old_sigma_local[3][3];
         GeometryFunctions::TensorGlobal2Local(LocalCoordSystem, average_stress_tensor, current_sigma_local);
-        GeometryFunctions::TensorGlobal2Local(LocalCoordSystem, average_old_stress_tensor, old_sigma_local);
 
         const double current_tangential_stress1 = current_sigma_local[0][2];
         const double current_tangential_stress2 = current_sigma_local[1][2];
-        const double old_tangential_stress1 = old_sigma_local[0][2];
-        const double old_tangential_stress2 = old_sigma_local[1][2];
 
-        const double increment_of_tangential_stress1 = current_tangential_stress1 - old_tangential_stress1;
-        const double increment_of_tangential_stress2 = current_tangential_stress2 - old_tangential_stress2;
+        LocalElasticExtraContactForce[0] -= calculation_area * current_tangential_stress1;
+        LocalElasticExtraContactForce[1] -= calculation_area * current_tangential_stress2;
 
-        LocalElasticContactForce[0] -= calculation_area * increment_of_tangential_stress1;
-        LocalElasticContactForce[1] -= calculation_area * increment_of_tangential_stress2;
+        double tangential_delta_acumulated_0 = OldLocalElasticContactForce[0] / kt_el;
+        double tangential_delta_acumulated_1 = OldLocalElasticContactForce[1] / kt_el;
 
-        array_1d<double, 3> old_delta_displacement;
-        noalias(old_delta_displacement) = element1->mArrayOfOldDeltaDisplacements[i_neighbour_count];
+        LocalElasticExtraContactForce[0] += kt_el * tangential_delta_acumulated_0;
+        LocalElasticExtraContactForce[1] += kt_el * tangential_delta_acumulated_1;
 
-        array_1d<double, 3> old_delta_displacement_in_new_local_axes;
-        GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, old_delta_displacement, old_delta_displacement_in_new_local_axes);
-
-        LocalElasticContactForce[0] += kt_el * old_delta_displacement_in_new_local_axes[0];
-        LocalElasticContactForce[1] += kt_el * old_delta_displacement_in_new_local_axes[1];*/
     }
 
 } /* namespace Kratos.*/
