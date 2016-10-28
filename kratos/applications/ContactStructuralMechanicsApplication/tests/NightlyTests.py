@@ -43,5 +43,8 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
     def tearDown(self):
         pass
 
+class IroningTestContact(StructuralMechanichsTestFactory):
+    file_name = "contact_test_2D/ironing_test"
+    
 class IroningDieTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test_2D/ironing_die_test"
