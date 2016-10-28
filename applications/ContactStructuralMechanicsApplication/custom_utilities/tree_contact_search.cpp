@@ -16,6 +16,8 @@
 // System includes
 # include "tree_contact_search.h"
 
+// TODO: Not clear everything from one step to the other, just check what can you add (this way the process is simplified)
+
 namespace Kratos
 {
 /************************************* CONSTRUCTOR *********************************/
@@ -37,44 +39,46 @@ TreeContactSearch::TreeContactSearch(
     mBucketSize(4),
     mdimension(rOriginModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension()),
     mallocation(allocation_size)
-{
+{  
     // Destination model part
-    AuxConstructor(mrDestinationModelPart, false, true, false);
+    ModelPartSetter(mrDestinationModelPart, false, true, false);
     
     // Origin model part
-    AuxConstructor(mrOriginModelPart, false, false, true);
+    ModelPartSetter(mrOriginModelPart, false, false, true);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::AuxConstructor(
-    ModelPart & rModelPart,
+void TreeContactSearch::ModelPartSetter(
+    ModelPart& rModelPart,
     const bool rActive,
     const bool rSlave,
     const bool rMaster
     ) 
 {
-    ConditionsArrayType& pCond  = rModelPart.Conditions();
-    ConditionsArrayType::iterator it_begin = pCond.ptr_begin();
-    ConditionsArrayType::iterator it_end   = pCond.ptr_end();
+    NodesArrayType& pNode = rModelPart.Nodes();
+        
+    auto numNodes = pNode.end() - pNode.begin();
     
-    for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
+    #pragma omp parallel for 
+    for(unsigned int i = 0; i < numNodes; i++) 
     {
-        cond_it->Set( ACTIVE, rActive ); // NOTE: It is supposed to be already false, just in case   
-//         cond_it->Set( SLAVE,  rSlave);
-        cond_it->Set( MASTER, rMaster);
-//         cond_it->Set( CONTACT, true); // NOTE: Always true
+        auto itNode = pNode.begin() + i;
+        itNode->Set( SLAVE,   rSlave );  
+        itNode->Set( ACTIVE, rActive );  // NOTE: It is supposed to be already false, just in case  
     }
     
-    NodesArrayType& pNode               = rModelPart.Nodes();
-    NodesArrayType::iterator node_begin = pNode.ptr_begin();
-    NodesArrayType::iterator node_end   = pNode.ptr_end();
+    ConditionsArrayType& pCond  = rModelPart.Conditions();
+        
+    auto numConditions = pCond.end() - pCond.begin();
     
-    for(NodesArrayType::iterator node_it = node_begin; node_it!=node_end; node_it++)
+    #pragma omp parallel for 
+    for(unsigned int i = 0; i < numConditions; i++) 
     {
-        node_it->Set( SLAVE,   rSlave );  
-        node_it->Set( ACTIVE, rActive );  // NOTE: It is supposed to be already false, just in case   
+        auto itCond = pCond.begin() + i;
+        itCond->Set( ACTIVE, rActive ); // NOTE: It is supposed to be already false, just in case   
+        itCond->Set( MASTER, rMaster);
     }
 }
 
@@ -245,6 +249,8 @@ void TreeContactSearch::CreatePointListNTS()
 
 void TreeContactSearch::CreatePointListMortar()
 {
+    
+    
     // Destination model part
     CreatePointListConditions(mrDestinationModelPart, mPointListDestination);
 }
@@ -378,7 +384,7 @@ void TreeContactSearch::CreateMortarConditions(
     // Initialize values
     PointVector PointsFound(mallocation);
     std::vector<double> PointsDistances(mallocation);
-    unsigned int NumberPointsFound = 0;
+    unsigned int NumberPointsFound = 0;    
     ClearMortarConditions(); // Clear the conditions
     
     // Create a tree
@@ -471,10 +477,10 @@ void TreeContactSearch::CheckMortarConditions()
     NodesArrayType::iterator node_end   = pNodeDestination.ptr_end();
     
     for(NodesArrayType::iterator node_it = node_begin; node_it!=node_end; node_it++)
-    {
+    {         
         if (node_it->Is(ACTIVE) == true)
         {
-            std::cout << "Node: " << node_it->Id() << " is active" << std::endl;
+            std::cout << "Node: " << node_it->Id() << " is active. SLAVE: " << node_it->Is(SLAVE) << std::endl;
         }
     }
 }

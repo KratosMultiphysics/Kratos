@@ -320,7 +320,7 @@ public:
         const unsigned int allocation_size
         );
     
-    void AuxConstructor(
+    void ModelPartSetter(
         ModelPart & rModelPart,
         const bool rActive,
         const bool rSlave,

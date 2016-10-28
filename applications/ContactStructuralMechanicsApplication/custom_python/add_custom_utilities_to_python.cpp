@@ -38,6 +38,7 @@ void  AddCustomUtilitiesToPython()
 //     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     
     class_<TreeContactSearch>("TreeContactSearch", init<ModelPart&, ModelPart&, const unsigned int>())
+    .def("ModelPartSetter",&TreeContactSearch::ModelPartSetter)
     .def("InitializeNTNConditions",&TreeContactSearch::InitializeNTNConditions)
     .def("InitializeNTSConditions",&TreeContactSearch::InitializeNTSConditions)
     .def("InitializeMortarConditions",&TreeContactSearch::InitializeMortarConditions)
