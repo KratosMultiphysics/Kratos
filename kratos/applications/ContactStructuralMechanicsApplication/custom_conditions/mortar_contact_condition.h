@@ -347,11 +347,10 @@ protected:
                 const double elem_local_length = 2.0;
                 const double colocation_weight = elem_local_length / num_integration_points;
                 
-                array_1d<double, 3> colocation_local_coord = ZeroVector(3);
                 for ( unsigned int i_col_point = 0; i_col_point < num_integration_points; ++i_col_point )
                 {
-                    colocation_local_coord[0] = 0.5 * colocation_weight * ( 2 * i_col_point + 1 ) - 1;
-                    mIntegrationPoints[i_col_point] = IntegrationPoint<2>( colocation_local_coord, colocation_weight );
+                    const double xi = 0.5 * colocation_weight * ( 2 * i_col_point + 1 ) - 1;
+                    mIntegrationPoints[i_col_point] = IntegrationPoint<2>( xi, colocation_weight );
                 }
 
             }
