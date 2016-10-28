@@ -34,6 +34,8 @@ def ReadClusterFile(filename):
                 radius = float(data[3])
                 list_of_coordinates.append(coordinates)
                 list_of_radii.append(radius)
+        if line.startswith("Particle_center"):
+            data = ReadNextLine(f)
         if line.startswith("Size"):            
             data = ReadNextLine(f)
             size = [float(data[0])]
