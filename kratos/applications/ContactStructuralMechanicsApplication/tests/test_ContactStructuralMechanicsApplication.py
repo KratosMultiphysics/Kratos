@@ -21,6 +21,7 @@ from SmallTests import ThreeDPatchNotMatchingTestContact as TThreeDPatchNonMatch
 from SmallTests import TaylorPatchDynamicTestContact as TTaylorPatchDynamicTestContact
 
 ## NIGTHLY TESTS
+from NightlyTests import IroningDieTestContact as TIroningDieTestContact
 
 ## VALIDATION TESTS
 
@@ -43,16 +44,18 @@ def AssambleTestSuites():
     smallSuite.addTest(TSimplePatchTestContact('test_execution'))
     smallSuite.addTest(TSimplePatchNotMatchingATestContact('test_execution'))
     smallSuite.addTest(TSimplePatchNotMatchingBTestContact('test_execution'))
-    smallSuite.addTest(THertzSimpleTestContact('test_execution'))
     smallSuite.addTest(TTaylorPatchTestContact('test_execution'))
+    smallSuite.addTest(TTaylorPatchDynamicTestContact('test_execution'))
+    smallSuite.addTest(THertzSimpleTestContact('test_execution'))
+    smallSuite.addTest(THertzSimpleSphereTestContact('test_execution'))
     smallSuite.addTest(THertzSimpleSphereTestContact('test_execution'))
     smallSuite.addTest(TThreeDPatchMatchingTestContact('test_execution'))
     smallSuite.addTest(TThreeDPatchNonMatchingTestContact('test_execution'))
-    smallSuite.addTest(TTaylorPatchDynamicTestContact('test_execution'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
+    nightSuite.addTest(TIroningDieTestContact('test_execution'))
     
     # For very long tests that should not be in nighly and you can use to validate 
     validationSuite = suites['validation']
@@ -69,7 +72,9 @@ def AssambleTestSuites():
             THertzSimpleTestContact,
             THertzSimpleSphereTestContact,
             TThreeDPatchMatchingTestContact,
-            TThreeDPatchNonMatchingTestContact
+            TThreeDPatchNonMatchingTestContact,
+            ############ JUST TESTING ###########
+            #TIroningDieTestContact,
         ])
     )
 
