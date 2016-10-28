@@ -31,6 +31,9 @@ Begin centers_and_radii
 -0.000118455 -0.0037859 0 0.0003039
 End centers_and_radii
 
+Particle_center_and_radii  //Needed by the mesher, KRATOS skips it
+0.000000 0.000000 0.000000 0.004300
+
 // corn_kernel_design_05.gid     
 Size
 0.00818309
