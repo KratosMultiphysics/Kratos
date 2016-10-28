@@ -585,7 +585,8 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         double min_radius = 0.5 * radius; //TODO: this is a little bit arbitrary
         double max_radius = 1.5 * radius; //TODO: this is a little bit arbitrary
 
-        array_1d<double, 3> euler_angles;        
+        double OrientationReal;
+        array_1d<double, 3> OrientationImag;
         
         double std_deviation = r_sub_model_part_with_parameters[STANDARD_DEVIATION];
         std::string distribution_type = r_sub_model_part_with_parameters[PROBABILITY_DISTRIBUTION];
@@ -605,20 +606,20 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         Element::Pointer p_new_cluster = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
         Kratos::Cluster3D* p_cluster = dynamic_cast<Kratos::Cluster3D*> (p_new_cluster.get());
                     
-        if (r_sub_model_part_with_parameters[RANDOM_EULER_ANGLES]) {
-            
-            double random_factor = 2.0 * KRATOS_M_PI / RAND_MAX;
-            euler_angles[0] = random_factor * rand();
-            euler_angles[1] = random_factor * rand();
-            euler_angles[2] = random_factor * rand();                
+        if (r_sub_model_part_with_parameters[RANDOM_ORIENTATION]) {
+            OrientationReal    = ((double) rand() / (RAND_MAX));
+            OrientationImag[0] = ((double) rand() / (RAND_MAX));
+            OrientationImag[1] = ((double) rand() / (RAND_MAX));
+            OrientationImag[2] = ((double) rand() / (RAND_MAX));
         }
         else {
-            euler_angles[0] = r_sub_model_part_with_parameters[EULER_ANGLES][0];
-            euler_angles[1] = r_sub_model_part_with_parameters[EULER_ANGLES][1];
-            euler_angles[2] = r_sub_model_part_with_parameters[EULER_ANGLES][2];
-        }
-        
-        p_cluster->SetOrientation(euler_angles);
+            OrientationReal = r_sub_model_part_with_parameters[ORIENTATION_REAL];
+            OrientationImag[0] = r_sub_model_part_with_parameters[ORIENTATION_IMAG][0];
+            OrientationImag[1] = r_sub_model_part_with_parameters[ORIENTATION_IMAG][1];
+            OrientationImag[2] = r_sub_model_part_with_parameters[ORIENTATION_IMAG][2];
+        }        
+
+        p_cluster->SetOrientation(OrientationReal, OrientationImag);
         p_cluster->Initialize(r_process_info); 
         
         const bool is_breakable = (*r_params)[BREAKABLE_CLUSTER]; //THIS IS NOT THREAD SAFE!!!
