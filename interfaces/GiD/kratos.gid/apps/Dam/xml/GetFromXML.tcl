@@ -123,8 +123,8 @@ proc Dam::xml::ProcGetConstitutiveLaws {domNode args} {
          lappend names [$cl getName]
      }
      set values [join $names ","]
-     if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
-     spdAux::RequestRefresh
+     if {[get_domnode_attribute $domNode v] eq "" || [get_domnode_attribute $domNode v] ni $names} {$domNode setAttribute v [lindex $names 0]; spdAux::RequestRefresh}
+     
      
      return $values
 }

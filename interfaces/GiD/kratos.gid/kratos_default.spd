@@ -31,6 +31,16 @@
 	  return [spdAux::ProcGetElements $domNode $args]
 	  ]]>
 	</proc>
+	<proc n='GetElementsDict' args='args'>
+	  <![CDATA[
+	  return [spdAux::ProcGetElementsDict $domNode $args]
+	  ]]>
+	</proc>
+	<proc n='GetElementsValues' args='args'>
+	  <![CDATA[
+	  return [spdAux::ProcGetElementsValues $domNode $args]
+	  ]]>
+	</proc>
 	
 	<proc n='GetSolutionStrategies' args='args'>
 	  <![CDATA[

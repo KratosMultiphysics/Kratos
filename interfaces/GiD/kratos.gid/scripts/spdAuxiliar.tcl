@@ -1091,6 +1091,44 @@ proc spdAux::ProcGetElements { domNode args } {
     return $diction
 }
 
+proc spdAux::ProcGetElementsValues { domNode args } {
+    set nodeApp [GetAppIdFromNode $domNode]
+    set sol_stratUN [apps::getAppUniqueName $nodeApp SolStrat]
+    set schemeUN [apps::getAppUniqueName $nodeApp Scheme]
+    if {[get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] v] eq ""} {
+        get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] dict
+    }
+    if {[get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $schemeUN]] v] eq ""} {
+         get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $schemeUN]] dict
+    }
+    
+    set solStratName [::write::getValue $sol_stratUN]
+    set schemeName [write::getValue $schemeUN]
+    set elems [::Model::GetAvailableElements $solStratName $schemeName]
+    
+    set names [list ]
+    foreach elem $elems {
+        if {[$elem cumple {*}$args]} {
+            lappend names [$elem getName]
+        }
+    }
+    if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
+    if {[get_domnode_attribute $domNode v] ni $names} {$domNode setAttribute v [lindex $names 0]; spdAux::RequestRefresh}
+    set values [join $names ","]
+    return $values
+}
+
+proc spdAux::ProcGetElementsDict { domNode args } {
+    set elems [Model::GetElements]
+    set pnames [list ]
+    foreach elem $elems {
+        lappend pnames [$elem getName] 
+        lappend pnames [$elem getPublicName]
+    }
+    set diction [join $pnames ","]
+    return $diction
+}
+
 proc spdAux::ProcGetSolutionStrategies {domNode args} {
     set names [list ]
     set pnames [list ]
@@ -1162,7 +1200,7 @@ proc spdAux::ProcGetConstitutiveLaws { domNode args } {
         lappend names [$cl getName]
     }
     set values [join $names ","]
-    if {[get_domnode_attribute $domNode v] eq "" || [get_domnode_attribute $domNode v] ni $names} {$domNode setAttribute v [lindex $names 0]}
+    if {[get_domnode_attribute $domNode v] eq "" || [get_domnode_attribute $domNode v] ni $names} {$domNode setAttribute v [lindex $names 0]; spdAux::RequestRefresh}
     #spdAux::RequestRefresh
     
     return $values
@@ -1215,7 +1253,11 @@ proc spdAux::ProcCheckNodalConditionState { domNode args } {
         set conditionId [$domNode @n]
         set elems [$domNode selectNodes "[spdAux::getRoute $parts_un]/group/value\[@n='Element'\]"]
         set elemnames [list ]
-        foreach elem $elems { lappend elemnames [$elem @v]}
+        foreach elem $elems {
+            set elemName [$elem @v]
+            if {$elemName eq ""} {[get_domnode_attribute $elem dict]; [get_domnode_attribute $elem values]; set elemName [$elem @v]}
+            lappend elemnames $elemName
+        }
         set elemnames [lsort -unique $elemnames]
         if {$elemnames eq ""} {return "hidden"}
         if {[::Model::CheckElementsNodalCondition $conditionId $elemnames]} {return "normal"} else {return "hidden"}
