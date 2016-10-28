@@ -223,7 +223,6 @@ proc Model::ParseNodalConditionsNode { node } {
     return $el
 }
 
-# Se usa?
 proc Model::GetElements {args} { 
     variable Elements
     #W "Get elements $args"
