@@ -192,7 +192,6 @@ std::vector<array_1d<double, 3> > mNeighbourElasticContactForces;
 virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
 virtual void MemberDeclarationFirstStep(const ProcessInfo& r_process_info);
 
-array_1d<double, 3> mContactForce; //SLS
 array_1d<double, 3> mContactMoment; //SLS
 
 Matrix* mStressTensor;
@@ -277,6 +276,8 @@ virtual void AddUpForcesAndProject(double OldCoordSystem[3][3],
                     double LocalElasticExtraContactForce[3],                    
                     double GlobalContactForce[3],
                     double GlobalElasticContactForce[3],
+                    double GlobalElasticExtraContactForce[3],
+                    double TotalGlobalElasticContactForce[3],
                     double ViscoDampingLocalContactForce[3],
                     const double cohesive_force,
                     array_1d<double, 3>& other_ball_to_ball_forces,

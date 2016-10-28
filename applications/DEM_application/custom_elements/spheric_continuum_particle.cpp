@@ -306,6 +306,8 @@ namespace Kratos {
             double LocalElasticContactForce[3] = {0.0}; // 0: first tangential, // 1: second tangential, // 2: normal force
             double LocalElasticExtraContactForce[3] = {0.0};
             double GlobalElasticContactForce[3] = {0.0};
+            double GlobalElasticExtraContactForce[3] = {0.0};
+            double TotalGlobalElasticContactForce[3] = {0.0};
             double OldLocalElasticContactForce[3] = {0.0};
 
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
@@ -378,14 +380,14 @@ namespace Kratos {
             ComputeOtherBallToBallForces(other_ball_to_ball_forces);
 
             AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce, LocalElasticContactForce, LocalElasticExtraContactForce, GlobalContactForce,
-                                  GlobalElasticContactForce, ViscoDampingLocalContactForce, 0.0, other_ball_to_ball_forces, rElasticForce, rContactForce, i, r_process_info); //TODO: replace the 0.0 with an actual cohesive force for discontinuum neighbours
-
+                                  GlobalElasticContactForce, GlobalElasticExtraContactForce, TotalGlobalElasticContactForce,ViscoDampingLocalContactForce, 0.0, other_ball_to_ball_forces, rElasticForce, rContactForce, i, r_process_info); //TODO: replace the 0.0 with an actual cohesive force for discontinuum neighbours
+            
             if (this->Is(DEMFlags::HAS_ROTATION)) {
                 if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !multi_stage_RHS) {
                     const double coeff_acc      = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) / dt;
                     noalias(rInitialRotaMoment) = coeff_acc * ang_vel; // the moment needed to stop the spin in a single time step
                 }
-                ComputeMoments(LocalElasticContactForce[2], GlobalContactForce, rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator, indentation);
+                ComputeMoments(LocalElasticContactForce[2], TotalGlobalElasticContactForce, rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator, indentation);
                 if (i < mContinuumInitialNeighborsSize && mIniNeighbourFailureId[i] == 0) {
                     mContinuumConstitutiveLawArray[i]->ComputeParticleRotationalMoments(this, neighbour_iterator, equiv_young, distance, calculation_area,
                                                                                         LocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment, equiv_poisson, indentation);
@@ -395,17 +397,15 @@ namespace Kratos {
             }
 
             if (r_process_info[CONTACT_MESH_OPTION] == 1 && (i < mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id) {
-                CalculateOnContactElements(i, LocalElasticContactForce, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps);
+                double total_local_elastic_contact_force[3] = {0.0};
+                total_local_elastic_contact_force[0] = LocalElasticContactForce[0] + LocalElasticExtraContactForce[0];
+                total_local_elastic_contact_force[1] = LocalElasticContactForce[1] + LocalElasticExtraContactForce[1];
+                total_local_elastic_contact_force[2] = LocalElasticContactForce[2] + LocalElasticExtraContactForce[2];
+                CalculateOnContactElements(i, total_local_elastic_contact_force, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps);
             }
 
-            if (this->Is(DEMFlags::HAS_STRESS_TENSOR) && (i < mContinuumInitialNeighborsSize)) {
-                double GlobalElasticExtraContactForce[3] = {0.0};
-                GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalElasticExtraContactForce, GlobalElasticExtraContactForce);
-                double TotalGlobalElasticContactForce[3];
-                TotalGlobalElasticContactForce[0] = GlobalElasticContactForce[0] + GlobalElasticExtraContactForce[0];
-                TotalGlobalElasticContactForce[1] = GlobalElasticContactForce[1] + GlobalElasticExtraContactForce[1];
-                TotalGlobalElasticContactForce[2] = GlobalElasticContactForce[2] + GlobalElasticExtraContactForce[2];
-                AddNeighbourContributionToStressTensor(TotalGlobalElasticContactForce, LocalCoordSystem[2], distance, radius_sum, this);
+            if (this->Is(DEMFlags::HAS_STRESS_TENSOR) && (i < mContinuumInitialNeighborsSize)) {                
+                AddNeighbourContributionToStressTensor(GlobalElasticContactForce, LocalCoordSystem[2], distance, radius_sum, this);
             }
 
             AddContributionToRepresentativeVolume(distance, radius_sum, calculation_area);
