@@ -345,7 +345,7 @@ class Procedures(object):
         if (Var_Translator(self.DEM_parameters.PostEulerAngles)):
             model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
-        if ((hasattr(self.DEM_parameters, "StressStrainOption")) and self.DEM_parameters.StressStrainOption):
+        if ((hasattr(self.DEM_parameters, "PostStressStrainOption")) and self.DEM_parameters.PostStressStrainOption):
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_XX)
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_XY)
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_XZ)
@@ -630,7 +630,7 @@ class Procedures(object):
             if(y<0.1):
                 element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE,1)
 
-    def CreateDirectories(self, main_path, problem_name, run_code = ''):
+    def CreateDirectories(self, main_path, problem_name):
 
         root             = os.path.join(main_path, problem_name)
         post_path        = root + '_Post_Files' + run_code
@@ -766,12 +766,12 @@ class DEMFEMProcedures(object):
             if not (hasattr(self.DEM_parameters, "PostContactForces")):
                 contact_forces = 0
             else:
-                contact_forces = Var_Translator(self.DEM_parameters.PostContactForces)
-            if not (hasattr(self.DEM_parameters, "PostContactForces")):
+                contact_forces = Var_Translator(self.DEM_parameters.PostShearStress)
+            if not (hasattr(self.DEM_parameters, "PostShearStress")):
                 shear_stress = 0
             else:
-                shear_stress = Var_Translator(self.DEM_parameters.PostShearStress)
-            if not (hasattr(self.DEM_parameters, "PostContactForces")):
+                shear_stress = Var_Translator(self.DEM_parameters.PostNodalArea)
+            if not (hasattr(self.DEM_parameters, "PostNodalArea")):
                 dem_nodal_area = 0
             else:
                 dem_nodal_area = Var_Translator(self.DEM_parameters.PostNodalArea)
@@ -795,8 +795,8 @@ class DEMFEMProcedures(object):
 
         # MODEL
         self.domain_size = self.DEM_parameters.Dimension
-        if (hasattr(self.DEM_parameters, "StressStrainOption")):
-            self.stress_strain_option = Var_Translator(self.DEM_parameters.StressStrainOption)
+        #if (hasattr(self.DEM_parameters, "StressStrainOption")):
+        #    self.stress_strain_option = Var_Translator(self.DEM_parameters.StressStrainOption)
 
         evaluate_computation_of_fem_results()
         
@@ -1235,6 +1235,9 @@ class DEMIo(object):
         if self.DEM_parameters.ElementType == "SwimmingNanoParticle":
             self.PushPrintVar(self.PostHeatFlux, CATION_CONCENTRATION, self.spheres_variables)
 
+
+
+        #if ((hasattr(self.DEM_parameters, "PostStressStrainOption")) and (hasattr(self.DEM_parameters, "StressStrainOption"))):
         if (hasattr(self.DEM_parameters, "PostStressStrainOption")):
             if (Var_Translator(self.DEM_parameters.PostStressStrainOption)):
                 self.PushPrintVar(1, REPRESENTATIVE_VOLUME, self.spheres_variables)
