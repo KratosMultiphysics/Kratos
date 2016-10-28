@@ -8,8 +8,29 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 # Python imports
 import time as timer
+init_time = timer.time()
 import os
+os.system('cls' if os.name == 'nt' else 'clear')
 import sys
+sys.path.append("/home/gcasas/kratos")
+
+class Logger(object):
+    def __init__(self):
+        self.terminal = sys.stdout
+        self.path_to_console_out_file = "console_output.txt"
+        self.log = open(self.path_to_console_out_file, "a")
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)  
+
+    def flush(self):
+        #this flush method is needed for python 3 compatibility.
+        #this handles the flush command by doing nothing.
+        #you might want to specify some extra behavior here.
+        pass    
+
+sys.stdout = Logger()
 import math
 
 #G
@@ -19,7 +40,6 @@ import pylab
 
 simulation_start_time = timer.clock()
 
-print(os.getcwd())
 # Kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.ExternalSolversApplication import *
@@ -35,7 +55,6 @@ sys.path.insert(0,'')
 import DEM_explicit_solver_var as DEM_parameters
 
 # import the configuration data as read from the GiD
-print(os.getcwd())
 import ProjectParameters as pp # MOD
 import define_output
 
@@ -84,7 +103,8 @@ pp.CFD_DEM.do_search_neighbours = False
 pp.CFD_DEM.material_acceleration_calculation_type = 1
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
-pp.CFD_DEM.basset_force_type = 0
+pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
+pp.CFD_DEM.basset_force_type = 4
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
 pp.CFD_DEM.basset_force_integration_type = 2
 pp.CFD_DEM.n_init_basset_steps = 0
@@ -98,31 +118,35 @@ pp.CFD_DEM.print_steps_per_plot_step = 1
 pp.CFD_DEM.PostCationConcentration = False
 pp.CFD_DEM.do_impose_flow_from_field = False
 pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
+pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = False
+number_of_vectors_to_be_kept_in_memory = pp.CFD_DEM.time_window / pp.CFD_DEM.MaxTimeStep * pp.CFD_DEM.time_steps_per_quadrature_step + pp.CFD_DEM.number_of_exponentials 
+print('\nNumber of vectors to be kept in memory: ', number_of_vectors_to_be_kept_in_memory)
+# Making the fluid step an exact multiple of the DEM step
+pp.Dt = int(pp.Dt / pp.CFD_DEM.MaxTimeStep) * pp.CFD_DEM.MaxTimeStep
+
+# Creating a code for the used input variables
+run_code = swim_proc.CreadeRunCode(pp)
 #Z
 
-# NANO BEGIN
-if pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
-    pp.CFD_DEM.PostCationConcentration = True
-    pp.initial_concentration = 1.0
-    pp.final_concentration = 0.01
-    pp.fluid_speed = 1e-14
-    pp.cation_concentration_frequence = 1
-    concentration = pp.initial_concentration
-# NANO END
-
-# Import utilities from models
+# Creating swimming DEM procedures
 procedures    = DEM_procedures.Procedures(DEM_parameters)
 
 # Creating necessary directories
 main_path = os.getcwd()
-[post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name))
 
+[post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name), run_code)
+
+# Import utilities from models
 
 demio         = DEM_procedures.DEMIo(DEM_parameters, post_path)
 report        = DEM_procedures.Report()
 parallelutils = DEM_procedures.ParallelUtils()
 materialTest  = DEM_procedures.MaterialTest()
  
+# Moving to the recently created folder
+os.chdir(main_path)
+swim_proc.CopyInputFilesIntoFolder(main_path, post_path)
+
 # Set the print function TO_DO: do this better...
 KRATOSprint   = procedures.KRATOSprint
 
@@ -308,9 +332,6 @@ for node in fluid_model_part.Nodes:
     y = node.GetSolutionStepValue(Y_WALL, 0)
     node.SetValue(Y_WALL, y)
 
-
-os.chdir(main_path)
-
 KRATOSprint("\nInitializing Problem...")
 
 # Initialize GiD-IO
@@ -356,8 +377,7 @@ if (DEM_parameters.BoundingBoxOption == "ON"):
 solver.search_strategy = parallelutils.GetSearchStrategy(solver, spheres_model_part)
 
 # Creating the fluid solver
-fluid_solver = solver_module.CreateSolver(
-    fluid_model_part, SolverSettings)
+fluid_solver = solver_module.CreateSolver(fluid_model_part, SolverSettings)
 
 Dt_DEM = DEM_parameters.MaxTimeStep
 
@@ -725,10 +745,10 @@ if pp.CFD_DEM.basset_force_type >= 3 or pp.CFD_DEM.basset_force_type == 1:
 post_utils.Writeresults(time)
 
 #G
-L = 0.1
-U = 0.3
+L = 1.0/math.pi
+U = 0.1
 k = 2.72
-omega = math.pi
+omega = 0*math.pi
 velocity_field = CellularFlowField(L , U , k, omega)
 
 
@@ -799,6 +819,7 @@ while (time <= final_time):
                 #node.SetSolutionStepValue(VELOCITY_Y,  9 *node.X**2 - 8 * node.Y**2 +30*node.X)
                 #node.SetSolutionStepValue(VELOCITY_Z, 0.0)                
 #Z
+
             if pp.CFD_DEM.laplacian_calculation_type == 1 and VELOCITY_LAPLACIAN in pp.fluid_vars:
                 current_step = fluid_model_part.ProcessInfo[FRACTIONAL_STEP]
                 print("\nSolving for the Laplacian...")
@@ -806,7 +827,7 @@ while (time <= final_time):
                 fractional_step = fluid_model_part.ProcessInfo[FRACTIONAL_STEP]
                 fluid_model_part.ProcessInfo[FRACTIONAL_STEP] = 2
 
-                post_process_strategy.Solve()
+                #post_process_strategy.Solve()
 
                 print("\nFinished solving for the Laplacian.")
                 sys.stdout.flush()
@@ -844,17 +865,16 @@ while (time <= final_time):
 
     if pressure_gradient_counter.Tick():
         if pp.CFD_DEM.gradient_calculation_type == 2:
-            derivative_recovery_tool.RecoverSuperconvergentGradient(fluid_model_part, PRESSURE, PRESSURE_GRADIENT)
+            custom_functions_tool.RecoverSuperconvergentGradient(fluid_model_part, PRESSURE, PRESSURE_GRADIENT)
         elif pp.CFD_DEM.gradient_calculation_type == 1:            
             custom_functions_tool.CalculatePressureGradient(fluid_model_part)            
         if pp.CFD_DEM.laplacian_calculation_type == 1:
             derivative_recovery_tool.CalculateVectorLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
         elif pp.CFD_DEM.laplacian_calculation_type == 2:
-            derivative_recovery_tool.RecoverSuperconvergentLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
+            custom_functions_tool.RecoverSuperconvergentLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
         if pp.CFD_DEM.material_acceleration_calculation_type == 1:
-            derivative_recovery_tool.CalculateVectorMaterialDerivative(fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)    
+            custom_functions_tool.CalculateVectorMaterialDerivative(fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)    
 #G
-    
     for node in fluid_model_part.Nodes:
         mat_deriv= Vector(3)
         laplacian= Vector(3)
@@ -863,7 +883,7 @@ while (time <= final_time):
         coor[1]=node.Y
         coor[2]=0        
         velocity_field.CalculateMaterialAcceleration(time,coor,mat_deriv,0)
-        velocity_field.CalculateLaplacian(time,coor,laplacian,0)        
+        #velocity_field.CalculateLaplacian(time,coor,laplacian,0)        
         calc_mat_deriv_0 = node.GetSolutionStepValue(MATERIAL_ACCELERATION_X)
         calc_mat_deriv_1 = node.GetSolutionStepValue(MATERIAL_ACCELERATION_Y) 
         calc_mat_deriv_2 = node.GetSolutionStepValue(MATERIAL_ACCELERATION_Z) 
@@ -879,15 +899,15 @@ while (time <= final_time):
         #laplacian[1] = 2
         #laplacian[2] = 0
 
-        node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,(calc_mat_deriv_0 - mat_deriv[0]) / module_mat_deriv)
-        node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,(calc_mat_deriv_1 - mat_deriv[1]) / module_mat_deriv)  
-        node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,(calc_mat_deriv_2 - mat_deriv[2]) / module_mat_deriv)  
+        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,(calc_mat_deriv_0 - mat_deriv[0]) / module_mat_deriv)
+        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,(calc_mat_deriv_1 - mat_deriv[1]) / module_mat_deriv)  
+        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,(calc_mat_deriv_2 - mat_deriv[2]) / module_mat_deriv)  
         #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,calc_mat_deriv_0)
         #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,calc_mat_deriv_1)
         #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,calc_mat_deriv_2)         
-        node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,mat_deriv[0])
-        node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,mat_deriv[1])
-        node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,mat_deriv[2])
+        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X,mat_deriv[0])
+        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y,mat_deriv[1])
+        #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z,mat_deriv[2])
         
         
         #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,(calc_laplacian_0 - laplacian[0]))
@@ -896,9 +916,9 @@ while (time <= final_time):
         #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,calc_laplacian_0)
         #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,calc_laplacian_1)
         #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,calc_laplacian_2)         
-        node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,laplacian[0])
-        node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,laplacian[1])
-        node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,laplacian[2]) 
+        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X,laplacian[0])
+        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y,laplacian[1])
+        #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z,laplacian[2]) 
 #Z
     print("Solving DEM... (", spheres_model_part.NumberOfElements(0), "elements )")
     sys.stdout.flush()
@@ -944,7 +964,8 @@ while (time <= final_time):
         cluster_model_part.ProcessInfo[TIME]    = time_dem
 
         if not DEM_parameters.flow_in_porous_DEM_medium_option: # in porous flow particles remain static      
-            solver.Solve()
+            #solver.Solve()
+            pass
 
         # Walls movement:
         mesh_motion.MoveAllMeshes(rigid_face_model_part, time, Dt)
