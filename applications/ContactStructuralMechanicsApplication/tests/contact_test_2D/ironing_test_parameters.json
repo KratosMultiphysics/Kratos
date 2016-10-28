@@ -1,6 +1,6 @@
 {
     "problem_data"             : {
-        "problem_name"    : "ironing_die_test",
+        "problem_name"    : "ironing_test",
         "model_part_name" : "Structure",
         "domain_size"     : 2,
         "time_step"       : 0.001,
@@ -15,7 +15,7 @@
         "analysis_type"                      : "Non-Linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "contact_test_2D/ironing_die_test"
+            "input_filename" : "contact_test_2D/ironing_test"
         },
         "compute_mortar_contact"             : true,
         "block_builder"                      : true,
@@ -43,9 +43,8 @@
             "scaling"     : false,
             "verbosity"   : 0
         },
-        "problem_domain_sub_model_part_list" : ["Parts_parts_die","Parts_parts_slab"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_bc_fix","DISPLACEMENT_bc_rolling_support",
-                                                "DISPLACEMENT_bc_press", "Parts_parts_die",		"Parts_parts_slab"],
+        "problem_domain_sub_model_part_list" : ["Parts_part_slab","Parts_part_block"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_BC_fix", "DISPLACEMENT_BC_rolling_x", "LineLoad2D_load_press", "LineLoad2D_load_slide", "Parts_part_slab", "Parts_part_block"],
         "rotation_dofs"                      : false
     },
     "constraints_process_list" : [{
@@ -55,7 +54,7 @@
         "process_name"          : "ImposeVectorValueByComponentsProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_bc_fix",
+            "model_part_name" : "DISPLACEMENT_BC_fix",
             "variable_name"   : "DISPLACEMENT",
             "is_fixed_x"      : true,
             "is_fixed_y"      : true,
@@ -69,30 +68,48 @@
         "process_name"          : "ImposeVectorValueByComponentsProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_bc_rolling_support",
+            "model_part_name" : "DISPLACEMENT_BC_rolling_x",
             "variable_name"   : "DISPLACEMENT",
             "is_fixed_x"      : false,
             "is_fixed_y"      : true,
             "is_fixed_z"      : true,
             "value"           : [0.0,0.0,0.0]
         }
-    },{
-        "python_module"   : "impose_vector_value_by_components_over_time_process",
+    }],
+    "loads_process_list"       : [
+    {
+        "python_module"   : "apply_vector_on_conditions_over_time_process",
         "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
-        "process_name"          : "ImposeVectorValueByComponentsOverTimeProcess",
+        "help"                  : "This process sets a vector variable value over a condition",
+        "check"                 : "DirectorVectorNonZero direction",
+        "process_name"          : "ApplyVectorOnConditionsProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_bc_press",
-            "variable_name"   : "DISPLACEMENT",
-            "step_type"       : "smooth",
-            "vectors"         : [ [ 0.0, 0.0, 0.0],
-                                  [ 0.0,-1.8, 0.0],
-                                  [10.0,-1.8, 0.0]
-            					],
-            "intervals"       : [ 0.0,10.0,150.0]
+            "model_part_name" : "LineLoad2D_load_press",
+            "variable_name"   : "LINE_LOAD",
+            "factor1"         : 0,
+            "factor2"         : 20.0,
+            "interval"        : [0.0, 1.0],
+            "direction"       : [0.0,-1.0,0.0],
+            "step_type"		  : "linear"
+        }
+    },{
+        "python_module"   : "apply_vector_on_conditions_over_time_process",
+        "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "help"                  : "This process sets a vector variable value over a condition",
+        "check"                 : "DirectorVectorNonZero direction",
+        "process_name"          : "ApplyVectorOnConditionsProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "LineLoad2D_load_slide",
+            "variable_name"   : "LINE_LOAD",
+            "factor1"         : 0,
+            "factor2"         : 2.0,
+            "interval"        : [1.1, 20.1],
+            "direction"       : [1.0,0.0,0.0],
+            "step_type"		  : "linear"
         }
     }],
-    "loads_process_list"       : [],
     "list_other_processes" :[
     {
         "python_module"   : "contact_process",
@@ -101,8 +118,8 @@
         "process_name"          : "ContactProcess",
         "Parameters"            : {
             "model_part_name"             : "Structure",
-            "origin_model_part_name"      : "Parts_parts_slab",
-            "destination_model_part_name" : "Parts_parts_die",        
+            "origin_model_part_name"      : "Parts_part_slab",       
+            "destination_model_part_name" : "Parts_part_block",         
             "contact_type"                : "MortarMethod",
             "search_factor"               : 5.0,
             "active_check_factor"	  : 0.005,
@@ -142,8 +159,8 @@
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
             "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "input_file_name"      : "contact_test_2D/ironing_die_test_results.json",
-            "model_part_name"      : "Parts_parts_die",
+            "input_file_name"      : "contact_test_2D/ironing_test_results.json",
+            "model_part_name"      : "Parts_part_block",
             "sub_model_part_name"  : "Interface",
             "time_frequency"       : 1.00
         }
@@ -157,8 +174,8 @@
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "output_file_name"     : "contact_test_2D/ironing_die_test_results.json",
-            "model_part_name"      : "Parts_parts_die",
+            "output_file_name"     : "contact_test_2D/ironing_test_results.json",
+            "model_part_name"      : "Parts_part_block",
             "sub_model_part_name"  : "Interface",
             "time_frequency"       : 1.00
         }
