@@ -55,7 +55,9 @@ Condition::Pointer SurfaceLoad3DCondition::Create(IndexType NewId, NodesArrayTyp
 //************************************************************************************
 Condition::Pointer SurfaceLoad3DCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
-  return (this->Create( NewId, rThisNodes, pGetProperties() ) );
+  SurfaceLoad3DCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+  //-----------//      
+  return Condition::Pointer( new SurfaceLoad3DCondition(NewCondition) );
 }
 
 
