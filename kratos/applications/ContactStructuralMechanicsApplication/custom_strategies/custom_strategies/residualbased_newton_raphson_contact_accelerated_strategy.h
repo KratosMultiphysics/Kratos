@@ -183,6 +183,7 @@ public:
     /** 
      * Destructor.
      */
+    
     virtual ~ResidualBasedNewtonRaphsonContactAcceleratedStrategy()
     {
     }
@@ -193,6 +194,7 @@ public:
     /**
      * Initialization of member variables and prior operations
      */
+    
     void Initialize()
     {
         KRATOS_TRY;
@@ -217,10 +219,26 @@ public:
         KRATOS_CATCH("");
     }
 
+   /**
+    * Performs all the required operations that should be done (for each step) before solving the solution step.
+    * A member variable should be used as a flag to make sure this function is called only once per step.
+    */
+   
+    void InitializeSolutionStep()
+    {
+        KRATOS_TRY;
+
+        BaseType::InitializeSolutionStep();
+        
+        mpConvergenceAccelerator->InitializeSolutionStep();
+
+        KRATOS_CATCH("");
+    }
+    
     /**
      * Performs all the required operations that should be done (for each step) after solving the solution step.
      * A member variable should be used as a flag to make sure this function is called only once per step.
-    */
+     */
     
     void FinalizeSolutionStep()
     {
@@ -471,7 +489,9 @@ public:
         TSystemVectorType& mb
     )
     {
-        TSystemVectorType auxDx = mReductionCoefficient * mDx;
+        mpConvergenceAccelerator->InitializeNonLinearIteration();   
+                
+        Vector auxDx = mReductionCoefficient * mDx;
         
         // Calculate the new displacement
         mpConvergenceAccelerator->UpdateSolution(mDx, auxDx);
