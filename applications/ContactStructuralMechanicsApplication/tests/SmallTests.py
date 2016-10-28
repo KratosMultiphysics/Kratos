@@ -59,12 +59,15 @@ class TaylorPatchTestContact(StructuralMechanichsTestFactory):
 
 class TaylorPatchDynamicTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test_2D/taylor_patch_dynamic_test"
-
-class HertzSimpleTestContact(StructuralMechanichsTestFactory):
-    file_name = "contact_test_2D/hertz_simple_test"
     
 class HertzSimpleSphereTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test_2D/simple_hertz_sphere_plate_test"
+    
+class HertzSimpleTestContact(StructuralMechanichsTestFactory):
+    file_name = "contact_test_2D/hertz_simple_test"
+    
+class HertzCompleteTestContact(StructuralMechanichsTestFactory):
+    file_name = "contact_test_2D/hertz_complete_test"
 
 class ThreeDPatchMatchingTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test_3D/3D_contact_patch_matching_test"
