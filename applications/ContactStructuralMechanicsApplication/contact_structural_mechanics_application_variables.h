@@ -43,7 +43,8 @@ struct contact_container
     
     void print()
     {
-       KRATOS_WATCH(condition);
+//        KRATOS_WATCH(condition);
+       std::cout << " The condition: " << condition->Id() << " is MASTER: " << condition->Is(MASTER) << std::endl;
        std::cout << std::endl;
     }
     

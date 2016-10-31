@@ -122,11 +122,16 @@ class ContactProcess(KratosMultiphysics.Process):
                 ZeroVector[1] = 0.0
                 ZeroVector[2] = 0.0
                 node.SetValue(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER, ZeroVector)
-                #node.Set(KratosMultiphysics.SLAVE, True) # TODO: This is not supposed o be necessary
+                #node.Set(KratosMultiphysics.SLAVE, True)
             del node
             
+            # Setting the master conditions 
+            #for cond in self.o_interface.Nodes:
+                #cond.Set(KratosMultiphysics.MASTER, True) # TODO: This is not supposed o be necessary
+            #del cond
+            
             self.contact_search.CreatePointListMortar()
-            self.contact_search.InitializeMortarConditions(self.active_check_factor, self.augmentation_normal, self.augmentation_tangent)
+            self.contact_search.InitializeMortarConditions(self.active_check_factor, self.augmentation_normal, self.augmentation_tangent, self.integration_order)
         elif self.params["contact_type"].GetString() == "NTN":
             self.contact_search.CreatePointListNTN()
             self.contact_search.InitializeNTNConditions()
@@ -142,12 +147,12 @@ class ContactProcess(KratosMultiphysics.Process):
             #print(cond.Is(KratosMultiphysics.ACTIVE))
         
         if self.params["contact_type"].GetString() == "MortarMethod":            
-            self.contact_search.CreateMortarConditions(self.search_factor, self.type_search, self.integration_order)
+            self.contact_search.CreateMortarConditions(self.search_factor, self.type_search)
             #self.contact_search.CheckMortarConditions()
         elif self.params["contact_type"].GetString() == "NTN":
-            self.contact_search.CreateNTNConditions(self.search_factor, self.type_search, self.integration_order)
+            self.contact_search.CreateNTNConditions(self.search_factor, self.type_search)
         elif self.params["contact_type"].GetString() == "NTS":
-            self.contact_search.CreateNTSConditions(self.search_factor, self.type_search, self.integration_order)
+            self.contact_search.CreateNTSConditions(self.search_factor, self.type_search)
             
         #for cond in self.d_interface.Conditions:
             #print(cond.Is(KratosMultiphysics.ACTIVE))

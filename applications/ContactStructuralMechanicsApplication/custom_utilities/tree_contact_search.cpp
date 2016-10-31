@@ -133,14 +133,15 @@ void TreeContactSearch::InitializeNTSConditions()
 void TreeContactSearch::InitializeMortarConditions(
     const double rActiveCheckFactor,
     const double rAugmentationNormal,
-    const double rAugmentationTangent
+    const double rAugmentationTangent,
+    const int rIntegrationOrder
     )
 {
     // Destination model part
-    InitializeConditions(mrDestinationModelPart, rActiveCheckFactor, rAugmentationNormal, rAugmentationTangent);
+    InitializeConditions(mrDestinationModelPart, rActiveCheckFactor, rAugmentationNormal, rAugmentationTangent, rIntegrationOrder);
     
     // Origin model part
-    InitializeConditions(mrOriginModelPart, rActiveCheckFactor, rAugmentationNormal, rAugmentationTangent);
+    InitializeConditions(mrOriginModelPart, rActiveCheckFactor, rAugmentationNormal, rAugmentationTangent, rIntegrationOrder);
 }
 
 /***********************************************************************************/
@@ -158,13 +159,14 @@ void TreeContactSearch::InitializeConditions(
     ModelPart & rModelPart,
     const double rActiveCheckFactor,
     const double rAugmentationNormal,
-    const double rAugmentationTangent
+    const double rAugmentationTangent,
+    const int rIntegrationOrder
     )
-{
+{   
     ConditionsArrayType& pCond  = rModelPart.Conditions();
     ConditionsArrayType::iterator it_begin = pCond.ptr_begin();
     ConditionsArrayType::iterator it_end   = pCond.ptr_end();
-    
+//     
     for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
     {
         cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
@@ -172,6 +174,7 @@ void TreeContactSearch::InitializeConditions(
         cond_it->GetProperties().SetValue(ACTIVE_CHECK_FACTOR, rActiveCheckFactor);
         cond_it->GetProperties().SetValue(NORMAL_AUGMENTATION_FACTOR,  rAugmentationNormal);
         cond_it->GetProperties().SetValue(TANGENT_AUGMENTATION_FACTOR, rAugmentationTangent);
+        cond_it->GetProperties().SetValue(INTEGRATION_ORDER_CONTACT, rIntegrationOrder);
     }
 }
 
@@ -376,8 +379,7 @@ void TreeContactSearch::UpdatePointListConditions(
 
 void TreeContactSearch::CreateNTNConditions(
     const double SearchFactor,
-    const int type_search,
-    const int integration_order
+    const int type_search
 ) 
 {
     // TODO: Add this in the future
@@ -388,8 +390,7 @@ void TreeContactSearch::CreateNTNConditions(
 
 void TreeContactSearch::CreateNTSConditions(
     const double SearchFactor,
-    const int type_search,
-    const int integration_order
+    const int type_search
 ) 
 {
     // TODO: Add this in the future
@@ -400,8 +401,7 @@ void TreeContactSearch::CreateNTSConditions(
 
 void TreeContactSearch::CreateMortarConditions(
     const double SearchFactor,
-    const int type_search,
-    const int integration_order
+    const int type_search
 ) 
 {
     // Initialize values
@@ -456,8 +456,8 @@ void TreeContactSearch::CreateMortarConditions(
                 if (pCondDestination != pCondOrigin) // Avoiding "auto self-contact"
                 {
                     std::vector<contact_container> *& ConditionPointersDestination = pCondDestination->GetValue(CONTACT_CONTAINERS);
-                    int & DestCondIntegrationOrder = pCondDestination->GetValue(INTEGRATION_ORDER_CONTACT);
-                    DestCondIntegrationOrder = integration_order;
+//                     int & DestCondIntegrationOrder = pCondDestination->GetValue(INTEGRATION_ORDER_CONTACT);
+//                     DestCondIntegrationOrder = integration_order;
                     
                     // Get the active check factor
                     const double ActiveCheckFactor = pCondDestination->GetProperties().GetValue(ACTIVE_CHECK_FACTOR);

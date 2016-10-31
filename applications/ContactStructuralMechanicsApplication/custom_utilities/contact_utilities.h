@@ -825,7 +825,7 @@ public:
                         
                         const double augmented_tangent_presssure = std::abs(lambda_t + ct * CondGeometry[node_it].GetValue(WEIGHTED_SLIP)) - mu * augmented_normal_presssure;
                         
-                        if (augmented_tangent_presssure < 0.0)
+                        if (augmented_tangent_presssure < 0.0) // TODO: Check if it is minor equal or just minor
                         {
                             CondGeometry[node_it].Set(SLIP, false);
                         }
@@ -860,9 +860,9 @@ public:
         for(unsigned int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
-            
+
             if (itNode->Is(SLAVE))
-            {
+            {   
                 itNode->Set(VISITED, false);
                 itNode->GetValue(WEIGHTED_GAP)      = 0.0;
                 itNode->GetValue(WEIGHTED_SLIP)     = 0.0;

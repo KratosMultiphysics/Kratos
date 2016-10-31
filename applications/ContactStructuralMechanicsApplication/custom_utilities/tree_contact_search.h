@@ -356,7 +356,8 @@ public:
     void InitializeMortarConditions(
         const double rActiveCheckFactor,
         const double rAugmentationNormal,
-        const double rAugmentationTangent
+        const double rAugmentationTangent,
+        const int rIntegrationOrder
         );
 
     /**
@@ -373,7 +374,8 @@ public:
         ModelPart & rModelPart, 
         const double rActiveCheckFactor,
         const double rAugmentationNormal,
-        const double rAugmentationTangent
+        const double rAugmentationTangent,
+        const int rIntegrationOrder
         );
 
     /**
@@ -469,8 +471,7 @@ public:
         
     void CreateNTNConditions(
         const double SearchFactor,
-        const int type_search,
-        const int integration_order
+        const int type_search
     );
     
     /**
@@ -481,8 +482,7 @@ public:
         
     void CreateNTSConditions(
         const double SearchFactor,
-        const int type_search,
-        const int integration_order
+        const int type_search
     );
     
     /**
@@ -494,8 +494,7 @@ public:
         
     void CreateMortarConditions(
         const double SearchFactor,
-        const int type_search,
-        const int integration_order
+        const int type_search
     );
     
     /**

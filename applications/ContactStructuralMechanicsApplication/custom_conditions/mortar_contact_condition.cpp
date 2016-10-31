@@ -113,14 +113,67 @@ void MortarContactCondition::Initialize( )
 {
     KRATOS_TRY;
     
+    const unsigned int dimension = GetGeometry( ).WorkingSpaceDimension( );
     const unsigned int local_dimension_slave = GetGeometry( ).LocalSpaceDimension( );
     const unsigned int number_of_slave_nodes = GetGeometry( ).PointsNumber( );
     
     mUseManualColocationIntegration = false;
-    if( this->Has(INTEGRATION_ORDER_CONTACT) )
+    if( GetProperties().Has(INTEGRATION_ORDER_CONTACT) )
     {
-        mUseManualColocationIntegration = true;
-        mColocationIntegration.Initialize( this->GetValue(INTEGRATION_ORDER_CONTACT),local_dimension_slave, number_of_slave_nodes );
+        const double integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
+        if (dimension == 2)
+        {
+            if (integration_order == 3)
+            {
+                mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_1;
+            }
+            else if (integration_order == 5)
+            {
+                mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_2;
+            }
+            else if (integration_order == 7)
+            {
+                mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_3;
+            }
+            else if (integration_order == 9)
+            {
+                mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_4;
+            }
+            else if (integration_order == 11)
+            {
+                mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_5;
+            }
+            else
+            {
+                mUseManualColocationIntegration = true;
+                mColocationIntegration.Initialize( integration_order,local_dimension_slave, number_of_slave_nodes );
+            }
+        }
+        else
+        {
+            if (number_of_slave_nodes == 3) // TODO: Complete
+            {
+//                 if (integration_order == 3)
+//                 {
+//                 }
+//                 else
+//                 {
+                    mUseManualColocationIntegration = true;
+                    mColocationIntegration.Initialize( integration_order,local_dimension_slave, number_of_slave_nodes );
+//                 }
+            }
+            else if (number_of_slave_nodes == 4) // TODO: Complete
+            {
+//                 if (integration_order == )
+//                 {
+//                 }
+//                 else
+//                 {
+                    mUseManualColocationIntegration = true;
+                    mColocationIntegration.Initialize( integration_order,local_dimension_slave, number_of_slave_nodes );
+//                 }
+            }
+        }
     }
     else
     {
@@ -981,8 +1034,8 @@ void MortarContactCondition::CalculateAndAddLHS(
             
             index_1 = (number_of_total_nodes + i_slave) * dimension;
             subrange(LHS_contact_pair, index_1 + 1, index_1 + dimension, index_1 , index_1 + dimension) = tangent_matrix;
-//         }
-    }
+        }
+//     }
     
     if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
     {
@@ -1576,7 +1629,7 @@ void MortarContactCondition::CalculateOnIntegrationPoints(
         const GeometryType& current_master_element = Variables.GetMasterElement( );
         
         // Calculating the values
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+        for ( unsigned int PointNumber = 0; PointNumber < number_of_integration_pts; PointNumber++ )
         {
             // Calculate the kinematic variables
             const bool inside = this->CalculateKinematics( Variables, PointNumber, PairIndex, integration_points );
