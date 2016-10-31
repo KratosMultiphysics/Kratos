@@ -1,5 +1,4 @@
 namespace eval Solid::write {
-    variable nodalwrite
     variable validApps
     variable ConditionsDictGroupIterators
     variable NodalConditionsGroup
@@ -8,8 +7,6 @@ namespace eval Solid::write {
 
 proc Solid::write::Init { } {
     # Namespace variables inicialization
-    variable nodalwrite
-    set nodalwrite 0
     
     variable ConditionsDictGroupIterators
     variable NodalConditionsGroup
@@ -81,7 +78,6 @@ proc Solid::write::writeMeshes { } {
 
 proc Solid::write::writeLoads { } {
     #writeGravity "SLGravity"
-    variable nodalwrite
     variable ConditionsDictGroupIterators
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
