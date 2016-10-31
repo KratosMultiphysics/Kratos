@@ -464,11 +464,11 @@ public:
 	      noalias(NodeStepRotation)  = StepRotation;
 	      noalias(NodeDeltaRotation) = DeltaRotation;    
      
-
 	      for(int j=0; j<3; j++)
 		RadiusVector[j] = Radius[j];
 
 	      //********************
+	      
 	      for(int j=0; j<3; j++)
 		Variable[j] = AngularVelocity[j];
 
@@ -483,7 +483,6 @@ public:
 
 	      (i)->FastGetSolutionStepValue(VELOCITY)               = Velocity + VariableArray;
 
-
 	      //********************
 	      
 	      //centripetal acceleration:
@@ -494,7 +493,6 @@ public:
 	      BeamMathUtilsType::VectorToSkewSymmetricTensor(AngularVariable, SkewSymVariable);
 
 	      AngularVariable = prod(SkewSymVariable,Variable); //ac = Wx(Wxr)
-
 
 	      for(int j=0; j<3; j++)
 		Variable[j] = AngularAcceleration[j];

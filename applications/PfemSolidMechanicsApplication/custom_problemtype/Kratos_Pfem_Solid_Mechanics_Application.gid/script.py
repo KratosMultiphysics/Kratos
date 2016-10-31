@@ -51,6 +51,7 @@ import KratosMultiphysics.ExternalSolversApplication    as KratosSolvers
 import KratosMultiphysics.PfemBaseApplication           as KratosPfemBase
 import KratosMultiphysics.ContactMechanicsApplication   as KratosContact
 import KratosMultiphysics.PfemSolidMechanicsApplication as KratosPfemSolid
+import KratosMultiphysics.PfemFluidDynamicsApplication  as KratosPfemFluid
 
 ######################################################################################
 ######################################################################################
@@ -162,6 +163,11 @@ for process in list_of_processes:
 
 computing_model_part = solver.GetComputingModelPart()
 
+## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
+solver.Initialize()
+solver.InitializeStrategy()
+solver.SetEchoLevel(echo_level)
+
 #### Output settings start ####
 
 problem_path = os.getcwd()
@@ -178,10 +184,6 @@ gid_output.ExecuteInitialize()
 
 #### Output settings end ####
 
-## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
-solver.Initialize()
-solver.SetEchoLevel(echo_level)
- 
 # writing a initial state results file
 current_id = 0
 #if(load_restart == False):
@@ -237,11 +239,17 @@ while(time < end_time):
     gid_output.ExecuteInitializeSolutionStep()
 
     # solve time step
-    clock_time = StartTimeMeasuring()
+    clock_time = StartTimeMeasuring();
 
-    solver.Solve()
+    solver.InitializeSolutionStep()
 
-    StopTimeMeasuring(clock_time,"Solving", False)
+    solver.Predict()
+
+    solver.SolveSolutionStep()
+
+    solver.FinalizeSolutionStep()
+
+    StopTimeMeasuring(clock_time,"Solving", False);
 
     gid_output.ExecuteFinalizeSolutionStep()
 
