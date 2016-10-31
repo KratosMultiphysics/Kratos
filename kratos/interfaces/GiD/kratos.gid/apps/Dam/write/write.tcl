@@ -1,6 +1,4 @@
 namespace eval Dam::write {
-    variable nodalwrite
-    
     variable ConditionsDictGroupIterators
     variable NodalConditionsGroup
     variable TableDict
@@ -8,8 +6,6 @@ namespace eval Dam::write {
 
 proc Dam::write::Init { } {
     # Namespace variables inicialization
-    variable nodalwrite
-    set nodalwrite 0
     
     variable ConditionsDictGroupIterators
     variable NodalConditionsGroup
@@ -109,7 +105,6 @@ proc Dam::write::writeNodalConditions { keyword } {
 
 proc Dam::write::writeLoads { } {
     variable TableDict
-    variable nodalwrite
     variable ConditionsDictGroupIterators
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
