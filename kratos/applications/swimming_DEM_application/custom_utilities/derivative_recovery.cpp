@@ -199,13 +199,14 @@ void DerivativeRecovery<TDim>::CalculateVectorLaplacian(ModelPart& r_model_part,
 
     std::vector<array_1d <double, 3> > laplacians;
     laplacians.resize(entry);
+    std::fill(laplacians.begin(), laplacians.end(), ZeroVector(3));
 
     array_1d <double, 3> grad = ZeroVector(3);
     array_1d <double, TDim + 1 > elemental_values;
     array_1d <double, TDim + 1 > N; // shape functions vector
     boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
     boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> elemental_vectors; // They carry the nodal gradients of the corresponding component v_j
-
+    const double nodal_area_share = 1.0 / static_cast<double>(TDim + 1);
 
     for (unsigned int j = 0; j < TDim; ++j){ // for each component of the original vector value
 
@@ -227,7 +228,7 @@ void DerivativeRecovery<TDim>::CalculateVectorLaplacian(ModelPart& r_model_part,
                 grad[i] = grad_aux[i];
             }
 
-            double nodal_area = Volume / static_cast<double>(TDim + 1);
+            double nodal_area = Volume * nodal_area_share;
             grad *= nodal_area;
 
             for (unsigned int i = 0; i < TDim + 1; ++i){
@@ -235,7 +236,7 @@ void DerivativeRecovery<TDim>::CalculateVectorLaplacian(ModelPart& r_model_part,
             }
         }
 
-        // normalizing the constributions to the gradient
+        // normalizing the contributions to the gradient
 
         for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
             inode->FastGetSolutionStepValue(laplacian_container) /= inode->FastGetSolutionStepValue(NODAL_AREA);
