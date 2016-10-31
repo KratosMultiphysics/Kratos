@@ -112,34 +112,34 @@ void MortarContact3DCondition::Initialize( )
     KRATOS_TRY;
     mUseColocationIntegration = false;
 
-    if( this->Has(INTEGRATION_ORDER_CONTACT) )
+    if( GetProperties().Has(INTEGRATION_ORDER_CONTACT) )
     {
-        if (this->GetValue(INTEGRATION_ORDER_CONTACT) == 1)
+        if (GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) == 1)
         {
             mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
         }
-        else if (this->GetValue(INTEGRATION_ORDER_CONTACT) == 2)
+        else if (GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) == 2)
         {
             mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
         }
-        else if (this->GetValue(INTEGRATION_ORDER_CONTACT) == 3)
+        else if (GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) == 3)
         {
             mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
         }
-        else if (this->GetValue(INTEGRATION_ORDER_CONTACT) == 4)
+        else if (GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) == 4)
         {
             mThisIntegrationMethod = GeometryData::GI_GAUSS_4;
         }
-        else if (this->GetValue(INTEGRATION_ORDER_CONTACT) == 5)
+        else if (GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) == 5)
         {
             mThisIntegrationMethod = GeometryData::GI_GAUSS_5;
         }
         else
         {
 //            std::cout << "The number of integration points is not defined for Gauss quadrature. Using colocation integration with "
-//                << this->GetValue(INTEGRATION_ORDER_CONTACT) << " points." << std::endl;
+//                << GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) << " points." << std::endl;
             mUseColocationIntegration = true;
-            mColocationIntegration.Initialize( this->GetValue(INTEGRATION_ORDER_CONTACT) );
+            mColocationIntegration.Initialize( GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) );
         }
     }
     else
