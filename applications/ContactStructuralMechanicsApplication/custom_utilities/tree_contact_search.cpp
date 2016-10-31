@@ -40,11 +40,34 @@ TreeContactSearch::TreeContactSearch(
     mdimension(rOriginModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension()),
     mallocation(allocation_size)
 {  
-    // Destination model part
-    ModelPartSetter(mrDestinationModelPart, false, true, false);
+//     // Destination model part
+//     ModelPartSetter(mrDestinationModelPart, false, true, false);
     
-    // Origin model part
-    ModelPartSetter(mrOriginModelPart, false, false, true);
+    NodesArrayType& pNode = mrDestinationModelPart.Nodes();
+        
+    auto numNodes = pNode.end() - pNode.begin();
+    
+    #pragma omp parallel for 
+    for(unsigned int i = 0; i < numNodes; i++) 
+    {
+        auto itNode = pNode.begin() + i;
+        itNode->Set(SLAVE, true);  
+    }
+
+//     // Origin model part
+//     ModelPartSetter(mrOriginModelPart, false, false, true); 
+    
+    ConditionsArrayType& pCond = mrOriginModelPart.Conditions();
+        
+    auto numConditions = pCond.end() - pCond.begin();
+    
+    #pragma omp parallel for 
+    for(unsigned int i = 0; i < numConditions; i++) 
+    {
+        auto itCond = pCond.begin() + i;
+        itCond->Set(MASTER, true);  
+    }
+    
 }
 
 /***********************************************************************************/
@@ -453,7 +476,7 @@ void TreeContactSearch::CreateMortarConditions(
 /***********************************************************************************/
 
 void TreeContactSearch::CheckMortarConditions()
-{
+{    
     ConditionsArrayType& pCondDestination  = mrDestinationModelPart.Conditions();
     ConditionsArrayType::iterator it_begin = pCondDestination.ptr_begin();
     ConditionsArrayType::iterator it_end   = pCondDestination.ptr_end();
