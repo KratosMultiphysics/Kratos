@@ -153,7 +153,7 @@ namespace Kratos {
     
     void Cluster3D::SetOrientation(const double& OrientationReal, const array_1d<double, 3>& OrientationImag) {
         this->GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION_REAL) = OrientationReal;
-        noalias(this->GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION_IMAG)) = OrientationImag;
+        this->GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION_IMAG) = OrientationImag;
     }
 
     void Cluster3D::CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part, PropertiesProxy* p_fast_properties){        
@@ -222,7 +222,7 @@ namespace Kratos {
                         
             mListOfSphericParticles[i] = new_sphere;                 
         }
-                
+
         KRATOS_CATCH("")
     }
     
@@ -306,7 +306,7 @@ namespace Kratos {
         array_1d<double, 3>& cluster_velocity = central_node.FastGetSolutionStepValue(VELOCITY);
         array_1d<double, 3> global_relative_coordinates;
         Quaternion<double>& Orientation = central_node.FastGetSolutionStepValue(ORIENTATION);
-        
+
         for (unsigned int i = 0; i < mListOfCoordinates.size(); i++) {
             
             GeometryFunctions::QuaternionVectorLocal2Global(Orientation, mListOfCoordinates[i], global_relative_coordinates);
@@ -331,8 +331,8 @@ namespace Kratos {
         array_1d<double, 3>& cluster_angular_velocity = central_node.FastGetSolutionStepValue(ANGULAR_VELOCITY);
         array_1d<double, 3>& cluster_delta_rotation = central_node.FastGetSolutionStepValue(DELTA_ROTATION);
         Quaternion<double>& Orientation = central_node.FastGetSolutionStepValue(ORIENTATION);
-        
-        array_1d<double, 3> previous_position;        
+
+        array_1d<double, 3> previous_position;
         
         for (unsigned int i = 0; i < mListOfCoordinates.size(); i++) {
             
@@ -362,7 +362,7 @@ namespace Kratos {
         array_1d<double, 3>& center_torque       = central_node.FastGetSolutionStepValue(PARTICLE_MOMENT);
         array_1d<double, 3>& center_rigid_forces = central_node.FastGetSolutionStepValue(RIGID_ELEMENT_FORCE);
         center_forces[0] = center_forces[1]= center_forces[2]= center_torque[0]= center_torque[1]= center_torque[2]= center_rigid_forces[0]= center_rigid_forces[1]= center_rigid_forces[2]= 0.0;
-        
+
         array_1d<double, 3> center_to_sphere_vector;
         array_1d<double, 3> additional_torque;
         
