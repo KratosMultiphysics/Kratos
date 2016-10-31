@@ -94,7 +94,7 @@ KRATOS_CLASS_POINTER_DEFINITION(DerivativeRecovery_TDim);
 
 /// Default constructor.
 
-DerivativeRecovery(ModelPart& r_model_part): mModelPart(r_model_part), mMyCustomFunctions(){}
+DerivativeRecovery(ModelPart& r_model_part): mModelPart(r_model_part), mMyCustomFunctions(), mFirstGradientRecovery(true), mFirstLaplacianRecovery(true), mSomeCloudsDontWork(false), mCalculatingTheGradient(false), mCalculatingTheLaplacian(false), mFirstTimeAppending(true){}
 
 /// Destructor.
 virtual ~DerivativeRecovery(){}
@@ -197,7 +197,8 @@ vector<unsigned int> mNodesPartition;
 
 private:
 
-bool mPressuresFilled;
+ModelPart& mModelPart;
+CustomFunctionsCalculator<TDim> mMyCustomFunctions;
 bool mFirstGradientRecovery;
 bool mFirstLaplacianRecovery;
 bool mSomeCloudsDontWork;
@@ -218,8 +219,7 @@ int mParticlesPerDepthDistance;
 VariablesList mDEMCouplingVariables;
 VariablesList mFluidCouplingVariables;
 PointPointSearch::Pointer mpPointPointSearch;
-ModelPart& mModelPart;
-CustomFunctionsCalculator<TDim> mMyCustomFunctions;
+
 
 // neighbour lists (for mCouplingType = 3)
 std::vector<double>  mSearchRadii; // list of nodal search radii (filter radii). It is a vector since spatial search is designed for varying radius
