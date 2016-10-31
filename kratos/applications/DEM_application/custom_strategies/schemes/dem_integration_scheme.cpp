@@ -36,18 +36,19 @@ namespace Kratos {
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(TOTAL_FORCES);
-        r_model_part.AddNodalSolutionStepVariable(NODAL_MASS);     
+        r_model_part.AddNodalSolutionStepVariable(NODAL_MASS);
+        r_model_part.AddNodalSolutionStepVariable(ORIENTATION);
         
         if (mRotationOption){
             r_model_part.AddNodalSolutionStepVariable(PRINCIPAL_MOMENTS_OF_INERTIA);
-            r_model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM); 
-            r_model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY); 
+            r_model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM);
+            r_model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY);
+            r_model_part.AddNodalSolutionStepVariable(LOCAL_AUX_ANGULAR_VELOCITY);
             r_model_part.AddNodalSolutionStepVariable(LOCAL_ANGULAR_VELOCITY);
-            r_model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT); 
-            r_model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE); 
-            r_model_part.AddNodalSolutionStepVariable(EULER_ANGLES); 
-            r_model_part.AddNodalSolutionStepVariable(ORIENTATION);
-            r_model_part.AddNodalSolutionStepVariable(DELTA_ROTATION);   
+            r_model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT);
+            r_model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE);
+            r_model_part.AddNodalSolutionStepVariable(AUX_ORIENTATION);
+            r_model_part.AddNodalSolutionStepVariable(DELTA_ROTATION);
         }
     }
     
@@ -188,7 +189,6 @@ namespace Kratos {
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 Quaternion<double  >& Orientation,
-                array_1d<double, 3 >& EulerAngles,
                 const array_1d<double, 3 >& angular_momentum,
                 array_1d<double, 3 >& angular_velocity,
                 const double delta_t,
@@ -296,7 +296,7 @@ namespace Kratos {
             if ((moment_reduction_factor > 1.0) || (moment_reduction_factor < 0.0)) {
                 KRATOS_THROW_ERROR(std::runtime_error, "The virtual mass coefficient is either larger than 1 or negative: virtual_mass_coeff= ", virtual_mass_coeff)
             }
-        }     
+        }
 
         vector<unsigned int> element_partition;
         ElementsArrayType& pElements = rcluster_model_part.GetCommunicator().LocalMesh().Elements();
@@ -319,7 +319,6 @@ namespace Kratos {
                 array_1d<double, 3 > & rotated_angle = i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
                 Quaternion<double  > & Orientation = i.FastGetSolutionStepValue(ORIENTATION);
                 array_1d<double, 3 > & delta_rotation = i.FastGetSolutionStepValue(DELTA_ROTATION);
-                array_1d<double, 3 > & EulerAngles = i.FastGetSolutionStepValue(EULER_ANGLES);
                 
                 bool Fix_Ang_vel[3] = {false, false, false};
 
