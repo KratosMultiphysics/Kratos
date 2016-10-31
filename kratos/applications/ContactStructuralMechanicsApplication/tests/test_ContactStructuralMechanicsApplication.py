@@ -74,8 +74,8 @@ def AssambleTestSuites():
             TTaylorPatchDynamicTestContact,
             THertzSimpleTestContact,
             THertzSimpleSphereTestContact,
-            TThreeDPatchMatchingTestContact,
-            TThreeDPatchNonMatchingTestContact,
+            #TThreeDPatchMatchingTestContact,
+            #TThreeDPatchNonMatchingTestContact,
             ############ JUST TESTING ###########
             #THertzCompleteTestContact,
             #TIroningTestContact,
