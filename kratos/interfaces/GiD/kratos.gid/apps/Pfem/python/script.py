@@ -34,10 +34,11 @@ def StopTimeMeasuring(time_ip, process, report):
 def SetParallelSize(num_threads):
     parallel = KratosMultiphysics.OpenMPUtils()
     parallel.SetNumThreads(int(num_threads))
-    print("::[KPFEM Simulation]:: [OMP USING",num_threads,"THREADS ]")
-    #parallel.PrintOMPInfo()
-    print(" ")
 
+def GetParallelSize():
+    parallel = KratosMultiphysics.OpenMPUtils()
+    return parallel.GetNumThreads()
+    
 #### SET NUMBER OF THREADS ####
 
 # Import system python
@@ -70,6 +71,10 @@ print(" ")
 # defining the number of threads:
 threads = ProjectParameters["problem_data"]["threads"].GetInt()
 SetParallelSize(threads)
+num_threads = GetParallelSize()
+print("::[KPFEM Simulation]:: [OMP USING",num_threads,"THREADS ]")
+#parallel.PrintOMPInfo()
+
 
 print(" ")
 print("::[KPFEM Simulation]:: [Time Step:", ProjectParameters["problem_data"]["time_step"].GetDouble()," echo:", echo_level,"]")
@@ -94,21 +99,8 @@ solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_s
 solver.AddVariables()
 
 # Add PfemSolidMechanicsApplication Variables
-main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL);
-main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H);
-
-main_model_part.AddNodalSolutionStepVariable(KratosPfemBase.OFFSET);
-main_model_part.AddNodalSolutionStepVariable(KratosPfemBase.SHRINK_FACTOR);
-main_model_part.AddNodalSolutionStepVariable(KratosPfemBase.MEAN_ERROR);
-main_model_part.AddNodalSolutionStepVariable(KratosPfemBase.RIGID_WALL);
-
-main_model_part.AddNodalSolutionStepVariable(KratosSolid.DETERMINANT_F);
-
-main_model_part.AddNodalSolutionStepVariable(KratosPfemSolid.WALL_TIP_RADIUS);
-main_model_part.AddNodalSolutionStepVariable(KratosPfemSolid.WALL_REFERENCE_POINT);
-
-main_model_part.AddNodalSolutionStepVariable(KratosContact.CONTACT_STRESS);
-
+import pfem_solid_variables  
+pfem_solid_variables.AddVariables(main_model_part) 
 
 # Read model_part (note: the buffer_size is set here) (restart is read here)
 solver.ImportModelPart()
@@ -223,21 +215,6 @@ end_time   = ProjectParameters["problem_data"]["end_time"].GetDouble()
 delta_time = ProjectParameters["problem_data"]["time_step"].GetDouble()
 
 
-#initialize graph plot variables for time integration
-#if( plot_active == True):
-#  mesh_id     = 0 #general_variables.PlotMeshId
-#  x_variable  = "DISPLACEMENT"
-#  y_variable  = "CONTACT_FORCE"
-#  graph_plot.Initialize(x_variable,y_variable,mesh_id)
-
-#graph_write= operation_utils.TimeOperationUtility()
-#graph_write_frequency = general_variables.PlotFrequency
-#graph_write.InitializeTime(time, end_time, delta_time, graph_write_frequency)
-
-#solving_print = operation_utils.TimeOperationUtility()
-#solving_time_frequency = ProjectParameters["output_configuration"]["result_file_configuration"]["output_frequency"].GetDouble()
-#solving_print.InitializeTime(time, end_time, delta_time, solving_time_frequency)
-
 
 # Solving the problem (time integration)
 while(time < end_time):
@@ -252,10 +229,6 @@ while(time < end_time):
     main_model_part.ProcessInfo[KratosMultiphysics.STEP] = step
     main_model_part.CloneTimeStep(time) 
 
-    # print process information:
-    #print_info = solving_print.perform_time_operation(time)
-    #if(print_info):
-    #    solving_info.print_step_info(time,step)
     
     print(" [STEP:",step," TIME:",time,"]")
 
@@ -280,10 +253,6 @@ while(time < end_time):
 
     gid_output.ExecuteFinalizeSolutionStep()
 
-    # plot graphs
-    #if(plot_active):
-    #    graph_plot.SetStepResult()
-
     # processes to be executed at the end of the solution step
     for process in list_of_processes:
         process.ExecuteFinalizeSolutionStep()
@@ -300,26 +269,6 @@ while(time < end_time):
     for process in list_of_processes:
         process.ExecuteAfterOutputStep()
 
-    # plot graphs
-    #if(plot_active):
-    #    execute_plot = graph_write.perform_time_operation(time)
-    #    if(execute_plot):
-    #        current_id = output_print.operation_id()
-    #        graph_plot.Plot(current_id)
-
-    # print restart file
-    #if(save_restart):
-    #    execute_save = restart_print.perform_time_operation(time)
-    #    if(execute_save):
-    #        clock_time=StartTimeMeasuring();
-    #        current_id = output_print.operation_id()
-    #        problem_restart.Save(time,step,current_id)
-    #        solving_info.set_restart_info(execute_save,current_id)
-    #        StopTimeMeasuring(clock_time,"Writing Restart", False)
-
-    #solving_info.update_solving_info()
-    #if(print_info):
-    #    solving_info.print_solving_info()
 
 # Ending the problem (time integration finished)
 gid_output.ExecuteFinalize()
@@ -332,9 +281,6 @@ print(" ")
 
 # Check solving information for any problem
 #~ solver.InfoCheck() # InfoCheck not implemented yet.
-
-# check solving information for any problem
-# solving_info.info_check()
 
 #### END SOLUTION ####
 

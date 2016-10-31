@@ -128,6 +128,11 @@ for process in list_of_processes:
 
 computing_model_part = solver.GetComputingModelPart()
 
+## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
+solver.Initialize()
+solver.InitializeStrategy()
+solver.SetEchoLevel(echo_level)
+
 #### Output settings start ####
 
 problem_path = os.getcwd()
@@ -144,10 +149,6 @@ gid_output.ExecuteInitialize()
 
 #### Output settings end ####
 
-## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
-solver.Initialize()
-solver.SetEchoLevel(echo_level)
-
 print(" ")
 print("::[KSM Simulation]:: Analysis -START- ")
 
@@ -158,7 +159,6 @@ for process in list_of_processes:
 if((main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
     if(main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
         gid_output.ExecuteBeforeSolutionLoop()
-
 
 # Set time settings
 step       = main_model_part.ProcessInfo[KratosMultiphysics.STEP]
@@ -181,6 +181,8 @@ while(time < end_time):
     main_model_part.ProcessInfo[KratosMultiphysics.STEP] = step
     main_model_part.CloneTimeStep(time) 
 
+    print(" [STEP:",step," TIME:",time,"]")
+    
     # processes to be executed at the begining of the solution step
     for process in list_of_processes:
         process.ExecuteInitializeSolutionStep()
@@ -188,7 +190,17 @@ while(time < end_time):
     gid_output.ExecuteInitializeSolutionStep()
      
     # solve time step
-    solver.Solve()
+    clock_time = StartTimeMeasuring();
+
+    solver.InitializeSolutionStep()
+
+    solver.Predict()
+
+    solver.SolveSolutionStep()
+
+    solver.FinalizeSolutionStep()
+
+    StopTimeMeasuring(clock_time,"Solving", False);
 
     gid_output.ExecuteFinalizeSolutionStep()
     
