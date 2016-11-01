@@ -40,6 +40,8 @@ namespace Kratos
     typedef Point<3>                                  PointType;
     typedef Node<3>                                    NodeType;
     typedef Geometry<NodeType>                     GeometryType;
+    ///Type definition for integration methods
+    typedef GeometryData::IntegrationMethod   IntegrationMethod;
     
 ///@}
 ///@name  Enum's
@@ -453,26 +455,32 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR_WITH_COMPONENTS );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
 
-    /**
+   /**
     * Called at the beginning of each solution step
     */
     void Initialize();
 
-    /**
+   /**
     * Called at the beginning of each solution step
     */
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
-    /**
+   /**
     * Called at the beginning of each iteration
     */
     void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
 
-    /**
+   /**
     * Called at the end of each iteration
     */
     void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
 
+    /**
+     * Returns the currently selected integration method
+     * @return current integration method selected
+     */
+    IntegrationMethod GetIntegrationMethod();
+    
     /**
     * Initialize System Matrices
     */
