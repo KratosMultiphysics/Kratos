@@ -234,6 +234,14 @@ void MortarContactCondition::FinalizeNonLinearIteration( ProcessInfo& rCurrentPr
 /***********************************************************************************/
 /***********************************************************************************/
 
+IntegrationMethod MortarContactCondition::GetIntegrationMethod()
+{
+    return mThisIntegrationMethod;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 const Vector MortarContactCondition::LagrangeMultiplierShapeFunctionValue(
     const double xi_local,
     const double eta_local
