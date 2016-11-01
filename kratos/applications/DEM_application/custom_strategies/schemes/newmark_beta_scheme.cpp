@@ -118,7 +118,6 @@ namespace Kratos {
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 Quaternion<double  >& Orientation,
-                array_1d<double, 3 >& EulerAngles,
                 const array_1d<double, 3 >& angular_momentum,
                 array_1d<double, 3 >& angular_velocity,
                 const double delta_t,
@@ -133,7 +132,7 @@ namespace Kratos {
         
         double LocalTensorInv[3][3];
         GeometryFunctions::ConstructInvLocalTensor(moments_of_inertia, LocalTensorInv);
-        GeometryFunctions::UpdateOrientation(EulerAngles, Orientation, delta_rotation);
+        GeometryFunctions::UpdateOrientation(Orientation, delta_rotation);
         UpdateAngularVelocity(Orientation, LocalTensorInv, angular_momentum, angular_velocity_aux);
         for (int j = 0; j < 3; j++) {
             if (Fix_Ang_vel[j] == false){

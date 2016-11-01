@@ -355,7 +355,7 @@ namespace Kratos {
                 }                   
 
                 CalculateAngularVelocityRK(Orientation, moments_of_inertia, angular_momentum, angular_velocity, dt, Fix_Ang_vel);
-                UpdateRotationalVariables(i, moments_of_inertia, rotated_angle, delta_rotation, Orientation, EulerAngles, angular_momentum, angular_velocity, dt, Fix_Ang_vel);
+                UpdateRotationalVariables(i, moments_of_inertia, rotated_angle, delta_rotation, Orientation, angular_momentum, angular_velocity, dt, Fix_Ang_vel);
                 GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
 
                 cluster_element.UpdatePositionOfSpheres();
