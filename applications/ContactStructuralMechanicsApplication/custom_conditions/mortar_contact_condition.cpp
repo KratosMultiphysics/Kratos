@@ -1530,6 +1530,30 @@ void MortarContactCondition::GetValueOnIntegrationPoints(
     this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 }
 
+//******************************* GET ARRAY_1D VALUE *******************************/
+/***********************************************************************************/
+
+void MortarContactCondition::GetValueOnIntegrationPoints( 
+    const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector<array_1d<double, 3 > >& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+}
+
+//******************************* GET VECTOR VALUE *********************************/
+/***********************************************************************************/
+
+void MortarContactCondition::GetValueOnIntegrationPoints( 
+    const Variable<Vector>& rVariable,
+    std::vector<Vector>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -1630,7 +1654,142 @@ void MortarContactCondition::CalculateOnIntegrationPoints(
     KRATOS_CATCH( "" );
 }
 
-// TODO: Add the vectorial components, this way we can get the normal, tangent, etc...
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MortarContactCondition::CalculateOnIntegrationPoints( 
+    const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector< array_1d<double, 3 > >& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
+    
+    // Create and initialize condition variables:
+    GeneralVariables Variables;
+    
+    // Initialize the current contact data
+    ContactData rContactData;
+
+    // Slave segment info
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_elements_master = mThisMasterElements.size( );
+    const unsigned int number_of_nodes_slave     = GetGeometry().PointsNumber();
+    
+    // Reading integration points
+    const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
+                                                                         mColocationIntegration.IntegrationPoints( ) :
+                                                                         GetGeometry( ).IntegrationPoints( mThisIntegrationMethod );
+                                                                                                                        
+    const unsigned int number_of_integration_pts =integration_points.size();
+    if ( rOutput.size() != number_of_integration_pts )
+    {
+        rOutput.resize( number_of_integration_pts );
+    }
+    
+    const array_1d<double, 3> zero_vector = ZeroVector(3);
+    for (unsigned int PointNumber = 0; PointNumber < number_of_integration_pts; PointNumber++)
+    {
+        rOutput[PointNumber] = zero_vector;
+    }
+    
+    this->InitializeContactData(rContactData, rCurrentProcessInfo);
+    
+    if (rVariable == NORMAL_GP || rVariable == TANGENT_GP)
+    {
+        if (number_of_elements_master > 0)
+        {
+            // Initialize general variables for the current master element
+            this->InitializeGeneralVariables( Variables, rCurrentProcessInfo, 0 ); // NOTE: The pair does not matter
+            
+            // Calculating the values
+            for ( unsigned int PointNumber = 0; PointNumber < number_of_integration_pts; PointNumber++ )
+            {
+                // Calculate the kinematic variables
+                const bool inside = this->CalculateKinematics( Variables, PointNumber, 0, integration_points ); // NOTE: The pair does not matter
+                
+                if (rVariable == NORMAL_GP)
+                {   
+                    const array_1d<double, 3> normal_gp  = prod(trans(rContactData.NormalsSlave), Variables.N_Slave);
+                    rOutput[PointNumber] = normal_gp;
+                }
+                else
+                {
+                    const array_1d<double, 3> tangent_gp = prod(trans(rContactData.Tangent1Slave), Variables.N_Slave); 
+                    rOutput[PointNumber] = tangent_gp;
+                }
+            }
+        }
+    }
+    else
+    {
+        for (unsigned int PairIndex = 0; PairIndex < number_of_elements_master; ++PairIndex)
+        {   
+            // Initialize general variables for the current master element
+            this->InitializeGeneralVariables( Variables, rCurrentProcessInfo, PairIndex );
+            
+            // Update the contact data
+            this->UpdateContactData(rContactData, PairIndex);
+            
+            // Master segment info
+            const GeometryType& current_master_element = Variables.GetMasterElement( );
+            
+            // Calculating the values
+            for ( unsigned int PointNumber = 0; PointNumber < number_of_integration_pts; PointNumber++ )
+            {
+                // Calculate the kinematic variables
+                const bool inside = this->CalculateKinematics( Variables, PointNumber, PairIndex, integration_points );
+                
+                // Calculate the gap in the integration node and check tolerance
+                const double integration_point_gap = inner_prod(rContactData.Gaps, Variables.N_Slave);
+            
+                if (inside == true)
+                {
+                    if (rVariable == NORMAL_CONTACT_STRESS_GP || rVariable == TANGENTIAL_CONTACT_STRESS_GP)
+                    {
+                        // The normal LM augmented
+                        const double augmented_normal_lm = this->AugmentedNormalLM(Variables, rContactData, integration_point_gap, dimension);
+                        
+                        if ( rVariable == NORMAL_CONTACT_STRESS_GP )
+                        {
+                            const array_1d<double, 3> normal_gp  = prod(trans(rContactData.NormalsSlave), Variables.N_Slave);
+                            rOutput[PointNumber] += augmented_normal_lm * normal_gp;
+                        }
+                        else
+                        {
+                            // The slip of th GP
+                            double integration_point_slip;
+                        
+                            // The tangent LM augmented
+                            const double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, integration_point_slip, dimension);
+                            
+                            const array_1d<double, 3> tangent_gp = prod(trans(rContactData.Tangent1Slave), Variables.N_Slave); // TODO: Extend to 3D case
+                            rOutput[PointNumber] += augmented_tangent_lm * tangent_gp;
+                        }
+                    }
+                }
+            }
+        }
+    } 
+    
+    KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MortarContactCondition::CalculateOnIntegrationPoints( 
+    const Variable<Vector>& rVariable, 
+    std::vector<Vector>& rOutput, 
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
+    
+    // TODO: Fill this!!!
+    
+    KRATOS_CATCH( "" );
+}
 
 /******************* AUXILLIARY METHODS FOR GENERAL CALCULATIONS *******************/
 /***********************************************************************************/
