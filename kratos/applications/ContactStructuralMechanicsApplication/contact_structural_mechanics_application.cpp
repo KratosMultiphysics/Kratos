@@ -57,22 +57,26 @@ void KratosContactStructuralMechanicsApplication::Register()
 
     // CONDITIONS
     /* Mortar method */
-    KRATOS_REGISTER_VARIABLE( CONTACT_CONTAINERS )                          // A vector of which contains the structure which defines the contact conditions
-    KRATOS_REGISTER_VARIABLE( INTEGRATION_ORDER_CONTACT )                   // The integration order computed in the contact
-    KRATOS_REGISTER_VARIABLE( ELEMENT_POINTER )                             // A pointer to the element belonging to this condition
-    KRATOS_REGISTER_VARIABLE( MORTAR_CONTACT_OPERATOR )                     // Mortar Contact Operator
-    KRATOS_REGISTER_VARIABLE( ACTIVE_CHECK_FACTOR )                         // The factor employed to serach an active/inactive node
-    KRATOS_REGISTER_VARIABLE( NORMAL_AUGMENTATION_FACTOR )                  // The constant that is considered for the check of active or inactive (when 0 it doesn't accept traction)
-    KRATOS_REGISTER_VARIABLE( TANGENT_AUGMENTATION_FACTOR )                 // The constant that is considered for the check if the node is slip/stick
-    KRATOS_REGISTER_VARIABLE( WEIGHTED_GAP )                                // The integrated gap employed in mortar formulation
-    KRATOS_REGISTER_VARIABLE( WEIGHTED_SLIP )                               // The integrated slip employed in mortar formulation
-    KRATOS_REGISTER_VARIABLE( WEIGHTED_FRICTION )                           // The integrated friction employed in mortar formulation
-    KRATOS_REGISTER_VARIABLE( DELTA_NORMAL )                                // Directional derivative of the normal
-    KRATOS_REGISTER_VARIABLE( AUXILIAR_ACTIVE )                             // Auxiliar boolean to check if the node is active or not
-    KRATOS_REGISTER_VARIABLE( AUXILIAR_SLIP )                               // Auxiliar boolean to check if the node is stick or not
-    KRATOS_REGISTER_VARIABLE( IS_ACTIVE_SET )                               // A bool storing whether the node is in the active set or not               
-    KRATOS_REGISTER_VARIABLE( GAP_GP )                                      // A double storing the gap of the GP
-    KRATOS_REGISTER_VARIABLE( SLIP_GP )                                     // A double storing the slip of the GP
+    KRATOS_REGISTER_VARIABLE( CONTACT_CONTAINERS )                              // A vector of which contains the structure which defines the contact conditions
+    KRATOS_REGISTER_VARIABLE( INTEGRATION_ORDER_CONTACT )                       // The integration order computed in the contact
+    KRATOS_REGISTER_VARIABLE( ELEMENT_POINTER )                                 // A pointer to the element belonging to this condition
+    KRATOS_REGISTER_VARIABLE( MORTAR_CONTACT_OPERATOR )                         // Mortar Contact Operator
+    KRATOS_REGISTER_VARIABLE( ACTIVE_CHECK_FACTOR )                             // The factor employed to serach an active/inactive node
+    KRATOS_REGISTER_VARIABLE( NORMAL_AUGMENTATION_FACTOR )                      // The constant that is considered for the check of active or inactive (when 0 it doesn't accept traction)
+    KRATOS_REGISTER_VARIABLE( TANGENT_AUGMENTATION_FACTOR )                     // The constant that is considered for the check if the node is slip/stick
+    KRATOS_REGISTER_VARIABLE( WEIGHTED_GAP )                                    // The integrated gap employed in mortar formulation
+    KRATOS_REGISTER_VARIABLE( WEIGHTED_SLIP )                                   // The integrated slip employed in mortar formulation
+    KRATOS_REGISTER_VARIABLE( WEIGHTED_FRICTION )                               // The integrated friction employed in mortar formulation
+    KRATOS_REGISTER_VARIABLE( DELTA_NORMAL )                                    // Directional derivative of the normal
+    KRATOS_REGISTER_VARIABLE( AUXILIAR_ACTIVE )                                 // Auxiliar boolean to check if the node is active or not
+    KRATOS_REGISTER_VARIABLE( AUXILIAR_SLIP )                                   // Auxiliar boolean to check if the node is stick or not
+    KRATOS_REGISTER_VARIABLE( IS_ACTIVE_SET )                                   // A bool storing whether the node is in the active set or not               
+    KRATOS_REGISTER_VARIABLE( GAP_GP )                                          // A double storing the gap of the GP
+    KRATOS_REGISTER_VARIABLE( SLIP_GP )                                         // A double storing the slip of the GP
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NORMAL_CONTACT_STRESS_GP )     // For getting the normal contact stress in the GP
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( TANGENTIAL_CONTACT_STRESS_GP ) // For getting the tangential contact stress in the GP
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NORMAL_GP )                    // For getting the normal in the GP
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( TANGENT_GP )                   // For getting the tangent in the GP
 
     // Register the conditions
     // Mortar contact condition

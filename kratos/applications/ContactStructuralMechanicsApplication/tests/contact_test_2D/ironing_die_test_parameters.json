@@ -3,9 +3,9 @@
         "problem_name"    : "ironing_die_test",
         "model_part_name" : "Structure",
         "domain_size"     : 2,
-        "time_step"       : 0.001,
+        "time_step"       : 0.0011,
         "start_time"      : 0.0,
-        "end_time"        : 10.0,
+        "end_time"        : 0.001,
         "echo_level"      : 0
     },
     "solver_settings"          : {
@@ -27,7 +27,7 @@
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 10,
+        "max_iteration"                      : 1,
         "split_factor"                       : 10.0,
         "max_number_splits"                    : 3,
         "accelerate_convergence": false,
@@ -110,11 +110,11 @@
             "augmentation_normal"         : 1e3,
             "augmentation_tangent"        : 1e3,
             "type_search"                 : "InRadius",
-            "integration_order"           : 10
+            "integration_order"           : 5
         }
     }
     ],
-    "_output_configuration"     : {
+    "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -130,7 +130,7 @@
             "skin_output"         : false,
             "plane_output"        : [],
             "nodal_results"       : ["DISPLACEMENT","REACTION","VECTOR_LAGRANGE_MULTIPLIER", "IS_ACTIVE_SET"],
-            "gauss_point_results" : []
+            "gauss_point_results" : ["GAP_GP", "NORMAL_GP"]
         },
         "point_data_configuration"  : []
     },

@@ -833,6 +833,24 @@ public:
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo 
         );
+    
+    /**
+     * Get on rVariable a array_1d Value
+     */
+    void GetValueOnIntegrationPoints( 
+        const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+        );
+    
+    /**
+     * Get on rVariable a Vector Value
+     */
+    void GetValueOnIntegrationPoints( 
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+        );
 
     /**
      * Calculate a double Variable
@@ -841,6 +859,24 @@ public:
         const Variable<double>& rVariable,
         std::vector<double>& rOutput,
         const ProcessInfo& rCurrentProcessInfo 
+        );
+    
+    /**
+     * Calculate a array_1d Variable
+     */
+    void CalculateOnIntegrationPoints( 
+        const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector< array_1d<double, 3 > >& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        );
+    
+    /**
+     * Calculate a Vector Variable
+     */
+    void CalculateOnIntegrationPoints( 
+        const Variable<Vector>& rVariable, 
+        std::vector<Vector>& rOutput, 
+        const ProcessInfo& rCurrentProcessInfo
         );
 
     ///@}
