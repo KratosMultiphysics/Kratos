@@ -73,7 +73,6 @@ namespace Kratos {
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 Quaternion<double  >& Orientation,
-                array_1d<double, 3 >& EulerAngles,
                 const array_1d<double, 3 >& angular_momentum,
                 array_1d<double, 3 >& angular_velocity,
                 const double delta_t,
