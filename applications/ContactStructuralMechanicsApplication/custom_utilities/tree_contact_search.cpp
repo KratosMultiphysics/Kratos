@@ -174,7 +174,10 @@ void TreeContactSearch::InitializeConditions(
         cond_it->GetProperties().SetValue(ACTIVE_CHECK_FACTOR, rActiveCheckFactor);
         cond_it->GetProperties().SetValue(NORMAL_AUGMENTATION_FACTOR,  rAugmentationNormal);
         cond_it->GetProperties().SetValue(TANGENT_AUGMENTATION_FACTOR, rAugmentationTangent);
-        cond_it->GetProperties().SetValue(INTEGRATION_ORDER_CONTACT, rIntegrationOrder);
+        if (cond_it->GetProperties().Has(INTEGRATION_ORDER_CONTACT) == false)
+        {
+            cond_it->GetProperties().SetValue(INTEGRATION_ORDER_CONTACT, rIntegrationOrder);
+        }
     }
 }
 
@@ -456,8 +459,6 @@ void TreeContactSearch::CreateMortarConditions(
                 if (pCondDestination != pCondOrigin) // Avoiding "auto self-contact"
                 {
                     std::vector<contact_container> *& ConditionPointersDestination = pCondDestination->GetValue(CONTACT_CONTAINERS);
-//                     int & DestCondIntegrationOrder = pCondDestination->GetValue(INTEGRATION_ORDER_CONTACT);
-//                     DestCondIntegrationOrder = integration_order;
                     
                     // Get the active check factor
                     const double ActiveCheckFactor = pCondDestination->GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
