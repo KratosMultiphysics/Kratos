@@ -61,8 +61,14 @@ MortarContactCondition::MortarContactCondition(
     PropertiesType::Pointer pProperties ) :
     Condition( NewId, pGeometry, pProperties )
 {
-    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+//     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod(); // NOTE: If this is considered just one GP is considered
 
+    const unsigned int dimension = GetGeometry( ).WorkingSpaceDimension( );
+    const unsigned int local_dimension_slave = GetGeometry( ).LocalSpaceDimension( );
+    const unsigned int number_of_slave_nodes = GetGeometry( ).PointsNumber( );
+    
+    InitializeIntegrationMethod(dimension, local_dimension_slave, number_of_slave_nodes); // NOTE: The integration method here defined depends of the properties of the parents elements, that's why I consider again this in the Initialize() 
+    
     //DO NOT ADD DOFS HERE!!!
 }
 
@@ -117,69 +123,8 @@ void MortarContactCondition::Initialize( )
     const unsigned int local_dimension_slave = GetGeometry( ).LocalSpaceDimension( );
     const unsigned int number_of_slave_nodes = GetGeometry( ).PointsNumber( );
     
-    mUseManualColocationIntegration = false;
-    if( GetProperties().Has(INTEGRATION_ORDER_CONTACT) )
-    {
-        const double integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
-        if (dimension == 2)
-        {
-            if (integration_order == 3)
-            {
-                mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_1;
-            }
-            else if (integration_order == 5)
-            {
-                mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_2;
-            }
-            else if (integration_order == 7)
-            {
-                mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_3;
-            }
-            else if (integration_order == 9)
-            {
-                mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_4;
-            }
-            else if (integration_order == 11)
-            {
-                mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_5;
-            }
-            else
-            {
-                mUseManualColocationIntegration = true;
-                mColocationIntegration.Initialize( integration_order,local_dimension_slave, number_of_slave_nodes );
-            }
-        }
-        else
-        {
-            if (number_of_slave_nodes == 3) // TODO: Complete
-            {
-//                 if (integration_order == 3)
-//                 {
-//                 }
-//                 else
-//                 {
-                    mUseManualColocationIntegration = true;
-                    mColocationIntegration.Initialize( integration_order,local_dimension_slave, number_of_slave_nodes );
-//                 }
-            }
-            else if (number_of_slave_nodes == 4) // TODO: Complete
-            {
-//                 if (integration_order == )
-//                 {
-//                 }
-//                 else
-//                 {
-                    mUseManualColocationIntegration = true;
-                    mColocationIntegration.Initialize( integration_order,local_dimension_slave, number_of_slave_nodes );
-//                 }
-            }
-        }
-    }
-    else
-    {
-        mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_5;
-    }
-
+    InitializeIntegrationMethod(dimension, local_dimension_slave, number_of_slave_nodes);
+    
     KRATOS_CATCH( "" );
 }
 
@@ -235,7 +180,7 @@ void MortarContactCondition::FinalizeNonLinearIteration( ProcessInfo& rCurrentPr
 /***********************************************************************************/
 
 IntegrationMethod MortarContactCondition::GetIntegrationMethod()
-{
+{   
     return mThisIntegrationMethod;
 }
 
@@ -1789,6 +1734,79 @@ double MortarContactCondition::AugmentedTangentLM(
     }
     
     return augmented_tangent_lm;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MortarContactCondition::InitializeIntegrationMethod( 
+    const unsigned int dimension,
+    const unsigned int local_dimension_slave,
+    const unsigned int number_of_slave_nodes
+    )
+{
+    mUseManualColocationIntegration = false;
+    if( GetProperties().Has(INTEGRATION_ORDER_CONTACT) )
+    {
+        const double integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
+        if (dimension == 2)
+        {
+            if (integration_order == 3)
+            {
+                mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_1;
+            }
+            else if (integration_order == 5)
+            {
+                mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_2;
+            }
+            else if (integration_order == 7)
+            {
+                mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_3;
+            }
+            else if (integration_order == 9)
+            {
+                mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_4;
+            }
+            else if (integration_order == 11)
+            {
+                mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_5;
+            }
+            else
+            {
+                mUseManualColocationIntegration = true;
+                mColocationIntegration.Initialize( integration_order,local_dimension_slave, number_of_slave_nodes );
+            }
+        }
+        else
+        {
+            if (number_of_slave_nodes == 3) // TODO: Complete
+            {
+//                 if (integration_order == 3)
+//                 {
+//                 }
+//                 else
+//                 {
+                    mUseManualColocationIntegration = true;
+                    mColocationIntegration.Initialize( integration_order,local_dimension_slave, number_of_slave_nodes );
+//                 }
+            }
+            else if (number_of_slave_nodes == 4) // TODO: Complete
+            {
+//                 if (integration_order == )
+//                 {
+//                 }
+//                 else
+//                 {
+                    mUseManualColocationIntegration = true;
+                    mColocationIntegration.Initialize( integration_order,local_dimension_slave, number_of_slave_nodes );
+//                 }
+            }
+        }
+    }
+    else
+    {
+        mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_5;
+    }
 }
 
 /***********************************************************************************/

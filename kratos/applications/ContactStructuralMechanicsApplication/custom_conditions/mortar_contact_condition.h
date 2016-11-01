@@ -782,6 +782,12 @@ public:
         const unsigned int& dimension
     );
     
+    void InitializeIntegrationMethod( 
+        const unsigned int dimension,
+        const unsigned int local_dimension_slave,
+        const unsigned int number_of_slave_nodes
+    );
+    
     void GetNodalDeltaMovements( 
         Vector& rValues,
         const int& rNode 
