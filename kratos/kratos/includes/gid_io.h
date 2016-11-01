@@ -283,7 +283,7 @@ public:
         gp_indices[3] = 3;
         gp_indices[4] = 4;
         //case Linear with 5 gauss points
-        mGidGaussPointContainers.push_back( TGaussPointContainer( "lin3_element_gp",
+        mGidGaussPointContainers.push_back( TGaussPointContainer( "lin5_element_gp",
                                             GeometryData::Kratos_Linear, GiD_Linear, 5, gp_indices ) );
 
         //case Tetrahedra with 10 gauss points (4 gauss points will be created for GiD)
@@ -334,6 +334,18 @@ public:
                                                                   GeometryData::Kratos_Prism, GiD_Prism, 11, gp_indices ) );
         /* END: Adding manually the custom prism */
 
+        //elements with 7 gauss points
+        gp_indices.resize(8);
+        gp_indices[0] = 0;
+        gp_indices[1] = 1;
+        gp_indices[2] = 2;
+        gp_indices[3] = 3;
+        gp_indices[4] = 4;
+        gp_indices[5] = 5;
+        gp_indices[6] = 6;
+        //case Linear with 7 gauss points
+        mGidGaussPointContainers.push_back( TGaussPointContainer( "lin7_element_gp",
+                                            GeometryData::Kratos_Linear, GiD_Linear, 7, gp_indices ) );
         //elements with 8 gauss points
         gp_indices.resize(8);
         gp_indices[0] = 0;
@@ -346,7 +358,7 @@ public:
         gp_indices[7] = 7;
         //case Hexahedra with 8 gauss points
         mGidGaussPointContainers.push_back( TGaussPointContainer( "hex8_element_gp",
-                                            GeometryData::Kratos_Hexahedra, GiD_Hexahedra, 8, gp_indices ) );
+                                                                  GeometryData::Kratos_Hexahedra, GiD_Hexahedra, 8, gp_indices ) );
 
         //elements with 9 gauss points
         gp_indices.resize(9);
@@ -359,6 +371,9 @@ public:
         gp_indices[6] = 6;
         gp_indices[7] = 7;
         gp_indices[8] = 8;
+        //case Linear with 9 gauss points
+        mGidGaussPointContainers.push_back( TGaussPointContainer( "lin9_element_gp",
+                                            GeometryData::Kratos_Linear, GiD_Linear, 9, gp_indices ) );
         //case Prism with 9 Gauss Points
         mGidGaussPointContainers.push_back( TGaussPointContainer( "prism9_element_gp",
                                             GeometryData::Kratos_Prism, GiD_Prism, 9, gp_indices ) );
@@ -370,6 +385,23 @@ public:
 //        mGidGaussPointContainers.push_back( TGaussPointContainer( "prism3_element_gp",
 //                                            GeometryData::Kratos_Prism, GiD_Prism, 3, gp_indices ) );
 //        /* END: Adding manually the custom prism */
+
+        //elements with 11 gauss points
+        gp_indices.resize(11);
+        gp_indices[0] = 0;
+        gp_indices[1] = 1;
+        gp_indices[2] = 2;
+        gp_indices[3] = 3;
+        gp_indices[4] = 4;
+        gp_indices[5] = 5;
+        gp_indices[6] = 6;
+        gp_indices[7] = 7;
+        gp_indices[8] = 8;
+        gp_indices[9] = 9;
+        gp_indices[10] = 10;
+        //case Linear with 11 gauss points
+        mGidGaussPointContainers.push_back( TGaussPointContainer( "lin11_element_gp",
+                                            GeometryData::Kratos_Linear, GiD_Linear, 11, gp_indices ) );
 
 //        //elements with 15 gauss points
 //        gp_indices.resize(15);
