@@ -613,7 +613,7 @@ class Procedures(object):
             # plt.title('Evolution of ' + entries[i] + ' in time')
             # plt.savefig(entries[i] + '.pdf')
 
-    def SetCustomSkin(self,spheres_model_part):
+    def SetCustomSkin(self, spheres_model_part):
 
         for element in spheres_model_part.Elements:
 
@@ -633,10 +633,11 @@ class Procedures(object):
     def CreateDirectories(self, main_path, problem_name):
 
         root             = os.path.join(main_path, problem_name)
-        post_path        = root + '_Post_Files' + run_code
+        post_path        = root + '_Post_Files' # + run_code
         data_and_results = root + '_Results_and_Data'
         graphs_path      = root + '_Graphs'
         MPI_results      = root + '_MPI_results'
+        
         '''
         answer = input("\nWarning: If there already exists previous results, they are about to be deleted. Do you want to proceed (y/n)? ")
         if answer=='y':
@@ -653,7 +654,7 @@ class Procedures(object):
             if not os.path.isdir(directory):
                 os.makedirs(str(directory))
 
-        return [post_path,data_and_results,graphs_path,MPI_results]
+        return [post_path, data_and_results, graphs_path, MPI_results]
 
     def FindMaxNodeIdInModelPart(self, model_part):
 
