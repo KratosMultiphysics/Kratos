@@ -93,6 +93,22 @@ public:
     const double Dnormalmasterg0u210 =     N2[0]*(0.25*X2(0,0) - 0.25*X2(1,0) + 0.25*u2(0,0) - 0.25*u2(1,0))*(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1))/std::pow(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2), 3.0L/2.0L) + N2[1]*(0.25*X2(0,0) - 0.25*X2(1,0) + 0.25*u2(0,0) - 0.25*u2(1,0))*(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1))/std::pow(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2), 3.0L/2.0L);
     const double Dnormalmasterg0u201 =     -0.5*N2[0]/std::sqrt(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2)) + N2[0]*(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1))*(-0.25*X2(0,1) + 0.25*X2(1,1) - 0.25*u2(0,1) + 0.25*u2(1,1))/std::pow(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2), 3.0L/2.0L) - 0.5*N2[1]/std::sqrt(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2)) + N2[1]*(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1))*(-0.25*X2(0,1) + 0.25*X2(1,1) - 0.25*u2(0,1) + 0.25*u2(1,1))/std::pow(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2), 3.0L/2.0L);
     const double Dnormalmasterg0u200 =     N2[0]*(-0.25*X2(0,0) + 0.25*X2(1,0) - 0.25*u2(0,0) + 0.25*u2(1,0))*(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1))/std::pow(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2), 3.0L/2.0L) + N2[1]*(-0.25*X2(0,0) + 0.25*X2(1,0) - 0.25*u2(0,0) + 0.25*u2(1,0))*(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1))/std::pow(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2), 3.0L/2.0L);
+    const double Dtan1slave11u111 =     0.5/std::sqrt(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2)) + (-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1))*(0.25*X1(0,1) - 0.25*X1(1,1) + 0.25*u1(0,1) - 0.25*u1(1,1))/std::pow(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2), 3.0L/2.0L);
+    const double Dtan1slave11u110 =     (0.25*X1(0,0) - 0.25*X1(1,0) + 0.25*u1(0,0) - 0.25*u1(1,0))*(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1))/std::pow(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2), 3.0L/2.0L);
+    const double Dtan1slave11u101 =     -0.5/std::sqrt(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2)) + (-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1))*(-0.25*X1(0,1) + 0.25*X1(1,1) - 0.25*u1(0,1) + 0.25*u1(1,1))/std::pow(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2), 3.0L/2.0L);
+    const double Dtan1slave11u100 =     (-0.25*X1(0,0) + 0.25*X1(1,0) - 0.25*u1(0,0) + 0.25*u1(1,0))*(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1))/std::pow(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2), 3.0L/2.0L);
+    const double Dtan1slave10u111 =     (-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0))*(0.25*X1(0,1) - 0.25*X1(1,1) + 0.25*u1(0,1) - 0.25*u1(1,1))/std::pow(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2), 3.0L/2.0L);
+    const double Dtan1slave10u110 =     0.5/std::sqrt(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2)) + (-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0))*(0.25*X1(0,0) - 0.25*X1(1,0) + 0.25*u1(0,0) - 0.25*u1(1,0))/std::pow(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2), 3.0L/2.0L);
+    const double Dtan1slave10u101 =     (-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0))*(-0.25*X1(0,1) + 0.25*X1(1,1) - 0.25*u1(0,1) + 0.25*u1(1,1))/std::pow(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2), 3.0L/2.0L);
+    const double Dtan1slave10u100 =     -0.5/std::sqrt(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2)) + (-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0))*(-0.25*X1(0,0) + 0.25*X1(1,0) - 0.25*u1(0,0) + 0.25*u1(1,0))/std::pow(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2), 3.0L/2.0L);
+    const double Dtan1slave01u111 =     0.5/std::sqrt(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2)) + (-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1))*(0.25*X1(0,1) - 0.25*X1(1,1) + 0.25*u1(0,1) - 0.25*u1(1,1))/std::pow(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2), 3.0L/2.0L);
+    const double Dtan1slave01u110 =     (0.25*X1(0,0) - 0.25*X1(1,0) + 0.25*u1(0,0) - 0.25*u1(1,0))*(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1))/std::pow(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2), 3.0L/2.0L);
+    const double Dtan1slave01u101 =     -0.5/std::sqrt(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2)) + (-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1))*(-0.25*X1(0,1) + 0.25*X1(1,1) - 0.25*u1(0,1) + 0.25*u1(1,1))/std::pow(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2), 3.0L/2.0L);
+    const double Dtan1slave01u100 =     (-0.25*X1(0,0) + 0.25*X1(1,0) - 0.25*u1(0,0) + 0.25*u1(1,0))*(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1))/std::pow(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2), 3.0L/2.0L);
+    const double Dtan1slave00u111 =     (-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0))*(0.25*X1(0,1) - 0.25*X1(1,1) + 0.25*u1(0,1) - 0.25*u1(1,1))/std::pow(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2), 3.0L/2.0L);
+    const double Dtan1slave00u110 =     0.5/std::sqrt(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2)) + (-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0))*(0.25*X1(0,0) - 0.25*X1(1,0) + 0.25*u1(0,0) - 0.25*u1(1,0))/std::pow(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2), 3.0L/2.0L);
+    const double Dtan1slave00u101 =     (-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0))*(-0.25*X1(0,1) + 0.25*X1(1,1) - 0.25*u1(0,1) + 0.25*u1(1,1))/std::pow(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2), 3.0L/2.0L);
+    const double Dtan1slave00u100 =     -0.5/std::sqrt(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2)) + (-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0))*(-0.25*X1(0,0) + 0.25*X1(1,0) - 0.25*u1(0,0) + 0.25*u1(1,0))/std::pow(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2), 3.0L/2.0L);
     const double Dnormalslave11u111 =     -(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0))*(0.25*X1(0,1) - 0.25*X1(1,1) + 0.25*u1(0,1) - 0.25*u1(1,1))/std::pow(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2), 3.0L/2.0L);
     const double Dnormalslave11u110 =     -0.5/std::sqrt(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2)) - (-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0))*(0.25*X1(0,0) - 0.25*X1(1,0) + 0.25*u1(0,0) - 0.25*u1(1,0))/std::pow(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2), 3.0L/2.0L);
     const double Dnormalslave11u101 =     -(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0))*(-0.25*X1(0,1) + 0.25*X1(1,1) - 0.25*u1(0,1) + 0.25*u1(1,1))/std::pow(std::pow(-0.5*X1(0,0) + 0.5*X1(1,0) - 0.5*u1(0,0) + 0.5*u1(1,0), 2) + std::pow(-0.5*X1(0,1) + 0.5*X1(1,1) - 0.5*u1(0,1) + 0.5*u1(1,1), 2), 3.0L/2.0L);
@@ -382,6 +398,7 @@ public:
         const Vector Phi, 
 //         const Matrix DPhi, 
         const double detJ, 
+        const double mu, 
         const ContactData& rContactData,
         const double& augmented_normal_lm,
         const double& augmented_tangent_lm,
@@ -397,6 +414,7 @@ public:
     const Matrix tan1slave       = rContactData.Tangent1Slave;
     const Matrix lm              = rContactData.LagrangeMultipliers;
     const double Dt              = rContactData.Dt;
+    const double epsilon_normal  = rContactData.epsilon_normal;
     const double epsilon_tangent = rContactData.epsilon_tangent;
     
     const Vector GPnormal     = prod(trans(normalslave), N1);
@@ -734,12 +752,13 @@ public:
     const Matrix tan1slave       = rContactData.Tangent1Slave;
     const Matrix lm              = rContactData.LagrangeMultipliers;
     const double Dt              = rContactData.Dt;
+    const double epsilon_normal  = rContactData.epsilon_normal;
     const double epsilon_tangent = rContactData.epsilon_tangent;
     
     const Vector GPnormal     = prod(trans(normalslave), N1);
     const Vector GPtangent1   = prod(trans(tan1slave), N1);
     
-    const double sign_almtang = boost::math::sign(augmented_tangent_lm);
+    const double sign_tangpress = boost::math::sign(augmented_tangent_lm);
     
     const Matrix X1 = ContactUtilities::GetCoordinates(rContactData.SlaveGeometry, false);
     const Matrix X2 = ContactUtilities::GetCoordinates(rContactData.MasterGeometry, false);
@@ -1162,6 +1181,7 @@ public:
         const Vector N2, 
         const Vector Phi, 
         const double detJ, 
+        const double mu, 
         const ContactData& rContactData,
         const double& augmented_normal_lm,
         const double& augmented_tangent_lm,
@@ -1175,6 +1195,7 @@ public:
     const Matrix tan1slave       = rContactData.Tangent1Slave;
     const Matrix lm              = rContactData.LagrangeMultipliers;
     const double Dt              = rContactData.Dt;
+    const double epsilon_normal  = rContactData.epsilon_normal;
     const double epsilon_tangent = rContactData.epsilon_tangent;
     
     const Vector GPnormal     = prod(trans(normalslave), N1);
@@ -1240,11 +1261,22 @@ public:
     const Vector GPnormal     = prod(trans(normalslave), N1);
     const Vector GPtangent1   = prod(trans(tan1slave), N1);
     
-    const double sign_almtang = boost::math::sign(augmented_tangent_lm);
+    const double sign_tangpress = boost::math::sign(augmented_tangent_lm);
     
     const Matrix v1 = ContactUtilities::GetVariableMatrix(rContactData.SlaveGeometry, VELOCITY, 0); 
     const Matrix v2 = ContactUtilities::GetVariableMatrix(rContactData.MasterGeometry, VELOCITY, 0);
     
+    const double crhs0 =     tan1slave(0,0); // TAN1SLAVE(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1))
+    const double crhs1 =     tan1slave(0,1); // TAN1SLAVE(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1))
+    const double crhs2 =     1.0/Dt;
+    const double crhs3 =     detJ; // DETJ(U1(0,0), U1(0,1), U1(1,0), U1(1,1))
+    const double crhs4 =     tan1slave(1,0); // TAN1SLAVE(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1))
+    const double crhs5 =     N2[0]; // N2[0](U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
+    const double crhs6 =     N2[1]; // N2[1](U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
+    const double crhs7 =     tan1slave(1,1); // TAN1SLAVE(1,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1))
+    const double crhs8 =     (N1[0]*crhs0 + N1[1]*crhs4)*(N1[0]*(Dt*v1(0,0)) + N1[1]*(Dt*v1(1,0)) - crhs5*(Dt*v2(0,0)) - crhs6*(Dt*v2(1,0))) + (N1[0]*crhs1 + N1[1]*crhs7)*(N1[0]*(Dt*v1(0,1)) + N1[1]*(Dt*v1(1,1)) - crhs5*(Dt*v2(0,1)) - crhs6*(Dt*v2(1,1)));
+    const double crhs9 =     Phi[0]*crhs2*crhs3*crhs8;
+    const double crhs10 =     Phi[1]*crhs2*crhs3*crhs8;
 
     rhs[0]=0;
     rhs[1]=0;
@@ -1254,10 +1286,10 @@ public:
     rhs[5]=0;
     rhs[6]=0;
     rhs[7]=0;
-    rhs[8]=0;
-    rhs[9]=0;
-    rhs[10]=0;
-    rhs[11]=0;
+    rhs[8]=-crhs9*(GPnormal[0]*crhs0 + GPnormal[1]*crhs1);
+    rhs[9]=-crhs9*(GPtangent1[0]*crhs0 + GPtangent1[1]*crhs1);
+    rhs[10]=-crhs10*(GPnormal[0]*crhs4 + GPnormal[1]*crhs7);
+    rhs[11]=-crhs10*(GPtangent1[0]*crhs4 + GPtangent1[1]*crhs7);
 
     
     return rhs;
