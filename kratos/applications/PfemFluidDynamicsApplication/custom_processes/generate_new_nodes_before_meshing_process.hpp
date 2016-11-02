@@ -554,10 +554,11 @@ private:
 		    reference_dofs = ie->GetGeometry()[pn].GetDofs();
 		    DofsFound=true;
 		  }
-		  if(fluidNodeFound==false && ie->GetGeometry()[pn].Is(FLUID)){
+		  if(fluidNodeFound==false && ie->GetGeometry()[pn].Is(FLUID) && !ie->GetGeometry()[pn].Is(RIGID)){
 		    viscosity=ie->GetGeometry()[pn].FastGetSolutionStepValue(VISCOSITY);
 		    density=ie->GetGeometry()[pn].FastGetSolutionStepValue(DENSITY);
 		    bulkModulus=ie->GetGeometry()[pn].FastGetSolutionStepValue(BULK_MODULUS);
+		    VolumeAcceleration = ie->GetGeometry()[pn].FastGetSolutionStepValue(VOLUME_ACCELERATION);
 		    fluidNodeFound=true;
 		  }
 		  if(ie->GetGeometry()[pn].Is(FREE_SURFACE))
