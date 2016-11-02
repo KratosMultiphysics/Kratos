@@ -283,10 +283,17 @@ public:
             is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
         }//While
         
-        //plots a warning if the maximum number of iterations is exceeded
-        if (iteration_number >= mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
-            this->MaxIterationsExceeded();
-            
+        // Check iteration_number 
+        if (iteration_number >= mMaxIterationNumber)
+        {
+            is_converged = true;
+            //plots a warning if the maximum number of iterations is exceeded
+            if(BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+            {
+                this->MaxIterationsExceeded();
+            }
+        }
+        
         //calculate reactions if required
         if (mCalculateReactionsFlag == true)
         {
