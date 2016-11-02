@@ -98,8 +98,8 @@
             "active_check_factor"         : 0.2,
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
-            "augmentation_normal"         : 1000,
-            "augmentation_tangent"        : 1000,
+            "augmentation_normal"         : 0.0e0,
+            "augmentation_tangent"        : 0.0e0,
             "integration_order"           : 10
         }
     }
@@ -120,7 +120,7 @@
             "skin_output"         : false,
             "plane_output"        : [],
             "nodal_results"       : ["DISPLACEMENT","REACTION","VECTOR_LAGRANGE_MULTIPLIER"],
-            "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","VON_MISES_STRESS","NORMAL_CONTACT_STRESS","TANGENTIAL_CONTACT_STRESS", "GAP_GP", "SLIP_GP"]
+            "gauss_point_results" : ["NORMAL_CONTACT_STRESS_GP","TANGENTIAL_CONTACT_STRESS_GP", "GAP_GP", "SLIP_GP"]
         },
         "point_data_configuration"  : []
     },
