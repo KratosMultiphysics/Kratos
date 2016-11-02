@@ -56,7 +56,10 @@ class AssignValueToScalarProcess(KratosMultiphysics.Process):
             self.function_expression = "t"
         else:
             self.function_expression = self.function_string;
-        self.compiled_function = compile(self.function_expression, '', 'eval', optimize=2)
+        if (sys.version_info > (3, 0)):
+            self.compiled_function = compile(self.function_expression, '', 'eval', optimize=2)
+        else:
+            self.compiled_function = compile(self.function_expression, '', 'eval')
             
         if( self.interval[0] == 0.0 and self.interval[1] == 0.0 ):
             self.interval_string = "initial"
