@@ -63,6 +63,10 @@ Condition::Pointer PointLoad3DCondition::Create(
 Condition::Pointer PointLoad3DCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
   PointLoad3DCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+
+  NewCondition.SetData(this->GetData());
+  NewCondition.SetFlags(this->GetFlags());
+
   //-----------//      
   return Condition::Pointer( new PointLoad3DCondition(NewCondition) );
 }

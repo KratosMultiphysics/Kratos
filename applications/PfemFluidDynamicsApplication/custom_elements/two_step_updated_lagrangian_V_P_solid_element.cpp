@@ -64,6 +64,9 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
       NewElement.mUpdatedDeviatoricCauchyStress[i] = this->mUpdatedDeviatoricCauchyStress[i];
     }
 
+  NewElement.SetData(this->GetData());
+  NewElement.SetFlags(this->GetFlags());
+
   return Element::Pointer( new TwoStepUpdatedLagrangianVPSolidElement(NewElement) );
 }
 

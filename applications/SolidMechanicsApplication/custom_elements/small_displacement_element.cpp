@@ -129,6 +129,9 @@ Element::Pointer SmallDisplacementElement::Clone( IndexType NewId, NodesArrayTyp
 
     //-----------//
 
+    NewElement.SetData(this->GetData());
+    NewElement.SetFlags(this->GetFlags());
+
     return Element::Pointer( new SmallDisplacementElement(NewElement) );
 }
 

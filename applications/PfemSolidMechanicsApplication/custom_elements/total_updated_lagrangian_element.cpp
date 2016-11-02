@@ -113,6 +113,8 @@ Element::Pointer TotalUpdatedLagrangianElement::Clone( IndexType NewId, NodesArr
 
     NewElement.mDeterminantF0 = mDeterminantF0;
 
+    NewElement.SetData(this->GetData());
+    NewElement.SetFlags(this->GetFlags());
         
     return Element::Pointer( new TotalUpdatedLagrangianElement(NewElement) );
 }

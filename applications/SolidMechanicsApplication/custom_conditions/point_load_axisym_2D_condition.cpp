@@ -63,6 +63,10 @@ Condition::Pointer PointLoadAxisym2DCondition::Create(
 Condition::Pointer PointLoadAxisym2DCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
   PointLoadAxisym2DCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+
+  NewCondition.SetData(this->GetData());
+  NewCondition.SetFlags(this->GetFlags());
+
   //-----------//      
   return Condition::Pointer( new PointLoadAxisym2DCondition(NewCondition) );
 }

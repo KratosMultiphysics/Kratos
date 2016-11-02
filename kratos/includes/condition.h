@@ -967,6 +967,16 @@ public:
         return mData;
     }
 
+    DataValueContainer const& GetData() const
+    {
+      return mData;
+    }
+    
+    void SetData(DataValueContainer const& rThisData)
+    {
+      mData = rThisData;
+    }
+    
     /**
      * Check if the Data exists with Has(..) methods:
      */
@@ -1008,22 +1018,22 @@ public:
     ///@}
     ///@name Flags
     ///@{
-
-	Flags& GetFlags()
-	{
-		return *this;
-	}
-
-	Flags const& GetFlags() const
-	{
-		return *this;
-	}
-
-	void SetFlags(Flags const& rThisFlags)
-	{
-		Flags::operator=(rThisFlags);
-	}
-
+    
+    Flags& GetFlags()
+      {
+	return *this;
+      }
+    
+    Flags const& GetFlags() const
+    {
+      return *this;
+    }
+    
+    void SetFlags(Flags const& rThisFlags)
+    {
+      Flags::operator=(rThisFlags);
+    }
+    
     ///@}
     ///@name Inquiry
     ///@{
