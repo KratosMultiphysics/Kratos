@@ -411,6 +411,9 @@ namespace Kratos
       void GetAccelerationValues(Vector& rValues,
 				 const int Step = 0);
 
+      void GetMeanAcceleration(Vector& rValues,
+			       const int Step = 0);
+
       /// Determine integration point weights and shape funcition derivatives from the element's geometry.
       void CalculateGeometryData(ShapeFunctionDerivativesArrayType& rDN_DX,
 				 Matrix& rNContainer,

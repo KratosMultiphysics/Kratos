@@ -270,7 +270,7 @@ class PfemFluidSolver:
         
         self.fluid_solver.CalculateAccelerations()  # ACCELERATION
         #self.fluid_solver.CalculateDisplacements()  # DISPLACEMENTS
-        self.fluid_solver.CalculateHistoricalVariables()  # STRESS-STRAIN
+        #self.fluid_solver.CalculateHistoricalVariables()  # STRESS-STRAIN
 
     # solve :: sequencial calls
     
@@ -297,7 +297,7 @@ class PfemFluidSolver:
         
         self.fluid_solver.CalculateAccelerations()  # ACCELERATION
         #self.fluid_solver.CalculateDisplacements()  # DISPLACEMENTS
-        self.fluid_solver.CalculateHistoricalVariables()  # STRESS-STRAIN
+        #self.fluid_solver.CalculateHistoricalVariables()  # STRESS-STRAIN
 
     # solve :: sequencial calls
 
@@ -337,60 +337,5 @@ class PfemFluidSolver:
         print("Initialize Stress Strain finished ")
 
 #
-    def NodalChecksAndAssignations(self):
 
-        numFluid=0
-        numRigid=0
-        numRigidFluid=0
-        numRigidNotFluid=0
-        numBoundary=0
-        numIsolated=0
-        numFreeSurface=0
-        numBlocked=0
-        mean_nodal_h=0
-        for node in self.main_model_part.Nodes:
-            # adding dofs
-            if (node.Is(KratosMultiphysics.FLUID)):
-                numFluid+=1
-
-                nodal_h=node.GetSolutionStepValue(KratosMultiphysics.NODAL_H)
-                mean_nodal_h+=nodal_h
-
-                #density=node.GetSolutionStepValue(KratosMultiphysics.DENSITY)
-                #print("density ",density)
-                
-                #viscosity=node.GetSolutionStepValue(KratosMultiphysics.VISCOSITY)
-                #print("VISCOSITY ",viscosity)
-                
-                #bulk_modulus=node.GetSolutionStepValue(KratosMultiphysics.BULK_MODULUS)
-                #print("bulk_modulus ",bulk_modulus)
-
-            if (node.Is(KratosMultiphysics.RIGID)):
-                numRigid+=1
-                if (node.Is(KratosMultiphysics.FLUID)):
-                    numRigidFluid+=1
-                else:
-                    numRigidNotFluid+=1   
-                    node.SetSolutionStepValue(KratosMultiphysics.PRESSURE,0.0)
-                if (node.Is(KratosMultiphysics.BOUNDARY)):
-                    numBoundary+=1
-                if (node.Is(KratosMultiphysics.ISOLATED)):
-                    numIsolated+=1
-                    node.SetSolutionStepValue(KratosMultiphysics.PRESSURE,0.0)
-
-                if (node.Is(KratosMultiphysics.FREE_SURFACE)):
-                    numFreeSurface+=1
-                if (node.Is(KratosMultiphysics.BLOCKED)):
-                    numBlocked+=1
- 
-        mean_nodal_h*=1.0/numFluid;
-        print("nodal_h is  ",nodal_h)
-        print("numFluid ",numFluid)
-        print("numRigid ",numRigid)
-        print("numRigidFluid ",numRigidFluid)
-        print("numRigidNotFluid ",numRigidNotFluid)
-        print("numBoundary ",numBoundary)
-        print("numIsolated ",numIsolated)
-        print("numFreeSurface ",numFreeSurface)
-        print("numBlocked ",numBlocked)
 

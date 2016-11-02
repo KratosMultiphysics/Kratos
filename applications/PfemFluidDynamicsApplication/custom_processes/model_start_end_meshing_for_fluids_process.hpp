@@ -235,7 +235,7 @@ namespace Kratos
 		      if( i_node->Is(RIGID) && i_node->IsNot(BLOCKED))
 			{
 			  // double pressureRigid=i_node->FastGetSolutionStepValue(PRESSURE);
-			  // i_node->FastGetSolutionStepValue(PRESSURE) = 0;
+			  i_node->FastGetSolutionStepValue(PRESSURE) = 0;
 			  if(i_mp->Is(FLUID)) {
 			    i_node->Reset(FLUID);   //reset isolated
 			  }
@@ -265,7 +265,7 @@ namespace Kratos
 		    i_node->Reset(BLOCKED); 
 
 		    if( mOptions.Is(ModelerUtilities::KEEP_ISOLATED_NODES) && i_node->IsNot(TO_ERASE) ){
-		      // i_node->FastGetSolutionStepValue(PRESSURE) = 0;
+		      i_node->FastGetSolutionStepValue(PRESSURE) = 0;
 		      freeParticles++;
 		      (i_mp->Nodes()).push_back(*(i_node.base()));
 		      (rModelPart.Nodes()).push_back(*(i_node.base()));	
