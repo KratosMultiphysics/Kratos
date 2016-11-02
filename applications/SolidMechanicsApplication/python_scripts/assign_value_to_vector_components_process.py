@@ -57,7 +57,10 @@ class AssignValueToVectorComponentsProcess(KratosMultiphysics.Process):
             self.function_expression = "t"
         else:
             self.function_expression = self.function_string;
-        self.compiled_function = compile(self.function_expression, '', 'eval', optimize=2)
+	if (sys.version_info > (3, 0)):
+	    self.compiled_function = compile(self.function_expression, '', 'eval', optimize=2)
+	else:
+	    self.compiled_function = compile(self.function_expression, '', 'eval')
             
         self.interval_string = "custom"
         if( self.interval[0] == 0.0 and self.interval[1] == 0.0 ):
@@ -98,6 +101,7 @@ class AssignValueToVectorComponentsProcess(KratosMultiphysics.Process):
 
         # in dynamic problems derivated variables can be fixed
         self.fix_derivated_variable = False
+
         if( self.variable_name == "ACCELERATION" or self.variable_name == "VELOCITY" ):
             self.derivated_variable_name = "DISPLACEMENT"
             self.fix_derivated_variable = True
