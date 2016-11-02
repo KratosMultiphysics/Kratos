@@ -313,6 +313,7 @@ namespace Kratos {
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
 
             RotateOldContactForces(OldLocalCoordSystem, LocalCoordSystem, mNeighbourElasticContactForces[i]);
+            RotateOldContactForces(OldLocalCoordSystem, LocalCoordSystem, mNeighbourElasticExtraContactForces[i]);
 
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, mNeighbourElasticContactForces[i], OldLocalElasticContactForce);
 
@@ -405,7 +406,7 @@ namespace Kratos {
             }
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR) && (i < mContinuumInitialNeighborsSize)) {                
-                AddNeighbourContributionToStressTensor(GlobalElasticContactForce, LocalCoordSystem[2], distance, radius_sum, this);
+                AddNeighbourContributionToStressTensor(TotalGlobalElasticContactForce, LocalCoordSystem[2], distance, radius_sum, this);
             }
 
             AddContributionToRepresentativeVolume(distance, radius_sum, calculation_area);

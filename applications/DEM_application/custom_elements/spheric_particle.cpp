@@ -388,15 +388,18 @@ void SphericParticle::CalculateLocalAngularMomentum(array_1d<double, 3>& r_angul
 void SphericParticle::ComputeNewNeighboursHistoricalData(boost::numeric::ublas::vector<int>& mTempNeighboursIds,
                                                          std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces)
 {
+    std::vector<array_1d<double, 3> > mTempNeighbourElasticExtraContactForces;
     unsigned int new_size = mNeighbourElements.size();
     array_1d<double, 3> vector_of_zeros = ZeroVector(3);
     mTempNeighboursIds.resize(new_size);
     mTempNeighbourElasticContactForces.resize(new_size);
+    mTempNeighbourElasticExtraContactForces.resize(new_size);
 
     boost::numeric::ublas::vector<int>& vector_of_ids_of_neighbours = GetValue(NEIGHBOUR_IDS);
 
     for (unsigned int i = 0; i < new_size; i++) {
         noalias(mTempNeighbourElasticContactForces[i]) = vector_of_zeros;
+        noalias(mTempNeighbourElasticExtraContactForces[i]) = vector_of_zeros;
 
         if (mNeighbourElements[i] == NULL) { // This is required by the continuum sphere which reorders the neighbors
             mTempNeighboursIds[i] = -1;
@@ -408,6 +411,7 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(boost::numeric::ublas::
         for (unsigned int j = 0; j < vector_of_ids_of_neighbours.size(); j++) {
             if (int(mTempNeighboursIds[i]) == vector_of_ids_of_neighbours[j] && vector_of_ids_of_neighbours[j] != -1) {
                 noalias(mTempNeighbourElasticContactForces[i]) = mNeighbourElasticContactForces[j];
+                noalias(mTempNeighbourElasticExtraContactForces[i]) = mNeighbourElasticExtraContactForces[j];
                 break;
             }
         }
@@ -415,6 +419,7 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(boost::numeric::ublas::
 
     vector_of_ids_of_neighbours.swap(mTempNeighboursIds);
     mNeighbourElasticContactForces.swap(mTempNeighbourElasticContactForces);
+    mNeighbourElasticExtraContactForces.swap(mTempNeighbourElasticExtraContactForces);
 }
 
 void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
@@ -814,7 +819,8 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         // Transforming to global forces and adding up
         AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce, LocalElasticContactForce, LocalElasticExtraContactForce, GlobalContactForce,
                               GlobalElasticContactForce, GlobalElasticExtraContactForce, TotalGlobalElasticContactForce, ViscoDampingLocalContactForce, cohesive_force, other_ball_to_ball_forces, r_elastic_force, r_contact_force, i, r_process_info);
-
+        //TODO: make different AddUpForces for continuum and discontinuum (different arguments, different operations!)
+        
         // ROTATION FORCES
         if (this->Is(DEMFlags::HAS_ROTATION) && !multi_stage_RHS) {
             if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !multi_stage_RHS) {
@@ -1273,7 +1279,7 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
             (*mStressTensor)(i,i) += GeometryFunctions::sign( (*mStressTensor)(i,i) ) * GetRadius() * fabs(reaction_force[i]) / rRepresentative_Volume;
 
         }
-        if( this->Is(DEMFlags::HAS_ROTATION) ) {
+        /*if( this->Is(DEMFlags::HAS_ROTATION) ) { //THIS IS GIVING STABILITY PROBLEMS WHEN USING THE EXTRA TERMS FOR CONTINUUM
             const array_1d<double, 3>& reaction_moment=this->GetGeometry()[0].FastGetSolutionStepValue(MOMENT_REACTION);
             const double fabs_reaction_moment_modulus = fabs( DEM_MODULUS_3(reaction_moment) );
             for (int i = 0; i < 3; i++) {
@@ -1283,7 +1289,7 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
                     }
                 }
             }
-        }
+        }*/
 
         //The following operation symmetrizes the tensor. We will work with the symmetric stress tensor always, because the non-symmetric one is being filled while forces are being calculated
         for (int i = 0; i < 3; i++) {
@@ -1296,6 +1302,12 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
                 }
             }
         }
+        
+        /*for (int i = 0; i < 3; i++) {
+            for (int j = i; j < 3; j++) {
+                (*mSymmStressTensor)(i,j) = (*mSymmStressTensor)(j,i) = 0.5 * ((*mStressTensor)(i,j) + (*mStressTensor)(j,i));
+            }
+        }*/
     }
     KRATOS_CATCH("")
 }
@@ -1379,6 +1391,7 @@ void SphericParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
 
     // Saving contact forces (We need to, since tangential elastic force is history-dependent)
     DEM_COPY_SECOND_TO_FIRST_3(mNeighbourElasticContactForces[i_neighbour_count], GlobalElasticContactForce)
+    DEM_COPY_SECOND_TO_FIRST_3(mNeighbourElasticExtraContactForces[i_neighbour_count], GlobalElasticExtraContactForce)
                    
     TotalGlobalElasticContactForce[0] = GlobalElasticContactForce[0] + GlobalElasticExtraContactForce[0];
     TotalGlobalElasticContactForce[1] = GlobalElasticContactForce[1] + GlobalElasticExtraContactForce[1];

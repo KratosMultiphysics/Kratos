@@ -386,7 +386,7 @@ namespace Kratos {
         LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - kt_el * LocalDeltDisp[1]; // 1: second tangential
 
         if (r_process_info[SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION]) {
-            AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce, LocalElasticExtraContactForce, LocalCoordSystem, kt_el, calculation_area,  element1, element2);
+            AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce, LocalElasticExtraContactForce, element1->mNeighbourElasticExtraContactForces[i_neighbour_count], LocalCoordSystem, kt_el, calculation_area,  element1, element2);
         }
 
         double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
@@ -450,6 +450,7 @@ namespace Kratos {
 
     void DEM_Dempack_dev::AddContributionOfShearStrainParallelToBond(double OldLocalElasticContactForce[3],
                                                               double LocalElasticExtraContactForce[3],
+                                                              array_1d<double, 3>& OldElasticExtraContactForce,
                                                               double LocalCoordSystem[3][3],
                                                               const double kt_el,
                                                               const double calculation_area,

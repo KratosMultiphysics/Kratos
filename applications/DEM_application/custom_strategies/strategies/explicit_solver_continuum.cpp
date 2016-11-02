@@ -626,6 +626,20 @@ namespace Kratos {
         }
 
         r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION] = maximum_across_threads;
+        
+        const double ratio = r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]/r_process_info[SEARCH_TOLERANCE];
+        const double max_ratio = r_process_info[MAX_AMPLIFICATION_RATIO_OF_THE_SEARCH_RADIUS];
+        if(ratio > max_ratio) {
+            std::cout<<std::endl;
+            std::cout<<"************************************************************************"<<std::endl;
+            std::cout<<"WARNING! The automatic extension of the search radius, based on mechanical"<<std::endl;
+            std::cout<<"reasons, is trying to extend more than "<<max_ratio<<" times the "<<std::endl;
+            std::cout<<"previously set search radius!"<<std::endl;
+            std::cout<<"Some bonds might break for search reasons instead of mechanical reasons."<<std::endl;
+            std::cout<<"The ratio is limited to that value ("<<max_ratio<<" times by the input "<<std::endl;
+            std::cout<<"variable 'MaxAmplificationRatioOfSearchRadius'"<<std::endl;
+            std::cout<<"************************************************************************"<<std::endl;
+        }
 
         KRATOS_CATCH("")
     }
