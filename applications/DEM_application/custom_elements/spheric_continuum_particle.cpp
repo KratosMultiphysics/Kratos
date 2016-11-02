@@ -781,8 +781,8 @@ namespace Kratos {
         array_1d<double, 3> velocity = continuum_particle->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
         double velocity_module = 1.0; //sqrt(velocity[0] * velocity[0] + velocity[1] * velocity[1] * velocity[2] * velocity[2]); // This would correspond to a quadratic drag law
         
-        double water_level = 0.225; //  0.0; // Should go to problem type
-        double Cd = 3.0; //2.0; // Should go to problem type
+        double water_level = 5.0; //0.225; //  0.0; // Should go to problem type
+        double Cd = 2.0; //3.0; // Should go to problem type
         
         // Adding buoyancy and drag. Now a linear (with the velocity) drag law is implemented
         if (Z_coord < water_level) {
