@@ -271,14 +271,16 @@ public:
 	      // if(numboundary>=nds-1)
 	      // 	Alpha*=1.8;
 
-	      if(numboundary>nds){
-	      	Alpha*=1.05;
-	      }
+	      // if(numboundary>nds){
+	      // 	Alpha*=1.05;
+	      // }
 
-	      if(numrigid>0 && numfreesurf==0){
-	      	Alpha*=1.1;
-	      }
-
+	      // if(numrigid>0 && numfreesurf==0){
+	      // 	Alpha*=1.1;
+	      // }
+	      // if(numfreesurf==0){
+	      // 	Alpha*=1.1;
+	      // }
 	      // std::cout<<" vertices for the contact element "<<std::endl;
 	      // for( unsigned int n=0; n<nds; n++)
 	      // 	{

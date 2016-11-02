@@ -429,7 +429,7 @@ private:
     double size_for_distance_boundary     = 1.25  * size_for_distance_inside; //compared to element radius
     double size_for_wall_tip_contact_side = 0.15 * mrRemesh.Refine->CriticalSide;
     size_for_distance_inside       = 0.6 * initialMeanRadius;//compared to element radius
-    size_for_distance_boundary     = 0.5 * initialMeanRadius; //compared to element radius
+    size_for_distance_boundary     = 0.6 * initialMeanRadius; //compared to element radius
     size_for_wall_tip_contact_side = 0.15 * mrRemesh.Refine->CriticalSide;
 
  

@@ -1066,6 +1066,22 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
 
 
 
+
+  template< unsigned int TDim >
+  void TwoStepUpdatedLagrangianVPElement<TDim>::GetMeanAcceleration(Vector& meanAcceleration,
+								    const int Step)
+  {
+    GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    double count=0;
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+	meanAcceleration+=rGeom[i].FastGetSolutionStepValue(ACCELERATION,Step);
+	count+=1.0;
+      }
+    meanAcceleration*=1.0/count;
+  }
+
   template< >
   void TwoStepUpdatedLagrangianVPElement<2>::GetAccelerationValues(Vector& rValues,
 								   const int Step)
@@ -1138,7 +1154,6 @@ void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateDeltaPosition(Matrix & rD
 
 
     double ElemSize =0;
-    // calculate minimum element length (used in stabilization Tau)
     array_1d<double,3> Edge(3,0.0);
     Edge = rGeom[1].Coordinates() - rGeom[0].Coordinates();
     double Length = Edge[0]*Edge[0];
@@ -1613,17 +1628,27 @@ void TwoStepUpdatedLagrangianVPElement<2>::CalcNormalProjectionsForBoundRHSVecto
 										  double& NormalAcceleration,
 										  double& NormalProjSpatialDefRate)
 {
-  array_1d<double, 3>  NormalA;
+  array_1d<double, 3>  NormalA(3,0.0);
   NormalA.clear();
-  array_1d<double, 3>  NormalB;
-  NormalB.clear();
-  array_1d<double, 3>  NormalMean;
+  array_1d<double, 3>  NormalMean(3,0.0);
   NormalMean.clear();
-  VectorType LastAccValues = ZeroVector(2);
-  this->GetAccelerationValues(LastAccValues,0);
+  VectorType MeanAcceleration = ZeroVector(2);
+  this->GetMeanAcceleration(MeanAcceleration,0);
   GeometryType& rGeom = this->GetGeometry();
 
-  if((rGeom[0].Is(FREE_SURFACE) || rGeom[0].Is(RIGID) ) && (rGeom[1].Is(FREE_SURFACE)  || rGeom[1].Is(RIGID)) && !(rGeom[0].Is(RIGID) && rGeom[1].Is(RIGID)) ){
+  if(rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(FREE_SURFACE)){
+    NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
+    NormalA    += rGeom[1].FastGetSolutionStepValue(NORMAL);
+    NormalMean = NormalA*0.5;
+  }else if(rGeom[0].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE)){
+    NormalA    = rGeom[2].FastGetSolutionStepValue(NORMAL);
+    NormalA    += rGeom[0].FastGetSolutionStepValue(NORMAL);
+    NormalMean = NormalA*0.5;
+  }else if(rGeom[1].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE)){
+    NormalA    = rGeom[1].FastGetSolutionStepValue(NORMAL);
+    NormalA    += rGeom[2].FastGetSolutionStepValue(NORMAL);
+    NormalMean = NormalA*0.5;
+  }else  if((rGeom[0].Is(FREE_SURFACE) || rGeom[0].Is(RIGID) ) && (rGeom[1].Is(FREE_SURFACE)  || rGeom[1].Is(RIGID)) && !(rGeom[0].Is(RIGID) && rGeom[1].Is(RIGID)) ){
     NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
     NormalA    += rGeom[1].FastGetSolutionStepValue(NORMAL);
     NormalMean = NormalA*0.5;
@@ -1637,8 +1662,8 @@ void TwoStepUpdatedLagrangianVPElement<2>::CalcNormalProjectionsForBoundRHSVecto
     NormalMean = NormalA*0.5;
   }
 
-  NormalAcceleration=NormalMean[0]*LastAccValues[0]+NormalMean[1]*LastAccValues[1];
-
+  NormalAcceleration=NormalMean[0]*MeanAcceleration[0]+NormalMean[1]*MeanAcceleration[1];
+ 
   NormalProjSpatialDefRate=NormalMean[0]*SpatialDefRate[0]*NormalMean[0]+
     NormalMean[1]*SpatialDefRate[1]*NormalMean[1]+
     2*NormalMean[0]*SpatialDefRate[2]*NormalMean[1];
@@ -1653,13 +1678,12 @@ void TwoStepUpdatedLagrangianVPElement<3>::CalcNormalProjectionsForBoundRHSVecto
 {
   array_1d<double, 3>  NormalA;
   NormalA.clear();
-  array_1d<double, 3>  NormalB;
-  NormalB.clear();
   array_1d<double, 3>  NormalMean;
   NormalMean.clear();
-  VectorType LastAccValues = ZeroVector(3);
-  this->GetAccelerationValues(LastAccValues,0);
   GeometryType& rGeom = this->GetGeometry();
+
+  VectorType MeanAcc = ZeroVector(3);
+  this->GetMeanAcceleration(MeanAcc,0);
 
   const SizeType NumNodes = this->GetGeometry().PointsNumber();
   uint numBoundary=0;
@@ -1744,7 +1768,7 @@ void TwoStepUpdatedLagrangianVPElement<3>::CalcNormalProjectionsForBoundRHSVecto
   //   NormalMean = NormalA*0.333333333333;
   // }
 
-    NormalAcceleration=NormalMean[0]*LastAccValues[0]+NormalMean[1]*LastAccValues[1]+NormalMean[2]*LastAccValues[2];
+    NormalAcceleration=NormalMean[0]*MeanAcc[0]+NormalMean[1]*MeanAcc[1]+NormalMean[2]*MeanAcc[2];
     
     NormalProjSpatialDefRate=NormalMean[0]*SpatialDefRate[0]*NormalMean[0]+
       NormalMean[1]*SpatialDefRate[1]*NormalMean[1]+
@@ -2010,15 +2034,13 @@ bool TwoStepUpdatedLagrangianVPElement<TDim>::CheckSliverElements()
 
 	if( this->GetGeometry()[i].SolutionStepsDataHas(VOLUME_ACCELERATION) ){ // it must be checked once at the begining only
 	  array_1d<double, 3 >& VolumeAcceleration = this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-
 	  // Build RHS
 	  for (SizeType d = 0; d < TDim; ++d)
 	    {
 	      // Body force
-	      // double RHSi = Density * rN[i] * rBodyForce[d];
 	      double RHSi = 0;
-	      RHSi =  Density * rN[i] * VolumeAcceleration[d];
- 
+	       RHSi =  Density * rN[i] * VolumeAcceleration[d];
+
 	      rRHSVector[FirstRow+d] += Weight * RHSi;
 	    }
 
