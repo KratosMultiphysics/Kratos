@@ -804,17 +804,17 @@ public:
                         const array_1d<double,3>        nodal_normal = CondGeometry[node_it].GetValue(NORMAL); 
                         const double lambda_n = inner_prod(lagrange_multiplier, nodal_normal);
 
-                        const double augmented_normal_presssure = lambda_n - cn * CondGeometry[node_it].GetValue(WEIGHTED_GAP);
+                        const double augmented_normal_presssure = lambda_n + cn * CondGeometry[node_it].GetValue(WEIGHTED_GAP);                    
                         
-                        if (augmented_normal_presssure <= 0.0)
-                        {
-                            CondGeometry[node_it].Set(ACTIVE, false);
-                            CondGeometry[node_it].GetSolutionStepValue( IS_ACTIVE_SET ) = false;
-                        }
-                        else
+                        if (augmented_normal_presssure < 0.0) // NOTE: This could be conflictive (< or <=)
                         {
                             CondGeometry[node_it].Set(ACTIVE, true);
                             CondGeometry[node_it].GetSolutionStepValue( IS_ACTIVE_SET ) = true;
+                        }
+                        else
+                        {
+                            CondGeometry[node_it].Set(ACTIVE, false);
+                            CondGeometry[node_it].GetSolutionStepValue( IS_ACTIVE_SET ) = false;
                         }
                         
                         const array_1d<double, 3> nodal_tangent_xi  = CondGeometry[node_it].GetValue(TANGENT_XI); 
@@ -850,7 +850,7 @@ public:
      * @return The modelparts with the nodes changed
      */
     
-    static inline void ResetWeightedGapSlip(ModelPart & rModelPart)
+    static inline void ResetVisited(ModelPart & rModelPart)
     {
         NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
         
@@ -864,9 +864,6 @@ public:
             if (itNode->Is(SLAVE))
             {   
                 itNode->Set(VISITED, false);
-                itNode->GetValue(WEIGHTED_GAP)      = 0.0;
-                itNode->GetValue(WEIGHTED_SLIP)     = 0.0;
-                itNode->GetValue(WEIGHTED_FRICTION) = 0.0;
             }
         }
     }
