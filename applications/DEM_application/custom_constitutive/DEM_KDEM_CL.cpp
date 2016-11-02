@@ -266,12 +266,12 @@ namespace Kratos {
         LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - kt_el * LocalDeltDisp[1]; // 1: second tangential
         
         if (r_process_info[SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION]) {
-        AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce, LocalElasticExtraContactForce, LocalCoordSystem, kt_el, calculation_area,  element1, element2);
+            AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce, LocalElasticExtraContactForce, LocalCoordSystem, kt_el, calculation_area,  element1, element2);
         }
         
         double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
-                                  + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
-            
+                                  + LocalElasticContactForce[1] * LocalElasticContactForce[1]);        
+        
         if (failure_type == 0) { // This means it has not broken 
             Properties& element1_props = element1->GetProperties();
             Properties& element2_props = element2->GetProperties();
@@ -358,7 +358,7 @@ namespace Kratos {
         const double equivalent_radius = sqrt(calculation_area / KRATOS_M_PI);
         const double Inertia_I = 0.25 * KRATOS_M_PI * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
         const double Inertia_J = 2.0 * Inertia_I; // This is the polar inertia
-        const double debugging_rotational_factor = 1.0; // Hardcoded only for testing purposes. Obviously, this parameter should be always 1.0
+        const double debugging_rotational_factor = 5.0; //1.0; // Hardcoded only for testing purposes. Obviously, this parameter should be always 1.0
                         
         const double element_mass  = element->GetMass();
         const double neighbor_mass = neighbor->GetMass();
@@ -405,6 +405,9 @@ namespace Kratos {
     void DEM_KDEM::AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, 
                                           double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1,
                                           SphericContinuumParticle* element2, const ProcessInfo& r_process_info) {
+        
+        if (!r_process_info[POISSON_EFFECT_OPTION]) return;
+        
         double force[3];
         Matrix average_stress_tensor = ZeroMatrix(3,3);
         
@@ -437,10 +440,8 @@ namespace Kratos {
                          force[2] * LocalCoordSystem[1][2]; // projection to normal to obtain value of the normal stress
 
         double poisson_force = calculation_area * equiv_poisson * (sigma_x + sigma_y);
-        
-        int poisson_effect_factor = r_process_info[POISSON_EFFECT_OPTION];
-        
-        normal_force -= poisson_effect_factor * poisson_force;
+
+        normal_force -= poisson_force;
     
     } //AddPoissonContribution
     
