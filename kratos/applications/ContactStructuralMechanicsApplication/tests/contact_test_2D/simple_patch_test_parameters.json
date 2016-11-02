@@ -95,8 +95,8 @@
             "destination_model_part_name" : "Parts_Parts_Auto2",
             "contact_type"                : "MortarMethod",
             "search_factor"               : 2.0,
-            "augmentation_normal"         : 0.0002,
-            "augmentation_tangent"        : 0.0002,
+            "augmentation_normal"         : 0.0e0,
+            "augmentation_tangent"        : 0.0e0,
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
             "integration_order"           : 5
@@ -119,7 +119,7 @@
             "skin_output"         : false,
             "plane_output"        : [],
             "nodal_results"       : ["DISPLACEMENT","REACTION","VECTOR_LAGRANGE_MULTIPLIER"],
-            "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","VON_MISES_STRESS","NORMAL_CONTACT_STRESS","TANGENTIAL_CONTACT_STRESS", "GAP_GP", "SLIP_GP"]
+            "gauss_point_results" : ["NORMAL_CONTACT_STRESS_GP","TANGENTIAL_CONTACT_STRESS_GP", "GAP_GP", "SLIP_GP"]
         },
         "point_data_configuration"  : []
     },

@@ -34,8 +34,8 @@ class ContactProcess(KratosMultiphysics.Process):
             "search_factor"               : 1.5,
             "active_check_factor"         : 0.01,
             "max_number_results"          : 1000,
-            "augmentation_normal"         : 1.0e0,
-            "augmentation_tangent"        : 1.0e0,
+            "augmentation_normal"         : 0.0e0,
+            "augmentation_tangent"        : 0.0e0,
             "type_search"                 : "InRadius",
             "integration_order"           : 5
         }

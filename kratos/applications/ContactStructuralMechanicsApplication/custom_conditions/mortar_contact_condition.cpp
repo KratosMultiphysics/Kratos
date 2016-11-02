@@ -1887,7 +1887,7 @@ double MortarContactCondition::AugmentedNormalLM(
         const array_1d<double, 2> normal_gp = prod(trans(rContactData.NormalsSlave), rVariables.N_Slave);
         
         // The LM in the tangent direction
-        augmented_normal_lm  = inner_prod(normal_gp, lm_gp) - rContactData.epsilon_normal * integration_point_gap;
+        augmented_normal_lm  = inner_prod(normal_gp, lm_gp) + rContactData.epsilon_normal * integration_point_gap;
     }
     else // If it is not 2D it is 3D
     {
@@ -1898,7 +1898,7 @@ double MortarContactCondition::AugmentedNormalLM(
         const array_1d<double, 3> normal_gp = prod(trans(rContactData.NormalsSlave), rVariables.N_Slave);
             
         // The LM in the tangent direction
-        augmented_normal_lm  = inner_prod(normal_gp, lm_gp) - rContactData.epsilon_normal * integration_point_gap;
+        augmented_normal_lm  = inner_prod(normal_gp, lm_gp) + rContactData.epsilon_normal * integration_point_gap;
     }
                 
     return augmented_normal_lm;
