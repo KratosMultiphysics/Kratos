@@ -629,7 +629,11 @@ namespace Kratos {
         
         const double ratio = r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]/r_process_info[SEARCH_TOLERANCE];
         const double max_ratio = r_process_info[MAX_AMPLIFICATION_RATIO_OF_THE_SEARCH_RADIUS];
-        if(ratio > max_ratio) {
+        
+        static unsigned int counter = 0;
+        unsigned int maximum_number_of_prints = 500;
+        
+        if ((ratio > max_ratio) && (counter <= maximum_number_of_prints)) {
             std::cout<<std::endl;
             std::cout<<"************************************************************************"<<std::endl;
             std::cout<<"WARNING! The automatic extension of the search radius, based on mechanical"<<std::endl;
@@ -640,6 +644,8 @@ namespace Kratos {
             std::cout<<"variable 'MaxAmplificationRatioOfSearchRadius'"<<std::endl;
             std::cout<<"************************************************************************"<<std::endl;
         }
+        
+        ++counter;
 
         KRATOS_CATCH("")
     }
