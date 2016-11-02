@@ -108,7 +108,6 @@ namespace Kratos
         std::vector<int> mIniNeighbourFailureId;
         std::vector<double> mIniNeighbourDelta;
 
-
         unsigned int mContinuumInitialNeighborsSize;
         unsigned int mInitialNeighborsSize;
         std::vector<Kratos::DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;

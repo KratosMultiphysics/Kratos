@@ -81,6 +81,18 @@ namespace Kratos {
     double* PropertiesProxy::pGetParticleGamma()                                              { return  mParticleGamma;                      }
     void    PropertiesProxy::SetParticleGammaFromProperties(double* particle_gamma)           { mParticleGamma = particle_gamma;             }
     
+    double  PropertiesProxy::GetContactSigmaMin()                                               { return *mContactSigmaMin;                      }
+    double* PropertiesProxy::pGetContactSigmaMin()                                              { return  mContactSigmaMin;                      }
+    void    PropertiesProxy::SetContactSigmaMinFromProperties(double* contact_sigma_min)        { mContactSigmaMin = contact_sigma_min;          }
+    
+    double  PropertiesProxy::GetContactTauZero()                                               { return *mContactTauZero;                      }
+    double* PropertiesProxy::pGetContactTauZero()                                              { return  mContactTauZero;                      }
+    void    PropertiesProxy::SetContactTauZeroFromProperties(double* contact_tau_zero)         { mContactTauZero = contact_tau_zero;           }
+       
+    double  PropertiesProxy::GetContactInternalFricc()                                               { return *mContactInternalFricc;                  }
+    double* PropertiesProxy::pGetContactInternalFricc()                                              { return  mContactInternalFricc;                  }
+    void    PropertiesProxy::SetContactInternalFriccFromProperties(double* contact_internal_fricc)   { mContactInternalFricc = contact_internal_fricc; }
+    
     PropertiesProxy PropertiesProxy::operator= (PropertiesProxy props) {
           
         mId                       = props.GetId();
@@ -188,6 +200,14 @@ namespace Kratos {
             aux_pointer = &(props_it->GetValue(GAMMA));
             vector_of_proxies[properties_counter].SetParticleGammaFromProperties(aux_pointer);
             
+            aux_pointer = &(props_it->GetValue(CONTACT_SIGMA_MIN));
+            vector_of_proxies[properties_counter].SetContactSigmaMinFromProperties(aux_pointer);    
+            
+            aux_pointer = &(props_it->GetValue(CONTACT_TAU_ZERO));
+            vector_of_proxies[properties_counter].SetContactTauZeroFromProperties(aux_pointer);    
+            
+            aux_pointer = &(props_it->GetValue(CONTACT_INTERNAL_FRICC));
+            vector_of_proxies[properties_counter].SetContactInternalFriccFromProperties(aux_pointer);
             
             properties_counter++;
         }      

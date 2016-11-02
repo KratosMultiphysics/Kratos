@@ -115,9 +115,9 @@ namespace Kratos {
         double kn_el = equiv_young * calculation_area / initial_dist;
 
         if (&element1_props == &element2_props) {
-            mTensionLimit = element1_props[CONTACT_SIGMA_MIN]*1e6;
+            mTensionLimit = element1->GetFastProperties()->GetContactSigmaMin()*1e6;
         } else {
-            mTensionLimit = 0.5*1e6*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]);
+            mTensionLimit = 0.5*1e6*(element1->GetFastProperties()->GetContactSigmaMin() + element2->GetFastProperties()->GetContactSigmaMin());
         }
 
         const double Ntstr_el = mTensionLimit * calculation_area;
@@ -224,7 +224,7 @@ namespace Kratos {
         else { //tension   
             int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
             if (failure_type == 0) {  
-                double mTensionLimit = 0.5 * 1e6 * (element1->GetProperties()[CONTACT_SIGMA_MIN] + element2->GetProperties()[CONTACT_SIGMA_MIN]); //N/m2
+                double mTensionLimit = 0.5 * 1e6 * (element1->GetFastProperties()->GetContactSigmaMin() + element2->GetFastProperties()->GetContactSigmaMin()); //N/m2
                 const double limit_force = mTensionLimit * calculation_area;
                 LocalElasticContactForce[2] = kn_el * indentation;
                 if (fabs(LocalElasticContactForce[2]) > limit_force) {          
@@ -266,17 +266,17 @@ namespace Kratos {
         LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - kt_el * LocalDeltDisp[1]; // 1: second tangential
         
         if (r_process_info[SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION]) {
-            AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce, LocalElasticExtraContactForce, LocalCoordSystem, kt_el, calculation_area,  element1, element2);
+            AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce, LocalElasticExtraContactForce, element1->mNeighbourElasticExtraContactForces[i_neighbour_count], LocalCoordSystem, kt_el, calculation_area,  element1, element2);
         }
         
         double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
                                   + LocalElasticContactForce[1] * LocalElasticContactForce[1]);        
         
         if (failure_type == 0) { // This means it has not broken 
-            Properties& element1_props = element1->GetProperties();
-            Properties& element2_props = element2->GetProperties();
-            const double mTauZero = 0.5 * 1e6 * (element1_props[CONTACT_TAU_ZERO] + element2_props[CONTACT_TAU_ZERO]);
-            const double mInternalFriction = 0.5 * (element1_props[CONTACT_INTERNAL_FRICC] + element2_props[CONTACT_INTERNAL_FRICC]);
+            //Properties& element1_props = element1->GetProperties();
+            //Properties& element2_props = element2->GetProperties();
+            const double mTauZero = 0.5 * 1e6 * (element1->GetFastProperties()->GetContactTauZero() + element2->GetFastProperties()->GetContactTauZero());
+            const double mInternalFriction = 0.5 * (element1->GetFastProperties()->GetContactInternalFricc() + element2->GetFastProperties()->GetContactInternalFricc());
 
             contact_tau = ShearForceNow / calculation_area;
             contact_sigma = LocalElasticContactForce[2] / calculation_area;
@@ -447,39 +447,71 @@ namespace Kratos {
     
     void DEM_KDEM::AddContributionOfShearStrainParallelToBond(double OldLocalElasticContactForce[3],
                                                               double LocalElasticExtraContactForce[3],
+                                                              array_1d<double, 3>& OldElasticExtraContactForce,
                                                               double LocalCoordSystem[3][3],
                                                               const double kt_el,
                                                               const double calculation_area,
                                                               SphericContinuumParticle* element1, 
                                                               SphericContinuumParticle* element2) {
         
-        if (element1->mSymmStressTensor == NULL /*|| element1->mOldSymmStressTensor == NULL*/) return; 
-        if(element1->IsSkin() || element2->IsSkin()) return;
-        
-        
+        if (element1->mSymmStressTensor == NULL) return; 
+        if(element1->IsSkin() || element2->IsSkin()) return;               
         
         double average_stress_tensor[3][3];
  
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                average_stress_tensor[i][j]     = 0.5 * ((*(element1->mSymmStressTensor   ))(i,j) + (*(element2->mSymmStressTensor   ))(i,j));
+                average_stress_tensor[i][j]     = 0.5 * ((*(element1->mSymmStressTensor))(i,j) + (*(element2->mSymmStressTensor))(i,j));
             }
         }
         
         double current_sigma_local[3][3];
-        GeometryFunctions::TensorGlobal2Local(LocalCoordSystem, average_stress_tensor, current_sigma_local);                
-              
-        const double current_tangential_stress1 = current_sigma_local[0][2];
-        const double current_tangential_stress2 = current_sigma_local[1][2]; 
-                        
-        LocalElasticExtraContactForce[0] -= calculation_area * current_tangential_stress1;
-        LocalElasticExtraContactForce[1] -= calculation_area * current_tangential_stress2;                
+        GeometryFunctions::TensorGlobal2Local(LocalCoordSystem, average_stress_tensor, current_sigma_local); 
         
-        double tangential_delta_acumulated_0 = OldLocalElasticContactForce[0] / kt_el;
-        double tangential_delta_acumulated_1 = OldLocalElasticContactForce[1] / kt_el;
-                
-        LocalElasticExtraContactForce[0] += kt_el * tangential_delta_acumulated_0;
-        LocalElasticExtraContactForce[1] += kt_el * tangential_delta_acumulated_1;
+        array_1d<double, 3> OldLocalElasticExtraContactForce;
+        GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, OldElasticExtraContactForce, OldLocalElasticExtraContactForce);
+        
+        
+        
+        double force_due_to_stress0 = calculation_area * current_sigma_local[0][2];
+        double force_due_to_stress1 = calculation_area * current_sigma_local[1][2];
+                                                
+        LocalElasticExtraContactForce[0] = -OldLocalElasticContactForce[0] + force_due_to_stress0;
+        if(fabs(LocalElasticExtraContactForce[0]) > fabs(force_due_to_stress0) ) {
+            LocalElasticExtraContactForce[0] = LocalElasticExtraContactForce[0] / fabs(LocalElasticExtraContactForce[0]) * fabs(force_due_to_stress0);
+        }
+        
+        LocalElasticExtraContactForce[1] = -OldLocalElasticContactForce[1] + force_due_to_stress1;
+        if(fabs(LocalElasticExtraContactForce[1]) > fabs(force_due_to_stress1) ) {
+            LocalElasticExtraContactForce[1] = LocalElasticExtraContactForce[1] / fabs(LocalElasticExtraContactForce[1]) * fabs(force_due_to_stress1);
+        }
+        
+        /*if(element1->Id()==8 && element2->Id()==13){
+            KRATOS_WATCH("***8 - 13*")
+            KRATOS_WATCH(average_stress_tensor[0][1])
+            KRATOS_WATCH(current_sigma_local[0][2])
+            KRATOS_WATCH(current_sigma_local[1][2])
+            KRATOS_WATCH(calculation_area)
+            KRATOS_WATCH(OldLocalElasticContactForce[0])
+            KRATOS_WATCH(OldLocalElasticExtraContactForce[0])
+            KRATOS_WATCH(calculation_area * current_sigma_local[0][2])
+            KRATOS_WATCH(OldLocalElasticContactForce[1])
+            KRATOS_WATCH(OldLocalElasticExtraContactForce[1])
+            KRATOS_WATCH(calculation_area * current_sigma_local[1][2])
+            KRATOS_WATCH(LocalElasticExtraContactForce[0])
+            KRATOS_WATCH(LocalElasticExtraContactForce[1])
+        }
+        if(element1->Id()==8 && element2->Id()==9){
+            KRATOS_WATCH("***8 - 9*")
+            KRATOS_WATCH(OldLocalElasticContactForce[0])
+            KRATOS_WATCH(OldLocalElasticExtraContactForce[0])
+            KRATOS_WATCH(calculation_area * current_sigma_local[0][2])
+            KRATOS_WATCH(OldLocalElasticContactForce[1])
+            KRATOS_WATCH(OldLocalElasticExtraContactForce[1])
+            KRATOS_WATCH(calculation_area * current_sigma_local[1][2])
+            KRATOS_WATCH(LocalElasticExtraContactForce[0])
+            KRATOS_WATCH(LocalElasticExtraContactForce[1])
+        }*/
     }
 
 } // namespace Kratos

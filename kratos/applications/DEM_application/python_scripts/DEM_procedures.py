@@ -345,6 +345,7 @@ class Procedures(object):
         if (Var_Translator(self.DEM_parameters.PostEulerAngles)):
             model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
+
         if ((hasattr(self.DEM_parameters, "PostStressStrainOption")) and self.DEM_parameters.PostStressStrainOption):
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_XX)
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_XY)
@@ -798,6 +799,8 @@ class DEMFEMProcedures(object):
         self.domain_size = self.DEM_parameters.Dimension
         #if (hasattr(self.DEM_parameters, "StressStrainOption")):
         #    self.stress_strain_option = Var_Translator(self.DEM_parameters.StressStrainOption)
+        if Var_Translator(self.DEM_parameters.PostStressStrainOption):
+            self.stress_strain_option = 1
 
         evaluate_computation_of_fem_results()
         

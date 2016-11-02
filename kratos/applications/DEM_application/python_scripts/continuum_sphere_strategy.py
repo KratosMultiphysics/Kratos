@@ -46,6 +46,11 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         self.amplified_continuum_search_radius_extension = Param.AmplifiedSearchRadiusExtension
         
+        if hasattr(Param, "MaxAmplificationRatioOfSearchRadius"):
+            self.max_amplification_ratio_of_search_radius = Param.MaxAmplificationRatioOfSearchRadius
+        else:
+            self.max_amplification_ratio_of_search_radius = 0.0
+            
         if not hasattr(Param, "PostPoissonRatio"):
             self.poisson_ratio_option = 0
         else:
@@ -72,6 +77,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         # ADDITIONAL VARIABLES AND OPTIONS
         self.spheres_model_part.ProcessInfo.SetValue(AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION, self.amplified_continuum_search_radius_extension)
+        self.spheres_model_part.ProcessInfo.SetValue(MAX_AMPLIFICATION_RATIO_OF_THE_SEARCH_RADIUS, self.max_amplification_ratio_of_search_radius)
         self.spheres_model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, self.contact_mesh_option)
 
         if ((self.test_type == "Triaxial") or (self.test_type == "Hydrostatic")):

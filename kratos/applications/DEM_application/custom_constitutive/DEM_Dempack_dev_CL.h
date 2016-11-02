@@ -71,6 +71,7 @@ namespace Kratos {
 
         void AddContributionOfShearStrainParallelToBond(double OldLocalElasticContactForce[3],
                                                     double LocalElasticExtraContactForce[3],
+                                                    array_1d<double, 3>& OldElasticExtraContactForce,
                                                     double LocalCoordSystem[3][3],
                                                     const double kt_el,
                                                     const double calculation_area,

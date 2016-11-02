@@ -188,6 +188,7 @@ std::vector< array_1d<double,3> > mConditionContactPoints;
 std::vector<array_1d<double, 3> > mNeighbourRigidFacesTotalContactForce;
 std::vector<array_1d<double, 3> > mNeighbourRigidFacesElasticContactForce;
 std::vector<array_1d<double, 3> > mNeighbourElasticContactForces;
+std::vector<array_1d<double, 3> > mNeighbourElasticExtraContactForces;
 
 virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
 virtual void MemberDeclarationFirstStep(const ProcessInfo& r_process_info);
