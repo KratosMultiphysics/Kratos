@@ -8,13 +8,38 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 # Python imports
 import time as timer
+init_time = timer.time()
 import os
+os.system('cls' if os.name == 'nt' else 'clear')
 import sys
+sys.path.append("/home/gcasas/kratos")
+
+class Logger(object):
+    def __init__(self):
+        self.terminal = sys.stdout
+        self.path_to_console_out_file = "console_output.txt"
+        self.log = open(self.path_to_console_out_file, "a")
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)  
+
+    def flush(self):
+        #this flush method is needed for python 3 compatibility.
+        #this handles the flush command by doing nothing.
+        #you might want to specify some extra behavior here.
+        pass    
+
+sys.stdout = Logger()
 import math
+
+#G
+from matplotlib import pyplot as plt
+import pylab
+#Z
 
 simulation_start_time = timer.clock()
 
-print(os.getcwd())
 # Kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.ExternalSolversApplication import *
@@ -30,7 +55,6 @@ sys.path.insert(0,'')
 import DEM_explicit_solver_var as DEM_parameters
 
 # import the configuration data as read from the GiD
-print(os.getcwd())
 import ProjectParameters as pp # MOD
 import define_output
 
@@ -64,25 +88,32 @@ else:
 # TO_DO: Ugly fix. Change it. I don't like this to be in the main...
 # Strategy object
 
-import sphere_strategy as SolverStrategy
+import swimming_sphere_strategy as SolverStrategy
 
-DEM_parameters.fluid_domain_volume                    = 0.04 * math.pi # write down the volume you know it has
+pp.CFD_DEM = DEM_parameters
+
 ##############################################################################
 #                                                                            #
 #    INITIALIZE                                                              #
 #                                                                            #
 ##############################################################################
-
 #G
-pp.CFD_DEM = DEM_parameters
-pp.CFD_DEM.faxen_terms_type = 1
-pp.CFD_DEM.material_acceleration_calculation_type = 1
-pp.CFD_DEM.basset_force_type = 1
+file_name, current_run_path = sys.argv
+sys.path.append(current_run_path)
+
+pp.CFD_DEM.recover_gradient_option = True
+pp.CFD_DEM.do_search_neighbours = False
+#pp.CFD_DEM.print_PRESSURE_GRADIENT_option = False
+DEM_parameters.fluid_domain_volume = 0.04 * math.pi # write down the volume you know it has
+pp.CFD_DEM.faxen_terms_type = 0
+pp.CFD_DEM.material_acceleration_calculation_type = 0
+pp.CFD_DEM.faxen_force_type = 0
+pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
+pp.CFD_DEM.basset_force_type = 4
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
 pp.CFD_DEM.basset_force_integration_type = 1
 pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 1
-pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
 pp.CFD_DEM.n_init_basset_steps = 0
 pp.CFD_DEM.time_steps_per_quadrature_step = 1
 pp.CFD_DEM.delta_time_quadrature = pp.CFD_DEM.time_steps_per_quadrature_step * pp.CFD_DEM.MaxTimeStep
@@ -90,20 +121,45 @@ pp.CFD_DEM.quadrature_order = 2
 pp.CFD_DEM.time_window = 0.5
 pp.CFD_DEM.number_of_exponentials = 8
 pp.CFD_DEM.number_of_quadrature_steps_in_window = 10
+pp.CFD_DEM.print_steps_per_plot_step = 1
+pp.CFD_DEM.PostCationConcentration = False
+pp.CFD_DEM.do_impose_flow_from_field = True
+pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
+pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = False
+number_of_vectors_to_be_kept_in_memory = pp.CFD_DEM.time_window / pp.CFD_DEM.MaxTimeStep * pp.CFD_DEM.time_steps_per_quadrature_step + pp.CFD_DEM.number_of_exponentials 
+print('\nNumber of vectors to be kept in memory: ', number_of_vectors_to_be_kept_in_memory)
+# Making the fluid step an exact multiple of the DEM step
+pp.Dt = int(pp.Dt / pp.CFD_DEM.MaxTimeStep) * pp.CFD_DEM.MaxTimeStep
+
+import chandelier_parameters as ch_pp
+import chandelier as ch
+# Creating a code for the used input variables
+run_code = ''
+if ch_pp.include_history_force:
+    run_code = '_H_Reference'
+else:
+    run_code = '_NH_Reference'
 #Z
 
-# Import utilities from models
+# Creating swimming DEM procedures
 procedures    = DEM_procedures.Procedures(DEM_parameters)
 
 # Creating necessary directories
 main_path = os.getcwd()
-[post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name))
+
+[post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name), run_code)
+
+# Import utilities from models
 
 demio         = DEM_procedures.DEMIo(DEM_parameters, post_path)
 report        = DEM_procedures.Report()
 parallelutils = DEM_procedures.ParallelUtils()
 materialTest  = DEM_procedures.MaterialTest()
  
+# Moving to the recently created folder
+os.chdir(main_path)
+swim_proc.CopyInputFilesIntoFolder(main_path, post_path)
+
 # Set the print function TO_DO: do this better...
 KRATOSprint   = procedures.KRATOSprint
 
@@ -190,7 +246,10 @@ dem_fem_search = DEM_FEM_Search()
 if DEM_parameters.IntegrationScheme == 'Forward_Euler':
     scheme = ForwardEulerScheme()
 elif DEM_parameters.IntegrationScheme == 'Symplectic_Euler':
-    scheme = SymplecticEulerScheme()
+    if pp.CFD_DEM.basset_force_type > 0:
+        scheme = SymplecticEulerOldVelocityScheme() 
+    else:
+    	scheme = SymplecticEulerScheme()
 elif DEM_parameters.IntegrationScheme == 'Taylor_Scheme':
     scheme = TaylorScheme()
 elif DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method':
@@ -206,7 +265,7 @@ if DEM_parameters.ElementType == "SwimmingNanoParticle":
     scheme = TerminalVelocityScheme()
 
 # Creating a solver object and set the search strategy
-solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
+solver = SolverStrategy.SwimmingStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
 
 # Add variables
 procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
@@ -286,9 +345,12 @@ for node in fluid_model_part.Nodes:
     y = node.GetSolutionStepValue(Y_WALL, 0)
     node.SetValue(Y_WALL, y)
 
-
+# Creating necessary directories
+main_path = os.getcwd()
+[post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name), run_code)
 
 os.chdir(main_path)
+swim_proc.CopyInputFilesIntoFolder(main_path, post_path)
 
 KRATOSprint("\nInitializing Problem...")
 
@@ -309,7 +371,7 @@ demio.Configure(DEM_parameters.problem_name,
 demio.SetOutputName(DEM_parameters.problem_name)
 
 os.chdir(post_path)
-solver.CreateCPlusPlusStrategy()
+
 demio.InitializeMesh(spheres_model_part,
                      rigid_face_model_part,
                      cluster_model_part,
@@ -335,8 +397,7 @@ if (DEM_parameters.BoundingBoxOption == "ON"):
 solver.search_strategy = parallelutils.GetSearchStrategy(solver, spheres_model_part)
 
 # Creating the fluid solver
-fluid_solver = solver_module.CreateSolver(
-    fluid_model_part, SolverSettings)
+fluid_solver = solver_module.CreateSolver(fluid_model_part, SolverSettings)
 
 Dt_DEM = DEM_parameters.MaxTimeStep
 
@@ -363,6 +424,7 @@ if(pp.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmaras"):
             node.SetSolutionStepValue(TURBULENT_VISCOSITY, 0, 0.0)
             node.Fix(TURBULENT_VISCOSITY)
 
+solver.CreateCPlusPlusStrategy()
 solver.Initialize()    # Possible modifications of DELTA_TIME
 
 fluid_solver.Initialize()
@@ -474,7 +536,7 @@ dem_physics_calculator = SphericElementGlobalPhysicsCalculator(spheres_model_par
 
 if DEM_parameters.coupling_level_type:
 
-    if DEM_parameters.meso_scale_length  <= 0.0 and spheres_model_part.NumberOfElements(0) > 0:
+    if DEM_parameters.meso_scale_length <= 0.0 and spheres_model_part.NumberOfElements(0) > 0:
         biggest_size = 2 * dem_physics_calculator.CalculateMaxNodalVariable(spheres_model_part, RADIUS)
         DEM_parameters.meso_scale_length  = 20 * biggest_size
 
@@ -486,6 +548,13 @@ if DEM_parameters.coupling_level_type:
 
 # creating a custom functions calculator for the implementation of additional custom functions
 custom_functions_tool = swim_proc.FunctionsCalculator(pp)
+
+# creating a derivative recovery tool to calculate the necessary derivatives from the fluid solution (gradient, laplacian, material acceleration...)
+derivative_recovery_tool = DerivativeRecoveryTool3D(fluid_model_part)
+
+# creating a basset_force tool to perform the operations associated with the calculation of this force along the path of each particle
+if pp.CFD_DEM.basset_force_type > 0:
+    basset_force_tool = swim_proc.BassetForceTools()
 
 # creating a stationarity assessment tool
 stationarity_tool = swim_proc.StationarityAssessmentTool(DEM_parameters.max_pressure_variation_rate_tol , custom_functions_tool)
@@ -574,13 +643,30 @@ def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
 ######################################################################################################################################
 
 # setting up loop counters: Counter(steps_per_tick_step, initial_step, active_or_inactive_boolean)
-embedded_counter             = swim_proc.Counter(1, 3, DEM_parameters.embedded_option)
-DEM_to_fluid_counter         = swim_proc.Counter(1, 1, DEM_parameters.coupling_level_type)
-pressure_gradient_counter    = swim_proc.Counter(1, 1, DEM_parameters.coupling_level_type or pp.pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
-stationarity_counter         = swim_proc.Counter(DEM_parameters.time_steps_per_stationarity_step , 1, DEM_parameters.stationary_problem_option)
-print_counter                = swim_proc.Counter(1, 1, out >= output_time)
-debug_info_counter           = swim_proc.Counter(DEM_parameters.debug_tool_cycle, 1, DEM_parameters.print_debug_info_option)
-particles_results_counter    = swim_proc.Counter(DEM_parameters.print_particles_results_cycle , 1, DEM_parameters.print_particles_results_option)
+embedded_counter             = swim_proc.Counter(1, 
+                                                 3, 
+                                                 DEM_parameters.embedded_option)  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
+DEM_to_fluid_counter         = swim_proc.Counter(1, 
+                                                 1, 
+                                                 DEM_parameters.coupling_level_type > 1)
+pressure_gradient_counter    = swim_proc.Counter(1, 
+                                                 1, 
+                                                 DEM_parameters.coupling_level_type or pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
+stationarity_counter         = swim_proc.Counter(DEM_parameters.time_steps_per_stationarity_step, 
+                                                 1, 
+                                                 DEM_parameters.stationary_problem_option)
+print_counter                = swim_proc.Counter(1, 
+                                                 1, 
+                                                 out >= output_time)
+debug_info_counter           = swim_proc.Counter(DEM_parameters.debug_tool_cycle, 
+                                                 1, 
+                                                 DEM_parameters.print_debug_info_option)
+particles_results_counter    = swim_proc.Counter(DEM_parameters.print_particles_results_cycle, 
+                                                 1, 
+                                                 DEM_parameters.print_particles_results_option)
+quadrature_counter           = swim_proc.Counter(pp.CFD_DEM.time_steps_per_quadrature_step, 
+                                                 1, 
+                                                 pp.CFD_DEM.print_BASSET_FORCE_option)
 #G
 
 ##############################################################################
@@ -619,8 +705,6 @@ import cmath
 import mpmath
 import matplotlib.pyplot as plt
 
-import chandelier_parameters as ch_pp
-import chandelier as ch
 sim = ch.AnalyticSimulator(ch_pp)
 
 # NODE HISTORY RESULTS BEGIN
@@ -647,6 +731,7 @@ while (time <= final_time):
     step += 1
     fluid_model_part.CloneTimeStep(time)
     print("\n", "TIME = ", time)
+    print('ELAPSED TIME = ', timer.time() - init_time)
     sys.stdout.flush()
 
     if DEM_parameters.coupling_scheme_type  == "UpdatedDEM":
@@ -664,15 +749,13 @@ while (time <= final_time):
         embedded.ApplyEmbeddedBCsToBalls(spheres_model_part, DEM_parameters)
 
     # solving the fluid part
-
     if step >= 3 and not stationarity:
-
         print("Solving Fluid... (", fluid_model_part.NumberOfElements(0), "elements )")
         sys.stdout.flush()
 
         if not pp.CFD_DEM.drag_force_type == 9:
             #fluid_solver.Solve()
-#G                     
+#G
             if pp.CFD_DEM.laplacian_calculation_type == 1 and VELOCITY_LAPLACIAN in pp.fluid_vars:                
                 print("\nSolving for the Laplacian...")
                 sys.stdout.flush()
@@ -713,19 +796,19 @@ while (time <= final_time):
         out = 0
 
     # solving the DEM part
-    pressure_gradient_counter.Deactivate(time < DEM_parameters.interaction_start_time)
+    pressure_gradient_counter.Deactivate(1 and time < DEM_parameters.interaction_start_time)
 
     if pressure_gradient_counter.Tick():
         if pp.CFD_DEM.gradient_calculation_type == 2:
-            custom_functions_tool.RecoverSuperconvergentGradient(fluid_model_part, PRESSURE, PRESSURE_GRADIENT)
+            derivative_recovery_tool.RecoverSuperconvergentGradient(fluid_model_part, PRESSURE, PRESSURE_GRADIENT)
         elif pp.CFD_DEM.gradient_calculation_type == 1:            
             custom_functions_tool.CalculatePressureGradient(fluid_model_part)            
         if pp.CFD_DEM.laplacian_calculation_type == 1:
-            custom_functions_tool.CalculateVectorLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
+            derivative_recovery_tool.CalculateVectorLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
         elif pp.CFD_DEM.laplacian_calculation_type == 2:
-            custom_functions_tool.RecoverSuperconvergentLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
+            derivative_recovery_tool.RecoverSuperconvergentLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
         if pp.CFD_DEM.material_acceleration_calculation_type == 1:
-            custom_functions_tool.CalculateVectorMaterialDerivative(fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)    
+            derivative_recovery_tool.CalculateVectorMaterialDerivative(fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)    
 
     print("Solving DEM... (", spheres_model_part.NumberOfElements(0), "elements )")
     sys.stdout.flush()
@@ -786,6 +869,7 @@ while (time <= final_time):
         # adding DEM elements by the inlet:
         if (DEM_parameters.dem_inlet_option):
             DEM_inlet.CreateElementsFromInletMesh(spheres_model_part, cluster_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.              
+        
         #first_dem_iter = False
 
     #### PRINTING GRAPHS ####
@@ -844,6 +928,21 @@ sys.stdout.flush()
 with open('exact_radii.txt','w') as f: 
     for i in range(len(radii)):
         f.write(str(times[i]) + ' ' + str(radii[i]) + '\n')
+os.chdir(main_path)
+sys.stdout.path_to_console_out_file
+os.rename(sys.stdout.path_to_console_out_file, post_path + '/' + sys.stdout.path_to_console_out_file)
+import shutil
+folder_name = post_path + '_FINISHED_AT_t=' + str(round(time, 1))
+try:
+    shutil.rmtree(folder_name)
+except OSError:
+    pass
 
+os.rename(post_path, folder_name)
+final_position_file = open(folder_name + "/final_position", 'w')
+final_position_file.write(str(x) + ' ' + str(y))
+final_position_file.close()
+from shutil import copyfile
+copyfile(folder_name + "/final_position", main_path + "/final_position")
 for i in drag_file_output_list:
     i.close()
