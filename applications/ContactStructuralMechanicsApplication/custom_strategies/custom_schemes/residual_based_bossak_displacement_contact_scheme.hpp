@@ -230,7 +230,7 @@ public:
         KRATOS_TRY;
 
         // It resets the weighted gap and slip 
-        ContactUtilities::ResetWeightedGapSlip(rModelPart);
+        ContactUtilities::ResetVisited(rModelPart);
         
         // Initializes the non-linear iteration for all the elements
         ElementsArrayType& rElements = rModelPart.Elements();
