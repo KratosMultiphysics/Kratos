@@ -463,7 +463,7 @@ namespace Kratos
 			{
 			  p_cond = pBoundaryCondition->Clone(ConditionId, FaceNodes);
 		      
-			  p_cond->Data() =pBoundaryCondition->Data();
+			  //p_cond->Data() = pBoundaryCondition->Data();
 		      
 			  WeakPointerVector< Element >& MasterElements = p_cond->GetValue(MASTER_ELEMENTS);
 			  MasterElements.push_back( Element::WeakPointer( *(ie.base()) ) );
@@ -575,7 +575,7 @@ namespace Kratos
 	    rConditionId +=1;
 
 	    Condition::Pointer p_cond = ic->Clone(rConditionId, FaceNodes);
-	    p_cond->Data() = ic->Data();
+	    //p_cond->Data() = ic->Data();
 
 	    mrModelPart.Conditions(MeshId).push_back(p_cond);
 	    //mrModelPart.Conditions(MeshId).push_back(ic->Clone(rConditionId,FaceNodes));

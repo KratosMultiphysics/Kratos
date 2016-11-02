@@ -277,14 +277,14 @@ class MechanicalSolver(object):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
 
-        if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] ==False ):
+        if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
             self.mechanical_solver.Initialize()
-
-    def Predict(self):
-        self.mechanical_solver.Predict()
 
     def InitializeSolutionStep(self):
         self.mechanical_solver.InitializeSolutionStep()
+
+    def Predict(self):
+        self.mechanical_solver.Predict()
 
     def SolveSolutionStep(self):
         self.mechanical_solver.SolveSolutionStep()

@@ -122,7 +122,9 @@ Element::Pointer TotalLagrangianElement::Clone( IndexType NewId, NodesArrayType 
     NewElement.mTotalDomainInitialSize = mTotalDomainInitialSize;
     NewElement.mDetJ0 = mDetJ0;
 
-        
+    NewElement.SetData(this->GetData());
+    NewElement.SetFlags(this->GetFlags());
+
     return Element::Pointer( new TotalLagrangianElement(NewElement) );
 }
 

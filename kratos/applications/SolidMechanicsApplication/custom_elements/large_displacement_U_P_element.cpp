@@ -101,6 +101,8 @@ Element::Pointer LargeDisplacementUPElement::Clone( IndexType NewId, NodesArrayT
 	  KRATOS_THROW_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() )
       }
     
+    NewElement.SetData(this->GetData());
+    NewElement.SetFlags(this->GetFlags());
        
     return Element::Pointer( new LargeDisplacementUPElement(NewElement) );
 }

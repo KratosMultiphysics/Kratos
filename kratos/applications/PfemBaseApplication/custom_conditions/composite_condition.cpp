@@ -62,6 +62,8 @@ CompositeCondition::CompositeCondition( CompositeCondition const& rOther)
 
   this->Set(BOUNDARY);
 
+  this->SetValue(CHILDREN_CONDITIONS, mChildConditions);
+
   mInitializedChildren = rOther.mInitializedChildren;
 
 }
@@ -137,6 +139,9 @@ Condition::Pointer CompositeCondition::Clone( IndexType NewId, NodesArrayType co
 	 //NewCompositeCondition.AddChild(*(cn.base())); //problems in split, previous geometry is preserved, clone is needed.
     }
 
+  NewCompositeCondition.SetData(this->GetData());
+  NewCompositeCondition.SetFlags(this->GetFlags());
+  
   return Condition::Pointer( new CompositeCondition(NewCompositeCondition) );
 }
 

@@ -119,6 +119,9 @@ Element::Pointer LinearSolidElement::Clone( IndexType NewId, NodesArrayType cons
 
     //-----------//
 
+    NewElement.SetData(this->GetData());
+    NewElement.SetFlags(this->GetFlags());
+
     return Element::Pointer( new LinearSolidElement(NewElement) );
 }
 

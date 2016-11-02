@@ -416,7 +416,7 @@ public:
       double   CriticalRadius;      //critical area   size
       double   CriticalSide;        //critical length size
 
-      double   MeanVolume;      //critical area   size
+      double   MeanVolume;          //critical area   size
       double   ReferenceThreshold;  //critical variable threshold value
       double   ReferenceError;      //critical error percentage
      

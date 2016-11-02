@@ -86,6 +86,10 @@ Condition::Pointer ForceLoadCondition::Clone( IndexType NewId, NodesArrayType co
   
   ForceLoadCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
+  NewCondition.SetData(this->GetData());
+  NewCondition.SetFlags(this->GetFlags());
+
+  
   return Condition::Pointer( new ForceLoadCondition(NewCondition) );
 }
 

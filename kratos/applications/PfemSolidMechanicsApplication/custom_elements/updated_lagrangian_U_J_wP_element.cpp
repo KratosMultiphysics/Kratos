@@ -125,6 +125,9 @@ namespace Kratos
 
       NewElement.mTimeStep = mTimeStep; 
 
+      NewElement.SetData(this->GetData());
+      NewElement.SetFlags(this->GetFlags());
+
       return Element::Pointer( new UpdatedLagrangianUJwPElement(NewElement) );
    }
 

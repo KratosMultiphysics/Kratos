@@ -121,6 +121,8 @@ Element::Pointer AxisymUpdatedLagrangianUPElement::Clone( IndexType NewId, Nodes
 
     NewElement.mDeterminantF0 = mDeterminantF0;
 
+    NewElement.SetData(this->GetData());
+    NewElement.SetFlags(this->GetFlags());
         
     return Element::Pointer( new AxisymUpdatedLagrangianUPElement(NewElement) );
 }

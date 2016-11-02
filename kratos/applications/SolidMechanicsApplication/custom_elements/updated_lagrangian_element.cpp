@@ -122,7 +122,8 @@ Element::Pointer UpdatedLagrangianElement::Clone( IndexType NewId, NodesArrayTyp
 
     NewElement.mDeterminantF0 = mDeterminantF0;
 
-    //std::cout<<" Clone variables Updated Lagrangian Element "<<std::endl;
+    NewElement.SetData(this->GetData());
+    NewElement.SetFlags(this->GetFlags());
         
     return Element::Pointer( new UpdatedLagrangianElement(NewElement) );
 }
