@@ -21,7 +21,7 @@ VelocityTrapOption               = 0
 RotationOption                   = "ON"
 CleanIndentationsOption          = "OFF"
 DeltaOption                      = "Absolute"
-SearchTolerance                  = 0.0
+SearchTolerance                  = 0.001
 CoordinationNumber               = 10
 AmplifiedSearchRadiusExtension   = 1.1
 ModelDataInfo                    = "OFF"
@@ -42,7 +42,7 @@ DeltaTimeSafetyFactor            = 1.0
 MaxTimeStep                      = 1e-5
 FinalTime                        = 0.01
 ControlTime                      = 100.0
-NeighbourSearchFrequency         = 1
+NeighbourSearchFrequency         = 1000
 
 # Material Test
 TestType                         = "None"
@@ -55,6 +55,7 @@ MeshPath                         = "0"
 SpecimenLength                   = 0.30
 SpecimenDiameter                 = 0.15
 MeasuringSurface                 = 0.01767145867644375
+MaxAmplificationRatioOfSearchRadius = 1000
 
 ElementType                      = "SphericContPartDEMElement3D"
 
