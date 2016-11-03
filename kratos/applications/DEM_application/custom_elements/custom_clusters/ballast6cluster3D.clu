@@ -54,11 +54,11 @@ Begin centers_and_radii
 -0.318587 0.128831 -0.11263 0.060335
 End centers_and_radii
 
-Particle_center
-0.000952256 0.0295931 0.0196852
+Particle_center_and_diameter
+0.000952256 0.0295931 0.0196852 1.38993
 
 Size
-1.38993
+0.931979
 
 Volume
 0.423855
