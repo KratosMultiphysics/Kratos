@@ -333,6 +333,13 @@ void ContactDomainPenalty2DCondition::CalculateExplicitFactors(GeneralVariables&
     rVariables.Contact.Options.Set(SLIP,false); //impose stick
 
 
+    //set contact normal
+    array_1d<double, 3> &ContactNormal  = GetGeometry()[slave].FastGetSolutionStepValue(CONTACT_NORMAL);
+	
+    for(unsigned int i=0; i<3; i++)
+      ContactNormal[i] = rVariables.Contact.CurrentSurface.Normal[i];
+    
+
     if(mContactVariables.IterationCounter < 1)
       mContactVariables.IterationCounter += 1;
 

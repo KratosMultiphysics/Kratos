@@ -742,6 +742,13 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
       // std::cout<<" Condition ["<<this->Id()<<"]:  Active "<<active<<" Effective GapN "<<EffectiveGapN<<" Multiplier.Normal "<<rVariables.Contact.Multiplier.Normal<<" CurrentTensil.N "<<rVariables.Contact.CurrentTensil.Normal<<" GapN "<<rVariables.Contact.CurrentGap.Normal<<" ReferenceGapN "<<ReferenceGapN<<" Tau "<<rVariables.Contact.ContactFactor.Normal<<" iteration "<<mContactVariables.IterationCounter<<std::endl;
     }
 
+    //set contact normal
+    array_1d<double, 3> &ContactNormal  = GetGeometry()[slave].FastGetSolutionStepValue(CONTACT_NORMAL);
+	
+    for(unsigned int i=0; i<3; i++)
+      ContactNormal[i] = rVariables.Contact.CurrentSurface.Normal[i];
+
+    
     if(mContactVariables.IterationCounter < 1)
       mContactVariables.IterationCounter += 1;
 

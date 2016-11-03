@@ -113,7 +113,9 @@ namespace Kratos
       KRATOS_TRY
 
       this->ClearContactConditions();
-	
+
+      this->ClearContactFlags();
+      
       //Update Boundary Normals before Contact Search   
       //(needed when meshing of the domains is not performed:
       // normal directions change with mesh movement)
@@ -135,13 +137,22 @@ namespace Kratos
       KRATOS_TRY
       
       // Add contact conditions
-      AddContactConditions();
+      this->AddContactConditions();
 
+      // Restore contact nodal flags
+      this->RestoreContactFlags();
+      
       // Renumerate conditions
-      RenumerateConditions();
+      this->RenumerateConditions();
 
+      // Clear Contact Forces
+      this->ClearContactForces();
+
+      // Clear Contact Normals
+      this->ClearContactNormals();
+
+      
       KRATOS_CATCH(" ")
-
     }
 
     ///@}
@@ -265,6 +276,94 @@ namespace Kratos
     ///@{
 
 
+
+    //**************************************************************************
+    //**************************************************************************
+
+    void ClearContactForces()
+    {
+      KRATOS_TRY
+
+     
+      ModelPart::NodesContainerType& rNodes = mrMainModelPart.Nodes();
+
+      // create contact condition for rigid and deformable bodies
+      for(ModelPart::NodesContainerType::ptr_iterator nd = rNodes.ptr_begin(); nd != rNodes.ptr_end(); ++nd)
+	{
+	  if( (*nd)->Is(BOUNDARY) && (*nd)->IsNot(CONTACT) ){
+	    array_1d<double, 3> & ContactForce  = (*nd)->FastGetSolutionStepValue(CONTACT_FORCE);
+	    ContactForce.clear();
+	  }
+
+	}
+                
+      KRATOS_CATCH( "" )
+	
+    }
+    
+    //**************************************************************************
+    //**************************************************************************
+
+    void ClearContactNormals()
+    {
+      KRATOS_TRY
+
+     
+      ModelPart::NodesContainerType& rNodes = mrMainModelPart.Nodes();
+
+      // create contact condition for rigid and deformable bodies
+      for(ModelPart::NodesContainerType::ptr_iterator nd = rNodes.ptr_begin(); nd != rNodes.ptr_end(); ++nd)
+	{
+	  if( (*nd)->Is(BOUNDARY) && (*nd)->IsNot(CONTACT) ){
+	    array_1d<double, 3> & ContactNormal  = (*nd)->FastGetSolutionStepValue(CONTACT_NORMAL);
+	    ContactNormal.clear();
+	  }
+
+	}
+                
+      KRATOS_CATCH( "" )
+	
+    }
+    
+    //**************************************************************************
+    //**************************************************************************
+
+    void ClearContactFlags ( )
+    {
+     KRATOS_TRY
+
+      for(ModelPart::NodesContainerType::iterator i_node = mrMainModelPart.NodesBegin(); i_node!= mrMainModelPart.NodesEnd(); i_node++)
+	{
+	  if( i_node->Is(CONTACT) ){
+	    i_node->Set(CONTACT,false);
+	  }
+	}
+
+      KRATOS_CATCH( "" )
+    }
+
+
+    //**************************************************************************
+    //**************************************************************************
+
+    void RestoreContactFlags ( )
+    {
+
+      KRATOS_TRY
+
+      for(ModelPart::ConditionsContainerType::iterator i_cond = mrMainModelPart.ConditionsBegin(); i_cond!= mrMainModelPart.ConditionsEnd(); i_cond++)
+	{
+	  if( i_cond->Is(CONTACT) ){
+	    for(unsigned int i=0; i<i_cond->GetGeometry().size(); i++)
+	      {
+		i_cond->GetGeometry()[i].Set(CONTACT,true);
+	      }
+	  }
+	}
+
+      KRATOS_CATCH( "" )
+    }
+    
     //**************************************************************************
     //**************************************************************************
 

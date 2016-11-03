@@ -441,7 +441,6 @@ void ContactDomainCondition::InitializeSolutionStep( ProcessInfo& rCurrentProces
     //4.- Clear possible residual forces from the mesh refining and interpolation:
     ClearMasterElementNodalForces( MasterElement );
 
-
     //5.- Calculate Contact Factor (stabilization or penalty)
     this->CalculateContactFactor( rCurrentProcessInfo );
 
@@ -491,6 +490,9 @@ void ContactDomainCondition::ClearNodalForces()
 	GetGeometry()[i].SetLock();
 	LocalVectorType & ContactForce  = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
 	ContactForce.clear();
+	LocalVectorType & ContactNormal  = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_NORMAL);
+	ContactNormal.clear();
+
 	GetGeometry()[i].UnSetLock();
     }
 

@@ -169,7 +169,7 @@ namespace Kratos
 	      for(unsigned int i=0; i<nds; i++)
 		{
 		  Vertices.push_back(mrModelPart.pGetNode(mrRemesh.NodalPreIds[OutElementList[el*nds+i]],mMeshId));
-		  Vertices.back().Set(CONTACT);	  
+		  Vertices.back().Set(CONTACT);
 		}
 	      
 	      id += 1;
