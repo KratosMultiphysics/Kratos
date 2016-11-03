@@ -317,6 +317,177 @@ public:
 
     //*******************************************************************************************
     //*******************************************************************************************
+
+    bool RefineBoundaryCondition(ConditionType::Pointer& pCondition, ProcessInfo& rCurrentProcessInfo)
+    {
+      KRATOS_TRY
+
+      bool refine_condition = false;
+      
+      //THRESHOLD VALUE INSERT
+      double size_for_threshold_face  = 1.50 * mrRemesh.Refine->CriticalSide; 
+
+      if ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY_ON_THRESHOLD) )
+	refine_condition = this->RefineOnThreshold(pCondition, rCurrentProcessInfo, size_for_threshold_face);
+
+      if( refine_condition )
+	return true;
+      
+      //DISTANCE VALUE INSERT
+      double size_for_boundary_face   = 3.50 * mrRemesh.Refine->CriticalSide;
+
+      if ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY_ON_DISTANCE) )
+	refine_condition = this->RefineOnDistance(pCondition, size_for_boundary_face);
+
+      if( refine_condition )
+	return true;
+     
+      return false;
+      
+      KRATOS_CATCH( "" )
+    }   
+
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+
+    bool RefineContactCondition(ConditionType::Pointer& pCondition, ProcessInfo& rCurrentProcessInfo)
+    {
+      KRATOS_TRY
+
+      if ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY_ON_DISTANCE) ){
+
+	bool refine_condition = false;
+	
+	bool contact_active      = false;
+	bool contact_semi_active = false;
+	std::vector<bool> semi_active_nodes;
+	
+	contact_active = mModelerUtilities.CheckContactActive(pCondition->GetGeometry(), contact_semi_active, semi_active_nodes);
+	
+	double factor = 3.50;
+	
+	if( contact_semi_active ){
+	
+	  bool curved_contact      = false;
+	  std::vector<array_1d<double,3> > contact_normals;
+	
+	  curved_contact = mModelerUtilities.CheckContactCurvature(pCondition->GetGeometry(), contact_normals);
+
+	  //FACTOR VALUE INSERT plane contact transition
+	  factor = 2.0;
+
+	  //FACTOR VALUE INSERT curved contact transition
+	  if( curved_contact )
+	    factor = 0.75;
+	  
+	  
+	  if( contact_active ){
+
+	    //FACTOR VALUE INSERT plane contact
+	    factor = 1.5;
+	    
+	    //FACTOR VALUE INSERT curved contact
+	    if( curved_contact )
+	      factor = 0.5;
+	  
+	  }
+	
+	}
+
+	double size_for_boundary_contact_face  = factor * mrRemesh.Refine->CriticalSide;
+	refine_condition = this->RefineOnDistance(pCondition, size_for_boundary_contact_face);
+	
+	if( refine_condition )
+	  return true;
+	
+      }
+      
+      return false;
+      
+      KRATOS_CATCH( "" )
+    }
+
+   //*******************************************************************************************
+    //*******************************************************************************************
+
+    bool SetNodalPosition(ConditionType::Pointer& pCondition, ProcessInfo& rCurrentProcessInfo, double& xc, double& yc, double& zc)
+    {
+      KRATOS_TRY
+
+      bool refine_condition = false;
+	
+      bool contact_active      = false;
+      bool contact_semi_active = false;
+      std::vector<bool> semi_active_nodes;
+	
+      contact_active = mModelerUtilities.CheckContactActive(pCondition->GetGeometry(), contact_semi_active, semi_active_nodes);
+	
+      double factor = 3.50;
+	
+      if( contact_semi_active ){
+	
+	bool curved_contact      = false;
+	std::vector<array_1d<double, 3> > contact_normals;
+	
+	curved_contact = mModelerUtilities.CheckContactCurvature(pCondition->GetGeometry(), contact_normals);
+
+	array_1d<double,3> normal_direction;
+	normal_direction.clear();
+
+	array_1d<double,3> tangent_direction;
+	tangent_direction.clear();
+	
+	//note:  what happens in 3D surface conditions: TO IMPLEMENT
+	// alternative: difference between a rotation of the normals and the projection on the inserted point normal
+	if( contact_normals.size() == 2 ){
+
+	  //compute the saggita
+	  double projection = 0.0;
+	  for( unsigned int i = 0; i<3; i++ )
+	    projection += contact_normals[0][i] * contact_normals[1][i];
+	 
+	  projection = std::sqrt(projection);
+
+	  double angle = std::acos(projection);
+
+	  double face_size = mModelerUtilities.CalculateBoundarySize(pCondition->GetGeometry());
+	  
+	  double sagitta = 0.5 * face_size * std::tan(0.25*angle);
+
+	  //correction vector according to contact curvature
+	  normal_direction = contact_normals[0] +  contact_normals[1];
+
+	  double modulus = norm_2(normal_direction);
+	  if( modulus )
+	    normal_direction /= modulus;
+
+	  normal_direction *= sagitta;
+
+	  //check correct curvature convexity
+	  tangent_direction = pCondition->GetGeometry()[0]-pCondition->GetGeometry()[1];
+	  modulus = norm_2(tangent_direction);
+	  if( modulus )
+	    tangent_direction /= modulus;
+
+	  //note:  two possible directions depending on the NORMAL_CONTACT definition
+	  if( inner_prod( contact_normals[0], tangent_direction) > 0 )
+	    normal_direction *= (-1.0);	     
+	}
+	
+
+	xc += normal_direction[0];
+	yc += normal_direction[1];
+	zc += normal_direction[2];
+
+      }
+      
+      KRATOS_CATCH( "" )
+    } 
+   
+   
+    //*******************************************************************************************
+    //*******************************************************************************************
    
     void SelectBoundaryToRefine(ModelPart& rModelPart)
     {
@@ -324,19 +495,7 @@ public:
       KRATOS_TRY
 	     
       ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-
-      //***SIZES :::: parameters do define the tolerance in mesh size: 
-
-      //THRESHOLD VALUE INSERT
-      double size_for_threshold_face  = 1.50 * mrRemesh.Refine->CriticalSide; 
-
-      //DISTANCE VALUE INSERT
-      double size_for_boundary_face   = 3.50 * mrRemesh.Refine->CriticalSide;
-
-
-      bool threshold_insert = false;
-      bool face_size_insert = false;
-      
+      bool refine_condition = false;
 
       //LOOP TO CONSIDER ALL SUBDOMAIN CONDITIONS
 
@@ -366,23 +525,21 @@ public:
 
 	  if( refine_candidate ){
 
-	    threshold_insert = false;
-	    face_size_insert = false;
-
-
 	    //double condition_radius = 0;
 	    if( i_cond->IsNot(TO_ERASE) ){
 
-	      if ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY_ON_THRESHOLD) )
-		threshold_insert = this->RefineOnThreshold(*(i_cond.base()), rCurrentProcessInfo, size_for_threshold_face);
+	      refine_condition = this->RefineBoundaryCondition(*(i_cond.base()), rCurrentProcessInfo);
+
+	      if( refine_condition ){
+		i_cond->Set(TO_REFINE);		
+	      }
+	      else{		
+		refine_condition = this->RefineContactCondition(*(i_cond.base()), rCurrentProcessInfo);
 	      
-					
-	      if ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY_ON_DISTANCE) )
-		face_size_insert = this->RefineOnDistance(*(i_cond.base()), size_for_boundary_face);
-
-	      if( threshold_insert || face_size_insert )
-		i_cond->Set(TO_REFINE);
-
+		if( refine_condition )
+		  i_cond->Set(TO_REFINE);
+	      }
+	      
 	    }
 	    else{
 	      if( this->mEchoLevel > 0 )
@@ -396,13 +553,14 @@ public:
       KRATOS_CATCH( "" )
     }
 
-
     //*******************************************************************************************
     //*******************************************************************************************
 
     void GenerateNewNodes(ModelPart& rModelPart, std::vector<NodeType::Pointer>& list_of_nodes, std::vector<ConditionType::Pointer>& list_of_conditions)
     {
       KRATOS_TRY
+
+      ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
       MeshDataTransferUtilities DataTransferUtilities;
       
@@ -454,6 +612,8 @@ public:
 								      xc,yc,zc,radius);
 
 
+	      this->SetNodalPosition(*(i_cond.base()), rCurrentProcessInfo, xc, yc, zc);
+	      
 	      //create a new node
 	      pNode = boost::make_shared< NodeType >( id, xc, yc, zc );
 

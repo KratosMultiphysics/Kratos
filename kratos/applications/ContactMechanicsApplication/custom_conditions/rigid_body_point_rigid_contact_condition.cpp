@@ -489,17 +489,32 @@ void RigidBodyPointRigidContactCondition::CalculateKinematics(GeneralVariables& 
     
     // std::cout<<" Penalty.Normal "<<rVariables.Penalty.Normal<<" Penalty.Tangent "<<rVariables.Penalty.Tangent<<std::endl;
 
-    KRATOS_CATCH( "" )
+    //set contact normal
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      {
+	GetGeometry()[i].SetLock();
+	
+	array_1d<double, 3> &ContactNormal  = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_NORMAL);
+	
+	for(unsigned int i=0; i<3; i++)
+	  ContactNormal[i] = rVariables.Surface.Normal[i];	 
+	
+	GetGeometry()[i].UnSetLock();
       }
+    
+    
+    KRATOS_CATCH( "" )
+      
+   }
 
+  //************************************************************************************
+  //************************************************************************************
 
-
-//************************************************************************************
-//************************************************************************************
-
-void RigidBodyPointRigidContactCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
-							  ProcessInfo& rCurrentProcessInfo)
-{
+  void RigidBodyPointRigidContactCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
+								     ProcessInfo& rCurrentProcessInfo)
+  {
     KRATOS_TRY
 
     //create and initialize condition variables:

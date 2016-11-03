@@ -125,6 +125,15 @@ namespace Kratos
     /// right after reading the model and the groups
     virtual void ExecuteFinalize()
     {
+      KRATOS_TRY
+
+      // Clear Contact Forces
+      this->ClearPointContactForces();
+
+      // Clear Contact Normals
+      this->ClearPointContactNormals();
+      
+      KRATOS_CATCH(" ")
     }
 
     ///@}
@@ -223,6 +232,55 @@ namespace Kratos
     ///@name Private Operations
     ///@{
 
+
+    //**************************************************************************
+    //**************************************************************************
+
+    void ClearPointContactForces()
+    {
+      KRATOS_TRY
+
+     
+      ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
+
+      // create contact condition for rigid and deformable bodies
+      for(ModelPart::NodesContainerType::ptr_iterator nd = rNodes.ptr_begin(); nd != rNodes.ptr_end(); ++nd)
+	{
+	  if( (*nd)->Is(BOUNDARY) && (*nd)->IsNot(CONTACT) ){
+	    array_1d<double, 3> & ContactForce  = (*nd)->FastGetSolutionStepValue(CONTACT_FORCE);
+	    ContactForce.clear();
+	  }
+
+	}
+                
+      KRATOS_CATCH( "" )
+	
+    }
+    
+    //**************************************************************************
+    //**************************************************************************
+
+    void ClearPointContactNormals()
+    {
+      KRATOS_TRY
+
+     
+      ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
+
+      // create contact condition for rigid and deformable bodies
+      for(ModelPart::NodesContainerType::ptr_iterator nd = rNodes.ptr_begin(); nd != rNodes.ptr_end(); ++nd)
+	{
+	  if( (*nd)->Is(BOUNDARY) && (*nd)->IsNot(CONTACT) ){
+	    array_1d<double, 3> & ContactNormal  = (*nd)->FastGetSolutionStepValue(CONTACT_NORMAL);
+	    ContactNormal.clear();
+	  }
+
+	}
+                
+      KRATOS_CATCH( "" )
+	
+    }
+    
     //**************************************************************************
     //**************************************************************************
 

@@ -573,9 +573,8 @@ namespace Kratos
       KRATOS_CATCH( "" )
 
     }
-
-
-
+    
+    
     //**************************************************************************
     //**************************************************************************
 
@@ -751,7 +750,6 @@ namespace Kratos
 
     void RestoreContactFlags ( )
     {
-
       KRATOS_TRY
 
       for(ModelPart::ConditionsContainerType::iterator i_cond = mrMainModelPart.ConditionsBegin(); i_cond!= mrMainModelPart.ConditionsEnd(); i_cond++)
@@ -759,7 +757,7 @@ namespace Kratos
 	  if( i_cond->Is(CONTACT) ){
 	    for(unsigned int i=0; i<i_cond->GetGeometry().size(); i++)
 	      {
-		i_cond->GetGeometry()[0].Set(CONTACT,true);
+		i_cond->GetGeometry()[i].Set(CONTACT,true);
 	      }
 	  }
 	}

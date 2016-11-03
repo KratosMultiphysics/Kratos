@@ -1450,11 +1450,8 @@ namespace Kratos
   }
 
 
-
-
   //*******************************************************************************************
   //*******************************************************************************************
-
  
   bool ModelerUtilities::CheckContactActive(GeometryType& rConditionGeometry, bool& rSemiActiveContact, std::vector<bool>& rSemiActiveNodes)
   {
@@ -1467,10 +1464,10 @@ namespace Kratos
     rSemiActiveNodes.resize(size);
     std::fill( rSemiActiveNodes.begin(), rSemiActiveNodes.end(), false );
      
-    for(unsigned int i=0; i<rConditionGeometry.size(); i++){
+    for(unsigned int i=0; i<size; i++){
             
       bool contact_active = false;
-      if( rConditionGeometry[0].SolutionStepsDataHas(CONTACT_FORCE) ){
+      if( rConditionGeometry[i].SolutionStepsDataHas(CONTACT_FORCE) ){
 	array_1d<double, 3 > & ContactForceNormal  = rConditionGeometry[i].FastGetSolutionStepValue(CONTACT_FORCE);
 	
 	if(norm_2(ContactForceNormal)>0)
@@ -1494,6 +1491,62 @@ namespace Kratos
   }
 
 
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+ 
+  bool ModelerUtilities::CheckContactCurvature(GeometryType& rConditionGeometry, std::vector<array_1d<double, 3> >& rContactNormals)
+  {
+    KRATOS_TRY
+
+    unsigned int size = rConditionGeometry.size();
+    unsigned int counter = 0;
+
+    array_1d<double, 3> Normal;
+    Normal.clear();
+    rContactNormals.resize(size);
+    std::fill( rContactNormals.begin(), rContactNormals.end(), Normal );
+
+    double modulus = 1.0;
+    for(unsigned int i=0; i<size; i++){
+            
+      bool contact_active = false;
+      if( rConditionGeometry[i].SolutionStepsDataHas(CONTACT_NORMAL) ){
+	array_1d<double, 3 > & ContactNormal  = rConditionGeometry[i].FastGetSolutionStepValue(CONTACT_NORMAL);
+
+	modulus = norm_2(ContactNormal);
+	if( modulus )
+	  rContactNormals[i] = (1.0/modulus) * ContactNormal;
+	else
+	  counter++;
+      }
+
+    }
+
+    // if no CONTACT_NORMAL is assigned in some condition nodes
+    // the curvature can not be evaluated
+    if( counter )
+      return false;
+    
+    counter = 0;
+    double tolerance = 0.05;
+    
+    for(unsigned int i=1; i<size; i++){
+      modulus = inner_prod(rContactNormals[i-1], rContactNormals[i]);
+      if( modulus < 0.95 )
+	counter++;
+    }
+    modulus = inner_prod(rContactNormals[0], rContactNormals[size-1]);
+    if( modulus < 0.95 )
+      counter++;
+
+    if(counter == size)
+      return true;
+    else
+      return false;
+      
+    KRATOS_CATCH( "" )
+  }
 
   //*******************************************************************************************
   //*******************************************************************************************
