@@ -40,6 +40,7 @@
 #include "includes/gid_gauss_point_container.h"
 #include "includes/gid_mesh_container.h"
 #include "utilities/timer.h"
+#include "containers/flags.h"
 
 #include "dem_variables.h" //TODO: must be removed eventually
 
@@ -53,7 +54,6 @@ typedef ModelPart::NodesContainerType NodesArrayType;
 typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 typedef GeometryData::IntegrationMethod IntegrationMethodType;
 typedef GeometryData::KratosGeometryFamily KratosGeometryFamily;
-typedef int64_t FlagType;
 
 ///Flags for mesh writing
 enum WriteDeformedMeshFlag {WriteDeformed, WriteUndeformed};
@@ -865,33 +865,30 @@ public:
    	///////////////////////////////////////////////////////////////////////
 	//////                 NON- HISTORICAL DATABASE BLOCK                 /////
 	///////////////////////////////////////////////////////////////////////
-	 /**
-     * Writes nodal flags
-     */
-//    void WriteNodalFlags( FlagType const& rFlag, std::string rFlagName, NodesContainerType& rNodes, double SolutionTag)
-//    {
-//        Timer::Start("Writing Results");
-//        GiD_fBeginResult( mResultFile, (char*)(rFlagName), "Kratos", // TODO: Look at the name (how to get the name)
-//                         SolutionTag, GiD_Scalar,
-//                         GiD_OnNodes, NULL, NULL, 0, NULL );
-//        for ( NodesContainerType::iterator i_node = rNodes.begin();
-//                i_node != rNodes.end() ; ++i_node)
-//        {
-//            double flag_value = 0.0;
-//            if (i_node->Has(rFlag) == true)
-//            {
-//                if (i_node->Is(rFlag) == true)
-//                {
-//                    flag_value = 1.0;
-//                }
-//            }
-//            GiD_fWriteScalar( mResultFile, i_node->Id(),  flag_value);
-//        }
-//        GiD_fEndResult(mResultFile);
 
-//        Timer::Stop("Writing Results");
-//    }
+   /**
+    * Writes nodal flags
+    */
+    void WriteNodalFlags( Kratos::Flags rFlag, std::string rFlagName, NodesContainerType& rNodes, double SolutionTag)
+    {
+        Timer::Start("Writing Results");
+        GiD_fBeginResult( mResultFile, (char*)(rFlagName.c_str()), "Kratos",
+                         SolutionTag, GiD_Scalar,
+                         GiD_OnNodes, NULL, NULL, 0, NULL );
+        for ( NodesContainerType::iterator i_node = rNodes.begin();
+                i_node != rNodes.end() ; ++i_node)
+        {
+            double flag_value = 0.0;
+            if (i_node->Is(rFlag) == true)
+            {
+                flag_value = 1.0;
+            }
+            GiD_fWriteScalar( mResultFile, i_node->Id(),  flag_value);
+        }
+        GiD_fEndResult(mResultFile);
 
+        Timer::Stop("Writing Results");
+    }
 
     /**
      * writes nodal results for variables of type bool

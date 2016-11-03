@@ -138,7 +138,10 @@ class GiDOutputProcess(Process):
         self.nodal_variables = self.__generate_variable_list_from_input(result_file_configuration["nodal_results"])
         self.gauss_point_variables = self.__generate_variable_list_from_input(result_file_configuration["gauss_point_results"])
         self.nodal_nonhistorical_variables = self.__generate_variable_list_from_input(result_file_configuration["nodal_nonhistorical_results"])
-        #self.nodal_flags = self.__generate_variable_list_from_input(result_file_configuration["nodal_flags_results"])
+        self.nodal_flags = self.__generate_flags_list_from_input(result_file_configuration["nodal_flags_results"])
+        self.nodal_flags_names =[]
+        for i in range(result_file_configuration["nodal_flags_results"].size()):
+            self.nodal_flags_names.append(result_file_configuration["nodal_flags_results"][i].GetString())
 
         # Set up output frequency and format
         output_file_label = result_file_configuration["file_label"].GetString()
@@ -205,7 +208,7 @@ class GiDOutputProcess(Process):
             self.__initialize_results(label)
             self.__write_nodal_results(label)
             self.__write_nonhistorical_nodal_results(label)
-            #self.__write_nodal_flags(label)
+            self.__write_nodal_flags(label)
             self.__finalize_results()
 
         if self.point_output_process is not None:
@@ -253,7 +256,7 @@ class GiDOutputProcess(Process):
         self.__write_nodal_results(time)
         self.__write_gp_results(time)
         self.__write_nonhistorical_nodal_results(time)
-        #self.__write_nodal_flags(time)
+        self.__write_nodal_flags(time)
 
         if self.multifile_flag == MultiFileFlag.MultipleFiles:
             self.__finalize_results()
@@ -451,6 +454,15 @@ class GiDOutputProcess(Process):
 
         # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
         return [ KratosGlobals.GetVariable( param[i].GetString() ) for i in range( 0,param.size() ) ]
+    
+    def __generate_flags_list_from_input(self,param):
+        '''Parse a list of variables from input.'''
+        # At least verify that the input is a string
+        if not param.IsArray():
+            raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
+
+        # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
+        return [ globals()[ param[i].GetString() ] for i in range( 0,param.size() ) ]
 
     def __write_mesh(self, label):
 
@@ -508,15 +520,15 @@ class GiDOutputProcess(Process):
             for variable in self.nodal_nonhistorical_variables:
                 self.cut_io.WriteNodalResultsNonHistorical(variable, self.cut_model_part.Nodes, label)
                 
-    #def __write_nodal_flags(self, label):
-        #if self.body_io is not None:
-            #for flag in self.nodal_flags:
-                #self.body_io.WriteNodalFlags(flag, self.model_part.Nodes, label)
+    def __write_nodal_flags(self, label):
+        if self.body_io is not None:
+            for flag in range(len(self.nodal_flags)):
+                self.body_io.WriteNodalFlags(self.nodal_flags[flag], self.nodal_flags_names[flag], self.model_part.Nodes, label)
 
-        #if self.cut_io is not None:
-            #self.cut_manager.UpdateCutData(self.cut_model_part, self.model_part)
-            #for flag in self.nodal_flags:
-                #self.cut_io.WriteNodalFlags(flag, self.cut_model_part.Nodes, label)
+        if self.cut_io is not None:
+            self.cut_manager.UpdateCutData(self.cut_model_part, self.model_part)
+            for flag in range(len(self.nodal_flags)):
+                self.cut_io.WriteNodalFlags(self.nodal_flags[flag], self.nodal_flags_names[flag], self.cut_model_part.Nodes, label)
 
     def __finalize_results(self):
 

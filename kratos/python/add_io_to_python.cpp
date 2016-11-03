@@ -35,6 +35,7 @@
 #include "includes/reorder_consecutive_model_part_io.h"
 #include "includes/gid_io.h"
 #include "python/add_io_to_python.h"
+#include "containers/flags.h"
 
 #ifdef JSON_INCLUDED
 #include "includes/json_io.h"
@@ -122,6 +123,9 @@ void (GidIO<>::*local_axes_write_nodal_results)( Variable<array_1d<double, 3> > 
 /////////////////////////////////////////////////////////////
 /// NON-HISTORICAL DATABASE                               ///
 ////////////////////////////////////////////////////////////
+void (GidIO<>::*pointer_to_flags_write_nodal_results_NH)( Kratos::Flags rFlag, std::string rFlagName,  GidIO<>::NodesContainerType& rNodes, double SolutionTag) 
+	= &GidIO<>::WriteNodalFlags;
+        
 void (GidIO<>::*pointer_to_bool_write_nodal_results_NH)( Variable<bool> const& rVariable, GidIO<>::NodesContainerType& rNodes, double SolutionTag) 
 	= &GidIO<>::WriteNodalResultsNonHistorical;
 
@@ -228,8 +232,9 @@ void  AddIOToPython()
     .def("WriteNodalResults",pointer_to_matrix_write_nodal_results)
 
     .def("WriteLocalAxesOnNodes",local_axes_write_nodal_results)
-	// NonHistorical
-	.def("WriteNodalResultsNonHistorical",pointer_to_bool_write_nodal_results_NH)
+    // NonHistorical
+    .def("WriteNodalFlags",pointer_to_flags_write_nodal_results_NH)
+    .def("WriteNodalResultsNonHistorical",pointer_to_bool_write_nodal_results_NH)
     .def("WriteNodalResultsNonHistorical",pointer_to_double_write_nodal_results_NH)
     .def("WriteNodalResultsNonHistorical",pointer_to_array1d_write_nodal_results_NH)
     .def("WriteNodalResultsNonHistorical",pointer_to_matrix_write_nodal_results_NH)
