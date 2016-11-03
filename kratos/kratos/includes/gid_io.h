@@ -1,4 +1,4 @@
-//    |  /           | 
+//    |  /           |
 //    ' /   __| _` | __|  _ \   __| 
 //    . \  |   (   | |   (   |\__ \.
 //   _|\_\_|  \__,_|\__|\___/ ____/ 
@@ -13,7 +13,7 @@
 //
 
 // CHANGE LOG:
-//   18 Sep 2013: hbui change the way to read value from node in WriteNodalResults to GetSolutionStepValue for Variable<Matrix> and fix some call for Timer in WriteNodalResults for Variable<bool> and Variable<double>
+//   18 Sep 2013: hbui change the way to read value from node in WriteNodalResults to FastGetSolutionStepValue for Variable<Matrix> and fix some call for Timer in WriteNodalResults for Variable<bool> and Variable<double>
 
 
 
@@ -53,6 +53,7 @@ typedef ModelPart::NodesContainerType NodesArrayType;
 typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 typedef GeometryData::IntegrationMethod IntegrationMethodType;
 typedef GeometryData::KratosGeometryFamily KratosGeometryFamily;
+typedef int64_t FlagType;
 
 ///Flags for mesh writing
 enum WriteDeformedMeshFlag {WriteDeformed, WriteUndeformed};
@@ -683,7 +684,7 @@ public:
 	///////////////////////////////////////////////////////////////////////
 	//////                  HISTORICAL DATABASE BLOCK                 /////
 	///////////////////////////////////////////////////////////////////////
-	 /**
+     /**
      * writes nodal results for variables of type bool
      */
     void WriteNodalResults( Variable<bool> const& rVariable,
@@ -697,7 +698,7 @@ public:
                          GiD_OnNodes, NULL, NULL, 0, NULL );
         for ( NodesContainerType::iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node)
-            GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->GetSolutionStepValue(rVariable,
+            GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->FastGetSolutionStepValue(rVariable,
                              SolutionStepNumber) );
         GiD_fEndResult(mResultFile);
 
@@ -721,7 +722,7 @@ public:
                          GiD_OnNodes, NULL, NULL, 0, NULL );
         for ( NodesContainerType::iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node)
-            GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->GetSolutionStepValue(rVariable,
+            GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->FastGetSolutionStepValue(rVariable,
                              SolutionStepNumber) );
         GiD_fEndResult(mResultFile);
 
@@ -746,7 +747,7 @@ public:
         for (NodesContainerType::iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node)
         {
-            array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable,
+            array_1d<double, 3>& temp = i_node->FastGetSolutionStepValue( rVariable,
                                         SolutionStepNumber );
             GiD_fWriteVector( mResultFile, i_node->Id(), temp[0], temp[1], temp[2] );
         }
@@ -774,7 +775,7 @@ public:
         for (NodesContainerType::iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node)
         {
-            Vector& tempVector = i_node->GetSolutionStepValue(rVariable,
+            Vector& tempVector = i_node->FastGetSolutionStepValue(rVariable,
                                  SolutionStepNumber);
             if (tempVector.size() ==3 )
                 GiD_fWriteVector(mResultFile, i_node->Id(), tempVector(0), tempVector(1), tempVector(2) );
@@ -804,7 +805,7 @@ public:
         for (NodesContainerType::iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node)
         {
-            Matrix& tempMatrix = i_node->GetSolutionStepValue(rVariable,
+            Matrix& tempMatrix = i_node->FastGetSolutionStepValue(rVariable,
                     SolutionStepNumber);
             //Matrix& tempMatrix = i_node->GetValue(rVariable);
             if (tempMatrix.size1() ==3 && tempMatrix.size2() ==3)
@@ -852,7 +853,7 @@ public:
         for (NodesContainerType::iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node)
         {
-            array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable,
+            array_1d<double, 3>& temp = i_node->FastGetSolutionStepValue( rVariable,
                                         SolutionStepNumber );
             GiD_fWriteLocalAxes( mResultFile, i_node->Id(), temp[0], temp[1], temp[2] );
         }
@@ -865,6 +866,34 @@ public:
 	//////                 NON- HISTORICAL DATABASE BLOCK                 /////
 	///////////////////////////////////////////////////////////////////////
 	 /**
+     * Writes nodal flags
+     */
+//    void WriteNodalFlags( FlagType const& rFlag, std::string rFlagName, NodesContainerType& rNodes, double SolutionTag)
+//    {
+//        Timer::Start("Writing Results");
+//        GiD_fBeginResult( mResultFile, (char*)(rFlagName), "Kratos", // TODO: Look at the name (how to get the name)
+//                         SolutionTag, GiD_Scalar,
+//                         GiD_OnNodes, NULL, NULL, 0, NULL );
+//        for ( NodesContainerType::iterator i_node = rNodes.begin();
+//                i_node != rNodes.end() ; ++i_node)
+//        {
+//            double flag_value = 0.0;
+//            if (i_node->Has(rFlag) == true)
+//            {
+//                if (i_node->Is(rFlag) == true)
+//                {
+//                    flag_value = 1.0;
+//                }
+//            }
+//            GiD_fWriteScalar( mResultFile, i_node->Id(),  flag_value);
+//        }
+//        GiD_fEndResult(mResultFile);
+
+//        Timer::Stop("Writing Results");
+//    }
+
+
+    /**
      * writes nodal results for variables of type bool
      */
     void WriteNodalResultsNonHistorical( Variable<bool> const& rVariable, NodesContainerType& rNodes, double SolutionTag)
@@ -872,10 +901,10 @@ public:
 
         Timer::Start("Writing Results");
         GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
-                         SolutionTag, GiD_Scalar,
-                         GiD_OnNodes, NULL, NULL, 0, NULL );
+                          SolutionTag, GiD_Scalar,
+                          GiD_OnNodes, NULL, NULL, 0, NULL );
         for ( NodesContainerType::iterator i_node = rNodes.begin();
-                i_node != rNodes.end() ; ++i_node)
+              i_node != rNodes.end() ; ++i_node)
             GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->GetValue(rVariable) );
         GiD_fEndResult(mResultFile);
 
@@ -943,7 +972,7 @@ public:
         for (NodesContainerType::iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node)
         {
-            Vector& tempVector = i_node->GetSolutionStepValue(rVariable);
+            Vector& tempVector = i_node->FastGetSolutionStepValue(rVariable);
             if (tempVector.size() ==3 )
                 GiD_fWriteVector(mResultFile, i_node->Id(), tempVector(0), tempVector(1), tempVector(2) );
             else if (tempVector.size() == 6 )
@@ -970,7 +999,7 @@ public:
         for (NodesContainerType::iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node)
         {
-            Matrix& tempMatrix = i_node->GetSolutionStepValue(rVariable);
+            Matrix& tempMatrix = i_node->FastGetSolutionStepValue(rVariable);
             //Matrix& tempMatrix = i_node->GetValue(rVariable);
             if (tempMatrix.size1() ==3 && tempMatrix.size2() ==3)
             {
@@ -1014,7 +1043,7 @@ public:
         for (NodesContainerType::iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node)
         {
-            array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable);
+            array_1d<double, 3>& temp = i_node->FastGetSolutionStepValue( rVariable);
             GiD_fWriteLocalAxes( mResultFile, i_node->Id(), temp[0], temp[1], temp[2] );
         }
         GiD_fEndResult(mResultFile);
@@ -1022,13 +1051,6 @@ public:
         Timer::Stop("Writing Results");
 
     }
-
-
-
-
-
-
-
 
     ///mesh writing functions
     /**

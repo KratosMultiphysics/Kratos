@@ -21,6 +21,8 @@ class GiDOutputProcess(Process):
             "skin_output": false,
             "plane_output": [],
             "nodal_results": [],
+            "nodal_nonhistorical_results": [],
+            "nodal_flags_results": [],
             "gauss_point_results": [],
             "additional_list_files": []
         },
@@ -135,6 +137,8 @@ class GiDOutputProcess(Process):
         # Process nodal and gauss point output
         self.nodal_variables = self.__generate_variable_list_from_input(result_file_configuration["nodal_results"])
         self.gauss_point_variables = self.__generate_variable_list_from_input(result_file_configuration["gauss_point_results"])
+        self.nodal_nonhistorical_variables = self.__generate_variable_list_from_input(result_file_configuration["nodal_nonhistorical_results"])
+        #self.nodal_flags = self.__generate_variable_list_from_input(result_file_configuration["nodal_flags_results"])
 
         # Set up output frequency and format
         output_file_label = result_file_configuration["file_label"].GetString()
@@ -200,6 +204,8 @@ class GiDOutputProcess(Process):
             self.__write_mesh(label)
             self.__initialize_results(label)
             self.__write_nodal_results(label)
+            self.__write_nonhistorical_nodal_results(label)
+            #self.__write_nodal_flags(label)
             self.__finalize_results()
 
         if self.point_output_process is not None:
@@ -246,6 +252,8 @@ class GiDOutputProcess(Process):
 
         self.__write_nodal_results(time)
         self.__write_gp_results(time)
+        self.__write_nonhistorical_nodal_results(time)
+        #self.__write_nodal_flags(time)
 
         if self.multifile_flag == MultiFileFlag.MultipleFiles:
             self.__finalize_results()
@@ -476,7 +484,7 @@ class GiDOutputProcess(Process):
         if self.cut_io is not None:
             self.cut_manager.UpdateCutData(self.cut_model_part, self.model_part)
             for variable in self.nodal_variables:
-                self.cut_io.WriteNodalResults(variable, self.cut_model_part.Nodes, label, 0)
+                self.cut_io.WriteNodalResults(variable, self.cut_model_part.Nodes, label, 0)      
 
     def __write_gp_results(self, label):
 
@@ -487,6 +495,28 @@ class GiDOutputProcess(Process):
 
         # Gauss point results depend on the type of element!
         # they are not implemented for cuts (which are generic Condition3D)
+
+
+    def __write_nonhistorical_nodal_results(self, label):
+
+        if self.body_io is not None:
+            for variable in self.nodal_nonhistorical_variables:
+                self.body_io.WriteNodalResultsNonHistorical(variable, self.model_part.Nodes, label)
+
+        if self.cut_io is not None:
+            self.cut_manager.UpdateCutData(self.cut_model_part, self.model_part)
+            for variable in self.nodal_nonhistorical_variables:
+                self.cut_io.WriteNodalResultsNonHistorical(variable, self.cut_model_part.Nodes, label)
+                
+    #def __write_nodal_flags(self, label):
+        #if self.body_io is not None:
+            #for flag in self.nodal_flags:
+                #self.body_io.WriteNodalFlags(flag, self.model_part.Nodes, label)
+
+        #if self.cut_io is not None:
+            #self.cut_manager.UpdateCutData(self.cut_model_part, self.model_part)
+            #for flag in self.nodal_flags:
+                #self.cut_io.WriteNodalFlags(flag, self.cut_model_part.Nodes, label)
 
     def __finalize_results(self):
 
