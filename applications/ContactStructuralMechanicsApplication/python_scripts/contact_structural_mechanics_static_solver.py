@@ -128,8 +128,6 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.AUXILIAR_ACTIVE)
             # Auxiliar slip
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.AUXILIAR_SLIP)
-            # ACTIVE/INACTIVE
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.IS_ACTIVE_SET)
             # Active check factor
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ContactStructuralMechanicsApplication.ACTIVE_CHECK_FACTOR)
         if self.settings["analysis_type"].GetString() == "Arc-Length":

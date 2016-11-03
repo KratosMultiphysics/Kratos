@@ -60,7 +60,6 @@ BOOST_PYTHON_MODULE(KratosContactStructuralMechanicsApplication)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( ACTIVE_CHECK_FACTOR )         // The factor employed to search an active/inactive node
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( NORMAL_AUGMENTATION_FACTOR )  // The constant that is considered for the check of active or inactive (when 0 it doesn't accept traction)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( TANGENT_AUGMENTATION_FACTOR ) // The constant that is considered for the check if the node is slip/stick
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( IS_ACTIVE_SET )               // A boolean storing whether the node is in the active set or not
 }
 
 

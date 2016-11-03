@@ -22,7 +22,6 @@
 // Project includes
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
-#include "includes/variables.h"
 #include "includes/condition.h"
 #include "utilities/math_utils.h"
 #include "includes/kratos_flags.h"

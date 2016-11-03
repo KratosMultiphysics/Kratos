@@ -94,7 +94,6 @@ public:
 //                        std::cout << "Penetration in node: " << Geom1[index].Id() << " of " << aux_dist << " m" << std::endl;
 //                    }    
                     Geom1[index].Set(ACTIVE, true);
-                    Geom1[index].GetSolutionStepValue( IS_ACTIVE_SET ) = true;
                 }
              }
          }
@@ -809,12 +808,10 @@ public:
                         if (augmented_normal_presssure < 0.0) // NOTE: This could be conflictive (< or <=)
                         {
                             CondGeometry[node_it].Set(ACTIVE, true);
-                            CondGeometry[node_it].GetSolutionStepValue( IS_ACTIVE_SET ) = true;
                         }
                         else
                         {
                             CondGeometry[node_it].Set(ACTIVE, false);
-                            CondGeometry[node_it].GetSolutionStepValue( IS_ACTIVE_SET ) = false;
                         }
                         
                         const array_1d<double, 3> nodal_tangent_xi  = CondGeometry[node_it].GetValue(TANGENT_XI); 

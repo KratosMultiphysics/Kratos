@@ -146,7 +146,8 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","VECTOR_LAGRANGE_MULTIPLIER", "IS_ACTIVE_SET"],
+            "nodal_results"       : ["DISPLACEMENT","REACTION","VECTOR_LAGRANGE_MULTIPLIER"],
+            "nodal_flags_results": ["ACTIVE"],
             "gauss_point_results" : []
         },
         "point_data_configuration"  : []

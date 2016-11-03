@@ -129,7 +129,8 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","VECTOR_LAGRANGE_MULTIPLIER", "IS_ACTIVE_SET"],
+            "nodal_results"       : ["DISPLACEMENT","REACTION","VECTOR_LAGRANGE_MULTIPLIER"],
+            "nodal_flags_results": ["ACTIVE"],
             "gauss_point_results" : ["GAP_GP", "NORMAL_GP"]
         },
         "point_data_configuration"  : []
