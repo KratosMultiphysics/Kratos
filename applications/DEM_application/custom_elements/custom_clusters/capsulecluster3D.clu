@@ -15,11 +15,11 @@ Begin centers_and_radii
 0.4650 0.0 0.0 0.35
 End centers_and_radii
 
-Particle_center_and_radii  //Needed by the mesher, KRATOS skips it
-0.000000 0.000000 0.000000 0.815000
+Particle_center_and_diameter  //Needed by the mesher, KRATOS skips it
+0.000000 0.000000 0.000000 1.630000
 
 Size
-2.56
+1.630000
 
 Volume
 0.89669
