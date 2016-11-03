@@ -31,7 +31,7 @@ else:
     #def model_part_reader(modelpart, a=0, b=0, c=0):
     #    return ModelPartIO(modelpart)
     def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
-        return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
+        return ModelPartIO(modelpart)
     
 
 # TODO: Ugly fix. Change it. I don't like this to be in the main...
