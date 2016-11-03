@@ -165,16 +165,16 @@ void MortarContactCondition::InitializeNonLinearIteration( ProcessInfo& rCurrent
 {
     KRATOS_TRY;
 
-    // Number of slave nodes
-    const unsigned int number_of_slave_nodes = GetGeometry( ).PointsNumber();
-    
-    for (unsigned int i_slave = 0; i_slave < number_of_slave_nodes; ++i_slave )
-    {
-        GetGeometry()[i_slave].GetValue(WEIGHTED_GAP)      = 0.0;
-        GetGeometry()[i_slave].GetValue(WEIGHTED_SLIP)     = 0.0;
-        GetGeometry()[i_slave].GetValue(WEIGHTED_FRICTION) = 0.0;
-    }
-    
+//     // Number of slave nodes
+//     const unsigned int number_of_slave_nodes = GetGeometry( ).PointsNumber();
+//     
+//     for (unsigned int i_slave = 0; i_slave < number_of_slave_nodes; ++i_slave )
+//     {
+//         GetGeometry()[i_slave].GetValue(WEIGHTED_GAP)      = 0.0;
+//         GetGeometry()[i_slave].GetValue(WEIGHTED_SLIP)     = 0.0;
+//         GetGeometry()[i_slave].GetValue(WEIGHTED_FRICTION) = 0.0;
+//     }
+//     
     KRATOS_CATCH( "" );
 }
 
@@ -253,8 +253,11 @@ void MortarContactCondition::FinalizeNonLinearIteration( ProcessInfo& rCurrentPr
         {
             for (unsigned int iNode = 0; iNode < number_of_nodes_slave; iNode++)
             {
+                #pragma omp atomic
                 GetGeometry()[iNode].GetValue(WEIGHTED_GAP)      += aux_int_gap[iNode]; 
+                #pragma omp atomic
                 GetGeometry()[iNode].GetValue(WEIGHTED_SLIP)     += aux_int_slip[iNode]; 
+                #pragma omp atomic
                 GetGeometry()[iNode].GetValue(WEIGHTED_FRICTION) += aux_int_friction[iNode]; 
             }
         }
