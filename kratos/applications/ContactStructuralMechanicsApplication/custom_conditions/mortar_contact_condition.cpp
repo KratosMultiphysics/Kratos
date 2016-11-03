@@ -165,16 +165,8 @@ void MortarContactCondition::InitializeNonLinearIteration( ProcessInfo& rCurrent
 {
     KRATOS_TRY;
 
-//     // Number of slave nodes
-//     const unsigned int number_of_slave_nodes = GetGeometry( ).PointsNumber();
-//     
-//     for (unsigned int i_slave = 0; i_slave < number_of_slave_nodes; ++i_slave )
-//     {
-//         GetGeometry()[i_slave].GetValue(WEIGHTED_GAP)      = 0.0;
-//         GetGeometry()[i_slave].GetValue(WEIGHTED_SLIP)     = 0.0;
-//         GetGeometry()[i_slave].GetValue(WEIGHTED_FRICTION) = 0.0;
-//     }
-//     
+    // TODO: Fill this if necessary!!
+
     KRATOS_CATCH( "" );
 }
 

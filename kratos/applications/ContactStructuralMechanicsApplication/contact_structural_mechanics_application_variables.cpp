@@ -29,7 +29,6 @@ KRATOS_CREATE_VARIABLE( double, WEIGHTED_FRICTION )                             
 KRATOS_CREATE_VARIABLE( Matrix, DELTA_NORMAL )                                    // Directional derivative of the normal
 KRATOS_CREATE_VARIABLE( bool, AUXILIAR_ACTIVE )                                   // Auxiliar boolean to check if the node is active or not
 KRATOS_CREATE_VARIABLE( bool, AUXILIAR_SLIP )                                     // Auxiliar boolean to check if the node is stick or not
-KRATOS_CREATE_VARIABLE( bool, IS_ACTIVE_SET )                                     // A bool storing whether the node is in the active set or not 
 KRATOS_CREATE_VARIABLE( double, GAP_GP )                                          // A double storing the gap of the GP
 KRATOS_CREATE_VARIABLE( double, SLIP_GP )                                         // A double storing the slip of the GP
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( NORMAL_CONTACT_STRESS_GP )             // For getting the normal contact stress in the GP
