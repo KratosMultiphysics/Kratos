@@ -256,6 +256,9 @@ public:
         // Update normal of the conditions
         ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart.GetSubModelPart("Contact") ); 
         
+        // Reset the weighted variables
+        ContactUtilities::ResetWeightedValues( rModelPart ); 
+        
         // Initializes the non-linear iteration for all the conditions
         ConditionsArrayType& rConditions = rModelPart.Conditions();
         
