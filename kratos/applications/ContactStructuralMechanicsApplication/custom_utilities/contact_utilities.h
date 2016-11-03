@@ -845,7 +845,7 @@ public:
     /***********************************************************************************/
     
     /**
-     * It resets the value of the weighted gap and slip 
+     * It resets the visited status in all the nodes
      * @param ModelPart: The model part to compute
      * @return The modelparts with the nodes changed
      */
@@ -864,6 +864,35 @@ public:
             if (itNode->Is(SLAVE))
             {   
                 itNode->Set(VISITED, false);
+            }
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    /**
+     * It resets the value of the weighted gap and slip 
+     * @param ModelPart: The model part to compute
+     * @return The modelparts with the nodes changed
+     */
+    
+    static inline void ResetWeightedValues(ModelPart & rModelPart)
+    {
+        NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
+        
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
+        {
+            auto itNode = pNode.begin() + i;
+
+            if (itNode->Is(SLAVE))
+            {   
+                itNode->GetValue(WEIGHTED_GAP)      = 0.0;
+                itNode->GetValue(WEIGHTED_SLIP)     = 0.0;
+                itNode->GetValue(WEIGHTED_FRICTION) = 0.0;
             }
         }
     }
