@@ -3,6 +3,7 @@
   <blockdata n='Body' name='Body1' editable="false" sequence='1' editable_name='unique' open_window="0">
     <value n="BodyType" pn="Body type" v="" values="[GetBodyTypeValues]" actualize_tree="1">
       <dependencies value='Rigid' node="../value[@n='MeshingStrategy']" att1='v' v1='No remesh' />
+      <dependencies value='Fluid' node="../value[@n='MeshingStrategy']" att1='v' v1='Remesh and Refine' />
       <dependencies node="../value" actualize="1"/>
       <dependencies node="../condition/value" actualize="1"/>
     </value>
