@@ -62,42 +62,47 @@ public:
 
     typedef ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace> BaseType;
 
-    typedef typename BaseType::TDataType TDataType;
+    typedef typename BaseType::TDataType                                   TDataType;
 
-    typedef typename BaseType::DofsArrayType DofsArrayType;
+    typedef typename BaseType::DofsArrayType                           DofsArrayType;
 
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+    typedef typename Element::DofsVectorType                          DofsVectorType;
 
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
+    typedef typename BaseType::TSystemMatrixType                   TSystemMatrixType;
 
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-    
-    typedef typename BaseType::ElementsArrayType   ElementsArrayType;      
-    typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
-    
-    typedef Point<3> PointType;
-    
+    typedef typename BaseType::TSystemVectorType                   TSystemVectorType;
+
+    typedef typename BaseType::LocalSystemVectorType           LocalSystemVectorType;
+
+    typedef typename BaseType::LocalSystemMatrixType           LocalSystemMatrixType;
+
+    typedef ModelPart::NodesContainerType                             NodesArrayType;
+
+    typedef ModelPart::ElementsContainerType                       ElementsArrayType;
+
+    typedef ModelPart::ConditionsContainerType                   ConditionsArrayType;
+
+    typedef typename BaseType::Pointer                               BaseTypePointer;
     
     ResidualBasedBossakDisplacementContactScheme(double rAlpham = 0.0)
         : ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>(rAlpham)
     {
         // For pure Newmark Scheme
-        mAlpha.f = 0.0;
-        mAlpha.m = rAlpham;
+        BaseType::mAlpha.f = 0.0;
+        BaseType::mAlpha.m = rAlpham;
 
-        mNewmark.beta= (1.0 + mAlpha.f - mAlpha.m) * (1.0 + mAlpha.f - mAlpha.m) * 0.25;
-        mNewmark.gamma= 0.5 + mAlpha.f - mAlpha.m;
+        BaseType::mNewmark.beta= (1.0 + BaseType::mAlpha.f - BaseType::mAlpha.m) * (1.0 + BaseType::mAlpha.f - BaseType::mAlpha.m) * 0.25;
+        BaseType::mNewmark.gamma= 0.5 + BaseType::mAlpha.f - BaseType::mAlpha.m;
 
         // Allocate auxiliary memory
         const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
 
-        mMatrix.M.resize(NumThreads);
-        mMatrix.D.resize(NumThreads);
+        BaseType::mMatrix.M.resize(NumThreads);
+        BaseType::mMatrix.D.resize(NumThreads);
 
-        mVector.v.resize(NumThreads);
-        mVector.a.resize(NumThreads);
-        mVector.ap.resize(NumThreads);
+        BaseType::mVector.v.resize(NumThreads);
+        BaseType::mVector.a.resize(NumThreads);
+        BaseType::mVector.ap.resize(NumThreads);
     }
     
     /**
@@ -133,13 +138,13 @@ public:
 
             (rCurrentCondition)->EquationIdVector(EquationId,CurrentProcessInfo);
 
-            (rCurrentCondition)->CalculateMassMatrix(mMatrix.M[thread], CurrentProcessInfo);
+            (rCurrentCondition)->CalculateMassMatrix(BaseType::mMatrix.M[thread], CurrentProcessInfo);
 
-            (rCurrentCondition)->CalculateDampingMatrix(mMatrix.D[thread],CurrentProcessInfo);
+            (rCurrentCondition)->CalculateDampingMatrix(BaseType::mMatrix.D[thread],CurrentProcessInfo);
 
-            AddDynamicsToLHS  (LHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
+            AddDynamicsToLHS  (LHS_Contribution, BaseType::mMatrix.D[thread], BaseType::mMatrix.M[thread], CurrentProcessInfo);
 
-            AddDynamicsToRHS  (rCurrentCondition, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
+            AddDynamicsToRHS  (rCurrentCondition, RHS_Contribution, BaseType::mMatrix.D[thread], BaseType::mMatrix.M[thread], CurrentProcessInfo);
         }
         
         KRATOS_CATCH("");
@@ -176,12 +181,12 @@ public:
 
             (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
 
-            (rCurrentCondition)->CalculateMassMatrix(mMatrix.M[thread], CurrentProcessInfo);
+            (rCurrentCondition)->CalculateMassMatrix(BaseType::mMatrix.M[thread], CurrentProcessInfo);
 
-            (rCurrentCondition)->CalculateDampingMatrix(mMatrix.D[thread], CurrentProcessInfo);
+            (rCurrentCondition)->CalculateDampingMatrix(BaseType::mMatrix.D[thread], CurrentProcessInfo);
 
             // Adding the dynamic contributions (static is already included)
-            AddDynamicsToRHS  (rCurrentCondition, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
+            AddDynamicsToRHS  (rCurrentCondition, RHS_Contribution, BaseType::mMatrix.D[thread], BaseType::mMatrix.M[thread], CurrentProcessInfo);
         }
         
         KRATOS_CATCH("");
@@ -492,46 +497,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    struct GeneralAlphaMethod
-    {
-        double f;  // Alpha Hilbert
-        double m;  // Alpha Bosssak
-    };
-
-    struct NewmarkMethod
-    {
-        double beta;
-        double gamma;
-
-        // System constants
-        double c0;
-        double c1;
-        double c2;
-        double c3;
-        double c4;
-        double c5;
-        double c6;
-    };
-
-    struct  GeneralMatrices
-    {
-        std::vector< Matrix > M;     // First derivative matrix  (usually mass matrix)
-        std::vector< Matrix > D;     // Second derivative matrix (usually damping matrix)
-    };
-
-    struct GeneralVectors
-    {
-        std::vector< Vector > v;    // Velocity
-        std::vector< Vector > a;    // Acceleration
-        std::vector< Vector > ap;   // Previous acceleration
-    };
-
-    GeneralAlphaMethod  mAlpha;
-    NewmarkMethod       mNewmark;
-
-    GeneralMatrices     mMatrix;
-    GeneralVectors      mVector;
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -555,8 +520,8 @@ protected:
         const array_1d<double, 3 > & PreviousAcceleration
     )
     {
-        noalias(CurrentVelocity) =  (mNewmark.c1 * DeltaDisplacement - mNewmark.c4 * PreviousVelocity
-                                     - mNewmark.c5 * PreviousAcceleration);
+        noalias(CurrentVelocity) =  (BaseType::mNewmark.c1 * DeltaDisplacement - BaseType::mNewmark.c4 * PreviousVelocity
+                                     - BaseType::mNewmark.c5 * PreviousAcceleration);
     }
 
     /**
@@ -574,8 +539,8 @@ protected:
         const array_1d<double, 3 > & PreviousAcceleration
     )
     {
-        noalias(CurrentAcceleration) =  (mNewmark.c0 * DeltaDisplacement - mNewmark.c2 * PreviousVelocity
-                                         -  mNewmark.c3 * PreviousAcceleration);
+        noalias(CurrentAcceleration) =  (BaseType::mNewmark.c0 * DeltaDisplacement - BaseType::mNewmark.c2 * PreviousVelocity
+                                         -  BaseType::mNewmark.c3 * PreviousAcceleration);
     }
 
     /**
@@ -597,15 +562,15 @@ protected:
         // Adding mass contribution to the dynamic stiffness
         if (M.size1() != 0) // if M matrix declared
         {
-            noalias(LHS_Contribution) += M * (1.0 - mAlpha.m) * mNewmark.c0;
+            noalias(LHS_Contribution) += M * (1.0 - BaseType::mAlpha.m) * BaseType::mNewmark.c0;
 
-            // std::cout<<" Mass Matrix "<<M<<" coeficient "<<(1-mAlpha.m)*mNewmark.c0<<std::endl;
+            // std::cout<<" Mass Matrix "<<M<<" coeficient "<<(1-BaseType::mAlpha.m)*BaseType::mNewmark.c0<<std::endl;
         }
 
         // Adding  damping contribution
         if (D.size1() != 0) // if D matrix declared
         {
-            noalias(LHS_Contribution) += D * (1.0 - mAlpha.f) * mNewmark.c1;
+            noalias(LHS_Contribution) += D * (1.0 - BaseType::mAlpha.f) * BaseType::mNewmark.c1;
 
         }
     }
@@ -631,25 +596,25 @@ protected:
         // Adding inertia contribution
         if (M.size1() != 0)
         {
-            rCurrentElement->GetSecondDerivativesVector(mVector.a[thread], 0);
+            rCurrentElement->GetSecondDerivativesVector(BaseType::mVector.a[thread], 0);
 
-            (mVector.a[thread]) *= (1.00 - mAlpha.m);
+            (BaseType::mVector.a[thread]) *= (1.00 - BaseType::mAlpha.m);
 
-            rCurrentElement->GetSecondDerivativesVector(mVector.ap[thread], 1);
+            rCurrentElement->GetSecondDerivativesVector(BaseType::mVector.ap[thread], 1);
 
-            noalias(mVector.a[thread]) += mAlpha.m * mVector.ap[thread];
+            noalias(BaseType::mVector.a[thread]) += BaseType::mAlpha.m * BaseType::mVector.ap[thread];
 
-            noalias(RHS_Contribution)  -= prod(M, mVector.a[thread]);
-            //KRATOS_WATCH( prod(M, mVector.a[thread] ) )
+            noalias(RHS_Contribution)  -= prod(M, BaseType::mVector.a[thread]);
+            //KRATOS_WATCH( prod(M, BaseType::mVector.a[thread] ) )
 
         }
 
         // Adding damping contribution
         if (D.size1() != 0)
         {
-            rCurrentElement->GetFirstDerivativesVector(mVector.v[thread], 0);
+            rCurrentElement->GetFirstDerivativesVector(BaseType::mVector.v[thread], 0);
 
-            noalias(RHS_Contribution) -= prod(D, mVector.v[thread]);
+            noalias(RHS_Contribution) -= prod(D, BaseType::mVector.v[thread]);
         }
     }
 
@@ -674,24 +639,24 @@ protected:
         // Adding inertia contribution
         if (M.size1() != 0)
         {
-            rCurrentCondition->GetSecondDerivativesVector(mVector.a[thread], 0);
+            rCurrentCondition->GetSecondDerivativesVector(BaseType::mVector.a[thread], 0);
 
-            (mVector.a[thread]) *= (1.00 - mAlpha.m);
+            (BaseType::mVector.a[thread]) *= (1.00 - BaseType::mAlpha.m);
 
-            rCurrentCondition->GetSecondDerivativesVector(mVector.ap[thread], 1);
+            rCurrentCondition->GetSecondDerivativesVector(BaseType::mVector.ap[thread], 1);
 
-            noalias(mVector.a[thread]) += mAlpha.m * mVector.ap[thread];
+            noalias(BaseType::mVector.a[thread]) += BaseType::mAlpha.m * BaseType::mVector.ap[thread];
 
-            noalias(RHS_Contribution)  -= prod(M, mVector.a[thread]);
+            noalias(RHS_Contribution)  -= prod(M, BaseType::mVector.a[thread]);
         }
 
         // Adding damping contribution
         // Damping contribution
         if (D.size1() != 0)
         {
-            rCurrentCondition->GetFirstDerivativesVector(mVector.v[thread], 0);
+            rCurrentCondition->GetFirstDerivativesVector(BaseType::mVector.v[thread], 0);
 
-            noalias(RHS_Contribution) -= prod(D, mVector.v [thread]);
+            noalias(RHS_Contribution) -= prod(D, BaseType::mVector.v [thread]);
         }
 
     }
