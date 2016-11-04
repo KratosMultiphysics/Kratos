@@ -29,7 +29,7 @@
     <inputs>
     </inputs>
     <DefaultValues>
-	  <value n="modulus" pn="Modulus" v="9.8" />
+	  <value n="modulus" pn="Modulus" v="9.81" />
 	  <value n="direction" v="0.0,-1.0,0.0" />
     </DefaultValues>
     <outputs>
@@ -47,7 +47,7 @@
     <inputs>
     </inputs>
     <DefaultValues>
-	  <value n="modulus" pn="Modulus" v="9.8" />
+	  <value n="modulus" pn="Modulus" v="9.81" />
 	  <value n="direction" v="0.0,-1.0,0.0" />
     </DefaultValues>
     <outputs>
