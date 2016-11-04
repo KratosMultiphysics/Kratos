@@ -614,6 +614,7 @@ proc write::tcl2json { value } {
 	string {
         if {$value eq "false"} {return [expr "false"]}
         if {$value eq "true"} {return [expr "true"]}
+        if {$value eq "null"} {return null}
 	    return [json::write string $value]
 	}
 	dict {
@@ -861,13 +862,34 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
                     catch {set ValZ [expr [get_domnode_attribute [$group find n ${inputName}Z] v] ? True : False]}
                     dict set paramDict $inputName [list $ValX $ValY $ValZ]
                 } {
-                    set ValX [expr [get_domnode_attribute [$group find n ${inputName}X] v] ]
-                    set ValY [expr [get_domnode_attribute [$group find n ${inputName}Y] v] ] 
-                    set ValZ [expr 0.0]
-                    catch {set ValZ [expr [get_domnode_attribute [$group find n ${inputName}Z] v]]}
+                    if {[$in_obj getAttribute "enabled"] in [list "1" "0"]} {
+                        foreach i [list "X" "Y" "Z"] {
+                            if {[expr [get_domnode_attribute [$group find n Enabled_$i] v] ] ne "Yes"} {
+                                set Val$i null
+                            } else {
+                                set printed 0
+                                if {[$in_obj getAttribute "function"] eq "1"} {
+                                    if {[get_domnode_attribute [$group find n "ByFunction$i"] v]  eq "Yes"} {
+                                        set funcinputName "${i}function_$inputName"
+                                        set value [get_domnode_attribute [$group find n $funcinputName] v]
+                                        set Val$i $value
+                                        set printed 1
+                                    }
+                                } 
+                                if {!$printed} {
+                                    set value [expr [get_domnode_attribute [$group find n ${inputName}$i] v] ]
+                                    set Val$i $value
+                                }
+                            }
+                        } 
+                    } else {
+                        set ValX [expr [get_domnode_attribute [$group find n ${inputName}X] v] ]
+                        set ValY [expr [get_domnode_attribute [$group find n ${inputName}Y] v] ] 
+                        set ValZ [expr 0.0]
+                        catch {set ValZ [expr [get_domnode_attribute [$group find n ${inputName}Z] v]]}
+                    }
                     dict set paramDict $inputName [list $ValX $ValY $ValZ]
-                }
-                
+                } 
             } elseif {$in_type eq "double" || $in_type eq "integer"} {
                 set printed 0
                 if {[$in_obj getAttribute "function"] eq "1"} {

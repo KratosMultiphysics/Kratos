@@ -13,8 +13,7 @@
            kratos_module="KratosMultiphysics.SolidMechanicsApplication"
 	   help="This process fixes the selected components of a given vector variable">
     <inputs>
-      <parameter n="imposed_components" pn="Imposed" type="vector" vectorType="bool" v="1,1,1"/>
-      <parameter n="value" pn="Value" type="vector" v="0.0,0.0,0.0"/>
+      <parameter n="value" pn="Value" type="vector" enabled="1" function="1" v="0.0,0.0,0.0"/>
     </inputs>
   </Process>
 
