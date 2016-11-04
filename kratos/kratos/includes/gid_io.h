@@ -698,8 +698,8 @@ public:
                          GiD_OnNodes, NULL, NULL, 0, NULL );
         for ( NodesContainerType::iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node)
-            GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->GetSolutionStepValue(rVariable,
-                             SolutionStepNumber) );
+            GiD_fWriteScalar( mResultFile, i_node->Id(), static_cast<double>(i_node->GetSolutionStepValue(rVariable,
+                             SolutionStepNumber)) );
         GiD_fEndResult(mResultFile);
 
         Timer::Stop("Writing Results");
@@ -878,12 +878,7 @@ public:
         for ( NodesContainerType::iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node)
         {
-            double flag_value = 0.0;
-            if (i_node->Is(rFlag) == true)
-            {
-                flag_value = 1.0;
-            }
-            GiD_fWriteScalar( mResultFile, i_node->Id(),  flag_value);
+            GiD_fWriteScalar( mResultFile, i_node->Id(),  static_cast<double>(i_node->Is(rFlag)));
         }
         GiD_fEndResult(mResultFile);
 
@@ -902,7 +897,7 @@ public:
                           GiD_OnNodes, NULL, NULL, 0, NULL );
         for ( NodesContainerType::iterator i_node = rNodes.begin();
               i_node != rNodes.end() ; ++i_node)
-            GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->GetValue(rVariable) );
+            GiD_fWriteScalar( mResultFile, i_node->Id(), static_cast<double>(i_node->GetValue(rVariable)) );
         GiD_fEndResult(mResultFile);
 
         Timer::Stop("Writing Results");
