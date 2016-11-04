@@ -87,6 +87,9 @@ main_model_part = KratosMultiphysics.ModelPart(ProjectParameters["problem_data"]
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, ProjectParameters["problem_data"]["time_step"].GetDouble())
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, ProjectParameters["problem_data"]["start_time"].GetDouble())
+main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_X, ProjectParameters["problem_data"]["gravity_vector"][0].GetDouble())
+main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Y, ProjectParameters["problem_data"]["gravity_vector"][1].GetDouble())
+main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Z, ProjectParameters["problem_data"]["gravity_vector"][2].GetDouble())
 
 ###TODO replace this "model" for real one once available in kratos core
 Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main_model_part}
