@@ -27,6 +27,7 @@
     <!--<parameter n="Interval" pn="Time function" v="Full" values="Full,Initial" analysis_type="Dynamic"/>-->
     <NodalConditions>
       <NodalCondition n="DISPLACEMENT"/>
+      <NodalCondition n="VELOCITY"/>
       <NodalCondition n="ACCELERATION"/>
       <NodalCondition n="INITIALTEMPERATURE"/>
       <NodalCondition n="BOFANGTEMPERATURE"/>
@@ -70,6 +71,7 @@
     <!--<parameter n="Interval" pn="Time function" v="Full" values="Full,Initial" analysis_type="Dynamic"/>-->
     <NodalConditions>
       <NodalCondition n="DISPLACEMENT"/>
+      <NodalCondition n="VELOCITY"/>
       <NodalCondition n="ACCELERATION"/>
       <NodalCondition n="INITIALTEMPERATURE"/>
       <NodalCondition n="BOFANGTEMPERATURE"/>
@@ -109,6 +111,7 @@
     <!--<parameter n="Interval" pn="Time function" v="Full" values="Full,Initial" analysis_type="Dynamic"/>-->
     <NodalConditions>
       <NodalCondition n="DISPLACEMENT"/>
+      <NodalCondition n="VELOCITY"/>
       <NodalCondition n="ACCELERATION"/>
       <NodalCondition n="INITIALTEMPERATURE"/>
       <NodalCondition n="BOFANGTEMPERATURE"/>
@@ -148,6 +151,7 @@
     <!--<parameter n="Interval" pn="Time function" v="Full" values="Full,Initial" analysis_type="Dynamic"/>-->
     <NodalConditions>
       <NodalCondition n="DISPLACEMENT"/>
+      <NodalCondition n="VELOCITY"/>
       <NodalCondition n="ACCELERATION"/>
       <NodalCondition n="INITIALTEMPERATURE"/>
       <NodalCondition n="BOFANGTEMPERATURE"/>
