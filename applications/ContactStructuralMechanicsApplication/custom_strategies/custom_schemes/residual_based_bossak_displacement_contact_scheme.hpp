@@ -87,22 +87,6 @@ public:
     ResidualBasedBossakDisplacementContactScheme(double rAlpham = 0.0)
         : ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>(rAlpham)
     {
-        // For pure Newmark Scheme
-        BaseType::mAlpha.f = 0.0;
-        BaseType::mAlpha.m = rAlpham;
-
-        BaseType::mNewmark.beta= (1.0 + BaseType::mAlpha.f - BaseType::mAlpha.m) * (1.0 + BaseType::mAlpha.f - BaseType::mAlpha.m) * 0.25;
-        BaseType::mNewmark.gamma= 0.5 + BaseType::mAlpha.f - BaseType::mAlpha.m;
-
-        // Allocate auxiliary memory
-        const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-
-        BaseType::mMatrix.M.resize(NumThreads);
-        BaseType::mMatrix.D.resize(NumThreads);
-
-        BaseType::mVector.v.resize(NumThreads);
-        BaseType::mVector.a.resize(NumThreads);
-        BaseType::mVector.ap.resize(NumThreads);
     }
     
     /**
@@ -296,34 +280,6 @@ public:
     }
 
     /**
-     * It initializes a non-linear iteration (for an individual condition)
-     * @param rCurrentConditiont: The condition to compute
-     * @param CurrentProcessInfo: The current process info instance
-     */
-
-    void InitializeNonLinearIteration(
-      Condition::Pointer rCurrentCondition,
-      ProcessInfo& CurrentProcessInfo
-    )
-    {
-        (rCurrentCondition)->InitializeNonLinearIteration(CurrentProcessInfo);
-    }
-
-    /**
-     * It initializes a non-linear iteration (for an individual element)
-     * @param rCurrentElement: The element to compute
-     * @param CurrentProcessInfo: The current process info instance
-     */
-
-    void InitializeNonLinearIteration(
-      Element::Pointer rCurrentElement,
-      ProcessInfo& CurrentProcessInfo
-    )
-    {
-        (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
-    }
-    
-    /**
      * Function called once at the end of a solution step, after convergence is reached if
      * an iterative process is needed
      * @param rModelPart: The model of the problem to solve
@@ -393,7 +349,7 @@ public:
             }
         }
        
-        ContactUtilities::ReComputeActiveInactive( rModelPart ); 
+//         ContactUtilities::ReComputeActiveInactive( rModelPart ); 
         
         KRATOS_CATCH("");
     }
@@ -520,8 +476,7 @@ protected:
         const array_1d<double, 3 > & PreviousAcceleration
     )
     {
-        noalias(CurrentVelocity) =  (BaseType::mNewmark.c1 * DeltaDisplacement - BaseType::mNewmark.c4 * PreviousVelocity
-                                     - BaseType::mNewmark.c5 * PreviousAcceleration);
+        BaseType::UpdateVelocity(CurrentVelocity, DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
     }
 
     /**
@@ -539,8 +494,7 @@ protected:
         const array_1d<double, 3 > & PreviousAcceleration
     )
     {
-        noalias(CurrentAcceleration) =  (BaseType::mNewmark.c0 * DeltaDisplacement - BaseType::mNewmark.c2 * PreviousVelocity
-                                         -  BaseType::mNewmark.c3 * PreviousAcceleration);
+        BaseType::UpdateVelocity(CurrentAcceleration, DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
     }
 
     /**
@@ -558,21 +512,7 @@ protected:
         ProcessInfo& CurrentProcessInfo
         )
     {
-
-        // Adding mass contribution to the dynamic stiffness
-        if (M.size1() != 0) // if M matrix declared
-        {
-            noalias(LHS_Contribution) += M * (1.0 - BaseType::mAlpha.m) * BaseType::mNewmark.c0;
-
-            // std::cout<<" Mass Matrix "<<M<<" coeficient "<<(1-BaseType::mAlpha.m)*BaseType::mNewmark.c0<<std::endl;
-        }
-
-        // Adding  damping contribution
-        if (D.size1() != 0) // if D matrix declared
-        {
-            noalias(LHS_Contribution) += D * (1.0 - BaseType::mAlpha.f) * BaseType::mNewmark.c1;
-
-        }
+        BaseType::AddDynamicsToLHS(LHS_Contribution, D, M, CurrentProcessInfo);
     }
 
     /**
@@ -591,31 +531,7 @@ protected:
         LocalSystemMatrixType& M,
         ProcessInfo& CurrentProcessInfo)
     {
-        int thread = OpenMPUtils::ThisThread();
-
-        // Adding inertia contribution
-        if (M.size1() != 0)
-        {
-            rCurrentElement->GetSecondDerivativesVector(BaseType::mVector.a[thread], 0);
-
-            (BaseType::mVector.a[thread]) *= (1.00 - BaseType::mAlpha.m);
-
-            rCurrentElement->GetSecondDerivativesVector(BaseType::mVector.ap[thread], 1);
-
-            noalias(BaseType::mVector.a[thread]) += BaseType::mAlpha.m * BaseType::mVector.ap[thread];
-
-            noalias(RHS_Contribution)  -= prod(M, BaseType::mVector.a[thread]);
-            //KRATOS_WATCH( prod(M, BaseType::mVector.a[thread] ) )
-
-        }
-
-        // Adding damping contribution
-        if (D.size1() != 0)
-        {
-            rCurrentElement->GetFirstDerivativesVector(BaseType::mVector.v[thread], 0);
-
-            noalias(RHS_Contribution) -= prod(D, BaseType::mVector.v[thread]);
-        }
+        BaseType::AddDynamicsToRHS(rCurrentElement, RHS_Contribution, D, M, CurrentProcessInfo);
     }
 
     /**
@@ -634,31 +550,7 @@ protected:
         LocalSystemMatrixType& M,
         ProcessInfo& CurrentProcessInfo)
     {
-        int thread = OpenMPUtils::ThisThread();
-
-        // Adding inertia contribution
-        if (M.size1() != 0)
-        {
-            rCurrentCondition->GetSecondDerivativesVector(BaseType::mVector.a[thread], 0);
-
-            (BaseType::mVector.a[thread]) *= (1.00 - BaseType::mAlpha.m);
-
-            rCurrentCondition->GetSecondDerivativesVector(BaseType::mVector.ap[thread], 1);
-
-            noalias(BaseType::mVector.a[thread]) += BaseType::mAlpha.m * BaseType::mVector.ap[thread];
-
-            noalias(RHS_Contribution)  -= prod(M, BaseType::mVector.a[thread]);
-        }
-
-        // Adding damping contribution
-        // Damping contribution
-        if (D.size1() != 0)
-        {
-            rCurrentCondition->GetFirstDerivativesVector(BaseType::mVector.v[thread], 0);
-
-            noalias(RHS_Contribution) -= prod(D, BaseType::mVector.v [thread]);
-        }
-
+        BaseType::AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, D, M, CurrentProcessInfo);
     }
 
     ///@}

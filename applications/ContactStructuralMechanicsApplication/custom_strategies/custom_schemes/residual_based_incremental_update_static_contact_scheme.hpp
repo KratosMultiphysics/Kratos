@@ -319,40 +319,6 @@ public:
     /***********************************************************************************/
     /***********************************************************************************/
 
-    /**
-     * It initializes a non-linear iteration (for an individual condition)
-     * @param rCurrentConditiont: The condition to compute
-     * @param CurrentProcessInfo: The current process info instance
-     */
-
-    void InitializeNonLinearIteration(
-      Condition::Pointer rCurrentCondition,
-      ProcessInfo& CurrentProcessInfo
-    )
-    {
-        (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
-    }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    /**
-     * It initializes a non-linear iteration (for an individual element)
-     * @param rCurrentConditiont: The element to compute
-     * @param CurrentProcessInfo: The current process info instance
-     */
-
-    void InitializeNonLinearIteration(
-      Element::Pointer rCurrentElement,
-      ProcessInfo& CurrentProcessInfo
-    )
-    {
-        (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-
     void FinalizeSolutionStep(
         ModelPart& rModelPart,
         TSystemMatrixType& A,
@@ -413,7 +379,7 @@ public:
             }
         }
         
-        ContactUtilities::ReComputeActiveInactive( rModelPart );  
+//         ContactUtilities::ReComputeActiveInactive( rModelPart );  
         
         KRATOS_CATCH("");
     }
