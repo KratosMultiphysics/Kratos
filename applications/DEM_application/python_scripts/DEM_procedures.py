@@ -243,6 +243,7 @@ class DEMEnergyCalculator(object):
         plot_inelastic_viscodamping  = self.inelastic_viscodamping_energy
         plot_total                   = self.total_energy
         self.energy_plot.write( str("%.8g"%time).rjust(9)+"   "+str("%.6g"%plot_translational_kinematic).rjust(22)+"   "+str("%.6g"%plot_rotational_kinematic).rjust(20)+"   "+str("%.6g"%plot_kinematic).rjust(16)+"   "+str("%.6g"%plot_gravitational).rjust(20)+"   "+str("%.6g"%plot_elastic).rjust(14)+"   "+str("%.6g"%plot_inelastic_frictional).rjust(16)+"   "+str("%.6g"%plot_inelastic_viscodamping).rjust(19)+"   "+str("%.6g"%plot_total).rjust(12)+'\n' )
+        self.energy_plot.flush()
         
     def FinilizeEnergyPlot(self):
 
