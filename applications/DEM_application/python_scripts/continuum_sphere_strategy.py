@@ -65,6 +65,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
             self.shear_strain_parallel_to_bond_option = 0
         else:
             self.shear_strain_parallel_to_bond_option = self.Var_Translator(Param.ShearStrainParallelToBondOption)
+            self.stress_strain_option = 1
         
         if not hasattr(Param, "IceOption"):
             self.ice_option = 0
