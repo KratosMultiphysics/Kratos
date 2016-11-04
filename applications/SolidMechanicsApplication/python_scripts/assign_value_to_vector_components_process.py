@@ -57,10 +57,11 @@ class AssignValueToVectorComponentsProcess(KratosMultiphysics.Process):
             self.function_expression = "t"
         else:
             self.function_expression = self.function_string;
-	if (sys.version_info > (3, 0)):
-	    self.compiled_function = compile(self.function_expression, '', 'eval', optimize=2)
-	else:
-	    self.compiled_function = compile(self.function_expression, '', 'eval')
+
+        if (sys.version_info > (3, 0)):
+            self.compiled_function = compile(self.function_expression, '', 'eval', optimize=2)
+        else:
+            self.compiled_function = compile(self.function_expression, '', 'eval')
             
         self.interval_string = "custom"
         if( self.interval[0] == 0.0 and self.interval[1] == 0.0 ):
