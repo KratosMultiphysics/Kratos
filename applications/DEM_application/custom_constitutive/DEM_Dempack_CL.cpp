@@ -20,7 +20,7 @@ namespace Kratos {
         mHistoryDamage              = 0.0; //cumulated_damage
         mHistoryDegradation         = 1.0; //degradation factor for G reducing in Dempack;
         mHistoryDisp                = 0.0; //displacement;
-        mHistoryShearFlag           = 0.0; //superado el limite de cortante;  
+        mHistoryShearFlag           = 0.0; //shear limit achived;
     KRATOS_CATCH("")  
     }
 
@@ -102,7 +102,6 @@ namespace Kratos {
 
         const double Ntstr_el = mTensionLimit * calculation_area;
         double u1 = Ntstr_el / kn_el;
-        //if (u1 > 2*radius_sum) {u1 = 2*radius_sum;}   // agregar opcion input desde gid
         double u2 = u1 * (1 + mDamageMaxDisplacementFactor)*10;
         return u2;
 
@@ -142,7 +141,7 @@ namespace Kratos {
         const double equiv_coefficientOfRestitution = 0.5 * (mCoefficientOfRestitution + mOtherCoefficientOfRestitution);
 
         equiv_visco_damp_coeff_normal = (1-equiv_coefficientOfRestitution) * 2.0 * sqrt(kn_el / (mRealMass + other_real_mass)) * (sqrt(mRealMass * other_real_mass)); // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
-        equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // Dempack no ho fa servir...
+        equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // not used in Dempack
         KRATOS_CATCH("")  
     }
 
@@ -302,65 +301,65 @@ namespace Kratos {
             double u_ela2 = u_ela1 + (Ncstr2_el - Ncstr1_el) / (kn_b);
             double u_ela3 = u_ela2 + (Ncstr3_el - Ncstr2_el) / (kn_c);
 
-            if ((indentation > u_max) || (time_steps <= 1)) { //maximum historical intentation OR first step  MSIMSI 0
+            if ((indentation > u_max) || (time_steps <= 1)) {   //maximum historical indentation OR first step
 
-                mHistoryMaxInd = indentation;               // Guarda el threshold del màxim desplaçament
+                mHistoryMaxInd = indentation;                   //Saves maximum historical indentation
 
-                if (indentation > u_ela3) {                 //4rt tram
+                if (indentation > u_ela3) {                     //4th stage
                     fn = Ncstr3_el + (indentation - u_ela3) * kn_d;
                     mHistoryDegradation = kn_d / kn_el;
-                } else if (indentation > u_ela2) {          //3r tram
+                } else if (indentation > u_ela2) {              //3rd stage
                     fn = Ncstr2_el + (indentation - u_ela2) * kn_c;
                     mHistoryDegradation = kn_c / kn_el;
                 } else {
-                    if (indentation > u_ela1) {             //2n tram
+                    if (indentation > u_ela1) {                 //2nd stage
                         fn = Ncstr1_el + (indentation - u_ela1) * kn_b;
                         mHistoryDegradation = kn_b / kn_el;
                     }
                 }
-                mHistoryMaxForce = fn;                      //actualitzar la força màxima a compressió.
-            } else {                                        //Per sota del màxim.
-                if (mHistoryMaxForce > 0.0) {               //Màxim en compressió.
+                mHistoryMaxForce = fn;                          //Update max compressive force.
+            } else {                                            //Below max.
+                if (mHistoryMaxForce > 0.0) {                   //max compressive force
 
-                    double u_plas;                          //MSIMSI 2 akesta operació de saber quant val la u_plastica es fa cada pas de temps i en realitat es fixe sempre.
-                    if (Yields_el <= Ncstr1_el) {           //si el punt de plastificació està en la primera rama elastica.
+                    double u_plas;
+                    if (Yields_el <= Ncstr1_el) {               //Plastic point located in the first stage.
 
                         u_plas = Yields_el / kn_el;
                     } else {
-                        if (Yields_el <= Ncstr2_el) {       //si està en la segona...
+                        if (Yields_el <= Ncstr2_el) {           //Plastic point located in the second stage
                             u_plas = u_ela1 + (Yields_el - Ncstr1_el) / (kn_b);
-                        } else if (Yields_el <= Ncstr3_el) { //si està en la tercera...
+                        } else if (Yields_el <= Ncstr3_el) {    //Plastic point located in the third stage
                             u_plas = u_ela2 + (Yields_el - Ncstr2_el) / (kn_c);
-                        } else {                            //en la quarta
+                        } else {                                //Plastic point located in the fourth stage
                             u_plas = u_ela3 + (Yields_el - Ncstr3_el) / (kn_d);
                         }
                     }
-                    if (u_plas < u_max) {                   //si nosaltres estem per sota del maxim pero ja estem plastificant
-                        fn = mHistoryMaxForce - kp_el * (u_max - indentation); // Esta en zona de descarga plastica (pot estar en carga/descarga)
+                    if (u_plas < u_max) {                       //below max BUT already in plastic zone
+                        fn = mHistoryMaxForce - kp_el * (u_max - indentation); // Plastic unloading zone
                         mHistoryDegradation = kp_el / kn_el;
-                    } else {                                // Esta en zona descarga elastica, ens despreocupem de la plasticitat
-                        if (indentation > u_ela3) {         // en la 4a ramma
+                    } else {                                    // Elastic unloading zone
+                        if (indentation > u_ela3) {             // 4th stage
                             fn = Ncstr3_el + (indentation - u_ela3) * kn_d;
-                        } else if (indentation > u_ela2) {  // en la 3a ramma
+                        } else if (indentation > u_ela2) {      // 3rd stage
                             fn = Ncstr2_el + (indentation - u_ela2) * kn_c;
                         } else {
-                            if (indentation > u_ela1) {     // en la 2a rama
+                            if (indentation > u_ela1) {         // 2nd stage
                                 fn = Ncstr1_el + (indentation - u_ela1) * kn_b;
                             }
                         }
                     }
-                }       //si tenim precàrrega en compressió.
-            }           //Per sota del màxim.
+                }       //Compressive preloading.
+            }           //Below max value.
         }               //Compression
-        else {          //tension
+        else {          //Tensile
             fn = kn_el * indentation;
             double u1 = Ntstr_el / kn_el;
             double u2 = u1 * (1 + mDamageMaxDisplacementFactor);
 
             if (failure_type == 0) {
 
-                if (fabs(indentation) > u2) {   // FULL DAMAGE
-                    failure_type = 4;           //tension failure
+                if (fabs(indentation) > u2) {                   // FULL DAMAGE
+                    failure_type = 4;                           //tension failure
                     acumulated_damage = 1.0;
                     fn = 0.0;
                 } else {
@@ -490,13 +489,13 @@ namespace Kratos {
                 LocalElasticContactForce[0] = aux * LocalElasticContactForce[0];
                 LocalElasticContactForce[1] = aux * LocalElasticContactForce[1];
 
-                //failure_criterion_state = 1.0;                        // *revisar
-                failure_criterion_state = (1+mShearEnergyCoef*damage_tau) /(1+mShearEnergyCoef);  // *revisar
+                //failure_criterion_state = 1.0;                        // *under revision
+                failure_criterion_state = (1+mShearEnergyCoef*damage_tau) /(1+mShearEnergyCoef);  // *under revision
                 if(contact_sigma<0){ failure_criterion_state = GeometryFunctions::max( failure_criterion_state, -contact_sigma / mTensionLimit ); }   // *revisar
 
                 if (damage_tau >= 1.0) {
                     failure_type = 2;                   // shear
-                    failure_criterion_state = 1.0;      // *revisar
+                    failure_criterion_state = 1.0;      // *under revision
                     sliding = true;
                 }
             } else {
