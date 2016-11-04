@@ -407,85 +407,254 @@ public:
       
       KRATOS_CATCH( "" )
     }
+  
 
-   //*******************************************************************************************
+    //*******************************************************************************************
     //*******************************************************************************************
 
-    bool SetNodalPosition(ConditionType::Pointer& pCondition, ProcessInfo& rCurrentProcessInfo, double& xc, double& yc, double& zc)
+    void SetNodalPosition(ConditionType::Pointer& pCondition, ProcessInfo& rCurrentProcessInfo, double& xc, double& yc, double& zc)
     {
       KRATOS_TRY
-
-      bool refine_condition = false;
 	
-      bool contact_active      = false;
       bool contact_semi_active = false;
       std::vector<bool> semi_active_nodes;
 	
-      contact_active = mModelerUtilities.CheckContactActive(pCondition->GetGeometry(), contact_semi_active, semi_active_nodes);
-	
-      double factor = 3.50;
-	
-      if( contact_semi_active ){
-	
-	bool curved_contact      = false;
-	std::vector<array_1d<double, 3> > contact_normals;
-	
-	curved_contact = mModelerUtilities.CheckContactCurvature(pCondition->GetGeometry(), contact_normals);
+      bool contact_active = mModelerUtilities.CheckContactActive(pCondition->GetGeometry(), contact_semi_active, semi_active_nodes);
+		
+      if( contact_semi_active || contact_active ){ // if contact is semi_ative or active
 
-	array_1d<double,3> normal_direction;
-	normal_direction.clear();
+	array_1d<double,3> position_correction;
+	position_correction.clear();
 
-	array_1d<double,3> tangent_direction;
-	tangent_direction.clear();
-	
-	//note:  what happens in 3D surface conditions: TO IMPLEMENT
-	// alternative: difference between a rotation of the normals and the projection on the inserted point normal
-	if( contact_normals.size() == 2 ){
-
-	  //compute the saggita
-	  double projection = 0.0;
-	  for( unsigned int i = 0; i<3; i++ )
-	    projection += contact_normals[0][i] * contact_normals[1][i];
-	 
-	  projection = std::sqrt(projection);
-
-	  double angle = std::acos(projection);
-
-	  double face_size = mModelerUtilities.CalculateBoundarySize(pCondition->GetGeometry());
+	if( pCondition->GetGeometry().size() == 2 && pCondition->GetGeometry().WorkingSpaceDimension() == 2 ){ //line
 	  
-	  double sagitta = 0.5 * face_size * std::tan(0.25*angle);
-
-	  //correction vector according to contact curvature
-	  normal_direction = contact_normals[0] +  contact_normals[1];
-
-	  double modulus = norm_2(normal_direction);
-	  if( modulus )
-	    normal_direction /= modulus;
-
-	  normal_direction *= sagitta;
-
-	  //check correct curvature convexity
-	  tangent_direction = pCondition->GetGeometry()[0]-pCondition->GetGeometry()[1];
-	  modulus = norm_2(tangent_direction);
-	  if( modulus )
-	    tangent_direction /= modulus;
-
-	  //note:  two possible directions depending on the NORMAL_CONTACT definition
-	  if( inner_prod( contact_normals[0], tangent_direction) > 0 )
-	    normal_direction *= (-1.0);	     
+	  //circle interpolation
+	  //this->CircleInterpolation(pCondition, position_correction);
+	  
+	  //hermite interpolation
+	  this->HermiteInterpolation(pCondition, position_correction);
 	}
 	
 
-	xc += normal_direction[0];
-	yc += normal_direction[1];
-	zc += normal_direction[2];
+	if( pCondition->GetGeometry().size() == 3 && pCondition->GetGeometry().WorkingSpaceDimension() == 3 ){ //triangle
+
+	  //hermite interpolation
+	  this->HermiteTriangleInterpolation(pCondition, position_correction);
+
+	}
+	
+	xc += position_correction[0];
+	yc += position_correction[1];
+	zc += position_correction[2];
 
       }
       
       KRATOS_CATCH( "" )
     } 
    
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+
+    void CircleInterpolation(ConditionType::Pointer& pCondition, array_1d<double,3 >& rVector)
+    {
+      KRATOS_TRY
+
+      bool is_curved = false;
+      std::vector<array_1d<double, 3> > normals;
+	
+      is_curved = mModelerUtilities.CheckContactCurvature(pCondition->GetGeometry(), normals);
+
+      array_1d<double,3> normal_direction;
+      normal_direction.clear();
+
+      array_1d<double,3> tangent_direction;
+      tangent_direction.clear();
+
+      if( is_curved ){
+      
+	//compute the saggita
+	double projection = 0.0;
+	for( unsigned int i = 0; i<3; i++ )
+	  projection += normals[0][i] * normals[1][i];
+	 
+	projection = std::sqrt(projection);
+
+	double angle = std::acos(projection);
+
+	double face_size = mModelerUtilities.CalculateBoundarySize(pCondition->GetGeometry());
+	  
+	double sagitta = 0.5 * face_size * std::tan(0.25*angle);
+
+	//correction vector according to contact curvature
+	normal_direction = normals[0] +  normals[1];
+
+	double modulus = norm_2(normal_direction);
+	if( modulus )
+	  normal_direction /= modulus;
+
+	normal_direction *= sagitta;
+
+	//check correct curvature convexity
+	tangent_direction = pCondition->GetGeometry()[0]-pCondition->GetGeometry()[1];
+	modulus = norm_2(tangent_direction);
+	if( modulus )
+	  tangent_direction /= modulus;
+
+	//note:  two possible directions depending on the NORMAL_CONTACT definition
+	if( inner_prod( normals[0], tangent_direction) > 0 )
+	  normal_direction *= (-1.0);	     
+      }
+
+      rVector = normal_direction;
+
+      KRATOS_CATCH( "" )
+    }
+
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+
+    void HermiteInterpolation(ConditionType::Pointer& pCondition, array_1d<double,3 >& rVector)
+    {
+      KRATOS_TRY
+
+      bool is_curved = false;
+      std::vector<array_1d<double, 3> > normals;
+	
+      is_curved = mModelerUtilities.CheckContactCurvature(pCondition->GetGeometry(), normals);
+
+	      
+      if( is_curved ){
+
+	this->HermiteInterpolation( pCondition->GetGeometry()[0], pCondition->GetGeometry()[1], normals[0], normals[1], rVector, 0.5);
+      }
+      
+	
+      KRATOS_CATCH( "" )
+    }
+
+
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+
+    void HermiteTriangleInterpolation(ConditionType::Pointer& pCondition, array_1d<double,3 >& rVector)
+    {
+      KRATOS_TRY
+
+      bool is_curved = false;
+      std::vector<array_1d<double, 3> > normals;
+	
+      is_curved = mModelerUtilities.CheckContactCurvature(pCondition->GetGeometry(), normals);
+
+      double baricenter = 2.0/3.0;
+      array_1d<double, 3> MidPoint;
+      MidPoint.clear();
+
+      array_1d<double, 3> Normal;
+      Normal.clear();
+
+      array_1d<double, 3> Curve;
+      Curve.clear();
+      
+      if( is_curved ){
+
+	//first curve (node to face midpoint)
+	MidPoint = 0.5 * (pCondition->GetGeometry()[2] - pCondition->GetGeometry()[1]);
+	Normal   = 0.5 * (normals[2] + normals[1]);
+	
+	this->HermiteInterpolation( pCondition->GetGeometry()[0], MidPoint, normals[0], Normal, Curve, baricenter);
+
+	rVector = Curve;
+
+	//second curve (node to face midpoint)
+	MidPoint = 0.5 * (pCondition->GetGeometry()[2] - pCondition->GetGeometry()[0]);
+	Normal   = 0.5 * (normals[2] + normals[0]);
+
+	Curve.clear();
+	this->HermiteInterpolation( pCondition->GetGeometry()[1], MidPoint, normals[1], Normal, Curve, baricenter);
+
+	rVector += Curve;
+
+	//first curve (node to face midpoint)
+	MidPoint = 0.5 * (pCondition->GetGeometry()[1] - pCondition->GetGeometry()[0]);
+	Normal   = 0.5 * (normals[1] + normals[0]);
+	
+	this->HermiteInterpolation( pCondition->GetGeometry()[2], MidPoint, normals[2], Normal, Curve, baricenter);
+
+	rVector += Curve;
+
+	rVector *= 1.0/3.0;
+      }
+      
+	
+      KRATOS_CATCH( "" )
+    }
+
    
+    //*******************************************************************************************
+    //*******************************************************************************************
+
+    void HermiteInterpolation(const array_1d<double,3 >& rP1, const array_1d<double,3 >& rP2, const array_1d<double,3 >& rN1, const array_1d<double,3 >& rN2, array_1d<double,3 >& rD, double s)
+    {
+	
+       KRATOS_TRY
+
+       //compute points distance 1-2
+       array_1d<double, 3> T1 = rP2 - rP1;
+	
+       //compute tangents
+       double projection = 0.0;
+       for( unsigned int i = 0; i<3; i++ )
+	 projection += T1[i] * rN1[i];
+       
+       T1  -= ( projection * rN1 );
+
+       double modulus = norm_2(T1);
+       if( modulus )
+	 T1 /= modulus;
+       
+       //compute points distance 2-1
+       array_1d<double, 3> T2 = rP1 - rP2;
+       
+       //compute tangents
+       projection = 0.0;
+       for( unsigned int i = 0; i<3; i++ )
+	 projection += T2[i] * rN2[i];
+       
+       T2 -= ( projection * rN2 );
+       
+       modulus = norm_2(T2);
+       if( modulus )
+	 T2 /= modulus;
+       
+       //compute normalized s-point position s in [0,1]
+       array_1d<double, 3> M = s * rP2 - (s+1) * rP1;
+       
+       modulus  = norm_2(rP2-rP1);
+       if( modulus )
+	 projection = norm_2(M)/modulus;
+       
+       //hermite basis functions
+       double h00 = 2.0 * projection * projection * projection - 3.0 * projection * projection + 1.0;	
+       double h10 = projection * projection * projection - 2.0 * projection * projection + projection;
+       double h01 = -2.0 * projection * projection * projection + 3.0 * projection * projection;
+       double h11 = projection * projection * projection - projection * projection;
+       
+       //hermite interpolation polinomial
+       rD  = h00 * rP1;
+       rD += h10 * T1;
+       rD += h01 * rP2;
+       rD += h11 * T2;
+       
+       //increment of position
+       rD -= M;
+       
+       KRATOS_CATCH( "" )
+	 
+    }
+    
     //*******************************************************************************************
     //*******************************************************************************************
    

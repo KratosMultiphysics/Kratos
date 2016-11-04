@@ -18,9 +18,6 @@ class MeshModeler(object):
         self.main_model_part        = main_model_part
         self.MeshingParameters      = meshing_parameters
 
-        self.imposed_walls          = []
-        self.consider_imposed_walls = False      
-
         self.model_part = self.main_model_part
         if( self.main_model_part.Name != self.MeshingParameters.GetSubModelPartName() ):
             self.model_part = self.main_model_part.GetSubModelPart(self.MeshingParameters.GetSubModelPartName())
@@ -46,11 +43,6 @@ class MeshModeler(object):
 
         self.mesher.Initialize()
 
-    # 
-    def SetImposedWalls(self, imposed_walls):  #must be set before initialize
-
-        self.consider_imposed_walls = True
-        self.imposed_walls =  imposed_walls
 
     #
     def InitializeMeshing(self):
@@ -116,26 +108,13 @@ class MeshModeler(object):
         # The order set is the order of execution:
 
 
-        # process to refine elements /refine boundary
+        # process to refine elements / refine boundary
         refine_mesh_elements  = KratosPfemBase.SetElementNodesToRefineOnThreshold(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPreMeshingProcess(refine_mesh_elements)
         
-        # process to refine boundary (considering or not imposed walls)        
-        if( self.consider_imposed_walls ):
-
-            rigid_walls_container = KratosPfemBase.BoundingBoxContainer()
-
-            if( self.imposed_walls.RigidWallActive() ):
-                rigid_wall_bbox = self.imposed_walls.RigidWallBoundingBoxes()
-                for sizei in range(0, len(rigid_wall_bbox)):
-                    rigid_walls_container.PushBack( rigid_wall_bbox[sizei] )
-
-                refine_mesh_boundary = KratosPfemBase.ContactRefineMeshBoundary(self.model_part, rigid_walls_container, self.MeshingParameters,  self.echo_level)
-                self.mesher.SetPreMeshingProcess(refine_mesh_boundary)
-
-        else:
-            refine_mesh_boundary = RefineMeshBoundary(self.model_part, self.RefiningParameters, self.echo_level)            
-            self.mesher.SetPreMeshingProcess(refine_mesh_boundary)
+        # process to refine boundary / contact boundary  
+        refine_mesh_boundary = RefineMeshBoundary(self.model_part, self.RefiningParameters, self.echo_level)            
+        self.mesher.SetPreMeshingProcess(refine_mesh_boundary)
 
 
         # process to remove nodes / remove boundary

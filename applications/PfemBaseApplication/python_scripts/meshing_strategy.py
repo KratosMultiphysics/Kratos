@@ -39,9 +39,6 @@ class MeshingStrategy(object):
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
                 
-        self.imposed_walls          = []
-        self.consider_imposed_walls = False      
-
         #print("::[Modeler_Strategy]:: Construction of Mesh Strategy finished")
         
     #
@@ -104,12 +101,6 @@ class MeshingStrategy(object):
         print("::[Meshing Strategy]:: -END-")
         
     #
-    def SetImposedWalls(self, imposed_walls): #must be set before initialize
-
-        self.consider_imposed_walls = True
-        self.imposed_walls =  imposed_walls       
-
-    #
     def SetMeshModelers(self):
 
         modelers = []       
@@ -133,11 +124,6 @@ class MeshingStrategy(object):
             meshing_module =__import__(modeler)      
             mesher = meshing_module.CreateMeshModeler(self.main_model_part,self.MeshingParameters) 
             self.mesh_modelers.append(mesher)
-
-        if( self.consider_imposed_walls ):
-            for mesher in self.mesh_modelers:
-                mesher.SetImposedWalls(self.imposed_walls)
-
   
     #
     def SetInfo(self):
