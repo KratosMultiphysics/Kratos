@@ -16,7 +16,6 @@ proc Dam::write::getParametersDict { } {
     dict set generalDataDict NumberofThreads [write::getValue DamNumThreads ]
     dict set generalDataDict type_of_problem [write::getValue DamTypeofProblem ]
     dict set generalDataDict time_scale [write::getValue DamTimeParameters TimeScale]
-    dict set generalDataDict evolution_type [write::getValue DamEvolutionType] 
     dict set generalDataDict delta_time [write::getValue DamTimeParameters DeltaTime]
     dict set generalDataDict ending_time [write::getValue DamTimeParameters EndingTime]
     
@@ -53,6 +52,7 @@ proc Dam::write::getParametersDict { } {
     dict set mechanicalSolverSettingsDict solution_type [write::getValue DamSoluType]
     dict set mechanicalSolverSettingsDict analysis_type [write::getValue DamAnalysisType]
     dict set mechanicalSolverSettingsDict strategy_type [write::getValue DamSolStrat]
+    dict set mechanicalSolverSettingsDict scheme_type [write::getValue DamScheme]
     set mechanicalSolverSettingsDict [dict merge $mechanicalSolverSettingsDict [write::getSolutionStrategyParametersDict] ]
     dict set mechanicalSolverSettingsDict type_of_builder [write::getValue DamTypeofbuilder]
     dict set mechanicalSolverSettingsDict type_of_solver [write::getValue DamTypeofsolver]

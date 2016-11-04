@@ -73,7 +73,6 @@ type_of_problem = ProjectParameters["general_data"]["type_of_problem"].GetString
 delta_time = ProjectParameters["general_data"]["delta_time"].GetDouble()
 ending_time = ProjectParameters["general_data"]["ending_time"].GetDouble()
 time_converter = ProjectParameters["general_data"]["time_scale"].GetString()
-evolution_type = ProjectParameters["general_data"]["evolution_type"].GetString()
 current_step = 0
 current_time = 0.0
 current_id = 1
@@ -97,13 +96,13 @@ main_model_part.ProcessInfo[TIME_UNIT_CONVERTER] = time_unit_converter
 if (type_of_problem == "Thermo-Mechanical"):
     
     #Type of reference temperature
-    reference_temperature = ProjectParameters["diffusion_settings"]["reference_temperature"].GetString()
+    main_model_part.ProcessInfo[REFERENCE_TEMPERATURE] = ProjectParameters["diffusion_settings"]["reference_temperature"].GetDouble()
     
-    if (reference_temperature =="Reservoir_Information"):
-        main_model_part.ProcessInfo[REFERENCE_TEMPERATURE] = 10.0  #TODO: for working
-        #model_part.ProcessInfo[REFERENCE_TEMPERATURE] = model_part.GetTable(18).GetNearestValue(0.0)      To start computations at time = 0  / Table 5 = Reference Temperature Values
-    else:
-        main_model_part.ProcessInfo[REFERENCE_TEMPERATURE] = 10.0 # TODO: Here we have to solve the thermal problem until arrives a stationary    
+    #if (reference_temperature =="Reservoir_Information"):
+        #main_model_part.ProcessInfo[REFERENCE_TEMPERATURE] = 10.0  #TODO: for working
+        ##model_part.ProcessInfo[REFERENCE_TEMPERATURE] = model_part.GetTable(18).GetNearestValue(0.0)      To start computations at time = 0  / Table 5 = Reference Temperature Values
+    #else:
+        #main_model_part.ProcessInfo[REFERENCE_TEMPERATURE] = 10.0 # TODO: Here we have to solve the thermal problem until arrives a stationary    
     
     #Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
     thermal_scheme = ProjectParameters["diffusion_settings"]["temporal_scheme"].GetString()
