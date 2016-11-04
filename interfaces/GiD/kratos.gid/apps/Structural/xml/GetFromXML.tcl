@@ -28,4 +28,12 @@ proc Structural::xml::CustomTree { args } {
     Solid::xml::CustomTree $args
 }
 
+proc Structural::xml::ProcCheckGeometryStructural {domNode args} {
+     set ret "line,surface"
+     if {$::Model::SpatialDimension eq "3D"} {
+          set ret "line,surface,volume"
+     }
+     return $ret
+}
+
 Structural::xml::Init
