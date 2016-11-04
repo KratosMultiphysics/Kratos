@@ -724,11 +724,56 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
                         <value n='${inName}Y' wn='[concat $n "_Y"]' pn='Y ${pn}' v='$v2' values='1,0' help=''/>
                         <value n='${inName}Z' wn='[concat $n "_Z"]' pn='Z ${pn}' v='$v3' values='1,0' help='' state='\[CheckDimension 3D\]'/>"
                 } {
-                    append node "
-                    <value n='${inName}X' wn='[concat $n "_X"]' pn='${pn} X' v='$v1' help='$help' />
-                    <value n='${inName}Y' wn='[concat $n "_Y"]' pn='${pn} Y' v='$v2' help='$help' />
-                    <value n='${inName}Z' wn='[concat $n "_Z"]' pn='${pn} Z' v='$v3' help='$help'  state='\[CheckDimension 3D\]'/>
-                    "
+                    foreach i [list "X" "Y" "Z"] {
+                        set nodev "../value\[@n='${inName}$i'\]"
+                        set zstate ""
+                        if {$i eq "Z"} { set zstate "state='\[CheckDimension 3D\]'"}
+                        if {[$in getAttribute "enabled"] in [list "1" "0"]} {
+                            set val [expr [$in getAttribute "enabled"] ? "Yes" : "No"]
+                            if {$i eq "Z"} { set val "No" }
+                            append node "<value n='Enabled_$i' pn='$i component' v='$val' values='Yes,No'  help='Enables the $i ${inName}' $zstate >"
+                            append node "<dependencies value='No' node=\""
+                            append node $nodev
+                            append node "\" att1='state' v1='hidden'/>"
+                            append node "<dependencies value='Yes' node=\""
+                            append node $nodev
+                            append node "\" att1='state' v1='normal'/>"
+                            if {[$in getAttribute "function"] eq "1"} {
+                                set fname "${i}function_$inName"
+                                set nodef "../value\[@n='$fname'\]"
+                                set nodeb "../value\[@n='ByFunction$i'\]"
+                                append node "<dependencies value='No' node=\""
+                                append node $nodef
+                                append node "\" att1='state' v1='hidden'/>"
+                                append node "<dependencies value='No' node=\""
+                                append node $nodeb
+                                append node "\" att1='state' v1='hidden'/>"
+                                append node "<dependencies value='Yes' node=\""
+                                append node $nodeb
+                                append node "\" att1='state' v1='normal' att2='v' v2='No'/>"
+                            }
+                            append node "</value>"
+                        }
+                        if {[$in getAttribute "function"] eq "1"} {
+                            set fname "${i}function_$inName"
+                            append node "<value n='ByFunction$i' pn='by function -> f(x,y,z,t)' v='No' values='Yes,No'  actualize_tree='1'  $zstate >
+                                            <dependencies value='No' node=\""
+                            append node $nodev
+                            append node "\" att1='state' v1='normal'/>
+                                            <dependencies value='Yes'  node=\""
+                            append node $nodev
+                            append node "\" att1='state' v1='hidden'/>
+                                            <dependencies value='No' node=\""
+                            append node $nodef
+                            append node "\" att1='state' v1='hidden'/>
+                                            <dependencies value='Yes'  node=\""
+                            append node $nodef
+                            append node "\" att1='state' v1='normal'/>
+                                          </value>"
+                            append node "<value n='$fname' pn='$i function' v='' help='$help'  $zstate />"
+                        }
+                        append node "<value n='${inName}$i' wn='[concat $n "_$i"]' pn='$i ${pn}' v='$v1'  units='$units'  unit_magnitude='$um'  help='$help'  $zstate />"
+                    }
                 }
                 
             } elseif { $type eq "combo" } {
