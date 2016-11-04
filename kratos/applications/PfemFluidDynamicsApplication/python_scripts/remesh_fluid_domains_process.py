@@ -166,6 +166,11 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         for domain in self.meshing_domains:
             domain.ComputeAverageMeshParameters()  
 
+        volume_acceleration=self.main_model_part.ProcessInfo[KratosMultiphysics.GRAVITY]
+        if(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] == 1):
+            for node in self.main_model_part.Nodes:
+                node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION,volume_acceleration)
+  
         if(self.remesh_domains_active):
             if( self.meshing_before_output ):
                 if(self.IsMeshingStep()):
@@ -173,15 +178,15 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
                     self.RemeshFluidDomains()
 
  
-        if(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] == 1):
-            for node in self.main_model_part.Nodes:
-                if (node.Is(KratosMultiphysics.FLUID)):
-                    if(node.IsNot(KratosMultiphysics.RIGID)):
-                        volume_acceleration=node.GetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION)
-                        break
-            for node in self.main_model_part.Nodes:
-                if (node.Is(KratosMultiphysics.RIGID)):
-                    node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION,volume_acceleration)
+        #if(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] == 1):
+          #  for node in self.main_model_part.Nodes:
+           #     if (node.Is(KratosMultiphysics.FLUID)):
+            #        if(node.IsNot(KratosMultiphysics.RIGID)):
+             #           volume_acceleration=node.GetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION)
+             #           break
+          #  for node in self.main_model_part.Nodes:
+            #    if (node.Is(KratosMultiphysics.RIGID)):
+             #       node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION,volume_acceleration)
    
 
     #
