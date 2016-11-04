@@ -698,7 +698,7 @@ public:
                          GiD_OnNodes, NULL, NULL, 0, NULL );
         for ( NodesContainerType::iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node)
-            GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->FastGetSolutionStepValue(rVariable,
+            GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->GetSolutionStepValue(rVariable,
                              SolutionStepNumber) );
         GiD_fEndResult(mResultFile);
 
@@ -722,7 +722,7 @@ public:
                          GiD_OnNodes, NULL, NULL, 0, NULL );
         for ( NodesContainerType::iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node)
-            GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->FastGetSolutionStepValue(rVariable,
+            GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->GetSolutionStepValue(rVariable,
                              SolutionStepNumber) );
         GiD_fEndResult(mResultFile);
 
@@ -747,7 +747,7 @@ public:
         for (NodesContainerType::iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node)
         {
-            array_1d<double, 3>& temp = i_node->FastGetSolutionStepValue( rVariable,
+            array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable,
                                         SolutionStepNumber );
             GiD_fWriteVector( mResultFile, i_node->Id(), temp[0], temp[1], temp[2] );
         }
@@ -805,7 +805,7 @@ public:
         for (NodesContainerType::iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node)
         {
-            Matrix& tempMatrix = i_node->FastGetSolutionStepValue(rVariable,
+            Matrix& tempMatrix = i_node->GetSolutionStepValue(rVariable,
                     SolutionStepNumber);
             //Matrix& tempMatrix = i_node->GetValue(rVariable);
             if (tempMatrix.size1() ==3 && tempMatrix.size2() ==3)
@@ -853,7 +853,7 @@ public:
         for (NodesContainerType::iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node)
         {
-            array_1d<double, 3>& temp = i_node->FastGetSolutionStepValue( rVariable,
+            array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable,
                                         SolutionStepNumber );
             GiD_fWriteLocalAxes( mResultFile, i_node->Id(), temp[0], temp[1], temp[2] );
         }
@@ -969,7 +969,7 @@ public:
         for (NodesContainerType::iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node)
         {
-            Vector& tempVector = i_node->FastGetSolutionStepValue(rVariable);
+            Vector& tempVector = i_node->GetSolutionStepValue(rVariable);
             if (tempVector.size() ==3 )
                 GiD_fWriteVector(mResultFile, i_node->Id(), tempVector(0), tempVector(1), tempVector(2) );
             else if (tempVector.size() == 6 )
@@ -996,7 +996,7 @@ public:
         for (NodesContainerType::iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node)
         {
-            Matrix& tempMatrix = i_node->FastGetSolutionStepValue(rVariable);
+            Matrix& tempMatrix = i_node->GetSolutionStepValue(rVariable);
             //Matrix& tempMatrix = i_node->GetValue(rVariable);
             if (tempMatrix.size1() ==3 && tempMatrix.size2() ==3)
             {
@@ -1040,7 +1040,7 @@ public:
         for (NodesContainerType::iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node)
         {
-            array_1d<double, 3>& temp = i_node->FastGetSolutionStepValue( rVariable);
+            array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable);
             GiD_fWriteLocalAxes( mResultFile, i_node->Id(), temp[0], temp[1], temp[2] );
         }
         GiD_fEndResult(mResultFile);
