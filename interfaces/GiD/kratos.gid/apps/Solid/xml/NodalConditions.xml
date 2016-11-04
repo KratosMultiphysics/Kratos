@@ -16,6 +16,6 @@
   </NodalConditionItem>
   
   <NodalConditionItem  n="PRESSURE" pn="Pressure" ProcessName="AssignValueToScalarProcess" VariableName="PRESSURE" ImplementedInApplication="SolidMechanicsApplication"
-		       analysis_type="Static,Dynamic"  unit_magnitude="P"  units="Pa" v="No" App="Solid" state="CheckNodalConditionStateSolid" Interval="Total">
+		       analysis_type="Static,Dynamic"  unit_magnitude="P"  units="Pa" v="Yes" App="Solid" state="CheckNodalConditionStateSolid" Interval="Total">
   </NodalConditionItem>
 </NodalConditionList>
