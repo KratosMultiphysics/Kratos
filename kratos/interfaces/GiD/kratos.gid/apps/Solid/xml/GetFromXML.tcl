@@ -65,3 +65,13 @@ proc Solid::xml::ProcCheckNodalConditionStateSolid {domNode args} {
 			if {[::Model::CheckElementsNodalCondition $conditionId $elemnames $params]} {return "normal"} else {return "hidden"}
 		} {return "normal"}
 }
+
+proc Solid::xml::ProcCheckGeometrySolid {domNode args} {
+     set ret "surface"
+     if {$::Model::SpatialDimension eq "3D"} {
+          set ret "surface,volume"
+     }
+     return $ret
+}
+
+ 

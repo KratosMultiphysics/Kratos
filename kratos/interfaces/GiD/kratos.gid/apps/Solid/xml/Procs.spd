@@ -10,9 +10,9 @@
 	  return [Solid::xml::ProcCheckNodalConditionStateSolid $domNode $args]
 	  ]]>
 	</proc>		
-    <proc n='CheckGeometryStructural' args='args'>
+    <proc n='CheckGeometrySolid' args='args'>
       <![CDATA[                
-      if {$::Model::SpatialDimension eq "3D"} {return surface,volume} {return surface}                
+      return [Solid::xml::ProcCheckGeometrySolid $domNode $args]              
       ]]>
     </proc>
 </container>
