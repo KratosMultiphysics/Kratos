@@ -122,11 +122,6 @@ class MeshingDomain(object):
         
         print("::[Meshing Domain]:: -END- ")
 
-    #
-    def SetImposedWalls(self,imposed_walls): #must be set before initialize
-
-        self.MeshingStrategy.SetImposedWalls( imposed_walls )
-        
     #### 
     
     def SetInfoParameters(self):

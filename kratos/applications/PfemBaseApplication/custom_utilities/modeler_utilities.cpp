@@ -1548,56 +1548,6 @@ namespace Kratos
     KRATOS_CATCH( "" )
   }
 
-  //*******************************************************************************************
-  //*******************************************************************************************
-
-  bool ModelerUtilities::CheckNodeCloseWallTip(std::vector<SpatialBoundingBox::Pointer>& rRigidWalls, PointType& rNode, ProcessInfo& rCurrentProcessInfo, double& rFactor)
-  {
-    KRATOS_TRY
-    
-    // double tip_radius = 0;
-    // Vector tip_center = ZeroVector(3);
-    
-    Vector Point(3);
-    Point[0] = rNode.X();
-    Point[1] = rNode.Y();
-    Point[2] = rNode.Z();
-
-    int ContactFace = 0; //free surface
-    int AuxContactFace = 0;
-    for( unsigned int i = 0; i < rRigidWalls.size(); i++ )
-      {
-	ContactFace = 0;
-        AuxContactFace = 0;
-	if( rRigidWalls[i]->IsInside( Point, rCurrentProcessInfo[TIME], AuxContactFace ) ){
-	  ContactFace = AuxContactFace;  // OBS: in the case of circles, ContactFace = 2 and IsInside = false/true. Then, it does not break but it continues.
-	  // tip_radius = rRigidWalls[i]->GetRadius();
-	  // tip_center = rRigidWalls[i]->GetCenter();
-	  break;
-	}
-      }
-
-    // Point[0]-=tip_center[0];
-    // Point[1]-=tip_center[1];
-    // Point[2]-=tip_center[2];
-    
-    // double distance=norm_2(Point);
-    
-    //criterion A:
-    if( ContactFace == 2 )
-      return true;
-
-    //criterion B:
-    // if( ((1-rFactor)*tip_radius < distance &&  (1+rFactor)*tip_radius > distance) )
-    //   return true;
-    // else
-    //   return false;
-      
-    return false;
-
-    KRATOS_CATCH( "" )
-  }
-
 
   //*******************************************************************************************
   //*******************************************************************************************

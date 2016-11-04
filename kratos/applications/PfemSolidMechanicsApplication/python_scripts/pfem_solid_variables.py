@@ -16,6 +16,8 @@ def AddVariables(main_model_part):
     main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL);
     main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H);
     
+    main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_NORMAL);
+    
     main_model_part.AddNodalSolutionStepVariable(KratosPfemBase.OFFSET);
     main_model_part.AddNodalSolutionStepVariable(KratosPfemBase.SHRINK_FACTOR);
     main_model_part.AddNodalSolutionStepVariable(KratosPfemBase.MEAN_ERROR);
@@ -25,7 +27,7 @@ def AddVariables(main_model_part):
     
     main_model_part.AddNodalSolutionStepVariable(KratosPfemSolid.WALL_TIP_RADIUS);
     main_model_part.AddNodalSolutionStepVariable(KratosPfemSolid.WALL_REFERENCE_POINT);
-    
+
     main_model_part.AddNodalSolutionStepVariable(KratosContact.CONTACT_STRESS);
     
             

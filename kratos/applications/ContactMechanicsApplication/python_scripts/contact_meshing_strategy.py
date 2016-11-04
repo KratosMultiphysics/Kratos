@@ -48,9 +48,6 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
                 
-        self.imposed_walls          = []
-        self.consider_imposed_walls = False      
-
         #print("::[Contact_Modeler_Strategy]:: Construction of Meshing Strategy finished")
         
     #
@@ -154,10 +151,6 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
             meshing_module =__import__(modeler)      
             mesher = meshing_module.CreateMeshModeler(self.main_model_part,self.MeshingParameters) 
             self.mesh_modelers.append(mesher)
-
-        if( self.consider_imposed_walls ):
-            for mesher in self.mesh_modelers:
-                mesher.SetImposedWalls(self.imposed_walls)
 
   
     #

@@ -130,7 +130,7 @@ computing_model_part = solver.GetComputingModelPart()
 
 ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
 solver.Initialize()
-solver.InitializeStrategy()
+#solver.InitializeStrategy()
 solver.SetEchoLevel(echo_level)
 
 #### Output settings start ####
@@ -192,14 +192,16 @@ while(time < end_time):
     # solve time step
     clock_time = StartTimeMeasuring();
 
-    solver.InitializeSolutionStep()
+    #solver.InitializeSolutionStep()
 
-    solver.Predict()
+    #solver.Predict()
 
-    solver.SolveSolutionStep()
+    #solver.SolveSolutionStep()
 
-    solver.FinalizeSolutionStep()
+    #solver.FinalizeSolutionStep()
 
+    solver.Solve()
+    
     StopTimeMeasuring(clock_time,"Solving", False);
 
     gid_output.ExecuteFinalizeSolutionStep()
