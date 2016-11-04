@@ -7,7 +7,7 @@
     <include n="TimeFunctions" active="0" path="apps/Solid/xml/Functions.spd"/>
     <include n="Fields" active="0" path="apps/Solid/xml/Fields.spd"/>
     <include n="BoundaryConditions" active="1" path="apps/Solid/xml/BoundaryConditions.spd"/>
-    <include n="Loads" active="1" path="apps/Solid/xml/Loads.spd"/>
+    <include n="Loads" active="1" path="apps/Solid/xml/Loads.spd" state="[getStateFromXPathValue {string(../container[@n='ModelType']/value[@n='DomainType']/@v)} Solids,Coupled]"/>
     <include n="SolutionStrategy" active="1" path="apps/Pfem/xml/SolutionStrategy.spd"/>
     <include n="Results" active="1" path="apps/Pfem/xml/Results.spd"/>
   </container>
