@@ -67,25 +67,41 @@ class AssignValueToVectorComponentsProcess(KratosMultiphysics.Process):
         if( self.interval[0] == 0.0 and self.interval[1] == 0.0 ):
             self.interval_string = "initial"
 
-        self.constraints = self.settings["imposed_components"]
+        self.constraints = []
+        false_assign = 0
+        for i in range(0, self.settings["imposed_components"].size() ):
+            if( self.settings["imposed_components"][i].GetBool() ):
+                self.constraints.append(True)
+            else:
+                self.constraints.append(False)
+                false_assign += 1
+        
+        if( false_assign == 3 ):
+            for i in range(0, self.settings["value"].size() ):
+                if( self.settings["value"][i].IsNull() ):
+                    self.constraints[i] = False
+                else:
+                    self.constraints[i] = True
 
+        print(" constraints ", self.constraints)
+                
         self.AssignValueProcesses = []
         self.FixDofsProcesses     = []
         self.FreeDofsProcesses    = []
         self.Started              = False
  
-
-        for i in range(0, self.constraints.size() ):
-
-            if( self.settings["imposed_components"][i].GetBool() ):
+        counter = 0
+        for imposed in self.constraints:
+            
+            if( imposed ):
                 params = KratosMultiphysics.Parameters("{}")           
                 params.AddValue("model_part_name", self.settings["model_part_name"])
                 params.AddValue("mesh_id", self.settings["mesh_id"])
-                if( i == 0 ):
+                if( counter == 0 ):
                     params.AddEmptyValue("variable_name").SetString(self.variable_name+"_X")
-                if( i == 1 ):
+                if( counter == 1 ):
                     params.AddEmptyValue("variable_name").SetString(self.variable_name+"_Y")
-                if( i == 2 ):
+                if( counter == 2 ):
                     params.AddEmptyValue("variable_name").SetString(self.variable_name+"_Z")
 
                 if( self.interval_string != "initial" ):
@@ -94,12 +110,13 @@ class AssignValueToVectorComponentsProcess(KratosMultiphysics.Process):
                     free_dof_process = KratosSolid.FreeScalarDofProcess(self.model_part, params)
                     self.FreeDofsProcesses.append(free_dof_process)
                 
-                params.AddEmptyValue("value").SetDouble(self.settings["value"][i].GetDouble())
+                params.AddEmptyValue("value").SetDouble(self.settings["value"][counter].GetDouble())
                 component_process = KratosSolid.AssignValueToScalarVariableProcess(self.model_part, params)
                 self.AssignValueProcesses.append(component_process)
 
-        
-
+            counter +=1
+                
+                
         # in dynamic problems derivated variables can be fixed
         self.fix_derivated_variable = False
 
@@ -113,9 +130,9 @@ class AssignValueToVectorComponentsProcess(KratosMultiphysics.Process):
             
         if( self.fix_derivated_variable ):
 
-            for i in range(0, self.constraints.size() ):
+            for imposed in self.constraints:
 
-                if( self.settings["imposed_components"][i].GetBool() ):
+                if( imposed ):
                     params = KratosMultiphysics.Parameters("{}")           
                     params.AddValue("model_part_name", self.settings["model_part_name"])
                     params.AddValue("mesh_id", self.settings["mesh_id"])
@@ -167,26 +184,28 @@ class AssignValueToVectorComponentsProcess(KratosMultiphysics.Process):
             if( self.function_string == "constant" ):
                 for process in self.AssignValueProcesses:
                     process.Execute()
-            else:        
-                for i in range(0, self.constraints.size() ):
-                    if( self.settings["imposed_components"][i].GetBool() ):
+            else:
+                counter = 0
+                for imposed in self.constraints :
+                    if( imposed ):
                         params = KratosMultiphysics.Parameters("{}")           
                         params.AddValue("model_part_name",self.settings["model_part_name"])
                         params.AddValue("mesh_id",self.settings["mesh_id"])
-                        if( i == 0 ):
+                        if( counter == 0 ):
                             params.AddEmptyValue("variable_name").SetString(self.variable_name+"_X")
-                        if( i == 1 ):
+                        if( counter == 1 ):
                             params.AddEmptyValue("variable_name").SetString(self.variable_name+"_Y")
-                        if( i == 2 ):
+                        if( counter == 2 ):
                             params.AddEmptyValue("variable_name").SetString(self.variable_name+"_Z")
                                 
-                        component_value = self.settings["value"][i].GetDouble() * self.function(current_time)
+                        component_value = self.settings["value"][counter].GetDouble() * self.function(current_time)
 
                         #print("::ASSIGN::",self.model_part.Name," ",params["variable_name"].GetString(),": ",component_value)
                         params.AddEmptyValue("value").SetDouble(component_value)
                         component_process = KratosSolid.AssignValueToScalarVariableProcess(self.model_part, params)
                         component_process.Execute()
 
+                    counter+=1
 
                 
     def ExecuteFinalizeSolutionStep(self):

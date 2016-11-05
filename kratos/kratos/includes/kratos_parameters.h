@@ -226,6 +226,10 @@ public:
         return mpvalue->HasMember(entry.c_str());
     }
 
+    bool IsNull() const
+    {
+        return mpvalue->IsNull();
+    }
     bool IsNumber() const
     {
         return mpvalue->IsNumber();
