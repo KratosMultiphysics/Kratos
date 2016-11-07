@@ -51,7 +51,8 @@ proc Pfem::write::GetPFEM_ProblemProcessList { } {
         lappend resultList [GetPFEM_FluidRemeshDict]
     } else {
         lappend resultList [GetPFEM_RemeshDict]
-        lappend resultList [GetPFEM_ContactDict]
+        set contactDict [GetPFEM_ContactDict]
+        if {[dict size $contactDict]} {lappend resultList $contactDict}
     }
     return $resultList
 }
