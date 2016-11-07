@@ -21,6 +21,7 @@
 #include "custom_python/add_custom_processes_to_python.h"
 
 //Processes
+#include "custom_processes/assign_function_to_scalar_variable_process.h"
 #include "custom_processes/assign_value_to_scalar_variable_process.h"
 #include "custom_processes/fix_scalar_dof_process.h"
 #include "custom_processes/free_scalar_dof_process.h"
@@ -53,6 +54,16 @@ namespace Kratos
 
       	;
 
+      class_<AssignFunctionToScalarVariableProcess, bases<ProcessBaseType>, boost::noncopyable >
+      	(
+      	 "AssignFunctionToScalarVariableProcess", init<ModelPart&, PyObject* ,const char* ,const bool, Parameters>()
+      	)
+        .def(init< ModelPart&, PyObject* ,const char* ,const bool, Parameters& >())
+        .def("Execute", &AssignFunctionToScalarVariableProcess::Execute)
+
+      	;
+
+      
       //**********FIX AND FREE DOFS PROCESSES*********//
 
       class_<FixScalarDofProcess, bases<ProcessBaseType>, boost::noncopyable >
