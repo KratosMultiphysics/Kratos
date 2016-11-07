@@ -158,12 +158,12 @@ namespace Kratos
     if (ElasticModulus <= 1.0e-5) {
       std::vector<double> mModulus;
       ProcessInfo SomeProcessInfo;
-      for ( unsigned int i = 0; i < rN.size(); i++)
+      for ( unsigned int i = 0; i < rE.size(); i++)
 	{
 	  rE[i].CalculateOnIntegrationPoints(EQUIVALENT_YOUNG_MODULUS, mModulus, SomeProcessInfo);
 	  ElasticModulus += mModulus[0];
 	}
-      ElasticModulus /= double(rN.size());
+      ElasticModulus /= double(rE.size());
     }
     
     double factor = 4;
