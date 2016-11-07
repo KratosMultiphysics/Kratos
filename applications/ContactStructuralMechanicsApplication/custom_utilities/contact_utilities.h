@@ -51,9 +51,7 @@ public:
      * @return contact_container: Once has been filled
      */
 
-    static inline void ContactContainerFiller(
-            contact_container & contact_container,
-            const Point<3>& ContactPoint,
+    static inline bool ContactContainerFiller(
             Geometry<Node<3> > & Geom1, // SLAVE
             Geometry<Node<3> > & Geom2, // MASTER
             const array_1d<double, 3> & contact_normal1, // SLAVE
@@ -64,10 +62,12 @@ public:
         // Define the basic information
         const unsigned int number_nodes = Geom1.PointsNumber();
         
-         for (unsigned int index = 0; index < number_nodes; index++)
-         {   
-             if (Geom1[index].Is(ACTIVE) == false)
-             {
+        bool cond_active = false;
+        
+        for (unsigned int index = 0; index < number_nodes; index++)
+        {
+            if (Geom1[index].Is(ACTIVE) == false)
+            {
                 Point<3> ProjectedPoint;
                 double aux_dist = 0.0;
                 if (norm_2(Geom1[index].FastGetSolutionStepValue(NORMAL, 0)) < 1.0e-12)
@@ -87,21 +87,22 @@ public:
                 array_1d<double, 3> result;
                 // NOTE: We don't use std::abs() because if the aux_dist is negative is penetrating, in fact we just consider dist_tol > 0 to have some tolerance and for the static schemes
                 if (aux_dist <= dist_tol && Geom2.IsInside(ProjectedPoint, result))
-                {
-//                    // For debug purpose // NOTE: Look for using echo_level
-//                    if (aux_dist < 0.0)
-//                    {
-//                        std::cout << "Penetration in node: " << Geom1[index].Id() << " of " << aux_dist << " m" << std::endl;
-//                    }    
+                { 
                     Geom1[index].Set(ACTIVE, true);
+                    cond_active = true;
                 }
              }
+             else
+             {
+                 cond_active = true;
+             }
          }
+         
+         return cond_active;
     }
     
     static inline void ContactContainerFiller(
-            contact_container & contact_container,
-            const Point<3>& ContactPoint,
+            std::vector<contact_container> *& ConditionPointers,
             Condition::Pointer & pCond_1,       // SLAVE
             const Condition::Pointer & pCond_2, // MASTER
             const array_1d<double, 3> & contact_normal1, // SLAVE
@@ -109,34 +110,17 @@ public:
             const double ActiveCheckFactor
             )
     {
-
-        ContactContainerFiller(contact_container, ContactPoint, pCond_1->GetGeometry(), pCond_2->GetGeometry(), contact_normal1, contact_normal2, ActiveCheckFactor);
-        CheckActibityCondition(pCond_1);
-    }
-    
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
-    /**
-     * Checks if the conditions should be active or inactive
-     * @param pCond: The condition to check
-     */
-    
-     static inline void CheckActibityCondition(Condition::Pointer & pCond)
-     {
-        Geometry<Node<3> > & Geom1 = pCond->GetGeometry();
-        const unsigned int number_nodes = Geom1.PointsNumber();
+        const bool cond_active = ContactContainerFiller(pCond_1->GetGeometry(), pCond_2->GetGeometry(), contact_normal1, contact_normal2, ActiveCheckFactor);
         
-        for (unsigned int index = 0; index < number_nodes; index++)
+        if (cond_active == true)
         {
-            if (Geom1[index].Is(ACTIVE) == true)
-            {
-                pCond->Set(ACTIVE, true);
-                break;
-            }
+            pCond_1->Set(ACTIVE, true);
+            contact_container aux_contact_container;
+            aux_contact_container.condition   = pCond_2;
+            aux_contact_container.active_pair = true;
+            ConditionPointers->push_back(aux_contact_container);
         }
-     }
-    
+    }
     
     /***********************************************************************************/
     /***********************************************************************************/
@@ -793,18 +777,26 @@ public:
                 }
 
                 Geometry<Node<3> > & CondGeometry = cond_it->GetGeometry();
-    
+                
                 for(unsigned int node_it = 0; node_it!=CondGeometry.PointsNumber(); node_it++)
                 {
                     if (CondGeometry[node_it].Is(VISITED) == false)
                     {
                         const double mu = CondGeometry[node_it].GetValue(WEIGHTED_FRICTION);
+                        const double gn = CondGeometry[node_it].GetValue(WEIGHTED_GAP);
                         const array_1d<double,3> lagrange_multiplier = CondGeometry[node_it].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0);
                         const array_1d<double,3>        nodal_normal = CondGeometry[node_it].GetValue(NORMAL); 
-                        const double lambda_n = inner_prod(lagrange_multiplier, nodal_normal);
+//                         const double lambda_n = inner_prod(lagrange_multiplier, nodal_normal);
 
-                        const double augmented_normal_presssure = lambda_n + cn * CondGeometry[node_it].GetValue(WEIGHTED_GAP);                    
+//                         const double augmented_normal_presssure = lambda_n + cn * gn;                    
+                        double augmented_normal_presssure = inner_prod(lagrange_multiplier, nodal_normal);
+
+                        if (gn < 0.0) // NOTE: Penetration
+                        {
+                            augmented_normal_presssure += cn * gn;     
+                        }
                         
+//                         if (augmented_normal_presssure <= 0.0) // NOTE: This could be conflictive (< or <=) //NOTE: HELP!!!!
                         if (augmented_normal_presssure < 0.0) // NOTE: This could be conflictive (< or <=)
                         {
                             CondGeometry[node_it].Set(ACTIVE, true);
@@ -812,6 +804,7 @@ public:
                         else
                         {
                             CondGeometry[node_it].Set(ACTIVE, false);
+//                             CondGeometry[node_it].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0) = ZeroVector(3);
                         }
                         
                         const array_1d<double, 3> nodal_tangent_xi  = CondGeometry[node_it].GetValue(TANGENT_XI); 

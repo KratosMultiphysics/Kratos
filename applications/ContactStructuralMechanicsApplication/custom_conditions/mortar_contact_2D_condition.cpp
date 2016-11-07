@@ -164,18 +164,11 @@ void MortarContact2DCondition::InitializeSolutionStep( ProcessInfo& rCurrentProc
     mThisMasterElements.clear();
     mThisMasterElements.resize( all_containers->size( ) );
     
-    const double ActiveCheckFactor = GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
+    const double ActiveCheckFactor = GetProperties().GetValue(ACTIVE_CHECK_FACTOR); 
     
     for ( unsigned int i_cond = 0; i_cond < all_containers->size(); ++i_cond )
     {
         mThisMasterElements[i_cond] = (*all_containers)[i_cond].condition;
-
-        // Fill the condition
-        Condition::Pointer& pCond = mThisMasterElements[i_cond];
-        
-        ContactUtilities::ContactContainerFiller((*all_containers)[i_cond], pCond->GetGeometry().Center(), GetGeometry(), pCond->GetGeometry(), 
-                                                this->GetValue(NORMAL), pCond->GetValue(NORMAL), ActiveCheckFactor);
-        
     }
     
     KRATOS_CATCH( "" );
@@ -187,35 +180,11 @@ void MortarContact2DCondition::InitializeSolutionStep( ProcessInfo& rCurrentProc
 void MortarContact2DCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
     
-/*
- * 
- * commented out because we should use the PDASS instead of the gap tolerance to update active and incactive during the iterations
- * Gap tolerance should be used only at the beginning of the solution step to add additional "close" nodes to the active set
- * the following lines have been merged with this->InitializeSolutionStep()
- * 
- */
-    
-//    KRATOS_TRY;
-//    
-//    // Populate the vector of master elements
-//    std::vector<contact_container> *& all_containers = this->GetValue(CONTACT_CONTAINERS);
-//    
-//    double ActiveCheckFactor = 0.005;
-//    if( GetProperties().Has(ACTIVE_CHECK_FACTOR) )
-//    {
-//        ActiveCheckFactor = GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
-//    }
-//    
-//    for ( unsigned int i_cond = 0; i_cond < all_containers->size(); ++i_cond )
-//    {
-//        Condition::Pointer pCond = (*all_containers)[i_cond].condition;
-//    
-//        // Fill the condition
-//        ContactUtilities::ContactContainerFiller((*all_containers)[i_cond], pCond->GetGeometry().Center(), GetGeometry(), pCond->GetGeometry(), 
-//                                                 this->GetValue(NORMAL), pCond->GetValue(NORMAL), ActiveCheckFactor);
-//    }
-//    
-//    KRATOS_CATCH( "" );
+   KRATOS_TRY;
+
+   // TODO: Add things if needed
+   
+   KRATOS_CATCH( "" );
 }
 
 /***********************************************************************************/
@@ -223,7 +192,11 @@ void MortarContact2DCondition::InitializeNonLinearIteration( ProcessInfo& rCurre
 
 void MortarContact2DCondition::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
+    KRATOS_TRY;
+    
     // TODO: Add things if needed
+    
+    KRATOS_CATCH( "" );
 }
 
 /***********************************************************************************/

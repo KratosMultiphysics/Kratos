@@ -121,11 +121,7 @@ public:
      */
     Point<3> GetPoint()
     {
-        array_1d<double, 3> Coords;
-        Coords[0] = this->Coordinate(1);
-        Coords[1] = this->Coordinate(2);
-        Coords[2] = this->Coordinate(3);
-        Point<3> Point(Coords);
+        Point<3> Point(this->Coordinates());
         
         return Point;
     }
@@ -136,14 +132,12 @@ public:
      */
     void SetPoint(Point<3> Point)
     {
-        this->Coordinate(1) = Point.Coordinate(1);
-        this->Coordinate(2) = Point.Coordinate(2);
-        this->Coordinate(3) = Point.Coordinate(3);
+        this->Coordinates() = Point.Coordinates();
     }
     
     /**
      * Returns the radius of the condition
-     * @return The area of the condition
+     * @return mRadius: The radius of the condition
      */
     double GetRadius()
     {
@@ -152,7 +146,7 @@ public:
     
     /**
      * Sets the radius of the condition
-     * @param The area of the condition
+     * @param Radius: The radius of the condition
      */
     void SetRadius(const double& Radius)
     {
@@ -382,25 +376,49 @@ public:
      * This function clears the NTN conditions already created 
      */
         
-    void ClearNTNConditions();
+    void TotalClearNTNConditions();
+    
+    /**
+     * This function clears the NTN conditions already created 
+     */
+        
+    void PartialClearNTNConditions();
     
     /**
      * This function clears the NTS conditions already created 
      */
     
-    void ClearNTSConditions();
+    void TotalClearNTSConditions();
+    
+    /**
+     * This function clears the NTS conditions already created 
+     */
+    
+    void PartialClearNTSConditions();
     
     /**
      * This function clears the mortar conditions already created 
      */
     
-    void ClearMortarConditions();
+    void TotalClearMortarConditions();
+    
+    /**
+     * This function clears the mortar conditions already created 
+     */
+    
+    void PartialClearMortarConditions();
     
     /**
      * This function clears conditions already created 
      */
     
-    void ClearConditions(ModelPart & rModelPart);
+    void TotalClearConditions(ModelPart & rModelPart);
+    
+    /**
+     * This function clears partially the conditions already created 
+     */
+    
+    void PartialClearConditions(ModelPart & rModelPart);
     
     /**
      * This function creates a lists  points ready for the NTN method
@@ -474,6 +492,11 @@ public:
         const int type_search
     );
     
+    void UpdateNTNConditions(
+        const double SearchFactor,
+        const int type_search
+    );
+    
     /**
      * This function 
      * @param 
@@ -481,6 +504,11 @@ public:
      */
         
     void CreateNTSConditions(
+        const double SearchFactor,
+        const int type_search
+    );
+    
+    void UpdateNTSConditions(
         const double SearchFactor,
         const int type_search
     );
@@ -497,6 +525,11 @@ public:
         const int type_search
     );
     
+    void UpdateMortarConditions(
+        const double SearchFactor,
+        const int type_search
+    );
+    
     /**
      * 
      * @param 
@@ -506,6 +539,27 @@ public:
     void CheckMortarConditions();
     
     /**
+     * 
+     * @param 
+     * @return 
+     */
+    
+    void ClearAllInactivePairs(ModelPart & rModelPart);
+    
+    /**
+     * 
+     * @param 
+     * @param 
+     * @return 
+     */
+    
+    bool CheckCondition(
+        std::vector<contact_container> *& ConditionPointers,
+        const Condition::Pointer & pCondDestination,
+        const Condition::Pointer & pCondOrigin
+        );
+    
+    /**
      * Fills
      * @param 
      * @param ActiveCheckFactor: The proportion of the length of the geometry that is going to be taking into account to chechk if the node is active or inactive
@@ -513,13 +567,10 @@ public:
      */
     
     void MortarContainerFiller(
-        const Point<3>& OriginPoint,
-        const PointType::Pointer PointFound,
         Condition::Pointer & pCond_1,
         const Condition::Pointer & pCond_2,
         std::vector<contact_container> *& ConditionPointers,
-        const double ActiveCheckFactor,
-        const bool orig_dest
+        const double ActiveCheckFactor
         );
     
     /**

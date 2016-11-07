@@ -140,14 +140,14 @@ class ContactProcess(KratosMultiphysics.Process):
             self.contact_search.InitializeNTSConditions()
         
     def ExecuteBeforeSolutionLoop(self):
-        pass
+        self.contact_search.TotalClearMortarConditions();
     
     def ExecuteInitializeSolutionStep(self):
         #for cond in self.d_interface.Conditions:
             #print(cond.Is(KratosMultiphysics.ACTIVE))
         
-        if self.params["contact_type"].GetString() == "MortarMethod":            
-            self.contact_search.CreateMortarConditions(self.search_factor, self.type_search)
+        if self.params["contact_type"].GetString() == "MortarMethod":    
+            self.contact_search.UpdateMortarConditions(self.search_factor, self.type_search)
             #self.contact_search.CheckMortarConditions()
         elif self.params["contact_type"].GetString() == "NTN":
             self.contact_search.CreateNTNConditions(self.search_factor, self.type_search)
@@ -166,7 +166,7 @@ class ContactProcess(KratosMultiphysics.Process):
     def ExecuteAfterOutputStep(self):
         if self.params["contact_type"].GetString() == "MortarMethod":
             self.contact_search.UpdatePointListMortar()
-            self.contact_search.ClearMortarConditions()
+            self.contact_search.PartialClearMortarConditions()
             
         #for cond in self.d_interface.Conditions:
             #print(cond.Is(KratosMultiphysics.ACTIVE))

@@ -32,30 +32,34 @@ typedef array_1d<double,3> Vector3;
 
 struct contact_container 
 {
-    Condition::Pointer                 condition;
+    Condition::Pointer condition;
+    bool             active_pair;
   
     ~contact_container(){}
     
     void clear()
     {
-        condition = nullptr;
+        condition   = nullptr;
+        active_pair = false;
     }
     
     void print()
     {
 //        KRATOS_WATCH(condition);
-       std::cout << " The condition: " << condition->Id() << " is MASTER: " << condition->Is(MASTER) << std::endl;
+       std::cout << " The condition: " << condition->Id() << " is MASTER: " << condition->Is(MASTER) << "ACTIVE: " << active_pair << std::endl;
        std::cout << std::endl;
     }
     
     void save( Serializer& rSerializer ) const
     {
-        rSerializer.save("condition",                               condition);
+        rSerializer.save("condition",     condition);
+        rSerializer.save("active_pair", active_pair);
     }
 
     void load( Serializer& rSerializer )
     {
-        rSerializer.load("condition",                              condition);
+        rSerializer.load("condition",     condition);
+        rSerializer.load("active_pair", active_pair);
     }
 };
 // CONDITIONS
