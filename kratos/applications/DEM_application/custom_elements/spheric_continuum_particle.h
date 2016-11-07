@@ -84,7 +84,6 @@ namespace Kratos
                                              const ProcessInfo& r_process_info,
                                              const array_1d<double,3>& gravity);
         
-        void ComputeIceForces(SphericContinuumParticle* continuum_particle, array_1d<double, 3>& externally_applied_force, const array_1d<double,3>& gravity);
         void MarkNewSkinParticlesDueToBreakage();
 
         /// Turn back information as a string
