@@ -93,7 +93,6 @@ void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues
 
     //Initialize main variables
     Vector& rStrainVector = rValues.GetStrainVector();
-    Vector& rStressVector = rValues.GetStressVector();
     double EquivalentStrain;
     
     //Material properties
@@ -107,25 +106,50 @@ void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues
     {
         this->ComputeEquivalentStrain(EquivalentStrain,rStrainVector,CriticalDisplacement);
 
-        if( Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) ) //Computation of ConstitutiveMatrix and StressVector. WARNING: it is not general
+        if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
         {
-            Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-                        
-            if(EquivalentStrain >= mStateVariable) //Loading
+            if(Options.IsNot(ConstitutiveLaw::COMPUTE_STRESS))
             {
-                mStateVariable = EquivalentStrain;
-                if(mStateVariable > 1.0) mStateVariable = 1.0;
-                
-                this->ComputeConstitutiveMatrixLoading(rConstitutiveMatrix,rStrainVector,YieldStress,DamageThreshold,CriticalDisplacement);
+                // COMPUTE_CONSTITUTIVE_TENSOR
+                Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+
+                if(EquivalentStrain >= mStateVariable) //Loading
+                {
+                    mStateVariable = EquivalentStrain;
+                    if(mStateVariable > 1.0) mStateVariable = 1.0;
+                    
+                    this->ComputeConstitutiveMatrixLoading(rConstitutiveMatrix,rStrainVector,YieldStress,DamageThreshold,CriticalDisplacement);
+                }
+                else //Unloading
+                {
+                    this->ComputeConstitutiveMatrixUnloading(rConstitutiveMatrix,YieldStress,DamageThreshold,CriticalDisplacement);
+                }
             }
-            else //Unloading
+            else
             {
-                this->ComputeConstitutiveMatrixUnloading(rConstitutiveMatrix,YieldStress,DamageThreshold,CriticalDisplacement);
+                // COMPUTE_CONSTITUTIVE_TENSOR && COMPUTE_STRESS
+                Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+                Vector& rStressVector = rValues.GetStressVector();
+                                        
+                if(EquivalentStrain >= mStateVariable) //Loading
+                {
+                    mStateVariable = EquivalentStrain;
+                    if(mStateVariable > 1.0) mStateVariable = 1.0;
+                    
+                    this->ComputeConstitutiveMatrixLoading(rConstitutiveMatrix,rStrainVector,YieldStress,DamageThreshold,CriticalDisplacement);
+                }
+                else //Unloading
+                {
+                    this->ComputeConstitutiveMatrixUnloading(rConstitutiveMatrix,YieldStress,DamageThreshold,CriticalDisplacement);
+                }
+                this->ComputeStressVector(rStressVector,rStrainVector,YieldStress,DamageThreshold,CriticalDisplacement);
             }
-            this->ComputeStressVector(rStressVector,rStrainVector,YieldStress,DamageThreshold,CriticalDisplacement);
         }
-        else //Computation of StressVector only
+        else if(Options.Is(ConstitutiveLaw::COMPUTE_STRESS))
         {
+            // COMPUTE_STRESS
+            Vector& rStressVector = rValues.GetStressVector();
+            
             if(EquivalentStrain >= mStateVariable)
             {
                 mStateVariable = EquivalentStrain;
@@ -140,33 +164,58 @@ void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues
         const double& FrictionCoefficient = MaterialProperties[FRICTION_COEFFICIENT];
         
         this->ComputeEquivalentStrainContact(EquivalentStrain,rStrainVector,CriticalDisplacement);
-        
-        if( Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) ) //Computation of ConstitutiveMatrix and StressVector. WARNING: it is not general
+
+        if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
         {
-            Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-            
-            if(EquivalentStrain >= mStateVariable) //Loading
+            if(Options.IsNot(ConstitutiveLaw::COMPUTE_STRESS))
             {
-                mStateVariable = EquivalentStrain;
-                if(mStateVariable > 1.0) mStateVariable = 1.0;
-                
-                this->ComputeConstitutiveMatrixContactLoading(rConstitutiveMatrix,rStrainVector,YoungModulus,FrictionCoefficient,YieldStress,DamageThreshold,CriticalDisplacement);
+                // COMPUTE_CONSTITUTIVE_TENSOR
+                Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+
+                if(EquivalentStrain >= mStateVariable) //Loading
+                {
+                    mStateVariable = EquivalentStrain;
+                    if(mStateVariable > 1.0) mStateVariable = 1.0;
+                    
+                    this->ComputeConstitutiveMatrixContactLoading(rConstitutiveMatrix,rStrainVector,YoungModulus,FrictionCoefficient,YieldStress,DamageThreshold,CriticalDisplacement);
+                }
+                else //Unloading
+                {
+                    this->ComputeConstitutiveMatrixContactUnloading(rConstitutiveMatrix,rStrainVector,YoungModulus,FrictionCoefficient,YieldStress,DamageThreshold,CriticalDisplacement);
+                }
             }
-            else //Unloading
+            else
             {
-                this->ComputeConstitutiveMatrixContactUnloading(rConstitutiveMatrix,rStrainVector,YoungModulus,FrictionCoefficient,YieldStress,DamageThreshold,CriticalDisplacement);
+                // COMPUTE_CONSTITUTIVE_TENSOR && COMPUTE_STRESS
+                Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+                Vector& rStressVector = rValues.GetStressVector();
+                                        
+                if(EquivalentStrain >= mStateVariable) //Loading
+                {
+                    mStateVariable = EquivalentStrain;
+                    if(mStateVariable > 1.0) mStateVariable = 1.0;
+                    
+                    this->ComputeConstitutiveMatrixContactLoading(rConstitutiveMatrix,rStrainVector,YoungModulus,FrictionCoefficient,YieldStress,DamageThreshold,CriticalDisplacement);
+                }
+                else //Unloading
+                {
+                    this->ComputeConstitutiveMatrixContactUnloading(rConstitutiveMatrix,rStrainVector,YoungModulus,FrictionCoefficient,YieldStress,DamageThreshold,CriticalDisplacement);
+                }
+                this->ComputeStressVectorContact(rStressVector,rStrainVector,YoungModulus,FrictionCoefficient,YieldStress,DamageThreshold,CriticalDisplacement);
             }
-            this->ComputeStressVectorContact(rStressVector,rStrainVector,YoungModulus,FrictionCoefficient,YieldStress,DamageThreshold,CriticalDisplacement);
         }
-        else //Computation of StressVector only
+        else if(Options.Is(ConstitutiveLaw::COMPUTE_STRESS))
         {
+            // COMPUTE_STRESS
+            Vector& rStressVector = rValues.GetStressVector();
+            
             if(EquivalentStrain >= mStateVariable)
             {
                 mStateVariable = EquivalentStrain;
                 if(mStateVariable > 1.0) mStateVariable = 1.0;
             }
             this->ComputeStressVectorContact(rStressVector,rStrainVector,YoungModulus,FrictionCoefficient,YieldStress,DamageThreshold,CriticalDisplacement);
-        }
+        }        
     }
 }
 
