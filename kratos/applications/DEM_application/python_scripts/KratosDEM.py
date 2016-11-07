@@ -45,7 +45,9 @@ elif (DEM_parameters.ElementType == "ThermalSphericContPartDEMElement3D"):
 elif (DEM_parameters.ElementType == "ThermalSphericPartDEMElement3D"):
     import thermal_sphere_strategy as SolverStrategy  
 elif (DEM_parameters.ElementType == "SinteringSphericConPartDEMElement3D"):
-    import thermal_continuum_sphere_strategy as SolverStrategy     
+    import thermal_continuum_sphere_strategy as SolverStrategy
+elif (DEM_parameters.ElementType == "IceContPartDEMElement3D"):
+    import ice_continuum_sphere_strategy as SolverStrategy
 else:
     KRATOSprint('Error: Strategy unavailable. Select a different scheme-element')
         
@@ -136,7 +138,7 @@ clusters_mp_filename = DEM_parameters.problem_name + "DEM_Clusters"
 model_part_io_clusters = model_part_reader(clusters_mp_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
 model_part_io_clusters.ReadModelPart(cluster_model_part)
 max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(spheres_model_part)
-if(max_elem_Id != old_max_elem_Id_spheres):
+if (max_elem_Id != old_max_elem_Id_spheres):
     creator_destructor.RenumberElementIdsFromGivenValue(cluster_model_part, max_elem_Id)
 
 max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(cluster_model_part)
