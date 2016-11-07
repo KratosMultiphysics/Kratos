@@ -110,33 +110,34 @@ public:
         const TSystemVectorType& b
     )
     {
-        // TODO: Add the criteria of AUXILIAR_SLIP
         if (mInitialPreviousState == false)
         {
-            NodesArrayType& pNode  = rModelPart.GetSubModelPart("Contact").Nodes();
-            NodesArrayType::iterator it_node_begin = pNode.ptr_begin();
-            NodesArrayType::iterator it_node_end   = pNode.ptr_end();
+            NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
             
-            for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
+            auto numNodes = pNode.end() - pNode.begin();
+            
+            #pragma omp parallel for 
+            for(unsigned int i = 0; i < numNodes; i++) 
             {
-                if (node_it->Is(SLAVE))
+                auto itNode = pNode.begin() + i;
+                if (itNode->Is(SLAVE))
                 {
-                    if (node_it->Is(ACTIVE))
+                    if (itNode->Is(ACTIVE))
                     {
-                        node_it->GetValue(AUXILIAR_ACTIVE) = true;
+                        itNode->GetValue(AUXILIAR_ACTIVE) = true;
                     }
                     else
                     {
-                        node_it->GetValue(AUXILIAR_ACTIVE) = false;
+                        itNode->GetValue(AUXILIAR_ACTIVE) = false;
                     }
                     
-                    if (node_it->Is(SLIP))
+                    if (itNode->Is(SLIP))
                     {
-                        node_it->GetValue(AUXILIAR_SLIP) = true;
+                        itNode->GetValue(AUXILIAR_SLIP) = true;
                     }
                     else
                     {
-                        node_it->GetValue(AUXILIAR_SLIP) = false;
+                        itNode->GetValue(AUXILIAR_SLIP) = false;
                     }
                 }
             }
@@ -149,17 +150,19 @@ public:
         bool active_is_converged = true;
         bool slip_is_converged   = true;
         
-        NodesArrayType& pNode  = rModelPart.GetSubModelPart("Contact").Nodes();
-        NodesArrayType::iterator it_node_begin = pNode.ptr_begin();
-        NodesArrayType::iterator it_node_end   = pNode.ptr_end();
+        NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
         
-        for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
+        auto numNodes = pNode.end() - pNode.begin();
+        
+//         #pragma omp parallel for // TODO:Ask how to paralellize this!!
+        for(unsigned int i = 0; i < numNodes; i++) 
         {
-            if (node_it->Is(SLAVE))
+            auto itNode = pNode.begin() + i;
+            if (itNode->Is(SLAVE))
             {
                 // NORMAL DIRECTION
                 bool aux_bool_normal;
-                if (node_it->Is(ACTIVE))
+                if (itNode->Is(ACTIVE))
                 {
                     aux_bool_normal = true;
                 }
@@ -167,15 +170,15 @@ public:
                 {
                     aux_bool_normal = false;
                 }
-                if (node_it->GetValue(AUXILIAR_ACTIVE) != aux_bool_normal)
+                if (itNode->GetValue(AUXILIAR_ACTIVE) != aux_bool_normal)
                 {                            
-                    node_it->GetValue(AUXILIAR_ACTIVE) = aux_bool_normal;
+                    itNode->GetValue(AUXILIAR_ACTIVE) = aux_bool_normal;
                     active_is_converged = false;
                 }
                 
                 // TANGENT DIRECTION
                 bool aux_bool_tangent;
-                if (node_it->Is(SLIP))
+                if (itNode->Is(SLIP))
                 {
                     aux_bool_tangent = true;
                 }
@@ -183,9 +186,9 @@ public:
                 {
                     aux_bool_tangent = false;
                 }
-                if (node_it->GetValue(AUXILIAR_SLIP) != aux_bool_tangent)
+                if (itNode->GetValue(AUXILIAR_SLIP) != aux_bool_tangent)
                 {                            
-                    node_it->GetValue(AUXILIAR_SLIP) = aux_bool_tangent;
+                    itNode->GetValue(AUXILIAR_SLIP) = aux_bool_tangent;
                     slip_is_converged = false;
                 }
                 
