@@ -48,62 +48,106 @@ proc Pfem::write::GetPFEM_ProblemProcessList { } {
     set resultList [list ]
     set problemtype [write::getValue PFEM_DomainType]
     if {$problemtype eq "Fluids"} {
-	lappend resultList [GetPFEM_FluidRemeshDict]
+        lappend resultList [GetPFEM_FluidRemeshDict]
     } else {
-	lappend resultList [GetPFEM_RemeshDict]
-	#lappend resultList [GetPFEM_ContactDict] #commented because it needs some improvements
+        lappend resultList [GetPFEM_RemeshDict]
+        lappend resultList [GetPFEM_ContactDict]
     }
     return $resultList
 }
 
 proc Pfem::write::GetPFEM_ContactDict { } {
-    variable bodies_list
-    set resultDict [dict create ]
-    dict set resultDict "help" "This process applies contact domain search by remeshing outer boundaries"
-    dict set resultDict "kratos_module" "KratosMultiphysics.ContactMechanicsApplication"
-    dict set resultDict "python_module" "contact_domain_process"
-    dict set resultDict "process_name" "ContactDomainProcess"
-    
-    set paramsDict [dict create ]
-    dict set paramsDict "mesh_id" 0
-    dict set paramsDict "model_part_name" "Main Domain"
-    dict set paramsDict "meshing_control_type" "step"
-    dict set paramsDict "meshing_frequency" 1.0
-    dict set paramsDict "meshing_before_output" true
-    
-    foreach body $bodies_list {
-        set bodyDict [dict create ]
-        dict set bodyDict "python_module" "contact_domain"
-        dict set bodyDict "model_part_name" "Contact_Domain"
-        dict set bodyDict "alpha_shape" 1.4
-        dict set bodyDict "offset_factor" 0.0
-        
-            set meshing_strategyDict [dict create ]
-            dict set meshing_strategyDict "python_module" "contact_meshing_strategy"
-            dict set meshing_strategyDict "meshing_frequency" 0
-            dict set meshing_strategyDict "remesh" true
-            dict set meshing_strategyDict "constrained" false
-            
-                set contact_parametersDict [dict create ]
-                dict set contact_parametersDict "contact_condition_type" "ContactDomainLMCondition2D3N"
-                dict set contact_parametersDict "friction_law_type" "FrictionLaw"
-                dict set contact_parametersDict "kratos_module" "KratosMultiphysics.ContactMechanicsApplication"
-                
-                    set variables_of_propertiesDict [dict create ]
-                    dict set variables_of_propertiesDict "FRICTION_ACTIVE" false
-                    dict set variables_of_propertiesDict "MU_STATIC" 0.3
-                    dict set variables_of_propertiesDict "MU_DYNAMIC" 0.2
-                    dict set variables_of_propertiesDict "PENALTY_PARAMETER" 1000
-                    dict set variables_of_propertiesDict "TANGENTIAL_PENALTY_RATIO" 0.1
-                    dict set variables_of_propertiesDict "TAU_STAB" 1
-                dict set contact_parametersDict variables_of_properties $variables_of_propertiesDict
-            dict set meshing_strategyDict contact_parameters $contact_parametersDict
-        dict set bodyDict meshing_strategy $meshing_strategyDict
-        lappend bodies $bodyDict
+    set contact_dict [dict create]
+    set root [customlib::GetBaseRoot]
+    set xp1 "[spdAux::getRoute "PFEM_Bodies"]/blockdata"
+    set contact_list [list ]
+    foreach body_node [$root selectNodes $xp1] {
+        set contact [get_domnode_attribute [$body_node selectNodes ".//value\[@n='ContactStrategy'\]"] v]
+        if {$contact ne "NO_CONTACT_STRATEGY"} {lappend contact_list $contact}
     }
-    dict set paramsDict meshing_domains $bodies
-    dict set resultDict Parameters $paramsDict
-    return $resultDict
+    set contact_domains [list ]
+    foreach contact $contact_list {
+        lappend contact_domains [Pfem::write::GetPfem_ContactProcessDict $contact]
+    }
+    if {[llength $contact_list]} {
+        dict set contact_dict "python_module" "contact_domain_process"
+        dict set contact_dict "kratos_module" "KratosMultiphysics.ContactMechanicsApplication"
+        dict set contact_dict "help"          "This process applies contact domain search by remeshing outer boundaries"
+        dict set contact_dict "process_name"  "ContactDomainProcess"
+        set params [dict create]
+        dict set params "mesh_id"               0
+        dict set params "model_part_name"       "model_part_name"
+        dict set params "meshing_control_type"  "step"
+        dict set params "meshing_frequency"     1.0
+        dict set params "meshing_before_output" true
+        dict set params "meshing_domains"       $contact_domains
+        dict set contact_dict "Parameters"    $params
+    }
+    return $contact_dict
+}
+
+proc Pfem::write::GetPfem_ContactProcessDict {contact_name} {
+    set cont_dict [dict create]
+    dict set cont_dict "python_module" "contact_domain"
+    dict set cont_dict "model_part_name" "sub_model_part_name"
+    dict set cont_dict "alpha_shape" 1.4
+    dict set cont_dict "offset_factor" 0.0
+        set mesh_strat [dict create]
+        dict set mesh_strat "python_module" "contact_meshing_strategy"
+        dict set mesh_strat "meshing_frequency" 0
+        dict set mesh_strat "remesh" true
+        dict set mesh_strat "constrained" false
+        set contact_parameters [dict create]
+        
+            dict set contact_parameters "contact_condition_type" "ContactDomainLM2DCondition"
+            dict set contact_parameters "friction_law_type" "FrictionLaw"
+            dict set contact_parameters "kratos_module" "KratosMultiphysics.ContactMechanicsApplication"
+                set properties_dict [dict create]
+                dict set properties_dict "FRICTION_ACTIVE" false
+                dict set properties_dict "MU_STATIC" 0.3
+                dict set properties_dict "MU_DYNAMIC" 0.2
+                dict set properties_dict "PENALTY_PARAMETER" 1000
+                dict set properties_dict "TANGENTIAL_PENALTY_RATIO" 0.1
+                dict set properties_dict "TAU_STAB" 1
+            dict set contact_parameters "variables_of_properties" $properties_dict
+        dict set mesh_strat "contact_parameters" $contact_parameters
+    dict set cont_dict "elemental_variables_to_transfer" [list "CAUCHY_STRESS_VECTOR" "DEFORMATION_GRADIENT" ]
+    dict set cont_dict "contact_bodies_list" [Pfem::write::GetBodiesWithContactList $contact_name]
+    dict set cont_dict "meshing_domains" $mesh_strat
+    return $cont_dict
+}
+
+proc Pfem::write::GetBodiesWithContactList {contact_name} {
+    set bodies_list [list ]
+    set xp1 "[spdAux::getRoute "PFEM_Bodies"]/blockdata"
+    foreach body_node [[customlib::GetBaseRoot] selectNodes $xp1] {
+        set contact [get_domnode_attribute [$body_node selectNodes ".//value\[@n='ContactStrategy'\]"] v]
+        if {$contact eq $contact_name} {lappend bodies_list [get_domnode_attribute $body_node name]}
+    }
+    return $bodies_list
+}
+
+# Not implemented
+proc Pfem::write::GetContactProperty { body_name property } {
+    set ret ""
+    return $ret
+    set root [customlib::GetBaseRoot]
+    set xp1 "[spdAux::getRoute "PFEM_Bodies"]/blockdata"
+    set remesh_name ""
+    foreach body_node [$root selectNodes $xp1] {
+        if {[$body_node @name] eq $body_name} {
+            set remesh_name [get_domnode_attribute [$body_node selectNodes ".//value\[@n='MeshingStrategy'\]"] v]
+            break
+        }
+    }
+    if {$remesh_name ne ""} {
+        variable remesh_domains_dict
+        if {[dict exists $remesh_domains_dict ${remesh_name} $property]} {
+            set ret [dict get $remesh_domains_dict ${remesh_name} $property]
+        }
+    }
+    if {$ret eq ""} {set ret false}
+    return $ret
 }
 
 proc Pfem::write::GetPFEM_RemeshDict { } {
@@ -141,14 +185,14 @@ proc Pfem::write::GetPFEM_RemeshDict { } {
         dict set meshing_strategyDict "mesh_smoothing" false
         dict set meshing_strategyDict "variables_smoothing" false
         dict set meshing_strategyDict "elemental_variables_to_smooth" [list "DETERMINANT_F" ]
-	set nDim $::Model::SpatialDimension
-	if {$nDim eq "3D"} {
-	    dict set meshing_strategyDict "reference_element_type" "Element3D4N"
-	    dict set meshing_strategyDict "reference_condition_type" "CompositeCondition3D3N"
-	} else {
-	    dict set meshing_strategyDict "reference_element_type" "Element2D3N"
-	    dict set meshing_strategyDict "reference_condition_type" "CompositeCondition2D2N"
-	} 
+        set nDim $::Model::SpatialDimension
+        if {$nDim eq "3D"} {
+            dict set meshing_strategyDict "reference_element_type" "Element3D4N"
+            dict set meshing_strategyDict "reference_condition_type" "CompositeCondition3D3N"
+        } else {
+            dict set meshing_strategyDict "reference_element_type" "Element2D3N"
+            dict set meshing_strategyDict "reference_condition_type" "CompositeCondition2D2N"
+        } 
         dict set bodyDict meshing_strategy $meshing_strategyDict
         
         set spatial_bounding_boxDict [dict create ]
@@ -238,20 +282,20 @@ proc Pfem::write::GetPFEM_FluidRemeshDict { } {
     foreach body $bodies_list {
         set bodyDict [dict create ]
         set body_name [dict get $body body_name]
-	dict set bodyDict "mesh_id" 0
+        dict set bodyDict "mesh_id" 0
         dict set bodyDict "model_part_name" $body_name
-	dict set bodyDict "python_module" "fluid_meshing_domain"
-	set nDim $::Model::SpatialDimension
-	if {$nDim eq "3D"} {
-	    dict set bodyDict "alpha_shape" 1.4
-	} else {
-	    dict set bodyDict "alpha_shape" 1.3
-	}
+        dict set bodyDict "python_module" "fluid_meshing_domain"
+        set nDim $::Model::SpatialDimension
+        if {$nDim eq "3D"} {
+            dict set bodyDict "alpha_shape" 1.4
+        } else {
+            dict set bodyDict "alpha_shape" 1.3
+        }
         dict set bodyDict "offset_factor" 0.0
         set remesh [write::getStringBinaryFromValue [Pfem::write::GetRemeshProperty $body_name "Remesh"]]
         set refine [write::getStringBinaryFromValue [Pfem::write::GetRemeshProperty $body_name "Refine"]]
         set meshing_strategyDict [dict create ]
-	dict set meshing_strategyDict "python_module" "fluid_meshing_strategy"
+        dict set meshing_strategyDict "python_module" "fluid_meshing_strategy"
         dict set meshing_strategyDict "meshing_frequency" 0
         dict set meshing_strategyDict "remesh" $remesh
         dict set meshing_strategyDict "refine" $refine
@@ -261,13 +305,13 @@ proc Pfem::write::GetPFEM_FluidRemeshDict { } {
         dict set meshing_strategyDict "mesh_smoothing" false
         dict set meshing_strategyDict "variables_smoothing" false
         dict set meshing_strategyDict "elemental_variables_to_smooth" [list "DETERMINANT_F" ]
-	if {$nDim eq "3D"} {
-	    dict set meshing_strategyDict "reference_element_type" "TwoStepUpdatedLagrangianVPFluidElement3D"
-	    dict set meshing_strategyDict "reference_condition_type" "CompositeCondition3D3N"
-	} else {
-	    dict set meshing_strategyDict "reference_element_type" "TwoStepUpdatedLagrangianVPFluidElement2D"
-	    dict set meshing_strategyDict "reference_condition_type" "CompositeCondition2D2N"
-	} 
+        if {$nDim eq "3D"} {
+            dict set meshing_strategyDict "reference_element_type" "TwoStepUpdatedLagrangianVPFluidElement3D"
+            dict set meshing_strategyDict "reference_condition_type" "CompositeCondition3D3N"
+        } else {
+            dict set meshing_strategyDict "reference_element_type" "TwoStepUpdatedLagrangianVPFluidElement2D"
+            dict set meshing_strategyDict "reference_condition_type" "CompositeCondition2D2N"
+        } 
         dict set bodyDict meshing_strategy $meshing_strategyDict
         
         set spatial_bounding_boxDict [dict create ]
