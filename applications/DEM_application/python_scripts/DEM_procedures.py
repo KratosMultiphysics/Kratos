@@ -679,10 +679,8 @@ class Procedures(object):
         b_box_high[1] = self.b_box_maxY
         b_box_high[2] = self.b_box_maxZ
 
-
         creator_destructor.SetLowNode(b_box_low)
         creator_destructor.SetHighNode(b_box_high)
-
         creator_destructor.CalculateSurroundingBoundingBox(spheres_model_part, clusters_model_part, rigid_faces_model_part, self.bounding_box_enlargement_factor, self.automatic_bounding_box_OPTION)
 
     def DeleteFiles(self):
@@ -806,11 +804,13 @@ class DEMFEMProcedures(object):
         evaluate_computation_of_fem_results()
         
     def MoveAllMeshes(self, rigid_face_model_part, spheres_model_part, DEM_inlet_model_part, time, dt):
+        
         self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(DEM_inlet_model_part, time, dt)
     
     def UpdateTimeInModelParts(self, spheres_model_part, rigid_face_model_part, cluster_model_part, time,dt,step):
+        
         spheres_model_part.ProcessInfo[TIME]          = time
         spheres_model_part.ProcessInfo[DELTA_TIME]    = dt
         spheres_model_part.ProcessInfo[TIME_STEPS]    = step
@@ -824,12 +824,14 @@ class DEMFEMProcedures(object):
         cluster_model_part.ProcessInfo[TIME_STEPS]    = step  
 
     def close_graph_files(self, RigidFace_model_part):
+        
         for mesh_number in range(0, self.RigidFace_model_part.NumberOfSubModelParts()):
             if (self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
                 identifier = self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, IDENTIFIER)
                 self.graph_forces[identifier].close()
 
     def close_balls_graph_files(self, spheres_model_part):
+        
         for mesh_number in range(0, self.spheres_model_part.NumberOfSubModelParts()):
             if (self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, FORCE_INTEGRATION_GROUP)):
                 identifier = self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, IDENTIFIER)
@@ -1167,6 +1169,14 @@ class DEMIo(object):
             self.PostBoundingBox = 0
         else:
             self.PostBoundingBox = getattr(self.DEM_parameters, "PostBoundingBox", 0)
+            
+        self.automatic_bounding_box_option = Var_Translator(self.DEM_parameters.AutomaticBoundingBoxOption)
+        self.b_box_minX = self.DEM_parameters.BoundingBoxMinX
+        self.b_box_minY = self.DEM_parameters.BoundingBoxMinY
+        self.b_box_minZ = self.DEM_parameters.BoundingBoxMinZ
+        self.b_box_maxX = self.DEM_parameters.BoundingBoxMaxX
+        self.b_box_maxY = self.DEM_parameters.BoundingBoxMaxY
+        self.b_box_maxZ = self.DEM_parameters.BoundingBoxMaxZ
 
         self.continuum_element_types = ["SphericContPartDEMElement3D","CylinderContPartDEMElement2D"]
         
@@ -1181,6 +1191,17 @@ class DEMIo(object):
             
         self.SetMultifileLists(self.multifiles)
         
+        # Ice
+        if (hasattr(self.DEM_parameters, "PostVirtualSeaSurfaceX1")):
+            self.SeaSurfaceX1 = self.DEM_parameters.PostVirtualSeaSurfaceX1
+            self.SeaSurfaceY1 = self.DEM_parameters.PostVirtualSeaSurfaceY1
+            self.SeaSurfaceX2 = self.DEM_parameters.PostVirtualSeaSurfaceX2
+            self.SeaSurfaceY2 = self.DEM_parameters.PostVirtualSeaSurfaceY2
+            self.SeaSurfaceX3 = self.DEM_parameters.PostVirtualSeaSurfaceX3
+            self.SeaSurfaceY3 = self.DEM_parameters.PostVirtualSeaSurfaceY3
+            self.SeaSurfaceX4 = self.DEM_parameters.PostVirtualSeaSurfaceX4
+            self.SeaSurfaceY4 = self.DEM_parameters.PostVirtualSeaSurfaceY4
+
     def Flush(self,a):
         a.flush()
         
@@ -1434,11 +1455,17 @@ class DEMIo(object):
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
             self.gid_io.WriteClusterMesh(cluster_model_part.GetCommunicator().LocalMesh())
             self.gid_io.WriteMesh(mapping_model_part.GetCommunicator().LocalMesh()) #MSIMSI MIQUEL MAPPING
+            
             #Compute and print the graphical bounding box if active in time
             if ((getattr(self.DEM_parameters, "BoundingBoxOption", 0) == "ON") and (time >= bounding_box_time_limits[0] and time <= bounding_box_time_limits[1])):
                 self.ComputeAndPrintBoundingBox(spheres_model_part, rigid_face_model_part, creator_destructor)
-            #self.ComputeAndPrintDEMFEMSearchBinBoundingBox(spheres_model_part, rigid_face_model_part, dem_fem_search)#MSIMSI
-
+                        
+            # Ice. Printing a virtual sea surface
+            if (hasattr(self.DEM_parameters, "PostVirtualSeaSurfaceX1")):
+                self.ComputeAndPrintSeaSurface(spheres_model_part, rigid_face_model_part)
+                
+            #self.ComputeAndPrintDEMFEMSearchBinBoundingBox(spheres_model_part, rigid_face_model_part, dem_fem_search) #MSIMSI    
+            
             self.gid_io.FinalizeMesh()                
             self.gid_io.InitializeResults(time, self.mixed_model_part.GetCommunicator().LocalMesh())                        
             #self.gid_io.InitializeResults(time, mixed_spheres_and_clusters_model_part.GetCommunicator().LocalMesh())
@@ -1557,7 +1584,8 @@ class DEMIo(object):
         node7 = bounding_box_model_part.CreateNewNode(max_node_Id + 7, BBMaxX, BBMaxY, BBMaxZ)
         node8 = bounding_box_model_part.CreateNewNode(max_node_Id + 8, BBMinX, BBMaxY, BBMaxZ)
 
-        props = Properties(10000)
+        props = Properties(10000) # Property 10000 corresponds to black colour
+        
         # BB Elements:
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  1, [node1.Id, node4.Id], props)
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  2, [node4.Id, node8.Id], props)
@@ -1574,6 +1602,36 @@ class DEMIo(object):
 
         if (self.PostBoundingBox):
             self.gid_io.WriteMesh(bounding_box_model_part.GetCommunicator().LocalMesh())
+
+    def ComputeAndPrintSeaSurface(self, spheres_model_part, rigid_face_model_part):
+
+        sea_surface_model_part = ModelPart("SeaSurfacePart") # Creation of sea surface model part
+
+        max_node_Id        = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(spheres_model_part)
+        max_FEM_node_Id    = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(rigid_face_model_part)
+        max_element_Id     = ParticleCreatorDestructor().FindMaxElementIdInModelPart(spheres_model_part)
+        max_FEM_element_Id = ParticleCreatorDestructor().FindMaxElementIdInModelPart(rigid_face_model_part)
+
+        if (max_FEM_node_Id > max_node_Id):
+            max_node_Id = max_FEM_node_Id
+
+        if (max_FEM_element_Id > max_element_Id):
+            max_element_Id = max_FEM_element_Id
+
+        node1 = sea_surface_model_part.CreateNewNode(max_node_Id +  9, self.SeaSurfaceX1, self.SeaSurfaceY1, 0.0) # Z = 0.0 as sea level. We will always assume this value
+        node2 = sea_surface_model_part.CreateNewNode(max_node_Id + 10, self.SeaSurfaceX2, self.SeaSurfaceY2, 0.0)
+        node3 = sea_surface_model_part.CreateNewNode(max_node_Id + 11, self.SeaSurfaceX3, self.SeaSurfaceY3, 0.0)
+        node4 = sea_surface_model_part.CreateNewNode(max_node_Id + 12, self.SeaSurfaceX4, self.SeaSurfaceY4, 0.0)
+
+        '''
+        Properties colours: 0 -> grey, 1 -> dark blue, 2 -> pink, 3 -> light blue, 4 -> dark red, 5 -> light green
+                           6 -> light brown, 7 -> red-brown, 8 -> dark brown, 9 -> dark green/blue, 10 -> dark purple
+        '''
+
+        # Sea Surface Element, consisting in a quadrilateral. Property 3 corresponds to a light blue for water
+        sea_surface_model_part.CreateNewCondition("RigidFace3D4N", max_element_Id + 13, [node1.Id, node2.Id, node3.Id, node4.Id], Properties(3))
+
+        self.gid_io.WriteMesh(sea_surface_model_part.GetCommunicator().LocalMesh())
 
     def ComputeAndPrintDEMFEMSearchBinBoundingBox(self, spheres_model_part, rigid_face_model_part, dem_fem_search):
 
@@ -1603,27 +1661,27 @@ class DEMIo(object):
 
         #The cases with 0 thickness in one direction, a 10% of the shortest other two is given to the 0-thickness direction.
         if (DX == 0):
-          height = min(DY,DZ)
-          BBMinX = BBMinX - 0.05*height
-          BBMaxX = BBMaxX + 0.05*height
+            height = min(DY,DZ)
+            BBMinX = BBMinX - 0.05*height
+            BBMaxX = BBMaxX + 0.05*height
         if (DY == 0):
-          height = min(DX,DZ)
-          BBMinY = BBMinY - 0.05*height
-          BBMaxY = BBMaxY + 0.05*height
+            height = min(DX,DZ)
+            BBMinY = BBMinY - 0.05*height
+            BBMaxY = BBMaxY + 0.05*height
         if (DZ == 0):
-          height = min(DX,DY)
-          BBMinZ = BBMinZ - 0.05*height
-          BBMaxZ = BBMaxZ + 0.05*height
+            height = min(DX,DY)
+            BBMinZ = BBMinZ - 0.05*height
+            BBMaxZ = BBMaxZ + 0.05*height
 
         volume = DX*DY*DZ
 
         if (abs(volume) > 1e21) :
-          BBMaxX = 0.0
-          BBMaxY = 0.0
-          BBMaxZ = 0.0
-          BBMinX = 0.0
-          BBMinY = 0.0
-          BBMinZ = 0.0
+            BBMaxX = 0.0
+            BBMaxY = 0.0
+            BBMaxZ = 0.0
+            BBMinX = 0.0
+            BBMinY = 0.0
+            BBMinZ = 0.0
 
         # BB Nodes:
         node1 = bounding_box_model_part.CreateNewNode(max_node_Id + 1, BBMinX, BBMinY, BBMinZ)
@@ -1652,8 +1710,6 @@ class DEMIo(object):
 
         #self.gid_io.WriteMesh(bounding_box_model_part.GetCommunicator().LocalMesh()) #BOUNDING BOX IMPLEMENTATION
         
-
-
 
 class ParallelUtils(object):
 
