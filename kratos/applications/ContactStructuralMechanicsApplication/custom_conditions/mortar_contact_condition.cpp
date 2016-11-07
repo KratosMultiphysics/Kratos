@@ -145,14 +145,6 @@ void MortarContactCondition::InitializeSolutionStep( ProcessInfo& rCurrentProces
     for ( unsigned int i_cond = 0; i_cond < all_containers->size(); ++i_cond )
     {
         mThisMasterElements[i_cond] = (*all_containers)[i_cond].condition;
-
-        // Fill the condition
-        Condition::Pointer& pCond = mThisMasterElements[i_cond];
-        
-        // Initializes only via gap tolerance for the first step in the solution
-        // Do the mortar segmentation in all time steps
-        ContactUtilities::ContactContainerFiller((*all_containers)[i_cond], pCond->GetGeometry().Center(), GetGeometry(), pCond->GetGeometry(), 
-                                                   this->GetValue(NORMAL), pCond->GetValue(NORMAL), ActiveCheckFactor);
     }
     
     KRATOS_CATCH( "" );

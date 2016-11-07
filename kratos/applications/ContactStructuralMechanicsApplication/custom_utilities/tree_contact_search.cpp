@@ -184,7 +184,7 @@ void TreeContactSearch::InitializeConditions(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::ClearNTNConditions()
+void TreeContactSearch::TotalClearNTNConditions()
 {    
     // TODO: Add this in the future
 }
@@ -192,7 +192,15 @@ void TreeContactSearch::ClearNTNConditions()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::ClearNTSConditions()
+void TreeContactSearch::PartialClearNTNConditions()
+{    
+    // TODO: Add this in the future
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TreeContactSearch::TotalClearNTSConditions()
 {
     // TODO: Add this in the future
 }
@@ -200,29 +208,47 @@ void TreeContactSearch::ClearNTSConditions()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::ClearMortarConditions()
+void TreeContactSearch::PartialClearNTSConditions()
 {
-    // Destination model part
-    ClearConditions(mrDestinationModelPart);
+    // TODO: Add this in the future
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::ClearConditions(ModelPart & rModelPart)
+void TreeContactSearch::TotalClearMortarConditions()
 {
-    ConditionsArrayType& pCond  = rModelPart.Conditions();
-    ConditionsArrayType::iterator it_begin = pCond.ptr_begin();
-    ConditionsArrayType::iterator it_end   = pCond.ptr_end();
+    // Destination model part
+    TotalClearConditions(mrDestinationModelPart);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TreeContactSearch::PartialClearMortarConditions()
+{
+    // Destination model part
+    PartialClearConditions(mrDestinationModelPart);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TreeContactSearch::TotalClearConditions(ModelPart & rModelPart)
+{
+    ConditionsArrayType& pCond = rModelPart.Conditions();
     
-    for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
+    auto numConditions = pCond.end() - pCond.begin();
+    
+    #pragma omp parallel for 
+    for(unsigned int i = 0; i < numConditions; i++) 
     {
-        if (cond_it->Is(ACTIVE) == true)
+        auto itCond = pCond.begin() + i;
+        if (itCond->Is(ACTIVE) == true)
         {
-            cond_it->Set(ACTIVE, false);
+            itCond->Set(ACTIVE, false);
             
-            std::vector<contact_container> * ConditionPointers = cond_it->GetValue(CONTACT_CONTAINERS);
-//             auto & ConditionPointers = cond_it->GetValue(CONTACT_CONTAINERS);
+            std::vector<contact_container> * ConditionPointers = itCond->GetValue(CONTACT_CONTAINERS);
             
             if (ConditionPointers != NULL)
             {
@@ -232,25 +258,45 @@ void TreeContactSearch::ClearConditions(ModelPart & rModelPart)
                 } 
                 
                 ConditionPointers->clear();
-                
     //             ConditionPointers->reserve(mallocation); 
             }
-        
 //             delete ConditionPointers;
-//             cond_it->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
+//             itCond->GetValue(CONTACT_CONTAINERS) = new std::vector<contact_container>();
         }
     }
     
-    NodesArrayType& pNode               = rModelPart.Nodes();
-    NodesArrayType::iterator node_begin = pNode.ptr_begin();
-    NodesArrayType::iterator node_end   = pNode.ptr_end();
+    NodesArrayType& pNode = rModelPart.Nodes();
     
-    for(NodesArrayType::iterator node_it = node_begin; node_it!=node_end; node_it++)
+    auto numNodes = pNode.end() - pNode.begin();
+    
+    #pragma omp parallel for 
+    for(unsigned int i = 0; i < numNodes; i++) 
     {
-        if (node_it->Is(ACTIVE) == true)
+        auto itNode = pNode.begin() + i;
+        if (itNode->Is(ACTIVE) == true)
         {
-            node_it->Set( ACTIVE, false );
-            node_it->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0) = ZeroVector(3);
+            itNode->Set( ACTIVE, false );
+            itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0) = ZeroVector(3);
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TreeContactSearch::PartialClearConditions(ModelPart & rModelPart)
+{
+    NodesArrayType& pNode = rModelPart.Nodes();
+    
+    auto numNodes = pNode.end() - pNode.begin();
+    
+    #pragma omp parallel for 
+    for(unsigned int i = 0; i < numNodes; i++) 
+    {
+        auto itNode = pNode.begin() + i;
+        if (itNode->Is(ACTIVE) == false)
+        {
+            itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0) = ZeroVector(3);
         }
     }
 }
@@ -278,8 +324,6 @@ void TreeContactSearch::CreatePointListNTS()
 
 void TreeContactSearch::CreatePointListMortar()
 {
-    
-    
     // Destination model part
     CreatePointListConditions(mrDestinationModelPart, mPointListDestination);
 }
@@ -321,7 +365,7 @@ void TreeContactSearch::CreatePointListConditions(
     
     for(ConditionsArrayType::iterator cond_it = it_begin; cond_it!=it_end; cond_it++)
     {
-        const Condition::Pointer pCond = (*cond_it.base());
+        const Condition::Pointer & pCond = (*cond_it.base());
         Point<3> Center;
         double Radius;
         ContactUtilities::CenterAndRadius(pCond, Center, Radius, mdimension); 
@@ -358,6 +402,7 @@ void TreeContactSearch::UpdatePointListConditions(
     PointVector & PoinList
     )
 {
+    // TODO: Think how to parallel this!!!!
     ConditionsArrayType& pCond  = rModelPart.Conditions();
     ConditionsArrayType::iterator it_begin = pCond.ptr_begin();
     ConditionsArrayType::iterator it_end   = pCond.ptr_end();
@@ -391,7 +436,29 @@ void TreeContactSearch::CreateNTNConditions(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void TreeContactSearch::UpdateNTNConditions(
+    const double SearchFactor,
+    const int type_search
+) 
+{
+    // TODO: Add this in the future
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void TreeContactSearch::CreateNTSConditions(
+    const double SearchFactor,
+    const int type_search
+) 
+{
+    // TODO: Add this in the future
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TreeContactSearch::UpdateNTSConditions(
     const double SearchFactor,
     const int type_search
 ) 
@@ -407,11 +474,22 @@ void TreeContactSearch::CreateMortarConditions(
     const int type_search
 ) 
 {
+    TotalClearMortarConditions(); // Clear the conditions
+    UpdateMortarConditions(SearchFactor, type_search);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TreeContactSearch::UpdateMortarConditions( // TODO: Change everything, using the slave as reference isntead of the master
+    const double SearchFactor,
+    const int type_search
+) 
+{
     // Initialize values
     PointVector PointsFound(mallocation);
     std::vector<double> PointsDistances(mallocation);
     unsigned int NumberPointsFound = 0;    
-    ClearMortarConditions(); // Clear the conditions
     
     // Create a tree
     // It will use a copy of mNodeList (a std::vector which contains pointers)
@@ -456,18 +534,21 @@ void TreeContactSearch::CreateMortarConditions(
             {   
                 Condition::Pointer pCondDestination = PointsFound[i]->GetCondition();
                 
-                if (pCondDestination != pCondOrigin) // Avoiding "auto self-contact"
-                {
-                    std::vector<contact_container> *& ConditionPointersDestination = pCondDestination->GetValue(CONTACT_CONTAINERS);
-                    
-                    // Get the active check factor
-                    const double ActiveCheckFactor = pCondDestination->GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
-
-                    MortarContainerFiller(pCondOrigin->GetGeometry().Center(), PointsFound[i], pCondDestination, pCondOrigin, ConditionPointersDestination, ActiveCheckFactor, false);
+                std::vector<contact_container> *& ConditionPointersDestination = pCondDestination->GetValue(CONTACT_CONTAINERS);
+                
+                bool to_check_cond = CheckCondition(ConditionPointersDestination, pCondDestination, pCondOrigin);
+                
+                if (to_check_cond == true) 
+                {    
+                    // If not active we check if can be potentially in contact
+                    MortarContainerFiller(pCondDestination, pCondOrigin, ConditionPointersDestination, pCondDestination->GetProperties().GetValue(ACTIVE_CHECK_FACTOR));
                 }
             }
         }
     }
+    
+    // Here we remove all the inactive pairs
+    ClearAllInactivePairs(mrDestinationModelPart); 
     
     // Calculate the mean of the normal in all the nodes
     ComputeNodesMeanNormal();
@@ -512,38 +593,102 @@ void TreeContactSearch::CheckMortarConditions()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TreeContactSearch::MortarContainerFiller(
-        const Point<3>& OriginPoint,
-        const PointType::Pointer PointFound,
-        Condition::Pointer & pCond_1,
-        const Condition::Pointer & pCond_2,
+void TreeContactSearch::ClearAllInactivePairs(ModelPart & rModelPart)
+{
+    ConditionsArrayType& pCond = rModelPart.Conditions();
+    
+    auto numConditions = pCond.end() - pCond.begin();
+    
+//     #pragma omp parallel for // NOTE: Be careful, if you change something with get value over the nodes iteraring in the conditions this will not work in OpenMP 
+    for(unsigned int i = 0; i < numConditions; i++) 
+    {
+        auto itCond = pCond.begin() + i;
+        if (itCond->Is(ACTIVE) == true)
+        {            
+            std::vector<contact_container> *& ConditionPointers = itCond->GetValue(CONTACT_CONTAINERS);
+                            
+            if (ConditionPointers != NULL)
+            {
+                std::vector<contact_container> AuxConditionPointers;
+                for (unsigned int pair = 0; pair < (*ConditionPointers).size();pair++)
+                {
+                    contact_container aux_contact_container = (*ConditionPointers)[pair];
+                    
+                    if (aux_contact_container.active_pair == false)
+                    {
+                        // Last oportunity for the condition pair
+                        const double ActiveCheckFactor = itCond->GetProperties().GetValue(ACTIVE_CHECK_FACTOR);
+                        const bool cond_active = ContactUtilities::ContactContainerFiller(itCond->GetGeometry(),    (aux_contact_container.condition)->GetGeometry(), 
+                                                                                          itCond->GetValue(NORMAL), (aux_contact_container.condition)->GetValue(NORMAL), 
+                                                                                          ActiveCheckFactor);
+                        if (cond_active == true) // Still paired
+                        {
+                            aux_contact_container.active_pair = true; 
+                            AuxConditionPointers.push_back(aux_contact_container);
+                        }
+                    }
+                    else // It is already active pair, we append
+                    {
+                        AuxConditionPointers.push_back(aux_contact_container);
+                    }
+                } 
+                
+                // Now we copy the final result
+                *ConditionPointers = AuxConditionPointers;
+                
+                // All the pairs has been removed
+                if ((*ConditionPointers).size() == 0)
+                {
+                    itCond->Set(ACTIVE, false);
+                }
+            }
+            else
+            {
+                itCond->Set(ACTIVE, false);
+            }
+
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool TreeContactSearch::CheckCondition(
         std::vector<contact_container> *& ConditionPointers,
-        const double ActiveCheckFactor,
-        const bool orig_dest
+        const Condition::Pointer & pCondDestination,
+        const Condition::Pointer & pCondOrigin
         )
 {
-    contact_container contact_container;
+    bool aux_bool = (pCondDestination != pCondOrigin); // Avoiding "auto self-contact"
     
-    contact_container.condition = pCond_2;
+    if (aux_bool == true)
+    {
+        for (unsigned int pair = 0; pair < ConditionPointers->size(); pair++)
+        {
+            if ((*ConditionPointers)[pair].condition == pCondOrigin)
+            {
+                aux_bool = false;
+                break;
+            }
+        }
+    }
     
-    // Define the normal to the contact
-    Point<3> ContactPoint;
-    if (orig_dest == true)
-    {
-        ContactPoint = PointFound->GetPoint();
-    }
-    else
-    {
-        ContactPoint = OriginPoint;
-    }
-    
-    ContactUtilities::ContactContainerFiller(contact_container, ContactPoint, pCond_1, pCond_2, 
-                                             pCond_1->GetValue(NORMAL), pCond_2->GetValue(NORMAL), ActiveCheckFactor); 
-         
-    if (pCond_1->Is(ACTIVE) == true)
-    {
-        ConditionPointers->push_back(contact_container);
-    }
+    return aux_bool;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TreeContactSearch::MortarContainerFiller(
+        Condition::Pointer & pCondDestination,
+        const Condition::Pointer & pCondOrigin,
+        std::vector<contact_container> *& ConditionPointers,
+        const double ActiveCheckFactor
+        )
+{
+    ContactUtilities::ContactContainerFiller(ConditionPointers, pCondDestination, pCondOrigin, 
+                      pCondDestination->GetValue(NORMAL), pCondOrigin->GetValue(NORMAL), ActiveCheckFactor); 
 }
 
 /***********************************************************************************/
