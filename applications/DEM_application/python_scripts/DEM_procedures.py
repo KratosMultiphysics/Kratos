@@ -265,10 +265,6 @@ class Procedures(object):
         self.bounding_box_OPTION           = Var_Translator(self.DEM_parameters.BoundingBoxOption)
         self.automatic_bounding_box_OPTION = Var_Translator(self.DEM_parameters.AutomaticBoundingBoxOption)
         self.contact_mesh_OPTION           = Var_Translator(self.DEM_parameters.ContactMeshOption)
-        self.arlequin                      = 0
-        if (hasattr(DEM_parameters, "arlequin")):
-            self.arlequin                    = Var_Translator(self.DEM_parameters.arlequin)
-        #self.solver = solver
 
         # SIMULATION SETTINGS
         self.b_box_minX = self.DEM_parameters.BoundingBoxMinX
@@ -347,7 +343,8 @@ class Procedures(object):
             model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
 
-        if ((hasattr(self.DEM_parameters, "PostStressStrainOption")) and self.DEM_parameters.PostStressStrainOption):
+        #if ((hasattr(self.DEM_parameters, "PostStressStrainOption")) and self.DEM_parameters.PostStressStrainOption):
+        if (True):
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_XX)
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_XY)
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_XZ)
@@ -385,18 +382,6 @@ class Procedures(object):
     def AddElasticFaceVariables(self, model_part, DEM_parameters): #Only used in CSM coupling
         self.AddRigidFaceVariables(model_part,self.DEM_parameters)
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
-
-    def AddMappingVariables(self, model_part, DEM_parameters):
-        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-        model_part.AddNodalSolutionStepVariable(VELOCITY)
-        model_part.AddNodalSolutionStepVariable(SOLUTION)
-        model_part.AddNodalSolutionStepVariable(NODAL_MASS)
-        model_part.AddNodalSolutionStepVariable(ARLEQUIN_DUMMY_1)
-        model_part.AddNodalSolutionStepVariable(ARLEQUIN_DUMMY_2)
-        model_part.AddNodalSolutionStepVariable(ARLEQUIN_DUMMY_3)
-        model_part.AddNodalSolutionStepVariable(ARLEQUIN_DUMMY_3D_1)
-        model_part.AddNodalSolutionStepVariable(ARLEQUIN_DUMMY_3D_2)
-        model_part.AddNodalSolutionStepVariable(ARLEQUIN_DUMMY_3D_3)
 
     def AddClusterVariables(self, model_part, DEM_parameters):
         # KINEMATIC
@@ -798,7 +783,8 @@ class DEMFEMProcedures(object):
         self.domain_size = self.DEM_parameters.Dimension
         #if (hasattr(self.DEM_parameters, "StressStrainOption")):
         #    self.stress_strain_option = Var_Translator(self.DEM_parameters.StressStrainOption)
-        if Var_Translator(self.DEM_parameters.PostStressStrainOption):
+        #if Var_Translator(self.DEM_parameters.PostStressStrainOption):
+        if (True):
             self.stress_strain_option = 1
 
         evaluate_computation_of_fem_results()
@@ -1129,7 +1115,6 @@ class DEMIo(object):
         self.spheres_variables                         = []
         self.spheres_local_axis_variables              = []
         self.fem_boundary_variables                    = []
-        self.mapping_variables                         = []
         self.clusters_variables                        = []
         self.contact_variables                         = []
         self.multifilelists                            = []
@@ -1261,11 +1246,11 @@ class DEMIo(object):
         if self.DEM_parameters.ElementType == "SwimmingNanoParticle":
             self.PushPrintVar(self.PostHeatFlux, CATION_CONCENTRATION, self.spheres_variables)
 
-
-
         #if ((hasattr(self.DEM_parameters, "PostStressStrainOption")) and (hasattr(self.DEM_parameters, "StressStrainOption"))):
-        if (hasattr(self.DEM_parameters, "PostStressStrainOption")):
-            if (Var_Translator(self.DEM_parameters.PostStressStrainOption)):
+        #if (hasattr(self.DEM_parameters, "PostStressStrainOption")):
+        if (True):
+            #if (Var_Translator(self.DEM_parameters.PostStressStrainOption)):
+            if (True):
                 self.PushPrintVar(1, REPRESENTATIVE_VOLUME, self.spheres_variables)
                 self.PushPrintVar(1, DEM_STRESS_XX,         self.spheres_variables)
                 self.PushPrintVar(1, DEM_STRESS_XY,         self.spheres_variables)
@@ -1283,17 +1268,6 @@ class DEMIo(object):
             if Var_Translator(self.DEM_parameters.PostPoissonRatio):
                 self.PushPrintVar(self.DEM_parameters.PostPoissonRatio, POISSON_VALUE, self.spheres_variables)
 
-    def AddArlequinVariables(self):
-        self.PushPrintVar(1, DISTANCE, self.global_variables)
-        self.PushPrintVar(1, BORDER, self.global_variables)
-        self.PushPrintVar(1, SOLUTION, self.global_variables)
-        self.PushPrintVar(1, ARLEQUIN_DUMMY_1, self.global_variables)
-        self.PushPrintVar(1, ARLEQUIN_DUMMY_2, self.global_variables)
-        self.PushPrintVar(1, ARLEQUIN_DUMMY_3, self.global_variables)
-        self.PushPrintVar(1, ALPHA_ARLEQUIN, self.global_variables)
-        self.PushPrintVar(1, NODAL_MASS, self.global_variables)
-        self.PushPrintVar(1, TOTAL_FORCES, self.global_variables)
-
     def AddFEMBoundaryVariables(self):
         self.PushPrintVar(self.PostElasticForces,            ELASTIC_FORCES, self.fem_boundary_variables)
         self.PushPrintVar(self.PostContactForces,            CONTACT_FORCES, self.fem_boundary_variables)
@@ -1304,12 +1278,6 @@ class DEMIo(object):
         if (Var_Translator(self.PostNonDimensionalVolumeWear)):
             self.PushPrintVar(1,                             NON_DIMENSIONAL_VOLUME_WEAR, self.fem_boundary_variables)
             self.PushPrintVar(1,                             IMPACT_WEAR,                 self.fem_boundary_variables)
-
-    def AddMappingVariables(self):
-        self.PushPrintVar( 1,                                               ARLEQUIN_DUMMY_1, self.mapping_variables)
-        self.PushPrintVar( 1,                                               ARLEQUIN_DUMMY_2, self.mapping_variables)
-        self.PushPrintVar( 1,                                               NODAL_MASS, self.mapping_variables)
-        #self.PushPrintVar( 1,                                               TOTAL_FORCES, self.mapping_variables)
 
     def AddClusterVariables(self):
         self.PushPrintVar(self.PostRadius, CHARACTERISTIC_LENGTH, self.clusters_variables)
@@ -1395,8 +1363,6 @@ class DEMIo(object):
 
             self.post_utility.AddModelPartToModelPart(self.mixed_model_part, rigid_face_model_part)
             self.post_utility.AddModelPartToModelPart(self.mixed_model_part, cluster_model_part)
-            self.post_utility.AddModelPartToModelPart(self.mixed_model_part, mapping_model_part) #MIQUEL MAPPING
-
             self.post_utility.AddModelPartToModelPart(self.mixed_spheres_and_clusters_model_part, spheres_model_part)
             self.post_utility.AddModelPartToModelPart(self.mixed_spheres_and_clusters_model_part, cluster_model_part)
             
@@ -1406,7 +1372,6 @@ class DEMIo(object):
             self.gid_io.InitializeMesh(0.0)
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
             self.gid_io.WriteClusterMesh(cluster_model_part.GetCommunicator().LocalMesh())
-            self.gid_io.WriteMesh(mapping_model_part.GetCommunicator().LocalMesh())         #MIQUEL MAPPING
             if (self.DEM_parameters.ElementType == "CylinderContPartDEMElement2D"):
                 self.gid_io.WriteCircleMesh(spheres_model_part.GetCommunicator().LocalMesh())
             else:
@@ -1434,8 +1399,6 @@ class DEMIo(object):
                 self.post_utility.AddModelPartToModelPart(self.mixed_model_part, contact_model_part)
             self.post_utility.AddModelPartToModelPart(self.mixed_model_part, rigid_face_model_part)
             self.post_utility.AddModelPartToModelPart(self.mixed_model_part, cluster_model_part)
-            self.post_utility.AddModelPartToModelPart(self.mixed_model_part, mapping_model_part) #MIQUEL MAPPING
-
             self.post_utility.AddModelPartToModelPart(self.mixed_spheres_and_clusters_model_part, spheres_model_part)
             self.post_utility.AddModelPartToModelPart(self.mixed_spheres_and_clusters_model_part, cluster_model_part)
             
@@ -1454,7 +1417,6 @@ class DEMIo(object):
 
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
             self.gid_io.WriteClusterMesh(cluster_model_part.GetCommunicator().LocalMesh())
-            self.gid_io.WriteMesh(mapping_model_part.GetCommunicator().LocalMesh()) #MSIMSI MIQUEL MAPPING
             
             #Compute and print the graphical bounding box if active in time
             if ((getattr(self.DEM_parameters, "BoundingBoxOption", 0) == "ON") and (time >= bounding_box_time_limits[0] and time <= bounding_box_time_limits[1])):
@@ -1513,13 +1475,6 @@ class DEMIo(object):
             for variable in self.contact_variables:
                 self.gid_io.PrintOnGaussPoints(variable, export_model_part, time)
 
-    def PrintingMappingVariables(self, export_model_part, time):
-        for variable in self.mapping_variables:
-            self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
-
-    #def PrintingArlequinVariables(self, export_model_part, time):
-    #    self.gid_io.PrintOnGaussPoints(IN_ARLEQUIN, export_model_part, time)
-
     def PrintResults(self, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits):
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             self.InitializeResults(spheres_model_part,
@@ -1539,8 +1494,6 @@ class DEMIo(object):
         self.PrintingFEMBoundaryVariables(rigid_face_model_part, time)
         self.PrintingClusterVariables(cluster_model_part, time)
         self.PrintingContactElementsVariables(contact_model_part, time)
-        self.PrintingMappingVariables(mapping_model_part, time)
-        #self.PrintingArlequinVariables(rigid_face_model_part, time)
         
         self.mixed_model_part.Elements.clear() #to remove the shared pointers that remain and prevent objects from being removed
         self.mixed_model_part.Nodes.clear() #to remove the shared pointers that remain and prevent objects from being removed
