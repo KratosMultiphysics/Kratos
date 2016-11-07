@@ -131,9 +131,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(double, EXCENTRICITY_STANDARD_DEVIATION)
   KRATOS_CREATE_VARIABLE(double, FABRIC_COEFFICIENT)
   KRATOS_CREATE_VARIABLE(double, POISSON_VALUE)
-  KRATOS_CREATE_VARIABLE(double, KT_FACTOR)
-  KRATOS_CREATE_VARIABLE(double, ICE_OPTION)
-          
+  KRATOS_CREATE_VARIABLE(double, KT_FACTOR)        
 
   // *************** Nano-particle only BEGIN *************
   KRATOS_CREATE_VARIABLE(double, CATION_CONCENTRATION)
@@ -375,7 +373,7 @@ namespace Kratos
     mPillCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mEllipsoidCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mCuboidCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-    //mCapsuleCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),        
+    mCapsuleCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),        
     mSingleSphereCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mBeadCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mMapCon3D3N(0, Element::GeometryType::Pointer(new Triangle3D3 <Node<3> >(Element::GeometryType::PointsArrayType(3))))
@@ -494,7 +492,6 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(FABRIC_COEFFICIENT)
     KRATOS_REGISTER_VARIABLE(POISSON_VALUE)
     KRATOS_REGISTER_VARIABLE(KT_FACTOR)
-    KRATOS_REGISTER_VARIABLE(ICE_OPTION)
 
 
     // *************** Nano-particle only BEGIN *************
