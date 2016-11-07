@@ -41,7 +41,7 @@ proc Pfem::write::getParametersDict { } {
 }
 proc Pfem::write::GetPFEM_OutputProcessList { } {
     set resultList [list]
-    lappend resultList [write::GetRestartProcess]
+    lappend resultList [write::GetRestartProcess Restart]
     return $resultList
 }
 proc Pfem::write::GetPFEM_ProblemProcessList { } {
