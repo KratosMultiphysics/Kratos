@@ -175,7 +175,7 @@ proc Kratos::ChangeMenus { } {
     GidChangeDataLabel "Materials" ""
     GidChangeDataLabel "Interval Data" ""
     GidChangeDataLabel "Problem Data" ""
-    GidChangeDataLabel "Local axes" ""
+    GidChangeDataLabel "Local axes" "gid_groups_conds::local_axes_menu %W"
     GiDMenu::UpdateMenus
 }
 

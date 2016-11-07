@@ -959,10 +959,9 @@ proc write::GetRestartProcess { {un ""} {name "" } } {
     set root [$doc documentElement]
     
     set resultDict [dict create ]
-    if {$un eq ""} {set un "Results"}
+    if {$un eq ""} {set un "Restart"}
     if {$name eq ""} {set name "RestartOptions"}
     
-    set xp "[spdAux::getRoute $un]/value\[@n = 'SaveRestart'\]/"
     dict set resultDict "python_module" "restart_process"
     dict set resultDict "kratos_module" "KratosMultiphysics.SolidMechanicsApplication"
     dict set resultDict "help" "This process writes restart files"

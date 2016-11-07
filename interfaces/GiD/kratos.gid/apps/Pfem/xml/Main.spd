@@ -10,4 +10,5 @@
     <include n="Loads" active="1" path="apps/Solid/xml/Loads.spd" state="[getStateFromXPathValue {string(../container[@n='ModelType']/value[@n='DomainType']/@v)} Solids,Coupled]"/>
     <include n="SolutionStrategy" active="1" path="apps/Pfem/xml/SolutionStrategy.spd"/>
     <include n="Results" active="1" path="apps/Pfem/xml/Results.spd"/>
+    <include n="Restart" active="1" path="apps/Pfem/xml/Restart.spd"/>
   </container>
