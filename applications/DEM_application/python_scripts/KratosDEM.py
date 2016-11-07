@@ -30,8 +30,9 @@ else:
     import DEM_material_test_script
     #def model_part_reader(modelpart, a=0, b=0, c=0):
     #    return ModelPartIO(modelpart)
-    def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):
-        return ModelPartIO(modelpart)
+    def model_part_reader(modelpart, nodeid=0, elemid=0, condid=0):        
+        #return ModelPartIO(modelpart)
+        return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
     
 
 # TODO: Ugly fix. Change it. I don't like this to be in the main...
@@ -124,16 +125,22 @@ model_part_io_spheres.ReadModelPart(spheres_model_part)
 
 
 max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
+print("Maxnodeid")
+print(max_node_Id)
 max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(spheres_model_part)
 old_max_elem_Id_spheres = max_elem_Id
-max_cond_Id = creator_destructor.FindMaxElementIdInModelPart(spheres_model_part)
+max_cond_Id = creator_destructor.FindMaxConditionIdInModelPart(spheres_model_part)
 rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
 model_part_io_fem = model_part_reader(rigidFace_mp_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
 model_part_io_fem.ReadModelPart(rigid_face_model_part)
 
+print("nodes of FEM:")
+for node in rigid_face_model_part.Nodes:
+    print(node.Id)
+
 max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
 max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(rigid_face_model_part)
-max_cond_Id = creator_destructor.FindMaxElementIdInModelPart(rigid_face_model_part)
+max_cond_Id = creator_destructor.FindMaxConditionIdInModelPart(rigid_face_model_part)
 clusters_mp_filename = DEM_parameters.problem_name + "DEM_Clusters"
 model_part_io_clusters = model_part_reader(clusters_mp_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
 model_part_io_clusters.ReadModelPart(cluster_model_part)
@@ -143,7 +150,7 @@ if (max_elem_Id != old_max_elem_Id_spheres):
 
 max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(cluster_model_part)
 max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(cluster_model_part)
-max_cond_Id = creator_destructor.FindMaxElementIdInModelPart(cluster_model_part)
+max_cond_Id = creator_destructor.FindMaxConditionIdInModelPart(cluster_model_part)
 DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"  
 model_part_io_demInlet = model_part_reader(DEM_Inlet_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
 model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
