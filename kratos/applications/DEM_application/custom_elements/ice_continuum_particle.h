@@ -1,6 +1,5 @@
 //
-// Author: Salva Latorre
-// latorre@cimne.upc.edu
+// Author: Salva Latorre, latorre@cimne.upc.edu
 //
 
 #if !defined(KRATOS_ICECONTINUUMPARTICLE_H_INCLUDED)
@@ -22,10 +21,6 @@ namespace Kratos {
 
         /// Pointer definition of IceContinuumParticle
         KRATOS_CLASS_POINTER_DEFINITION(IceContinuumParticle);
-
-        using SphericContinuumParticle::GetGeometry;
-        using SphericContinuumParticle::GetDensity;
-        using SphericContinuumParticle::mRadius;
 
         IceContinuumParticle() : SphericContinuumParticle() {}
         IceContinuumParticle(IndexType NewId, GeometryType::Pointer pGeometry) : SphericContinuumParticle(NewId, pGeometry) {}
@@ -53,19 +48,16 @@ namespace Kratos {
 
         /// Print object's data
         virtual void PrintData(std::ostream& rOStream) const {}    
-        void Initialize(const ProcessInfo& r_process_info);
 
-        void MemberDeclarationFirstStep(const ProcessInfo& r_process_info);
-
-        double CalculateVolume();
-        void SetInteractionRadius(double radius);
-        double GetInteractionRadius();
         void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force,
                                                       array_1d<double, 3>& externally_applied_moment,
                                                       const ProcessInfo& r_process_info,
                                                       const array_1d<double,3>& gravity);
         
-        void ComputeIceForces(SphericContinuumParticle* continuum_particle, array_1d<double, 3>& externally_applied_force, const array_1d<double,3>& gravity);
+        void ComputeIceForces(SphericContinuumParticle* continuum_particle,
+                              array_1d<double, 3>& externally_applied_force,
+                              const ProcessInfo& r_process_info,
+                              const array_1d<double,3>& gravity);
 
         private:
 
