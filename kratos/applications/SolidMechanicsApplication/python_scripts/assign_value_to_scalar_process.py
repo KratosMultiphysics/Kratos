@@ -1,6 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
-
+import sys
 
 ## This proces sets the value of a vector variable component-by-component.
 ## In this case, the fixicity is given by the user and some of the components may not be fixed.
@@ -63,6 +63,8 @@ class AssignValueToScalarProcess(KratosMultiphysics.Process):
             
         if( self.interval[0] == 0.0 and self.interval[1] == 0.0 ):
             self.interval_string = "initial"
+        else:
+            self.interval_string = ""
 
         self.value = self.settings["value"].GetDouble();        
 

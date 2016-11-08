@@ -22,7 +22,7 @@ class AssignScalarToConditionsProcess(BaseProcess.AssignValueToScalarProcess):
 
     def ExecuteInitializeSolutionStep(self):
 
-        current_time = self.model_part.ProcessInfo[TIME]
+        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         delta_time = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
         #arithmetic floating point tolerance
