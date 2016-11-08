@@ -65,6 +65,7 @@ virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process
 virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info);
 virtual void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& r_process_info );
 virtual void FinalizeSolutionStep(ProcessInfo& r_process_info);
+virtual void SymmetrizeStressTensor();
 virtual void CorrectRepresentativeVolume(double& rRepresentative_Volume, bool& is_smaller_than_sphere);
 virtual void ComputeReactions();
 virtual void PrepareForPrinting(ProcessInfo& r_process_info);

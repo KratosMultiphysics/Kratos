@@ -1275,9 +1275,7 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
             for (int j = 0; j < 3; j++) {
                 (*mStressTensor)(i,j) /= rRepresentative_Volume;
             }
-
-            (*mStressTensor)(i,i) += GeometryFunctions::sign( (*mStressTensor)(i,i) ) * GetRadius() * fabs(reaction_force[i]) / rRepresentative_Volume;
-
+            //(*mStressTensor)(i,i) += GeometryFunctions::sign( (*mStressTensor)(i,i) ) * GetRadius() * fabs(reaction_force[i]) / rRepresentative_Volume;
         }
         /*if( this->Is(DEMFlags::HAS_ROTATION) ) { //THIS IS GIVING STABILITY PROBLEMS WHEN USING THE EXTRA TERMS FOR CONTINUUM
             const array_1d<double, 3>& reaction_moment=this->GetGeometry()[0].FastGetSolutionStepValue(MOMENT_REACTION);
@@ -1291,25 +1289,29 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
             }
         }*/
 
-        //The following operation symmetrizes the tensor. We will work with the symmetric stress tensor always, because the non-symmetric one is being filled while forces are being calculated
-        for (int i = 0; i < 3; i++) {
-            for (int j = i; j < 3; j++) {
-                if(fabs((*mStressTensor)(i,j)) > fabs((*mStressTensor)(j,i))) {
-                    (*mSymmStressTensor)(i,j) = (*mSymmStressTensor)(j,i) = (*mStressTensor)(i,j);
-                }
-                else {
-                    (*mSymmStressTensor)(i,j) = (*mSymmStressTensor)(j,i) = (*mStressTensor)(j,i);
-                }
-            }
-        }
-        
-        /*for (int i = 0; i < 3; i++) {
-            for (int j = i; j < 3; j++) {
-                (*mSymmStressTensor)(i,j) = (*mSymmStressTensor)(j,i) = 0.5 * ((*mStressTensor)(i,j) + (*mStressTensor)(j,i));
-            }
-        }*/
+        SymmetrizeStressTensor();
     }
     KRATOS_CATCH("")
+}
+
+void SphericParticle::SymmetrizeStressTensor(){
+    //The following operation symmetrizes the tensor. We will work with the symmetric stress tensor always, because the non-symmetric one is being filled while forces are being calculated
+    for (int i = 0; i < 3; i++) {
+        for (int j = i; j < 3; j++) {
+            if(fabs((*mStressTensor)(i,j)) > fabs((*mStressTensor)(j,i))) {
+                (*mSymmStressTensor)(i,j) = (*mSymmStressTensor)(j,i) = (*mStressTensor)(i,j);
+            }
+            else {
+                (*mSymmStressTensor)(i,j) = (*mSymmStressTensor)(j,i) = (*mStressTensor)(j,i);
+            }
+        }
+    }
+
+    /*for (int i = 0; i < 3; i++) {
+        for (int j = i; j < 3; j++) {
+            (*mSymmStressTensor)(i,j) = (*mSymmStressTensor)(j,i) = 0.5 * ((*mStressTensor)(i,j) + (*mStressTensor)(j,i));
+        }
+    }*/
 }
 
 void SphericParticle::ComputeReactions(){

@@ -743,9 +743,9 @@ namespace Kratos {
     void ContinuumExplicitSolverStrategy::SetInitialFemContacts() {
         KRATOS_TRY
 
-                const int number_of_particles = (int) mListOfSphericContinuumParticles.size();
+        const int number_of_particles = (int) mListOfSphericContinuumParticles.size();
 
-#pragma omp parallel for
+        #pragma omp parallel for
         for (int i = 0; i < number_of_particles; i++) {
             mListOfSphericContinuumParticles[i]->SetInitialFemContacts();
         }
@@ -756,6 +756,26 @@ namespace Kratos {
     void ContinuumExplicitSolverStrategy::FinalizeSolutionStep() {
         BaseType::FinalizeSolutionStep();
         FinalizeSolutionStepFEM();
+                
+        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+        if (r_process_info[STRESS_STRAIN_OPTION]) {
+            const int number_of_particles = (int) mListOfSphericContinuumParticles.size();
+            #pragma omp parallel 
+            {
+                #pragma omp for
+                for (int i = 0; i < number_of_particles; i++) {
+                    mListOfSphericContinuumParticles[i]->GetStressTensorFromNeighbourStep1();
+                }
+                #pragma omp for
+                for (int i = 0; i < number_of_particles; i++) {
+                    mListOfSphericContinuumParticles[i]->GetStressTensorFromNeighbourStep2();
+                } 
+                #pragma omp for
+                for (int i = 0; i < number_of_particles; i++) {
+                    mListOfSphericContinuumParticles[i]->GetStressTensorFromNeighbourStep3();
+                } 
+            }   
+        }
     }
 
     void ContinuumExplicitSolverStrategy::FinalizeSolutionStepFEM() {
