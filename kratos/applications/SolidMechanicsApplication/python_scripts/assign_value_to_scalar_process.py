@@ -56,6 +56,7 @@ class AssignValueToScalarProcess(KratosMultiphysics.Process):
             self.function_expression = "t"
         else:
             self.function_expression = self.function_string;
+            
         if (sys.version_info > (3, 0)):
             self.compiled_function = compile(self.function_expression, '', 'eval', optimize=2)
         else:
