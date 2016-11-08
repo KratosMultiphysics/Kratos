@@ -311,6 +311,7 @@ class Procedures(object):
 
         # FORCES
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
+        model_part.AddNodalSolutionStepVariable(LOCAL_CONTACT_FORCE)
         model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
         model_part.AddNodalSolutionStepVariable(RIGID_ELEMENT_FORCE)
         model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
@@ -343,8 +344,7 @@ class Procedures(object):
             model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
 
-        #if ((hasattr(self.DEM_parameters, "PostStressStrainOption")) and self.DEM_parameters.PostStressStrainOption):
-        if (True):
+        if ((hasattr(self.DEM_parameters, "PostStressStrainOption")) and self.DEM_parameters.PostStressStrainOption):
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_XX)
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_XY)
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_XZ)
@@ -781,12 +781,6 @@ class DEMFEMProcedures(object):
 
         # MODEL
         self.domain_size = self.DEM_parameters.Dimension
-        #if (hasattr(self.DEM_parameters, "StressStrainOption")):
-        #    self.stress_strain_option = Var_Translator(self.DEM_parameters.StressStrainOption)
-        #if Var_Translator(self.DEM_parameters.PostStressStrainOption):
-        if (True):
-            self.stress_strain_option = 1
-
         evaluate_computation_of_fem_results()
         
     def MoveAllMeshes(self, rigid_face_model_part, spheres_model_part, DEM_inlet_model_part, time, dt):
@@ -1246,11 +1240,8 @@ class DEMIo(object):
         if self.DEM_parameters.ElementType == "SwimmingNanoParticle":
             self.PushPrintVar(self.PostHeatFlux, CATION_CONCENTRATION, self.spheres_variables)
 
-        #if ((hasattr(self.DEM_parameters, "PostStressStrainOption")) and (hasattr(self.DEM_parameters, "StressStrainOption"))):
-        #if (hasattr(self.DEM_parameters, "PostStressStrainOption")):
-        if (True):
-            #if (Var_Translator(self.DEM_parameters.PostStressStrainOption)):
-            if (True):
+        if (hasattr(self.DEM_parameters, "PostStressStrainOption")):
+            if (Var_Translator(self.DEM_parameters.PostStressStrainOption)):
                 self.PushPrintVar(1, REPRESENTATIVE_VOLUME, self.spheres_variables)
                 self.PushPrintVar(1, DEM_STRESS_XX,         self.spheres_variables)
                 self.PushPrintVar(1, DEM_STRESS_XY,         self.spheres_variables)
@@ -1426,8 +1417,8 @@ class DEMIo(object):
             if (hasattr(self.DEM_parameters, "PostVirtualSeaSurfaceX1")):
                 self.ComputeAndPrintSeaSurface(spheres_model_part, rigid_face_model_part)
                 
-            #self.ComputeAndPrintDEMFEMSearchBinBoundingBox(spheres_model_part, rigid_face_model_part, dem_fem_search) #MSIMSI    
-            
+            #self.ComputeAndPrintDEMFEMSearchBinBoundingBox(spheres_model_part, rigid_face_model_part, dem_fem_search)#MSIMSI
+
             self.gid_io.FinalizeMesh()                
             self.gid_io.InitializeResults(time, self.mixed_model_part.GetCommunicator().LocalMesh())                        
             #self.gid_io.InitializeResults(time, mixed_spheres_and_clusters_model_part.GetCommunicator().LocalMesh())
@@ -1614,27 +1605,27 @@ class DEMIo(object):
 
         #The cases with 0 thickness in one direction, a 10% of the shortest other two is given to the 0-thickness direction.
         if (DX == 0):
-            height = min(DY,DZ)
-            BBMinX = BBMinX - 0.05*height
-            BBMaxX = BBMaxX + 0.05*height
+          height = min(DY,DZ)
+          BBMinX = BBMinX - 0.05*height
+          BBMaxX = BBMaxX + 0.05*height
         if (DY == 0):
-            height = min(DX,DZ)
-            BBMinY = BBMinY - 0.05*height
-            BBMaxY = BBMaxY + 0.05*height
+          height = min(DX,DZ)
+          BBMinY = BBMinY - 0.05*height
+          BBMaxY = BBMaxY + 0.05*height
         if (DZ == 0):
-            height = min(DX,DY)
-            BBMinZ = BBMinZ - 0.05*height
-            BBMaxZ = BBMaxZ + 0.05*height
+          height = min(DX,DY)
+          BBMinZ = BBMinZ - 0.05*height
+          BBMaxZ = BBMaxZ + 0.05*height
 
         volume = DX*DY*DZ
 
         if (abs(volume) > 1e21) :
-            BBMaxX = 0.0
-            BBMaxY = 0.0
-            BBMaxZ = 0.0
-            BBMinX = 0.0
-            BBMinY = 0.0
-            BBMinZ = 0.0
+          BBMaxX = 0.0
+          BBMaxY = 0.0
+          BBMaxZ = 0.0
+          BBMinX = 0.0
+          BBMinY = 0.0
+          BBMinZ = 0.0
 
         # BB Nodes:
         node1 = bounding_box_model_part.CreateNewNode(max_node_Id + 1, BBMinX, BBMinY, BBMinZ)
@@ -1662,7 +1653,7 @@ class DEMIo(object):
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 12, [node7.Id, node6.Id], props)
 
         #self.gid_io.WriteMesh(bounding_box_model_part.GetCommunicator().LocalMesh()) #BOUNDING BOX IMPLEMENTATION
-        
+
 
 class ParallelUtils(object):
 
