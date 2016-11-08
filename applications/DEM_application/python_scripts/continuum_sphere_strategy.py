@@ -28,9 +28,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
         else:
             self.fixed_vel_bot = Param.LoadingVelocityBot
 
-        #self.fixed_vel_top = Param.LoadingVelocityTop
-        #self.fixed_vel_bot = Param.LoadingVelocityBot
-
         if (self.Var_Translator(Param.DontSearchUntilFailure)):
             print ("Search is not active until a bond is broken.")
             self.search_control = 0
@@ -41,8 +38,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
             self.test_type = "None"
         else:
             self.test_type = Param.TestType
-
-        #self.test_type = Param.TestType
 
         self.amplified_continuum_search_radius_extension = Param.AmplifiedSearchRadiusExtension
         
@@ -65,7 +60,17 @@ class ExplicitStrategy(BaseExplicitStrategy):
             self.shear_strain_parallel_to_bond_option = 0
         else:
             self.shear_strain_parallel_to_bond_option = self.Var_Translator(Param.ShearStrainParallelToBondOption)
-            self.stress_strain_option = 1
+
+        if not (hasattr(Param, "ComputeStressTensorOption")):
+            self.compute_stress_tensor_option = 0
+        else:
+            if (self.Var_Translator(Param.ComputeStressTensorOption) or self.poisson_effect_option or self.shear_strain_parallel_to_bond_option or self.Var_Translator(Param.PostStressStrainOption)):
+                self.compute_stress_tensor_option = 1
+            else:
+                self.compute_stress_tensor_option = self.Var_Translator(Param.ComputeStressTensorOption)
+
+        #print("compute_stress_tensor_option =")
+        #print (self.compute_stress_tensor_option)
 
 
     def CreateCPlusPlusStrategy(self):
@@ -75,6 +80,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION, self.amplified_continuum_search_radius_extension)
         self.spheres_model_part.ProcessInfo.SetValue(MAX_AMPLIFICATION_RATIO_OF_THE_SEARCH_RADIUS, self.max_amplification_ratio_of_search_radius)
         self.spheres_model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, self.contact_mesh_option)
+        self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_STRESS_TENSOR_OPTION, self.compute_stress_tensor_option)
 
         if ((self.test_type == "Triaxial") or (self.test_type == "Hydrostatic")):
             self.spheres_model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)
