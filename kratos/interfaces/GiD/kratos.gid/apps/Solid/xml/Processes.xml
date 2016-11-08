@@ -36,7 +36,7 @@
     </inputs>
   </Process>
 
-  <Process n="AssignScalarToConditionsProcess" pn="Apply a scalar value over a condition" python_module="assing_scalar_to_conditions_process"
+  <Process n="AssignScalarToConditionsProcess" pn="Apply a scalar value over a condition" python_module="assign_scalar_to_conditions_process"
 	   kratos_module="KratosMultiphysics.SolidMechanicsApplication" help="This process sets a scalar variable value over a condition" > 
     <inputs>
       <parameter n="value" pn="Value" type="double" v="0.0" />
