@@ -1466,7 +1466,7 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
     if (r_process_info[CRITICAL_TIME_OPTION])    this->Set(DEMFlags::HAS_CRITICAL_TIME, true);   //obsolete
     else                                         this->Set(DEMFlags::HAS_CRITICAL_TIME, false);
 
-    if (r_process_info[STRESS_STRAIN_OPTION])    this->Set(DEMFlags::HAS_STRESS_TENSOR, true);
+    if (r_process_info[COMPUTE_STRESS_TENSOR_OPTION])    this->Set(DEMFlags::HAS_STRESS_TENSOR, true);
     else                                         this->Set(DEMFlags::HAS_STRESS_TENSOR, false);
 
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
