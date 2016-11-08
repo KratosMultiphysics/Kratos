@@ -182,14 +182,21 @@ def initialize_time_parameters(benchmark_number):
         output_time_step                = 1e-4
         number_of_points_in_the_graphic = 1
 
-    elif benchmark_number==27:          #
+    elif benchmark_number==27:          #UCS TEST
 
         final_time                      = 0.05
         dt                              = 5e-7
         output_time_step                = 5e-4
         number_of_points_in_the_graphic = 1
 
-    else: #benchmark_number==28:        #
+    elif benchmark_number==28:          #PENDULO3D . not ready
+
+        final_time                      = 100
+        dt                              = 1e-4
+        output_time_step                = 1e-2
+        number_of_points_in_the_graphic = 1
+
+    else: #benchmark_number==68:        #
 
         final_time                      = 1e-3
         dt                              = 1e-6
@@ -3597,6 +3604,258 @@ class Benchmark27:
 
     def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
         pass
+
+
+
+class Benchmark28:   #pendulo3D
+
+    def __init__(self):
+        self.restitution_numbers_vector_list_outfile = None
+        self.balls_graph_counter = 1
+        self.rigid_graph_counter = 1
+
+    def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):
+
+        self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.rigid_face_file = "benchmark" + str(sys.argv[1]) + '_rigid_graph.dat'
+        self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+        self.rigid_graph = open(self.rigid_face_file, 'w')
+
+    def get_final_data(self, modelpart, rigid_face_model_part):
+        self.simulation_graph.close()
+        self.rigid_graph.close()
+
+    def cross_product(self, a, b):
+        c = [a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2], a[0]*b[1] - a[1]*b[0]]
+        return c
+
+    def ApplyNodalRotation(self, time, dt, modelpart):
+        pass
+
+        ang_vel = 20 * pi
+        angular_velocity = [0, 0, ang_vel]
+        rotation_matrix = [[cos(ang_vel * time), -1.0 * sin(ang_vel * time), 0], [sin(ang_vel * time), cos(ang_vel * time), 0], [0,0,1]]
+        time_dt = time - dt
+        rotation_matrix_minus_dt = [[cos(ang_vel * time_dt), -1.0 * sin(ang_vel * time_dt), 0], [sin(ang_vel * time_dt), cos(ang_vel * time_dt), 0], [0,0,1]] #
+        centroid = [-1.0, 0.0, 0.0]
+        relative_initial_node_coords, relative_node_coords, relative_node_coords_dt = [0]*3, [0]*3, [0]*3
+        sum, sum_dt = 0, 0
+
+        for node in modelpart.Nodes:
+            if node.Id == 999999:
+                for j in range(3):
+                    rot_mat = rotation_matrix[j]
+                    rot_mat_dt = rotation_matrix_minus_dt[j]
+                    relative_initial_node_coords[0] = node.X0 - centroid[0]
+                    relative_initial_node_coords[1] = node.Y0 - centroid[1]
+                    relative_initial_node_coords[2] = node.Z0 - centroid[2]
+                    for i in range(3):
+                        sum += rot_mat[i] * relative_initial_node_coords[i]
+                        sum_dt += rot_mat_dt[i] * relative_initial_node_coords[i]
+                    relative_node_coords[j], sum, relative_node_coords_dt[j], sum_dt = sum, 0, sum_dt, 0
+                node.X = relative_node_coords[0] + centroid[0]
+                node.Y = relative_node_coords[1] + centroid[1]
+                node.Z = relative_node_coords[2] + centroid[2]
+
+                displacement = [0]*3
+                displacement[0] = node.X - node.X0
+                displacement[1] = node.Y - node.Y0
+                displacement[2] = node.Z - node.Z0
+                node.SetSolutionStepValue(DISPLACEMENT, displacement)
+
+                velocity = [0]*3
+                velocity = self.cross_product(angular_velocity, relative_node_coords)
+                node.SetSolutionStepValue(VELOCITY, velocity)
+
+                angular_velocity = [0]*3
+                node.SetSolutionStepValue(ANGULAR_VELOCITY, angular_velocity)
+
+                delta_displacement = [0]*3
+                delta_displacement[0] = relative_node_coords[0] - relative_node_coords_dt[0]
+                delta_displacement[1] = relative_node_coords[1] - relative_node_coords_dt[1]
+                delta_displacement[2] = relative_node_coords[2] - relative_node_coords_dt[2]
+                node.SetSolutionStepValue(DELTA_DISPLACEMENT, delta_displacement)
+
+                particle_rotation_angle = [0]*3
+                particle_rotation_angle[0] = angular_velocity[0] * time
+                particle_rotation_angle[1] = angular_velocity[1] * time
+                particle_rotation_angle[2] = angular_velocity[2] * time
+                node.SetSolutionStepValue(PARTICLE_ROTATION_ANGLE, particle_rotation_angle)
+
+                delta_rotation = [0]*3
+                delta_rotation[0] = angular_velocity[0] * dt
+                delta_rotation[1] = angular_velocity[1] * dt
+                delta_rotation[2] = angular_velocity[2] * dt
+                node.SetSolutionStepValue(DELTA_ROTATION, delta_rotation)
+
+                if time > 3.8e-5:
+                    radius = 1.0001
+                    node.SetSolutionStepValue(RADIUS, radius)
+            if node.Id == 99999:
+                angular_velocity = [0]*3
+                node.SetSolutionStepValue(ANGULAR_VELOCITY, angular_velocity)
+
+    def generate_graph_points(self, modelpart, rigid_face_model_part, time, output_time_step, dt):
+
+        #self.graph_frequency = int(5e-7/dt)   #output_time_step/dt
+        self.graph_frequency = int(output_time_step/1/dt)   #1 veces mas grf que bin
+        if self.graph_frequency < 1:
+           self.graph_frequency = 1
+
+        if (self.balls_graph_counter == self.graph_frequency):
+            self.balls_graph_counter = 0
+            self.total_force_x = 0.0
+            self.total_force_y = 0.0
+            self.total_force_z = 0.0
+            self.total_force_sum = 0.0
+
+            self.total_angular_x = 0.0
+            self.total_angular_y = 0.0
+            self.total_angular_z = 0.0
+            self.total_angular_sum = 0.0
+
+            self.total_delta_x = 0.0
+            self.total_delta_y = 0.0
+            self.total_delta_z = 0.0
+            self.total_delta_sum = 0.0
+
+            for node in modelpart.Nodes:
+                if node.Id == 107:
+                   force_node_x = node.GetSolutionStepValue(LOCAL_CONTACT_FORCE)[0]
+                   force_node_y = node.GetSolutionStepValue(LOCAL_CONTACT_FORCE)[1]
+                   force_node_z = node.GetSolutionStepValue(LOCAL_CONTACT_FORCE)[2]
+                   self.total_force_x += force_node_x
+                   self.total_force_y += force_node_y
+                   self.total_force_z += force_node_z
+
+                   angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
+                   angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
+                   angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
+                   self.total_angular_x += angular_node_x
+                   self.total_angular_y += angular_node_y
+                   self.total_angular_z += angular_node_z
+
+                   delta_node_x = node.GetSolutionStepValue(DELTA_DISPLACEMENT)[0]
+                   delta_node_y = node.GetSolutionStepValue(DELTA_DISPLACEMENT)[1]
+                   delta_node_z = node.GetSolutionStepValue(DELTA_DISPLACEMENT)[2]
+                   self.total_delta_x += delta_node_x
+                   self.total_delta_y += delta_node_y
+                   self.total_delta_z += delta_node_z
+
+            self.total_force_sum = self.total_force_x + self.total_force_y + self.total_force_z
+            self.total_angular_sum = self.total_angular_x + self.total_angular_y + self.total_angular_z
+            self.total_delta_sum = self.total_delta_x + self.total_delta_y + self.total_delta_z
+            self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_sum).rjust(13)+" "+str("%.6g"%self.total_angular_sum).rjust(13)+" "+str("%.6g"%self.total_delta_sum).rjust(13)+"\n")
+            self.simulation_graph.flush()
+        self.balls_graph_counter += 1
+
+    def print_results(self, number_of_points_in_the_graphic, dt=0):
+        error1, error2, error3 = self.compute_errors(self.restitution_numbers_vector_list_outfile_name)
+
+        error_filename = 'errors.txt'
+        error_file = open(error_filename, 'a')
+        error_file.write("DEM Benchmark 28:")
+
+        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+            error_file.write(" OK!........ Test 28 SUCCESSFUL (spheres)\n")
+            shutil.rmtree('benchmark28_Post_Files', ignore_errors = True)
+        else:
+            error_file.write(" KO!........ Test 28 FAILED (spheres)\n")
+        error_file.write("DEM Benchmark 28:")
+
+
+    def compute_errors(self, restitution_numbers_vector_list_outfile_name):
+        reference_data = lines_DEM = list(range(0, 1000));
+        analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
+        i = 0
+        with open('paper_data/reference_graph_benchmark' + '28' + '.dat') as reference:
+            for line in reference:
+                if i in reference_data:
+                    parts = line.split()
+                    analytics_data.append(float(parts[1]))
+                i+=1
+        i = 0
+        with open(restitution_numbers_vector_list_outfile_name) as current_data:
+            for line in current_data:
+                if i in lines_DEM:
+                    parts = line.split()
+                    DEM_data.append(float(parts[1]))   #1 component del vector ()
+                i+=1
+        dem_error1 = 0
+
+        for j in analytics_data:
+            summation_of_analytics_data+=abs(j)
+
+        for i, j in zip(DEM_data, analytics_data):
+            dem_error1+=fabs(i-j)
+        dem_error1/=summation_of_analytics_data
+
+        print("Error in total force at the reference particle =", 100*dem_error1,"%")
+
+        i = 0
+        with open('paper_data/reference_graph_benchmark' + '28' + '.dat') as reference:
+            for line in reference:
+                if i in reference_data:
+                    parts = line.split()
+                    analytics_data.append(float(parts[2]))
+                i+=1
+        i = 0
+        with open(restitution_numbers_vector_list_outfile_name) as current_data:
+            for line in current_data:
+                if i in lines_DEM:
+                    parts = line.split()
+                    DEM_data.append(float(parts[2]))   #segona component del vector ()
+                i+=1
+        dem_error2 = 0
+
+        for j in analytics_data:
+            summation_of_analytics_data+=abs(j)
+
+        for i, j in zip(DEM_data, analytics_data):
+            dem_error2+=fabs(i-j)
+        dem_error2/=summation_of_analytics_data
+
+        print("Error in angular velocity at the reference particle =", 100*dem_error2,"%")
+
+
+        i = 0
+        with open('paper_data/reference_graph_benchmark' + '28' + '.dat') as reference:
+            for line in reference:
+                if i in reference_data:
+                    parts = line.split()
+                    analytics_data.append(float(parts[3]))
+                i+=1
+        i = 0
+        with open(restitution_numbers_vector_list_outfile_name) as current_data:
+            for line in current_data:
+                if i in lines_DEM:
+                    parts = line.split()
+                    DEM_data.append(float(parts[3]))   #3 component del vector ()
+                i+=1
+        dem_error3 = 0
+
+        for j in analytics_data:
+            summation_of_analytics_data+=abs(j)
+
+        for i, j in zip(DEM_data, analytics_data):
+            dem_error3+=fabs(i-j)
+        dem_error3/=summation_of_analytics_data
+
+        print("Error in delta displacement at the reference particle =", 100*dem_error3,"%")
+
+        error1 = 100*dem_error1
+        error2 = 100*dem_error2
+        error3 = 100*dem_error3
+
+        return error1, error2, error3
+
+    def compute_rigid_errors(self, rigid_face_file):
+        pass
+
+    def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
+        pass
+
+
 
 def delete_archives():
 
