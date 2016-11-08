@@ -27,8 +27,9 @@
 #include "../custom_constitutive/DEM_sintering_continuum_CL.h"
 #include "../custom_constitutive/DEM_KDEM_fabric_CL.h"
 #include "../custom_constitutive/DEM_ExponentialHC_CL.h"
-#include "custom_constitutive/DEM_Dempack_torque_CL.h"
-#include "custom_constitutive/DEM_Dempack_dev_CL.h"
+#include "../custom_constitutive/DEM_Dempack_torque_CL.h"
+#include "../custom_constitutive/DEM_Dempack_dev_CL.h"
+#include "../custom_constitutive/DEM_Dempack_2D_dev_CL.h"
 #include "../custom_constitutive/dem_d_linear_custom_constants_cl.h"
 #include "../custom_constitutive/DEM_D_Conical_damage_CL.h"
 #include "../custom_constitutive/dem_kdem_2d_cl.h"
@@ -113,6 +114,9 @@ namespace Kratos {
                     ;
 
             class_<DEM_Dempack_dev, bases< DEM_Dempack >, boost::noncopyable >("DEM_Dempack_dev",init<>())
+                    ;
+
+            class_<DEM_Dempack2D_dev, bases< DEM_Dempack_dev >, boost::noncopyable >("DEM_Dempack2D_dev",init<>())
                     ;
 
             class_<DEM_KDEM, bases< DEMContinuumConstitutiveLaw >, boost::noncopyable >("DEM_KDEM",init<>())
