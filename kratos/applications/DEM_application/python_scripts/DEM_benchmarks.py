@@ -38,6 +38,8 @@ elif benchmark_number in listCONT:
     import DEM_explicit_solver_var_CONT as DEM_parameters
 elif benchmark_number == 27:
     import DEM_explicit_solver_var_UCS as DEM_parameters
+elif benchmark_number == 28:
+    import DEM_explicit_solver_var_PENDULO3D as DEM_parameters
 else:
     print('Benchmark number does not exist')    
     sys.exit()
