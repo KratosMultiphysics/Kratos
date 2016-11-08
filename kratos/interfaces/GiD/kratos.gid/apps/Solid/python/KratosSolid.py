@@ -179,6 +179,7 @@ while(time < end_time):
     step = step + 1
 
     main_model_part.ProcessInfo[KratosMultiphysics.STEP] = step
+    main_model_part.ProcessInfo[KratosMultiphysics.TIME] = time
     main_model_part.CloneTimeStep(time) 
 
     print(" [STEP:",step," TIME:",time,"]")
