@@ -6,8 +6,6 @@
 #include "DEM_Dempack_CL.h"
 //#include "DEM_discontinuum_constitutive_law.h"
 
-
-
 namespace Kratos {
 
     class DEM_Dempack_dev : public DEM_Dempack {
@@ -15,8 +13,7 @@ namespace Kratos {
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_Dempack_dev);
 
-        DEM_Dempack_dev() {
-        }
+        DEM_Dempack_dev() {}
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
 
