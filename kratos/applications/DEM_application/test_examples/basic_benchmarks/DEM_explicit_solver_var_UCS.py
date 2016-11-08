@@ -33,6 +33,7 @@ DontSearchUntilFailure           = "No"
 ContactMeshOption                = "ON"
 OutputFileType                   = "Binary"
 Multifile                        = "multiple_files"
+MaxAmplificationRatioOfSearchRadius = 1000
 
 # Solution Strategy
 
