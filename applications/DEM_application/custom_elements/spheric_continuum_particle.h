@@ -59,6 +59,9 @@ namespace Kratos
         void CreateContinuumConstitutiveLaws();
         //void InitializeSolutionStep(ProcessInfo& r_process_info) override;
         void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
+        void GetStressTensorFromNeighbourStep1();
+        void GetStressTensorFromNeighbourStep2();
+        void GetStressTensorFromNeighbourStep3();
         void CorrectRepresentativeVolume(double& rRepresentative_Volume, bool& is_smaller_than_sphere) override;
 
         void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;

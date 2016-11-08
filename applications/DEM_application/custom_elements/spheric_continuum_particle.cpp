@@ -438,25 +438,16 @@ namespace Kratos {
 
         SphericParticle::CorrectRepresentativeVolume(rRepresentative_Volume, is_smaller_than_sphere);
 
-        if (*mSkinSphere && is_smaller_than_sphere) rRepresentative_Volume *= 1.5; // This is the quotient between the volume of the cylinder circumscribed about a sphere and the latter
+        //if (*mSkinSphere && is_smaller_than_sphere) rRepresentative_Volume *= 1.5; // This is the quotient between the volume of the cylinder circumscribed about a sphere and the latter
                                                                                    // So the minimum volume for a skin sphere is that of a cylinder
+        //if (*mSkinSphere) rRepresentative_Volume *= 0.5;
+        
         KRATOS_CATCH("")
     }
 
     void SphericContinuumParticle::FinalizeSolutionStep(ProcessInfo& r_process_info) {
-
         KRATOS_TRY
-
-        /*if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
-            (*mOldSymmStressTensor)(0,0)=(*mSymmStressTensor)(0,0); (*mOldSymmStressTensor)(0,1)=(*mSymmStressTensor)(0,1); (*mOldSymmStressTensor)(0,2)=(*mSymmStressTensor)(0,2);
-            (*mOldSymmStressTensor)(1,0)=(*mSymmStressTensor)(1,0); (*mOldSymmStressTensor)(1,1)=(*mSymmStressTensor)(1,1); (*mOldSymmStressTensor)(1,2)=(*mSymmStressTensor)(1,2);
-            (*mOldSymmStressTensor)(2,0)=(*mSymmStressTensor)(2,0); (*mOldSymmStressTensor)(2,1)=(*mSymmStressTensor)(2,1); (*mOldSymmStressTensor)(2,2)=(*mSymmStressTensor)(2,2);
-        }*/
         
-        /*for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
-            DEM_COPY_SECOND_TO_FIRST_3(mArrayOfOldDeltaDisplacements[i], mArrayOfDeltaDisplacements[i]);
-        }*/
-
         SphericParticle::FinalizeSolutionStep(r_process_info);
 
         //Update sphere mass and inertia taking into account the real volume of the represented volume:
@@ -464,10 +455,57 @@ namespace Kratos {
         if (this->Is(DEMFlags::HAS_ROTATION) ){
             GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = CalculateMomentOfInertia();
         }
-
-        // the elemental variable is copied to a nodal variable in order to export the results onto GiD Post. Also a casting to double is necessary for GiD interpretation.
-        
+                
         KRATOS_CATCH("")
+    }
+    
+    void SphericContinuumParticle::GetStressTensorFromNeighbourStep1(){
+        
+        Set(DEMFlags::COPIED_STRESS_TENSOR, false);
+        Set(DEMFlags::COPIED_STRESS_TENSOR2,false);
+        if(!IsSkin()) return;
+        
+        for (unsigned int i=0; i<mNeighbourElements.size(); i++) {
+            SphericContinuumParticle* p_neighbour = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
+            if(!p_neighbour->IsSkin()) {
+                *(mStressTensor) = *(p_neighbour->mStressTensor);
+                *(mSymmStressTensor) = *(p_neighbour->mSymmStressTensor);
+                Set(DEMFlags::COPIED_STRESS_TENSOR,true);
+                break;
+            }
+        }
+    }
+    
+    void SphericContinuumParticle::GetStressTensorFromNeighbourStep2(){
+        
+        if(!IsSkin()) return;
+        if(Is(DEMFlags::COPIED_STRESS_TENSOR)) return;
+        
+        for (unsigned int i=0; i<mNeighbourElements.size(); i++) {
+            SphericContinuumParticle* p_neighbour = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
+            if(p_neighbour->Is(DEMFlags::COPIED_STRESS_TENSOR)) {
+                *(mStressTensor) = *(p_neighbour->mStressTensor);
+                *(mSymmStressTensor) = *(p_neighbour->mSymmStressTensor);
+                Set(DEMFlags::COPIED_STRESS_TENSOR2,true);
+                break;
+            }
+        }
+    }
+    
+    void SphericContinuumParticle::GetStressTensorFromNeighbourStep3(){
+        
+        if(!IsSkin()) return;
+        if(Is(DEMFlags::COPIED_STRESS_TENSOR)) return;
+        if(Is(DEMFlags::COPIED_STRESS_TENSOR2)) return;
+        
+        for (unsigned int i=0; i<mNeighbourElements.size(); i++) {
+            SphericContinuumParticle* p_neighbour = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
+            if(p_neighbour->Is(DEMFlags::COPIED_STRESS_TENSOR2)) {
+                *(mStressTensor) = *(p_neighbour->mStressTensor);
+                *(mSymmStressTensor) = *(p_neighbour->mSymmStressTensor);
+                break;
+            }
+        }
     }
     
     void SphericContinuumParticle::MarkNewSkinParticlesDueToBreakage() {

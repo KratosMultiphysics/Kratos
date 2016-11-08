@@ -455,7 +455,7 @@ namespace Kratos {
                                                               SphericContinuumParticle* element2) {
         
         if (element1->mSymmStressTensor == NULL) return; 
-        if(element1->IsSkin() || element2->IsSkin()) return;               
+        //if(element1->IsSkin() || element2->IsSkin()) return;               
         
         double average_stress_tensor[3][3];
  
@@ -476,42 +476,16 @@ namespace Kratos {
         double force_due_to_stress0 = calculation_area * current_sigma_local[0][2];
         double force_due_to_stress1 = calculation_area * current_sigma_local[1][2];
                                                 
-        LocalElasticExtraContactForce[0] = -OldLocalElasticContactForce[0] + force_due_to_stress0;
+        LocalElasticExtraContactForce[0] = -OldLocalElasticContactForce[0] - force_due_to_stress0;                       
+        LocalElasticExtraContactForce[1] = -OldLocalElasticContactForce[1] - force_due_to_stress1;
+        
         if(fabs(LocalElasticExtraContactForce[0]) > fabs(force_due_to_stress0) ) {
             LocalElasticExtraContactForce[0] = LocalElasticExtraContactForce[0] / fabs(LocalElasticExtraContactForce[0]) * fabs(force_due_to_stress0);
         }
-        
-        LocalElasticExtraContactForce[1] = -OldLocalElasticContactForce[1] + force_due_to_stress1;
         if(fabs(LocalElasticExtraContactForce[1]) > fabs(force_due_to_stress1) ) {
             LocalElasticExtraContactForce[1] = LocalElasticExtraContactForce[1] / fabs(LocalElasticExtraContactForce[1]) * fabs(force_due_to_stress1);
         }
-        
-        /*if(element1->Id()==8 && element2->Id()==13){
-            KRATOS_WATCH("***8 - 13*")
-            KRATOS_WATCH(average_stress_tensor[0][1])
-            KRATOS_WATCH(current_sigma_local[0][2])
-            KRATOS_WATCH(current_sigma_local[1][2])
-            KRATOS_WATCH(calculation_area)
-            KRATOS_WATCH(OldLocalElasticContactForce[0])
-            KRATOS_WATCH(OldLocalElasticExtraContactForce[0])
-            KRATOS_WATCH(calculation_area * current_sigma_local[0][2])
-            KRATOS_WATCH(OldLocalElasticContactForce[1])
-            KRATOS_WATCH(OldLocalElasticExtraContactForce[1])
-            KRATOS_WATCH(calculation_area * current_sigma_local[1][2])
-            KRATOS_WATCH(LocalElasticExtraContactForce[0])
-            KRATOS_WATCH(LocalElasticExtraContactForce[1])
-        }
-        if(element1->Id()==8 && element2->Id()==9){
-            KRATOS_WATCH("***8 - 9*")
-            KRATOS_WATCH(OldLocalElasticContactForce[0])
-            KRATOS_WATCH(OldLocalElasticExtraContactForce[0])
-            KRATOS_WATCH(calculation_area * current_sigma_local[0][2])
-            KRATOS_WATCH(OldLocalElasticContactForce[1])
-            KRATOS_WATCH(OldLocalElasticExtraContactForce[1])
-            KRATOS_WATCH(calculation_area * current_sigma_local[1][2])
-            KRATOS_WATCH(LocalElasticExtraContactForce[0])
-            KRATOS_WATCH(LocalElasticExtraContactForce[1])
-        }*/
+
     }
 
-} // namespace Kratos
+} // namespace Krat                                                                             os
