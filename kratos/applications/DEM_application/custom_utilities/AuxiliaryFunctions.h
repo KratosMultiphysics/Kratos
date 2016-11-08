@@ -23,7 +23,7 @@ namespace Kratos {
 	    switch (n_neighbours) {
                   
                 case 4:
-	            external_polyhedron_area = 3.30797*external_sphere_area;
+            external_polyhedron_area = 3.30797*external_sphere_area;
 		    break;
 		  
                 case 5:
@@ -39,7 +39,7 @@ namespace Kratos {
 		    break;
 			
                 case 8:
-                    external_polyhedron_area = 1.65399*external_sphere_area;
+            external_polyhedron_area = 1.65399*external_sphere_area;
 		    break;
 			
                 case 9:
