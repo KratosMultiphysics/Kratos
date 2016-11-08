@@ -758,7 +758,7 @@ namespace Kratos {
         FinalizeSolutionStepFEM();
                 
         ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
-        if (r_process_info[STRESS_STRAIN_OPTION]) {
+        if (r_process_info[COMPUTE_STRESS_TENSOR_OPTION]) {
             const int number_of_particles = (int) mListOfSphericContinuumParticles.size();
             #pragma omp parallel 
             {
