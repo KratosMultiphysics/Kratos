@@ -730,7 +730,7 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
                         if {$i eq "Z"} { set zstate "state='\[CheckDimension 3D\]'"}
                         if {[$in getAttribute "enabled"] in [list "1" "0"]} {
                             set val [expr [$in getAttribute "enabled"] ? "Yes" : "No"]
-                            if {$i eq "Z"} { set val "No" }
+                            #if {$i eq "Z"} { set val "No" }
                             append node "<value n='Enabled_$i' pn='$i component' v='$val' values='Yes,No'  help='Enables the $i ${inName}' $zstate >"
                             append node "<dependencies value='No' node=\""
                             append node $nodev
