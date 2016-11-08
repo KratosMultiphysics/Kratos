@@ -14,12 +14,18 @@ class ExplicitStrategy:
         # SIMULATION FLAGS
 
         self.Parameters              = Param
-        
-        if not (hasattr(Param, "PostStressStrainOption")):
-            self.stress_strain_option = 0
-        else:
-            self.stress_strain_option = self.Var_Translator(Param.PostStressStrainOption)
-            
+
+        #if not (hasattr(Param, "ComputeStressTensorOption")):
+        #    self.compute_stress_tensor_option = 0
+        #else:
+        #    if (self.Var_Translator(Param.ComputeStressTensorOption) or self.Var_Translator(Param.PostStressStrainOption)):
+        #        self.compute_stress_tensor_option = 1
+        #    else:
+        #        self.compute_stress_tensor_option = self.Var_Translator(Param.ComputeStressTensorOption)
+
+        if (self.Var_Translator(Param.PostStressStrainOption)):
+            self.compute_stress_tensor_option = 1
+
         if not hasattr(Param, "AutomaticTimestep"):
             self.critical_time_option = 0
         else:
@@ -163,7 +169,6 @@ class ExplicitStrategy:
         self.spheres_model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities_flag)
         self.spheres_model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0)
         self.spheres_model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_option)
-        self.spheres_model_part.ProcessInfo.SetValue(STRESS_STRAIN_OPTION, self.stress_strain_option)
         self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_START_TIME, self.bounding_box_start_time)
         self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_STOP_TIME, self.bounding_box_stop_time)
 
