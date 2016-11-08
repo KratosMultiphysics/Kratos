@@ -251,6 +251,23 @@ namespace Kratos {
         ProductMatrices3X3(LocalCoordSystem, GlobalTensor, TemporalResult);
         ProductMatrices3X3(TemporalResult, TransposedLocalCoordSystem, LocalTensor);
     }
+
+    static inline void TensorLocal2Global(const double LocalCoordSystem[3][3], const double LocalTensor[3][3], double GlobalTensor[3][3])
+    {
+        // We will compute GlobalTensor = transposed(LocalCoordSystem) * LocalTensor * LocalCoordSystem
+        // starting on the left, so we will first compute the product TemporalResult = transposed(LocalCoordSystem) * LocalTensor
+        // and afterwards TemporalResult * LocalCoordSystem, which will give the value of the tensor LocalTensor
+
+        double TransposedLocalCoordSystem[3][3];
+        double TemporalResult[3][3];
+
+        TransposedLocalCoordSystem[0][0] = LocalCoordSystem[0][0]; TransposedLocalCoordSystem[0][1] = LocalCoordSystem[1][0]; TransposedLocalCoordSystem[0][2] = LocalCoordSystem[2][0];
+        TransposedLocalCoordSystem[1][0] = LocalCoordSystem[0][1]; TransposedLocalCoordSystem[1][1] = LocalCoordSystem[1][1]; TransposedLocalCoordSystem[1][2] = LocalCoordSystem[2][1];
+        TransposedLocalCoordSystem[2][0] = LocalCoordSystem[0][2]; TransposedLocalCoordSystem[2][1] = LocalCoordSystem[1][2]; TransposedLocalCoordSystem[2][2] = LocalCoordSystem[2][2];
+
+        ProductMatrices3X3(TransposedLocalCoordSystem, LocalTensor, TemporalResult);
+        ProductMatrices3X3(TemporalResult, LocalCoordSystem, GlobalTensor);
+    }
         
     static inline void RotaMatrixTensorLocal2Global(const double R[3][3], const double LocalTensor[3][3], double GlobalTensor[3][3])
     {    
