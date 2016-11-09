@@ -61,11 +61,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
         else:
             self.shear_strain_parallel_to_bond_option = self.Var_Translator(Param.ShearStrainParallelToBondOption)
 
-        if not (hasattr(Param, "ComputeStressTensorOption")):
-            self.compute_stress_tensor_option = 0
-        else:
-            if (self.Var_Translator(Param.ComputeStressTensorOption) or self.poisson_effect_option or self.shear_strain_parallel_to_bond_option or self.Var_Translator(Param.ComputeStressTensorOption)):
-                self.compute_stress_tensor_option = 1
+        if (self.poisson_effect_option or self.shear_strain_parallel_to_bond_option):
+            self.compute_stress_tensor_option = 1
 
         #print("compute_stress_tensor_option =")
         #print (self.compute_stress_tensor_option)

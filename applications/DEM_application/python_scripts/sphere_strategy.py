@@ -22,6 +22,10 @@ class ExplicitStrategy:
         #        self.compute_stress_tensor_option = 1
         #    else:
         #        self.compute_stress_tensor_option = self.Var_Translator(Param.ComputeStressTensorOption)
+        if not (hasattr(Param, "ComputeStressTensorOption")):
+            self.compute_stress_tensor_option = 0
+        else:
+            self.compute_stress_tensor_option = self.Var_Translator(Param.ComputeStressTensorOption)
 
         if (self.Var_Translator(Param.PostStressStrainOption)):
             self.compute_stress_tensor_option = 1
