@@ -212,8 +212,23 @@ Vector& LineLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, GeneralV
 	    rVectorForce[k] += rVariables.N[i] * LineLoad[k];
 	}
     }
-    
+
     //defined on condition nodes
+    if( this->Has( LINE_LOADS_VECTOR ) ){
+      Vector& LineLoads = this->GetValue( LINE_LOADS_VECTOR );
+      unsigned int counter = 0;
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{
+	  counter = i*3;
+	  for( unsigned int k = 0; k < dimension; k++ )
+	    {
+	      rVectorForce[k] += rVariables.N[i] * LineLoads[counter+k];
+	    }
+	  
+	}
+    }
+    
+    //defined on geometry nodes
     for (unsigned int i = 0; i < number_of_nodes; i++)
       {
 	if( GetGeometry()[i].SolutionStepsDataHas( LINE_LOAD ) ){

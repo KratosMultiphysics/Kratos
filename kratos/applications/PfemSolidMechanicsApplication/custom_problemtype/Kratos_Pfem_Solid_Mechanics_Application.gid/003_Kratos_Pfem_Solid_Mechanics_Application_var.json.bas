@@ -466,8 +466,8 @@
         {
         "help"            : "This process imposes a constraint",	
         "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
-        "python_module"   : "assign_value_to_vector_components_process",
-        "process_name"    : "AssignValueToVectorComponentsProcess",
+        "python_module"   : "assign_vector_components_to_nodes_process",
+        "process_name"    : "AssignVectorComponentsToNodesProcess",
         "Parameters"      : {
             "mesh_id"         : 0,
             "model_part_name" : "*GroupName",
@@ -475,26 +475,39 @@
 *if(strcmp(cond(Time_Evolution),"INITIAL")==0)
 	    "interval"        : [*GenData(Start_Time), *GenData(Start_Time)],
 *elseif(strcmp(cond(Time_Evolution),"FULL")==0)
-	    "interval"        : [*GenData(Start_Time), *GenData(End_Time)],
-*if(strcmp(cond(Time_Function),"CONSTANT")==0)
-	    "time_function"   : "constant",
-*elseif(strcmp(cond(Time_Function),"INCREMENTAL")==0)
-	    "time_function"   : "incremental",
-*elseif(strcmp(cond(Time_Function),"CUSTOM")==0)
-	    "time_function"   : "*cond(Time_Function_Name)",
-*endif
+	    "interval"        : [*GenData(Start_Time), "End"],
 *elseif(strcmp(cond(Time_Evolution),"INTERVAL")==0)
 	    "interval"        : [*cond(Time_Interval,1), *cond(Time_Interval,2)],
-*if(strcmp(cond(Time_Function),"CONSTANT")==0)
-	    "time_function"   : "constant",
-*elseif(strcmp(cond(Time_Function),"INCREMENTAL")==0)
-	    "time_function"   : "incremental",
-*elseif(strcmp(cond(Time_Function),"CUSTOM")==0)
-	    "time_function"   : "*cond(Time_Function_Name)",
 *endif
+	    "value"           : [
+*if(strcmp(cond(Set_X),"True")==0 )
+*if(strcmp(cond(by_function_X),"True")==0 )
+	    			"*cond(X_Function)",
+*else
+	    			*cond(X_Value),
+*endif				
+*else
+				null,
+*endif				
+*if(strcmp(cond(Set_Y),"True")==0 )
+*if(strcmp(cond(by_function_Y),"True")==0 )
+	    			"*cond(Y_Function)",
+*else
+	    			*cond(Y_Value),
+*endif				
+*else
+				null,
 *endif
-            "imposed_components" : [*tcl(string tolower *cond(Set_X)), *tcl(string tolower *cond(Set_Y)), *tcl(string tolower *cond(Set_Z))],
-            "value"           : [*cond(X_Value), *cond(Y_Value), *cond(Z_Value)]
+*if(strcmp(cond(Set_Z),"True")==0 )
+*if(strcmp(cond(by_function_Z),"True")==0 )
+	    			"*cond(Z_Function)"
+*else
+	    			*cond(Z_Value)
+*endif				
+*else
+				null
+*endif
+				]
 	    }
 *if( Counter == numberconstraints )
         }
@@ -522,8 +535,8 @@
         {
         "help"            : "This process assigns a load value on conditions",	
         "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",	
-        "python_module"   : "assign_vector_to_conditions_process",
-        "process_name"    : "AssignVectorToConditionsProcess",
+        "python_module"   : "assign_modulus_and_direction_to_conditions_process",
+        "process_name"    : "AssignModulusAndDirectionToConditionsProcess",
         "Parameters"      : {
             "mesh_id"         : 0,
             "model_part_name" : "*GroupName",
@@ -531,25 +544,15 @@
 *if(strcmp(cond(Time_Evolution),"INITIAL")==0)
 	    "interval"        : [*GenData(Start_Time), *GenData(Start_Time)],
 *elseif(strcmp(cond(Time_Evolution),"FULL")==0)
-	    "interval"        : [*GenData(Start_Time), *GenData(End_Time)],
-*if(strcmp(cond(Time_Function),"CONSTANT")==0)
-	    "time_function"   : "constant",
-*elseif(strcmp(cond(Time_Function),"INCREMENTAL")==0)
-	    "time_function"   : "incremental",
-*elseif(strcmp(cond(Time_Function),"CUSTOM")==0)
-	    "time_function"   : "*cond(Time_Function_Name)",
-*endif
+	    "interval"        : [*GenData(Start_Time), "End"],
 *elseif(strcmp(cond(Time_Evolution),"INTERVAL")==0)
 	    "interval"        : [*cond(Time_Interval,1), *cond(Time_Interval,2)],
-*if(strcmp(cond(Time_Function),"CONSTANT")==0)
-	    "time_function"   : "constant",
-*elseif(strcmp(cond(Time_Function),"INCREMENTAL")==0)
-	    "time_function"   : "incremental",
-*elseif(strcmp(cond(Time_Function),"CUSTOM")==0)
-	    "time_function"   : "*cond(Time_Function_Name)",
 *endif
-*endif
+*if(strcmp(cond(by_function),"True")==0 )
+            "modulus"         : "*cond(Function)",
+*else
             "modulus"         : *cond(Value),
+*endif	    
             "direction"       : [*tcl(JoinByComma *cond(Direction))]
 	    }
 *if( Counter == numberloads )
@@ -564,8 +567,8 @@
         {
         "help"            : "This process applies a volume acceleration",	
         "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
-        "python_module"   : "assign_value_and_direction_to_vector_process",
-        "process_name"    : "AssignValueAndDirectionToVectorProcess",
+        "python_module"   : "assign_modulus_and_direction_to_nodes_process",
+        "process_name"    : "AssignModulusAndDirectionToNodesProcess",
         "Parameters"      : {
             "mesh_id"         : 0,
             "model_part_name" : "*GroupName",
@@ -573,25 +576,15 @@
 *if(strcmp(cond(Time_Evolution),"INITIAL")==0)
 	    "interval"        : [*GenData(Start_Time), *GenData(Start_Time)],
 *elseif(strcmp(cond(Time_Evolution),"FULL")==0)
-	    "interval"        : [*GenData(Start_Time), *GenData(End_Time)],
-*if(strcmp(cond(Time_Function),"CONSTANT")==0)
-	    "time_function"   : "constant",
-*elseif(strcmp(cond(Time_Function),"INCREMENTAL")==0)
-	    "time_function"   : "incremental",
-*elseif(strcmp(cond(Time_Function),"CUSTOM")==0)
-	    "time_function"   : "*cond(Time_Function_Name)"
-*endif
+	    "interval"        : [*GenData(Start_Time), "End"],
 *elseif(strcmp(cond(Time_Evolution),"INTERVAL")==0)
 	    "interval"        : [*cond(Time_Interval,1), *cond(Time_Interval,2)],
-*if(strcmp(cond(Time_Function),"CONSTANT")==0)
-	    "time_function"   : "constant",
-*elseif(strcmp(cond(Time_Function),"INCREMENTAL")==0)
-	    "time_function"   : "incremental",
-*elseif(strcmp(cond(Time_Function),"CUSTOM")==0)
-	    "time_function"   : "*cond(Time_Function_Name)",
 *endif
-*endif
+*if(strcmp(cond(by_function),"True")==0 )
+            "modulus"         : "*cond(Function)",
+*else
             "modulus"         : *cond(Value),
+*endif
             "direction"       : [*tcl(JoinByComma *cond(Direction))]
 	    }
 *if( Counter == numberloads )
@@ -616,25 +609,15 @@
 *if(strcmp(cond(Time_Evolution),"INITIAL")==0)
 	    "interval"        : [*GenData(Start_Time), *GenData(Start_Time)],
 *elseif(strcmp(cond(Time_Evolution),"FULL")==0)
-	    "interval"        : [*GenData(Start_Time), *GenData(End_Time)],
-*if(strcmp(cond(Time_Function),"CONSTANT")==0)
-	    "time_function"   : "constant",
-*elseif(strcmp(cond(Time_Function),"INCREMENTAL")==0)
-	    "time_function"   : "incremental",
-*elseif(strcmp(cond(Time_Function),"CUSTOM")==0)
-	    "time_function"   : "*cond(Time_Function_Name)",
-*endif
+	    "interval"        : [*GenData(Start_Time), "End"],
 *elseif(strcmp(cond(Time_Evolution),"INTERVAL")==0)
 	    "interval"        : [*cond(Time_Interval,1), *cond(Time_Interval,2)],
-*if(strcmp(cond(Time_Function),"CONSTANT")==0)
-	    "time_function"   : "constant",
-*elseif(strcmp(cond(Time_Function),"INCREMENTAL")==0)
-	    "time_function"   : "incremental",
-*elseif(strcmp(cond(Time_Function),"CUSTOM")==0)
-	    "time_function"   : "*cond(Time_Function_Name)",
 *endif
+*if(strcmp(cond(by_function),"True")==0 )
+            "value"         : "*cond(Function)"
+*else
+            "value"         : *cond(Value)
 *endif
-            "value"           : *cond(Value)
 	    }
 *if( Counter == numberloads )
         }

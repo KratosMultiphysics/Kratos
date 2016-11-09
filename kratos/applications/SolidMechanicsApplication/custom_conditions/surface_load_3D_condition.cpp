@@ -254,8 +254,22 @@ Vector& SurfaceLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, Gener
 	    rVectorForce[k] += rVariables.N[i] * SurfaceLoad[k];
 	}
     }
-    
+
     //defined on condition nodes
+    if( this->Has( SURFACE_LOADS_VECTOR ) ){
+      Vector& SurfaceLoads = this->GetValue( SURFACE_LOADS_VECTOR );
+      unsigned int counter = 0;
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{
+	  for( unsigned int k = 0; k < dimension; k++ )
+	    {
+	      rVectorForce[k] += rVariables.N[i] * SurfaceLoads[counter];
+	      counter++;
+	    }
+	}
+    }
+        
+    //defined on geometry nodes
     for (unsigned int i = 0; i < number_of_nodes; i++)
       {
 	if( GetGeometry()[i].SolutionStepsDataHas( SURFACE_LOAD ) ){
