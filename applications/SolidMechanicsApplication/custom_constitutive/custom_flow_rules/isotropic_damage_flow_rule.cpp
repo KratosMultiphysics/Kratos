@@ -93,6 +93,18 @@ void IsotropicDamageFlowRule::InitializeMaterial (YieldCriterionPointer& pYieldC
 //*************************** CALCULATE RETURN MAPPING *******************************
 //************************************************************************************
 
+bool IsotropicDamageFlowRule::CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, 
+                                                    Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen)
+{    
+    //Compute Damage variable
+    bool Tangent = this->CalculateInternalVariables( rReturnMappingVariables );
+    
+    //Compute Damaged Stresses
+    noalias(rStressMatrix) = (1.0-rReturnMappingVariables.TrialStateFunction)*rReturnMappingVariables.TrialIsoStressMatrix; // S = (1-d)*Se
+    
+    return Tangent;
+}
+
 bool IsotropicDamageFlowRule::CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix )
 {
     //Compute Damage variable
