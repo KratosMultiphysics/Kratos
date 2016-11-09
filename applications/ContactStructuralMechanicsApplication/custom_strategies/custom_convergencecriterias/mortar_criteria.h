@@ -116,7 +116,7 @@ public:
             
             auto numNodes = pNode.end() - pNode.begin();
             
-            #pragma omp parallel for 
+//             #pragma omp parallel for # NOTE: Giving problems in debug
             for(unsigned int i = 0; i < numNodes; i++) 
             {
                 auto itNode = pNode.begin() + i;
@@ -154,7 +154,7 @@ public:
         
         auto numNodes = pNode.end() - pNode.begin();
         
-//         #pragma omp parallel for // TODO:Ask how to paralellize this!!
+//         #pragma omp parallel for // TODO:Ask how to paralellize this!! (think about doing something of create differents vectors and sum)
         for(unsigned int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
