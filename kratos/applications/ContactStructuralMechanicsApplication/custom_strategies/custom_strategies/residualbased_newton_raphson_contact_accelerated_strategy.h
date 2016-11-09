@@ -195,7 +195,7 @@ public:
      * Initialization of member variables and prior operations
      */
     
-    void Initialize()
+    void Initialize() override
     {
         KRATOS_TRY;
         
@@ -207,10 +207,26 @@ public:
     }
 
     /**
+     * The problem of interest is solved.
+     * This function calls sequentially: Initialize(), InitializeSolutionStep(), Predict(), SolveSolutionStep() and FinalizeSolutionStep().
+     * All those functions can otherwise be called separately.
+     */
+    
+    double Solve()
+    {
+        Initialize();
+        InitializeSolutionStep();
+        BaseType::Predict();
+        SolveSolutionStep();
+        FinalizeSolutionStep();
+        return 0.00;
+    }
+    
+    /**
      * Clears the internal storage
      */
     
-    void Clear()
+    void Clear() override
     {
         KRATOS_TRY;
         
@@ -224,7 +240,7 @@ public:
     * A member variable should be used as a flag to make sure this function is called only once per step.
     */
    
-    void InitializeSolutionStep()
+    void InitializeSolutionStep() override
     {
         KRATOS_TRY;
 
@@ -240,7 +256,7 @@ public:
      * A member variable should be used as a flag to make sure this function is called only once per step.
      */
     
-    void FinalizeSolutionStep()
+    void FinalizeSolutionStep() override
     {
         KRATOS_TRY;
         
@@ -607,7 +623,7 @@ protected:
      * It is designed to be called ONCE to verify that the input is correct.
      */
     
-    int Check()
+    int Check() override
     {
         KRATOS_TRY;
 
