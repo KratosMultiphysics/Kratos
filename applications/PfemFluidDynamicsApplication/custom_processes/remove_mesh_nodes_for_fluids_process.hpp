@@ -328,15 +328,15 @@ private:
 	if( i_node->IsNot(TO_ERASE) ){
 	  (rModelPart.Nodes(MeshId)).push_back(*(i_node.base()));	
 //	  if(i_node->Id()>24880){
-//		    std::cout<<" NOT ERASED NODE: "<<i_node->Id()<<"  COORDINATES "<<i_node->Coordinates()<<std::endl;
+//	  std::cout<<" NOT ERASED NODE: "<<i_node->Id()<<"  COORDINATES "<<i_node->Coordinates()<<std::endl;
 //		  }	 
 	
 	}
-	else{
-//		  std::cout<<"   ERASED NODE: "<<i_node->Id()<<"  COORDINATES "<<i_node->Coordinates()<<std::endl;
-	  if( i_node->Is(BOUNDARY) )
-	    std::cout<<"   BOUNDARY NODE RELEASED "<<i_node->Id()<<std::endl;
-	}
+	// else{
+	//     // std::cout<<"   ERASED NODE: "<<i_node->Id()<<"  COORDINATES "<<i_node->Coordinates()<<std::endl;
+	//   if( i_node->Is(BOUNDARY) )
+	//     std::cout<<"   BOUNDARY NODE RELEASED "<<i_node->Id()<<std::endl;
+	// }
       }
 	
     rModelPart.Nodes(MeshId).Sort();
@@ -352,8 +352,6 @@ private:
   {
     KRATOS_TRY
 	 
-      std::cout<<" RemoveNodesOnError RemoveNodesOnError RemoveNodesOnError RemoveNodesOnError"<<std::endl;  
-
     //***SIZES :::: parameters do define the tolerance in mesh size: 
     double size_for_criterion_error   = 2.0 * mrRemesh.Refine->CriticalRadius; //compared with mean node radius
        
@@ -419,7 +417,6 @@ private:
   {
     KRATOS_TRY
 	 
-      std::cout<<"remove_mesh_nodes_process_for_fluid.hpp    -------->    RemoveNodesOnDistance"<<std::endl;
 
     //***SIZES :::: parameters do define the tolerance in mesh size: 
     double initialMeanRadius=0;
@@ -518,7 +515,7 @@ private:
 
 		      if( erased_nodes < 1 && contact_nodes < 1){ //we release the node if no other nodes neighbours are being erased
 			in->Set(TO_ERASE);
-			std::cout<<"     Distance Criterion Node ["<<in->Id()<<"] TO_ERASE "<<std::endl;
+			// std::cout<<"     Distance Criterion Node ["<<in->Id()<<"] TO_ERASE "<<std::endl;
 			any_node_removed = true;
 			inside_nodes_removed++;
 			//distance_remove++;
@@ -530,7 +527,7 @@ private:
 		// else if ( (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_BOUNDARY_NODES) && mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_BOUNDARY_NODES_ON_DISTANCE)) && (in)->IsNot(TO_ERASE)) //boundary nodes will be removed if they get REALLY close to another boundary node (0.2(=extra_factor) * h_factor)
 		else     {
 
-		  std::cout<<"  Remove close boundary nodes: Candidate ["<<in->Id()<<"]"<<std::endl;
+		  // std::cout<<"  Remove close boundary nodes: Candidate ["<<in->Id()<<"]"<<std::endl;
 
 		  //here we loop over the neighbouring nodes and if there are nodes
 		  //with BOUNDARY flag and closer than 0.2*nodal_h from our node, we remove the node we are considering

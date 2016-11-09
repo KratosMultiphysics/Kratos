@@ -99,16 +99,13 @@ public:
     {
       KRATOS_TRY
 
-      if( mEchoLevel > 0 )
-	std::cout<<" [ SELECT MESH ELEMENTS in PfemFluid: ("<<mrRemesh.OutMesh.GetNumberOfElements()<<") "<<std::endl;
-
-
-      std::cout<<"MODEL PART InNumberOfElements "<<mrRemesh.InMesh.GetNumberOfElements()<<std::endl;
-      std::cout<<"MODEL PART InNumberOfPoints "<<mrRemesh.InMesh.GetNumberOfPoints()<<std::endl;
-
-      std::cout<<"MODEL PART OutNumberOfElements "<<mrRemesh.OutMesh.GetNumberOfElements()<<std::endl;
-      std::cout<<"MODEL PART OutNumberOfPoints "<<mrRemesh.OutMesh.GetNumberOfPoints()<<std::endl;
-
+	if( mEchoLevel > 1 ){
+	  std::cout<<" [ SELECT MESH ELEMENTS in PfemFluid: ("<<mrRemesh.OutMesh.GetNumberOfElements()<<") "<<std::endl;
+	  std::cout<<"MODEL PART InNumberOfElements "<<mrRemesh.InMesh.GetNumberOfElements()<<std::endl;
+	  std::cout<<"MODEL PART InNumberOfPoints "<<mrRemesh.InMesh.GetNumberOfPoints()<<std::endl;
+	  std::cout<<"MODEL PART OutNumberOfElements "<<mrRemesh.OutMesh.GetNumberOfElements()<<std::endl;
+	  std::cout<<"MODEL PART OutNumberOfPoints "<<mrRemesh.OutMesh.GetNumberOfPoints()<<std::endl;
+	}
       int& OutNumberOfElements = mrRemesh.OutMesh.GetNumberOfElements();
       mrRemesh.PreservedElements.clear();
       mrRemesh.PreservedElements.resize(OutNumberOfElements);
@@ -467,7 +464,7 @@ public:
 	    }
 
 	  }
-	std::cout<<"count_sliver++ "<<count_sliver<<std::endl;
+	// std::cout<<"count_sliver++ "<<count_sliver<<std::endl;
 
       }
 
