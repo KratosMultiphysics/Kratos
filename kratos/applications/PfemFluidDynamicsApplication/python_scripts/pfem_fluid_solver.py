@@ -130,26 +130,16 @@ class PfemFluidSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FRACT_VEL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE_OLD_IT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESS_PROJ)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONV_PROJ)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DIVPROJ)
-        # self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADVPROJ)
                 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BULK_MODULUS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
-        
-        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
-        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
-        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.Y_WALL)
-        # self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PATCH_INDEX)
-
+ 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
@@ -334,7 +324,6 @@ class PfemFluidSolver:
 
         self.fluid_solver.InitializeStressStrain()
 
-        print("Initialize Stress Strain finished ")
 
 #
 

@@ -157,7 +157,7 @@ namespace Kratos
 
       //Mesh Id=0
       
-      if( EchoLevel > 0 )
+      if( EchoLevel > 1 )
 	std::cout<<"   [ START MODEL PART ["<<rModelPart.Name()<<"] [Elems=:"<<rModelPart.NumberOfElements()<<"|Nodes="<<rModelPart.NumberOfNodes()<<"|Conds="<<rModelPart.NumberOfConditions()<<"] ] "<<std::endl;      
       
       rModelPart.Nodes().clear();
@@ -177,7 +177,7 @@ namespace Kratos
 	  if(  (i_mp->Is(SOLID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(FLUID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(BOUNDARY) && i_mp->Is(RIGID)) ){ //only the solid domains (no computing) and the rigid body domains (rigid)
 
 
-	    if( EchoLevel > 0 )
+	    if( EchoLevel > 1 )
 	      std::cout<<"    [ SUBMODEL PART ["<<i_mp->Name()<<"] [Elems="<<i_mp->NumberOfElements()<<"|Nodes="<<i_mp->NumberOfNodes()<<"|Conds="<<i_mp->NumberOfConditions()<<"] ] "<<std::endl;
 
 
@@ -292,10 +292,12 @@ namespace Kratos
 		  }
 				
 		}
-	      std::cout<<"-------...PFEMFLUID....------ freeSurfaceNodes "<<freeSurfaceNodes<<std::endl;
-	      std::cout<<"----------PFEMFLUID---------- wallNodes "<<wallNodes<<std::endl;
-	      std::cout<<"----------PFEMFLUID---------- freeWall "<<freeWall<<std::endl;
-	      std::cout<<"----------PFEMFLUID---------- freeParticles "<<freeParticles<<std::endl;
+	      if( EchoLevel > 1 ){
+		std::cout<<"-------...PFEMFLUID....------ freeSurfaceNodes "<<freeSurfaceNodes<<std::endl;
+		std::cout<<"----------PFEMFLUID---------- wallNodes "<<wallNodes<<std::endl;
+		std::cout<<"----------PFEMFLUID---------- freeWall "<<freeWall<<std::endl;
+		std::cout<<"----------PFEMFLUID---------- freeParticles "<<freeParticles<<std::endl;
+	      }
 	    }
 	    //i_mp->Nodes().Sort();  
 	    
@@ -362,7 +364,7 @@ namespace Kratos
       this->BuildComputingDomain(rModelPart, EchoLevel);
 
 
-      if( EchoLevel > 0 )
+      if( EchoLevel > 1 )
 	std::cout<<"   [ END MODEL PART ["<<rModelPart.Name()<<"] [Elems=:"<<rModelPart.NumberOfElements()<<"|Nodes="<<rModelPart.NumberOfNodes()<<"|Conds="<<rModelPart.NumberOfConditions()<<"] ] "<<std::endl;      
       
 
@@ -430,7 +432,7 @@ namespace Kratos
       rComputingModelPart.Elements().Unique();
       rComputingModelPart.Conditions().Unique();
       
-      if( EchoLevel > 0 )
+      if( EchoLevel > 1 )
 	std::cout<<"    [ SUBMODEL PART ["<<rComputingModelPart.Name()<<"] [Elems="<<rComputingModelPart.NumberOfElements()<<"|Nodes="<<rComputingModelPart.NumberOfNodes()<<"|Conds="<<rComputingModelPart.NumberOfConditions()<<"] ] "<<std::endl;
 
  

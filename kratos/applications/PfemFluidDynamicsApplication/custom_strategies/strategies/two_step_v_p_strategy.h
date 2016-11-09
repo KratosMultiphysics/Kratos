@@ -143,7 +143,7 @@ public:
         KRATOS_TRY;
 
         BaseType::SetEchoLevel(1);
-	std::cout<<"TwoStepVPStrategy TwoStepVPStrategY TwoStepVPStrategy TwoStepVPStrategy"<<std::endl;
+	std::cout<<"Two Step Velocity Pressure Strategy"<<std::endl;
 
         // Check that input parameters are reasonable and sufficient.
         this->Check();
@@ -174,16 +174,15 @@ public:
 
         //CONSTRUCTION OF VELOCITY
         BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (pVelocityLinearSolver));
-//        BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverSlip<TSparseSpace, TDenseSpace, TLinearSolver, VarComponent > (pNewVelocityLinearSolver, this->mDomainSize, VELOCITY_X, VELOCITY_Y, VELOCITY_Z));
+
         this->mpMomentumStrategy = typename BaseType::Pointer(new GaussSeidelLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pVelocityLinearSolver, vel_build, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
-        /* this->mpMomentumStrategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pVelocityLinearSolver, vel_build, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag)); */
+
         this->mpMomentumStrategy->SetEchoLevel( BaseType::GetEchoLevel() );
 
         BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> >(pPressureLinearSolver, PRESSURE));
 
 	this->mpPressureStrategy = typename BaseType::Pointer(new GaussSeidelLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pPressureLinearSolver, pressure_build, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
 
-        /* this->mpPressureStrategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pPressureLinearSolver, pressure_build, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag)); */
         this->mpPressureStrategy->SetEchoLevel( BaseType::GetEchoLevel() );
 
         if (mUseSlipConditions)
@@ -281,29 +280,36 @@ public:
       if (mPredictorCorrector)
         {
 	  std::cout<<"predictor-corrector strategy"<<std::endl;
-
+	  const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+	  double currentTime = rCurrentProcessInfo[TIME];
+	  double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+	  unsigned int maxNonLinearIterations=mMaxPressureIter;
+	  if(currentTime<10*timeInterval){
+	    std::cout << "within the first 10 time steps, I increase the iteration numbers"<< std::endl;
+	    maxNonLinearIterations*=2;
+	  }
 	  bool Converged = false;
 	  boost::timer solve_step_time;
 	  // Iterative solution for pressure
-	  for(unsigned int it = 0; it < mMaxPressureIter; ++it)
+	  for(unsigned int it = 0; it < maxNonLinearIterations; ++it)
             {
 	      if ( BaseType::GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)
 		std::cout << "----- > iteration: " << it << std::endl;
-	      boost::timer solve_iteration_time;
+	      /* boost::timer solve_iteration_time; */
 	      if(it==0){
 		std::cout << "FIRST SOLVE  " << it << std::endl;
 		NormDp = this->FirstIterationSolution();
-		std::cout << "solve_interation_time : " << solve_iteration_time.elapsed() << std::endl; 
+		/* std::cout << "solve_interation_time : " << solve_iteration_time.elapsed() << std::endl;  */
 		Converged = this->CheckPressureConvergence(NormDp);
-	      }else if(it==(mMaxPressureIter-1)){
+	      }else if(it==(maxNonLinearIterations-1)){
 		std::cout << "LAST SOLVE  " << it << std::endl;
 		NormDp = this->LastIterationSolution();
-		std::cout << "solve_interation_time : " << solve_iteration_time.elapsed() << std::endl; 
+		/* std::cout << "solve_interation_time : " << solve_iteration_time.elapsed() << std::endl;  */
 		Converged = this->CheckAndMonitorPressureConvergence(NormDp);
 	      }else{
 		std::cout << "SOLVE THE ITERATION NUMBER  " << it << std::endl;
 		NormDp = this->SolveStep();
-		std::cout << "solve_interation_time : " << solve_iteration_time.elapsed() << std::endl; 
+		/* std::cout << "solve_interation_time : " << solve_iteration_time.elapsed() << std::endl;  */
 		Converged = this->CheckPressureConvergence(NormDp);
 	      }
 
@@ -318,7 +324,6 @@ public:
 	    ModelPart::NodeIterator NodesBegin;
 	    ModelPart::NodeIterator NodesEnd;
 	    OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-	    const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
 	    for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
 	      {
@@ -508,7 +513,7 @@ public:
 
      }
 
-     this->CalculateDisplacements();
+     /* this->CalculateDisplacements(); */
 
    }
 
@@ -540,7 +545,7 @@ public:
 				    const array_1d<double, 3 > & PreviousVelocity,
 				    Vector& BDFcoeffs)
     {
-      noalias(PreviousDisplacement)=CurrentDisplacement;
+      /* noalias(PreviousDisplacement)=CurrentDisplacement; */
       /* noalias(CurrentDisplacement) = -(CurrentVelocity+PreviousVelocity)/BDFcoeffs[1] + PreviousDisplacement ;  */
       noalias(CurrentDisplacement) = -(CurrentVelocity+PreviousVelocity)/BDFcoeffs[1] + PreviousDisplacement ; 
       // std::cout<<"rBDFCoeffs[0] is "<<BDFcoeffs[0]<<std::endl;//3/(2*delta_t)
@@ -741,7 +746,7 @@ protected:
       if (BaseType::GetEchoLevel() > 0 && Rank == 0){
 	/* std::cout << "Calcula ting Pressure." << std::endl; */
       }
-      /* this->CalculateDisplacements(); */
+      this->CalculateDisplacements();
 
       double NormDp = mpPressureStrategy->Solve();
       std::cout << "The norm of pressure is: " << NormDp << std::endl;
@@ -758,19 +763,6 @@ protected:
       }
 
 
-
-      // 3. Compute end-of-step velocity
-      /* if (BaseType::GetEchoLevel() > 0 && Rank == 0){ */
-      /* 	/\* std::cout << "Upd ating Velocity." << std::endl; *\/ */
-      /* } */
-     
-      /* rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,6); */
-
-      /* this->CalculateEndOfStepVelocity(); */
-      
-        /* mpPressureStrategy->Clear(); */
-        /* double NormDu = mpPressureStrategy->Solve(); */
-        /* mpPressureStrategy->Clear() */;
 
       // Additional steps
       for (std::vector<Process::Pointer>::iterator iExtraSteps = mExtraIterationSteps.begin();
@@ -848,7 +840,7 @@ protected:
       if (BaseType::GetEchoLevel() > 0 && Rank == 0){
 	/* std::cout << "Calcula ting Pressure." << std::endl; */
       }
-      /* this->CalculateDisplacements(); */
+      this->CalculateDisplacements();
 
       double NormDp = mpPressureStrategy->Solve();
       std::cout << "The norm of pressure is: " << NormDp << std::endl;
@@ -864,20 +856,6 @@ protected:
 	}
       }
 
-
-
-      // 3. Compute end-of-step velocity
-      /* if (BaseType::GetEchoLevel() > 0 && Rank == 0){ */
-      /* 	/\* std::cout << "Upd ating Velocity." << std::endl; *\/ */
-      /* } */
-     
-      /* rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,6); */
-
-      /* this->CalculateEndOfStepVelocity(); */
-      
-        /* mpPressureStrategy->Clear(); */
-        /* double NormDu = mpPressureStrategy->Solve(); */
-        /* mpPressureStrategy->Clear() */;
 
       // Additional steps
       for (std::vector<Process::Pointer>::iterator iExtraSteps = mExtraIterationSteps.begin();
@@ -971,6 +949,8 @@ protected:
 
       std::cout<<"-------- c o n t i n u i t y   e q u a t i o n ----------"<<std::endl;
     
+      this->CalculateDisplacements();
+
       double NormDp = 0;
       mpPressureStrategy->InitializeSolutionStep();
       std::cout << "The norm of pressure is: " << NormDp << std::endl;
@@ -1077,6 +1057,7 @@ protected:
         if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0){
 	  std::cout << "Fractional velocity relative error: " << Ratio << "mVelocityTolerance: " << mVelocityTolerance<< std::endl;
 	}
+
 	if(Ratio>0.05){
 	  std::cout << "BAD CONVERGENCE!!!!! I GO AHEAD WITH THE PREVIOUS VELOCITY AND PRESSURE FIELDS"<< std::endl;
 #pragma omp parallel reduction(+:NormV)
@@ -1196,331 +1177,6 @@ protected:
         else
             return false;
     }
-
-
-
-/*     void ComputeSplitOssProjections(ModelPart& rModelPart) */
-/*     { */
-/*         const array_1d<double,3> Zero(3,0.0); */
-
-/*         array_1d<double,3> Out(3,0.0); */
-
-/* #pragma omp parallel */
-/*         { */
-/*             ModelPart::NodeIterator NodesBegin; */
-/*             ModelPart::NodeIterator NodesEnd; */
-/*             OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd); */
-
-/*             for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode ) */
-/*             { */
-/*                 itNode->FastGetSolutionStepValue(CONV_PROJ) = Zero; */
-/*                 itNode->FastGetSolutionStepValue(PRESS_PROJ) = Zero; */
-/*                 itNode->FastGetSolutionStepValue(DIVPROJ) = 0.0; */
-/*                 itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0; */
-/*             } */
-/*         } */
-
-/* #pragma omp parallel */
-/*         { */
-/*             ModelPart::ElementIterator ElemBegin; */
-/*             ModelPart::ElementIterator ElemEnd; */
-/*             OpenMPUtils::PartitionedIterators(rModelPart.Elements(),ElemBegin,ElemEnd); */
-
-/*             for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem ) */
-/*             { */
-/*                 itElem->Calculate(CONV_PROJ,Out,rModelPart.GetProcessInfo()); */
-/*             } */
-/*         } */
-
-/*         rModelPart.GetCommunicator().AssembleCurrentData(CONV_PROJ); */
-/*         rModelPart.GetCommunicator().AssembleCurrentData(PRESS_PROJ); */
-/*         rModelPart.GetCommunicator().AssembleCurrentData(DIVPROJ); */
-/*         rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA); */
-
-/*         // If there are periodic conditions, add contributions from both sides to the periodic nodes */
-/*         this->PeriodicConditionProjectionCorrection(rModelPart); */
-
-/* #pragma omp parallel */
-/*         { */
-/*             ModelPart::NodeIterator NodesBegin; */
-/*             ModelPart::NodeIterator NodesEnd; */
-/*             OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd); */
-
-/*             for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode ) */
-/*             { */
-/*                 const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA); */
-/*                 itNode->FastGetSolutionStepValue(CONV_PROJ) /= NodalArea; */
-/*                 itNode->FastGetSolutionStepValue(PRESS_PROJ) /= NodalArea; */
-/*                 itNode->FastGetSolutionStepValue(DIVPROJ) /= NodalArea; */
-/*             } */
-/*         } */
-/*     } */
-
-    void CalculateEndOfStepVelocity()
-    {
-
-      std::cout<<"-------- e n d   o f   s t e p   v e l o c i t y ----------"<<std::endl;
-
-        ModelPart& rModelPart = BaseType::GetModelPart();
-
-        const array_1d<double,3> Zero(3,0.0);
-        array_1d<double,3> Out(3,0.0);
-
-#pragma omp parallel
-        {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-            for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
-            {
-                itNode->FastGetSolutionStepValue(FRACT_VEL) = Zero;
-            }
-        }
-
-#pragma omp parallel
-        {
-            ModelPart::ElementIterator ElemBegin;
-            ModelPart::ElementIterator ElemEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Elements(),ElemBegin,ElemEnd);
-
-            for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
-            {
-                itElem->Calculate(VELOCITY,Out,rModelPart.GetProcessInfo());
-            }
-        }
-
-        rModelPart.GetCommunicator().AssembleCurrentData(FRACT_VEL);
-        this->PeriodicConditionVelocityCorrection(rModelPart);
-
-        // Force the end of step velocity to verify slip conditions in the model
-        if (mUseSlipConditions)
-            this->EnforceSlipCondition(IS_STRUCTURE);
-
-        if (mDomainSize > 2)
-        {
-#pragma omp parallel
-            {
-                ModelPart::NodeIterator NodesBegin;
-                ModelPart::NodeIterator NodesEnd;
-                OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-                for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
-                {
-                    const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                    if ( ! itNode->IsFixed(VELOCITY_X) )
-                        itNode->FastGetSolutionStepValue(VELOCITY_X) += itNode->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
-                    if ( ! itNode->IsFixed(VELOCITY_Y) )
-                        itNode->FastGetSolutionStepValue(VELOCITY_Y) += itNode->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
-                    if ( ! itNode->IsFixed(VELOCITY_Z) )
-                        itNode->FastGetSolutionStepValue(VELOCITY_Z) += itNode->FastGetSolutionStepValue(FRACT_VEL_Z) / NodalArea;
-                }
-            }
-        }
-        else
-        {
-#pragma omp parallel
-            {
-                ModelPart::NodeIterator NodesBegin;
-                ModelPart::NodeIterator NodesEnd;
-                OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-                for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
-                {
-                    const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                    if ( ! itNode->IsFixed(VELOCITY_X) )
-                        itNode->FastGetSolutionStepValue(VELOCITY_X) += itNode->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
-                    if ( ! itNode->IsFixed(VELOCITY_Y) )
-                        itNode->FastGetSolutionStepValue(VELOCITY_Y) += itNode->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
-                }
-            }
-        }
-    }
-
-    /**
-     * @brief Substract wall-normal component of velocity update to ensure that the final velocity satisfies slip conditions.
-     * @param rSlipWallFlag If Node.GetValue(rSlipWallFlag) != 0, the node is in the wall.
-     */
-    void EnforceSlipCondition(Variable<double>& rSlipWallFlag)
-    {
-        ModelPart& rModelPart = BaseType::GetModelPart();
-
-#pragma omp parallel
-        {
-            ModelPart::NodeIterator NodeBegin; // = rModelPart.NodesBegin();
-            ModelPart::NodeIterator NodeEnd; // = rModelPart.NodesEnd();
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodeBegin,NodeEnd);
-
-            for ( ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode )
-            {
-                if ( itNode->GetValue(rSlipWallFlag) != 0.0 )
-                {
-                    const array_1d<double,3>& rNormal = itNode->FastGetSolutionStepValue(NORMAL);
-                    array_1d<double,3>& rDeltaVelocity = itNode->FastGetSolutionStepValue(FRACT_VEL);
-
-                    double Proj = rNormal[0] * rDeltaVelocity[0];
-                    double Norm = rNormal[0] * rNormal[0];
-
-                    for (unsigned int d = 1; d < mDomainSize; ++d)
-                    {
-                        Proj += rNormal[d] * rDeltaVelocity[d];
-                        Norm += rNormal[d] * rNormal[d];
-                    }
-
-                    Proj /= Norm;
-                    rDeltaVelocity -= Proj * rNormal;
-                }
-            }
-        }
-    }
-
-    /** On periodic boundaries, the nodal area and the values to project need to take into account contributions from elements on
-     * both sides of the boundary. This is done using the conditions and the non-historical nodal data containers as follows:\n
-     * 1- The partition that owns the PeriodicCondition adds the values on both nodes to their non-historical containers.\n
-     * 2- The non-historical containers are added across processes, transmiting the right value from the condition owner to all partitions.\n
-     * 3- The value on all periodic nodes is replaced by the one received in step 2.
-     */
-     void PeriodicConditionProjectionCorrection(ModelPart& rModelPart)
-     {
-         if (mrPeriodicIdVar.Key() != 0)
-         {
-             int GlobalNodesNum = rModelPart.GetCommunicator().LocalMesh().Nodes().size();
-             rModelPart.GetCommunicator().SumAll(GlobalNodesNum);
-
-             for (typename ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); itCond++ )
-             {
-                 ModelPart::ConditionType::GeometryType& rGeom = itCond->GetGeometry();
-                 if (rGeom.PointsNumber() == 2)
-                 {
-                     Node<3>& rNode0 = rGeom[0];
-                     int Node0Pair = rNode0.FastGetSolutionStepValue(mrPeriodicIdVar);
-
-                     Node<3>& rNode1 = rGeom[1];
-                     int Node1Pair = rNode1.FastGetSolutionStepValue(mrPeriodicIdVar);
-
-                     // If the nodes are marked as a periodic pair (this is to avoid acting on two-noded conditions that are not PeriodicCondition)
-                     if ( ( static_cast<int>(rNode0.Id()) == Node1Pair ) && (static_cast<int>(rNode1.Id()) == Node0Pair ) )
-                     {
-                         double NodalArea = rNode0.FastGetSolutionStepValue(NODAL_AREA) + rNode1.FastGetSolutionStepValue(NODAL_AREA);
-                         array_1d<double,3> ConvProj = rNode0.FastGetSolutionStepValue(CONV_PROJ) + rNode1.FastGetSolutionStepValue(CONV_PROJ);
-                         array_1d<double,3> PressProj = rNode0.FastGetSolutionStepValue(PRESS_PROJ) + rNode1.FastGetSolutionStepValue(PRESS_PROJ);
-                         double DivProj = rNode0.FastGetSolutionStepValue(DIVPROJ) + rNode1.FastGetSolutionStepValue(DIVPROJ);
-
-                         rNode0.GetValue(NODAL_AREA) = NodalArea;
-                         rNode0.GetValue(CONV_PROJ) = ConvProj;
-                         rNode0.GetValue(PRESS_PROJ) = PressProj;
-                         rNode0.GetValue(DIVPROJ) = DivProj;
-                         rNode1.GetValue(NODAL_AREA) = NodalArea;
-                         rNode1.GetValue(CONV_PROJ) = ConvProj;
-                         rNode1.GetValue(PRESS_PROJ) = PressProj;
-                         rNode1.GetValue(DIVPROJ) = DivProj;
-                     }
-                 }
-                 else if (rGeom.PointsNumber() == 4 && rGeom[0].FastGetSolutionStepValue(mrPeriodicIdVar) > GlobalNodesNum)
-                 {
-                     double NodalArea = rGeom[0].FastGetSolutionStepValue(NODAL_AREA);
-                     array_1d<double,3> ConvProj = rGeom[0].FastGetSolutionStepValue(CONV_PROJ);
-                     array_1d<double,3> PressProj = rGeom[0].FastGetSolutionStepValue(PRESS_PROJ);
-                     double DivProj = rGeom[0].FastGetSolutionStepValue(DIVPROJ);
-
-                     for (unsigned int i = 1; i < 4; i++)
-                     {
-                         NodalArea += rGeom[i].FastGetSolutionStepValue(NODAL_AREA);
-                         ConvProj += rGeom[i].FastGetSolutionStepValue(CONV_PROJ);
-                         PressProj += rGeom[i].FastGetSolutionStepValue(PRESS_PROJ);
-                         DivProj += rGeom[i].FastGetSolutionStepValue(DIVPROJ);
-                     }
-
-                     for (unsigned int i = 0; i < 4; i++)
-                     {
-                         rGeom[i].GetValue(NODAL_AREA) = NodalArea;
-                         rGeom[i].GetValue(CONV_PROJ) = ConvProj;
-                         rGeom[i].GetValue(PRESS_PROJ) = PressProj;
-                         rGeom[i].GetValue(DIVPROJ) = DivProj;
-                     }
-                 }
-             }
-
-             rModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_AREA);
-             rModelPart.GetCommunicator().AssembleNonHistoricalData(CONV_PROJ);
-             rModelPart.GetCommunicator().AssembleNonHistoricalData(PRESS_PROJ);
-             rModelPart.GetCommunicator().AssembleNonHistoricalData(DIVPROJ);
-
-             for (typename ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
-             {
-                 if (itNode->GetValue(NODAL_AREA) != 0.0)
-                 {
-                     itNode->FastGetSolutionStepValue(NODAL_AREA) = itNode->GetValue(NODAL_AREA);
-                     itNode->FastGetSolutionStepValue(CONV_PROJ) = itNode->GetValue(CONV_PROJ);
-                     itNode->FastGetSolutionStepValue(PRESS_PROJ) = itNode->GetValue(PRESS_PROJ);
-                     itNode->FastGetSolutionStepValue(DIVPROJ) = itNode->GetValue(DIVPROJ);
-
-                     // reset for next iteration
-                     itNode->GetValue(NODAL_AREA) = 0.0;
-                     itNode->GetValue(CONV_PROJ) = array_1d<double,3>(3,0.0);
-                     itNode->GetValue(PRESS_PROJ) = array_1d<double,3>(3,0.0);
-                     itNode->GetValue(DIVPROJ) = 0.0;
-                 }
-             }
-         }
-     }
-
-     void PeriodicConditionVelocityCorrection(ModelPart& rModelPart)
-     {
-         if (mrPeriodicIdVar.Key() != 0)
-         {
-             int GlobalNodesNum = rModelPart.GetCommunicator().LocalMesh().Nodes().size();
-             rModelPart.GetCommunicator().SumAll(GlobalNodesNum);
-
-             for (typename ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); itCond++ )
-             {
-                 ModelPart::ConditionType::GeometryType& rGeom = itCond->GetGeometry();
-                 if (rGeom.PointsNumber() == 2)
-                 {
-                     Node<3>& rNode0 = rGeom[0];
-                     int Node0Pair = rNode0.FastGetSolutionStepValue(mrPeriodicIdVar);
-
-                     Node<3>& rNode1 = rGeom[1];
-                     int Node1Pair = rNode1.FastGetSolutionStepValue(mrPeriodicIdVar);
-
-                     // If the nodes are marked as a periodic pair (this is to avoid acting on two-noded conditions that are not PeriodicCondition)
-                     if ( ( static_cast<int>(rNode0.Id()) == Node1Pair ) && (static_cast<int>(rNode1.Id()) == Node0Pair ) )
-                     {
-                         array_1d<double,3> DeltaVel = rNode0.FastGetSolutionStepValue(FRACT_VEL) + rNode1.FastGetSolutionStepValue(FRACT_VEL);
-
-                         rNode0.GetValue(FRACT_VEL) = DeltaVel;
-                         rNode1.GetValue(FRACT_VEL) = DeltaVel;
-                     }
-                 }
-                 else if (rGeom.PointsNumber() == 4 && rGeom[0].FastGetSolutionStepValue(mrPeriodicIdVar) > GlobalNodesNum)
-                 {
-                     array_1d<double,3> DeltaVel = rGeom[0].FastGetSolutionStepValue(FRACT_VEL);
-                     for (unsigned int i = 1; i < 4; i++)
-                     {
-                         DeltaVel += rGeom[i].FastGetSolutionStepValue(FRACT_VEL);
-                     }
-
-                     for (unsigned int i = 0; i < 4; i++)
-                     {
-                         rGeom[i].GetValue(FRACT_VEL) = DeltaVel;
-                     }
-                 }
-             }
-
-             rModelPart.GetCommunicator().AssembleNonHistoricalData(FRACT_VEL);
-
-             for (typename ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
-             {
-                 array_1d<double,3>& rDeltaVel = itNode->GetValue(FRACT_VEL);
-                 if ( rDeltaVel[0]*rDeltaVel[0] + rDeltaVel[1]*rDeltaVel[1] + rDeltaVel[2]*rDeltaVel[2] != 0.0)
-                 {
-                     itNode->FastGetSolutionStepValue(FRACT_VEL) = itNode->GetValue(FRACT_VEL);
-                     rDeltaVel = array_1d<double,3>(3,0.0);
-                 }
-             }
-         }
-     }
-
 
     ///@}
     ///@name Protected  Access

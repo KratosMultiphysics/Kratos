@@ -197,7 +197,7 @@ public:
     {
         KRATOS_TRY
 
-	std::cout<<"......GaussSeidelLinearStrategy GaussSeidelLinearStrategy GaussSeidelLinearStrategy"<<std::endl;
+	std::cout<<" GaussSeidelLinearStrategy"<<std::endl;
 
         mCalculateReactionsFlag = CalculateReactionFlag;
         mReformDofSetAtEachStep = ReformDofSetAtEachStep;
@@ -385,14 +385,11 @@ public:
 	/* InitializeSolutionStep(); // !!!!!!!!!!!!!!!!!!!!!!!!! */
 
         //updates the database with a prediction of the solution
-	std::cout << "PREDICT " << std::endl;
 	Predict();
 
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mb = *mpb;
-
-	std::cout << "BUILD AND SOLVE" << std::endl;
 
         if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false)
         {
@@ -699,32 +696,29 @@ private:
             std::cout << "GAUSS SEIDEL(1st solve) CurrentTime = " << pCurrentProcessInfo[TIME] << std::endl;
 	  }
 
-	std::cout << "gauss seidel: InitializeSolutionStep" <<" rank " <<rank<<" BaseType::GetEchoLevel() "<<BaseType::GetEchoLevel()<<std::endl;
-
         //loop to reform the dofset
         boost::timer system_construction_time;
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         /* if (pBuilderAndSolver->GetDofSetIsInitializedFlag() == false || mReformDofSetAtEachStep == true) */
         /* { */
 	boost::timer setup_dofs_time;
 	//setting up the list of the DOFs to be solved
 	pBuilderAndSolver->SetUpDofSet(pScheme, BaseType::GetModelPart());
-	if (BaseType::GetEchoLevel() > 0 && rank == 0)
+	if (BaseType::GetEchoLevel() > 1 && rank == 0)
 	  std::cout << "setup_dofs_time : " << setup_dofs_time.elapsed() << std::endl;
 
 	//shaping correctly the system
 	boost::timer setup_system_time;
 	pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
-	if (BaseType::GetEchoLevel() > 0 && rank == 0)
+	if (BaseType::GetEchoLevel() > 1 && rank == 0)
 	  std::cout << "setup_system_time : " << setup_system_time.elapsed() << std::endl;
 
 	//setting up the Vectors involved to the correct size
 	boost::timer system_matrix_resize_time;
 	pBuilderAndSolver->ResizeAndInitializeVectors(mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
-	if (BaseType::GetEchoLevel() > 0 && rank == 0)
+	if (BaseType::GetEchoLevel() > 1 && rank == 0)
 	  std::cout << "system_matrix_resize_time : " << system_matrix_resize_time.elapsed() << std::endl;
 	/* } */ // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        if (BaseType::GetEchoLevel() > 0 && rank == 0)
+        if (BaseType::GetEchoLevel() > 1 && rank == 0)
 	  std::cout << "System Construction Time : " << system_construction_time.elapsed() << std::endl;
 
 
@@ -734,34 +728,32 @@ private:
 
 
         //initial operations ... things that are constant over the Solution Step
-	std::cout << "pBuilderAndSolver->IInitializeSolutionStep.... "<< std::endl;
 	boost::timer initialize_solution_step;
 	pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
-	if (BaseType::GetEchoLevel() > 0 && rank == 0)
+	if (BaseType::GetEchoLevel() > 1 && rank == 0)
 	  std::cout << "initialize_solution_step : " << initialize_solution_step.elapsed() << std::endl;
 
-	std::cout << "....done! "<< std::endl;
         //initial operations ... things that are constant over the Solution Step
      	std::cout << "pScheme->InitializeSolutionStep.... "<< std::endl;
 	boost::timer scheme_initialize_solution_step;
 	pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
-	if (BaseType::GetEchoLevel() > 0 && rank == 0)
+	if (BaseType::GetEchoLevel() > 1 && rank == 0)
 	  std::cout << "scheme initialize_solution_step : " <<  scheme_initialize_solution_step.elapsed() << std::endl;
-     	std::cout << "... done!! "<< std::endl;
 
     //updates the database with a prediction of the solution
-	std::cout << "PREDICT " << std::endl;
 	Predict();
 
         mA = *mpA;
         mDx = *mpDx;
         mb = *mpb;
 
-	std::cout << "BUILD AND SOLVE" << std::endl;
+	if (BaseType::GetEchoLevel() > 1 && rank == 0)
+	  std::cout << "BUILD AND SOLVE" << std::endl;
 
         if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false)
         {
-	  std::cout << "first BUILD AND SOLVE" << std::endl;
+	  if (BaseType::GetEchoLevel() > 1 && rank == 0)
+	    std::cout << "first BUILD AND SOLVE" << std::endl;
             TSparseSpace::SetToZero(mA);
             TSparseSpace::SetToZero(mDx);
             TSparseSpace::SetToZero(mb);
