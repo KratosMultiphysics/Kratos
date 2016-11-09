@@ -168,16 +168,22 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "SurfaceNormalFluidFluxDiffOrderCondition3D6N", mSurfaceNormalFluidFluxDiffOrderCondition3D6N )
     KRATOS_REGISTER_CONDITION( "SurfaceNormalFluidFluxDiffOrderCondition3D8N", mSurfaceNormalFluidFluxDiffOrderCondition3D8N )
     KRATOS_REGISTER_CONDITION( "SurfaceNormalFluidFluxDiffOrderCondition3D9N", mSurfaceNormalFluidFluxDiffOrderCondition3D9N )
-    
-    Serializer::Register( "RestoreDamageFlowRule", mRestoreDamageFlowRule );
-    
+
+
     //Register Constitutive Laws
     Serializer::Register("BilinearCohesive3DLaw",mBilinearCohesive3DLaw);
     Serializer::Register("BilinearCohesive2DLaw",mBilinearCohesive2DLaw);
+    
+    Serializer::Register( "RestoreDamageFlowRule", mRestoreDamageFlowRule );
+    Serializer::Register( "RestoreNonlocalDamageFlowRule", mRestoreNonlocalDamageFlowRule );
 
     Serializer::Register("RestoreSimoJu3DLaw",mRestoreSimoJu3DLaw);
     Serializer::Register("RestoreSimoJuPlaneStrain2DLaw",mRestoreSimoJuPlaneStrain2DLaw);
     Serializer::Register("RestoreSimoJuPlaneStress2DLaw",mRestoreSimoJuPlaneStress2DLaw);
+
+    Serializer::Register("RestoreSimoJuNonlocal3DLaw",mRestoreSimoJuNonlocal3DLaw);
+    Serializer::Register("RestoreSimoJuNonlocalPlaneStrain2DLaw",mRestoreSimoJuNonlocalPlaneStrain2DLaw);
+    Serializer::Register("RestoreSimoJuNonlocalPlaneStress2DLaw",mRestoreSimoJuNonlocalPlaneStress2DLaw);
 
     //Register Variables
     KRATOS_REGISTER_VARIABLE( NEWMARK_COEFFICIENT_U )
@@ -216,6 +222,9 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( ARC_LENGTH_RADIUS_FACTOR )
 
     KRATOS_REGISTER_VARIABLE( TIME_UNIT_CONVERTER )
+
+    KRATOS_REGISTER_VARIABLE( LOCAL_EQUIVALENT_STRAIN )
+    KRATOS_REGISTER_VARIABLE( NONLOCAL_EQUIVALENT_STRAIN )
 }
 
 }// namespace Kratos.

@@ -178,7 +178,7 @@ protected:
     void CheckFracture(
         const unsigned int& itFracture,
         GlobalPropagationVariables& rPropagationData,
-        const UtilityVariables AuxVariables,
+        const UtilityVariables& AuxVariables,
         Parameters& rParameters)
     {
         LocalPropagationVariables AuxPropagationVariables;
@@ -1275,7 +1275,7 @@ private:
         array_1d<double,3> AuxLocalCoordinates;
 
         unsigned int NumBodySubModelParts = rParameters["fracture_data"]["body_domain_sub_model_part_list"].size();
-        
+
         // Loop through all BodySubModelParts
         for(unsigned int i = 0; i < NumBodySubModelParts; i++)
         {
@@ -1418,7 +1418,7 @@ private:
         int MotherFractureId = rParameters["fractures_list"][itFracture]["id"].GetInt();
         array_1d<double,2> AuxArray1;
         array_1d<double,2> AuxArray2;
-        
+
         // Bifurcation
         if(PropagationFactor < PropagationDamage
             && TopBifurcationFactor > PropagationDamage && BotBifurcationFactor > PropagationDamage)

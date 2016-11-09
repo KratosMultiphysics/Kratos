@@ -5,7 +5,7 @@ proc WriteInitialFracturesData { dir gidpath } {
     set BodySurfacesDict [dict create]
     set BodyGroups [GiD_Info conditions Body_Part groups]
     set InterfaceGroups [GiD_Info conditions Interface_Part groups]
-    # TODO: for the moment only propagate pre-existing fractures
+
     if {[llength $InterfaceGroups] < 1} {
         WarnWin "ERROR: For the moment Fracture Propagation needs at least 1 pre-existing fracture"
     }

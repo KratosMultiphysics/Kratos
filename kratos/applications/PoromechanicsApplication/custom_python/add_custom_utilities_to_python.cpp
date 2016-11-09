@@ -19,6 +19,7 @@
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/interface_element_utilities.hpp"
 #include "custom_utilities/fracture_propagation_2D_utilities.hpp"
+#include "custom_utilities/nonlocal_damage_2D_utilities.hpp"
 
 
 namespace Kratos

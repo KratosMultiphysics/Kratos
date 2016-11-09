@@ -395,7 +395,11 @@ proc WriteMdpa { basename dir } {
             incr PropertyId
             lappend PropertyList [lindex [lindex $Groups $i] 1] $PropertyId
             puts $varfile "Begin Properties $PropertyId"
-            puts $varfile "  CONSTITUTIVE_LAW_NAME RestoreSimoJu3DLaw"
+            if {[GiD_AccessValue get gendata Non-local_Damage]==true} {
+                puts $varfile "  CONSTITUTIVE_LAW_NAME RestoreSimoJuNonlocal3DLaw"
+            } else {
+                puts $varfile "  CONSTITUTIVE_LAW_NAME RestoreSimoJu3DLaw"
+            }
             puts $varfile "  YOUNG_MODULUS [lindex [lindex $Groups $i] 4]"
             puts $varfile "  POISSON_RATIO [lindex [lindex $Groups $i] 5]"
             puts $varfile "  DENSITY_SOLID [lindex [lindex $Groups $i] 6]"
@@ -419,7 +423,15 @@ proc WriteMdpa { basename dir } {
             incr PropertyId
             lappend PropertyList [lindex [lindex $Groups $i] 1] $PropertyId
             puts $varfile "Begin Properties $PropertyId"
-            puts $varfile "  CONSTITUTIVE_LAW_NAME [lindex [lindex $Groups $i] 3]"
+            if {[GiD_AccessValue get gendata Non-local_Damage]==true} {
+                if {[lindex [lindex $Groups $i] 3]=="RestoreSimoJuPlaneStrain2DLaw"} {
+                    puts $varfile "  CONSTITUTIVE_LAW_NAME RestoreSimoJuNonlocalPlaneStrain2DLaw"
+                } else {
+                    puts $varfile "  CONSTITUTIVE_LAW_NAME RestoreSimoJuNonlocalPlaneStress2DLaw"
+                }
+            } else {
+                puts $varfile "  CONSTITUTIVE_LAW_NAME [lindex [lindex $Groups $i] 3]"
+            }
             puts $varfile "  YOUNG_MODULUS [lindex [lindex $Groups $i] 4]"
             puts $varfile "  POISSON_RATIO [lindex [lindex $Groups $i] 5]"
             puts $varfile "  DENSITY_SOLID [lindex [lindex $Groups $i] 6]"
@@ -2324,7 +2336,7 @@ proc PrismInterface3D6Connectivities { ElemId } {
     set Volume [string trimleft $Volume "Volume="]
     
     # Check Connectivities
-    if {$Volume > -1.0e-15} {
+    if {$Volume > -1.0e-10} {
         set Connectivities "$N1(Id) $N2(Id) $N3(Id) $N4(Id) $N5(Id) $N6(Id)"
     } else {
         #W "Reordering nodes of interface element"
@@ -2355,7 +2367,7 @@ proc HexahedronInterface3D8Connectivities { ElemId } {
     set Volume [string trimleft $Volume "Volume="]
     
     # Check Connectivities
-    if {$Volume > -1.0e-15} {
+    if {$Volume > -1.0e-10} {
         set Connectivities "$N1(Id) $N2(Id) $N3(Id) $N4(Id) $N5(Id) $N6(Id) $N7(Id) $N8(Id)"
     } else {
         #W "Reordering nodes of interface element"

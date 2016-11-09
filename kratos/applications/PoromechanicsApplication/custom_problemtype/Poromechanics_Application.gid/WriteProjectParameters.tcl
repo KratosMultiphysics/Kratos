@@ -48,6 +48,8 @@ proc WriteProjectParameters { basename dir TableList} {
     puts $varfile "        \"max_radius_factor\":                  [GiD_AccessValue get gendata Max_Radius_Factor],"
     puts $varfile "        \"min_radius_factor\":                  [GiD_AccessValue get gendata Min_Radius_Factor],"
     puts $varfile "        \"builder\":                            \"[GiD_AccessValue get gendata Builder]\","
+    puts $varfile "        \"nonlocal_damage\":                    [GiD_AccessValue get gendata Non-local_Damage],"
+    puts $varfile "        \"characteristic_length\":              [GiD_AccessValue get gendata Characteristic_Length],"
     ## linear_solver_settings
     puts $varfile "        \"linear_solver_settings\":             \{"
     if {[GiD_AccessValue get gendata Solver_Type]=="AMGCL"} {
@@ -91,6 +93,15 @@ proc WriteProjectParameters { basename dir TableList} {
     set PutStrings [string trimright $PutStrings ,]
     append PutStrings \]
     puts $varfile "        \"problem_domain_sub_model_part_list\": $PutStrings,"
+    ## body_domain_sub_model_part_list
+    set PutStrings \[
+    set Groups [GiD_Info conditions Body_Part groups]
+    for {set i 0} {$i < [llength $Groups]} {incr i} {
+        append PutStrings \" [lindex [lindex $Groups $i] 1] \" ,
+    }
+    set PutStrings [string trimright $PutStrings ,]
+    append PutStrings \]
+    puts $varfile "        \"body_domain_sub_model_part_list\":      $PutStrings,"
     ## processes_sub_model_part_list
     set PutStrings \[
     # Solid_Displacement

@@ -64,7 +64,11 @@ public:
     int Check(const ProcessInfo& rCurrentProcessInfo);
     
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-   
+
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    
+    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -14,8 +14,8 @@
 // Application includes
 #include "custom_constitutive/isotropic_damage_simo_ju_3D_law.hpp"
 #include "custom_constitutive/custom_flow_rules/restore_damage_flow_rule.hpp"
-#include "custom_constitutive/custom_yield_criteria/simo_ju_yield_criterion.hpp"
-#include "custom_constitutive/custom_hardening_laws/exponential_damage_hardening_law.hpp"
+//#include "custom_constitutive/custom_yield_criteria/simo_ju_yield_criterion.hpp"
+//#include "custom_constitutive/custom_hardening_laws/exponential_damage_hardening_law.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos

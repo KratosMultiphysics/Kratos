@@ -14,9 +14,9 @@ namespace Kratos
 //Default Constructor
 RestoreSimoJu3DLaw::RestoreSimoJu3DLaw() : IsotropicDamageSimoJu3DLaw()
 {
-  mpHardeningLaw   = HardeningLaw::Pointer( new ExponentialDamageHardeningLaw() );
-  mpYieldCriterion = YieldCriterion::Pointer( new SimoJuYieldCriterion(mpHardeningLaw) );
-  mpFlowRule       = FlowRule::Pointer( new RestoreDamageFlowRule(mpYieldCriterion) );
+  //mpHardeningLaw   = HardeningLaw::Pointer( new ExponentialDamageHardeningLaw() );
+  //mpYieldCriterion = YieldCriterion::Pointer( new SimoJuYieldCriterion(mpHardeningLaw) );
+  mpFlowRule = FlowRule::Pointer( new RestoreDamageFlowRule(mpYieldCriterion) );
 }
 
 //----------------------------------------------------------------------------------------

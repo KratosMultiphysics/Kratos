@@ -161,7 +161,7 @@ void BilinearCohesive2DLaw::ComputeStressVectorContact(Vector& rStressVector,con
                                                             const double& YieldStress,const double& DamageThreshold,const double& CriticalDisplacement)
 {
     rStressVector[1] = YoungModulus/(DamageThreshold*CriticalDisplacement)*StrainVector[1]; // Note: StrainVector[1] < 0.0
-    
+
     if(StrainVector[0] > 1.0e-20)
     {
         rStressVector[0] = YieldStress/(CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-DamageThreshold)*StrainVector[0] - FrictionCoefficient*rStressVector[1];

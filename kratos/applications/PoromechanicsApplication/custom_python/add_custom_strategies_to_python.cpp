@@ -20,6 +20,8 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/strategies/poromechanics_newton_raphson_strategy.hpp"
 #include "custom_strategies/strategies/poromechanics_ramm_arc_length_strategy.hpp"
+#include "custom_strategies/strategies/poromechanics_newton_raphson_nonlocal_strategy.hpp"
+#include "custom_strategies/strategies/poromechanics_ramm_arc_length_nonlocal_strategy.hpp"
 
 //builders and solvers
 
@@ -54,6 +56,8 @@ void  AddCustomStrategiesToPython()
     
     typedef PoromechanicsNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > PoromechanicsNewtonRaphsonStrategyType;
     typedef PoromechanicsRammArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > PoromechanicsRammArcLengthStrategyType;
+    typedef PoromechanicsNewtonRaphsonNonlocalStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > PoromechanicsNewtonRaphsonNonlocalStrategyType;
+    typedef PoromechanicsRammArcLengthNonlocalStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > PoromechanicsRammArcLengthNonlocalStrategyType;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -67,10 +71,21 @@ void  AddCustomStrategiesToPython()
     class_< PoromechanicsNewtonRaphsonStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("PoromechanicsNewtonRaphsonStrategy", 
         init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
                  BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
-    
+                 
     class_< PoromechanicsRammArcLengthStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("PoromechanicsRammArcLengthStrategy", 
         init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+                 BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >())
+        .def("UpdateLoads",&PoromechanicsRammArcLengthStrategyType::UpdateLoads)
+        ;
+
+    class_< PoromechanicsNewtonRaphsonNonlocalStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("PoromechanicsNewtonRaphsonNonlocalStrategy", 
+        init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
                  BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
+                 
+    class_< PoromechanicsRammArcLengthNonlocalStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("PoromechanicsRammArcLengthNonlocalStrategy", 
+        init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+                 BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
+        
 }
 
 }  // namespace Python.
