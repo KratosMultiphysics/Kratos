@@ -74,6 +74,8 @@ public:
                     "desired_iterations": 4,
                     "max_radius_factor": 20.0,
                     "min_radius_factor": 0.5,
+                    "characteristic_length": 0.05,
+                    "body_domain_sub_model_part_list": [""],
                     "loads_sub_model_part_list": [""],
                     "loads_variable_list" : [""]
                 }  )" );
@@ -121,7 +123,7 @@ public:
             TSparseSpace::SetToZero(mA);
             TSparseSpace::SetToZero(mDx);
             TSparseSpace::SetToZero(mb);
-            
+
             mpBuilderAndSolver->BuildAndSolve(mpScheme, BaseType::GetModelPart(), mA, mDx, mb);
             
             mRadius_0 = TSparseSpace::TwoNorm(mDx);
@@ -131,7 +133,7 @@ public:
             this->InitializeSystemVector(mpf);
             TSystemVectorType& mf = *mpf;
             TSparseSpace::SetToZero(mf);
-            
+
             mpBuilderAndSolver->BuildRHS(mpScheme, BaseType::GetModelPart(), mf);
             
             //Initialize the loading factor Lambda
@@ -403,15 +405,9 @@ public:
         KRATOS_TRY
         
         bool IsConverged = true;
-        
-        mLambda = BaseType::GetModelPart().GetProcessInfo()[ARC_LENGTH_LAMBDA];
-        mRadius = (BaseType::GetModelPart().GetProcessInfo()[ARC_LENGTH_RADIUS_FACTOR])*mRadius_0;
-        
-        // Update External Loads        
-        this->UpdateExternalLoads();
-        
+                
         // Note: Initialize() needs to be called beforehand
-        /*TODO
+        
 		this->InitializeSolutionStep();
         
 		this->Predict();
@@ -420,8 +416,23 @@ public:
 		IsConverged = this->CheckConvergence();
         
 		this->FinalizeSolutionStep();
-        */
+        
         return IsConverged;
+        
+        KRATOS_CATCH("")
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    virtual void UpdateLoads()
+    {
+        KRATOS_TRY
+                
+        mLambda = BaseType::GetModelPart().GetProcessInfo()[ARC_LENGTH_LAMBDA];
+        mRadius = (BaseType::GetModelPart().GetProcessInfo()[ARC_LENGTH_RADIUS_FACTOR])*mRadius_0;
+        
+        // Update External Loads        
+        this->UpdateExternalLoads();
         
         KRATOS_CATCH("")
     }

@@ -16,7 +16,6 @@ class FracturePropagationUtility:
             self.PropagationUtility = FracturePropagation2DUtilities()
             self.tcl_proc = "Poromechanics_Application::PropagateFractures2D"
         else:
-            #TODO
             print("**************** For the moment FracturePropagationUtility is NOT available in 3D ****************")
             self.PropagationUtility = 0
             self.tcl_proc = "Poromechanics_Application::PropagateFractures3D"
@@ -260,15 +259,16 @@ class FracturePropagationUtility:
         
         self.PropagationUtility.MappingModelParts(self.FracturesData, main_model_part_old, main_model_part)
         
-        # set ARC_LENGTH_LAMBDA and ARC_LENGTH_RADIUS_FACTOR (TODO: improve this...)
+        # set ARC_LENGTH_LAMBDA and ARC_LENGTH_RADIUS_FACTOR and update loads
         if ProjectParameters["solver_settings"]["strategy_type"].GetString() == "Arc-Length":
             main_model_part.ProcessInfo[ARC_LENGTH_LAMBDA] = main_model_part_old.ProcessInfo[ARC_LENGTH_LAMBDA]
             main_model_part.ProcessInfo[ARC_LENGTH_RADIUS_FACTOR] = main_model_part_old.ProcessInfo[ARC_LENGTH_RADIUS_FACTOR]
+            solver._UpdateLoads()
         
         # delete auxiliary model_part
         del main_model_part_old
         
-        # Check new mesh (TODO: create a new method that can be called from python to update the loads in the arc-length strategy)
-        IsConverged = solver._CheckConvergence()
+        # Check new mesh
+        #IsConverged = solver._CheckConvergence()
         
         return main_model_part,solver,list_of_processes,gid_output

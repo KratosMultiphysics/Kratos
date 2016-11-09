@@ -94,6 +94,65 @@ int UPwSmallStrainElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentPro
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
+void UPwSmallStrainElement<TDim,TNumNodes>::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+{
+    //Defining necessary variables
+    const GeometryType& Geom = this->GetGeometry();
+    const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+    GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+    Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,mThisIntegrationMethod);
+    
+    unsigned int VoigtSize = 6;
+    if(TDim == 2) VoigtSize = 3;
+    Matrix B(VoigtSize,TNumNodes*TDim);
+    noalias(B) = ZeroMatrix(VoigtSize,TNumNodes*TDim);
+    array_1d<double,TNumNodes*TDim> DisplacementVector;
+    ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
+
+    //Create constitutive law parameters:
+    Vector StrainVector(VoigtSize);
+    Vector StressVector(VoigtSize);
+    Matrix ConstitutiveMatrix(VoigtSize,VoigtSize);
+    Vector Np(TNumNodes);
+    Matrix GradNpT(TNumNodes,TDim);
+    Matrix F = identity_matrix<double>(TDim);
+    double detF = 1.0;
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,this->GetProperties(),rCurrentProcessInfo);
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY); //Note: this is for nonlocal damage
+    ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
+    ConstitutiveParameters.SetStressVector(StressVector);
+    ConstitutiveParameters.SetStrainVector(StrainVector);
+    ConstitutiveParameters.SetShapeFunctionsValues(Np);
+    ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
+    ConstitutiveParameters.SetDeformationGradientF(F);
+    ConstitutiveParameters.SetDeterminantF(detF);
+        
+    //Loop over integration points
+    for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
+    {
+        noalias(Np) = row(NContainer,GPoint);
+        noalias(GradNpT) = DN_DXContainer[GPoint];
+        this->CalculateBMatrix(B, GradNpT);
+        
+        // Compute Stress
+        noalias(StrainVector) = prod(B,DisplacementVector);
+        mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+{
+    this->InitializeNonLinearIteration(rCurrentProcessInfo);
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {   
     KRATOS_TRY

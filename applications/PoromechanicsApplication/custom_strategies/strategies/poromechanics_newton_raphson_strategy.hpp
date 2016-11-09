@@ -108,7 +108,7 @@ public:
         KRATOS_TRY
         
         bool IsConverged = true;
-        /*TODO
+        
         // Set the loads to 0.0
         this->SetLoadsToZero();
         
@@ -125,7 +125,7 @@ public:
         
         // Set the loads to its original value
         this->RestoreLoadsValue();
-        */
+        
         return IsConverged;
         
         KRATOS_CATCH("")
@@ -219,7 +219,6 @@ protected:
             std::cout << "TEST ITERATION: " << iteration_number << std::endl;
             std::cout << "    Dofs Ratio = " << dofs_ratio << std::endl;
             
-            // TODO: this could be improved...
             if(dofs_ratio <= 1.0e-3)
                 is_converged = true;
         }

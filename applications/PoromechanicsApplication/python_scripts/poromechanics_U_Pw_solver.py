@@ -58,6 +58,8 @@ class UPwSolver(object):
             "max_radius_factor": 20.0,
             "min_radius_factor": 0.5,
             "builder": "Elimination",
+            "nonlocal_damage": false,
+            "characteristic_length": 0.05,
             "linear_solver_settings":{
                 "solver_type": "BICGSTABSolver",
                 "tolerance": 1.0e-6,
@@ -75,6 +77,7 @@ class UPwSolver(object):
                 "coarse_enough" : 5000
             },
             "problem_domain_sub_model_part_list": [""],
+            "body_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
             "loads_sub_model_part_list": [""],
             "loads_variable_list": [""]
@@ -279,46 +282,72 @@ class UPwSolver(object):
     
     def _ConstructSolver(self, builder_and_solver, scheme, convergence_criterion, strategy_type):
         
+        nonlocal_damage = self.settings["nonlocal_damage"].GetBool()
         max_iters = self.settings["max_iteration"].GetInt()
         compute_reactions = self.settings["compute_reactions"].GetBool()
         reform_step_dofs = self.settings["reform_dofs_at_each_step"].GetBool()
         move_mesh_flag = self.settings["move_mesh_flag"].GetBool()
         
         if strategy_type == "Newton-Raphson":
-            NR_params = KratosMultiphysics.Parameters("{}")
-            NR_params.AddValue("loads_sub_model_part_list",self.settings["loads_sub_model_part_list"])
-            NR_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
-            
-            solver = KratosPoro.PoromechanicsNewtonRaphsonStrategy(self.main_model_part,
-                                                                   scheme,
-                                                                   self.linear_solver,
-                                                                   convergence_criterion,
-                                                                   builder_and_solver,
-                                                                   NR_params,
-                                                                   max_iters,
-                                                                   compute_reactions,
-                                                                   reform_step_dofs,
-                                                                   move_mesh_flag)
-        
+            self.strategy_params = KratosMultiphysics.Parameters("{}")
+            self.strategy_params.AddValue("loads_sub_model_part_list",self.settings["loads_sub_model_part_list"])
+            self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
+            if nonlocal_damage:
+                self.strategy_params.AddValue("body_domain_sub_model_part_list",self.settings["body_domain_sub_model_part_list"])
+                self.strategy_params.AddValue("characteristic_length",self.settings["characteristic_length"])
+                solver = KratosPoro.PoromechanicsNewtonRaphsonNonlocalStrategy(self.main_model_part,
+                                                                               scheme,
+                                                                               self.linear_solver,
+                                                                               convergence_criterion,
+                                                                               builder_and_solver,
+                                                                               self.strategy_params,
+                                                                               max_iters,
+                                                                               compute_reactions,
+                                                                               reform_step_dofs,
+                                                                               move_mesh_flag)
+            else:
+                solver = KratosPoro.PoromechanicsNewtonRaphsonStrategy(self.main_model_part,
+                                                                       scheme,
+                                                                       self.linear_solver,
+                                                                       convergence_criterion,
+                                                                       builder_and_solver,
+                                                                       self.strategy_params,
+                                                                       max_iters,
+                                                                       compute_reactions,
+                                                                       reform_step_dofs,
+                                                                       move_mesh_flag)
         else:
             # Arc-Length strategy
-            arc_length_params = KratosMultiphysics.Parameters("{}")
-            arc_length_params.AddValue("desired_iterations",self.settings["desired_iterations"])
-            arc_length_params.AddValue("max_radius_factor",self.settings["max_radius_factor"])
-            arc_length_params.AddValue("min_radius_factor",self.settings["min_radius_factor"])
-            arc_length_params.AddValue("loads_sub_model_part_list",self.settings["loads_sub_model_part_list"])
-            arc_length_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
-            
-            solver = KratosPoro.PoromechanicsRammArcLengthStrategy(self.main_model_part,
-                                                                   scheme,
-                                                                   self.linear_solver,
-                                                                   convergence_criterion,
-                                                                   builder_and_solver,
-                                                                   arc_length_params,
-                                                                   max_iters,
-                                                                   compute_reactions,
-                                                                   reform_step_dofs,
-                                                                   move_mesh_flag)
+            self.strategy_params = KratosMultiphysics.Parameters("{}")
+            self.strategy_params.AddValue("desired_iterations",self.settings["desired_iterations"])
+            self.strategy_params.AddValue("max_radius_factor",self.settings["max_radius_factor"])
+            self.strategy_params.AddValue("min_radius_factor",self.settings["min_radius_factor"])
+            self.strategy_params.AddValue("loads_sub_model_part_list",self.settings["loads_sub_model_part_list"])
+            self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
+            if nonlocal_damage:
+                self.strategy_params.AddValue("body_domain_sub_model_part_list",self.settings["body_domain_sub_model_part_list"])
+                self.strategy_params.AddValue("characteristic_length",self.settings["characteristic_length"])
+                solver = KratosPoro.PoromechanicsRammArcLengthNonlocalStrategy(self.main_model_part,
+                                                                               scheme,
+                                                                               self.linear_solver,
+                                                                               convergence_criterion,
+                                                                               builder_and_solver,
+                                                                               self.strategy_params,
+                                                                               max_iters,
+                                                                               compute_reactions,
+                                                                               reform_step_dofs,
+                                                                               move_mesh_flag)
+            else:
+                solver = KratosPoro.PoromechanicsRammArcLengthStrategy(self.main_model_part,
+                                                                       scheme,
+                                                                       self.linear_solver,
+                                                                       convergence_criterion,
+                                                                       builder_and_solver,
+                                                                       self.strategy_params,
+                                                                       max_iters,
+                                                                       compute_reactions,
+                                                                       reform_step_dofs,
+                                                                       move_mesh_flag)
         
         return solver
     
@@ -331,3 +360,7 @@ class UPwSolver(object):
         IsConverged = self.Solver.IsConverged()
         
         return IsConverged
+    
+    def _UpdateLoads(self):
+        
+        self.Solver.UpdateLoads()
