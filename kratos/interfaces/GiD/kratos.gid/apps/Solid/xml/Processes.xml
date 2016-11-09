@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ProcessList>
 
-  <Process n="AssignValueAndDirectionToVectorProcess" pn="Impose vector value by direction process" python_module="assign_value_and_direction_to_vector_process"
+  <Process n="AssignModulusAndDirectionToNodesProcess" pn="Impose vector value by direction process" python_module="assign_modulus_and_direction_to_nodes_process"
 	   kratos_module="KratosMultiphysics.SolidMechanicsApplication" help="This process fixes all the components of a given vector variable" check="DirectorVectorNonZero direction"> 
     <inputs>
         <parameter n="modulus" pn="Modulus" type="double"  v="1.0"/>
@@ -9,7 +9,7 @@
     </inputs>
   </Process>
     
-  <Process n="AssignValueToVectorComponentsProcess" pn="Assign a vector value process" python_module="assign_value_to_vector_components_process"
+  <Process n="AssignVectorComponentsToNodesProcess" pn="Assign a vector value process" python_module="assign_vector_components_to_nodes_process"
            kratos_module="KratosMultiphysics.SolidMechanicsApplication"
 	   help="This process fixes the selected components of a given vector variable">
     <inputs>
@@ -17,7 +17,7 @@
     </inputs>
   </Process>
 
-  <Process n="AssignValueToScalarProcess" pn="Assign a scalar value process" python_module="assign_value_to_scalar_value_process"
+  <Process n="AssignScalarToNodesProcess" pn="Assign a scalar value process" python_module="assign_scalar_to_nodes_process"
 	   kratos_module="KratosMultiphysics.SolidMechanicsApplication"
 	   help="This process fixes the given scalar variable">
     <inputs>
@@ -28,7 +28,7 @@
 <!--
   Processes for conditions
 -->
-  <Process n="AssignVectorToConditionsProcess" pn="Assign a vector value on a condition" python_module="assing_vector_to_conditions_process"
+  <Process n="AssignModulusAndDirectionToConditionsProcess" pn="Assign a vector value on a condition" python_module="assing_modulus_and_direction_to_conditions_process"
 	   kratos_module="KratosMultiphysics.SolidMechanicsApplication" help="This process sets a vector variable value over a condition" check="DirectorVectorNonZero direction"> 
     <inputs>
       <parameter n="modulus" pn="Modulus" type="double"  v="1.0"/>
