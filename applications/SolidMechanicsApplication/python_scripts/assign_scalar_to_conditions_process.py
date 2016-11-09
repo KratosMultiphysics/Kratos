@@ -1,41 +1,46 @@
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
-import assign_value_to_scalar_process as BaseProcess
+## This proces sets the value of a scalar variable to conditions
+
+import assign_scalar_to_nodes_process as BaseProcess
 
 def Factory(custom_settings, Model):
     if(type(custom_settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return AssignScalarToConditionsProcess(Model, custom_settings["Parameters"])
 
-##all the processes python processes should be derived from "python_process"
 
-class AssignScalarToConditionsProcess(BaseProcess.AssignValueToScalarProcess):
+class AssignScalarToConditionsProcess(BaseProcess.AssignScalarToNodesProcess):
     def __init__(self, Model, custom_settings ):
         BaseProcess.AssignValueToScalarProcess.__init__(self, Model, custom_settings)        
-        
+         
     def ExecuteInitialize(self):
 
-       if( self.interval_string == "initial" ):
-            for cond in self.model_part.Conditions:
-                cond.SetValue(self.var,self.value)
-
+        # set processes
+        params = KratosMultiphysics.Parameters("{}")           
+        params.AddValue("model_part_name", self.settings["model_part_name"])
+        params.AddValue("mesh_id", self.settings["mesh_id"])
+        params.AddValue("variable_name", self.settings["variable_name"])
+        
+        if( self.value_is_numeric ):
+            print(" numeric value ",self.value)
+            params.AddValue("value", self.settings["value"])
+            self.AssignValueProcess = KratosSolid.AssignScalarToConditionsProcess(self.model_part, params)
+        else:
+            print(" function value ", self.value)
+            self.AssignValueProcess = KratosSolid.AssignScalarFieldToConditionsProcess(self.model_part, self.compiled_function, "function", self.value_is_spatial_function, params)
+            
+        if( self.IsInsideInterval() and self.interval_string == "initial" ):
+            self.AssignValueProcess.Execute()
+                    
     def ExecuteInitializeSolutionStep(self):
 
-        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-        delta_time = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        if self.IsInsideInterval():
+            self.AssignValueProcess.Execute()
 
-        #arithmetic floating point tolerance
-        tolerance = delta_time * 0.001;
+    def ExecuteFinalizeSolutionStep(self):
+        pass
+            
 
-        if( current_time >= (self.interval[0] - tolerance) and current_time <= (self.interval[1] + tolerance) ):
-            if( self.function_string == "constant" ):
-                for cond in self.model_part.Conditions:
-                    cond.SetValue(self.var,self.value)
-            else:        
-                current_value = self.value * self.function(current_time)
-                for cond in self.model_part.Conditions:
-                    cond.SetValue(self.var,current_value)
-    
-        
     
