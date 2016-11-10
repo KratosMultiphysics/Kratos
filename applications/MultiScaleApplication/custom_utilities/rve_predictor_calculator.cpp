@@ -202,20 +202,6 @@ namespace Kratos
 				double radius = norm_2(i_strain);
 
 
-				// //Calculate phi & number of division
-				// double m = 10.0; // m = max of tag
-				// std::cout << "m: " << m << std::endl;
-				// double phi = M_PI / m;
-				// //std::cout << "phi: " << phi << " rad" << std::endl;
-				// 
-				// //std::cout << "norm_real_eps: " << norm_real_eps << std::endl;
-				// Vector normalized_eps = radius > 0 ? i_strain / radius : i_strain;//This is the value to compare with the RADIUS
-				// //std::cout << "normalized_eps: " << normalized_eps << std::endl;
-				// Vector Theta(2,0.0);
-				// Theta = this->CalculateTheta(normalized_eps);
-				// //std::cout << "Theta: " << Theta << std::endl;
-				// 
-				// Vector real_tag = Theta / phi;
 				// std::cout << "real_tag: " << real_tag << std::endl;
 
 				r_and_strain_stress[0] = radius;
@@ -587,6 +573,7 @@ namespace Kratos
 					else
 						real_tag[1] += m*mult_1;
 				}
+				//std::cout << "PredictElasticity -> real_tag: " << real_tag << std::endl;
 
 				bool first_interpolation = false;
 				bool second_interpolation = true;
@@ -627,7 +614,8 @@ namespace Kratos
 					max_tag[0] = ceil(real_tag[0]);
 					max_tag[1] = ceil(real_tag[1]);
 					//std::cout << "max_tag: " << max_tag << std::endl;
-
+					
+					Vector InterpStressVector(strain_size, 0.0);
 					if (real_tag[0] == min_tag[0] && real_tag[1] == min_tag[1])
 					{
 						//2. Read the corresponding radius and strain associated to the tag
@@ -708,6 +696,10 @@ namespace Kratos
 								//std::cout << "N_i: " << N_i << std::endl;
 								radius += N_i*i_radius;
 
+								InterpStressVector[0] += N_i*i_r_and_strain[4];
+								InterpStressVector[1] += N_i*i_r_and_strain[5];
+								InterpStressVector[2] += N_i*i_r_and_strain[6];
+
 								i++;
 							}
 						}
@@ -725,14 +717,27 @@ namespace Kratos
 					{
 						Is_Elastic = true;
 						//std::cout << "Is_Elastic = true\n";
-						noalias(stress_vector) = prod(mC0, trial_macro_scale_strain_vector);
+
+						double x = radius;
+						double x0 = 0.0;
+						double x1 = radius;
+
+						double diff = (x1 - x0);
+						if (diff < 1.0e-12)
+							diff = 1.0;
+
+						stress_vector[0] = 0.0 + (InterpStressVector[0] - 0.0)*(x - x0) / diff;
+						stress_vector[1] = 0.0 + (InterpStressVector[1] - 0.0)*(x - x0) / diff;
+						stress_vector[2] = 0.0 + (InterpStressVector[2] - 0.0)*(x - x0) / diff;
+
+						//noalias(stress_vector) = prod(mC0, trial_macro_scale_strain_vector);
 					}
 					else
 					{
 						Is_Elastic = false;
 						//std::cout << "Is_Elastic = false\n";
 						//std::cout << "AMMOUNT OF EXTRA STRAIN: " << norm_real_eps - radius << std::endl;
-						noalias(stress_vector) = ZeroVector(strain_size);
+						stress_vector = ZeroVector(strain_size);
 					}
 				}
 				else if (third_interpolation)
@@ -1383,6 +1388,25 @@ namespace Kratos
 
 		if (norm_real_eps < InterpRadiusVector[0])
 		{
+
+			double x = norm_real_eps;
+			double x0 = 0.0;
+			double x1 = InterpRadiusVector[0];
+
+			double diff = (x1 - x0);
+			if (diff < 1.0e-12)
+				diff = 1.0;
+
+			double y0 = 0.0;
+			double y1 = damages[0];
+
+			EquivalentDamage = y0 + (y1 - y0)*(x - x0) / diff;
+
+			stress_vector[0] = 0.0 + (InterpStressVectorXX[0] - 0.0)*(x - x0) / diff;
+			stress_vector[1] = 0.0 + (InterpStressVectorYY[0] - 0.0)*(x - x0) / diff;
+			stress_vector[2] = 0.0 + (InterpStressVectorXY[0] - 0.0)*(x - x0) / diff;
+			return;
+
 			//std::cout << "Is_Elastic = true\n";
 			EquivalentDamage = EquivalentDamageConverged;
 			noalias(const_tensor) = (1 - EquivalentDamage)*mC0;
@@ -1549,6 +1573,7 @@ namespace Kratos
 		//Calculate Area -> Fracture Energy
 		double Area0 = 0.5 * InterpRadiusVector[0] * InterpStressVectorXX[0];
 		double Area = Area0;
+		//for (size_t i = m_position_biggest_ft; i < n_damage - 1; i++)
 		for (size_t i = 0; i < n_damage - 1; i++)
 		{
 			Area += 0.5 * (InterpRadiusVector[i + 1] - InterpRadiusVector[i])*(InterpStressVectorXX[i] + InterpStressVectorXX[i + 1]);

@@ -53,7 +53,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RVE_CONSTRAINT_HANDLER_PBF_SD_H_INCLUDED
 
 #include "rve_constraint_handler.h"
-#include "../custom_conditions/rve_weak_periodic_condition_2D2N.h"
+//#include "../custom_conditions/rve_weak_periodic_condition_2D2N.h"
 
 namespace Kratos
 {
