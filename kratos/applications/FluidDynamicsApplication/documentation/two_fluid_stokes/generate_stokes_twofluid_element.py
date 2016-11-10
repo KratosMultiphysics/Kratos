@@ -1,4 +1,5 @@
 from sympy import *
+from KratosMultiphysics import *
 from sympy_fe_utilities import *
 
 do_simplifications = False
