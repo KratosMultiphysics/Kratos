@@ -782,8 +782,6 @@ private:
 
       //std::cout<<"     Node Shared Conditions (Pair of Condition Nodes) is now set "<<std::endl;
       
-      //angles 
-      double condition_angle = 0;
       
       //vector of the neighbour conditions
       array_1d<double,3> S1;
@@ -815,6 +813,9 @@ private:
       
       for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(mMeshId); in != rModelPart.NodesEnd(mMeshId); in++)
 	{
+
+          //angles 
+         double condition_angle = 0;
 
 	  if( in->Is(BOUNDARY) && in->IsNot(BLOCKED) && in->IsNot(NEW_ENTITY) )
 	    {
