@@ -279,19 +279,21 @@ class Procedures(object):
         self.domain_size = self.DEM_parameters.Dimension
         
     def AddAllVariablesInAllModelParts(self, solver, scheme, spheres_model_part, cluster_model_part, DEM_inlet_model_part, rigid_face_model_part, DEM_parameters):
+        self.solver=solver
+        self.scheme=scheme
         self.AddCommonVariables(spheres_model_part, DEM_parameters)
         self.AddSpheresVariables(spheres_model_part, DEM_parameters)
         self.AddMpiVariables(spheres_model_part)
-        solver.AddAdditionalVariables(spheres_model_part, DEM_parameters)
-        scheme.AddSpheresVariables(spheres_model_part)
+        self.solver.AddAdditionalVariables(spheres_model_part, DEM_parameters)
+        self.scheme.AddSpheresVariables(spheres_model_part)
         self.AddCommonVariables(cluster_model_part, DEM_parameters)
         self.AddClusterVariables(cluster_model_part, DEM_parameters)
         self.AddMpiVariables(cluster_model_part)
-        scheme.AddClustersVariables(cluster_model_part)
+        self.scheme.AddClustersVariables(cluster_model_part)
         self.AddCommonVariables(DEM_inlet_model_part, DEM_parameters)
         self.AddSpheresVariables(DEM_inlet_model_part, DEM_parameters)
-        solver.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)  
-        scheme.AddSpheresVariables(DEM_inlet_model_part)
+        self.solver.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)
+        self.scheme.AddSpheresVariables(DEM_inlet_model_part)
         self.AddCommonVariables(rigid_face_model_part, DEM_parameters)
         self.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
         self.AddMpiVariables(rigid_face_model_part)
@@ -354,9 +356,12 @@ class Procedures(object):
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZX)
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZY)
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZZ)
-            model_part.AddNodalSolutionStepVariable(POISSON_VALUE)
+        if (self.solver.compute_stress_tensor_option):
             model_part.AddNodalSolutionStepVariable(FORCE_REACTION)
             model_part.AddNodalSolutionStepVariable(MOMENT_REACTION)
+
+        if (self.solver.poisson_ratio_option):
+            model_part.AddNodalSolutionStepVariable(POISSON_VALUE)
 
         # Nano Particle
         if self.DEM_parameters.ElementType == "SwimmingNanoParticle":
@@ -789,8 +794,7 @@ class DEMFEMProcedures(object):
         self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(DEM_inlet_model_part, time, dt)
     
-    def UpdateTimeInModelParts(self, spheres_model_part, rigid_face_model_part, cluster_model_part, time,dt,step):
-        
+    def UpdateTimeInModelParts(self, spheres_model_part, rigid_face_model_part, cluster_model_part, time,dt,step):       
         spheres_model_part.ProcessInfo[TIME]          = time
         spheres_model_part.ProcessInfo[DELTA_TIME]    = dt
         spheres_model_part.ProcessInfo[TIME_STEPS]    = step
