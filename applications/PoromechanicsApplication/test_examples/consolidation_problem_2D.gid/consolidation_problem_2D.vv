@@ -1,6 +1,6 @@
-BeginZE /home/ipouplana/Descargas/tests/consolidation_problem_2D.gid/consolidation_problem_2D.vv
+BeginZE /home/ipouplana/Descargas/Tests/consolidation_problem_2D.gid/consolidation_problem_2D.vv
    x -0.226483166217803955 1.22648310661315918
-   y 1.99030888080596924 -0.990308880805969238
+   y 1.99379909038543701 -0.993799090385437012
    z -0.726483166217803955 0.726483166217803955
    e 0.726483166217803955
    v 0 0 0
@@ -29,7 +29,7 @@ BeginZE /home/ipouplana/Descargas/tests/consolidation_problem_2D.gid/consolidati
    OGLStereo(EyeDistance) 0.075
    OGLStereo(LeftEyeDistance) 1 0 0 1
    OGLStereo(RightEyeDistance) 0 1 1 1
-EndZE /home/ipouplana/Descargas/tests/consolidation_problem_2D.gid/consolidation_problem_2D.vv
+EndZE /home/ipouplana/Descargas/Tests/consolidation_problem_2D.gid/consolidation_problem_2D.vv
 
 BeginMirror
    Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror

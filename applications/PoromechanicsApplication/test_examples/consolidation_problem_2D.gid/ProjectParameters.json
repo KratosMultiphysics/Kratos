@@ -38,6 +38,8 @@
         "max_radius_factor":                  20.0,
         "min_radius_factor":                  0.5,
         "builder":                            "Elimination",
+        "nonlocal_damage":                    false,
+        "characteristic_length":              0.05,
         "linear_solver_settings":             {
             "solver_type":                    "BICGSTABSolver",
             "tolerance":                      1.0e-5,
@@ -46,6 +48,7 @@
             "preconditioner_type":            "ILU0Preconditioner"
         },
         "problem_domain_sub_model_part_list": ["Body_Part-auto-1"],
+        "body_domain_sub_model_part_list":      ["Body_Part-auto-1"],
         "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Fluid_Pressure-auto-1","Fluid_Pressure-auto-2","Face_Load-auto-1","Normal_Fluid_Flux-auto-1","Body_Acceleration-auto-1"],
         "loads_sub_model_part_list":          ["Face_Load-auto-1","Normal_Fluid_Flux-auto-1","Body_Acceleration-auto-1"],
         "loads_variable_list":                ["FACE_LOAD","NORMAL_FLUID_FLUX","VOLUME_ACCELERATION"]

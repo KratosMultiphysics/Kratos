@@ -33,17 +33,20 @@
         "displacement_absolute_tolerance":    1.0E-9,
         "residual_relative_tolerance":        1.0E-4,
         "residual_absolute_tolerance":        1.0E-9,
-        "max_iteration":                      15,
+        "max_iteration":                      20,
         "desired_iterations":                 4,
         "max_radius_factor":                  20.0,
         "min_radius_factor":                  0.5,
         "builder":                            "Elimination",
+        "nonlocal_damage":                    false,
+        "characteristic_length":              0.01,
         "linear_solver_settings":             {
             "solver_type":                    "SuperLUSolver",
             "tolerance":                      1.0e-5,
             "max_iteration":                  100
         },
         "problem_domain_sub_model_part_list": ["Body_Part-auto-1"],
+        "body_domain_sub_model_part_list":      ["Body_Part-auto-1"],
         "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Fluid_Pressure-auto-1","Face_Load-auto-1","Face_Load-auto-2"],
         "loads_sub_model_part_list":          ["Face_Load-auto-1","Face_Load-auto-2"],
         "loads_variable_list":                ["FACE_LOAD","FACE_LOAD"]
