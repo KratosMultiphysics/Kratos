@@ -18,6 +18,11 @@ VALUE: 1
 QUESTION: FIC_Stabilization#CB#(true,false)
 VALUE: false
 HELP: Only for linear elements with equal order interpolation for displacements and pressures.
+QUESTION: Non-local_Damage#CB#(true,false)
+VALUE: false
+DEPENDENCIES: (true,RESTORE,Characteristic_Length,#CURRENT#)(false,HIDE,Characteristic_Length,#CURRENT#)
+QUESTION: Characteristic_Length
+VALUE: 0.05
 QUESTION: Fracture_Propagation#CB#(true,false)
 VALUE: false
 DEPENDENCIES: (true,RESTORE,Propagation_Length,#CURRENT#,RESTORE,Propagation_Damage,#CURRENT#,RESTORE,Propagation_Frequency,#CURRENT#,RESTORE,Propagation_Width,#CURRENT#,RESTORE,Propagation_CosAngle,#CURRENT#)(false,HIDE,Propagation_Length,#CURRENT#,HIDE,Propagation_Damage,#CURRENT#,HIDE,Propagation_Frequency,#CURRENT#,HIDE,Propagation_Width,#CURRENT#,HIDE,Propagation_CosAngle,#CURRENT#)
