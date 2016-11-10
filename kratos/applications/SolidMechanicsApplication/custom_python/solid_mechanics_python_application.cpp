@@ -46,6 +46,8 @@ BOOST_PYTHON_MODULE(KratosSolidMechanicsApplication)
     
     //registering variables in python ( if must to be seen from python )
 
+	KRATOS_REGISTER_IN_PYTHON_VARIABLE(CONSTITUTIVE_LAW_POINTER)
+
     //For process information
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( LOAD_RESTART )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( COMPUTE_LUMPED_MASS_MATRIX )

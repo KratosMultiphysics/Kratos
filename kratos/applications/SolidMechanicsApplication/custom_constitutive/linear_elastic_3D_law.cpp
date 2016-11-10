@@ -128,6 +128,9 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 
     //-----------------------------//
 
+	// Subtract Initial_Strain
+	noalias(StrainVector) -= m_initial_strain;
+
     //1.- Lame constants
     const double& YoungModulus          = MaterialProperties[YOUNG_MODULUS];
     const double& PoissonCoefficient    = MaterialProperties[POISSON_RATIO];
@@ -272,6 +275,8 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
     Vector& StressVector                  = rValues.GetStressVector();
 
     //-----------------------------//
+	// Subtract Initial_Strain
+	noalias(StrainVector) -= m_initial_strain;
 
     //1.- Lame constants
     const double& YoungModulus          = MaterialProperties[YOUNG_MODULUS];
