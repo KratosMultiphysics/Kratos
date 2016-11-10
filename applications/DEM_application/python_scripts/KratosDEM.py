@@ -121,23 +121,15 @@ else:
 os.chdir(main_path)
 [model_part_io_spheres, spheres_model_part, MPICommSetup] = parallelutils.SetCommunicator(spheres_model_part, model_part_io_spheres, spheres_mp_filename)
 
-
 model_part_io_spheres.ReadModelPart(spheres_model_part)
 
-
 max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
-print("Maxnodeid")
-print(max_node_Id)
 max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(spheres_model_part)
 old_max_elem_Id_spheres = max_elem_Id
 max_cond_Id = creator_destructor.FindMaxConditionIdInModelPart(spheres_model_part)
 rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
 model_part_io_fem = model_part_reader(rigidFace_mp_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
 model_part_io_fem.ReadModelPart(rigid_face_model_part)
-
-print("nodes of FEM:")
-for node in rigid_face_model_part.Nodes:
-    print(node.Id)
 
 max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
 max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(rigid_face_model_part)
