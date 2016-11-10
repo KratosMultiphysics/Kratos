@@ -425,7 +425,7 @@ public:
 
 	array_1d<double,3> position_correction;
 	position_correction.clear();
-
+	
 	if( pCondition->GetGeometry().size() == 2 && pCondition->GetGeometry().WorkingSpaceDimension() == 2 ){ //line
 	  
 	  //circle interpolation
@@ -523,12 +523,12 @@ public:
       std::vector<array_1d<double, 3> > normals;
 	
       is_curved = mModelerUtilities.CheckContactCurvature(pCondition->GetGeometry(), normals);
-
-	      
+      
       if( is_curved ){
 
 	this->HermiteInterpolation( pCondition->GetGeometry()[0], pCondition->GetGeometry()[1], normals[0], normals[1], rVector, 0.5);
       }
+
       
 	
       KRATOS_CATCH( "" )
@@ -628,9 +628,11 @@ public:
        modulus = norm_2(T2);
        if( modulus )
 	 T2 /= modulus;
+
+       T2 *= (-1);
        
        //compute normalized s-point position s in [0,1]
-       array_1d<double, 3> M = s * rP2 - (s+1) * rP1;
+       array_1d<double, 3> M = s * rP2 - s * rP1;
        
        modulus  = norm_2(rP2-rP1);
        if( modulus )
@@ -644,13 +646,32 @@ public:
        
        //hermite interpolation polinomial
        rD  = h00 * rP1;
-       rD += h10 * T1;
+       rD += h10 * modulus * T1;
        rD += h01 * rP2;
-       rD += h11 * T2;
-       
+       rD += h11 * modulus * T2;
+            
        //increment of position
+       M = (s * rP2 + (1-s) * rP1);
+
        rD -= M;
        
+       //check correct curvature convexity
+       T1 = rP2 - rP1;
+       modulus = norm_2(T1);
+       if( modulus )
+	 T1 /= modulus;
+
+       //note:  two possible directions depending on the NORMAL_CONTACT definition
+       double d1 = inner_prod( rN1, T1);
+       double d2 = inner_prod( rN2, -T1);
+       if( d1 * d2 > 0 ){
+	 if( d1 > 0 )
+	   rD *= (-1.0);
+       }
+       else{
+	 rD *= 0.0;
+       }
+      
        KRATOS_CATCH( "" )
 	 
     }
@@ -667,12 +688,13 @@ public:
       bool refine_condition = false;
 
       //LOOP TO CONSIDER ALL SUBDOMAIN CONDITIONS
-
+      
       bool refine_candidate = false;
       for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(mMeshId); i_cond!= rModelPart.ConditionsEnd(mMeshId); i_cond++)
 	{
 
 	  refine_candidate = false;
+	  i_cond->Set(TO_REFINE, false);	
 	  
 	  if( mrRemesh.Options.Is(ModelerUtilities::CONSTRAINED) ){
 	    if( i_cond->Is(BOUNDARY) ) //ONLY SET TO THE BOUNDARY SKIN CONDITIONS (CompositeCondition)
