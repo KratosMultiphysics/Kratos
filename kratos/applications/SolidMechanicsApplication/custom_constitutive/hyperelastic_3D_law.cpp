@@ -39,7 +39,6 @@ HyperElastic3DLaw::HyperElastic3DLaw(const HyperElastic3DLaw& rOther)
     ,mInverseDeformationGradientF0(rOther.mInverseDeformationGradientF0)
     ,mDeterminantF0(rOther.mDeterminantF0)
     ,mStrainEnergy(rOther.mStrainEnergy)
-	,m_initial_strain()
 {
 }
 
@@ -98,11 +97,6 @@ double& HyperElastic3DLaw::GetValue( const Variable<double>& rThisVariable, doub
 
 Vector& HyperElastic3DLaw::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 {
-	if (rThisVariable == INITIAL_STRAIN) {
-		if (rValue.size() != m_initial_strain.size())
-			rValue.resize(m_initial_strain.size());
-		noalias(rValue) = m_initial_strain;
-	}
     return( rValue );
 }
 
@@ -129,10 +123,7 @@ void HyperElastic3DLaw::SetValue( const Variable<double>& rThisVariable, const d
 void HyperElastic3DLaw::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
                                   const ProcessInfo& rCurrentProcessInfo )
 {
-	if (rThisVariable == INITIAL_STRAIN) {
-		if (rValue.size() == m_initial_strain.size())
-			noalias(m_initial_strain) = rValue;
-	}
+
 }
 
 void HyperElastic3DLaw::SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
@@ -155,7 +146,6 @@ void HyperElastic3DLaw::InitializeMaterial( const Properties& rMaterialPropertie
   mDeterminantF0                = 1;
   mInverseDeformationGradientF0 = identity_matrix<double> (3);
   mStrainEnergy                 = 0;
-  m_initial_strain = ZeroVector(this->GetStrainSize());
 
 }
 
@@ -211,7 +201,6 @@ void  HyperElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
   const double& DeterminantF            = rValues.GetDeterminantF();
 
   Vector& StrainVector                  = rValues.GetStrainVector();
-  noalias(StrainVector) 			   -= m_initial_strain;
   Vector& StressVector                  = rValues.GetStressVector();
   Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
 
@@ -333,7 +322,6 @@ void HyperElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
     const double&   DeterminantF          = rValues.GetDeterminantF();
 
     Vector& StrainVector                  = rValues.GetStrainVector();
-	noalias(StrainVector) 				 -= m_initial_strain;
     Vector& StressVector                  = rValues.GetStressVector();
     Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
 

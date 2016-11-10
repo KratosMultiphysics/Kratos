@@ -288,8 +288,6 @@ protected:
 
     double mStrainEnergy;
 
-	Vector m_initial_strain;
-
     ///@}
     ///@name Protected Operators
     ///@{
