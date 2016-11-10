@@ -271,10 +271,10 @@ void AddUtilitiesToPython()
 		;
 
 	class_<LoadFunctionbaseType, LoadFunctionbaseType::Pointer, boost::noncopyable >(
-		"LoadFunction", 
+		"LoadFunction",
 		init<>())
 		;
-		
+
 	typedef PieceWiseLoadFunction<double> PieceWiseLoadFunctionType;
 	class_<PieceWiseLoadFunctionType, PieceWiseLoadFunctionType::Pointer, bases< LoadFunctionbaseType >, boost::noncopyable >(
 		"PieceWiseLoadFunction",
@@ -288,22 +288,23 @@ void AddUtilitiesToPython()
 	// RVE -  These should be moved to .. AddRveToPython
 	//
 	// ===============================================================================
-	
+
+	def("RveCloneModelPart2Physics", &RveUtilities::CloneModelPart2Physics);
 	typedef UblasSpace<double, CompressedMatrix, Vector>   SparseSpaceType;
 	typedef UblasSpace<double, Matrix, Vector>			   LocalSpaceType;
 	typedef LinearSolver<SparseSpaceType, LocalSpaceType>  LinearSolverBaseType;
 
-	class_<RveMacroscaleData, RveMacroscaleData::Pointer, 
+	class_<RveMacroscaleData, RveMacroscaleData::Pointer,
 		boost::noncopyable>(
-		"RveMacroscaleData",
-		init<>())
+			"RveMacroscaleData",
+			init<>())
 		.def(self_ns::str(self))
 		;
 
-	class_<RveGeometryDescriptor, RveGeometryDescriptor::Pointer, 
+	class_<RveGeometryDescriptor, RveGeometryDescriptor::Pointer,
 		boost::noncopyable>(
-		"RveGeometryDescriptor",
-		init<>())
+			"RveGeometryDescriptor",
+			init<>())
 		.def("Build", &RveGeometryDescriptor::Build)
 		.def("SetUserCornerNodes", &RveGeometryDescriptor_SetUserCornerNodes_Helper)
 		.def(self_ns::str(self))
@@ -311,65 +312,65 @@ void AddUtilitiesToPython()
 
 	class_<RvePredictorCalculator, RvePredictorCalculator::Pointer,
 		boost::noncopyable>(
-		"RvePredictorCalculator",
-		init<std::string, std::string, std::string>())
+			"RvePredictorCalculator",
+			init<std::string, std::string, std::string>())
 		;
 
 	typedef RveConstraintHandler<SparseSpaceType, LocalSpaceType> RveConstraintHandlerBaseType;
-	class_<RveConstraintHandlerBaseType, RveConstraintHandlerBaseType::Pointer, 
+	class_<RveConstraintHandlerBaseType, RveConstraintHandlerBaseType::Pointer,
 		boost::noncopyable>(
-		"RveConstraintHandler",
-		init<>())
+			"RveConstraintHandler",
+			init<>())
 		;
 	typedef RveConstraintHandler_ZBF_SD<SparseSpaceType, LocalSpaceType> RveConstraintHandler_ZBF_SD_Type;
-	class_<RveConstraintHandler_ZBF_SD_Type, RveConstraintHandler_ZBF_SD_Type::Pointer, 
-		bases<RveConstraintHandlerBaseType>, 
+	class_<RveConstraintHandler_ZBF_SD_Type, RveConstraintHandler_ZBF_SD_Type::Pointer,
+		bases<RveConstraintHandlerBaseType>,
 		boost::noncopyable>(
-		"RveConstraintHandler_ZBF_SD",
-		init<>())
+			"RveConstraintHandler_ZBF_SD",
+			init<>())
 		;
 	typedef RveConstraintHandler_PBF_SD<SparseSpaceType, LocalSpaceType> RveConstraintHandler_PBF_SD_Type;
-	class_<RveConstraintHandler_PBF_SD_Type, RveConstraintHandler_PBF_SD_Type::Pointer, 
-		bases<RveConstraintHandlerBaseType>, 
+	class_<RveConstraintHandler_PBF_SD_Type, RveConstraintHandler_PBF_SD_Type::Pointer,
+		bases<RveConstraintHandlerBaseType>,
 		boost::noncopyable>(
-		"RveConstraintHandler_PBF_SD",
-		init<>())
+			"RveConstraintHandler_PBF_SD",
+			init<>())
 		;
 	typedef RveConstraintHandler_WPBF_SD<SparseSpaceType, LocalSpaceType> RveConstraintHandler_WPBF_SD_Type;
-	class_<RveConstraintHandler_WPBF_SD_Type, RveConstraintHandler_WPBF_SD_Type::Pointer, 
-		bases<RveConstraintHandlerBaseType>, 
+	class_<RveConstraintHandler_WPBF_SD_Type, RveConstraintHandler_WPBF_SD_Type::Pointer,
+		bases<RveConstraintHandlerBaseType>,
 		boost::noncopyable>(
-		"RveConstraintHandler_WPBF_SD",
-		init<>())
+			"RveConstraintHandler_WPBF_SD",
+			init<>())
 		;
 
 	typedef RveConstraintHandler_PBF_SD_THERMAL<SparseSpaceType, LocalSpaceType> RveConstraintHandler_PBF_SD_THERMAL_Type;
 	class_<RveConstraintHandler_PBF_SD_THERMAL_Type, RveConstraintHandler_PBF_SD_THERMAL_Type::Pointer,
 		bases<RveConstraintHandlerBaseType>,
 		boost::noncopyable>(
-		"RveConstraintHandler_PBF_SD_THERMAL",
-		init<>())
+			"RveConstraintHandler_PBF_SD_THERMAL",
+			init<>())
 		;
 
 	typedef RveLinearSystemOfEquations<SparseSpaceType, LocalSpaceType> RveLinearSystemOfEquationsType;
-	class_<RveLinearSystemOfEquationsType, RveLinearSystemOfEquationsType::Pointer, 
+	class_<RveLinearSystemOfEquationsType, RveLinearSystemOfEquationsType::Pointer,
 		boost::noncopyable>(
-		"RveLinearSystemOfEquations",
-		init<LinearSolverBaseType::Pointer>())
+			"RveLinearSystemOfEquations",
+			init<LinearSolverBaseType::Pointer>())
 		;
 
 	typedef RveHomogenizer<SparseSpaceType, LocalSpaceType> RveHomogenizerType;
-	class_<RveHomogenizerType, RveHomogenizerType::Pointer, 
+	class_<RveHomogenizerType, RveHomogenizerType::Pointer,
 		boost::noncopyable>(
-		"RveHomogenizer",
-		init<>())
+			"RveHomogenizer",
+			init<>())
 		;
 	typedef RveHomogenizerThermal<SparseSpaceType, LocalSpaceType> RveHomogenizerThermalType;
 	class_<RveHomogenizerThermalType, RveHomogenizerThermalType::Pointer,
 		bases<RveHomogenizerType>,
 		boost::noncopyable>(
-		"RveHomogenizerThermal",
-		init<>())
+			"RveHomogenizerThermal",
+			init<>())
 		;
 
 	// Thermal 2D
@@ -403,8 +404,8 @@ void AddUtilitiesToPython()
 	class_<RveConstitutiveLawV2Thermal2DType, RveConstitutiveLawV2Thermal2DType::Pointer,
 		bases<RveConstitutiveLawV2Thermal2DBaseType>,
 		boost::noncopyable>(
-		"RveConstitutiveLawV2Thermal2D",
-		init<const RveThermal2DAdapterV2Type::Pointer&>())
+			"RveConstitutiveLawV2Thermal2D",
+			init<const RveThermal2DAdapterV2Type::Pointer&>())
 		.def("GetModelPart", &RveConstitutiveLawV2Thermal2DType::GetModelPart)
 		.def("TestMaterialResponse", &RveConstitutiveLawV2Thermal2DType::TestMaterialResponse)
 		;
@@ -440,8 +441,8 @@ void AddUtilitiesToPython()
 	class_<RveConstitutiveLawV2Thermal3DType, RveConstitutiveLawV2Thermal3DType::Pointer,
 		bases<RveConstitutiveLawV2Thermal3DBaseType>,
 		boost::noncopyable>(
-		"RveConstitutiveLawV2Thermal3D",
-		init<const RveThermal3DAdapterV2Type::Pointer&>())
+			"RveConstitutiveLawV2Thermal3D",
+			init<const RveThermal3DAdapterV2Type::Pointer&>())
 		.def("GetModelPart", &RveConstitutiveLawV2Thermal3DType::GetModelPart)
 		.def("TestMaterialResponse", &RveConstitutiveLawV2Thermal3DType::TestMaterialResponse)
 		;
@@ -469,16 +470,16 @@ void AddUtilitiesToPython()
 		.def("GetValue", ConstitutiveLawGetValue<RveConstitutiveLawV2PlaneStressBaseType, double>)
 		.def("GetValue", ConstitutiveLawGetValue<RveConstitutiveLawV2PlaneStressBaseType, Vector>)
 		.def("GetValue", ConstitutiveLawGetValue<RveConstitutiveLawV2PlaneStressBaseType, Matrix>)
-        .def("GetValue", ConstitutiveLawGetValue<RveConstitutiveLawV2PlaneStressBaseType, array_1d<double,3> >)
-        .def("GetValue", ConstitutiveLawGetValue<RveConstitutiveLawV2PlaneStressBaseType, array_1d<double,6> >)
+		.def("GetValue", ConstitutiveLawGetValue<RveConstitutiveLawV2PlaneStressBaseType, array_1d<double, 3> >)
+		.def("GetValue", ConstitutiveLawGetValue<RveConstitutiveLawV2PlaneStressBaseType, array_1d<double, 6> >)
 		;
 
 	typedef RveConstitutiveLaw<RvePlaneStressAdapterV2Type> RveConstitutiveLawV2PlaneStressType;
-	class_<RveConstitutiveLawV2PlaneStressType, RveConstitutiveLawV2PlaneStressType::Pointer, 
-		   bases<RveConstitutiveLawV2PlaneStressBaseType>, 
-		   boost::noncopyable>(
-		"RveConstitutiveLawV2PlaneStress",
-		init<const RvePlaneStressAdapterV2Type::Pointer&>())
+	class_<RveConstitutiveLawV2PlaneStressType, RveConstitutiveLawV2PlaneStressType::Pointer,
+		bases<RveConstitutiveLawV2PlaneStressBaseType>,
+		boost::noncopyable>(
+			"RveConstitutiveLawV2PlaneStress",
+			init<const RvePlaneStressAdapterV2Type::Pointer&>())
 		.def("GetModelPart", &RveConstitutiveLawV2PlaneStressType::GetModelPart)
 		.def("TestMaterialResponse", &RveConstitutiveLawV2PlaneStressType::TestMaterialResponse)
 		;
@@ -506,16 +507,16 @@ void AddUtilitiesToPython()
 		.def("GetValue", ConstitutiveLawGetValue<RveConstitutiveLawV23DBaseType, double>)
 		.def("GetValue", ConstitutiveLawGetValue<RveConstitutiveLawV23DBaseType, Vector>)
 		.def("GetValue", ConstitutiveLawGetValue<RveConstitutiveLawV23DBaseType, Matrix>)
-        .def("GetValue", ConstitutiveLawGetValue<RveConstitutiveLawV23DBaseType, array_1d<double,3> >)
-        .def("GetValue", ConstitutiveLawGetValue<RveConstitutiveLawV23DBaseType, array_1d<double,6> >)
+		.def("GetValue", ConstitutiveLawGetValue<RveConstitutiveLawV23DBaseType, array_1d<double, 3> >)
+		.def("GetValue", ConstitutiveLawGetValue<RveConstitutiveLawV23DBaseType, array_1d<double, 6> >)
 		;
 
 	typedef RveConstitutiveLaw<Rve3DAdapterV2Type> RveConstitutiveLawV23DType;
-	class_<RveConstitutiveLawV23DType, RveConstitutiveLawV23DType::Pointer, 
-		   bases<RveConstitutiveLawV23DBaseType>, 
-		   boost::noncopyable>(
-		"RveConstitutiveLawV23D",
-		init<const Rve3DAdapterV2Type::Pointer&>())
+	class_<RveConstitutiveLawV23DType, RveConstitutiveLawV23DType::Pointer,
+		bases<RveConstitutiveLawV23DBaseType>,
+		boost::noncopyable>(
+			"RveConstitutiveLawV23D",
+			init<const Rve3DAdapterV2Type::Pointer&>())
 		.def("GetModelPart", &RveConstitutiveLawV23DType::GetModelPart)
 		.def("TestMaterialResponse", &RveConstitutiveLawV23DType::TestMaterialResponse)
 		;

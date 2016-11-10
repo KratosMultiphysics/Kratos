@@ -204,8 +204,10 @@ public:
             for (typename ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
             {
                 //calculate elemental contribution
-                pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-				
+				#pragma omp critical
+				{
+					pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+				}
                 //assemble the elemental contribution
                 Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, lock_array);
 
@@ -510,7 +512,7 @@ public:
         //creating an array of lock variables of the size of the system vector
         /*std::vector< omp_lock_t > lock_array(b.size());*/
 	    int total_size = b.size();
-	    if (BaseType::mCalculateReactionsFlag) 
+	    if (BaseType::mCalculateReactionsFlag)
 			total_size += (*BaseType::mpReactionsVector).size();
 	    std::vector< omp_lock_t > lock_array(total_size);
 	
@@ -552,7 +554,10 @@ public:
             for (typename ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
             {
                 //calculate elemental contribution
-                pScheme->Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+				#pragma omp critical
+				{
+					pScheme->Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+				}
 
                 //assemble the elemental contribution
                 AssembleRHS(b, RHS_Contribution, EquationId, lock_array);

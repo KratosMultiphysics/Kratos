@@ -140,17 +140,18 @@ namespace Kratos
 
 			for (typename DofsArrayType::iterator dof_iterator = dofset.begin(); dof_iterator != dofset.end(); ++dof_iterator)
 			{
-				if (dof_iterator->IsFixed())
+				Dof<double> &dofp = *dof_iterator;
+				if (dofp.IsFixed())
 				{
 					size_t index = --fix_id;
-					dof_iterator->SetEquationId(index);
+					dofp.SetEquationId(index);
 					equation_id_flag[index] = 0;
 					transformed_equation_ids[index] = index;
 				}
 				else
 				{
 					size_t index = free_id++;
-					dof_iterator->SetEquationId(index);
+					dofp.SetEquationId(index);
 					equation_id_flag[index] = 0;
 					transformed_equation_ids[index] = index;
 				}

@@ -480,7 +480,7 @@ public:
 		mpConvergenceCriteria = pNewConvergenceCriteria;
 
 		mRveGenerated = true;
-		mRveGenerationRequested = false;
+		mRveGenerationRequested = true;
 		//std::cout << "SetRveData - mInitialized = " << mInitialized << std::endl;
 
 		if (mInitialized)
@@ -1331,7 +1331,7 @@ protected:
 			mStrainVectorOld_trial = rValues.GetStrainVector();
 			return;
 		}
-		
+		//std::cout << "rValues.GetStrainVector() :" << rValues.GetStrainVector() << std::endl;
 		/*this->RevertToLastStep();*/
 		/*
 		 * optimization: reverting to the last converged state (of the macro-scale analysis)
@@ -1452,12 +1452,13 @@ protected:
 					//std::cout << ss.str();
 					if ((strain_size == 3 && ndim == 2) || (strain_size == 6 && ndim == 3))
 					{
+					//std::cout << "**************************************************************" << std::endl;
+						mpPredictorCalculator->GetTangentMatrix(tangent_matrix);
+						mC0 = tangent_matrix;
 						double damage_surf_limit = rValues.GetProcessInfo().Has(RVE_DAMAGE_SURFACE_LIMIT) ? rValues.GetProcessInfo()[RVE_DAMAGE_SURFACE_LIMIT] : 10.0;
 						std::cout << "damage_surf_limit :" << damage_surf_limit << std::endl;
 
-						mpPredictorCalculator->GetTangentMatrix(tangent_matrix);
-						mC0 = tangent_matrix;
-						bool damaged = this->CheckEquivalentDamage(rValues, mStressVector, damage_surf_limit);
+						bool damaged = this->CheckEquivalentDamage(rValues, stress_vector, damage_surf_limit);
 						std::cout << "damaged = " << damaged << ", " << std::endl;
 						if (damaged)
 						{
@@ -2217,7 +2218,7 @@ protected:
 	SchemePointerType                     mpScheme;
 	ConvergenceCriteriaPointerType        mpConvergenceCriteria;
 
-	// RVE Generator handler (sarà un componente appena possibile...)
+	// RVE Generator handler
 
 	bool   mRveGenerated;
 	bool   mRveGenerationRequested;
