@@ -70,9 +70,14 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mBinghamFractionalStepDiscontinuous3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mHerschelBulkleyVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mHerschelBulkleyVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-//     mNavierStokesSymbolic2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-    mStokes3DTwoFluid(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
+    mStokes3DTwoFluid(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    // Navier-Stokes symbolic elements
+    mNavierStokes2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mNavierStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    // Embedded Navier-Stokes symbolic elements
+    mEmbeddedNavierStokes2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mEmbeddedNavierStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
 {}
 
 void KratosFluidDynamicsApplication::Register()
@@ -140,9 +145,14 @@ void KratosFluidDynamicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("HerschelBulkleyVMS2D",mHerschelBulkleyVMS2D);
     KRATOS_REGISTER_ELEMENT("HerschelBulkleyVMS3D",mHerschelBulkleyVMS3D);
     
-//     KRATOS_REGISTER_ELEMENT("NavierStokesSymbolic2D",mNavierStokesSymbolic2D);
     KRATOS_REGISTER_ELEMENT("Stokes3D4N",mStokes3D);
     KRATOS_REGISTER_ELEMENT("StokesTwoFluid3D4N",mStokes3DTwoFluid);
+    
+    // Navier-Stokes symbolic elements
+    KRATOS_REGISTER_ELEMENT("NavierStokes2D3N",mNavierStokes2D);
+    KRATOS_REGISTER_ELEMENT("NavierStokes3D4N",mNavierStokes3D);
+    KRATOS_REGISTER_ELEMENT("EmbeddedNavierStokes2D3N",mEmbeddedNavierStokes2D);
+    KRATOS_REGISTER_ELEMENT("EmbeddedNavierStokes3D4N",mEmbeddedNavierStokes3D);
 
     // Register Conditions
     KRATOS_REGISTER_CONDITION("WallCondition2D2N",mWallCondition2D); //this is the name the element should have according to the naming convention
