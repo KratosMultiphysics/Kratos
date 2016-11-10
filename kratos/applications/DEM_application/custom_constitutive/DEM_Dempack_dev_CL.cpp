@@ -23,6 +23,21 @@ namespace Kratos {
     }
 
 
+    void DEM_Dempack_dev::CalculateContactArea(double radius, double other_radius, double& calculation_area) {
+
+        double rmin = radius;
+        if (other_radius < radius) rmin = other_radius;
+        calculation_area = KRATOS_M_PI * rmin*rmin;
+    }
+    double DEM_Dempack_dev::CalculateContactArea(double radius, double other_radius, Vector& v) {
+        double a = 0.0;
+        CalculateContactArea(radius, other_radius, a);
+        unsigned int old_size = v.size();
+        v.resize(old_size + 1);
+        v[old_size]=a;
+        return a;
+    }
+
     void DEM_Dempack_dev::GetContactArea(const double radius,
                                      const double other_radius,
                                      const Vector& vector_of_initial_areas,
@@ -32,7 +47,6 @@ namespace Kratos {
         if (vector_of_initial_areas.size()) calculation_area = vector_of_initial_areas[neighbour_position];
         else CalculateContactArea(radius, other_radius, calculation_area);
         //CalculateContactArea(radius, other_radius, calculation_area);
-
     }
 
     void DEM_Dempack_dev::CalculateElasticConstants(double &kn_el,
@@ -45,12 +59,20 @@ namespace Kratos {
                                                 SphericContinuumParticle* element2) {
         
         KRATOS_TRY 
+
+//        double rmin = element1->GetRadius();    // test rebalance solo resistencia
+//        const double other_radius = element2->GetRadius();
+//        if (other_radius < rmin) rmin = other_radius;
+//        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
+
+
         double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
         kn_el = equiv_young * calculation_area / initial_dist;
         kt_el = equiv_shear * calculation_area / initial_dist;
-        std::ofstream outputfile("knkt.txt", std::ios_base::out | std::ios_base::app);
-        outputfile << kn_el << " " << kt_el << "\n";
-        outputfile.close();
+
+//        std::ofstream outputfile("knkt.txt", std::ios_base::out | std::ios_base::app);
+//        outputfile << kn_el << " " << kt_el << "\n";
+//        outputfile.close();
 
         KRATOS_CATCH("")  
     }
@@ -87,10 +109,11 @@ namespace Kratos {
 
 
 
-        double rmin = element1->GetRadius();
-        const double other_radius = element2->GetRadius();
-        if (other_radius < rmin) rmin = other_radius;
-        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
+//        double rmin = element1->GetRadius();    test rebalance solo resistencia
+//        const double other_radius = element2->GetRadius();
+//        if (other_radius < rmin) rmin = other_radius;
+//        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
+          double effective_calculation_area = calculation_area;
 
         if (&element1_props == &element2_props) {
 
@@ -380,7 +403,7 @@ namespace Kratos {
             const ProcessInfo& r_process_info) {
 
         KRATOS_TRY
-        const int time_steps = r_process_info[TIME_STEPS];
+        //const int time_steps = r_process_info[TIME_STEPS];
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
         LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - kt_el * LocalDeltDisp[0]; // 0: first tangential
         LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - kt_el * LocalDeltDisp[1]; // 1: second tangential
@@ -392,10 +415,12 @@ namespace Kratos {
         double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
                                   + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
-        double rmin = element1->GetRadius();
-        const double other_radius = element2->GetRadius();
-        if (other_radius < rmin) rmin = other_radius;
-        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
+//        double rmin = element1->GetRadius();  test de rebalance de areas solo en resistencia
+//        const double other_radius = element2->GetRadius();
+//        if (other_radius < rmin) rmin = other_radius;
+//        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
+        double effective_calculation_area = calculation_area;
+
 
         if (failure_type == 0) { // This means it has not broken
             Properties& element1_props = element1->GetProperties();
@@ -403,8 +428,8 @@ namespace Kratos {
             const double mTauZero = 0.5 * 1e6 * (element1_props[CONTACT_TAU_ZERO] + element2_props[CONTACT_TAU_ZERO]);
             const double mInternalFriction = 0.5 * (element1_props[CONTACT_INTERNAL_FRICC] + element2_props[CONTACT_INTERNAL_FRICC]);
 
-            contact_tau = ShearForceNow / calculation_area;
-            contact_sigma = LocalElasticContactForce[2] / calculation_area;
+            contact_tau = ShearForceNow / effective_calculation_area;
+            contact_sigma = LocalElasticContactForce[2] / effective_calculation_area;
 
             double tau_strength = mTauZero;
 
@@ -518,12 +543,8 @@ namespace Kratos {
                                                               SphericContinuumParticle* element1,
                                                               SphericContinuumParticle* element2) {
 
-
-
-        if (element1->mSymmStressTensor == NULL /*|| element1->mOldSymmStressTensor == NULL*/) return;
-        if(element1->IsSkin() || element2->IsSkin()) return;
-        //unsigned int element_id = element1->Id();
-        //unsigned int element_id2 = element2->Id();
+        if (element1->mSymmStressTensor == NULL) return;
+        //if(element1->IsSkin() || element2->IsSkin()) return;
 
         double average_stress_tensor[3][3];
 
@@ -536,18 +557,68 @@ namespace Kratos {
         double current_sigma_local[3][3];
         GeometryFunctions::TensorGlobal2Local(LocalCoordSystem, average_stress_tensor, current_sigma_local);
 
-        const double current_tangential_stress1 = current_sigma_local[0][2];
-        const double current_tangential_stress2 = current_sigma_local[1][2];
+        array_1d<double, 3> OldLocalElasticExtraContactForce;
+        GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, OldElasticExtraContactForce, OldLocalElasticExtraContactForce);
 
-        LocalElasticExtraContactForce[0] -= calculation_area * current_tangential_stress1;
-        LocalElasticExtraContactForce[1] -= calculation_area * current_tangential_stress2;
 
-        double tangential_delta_acumulated_0 = OldLocalElasticContactForce[0] / kt_el;
-        double tangential_delta_acumulated_1 = OldLocalElasticContactForce[1] / kt_el;
 
-        LocalElasticExtraContactForce[0] += kt_el * tangential_delta_acumulated_0;
-        LocalElasticExtraContactForce[1] += kt_el * tangential_delta_acumulated_1;
+        double force_due_to_stress0 = calculation_area * current_sigma_local[0][2];
+        double force_due_to_stress1 = calculation_area * current_sigma_local[1][2];
+
+        LocalElasticExtraContactForce[0] = -OldLocalElasticContactForce[0] - force_due_to_stress0;
+        LocalElasticExtraContactForce[1] = -OldLocalElasticContactForce[1] - force_due_to_stress1;
+
+        if(fabs(LocalElasticExtraContactForce[0]) > fabs(force_due_to_stress0) ) {
+            LocalElasticExtraContactForce[0] = LocalElasticExtraContactForce[0] / fabs(LocalElasticExtraContactForce[0]) * fabs(force_due_to_stress0);
+        }
+        if(fabs(LocalElasticExtraContactForce[1]) > fabs(force_due_to_stress1) ) {
+            LocalElasticExtraContactForce[1] = LocalElasticExtraContactForce[1] / fabs(LocalElasticExtraContactForce[1]) * fabs(force_due_to_stress1);
+        }
 
     }
+
+    void DEM_Dempack_dev::AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force,
+                                          double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1,
+                                          SphericContinuumParticle* element2, const ProcessInfo& r_process_info) {
+
+        if (!r_process_info[POISSON_EFFECT_OPTION]) return;
+
+        double force[3];
+        Matrix average_stress_tensor = ZeroMatrix(3,3);
+
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                average_stress_tensor(i,j) = 0.5 * ((*mSymmStressTensor)(i,j) + (*(element2->mSymmStressTensor))(i,j));
+            }
+        }
+
+        for (int i = 0; i < 3; i++) {
+
+            force[i] = (average_stress_tensor)(i,0) * LocalCoordSystem[0][0] +
+                       (average_stress_tensor)(i,1) * LocalCoordSystem[0][1] +
+                       (average_stress_tensor)(i,2) * LocalCoordSystem[0][2]; // StressTensor*unitaryNormal0
+        }
+
+        double sigma_x = force[0] * LocalCoordSystem[0][0] +
+                         force[1] * LocalCoordSystem[0][1] +
+                         force[2] * LocalCoordSystem[0][2]; // projection to normal to obtain value of the normal stress
+
+        for (int i = 0; i < 3; i++) {
+
+            force[i] = (average_stress_tensor)(i,0) * LocalCoordSystem[1][0] +
+                       (average_stress_tensor)(i,1) * LocalCoordSystem[1][1] +
+                       (average_stress_tensor)(i,2) * LocalCoordSystem[1][2]; // StressTensor*unitaryNormal1
+        }
+
+        double sigma_y = force[0] * LocalCoordSystem[1][0] +
+                         force[1] * LocalCoordSystem[1][1] +
+                         force[2] * LocalCoordSystem[1][2]; // projection to normal to obtain value of the normal stress
+
+        double poisson_force = calculation_area * equiv_poisson * (sigma_x + sigma_y);
+
+        normal_force -= poisson_force;
+
+    } //AddPoissonContribution
+
 
 } /* namespace Kratos.*/
