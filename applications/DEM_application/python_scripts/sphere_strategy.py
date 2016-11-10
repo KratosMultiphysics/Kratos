@@ -259,10 +259,8 @@ class ExplicitStrategy:
         self.SetNormalRadiiOnAllParticles()
         self.SetSearchRadiiOnAllParticles()
         
-    def Initialize(self):                                                             
-    
+    def Initialize(self):                                                                     
         self.CheckMomentumConservation()
-
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy (C++) Initialize function (initializes all elements and performs other necessary tasks before starting the time loop in Python)
 
 
