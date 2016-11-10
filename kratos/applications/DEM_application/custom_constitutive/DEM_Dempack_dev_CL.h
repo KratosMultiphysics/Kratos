@@ -27,6 +27,15 @@ namespace Kratos {
                             const Vector& vector_of_initial_areas,
                             const int neighbour_position,
                             double& calculation_area) override;
+
+        void CalculateContactArea(double radius,
+                                   double other_radius,
+                                    double &calculation_area) override;
+
+        double CalculateContactArea(double radius,
+                                    double other_radius,
+                                    Vector& v) override;
+
         void CalculateElasticConstants(double &kn_el,
                                        double &kt_el,
                                        double initial_dist,
@@ -35,6 +44,7 @@ namespace Kratos {
                                        double calculation_area,
                                        SphericContinuumParticle* element1,
                                        SphericContinuumParticle* element2) override;
+
         void CalculateTangentialForces(double OldLocalElasticContactForce[3],
                 double LocalElasticContactForce[3],
                 double LocalElasticExtraContactForce[3],
@@ -87,6 +97,13 @@ namespace Kratos {
                                                       double ViscoLocalRotationalMoment[3],
                                                       double equiv_poisson,
                                                       double indentation) override;
+
+
+        void AddPoissonContribution(const double equiv_poisson,
+                                    double LocalCoordSystem[3][3],
+                                    double& normal_force,
+                                    double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1,
+                                    SphericContinuumParticle* element2, const ProcessInfo& r_process_info) override;
 
     private:
 
