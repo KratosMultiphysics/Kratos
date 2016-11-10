@@ -512,6 +512,7 @@ namespace Kratos
 	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
 	      {
 		if( i_cond->IsNot(TO_ERASE) ){
+		  i_cond->Reset(TO_REFINE);  //reset if was labeled to refine (to not duplicate boundary conditions)
 		  PreservedConditions.push_back(*(i_cond.base()));
 		  PreservedConditions.back().SetId(condId);
 		  condId+=1;	

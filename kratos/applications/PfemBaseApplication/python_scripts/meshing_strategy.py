@@ -156,6 +156,7 @@ class MeshingStrategy(object):
         self.SetInfo()
 
         if( self.global_transfer == True ):
+            print(" global transfer ")
             self.MeshDataTransfer.TransferElementalValuesToNodes(self.TransferParameters,self.model_part,self.mesh_id)
 
     #
@@ -171,11 +172,13 @@ class MeshingStrategy(object):
         if( self.global_transfer == True ):
             if(smoothing_required):
                 #smooth only on selected part based on a threshold variable
+                print(" smooth only on threshold ")
                 self.MeshDataTransfer.TransferNodalValuesToElementsOnThreshold(self.TransferParameters,refining_parameters,self.model_part,self.mesh_id)
             else:
                 #smooth all domain
+                print(" smooth all domain ")
                 self.MeshDataTransfer.TransferNodalValuesToElements(self.TransferParameters,self.model_part,self.mesh_id)                  
-                      
+            
 
     #
     def GenerateMesh(self):
