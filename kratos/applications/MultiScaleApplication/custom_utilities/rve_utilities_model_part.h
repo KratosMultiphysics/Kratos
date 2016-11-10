@@ -69,7 +69,7 @@ void CloneModelPart(ModelPart& source, ModelPart& clone)
 	typedef NodeType::DofsContainerType DofsContainerType;
 
 	// Tables
-    //if(clone.NumberOfTables() > 0) clone.TablesArray().clear();
+	//if(clone.NumberOfTables() > 0) clone.TablesArray().clear();
 	//for(ModelPart::TableIterator table_iter = source.TablesBegin(); table_iter != source.TablesEnd(); ++table_iter)
 	//{
 	//	ModelPart::TableType::Pointer& itable = *(table_iter.base());
@@ -77,8 +77,8 @@ void CloneModelPart(ModelPart& source, ModelPart& clone)
 	//}
 
 	// Properties
-	if(clone.NumberOfProperties() > 0) clone.PropertiesArray().clear();
-	for(ModelPart::PropertiesConstantIterator prop_iter = source.PropertiesBegin(); prop_iter != source.PropertiesEnd(); ++prop_iter)
+	if (clone.NumberOfProperties() > 0) clone.PropertiesArray().clear();
+	for (ModelPart::PropertiesConstantIterator prop_iter = source.PropertiesBegin(); prop_iter != source.PropertiesEnd(); ++prop_iter)
 	{
 		clone.AddProperties(*prop_iter.base());
 	}
@@ -86,8 +86,8 @@ void CloneModelPart(ModelPart& source, ModelPart& clone)
 	// Variable list
 	const VariablesList& source_vlist = source.GetNodalSolutionStepVariablesList();
 	VariablesList& clone_vlist = clone.GetNodalSolutionStepVariablesList();
-	if(clone_vlist.size() > 0) clone_vlist.clear();
-	for(VariablesList::const_iterator varlist_iter = source_vlist.begin(); varlist_iter != source_vlist.end(); ++varlist_iter) 
+	if (clone_vlist.size() > 0) clone_vlist.clear();
+	for (VariablesList::const_iterator varlist_iter = source_vlist.begin(); varlist_iter != source_vlist.end(); ++varlist_iter)
 	{
 		clone_vlist.Add(*varlist_iter);
 	}
@@ -98,10 +98,10 @@ void CloneModelPart(ModelPart& source, ModelPart& clone)
 	for (ModelPart::NodeConstantIterator node_iter = source.NodesBegin(); node_iter != source.NodesEnd(); ++node_iter)
 	{
 		NodeType& source_node = *node_iter;
-
+	
 		NodeType::Pointer p_clone_node = boost::make_shared<NodeType>();
 		NodeType& clone_node = *p_clone_node;
-
+	
 		clone_node.SetSolutionStepVariablesList(&clone.GetNodalSolutionStepVariablesList());
 		clone_node.SetBufferSize(clone.GetBufferSize());
 		clone_node.SetId(source_node.GetId());
@@ -111,34 +111,33 @@ void CloneModelPart(ModelPart& source, ModelPart& clone)
 		clone_node.X0() = source_node.X0();
 		clone_node.Y0() = source_node.Y0();
 		clone_node.Z0() = source_node.Z0();
-
+	
 		DofsContainerType& source_dof_container = source_node.GetDofs();
 		DofsContainerType& clone_dof_container = clone_node.GetDofs();
-
-		//		NodeType::SolutionStepsNodalDataContainerType& clone_node_data_container = clone_node.SolutionStepData();
-
+	
 		for (DofsContainerType::iterator dof_iter = source_dof_container.begin(); dof_iter != source_dof_container.end(); ++dof_iter)
 		{
-			NodeType::DofType& idof = *dof_iter;
-			clone_dof_container.insert(clone_dof_container.begin(), boost::make_shared<NodeType::DofType>(idof));
+			NodeType::DofType idof = *dof_iter;
+			NodeType::DofType::Pointer p_new_dof = boost::make_shared<NodeType::DofType>(idof);
+			clone_dof_container.insert(clone_dof_container.begin(), p_new_dof);
 		}
-
+	
 		clone.Nodes().push_back(p_clone_node);
 	}
 
 	// copy elements
-	if(clone.ElementsArray().size() > 0) clone.ElementsArray().clear();
-	for(ModelPart::ElementConstantIterator elem_iter = source.ElementsBegin(); elem_iter != source.ElementsEnd(); ++elem_iter)
+	if (clone.ElementsArray().size() > 0) clone.ElementsArray().clear();
+	for (ModelPart::ElementConstantIterator elem_iter = source.ElementsBegin(); elem_iter != source.ElementsEnd(); ++elem_iter)
 	{
 		const Element::Pointer& source_elem = *(elem_iter.base());
 		const Element::GeometryType& source_geom = source_elem->GetGeometry();
 
 		Element::NodesArrayType clone_nodes_array;
-        for(size_t i = 0; i < source_geom.size(); i++)
+		for (size_t i = 0; i < source_geom.size(); i++)
 		{
 			IndexedObject::IndexType source_node_id = source_geom[i].GetId();
 			ModelPart::NodesContainerType::iterator found_node_iter = clone.Nodes().find(source_node_id);
-			if(found_node_iter != clone.Nodes().end())
+			if (found_node_iter != clone.Nodes().end())
 			{
 				clone_nodes_array.push_back(*(found_node_iter.base()));
 			}
@@ -147,7 +146,7 @@ void CloneModelPart(ModelPart& source, ModelPart& clone)
 		Element::Pointer clone_elem = source_elem->Create(source_elem->GetId(), clone_nodes_array, source_elem->pGetProperties());
 		clone.AddElement(clone_elem);
 	}
-	
+
 	// copy conditions
 	// no conditions. they should be generated from the boundary detector!
 
