@@ -59,6 +59,7 @@ else:
 ##############################################################################
 
 procedures    = DEM_procedures.Procedures(DEM_parameters)
+procedures.CheckInputParameters(DEM_parameters)
 
 # Creating necessary directories
 main_path = os.getcwd()

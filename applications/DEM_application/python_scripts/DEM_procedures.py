@@ -680,6 +680,51 @@ class Procedures(object):
 
     def PreProcessModel(self, DEM_parameters):
         pass
+    
+    def CheckVariableType(self, var, expected_type, msg):                  
+        actual_type = type(var)
+        if actual_type is int and expected_type is float:
+            return
+        if actual_type is not expected_type:
+            self.KRATOSprint("**************************************************************************")
+            self.KRATOSprint("ERROR: Input parameter of wrong type in file 'DEM_explicit_solver_var.py'." )
+            a = str(expected_type)
+            b = str(var)
+            self.KRATOSprint("The type expected was "+ a + " but " + b +" was read.")                        
+            self.KRATOSprint("**************************************************************************")                        
+            sys.exit()
+    
+    def CheckInputParameters(self, DEM_parameters):        
+        self.CheckVariableType(DEM_parameters.Dimension, int, "")
+        self.CheckVariableType(DEM_parameters.BoundingBoxEnlargementFactor, float, "")
+        self.CheckVariableType(DEM_parameters.BoundingBoxMaxX, float, "")
+        self.CheckVariableType(DEM_parameters.BoundingBoxMaxY, float, "")
+        self.CheckVariableType(DEM_parameters.BoundingBoxMaxZ, float, "")
+        self.CheckVariableType(DEM_parameters.BoundingBoxMinX, float, "")
+        self.CheckVariableType(DEM_parameters.BoundingBoxMinY, float, "")
+        self.CheckVariableType(DEM_parameters.BoundingBoxMinZ, float, "")        
+        self.CheckVariableType(DEM_parameters.GravityX, float, "")
+        self.CheckVariableType(DEM_parameters.GravityY, float, "")
+        self.CheckVariableType(DEM_parameters.GravityZ, float, "")        
+        self.CheckVariableType(DEM_parameters.AmplifiedSearchRadiusExtension, float, "")
+        self.CheckVariableType(DEM_parameters.MaxAmplificationRatioOfSearchRadius, int, "")
+        self.CheckVariableType(DEM_parameters.VirtualMassCoefficient, float, "")
+        self.CheckVariableType(DEM_parameters.DeltaTimeSafetyFactor, float, "")
+        self.CheckVariableType(DEM_parameters.MaxTimeStep, float, "")
+        self.CheckVariableType(DEM_parameters.FinalTime, float, "")
+        self.CheckVariableType(DEM_parameters.ControlTime, float, "")
+        self.CheckVariableType(DEM_parameters.NeighbourSearchFrequency, int, "")
+        self.CheckVariableType(DEM_parameters.GraphExportFreq, float, "")
+        self.CheckVariableType(DEM_parameters.VelTrapGraphExportFreq, float, "")
+        self.CheckVariableType(DEM_parameters.OutputTimeStep, float, "")
+        self.CheckVariableType(DEM_parameters.SearchTolerance, float, "")
+        self.CheckVariableType(DEM_parameters.SearchTolerance, float, "")
+        self.CheckVariableType(DEM_parameters.SearchTolerance, float, "")
+        self.CheckVariableType(DEM_parameters.SearchTolerance, float, "")
+        self.CheckVariableType(DEM_parameters.SearchTolerance, float, "")
+        self.CheckVariableType(DEM_parameters.SearchTolerance, float, "")
+        self.CheckVariableType(DEM_parameters.SearchTolerance, float, "")
+
 
     def Flush(self,a):
         a.flush()
