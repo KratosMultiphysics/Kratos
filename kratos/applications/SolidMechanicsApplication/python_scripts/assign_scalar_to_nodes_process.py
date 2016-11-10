@@ -5,6 +5,7 @@ import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 ## This proces sets the value of a scalar variable
 ## Note that in some cases can be a vector of scalars (used in conditions with multiple nodes)
 import sys
+from math import *
 
 class compiled_time_spatial_function:
     def __init__(self, compiled_function ):

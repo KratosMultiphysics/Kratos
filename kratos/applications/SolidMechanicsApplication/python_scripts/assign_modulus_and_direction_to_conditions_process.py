@@ -3,8 +3,8 @@ import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
 ## This proces sets the value of a vector variable using a modulus and direction
 ## In this case, the fixicity is given set by deffault to false.
-import math
 import sys
+from math import *
 
 class compiled_time_spatial_function:
     def __init__(self, compiled_function ):
