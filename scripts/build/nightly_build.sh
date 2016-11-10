@@ -9,6 +9,9 @@ MAIL_GCC=${HOME}/mail_gcc
 MAIL_CLANG=${HOME}/mail_clang
 MAIL_TO=${MAIL_TO_ADDRESS}
 
+# Indicate that we want the stacktraces of crashes.
+export LIBC_FATAL_STDERR_=1
+
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/ubuntu/Kratos/libs:/home/ubuntu/CompiledLibs/clang-3.8.0-16.04-prebuilt/lib
 export PYTHONPATH=$PYTHONPATH:/home/ubuntu/Kratos
 
@@ -32,12 +35,12 @@ cp ${HOME}/Kratos/scripts/build/nightly/configure_clang.sh ${HOME}/Kratos/cmake_
 
 # Build
 cd ${HOME}/Kratos/cmake_gcc
-sh configure.sh > ${LOG_DIR}/configure_gcc.log 2> ${LOG_DIR}/configure_gcc.log
-make install -j2 -k > ${LOG_DIR}/compile_gcc.log 2> ${LOG_DIR}/compile_gcc.log
+sh configure.sh &> ${LOG_DIR}/configure_gcc.log
+make install -j2 -k &> ${LOG_DIR}/compile_gcc.log
 
 # UnitTesting
 cd ${HOME}/Kratos/kratos/python_scripts
-python3 run_tests.py -l nightly > ${LOG_DIR}/unittest_gcc.log 2>&1
+python3 run_tests.py -l nightly &> ${LOG_DIR}/unittest_gcc.log
 
 # # Benchmarking
 # cd ${HOME}/Kratos/benchmarking
@@ -94,12 +97,12 @@ rm -rf libs
 ## Step3: Clang
 
 cd ${HOME}/Kratos/cmake_clang
-sh configure.sh > ${LOG_DIR}/configure_clang.log 2> ${LOG_DIR}/configure_clang.log
-make install -j2 -k > ${LOG_DIR}/compile_clang.log 2> ${LOG_DIR}/compile_clang.log
+sh configure.sh &> ${LOG_DIR}/configure_clang.log
+make install -j2 -k &> ${LOG_DIR}/compile_clang.log
 
 # UnitTesting
 cd ${HOME}/Kratos/kratos/python_scripts
-python3 run_tests.py -l nightly > ${LOG_DIR}/unittest_clang.log 2>&1
+python3 run_tests.py -l nightly &> ${LOG_DIR}/unittest_clang.log
 
 # # Benchmarking
 # cd ${HOME}/Kratos/benchmarking
