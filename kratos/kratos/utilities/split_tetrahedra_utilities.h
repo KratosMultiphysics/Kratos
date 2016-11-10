@@ -94,7 +94,7 @@ public:
      *        it is used internally to mark the position of the zero level
      * @param rVolumes Result vector with size 6 (maximumn number of partitions) holding the volume of each partition
      * @param rShapeFunctionValues Result 6x4 matrix where each row represents a partition and holds the shape functions N1 to N4
-     *        of the original tetrahedra evaluated in the gauss point (center) of the partition.
+     *        of the original tetrahedra evaluated in the 4 gauss point of each computed partition.
      *        so that it is  N(gauss_index, node_index)
      * @param rPartitionsSign A result vector of 6 holding the sign of the distance for the partition.
      *        The value -1 represents the negative distance sign, 1 represents positive distance and 0 stands for not used partition
