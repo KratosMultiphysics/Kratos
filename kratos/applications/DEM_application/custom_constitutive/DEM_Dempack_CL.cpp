@@ -35,34 +35,19 @@ namespace Kratos {
     }
 
     void DEM_Dempack::CalculateContactArea(double radius, double other_radius, double& calculation_area) {
-        
-        KRATOS_TRY
+         
         double rmin = radius;
         if (other_radius < radius) rmin = other_radius;
         calculation_area = KRATOS_M_PI * rmin*rmin;
-
-        KRATOS_CATCH("")  
-    }
-
-    double DEM_Dempack::CalculateContactArea(double radius, double other_radius, Vector& v) {
-        double a = 0.0;
-        CalculateContactArea(radius, other_radius, a);
-        unsigned int old_size = v.size();
-        v.resize(old_size + 1);
-        v[old_size]=a;
-        return a;
     }
 
     void DEM_Dempack::GetContactArea(const double radius,
                                      const double other_radius,
                                      const Vector& vector_of_initial_areas,
                                      const int neighbour_position,
-                                     double& calculation_area)
-    {
-        //if (vector_of_initial_areas.size()) calculation_area = vector_of_initial_areas[neighbour_position];
-        //else CalculateContactArea(radius, other_radius, calculation_area);
-        CalculateContactArea(radius, other_radius, calculation_area);
+                                     double& calculation_area) {
 
+        CalculateContactArea(radius, other_radius, calculation_area);        
     }
 
     double DEM_Dempack::LocalMaxSearchDistance(const int i,
@@ -597,5 +582,9 @@ namespace Kratos {
                                                     double ViscoLocalRotationalMoment[3],
                                                     double equiv_poisson,
                                                     double indentation) {}  //ComputeParticleRotationalMoments
+
+
+
+
 
 } /* namespace Kratos.*/
