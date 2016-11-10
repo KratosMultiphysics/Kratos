@@ -182,7 +182,7 @@ public:
 		{
 		  // std::cout<<" pn "<<pn<<std::endl;
 		  //set vertices
-		  if(mrRemesh.NodalPreIds[OutElementList[el*nds+pn]]<0){
+		  if(mrRemesh.NodalPreIds[OutElementList[el*nds+pn]-1]<0){
 		    if(mrRemesh.Options.IsNot(ModelerUtilities::CONTACT_SEARCH))
 		      std::cout<<" ERROR: something is wrong: nodal id < 0 "<<std::endl;
 		    box_side_element = true;
