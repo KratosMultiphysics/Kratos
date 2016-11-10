@@ -480,7 +480,8 @@ namespace Kratos {
         Set(DEMFlags::COPIED_STRESS_TENSOR2,false);
         if(!IsSkin()) return;
         
-        for (unsigned int i=0; i<mNeighbourElements.size(); i++) {
+        for (unsigned int i=0; i<mNeighbourElements.size(); i++) { 
+            if (mNeighbourElements[i] == NULL) continue;
             SphericContinuumParticle* p_neighbour = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
             if(!p_neighbour->IsSkin()) {
                 *(mStressTensor) = *(p_neighbour->mStressTensor);
@@ -497,6 +498,7 @@ namespace Kratos {
         if(Is(DEMFlags::COPIED_STRESS_TENSOR)) return;
         
         for (unsigned int i=0; i<mNeighbourElements.size(); i++) {
+            if (mNeighbourElements[i] == NULL) continue;
             SphericContinuumParticle* p_neighbour = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
             if(p_neighbour->Is(DEMFlags::COPIED_STRESS_TENSOR)) {
                 *(mStressTensor) = *(p_neighbour->mStressTensor);
@@ -514,6 +516,7 @@ namespace Kratos {
         if(Is(DEMFlags::COPIED_STRESS_TENSOR2)) return;
         
         for (unsigned int i=0; i<mNeighbourElements.size(); i++) {
+            if (mNeighbourElements[i] == NULL) continue;
             SphericContinuumParticle* p_neighbour = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
             if(p_neighbour->Is(DEMFlags::COPIED_STRESS_TENSOR2)) {
                 *(mStressTensor) = *(p_neighbour->mStressTensor);
