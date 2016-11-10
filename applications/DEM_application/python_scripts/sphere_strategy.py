@@ -88,11 +88,11 @@ class ExplicitStrategy:
         self.top_corner = Array3()
         self.bottom_corner = Array3()
         self.top_corner[0] = Param.BoundingBoxMaxX
-        self.top_corner[0] = Param.BoundingBoxMaxY
-        self.top_corner[0] = Param.BoundingBoxMaxZ
+        self.top_corner[1] = Param.BoundingBoxMaxY
+        self.top_corner[2] = Param.BoundingBoxMaxZ
         self.bottom_corner[0] = Param.BoundingBoxMinX
-        self.bottom_corner[0] = Param.BoundingBoxMinY
-        self.bottom_corner[0] = Param.BoundingBoxMinZ
+        self.bottom_corner[1] = Param.BoundingBoxMinY
+        self.bottom_corner[2] = Param.BoundingBoxMinZ
 
         if not (hasattr(Param, "BoundingBoxStartTime")):
             self.bounding_box_start_time  = 0.0
