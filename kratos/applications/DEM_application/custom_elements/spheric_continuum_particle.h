@@ -78,6 +78,13 @@ namespace Kratos
         virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalElasticContactForce[3],
                                                 double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps);
 
+
+        virtual void FilterNonSignificantDisplacements(double DeltDisp[3], //IN GLOBAL AXES
+                                                       double RelVel[3], //IN GLOBAL AXES
+                                                       double& indentation);
+
+
+
         virtual void ContactAreaWeighting();
         virtual double EffectiveVolumeRadius();
         virtual double GetInitialDelta(int index);
