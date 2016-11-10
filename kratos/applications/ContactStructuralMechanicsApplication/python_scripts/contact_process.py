@@ -111,24 +111,38 @@ class ContactProcess(KratosMultiphysics.Process):
         self.contact_search = KratosMultiphysics.ContactStructuralMechanicsApplication.TreeContactSearch(self.o_interface, self.d_interface, self.max_number_results)
         
         if self.params["contact_type"].GetString() == "MortarMethod":
+            ZeroVector = KratosMultiphysics.Vector(3) 
+            ZeroVector[0] = 0.0
+            ZeroVector[1] = 0.0
+            ZeroVector[2] = 0.0
             
             # Initilialize weighted variables and LM
             for node in self.d_interface.Nodes:
                 node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_GAP, 0.0)
                 node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_SLIP, 0.0)
                 node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.WEIGHTED_FRICTION, 0.0)
-                ZeroVector = KratosMultiphysics.Vector(3) 
-                ZeroVector[0] = 0.0
-                ZeroVector[1] = 0.0
-                ZeroVector[2] = 0.0
-                node.SetValue(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER, ZeroVector)
+                node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.AUXILIAR_ACTIVE, False)
+                node.SetValue(KratosMultiphysics.ContactStructuralMechanicsApplication.AUXILIAR_SLIP, False)
+                node.SetValue(KratosMultiphysics.NORMAL, ZeroVector)
+                node.SetValue(KratosMultiphysics.TANGENT_XI, ZeroVector)
+                node.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector)
                 #node.Set(KratosMultiphysics.SLAVE, True)
             del node
             
             # Setting the master conditions 
-            #for cond in self.o_interface.Nodes:
+            for cond in self.o_interface.Nodes:
+                cond.SetValue(KratosMultiphysics.NORMAL, ZeroVector) 
+                cond.SetValue(KratosMultiphysics.TANGENT_XI, ZeroVector) 
+                cond.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector) 
                 #cond.Set(KratosMultiphysics.MASTER, True) # TODO: This is not supposed o be necessary
-            #del cond
+            del cond
+            
+            # Setting the slave conditions 
+            for cond in self.d_interface.Nodes:
+                cond.SetValue(KratosMultiphysics.NORMAL, ZeroVector) 
+                cond.SetValue(KratosMultiphysics.TANGENT_XI, ZeroVector) 
+                cond.SetValue(KratosMultiphysics.TANGENT_ETA, ZeroVector) 
+            del cond
             
             self.contact_search.CreatePointListMortar()
             self.contact_search.InitializeMortarConditions(self.active_check_factor, self.augmentation_normal, self.augmentation_tangent, self.integration_order)
