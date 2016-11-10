@@ -50,17 +50,17 @@ def AssambleTestSuites():
     smallSuite.addTest(TTaylorPatchDynamicTestContact('test_execution'))
     smallSuite.addTest(THertzSimpleSphereTestContact('test_execution'))
     smallSuite.addTest(THertzSimpleTestContact('test_execution'))
-    smallSuite.addTest(THertzCompleteTestContact('test_execution'))
-    smallSuite.addTest(TThreeDPatchMatchingTestContact('test_execution'))
-    smallSuite.addTest(TThreeDPatchNonMatchingTestContact('test_execution'))
+    # smallSuite.addTest(THertzCompleteTestContact('test_execution'))
+    # smallSuite.addTest(TThreeDPatchMatchingTestContact('test_execution'))
+    # smallSuite.addTest(TThreeDPatchNonMatchingTestContact('test_execution'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
-    nightSuite.addTest(TIroningTestContact('test_execution'))
-    nightSuite.addTest(TIroningDieTestContact('test_execution'))
-    
-    # For very long tests that should not be in nighly and you can use to validate 
+    # nightSuite.addTest(TIroningTestContact('test_execution'))
+    # nightSuite.addTest(TIroningDieTestContact('test_execution'))
+
+    # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
 
     # Create a test suit that contains all the tests:
