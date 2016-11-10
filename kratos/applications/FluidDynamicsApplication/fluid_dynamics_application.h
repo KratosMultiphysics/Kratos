@@ -55,9 +55,12 @@
 
 #include "custom_elements/bingham_fluid.h"
 #include "custom_elements/herschel_bulkley_fluid.h"
-// #include "custom_elements/navier_stokes_element_symbolic.h"
 #include "custom_elements/stokes_3D.h"
 #include "custom_elements/stokes_3D_twofluid.h"
+
+#include "custom_elements/navier_stokes.h"
+#include "custom_elements/embedded_navier_stokes.h"
+
 
 namespace Kratos
 {
@@ -299,6 +302,14 @@ private:
 //     const StokesSymbolic2D mStokesSymbolic2D;
     const Stokes3D mStokes3D;
     const Stokes3DTwoFluid mStokes3DTwoFluid;
+
+    /// Navier-Stokes symbolic element
+    const NavierStokes<2> mNavierStokes2D;
+    const NavierStokes<3> mNavierStokes3D;
+    
+    /// Embedded Navier-Stokes symbolic element
+    const EmbeddedNavierStokes<2> mEmbeddedNavierStokes2D;
+    const EmbeddedNavierStokes<3> mEmbeddedNavierStokes3D;
 
     ///@}
     ///@name Private Operators
