@@ -301,8 +301,9 @@ namespace Kratos
 							size_t equation_system_size)
 		{
 			for(typename DofsArrayType::iterator i_dof = dofset.begin() ; i_dof != dofset.end() ; ++i_dof) {
-				if(i_dof->IsFree()) {
-					i_dof->GetSolutionStepValue() += Dx[trasformed_eq_ids[i_dof->EquationId()]];
+				Dof<double> &it_dof = *i_dof;
+				if(it_dof.IsFree()) {
+					it_dof.GetSolutionStepValue() += Dx[trasformed_eq_ids[it_dof.EquationId()]];
 				}
 			}
 		}

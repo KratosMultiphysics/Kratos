@@ -39,6 +39,7 @@ Import_KratosMixedElementApplication = False
 Import_ThermoMechanicalApplication = False
 Import_DEM_FEM_Application = False
 Import_WindTurbineApplication = False
+Import_MultiScaleApplication = False
 Import_ContactMechanicsApplication = False
 Import_ContactStructuralMechanicsApplication = False
 
@@ -78,6 +79,7 @@ print("Import_KratosMixedElementApplication: False")
 print("Import_ThermoMechanicalApplication: False")
 print("Import_DEM_FEM_Application: False")
 print("Import_WindTurbineApplication: False")
+print("Import_MultiScaleApplication: False")
 print("Import_ContactMechanicsApplication: False")
 print("Import_ContactStructuralMechanicsApplication: False")
 
@@ -120,6 +122,7 @@ def ImportApplications(kernel, applications_path=application_directory):
     print("Import_ThermoMechanicalApplication: " + str(Import_ThermoMechanicalApplication))
     print("Import_DEM_FEM_Application: " + str(Import_DEM_FEM_Application))
     print("Import_WindTurbineApplication: " + str(Import_WindTurbineApplication))
+    print("Import_MultiScaleApplication: " + str(Import_MultiScaleApplication))
     print("Import_ContactMechanicsApplication: " + str(Import_ContactMechanicsApplication))
     print("Import_ContactStructuralMechanicsApplication: " + str(Import_ContactStructuralMechanicsApplication))
 
@@ -429,6 +432,14 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.AddApplication(wind_turbine_application)
         print("KratosWindTurbineApplication sucessfully imported")
 
+    if(Import_MultiScaleApplication):
+        print("importing KratosMultiscaleApplication ...")
+        sys.path.append(applications_path + '/MultiScaleApplication/python_scripts')
+        from KratosMultiscaleApplication import *
+        wind_turbine_application = KratosMultiScaleApplication()
+        kernel.AddApplication(MultiScaleApplication)
+        print("KratosMultiScaleApplication sucessfully imported")
+		
     if(Import_ContactMechanicsApplication):
         print("importing KratosContactMechanicsApplication ...")
         sys.path.append(applications_path + '/ContactMechanics/python_scripts')
@@ -522,6 +533,8 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.InitializeApplication(dem_fem_application)
     if(Import_WindTurbineApplication):
         kernel.InitializeApplication(wind_turbine_application)
+    if(Import_MultiScaleApplication):
+        kernel.InitializeApplication(MultiScaleApplication)
     if(Import_ContactMechanicsApplication):
         kernel.InitializeApplication(contact_mechanics_application)
     if(Import_ContactStructuralMechanicsApplication):
