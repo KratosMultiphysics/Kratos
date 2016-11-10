@@ -34,6 +34,7 @@ namespace Kratos
   //constitutive law
   KRATOS_CREATE_VARIABLE( bool, IMPLEX )
   KRATOS_CREATE_VARIABLE( std::string, CONSTITUTIVE_LAW_NAME )
+  KRATOS_CREATE_VARIABLE( ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW_POINTER )
 
 
   //nodal load variables

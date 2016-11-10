@@ -323,6 +323,22 @@ void SmallDisplacementElement::SetValueOnIntegrationPoints( const Variable<Const
             mConstitutiveLawVector.resize(rValues.size());
 
             if( mConstitutiveLawVector.size() != GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod  ) )
+                KRATOS_THROW_ERROR( std::logic_error, "constitutive law not has the correct size ", mConstitutiveLawVector.size() )
+        }
+
+        for(unsigned int i=0; i<rValues.size(); i++)
+        {
+            mConstitutiveLawVector[i] = rValues[i]->Clone();
+        }
+    }
+
+    if(rVariable == CONSTITUTIVE_LAW_POINTER)
+    {
+        if ( mConstitutiveLawVector.size() != rValues.size() )
+        {
+            mConstitutiveLawVector.resize(rValues.size());
+
+            if( mConstitutiveLawVector.size() != GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod  ) )
                 KRATOS_THROW_ERROR( std::logic_error, "constitutive law not has the correct size ", mConstitutiveLawVector.size() );
         }
 
@@ -460,7 +476,7 @@ void SmallDisplacementElement::GetValueOnIntegrationPoints( const Variable<Const
         const ProcessInfo& rCurrentProcessInfo )
 {
 
-  if(rVariable == CONSTITUTIVE_LAW)
+    if(rVariable == CONSTITUTIVE_LAW || rVariable == CONSTITUTIVE_LAW_POINTER)
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
         {
