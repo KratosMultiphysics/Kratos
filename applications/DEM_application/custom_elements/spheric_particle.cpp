@@ -1339,7 +1339,7 @@ void SphericParticle::ComputeReactions(){
 
 void SphericParticle::PrepareForPrinting(ProcessInfo& r_process_info){
 
-    if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
+    if (this->Is(DEMFlags::PRINT_STRESS_TENSOR)) {
         this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_XX) = (*mSymmStressTensor)(0,0);
         this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_XY) = (*mSymmStressTensor)(0,1);
         this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_XZ) = (*mSymmStressTensor)(0,2);
@@ -1468,9 +1468,12 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
     if (r_process_info[CRITICAL_TIME_OPTION])    this->Set(DEMFlags::HAS_CRITICAL_TIME, true);   //obsolete
     else                                         this->Set(DEMFlags::HAS_CRITICAL_TIME, false);
 
-    if (r_process_info[COMPUTE_STRESS_TENSOR_OPTION])    this->Set(DEMFlags::HAS_STRESS_TENSOR, true);
-    else                                         this->Set(DEMFlags::HAS_STRESS_TENSOR, false);
+    if (r_process_info[COMPUTE_STRESS_TENSOR_OPTION]) this->Set(DEMFlags::HAS_STRESS_TENSOR, true);
+    else                                              this->Set(DEMFlags::HAS_STRESS_TENSOR, false);
 
+    if (r_process_info[PRINT_STRESS_TENSOR_OPTION]) this->Set(DEMFlags::PRINT_STRESS_TENSOR, true);
+    else                                            this->Set(DEMFlags::PRINT_STRESS_TENSOR, false);
+    
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
 
         mStressTensor  = new Matrix(3,3);

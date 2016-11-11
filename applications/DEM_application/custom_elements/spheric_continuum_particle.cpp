@@ -143,7 +143,6 @@ namespace Kratos {
         double total_equiv_area = 0.0;
         double total_mContIniNeighArea = 0.0;
         int cont_ini_neighbours_size = mContinuumInitialNeighborsSize;
-        SetValue(NEIGHBOURS_CONTACT_AREAS, Vector());
         Vector& cont_ini_neigh_area = GetValue(NEIGHBOURS_CONTACT_AREAS);
         bool print_debug_files = false;
 
@@ -775,6 +774,7 @@ namespace Kratos {
         else {
             mOldSymmStressTensor = NULL;
         }*/
+        SetValue(NEIGHBOURS_CONTACT_AREAS, Vector());
 
         mSkinSphere     = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
         mContinuumGroup = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);

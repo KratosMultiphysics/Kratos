@@ -22,6 +22,9 @@ class ExplicitStrategy:
 
         if (self.Var_Translator(Param.PostStressStrainOption)):
             self.compute_stress_tensor_option = 1
+            self.print_stress_tensor_option = 1
+        else:
+            self.print_stress_tensor_option = 0
 
         if not hasattr(Param, "AutomaticTimestep"):
             self.critical_time_option = 0
@@ -169,6 +172,7 @@ class ExplicitStrategy:
         self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_START_TIME, self.bounding_box_start_time)
         self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_STOP_TIME, self.bounding_box_stop_time)
         self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_STRESS_TENSOR_OPTION, self.compute_stress_tensor_option)
+        self.spheres_model_part.ProcessInfo.SetValue(PRINT_STRESS_TENSOR_OPTION, self.print_stress_tensor_option)
 
         # GLOBAL PHYSICAL ASPECTS
         self.spheres_model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
