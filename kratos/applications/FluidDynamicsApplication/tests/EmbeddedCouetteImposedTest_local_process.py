@@ -27,10 +27,10 @@ class ApplyLocalProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
         
         # Set the distance function
         for node in self.fluid_model_part.Nodes:
-            distance = node.Z-self.distance
+            distance = self.distance-node.Z
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, distance)
             
-        # Deactivate the elements that have negative distance value
+        # Deactivate the elements that have negative distance value and impose the velocity at the level set
         for elem in self.fluid_model_part.Elements:
             interior = 0
             for node in elem.GetNodes():
@@ -38,6 +38,13 @@ class ApplyLocalProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
                     interior += 1
             if interior == 4:
                 elem.Set(KratosMultiphysics.ACTIVE,False)
+            elif (interior<4) and (interior>0):
+                embedded_velocity = KratosMultiphysics.Vector(3)
+                embedded_velocity[0] = 2.0
+                embedded_velocity[1] = 0.0
+                embedded_velocity[2] = 0.0
+        
+                elem.SetValue(KratosMultiphysics.EMBEDDED_VELOCITY,embedded_velocity)
             
         # Set the lateral velocity constraint
         for node in self.fluid_model_part.GetSubModelPart("Sides3D").Nodes:
@@ -61,9 +68,9 @@ class ApplyLocalProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 0, vel)
             
         # Set the top velocity constraint
-        for node in self.fluid_model_part.GetSubModelPart("Top3D").Nodes:
+        for node in self.fluid_model_part.GetSubModelPart("Bot3D").Nodes:
             vel = KratosMultiphysics.Vector(3)
-            vel[0] = 1.0
+            vel[0] = 0.0
             vel[1] = 0.0
             vel[2] = 0.0
             
@@ -75,7 +82,7 @@ class ApplyLocalProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
         # Set the inlet
         for node in self.fluid_model_part.GetSubModelPart("Inlet3D").Nodes:
             vel = KratosMultiphysics.Vector(3)
-            vel[0] = (node.Z-self.distance)/(2-self.distance)
+            vel[0] = (2/1.5)*node.Z
             vel[1] = 0.0
             vel[2] = 0.0
             
@@ -110,7 +117,7 @@ class ApplyLocalProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
         for node in self.fluid_model_part.Nodes:
             if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0.0:
                 
-                expected_solution = (node.Z-self.distance)/(2-self.distance)
+                expected_solution = (2/1.5)*node.Z
                 obtained_solution = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0)
                 self.assertAlmostEqual(obtained_solution,expected_solution,4)
                 

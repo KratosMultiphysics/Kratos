@@ -69,5 +69,9 @@ class EmbeddedCouetteTest(EmbeddedCouetteTestFactory):
     file_name = "EmbeddedCouetteTest/EmbeddedCouetteTest"
         
 
+class EmbeddedCouetteImposedTest(EmbeddedCouetteTestFactory):
+    file_name = "EmbeddedCouetteImposedTest/EmbeddedCouetteImposedTest"
+        
+
 class EmbeddedReservoirTest(EmbeddedReservoirTestFactory):
     file_name = "EmbeddedReservoirTest/EmbeddedReservoirTest"

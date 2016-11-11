@@ -10,6 +10,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
 from SmallTests import EmbeddedCouetteTest as TEmbeddedCouetteTest
+from SmallTests import EmbeddedCouetteImposedTest as TEmbeddedCouetteImposedTest
 from SmallTests import EmbeddedReservoirTest as TEmbeddedReservoirTest
 
 ## NIGTHLY TESTS
@@ -35,6 +36,7 @@ def AssambleTestSuites():
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
     smallSuite.addTest(TEmbeddedCouetteTest('test_execution'))
+    smallSuite.addTest(TEmbeddedCouetteImposedTest('test_execution'))
     smallSuite.addTest(TEmbeddedReservoirTest('test_execution'))
 
     # Create a test suit with the selected tests plus all small tests
@@ -51,6 +53,7 @@ def AssambleTestSuites():
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
             TEmbeddedCouetteTest,
+            TEmbeddedCouetteImposedTest,
             TEmbeddedReservoirTest
             #~ TNonConformantOneSideMap3D_test2,
             #~ TMokBenchmarkTest
