@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# importing the Kratos Library
+# Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
+import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -26,7 +26,7 @@ class NavierStokesSolver_VMSMonolithic:
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "navier_stokes_solver_vmsmonolithic",
+            "solver_type": "navier_stokes_embedded_solver",
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
@@ -44,24 +44,16 @@ class NavierStokesSolver_VMSMonolithic:
             "absolute_velocity_tolerance": 1e-7,
             "relative_pressure_tolerance": 1e-5,
             "absolute_pressure_tolerance": 1e-7,
-            "linear_solver_settings"        : {
-                "solver_type" : "AMGCL_NS_Solver",
-                "krylov_type" : "bicgstab",
-                "velocity_block_preconditioner" : {
-                    "tolerance" : 1e-3,
-                    "precondioner_type" : "spai0"
-                },
-                "pressure_block_preconditioner" : {
-                    "tolerance" : 1e-2,
-                    "precondioner_type" : "spai0"
-                },
-                "tolerance" : 1e-6,
-                "krylov_type": "bicgstab",
-                "gmres_krylov_space_dimension": 50,
-                "max_iteration": 50,
-                "verbosity" : 0,
-                "scaling": true,
-                "coarse_enough" : 5000
+            "linear_solver_settings"       : {
+                "solver_type"         : "AMGCL",
+                "max_iteration"       : 200,
+                "tolerance"           : 1e-8,
+                "provide_coordinates" : false,
+                "smoother_type"       : "ilu0",
+                "krylov_type"         : "lgmres",
+                "coarsening_type"     : "aggregation",
+                "scaling"             : true,
+                "verbosity"           : 0
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
@@ -69,7 +61,6 @@ class NavierStokesSolver_VMSMonolithic:
             "alpha":-0.1,
             "move_mesh_strategy": 0,
             "periodic": "periodic",
-            "regularization_coef": 1000,
             "MoveMeshFlag": false,
             "use_slip_conditions": false,
             "turbulence_model": "None",
@@ -115,7 +106,7 @@ class NavierStokesSolver_VMSMonolithic:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.OSS_SWITCH)  
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.M)           
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)           
-        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)          # PATCH_INDEX belongs to FluidDynamicsApp.
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.PATCH_INDEX)
 
         print("Variables for the fluid embedded solver added correctly.")
 
@@ -168,9 +159,9 @@ class NavierStokesSolver_VMSMonolithic:
                         
             # Constitutive law import
             if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
-                self.main_model_part.Properties[1][KratosMultiphysics.CONSTITUTIVE_LAW] = KratosCFD.Newtonian3DLaw()
+                self.main_model_part.Properties[1][KratosMultiphysics.CONSTITUTIVE_LAW] = KratosFluid.Newtonian3DLaw()
             elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-                self.main_model_part.Properties[1][KratosMultiphysics.CONSTITUTIVE_LAW] = KratosCFD.Newtonian2DLaw()
+                self.main_model_part.Properties[1][KratosMultiphysics.CONSTITUTIVE_LAW] = KratosFluid.Newtonian2DLaw()
 
         else:
             raise Exception("Other input options are not yet implemented.")
@@ -201,10 +192,10 @@ class NavierStokesSolver_VMSMonolithic:
         move_mesh_flag = False
 
         # Creating the solution strategy
-        self.conv_criteria = KratosCFD.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
-                                                     self.settings["absolute_velocity_tolerance"].GetDouble(),
-                                                     self.settings["relative_pressure_tolerance"].GetDouble(),
-                                                     self.settings["absolute_pressure_tolerance"].GetDouble())
+        self.conv_criteria = KratosFluid.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
+                                                       self.settings["absolute_velocity_tolerance"].GetDouble(),
+                                                       self.settings["relative_pressure_tolerance"].GetDouble(),
+                                                       self.settings["absolute_pressure_tolerance"].GetDouble())
 
         self.bdf_process = KratosMultiphysics.ComputeBDFCoefficientsProcess(self.computing_model_part,2)
         
@@ -229,8 +220,8 @@ class NavierStokesSolver_VMSMonolithic:
         self.solver.Check()
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.M, self.settings["regularization_coef"].GetDouble())
+        #~ self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
+        #~ self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.M, self.settings["regularization_coef"].GetDouble())
 
         print ("Monolithic embedded solver initialization finished.")
 
@@ -273,10 +264,10 @@ class NavierStokesSolver_VMSMonolithic:
                 pPrecond = DiagonalPreconditioner()
                 stokes_linear_solver = BICGSTABSolver(1e-9, 5000, pPrecond)
 
-            stokes_process = KratosCFD.StokesInitializationProcess(self.main_model_part,
-                                                                   stokes_linear_solver,
-                                                                   self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                                                   KratosCFD.PATCH_INDEX)
+            stokes_process = KratosFluid.StokesInitializationProcess(self.main_model_part,
+                                                                     stokes_linear_solver,
+                                                                     self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+                                                                     KratosFluid.PATCH_INDEX)
             ## Copy periodic conditions to Stokes problem
             stokes_process.SetConditions(self.main_model_part.Conditions)
             ## Execute Stokes process
