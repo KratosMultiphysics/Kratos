@@ -183,7 +183,7 @@ def main():
     cmd = os.path.dirname(GetModulePath('KratosMultiphysics'))+'/'+'runkratos'
 
     # KratosCore must always be runned
-    print('Running tests for KratosCore')
+    print('Running tests for KratosCore', file=sys.stderr)
     RunTestSuit(
         'KratosCore',
         os.path.dirname(GetModulePath('KratosMultiphysics'))+'/'+'kratos',
@@ -194,7 +194,7 @@ def main():
 
     # Run the tests for the rest of the Applications
     for application in applications:
-        print('Running tests for {}'.format(application))
+        print('Running tests for {}'.format(application), file=sys.stderr)
         RunTestSuit(
             application,
             KratosLoader.kratos_applications+'/'+application,
