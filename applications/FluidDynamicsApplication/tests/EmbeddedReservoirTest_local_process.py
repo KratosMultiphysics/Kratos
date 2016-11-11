@@ -70,3 +70,12 @@ class ApplyLocalProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
                 expected_solution = (2-node.Z)*density*abs(gravity)
                 obtained_solution = node.GetSolutionStepValue(KratosMultiphysics.PRESSURE,0)
                 self.assertAlmostEqual(obtained_solution,expected_solution,4)
+                
+                obtained_solution = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0)
+                self.assertAlmostEqual(obtained_solution,0.0,4)
+                
+                obtained_solution = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0)
+                self.assertAlmostEqual(obtained_solution,0.0,4)
+                
+                obtained_solution = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,0)
+                self.assertAlmostEqual(obtained_solution,0.0,4)
