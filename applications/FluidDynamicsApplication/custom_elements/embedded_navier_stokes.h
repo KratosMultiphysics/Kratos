@@ -828,61 +828,16 @@ protected:
             }
         }
         
-        // Assemble the RHS residual contribution
+        // Assemble and compute the RHS pressure residual contribution at the intersection
         noalias(rRightHandSideVector) -= prod(auxLeftHandSideMatrix, data.p);
         
-        // Compute the contribution of the stress term
-        // Set the normal vector matrix
-        bounded_matrix<double, TDim, (TDim-1)*3> normal_matrix = ZeroMatrix(TDim, (TDim-1)*3);
+        // Compute the contribution of the tangential boundary stress term at the intersection
+        bounded_matrix<double, TDim, (TDim-1)*3> normal_matrix;         // Set normal matrix
+        SetNormalMatrix(intersection_normal, normal_matrix);
         
-        if (TDim == 3)
-        {
-            normal_matrix(0,0) = intersection_normal(0);
-            normal_matrix(0,3) = intersection_normal(1);
-            normal_matrix(0,5) = intersection_normal(2);
-            normal_matrix(1,1) = intersection_normal(1);
-            normal_matrix(1,3) = intersection_normal(0);
-            normal_matrix(1,4) = intersection_normal(2);
-            normal_matrix(2,2) = intersection_normal(2);
-            normal_matrix(2,4) = intersection_normal(1);
-            normal_matrix(2,5) = intersection_normal(0);            
-        }
-        else
-        {
-            normal_matrix(0,0) = intersection_normal(0);
-            normal_matrix(0,2) = intersection_normal(1);
-            normal_matrix(1,1) = intersection_normal(1);
-            normal_matrix(1,2) = intersection_normal(0);
-        }
-        
-        bounded_matrix<double, (TDim-1)*3, TNumNodes*TDim> B_matrix = ZeroMatrix((TDim-1)*3, TNumNodes*TDim);
-        
-        if (TDim == 3)
-        {
-            for (unsigned int i=0; i<TNumNodes; i++) 
-            {
-                B_matrix(0,i*TNumNodes) = data.DN_DX(i,0);
-                B_matrix(1,i*TNumNodes+1) = data.DN_DX(i,1);
-                B_matrix(2,i*TNumNodes+2) = data.DN_DX(i,2);
-                B_matrix(3,i*TNumNodes) = data.DN_DX(i,1);
-                B_matrix(3,i*TNumNodes+1) = data.DN_DX(i,0);
-                B_matrix(4,i*TNumNodes+1) = data.DN_DX(i,2);
-                B_matrix(4,i*TNumNodes+2) = data.DN_DX(i,1);
-                B_matrix(5,i*TNumNodes) = data.DN_DX(i,2);
-                B_matrix(5,i*TNumNodes+2) = data.DN_DX(i,0);
-            }
-        }
-        else
-        {
-            for (unsigned int i=0; i<TNumNodes; i++)
-            {
-                B_matrix(0,i*TNumNodes) = data.DN_DX(i,0);
-                B_matrix(1,i*TNumNodes+1) = data.DN_DX(i,1);
-                B_matrix(2,i*TNumNodes) = data.DN_DX(i,1);
-                B_matrix(2,i*TNumNodes+1) = data.DN_DX(i,0);
-            }
-        }
-        
+        bounded_matrix<double, (TDim-1)*3, TNumNodes*TDim> B_matrix;    // Set strain matrix
+        SetStrainMatrix(data, B_matrix);
+                
         bounded_matrix<double, TNumNodes*TDim, TDim> w_matrix;
         bounded_matrix<double, TNumNodes*TDim, (TDim-1)*3> aux_matrix;
         
@@ -961,9 +916,8 @@ protected:
                                                  const VectorType& edge_areas)
     {
         
-        constexpr unsigned int nDOFs = TDim+1;                     // DOFs per node
-        constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);    // Matrix size
-        //~ constexpr unsigned int nEdges = (TDim-1)*3;                // Edges per element
+        constexpr unsigned int BlockSize = TDim+1;                 // Block size
+        constexpr unsigned int MatrixSize = TNumNodes*BlockSize;   // Matrix size
                
         // Intersection geometry data computation
         unsigned int npos = 0, nneg=0;
@@ -985,23 +939,25 @@ protected:
         
         for (unsigned int i = 0; i<TNumNodes; i++)
         {
-            prev_sol(i*nDOFs) = data.v(i,0);
-            prev_sol(i*nDOFs+1) = data.v(i,1);
-            prev_sol(i*nDOFs+2) = data.v(i,2);
+            prev_sol(i*BlockSize) = data.v(i,0);
+            prev_sol(i*BlockSize+1) = data.v(i,1);
+            prev_sol(i*BlockSize+2) = data.v(i,2);
         }
         
         // Compute the BCs imposition matrices                
-        MatrixType M_gamma(nneg, nneg);              // Outside nodes matrix
-        MatrixType N_gamma(nneg, npos);              // Interior nodes matrix
+        MatrixType M_gamma(nneg, nneg);              // Outside nodes matrix (Nitche contribution)
+        MatrixType N_gamma(nneg, npos);              // Interior nodes matrix (Nitche contribution)
+        MatrixType f_gamma(nneg, TNumNodes);         // Matrix to compute the RHS (Nitche contribution)
         MatrixType P_gamma(TNumNodes, TNumNodes);    // Penalty matrix
         
         noalias(M_gamma) = ZeroMatrix(nneg, nneg);
         noalias(N_gamma) = ZeroMatrix(nneg, npos);
+        noalias(f_gamma) = ZeroMatrix(nneg, npos);
         noalias(P_gamma) = ZeroMatrix(TNumNodes, TNumNodes);
         
-        VectorType aux_1(nneg);
-        VectorType aux_2(npos);
-        VectorType aux_p(TNumNodes);
+        VectorType aux_out(nneg);
+        VectorType aux_int(npos);
+        VectorType aux_cut(TNumNodes);
         
         double intersection_area = 0.0;
         
@@ -1010,13 +966,14 @@ protected:
             double weight = cut_areas(icut);
             intersection_area += weight;
             
-            aux_1 = row(Ncontainer_out, icut);
-            aux_2 = row(Ncontainer_int, icut);
-            aux_p = row(Ncontainer_cut, icut);
+            aux_out = row(Ncontainer_out, icut);
+            aux_int = row(Ncontainer_int, icut);
+            aux_cut = row(Ncontainer_cut, icut);
             
-            M_gamma += weight*outer_prod(aux_1,aux_1);
-            N_gamma += weight*outer_prod(aux_1,aux_2);
-            P_gamma += weight*outer_prod(aux_p,aux_p);
+            M_gamma += weight*outer_prod(aux_out,aux_out);
+            N_gamma += weight*outer_prod(aux_out,aux_int);
+            f_gamma += weight*outer_prod(aux_out,aux_cut);
+            P_gamma += weight*outer_prod(aux_cut,aux_cut);
         }
         
         // ADD PENALTY CONTRIBUTION
@@ -1024,7 +981,7 @@ protected:
         double diag_max = 0.0;
         for (unsigned int i=0; i<MatrixSize; i++)
         {
-            if ((rLeftHandSideMatrix(i,i) > diag_max) && (i%nDOFs != 0.0))
+            if ((rLeftHandSideMatrix(i,i) > diag_max) && (i%BlockSize != 0.0))
             {
                 diag_max = rLeftHandSideMatrix(i,i); // Maximum diagonal value (associated to velocity)
             }
@@ -1045,13 +1002,13 @@ protected:
         VectorType auxRightHandSideVector(MatrixSize);  
         noalias(auxRightHandSideVector) = ZeroVector(MatrixSize);
         
-        // Penalty contribution assembly (symmetric mass matrix)
+        // LHS penalty contribution assembly (symmetric mass matrix)
         for (unsigned int i = 0; i<TNumNodes; i++)
         {
             // Diagonal terms
             for (unsigned int comp = 0; comp<TDim; comp++)
             {
-                auxLeftHandSideMatrix(i*nDOFs+comp, i*nDOFs+comp) = P_gamma(i,i);
+                auxLeftHandSideMatrix(i*BlockSize+comp, i*BlockSize+comp) = P_gamma(i,i);
             }
             
             // Off-diagonal terms
@@ -1059,20 +1016,31 @@ protected:
             {
                 for (unsigned int comp = 0; comp<TDim; comp++)
                 {
-                    auxLeftHandSideMatrix(i*nDOFs+comp, j*nDOFs+comp) = P_gamma(i,j);
-                    auxLeftHandSideMatrix(j*nDOFs+comp, i*nDOFs+comp) = P_gamma(i,j);
+                    auxLeftHandSideMatrix(i*BlockSize+comp, j*BlockSize+comp) = P_gamma(i,j);
+                    auxLeftHandSideMatrix(j*BlockSize+comp, i*BlockSize+comp) = P_gamma(i,j);
                 }
             }
         }
                 
         rLeftHandSideMatrix += auxLeftHandSideMatrix;
         
-        // TODO: RHS contribution when the imposed value is not 0 not implemented for the penalty!!!!!! RHS = -k*int(w(x)(u(x)-u_bar(x)))
-        VectorType p_gamma(MatrixSize);
-        p_gamma = ZeroVector(MatrixSize);
+        // RHS penalty contribution assembly        
+        if (this->Has(EMBEDDED_VELOCITY))
+        {
+            const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
+            array_1d<double, MatrixSize> aux_embedded_vel = ZeroVector(MatrixSize);
+            
+            for (unsigned int i=0; i<TNumNodes; i++)
+            {
+                aux_embedded_vel(i*BlockSize) = embedded_vel(0);
+                aux_embedded_vel(i*BlockSize+1) = embedded_vel(1);
+                aux_embedded_vel(i*BlockSize+2) = embedded_vel(2);
+            }
+            
+            rRightHandSideVector += prod(auxLeftHandSideMatrix, aux_embedded_vel);
+        }
         
-        rRightHandSideVector += p_gamma;
-        rRightHandSideVector -= prod(auxLeftHandSideMatrix, prev_sol);
+        rRightHandSideVector -= prod(auxLeftHandSideMatrix, prev_sol); // Residual contribution assembly
                 
         // ADD MODIFIED NITCHE METHOD CONTRIBUTION
         noalias(auxLeftHandSideMatrix) = ZeroMatrix(MatrixSize, MatrixSize); // Recall to reinitialize the auxLeftHandSideMatrix
@@ -1087,11 +1055,11 @@ protected:
                 // LHS matrix u_out zero set (note that just the velocity rows are set to 0)
                 for (unsigned int col = 0; col<MatrixSize; col++)
                 {
-                    rLeftHandSideMatrix(out_node_row_id*nDOFs+j, col) = 0.0; 
+                    rLeftHandSideMatrix(out_node_row_id*BlockSize+j, col) = 0.0; 
                 }
                 
                 // RHS vector u_out zero set (note that just the velocity rows are set to 0)       
-                rRightHandSideVector(out_node_row_id*nDOFs+j) = 0.0;  
+                rRightHandSideVector(out_node_row_id*BlockSize+j) = 0.0;  
             }
         }
         
@@ -1107,7 +1075,7 @@ protected:
                 
                 for (unsigned int comp = 0; comp<TDim; comp++)
                 {
-                    auxLeftHandSideMatrix(out_node_row_id*nDOFs+comp, out_node_col_id*nDOFs+comp) = M_gamma(i, j);
+                    auxLeftHandSideMatrix(out_node_row_id*BlockSize+comp, out_node_col_id*BlockSize+comp) = M_gamma(i, j);
                 }
             }
         }
@@ -1123,85 +1091,110 @@ protected:
                 
                 for (unsigned int comp = 0; comp<TDim; comp++)
                 {
-                    auxLeftHandSideMatrix(out_node_row_id*nDOFs+comp, int_node_col_id*nDOFs+comp) = N_gamma(i, j);
+                    auxLeftHandSideMatrix(out_node_row_id*BlockSize+comp, int_node_col_id*BlockSize+comp) = N_gamma(i, j);
                 }
             }
         }
-                       
+        
+        // LHS outside Nitche contribution assembly               
         rLeftHandSideMatrix += auxLeftHandSideMatrix;
-                        
-        // RHS outside contribution assembly
+        
+        // RHS outside Nitche contribution assembly
         // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
-        
-        // TODO: RHS contribution when the imposed value is not 0 is not implemented yet!!!!!!
-        VectorType f_gamma(MatrixSize);
-        f_gamma = ZeroVector(MatrixSize);
-                
-        rRightHandSideVector += f_gamma;
         rRightHandSideVector -= prod(auxLeftHandSideMatrix, prev_sol);
+                        
+        // Compute f_gamma if level set velocity is not 0
+        if (this->Has(EMBEDDED_VELOCITY))
+        {
+            auxLeftHandSideMatrix.clear();
+            
+            const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
+            array_1d<double, MatrixSize> aux_embedded_vel = ZeroVector(MatrixSize);
+            
+            for (unsigned int i=0; i<TNumNodes; i++)
+            {
+                aux_embedded_vel(i*BlockSize) = embedded_vel(0);
+                aux_embedded_vel(i*BlockSize+1) = embedded_vel(1);
+                aux_embedded_vel(i*BlockSize+2) = embedded_vel(2);
+            }
+            
+            // Asemble the RHS f_gamma contribution
+            for (unsigned int i=0; i<nneg; i++)
+            {
+                unsigned int out_node_row_id = out_vec[i];
+                
+                for (unsigned int j=0; j<TNumNodes; j++)
+                {
+                    for (unsigned int comp = 0; comp<TDim; comp++)
+                    {
+                        auxLeftHandSideMatrix(out_node_row_id*BlockSize+comp, j*BlockSize+comp) = f_gamma(i,j);
+                    }
+                }
+            }
+            
+            rRightHandSideVector += prod(auxLeftHandSideMatrix, aux_embedded_vel);
+            
+        }        
+    }
+    
+    
+    void SetNormalMatrix(const VectorType& intersection_normal, 
+                         bounded_matrix<double, TDim, (TDim-1)*3>& normal_matrix)
+    {
+        normal_matrix.clear();
         
-        //~ std::cout << "### INT/OUT VECTORS ### " << std::endl;
-        //~ std::cout << "int_vec = [ ";
-        //~ for (unsigned int i=0; i<npos; i++)
-        //~ {
-            //~ std::cout << int_vec[i] << " ";
-        //~ }
-        //~ std::cout << "]" << std::endl;
-        
-        //~ std::cout << "out_vec = [ ";
-        //~ for (unsigned int i=0; i<nneg; i++)
-        //~ {
-            //~ std::cout << out_vec[i] << " ";
-        //~ }
-        //~ std::cout << "]" << std::endl;
-        
-        //~ std::cout<< std::endl;
-        
-        //~ KRATOS_WATCH(M_gamma)
-        //~ KRATOS_WATCH(N_gamma)
-        
-        //~ std::cout<< std::endl;
-        
-        //~ std::cout << "### LHS ### " << std::endl;
-        //~ for (unsigned int i=0; i<16; i++)
-        //~ {
-            //~ for(unsigned int j=0; j<16; j++)
-            //~ {
-                //~ std::cout << rLeftHandSideMatrix(i,j) << " ";
-            //~ }
-            //~ std::cout << std::endl;
-        //~ }
-        
-        //~ std::cout<< std::endl;
-        
-        //~ std::cout << "### aux_LHS ### " << std::endl;
-        //~ for (unsigned int i=0; i<16; i++)
-        //~ {
-            //~ for(unsigned int j=0; j<16; j++)
-            //~ {
-                //~ std::cout << auxLeftHandSideMatrix(i,j) << " ";
-            //~ }
-            //~ std::cout << std::endl;
-        //~ }
-        
-        //~ std::cout<< std::endl;
-        
-        //~ std::cout << "### RHS ### " << std::endl;
-        //~ for (unsigned int i=0; i<16; i++)
-        //~ {
-            //~ std::cout << rRightHandSideVector(i) << std::endl;
-        //~ }
-        
-        //~ std::cout<< std::endl;
-        
-        //~ std::cout << "### aux_RHS ### " << std::endl;
-        //~ for (unsigned int i=0; i<16; i++)
-        //~ {
-            //~ std::cout << auxRightHandSideVector(i) << std::endl;
-        //~ }
-        
-        //~ std::cout<< std::endl;
-        
+        if (TDim == 3)
+        {
+            normal_matrix(0,0) = intersection_normal(0);
+            normal_matrix(0,3) = intersection_normal(1);
+            normal_matrix(0,5) = intersection_normal(2);
+            normal_matrix(1,1) = intersection_normal(1);
+            normal_matrix(1,3) = intersection_normal(0);
+            normal_matrix(1,4) = intersection_normal(2);
+            normal_matrix(2,2) = intersection_normal(2);
+            normal_matrix(2,4) = intersection_normal(1);
+            normal_matrix(2,5) = intersection_normal(0);            
+        }
+        else
+        {
+            normal_matrix(0,0) = intersection_normal(0);
+            normal_matrix(0,2) = intersection_normal(1);
+            normal_matrix(1,1) = intersection_normal(1);
+            normal_matrix(1,2) = intersection_normal(0);
+        }
+    }
+    
+    
+    void SetStrainMatrix(const ElementDataType& data, 
+                         bounded_matrix<double, (TDim-1)*3, TNumNodes*TDim>& B_matrix)
+    {
+        B_matrix.clear();
+
+        if (TDim == 3)
+        {
+            for (unsigned int i=0; i<TNumNodes; i++) 
+            {
+                B_matrix(0,i*TNumNodes) = data.DN_DX(i,0);
+                B_matrix(1,i*TNumNodes+1) = data.DN_DX(i,1);
+                B_matrix(2,i*TNumNodes+2) = data.DN_DX(i,2);
+                B_matrix(3,i*TNumNodes) = data.DN_DX(i,1);
+                B_matrix(3,i*TNumNodes+1) = data.DN_DX(i,0);
+                B_matrix(4,i*TNumNodes+1) = data.DN_DX(i,2);
+                B_matrix(4,i*TNumNodes+2) = data.DN_DX(i,1);
+                B_matrix(5,i*TNumNodes) = data.DN_DX(i,2);
+                B_matrix(5,i*TNumNodes+2) = data.DN_DX(i,0);
+            }
+        }
+        else
+        {
+            for (unsigned int i=0; i<TNumNodes; i++)
+            {
+                B_matrix(0,i*TNumNodes) = data.DN_DX(i,0);
+                B_matrix(1,i*TNumNodes+1) = data.DN_DX(i,1);
+                B_matrix(2,i*TNumNodes) = data.DN_DX(i,1);
+                B_matrix(2,i*TNumNodes+1) = data.DN_DX(i,0);
+            }
+        }
     }
 
     ///@}
