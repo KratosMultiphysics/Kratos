@@ -717,14 +717,6 @@ class Procedures(object):
         self.CheckVariableType(DEM_parameters.GraphExportFreq, float, "")
         self.CheckVariableType(DEM_parameters.VelTrapGraphExportFreq, float, "")
         self.CheckVariableType(DEM_parameters.OutputTimeStep, float, "")
-        self.CheckVariableType(DEM_parameters.SearchTolerance, float, "")
-        self.CheckVariableType(DEM_parameters.SearchTolerance, float, "")
-        self.CheckVariableType(DEM_parameters.SearchTolerance, float, "")
-        self.CheckVariableType(DEM_parameters.SearchTolerance, float, "")
-        self.CheckVariableType(DEM_parameters.SearchTolerance, float, "")
-        self.CheckVariableType(DEM_parameters.SearchTolerance, float, "")
-        self.CheckVariableType(DEM_parameters.SearchTolerance, float, "")
-
 
     def Flush(self,a):
         a.flush()
