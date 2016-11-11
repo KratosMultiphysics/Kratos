@@ -6,6 +6,7 @@ import re
 import getopt
 import sys
 import subprocess
+import signal
 
 from KratosMultiphysics import KratosLoader
 from KratosMultiphysics.KratosUnittest import CaptureStdout
@@ -63,6 +64,10 @@ def GetAvailableApplication():
     return apps
 
 
+def handler(signum, frame):
+    raise Exception("End of time")
+
+
 def RunTestSuit(application, path, level, verbose, command):
     ''' Calls the script that will run the tests.
 
@@ -101,11 +106,13 @@ def RunTestSuit(application, path, level, verbose, command):
                 '[Warning]: No test script found for {}'.format(
                     application),
                 file=sys.stderr)
+            sys.stderr.flush()
         if verbose > 1:
             print(
                 '  expected file: "{}"'.format(
                     script),
                 file=sys.stderr)
+            sys.stderr.flush()
 
 
 def main():
@@ -179,29 +186,51 @@ def main():
     # Capture stdout from KratosUnittest
     CaptureStdout()
 
+    # Set a Timer
+    signal.signal(signal.SIGALRM, handler)
+    signalTime = 900
+
+    if level == 'small':
+        signalTime = 60
+    elif level == 'nightly':
+        signalTime = 900
+    elif level == 'all':
+        signalTime = 9e9
+
     # Define the command
     cmd = os.path.dirname(GetModulePath('KratosMultiphysics'))+'/'+'runkratos'
 
     # KratosCore must always be runned
     print('Running tests for KratosCore', file=sys.stderr)
-    RunTestSuit(
-        'KratosCore',
-        os.path.dirname(GetModulePath('KratosMultiphysics'))+'/'+'kratos',
-        level,
-        verbosity,
-        cmd
-    )
-
-    # Run the tests for the rest of the Applications
-    for application in applications:
-        print('Running tests for {}'.format(application), file=sys.stderr)
+    sys.stderr.flush()
+    signal.alarm(signalTime)
+    try:
         RunTestSuit(
-            application,
-            KratosLoader.kratos_applications+'/'+application,
+            'KratosCore',
+            os.path.dirname(GetModulePath('KratosMultiphysics'))+'/'+'kratos',
             level,
             verbosity,
             cmd
         )
+    except Exception as exc:
+        print('\nABORT: Tests for KratosCore took to long. Process Killed.', file=sys.stderr)
+
+    # Run the tests for the rest of the Applications
+    for application in applications:
+        print('Running tests for {}'.format(application), file=sys.stderr)
+        sys.stderr.flush()
+        signal.alarm(signalTime)
+        try:
+            RunTestSuit(
+                application,
+                KratosLoader.kratos_applications+'/'+application,
+                level,
+                verbosity,
+                cmd
+            )
+        except Exception as exc:
+            print('\nABORT: Tests for {} took to long. Process Killed.'.format(application), file=sys.stderr)
+
 
 if __name__ == "__main__":
     main()
