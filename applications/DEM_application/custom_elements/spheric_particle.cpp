@@ -704,10 +704,12 @@ void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
                 DEM_MULTIPLY_BY_SCALAR_3(CoordSystemMoment2, det_coor_sys_moment_i_2)
             }
 
-            if (DEM_MODULUS_3(CoordSystemMoment1) > 0.0 && DEM_MODULUS_3(CoordSystemMoment2) > 0.0) GeometryFunctions::CrossProduct(CoordSystemMoment2, CoordSystemMoment1, MR);
-            double AbsoluteNormalLocalElasticContactForce = fabs(NormalLocalElasticContactForce);
-            DEM_MULTIPLY_BY_SCALAR_3(MR, AbsoluteNormalLocalElasticContactForce)
-
+            if (DEM_MODULUS_3(CoordSystemMoment1) > 0.0 && DEM_MODULUS_3(CoordSystemMoment2) > 0.0) {
+                GeometryFunctions::CrossProduct(CoordSystemMoment2, CoordSystemMoment1, MR);
+                double AbsoluteNormalLocalElasticContactForce = fabs(NormalLocalElasticContactForce);
+                DEM_MULTIPLY_BY_SCALAR_3(MR, AbsoluteNormalLocalElasticContactForce)                
+            }
+            
             double MR_now = DEM_MODULUS_3(MR) * equiv_rolling_friction_coeff;
             double MR_max = DEM_MODULUS_3(MaxRotaMoment);
 
