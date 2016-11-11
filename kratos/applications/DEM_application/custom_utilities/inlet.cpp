@@ -39,20 +39,17 @@ namespace Kratos {
     
     DEM_Inlet::DEM_Inlet(ModelPart& inlet_modelpart): mInletModelPart(inlet_modelpart)
     {                
-        mPartialParticleToInsert.resize(inlet_modelpart.NumberOfMeshes(), false);
-        mLastInjectionTimes.resize(inlet_modelpart.NumberOfMeshes(), false);
-        mTotalNumberOfDetachedParticles.resize(inlet_modelpart.NumberOfMeshes(), false);
-        mLayerRemoved.resize(inlet_modelpart.NumberOfMeshes(), false);
+        mPartialParticleToInsert.resize(inlet_modelpart.NumberOfSubModelParts(), false);
+        mLastInjectionTimes.resize(inlet_modelpart.NumberOfSubModelParts(), false);
+        mTotalNumberOfDetachedParticles.resize(inlet_modelpart.NumberOfSubModelParts(), false);
+        mLayerRemoved.resize(inlet_modelpart.NumberOfSubModelParts(), false);
         
-        int mesh_iterator_number = 0;   
-        
-        for (ModelPart::MeshesContainerType::iterator mesh_it  = inlet_modelpart.GetMeshes().begin();
-                                                      mesh_it != inlet_modelpart.GetMeshes().end()  ; ++mesh_it)
-        {
-            mPartialParticleToInsert[mesh_iterator_number] = 0.0;
-            mLastInjectionTimes[mesh_iterator_number] = 0.0;
-            mLayerRemoved[mesh_iterator_number] = false;
-            mesh_iterator_number++;
+        int smp_iterator_number = 0;   
+        for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = inlet_modelpart.SubModelPartsBegin(); sub_model_part != inlet_modelpart.SubModelPartsEnd(); ++sub_model_part) {                        
+            mPartialParticleToInsert[smp_iterator_number] = 0.0;
+            mLastInjectionTimes[smp_iterator_number] = 0.0;
+            mLayerRemoved[smp_iterator_number] = false;
+            smp_iterator_number++;
         }                
         
         mFirstTime = true;
@@ -82,15 +79,14 @@ namespace Kratos {
             mInletModelPart.GetProcessInfo()[ROTATION_OPTION] = false;             
         }
                
-        int mesh_number = 0;
+        int smp_number = 0;
                 
-        for (ModelPart::SubModelPartsContainerType::iterator mesh_it = mInletModelPart.SubModelPartsBegin(); mesh_it != mInletModelPart.SubModelPartsEnd(); ++mesh_it) {
-            mesh_number++;
-            ModelPart& mp = *mesh_it;
+        for (ModelPart::SubModelPartsContainerType::iterator smp_it = mInletModelPart.SubModelPartsBegin(); smp_it != mInletModelPart.SubModelPartsEnd(); ++smp_it) {
+            ModelPart& mp = *smp_it;
 
-            int mesh_size = mesh_it->NumberOfNodes();
+            int mesh_size = smp_it->NumberOfNodes();
             if (!mesh_size) continue;
-            ModelPart::NodesContainerType::ContainerType all_nodes = mesh_it->NodesArray();
+            ModelPart::NodesContainerType::ContainerType all_nodes = smp_it->NodesArray();
             std::string& identifier = mp[IDENTIFIER];
             mp[INLET_INITIAL_VELOCITY] = mp[LINEAR_VELOCITY]; //This is the velocity of the moving injector particles
             
@@ -118,7 +114,7 @@ namespace Kratos {
                     p_fast_properties = &(mFastProperties[i]);
                     break;
                 }
-                mLastInjectionTimes[mesh_number - 1] = mp[INLET_START_TIME];
+                mLastInjectionTimes[smp_number] = mp[INLET_START_TIME];
             }
             
             Element::Pointer dummy_element_pointer;
@@ -141,15 +137,16 @@ namespace Kratos {
                                                              mBallsModelPartHasSphericity,
                                                              mBallsModelPartHasRotation,
                                                              true,
-                                                             mesh_it->Elements());
+                                                             smp_it->Elements());
 		max_Id++;
                 if(using_strategy_for_continuum){
                     SphericContinuumParticle* p_continuum_spheric_particle = dynamic_cast<SphericContinuumParticle*>(p_element);
                     p_continuum_spheric_particle->mContinuumInitialNeighborsSize=0;
                     p_continuum_spheric_particle->mInitialNeighborsSize=0;    
                 }
-            }                 
-        } //for mesh_it                                               
+            } 
+            smp_number++;
+        } //for smp_it                                               
     } //InitializeDEM_Inlet
 
     void DEM_Inlet::DettachElements(ModelPart& r_modelpart, unsigned int& max_Id) {
@@ -274,25 +271,23 @@ namespace Kratos {
         DettachElements(r_modelpart, max_Id);
         DettachClusters(r_clusters_modelpart, max_Id);
                 
-        int mesh_number = 0;
-        //for (ModelPart::MeshesContainerType::iterator mesh_it  = mInletModelPart.GetMeshes().begin() + 1; mesh_it != mInletModelPart.GetMeshes().end(); ++mesh_it) {  
-        for (ModelPart::SubModelPartsContainerType::iterator mesh_it = mInletModelPart.SubModelPartsBegin(); mesh_it != mInletModelPart.SubModelPartsEnd(); ++mesh_it) {
-            mesh_number++;
-            ModelPart& mp = *mesh_it;
+        int smp_number = 0;
+        for (ModelPart::SubModelPartsContainerType::iterator smp_it = mInletModelPart.SubModelPartsBegin(); smp_it != mInletModelPart.SubModelPartsEnd(); ++smp_it) {            
+            ModelPart& mp = *smp_it;
 
             if (r_modelpart.GetProcessInfo()[TIME] < mp[INLET_START_TIME]) continue;
             
-            const int mesh_size_elements = mesh_it->NumberOfElements();
+            const int mesh_size_elements = smp_it->NumberOfElements();
             
-            ModelPart::ElementsContainerType::ContainerType all_elements = mesh_it->ElementsArray();
+            ModelPart::ElementsContainerType::ContainerType all_elements = smp_it->ElementsArray();
                         
             if (r_modelpart.GetProcessInfo()[TIME] > mp[INLET_STOP_TIME]) {
-                if (mLayerRemoved[mesh_number]) continue;
+                if (mLayerRemoved[smp_number]) continue;
                 for (int i = 0; i < mesh_size_elements; i++) {                   
                     all_elements[i]->Set(TO_ERASE);
                     all_elements[i]->GetGeometry()[0].Set(TO_ERASE);
                 }
-                mLayerRemoved[mesh_number] = true;
+                mLayerRemoved[smp_number] = true;
                 continue;
             }                        
 
@@ -301,20 +296,20 @@ namespace Kratos {
             const double this_mpi_process_portion_of_inlet_mesh = (double) mesh_size_elements / (double) total_mesh_size_accross_mpi_processes;
             double num_part_surface_time = mp[INLET_NUMBER_OF_PARTICLES];
             num_part_surface_time *= this_mpi_process_portion_of_inlet_mesh;
-            const double delta_t = current_time - mLastInjectionTimes[mesh_number - 1]; // FLUID DELTA_T CAN BE USED ALSO, it will depend on how often we call this function
+            const double delta_t = current_time - mLastInjectionTimes[smp_number]; // FLUID DELTA_T CAN BE USED ALSO, it will depend on how often we call this function
             double surface = 1.0; //inlet_surface, this should probably be projected to velocity vector
             
             //calculate number of particles to insert from input data
-            const double double_number_of_particles_to_insert = num_part_surface_time * delta_t * surface + mPartialParticleToInsert[mesh_number - 1];
+            const double double_number_of_particles_to_insert = num_part_surface_time * delta_t * surface + mPartialParticleToInsert[smp_number];
             int number_of_particles_to_insert = floor(double_number_of_particles_to_insert);
-            mPartialParticleToInsert[mesh_number - 1] = double_number_of_particles_to_insert - number_of_particles_to_insert;
+            mPartialParticleToInsert[smp_number] = double_number_of_particles_to_insert - number_of_particles_to_insert;
             
             if (number_of_particles_to_insert) {
                 //randomizing mesh
                 srand(/*time(NULL)* */r_modelpart.GetProcessInfo()[TIME_STEPS]);
                 
                 ModelPart::ElementsContainerType::ContainerType inserting_elements(number_of_particles_to_insert);               
-                ModelPart::ElementsContainerType::ContainerType valid_elements = mesh_it->ElementsArray();
+                ModelPart::ElementsContainerType::ContainerType valid_elements = smp_it->ElementsArray();
                 int valid_elements_length = 0;
                
                 for (int i = 0; i < mesh_size_elements; i++) {                    
@@ -387,7 +382,7 @@ namespace Kratos {
                                                                                         mBallsModelPartHasSphericity, 
                                                                                         mBallsModelPartHasRotation, 
                                                                                         false, 
-                                                                                        mesh_it->Elements());
+                                                                                        smp_it->Elements());
                         if(mStrategyForContinuum) {
                             SphericContinuumParticle& spheric_cont_particle = dynamic_cast<SphericContinuumParticle&>(*p_element);
                             spheric_cont_particle.mContinuumInitialNeighborsSize = 0;
@@ -413,7 +408,7 @@ namespace Kratos {
                                                                      p_fast_properties, 
                                                                      mBallsModelPartHasSphericity, 
                                                                      mBallsModelPartHasRotation, 
-                                                                     mesh_it->Elements(),
+                                                                     smp_it->Elements(),
                                                                      number_of_added_spheres);
                         inserting_elements[i]->Set(ACTIVE); //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted. 
                         inserting_elements[i]->GetGeometry()[0].Set(ACTIVE);
@@ -421,8 +416,9 @@ namespace Kratos {
                     }        
                 }               
             } //if (number_of_particles_to_insert)
-            mLastInjectionTimes[mesh_number - 1] = current_time;
-        } // for mesh_it
+            mLastInjectionTimes[smp_number] = current_time;
+            smp_number++;
+        } // for smp_it
         
         creator.RemoveUnusedNodesOfTheClustersModelPart(r_clusters_modelpart);
         

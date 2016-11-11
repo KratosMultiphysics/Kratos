@@ -34,7 +34,7 @@ namespace Kratos {
         int max_Id = 1; //GID accepts Id's >= 1
         std::vector<int> thread_maximums(OpenMPUtils::GetNumThreads(),1);
 
-        #pragma omp parallel for
+        //#pragma omp parallel for
         for(int i=0; i<(int)r_modelpart.GetCommunicator().LocalMesh().Nodes().size(); i++){
             ModelPart::NodesContainerType::iterator node_it = r_modelpart.GetCommunicator().LocalMesh().NodesBegin() + i;        
             if ((int) (node_it->Id()) > thread_maximums[OpenMPUtils::ThisThread()]) thread_maximums[OpenMPUtils::ThisThread()] = node_it->Id();
