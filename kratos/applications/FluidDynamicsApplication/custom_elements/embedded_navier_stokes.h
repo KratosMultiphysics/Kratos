@@ -504,7 +504,6 @@ public:
         VectorType edge_areas(nEdges);
         
         // Splitting to determine the new Gauss pts.
-        //~ unsigned int ndivisions = ComputeSplitting(data, Ncontainer, gauss_volumes, DNvalues, Nenriched, signs, distances, edge_areas);
         unsigned int ndivisions = ComputeSplitting(data, Ncontainer, gauss_volumes, signs, distances, edge_areas);
         
         if(ndivisions == 1)
@@ -555,8 +554,8 @@ public:
                 }
             }
             
-            // TODO: ComputeBoundaryConditionElementContribution (SIMILAR TO AddBoundaryConditionElementContribution) 
-            //~ ComputeOutsideNodesRHSContribution(rLeftHandSideMatrix, rRightHandSideVector, data, distances, edge_areas);
+            // TODO: ADD THIS FUNCTION (SIMILAR TO AddBoundaryConditionElementContribution)
+            //~ AddBoundaryConditionRHSContribution(rLeftHandSideMatrix, rRightHandSideVector, data, distances, edge_areas);
         }
     }
 
@@ -607,15 +606,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{   
-    
-    //~ unsigned int ComputeSplitting(ElementDataType& data,
-                                  //~ MatrixType& rShapeFunctionValues, 
-                                  //~ VectorType& rGaussVolumes,
-                                  //~ std::vector< MatrixType >& rEnrGradientsValues,
-                                  //~ MatrixType& rEnrShapeFunctionValues, 
-                                  //~ VectorType& rPartitionSigns,
-                                  //~ array_1d<double,TNumNodes>& distances,
-                                  //~ VectorType& rEdgeAreas)
     
     unsigned int ComputeSplitting(const ElementDataType& data,
                                   MatrixType& rShapeFunctionValues, 
@@ -776,6 +766,9 @@ protected:
     }
     
     
+    // This functions adds the contribution of the boundary terms in the level set cut
+    // These terms come from the integration by parts of the stress term and do not vanish
+    // at the level set since the test function is not zero at the intersection points.
     void AddIntersectionBoundaryContribution(MatrixType& rLeftHandSideMatrix, 
                                              VectorType& rRightHandSideVector,
                                              const ElementDataType& data, 
