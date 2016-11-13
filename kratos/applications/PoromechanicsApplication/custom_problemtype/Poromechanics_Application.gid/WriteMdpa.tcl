@@ -391,14 +391,14 @@ proc WriteMdpa { basename dir } {
             puts $varfile "  THICKNESS [lindex [lindex $Groups $i] 21]"
             puts $varfile "End Properties"
             puts $varfile ""
-        } elseif {[lindex [lindex $Groups $i] 3]=="RestoreSimoJu3DLaw"} {
+        } elseif {[lindex [lindex $Groups $i] 3]=="SimoJuDamage3DLaw"} {
             incr PropertyId
             lappend PropertyList [lindex [lindex $Groups $i] 1] $PropertyId
             puts $varfile "Begin Properties $PropertyId"
             if {[GiD_AccessValue get gendata Non-local_Damage]==true} {
-                puts $varfile "  CONSTITUTIVE_LAW_NAME RestoreSimoJuNonlocal3DLaw"
+                puts $varfile "  CONSTITUTIVE_LAW_NAME SimoJuNonlocalDamage3DLaw"
             } else {
-                puts $varfile "  CONSTITUTIVE_LAW_NAME RestoreSimoJu3DLaw"
+                puts $varfile "  CONSTITUTIVE_LAW_NAME SimoJuLocalDamage3DLaw"
             }
             puts $varfile "  YOUNG_MODULUS [lindex [lindex $Groups $i] 4]"
             puts $varfile "  POISSON_RATIO [lindex [lindex $Groups $i] 5]"
@@ -419,18 +419,22 @@ proc WriteMdpa { basename dir } {
             puts $varfile "  FRACTURE_ENERGY [lindex [lindex $Groups $i] 20]"
             puts $varfile "End Properties"
             puts $varfile ""
-        } elseif {[lindex [lindex $Groups $i] 3]=="RestoreSimoJuPlaneStrain2DLaw" || [lindex [lindex $Groups $i] 3]=="RestoreSimoJuPlaneStress2DLaw"} {
+        } elseif {[lindex [lindex $Groups $i] 3]=="SimoJuDamagePlaneStrain2DLaw" || [lindex [lindex $Groups $i] 3]=="SimoJuDamagePlaneStress2DLaw"} {
             incr PropertyId
             lappend PropertyList [lindex [lindex $Groups $i] 1] $PropertyId
             puts $varfile "Begin Properties $PropertyId"
             if {[GiD_AccessValue get gendata Non-local_Damage]==true} {
-                if {[lindex [lindex $Groups $i] 3]=="RestoreSimoJuPlaneStrain2DLaw"} {
-                    puts $varfile "  CONSTITUTIVE_LAW_NAME RestoreSimoJuNonlocalPlaneStrain2DLaw"
+                if {[lindex [lindex $Groups $i] 3]=="SimoJuDamagePlaneStrain2DLaw"} {
+                    puts $varfile "  CONSTITUTIVE_LAW_NAME SimoJuNonlocalDamagePlaneStrain2DLaw"
                 } else {
-                    puts $varfile "  CONSTITUTIVE_LAW_NAME RestoreSimoJuNonlocalPlaneStress2DLaw"
+                    puts $varfile "  CONSTITUTIVE_LAW_NAME SimoJuNonlocalDamagePlaneStress2DLaw"
                 }
             } else {
-                puts $varfile "  CONSTITUTIVE_LAW_NAME [lindex [lindex $Groups $i] 3]"
+                if {[lindex [lindex $Groups $i] 3]=="SimoJuDamagePlaneStrain2DLaw"} {
+                    puts $varfile "  CONSTITUTIVE_LAW_NAME SimoJuLocalDamagePlaneStrain2DLaw"
+                } else {
+                    puts $varfile "  CONSTITUTIVE_LAW_NAME SimoJuLocalDamagePlaneStress2DLaw"
+                }
             }
             puts $varfile "  YOUNG_MODULUS [lindex [lindex $Groups $i] 4]"
             puts $varfile "  POISSON_RATIO [lindex [lindex $Groups $i] 5]"

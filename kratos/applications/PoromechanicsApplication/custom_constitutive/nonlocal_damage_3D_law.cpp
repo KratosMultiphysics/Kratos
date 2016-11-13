@@ -6,60 +6,56 @@
 //
 
 // Application includes
-#include "custom_constitutive/restore_simo_ju_nonlocal_3D_law.hpp"
+#include "custom_constitutive/nonlocal_damage_3D_law.hpp"
 
 namespace Kratos
 {
 
 //Default Constructor
-RestoreSimoJuNonlocal3DLaw::RestoreSimoJuNonlocal3DLaw() : RestoreSimoJu3DLaw() 
-{
-  //mpHardeningLaw   = HardeningLaw::Pointer( new ExponentialDamageHardeningLaw() );
-  //mpYieldCriterion = YieldCriterion::Pointer( new SimoJuYieldCriterion(mpHardeningLaw) );
-  mpFlowRule = FlowRule::Pointer( new RestoreNonlocalDamageFlowRule(mpYieldCriterion) );
-}
+NonlocalDamage3DLaw::NonlocalDamage3DLaw() : LocalDamage3DLaw() {}
 
 //----------------------------------------------------------------------------------------
 
 //Second Constructor
-RestoreSimoJuNonlocal3DLaw::RestoreSimoJuNonlocal3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
-    : RestoreSimoJu3DLaw(pFlowRule, pYieldCriterion, pHardeningLaw) {}
+NonlocalDamage3DLaw::NonlocalDamage3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
+    : LocalDamage3DLaw(pFlowRule, pYieldCriterion, pHardeningLaw) {}
 
 //----------------------------------------------------------------------------------------
 
 //Copy Constructor
-RestoreSimoJuNonlocal3DLaw::RestoreSimoJuNonlocal3DLaw(const RestoreSimoJuNonlocal3DLaw& rOther) : RestoreSimoJu3DLaw(rOther) {}
+NonlocalDamage3DLaw::NonlocalDamage3DLaw(const NonlocalDamage3DLaw& rOther) : LocalDamage3DLaw(rOther) {}
 
 //----------------------------------------------------------------------------------------
 
 //Destructor
-RestoreSimoJuNonlocal3DLaw::~RestoreSimoJuNonlocal3DLaw() {}
+NonlocalDamage3DLaw::~NonlocalDamage3DLaw() {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-int RestoreSimoJuNonlocal3DLaw::Check(const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const ProcessInfo& rCurrentProcessInfo)
+int NonlocalDamage3DLaw::Check(const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const ProcessInfo& rCurrentProcessInfo)
 {
-    int ierr = RestoreSimoJu3DLaw::Check(rMaterialProperties,rElementGeometry,rCurrentProcessInfo);
+    int ierr = LocalDamage3DLaw::Check(rMaterialProperties,rElementGeometry,rCurrentProcessInfo);
     if(ierr != 0) return ierr;
 
     if ( LOCAL_EQUIVALENT_STRAIN.Key() == 0 )
         KRATOS_THROW_ERROR( std::invalid_argument,"LOCAL_EQUIVALENT_STRAIN has Key zero! (check if the application is correctly registered", "" )
     if ( NONLOCAL_EQUIVALENT_STRAIN.Key() == 0 )
         KRATOS_THROW_ERROR( std::invalid_argument,"NONLOCAL_EQUIVALENT_STRAIN has Key zero! (check if the application is correctly registered", "" )
+
     return ierr;
 }
 
 //----------------------------------------------------------------------------------------
 
-ConstitutiveLaw::Pointer RestoreSimoJuNonlocal3DLaw::Clone() const
+ConstitutiveLaw::Pointer NonlocalDamage3DLaw::Clone() const
 {
-    RestoreSimoJuNonlocal3DLaw::Pointer p_clone(new RestoreSimoJuNonlocal3DLaw(*this));
+    NonlocalDamage3DLaw::Pointer p_clone(new NonlocalDamage3DLaw(*this));
     return p_clone;
 }
 
 //----------------------------------------------------------------------------------------
 
-void RestoreSimoJuNonlocal3DLaw::InitializeMaterial( const Properties& rMaterialProperties,
+void NonlocalDamage3DLaw::InitializeMaterial( const Properties& rMaterialProperties,
 						   const GeometryType& rElementGeometry,
 						   const Vector& rShapeFunctionsValues )
 {
@@ -70,7 +66,7 @@ void RestoreSimoJuNonlocal3DLaw::InitializeMaterial( const Properties& rMaterial
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void RestoreSimoJuNonlocal3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
+void NonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 {    
     // Check
     rValues.CheckAllParameters();
@@ -173,7 +169,7 @@ void RestoreSimoJuNonlocal3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
 
 //----------------------------------------------------------------------------------------
 
-void RestoreSimoJuNonlocal3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
+void NonlocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
 {    
     // Check
     rValues.CheckAllParameters();
@@ -221,7 +217,7 @@ void RestoreSimoJuNonlocal3DLaw::FinalizeMaterialResponseCauchy (Parameters& rVa
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-double& RestoreSimoJuNonlocal3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
+double& NonlocalDamage3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
     if (rThisVariable==LOCAL_EQUIVALENT_STRAIN)
     {
@@ -230,7 +226,7 @@ double& RestoreSimoJuNonlocal3DLaw::GetValue( const Variable<double>& rThisVaria
     }
     else
     {
-        RestoreSimoJu3DLaw::GetValue(rThisVariable,rValue);
+        LocalDamage3DLaw::GetValue(rThisVariable,rValue);
     }
 
     return( rValue );
@@ -238,7 +234,7 @@ double& RestoreSimoJuNonlocal3DLaw::GetValue( const Variable<double>& rThisVaria
 
 //----------------------------------------------------------------------------------------
 
-void RestoreSimoJuNonlocal3DLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue,
+void NonlocalDamage3DLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue,
                                         const ProcessInfo& rCurrentProcessInfo )
 {
     if (rThisVariable == NONLOCAL_EQUIVALENT_STRAIN)
@@ -247,13 +243,13 @@ void RestoreSimoJuNonlocal3DLaw::SetValue( const Variable<double>& rThisVariable
     }
     else
     {
-        RestoreSimoJu3DLaw::SetValue(rThisVariable,rValue,rCurrentProcessInfo);
+        LocalDamage3DLaw::SetValue(rThisVariable,rValue,rCurrentProcessInfo);
     }
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void RestoreSimoJuNonlocal3DLaw::CalculateLocalReturnMapping( FlowRule::RadialReturnVariables& rReturnMappingVariables, Matrix& rStressMatrix, 
+void NonlocalDamage3DLaw::CalculateLocalReturnMapping( FlowRule::RadialReturnVariables& rReturnMappingVariables, Matrix& rStressMatrix, 
                                                         Vector& rStressVector, const Matrix& LinearElasticMatrix, const Vector& StrainVector )
 {    
     noalias(rStressVector) = prod(LinearElasticMatrix, StrainVector);

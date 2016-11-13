@@ -6,30 +6,30 @@
 //
 
 // Application includes
-#include "custom_constitutive/custom_flow_rules/restore_damage_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/local_damage_flow_rule.hpp"
 
 namespace Kratos
 {
 
 //Default Constructor
-RestoreDamageFlowRule::RestoreDamageFlowRule() : IsotropicDamageFlowRule() {}
+LocalDamageFlowRule::LocalDamageFlowRule() : IsotropicDamageFlowRule() {}
 
 //----------------------------------------------------------------------------------------
 
 //Second Constructor
-RestoreDamageFlowRule::RestoreDamageFlowRule(YieldCriterionPointer pYieldCriterion)
+LocalDamageFlowRule::LocalDamageFlowRule(YieldCriterionPointer pYieldCriterion)
 	:IsotropicDamageFlowRule(pYieldCriterion) {}
 
 //----------------------------------------------------------------------------------------
 
 //Copy Constructor
-RestoreDamageFlowRule::RestoreDamageFlowRule(RestoreDamageFlowRule const& rOther)
+LocalDamageFlowRule::LocalDamageFlowRule(LocalDamageFlowRule const& rOther)
 	:IsotropicDamageFlowRule(rOther) {}
 
 //----------------------------------------------------------------------------------------
 
 //Assignment Operator
-RestoreDamageFlowRule& RestoreDamageFlowRule::operator=(RestoreDamageFlowRule const& rOther)
+LocalDamageFlowRule& LocalDamageFlowRule::operator=(LocalDamageFlowRule const& rOther)
 {
    IsotropicDamageFlowRule::operator=(rOther);
    return *this;
@@ -38,19 +38,19 @@ RestoreDamageFlowRule& RestoreDamageFlowRule::operator=(RestoreDamageFlowRule co
 //----------------------------------------------------------------------------------------
 
 //Destructor
-RestoreDamageFlowRule::~RestoreDamageFlowRule() {}
+LocalDamageFlowRule::~LocalDamageFlowRule() {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-FlowRule::Pointer RestoreDamageFlowRule::Clone() const
+FlowRule::Pointer LocalDamageFlowRule::Clone() const
 {
-  FlowRule::Pointer p_clone(new RestoreDamageFlowRule(*this));
+  FlowRule::Pointer p_clone(new LocalDamageFlowRule(*this));
   return p_clone;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void RestoreDamageFlowRule::CalculateScalingFactors(const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors )
+void LocalDamageFlowRule::CalculateScalingFactors(const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors )
 {   
     // SetValue STATE_VARIABLE
     mInternalVariables.EquivalentPlasticStrain = rReturnMappingVariables.TrialStateFunction;

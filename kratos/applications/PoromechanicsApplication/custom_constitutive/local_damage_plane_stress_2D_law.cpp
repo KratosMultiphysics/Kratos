@@ -6,33 +6,33 @@
 //
 
 // Application includes
-#include "custom_constitutive/restore_simo_ju_nonlocal_plane_stress_2D_law.hpp"
+#include "custom_constitutive/local_damage_plane_stress_2D_law.hpp"
 
 namespace Kratos
 {
 
 //Default Constructor
-RestoreSimoJuNonlocalPlaneStress2DLaw::RestoreSimoJuNonlocalPlaneStress2DLaw() : RestoreSimoJuNonlocalPlaneStrain2DLaw() {}
+LocalDamagePlaneStress2DLaw::LocalDamagePlaneStress2DLaw() : LocalDamagePlaneStrain2DLaw() {}
 
 //----------------------------------------------------------------------------------------
 
 //Second Constructor
-RestoreSimoJuNonlocalPlaneStress2DLaw::RestoreSimoJuNonlocalPlaneStress2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
-    : RestoreSimoJuNonlocalPlaneStrain2DLaw(pFlowRule, pYieldCriterion, pHardeningLaw) {}
+LocalDamagePlaneStress2DLaw::LocalDamagePlaneStress2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
+    : LocalDamagePlaneStrain2DLaw(pFlowRule, pYieldCriterion, pHardeningLaw) {}
 
 //----------------------------------------------------------------------------------------
 
 //Copy Constructor
-RestoreSimoJuNonlocalPlaneStress2DLaw::RestoreSimoJuNonlocalPlaneStress2DLaw(const RestoreSimoJuNonlocalPlaneStress2DLaw& rOther) : RestoreSimoJuNonlocalPlaneStrain2DLaw(rOther) {}
+LocalDamagePlaneStress2DLaw::LocalDamagePlaneStress2DLaw(const LocalDamagePlaneStress2DLaw& rOther) : LocalDamagePlaneStrain2DLaw(rOther) {}
 
 //----------------------------------------------------------------------------------------
 
 //Destructor
-RestoreSimoJuNonlocalPlaneStress2DLaw::~RestoreSimoJuNonlocalPlaneStress2DLaw() {}
+LocalDamagePlaneStress2DLaw::~LocalDamagePlaneStress2DLaw() {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void RestoreSimoJuNonlocalPlaneStress2DLaw::GetLawFeatures(Features& rFeatures)
+void LocalDamagePlaneStress2DLaw::GetLawFeatures(Features& rFeatures)
 {
     //Set the type of law
 	rFeatures.mOptions.Set( PLANE_STRESS_LAW );
@@ -52,15 +52,15 @@ void RestoreSimoJuNonlocalPlaneStress2DLaw::GetLawFeatures(Features& rFeatures)
 
 //----------------------------------------------------------------------------------------
 
-ConstitutiveLaw::Pointer RestoreSimoJuNonlocalPlaneStress2DLaw::Clone() const
+ConstitutiveLaw::Pointer LocalDamagePlaneStress2DLaw::Clone() const
 {
-    RestoreSimoJuNonlocalPlaneStress2DLaw::Pointer p_clone(new RestoreSimoJuNonlocalPlaneStress2DLaw(*this));
+    LocalDamagePlaneStress2DLaw::Pointer p_clone(new LocalDamagePlaneStress2DLaw(*this));
     return p_clone;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void RestoreSimoJuNonlocalPlaneStress2DLaw::CalculateLinearElasticMatrix( Matrix& rLinearElasticMatrix,
+void LocalDamagePlaneStress2DLaw::CalculateLinearElasticMatrix( Matrix& rLinearElasticMatrix,
         const double& YoungModulus,
         const double& PoissonCoefficient )
 {

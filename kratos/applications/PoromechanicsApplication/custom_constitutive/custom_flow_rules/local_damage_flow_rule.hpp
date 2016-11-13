@@ -5,65 +5,54 @@
 //   Revision:            $Revision:                 1.0 $
 //
 
-#if !defined(KRATOS_RESTORE_NONLOCAL_DAMAGE_FLOW_RULE_H_INCLUDED )
-#define  KRATOS_RESTORE_NONLOCAL_DAMAGE_FLOW_RULE_H_INCLUDED
+#if !defined(KRATOS_LOCAL_DAMAGE_FLOW_RULE_H_INCLUDED )
+#define  KRATOS_LOCAL_DAMAGE_FLOW_RULE_H_INCLUDED
 
 // Application includes
-#include "custom_constitutive/custom_flow_rules/restore_damage_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/isotropic_damage_flow_rule.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(POROMECHANICS_APPLICATION) RestoreNonlocalDamageFlowRule : public RestoreDamageFlowRule
+class KRATOS_API(POROMECHANICS_APPLICATION) LocalDamageFlowRule : public IsotropicDamageFlowRule
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( RestoreNonlocalDamageFlowRule );
+    KRATOS_CLASS_POINTER_DEFINITION( LocalDamageFlowRule );
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    RestoreNonlocalDamageFlowRule();
+    LocalDamageFlowRule();
 
     /// Second Constructor
-    RestoreNonlocalDamageFlowRule(YieldCriterionPointer pYieldCriterion);
+    LocalDamageFlowRule(YieldCriterionPointer pYieldCriterion);
 
     /// Copy constructor
-    RestoreNonlocalDamageFlowRule(RestoreNonlocalDamageFlowRule const& rOther);
+    LocalDamageFlowRule(LocalDamageFlowRule const& rOther);
 
     /// Assignment operator
-    RestoreNonlocalDamageFlowRule& operator=(RestoreNonlocalDamageFlowRule const& rOther);
+    LocalDamageFlowRule& operator=(LocalDamageFlowRule const& rOther);
 	
     /// Destructor
-    virtual ~RestoreNonlocalDamageFlowRule();
+    virtual ~LocalDamageFlowRule();
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     FlowRule::Pointer Clone() const;
-    
-    void InitializeMaterial (YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rMaterialProperties);
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, 
-                                Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen);
-    
-    bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables );
+   
+    void CalculateScalingFactors(const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors );
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
 protected:
 
     /// Member Variables
-    
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    void CalculateLocalInternalVariables(RadialReturnVariables& rReturnMappingVariables);
-    
-    bool CalculateInternalVariables(RadialReturnVariables& rReturnMappingVariables);
-
+        
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
@@ -82,6 +71,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, FlowRule )
     }
 
-}; // Class RestoreNonlocalDamageFlowRule
+}; // Class LocalDamageFlowRule
 }  // namespace Kratos.
-#endif // KRATOS_RESTORE_NONLOCAL_DAMAGE_FLOW_RULE_H_INCLUDED  defined 
+#endif // KRATOS_LOCAL_DAMAGE_FLOW_RULE_H_INCLUDED  defined 

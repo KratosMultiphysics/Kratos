@@ -6,51 +6,51 @@
 //
 
 // Application includes
-#include "custom_constitutive/custom_flow_rules/restore_nonlocal_damage_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/nonlocal_damage_flow_rule.hpp"
 
 namespace Kratos
 {
 
 //Default Constructor
-RestoreNonlocalDamageFlowRule::RestoreNonlocalDamageFlowRule() : RestoreDamageFlowRule() {}
+NonlocalDamageFlowRule::NonlocalDamageFlowRule() : LocalDamageFlowRule() {}
 
 //----------------------------------------------------------------------------------------
 
 //Second Constructor
-RestoreNonlocalDamageFlowRule::RestoreNonlocalDamageFlowRule(YieldCriterionPointer pYieldCriterion)
-	:RestoreDamageFlowRule(pYieldCriterion) {}
+NonlocalDamageFlowRule::NonlocalDamageFlowRule(YieldCriterionPointer pYieldCriterion)
+	:LocalDamageFlowRule(pYieldCriterion) {}
 
 //----------------------------------------------------------------------------------------
 
 //Copy Constructor
-RestoreNonlocalDamageFlowRule::RestoreNonlocalDamageFlowRule(RestoreNonlocalDamageFlowRule const& rOther)
-	:RestoreDamageFlowRule(rOther) {}
+NonlocalDamageFlowRule::NonlocalDamageFlowRule(NonlocalDamageFlowRule const& rOther)
+	:LocalDamageFlowRule(rOther) {}
 
 //----------------------------------------------------------------------------------------
 
 //Assignment Operator
-RestoreNonlocalDamageFlowRule& RestoreNonlocalDamageFlowRule::operator=(RestoreNonlocalDamageFlowRule const& rOther)
+NonlocalDamageFlowRule& NonlocalDamageFlowRule::operator=(NonlocalDamageFlowRule const& rOther)
 {
-   RestoreDamageFlowRule::operator=(rOther);
+   LocalDamageFlowRule::operator=(rOther);
    return *this;
 }
 
 //----------------------------------------------------------------------------------------
 
 //Destructor
-RestoreNonlocalDamageFlowRule::~RestoreNonlocalDamageFlowRule() {}
+NonlocalDamageFlowRule::~NonlocalDamageFlowRule() {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-FlowRule::Pointer RestoreNonlocalDamageFlowRule::Clone() const
+FlowRule::Pointer NonlocalDamageFlowRule::Clone() const
 {
-  FlowRule::Pointer p_clone(new RestoreNonlocalDamageFlowRule(*this));
+  FlowRule::Pointer p_clone(new NonlocalDamageFlowRule(*this));
   return p_clone;
 }
 
 //----------------------------------------------------------------------------------------
 
-void RestoreNonlocalDamageFlowRule::InitializeMaterial (YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rMaterialProperties)
+void NonlocalDamageFlowRule::InitializeMaterial (YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rMaterialProperties)
 {
     IsotropicDamageFlowRule::InitializeMaterial(pYieldCriterion,pHardeningLaw,rMaterialProperties);
     
@@ -59,7 +59,7 @@ void RestoreNonlocalDamageFlowRule::InitializeMaterial (YieldCriterionPointer& p
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-bool RestoreNonlocalDamageFlowRule::CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, 
+bool NonlocalDamageFlowRule::CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, 
                                                         Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen)
 {
     //Compute LocalEquivalentStrain and Damage
@@ -73,7 +73,7 @@ bool RestoreNonlocalDamageFlowRule::CalculateReturnMapping( RadialReturnVariable
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-bool RestoreNonlocalDamageFlowRule::UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables )
+bool NonlocalDamageFlowRule::UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables )
 {
     bool Restore;
     
@@ -113,7 +113,7 @@ bool RestoreNonlocalDamageFlowRule::UpdateInternalVariables( RadialReturnVariabl
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void RestoreNonlocalDamageFlowRule::CalculateLocalInternalVariables(RadialReturnVariables& rReturnMappingVariables)
+void NonlocalDamageFlowRule::CalculateLocalInternalVariables(RadialReturnVariables& rReturnMappingVariables)
 {
     //Compute the new local equivalent strain (mThermalVariables.DeltaPlasticDissipation)
     YieldCriterion::Parameters YieldCriterionParameters;
@@ -134,7 +134,7 @@ void RestoreNonlocalDamageFlowRule::CalculateLocalInternalVariables(RadialReturn
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-bool RestoreNonlocalDamageFlowRule::CalculateInternalVariables(RadialReturnVariables& rReturnMappingVariables)
+bool NonlocalDamageFlowRule::CalculateInternalVariables(RadialReturnVariables& rReturnMappingVariables)
 {
     // Set New NonlocalEquivalentStrain (mThermalVariables.PlasticDissipation)
     mThermalVariables.PlasticDissipation = rReturnMappingVariables.NormIsochoricStress;

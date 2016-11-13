@@ -5,25 +5,31 @@
 //   Revision:            $Revision:                 1.0 $
 //
 
-#if !defined (KRATOS_RESTORE_SIMO_JU_NONLOCAL_PLANE_STRESS_2D_LAW_H_INCLUDED)
-#define  KRATOS_RESTORE_SIMO_JU_NONLOCAL_PLANE_STRESS_2D_LAW_H_INCLUDED
+#if !defined (KRATOS_SIMO_JU_NONLOCAL_DAMAGE_3D_LAW_H_INCLUDED)
+#define  KRATOS_SIMO_JU_NONLOCAL_DAMAGE_3D_LAW_H_INCLUDED
+
+// System includes
+#include <cmath>
 
 // Project includes
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_constitutive/restore_simo_ju_nonlocal_plane_strain_2D_law.hpp"
+#include "custom_constitutive/nonlocal_damage_3D_law.hpp"
+#include "custom_constitutive/custom_hardening_laws/exponential_damage_hardening_law.hpp"
+#include "custom_constitutive/custom_yield_criteria/simo_ju_yield_criterion.hpp"
+#include "custom_constitutive/custom_flow_rules/nonlocal_damage_flow_rule.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(POROMECHANICS_APPLICATION) RestoreSimoJuNonlocalPlaneStress2DLaw : public RestoreSimoJuNonlocalPlaneStrain2DLaw
+class KRATOS_API(POROMECHANICS_APPLICATION) SimoJuNonlocalDamage3DLaw : public NonlocalDamage3DLaw
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION(RestoreSimoJuNonlocalPlaneStress2DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(SimoJuNonlocalDamage3DLaw);
 
     typedef FlowRule::Pointer FlowRulePointer;
     typedef YieldCriterion::Pointer YieldCriterionPointer;
@@ -32,34 +38,32 @@ public:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    RestoreSimoJuNonlocalPlaneStress2DLaw();
+    SimoJuNonlocalDamage3DLaw();
     
     /// Second Constructor
-    RestoreSimoJuNonlocalPlaneStress2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    SimoJuNonlocalDamage3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
     
     /// Copy Constructor
-    RestoreSimoJuNonlocalPlaneStress2DLaw (const RestoreSimoJuNonlocalPlaneStress2DLaw& rOther);
+    SimoJuNonlocalDamage3DLaw (const SimoJuNonlocalDamage3DLaw& rOther);
 
     /// Destructor
-    virtual ~RestoreSimoJuNonlocalPlaneStress2DLaw();
+    virtual ~SimoJuNonlocalDamage3DLaw();
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    void GetLawFeatures(Features& rFeatures);
+    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo);
     
     ConstitutiveLaw::Pointer Clone() const;
-        
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
+
 protected:
 
     /// Member Variables
-        
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        
-    void CalculateLinearElasticMatrix( Matrix& rLinearElasticMatrix,const double& YoungModulus,const double& PoissonCoefficient );
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& DomainGeometry );
 
 private:
     
@@ -77,6 +81,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
-}; // Class RestoreSimoJuNonlocalPlaneStress2DLaw
+}; // Class SimoJuNonlocalDamage3DLaw
 }  // namespace Kratos.
-#endif // KRATOS_RESTORE_SIMO_JU_NONLOCAL_PLANE_STRESS_2D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_SIMO_JU_NONLOCAL_DAMAGE_3D_LAW_H_INCLUDED  defined 

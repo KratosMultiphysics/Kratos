@@ -8,9 +8,9 @@ DEPENDENCIES: (BilinearCohesive2DPlaneStrain,HIDE,Thickness,1,HIDE,Thermal_Expan
 QUESTION: Standard_Constitutive_Law#CB##(LinearElastic2DPlaneStress,LinearElastic2DPlaneStrain,LinearElastic3D,ThermalLinearElastic2DPlaneStress,ThermalLinearElastic2DPlaneStrain,,ThermalLinearElastic3D)
 VALUE: LinearElastic3D
 DEPENDENCIES: (LinearElastic2DPlaneStrain,HIDE,Thickness,1,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)(LinearElastic2DPlaneStress,RESTORE,Thickness,#CURRENT#,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)(LinearElastic3D,HIDE,Thickness,#CURRENT#,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)(ThermalLinearElastic2DPlaneStress,RESTORE,Thickness,#CURRENT#,RESTORE,Thermal_Expansion_Coefficient,#CURRENT#)(ThermalLinearElastic2DPlaneStrain,HIDE,Thickness,1,RESTORE,Thermal_Expansion_Coefficient,#CURRENT#)(ThermalLinearElastic3D,HIDE,Thickness,#CURRENT#,RESTORE,Thermal_Expansion_Coefficient,#CURRENT#)
-QUESTION: Damage_Constitutive_Law#CB#(RestoreSimoJuPlaneStrain2DLaw,RestoreSimoJuPlaneStress2DLaw,RestoreSimoJu3DLaw)
-VALUE: RestoreSimoJu3DLaw
-DEPENDENCIES: (RestoreSimoJuPlaneStrain2DLaw,HIDE,Thickness,1,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)(RestoreSimoJuPlaneStress2DLaw,RESTORE,Thickness,#CURRENT#,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)(RestoreSimoJu3DLaw,HIDE,Thickness,#CURRENT#,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)
+QUESTION: Damage_Constitutive_Law#CB#(SimoJuLocalDamagePlaneStrain2DLaw,SimoJuLocalDamagePlaneStress2DLaw,SimoJuLocalDamage3DLaw)
+VALUE: SimoJuLocalDamage3DLaw
+DEPENDENCIES: (SimoJuLocalDamagePlaneStrain2DLaw,HIDE,Thickness,1,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)(SimoJuLocalDamagePlaneStress2DLaw,RESTORE,Thickness,#CURRENT#,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)(SimoJuLocalDamage3DLaw,HIDE,Thickness,#CURRENT#,HIDE,Thermal_Expansion_Coefficient,#CURRENT#)
 QUESTION: Young_Modulus
 VALUE: 35.0e9
 HELP: Units in IS: N/m2

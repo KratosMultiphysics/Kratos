@@ -174,16 +174,16 @@ void KratosPoromechanicsApplication::Register()
     Serializer::Register("BilinearCohesive3DLaw",mBilinearCohesive3DLaw);
     Serializer::Register("BilinearCohesive2DLaw",mBilinearCohesive2DLaw);
     
-    Serializer::Register( "RestoreDamageFlowRule", mRestoreDamageFlowRule );
-    Serializer::Register( "RestoreNonlocalDamageFlowRule", mRestoreNonlocalDamageFlowRule );
+    Serializer::Register( "LocalDamageFlowRule", mLocalDamageFlowRule );
+    Serializer::Register( "NonlocalDamageFlowRule", mNonlocalDamageFlowRule );
 
-    Serializer::Register("RestoreSimoJu3DLaw",mRestoreSimoJu3DLaw);
-    Serializer::Register("RestoreSimoJuPlaneStrain2DLaw",mRestoreSimoJuPlaneStrain2DLaw);
-    Serializer::Register("RestoreSimoJuPlaneStress2DLaw",mRestoreSimoJuPlaneStress2DLaw);
+    Serializer::Register("SimoJuLocalDamage3DLaw",mSimoJuLocalDamage3DLaw);
+    Serializer::Register("SimoJuLocalDamagePlaneStrain2DLaw",mSimoJuLocalDamagePlaneStrain2DLaw);
+    Serializer::Register("SimoJuLocalDamagePlaneStress2DLaw",mSimoJuLocalDamagePlaneStress2DLaw);
 
-    Serializer::Register("RestoreSimoJuNonlocal3DLaw",mRestoreSimoJuNonlocal3DLaw);
-    Serializer::Register("RestoreSimoJuNonlocalPlaneStrain2DLaw",mRestoreSimoJuNonlocalPlaneStrain2DLaw);
-    Serializer::Register("RestoreSimoJuNonlocalPlaneStress2DLaw",mRestoreSimoJuNonlocalPlaneStress2DLaw);
+    Serializer::Register("SimoJuNonlocalDamage3DLaw",mSimoJuNonlocalDamage3DLaw);
+    Serializer::Register("SimoJuNonlocalDamagePlaneStrain2DLaw",mSimoJuNonlocalDamagePlaneStrain2DLaw);
+    Serializer::Register("SimoJuNonlocalDamagePlaneStress2DLaw",mSimoJuNonlocalDamagePlaneStress2DLaw);
 
     //Register Variables
     KRATOS_REGISTER_VARIABLE( NEWMARK_COEFFICIENT_U )

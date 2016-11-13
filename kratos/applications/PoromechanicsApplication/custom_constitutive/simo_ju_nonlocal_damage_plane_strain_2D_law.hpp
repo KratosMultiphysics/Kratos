@@ -5,26 +5,31 @@
 //   Revision:            $Revision:                 1.0 $
 //
 
-#if !defined (KRATOS_RESTORE_SIMO_JU_NONLOCAL_3D_LAW_H_INCLUDED)
-#define  KRATOS_RESTORE_SIMO_JU_NONLOCAL_3D_LAW_H_INCLUDED
+#if !defined (KRATOS_SIMO_JU_NONLOCAL_DAMAGE_PLANE_STRAIN_2D_LAW_H_INCLUDED)
+#define  KRATOS_SIMO_JU_NONLOCAL_DAMAGE_PLANE_STRAIN_2D_LAW_H_INCLUDED
+
+// System includes
+#include <cmath>
 
 // Project includes
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_constitutive/restore_simo_ju_3D_law.hpp"
-#include "custom_constitutive/custom_flow_rules/restore_nonlocal_damage_flow_rule.hpp"
+#include "custom_constitutive/nonlocal_damage_plane_strain_2D_law.hpp"
+#include "custom_constitutive/custom_hardening_laws/exponential_damage_hardening_law.hpp"
+#include "custom_constitutive/custom_yield_criteria/simo_ju_yield_criterion.hpp"
+#include "custom_constitutive/custom_flow_rules/nonlocal_damage_flow_rule.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(POROMECHANICS_APPLICATION) RestoreSimoJuNonlocal3DLaw : public RestoreSimoJu3DLaw
+class KRATOS_API(POROMECHANICS_APPLICATION) SimoJuNonlocalDamagePlaneStrain2DLaw : public NonlocalDamagePlaneStrain2DLaw
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION(RestoreSimoJuNonlocal3DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(SimoJuNonlocalDamagePlaneStrain2DLaw);
 
     typedef FlowRule::Pointer FlowRulePointer;
     typedef YieldCriterion::Pointer YieldCriterionPointer;
@@ -33,16 +38,16 @@ public:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    RestoreSimoJuNonlocal3DLaw();
+    SimoJuNonlocalDamagePlaneStrain2DLaw();
     
     /// Second Constructor
-    RestoreSimoJuNonlocal3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    SimoJuNonlocalDamagePlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
     
     /// Copy Constructor
-    RestoreSimoJuNonlocal3DLaw (const RestoreSimoJuNonlocal3DLaw& rOther);
+    SimoJuNonlocalDamagePlaneStrain2DLaw (const SimoJuNonlocalDamagePlaneStrain2DLaw& rOther);
 
     /// Destructor
-    virtual ~RestoreSimoJuNonlocal3DLaw();
+    virtual ~SimoJuNonlocalDamagePlaneStrain2DLaw();
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -50,32 +55,15 @@ public:
     
     ConstitutiveLaw::Pointer Clone() const;
 
-    void InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues );
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    void CalculateMaterialResponseCauchy (Parameters & rValues);
-    
-    void FinalizeMaterialResponseCauchy (Parameters & rValues);
-    
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    double& GetValue( const Variable<double>& rThisVariable, double& rValue );
-
-    void SetValue( const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo );
-
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
 
     /// Member Variables
-    
-    double mNonlocalEquivalentStrain;
-    
+        
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateLocalReturnMapping( FlowRule::RadialReturnVariables& rReturnMappingVariables, Matrix& rStressMatrix, 
-                                        Vector& rStressVector, const Matrix& LinearElasticMatrix, const Vector& StrainVector );
+    void CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& DomainGeometry );
 
 private:
     
@@ -93,6 +81,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
-}; // Class RestoreSimoJuNonlocal3DLaw
+}; // Class SimoJuNonlocalDamagePlaneStrain2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_RESTORE_SIMO_JU_NONLOCAL_3D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_SIMO_JU_NONLOCAL_DAMAGE_PLANE_STRAIN_2D_LAW_H_INCLUDED  defined 
