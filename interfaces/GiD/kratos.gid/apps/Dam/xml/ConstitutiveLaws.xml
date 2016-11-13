@@ -42,8 +42,8 @@
             <parameter n="DAMAGE_VARIABLE" pn="Damage" v="False" />
         </outputs>
     </CLaw>
-    <CLaw n="RestoreSimoJu3DLaw" pn="Isotropic Damage Simo-Ju" ProductionReady="ProductionReady" Type="Damage3D" behaviour="Elastic" StrainSize="6" AnalysisType="Non-Linear"
-	  help="Restore Simo-Ju 3D Law for Damage" Dimension="3D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" AllowsAnisotropy="False" >
+    <CLaw n="SimoJuLocalDamage3DLaw" pn="Isotropic Damage Simo-Ju" ProductionReady="ProductionReady" Type="Damage3D" behaviour="Elastic" StrainSize="6" AnalysisType="Non-Linear"
+	  help="Simo-Ju 3D Law for Damage" Dimension="3D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" AllowsAnisotropy="False" >
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2500"/>
             <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="35.0e9" />
@@ -141,8 +141,8 @@
             <parameter n="DAMAGE_VARIABLE" pn="Damage" v="False" />
         </outputs>
     </CLaw>
-    <CLaw n="RestoreSimoJuPlaneStrain2DLaw" pn="Isotropic Damage Simo-Ju Plane Strain" ProductionReady="ProductionReady" Type="DamageStrain" behaviour="Elastic" StrainSize="3"
-          help="Restore Simo-Ju 2D Plane Strain Law for Damage" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" AnalysisType="Non-Linear" >
+    <CLaw n="SimoJuLocalDamagePlaneStrain2DLaw" pn="Isotropic Damage Simo-Ju Plane Strain" ProductionReady="ProductionReady" Type="DamageStrain" behaviour="Elastic" StrainSize="3"
+          help="Simo-Ju 2D Plane Strain Law for Damage" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" AnalysisType="Non-Linear" >
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2500"/>
             <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="35.0e9" />
@@ -155,8 +155,8 @@
             <parameter n="DAMAGE_VARIABLE" pn="Damage" v="False" />
         </outputs>
     </CLaw>
-    <CLaw n="RestoreSimoJuPlaneStress2DLaw" pn="Isotropic Damage Simo-Ju Plane Stress" ProductionReady="ProductionReady" Type="DamageStress" behaviour="Elastic" StrainSize="3"
-          help="Restore Simo-Ju 2D Plane Stress Law for Damage" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" AnalysisType="Non-Linear">
+    <CLaw n="SimoJuLocalDamagePlaneStress2DLaw" pn="Isotropic Damage Simo-Ju Plane Stress" ProductionReady="ProductionReady" Type="DamageStress" behaviour="Elastic" StrainSize="3"
+          help="Simo-Ju 2D Plane Stress Law for Damage" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" AnalysisType="Non-Linear">
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="2500"/>
             <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="35.0e9" />

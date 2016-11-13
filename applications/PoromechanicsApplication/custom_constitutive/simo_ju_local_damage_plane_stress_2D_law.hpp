@@ -5,28 +5,31 @@
 //   Revision:            $Revision:                 1.0 $
 //
 
-#if !defined (KRATOS_RESTORE_SIMO_JU_3D_LAW_H_INCLUDED)
-#define  KRATOS_RESTORE_SIMO_JU_3D_LAW_H_INCLUDED
+#if !defined (KRATOS_SIMO_JU_LOCAL_DAMAGE_PLANE_STRESS_2D_LAW_H_INCLUDED)
+#define  KRATOS_SIMO_JU_LOCAL_DAMAGE_PLANE_STRESS_2D_LAW_H_INCLUDED
+
+// System includes
+#include <cmath>
 
 // Project includes
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_constitutive/isotropic_damage_simo_ju_3D_law.hpp"
-#include "custom_constitutive/custom_flow_rules/restore_damage_flow_rule.hpp"
-//#include "custom_constitutive/custom_yield_criteria/simo_ju_yield_criterion.hpp"
-//#include "custom_constitutive/custom_hardening_laws/exponential_damage_hardening_law.hpp"
+#include "custom_constitutive/local_damage_plane_stress_2D_law.hpp"
+#include "custom_constitutive/custom_hardening_laws/exponential_damage_hardening_law.hpp"
+#include "custom_constitutive/custom_yield_criteria/simo_ju_yield_criterion.hpp"
+#include "custom_constitutive/custom_flow_rules/local_damage_flow_rule.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(POROMECHANICS_APPLICATION) RestoreSimoJu3DLaw : public IsotropicDamageSimoJu3DLaw
+class KRATOS_API(POROMECHANICS_APPLICATION) SimoJuLocalDamagePlaneStress2DLaw : public LocalDamagePlaneStress2DLaw
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION(RestoreSimoJu3DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(SimoJuLocalDamagePlaneStress2DLaw);
 
     typedef FlowRule::Pointer FlowRulePointer;
     typedef YieldCriterion::Pointer YieldCriterionPointer;
@@ -35,41 +38,33 @@ public:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    RestoreSimoJu3DLaw();
+    SimoJuLocalDamagePlaneStress2DLaw();
     
     /// Second Constructor
-    RestoreSimoJu3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    SimoJuLocalDamagePlaneStress2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
     
     /// Copy Constructor
-    RestoreSimoJu3DLaw (const RestoreSimoJu3DLaw& rOther);
+    SimoJuLocalDamagePlaneStress2DLaw (const SimoJuLocalDamagePlaneStress2DLaw& rOther);
 
     /// Destructor
-    virtual ~RestoreSimoJu3DLaw();
+    virtual ~SimoJuLocalDamagePlaneStress2DLaw();
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo);
     
     ConstitutiveLaw::Pointer Clone() const;
-    
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void CalculateMaterialResponseCauchy (Parameters & rValues);
-    
-    void FinalizeMaterialResponseCauchy (Parameters & rValues);
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    double& GetValue( const Variable<double>& rThisVariable, double& rValue );
-
-    void SetValue( const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo );
-
+        
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
 protected:
 
     /// Member Variables
         
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        
+    void CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& DomainGeometry );
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
@@ -88,6 +83,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
-}; // Class RestoreSimoJu3DLaw
+}; // Class SimoJuLocalDamagePlaneStress2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_RESTORE_SIMO_JU_3D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_SIMO_JU_LOCAL_DAMAGE_PLANE_STRESS_2D_LAW_H_INCLUDED  defined 

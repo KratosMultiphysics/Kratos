@@ -18,17 +18,23 @@ set( KRATOS_POROMECHANICS_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
     
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/restore_damage_flow_rule.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/restore_nonlocal_damage_flow_rule.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/local_damage_flow_rule.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/nonlocal_damage_flow_rule.cpp
     
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/bilinear_cohesive_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/bilinear_cohesive_2D_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/restore_simo_ju_3D_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/restore_simo_ju_plane_strain_2D_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/restore_simo_ju_plane_stress_2D_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/restore_simo_ju_nonlocal_3D_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/restore_simo_ju_nonlocal_plane_strain_2D_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/restore_simo_ju_nonlocal_plane_stress_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/local_damage_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/local_damage_plane_strain_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/local_damage_plane_stress_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/simo_ju_local_damage_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/simo_ju_local_damage_plane_strain_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/simo_ju_local_damage_plane_stress_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/nonlocal_damage_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/nonlocal_damage_plane_strain_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/nonlocal_damage_plane_stress_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/simo_ju_nonlocal_damage_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/simo_ju_nonlocal_damage_plane_strain_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/simo_ju_nonlocal_damage_plane_stress_2D_law.cpp
     
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/U_Pw_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/U_Pw_small_strain_element.cpp

@@ -5,25 +5,25 @@
 //   Revision:            $Revision:                 1.0 $
 //
 
-#if !defined (KRATOS_RESTORE_SIMO_JU_NONLOCAL_PLANE_STRAIN_2D_LAW_H_INCLUDED)
-#define  KRATOS_RESTORE_SIMO_JU_NONLOCAL_PLANE_STRAIN_2D_LAW_H_INCLUDED
+#if !defined (KRATOS_NONLOCAL_DAMAGE_PLANE_STRESS_2D_LAW_H_INCLUDED)
+#define  KRATOS_NONLOCAL_DAMAGE_PLANE_STRESS_2D_LAW_H_INCLUDED
 
 // Project includes
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_constitutive/restore_simo_ju_nonlocal_3D_law.hpp"
+#include "custom_constitutive/nonlocal_damage_plane_strain_2D_law.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(POROMECHANICS_APPLICATION) RestoreSimoJuNonlocalPlaneStrain2DLaw : public RestoreSimoJuNonlocal3DLaw
+class KRATOS_API(POROMECHANICS_APPLICATION) NonlocalDamagePlaneStress2DLaw : public NonlocalDamagePlaneStrain2DLaw
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION(RestoreSimoJuNonlocalPlaneStrain2DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(NonlocalDamagePlaneStress2DLaw);
 
     typedef FlowRule::Pointer FlowRulePointer;
     typedef YieldCriterion::Pointer YieldCriterionPointer;
@@ -32,16 +32,16 @@ public:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    RestoreSimoJuNonlocalPlaneStrain2DLaw();
+    NonlocalDamagePlaneStress2DLaw();
     
     /// Second Constructor
-    RestoreSimoJuNonlocalPlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    NonlocalDamagePlaneStress2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
     
     /// Copy Constructor
-    RestoreSimoJuNonlocalPlaneStrain2DLaw (const RestoreSimoJuNonlocalPlaneStrain2DLaw& rOther);
+    NonlocalDamagePlaneStress2DLaw (const NonlocalDamagePlaneStress2DLaw& rOther);
 
     /// Destructor
-    virtual ~RestoreSimoJuNonlocalPlaneStrain2DLaw();
+    virtual ~NonlocalDamagePlaneStress2DLaw();
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -51,24 +51,12 @@ public:
         
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    SizeType WorkingSpaceDimension()
-    {
-        return 2;
-    }
-    
-    SizeType GetStrainSize()
-    {
-        return 3;
-    }
-    
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 protected:
 
     /// Member Variables
         
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+        
     void CalculateLinearElasticMatrix( Matrix& rLinearElasticMatrix,const double& YoungModulus,const double& PoissonCoefficient );
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -89,6 +77,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
-}; // Class RestoreSimoJuNonlocalPlaneStrain2DLaw
+}; // Class NonlocalDamagePlaneStress2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_RESTORE_SIMO_JU_NONLOCAL_PLANE_STRAIN_2D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_NONLOCAL_DAMAGE_PLANE_STRESS_2D_LAW_H_INCLUDED  defined 

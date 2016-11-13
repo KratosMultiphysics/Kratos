@@ -15,18 +15,17 @@
 //Application includes
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 
-#include "custom_constitutive/custom_flow_rules/restore_damage_flow_rule.hpp"
-#include "custom_constitutive/custom_flow_rules/restore_nonlocal_damage_flow_rule.hpp"
-
 //constitutive laws
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
-#include "custom_constitutive/restore_simo_ju_3D_law.hpp"
-#include "custom_constitutive/restore_simo_ju_plane_strain_2D_law.hpp"
-#include "custom_constitutive/restore_simo_ju_plane_stress_2D_law.hpp"
-#include "custom_constitutive/restore_simo_ju_nonlocal_3D_law.hpp"
-#include "custom_constitutive/restore_simo_ju_nonlocal_plane_strain_2D_law.hpp"
-#include "custom_constitutive/restore_simo_ju_nonlocal_plane_stress_2D_law.hpp"
+
+#include "custom_constitutive/simo_ju_local_damage_3D_law.hpp"
+#include "custom_constitutive/simo_ju_local_damage_plane_strain_2D_law.hpp"
+#include "custom_constitutive/simo_ju_local_damage_plane_stress_2D_law.hpp"
+
+#include "custom_constitutive/simo_ju_nonlocal_damage_3D_law.hpp"
+#include "custom_constitutive/simo_ju_nonlocal_damage_plane_strain_2D_law.hpp"
+#include "custom_constitutive/simo_ju_nonlocal_damage_plane_stress_2D_law.hpp"
 
 namespace Kratos
 {
@@ -41,13 +40,13 @@ void  AddCustomConstitutiveLawsToPython()
     class_< BilinearCohesive3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "BilinearCohesive3DLaw",init<>() );
     class_< BilinearCohesive2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "BilinearCohesive2DLaw",init<>() );
     
-    class_< RestoreSimoJu3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "RestoreSimoJu3DLaw",init<>() );
-    class_< RestoreSimoJuPlaneStrain2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "RestoreSimoJuPlaneStrain2DLaw",init<>() );
-    class_< RestoreSimoJuPlaneStress2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "RestoreSimoJuPlaneStress2DLaw",init<>() );
+    class_< SimoJuLocalDamage3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "SimoJuLocalDamage3DLaw",init<>() );
+    class_< SimoJuLocalDamagePlaneStrain2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "SimoJuLocalDamagePlaneStrain2DLaw",init<>() );
+    class_< SimoJuLocalDamagePlaneStress2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "SimoJuLocalDamagePlaneStress2DLaw",init<>() );
 
-    class_< RestoreSimoJuNonlocal3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "RestoreSimoJuNonlocal3DLaw",init<>() );
-    class_< RestoreSimoJuNonlocalPlaneStrain2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "RestoreSimoJuNonlocalPlaneStrain2DLaw",init<>() );
-    class_< RestoreSimoJuNonlocalPlaneStress2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "RestoreSimoJuNonlocalPlaneStress2DLaw",init<>() );
+    class_< SimoJuNonlocalDamage3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "SimoJuNonlocalDamage3DLaw",init<>() );
+    class_< SimoJuNonlocalDamagePlaneStrain2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "SimoJuNonlocalDamagePlaneStrain2DLaw",init<>() );
+    class_< SimoJuNonlocalDamagePlaneStress2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "SimoJuNonlocalDamagePlaneStress2DLaw",init<>() );
 }
 
 }  // namespace Python.

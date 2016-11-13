@@ -5,8 +5,8 @@
 //   Revision:            $Revision:                 1.0 $
 //
 
-#if !defined (KRATOS_RESTORE_SIMO_JU_PLANE_STRAIN_2D_LAW_H_INCLUDED)
-#define  KRATOS_RESTORE_SIMO_JU_PLANE_STRAIN_2D_LAW_H_INCLUDED
+#if !defined (KRATOS_SIMO_JU_LOCAL_DAMAGE_PLANE_STRAIN_2D_LAW_H_INCLUDED)
+#define  KRATOS_SIMO_JU_LOCAL_DAMAGE_PLANE_STRAIN_2D_LAW_H_INCLUDED
 
 // System includes
 #include <cmath>
@@ -15,18 +15,21 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_constitutive/restore_simo_ju_3D_law.hpp"
+#include "custom_constitutive/local_damage_plane_strain_2D_law.hpp"
+#include "custom_constitutive/custom_hardening_laws/exponential_damage_hardening_law.hpp"
+#include "custom_constitutive/custom_yield_criteria/simo_ju_yield_criterion.hpp"
+#include "custom_constitutive/custom_flow_rules/local_damage_flow_rule.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(POROMECHANICS_APPLICATION) RestoreSimoJuPlaneStrain2DLaw : public RestoreSimoJu3DLaw
+class KRATOS_API(POROMECHANICS_APPLICATION) SimoJuLocalDamagePlaneStrain2DLaw : public LocalDamagePlaneStrain2DLaw
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION(RestoreSimoJuPlaneStrain2DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(SimoJuLocalDamagePlaneStrain2DLaw);
 
     typedef FlowRule::Pointer FlowRulePointer;
     typedef YieldCriterion::Pointer YieldCriterionPointer;
@@ -35,35 +38,23 @@ public:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    RestoreSimoJuPlaneStrain2DLaw();
+    SimoJuLocalDamagePlaneStrain2DLaw();
     
     /// Second Constructor
-    RestoreSimoJuPlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    SimoJuLocalDamagePlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
     
     /// Copy Constructor
-    RestoreSimoJuPlaneStrain2DLaw (const RestoreSimoJuPlaneStrain2DLaw& rOther);
+    SimoJuLocalDamagePlaneStrain2DLaw (const SimoJuLocalDamagePlaneStrain2DLaw& rOther);
 
     /// Destructor
-    virtual ~RestoreSimoJuPlaneStrain2DLaw();
+    virtual ~SimoJuLocalDamagePlaneStrain2DLaw();
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    void GetLawFeatures(Features& rFeatures);
-    
+
+    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo);
+
     ConstitutiveLaw::Pointer Clone() const;
-        
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    SizeType WorkingSpaceDimension()
-    {
-        return 2;
-    }
-    
-    SizeType GetStrainSize()
-    {
-        return 3;
-    }
-    
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
@@ -73,8 +64,6 @@ protected:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     void CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& DomainGeometry );
-    
-    void CalculateLinearElasticMatrix( Matrix& rLinearElasticMatrix,const double& YoungModulus,const double& PoissonCoefficient );
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -94,6 +83,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
-}; // Class RestoreSimoJuPlaneStrain2DLaw
+}; // Class SimoJuLocalDamagePlaneStrain2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_RESTORE_SIMO_JU_PLANE_STRAIN_2D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_SIMO_JU_LOCAL_DAMAGE_PLANE_STRAIN_2D_LAW_H_INCLUDED  defined 

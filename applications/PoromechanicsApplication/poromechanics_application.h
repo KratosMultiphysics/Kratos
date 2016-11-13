@@ -39,17 +39,19 @@
 #include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 
-#include "custom_constitutive/custom_flow_rules/restore_damage_flow_rule.hpp"
-#include "custom_constitutive/custom_flow_rules/restore_nonlocal_damage_flow_rule.hpp"
-
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
-#include "custom_constitutive/restore_simo_ju_3D_law.hpp"
-#include "custom_constitutive/restore_simo_ju_plane_strain_2D_law.hpp"
-#include "custom_constitutive/restore_simo_ju_plane_stress_2D_law.hpp"
-#include "custom_constitutive/restore_simo_ju_nonlocal_3D_law.hpp"
-#include "custom_constitutive/restore_simo_ju_nonlocal_plane_strain_2D_law.hpp"
-#include "custom_constitutive/restore_simo_ju_nonlocal_plane_stress_2D_law.hpp"
+
+#include "custom_constitutive/custom_flow_rules/local_damage_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/nonlocal_damage_flow_rule.hpp"
+
+#include "custom_constitutive/simo_ju_local_damage_3D_law.hpp"
+#include "custom_constitutive/simo_ju_local_damage_plane_strain_2D_law.hpp"
+#include "custom_constitutive/simo_ju_local_damage_plane_stress_2D_law.hpp"
+
+#include "custom_constitutive/simo_ju_nonlocal_damage_3D_law.hpp"
+#include "custom_constitutive/simo_ju_nonlocal_damage_plane_strain_2D_law.hpp"
+#include "custom_constitutive/simo_ju_nonlocal_damage_plane_stress_2D_law.hpp"
 
 namespace Kratos
 {
@@ -162,19 +164,19 @@ const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrde
 const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrderCondition3D8N;
 const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrderCondition3D9N;
 
-const RestoreDamageFlowRule mRestoreDamageFlowRule;
-const RestoreNonlocalDamageFlowRule mRestoreNonlocalDamageFlowRule;
-
 const BilinearCohesive3DLaw mBilinearCohesive3DLaw;
 const BilinearCohesive2DLaw mBilinearCohesive2DLaw;
 
-const RestoreSimoJu3DLaw mRestoreSimoJu3DLaw;
-const RestoreSimoJuPlaneStrain2DLaw mRestoreSimoJuPlaneStrain2DLaw;
-const RestoreSimoJuPlaneStress2DLaw mRestoreSimoJuPlaneStress2DLaw;
+const LocalDamageFlowRule mLocalDamageFlowRule;
+const NonlocalDamageFlowRule mNonlocalDamageFlowRule;
 
-const RestoreSimoJuNonlocal3DLaw mRestoreSimoJuNonlocal3DLaw;
-const RestoreSimoJuNonlocalPlaneStrain2DLaw mRestoreSimoJuNonlocalPlaneStrain2DLaw;
-const RestoreSimoJuNonlocalPlaneStress2DLaw mRestoreSimoJuNonlocalPlaneStress2DLaw;
+const SimoJuLocalDamage3DLaw mSimoJuLocalDamage3DLaw;
+const SimoJuLocalDamagePlaneStrain2DLaw mSimoJuLocalDamagePlaneStrain2DLaw;
+const SimoJuLocalDamagePlaneStress2DLaw mSimoJuLocalDamagePlaneStress2DLaw;
+
+const SimoJuNonlocalDamage3DLaw mSimoJuNonlocalDamage3DLaw;
+const SimoJuNonlocalDamagePlaneStrain2DLaw mSimoJuNonlocalDamagePlaneStrain2DLaw;
+const SimoJuNonlocalDamagePlaneStress2DLaw mSimoJuNonlocalDamagePlaneStress2DLaw;
 
 // Assignment operator.
 KratosPoromechanicsApplication& operator=(KratosPoromechanicsApplication const& rOther);
