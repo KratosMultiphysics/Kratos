@@ -346,18 +346,23 @@ void LargeDisplacementElement::GetValueOnIntegrationPoints( const Variable<doubl
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
-    if ( rVariable == VON_MISES_STRESS || rVariable == NORM_ISOCHORIC_STRESS ){
+    if ( rVariable == VON_MISES_STRESS || rVariable == NORM_ISOCHORIC_STRESS || rVariable == PRESSURE)
+    {
         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
     }
-    else{
-
+    else
+    {
       const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
 
       if ( rValues.size() != integration_points_number )
+      {
         rValues.resize( integration_points_number );
+      }
 
       for ( unsigned int ii = 0; ii < integration_points_number; ii++ )
+      {
         rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
+      }
     }
 }
 
@@ -2365,6 +2370,48 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<doub
             rOutput[PointNumber] =  EquivalentStress.CalculateStressNorm(Variables.StressVector);
         }
 
+    }
+    else if (rVariable == PRESSURE)
+    {
+        //create and initialize element variables:
+        GeneralVariables Variables;
+        this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+
+        //create constitutive law parameters:
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+        //set constitutive law flags:
+        Flags &ConstitutiveLawOptions=Values.GetOptions();
+
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+
+        //reading integration points
+        for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
+        {
+            //compute element kinematics B, F, DN_DX ...
+	    this->CalculateKinematics(Variables,PointNumber);
+
+	    //to take in account previous step writing
+	    if( mFinalizedStep ){
+	      this->GetHistoricalVariables(Variables,PointNumber);
+	    }		
+
+            //set general variables to constitutivelaw parameters
+            this->SetGeneralVariables(Variables,Values,PointNumber);
+
+	    //call the constitutive law to update material variables
+            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
+	    
+	    if (GetGeometry().WorkingSpaceDimension() == 2)
+            {
+                rOutput[PointNumber] = 0.5 * (Variables.StressVector[0] + Variables.StressVector[1]);
+            }
+            else
+            {
+                rOutput[PointNumber] = 1.0/3.0 * (Variables.StressVector[0] + Variables.StressVector[1] + Variables.StressVector[2]);
+            }
+        }
     }
     else
     {
