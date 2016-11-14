@@ -66,7 +66,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class IO
+class KRATOS_API(KRATOS_CORE) IO
 {
 public:
     ///@name Type Definitions
