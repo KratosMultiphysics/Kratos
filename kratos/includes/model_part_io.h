@@ -55,7 +55,7 @@ namespace Kratos
 /// An IO class for reading and writing a modelpart
 /** This class reads and writes all modelpart data including the meshes.
 */
-class ModelPartIO : public IO
+class KRATOS_API(KRATOS_CORE) ModelPartIO : public IO
 {
 public:
     ///@name Type Definitions
