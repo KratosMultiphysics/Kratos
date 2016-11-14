@@ -24,6 +24,7 @@
 #include "../custom_constitutive/DEM_Dempack_CL.h"
 #include "../custom_constitutive/DEM_Dempack_2D_CL.h"
 #include "../custom_constitutive/DEM_KDEM_CL.h"
+#include "../custom_constitutive/DEM_KDEM_Rankine_CL.h"
 #include "../custom_constitutive/DEM_sintering_continuum_CL.h"
 #include "../custom_constitutive/DEM_KDEM_fabric_CL.h"
 #include "../custom_constitutive/DEM_ExponentialHC_CL.h"
@@ -126,6 +127,9 @@ namespace Kratos {
                     ;
             
             class_<DEM_KDEMFabric, bases< DEM_KDEM >, boost::noncopyable >("DEM_KDEMFabric",init<>())
+                    ;
+            
+            class_<DEM_KDEM_Rankine, bases< DEM_KDEM >, boost::noncopyable >("DEM_KDEM_Rankine",init<>())
                     ;
             
             class_<DEM_KDEM2D, bases< DEM_KDEM >, boost::noncopyable >("DEM_KDEM2D",init<>())
