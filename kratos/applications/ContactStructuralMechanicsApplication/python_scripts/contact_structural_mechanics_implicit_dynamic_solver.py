@@ -4,6 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.ContactStructuralMechanicsApplication
+import KratosMultiphysics.FSIApplication
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -68,7 +69,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
             "split_factor": 10.0,
             "max_number_splits": 3,
             "linear_solver_settings":{
-                "solver_type": "Super LU",
+                "solver_type": "SuperLUSolver",
                 "max_iteration": 500,
                 "tolerance": 1e-9,
                 "scaling": false,
@@ -79,7 +80,6 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                     "solver_type"       : "Relaxation",
                     "acceleration_type" : "Aitken",
                     "w_0"               :  0.01,
-                    "reduction_coefficient" :  1.0,
                     "buffer_size"       :  10
             },
             "processes_sub_model_part_list": [""],
@@ -95,10 +95,10 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
         
+        self.echo_level =  self.settings["echo_level"].GetInt()
+        print(self.echo_level)
+        
         print("Construction of MechanicalSolver finished")
-
-    #def GetComputingModelPart(self):
-        #return self.main_model_part
 
     def AddVariables(self):
         
@@ -147,9 +147,6 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
             self.main_model_part.ProcessInfo[KratosMultiphysics.SolidMechanicsApplication.RAYLEIGH_ALPHA] = self.settings["rayleigh_alpha"].GetDouble()
             self.main_model_part.ProcessInfo[KratosMultiphysics.SolidMechanicsApplication.RAYLEIGH_BETA ] = self.settings["rayleigh_beta" ].GetDouble()
             
-            self.main_model_part.ProcessInfo[KratosMultiphysics.SolidMechanicsApplication.RAYLEIGH_ALPHA] = self.settings["rayleigh_alpha"].GetDouble()
-            self.main_model_part.ProcessInfo[KratosMultiphysics.SolidMechanicsApplication.RAYLEIGH_BETA ] = self.settings["rayleigh_beta" ].GetDouble()
-            
             if  self.settings["compute_mortar_contact"].GetBool():
                 if (scheme_type == "Newmark"):
                     mechanical_scheme = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedBossakDisplacementContactScheme(0.0)
@@ -190,7 +187,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         
         if  self.settings["compute_mortar_contact"].GetBool():
             Mortar = KratosMultiphysics.ContactStructuralMechanicsApplication.MortarConvergenceCriteria()
-            Mortar.SetEchoLevel(self.settings["echo_level"].GetInt())
+            Mortar.SetEchoLevel(self.echo_level)
 
             convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Mortar, convergence_criterion.mechanical_convergence_criterion)
         
@@ -239,7 +236,6 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                         params = self.settings["convergence_accelerator"]
                         import convergence_accelerator_factory     
                         self.coupling_utility = convergence_accelerator_factory.CreateConvergenceAccelerator(params)
-                        reduction_coefficient = params["reduction_coefficient"].GetDouble()
                         self.mechanical_solver = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactAcceleratedStrategy(
                                                                                 self.computing_model_part, 
                                                                                 mechanical_scheme, 
@@ -250,8 +246,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                                                                                 compute_reactions, 
                                                                                 reform_step_dofs, 
                                                                                 move_mesh_flag,
-                                                                                self.coupling_utility,
-                                                                                reduction_coefficient
+                                                                                self.coupling_utility
                                                                                 )
                     elif  self.settings["compute_mortar_contact"].GetBool():
                         split_factor   = self.settings["split_factor"].GetDouble()
@@ -269,7 +264,6 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                                                                                 split_factor,
                                                                                 max_number_splits
                                                                                 )
-                        
                     else:
                         self.mechanical_solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
                                                                                 self.computing_model_part, 

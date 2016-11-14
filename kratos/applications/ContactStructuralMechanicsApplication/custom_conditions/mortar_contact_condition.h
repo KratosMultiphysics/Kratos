@@ -119,18 +119,21 @@ public:
     
     // Updating the Master pair
     void UpdateMasterPair(
-        const GeometryType& GeometryInput,          // The geometry of the current master
+//         const GeometryType& GeometryInput,          // The geometry of the current master
+        const Condition::Pointer& pCond,          // The pointer of the current master
         const unsigned int& rNumberOfMasterNodes,   // Number of nodes of the master
         const unsigned int& rDimension             // 3D/2D physical space
     )
     {
+        const GeometryType GeometryInput =  pCond->GetGeometry();
         MasterGeometry = GeometryInput; // Updating the geometry
         
         NormalsMaster = ZeroMatrix(rNumberOfMasterNodes, rDimension);
         
         for (unsigned int iNode = 0; iNode < rNumberOfMasterNodes; iNode++)
         {
-            array_1d<double,3> normal = MasterGeometry[iNode].GetValue(NORMAL);
+            array_1d<double,3> normal = pCond->GetValue(NORMAL); // TODO: To consider an interpolation it is necessary to smooth the surface
+//             array_1d<double,3> normal = MasterGeometry[iNode].GetValue(NORMAL);
 
             for (unsigned int iDof = 0; iDof < rDimension; iDof++)
             {

@@ -21,7 +21,7 @@
         "block_builder"                      : true,
         "line_search"                        : false,
         "clear_storage"                      : false,
-        "reform_dofs_at_each_step"      : true,
+        "reform_dofs_at_each_step"           : true,
         "convergence_criterion"              : "Residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,

@@ -207,7 +207,7 @@ public:
     /***********************************************************************************/
 
     virtual void InitializeSolutionStep(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
@@ -215,17 +215,17 @@ public:
     {
         KRATOS_TRY;
        
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
                 
         // Initialize solution step for all of the elements
-        ElementsArrayType& pElements = r_model_part.Elements();
+        ElementsArrayType& pElements = rModelPart.Elements();
         for ( typename ElementsArrayType::iterator it = pElements.begin(); it != pElements.end(); ++it )
         {
             it->InitializeSolutionStep(CurrentProcessInfo);
         }
         
         // Initialize solution step for all of the conditions
-        ConditionsArrayType& pConditions = r_model_part.Conditions();
+        ConditionsArrayType& pConditions = rModelPart.Conditions();
         for ( typename ConditionsArrayType::iterator it = pConditions.begin(); it != pConditions.end(); ++it )
         {
             bool condition_is_active = true;

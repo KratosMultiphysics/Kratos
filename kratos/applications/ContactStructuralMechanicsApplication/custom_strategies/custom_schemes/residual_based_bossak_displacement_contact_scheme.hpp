@@ -200,6 +200,123 @@ public:
             rCurrentCondition->GetDofList(ConditionDofList, CurrentProcessInfo);
         }
     }
+    /**
+     * This is the place to initialize the conditions. This is intended to be called just once when the strategy is initialized
+     * @param rModelPart: The model of the problem to solve
+     */
+
+    void InitializeConditions(ModelPart& rModelPart)
+    {
+        KRATOS_TRY;
+
+        if(this->mElementsAreInitialized == false)
+        {
+            KRATOS_THROW_ERROR( std::logic_error, "Before initilizing Conditions, initialize Elements FIRST", "" );
+        }
+
+        const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector ConditionPartition;
+        OpenMPUtils::DivideInPartitions(rModelPart.Conditions().size(), NumThreads, ConditionPartition);
+
+        const int ncond = static_cast<int>(rModelPart.Conditions().size());
+        ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin();
+
+        #pragma omp parallel for
+        for(int i = 0;  i < ncond; i++)
+        {
+            ConditionsArrayType::iterator itCond = CondBegin + i;
+
+            bool condition_is_active = true;
+            if( (itCond)->IsDefined(ACTIVE) == true)
+            {
+                condition_is_active = (itCond)->Is(ACTIVE);
+            }
+            
+            if ( condition_is_active == true )
+            {
+                itCond->Initialize(); //function to initialize the condition
+            }
+        }
+
+        this->mConditionsAreInitialized = true;
+
+        KRATOS_CATCH( "" );
+    }
+
+    /**
+     * It initializes time step solution. Only for reasons if the time step solution is restarted
+     * @param rModelPart: The model of the problem to solve
+     * @param A: LHS matrix
+     * @param Dx: Incremental update of primary variables
+     * @param b: RHS Vector
+     *
+     */
+    
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b
+    )
+    {
+        KRATOS_TRY;
+
+        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+                
+        // Initialize solution step for all of the elements
+        ElementsArrayType& pElements = rModelPart.Elements();
+        for ( typename ElementsArrayType::iterator it = pElements.begin(); it != pElements.end(); ++it )
+        {
+            it->InitializeSolutionStep(CurrentProcessInfo);
+        }
+        
+        // Initialize solution step for all of the conditions
+        ConditionsArrayType& pConditions = rModelPart.Conditions();
+        for ( typename ConditionsArrayType::iterator it = pConditions.begin(); it != pConditions.end(); ++it )
+        {
+            bool condition_is_active = true;
+            if( it->IsDefined(ACTIVE) == true)
+            {
+                condition_is_active = it->Is(ACTIVE);
+            }
+            
+            if ( condition_is_active == true )
+            {
+                it->InitializeSolutionStep(CurrentProcessInfo);
+            }
+
+        }
+
+        double DeltaTime = CurrentProcessInfo[DELTA_TIME];
+
+        double beta = 0.25;
+        if (CurrentProcessInfo.Has(NEWMARK_BETA))
+        {
+            beta = CurrentProcessInfo[NEWMARK_BETA];
+        }
+        double gamma = 0.5;
+        if (CurrentProcessInfo.Has(NEWMARK_GAMMA))
+        {
+            gamma = CurrentProcessInfo[NEWMARK_GAMMA];
+        }
+
+        BaseType::CalculateNewmarkCoefficients(beta, gamma);
+
+        if (DeltaTime < 1.0e-24)
+        {
+            KRATOS_ERROR << " ERROR: detected delta_time = 0 in the Solution Scheme DELTA_TIME. PLEASE : check if the time step is created correctly for the current model part ";
+        }
+
+        // Initializing Newmark constants
+        BaseType::mNewmark.c0 = ( 1.0 / (BaseType::mNewmark.beta * DeltaTime * DeltaTime) );
+        BaseType::mNewmark.c1 = ( BaseType::mNewmark.gamma / (BaseType::mNewmark.beta * DeltaTime) );
+        BaseType::mNewmark.c2 = ( 1.0 / (BaseType::mNewmark.beta * DeltaTime) );
+        BaseType::mNewmark.c3 = ( 0.5 / (BaseType::mNewmark.beta) - 1.0 );
+        BaseType::mNewmark.c4 = ( (BaseType::mNewmark.gamma / BaseType::mNewmark.beta) - 1.0  );
+        BaseType::mNewmark.c5 = ( DeltaTime * 0.5 * ( ( BaseType::mNewmark.gamma / BaseType::mNewmark.beta ) - 2.0 ) );
+
+        KRATOS_CATCH( "" );
+    }
     
     /**
      * It initializes a non-linear iteration (for the element)

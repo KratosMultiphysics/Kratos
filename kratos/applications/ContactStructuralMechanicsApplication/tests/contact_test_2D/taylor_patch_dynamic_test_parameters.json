@@ -24,15 +24,15 @@
         "compute_mortar_contact"             : true,
         "block_builder"                      : true,
         "line_search"                        : false,
-        "clear_storage"                      : true,
+        "clear_storage"                      : false,
         "reform_dofs_at_each_step"	     : true,
         "convergence_criterion"              : "Residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
-        "split_factor"						 : 0.0,
-        "max_number_splits"					 : 0,
+        "split_factor"		             : 0.0,
+        "max_number_splits"	             : 0,
         "max_iteration"                      : 20,
         "linear_solver_settings"             : {
             "solver_type" : "SuperLUSolver",
@@ -41,12 +41,12 @@
         },
         "problem_domain_sub_model_part_list" : ["Parts_foundation","Parts_punch"],
         "processes_sub_model_part_list"      : ["Parts_foundation",
-        										"Parts_punch",
-        										"DISPLACEMENT_fixed_support",
-        										"DISPLACEMENT_rolling_support_y",
-        										"DISPLACEMENT_rolling_support_x",
-        										"LineLoad2D_line_load"
-        										]
+                                                "Parts_punch",
+                                                "DISPLACEMENT_fixed_support",
+                                                "DISPLACEMENT_rolling_support_y",
+                                                "DISPLACEMENT_rolling_support_x",
+                                                "LineLoad2D_line_load"
+                                                ]
     },
     "constraints_process_list" : [{
         "python_module"   : "impose_vector_value_by_components_process",
@@ -119,12 +119,12 @@
             "destination_model_part_name" : "Parts_punch",
             "contact_type"                : "MortarMethod",
             "search_factor"               : 2.0,
-            "active_check_factor"	  : 2e-5,
+            "active_check_factor"	  : 2e-3,
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
-            "augmentation_normal"         : 0e0,
-            "augmentation_tangent"        : 0e0,
-            "integration_order"           : 10
+            "augmentation_normal"         : 1e7,
+            "augmentation_tangent"        : 1e7,
+            "integration_order"           : 11
         }
     }
     ],
@@ -143,8 +143,9 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","VECTOR_LAGRANGE_MULTIPLIER","REACTION" ],
-            "gauss_point_results" : ["NORMAL_CONTACT_STRESS","TANGENTIAL_CONTACT_STRESS", "GAP_GP", "SLIP_GP"]
+            "nodal_results"       : ["DISPLACEMENT","VECTOR_LAGRANGE_MULTIPLIER","WEIGHTED_GAP" ],
+            "nodal_flags_results": ["ACTIVE"],
+            "gauss_point_results" : ["PRESSURE","NORMAL_CONTACT_STRESS","TANGENTIAL_CONTACT_STRESS", "GAP_GP", "SLIP_GP"]
         },
         "point_data_configuration"  : []
     },

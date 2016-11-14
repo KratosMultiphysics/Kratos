@@ -103,6 +103,7 @@ class Kratos_Execute_Test:
             if (self.output_post == True):
                 self.gid_output.ExecuteInitializeSolutionStep()
                         
+            self.solver.Clear()
             self.solver.Solve()
             
             if (self.output_post == True):

@@ -428,7 +428,7 @@ public:
      * @return The modelparts with the normal computed
      */
     
-    static inline void ComputeNodesMeanNormalModelPart(ModelPart & ModelPart)
+    static inline void ComputeNodesMeanNormalModelPart(ModelPart & rModelPart)
     {
         // Tolerance
         const double tol = 1.0e-14;
@@ -436,60 +436,60 @@ public:
         // Initialize normal vectors
         const array_1d<double,3> ZeroVect = ZeroVector(3);
         
-        NodesArrayType& pNode  = ModelPart.Nodes();
-        NodesArrayType::iterator it_node_begin = pNode.ptr_begin();
-        NodesArrayType::iterator it_node_end   = pNode.ptr_end();
+        NodesArrayType& pNode = rModelPart.Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
         
-        for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
         {
-            noalias(node_it->GetValue(NORMAL))      = ZeroVect; 
-            noalias(node_it->GetValue(TANGENT_XI))  = ZeroVect; 
-            noalias(node_it->GetValue(TANGENT_ETA)) = ZeroVect; 
+            auto itNode = pNode.begin() + i;
+            noalias(itNode->GetValue(NORMAL))      = ZeroVect; 
+            noalias(itNode->GetValue(TANGENT_XI))  = ZeroVect; 
+            noalias(itNode->GetValue(TANGENT_ETA)) = ZeroVect; 
         }
         
         // Sum all the nodes normals
-        ConditionsArrayType& pCond  = ModelPart.Conditions();
-        ConditionsArrayType::iterator it_cond_begin = pCond.ptr_begin();
-        ConditionsArrayType::iterator it_cond_end   = pCond.ptr_end();
+        ConditionsArrayType& pCond = rModelPart.Conditions();
+        auto numConditions = pCond.end() - pCond.begin();
         
-        for(ConditionsArrayType::iterator cond_it = it_cond_begin; cond_it!=it_cond_end; cond_it++)
+//         #pragma omp parallel for // NOTE: Don't parallelize, you are accesing to the nodes (try with atomic)
+        for(unsigned int i = 0; i < numConditions; i++) 
         {
-            if (cond_it->Is(ACTIVE) || cond_it->Is(MASTER))
+            auto itCond = pCond.begin() + i;
+            if (itCond->Is(ACTIVE) || itCond->Is(MASTER))
             {
-                ConditionNormal(*(cond_it.base()));
+                ConditionNormal(*(itCond.base()));
                 
-                const array_1d<double, 3> & rNormal     = cond_it->GetValue(NORMAL);
-                const array_1d<double, 3> & rTangentXi  = cond_it->GetValue(TANGENT_XI);
-                const array_1d<double, 3> & rTangentEta = cond_it->GetValue(TANGENT_ETA);
+                const array_1d<double, 3> & rNormal     = itCond->GetValue(NORMAL);
+                const array_1d<double, 3> & rTangentXi  = itCond->GetValue(TANGENT_XI);
+                const array_1d<double, 3> & rTangentEta = itCond->GetValue(TANGENT_ETA);
                 
-                for (unsigned int i = 0; i < cond_it->GetGeometry().PointsNumber(); i++)
+                for (unsigned int i = 0; i < itCond->GetGeometry().PointsNumber(); i++)
                 {
-                    noalias( cond_it->GetGeometry()[i].GetValue(NORMAL) )      += rNormal;
-                    noalias( cond_it->GetGeometry()[i].GetValue(TANGENT_XI) )  += rTangentXi;
-                    noalias( cond_it->GetGeometry()[i].GetValue(TANGENT_ETA) ) += rTangentEta;
+                    noalias( itCond->GetGeometry()[i].GetValue(NORMAL) )      += rNormal;
+                    noalias( itCond->GetGeometry()[i].GetValue(TANGENT_XI) )  += rTangentXi;
+                    noalias( itCond->GetGeometry()[i].GetValue(TANGENT_ETA) ) += rTangentEta;
                 }
             }
         }
         
-        // TODO: This is just for the Mohamed conditions, remove if not used!!!!
-        // Applied laziness - MUST be calculated BEFORE normalizing the normals
-        ComputeDeltaNodesMeanNormalModelPart( ModelPart );
-        
-        // Normalize normal vectors
-        it_node_begin = pNode.ptr_begin();
-        it_node_end   = pNode.ptr_end();
-        
-        for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
+//         // TODO: This is just for the Mohamed conditions, remove if not used!!!!
+//         // Applied laziness - MUST be calculated BEFORE normalizing the normals
+//         ComputeDeltaNodesMeanNormalModelPart( rModelPart );
+
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
         {
-            const double norm_normal     = norm_2(node_it->GetValue(NORMAL));
-            const double norm_tangentxi  = norm_2(node_it->GetValue(TANGENT_XI));
-            const double norm_tangenteta = norm_2(node_it->GetValue(TANGENT_ETA));
+            auto itNode = pNode.begin() + i;
+            const double norm_normal     = norm_2(itNode->GetValue(NORMAL));
+            const double norm_tangentxi  = norm_2(itNode->GetValue(TANGENT_XI));
+            const double norm_tangenteta = norm_2(itNode->GetValue(TANGENT_ETA));
             
             if (norm_normal > tol)
             {
-                node_it->GetValue(NORMAL)      /= norm_normal;
-                node_it->GetValue(TANGENT_XI)  /= norm_tangentxi;
-                node_it->GetValue(TANGENT_ETA) /= norm_tangenteta;
+                itNode->GetValue(NORMAL)      /= norm_normal;
+                itNode->GetValue(TANGENT_XI)  /= norm_tangentxi;
+                itNode->GetValue(TANGENT_ETA) /= norm_tangenteta;
             }
         }
     }
@@ -503,19 +503,14 @@ public:
      * @return The modelparts with the normal computed
      */
 
-    static inline void ComputeDeltaNodesMeanNormalModelPart(ModelPart & ModelPart)
+    static inline void ComputeDeltaNodesMeanNormalModelPart(ModelPart & rModelPart)
     {
         // TODO: Add parallelization
         
         // Conditions
-        ConditionsArrayType& pCond  = ModelPart.Conditions();
+        ConditionsArrayType& pCond  = rModelPart.Conditions();
         ConditionsArrayType::iterator it_cond_begin = pCond.ptr_begin();
         ConditionsArrayType::iterator it_cond_end   = pCond.ptr_end();
-
-        // Nodes
-        NodesArrayType& pNode  = ModelPart.Nodes();
-        NodesArrayType::iterator it_node_begin = pNode.ptr_begin();
-        NodesArrayType::iterator it_node_end   = pNode.ptr_end();
 
         // Tolerance
         const double tol = 1.0e-14;
@@ -529,24 +524,28 @@ public:
         
         const Matrix I = IdentityMatrix(dimension, dimension);
 
-        // Initialize the normal and tangential directional derivatives
-        for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
+        NodesArrayType& pNode = rModelPart.Nodes();
+        auto numNodes = pNode.end() - pNode.begin();
+        
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
         {
-            node_it->GetValue(DELTA_NORMAL) = ZeroDeltaNormal;
+            auto itNode = pNode.begin() + i;
+            itNode->GetValue(DELTA_NORMAL) = ZeroDeltaNormal;
         }
 
         // Sum the directional derivatives of the adjacent segments
-        for(ConditionsArrayType::iterator cond_it = it_cond_begin; cond_it!=it_cond_end; cond_it++)
+        for(ConditionsArrayType::iterator itCond = it_cond_begin; itCond!=it_cond_end; itCond++)
         {
-            if (cond_it->Is(ACTIVE) || cond_it->Is(MASTER)) 
+            if (itCond->Is(ACTIVE) || itCond->Is(MASTER)) 
             {
-                const array_1d<double, 3> ne = cond_it->GetValue(NORMAL);   // normalized condition normal
+                const array_1d<double, 3> ne = itCond->GetValue(NORMAL);   // normalized condition normal
                 Matrix ne_o_ne = subrange( outer_prod( ne, ne ), 0, dimension, 0, dimension );
 
-                const unsigned int num_nodes = cond_it->GetGeometry( ).PointsNumber();
+                const unsigned int num_nodes = itCond->GetGeometry( ).PointsNumber();
                 if( dimension == 2 )
                 {
-                    const double ne_norm = cond_it->GetGeometry( ).Length( ); // The norm of a geometry's normal is its characteristic dimension - length for 2D and area for 3D 
+                    const double ne_norm = itCond->GetGeometry( ).Length( ); // The norm of a geometry's normal is its characteristic dimension - length for 2D and area for 3D 
                     
                     Delta_ne_adj( 0, 0 ) =  0.0;
                     Delta_ne_adj( 0, 1 ) = -1.0;
@@ -557,7 +556,7 @@ public:
                     
                     for (unsigned int i = 0; i < num_nodes; i++)
                     {
-                        NodeType& node_j = cond_it->GetGeometry( )[i];
+                        NodeType& node_j = itCond->GetGeometry( )[i];
                         
                         // -/+ 0.5 are the values of DN_Dxi for linear line elements at nodes 1 and 2 - no need to call the function
                         double DN_De_j = 0.0;
@@ -579,7 +578,7 @@ public:
                 }
                 else if ( dimension == 3 )
                 {
-                    const double ne_norm = cond_it->GetGeometry( ).Area( ); // The norm of a geometry's normal is its characteristic dimension - length for 2D and area for 3D 
+                    const double ne_norm = itCond->GetGeometry( ).Area( ); // The norm of a geometry's normal is its characteristic dimension - length for 2D and area for 3D 
                     
                     for (unsigned int i = 0; i < num_nodes; i++)
                     {
@@ -587,7 +586,7 @@ public:
                         array_1d<double, 2> DN_De_j        = ZeroVector( 2 );  // Shape functions derivatives for node j [ DN_Dxi_j, DN_Deta_j ]
                         array_1d<double, 3> local_coords_j = ZeroVector( 3 );
                         
-                        NodeType& node_j = cond_it->GetGeometry( )[i];
+                        NodeType& node_j = itCond->GetGeometry( )[i];
                         
                         if( num_nodes == 3 )    // linear triangle element
                         {
@@ -646,10 +645,10 @@ public:
                         }
                         else
                         {
-                            KRATOS_THROW_ERROR( std::logic_error, "DELTA_NORMAL is not yet defined for higher order 2D elements. Number of nodes: ", cond_it->GetGeometry( ).PointsNumber() );
+                            KRATOS_THROW_ERROR( std::logic_error, "DELTA_NORMAL is not yet defined for higher order 2D elements. Number of nodes: ", itCond->GetGeometry( ).PointsNumber() );
                         }
                         
-                        cond_it->GetGeometry( ).Jacobian( J, local_coords_j );
+                        itCond->GetGeometry( ).Jacobian( J, local_coords_j );
                         
                         /*
                          * NOTES:
@@ -691,13 +690,11 @@ public:
             }
         }
 
-        // Normalize normal directional derivatives
-        it_node_begin = pNode.ptr_begin();
-        it_node_end   = pNode.ptr_end();
-
-        for(NodesArrayType::iterator node_it = it_node_begin; node_it!=it_node_end; node_it++)
+        #pragma omp parallel for 
+        for(unsigned int i = 0; i < numNodes; i++) 
         {
-            const array_1d<double, 3> & nj = node_it->GetValue(NORMAL); // nodal non-normalized normal (this function is called before normalization)
+            auto itNode = pNode.begin() + i;
+            const array_1d<double, 3> & nj = itNode->GetValue(NORMAL); // nodal non-normalized normal (this function is called before normalization)
             
             Matrix nj_o_nj = subrange( outer_prod( nj, nj ), 0, dimension, 0, dimension );
             const double nj_norm = norm_2( nj );
@@ -706,7 +703,7 @@ public:
             if ( nj_norm_3 > tol )
             {
                 const Matrix Cj = I / nj_norm - nj_o_nj / nj_norm_3;
-                node_it->GetValue(DELTA_NORMAL) = prod( Cj, node_it->GetValue(DELTA_NORMAL) );
+                itNode->GetValue(DELTA_NORMAL) = prod( Cj, itNode->GetValue(DELTA_NORMAL) );
             }
         }
     }
@@ -753,78 +750,77 @@ public:
         ConditionsArrayType::iterator it_cond_begin = pCond.ptr_begin();
         ConditionsArrayType::iterator it_cond_end   = pCond.ptr_end();
         
-        for(ConditionsArrayType::iterator cond_it = it_cond_begin; cond_it!=it_cond_end; cond_it++)
+        for(ConditionsArrayType::iterator itCond = it_cond_begin; itCond!=it_cond_end; itCond++)
         {
             bool condition_is_active = false; // It is supposed to be always defined, and with this only the slave conditions will be taken into account
-            if( (cond_it)->IsDefined(ACTIVE) == true)
+            if( (itCond)->IsDefined(ACTIVE) == true)
             {
-                condition_is_active = (cond_it)->Is(ACTIVE);
+                condition_is_active = (itCond)->Is(ACTIVE);
             }
             
             if ( condition_is_active == true )
             {
                 // Recompute Active/Inactive nodes
                 double cn = 0.0;
-                if (cond_it->GetProperties().Has(NORMAL_AUGMENTATION_FACTOR) == true)
+                if (itCond->GetProperties().Has(NORMAL_AUGMENTATION_FACTOR) == true)
                 {
-                    cn = cond_it->GetProperties().GetValue(NORMAL_AUGMENTATION_FACTOR); 
+                    cn = itCond->GetProperties().GetValue(NORMAL_AUGMENTATION_FACTOR); 
                 }
                 
                 double ct = 0.0;
-                if (cond_it->GetProperties().Has(TANGENT_AUGMENTATION_FACTOR) == true)
+                if (itCond->GetProperties().Has(TANGENT_AUGMENTATION_FACTOR) == true)
                 {
-                    ct = cond_it->GetProperties().GetValue(TANGENT_AUGMENTATION_FACTOR); 
+                    ct = itCond->GetProperties().GetValue(TANGENT_AUGMENTATION_FACTOR); 
                 }
 
-                Geometry<Node<3> > & CondGeometry = cond_it->GetGeometry();
+                Geometry<Node<3> > & CondGeometry = itCond->GetGeometry();
                 
-                for(unsigned int node_it = 0; node_it!=CondGeometry.PointsNumber(); node_it++)
+                for(unsigned int itNode = 0; itNode!=CondGeometry.PointsNumber(); itNode++)
                 {
-                    if (CondGeometry[node_it].Is(VISITED) == false)
+                    if (CondGeometry[itNode].Is(VISITED) == false)
                     {
-                        const double mu = CondGeometry[node_it].GetValue(WEIGHTED_FRICTION);
-                        const double gn = CondGeometry[node_it].GetValue(WEIGHTED_GAP);
-                        const array_1d<double,3> lagrange_multiplier = CondGeometry[node_it].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0);
-                        const array_1d<double,3>        nodal_normal = CondGeometry[node_it].GetValue(NORMAL); 
+                        const double mu = CondGeometry[itNode].GetValue(WEIGHTED_FRICTION);
+                        const double gn = CondGeometry[itNode].GetValue(WEIGHTED_GAP);
+                        const array_1d<double,3> lagrange_multiplier = CondGeometry[itNode].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0);
+                        const array_1d<double,3>        nodal_normal = CondGeometry[itNode].GetValue(NORMAL); 
+                        
 //                         const double lambda_n = inner_prod(lagrange_multiplier, nodal_normal);
-
-//                         const double augmented_normal_presssure = lambda_n + cn * gn;                    
+//                         const double augmented_normal_presssure = lambda_n + cn * gn;           
+                        
                         double augmented_normal_presssure = inner_prod(lagrange_multiplier, nodal_normal);
-
                         if (gn < 0.0) // NOTE: Penetration
                         {
                             augmented_normal_presssure += cn * gn;     
                         }
                         
-//                         if (augmented_normal_presssure <= 0.0) // NOTE: This could be conflictive (< or <=) //NOTE: HELP!!!!
                         if (augmented_normal_presssure < 0.0) // NOTE: This could be conflictive (< or <=)
                         {
-                            CondGeometry[node_it].Set(ACTIVE, true);
+                            CondGeometry[itNode].Set(ACTIVE, true);
                         }
                         else
                         {
-                            CondGeometry[node_it].Set(ACTIVE, false);
-//                             CondGeometry[node_it].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0) = ZeroVector(3);
+                            CondGeometry[itNode].Set(ACTIVE, false);
+//                             CondGeometry[itNode].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0) = ZeroVector(3);
                         }
                         
-                        const array_1d<double, 3> nodal_tangent_xi  = CondGeometry[node_it].GetValue(TANGENT_XI); 
-                        const array_1d<double, 3> nodal_tangent_eta = CondGeometry[node_it].GetValue(TANGENT_ETA);
+                        const array_1d<double, 3> nodal_tangent_xi  = CondGeometry[itNode].GetValue(TANGENT_XI); 
+                        const array_1d<double, 3> nodal_tangent_eta = CondGeometry[itNode].GetValue(TANGENT_ETA);
                         const double tangent_xi_lm  = inner_prod(nodal_tangent_xi,  lagrange_multiplier);
                         const double tangent_eta_lm = inner_prod(nodal_tangent_eta, lagrange_multiplier);
                         const double lambda_t = std::sqrt(tangent_xi_lm * tangent_xi_lm + tangent_eta_lm * tangent_eta_lm); 
                         
-                        const double augmented_tangent_presssure = std::abs(lambda_t + ct * CondGeometry[node_it].GetValue(WEIGHTED_SLIP)) - mu * augmented_normal_presssure;
+                        const double augmented_tangent_presssure = std::abs(lambda_t + ct * CondGeometry[itNode].GetValue(WEIGHTED_SLIP)) - mu * augmented_normal_presssure;
                         
                         if (augmented_tangent_presssure < 0.0) // TODO: Check if it is minor equal or just minor
                         {
-                            CondGeometry[node_it].Set(SLIP, false);
+                            CondGeometry[itNode].Set(SLIP, false);
                         }
                         else
                         {
-                            CondGeometry[node_it].Set(SLIP, true);
+                            CondGeometry[itNode].Set(SLIP, true);
                         }
                         
-                        CondGeometry[node_it].Set(VISITED, true);
+                        CondGeometry[itNode].Set(VISITED, true);
                     }
                 }
             }
@@ -880,6 +876,10 @@ public:
 
             if (itNode->Is(SLAVE))
             {   
+                if (itNode->Is(ACTIVE) == false)
+                {
+                    itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0) = ZeroVector(3);
+                }
                 itNode->GetValue(WEIGHTED_GAP)      = 0.0;
                 itNode->GetValue(WEIGHTED_SLIP)     = 0.0;
                 itNode->GetValue(WEIGHTED_FRICTION) = 0.0;

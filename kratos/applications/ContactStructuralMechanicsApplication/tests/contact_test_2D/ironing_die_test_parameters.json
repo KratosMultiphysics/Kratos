@@ -3,9 +3,9 @@
         "problem_name"    : "ironing_die_test",
         "model_part_name" : "Structure",
         "domain_size"     : 2,
-        "time_step"       : 0.0011,
+        "time_step"       : 0.11,
         "start_time"      : 0.0,
-        "end_time"        : 0.001,
+        "end_time"        : 0.2,
         "echo_level"      : 0
     },
     "solver_settings"          : {
@@ -27,7 +27,7 @@
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 1,
+        "max_iteration"                      : 10,
         "split_factor"                       : 10.0,
         "max_number_splits"                    : 3,
         "accelerate_convergence": false,
@@ -89,7 +89,7 @@
                                   [ 0.0,-1.8, 0.0],
                                   [10.0,-1.8, 0.0]
             					],
-            "intervals"       : [ 0.0,10.0,150.0]
+            "intervals"       : [ 0.0,1.0,15.0]
         }
     }],
     "loads_process_list"       : [],
@@ -105,12 +105,12 @@
             "destination_model_part_name" : "Parts_parts_die",        
             "contact_type"                : "MortarMethod",
             "search_factor"               : 5.0,
-            "active_check_factor"	  : 0.005,
+            "active_check_factor"	  : 0.01,
             "max_number_results"          : 1000,
-            "augmentation_normal"         : 1e3,
-            "augmentation_tangent"        : 1e3,
+            "augmentation_normal"         : 0.0,
+            "augmentation_tangent"        : 0.0,
             "type_search"                 : "InRadius",
-            "integration_order"           : 5
+            "integration_order"           : 11
         }
     }
     ],
@@ -131,7 +131,7 @@
             "plane_output"        : [],
             "nodal_results"       : ["DISPLACEMENT","REACTION","VECTOR_LAGRANGE_MULTIPLIER"],
             "nodal_flags_results": ["ACTIVE"],
-            "gauss_point_results" : ["GAP_GP", "NORMAL_GP"]
+            "gauss_point_results" : ["PRESSURE","GAP_GP", "NORMAL_GP", "NORMAL_CONTACT_STRESS_GP"]
         },
         "point_data_configuration"  : []
     },
