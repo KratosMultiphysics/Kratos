@@ -349,9 +349,9 @@ namespace Kratos
 	ConstructModelPartBoundaryProcess BuildBoundaryProcess(mrMainModelPart, mrMainModelPart.Name(), mEchoLevel);
 	BuildBoundaryProcess.SearchConditionMasters(mrMainModelPart);
 
-	//BOUNDARY NORMALS SEARCH and  SHRINKAGE FACTOR
+	//BOUNDARY NORMALS SEARCH and SHRINKAGE FACTOR
 	BoundaryNormalsCalculationUtilities BoundaryComputation;
-	BoundaryComputation.CalculateBoundaryNormals(mrMainModelPart, mEchoLevel);   
+	BoundaryComputation.CalculateWeightedBoundaryNormals(mrMainModelPart, mEchoLevel);   
 
 
       KRATOS_CATCH(" ")

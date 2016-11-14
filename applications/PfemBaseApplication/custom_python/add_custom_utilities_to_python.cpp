@@ -162,18 +162,10 @@ namespace Kratos
 
       //***************NORMALS**************//
 
-      // This is required to recognize the different overloads 
-      typedef  void (BoundaryNormalsCalculationUtilities::*CalculateMeshBoundaryNormals)(ModelPart&, int, int);
-      typedef  void (BoundaryNormalsCalculationUtilities::*CalculateMeshUnitBoundaryNormals)(ModelPart&, int, int); 
-
-      CalculateMeshBoundaryNormals          CalculateMeshNormals     = &BoundaryNormalsCalculationUtilities::CalculateMeshBoundaryNormals;
-      CalculateMeshUnitBoundaryNormals      CalculateMeshUnitNormals = &BoundaryNormalsCalculationUtilities::CalculateMeshUnitBoundaryNormals;
       
       class_<BoundaryNormalsCalculationUtilities > ("BoundaryNormalsCalculation", init<>())
-	.def("CalculateBoundaryNormals", &BoundaryNormalsCalculationUtilities::CalculateBoundaryNormals)
-	.def("CalculateBoundaryUnitNormals", &BoundaryNormalsCalculationUtilities::CalculateUnitBoundaryNormals)
-	.def("CalculateMeshBoundaryNormals", CalculateMeshNormals)
-	.def("CalculateMeshBoundaryUnitNormals", CalculateMeshUnitNormals)
+	.def("CalculateWeightedBoundaryNormals", &BoundaryNormalsCalculationUtilities::CalculateWeightedBoundaryNormals)
+	.def("CalculateUnitBoundaryNormals", &BoundaryNormalsCalculationUtilities::CalculateUnitBoundaryNormals)
 	;
       
 

@@ -111,9 +111,9 @@ class ModelerUtility:
 
         # execute calculation:
         #(scaled normals)
-        normals_calculation.CalculateBoundaryNormals(self.model_part, self.echo_level)
+        normals_calculation.CalculateWeightedBoundaryNormals(self.model_part, self.echo_level)
         #(unit normals)
-        # normals_calculation.CalculateBoundaryUnitNormals(model_part, self.echo_level)
+        # normals_calculation.CalculateUnitBoundaryNormals(model_part, self.echo_level)
 
         print("::[Modeler_Utility]:: Boundary Normals computed ")
 

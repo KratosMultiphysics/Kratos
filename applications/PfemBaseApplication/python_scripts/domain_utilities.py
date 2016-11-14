@@ -127,9 +127,9 @@ class DomainUtilities(object):
 
         # execute calculation:
         #(scaled normals)
-        normals_calculation.CalculateBoundaryNormals(model_part, echo_level)
+        normals_calculation.CalculateWeightedBoundaryNormals(model_part, echo_level)
         #(unit normals)
-        # normals_calculation.CalculateBoundaryUnitNormals(model_part, self.echo_level)
+        # normals_calculation.CalculateUnitBoundaryNormals(model_part, self.echo_level)
 
         if( echo_level > 0 ):
             print("::[Domain_Utilities]:: Boundary Normals computed ")

@@ -69,7 +69,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
                 if( body_model_part_type == "Solid" ):
                     body_model_part.Set(KratosMultiphysics.SOLID)
-                    solid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))                        
+                    solid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))
                 if( body_model_part_type == "Fluid" ):
                     body_model_part.Set(KratosMultiphysics.FLUID)
                     fluid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))

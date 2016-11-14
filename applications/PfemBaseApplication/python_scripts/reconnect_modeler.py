@@ -40,8 +40,10 @@ class ReconnectModeler(mesh_modeler.MeshModeler):
 
         if( meshing_options.Is(KratosPfemBase.ModelerUtilities.CONSTRAINED) ):
             execution_options.Set(KratosPfemBase.ModelerUtilities.TRANSFER_KRATOS_FACES_TO_MESHER, True)
-                              
-        execution_options.Set(KratosPfemBase.ModelerUtilities.SELECT_TESSELLATION_ELEMENTS, True)
+            execution_options.Set(KratosPfemBase.ModelerUtilities.SELECT_TESSELLATION_ELEMENTS, False)
+        else:
+            execution_options.Set(KratosPfemBase.ModelerUtilities.SELECT_TESSELLATION_ELEMENTS, True)
+            
         execution_options.Set(KratosPfemBase.ModelerUtilities.KEEP_ISOLATED_NODES, False)
 
         self.MeshingParameters.SetExecutionOptions(execution_options)       
@@ -62,9 +64,9 @@ class ReconnectModeler(mesh_modeler.MeshModeler):
         elif( self.domain_size == 3 ):
 
             if( meshing_options.Is(KratosPfemBase.ModelerUtilities.CONSTRAINED) ):
-                modeler_flags = "pnBJFMYYQ"
+                modeler_flags = "pnBFMYYQ" 
             else:
-                modeler_flags = "nJFMQ" # "QJFu0" (1.4.3) "nJFMQO4/4" (1.5.0)
+                modeler_flags = "nBFMQ" # "QJFu0" (1.4.3) "nJFMQO4/4" (1.5.0)
 
         self.MeshingParameters.SetTessellationFlags(modeler_flags)
         self.MeshingParameters.SetTessellationInfo(modeler_info)
