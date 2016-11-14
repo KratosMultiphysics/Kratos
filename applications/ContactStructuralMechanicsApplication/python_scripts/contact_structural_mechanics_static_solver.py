@@ -84,7 +84,6 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                     "solver_type"       : "Relaxation",
                     "acceleration_type" : "Aitken",
                     "w_0"               :  0.01,
-                    "reduction_coefficient" :  1.0,
                     "buffer_size"       :  10
             },
             "problem_domain_sub_model_part_list": ["solid_model_part"],
@@ -100,8 +99,8 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
         
-        echo_level =  self.settings["echo_level"].GetInt()
-        print(self.settings["echo_level"].GetInt())
+        self.echo_level =  self.settings["echo_level"].GetInt()
+        print(self.echo_level)
         
         print("Construction of MechanicalSolver finished")
         
@@ -194,7 +193,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         
         if  self.settings["compute_mortar_contact"].GetBool():
             Mortar = KratosMultiphysics.ContactStructuralMechanicsApplication.MortarConvergenceCriteria()
-            Mortar.SetEchoLevel(self.settings["echo_level"].GetInt())
+            Mortar.SetEchoLevel(self.echo_level)
 
             convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Mortar, convergence_criterion.mechanical_convergence_criterion)
         
@@ -255,13 +254,11 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                                                                             compute_reactions, 
                                                                             reform_step_dofs, 
                                                                             move_mesh_flag)
-
                 else:
                     if  self.settings["accelerate_convergence"].GetBool():
                         params = self.settings["convergence_accelerator"]
                         import convergence_accelerator_factory     
                         self.coupling_utility = convergence_accelerator_factory.CreateConvergenceAccelerator(params)
-                        reduction_coefficient = params["reduction_coefficient"].GetDouble()
                         self.mechanical_solver = KratosMultiphysics.ContactStructuralMechanicsApplication.ResidualBasedNewtonRaphsonContactAcceleratedStrategy(
                                                                                 self.computing_model_part, 
                                                                                 mechanical_scheme, 
@@ -272,8 +269,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                                                                                 compute_reactions, 
                                                                                 reform_step_dofs, 
                                                                                 move_mesh_flag,
-                                                                                self.coupling_utility,
-                                                                                reduction_coefficient
+                                                                                self.coupling_utility
                                                                                 )
                     elif  self.settings["compute_mortar_contact"].GetBool():
                         split_factor   = self.settings["split_factor"].GetDouble()

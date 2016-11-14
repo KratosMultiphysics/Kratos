@@ -94,8 +94,8 @@ void  AddCustomStrategiesToPython()
             
     // Residual Based Newton Raphson Contact Accelerated Strategy      
     class_< ResidualBasedNewtonRaphsonContactAcceleratedStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
-            ("ResidualBasedNewtonRaphsonContactAcceleratedStrategy", init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, ConvergenceAcceleratorType::Pointer, double >())
-            .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, ConvergenceAcceleratorType::Pointer, double>())
+            ("ResidualBasedNewtonRaphsonContactAcceleratedStrategy", init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, ConvergenceAcceleratorType::Pointer >())
+            .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, ConvergenceAcceleratorType::Pointer>())
             .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonContactAcceleratedStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetMaxIterationNumber)
             .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonContactAcceleratedStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetMaxIterationNumber)
             .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonContactAcceleratedStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetKeepSystemConstantDuringIterations)
