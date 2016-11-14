@@ -308,7 +308,7 @@ namespace Kratos
 	    p->vertexlist[nd] = rGeometry[nd].Id();
 	  }      
 
-	in.facetmarkerlist[fc] = MeshId;
+	in.facetmarkerlist[fc] = MeshId+1;
 	
       }
     
@@ -328,21 +328,25 @@ namespace Kratos
     double inside_factor = 2;
     Geometry< Node<3> >& rGeometry = (conditions_begin)->GetGeometry();
     array_1d<double, 3>&  Normal   = rGeometry[0].FastGetSolutionStepValue(NORMAL);
+
+    std::cout<<" Normal [NodeId= "<<rGeometry[0].Id()<<"] "<<Normal<<std::endl;
     
     double NormNormal = norm_2(Normal);
     if( NormNormal != 0)
       Normal /= NormNormal;
     
     //inside point of the region:
-    in.regionlist[0] = rGeometry[0][0]-((-1)*Normal[0]*rMeshingVariables.OffsetFactor*inside_factor);
-    in.regionlist[1] = rGeometry[0][1]-((-1)*Normal[1]*rMeshingVariables.OffsetFactor*inside_factor);
-    in.regionlist[2] = rGeometry[0][2]-((-1)*Normal[2]*rMeshingVariables.OffsetFactor*inside_factor);
+    in.regionlist[0] = rGeometry[0][0]-(Normal[0]*rMeshingVariables.OffsetFactor*inside_factor);
+    in.regionlist[1] = rGeometry[0][1]-(Normal[1]*rMeshingVariables.OffsetFactor*inside_factor);
+    in.regionlist[2] = rGeometry[0][2]-(Normal[2]*rMeshingVariables.OffsetFactor*inside_factor);
     
     //region attribute (regional attribute or marker "A" must be switched)
     in.regionlist[3] = MeshId;
     
     //region maximum volume attribute (maximum volume attribute "a" (with no number following) must be switched)
     in.regionlist[4] = -1;
+
+    std::cout<<" Number of facets "<<in.numberoffacets<<" region ("<<in.regionlist[0]<<", "<<in.regionlist[1]<<", "<<in.regionlist[2]<<") normal:"<<Normal<<" Offset "<<rMeshingVariables.OffsetFactor*inside_factor<<std::endl;
     
    
     KRATOS_CATCH( "" )

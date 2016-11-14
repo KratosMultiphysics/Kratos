@@ -120,7 +120,7 @@ namespace Kratos
       //(needed when meshing of the domains is not performed:
       // normal directions change with mesh movement)
       BoundaryNormalsCalculationUtilities BoundaryComputation;
-      BoundaryComputation.CalculateBoundaryNormals(mrMainModelPart, mEchoLevel);
+      BoundaryComputation.CalculateWeightedBoundaryNormals(mrMainModelPart, mEchoLevel);
 
       mrMainModelPart.Conditions().Sort();
       mrMainModelPart.Conditions().Unique();

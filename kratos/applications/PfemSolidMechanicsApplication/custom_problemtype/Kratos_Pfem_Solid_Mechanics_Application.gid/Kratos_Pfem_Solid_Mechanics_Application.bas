@@ -402,7 +402,8 @@ End Elements
 *endif
 *end groups
 *endif
-*# Loads Block
+
+
 *set cond group_POINT_LOAD *groups
 *if(CondNumEntities > 0)
 *loop groups *OnlyInCond
@@ -432,7 +433,35 @@ End Conditions
 *end groups
 *endif
 
+*set cond group_SURFACE_LOAD *groups
+*if(CondNumEntities > 0)
+*loop groups *OnlyInCond
+Begin Conditions *cond(ConditionType)
+*#// id prop_id	 n1	n2	n3	...
+*set group *GroupName *faces
+*loop faces *onlyingroup
+ *Tcl(MyPrintFaceElement *FaceElemsNum *FaceIndex)
+*end faces
+End Conditions
+
+*end groups
+*endif
+
 *set cond group_LINE_PRESSURE *groups
+*if(CondNumEntities > 0)
+*loop groups *OnlyInCond
+Begin Conditions *cond(ConditionType)
+*#// id prop_id	 n1	n2	n3	...
+*set group *GroupName *faces
+*loop faces *onlyingroup
+ *Tcl(MyPrintFaceElement *FaceElemsNum *FaceIndex)
+*end faces
+End Conditions
+
+*end groups
+*endif
+
+*set cond group_SURFACE_PRESSURE *groups
 *if(CondNumEntities > 0)
 *loop groups *OnlyInCond
 Begin Conditions *cond(ConditionType)
@@ -461,57 +490,7 @@ End Conditions
 *end groups
 *endif
 
-*# Nodal Data
-*set cond surface_WALL_TIP *nodes
-*add cond line_WALL_TIP *nodes
-*if(CondNumEntities > 0)
-Begin NodalData WALL_TIP_RADIUS
-*loop nodes *OnlyInCond
-*format "%i%i%10.5e"
-*NodesNum *cond(Fixed) *cond(WALL_TIP_RADIUS)
-*end nodes
-End NodalData
 
-Begin NodalData WALL_REFERENCE_POINT_X
-*loop nodes *OnlyInCond
-*format "%i%i%10.5e"
-*NodesNum *cond(Fixed) *cond(X_Value)
-*end nodes
-End NodalData
-
-Begin NodalData WALL_REFERENCE_POINT_Y
-*loop nodes *OnlyInCond
-*format "%i%i%10.5e"
-*NodesNum *cond(Fixed) *cond(Y_Value)
-*end nodes
-End NodalData
-
-Begin NodalData WALL_REFERENCE_POINT_Z
-*loop nodes *OnlyInCond
-*format "%i%i%10.5e"
-*NodesNum *cond(Fixed) *cond(Z_Value)
-*end nodes
-End NodalData
-
-*endif
-*set cond group_RigidBodies *groups
-*if(CondNumEntities > 0)
-*loop groups *OnlyInCond
-*if(strcmp(cond(Parametric_Wall),"True")==0)
-Begin NodalData RIGID_WALL
-*set group *GroupName *nodes
-*if(GroupNumEntities)
-*loop nodes *onlyingroup
-*format "%i%i%i"
-*NodesNum 0 *GroupNum
-*end nodes
-*endif
-End NodalData
-
-*endif
-*end groups
-
-*endif
 *# SubModelPart Blocks
 *set cond group_DeformableBodies *groups
 *if(CondNumEntities > 0)
@@ -649,6 +628,35 @@ End SubModelPart
 *end groups    
 *endif
 *set cond group_LINE_PRESSURE *groups
+*if(CondNumEntities > 0)
+*loop groups *OnlyInCond
+Begin SubModelPart *GroupName // *GroupNum
+
+ Begin SubModelPartNodes
+*set group *GroupName *nodes
+*if(GroupNumEntities)
+*loop nodes *onlyingroup
+ *NodesNum
+*end nodes
+*endif
+ End SubModelPartNodes
+
+ Begin SubModelPartElements
+ End SubModelPartElements
+      
+ Begin SubModelPartCondition
+*set group *GroupName *faces
+*if(GroupNumEntities)
+*loop faces *onlyingroup
+ *Tcl( getCondId *FaceElemsNum *FaceIndex )
+*end faces
+*endif
+ End SubModelPartConditions
+
+End SubModelPart
+*end groups    
+*endif
+*set cond group_SURFACE_PRESSURE *groups
 *if(CondNumEntities > 0)
 *loop groups *OnlyInCond
 Begin SubModelPart *GroupName // *GroupNum

@@ -27,6 +27,7 @@
 #include "includes/model_part.h"
 
 #include "geometries/line_2d_2.h"
+#include "geometries/line_3d_2.h"
 #include "geometries/triangle_3d_3.h"
 
 #include "custom_conditions/composite_condition.hpp"
@@ -172,17 +173,20 @@ namespace Kratos
 	SetComputingModelPart();
       }
       
-      if( mEchoLevel >= 1 )
-	std::cout<<" [Assign boundary normals: ("<<mModelPartName<<")"<<std::endl;
-
       //ComputeBoundaryNormals BoundUtils;
       BoundaryNormalsCalculationUtilities BoundaryComputation;
       if( mModelPartName == mrMainModelPart.Name() ){
-	BoundaryComputation.CalculateBoundaryNormals(mrMainModelPart, mEchoLevel);
+       
+	for(ModelPart::SubModelPartIterator i_mp= mrMainModelPart.SubModelPartsBegin(); i_mp!=mrMainModelPart.SubModelPartsEnd(); i_mp++)
+	  {	  
+	    if( i_mp->IsNot(ACTIVE) )
+	      BoundaryComputation.CalculateWeightedBoundaryNormals(*i_mp, mEchoLevel);
+	  }
+	
       }
       else{
 	ModelPart& rModelPart = mrMainModelPart.GetSubModelPart(mModelPartName);
-	BoundaryComputation.CalculateBoundaryNormals(rModelPart, mEchoLevel);
+	BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, mEchoLevel);
       }
 
 	
@@ -447,6 +451,8 @@ namespace Kratos
 	{
 	  
 	  Geometry< Node<3> >& rGeometry = ie->GetGeometry();
+
+	  const unsigned int dimension = rGeometry.WorkingSpaceDimension();
 	  
 	  if( rGeometry.FacesNumber() >= 3 ){ //3 or 4
 
@@ -502,8 +508,12 @@ namespace Kratos
 		      }
 				    
 							
-		    if( NumberNodesInFace == 2 ){					  
-		      ConditionVertices = Condition::GeometryType::Pointer(new Line2D2< Node<3> >(FaceNodes) );
+		    if( NumberNodesInFace == 2 ){
+		      if( dimension == 2 )
+			ConditionVertices = Condition::GeometryType::Pointer(new Line2D2< Node<3> >(FaceNodes) );
+		      else
+			ConditionVertices = Condition::GeometryType::Pointer(new Line3D2< Node<3> >(FaceNodes) );
+		      
 		    }
 		    else if ( NumberNodesInFace == 3 ){
 		      ConditionVertices = Condition::GeometryType::Pointer(new Triangle3D3< Node<3> >(FaceNodes) );

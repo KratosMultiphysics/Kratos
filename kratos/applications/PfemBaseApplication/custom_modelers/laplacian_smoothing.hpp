@@ -329,9 +329,9 @@ namespace Kratos
 	    if( i_node->IsNot(TO_ERASE) ){      
 	      (list_of_nodes).push_back(*(i_node.base()));	      
 	    }
-	    else {
-	      std::cout <<" LLM:PSEUDOERROR node to erase : " << i_node->Id() << std::endl;
-	    }
+	    // else {
+	    //   std::cout <<" LLM:PSEUDOERROR node to erase : " << i_node->Id() << std::endl;
+	    // }
 	  }
 	    
 

@@ -178,8 +178,6 @@ namespace Kratos
       //search contact conditions
       SearchContactConditions();
 
-      std::cout<<"  [PARAMETRIC_CONTACT_SEARCH]:: -PERFORMED- "<<std::endl;
-
       //create contact conditions
       CreateContactConditions();
 	     
@@ -587,12 +585,10 @@ namespace Kratos
 
       ModelPart::ConditionsContainerType ContactConditions;
       
-      std::cout<<" Contact Model Part Name "<<mContactModelPartName<<std::endl;
-
       ModelPart& rContactModelPart = mrMainModelPart.GetSubModelPart(mContactModelPartName);
 
       if( mEchoLevel >= 1 ){
-	std::cout<<" ["<<rContactModelPart.Name()<<" :: CONDITIONS [OLD:"<<rContactModelPart.NumberOfConditions();
+	std::cout<<"    ["<<rContactModelPart.Name()<<" :: CONDITIONS [OLD:"<<rContactModelPart.NumberOfConditions();
       }
 
       unsigned int id = mrMainModelPart.Conditions().back().Id() + 1;
@@ -659,13 +655,11 @@ namespace Kratos
       
       AddContactConditions(rContactModelPart, mrMainModelPart.GetSubModelPart(ModelPartName));
 
-      //Add contact conditions to  main domain
-      AddContactConditions(rContactModelPart, mrMainModelPart);
-
-
-  
+      //Add contact conditions to  main domain( with AddCondition are already added )
+      //AddContactConditions(rContactModelPart, mrMainModelPart);
+ 
       if( mEchoLevel > 1 )
-	std::cout<<" [RIGID WALL CONTACTS : "<<rContactModelPart.NumberOfConditions()<<"]"<<std::endl;
+	std::cout<<"    [RIGID WALL CONTACTS : "<<rContactModelPart.NumberOfConditions()<<"]"<<std::endl;
 
       KRATOS_CATCH( "" )
 
@@ -685,7 +679,7 @@ namespace Kratos
       //
 	
       if( mEchoLevel >= 1 ){
-	std::cout<<" ["<<rDestinationModelPart.Name()<<" :: CONDITIONS [OLD:"<<rDestinationModelPart.NumberOfConditions();
+	std::cout<<"    ["<<rDestinationModelPart.Name()<<" :: CONDITIONS [OLD:"<<rDestinationModelPart.NumberOfConditions();
       }
 
       for(ModelPart::ConditionsContainerType::iterator ic = rOriginModelPart.ConditionsBegin(); ic!= rOriginModelPart.ConditionsEnd(); ic++)

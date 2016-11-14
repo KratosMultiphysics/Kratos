@@ -27,15 +27,15 @@ proc InitGIDProject {dir} {
 
 	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Loads"] 6 PRE "GidOpenConditions \"Loads\"" "" ""
 
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Nodal Values"] 7 PRE "GidOpenConditions \"Nodal Values\"" "" ""
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Materials"] 7 PRE "GidOpenMaterials \"Materials\"" "" ""
 
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Materials"] 8 PRE "GidOpenMaterials \"Materials\"" "" ""
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Nodal Markers"] 8 PRE "GidOpenConditions \"Nodal Markers\"" "" ""
 
 	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "---"] 9 PRE "" "" ""
 	
 	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Problem Parameters"] 10 PRE "GidOpenProblemData \"Problem Parameters\"" "" ""
 
-	# GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Data Units"] 9 PRE "GidOpenProblemData \"Data Units\"" "" ""
+	# GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Data Units"] 11 PRE "GidOpenProblemData \"Data Units\"" "" ""
 
 	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "---"] 11 PRE "" "" ""
 
@@ -129,8 +129,8 @@ proc BeforeMeshGeneration {elementsize} {
 	set surf_elemtype_check 0
 	set vol_elemtype_check 0
 	
-	# check_elemtype LineLoadCondition2D1N line None
-	# check_elemtype AxisymLineLoadCondition2D1N line None
+	# check_elemtype LineLoadCondition2D2N line None
+	# check_elemtype AxisymLineLoadCondition2D2N line None
 	# check_elemtype UpdatedLagrangianElement2D3N surface Triangle
 	# check_elemtype AxisymUpdatedLagrangianElement2D3N surface Triangle
 	# check_elemtype UpdatedLagrangianUPElement2D3N surface Triangle
@@ -208,8 +208,8 @@ proc BeforeMeshGeneration {elementsize} {
 	# Select Elements from Options
 	
 	# Assign Non-Default Mesh Criteria to Entities
-	# meshtype LineLoadCondition2D1N line None
-	# meshtype AxisymLineLoadCondition2D1N line None
+	# meshtype LineLoadCondition2D line None
+	# meshtype AxisymLineLoadCondition2D2N line None
 	# meshtype UpdatedLagrangianElement2D3N surface Triangle
 	# meshtype AxisymUpdatedLagrangianElement2D3N surface Triangle
 	# meshtype UpdatedLagrangianUPElement2D3N surface Triangle
@@ -733,66 +733,66 @@ if {$have_geometry>0} then {
 	set result_string ""
 	set have_conditions 0
 	for {set i 0} {$i < [llength $used_books]} {incr i} {
-		if {[lindex $used_books $i] == 1} then {
-		        set str [lindex $book_strings $i]
-		        set result_string "${result_string}\n$str"
-		        set have_conditions 1
-		}
+	    if {[lindex $used_books $i] == 1} then {
+		set str [lindex $book_strings $i]
+		set result_string "${result_string}\n$str"
+		set have_conditions 1
+	    }
 	}
 	if {$have_conditions == 0} {set result_string "No conditions have been assigned yet\n"}
 	# Materials
 	# Find out if we are in a 2D or a 3D problem
 	if {[GiD_Info Geometry NumVolumes]>0} then {
-		set maxent volume
-		set otherents "Surfaces, lines and points"
-		set check_list [list volume surface line]
+	    set maxent volume
+	    set otherents "Surfaces, lines and points"
+	    set check_list [list volume surface line]
 	} else {
-		set maxent surface
-		set otherents "Lines and points"
-		set check_list [list surface line]
+	    set maxent surface
+	    set otherents "Lines and points"
+	    set check_list [list surface line]
 	}
 	# Check if lower entities will recive a material automatically
 	if {[GiD_AccessValue get gendata Transfer_materials_to_lower_entities] == 1} {
-		set ent_list  [GiD_Geometry list $maxent 1:]
-		# Check that all highest level entities have an assigned material
+	    set ent_list  [GiD_Geometry list $maxent 1:]
+	    # Check that all highest level entities have an assigned material
+	    set have_mat 1
+	    foreach ent $ent_list {
+		set ent_info [GiD_Info list_entities ${maxent}s $ent]
+		regexp {material: ([0-9]+)} $ent_info everything matnumber
+		if {$matnumber == 0} then {set have_mat 0}
+	    }
+	    if {$have_mat == 0} then {
+		set result_string "${result_string}\nSome ${maxent}s don't have any material assigned\n"
+	    } else {
+		set result_string "${result_string}\nAll ${maxent}s have a material assigned\n"
+	    }
+	    set result_string "${result_string}$otherents will inherit a material from their parent ${maxent}s\n"
+	} else {
+	    foreach ent_name $check_list {
+		set ent_list  [GiD_Geometry list $ent_name 1:]
 		set have_mat 1
 		foreach ent $ent_list {
-		        set ent_info [GiD_Info list_entities ${maxent}s $ent]
-		        regexp {material: ([0-9]+)} $ent_info everything matnumber
-		        if {$matnumber == 0} then {set have_mat 0}
+		    set ent_info [GiD_Info list_entities ${maxent}s $ent]
+		    regexp {material: ([0-9]+)} $ent_info everything matnumber
+		    if {$matnumber == 0} then {set have_mat 0}
 		}
 		if {$have_mat == 0} then {
-		        set result_string "${result_string}\nSome ${maxent}s don't have any material assigned\n"
+		    set result_string "${result_string}\nSome ${ent_name}s don't have any material assigned\n"
 		} else {
-		        set result_string "${result_string}\nAll ${maxent}s have a material assigned\n"
+		    set result_string "${result_string}\nAll ${ent_name}s have a material assigned\n"
 		}
-		set result_string "${result_string}$otherents will inherit a material from their parent ${maxent}s\n"
-	} else {
-		foreach ent_name $check_list {
-		        set ent_list  [GiD_Geometry list $ent_name 1:]
-		        set have_mat 1
-		        foreach ent $ent_list {
-		                set ent_info [GiD_Info list_entities ${maxent}s $ent]
-		                regexp {material: ([0-9]+)} $ent_info everything matnumber
-		                if {$matnumber == 0} then {set have_mat 0}
-		        }
-		        if {$have_mat == 0} then {
-		                set result_string "${result_string}\nSome ${ent_name}s don't have any material assigned\n"
-		        } else {
-		                set result_string "${result_string}\nAll ${ent_name}s have a material assigned\n"
-		        }
-		}
+	    }
 	}
 	# Mesh
 	set meshinfo [GiD_Info Mesh]
 	if {$meshinfo == 0} then {set result_string "${result_string}\nA mesh must be generated"}
-} else { set result_string "You should draw your model first" }
-# Display the results in a window
-	set w .gid.win_example
+    } else { set result_string "You should draw your model first" }
+    # Display the results in a window
+    set w .gid.win_example
 
-	InitWindow $w "Model Status" Modelstatus ""        "" 1
+    InitWindow $w "Model Status" Modelstatus ""        "" 1
 
-	frame $w.top
+    frame $w.top
     label $w.top.results -text $result_string -justify left
 
     frame $w.bottom
@@ -835,8 +835,8 @@ proc TkwidgetFilePath { event args } {
 	    }
 	    if { $entry != "" } {
 		set tkwidgedprivfilepathbuttons($QUESTION) [button $PARENT.bfolder$QUESTION \
-		        -image [GetImage "folder.gif"] \
-		        -command [list GidUtils::_GetFilenameCmd tkwidgedprivfilepaths($QUESTION) $entry 0]]
+								-image [GetImage "folder.gif"] \
+								-command [list GidUtils::_GetFilenameCmd tkwidgedprivfilepaths($QUESTION) $entry 0]]
 		grid $tkwidgedprivfilepathbuttons($QUESTION) -row [expr $ROW-1] -column 2 -sticky w
 		grid configure $entry -sticky ew
 	    }
@@ -896,7 +896,7 @@ proc getWinPyScript {} {
 }
 
 proc resetCondId {} {
-  set ::kaux::condList {}
+    set ::kaux::condList {}
 }
 
 proc setCondId { elemId faceId } {

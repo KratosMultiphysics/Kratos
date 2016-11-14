@@ -182,10 +182,7 @@ namespace Kratos
 
       //ComputeBoundaryNormals BoundUtils;
       BoundaryNormalsCalculationUtilities BoundaryComputation;
-      if( mMeshId == 0 )
-	BoundaryComputation.CalculateBoundaryNormals(mrModelPart, mEchoLevel);
-      else
-	BoundaryComputation.CalculateMeshBoundaryNormals(mrModelPart, mMeshId, mEchoLevel);
+      BoundaryComputation.CalculateWeightedBoundaryNormals(mrModelPart, mEchoLevel);
 
 	
       if( mEchoLevel >= 1 )

@@ -116,13 +116,13 @@ namespace Kratos
 
     if(NumberOfSubModelParts>0){
       for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
-	{ 
-	  if( i_mp->NumberOfElements() == 0 ){ // only model parts with conditions
-	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
-	      {      
-		i_cond->SetValue(MODEL_PART_NAME,i_mp->Name());
-	      }
-	  }
+	{
+	    if( i_mp->NumberOfElements() == 0 ){ // only model parts with conditions
+	      for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
+		{      
+		  i_cond->SetValue(MODEL_PART_NAME,i_mp->Name());
+		}
+	    }
 	}
     }
       
@@ -142,11 +142,12 @@ namespace Kratos
     if(NumberOfSubModelParts>0){
       for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
 	{
-	  for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; i_node++)
-	    {
-	      
-	      i_node->SetValue(MODEL_PART_NAME,i_mp->Name());
-	    }
+	  if( i_mp->IsNot(ACTIVE) && i_mp->IsNot(BOUNDARY) ){
+	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; i_node++)
+	      {
+		i_node->SetValue(MODEL_PART_NAME,i_mp->Name());
+	      }
+	  }
 	}
     }
       
@@ -476,7 +477,7 @@ namespace Kratos
     unsigned int NumberOfSlaves = 0;
 
     if(rSlaveVertices.size() != size)
-      rSlaveVertices.reserve(size);
+      rSlaveVertices.resize(size);
 
     std::fill(rSlaveVertices.begin(),rSlaveVertices.end(),0);
 
@@ -489,6 +490,7 @@ namespace Kratos
 	    //if( rGeometry[i].GetValue(DOMAIN_LABEL) == rGeometry[j].GetValue(DOMAIN_LABEL) )
 	    if( rGeometry[i].GetValue(MODEL_PART_NAME) == rGeometry[j].GetValue(MODEL_PART_NAME) )
 	      {
+		//std::cout<<" MP name "<<rGeometry[i].GetValue(MODEL_PART_NAME)<<" "<<rGeometry[j].GetValue(MODEL_PART_NAME)<<std::endl;
 		rSlaveVertices[i]+=1;
 		rSlaveVertices[j]+=1;
 	      }

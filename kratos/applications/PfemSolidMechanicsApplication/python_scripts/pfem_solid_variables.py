@@ -22,14 +22,13 @@ def AddVariables(main_model_part):
     main_model_part.AddNodalSolutionStepVariable(KratosPfemBase.SHRINK_FACTOR);
     main_model_part.AddNodalSolutionStepVariable(KratosPfemBase.MEAN_ERROR);
     main_model_part.AddNodalSolutionStepVariable(KratosPfemBase.RIGID_WALL);
-    
-    main_model_part.AddNodalSolutionStepVariable(KratosSolid.DETERMINANT_F);
-    
-    main_model_part.AddNodalSolutionStepVariable(KratosPfemSolid.WALL_TIP_RADIUS);
-    main_model_part.AddNodalSolutionStepVariable(KratosPfemSolid.WALL_REFERENCE_POINT);
-
+       
     main_model_part.AddNodalSolutionStepVariable(KratosContact.CONTACT_STRESS);
     
+    #transfer variables
+    main_model_part.AddNodalSolutionStepVariable(KratosSolid.DETERMINANT_F);
+    main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CAUCHY_STRESS_VECTOR)
+    main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DEFORMATION_GRADIENT)
             
     print("::[Pfem Solid Vars]:: Variables ADDED")
 

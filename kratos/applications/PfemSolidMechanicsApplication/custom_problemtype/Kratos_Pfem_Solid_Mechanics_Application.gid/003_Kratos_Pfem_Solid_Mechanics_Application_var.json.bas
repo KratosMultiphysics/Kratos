@@ -111,7 +111,9 @@
 *add cond group_ANGULAR_MOVEMENT *groups
 *add cond group_POINT_LOAD *groups
 *add cond group_LINE_LOAD *groups
+*add cond group_SURFACE_LOAD *groups
 *add cond group_LINE_PRESSURE *groups
+*add cond group_SURFACE_PRESSURE *groups
 *add cond group_POINT_MOMENT *groups
 *add cond group_VOLUME_ACCELERATION *groups
 *if(CondNumEntities > 0)
@@ -520,7 +522,9 @@
 *set var numberloads= 0
 *set cond group_POINT_LOAD *groups
 *add cond group_LINE_LOAD *groups
+*add cond group_SURFACE_LOAD *groups
 *add cond group_LINE_PRESSURE *groups
+*add cond group_SURFACE_PRESSURE *groups
 *add cond group_POINT_MOMENT *groups
 *add cond group_VOLUME_ACCELERATION *groups
 *loop groups *OnlyInCond
@@ -529,6 +533,7 @@
 *set var Counter = 0
 *set cond group_POINT_LOAD *groups
 *add cond group_LINE_LOAD *groups
+*add cond group_SURFACE_LOAD *groups
 *add cond group_POINT_MOMENT *groups
 *loop groups *OnlyInCond       
 *set var Counter=operation(Counter+1)
@@ -594,6 +599,7 @@
 *endif
 *end groups
 *set cond group_LINE_PRESSURE *groups
+*add cond group_SURFACE_PRESSURE *groups
 *loop groups *OnlyInCond    
 *set var Counter=operation(Counter+1)
 *set var Counter=operation(Counter+1)
