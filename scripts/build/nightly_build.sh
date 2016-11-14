@@ -35,12 +35,12 @@ cp ${HOME}/Kratos/scripts/build/nightly/configure_clang.sh ${HOME}/Kratos/cmake_
 
 # Build
 cd ${HOME}/Kratos/cmake_gcc
-sh configure.sh &> ${LOG_DIR}/configure_gcc.log
-make install -j2 -k &> ${LOG_DIR}/compile_gcc.log
+sh configure.sh > ${LOG_DIR}/configure_gcc.log 2>&1
+make install -j2 -k > ${LOG_DIR}/compile_gcc.log 2>&1
 
 # UnitTesting
 cd ${HOME}/Kratos/kratos/python_scripts
-python3 run_tests.py -l nightly &> ${LOG_DIR}/unittest_gcc.log
+python3 run_tests.py -l nightly > ${LOG_DIR}/unittest_gcc.log 2>&1
 
 # # Benchmarking
 # cd ${HOME}/Kratos/benchmarking
@@ -97,12 +97,12 @@ rm -rf libs
 ## Step3: Clang
 
 cd ${HOME}/Kratos/cmake_clang
-sh configure.sh &> ${LOG_DIR}/configure_clang.log
-make install -j2 -k &> ${LOG_DIR}/compile_clang.log
+sh configure.sh > ${LOG_DIR}/configure_clang.log 2>&1
+make install -j2 -k > ${LOG_DIR}/compile_clang.log 2>&1
 
 # UnitTesting
 cd ${HOME}/Kratos/kratos/python_scripts
-python3 run_tests.py -l nightly &> ${LOG_DIR}/unittest_clang.log
+python3 run_tests.py -l nightly > ${LOG_DIR}/unittest_clang.log 2>&1
 
 # # Benchmarking
 # cd ${HOME}/Kratos/benchmarking
