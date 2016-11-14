@@ -39,6 +39,9 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/exception.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/code_location.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/reorder_consecutive_model_part_io.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
      )
 
 set( KRATOS_PYTHON_SOURCES
@@ -93,10 +96,7 @@ set( KRATOS_PYTHON_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/python/kratos_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/mpi_connectivity_preserve_modeler.cpp;
 	# ${CMAKE_CURRENT_SOURCE_DIR}/processes/mdpa_reorder_consecutive_process.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/reorder_consecutive_model_part_io.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
-	
+
 	# ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_exception.cpp;
 
      )
