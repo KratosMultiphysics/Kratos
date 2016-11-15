@@ -103,7 +103,6 @@ void  AddCustomProcessesToPython()
     // Uplift Condition for arch dams   
     class_< DamUpliftCircularConditionLoadProcess, bases< Process >, boost::noncopyable > ( "DamUpliftCircularConditionLoadProcess",
         init < ModelPart&, Parameters>());
-        
 
 }
 

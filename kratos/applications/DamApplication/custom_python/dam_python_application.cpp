@@ -17,6 +17,7 @@
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 #include "dam_application.h"
 
 
@@ -36,6 +37,7 @@ BOOST_PYTHON_MODULE(KratosDamApplication)
     AddCustomStrategiesToPython();
     AddCustomConstitutiveLawsToPython();
     AddCustomProcessesToPython();
+    AddCustomUtilitiesToPython();
 
     //Registering variables in python
     
@@ -47,7 +49,7 @@ BOOST_PYTHON_MODULE(KratosDamApplication)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( HEIGHT_DAM )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( AMPLITUDE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( DAY_MAXIMUM )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( SPECIFIC_WEIGHT )   
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( SPECIFIC_WEIGHT )
     
     // Thermal Variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( THERMAL_STRESS_TENSOR )
@@ -58,7 +60,11 @@ BOOST_PYTHON_MODULE(KratosDamApplication)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( MECHANICAL_STRESS_VECTOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( THERMAL_STRAIN_VECTOR )
 
+    // Output Variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_CAUCHY_STRESS_TENSOR )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( Vi_POSITIVE )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( Viii_POSITIVE )
+    
 }
 
 }  // namespace Python.
