@@ -206,7 +206,7 @@ namespace Kratos {
         
         static inline Vector EigenValuesDirectMethod(const Matrix& A) {
             // Given a real symmetric 3x3 matrix A, compute the eigenvalues
-            int dim= A.size1();
+            const int dim= A.size1();
             Vector Result=ZeroVector(dim);
             
             const double p1 = A(0,1)*A(0,1) + A(0,2)*A(0,2) + A(1,2)*A(1,2);
@@ -217,9 +217,9 @@ namespace Kratos {
                 return Result;
             }
                             
-            const double q = (A(0,0) + A(1,1) + A(2,2)) / 3.0;
+            const double q = 0.333333333333333333333333 * (A(0,0) + A(1,1) + A(2,2));
             const double p2 = (A(0,0) - q) * (A(0,0) - q) + (A(1,1) - q) * (A(1,1) - q) + (A(2,2) - q) * (A(2,2) - q) + 2.0 * p1;
-            const double p = sqrt(p2 / 6.0);
+            const double p = sqrt(0.16666666666666666666666667 * p2);
             
             Matrix B(3,3);
             const double inv_p = 1.0/p;
@@ -241,13 +241,13 @@ namespace Kratos {
             // In exact arithmetic for a symmetric matrix  -1 <= r <= 1
             // but computation error can leave it slightly outside this range.
             double phi = 0.0;
-            if (r <= -1) { phi = KRATOS_M_PI / 3.0; }
+            if (r <= -1) { phi = 0.333333333333333333333333 * KRATOS_M_PI; }
             else if (r >= 1) { phi = 0.0; }
-            else { phi = acos(r) / 3.0;}
+            else { phi = 0.333333333333333333333333 * acos(r);}
             
             // the eigenvalues satisfy eig3 <= eig2 <= eig1
             Result[0] = q + 2.0 * p * cos(phi);
-            Result[2] = q + 2.0 * p * cos(phi + (2.0*KRATOS_M_PI/3.0));
+            Result[2] = q + 2.0 * p * cos(phi + (0.6666666666666666666666*KRATOS_M_PI));
             Result[1] = 3.0 * q - Result[0] - Result[2];     //% since trace(A) = eig1 + eig2 + eig3   
 
             return Result;
