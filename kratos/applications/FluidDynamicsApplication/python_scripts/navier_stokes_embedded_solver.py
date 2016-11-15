@@ -7,9 +7,9 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 KratosMultiphysics.CheckForPreviousImport()
 
 def CreateSolver(main_model_part, custom_settings):
-    return NavierStokesSolver_VMSMonolithic(main_model_part, custom_settings)
+    return NavierStokesEmbeddedMonolithicSolver(main_model_part, custom_settings)
 
-class NavierStokesSolver_VMSMonolithic:
+class NavierStokesEmbeddedMonolithicSolver:
 
 
     ##constructor. the constructor shall only take care of storing the settings
