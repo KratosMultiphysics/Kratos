@@ -46,7 +46,7 @@ class ConditionsOptions:
     
 ## PostProcess Data -----------------------------------------------------------------------------------------------------------
 
-nodal_results = ["*GenData(Nodal_results_1)","*GenData(Nodal_results_2)","*GenData(Nodal_results_3)","*GenData(Nodal_results_4)","*GenData(Nodal_results_5)","*GenData(Nodal_results_6)","*GenData(Nodal_results_7)","*GenData(Nodal_results_8)"] 
+nodal_results = ["*GenData(Nodal_results_1)","*GenData(Nodal_results_2)","*GenData(Nodal_results_3)","*GenData(Nodal_results_4)","*GenData(Nodal_results_5)","*GenData(Nodal_results_6)","*GenData(Nodal_results_7)","*GenData(Nodal_results_8)","*GenData(Nodal_results_9)","*GenData(Nodal_results_10)"] 
 gauss_points_results=["*GenData(Gauss_points_results_1)","*GenData(Gauss_points_results_2)","*GenData(Gauss_points_results_3)","*GenData(Gauss_points_results_4)","*GenData(Gauss_points_results_5)","*GenData(Gauss_points_results_6)","*GenData(Gauss_points_results_7)"]
 
 class GidOutputConfiguration:
