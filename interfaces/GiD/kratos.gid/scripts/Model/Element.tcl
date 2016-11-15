@@ -106,7 +106,8 @@ oo::class create NodalCondition {
     constructor {n} {
         next $n
         set reaction ""
-        set ov "point,line,surface,volume"
+        set ov ""
+        #set ov "point,line,surface,volume"
     }
     
     method setReaction {r} {variable reaction; set reaction $r}
