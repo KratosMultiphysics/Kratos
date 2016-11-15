@@ -73,19 +73,7 @@ public:
 
             //We compute the principal Stresses
             Vector PrincipalStresses(dimension);
-            double stress_check = 0.0;
-            for ( unsigned int i=0; i<3; i++)
-            {
-                stress_check += NodalStress(i,i);
-            } 
-            if(fabs(stress_check)> 1.0e-20)
-            {
-                noalias(PrincipalStresses) = SolidMechanicsMathUtilities<double>::EigenValues(NodalStress,1.0e-10,1.0e-10);
-            }
-            else
-            {
-                noalias(PrincipalStresses)= ZeroVector(3);
-            }
+            noalias(PrincipalStresses) = SolidMechanicsMathUtilities<double>::EigenValuesDirectMethod(NodalStress);          
                 
             for(unsigned int i = 0; i<3; i++)
             {
