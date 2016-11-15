@@ -27,6 +27,10 @@
 #include "custom_constitutive/simo_ju_nonlocal_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/simo_ju_nonlocal_damage_plane_stress_2D_law.hpp"
 
+#include "custom_constitutive/modified_mises_nonlocal_damage_3D_law.hpp"
+#include "custom_constitutive/modified_mises_nonlocal_damage_plane_strain_2D_law.hpp"
+#include "custom_constitutive/modified_mises_nonlocal_damage_plane_stress_2D_law.hpp"
+
 namespace Kratos
 {
 
@@ -47,6 +51,10 @@ void  AddCustomConstitutiveLawsToPython()
     class_< SimoJuNonlocalDamage3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "SimoJuNonlocalDamage3DLaw",init<>() );
     class_< SimoJuNonlocalDamagePlaneStrain2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "SimoJuNonlocalDamagePlaneStrain2DLaw",init<>() );
     class_< SimoJuNonlocalDamagePlaneStress2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "SimoJuNonlocalDamagePlaneStress2DLaw",init<>() );
+
+    class_< ModifiedMisesNonlocalDamage3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ModifiedMisesNonlocalDamage3DLaw",init<>() );
+    class_< ModifiedMisesNonlocalDamagePlaneStrain2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ModifiedMisesNonlocalDamagePlaneStrain2DLaw",init<>() );
+    class_< ModifiedMisesNonlocalDamagePlaneStress2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "ModifiedMisesNonlocalDamagePlaneStress2DLaw",init<>() );
 }
 
 }  // namespace Python.

@@ -220,6 +220,76 @@ protected:
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    bool CheckConvergence()
+    {
+        // ********** Prediction phase **********
+        
+        // Initialize variables
+		DofsArrayType& rDofSet = mpBuilderAndSolver->GetDofSet();
+        TSystemMatrixType& mA = *mpA;
+        TSystemVectorType& mDx = *mpDx;
+        TSystemVectorType& mb = *mpb;
+        
+        mpScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
+        mNonlocalDamageUtility.CalculateNonlocalEquivalentStrain(BaseType::GetModelPart().GetProcessInfo());
+                
+        TSparseSpace::SetToZero(mA);
+        TSparseSpace::SetToZero(mb);
+        TSparseSpace::SetToZero(mDx);
+        
+        mpBuilderAndSolver->BuildAndSolve(mpScheme, BaseType::GetModelPart(), mA, mDx, mb);
+        
+        mpScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+
+        //move the mesh if needed
+        if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+        
+        mpScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
+        
+        unsigned int iteration_number = 0;
+        bool is_converged = false;
+        double dofs_ratio = 1000.0;
+        double ReferenceDofsNorm;
+        double NormDx;
+        
+        // ********** Correction phase (iteration cicle) **********
+        
+        while (is_converged == false && iteration_number < mMaxIterationNumber)
+        {
+            //setting the number of iteration
+            iteration_number += 1;
+            BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+            
+            mpScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
+            mNonlocalDamageUtility.CalculateNonlocalEquivalentStrain(BaseType::GetModelPart().GetProcessInfo());
+            
+            TSparseSpace::SetToZero(mA);
+            TSparseSpace::SetToZero(mb);
+            TSparseSpace::SetToZero(mDx);
+            
+            mpBuilderAndSolver->BuildAndSolve(mpScheme, BaseType::GetModelPart(), mA, mDx, mb);
+            
+            mpScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+
+            //move the mesh if needed
+            if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+            
+            mpScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
+            mNonlocalDamageUtility.CalculateNonlocalEquivalentStrain(BaseType::GetModelPart().GetProcessInfo());
+            
+            NormDx = TSparseSpace::TwoNorm(mDx);
+            ReferenceDofsNorm = this->CalculateReferenceDofsNorm(rDofSet);
+            dofs_ratio = NormDx/ReferenceDofsNorm;
+            std::cout << "TEST ITERATION: " << iteration_number << std::endl;
+            std::cout << "    Dofs Ratio = " << dofs_ratio << std::endl;
+            
+            if(dofs_ratio <= 1.0e-3)
+                is_converged = true;
+        }
+        
+        return is_converged;
+    }
+
 }; // Class PoromechanicsNewtonRaphsonNonlocalStrategy
 
 } // namespace Kratos

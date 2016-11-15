@@ -36,9 +36,15 @@ class FracturePropagationUtility:
         self.propagation_count = self.propagation_frequency
         self.remesh_count = 0
 
-        # Save preferences to avoid splash window when running GiD in minimized window
+        # Save preferences to avoid splash window when running GiD in minimized window #TODO: I should also save the meshing preferences and pass the OMP_THREADS
         preferences = open("gid_preferences.ini",'w')
-        preferences.write("SplashWindow 0")
+        preferences.write("GID_OMP_NUM_THREADS 1\n")
+        preferences.write("AutomaticCorrectSizes 1\n")
+        preferences.write("SplashWindow 0\n")
+        preferences.write("SizeTransitionsFactor 0.4\n")
+        preferences.write("BoundaryWeightedTransition 1\n")
+        preferences.write("SurfaceMesher 1\n")
+        preferences.write("VolumeMesher 0\n")
         preferences.close()
         
         # Define names and paths

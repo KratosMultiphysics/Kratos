@@ -36,11 +36,13 @@
 #include "custom_constitutive/custom_hardening_laws/non_linear_isotropic_kinematic_hardening_law.hpp"
 #include "custom_constitutive/custom_hardening_laws/linear_isotropic_kinematic_hardening_law.hpp"
 #include "custom_constitutive/custom_hardening_laws/exponential_damage_hardening_law.hpp"
+#include "custom_constitutive/custom_hardening_laws/modified_exponential_damage_hardening_law.hpp"
 
 //yield criteria
 #include "custom_constitutive/custom_yield_criteria/yield_criterion.hpp"
 #include "custom_constitutive/custom_yield_criteria/mises_huber_yield_criterion.hpp"
 #include "custom_constitutive/custom_yield_criteria/simo_ju_yield_criterion.hpp"
+#include "custom_constitutive/custom_yield_criteria/modified_mises_yield_criterion.hpp"
 
 //flow rules
 #include "custom_constitutive/custom_flow_rules/flow_rule.hpp"
@@ -87,6 +89,10 @@
 #include "custom_constitutive/isotropic_damage_simo_ju_3D_law.hpp"
 #include "custom_constitutive/isotropic_damage_simo_ju_plane_strain_2D_law.hpp"
 #include "custom_constitutive/isotropic_damage_simo_ju_plane_stress_2D_law.hpp"
+
+#include "custom_constitutive/isotropic_damage_modified_mises_3D_law.hpp"
+#include "custom_constitutive/isotropic_damage_modified_mises_plane_strain_2D_law.hpp"
+#include "custom_constitutive/isotropic_damage_modified_mises_plane_stress_2D_law.hpp"
 
 namespace Kratos
 {
@@ -290,6 +296,21 @@ void  AddCustomConstitutiveLawsToPython()
 
     class_< IsotropicDamageSimoJuPlaneStress2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "IsotropicDamageSimoJuPlaneStress2DLaw",
+      init<>() )
+    ;
+
+    class_< IsotropicDamageModifiedMises3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "IsotropicDamageModifiedMises3DLaw",
+      init<>() )
+    ;
+
+    class_< IsotropicDamageModifiedMisesPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "IsotropicDamageModifiedMisesPlaneStrain2DLaw",
+      init<>() )
+    ;
+
+    class_< IsotropicDamageModifiedMisesPlaneStress2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "IsotropicDamageModifiedMisesPlaneStress2DLaw",
       init<>() )
     ;
 
