@@ -1,4 +1,5 @@
 from KratosMultiphysics import *
+from KratosMultiphysics.DamApplication import *
 from KratosMultiphysics.PoromechanicsApplication import *
 
 import math
