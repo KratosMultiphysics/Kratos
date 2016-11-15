@@ -113,7 +113,7 @@ void NavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matrix<double,16,
     {
         const int nnodes = 4;
         const int dim = 3;
-        const int strain_size = 6;
+        //const int strain_size = 6;
         
         const double rho = inner_prod(data.N, data.rho);        // Density
         const double nu = inner_prod(data.N, data.nu);          // Kinematic viscosity
@@ -132,7 +132,7 @@ void NavierStokes<3>::ComputeGaussPointLHSContribution(bounded_matrix<double,16,
         const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
         //~ const bounded_matrix<double,nnodes,dim>& f = data.f;
         //~ const array_1d<double,nnodes>& p = data.p;
-        const array_1d<double,strain_size>& stress = data.stress;
+        //const array_1d<double,strain_size>& stress = data.stress;
         
         // Get constitutive matrix 
         //~ const Matrix& C = data.C;
@@ -685,7 +685,7 @@ void NavierStokes<2>::ComputeGaussPointLHSContribution(bounded_matrix<double,9,9
     {
         const int nnodes = 3;
         const int dim = 2;
-        const int strain_size = 3;
+        //const int strain_size = 3;
         
         const double rho = inner_prod(data.N, data.rho);        // Density
         const double nu = inner_prod(data.N, data.nu);          // Kinematic viscosity
@@ -704,7 +704,7 @@ void NavierStokes<2>::ComputeGaussPointLHSContribution(bounded_matrix<double,9,9
         const bounded_matrix<double,nnodes,dim>& vconv = v - vmesh;
         //~ const bounded_matrix<double,nnodes,dim>& f = data.f;
         //~ const array_1d<double,nnodes>& p = data.p;
-        const array_1d<double,strain_size>& stress = data.stress;
+        //const array_1d<double,strain_size>& stress = data.stress;
         
         // Get constitutive matrix 
         //~ const Matrix& C = data.C;

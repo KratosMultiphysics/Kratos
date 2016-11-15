@@ -174,7 +174,7 @@ public:
             const array_1d<double,3>& vel_n = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1);
             const array_1d<double,3>& vel_nn = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,2);
             const array_1d<double,3>& vel_mesh = this->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY);
-            const array_1d<double,3>& vel_conv = vel - vel_mesh;
+	    //            const array_1d<double,3>& vel_conv = vel - vel_mesh;
 
             for(unsigned int k=0; k<TDim; k++)
             {
@@ -265,7 +265,7 @@ public:
             const array_1d<double,3>& vel_n = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1);
             const array_1d<double,3>& vel_nn = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,2);
             const array_1d<double,3>& vel_mesh = this->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY);
-            const array_1d<double,3>& vel_conv = vel - vel_mesh;
+	    //            const array_1d<double,3>& vel_conv = vel - vel_mesh;
 
             for(unsigned int k=0; k<TDim; k++)
             {
