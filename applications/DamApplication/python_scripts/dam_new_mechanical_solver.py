@@ -35,7 +35,6 @@ class DamMechanicalSolver:
                 "NumberofThreads" : 1,
                 "type_of_problem" : "Thermo-Mechanical",
                 "time_scale"      : "Seconds",
-                "evolution_type"  : "Exact",
                 "delta_time"      : 1,
                 "ending_time"     : 10
             },
@@ -58,6 +57,7 @@ class DamMechanicalSolver:
                 "solution_type"                   : "Quasi-Static",
                 "analysis_type"                   : "Linear",
                 "strategy_type"                   : "Newton-Raphson",
+                "scheme_type"                     : "Newmark",
                 "convergence_criterion"           : "Residual_criterion",
                 "displacement_relative_tolerance" : 0.0001,
                 "displacement_absolute_tolerance" : 1e-9,
@@ -131,7 +131,9 @@ class DamMechanicalSolver:
         
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_CAUCHY_STRESS_TENSOR)
-
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Vi_POSITIVE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Viii_POSITIVE)
+        
         print("Mechanical variables correctly added")
 
     def ImportModelPart(self):
@@ -188,7 +190,7 @@ class DamMechanicalSolver:
         builder_and_solver = self.BuilderAndSolverCreator(self.settings["mechanical_settings"]["type_of_builder"].GetString(), self.linear_solver)
         
         # Solution scheme creation
-        scheme = self.SchemeCreator(self.settings["mechanical_settings"]["solution_type"].GetString())
+        scheme = self.SchemeCreator(self.settings["mechanical_settings"]["solution_type"].GetString(), self.settings["mechanical_settings"]["scheme_type"].GetString())
         
         # Convergence criterion
         convergence_criterion = self.ConvergenceCriterion(self.settings["mechanical_settings"]["convergence_criterion"].GetString())
@@ -272,28 +274,26 @@ class DamMechanicalSolver:
         
         return builder_and_solver
         
-    def SchemeCreator(self, solution_type):
+    def SchemeCreator(self, solution_type, scheme_type):
         
-        smoothing = "No"
+        smoothing = "Yes"
         
         for i in range(self.settings["output_configuration"]["result_file_configuration"]["nodal_results"].size()):
             outputs = self.settings["output_configuration"]["result_file_configuration"]["nodal_results"][i].GetString()
             if (outputs == "NODAL_CAUCHY_STRESS_TENSOR"):
                 smoothing = "Yes"
         
-        if(smoothing == "Yes"):
+
             if (solution_type == "Quasi-Static"):       
                 scheme =  KratosDam.IncrementalUpdateStaticSmoothingScheme()
             else:
-                damp_factor_m = -0.01
+                if(scheme_type == "Newmark"):
+                    damp_factor_m = 0.0
+                else:
+                    damp_factor_m = -0.01
+                    
                 scheme = KratosDam.BossakDisplacementSmoothingScheme(damp_factor_m)
-        else:
-            if (solution_type == "Quasi-Static"):
-                scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-            else:
-                damp_factor_m = -0.01
-                scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
-                
+
         return scheme
          
          

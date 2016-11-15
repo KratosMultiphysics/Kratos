@@ -27,6 +27,8 @@ def AddVariables(model_part):
     
     model_part.AddNodalSolutionStepVariable(NODAL_AREA)
     model_part.AddNodalSolutionStepVariable(NODAL_CAUCHY_STRESS_TENSOR)
+    model_part.AddNodalSolutionStepVariable(Vi_POSITIVE)
+    model_part.AddNodalSolutionStepVariable(Viii_POSITIVE)
 
     print("Variables correctly added")
 
