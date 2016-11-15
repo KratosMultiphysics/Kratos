@@ -21,6 +21,11 @@ proc Fluid::xml::getUniqueName {name} {
     return ${::Fluid::prefix}${name}
 }
 
+proc Fluid::xml::CustomTree { args } {
+    # Hide Results Cut planes
+    spdAux::SetValueOnTreeItem v time Results FileLabel
+    spdAux::SetValueOnTreeItem v time Results OutputControlType
+}
 
 
 Fluid::xml::Init
