@@ -476,7 +476,7 @@ class PartitionedFSISolver:
         
     def _SetStructureNeumannCondition(self):
         
-        structure_computational_submodelpart = self.structure_solver.main_model_part.GetSubModelPart("solid_computing_domain")
+        structure_computational_submodelpart = self.structure_solver.GetComputingModelPart()
                 
         aux_count = 0
         for cond in self.structure_solver.main_model_part.Conditions:
@@ -499,10 +499,11 @@ class PartitionedFSISolver:
                     aux_count+=1
                     structure_computational_submodelpart.CreateNewCondition("PointLoadCondition3D1N",aux_count,[node.Id],self.structure_solver.main_model_part.Properties[0]) 
         
-        
+    
+    # TODO: This function must be checked as soon as the fluid Neumann BS is being implemented.
     def _SetFluidNeumannCondition(self):
         
-        fluid_computational_volume_submodelpart = self.fluid_solver.main_model_part.GetSubModelPart("volume_model_part_name")
+        fluid_computational_volume_submodelpart = self.fluid_solver.GetComputingModelPart()
         
         aux_count = len(self.fluid_solver.main_model_part.Conditions)       # Get the last existing condition numbering
         aux_count += 1
