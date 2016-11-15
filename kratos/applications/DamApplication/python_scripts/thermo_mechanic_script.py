@@ -30,6 +30,7 @@ import conditions_utility
 import constitutive_law_utility
 import gid_print_utility
 import cleaning_utility
+import streamlines_output_utility
 
 
 ## Previous definitions --------------------------------------------------------------------------------------
@@ -132,6 +133,8 @@ conditions_util.Initialize(model_part)
 gid_output_util.initialize_results(model_part, current_id) #For single post file
 gid_output_util.write_results(model_part, nodal_res, gp_res, current_time, current_step, current_id)
 
+#Initialize the utility
+streamline_utility = streamlines_output_utility.StreamlinesOutputUtility(3) # Now is only implemented for 3D case
 
 ## Temporal loop ---------------------------------------------------------------------------------------------
 
@@ -156,6 +159,9 @@ while( (current_time+tol) < ending_time ):
     clock_time = time.clock()
     solid_mechanics_solver.Solve()
     print("Mechanical Solving Time = ","%.5f" % (time.clock() - clock_time)," seconds")
+    
+    # We compute the ouptut variable
+    streamline_utility.ComputeOutputStep( main_model_part ,domain_size)
 
     # Write GiD results
     execute_write = gid_output_util.CheckWriteResults(current_time)
