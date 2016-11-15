@@ -55,5 +55,10 @@
 		return [Pfem::xml::ProcGetPartUN $domNode $args]
 		]]>
 	</proc>
+	<proc n='ActiveIfAnyPartState' args='args'>
+		<![CDATA[
+		return [Pfem::xml::ProcActiveIfAnyPartState $domNode $args]
+		]]>
+	</proc>
 
 </container>

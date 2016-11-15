@@ -39,6 +39,74 @@ proc Pfem::write::getParametersDict { } {
     
     return $projectParametersDict
 }
+proc Pfem::write::GetPFEM_ProblemDataDict { } {
+    set problemDataDict [dict create]
+    dict set problemDataDict problem_name [file tail [GiD_Info Project ModelName]]
+
+    dict set problemDataDict model_part_name "Main Domain"
+    set nDim $::Model::SpatialDimension
+    set nDim [expr [string range [write::getValue nDim] 0 0] ]
+    dict set problemDataDict domain_size $nDim
+   
+    dict set problemDataDict time_step [write::getValue PFEM_TimeParameters DeltaTime]
+    dict set problemDataDict start_time [write::getValue PFEM_TimeParameters StartTime]
+    dict set problemDataDict end_time [write::getValue PFEM_TimeParameters EndTime]
+    dict set problemDataDict echo_level [write::getValue Results EchoLevel]
+    dict set problemDataDict threads [write::getValue Parallelization OpenMPNumberOfThreads]
+    #set cx [write::getValue FLGravity Cx]
+    #set cy [write::getValue FLGravity Cy]
+    #set cz [write::getValue FLGravity Cz]
+    #dict set problemDataDict gravity_vector [list $cx $cy $cz]
+
+    return $problemDataDict
+}
+
+proc Pfem::write::GetPFEM_SolverSettingsDict { } {
+    variable bodies_list
+
+    set solverSettingsDict [dict create]
+    set currentStrategyId [write::getValue PFEM_SolStrat]
+    set strategy_write_name [[::Model::GetSolutionStrategy $currentStrategyId] getAttribute "ImplementedInPythonFile"]
+    dict set solverSettingsDict solver_type $strategy_write_name
+
+    set problemtype [write::getValue PFEM_DomainType]
+
+    if {$problemtype ne "Fluids"} {
+    
+	dict set solverSettingsDict solution_type [write::getValue PFEM_SolutionType]
+
+	set solutiontype [write::getValue PFEM_SolutionType]
+    
+	if {$solutiontype eq "Static"} {
+	    dict set solverSettingsDict analysis_type [write::getValue PFEM_LinearType]
+	} elseif {$solutiontype eq "Dynamic"} {
+	    dict set solverSettingsDict time_integration_method [write::getValue PFEM_SolStrat]
+	    dict set solverSettingsDict scheme_type [write::getValue PFEM_Scheme]
+	}
+    }
+    
+    # model import settings
+    set modelDict [dict create]
+    dict set modelDict input_type "mdpa"
+    dict set modelDict input_filename [file tail [GiD_Info Project ModelName]]
+    dict set modelDict input_file_label 0
+    dict set solverSettingsDict model_import_settings $modelDict
+    
+    # Solution strategy parameters and Solvers
+    set solverSettingsDict [dict merge $solverSettingsDict [write::getSolutionStrategyParametersDict] ]
+    set solverSettingsDict [dict merge $solverSettingsDict [write::getSolversParametersDict Pfem] ]
+    
+    set listsubmodelparts [list ]
+    foreach part_un [Pfem::write::GetPartsUN] {
+        lappend listsubmodelparts {*}[write::getSubModelPartNames $part_un]
+    }
+    dict set solverSettingsDict bodies_list $bodies_list
+    dict set solverSettingsDict problem_domain_sub_model_part_list $listsubmodelparts
+    dict set solverSettingsDict processes_sub_model_part_list [write::getSubModelPartNames "PFEM_NodalConditions" "PFEM_Loads"]
+    
+    return $solverSettingsDict
+}
+
 proc Pfem::write::GetPFEM_OutputProcessList { } {
     set resultList [list]
     lappend resultList [write::GetRestartProcess Restart]
@@ -402,74 +470,6 @@ proc Pfem::write::GetRemeshProperty { body_name property } {
     return $ret
 }
 
-proc Pfem::write::GetPFEM_ProblemDataDict { } {
-    set problemDataDict [dict create]
-    dict set problemDataDict problem_name [file tail [GiD_Info Project ModelName]]
-
-    dict set problemDataDict model_part_name "Main Domain"
-    set nDim $::Model::SpatialDimension
-    set nDim [expr [string range [write::getValue nDim] 0 0] ]
-    dict set problemDataDict domain_size $nDim
-   
-    dict set problemDataDict time_step [write::getValue PFEM_TimeParameters DeltaTime]
-    dict set problemDataDict start_time [write::getValue PFEM_TimeParameters StartTime]
-    dict set problemDataDict end_time [write::getValue PFEM_TimeParameters EndTime]
-    dict set problemDataDict echo_level [write::getValue Results EchoLevel]
-    dict set problemDataDict threads 1
-    set cx [write::getValue FLGravity Cx]
-    set cy [write::getValue FLGravity Cy]
-    set cz [write::getValue FLGravity Cz]
-    dict set problemDataDict gravity_vector [list $cx $cy $cz]
-
-    return $problemDataDict
-}
-
-proc Pfem::write::GetPFEM_SolverSettingsDict { } {
-    variable bodies_list
-    set solverSettingsDict [dict create]
-    set currentStrategyId [write::getValue PFEM_SolStrat]
-    set strategy_write_name [[::Model::GetSolutionStrategy $currentStrategyId] getAttribute "ImplementedInPythonFile"]
-    dict set solverSettingsDict solver_type $strategy_write_name
-    #~ dict set solverSettingsDict domain_size [expr $nDim]
-    dict set solverSettingsDict echo_level [write::getValue Results EchoLevel]
-
-    set problemtype [write::getValue PFEM_DomainType]
-
-    if {$problemtype ne "Fluids"} {
-    
-	dict set solverSettingsDict solution_type [write::getValue PFEM_SolutionType]
-
-	set solutiontype [write::getValue PFEM_SolutionType]
-    
-	if {$solutiontype eq "Static"} {
-	    dict set solverSettingsDict analysis_type [write::getValue PFEM_LinearType]
-	} elseif {$solutiontype eq "Dynamic"} {
-	    dict set solverSettingsDict time_integration_method [write::getValue PFEM_SolStrat]
-	    dict set solverSettingsDict scheme_type [write::getValue PFEM_Scheme]
-	}
-    }
-    
-    # model import settings
-    set modelDict [dict create]
-    dict set modelDict input_type "mdpa"
-    dict set modelDict input_filename [file tail [GiD_Info Project ModelName]]
-    dict set modelDict input_file_label 0
-    dict set solverSettingsDict model_import_settings $modelDict
-    
-    # Solution strategy parameters and Solvers
-    set solverSettingsDict [dict merge $solverSettingsDict [write::getSolutionStrategyParametersDict] ]
-    set solverSettingsDict [dict merge $solverSettingsDict [write::getSolversParametersDict Pfem] ]
-    
-    set listsubmodelparts [list ]
-    foreach part_un [Pfem::write::GetPartsUN] {
-        lappend listsubmodelparts {*}[write::getSubModelPartNames $part_un]
-    }
-    dict set solverSettingsDict bodies_list $bodies_list
-    dict set solverSettingsDict problem_domain_sub_model_part_list $listsubmodelparts
-    dict set solverSettingsDict processes_sub_model_part_list [write::getSubModelPartNames "PFEM_NodalConditions" "PFEM_Loads"]
-    
-    return $solverSettingsDict
-}
 
 proc Pfem::write::ProcessBodiesList { } {
     customlib::UpdateDocument

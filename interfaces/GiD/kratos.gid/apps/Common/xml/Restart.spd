@@ -14,6 +14,6 @@
       <value n="json_output" pn="JSON output" v="No" values="Yes,No" />
     </container>
     <value n="LoadRestart" pn="Load restart" v="No" values="Yes,No" actualize_tree="1" state="[ActiveIfRestartAvailable]" />
-    <value n="LoadRestartFileLabel" pn="Load restart file" v="" state="[getStateFromXPathValue {string(../value[@n='LoadRestart']/@v)} Yes]"/>
+    <value n="LoadRestartFileLabel" pn="Load restart file" v="-" values="[GetFilesValues]" update_proc="AddFile"  state="[getStateFromXPathValue {string(../value[@n='LoadRestart']/@v)} Yes]"/>
 </container>
     
