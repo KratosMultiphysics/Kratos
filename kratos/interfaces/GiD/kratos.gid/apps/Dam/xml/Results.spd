@@ -11,6 +11,8 @@
         <value n="ACCELERATION" pn="Acceleration" v="No" values="Yes,No" help=""/>
         <value n="NEGATIVE_FACE_PRESSURE" pn="Water Loads" v="No" values="Yes,No" help=""/>
         <value n="NODAL_CAUCHY_STRESS_TENSOR" pn="Nodal Total Stress" v="No" values="Yes,No" help=""/>
+        <value n="Vi_POSITIVE" pn="Traction Principal Stress Vector" v="No" values="Yes,No" help=""/>
+        <value n="Viii_POSITIVE" pn="Compression Principal Stress Vector" v="No" values="Yes,No" help=""/>
         <value n="TEMPERATURE" pn="Temperature" v="Yes" values="Yes,No" help="" state="[checkStateByUniqueName DamTypeofProblem Thermo-Mechanical]" />
     </container>
     <container n="GiDOptions" pn="Options" help="GiD postprocess options" open_window="0">
