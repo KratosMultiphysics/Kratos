@@ -13,7 +13,7 @@ proc ::Pfem::Init { } {
     set ::Model::ValidSpatialDimensions [list 2D 2Da 3D]
     ::spdAux::CreateDimensionWindow
     set attributes [dict create]
-    dict set attributes UseIntervals 0
+    dict set attributes UseIntervals 1
     #if {$::Kratos::kratos_private(DevMode) eq "dev"} {dict set attributes UseIntervals 1}
     dict set attributes UseRestart 1
 }
