@@ -16,6 +16,9 @@ from KratosMultiphysics.ConvectionDiffusionApplication import *
 from KratosMultiphysics.PoromechanicsApplication import *
 from KratosMultiphysics.DamApplication import *
 
+# Import utilities
+import streamlines_output_utility
+
 ##############################################################################
 ############################# PARSING PARAMETERS #############################
 ##############################################################################
@@ -165,10 +168,12 @@ computing_model_part = solver.GetComputingModelPart()
 gid_output = GiDOutputProcess(computing_model_part,problem_name,ProjectParameters["output_configuration"])
 gid_output.ExecuteInitialize()
 
-#Initializa the mechanical solver
+#Initialize the mechanical solver
 solver.Initialize()
 thermal_solver.Initialize()
 
+#Initialize the utility
+streamline_utility = streamlines_output_utility.StreamlinesOutputUtility(domain_size)
 
 #Execute before solution
 for process in list_of_processes:
@@ -217,6 +222,8 @@ while( (current_time+tol) < ending_time ):
     for process in list_of_processes:
         process.ExecuteBeforeOutputStep()
     
+    # We compute the ouptut variable
+    streamline_utility.ComputeOutputStep( main_model_part ,domain_size)
     
     # Write GiD results
     if gid_output.IsOutputStep():
