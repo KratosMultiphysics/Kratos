@@ -161,7 +161,7 @@ while( (current_time+tol) < ending_time ):
     print("Mechanical Solving Time = ","%.5f" % (time.clock() - clock_time)," seconds")
     
     # We compute the ouptut variable
-    streamline_utility.ComputeOutputStep( main_model_part ,domain_size)
+    streamline_utility.ComputeOutputStep( model_part ,3)
 
     # Write GiD results
     execute_write = gid_output_util.CheckWriteResults(current_time)
