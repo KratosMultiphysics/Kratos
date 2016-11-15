@@ -185,6 +185,10 @@ void KratosPoromechanicsApplication::Register()
     Serializer::Register("SimoJuNonlocalDamagePlaneStrain2DLaw",mSimoJuNonlocalDamagePlaneStrain2DLaw);
     Serializer::Register("SimoJuNonlocalDamagePlaneStress2DLaw",mSimoJuNonlocalDamagePlaneStress2DLaw);
 
+    Serializer::Register("ModifiedMisesNonlocalDamage3DLaw",mModifiedMisesNonlocalDamage3DLaw);
+    Serializer::Register("ModifiedMisesNonlocalDamagePlaneStrain2DLaw",mModifiedMisesNonlocalDamagePlaneStrain2DLaw);
+    Serializer::Register("ModifiedMisesNonlocalDamagePlaneStress2DLaw",mModifiedMisesNonlocalDamagePlaneStress2DLaw);
+
     //Register Variables
     KRATOS_REGISTER_VARIABLE( NEWMARK_COEFFICIENT_U )
     KRATOS_REGISTER_VARIABLE( NEWMARK_COEFFICIENT_P )

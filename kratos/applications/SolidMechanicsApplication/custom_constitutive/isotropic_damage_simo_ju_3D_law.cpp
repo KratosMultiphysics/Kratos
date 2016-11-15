@@ -9,10 +9,7 @@
 
 // System includes
 #include <iostream>
-#include <math.h>
-
-// External includes
-#include<cmath>
+#include <cmath>
 
 // Project includes
 #include "includes/properties.h"

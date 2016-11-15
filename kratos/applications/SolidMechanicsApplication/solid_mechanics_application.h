@@ -69,11 +69,13 @@
 //yield criteria
 #include "custom_constitutive/custom_yield_criteria/mises_huber_yield_criterion.hpp"
 #include "custom_constitutive/custom_yield_criteria/simo_ju_yield_criterion.hpp"
+#include "custom_constitutive/custom_yield_criteria/modified_mises_yield_criterion.hpp"
 
 //hardening laws
 #include "custom_constitutive/custom_hardening_laws/non_linear_isotropic_kinematic_hardening_law.hpp"
 #include "custom_constitutive/custom_hardening_laws/linear_isotropic_kinematic_hardening_law.hpp"
 #include "custom_constitutive/custom_hardening_laws/exponential_damage_hardening_law.hpp"
+#include "custom_constitutive/custom_hardening_laws/modified_exponential_damage_hardening_law.hpp"
 
 //constitutive laws
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
@@ -113,6 +115,10 @@
 #include "custom_constitutive/isotropic_damage_simo_ju_3D_law.hpp"
 #include "custom_constitutive/isotropic_damage_simo_ju_plane_strain_2D_law.hpp"
 #include "custom_constitutive/isotropic_damage_simo_ju_plane_stress_2D_law.hpp"
+
+#include "custom_constitutive/isotropic_damage_modified_mises_3D_law.hpp"
+#include "custom_constitutive/isotropic_damage_modified_mises_plane_strain_2D_law.hpp"
+#include "custom_constitutive/isotropic_damage_modified_mises_plane_stress_2D_law.hpp"
 
 #include "solid_mechanics_application_variables.h"
 
@@ -424,6 +430,10 @@ typedef array_1d<double,6> Vector6;
    const IsotropicDamageSimoJuPlaneStrain2DLaw   mIsotropicDamageSimoJuPlaneStrain2DLaw;
    const IsotropicDamageSimoJuPlaneStress2DLaw   mIsotropicDamageSimoJuPlaneStress2DLaw;
 
+   const IsotropicDamageModifiedMises3DLaw            mIsotropicDamageModifiedMises3DLaw;
+   const IsotropicDamageModifiedMisesPlaneStrain2DLaw mIsotropicDamageModifiedMisesPlaneStrain2DLaw;
+   const IsotropicDamageModifiedMisesPlaneStress2DLaw mIsotropicDamageModifiedMisesPlaneStress2DLaw;
+   
    //Flow Rules
    const NonLinearAssociativePlasticFlowRule     mNonLinearAssociativePlasticFlowRule;
    const LinearAssociativePlasticFlowRule        mLinearAssociativePlasticFlowRule;
@@ -432,11 +442,13 @@ typedef array_1d<double,6> Vector6;
    //Yield Criteria
    const MisesHuberYieldCriterion                mMisesHuberYieldCriterion;
    const SimoJuYieldCriterion                    mSimoJuYieldCriterion;
+   const ModifiedMisesYieldCriterion             mModifiedMisesYieldCriterion;
     
    //Hardening Laws
    const NonLinearIsotropicKinematicHardeningLaw mNonLinearIsotropicKinematicHardeningLaw;
    const LinearIsotropicKinematicHardeningLaw    mLinearIsotropicKinematicHardeningLaw;
    const ExponentialDamageHardeningLaw           mExponentialDamageHardeningLaw;
+   const ModifiedExponentialDamageHardeningLaw   mModifiedExponentialDamageHardeningLaw;
 
    ///@}
    ///@name Private Operators

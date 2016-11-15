@@ -1,6 +1,6 @@
-BeginZE /home/ipouplana/Descargas/Tests/consolidation_interface_3D.gid/consolidation_interface_3D.vv
+BeginZE /home/ipouplana/Descargas/tests/consolidation_interface_3D.gid/consolidation_interface_3D.vv
    x -0.366025388240814209 1.36602544784545898
-   y 2.28072667121887207 -1.28072667121887207
+   y 2.28072643280029297 -1.28072655200958252
    z -1.36602544784545898 0.366025388240814209
    e 0.866025388240814209
    v -0.517756462097167969 -0.305393129587173462 -0.437580645084381104
@@ -29,7 +29,7 @@ BeginZE /home/ipouplana/Descargas/Tests/consolidation_interface_3D.gid/consolida
    OGLStereo(EyeDistance) 0.075
    OGLStereo(LeftEyeDistance) 1 0 0 1
    OGLStereo(RightEyeDistance) 0 1 1 1
-EndZE /home/ipouplana/Descargas/Tests/consolidation_interface_3D.gid/consolidation_interface_3D.vv
+EndZE /home/ipouplana/Descargas/tests/consolidation_interface_3D.gid/consolidation_interface_3D.vv
 
 BeginMirror
    Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror

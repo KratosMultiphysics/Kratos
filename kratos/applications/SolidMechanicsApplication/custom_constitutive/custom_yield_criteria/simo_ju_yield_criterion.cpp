@@ -89,8 +89,20 @@ double& SimoJuYieldCriterion::CalculateYieldCondition(double & rStateFunction, c
     const unsigned int Dim = StressMatrix.size1();
     
     Vector PrincipalStresses(Dim);
-    noalias(PrincipalStresses) = SolidMechanicsMathUtilities<double>::EigenValues(StressMatrix,1.0e-10,1.0e-10);
-    
+    if(Dim == 2)
+    {
+        PrincipalStresses[0] = 0.5*(StressMatrix(0,0)+StressMatrix(1,1)) +
+                               sqrt(0.25*(StressMatrix(0,0)-StressMatrix(1,1))*(StressMatrix(0,0)-StressMatrix(1,1)) +
+                                    StressMatrix(0,1)*StressMatrix(0,1));
+        PrincipalStresses[1] = 0.5*(StressMatrix(0,0)+StressMatrix(1,1)) -
+                               sqrt(0.25*(StressMatrix(0,0)-StressMatrix(1,1))*(StressMatrix(0,0)-StressMatrix(1,1)) +
+                                    StressMatrix(0,1)*StressMatrix(0,1));
+    }
+    else
+    {
+        noalias(PrincipalStresses) = SolidMechanicsMathUtilities<double>::EigenValuesDirectMethod(StressMatrix);
+    }
+
     double Macaulay_PrincipalStress = 0.0, Absolute_PrincipalStress = 0.0;
     
     for(unsigned int i = 0; i < Dim; i++)

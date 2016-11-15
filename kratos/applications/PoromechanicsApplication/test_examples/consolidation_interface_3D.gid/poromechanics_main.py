@@ -171,6 +171,11 @@ while( (time+tol) <= end_time ):
 
 ## Finalize --------------------------------------------------------------------------------------------------
 
+# Print last step
+#gid_output.ExecuteInitializeSolutionStep()
+#gid_output.ExecuteFinalizeSolutionStep()
+#gid_output.PrintOutput()
+
 # Finalizing output files
 gid_output.ExecuteFinalize()
 

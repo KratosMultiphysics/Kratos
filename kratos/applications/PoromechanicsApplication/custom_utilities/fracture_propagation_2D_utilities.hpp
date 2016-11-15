@@ -726,73 +726,55 @@ protected:
             pElementOld->GetGeometry().ShapeFunctionsValues(ShapeFunctionsValuesVector,LocalCoordinates);
 
             // Interpolation of nodal variables
-            if( (itNodeNew->pGetDof(DISPLACEMENT_X))->IsFixed()==false )
+            if( itNodeNew->IsFixed(DISPLACEMENT_X)==false )
             {
                 for(int j = 0; j < PointsNumber; j++)
                 {
                     NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(DISPLACEMENT_X);
                 }
                 itNodeNew->FastGetSolutionStepValue(DISPLACEMENT_X) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
-                for(int j = 0; j < PointsNumber; j++)
-                {
-                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(DISPLACEMENT_X,1);
-                }
-                itNodeNew->FastGetSolutionStepValue(DISPLACEMENT_X,1) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+            }
+            if( itNodeNew->IsFixed(VELOCITY_X)==false )
+            {
                 for(int j = 0; j < PointsNumber; j++)
                 {
                     NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(VELOCITY_X);
                 }
                 itNodeNew->FastGetSolutionStepValue(VELOCITY_X) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
-                for(int j = 0; j < PointsNumber; j++)
-                {
-                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(VELOCITY_X,1);
-                }
-                itNodeNew->FastGetSolutionStepValue(VELOCITY_X,1) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+            }
+            if( itNodeNew->IsFixed(ACCELERATION_X)==false )
+            {
                 for(int j = 0; j < PointsNumber; j++)
                 {
                     NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(ACCELERATION_X);
                 }
                 itNodeNew->FastGetSolutionStepValue(ACCELERATION_X) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
-                for(int j = 0; j < PointsNumber; j++)
-                {
-                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(ACCELERATION_X,1);
-                }
-                itNodeNew->FastGetSolutionStepValue(ACCELERATION_X,1) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
             }
-            if( (itNodeNew->pGetDof(DISPLACEMENT_Y))->IsFixed()==false )
+            if( itNodeNew->IsFixed(DISPLACEMENT_Y)==false )
             {
                 for(int j = 0; j < PointsNumber; j++)
                 {
                     NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(DISPLACEMENT_Y);
                 }
                 itNodeNew->FastGetSolutionStepValue(DISPLACEMENT_Y) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
-                for(int j = 0; j < PointsNumber; j++)
-                {
-                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(DISPLACEMENT_Y,1);
-                }
-                itNodeNew->FastGetSolutionStepValue(DISPLACEMENT_Y,1) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+            }
+            if( itNodeNew->IsFixed(VELOCITY_Y)==false )
+            {
                 for(int j = 0; j < PointsNumber; j++)
                 {
                     NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(VELOCITY_Y);
                 }
                 itNodeNew->FastGetSolutionStepValue(VELOCITY_Y) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
-                for(int j = 0; j < PointsNumber; j++)
-                {
-                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(VELOCITY_Y,1);
-                }
-                itNodeNew->FastGetSolutionStepValue(VELOCITY_Y,1) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+            }
+            if( itNodeNew->IsFixed(ACCELERATION_Y)==false )
+            {
                 for(int j = 0; j < PointsNumber; j++)
                 {
                     NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(ACCELERATION_Y);
                 }
                 itNodeNew->FastGetSolutionStepValue(ACCELERATION_Y) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
-                for(int j = 0; j < PointsNumber; j++)
-                {
-                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(ACCELERATION_Y,1);
-                }
-                itNodeNew->FastGetSolutionStepValue(ACCELERATION_Y,1) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
             }
-            if( (itNodeNew->pGetDof(WATER_PRESSURE))->IsFixed()==false )
+            if( itNodeNew->IsFixed(WATER_PRESSURE)==false )
             {
                 for(int j = 0; j < PointsNumber; j++)
                 {
@@ -801,19 +783,9 @@ protected:
                 itNodeNew->FastGetSolutionStepValue(WATER_PRESSURE) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
                 for(int j = 0; j < PointsNumber; j++)
                 {
-                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(WATER_PRESSURE,1);
-                }
-                itNodeNew->FastGetSolutionStepValue(WATER_PRESSURE,1) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
-                for(int j = 0; j < PointsNumber; j++)
-                {
                     NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(DT_WATER_PRESSURE);
                 }
                 itNodeNew->FastGetSolutionStepValue(DT_WATER_PRESSURE) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
-                for(int j = 0; j < PointsNumber; j++)
-                {
-                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(DT_WATER_PRESSURE,1);
-                }
-                itNodeNew->FastGetSolutionStepValue(DT_WATER_PRESSURE,1) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
             }
         }
     }
@@ -827,6 +799,10 @@ protected:
         ModelPart& rModelPartNew)
     {
         // Define GaussPointOld Cell matrix
+        std::vector< std::vector< std::vector<GaussPointOld> > > BodyGaussPointOldCellMatrix;
+        BodyGaussPointOldCellMatrix.resize(AuxVariables.NRows);
+        for(int i = 0; i < AuxVariables.NRows; i++) BodyGaussPointOldCellMatrix[i].resize(AuxVariables.NColumns);
+        
         std::vector< std::vector< std::vector<GaussPointOld> > > GaussPointOldCellMatrix;
         GaussPointOldCellMatrix.resize(AuxVariables.NRows);
         for(int i = 0; i < AuxVariables.NRows; i++) GaussPointOldCellMatrix[i].resize(AuxVariables.NColumns);
@@ -886,6 +862,7 @@ protected:
                     Column = int((MyGaussPointOld.Coordinates[0]-AuxVariables.X_min)/AuxVariables.ColumnSize);
                     #pragma omp critical
                     {
+                        BodyGaussPointOldCellMatrix[Row][Column].push_back(MyGaussPointOld);
                         GaussPointOldCellMatrix[Row][Column].push_back(MyGaussPointOld);
                     }
                 }
@@ -1006,9 +983,9 @@ protected:
                     {
                         for(int l = Column_left; l<= Column_right; l++)
                         {
-                            for(unsigned int m = 0; m < GaussPointOldCellMatrix[k][l].size(); m++)
+                            for(unsigned int m = 0; m < BodyGaussPointOldCellMatrix[k][l].size(); m++)
                             {
-                                GaussPointOld& rOtherGaussPointOld = GaussPointOldCellMatrix[k][l][m];
+                                GaussPointOld& rOtherGaussPointOld = BodyGaussPointOldCellMatrix[k][l][m];
 
                                 Distance = sqrt((rOtherGaussPointOld.Coordinates[0]-X_me)*(rOtherGaussPointOld.Coordinates[0]-X_me) +
                                                 (rOtherGaussPointOld.Coordinates[1]-Y_me)*(rOtherGaussPointOld.Coordinates[1]-Y_me));

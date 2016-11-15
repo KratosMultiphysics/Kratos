@@ -53,6 +53,10 @@
 #include "custom_constitutive/simo_ju_nonlocal_damage_plane_strain_2D_law.hpp"
 #include "custom_constitutive/simo_ju_nonlocal_damage_plane_stress_2D_law.hpp"
 
+#include "custom_constitutive/modified_mises_nonlocal_damage_3D_law.hpp"
+#include "custom_constitutive/modified_mises_nonlocal_damage_plane_strain_2D_law.hpp"
+#include "custom_constitutive/modified_mises_nonlocal_damage_plane_stress_2D_law.hpp"
+
 namespace Kratos
 {
 
@@ -177,6 +181,10 @@ const SimoJuLocalDamagePlaneStress2DLaw mSimoJuLocalDamagePlaneStress2DLaw;
 const SimoJuNonlocalDamage3DLaw mSimoJuNonlocalDamage3DLaw;
 const SimoJuNonlocalDamagePlaneStrain2DLaw mSimoJuNonlocalDamagePlaneStrain2DLaw;
 const SimoJuNonlocalDamagePlaneStress2DLaw mSimoJuNonlocalDamagePlaneStress2DLaw;
+
+const ModifiedMisesNonlocalDamage3DLaw mModifiedMisesNonlocalDamage3DLaw;
+const ModifiedMisesNonlocalDamagePlaneStrain2DLaw mModifiedMisesNonlocalDamagePlaneStrain2DLaw;
+const ModifiedMisesNonlocalDamagePlaneStress2DLaw mModifiedMisesNonlocalDamagePlaneStress2DLaw;
 
 // Assignment operator.
 KratosPoromechanicsApplication& operator=(KratosPoromechanicsApplication const& rOther);

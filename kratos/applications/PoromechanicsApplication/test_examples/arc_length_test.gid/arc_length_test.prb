@@ -6,7 +6,7 @@ QUESTION: Start_Time
 VALUE: 0.0
 HELP: Units in IS: s
 QUESTION: End_Time
-VALUE: 50
+VALUE: 40.0
 HELP: Units in IS: s
 QUESTION: Delta_Time
 VALUE: 1.0
@@ -19,7 +19,7 @@ QUESTION: FIC_Stabilization#CB#(true,false)
 VALUE: false
 HELP: Only for linear elements with equal order interpolation for displacements and pressures.
 QUESTION: Non-local_Damage#CB#(true,false)
-VALUE: false
+VALUE: true
 DEPENDENCIES: (true,RESTORE,Characteristic_Length,#CURRENT#)(false,HIDE,Characteristic_Length,#CURRENT#)
 QUESTION: Characteristic_Length
 VALUE: 0.01
@@ -70,20 +70,20 @@ VALUE: 1.0E-4
 QUESTION: Residual_Absolute_Tolerance
 VALUE: 1.0E-9
 QUESTION: Max_Iterations
-VALUE: 20
+VALUE: 25
 QUESTION: Desired_Iterations
 VALUE: 4
 HELP: The larger this number, the larger the radius
 QUESTION: Max_Radius_Factor
-VALUE: 20.0
+VALUE: 10.0
 HELP: Times the initial radius. In order to use a constant radius, choose the same value for Min Radius Factor and Max Radius Factor
 QUESTION: Min_Radius_Factor
-VALUE: 0.5
+VALUE: 1.0
 HELP: Times the initial radius. In order to use a constant radius, choose the same value for Min Radius Factor and Max Radius Factor
 QUESTION: Builder#CB#(Elimination,Block)
 VALUE: Elimination
 QUESTION: Solver_Type#CB#(SkylineLUFactorizationSolver,SuperLUSolver,BICGSTABSolver,AMGCL)
-VALUE: SuperLUSolver
+VALUE: BICGSTABSolver
 HELP: SkylineLUFactorizationSolver and SuperLUSolver are direct solvers. BICGSTABSolver and AMGCL are iterative solvers.
 QUESTION: Scaling#CB#(true,false)
 VALUE: false

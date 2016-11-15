@@ -208,6 +208,8 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( DAMAGE_THRESHOLD )
     KRATOS_REGISTER_VARIABLE( STRENGTH_RATIO )
     KRATOS_REGISTER_VARIABLE( FRACTURE_ENERGY )
+    KRATOS_REGISTER_VARIABLE( RESIDUAL_STRENGTH )
+    KRATOS_REGISTER_VARIABLE( SOFTENING_SLOPE )
 
     //thermal
     KRATOS_REGISTER_VARIABLE( THERMAL_EXPANSION_COEFFICIENT );
@@ -354,6 +356,10 @@ namespace Kratos
     Serializer::Register( "IsotropicDamageSimoJuPlaneStrain2DLaw", mIsotropicDamageSimoJuPlaneStrain2DLaw );
     Serializer::Register( "IsotropicDamageSimoJuPlaneStress2DLaw", mIsotropicDamageSimoJuPlaneStress2DLaw );
 
+    Serializer::Register( "IsotropicDamageModifiedMises3DLaw", mIsotropicDamageModifiedMises3DLaw );
+    Serializer::Register( "IsotropicDamageModifiedMisesPlaneStrain2DLaw", mIsotropicDamageModifiedMisesPlaneStrain2DLaw );
+    Serializer::Register( "IsotropicDamageModifiedMisesPlaneStress2DLaw", mIsotropicDamageModifiedMisesPlaneStress2DLaw );
+    
     //REGISTER FOR SERIALIZATION
     //Linear Elastic Plastic laws
     //Serializer::Register( "LinearElasticPlastic3DLaw", mLinearElasticPlastic3DLaw );
@@ -378,11 +384,13 @@ namespace Kratos
     //Yield Criteria
     Serializer::Register( "MisesHuberYieldCriterion", mMisesHuberYieldCriterion );
     Serializer::Register( "SimoJuYieldCriterion", mSimoJuYieldCriterion );
+    Serializer::Register( "ModifiedMisesYieldCriterion", mModifiedMisesYieldCriterion );
     
     //Hardening Laws
     Serializer::Register( "NonLinearIsotropicKinematicHardeningLaw", mNonLinearIsotropicKinematicHardeningLaw );
     Serializer::Register( "LinearIsotropicKinematicHardeningLaw", mLinearIsotropicKinematicHardeningLaw );
     Serializer::Register( "ExponentialDamageHardeningLaw", mExponentialDamageHardeningLaw );
+    Serializer::Register( "ModifiedExponentialDamageHardeningLaw", mModifiedExponentialDamageHardeningLaw );
 
    }
 
