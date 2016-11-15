@@ -692,7 +692,14 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
         } else {
             set etype [join [string tolower [$cnd getAttribute ElementType]] ,]
         }
-        if {$etype eq ""} {set etype "point,line,surface,volume"}
+        if {$etype eq ""} {
+            if {$::Model::SpatialDimension eq "3D"} {
+                set etype "point,line,surface,volume"
+            } else {
+                set etype "point,line,surface"
+            }
+            
+        }
         set units [$cnd getAttribute "units"]
         set um [$cnd getAttribute "unit_magnitude"]
         set process [::Model::GetProcess [$cnd getProcessName]]
