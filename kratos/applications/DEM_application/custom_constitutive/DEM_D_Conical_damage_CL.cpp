@@ -54,14 +54,21 @@ namespace Kratos {
     }
     
     void DEM_D_Conical_damage::DamageContact(SphericParticle* const element1, SphericParticle* const element2, double& equiv_radius, double& equiv_young, double& equiv_shear, double& indentation, const double normal_contact_force) {
+
+        double equiv_radius_old = equiv_radius;
         //Get new Equivalent Radius
-        equiv_radius    = (equiv_young * sqrt(6 * normal_contact_force)) / (pow(KRATOS_M_PI * element1->GetParticleMaxStress(),1.5));
+        equiv_radius            = (equiv_young * sqrt(6 * normal_contact_force)) / (pow(KRATOS_M_PI * element1->GetParticleMaxStress(),1.5));
 
         const double AlphaFunction = element1->GetProperties()[ALPHA_FUNCTION];
-        const double offset        = (equiv_radius - element1->GetParticleContactRadius()) * AlphaFunction;
+        const double offset        = (equiv_radius - equiv_radius_old) * AlphaFunction;
 
-        if (indentation > (2 * offset)) indentation -= (2 * offset);
-        else indentation = 0.0;
+        if (indentation > offset) {
+            indentation = indentation - offset;
+        }
+        
+        else {
+            indentation = 0.0;
+        }
         
         //New Normal and Tangent elastic constants
         const double sqrt_equiv_radius_and_indentation = sqrt(equiv_radius * indentation);
@@ -181,15 +188,22 @@ namespace Kratos {
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }
     
-    void DEM_D_Conical_damage::DamageContactWithFEM(SphericParticle* const element, DEMWall* const wall, double& effective_radius, double& equiv_young, double& equiv_shear, double& indentation, const double normal_contact_force) {        
+    void DEM_D_Conical_damage::DamageContactWithFEM(SphericParticle* const element, DEMWall* const wall, double& effective_radius, double& equiv_young, double& equiv_shear, double& indentation, const double normal_contact_force) {
+        
+        double effective_radius_old = effective_radius;
         //Get new Effective Radius
         effective_radius    = (equiv_young * sqrt(6 * normal_contact_force)) / (pow(KRATOS_M_PI * element->GetParticleMaxStress(),1.5));
         
         const double AlphaFunction = element->GetProperties()[ALPHA_FUNCTION];
-        const double offset        = (effective_radius - element->GetParticleContactRadius()) * AlphaFunction;
+        const double offset        = (effective_radius - effective_radius_old) * AlphaFunction;
 
-        if (indentation >  offset) indentation -= offset;
-        else indentation = 0.0;
+        if (indentation > (0.5 * offset)) {
+            indentation = indentation - (0.5 * offset);
+        }
+        
+        else {
+            indentation = 0.0;
+        }
 
         //New Normal and Tangent elastic constants
         const double sqrt_equiv_radius_and_indentation = sqrt(effective_radius * indentation);
