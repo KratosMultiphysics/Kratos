@@ -60,5 +60,10 @@
 		return [Pfem::xml::ProcActiveIfAnyPartState $domNode $args]
 		]]>
 	</proc>
+	<proc n='GetBodiesValues' args='args'>
+		<![CDATA[
+		return [Pfem::xml::ProcGetBodiesValues $domNode $args]
+		]]>
+	</proc>
 
 </container>
