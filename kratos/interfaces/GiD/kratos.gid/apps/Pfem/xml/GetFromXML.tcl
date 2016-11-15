@@ -22,14 +22,14 @@ proc Pfem::xml::getUniqueName {name} {
 }
 
 
-proc ::Pfem::xml::MultiAppEvent {args} {
+proc Pfem::xml::MultiAppEvent {args} {
     if {$args eq "init"} {
 	spdAux::parseRoutes
 	spdAux::ConvertAllUniqueNames SL PFEM_
     }
 }
 
-proc ::Pfem::xml::::CheckElementOutputState { domNode args } {
+proc Pfem::xml::CheckElementOutputState { domNode args } {
     set elemsactive [list ]
     foreach parts_un [Pfem::write::GetPartsUN] {
 	set parts_path [spdAux::getRoute $parts_un]
@@ -46,17 +46,17 @@ proc Pfem::xml::ProcGetElementsDict {domNode args} {
     set names [list ]
     set blockNode [Pfem::xml::FindMyBlocknode $domNode]
     set BodyType [get_domnode_attribute [$blockNode selectNodes "value\[@n='BodyType'\]"] v]
-    #W $BodyType
     set argums [list ElementType $BodyType]
     set elems [Pfem::xml::GetElements $domNode $args]
+    set pnames ""
     foreach elem $elems {
-	#W [$elem getName]
-	if {[$elem cumple $argums]} {
-	    lappend pnames [$elem getName] 
-	    lappend pnames [$elem getPublicName]
-	}
+        if {[$elem cumple $argums]} {
+            lappend pnames [$elem getName] 
+            lappend pnames [$elem getPublicName]
+        }
     }
     set diction [join $pnames ","]
+    if {$diction eq ""} {W "No available elements - Check Solution strategy & scheme - Check Kratos mode (developer)"}
     return $diction
 }
 proc Pfem::xml::ProcGetElementsValues {domNode args} {
@@ -241,5 +241,16 @@ proc Pfem::xml::ProcGetPartUN {domNode args} {
     #$domNode setAttribute curr_un $un
     return $un
 }
+
+proc Pfem::xml::ProcActiveIfAnyPartState {domNode args} {
+    set parts ""
+    set parts_un [Pfem::xml::ProcGetPartUN $domNode $args]
+    catch {
+        set parts [$domNode selectNodes "[spdAux::getRoute $parts_un]/group"]
+    }
+    if {$parts ne ""} {return "normal"} else {return "hidden"}
+}
+
+
 
 Pfem::xml::Init
