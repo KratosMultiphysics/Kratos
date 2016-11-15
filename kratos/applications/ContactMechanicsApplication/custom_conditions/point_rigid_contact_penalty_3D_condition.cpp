@@ -134,19 +134,24 @@ namespace Kratos
 
       for(unsigned int i = 0; i < rN.size(); i++)
       {
-         if(rN[i].Is(BOUNDARY)){
+	if(rN[i].Is(BOUNDARY)){
 
-            Neighb_Point[0] = rN[i].X();
-            Neighb_Point[1] = rN[i].Y();
-            Neighb_Point[2] = rN[i].Z();
+	  Neighb_Point[0] = rN[i].X();
+	  Neighb_Point[1] = rN[i].Y();
+	  Neighb_Point[2] = rN[i].Z();
 
-            distance += norm_2(Contact_Point-Neighb_Point);
+	  distance += norm_2(Contact_Point-Neighb_Point);
 
-            counter ++;
-         }
+	  counter ++;
+	}
       }
 
-      distance /= 2.0;
+      if( counter != 0 )
+         distance /= counter;
+      
+      if( distance == 0 )
+	distance = 1;
+
       mTangentialVariables.Neighb_distance = distance; 
 
       //when implex is active --> it deletes contact forces at last implex step<--
@@ -232,7 +237,7 @@ namespace Kratos
       array_1d<double,3> Neighb_Point;
 
       double distance = 0;
-      double counter = 0;
+      double counter  = 0;
 
       for(unsigned int i = 0; i < rN.size(); i++)
       {
@@ -292,7 +297,7 @@ namespace Kratos
 
       rVariables.Penalty.Tangent = rVariables.Penalty.Normal * PenaltyRatio ; ///20.0;  
 
-      //std::cout<<" Node "<<GetGeometry()[0].Id()<<" Contact Factors "<<rVariables.Penalty.Normal<<" Gap Normal "<<rVariables.Gap.Normal<<" Gap Tangent "<<rVariables.Gap.Tangent<<" Surface.Normal "<<rVariables.Surface.Normal<<" Surface.Tangent "<<rVariables.Surface.Tangent<<" distance "<<distance<<" ElasticModulus "<<ElasticModulus<<" PenaltyParameter "<<PenaltyParameter<<std::endl;
+      //std::cout<<" Node ("<<GetGeometry()[0].Id()<<") -> Contact Factors: [Penalty Normal: "<<rVariables.Penalty.Normal<<", Gap Normal: "<<rVariables.Gap.Normal<<", Gap Tangent: "<<rVariables.Gap.Tangent<<", Surface.Normal: "<<rVariables.Surface.Normal<<", Surface.Tangent: "<<rVariables.Surface.Tangent<<", Neigh_distance: "<<distance<<", ElasticModulus: "<<ElasticModulus<<", PenaltyParameter: "<<PenaltyParameter<<"]"<<std::endl;
 
       //std::cout<<" Penalty.Normal "<<rVariables.Penalty.Normal<<" Penalty.Tangent "<<rVariables.Penalty.Tangent<<std::endl;
 
