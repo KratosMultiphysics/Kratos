@@ -215,26 +215,20 @@ void MortarContactCondition::FinalizeNonLinearIteration( ProcessInfo& rCurrentPr
             if (inside == true)
             {
                 const double IntegrationWeight = integration_points[PointNumber].Weight();
+             
+                total_weight += IntegrationWeight;
                 
-                // The normal LM augmented
-                const double augmented_normal_lm = this->AugmentedNormalLM(Variables, rContactData, integration_point_gap, dimension);      
+                // The slip of th GP
+                double integration_point_slip;
+                // The tangent LM augmented
+                const double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, integration_point_slip, dimension);
                 
-                if (augmented_normal_lm < 0.0) // NOTE: It is active (debate about active/inactive with < or <=) 
-                {         
-                    total_weight += IntegrationWeight;
-                    
-                    // The slip of th GP
-                    double integration_point_slip;
-                    // The tangent LM augmented
-                    const double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, integration_point_slip, dimension);
-                    
-                    for (unsigned int iNode = 0; iNode < number_of_nodes_slave; iNode++)
-                    {
-                        const double int_aux = IntegrationWeight * Variables.DetJSlave * Variables.Phi_LagrangeMultipliers[iNode];
-                        aux_int_gap[iNode]      +=  integration_point_gap  * int_aux;
-                        aux_int_slip[iNode]     +=  integration_point_slip * int_aux;
-                        aux_int_friction[iNode] +=  Variables.mu           * int_aux;
-                    }
+                for (unsigned int iNode = 0; iNode < number_of_nodes_slave; iNode++)
+                {
+                    const double int_aux = IntegrationWeight * Variables.DetJSlave * Variables.Phi_LagrangeMultipliers[iNode];
+                    aux_int_gap[iNode]      +=  integration_point_gap  * int_aux;
+                    aux_int_slip[iNode]     +=  integration_point_slip * int_aux;
+                    aux_int_friction[iNode] +=  Variables.mu           * int_aux;
                 }
             }
         }
@@ -252,26 +246,6 @@ void MortarContactCondition::FinalizeNonLinearIteration( ProcessInfo& rCurrentPr
                 GetGeometry()[iNode].GetValue(WEIGHTED_SLIP)     += aux_int_slip[iNode]; 
                 #pragma omp atomic 
                 GetGeometry()[iNode].GetValue(WEIGHTED_FRICTION) += aux_int_friction[iNode]; 
-                
-//                 #pragma omp critical
-//                 {
-//                     if (rContactData.Gaps[iNode] < GetGeometry()[iNode].GetValue(WEIGHTED_GAP))           // NOTE: We keep the smallest
-//                     {
-//                         GetGeometry()[iNode].GetValue(WEIGHTED_GAP) = rContactData.Gaps[iNode]; 
-//                     }
-//                     if (aux_int_gap[iNode] < GetGeometry()[iNode].GetValue(WEIGHTED_GAP))           // NOTE: We keep the smallest
-//                     {
-//                         GetGeometry()[iNode].GetValue(WEIGHTED_GAP) = aux_int_gap[iNode]; 
-//                     }
-//                     if (aux_int_slip[iNode] < GetGeometry()[iNode].GetValue(WEIGHTED_SLIP))         // NOTE: We keep the smallest¿?
-//                     {
-//                         GetGeometry()[iNode].GetValue(WEIGHTED_SLIP) = aux_int_slip[iNode]; 
-//                     }
-//                     if (aux_int_friction[iNode] > GetGeometry()[iNode].GetValue(WEIGHTED_FRICTION)) // NOTE: We keep the biggest
-//                     {
-//                         GetGeometry()[iNode].GetValue(WEIGHTED_FRICTION) = aux_int_friction[iNode]; 
-//                     }
-//                 }
             }
         }
         else

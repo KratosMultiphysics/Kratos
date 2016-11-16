@@ -232,7 +232,7 @@ protected:
             DetJSlave = 0.0;
            
             // Jacobians on all integration points
-            j_Slave.resize( rNumberOfSlaveNodes, 1, false );
+            j_Slave.resize( rDimension, rLocalDimensionSlave, false );
             
             // Friction coefficient
             mu = 0.0;
