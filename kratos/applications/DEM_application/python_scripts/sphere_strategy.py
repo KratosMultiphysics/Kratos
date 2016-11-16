@@ -20,7 +20,7 @@ class ExplicitStrategy:
         else:
             self.compute_stress_tensor_option = self.Var_Translator(Param.ComputeStressTensorOption)
 
-        if (self.Var_Translator(Param.PostStressStrainOption)):
+        if (hasattr(Param, "PostStressStrainOption") and self.Var_Translator(Param.PostStressStrainOption)):
             self.compute_stress_tensor_option = 1
             self.print_stress_tensor_option = 1
         else:
