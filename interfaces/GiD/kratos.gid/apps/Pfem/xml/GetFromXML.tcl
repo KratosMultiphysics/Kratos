@@ -33,7 +33,7 @@ proc Pfem::xml::CustomTree { args } {
     # Hide Results Cut planes
     spdAux::SetValueOnTreeItem v time Results FileLabel
     spdAux::SetValueOnTreeItem v time Results OutputControlType
-    spdAux::SetValueOnTreeItem v 0.005 Results OutputDeltaTime
+    spdAux::SetValueOnTreeItem v 0.04 Results OutputDeltaTime
 }
 
 proc Pfem::xml::CheckElementOutputState { domNode args } {
