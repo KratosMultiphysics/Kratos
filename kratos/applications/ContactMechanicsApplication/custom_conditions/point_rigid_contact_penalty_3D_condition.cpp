@@ -115,12 +115,17 @@ namespace Kratos
       mTangentialVariables.DynamicFrictionCoefficient = 0.0;//0.2;
       mTangentialVariables.StaticFrictionCoefficient  = 0.0;//0.3;
 
-      if( GetProperties().Has(MU_DYNAMIC) )
-	mTangentialVariables.DynamicFrictionCoefficient = GetProperties()[MU_DYNAMIC];
+      if( GetProperties().Has(FRICTION_ACTIVE) ){
+	if( GetProperties()[FRICTION_ACTIVE] ){
 
-      if( GetProperties().Has(MU_STATIC) )
-	mTangentialVariables.StaticFrictionCoefficient = GetProperties()[MU_STATIC];
+	  if( GetProperties().Has(MU_DYNAMIC) )
+	    mTangentialVariables.DynamicFrictionCoefficient = GetProperties()[MU_DYNAMIC];
 
+	  if( GetProperties().Has(MU_STATIC) )
+	    mTangentialVariables.StaticFrictionCoefficient = GetProperties()[MU_STATIC];
+	}
+      }
+	  
       mTangentialVariables.FrictionCoefficient = mTangentialVariables.StaticFrictionCoefficient;      
 
 

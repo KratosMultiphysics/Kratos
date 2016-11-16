@@ -108,6 +108,7 @@ class AssignVectorToConditionsProcess(BaseProcess.AssignModlulusAndDirectionToCo
         tolerance = delta_time * 0.001
 
         if( current_time >= (self.interval[0] - tolerance) and current_time <= (self.interval[1] + tolerance) ):
+            self.interval_ended = False;
             return True
         else:
             return False

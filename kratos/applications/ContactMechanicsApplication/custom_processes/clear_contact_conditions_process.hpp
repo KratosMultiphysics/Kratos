@@ -237,7 +237,7 @@ namespace Kratos
       //clearing contact conditions
       //
 	
-      if( mEchoLevel >= 1 ){
+      if( mEchoLevel > 1 ){
 	std::cout<<" ["<<rModelPart.Name()<<" :: CONDITIONS [OLD:"<<rModelPart.NumberOfConditions();
       }
 
@@ -256,7 +256,7 @@ namespace Kratos
       rModelPart.Conditions().Sort();
       rModelPart.Conditions().Unique();
 
-      if( mEchoLevel >= 1 ){
+      if( mEchoLevel > 1 ){
 	std::cout<<" / NEW:"<<rModelPart.NumberOfConditions()<<"] "<<std::endl;
       }
 

@@ -428,7 +428,9 @@ namespace Kratos
     double Solve()
     {
       KRATOS_TRY
-	mImplexFlag = true;
+	
+      mImplexFlag = true;
+      
       if (mImplexFlag == true)
 	this->GetModelPart().GetProcessInfo()[IMPLEX] = 1;
 

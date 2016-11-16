@@ -101,7 +101,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      mEchoLevel = 2;
+      mEchoLevel = 1;
 
       mpParametricWall = pParametricWall;
 	   
@@ -165,7 +165,9 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      std::cout<<"  [PARAMETRIC_CONTACT_SEARCH]:: -START- "<<std::endl;
+      if( mEchoLevel > 1 )
+	std::cout<<"  [PARAMETRIC_CONTACT_SEARCH]:: -START- "<<std::endl;
+      
       //update parametric wall position
       ProcessInfo& rCurrentProcessInfo= mrMainModelPart.GetProcessInfo(); 
       double Time      = rCurrentProcessInfo[TIME];
@@ -180,8 +182,9 @@ namespace Kratos
 
       //create contact conditions
       CreateContactConditions();
-	     
-      std::cout<<"  [PARAMETRIC_CONTACT_SEARCH]:: -END- "<<std::endl;
+
+      if( mEchoLevel > 1 )
+	std::cout<<"  [PARAMETRIC_CONTACT_SEARCH]:: -END- "<<std::endl;
 
       KRATOS_CATCH( "" )
     }
@@ -587,7 +590,7 @@ namespace Kratos
       
       ModelPart& rContactModelPart = mrMainModelPart.GetSubModelPart(mContactModelPartName);
 
-      if( mEchoLevel >= 1 ){
+      if( mEchoLevel > 1 ){
 	std::cout<<"    ["<<rContactModelPart.Name()<<" :: CONDITIONS [OLD:"<<rContactModelPart.NumberOfConditions();
       }
 
@@ -640,7 +643,7 @@ namespace Kratos
       rContactModelPart.Conditions().swap(ContactConditions);
 
 
-      if( mEchoLevel >= 1 ){
+      if( mEchoLevel > 1 ){
 	std::cout<<" / NEW:"<<rContactModelPart.NumberOfConditions()<<"] "<<std::endl;
       }
 
@@ -658,8 +661,8 @@ namespace Kratos
       //Add contact conditions to  main domain( with AddCondition are already added )
       //AddContactConditions(rContactModelPart, mrMainModelPart);
  
-      if( mEchoLevel > 1 )
-	std::cout<<"    [RIGID WALL CONTACTS : "<<rContactModelPart.NumberOfConditions()<<"]"<<std::endl;
+      if( mEchoLevel >= 1 )
+	std::cout<<"  [CONTACT CANDIDATES : "<<rContactModelPart.NumberOfConditions()<<"] ("<<mContactModelPartName<<") "<<std::endl;
 
       KRATOS_CATCH( "" )
 
@@ -678,7 +681,7 @@ namespace Kratos
       //adding contact conditions
       //
 	
-      if( mEchoLevel >= 1 ){
+      if( mEchoLevel > 1 ){
 	std::cout<<"    ["<<rDestinationModelPart.Name()<<" :: CONDITIONS [OLD:"<<rDestinationModelPart.NumberOfConditions();
       }
 
@@ -690,7 +693,7 @@ namespace Kratos
 	  
 	}
       
-      if( mEchoLevel >= 1 ){
+      if( mEchoLevel > 1 ){
 	std::cout<<" / NEW:"<<rDestinationModelPart.NumberOfConditions()<<"] "<<std::endl;
       }
             
