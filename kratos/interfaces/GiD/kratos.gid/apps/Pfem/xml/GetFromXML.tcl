@@ -29,6 +29,13 @@ proc Pfem::xml::MultiAppEvent {args} {
     }
 }
 
+proc Pfem::xml::CustomTree { args } {
+    # Hide Results Cut planes
+    spdAux::SetValueOnTreeItem v time Results FileLabel
+    spdAux::SetValueOnTreeItem v time Results OutputControlType
+    spdAux::SetValueOnTreeItem v 0.005 Results OutputDeltaTime
+}
+
 proc Pfem::xml::CheckElementOutputState { domNode args } {
     set elemsactive [list ]
     foreach parts_un [Pfem::write::GetPartsUN] {
