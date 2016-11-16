@@ -82,13 +82,14 @@ namespace Kratos
   //************************************************************************************
   
   void AxisymPointRigidContactPenalty2DCondition::CalculateKinematics(GeneralVariables& rVariables,
+								      const ProcessInfo& rCurrentProcessInfo,
 								      const double& rPointNumber)
   {
     KRATOS_TRY
 
     CalculateRadius (rVariables.CurrentRadius, rVariables.ReferenceRadius);
     
-    PointRigidContactPenalty2DCondition::CalculateKinematics(rVariables, rPointNumber);
+    PointRigidContactPenalty2DCondition::CalculateKinematics(rVariables, rCurrentProcessInfo, rPointNumber);
     
     KRATOS_CATCH( "" )
   }

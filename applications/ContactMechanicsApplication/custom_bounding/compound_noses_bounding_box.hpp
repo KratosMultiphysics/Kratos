@@ -60,8 +60,9 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) CompoundNosesBoundingBox
 {
 public:
 
-  typedef bounded_vector<double, 3>                       PointType;
-  typedef ModelPart::NodeType::Pointer                     NodeType;
+  //typedef bounded_vector<double, 3>                     PointType;
+  typedef array_1d<double, 3>                             PointType;
+  typedef ModelPart::NodeType                              NodeType;
   typedef ModelPart::NodesContainerType          NodesContainerType;
   typedef NodesContainerType::Pointer     NodesContainerTypePointer;
   typedef BeamMathUtils<double>                   BeamMathUtilsType;
@@ -486,6 +487,20 @@ public:
     } 
 
 
+
+    //************************************************************************************
+    //************************************************************************************
+    
+    bool IsInside(BoundingBoxParameters& rValues, const ProcessInfo& rCurrentProcessInfo)
+    {
+      KRATOS_TRY
+	
+      return IsInside(rValues.GetPoint(),rValues.GetGapNormal(),rValues.GetGapTangent(),rValues.GetNormal(),rValues.GetTangent(),rValues.GetContactFace(), rValues.GetRadius());
+      
+      KRATOS_CATCH("")
+    }
+
+    
     //************************************************************************************
     //************************************************************************************
    

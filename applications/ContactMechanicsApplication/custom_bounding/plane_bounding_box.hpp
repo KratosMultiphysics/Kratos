@@ -56,8 +56,9 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) PlaneBoundingBox
 {
 public:
 
-    typedef bounded_vector<double, 3>                       PointType;
-    typedef ModelPart::NodeType::Pointer                     NodeType;
+    //typedef bounded_vector<double, 3>                     PointType;
+    typedef array_1d<double, 3>                             PointType;
+    typedef ModelPart::NodeType                              NodeType;
     typedef ModelPart::NodesContainerType          NodesContainerType;
     typedef NodesContainerType::Pointer     NodesContainerTypePointer;
 
@@ -300,7 +301,28 @@ public:
       return is_inside;
       
       KRATOS_CATCH("")
-    } 
+    }
+
+
+    //************************************************************************************
+    //************************************************************************************
+    
+    bool IsInside(BoundingBoxParameters& rValues, const ProcessInfo& rCurrentProcessInfo)
+    {
+      KRATOS_TRY
+
+      bool is_inside = false;
+
+      rValues.SetContactFace(0);
+      rValues.SetRadius(0.0);
+      
+      is_inside = ContactSearch(rValues, rCurrentProcessInfo);
+
+      return is_inside;
+		      
+      KRATOS_CATCH("")
+    }
+
 
 
    //************************************************************************************
@@ -491,7 +513,63 @@ private:
     }
 
 
+    //************************************************************************************
+    //************************************************************************************
 
+    //Plane (note: box position has been updated previously)
+    bool ContactSearch(BoundingBoxParameters& rValues, const ProcessInfo& rCurrentProcessInfo)
+    {
+      KRATOS_TRY
+      
+      const PointType& rPoint = rValues.GetPoint();
+      PointType& rNormal      = rValues.GetNormal();
+      PointType& rTangent     = rValues.GetTangent();
+      
+      double& rGapNormal      = rValues.GetGapNormal();
+      double& rGapTangent     = rValues.GetGapTangent();
+           
+      rNormal  = ZeroVector(3);
+      rTangent = ZeroVector(3);
+      
+      //1.-compute contact normal
+      rNormal = mPlane.Normal;
+
+      rNormal *= mBox.Convexity; 
+
+      //2.-compute  normal gap
+      rGapNormal = inner_prod((rPoint - mPlane.Point), rNormal);
+
+
+      //3.-compute contact tangent (following relative movement)
+      PointType PointDeltaDisplacement = rValues.GetDeltaDisplacement();
+
+      rTangent = PointDeltaDisplacement - inner_prod(PointDeltaDisplacement, rNormal) * rNormal;
+
+      if(norm_2(rTangent))
+	rTangent/= norm_2(rTangent);
+
+      
+      //4.-compute tangent direction
+      PointType BoxDeltaDisplacement   = this->GetBoxDeltaDisplacement(rCurrentProcessInfo[TIME], rCurrentProcessInfo.GetPreviousTimeStepInfo()[TIME]);
+
+      rTangent = rTangent - inner_prod(BoxDeltaDisplacement, rTangent) * rTangent;
+
+      //5.-compute  normal gap
+      rGapTangent = norm_2(rTangent);
+      
+      if(rGapTangent)
+	rTangent/= rGapTangent;
+         
+      
+      if(rGapNormal<0)
+	return true;
+      else
+	return false;
+
+      KRATOS_CATCH( "" )
+    }
+
+    
     //************************************************************************************
     //************************************************************************************
 

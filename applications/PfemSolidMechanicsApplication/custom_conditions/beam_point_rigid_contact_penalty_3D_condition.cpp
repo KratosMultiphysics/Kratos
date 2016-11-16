@@ -81,14 +81,14 @@ namespace Kratos
 
        
        GeneralVariables ContactVariables;
-       int ContactFace = 0;
+
+       SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent);           
 
        //to perform contact with a tube radius must be set
-       double Radius = 0;
-       Radius = GetGeometry()[0].GetValue(MEAN_RADIUS);
-
-       if ( this->mpRigidWall->IsInside( GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent, ContactFace, Radius ) ) {
-
+       BoxParameters.SetRadius(GetGeometry()[0].GetValue(MEAN_RADIUS));
+       
+       if ( this->mpRigidWall->IsInside( BoxParameters, rCurrentProcessInfo ) ) {
+       
   	   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
   	   array_1d<double, 3> &ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
 
@@ -154,17 +154,17 @@ namespace Kratos
   //************************************************************************************
   
   void BeamPointRigidContactPenalty3DCondition::CalculateKinematics(GeneralVariables& rVariables,
-								const double& rPointNumber)
+								    const ProcessInfo& rCurrentProcessInfo,
+								    const double& rPointNumber)
   {
     KRATOS_TRY
     
-    int ContactFace = 0; //free surface
-      
-    //to perform contact with a tube radius must be set
-    double Radius = 0;
-    Radius = GetGeometry()[0].GetValue(MEAN_RADIUS);
+    SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent);
 
-    if( this->mpRigidWall->IsInside( GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent, ContactFace, Radius ) ){
+    //to perform contact with a tube radius must be set
+    BoxParameters.SetRadius(GetGeometry()[0].GetValue(MEAN_RADIUS));
+
+    if( this->mpRigidWall->IsInside( BoxParameters, rCurrentProcessInfo ) ){
 
       rVariables.Options.Set(ACTIVE,true);
 
@@ -249,8 +249,8 @@ namespace Kratos
   //***********************************************************************************
 
   void BeamPointRigidContactPenalty3DCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-								GeneralVariables& rVariables,
-								double& rIntegrationWeight)
+								    GeneralVariables& rVariables,
+								    double& rIntegrationWeight)
 
   {
     KRATOS_TRY
@@ -338,8 +338,8 @@ namespace Kratos
   //***********************************************************************************
 
   void BeamPointRigidContactPenalty3DCondition::CalculateAndAddContactForces(VectorType& rRightHandSideVector,
-									 GeneralVariables& rVariables,
-									 double& rIntegrationWeight)
+									     GeneralVariables& rVariables,
+									     double& rIntegrationWeight)
 
   {
     KRATOS_TRY
@@ -366,8 +366,8 @@ namespace Kratos
   //***********************************************************************************
 
   void BeamPointRigidContactPenalty3DCondition::CalculateAndAddNormalContactForce(VectorType& rRightHandSideVector,
-									      GeneralVariables& rVariables,
-									      double& rIntegrationWeight)
+										  GeneralVariables& rVariables,
+										  double& rIntegrationWeight)
   {
       
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -404,8 +404,8 @@ namespace Kratos
   //***********************************************************************************
 
   void BeamPointRigidContactPenalty3DCondition::CalculateAndAddTangentContactForce(VectorType& rRightHandSideVector,
-									       GeneralVariables& rVariables,
-									       double& rIntegrationWeight)
+										   GeneralVariables& rVariables,
+										   double& rIntegrationWeight)
   {
 
        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();

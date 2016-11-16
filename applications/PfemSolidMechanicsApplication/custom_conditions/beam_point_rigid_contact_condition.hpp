@@ -56,7 +56,9 @@ public:
     ///@name Type Definitions
 
     ///Tensor order 1 definition
-    typedef bounded_vector<double, 3>        PointType;
+    //typedef bounded_vector<double, 3>        PointType;
+    typedef array_1d<double, 3>                PointType;
+
 
     ///@{
     // Counted pointer of BeamPointRigidContactCondition
@@ -455,7 +457,8 @@ protected:
     /**
      * Calculate Condition Kinematics
      */
-    virtual void CalculateKinematics(GeneralVariables& rVariables, 
+    virtual void CalculateKinematics(GeneralVariables& rVariables,
+				     const ProcessInfo& rCurrentProcessInfo,
 				     const double& rPointNumber);
 
     /**

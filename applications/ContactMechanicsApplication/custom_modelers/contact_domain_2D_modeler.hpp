@@ -77,6 +77,10 @@ public:
     /// Pointer definition of TriGenCDT
     KRATOS_CLASS_POINTER_DEFINITION( ContactDomain2DModeler );
 
+    ///Tensor order 1 definition
+    //typedef bounded_vector<double, 3>                       PointType;
+    typedef array_1d<double, 3>                               PointType;
+
     typedef ModelerUtilities::InfoParameters         InfoParametersType;
     typedef ModelerUtilities::MeshingParameters   MeshingParametersType;
     typedef ModelerUtilities::RefiningParameters   RefineParametersType;

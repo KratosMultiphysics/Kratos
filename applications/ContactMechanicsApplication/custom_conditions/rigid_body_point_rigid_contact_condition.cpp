@@ -260,10 +260,11 @@ void RigidBodyPointRigidContactCondition::InitializeSolutionStep( ProcessInfo& r
     KRATOS_TRY
 
     GeneralVariables ContactVariables;
-    int ContactFace = 0;
-       
-    if ( this->mpRigidWall->IsInside( GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent, ContactFace ) ) {
 
+    SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent);           
+    
+    if ( this->mpRigidWall->IsInside( BoxParameters, rCurrentProcessInfo ) ) {
+           
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
       array_1d<double, 3> &ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
 
@@ -376,15 +377,14 @@ void RigidBodyPointRigidContactCondition::InitializeGeneralVariables(GeneralVari
 //*********************************COMPUTE KINEMATICS*********************************
 //************************************************************************************
 
-void RigidBodyPointRigidContactCondition::CalculateKinematics(GeneralVariables& rVariables,
-					     const double& rPointNumber)
+  void RigidBodyPointRigidContactCondition::CalculateKinematics(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, const double& rPointNumber)
 {
     KRATOS_TRY
 
-    int ContactFace = 0; //free surface
-      
-    if( this->mpRigidWall->IsInside( GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent, ContactFace ) ){
+    SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent);
 
+    if( this->mpRigidWall->IsInside( BoxParameters, rCurrentProcessInfo ) ){
+      
       rVariables.Options.Set(ACTIVE,true);
 
       //get contact properties and parameters
@@ -525,7 +525,7 @@ void RigidBodyPointRigidContactCondition::CalculateKinematics(GeneralVariables& 
     for ( unsigned int PointNumber = 0; PointNumber < 1; PointNumber++ )
     {
         //compute element kinematics B, F, DN_DX ...
-        this->CalculateKinematics(Variables,PointNumber);
+        this->CalculateKinematics(Variables,rCurrentProcessInfo,PointNumber);
 
         //calculating weights for integration on the "reference configuration"
         double IntegrationWeight = 1;

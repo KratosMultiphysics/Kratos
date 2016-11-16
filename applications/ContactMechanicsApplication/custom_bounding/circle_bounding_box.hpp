@@ -61,8 +61,9 @@ public:
     /// Pointer definition of CircleBoundingBox
     KRATOS_CLASS_POINTER_DEFINITION( CircleBoundingBox );
 
-    typedef bounded_vector<double, 3>                       PointType;
-    typedef ModelPart::NodeType::Pointer                     NodeType;
+    //typedef bounded_vector<double, 3>                     PointType;
+    typedef array_1d<double, 3>                             PointType;
+    typedef ModelPart::NodeType                              NodeType;
     typedef ModelPart::NodesContainerType          NodesContainerType;
     typedef NodesContainerType::Pointer     NodesContainerTypePointer;
 

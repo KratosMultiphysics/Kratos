@@ -59,9 +59,8 @@ public:
     ///Element Type
     typedef Element::ElementType ElementType;
 	
-
-    ///Tensor order 1 definition
-    typedef ContactDomainUtilities::LocalVectorType  LocalVectorType;
+    ///Tensor order 1 definition   
+    typedef ContactDomainUtilities::PointType             PointType;
     ///SurfaceVector
     typedef ContactDomainUtilities::SurfaceVector      SurfaceVector;
     ///SurfaceScalar
@@ -232,11 +231,11 @@ protected:
 
     inline bool CheckFictiousContacts(GeneralVariables& rVariables);
 
-    LocalVectorType& CalculateCurrentTangent(LocalVectorType &rTangent);
+    PointType& CalculateCurrentTangent(PointType &rTangent);
 
-    void FSigmaP(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, LocalVectorType& AuxVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndr);
+    void FSigmaP(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, PointType& AuxVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndr);
 
-    void FSigmaPnd(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, LocalVectorType& AuxVector,unsigned int &ndi,unsigned int &ndj);
+    void FSigmaPnd(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, PointType& AuxVector,unsigned int &ndi,unsigned int &ndj);
 
 
 

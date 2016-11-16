@@ -59,7 +59,7 @@ namespace Kratos
 
     std::cout<<"   Minimum Nodal_h "<<nodal_h_min<<" OffsetFactor "<<rMeshingVariables.OffsetFactor<<std::endl;
 
-    std::vector<bounded_vector<double, 3> > BoxVertices;
+    std::vector<PointType> BoxVertices;
     BoxVertices.resize(0);
     //*********************************************************************
     if(rMeshingVariables.Options.Is(ModelerUtilities::CONSTRAINED)){
@@ -184,7 +184,7 @@ namespace Kratos
     
     //PART 2: faced list (we can have holes in facets != area holes)
     //*********************************************************************
-    std::vector<bounded_vector<double, 3> > BoxVertices;
+    std::vector<PointType> BoxVertices;
     BoxVertices.resize(0);
     double extra_radius = rMeshingVariables.OffsetFactor*4; 
     SpatialBoundingBox DomainBox (rModelPart, extra_radius);
