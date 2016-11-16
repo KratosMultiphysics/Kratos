@@ -20,7 +20,7 @@ class convergence_criterion:
         
         echo_level = convergence_criterion_parameters["echo_level"].GetInt()
         
-        if(echo_level > 1):
+        if(echo_level >= 1):
             print("::[Mechanical Solver]:: CONVERGENCE CRITERION : ", convergence_criterion_parameters["convergence_criterion"].GetString())
 
         rotation_dofs = False

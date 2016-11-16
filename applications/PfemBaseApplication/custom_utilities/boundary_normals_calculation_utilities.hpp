@@ -463,7 +463,7 @@ namespace Kratos
 	  for(ElementsContainerType::iterator it =  rElements.begin(); it !=rElements.end(); it++)
 	    {
 	      if(it->IsNot(CONTACT)){
-		//it->Set(BOUNDARY);
+		it->Set(BOUNDARY);
 		CalculateUnityNormal2D(it,An);
 	      }
 	    }
@@ -476,7 +476,7 @@ namespace Kratos
 	    {
 	      //calculate the normal on the given surface element
 	      if(it->IsNot(CONTACT)){
-		//it->Set(BOUNDARY);
+		it->Set(BOUNDARY);
 		CalculateUnityNormal3D(it,An,v1,v2);
 	      }
 	    }

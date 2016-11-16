@@ -80,9 +80,18 @@ Element::Pointer TranslatoryRigidBodyElement::Create(IndexType NewId, NodesArray
 //*********************************CLONE**********************************************
 //************************************************************************************
 
-Element::Pointer TranslatoryRigidBodyElement::Clone (IndexType NewId, NodesArrayType const& ThisNodes) const
+Element::Pointer TranslatoryRigidBodyElement::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const
 {
-  return Element::Pointer(new TranslatoryRigidBodyElement(NewId, GetGeometry().Create(ThisNodes), pGetProperties(), mpNodes));
+
+  TranslatoryRigidBodyElement NewElement( NewId, GetGeometry().Create(ThisNodes), pGetProperties(), mpNodes );
+  
+  //-----------//
+  NewElement.mInitialLocalQuaternion = this->mInitialLocalQuaternion;     
+  NewElement.SetData(this->GetData());
+  NewElement.SetFlags(this->GetFlags());
+
+  return Element::Pointer( new TranslatoryRigidBodyElement(NewElement) );
+  
 }
 
 

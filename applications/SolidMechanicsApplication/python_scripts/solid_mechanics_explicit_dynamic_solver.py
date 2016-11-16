@@ -94,9 +94,6 @@ class ExplicitMechanicalSolver(solid_mechanics_solver.MechanicalSolver):
                                      self.settings["reform_dofs_at_each_step"].GetBool(),
                                      self.settings["move_mesh_flag"].GetBool())
 
-        # Set the stabilization factor
-        self.main_model_part.ProcessInfo[KratosMultiphysics.STABILIZATION_FACTOR] = self.settings["stabilization_factor"].GetDouble()
-
         # Set echo_level
         self.mechanical_solver.SetEchoLevel(self.settings["echo_level"].GetInt())
 

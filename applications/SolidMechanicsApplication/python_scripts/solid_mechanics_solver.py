@@ -12,8 +12,7 @@ def CreateSolver(main_model_part, custom_settings):
 
 #Base class to develop other solvers
 class MechanicalSolver(object):
-    
-    
+        
     ##constructor. the constructor shall only take care of storing the settings 
     ##and the pointer to the main_model part. This is needed since at the point of constructing the 
     ##model part is still not filled and the variables are not yet allocated
@@ -42,9 +41,10 @@ class MechanicalSolver(object):
             },
             "rotation_dofs": false,
             "pressure_dofs": false,
-            "stabilization_factor": 1.0,
+            "stabilization_factor": null,
             "reform_dofs_at_each_step": false,
             "line_search": false,
+            "implex": false,
             "compute_reactions": true,
             "compute_contact_forces": false,
             "block_builder": false,
@@ -79,12 +79,7 @@ class MechanicalSolver(object):
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
         
         print("Warning: Construction of Base Mechanical Solver finished")
-
-        
-    def Initialize(self):
-
-        raise Exception("please implement the Custom Initialization of your solver")
-
+    
 
     def AddVariables(self):
         
@@ -163,6 +158,8 @@ class MechanicalSolver(object):
         if self.settings["pressure_dofs"].GetBool():                
             for node in self.main_model_part.Nodes:
                 node.AddDof(KratosMultiphysics.PRESSURE, KratosSolid.PRESSURE_REACTION);
+            if not self.settings["stabilization_factor"].IsNull():
+                self.main_model_part.ProcessInfo[KratosMultiphysics.STABILIZATION_FACTOR] = self.settings["stabilization_factor"].GetDouble()
 
         print("::[Mechanical Solver]:: DOF's ADDED")
 
@@ -251,7 +248,14 @@ class MechanicalSolver(object):
         
                 
         print ("::[Mechanical Solver]:: Model reading finished.")
- 
+
+        
+
+    def Initialize(self):
+
+        raise Exception("please implement the Custom Initialization of your solver")
+
+
         
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart(self.computing_model_part_name)
@@ -345,7 +349,7 @@ class MechanicalSolver(object):
         return builder_and_solver
 
         
-    def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search):
+    def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search, implex):
 
         raise Exception("please implement the Custom Choice of your Mechanical Solver (_GetMechanicalSolver) in your solver")
 

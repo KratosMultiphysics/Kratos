@@ -94,7 +94,14 @@ Element::Pointer RigidBodyElement::Create(IndexType NewId, NodesArrayType const&
 
 Element::Pointer RigidBodyElement::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const
 {
-  return Element::Pointer(new RigidBodyElement(NewId, GetGeometry().Create(ThisNodes), pGetProperties(), mpNodes));
+  RigidBodyElement NewElement( NewId, GetGeometry().Create(ThisNodes), pGetProperties(), mpNodes );
+  
+  //-----------//
+  NewElement.mInitialLocalQuaternion = this->mInitialLocalQuaternion;     
+  NewElement.SetData(this->GetData());
+  NewElement.SetFlags(this->GetFlags());
+
+  return Element::Pointer( new RigidBodyElement(NewElement) );
 }
 
 
