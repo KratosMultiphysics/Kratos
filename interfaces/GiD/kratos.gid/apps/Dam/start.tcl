@@ -9,6 +9,10 @@ proc ::Dam::Init { } {
     
     set dir [apps::getMyDir "Dam"]
     set ::Model::ValidSpatialDimensions [list 2D 3D]
+    
+    # Allow to open the tree
+    set ::spdAux::TreeVisibility 1
+    LoadMyFiles
     ::spdAux::CreateDimensionWindow
     
 }

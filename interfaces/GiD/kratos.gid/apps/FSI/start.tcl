@@ -19,8 +19,11 @@ proc ::FSI::Init { } {
     # Intervals only in developer mode
     dict set attributes UseIntervals 0
     #if {$::Kratos::kratos_private(DevMode) eq "dev"} {dict set attributes UseIntervals 1}
+    # Allow to open the tree
+    set ::spdAux::TreeVisibility 1
     
     set ::Model::ValidSpatialDimensions [list 2D 3D]
+    LoadMyFiles
     ::spdAux::CreateDimensionWindow
 }
 

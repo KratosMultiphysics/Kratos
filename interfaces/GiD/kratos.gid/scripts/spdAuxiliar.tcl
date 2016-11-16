@@ -28,8 +28,7 @@ proc spdAux::Init { } {
     set initwind ""
     set  currentexternalfile ""
     set refreshTreeTurn 0
-    set TreeVisibility 1
-    #spdAux::TryRefreshTree
+    set TreeVisibility 0
 }
 
 proc spdAux::RequestRefresh {} {
@@ -54,6 +53,15 @@ proc spdAux::TryRefreshTree { } {
         set ::spdAux::refreshTreeTurn 0
     }
     after 750 {spdAux::TryRefreshTree}
+}
+
+proc spdAux::OpenTree { } {
+    variable TreeVisibility
+    if {$TreeVisibility} {
+        if {[gid_groups_conds::open_conditions window_type] ne "menu"} {
+            gid_groups_conds::open_conditions menu
+        }
+    }
 }
 
 proc spdAux::EndRefreshTree { } {
@@ -279,11 +287,11 @@ proc spdAux::SwitchDimAndCreateWindow { ndim } {
     catch {apps::ExecuteOnCurrentXML CustomTree "" }
     
     if {$TreeVisibility} {
-        after 100 [list gid_groups_conds::open_conditions menu ]
+        customlib::UpdateDocument
         spdAux::PreChargeTree
         spdAux::TryRefreshTree
+        spdAux::OpenTree
     }
-    
 }
 
 proc spdAux::ForceExtremeLoad { } {

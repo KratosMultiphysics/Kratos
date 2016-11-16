@@ -27,5 +27,4 @@ proc Fluid::xml::CustomTree { args } {
     spdAux::SetValueOnTreeItem v time Results OutputControlType
 }
 
-
 Fluid::xml::Init
