@@ -57,8 +57,7 @@ def GetAvailableApplication():
     kratosPath = GetModulePath('KratosMultiphysics')
 
     apps = [
-        f.split('.')[0] for f in os.listdir(kratosPath)
-        if re.match(r'.*Application\.py$', f)
+        f.split('.')[0] for f in os.listdir(kratosPath) if re.match(r'.*Application\.py$', f)
     ]
 
     return apps
@@ -68,7 +67,7 @@ def handler(signum, frame):
     raise Exception("End of time")
 
 
-def RunTestSuit(application, path, level, verbose, command):
+def RunTestSuit(application, applicationPath, path, level, verbose, command):
     ''' Calls the script that will run the tests.
 
     Input
@@ -91,28 +90,60 @@ def RunTestSuit(application, path, level, verbose, command):
 
     '''
 
-    script = path+'/tests/'+'test_'+application+'.py'
+    appNormalizedPath = applicationPath.lower().replace('_', '')
 
-    if os.path.isfile(script):
-        subprocess.call([
-            command,
-            script,
-            '-l'+level,
-            '-v'+str(verbose)
-        ])
-    else:
+    possiblePaths = [
+        {'Found': p, 'FoundNormalized': p.split('/')[-1].lower().replace('_', ''), 'Expected': applicationPath, 'ExpectedNormalized': appNormalizedPath} for p in os.listdir(path) if p.split('/')[-1].lower().replace('_', '') == appNormalizedPath
+    ]
+
+    if len(possiblePaths) < 1:
         if verbose > 0:
             print(
-                '[Warning]: No test script found for {}'.format(
+                '[Warning]: No directory found for {}'.format(
                     application),
                 file=sys.stderr)
             sys.stderr.flush()
-        if verbose > 1:
+    elif len(possiblePaths) > 1:
+        if verbose > 0:
+            print('Unable to determine correct path for {}'.format(application), file=sys.stderr)
             print(
-                '  expected file: "{}"'.format(
-                    script),
+                'Please try to follow the standard naming convention \'FooApplication\' Snake-Capital string  without symbols.',
                 file=sys.stderr)
-            sys.stderr.flush()
+        if verbose > 1:
+            print('Several possible options were found:', file=sys.stderr)
+            for p in possiblePaths:
+                print('\t', p, file=sys.stderr)
+    else:
+        script = path+'/'+possiblePaths[0]['Found']+'/tests/'+'test_'+application+'.py'
+        print(script)
+
+        if possiblePaths[0]['Found'] != possiblePaths[0]['Expected']:
+            print(
+                '[Warning]: Application has been found in "{}" directory but it was expected in "{}". Please check the naming convetion.'.format(
+                    possiblePaths[0]['Found'],
+                    possiblePaths[0]['Expected']),
+                file=sys.stderr)
+
+        if os.path.isfile(script):
+            subprocess.call([
+                command,
+                script,
+                '-l'+level,
+                '-v'+str(verbose)
+            ])
+        else:
+            if verbose > 0:
+                print(
+                    '[Warning]: No test script found for {}'.format(
+                        application),
+                    file=sys.stderr)
+                sys.stderr.flush()
+            if verbose > 1:
+                print(
+                    '  expected file: "{}"'.format(
+                        script),
+                    file=sys.stderr)
+                sys.stderr.flush()
 
 
 def main():
@@ -207,7 +238,8 @@ def main():
     try:
         RunTestSuit(
             'KratosCore',
-            os.path.dirname(GetModulePath('KratosMultiphysics'))+'/'+'kratos',
+            'kratos',
+            os.path.dirname(GetModulePath('KratosMultiphysics')),
             level,
             verbosity,
             cmd
@@ -223,7 +255,8 @@ def main():
         try:
             RunTestSuit(
                 application,
-                KratosLoader.kratos_applications+'/'+application,
+                application,
+                KratosLoader.kratos_applications+'/',
                 level,
                 verbosity,
                 cmd
