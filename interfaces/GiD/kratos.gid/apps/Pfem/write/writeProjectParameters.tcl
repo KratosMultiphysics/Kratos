@@ -53,10 +53,10 @@ proc Pfem::write::GetPFEM_ProblemDataDict { } {
     dict set problemDataDict end_time [write::getValue PFEM_TimeParameters EndTime]
     dict set problemDataDict echo_level [write::getValue Results EchoLevel]
     dict set problemDataDict threads [write::getValue Parallelization OpenMPNumberOfThreads]
-    #set cx [write::getValue FLGravity Cx]
-    #set cy [write::getValue FLGravity Cy]
-    #set cz [write::getValue FLGravity Cz]
-    #dict set problemDataDict gravity_vector [list $cx $cy $cz]
+    set cx [write::getValue FLGravity Cx]
+    set cy [write::getValue FLGravity Cy]
+    set cz [write::getValue FLGravity Cz]
+    dict set problemDataDict gravity_vector [list $cx $cy $cz]
 
     return $problemDataDict
 }
