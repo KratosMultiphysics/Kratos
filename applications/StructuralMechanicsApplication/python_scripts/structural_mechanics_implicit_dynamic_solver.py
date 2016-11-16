@@ -46,6 +46,7 @@ class ImplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
             "stabilization_factor": 1.0,
             "reform_dofs_at_each_step": false,
             "line_search": false,
+            "implex": false,
             "compute_reactions": true,
             "compute_contact_forces": false,
             "compute_mortar_contact": false,
