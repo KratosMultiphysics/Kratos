@@ -533,8 +533,6 @@
 *end groups
 *set var Counter = 0
 *set cond group_POINT_LOAD *groups
-*add cond group_LINE_LOAD *groups
-*add cond group_SURFACE_LOAD *groups
 *add cond group_POINT_MOMENT *groups
 *loop groups *OnlyInCond       
 *set var Counter=operation(Counter+1)
@@ -547,6 +545,43 @@
             "mesh_id"         : 0,
             "model_part_name" : "*GroupName",
             "variable_name"   : "*cond(Variable)",
+*if(strcmp(cond(Time_Evolution),"INITIAL")==0)
+	    "interval"        : [*GenData(Start_Time), *GenData(Start_Time)],
+*elseif(strcmp(cond(Time_Evolution),"FULL")==0)
+	    "interval"        : [*GenData(Start_Time), "End"],
+*elseif(strcmp(cond(Time_Evolution),"INTERVAL")==0)
+	    "interval"        : [*cond(Time_Interval,1), *cond(Time_Interval,2)],
+*endif
+*if(strcmp(cond(by_function),"True")==0 )
+            "modulus"         : "*cond(Function)",
+*else
+            "modulus"         : *cond(Value),
+*endif	    
+            "direction"       : [*tcl(JoinByComma *cond(Direction))]
+	    }
+*if( Counter == numberloads )
+        }
+*else
+	},
+*endif
+*end groups
+*set cond group_LINE_LOAD *groups
+*add cond group_SURFACE_LOAD *groups
+*loop groups *OnlyInCond       
+*set var Counter=operation(Counter+1)
+        {
+        "help"            : "This process assigns a load value on conditions",	
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",	
+        "python_module"   : "assign_modulus_and_direction_to_conditions_process",
+        "process_name"    : "AssignModulusAndDirectionToConditionsProcess",
+        "Parameters"      : {
+            "mesh_id"         : 0,
+            "model_part_name" : "*GroupName",
+*if(strcmp(cond(by_function),"True")==0 )	    
+            "variable_name"   : "*cond(Variable)S_VECTOR",
+*else
+            "variable_name"   : "*cond(Variable)",
+*endif	    
 *if(strcmp(cond(Time_Evolution),"INITIAL")==0)
 	    "interval"        : [*GenData(Start_Time), *GenData(Start_Time)],
 *elseif(strcmp(cond(Time_Evolution),"FULL")==0)
@@ -612,7 +647,11 @@
         "Parameters"      : {
             "mesh_id"         : 0,
             "model_part_name" : "*GroupName",
+*if(strcmp(cond(by_function),"True")==0 )	    
+            "variable_name"   : "*cond(Variable)S_VECTOR",
+*else
             "variable_name"   : "*cond(Variable)",
+*endif	    
 *if(strcmp(cond(Time_Evolution),"INITIAL")==0)
 	    "interval"        : [*GenData(Start_Time), *GenData(Start_Time)],
 *elseif(strcmp(cond(Time_Evolution),"FULL")==0)
