@@ -178,8 +178,6 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
       KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check that the application was correctly registered.","");
     if(VISCOSITY.Key() == 0)
       KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check that the application was correctly registered.","");
-    if(PRESSURE_OLD_IT.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument,"PRESSURE_OLD_IT Key is 0. Check that the application was correctly registered.","");
     if(NODAL_AREA.Key() == 0)
       KRATOS_THROW_ERROR(std::invalid_argument,"NODAL_AREA Key is 0. Check that the application was correctly registered.","");
     if(BDF_COEFFICIENTS.Key() == 0)
@@ -202,8 +200,6 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 	  KRATOS_THROW_ERROR(std::invalid_argument,"missing DENSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
         if(this->GetGeometry()[i].SolutionStepsDataHas(VISCOSITY) == false)
 	  KRATOS_THROW_ERROR(std::invalid_argument,"missing VISCOSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(PRESSURE_OLD_IT) == false)
-	  KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE_OLD_IT variable on solution step data for node ",this->GetGeometry()[i].Id());
         if(this->GetGeometry()[i].SolutionStepsDataHas(NODAL_AREA) == false)
 	  KRATOS_THROW_ERROR(std::invalid_argument,"missing NODAL_AREA variable on solution step data for node ",this->GetGeometry()[i].Id());
         if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||

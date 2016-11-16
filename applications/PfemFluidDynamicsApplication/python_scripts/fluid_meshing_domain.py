@@ -16,8 +16,18 @@ class FluidMeshingDomain(meshing_domain.MeshingDomain):
  
     def ComputeAverageMeshParameters(self):
 
-        self.RefiningParameters.ComputeAndSetMeanVolume(self.main_model_part)
+        self.RefiningParameters.ComputeAndSetMeanAndTotalVolume(self.main_model_part,self.domain_size)
         
+    def GetMeanVolume(self):
+
+        meanVolume=self.RefiningParameters.GetMeanVolume()
+        return meanVolume
+        #fileMeanVolume.flush()
+        
+    def GetTotalVolume(self):
+
+        totalVolume=self.RefiningParameters.GetTotalVolume()
+        return totalVolume
 
     #
     def ComputeInitialAverageMeshParameters(self):

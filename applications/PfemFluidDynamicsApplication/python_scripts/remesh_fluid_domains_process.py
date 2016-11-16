@@ -159,11 +159,26 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
     def ExecuteInitializeSolutionStep(self):
 
         self.step_count += 1
-        for domain in self.meshing_domains:
-            domain.ComputeAverageMeshParameters()  
+        currentTime=self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        currentStep=self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]                
+
+        if(currentStep > 1):
+            for domain in self.meshing_domains:
+                domain.ComputeAverageMeshParameters()  
+                meanVolumeBeforeMeshing=domain.GetMeanVolume()
+                totalVolumeBeforeMeshing=domain.GetTotalVolume()
+
+                fileTotalVolume = open("totalVolumeBeforeMeshing.ods", 'a')
+                if(currentStep==2):
+                    fileTotalVolume.seek(0)
+                    fileTotalVolume.truncate()
+
+                outstring = str(currentTime) + " " +  str(totalVolumeBeforeMeshing) + " "
+                fileTotalVolume.write(outstring)    
+                fileTotalVolume.close
 
         volume_acceleration=self.main_model_part.ProcessInfo[KratosMultiphysics.GRAVITY]
-        if(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] == 1):
+        if(currentStep == 1):
             for node in self.main_model_part.Nodes:
                 node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION,volume_acceleration)
   
@@ -174,8 +189,20 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
                         print("::[Remesh_Fluid_Domains_Process]:: RemeshFluidDomains ")
                     self.RemeshFluidDomains()
 
- 
-        #if(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] == 1):
+        if(currentStep > 1):
+            for domain in self.meshing_domains:
+                domain.ComputeAverageMeshParameters()  
+                meanVolumeAfterMeshing=domain.GetMeanVolume()
+                totalVolumeAfterMeshing=domain.GetTotalVolume()
+                diffMeanVolume=meanVolumeAfterMeshing-meanVolumeBeforeMeshing
+                diffTotalVolume=totalVolumeAfterMeshing-totalVolumeBeforeMeshing
+                fileTotalVolume = open("totalVolumeBeforeMeshing.ods", 'a')
+
+                outstring =  str(totalVolumeAfterMeshing) + " " +  str(diffTotalVolume) + "\n"
+                fileTotalVolume.write(outstring)    
+                fileTotalVolume.close
+
+      #if(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] == 1):
           #  for node in self.main_model_part.Nodes:
            #     if (node.Is(KratosMultiphysics.FLUID)):
             #        if(node.IsNot(KratosMultiphysics.RIGID)):
