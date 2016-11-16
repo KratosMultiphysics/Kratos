@@ -242,6 +242,27 @@ proc Pfem::xml::ProcGetPartUN {domNode args} {
     return $un
 }
 
+proc Pfem::xml::ProcPartsOverWhat {domNode args} {
+    set names [list ]
+    set blockNode [Pfem::xml::FindMyBlocknode $domNode]
+    set BodyType [get_domnode_attribute [$blockNode selectNodes "value\[@n='BodyType'\]"] v]
+    if {$BodyType eq "Fluid" || $BodyType eq "Solid"} {
+        if {$::Model::SpatialDimension eq "3D"} {
+            return "volume"
+        } else {
+            return "surface"
+        }
+    } elseif { $BodyType eq "Rigid"} {
+        if {$::Model::SpatialDimension eq "3D"} {
+            return "surface,volume"
+        } else {
+            return "line,surface"
+        }
+    } else {
+        return "point,line,surface,volume"
+    }
+}
+
 proc Pfem::xml::ProcActiveIfAnyPartState {domNode args} {
     set parts ""
     set parts_un [Pfem::xml::ProcGetPartUN $domNode $args]
