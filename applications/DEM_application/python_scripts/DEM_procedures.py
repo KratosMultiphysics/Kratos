@@ -705,9 +705,11 @@ class Procedures(object):
         self.CheckVariableType(DEM_parameters.BoundingBoxMinZ, float, "")        
         self.CheckVariableType(DEM_parameters.GravityX, float, "")
         self.CheckVariableType(DEM_parameters.GravityY, float, "")
-        self.CheckVariableType(DEM_parameters.GravityZ, float, "")        
-        self.CheckVariableType(DEM_parameters.AmplifiedSearchRadiusExtension, float, "")
-        self.CheckVariableType(DEM_parameters.MaxAmplificationRatioOfSearchRadius, int, "")
+        self.CheckVariableType(DEM_parameters.GravityZ, float, "")    
+        if hasattr(self.DEM_parameters, "AmplifiedSearchRadiusExtension"):
+            self.CheckVariableType(DEM_parameters.AmplifiedSearchRadiusExtension, float, "")
+        if hasattr(self.DEM_parameters, "MaxAmplificationRatioOfSearchRadius"):
+            self.CheckVariableType(DEM_parameters.MaxAmplificationRatioOfSearchRadius, int, "")
         self.CheckVariableType(DEM_parameters.VirtualMassCoefficient, float, "")
         self.CheckVariableType(DEM_parameters.DeltaTimeSafetyFactor, float, "")
         self.CheckVariableType(DEM_parameters.MaxTimeStep, float, "")
