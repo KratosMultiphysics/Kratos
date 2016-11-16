@@ -436,7 +436,8 @@ void BeamPointRigidContactCondition::InitializeGeneralVariables(GeneralVariables
 //************************************************************************************
 
 void BeamPointRigidContactCondition::CalculateKinematics(GeneralVariables& rVariables,
-					     const double& rPointNumber)
+							 const ProcessInfo& rCurrentProcessInfo,
+							 const double& rPointNumber)
 {
     KRATOS_TRY
 
@@ -462,7 +463,7 @@ void BeamPointRigidContactCondition::CalculateConditionSystem(LocalSystemCompone
     for ( unsigned int PointNumber = 0; PointNumber < 1; PointNumber++ )
     {
         //compute element kinematics B, F, DN_DX ...
-        this->CalculateKinematics(Variables,PointNumber);
+        this->CalculateKinematics(Variables,rCurrentProcessInfo,PointNumber);
 
         //calculating weights for integration on the "reference configuration"
         double IntegrationWeight = 1;

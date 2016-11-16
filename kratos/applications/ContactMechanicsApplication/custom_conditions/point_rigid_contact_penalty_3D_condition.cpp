@@ -89,9 +89,10 @@ namespace Kratos
 
 
       GeneralVariables ContactVariables;
-      int ContactFace = 0;
 
-      if ( this->mpRigidWall->IsInside( GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent, ContactFace ) ) {
+      SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent);           
+
+      if ( this->mpRigidWall->IsInside( BoxParameters, rCurrentProcessInfo) ) {
 
          const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
          array_1d<double, 3> &ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
@@ -199,14 +200,13 @@ namespace Kratos
    //*********************************COMPUTE KINEMATICS*********************************
    //************************************************************************************
 
-   void PointRigidContactPenalty3DCondition::CalculateKinematics(GeneralVariables& rVariables,
-         const double& rPointNumber)
+   void PointRigidContactPenalty3DCondition::CalculateKinematics(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, const double& rPointNumber)
    {
       KRATOS_TRY
 
-      int ContactFace = 0; //free surface
+      SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent);
 
-      if( this->mpRigidWall->IsInside( GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent, ContactFace ) ){
+      if( this->mpRigidWall->IsInside( BoxParameters, rCurrentProcessInfo ) ){
 
          rVariables.Options.Set(ACTIVE,true);
 	 
@@ -370,7 +370,7 @@ namespace Kratos
          double NormalForceModulus = 0;
          NormalForceModulus = this->CalculateNormalForceModulus( NormalForceModulus, rVariables );
 
-         double TangentRelativeMovement = 0;
+         double TangentRelativeMovement = rVariables.Gap.Tangent;
          TangentRelativeMovement = this->CalculateTangentRelativeMovement( TangentRelativeMovement, rVariables );
 
          double TangentForceModulus = this->CalculateCoulombsFrictionLaw( TangentRelativeMovement, NormalForceModulus, rVariables );

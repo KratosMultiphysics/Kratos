@@ -91,6 +91,8 @@
 *endif
 	],
         "problem_domain_sub_model_part_list" : [
+*set cond group_DeformableBodies *groups
+*add cond group_RigidBodies *groups
 *if(CondNumEntities > 0)
 *set var GroupNumber = 0
 *loop groups *OnlyInCond
@@ -464,10 +466,10 @@
 *set var Counter = 0
 *set cond group_LINEAR_MOVEMENT *groups
 *add cond group_ANGULAR_MOVEMENT *groups
-*loop groups *OnlyInCond       
+*loop groups *OnlyInCond
 *set var Counter=operation(Counter+1)
-        {
-        "help"            : "This process imposes a constraint",	
+     	{
+        "help"            : "This process imposes a vector constraint",	
         "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
         "python_module"   : "assign_vector_components_to_nodes_process",
         "process_name"    : "AssignVectorComponentsToNodesProcess",
@@ -637,7 +639,6 @@
 *set cond group_LINE_PRESSURE *groups
 *add cond group_SURFACE_PRESSURE *groups
 *loop groups *OnlyInCond    
-*set var Counter=operation(Counter+1)
 *set var Counter=operation(Counter+1)
         }
         "help"            : "This process applies a pressure load",	

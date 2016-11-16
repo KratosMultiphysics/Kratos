@@ -32,23 +32,23 @@ namespace Kratos
 	//*******************************************************************************************
 
 	void ContactDomainUtilities::CalculateBaseDistances (BaseLengths& Base,
-							     LocalVectorType& P1,
-							     LocalVectorType& P2,
-							     LocalVectorType& PS,
-							     LocalVectorType& Normal)
+							     PointType& P1,
+							     PointType& P2,
+							     PointType& PS,
+							     PointType& Normal)
 	{
 
 		Base.L=norm_2(P2-P1);
 
 
 		//if the normal points from the side to the slave node:
-		LocalVectorType Projection= PS-P1;
+		PointType Projection= PS-P1;
 		Projection-=Normal*(inner_prod(Projection,Normal));
 		Projection+=P1;
 
 		double sign=1;
-		LocalVectorType Pro1 = Projection-P1; 
-		LocalVectorType Pro2 = P2-P1;
+		PointType Pro1 = Projection-P1; 
+		PointType Pro2 = P2-P1;
 
 		if(double(inner_prod(Pro2,Pro1))<0)
 			sign*=(-1);
@@ -70,7 +70,7 @@ namespace Kratos
         //************************************************************************************
         //************************************************************************************
 
-	ContactDomainUtilities::LocalVectorType & ContactDomainUtilities::CalculateFaceNormal(LocalVectorType &Normal, LocalVectorType& P1, LocalVectorType &P2)
+	ContactDomainUtilities::PointType & ContactDomainUtilities::CalculateFaceNormal(PointType &Normal, PointType& P1, PointType &P2)
 	{
 
 		Normal.clear();
@@ -88,7 +88,7 @@ namespace Kratos
         //************************************************************************************
 
 
-	ContactDomainUtilities::LocalVectorType & ContactDomainUtilities::CalculateFaceTangent(LocalVectorType &Tangent ,LocalVectorType& P1, LocalVectorType &P2)
+	ContactDomainUtilities::PointType & ContactDomainUtilities::CalculateFaceTangent(PointType &Tangent ,PointType& P1, PointType &P2)
 	{
 
 		Tangent.clear();
@@ -109,7 +109,7 @@ namespace Kratos
        //************************************************************************************
 
 
-	ContactDomainUtilities::LocalVectorType & ContactDomainUtilities::CalculateFaceTangent(LocalVectorType &Tangent ,LocalVectorType& Normal)
+	ContactDomainUtilities::PointType & ContactDomainUtilities::CalculateFaceTangent(PointType &Tangent ,PointType& Normal)
 	{
 
 		Tangent.clear();

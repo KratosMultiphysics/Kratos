@@ -142,7 +142,8 @@ protected:
      /**
      * Calculate Condition Kinematics
      */
-    virtual void CalculateKinematics(GeneralVariables& rVariables, 
+    virtual void CalculateKinematics(GeneralVariables& rVariables,
+				     const ProcessInfo& rCurrentProcessInfo,
 				     const double& rPointNumber);
 
 

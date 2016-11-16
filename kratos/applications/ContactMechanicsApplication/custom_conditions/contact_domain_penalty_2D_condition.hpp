@@ -61,7 +61,7 @@ public:
 	
 
     ///Tensor order 1 definition
-    typedef ContactDomainUtilities::LocalVectorType   LocalVectorType;
+    typedef ContactDomainUtilities::PointType               PointType;
     ///SurfaceVector
     typedef ContactDomainUtilities::SurfaceVector       SurfaceVector;
     ///SurfaceScalar

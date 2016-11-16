@@ -488,9 +488,9 @@ void ContactDomainCondition::ClearNodalForces()
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
 	GetGeometry()[i].SetLock();
-	LocalVectorType & ContactForce  = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
+	PointType & ContactForce  = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
 	ContactForce.clear();
-	LocalVectorType & ContactNormal  = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_NORMAL);
+	PointType & ContactNormal  = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_NORMAL);
 	ContactNormal.clear();
 
 	GetGeometry()[i].UnSetLock();
@@ -596,7 +596,7 @@ void ContactDomainCondition::ClearMasterElementNodalForces(ElementType& rMasterE
     {
 	rMasterElement.GetGeometry()[i].SetLock();
 
-	LocalVectorType & ContactForce = rMasterElement.GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
+	PointType & ContactForce = rMasterElement.GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
 	ContactForce.clear();
 
 	rMasterElement.GetGeometry()[i].UnSetLock();
@@ -1027,7 +1027,7 @@ Matrix& ContactDomainCondition::CalculateDeltaPosition(Matrix & rDeltaPosition)
 //************************************************************************************
 //************************************************************************************
 
-void ContactDomainCondition::CalculateRelativeVelocity (GeneralVariables& rVariables, LocalVectorType & TangentVelocity)
+void ContactDomainCondition::CalculateRelativeVelocity (GeneralVariables& rVariables, PointType & TangentVelocity)
 {
     //if current tangent is not previously computed, do it here.
     rVariables.Contact.CurrentSurface.Tangent = this->CalculateCurrentTangent( rVariables.Contact.CurrentSurface.Tangent );
@@ -1044,7 +1044,7 @@ void ContactDomainCondition::CalculateRelativeVelocity (GeneralVariables& rVaria
 
     //compute relative velocities
     int slave=mContactVariables.slaves[0];
-    LocalVectorType  CurrentVelocity;
+    PointType  CurrentVelocity;
     for (int i = 0; i < number_of_nodes; i++ )
     {
         //Current velocity
@@ -1075,7 +1075,7 @@ void ContactDomainCondition::CalculateRelativeVelocity (GeneralVariables& rVaria
 //************************************************************************************
 
 
-void ContactDomainCondition::CalculateRelativeDisplacement (GeneralVariables& rVariables, LocalVectorType & TangentDisplacement)
+void ContactDomainCondition::CalculateRelativeDisplacement (GeneralVariables& rVariables, PointType & TangentDisplacement)
 {
 
     // (Tangent vector previously computed)
@@ -1083,7 +1083,7 @@ void ContactDomainCondition::CalculateRelativeDisplacement (GeneralVariables& rV
 
     //compute relative displacements
     int slave=mContactVariables.slaves[0];
-    LocalVectorType CurrentDisplacement;
+    PointType CurrentDisplacement;
     for (int i = 0; i < number_of_nodes; i++ )
     {
         //Displacement from the reference to the current configuration
@@ -1103,7 +1103,7 @@ void ContactDomainCondition::CalculateRelativeDisplacement (GeneralVariables& rV
 //************************************************************************************
 
 
-void ContactDomainCondition::CalculateFrictionCoefficient (GeneralVariables& rVariables, const LocalVectorType & TangentVelocity)
+void ContactDomainCondition::CalculateFrictionCoefficient (GeneralVariables& rVariables, const PointType & TangentVelocity)
 {
     //---FRICTION LAW in function of the relative sliding velocity ---//
 
@@ -1181,7 +1181,7 @@ void ContactDomainCondition::CalculateConditionSystem(LocalSystemComponents& rLo
 	    Variables.Contact.Options.Set(ContactDomainUtilities::COMPUTE_FRICTION_FORCES);
 
     //Tangent velocity and stablish friction parameter
-    LocalVectorType TangentVelocity (3,0.0);
+    PointType TangentVelocity (3,0.0);
 
     for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
     {
@@ -1345,8 +1345,8 @@ inline void ContactDomainCondition::CalculateAndAddContactForces(VectorType& rRi
     Vector Nforce;
     Vector Tforce;
 
-    // LocalVectorType NormalForce  (3,0.0);
-    // LocalVectorType TangentForce (3,0.0);
+    // PointType NormalForce  (3,0.0);
+    // PointType TangentForce (3,0.0);
 
     unsigned int index=0;
     for (unsigned int ndi=0; ndi<size; ndi++)

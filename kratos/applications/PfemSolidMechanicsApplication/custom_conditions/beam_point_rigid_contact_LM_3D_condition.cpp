@@ -251,14 +251,14 @@ namespace Kratos
 
        
        GeneralVariables ContactVariables;
-       int ContactFace = 0;
+
+       SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent);           
 
        //to perform contact with a tube radius must be set
-       double Radius = 0;
-       Radius = GetGeometry()[0].GetValue(MEAN_RADIUS);
-
-       if ( this->mpRigidWall->IsInside( GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent, ContactFace, Radius ) ) {
-
+       BoxParameters.SetRadius(GetGeometry()[0].GetValue(MEAN_RADIUS));
+       
+       if ( this->mpRigidWall->IsInside( BoxParameters, rCurrentProcessInfo ) ) {
+       
   	   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
   	   array_1d<double, 3> &ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
 
@@ -359,19 +359,17 @@ namespace Kratos
   //************************************************************************************
   
   void BeamPointRigidContactLM3DCondition::CalculateKinematics(GeneralVariables& rVariables,
-								const double& rPointNumber)
+							       const ProcessInfo& rCurrentProcessInfo,
+							       const double& rPointNumber)
   {
     KRATOS_TRY
-    
-    int ContactFace = 0; //free surface
-      
-    //to perform contact with a tube radius must be set
-    double Radius = 0;
-    Radius = GetGeometry()[0].GetValue(MEAN_RADIUS);
-    
-    //std::cout<<" Properties Radius "<<GetProperties()[MEAN_RADIUS]<<" Node Radius "<<Radius<<std::endl;
 
-    if( this->mpRigidWall->IsInside( GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent, ContactFace, Radius ) ){
+    SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent);
+
+    //to perform contact with a tube radius must be set
+    BoxParameters.SetRadius(GetGeometry()[0].GetValue(MEAN_RADIUS));
+
+    if( this->mpRigidWall->IsInside( BoxParameters, rCurrentProcessInfo ) ){
 
       rVariables.Options.Set(ACTIVE,true);
 

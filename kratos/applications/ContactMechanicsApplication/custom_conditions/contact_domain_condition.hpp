@@ -65,8 +65,8 @@ public:
     typedef Element::ElementType ElementType;
 	
 
-    ///Tensor order 1 definition
-    typedef ContactDomainUtilities::LocalVectorType LocalVectorType;
+    ///Tensor order 1 definition   
+    typedef ContactDomainUtilities::PointType             PointType;
     ///SurfaceVector
     typedef ContactDomainUtilities::SurfaceVector     SurfaceVector;
     ///SurfaceScalar
@@ -201,7 +201,7 @@ protected:
         std::vector<unsigned int> slaves;
 
         //Resultant mechanical tractions
-	LocalVectorType       TractionVector;       //Traction Vector in the reference configuration
+	PointType       TractionVector;       //Traction Vector in the reference configuration
 
 	//Pointer Variables
         GeometryType*         mpMasterGeometry;
@@ -703,18 +703,18 @@ protected:
      *  Parameters for friction law Relative Tangent Velocity:
      */
     virtual void CalculateRelativeVelocity(GeneralVariables& rVariables,
-					   LocalVectorType & TangentVelocity);
+					   PointType & TangentVelocity);
 
     /**
      *  Parameters for friction law Relative Tangent Displacement:
      */
     virtual void CalculateRelativeDisplacement(GeneralVariables& rVariables,
-					       LocalVectorType & TangentDisplacement);
+					       PointType & TangentDisplacement);
 
     /**
      * Calculate current tangent vector
      */
-    virtual LocalVectorType & CalculateCurrentTangent(LocalVectorType &rTangent)
+    virtual PointType & CalculateCurrentTangent(PointType &rTangent)
 	{
 		KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
 
@@ -725,7 +725,7 @@ protected:
      * Friction Parameters:
      */
     virtual void CalculateFrictionCoefficient(GeneralVariables& rVariables,
-					      const LocalVectorType & TangentVelocity);
+					      const PointType & TangentVelocity);
 
 
     /**

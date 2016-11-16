@@ -404,8 +404,7 @@ namespace Kratos
    //*********************************COMPUTE KINEMATICS*********************************
    //************************************************************************************
 
-   void PointRigidContactCondition::CalculateKinematics(GeneralVariables& rVariables,
-         const double& rPointNumber)
+   void PointRigidContactCondition::CalculateKinematics(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, const double& rPointNumber)
    {
       KRATOS_TRY
 
@@ -431,7 +430,7 @@ namespace Kratos
       for ( unsigned int PointNumber = 0; PointNumber < 1; PointNumber++ )
       {
          //compute element kinematics B, F, DN_DX ...
-         this->CalculateKinematics(Variables,PointNumber);
+	 this->CalculateKinematics(Variables,rCurrentProcessInfo,PointNumber);
 
          //calculating weights for integration on the "reference configuration"
          double IntegrationWeight = 1;

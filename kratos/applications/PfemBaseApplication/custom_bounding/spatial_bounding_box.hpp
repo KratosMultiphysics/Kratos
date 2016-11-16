@@ -53,33 +53,169 @@ class KRATOS_API(PFEM_BASE_APPLICATION) SpatialBoundingBox
 {
 public:
 
-  typedef bounded_vector<double, 3>                       PointType;
-  typedef ModelPart::NodeType::Pointer                     NodeType;
+  //typedef bounded_vector<double, 3>                     PointType;
+  typedef array_1d<double, 3>                             PointType;
+  typedef ModelPart::NodeType                              NodeType;
   typedef ModelPart::NodesContainerType          NodesContainerType;
   typedef NodesContainerType::Pointer     NodesContainerTypePointer;
   typedef BeamMathUtils<double>                   BeamMathUtilsType;
   typedef Quaternion<double>                         QuaternionType;
 
+
+  struct BoundingBoxParameters
+  {
+    KRATOS_CLASS_POINTER_DEFINITION(BoundingBoxParameters);
+
+  private:
+
+    const PointType*  mpPoint;
+    const PointType*  mpVelocity;
+
+    const PointType*  mpCurrentDisplacement;
+    const PointType*  mpPreviousDisplacement;
+
+    PointType*        mpNormal;
+    PointType*        mpTangent;
+     
+    double*           mpGapNormal;
+    double*           mpGapTangent;
+
+    double            mRadius;   
+    int               mContactFace;
+
+  public:
+    
+    /**
+     * Constructor.
+     */
+    BoundingBoxParameters ()
+    {
+      //Initialize pointers to NULL
+      mpPoint=NULL;
+      mpVelocity=NULL;
+      
+      mpCurrentDisplacement=NULL;
+      mpPreviousDisplacement=NULL;
+      
+      mpNormal=NULL;
+      mpTangent=NULL;
+      
+      mpGapNormal=NULL;
+      mpGapTangent=NULL;
+
+      mRadius      = 0.0;
+      mContactFace = 0;
+      
+    };
+
+    /**
+     * Constructor with Node
+     */
+    BoundingBoxParameters(const NodeType& rNode)
+    {
+      
+      mpPoint        = &(rNode.Coordinates());
+      mpVelocity     = &(rNode.FastGetSolutionStepValue(VELOCITY));
+      
+      mpCurrentDisplacement  = &(rNode.FastGetSolutionStepValue(DISPLACEMENT,0));
+      mpPreviousDisplacement = &(rNode.FastGetSolutionStepValue(DISPLACEMENT,1));
+      
+      mpNormal=NULL;
+      mpTangent=NULL;
+      
+      mpGapNormal=NULL;
+      mpGapTangent=NULL;
+
+      mRadius      = 0.0;
+      mContactFace = 0;
+
+    };
+
+    /**
+     * Constructor with Node and Contact Parameters
+     */
+    BoundingBoxParameters(const NodeType& rNode, double& rGapNormal, double& rGapTangent, PointType& rNormal, PointType& rTangent)
+    {
+      mpPoint        = &(rNode.Coordinates());
+      mpVelocity     = &(rNode.FastGetSolutionStepValue(VELOCITY));
+
+      mpCurrentDisplacement  = &(rNode.FastGetSolutionStepValue(DISPLACEMENT,0));
+      mpPreviousDisplacement = &(rNode.FastGetSolutionStepValue(DISPLACEMENT,1));
+      
+      mpNormal       = &rNormal;
+      mpTangent      = &rTangent;
+      
+      mpGapNormal    = &rGapNormal;
+      mpGapTangent   = &rGapTangent;
+
+      mRadius        = 0.0;
+      mContactFace   = 0;
+    };
+
+    //set parameters   
+    void SetNode(const NodeType& rNode){
+      mpPoint        = &(rNode.Coordinates());
+      mpVelocity     = &(rNode.FastGetSolutionStepValue(VELOCITY));
+
+      mpCurrentDisplacement  = &(rNode.FastGetSolutionStepValue(DISPLACEMENT,0));
+      mpPreviousDisplacement = &(rNode.FastGetSolutionStepValue(DISPLACEMENT,1));
+    };
+   
+    void SetPoint(const PointType& rPoint) {mpPoint = &rPoint;};
+    void SetVelocity(const PointType& rVelocity) {mpVelocity = &rVelocity;};
+    void SetCurrentDisplacement(const PointType& rDisplacement) {mpCurrentDisplacement = &rDisplacement;};
+    void SetPreviousDisplacement(const PointType& rDisplacement) {mpPreviousDisplacement = &rDisplacement;};
+    
+    void SetNormal(PointType& rNormal)   {mpNormal = &rNormal;};
+    void SetTangent(PointType& rTangent) {mpTangent = &rTangent;};
+
+    void SetGapNormal(double& rGapNormal)   {mpGapNormal = &rGapNormal;};
+    void SetGapTangent(double& rGapTangent) {mpGapTangent = &rGapTangent;};
+
+    void SetRadius(double Radius)          {mRadius = Radius;};
+    void SetContactFace(int ContactFace)   {mContactFace = ContactFace;};
+
+    //get parameters
+    const PointType& GetPoint()        {return *mpPoint;};
+    const PointType& GetVelocity()     {return *mpVelocity;};
+    const PointType& GetCurrentDisplacement() {return *mpCurrentDisplacement;};
+    const PointType& GetPreviousDisplacement() {return *mpPreviousDisplacement;};
+
+    PointType GetDeltaDisplacement() {return ((*mpCurrentDisplacement)-(*mpPreviousDisplacement));};
+
+    PointType& GetNormal()  {return *mpNormal;};
+    PointType& GetTangent() {return *mpTangent;};
+
+    double& GetGapNormal()  {return *mpGapNormal;};
+    double& GetGapTangent() {return *mpGapTangent;};
+
+    double& GetRadius()     {return mRadius;};
+    int& GetContactFace()   {return mContactFace;};
+   
+  };// struct BoundingBoxParameters end
+
+  
 protected:
 
+  
   typedef struct
   {
 
-    int        Dimension;        // 2D or 3D
-    bool       Axisymmetric;     // true or false
-    int        Convexity;        // 1 or -1  if "in" is inside or outside respectively   
-    double     Radius;           // box radius
+    int        Dimension;          // 2D or 3D
+    bool       Axisymmetric;       // true or false
+    int        Convexity;          // 1 or -1  if "in" is inside or outside respectively   
+    double     Radius;             // box radius
 
-    PointType  InitialUpperPoint; // box highest point
+    PointType  InitialUpperPoint;  // box highest point
     PointType  InitialLowerPoint;  // box lowest point
-    PointType  InitialCenter;    // center current position
+    PointType  InitialCenter;      // center current position
   
-    PointType  UpperPoint;        // box highest point
+    PointType  UpperPoint;         // box highest point
     PointType  LowerPoint;         // box lowest point
-    PointType  Center;           // center current position
+    PointType  Center;             // center current position
 
-    PointType  Velocity;         // box velocity
-    PointType  AngularVelocity;  // box rotation
+    PointType  Velocity;           // box velocity
+    PointType  AngularVelocity;    // box rotation
     
     QuaternionType  InitialLocalQuaternion; //initial local axes for the box
     QuaternionType  LocalQuaternion;        //local axes for the box
@@ -557,6 +693,21 @@ public:
     }
 
 
+
+    //************************************************************************************
+    //************************************************************************************
+    virtual bool IsInside(BoundingBoxParameters& rValues, const ProcessInfo& rCurrentProcessInfo)
+    {
+      KRATOS_TRY
+
+      std::cout<< "Calling empty method" <<std::endl;
+      return false;
+
+      KRATOS_CATCH("")
+    }
+
+   
+
     //************************************************************************************
     //************************************************************************************
 
@@ -646,7 +797,7 @@ public:
     //**************************************************************************
     //**************************************************************************
 
-    void SetRigidBodyCenter(NodeType pCenter)
+    void SetRigidBodyCenter(NodeType::Pointer pCenter)
     {
       mpRigidBodyCenter = pCenter;     
       mRigidBodyCenterSupplied = true;
@@ -867,7 +1018,7 @@ protected:
     ///@name Protected member Variables
     ///@{
   
-    NodeType      mpRigidBodyCenter;
+    NodeType::Pointer   mpRigidBodyCenter;
 
     bool   mRigidBodyCenterSupplied;
 
@@ -939,6 +1090,15 @@ protected:
       return Displacement;      
     }
 
+
+    //**************************************************************************
+    //**************************************************************************
+  
+    PointType GetBoxDeltaDisplacement(const double& rCurrentTime, const double& rPreviousTime)
+    {
+      return (this->GetBoxDisplacement(rCurrentTime) - this->GetBoxDisplacement(rPreviousTime));
+    }
+    
     ///@}
     ///@name Protected  Access
     ///@{
