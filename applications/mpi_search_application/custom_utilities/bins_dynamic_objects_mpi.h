@@ -534,10 +534,10 @@ private:
     std::vector<double> globalMinPoint(Dimension);
     std::vector<double> globalMaxPoint(Dimension);
 
-    auto & binsObjectMinPoint = mpObjectBins->GetMinPoint();
-    auto & binsObjectMaxPoint = mpObjectBins->GetMaxPoint();
+    //auto & binsObjectMinPoint = mpObjectBins->GetMinPoint();
+    //auto & binsObjectMaxPoint = mpObjectBins->GetMaxPoint();
 
-    double maxRadius = ReduceMaxRadius(ObjectsBegin, ObjectsEnd);
+    //double maxRadius = ReduceMaxRadius(ObjectsBegin, ObjectsEnd);
 
     for(int d = 0; d < Dimension; d++) {
       localMinPoint[d] = (*ObjectsBegin)->GetGeometry()[0][d];
