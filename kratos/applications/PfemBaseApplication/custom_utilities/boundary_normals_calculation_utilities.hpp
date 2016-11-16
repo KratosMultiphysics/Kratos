@@ -217,7 +217,8 @@ namespace Kratos
 
       if( rModelPart.NumberOfConditions() && this->CheckConditionsLocalSpace(rModelPart, dimension-1) ){
 
-	//std::cout<<" CONDITIONS: "<<rModelPart.Name()<<std::endl;
+	if(mEchoLevel > 0) 
+	  std::cout<<"   ["<<rModelPart.Name()<<"] (C)"<<std::endl;
 	
 	ConditionsContainerType& rConditions = rModelPart.Conditions();
 	    
@@ -230,8 +231,9 @@ namespace Kratos
 	
 	if( this->CheckElementsDimension(rModelPart, dimension) ){
 
-	  //std::cout<<" VOLUMETRIC ELEMENTS: "<<rModelPart.Name()<<std::endl;
-	  
+	  if(mEchoLevel > 0) 
+	    std::cout<<"   ["<<rModelPart.Name()<<"] (VE)"<<std::endl;
+	
 	  MeshType& rMesh = rModelPart.GetMesh();
 	    
 	  this->ResetBodyNormals(rModelPart); //delete body normals after interpolation  
@@ -241,8 +243,9 @@ namespace Kratos
 	}
 	else if( this->CheckElementsLocalSpace(rModelPart, dimension-1) ){
 
-	  //std::cout<<" SURFACE ELEMENTS: "<<rModelPart.Name()<<std::endl;
-	  
+	  if(mEchoLevel > 0) 
+	    std::cout<<"   ["<<rModelPart.Name()<<"] (E)"<<std::endl;
+		    
 	  ElementsContainerType& rElements = rModelPart.Elements();
 
 	  this->ResetBodyNormals(rModelPart); //delete body normals after interpolation     
@@ -454,7 +457,7 @@ namespace Kratos
 
       const unsigned int dimension = (rElements.begin())->GetGeometry().WorkingSpaceDimension();
 
-      std::cout<<" element geometry: "<<(rElements.begin())->GetGeometry()<<std::endl;
+      //std::cout<<" element geometry: "<<(rElements.begin())->GetGeometry()<<std::endl;
       
       //calculating the normals and storing on elements
       array_1d<double,3> An;
@@ -478,7 +481,6 @@ namespace Kratos
 	      if(it->IsNot(CONTACT)){
 		it->Set(BOUNDARY);
 		CalculateUnityNormal3D(it,An,v1,v2);
-		std::cout<<" Walls Normal "<<An<<std::endl;
 	      }
 	    }
 	}

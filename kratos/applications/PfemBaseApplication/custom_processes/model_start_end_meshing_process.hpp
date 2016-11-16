@@ -604,19 +604,7 @@ namespace Kratos
     		this->CleanModelPartConditions(*i_mp);
 		
     		for(ModelPart::ConditionsContainerType::iterator i_cond = rPreservedConditions.begin(); i_cond!= rPreservedConditions.end(); i_cond++)
-    		  {
-
-		    if( i_cond->Is(NEW_ENTITY) ){
-		      for(unsigned int i=0; i<i_cond->GetGeometry().size(); i++)
-			{
-			  if( i_cond->GetGeometry()[i].Is(NEW_ENTITY) ){
-			    (i_mp->Nodes()).push_back(i_cond->GetGeometry()(i));
-			    i_cond->GetGeometry()[i].Reset(NEW_ENTITY); //reset if was new 
-			  }
-			}
-		      i_cond->Reset(NEW_ENTITY); //reset here if the condition is inserted
-		    }
-		    
+    		  {   
     		    ConditionsContainerType& ChildrenConditions = i_cond->GetValue(CHILDREN_CONDITIONS);
 
     		    //this conditions are cloned, then the id has no coherence, must be renumbered at the end of the assignation
@@ -624,6 +612,18 @@ namespace Kratos
     		      {
     			if( cn->GetValue(MODEL_PART_NAME) == i_mp->Name() ){
     			  i_mp->Conditions().push_back(*(cn.base()));
+
+			  if( i_cond->Is(NEW_ENTITY) ){
+			    for(unsigned int i=0; i<i_cond->GetGeometry().size(); i++)
+			      {
+				if( i_cond->GetGeometry()[i].Is(NEW_ENTITY) ){
+				  (i_mp->Nodes()).push_back(i_cond->GetGeometry()(i));
+				  i_cond->GetGeometry()[i].Reset(NEW_ENTITY); //reset if was new 
+				}
+			      }
+			    i_cond->Reset(NEW_ENTITY); //reset here if the condition is inserted
+			  }
+			  
     			}
 
     		      }
@@ -635,7 +635,7 @@ namespace Kratos
 	  
     	}
 
-      //add new nodes: ( BOUNDARY model parts )
+      //add new nodes: ( BOUNDARY model parts ) and remove erased nodes
       for(ModelPart::SubModelPartIterator i_mp= mrMainModelPart.SubModelPartsBegin() ; i_mp!=mrMainModelPart.SubModelPartsEnd(); i_mp++)
 	{
 	  if( i_mp->Is(BOUNDARY) ){ //boundary model part
