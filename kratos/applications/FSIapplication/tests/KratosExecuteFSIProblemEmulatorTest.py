@@ -154,7 +154,7 @@ class KratosExecuteFSIProblemEmulatorTest(KratosUnittest.TestCase):
         
     def _SetStructureNeumannCondition(self):
         
-        structure_computational_submodelpart = self.structure_solver.main_model_part.GetSubModelPart("solid_computing_domain")
+        structure_computational_submodelpart = self.structure_solver.GetComputingModelPart()
                 
         aux_count = 0
         for cond in self.structure_solver.main_model_part.Conditions:

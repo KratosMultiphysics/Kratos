@@ -21,6 +21,7 @@
                 "input_file_label" : 0
             },
             "line_search"                        : false,
+            "implex"                             : false,
             "convergence_criterion"              : "Residual_criterion",
             "displacement_relative_tolerance"    : 1e-8,
             "displacement_absolute_tolerance"    : 1e-10,
@@ -49,9 +50,9 @@
                 "mesh_id"         : 0,
                 "model_part_name" : "DISPLACEMENT_Displacement_BC",
                 "variable_name"   : "DISPLACEMENT",
-                "is_fixed_x"      : true,
-                "is_fixed_y"      : true,
-                "is_fixed_z"      : true,
+                "is_fixed_X"      : true,
+                "is_fixed_Y"      : true,
+                "is_fixed_Z"      : true,
                 "value"           : [0.0,0.0,0.0]
             }
         }],
