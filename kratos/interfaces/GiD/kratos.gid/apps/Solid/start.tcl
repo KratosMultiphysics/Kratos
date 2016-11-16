@@ -11,7 +11,6 @@ proc ::Solid::Init { } {
     
     set dir [apps::getMyDir "Solid"]
     set ::Model::ValidSpatialDimensions [list 2D 2Da 3D]
-    ::spdAux::CreateDimensionWindow
     set attributes [dict create]
     
     # Intervals only in developer mode
@@ -20,6 +19,10 @@ proc ::Solid::Init { } {
     
     # Restart available
     dict set attributes UseRestart 1
+    # Allow to open the tree
+    set ::spdAux::TreeVisibility 1
+    LoadMyFiles
+    ::spdAux::CreateDimensionWindow
 }
 
 proc ::Solid::LoadMyFiles { } {

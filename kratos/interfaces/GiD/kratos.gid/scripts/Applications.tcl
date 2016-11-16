@@ -18,16 +18,14 @@ proc apps::Init { } {
 proc apps::setActiveApp {appid} {
     variable activeApp
     variable appList
-    #W "set active app $appid in $appList"
+    
     foreach app $appList {
-        #W [$app getName]
         if {[$app getName] eq $appid} {
             set activeApp $app
             $app activate
             break
         }
     }
-    #W "apps activada $appid"
     spdAux::activeApp $appid
 }
 
@@ -203,9 +201,6 @@ oo::class create App {
         set dir [file join $::Kratos::kratos_private(Path) apps $name]
         set fileName [file join $dir start.tcl]
         apps::loadAppFile $fileName
-        set func $name
-        append func "::LoadMyFiles"
-        eval $func
     }
     
     method getPrefix { } {variable prefix; return $prefix}
@@ -249,7 +244,6 @@ oo::class create App {
 }
 
 proc apps::loadAppFile {fileName} {
-
 	uplevel 2 [list source $fileName]
 }
 

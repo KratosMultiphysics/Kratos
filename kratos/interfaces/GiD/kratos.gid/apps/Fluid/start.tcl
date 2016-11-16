@@ -16,10 +16,15 @@ proc ::Fluid::Init { } {
     
     set prefix FL
     set ::Model::ValidSpatialDimensions [list 2D 3D]
-    ::spdAux::CreateDimensionWindow
+    
+    # Allow to open the tree
+    set ::spdAux::TreeVisibility 1
     
     dict set attributes UseIntervals 0
     if {$::Kratos::kratos_private(DevMode) eq "dev"} {dict set attributes UseIntervals 1}
+    
+    LoadMyFiles
+    ::spdAux::CreateDimensionWindow
 }
 
 proc ::Fluid::LoadMyFiles { } {

@@ -11,11 +11,14 @@ proc ::Pfem::Init { } {
     
     set dir [apps::getMyDir "Pfem"]
     set ::Model::ValidSpatialDimensions [list 2D 2Da 3D]
-    ::spdAux::CreateDimensionWindow
+    # Allow to open the tree
+    set ::spdAux::TreeVisibility 1
     set attributes [dict create]
     dict set attributes UseIntervals 1
     #if {$::Kratos::kratos_private(DevMode) eq "dev"} {dict set attributes UseIntervals 1}
     dict set attributes UseRestart 1
+    LoadMyFiles
+    ::spdAux::CreateDimensionWindow
 }
 
 proc ::Pfem::LoadMyFiles { } {

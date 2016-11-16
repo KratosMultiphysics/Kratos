@@ -9,15 +9,16 @@ proc ::StenosisWizard::Init { } {
     
     # Init Working directory
     set dir [apps::getMyDir "StenosisWizard"]
-    # Don't open the tree
-    set ::spdAux::TreeVisibility 0
     # We'll work on 3D space
     spdAux::SetSpatialDimmension "3D"
     # Load Fluid App
     apps::LoadAppById "Fluid"
+    # Don't open the tree
+    set ::spdAux::TreeVisibility 0
     
     # Enable the Wizard Module
     Kratos::LoadWizardFiles
+    LoadMyFiles
 }
 
 proc ::StenosisWizard::LoadMyFiles { } {

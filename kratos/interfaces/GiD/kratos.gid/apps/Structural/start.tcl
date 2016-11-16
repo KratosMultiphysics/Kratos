@@ -11,7 +11,10 @@ proc ::Structural::Init { } {
     
     set dir [apps::getMyDir "Structural"]
     set attributes [dict create]
+    # Allow to open the tree
+    set ::spdAux::TreeVisibility 1
     
+    LoadMyFiles
     apps::LoadAppById "Solid"
 }
 
