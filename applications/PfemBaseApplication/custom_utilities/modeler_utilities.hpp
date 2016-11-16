@@ -416,7 +416,8 @@ public:
       double   CriticalRadius;      //critical area   size
       double   CriticalSide;        //critical length size
 
-      double   MeanVolume;          //critical area   size
+      double   MeanVolume;          //mean area
+      double   TotalVolume;         //total area
       double   ReferenceThreshold;  //critical variable threshold value
       double   ReferenceError;      //critical error percentage
      
@@ -446,28 +447,51 @@ public:
 	Alpha = rAlpha;
       };
 
-      void ComputeAndSetMeanVolume(ModelPart& rModelPart)
+      void ComputeAndSetVolume(ModelPart& rModelPart, const unsigned int Dimension)
       {
       	KRATOS_TRY
-	  MeanVolume=0;
+	double rMeanVolume=0;
+	double rTotalVolume=0;
 	double countNode=0;
-	
 	for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin() ; i_elem != rModelPart.ElementsEnd() ; i_elem++)
 	  {
-	    double volume=i_elem->GetGeometry().Volume();
-	    MeanVolume+=volume;
+	    double volume=0;
+	    if(Dimension==2){
+	      volume=i_elem->GetGeometry().Area();
+	      }else{
+	      volume=i_elem->GetGeometry().Volume();
+	    }
+	    rTotalVolume+=volume;
 	    countNode+=1.0;
 	  }
 
+	if(countNode!=0){
+	  rMeanVolume=rTotalVolume/countNode;
+	}
+	SetTotalVolume(rTotalVolume);
+	SetMeanVolume(rMeanVolume);
 
-	if(countNode!=0)
-	  MeanVolume/=countNode;
-
-
+	std::cout<<"MeanVolume is "<<rMeanVolume<<std::endl;
+	std::cout<<"TotalVolume is "<<rTotalVolume<<std::endl;
       	KRATOS_CATCH(" ")
 
       	  }
 
+
+      double GetTotalVolume()
+      {
+	return TotalVolume;
+      };
+
+      void SetTotalVolume( const double rTotalVolume )
+      {
+	TotalVolume = rTotalVolume;
+      };
+
+      double GetMeanVolume()
+      {
+	return MeanVolume;
+      };
 
       void SetMeanVolume( const double rMeanVolume )
       {
@@ -560,6 +584,7 @@ public:
 	InitialRadius       = 0;
 	CriticalRadius      = 0;  
 	MeanVolume          = 0;  
+	TotalVolume         = 0;  
 	CriticalSide        = 0;  
 	ReferenceThreshold  = 0;
 	ReferenceError      = 0;
