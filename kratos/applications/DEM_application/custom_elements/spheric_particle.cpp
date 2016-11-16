@@ -1271,7 +1271,7 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
 
         //Divide Stress Tensor by the total volume:
-        const array_1d<double, 3>& reaction_force=this->GetGeometry()[0].FastGetSolutionStepValue(FORCE_REACTION);
+        //const array_1d<double, 3>& reaction_force=this->GetGeometry()[0].FastGetSolutionStepValue(FORCE_REACTION);
 
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
