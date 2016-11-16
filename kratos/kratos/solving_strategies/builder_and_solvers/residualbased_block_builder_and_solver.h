@@ -506,7 +506,7 @@ public:
     {
         KRATOS_TRY;
 
-        if( this->GetEchoLevel() > 0 && r_model_part.GetCommunicator().MyPID() == 0)
+        if( this->GetEchoLevel() > 1 && r_model_part.GetCommunicator().MyPID() == 0)
         {
             std::cout << "Setting up the dofs" << std::endl;
         }

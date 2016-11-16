@@ -226,7 +226,7 @@ public:
         double resid;
         boost::tie(iters, resid) = solve(rB, rX);
 
-        if(mverbosity > 0)
+        if(mverbosity > 1)
         {
             std::cout << "Iterations: " << iters << std::endl
                       << "Error: " << resid << std::endl
