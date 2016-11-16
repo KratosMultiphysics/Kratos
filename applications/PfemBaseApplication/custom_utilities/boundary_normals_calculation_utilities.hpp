@@ -150,8 +150,7 @@ namespace Kratos
 	      
 	      //solid pfem assignation: Unity Normals on nodes and Shrink_Factor on nodes
 	      AddWeightedNormalsToNodes(*i_mp);
-
-      
+     
 	    }
 	  }
       }
@@ -222,7 +221,7 @@ namespace Kratos
 	
 	ConditionsContainerType& rConditions = rModelPart.Conditions();
 	    
-	//this->ResetBodyNormals(rModelPart);
+	this->ResetBodyNormals(rModelPart); //delete body normals after interpolation
 
 	this->CalculateBoundaryNormals(rConditions);
 	    
@@ -235,9 +234,10 @@ namespace Kratos
 	  
 	  MeshType& rMesh = rModelPart.GetMesh();
 	    
-	  //this->ResetBodyNormals(rModelPart);    
+	  this->ResetBodyNormals(rModelPart); //delete body normals after interpolation  
 
 	  this->CalculateBoundaryNormals(rMesh);
+	  
 	}
 	else if( this->CheckElementsLocalSpace(rModelPart, dimension-1) ){
 
@@ -245,7 +245,7 @@ namespace Kratos
 	  
 	  ElementsContainerType& rElements = rModelPart.Elements();
 
-	  //this->ResetBodyNormals(rModelPart);    
+	  this->ResetBodyNormals(rModelPart); //delete body normals after interpolation     
 
 	  this->CalculateBoundaryNormals(rElements);
 	      
@@ -454,7 +454,7 @@ namespace Kratos
 
       const unsigned int dimension = (rElements.begin())->GetGeometry().WorkingSpaceDimension();
 
-      //std::cout<<" element geometry: "<<(rElements.begin())->GetGeometry()<<std::endl;
+      std::cout<<" element geometry: "<<(rElements.begin())->GetGeometry()<<std::endl;
       
       //calculating the normals and storing on elements
       array_1d<double,3> An;
@@ -478,10 +478,11 @@ namespace Kratos
 	      if(it->IsNot(CONTACT)){
 		it->Set(BOUNDARY);
 		CalculateUnityNormal3D(it,An,v1,v2);
+		std::cout<<" Walls Normal "<<An<<std::endl;
 	      }
 	    }
 	}
-
+      
       KRATOS_CATCH( "" )
     }
 
