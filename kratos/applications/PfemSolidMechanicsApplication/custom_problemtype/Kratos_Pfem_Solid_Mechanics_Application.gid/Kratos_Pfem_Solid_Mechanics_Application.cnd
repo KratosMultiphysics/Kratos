@@ -187,8 +187,8 @@ CONDITION: group_LINE_LOAD
 CONDTYPE: over groups
 CONDMESHTYPE: over elements faces 
 GROUPALLOW: lines nodes elements faces
-QUESTION: Variable#CB#(LINE_LOADS_VECTOR)
-VALUE: LINE_LOADS_VECTOR
+QUESTION: Variable#CB#(LINE_LOAD)
+VALUE: LINE_LOAD
 QUESTION: ConditionType#CB#(LineLoadCondition2D2N,LineLoadAxisymCondition2D2N)
 VALUE: LineLoadCondition2D2N
 QUESTION: by_function#CB#(True,False)
@@ -218,8 +218,8 @@ CONDITION: group_SURFACE_LOAD
 CONDTYPE: over groups
 CONDMESHTYPE: over elements faces 
 GROUPALLOW: surfaces nodes elements faces
-QUESTION: Variable#CB#(SURFACE_LOADS_VECTOR)
-VALUE: SURFACE_LOADS_VECTOR
+QUESTION: Variable#CB#(SURFACE_LOAD)
+VALUE: SURFACE_LOAD
 QUESTION: ConditionType#CB#(SurfaceLoadCondition3D3N)
 VALUE: SurfaceLoadCondition3D3N
 QUESTION: by_function#CB#(True,False)
@@ -249,8 +249,8 @@ CONDITION: group_LINE_PRESSURE
 CONDTYPE: over groups
 CONDMESHTYPE: over elements faces
 GROUPALLOW: lines nodes elements faces
-QUESTION: Variable#CB#(POSITIVE_FACE_PRESSURES_VECTOR)
-VALUE: POSITIVE_FACE_PRESSURES_VECTOR
+QUESTION: Variable#CB#(POSITIVE_FACE_PRESSURE)
+VALUE: POSITIVE_FACE_PRESSURE
 QUESTION: ConditionType#CB#(LineLoadCondition2D2N,LineLoadAxisymCondition2D2N)
 VALUE: LineLoadCondition2D2N
 QUESTION: by_function#CB#(True,False)
@@ -277,8 +277,8 @@ CONDITION: group_SURFACE_PRESSURE
 CONDTYPE: over groups
 CONDMESHTYPE: over elements faces
 GROUPALLOW: lines nodes elements faces
-QUESTION: Variable#CB#(POSITIVE_FACE_PRESSURES_VECTOR)
-VALUE: POSITIVE_FACE_PRESSURES_VECTOR
+QUESTION: Variable#CB#(POSITIVE_FACE_PRESSURE)
+VALUE: POSITIVE_FACE_PRESSURE
 QUESTION: ConditionType#CB#(SurfaceLoadCondition3D3N)
 VALUE: SurfaceLoadCondition3D3N
 QUESTION: by_function#CB#(True,False)
