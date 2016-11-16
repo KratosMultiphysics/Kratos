@@ -39,8 +39,9 @@ public:
   typedef Quaternion<double>          QuaternionType;   
   typedef MathUtils<TDataType>         MathUtilsType;
   typedef BeamMathUtils<TDataType> BeamMathUtilsType; 
- 
-  typedef bounded_vector<double, 3>        PointType;
+
+  //typedef bounded_vector<double, 3>      PointType;
+  typedef array_1d<double, 3>              PointType;
 
   ///@}
   ///name Math Utilities for beams
@@ -98,7 +99,7 @@ public:
     rVector = prod(RotationMatrix,rVector);
 
     return rVector;
-
+      
     KRATOS_CATCH( "" )
   }
 
@@ -147,7 +148,7 @@ public:
   static inline PointType& MapToReferenceLocalFrame(QuaternionType& rQuaternion, PointType& rVector)
   {
     KRATOS_TRY
-
+      
     //rQuaternion.RotateVector3(rVariable); 
     // precision problems due to a rest included in the rotation
       
@@ -159,7 +160,7 @@ public:
     rVector = prod(RotationMatrix,rVector);
 
     return rVector;
-
+    
     KRATOS_CATCH( "" )
 
   }
