@@ -471,7 +471,7 @@ public:
         }
         // 			*(this->mpReactionsVector) = TSystemVectorType();
 
-        if (this->GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 1)
         {
             KRATOS_WATCH("ResidualBasedEliminationBuilderAndSolver Clear Function called");
         }

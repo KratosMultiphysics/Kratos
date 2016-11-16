@@ -174,7 +174,7 @@ public:
 
             if (r_model_part.GetCommunicator().MyPID() == 0)
             {
-                if (this->GetEchoLevel() == 1)
+                if (this->GetEchoLevel() >= 1)
                 {
                     std::cout << "RESIDUAL CRITERION :: Ratio = " << ratio  << ";  Norm   = " << mCurrentResidualNorm/b_size << std::endl;
                 }
@@ -187,7 +187,7 @@ public:
             {
                 if (r_model_part.GetCommunicator().MyPID() == 0)
                 {
-                    if (this->GetEchoLevel() == 1)
+                    if (this->GetEchoLevel() >= 1)
                     {
                         std::cout << "Convergence is achieved" << std::endl;
                     }

@@ -43,7 +43,6 @@
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/convergencecriterias/displacement_criteria.h"
-#include "solving_strategies/convergencecriterias/incremental_displacement_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "solving_strategies/convergencecriterias/and_criteria.h"
 #include "solving_strategies/convergencecriterias/or_criteria.h"
@@ -361,11 +360,6 @@ namespace Kratos
                     ("DisplacementCriteria", init< double, double>())
                     ;
 		    
-	    class_< IncrementalDisplacementCriteria<SparseSpaceType, LocalSpaceType >,
-                    bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
-                    boost::noncopyable >
-                    ("IncrementalDisplacementCriteria", init< double, double>());
-
             class_<ResidualCriteria<SparseSpaceType, LocalSpaceType >,
                     bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
                     boost::noncopyable >

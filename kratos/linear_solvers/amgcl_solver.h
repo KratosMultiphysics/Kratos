@@ -522,7 +522,7 @@ public:
         }
 
 
-        if(mverbosity > 0)
+        if(mverbosity > 1)
         {
 
             std::cout << "Iterations: " << iters << std::endl
@@ -624,7 +624,7 @@ public:
         else
             mndof = ndof;
 
-        if(mverbosity > 0)
+        if(mverbosity > 1)
         {
             KRATOS_WATCH(mndof);
         }
