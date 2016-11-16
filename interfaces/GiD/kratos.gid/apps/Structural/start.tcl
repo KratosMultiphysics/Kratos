@@ -13,9 +13,9 @@ proc ::Structural::Init { } {
     set attributes [dict create]
     # Allow to open the tree
     set ::spdAux::TreeVisibility 1
+    apps::LoadAppById "Solid"
     
     LoadMyFiles
-    apps::LoadAppById "Solid"
 }
 
 proc ::Structural::LoadMyFiles { } {
