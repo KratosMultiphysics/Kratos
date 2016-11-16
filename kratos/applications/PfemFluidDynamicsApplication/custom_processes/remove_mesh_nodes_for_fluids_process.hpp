@@ -609,8 +609,9 @@ private:
 	    double distWall=0;
 	    double safetyCoefficient2D=0.5;
 	    
-	    double elementVolume=ie->GetGeometry().Volume();
+	    double elementVolume=ie->GetGeometry().Area();
 	    double CriticalVolume=0.1*mrRemesh.Refine->MeanVolume;
+	    CriticalVolume=0;
 	    if(elementVolume<CriticalVolume){
 	      for(unsigned int i=0; i<ie->GetGeometry().size(); i++)
 		{	

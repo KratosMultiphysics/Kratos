@@ -57,47 +57,17 @@ namespace Kratos
       typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
       //typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
 
-      //custom types
-      // typedef FluidResidualBasedUwPStaticScheme< SparseSpaceType, LocalSpaceType > FluidResidualBasedUwPStaticSchemeType;
-      // typedef FluidResidualBasedNewtonRaphsonLineSearchImplexStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > FluidResidualBasedNewtonRaphsonLineSearchImplexStrategyType;
-
-      //********************************************************************
-      //*************************STRATEGY CLASSES***************************
-      //********************************************************************
-
-    
-
-      //********************************************************************
-      //*************************BUILDER AND SOLVER*************************
-      //********************************************************************
-      
-
 
       //********************************************************************
       //*************************SHCHEME CLASSES****************************
       //********************************************************************
-    // Static Scheme Type
-      // class_< FluidResidualBasedUwPStaticSchemeType,
-      // 	      bases< BaseSchemeType >, boost::noncopyable >
-      // 	(
-      // 	 "FluidResidualBasedUwPStaticScheme", init< >() )
-        
-      // 	.def("Initialize", &FluidResidualBasedUwPStaticScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-      // 	;
-
 
       class_< TwoStepVPStrategy< SparseSpaceType,LocalSpaceType, LinearSolverType >, bases<BaseSolvingStrategyType>, boost::noncopyable >
       	("TwoStepVPStrategy",init<ModelPart&,LinearSolverType::Pointer,LinearSolverType::Pointer,bool,bool,double,double,int,int,unsigned int,unsigned int,bool>())
-      	//.def(init< ModelPart&, TwoStepVPSolverSettings< SparseSpaceType,LocalSpaceType, LinearSolverType >&, bool >() )
-      	//.def(init< ModelPart&, TwoStepVPSolverSettings< SparseSpaceType,LocalSpaceType, LinearSolverType >&, bool, const Kratos::Variable<int>& >() )
-      	.def("CalculateReactions",&TwoStepVPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::CalculateReactions)
       	.def("CalculateAccelerations",&TwoStepVPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::CalculateAccelerations)
       	.def("CalculateDisplacements",&TwoStepVPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::CalculateDisplacements)
-      	.def("CalculateHistoricalVariables",&TwoStepVPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::CalculateHistoricalVariables)
       	.def("InitializeStressStrain",&TwoStepVPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::InitializeStressStrain)
-      	.def("AddIterationStep",&TwoStepVPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::AddIterationStep)
-      	.def("ClearExtraIterationSteps",&TwoStepVPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::ClearExtraIterationSteps)
-      	;
+	;
 
       class_< GaussSeidelLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases< BaseSolvingStrategyType >, boost::noncopyable >
 	("GaussSeidelLinearStrategy",init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool >())
@@ -106,32 +76,6 @@ namespace Kratos
 	.def("SetBuilderAndSolver", &GaussSeidelLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetBuilderAndSolver)
 	;
 
-
-      //********************************************************************
-      //*******************CONVERGENCE CRITERIA CLASSES*********************
-      //********************************************************************
-
-
-     //********************************************************************
-    //*************************STRATEGY CLASSES***************************
-    //********************************************************************
-
-    // Residual Based Newton-Raphson Line Search Strategy
-    // class_< FluidResidualBasedNewtonRaphsonLineSearchImplexStrategyType, 
-    //   bases< BaseSolvingStrategyType >, boost::noncopyable >
-    //   (
-    //    "ResidualBasedNewtonRaphsonLineSearchImplexStrategy",
-    //    init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaBaseType::Pointer, int, bool, bool, bool>())
-      
-    //   .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaBaseType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
-    //   .def("SetMaxIterationNumber", &FluidResidualBasedNewtonRaphsonLineSearchImplexStrategyType::SetMaxIterationNumber)
-    //   .def("GetMaxIterationNumber", &FluidResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetMaxIterationNumber)
-    //   .def("SetInitializePerformedFlag", &FluidResidualBasedNewtonRaphsonLineSearchImplexStrategyType::SetInitializePerformedFlag)
-    //   .def("GetInitializePerformedFlag", &FluidResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetInitializePerformedFlag)
-    //   .def("SetKeepSystemConstantDuringIterations", &FluidResidualBasedNewtonRaphsonLineSearchImplexStrategyType::SetKeepSystemConstantDuringIterations)
-    //   .def("GetKeepSystemConstantDuringIterations", &FluidResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetKeepSystemConstantDuringIterations)
-    //   ;
-     
 
 
     }

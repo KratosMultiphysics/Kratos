@@ -335,9 +335,6 @@ namespace Kratos {
 
 	    this->AddInternalForces(rRightHandSideVector,rDN_DX,rElementalVariables,GaussWeight);
 
-	    // this->AddDynamicForces(rRightHandSideVector,dynamicWeight,TimeStep);
-
-
 	    double DeviatoricCoeff = 0;
 	    double VolumetricCoeff = 0;
 
@@ -504,6 +501,14 @@ namespace Kratos {
 	    // this->AddStabilizationMatrixLHS(rLeftHandSideMatrix,BulkAccMatrix,N,BulkStabCoeff);
 
 	    double BoundLHSCoeff=Tau*ElemSize*ElemSize/GaussWeight;
+	    if(TDim==3){
+	      double surface3D=GaussWeight/(0.81649658*ElemSize);
+	      BoundLHSCoeff=Tau*2*surface3D/ElemSize;
+	    }
+	    else{
+	      double line2D=2*GaussWeight/ElemSize;
+	      BoundLHSCoeff=Tau*2*line2D/ElemSize;
+	    }
 	    this->ComputeBoundLHSMatrix(BoundLHSMatrix,N,BoundLHSCoeff);
 	    rLeftHandSideMatrix+=BoundLHSMatrix;
 
@@ -511,6 +516,14 @@ namespace Kratos {
 	    double NAcc=0;
 	    this->CalcNormalProjectionsForBoundRHSVector(rElementalVariables.SpatialDefRate,NAcc,NProjSpatialDefRate);
 	    double BoundRHSCoeff=Tau*ElemSize*Density*NAcc-BoundLHSCoeff*2.0*NProjSpatialDefRate*DeviatoricCoeff;
+	    if(TDim==3){
+	      double surface3D=GaussWeight/(0.81649658*ElemSize);
+	      BoundRHSCoeff=Tau*surface3D*(Density*NAcc-4.0*NProjSpatialDefRate*DeviatoricCoeff/ElemSize);
+	    }
+	    else{
+	      double line2D=2*GaussWeight/ElemSize;
+	      BoundRHSCoeff=Tau*line2D*(Density*NAcc-4.0*NProjSpatialDefRate*DeviatoricCoeff/ElemSize);
+	    }
 	    this->ComputeBoundRHSVector(BoundRHSVector,N,BoundRHSCoeff);
 
 	    VectorType UpdatedPressure;
@@ -613,8 +626,6 @@ namespace Kratos {
       KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check that the application was correctly registered.","");
     if(VISCOSITY.Key() == 0)
       KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check that the application was correctly registered.","");
-    if(PRESSURE_OLD_IT.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument,"PRESSURE_OLD_IT Key is 0. Check that the application was correctly registered.","");
     if(NODAL_AREA.Key() == 0)
       KRATOS_THROW_ERROR(std::invalid_argument,"NODAL_AREA Key is 0. Check that the application was correctly registered.","");
     if(BDF_COEFFICIENTS.Key() == 0)
@@ -637,8 +648,6 @@ namespace Kratos {
 	  KRATOS_THROW_ERROR(std::invalid_argument,"missing DENSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
         if(this->GetGeometry()[i].SolutionStepsDataHas(VISCOSITY) == false)
 	  KRATOS_THROW_ERROR(std::invalid_argument,"missing VISCOSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(PRESSURE_OLD_IT) == false)
-	  KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE_OLD_IT variable on solution step data for node ",this->GetGeometry()[i].Id());
         if(this->GetGeometry()[i].SolutionStepsDataHas(NODAL_AREA) == false)
 	  KRATOS_THROW_ERROR(std::invalid_argument,"missing NODAL_AREA variable on solution step data for node ",this->GetGeometry()[i].Id());
         if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
@@ -2107,40 +2116,6 @@ bool TwoStepUpdatedLagrangianVPElement<TDim>::CheckSliverElements()
       }
 
 
-  }
-
-  template<  unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPElement<TDim>::AddDynamicForces(Vector& rRHSVector,
-								   const double Weight,
-								   const double TimeStep)
-  {
-
-    double coeff=1.0+TDim;
-
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-    const SizeType LocalSize = TDim * NumNodes;
-
-    VectorType VelocityValues = ZeroVector(LocalSize);
-    this->GetVelocityValues(VelocityValues,0);
-    VectorType UpdatedAccelerations = ZeroVector(LocalSize);
-    UpdatedAccelerations = 2.0*VelocityValues/TimeStep;
-    VectorType LastAccValues = ZeroVector(LocalSize);
-    this->GetAccelerationValues(LastAccValues,0);
-    this->GetVelocityValues(VelocityValues,1);
-    UpdatedAccelerations += -2.0*VelocityValues/TimeStep - LastAccValues; 
-
-    SizeType FirstRow = 0;
-    for (SizeType i = 0; i < NumNodes; ++i)
-      {
-        // for ( unsigned int j = 0; j <  TDim; j++ )
-	//   {
-        //     unsigned int index = i * TDim + j;
-        //     rRHSVector[index] += - (Weight /coeff) * UpdatedAccelerations[index];
-	//   }
-	rRHSVector[FirstRow]   += - (Weight /coeff) * UpdatedAccelerations[FirstRow] ;
-	rRHSVector[FirstRow+1] += - (Weight /coeff) * UpdatedAccelerations[FirstRow+1];
-	FirstRow += 2;
-      }
   }
 
 

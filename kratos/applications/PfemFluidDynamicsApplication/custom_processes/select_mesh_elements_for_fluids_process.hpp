@@ -200,14 +200,24 @@ public:
 		  vertices.push_back(rNodes(OutElementList[el*nds+pn]));
 
 		  //check flags on nodes
-		  if(vertices.back().Is(FREE_SURFACE))
+		  if(vertices.back().Is(FREE_SURFACE)){
 		    numfreesurf++;
+		    // std::cout<<" FREE_SURFACE COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
+		  }
 
-		  if(vertices.back().Is(BOUNDARY))
+		  if(vertices.back().Is(BOUNDARY)){
 		    numboundary++;
-
-		  if(vertices.back().Is(RIGID))
+		    // std::cout<<" BOUNDARY COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
+		  }
+		  if(vertices.back().Is(RIGID)){
 		    numrigid++;
+		    // std::cout<<" rigid COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
+		  }
+		  if(!vertices.back().Is(RIGID) && vertices.back().Is(BOUNDARY)){
+		    numfreesurf++;
+		    // std::cout<<" rigid COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
+		  }
+
 		  // if(vertices.back().Is(OLD_ENTITY))
 		  //   numinsertednodes++;
 
@@ -272,12 +282,45 @@ public:
 	      // 	Alpha*=1.05;
 	      // }
 
-	      // if(numrigid>0 && numfreesurf==0){
-	      // 	Alpha*=1.1;
-	      // }
-	      // if(numfreesurf==0){
-	      // 	Alpha*=1.1;
-	      // }
+	      if(numfreesurf==0){
+		if(dimension==2){
+		  if(numrigid==0){
+		    // if(numfirstlayer==0){
+		    //   Alpha*=1.05;
+		    // }else{
+		    //   Alpha*=1.025;
+		    // }
+		    Alpha*=1.025;
+		  }else{
+		    // if(numfirstlayer==0){
+		    //   Alpha*=1.1;
+		    // }else{
+		    //   Alpha*=1.05;
+		    // }
+		    Alpha*=1.1;
+		  }
+
+		}
+		if(dimension==3){
+		  if(numrigid==0){
+		    // if(numfirstlayer==0){
+		    //   Alpha*=1.15;
+		    // }else{
+		    //   Alpha*=1.075;
+		    // }
+		    Alpha*=1.15;
+		  }else{
+		    // if(numfirstlayer==0){
+		    //   Alpha*=1.25;
+		    // }else{
+		    //   Alpha*=1.125;
+		    // }
+		    Alpha*=1.25;
+		  }
+		}
+	      }
+	      
+
 	      // std::cout<<" vertices for the contact element "<<std::endl;
 	      // for( unsigned int n=0; n<nds; n++)
 	      // 	{

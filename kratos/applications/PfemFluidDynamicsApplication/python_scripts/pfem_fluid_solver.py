@@ -131,9 +131,7 @@ class PfemFluidSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
-        
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE_OLD_IT)
-                
+                        
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
@@ -258,9 +256,8 @@ class PfemFluidSolver:
             
         self.fluid_solver.Solve()
         
-        self.fluid_solver.CalculateAccelerations()  # ACCELERATION
+        #self.fluid_solver.CalculateAccelerations()  # ACCELERATION
         #self.fluid_solver.CalculateDisplacements()  # DISPLACEMENTS
-        #self.fluid_solver.CalculateHistoricalVariables()  # STRESS-STRAIN
 
     # solve :: sequencial calls
     
@@ -283,11 +280,11 @@ class PfemFluidSolver:
         self.fluid_solver.Solve()
 
     def FinalizeSolutionStep(self):
-        #self.fluid_solver.FinalizeSolutionStep()
+        #pass
+        self.fluid_solver.FinalizeSolutionStep()
         
-        self.fluid_solver.CalculateAccelerations()  # ACCELERATION
+        #self.fluid_solver.CalculateAccelerations()  # ACCELERATION
         #self.fluid_solver.CalculateDisplacements()  # DISPLACEMENTS
-        #self.fluid_solver.CalculateHistoricalVariables()  # STRESS-STRAIN
 
     # solve :: sequencial calls
 
