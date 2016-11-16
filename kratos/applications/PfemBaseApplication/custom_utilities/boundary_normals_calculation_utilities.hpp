@@ -229,7 +229,7 @@ namespace Kratos
       }
       else if( rModelPart.NumberOfElements() ){
 	
-	if( this->CheckElementsDimension(rModelPart, dimension) ){
+	if( this->CheckElementsLocalSpace(rModelPart, dimension) ){
 
 	  if(mEchoLevel > 0) 
 	    std::cout<<"   ["<<rModelPart.Name()<<"] (VE)"<<std::endl;
