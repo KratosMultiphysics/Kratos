@@ -128,7 +128,7 @@ public:
 
     /// Default constructor.
     LloydParallelPartitioner(IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd)
-        : mObjectsBegin(ObjectsBegin), mObjectsEnd(ObjectsEnd), mNumberOfObjects(ObjectsEnd-ObjectsBegin) {
+      : mNumberOfObjects(ObjectsEnd-ObjectsBegin), mObjectsBegin(ObjectsBegin), mObjectsEnd(ObjectsEnd)  {
 
       MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
       MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
@@ -193,7 +193,7 @@ public:
       MPI_Allreduce(&mpiSendNumberOfObjects, &mpiRecvNumberOfObjects, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
       MPI_Allreduce(&mpiSendObjectsPerCell[0], &mpiRecvObjectsPerCell[0], mNumberOfCells, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
-      int MeanObjectsPerPartition = mpiRecvNumberOfObjects / mpi_size;
+      //int MeanObjectsPerPartition = mpiRecvNumberOfObjects / mpi_size;
       // std::cout << "mpiRecvNumberOfObjects: " << mpiRecvNumberOfObjects << " MeanObjectsPerPartition: " << MeanObjectsPerPartition << std::endl;
 
       // Assing each cell to the closest partition center
