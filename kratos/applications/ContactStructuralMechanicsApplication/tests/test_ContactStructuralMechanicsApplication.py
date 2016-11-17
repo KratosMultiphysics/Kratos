@@ -70,13 +70,13 @@ def AssambleTestSuites():
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
             TBasicCATest,
-            #TSimplePatchTestContact,
-            #TSimplePatchNotMatchingATestContact,
-            #TSimplePatchNotMatchingBTestContact,
-            #TTaylorPatchTestContact,
-            #TTaylorPatchDynamicTestContact,
-            #THertzSimpleTestContact,
-            #THertzSimpleSphereTestContact,
+            TSimplePatchTestContact,
+            TSimplePatchNotMatchingATestContact,
+            TSimplePatchNotMatchingBTestContact,
+            TTaylorPatchTestContact,
+            TTaylorPatchDynamicTestContact,
+            THertzSimpleTestContact,
+            THertzSimpleSphereTestContact,
             #TThreeDPatchMatchingTestContact,
             #TThreeDPatchNonMatchingTestContact,
             ############ JUST TESTING ###########
