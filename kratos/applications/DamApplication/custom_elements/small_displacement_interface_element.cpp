@@ -192,15 +192,43 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateMassMatrix( Mat
         noalias(LocalRelDispVector) = prod(RotationMatrix,RelDispVector);
             
         this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], MinimumJointWidth,GPoint);
-
-        //InterfaceElementUtilities::CalculateNuElementMatrix(Nut,NContainer,GPoint);
         
         //calculating weighting coefficient for integration
         this->CalculateIntegrationCoefficient( IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
 
         //Adding contribution to Mass matrix
-        noalias(rMassMatrix) += Density*prod(trans(Nut),Nut)*JointWidth*IntegrationCoefficient;
+        noalias(rMassMatrix) += Density*prod(trans(Nu),Nu)*JointWidth*IntegrationCoefficient;
     }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const unsigned int element_size = TNumNodes * TDim ;
+    
+    // Compute Mass Matrix
+    MatrixType MassMatrix(element_size,element_size);
+    
+    this->CalculateMassMatrix(MassMatrix,rCurrentProcessInfo);
+        
+    // Compute Stiffness matrix
+    MatrixType StiffnessMatrix(element_size,element_size);
+        
+    this->CalculateStiffnessMatrix(StiffnessMatrix,rCurrentProcessInfo);
+    
+    // Compute Damping Matrix
+    if ( rDampingMatrix.size1() != element_size )
+        rDampingMatrix.resize( element_size, element_size, false );
+    noalias( rDampingMatrix ) = ZeroMatrix( element_size, element_size );
+       
+    noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_ALPHA] * MassMatrix;
+    noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_BETA] * StiffnessMatrix;
 
     KRATOS_CATCH( "" )
 }
@@ -267,8 +295,9 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep( Pr
 template< unsigned int TDim, unsigned int TNumNodes >
 void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
+    
     KRATOS_TRY
-
+    
     unsigned int element_size = TNumNodes * TDim;
     
     //Resetting the LHS
@@ -282,11 +311,23 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateLocalSystem( Ma
     noalias( rRightHandSideVector ) = ZeroVector( element_size );
     
     this->CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-        
+
     KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY;
+    
+    KRATOS_THROW_ERROR(std::logic_error,"SmallDisplacementInterfaceElement::CalculateLeftHandSide not implemented","");
+    
+    KRATOS_CATCH("");
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
@@ -378,6 +419,52 @@ void SmallDisplacementInterfaceElement<3,8>::EquationIdVector( EquationIdVectorT
 
 //----------------------------------------------------------------------------------------
 
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetValuesVector( Vector& rValues, int Step )
+{
+    const GeometryType& Geom = this->GetGeometry();
+    const unsigned int element_size = TNumNodes * TDim;
+    unsigned int index = 0;
+
+    if ( rValues.size() != element_size )
+        rValues.resize( element_size, false );
+
+    for ( unsigned int i = 0; i < TNumNodes; i++ )
+    {
+        rValues[index++] = Geom[i].FastGetSolutionStepValue( DISPLACEMENT_X, Step );
+        rValues[index++] = Geom[i].FastGetSolutionStepValue( DISPLACEMENT_Y, Step );
+        if ( TDim > 2 )
+            rValues[index++] = Geom[i].FastGetSolutionStepValue( DISPLACEMENT_Z, Step );
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetFirstDerivativesVector( Vector& rValues, int Step )
+{
+    
+    const GeometryType& Geom = this->GetGeometry();
+    const unsigned int element_size = TNumNodes * TDim;
+    unsigned int index = 0;
+
+    if ( rValues.size() != element_size )
+        rValues.resize( element_size, false );
+
+    for ( unsigned int i = 0; i < TNumNodes; i++ )
+    {
+        rValues[index++] = Geom[i].FastGetSolutionStepValue( VELOCITY_X, Step );
+        rValues[index++] = Geom[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
+        if ( TDim > 2 )
+            rValues[index++] = Geom[i].FastGetSolutionStepValue( VELOCITY_Z, Step );
+    }
+
+}
+
+//----------------------------------------------------------------------------------------
+
 template< unsigned int TDim, unsigned int TNumNodes >
 void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetSecondDerivativesVector( Vector& rValues, int Step )
 {
@@ -394,9 +481,9 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetSecondDerivativesVect
         rValues[index++] = Geom[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
         if ( TDim > 2 )
             rValues[index++] = Geom[i].FastGetSolutionStepValue( ACCELERATION_Z, Step );
-        rValues[index++] = 0.0;
     }
 }
+
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -456,6 +543,21 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoi
     }
 }
 
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,std::vector<ConstitutiveLaw::Pointer>& rValues,
+                                                                const ProcessInfo& rCurrentProcessInfo )
+{
+    if(rVariable == CONSTITUTIVE_LAW)
+    {
+        if ( rValues.size() != mConstitutiveLawVector.size() )
+            rValues.resize(mConstitutiveLawVector.size());
+
+        for(unsigned int i=0; i < mConstitutiveLawVector.size(); i++)
+            rValues[i] = mConstitutiveLawVector[i];
+    }
+}
 
 //----------------------------------------------------------------------------------------
 
@@ -654,7 +756,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo )
 {    
     KRATOS_TRY
-
+    
     const unsigned int element_size = TNumNodes * TDim;
     
     //Resizing mass matrix
@@ -698,7 +800,6 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateStiffnessMatrix
         noalias(Variables.StrainVector) = prod(Variables.RotationMatrix,RelDispVector);
         this->CheckAndCalculateJointWidth(Variables.JointWidth,ConstitutiveParameters,Variables.StrainVector[TDim-1], MinimumJointWidth, GPoint);
         
-        
         //Compute constitutive tensor
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
@@ -719,7 +820,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {    
     KRATOS_TRY
-    
+        
     //Previous definitions 
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
@@ -773,6 +874,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateAll( MatrixType
         //Contributions to the right hand side
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);
     }
+    
     
     KRATOS_CATCH( "" )
 }
@@ -1100,13 +1202,10 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateAndAddStiffness
     noalias(rVariables.DimMatrix) = prod(trans(rVariables.RotationMatrix),
                                         boost::numeric::ublas::bounded_matrix<double,TDim,TDim>(prod(rVariables.ConstitutiveMatrix,
                                         rVariables.RotationMatrix)));
-    noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu),rVariables.DimMatrix); // TODO: ES NECESARIA??? ES usada tambien CalculateAndAddStifnessForce
+    noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu),rVariables.DimMatrix); 
     noalias(rVariables.UMatrix) = prod(rVariables.UDimMatrix,rVariables.Nu)*rVariables.IntegrationCoefficient;
     
     noalias(rLeftHandSideMatrix) += rVariables.UMatrix;
-    
-    //Distribute stiffness block matrix into the elemental matrix
-    //ElementUtilities::AssembleUBlockMatrix(rLeftHandSideMatrix,rVariables.UMatrix);
 }
 
 //----------------------------------------------------------------------------------------
@@ -1129,8 +1228,6 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateAndAddStiffness
     noalias(rVariables.UVector) = -1.0*prod(rVariables.UDimMatrix,rVariables.StressVector)*rVariables.IntegrationCoefficient;
     
     noalias(rRightHandSideVector) += rVariables.UVector;
-    //Distribute stiffness block vector into elemental vector
-    //ElementUtilities::AssembleUBlockVector(rRightHandSideVector,rVariables.UVector);
 }
 
 //----------------------------------------------------------------------------------------
@@ -1141,9 +1238,6 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateAndAddMixBodyFo
     noalias(rVariables.UVector) = rVariables.Density*prod(trans(rVariables.Nu),rVariables.BodyAcceleration)*rVariables.JointWidth*rVariables.IntegrationCoefficient;
     
     noalias(rRightHandSideVector) += rVariables.UVector;
-    
-    //Distribute body force block vector into elemental vector
-    //ElementUtilities::AssembleUBlockVector(rRightHandSideVector,rVariables.UVector);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
