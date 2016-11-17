@@ -275,25 +275,16 @@ class DamMechanicalSolver:
         return builder_and_solver
         
     def SchemeCreator(self, solution_type, scheme_type):
-        
-        smoothing = "Yes"
-        
-        for i in range(self.settings["output_configuration"]["result_file_configuration"]["nodal_results"].size()):
-            outputs = self.settings["output_configuration"]["result_file_configuration"]["nodal_results"][i].GetString()
-            if (outputs == "NODAL_CAUCHY_STRESS_TENSOR"):
-                smoothing = "Yes"
-        
-
-            if (solution_type == "Quasi-Static"):       
-                scheme =  KratosDam.IncrementalUpdateStaticSmoothingScheme()
+                
+        if (solution_type == "Quasi-Static"):
+            scheme =  KratosDam.IncrementalUpdateStaticSmoothingScheme()   
+        elif (solution_type == "Dynamic"):
+            if(scheme_type == "Newmark"):
+                damp_factor_m = 0.0
             else:
-                if(scheme_type == "Newmark"):
-                    damp_factor_m = 0.0
-                else:
-                    damp_factor_m = -0.01
-                    
-                scheme = KratosDam.BossakDisplacementSmoothingScheme(damp_factor_m)
-
+                damp_factor_m = -0.01
+            scheme = KratosDam.BossakDisplacementSmoothingScheme(damp_factor_m)
+        
         return scheme
          
          
