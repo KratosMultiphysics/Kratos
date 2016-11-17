@@ -78,7 +78,6 @@ public:
     typedef typename BaseType::ProcessPointerType ProcessPointerType;
 
     typedef typename BaseType::StrategyLabel StrategyLabel;
-    typedef typename BaseType::TurbulenceModelLabel TurbulenceModelLabel;
 
     ///@}
     ///@name Life Cycle
@@ -88,10 +87,8 @@ public:
     TwoStepVPSettings(ModelPart& rModelPart,
                       const unsigned int ThisDomainSize,
                       const unsigned int ThisTimeOrder,
-                      const bool UseSlip,
-                      const bool MoveMeshFlag,
                       const bool ReformDofSet):
-        BaseType(rModelPart,ThisDomainSize,ThisTimeOrder,UseSlip,MoveMeshFlag,ReformDofSet)
+        BaseType(rModelPart,ThisDomainSize,ThisTimeOrder,ReformDofSet)
     {}
 
     /// Destructor.
@@ -127,7 +124,6 @@ public:
         bool CalculateNormDxFlag = true;
 
         ModelPart& rModelPart = BaseType::GetModelPart();
-        bool UseSlip = BaseType::UseSlipConditions();
         // Modification of the DofSet is managed by the fractional step strategy, not the auxiliary velocity and pressure strategies.
         bool ReformDofSet = false; //BaseType::GetReformDofSet();
         unsigned int EchoLevel = BaseType::GetEchoLevel();
@@ -141,18 +137,10 @@ public:
 
             SchemePointerType pScheme;
             //initializing fractional velocity solution step
-            if (UseSlip)
-            {
-                unsigned int DomainSize = BaseType::GetDomainSize();
-                SchemePointerType Temp = SchemePointerType(new ResidualBasedIncrementalUpdateStaticSchemeSlip< TSparseSpace, TDenseSpace > (DomainSize,DomainSize));
-                pScheme.swap(Temp);
-            }
-            else
-            {
-                SchemePointerType Temp = SchemePointerType(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
-                pScheme.swap(Temp);
-            }
 
+	    SchemePointerType Temp = SchemePointerType(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
+	    pScheme.swap(Temp);
+ 
             // Strategy
             BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >
                                                                         (rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
