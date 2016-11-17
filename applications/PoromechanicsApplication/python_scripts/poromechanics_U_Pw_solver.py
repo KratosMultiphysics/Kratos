@@ -60,6 +60,7 @@ class UPwSolver(object):
             "builder": "Elimination",
             "nonlocal_damage": false,
             "characteristic_length": 0.05,
+            "search_neighbours_step": false,
             "linear_solver_settings":{
                 "solver_type": "BICGSTABSolver",
                 "tolerance": 1.0e-6,
@@ -295,6 +296,7 @@ class UPwSolver(object):
             if nonlocal_damage:
                 self.strategy_params.AddValue("body_domain_sub_model_part_list",self.settings["body_domain_sub_model_part_list"])
                 self.strategy_params.AddValue("characteristic_length",self.settings["characteristic_length"])
+                self.strategy_params.AddValue("search_neighbours_step",self.settings["search_neighbours_step"])
                 solver = KratosPoro.PoromechanicsNewtonRaphsonNonlocalStrategy(self.main_model_part,
                                                                                scheme,
                                                                                self.linear_solver,
@@ -327,6 +329,7 @@ class UPwSolver(object):
             if nonlocal_damage:
                 self.strategy_params.AddValue("body_domain_sub_model_part_list",self.settings["body_domain_sub_model_part_list"])
                 self.strategy_params.AddValue("characteristic_length",self.settings["characteristic_length"])
+                self.strategy_params.AddValue("search_neighbours_step",self.settings["search_neighbours_step"])
                 solver = KratosPoro.PoromechanicsRammArcLengthNonlocalStrategy(self.main_model_part,
                                                                                scheme,
                                                                                self.linear_solver,

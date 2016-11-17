@@ -39,8 +39,8 @@ int UPwSmallStrainElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentPro
     int ierr = Element::Check(rCurrentProcessInfo);
     if(ierr != 0) return ierr;
     
-    if(Geom.DomainSize() < 1.0e-8)
-        KRATOS_THROW_ERROR( std::logic_error, "DomainSize < 1.0e-8 for the element ", this->Id() )    
+    if(Geom.DomainSize() < 1.0e-15)
+        KRATOS_THROW_ERROR( std::logic_error, "DomainSize < 1.0e-15 for the element ", this->Id() )    
     
     // Verify generic variables
     ierr = UPwElement<TDim,TNumNodes>::Check(rCurrentProcessInfo);

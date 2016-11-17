@@ -162,19 +162,22 @@ while( (time+tol) <= end_time ):
         process.ExecuteAfterOutputStep()
     
     # Fracture Propagation Utility
+    IsRemeshed = False
     if FracturePropagation:
         if fracture_utility.IsPropagationStep():
-            main_model_part,solver,list_of_processes,gid_output = fracture_utility.CheckPropagation(main_model_part,
-                                                                                                    solver,
-                                                                                                    list_of_processes,
-                                                                                                    gid_output)
+            main_model_part,solver,list_of_processes,gid_output,IsRemeshed = fracture_utility.CheckPropagation(main_model_part,
+                                                                                                               solver,
+                                                                                                               list_of_processes,
+                                                                                                               gid_output)
 
 ## Finalize --------------------------------------------------------------------------------------------------
 
-# Print last step
-#gid_output.ExecuteInitializeSolutionStep()
-#gid_output.ExecuteFinalizeSolutionStep()
-#gid_output.PrintOutput()
+# Print last step if model was regenerated at the end
+if IsRemeshed:
+    #solver._CheckConvergence()
+    gid_output.ExecuteInitializeSolutionStep()
+    gid_output.ExecuteFinalizeSolutionStep()
+    gid_output.PrintOutput()
 
 # Finalizing output files
 gid_output.ExecuteFinalize()

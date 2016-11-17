@@ -19,7 +19,6 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/openmp_utils.h"
-#include "utilities/math_utils.h"
 
 // Application includes
 #include "poromechanics_application_variables.h"
@@ -102,13 +101,15 @@ protected:
 
 public:
 
+    KRATOS_CLASS_POINTER_DEFINITION( FracturePropagation2DUtilities );
+
     /// Constructor
     FracturePropagation2DUtilities() {}
 
     ///------------------------------------------------------------------------------------
 
     /// Destructor
-    ~FracturePropagation2DUtilities() {}
+    virtual ~FracturePropagation2DUtilities() {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

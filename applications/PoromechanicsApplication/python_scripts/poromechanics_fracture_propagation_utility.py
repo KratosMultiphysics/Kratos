@@ -155,7 +155,7 @@ class FracturePropagationUtility:
                 shutil.copy(str(filepath), str(self.problem_path))
             
         
-        return main_model_part,solver,list_of_processes,gid_output
+        return main_model_part,solver,list_of_processes,gid_output,propagate_fractures
 
     def GenereateNewModelPart(self,main_model_part,solver,list_of_processes,gid_output):
         

@@ -8,42 +8,28 @@
 #if !defined(KRATOS_NONLOCAL_DAMAGE_2D_UTILITIES )
 #define  KRATOS_NONLOCAL_DAMAGE_2D_UTILITIES
 
-// System includes
-#include <fstream>
-#include <iostream>
-#include <cmath>
-
-// Project includes
-#include "geometries/geometry.h"
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "includes/kratos_parameters.h"
-#include "utilities/openmp_utils.h"
-#include "utilities/math_utils.h"
-
 // Application includes
+#include "custom_utilities/nonlocal_damage_utilities.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
 {
 
-class NonlocalDamage2DUtilities
+class NonlocalDamage2DUtilities : public NonlocalDamageUtilities
 {
 
-protected:
+public:
+
+    typedef typename NonlocalDamageUtilities::GaussPoint GaussPoint;
+    typedef typename NonlocalDamageUtilities::NeighbourPoint NeighbourPoint;
+    typedef typename NonlocalDamageUtilities::NonlocalPoint NonlocalPoint;
+    using NonlocalDamageUtilities::mNonlocalPointList;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    struct GaussPoint
-    {
-        ConstitutiveLaw::Pointer pConstitutiveLaw;
-        array_1d<double,3> Coordinates;
-        double Weight;
-    };
+protected:
 
-    ///------------------------------------------------------------------------------------
-
-    struct UtilityVariables
+    struct Utility2DVariables
     {
         double X_max, X_min, Y_max, Y_min;
         int NRows, NColumns;
@@ -52,100 +38,44 @@ protected:
         std::vector< std::vector< std::vector<GaussPoint> > > GaussPointCellMatrix;
     };
     
-    ///------------------------------------------------------------------------------------
-
-    struct NeighbourPoint
-    {
-        ConstitutiveLaw::Pointer pConstitutiveLaw;
-        double Weight, Distance;
-    };
-
-    ///------------------------------------------------------------------------------------
-
-    struct NonlocalPoint
-    {
-        ConstitutiveLaw::Pointer pConstitutiveLaw;
-        std::vector<NeighbourPoint> NeighbourPoints;
-    };
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 public:
 
+    KRATOS_CLASS_POINTER_DEFINITION( NonlocalDamage2DUtilities );
+
     /// Default Constructor
-    NonlocalDamage2DUtilities() {}
-    
-    /// Constructor
-    NonlocalDamage2DUtilities(Parameters& rParameters)
-    {
-        mpParameters = &rParameters;
-    }
+    NonlocalDamage2DUtilities() : NonlocalDamageUtilities() {}
 
     ///------------------------------------------------------------------------------------
 
     /// Destructor
-    ~NonlocalDamage2DUtilities() {}
+    virtual ~NonlocalDamage2DUtilities() {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    void SearchGaussPointsNeighbours (ModelPart& rModelPart)
+    void SearchGaussPointsNeighbours (Parameters* pParameters, ModelPart& rModelPart)
     {
         // Define necessary variables
-        UtilityVariables AuxVariables;
+        Utility2DVariables AuxVariables;
 
         //Set GaussPoints inside CellMatrix
-        this->InitializeNonlocalSearch(AuxVariables,rModelPart);
+        this->InitializeNonlocalSearch(AuxVariables,pParameters,rModelPart);
                 
-        this->SearchNeighbours(AuxVariables,rModelPart);
+        this->SearchNeighbours(AuxVariables,pParameters,rModelPart);
     }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateNonlocalEquivalentStrain (const ProcessInfo& CurrentProcessInfo)
-    {
-        int NGPoints = static_cast<int>(mNonlocalPointList.size());
-        double CharacteristicLength = (*mpParameters)["characteristic_length"].GetDouble();
-        
-        // Loop through all Gauss Points
-        #pragma omp parallel for
-        for(int i = 0; i < NGPoints; i++)
-        {
-            double LocalEquivalentStrain;
-            double NonlocalEquivalentStrain;
-            double Numerator = 0.0;
-            double WeightingFunctionDenominator = 0.0;
-            
-            //Loop through neighbours
-            for(unsigned int j = 0; j < mNonlocalPointList[i].NeighbourPoints.size(); j++)
-            {
-                const NeighbourPoint& MyNeighbourPoint = mNonlocalPointList[i].NeighbourPoints[j];
-                const double& Distance = MyNeighbourPoint.Distance;
-                LocalEquivalentStrain = MyNeighbourPoint.pConstitutiveLaw->GetValue(LOCAL_EQUIVALENT_STRAIN,LocalEquivalentStrain);
-                
-                Numerator += MyNeighbourPoint.Weight*exp(-4.0*Distance*Distance/(CharacteristicLength*CharacteristicLength))*LocalEquivalentStrain;
-                WeightingFunctionDenominator += MyNeighbourPoint.Weight*exp(-4.0*Distance*Distance/(CharacteristicLength*CharacteristicLength));
-            }
-            NonlocalEquivalentStrain = Numerator/WeightingFunctionDenominator;
-            mNonlocalPointList[i].pConstitutiveLaw->SetValue(NONLOCAL_EQUIVALENT_STRAIN,NonlocalEquivalentStrain,CurrentProcessInfo);
-        }
-    }
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void Clear ()
-    {
-        mNonlocalPointList.clear();
-        mNonlocalPointList.shrink_to_fit();        
-    }
-    
 protected:
 
     /// Member Variables
-    Parameters* mpParameters;
-    std::vector<NonlocalPoint> mNonlocalPointList;
     
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void InitializeNonlocalSearch(
-        UtilityVariables& rAuxVariables,
+        Utility2DVariables& rAuxVariables,
+        Parameters* pParameters,
         ModelPart& rModelPart)
     {
         // Compute GaussPointsCells dimensions
@@ -160,7 +90,7 @@ protected:
         const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
         array_1d<double,3> AuxLocalCoordinates;
         
-        Parameters& rParameters = *mpParameters;
+        Parameters& rParameters = *pParameters;
         unsigned int NumBodySubModelParts = rParameters["body_domain_sub_model_part_list"].size();
 
         // Loop through all BodySubModelParts
@@ -218,14 +148,15 @@ protected:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void SearchNeighbours(
-        UtilityVariables& rAuxVariables,
+        Utility2DVariables& rAuxVariables,
+        Parameters* pParameters,
         ModelPart& rModelPart)
     {
         NeighbourPoint MyNeighbourPoint;
         array_1d<double,3> MyCoordinates;
         array_1d<double,3> AuxLocalCoordinates;
         const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-        Parameters& rParameters = *mpParameters;
+        Parameters& rParameters = *pParameters;
         double CharacteristicLength = rParameters["characteristic_length"].GetDouble();
         unsigned int NumBodySubModelParts = rParameters["body_domain_sub_model_part_list"].size();
 
@@ -308,12 +239,12 @@ protected:
         }
     }
 
-private:
-
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+private:
+
     void ComputeCellMatrixDimensions(
-        UtilityVariables& rAuxVariables,
+        Utility2DVariables& rAuxVariables,
         ModelPart& rModelPart)
     {
         // Compute X and Y limits of the current geometry

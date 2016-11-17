@@ -10,7 +10,9 @@
 
 // Project includes
 #include "custom_strategies/strategies/poromechanics_newton_raphson_strategy.hpp"
+#include "custom_utilities/nonlocal_damage_utilities.hpp"
 #include "custom_utilities/nonlocal_damage_2D_utilities.hpp"
+#include "custom_utilities/nonlocal_damage_3D_utilities.hpp"
 
 // Application includes
 #include "poromechanics_application_variables.h"
@@ -45,6 +47,7 @@ public:
     using GrandMotherType::mCalculateReactionsFlag;
     using GrandMotherType::mSolutionStepIsInitialized;
     using GrandMotherType::mMaxIterationNumber;
+    using GrandMotherType::mInitializeWasPerformed;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -67,6 +70,7 @@ public:
             Parameters default_parameters( R"(
                 {
                     "characteristic_length": 0.05,
+                    "search_neighbours_step": true,
                     "body_domain_sub_model_part_list": [""],
                     "loads_sub_model_part_list": [""],
                     "loads_variable_list" : [""]
@@ -75,20 +79,44 @@ public:
             // Validate agains defaults -- this also ensures no type mismatch
             rParameters.ValidateAndAssignDefaults(default_parameters);
             
-            if(model_part.GetProcessInfo()[DOMAIN_SIZE]==2)
-            {
-                mNonlocalDamageUtility = NonlocalDamage2DUtilities(rParameters);
-            }
-            else
-            {
-                KRATOS_THROW_ERROR( std::invalid_argument,"NONLOCAL DAMAGE IS NOT AVAILABLE FOR 3D CASES YET", "" )
-            }
+            mpParameters = &rParameters;
+            mNonlocalDamageIsInitialized = false;
+            mSearchNeighboursAtEachStep = rParameters["search_neighbours_step"].GetBool();
         }
 
     //------------------------------------------------------------------------------------
 
     ///Destructor
     virtual ~PoromechanicsNewtonRaphsonNonlocalStrategy() {}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void Initialize()
+    {
+        KRATOS_TRY
+
+        if (mInitializeWasPerformed == false)
+		{
+            MotherType::Initialize();
+            
+            if(mNonlocalDamageIsInitialized == false)
+            {
+                if(BaseType::GetModelPart().GetProcessInfo()[DOMAIN_SIZE]==2)
+                {
+                    mpNonlocalDamageUtility = new NonlocalDamage2DUtilities();
+                }
+                else
+                {
+                    mpNonlocalDamageUtility = new NonlocalDamage3DUtilities();
+                }
+                mpNonlocalDamageUtility->SearchGaussPointsNeighbours(mpParameters,BaseType::GetModelPart());
+                
+                mNonlocalDamageIsInitialized = true;
+            }
+        }
+
+        KRATOS_CATCH( "" )
+    }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -100,7 +128,20 @@ public:
 		{
             GrandMotherType::InitializeSolutionStep();
             
-            mNonlocalDamageUtility.SearchGaussPointsNeighbours(BaseType::GetModelPart());
+            if(mNonlocalDamageIsInitialized == false)
+            {
+                if(BaseType::GetModelPart().GetProcessInfo()[DOMAIN_SIZE]==2)
+                {
+                    mpNonlocalDamageUtility = new NonlocalDamage2DUtilities();
+                }
+                else
+                {
+                    mpNonlocalDamageUtility = new NonlocalDamage3DUtilities();
+                }
+                mpNonlocalDamageUtility->SearchGaussPointsNeighbours(mpParameters,BaseType::GetModelPart());
+                
+                mNonlocalDamageIsInitialized = true;
+            }
         }
 
         KRATOS_CATCH( "" )
@@ -119,7 +160,7 @@ public:
         TSystemVectorType& mb = *mpb;
 
         mpScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-        mNonlocalDamageUtility.CalculateNonlocalEquivalentStrain(BaseType::GetModelPart().GetProcessInfo());
+        mpNonlocalDamageUtility->CalculateNonlocalEquivalentStrain(mpParameters,BaseType::GetModelPart().GetProcessInfo());
         
         TSparseSpace::SetToZero(mA);
         TSparseSpace::SetToZero(mb);
@@ -155,7 +196,7 @@ public:
             BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
             
             mpScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-            mNonlocalDamageUtility.CalculateNonlocalEquivalentStrain(BaseType::GetModelPart().GetProcessInfo());
+            mpNonlocalDamageUtility->CalculateNonlocalEquivalentStrain(mpParameters,BaseType::GetModelPart().GetProcessInfo());
             
             TSparseSpace::SetToZero(mA);
             TSparseSpace::SetToZero(mb);
@@ -170,7 +211,7 @@ public:
             if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
             
             mpScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-            mNonlocalDamageUtility.CalculateNonlocalEquivalentStrain(BaseType::GetModelPart().GetProcessInfo());
+            mpNonlocalDamageUtility->CalculateNonlocalEquivalentStrain(mpParameters,BaseType::GetModelPart().GetProcessInfo());
             
             // *** Check Convergence ***
             
@@ -205,9 +246,30 @@ public:
         
         GrandMotherType::FinalizeSolutionStep();
         
-        mNonlocalDamageUtility.Clear();
+        if(mSearchNeighboursAtEachStep == true)
+        {
+            delete mpNonlocalDamageUtility;
+            mNonlocalDamageIsInitialized = false;
+        }
 
         KRATOS_CATCH("")
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void Clear()
+    {
+        KRATOS_TRY
+
+        GrandMotherType::Clear();
+
+        if(mSearchNeighboursAtEachStep == false)
+        {
+            delete mpNonlocalDamageUtility;
+            mNonlocalDamageIsInitialized = false;
+        }
+
+        KRATOS_CATCH( "" )
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -215,9 +277,11 @@ public:
 protected:
 
     /// Member Variables
-        
-    NonlocalDamage2DUtilities mNonlocalDamageUtility; //TODO: this should be a general class
-    
+    Parameters* mpParameters;
+    NonlocalDamageUtilities* mpNonlocalDamageUtility;
+    bool mNonlocalDamageIsInitialized;
+    bool mSearchNeighboursAtEachStep;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     bool CheckConvergence()
@@ -231,7 +295,7 @@ protected:
         TSystemVectorType& mb = *mpb;
         
         mpScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-        mNonlocalDamageUtility.CalculateNonlocalEquivalentStrain(BaseType::GetModelPart().GetProcessInfo());
+        mpNonlocalDamageUtility->CalculateNonlocalEquivalentStrain(mpParameters,BaseType::GetModelPart().GetProcessInfo());
                 
         TSparseSpace::SetToZero(mA);
         TSparseSpace::SetToZero(mb);
@@ -261,7 +325,7 @@ protected:
             BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
             
             mpScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-            mNonlocalDamageUtility.CalculateNonlocalEquivalentStrain(BaseType::GetModelPart().GetProcessInfo());
+            mpNonlocalDamageUtility->CalculateNonlocalEquivalentStrain(mpParameters,BaseType::GetModelPart().GetProcessInfo());
             
             TSparseSpace::SetToZero(mA);
             TSparseSpace::SetToZero(mb);
@@ -275,7 +339,7 @@ protected:
             if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
             
             mpScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-            mNonlocalDamageUtility.CalculateNonlocalEquivalentStrain(BaseType::GetModelPart().GetProcessInfo());
+            mpNonlocalDamageUtility->CalculateNonlocalEquivalentStrain(mpParameters,BaseType::GetModelPart().GetProcessInfo());
             
             NormDx = TSparseSpace::TwoNorm(mDx);
             ReferenceDofsNorm = this->CalculateReferenceDofsNorm(rDofSet);
