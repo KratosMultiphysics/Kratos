@@ -708,51 +708,6 @@ public:
 
    
 
-    //************************************************************************************
-    //************************************************************************************
-
-    virtual bool IsInside (const PointType& rPoint, int& ContactFace, double Radius = 0)
-    {
-      KRATOS_TRY
-
-      ContactFace = 0;
-
-      return IsInside(rPoint);
-
-      KRATOS_CATCH("")
-    }
-
-
-    //************************************************************************************
-    //************************************************************************************
-
-    virtual bool IsInside(const PointType& rPoint, double& rGapNormal, double& rGapTangent, PointType& rNormal, PointType& rTangent, double Radius = 0)
-    {
-      KRATOS_TRY
-
-      std::cout<< "Calling empty method" <<std::endl;
-
-      return false;
-
-      KRATOS_CATCH("")
-    }
-
-
-    //************************************************************************************
-    //************************************************************************************
-    virtual bool IsInside(const PointType& rPoint, double& rGapNormal, double& rGapTangent, PointType& rNormal, PointType& rTangent, int& ContactFace, double Radius = 0)
-    {
-      KRATOS_TRY
-
-      std::cout<< "Calling empty method" <<std::endl;
-      ContactFace = 0;
-      return false;
-
-      KRATOS_CATCH("")
-    }
-
-
-
     ///@}
     ///@name Access
     ///@{
@@ -1098,6 +1053,43 @@ protected:
     {
       return (this->GetBoxDisplacement(rCurrentTime) - this->GetBoxDisplacement(rPreviousTime));
     }
+
+    //**************************************************************************
+    //**************************************************************************
+
+    void ComputeContactTangent(BoundingBoxParameters& rValues, const ProcessInfo& rCurrentProcessInfo)
+    {
+      KRATOS_TRY
+
+      PointType& rNormal      = rValues.GetNormal();
+      PointType& rTangent     = rValues.GetTangent();
+      double& rGapTangent     = rValues.GetGapTangent();
+           
+      rTangent = ZeroVector(3);
+   
+      //1.-compute contact tangent (following relative movement)
+      PointType PointDeltaDisplacement = rValues.GetDeltaDisplacement();
+
+      rTangent = PointDeltaDisplacement - inner_prod(PointDeltaDisplacement, rNormal) * rNormal;
+
+      if(norm_2(rTangent))
+	rTangent/= norm_2(rTangent);
+      
+      //2.-compute tangent direction
+      PointType BoxDeltaDisplacement = this->GetBoxDeltaDisplacement(rCurrentProcessInfo[TIME], rCurrentProcessInfo.GetPreviousTimeStepInfo()[TIME]);
+
+      rTangent = rTangent - inner_prod(BoxDeltaDisplacement, rTangent) * rTangent;
+
+      //3.-compute  normal gap
+      rGapTangent = norm_2(rTangent);
+      
+      if(rGapTangent)
+	rTangent/= rGapTangent;
+	
+      KRATOS_CATCH( "" )
+	
+    }
+    
     
     ///@}
     ///@name Protected  Access

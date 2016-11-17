@@ -261,18 +261,6 @@ public:
       
     }
 
-    //************************************************************************************
-    //************************************************************************************
-   
-
-    bool IsInside (const PointType& rPoint, double& rCurrentTime, int & ContactFace, double Radius = 0)
-    {
-      
-      ContactFace = 0; //FreeSurface
-      
-      return IsInside(rPoint,rCurrentTime,Radius);
-      
-    } 
 
     //************************************************************************************
     //************************************************************************************
@@ -323,43 +311,6 @@ public:
       KRATOS_CATCH("")
     }
 
-
-
-   //************************************************************************************
-   //************************************************************************************
-   
-    bool IsInside(const PointType& rPoint, double& rGapNormal, double& rGapTangent, PointType& rNormal, PointType& rTangent, int& ContactFace, double Radius = 0)
-    {
-      KRATOS_TRY
-
-      ContactFace = 0; //FreeSurface     
-
-      return IsInside(rPoint,rGapNormal,rGapTangent,rNormal,rTangent,Radius);
-      
-      KRATOS_CATCH("")
-    }
-
-
-    //************************************************************************************
-    //************************************************************************************
-   
-    bool IsInside(const PointType& rPoint, double& rGapNormal, double& rGapTangent, PointType& rNormal, PointType& rTangent, double Radius = 0)
-    {
-      KRATOS_TRY
-
-      bool is_inside = false;
-
-      rGapNormal  = 0;
-      rGapTangent = 0;
-      rNormal.clear();
-      rTangent.clear();
-
-      is_inside = ContactSearch(rPoint,rGapNormal,rGapTangent,rNormal,rTangent);
-
-      return is_inside;
-      
-      KRATOS_CATCH("")
-    } 
 
     ///@}
     ///@name Access
@@ -476,43 +427,6 @@ private:
 
    }
 
-
-    //************************************************************************************
-    //************************************************************************************
-
-    //Plane (note: box position has been updated previously)
-    bool ContactSearch(const PointType& rPoint, double& rGapNormal, double& rGapTangent, PointType& rNormal, PointType& rTangent)
-    {
-      KRATOS_TRY
-     
-      rNormal  = ZeroVector(3);
-      rTangent = ZeroVector(3);
-      
-      //1.-compute contact normal
-      rNormal = mPlane.Normal;
-
-      rNormal *= mBox.Convexity; 
-
-      //2.-compute gap
-      rGapNormal = inner_prod((rPoint - mPlane.Point), rNormal);
-
-
-      //3.-compute contact tangent
-      rTangent = (rPoint - mPlane.Point) - rGapNormal * rNormal;
-      
-      if(norm_2(rTangent))
-	rTangent/= norm_2(rTangent);
-
-       
-      if(rGapNormal<0)
-	return true;
-      else
-	return false;
-
-      KRATOS_CATCH( "" )
-    }
-
-
     //************************************************************************************
     //************************************************************************************
 
@@ -526,7 +440,6 @@ private:
       PointType& rTangent     = rValues.GetTangent();
       
       double& rGapNormal      = rValues.GetGapNormal();
-      double& rGapTangent     = rValues.GetGapTangent();
            
       rNormal  = ZeroVector(3);
       rTangent = ZeroVector(3);
@@ -539,27 +452,7 @@ private:
       //2.-compute  normal gap
       rGapNormal = inner_prod((rPoint - mPlane.Point), rNormal);
 
-
-      //3.-compute contact tangent (following relative movement)
-      PointType PointDeltaDisplacement = rValues.GetDeltaDisplacement();
-
-      rTangent = PointDeltaDisplacement - inner_prod(PointDeltaDisplacement, rNormal) * rNormal;
-
-      if(norm_2(rTangent))
-	rTangent/= norm_2(rTangent);
-
-      
-      //4.-compute tangent direction
-      PointType BoxDeltaDisplacement   = this->GetBoxDeltaDisplacement(rCurrentProcessInfo[TIME], rCurrentProcessInfo.GetPreviousTimeStepInfo()[TIME]);
-
-      rTangent = rTangent - inner_prod(BoxDeltaDisplacement, rTangent) * rTangent;
-
-      //5.-compute  normal gap
-      rGapTangent = norm_2(rTangent);
-      
-      if(rGapTangent)
-	rTangent/= rGapTangent;
-         
+      this->ComputeContactTangent(rValues,rCurrentProcessInfo);
       
       if(rGapNormal<0)
 	return true;
