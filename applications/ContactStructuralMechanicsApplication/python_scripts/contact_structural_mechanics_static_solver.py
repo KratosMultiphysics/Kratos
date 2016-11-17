@@ -309,4 +309,5 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                                                                                 max_iters, 
                                                                                 compute_reactions, 
                                                                                 reform_step_dofs, 
-                                                                                move_mesh_flag)
+                                                                                move_mesh_flag
+                                                                                )
