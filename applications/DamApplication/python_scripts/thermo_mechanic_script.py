@@ -41,6 +41,7 @@ parallel.SetNumThreads(int(ProjectParameters.NumberofThreads))
 
 # Problem parameters
 problem_name = os.path.join(str(ProjectParameters.problem_path),str(ProjectParameters.problem_name))
+domain_size = ProjectParameters.domain_size
 delta_time = ProjectParameters.delta_time
 ending_time = ProjectParameters.ending_time
 time_converter = ProjectParameters.time_scale
@@ -134,7 +135,8 @@ gid_output_util.initialize_results(model_part, current_id) #For single post file
 gid_output_util.write_results(model_part, nodal_res, gp_res, current_time, current_step, current_id)
 
 #Initialize the utility
-streamline_utility = streamlines_output_utility.StreamlinesOutputUtility(3) # Now is only implemented for 3D case
+if (domain_size==3):
+    streamline_utility = streamlines_output_utility.StreamlinesOutputUtility(domain_size) # Now is only implemented for 3D case
 
 ## Temporal loop ---------------------------------------------------------------------------------------------
 
@@ -161,7 +163,8 @@ while( (current_time+tol) < ending_time ):
     print("Mechanical Solving Time = ","%.5f" % (time.clock() - clock_time)," seconds")
     
     # We compute the ouptut variable
-    streamline_utility.ComputeOutputStep( model_part ,3)
+    if (domain_size==3):
+        streamline_utility.ComputeOutputStep( model_part ,domain_size)
 
     # Write GiD results
     execute_write = gid_output_util.CheckWriteResults(current_time)
