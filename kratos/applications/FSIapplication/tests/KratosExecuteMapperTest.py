@@ -4,7 +4,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FSIApplication import *
 
 import os
