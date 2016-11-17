@@ -219,22 +219,6 @@ public:
     //************************************************************************************
     //************************************************************************************
    
-
-    bool IsInside (const PointType& rPoint, double& rCurrentTime, int & ContactFace, double Radius = 0)
-    {
-      KRATOS_TRY
-
-      ContactFace = 2; //TipSurface
-      
-      return IsInside(rPoint,rCurrentTime,Radius);
-      
-      KRATOS_CATCH("")
-    } 
-
-    //************************************************************************************
-    //************************************************************************************
-   
-
     bool IsInside (const PointType& rPoint, double& rCurrentTime, double Radius = 0)
     {
       
@@ -264,48 +248,12 @@ public:
     bool IsInside(BoundingBoxParameters& rValues, const ProcessInfo& rCurrentProcessInfo)
     {
       KRATOS_TRY
-	
-      return IsInside(rValues.GetPoint(),rValues.GetGapNormal(),rValues.GetGapTangent(),rValues.GetNormal(),rValues.GetTangent(),rValues.GetContactFace(),rValues.GetRadius());
-      
-      KRATOS_CATCH("")
-    }
-
-    
-
-    //************************************************************************************
-    //************************************************************************************
-   
-    bool IsInside(const PointType& rPoint, double& rGapNormal, double& rGapTangent, PointType& rNormal, PointType& rTangent, int& ContactFace, double Radius = 0)
-    {
-
-      KRATOS_TRY
-	
-      ContactFace = 2; //TipSurface
-      
-      return IsInside(rPoint,rGapNormal,rGapTangent,rNormal,rTangent,Radius);
-
-      KRATOS_CATCH("")      
-    }
-
-
-    //************************************************************************************
-    //************************************************************************************
-   
-    bool IsInside(const PointType& rPoint, double& rGapNormal, double& rGapTangent, PointType& rNormal, PointType& rTangent, double Radius = 0)
-    {
-
-      KRATOS_TRY
 
       bool is_inside = false;
 
-      rGapNormal  = 0;
-      rGapTangent = 0;
-      rNormal.clear();
-      rTangent.clear();
+      rValues.SetContactFace(2);
 
-      double SphereRadius = mBox.Radius;
-
-      is_inside = ContactSearch(rPoint,SphereRadius,rGapNormal,rGapTangent,rNormal,rTangent);
+      is_inside = ContactSearch(rValues, rCurrentProcessInfo);
 
       return is_inside;
       
@@ -414,29 +362,30 @@ protected:
     //************************************************************************************
     //************************************************************************************
 
-    //Sphere
-    bool ContactSearch(const PointType& rPoint, const double& rRadius, double& rGapNormal, double& rGapTangent, PointType& rNormal, PointType& rTangent)
+    //Sphere (note: box position has been updated previously)
+    bool ContactSearch(BoundingBoxParameters& rValues, const ProcessInfo& rCurrentProcessInfo)
     {
       KRATOS_TRY
 
+      const PointType& rPoint = rValues.GetPoint();
+      PointType& rNormal      = rValues.GetNormal();
+      PointType& rTangent     = rValues.GetTangent();
+      
+      double& rGapNormal      = rValues.GetGapNormal();
+           	
       rNormal  = ZeroVector(3);
       rTangent = ZeroVector(3);
 
       //1.-compute point projection
-      PointType Projection(3);
-      Projection = rRadius * ( (rPoint-mBox.Center)/ norm_2(rPoint-mBox.Center) ) + mBox.Center;
+      PointType Projection = mBox.Radius * ( (rPoint-mBox.Center) / norm_2(rPoint-mBox.Center) ) + mBox.Center;
       
       //2.-compute contact normal
-      rNormal = (Projection-mBox.Center)/rRadius;
+      rNormal = (Projection-mBox.Center)/mBox.Radius;
 
-      rNormal   *= mBox.Convexity; 
-
-      rTangent[0] =  rNormal[1];
-      rTangent[1] = -rNormal[0];
-      rTangent[2] =  0;
-
+      rNormal *= mBox.Convexity;
+      
       //3.-compute gap
-      if( norm_2(mBox.Center-rPoint) <= rRadius ){
+      if( norm_2(mBox.Center-rPoint) <= mBox.Radius ){
 	rGapNormal = (-1) * norm_2(rPoint - Projection);
       }
       else{
@@ -445,6 +394,8 @@ protected:
            
       rGapNormal *= mBox.Convexity;
 
+      this->ComputeContactTangent(rValues,rCurrentProcessInfo);
+      
       if(rGapNormal<0)
 	return true;
       else
