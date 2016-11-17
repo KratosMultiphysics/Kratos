@@ -67,16 +67,24 @@ public:
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
     
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
+    
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
     
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo );
+    
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,ProcessInfo& rCurrentProcessInfo );    
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo );
     
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    
+    void GetValuesVector(Vector& rValues, int Step = 0);
+    
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
 
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
-
+    
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
@@ -84,6 +92,8 @@ public:
     void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
     
     void GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    
+    void GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable, std::vector<ConstitutiveLaw::Pointer>& rValues,const ProcessInfo& rCurrentProcessInfo );
     
     void CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rOutput, const ProcessInfo& rCurrentProcessInfo);
 
@@ -121,7 +131,7 @@ protected:
         double JointWidth;
         boost::numeric::ublas::bounded_matrix<double,TNumNodes*TDim,TNumNodes*TDim> UMatrix;
         boost::numeric::ublas::bounded_matrix<double,TDim,TDim> DimMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*TDim,TDim> UDimMatrix; //TODO: YA NO ES NECESARIA
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes*TDim,TDim> UDimMatrix; 
         array_1d<double,TNumNodes*TDim> UVector;
     };
     
