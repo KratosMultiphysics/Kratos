@@ -618,10 +618,10 @@ namespace Kratos
 			      {
 				if( i_cond->GetGeometry()[i].Is(NEW_ENTITY) ){
 				  (i_mp->Nodes()).push_back(i_cond->GetGeometry()(i));
-				  i_cond->GetGeometry()[i].Reset(NEW_ENTITY); //reset if was new 
+				  //i_cond->GetGeometry()[i].Reset(NEW_ENTITY); //reset if was new 
 				}
 			      }
-			    i_cond->Reset(NEW_ENTITY); //reset here if the condition is inserted
+			    //i_cond->Reset(NEW_ENTITY); //reset here if the condition is inserted
 			  }
 			  
     			}
@@ -634,6 +634,91 @@ namespace Kratos
     	    } 
 	  
     	}
+
+            // Set new nodes to the dirichlet sub model parts (works in 2D. not shure in 3D).
+            for (ModelPart::SubModelPartIterator i_model_part = mrMainModelPart.SubModelPartsBegin() ; i_model_part != mrMainModelPart.SubModelPartsEnd();  i_model_part++)
+            {
+               if ( i_model_part->IsNot(BOUNDARY) &&  i_model_part->IsNot(ACTIVE) && i_model_part->IsNot(BOUNDARY) && i_model_part->IsNot(RIGID) ) {
+                  for (ModelPart::NodesContainerType::iterator i_node = i_model_part->NodesBegin() ; i_node != i_model_part->NodesEnd(); i_node++ )
+                  {
+                     if ( i_node->Is(BOUNDARY) && i_node->Is(NEW_ENTITY) ) {
+
+
+                        // Generate a list of neighbour nodes
+                        unsigned int NodeId = i_node->Id();
+                        std::vector<int> list_of_neigh; 
+
+                        for ( ModelPart::ConditionsContainerType::iterator j_cond = rPreservedConditions.begin(); j_cond != rPreservedConditions.end(); j_cond++) {
+
+                           bool node_belongs_to_condition = false; 
+                           Geometry< Node<3 > > & rjGeom = j_cond->GetGeometry();
+
+                           if ( j_cond->Is(NEW_ENTITY) ) {
+                              for ( unsigned int j = 0; j < rjGeom.size() ; j++) {
+                                 if ( rjGeom[j].Id() == NodeId) {
+                                    node_belongs_to_condition = true; 
+                                    break;
+                                 }
+                              }
+
+                              if (node_belongs_to_condition) {
+                                 for (unsigned int j = 0; j < rjGeom.size() ; j++)  {
+                                    list_of_neigh.push_back( rjGeom[j].Id() );
+                                 }
+                              }
+
+                           }
+                        }
+                        if ( list_of_neigh.size() == 0) {
+                           std::cout << " something wierd, this new node does not have any new neighbour: " << NodeId << std::endl;
+                           // aqui falta un continue o algu ( no un break) 
+                        }
+
+                        // unique and sort
+                        std::sort(list_of_neigh.begin(), list_of_neigh.end() );
+                        std::vector<int>::iterator new_end = std::unique( list_of_neigh.begin(), list_of_neigh.end() );
+                        list_of_neigh.resize( std::distance( list_of_neigh.begin(), new_end)); 
+
+
+                        for (ModelPart::SubModelPartIterator i_mp = mrMainModelPart.SubModelPartsBegin(); i_mp != mrMainModelPart.SubModelPartsEnd(); i_mp++)
+                        {
+                           if ( i_mp->Is(BOUNDARY) && i_mp->IsNot(CONTACT) && (i_mp->NumberOfConditions() == 0) )
+                           {
+                              unsigned int counter = 0;
+
+                              for (unsigned int ii = 0; ii < list_of_neigh.size(); ii++)
+                              {
+                                 unsigned int target = list_of_neigh[ii];
+
+                                 for (ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin(); i_node != i_mp->NodesEnd(); i_node++)
+                                 {
+                                    if ( i_node->Id() == target) {
+                                       counter++;
+                                    }
+                                 }
+                              }
+                              if ( counter == list_of_neigh.size()-1)
+                                 i_mp->Nodes().push_back( *(i_node.base() ) );
+                           }
+                        }
+
+                     }
+                  }
+
+
+               }
+
+            }
+
+            for ( ModelPart::ConditionsContainerType::iterator j_cond = rPreservedConditions.begin(); j_cond != rPreservedConditions.end(); j_cond++) {
+               j_cond->Reset(NEW_ENTITY);
+               for(unsigned int j=0; j<j_cond->GetGeometry().size(); j++)
+               {
+                  if( j_cond->GetGeometry()[j].Is(NEW_ENTITY) ){
+                     j_cond->GetGeometry()[j].Reset(NEW_ENTITY); //reset if was new
+                  }
+               }
+            }
 
       //add new nodes: ( BOUNDARY model parts ) and remove erased nodes
       for(ModelPart::SubModelPartIterator i_mp= mrMainModelPart.SubModelPartsBegin() ; i_mp!=mrMainModelPart.SubModelPartsEnd(); i_mp++)
