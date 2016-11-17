@@ -98,8 +98,8 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
             modulus = self.settings["modulus"].GetDouble()
 
             print(" modulus ", modulus)
-                        
-            self.value = modulus * self.value
+            for i in self.value:
+                i *= modulus
       
         else:
             self.function_expression = self.settings["modulus"].GetString()
