@@ -75,6 +75,7 @@ public:
                     "max_radius_factor": 20.0,
                     "min_radius_factor": 0.5,
                     "characteristic_length": 0.05,
+                    "search_neighbours_step": true,
                     "body_domain_sub_model_part_list": [""],
                     "loads_sub_model_part_list": [""],
                     "loads_variable_list" : [""]

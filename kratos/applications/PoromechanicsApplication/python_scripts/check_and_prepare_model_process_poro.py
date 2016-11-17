@@ -37,7 +37,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         #set flag to identify the computing model part
         poro_computing_model_part.Set(KratosMultiphysics.ACTIVE)
         
-        print("Adding nodes and elements to poro_computing_model_part")
+        print("Adding nodes and elements to computing_model_part")
         for node in self.main_model_part.Nodes:
             poro_computing_model_part.AddNode(node,0)
         #for elem in self.main_model_part.Elements:
