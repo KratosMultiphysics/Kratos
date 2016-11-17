@@ -874,7 +874,7 @@ void UPwSmallStrainFICElement<2,3>::CalculateAndAddStrainGradientMatrix(MatrixTy
 template< >
 void UPwSmallStrainFICElement<2,4>::CalculateAndAddStrainGradientMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, FICElementVariables& rFICVariables)
 {
-    noalias(rVariables.PUMatrix) = -rVariables.NewmarkCoefficientU*0.25*rFICVariables.ElementLength*rFICVariables.ElementLength*rVariables.BiotCoefficient*
+    noalias(rVariables.PUMatrix) = -rVariables.VelocityCoefficient*0.25*rFICVariables.ElementLength*rFICVariables.ElementLength*rVariables.BiotCoefficient*
                                         prod(rVariables.GradNpT,rFICVariables.StrainGradients)*rVariables.IntegrationCoefficient;
 
     //Distribute strain gradient matrix into the elemental matrix
@@ -894,7 +894,7 @@ void UPwSmallStrainFICElement<3,4>::CalculateAndAddStrainGradientMatrix(MatrixTy
 template< >
 void UPwSmallStrainFICElement<3,8>::CalculateAndAddStrainGradientMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, FICElementVariables& rFICVariables)
 {
-    noalias(rVariables.PUMatrix) = -rVariables.NewmarkCoefficientU*0.25*rFICVariables.ElementLength*rFICVariables.ElementLength*rVariables.BiotCoefficient*
+    noalias(rVariables.PUMatrix) = -rVariables.VelocityCoefficient*0.25*rFICVariables.ElementLength*rFICVariables.ElementLength*rVariables.BiotCoefficient*
                                         prod(rVariables.GradNpT,rFICVariables.StrainGradients)*rVariables.IntegrationCoefficient;
 
     //Distribute strain gradient matrix into the elemental matrix
@@ -910,7 +910,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::CalculateAndAddDtStressGradientMa
     
     double StabilizationParameter = rFICVariables.ElementLength*rFICVariables.ElementLength*rVariables.BiotCoefficient/(8.0*rFICVariables.ShearModulus);
     
-    noalias(rVariables.PUMatrix) = -rVariables.NewmarkCoefficientU*StabilizationParameter/3.0*prod(rVariables.GradNpT,rFICVariables.DimUMatrix)*rVariables.IntegrationCoefficient;
+    noalias(rVariables.PUMatrix) = -rVariables.VelocityCoefficient*StabilizationParameter/3.0*prod(rVariables.GradNpT,rFICVariables.DimUMatrix)*rVariables.IntegrationCoefficient;
 
     //Distribute DtStressGradient Matrix into the elemental matrix
     ElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix,rVariables.PUMatrix);
@@ -1119,7 +1119,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::CalculateAndAddPressureGradientMa
 {
     double StabilizationParameter = rFICVariables.ElementLength*rFICVariables.ElementLength*rVariables.BiotCoefficient/(8.0*rFICVariables.ShearModulus);
     
-    noalias(rVariables.PMatrix) = rVariables.NewmarkCoefficientP*StabilizationParameter*(rVariables.BiotCoefficient-2.0*rFICVariables.ShearModulus*rVariables.BiotModulusInverse/(3.0*rVariables.BiotCoefficient))*
+    noalias(rVariables.PMatrix) = rVariables.DtPressureCoefficient*StabilizationParameter*(rVariables.BiotCoefficient-2.0*rFICVariables.ShearModulus*rVariables.BiotModulusInverse/(3.0*rVariables.BiotCoefficient))*
                                       prod(rVariables.GradNpT,trans(rVariables.GradNpT))*rVariables.IntegrationCoefficient;
     
     //Distribute pressure gradient block matrix into the elemental matrix

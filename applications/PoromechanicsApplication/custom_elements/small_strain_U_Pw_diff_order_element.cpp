@@ -998,8 +998,8 @@ void SmallStrainUPwDiffOrderElement::InitializeElementalVariables (ElementalVari
     this->InitializeProperties(rVariables);
 
     //ProcessInfo variables
-    rVariables.NewmarkCoefficient1 = rCurrentProcessInfo[NEWMARK_COEFFICIENT_U];
-    rVariables.NewmarkCoefficient2 = rCurrentProcessInfo[NEWMARK_COEFFICIENT_P];
+    rVariables.NewmarkCoefficient1 = rCurrentProcessInfo[VELOCITY_COEFFICIENT];
+    rVariables.NewmarkCoefficient2 = rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
 }
 
 //----------------------------------------------------------------------------------------

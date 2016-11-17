@@ -63,7 +63,7 @@ protected:
     
     struct NormalFluxFICVariables
     {
-        double NewmarkCoefficientP;
+        double DtPressureCoefficient;
         double ElementLength;
         double BiotModulusInverse;
         

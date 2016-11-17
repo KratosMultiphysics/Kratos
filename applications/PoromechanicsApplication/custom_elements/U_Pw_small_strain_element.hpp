@@ -94,8 +94,8 @@ protected:
         boost::numeric::ublas::bounded_matrix<double,TDim, TDim> PermeabilityMatrix;
         
         ///ProcessInfo variables
-        double NewmarkCoefficientU;
-        double NewmarkCoefficientP;
+        double VelocityCoefficient;
+        double DtPressureCoefficient;
     
         ///Nodal variables
         array_1d<double,TNumNodes> PressureVector;

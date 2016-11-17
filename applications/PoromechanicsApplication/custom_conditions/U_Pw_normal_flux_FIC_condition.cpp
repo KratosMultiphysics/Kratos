@@ -40,7 +40,7 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftH
     array_1d<double,TNumNodes> NormalFluxVector;
     NormalFluxVariables Variables;
     NormalFluxFICVariables FICVariables;
-    FICVariables.NewmarkCoefficientP = CurrentProcessInfo[NEWMARK_COEFFICIENT_P];
+    FICVariables.DtPressureCoefficient = CurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
     this->CalculateElementLength(FICVariables.ElementLength,Geom);
     const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
     const double& Porosity = Prop[POROSITY];
@@ -102,7 +102,7 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRight
     array_1d<double,TNumNodes> NormalFluxVector;
     NormalFluxVariables Variables;
     NormalFluxFICVariables FICVariables;
-    FICVariables.NewmarkCoefficientP = CurrentProcessInfo[NEWMARK_COEFFICIENT_P];
+    FICVariables.DtPressureCoefficient = CurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
     this->CalculateElementLength(FICVariables.ElementLength,Geom);
     const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
     const double& Porosity = Prop[POROSITY];
@@ -178,7 +178,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAndAddBoundaryMassMatrix(MatrixType& rLeftHandSideMatrix, NormalFluxVariables& rVariables, 
                                                                                     NormalFluxFICVariables& rFICVariables)
 {
-    noalias(rFICVariables.PMatrix) = -rFICVariables.NewmarkCoefficientP*rFICVariables.ElementLength*rFICVariables.BiotModulusInverse/6.0*
+    noalias(rFICVariables.PMatrix) = -rFICVariables.DtPressureCoefficient*rFICVariables.ElementLength*rFICVariables.BiotModulusInverse/6.0*
                                         outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
     
     //Distribute boundary mass matrix into the elemental matrix

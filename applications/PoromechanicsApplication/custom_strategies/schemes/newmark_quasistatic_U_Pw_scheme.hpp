@@ -67,10 +67,10 @@ public:
             KRATOS_THROW_ERROR( std::invalid_argument, "WATER_PRESSURE has Key zero! (check if the application is correctly registered", "" )
         if(DT_WATER_PRESSURE.Key() == 0)
             KRATOS_THROW_ERROR( std::invalid_argument, "DT_WATER_PRESSURE has Key zero! (check if the application is correctly registered", "" )
-        if ( NEWMARK_COEFFICIENT_U.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "NEWMARK_COEFFICIENT_U has Key zero! (check if the application is correctly registered", "" )
-        if ( NEWMARK_COEFFICIENT_P.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "NEWMARK_COEFFICIENT_P has Key zero! (check if the application is correctly registered", "" )
+        if ( VELOCITY_COEFFICIENT.Key() == 0 )
+            KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY_COEFFICIENT has Key zero! (check if the application is correctly registered", "" )
+        if ( DT_PRESSURE_COEFFICIENT.Key() == 0 )
+            KRATOS_THROW_ERROR( std::invalid_argument, "DT_PRESSURE_COEFFICIENT has Key zero! (check if the application is correctly registered", "" )
 
         //check that variables are correctly allocated
         for(ModelPart::NodesContainerType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); it++)
@@ -116,8 +116,8 @@ public:
         KRATOS_TRY
         
         mDeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
-        r_model_part.GetProcessInfo()[NEWMARK_COEFFICIENT_U] = mGamma/(mBeta*mDeltaTime);
-        r_model_part.GetProcessInfo()[NEWMARK_COEFFICIENT_P] = 1.0/(mTheta*mDeltaTime);
+        r_model_part.GetProcessInfo()[VELOCITY_COEFFICIENT] = mGamma/(mBeta*mDeltaTime);
+        r_model_part.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/(mTheta*mDeltaTime);
         
         BaseType::mSchemeIsInitialized = true;
         
@@ -135,8 +135,8 @@ public:
         KRATOS_TRY
 
         mDeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
-        r_model_part.GetProcessInfo()[NEWMARK_COEFFICIENT_U] = mGamma/(mBeta*mDeltaTime);
-        r_model_part.GetProcessInfo()[NEWMARK_COEFFICIENT_P] = 1.0/(mTheta*mDeltaTime);
+        r_model_part.GetProcessInfo()[VELOCITY_COEFFICIENT] = mGamma/(mBeta*mDeltaTime);
+        r_model_part.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/(mTheta*mDeltaTime);
         
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 

@@ -112,8 +112,8 @@ protected:
         double BiotModulusInverse;
         
         ///ProcessInfo variables
-        double NewmarkCoefficientU;
-        double NewmarkCoefficientP;
+        double VelocityCoefficient;
+        double DtPressureCoefficient;
     
         ///Nodal variables
         array_1d<double,TNumNodes> PressureVector;
