@@ -24,8 +24,10 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ## UTILITIES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/tree_contact_search.cpp
 
+  ## ELEMENTS
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/test_element.cpp
+  
   ## CONDITIONS
-
   # Mortar condition
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mortar_contact_condition.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mortar_contact_2D_condition.cpp

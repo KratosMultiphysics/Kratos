@@ -39,6 +39,8 @@
 namespace Kratos
 {
 KratosContactStructuralMechanicsApplication::KratosContactStructuralMechanicsApplication():
+    /* ELEMENTS */
+    mTestElement2D1N( 0, Element::GeometryType::Pointer( new Point2D <Node<3> >( Element::GeometryType::PointsArrayType( 1 ) ) ) ),
     /* CONDITIONS */
     // Contact mortar conditions
     mMortarContactCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
@@ -77,6 +79,9 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NORMAL_GP )                    // For getting the normal in the GP
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( TANGENT_GP )                   // For getting the tangent in the GP
 
+    // Register the elements
+    KRATOS_REGISTER_ELEMENT( "TestElement2D1N", mTestElement2D1N );
+    
     // Register the conditions
     // Mortar contact condition
     KRATOS_REGISTER_CONDITION( "MortarContactCondition2D2N", mMortarContactCondition2D2N );

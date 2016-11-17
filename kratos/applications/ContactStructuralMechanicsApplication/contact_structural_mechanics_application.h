@@ -24,6 +24,10 @@
 
 #include "includes/variables.h"
 
+/* ELEMENTS */
+// Test element
+#include "custom_elements/test_element.hpp"
+
 /* CONDITIONS */
 // Mortar conditions
 #include "custom_conditions/mortar_contact_condition.h"
@@ -190,6 +194,9 @@ private:
     ///@name Member Variables
     ///@{
 
+    /* ELEMENTS */
+    const TestElement mTestElement2D1N;
+    
     /* CONDITIONS*/
     // Mortar conditions
 //     const MortarContact2DCondition mMortarContactCondition2D2N;
