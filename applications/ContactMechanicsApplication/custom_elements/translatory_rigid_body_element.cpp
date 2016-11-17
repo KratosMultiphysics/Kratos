@@ -47,16 +47,13 @@ TranslatoryRigidBodyElement::TranslatoryRigidBodyElement(IndexType NewId, Geomet
 //************************************************************************************
 
 TranslatoryRigidBodyElement::TranslatoryRigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, NodesContainerType::Pointer pNodes)
-    : RigidBodyElement(NewId, pGeometry, pProperties)
+  : RigidBodyElement(NewId, pGeometry, pProperties, pNodes)
 {
     KRATOS_TRY
 
     //DO NOT ADD DOFS HERE!!!
 
-    mpNodes = pNodes;
-
     KRATOS_CATCH( "" )
-
 }
 
 

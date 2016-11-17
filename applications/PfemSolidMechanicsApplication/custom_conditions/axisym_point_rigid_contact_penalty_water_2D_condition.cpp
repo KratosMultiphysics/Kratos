@@ -272,10 +272,7 @@ namespace Kratos
       double NormalForceModulus = 0;
       NormalForceModulus = this->CalculateNormalForceModulus( NormalForceModulus, rVariables );
 
-      double TangentRelativeMovement = 0;
-      TangentRelativeMovement = this->CalculateTangentRelativeMovement( TangentRelativeMovement, rVariables );
-
-      double TangentForceModulus = this->CalculateCoulombsFrictionLaw( TangentRelativeMovement, NormalForceModulus, rVariables); // ALSO COMPUTES the TANGENT MATRIX ( and is saved in the rVariables.TangentMatrix.Normal and .Tangent)
+      double TangentForceModulus = this->CalculateCoulombsFrictionLaw( rVariables.Gap.Tangent, NormalForceModulus, rVariables); // ALSO COMPUTES the TANGENT MATRIX ( and is saved in the rVariables.TangentMatrix.Normal and .Tangent)
       // OBS: rVariables.TangentMatrix.Normal is the variation of the tangent stress with respect to the normal stress
       //      rVariables.TangentMatrix.Normal is the variation of the tangent stress with respect the tangent gap
 

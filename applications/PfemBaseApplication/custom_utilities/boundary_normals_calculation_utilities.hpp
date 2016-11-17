@@ -308,12 +308,21 @@ namespace Kratos
     {
       Geometry<Node<3> >& pGeometry = (it)->GetGeometry();
 
-      An[0] =    pGeometry[1].Y() - pGeometry[0].Y();
-      An[1] = - (pGeometry[1].X() - pGeometry[0].X());
-      An[2] =    0.00;
+      if(pGeometry.size()<2){
+       	std::cout<<" Warning 2D geometry with only "<<pGeometry.size()<<" node :: multiple normal definitions "<<std::endl;
+	(it)->GetValue(NORMAL).clear();
+      }
+      else{
+      
+	An[0] =    pGeometry[1].Y() - pGeometry[0].Y();
+	An[1] = - (pGeometry[1].X() - pGeometry[0].X());
+	An[2] =    0.00;
 
-      array_1d<double,3>& normal = (it)->GetValue(NORMAL);
-      noalias(normal) = An/norm_2(An);
+	array_1d<double,3>& normal = (it)->GetValue(NORMAL);
+	noalias(normal) = An/norm_2(An);
+	
+      }
+      
     }
 
     static void CalculateUnityNormal3D(ElementsContainerType::iterator it, array_1d<double,3>& An,
@@ -466,7 +475,7 @@ namespace Kratos
 	  for(ElementsContainerType::iterator it =  rElements.begin(); it !=rElements.end(); it++)
 	    {
 	      if(it->IsNot(CONTACT)){
-		it->Set(BOUNDARY);
+		it->Set(BOUNDARY); //give an error in set flags (for the created rigid body)
 		CalculateUnityNormal2D(it,An);
 	      }
 	    }
@@ -479,7 +488,7 @@ namespace Kratos
 	    {
 	      //calculate the normal on the given surface element
 	      if(it->IsNot(CONTACT)){
-		it->Set(BOUNDARY);
+		it->Set(BOUNDARY); //give an error in set flags (for the created rigid body)
 		CalculateUnityNormal3D(it,An,v1,v2);
 	      }
 	    }
