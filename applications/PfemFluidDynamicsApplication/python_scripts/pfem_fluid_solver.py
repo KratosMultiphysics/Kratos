@@ -104,15 +104,12 @@ class PfemFluidSolver:
         self.fluid_solver = KratosPfemFluid.TwoStepVPStrategy(self.computing_model_part,
                                                               self.velocity_linear_solver,
                                                               self.pressure_linear_solver,
-                                                              self.settings["move_mesh_flag"].GetBool(),
                                                               self.settings["reform_dofs_at_each_step"].GetBool(),
                                                               self.settings["velocity_tolerance"].GetDouble(),
                                                               self.settings["pressure_tolerance"].GetDouble(),
-                                                              self.settings["maximum_velocity_iterations"].GetInt(),
                                                               self.settings["maximum_pressure_iterations"].GetInt(),
                                                               self.settings["time_order"].GetInt(),
-                                                              self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                                              self.settings["predictor_corrector"].GetBool())
+                                                              self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
         # Set echo_level
         self.fluid_solver.SetEchoLevel(self.settings["echo_level"].GetInt())

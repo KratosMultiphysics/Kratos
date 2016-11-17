@@ -104,8 +104,6 @@ public:
     typedef typename BaseType::TSchemeType TSchemeType;
     typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 
-    //typedef typename BaseType::DofSetType DofSetType;
-
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
@@ -127,59 +125,7 @@ public:
 
     /** Constructor.
      */
-    GaussSeidelLinearStrategy(
-        ModelPart& model_part,
-        typename TSchemeType::Pointer pScheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
-        bool CalculateReactionFlag = false,
-        bool ReformDofSetAtEachStep = true, //false //!!!!!!!!!!!!!!!!!!!
-        bool CalculateNormDxFlag = false,
-        bool MoveMeshFlag = false            //false //!!!!!!!!!!!!!!!!!!!
-    )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
-    {
-        KRATOS_TRY
 
-        mCalculateReactionsFlag = CalculateReactionFlag;
-        mReformDofSetAtEachStep = ReformDofSetAtEachStep;
-        mCalculateNormDxFlag = CalculateNormDxFlag;
-
-
-        //saving the scheme
-        mpScheme = pScheme;
-
-        //saving the linear solver
-        mpLinearSolver = pNewLinearSolver;
-
-        //setting up the default builder and solver
-        mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer
-                             (
-                                 new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (mpLinearSolver)
-                             );
-
-
-	std::cout<<"GaussSeidelLinearStrategy GaussSeidelLinearStrategy GaussSeidelLinearStrategy"<<std::endl;
-
-        //set flag to start correcty the calculations
-        mSolutionStepIsInitialized = false;
-        mInitializeWasPerformed = false;
-
-        //tells to the builder and solver if the reactions have to be Calculated or not
-        GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
-
-        //tells to the Builder And Solver if the system matrix and vectors need to
-        //be reshaped at each step or not
-	mReformDofSetAtEachStep=true;
-        GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
-
-        //set EchoLevel to the default value (only time is displayed)
-        this->SetEchoLevel(1);
-
-        //by default the matrices are rebuilt at each solution step
-        BaseType::SetRebuildLevel(1);
-
-        KRATOS_CATCH("")
-    }
 
     //constructor specifying the builder and solver
 
@@ -188,18 +134,15 @@ public:
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-        bool CalculateReactionFlag = false,
         bool ReformDofSetAtEachStep = true,
-        bool CalculateNormDxFlag = false,
-        bool MoveMeshFlag = false
+        bool CalculateNormDxFlag = false
     )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
+        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part)
     {
         KRATOS_TRY
 
 	std::cout<<" GaussSeidelLinearStrategy"<<std::endl;
 
-        mCalculateReactionsFlag = CalculateReactionFlag;
         mReformDofSetAtEachStep = ReformDofSetAtEachStep;
         mCalculateNormDxFlag = CalculateNormDxFlag;
 
@@ -213,11 +156,7 @@ public:
         mpBuilderAndSolver = pNewBuilderAndSolver;
 
         //set flag to start correcty the calculations
-        mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
-
-        //tells to the builder and solver if the reactions have to be Calculated or not
-        GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
 
         //tells to the Builder And Solver if the system matrix and vectors need to
         //be reshaped at each step or not
@@ -270,16 +209,6 @@ public:
         return mpBuilderAndSolver;
     };
 
-    void SetCalculateReactionsFlag(bool CalculateReactionsFlag)
-    {
-        mCalculateReactionsFlag = CalculateReactionsFlag;
-        GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
-    }
-
-    bool GetCalculateReactionsFlag()
-    {
-        return mCalculateReactionsFlag;
-    }
 
     void SetReformDofSetAtEachStepFlag(bool flag)
     {
@@ -408,12 +337,6 @@ public:
         if (mCalculateNormDxFlag == true)
         {
             normDx = TSparseSpace::TwoNorm(mDx);
-        }
-
-        //calculate reactions if required
-        if (mCalculateReactionsFlag == true)
-        {
-            pBuilderAndSolver->CalculateReactions(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
         }
 
         //Finalisation of the solution step,
@@ -573,15 +496,9 @@ private:
 
       default = true
      */
-    bool mCalculateReactionsFlag;
-
-    bool mSolutionStepIsInitialized;
-
     bool mInitializeWasPerformed;
 
-    ///default = 30
     unsigned int mMaxIterationNumber;
-
 
 
     /*@} */

@@ -27,6 +27,10 @@
 
 #include "custom_strategies/strategies/gauss_seidel_linear_strategy.h"
 
+#include <stdio.h>      
+#include <math.h>     
+
+
 namespace Kratos {
 
 ///@addtogroup PFEMFluidDynamicsApplication
@@ -94,50 +98,31 @@ public:
     ///@name Life Cycle
     ///@{
 
-    TwoStepVPStrategy(ModelPart& rModelPart,
-               SolverSettingsType& rSolverConfig,
-               bool PredictorCorrector):
-        BaseType(rModelPart,false),
-        mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
-    {
-        InitializeStrategy(rSolverConfig,PredictorCorrector);
-    }
 
     TwoStepVPStrategy(ModelPart& rModelPart,
-               SolverSettingsType& rSolverConfig,
-               bool PredictorCorrector,
-               const Kratos::Variable<int>& PeriodicVar):
-        BaseType(rModelPart,false),
-        mrPeriodicIdVar(PeriodicVar)
+               SolverSettingsType& rSolverConfig):
+        BaseType(rModelPart)
     {
-        InitializeStrategy(rSolverConfig,PredictorCorrector);
+        InitializeStrategy(rSolverConfig);
     }
 
     TwoStepVPStrategy(ModelPart& rModelPart,
                /*SolverConfiguration<TSparseSpace, TDenseSpace, TLinearSolver>& rSolverConfig,*/
                typename TLinearSolver::Pointer pVelocityLinearSolver,
                typename TLinearSolver::Pointer pPressureLinearSolver,
-               bool MoveMeshFlag, ///@todo: Read from solver configuration? Should match the one passed to vel/pre strategies?
                bool ReformDofSet = true,
                double VelTol = 0.0001,
                double PresTol = 0.0001,
-               int MaxVelocityIterations = 7,
                int MaxPressureIterations = 1,// Only for predictor-corrector
-               unsigned int TimeOrder = 2, ///@todo check if really needed
-               unsigned int DomainSize = 2,
-               bool PredictorCorrector= true):
-        BaseType(rModelPart,MoveMeshFlag), // Move Mesh flag, pass as input?
+               unsigned int TimeOrder = 2, 
+               unsigned int DomainSize = 2):
+        BaseType(rModelPart), // Move Mesh flag, pass as input?
         mVelocityTolerance(VelTol),
         mPressureTolerance(PresTol),
-        mMaxVelocityIter(MaxVelocityIterations),
         mMaxPressureIter(MaxPressureIterations),
         mDomainSize(DomainSize),
         mTimeOrder(TimeOrder),
-        mPredictorCorrector(PredictorCorrector),
-        mUseSlipConditions(true), ///@todo initialize somehow
-        mReformDofSet(ReformDofSet),
-        mExtraIterationSteps(),
-        mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
+        mReformDofSet(ReformDofSet)
     {
         KRATOS_TRY;
 
@@ -147,7 +132,6 @@ public:
         // Check that input parameters are reasonable and sufficient.
         this->Check();
 
-        bool CalculateReactions = false;
         bool CalculateNormDxFlag = true;
 
         bool ReformDofAtEachIteration = false; // DofSet modifiaction is managed by the fractional step strategy, auxiliary strategies should not modify the DofSet directly.
@@ -160,27 +144,20 @@ public:
         //initializing fractional velocity solution step
         typedef Scheme< TSparseSpace, TDenseSpace > SchemeType;
         typename SchemeType::Pointer pScheme;
-        if (mUseSlipConditions)
-        {
-            typename SchemeType::Pointer Temp = typename SchemeType::Pointer(new ResidualBasedIncrementalUpdateStaticSchemeSlip< TSparseSpace, TDenseSpace > (mDomainSize,mDomainSize));
-            pScheme.swap(Temp);
-        }
-        else
-        {
-            typename SchemeType::Pointer Temp = typename SchemeType::Pointer(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
-            pScheme.swap(Temp);
-        }
+ 
+	typename SchemeType::Pointer Temp = typename SchemeType::Pointer(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
+	pScheme.swap(Temp);
 
         //CONSTRUCTION OF VELOCITY
         BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (pVelocityLinearSolver));
 
-        this->mpMomentumStrategy = typename BaseType::Pointer(new GaussSeidelLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pVelocityLinearSolver, vel_build, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
+        this->mpMomentumStrategy = typename BaseType::Pointer(new GaussSeidelLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pVelocityLinearSolver, vel_build, ReformDofAtEachIteration, CalculateNormDxFlag));
 
         this->mpMomentumStrategy->SetEchoLevel( BaseType::GetEchoLevel() );
 
         BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> >(pPressureLinearSolver, PRESSURE));
 
-	this->mpPressureStrategy = typename BaseType::Pointer(new GaussSeidelLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pPressureLinearSolver, pressure_build, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
+	this->mpPressureStrategy = typename BaseType::Pointer(new GaussSeidelLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pPressureLinearSolver, pressure_build, ReformDofAtEachIteration, CalculateNormDxFlag));
 
         this->mpPressureStrategy->SetEchoLevel( BaseType::GetEchoLevel() );
 
@@ -280,14 +257,6 @@ public:
 	      break;
 	    }
 	}
-
-      /* ModelPart::NodeIterator NodesBegin; */
-      /* ModelPart::NodeIterator NodesEnd; */
-      /* OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd); */
-
-      /* for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode) */
-      /* 	{ */
-
 
       if (!continuityConverged && !momentumConverged && BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
 	std::cout << "Convergence tolerance not reached." << std::endl;
@@ -567,7 +536,9 @@ protected:
       if(it==0){
 	mpMomentumStrategy->InitializeSolutionStep();
       }
-
+      /* else{ */
+      /* 	NormDv = mpMomentumStrategy->Solve(); */
+      /* } */
       NormDv = mpMomentumStrategy->Solve(); 
 	  
       if (BaseType::GetEchoLevel() > 1 && Rank == 0)
@@ -603,7 +574,9 @@ protected:
       if(it==0){
 	mpPressureStrategy->InitializeSolutionStep();
       }
-
+      /* else{ */
+      /* 	NormDp = mpPressureStrategy->Solve(); */
+      /* } */
       NormDp = mpPressureStrategy->Solve();
 
       if (BaseType::GetEchoLevel() > 0 && Rank == 0)
@@ -728,7 +701,11 @@ protected:
 	minTolerance=1;
       }
 
-      if(DvErrorNorm>minTolerance){
+      bool isItNan=false;
+      isItNan=std::isnan(DvErrorNorm);
+      bool isItInf=false;
+      isItInf=std::isinf(DvErrorNorm);
+      if(DvErrorNorm>minTolerance || (!DvErrorNorm<0 && !DvErrorNorm>0) || (DvErrorNorm!=DvErrorNorm) || isItNan==true || isItInf==true){
 	std::cout << "BAD CONVERGENCE!!!!! I GO AHEAD WITH THE PREVIOUS VELOCITY AND PRESSURE FIELDS"<< std::endl;
 #pragma omp parallel 
 	{
@@ -779,17 +756,11 @@ private:
 
     double mPressureTolerance;
 
-    unsigned int mMaxVelocityIter;
-
     unsigned int mMaxPressureIter;
 
     unsigned int mDomainSize;
 
     unsigned int mTimeOrder;
-
-    bool mPredictorCorrector;
-
-    bool mUseSlipConditions;
 
     bool mReformDofSet;
 
@@ -808,10 +779,6 @@ private:
     /// Scheme for the solution of the mass equation
     StrategyPointerType mpPressureStrategy;
 
-    std::vector< Process::Pointer > mExtraIterationSteps;
-
-    const Kratos::Variable<int>& mrPeriodicIdVar;
-
     ///@}
     ///@name Private Operators
     ///@{
@@ -822,8 +789,7 @@ private:
     ///@{
 
 
-    void InitializeStrategy(SolverSettingsType& rSolverConfig,
-            bool PredictorCorrector)
+    void InitializeStrategy(SolverSettingsType& rSolverConfig)
     {
         KRATOS_TRY;
         
@@ -836,10 +802,6 @@ private:
 
         mDomainSize = rSolverConfig.GetDomainSize();
 
-        mPredictorCorrector = PredictorCorrector;
-
-        mUseSlipConditions = rSolverConfig.UseSlipConditions();
-
         mReformDofSet = rSolverConfig.GetReformDofSet();
 
         BaseType::SetEchoLevel(rSolverConfig.GetEchoLevel());
@@ -850,7 +812,7 @@ private:
         if (HaveVelStrategy)
         {
             rSolverConfig.FindTolerance(SolverSettingsType::Velocity,mVelocityTolerance);
-            rSolverConfig.FindMaxIter(SolverSettingsType::Velocity,mMaxVelocityIter);
+            /* rSolverConfig.FindMaxIter(SolverSettingsType::Velocity,mMaxVelocityIter); */
         }
         else
         {

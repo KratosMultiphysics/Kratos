@@ -72,8 +72,6 @@ public:
 
     enum StrategyLabel { Velocity, Pressure, /*EddyViscosity,*/ NumLabels };
 
-    enum TurbulenceModelLabel { SpalartAllmaras, NumTurbModels };
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -82,18 +80,13 @@ public:
     TwoStepVPSolverSettings(ModelPart& rModelPart,
                    const unsigned int ThisDomainSize,
                    const unsigned int ThisTimeOrder,
-                   const bool UseSlip,
-                   const bool MoveMeshFlag,
                    const bool ReformDofSet):
         mStrategies(),
-        mHaveTurbulenceModel(false),
         mrModelPart(rModelPart),
         mDomainSize(ThisDomainSize),
         mTimeOrder(ThisTimeOrder),
         mEchoLevel(1),
-        mUseSlip(UseSlip),
-        mReformDofSet(ReformDofSet),
-        mMoveMeshFlag(MoveMeshFlag)
+        mReformDofSet(ReformDofSet)
     {}
 
     /// Destructor.
@@ -129,17 +122,6 @@ public:
                              const unsigned int MaxIter) = 0;
 
 
-    virtual bool GetTurbulenceModel(ProcessPointerType& pTurbulenceModel)
-    {
-        if( mHaveTurbulenceModel )
-        {
-            pTurbulenceModel.reset();
-            pTurbulenceModel = ProcessPointerType(mpTurbulenceModel);
-        }
-
-        return mHaveTurbulenceModel;
-    }
-
     virtual unsigned int GetDomainSize() const
     {
         return mDomainSize;
@@ -148,16 +130,6 @@ public:
     virtual unsigned int GetTimeOrder() const
     {
         return mTimeOrder;
-    }
-
-    virtual bool UseSlipConditions() const
-    {
-        return mUseSlip;
-    }
-
-    virtual bool MoveMesh() const
-    {
-        return mMoveMeshFlag;
     }
 
     virtual bool FindStrategy(StrategyLabel const& rStrategyLabel,
@@ -282,9 +254,7 @@ protected:
 
     std::map< StrategyLabel, unsigned int > mMaxIter;
 
-    ProcessPointerType mpTurbulenceModel;
 
-    bool mHaveTurbulenceModel;
 
     ///@}
     ///@name Protected Inquiry
@@ -315,12 +285,7 @@ private:
 
     unsigned int mEchoLevel;
 
-    bool mUseSlip;
-
     bool mReformDofSet;
-
-    bool mMoveMeshFlag;
-
 
     ///@}
     ///@name Private Operators
