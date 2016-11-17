@@ -431,7 +431,7 @@ protected:
     SpatialBoundingBox::Pointer mpRigidWall;
 
     FrictionLaw::Pointer mpFrictionLaw;
-
+  
     ///@}
     ///@name Protected Operators
     ///@{

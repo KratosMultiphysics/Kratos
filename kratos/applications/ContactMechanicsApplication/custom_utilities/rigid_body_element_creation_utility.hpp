@@ -342,6 +342,7 @@ private:
       }
       else if( ElementName == "TranslatoryRigidBodyElement3D1N" || ElementName == "TranslatoryRigidBodyElement2D1N"){	
 	//std::cout<<" TranslatoryRigidBodyElement "<<std::endl;
+	//ElementType::Pointer pElem = KratosComponents<Element>::Get("TranslatoryRigidBodyElement")
     	pRigidBodyElement = ElementType::Pointer(new TranslatoryRigidBodyElement(LastElementId, pGeometry, pProperties, pNodes) );
       }
       else if( ElementName == "RigidBodyEMCElement3D1N" || ElementName == "RigidBodyEMCElement2D1N" ){
@@ -363,7 +364,7 @@ private:
 
       rRigidBodyModelPart.AddElement(pRigidBodyElement);
       rRigidBodyModelPart.AddNode(NodeCenterOfGravity);
-
+     
       //add rigid body element to computing model part:
       std::string ComputingModelPartName;
       for(ModelPart::SubModelPartIterator i_mp= rMainModelPart.SubModelPartsBegin() ; i_mp!=rMainModelPart.SubModelPartsEnd(); i_mp++)

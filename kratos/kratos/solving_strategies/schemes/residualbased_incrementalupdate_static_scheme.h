@@ -158,38 +158,26 @@ public:
         KRATOS_CATCH("")
     }
 
-    //void Predict(
-    //	const String& ElementGroupName,
-    //	DofsArrayType& rDofSet,
-    //	TSystemMatrixType& A,
-    //	TSystemVectorType& Dx,
-    //	TSystemVectorType& b,
-    //	ProcessInfo& CurrentProcessInfo
-    //	)
-    //{
-    //	double CurrentTime = CurrentProcessInfo.GetCurrentTime();
-    //	double DeltaTime = CurrentProcessInfo.GetDeltaTime();
-    //	double OldTime = CurrentTime - DeltaTime;
-    //
-    //	int i;
-    //	typename DofsArrayType::iterator it2;
-    //
-    //	//predicting variables
-    //	for (it2=rDofSet.begin();it2 != rDofSet.end(); ++it2)
-    //	{
-    //		// N.B. fixed values are not predicted!!
-    //		if ( !(*it2)->IsFixed()  )
-    //		{
-    //			const Dof& X = *(*it2);
-    //
-    //			mpModel->Value(*it2) =  mpModel->Value(X.GetVariable(), X, OldTime);
-    //		}
-    //	}
-    //
-    //}
+
+
+    /**
+    Performing the update of the solution.
+    */
     //***************************************************************************
+    virtual void Predict(
+        ModelPart& r_model_part,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b
+    )
+    {
+        KRATOS_TRY
 
+        KRATOS_CATCH("")
+    }
 
+    
     /**
      * It initializes a non-linear iteration (for the element)
      * @param rModelPart: The model of the problem to solve

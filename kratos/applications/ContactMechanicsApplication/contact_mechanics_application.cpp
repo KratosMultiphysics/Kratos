@@ -40,8 +40,11 @@ namespace Kratos {
 
 
       //Register Rigid Bodies
-      Serializer::Register( "RigidBodyElement", mRigidBodyElement);
-      Serializer::Register( "TranslatoryRigidBodyElement", mTranslatoryRigidBodyElement);
+      // Serializer::Register( "RigidBodyElement", mRigidBodyElement);
+      // Serializer::Register( "TranslatoryRigidBodyElement", mTranslatoryRigidBodyElement);
+      KRATOS_REGISTER_ELEMENT( "RigidBodyElement", mRigidBodyElement)
+      KRATOS_REGISTER_ELEMENT( "TranslatoryRigidBodyElement", mTranslatoryRigidBodyElement)
+
 
       //Register Conditions
       KRATOS_REGISTER_CONDITION( "ContactDomainLMCondition2D3N", mContactDomainLMCondition2D3N )

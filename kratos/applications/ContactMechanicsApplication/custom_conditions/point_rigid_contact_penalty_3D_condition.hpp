@@ -217,7 +217,6 @@ protected:
 
     double& CalculateNormalForceModulus( double& rNormalForceModulus, GeneralVariables& rVariables );
     
-    double& CalculateTangentRelativeMovement( double& rTangentRelativeMovement, GeneralVariables& rVariables );
 
     double CalculateCoulombsFrictionLaw( double& rTangentForceModulus, double& rNormalForceModulus, GeneralVariables& rVariables );
 

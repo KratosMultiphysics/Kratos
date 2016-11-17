@@ -314,7 +314,7 @@ namespace Kratos
    void PointRigidContactCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
    {
       KRATOS_TRY
-
+	
       //when implex is active --> it deletes contact forces at last implex step<--
       //ClearNodalForces();
 
@@ -324,11 +324,11 @@ namespace Kratos
 
    //************************************************************************************
    //************************************************************************************
-   void PointRigidContactCondition::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+   void PointRigidContactCondition::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
    {
-      CurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] = 0;
-      CurrentProcessInfo[NUMBER_OF_STICK_CONTACTS]  = 0;
-      CurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS]   = 0;
+      rCurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] = 0;
+      rCurrentProcessInfo[NUMBER_OF_STICK_CONTACTS]  = 0;
+      rCurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS]   = 0;
 
       ClearNodalForces();
    }
@@ -336,14 +336,14 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void PointRigidContactCondition::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+   void PointRigidContactCondition::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
    {
    }
 
    //************************************************************************************
    //************************************************************************************
 
-   void PointRigidContactCondition::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
+   void PointRigidContactCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
    {
       KRATOS_TRY
 

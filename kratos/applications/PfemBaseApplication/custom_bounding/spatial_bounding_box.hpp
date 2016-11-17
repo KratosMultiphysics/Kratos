@@ -1051,7 +1051,49 @@ protected:
   
     PointType GetBoxDeltaDisplacement(const double& rCurrentTime, const double& rPreviousTime)
     {
-      return (this->GetBoxDisplacement(rCurrentTime) - this->GetBoxDisplacement(rPreviousTime));
+
+      //Quaternion LocalQuaternion = mBox.LocalQuaternion;
+
+      PointType Displacement = ZeroVector(3);
+      //PointType Rotation = ZeroVector(3);
+      
+      if( mRigidBodyCenterSupplied ){
+
+	array_1d<double, 3 > & CurrentDisplacement = mpRigidBodyCenter->FastGetSolutionStepValue(DISPLACEMENT,0);
+	array_1d<double, 3 > & PreviousDisplacement = mpRigidBodyCenter->FastGetSolutionStepValue(DISPLACEMENT,1);
+	for( int i=0; i<3; i++ )
+	  Displacement[i] = CurrentDisplacement[i]-PreviousDisplacement[i];
+
+	// TODO: treatment of rotation in displacement calculation
+	// if( mpRigidBodyCenter->SolutionStepsDataHas(ROTATION) ){
+	//   array_1d<double, 3 > & CurrentRotation = mpRigidBodyCenter->FastGetSolutionStepValue(ROTATION,0);
+	//   array_1d<double, 3 > & PreviousRotation = mpRigidBodyCenter->FastGetSolutionStepValue(ROTATION,1);
+	//   for( int i=0; i<3; i++ )
+	//     Rotation[i] = CurrentRotation[i]-PreviousRotation[i];
+	// }
+
+	// //local base rotation
+	// BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, Rotation);
+	// mBox.LocalQuaternion = QuaternionType::FromRotationVector(Rotation);
+	
+	BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, Displacement);
+	
+      }
+      else{
+
+	Displacement = mBox.Velocity * (rCurrentTime - rPreviousTime);
+	
+	// TODO: treatment of rotation in displacement calculation
+	// Rotation     = mBox.AngularVelocity * (rCurrentTime - rPreviousTime);
+	// //local base rotation
+	// BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, Rotation);
+	// mBox.LocalQuaternion = QuaternionType::FromRotationVector(Rotation);
+
+      }
+
+      //mBox.LocalQuaternion = LocalQuaternion;
+      
+      return Displacement;
     }
 
     //**************************************************************************
@@ -1072,19 +1114,36 @@ protected:
 
       rTangent = PointDeltaDisplacement - inner_prod(PointDeltaDisplacement, rNormal) * rNormal;
 
-      if(norm_2(rTangent))
-	rTangent/= norm_2(rTangent);
+      PointType UnitTangent = rTangent;
+      if( norm_2(UnitTangent) )
+	UnitTangent /= norm_2(UnitTangent);
+      
+      //std::cout<<" rTangent "<<rTangent<<" PointDelta "<<PointDeltaDisplacement<<std::endl;
+
       
       //2.-compute tangent direction
       PointType BoxDeltaDisplacement = this->GetBoxDeltaDisplacement(rCurrentProcessInfo[TIME], rCurrentProcessInfo.GetPreviousTimeStepInfo()[TIME]);
 
-      rTangent = rTangent - inner_prod(BoxDeltaDisplacement, rTangent) * rTangent;
 
+      if( norm_2(UnitTangent) != 0 ){
+
+	rTangent = rTangent - inner_prod(BoxDeltaDisplacement, UnitTangent) * UnitTangent;
+	
+      }
+      else{
+
+	rTangent = BoxDeltaDisplacement - inner_prod(BoxDeltaDisplacement, rNormal) * rNormal;
+	
+      }
+      
+      //std::cout<<" rTangent "<<rTangent<<" BoxDelta "<<BoxDeltaDisplacement<<" PointDelta "<<PointDeltaDisplacement<<std::endl;
+      
       //3.-compute  normal gap
       rGapTangent = norm_2(rTangent);
+
       
-      if(rGapTangent)
-	rTangent/= rGapTangent;
+      if(norm_2(rTangent))
+	rTangent/= norm_2(rTangent);
 	
       KRATOS_CATCH( "" )
 	
