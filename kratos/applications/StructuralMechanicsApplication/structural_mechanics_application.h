@@ -34,10 +34,10 @@
 #include "custom_elements/shell_thick_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
 
-/* Adding the SPRISM element */
+/* Adding the nodal concentrated element */
 #include "custom_elements/nodal_concentrated_element.hpp"
 
-/* Adding the nodal concentrated element */
+/* Adding the SPRISM element */
 #include "custom_elements/SprismElement3D6N.hpp"
 
 /* CONDITIONS */
@@ -228,7 +228,7 @@ private:
     // Adding the SPRISM element 
     const SprismElement3D6N mSprismElement3D6N;
     
-    // Adding the SPRISM element 
+    // Adding the nodal concentrated element 
     const NodalConcentratedElement mNodalConcentratedElement2D1N;
     const NodalConcentratedElement mNodalConcentratedElement3D1N;
 
