@@ -42,17 +42,17 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
     def tearDown(self):
         pass
     
+class BasicCATest(StructuralMechanichsTestFactory):
+    file_name = "CA_test/basic_CA_test"
+    
 class SimplePatchTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test_2D/simple_patch_test"
-    
     
 class SimplePatchNotMatchingATestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test_2D/simple_patch_notmatching_a_test"
     
-    
 class SimplePatchNotMatchingBTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test_2D/simple_patch_notmatching_b_test"
-
     
 class TaylorPatchTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test_2D/taylor_patch_test"
@@ -71,7 +71,6 @@ class HertzCompleteTestContact(StructuralMechanichsTestFactory):
 
 class ThreeDPatchMatchingTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test_3D/3D_contact_patch_matching_test"
-
 
 class ThreeDPatchNotMatchingTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test_3D/3D_contact_patch_nonmatching_test"

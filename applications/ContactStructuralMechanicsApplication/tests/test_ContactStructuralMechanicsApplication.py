@@ -10,6 +10,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
 ## SMALL TESTS
+from SmallTests import BasicCATest as TBasicCATest
 from SmallTests import SimplePatchTestContact as TSimplePatchTestContact
 from SmallTests import SimplePatchNotMatchingATestContact as TSimplePatchNotMatchingATestContact
 from SmallTests import SimplePatchNotMatchingBTestContact as TSimplePatchNotMatchingBTestContact
@@ -43,6 +44,7 @@ def AssambleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
+    smallSuite.addTest(TBasicCATest('test_execution'))
     smallSuite.addTest(TSimplePatchTestContact('test_execution'))
     smallSuite.addTest(TSimplePatchNotMatchingATestContact('test_execution'))
     smallSuite.addTest(TSimplePatchNotMatchingBTestContact('test_execution'))
@@ -67,13 +69,14 @@ def AssambleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            TSimplePatchTestContact,
-            TSimplePatchNotMatchingATestContact,
-            TSimplePatchNotMatchingBTestContact,
-            TTaylorPatchTestContact,
-            TTaylorPatchDynamicTestContact,
-            THertzSimpleTestContact,
-            THertzSimpleSphereTestContact,
+            TBasicCATest,
+            #TSimplePatchTestContact,
+            #TSimplePatchNotMatchingATestContact,
+            #TSimplePatchNotMatchingBTestContact,
+            #TTaylorPatchTestContact,
+            #TTaylorPatchDynamicTestContact,
+            #THertzSimpleTestContact,
+            #THertzSimpleSphereTestContact,
             #TThreeDPatchMatchingTestContact,
             #TThreeDPatchNonMatchingTestContact,
             ############ JUST TESTING ###########
