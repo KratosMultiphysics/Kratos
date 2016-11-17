@@ -919,8 +919,8 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::InitializeElementVariables(
     rVariables.BiotModulusInverse = (rVariables.BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/Prop[BULK_MODULUS_FLUID];
 
     //ProcessInfo variables
-    rVariables.NewmarkCoefficientU = CurrentProcessInfo[NEWMARK_COEFFICIENT_U];
-    rVariables.NewmarkCoefficientP = CurrentProcessInfo[NEWMARK_COEFFICIENT_P];
+    rVariables.VelocityCoefficient = CurrentProcessInfo[VELOCITY_COEFFICIENT];
+    rVariables.DtPressureCoefficient = CurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
 
     //Nodal Variables
     for(unsigned int i=0; i<TNumNodes; i++)
@@ -1292,7 +1292,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddCouplingMatr
     //Distribute coupling block matrix into the elemental matrix
     ElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix,rVariables.UPMatrix);
 
-    noalias(rVariables.PUMatrix) = -rVariables.NewmarkCoefficientU*trans(rVariables.UPMatrix);
+    noalias(rVariables.PUMatrix) = -rVariables.VelocityCoefficient*trans(rVariables.UPMatrix);
     
     //Distribute transposed coupling block matrix into the elemental matrix
     ElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix,rVariables.PUMatrix);
@@ -1303,7 +1303,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddCouplingMatr
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables)
 {
-    noalias(rVariables.PMatrix) = rVariables.NewmarkCoefficientP*rVariables.BiotModulusInverse*outer_prod(rVariables.Np,rVariables.Np)*rVariables.JointWidth*rVariables.IntegrationCoefficient;
+    noalias(rVariables.PMatrix) = rVariables.DtPressureCoefficient*rVariables.BiotModulusInverse*outer_prod(rVariables.Np,rVariables.Np)*rVariables.JointWidth*rVariables.IntegrationCoefficient;
     
     //Distribute compressibility block matrix into the elemental matrix
     ElementUtilities::AssemblePBlockMatrix< boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
