@@ -219,14 +219,13 @@ def main():
 
     # Set a Timer
     signal.signal(signal.SIGALRM, handler)
-    signalTime = 900
+
+    timedLevels = ['small', 'nightly']
 
     if level == 'small':
-        signalTime = 60
+        signalTime = int(60)
     elif level == 'nightly':
-        signalTime = 900
-    elif level == 'all':
-        signalTime = 9e9
+        signalTime = int(900)
 
     # Define the command
     cmd = os.path.dirname(GetModulePath('KratosMultiphysics'))+'/'+'runkratos'
@@ -234,7 +233,9 @@ def main():
     # KratosCore must always be runned
     print('Running tests for KratosCore', file=sys.stderr)
     sys.stderr.flush()
-    signal.alarm(signalTime)
+
+    if level in timedLevels:
+        signal.alarm(signalTime)
     try:
         RunTestSuit(
             'KratosCore',
@@ -251,7 +252,10 @@ def main():
     for application in applications:
         print('Running tests for {}'.format(application), file=sys.stderr)
         sys.stderr.flush()
-        signal.alarm(signalTime)
+
+        if level in timedLevels:
+            signal.alarm(signalTime)
+
         try:
             RunTestSuit(
                 application,
