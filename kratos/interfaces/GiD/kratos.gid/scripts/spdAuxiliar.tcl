@@ -1645,9 +1645,12 @@ proc spdAux::ProcGive_materials_list {domNode args} {
         }
         return [list $primary_level $secondary_level]
     } 
-    
-    set parentNode [$domNode selectNodes [format_xpath {//container[@n=%s]} $database]]
-    
+    #W $database
+    set appid [spdAux::GetAppIdFromNode $domNode]
+    set mats_un [apps::getAppUniqueName $appid Materials]
+    set xp3 [spdAux::getRoute $mats_un]
+    set parentNode [$domNode selectNodes $xp3]
+    #W [$parentNode asXML]
     if {$parentNode eq ""} {
         error [_ "Database %s not found in the spd file" $database]  
     }

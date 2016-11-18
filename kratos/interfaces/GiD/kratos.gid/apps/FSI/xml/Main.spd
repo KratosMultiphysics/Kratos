@@ -20,6 +20,7 @@
             <include n="Loads" active="1" path="apps/Structural/xml/Loads.spd"/>
             <include n="SolutionStrategy" active="1" path="apps/FSI/xml/SolutionStrategyStructural.spd"/>
             <include n="Results" active="1" path="apps/FSI/xml/ResultsStructural.spd"/>
+            <include n="Materials" active="1" path="apps/Solid/xml/Materials.spd"/>
         </container>
     
         <container n="FSI" pn="Coupling" icon="units" prefix="FSI" tree_state="open" open_window="0">
