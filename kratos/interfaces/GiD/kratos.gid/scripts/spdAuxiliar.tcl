@@ -1690,7 +1690,8 @@ proc spdAux::ProcEdit_database_list {domNode args} {
                 set varname [$thing cget -textvariable]
                 set propname [lindex [split [lindex [split [lindex [split $varname "::"] end] "("] end] ")"] 0]
                 #W $propname
-                set mats_un [apps::getCurrentUniqueName Materials]
+                set appid [spdAux::GetAppIdFromNode $domNode]
+                set mats_un [apps::getAppUniqueName $appid Materials]
                 set xp3 [spdAux::getRoute $mats_un]
                 append xp3 [format_xpath {/blockdata[@n="material" and @name=%s]/value} $matname]
                 
