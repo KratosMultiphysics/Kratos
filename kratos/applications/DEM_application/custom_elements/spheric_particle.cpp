@@ -1340,15 +1340,7 @@ void SphericParticle::ComputeReactions(){
 void SphericParticle::PrepareForPrinting(ProcessInfo& r_process_info){
 
     if (this->Is(DEMFlags::PRINT_STRESS_TENSOR)) {
-        this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_XX) = (*mSymmStressTensor)(0,0);
-        this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_XY) = (*mSymmStressTensor)(0,1);
-        this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_XZ) = (*mSymmStressTensor)(0,2);
-        this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_YX) = (*mSymmStressTensor)(1,0);
-        this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_YY) = (*mSymmStressTensor)(1,1);
-        this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_YZ) = (*mSymmStressTensor)(1,2);
-        this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_ZX) = (*mSymmStressTensor)(2,0);
-        this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_ZY) = (*mSymmStressTensor)(2,1);
-        this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_ZZ) = (*mSymmStressTensor)(2,2);
+        this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_TENSOR) = (*mSymmStressTensor);
     }
 }
 
