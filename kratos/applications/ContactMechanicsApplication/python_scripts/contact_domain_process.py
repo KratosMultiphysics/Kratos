@@ -125,7 +125,7 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
  
         self.model_meshing.ExecuteFinalize()
         
-        if(self.echo_level>0):
+        if(self.echo_level>1):
             print("")
             print(self.main_model_part)
 

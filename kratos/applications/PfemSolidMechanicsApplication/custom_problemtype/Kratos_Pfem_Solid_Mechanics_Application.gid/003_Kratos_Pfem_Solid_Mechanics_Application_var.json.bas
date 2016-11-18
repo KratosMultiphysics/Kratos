@@ -341,7 +341,7 @@
 			    "parameters_list":[
 			      {
 				"point": [*cond(Wall_Plane,1), *cond(Wall_Plane,2), *cond(Wall_Plane,3)],
-			    	"normal": [*cond(Wall_Plane,4), *cond(Wall_Plane,5), *cond(Wall_Plane,6)],
+				"normal": [*cond(Wall_Plane,4), *cond(Wall_Plane,5), *cond(Wall_Plane,6)],
 				"convexity": *cond(Wall_Circle,5)
 			      }
 			    ],
@@ -390,12 +390,12 @@
 			    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",			    
 			    "friction_law_type": "HardeningCoulombFrictionLaw",
 			    "variables_of_properties":{
-				"FRICTION_ACTIVE": false,
-				"MU_STATIC": 0.3,
-				"MU_DYNAMIC": 0.2,
+				"FRICTION_ACTIVE": *tcl(string tolower *cond(Friction_active)),
+				"MU_STATIC": *cond(Static_friction_coeffitient),
+				"MU_DYNAMIC": *cond(Dynamic_friction_coeffitient),
 				"PENALTY_PARAMETER": *cond(Penalty_Parameter),
-				"TANGENTIAL_PENALTY_RATIO": 0.1,
-				"TAU_STAB": 1
+				"TANGENTIAL_PENALTY_RATIO": *cond(Tangent_penalty_ratio),
+				"TAU_STAB": 1			    
 			    }
 			}
 		    }

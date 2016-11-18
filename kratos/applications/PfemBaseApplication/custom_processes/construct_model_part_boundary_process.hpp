@@ -176,13 +176,7 @@ namespace Kratos
       //ComputeBoundaryNormals BoundUtils;
       BoundaryNormalsCalculationUtilities BoundaryComputation;
       if( mModelPartName == mrMainModelPart.Name() ){
-       
-	for(ModelPart::SubModelPartIterator i_mp= mrMainModelPart.SubModelPartsBegin(); i_mp!=mrMainModelPart.SubModelPartsEnd(); i_mp++)
-	  {	  
-	    if( i_mp->IsNot(ACTIVE) )
-	      BoundaryComputation.CalculateWeightedBoundaryNormals(*i_mp, mEchoLevel);
-	  }
-	
+	BoundaryComputation.CalculateWeightedBoundaryNormals(mrMainModelPart, mEchoLevel);
       }
       else{
 	ModelPart& rModelPart = mrMainModelPart.GetSubModelPart(mModelPartName);

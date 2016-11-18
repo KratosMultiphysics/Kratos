@@ -180,25 +180,26 @@ public:
 	      box_side_element = false;
 	      for(unsigned int pn=0; pn<nds; pn++)
 		{
-		  // std::cout<<" pn "<<pn<<std::endl;
-		  //set vertices
-		  if(mrRemesh.NodalPreIds[OutElementList[el*nds+pn]-1]<0){
-		    if(mrRemesh.Options.IsNot(ModelerUtilities::CONTACT_SEARCH))
-		      std::cout<<" ERROR: something is wrong: nodal id < 0 "<<std::endl;
-		    box_side_element = true;
-		    break;
-		  }
-		  
+		  //std::cout<<" pn "<<pn<<" id "<<OutElementList[el*nds+pn]<<" size "<<rNodes.size()<<" IDS "<<mrRemesh.NodalPreIds.size()<<" preid "<<mrRemesh.NodalPreIds[OutElementList[el*nds+pn]]<<std::endl;
+
 		  if(OutElementList[el*nds+pn]<=0)
 		    std::cout<<" ERROR: something is wrong: nodal id < 0 "<<el<<std::endl;
-
-
+		  
+		  //check if the number of nodes are considered in the nodal pre ids
 		  if( (unsigned int)OutElementList[el*nds+pn] > mrRemesh.NodalPreIds.size() ){
 		    wrong_added_node = true;
 		    std::cout<<" ERROR: something is wrong: node out of bounds "<<std::endl;
 		    break;
 		  }
-		
+		  
+		  //check if is a vertex of a artificial external bounding box
+		  if(mrRemesh.NodalPreIds[OutElementList[el*nds+pn]]<0){
+		    if(mrRemesh.Options.IsNot(ModelerUtilities::CONTACT_SEARCH))
+		      std::cout<<" ERROR: something is wrong: nodal id < 0 "<<std::endl;
+		    box_side_element = true;
+		    break;
+		  }
+		  		
 		  //vertices.push_back( *((rNodes).find( OutElementList[el*nds+pn] ).base() ) );
 		  vertices.push_back(rNodes(OutElementList[el*nds+pn]));
 
@@ -334,7 +335,7 @@ public:
 		  if(nds==4){
 		    Geometry<Node<3> >* tetrahedron = new Tetrahedra3D4<Node<3> > (vertices);
 
-		    accepted=ModelerUtils.CheckGeometryShape(*tetrahedron,sliver);
+		    accepted = ModelerUtils.CheckGeometryShape(*tetrahedron,sliver);
 		
 		    if( sliver ){
 		      accepted = false;

@@ -531,8 +531,6 @@ protected:
 
     double& CalculateNormalForceModulus( double& rNormalForceModulus, GeneralVariables& rVariables );
     
-    double& CalculateTangentRelativeMovement( double& rTangentRelativeMovement, GeneralVariables& rVariables );
-
     double CalculateCoulombsFrictionLaw( double& rTangentForceModulus, double& rNormalForceModulus, GeneralVariables& rVariables );
 
     double CalculateFrictionCoefficient(double & rTangentRelativeMovement);
@@ -549,11 +547,6 @@ protected:
      */
      void VectorToSkewSymmetricTensor( const Vector& rVector, 
 				       Matrix& rSkewSymmetricTensor );
-
-    /**
-     * Calculation utility for 3D outer product
-     */
-    inline MatrixType custom_outer_prod(const array_1d<double, 3>& a, const array_1d<double, 3>& b);
 
 
     ///@}

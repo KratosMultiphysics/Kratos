@@ -261,13 +261,13 @@ namespace Kratos
 
       MatrixType Kuug = ZeroMatrix(dimension,dimension);
 
-      noalias(Kuug) = rVariables.Penalty.Normal * rIntegrationWeight  * custom_outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal);
+      noalias(Kuug) = rVariables.Penalty.Normal * rIntegrationWeight  * outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal);
 
       //Building the Local Stiffness Matrix
       MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kuug, 0, 0 );
 
       // std::cout<<std::endl;
-      // std::cout<<" Penalty.Normal "<<rVariables.Penalty.Normal<<" rVariables.Gap.Normal "<<rVariables.Gap.Normal<<" rVariables.Surface.Normal "<<rVariables.Surface.Normal<<" rIntegrationWeight "<<rIntegrationWeight<<" nxn : "<<custom_outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal)<<std::endl;
+      // std::cout<<" Penalty.Normal "<<rVariables.Penalty.Normal<<" rVariables.Gap.Normal "<<rVariables.Gap.Normal<<" rVariables.Surface.Normal "<<rVariables.Surface.Normal<<" rIntegrationWeight "<<rIntegrationWeight<<" nxn : "<<outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal)<<std::endl;
 
       //this->CalculateAndAddKuugTangent( rLeftHandSideMatrix,  rVariables, rIntegrationWeight );
       // std::cout<<std::endl;
@@ -308,14 +308,14 @@ namespace Kratos
 
 	 if ( mTangentialVariables.Slip ) {
 	   //simpler expression:
-	   Kuug -=  mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( custom_outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) );
+	   Kuug -=  mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) );
 
 	   //added extra term, maybe not necessary
-	   //kuug -=  mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( custom_outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) + rVariables.Gap.Normal * custom_outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
+	   //kuug -=  mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) + rVariables.Gap.Normal * outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
 
 	 }
 	 else {
-	   Kuug +=  rVariables.Penalty.Tangent * rIntegrationWeight * custom_outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent);
+	   Kuug +=  rVariables.Penalty.Tangent * rIntegrationWeight * outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent);
 
 	 }
 	 
@@ -610,32 +610,6 @@ namespace Kratos
        return FrictionCoefficient;
 
   }
-
-  //************************************************************************************
-  //************************************************************************************
-
-  inline Condition::MatrixType BeamPointRigidContactPenalty3DCondition::custom_outer_prod(const array_1d<double, 3>& a, const array_1d<double, 3>& b)
-  {
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    Condition::MatrixType A(dimension,dimension);
-    
-    A(0,0)=a[0]*b[0];
-    A(0,1)=a[0]*b[1];
-    A(1,0)=a[1]*b[0];
-    A(1,1)=a[1]*b[1];
-    if( dimension == 3 ){
-      A(0,2)=a[0]*b[2];
-      A(1,2)=a[1]*b[2];
-      A(2,0)=a[2]*b[0];
-      A(2,1)=a[2]*b[1];
-      A(2,2)=a[2]*b[2];
-    }
-
-    return A;
-  }
-
-
 
 
 } // Namespace Kratos

@@ -106,8 +106,9 @@ namespace Kratos
       if( !rModelPart.IsSubModelPart() ){
 	
 	for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin(); i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
-	  {	  
-	    if( i_mp->IsNot(ACTIVE) ){
+	  {
+
+	    if( i_mp->IsNot(ACTIVE) && i_mp->IsNot(BOUNDARY) && i_mp->IsNot(CONTACT) ){
 
 	      CalculateBoundaryNormals(*i_mp);
 	      
@@ -118,11 +119,13 @@ namespace Kratos
 	  }
       }
       else{
+	
+	//if( rModelPart.IsNot(ACTIVE) && rModelPart.IsNot(BOUNDARY) && rModelPart.IsNot(CONTACT) ){
+	  CalculateBoundaryNormals(rModelPart);
 
-	CalculateBoundaryNormals(rModelPart);
-
-	//standard assignation // fails in sharp edges angle<90
-	AddNormalsToNodes(rModelPart);
+	  //standard assignation // fails in sharp edges angle<90
+	  AddNormalsToNodes(rModelPart);
+	//}
 	
       }
       
@@ -144,7 +147,7 @@ namespace Kratos
 	
 	for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin(); i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
 	  {	  
-	    if( i_mp->IsNot(ACTIVE) ){
+	    if( i_mp->IsNot(ACTIVE) && i_mp->IsNot(BOUNDARY) && i_mp->IsNot(CONTACT) ){
 	      
 	      CalculateBoundaryNormals(*i_mp);
 	      
@@ -156,10 +159,13 @@ namespace Kratos
       }
       else{
 
-	CalculateBoundaryNormals(rModelPart);
+	//if( rModelPart.IsNot(ACTIVE) && rModelPart.IsNot(BOUNDARY) && rModelPart.IsNot(CONTACT) ){
 
-	//solid pfem assignation: Unity Normals on nodes and Shrink_Factor on nodes
-	AddWeightedNormalsToNodes(rModelPart);
+	  CalculateBoundaryNormals(rModelPart);
+
+	  //solid pfem assignation: Unity Normals on nodes and Shrink_Factor on nodes
+	  AddWeightedNormalsToNodes(rModelPart);
+	//}
 	
       }
       
@@ -218,7 +224,7 @@ namespace Kratos
       if( rModelPart.NumberOfConditions() && this->CheckConditionsLocalSpace(rModelPart, dimension-1) ){
 
 	if(mEchoLevel > 0) 
-	  std::cout<<"   ["<<rModelPart.Name()<<"] (C)"<<std::endl;
+	  std::cout<<"   ["<<rModelPart.Name()<<"] (BC)"<<std::endl;
 	
 	ConditionsContainerType& rConditions = rModelPart.Conditions();
 	    
@@ -232,7 +238,7 @@ namespace Kratos
 	if( this->CheckElementsLocalSpace(rModelPart, dimension) ){
 
 	  if(mEchoLevel > 0) 
-	    std::cout<<"   ["<<rModelPart.Name()<<"] (VE)"<<std::endl;
+	    std::cout<<"   ["<<rModelPart.Name()<<"] (BVE)"<<std::endl;
 	
 	  MeshType& rMesh = rModelPart.GetMesh();
 	    
@@ -244,7 +250,7 @@ namespace Kratos
 	else if( this->CheckElementsLocalSpace(rModelPart, dimension-1) ){
 
 	  if(mEchoLevel > 0) 
-	    std::cout<<"   ["<<rModelPart.Name()<<"] (E)"<<std::endl;
+	    std::cout<<"   ["<<rModelPart.Name()<<"] (BE)"<<std::endl;
 		    
 	  ElementsContainerType& rElements = rModelPart.Elements();
 

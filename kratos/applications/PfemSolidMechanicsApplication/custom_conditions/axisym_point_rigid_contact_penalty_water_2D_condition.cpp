@@ -236,7 +236,7 @@ namespace Kratos
       if ( rVariables.Options.Is(ACTIVE) )
       {
          MatrixType  LocalKuugNormal = ZeroMatrix(MatSize-1, MatSize-1);
-         LocalKuugNormal = rVariables.Penalty.Normal* rIntegrationWeight * custom_outer_prod( rVariables.Surface.Normal, rVariables.Surface.Normal);
+         LocalKuugNormal = rVariables.Penalty.Normal* rIntegrationWeight * outer_prod( rVariables.Surface.Normal, rVariables.Surface.Normal);
          for (unsigned int i = 0; i < MatSize-1; i++){
             for (unsigned int j = 0; j < MatSize-1; j++){
                rLeftHandSideMatrix(i,j) = LocalKuugNormal(i,j);
@@ -288,8 +288,8 @@ namespace Kratos
             const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
             Matrix  TangentMatrix = ZeroMatrix(dimension,dimension);
 
-            TangentMatrix = rVariables.TangentMatrix.Normal * ( rVariables.Penalty.Normal / mTangentialVariables.Neighb_distance) * custom_outer_prod( rVariables.Surface.Tangent, rVariables.Surface.Normal) ;
-            TangentMatrix += rVariables.TangentMatrix.Tangent * custom_outer_prod( rVariables.Surface.Tangent, rVariables.Surface.Tangent);
+            TangentMatrix = rVariables.TangentMatrix.Normal * ( rVariables.Penalty.Normal / mTangentialVariables.Neighb_distance) * outer_prod( rVariables.Surface.Tangent, rVariables.Surface.Normal) ;
+            TangentMatrix += rVariables.TangentMatrix.Tangent * outer_prod( rVariables.Surface.Tangent, rVariables.Surface.Tangent);
 
             TangentMatrix *= mTangentialVariables.Sign * rIntegrationWeight * mTangentialVariables.Neighb_distance ;
             for (unsigned int i = 0; i < MatSize-1; i++){
@@ -307,7 +307,7 @@ namespace Kratos
          }
          // ELASTIC
          else {
-            Matrix SmallMatrix =  rVariables.Penalty.Tangent * rIntegrationWeight * custom_outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent) ;
+            Matrix SmallMatrix =  rVariables.Penalty.Tangent * rIntegrationWeight * outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent) ;
             for (unsigned int i = 0; i < MatSize-1; i++){
                for (unsigned int j = 0; j < MatSize-1; j++){
                   rLeftHandSideMatrix(i,j) += SmallMatrix(i,j);
@@ -348,27 +348,6 @@ namespace Kratos
       rRightHandSideVector(MatSize-1) = 0;
 
 
-   }
-
-   inline Condition::MatrixType AxisymPointRigidContactPenaltyWater2DCondition::custom_outer_prod(const array_1d<double, 3>& a, const array_1d<double, 3>& b)
-   {
-      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-      Condition::MatrixType A(dimension,dimension);
-
-      A(0,0)=a[0]*b[0];
-      A(0,1)=a[0]*b[1];
-      A(1,0)=a[1]*b[0];
-      A(1,1)=a[1]*b[1];
-      if( dimension == 3 ){
-         A(0,2)=a[0]*b[2];
-         A(1,2)=a[1]*b[2];
-         A(2,0)=a[2]*b[0];
-         A(2,1)=a[2]*b[1];
-         A(2,2)=a[2]*b[2];
-      }
-
-      return A;
    }
 
 
