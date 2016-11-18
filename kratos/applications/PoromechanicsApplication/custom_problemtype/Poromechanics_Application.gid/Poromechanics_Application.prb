@@ -44,7 +44,6 @@ HELP: Number of steps after which the fracture propagation will be checked.
 TITLE:Solver_Settings
 QUESTION: Solution_Type#CB#(Quasi-Static,Dynamic)
 VALUE: Quasi-Static
-DEPENDENCIES: (Quasi-Static,HIDE,Rayleigh_Mass,#CURRENT#,HIDE,Rayleigh_Stiffness,#CURRENT#)(Dynamic,RESTORE,Rayleigh_Mass,#CURRENT#,RESTORE,Rayleigh_Stiffness,#CURRENT#)
 QUESTION: Scheme_Type#CB#(Newmark)
 VALUE: Newmark
 QUESTION: Newmark_Beta

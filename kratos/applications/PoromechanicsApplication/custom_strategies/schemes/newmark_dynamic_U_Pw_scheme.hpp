@@ -34,6 +34,7 @@ public:
     using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mBeta;
     using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mGamma;
     using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mTheta;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ///Constructor
