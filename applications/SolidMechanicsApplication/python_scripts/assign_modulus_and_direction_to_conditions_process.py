@@ -78,7 +78,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
             direction.append( self.settings["direction"][i].GetDouble() )
             scalar_prod = scalar_prod + direction[i]*direction[i]
             
-        norm = math.sqrt(scalar_prod)
+        norm = sqrt(scalar_prod)
         
         self.value = []
         if( norm != 0.0 ):

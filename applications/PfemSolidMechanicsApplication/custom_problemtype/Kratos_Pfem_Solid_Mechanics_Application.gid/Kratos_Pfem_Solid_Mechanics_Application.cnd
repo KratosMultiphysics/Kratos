@@ -583,4 +583,15 @@ TKWIDGET: GidUtils::TkwidgetGetVector3D
 QUESTION: LocalAxisZ
 VALUE:  0 0 1
 TKWIDGET: GidUtils::TkwidgetGetVector3D
+QUESTION: Friction_active#CB#(False,True)
+VALUE: False
+DEPENDENCIES:(True,RESTORE,Static_friction_coeffitient,#CURRENT#,RESTORE,Dynamic_friction_coeffitient,#CURRENT#,RESTORE,Tangent_penalty_ratio,#CURRENT#)
+DEPENDENCIES:(False,HIDE,Static_friction_coeffitient,#CURRENT#,HIDE,Dynamic_friction_coeffitient,#CURRENT#,HIDE,Tangent_penalty_ratio,#CURRENT#)
+QUESTION: Static_friction_coeffitient
+VALUE:  0.2
+QUESTION: Dynamic_friction_coeffitient
+VALUE:  0.3
+QUESTION: Tangent_penalty_ratio
+VALUE:  0.1
+
 END CONDITION

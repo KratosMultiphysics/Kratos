@@ -95,8 +95,6 @@ namespace Kratos
                GeneralVariables& rVariables,
                double& rIntegrationWeight);
 
-         inline MatrixType custom_outer_prod(const array_1d<double, 3>& a, const array_1d<double, 3>& b);
-
          /**
           * Calculation of the Contact Forces Vector 
           */

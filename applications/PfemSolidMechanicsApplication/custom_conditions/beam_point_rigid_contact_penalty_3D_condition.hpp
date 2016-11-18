@@ -216,13 +216,6 @@ protected:
      */
     virtual void CalculateContactFactors(GeneralVariables &rContact);
 
-
-    /**
-     * Calculation utility for 3D outer product
-     */
-    inline MatrixType custom_outer_prod(const array_1d<double, 3>& a, const array_1d<double, 3>& b);
-
-
     ///@}
     ///@name Protected  Access
     ///@{

@@ -786,8 +786,8 @@ namespace Kratos
 		    
 			  MassAB = IntegrationWeight * N[i] * N[j] * ie->GetProperties()[DENSITY];
 			
-			  OuterAB = custom_outer_prod( CurrentPositionA, CurrentPositionB );
-			  InnerAB = custom_inner_prod( CurrentPositionA, CurrentPositionB );
+			  OuterAB = outer_prod( CurrentPositionA, CurrentPositionB );
+			  InnerAB = inner_prod( CurrentPositionA, CurrentPositionB );
 			      
 			  InertiaTensorPartition[k] += MassAB * ( InnerAB * Identity - OuterAB );
 					       
@@ -972,34 +972,6 @@ namespace Kratos
     ///@}
     ///@name Private Operations
     ///@{
-
-    //************************************************************************************
-    //************************************************************************************
-
-    inline Matrix custom_outer_prod(const array_1d<double, 3>& a, const array_1d<double, 3>& b)
-    {
-      
-      Matrix A(3,3);
-    
-      A(0,0)=a[0]*b[0];
-      A(0,1)=a[0]*b[1];
-      A(1,0)=a[1]*b[0];
-      A(1,1)=a[1]*b[1];
-      A(0,2)=a[0]*b[2];
-      A(1,2)=a[1]*b[2];
-      A(2,0)=a[2]*b[0];
-      A(2,1)=a[2]*b[1];
-      A(2,2)=a[2]*b[2];
-
-      return A;
-    }
-
-
-    inline double custom_inner_prod(const array_1d<double, 3>& a, const array_1d<double, 3>& b)
-    { 
-      return (a[0]*b[0] + a[1]*b[1] + a[2]*b[2]);
-    }
-
 
 
     inline void clear_numerical_errors(Matrix& rMatrix)

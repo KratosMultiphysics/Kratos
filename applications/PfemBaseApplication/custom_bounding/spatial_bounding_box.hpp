@@ -1127,12 +1127,12 @@ protected:
 
       if( norm_2(UnitTangent) != 0 ){
 
-	rTangent = rTangent - inner_prod(BoxDeltaDisplacement, UnitTangent) * UnitTangent;
+	rTangent = inner_prod(BoxDeltaDisplacement, UnitTangent) * UnitTangent - rTangent;
 	
       }
       else{
 
-	rTangent = BoxDeltaDisplacement - inner_prod(BoxDeltaDisplacement, rNormal) * rNormal;
+	rTangent = -1.0 * (BoxDeltaDisplacement - inner_prod(BoxDeltaDisplacement, rNormal) * rNormal);
 	
       }
       

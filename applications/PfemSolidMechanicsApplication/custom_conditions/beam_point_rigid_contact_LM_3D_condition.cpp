@@ -490,7 +490,7 @@ namespace Kratos
       MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kuug, 0, 0 );
 
       // std::cout<<std::endl;
-      // std::cout<<" Penalty.Normal "<<rVariables.Penalty.Normal<<" rVariables.Gap.Normal "<<rVariables.Gap.Normal<<" rVariables.Surface.Normal "<<rVariables.Surface.Normal<<" rIntegrationWeight "<<rIntegrationWeight<<" nxn : "<<custom_outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal)<<std::endl;
+      // std::cout<<" Penalty.Normal "<<rVariables.Penalty.Normal<<" rVariables.Gap.Normal "<<rVariables.Gap.Normal<<" rVariables.Surface.Normal "<<rVariables.Surface.Normal<<" rIntegrationWeight "<<rIntegrationWeight<<" nxn : "<<outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal)<<std::endl;
 
       // this->CalculateAndAddKuugTangent( rLeftHandSideMatrix,  rVariables, rIntegrationWeight );
       // std::cout<<std::endl;
@@ -759,32 +759,6 @@ namespace Kratos
        return FrictionCoefficient;
 
   }
-
-  //************************************************************************************
-  //************************************************************************************
-
-  inline Condition::MatrixType BeamPointRigidContactLM3DCondition::custom_outer_prod(const array_1d<double, 3>& a, const array_1d<double, 3>& b)
-  {
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    Condition::MatrixType A(dimension,dimension);
-    
-    A(0,0)=a[0]*b[0];
-    A(0,1)=a[0]*b[1];
-    A(1,0)=a[1]*b[0];
-    A(1,1)=a[1]*b[1];
-    if( dimension == 3 ){
-      A(0,2)=a[0]*b[2];
-      A(1,2)=a[1]*b[2];
-      A(2,0)=a[2]*b[0];
-      A(2,1)=a[2]*b[1];
-      A(2,2)=a[2]*b[2];
-    }
-
-    return A;
-  }
-
-
 
 
 } // Namespace Kratos
