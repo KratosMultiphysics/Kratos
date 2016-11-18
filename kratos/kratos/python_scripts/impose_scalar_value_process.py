@@ -9,7 +9,7 @@ def Factory(settings, Model):
     return ImposeScalarValueProcess(Model, settings["Parameters"])
 
 ## All the processes python processes should be derived from "python_process"
-class ImposeScalarValueProcess(KratosMultiphysics.ApplyConstantVectorValueProcess):
+class ImposeScalarValueProcess(KratosMultiphysics.ApplyConstantScalarValueProcess):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
         
