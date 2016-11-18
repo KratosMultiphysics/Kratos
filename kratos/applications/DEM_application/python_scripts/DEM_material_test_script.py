@@ -304,7 +304,7 @@ class MaterialTest(object):
 
               element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
 
-      self.Procedures.KRATOSprint("End 30x15 Bts Skin Determination", "\n")
+      self.Procedures.KRATOSprint("End 30x15 Bts Skin Determination" + "\n")
      
   def PrepareDataForGraph(self):
     
