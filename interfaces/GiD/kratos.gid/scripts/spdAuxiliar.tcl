@@ -802,7 +802,7 @@ proc spdAux::injectPartInputs { basenode {inputs ""} } {
         set um [$in getUnitMagnitude]
         set help [$in getHelp] 
         set v [$in getDv]
-        set node "<value n='$inName' pn='$pn' state='\[PartParamState\]' v='\[PartParamValue\]' units='$units' unit_magnitude='$um' help='$help' />"
+        set node "<value n='$inName' pn='$pn' state='\[PartParamState\]' v='$v' units='$units' unit_magnitude='$um' help='$help' />"
         #set node "<value n='$inName' pn='$pn' state='\[PartParamState\]' v='$v' help='$help' />"
         catch {
             $base appendXML $node
@@ -1315,7 +1315,7 @@ proc spdAux::ProcSolverParamState { domNode args } {
 proc spdAux::CheckPartParamValue {node material_name} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    #W [get_domnode_attribute $node n]
+    #W "Searching [get_domnode_attribute $node n]"
     if {[$node hasAttribute n] || $material_name ne ""} {
         set id [$node getAttribute n]
         set found 0
@@ -1330,7 +1330,7 @@ proc spdAux::CheckPartParamValue {node material_name} {
             foreach valueNode [$root selectNodes $xp3] {
                 if {$id eq [$valueNode getAttribute n] } {set val [$valueNode getAttribute v]; set found 1; break}
             }
-            if {$found} {W "mat $material_name value $val"}
+            #if {$found} {W "mat $material_name value $val"}
         }
         # si no está en el material, miramos en el elemento
         if {!$found} {
@@ -1709,4 +1709,16 @@ proc spdAux::ProcEdit_database_list {domNode args} {
         }
     }
     return ""
+}
+
+proc spdAux::ProcCambioMat {domNode args} {
+    set matname [get_domnode_attribute $domNode v]
+    set exclusion [list "Element" "ConstitutiveLaw" "Material"]
+    set nodes [$domNode selectNodes "../value"]
+    foreach node $nodes {
+        if {[$node @n] ni $exclusion} {
+            $node setAttribute v [CheckPartParamValue $node $matname]
+        }
+    }
+    RequestRefresh
 }

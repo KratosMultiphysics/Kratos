@@ -132,7 +132,7 @@
     </proc>
 	<proc n='CambioMat' args='args'>
 	  <![CDATA[
-	  spdAux::RequestRefresh
+	  return [spdAux::ProcCambioMat $domNode $args] 
 	  ]]>
 	</proc>
 	<proc n='ConditionState' args='args'>
