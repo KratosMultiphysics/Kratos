@@ -49,8 +49,8 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
                 
         ##check if variable type is a vector
         self.var = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["variable_name"].GetString())
-        if( type(self.var) != KratosMultiphysics.VectorVariable ):
-            raise Exception("Variable type is incorrect. Must be a vector.")
+        if( (type(self.var) != KratosMultiphysics.VectorVariable) and (type(self.var) != KratosMultiphysics.Array1DVariable3) ):
+            raise Exception("Variable type is incorrect. Must be a vector or a array_1d vector.")
 
         self.model_part    = Model[self.settings["model_part_name"].GetString()]
         self.variable_name = self.settings["variable_name"].GetString()
@@ -130,8 +130,6 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
         params.__setitem__("value", self.settings["direction"])
 
         if( self.value_is_numeric ):
-
-            self.value = modulus * self.value
 
             counter = 0
             for i in self.value:
