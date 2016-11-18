@@ -1,13 +1,10 @@
 // System includes
 #include <string>
 #include <iostream>
-
-// External includes
-
+#include <cmath>
 
 // Project includes
 #include "DEM_Dempack_dev_CL.h"
-//#include "custom_elements/spheric_particle.h"
 #include "custom_elements/spheric_continuum_particle.h"
 
 namespace Kratos {
