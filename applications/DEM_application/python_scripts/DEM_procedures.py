@@ -347,15 +347,7 @@ class Procedures(object):
 
 
         if ((hasattr(self.DEM_parameters, "PostStressStrainOption")) and self.DEM_parameters.PostStressStrainOption):
-            model_part.AddNodalSolutionStepVariable(DEM_STRESS_XX)
-            model_part.AddNodalSolutionStepVariable(DEM_STRESS_XY)
-            model_part.AddNodalSolutionStepVariable(DEM_STRESS_XZ)
-            model_part.AddNodalSolutionStepVariable(DEM_STRESS_YX)
-            model_part.AddNodalSolutionStepVariable(DEM_STRESS_YY)
-            model_part.AddNodalSolutionStepVariable(DEM_STRESS_YZ)
-            model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZX)
-            model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZY)
-            model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZZ)
+            model_part.AddNodalSolutionStepVariable(DEM_STRESS_TENSOR)
         if (self.solver.compute_stress_tensor_option):
             model_part.AddNodalSolutionStepVariable(FORCE_REACTION)
             model_part.AddNodalSolutionStepVariable(MOMENT_REACTION)
@@ -1286,15 +1278,7 @@ class DEMIo(object):
         if (hasattr(self.DEM_parameters, "PostStressStrainOption")):
             if (Var_Translator(self.DEM_parameters.PostStressStrainOption)):
                 self.PushPrintVar(1, REPRESENTATIVE_VOLUME, self.spheres_variables)
-                self.PushPrintVar(1, DEM_STRESS_XX,         self.spheres_variables)
-                self.PushPrintVar(1, DEM_STRESS_XY,         self.spheres_variables)
-                self.PushPrintVar(1, DEM_STRESS_XZ,         self.spheres_variables)
-                self.PushPrintVar(1, DEM_STRESS_YX,         self.spheres_variables)
-                self.PushPrintVar(1, DEM_STRESS_YY,         self.spheres_variables)
-                self.PushPrintVar(1, DEM_STRESS_YZ,         self.spheres_variables)
-                self.PushPrintVar(1, DEM_STRESS_ZX,         self.spheres_variables)
-                self.PushPrintVar(1, DEM_STRESS_ZY,         self.spheres_variables)
-                self.PushPrintVar(1, DEM_STRESS_ZZ,         self.spheres_variables)
+                self.PushPrintVar(1, DEM_STRESS_TENSOR,     self.spheres_variables)
                 self.PushPrintVar(1, FORCE_REACTION,        self.spheres_variables)
                 self.PushPrintVar(1, MOMENT_REACTION,       self.spheres_variables)
 
