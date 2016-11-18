@@ -243,11 +243,14 @@ class UPwSolver(object):
             beta = self.settings["newmark_beta"].GetDouble()
             gamma = self.settings["newmark_gamma"].GetDouble()
             theta = self.settings["newmark_theta"].GetDouble()
+            rayleigh_m = self.settings["rayleigh_m"].GetDouble()
+            rayleigh_k = self.settings["rayleigh_k"].GetDouble()
             if(solution_type == "Quasi-Static"):
-                scheme = KratosPoro.NewmarkQuasistaticUPwScheme(beta,gamma,theta)
+                if(rayleigh_m<1.0e-20 and rayleigh_k<1.0e-20):
+                    scheme = KratosPoro.NewmarkQuasistaticUPwScheme(beta,gamma,theta)
+                else:
+                    scheme = KratosPoro.NewmarkQuasistaticDampedUPwScheme(beta,gamma,theta,rayleigh_m,rayleigh_k)
             else:
-                rayleigh_m = self.settings["rayleigh_m"].GetDouble()
-                rayleigh_k = self.settings["rayleigh_k"].GetDouble()
                 scheme = KratosPoro.NewmarkDynamicUPwScheme(beta,gamma,theta,rayleigh_m,rayleigh_k)
         
         return scheme

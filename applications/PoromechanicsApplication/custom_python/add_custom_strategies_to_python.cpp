@@ -27,6 +27,7 @@
 
 //schemes
 #include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/newmark_quasistatic_damped_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
 
 //linear solvers
@@ -52,6 +53,7 @@ void  AddCustomStrategiesToPython()
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
 
     typedef NewmarkQuasistaticUPwScheme< SparseSpaceType, LocalSpaceType >  NewmarkQuasistaticUPwSchemeType;
+    typedef NewmarkQuasistaticDampedUPwScheme< SparseSpaceType, LocalSpaceType >  NewmarkQuasistaticDampedUPwSchemeType;
     typedef NewmarkDynamicUPwScheme< SparseSpaceType, LocalSpaceType >  NewmarkDynamicUPwSchemeType; 
     
     typedef PoromechanicsNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > PoromechanicsNewtonRaphsonStrategyType;
@@ -63,7 +65,10 @@ void  AddCustomStrategiesToPython()
     
     class_< NewmarkQuasistaticUPwSchemeType,bases< BaseSchemeType >,  boost::noncopyable >("NewmarkQuasistaticUPwScheme",
         init<  double, double, double >());
-    
+
+    class_< NewmarkQuasistaticDampedUPwSchemeType,bases< BaseSchemeType >,  boost::noncopyable >("NewmarkQuasistaticDampedUPwScheme",
+        init<  double, double, double, double, double >());
+
     class_< NewmarkDynamicUPwSchemeType,bases< BaseSchemeType >,  boost::noncopyable >("NewmarkDynamicUPwScheme",
         init<  double, double, double, double, double >());
     
