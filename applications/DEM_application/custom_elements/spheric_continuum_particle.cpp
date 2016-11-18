@@ -158,7 +158,7 @@ namespace Kratos {
             outputfile << external_sphere_area << "  " << total_equiv_area << "\n";
             outputfile.close();
         }
-        if (cont_ini_neighbours_size >= 4) { // more than 3 neighbors
+        if (cont_ini_neighbours_size >= 6) { 
             if (!IsSkin()) {
                 AuxiliaryFunctions::CalculateAlphaFactor3D(cont_ini_neighbours_size, external_sphere_area, total_equiv_area, alpha);
                 if (print_debug_files) {
@@ -455,7 +455,7 @@ namespace Kratos {
         //if (*mSkinSphere && is_smaller_than_sphere) rRepresentative_Volume *= 1.5; // This is the quotient between the volume of the cylinder circumscribed about a sphere and the latter
                                                                                    // So the minimum volume for a skin sphere is that of a cylinder
         //if (*mSkinSphere) rRepresentative_Volume *= 0.5;
-        
+                
         KRATOS_CATCH("")
     }
         
