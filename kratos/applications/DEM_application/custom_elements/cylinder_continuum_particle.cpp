@@ -33,7 +33,7 @@ namespace Kratos
         { 
 
             double alpha = 1.0;
-            double sphere_perimeter = 2*KRATOS_M_PI * GetRadius();       
+            double circle_perimeter = 2*KRATOS_M_PI * GetRadius();       
             double total_equiv_perimeter = 0.0;
             unsigned int continuous_initial_neighbours_size = mContinuumInitialNeighborsSize;
             Vector& cont_ini_neigh_area = GetValue(NEIGHBOURS_CONTACT_AREAS);
@@ -45,17 +45,17 @@ namespace Kratos
                 total_equiv_perimeter += area;
             } //for every neighbour
       
-            if (continuous_initial_neighbours_size >= 3) {
+            if (continuous_initial_neighbours_size >= 4) {
             
                 if (!IsSkin()) {
-                    AuxiliaryFunctions::CalculateAlphaFactor2D(continuous_initial_neighbours_size, sphere_perimeter, total_equiv_perimeter, alpha); 
+                    AuxiliaryFunctions::CalculateAlphaFactor2D(continuous_initial_neighbours_size, circle_perimeter, total_equiv_perimeter, alpha); 
                     for (unsigned int i = 0; i < cont_ini_neigh_area.size(); i++) {
                         cont_ini_neigh_area[i] = alpha*cont_ini_neigh_area[i];                      
                     } //for every neighbour
                 }
                 else { //skin sphere                              
                     for (unsigned int i = 0; i < cont_ini_neigh_area.size(); i++) {
-                        alpha            = 1.30*(1.10266)*(sphere_perimeter/total_equiv_perimeter)*((double(continuous_initial_neighbours_size))/6); // 6 is mean coordination number.
+                        alpha            = 1.30*(1.10266)*(circle_perimeter/total_equiv_perimeter)*((double(continuous_initial_neighbours_size))/6); // 6 is mean coordination number.
                         cont_ini_neigh_area[i] = alpha*cont_ini_neigh_area[i];
                     }     //loop on cont neighs
                 }           //skin particles.
