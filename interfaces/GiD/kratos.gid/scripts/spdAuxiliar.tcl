@@ -250,10 +250,10 @@ proc spdAux::CreateDimensionWindow { } {
             
             grid $w.information.img$dim -column $i -row 0
             #if {[file extension $imagepath] eq ".gif"} {
-            #    ::anigif::anigif $imagepath $but
-            #    ::anigif::restart $but
-            #    W $but
-            #}
+                #    ::anigif::anigif $imagepath $but
+                #    ::anigif::restart $but
+                #    W $but
+                #}
             incr i
         }
         grid $w.top
@@ -449,51 +449,6 @@ proc spdAux::ViewDoc {} {
     W [[$gid_groups_conds::doc documentElement] asXML]
 }
 
-proc spdAux::CheckPartParamValue {node material_name} {
-    set doc $gid_groups_conds::doc
-    set root [$doc documentElement]
-    #W [get_domnode_attribute $node n]
-    if {[$node hasAttribute n] || $material_name ne ""} {
-        set id [$node getAttribute n]
-        set found 0
-        set val 0.0
-        
-        # primero miramos si el material tiene ese campo
-        if {$material_name ne ""} {
-            set mats_un [apps::getCurrentUniqueName Materials]
-            set xp3 [spdAux::getRoute $mats_un]
-            append xp3 [format_xpath {/blockdata[@n="material" and @name=%s]/value} $material_name]
-            
-            foreach valueNode [$root selectNodes $xp3] {
-                if {$id eq [$valueNode getAttribute n] } {set val [$valueNode getAttribute v]; set found 1; break}
-            }
-            #if {$found} {W "mat $material_name value $val"}
-        }
-        # si no está en el material, miramos en el elemento
-        if {!$found} {
-            set element_name [get_domnode_attribute [[$node parent] selectNodes "./value\[@n='Element'\]"] v]
-            #set claw_name [.gid.central.boundaryconds.gg.data.f0.e1 get]
-            set element [Model::getElement $element_name]
-            if {$element ne ""} {
-                set val [$element getInputDv $id]
-                if {$val ne ""} {set found 1}
-            }
-            #if {$found} {W "element $element_name value $val"}
-        }
-        # Si no está en el elemento, miramos en la ley constitutiva
-        if {!$found} {
-            set claw_name [get_domnode_attribute [[$node parent] selectNodes "./value\[@n='ConstitutiveLaw'\]"] v]
-            set claw [Model::getConstitutiveLaw $claw_name]
-            if {$claw ne ""} {
-                set val [$claw getInputDv $id]
-                if {$val ne ""} {set found 1}
-            }
-            #if {$found} {W "claw $claw_name value $val"}
-        }
-        #if {!$found} {W "Not found $val"}
-        if {$val eq ""} {set val 0.0} {return $val}
-    }
-}
 
 proc spdAux::ConvertAllUniqueNames {oldPrefix newPrefix} {
     variable uniqueNames
@@ -772,19 +727,19 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
                         if {[$in getAttribute "function"] eq "1"} {
                             set fname "${i}function_$inName"
                             append node "<value n='ByFunction$i' pn='by function -> f(x,y,z,t)' v='No' values='Yes,No'  actualize_tree='1'  $zstate >
-                                            <dependencies value='No' node=\""
+                                <dependencies value='No' node=\""
                             append node $nodev
                             append node "\" att1='state' v1='normal'/>
-                                            <dependencies value='Yes'  node=\""
+                                <dependencies value='Yes'  node=\""
                             append node $nodev
                             append node "\" att1='state' v1='hidden'/>
-                                            <dependencies value='No' node=\""
+                                <dependencies value='No' node=\""
                             append node $nodef
                             append node "\" att1='state' v1='hidden'/>
-                                            <dependencies value='Yes'  node=\""
+                                <dependencies value='Yes'  node=\""
                             append node $nodef
                             append node "\" att1='state' v1='normal'/>
-                                          </value>"
+                                </value>"
                             append node "<value n='$fname' pn='$i function' v='' help='$help'  $zstate />"
                         }
                         append node "<value n='${inName}$i' wn='[concat $n "_$i"]' pn='$i ${pn}' v='$v1'  units='$units'  unit_magnitude='$um'  help='$help'  $zstate />"
@@ -807,19 +762,19 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
                     set nodef "../value\[@n='$fname'\]"
                     append node "<value n='$fname' pn='Function' v='' help='$help'/>"
                     append node "<value n='ByFunction' pn='By function' v='No' values='Yes,No'  actualize_tree='1'>
-                                    <dependencies value='No' node=\""
+                        <dependencies value='No' node=\""
                     append node $nodev
                     append node "\" att1='state' v1='normal'/>
-                                    <dependencies value='Yes'  node=\""
+                        <dependencies value='Yes'  node=\""
                     append node $nodev
                     append node "\" att1='state' v1='hidden'/>
-                                    <dependencies value='No' node=\""
+                        <dependencies value='No' node=\""
                     append node $nodef
                     append node "\" att1='state' v1='hidden'/>
-                                    <dependencies value='Yes'  node=\""
+                        <dependencies value='Yes'  node=\""
                     append node $nodef
                     append node "\" att1='state' v1='normal'/>
-                                  </value>"
+                        </value>"
                 }
                 #append node "<value n='$inName' pn='$pn' v='$v'   help='$help'/>"
             }
@@ -834,9 +789,12 @@ proc spdAux::_injectCondsToTree {basenode cond_list {cond_type "normal"} } {
     }
     
 }
-proc spdAux::injectElementInputs { basenode args} {
-    set parts [$basenode parent]
-    set inputs [::Model::GetAllElemInputs]
+#.gid.central.boundaryconds.gg.data.f0.e2
+proc spdAux::injectPartInputs { basenode {inputs ""} } {
+    set base [$basenode parent]
+    if {$inputs eq ""} {
+        set inputs [dict merge [::Model::GetAllElemInputs] [::Model::GetAllCLInputs] ]
+    }
     foreach inName [dict keys $inputs] {
         set in [dict get $inputs $inName] 
         set pn [$in getPublicName]
@@ -844,14 +802,14 @@ proc spdAux::injectElementInputs { basenode args} {
         set um [$in getUnitMagnitude]
         set help [$in getHelp] 
         set v [$in getDv]
-        #set node "<value n='$inName' pn='$pn' state='\[PartParamState\]' v='-' units='$units' unit_magnitude='$um' help='$help' />"
-        set node "<value n='$inName' pn='$pn' state='\[PartParamState\]' v='$v' help='$help' />"
+        set node "<value n='$inName' pn='$pn' state='\[PartParamState\]' v='\[PartParamValue\]' units='$units' unit_magnitude='$um' help='$help' />"
+        #set node "<value n='$inName' pn='$pn' state='\[PartParamState\]' v='$v' help='$help' />"
         catch {
-            $parts appendXML $node
-            set orig [$parts lastChild]
+            $base appendXML $node
+            set orig [$base lastChild]
             set new [$orig cloneNode]
             $orig delete
-            $parts insertBefore $new $basenode
+            $base insertBefore $new $basenode
         }
         
         #set originxpath "[$parts toXPath]/value\[@n='Material'\]"
@@ -860,34 +818,11 @@ proc spdAux::injectElementInputs { basenode args} {
     }
     $basenode delete
 }
-
-proc spdAux::injectConstitutiveLawInputs { basenode  args} {
-    set parts [$basenode parent]
-    set inputs [::Model::GetAllCLInputs]
-    foreach inName [dict keys $inputs] {
-        if {[$parts find n $inName] eq ""} {
-            set in [dict get $inputs $inName] 
-            set pn [$in getPublicName]
-            set units [$in getUnits]
-            set um [$in getUnitMagnitude]
-            set help [$in getHelp]
-            set v [$in getDv]
-            #set node "<value n='$inName' pn='$pn' state='\[PartParamState\]' v='$v' units='$units' unit_magnitude='$um' help='$help' />"
-            set node "<value n='$inName' pn='$pn' state='\[PartParamState\]' v='$v' help='$help' />"
-            catch {
-                $parts appendXML $node
-                set orig [$parts lastChild]
-                set new [$orig cloneNode]
-                $orig delete
-                $parts insertBefore $new $basenode
-            }
-            
-            #set originxpath "[$parts toXPath]/value\[@n='Material'\]"
-            #set relativexpath "../value\[@n='$inName'\]"
-            #spdAux::insertDependenciesSoft $originxpath $relativexpath $inName v "\[PartParamValue\]"
-        }
-    }
-    $basenode delete
+proc spdAux::injectElementInputs { basenode args} {
+    spdAux::injectPartInputs $basenode [::Model::GetAllElemInputs] 
+}
+proc spdAux::injectConstitutiveLawInputs { basenode args} {
+    spdAux::injectPartInputs $basenode [::Model::GetAllCLInputs] 
 }
 
 proc spdAux::injectElementOutputs { basenode args} {
@@ -899,12 +834,12 @@ proc spdAux::injectElementOutputs { basenode args} {
         
         set node "<value n='$in' pn='$pn' state='\[ElementOutputState\]' v='$v' values='Yes,No' />"
         catch {
-                $parts appendXML $node
-                set orig [$parts lastChild]
-                set new [$orig cloneNode]
-                $orig delete
-                $parts insertBefore $new $basenode
-            }
+            $parts appendXML $node
+            set orig [$parts lastChild]
+            set new [$orig cloneNode]
+            $orig delete
+            $parts insertBefore $new $basenode
+        }
     }
     $basenode delete
 }
@@ -1056,7 +991,7 @@ proc spdAux::SchemeParamState {outnode} {
         get_domnode_attribute [$root selectNodes [spdAux::getRoute $sol_stratUN]] dict
     }
     if {[get_domnode_attribute [$root selectNodes [spdAux::getRoute $schemeUN]] v] eq ""} {
-         get_domnode_attribute [$root selectNodes [spdAux::getRoute $schemeUN]] dict
+        get_domnode_attribute [$root selectNodes [spdAux::getRoute $schemeUN]] dict
     }
     set SolStrat [::write::getValue $sol_stratUN]
     set Scheme [write::getValue $schemeUN]
@@ -1121,7 +1056,7 @@ proc spdAux::ProcGetElements { domNode args } {
         get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] dict
     }
     if {[get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $schemeUN]] v] eq ""} {
-         get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $schemeUN]] dict
+        get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $schemeUN]] dict
     }
     
     #W "solStrat $sol_stratUN sch $schemeUN"
@@ -1159,7 +1094,7 @@ proc spdAux::ProcGetElementsValues { domNode args } {
         get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] dict
     }
     if {[get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $schemeUN]] v] eq ""} {
-         get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $schemeUN]] dict
+        get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $schemeUN]] dict
     }
     
     set solStratName [::write::getValue $sol_stratUN]
@@ -1276,7 +1211,7 @@ proc spdAux::ProcGetAllConstitutiveLaws { domNode args } {
     }
     set diction [join $pnames ","]
     #spdAux::RequestRefresh
-
+    
     return $diction
 }
 proc spdAux::ProcGetSolvers { domNode args } {
@@ -1375,15 +1310,68 @@ proc spdAux::ProcSolverParamState { domNode args } {
     #spdAux::RequestRefresh
     if {$resp} {return "normal"} else {return "hidden"}
 }
+
+
+proc spdAux::CheckPartParamValue {node material_name} {
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    #W [get_domnode_attribute $node n]
+    if {[$node hasAttribute n] || $material_name ne ""} {
+        set id [$node getAttribute n]
+        set found 0
+        set val 0.0
+        
+        # primero miramos si el material tiene ese campo
+        if {$material_name ne ""} {
+            set mats_un [apps::getCurrentUniqueName Materials]
+            set xp3 [spdAux::getRoute $mats_un]
+            append xp3 [format_xpath {/blockdata[@n="material" and @name=%s]/value} $material_name]
+            
+            foreach valueNode [$root selectNodes $xp3] {
+                if {$id eq [$valueNode getAttribute n] } {set val [$valueNode getAttribute v]; set found 1; break}
+            }
+            if {$found} {W "mat $material_name value $val"}
+        }
+        # si no está en el material, miramos en el elemento
+        if {!$found} {
+            set element_name [get_domnode_attribute [[$node parent] selectNodes "./value\[@n='Element'\]"] v]
+            #set claw_name [.gid.central.boundaryconds.gg.data.f0.e1 get]
+            set element [Model::getElement $element_name]
+            if {$element ne ""} {
+                set val [$element getInputDv $id]
+                if {$val ne ""} {set found 1}
+            }
+            #if {$found} {W "element $element_name value $val"}
+        }
+        # Si no está en el elemento, miramos en la ley constitutiva
+        if {!$found} {
+            set claw_name [get_domnode_attribute [[$node parent] selectNodes "./value\[@n='ConstitutiveLaw'\]"] v]
+            set claw [Model::getConstitutiveLaw $claw_name]
+            if {$claw ne ""} {
+                set val [$claw getInputDv $id]
+                if {$val ne ""} {set found 1}
+            }
+            #if {$found} {W "claw $claw_name value $val"}
+        }
+        #if {!$found} {W "Not found $val"}
+        if {$val eq ""} {set val 0.0} {return $val}
+    }
+}
+
 proc spdAux::ProcPartParamValue { domNode args } {
-    
-    set nodename [get_domnode_attribute $domNode n]
-    set matname [get_domnode_attribute $domNode v]
-    set node [[$domNode parent] selectNode "../value\[@n='$nodename'\]" ]
-    set nodevalue [$node @v]
-    return [spdAux::CheckPartParamValue $node $matname]
+    #W [$domNode asXML]
+    return [spdAux::CheckPartParamValue $domNode ""]
+    if {[$domNode name] eq "value"} {
+        set node [$domNode selectNode "../value\[@n='Material'\]" ]
+        #W $node
+        set matname [get_domnode_attribute $node value]
+        #W $matname
+        return [spdAux::CheckPartParamValue $domNode $matname]
+    } 
 }
 proc spdAux::ProcPartParamState { domNode args } {
+    #W [get_domnode_attribute $domNode v]
+    #W [$domNode @v]
     set resp [::Model::CheckElemParamState $domNode]
     if {$resp eq "0"} {
         set id [$domNode getAttribute n]
@@ -1578,4 +1566,146 @@ proc spdAux::PreChargeTree { } {
             #W [get_domnode_attribute $cndNode n]
         }
     }
+}
+
+proc spdAux::ProcGive_materials_list {domNode args} {
+    set optional {
+        { -has_container container_name "" }
+        { -icon icon_name material16 }
+        { -types_icon types_icon_name ""}
+        { -database database_name materials }
+    }        
+    #W $args
+    set compulsory ""
+    parse_args $optional $compulsory $args      
+    set restList ""    
+    
+    proc database_append_list { parentNode database_name level container_name icon_name types_icon_name } {
+        set l ""       
+        # We guess the keywords of the levels of the database        
+        set level_names [give_levels_name $parentNode $database_name]
+        set primary_level [lindex $level_names 0]
+        set secondary_level [lindex $level_names 1]
+        
+        if {$secondary_level eq "" && $container_name ne "" && $level == "0"} {
+            error [_ "The has_container flag is not available for the database %s (the different types of materials \
+                    should be distributed in several containers)" $database_name]     
+        }
+        
+        foreach domNode [$parentNode childNodes] {
+            set name [$domNode @pn ""]
+            if { $name eq "" } { set name [$domNode @name] }
+            if { [$domNode @n] eq "$secondary_level" } {
+                set ret [database_append_list $domNode  $database_name \
+                        [expr {$level+1}] $container_name $icon_name $types_icon_name]
+                if { [llength $ret] } {
+                    lappend l [list $level $name $name $types_icon_name 0]
+                    eval lappend l $ret
+                }
+            } elseif {[$domNode @n] eq "$primary_level"} {
+                set good 1
+                if { $container_name ne "" } {
+                    set xp [format_xpath {container[@n=%s]} $container_name]
+                    if { [$domNode selectNodes $xp] eq "" } { set good 0 }
+                }
+                if { $good } {
+                    lappend l [list $level $name $name $icon_name 1]
+                }
+            }
+        }
+        return $l
+    }  
+    
+    proc give_caption_name { domNode xp database_name } {     
+        set first_time 1   
+        foreach gNode [$domNode selectNodes $xp] {        
+            if {$first_time} {
+                set caption_name [$gNode @n]
+                set first_time 0 
+                continue  
+            }
+            if {[$gNode @n] ne $caption_name} {
+                error [_ "Please check the n attributes of the database %s" $database_name]   
+            }     
+        }  
+        return $caption_name   
+    }
+    
+    proc give_levels_name { domNode name } {
+        set xp {container}      
+        if {[$domNode selectNodes $xp] eq ""} { 
+            # No seconday level exists
+            set secondary_level ""
+            set xp2 {blockdata}  
+            set primary_level [give_caption_name $domNode $xp2 $name]
+        } else {
+            set secondary_level [give_caption_name $domNode $xp $name]
+            set xp3 {container/blockdata}
+            set primary_level [give_caption_name $domNode $xp3 $name] 
+        }
+        return [list $primary_level $secondary_level]
+    } 
+    
+    set parentNode [$domNode selectNodes [format_xpath {//container[@n=%s]} $database]]
+    
+    if {$parentNode eq ""} {
+        error [_ "Database %s not found in the spd file" $database]  
+    }
+    
+    eval lappend resList [database_append_list $parentNode \
+            $database 0 $has_container $icon $types_icon]
+    return [join $resList ","]
+}
+
+proc spdAux::ProcEdit_database_list {domNode args} {
+    #W $domNode
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    set matname ""
+    set xnode "[$domNode @n]:"
+    set baseframe ".gid.central.boundaryconds.gg.data.f0"
+    set things [winfo children $baseframe]
+    foreach thing $things {
+        if {[winfo class $thing] eq "TLabel"} {
+            set lab [$thing cget -text]
+            if {$lab eq $xnode} {
+                set id [string range [lindex [split $thing "."] end] 1 end]
+                set cbo ${baseframe}.e$id
+                set matname [$cbo get]
+                break
+            }
+        }
+    }
+    if {$matname ne ""} {
+        foreach thing $things {
+            set found 0
+            #set id ""
+            if {[winfo class $thing] eq "TPanedwindow"} {
+                #set id [string range [lindex [split $thing "."] end] 1 end]
+                set thing "${thing}.e"
+            }
+            if {[winfo class $thing] eq "TEntry"} {
+                #if {$id eq "" } {set id [string range [lindex [split $thing "."] end] 1 end]}
+                #set prop ${baseframe}.e$id
+                set varname [$thing cget -textvariable]
+                set propname [lindex [split [lindex [split [lindex [split $varname "::"] end] "("] end] ")"] 0]
+                #W $propname
+                set mats_un [apps::getCurrentUniqueName Materials]
+                set xp3 [spdAux::getRoute $mats_un]
+                append xp3 [format_xpath {/blockdata[@n="material" and @name=%s]/value} $matname]
+                
+                foreach valueNode [$root selectNodes $xp3] {
+                    if {$propname eq [$valueNode getAttribute n] } {
+                        set val [$valueNode getAttribute v]
+                        set $varname $val
+                        #set found 1
+                        break
+                    }
+                }
+                #if {$found} {W "mat $matname value $val"}
+                
+            }
+        }
+    }
+    return ""
 }
