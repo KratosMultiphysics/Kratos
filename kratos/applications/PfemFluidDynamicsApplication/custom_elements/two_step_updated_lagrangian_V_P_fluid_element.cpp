@@ -11,7 +11,7 @@
 // System includes
 
 // External includes
- 
+
 // Project includes
 #include "custom_elements/two_step_updated_lagrangian_V_P_fluid_element.h"
 #include "includes/cfd_variables.h"
@@ -1213,15 +1213,14 @@ void TwoStepUpdatedLagrangianVPFluidElement<TDim>:: InitializeElementalVariables
 {
 	KRATOS_TRY;
 
-
-
   unsigned int voigtsize  = 3;
   if( TDim == 3 )
     {
       voigtsize  = 6;
     }
-  rElementalVariables.voigtsize=voigtsize;
 
+  
+  rElementalVariables.voigtsize=voigtsize;
 
   rElementalVariables.DetFgrad=1.0;
 
@@ -1234,8 +1233,9 @@ void TwoStepUpdatedLagrangianVPFluidElement<TDim>:: InitializeElementalVariables
 
   rElementalVariables.SpatialDefRate= ZeroVector(voigtsize);
 
-  rElementalVariables.MDGreenLagrangeMaterial= ZeroVector(voigtsize);
-
+  rElementalVariables.MDGreenLagrangeMaterial.resize(voigtsize,false);
+  noalias(rElementalVariables.MDGreenLagrangeMaterial) = ZeroVector(voigtsize);
+  
   rElementalVariables.Fgrad = ZeroMatrix(TDim,TDim);
 
   rElementalVariables.InvFgrad= ZeroMatrix(TDim,TDim);

@@ -596,7 +596,9 @@ namespace Kratos
     void CalculateBoundaryNormals(MeshType& rMesh)
     {
       KRATOS_TRY
-	    
+
+      const unsigned int dimension = rMesh.WorkingSpaceDimension();
+	
       //Reset normals
       ModelPart::NodesContainerType&    rNodes = rMesh.Nodes();
       ModelPart::ElementsContainerType& rElems = rMesh.Elements();
@@ -644,11 +646,10 @@ namespace Kratos
       Vector An(3);
       Element::IntegrationMethod mIntegrationMethod = Element::GeometryDataType::GI_GAUSS_1; //one gauss point
       int PointNumber = 0; //one gauss point
-      unsigned int dimension;
       Matrix J;
       Matrix InvJ;
       double detJ;
-      Matrix  DN_DX;
+      Matrix DN_DX;
 
       unsigned int assigned       = 0;
       unsigned int not_assigned   = 0;
@@ -656,27 +657,27 @@ namespace Kratos
       //int boundarycounter=0;
       for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
 	{
-	  An.clear();
-
+	  noalias(An) = ZeroVector(3);
+	  
 	  //if(in->Is(BOUNDARY)){
 
 	  WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
 
 	  for(WeakPointerVector<Element >::iterator ie= rE.begin(); ie!=rE.end(); ie++)
 	    {
-	      Element::GeometryType& rGeom = ie->GetGeometry();
 
-	      if( rGeom.EdgesNumber() > 1 ){
+	      Element::GeometryType& rGeometry = ie->GetGeometry();
 
-		dimension = rGeom.WorkingSpaceDimension();
+	      if( rGeometry.EdgesNumber() > 1 &&  rGeometry.LocalSpaceDimension() == dimension ){
+
 
 		//********** Compute the element integral ******//
-		const Element::GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( mIntegrationMethod );
-		const Element::GeometryType::ShapeFunctionsGradientsType& DN_De = rGeom.ShapeFunctionsLocalGradients( mIntegrationMethod );
+		const Element::GeometryType::IntegrationPointsArrayType& integration_points = rGeometry.IntegrationPoints( mIntegrationMethod );
+		const Element::GeometryType::ShapeFunctionsGradientsType& DN_De = rGeometry.ShapeFunctionsLocalGradients( mIntegrationMethod );
 
-
+		
 		J.resize( dimension, dimension );
-		J = rGeom.Jacobian( J, PointNumber , mIntegrationMethod );
+		J = rGeometry.Jacobian( J, PointNumber , mIntegrationMethod );
 
 		InvJ.clear();
 		detJ=0;
@@ -689,14 +690,14 @@ namespace Kratos
 
 		double IntegrationWeight = integration_points[PointNumber].Weight() * detJ;
 
-		  
-		for(unsigned int i = 0; i < rGeom.size(); i++)
+		
+		for(unsigned int i = 0; i < rGeometry.size(); i++)
 		  {
-		    if(in->Id() == rGeom[i].Id()){
+		    if(in->Id() == rGeometry[i].Id()){
 
 		      for(unsigned int d=0; d<dimension; d++)
 			{		    
-			  An[d] += DN_DX(i,d)*IntegrationWeight;
+			  An[d] += DN_DX(i,d) * IntegrationWeight;
 			}
 		    }
 		  }
@@ -732,7 +733,7 @@ namespace Kratos
 
 
       if(mEchoLevel > 0) 
-	std::cout<<"  [ Boundary_Normals  (Mesh Nodes:"<<rNodes.size()<<")[BOUNDARY: "<<boundary_nodes<<" (SET:"<<assigned<<" / NOT_SET:"<<not_assigned<<")] ]"<<std::endl;
+	std::cout<<"  [ Boundary_Normals  (Mesh Nodes:"<<rNodes.size()<<")[Boundary nodes: "<<boundary_nodes<<" (SET:"<<assigned<<" / NOT_SET:"<<not_assigned<<")] ]"<<std::endl;
 
 	  
       //std::cout<<" Boundary COUNTER "<<boundarycounter<<std::endl;
