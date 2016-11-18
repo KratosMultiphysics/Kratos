@@ -705,7 +705,13 @@ protected:
       isItNan=std::isnan(DvErrorNorm);
       bool isItInf=false;
       isItInf=std::isinf(DvErrorNorm);
-      if(DvErrorNorm>minTolerance || (!DvErrorNorm<0 && !DvErrorNorm>0) || (DvErrorNorm!=DvErrorNorm) || isItNan==true || isItInf==true){
+
+      //Changed 18/11/2016
+      //if(DvErrorNorm>minTolerance || (!DvErrorNorm<0 && !DvErrorNorm>0) || (DvErrorNorm!=DvErrorNorm) || isItNan==true || isItInf==true){
+      //NOTE :: Alessandro what does it mean if(!DvErrorNorm<0) ?? do you mean if( DvErrorNorm>=0 ) (== if( !(DvErrorNorm<0) )
+      // !DvErrorNorm can be False or True, and (False<0 or True<0) = (!DvErrorNorm<0) is always False and (False>0 or True>0) = (!DvErrorNorm>0) is always True.
+      // (!DvErrorNorm<0 && !DvErrorNorm>0) this is always False.
+      if( (DvErrorNorm>minTolerance) || (!(DvErrorNorm<0) && !(DvErrorNorm>0)) || (DvErrorNorm!=DvErrorNorm) || isItNan==true || isItInf==true){
 	std::cout << "BAD CONVERGENCE!!!!! I GO AHEAD WITH THE PREVIOUS VELOCITY AND PRESSURE FIELDS"<< std::endl;
 #pragma omp parallel 
 	{
@@ -798,7 +804,7 @@ private:
         // Check that input parameters are reasonable and sufficient.
         this->Check();
 
-        ModelPart& rModelPart = this->GetModelPart();
+        //ModelPart& rModelPart = this->GetModelPart();
 
         mDomainSize = rSolverConfig.GetDomainSize();
 
