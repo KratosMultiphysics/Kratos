@@ -50,9 +50,9 @@
                 "mesh_id"         : 0,
                 "model_part_name" : "DISPLACEMENT_Displacement_BC",
                 "variable_name"   : "DISPLACEMENT",
-                "is_fixed_X"      : true,
-                "is_fixed_Y"      : true,
-                "is_fixed_Z"      : true,
+                "is_fixed_x"      : true,
+                "is_fixed_y"      : true,
+                "is_fixed_z"      : true,
                 "value"           : [0.0,0.0,0.0]
             }
         }],
