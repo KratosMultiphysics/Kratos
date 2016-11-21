@@ -66,6 +66,9 @@ class HertzSimpleSphereTestContact(StructuralMechanichsTestFactory):
 class HertzSimpleTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test_2D/hertz_simple_test"
     
+class HertzSphereTestContact(StructuralMechanichsTestFactory):
+    file_name = "contact_test_2D/hertz_sphere_plate_test"
+    
 class HertzCompleteTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test_2D/hertz_complete_test"
 

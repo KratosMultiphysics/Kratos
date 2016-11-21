@@ -8,7 +8,7 @@ def AssignMaterial(Properties):
     prop = Properties[prop_id]
     mat = LinearElasticPlaneStrain2DLaw()
     prop.SetValue(CONSTITUTIVE_LAW, mat.Clone())
-        
+    
     prop_id = 2;
     prop = Properties[prop_id]
     mat = LinearElasticPlaneStrain2DLaw()
@@ -23,3 +23,15 @@ def AssignMaterial(Properties):
     prop = Properties[prop_id]
     mat = LinearElastic3DLaw();
     prop.SetValue(CONSTITUTIVE_LAW, mat.Clone());
+
+    prop_id = 5;
+    prop = Properties[prop_id]
+    mat = LinearElasticAxisym2DLaw()
+    prop.SetValue(CONSTITUTIVE_LAW, mat.Clone())
+
+    prop_id = 6;
+    prop = Properties[prop_id]
+    mat = LinearElasticAxisym2DLaw()
+    prop.SetValue(CONSTITUTIVE_LAW, mat.Clone())
+        
+    print( prop )
