@@ -80,7 +80,7 @@ class StokesSolver:
             self.main_model_part.AddNodalSolutionStepVariable(kratoscore.REACTION) 
             self.main_model_part.AddNodalSolutionStepVariable(kratoscore.REACTION_WATER_PRESSURE) 
         
-        print("variables for the  monolithic solver symbolic added correctly")
+        print("variables for the  monolithic stokes solver added correctly")
 
 
     def AddDofs(self):
