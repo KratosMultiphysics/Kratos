@@ -63,13 +63,22 @@ public:
     {
         KRATOS_TRY;
 
-        DestinationModelPart.Nodes().clear();
+        //TODO: do this better, with the remove function
+//         DestinationModelPart.Nodes().clear();
+//         DestinationModelPart.Conditions().clear();
+//         DestinationModelPart.Elements().clear();
+        
+        for(auto it = DestinationModelPart.NodesBegin(); it != DestinationModelPart.NodesEnd(); it++)
+            it->Set(TO_ERASE);
+        DestinationModelPart.RemoveNodes(TO_ERASE);
 
-
-        DestinationModelPart.Conditions().clear();
-        DestinationModelPart.Elements().clear();
-
-
+        for(auto it = DestinationModelPart.ElementsBegin(); it != DestinationModelPart.ElementsEnd(); it++)
+            it->Set(TO_ERASE);
+        DestinationModelPart.RemoveElements(TO_ERASE);
+        
+        for(auto it = DestinationModelPart.ElementsBegin(); it != DestinationModelPart.ElementsEnd(); it++)
+            it->Set(TO_ERASE);
+        DestinationModelPart.RemoveConditions(TO_ERASE);
 
 
         //assigning ProcessInfo
@@ -89,10 +98,10 @@ public:
         DestinationModelPart.SetProperties(OriginModelPart.pProperties());
 
         //assigning the nodes to the new model part
-
-        DestinationModelPart.Nodes() = OriginModelPart.Nodes();
+        DestinationModelPart.AddNodes(OriginModelPart.NodesBegin(), OriginModelPart.NodesEnd()); // = OriginModelPart.Nodes();
 
         //generating the elements
+        ModelPart::ElementsContainerType temp_elements;
         for (ModelPart::ElementsContainerType::iterator iii = OriginModelPart.ElementsBegin(); iii != OriginModelPart.ElementsEnd(); iii++)
         {
             Properties::Pointer properties = iii->pGetProperties();
@@ -101,10 +110,12 @@ public:
             //actually use the geometry of the old element, so that memory is saved!!
             p_element->pGetGeometry() = iii->pGetGeometry();
             
-            DestinationModelPart.Elements().push_back(p_element);
+            temp_elements.push_back(p_element);
         }
+        DestinationModelPart.AddElements(temp_elements.begin(), temp_elements.end());
 
         //generating the conditions
+        ModelPart::ConditionsContainerType temp_conditions;
         for (ModelPart::ConditionsContainerType::iterator iii = OriginModelPart.ConditionsBegin(); iii != OriginModelPart.ConditionsEnd(); iii++)
         {
             Properties::Pointer properties = iii->pGetProperties();
@@ -114,8 +125,9 @@ public:
             //assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
             p_condition->pGetGeometry() = iii->pGetGeometry();
             
-            DestinationModelPart.Conditions().push_back(p_condition);
+            temp_conditions.push_back(p_condition);
         }
+        DestinationModelPart.AddConditions(temp_conditions.begin(), temp_conditions.end());
         
         //generating tables
 	DestinationModelPart.Tables() = OriginModelPart.Tables();

@@ -141,7 +141,6 @@ public:
         for (ModelPart::SubModelPartIterator i_sub_model_part = r_root_model_part.SubModelPartsBegin(); i_sub_model_part != r_root_model_part.SubModelPartsEnd(); i_sub_model_part++)
             UpdateSubModelPart( *i_sub_model_part, r_root_model_part );
 
-  
 
     }
 
