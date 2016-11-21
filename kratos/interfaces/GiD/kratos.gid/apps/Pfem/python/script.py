@@ -137,22 +137,22 @@ if(echo_level>1):
 
 #obtain the list of the processes to be applied
 
-import process_factory
-#the process order of execution is important
-list_of_processes  = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
-list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
-if(ProjectParameters.Has("problem_process_list")):
-    list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["problem_process_list"] )
-if(ProjectParameters.Has("output_process_list")):
-    list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["output_process_list"] )
-            
-#print list of constructed processes
-if(echo_level>1):
-    for process in list_of_processes:
-        print(process)
+import process_handler
 
-for process in list_of_processes:
-    process.ExecuteInitialize()
+process_parameters = KratosMultiphysics.Parameters("{}") 
+process_parameters.AddValue("echo_level", ProjectParameters["problem_data"]["echo_level"])
+process_parameters.AddValue("constraints_process_list", ProjectParameters["constraints_process_list"])
+process_parameters.AddValue("loads_process_list", ProjectParameters["loads_process_list"])
+if( ProjectParameters.Has("problem_process_list") ):
+    process_parameters.AddValue("problem_process_list", ProjectParameters["problem_process_list"])
+if( ProjectParameters.Has("output_process_list") ):
+    process_parameters.AddValue("output_process_list", ProjectParameters["output_process_list"])
+if( ProjectParameters.Has("process_sub_model_part_tree_list") ):
+    process_parameters.AddValue("process_sub_model_part_tree_list",ProjectParameters["process_sub_model_part_tree_list"])
+
+model_processes = process_handler.ProcessHandler(Model, process_parameters)
+
+model_processes.ExecuteInitialize()
 
 #### processes settings end ####
 
@@ -203,8 +203,7 @@ current_id = 0
 print(" ")
 print("::[KPFEM Simulation]:: Analysis -START- ")
 
-for process in list_of_processes:
-    process.ExecuteBeforeSolutionLoop()
+model_processes.ExecuteBeforeSolutionLoop()
 
 # writing a initial state results file or single file (if no restart)
 if((main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
@@ -237,8 +236,7 @@ while(time < end_time):
     print(" [STEP:",step," TIME:",time,"]")
 
     # processes to be executed at the begining of the solution step
-    for process in list_of_processes:
-        process.ExecuteInitializeSolutionStep()
+    model_processes.ExecuteInitializeSolutionStep()
       
     gid_output.ExecuteInitializeSolutionStep()
 
@@ -258,27 +256,23 @@ while(time < end_time):
     gid_output.ExecuteFinalizeSolutionStep()
 
     # processes to be executed at the end of the solution step
-    for process in list_of_processes:
-        process.ExecuteFinalizeSolutionStep()
+    model_processes.ExecuteFinalizeSolutionStep()
 
     # processes to be executed before witting the output      
-    for process in list_of_processes:
-        process.ExecuteBeforeOutputStep()
+    model_processes.ExecuteBeforeOutputStep()
      
     # write output results GiD: (frequency writing is controlled internally)
     if(gid_output.IsOutputStep()):
         gid_output.PrintOutput()
 
     # processes to be executed after witting the output
-    for process in list_of_processes:
-        process.ExecuteAfterOutputStep()
+    model_processes.ExecuteAfterOutputStep()
 
 
 # Ending the problem (time integration finished)
 gid_output.ExecuteFinalize()
 
-for process in list_of_processes:
-    process.ExecuteFinalize()
+model_processes.ExecuteFinalize()
 
 print("::[KPFEM Simulation]:: Analysis -END- ")
 print(" ")
@@ -293,7 +287,7 @@ tfp = timer.clock()
 # Measure wall time
 tfw = timer.time()
 
-print("::[KPFEM Simulation]:: [Elapsed Time = %.2f" % (tfp - t0p),"seconds] (%.2f" % (tfw - t0w),"seconds of cpu/s time)")
+print("::[KPFEM Simulation]:: [Elapsed Time = %.2f" % (tfw - t0w),"seconds] (%.2f" % (tfp - t0p),"seconds of cpu/s time)")
 
 print(timer.ctime())
 
