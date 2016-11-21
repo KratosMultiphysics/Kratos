@@ -1176,7 +1176,8 @@ void SphericParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
     KRATOS_TRY
 
     mRadius = this->GetGeometry()[0].FastGetSolutionStepValue(RADIUS); //Just in case someone is overwriting the radius in Python
-    this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) = 0.0;
+    mPartialRepresentativeVolume = 0.0;
+    this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) = CalculateVolume();
     double& elastic_energy = this->GetElasticEnergy();
     elastic_energy = 0.0;
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
@@ -1199,6 +1200,8 @@ void SphericParticle::AddNeighbourContributionToStressTensor(const double Force[
 
     double gap = distance - radius_sum;
     double real_distance = GetInteractionRadius() + 0.5 * gap;
+    
+    // Esto ya estaba comentado!!!
     //double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
     //rRepresentative_Volume += 0.33333333333333 * (real_distance * contact_area);
 
@@ -1243,7 +1246,7 @@ void SphericParticle::AddWallContributionToStressTensor(const double Force[3],
     KRATOS_CATCH("")
 }
 
-void SphericParticle::CorrectRepresentativeVolume(double& rRepresentative_Volume, bool& is_smaller_than_sphere) {
+void SphericParticle::CorrectRepresentativeVolume(double& rRepresentative_Volume/*, bool& is_smaller_than_sphere*/) {
 
     KRATOS_TRY
 
@@ -1251,7 +1254,7 @@ void SphericParticle::CorrectRepresentativeVolume(double& rRepresentative_Volume
 
     if ((rRepresentative_Volume <= sphere_volume)) { //In case it gets 0.0 (discontinuum). Also sometimes the error can be too big. This puts some bound to the error for continuum.
         rRepresentative_Volume = sphere_volume;
-        is_smaller_than_sphere = true;
+        //is_smaller_than_sphere = true;
     }
 
     KRATOS_CATCH("")
@@ -1262,11 +1265,12 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
     KRATOS_TRY
 
     ComputeReactions();
-
+	
+    this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) = mPartialRepresentativeVolume;
     double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
-    bool is_smaller_than_sphere = false;
-
-    CorrectRepresentativeVolume(rRepresentative_Volume, is_smaller_than_sphere);
+    
+    //bool is_smaller_than_sphere = false;
+    CorrectRepresentativeVolume(rRepresentative_Volume/*, is_smaller_than_sphere*/);
 
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
 
@@ -1350,9 +1354,18 @@ void SphericParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_ap
                                               const array_1d<double,3>& gravity)
 {
     KRATOS_TRY
-    noalias(externally_applied_force)  += GetMass() * gravity;
+    noalias(externally_applied_force)  += ComputeWeight(gravity, r_process_info);
     noalias(externally_applied_force)  += this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
     noalias(externally_applied_moment) += this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT);
+    KRATOS_CATCH("")
+}
+
+array_1d<double,3> SphericParticle::ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info) {
+    
+    KRATOS_TRY
+    
+    return GetMass() * gravity;
+    
     KRATOS_CATCH("")
 }
 
