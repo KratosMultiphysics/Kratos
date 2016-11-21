@@ -3,48 +3,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.TrilinosApplication import *
 
 #
-#
-#
-
-
-def ConstructPreconditioner(configuration):
-    preconditioner_type = "None"
-    preconditioner_parameters = ParameterList()
-
-    if hasattr(configuration, 'preconditioner'):
-        preconditioner_type = configuration.preconditioner
-        if(preconditioner_type == "DiagonalPreconditioner"):
-            preconditioner_type = "None"
-            preconditioner_parameters = ParameterList()
-        elif(preconditioner_type == "ILU0"):
-            preconditioner_type = "ILU"
-            preconditioner_parameters = ParameterList()
-            preconditioner_parameters.set("fact: drop tolerance", 1e-9)
-            preconditioner_parameters.set("fact: level-of-fill", 1)
-        elif(preconditioner_type == "ILUT"):
-            preconditioner_type = "ILU"
-            preconditioner_parameters = ParameterList()
-            preconditioner_parameters.set("fact: drop tolerance", 1e-9)
-            preconditioner_parameters.set("fact: level-of-fill", 1)
-        #elif(preconditioner_type == "ICC"):
-            #preconditioner_type = "ICC"
-            #preconditioner_parameters = ParameterList()
-            #preconditioner_parameters.set("fact: drop tolerance", 1e-9)
-            #preconditioner_parameters.set("fact: level-of-fill", 1)
-        elif(preconditioner_type == "AmesosPreconditioner"):
-            preconditioner_type = "Amesos"
-            preconditioner_parameters.set("amesos: solver type", "Amesos_Klu")
-        else:
-            raise Exception("wrong type of preconditioner")
-
-        return [preconditioner_type, preconditioner_parameters]
-    else:
-        raise Exception("wrong type of preconditioner")
-
-
-#
-#
-#
 def ConstructSolver(configuration):
 
     import KratosMultiphysics
