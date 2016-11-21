@@ -221,7 +221,7 @@ namespace Kratos {
     }
     
     KRATOS_CATCH("")
-}*/
+    }*/
 
     void SphericContinuumParticle::ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
                                                                  array_1d<double, 3>& rContactForce,
@@ -440,12 +440,15 @@ namespace Kratos {
 
         double gap = distance - radius_sum;
         double real_distance = GetInteractionRadius() + 0.5 * gap;
-        double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
-        rRepresentative_Volume += 0.33333333333333 * (real_distance * contact_area);
+        //double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
+        //KRATOS_WATCH(rRepresentative_Volume)
+        //rRepresentative_Volume += 0.33333333333333 * (real_distance * contact_area);
+        mPartialRepresentativeVolume += 0.33333333333333 * real_distance * contact_area;
 
         KRATOS_CATCH("")
     }
 
+    /*
     void SphericContinuumParticle::CorrectRepresentativeVolume(double& rRepresentative_Volume, bool& is_smaller_than_sphere) {
     
         KRATOS_TRY
@@ -458,6 +461,7 @@ namespace Kratos {
                 
         KRATOS_CATCH("")
     }
+    */
         
     void SphericContinuumParticle::FinalizeSolutionStep(ProcessInfo& r_process_info) {
         KRATOS_TRY
@@ -809,18 +813,6 @@ namespace Kratos {
         if ((time_steps == 0) || (acumulated_damage > bond->mUnidimendionalDamage)) {
             bond->mUnidimendionalDamage = acumulated_damage;
         }
-        KRATOS_CATCH("")
-    }
-    
-    void SphericContinuumParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force,
-                                              array_1d<double, 3>& externally_applied_moment,
-                                              const ProcessInfo& r_process_info,
-                                              const array_1d<double,3>& gravity)
-    {
-        KRATOS_TRY
-        
-        SphericParticle::ComputeAdditionalForces(externally_applied_force, externally_applied_moment, r_process_info, gravity);   
-
         KRATOS_CATCH("")
     }
 
