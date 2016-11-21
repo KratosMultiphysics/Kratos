@@ -62,7 +62,7 @@ namespace Kratos
         void GetStressTensorFromNeighbourStep1();
         void GetStressTensorFromNeighbourStep2();
         void GetStressTensorFromNeighbourStep3();
-        void CorrectRepresentativeVolume(double& rRepresentative_Volume, bool& is_smaller_than_sphere) override;
+        //void CorrectRepresentativeVolume(double& rRepresentative_Volume, bool& is_smaller_than_sphere) override;
 
         void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
 
@@ -89,11 +89,6 @@ namespace Kratos
         virtual double EffectiveVolumeRadius();
         virtual double GetInitialDelta(int index);
         virtual bool IsSkin() { return (bool)*mSkinSphere; }
-        virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force,
-                                             array_1d<double, 3>& externally_applied_moment,
-                                             const ProcessInfo& r_process_info,
-                                             const array_1d<double,3>& gravity) override;
-        
         void MarkNewSkinParticlesDueToBreakage();
 
         /// Turn back information as a string
@@ -120,6 +115,7 @@ namespace Kratos
         unsigned int mContinuumInitialNeighborsSize;
         unsigned int mInitialNeighborsSize;
         std::vector<Kratos::DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
+        
         //std::vector<array_1d<double, 3> > mArrayOfOldDeltaDisplacements;
         //std::vector<array_1d<double, 3> > mArrayOfDeltaDisplacements;
         //Matrix* mOldSymmStressTensor;
