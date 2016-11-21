@@ -6,8 +6,8 @@
 //  License: BSD License
 //   license: structural_mechanics_application/license.txt
 //
-//  Main authors:  Mohamed Khalil
-//                 Vicente Mataix Ferrándiz
+//  Main authors:  Vicente Mataix Ferrándiz
+//                 Mohamed Khalil
 //
 
 // System includes
@@ -34,80 +34,47 @@
 namespace Kratos 
 {
 /**
- * Flags related to the condition computation
+ * Flags related to the condition computation 
  */
-KRATOS_CREATE_LOCAL_FLAG( MortarContactCondition, COMPUTE_RHS_VECTOR,                 0 );
-KRATOS_CREATE_LOCAL_FLAG( MortarContactCondition, COMPUTE_LHS_MATRIX,                 1 );
-KRATOS_CREATE_LOCAL_FLAG( MortarContactCondition, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
-KRATOS_CREATE_LOCAL_FLAG( MortarContactCondition, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
-
-/************************************* CONSTRUCTOR *********************************/
-/***********************************************************************************/
-
-MortarContactCondition::MortarContactCondition(
-    IndexType NewId,
-    GeometryType::Pointer pGeometry ) :
-    Condition( NewId, pGeometry )
-{
-    //DO NOT ADD DOFS HERE!!!
-}
-
-/************************************* CONSTRUCTOR *********************************/
-/***********************************************************************************/
-
-MortarContactCondition::MortarContactCondition( 
-    IndexType NewId,
-    GeometryType::Pointer pGeometry,
-    PropertiesType::Pointer pProperties ) :
-    Condition( NewId, pGeometry, pProperties )
-{
-//     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod(); // NOTE: If this is considered just one GP is considered
-
-    const unsigned int dimension = GetGeometry( ).WorkingSpaceDimension( );
-    const unsigned int local_dimension_slave = GetGeometry( ).LocalSpaceDimension( );
-    const unsigned int number_of_slave_nodes = GetGeometry( ).PointsNumber( );
-    
-    InitializeIntegrationMethod(dimension, local_dimension_slave, number_of_slave_nodes); // NOTE: The integration method here defined depends of the properties of the parents elements, that's why I consider again this in the Initialize() 
-    
-    //DO NOT ADD DOFS HERE!!!
-}
-
-/************************************* CONSTRUCTOR *********************************/
-/***********************************************************************************/
-
-MortarContactCondition::MortarContactCondition( 
-    MortarContactCondition const& rOther ) :
-    Condition( rOther )
-{
-    //DO NOT ADD DOFS HERE!!!
-}
+// Avoiding using the macro since this has a template parameter. If there was no template plase use the KRATOS_CREATE_LOCAL_FLAG macro
+template< unsigned int TDim, unsigned int TNumNodes >
+const Kratos::Flags MortarContactCondition<TDim,TNumNodes>::COMPUTE_RHS_VECTOR(Kratos::Flags::Create(0));
+template< unsigned int TDim, unsigned int TNumNodes >
+const Kratos::Flags MortarContactCondition<TDim,TNumNodes>::COMPUTE_LHS_MATRIX(Kratos::Flags::Create(1));
+template< unsigned int TDim, unsigned int TNumNodes >
+const Kratos::Flags MortarContactCondition<TDim,TNumNodes>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS(Kratos::Flags::Create(2));
+template< unsigned int TDim, unsigned int TNumNodes >
+const Kratos::Flags MortarContactCondition<TDim,TNumNodes>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS(Kratos::Flags::Create(3));
 
 /************************************* OPERATIONS **********************************/
 /***********************************************************************************/
 
-Condition::Pointer MortarContactCondition::Create( 
+template< unsigned int TDim, unsigned int TNumNodes >
+Condition::Pointer MortarContactCondition<TDim,TNumNodes>::Create( 
     IndexType NewId,
     NodesArrayType const& rThisNodes,
     PropertiesType::Pointer pProperties ) const
 {
-    return Condition::Pointer( new MortarContactCondition( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+    return boost::make_shared< MortarContactCondition<TDim,TNumNodes> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Condition::Pointer MortarContactCondition::Create(
+template< unsigned int TDim, unsigned int TNumNodes >
+Condition::Pointer MortarContactCondition<TDim,TNumNodes>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer( new MortarContactCondition( NewId, pGeom, pProperties ) );
+    return boost::make_shared< MortarContactCondition<TDim,TNumNodes> >( NewId, pGeom, pProperties );
 }
 
 /************************************* DESTRUCTOR **********************************/
 /***********************************************************************************/
 
-MortarContactCondition::~MortarContactCondition( )
+template< unsigned int TDim, unsigned int TNumNodes >
+MortarContactCondition<TDim,TNumNodes>::~MortarContactCondition( )
 {
 }
 
@@ -115,15 +82,12 @@ MortarContactCondition::~MortarContactCondition( )
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::Initialize( ) 
+template< unsigned int TDim, unsigned int TNumNodes >
+void MortarContactCondition<TDim,TNumNodes>::Initialize( ) 
 {
     KRATOS_TRY;
     
-    const unsigned int dimension = GetGeometry( ).WorkingSpaceDimension( );
-    const unsigned int local_dimension_slave = GetGeometry( ).LocalSpaceDimension( );
-    const unsigned int number_of_slave_nodes = GetGeometry( ).PointsNumber( );
-    
-    InitializeIntegrationMethod(dimension, local_dimension_slave, number_of_slave_nodes);
+    InitializeIntegrationMethod();
     
     KRATOS_CATCH( "" );
 }
@@ -131,7 +95,8 @@ void MortarContactCondition::Initialize( )
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+template< unsigned int TDim, unsigned int TNumNodes >
+void MortarContactCondition<TDim,TNumNodes>::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
     
@@ -151,7 +116,8 @@ void MortarContactCondition::InitializeSolutionStep( ProcessInfo& rCurrentProces
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+template< unsigned int TDim, unsigned int TNumNodes >
+void MortarContactCondition<TDim,TNumNodes>::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
 
@@ -163,7 +129,8 @@ void MortarContactCondition::InitializeNonLinearIteration( ProcessInfo& rCurrent
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+template< unsigned int TDim, unsigned int TNumNodes >
+void MortarContactCondition<TDim,TNumNodes>::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
     
@@ -172,11 +139,6 @@ void MortarContactCondition::FinalizeNonLinearIteration( ProcessInfo& rCurrentPr
     
     // Initialize the current contact data
     ContactData rContactData;
-
-    // Slave segment info
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_elements_master = mThisMasterElements.size( );
-    const unsigned int number_of_nodes_slave     = GetGeometry().PointsNumber();
     
     // Reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
@@ -186,7 +148,7 @@ void MortarContactCondition::FinalizeNonLinearIteration( ProcessInfo& rCurrentPr
     
     std::vector<contact_container> * all_containers = this->GetValue(CONTACT_CONTAINERS);
     
-    for (unsigned int PairIndex = 0; PairIndex < number_of_elements_master; ++PairIndex)
+    for (unsigned int PairIndex = 0; PairIndex < mThisMasterElements.size( ); ++PairIndex)
     {   
         // Initialize general variables for the current master element
         this->InitializeGeneralVariables( Variables, rCurrentProcessInfo, PairIndex );
@@ -197,9 +159,9 @@ void MortarContactCondition::FinalizeNonLinearIteration( ProcessInfo& rCurrentPr
         // Master segment info
         const GeometryType& current_master_element = Variables.GetMasterElement( );
         
-        Vector aux_int_gap      = ZeroVector(number_of_nodes_slave);
-        Vector aux_int_slip     = ZeroVector(number_of_nodes_slave);
-        Vector aux_int_friction = ZeroVector(number_of_nodes_slave);
+        array_1d<double, TNumNodes> aux_int_gap      = ZeroVector(TNumNodes);
+        array_1d<double, TNumNodes> aux_int_slip     = ZeroVector(TNumNodes);
+        array_1d<double, TNumNodes> aux_int_friction = ZeroVector(TNumNodes);
         
         double total_weight = 0.0;
         
@@ -215,15 +177,15 @@ void MortarContactCondition::FinalizeNonLinearIteration( ProcessInfo& rCurrentPr
             if (inside == true)
             {
                 const double IntegrationWeight = integration_points[PointNumber].Weight();
-             
+                     
                 total_weight += IntegrationWeight;
                 
                 // The slip of th GP
                 double integration_point_slip;
                 // The tangent LM augmented
-                const double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, integration_point_slip, dimension);
+                const double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, integration_point_slip);
                 
-                for (unsigned int iNode = 0; iNode < number_of_nodes_slave; iNode++)
+                for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
                 {
                     const double int_aux = IntegrationWeight * Variables.DetJSlave * Variables.Phi_LagrangeMultipliers[iNode];
                     aux_int_gap[iNode]      +=  integration_point_gap  * int_aux;
@@ -238,7 +200,7 @@ void MortarContactCondition::FinalizeNonLinearIteration( ProcessInfo& rCurrentPr
         {
             (*all_containers)[PairIndex].active_pair = true;
 
-            for (unsigned int iNode = 0; iNode < number_of_nodes_slave; iNode++)
+            for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
             {
                 #pragma omp atomic 
                 GetGeometry()[iNode].GetValue(WEIGHTED_GAP)      += aux_int_gap[iNode]; 
@@ -260,7 +222,8 @@ void MortarContactCondition::FinalizeNonLinearIteration( ProcessInfo& rCurrentPr
 /***********************************************************************************/
 /***********************************************************************************/
 
-IntegrationMethod MortarContactCondition::GetIntegrationMethod()
+template< unsigned int TDim, unsigned int TNumNodes >
+IntegrationMethod MortarContactCondition<TDim,TNumNodes>::GetIntegrationMethod()
 {   
     return mThisIntegrationMethod;
 }
@@ -268,140 +231,153 @@ IntegrationMethod MortarContactCondition::GetIntegrationMethod()
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Vector MortarContactCondition::LagrangeMultiplierShapeFunctionValue(
+template< >
+const array_1d<double, 2> MortarContactCondition<2, 2>::LagrangeMultiplierShapeFunctionValue(
     const double xi_local,
     const double eta_local
     )
 {
     // NOTE: For more information look at the thesis of Popp page 93/236
-    
-    // Working space dimension
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    
-    // Number of slave nodes
-    const unsigned int number_of_slave_nodes = GetGeometry( ).PointsNumber();
-    
-    Vector Phi = ZeroVector( number_of_slave_nodes );
+   
+    array_1d<double, 2> Phi;
             
-    if (dimension == 2)
-    {
-        if (number_of_slave_nodes == 2) // First order
-        {
-            Phi[0] = ( 0.5 * ( 1.0 - 3.0 * xi_local ) );
-            Phi[1] = ( 0.5 * ( 1.0 + 3.0 * xi_local ) );
-        }
-        else if (number_of_slave_nodes == 3) // Second order
-        {
-            array_1d<double,3> aux_coordinates = ZeroVector(3);
-            aux_coordinates[0] = xi_local;
-            Vector Ncontainer = ZeroVector(3);
-            Ncontainer = GetGeometry().ShapeFunctionsValues(Ncontainer, aux_coordinates);
-
-            Phi[0] = Ncontainer(0) -  3.0/4.0 * Ncontainer(2) + 0.5;
-            Phi[1] = Ncontainer(1) -  3.0/4.0 * Ncontainer(2) + 0.5;
-            Phi[2] = 5.0/2.0 * Ncontainer(2) - 1.0;
-        }
-    }
-    else if (dimension == 3)
-    {
-        if (number_of_slave_nodes == 3) // Triangle
-        {
-            Phi[0] = 3.0 - 4.0 * xi_local - 4.0 * eta_local;
-            Phi[1] = 4.0 * xi_local  - 1.0;
-            Phi[2] = 4.0 * eta_local - 1.0;
-        }
-        else if (number_of_slave_nodes == 4) // Quadrilateral
-        {
-            array_1d<double,3> aux_coordinates = ZeroVector(3);
-            aux_coordinates[0] =  xi_local;
-            aux_coordinates[1] = eta_local;
-            Vector Ncontainer = ZeroVector(3);
-            Ncontainer = GetGeometry().ShapeFunctionsValues(Ncontainer, aux_coordinates);
-
-            Phi[0] =   4.0 * Ncontainer(0) - 2.0 * Ncontainer(1) + 1.0 * Ncontainer(2) - 2.0 * Ncontainer(3);
-            Phi[1] = - 2.0 * Ncontainer(0) + 4.0 * Ncontainer(1) - 2.0 * Ncontainer(2) + 1.0 * Ncontainer(3);
-            Phi[2] =   1.0 * Ncontainer(0) - 2.0 * Ncontainer(1) + 4.0 * Ncontainer(2) - 2.0 * Ncontainer(3);
-            Phi[3] = - 2.0 * Ncontainer(0) + 1.0 * Ncontainer(1) - 2.0 * Ncontainer(2) + 4.0 * Ncontainer(3);
-        }
-        else
-        {
-            KRATOS_THROW_ERROR( std::logic_error,  " CONDITION can not supply the required number_of_slave_nodes: ", number_of_slave_nodes );
-        }
-    }
-        
+    Phi[0] = ( 0.5 * ( 1.0 - 3.0 * xi_local ) );
+    Phi[1] = ( 0.5 * ( 1.0 + 3.0 * xi_local ) );
+  
     return Phi;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Matrix MortarContactCondition::LagrangeMultiplierShapeFunctionLocalGradient( 
+template< >
+const array_1d<double, 3> MortarContactCondition<2, 3>::LagrangeMultiplierShapeFunctionValue(
+    const double xi_local,
+    const double eta_local
+    )
+{
+    // NOTE: For more information look at the thesis of Popp page 93/236
+   
+    array_1d<double, 3> Phi;
+           
+    array_1d<double,3> aux_coordinates = ZeroVector(3);
+    aux_coordinates[0] = xi_local;
+    VectorType Ncontainer;
+    Ncontainer = GetGeometry().ShapeFunctionsValues(Ncontainer, aux_coordinates);
+
+    Phi[0] = Ncontainer(0) -  3.0/4.0 * Ncontainer(2) + 0.5;
+    Phi[1] = Ncontainer(1) -  3.0/4.0 * Ncontainer(2) + 0.5;
+    Phi[2] = 5.0/2.0 * Ncontainer(2) - 1.0;
+       
+    return Phi;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< >
+const array_1d<double, 3> MortarContactCondition<3, 3>::LagrangeMultiplierShapeFunctionValue(
+    const double xi_local,
+    const double eta_local
+    )
+{
+    // NOTE: For more information look at the thesis of Popp page 93/236
+   
+    array_1d<double, 3> Phi;
+            
+    Phi[0] = 3.0 - 4.0 * xi_local - 4.0 * eta_local;
+    Phi[1] = 4.0 * xi_local  - 1.0;
+    Phi[2] = 4.0 * eta_local - 1.0;    
+        
+    return Phi;
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< >
+const array_1d<double, 4> MortarContactCondition<3, 4>::LagrangeMultiplierShapeFunctionValue(
+    const double xi_local,
+    const double eta_local
+    )
+{
+    // NOTE: For more information look at the thesis of Popp page 93/236
+   
+    array_1d<double, 4> Phi;
+            
+    array_1d<double,3> aux_coordinates = ZeroVector(3);
+    aux_coordinates[0] =  xi_local;
+    aux_coordinates[1] = eta_local;
+    VectorType Ncontainer;
+    Ncontainer = GetGeometry().ShapeFunctionsValues(Ncontainer, aux_coordinates);
+
+    Phi[0] =   4.0 * Ncontainer(0) - 2.0 * Ncontainer(1) + 1.0 * Ncontainer(2) - 2.0 * Ncontainer(3);
+    Phi[1] = - 2.0 * Ncontainer(0) + 4.0 * Ncontainer(1) - 2.0 * Ncontainer(2) + 1.0 * Ncontainer(3);
+    Phi[2] =   1.0 * Ncontainer(0) - 2.0 * Ncontainer(1) + 4.0 * Ncontainer(2) - 2.0 * Ncontainer(3);
+    Phi[3] = - 2.0 * Ncontainer(0) + 1.0 * Ncontainer(1) - 2.0 * Ncontainer(2) + 4.0 * Ncontainer(3);
+
+    return Phi;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< >
+const bounded_matrix<double, 2, 1> MortarContactCondition<2, 2>::LagrangeMultiplierShapeFunctionLocalGradient( 
     const double xi_local, 
     const double eta_local 
     )
 {
-    // Working space dimension
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    
-    // Number of slave nodes
-    const unsigned int number_of_slave_nodes = GetGeometry( ).PointsNumber( );
-    const unsigned int local_dimension_slave = GetGeometry( ).LocalSpaceDimension( );
-    
-    Matrix DPhi_De = ZeroMatrix( number_of_slave_nodes, local_dimension_slave );
+    bounded_matrix<double, 2, 1> DPhi_De;
             
-    if (dimension == 2)
-    {
-        if (number_of_slave_nodes == 2) // First order
-        {
-            DPhi_De( 0, 0 ) = - 3.0 / 2.0;
-            DPhi_De( 1, 0 ) = + 3.0 / 2.0;
-        }
-        else if (number_of_slave_nodes == 3) // Second order
-        {
-            array_1d<double,3> aux_coordinates = ZeroVector(3);
-            aux_coordinates[0] = xi_local;
-            Matrix DNcontainer = ZeroMatrix(number_of_slave_nodes, local_dimension_slave);
-            DNcontainer = GetGeometry().ShapeFunctionsLocalGradients( DNcontainer , aux_coordinates );
-            
-            DPhi_De( 0, 0 ) = DNcontainer(0, 0) -  3.0/4.0 * DNcontainer(2, 0);
-            DPhi_De( 1, 0 ) = DNcontainer(1, 0) -  3.0/4.0 * DNcontainer(2, 0);
-            DPhi_De( 2, 0 ) = 5.0/2.0 * DNcontainer(2, 0);
-        }
-    }
-    else if (dimension == 3)
-    {
-        if (number_of_slave_nodes == 3) // Triangle
-        {
-            DPhi_De( 0, 0 ) = - 4.0;
-            DPhi_De( 1, 0 ) =   4.0;
-            DPhi_De( 2, 0 ) =   4.0;
-            
-            DPhi_De( 0, 1 ) = - 4.0;
-            DPhi_De( 1, 1 ) =   0.0;
-            DPhi_De( 2, 1 ) =   4.0;
-        }
-        else if (number_of_slave_nodes == 4) // Quadrilateral
-        {
-            array_1d<double,3> aux_coordinates = ZeroVector(3);
-            aux_coordinates[0] =  xi_local;
-            aux_coordinates[1] = eta_local;
-            Matrix DNcontainer = ZeroMatrix(number_of_slave_nodes, local_dimension_slave);
-            DNcontainer = GetGeometry().ShapeFunctionsLocalGradients(DNcontainer, aux_coordinates);
+    DPhi_De( 0, 0 ) = - 3.0 / 2.0;
+    DPhi_De( 1, 0 ) = + 3.0 / 2.0;
+   
+    return DPhi_De;
+}
 
-            DPhi_De( 0, 0 ) =   4.0 * DNcontainer( 0, 0 ) - 2.0 * DNcontainer( 1, 0 ) + 1.0 * DNcontainer( 2, 0 ) - 2.0 * DNcontainer( 3, 0 );
-            DPhi_De( 1, 0 ) = - 2.0 * DNcontainer( 0, 0 ) + 4.0 * DNcontainer( 1, 0 ) - 2.0 * DNcontainer( 2, 0 ) + 1.0 * DNcontainer( 3, 0 );
-            DPhi_De( 2, 0 ) =   1.0 * DNcontainer( 0, 0 ) - 2.0 * DNcontainer( 1, 0 ) + 4.0 * DNcontainer( 2, 0 ) - 2.0 * DNcontainer( 3, 0 );
-            DPhi_De( 3, 0 ) = - 2.0 * DNcontainer( 0, 0 ) + 1.0 * DNcontainer( 1, 0 ) - 2.0 * DNcontainer( 2, 0 ) + 4.0 * DNcontainer( 3, 0 );
-            DPhi_De( 0, 1 ) =   4.0 * DNcontainer( 0, 1 ) - 2.0 * DNcontainer( 1, 1 ) + 1.0 * DNcontainer( 2, 1 ) - 2.0 * DNcontainer( 3, 1 );
-            DPhi_De( 1, 1 ) = - 2.0 * DNcontainer( 0, 1 ) + 4.0 * DNcontainer( 1, 1 ) - 2.0 * DNcontainer( 2, 1 ) + 1.0 * DNcontainer( 3, 1 );
-            DPhi_De( 2, 1 ) =   1.0 * DNcontainer( 0, 1 ) - 2.0 * DNcontainer( 1, 1 ) + 4.0 * DNcontainer( 2, 1 ) - 2.0 * DNcontainer( 3, 1 );
-            DPhi_De( 3, 1 ) = - 2.0 * DNcontainer( 0, 1 ) + 1.0 * DNcontainer( 1, 1 ) - 2.0 * DNcontainer( 2, 1 ) + 4.0 * DNcontainer( 3, 1 );
-        }
-        else
-        {
-            KRATOS_THROW_ERROR( std::logic_error,  " CONDITION can not supply the required number_of_slave_nodes: ", number_of_slave_nodes );
-        }
-    }
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< >
+const bounded_matrix<double, 3, 1> MortarContactCondition<2, 3>::LagrangeMultiplierShapeFunctionLocalGradient( 
+    const double xi_local, 
+    const double eta_local 
+    )
+{
+    bounded_matrix<double, 3, 1> DPhi_De;
+            
+    array_1d<double,3> aux_coordinates = ZeroVector(3);
+    aux_coordinates[0] = xi_local;
+    MatrixType DNcontainer;
+    DNcontainer = GetGeometry().ShapeFunctionsLocalGradients( DNcontainer , aux_coordinates );
+    
+    DPhi_De( 0, 0 ) = DNcontainer(0, 0) -  3.0/4.0 * DNcontainer(2, 0);
+    DPhi_De( 1, 0 ) = DNcontainer(1, 0) -  3.0/4.0 * DNcontainer(2, 0);
+    DPhi_De( 2, 0 ) = 5.0/2.0 * DNcontainer(2, 0);
+    
+    return DPhi_De;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< >
+const bounded_matrix<double, 3, 2> MortarContactCondition<3 ,3>::LagrangeMultiplierShapeFunctionLocalGradient( 
+    const double xi_local, 
+    const double eta_local 
+    )
+{
+    bounded_matrix<double, 3, 2> DPhi_De;
+            
+    DPhi_De( 0, 0 ) = - 4.0;
+    DPhi_De( 1, 0 ) =   4.0;
+    DPhi_De( 2, 0 ) =   4.0;
+    
+    DPhi_De( 0, 1 ) = - 4.0;
+    DPhi_De( 1, 1 ) =   0.0;
+    DPhi_De( 2, 1 ) =   4.0;
 
     return DPhi_De;
 }
@@ -409,7 +385,37 @@ const Matrix MortarContactCondition::LagrangeMultiplierShapeFunctionLocalGradien
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::CalculateLocalSystem( 
+template< >
+const bounded_matrix<double, 4, 2> MortarContactCondition<3, 4>::LagrangeMultiplierShapeFunctionLocalGradient( 
+    const double xi_local, 
+    const double eta_local 
+    )
+{
+    bounded_matrix<double, 4, 2> DPhi_De;
+    
+    array_1d<double,3> aux_coordinates = ZeroVector(3);
+    aux_coordinates[0] =  xi_local;
+    aux_coordinates[1] = eta_local;
+    MatrixType DNcontainer;
+    DNcontainer = GetGeometry().ShapeFunctionsLocalGradients(DNcontainer, aux_coordinates);
+
+    DPhi_De( 0, 0 ) =   4.0 * DNcontainer( 0, 0 ) - 2.0 * DNcontainer( 1, 0 ) + 1.0 * DNcontainer( 2, 0 ) - 2.0 * DNcontainer( 3, 0 );
+    DPhi_De( 1, 0 ) = - 2.0 * DNcontainer( 0, 0 ) + 4.0 * DNcontainer( 1, 0 ) - 2.0 * DNcontainer( 2, 0 ) + 1.0 * DNcontainer( 3, 0 );
+    DPhi_De( 2, 0 ) =   1.0 * DNcontainer( 0, 0 ) - 2.0 * DNcontainer( 1, 0 ) + 4.0 * DNcontainer( 2, 0 ) - 2.0 * DNcontainer( 3, 0 );
+    DPhi_De( 3, 0 ) = - 2.0 * DNcontainer( 0, 0 ) + 1.0 * DNcontainer( 1, 0 ) - 2.0 * DNcontainer( 2, 0 ) + 4.0 * DNcontainer( 3, 0 );
+    DPhi_De( 0, 1 ) =   4.0 * DNcontainer( 0, 1 ) - 2.0 * DNcontainer( 1, 1 ) + 1.0 * DNcontainer( 2, 1 ) - 2.0 * DNcontainer( 3, 1 );
+    DPhi_De( 1, 1 ) = - 2.0 * DNcontainer( 0, 1 ) + 4.0 * DNcontainer( 1, 1 ) - 2.0 * DNcontainer( 2, 1 ) + 1.0 * DNcontainer( 3, 1 );
+    DPhi_De( 2, 1 ) =   1.0 * DNcontainer( 0, 1 ) - 2.0 * DNcontainer( 1, 1 ) + 4.0 * DNcontainer( 2, 1 ) - 2.0 * DNcontainer( 3, 1 );
+    DPhi_De( 3, 1 ) = - 2.0 * DNcontainer( 0, 1 ) + 1.0 * DNcontainer( 1, 1 ) - 2.0 * DNcontainer( 2, 1 ) + 4.0 * DNcontainer( 3, 1 );
+
+    return DPhi_De;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void MortarContactCondition<TDim,TNumNodes>::CalculateLocalSystem( 
     std::vector<MatrixType>& rLeftHandSideMatrices,
     const std::vector<Variable<MatrixType> >& rLHSVariables,
     std::vector<VectorType>& rRightHandSideVectors,
@@ -417,12 +423,15 @@ void MortarContactCondition::CalculateLocalSystem(
     ProcessInfo& rCurrentProcessInfo 
     )
 {    
+    // Calculates the size of the system
+    constexpr unsigned int MatrixSize = TDim * (2 * TNumNodes + TNumNodes);
+    
     // Create local system components
     LocalSystemComponents LocalSystem;
 
     // Calculation flags
-    LocalSystem.CalculationFlags.Set(MortarContactCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS, true);
-    LocalSystem.CalculationFlags.Set(MortarContactCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS, true);
+    LocalSystem.CalculationFlags.Set(MortarContactCondition<TDim,TNumNodes>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS, true);
+    LocalSystem.CalculationFlags.Set(MortarContactCondition<TDim,TNumNodes>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS, true);
 
     //Initialize sizes for the system components:
     if ( rLHSVariables.size( ) != rLeftHandSideMatrices.size( ) )
@@ -435,21 +444,21 @@ void MortarContactCondition::CalculateLocalSystem(
         rRightHandSideVectors.resize( rRHSVariables.size( ) );
     }
 
-    LocalSystem.CalculationFlags.Set(MortarContactCondition::COMPUTE_LHS_MATRIX, true);
+    LocalSystem.CalculationFlags.Set(MortarContactCondition<TDim,TNumNodes>::COMPUTE_LHS_MATRIX, true);
     for ( unsigned int i = 0; i < rLeftHandSideMatrices.size( ); i++ )
     {
         // Note: rRightHandSideVectors.size() > 0
-        this->InitializeSystemMatrices( rLeftHandSideMatrices[i], rRightHandSideVectors[0],LocalSystem.CalculationFlags );
+        this->InitializeSystemMatrices<MatrixSize>( rLeftHandSideMatrices[i], rRightHandSideVectors[0],LocalSystem.CalculationFlags );
     }
 
-    LocalSystem.CalculationFlags.Set( MortarContactCondition::COMPUTE_RHS_VECTOR, true );
-    LocalSystem.CalculationFlags.Set( MortarContactCondition::COMPUTE_LHS_MATRIX, false ); // Temporarily only
+    LocalSystem.CalculationFlags.Set( MortarContactCondition<TDim,TNumNodes>::COMPUTE_RHS_VECTOR, true );
+    LocalSystem.CalculationFlags.Set( MortarContactCondition<TDim,TNumNodes>::COMPUTE_LHS_MATRIX, false ); // Temporarily only
     for ( unsigned int i = 0; i < rRightHandSideVectors.size( ); i++ )
     {
         // Note: rLeftHandSideMatrices.size() > 0
-        this->InitializeSystemMatrices( rLeftHandSideMatrices[0], rRightHandSideVectors[i], LocalSystem.CalculationFlags  );
+        this->InitializeSystemMatrices<MatrixSize>( rLeftHandSideMatrices[0], rRightHandSideVectors[i], LocalSystem.CalculationFlags  );
     }
-    LocalSystem.CalculationFlags.Set( MortarContactCondition::COMPUTE_LHS_MATRIX, true ); // Reactivated again
+    LocalSystem.CalculationFlags.Set( MortarContactCondition<TDim,TNumNodes>::COMPUTE_LHS_MATRIX, true ); // Reactivated again
 
     // Set Variables to Local system components
     LocalSystem.SetLeftHandSideMatrices( rLeftHandSideMatrices );
@@ -459,14 +468,14 @@ void MortarContactCondition::CalculateLocalSystem(
     LocalSystem.SetRightHandSideVariables( rRHSVariables );
 
     // Calculate condition system
-    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
-
+    this->CalculateConditionSystem<MatrixSize>( LocalSystem, rCurrentProcessInfo );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::CalculateLocalSystem(
+template< unsigned int TDim, unsigned int TNumNodes >
+void MortarContactCondition<TDim,TNumNodes>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo 
@@ -474,22 +483,25 @@ void MortarContactCondition::CalculateLocalSystem(
 {
     KRATOS_TRY;
     
+    // Calculates the size of the system
+    constexpr unsigned int MatrixSize = TDim * (2 * TNumNodes + TNumNodes);
+    
     // Create local system components
     LocalSystemComponents LocalSystem;
 
     // Calculation flags
-    LocalSystem.CalculationFlags.Set( MortarContactCondition::COMPUTE_LHS_MATRIX, true );
-    LocalSystem.CalculationFlags.Set( MortarContactCondition::COMPUTE_RHS_VECTOR, true );
+    LocalSystem.CalculationFlags.Set( MortarContactCondition<TDim,TNumNodes>::COMPUTE_LHS_MATRIX, true );
+    LocalSystem.CalculationFlags.Set( MortarContactCondition<TDim,TNumNodes>::COMPUTE_RHS_VECTOR, true );
 
     // Initialize sizes for the system components:
-    this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
+    this->InitializeSystemMatrices<MatrixSize>( rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
     
     // Set Variables to Local system components
     LocalSystem.SetLeftHandSideMatrix( rLeftHandSideMatrix );
     LocalSystem.SetRightHandSideVector( rRightHandSideVector );
 
     // Calculate condition system
-    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
+    this->CalculateConditionSystem<MatrixSize>( LocalSystem, rCurrentProcessInfo );
 
     KRATOS_CATCH( "" );
 }
@@ -497,108 +509,125 @@ void MortarContactCondition::CalculateLocalSystem(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::CalculateLeftHandSide( 
+template< unsigned int TDim, unsigned int TNumNodes >
+void MortarContactCondition<TDim,TNumNodes>::CalculateLeftHandSide( 
     MatrixType& rLeftHandSideMatrix,
     ProcessInfo& rCurrentProcessInfo 
     )
 {
+    // Calculates the size of the system
+    constexpr unsigned int MatrixSize = TDim * (2 * TNumNodes + TNumNodes);
+    
     // Create local system components
     LocalSystemComponents LocalSystem;
 
     // Calculation flags
-    LocalSystem.CalculationFlags.Set( MortarContactCondition::COMPUTE_LHS_MATRIX, true );
+    LocalSystem.CalculationFlags.Set( MortarContactCondition<TDim,TNumNodes>::COMPUTE_LHS_MATRIX, true );
 
     VectorType RightHandSideVector = Vector( );
 
     // Initialize sizes for the system components:
-    this->InitializeSystemMatrices( rLeftHandSideMatrix, RightHandSideVector, LocalSystem.CalculationFlags );
+    this->InitializeSystemMatrices<MatrixSize>( rLeftHandSideMatrix, RightHandSideVector, LocalSystem.CalculationFlags );
 
     // Set Variables to Local system components
     LocalSystem.SetLeftHandSideMatrix( rLeftHandSideMatrix );
     LocalSystem.SetRightHandSideVector( RightHandSideVector );
 
     // Calculate condition system
-    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
+    this->CalculateConditionSystem<MatrixSize>( LocalSystem, rCurrentProcessInfo );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::CalculateLeftHandSide( 
+template< unsigned int TDim, unsigned int TNumNodes >
+void MortarContactCondition<TDim,TNumNodes>::CalculateLeftHandSide( 
     std::vector< MatrixType >& rLeftHandSideMatrices,
     const std::vector< Variable< MatrixType > >& rLHSVariables,
     ProcessInfo& rCurrentProcessInfo 
     )
 {
+    // Calculates the size of the system
+    constexpr unsigned int MatrixSize = TDim * (2 * TNumNodes + TNumNodes);
+    
     // Create local system components
     LocalSystemComponents LocalSystem;
 
     // Calculation flags
-    LocalSystem.CalculationFlags.Set( MortarContactCondition::COMPUTE_LHS_MATRIX, true );
-    LocalSystem.CalculationFlags.Set( MortarContactCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS, true );
+    LocalSystem.CalculationFlags.Set( MortarContactCondition<TDim,TNumNodes>::COMPUTE_LHS_MATRIX, true );
+    LocalSystem.CalculationFlags.Set( MortarContactCondition<TDim,TNumNodes>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS, true );
 
     VectorType RightHandSideVector = Vector( );
 
     // Initialize size for the system components
     for( unsigned int i = 0; i < rLeftHandSideMatrices.size( ); i++ )
     {
-        this->InitializeSystemMatrices( rLeftHandSideMatrices[i], RightHandSideVector, LocalSystem.CalculationFlags );
+        this->InitializeSystemMatrices<MatrixSize>( rLeftHandSideMatrices[i], RightHandSideVector, LocalSystem.CalculationFlags );
     }
 
     LocalSystem.SetLeftHandSideMatrices( rLeftHandSideMatrices );
     LocalSystem.SetRightHandSideVector( RightHandSideVector );
 
-    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
+    // Calculate condition system
+    this->CalculateConditionSystem<MatrixSize>( LocalSystem, rCurrentProcessInfo );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::CalculateRightHandSide( 
+template< unsigned int TDim, unsigned int TNumNodes >
+void MortarContactCondition<TDim,TNumNodes>::CalculateRightHandSide( 
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo 
     )
 {
+    // Calculates the size of the system
+    constexpr unsigned int MatrixSize = TDim * (2 * TNumNodes + TNumNodes);
+    
     // Create local system components
     LocalSystemComponents LocalSystem;
 
     // Calculation flags
-    LocalSystem.CalculationFlags.Set( MortarContactCondition::COMPUTE_RHS_VECTOR, true);
+    LocalSystem.CalculationFlags.Set( MortarContactCondition<TDim,TNumNodes>::COMPUTE_RHS_VECTOR, true);
 
     MatrixType LeftHandSideMatrix = Matrix( );
 
     // Initialize size for the system components
-    this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVector,LocalSystem.CalculationFlags);
+    this->InitializeSystemMatrices<MatrixSize>( LeftHandSideMatrix, rRightHandSideVector,LocalSystem.CalculationFlags);
 
     //Set Variables to Local system components
     LocalSystem.SetLeftHandSideMatrix( LeftHandSideMatrix );
     LocalSystem.SetRightHandSideVector( rRightHandSideVector );
 
     //Calculate condition system
-    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
+    this->CalculateConditionSystem<MatrixSize>( LocalSystem, rCurrentProcessInfo );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::CalculateRightHandSide( 
+template< unsigned int TDim, unsigned int TNumNodes >
+void MortarContactCondition<TDim,TNumNodes>::CalculateRightHandSide( 
     std::vector< VectorType >& rRightHandSideVectors,
     const std::vector< Variable< VectorType > >& rRHSVariables,
     ProcessInfo& rCurrentProcessInfo )
 {
+    // Calculates the size of the system
+    constexpr unsigned int MatrixSize = TDim * (2 * TNumNodes + TNumNodes);
+        
     // Create local system components
     LocalSystemComponents LocalSystem;
 
     // Calculation flags
-    LocalSystem.CalculationFlags.Set( MortarContactCondition::COMPUTE_RHS_VECTOR, true );
-    LocalSystem.CalculationFlags.Set( MortarContactCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS, true );
+    LocalSystem.CalculationFlags.Set( MortarContactCondition<TDim,TNumNodes>::COMPUTE_RHS_VECTOR, true );
+    LocalSystem.CalculationFlags.Set( MortarContactCondition<TDim,TNumNodes>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS, true );
 
     MatrixType LeftHandSideMatrix = Matrix( );
 
     // Initialize size for the system components
     for( unsigned int i = 0; i < rRightHandSideVectors.size(); i++ )
     {
-        this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVectors[i], LocalSystem.CalculationFlags );
+        this->InitializeSystemMatrices<MatrixSize>( LeftHandSideMatrix, rRightHandSideVectors[i], LocalSystem.CalculationFlags );
     }
 
     // Set Variables to Local system components
@@ -606,22 +635,24 @@ void MortarContactCondition::CalculateRightHandSide(
     LocalSystem.SetRightHandSideVectors( rRightHandSideVectors );
 
     // Calculate condition system
-    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
+    this->CalculateConditionSystem<MatrixSize>( LocalSystem, rCurrentProcessInfo );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::InitializeSystemMatrices( 
+template< unsigned int TDim, unsigned int TNumNodes >
+template< unsigned int MatrixSize >
+void MortarContactCondition<TDim,TNumNodes>::InitializeSystemMatrices( 
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     Flags& rCalculationFlags 
     )
 {
-    const unsigned int condition_size = this->CalculateConditionSize( );
+    const unsigned int condition_size = this->CalculateConditionSize<MatrixSize>( );
     
     // Resizing as needed the LHS
-    if ( rCalculationFlags.Is( MortarContactCondition::COMPUTE_LHS_MATRIX ) ) // Calculation of the matrix is required
+    if ( rCalculationFlags.Is( MortarContactCondition<TDim,TNumNodes>::COMPUTE_LHS_MATRIX ) ) // Calculation of the matrix is required
     {
         if ( rLeftHandSideMatrix.size1() != condition_size )
         {
@@ -631,7 +662,7 @@ void MortarContactCondition::InitializeSystemMatrices(
     }
 
     // Resizing as needed the RHS
-    if ( rCalculationFlags.Is( MortarContactCondition::COMPUTE_RHS_VECTOR ) ) // Calculation of the matrix is required
+    if ( rCalculationFlags.Is( MortarContactCondition<TDim,TNumNodes>::COMPUTE_RHS_VECTOR ) ) // Calculation of the matrix is required
     {
         if ( rRightHandSideVector.size() != condition_size )
         {
@@ -644,7 +675,8 @@ void MortarContactCondition::InitializeSystemMatrices(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::CalculateMassMatrix( 
+template< unsigned int TDim, unsigned int TNumNodes >
+void MortarContactCondition<TDim,TNumNodes>::CalculateMassMatrix( 
     MatrixType& rMassMatrix, 
     ProcessInfo& rCurrentProcessInfo
     )
@@ -659,7 +691,8 @@ void MortarContactCondition::CalculateMassMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::CalculateDampingMatrix( 
+template< unsigned int TDim, unsigned int TNumNodes >
+void MortarContactCondition<TDim,TNumNodes>::CalculateDampingMatrix( 
     MatrixType& rDampingMatrix,
     ProcessInfo& rCurrentProcessInfo
     )
@@ -674,19 +707,11 @@ void MortarContactCondition::CalculateDampingMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
-const unsigned int MortarContactCondition::CalculateConditionSize( )
+template< unsigned int TDim, unsigned int TNumNodes >
+template< unsigned int MatrixSize >
+const unsigned int MortarContactCondition<TDim,TNumNodes>::CalculateConditionSize( )
 {
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    unsigned int condition_size = 0;
-        
-    for ( unsigned int i_master_elem = 0; i_master_elem < mThisMasterElements.size( ); ++i_master_elem )
-    {
-        condition_size += mThisMasterElements[i_master_elem]->GetGeometry( ).PointsNumber( );
-        condition_size += 2 * GetGeometry( ).PointsNumber( );
-    }
-  
-    condition_size *= dimension;
+    const unsigned int condition_size = mThisMasterElements.size( ) * MatrixSize; // NOTE: Assuming same number of nodes for the master
     
     return condition_size;
 }
@@ -694,7 +719,9 @@ const unsigned int MortarContactCondition::CalculateConditionSize( )
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::CalculateConditionSystem( 
+template< unsigned int TDim, unsigned int TNumNodes>
+template< unsigned int MatrixSize>
+void MortarContactCondition<TDim, TNumNodes>::CalculateConditionSystem( 
     LocalSystemComponents& rLocalSystem,
     const ProcessInfo& rCurrentProcessInfo
     )
@@ -707,18 +734,14 @@ void MortarContactCondition::CalculateConditionSystem(
     // Initialize the current contact data
     ContactData rContactData;
 
-    // Slave segment info
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_elements_master = mThisMasterElements.size( );
-    const unsigned int number_of_nodes_slave     = GetGeometry().PointsNumber();
-    
     // Reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
                                                                          mColocationIntegration.IntegrationPoints( ) :
                                                                          GetGeometry( ).IntegrationPoints( mThisIntegrationMethod );
+                                                                                  
     this->InitializeContactData(rContactData, rCurrentProcessInfo);
     
-    for (unsigned int PairIndex = 0; PairIndex < number_of_elements_master; ++PairIndex)
+    for (unsigned int PairIndex = 0; PairIndex < mThisMasterElements.size( ); ++PairIndex)
     {   
         // Initialize general variables for the current master element
         this->InitializeGeneralVariables( Variables, rCurrentProcessInfo, PairIndex );
@@ -729,9 +752,8 @@ void MortarContactCondition::CalculateConditionSystem(
         // Master segment info
         const GeometryType& current_master_element = Variables.GetMasterElement( );
 
-        const unsigned int pair_size = dimension * ( current_master_element.PointsNumber( ) + 2 * GetGeometry( ).PointsNumber( ) ); 
-        MatrixType LHS_contact_pair = ZeroMatrix(pair_size, pair_size);
-        VectorType RHS_contact_pair = ZeroVector(pair_size);
+        bounded_matrix<double, MatrixSize, MatrixSize> LHS_contact_pair = ZeroMatrix(MatrixSize, MatrixSize);
+        array_1d<double, MatrixSize> RHS_contact_pair = ZeroVector(MatrixSize);
         
         double total_weight = 0.0;
         
@@ -747,17 +769,17 @@ void MortarContactCondition::CalculateConditionSystem(
             const double integration_point_gap = inner_prod(rContactData.Gaps, Variables.N_Slave);
             
             if (inside == true)
-            {
+            {   
                 const double IntegrationWeight = integration_points[PointNumber].Weight();
                 total_weight += IntegrationWeight; // NOTE: I keep this, because with ALM if it is inactive there is a penalty term in the LHS and the RHS
                
                 // The normal LM augmented
-                double augmented_normal_lm = this->AugmentedNormalLM(Variables, rContactData, integration_point_gap, dimension);
+                double augmented_normal_lm = this->AugmentedNormalLM(Variables, rContactData, integration_point_gap);
                   
                 // The slip of th GP
                 double integration_point_slip;
                 // The tangent LM augmented
-                const double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, integration_point_slip, dimension);
+                const double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, integration_point_slip);
                 
                 if (rCurrentProcessInfo[TIME_STEPS] == 1) // NOTE: To avoid problems the first iteration
                 {
@@ -765,19 +787,18 @@ void MortarContactCondition::CalculateConditionSystem(
                 }
                 
                 // Calculation of the matrix is required
-                if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_LHS_MATRIX ) ||
-                        rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+                if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes>::COMPUTE_LHS_MATRIX ) ||
+                        rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
                 {
-                    this->CalculateLocalLHS( LHS_contact_pair, Variables, rContactData, IntegrationWeight, augmented_normal_lm, augmented_tangent_lm, integration_point_gap,  integration_point_slip );
+                    this->CalculateLocalLHS<MatrixSize>( LHS_contact_pair, Variables, rContactData, IntegrationWeight, augmented_normal_lm, augmented_tangent_lm, integration_point_gap,  integration_point_slip );
                 }
-
+                
                 // Calculation of the vector is required
-                if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_RHS_VECTOR ) ||
-                        rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
+                if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes>::COMPUTE_RHS_VECTOR ) ||
+                        rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
                 {
-                    this->CalculateLocalRHS( RHS_contact_pair, Variables, rContactData, IntegrationWeight, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip );
+                    this->CalculateLocalRHS<MatrixSize>( RHS_contact_pair, Variables, rContactData, IntegrationWeight, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip );
                 }
-  
             }
         }
         
@@ -785,19 +806,19 @@ void MortarContactCondition::CalculateConditionSystem(
         if (total_weight > 0.0)
         {
             // Assemble of the matrix is required
-            if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_LHS_MATRIX ) ||
-                    rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+            if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes>::COMPUTE_LHS_MATRIX ) ||
+                    rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
             {
                 // Contributions to stiffness matrix calculated on the reference config
-                this->CalculateAndAddLHS( rLocalSystem, LHS_contact_pair, PairIndex, current_master_element );
+                this->CalculateAndAddLHS<MatrixSize>( rLocalSystem, LHS_contact_pair, PairIndex, current_master_element );
             }
 
             // Assemble of the vector is required
-            if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_RHS_VECTOR ) ||
-                    rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
+            if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes>::COMPUTE_RHS_VECTOR ) ||
+                    rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
             {
                 // Contribution to previous step contact force and residuals vector
-                this->CalculateAndAddRHS( rLocalSystem, RHS_contact_pair, PairIndex, current_master_element );
+                this->CalculateAndAddRHS<MatrixSize>( rLocalSystem, RHS_contact_pair, PairIndex, current_master_element );
             }
             
 //             std::cout << "--------------------------------------------------" << std::endl;
@@ -816,30 +837,18 @@ void MortarContactCondition::CalculateConditionSystem(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::InitializeGeneralVariables(
+template< unsigned int TDim, unsigned int TNumNodes >
+void MortarContactCondition<TDim,TNumNodes>::InitializeGeneralVariables(
     GeneralVariables& rVariables,
     const ProcessInfo& rCurrentProcessInfo,
     const unsigned int& rMasterElementIndex
     )
 {
-    // Working space dimension
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    // Resize according to the integration order
-    const unsigned int& integration_point_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
-    
-    // Slave segment info
-    GeometryType& current_slave_element = this->GetGeometry();
-    const unsigned int number_of_slave_nodes = current_slave_element.PointsNumber();
-    const unsigned int local_dimension_slave = current_slave_element.LocalSpaceDimension();
-
     // Master segment info
     GeometryType& current_master_element = mThisMasterElements[rMasterElementIndex]->GetGeometry();
-    const unsigned int number_nodes_master = current_master_element.PointsNumber();
-    const unsigned int local_dimension_master = current_master_element.LocalSpaceDimension();
     
     // Slave element info
-    rVariables.Initialize(local_dimension_master, local_dimension_slave, number_nodes_master, number_of_slave_nodes, dimension, integration_point_number );
+    rVariables.Initialize();
 
     rVariables.SetMasterElement( current_master_element );
     rVariables.SetMasterElementIndex( rMasterElementIndex );
@@ -848,20 +857,14 @@ void MortarContactCondition::InitializeGeneralVariables(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::InitializeContactData(
+template< unsigned int TDim, unsigned int TNumNodes >
+void MortarContactCondition<TDim,TNumNodes>::InitializeContactData(
     ContactData& rContactData,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // Working space dimension
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    // Slave segment info
-    GeometryType& current_slave_element = this->GetGeometry();
-    const unsigned int number_of_slave_nodes = current_slave_element.PointsNumber();
-    
     // Slave element info
-    rContactData.Initialize(GetGeometry(), number_of_slave_nodes, dimension );
+    rContactData.Initialize(GetGeometry(), TNumNodes, TDim );
     
     /* Set Delta time */
     rContactData.Dt = rCurrentProcessInfo[DELTA_TIME];
@@ -870,25 +873,22 @@ void MortarContactCondition::InitializeContactData(
     rContactData.LagrangeMultipliers = ContactUtilities::GetVariableMatrix(GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); // NOTE: Valgrind says there is a problem here
     
     /* NORMALS AND TANGENTS */ // TODO: To interpolate it is necessary to consider a smooth function
-    const array_1d<double, 3> normal = this->GetValue(NORMAL);
-    const array_1d<double, 3> tangent_xi = this->GetValue(TANGENT_XI);
+    const array_1d<double, 3> normal      = this->GetValue(NORMAL);
+    const array_1d<double, 3> tangent_xi  = this->GetValue(TANGENT_XI);
     const array_1d<double, 3> tangent_eta = this->GetValue(TANGENT_ETA);
-    for (unsigned int i_slave = 0; i_slave < number_of_slave_nodes; i_slave++)
+    for (unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++)
     {
-        for (unsigned int i_dim = 0; i_dim < dimension; i_dim++)
+        for (unsigned int i_dim = 0; i_dim < TDim; i_dim++)
         {
             rContactData.NormalsSlave(i_slave, i_dim) = normal[i_dim];
             rContactData.Tangent1Slave(i_slave, i_dim) = tangent_xi[i_dim];
-            if (dimension == 3)
-            {
-                rContactData.Tangent2Slave(i_slave, i_dim) = tangent_eta[i_dim];
-            }
+            rContactData.Tangent2Slave(i_slave, i_dim) = tangent_eta[i_dim];
         }
     }
     
 //     rContactData.NormalsSlave = ContactUtilities::GetVariableMatrix(GetGeometry(),  NORMAL); 
 //     rContactData.Tangent1Slave = ContactUtilities::GetVariableMatrix(GetGeometry(), TANGENT_XI); 
-//     if (dimension == 3)
+//     if (TDim == 3)
 //     {
 //         rContactData.Tangent2Slave = ContactUtilities::GetVariableMatrix(GetGeometry(), TANGENT_ETA); 
 //     }
@@ -906,28 +906,21 @@ void MortarContactCondition::InitializeContactData(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::UpdateContactData(
+template< unsigned int TDim, unsigned int TNumNodes >
+void MortarContactCondition<TDim,TNumNodes>::UpdateContactData(
     ContactData& rContactData,
     const unsigned int& rMasterElementIndex
     )
-{
-    // Working space dimension
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    // Slave segment info
-    GeometryType& current_slave_element = this->GetGeometry();
-    const unsigned int number_of_slave_nodes = current_slave_element.PointsNumber();
-    
+{    
     // Master segment info
     GeometryType& current_master_element = mThisMasterElements[rMasterElementIndex]->GetGeometry();
-    const unsigned int number_nodes_master = current_master_element.PointsNumber();
     
     // Slave element info
-    rContactData.UpdateMasterPair(mThisMasterElements[rMasterElementIndex], number_nodes_master, dimension );
-//     rContactData.UpdateMasterPair(current_master_element, number_nodes_master, dimension );
+    rContactData.UpdateMasterPair(mThisMasterElements[rMasterElementIndex], TNumNodes, TDim );
+//     rContactData.UpdateMasterPair(current_master_element, TNumNodes, TDim );
     
     /* NORMALS AND GAPS */
-    for (unsigned int iNode = 0; iNode < number_of_slave_nodes; iNode++)
+    for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
     {
         array_1d<double,3> normal = this->GetValue(NORMAL);
 //         array_1d<double,3> normal = GetGeometry()[iNode].GetValue(NORMAL);
@@ -940,7 +933,8 @@ void MortarContactCondition::UpdateContactData(
 /*********************************COMPUTE KINEMATICS*********************************/
 /************************************************************************************/
 
-bool MortarContactCondition::CalculateKinematics( 
+template< unsigned int TDim, unsigned int TNumNodes >
+bool MortarContactCondition<TDim,TNumNodes>::CalculateKinematics( 
     GeneralVariables& rVariables,
     const double& rPointNumber,
     const unsigned int& rPairIndex,
@@ -949,21 +943,9 @@ bool MortarContactCondition::CalculateKinematics(
 {
     /* DEFINITIONS */
     GeometryType& slave_nodes  = GetGeometry( );
-    GeometryType& master_nodes = rVariables.GetMasterElement( );
-    const unsigned int number_of_master_nodes = master_nodes.PointsNumber( );
-    const unsigned int number_of_slave_nodes  =  slave_nodes.PointsNumber( );
 
     /* LOCAL COORDINATES */
     const PointType& local_point = integration_points[rPointNumber].Coordinates();
-    
-    /* RESIZE MATRICES AND VECTORS */
-    rVariables.Phi_LagrangeMultipliers.resize( number_of_slave_nodes, false );
-    rVariables.N_Master.resize( number_of_master_nodes, false );
-    rVariables.N_Slave.resize( number_of_slave_nodes, false );
-
-    rVariables.DN_De_Master.resize( number_of_master_nodes, master_nodes.LocalSpaceDimension( ), false );
-    rVariables.DN_De_Slave.resize( number_of_slave_nodes, slave_nodes.LocalSpaceDimension( ), false );
-    rVariables.DPhi_De_LagrangeMultipliers.resize( number_of_slave_nodes, slave_nodes.LocalSpaceDimension( ), false );
     
     /*  POPULATE MATRICES AND VECTORS */
     
@@ -999,14 +981,15 @@ bool MortarContactCondition::CalculateKinematics(
 /*************** METHODS TO CALCULATE THE CONTACT CONDITION MATRICES ***************/
 /***********************************************************************************/
 
-bool MortarContactCondition::MasterShapeFunctionValue(
+template< unsigned int TDim, unsigned int TNumNodes >
+bool MortarContactCondition<TDim,TNumNodes>::MasterShapeFunctionValue(
     GeneralVariables& rVariables,
     const PointType& local_point 
     )
 {    
     GeometryType& master_seg = rVariables.GetMasterElement( );
-    rVariables.N_Master     = ZeroVector( master_seg.PointsNumber( ) );
-    rVariables.DN_De_Master = ZeroMatrix( master_seg.PointsNumber( ), master_seg.LocalSpaceDimension( ) );
+    rVariables.N_Master.clear();
+    rVariables.DN_De_Master.clear();
 
     PointType projected_gp_global;
     const VectorType normal = ContactUtilities::GaussPointNormal(rVariables.N_Slave, GetGeometry());
@@ -1033,53 +1016,52 @@ bool MortarContactCondition::MasterShapeFunctionValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::CalculateAndAddLHS(
+template< unsigned int TDim, unsigned int TNumNodes >
+template< unsigned int MatrixSize >
+void MortarContactCondition<TDim,TNumNodes>::CalculateAndAddLHS(
     LocalSystemComponents& rLocalSystem,
-    MatrixType& LHS_contact_pair, 
+    bounded_matrix<double, MatrixSize, MatrixSize>& LHS_contact_pair, 
     const unsigned int rPairIndex,
     const GeometryType& current_master_element
     )
 {
     /* DEFINITIONS */
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_slave_nodes = GetGeometry( ).PointsNumber( );
-    const unsigned int number_of_master_nodes = current_master_element.PointsNumber( );
-    const unsigned int number_of_total_nodes = number_of_slave_nodes + number_of_master_nodes;
+    const unsigned int number_of_total_nodes = TNumNodes + TNumNodes; // NOTE: Assuming same number of nodes for the master
         
     unsigned int index_1 = 0;
-    for (unsigned int i_slave = 0; i_slave < number_of_slave_nodes; ++i_slave )
+    for (unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave )
     {
-        index_1 = (number_of_total_nodes + i_slave) * dimension;
+        index_1 = (number_of_total_nodes + i_slave) * TDim;
                     
         // We impose a 0 zero LM in the inactive nodes
         if (GetGeometry( )[i_slave].Is(ACTIVE) == false)
         {
-//             subrange(LHS_contact_pair, 0, number_of_total_nodes * dimension, index_1, index_1 + dimension) = ZeroMatrix(number_of_total_nodes * dimension, dimension); // TODO: Consider or not?
-            subrange(LHS_contact_pair, index_1, index_1 + dimension, 0, number_of_total_nodes * dimension) = ZeroMatrix(dimension, number_of_total_nodes * dimension);
-            subrange(LHS_contact_pair, index_1, index_1 + dimension, index_1, index_1 + dimension)         = IdentityMatrix(dimension, dimension);
+//             subrange(LHS_contact_pair, 0, number_of_total_nodes * TDim, index_1, index_1 + TDim) = ZeroMatrix(number_of_total_nodes * TDim, TDim); // TODO: Consider or not?
+            subrange(LHS_contact_pair, index_1, index_1 + TDim, 0, number_of_total_nodes * TDim) = ZeroMatrix(TDim, number_of_total_nodes * TDim);
+            subrange(LHS_contact_pair, index_1, index_1 + TDim, index_1, index_1 + TDim)         = IdentityMatrix(TDim, TDim);
         }
         // And the tangent direction (sliding)
         else
         {            
             Matrix tangent_matrix;
-            tangent_matrix.resize(dimension - 1, dimension);
+            tangent_matrix.resize(TDim - 1, TDim);
 
             const array_1d<double, 3> tangent1 = GetGeometry()[i_slave].GetValue(TANGENT_XI);
             const array_1d<double, 3> tangent2 = GetGeometry()[i_slave].GetValue(TANGENT_ETA);
-            for (unsigned int i = 0; i < dimension; i++)
+            for (unsigned int i = 0; i < TDim; i++)
             {
                 tangent_matrix(0, i) = tangent1[i];
-                if (dimension == 3)
+                if (TDim == 3)
                 {
                     tangent_matrix(1, i) = tangent2[i];
                 }
             }
             
-            subrange(LHS_contact_pair, index_1 + 1, index_1 + dimension, index_1 , index_1 + dimension) = tangent_matrix;
+            subrange(LHS_contact_pair, index_1 + 1, index_1 + TDim, index_1 , index_1 + TDim) = tangent_matrix;
         }
     }
     
-    if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+    if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes>::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
     {
         /* COMPONENT-WISE LHS MATRIX */
         const std::vector<Variable<MatrixType> >& rLeftHandSideVariables = rLocalSystem.GetLeftHandSideVariables( );
@@ -1094,7 +1076,7 @@ void MortarContactCondition::CalculateAndAddLHS(
                 MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrices( )[i];
                 
                 // Assemble in the correct position
-                this->AssembleContactPairLHSToConditionSystem(LHS_contact_pair, rLeftHandSideMatrix, rPairIndex);
+                this->AssembleContactPairLHSToConditionSystem<MatrixSize>(LHS_contact_pair, rLeftHandSideMatrix, rPairIndex);
                 calculated = true;
             }
 
@@ -1110,36 +1092,24 @@ void MortarContactCondition::CalculateAndAddLHS(
         MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix( );      
         
         // Assemble in the correct position
-        this->AssembleContactPairLHSToConditionSystem(LHS_contact_pair, rLeftHandSideMatrix, rPairIndex);
+        this->AssembleContactPairLHSToConditionSystem<MatrixSize>(LHS_contact_pair, rLeftHandSideMatrix, rPairIndex);
     }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::AssembleContactPairLHSToConditionSystem(
-    MatrixType& rPairLHS,
+template< unsigned int TDim, unsigned int TNumNodes>
+template< unsigned int MatrixSize>
+void MortarContactCondition<TDim,TNumNodes>::AssembleContactPairLHSToConditionSystem(
+    bounded_matrix<double, MatrixSize, MatrixSize>& rPairLHS,
     MatrixType& rConditionLHS,
     const unsigned int rPairIndex
     )
 {
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_slave_nodes = GetGeometry( ).PointsNumber( );
-    const unsigned int number_of_master_nodes = mThisMasterElements[rPairIndex]->GetGeometry( ).PointsNumber( );
-    const unsigned int current_pair_size = dimension * ( number_of_master_nodes + 2 * number_of_slave_nodes );
-  
-    // Find location of the piar's master DOFs in ConditionLHS
-    unsigned int index_begin = 0;
-
-    for ( unsigned int i_master_elem = 0; i_master_elem < rPairIndex ; ++i_master_elem ) 
-    {
-        index_begin += mThisMasterElements[i_master_elem]->GetGeometry( ).PointsNumber( );
-        index_begin += 2 * number_of_slave_nodes;
-    }
-
-    index_begin *= dimension;
-  
-    const unsigned int index_end = index_begin + current_pair_size;
+    // Find location of the pair's master DOFs in ConditionRHS
+    const unsigned int index_begin = rPairIndex * MatrixSize;
+    const unsigned int index_end  = index_begin + MatrixSize;
     
     subrange( rConditionLHS, index_begin, index_end, index_begin, index_end) += rPairLHS;
 }
@@ -1147,8 +1117,10 @@ void MortarContactCondition::AssembleContactPairLHSToConditionSystem(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::CalculateLocalLHS(
-    MatrixType& rPairLHS,
+template< >
+template< >
+void MortarContactCondition<2, 2>::CalculateLocalLHS<12>(
+    bounded_matrix<double, 12, 12>& rPairLHS,
     GeneralVariables& rVariables,
     const ContactData& rContactData,
     const double& rIntegrationWeight,
@@ -1159,146 +1131,188 @@ void MortarContactCondition::CalculateLocalLHS(
     )
 {
     /* DEFINITIONS */
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    GeometryType& slave_nodes  = GetGeometry( );
-    GeometryType& master_nodes = rVariables.GetMasterElement( );
-    const unsigned int number_of_master_nodes = master_nodes.PointsNumber( );
-    const unsigned int number_of_slave_nodes  =  slave_nodes.PointsNumber( );
-    
     const Vector N1           = rVariables.N_Slave;
     const Vector N2           = rVariables.N_Master;
     const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
-//     const Matrix DPhi         = rVariables.DPhi_De_LagrangeMultipliers;
     const double detJ         = rVariables.DetJSlave; 
-    
-    
-    if (dimension == 2)
-    {
-        if (number_of_master_nodes == 2 &&  number_of_slave_nodes == 2)
+
+    if (augmented_normal_lm < 0.0)
+    {                                
+        // Contact active
+        rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointActiveLHS( N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+        
+        if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
         {
-            if (augmented_normal_lm < 0.0)
-            {                                
-                // Contact active
-                rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointActiveLHS( N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
-                
-                if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
-                {
-                    // Slip
-                    rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointSlipLHS( N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
-                }
-                else
-                {
-                    // Stick
-                    rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointStickLHS( N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
-                }
-            }
-//             else
-//             {        
-//                 // Contact inactive
-//                 rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointInactiveLHS( N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
-//             }
+            // Slip
+            rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointSlipLHS( N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
         }
         else
         {
-            KRATOS_WATCH(number_of_master_nodes);
-            KRATOS_THROW_ERROR( std::logic_error,  " COMBINATION OF GEOMETRIES NOT IMPLEMENTED. Number of slave elements: ", number_of_slave_nodes );
+            // Stick
+            rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointStickLHS( N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
         }
     }
-    else
-    {
-        if (number_of_master_nodes == 3 &&  number_of_slave_nodes == 3)
-        {
-//             if (augmented_normal_lm < 0.0)
-//             {
-//                 // Contact active
-//                 rPairLHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointActiveLHS( N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
-//                 
-//                 if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
-//                 {
-//                     // Slip
-//                     rPairLHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointSlipLHS( N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
-//                 }
-//                 else
-//                 {
-//                     // Stick
-//                     rPairLHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointStickLHS( N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
-//                 }
-//             }
-//             else
-//             {        
-//                 // Contact inactive
-//                 rPairLHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointInactiveLHS( N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
-//             }                       
-        }
-        else if (number_of_master_nodes == 4 &&  number_of_slave_nodes == 4)
-        {
-            const Matrix DN1 = rVariables.DN_De_Slave;
-            
-//             if (augmented_normal_lm < 0.0)
-//             {
-//                 // Contact active
-//                 rPairLHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointActiveLHS( N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
-//                 
-//                 if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
-//                 {
-//                     // Slip
-//                     rPairLHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointSlipLHS( N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
-//                 }
-//                 else
-//                 {
-//                     // Stick
-//                     rPairLHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointStickLHS( N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
-//                 }
-//             }
-//             else
-//             {        
-//                 // Contact inactive
-//                 rPairLHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointInactiveLHS( N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
-//             }      
-        }
-        else
-        {
-            KRATOS_WATCH(number_of_master_nodes);
-            KRATOS_THROW_ERROR( std::logic_error,  " COMBINATION OF GEOMETRIES NOT IMPLEMENTED. Number of slave elements: ", number_of_slave_nodes );
-        }
-    }
-    
+//     else
+//     {        
+//         // Contact inactive
+//         rPairLHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointInactiveLHS( N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+//     }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::CalculateAndAddRHS(
+template< >
+template< >
+void MortarContactCondition<2, 3>::CalculateLocalLHS<18>(
+    bounded_matrix<double, 18, 18>& rPairLHS,
+    GeneralVariables& rVariables,
+    const ContactData& rContactData,
+    const double& rIntegrationWeight,
+    const double& augmented_normal_lm,
+    const double& augmented_tangent_lm,
+    const double& integration_point_gap,
+    const double& integration_point_slip
+    )
+{
+//     /* DEFINITIONS */
+//     const Vector N1           = rVariables.N_Slave;
+//     const Vector N2           = rVariables.N_Master;
+//     const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
+//     const double detJ         = rVariables.DetJSlave; 
+// 
+    // TODO: Finish this!!!!
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< >
+template< >
+void MortarContactCondition<3, 3>::CalculateLocalLHS<27>(
+    bounded_matrix<double, 27, 27>& rPairLHS,
+    GeneralVariables& rVariables,
+    const ContactData& rContactData,
+    const double& rIntegrationWeight,
+    const double& augmented_normal_lm,
+    const double& augmented_tangent_lm,
+    const double& integration_point_gap,
+    const double& integration_point_slip
+    )
+{
+//     /* DEFINITIONS */
+//     const Vector N1           = rVariables.N_Slave;
+//     const Vector N2           = rVariables.N_Master;
+//     const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
+//     const double detJ         = rVariables.DetJSlave; 
+// 
+//     if (augmented_normal_lm < 0.0)
+//     {                                
+//         // Contact active
+//         rPairLHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointActiveLHS( N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+//         
+//         if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
+//         {
+//             // Slip
+//             rPairLHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointSlipLHS( N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+//         }
+//         else
+//         {
+//             // Stick
+//             rPairLHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointStickLHS( N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+//         }
+//     }
+// //     else
+// //     {        
+// //         // Contact inactive
+// //         rPairLHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointInactiveLHS( N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+// //     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< >
+template< >
+void MortarContactCondition<3, 4>::CalculateLocalLHS<36>(
+    bounded_matrix<double, 36, 36>& rPairLHS,
+    GeneralVariables& rVariables,
+    const ContactData& rContactData,
+    const double& rIntegrationWeight,
+    const double& augmented_normal_lm,
+    const double& augmented_tangent_lm,
+    const double& integration_point_gap,
+    const double& integration_point_slip
+    )
+{
+//     /* DEFINITIONS */
+//     const Vector N1           = rVariables.N_Slave;
+//     const Vector N2           = rVariables.N_Master;
+//     const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
+//     const Matrix DPhi         = rVariables.DPhi_De_LagrangeMultipliers;
+//     const double detJ         = rVariables.DetJSlave; 
+// 
+//     if (augmented_normal_lm < 0.0)
+//     {                                
+//         // Contact active
+//         rPairLHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointActiveLHS( N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+//         
+//         if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
+//         {
+//             // Slip
+//             rPairLHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointSlipLHS( N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+//         }
+//         else
+//         {
+//             // Stick
+//             rPairLHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointStickLHS( N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+//         }
+//     }
+// //     else
+// //     {        
+// //         // Contact inactive
+// //         rPairLHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointInactiveLHS( N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+// //     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes >
+template< unsigned int MatrixSize >
+void MortarContactCondition<TDim,TNumNodes>::CalculateAndAddRHS(
     LocalSystemComponents& rLocalSystem,
-    VectorType& RHS_contact_pair,
+    array_1d<double, MatrixSize>& RHS_contact_pair,
     const unsigned int rPairIndex,
     const GeometryType& current_master_element
     )
 {   
-    
     /* DEFINITIONS */
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_slave_nodes = GetGeometry( ).PointsNumber( );
-    const unsigned int number_of_master_nodes = current_master_element.PointsNumber( );
-    const unsigned int number_of_total_nodes = number_of_slave_nodes + number_of_master_nodes;
+    const unsigned int number_of_total_nodes = TNumNodes + TNumNodes; // NOTE: Assuming same number of nodes for the master
         
     unsigned int index = 0;
     
-    for (unsigned int i_slave = 0; i_slave < number_of_slave_nodes; ++i_slave )
+    for (unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave )
     {
-        index = (number_of_total_nodes + i_slave) * dimension; 
+        index = (number_of_total_nodes + i_slave) * TDim; 
 
         if (GetGeometry( )[i_slave].Is(ACTIVE) == false)
         {
-            subrange(RHS_contact_pair, index, index + dimension) = ZeroVector(dimension);
+            for (unsigned int i = index; i < index + TDim; i++)
+            {
+                RHS_contact_pair[i] = 0.0;
+            }
         }
         else
-        {            
-            subrange(RHS_contact_pair, index + 1, index + dimension) = ZeroVector(dimension-1);
+        {   
+            for (unsigned int i = index + 1; i < index + TDim; i++)
+            {
+                RHS_contact_pair[i] = 0.0;
+            }
         }
     }
         
-    if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
+    if ( rLocalSystem.CalculationFlags.Is( MortarContactCondition<TDim,TNumNodes>::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
     {
         /* COMPONENT-WISE RHS VECTOR */
         const std::vector<Variable<VectorType> >& rRightHandSideVariables = rLocalSystem.GetRightHandSideVariables( );
@@ -1313,7 +1327,7 @@ void MortarContactCondition::CalculateAndAddRHS(
                 VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVectors()[i];
 
                 // Assemble
-                this->AssembleContactPairRHSToConditionSystem( RHS_contact_pair, rRightHandSideVector, rPairIndex );
+                this->AssembleContactPairRHSToConditionSystem<MatrixSize>( RHS_contact_pair, rRightHandSideVector, rPairIndex );
                 
                 calculated = true;
             }
@@ -1330,36 +1344,24 @@ void MortarContactCondition::CalculateAndAddRHS(
         VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
         
         // Assemble
-        this->AssembleContactPairRHSToConditionSystem( RHS_contact_pair, rRightHandSideVector, rPairIndex );
+        this->AssembleContactPairRHSToConditionSystem<MatrixSize>( RHS_contact_pair, rRightHandSideVector, rPairIndex );
     }
-    
 }
   
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::AssembleContactPairRHSToConditionSystem(
-    VectorType& rPairRHS,
+template< unsigned int TDim, unsigned int TNumNodes >
+template< unsigned int MatrixSize >
+void MortarContactCondition<TDim,TNumNodes>::AssembleContactPairRHSToConditionSystem(
+    array_1d<double, MatrixSize>& rPairRHS,
     VectorType& rConditionRHS,
     const unsigned int rPairIndex
     )
 {
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_slave_nodes = GetGeometry( ).PointsNumber( );
-    const unsigned int number_of_master_nodes = mThisMasterElements[rPairIndex]->GetGeometry( ).PointsNumber( );
-    const unsigned int current_pair_size = dimension * ( number_of_master_nodes + 2 * number_of_slave_nodes );
-  
     // Find location of the pair's master DOFs in ConditionRHS
-    unsigned int index_begin = 0;
-
-    for ( unsigned int i_master_elem = 0; i_master_elem < rPairIndex; ++i_master_elem )
-    {
-        index_begin += mThisMasterElements[i_master_elem]->GetGeometry( ).PointsNumber( );
-        index_begin += 2 * number_of_slave_nodes;
-    }
-
-    index_begin *= dimension;
-    const unsigned int index_end = index_begin + current_pair_size;
+    const unsigned int index_begin = rPairIndex * MatrixSize;
+    const unsigned int index_end  = index_begin + MatrixSize;
     
     // Computing subrange
     subrange( rConditionRHS, index_begin, index_end ) += rPairRHS;
@@ -1368,8 +1370,10 @@ void MortarContactCondition::AssembleContactPairRHSToConditionSystem(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::CalculateLocalRHS(
-    VectorType& rPairRHS,
+template< >
+template< >
+void MortarContactCondition<2, 2>::CalculateLocalRHS<12>(
+    array_1d<double,12>& rPairRHS,
     GeneralVariables& rVariables,
     const ContactData& rContactData,
     const double& rIntegrationWeight,
@@ -1379,240 +1383,382 @@ void MortarContactCondition::CalculateLocalRHS(
     const double& integration_point_slip
     )
 {
-    /* DEFINITIONS */
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    GeometryType& slave_nodes  = GetGeometry( );
-    GeometryType& master_nodes = rVariables.GetMasterElement( );
-    const unsigned int number_of_master_nodes = master_nodes.PointsNumber( );
-    const unsigned int number_of_slave_nodes  =  slave_nodes.PointsNumber( );
-    
+    /* DEFINITIONS */    
     const Vector N1           = rVariables.N_Slave;
     const Vector N2           = rVariables.N_Master;
     const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
     const double detJ         = rVariables.DetJSlave;
     
-    if (dimension == 2)
+    if (augmented_normal_lm < 0.0)  // TODO: This is a conflict (< or <=¿?¿?¿?)
     {
-        if (number_of_master_nodes == 2 &&  number_of_slave_nodes == 2)
+        // Contact active
+        rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointActiveRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+        
+        if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
         {
-            if (augmented_normal_lm < 0.0)  // TODO: This is a conflict (< or <=¿?¿?¿?)
-            {
-                // Contact active
-                rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointActiveRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
-                
-                if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
-                {
-                    // Slip
-                    rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointSlipRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
-                }
-                else
-                {
-                    // Stick
-                    rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointStickRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
-                }
-            }
-//             else
-//             {
-//                 // Contact inactive
-//                 rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointInactiveRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
-//             }
+            // Slip
+            rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointSlipRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
         }
         else
         {
-            KRATOS_WATCH(number_of_master_nodes);
-            KRATOS_THROW_ERROR( std::logic_error,  " COMBINATION OF GEOMETRIES NOT IMPLEMENTED. Number of slave elements: ", number_of_slave_nodes );
+            // Stick
+            rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointStickRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
         }
     }
-    else
-    {
-        if (number_of_master_nodes == 3 &&  number_of_slave_nodes == 3)
-        {
-//             if (augmented_normal_lm < 0.0)
-//             {
-//                 // Contact active
-//                 rPairRHS += rIntegrationWeight *  Contact3D3N3N::ComputeGaussPointRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
-//                 if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
-//                 {
-//                     // Slip
-//                     rPairRHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointSlipRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
-//                 }
-//                 else
-//                 {
-//                     // Stick
-//                     rPairRHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointStickRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip); 
-//                 }
-//             }
-//             else
-//             {
-//                 // Contact inactive
-//                 rPairRHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointInactiveRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
-//             }
-        }
-        if (number_of_master_nodes == 4 &&  number_of_slave_nodes == 4)
-        {
-            const Matrix DN1 = rVariables.DN_De_Slave;
-                        
-//             if (augmented_normal_lm < 0.0)
-//             {
-//                 // Contact active
-//                 rPairRHS += rIntegrationWeight *  Contact3D4N4N::ComputeGaussPointRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
-//                 if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
-//                 {
-//                     // Slip
-//                     rPairRHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointSlipRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
-//                 }
-//                 else
-//                 {
-//                     // Stick
-//                     rPairRHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointStickRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip); 
-//                 }
-//             }
-//             else
-//             {
-//                 // Contact inactive
-//                 rPairRHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointInactiveRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
-//             }
-        }
-        else
-        {
-            KRATOS_WATCH(number_of_master_nodes);
-            KRATOS_THROW_ERROR( std::logic_error,  " COMBINATION OF GEOMETRIES NOT IMPLEMENTED. Number of slave elements: ", number_of_slave_nodes );
-        }
-    }
-    
-    
+//     else
+//     {
+//         // Contact inactive
+//         rPairRHS += rIntegrationWeight * Contact2D2N2N::ComputeGaussPointInactiveRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+//     }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::EquationIdVector(
-    EquationIdVectorType& rResult,
-    ProcessInfo& CurrentProcessInfo )
+template< >
+template< >
+void MortarContactCondition<2, 3>::CalculateLocalRHS<18>(
+    array_1d<double,18>& rPairRHS,
+    GeneralVariables& rVariables,
+    const ContactData& rContactData,
+    const double& rIntegrationWeight,
+    const double& augmented_normal_lm,
+    const double& augmented_tangent_lm,
+    const double& integration_point_gap,
+    const double& integration_point_slip
+    )
 {
-    KRATOS_TRY;
-        
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    
+//     /* DEFINITIONS */     
+//     const Vector N1           = rVariables.N_Slave;
+//     const Vector N2           = rVariables.N_Master;
+//     const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
+//     const double detJ         = rVariables.DetJSlave;
+//     
+    // TODO: Finish this!!!
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< >
+template< >
+void MortarContactCondition<3, 3>::CalculateLocalRHS<27>(
+    array_1d<double,27>& rPairRHS,
+    GeneralVariables& rVariables,
+    const ContactData& rContactData,
+    const double& rIntegrationWeight,
+    const double& augmented_normal_lm,
+    const double& augmented_tangent_lm,
+    const double& integration_point_gap,
+    const double& integration_point_slip
+    )
+{
+//     /* DEFINITIONS */
+//     const Vector N1           = rVariables.N_Slave;
+//     const Vector N2           = rVariables.N_Master;
+//     const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
+//     const double detJ         = rVariables.DetJSlave;
+//     
+//     if (augmented_normal_lm < 0.0)  // TODO: This is a conflict (< or <=¿?¿?¿?)
+//     {
+//         // Contact active
+//         rPairRHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointActiveRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+//         
+//         if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
+//         {
+//             // Slip
+//             rPairRHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointSlipRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+//         }
+//         else
+//         {
+//             // Stick
+//             rPairRHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointStickRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+//         }
+//     }
+// //     else
+// //     {
+// //         // Contact inactive
+// //         rPairRHS += rIntegrationWeight * Contact3D3N3N::ComputeGaussPointInactiveRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+// //     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< >
+template< >
+void MortarContactCondition<3, 4>::CalculateLocalRHS<36>(
+    array_1d<double,36>& rPairRHS,
+    GeneralVariables& rVariables,
+    const ContactData& rContactData,
+    const double& rIntegrationWeight,
+    const double& augmented_normal_lm,
+    const double& augmented_tangent_lm,
+    const double& integration_point_gap,
+    const double& integration_point_slip
+    )
+{
+//     /* DEFINITIONS */
+//     const Vector N1           = rVariables.N_Slave;
+//     const Vector N2           = rVariables.N_Master;
+//     const Vector Phi          = rVariables.Phi_LagrangeMultipliers;
+//     const Matrix DPhi         = rVariables.DPhi_De_LagrangeMultipliers;
+//     const double detJ         = rVariables.DetJSlave;
+//     
+//     if (augmented_normal_lm < 0.0)  // TODO: This is a conflict (< or <=¿?¿?¿?)
+//     {
+//         // Contact active
+//         rPairRHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointActiveRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+//         
+//         if (std::abs(augmented_tangent_lm) - rVariables.mu * augmented_normal_lm >= 0.0)
+//         {
+//             // Slip
+//             rPairRHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointSlipRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+//         }
+//         else
+//         {
+//             // Stick
+//             rPairRHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointStickRHS(N1, N2, Phi, detJ, rVariables.mu, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+//         }
+//     }
+// //     else
+// //     {
+// //         // Contact inactive
+// //         rPairRHS += rIntegrationWeight * Contact3D4N4N::ComputeGaussPointInactiveRHS(N1, N2, Phi, detJ, rContactData, augmented_normal_lm, augmented_tangent_lm, integration_point_gap, integration_point_slip);
+// //     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void MortarContactCondition<TDim,TNumNodes>::EquationIdVector(
+    EquationIdVectorType& rResult,
+    ProcessInfo& CurrentProcessInfo 
+    )
+{
+    KRATOS_TRY;   
+
     rResult.resize( 0, false );
 
     const std::vector<contact_container> all_conditions = *( this->GetValue( CONTACT_CONTAINERS ) );
-        
+
     /* ORDER - [ MASTER, SLAVE, LAMBDA ] */
-    
-    const unsigned int number_of_slave_nodes = GetGeometry().PointsNumber( );
-    
     for ( unsigned int i_cond = 0;  i_cond < all_conditions.size( ); ++i_cond )
     {   
         GeometryType& current_master = all_conditions[i_cond].condition->GetGeometry( );
-            
+
         // Master Nodes Displacement Equation IDs
-        for ( unsigned int iNode = 0; iNode < current_master.PointsNumber( ); iNode++ )
+        for ( unsigned int i_master = 0; i_master < TNumNodes; i_master++ ) // NOTE: Assuming same number of nodes for master and slave
         {
-            NodeType& master_node = current_master[iNode];
+            NodeType& master_node = current_master[i_master];
             rResult.push_back( master_node.GetDof( DISPLACEMENT_X ).EquationId( ) );
             rResult.push_back( master_node.GetDof( DISPLACEMENT_Y ).EquationId( ) );
-            if (dimension == 3)
+            if (TDim == 3)
             {
                 rResult.push_back( master_node.GetDof( DISPLACEMENT_Z ).EquationId( ) );
             }
         }
-        
+
         // Slave Nodes Displacement Equation IDs
-        for ( unsigned int i_slave = 0; i_slave < number_of_slave_nodes; ++i_slave )
+        for ( unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave )
         {
             NodeType& slave_node = GetGeometry()[ i_slave ];
             rResult.push_back( slave_node.GetDof( DISPLACEMENT_X ).EquationId( ) );
             rResult.push_back( slave_node.GetDof( DISPLACEMENT_Y ).EquationId( ) );
-            if (dimension == 3)
+            if (TDim == 3)
             {
                 rResult.push_back( slave_node.GetDof( DISPLACEMENT_Z ).EquationId( ) );
             }
         }
-        
+
         // Slave Nodes  Lambda Equation IDs
-        for ( unsigned int i_slave = 0; i_slave < number_of_slave_nodes; ++i_slave )
+        for ( unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave )
         {
             NodeType& slave_node = GetGeometry()[ i_slave ];
             rResult.push_back( slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_X ).EquationId( ) );
             rResult.push_back( slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Y ).EquationId( ) );
-            if (dimension == 3)
+            if (TDim == 3)
             {
                 rResult.push_back( slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Z ).EquationId( ) );
             }
         }
     }
 
+//     // Calculates the size of the system
+//     constexpr unsigned int MatrixSize = TDim * (2 * TNumNodes + TNumNodes);
+//     const unsigned int condition_size = this->CalculateConditionSize<MatrixSize>( );
+//     
+//     if (rResult.size() != condition_size)
+//     {
+//         rResult.resize( condition_size, false );
+//     }
+//     
+//     unsigned int index = 0;
+//         
+//     /* ORDER - [ MASTER, SLAVE, LAMBDA ] */
+//     for (unsigned int PairIndex = 0; PairIndex < mThisMasterElements.size( ); ++PairIndex)
+//     {
+//         GeometryType& current_master = mThisMasterElements[PairIndex]->GetGeometry( );
+//             
+//         // Master Nodes Displacement Equation IDs
+//         for ( unsigned int i_master = 0; i_master < TNumNodes; i_master++ ) //NOTE: Assuming the master has the same number of nodes
+//         {
+//             NodeType& master_node = current_master[i_master];
+//             rResult[index++] =  master_node.GetDof( DISPLACEMENT_X ).EquationId( );
+//             rResult[index++] =  master_node.GetDof( DISPLACEMENT_Y ).EquationId( );
+//             if (TDim == 3)
+//             {
+//                 rResult[index++] =  master_node.GetDof( DISPLACEMENT_Z ).EquationId( );
+//             }
+//         }
+//         
+//         // Slave Nodes Displacement Equation IDs
+//         for ( unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave )
+//         {
+//             NodeType& slave_node = GetGeometry()[ i_slave ];
+//             rResult[index++] =  slave_node.GetDof( DISPLACEMENT_X ).EquationId( );
+//             rResult[index++] =  slave_node.GetDof( DISPLACEMENT_Y ).EquationId( );
+//             if (TDim == 3)
+//             {
+//                 rResult[index++] =  slave_node.GetDof( DISPLACEMENT_Z ).EquationId( );
+//             }
+//         }
+//         
+//         // Slave Nodes  Lambda Equation IDs
+//         for ( unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave )
+//         {
+//             NodeType& slave_node = GetGeometry()[ i_slave ];
+//             rResult[index++] =  slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_X ).EquationId( );
+//             rResult[index++] =  slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Y ).EquationId( );
+//             if (TDim == 3)
+//             {
+//                 rResult[index++] =  slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Z ).EquationId( );
+//             }
+//         }
+//     }
+    
     KRATOS_CATCH( "" );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::GetDofList(
+template< unsigned int TDim, unsigned int TNumNodes >
+void MortarContactCondition<TDim, TNumNodes>::GetDofList(
     DofsVectorType& rConditionalDofList,
-    ProcessInfo& rCurrentProcessInfo )
+    ProcessInfo& rCurrentProcessInfo 
+)
 {
     KRATOS_TRY;
-    
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    
-    rConditionalDofList.resize( 0 );
 
+    rConditionalDofList.resize( 0 );
     const std::vector<contact_container> all_conditions = *( this->GetValue( CONTACT_CONTAINERS ) );
-    
+
     /* ORDER - [ MASTER, SLAVE, LAMBDA ] */
-    
-    const unsigned int number_of_slave_nodes = GetGeometry().PointsNumber( );
-        
     for ( unsigned int i_cond = 0; i_cond < all_conditions.size( ); ++i_cond )
     {
-        GeometryType& current_master = all_conditions[i_cond].condition->GetGeometry( );
-        
+        GeometryType& current_master = all_conditions[i_cond].condition->GetGeometry( );   
+
         // Master Nodes Displacement Equation IDs
-        for ( unsigned int iNode = 0; iNode < current_master.PointsNumber( ); iNode++ )
+        for ( unsigned int i_master = 0; i_master < TNumNodes; i_master++ ) // NOTE: Assuming same number of nodes for master and slave
         {
-            NodeType& master_node = current_master[iNode];
+            NodeType& master_node = current_master[i_master];
             rConditionalDofList.push_back( master_node.pGetDof( DISPLACEMENT_X ) );
             rConditionalDofList.push_back( master_node.pGetDof( DISPLACEMENT_Y ) );
-            if (dimension == 3)
+            if (TDim == 3)
             {
                 rConditionalDofList.push_back( master_node.pGetDof( DISPLACEMENT_Z ) );
             }
         }
-        
+
         // Slave Nodes Displacement Equation IDs
-        for ( unsigned int i_slave = 0; i_slave < number_of_slave_nodes; ++i_slave )
+        for ( unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave )
         {
             NodeType& slave_node = GetGeometry()[ i_slave ];
             rConditionalDofList.push_back( slave_node.pGetDof( DISPLACEMENT_X ) );
             rConditionalDofList.push_back( slave_node.pGetDof( DISPLACEMENT_Y ) );
-            if (dimension == 3)
+            if (TDim == 3)
             {
                 rConditionalDofList.push_back( slave_node.pGetDof( DISPLACEMENT_Z ) );
             }
         }
-        
+
         // Slave Nodes Lambda Equation IDs
-        for ( unsigned int i_slave = 0; i_slave < number_of_slave_nodes; ++i_slave )
+        for ( unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave )
         {
             NodeType& slave_node = GetGeometry()[ i_slave ];
             rConditionalDofList.push_back( slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_X ) );
             rConditionalDofList.push_back( slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Y ) );
-            if (dimension == 3)
+            if (TDim == 3)
             {
                 rConditionalDofList.push_back( slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Z ) );
             }
         }
     }
+    
+//     // Calculates the size of the system
+//     constexpr unsigned int MatrixSize = TDim * (2 * TNumNodes + TNumNodes);
+//     const unsigned int condition_size = this->CalculateConditionSize<MatrixSize>( );
+//     
+//     if (rConditionalDofList.size() != condition_size)
+//     {
+//         rConditionalDofList.resize( condition_size );
+//     }
+//     
+//     unsigned int index = 0;
+//     
+//     /* ORDER - [ MASTER, SLAVE, LAMBDA ] */
+//     for (unsigned int PairIndex = 0; PairIndex < mThisMasterElements.size( ); ++PairIndex)
+//     {
+//         GeometryType& current_master = mThisMasterElements[PairIndex]->GetGeometry( );
+//         
+//         // Master Nodes Displacement Equation IDs
+//         for ( unsigned int i_master = 0; i_master < TNumNodes; i_master++ ) //NOTE: Assuming the master has the same number of nodes
+//         {
+//             NodeType& master_node = current_master[i_master];
+//             rConditionalDofList[index++] = master_node.pGetDof( DISPLACEMENT_X );
+//             rConditionalDofList[index++] = master_node.pGetDof( DISPLACEMENT_Y );
+//             if (TDim == 3)
+//             {
+//                 rConditionalDofList[index++] = master_node.pGetDof( DISPLACEMENT_Z );
+//             }
+//         }
+//         
+//         // Slave Nodes Displacement Equation IDs
+//         for ( unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave )
+//         {
+//             NodeType& slave_node = GetGeometry()[ i_slave ];
+//             rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_X );
+//             rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_Y );
+//             if (TDim == 3)
+//             {
+//                 rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_Z );
+//             }
+//         }
+//         
+//         // Slave Nodes Lambda Equation IDs
+//         for ( unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave )
+//         {
+//             NodeType& slave_node = GetGeometry()[ i_slave ];
+//             rConditionalDofList[index++] = slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_X );
+//             rConditionalDofList[index++] = slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Y );
+//             if (TDim == 3)
+//             {
+//                 rConditionalDofList[index++] = slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Z );
+//             }
+//         }
+//     }
 
     KRATOS_CATCH( "" );
 }
 
+
 //******************************* GET DOUBLE VALUE *********************************/
 /***********************************************************************************/
 
-void MortarContactCondition::GetValueOnIntegrationPoints( 
+template< unsigned int TDim, unsigned int TNumNodes >
+void MortarContactCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints( 
     const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -1624,7 +1770,8 @@ void MortarContactCondition::GetValueOnIntegrationPoints(
 //******************************* GET ARRAY_1D VALUE *******************************/
 /***********************************************************************************/
 
-void MortarContactCondition::GetValueOnIntegrationPoints( 
+template< unsigned int TDim, unsigned int TNumNodes >
+void MortarContactCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints( 
     const Variable<array_1d<double, 3 > >& rVariable,
     std::vector<array_1d<double, 3 > >& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -1636,7 +1783,8 @@ void MortarContactCondition::GetValueOnIntegrationPoints(
 //******************************* GET VECTOR VALUE *********************************/
 /***********************************************************************************/
 
-void MortarContactCondition::GetValueOnIntegrationPoints( 
+template< unsigned int TDim, unsigned int TNumNodes >
+void MortarContactCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints( 
     const Variable<Vector>& rVariable,
     std::vector<Vector>& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -1648,7 +1796,8 @@ void MortarContactCondition::GetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::CalculateOnIntegrationPoints( 
+template< unsigned int TDim, unsigned int TNumNodes >
+void MortarContactCondition<TDim,TNumNodes>::CalculateOnIntegrationPoints( 
     const Variable<double>& rVariable,
     std::vector<double>& rOutput,
     const ProcessInfo& rCurrentProcessInfo 
@@ -1665,9 +1814,7 @@ void MortarContactCondition::CalculateOnIntegrationPoints(
     ContactData rContactData;
 
     // Slave segment info
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int number_of_elements_master = mThisMasterElements.size( );
-    const unsigned int number_of_nodes_slave     = GetGeometry().PointsNumber();
     
     // Reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
@@ -1710,7 +1857,7 @@ void MortarContactCondition::CalculateOnIntegrationPoints(
                 if (rVariable == NORMAL_CONTACT_STRESS || rVariable == TANGENTIAL_CONTACT_STRESS || rVariable == SLIP_GP)
                 {
                     // The normal LM augmented
-                    const double augmented_normal_lm = this->AugmentedNormalLM(Variables, rContactData, integration_point_gap, dimension);
+                    const double augmented_normal_lm = this->AugmentedNormalLM(Variables, rContactData, integration_point_gap);
                     
                     if (augmented_normal_lm < 0)
                     {
@@ -1724,7 +1871,7 @@ void MortarContactCondition::CalculateOnIntegrationPoints(
                             double integration_point_slip;
                         
                             // The tangent LM augmented
-                            const double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, integration_point_slip, dimension);
+                            const double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, integration_point_slip);
                             
                             if ( rVariable == TANGENTIAL_CONTACT_STRESS )
                             {
@@ -1751,7 +1898,8 @@ void MortarContactCondition::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::CalculateOnIntegrationPoints( 
+template< unsigned int TDim, unsigned int TNumNodes >
+void MortarContactCondition<TDim,TNumNodes>::CalculateOnIntegrationPoints( 
     const Variable<array_1d<double, 3 > >& rVariable,
     std::vector< array_1d<double, 3 > >& rOutput,
     const ProcessInfo& rCurrentProcessInfo
@@ -1766,16 +1914,14 @@ void MortarContactCondition::CalculateOnIntegrationPoints(
     ContactData rContactData;
 
     // Slave segment info
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int number_of_elements_master = mThisMasterElements.size( );
-    const unsigned int number_of_nodes_slave     = GetGeometry().PointsNumber();
     
     // Reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = mUseManualColocationIntegration ?
                                                                          mColocationIntegration.IntegrationPoints( ) :
                                                                          GetGeometry( ).IntegrationPoints( mThisIntegrationMethod );
                                                                                                                         
-    const unsigned int number_of_integration_pts =integration_points.size();
+    const unsigned int number_of_integration_pts = integration_points.size();
     if ( rOutput.size() != number_of_integration_pts )
     {
         rOutput.resize( number_of_integration_pts );
@@ -1802,15 +1948,18 @@ void MortarContactCondition::CalculateOnIntegrationPoints(
                 // Calculate the kinematic variables
                 const bool inside = this->CalculateKinematics( Variables, PointNumber, 0, integration_points ); // NOTE: The pair does not matter
                 
-                if (rVariable == NORMAL_GP)
-                {   
-                    const array_1d<double, 3> normal_gp  = prod(trans(rContactData.NormalsSlave), Variables.N_Slave);
-                    rOutput[PointNumber] = normal_gp;
-                }
-                else
+                if (inside == true)
                 {
-                    const array_1d<double, 3> tangent_gp = prod(trans(rContactData.Tangent1Slave), Variables.N_Slave); 
-                    rOutput[PointNumber] = tangent_gp;
+                    if (rVariable == NORMAL_GP)
+                    {   
+                        const array_1d<double, 3> normal_gp  = prod(trans(rContactData.NormalsSlave), Variables.N_Slave);
+                        rOutput[PointNumber] = normal_gp;
+                    }
+                    else
+                    {
+                        const array_1d<double, 3> tangent_gp = prod(trans(rContactData.Tangent1Slave), Variables.N_Slave); 
+                        rOutput[PointNumber] = tangent_gp;
+                    }
                 }
             }
         }
@@ -1842,7 +1991,7 @@ void MortarContactCondition::CalculateOnIntegrationPoints(
                     if (rVariable == NORMAL_CONTACT_STRESS_GP || rVariable == TANGENTIAL_CONTACT_STRESS_GP)
                     {
                         // The normal LM augmented
-                        const double augmented_normal_lm = this->AugmentedNormalLM(Variables, rContactData, integration_point_gap, dimension);
+                        const double augmented_normal_lm = this->AugmentedNormalLM(Variables, rContactData, integration_point_gap);
                         
                         if (augmented_normal_lm < 0)
                         {
@@ -1857,7 +2006,7 @@ void MortarContactCondition::CalculateOnIntegrationPoints(
                                 double integration_point_slip;
                             
                                 // The tangent LM augmented
-                                const double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, integration_point_slip, dimension);
+                                const double augmented_tangent_lm = this->AugmentedTangentLM(Variables, rContactData, current_master_element, integration_point_slip);
                                 
                                 const array_1d<double, 3> tangent_gp = prod(trans(rContactData.Tangent1Slave), Variables.N_Slave); // TODO: Extend to 3D case
                                 rOutput[PointNumber] += augmented_tangent_lm * tangent_gp;
@@ -1875,7 +2024,8 @@ void MortarContactCondition::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::CalculateOnIntegrationPoints( 
+template< unsigned int TDim, unsigned int TNumNodes >
+void MortarContactCondition<TDim,TNumNodes>::CalculateOnIntegrationPoints( 
     const Variable<Vector>& rVariable, 
     std::vector<Vector>& rOutput, 
     const ProcessInfo& rCurrentProcessInfo
@@ -1891,37 +2041,21 @@ void MortarContactCondition::CalculateOnIntegrationPoints(
 /******************* AUXILLIARY METHODS FOR GENERAL CALCULATIONS *******************/
 /***********************************************************************************/
 
-double MortarContactCondition::AugmentedNormalLM(
+template< unsigned int TDim, unsigned int TNumNodes >
+double MortarContactCondition<TDim,TNumNodes>::AugmentedNormalLM(
     const GeneralVariables& rVariables,
     const ContactData& rContactData,
-    const double& integration_point_gap,
-    const unsigned int& dimension
+    const double& integration_point_gap
     )
 {
-    double augmented_normal_lm; 
+    // The LM of the GP 
+    const array_1d<double, TDim> lm_gp     = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
     
-    if (dimension == 2)
-    {
-        // The LM of the GP 
-        const array_1d<double, 2> lm_gp     = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
+    // The normal of the GP
+    const array_1d<double, TDim> normal_gp = prod(trans(rContactData.NormalsSlave), rVariables.N_Slave);
     
-        // The normal of the GP
-        const array_1d<double, 2> normal_gp = prod(trans(rContactData.NormalsSlave), rVariables.N_Slave);
-        
-        // The LM in the tangent direction
-        augmented_normal_lm  = inner_prod(normal_gp, lm_gp);// + rContactData.epsilon_normal * integration_point_gap;
-    }
-    else // If it is not 2D it is 3D
-    {
-        // The LM of the GP 
-        const array_1d<double, 3> lm_gp     = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
-    
-        // The normal of the GP
-        const array_1d<double, 3> normal_gp = prod(trans(rContactData.NormalsSlave), rVariables.N_Slave);
-            
-        // The LM in the tangent direction
-        augmented_normal_lm  = inner_prod(normal_gp, lm_gp);// + rContactData.epsilon_normal * integration_point_gap;
-    }
+    // The LM in the tangent direction
+    double augmented_normal_lm  = inner_prod(normal_gp, lm_gp);// + rContactData.epsilon_normal * integration_point_gap;
                 
     if (integration_point_gap < 0.0) // Penetration (TODO: Think about this!!!)
     {
@@ -1934,84 +2068,54 @@ double MortarContactCondition::AugmentedNormalLM(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double MortarContactCondition::AugmentedTangentLM(
+template< unsigned int TDim, unsigned int TNumNodes >
+double MortarContactCondition<TDim,TNumNodes>::AugmentedTangentLM(
     const GeneralVariables& rVariables,
     const ContactData& rContactData,
     const GeometryType& current_master_element, 
-    double& integration_point_slip,
-    const unsigned int& dimension
+    double& integration_point_slip
     )
 {    
-    double augmented_tangent_lm; 
-    if (dimension == 2)
-    {
-        // The LM of the GP 
-        const array_1d<double, 2> lm_gp = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
-        
-        // The tangents of the GP
-        const array_1d<double, 2> tangent_gp = prod(trans(rContactData.Tangent1Slave), rVariables.N_Slave);
-        
-        // The tangential LM
-        const double tangent_lm  = inner_prod(tangent_gp, lm_gp);
-        
-        // The velocities matrices
-        const Matrix v1 = ContactUtilities::GetVariableMatrix(GetGeometry(),          VELOCITY, 0); 
-        const Matrix v2 = ContactUtilities::GetVariableMatrix(current_master_element, VELOCITY, 0);
-        
-        // The slip of the LM
-        const array_1d<double, 2> vector_integration_point_slip = rContactData.Dt * (prod(trans(v1), rVariables.N_Slave) - prod(trans(v2), rVariables.N_Master));
-        integration_point_slip = inner_prod(vector_integration_point_slip, tangent_gp);
-
-        // The augmented LM in the tangent direction
-        augmented_tangent_lm = tangent_lm + rContactData.epsilon_tangent * integration_point_slip; 
-    }
-    else
-    {
-        // The LM of the GP 
-        const array_1d<double, 3> lm_gp     = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
-        
-        // The tangents of the GP
-        const array_1d<double, 3> tangent_xi_gp  = prod(trans(rContactData.Tangent1Slave), rVariables.N_Slave);
-        const array_1d<double, 3> tangent_eta_gp = prod(trans(rContactData.Tangent2Slave), rVariables.N_Slave);
-        
-        // The tangential LM
-        const double tangent_xi_lm  = inner_prod(tangent_xi_gp, lm_gp);
-        const double tangent_eta_lm = inner_prod(tangent_eta_gp, lm_gp);
-        const double tangent_lm = std::sqrt(tangent_xi_lm * tangent_xi_lm + tangent_eta_lm * tangent_eta_lm); 
-        
-        // The resultant direction of the LM
-        const array_1d<double, 3>& tangent_gp =  (tangent_xi_lm * tangent_xi_gp + tangent_eta_lm * tangent_eta_gp)/tangent_lm; // NOTE: This is the direction of the slip (using the LM as reference)
-        
-        // The velocities matrices
-        const Matrix v1 = ContactUtilities::GetVariableMatrix(GetGeometry(),          VELOCITY, 0); 
-        const Matrix v2 = ContactUtilities::GetVariableMatrix(current_master_element, VELOCITY, 0);
-        
-        // The slip of the LM
-        const array_1d<double, 3> vector_integration_point_slip = rContactData.Dt * (prod(trans(v1), rVariables.N_Slave) - prod(trans(v2), rVariables.N_Master));
-        integration_point_slip = inner_prod(vector_integration_point_slip, tangent_gp);
-
-        // The augmented LM in the tangent direction
-        augmented_tangent_lm = tangent_lm + rContactData.epsilon_tangent * integration_point_slip; 
-    }
+    // The LM of the GP 
+    const array_1d<double, TDim> lm_gp = prod(trans(rContactData.LagrangeMultipliers), rVariables.Phi_LagrangeMultipliers);
     
+    // The tangents of the GP
+    const array_1d<double, TDim> tangent_xi_gp  = prod(trans(rContactData.Tangent1Slave), rVariables.N_Slave);
+    const array_1d<double, TDim> tangent_eta_gp = prod(trans(rContactData.Tangent2Slave), rVariables.N_Slave);
+    
+    // The tangential LM
+    const double tangent_xi_lm  = inner_prod(tangent_xi_gp, lm_gp);
+    const double tangent_eta_lm = inner_prod(tangent_eta_gp, lm_gp);
+    const double tangent_lm = std::sqrt(tangent_xi_lm * tangent_xi_lm + tangent_eta_lm * tangent_eta_lm); 
+    
+    // The resultant direction of the LM
+    const array_1d<double, TDim>& tangent_gp =  (tangent_xi_lm * tangent_xi_gp + tangent_eta_lm * tangent_eta_gp)/tangent_lm; // NOTE: This is the direction of the slip (using the LM as reference)
+    
+    // The velocities matrices
+    const Matrix v1 = ContactUtilities::GetVariableMatrix(GetGeometry(),          VELOCITY, 0); 
+    const Matrix v2 = ContactUtilities::GetVariableMatrix(current_master_element, VELOCITY, 0);
+    
+    // The slip of the LM
+    const array_1d<double, TDim> vector_integration_point_slip = rContactData.Dt * (prod(trans(v1), rVariables.N_Slave) - prod(trans(v2), rVariables.N_Master));
+    integration_point_slip = inner_prod(vector_integration_point_slip, tangent_gp);
+
+    // The augmented LM in the tangent direction
+    const double augmented_tangent_lm = tangent_lm + rContactData.epsilon_tangent * integration_point_slip; 
+
     return augmented_tangent_lm;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::InitializeIntegrationMethod( 
-    const unsigned int dimension,
-    const unsigned int local_dimension_slave,
-    const unsigned int number_of_slave_nodes
-    )
+template< >
+void MortarContactCondition<2, 2>::InitializeIntegrationMethod()
 {
     mUseManualColocationIntegration = false;
     if( GetProperties().Has(INTEGRATION_ORDER_CONTACT) )
     {
         const double integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
-        if (dimension == 2)
-        {
+
             if (integration_order == 3)
             {
                 mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_1;
@@ -2035,34 +2139,8 @@ void MortarContactCondition::InitializeIntegrationMethod(
             else
             {
                 mUseManualColocationIntegration = true;
-                mColocationIntegration.Initialize( integration_order,local_dimension_slave, number_of_slave_nodes );
+                mColocationIntegration.Initialize( integration_order);
             }
-        }
-        else
-        {
-            if (number_of_slave_nodes == 3) // TODO: Complete
-            {
-//                 if (integration_order == 3)
-//                 {
-//                 }
-//                 else
-//                 {
-                    mUseManualColocationIntegration = true;
-                    mColocationIntegration.Initialize( integration_order,local_dimension_slave, number_of_slave_nodes );
-//                 }
-            }
-            else if (number_of_slave_nodes == 4) // TODO: Complete
-            {
-//                 if (integration_order == )
-//                 {
-//                 }
-//                 else
-//                 {
-                    mUseManualColocationIntegration = true;
-                    mColocationIntegration.Initialize( integration_order,local_dimension_slave, number_of_slave_nodes );
-//                 }
-            }
-        }
     }
     else
     {
@@ -2073,108 +2151,103 @@ void MortarContactCondition::InitializeIntegrationMethod(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::GetNodalDeltaMovements( 
-    Vector& rValues,
-    const int& rNode 
-    )
+template< >
+void MortarContactCondition<2, 3>::InitializeIntegrationMethod()
 {
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();;
-
-    if( rValues.size() != dimension )
+    mUseManualColocationIntegration = false;
+    if( GetProperties().Has(INTEGRATION_ORDER_CONTACT) )
     {
-        rValues.resize( dimension );
+        const double integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
+
+            if (integration_order == 3)
+            {
+                mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_1;
+            }
+            else if (integration_order == 5)
+            {
+                mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_2;
+            }
+            else if (integration_order == 7)
+            {
+                mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_3;
+            }
+            else if (integration_order == 9)
+            {
+                mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_4;
+            }
+            else if (integration_order == 11)
+            {
+                mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_5;
+            }
+            else
+            {
+                mUseManualColocationIntegration = true;
+                mColocationIntegration.Initialize( integration_order);
+            }
     }
-
-    rValues = ZeroVector( dimension );
-
-    Vector CurrentValueVector = ZeroVector(3);
-    CurrentValueVector = GetCurrentValue( DISPLACEMENT, CurrentValueVector, rNode );
-
-    Vector PreviousValueVector = ZeroVector(3);
-    CurrentValueVector = GetPreviousValue( DISPLACEMENT, CurrentValueVector, rNode );
-
-    rValues[0] = CurrentValueVector[0] - PreviousValueVector[0];
-    rValues[1] = CurrentValueVector[1] - PreviousValueVector[1];
-
-    if( dimension == 3 ) 
+    else
     {
-        rValues[2] = CurrentValueVector[2] - PreviousValueVector[2];
+        mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_5;
     }
-}
-
-//************************************************************************************
-//************************************************************************************
-
-Vector& MortarContactCondition::GetCurrentValue( 
-    const Variable<array_1d<double,3> >& rVariable,
-    Vector& rValue,
-    const unsigned int& rNode
-    )
-{
-    KRATOS_TRY;
-
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();;
-
-    array_1d<double, 3> ArrayValue;
-    ArrayValue = GetGeometry( )[rNode].FastGetSolutionStepValue( rVariable );
-
-    if( rValue.size() != dimension )
-    {
-        rValue.resize( dimension, false );
-    }
-
-    for( unsigned int i = 0; i < dimension; i++ )
-    {
-        rValue[i] = ArrayValue[i];
-    }
-
-    return rValue;
-
-    KRATOS_CATCH( "" );
-}
-
-//************************************************************************************
-//************************************************************************************
-
-Vector& MortarContactCondition::GetPreviousValue( 
-    const Variable<array_1d<double,3> >& rVariable,
-    Vector& rValue,
-    const unsigned int& rNode
-    )
-{
-    KRATOS_TRY;
-
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();;
-
-    array_1d<double, 3> ArrayValue;
-    ArrayValue = GetGeometry( )[rNode].FastGetSolutionStepValue( rVariable, 1 );
-
-    if( rValue.size() != dimension )
-    {
-        rValue.resize( dimension, false );
-    }
-
-    for( unsigned int i = 0; i < dimension; i++ )
-    {
-        rValue[i] = ArrayValue[i];
-    }
-
-    return rValue;
-
-    KRATOS_CATCH( "" );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MortarContactCondition::save( Serializer& rSerializer ) const
+template< >
+void MortarContactCondition<3, 3>::InitializeIntegrationMethod()
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
+    mUseManualColocationIntegration = false;
+    if( GetProperties().Has(INTEGRATION_ORDER_CONTACT) )
+    {
+        const double integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
+
+//         if (integration_order == 3)
+//         {
+//         }
+//         else
+//         {
+            mUseManualColocationIntegration = true;
+            mColocationIntegration.Initialize( integration_order);
+//         }
+    }
+    else
+    {
+        mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_5;
+    }
+}
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< >
+void MortarContactCondition<3, 4>::InitializeIntegrationMethod()
+{
+    mUseManualColocationIntegration = false;
+    if( GetProperties().Has(INTEGRATION_ORDER_CONTACT) )
+    {
+        const double integration_order = GetProperties().GetValue(INTEGRATION_ORDER_CONTACT);
+
+//         if (integration_order == )
+//         {
+//         }
+//         else
+//         {
+            mUseManualColocationIntegration = true;
+            mColocationIntegration.Initialize( integration_order);
+//         }
+    }
+    else
+    {
+        mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_5;
+    }
 }
 
-void MortarContactCondition::load( Serializer& rSerializer )
-{
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
-}
+/***********************************************************************************/
+/***********************************************************************************/
+
+template class MortarContactCondition<2,2>;
+template class MortarContactCondition<2,3>;
+template class MortarContactCondition<3,3>;
+template class MortarContactCondition<3,4>;
 
 } // Namespace Kratos
