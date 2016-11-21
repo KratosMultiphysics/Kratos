@@ -27,6 +27,8 @@ class KratosExecuteConvergenceAcceleratorTest(KratosUnittest.TestCase):
         max_it = self.settings["coupling_solver_settings"]["nl_max_it"].GetInt()
         recursive_test = self.settings["coupling_solver_settings"]["recursive_test"].GetBool()
         
+        self.coupling_utility.Initialize()
+        
         if recursive_test == True:
             recursive_steps = 10
         else:
