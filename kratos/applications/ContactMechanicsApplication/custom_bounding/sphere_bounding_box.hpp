@@ -43,10 +43,10 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 
-    This Box represents a 2D wall composed by a circle
+    This Box represents a 3D wall composed by a sphere
     
-    A convexity parameter is given to determine which side of each nose is considered 
-    the internal or external boundary
+    A convexity parameter is given to determine if 
+    the internal or external space is considered as boundary
 
     This bounding box is essentially used for rigid wall contact purposes
 */
@@ -155,7 +155,7 @@ public:
     {           
       KRATOS_TRY
 
-      std::cout<<" [--CIRCLE WALL--] "<<std::endl;
+      std::cout<<" [--CIRCLE/SPHERE WALL--] "<<std::endl;
       
       mBox.Center = Center;
       mBox.Radius = Radius;
@@ -406,25 +406,6 @@ protected:
     }
 
 
-
-    //************************************************************************************
-    //************************************************************************************
-
-    static inline double inner_prod(const PointType& a, const PointType& b)
-    {
-        double temp =a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
-        return temp;
-    }
-
-    //************************************************************************************
-    //************************************************************************************
-
-    static inline double norm_2(const PointType& a)
-    {
-        double temp = pow(a[0],2) + pow(a[1],2) + pow(a[2],2);
-        temp = sqrt(temp);
-        return temp;
-    }
 
     ///@}
     ///@name Protected  Access

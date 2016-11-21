@@ -929,6 +929,17 @@ public:
            
     }
 
+    //************************************************************************************
+    //************************************************************************************
+    
+    virtual void CreateBoundingBoxBoundaryMesh(ModelPart& rModelPart, int linear_partitions = 4, int angular_partitions = 4 )
+    {
+      KRATOS_TRY
+
+	std::cout<< " Calling Spatial Bounding Box empty boundary mesh creation" <<std::endl;
+      
+      KRATOS_CATCH("")
+    }
 
     ///@}
     ///@name Inquiry
@@ -1149,7 +1160,143 @@ protected:
 	
     }
     
+    //*******************************************************************************************
+    //*******************************************************************************************
+  
+    static inline unsigned int GetMaxNodeId(ModelPart& rModelPart)
+    {
+      KRATOS_TRY
+
+      unsigned int max_id = rModelPart.Nodes().back().Id();
+	
+      for(ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin(); i_node!= rModelPart.NodesEnd(); i_node++)
+	{
+	  if(i_node->Id() > max_id)
+	    max_id = i_node->Id();
+	}
+
+      return max_id;
+      
+      KRATOS_CATCH( "" )
+    }
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+  
+    static inline unsigned int GetMaxElementId(ModelPart& rModelPart)
+    {
+      KRATOS_TRY
+
+      unsigned int max_id = rModelPart.Elements().back().Id();
+
+      for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin(); i_elem!= rModelPart.ElementsEnd(); i_elem++)
+	{
+	  if(i_elem->Id() > max_id)
+	    max_id = i_elem->Id();
+	}
+
+      return max_id;
+      
+      KRATOS_CATCH( "" )
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+   
+    NodeType::Pointer CreateNode (ModelPart& rModelPart, PointType& rPoint, const unsigned int& rNodeId)
+    {
+
+      KRATOS_TRY
+	
+      NodeType::Pointer Node = rModelPart.CreateNewNode( rNodeId, rPoint[0], rPoint[1], rPoint[2]);  	  
+
+      //generating the dofs
+      NodeType::DofsContainerType& reference_dofs = (rModelPart.NodesBegin())->GetDofs();
+      
+     
+      for(NodeType::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
+      	{
+      	  NodeType::DofType& rDof = *iii;
+      	  Node->pAddDof( rDof );
+      	}
+
+      //set fix dofs:
+      NodeType::DofsContainerType& new_dofs = Node->GetDofs();
+           
+      for(NodeType::DofsContainerType::iterator iii = new_dofs.begin(); iii != new_dofs.end(); iii++)
+      	{
+      	  NodeType::DofType& rDof = *iii;
+	  rDof.FixDof(); // dofs free
+      	}
+
+      //generating step data:
+      // unsigned int buffer_size = (rModelPart.NodesBegin())->GetBufferSize();
+      // unsigned int step_data_size = rModelPart.GetNodalSolutionStepDataSize();
+      // for(unsigned int step = 0; step<buffer_size; step++)
+      // 	{
+      // 	  double* NodeData = Node->SolutionStepData().Data(step);
+      // 	  double* ReferenceData = (rModelPart.NodesBegin())->SolutionStepData().Data(step);
+
+      // 	  //copying this data in the position of the vector we are interested in
+      // 	  for(unsigned int j= 0; j<step_data_size; j++)
+      // 	    {
+      // 	      NodeData[j] = ReferenceData[j];
+      // 	    }
+      // 	}
+
+      return Node;
+      
+      KRATOS_CATCH( "" )
+	      
+    }
+
+
+    //************************************************************************************
+    //************************************************************************************
+
+    void CalculateOrthonormalBase(PointType & rDirectionVectorX, PointType & rDirectionVectorY, PointType & rDirectionVectorZ)
+    {
+      KRATOS_TRY
+	
+      PointType GlobalY = ZeroVector(3);
+      GlobalY[1]=1.0;
+
+      PointType GlobalZ = ZeroVector(3);
+      GlobalZ[2]=1.0;
+
     
+      // local x-axis (e1_local) is the beam axis  (in GID is e3_local)
+      double VectorNorm = MathUtils<double>::Norm(rDirectionVectorX);
+      if( VectorNorm != 0)
+	rDirectionVectorX /= VectorNorm;
+    
+      // local y-axis (e2_local) (in GID is e1_local)
+      rDirectionVectorY = ZeroVector(3);
+
+      double tolerance = 1.0/64.0;
+      if(fabs(rDirectionVectorX[0])< tolerance && fabs(rDirectionVectorX[1])< tolerance){
+	rDirectionVectorY = MathUtils<double>::CrossProduct(GlobalY, rDirectionVectorX);
+      }
+      else{
+	rDirectionVectorY = MathUtils<double>::CrossProduct(GlobalZ, rDirectionVectorX);
+      }
+
+
+      VectorNorm = MathUtils<double>::Norm(rDirectionVectorY);
+      if( VectorNorm != 0)
+	rDirectionVectorY /= VectorNorm;
+
+      // local z-axis (e3_local) (in GID is e2_local)
+      rDirectionVectorZ = MathUtils<double>::CrossProduct(rDirectionVectorX,rDirectionVectorY);
+ 
+      VectorNorm = MathUtils<double>::Norm(rDirectionVectorZ);
+      if( VectorNorm != 0 )
+	rDirectionVectorZ /= VectorNorm;
+
+      KRATOS_CATCH( "" )
+				     
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
