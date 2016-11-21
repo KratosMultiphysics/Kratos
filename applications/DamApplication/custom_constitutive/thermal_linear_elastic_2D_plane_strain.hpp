@@ -39,6 +39,22 @@ public:
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    /**
+     * Dimension of the law:
+     */
+    SizeType WorkingSpaceDimension()
+    {
+        return 2;
+    };
+
+    /**
+     * Voigt tensor size:
+     */
+    SizeType GetStrainSize()
+    {
+        return 3;
+    };
+
 protected:
 
     // Member Variables

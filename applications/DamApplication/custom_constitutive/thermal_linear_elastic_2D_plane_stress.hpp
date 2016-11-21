@@ -10,12 +10,12 @@
 
 // Project includes
 #include "includes/serializer.h"
-#include "custom_constitutive/thermal_linear_elastic_3D_law.hpp" 
+#include "custom_constitutive/thermal_linear_elastic_2D_plane_strain.hpp"
 
 namespace Kratos
 {
 
-class ThermalLinearElastic2DPlaneStress : public ThermalLinearElastic3DLaw
+class ThermalLinearElastic2DPlaneStress : public ThermalLinearElastic2DPlaneStrain
 {
 
 public:
@@ -61,12 +61,12 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ThermalLinearElastic3DLaw)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ThermalLinearElastic2DPlaneStrain)
     }
 
     virtual void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ThermalLinearElastic3DLaw)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ThermalLinearElastic2DPlaneStrain)
     }
 
 }; // Class ThermalLinearElastic2DPlaneStress
