@@ -49,16 +49,8 @@ namespace Kratos {
         /// Print object's data
         virtual void PrintData(std::ostream& rOStream) const {}    
 
-        void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force,
-                                                      array_1d<double, 3>& externally_applied_moment,
-                                                      const ProcessInfo& r_process_info,
-                                                      const array_1d<double,3>& gravity);
+        virtual array_1d<double,3> ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info);
         
-        void ComputeIceForces(SphericContinuumParticle* continuum_particle,
-                              array_1d<double, 3>& externally_applied_force,
-                              const ProcessInfo& r_process_info,
-                              const array_1d<double,3>& gravity);
-
         private:
 
         friend class Serializer;
