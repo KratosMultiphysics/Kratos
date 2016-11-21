@@ -52,13 +52,12 @@ class AssignVectorComponentsToNodesProcess(KratosMultiphysics.Process):
             else:
                 self.constraints.append(True)
 
-        print(" constraints ", self.constraints)
-
+        #print(" constraints ", self.constraints)
         
         self.BuildComponentsProcesses()
                
                       
-    def ExecuteInitialize(self):              
+    def ExecuteInitialize(self):
         for process in self.AssignValueProcesses:
             process.ExecuteInitialize()
  
