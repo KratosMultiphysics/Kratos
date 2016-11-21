@@ -24,6 +24,7 @@
 #include "custom_bounding/plane_bounding_box.hpp"
 #include "custom_bounding/sphere_bounding_box.hpp"
 #include "custom_bounding/circle_bounding_box.hpp"
+#include "custom_bounding/cylinder_bounding_box.hpp"
 #include "custom_bounding/compound_noses_bounding_box.hpp"
 
 namespace Kratos
@@ -66,8 +67,18 @@ namespace Python
 	init< Vector, double, Vector, int >() )
         .def(init< Parameters >())
         .def(init< Parameters& >())
+        .def("CreateBoundingBoxBoundaryMesh",&CircleBoundingBox::CreateBoundingBoxBoundaryMesh)
       ;
 
+    //cylinder-wall
+    class_<CylinderBoundingBox, bases<BoundingBoxBaseType>, boost::noncopyable > 
+      ( "CylinderBoundingBox", 
+	init< Vector, Vector, double, Vector, int >() )
+        .def(init< Parameters >())
+        .def(init< Parameters& >())
+        .def("CreateBoundingBoxBoundaryMesh",&CylinderBoundingBox::CreateBoundingBoxBoundaryMesh)
+      ;
+    
     //compound_noses-wall
     class_<CompoundNosesBoundingBox, bases<BoundingBoxBaseType>, boost::noncopyable > 
       ( "CompoundNosesBoundingBox", 

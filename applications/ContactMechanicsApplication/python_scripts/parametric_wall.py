@@ -124,6 +124,11 @@ class ParametricWall(object):
 
         self.wall_bounding_box = BoundingBox(self.settings["bounding_box_settings"]["bounding_box_parameters"])
 
+        # construct bounding box mesh of surface elements
+        # Note: new nodes must be inserted in boundary conditions subdomains
+        number_of_linear_partitions  = 10
+        number_of_angular_partitions = 20
+        self.wall_bounding_box.CreateBoundingBoxBoundaryMesh(self.wall_model_part, number_of_linear_partitions, number_of_angular_partitions)
 
         # construct rigid element // must pass an array of nodes to the element, create a node (CG) and a rigid element set them in the model_part, set the node CG as the reference node of the wall_bounding_box, BLOCKED, set in the wall_model_part for imposed movements processes.
         creation_utility = KratosContact.RigidBodyCreationUtility()
