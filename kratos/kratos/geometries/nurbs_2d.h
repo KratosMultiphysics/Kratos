@@ -339,12 +339,12 @@ public:
      */
     virtual ~NurbsPatchGeometry2D() {}
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily()
+    GeometryData::KratosGeometryFamily GetGeometryFamily() override
     {
         return GeometryData::Kratos_Quadrilateral;
     }
 
-    GeometryData::KratosGeometryType GetGeometryType()
+    GeometryData::KratosGeometryType GetGeometryType() override
     {
         return GeometryData::Kratos_Triangle3D3;
     }
@@ -417,14 +417,14 @@ public:
 
 
 
-    typename BaseType::Pointer Create( PointerVector< Point<3> > ,Vector const &weights, Vector const& KnotsXi, Vector const& KnotsEta ) const
+    typename BaseType::Pointer Create( PointerVector< Point<3> > ,Vector const &weights, Vector const& KnotsXi, Vector const& KnotsEta ) const 
     {
         return typename BaseType::Pointer( new NurbsPatchGeometry2D(PointerVector< Point<3> >(),KnotsXi, KnotsEta) );
     }
 
 
     //lumping factors for the calculation of the lumped mass matrix
-    virtual Vector& LumpingFactors( Vector& rResult ) const
+    virtual Vector& LumpingFactors( Vector& rResult ) const override
     {
         rResult.resize( 3, false );
         std::fill( rResult.begin(), rResult.end(), 1.00 / 3.00 );
@@ -464,7 +464,7 @@ public:
 
 
     virtual JacobiansType& Jacobian( JacobiansType& rResult,
-                                     IntegrationMethod ThisMethod ) const
+                                     IntegrationMethod ThisMethod ) const override
     {
         const unsigned int integration_points_number =
             msGeometryData.IntegrationPointsNumber( ThisMethod );
@@ -512,12 +512,13 @@ public:
      */
     virtual Matrix& Jacobian( Matrix& rResult,
                               IndexType IntegrationPointIndex,
-                              IntegrationMethod ThisMethod ) const
+                              IntegrationMethod ThisMethod ) const override
     {
 
         IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
         IntegrationPointsArrayType integration_points = all_integration_points[ThisMethod];
         double XiLocalCoordinates,EtaLocalCoordinates;
+        rResult.resize(2,2);
         rResult.resize(2,2, false);
         XiLocalCoordinates = (mUpperXi - mLowerXi) / 2 * (1+integration_points[IntegrationPointIndex].X()) + mLowerXi;
         EtaLocalCoordinates = (mUpperEta - mLowerEta) / 2 * (1+integration_points[IntegrationPointIndex].Y())+mLowerEta;
@@ -545,6 +546,7 @@ public:
                               const CoordinatesArrayType& rPoint ) const
     {
 
+        rResult.resize(2,2);
         rResult.resize(2,2, false);
         rResult = ElementGeometryDerivatives(rPoint[0],rPoint[1]);
         return rResult;
@@ -566,12 +568,12 @@ public:
      * @see InverseOfJacobian
      */
     virtual Vector& DeterminantOfJacobian( Vector& rResult,
-                                           IntegrationMethod ThisMethod ) const
+                                           IntegrationMethod ThisMethod ) const override
     {
         JacobiansType Jacobian2D;
         Jacobian(Jacobian2D, ThisMethod );
         const unsigned int integration_points_number =  msGeometryData.IntegrationPointsNumber( ThisMethod );
-        rResult.resize(integration_points_number, false);
+        rResult.resize(integration_points_number);
 
         for (unsigned int i=0; i< integration_points_number; i++)
         {
@@ -605,7 +607,7 @@ public:
      * @see InverseOfJacobian
      */
     virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex,
-                                          IntegrationMethod ThisMethod ) const
+                                          IntegrationMethod ThisMethod ) const override
     {
         Matrix Jacobian2D(2,2);
         Jacobian2D = ZeroMatrix(2,2);
@@ -641,7 +643,7 @@ public:
      * point in space this needs to be reviewed
      * (comment by janosch)
      */
-    virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
+    virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const override
     {
         Matrix Jacobian2D(2,2);
         Jacobian2D = ZeroMatrix(2,2);
@@ -673,7 +675,7 @@ public:
      * KLUDGE: works only with explicitly generated Matrix object
      */
     virtual JacobiansType& InverseOfJacobian( JacobiansType& rResult,
-            IntegrationMethod ThisMethod ) const
+            IntegrationMethod ThisMethod ) const override
     {
         JacobiansType Jacobian2D;
          Jacobian( Jacobian2D,ThisMethod );
@@ -715,7 +717,7 @@ public:
      */
     virtual Matrix& InverseOfJacobian( Matrix& rResult,
                                        IndexType IntegrationPointIndex,
-                                       IntegrationMethod ThisMethod ) const
+                                       IntegrationMethod ThisMethod ) const override
     {
         Matrix Jacobian2D(2,2);
         Jacobian2D = ZeroMatrix(2,2);
@@ -743,7 +745,7 @@ public:
      * KLUDGE: works only with explicitly generated Matrix object
      */
     virtual Matrix& InverseOfJacobian( Matrix& rResult,
-                                       const CoordinatesArrayType& rPoint ) const
+                                       const CoordinatesArrayType& rPoint ) const override
     {
         Matrix Jacobian2D(2,2);
         Jacobian2D = ZeroMatrix(2,2);
@@ -763,7 +765,7 @@ public:
     @see Edges()
     @see Edge()
     */
-    virtual SizeType EdgesNumber() const
+    virtual SizeType EdgesNumber() const override
     {
         KRATOS_THROW_ERROR( std::logic_error, "Nurbs_2d::EdgesNumber", "No Edges defined for NURBS-surfaces" );
         return 0;
@@ -780,7 +782,7 @@ public:
     @see EdgesNumber()
     @see Edge()
     */
-    virtual GeometriesArrayType Edges( void )
+    virtual GeometriesArrayType Edges( void ) override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         KRATOS_THROW_ERROR( std::logic_error, "Nurbs_2d::Edges", "No Edges defined for NURBS-surfaces" );
@@ -801,7 +803,7 @@ public:
      * @see Edges
      * @see FacesNumber
     */
-    virtual GeometriesArrayType Faces( void )
+    virtual GeometriesArrayType Faces( void ) override
     {
         return GeometriesArrayType();
     }
@@ -985,6 +987,7 @@ public:
         const double& Xi = rCoordinates[0];
         const double& Eta = rCoordinates[1];
         
+        rResult.resize((mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1));
         rResult.resize((mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1), false);
         rResult = ZeroVector((mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1));
         Matrix ShapeFunctionsValue = ElementGeometryNurbsFunctionsValues(Xi,Eta);
@@ -1046,10 +1049,12 @@ public:
 
         if (determinants_of_jacobian.size() != integration_points_number )
         {
+            determinants_of_jacobian.resize(integration_points_number);
             determinants_of_jacobian.resize(integration_points_number, false);
         }
 
         //Allocating the memory for the Values of the shape functions
+        ShapeFunctionsValues.resize( integration_points_number,(mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1));
         ShapeFunctionsValues.resize( integration_points_number,(mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1), false);
         ShapeFunctionsValues = ZeroMatrix(integration_points_number,(mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1));
 
@@ -1079,6 +1084,7 @@ public:
 
 
             //Allocating the memory for the Derivatives of the shape functions
+            rResult[pnt].resize( this->Points().size(),2 );
             rResult[pnt].resize( this->Points().size(),2 , false);
             rResult[pnt] = ZeroMatrix(this->Points().size(),2);
 
@@ -1108,6 +1114,7 @@ public:
     {
         const unsigned int integration_points_number = msGeometryData.IntegrationPointsNumber( ThisMethod );
         Matrix ShapeFunctionsValues;
+        ShapeFunctionsValues.resize( integration_points_number,(mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1));
         ShapeFunctionsValues.resize( integration_points_number,(mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1),false);
         ShapeFunctionsValues = ZeroMatrix(integration_points_number,(mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1));
         rResult = ShapeFunctionsIntegrationPointsGradients(rResult,
@@ -1142,6 +1149,7 @@ public:
                                                 double Eta,
                                                 Matrix &rResult) const
     {
+        rResult.resize(mPolynomialDegreeP+1,mPolynomialDegreeQ+1);
         rResult.resize(mPolynomialDegreeP+1,mPolynomialDegreeQ+1,false);
         rResult = ElementGeometryDerivatives(Xi,Eta);
         return rResult;
@@ -1176,7 +1184,7 @@ public:
      * Calculates the local gradients for all integration points for the
      * default integration method
      */
-    virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients()
+    virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients() 
     {
         IntegrationMethod ThisMethod = msGeometryData.DefaultIntegrationMethod();
         ShapeFunctionsGradientsType localGradients
@@ -1209,10 +1217,110 @@ public:
     virtual Matrix& ShapeFunctionsGradients( Matrix& rResult,
                                              PointType& rPoint )
     {
+        rResult.resize(mPolynomialDegreeP+1,mPolynomialDegreeQ+1);
         rResult.resize(mPolynomialDegreeP+1,mPolynomialDegreeQ+1,false);
         rResult = ElementGeometryDerivatives(rPoint[0],rPoint[1]);
         return rResult;
     }
+
+	/**
+	* returns the shape function gradients in an arbitrary point,
+	* given in local coordinates
+	*
+	* @param rResult the matrix of gradients,
+	* will be overwritten with the gradients for all
+	* shape functions in given point
+	* @param rCoordinates the given point the gradients are calculated in
+	*/
+	virtual Matrix& ShapeFunctionsGradients(Matrix& rResult,
+		const CoordinatesArrayType& rCoordinates)
+	{
+		rResult.resize(mPolynomialDegreeP + 1, mPolynomialDegreeQ + 1);
+		rResult = ElementGeometryDerivatives(rCoordinates[0], rCoordinates[1]);
+		return rResult;
+	}
+
+	/**
+	* @brief ShapeFunctionsDerivativesValues: 
+	* @param rResult: Vector which will be filled with the shape functions values
+	* @param rCoordinates: the position of the evaluation. rCoordinates[0] is the Xi / rCoordinates[1] is the Eta
+	* @return Vector of doubles where F_i provides the value of the i-th shape function
+	*
+	* @note: Potentially at a B-Spline/NURBS Basis Function (p+1) shape functions are unequal to 0. As
+	*          We are dealing with Surfaces (Vector Product of two NURBS-Basis Functions) (p+1) * (q+1)
+	*          shape functions are potentially unequal to 0.
+	*/
+
+	Matrix& ShapeFunctionsDerivativesValues(Matrix &rResult,
+		const CoordinatesArrayType& rCoordinates) const
+	{
+		//std::cout<<"Vector& ShapeFunctionsValues (nurbs_2d.h)"<<std::endl;
+		const double& Xi = rCoordinates[0];
+		const double& Eta = rCoordinates[1];
+
+		Matrix NurbsBasisFunctionDerivativesXi = ZeroMatrix((mPolynomialDegreeP + 1), (mPolynomialDegreeQ + 1));
+		Matrix NurbsBasisFunctionDerivativesEta = ZeroMatrix((mPolynomialDegreeP + 1), (mPolynomialDegreeQ + 1));
+
+		rResult.resize((mPolynomialDegreeP + 1)*(mPolynomialDegreeQ + 1),2);
+		rResult = ZeroMatrix((mPolynomialDegreeP + 1)*(mPolynomialDegreeQ + 1),2);
+		
+		Matrix Jacobian2D = ElementGeometryDerivatives(Xi, Eta, NurbsBasisFunctionDerivativesXi, NurbsBasisFunctionDerivativesEta);
+
+		for (unsigned int i = 0; i<mPolynomialDegreeP + 1; i++)
+		{
+			for (int j = 0; j<mPolynomialDegreeQ + 1; j++)
+			{
+				rResult(i + (mPolynomialDegreeP + 1)*j,0) = NurbsBasisFunctionDerivativesXi(i, j);
+				rResult(i + (mPolynomialDegreeP + 1)*j,1) = NurbsBasisFunctionDerivativesEta(i, j);
+			}
+		}
+		return rResult;
+	}
+
+
+	Matrix ShapeFunctionsSecondDerivativesValues(Matrix &rResult,
+		const CoordinatesArrayType& rCoordinates)
+	{
+		//std::cout<<"Vector& ShapeFunctionsValues (nurbs_2d.h)"<<std::endl;
+		const double& Xi = rCoordinates[0];
+		const double& Eta = rCoordinates[1];
+		Vector NurbsBasisFunction = ZeroVector((mPolynomialDegreeP + 1)*(mPolynomialDegreeQ + 1));
+
+		Matrix NurbsBasisFunctionDerivativesXi = ZeroMatrix((mPolynomialDegreeP + 1), (mPolynomialDegreeQ + 1));
+		Matrix NurbsBasisFunctionDerivativesEta = ZeroMatrix((mPolynomialDegreeP + 1), (mPolynomialDegreeQ + 1));
+
+		Matrix NurbsBasisFunctionSecondDerivativesXi = ZeroMatrix((mPolynomialDegreeP + 1), (mPolynomialDegreeQ + 1));
+		Matrix NurbsBasisFunctionSecondDerivativesEta = ZeroMatrix((mPolynomialDegreeP + 1), (mPolynomialDegreeQ + 1));
+		Matrix NurbsBasisFunctionSecondDerivativesXiEta = ZeroMatrix((mPolynomialDegreeP + 1), (mPolynomialDegreeQ + 1));
+
+
+		rResult.resize((mPolynomialDegreeP + 1)*(mPolynomialDegreeQ + 1), 5);
+		rResult = ZeroMatrix((mPolynomialDegreeP + 1)*(mPolynomialDegreeQ + 1), 5);
+
+		ElementGeometrySecondDerivatives(Xi, Eta,
+			NurbsBasisFunctionSecondDerivativesXi, 
+			NurbsBasisFunctionSecondDerivativesEta,
+			NurbsBasisFunctionSecondDerivativesXiEta, 
+			NurbsBasisFunctionDerivativesXi, 
+			NurbsBasisFunctionDerivativesEta, 
+			NurbsBasisFunction);
+
+
+		for (unsigned int i = 0; i<mPolynomialDegreeP + 1; i++)
+		{
+			for (int j = 0; j<mPolynomialDegreeQ + 1; j++)
+			{
+				rResult(i + (mPolynomialDegreeP + 1)*j, 0) = NurbsBasisFunctionDerivativesXi(i, j);
+				rResult(i + (mPolynomialDegreeP + 1)*j, 1) = NurbsBasisFunctionDerivativesEta(i, j);
+				rResult(i + (mPolynomialDegreeP + 1)*j, 2) = NurbsBasisFunctionSecondDerivativesXi(i, j);
+				rResult(i + (mPolynomialDegreeP + 1)*j, 3) = NurbsBasisFunctionSecondDerivativesEta(i, j);
+				rResult(i + (mPolynomialDegreeP + 1)*j, 4) = NurbsBasisFunctionSecondDerivativesXiEta(i, j);
+			}
+		}
+		//KRATOS_WATCH(rResult)
+
+		return rResult;
+	}
 
     /**
      * returns the second order derivatives of all shape functions
@@ -1224,7 +1332,7 @@ public:
     virtual Matrix& ShapeFunctionsSecondDerivatives( int order,
                                                      Vector N,
                                                      Matrix *rResult,
-                                                     double t ) const
+                                                     double t ) const 
     {
         KRATOS_THROW_ERROR( std::logic_error, "Nurbs_2d::ShapeFunctionsSecondDerivatives", "Second order derivatives not yet implemented" );
         return *rResult;
@@ -1240,7 +1348,7 @@ public:
     virtual Matrix& ShapeFunctionsThirdDerivatives(int order,
                                                    Vector N,
                                                    Matrix *rResult,
-                                                   double t ) const
+                                                   double t ) const 
     {
             KRATOS_THROW_ERROR( std::logic_error, "Nurbs_2d::ShapeFunctionsThirdDerivatives", "Third order derivatives not yet implemented" );
             return *rResult;
@@ -1269,8 +1377,9 @@ public:
          */
 
         int NumberOfSpansXi(0), NumberOfSpansEta(0), IndexU(0), IndexV(0);
-        double KnotsXi[2*mPolynomialDegreeP],KnotsEta[2*mPolynomialDegreeQ];
-        Vector VectorKnotsXi(2*mPolynomialDegreeP), VectorKnotsEta(2*mPolynomialDegreeQ);
+		Vector KnotsXi(2 * mPolynomialDegreeP);
+		Vector KnotsEta(2 * mPolynomialDegreeQ);
+		Vector VectorKnotsXi(2*mPolynomialDegreeP), VectorKnotsEta(2*mPolynomialDegreeQ);
         double xi,eta;
 
         for (int i = 1; i <= mKnotsXi.size() - 2*mPolynomialDegreeP; i++)
@@ -1310,10 +1419,8 @@ public:
                         mUpperEta = mKnotsEta(mPolynomialDegreeQ+j);
                         xi = (mKnotsXi(mPolynomialDegreeP+i)+mKnotsXi(mPolynomialDegreeP+i-1))/2;
                         eta = (mKnotsEta(mPolynomialDegreeQ+j)+mKnotsEta(mPolynomialDegreeQ+j-1))/2;
-                        IndexU = FindKnotsToEvaluate(mPolynomialDegreeP,xi,1,&KnotsXi[0])-mPolynomialDegreeP;
-                        IndexV = FindKnotsToEvaluate(mPolynomialDegreeQ,eta,2,&KnotsEta[0])-mPolynomialDegreeQ;
-                        VectorKnotsXi = ConvertArrayToVector(&KnotsXi[0],2*mPolynomialDegreeP);
-                        VectorKnotsEta = ConvertArrayToVector(&KnotsEta[0],2*mPolynomialDegreeQ);
+                        IndexU = FindKnotsToEvaluate(mPolynomialDegreeP,xi,1,&KnotsXi(0))-mPolynomialDegreeP;
+                        IndexV = FindKnotsToEvaluate(mPolynomialDegreeQ,eta,2,&KnotsEta(0))-mPolynomialDegreeQ;
                         PointerVector< Node<3> > ControlPointsElement;
                         for(int k=0; k <= mPolynomialDegreeQ; k++)
                         {
@@ -1321,14 +1428,13 @@ public:
                             {
                                 ControlPointsElement.push_back(this->Points()((IndexV+k)*(mNumberOfCPsU)+(IndexU+l)));
                                 WeightsElement[k *(mPolynomialDegreeP+1) + l] = mWeights[(IndexV+k)*(mNumberOfCPsU)+(IndexU+l)];
-
+								
                             }
                         }
-
                         GeometryContainer[counter] = Geometry< Node<3> >::Pointer( new NurbsPatchGeometry2D(ControlPointsElement,
                                                                                                             WeightsElement,
-                                                                                                            VectorKnotsXi,
-                                                                                                            VectorKnotsEta,
+																											KnotsXi,
+                                                                                                            KnotsEta,
                                                                                                             mPolynomialDegreeP,
                                                                                                             mPolynomialDegreeQ,
                                                                                                             mPolynomialDegreeP+1,
@@ -1452,8 +1558,10 @@ public:
 
     void BaseVectors(double Xi, double Eta, Vector &gXi, Vector &gEta) const
     {
+        gXi.resize(3);
         gXi.resize(3,false);
         gXi = ZeroVector(3);
+        gEta.resize(3);
         gEta.resize(3,false);
         gEta = ZeroVector(3);
 
@@ -1488,7 +1596,7 @@ public:
      * @return: 3D-Vector which contains the normal vector
      */
 
-    Vector& NormalVectorToNurbsSurface(double Xi, double Eta)const
+    Vector NormalVectorToNurbsSurface(double Xi, double Eta)const
     {
         Vector gXi,gEta;
         BaseVectors(Xi,Eta,gXi,gEta);
@@ -1794,80 +1902,223 @@ private:
      *          j = Control Point index in Eta-direction
      *
      */
-    Matrix ElementGeometryDerivatives(double Xi,
-                                      double Eta,
-                                      Matrix &NurbsBasisFunctionDerivativesXi,
-                                      Matrix &NurbsBasisFunctionDerivativesEta,
-                                      Vector &NurbsFunctionsValues)const
-    {
-        NurbsBasisFunctionDerivativesXi.resize(mPolynomialDegreeP+1,mPolynomialDegreeQ+1,false);
-        NurbsBasisFunctionDerivativesEta.resize(mPolynomialDegreeP+1,mPolynomialDegreeQ+1,false);
-        NurbsFunctionsValues.resize((mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1),false);
-        NurbsBasisFunctionDerivativesXi = ZeroMatrix(mPolynomialDegreeP+1,mPolynomialDegreeQ+1);
-        NurbsBasisFunctionDerivativesEta = ZeroMatrix(mPolynomialDegreeP+1,mPolynomialDegreeQ+1);
-        NurbsFunctionsValues = ZeroVector((mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1));
-        int der_count(1);
-        double SumDenominatorXiEta(0),SumNumeratorXi(0),SumNumeratorEta(0);
-        double dN_Xi[mPolynomialDegreeP+1][mPolynomialDegreeP+1];
-        double dN_Eta[mPolynomialDegreeQ+1][mPolynomialDegreeQ+1];
-        ON_ShapeFunctionValue(mPolynomialDegreeP+1, &mKnotsXi[0], Xi, &dN_Xi[0][0]);
-        ON_ShapeFunctionValue(mPolynomialDegreeQ+1, &mKnotsEta[0], Eta, &dN_Eta[0][0]);
-        Vector N_Xi(mPolynomialDegreeP+1),N_Eta(mPolynomialDegreeQ+1);
+	Matrix ElementGeometryDerivatives(double Xi,
+		double Eta,
+		Matrix &NurbsBasisFunctionDerivativesXi,
+		Matrix &NurbsBasisFunctionDerivativesEta,
+		Vector &NurbsFunctionsValues)const
+	{
+		//std::cout<<"ElementGeometryDerivatives "<<std::endl;
+		NurbsBasisFunctionDerivativesXi.resize(mPolynomialDegreeP + 1, mPolynomialDegreeQ + 1);
+		NurbsBasisFunctionDerivativesEta.resize(mPolynomialDegreeP + 1, mPolynomialDegreeQ + 1);
+		NurbsFunctionsValues.resize((mPolynomialDegreeP + 1)*(mPolynomialDegreeQ + 1));
+		NurbsBasisFunctionDerivativesXi = ZeroMatrix(mPolynomialDegreeP + 1, mPolynomialDegreeQ + 1);
+		NurbsBasisFunctionDerivativesEta = ZeroMatrix(mPolynomialDegreeP + 1, mPolynomialDegreeQ + 1);
+		NurbsFunctionsValues = ZeroVector((mPolynomialDegreeP + 1)*(mPolynomialDegreeQ + 1));
+		int der_count(1);
+		double SumDenominatorXiEta(0), SumNumeratorXi(0), SumNumeratorEta(0);
+		Matrix dN_Xi(mPolynomialDegreeP + 1,mPolynomialDegreeP + 1);
+		Matrix dN_Eta(mPolynomialDegreeQ + 1,mPolynomialDegreeQ + 1);
 
-        for (int i=0;i<mPolynomialDegreeP+1;i++)
-        {
-            N_Xi[i] = dN_Xi[0][i];
-        }
+		// Call the function of open NURBS to calculate Bspline shape functions;
+		ON_ShapeFunctionValue(mPolynomialDegreeP + 1, &mKnotsXi[0], Xi, &dN_Xi(0,0));
+		ON_ShapeFunctionValue(mPolynomialDegreeQ + 1, &mKnotsEta[0], Eta, &dN_Eta(0,0));
+		Vector N_Xi(mPolynomialDegreeP + 1), N_Eta(mPolynomialDegreeQ + 1);
 
-        for (int j=0;j<mPolynomialDegreeQ+1;j++)
-        {
-            N_Eta[j] = dN_Eta[0][j];
-        }
+		for (int i = 0; i<mPolynomialDegreeP + 1; i++)
+		{
+			N_Xi[i] = dN_Xi(0,i);
+		}
 
-        Matrix ShapeFunctionsValuesMatrixForm(mPolynomialDegreeP+1,mPolynomialDegreeQ+1);
-        ShapeFunctionsValuesMatrixForm = ElementGeometryNurbsFunctionsValues(N_Xi,N_Eta);
+		for (int j = 0; j<mPolynomialDegreeQ + 1; j++)
+		{
+			N_Eta[j] = dN_Eta(0,j);
+		}
+
+		Matrix ShapeFunctionsValuesMatrixForm(mPolynomialDegreeP + 1, mPolynomialDegreeQ + 1);
+
+		// Modify Bsplines to NURBS taking into account the weights;
+		ShapeFunctionsValuesMatrixForm = BSplinesToNurbs(N_Xi, N_Eta);
 
 
-        for(int j = 0 ; j<mPolynomialDegreeQ+1; j++)
-        {
-            for(int i=0 ; i< mPolynomialDegreeP+1; i++)
-            {
-                 NurbsFunctionsValues[j*(mPolynomialDegreeP+1)+i] = ShapeFunctionsValuesMatrixForm(i,j) ;
-            }
-        }
+		for (int j = 0; j<mPolynomialDegreeQ + 1; j++)
+		{
+			for (int i = 0; i< mPolynomialDegreeP + 1; i++)
+			{
+				NurbsFunctionsValues[j*(mPolynomialDegreeP + 1) + i] = ShapeFunctionsValuesMatrixForm(i, j);
+			}
+		}
 
-        ON_EvaluateNurbsBasisDerivatives(mPolynomialDegreeQ+1, &mKnotsEta[0], der_count,&dN_Eta[0][0]);
-        ON_EvaluateNurbsBasisDerivatives(mPolynomialDegreeP+1,&mKnotsXi[0], der_count,&dN_Xi[0][0]);
-        Matrix Jacobian2D(2,2);
-        Jacobian2D = ZeroMatrix(2,2);
+		ON_EvaluateNurbsBasisDerivatives(mPolynomialDegreeQ + 1, &mKnotsEta[0], der_count, &dN_Eta(0,0));
+		ON_EvaluateNurbsBasisDerivatives(mPolynomialDegreeP + 1, &mKnotsXi[0], der_count, &dN_Xi(0,0));
+		Matrix Jacobian2D(2, 2);
+		Jacobian2D = ZeroMatrix(2, 2);
 
-        for (int i=0; i<mPolynomialDegreeP+1; i++)
-        {
-            for (int j=0; j<mPolynomialDegreeQ+1; j++)
-            {
-                SumDenominatorXiEta += dN_Xi[0][i]*dN_Eta[0][j]*mWeights[i+mNumberOfCPsU*j];
-                SumNumeratorXi += dN_Xi[1][i]*dN_Eta[0][j]*mWeights[i+mNumberOfCPsU*j];
-                SumNumeratorEta += dN_Xi[0][i]*dN_Eta[1][j]*mWeights[i+mNumberOfCPsU*j];
-            }
-        }
+		for (int i = 0; i<mPolynomialDegreeP + 1; i++)
+		{
+			for (int j = 0; j<mPolynomialDegreeQ + 1; j++)
+			{
+				SumDenominatorXiEta += dN_Xi(0,i) * dN_Eta(0,j) * mWeights[i + mNumberOfCPsU*j];
+				SumNumeratorXi += dN_Xi(1,i) * dN_Eta(0,j) * mWeights[i + mNumberOfCPsU*j];
+				SumNumeratorEta += dN_Xi(0,i) * dN_Eta(1,j) * mWeights[i + mNumberOfCPsU*j];
+			}
+		}
 
-        double invSumDenominatorXiEta(1/(SumDenominatorXiEta*SumDenominatorXiEta));
+		double invSumDenominatorXiEta(1 / (SumDenominatorXiEta*SumDenominatorXiEta));
 
-            for (int j=0; j<mPolynomialDegreeQ+1; j++)
-            {
-            for (int i=0; i<mPolynomialDegreeP+1; i++)
-            {
-                NurbsBasisFunctionDerivativesXi(i,j) = (SumDenominatorXiEta * dN_Xi[1][i] * dN_Eta[0][j] * mWeights[i+mNumberOfCPsU*j] - dN_Xi[0][i] * dN_Eta[0][j] * mWeights[i+mNumberOfCPsU*j]*SumNumeratorXi) * invSumDenominatorXiEta;
-                NurbsBasisFunctionDerivativesEta(i,j) = (SumDenominatorXiEta * dN_Xi[0][i] * dN_Eta[1][j] * mWeights[i+mNumberOfCPsU*j] - dN_Xi[0][i] * dN_Eta[0][j] * mWeights[i+mNumberOfCPsU*j]*SumNumeratorEta) * invSumDenominatorXiEta;
-                Jacobian2D(0,0) += NurbsBasisFunctionDerivativesXi(i,j)* this->Points()[i+(mPolynomialDegreeP+1)*j].X();
-                Jacobian2D(0,1) += NurbsBasisFunctionDerivativesXi(i,j)* this->Points()[i+(mPolynomialDegreeP+1)*j].Y();
-                Jacobian2D(1,0) += NurbsBasisFunctionDerivativesEta(i,j)* this->Points()[i+(mPolynomialDegreeP+1)*j].X();
-                Jacobian2D(1,1) += NurbsBasisFunctionDerivativesEta(i,j)* this->Points()[i+(mPolynomialDegreeP+1)*j].Y();
-            }
-            }
+		for (int j = 0; j<mPolynomialDegreeQ + 1; j++)
+		{
+			for (int i = 0; i<mPolynomialDegreeP + 1; i++)
+			{
+				NurbsBasisFunctionDerivativesXi(i, j) = (SumDenominatorXiEta * dN_Xi(1,i) * dN_Eta(0,j) * mWeights[i + mNumberOfCPsU*j] - dN_Xi(0,i) * dN_Eta(0,j) * mWeights[i + mNumberOfCPsU*j] * SumNumeratorXi) * invSumDenominatorXiEta;
+				NurbsBasisFunctionDerivativesEta(i, j) = (SumDenominatorXiEta * dN_Xi(0,i) * dN_Eta(1,j) * mWeights[i + mNumberOfCPsU*j] - dN_Xi(0,i) * dN_Eta(0,j) * mWeights[i + mNumberOfCPsU*j] * SumNumeratorEta) * invSumDenominatorXiEta;
+				Jacobian2D(0, 0) += NurbsBasisFunctionDerivativesXi(i, j)* this->Points()[i + (mPolynomialDegreeP + 1)*j].X();
+				Jacobian2D(0, 1) += NurbsBasisFunctionDerivativesXi(i, j)* this->Points()[i + (mPolynomialDegreeP + 1)*j].Y();
+				Jacobian2D(1, 0) += NurbsBasisFunctionDerivativesEta(i, j)* this->Points()[i + (mPolynomialDegreeP + 1)*j].X();
+				Jacobian2D(1, 1) += NurbsBasisFunctionDerivativesEta(i, j)* this->Points()[i + (mPolynomialDegreeP + 1)*j].Y();
+			}
+		}
 
-        return Jacobian2D;
-    }
+		return Jacobian2D;
+	}
+
+
+	void ElementGeometrySecondDerivatives(
+		double Xi,
+		double Eta,
+		Matrix &NurbsBasisFunctionSecondDerivativesXi,
+		Matrix &NurbsBasisFunctionSecondDerivativesEta,
+		Matrix &NurbsBasisFunctionSecondDerivativesXiEta,
+		Matrix &NurbsBasisFunctionDerivativesXi,
+		Matrix &NurbsBasisFunctionDerivativesEta,
+		Vector &NurbsFunctionsValues)const
+	{
+		NurbsBasisFunctionSecondDerivativesXi.resize(mPolynomialDegreeP + 1, mPolynomialDegreeQ + 1);
+		NurbsBasisFunctionSecondDerivativesEta.resize(mPolynomialDegreeP + 1, mPolynomialDegreeQ + 1);
+		NurbsBasisFunctionSecondDerivativesXiEta.resize((mPolynomialDegreeP + 1),(mPolynomialDegreeQ + 1));
+		NurbsBasisFunctionDerivativesXi.resize(mPolynomialDegreeP + 1, mPolynomialDegreeQ + 1);
+		NurbsBasisFunctionDerivativesEta.resize(mPolynomialDegreeP + 1, mPolynomialDegreeQ + 1);
+		NurbsFunctionsValues.resize((mPolynomialDegreeP + 1)*(mPolynomialDegreeQ + 1));
+
+		NurbsBasisFunctionSecondDerivativesXi = ZeroMatrix(mPolynomialDegreeP + 1, mPolynomialDegreeQ + 1);
+		NurbsBasisFunctionSecondDerivativesEta = ZeroMatrix(mPolynomialDegreeP + 1, mPolynomialDegreeQ + 1);
+		NurbsBasisFunctionSecondDerivativesXiEta = ZeroMatrix((mPolynomialDegreeP + 1),(mPolynomialDegreeQ + 1));
+		NurbsBasisFunctionDerivativesXi = ZeroMatrix(mPolynomialDegreeP + 1, mPolynomialDegreeQ + 1);
+		NurbsBasisFunctionDerivativesEta = ZeroMatrix(mPolynomialDegreeP + 1, mPolynomialDegreeQ + 1);
+		NurbsFunctionsValues = ZeroVector((mPolynomialDegreeP + 1)*(mPolynomialDegreeQ + 1));
+
+		int der_count = 2;
+		double SumDenominatorXiEta(0), SumNumeratorXi(0), SumNumeratorEta(0);
+		double SumDenominatorSecondXiEta(0), SumNumeratorSecondXi(0), SumNumeratorSecondEta(0); //, SumNumeratorSecondXiEta(0);
+
+		Matrix dN_Xi = ZeroMatrix(mPolynomialDegreeP + 2, mPolynomialDegreeP + 1);
+		Matrix dN_Eta = ZeroMatrix(mPolynomialDegreeQ + 2, mPolynomialDegreeQ + 1);
+
+		// Call the function of open NURBS to calculate Bspline shape functions;
+		ON_ShapeFunctionValue(mPolynomialDegreeP + 1, &mKnotsXi[0], Xi, &dN_Xi(0, 0));
+		ON_ShapeFunctionValue(mPolynomialDegreeQ + 1, &mKnotsEta[0], Eta, &dN_Eta(0, 0));
+		Vector N_Xi = ZeroVector(mPolynomialDegreeP + 1);
+		Vector N_Eta = ZeroVector(mPolynomialDegreeQ + 1);
+
+		for (int i = 0; i<mPolynomialDegreeP + 1; i++)
+		{
+			N_Xi[i] = dN_Xi(0, i);
+		}
+
+		for (int j = 0; j<mPolynomialDegreeQ + 1; j++)
+		{
+			N_Eta[j] = dN_Eta(0, j);
+		}
+
+		Matrix ShapeFunctionsValuesMatrixForm = ZeroMatrix(mPolynomialDegreeP + 1, mPolynomialDegreeQ + 1);
+
+		// Modify Bsplines to NURBS taking into account the weights;
+		ShapeFunctionsValuesMatrixForm = BSplinesToNurbs(N_Xi, N_Eta);
+
+		for (int j = 0; j<mPolynomialDegreeQ + 1; j++)
+		{
+			for (int i = 0; i< mPolynomialDegreeP + 1; i++)
+			{
+				NurbsFunctionsValues[j*(mPolynomialDegreeP + 1) + i] = ShapeFunctionsValuesMatrixForm(i, j);
+			}
+		}
+
+		ON_EvaluateNurbsBasisDerivatives(mPolynomialDegreeQ + 1, &mKnotsEta[0], der_count, &dN_Eta(0, 0));
+		ON_EvaluateNurbsBasisDerivatives(mPolynomialDegreeP + 1, &mKnotsXi[0], der_count, &dN_Xi(0, 0));
+		//Matrix Jacobian2D(2, 2);
+		//Jacobian2D = ZeroMatrix(2, 2);
+
+		//KRATOS_WATCH(dN_Eta)
+		//KRATOS_WATCH(dN_Xi)
+
+		//KRATOS_WATCH(mWeights)
+		for (int j = 0; j<mPolynomialDegreeQ + 1; j++)
+		{
+			for (int i = 0; i<mPolynomialDegreeP + 1; i++)
+			{
+				//std::cout <<  mWeights[i + (mPolynomialDegreeP + 1)*j] << std::endl;
+
+				SumDenominatorXiEta += dN_Xi(0, i) * dN_Eta(0, j) * mWeights[i + (mPolynomialDegreeP + 1)*j];
+				//std::cout << dN_Xi(0, i) * dN_Eta(0, j) * mWeights[i + (mPolynomialDegreeP + 1)*j] << std::endl;
+
+				SumNumeratorXi += dN_Xi(1, i) * dN_Eta(0, j) * mWeights[i + (mPolynomialDegreeP + 1)*j];
+				SumNumeratorEta += dN_Xi(0, i) * dN_Eta(1, j) * mWeights[i + (mPolynomialDegreeP + 1)*j];
+
+				//std::cout << dN_Xi(1, i) * dN_Eta(0, j) * mWeights[i + (mPolynomialDegreeP + 1)*j] << std::endl;
+				//std::cout << dN_Xi(0, i) * dN_Eta(1, j) * mWeights[i + (mPolynomialDegreeP + 1)*j] << std::endl;
+
+
+				SumNumeratorSecondXi += dN_Xi(2, i)*dN_Eta(0, j)*mWeights[i + (mPolynomialDegreeP + 1)*j];
+				SumNumeratorSecondEta += dN_Xi(0, i)*dN_Eta(2, j)*mWeights[i + (mPolynomialDegreeP + 1)*j];
+				SumDenominatorSecondXiEta += dN_Xi(1, i)*dN_Eta(1, j)*mWeights[i + (mPolynomialDegreeP + 1)*j];
+			}
+		}
+		
+		double invSumDenominator = 1/ SumDenominatorXiEta;
+		double invSumDenominatorXiEta(1 / (SumDenominatorXiEta*SumDenominatorXiEta));
+		double invSumDenominatorXiEta2 = 1 / (SumDenominatorXiEta*SumDenominatorXiEta*SumDenominatorXiEta);
+
+		for (int j = 0; j<mPolynomialDegreeQ + 1; j++)
+		{
+			for (int i = 0; i<mPolynomialDegreeP + 1; i++)
+			{
+				NurbsBasisFunctionDerivativesXi(i, j) = (SumDenominatorXiEta * dN_Xi(1, i) * dN_Eta(0, j) * mWeights[i + (mPolynomialDegreeP + 1)*j] 
+					- dN_Xi(0, i) * dN_Eta(0, j) * mWeights[i + (mPolynomialDegreeP + 1)*j] * SumNumeratorXi) * invSumDenominatorXiEta;
+				NurbsBasisFunctionDerivativesEta(i, j) = (SumDenominatorXiEta * dN_Xi(0, i) * dN_Eta(1, j) * mWeights[i + (mPolynomialDegreeP + 1)*j]
+					- dN_Xi(0, i) * dN_Eta(0, j) * mWeights[i + (mPolynomialDegreeP + 1)*j] * SumNumeratorEta) * invSumDenominatorXiEta;
+
+				NurbsBasisFunctionSecondDerivativesXi(i, j) = dN_Xi(2, i)*dN_Eta(0, j)*mWeights[i + (mPolynomialDegreeP + 1)*j] * invSumDenominator
+					- 2.0*dN_Xi(1, i) * dN_Eta(0, j) * mWeights[i + (mPolynomialDegreeP + 1)*j] * SumNumeratorXi * invSumDenominatorXiEta
+					- dN_Xi(0, i) * dN_Eta(0, j) * mWeights[i + (mPolynomialDegreeP + 1)*j] * SumDenominatorSecondXiEta * invSumDenominatorXiEta
+					+ 2.0 * dN_Xi(0, i) * dN_Eta(0, j) * mWeights[i + (mPolynomialDegreeP + 1)*j] * SumNumeratorXi * SumNumeratorXi * invSumDenominatorXiEta2;
+
+
+				NurbsBasisFunctionSecondDerivativesEta(i, j) = dN_Xi(0, i)*dN_Eta(2, j)*mWeights[i + (mPolynomialDegreeP + 1)*j] * invSumDenominator
+					- 2.0*dN_Xi(0, i) * dN_Eta(1, j) * mWeights[i + (mPolynomialDegreeP + 1)*j] * SumNumeratorEta * invSumDenominatorXiEta
+					- dN_Xi(0, i) * dN_Eta(0, j) * mWeights[i + (mPolynomialDegreeP + 1)*j] * SumNumeratorSecondEta * invSumDenominatorXiEta 
+					+ 2.0*dN_Xi(0, i) * dN_Eta(0, j) * mWeights[i + (mPolynomialDegreeP + 1)*j] * SumNumeratorEta * SumNumeratorEta * invSumDenominatorXiEta2;
+
+				NurbsBasisFunctionSecondDerivativesXiEta(i, j) = dN_Xi(1, i)*dN_Eta(1, j)*mWeights[i + (mPolynomialDegreeP + 1)*j] * invSumDenominator
+					- dN_Xi(1, i) * dN_Eta(0, j) * mWeights[i + (mPolynomialDegreeP + 1)*j] *SumNumeratorEta * invSumDenominatorXiEta
+					- dN_Xi(0, i) * dN_Eta(1, j) * mWeights[i + (mPolynomialDegreeP + 1)*j] *SumNumeratorXi * invSumDenominatorXiEta
+					- dN_Xi(0, i) * dN_Eta(0, j) * mWeights[i + (mPolynomialDegreeP + 1)*j] * SumDenominatorSecondXiEta * invSumDenominatorXiEta
+					+ 2.0* dN_Xi(0, i) * dN_Eta(0, j) * mWeights[i + (mPolynomialDegreeP + 1)*j] * SumNumeratorXi * SumNumeratorEta * invSumDenominatorXiEta2;
+
+				//Jacobian2D(0, 0) += NurbsBasisFunctionDerivativesXi(i, j)* this->Points()[i + (mPolynomialDegreeP + 1)*j].X();
+				//Jacobian2D(0, 1) += NurbsBasisFunctionDerivativesXi(i, j)* this->Points()[i + (mPolynomialDegreeP + 1)*j].Y();
+				//Jacobian2D(1, 0) += NurbsBasisFunctionDerivativesEta(i, j)* this->Points()[i + (mPolynomialDegreeP + 1)*j].X();
+				//Jacobian2D(1, 1) += NurbsBasisFunctionDerivativesEta(i, j)* this->Points()[i + (mPolynomialDegreeP + 1)*j].Y();
+			}
+		}
+		//KRATOS_WATCH(dN_Eta)
+		//KRATOS_WATCH(dN_Xi)
+		//KRATOS_WATCH(NurbsBasisFunctionDerivativesXi)
+		//KRATOS_WATCH(NurbsBasisFunctionDerivativesEta)
+		//KRATOS_WATCH(NurbsBasisFunctionSecondDerivativesXi)
+		//KRATOS_WATCH(NurbsBasisFunctionSecondDerivativesEta)
+		//KRATOS_WATCH(NurbsBasisFunctionSecondDerivativesXiEta)
+		//return Jacobian2D;
+	}
 
 
 
@@ -1910,6 +2161,8 @@ private:
 
 
 
+
+
     /**
      * ElementGeometryDerivatives calculates the local derivatives of x and y
      * in the ElementGeometry. Therefore it needs the already reduced ElementGeometry
@@ -1937,6 +2190,48 @@ private:
         return Jacobian2D;
     }
 
+
+
+
+	     /**
+     * BSplinesToNurbs function takes as input the
+     * evaluated B-Spline Shape Functions and modifies them to NURBS-
+     * Basis Functions taking into account the weights
+     * Thereby the NURBS-Functions are stored in a Matrix NurbsBasisFunction_i_j where
+     *          i = Control Point index in Xi-direction
+     *          j = Control Point index in Eta-direction
+     *
+     * @param N_Xi are the B-Spline Shape Functions Values in Xi-direction
+     * @param N_Eta are the B-Spline Shape Functions Values in Eta-direction
+     * @return NurbsBasisFunction
+     */
+    Matrix BSplinesToNurbs(Vector N_Xi,Vector N_Eta)const
+    {
+
+        //std::cout<<"BSplinesToNurbs (nurbs_2d.h)"<<std::endl;
+        Matrix NurbsBasisFunction(mPolynomialDegreeP+1,mPolynomialDegreeQ+1);
+
+        double sum(0);
+
+        for (int i=0; i<mPolynomialDegreeP+1; i++)
+        {
+            for (int j=0; j<mPolynomialDegreeQ+1; j++)
+            {
+                sum += N_Xi[i]*N_Eta[j]*mWeights[i+mNumberOfCPsU*j];
+                NurbsBasisFunction(i,j) = N_Xi[i]*N_Eta[j]*mWeights[i+mNumberOfCPsU*j];
+            }
+        }
+        const double inv_sum = 1.0/sum;
+        for (int i=0; i<mPolynomialDegreeP+1; i++)
+        {
+            for (int j=0; j<mPolynomialDegreeQ+1; j++)
+            {
+                NurbsBasisFunction(i,j) = NurbsBasisFunction(i,j)*inv_sum;
+            }
+        }
+
+        return NurbsBasisFunction;
+    }
 
 
 
@@ -2002,10 +2297,10 @@ private:
 
     Matrix ElementGeometryNurbsFunctionsValues(const double Xi,const double Eta)const
     {
-        double N_Xi[mPolynomialDegreeP+1][mPolynomialDegreeP+1];
-        double N_Eta[mPolynomialDegreeQ+1][mPolynomialDegreeQ+1];
-        ON_ShapeFunctionValue(mPolynomialDegreeP+1, &mKnotsXi[0], Xi, &N_Xi[0][0]);
-        ON_ShapeFunctionValue(mPolynomialDegreeQ+1, &mKnotsEta[0], Eta, &N_Eta[0][0]);
+        Matrix N_Xi(mPolynomialDegreeP+1,mPolynomialDegreeP+1);
+        Matrix N_Eta(mPolynomialDegreeQ+1,mPolynomialDegreeQ+1);
+        ON_ShapeFunctionValue(mPolynomialDegreeP+1, &mKnotsXi[0], Xi, &N_Xi(0,0));
+        ON_ShapeFunctionValue(mPolynomialDegreeQ+1, &mKnotsEta[0], Eta, &N_Eta(0,0));
 
         Matrix NurbsBasisFunction(mPolynomialDegreeP+1,mPolynomialDegreeQ+1);
         double sum(0);
@@ -2014,8 +2309,8 @@ private:
         {
             for (int j=0; j<mPolynomialDegreeQ+1; j++)
             {
-                sum += N_Xi[0][i]*N_Eta[0][j]*mWeights[i+mNumberOfCPsU*j];
-                NurbsBasisFunction(i,j) = N_Xi[0][i]*N_Eta[0][j]*mWeights[i+mNumberOfCPsU*j];
+                sum += N_Xi(0,i)*N_Eta(0,j)*mWeights[i+mNumberOfCPsU*j];
+                NurbsBasisFunction(i,j) = N_Xi(0,i)*N_Eta(0,j)*mWeights[i+mNumberOfCPsU*j];
             }
         }
         const double inv_sum = 1.0/sum;
