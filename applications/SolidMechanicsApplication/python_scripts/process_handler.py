@@ -1,7 +1,5 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import os
-import numpy
-# importing the Kratos Library
+#import kratos core and applications
 import KratosMultiphysics 
 
 KratosMultiphysics.CheckForPreviousImport()
@@ -23,7 +21,7 @@ class ProcessHandler(KratosMultiphysics.Process):
             "loads_process_list"          : [],
             "problem_process_list"        : [],
             "output_process_list"         : [],
-            "process_sub_model_part_tree_list" : []
+            "processes_sub_model_part_tree_list" : []
         }
         """)
  
@@ -81,11 +79,11 @@ class ProcessHandler(KratosMultiphysics.Process):
         #build sorted list of processes
 
         # Assumptions: (a) each supplied list is separated and has no intersections
-        #              (b) process_sub_model_part_tree_list sets a hierarchy for process sorting
+        #              (b) processes_sub_model_part_tree_list sets a hierarchy for process sorting
         #              (c) if no list is supplied the resultant list of processes is the one given by the input
         
         #sort processes using groups category and order:
-        if( self.settings["process_sub_model_part_tree_list"].size() > 0 ):
+        if( self.settings["processes_sub_model_part_tree_list"].size() > 0 ):
 
             print("::[Process_Handler]:: Sorting Loads and Constraints")
             
@@ -131,7 +129,10 @@ class ProcessHandler(KratosMultiphysics.Process):
     #
     def ConstructSortedList(self, process_list):
 
-        constructed_process = numpy.empty( process_list.size(), dtype=numpy.bool_)
+        constructed_process = []
+        for i in range(0, process_list.size()):
+            constructed_process.append(False)
+
         #build sorted list
         sorted_process_list   = []
         for j in self.list_of_sub_model_parts:
@@ -159,12 +160,12 @@ class ProcessHandler(KratosMultiphysics.Process):
     #
     def Categorize(self):
         
-        process_sub_model_parts = self.settings["process_sub_model_part_tree_list"]
+        processes_sub_model_parts = self.settings["processes_sub_model_part_tree_list"]
        
         #set number of categories
         number_of_categories = 1
-        for i in range(0,process_sub_model_parts.size()):
-            group = process_sub_model_parts[i].GetString()
+        for i in range(0,processes_sub_model_parts.size()):
+            group = processes_sub_model_parts[i].GetString()
             group_tree = group.split('/')
             if( number_of_categories < len(group_tree) ):
                 number_of_categories = len(group_tree)
@@ -174,8 +175,8 @@ class ProcessHandler(KratosMultiphysics.Process):
             self.category_lists.append([])
             
         #set submodelparts in categories
-        for i in range(0,process_sub_model_parts.size()):
-            group = process_sub_model_parts[i].GetString()
+        for i in range(0,processes_sub_model_parts.size()):
+            group = processes_sub_model_parts[i].GetString()
             group_tree = group.split('/')
             self.category_lists[len(group_tree)-1].append(group_tree[len(group_tree)-1])
             
@@ -184,11 +185,11 @@ class ProcessHandler(KratosMultiphysics.Process):
 
         self.list_of_sub_model_parts = []
 
-        process_sub_model_parts = self.settings["process_sub_model_part_tree_list"]        
+        processes_sub_model_parts = self.settings["processes_sub_model_part_tree_list"]        
         #set unique order
         for category in self.category_lists:
             for i in range(0,len(category)):
                 self.list_of_sub_model_parts.append(category[i])
                     
 
-        #print(" order", self.list_of_sub_model_parts)
+        print(" order", self.list_of_sub_model_parts)

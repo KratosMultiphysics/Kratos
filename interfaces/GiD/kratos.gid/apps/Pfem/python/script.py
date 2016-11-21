@@ -147,8 +147,8 @@ if( ProjectParameters.Has("problem_process_list") ):
     process_parameters.AddValue("problem_process_list", ProjectParameters["problem_process_list"])
 if( ProjectParameters.Has("output_process_list") ):
     process_parameters.AddValue("output_process_list", ProjectParameters["output_process_list"])
-if( ProjectParameters.Has("process_sub_model_part_tree_list") ):
-    process_parameters.AddValue("process_sub_model_part_tree_list",ProjectParameters["process_sub_model_part_tree_list"])
+if( ProjectParameters.Has("processes_sub_model_part_tree_list") ):
+    process_parameters.AddValue("processes_sub_model_part_tree_list",ProjectParameters["processes_sub_model_part_tree_list"])
 
 model_processes = process_handler.ProcessHandler(Model, process_parameters)
 
