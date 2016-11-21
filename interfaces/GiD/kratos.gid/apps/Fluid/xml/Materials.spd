@@ -1,11 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="materials" pn="Materials" un="FLMaterials" icon="material16" help="Materials database (2D)" open_window="0">
-    <blockdata n='material' name='Air' sequence='1' editable_name='unique' icon="material16" help='Material definition'>
-      <value n="DENSITY" pn="Density" v="1.225" help="Mass density of the material" unit_magnitude="Density" units="kg/m^3"/>
-      <value n="VISCOSITY" pn="Kinematic viscosity" v="1.4776e-5" unit_magnitude="L^2/T" units="m^2/s" help="Kinematic viscosity of the material"/>
-    </blockdata>
-    <blockdata n='material' name='Water' sequence='1' editable_name='unique' icon="material16" help='Material definition'>
-      <value n="DENSITY" pn="Density" v="1000" help="Mass density of the material" unit_magnitude="Density" units="kg/m^3"/>
-      <value n="VISCOSITY" pn="Kinematic viscosity" v="8.9e-7" unit_magnitude="L^2/T" units="m^2/s" help="Kinematic viscosity of the material"/>
-    </blockdata>
+    <dynamicnode command="injectMaterials" args="MaterialType Fluid"/>
 </container>  

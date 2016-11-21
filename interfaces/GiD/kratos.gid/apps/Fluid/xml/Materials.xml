@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Materials>
+  <Material n="Air" MaterialType="Fluid" help="This element implements a Fractional Step Element">
+    <inputs>
+        <parameter n="DENSITY" pn="Density" v="1.225" unit_magnitude="Density" units="kg/m^3"/>
+        <parameter n="VISCOSITY" pn="Kinematic viscosity" v="1.4776e-5" unit_magnitude="L^2/T" units="m^2/s"/>
+    </inputs>
+  </Material>
+  <Material n="Water" MaterialType="Fluid" help="This element implements a Fractional Step Element">
+    <inputs>
+        <parameter n="DENSITY" pn="Density" v="1000" unit_magnitude="Density" units="kg/m^3"/>
+        <parameter n="VISCOSITY" pn="Kinematic viscosity" v="8.9e-7" unit_magnitude="L^2/T" units="m^2/s"/>
+    </inputs>
+  </Material>
+</Materials>

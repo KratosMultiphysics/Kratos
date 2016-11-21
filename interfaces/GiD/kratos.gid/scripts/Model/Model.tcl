@@ -7,6 +7,7 @@ namespace eval Model {
     variable SpatialDimension
     variable ValidSpatialDimensions
     variable SolutionStrategies
+    variable Materials
     variable Elements
     variable Conditions
     variable NodalConditions
@@ -23,6 +24,7 @@ proc Model::Init { } {
     variable dir
     variable SolutionStrategies
     variable Elements
+    variable Materials
     variable Conditions
     variable NodalConditions
     variable ConstitutiveLaws
@@ -33,6 +35,7 @@ proc Model::Init { } {
     
     set SolutionStrategies [list ]
     set Elements [list ]
+    set Materials [list ]
     set Conditions [list ]
     set NodalConditions [list ]
     set ConstitutiveLaws [list ]
@@ -50,7 +53,7 @@ proc Model::InitVariables {varName varValue} {
 }
 
 proc Model::getSolutionStrategies { SolutionStrategyFileName } {
-    variable SolutionStrategies
+    #variable SolutionStrategies
     variable dir
     
     #set SolutionStrategies [list ]
@@ -60,7 +63,7 @@ proc Model::getSolutionStrategies { SolutionStrategyFileName } {
 }
 
 proc Model::getElements { ElementsFileName } {
-    variable Elements
+    #variable Elements
     variable dir
     
     #set Elements [list ]
@@ -69,7 +72,7 @@ proc Model::getElements { ElementsFileName } {
     ParseElements $doc
 }
 proc Model::getConditions { ConditionsFileName } {
-    variable Conditions
+    #variable Conditions
     variable dir
     
     #set Conditions [list ]
@@ -78,7 +81,7 @@ proc Model::getConditions { ConditionsFileName } {
     ParseConditions $doc
 }
 proc Model::getNodalConditions { NodalConditionsFileName } {
-    variable NodalConditions
+    #variable NodalConditions
     variable dir
     
     #set Conditions [list ]
@@ -88,7 +91,7 @@ proc Model::getNodalConditions { NodalConditionsFileName } {
 }
 
 proc Model::getConstitutiveLaws { ConstitutiveLawsFileName } {
-    variable ConstitutiveLaws
+    #variable ConstitutiveLaws
     variable dir
     
     #set ConstitutiveLaws [list ]
@@ -98,7 +101,7 @@ proc Model::getConstitutiveLaws { ConstitutiveLawsFileName } {
 }
 
 proc Model::getSolvers { SolversFileName } {
-    variable Solvers
+    #variable Solvers
     variable dir
     
     #set Solvers [list ]
@@ -108,13 +111,18 @@ proc Model::getSolvers { SolversFileName } {
 }
 
 proc Model::getProcesses { ProcessesFileName } {
-    variable Processes
+    #variable Processes
     variable dir
     
     #set Processes [list ]
     dom parse [tDOM::xmlReadFile [file join $dir xml $ProcessesFileName]] doc
     
     ParseProcesses $doc
+}
+proc Model::getMaterials { MaterialsFileName } {
+    variable dir
+    dom parse [tDOM::xmlReadFile [file join $dir xml $MaterialsFileName]] doc
+    ParseMaterials $doc
 }
 
 proc Model::DestroyEverything { } {

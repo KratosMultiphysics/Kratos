@@ -818,6 +818,31 @@ proc spdAux::injectPartInputs { basenode {inputs ""} } {
     }
     $basenode delete
 }
+
+proc spdAux::injectMaterials { basenode args } {
+    set base [$basenode parent]
+    set materials [Model::GetMaterials {*}$args]
+    foreach mat $materials {
+        set matname [$mat getName]
+        set mathelp [$mat getAttribute help]
+        set inputs [$mat getInputs]
+        set matnode "<blockdata n='material' name='$matname' sequence='1' editable_name='unique' icon='material16' help='Material definition'>"
+        foreach inName [dict keys $inputs] {
+            set in [dict get $inputs $inName] 
+            set pn [$in getPublicName]
+            set units [$in getUnits]
+            set um [$in getUnitMagnitude]
+            set help [$in getHelp] 
+            set v [$in getDv]
+            set node "<value n='$inName' pn='$pn' v='$v' units='$units' unit_magnitude='$um' help='$help' />"
+            append matnode $node
+            
+        }
+        append matnode "</blockdata> \n"
+        $base appendXML $matnode
+    }
+    $basenode delete
+}
 proc spdAux::injectElementInputs { basenode args} {
     spdAux::injectPartInputs $basenode [::Model::GetAllElemInputs] 
 }
