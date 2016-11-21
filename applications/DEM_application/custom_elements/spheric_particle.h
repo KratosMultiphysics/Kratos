@@ -66,7 +66,7 @@ virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_p
 virtual void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& r_process_info );
 virtual void FinalizeSolutionStep(ProcessInfo& r_process_info);
 virtual void SymmetrizeStressTensor();
-virtual void CorrectRepresentativeVolume(double& rRepresentative_Volume, bool& is_smaller_than_sphere);
+virtual void CorrectRepresentativeVolume(double& rRepresentative_Volume/*, bool& is_smaller_than_sphere*/);
 virtual void ComputeReactions();
 virtual void PrepareForPrinting(ProcessInfo& r_process_info);
 virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
@@ -192,12 +192,15 @@ std::vector<array_1d<double, 3> > mNeighbourElasticContactForces;
 std::vector<array_1d<double, 3> > mNeighbourElasticExtraContactForces;
 
 virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
+virtual array_1d<double,3> ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info);
+
 virtual void MemberDeclarationFirstStep(const ProcessInfo& r_process_info);
 
 array_1d<double, 3> mContactMoment; //SLS
 
 Matrix* mStressTensor;
 Matrix* mSymmStressTensor;
+double mPartialRepresentativeVolume;
 
 std::vector<int> mFemOldNeighbourIds;
 
