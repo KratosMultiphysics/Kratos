@@ -359,6 +359,16 @@ proc write::getMeshId {cid group} {
     }
 }
 
+proc write::transformGroupName {groupid} {
+    set new_parts [list ]
+    foreach part [GidUtils::Split $groupid "//"]  {
+        foreach {bad good} {" " "_"} {
+            lappend new_parts [string map [list $bad $good] $part]
+        }
+    }
+    return [join $new_parts /]
+}
+
 proc write::writeGroupMesh { cid group {what "Elements"} {iniend ""} {tableid_list ""} } {
     variable meshes
     variable groups_type_name
@@ -367,9 +377,8 @@ proc write::writeGroupMesh { cid group {what "Elements"} {iniend ""} {tableid_li
     if {![dict exists $meshes [list $cid ${group}]]} {
         set mid [expr [llength [dict keys $meshes]] +1]
         if {$gtn ne "Mesh"} {
-            set underscoredGroup [string map {" " " "} $group]
-            regsub -all { +} $group "_" underscoredGroup
-            set mid "${cid}_${underscoredGroup}"
+            set good_name [write::transformGroupName $group]
+            set mid "${cid}_${good_name}"
         }
         dict set meshes [list $cid ${group}] $mid
         set gdict [dict create]
