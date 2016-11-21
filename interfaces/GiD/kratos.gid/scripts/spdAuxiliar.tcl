@@ -1275,7 +1275,7 @@ proc spdAux::ProcCheckNodalConditionState { domNode args } {
         set elemnames [list ]
         foreach elem $elems {
             set elemName [$elem @v]
-            if {$elemName eq ""} {[get_domnode_attribute $elem dict]; [get_domnode_attribute $elem values]; set elemName [$elem @v]}
+            if {$elemName eq ""} {get_domnode_attribute $elem dict; get_domnode_attribute $elem values; set elemName [$elem @v]}
             lappend elemnames $elemName
         }
         set elemnames [lsort -unique $elemnames]
@@ -1750,4 +1750,19 @@ proc spdAux::ProcCambioMat {domNode args} {
         }
     }
     RequestRefresh
+}
+
+proc spdAux::AddConditionGroupOnXPath {xpath groupid} {
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    set node [$root selectNodes $xpath]
+    return [AddConditionGroupOnNode $node $groupid]
+}
+proc spdAux::AddConditionGroupOnNode {basenode groupid} {
+    set newNode [gid_groups_conds::addF [$basenode toXPath] group [list n $groupid]]
+    foreach val [$basenode getElementsByTagName value] {
+        set newChild [$val cloneNode -deep]
+        $newNode appendChild $newChild
+    }
+    return $newNode
 }

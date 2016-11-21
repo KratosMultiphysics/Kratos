@@ -156,7 +156,7 @@ proc Wizard::ImportWizardData {} {
 
 proc Wizard::SetProperty { stepid propid value } {
     variable wprops
-    set wprops($stepid,$propid) $value
+    set wprops($stepid,$propid,value) $value
 }
 proc Wizard::GetProperty { stepid propid } {
     variable wprops

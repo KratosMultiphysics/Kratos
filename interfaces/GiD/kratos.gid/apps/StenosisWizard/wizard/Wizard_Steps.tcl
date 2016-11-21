@@ -202,7 +202,7 @@ proc StenosisWizard::Wizard::Material { win } {
             if {$type eq "combo"} {
                set values [Wizard::GetProperty Material $prop,values]
                set ent$j [ttk::combobox $labfr1.e$j -values $values -textvariable ::Wizard::wprops(Material,$prop,value) -width $entrywidth -state readonly]
-               bind $labfr1.e$j <<ComboboxSelected>> [list StenosisWizard::Wizard::ChangeFluidType %d] 
+               bind $labfr1.e$j <<ComboboxSelected>> [list StenosisWizard::Wizard::ChangeFluidType %W] 
             } {
                set ent$j [ttk::entry $labfr1.e$j -textvariable ::Wizard::wprops(Material,$prop,value) -width $entrywidth]
             }
@@ -249,25 +249,17 @@ proc StenosisWizard::Wizard::NextMaterial { } {
      # Quitar parts existentes
      gid_groups_conds::delete {container[@n='StenosisWizard']/condition[@n='Parts']/group}
      
-     set cl [Wizard::GetProperty Material ConstitutiveLaw,value]
-     set DENSITY [Wizard::GetProperty Material DENSITY,value]
-     set VISCOSITY [Wizard::GetProperty Material VISCOSITY,value]
-     set YIELD_STRESS [Wizard::GetProperty Material YIELD_STRESS,value]
-     set POWER_LAW_K [Wizard::GetProperty Material POWER_LAW_K,value]
-     set POWER_LAW_N [Wizard::GetProperty Material POWER_LAW_N,value]
-
      # Crear una part con los datos que toquen
-     gid_groups_conds::addF {container[@n='StenosisWizard']/condition[@n='Parts']} group {n Fluid}
+     set where {container[@n='StenosisWizard']/condition[@n='Parts']} 
+     set gnode [spdAux::AddConditionGroupOnXPath $where "Fluid"]
      
-     set group {container[@n='StenosisWizard']/condition[@n='Parts']/group[@n='Fluid']}
-     gid_groups_conds::addF $group value {n Element pn Element dict {[GetElements]} actualize_tree 1 values FractionalStep3D state hidden v FractionalStep3D}
-     gid_groups_conds::addF $group value "n ConstitutiveLaw pn {Fluid type} actualize_tree 1 values Newtonian,HerschelBulkley dict {\[GetConstitutiveLaws\]} state normal v $cl"
-     gid_groups_conds::addF -resolve_parametric 1 $group value "n DENSITY pn Density state {\[PartParamState\]} unit_magnitude Density help {} v $DENSITY units kg/m^3"
-     gid_groups_conds::addF -resolve_parametric 1 $group value "n VISCOSITY pn {Kinematic viscosity} state {\[PartParamState\]} unit_magnitude L^2/T help {Fluidized viscosity.} v $VISCOSITY units m^2/s"
-     gid_groups_conds::addF -resolve_parametric 1 $group value "n YIELD_STRESS pn {Yield stress (?)} state {\[PartParamState\]} unit_magnitude P help {} v $YIELD_STRESS units Pa"
-     gid_groups_conds::addF $group value "n POWER_LAW_K pn {Consistency index (k)} state {\[PartParamState\]} unit_magnitude {} help {} v $POWER_LAW_K"
-     gid_groups_conds::addF $group value "n POWER_LAW_N pn {Flow index (n)} state {\[PartParamState\]} unit_magnitude {} help {} v $POWER_LAW_N"
-
+     set props [list ConstitutiveLaw DENSITY VISCOSITY YIELD_STRESS POWER_LAW_K POWER_LAW_N]
+     foreach prop $props {
+          set propnode [$gnode selectNodes "./value\[@n = '$prop'\]"]
+          if {$propnode ne "" } {
+               $propnode setAttribute v [Wizard::GetProperty Material ${prop},value]
+          }
+     }
      spdAux::RequestRefresh
 }
 
@@ -347,24 +339,32 @@ proc StenosisWizard::Wizard::Fluid { win } {
     grid columnconfigure $labfr1 1 -minsize 120
 }
 proc StenosisWizard::Wizard::NextFluid { } {
+     # Inlet
      gid_groups_conds::delete {container[@n='StenosisWizard']/container[@n='BoundaryConditions']/condition[@n='Inlet3D']/group}
-     gid_groups_conds::addF {container[@n='StenosisWizard']/container[@n='BoundaryConditions']/condition[@n='Inlet3D']} group {n Inlet}
-     set group {container[@n='StenosisWizard']/container[@n='BoundaryConditions']/condition[@n='Inlet3D']/group[@n='Inlet']}
-     set in [expr [Wizard::GetProperty Fluid Inlet,value] *1000]
-     gid_groups_conds::addF -resolve_parametric 1 $group value "n factor pn Modulus unit_magnitude Velocity help {} state {} v {$in} units {m/s}"
-     gid_groups_conds::addF $group value {n directionX wn {Inlet3D _X} pn {Direction X} help {} state {} v 1.0}
-     gid_groups_conds::addF $group value {n directionY wn {Inlet3D _Y} pn {Direction Y} help {} state {} v 0.0}
-     gid_groups_conds::addF $group value {n directionZ wn {Inlet3D _Z} pn {Direction Z} help {} state {[CheckDimension 3D]} v 0.0}
+     set where {container[@n='StenosisWizard']/container[@n='BoundaryConditions']/condition[@n='Inlet3D']}
+     set gnode [spdAux::AddConditionGroupOnXPath $where "Inlet"]
+     [$gnode selectNodes "./value\[@n = 'directionX'\]"] setAttribute v 1.0
+     [$gnode selectNodes "./value\[@n = 'directionY'\]"] setAttribute v 0.0
+     [$gnode selectNodes "./value\[@n = 'directionZ'\]"] setAttribute v 0.0
+
+     set propnode [$gnode selectNodes "./value\[@n = 'modulus'\]"]
+     if {$propnode ne "" } {
+          $propnode setAttribute v [Wizard::GetProperty Fluid Inlet,value]
+     }
+     
           
+     # Outlet
      gid_groups_conds::delete {container[@n='StenosisWizard']/container[@n='BoundaryConditions']/condition[@n='Outlet3D']/group}
-     gid_groups_conds::addF {container[@n='StenosisWizard']/container[@n='BoundaryConditions']/condition[@n='Outlet3D']} group {n Outlet ov surface}
-     set group {container[@n='StenosisWizard']/container[@n='BoundaryConditions']/condition[@n='Outlet3D']/group[@n='Outlet']}
-     set out [Wizard::GetProperty Fluid Outlet,value]
-     gid_groups_conds::addF -resolve_parametric 1 $group value "n value pn Value unit_magnitude P help {} state {} v {$out} units Pa"
+     set where {container[@n='StenosisWizard']/container[@n='BoundaryConditions']/condition[@n='Outlet3D']}
+     set gnode [spdAux::AddConditionGroupOnXPath $where "Outlet"]
+     set propnode [$gnode selectNodes "./value\[@n = 'value'\]"]
+     if {$propnode ne "" } {
+          $propnode setAttribute v [Wizard::GetProperty Fluid Outlet,value]
+     }
      
      gid_groups_conds::delete {container[@n='StenosisWizard']/container[@n='BoundaryConditions']/condition[@n='NoSlip3D']/group}
-     gid_groups_conds::addF {container[@n='StenosisWizard']/container[@n='BoundaryConditions']/condition[@n='NoSlip3D']} group {n NoSlip} 
-
+     set where {container[@n='StenosisWizard']/container[@n='BoundaryConditions']/condition[@n='NoSlip3D']}
+     set gnode [spdAux::AddConditionGroupOnXPath $where "NoSlip"]
      spdAux::RequestRefresh
 }
 
