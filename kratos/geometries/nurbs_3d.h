@@ -1390,7 +1390,7 @@ public:
      * @return: 3D-Vector which contains the normal vector
      */
 
-    Vector& NormalVectorToNurbsSurface(double Xi, double Eta)const
+    Vector NormalVectorToNurbsSurface(double Xi, double Eta)const
     {
         Vector gXi,gEta;
         BaseVectors(Xi,Eta,gXi,gEta);
