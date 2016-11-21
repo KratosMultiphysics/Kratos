@@ -54,7 +54,7 @@ namespace Kratos {
       KRATOS_REGISTER_CONDITION( "AxisymContactDomainPenaltyCondition2D3N", mAxisymContactDomainPenaltyCondition2D3N )     	
 
       Serializer::Register( "PointRigidContactPenalty2DCondition", mPointRigidContactPenalty2DCondition);
-      Serializer::Register( "PointRigidContactPenalty2DCondition", mPointRigidContactPenalty3DCondition);
+      Serializer::Register( "PointRigidContactPenalty3DCondition", mPointRigidContactPenalty3DCondition);
       Serializer::Register( "AxisymPointRigidContactPenalty2DCondition", mAxisymPointRigidContactPenalty2DCondition);
 
       //Register friction laws 

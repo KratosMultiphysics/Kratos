@@ -225,7 +225,7 @@ private:
 
 	const PointRigidContactPenalty2DCondition       mPointRigidContactPenalty2DCondition;
 	const PointRigidContactPenalty3DCondition       mPointRigidContactPenalty3DCondition;
-	const PointRigidContactPenalty3DCondition mAxisymPointRigidContactPenalty2DCondition;
+	const AxisymPointRigidContactPenalty2DCondition mAxisymPointRigidContactPenalty2DCondition;
 
 	//friction laws
 	const FrictionLaw                                                       mFrictionLaw;
