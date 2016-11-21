@@ -1340,7 +1340,7 @@ proc spdAux::ProcSolverParamState { domNode args } {
 proc spdAux::CheckPartParamValue {node material_name} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    #W "Searching [get_domnode_attribute $node n]"
+    #W "Searching [get_domnode_attribute $node n] $material_name"
     if {[$node hasAttribute n] || $material_name ne ""} {
         set id [$node getAttribute n]
         set found 0
@@ -1348,10 +1348,10 @@ proc spdAux::CheckPartParamValue {node material_name} {
         
         # primero miramos si el material tiene ese campo
         if {$material_name ne ""} {
-            set mats_un [apps::getCurrentUniqueName Materials]
+            set nodeApp [GetAppIdFromNode $node]
+            set mats_un [apps::getAppUniqueName $nodeApp Materials]
             set xp3 [spdAux::getRoute $mats_un]
             append xp3 [format_xpath {/blockdata[@n="material" and @name=%s]/value} $material_name]
-            
             foreach valueNode [$root selectNodes $xp3] {
                 if {$id eq [$valueNode getAttribute n] } {set val [$valueNode getAttribute v]; set found 1; break}
             }
@@ -1389,7 +1389,7 @@ proc spdAux::ProcPartParamValue { domNode args } {
     if {[$domNode name] eq "value"} {
         set node [$domNode selectNode "../value\[@n='Material'\]" ]
         #W $node
-        set matname [get_domnode_attribute $node value]
+        set matname [get_domnode_attribute $node v]
         #W $matname
         return [spdAux::CheckPartParamValue $domNode $matname]
     } 
@@ -1745,6 +1745,7 @@ proc spdAux::ProcCambioMat {domNode args} {
     set nodes [$domNode selectNodes "../value"]
     foreach node $nodes {
         if {[$node @n] ni $exclusion} {
+            #W "[$node @n] [CheckPartParamValue $node $matname]"
             $node setAttribute v [CheckPartParamValue $node $matname]
         }
     }
