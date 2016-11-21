@@ -319,25 +319,30 @@ public:
     {
         KRATOS_TRY
         ModelPart::NodesContainerType  aux;
+        ModelPart::NodesContainerType  aux_root; //they may not exist in the root
         ModelPart* root_model_part = &this->GetRootModelPart();
         
         for(TIteratorType it = nodes_begin; it!=nodes_end; it++)
         {
             auto it_found = root_model_part->Nodes().find(it->Id());
-            if(it_found != root_model_part->NodesEnd()) //node does not exist in the top model part
+            if(it_found == root_model_part->NodesEnd()) //node does not exist in the top model part
             {
+                aux_root.push_back( *(it.base()) ); //node does not exist
                 aux.push_back( *(it.base()) );
             }
             else //if it does exist verify it is the same node
             {
-                if(&(*it_found) != (it->get()))//check if the pointee coincides
+                if(&(*it_found) != &(*it))//check if the pointee coincides
                     KRATOS_ERROR << "attempting to add a new node with Id :" << it_found->Id() << ", unfortunately a (different) node with the same Id already exists" << std::endl;
+                else
+                    aux.push_back( *(it.base()) );
+                    
             }
         }
         
         //now add to the root model part
-        for(auto it = aux.begin(); it!=aux.end(); it++)
-                root_model_part->Nodes().push_back( *(it.base()) );
+        for(auto it = aux_root.begin(); it!=aux_root.end(); it++)
+            root_model_part->Nodes().push_back( *(it.base()) );
         root_model_part->Nodes().Unique();
         
         //add to all of the leaves
@@ -707,24 +712,27 @@ public:
     {
         KRATOS_TRY
         ModelPart::ElementsContainerType  aux;
+        ModelPart::ElementsContainerType  aux_root;
         ModelPart* root_model_part = &this->GetRootModelPart();
         
         for(TIteratorType it = elements_begin; it!=elements_end; it++)
         {
             auto it_found = root_model_part->Elements().find(it->Id());
-            if(it_found != root_model_part->ElementsEnd()) //node does not exist in the top model part
+            if(it_found == root_model_part->ElementsEnd()) //node does not exist in the top model part
             {
+                aux_root.push_back( *(it.base()) );
                 aux.push_back( *(it.base()) );
             }
             else //if it does exist verify it is the same node
             {
-                if(&(*it_found) != (it->get()))//check if the pointee coincides
-                    KRATOS_ERROR << "attempting to add a new node with Id :" << it_found->Id() << ", unfortunately a (different) node with the same Id already exists" << std::endl;
+                if(&(*it_found) != &(*it_found))//check if the pointee coincides
+                    KRATOS_ERROR << "attempting to add a new element with Id :" << it_found->Id() << ", unfortunately a (different) element with the same Id already exists" << std::endl;
+                else
+                    aux.push_back( *(it.base()) );
             }
         }
         
-        //now add to the root model part
-        for(auto it = aux.begin(); it!=aux.end(); it++)
+        for(auto it = aux_root.begin(); it!=aux_root.end(); it++)
                 root_model_part->Elements().push_back( *(it.base()) );
         root_model_part->Elements().Unique();
         
@@ -867,24 +875,28 @@ public:
     {
         KRATOS_TRY
         ModelPart::ConditionsContainerType  aux;
+        ModelPart::ConditionsContainerType  aux_root;
         ModelPart* root_model_part = &this->GetRootModelPart();
         
         for(TIteratorType it = conditions_begin; it!=conditions_end; it++)
         {
             auto it_found = root_model_part->Conditions().find(it->Id());
-            if(it_found != root_model_part->ConditionsEnd()) //node does not exist in the top model part
+            if(it_found == root_model_part->ConditionsEnd()) //node does not exist in the top model part
             {
                 aux.push_back( *(it.base()) );
+                aux_root.push_back( *(it.base()) );
             }
             else //if it does exist verify it is the same node
             {
-                if(&(*it_found) != (it->get()))//check if the pointee coincides
+                if(&(*it_found) != &(*it_found))//check if the pointee coincides
                     KRATOS_ERROR << "attempting to add a new node with Id :" << it_found->Id() << ", unfortunately a (different) node with the same Id already exists" << std::endl;
+                else
+                    aux.push_back( *(it.base()) );
             }
         }
         
         //now add to the root model part
-        for(auto it = aux.begin(); it!=aux.end(); it++)
+        for(auto it = aux_root.begin(); it!=aux_root.end(); it++)
                 root_model_part->Conditions().push_back( *(it.base()) );
         root_model_part->Conditions().Unique();
         
