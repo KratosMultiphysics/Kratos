@@ -110,7 +110,7 @@ proc Kratos::InitGIDProject { dir } {
     }
 
     # JG Sources will be in a different proc
-    foreach filename {Model.tcl Entity.tcl Parameter.tcl Topology.tcl Solver.tcl ConstitutiveLaw.tcl Condition.tcl Element.tcl SolutionStrategy.tcl Process.tcl} {
+    foreach filename {Model.tcl Entity.tcl Parameter.tcl Topology.tcl Solver.tcl ConstitutiveLaw.tcl Condition.tcl Element.tcl Material.tcl SolutionStrategy.tcl Process.tcl} {
         uplevel 1 [list source [file join $dir scripts Model $filename]]
     }
     # JG Sources will be in a different proc
