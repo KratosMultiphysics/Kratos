@@ -13,8 +13,9 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 ## SMALL TESTS
 from SmallTests import NonConformantOneSideMap2D_test1 as TNonConformantOneSideMap2D_test1
 from SmallTests import NonConformantOneSideMap2D_test2 as TNonConformantOneSideMap2D_test2
-from SmallTests import ConvergenceAcceleratorTest as TConvergenceAcceleratorTest
+#~ from SmallTests import ConvergenceAcceleratorTest as TConvergenceAcceleratorTest
 from SmallTests import FSIProblemEmulatorTest as TFSIProblemEmulatorTest
+from KratosExecuteConvergenceAcceleratorTest import TestKratosExecuteConvergenceAccelerator as TConvergenceAcceleratorTest
 #~ from SmallTests import NonConformantOneSideMap3D_test2 as TNonConformantOneSideMap3D_test2
 
 ## NIGTHLY TESTS
@@ -41,7 +42,10 @@ def AssambleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTest(TNonConformantOneSideMap2D_test1('test_execution'))
     smallSuite.addTest(TNonConformantOneSideMap2D_test2('test_execution'))
-    smallSuite.addTest(TConvergenceAcceleratorTest('test_execution'))
+    smallSuite.addTest(TConvergenceAcceleratorTest('test_aitken_accelerator'))
+    smallSuite.addTest(TConvergenceAcceleratorTest('test_mvqn_accelerator'))
+    smallSuite.addTest(TConvergenceAcceleratorTest('test_mvqn_recusive_accelerator'))
+    smallSuite.addTest(TConvergenceAcceleratorTest('test_accelerator_with_jacobian'))
     smallSuite.addTest(TFSIProblemEmulatorTest('test_execution'))
     #~ smallSuite.addTest(TNonConformantOneSideMap3D_test2('test_execution'))
 
