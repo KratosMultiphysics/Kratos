@@ -33,7 +33,6 @@
         "accelerate_convergence": true,
         "convergence_accelerator":{
                 "solver_type"       : "MVQN_recursive",
-                "acceleration_type" : "Aitken",
                 "w_0"               :  0.825,
                 "buffer_size"       :  10
         },
