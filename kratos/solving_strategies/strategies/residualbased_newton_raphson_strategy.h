@@ -34,30 +34,30 @@
 namespace Kratos
 {
 
-/**@name Kratos Globals */
-/*@{ */
+///@name  Kratos Globals */
+///@{
 
 
-/*@} */
-/**@name Type Definitions */
-/*@{ */
+///@}
+///@name  Type Definitions */
+///@{
 
-/*@} */
-
-
-/**@name  Enum's */
-/*@{ */
+///@}
 
 
-/*@} */
-/**@name  Functions */
-/*@{ */
+///@name   Enum's */
+///@{
+
+
+///@}
+///@name   Functions */
+///@{
 
 
 
-/*@} */
-/**@name Kratos Classes */
-/*@{ */
+///@}
+///@name  Kratos Classes */
+///@{
 
 /// Short class definition.
 
@@ -90,8 +90,8 @@ class ResidualBasedNewtonRaphsonStrategy
     : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
-    /**@name Type Definitions */
-    /*@{ */
+    ///@name  Type Definitions */
+    ///@{
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
 
     /** Counted pointer of ClassName */
@@ -122,12 +122,12 @@ public:
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
 
-    /*@} */
-    /**@name Life Cycle
-     */
-    /*@{ */
+    ///@}
+    ///@name  Life Cycle
+    ///@{
 
-    /** Constructor.
+    /**
+     * Constructor.
      */
     ResidualBasedNewtonRaphsonStrategy(
         ModelPart& model_part,
@@ -141,54 +141,54 @@ public:
     )
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         mKeepSystemConstantDuringIterations = false;
 
-        //set flags to default values
+        // Set flags to default values
         SetMaxIterationNumber(MaxIterations);
         mCalculateReactionsFlag = CalculateReactions;
 
 
         mReformDofSetAtEachStep = ReformDofSetAtEachStep;
 
-        //saving the convergence criteria to be used
+        // Saving the convergence criteria to be used
         mpConvergenceCriteria = pNewConvergenceCriteria;
 
-        //saving the scheme
+        // Saving the scheme
         mpScheme = pScheme;
 
-        //saving the linear solver
+        // Saving the linear solver
         mpLinearSolver = pNewLinearSolver;
 
-        //setting up the default builder and solver
+        // Setting up the default builder and solver
         mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer
                              (
                                  new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (mpLinearSolver)
                              );
 
-        //set flags to start correcty the calculations
+        // Set flags to start correcty the calculations
         mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
 
-        //tells to the builder and solver if the reactions have to be Calculated or not
+        // Tells to the builder and solver if the reactions have to be Calculated or not
         GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
 
-        //tells to the Builder And Solver if the system matrix and vectors need to
-        //be reshaped at each step or not
+        // Tells to the Builder And Solver if the system matrix and vectors need to
+        // be reshaped at each step or not
         GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
 
-        //set EchoLevel to the default value (only time is displayed)
+        // Set EchoLevel to the default value (only time is displayed)
         SetEchoLevel(1);
 
-        //by default the matrices are rebuilt at each iteration
+        // By default the matrices are rebuilt at each iteration
         this->SetRebuildLevel(2);
 
-        mpA = TSparseSpace::CreateEmptyMatrixPointer();
+        mpA  = TSparseSpace::CreateEmptyMatrixPointer();
         mpDx = TSparseSpace::CreateEmptyVectorPointer();
-        mpb = TSparseSpace::CreateEmptyVectorPointer();
+        mpb  = TSparseSpace::CreateEmptyVectorPointer();
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     ResidualBasedNewtonRaphsonStrategy(
@@ -204,54 +204,54 @@ public:
     )
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         mKeepSystemConstantDuringIterations = false;
 
-        //set flags to default values
+        // Set flags to default values
         SetMaxIterationNumber(MaxIterations);
         mCalculateReactionsFlag = CalculateReactions;
 
-
         mReformDofSetAtEachStep = ReformDofSetAtEachStep;
 
-        //saving the convergence criteria to be used
+        // Saving the convergence criteria to be used
         mpConvergenceCriteria = pNewConvergenceCriteria;
 
-        //saving the scheme
+        // Saving the scheme
         mpScheme = pScheme;
 
-        //saving the linear solver
+        // Saving the linear solver
         mpLinearSolver = pNewLinearSolver;
 
-        //setting up the default builder and solver
+        // Setting up the default builder and solver
         mpBuilderAndSolver = pNewBuilderAndSolver;
 
-        //set flags to start correcty the calculations
+        // Set flags to start correcty the calculations
         mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
 
-        //tells to the builder and solver if the reactions have to be Calculated or not
+        // Tells to the builder and solver if the reactions have to be Calculated or not
         GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
 
-        //tells to the Builder And Solver if the system matrix and vectors need to
-        //be reshaped at each step or not
+        // Tells to the Builder And Solver if the system matrix and vectors need to
+        // be reshaped at each step or not
         GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
 
-        //set EchoLevel to the default value (only time is displayed)
+        // Set EchoLevel to the default value (only time is displayed)
         SetEchoLevel(1);
 
-        //by default the matrices are rebuilt at each iteration
+        // By default the matrices are rebuilt at each iteration
         this->SetRebuildLevel(2);
 
-        mpA = TSparseSpace::CreateEmptyMatrixPointer();
+        mpA  = TSparseSpace::CreateEmptyMatrixPointer();
         mpDx = TSparseSpace::CreateEmptyVectorPointer();
-        mpb = TSparseSpace::CreateEmptyVectorPointer();
+        mpb  = TSparseSpace::CreateEmptyVectorPointer();
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
-    /** Destructor.
+    /**
+     * Destructor.
      */
     virtual ~ResidualBasedNewtonRaphsonStrategy()
     {
@@ -260,29 +260,29 @@ public:
     /** Destructor.
      */
 
-    //Set and Get Scheme ... containing Builder, Update and other
+    // Set and Get Scheme ... containing Builder, Update and other
 
     void SetScheme(typename TSchemeType::Pointer pScheme)
     {
         mpScheme = pScheme;
-    };
+    }
 
     typename TSchemeType::Pointer GetScheme()
     {
         return mpScheme;
-    };
+    }
 
-    //Set and Get the BuilderAndSolver
+    // Set and Get the BuilderAndSolver
 
     void SetBuilderAndSolver(typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver)
     {
         mpBuilderAndSolver = pNewBuilderAndSolver;
-    };
+    }
 
     typename TBuilderAndSolverType::Pointer GetBuilderAndSolver()
     {
         return mpBuilderAndSolver;
-    };
+    }
 
     void SetCalculateReactionsFlag(bool CalculateReactionsFlag)
     {
@@ -315,14 +315,14 @@ public:
         return mMaxIterationNumber;
     }
 
-    //level of echo for the solving strategy
+    // Level of echo for the solving strategy
     // 0 -> mute... no echo at all
     // 1 -> printing time and basic informations
     // 2 -> printing linear solver data
     // 3 -> Print of debug informations:
     //		Echo of stiffness matrix, Dx, b...
 
-    void SetEchoLevel(int Level)
+    virtual void SetEchoLevel(int Level) override
     {
         BaseType::mEchoLevel = Level;
         GetBuilderAndSolver()->SetEchoLevel(Level);
@@ -332,77 +332,92 @@ public:
     /**OPERATIONS ACCESSIBLE FROM THE INPUT:*/
 
     /**
-    operation to predict the solution ... if it is not called a trivial predictor is used in which the
-    values of the solution step of interest are assumed equal to the old values
+     * Operation to predict the solution ... if it is not called a trivial predictor is used in which the
+     * values of the solution step of interest are assumed equal to the old values
      */
-    void Predict()
+    virtual void Predict() override
     {
-        KRATOS_TRY
-        //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
-        //if the operations needed were already performed this does nothing
-        if (mInitializeWasPerformed == false)
-            Initialize();
+        KRATOS_TRY;
 
-        //initialize solution step
+        //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
+        // If the operations needed were already performed this does nothing
+        if (mInitializeWasPerformed == false)
+        {
+            Initialize();
+        }
+
+        // Initialize solution step
         if (mSolutionStepIsInitialized == false)
+        {
             InitializeSolutionStep();
+        }
 
         DofsArrayType& rDofSet = GetBuilderAndSolver()->GetDofSet();
 
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb = *mpb;
+        TSystemMatrixType& A  = *mpA;
+        TSystemVectorType& Dx = *mpDx;
+        TSystemVectorType& b  = *mpb;
 
+        GetScheme()->Predict(BaseType::GetModelPart(), rDofSet, A, Dx, b);
 
-        GetScheme()->Predict(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+        // Move the mesh if needed
+        if (this->MoveMeshFlag() == true)
+        {
+            BaseType::MoveMesh();
+        }
 
-        //move the mesh if needed
-        if (this->MoveMeshFlag() == true) BaseType::MoveMesh();
-
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     /**
-    Initialization of member variables and prior operations
+     * Initialization of member variables and prior operations
      */
-    void Initialize()
+    virtual void Initialize() override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         if (mInitializeWasPerformed == false)
         {
-            //pointers needed in the solution
+            // Pointers needed in the solution
             typename TSchemeType::Pointer pScheme = GetScheme();
             typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
 
-            //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
+            // Initialize The Scheme - OPERATIONS TO BE DONE ONCE
             if (pScheme->SchemeIsInitialized() == false)
+            {
                 pScheme->Initialize(BaseType::GetModelPart());
+            }
 
-            //Initialize The Elements - OPERATIONS TO BE DONE ONCE
+            // Initialize The Elements - OPERATIONS TO BE DONE ONCE
             if (pScheme->ElementsAreInitialized() == false)
+            {
                 pScheme->InitializeElements(BaseType::GetModelPart());
+            }
 
-            //Initialize The Conditions - OPERATIONS TO BE DONE ONCE
+            // Initialize The Conditions - OPERATIONS TO BE DONE ONCE
             if (pScheme->ConditionsAreInitialized() == false)
+            {
                 pScheme->InitializeConditions(BaseType::GetModelPart());
+            }
 
-            //initialisation of the convergence criteria
+            // Initialisation of the convergence criteria
             if (mpConvergenceCriteria->mConvergenceCriteriaIsInitialized == false)
+            {
                 mpConvergenceCriteria->Initialize(BaseType::GetModelPart());
+            }
 
             mInitializeWasPerformed = true;
         }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     /**
-    the problem of interest is solved.
-    This function calls sequentially: Initialize(), InitializeSolutionStep(), Predict(), SolveSolutionStep() and FinalizeSolutionStep().
-    All those functions can otherwise be called separately.
+     * The problem of interest is solved.
+     * This function calls sequentially: Initialize(), InitializeSolutionStep(), Predict(), SolveSolutionStep() and FinalizeSolutionStep().
+     * All those functions can otherwise be called separately.
      */
-    double Solve()
+    virtual double Solve() override
     {
         Initialize();
         InitializeSolutionStep();
@@ -413,23 +428,23 @@ public:
     }
 
     /**
-    clears the internal storage
+     * Clears the internal storage
      */
-    void Clear()
+    virtual void Clear() override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         SparseSpaceType::Clear(mpA);
-        TSystemMatrixType& mA = *mpA;
-        SparseSpaceType::Resize(mA, 0, 0);
+        TSystemMatrixType& A = *mpA;
+        SparseSpaceType::Resize(A, 0, 0);
 
         SparseSpaceType::Clear(mpDx);
-        TSystemVectorType& mDx = *mpDx;
-        SparseSpaceType::Resize(mDx, 0);
+        TSystemVectorType& Dx = *mpDx;
+        SparseSpaceType::Resize(Dx, 0);
 
         SparseSpaceType::Clear(mpb);
-        TSystemVectorType& mb = *mpb;
-        SparseSpaceType::Resize(mb, 0);
+        TSystemVectorType& b = *mpb;
+        SparseSpaceType::Resize(b, 0);
 
         //setting to zero the internal flag to ensure that the dof sets are recalculated
         GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
@@ -449,64 +464,65 @@ public:
     }
 
     /**
-    this should be considered as a "post solution" convergence check which is useful for coupled analysis
-    - the convergence criteria used is the one used inside the "solve" step
+     * This should be considered as a "post solution" convergence check which is useful for coupled analysis
+     * - the convergence criteria used is the one used inside the "solve" step
      */
-    bool IsConverged()
+    virtual bool IsConverged() override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb = *mpb;
+        TSystemMatrixType& A  = *mpA;
+        TSystemVectorType& Dx = *mpDx;
+        TSystemVectorType& b  = *mpb;
 
 
         if (mpConvergenceCriteria->mActualizeRHSIsNeeded == true)
         {
-            GetBuilderAndSolver()->BuildRHS(GetScheme(), BaseType::GetModelPart(), mb);
+            GetBuilderAndSolver()->BuildRHS(GetScheme(), BaseType::GetModelPart(), b);
         }
 
         DofsArrayType& rDofSet = GetBuilderAndSolver()->GetDofSet();
 
-        return mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-        KRATOS_CATCH("")
+        return mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), rDofSet, A, Dx, b);
+
+        KRATOS_CATCH("");
     }
 
     /**
-    this operations should be called before printing the results when non trivial results (e.g. stresses)
-    need to be calculated given the solution of the step
-
-      This operations should be called only when needed, before printing as it can involve a non negligible cost
+     * This operations should be called before printing the results when non trivial results (e.g. stresses)
+     * need to be calculated given the solution of the step
+     * This operations should be called only when needed, before printing as it can involve a non negligible cost
      */
-    void CalculateOutputData()
+
+    virtual void CalculateOutputData() override
     {
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb = *mpb;
+        TSystemMatrixType& A  = *mpA;
+        TSystemVectorType& Dx = *mpDx;
+        TSystemVectorType& b  = *mpb;
 
         DofsArrayType& rDofSet = GetBuilderAndSolver()->GetDofSet();
-        GetScheme()->CalculateOutputData(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+        GetScheme()->CalculateOutputData(BaseType::GetModelPart(), rDofSet, A, Dx, b);
     }
 
     /**
     Performs all the required operations that should be done (for each step) before solving the solution step.
     A member variable should be used as a flag to make sure this function is called only once per step.
     */
-    void InitializeSolutionStep()
+    virtual void InitializeSolutionStep() override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
-        //pointers needed in the solution
+        // Pointers needed in the solution
         typename TSchemeType::Pointer pScheme = GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
         int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 
-        //set up the system, operation performed just once unless it is required
-        //to reform the dof set at each iteration
+        // Set up the system, operation performed just once unless it is required
+        // to reform the dof set at each iteration
         if (pBuilderAndSolver->GetDofSetIsInitializedFlag() == false ||
                 mReformDofSetAtEachStep == true)
         {
-            //setting up the list of the DOFs to be solved
+            // Setting up the list of the DOFs to be solved
             double setup_dofs_begintime = OpenMPUtils::GetCurrentTime();
             pBuilderAndSolver->SetUpDofSet(pScheme, BaseType::GetModelPart());
             if (this->GetEchoLevel() > 0 && rank == 0)
@@ -515,7 +531,7 @@ public:
                 std::cout << "setup_dofs_time : " << setup_dofs_endtime- setup_dofs_begintime << std::endl;
             }
 
-            //shaping correctly the system
+            // Shaping correctly the system
             double setup_system_begin = OpenMPUtils::GetCurrentTime();
             pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
             if (this->GetEchoLevel() > 0 && rank == 0)
@@ -525,7 +541,7 @@ public:
             }
         }
 
-        //prints informations about the current time
+        // Prints informations about the current time
         if (this->GetEchoLevel() != 0 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {
             std::cout << " " << std::endl;
@@ -534,11 +550,11 @@ public:
 
         if (mSolutionStepIsInitialized == false)
         {
-            /*typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
-            typename TSchemeType::Pointer pScheme = GetScheme();
-            int rank = BaseType::GetModelPart().GetCommunicator().MyPID();*/
+//            typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
+//            typename TSchemeType::Pointer pScheme = GetScheme();
+//            int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 
-            //setting up the Vectors involved to the correct size
+            // Setting up the Vectors involved to the correct size
             double system_matrix_resize_begin = OpenMPUtils::GetCurrentTime();
             pBuilderAndSolver->ResizeAndInitializeVectors(mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
             if (this->GetEchoLevel() > 0 && rank == 0)
@@ -546,44 +562,45 @@ public:
                 double system_matrix_resize_end = OpenMPUtils::GetCurrentTime();
                 std::cout << rank << ": system_matrix_resize_time : " << system_matrix_resize_end- system_matrix_resize_begin << std::endl;
             }
-            TSystemMatrixType& mA = *mpA;
-            TSystemVectorType& mDx = *mpDx;
-            TSystemVectorType& mb = *mpb;
 
-            //initial operations ... things that are constant over the Solution Step
-            pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+            TSystemMatrixType& A = *mpA;
+            TSystemVectorType& Dx = *mpDx;
+            TSystemVectorType& b = *mpb;
 
-            //initial operations ... things that are constant over the Solution Step
-            pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+            // Initial operations ... things that are constant over the Solution Step
+            pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(), A, Dx, b);
+
+            // Initial operations ... things that are constant over the Solution Step
+            pScheme->InitializeSolutionStep(BaseType::GetModelPart(), A, Dx, b);
 
             mSolutionStepIsInitialized = true;
         }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     /**
     Performs all the required operations that should be done (for each step) after solving the solution step.
     A member variable should be used as a flag to make sure this function is called only once per step.
     */
-    void FinalizeSolutionStep()
+    virtual void FinalizeSolutionStep() override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         typename TSchemeType::Pointer pScheme = GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
 
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb = *mpb;
+        TSystemMatrixType& A  = *mpA;
+        TSystemVectorType& Dx = *mpDx;
+        TSystemVectorType& b  = *mpb;
 
         //Finalisation of the solution step,
         //operations to be done after achieving convergence, for example the
         //Final Residual Vector (mb) has to be saved in there
         //to avoid error accumulation
 
-        pScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
-        pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+        pScheme->FinalizeSolutionStep(BaseType::GetModelPart(), A, Dx, b);
+        pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(), A, Dx, b);
 
         //Cleaning memory after the solution
         pScheme->Clean();
@@ -600,13 +617,13 @@ public:
             this->Clear();
         }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     /**
     Solves the current step. This function returns true if a solution has been found, false otherwise.
     */
-    bool SolveSolutionStep()
+    virtual bool SolveSolutionStep() override
     {
         // Pointers needed in the solution
         typename TSchemeType::Pointer pScheme = GetScheme();
@@ -614,163 +631,24 @@ public:
 
         DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();
 
-
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb = *mpb;
+        TSystemMatrixType& A  = *mpA;
+        TSystemVectorType& Dx = *mpDx;
+        TSystemVectorType& b  = *mpb;
 
         //initializing the parameters of the Newton-Raphson cicle
         unsigned int iteration_number = 1;
-        BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
-        //			BaseType::GetModelPart().GetProcessInfo().SetNonLinearIterationNumber(iteration_number);
         bool is_converged = false;
         bool ResidualIsUpdated = false;
-        pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-        is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
-        //function to perform the building and the solving phase.
-        if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false)
-        {
-            TSparseSpace::SetToZero(mA);
-            TSparseSpace::SetToZero(mDx);
-            TSparseSpace::SetToZero(mb);
+        InitiliazeCycle(is_converged, ResidualIsUpdated, iteration_number, pScheme, pBuilderAndSolver, rDofSet, A, Dx, b);
 
-            pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
-        }
-        else
-        {
-            TSparseSpace::SetToZero(mDx); //mDx=0.00;
-            TSparseSpace::SetToZero(mb);
+        IterationCycle(is_converged, ResidualIsUpdated, iteration_number, pScheme, pBuilderAndSolver, rDofSet, A, Dx, b);
 
-            pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
-        }
-
-        if (this->GetEchoLevel() == 3) //if it is needed to print the debug info
-        {
-            // 				std::cout << "After first system solution" << std::endl;
-            std::cout << "SystemMatrix = " << mA << std::endl;
-            std::cout << "solution obtained = " << mDx << std::endl;
-            std::cout << "RHS  = " << mb << std::endl;
-        }
-        if (this->GetEchoLevel() == 4) //print to matrix market file
-        {
-            std::stringstream matrix_market_name;
-            matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << iteration_number << ".mm";
-            TSparseSpace::WriteMatrixMarketMatrix((char*) (matrix_market_name.str()).c_str(), mA, false);
-
-            std::stringstream matrix_market_vectname;
-            matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << iteration_number << ".mm.rhs";
-            TSparseSpace::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), mb);
-        }
-
-        //update results
-        rDofSet = pBuilderAndSolver->GetDofSet();
-        pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-
-        //move the mesh if needed
-        if (BaseType::MoveMeshFlag() == true)
-        {
-            BaseType::MoveMesh();
-        }
-
-        pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-
-        if (is_converged == true)
-        {
-            //initialisation of the convergence criteria
-            rDofSet = pBuilderAndSolver->GetDofSet();
-            mpConvergenceCriteria->InitializeSolutionStep(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-
-            if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
-            {
-                TSparseSpace::SetToZero(mb);
-
-                pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb);
-            }
-
-            is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-        }
-
-
-        //Iteration Cicle... performed only for NonLinearProblems
-        while (is_converged == false &&
-                iteration_number++<mMaxIterationNumber)
-        {
-            //setting the number of iteration
-            BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
-
-            pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-
-            is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-
-            //call the linear system solver to find the correction mDx for the
-            //it is not called if there is no system to solve
-            if (SparseSpaceType::Size(mDx) != 0)
-            {
-                if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false )
-                {
-                    if( GetKeepSystemConstantDuringIterations() == false)
-                    {
-                        //mA = 0.00;
-                        TSparseSpace::SetToZero(mA);
-                        TSparseSpace::SetToZero(mDx);
-                        TSparseSpace::SetToZero(mb);
-
-                        pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
-                    }
-                    else
-                    {
-                        TSparseSpace::SetToZero(mDx);
-                        TSparseSpace::SetToZero(mb);
-
-                        pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
-                    }
-                }
-                else
-                {
-                    TSparseSpace::SetToZero(mDx);
-                    TSparseSpace::SetToZero(mb);
-
-                    pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
-                }
-            }
-            else
-            {
-                std::cout << "ATTENTION: no free DOFs!! " << std::endl;
-            }
-
-
-            //Updating the results stored in the database
-            rDofSet = pBuilderAndSolver->GetDofSet();
-            pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-
-            //move the mesh if needed
-            if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
-
-            pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-
-            ResidualIsUpdated = false;
-
-            if (is_converged == true)
-            {
-
-                if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
-                {
-                    TSparseSpace::SetToZero(mb);
-
-                    pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb);
-                    ResidualIsUpdated = true;
-                    //std::cout << "mb is calculated" << std::endl;
-                }
-
-                is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-            }
-        }
-
-
-        //plots a warning if the maximum number of iterations is exceeded
+        // Plots a warning if the maximum number of iterations is exceeded
         if (iteration_number >= mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+        {
             MaxIterationsExceeded();
+        }
 
         //recalculate residual if needed
         //(note that some convergence criteria need it to be recalculated)
@@ -783,32 +661,242 @@ public:
             // Pooyan.
 
             //    TSparseSpace::SetToZero(mb);
-            //    pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb);
+            //    pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b);
         }
 
-        //calculate reactions if required
+        // Calculate reactions if required
         if (mCalculateReactionsFlag == true)
         {
-            pBuilderAndSolver->CalculateReactions(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
+            pBuilderAndSolver->CalculateReactions(pScheme, BaseType::GetModelPart(), A, Dx, b);
         }
 
         return is_converged;
     }
 
-    /*@} */
-    /**@name Operators
+    /**
+     * This is the initialization of the iteration cycle
+     * @return is_converged: True when the problem has converged
+     * @return ResidualIsUpdated: True when the residual has been updated
+     * @return iteration_nuber: Nuber of iterations done
+     * @param pScheme: The integration scheme
+     * @param pNewLinearSolver: The linear solver employed
+     * @param pBuilderAndSolver: The builder and solver considered
+     * @param rDofSet: The set of degrees of freedom
+     * @param A: The LHS of the problem
+     * @return Dx: The solution to the problem
+     * @param b: The RHS of the problem
      */
-    /*@{ */
 
-    /*@} */
-    /**@name Operations */
-    /*@{ */
+   void InitiliazeCycle(
+       bool& is_converged,
+       bool & ResidualIsUpdated,
+       unsigned int& iteration_nuber,
+       typename TSchemeType::Pointer& pScheme,
+       typename TBuilderAndSolverType::Pointer& pBuilderAndSolver,
+       DofsArrayType& rDofSet,
+       TSystemMatrixType& A,
+       TSystemVectorType& Dx,
+       TSystemVectorType& b
+       )
+   {
+       BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_nuber;
 
+       CoutSolvingProblem();
 
-    /*@} */
-    /**@name Access */
+//         BaseType::GetModelPart().GetProcessInfo().SetNonLinearIterationNuber(iteration_nuber);
 
-    /*@{ */
+       pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), A, Dx, b);
+       is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, A, Dx, b);
+
+       // Function to perform the building and the solving phase.
+       if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false)
+       {
+           TSparseSpace::SetToZero(A);
+           TSparseSpace::SetToZero(Dx);
+           TSparseSpace::SetToZero(b);
+
+           pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), A, Dx, b);
+       }
+       else
+       {
+           TSparseSpace::SetToZero(Dx); // Dx=0.00;
+           TSparseSpace::SetToZero(b);
+
+           pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), A, Dx, b);
+       }
+
+       if (this->GetEchoLevel() == 3) // If it is needed to print the debug info
+       {
+           std::cout << "SystemMatrix = " << A << std::endl;
+           std::cout << "solution obtained = " << Dx << std::endl;
+           std::cout << "RHS  = " << b << std::endl;
+       }
+       else if (this->GetEchoLevel() == 4) // Print to matrix market file
+       {
+           std::stringstream matrix_market_name;
+           matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << iteration_nuber << ".mm";
+           TSparseSpace::WriteMatrixMarketMatrix((char*) (matrix_market_name.str()).c_str(), A, false);
+
+           std::stringstream matrix_market_vectname;
+           matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << iteration_nuber << ".mm.rhs";
+           TSparseSpace::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), b);
+       }
+
+       // Updating the results stored in the database
+       UpdateDatabase(A, Dx, b, BaseType::MoveMeshFlag(), is_converged, ResidualIsUpdated, false);
+   }
+
+   /**
+    * This is the inner iteration cycle considered in the SolveSolutionStep
+    * @return is_converged: True when the problem has converged
+    * @return ResidualIsUpdated: True when the residual has been updated
+    * @return iteration_nuber: Nuber of iterations done
+    * @param pScheme: The integration scheme
+    * @param pNewLinearSolver: The linear solver employed
+    * @param pBuilderAndSolver: The builder and solver considered
+    * @param rDofSet: The set of degrees of freedom
+    * @param A: The LHS of the problem
+    * @return Dx: The solution to the problem
+    * @param b: The RHS of the problem
+    */
+
+   void IterationCycle(
+       bool& is_converged,
+       bool & ResidualIsUpdated,
+       unsigned int& iteration_nuber,
+       typename TSchemeType::Pointer& pScheme,
+       typename TBuilderAndSolverType::Pointer& pBuilderAndSolver,
+       DofsArrayType& rDofSet,
+       TSystemMatrixType& A,
+       TSystemVectorType& Dx,
+       TSystemVectorType& b
+       )
+   {
+       // Iteration Cicle... performed only for NonLinearProblems
+       while (is_converged == false && iteration_nuber++ < mMaxIterationNumber)
+       {
+           // Setting the nuber of iteration
+           BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_nuber;
+
+           CoutSolvingProblem();
+
+           pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), A, Dx, b);
+
+           is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, A, Dx, b);
+
+           // Call the linear system solver to find the correction Dx for the
+           // It is not called if there is no system to solve
+           if (SparseSpaceType::Size(Dx) != 0)
+           {
+               if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false )
+               {
+                   if( GetKeepSystemConstantDuringIterations() == false)
+                   {
+                       //A = 0.00;
+                       TSparseSpace::SetToZero(A);
+                       TSparseSpace::SetToZero(Dx);
+                       TSparseSpace::SetToZero(b);
+
+                       pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), A, Dx, b);
+                   }
+                   else
+                   {
+                       TSparseSpace::SetToZero(Dx);
+                       TSparseSpace::SetToZero(b);
+
+                       pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), A, Dx, b);
+                   }
+               }
+               else
+               {
+                   TSparseSpace::SetToZero(Dx);
+                   TSparseSpace::SetToZero(b);
+
+                   pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), A, Dx, b);
+               }
+           }
+           else
+           {
+               std::cout << "ATTENTION: no free DOFs!! " << std::endl;
+           }
+
+           // Updating the results stored in the database
+           UpdateDatabase(A, Dx, b, BaseType::MoveMeshFlag(), is_converged, ResidualIsUpdated, true);
+       }
+   }
+
+   /**
+    * Here the database is updated
+    * @param pScheme: The integration scheme
+    * @param pNewLinearSolver: The linear solver employed
+    * @param pBuilderAndSolver: The builder and solver considered
+    * @param rDofSet: The set of degrees of freedom
+    * @param A: The LHS of the problem
+    * @return Dx: The solution to the problem
+    */
+   virtual void UpdateDatabase(
+       TSystemMatrixType& A,
+       TSystemVectorType& Dx,
+       TSystemVectorType& b,
+       const bool MoveMesh,
+       bool& is_converged,
+       bool& ResidualIsUpdated,
+       const bool is_iteration
+   )
+   {
+       typename TSchemeType::Pointer pScheme = GetScheme();
+       typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
+
+       pScheme->Update(BaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
+
+       // Move the mesh if needed
+       if (MoveMesh == true)
+       {
+           BaseType::MoveMesh();
+       }
+
+       pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), A, Dx, b);
+
+       if (is_iteration == true)
+       {
+           ResidualIsUpdated = false;
+       }
+
+       if (is_converged == true)
+       {
+           if (is_iteration == false)
+           {
+              // Initialisation of the convergence criteria
+              mpConvergenceCriteria->InitializeSolutionStep(BaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
+           }
+
+           if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
+           {
+               TSparseSpace::SetToZero(b);
+
+               pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b);
+               if (is_iteration == true)
+               {
+                   ResidualIsUpdated = true;
+               }
+           }
+
+           is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(),  pBuilderAndSolver->GetDofSet(), A, Dx, b);
+       }
+   }
+
+    ///@}
+    ///@name  Operators
+    ///@{
+
+    ///@}
+    ///@name  Operations
+    ///@{
+
+    ///@}
+    ///@name  Access
+
+    ///@{
 
     TSystemMatrixType& GetSystemMatrix()
     {
@@ -828,65 +916,54 @@ public:
     }
 
 
-    /*@} */
-    /**@name Inquiry */
-    /*@{ */
+    ///@}
+    ///@name  Inquiry */
+    ///@{
 
+    ///@}
+    ///@name  Friends */
+    ///@{
 
-    /*@} */
-    /**@name Friends */
-    /*@{ */
-
-
-    /*@} */
+    ///@}
 
 private:
-    /**@name Protected static Member Variables */
-    /*@{ */
+    ///@name  Protected static Member Variables */
+    ///@{
 
+    ///@}
+    ///@name  Protected member Variables */
+    ///@{
 
-    /*@} */
-    /**@name Protected member Variables */
-    /*@{ */
+    ///@}
+    ///@name  Protected Operators*/
+    ///@{
 
+    ///@}
+    ///@name  Protected Operations*/
+    ///@{
 
-    /*@} */
-    /**@name Protected Operators*/
-    /*@{ */
+    ///@}
+    ///@name  Protected  Access */
+    ///@{
 
+    ///@}
+    ///@name  Protected Inquiry */
+    ///@{
 
-    /*@} */
-    /**@name Protected Operations*/
-    /*@{ */
+    ///@}
+    ///@name  Protected LifeCycle */
+    ///@{
 
-
-
-    /*@} */
-    /**@name Protected  Access */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected LifeCycle */
-    /*@{ */
-
-
-
-    /*@} */
+    ///@}
 
 protected:
-    /**@name Static Member Variables */
-    /*@{ */
+    ///@name  Static Member Variables */
+    ///@{
 
 
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
+    ///@}
+    ///@name  Member Variables */
+    ///@{
 
     typename TSchemeType::Pointer mpScheme;
 
@@ -896,9 +973,9 @@ protected:
 
     typename TConvergenceCriteriaType::Pointer mpConvergenceCriteria;
 
-    /*		TSystemVectorType mDx;
-                    TSystemVectorType mb;
-                    TSystemMatrixType mA;*/
+    // TSystemVectorType mDx;
+    // TSystemVectorType mb;
+    // TSystemMatrixType mA;
     TSystemVectorPointerType mpDx;
     TSystemVectorPointerType mpb;
     TSystemMatrixPointerType mpA;
@@ -930,11 +1007,17 @@ protected:
     //flag to allow keeping system matrix constant during iterations
     bool mKeepSystemConstantDuringIterations;
 
+    ///@}
+    ///@name  Private Operators*/
+    ///@{
 
-
-    /*@} */
-    /**@name Private Operators*/
-    /*@{ */
+    void CoutSolvingProblem()
+    {
+        if (this->GetEchoLevel() != 0)
+        {
+            std::cout << "STEP: " << BaseType::GetModelPart().GetProcessInfo()[TIME_STEPS] << "\t NON LINEAR ITERATION: " << BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] << "\t TIME: " << BaseType::GetModelPart().GetProcessInfo()[TIME] << "\t DELTA TIME: " << BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]  << std::endl;
+        }
+    }
 
     //**********************************************************************
     //**********************************************************************
@@ -947,16 +1030,15 @@ protected:
             std::cout << "******* ATTENTION: max iterations exceeded ********" << std::endl;
             std::cout << "***************************************************" << std::endl;
         }
-
     }
 
     /**
-     * function to perform expensive checks.
+     * Function to perform expensive checks.
      * It is designed to be called ONCE to verify that the input is correct.
      */
-    int Check()
+    virtual int Check() override
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         BaseType::Check();
 
@@ -968,47 +1050,43 @@ protected:
 
         return 0;
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
+    ///@}
+    ///@name  Private Operations*/
+    ///@{
 
-    /*@} */
-    /**@name Private Operations*/
-    /*@{ */
+    ///@}
+    ///@name  Private  Access */
+    ///@{
 
+    ///@}
+    ///@name  Private Inquiry */
+    ///@{
 
-    /*@} */
-    /**@name Private  Access */
-    /*@{ */
+    ///@}
+    ///@name  Un accessible methods */
+    ///@{
 
-
-    /*@} */
-    /**@name Private Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Un accessible methods */
-    /*@{ */
-
-    /** Copy constructor.
+    /**
+     * Copy constructor.
      */
     ResidualBasedNewtonRaphsonStrategy(const ResidualBasedNewtonRaphsonStrategy& Other)
     {
-    };
+    }
 
-
-    /*@} */
+    ///@}
 
 }; /* Class ResidualBasedNewtonRaphsonStrategy */
 
-/*@} */
+///@}
 
-/**@name Type Definitions */
-/*@{ */
+///@name  Type Definitions */
+///@{
 
 
-/*@} */
+///@}
 
 } /* namespace Kratos.*/
 
