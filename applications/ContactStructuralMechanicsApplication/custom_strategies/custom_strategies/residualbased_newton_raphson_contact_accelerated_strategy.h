@@ -257,100 +257,6 @@ public:
      * @param mA: The LHS of the problem
      * @return mDx: The solution to the problem
      */
-//     void UpdateDatabase( 
-//         TSystemMatrixType& A,
-//         TSystemVectorType& Dx,
-//         TSystemVectorType& b,
-//         const bool MoveMesh,
-//         bool& is_converged,
-//         bool& ResidualIsUpdated,
-//         const bool is_iteration
-//     ) override
-//     {
-//         BaseType::UpdateDatabase(A, Dx, b, MoveMesh, is_converged, ResidualIsUpdated, is_iteration);
-//         
-// //         unsigned int accel_it = 0;
-// //         unsigned int MaxNumberAccel = 5;
-// //         while (is_converged == false && accel_it++ < MaxNumberAccel)
-//         if (is_converged == false)// && is_iteration == true)
-//         {
-//             if (this->GetEchoLevel() != 0)
-//             {
-//                 std::cout << "Applying the convergence accelerator" << std::endl;
-//             }
-// 
-//             Vector updated_x( Dx.size() ); //updated_x
-//             updated_x.clear();
-//             
-//             typename TSchemeType::Pointer pScheme = BaseType::GetScheme();
-//             typename TBuilderAndSolverType::Pointer pBuilderAndSolver = BaseType::GetBuilderAndSolver();
-//             
-//             pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b);
-//             
-//             NodesArrayType& pNode = BaseType::GetModelPart().GetSubModelPart("Contact").Nodes();
-//             ConditionsArrayType& pCond= BaseType::GetModelPart().GetSubModelPart("Contact").Conditions();
-//             
-//             const unsigned int dimension = pCond.begin()->WorkingSpaceDimension();
-//             
-//             auto numNodes = pNode.end() - pNode.begin();
-//             for(unsigned int i = 0; i < numNodes; i++) 
-//             {
-//                 auto itNode = pNode.begin() + i;
-// 
-//                 if (itNode->Is(SLAVE))
-//                 {
-//                     const array_1d<double, 3> normal = itNode->GetValue(NORMAL);
-//                     const array_1d<double, 3> lm     = itNode->GetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0);
-//                     const double normal_lm = inner_prod(normal, lm);
-//                     const double weighted_gap        = itNode->GetValue(WEIGHTED_GAP);
-//                     
-// //                     if (normal_lm >= 0.0 || weighted_gap < 0.0)
-//                     if (itNode->Is(ACTIVE) == true)
-//                     {
-// //                         const array_1d<double, 3> normal = itNode->GetValue(NORMAL);
-// //                         const array_1d<double, 3> lm     = itNode->GetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0);
-// //                         const double weighted_gap        = itNode->GetValue(WEIGHTED_GAP);
-//                         
-//                         // Displacements
-//                         updated_x[itNode->GetDof(DISPLACEMENT_X).EquationId()]  = itNode->GetSolutionStepValue(DISPLACEMENT_X, 0);
-//                         updated_x[itNode->GetDof(DISPLACEMENT_Y).EquationId()]  = itNode->GetSolutionStepValue(DISPLACEMENT_Y, 0);
-//                         if (dimension == 3)
-//                         {
-//                             updated_x[itNode->GetDof(DISPLACEMENT_Z).EquationId()]  = itNode->GetSolutionStepValue(DISPLACEMENT_Z, 0);
-//                         }
-//                         // Lagrange multiplier
-//                         updated_x[itNode->GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId()]  = itNode->GetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER_X, 0);
-//                         updated_x[itNode->GetDof(VECTOR_LAGRANGE_MULTIPLIER_Y).EquationId()]  = itNode->GetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER_Y, 0);
-//                         if (dimension == 3)
-//                         {
-//                             updated_x[itNode->GetDof(VECTOR_LAGRANGE_MULTIPLIER_Z).EquationId()]  = itNode->GetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER_Z, 0);
-//                         }
-//                     }
-//                 }
-//             }
-//             
-//             // Calculate the new displacement
-//             Vector tmp = updated_x;
-//             mpConvergenceAccelerator->InitializeNonLinearIteration();  
-//             pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), A, Dx, b);
-//             mpConvergenceAccelerator->UpdateSolution(b, updated_x);
-//             mpConvergenceAccelerator->FinalizeNonLinearIteration();   
-//         
-//             // Update residual variables
-//             Dx = updated_x - tmp;
-//             
-//             // Avoid interfer in the other dof
-//             for (unsigned int i = 0; i < Dx.size(); i++)
-//             {
-//                 if (tmp[i] == 0)
-//                 {
-//                     Dx[i] = 0;
-//                 }
-//             }
-//             
-//             BaseType::UpdateDatabase(A, Dx, b, MoveMesh, is_converged, ResidualIsUpdated, true);
-//         }
-//     }
     void UpdateDatabase( 
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
@@ -381,13 +287,13 @@ public:
             pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b);
         
             Vector updated_x( Dx.size() ); //updated_x
-//             updated_x.clear();
+            updated_x.clear();
             for(typename DofsArrayType::iterator i_dof = this->GetBuilderAndSolver()->GetDofSet().begin() ; i_dof != this->GetBuilderAndSolver()->GetDofSet().end() ; ++i_dof)
             {
-//                 if (i_dof->IsFree() == true)
-//                 {
+                if (i_dof->IsFree() == true)
+                {
                     updated_x[ i_dof->EquationId() ] = i_dof->GetSolutionStepValue();
-//                 }
+                }
             }
             
             // Calculate the new displacement
@@ -400,13 +306,6 @@ public:
         
             // Update residual variables
             Dx = updated_x - tmp;
-            for(typename DofsArrayType::iterator i_dof = this->GetBuilderAndSolver()->GetDofSet().begin() ; i_dof != this->GetBuilderAndSolver()->GetDofSet().end() ; ++i_dof)
-            {
-                if (i_dof->IsFixed() == true)
-                {
-                    Dx[ i_dof->EquationId() ] = 0.0;
-                }
-            }
             
             BaseType::UpdateDatabase(A, Dx, b, MoveMesh, is_converged, ResidualIsUpdated, true);
         }
