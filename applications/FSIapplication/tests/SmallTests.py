@@ -46,33 +46,6 @@ class MapperTestFactory(KratosUnittest.TestCase):
         pass
 
 
-class ConvergenceAcceleratorTestFactory(KratosUnittest.TestCase):
-
-    def setUp(self):
-        self.test_list = []
-        
-        # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            # Iterate in the convergence accelerators test list
-            for parameter_file_name in self.file_name_list:
-                # Get the ProjectParameters file
-                parameter_file = open(parameter_file_name + "_parameters.json", 'r')
-                ProjectParameters = Parameters(parameter_file.read())
-            
-                # Create the test and store it in the test list
-                self.test_list.append(ExecuteConvergenceAcceleratorTest.KratosExecuteConvergenceAcceleratorTest(ProjectParameters))
-
-    def test_execution(self):
-        # Within this location context:
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            # Iterate in the convergence accelerators test list
-            for test in self.test_list:
-                test.Solve()
-
-    def tearDown(self):
-        pass
-
-
 class FSIProblemEmulatorTestFactory(KratosUnittest.TestCase):
 
     def setUp(self):
@@ -106,14 +79,6 @@ class NonConformantOneSideMap2D_test1(MapperTestFactory):
 
 class NonConformantOneSideMap2D_test2(MapperTestFactory):
     file_name = "NonConformantOneSideMap2D_test2/NonConformantOneSideMap2D_test2"
-
-
-class ConvergenceAcceleratorTest(ConvergenceAcceleratorTestFactory):
-    file_name_1 = "ConvergenceAcceleratorsTest/AitkenConvergenceAcceleratorTest"
-    file_name_2 = "ConvergenceAcceleratorsTest/MVQNConvergenceAcceleratorTest"
-    file_name_3 = "ConvergenceAcceleratorsTest/MVQNRecursiveConvergenceAcceleratorTest"
-    
-    file_name_list = [file_name_1, file_name_2, file_name_3]
                       
                 
 class FSIProblemEmulatorTest(FSIProblemEmulatorTestFactory):
