@@ -13,7 +13,7 @@ def Factory(custom_settings, Model):
 
 class AssignScalarToConditionsProcess(BaseProcess.AssignScalarToNodesProcess):
     def __init__(self, Model, custom_settings ):
-        BaseProcess.AssignValueToScalarProcess.__init__(self, Model, custom_settings)        
+        BaseProcess.AssignScalarToNodesProcess.__init__(self, Model, custom_settings)        
          
     def ExecuteInitialize(self):
 
