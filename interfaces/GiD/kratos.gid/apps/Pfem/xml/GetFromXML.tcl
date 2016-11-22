@@ -278,13 +278,10 @@ proc Pfem::xml::ProcActiveIfAnyPartState {domNode args} {
     if {$parts ne ""} {return "normal"} else {return "hidden"}
 }
 
-
-
-
 proc Pfem::xml::ProcGetBodiesValues {$domNode $args} {
     customlib::UpdateDocument
     set root [customlib::GetBaseRoot]
-    set xp1 "[spdAux::getRoute "PFEM_Bodies"]/blockdata/"
+    set xp1 "[spdAux::getRoute "PFEM_Bodies"]/blockdata"
     set bodies [list ]
     foreach body_node [$root selectNodes $xp1] {
         lappend bodies [$body_node @name]
