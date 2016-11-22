@@ -30,11 +30,11 @@
         "max_iteration"                      : 20,
         "split_factor"                       : 10.0,
         "max_number_splits"                    : 3,
-        "accelerate_convergence": false,
+        "accelerate_convergence": true,
         "convergence_accelerator":{
-                "solver_type"       : "MVQN",
+                "solver_type"       : "MVQN_recursive",
                 "acceleration_type" : "Aitken",
-                "w_0"               :  0.01,
+                "w_0"               :  0.825,
                 "buffer_size"       :  10
         },
         "linear_solver_settings"             : {
