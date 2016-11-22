@@ -11,7 +11,6 @@ import time as timer
 init_time = timer.time()
 import os
 import sys
-sys.path.append("/home/gcasas/kratos")
 
 class Logger(object):
     def __init__(self):
@@ -31,10 +30,8 @@ class Logger(object):
 
 sys.stdout = Logger()
 import math
-
 simulation_start_time = timer.clock()
 
-print(os.getcwd())
 # Kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.ExternalSolversApplication import *
@@ -50,7 +47,6 @@ sys.path.insert(0,'')
 import DEM_explicit_solver_var as DEM_parameters
 
 # import the configuration data as read from the GiD
-print(os.getcwd())
 import ProjectParameters as pp # MOD
 import define_output
 
@@ -118,8 +114,8 @@ pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
 pp.CFD_DEM.print_FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED_option = True
 # Making the fluid step an exact multiple of the DEM step
 pp.Dt = int(pp.Dt / pp.CFD_DEM.MaxTimeStep) * pp.CFD_DEM.MaxTimeStep
+pp.viscosity_modification_type = 0.0
 #Z
-
 # NANO BEGIN
 if pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
     pp.CFD_DEM.PostCationConcentration = True
@@ -142,6 +138,10 @@ report        = DEM_procedures.Report()
 parallelutils = DEM_procedures.ParallelUtils()
 materialTest  = DEM_procedures.MaterialTest()
  
+# Moving to the recently created folder
+os.chdir(main_path)
+swim_proc.CopyInputFilesIntoFolder(main_path, post_path)
+
 # Set the print function TO_DO: do this better...
 KRATOSprint   = procedures.KRATOSprint
 
@@ -250,22 +250,8 @@ if DEM_parameters.ElementType == "SwimmingNanoParticle":
 solver = SolverStrategy.SwimmingStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
 
 # Add variables
-procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
-procedures.AddSpheresVariables(spheres_model_part, DEM_parameters)
-procedures.AddMpiVariables(spheres_model_part)
-solver.AddAdditionalVariables(spheres_model_part, DEM_parameters)
-scheme.AddSpheresVariables(spheres_model_part)
-procedures.AddCommonVariables(cluster_model_part, DEM_parameters)
-procedures.AddClusterVariables(cluster_model_part, DEM_parameters)
-procedures.AddMpiVariables(cluster_model_part)
-scheme.AddClustersVariables(cluster_model_part)
-procedures.AddCommonVariables(DEM_inlet_model_part, DEM_parameters)
-procedures.AddSpheresVariables(DEM_inlet_model_part, DEM_parameters)
-solver.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)  
-scheme.AddSpheresVariables(DEM_inlet_model_part)
-procedures.AddCommonVariables(rigid_face_model_part, DEM_parameters)
-procedures.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
-procedures.AddMpiVariables(rigid_face_model_part)
+
+procedures.AddAllVariablesInAllModelParts(solver, scheme, spheres_model_part, cluster_model_part, DEM_inlet_model_part, rigid_face_model_part, DEM_parameters)
 vars_man.AddNodalVariables(spheres_model_part, pp.dem_vars)
 vars_man.AddNodalVariables(rigid_face_model_part, pp.rigid_faces_vars)
 vars_man.AddNodalVariables(DEM_inlet_model_part, pp.inlet_vars)
@@ -329,7 +315,7 @@ for node in fluid_model_part.Nodes:
 
 # Creating necessary directories
 main_path = os.getcwd()
-[post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name), run_code)
+[post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name))
 
 os.chdir(main_path)
 
@@ -832,7 +818,7 @@ while (time <= final_time):
         if pp.CFD_DEM.material_acceleration_calculation_type == 1:
             derivative_recovery_tool.CalculateVectorMaterialDerivative(fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)    
 
-    print("Solving DEM... (", spheres_model_part.NumberOfElements(0), "elements )")
+    print("Solving DEM... (", spheres_model_part.NumberOfElements(0), "elements )")    
     sys.stdout.flush()
     first_dem_iter = True
 
