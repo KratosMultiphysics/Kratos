@@ -426,7 +426,7 @@ Begin Conditions *cond(ConditionType)
 *#// id prop_id	 n1	n2	n3	...
 *set group *GroupName *faces
 *loop faces *onlyingroup
- *Tcl(MyPrintFaceElement *FaceElemsNum *FaceIndex)
+ *Tcl(Print2DFaceElement *FaceElemsNum *FaceIndex)
 *end faces
 End Conditions
 
@@ -440,7 +440,7 @@ Begin Conditions *cond(ConditionType)
 *#// id prop_id	 n1	n2	n3	...
 *set group *GroupName *faces
 *loop faces *onlyingroup
- *Tcl(MyPrintFaceElement *FaceElemsNum *FaceIndex)
+ *Tcl(Print3DFaceElement *FaceElemsNum *FaceIndex)
 *end faces
 End Conditions
 
@@ -454,7 +454,7 @@ Begin Conditions *cond(ConditionType)
 *#// id prop_id	 n1	n2	n3	...
 *set group *GroupName *faces
 *loop faces *onlyingroup
- *Tcl(MyPrintFaceElement *FaceElemsNum *FaceIndex)
+ *Tcl(Print2DFaceElement *FaceElemsNum *FaceIndex)
 *end faces
 End Conditions
 
@@ -468,7 +468,7 @@ Begin Conditions *cond(ConditionType)
 *#// id prop_id	 n1	n2	n3	...
 *set group *GroupName *faces
 *loop faces *onlyingroup
- *Tcl(MyPrintFaceElement *FaceElemsNum *FaceIndex)
+ *Tcl(Print3DFaceElement *FaceElemsNum *FaceIndex)
 *end faces
 End Conditions
 
@@ -644,7 +644,36 @@ Begin SubModelPart *GroupName // *GroupNum
  Begin SubModelPartElements
  End SubModelPartElements
       
- Begin SubModelPartCondition
+ Begin SubModelPartConditions
+*set group *GroupName *faces
+*if(GroupNumEntities)
+*loop faces *onlyingroup
+ *Tcl( getCondId *FaceElemsNum *FaceIndex )
+*end faces
+*endif
+ End SubModelPartConditions
+
+End SubModelPart
+*end groups    
+*endif
+*set cond group_SURFACE_LOAD *groups
+*if(CondNumEntities > 0)
+*loop groups *OnlyInCond
+Begin SubModelPart *GroupName // *GroupNum
+
+ Begin SubModelPartNodes
+*set group *GroupName *nodes
+*if(GroupNumEntities)
+*loop nodes *onlyingroup
+ *NodesNum
+*end nodes
+*endif
+ End SubModelPartNodes
+
+ Begin SubModelPartElements
+ End SubModelPartElements
+      
+ Begin SubModelPartConditions
 *set group *GroupName *faces
 *if(GroupNumEntities)
 *loop faces *onlyingroup
@@ -673,7 +702,7 @@ Begin SubModelPart *GroupName // *GroupNum
  Begin SubModelPartElements
  End SubModelPartElements
       
- Begin SubModelPartCondition
+ Begin SubModelPartConditions
 *set group *GroupName *faces
 *if(GroupNumEntities)
 *loop faces *onlyingroup
