@@ -8985,16 +8985,16 @@ Begin Elements SmallDisplacementElement2D3N// GUI group identifier: Parts Auto1
 End Elements
 
 Begin Conditions LineLoadCondition2D2N// GUI group identifier: Load on lines Auto1
-1 0 985 1020
-2 0 1020 1056
-3 0 1056 1091
-4 0 1091 1130
+1 1 985 1020
+2 1 1020 1056
+3 1 1056 1091
+4 1 1091 1130
 End Conditions
 
 Begin Conditions LineLoadCondition2D2N// GUI group identifier: Load on lines Auto2
-5 0 2972 2984
-6 0 2984 3000
-7 0 3000 3018
+5 1 2972 2984
+6 1 2984 3000
+7 1 3000 3018
 End Conditions
 
 Begin SubModelPart Parts_Parts_Auto1 // Group Parts Auto1 // Subtree Parts
