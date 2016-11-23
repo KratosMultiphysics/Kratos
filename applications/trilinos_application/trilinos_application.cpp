@@ -1,15 +1,16 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2008-11-10 14:24:45 $
-//   Revision:            $Revision: 1.1 $
+//  License:             BSD License 
+//                                       Kratos default license: kratos/license.txt
 //
-//
-
-
+//  Main authors:    Riccardo Rossi
+//        
 
 // System includes
-
 
 // External includes
 
@@ -27,12 +28,16 @@ namespace Kratos
 {
 // 	KRATOS_CREATE_VARIABLE( bool, IS_INACTIVE )
 
-
 void KratosTrilinosApplication::Register()
 {
     // calling base class register to register Kratos components
     KratosApplication::Register();
-    std::cout << "Initializing KratosTrilinosApplication... " << std::endl;
+//     std::cout << "Initializing KratosTrilinosApplication... " << std::endl;
+    std::cout << "     KRATOS   _____     _ _ _                 " << std::endl;
+    std::cout << "             |_   _| __(_) (_)_ __   ___  ___ " << std::endl;
+    std::cout << "               | || '__| | | | '_ \\ / _ \\/ __|" << std::endl;
+    std::cout << "               | || |  | | | | | | | (_) \\__ \\" << std::endl;
+    std::cout << "               |_||_|  |_|_|_|_| |_|\\___/|___/ APPLICATION     " << std::endl;
     // 		KRATOS_REGISTER_VARIABLE( IS_INACTIVE )
 }
 
