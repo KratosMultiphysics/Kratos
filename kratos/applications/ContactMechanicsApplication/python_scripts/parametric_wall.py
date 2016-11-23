@@ -148,10 +148,12 @@ class ParametricWall(object):
             # next must be tested:
             self.rigid_body_model_part_name = self.settings["rigid_body_settings"]["rigid_body_model_part_name"].GetString()
             self.rigid_body_model_part = self.main_model_part.GetSubModelPart(self.rigid_body_model_part_name)
-            
-            RigidBodyCenter = self.rigid_body_model_part.GetNode(self.rigid_body_model_part.NumberOfNodes-1)
-            
-            self.wall_bouning_box.SetRigidBodyCenter(RigidBodyCenter);
+      
+            #RigidBodyCenter = self.rigid_body_model_part.GetNode(self.rigid_body_model_part.NumberOfNodes()-1)
+            for node in self.rigid_body_model_part.GetNodes():
+                RigidBodyCenter = node
+
+            self.wall_bounding_box.SetRigidBodyCenter(RigidBodyCenter);
             
             # get contact model part
             self.contact_model_part_name =  "contact_"+self.settings["model_part_name"].GetString()
