@@ -275,15 +275,22 @@ class DamMechanicalSolver:
         return builder_and_solver
         
     def SchemeCreator(self, solution_type, scheme_type):
+               
+        rayleigh_m = self.settings["mechanical_settings"]["rayleigh_m"].GetDouble()
+        rayleigh_k = self.settings["mechanical_settings"]["rayleigh_k"].GetDouble()       
                 
         if (solution_type == "Quasi-Static"):
-            scheme =  KratosDam.IncrementalUpdateStaticSmoothingScheme()   
+            if(rayleigh_m<1.0e-20 and rayleigh_k<1.0e-20):
+                scheme =  KratosDam.IncrementalUpdateStaticSmoothingScheme()
+            else:
+                scheme =  KratosDam.IncrementalUpdateStaticDampedSmoothingScheme(rayleigh_m,rayleigh_k)
+               
         elif (solution_type == "Dynamic"):
             if(scheme_type == "Newmark"):
                 damp_factor_m = 0.0
             else:
                 damp_factor_m = -0.01
-            scheme = KratosDam.BossakDisplacementSmoothingScheme(damp_factor_m)
+            scheme = KratosDam.BossakDisplacementSmoothingScheme(damp_factor_m, rayleigh_m,rayleigh_k)
         
         return scheme
          
