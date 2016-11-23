@@ -122,6 +122,7 @@ class ParametricWall(object):
                 box_settings["lower_point"][counter].SetDouble(i)
                 counter+=1
 
+            
         self.wall_bounding_box = BoundingBox(self.settings["bounding_box_settings"]["bounding_box_parameters"])
 
         if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
@@ -130,6 +131,19 @@ class ParametricWall(object):
             # Note: new nodes must be inserted in boundary conditions subdomains
             number_of_linear_partitions  = 10
             number_of_angular_partitions = 20
+            
+            if( box_type_name == "PlaneBoundingBox" ):
+                upper_point = KratosMultiphysics.Array3()
+                upper = self.GetUpperPoint(self.main_model_part)
+                for i in range(0,len(upper)):
+                    upper_point[i] = upper[i]
+                self.wall_bounding_box.SetUpperPoint(upper_point)
+                lower_point = KratosMultiphysics.Array3()
+                lower = self.GetLowerPoint(self.main_model_part)
+                for i in range(0,len(lower)):
+                    lower_point[i] = lower[i]               
+                self.wall_bounding_box.SetLowerPoint(lower_point)
+            
             self.wall_bounding_box.CreateBoundingBoxBoundaryMesh(self.wall_model_part, number_of_linear_partitions, number_of_angular_partitions)
 
             # construct rigid element // must pass an array of nodes to the element, create a node (CG) and a rigid element set them in the model_part, set the node CG as the reference node of the wall_bounding_box, BLOCKED, set in the wall_model_part for imposed movements processes.
