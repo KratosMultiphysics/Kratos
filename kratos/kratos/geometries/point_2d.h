@@ -625,26 +625,7 @@ private:
     ///@name Member Variables
     ///@{
 
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    friend class Serializer;
-
-    virtual void save(Serializer& rSerializer) const
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, PointsArrayType );
-    }
-
-    virtual void load(Serializer& rSerializer)
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, PointsArrayType );
-    }
-
-    // Default constructor needed for serialization only
-        Point2D() : BaseType() {}
-
+   
     ///@}
     ///@name Private Operators
     ///@{
@@ -695,6 +676,26 @@ private:
 
     template<class TOtherPointType> friend class Point2D;
 
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, PointsArrayType );
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, PointsArrayType );
+    }
+
+    // Default constructor needed for serialization only
+    Point2D():BaseType( PointsArrayType(), &msGeometryData ) {}
+
+    
     ///@}
     ///@name Un accessible methods
     ///@{

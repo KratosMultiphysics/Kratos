@@ -645,31 +645,10 @@ private:
     ///@{
 
     static const GeometryData msGeometryData;
-
+    
     ///@}
     ///@name Member Variables
     ///@{
-
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    friend class Serializer;
-
-    virtual void save(Serializer& rSerializer) const
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, PointsArrayType );
-    }
-
-    virtual void load(Serializer& rSerializer)
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, PointsArrayType );
-    }
-    
-    // Default constructor needed for serialization only
-        Point3D() : BaseType() {}
-
 
 
     ///@}
@@ -721,6 +700,25 @@ private:
     ///@{
 
     template<class TOtherPointType> friend class Point3D;
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, PointsArrayType );
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, PointsArrayType );
+    }
+
+    // Default constructor needed for serialization only
+    Point3D():BaseType( PointsArrayType(), &msGeometryData ) {}
 
     ///@}
     ///@name Un accessible methods
