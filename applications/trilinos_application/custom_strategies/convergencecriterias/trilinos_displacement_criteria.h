@@ -293,7 +293,7 @@ private:
         mrComm.SumAll(&local_ReferenceDispNorm, &ReferenceDispNorm, 1);
 
 
-        ReferenceDispNorm = sqrt(ReferenceDispNorm);
+        ReferenceDispNorm = std::sqrt(ReferenceDispNorm);
         return ReferenceDispNorm;
     }
 
