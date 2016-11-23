@@ -126,6 +126,21 @@ Vector& PointLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, General
 	}
     }
     
+    //defined on condition nodes
+    if( this->Has( POINT_LOADS_VECTOR ) ){
+      Vector& PointLoads = this->GetValue( POINT_LOADS_VECTOR );
+      unsigned int counter = 0;
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{
+	  counter = i*3;
+	  for( unsigned int k = 0; k < dimension; k++ )
+	    {
+	      rVectorForce[k] += rVariables.N[i] * PointLoads[counter+k];
+	    }
+	  
+	}
+    }
+    
     //defined on condition nodes      
     for (unsigned int i = 0; i < number_of_nodes; i++)
       {

@@ -21,14 +21,26 @@ class AssignScalarToConditionsProcess(BaseProcess.AssignScalarToNodesProcess):
         params = KratosMultiphysics.Parameters("{}")           
         params.AddValue("model_part_name", self.settings["model_part_name"])
         params.AddValue("mesh_id", self.settings["mesh_id"])
-        params.AddValue("variable_name", self.settings["variable_name"])
         
         if( self.value_is_numeric ):
             print(" numeric value ",self.value)
+            
+            params.AddValue("variable_name", self.settings["variable_name"])
             params.AddValue("value", self.settings["value"])
+           
             self.AssignValueProcess = KratosSolid.AssignScalarToConditionsProcess(self.model_part, params)
         else:
             print(" function value ", self.value)
+            
+            #function values are assigned to a vector variable :: transformation is needed
+            if(type(self.var) == KratosMultiphysics.DoubleVariable):
+                variable_name = self.settings["variable_name"].GetString() + "S_VECTOR"
+                print(" variable name modified:", variable_name)
+                params.AddEmptyValue("variable_name")
+                params["variable_name"].SetString(variable_name)
+            else:
+                params.AddValue("variable_name", self.settings["variable_name"])
+                
             self.AssignValueProcess = KratosSolid.AssignScalarFieldToConditionsProcess(self.model_part, self.compiled_function, "function", self.value_is_spatial_function, params)
             
         if( self.IsInsideInterval() and self.interval_string == "initial" ):
