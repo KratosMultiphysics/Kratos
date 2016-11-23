@@ -416,7 +416,7 @@ public:
 	}
 
       //std::cout<<" Nodes Added "<<NodeId-InitialNodeId<<std::endl;
-      if( rModelPart.GetMesh().WorkingSpaceDimension() == 2 )
+      if( rModelPart.GetMesh().WorkingSpaceDimension() == 2 || rModelPart.GetProcessInfo()[DOMAIN_SIZE]==2 )
 	this->CreateLinearBoundaryMesh(rModelPart, InitialNodeId);
       else
 	this->CreateQuadrilateralBoundaryMesh(rModelPart, InitialNodeId);
@@ -560,7 +560,7 @@ protected:
     void CreateQuadrilateralBoundaryMesh(ModelPart& rModelPart, const unsigned int& rInitialNodeId)
     {
       
-      KRATOS_TRY
+      KRATOS_TRY       
 	
       // Create surface of the cylinder/tube with quadrilateral shell conditions
       unsigned int ElementId = 0; 
