@@ -918,7 +918,7 @@ proc getCondId { elemId faceId } {
   return [expr { $condId + 1 }]
 }
 
-proc MyPrintFaceElement { element_id face_index } {
+proc Print2DFaceElement { element_id face_index } {
 
   set condition_id [setCondId $element_id $face_index]
   set element_data [GiD_Info Mesh Elements Any $element_id]
@@ -927,16 +927,56 @@ proc MyPrintFaceElement { element_id face_index } {
       set element_connectivities [lindex $element_data 1]
       lappend element_connectivities [lindex $element_data end-2]
       set material_id [lindex $element_data end]
+      set material_id 1
       return "$condition_id $material_id $element_connectivities"
   } elseif { $face_index == 2 } {
       set element_connectivities [lindex $element_data end-2]
       lappend element_connectivities [lindex $element_data end-1]
       set material_id [lindex $element_data end]
+      set material_id 1
       return "$condition_id $material_id $element_connectivities"
   } else {
       set element_connectivities [lindex $element_data end-1]
       lappend element_connectivities [lindex $element_data 1]
       set material_id [lindex $element_data end]
+      set material_id 1
       return "$condition_id $material_id $element_connectivities"
   }
 }
+
+proc Print3DFaceElement { element_id face_index } {
+
+  set condition_id [setCondId $element_id $face_index]
+  set element_data [GiD_Info Mesh Elements Any $element_id]
+
+  if { $face_index == 1 } {
+      set element_connectivities [lindex $element_data 1]
+      lappend element_connectivities [lindex $element_data 2]
+      lappend element_connectivities [lindex $element_data 3]
+      set material_id [lindex $element_data end]
+      set material_id 1
+      return "$condition_id $material_id $element_connectivities"
+  } elseif { $face_index == 2 } {
+      set element_connectivities [lindex $element_data 2]
+      lappend element_connectivities [lindex $element_data 4]
+      lappend element_connectivities [lindex $element_data 3]
+      set material_id [lindex $element_data end]
+      set material_id 1
+      return "$condition_id $material_id $element_connectivities"
+  } elseif { $face_index == 3 } {
+      set element_connectivities [lindex $element_data 3]
+      lappend element_connectivities [lindex $element_data 4]
+      lappend element_connectivities [lindex $element_data 1]
+      set material_id [lindex $element_data end]
+      set material_id 1
+      return "$condition_id $material_id $element_connectivities"
+  } else {
+      set element_connectivities [lindex $element_data 4]
+      lappend element_connectivities [lindex $element_data 2]
+      lappend element_connectivities [lindex $element_data 1]
+      set material_id [lindex $element_data end]
+      set material_id 1
+      return "$condition_id $material_id $element_connectivities"
+  }
+}
+
