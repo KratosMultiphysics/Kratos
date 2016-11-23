@@ -10,7 +10,7 @@ def Factory(custom_settings, Model):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return AssignVectorToConditionsProcess(Model, custom_settings["Parameters"])
 
-class AssignVectorToConditionsProcess(BaseProcess.AssignModlulusAndDirectionToConditionsProcess):
+class AssignVectorToConditionsProcess(BaseProcess.AssignModulusAndDirectionToConditionsProcess):
     def __init__(self, Model, custom_settings ):
         BaseProcess.AssignModulusAndDirectionToConditionsProcess.__init__(self, Model, custom_settings)
 

@@ -42,7 +42,8 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
         if(custom_settings.Has("modulus")):
             if(custom_settings["modulus"].IsString()):
                 default_settings["modulus"].SetString("0.0")
-        
+                
+                
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
@@ -100,7 +101,8 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
             for i in range(0, len(self.value)):
                 self.value[i] *= modulus
                       
-        else:
+        else:       
+                
             self.function_expression = self.settings["modulus"].GetString()
 
             if (sys.version_info > (3, 0)):
@@ -123,22 +125,32 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
         params = KratosMultiphysics.Parameters("{}")           
         params.AddValue("model_part_name", self.settings["model_part_name"])
         params.AddValue("mesh_id", self.settings["mesh_id"])
-        params.AddValue("variable_name", self.settings["variable_name"])
-        
+
         params.AddEmptyValue("value")
         params.__setitem__("value", self.settings["direction"])
-
+        
         if( self.value_is_numeric ):
+
+            params.AddValue("variable_name", self.settings["variable_name"])
 
             counter = 0
             for i in self.value:
                 params["value"][counter].SetDouble(i)
                 counter+=1
                 
-                self.AssignValueProcess = KratosSolid.AssignVectorToConditionsProcess(self.model_part, params)
+            self.AssignValueProcess = KratosSolid.AssignVectorToConditionsProcess(self.model_part, params)
 
         else:
 
+            #function values are assigned to a vector variable :: transformation is needed
+            if(type(self.var) == KratosMultiphysics.Array1DVariable3):
+                variable_name = self.settings["variable_name"].GetString() + "S_VECTOR"
+                print(" variable name modified:", variable_name)
+                params.AddEmptyValue("variable_name")
+                params["variable_name"].SetString(variable_name)
+            else:
+                params.AddValue("variable_name", self.settings["variable_name"])
+                  
             counter = 0
             for i in self.value:
                 params["value"][counter].SetDouble(i)

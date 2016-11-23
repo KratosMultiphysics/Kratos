@@ -329,6 +329,7 @@ private:
 
       std::string ElementName = CustomParameters["rigid_body_element_type"].GetString();
 
+      // always a 3D point
       GeometryType::Pointer pGeometry = GeometryType::Pointer(new Point3DType( NodeCenterOfGravity ));
       
       ModelPart::NodesContainerType::Pointer pNodes =  rRigidBodyModelPart.pNodes();
