@@ -13,6 +13,7 @@
 
 // Project includes
 #include "local_refine_geometry_mesh.hpp"
+#include <unordered_map>
 
 namespace Kratos
 {
@@ -72,13 +73,20 @@ namespace Kratos
 
         /* Calling all the functions necessaries to refine the mesh */
         CSRRowMatrix(mModelPart, Coord);
+
         SearchEdgeToBeRefined(mModelPart, Coord);
+
         CreateListOfNewNodes(mModelPart, Coord, List_New_Nodes, Position_Node);
+
         CalculateCoordinateAndInsertNewNodes(mModelPart, Position_Node, List_New_Nodes);
+
         EraseOldElementAndCreateNewElement(mModelPart, Coord, New_Elements, interpolate_internal_variables);
+
         EraseOldConditionsAndCreateNew(mModelPart, Coord);
+
         RenumeringElementsAndNodes(mModelPart, New_Elements);
 
+        
         if (refine_on_reference == true)
         {
             for (ModelPart::NodesContainerType::iterator it = mModelPart.NodesBegin(); it != mModelPart.NodesEnd(); it++)
@@ -251,18 +259,27 @@ namespace Kratos
         unsigned int step_data_size = this_model_part.GetNodalSolutionStepDataSize();
         Node < 3 > ::DofsContainerType& reference_dofs = (this_model_part.NodesBegin())->GetDofs();
 
+        //fill an auxiliary array with a pointer to the existing nodes
+        std::unordered_map< unsigned int, Node<3>::Pointer > aux_node_list;
+        for(auto it = this_model_part.NodesBegin(); it!=this_model_part.NodesEnd(); it++)
+            aux_node_list[it->Id()] = ( *(it.base()) );
+
+
         for (unsigned int i = 0; i < Position_Node.size(); i++)
         {
             /* Calculating the coordinate of the news nodes */
             const int& node_i = Position_Node[i][0];
             const int& node_j = Position_Node[i][1];
 	    
-            ModelPart::NodesContainerType::iterator it_node1 = this_model_part.Nodes().find(node_i);
-            std::size_t pos1 = it_node1 - this_model_part.NodesBegin();
+            auto& it_node1 = aux_node_list[node_i];
+            auto& it_node2 = aux_node_list[node_j];
+            
+// //             ModelPart::NodesContainerType::iterator it_node1 = this_model_part.Nodes().find(node_i);
+//             std::size_t pos1 = it_node1 - this_model_part.NodesBegin();
             noalias(Coord_Node_1) = it_node1->Coordinates();
 	    
-            ModelPart::NodesContainerType::iterator it_node2 = this_model_part.Nodes().find(node_j);
-            std::size_t pos2 = it_node2 - this_model_part.NodesBegin();
+// //             ModelPart::NodesContainerType::iterator it_node2 = this_model_part.Nodes().find(node_j);
+//             std::size_t pos2 = it_node2 - this_model_part.NodesBegin();
             noalias(Coord_Node_2) = it_node2->Coordinates();
 	    
             noalias(Coordinate_New_Node[i]) = 0.50 * (Coord_Node_1 + Coord_Node_2);
@@ -272,18 +289,20 @@ namespace Kratos
             pnode->SetSolutionStepVariablesList( this_model_part.NodesBegin()->pGetVariablesList() );
             pnode->SetBufferSize(this_model_part.NodesBegin()->GetBufferSize());
 
-            it_node1 = this_model_part.NodesBegin() + pos1;
-            it_node2 = this_model_part.NodesBegin() + pos2;
+//             it_node1 = this_model_part.NodesBegin() + pos1;
+//             it_node2 = this_model_part.NodesBegin() + pos2;
 
             pnode->GetValue(FATHER_NODES).resize(0);
-            pnode->GetValue(FATHER_NODES).push_back(Node < 3 > ::WeakPointer(*it_node1.base()));
-            pnode->GetValue(FATHER_NODES).push_back(Node < 3 > ::WeakPointer(*it_node2.base()));
+            pnode->GetValue(FATHER_NODES).push_back(Node < 3 > ::WeakPointer( it_node1 ));
+            pnode->GetValue(FATHER_NODES).push_back(Node < 3 > ::WeakPointer( it_node2 ));
 
             pnode->X0() = 0.5 * (it_node1->X0() + it_node2->X0());
             pnode->Y0() = 0.5 * (it_node1->Y0() + it_node2->Y0());
             pnode->Z0() = 0.5 * (it_node1->Z0() + it_node2->Z0());
+            
+//             KRATOS_WATCH(__LINE__)
 
-            for (Node < 3 > ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
+            for (auto iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
             {
                 Node < 3 > ::DofType& rDof = *iii;
                 Node < 3 > ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
@@ -297,7 +316,7 @@ namespace Kratos
                     (p_new_dof)->FreeDof();
                 }
             }
-
+//             KRATOS_WATCH(__LINE__)
             // Interpolating the data
             unsigned int buffer_size = pnode->GetBufferSize();
             for (unsigned int step = 0; step < buffer_size; step++)
@@ -312,11 +331,17 @@ namespace Kratos
                     new_step_data[j] = 0.5 * (step_data1[j] + step_data2[j]);
                 }
             }
-
-            this_model_part.Nodes().push_back(pnode);
-        }
+//             KRATOS_WATCH(__LINE__)
         
-        this_model_part.Nodes().Sort();
+            aux_node_list[pnode->Id()] = pnode;
+            //this_model_part.Nodes().push_back(pnode);
+        }
+        KRATOS_WATCH(__LINE__)
+        for(auto it = aux_node_list.begin(); it!=aux_node_list.end(); it++)
+            this_model_part.Nodes().push_back(it->second);
+        
+        
+        this_model_part.Nodes().Unique();
 	
 	KRATOS_CATCH("");
     }
