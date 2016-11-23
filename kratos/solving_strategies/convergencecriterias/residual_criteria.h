@@ -13,14 +13,11 @@
 #if !defined(KRATOS_NEW_RESIDUAL_CRITERIA )
 #define  KRATOS_NEW_RESIDUAL_CRITERIA
 
+// System includes 
 
-/* System includes */
+// External includes 
 
-
-/* External includes */
-
-
-/* Project includes */
+// Project includes 
 #include "includes/model_part.h"
 #include "includes/define.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -28,61 +25,59 @@
 namespace Kratos
 {
 
-/**@name Kratos Globals */
-/*@{ */
+///@name Kratos Globals 
+///@{
 
 
-/*@} */
-/**@name Type Definitions */
-/*@{ */
+///@} 
+///@name Type Definitions 
+///@{
 
-/*@} */
-
-
-/**@name  Enum's */
-/*@{ */
+///@} 
 
 
-/*@} */
-/**@name  Functions */
-/*@{ */
+///@name  Enum's 
+///@{
+
+
+///@} 
+///@name  Functions 
+///@{
 
 
 
-/*@} */
-/**@name Kratos Classes */
-/*@{ */
+///@} 
+///@name Kratos Classes 
+///@{
 
-/** Short class definition.
-Detail class definition.
+// Short class definition.
+// Detail class definition.
 
-\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
+//URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
 
-\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
+//URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
 
-\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
+//URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
 
-\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
+//URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
 
 
-*/
+//URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
+
+//URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
+
+//URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
+
+//URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
+
 template<class TSparseSpace,
          class TDenseSpace
          >
 class ResidualCriteria : public virtual  ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
-    /**@name Type Definitions */
-    /*@{ */
+    ///@name Type Definitions 
+    ///@{
 
     KRATOS_CLASS_POINTER_DEFINITION( ResidualCriteria );
 
@@ -98,13 +93,13 @@ public:
 
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
-    /*@} */
-    /**@name Life Cycle
-    */
-    /*@{ */
+    ///@} 
+    ///@name Life Cycle
+    
+    ///@{
 
-    /** Constructor.
-    */
+    //* Constructor.
+    
     ResidualCriteria(
         TDataType NewRatioTolerance,
         TDataType AlwaysConvergedNorm)
@@ -115,8 +110,8 @@ public:
         mInitialResidualIsSet = false;
     }
 
-    /** Copy constructor.
-    */
+    //* Copy constructor.
+    
     ResidualCriteria( ResidualCriteria const& rOther )
       :BaseType(rOther) 
       ,mInitialResidualIsSet(rOther.mInitialResidualIsSet)
@@ -128,17 +123,17 @@ public:
     {
     }
 
-    /** Destructor.
-    */
+    //* Destructor.
+    
     virtual ~ResidualCriteria() {}
 
 
-    /*@} */
-    /**@name Operators
-    */
-    /*@{ */
+    ///@} 
+    ///@name Operators
+    
+    ///@{
 
-    /*Criterias that need to be called after getting the solution */
+    //Criterias that need to be called after getting the solution 
     bool PostCriteria(
         ModelPart& r_model_part,
         DofsArrayType& rDofSet,
@@ -234,74 +229,74 @@ public:
 
     }
 
-    /*@} */
-    /**@name Operations */
-    /*@{ */
+    ///@} 
+    ///@name Operations 
+    ///@{
 
 
-    /*@} */
-    /**@name Access */
-    /*@{ */
+    ///@} 
+    ///@name Access 
+    ///@{
 
 
-    /*@} */
-    /**@name Inquiry */
-    /*@{ */
+    ///@} 
+    ///@name Inquiry 
+    ///@{
 
 
-    /*@} */
-    /**@name Friends */
-    /*@{ */
+    ///@} 
+    ///@name Friends 
+    ///@{
 
 
-    /*@} */
+    ///@} 
 
 protected:
-    /**@name Protected static Member Variables */
-    /*@{ */
+    ///@name Protected static Member Variables 
+    ///@{
 
 
-    /*@} */
-    /**@name Protected member Variables */
-    /*@{ */
+    ///@} 
+    ///@name Protected member Variables 
+    ///@{
 
 
-    /*@} */
-    /**@name Protected Operators*/
-    /*@{ */
+    ///@} 
+    ///@name Protected Operators
+    ///@{
 
 
-    /*@} */
-    /**@name Protected Operations*/
-    /*@{ */
+    ///@} 
+    ///@name Protected Operations
+    ///@{
 
 
-    /*@} */
-    /**@name Protected  Access */
-    /*@{ */
+    ///@} 
+    ///@name Protected  Access 
+    ///@{
 
 
-    /*@} */
-    /**@name Protected Inquiry */
-    /*@{ */
+    ///@} 
+    ///@name Protected Inquiry 
+    ///@{
 
 
-    /*@} */
-    /**@name Protected LifeCycle */
-    /*@{ */
+    ///@} 
+    ///@name Protected LifeCycle 
+    ///@{
 
 
 
-    /*@} */
+    ///@} 
 
 private:
-    /**@name Static Member Variables */
-    /*@{ */
+    ///@name Static Member Variables 
+    ///@{
 
 
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
+    ///@} 
+    ///@name Member Variables 
+    ///@{
 
 
     bool mInitialResidualIsSet;
@@ -317,43 +312,43 @@ private:
     TDataType mReferenceDispNorm;
 
 
-    /*@} */
-    /**@name Private Operators*/
-    /*@{ */
+    ///@} 
+    ///@name Private Operators
+    ///@{
 
-    /*@} */
-    /**@name Private Operations*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private  Access */
-    /*@{ */
+    ///@} 
+    ///@name Private Operations
+    ///@{
 
 
-    /*@} */
-    /**@name Private Inquiry */
-    /*@{ */
+    ///@} 
+    ///@name Private  Access 
+    ///@{
 
 
-    /*@} */
-    /**@name Un accessible methods */
-    /*@{ */
+    ///@} 
+    ///@name Private Inquiry 
+    ///@{
 
 
-    /*@} */
-
-}; /* Class ClassName */
-
-/*@} */
-
-/**@name Type Definitions */
-/*@{ */
+    ///@} 
+    ///@name Un accessible methods 
+    ///@{
 
 
-/*@} */
+    ///@} 
 
-}  /* namespace Kratos.*/
+}; // Class ClassName 
 
-#endif /* KRATOS_NEW_DISPLACEMENT_CRITERIA  defined */
+///@} 
+
+///@name Type Definitions 
+///@{
+
+
+///@} 
+
+}  // namespace Kratos.
+
+#endif // KRATOS_NEW_DISPLACEMENT_CRITERIA  defined 
 
