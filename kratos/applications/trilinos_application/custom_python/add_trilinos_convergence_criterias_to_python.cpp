@@ -1,10 +1,14 @@
+//  KRATOS  _____     _ _ _                 
+//         |_   _| __(_) (_)_ __   ___  ___ 
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__ \
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//   Project Name:        Kratos
-//   Last modified by:    $Author: rrossi $
-//   Date:                $Date: 2008-12-09 20:20:55 $
-//   Revision:            $Revision: 1.5 $
+//  License:             BSD License 
+//                                       Kratos default license: kratos/license.txt
 //
-//
+//  Main authors:    Riccardo Rossi
+//        
 
 // System includes
 
@@ -38,6 +42,8 @@
 //convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
+#include "solving_strategies/convergencecriterias/and_criteria.h"
+#include "solving_strategies/convergencecriterias/or_criteria.h"
 //#include "solving_strategies/convergencecriterias/displacement_criteria.h"
 //
 #include "custom_strategies/convergencecriterias/trilinos_displacement_criteria.h"
@@ -45,8 +51,6 @@
 
 //teuchos parameter list
 #include "Teuchos_ParameterList.hpp"
-
-
 
 namespace Kratos
 {
@@ -70,6 +74,7 @@ void  AddConvergenceCriterias()
     //********************************************************************
     //convergence criteria base class
     typedef ConvergenceCriteria< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosConvergenceCriteria;
+    typedef ConvergenceCriteria< TrilinosSparseSpaceType, TrilinosLocalSpaceType > ::Pointer TTrilinosConvergenceCriteriaPointer;
     class_< TrilinosConvergenceCriteria, boost::noncopyable > ("TrilinosConvergenceCriteria", init<>())
     .def("SetActualizeRHSFlag", &ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::SetActualizeRHSFlag)
     .def("GetActualizeRHSflag", &ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::GetActualizeRHSflag)
@@ -78,6 +83,8 @@ void  AddConvergenceCriterias()
     .def("Initialize", &ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Initialize)
     .def("InitializeSolutionStep", &ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::InitializeSolutionStep)
     .def("FinalizeSolutionStep", &ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::FinalizeSolutionStep)
+    .def("Check", &ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Check)
+    .def("SetEchoLevel", &ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::SetEchoLevel)
     ;
 
     class_< TrilinosDisplacementCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
@@ -94,6 +101,16 @@ void  AddConvergenceCriterias()
             bases< TrilinosConvergenceCriteria >,
             boost::noncopyable >
             ("TrilinosResidualCriteria", init< TrilinosSparseSpaceType::DataType, TrilinosSparseSpaceType::DataType >());
+            
+    class_<And_Criteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
+            bases< TrilinosConvergenceCriteria >,
+            boost::noncopyable >
+            ("TrilinosAndCriteria", init<TTrilinosConvergenceCriteriaPointer, TTrilinosConvergenceCriteriaPointer > ());
+
+    class_<Or_Criteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
+            bases< TrilinosConvergenceCriteria >,
+            boost::noncopyable >
+            ("TrilinosOrCriteria", init<TTrilinosConvergenceCriteriaPointer, TTrilinosConvergenceCriteriaPointer > ());
 }
 
 
