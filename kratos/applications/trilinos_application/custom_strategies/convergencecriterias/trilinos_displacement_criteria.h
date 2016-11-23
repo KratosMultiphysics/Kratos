@@ -1,61 +1,23 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
-/* *********************************************************
-*
-*   Last Modified by:    $Author: rrossi $
-*   Date:                $Date: 2008-11-11 14:03:41 $
-*   Revision:            $Revision: 1.1 $
-*
-* ***********************************************************/
-
+//  KRATOS  _____     _ _ _                 
+//         |_   _| __(_) (_)_ __   ___  ___ 
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__ \
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
+//
+//  License:             BSD License 
+//                                       Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//        
 
 #if !defined(KRATOS_TRILINOS_DISPLACEMENT_CRITERIA )
 #define  KRATOS_TRILINOS_DISPLACEMENT_CRITERIA
 
+//  System includes 
 
-/* System includes */
+//  External includes 
 
-
-/* External includes */
-
-
-/* Project includes */
+//  Project includes 
 #include "includes/model_part.h"
 #include "includes/define.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -64,61 +26,60 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-/**@name Kratos Globals */
-/*@{ */
+///@name Kratos Globals 
+///@{
 
 
-/*@} */
-/**@name Type Definitions */
-/*@{ */
+///@} 
+///@name Type Definitions 
+///@{
 
-/*@} */
-
-
-/**@name  Enum's */
-/*@{ */
+///@} 
 
 
-/*@} */
-/**@name  Functions */
-/*@{ */
+///@name  Enum's 
+///@{
+
+
+///@} 
+///@name  Functions 
+///@{
 
 
 
-/*@} */
-/**@name Kratos Classes */
-/*@{ */
+///@} 
+///@name Kratos Classes 
+///@{
 
-/** Short class definition.
-Detail class definition.
+// Short class definition
+// Detail class definition
 
-\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
+// URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
 
-\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
+// URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
 
-\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
+// URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
 
-\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
+// URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
 
 
-*/
+// URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
+
+// URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
+
+// URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
+
+// URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
+
+
 template<class TSparseSpace,
          class TDenseSpace
          >
 class TrilinosDisplacementCriteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
-    /**@name Type Definitions */
-    /*@{ */
+    ///@name Type Definitions 
+    ///@{
 
     KRATOS_CLASS_POINTER_DEFINITION( TrilinosDisplacementCriteria );
 
@@ -134,13 +95,13 @@ public:
 
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
-    /*@} */
-    /**@name Life Cycle
-    */
-    /*@{ */
+    ///@} 
+    ///@name Life Cycle
+    
+    ///@{
 
-    /** Constructor.
-    */
+    // * Constructor.
+    
     TrilinosDisplacementCriteria(
         TDataType NewRatioTolerance,
         TDataType AlwaysConvergedNorm,
@@ -153,17 +114,17 @@ public:
         //mActualizeRHSIsNeeded = false;
     }
 
-    /** Destructor.
-    */
+    // * Destructor.
+    
     virtual ~TrilinosDisplacementCriteria() {}
 
 
-    /*@} */
-    /**@name Operators
-    */
-    /*@{ */
+    ///@} 
+    ///@name Operators
+    
+    ///@{
 
-    /*Criterias that need to be called after getting the solution */
+    // Criterias that need to be called after getting the solution 
     bool PostCriteria(
         ModelPart& r_model_part,
         DofsArrayType& rDofSet,
@@ -234,74 +195,74 @@ public:
 
 
 
-    /*@} */
-    /**@name Operations */
-    /*@{ */
+    ///@} 
+    ///@name Operations 
+    ///@{
 
 
-    /*@} */
-    /**@name Access */
-    /*@{ */
+    ///@} 
+    ///@name Access 
+    ///@{
 
 
-    /*@} */
-    /**@name Inquiry */
-    /*@{ */
+    ///@} 
+    ///@name Inquiry 
+    ///@{
 
 
-    /*@} */
-    /**@name Friends */
-    /*@{ */
+    ///@} 
+    ///@name Friends 
+    ///@{
 
 
-    /*@} */
+    ///@} 
 
 protected:
-    /**@name Protected static Member Variables */
-    /*@{ */
+    ///@name Protected static Member Variables 
+    ///@{
 
 
-    /*@} */
-    /**@name Protected member Variables */
-    /*@{ */
+    ///@} 
+    ///@name Protected member Variables 
+    ///@{
 
 
-    /*@} */
-    /**@name Protected Operators*/
-    /*@{ */
+    ///@} 
+    ///@name Protected Operators
+    ///@{
 
 
-    /*@} */
-    /**@name Protected Operations*/
-    /*@{ */
+    ///@} 
+    ///@name Protected Operations
+    ///@{
 
 
-    /*@} */
-    /**@name Protected  Access */
-    /*@{ */
+    ///@} 
+    ///@name Protected  Access 
+    ///@{
 
 
-    /*@} */
-    /**@name Protected Inquiry */
-    /*@{ */
+    ///@} 
+    ///@name Protected Inquiry 
+    ///@{
 
 
-    /*@} */
-    /**@name Protected LifeCycle */
-    /*@{ */
+    ///@} 
+    ///@name Protected LifeCycle 
+    ///@{
 
 
 
-    /*@} */
+    ///@} 
 
 private:
-    /**@name Static Member Variables */
-    /*@{ */
+    ///@name Static Member Variables 
+    ///@{
 
 
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
+    ///@} 
+    ///@name Member Variables 
+    ///@{
     TDataType mRatioTolerance;
     TDataType mAlwaysConvergedNorm;
 
@@ -309,9 +270,9 @@ private:
 
 
     TDataType mReferenceDispNorm;
-    /*@} */
-    /**@name Private Operators*/
-    /*@{ */
+    ///@} 
+    ///@name Private Operators
+    ///@{
 
     TDataType CalculateReferenceNorm(DofsArrayType& rDofSet)
     {
@@ -336,39 +297,39 @@ private:
         return ReferenceDispNorm;
     }
 
-    /*@} */
-    /**@name Private Operations*/
-    /*@{ */
+    ///@} 
+    ///@name Private Operations
+    ///@{
 
 
-    /*@} */
-    /**@name Private  Access */
-    /*@{ */
+    ///@} 
+    ///@name Private  Access 
+    ///@{
 
 
-    /*@} */
-    /**@name Private Inquiry */
-    /*@{ */
+    ///@} 
+    ///@name Private Inquiry 
+    ///@{
 
 
-    /*@} */
-    /**@name Un accessible methods */
-    /*@{ */
+    ///@} 
+    ///@name Un accessible methods 
+    ///@{
 
 
-    /*@} */
+    ///@} 
 
-}; /* Class ClassName */
+}; //  Class ClassName 
 
-/*@} */
+///@} 
 
-/**@name Type Definitions */
-/*@{ */
+///@name Type Definitions 
+///@{
 
 
-/*@} */
+///@} 
 
-}  /* namespace Kratos.*/
+}  //  namespace Kratos.
 
-#endif /* KRATOS_TRILINOS_DISPLACEMENT_CRITERIA  defined */
+#endif //  KRATOS_TRILINOS_DISPLACEMENT_CRITERIA  defined 
 
