@@ -5,7 +5,7 @@
         "domain_size"     : 2,
         "time_step"       : 0.5,
         "start_time"      : 0.0,
-        "end_time"        : 22.0,
+        "end_time"        : 200.0,
         "echo_level"      : 1
     },
     "solver_settings"          : {
