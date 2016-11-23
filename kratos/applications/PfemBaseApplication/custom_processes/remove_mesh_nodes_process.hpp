@@ -136,11 +136,11 @@ public:
       
       
       //if the remove_node switch is activated, we check if the nodes got too close
-      if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES))
+      if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES) || (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_BOUNDARY_NODES)) )
 	{
 	  bool any_node_removed_on_error = false;
 	  ////////////////////////////////////////////////////////////
-	  if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES_ON_ERROR))	      
+	  if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES_ON_ERROR) && mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES) )	      
 	    {
 	      any_node_removed_on_error = RemoveNodesOnError(mrModelPart,error_nodes_removed); //2D and 3D
 	    }
@@ -164,6 +164,16 @@ public:
 	  // REMOVE ON DISTANCE
 	  ////////////////////////////////////////////////////////////
 	  
+	  ////////////////////////////////////////////////////////////
+	  // REMOVE CONTACT NODES (and boundary and near the contact)
+          if ( mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_BOUNDARY_NODES_ON_DISTANCE) )
+          {
+             bool any_node_removed_on_distance_2 = RemoveNodesOnContact( mrModelPart, inside_nodes_removed, boundary_nodes_removed, any_condition_removed);
+             if ( any_node_removed_on_distance_2 || any_node_removed_on_distance)
+                any_node_removed_on_distance = true;
+          }
+          ////////////////////////////////////////////////////////////
+
 	  if(any_node_removed_on_error || any_node_removed_on_distance)
 	    any_node_removed = true;
 
@@ -427,6 +437,263 @@ private:
 
     }
 
+         //**************************************************************************
+         //**************************************************************************
+
+         bool RemoveNodesOnContact(ModelPart& rModelPart, int& inside_nodes_removed, int& boundary_nodes_removed, bool& any_condition_removed) 
+         {
+            KRATOS_TRY
+
+            // sizes
+            double size_for_distance_inside       = 1.0  * mrRemesh.Refine->CriticalRadius; 
+            double size_for_distance_boundary     = 1.5  * size_for_distance_inside; 
+
+            double size_for_wall_tip_contact_side = (0.5 * mrRemesh.Refine->CriticalSide); // the distance to refine
+            size_for_wall_tip_contact_side *= 0.5; // half the distance 
+            size_for_wall_tip_contact_side =  size_for_wall_tip_contact_side * size_for_wall_tip_contact_side;  // the return of  search in radius is distance^2
+
+            double SF = 0.80;
+            size_for_wall_tip_contact_side *= SF*SF;
+
+
+            bool any_node_removed = false;
+
+            //bucket size definition:
+            unsigned int bucket_size = 20;
+
+            //create the list of the nodes to be check during the search
+            std::vector<Node<3>::Pointer> list_of_nodes;
+            list_of_nodes.reserve(mrModelPart.NumberOfNodes(mMeshId));
+            for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(mMeshId) ; i_node != mrModelPart.NodesEnd(mMeshId) ; i_node++)
+            {
+               (list_of_nodes).push_back(*(i_node.base()));
+            }
+
+            KdtreeType nodes_tree(list_of_nodes.begin(),list_of_nodes.end(), bucket_size);
+
+            ////////////////////////////////////////////////////////////
+
+            //all of the nodes in this list will be preserved
+            unsigned int num_neighbours = 100;
+
+            std::vector<Node<3>::Pointer> neighbours         (num_neighbours);
+            std::vector<double>           neighbour_distances(num_neighbours);
+
+
+            //radius means the distance, if the distance between two nodes is closer to radius -> mark for removing
+            double radius=0;
+            Node<3> work_point(0,0.0,0.0,0.0);
+            unsigned int n_points_in_radius;
+
+
+            for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(mMeshId); in != mrModelPart.NodesEnd(mMeshId); in++)
+            {
+               bool on_contact_tip = false;
+               array_1d<double, 3 > & ContactForceNormal  = in->FastGetSolutionStepValue(CONTACT_FORCE);
+
+               if(norm_2(ContactForceNormal)>0 || in->Is(TO_SPLIT) || in->Is(CONTACT) ) // vale, TO_SPLIT is never set when you arrive at this function
+                  on_contact_tip = true;				  
+
+               bool on_contact_tip_strict = false; 
+               if (norm_2(ContactForceNormal) > 0)
+                  on_contact_tip_strict = true;
+
+               if( in->IsNot(NEW_ENTITY) )
+               {
+                  radius = size_for_distance_inside;
+
+                  work_point[0]=in->X();
+                  work_point[1]=in->Y();
+                  work_point[2]=in->Z();
+
+                  n_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, neighbours.begin(),neighbour_distances.begin(), num_neighbours);
+
+                  if (n_points_in_radius>1)
+                  {
+
+                     if ( in->IsNot(BOUNDARY) )
+                     {
+
+                        if( mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES_ON_DISTANCE) ){
+                           //look if we are already erasing any of the other nodes
+                           unsigned int contact_nodes = 0;
+                           unsigned int erased_nodes = 0;
+                           unsigned int near_to_contact_nodes = 0;
+                           unsigned int kk = 0; 
+                           for(std::vector<Node<3>::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; nn++)
+                           {
+                              if( (*nn)->Is(BOUNDARY) && (*nn)->Is(CONTACT) )
+                                 contact_nodes += 1;
+
+                              if( (*nn)->Is(TO_ERASE) )
+                                 erased_nodes += 1;
+
+                              // to remove a node that is very close to a contact node (two times the safety factor) 
+                              if ( (*nn)->Is(BOUNDARY) && (*nn)->Is(CONTACT) && (neighbour_distances[kk] < SF*size_for_wall_tip_contact_side) )
+                                 near_to_contact_nodes += 1;
+
+                              kk++; 
+
+                           } // end for neighbours
+
+                           if ( erased_nodes < 1 && contact_nodes < 2 && near_to_contact_nodes == 1) // we release node if it is very very near a contact
+                           {
+                              // to remove an interior node to is to close to a contacting node
+                              in->Set(TO_ERASE);
+                              any_node_removed = true;
+                              inside_nodes_removed++;
+                              std::cout <<"   RemovingC0, an interior node very very near to a (possibly) contacting node " << in->Id() << std::endl;
+                              std::cout <<"      X: " << in->X() << " Y: " << in->Y() << std::endl;
+                           } // end else if
+
+                        } 
+
+                     } 
+                     else if ( (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_BOUNDARY_NODES) && mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_BOUNDARY_NODES_ON_DISTANCE)) && (in)->IsNot(TO_ERASE))
+                        //boundary nodes will be removed if they get REALLY close to another boundary node (0.2(=extra_factor) * h_factor)
+                     {
+
+                        //std::cout<<"  Remove close boundary nodes: Candidate ["<<in->Id()<<"]"<<std::endl;
+
+                        //here we loop over the neighbouring nodes and if there are nodes
+                        //with BOUNDARY flag and closer than 0.2*nodal_h from our node, we remove the node we are considering
+                        unsigned int k = 0;
+                        unsigned int counterC2 = 0, counterC3 = 0;
+                        for(std::vector<Node<3>::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; nn++)
+                        {
+
+
+                           bool nn_on_contact_tip = false;
+                           array_1d<double, 3 > & ContactForceNormal  = (*nn)->FastGetSolutionStepValue(CONTACT_FORCE);
+
+                           if(norm_2(ContactForceNormal)>0 || (*nn)->Is(TO_SPLIT) || (*nn)->Is(CONTACT) )
+                              nn_on_contact_tip = true;				  
+
+                           bool nn_on_contact_tip_strict = false;
+                           if (norm_2(ContactForceNormal)>0)
+                              nn_on_contact_tip_strict = true; 
+
+                           if ( (*nn)->Is(BOUNDARY)  && neighbour_distances[k] > 0.0 && (*nn)->IsNot(TO_ERASE) )
+                           {
+                              //KRATOS_WATCH( neighbours_distances[k] )
+                              if ( neighbour_distances[k] < size_for_wall_tip_contact_side ) {
+                                 if ( nn_on_contact_tip_strict && (*nn)->IsNot(NEW_ENTITY) ) {
+                                    counterC2 += 1;
+                                 }
+                                 if ( nn_on_contact_tip && nn_on_contact_tip_strict && neighbour_distances[k] < SF*size_for_distance_boundary ) {
+                                    counterC3 += 1; 
+                                 } 
+                              }
+                           }
+
+                           k++;
+                        }  // end for each neighbour
+
+                        if ( counterC2 > 1 && in->IsNot(NEW_ENTITY) && on_contact_tip_strict) {
+                           in->Set(TO_ERASE);
+                           std::cout << "     RemovingC2: three contacting nodes where close, removing the middle one [" << in->Id() << "]" << std::endl;
+                           any_node_removed = true;
+                           boundary_nodes_removed++;
+                           std::cout << "      X: " << in->X() << " Y: " << in->Y() << std::endl;
+                        }
+                        else if ( counterC3 > 0 && in->IsNot(NEW_ENTITY) && on_contact_tip && !on_contact_tip_strict ) {
+
+                           in->Set(TO_ERASE);
+                           any_node_removed = true;
+                           boundary_nodes_removed++;
+                           std::cout << "    RemovingC3: a non_contacting_node was to close to a contacting. removing the non_contacting " << in->Id() << std::endl;
+                           std::cout << "      X: " << in->X() << " Y: " << in->Y() << std::endl;
+
+                        }
+                     } 
+                  } 
+
+               }
+            } 
+
+            // New loop to see if just two contacting nodes are very near. (it has to be done after the others to not to remove a pair)
+
+            if ( mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_BOUNDARY_NODES) &&  mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_BOUNDARY_NODES_ON_DISTANCE) )
+            {
+               for (ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(mMeshId); in != mrModelPart.NodesEnd(mMeshId); in++)
+               {
+
+                  bool on_contact_tip = false;
+                  array_1d<double, 3 > & ContactForceNormal  = in->FastGetSolutionStepValue(CONTACT_FORCE);
+
+                  if(norm_2(ContactForceNormal)>0 || in->Is(TO_SPLIT) || in->Is(CONTACT) )
+                     on_contact_tip = true;				 
+
+                  bool on_contact_tip_strict = false; 
+                  if (norm_2(ContactForceNormal) > 0)
+                     on_contact_tip_strict = true; 
+
+                  if ( in->IsNot(NEW_ENTITY) &&  in->IsNot(TO_ERASE) && in->Is(BOUNDARY) && on_contact_tip )
+                  {
+                     radius = size_for_distance_inside;
+
+                     work_point[0]=in->X();
+                     work_point[1]=in->Y();
+                     work_point[2]=in->Z();
+
+                     n_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, neighbours.begin(),neighbour_distances.begin(), num_neighbours);
+
+                     if (n_points_in_radius>1)
+                     {
+                        unsigned int k = 0;
+                        unsigned int counterC4 = 0;
+                        for (std::vector<Node<3>::Pointer>::iterator  nn = neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius; nn++)
+                        {
+                           bool nn_on_contact_tip = false;
+                           array_1d<double, 3 > & ContactForceNormal  = (*nn)->FastGetSolutionStepValue(CONTACT_FORCE);
+
+                           // alternative definition
+                           if(norm_2(ContactForceNormal)>0 || (*nn)->Is(TO_SPLIT) || (*nn)->Is(CONTACT) )
+                              nn_on_contact_tip = true;				
+                           bool nn_on_contact_tip_strict = false; 
+                           if (norm_2(ContactForceNormal) > 0)
+                              nn_on_contact_tip_strict = true; 
+
+                           if ( (*nn)->IsNot(NEW_ENTITY) && (*nn)->IsNot(TO_ERASE) && (*nn)->Is(BOUNDARY) && neighbour_distances[k] > 0.0)
+                           {
+                              if ( nn_on_contact_tip && nn_on_contact_tip_strict && neighbour_distances[k] < SF*SF*size_for_wall_tip_contact_side)
+                              {
+                                 counterC4 += 1;
+                                 std::cout << " THIS IS THE CONTRARY NODE: " << (*nn)->X() << " " << (*nn)->Y() << std::endl;
+                                 std::cout << " THIS IS THE CONTRARY FORCE: " << ContactForceNormal << std::endl; 
+                                 std::cout << " module " << norm_2(ContactForceNormal) << std::endl; 
+                                 std::cout << " module " << (*nn)->Is(TO_SPLIT)  << std::endl; 
+                                 std::cout << " module " << (*nn)->Is(CONTACT) << std::endl; 
+                              }
+                           } // first if for C4 Condi
+                           k++;
+                        } // end for all Neighbours
+
+                        if (counterC4 > 0 && in->IsNot(NEW_ENTITY) && on_contact_tip && on_contact_tip_strict )
+                        {
+                           in->Set(TO_ERASE);
+                           any_node_removed = true;
+                           boundary_nodes_removed++;
+                           std::cout << "    RemovingC4: two contacting nodes are very very near, removing one " << in->Id() << std::endl;
+                           std::cout << "      X: " << in->X() << " Y: " << in->Y() << std::endl;
+                        }
+                     } 
+                  }
+
+               } 
+            }
+
+
+            //Build boundary after removing boundary nodes due distance criterion
+            if(boundary_nodes_removed){
+               any_condition_removed = RebuildBoundary(rModelPart);
+            }
+            //Build boundary after removing boundary nodes due distance criterion
+
+
+            return any_node_removed; 
+            KRATOS_CATCH("")
+         }
     //**************************************************************************
     //**************************************************************************
 
@@ -438,9 +705,7 @@ private:
        //***SIZES :::: parameters do define the tolerance in mesh size: 
        double size_for_distance_inside       = 1.0  * mrRemesh.Refine->CriticalRadius; //compared with element radius
        double size_for_distance_boundary     = 1.5  * size_for_distance_inside; //compared with element radius
-       double size_for_wall_tip_contact_side = 0.15 * mrRemesh.Refine->CriticalSide;
  
-       bool derefine_wall_tip_contact = false;
 
        bool any_node_removed = false;
 
@@ -560,12 +825,6 @@ private:
 			       }
 			     }
 
-			   if ( (*nn)->Is(BOUNDARY) && nn_on_contact_tip && neighbour_distances[k] < size_for_wall_tip_contact_side ) {
-			     if ( (*nn)->IsNot(TO_ERASE)) { 
-			       counter += 1;
-			     }
-			   }
-
 
 			   k++;
 			 }
@@ -576,12 +835,6 @@ private:
 			 any_node_removed = true;
 			 boundary_nodes_removed++;
 			 //distance_remove ++;
-		       }
-		       else if ( counter > 2 && in->IsNot(NEW_ENTITY) && on_contact_tip && derefine_wall_tip_contact) {
-			 in->Set(TO_ERASE);
-			 std::cout << "     Removing a TIP POINT due to that criterion [" << in->Id() << "]" << std::endl;
-			 any_node_removed = true;
-			 boundary_nodes_removed++;
 		       }
 
 		     }
@@ -707,6 +960,10 @@ private:
 		// std::cout<<"     ID"<<id<<" 1s "<<pcond1->GetGeometry()[0].Id()<<" "<<pcond1->GetGeometry()[1].Id()<<std::endl;
 
 		pcond->Set(NEW_ENTITY);
+		if ( pcond->Is(TO_ERASE) ) {
+			pcond->Reset(TO_ERASE); // due to the new cloning
+		}
+
 
 		//std::cout<<"     Condition INSERTED (Id: "<<new_id<<") ["<<rConditionGeom1[0].Id()<<", "<<rConditionGeom2[1].Id()<<"] "<<std::endl;
 
@@ -721,6 +978,9 @@ private:
 		id +=1;
 	      }
 
+                  } else {
+                     in->Set(TO_ERASE, false);
+                     std::cout << "FINALLY NOT Removing " << in->Id() << std::endl;
 	    }
 	  }
 
