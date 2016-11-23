@@ -27,18 +27,41 @@ public:
     typedef Scheme<TSparseSpace,TDenseSpace>     BaseType;
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
+    using Scheme<TSparseSpace,TDenseSpace>::mSchemeIsInitialized;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ///Constructor
-    BossakDisplacementSmoothingScheme(double rAlpham = 0.0)
-        : ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>(rAlpham) {}
+    BossakDisplacementSmoothingScheme(double rAlpham = 0.0, double rayleigh_m = 0.0, double rayleigh_k = 0.0)
+        : ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>(rAlpham) 
+    
+    {
+        
+        mRayleighAlpha = rayleigh_m;
+        mRayleighBeta = rayleigh_k;
+            
+    }
     
     //------------------------------------------------------------------------------------
     
     ///Destructor
     virtual ~BossakDisplacementSmoothingScheme() {}
-    
+
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void Initialize(ModelPart& r_model_part)
+    {
+        KRATOS_TRY
+
+        r_model_part.GetProcessInfo()[RAYLEIGH_ALPHA] = mRayleighAlpha;
+        r_model_part.GetProcessInfo()[RAYLEIGH_BETA] = mRayleighBeta;
+                
+        mSchemeIsInitialized = true;
+        
+        KRATOS_CATCH("")
+    }
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void FinalizeSolutionStep(
@@ -90,6 +113,15 @@ public:
                 
         KRATOS_CATCH("")
     }
+    
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+protected:
+    
+    //Member variables
+    double mRayleighAlpha;
+    double mRayleighBeta;
+    
 
 }; // Class BossakDisplacementSmoothingScheme
 }  // namespace Kratos
