@@ -124,23 +124,41 @@ class ParametricWall(object):
 
         self.wall_bounding_box = BoundingBox(self.settings["bounding_box_settings"]["bounding_box_parameters"])
 
-        # construct bounding box mesh of surface elements
-        # Note: new nodes must be inserted in boundary conditions subdomains
-        number_of_linear_partitions  = 10
-        number_of_angular_partitions = 20
-        self.wall_bounding_box.CreateBoundingBoxBoundaryMesh(self.wall_model_part, number_of_linear_partitions, number_of_angular_partitions)
+        if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
+                   
+            # construct bounding box mesh of surface elements
+            # Note: new nodes must be inserted in boundary conditions subdomains
+            number_of_linear_partitions  = 10
+            number_of_angular_partitions = 20
+            self.wall_bounding_box.CreateBoundingBoxBoundaryMesh(self.wall_model_part, number_of_linear_partitions, number_of_angular_partitions)
 
-        # construct rigid element // must pass an array of nodes to the element, create a node (CG) and a rigid element set them in the model_part, set the node CG as the reference node of the wall_bounding_box, BLOCKED, set in the wall_model_part for imposed movements processes.
-        creation_utility = KratosContact.RigidBodyCreationUtility()
-        creation_utility.CreateRigidBodyElement(self.main_model_part, self.wall_bounding_box, self.settings["rigid_body_settings"])
+            # construct rigid element // must pass an array of nodes to the element, create a node (CG) and a rigid element set them in the model_part, set the node CG as the reference node of the wall_bounding_box, BLOCKED, set in the wall_model_part for imposed movements processes.
+            creation_utility = KratosContact.RigidBodyCreationUtility()
+            creation_utility.CreateRigidBodyElement(self.main_model_part, self.wall_bounding_box, self.settings["rigid_body_settings"])
+            
+            # create a contact model part
+            self.contact_model_part_name =  "contact_"+self.settings["model_part_name"].GetString()
 
+            #can not be a child of wall_model_part due to process imposed variables
+            self.main_model_part.CreateSubModelPart(self.contact_model_part_name) 
+            self.contact_wall_model_part = self.main_model_part.GetSubModelPart(self.contact_model_part_name)
 
-        # create a contact model part
-        self.contact_model_part_name =  "contact_"+self.settings["model_part_name"].GetString()
+        else:
 
-        #can not be a child of wall_model_part due to process imposed variables
-        self.main_model_part.CreateSubModelPart(self.contact_model_part_name) 
-        self.contact_wall_model_part = self.main_model_part.GetSubModelPart(self.contact_model_part_name)
+            # next must be tested:
+            self.rigid_body_model_part_name = self.settings["rigid_body_settings"]["rigid_body_model_part_name"].GetString()
+            self.rigid_body_model_part = self.main_model_part.GetSubModelPart(self.rigid_body_model_part_name)
+            
+            RigidBodyCenter = self.rigid_body_model_part.GetNode(self.rigid_body_model_part.NumberOfNodes-1)
+            
+            self.wall_bouning_box.SetRigidBodyCenter(RigidBodyCenter);
+            
+            # get contact model part
+            self.contact_model_part_name =  "contact_"+self.settings["model_part_name"].GetString()
+
+            #can not be a child of wall_model_part due to process imposed variables
+            self.contact_wall_model_part = self.main_model_part.GetSubModelPart(self.contact_model_part_name)
+            
 
 
         #construct the search strategy
