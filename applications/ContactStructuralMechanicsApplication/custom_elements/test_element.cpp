@@ -192,11 +192,11 @@ void TestElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo
 
 void TestElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
-    const array_1d<double, 3 > Current_Displacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
-    
-    std::cout << "Solution in iteration: " << rCurrentProcessInfo[NL_ITERATION_NUMBER] << std::endl;
-    std::cout << "x: " << Current_Displacement[0] << std::endl;
-    std::cout << "y: " << Current_Displacement[1] << std::endl;
+//     const array_1d<double, 3 > Current_Displacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+//     
+//     std::cout << "Solution in iteration: " << rCurrentProcessInfo[NL_ITERATION_NUMBER] << std::endl;
+//     std::cout << "x: " << Current_Displacement[0] << std::endl;
+//     std::cout << "y: " << Current_Displacement[1] << std::endl;
     
 }
 
@@ -207,11 +207,11 @@ void TestElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
 
-    const array_1d<double, 3 > Current_Displacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
-    
-    std::cout << "Final solution: " << std::endl;
-    std::cout << "x: " << Current_Displacement[0] << std::endl;
-    std::cout << "y: " << Current_Displacement[1] << std::endl;
+//     const array_1d<double, 3 > Current_Displacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+//     
+//     std::cout << "Final solution: " << std::endl;
+//     std::cout << "x: " << Current_Displacement[0] << std::endl;
+//     std::cout << "y: " << Current_Displacement[1] << std::endl;
     
     KRATOS_CATCH( "" );
 }
