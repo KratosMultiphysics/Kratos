@@ -3,7 +3,7 @@
         "problem_name"    : "IsotropicDamageSimoJuPlaneStress_FourPointShearTest",
         "model_part_name" : "Structure",
         "domain_size"     : 2,
-        "time_step"       : 0.5,
+        "time_step"       : 2.0,
         "start_time"      : 0.0,
         "end_time"        : 200.0,
         "echo_level"      : 1
