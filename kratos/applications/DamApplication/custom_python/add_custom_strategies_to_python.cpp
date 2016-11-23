@@ -27,6 +27,8 @@
 
 //schemes
 #include "custom_strategies/schemes/incrementalupdate_static_smoothing_scheme.hpp"
+#include "custom_strategies/schemes/incrementalupdate_static_damped_smoothing_scheme.hpp"
+
 #include "custom_strategies/schemes/bossak_displacement_smoothing_scheme.hpp"
 
 //strategies
@@ -51,7 +53,8 @@ void  AddCustomStrategiesToPython()
 
 
     //custom scheme types
-    typedef IncrementalUpdateStaticSmoothingScheme< SparseSpaceType, LocalSpaceType >  IncrementalUpdateStaticSmoothingSchemeType;     
+    typedef IncrementalUpdateStaticSmoothingScheme< SparseSpaceType, LocalSpaceType >  IncrementalUpdateStaticSmoothingSchemeType; 
+    typedef IncrementalUpdateStaticDampedSmoothingScheme< SparseSpaceType, LocalSpaceType >  IncrementalUpdateStaticDampedSmoothingSchemeType;
     typedef BossakDisplacementSmoothingScheme< SparseSpaceType, LocalSpaceType >  BossakDisplacementSmoothingSchemeType;
     
     //custom strategies types
@@ -62,8 +65,12 @@ void  AddCustomStrategiesToPython()
     class_< IncrementalUpdateStaticSmoothingSchemeType, bases< BaseSchemeType >, boost::noncopyable >("IncrementalUpdateStaticSmoothingScheme",
         init< >());
 
+    class_< IncrementalUpdateStaticDampedSmoothingSchemeType, bases< BaseSchemeType >, boost::noncopyable >("IncrementalUpdateStaticDampedSmoothingScheme",
+        init< double, double >());
+
+
     class_< BossakDisplacementSmoothingSchemeType, bases< BaseSchemeType >, boost::noncopyable >("BossakDisplacementSmoothingScheme",
-        init< double >());
+        init< double, double, double >());
             
     class_< DamEulerianConvectionDiffusionStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("DamEulerianConvectionDiffusionStrategy", 
         init < ModelPart&, LinearSolverType::Pointer, Parameters&, bool, int >());
