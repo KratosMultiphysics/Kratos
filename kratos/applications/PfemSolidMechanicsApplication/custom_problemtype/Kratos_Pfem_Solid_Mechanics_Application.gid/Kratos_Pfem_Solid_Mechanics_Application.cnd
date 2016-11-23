@@ -518,8 +518,8 @@ END CONDITION
 
 CONDITION: group_RigidBodies
 CONDTYPE: over groups
-# CONDMESHTYPE: over body elements
-GROUPALLOW: lines surfaces elements
+# CONDMESHTYPE: over points body elements
+GROUPALLOW: points lines surfaces elements
 QUESTION: Automatic
 VALUE: 0
 STATE: HIDDEN
