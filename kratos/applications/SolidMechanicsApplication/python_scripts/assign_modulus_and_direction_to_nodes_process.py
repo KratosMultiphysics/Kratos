@@ -71,8 +71,9 @@ class AssignModulusAndDirectionToNodesProcess(BaseProcess.AssignVectorComponents
             self.value_is_numeric = True
             
             modulus = self.settings["modulus"].GetDouble()
-            for i in self.value:
-                i *= modulus
+            for i in range(0, len(self.value)):
+                self.value[i] *= modulus
+
         else:            
             self.function_expression = self.settings["modulus"].GetString()
             

@@ -97,10 +97,9 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
             
             modulus = self.settings["modulus"].GetDouble()
 
-            print(" modulus ", modulus)
-            for i in self.value:
-                i *= modulus
-      
+            for i in range(0, len(self.value)):
+                self.value[i] *= modulus
+                      
         else:
             self.function_expression = self.settings["modulus"].GetString()
 
@@ -135,7 +134,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
             for i in self.value:
                 params["value"][counter].SetDouble(i)
                 counter+=1
-
+                
                 self.AssignValueProcess = KratosSolid.AssignVectorToConditionsProcess(self.model_part, params)
 
         else:
