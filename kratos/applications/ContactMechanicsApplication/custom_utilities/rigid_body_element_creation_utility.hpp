@@ -297,6 +297,7 @@ private:
 
       //Set this node to the boundary model_part where it belongs to
       unsigned int RigidBodyNodeId = rRigidBodyModelPart.Nodes().back().Id();
+
       for(ModelPart::SubModelPartIterator i_mp= rMainModelPart.SubModelPartsBegin(); i_mp!=rMainModelPart.SubModelPartsEnd(); i_mp++)
 	{
   
@@ -306,6 +307,7 @@ private:
 	      {
 		if( i_node->Id() == RigidBodyNodeId ){
 		  i_mp->AddNode(NodeCenterOfGravity);
+		  break;
 		  std::cout<<" node set "<<std::endl;
 		}
 	      }
