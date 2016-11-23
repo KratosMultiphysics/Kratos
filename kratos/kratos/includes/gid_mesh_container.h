@@ -266,6 +266,11 @@ public:
                         GiD_fEndCoordinates(MeshFile);
                         nodes_written = true;
                     }
+                    else  //printing these headers avoids the exception raised by GidPost. There's an Assert stopping the program if we don't put this here.
+                    {
+                        GiD_fBeginCoordinates(MeshFile);
+                        GiD_fEndCoordinates(MeshFile);
+                    }
                     //printing elements
                     GiD_fBeginElements(MeshFile);
                     int* nodes_id = new int[mMeshConditions.begin()->GetGeometry().size() + 1];
