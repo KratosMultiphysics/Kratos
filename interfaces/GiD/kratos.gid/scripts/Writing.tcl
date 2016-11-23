@@ -1070,9 +1070,15 @@ proc write::getInterval { interval {un "Intervals"} {appid "" }  } {
 
 proc write::SetParallelismConfiguration {{un "Parallelization"} {n "OpenMPNumberOfThreads"}} {
     set nt 0
-    catch {set nt [write::getValue $un $n]}
-    if {$nt} {write::SetEnvironmentVariable OMP_NUM_THREADS $nt} {return 0}
+    set paralleltype [write::getValue ParallelType]
+    if {$paralleltype eq "OpenMP"} {
+        catch {set nt [write::getValue $un $n]}
+        if {$nt} {write::SetEnvironmentVariable OMP_NUM_THREADS $nt} {return 0}
+    } else {
+        write::SetEnvironmentVariable OMP_NUM_THREADS 1
+    }
 }
+
 proc write::SetEnvironmentVariable {name value} {
     set ::env($name) $value
 }
