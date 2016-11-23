@@ -322,7 +322,7 @@ public:
     void CreateBoundingBoxBoundaryMesh(ModelPart& rModelPart, int linear_partitions = 4, int angular_partitions = 4 )
     {
       KRATOS_TRY
-
+	
       unsigned int NodeId = 0;
       if( rModelPart.IsSubModelPart() )
 	NodeId = this->GetMaxNodeId( *(rModelPart.GetParentModelPart()) );
@@ -364,15 +364,15 @@ public:
       PointType BasePoint(3);
       PointType RotationAxis(3);
       PointType RotatedDirectionY(3);
-
+     
       //calculate center
       PointType Upper = (mBox.UpperPoint - mPlane.Point);
       Upper -= inner_prod(Upper,mPlane.Normal) * mPlane.Normal;
  
       PointType Lower = (mBox.LowerPoint - mPlane.Point);
       Lower -= inner_prod(Lower,mPlane.Normal) * mPlane.Normal;
-         
-      PointType PlaneCenter = mPlane.Point + 0.5 * (Upper - Lower);
+      
+      PointType PlaneCenter = mPlane.Point + 0.5 * (Upper + Lower);
       double PlaneRadius    = norm_2(Upper-Lower);
       PlaneRadius *= 0.5;
       
@@ -396,16 +396,12 @@ public:
 	  RotatedDirectionY = DirectionY;
 	  
 	  Quaternion.RotateVector3(RotatedDirectionY);
-
-	  //std::cout<<" Rotated "<<RotatedDirectionY<<" alpha "<<alpha<<std::endl;         
 	  
 	  //add the angular_partitions points number along the circle
 	  NodeId += 1;
-
-	  std::cout<<" node id "<<NodeId<<std::endl;
+  
+	  noalias(BasePoint) = PlaneCenter + PlaneRadius * RotatedDirectionY;	 
 	  
-	  noalias(BasePoint) = PlaneCenter + PlaneRadius * RotatedDirectionY;
-	      
 	  NodeType::Pointer pNode = this->CreateNode(rModelPart, BasePoint, NodeId);
 	   
 	  pNode->Set(RIGID,true);
@@ -533,8 +529,6 @@ protected:
 
 	FaceNodesIds[0] = rInitialNodeId + counter ;
 	FaceNodesIds[1] = rInitialNodeId + counter + 1;
-
-	//std::cout<<" FaceNodesIds "<<FaceNodesIds<<" element id "<<ElementId<<std::endl;
 	
 	GeometryType::PointsArrayType FaceNodes;
 	FaceNodes.reserve(2);

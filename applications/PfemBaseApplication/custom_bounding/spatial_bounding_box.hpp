@@ -248,16 +248,16 @@ protected:
 
     void SetInitialValues()
     {
-      InitialUpperPoint = Center;
-      InitialLowerPoint  = Center;
-      InitialCenter    = Center;
+      InitialUpperPoint = UpperPoint;
+      InitialLowerPoint = LowerPoint;
+      InitialCenter     = Center;
     }
 
     void UpdatePosition( PointType& Displacement )
     {
       UpperPoint = InitialUpperPoint + Displacement;
-      LowerPoint = InitialLowerPoint  + Displacement;
-      Center     = InitialCenter    + Displacement;
+      LowerPoint = InitialLowerPoint + Displacement;
+      Center     = InitialCenter     + Displacement;
     }
 
     void Print()
@@ -390,7 +390,7 @@ public:
 
       mBox.Initialize();
       mBox.UpperPoint = rUpperPoint;
-      mBox.LowerPoint  = rLowerPoint;
+      mBox.LowerPoint = rLowerPoint;
 
       mBox.Center = 0.5 * ( rUpperPoint + rLowerPoint );
       mBox.Radius = 0.5 * norm_2(rUpperPoint-rLowerPoint); 
@@ -714,6 +714,22 @@ public:
 
 
     // SET
+
+    void SetUpperPoint(PointType& rUpperPoint)
+    {
+      mBox.UpperPoint        = rUpperPoint;
+      mBox.InitialUpperPoint = rUpperPoint;
+    }
+
+    //**************************************************************************
+    //**************************************************************************
+   
+    void SetLowerPoint(PointType& rLowerPoint)
+    {
+      mBox.LowerPoint        = rLowerPoint;
+      mBox.InitialLowerPoint = rLowerPoint;
+      
+    }
 
     //**************************************************************************
     //**************************************************************************

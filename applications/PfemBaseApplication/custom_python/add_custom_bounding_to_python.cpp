@@ -66,6 +66,8 @@ namespace Python
       .def(init< Parameters& >())
       .def("SetAxisymmetric",&SpatialBoundingBox::SetAxisymmetric)
       .def("SetDimension",&SpatialBoundingBox::SetDimension)
+      .def("SetUpperPoint",&SpatialBoundingBox::SetUpperPoint)
+      .def("SetLowerPoint",&SpatialBoundingBox::SetLowerPoint)
       .def("SetRigidBodyCenter",&SpatialBoundingBox::SetRigidBodyCenter)
       .def("CreateBoundingBoxBoundaryMesh",&SpatialBoundingBox::CreateBoundingBoxBoundaryMesh)
       ;
