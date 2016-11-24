@@ -62,7 +62,6 @@ namespace Kratos {
 //        if (other_radius < rmin) rmin = other_radius;
 //        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
 
-
         double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
         kn_el = equiv_young * calculation_area / initial_dist;
         kt_el = equiv_shear * calculation_area / initial_dist;
@@ -105,12 +104,11 @@ namespace Kratos {
         double mTensionLimit;
 
 
-
-//        double rmin = element1->GetRadius();    test rebalance solo resistencia
-//        const double other_radius = element2->GetRadius();
-//        if (other_radius < rmin) rmin = other_radius;
-//        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
-          double effective_calculation_area = calculation_area;
+        double rmin = element1->GetRadius();
+        const double other_radius = element2->GetRadius();
+        if (other_radius < rmin) rmin = other_radius;
+        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
+//          double effective_calculation_area = calculation_area;
 
         if (&element1_props == &element2_props) {
 
@@ -159,65 +157,65 @@ namespace Kratos {
             double u_ela2 = u_ela1 + (Ncstr2_el - Ncstr1_el) / (kn_b);
             double u_ela3 = u_ela2 + (Ncstr3_el - Ncstr2_el) / (kn_c);
 
-            if ((indentation > u_max) || (time_steps <= 1)) { //maximum historical intentation OR first step  MSIMSI 0
+            if ((indentation > u_max) || (time_steps <= 1)) {   //maximum historical indentation OR first step
 
-                mHistoryMaxInd = indentation;               // Guarda el threshold del màxim desplaçament
+                mHistoryMaxInd = indentation;                   //Saves maximum historical indentation
 
-                if (indentation > u_ela3) {                 //4rt tram
+                if (indentation > u_ela3) {                     //4th stage
                     fn = Ncstr3_el + (indentation - u_ela3) * kn_d;
                     mHistoryDegradation = kn_d / kn_el;
-                } else if (indentation > u_ela2) {          //3r tram
+                } else if (indentation > u_ela2) {              //3rd stage
                     fn = Ncstr2_el + (indentation - u_ela2) * kn_c;
                     mHistoryDegradation = kn_c / kn_el;
                 } else {
-                    if (indentation > u_ela1) {             //2n tram
+                    if (indentation > u_ela1) {                 //2nd stage
                         fn = Ncstr1_el + (indentation - u_ela1) * kn_b;
                         mHistoryDegradation = kn_b / kn_el;
                     }
                 }
-                mHistoryMaxForce = fn;                      //actualitzar la força màxima a compressió.
-            } else {                                        //Per sota del màxim.
-                if (mHistoryMaxForce > 0.0) {               //Màxim en compressió.
+                mHistoryMaxForce = fn;                          //Update max compressive force.
+            } else {                                            //Below max.
+                if (mHistoryMaxForce > 0.0) {                   //max compressive force
 
-                    double u_plas;                          //MSIMSI 2 akesta operació de saber quant val la u_plastica es fa cada pas de temps i en realitat es fixe sempre.
-                    if (Yields_el <= Ncstr1_el) {           //si el punt de plastificació està en la primera rama elastica.
+                    double u_plas;
+                    if (Yields_el <= Ncstr1_el) {               //Plastic point located in the first stage.
 
                         u_plas = Yields_el / kn_el;
                     } else {
-                        if (Yields_el <= Ncstr2_el) {       //si està en la segona...
+                        if (Yields_el <= Ncstr2_el) {           //Plastic point located in the second stage
                             u_plas = u_ela1 + (Yields_el - Ncstr1_el) / (kn_b);
-                        } else if (Yields_el <= Ncstr3_el) { //si està en la tercera...
+                        } else if (Yields_el <= Ncstr3_el) {    //Plastic point located in the third stage
                             u_plas = u_ela2 + (Yields_el - Ncstr2_el) / (kn_c);
-                        } else {                            //en la quarta
+                        } else {                                //Plastic point located in the fourth stage
                             u_plas = u_ela3 + (Yields_el - Ncstr3_el) / (kn_d);
                         }
                     }
-                    if (u_plas < u_max) {                   //si nosaltres estem per sota del maxim pero ja estem plastificant
-                        fn = mHistoryMaxForce - kp_el * (u_max - indentation); // Esta en zona de descarga plastica (pot estar en carga/descarga)
+                    if (u_plas < u_max) {                       //below max BUT already in plastic zone
+                        fn = mHistoryMaxForce - kp_el * (u_max - indentation); // Plastic unloading zone
                         mHistoryDegradation = kp_el / kn_el;
-                    } else {                                // Esta en zona descarga elastica, ens despreocupem de la plasticitat
-                        if (indentation > u_ela3) {         // en la 4a ramma
+                    } else {                                    // Elastic unloading zone
+                        if (indentation > u_ela3) {             // 4th stage
                             fn = Ncstr3_el + (indentation - u_ela3) * kn_d;
-                        } else if (indentation > u_ela2) {  // en la 3a ramma
+                        } else if (indentation > u_ela2) {      // 3rd stage
                             fn = Ncstr2_el + (indentation - u_ela2) * kn_c;
                         } else {
-                            if (indentation > u_ela1) {     // en la 2a rama
+                            if (indentation > u_ela1) {         // 2nd stage
                                 fn = Ncstr1_el + (indentation - u_ela1) * kn_b;
                             }
                         }
                     }
-                }       //si tenim precàrrega en compressió.
-            }           //Per sota del màxim.
+                }       //Compressive preloading.
+            }           //Below max value.
         }               //Compression
-        else {          //tension
+        else {          //Tensile
             fn = kn_el * indentation;
             double u1 = Ntstr_el / kn_el;
             double u2 = u1 * (1 + mDamageMaxDisplacementFactor);
 
             if (failure_type == 0) {
 
-                if (fabs(indentation) > u2) {   // FULL DAMAGE
-                    failure_type = 4;           //tension failure
+                if (fabs(indentation) > u2) {                   // FULL DAMAGE
+                    failure_type = 4;                           //tension failure
                     acumulated_damage = 1.0;
                     fn = 0.0;
                 } else {
@@ -266,18 +264,14 @@ namespace Kratos {
 
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
 
-
-        double rmin = element1->GetRadius();
-        const double other_radius = element2->GetRadius();
-        if (other_radius < rmin) rmin = other_radius;
-        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
+//        double rmin = element1->GetRadius();
+//        const double other_radius = element2->GetRadius();
+//        if (other_radius < rmin) rmin = other_radius;
+//        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
+        double effective_calculation_area = calculation_area;
 
         Properties& element1_props = element1->GetProperties();
         Properties& element2_props = element2->GetProperties();
-
-        if (r_process_info[SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION]) {
-            AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce, LocalElasticExtraContactForce, LocalCoordSystem, kt_el, calculation_area,  element1, element2);
-        }
 
         double mTensionLimit;
         double mTauZero;
@@ -310,6 +304,9 @@ namespace Kratos {
         }
 
         if (failure_type == 0) { //This means it has not broken
+            if (r_process_info[SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION]) {
+                AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce, LocalElasticExtraContactForce, element1->mNeighbourElasticExtraContactForces[i_neighbour_count], LocalCoordSystem, kt_el, calculation_area,  element1, element2);
+            }
 
             if (mHistoryShearFlag == 0.0) {
 
@@ -320,8 +317,8 @@ namespace Kratos {
             double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
                     + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
-            contact_tau = ShearForceNow / calculation_area;
-            contact_sigma = LocalElasticContactForce[2] / calculation_area;
+            contact_tau = ShearForceNow / effective_calculation_area;
+            contact_sigma = LocalElasticContactForce[2] / effective_calculation_area;
 
             double tau_strength = mTauZero;
 
@@ -339,7 +336,7 @@ namespace Kratos {
                 double increment_disp = sqrt(LocalDeltDisp[0] * LocalDeltDisp[0] + LocalDeltDisp[1] * LocalDeltDisp[1]);
                 mHistoryDisp += increment_disp;
 
-                double u1_tau = tau_strength * calculation_area / kt_el;
+                double u1_tau = tau_strength * effective_calculation_area / kt_el;
                 double damage_tau = 1.0;
 
                 if (mShearEnergyCoef != 0.0) {
@@ -375,8 +372,8 @@ namespace Kratos {
             }
         }
     }
-
 */
+
 
 
     void DEM_Dempack_dev::CalculateTangentialForces(double OldLocalElasticContactForce[3],
@@ -400,26 +397,25 @@ namespace Kratos {
             const ProcessInfo& r_process_info) {
 
         KRATOS_TRY
-        //const int time_steps = r_process_info[TIME_STEPS];
+
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
         LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - kt_el * LocalDeltDisp[0]; // 0: first tangential
         LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - kt_el * LocalDeltDisp[1]; // 1: second tangential
 
-        if (r_process_info[SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION]) {
-            AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce, LocalElasticExtraContactForce, element1->mNeighbourElasticExtraContactForces[i_neighbour_count], LocalCoordSystem, kt_el, calculation_area,  element1, element2);
-        }
-
         double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
                                   + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
-//        double rmin = element1->GetRadius();  test de rebalance de areas solo en resistencia
-//        const double other_radius = element2->GetRadius();
-//        if (other_radius < rmin) rmin = other_radius;
-//        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
-        double effective_calculation_area = calculation_area;
+        double rmin = element1->GetRadius();  // test de rebalance de areas solo en resistencia
+        const double other_radius = element2->GetRadius();
+        if (other_radius < rmin) rmin = other_radius;
+        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
+//        double effective_calculation_area = calculation_area;
 
 
         if (failure_type == 0) { // This means it has not broken
+            if (r_process_info[SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION]) {
+                AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce, LocalElasticExtraContactForce, element1->mNeighbourElasticExtraContactForces[i_neighbour_count], LocalCoordSystem, kt_el, calculation_area,  element1, element2);
+            }
             Properties& element1_props = element1->GetProperties();
             Properties& element2_props = element2->GetProperties();
             const double mTauZero = 0.5 * 1e6 * (element1_props[CONTACT_TAU_ZERO] + element2_props[CONTACT_TAU_ZERO]);
@@ -468,7 +464,6 @@ namespace Kratos {
                                                     double indentation) {
 
         KRATOS_TRY
-        //double LocalRotationalMoment[3]     = {0.0};
         double LocalDeltaRotatedAngle[3]    = {0.0};
         double LocalDeltaAngularVelocity[3] = {0.0};
 
@@ -529,51 +524,6 @@ namespace Kratos {
     }//ComputeParticleRotationalMoments
 
 
-
-
-    void DEM_Dempack_dev::AddContributionOfShearStrainParallelToBond(double OldLocalElasticContactForce[3],
-                                                              double LocalElasticExtraContactForce[3],
-                                                              array_1d<double, 3>& OldElasticExtraContactForce,
-                                                              double LocalCoordSystem[3][3],
-                                                              const double kt_el,
-                                                              const double calculation_area,
-                                                              SphericContinuumParticle* element1,
-                                                              SphericContinuumParticle* element2) {
-
-        if (element1->mSymmStressTensor == NULL) return;
-        //if(element1->IsSkin() || element2->IsSkin()) return;
-
-        double average_stress_tensor[3][3];
-
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                average_stress_tensor[i][j]     = 0.5 * ((*(element1->mSymmStressTensor   ))(i,j) + (*(element2->mSymmStressTensor   ))(i,j));
-            }
-        }
-
-        double current_sigma_local[3][3];
-        GeometryFunctions::TensorGlobal2Local(LocalCoordSystem, average_stress_tensor, current_sigma_local);
-
-        array_1d<double, 3> OldLocalElasticExtraContactForce;
-        GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, OldElasticExtraContactForce, OldLocalElasticExtraContactForce);
-
-
-
-        double force_due_to_stress0 = calculation_area * current_sigma_local[0][2];
-        double force_due_to_stress1 = calculation_area * current_sigma_local[1][2];
-
-        LocalElasticExtraContactForce[0] = -OldLocalElasticContactForce[0] - force_due_to_stress0;
-        LocalElasticExtraContactForce[1] = -OldLocalElasticContactForce[1] - force_due_to_stress1;
-
-        if(fabs(LocalElasticExtraContactForce[0]) > fabs(force_due_to_stress0) ) {
-            LocalElasticExtraContactForce[0] = LocalElasticExtraContactForce[0] / fabs(LocalElasticExtraContactForce[0]) * fabs(force_due_to_stress0);
-        }
-        if(fabs(LocalElasticExtraContactForce[1]) > fabs(force_due_to_stress1) ) {
-            LocalElasticExtraContactForce[1] = LocalElasticExtraContactForce[1] / fabs(LocalElasticExtraContactForce[1]) * fabs(force_due_to_stress1);
-        }
-
-    }
-
     void DEM_Dempack_dev::AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force,
                                           double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1,
                                           SphericContinuumParticle* element2, const ProcessInfo& r_process_info) {
@@ -617,5 +567,44 @@ namespace Kratos {
 
     } //AddPoissonContribution
 
+    void DEM_Dempack_dev::AddContributionOfShearStrainParallelToBond(double OldLocalElasticContactForce[3],
+                                                              double LocalElasticExtraContactForce[3],
+                                                              array_1d<double, 3>& OldElasticExtraContactForce,
+                                                              double LocalCoordSystem[3][3],
+                                                              const double kt_el,
+                                                              const double calculation_area,
+                                                              SphericContinuumParticle* element1,
+                                                              SphericContinuumParticle* element2) {
+
+        if (element1->mSymmStressTensor == NULL) return;
+        //if(element1->IsSkin() || element2->IsSkin()) return;
+
+        double average_stress_tensor[3][3];
+
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                average_stress_tensor[i][j]     = 0.5 * ((*(element1->mSymmStressTensor   ))(i,j) + (*(element2->mSymmStressTensor   ))(i,j));
+            }
+        }
+
+        double current_sigma_local[3][3];
+        GeometryFunctions::TensorGlobal2Local(LocalCoordSystem, average_stress_tensor, current_sigma_local);
+
+        array_1d<double, 3> OldLocalElasticExtraContactForce;
+        GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, OldElasticExtraContactForce, OldLocalElasticExtraContactForce);
+
+        double force_due_to_stress0 = calculation_area * current_sigma_local[0][2];
+        double force_due_to_stress1 = calculation_area * current_sigma_local[1][2];
+
+        LocalElasticExtraContactForce[0] = -OldLocalElasticContactForce[0] - force_due_to_stress0;
+        LocalElasticExtraContactForce[1] = -OldLocalElasticContactForce[1] - force_due_to_stress1;
+
+        if(fabs(LocalElasticExtraContactForce[0]) > fabs(force_due_to_stress0) ) {
+            LocalElasticExtraContactForce[0] = LocalElasticExtraContactForce[0] / fabs(LocalElasticExtraContactForce[0]) * fabs(force_due_to_stress0);
+        }
+        if(fabs(LocalElasticExtraContactForce[1]) > fabs(force_due_to_stress1) ) {
+            LocalElasticExtraContactForce[1] = LocalElasticExtraContactForce[1] / fabs(LocalElasticExtraContactForce[1]) * fabs(force_due_to_stress1);
+        }
+    }
 
 } /* namespace Kratos.*/
