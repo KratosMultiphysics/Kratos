@@ -248,27 +248,202 @@ public:
         KRATOS_CATCH("");
     }
  
-    /**
-     * Here the database is updated
-     * @param pScheme: The integration scheme
-     * @param pNewLinearSolver: The linear solver employed
-     * @param pBuilderAndSolver: The builder and solver considered
-     * @param rDofSet: The set of degrees of freedom
-     * @param mA: The LHS of the problem
-     * @return mDx: The solution to the problem
+     /**
+     * Solves the current step. This function returns true if a solution has been found, false otherwise.
      */
-    void UpdateDatabase( 
+ 
+    bool SolveSolutionStep() override
+    {
+        // Pointers needed in the solution
+        typename TSchemeType::Pointer pScheme = BaseType::GetScheme();
+        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = BaseType::GetBuilderAndSolver();
+
+        TSystemMatrixType& A  = *BaseType::mpA;
+        TSystemVectorType& Dx = *BaseType::mpDx;
+        TSystemVectorType& b  = *BaseType::mpb;
+
+        //initializing the parameters of the Newton-Raphson cicle
+        unsigned int iteration_number = 1;
+        BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+        //                      BaseType::GetModelPart().GetProcessInfo().SetNonLinearIterationNumber(iteration_number);
+        bool is_converged = false;
+        bool ResidualIsUpdated = false;
+        pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), A, Dx, b);
+        is_converged = BaseType::mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
+
+        //function to perform the building and the solving phase.
+        if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false)
+        {
+            TSparseSpace::SetToZero(A);
+            TSparseSpace::SetToZero(Dx);
+            TSparseSpace::SetToZero(b);
+
+            pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), A, Dx, b);
+        }
+        else
+        {
+            TSparseSpace::SetToZero(Dx); //Dx=0.00;
+            TSparseSpace::SetToZero(b);
+
+            pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), A, Dx, b);
+        }
+
+        if (this->GetEchoLevel() == 3) //if it is needed to print the debug info
+        {
+            //                          std::cout << "After first system solution" << std::endl;
+            std::cout << "SystemMatrix = " << A << std::endl;
+            std::cout << "solution obtained = " << Dx << std::endl;
+            std::cout << "RHS  = " << b << std::endl;
+        }
+        if (this->GetEchoLevel() == 4) //print to matrix market file
+        {
+            std::stringstream matrix_market_name;
+            matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << iteration_number << ".mm";
+            TSparseSpace::WriteMatrixMarketMatrix((char*) (matrix_market_name.str()).c_str(), A, false);
+
+            std::stringstream matrix_market_vectname;
+            matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << iteration_number << ".mm.rhs";
+            TSparseSpace::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), b);
+        }
+        
+        // Updating the results stored in the database
+        BaseType::UpdateDatabase(A, Dx, b, BaseType::MoveMeshFlag());
+
+        pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), A, Dx, b);
+
+        if (is_converged == true)
+        {
+            //initialisation of the convergence criteria
+            BaseType::mpConvergenceCriteria->InitializeSolutionStep(BaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
+
+            if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag() == true)
+            {
+                TSparseSpace::SetToZero(b);
+
+                pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b);
+            }
+
+            is_converged = BaseType::mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
+        }
+
+        // Acceleration is applied
+        ResidualIsUpdated = false;
+        ApplyAcceleration( A, Dx, b, BaseType::MoveMeshFlag(), is_converged, ResidualIsUpdated);
+        
+        //Iteration Cicle... performed only for NonLinearProblems
+        while (is_converged == false &&
+                iteration_number++<BaseType::mMaxIterationNumber)
+        {
+            //setting the number of iteration
+            BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+
+            pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), A, Dx, b);
+
+            is_converged = BaseType::mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
+
+            //call the linear system solver to find the correction mDx for the
+            //it is not called if there is no system to solve
+            if (SparseSpaceType::Size(Dx) != 0)
+            {
+                if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false )
+                {
+                    if( BaseType::GetKeepSystemConstantDuringIterations() == false)
+                    {
+                        //A = 0.00;
+                        TSparseSpace::SetToZero(A);
+                        TSparseSpace::SetToZero(Dx);
+                        TSparseSpace::SetToZero(b);
+
+                        pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), A, Dx, b);
+                    }
+                    else
+                    {
+                        TSparseSpace::SetToZero(Dx);
+                        TSparseSpace::SetToZero(b);
+
+                        pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), A, Dx, b);
+                    }
+                }
+                else
+                {
+                    TSparseSpace::SetToZero(Dx);
+                    TSparseSpace::SetToZero(b);
+
+                    pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), A, Dx, b);
+                }
+            }
+            else
+            {
+                std::cout << "ATTENTION: no free DOFs!! " << std::endl;
+            }
+
+            
+            // Updating the results stored in the database
+            BaseType::UpdateDatabase(A, Dx, b, BaseType::MoveMeshFlag());
+
+            pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), A, Dx, b);
+
+            ResidualIsUpdated = false;
+
+            if (is_converged == true)
+            {
+
+                if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag() == true)
+                {
+                    TSparseSpace::SetToZero(b);
+
+                    pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b);
+                    ResidualIsUpdated = true;
+                    //std::cout << "b is calculated" << std::endl;
+                }
+
+                is_converged =BaseType::mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
+            }
+        }
+        
+        // Acceleration is applied
+        ResidualIsUpdated = false;
+        ApplyAcceleration( A, Dx, b, BaseType::MoveMeshFlag(), is_converged, ResidualIsUpdated);
+
+        //plots a warning if the maximum number of iterations is exceeded
+        if (iteration_number >= BaseType::mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+            MaxIterationsExceeded();
+
+        //recalculate residual if needed
+        //(note that some convergence criteria need it to be recalculated)
+        if (ResidualIsUpdated == false)
+        {
+            // NOTE:
+            // The following part will be commented because it is time consuming
+            // and there is no obvious reason to be here. If someone need this
+            // part please notify the community via mailing list before uncommenting it.
+            // Pooyan.
+
+            //    TSparseSpace::SetToZero(b);
+            //    pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b);
+        }
+
+        //calculate reactions if required
+        if (BaseType::mCalculateReactionsFlag == true)
+        {
+            pBuilderAndSolver->CalculateReactions(pScheme, BaseType::GetModelPart(), A, Dx, b);
+        }
+
+        return is_converged;
+    }
+ 
+    /**
+     * Here the convergence accelerator is applied
+     */
+    void ApplyAcceleration( 
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b,
         const bool MoveMesh,
         bool& is_converged,
-        bool& ResidualIsUpdated,
-        const bool is_iteration
-    ) override
+        bool& ResidualIsUpdated
+    )
     {
-        BaseType::UpdateDatabase(A, Dx, b, MoveMesh, is_converged, ResidualIsUpdated, is_iteration);
-        
         typename TSchemeType::Pointer pScheme = BaseType::GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = BaseType::GetBuilderAndSolver();
         
@@ -307,10 +482,29 @@ public:
             // Update residual variables
             Dx = updated_x - tmp;
             
-            BaseType::UpdateDatabase(A, Dx, b, MoveMesh, is_converged, ResidualIsUpdated, true);
+            BaseType::UpdateDatabase(A, Dx, b, MoveMesh);
+            
+            pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), A, Dx, b);
+
+            ResidualIsUpdated = false;
+
+            if (is_converged == true)
+            {
+
+                if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag() == true)
+                {
+                    TSparseSpace::SetToZero(b);
+
+                    pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b);
+                    ResidualIsUpdated = true;
+                    //std::cout << "mb is calculated" << std::endl;
+                }
+
+                is_converged = BaseType::mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
+            }
         }
     }
-        
+
     ///@}
     ///@name Access
     ///@{
