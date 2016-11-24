@@ -325,6 +325,7 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(RADIUS)
         model_part.AddNodalSolutionStepVariable(NODAL_MASS)
         model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
+        model_part.AddNodalSolutionStepVariable(NEIGHBOUR_SIZE)
 
         # ROTATION RELATED PROPERTIES
         if (Var_Translator(self.DEM_parameters.RotationOption)):
@@ -1178,6 +1179,7 @@ class DEMIo(object):
         self.VelTrapGraphExportFreq       = getattr(self.DEM_parameters, "VelTrapGraphExportFreq", 0)
         self.PostTemperature              = getattr(self.DEM_parameters, "PostTemperature", 0)
         self.PostHeatFlux                 = getattr(self.DEM_parameters, "PostHeatFlux", 0)
+        self.PostNeighbourSize            = getattr(self.DEM_parameters, "PostNeighbourSize", 0)
 
         if not (hasattr(self.DEM_parameters, "PostBoundingBox")):
             self.PostBoundingBox = 0
@@ -1261,16 +1263,22 @@ class DEMIo(object):
         self.PushPrintVar(self.PostExportId,         EXPORT_ID,                    self.spheres_variables)
         self.PushPrintVar(self.PostTemperature,      TEMPERATURE,                  self.spheres_variables)
         self.PushPrintVar(self.PostHeatFlux,         HEATFLUX,                     self.spheres_variables)
+
         #self.PushPrintVar(                        1, DELTA_DISPLACEMENT,           self.spheres_variables)  # Debugging
         #self.PushPrintVar(                        1, PARTICLE_ROTATION_ANGLE,      self.spheres_variables)  # Debugging
         if (hasattr(self.DEM_parameters, "PostRollingResistanceMoment")):
             if (Var_Translator(self.DEM_parameters.RotationOption)):
                 if (Var_Translator(self.DEM_parameters.RollingFrictionOption)):
                     self.PushPrintVar( self.PostRollingResistanceMoment, ROLLING_RESISTANCE_MOMENT, self.spheres_variables)
+
         if (hasattr(self.DEM_parameters, "PostSkinSphere")):
             if (Var_Translator(self.DEM_parameters.PostSkinSphere)):
                 self.PushPrintVar(self.PostSkinSphere,       SKIN_SPHERE,              self.spheres_variables)
-                        
+
+        if (hasattr(self.DEM_parameters, "PostNeighbourSize")):
+            if (Var_Translator(self.DEM_parameters.PostNeighbourSize)):
+                self.PushPrintVar(self.PostNeighbourSize,       NEIGHBOUR_SIZE,              self.spheres_variables)
+
         # NANO
         if self.DEM_parameters.ElementType == "SwimmingNanoParticle":
             self.PushPrintVar(self.PostHeatFlux, CATION_CONCENTRATION, self.spheres_variables)
