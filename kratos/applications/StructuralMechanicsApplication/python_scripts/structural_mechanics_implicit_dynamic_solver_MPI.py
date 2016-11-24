@@ -81,10 +81,7 @@ class ImplicitMechanicalSolver(structural_mechanics_solver_MPI.MechanicalSolver)
         #construct the linear solver
         import new_trilinos_linear_solver_factory # TODO: Is new_trilinos_linear_solver_factory or trilinos_linear_solver_factory?
         self.linear_solver = new_trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-       
-        # Creating the partitions
-        self.CreatingPartitions()
-       
+
         print("Construction of Implicit Mechanical MPI Solver finished")
 
     def AddVariables(self):
