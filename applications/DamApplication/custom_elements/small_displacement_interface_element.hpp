@@ -145,6 +145,8 @@ protected:
     
     void CalculateInitialGap(const GeometryType& Geom);
     
+    void ExtrapolateGPJointWidth (const std::vector<double>& JointWidthContainer);
+    
     void CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo );    
     
     void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo );

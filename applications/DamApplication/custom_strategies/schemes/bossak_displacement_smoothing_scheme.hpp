@@ -84,6 +84,8 @@ public:
                 itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
                 Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
                 rNodalStress.clear();
+                itNode->FastGetSolutionStepValue(NODAL_JOINT_AREA) = 0.0;
+                itNode->FastGetSolutionStepValue(NODAL_JOINT_WIDTH) = 0.0;
             }
         }
 
@@ -108,6 +110,10 @@ public:
                         rNodalStress(i,j) *= InvNodalArea;
                     }
                 }
+                double& NodalJointWidth = itNode->FastGetSolutionStepValue(NODAL_JOINT_WIDTH);
+                const double& NodalJointArea = itNode->FastGetSolutionStepValue(NODAL_JOINT_AREA);
+                if (NodalJointArea>1.0e-20)
+                    NodalJointWidth = NodalJointWidth/NodalJointArea;
             }
         }
                 

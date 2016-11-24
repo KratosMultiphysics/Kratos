@@ -42,7 +42,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::Initialize()
     else
         KRATOS_THROW_ERROR( std::logic_error, "A constitutive law needs to be specified for the element with ID ", this->Id() )
     
-    //Compute initial gap of the joint
+    // Compute initial gap of the joint
     this->CalculateInitialGap(Geom);
 
     KRATOS_CATCH( "" )
@@ -269,15 +269,21 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep( Pr
     ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
     ConstitutiveParameters.SetDeterminantF(detF);
     ConstitutiveParameters.SetDeformationGradientF(F);
-        
+    
+    // Auxiliar output variables
+    unsigned int NumGPoints = mConstitutiveLawVector.size();
+    std::vector<double> JointWidthContainer(NumGPoints);
+    
     //Loop over integration points
-    for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); GPoint++ )
+    for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
     {
         InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
 
         noalias(RelDispVector) = prod(Nu,DisplacementVector);
     
         noalias(StrainVector) = prod(RotationMatrix,RelDispVector);
+        
+        JointWidthContainer[GPoint] = mInitialGap[GPoint] + StrainVector[TDim-1];
         
         this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim-1], MinimumJointWidth, GPoint); //TODO PORQUE ES TDim -1
         
@@ -287,7 +293,79 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep( Pr
         mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
     }
     
+    this->ExtrapolateGPJointWidth(JointWidthContainer);
+    
     KRATOS_CATCH( "" )
+}
+
+
+template< >
+void SmallDisplacementInterfaceElement<2,4>::ExtrapolateGPJointWidth (const std::vector<double>& JointWidthContainer)
+{
+    GeometryType& rGeom = this->GetGeometry();
+    const double& Area = rGeom.Area();
+    
+    array_1d<double,4> NodalJointWidth;
+    NodalJointWidth[0] = JointWidthContainer[0]*Area;
+    NodalJointWidth[1] = JointWidthContainer[1]*Area;
+    NodalJointWidth[2] = JointWidthContainer[1]*Area;
+    NodalJointWidth[3] = JointWidthContainer[0]*Area;
+    
+    for(unsigned int i = 0; i < 4; i++) //NumNodes
+    {
+        rGeom[i].SetLock();
+        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
+        rGeom[i].UnSetLock();
+    }
+}
+
+template< >
+void SmallDisplacementInterfaceElement<3,6>::ExtrapolateGPJointWidth (const std::vector<double>& JointWidthContainer)
+{
+    GeometryType& rGeom = this->GetGeometry();
+    const double& Area = rGeom.Area();
+    
+    array_1d<double,6> NodalJointWidth;
+    NodalJointWidth[0] = JointWidthContainer[0]*Area;
+    NodalJointWidth[1] = JointWidthContainer[1]*Area;
+    NodalJointWidth[2] = JointWidthContainer[2]*Area;
+    NodalJointWidth[3] = JointWidthContainer[0]*Area;
+    NodalJointWidth[4] = JointWidthContainer[1]*Area;
+    NodalJointWidth[5] = JointWidthContainer[2]*Area;
+    
+    for(unsigned int i = 0; i < 6; i++) //NumNodes
+    {
+        rGeom[i].SetLock();
+        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
+        rGeom[i].UnSetLock();
+    }
+}
+
+template< >
+void SmallDisplacementInterfaceElement<3,8>::ExtrapolateGPJointWidth (const std::vector<double>& JointWidthContainer)
+{
+    GeometryType& rGeom = this->GetGeometry();
+    const double& Area = rGeom.Area();
+    
+    array_1d<double,8> NodalJointWidth;
+    NodalJointWidth[0] = JointWidthContainer[0]*Area;
+    NodalJointWidth[1] = JointWidthContainer[1]*Area;
+    NodalJointWidth[2] = JointWidthContainer[2]*Area;
+    NodalJointWidth[3] = JointWidthContainer[3]*Area;
+    NodalJointWidth[4] = JointWidthContainer[0]*Area;
+    NodalJointWidth[5] = JointWidthContainer[1]*Area;
+    NodalJointWidth[6] = JointWidthContainer[2]*Area;
+    NodalJointWidth[7] = JointWidthContainer[3]*Area;
+    
+    for(unsigned int i = 0; i < 8; i++) //NumNodes
+    {
+        rGeom[i].SetLock();
+        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
+        rGeom[i].UnSetLock();
+    }
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -510,6 +588,29 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoi
         
         for ( unsigned int i = 0;  i < NumGPoints; i++ )
             GPValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, GPValues[i] );
+        
+        //Printed on standard GiD Gauss points
+        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( GeometryData::GI_GAUSS_2 );    
+        if ( rValues.size() != OutputGPoints )
+            rValues.resize( OutputGPoints );
+        
+        this->CalculateOutputDoubles(rValues,GPValues);
+    }
+    else if(rVariable == JOINT_WIDTH)
+    {
+        //Variables computed on Lobatto points
+        const GeometryType& Geom = this->GetGeometry();
+        
+        const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
+        std::vector<array_1d<double,3>> GPAuxValues(NumGPoints);
+        this->CalculateOnIntegrationPoints(LOCAL_RELATIVE_DISPLACEMENT_VECTOR, GPAuxValues, rCurrentProcessInfo);
+        
+        std::vector<double> GPValues(NumGPoints);
+        
+        for(unsigned int i=0; i < NumGPoints; i++)
+        {
+            GPValues[i] = mInitialGap[i] + GPAuxValues[i][TDim-1];
+        }
         
         //Printed on standard GiD Gauss points
         const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( GeometryData::GI_GAUSS_2 );    
