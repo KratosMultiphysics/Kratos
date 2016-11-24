@@ -240,6 +240,29 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints
         for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
             rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
     }
+    else if(rVariable == JOINT_WIDTH)
+    {
+        //Variables computed on Lobatto points
+        const GeometryType& Geom = this->GetGeometry();
+        
+        const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
+        std::vector<array_1d<double,3>> GPAuxValues(NumGPoints);
+        this->CalculateOnIntegrationPoints(LOCAL_RELATIVE_DISPLACEMENT_VECTOR, GPAuxValues, rCurrentProcessInfo);
+        
+        std::vector<double> GPValues(NumGPoints);
+        
+        for(unsigned int i=0; i < NumGPoints; i++)
+        {
+            GPValues[i] = mInitialGap[i] + GPAuxValues[i][TDim-1];
+        }
+        
+        //Printed on standard GiD Gauss points
+        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( GeometryData::GI_GAUSS_2 );    
+        if ( rValues.size() != OutputGPoints )
+            rValues.resize( OutputGPoints );
+        
+        this->InterpolateOutputDoubles(rValues,GPValues);
+    }
 }
 
 //----------------------------------------------------------------------------------------
