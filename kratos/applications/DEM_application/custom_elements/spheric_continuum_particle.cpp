@@ -239,6 +239,8 @@ namespace Kratos {
         const array_1d<double, 3>& delta_displ = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
         const array_1d<double, 3>& ang_vel     = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
         Vector& cont_ini_neigh_area              = this->GetValue(NEIGHBOURS_CONTACT_AREAS);
+        int NeighbourSize = mNeighbourElements.size();
+        GetGeometry()[0].GetSolutionStepValue(NEIGHBOUR_SIZE) = NeighbourSize;
 
         for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
 
