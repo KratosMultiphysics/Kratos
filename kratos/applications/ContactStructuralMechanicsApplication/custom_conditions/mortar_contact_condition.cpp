@@ -870,7 +870,7 @@ void MortarContactCondition<TDim,TNumNodes>::InitializeContactData(
     rContactData.Dt = rCurrentProcessInfo[DELTA_TIME];
     
     /* LM */
-    rContactData.LagrangeMultipliers = ContactUtilities::GetVariableMatrix(GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); // NOTE: Valgrind says there is a problem here
+    rContactData.LagrangeMultipliers = GetVariableMatrix(GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); // NOTE: Valgrind says there is a problem here
     
     /* NORMALS AND TANGENTS */ // TODO: To interpolate it is necessary to consider a smooth function
     const array_1d<double, 3> normal      = this->GetValue(NORMAL);
@@ -886,11 +886,11 @@ void MortarContactCondition<TDim,TNumNodes>::InitializeContactData(
         }
     }
     
-//     rContactData.NormalsSlave = ContactUtilities::GetVariableMatrix(GetGeometry(),  NORMAL); 
-//     rContactData.Tangent1Slave = ContactUtilities::GetVariableMatrix(GetGeometry(), TANGENT_XI); 
+//     rContactData.NormalsSlave = GetVariableMatrix(GetGeometry(),  NORMAL); 
+//     rContactData.Tangent1Slave = GetVariableMatrix(GetGeometry(), TANGENT_XI); 
 //     if (TDim == 3)
 //     {
-//         rContactData.Tangent2Slave = ContactUtilities::GetVariableMatrix(GetGeometry(), TANGENT_ETA); 
+//         rContactData.Tangent2Slave = GetVariableMatrix(GetGeometry(), TANGENT_ETA); 
 //     }
 //     
     if (GetProperties().Has(NORMAL_AUGMENTATION_FACTOR) == true)
@@ -2007,8 +2007,8 @@ double MortarContactCondition<TDim,TNumNodes>::AugmentedTangentLM(
     const array_1d<double, TDim>& tangent_gp =  (tangent_xi_lm * tangent_xi_gp + tangent_eta_lm * tangent_eta_gp)/tangent_lm; // NOTE: This is the direction of the slip (using the LM as reference)
     
     // The velocities matrices
-    const Matrix v1 = ContactUtilities::GetVariableMatrix(GetGeometry(),          VELOCITY, 0); 
-    const Matrix v2 = ContactUtilities::GetVariableMatrix(current_master_element, VELOCITY, 0);
+    const Matrix v1 = GetVariableMatrix(GetGeometry(),          VELOCITY, 0); 
+    const Matrix v2 = GetVariableMatrix(current_master_element, VELOCITY, 0);
     
     // The slip of the LM
     const array_1d<double, TDim> vector_integration_point_slip = rContactData.Dt * (prod(trans(v1), rVariables.N_Slave) - prod(trans(v2), rVariables.N_Master));

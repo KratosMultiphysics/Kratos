@@ -78,12 +78,12 @@ public:
     const Vector GPnormal     = prod(trans(normalslave), N1);
     const Vector GPtangent1   = prod(trans(tan1slave), N1);
     
-    const Matrix X1 = ContactUtilities::GetCoordinates(rContactData.SlaveGeometry, false);
-    const Matrix X2 = ContactUtilities::GetCoordinates(rContactData.MasterGeometry, false);
-    const Matrix u1 = ContactUtilities::GetVariableMatrix(rContactData.SlaveGeometry, DISPLACEMENT, 0);
-    const Matrix u2 = ContactUtilities::GetVariableMatrix(rContactData.MasterGeometry, DISPLACEMENT, 0);
-    const Matrix v1 = ContactUtilities::GetVariableMatrix(rContactData.SlaveGeometry, VELOCITY, 0); 
-    const Matrix v2 = ContactUtilities::GetVariableMatrix(rContactData.MasterGeometry, VELOCITY, 0);
+    const Matrix X1 = rContactData.X1;
+    const Matrix X2 = rContactData.X2;
+    const Matrix u1 = rContactData.u1;
+    const Matrix u2 = rContactData.u2;
+    const Matrix v1 = rContactData.v1;
+    const Matrix v2 = rContactData.v2;
 
     const double Dnormalmasterg1u211 =     -N2[0]*(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0))*(0.25*X2(0,1) - 0.25*X2(1,1) + 0.25*u2(0,1) - 0.25*u2(1,1))/std::pow(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2), 3.0L/2.0L) - N2[1]*(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0))*(0.25*X2(0,1) - 0.25*X2(1,1) + 0.25*u2(0,1) - 0.25*u2(1,1))/std::pow(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2), 3.0L/2.0L);
     const double Dnormalmasterg1u210 =     -0.5*N2[0]/std::sqrt(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2)) - N2[0]*(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0))*(0.25*X2(0,0) - 0.25*X2(1,0) + 0.25*u2(0,0) - 0.25*u2(1,0))/std::pow(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2), 3.0L/2.0L) - 0.5*N2[1]/std::sqrt(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2)) - N2[1]*(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0))*(0.25*X2(0,0) - 0.25*X2(1,0) + 0.25*u2(0,0) - 0.25*u2(1,0))/std::pow(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2), 3.0L/2.0L);
@@ -420,12 +420,12 @@ public:
     const Vector GPnormal     = prod(trans(normalslave), N1);
     const Vector GPtangent1   = prod(trans(tan1slave), N1);
     
-    const Matrix X1 = ContactUtilities::GetCoordinates(rContactData.SlaveGeometry, false);
-    const Matrix X2 = ContactUtilities::GetCoordinates(rContactData.MasterGeometry, false);
-    const Matrix u1 = ContactUtilities::GetVariableMatrix(rContactData.SlaveGeometry, DISPLACEMENT, 0);
-    const Matrix u2 = ContactUtilities::GetVariableMatrix(rContactData.MasterGeometry, DISPLACEMENT, 0);
-    const Matrix v1 = ContactUtilities::GetVariableMatrix(rContactData.SlaveGeometry, VELOCITY, 0); 
-    const Matrix v2 = ContactUtilities::GetVariableMatrix(rContactData.MasterGeometry, VELOCITY, 0);
+    const Matrix X1 = rContactData.X1;
+    const Matrix X2 = rContactData.X2;
+    const Matrix u1 = rContactData.u1;
+    const Matrix u2 = rContactData.u2;
+    const Matrix v1 = rContactData.v1;
+    const Matrix v2 = rContactData.v2;
 
     const double Dnormalmasterg1u211 =     -N2[0]*(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0))*(0.25*X2(0,1) - 0.25*X2(1,1) + 0.25*u2(0,1) - 0.25*u2(1,1))/std::pow(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2), 3.0L/2.0L) - N2[1]*(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0))*(0.25*X2(0,1) - 0.25*X2(1,1) + 0.25*u2(0,1) - 0.25*u2(1,1))/std::pow(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2), 3.0L/2.0L);
     const double Dnormalmasterg1u210 =     -0.5*N2[0]/std::sqrt(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2)) - N2[0]*(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0))*(0.25*X2(0,0) - 0.25*X2(1,0) + 0.25*u2(0,0) - 0.25*u2(1,0))/std::pow(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2), 3.0L/2.0L) - 0.5*N2[1]/std::sqrt(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2)) - N2[1]*(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0))*(0.25*X2(0,0) - 0.25*X2(1,0) + 0.25*u2(0,0) - 0.25*u2(1,0))/std::pow(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2), 3.0L/2.0L);
@@ -760,12 +760,12 @@ public:
     
 //     const double sign_tangpress = boost::math::sign(augmented_tangent_lm);
     
-    const Matrix X1 = ContactUtilities::GetCoordinates(rContactData.SlaveGeometry, false);
-    const Matrix X2 = ContactUtilities::GetCoordinates(rContactData.MasterGeometry, false);
-    const Matrix u1 = ContactUtilities::GetVariableMatrix(rContactData.SlaveGeometry, DISPLACEMENT, 0);
-    const Matrix u2 = ContactUtilities::GetVariableMatrix(rContactData.MasterGeometry, DISPLACEMENT, 0);
-    const Matrix v1 = ContactUtilities::GetVariableMatrix(rContactData.SlaveGeometry, VELOCITY, 0); 
-    const Matrix v2 = ContactUtilities::GetVariableMatrix(rContactData.MasterGeometry, VELOCITY, 0);
+    const Matrix X1 = rContactData.X1;
+    const Matrix X2 = rContactData.X2;
+    const Matrix u1 = rContactData.u1;
+    const Matrix u2 = rContactData.u2;
+    const Matrix v1 = rContactData.v1;
+    const Matrix v2 = rContactData.v2;
 
     const double Dnormalmasterg1u211 =     -N2[0]*(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0))*(0.25*X2(0,1) - 0.25*X2(1,1) + 0.25*u2(0,1) - 0.25*u2(1,1))/std::pow(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2), 3.0L/2.0L) - N2[1]*(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0))*(0.25*X2(0,1) - 0.25*X2(1,1) + 0.25*u2(0,1) - 0.25*u2(1,1))/std::pow(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2), 3.0L/2.0L);
     const double Dnormalmasterg1u210 =     -0.5*N2[0]/std::sqrt(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2)) - N2[0]*(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0))*(0.25*X2(0,0) - 0.25*X2(1,0) + 0.25*u2(0,0) - 0.25*u2(1,0))/std::pow(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2), 3.0L/2.0L) - 0.5*N2[1]/std::sqrt(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2)) - N2[1]*(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0))*(0.25*X2(0,0) - 0.25*X2(1,0) + 0.25*u2(0,0) - 0.25*u2(1,0))/std::pow(std::pow(-0.5*X2(0,0) + 0.5*X2(1,0) - 0.5*u2(0,0) + 0.5*u2(1,0), 2) + std::pow(-0.5*X2(0,1) + 0.5*X2(1,1) - 0.5*u2(0,1) + 0.5*u2(1,1), 2), 3.0L/2.0L);
@@ -1097,12 +1097,12 @@ public:
 //     const Vector GPnormal     = prod(trans(normalslave), N1);
 //     const Vector GPtangent1   = prod(trans(tan1slave), N1);
 //     
-//     const Matrix X1 = ContactUtilities::GetCoordinates(rContactData.SlaveGeometry, false);
-//     const Matrix X2 = ContactUtilities::GetCoordinates(rContactData.MasterGeometry, false);
-//     const Matrix u1 = ContactUtilities::GetVariableMatrix(rContactData.SlaveGeometry, DISPLACEMENT, 0);
-//     const Matrix u2 = ContactUtilities::GetVariableMatrix(rContactData.MasterGeometry, DISPLACEMENT, 0);
-//     const Matrix v1 = ContactUtilities::GetVariableMatrix(rContactData.SlaveGeometry, VELOCITY, 0); 
-//     const Matrix v2 = ContactUtilities::GetVariableMatrix(rContactData.MasterGeometry, VELOCITY, 0);
+//     const Matrix X1 = rContactData.X1;
+//     const Matrix X2 = rContactData.X2;
+//     const Matrix u1 = rContactData.u1;
+//     const Matrix u2 = rContactData.u2;
+//     const Matrix v1 = rContactData.v1;
+//     const Matrix v2 = rContactData.v2;
 // 
 //substitute_derivatives_variables_inactive 
 //substitute_inactive_lhs
@@ -1136,8 +1136,8 @@ public:
     const Vector GPnormal     = prod(trans(normalslave), N1);
     const Vector GPtangent1   = prod(trans(tan1slave), N1);
     
-    const Matrix v1 = ContactUtilities::GetVariableMatrix(rContactData.SlaveGeometry, VELOCITY, 0); 
-    const Matrix v2 = ContactUtilities::GetVariableMatrix(rContactData.MasterGeometry, VELOCITY, 0);
+    const Matrix v1 = rContactData.v1;
+    const Matrix v2 = rContactData.v2;
     
     const double crhs0 =     N2[0]; // N2[0](U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
     const double crhs1 =     detJ; // DETJ(U1(0,0), U1(0,1), U1(1,0), U1(1,1))
@@ -1201,8 +1201,8 @@ public:
     const Vector GPnormal     = prod(trans(normalslave), N1);
     const Vector GPtangent1   = prod(trans(tan1slave), N1);
     
-    const Matrix v1 = ContactUtilities::GetVariableMatrix(rContactData.SlaveGeometry, VELOCITY, 0); 
-    const Matrix v2 = ContactUtilities::GetVariableMatrix(rContactData.MasterGeometry, VELOCITY, 0);
+    const Matrix v1 = rContactData.v1;
+    const Matrix v2 = rContactData.v2;
     
     const double crhs0 =     tan1slave(0,0); // TAN1SLAVE(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1))
     const double crhs1 =     tan1slave(0,1); // TAN1SLAVE(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1))
@@ -1263,8 +1263,8 @@ public:
     
 //     const double sign_tangpress = boost::math::sign(augmented_tangent_lm);
     
-    const Matrix v1 = ContactUtilities::GetVariableMatrix(rContactData.SlaveGeometry, VELOCITY, 0); 
-    const Matrix v2 = ContactUtilities::GetVariableMatrix(rContactData.MasterGeometry, VELOCITY, 0);
+    const Matrix v1 = rContactData.v1;
+    const Matrix v2 = rContactData.v2;
     
     const double crhs0 =     tan1slave(0,0); // TAN1SLAVE(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1))
     const double crhs1 =     tan1slave(0,1); // TAN1SLAVE(0,1)(U1(0,0), U1(0,1), U1(1,0), U1(1,1))
@@ -1322,8 +1322,8 @@ public:
 //     const Vector GPnormal     = prod(trans(normalslave), N1);
 //     const Vector GPtangent1   = prod(trans(tan1slave), N1);
 //     
-//     const Matrix v1 = ContactUtilities::GetVariableMatrix(rContactData.SlaveGeometry, VELOCITY, 0); 
-//     const Matrix v2 = ContactUtilities::GetVariableMatrix(rContactData.MasterGeometry, VELOCITY, 0);
+//     const Matrix v1 = rContactData.v1;
+//     const Matrix v2 = rContactData.v2;
     
 //substitute_inactive_rhs
     
