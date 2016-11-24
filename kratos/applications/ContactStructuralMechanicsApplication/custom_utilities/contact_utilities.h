@@ -428,7 +428,7 @@ public:
      * @return The modelparts with the normal computed
      */
     
-    static inline void ComputeNodesMeanNormalModelPart(ModelPart & rModelPart)
+    static inline void ComputeNodesMeanNormalModelPart(ModelPart & rModelPart) // TODO: Consider area to weight!!!!
     {
         // Tolerance
         const double tol = 1.0e-14;
