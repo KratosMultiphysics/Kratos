@@ -126,7 +126,7 @@ class MaterialTest(object):
       if(self.parameters.TestType == "BTS"):
 
         self.bts_export = open(self.parameters.problem_name + ".grf", 'w');
-        self.BtsSkinDetermination()
+        ##self.BtsSkinDetermination()
 
       else:
 
@@ -792,7 +792,6 @@ class MaterialTest(object):
         #right_counter = +node.GetSolutionStepValue(RADIUS)
       
       #width_now = xright_weight/right_counter - xleft_weight/left_counter
-
       #measured_poisson =  ((width_now-width_ini)/width_ini)/strain
       
       #graph_export_poisson.write(str(strain)+"  "+str(measured_poisson)+'\n')
