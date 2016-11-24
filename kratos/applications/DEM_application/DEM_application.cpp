@@ -229,6 +229,7 @@ namespace Kratos
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(EXTERNAL_APPLIED_MOMENT)
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(LOCAL_CONTACT_FORCE)
   KRATOS_CREATE_VARIABLE(VectorArray3Double, PARTICLE_CONTACT_FORCES )
+  KRATOS_CREATE_VARIABLE(double,NEIGHBOUR_SIZE)
 
   // CONCRETE TEST
   KRATOS_CREATE_VARIABLE(double, FIXED_VEL_TOP)
@@ -529,6 +530,7 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(REPRESENTATIVE_VOLUME)
     KRATOS_REGISTER_VARIABLE(NEIGHBOUR_IDS)
     KRATOS_REGISTER_VARIABLE(NEIGHBOURS_CONTACT_AREAS)
+    KRATOS_REGISTER_VARIABLE(NEIGHBOUR_SIZE)
     // *************** Continuum only END ***************
             
     // INLET PARAMETERS    
@@ -615,7 +617,7 @@ namespace Kratos
     // *************** Continuum only END *************
             
     // *************** Thermal only BEGIN *************
-    KRATOS_REGISTER_VARIABLE(HEATFLUX)
+    KRATOS_REGISTER_VARIABLE(HEATFLUX)                        
     KRATOS_REGISTER_VARIABLE(THERMAL_CONDUCTIVITY)        
     // *************** Thermal only END ***************       
 
