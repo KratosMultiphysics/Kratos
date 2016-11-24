@@ -82,44 +82,17 @@ class MechanicalSolver(solid_mechanics_solver.MechanicalSolver):
         import new_trilinos_linear_solver_factory # TODO: Is new_trilinos_linear_solver_factory or trilinos_linear_solver_factory?
         self.linear_solver = new_trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
         
-        # Creating the partitions
-        self.CreatingPartitions()
-        
     def AddVariables(self):
         solid_mechanics_solver.MechanicalSolver.AddVariables(self)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-        
-    def CreatingPartitions(self):
-        # Creating the partitions
-        self.domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-                
-        input_file_name = self.settings["model_import_settings"]["input_filename"].GetString()
-        
-        number_of_partitions = mpi.mpi.size  # we set it equal to the number of processors
-        
-        if mpi.mpi.size > 1:
-            model_part_io = KratosMultiphysics.ModelPartIO(input_file_name)
-            if mpi.mpi.rank == 0:
-                verbosity = 1
-                sync_conditions = True # Make sure that the condition goes to the same partition as the element is is a face of
-                partitioner = MetisApplication.MetisDivideHeterogeneousInputProcess( model_part_io, number_of_partitions, self.domain_size, verbosity, sync_conditions)
-                partitioner.Execute()
-
-            mpi.mpi.world.barrier()
-
-            self.settings["model_import_settings"]["input_filename"].SetString(input_file_name + "_" + str(mpi.mpi.rank))
-
-            MPICommSetup = MetisApplication.SetMPICommunicatorProcess(self.main_model_part)
-            MPICommSetup.Execute()
-
-            self.Comm = TrilinosApplication.CreateCommunicator()
-        else:
-            raise NameError('Your number of mpi.size is 1')
-        
-        print("Construction of MPI MechanicalSolver finished")
     
     def ImportModelPart(self):
-
+        
+        import trilinos_partition_creator
+        verbosity = 1
+        sync_conditions = True # Make sure that the condition goes to the same partition as the element is is a face of
+        self.main_model_part, self.settings, self.Comm, self.domain_size = trilinos_partition_creator.PartitionCreator(self.main_model_part, self.settings, verbosity,sync_conditions)
+        
         if(self.domain_size == 2): # TODO: Add to the input
             self.guess_row_size = 15
         else:
