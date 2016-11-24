@@ -50,6 +50,91 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    static inline Matrix GetCoordinates(
+        const GeometryType& nodes,
+        const bool current
+        )
+    {
+        /* DEFINITIONS */    
+        const unsigned int dimension = nodes.WorkingSpaceDimension();
+        const unsigned int number_of_nodes  =  nodes.PointsNumber( );
+        
+        Matrix Coordinates(number_of_nodes, dimension);
+        
+        for (unsigned int iNode = 0; iNode < number_of_nodes; iNode++)
+        {
+            array_1d<double, 3> coord = nodes[iNode].Coordinates();
+            
+            if (current == false)
+            {
+                coord -= nodes[iNode].FastGetSolutionStepValue(DISPLACEMENT, 0);
+            }
+
+            for (unsigned int iDof = 0; iDof < dimension; iDof++)
+            {
+                Coordinates(iNode, iDof) = coord[iDof];
+            }
+        }
+        
+        return Coordinates;
+    }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    static inline Matrix GetVariableMatrix(
+        const GeometryType& nodes,
+        const Variable<array_1d<double,3> >& rVarName,
+        unsigned int step
+        )
+    {
+        /* DEFINITIONS */
+        const unsigned int dimension = nodes.WorkingSpaceDimension();
+        const unsigned int number_of_nodes  =  nodes.PointsNumber( );
+        
+        Matrix VarMatrix(number_of_nodes, dimension);
+        
+        for (unsigned int iNode = 0; iNode < number_of_nodes; iNode++)
+        {
+            const array_1d<double, 3> Value = nodes[iNode].FastGetSolutionStepValue(rVarName, step);
+            for (unsigned int iDof = 0; iDof < dimension; iDof++)
+            {
+                VarMatrix(iNode, iDof) = Value[iDof];
+            }
+        }
+        
+        return VarMatrix;
+    }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    static inline Matrix GetVariableMatrix(
+        const GeometryType& nodes,
+        const Variable<array_1d<double,3> >& rVarName
+        )
+    {
+        /* DEFINITIONS */
+        const unsigned int dimension = nodes.WorkingSpaceDimension();
+        const unsigned int number_of_nodes  =  nodes.PointsNumber( );
+        
+        Matrix VarMatrix(number_of_nodes, dimension);
+        
+        for (unsigned int iNode = 0; iNode < number_of_nodes; iNode++)
+        {
+            const array_1d<double, 3> Value = nodes[iNode].GetValue(rVarName);
+            for (unsigned int iDof = 0; iDof < dimension; iDof++)
+            {
+                VarMatrix(iNode, iDof) = Value[iDof];
+            }
+        }
+        
+        return VarMatrix;
+    }
+    
 ///@}
 ///@name Kratos Classes
 ///@{
@@ -78,6 +163,14 @@ public:
     Matrix Tangent1Slave;
     Matrix Tangent2Slave;
     
+    // Displacements and velocities
+    Matrix X1;
+    Matrix X2;
+    Matrix u1;
+    Matrix u2;
+    Matrix v1;
+    Matrix v2;
+    
     // Delta time
     double Dt;
     
@@ -104,6 +197,11 @@ public:
         NormalsSlave  = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
         Tangent1Slave = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
         Tangent2Slave = ZeroMatrix(rNumberOfSlaveNodes, rDimension);
+        
+        // Displacements and velocities of the slave
+        X1 = GetCoordinates(GeometryInput, false);
+        u1 = GetVariableMatrix(GeometryInput, DISPLACEMENT, 0);
+        v1 = GetVariableMatrix(GeometryInput, VELOCITY, 0); 
         
         // Delta time 
         Dt = 0.0;
@@ -136,6 +234,11 @@ public:
                 NormalsMaster(iNode, iDof) = normal[iDof]; 
             }
         }
+        
+        // Displacements and velocities of the master
+        X2 = GetCoordinates(GeometryInput, false);
+        u2 = GetVariableMatrix(GeometryInput, DISPLACEMENT, 0);
+        v2 = GetVariableMatrix(GeometryInput, VELOCITY, 0); 
     }
 };
     
