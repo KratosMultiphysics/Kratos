@@ -17,23 +17,12 @@ namespace Kratos {
     void DEM_KDEM_Rankine::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
         std::cout << "\nAssigning DEM_KDEM_Rankine to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-    }                             
-
-    void DEM_KDEM_Rankine::CalculateNormalForces(double LocalElasticContactForce[3],
-            const double kn_el,
-            double equiv_young,
-            double indentation,
-            double calculation_area,
-            double& acumulated_damage,
-            SphericContinuumParticle* element1,
-            SphericContinuumParticle* element2,
-            int i_neighbour_count,
-            int time_steps) {
-
-        KRATOS_TRY    
-              
-        //Firstly, we check that the bond is not broken (it can break in any state of forces or indentations, because breakage depends on the stress tensor)
+    }    
+    
+    void DEM_KDEM_Rankine::CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2){
+        
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
+        
         if (failure_type == 0) {  
             double tension_limit = 0.5 * 1e6 * (element1->GetFastProperties()->GetContactSigmaMin() + element2->GetFastProperties()->GetContactSigmaMin()); //N/m2
 
@@ -53,19 +42,37 @@ namespace Kratos {
                     break;
                 }
             }               
-        }                             
+        }    
+        
+    }
+
+    void DEM_KDEM_Rankine::CalculateNormalForces(double LocalElasticContactForce[3],
+            const double kn_el,
+            double equiv_young,
+            double indentation,
+            double calculation_area,
+            double& acumulated_damage,
+            SphericContinuumParticle* element1,
+            SphericContinuumParticle* element2,
+            int i_neighbour_count,
+            int time_steps) {
+
+        KRATOS_TRY    
+              
+        //Firstly, we check that the bond is not broken (it can break in any state of forces or indentations, because breakage depends on the stress tensor)
+        int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];                            
       
         if (indentation >= 0.0) { //COMPRESSION This response is the same for broken or intact bonds!
             LocalElasticContactForce[2] = kn_el * indentation;  
         }
         else {
             if(failure_type > 0) {            
-                LocalElasticContactForce[2] = 0.0; 
+                LocalElasticContactForce[2] = 0.0;                 
             }
             else {
                 LocalElasticContactForce[2] = kn_el * indentation;  
             }
-        }            
+        }        
         
         KRATOS_CATCH("")      
     }
@@ -101,7 +108,10 @@ namespace Kratos {
                 AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce, LocalElasticExtraContactForce, element1->mNeighbourElasticExtraContactForces[i_neighbour_count], LocalCoordSystem, kt_el, calculation_area,  element1, element2);
             }
         }
-        else {
+        else {            
+            LocalElasticExtraContactForce[0] = 0.0;
+            LocalElasticExtraContactForce[1] = 0.0;            
+            
             double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]); 
             const double equiv_tg_of_fri_ang = 0.5 * (element1->GetTgOfFrictionAngle() + element2->GetTgOfFrictionAngle());  
             double Frictional_ShearForceMax = equiv_tg_of_fri_ang * LocalElasticContactForce[2];

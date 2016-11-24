@@ -221,8 +221,7 @@ namespace Kratos {
                                                     double &equiv_visco_damp_coeff_normal,
                                                     double &equiv_visco_damp_coeff_tangential,
                                                     double LocalRelVel[3],
-                                                    double ViscoDampingLocalContactForce[3],
-                                                    int failure_id) {
+                                                    double ViscoDampingLocalContactForce[3]) {
                 
         KRATOS_TRY
         

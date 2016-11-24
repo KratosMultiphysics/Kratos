@@ -105,7 +105,8 @@ namespace Kratos {
         const double other_radius = element2->GetRadius();
         double calculation_area = 0;
 
-        CalculateContactArea(my_radius, other_radius, calculation_area);
+        Vector& vector_of_contact_areas = element1->GetValue(NEIGHBOURS_CONTACT_AREAS);
+        GetContactArea(my_radius, other_radius, vector_of_contact_areas, i, calculation_area);                 
 
         double radius_sum = my_radius + other_radius;
         double initial_delta = element1->GetInitialDelta(i);
@@ -152,8 +153,7 @@ namespace Kratos {
                                 double &equiv_visco_damp_coeff_normal,
                                 double &equiv_visco_damp_coeff_tangential,
                                 double LocalRelVel[3],
-                                double ViscoDampingLocalContactForce[3],
-                                int failure_id) {
+                                double ViscoDampingLocalContactForce[3]) {
                 
         KRATOS_TRY
         CalculateNormalForces(LocalElasticContactForce,
@@ -200,7 +200,7 @@ namespace Kratos {
                               equiv_visco_damp_coeff_normal,
                               equiv_visco_damp_coeff_tangential,
                               sliding,
-                              failure_id);
+                              element1->mIniNeighbourFailureId[i_neighbour_count]);
         
         KRATOS_CATCH("")      
     }
@@ -404,9 +404,10 @@ namespace Kratos {
     
     void DEM_KDEM::AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, 
                                           double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1,
-                                          SphericContinuumParticle* element2, const ProcessInfo& r_process_info) {
+                                          SphericContinuumParticle* element2, const ProcessInfo& r_process_info, const int i_neighbor_count, const double indentation) {
         
         if (!r_process_info[POISSON_EFFECT_OPTION]) return;
+        if (element1->mIniNeighbourFailureId[i_neighbor_count] > 0  &&  indentation < 0.0) return;
         
         double force[3];
         Matrix average_stress_tensor = ZeroMatrix(3,3);

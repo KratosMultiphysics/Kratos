@@ -92,6 +92,10 @@ namespace Kratos {
                 const double kt_el) {
             KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateViscoDampingCoeff) should not be called.","")
         };
+        
+        virtual void CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
+            
+        }
 
         virtual void CalculateForces(const ProcessInfo& r_process_info,
                 double OldLocalElasticContactForce[3],
@@ -119,10 +123,9 @@ namespace Kratos {
                 double &equiv_visco_damp_coeff_normal,
                 double &equiv_visco_damp_coeff_tangential,
                 double LocalRelVel[3],
-                double ViscoDampingLocalContactForce[3],
-                int failure_id) {
+                double ViscoDampingLocalContactForce[3]) {
             KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateForces) should not be called.","")
-        };
+        };       
 
         virtual void CalculateNormalForces(double LocalElasticContactForce[3],
                 const double kn_el,
@@ -171,7 +174,7 @@ namespace Kratos {
                                                       double indentation);
         
         virtual void AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, double calculation_area, Matrix* mSymmStressTensor,
-                                            SphericContinuumParticle* element1, SphericContinuumParticle* element2, const ProcessInfo& r_process_info);
+                                            SphericContinuumParticle* element1, SphericContinuumParticle* element2, const ProcessInfo& r_process_info, const int i_neighbor_count, const double indentation);
 
         virtual double LocalMaxSearchDistance(const int i,
                                               SphericContinuumParticle* element1,

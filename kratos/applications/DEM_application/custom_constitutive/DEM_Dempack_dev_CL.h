@@ -103,7 +103,7 @@ namespace Kratos {
                                     double LocalCoordSystem[3][3],
                                     double& normal_force,
                                     double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1,
-                                    SphericContinuumParticle* element2, const ProcessInfo& r_process_info) override;
+                                    SphericContinuumParticle* element2, const ProcessInfo& r_process_info, const int i_neighbor_count, const double indentation) override;
 
     private:
 

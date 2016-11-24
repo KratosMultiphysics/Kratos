@@ -123,7 +123,8 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(double, FABRIC_COEFFICIENT)
   KRATOS_DEFINE_VARIABLE(double, POISSON_VALUE)
   KRATOS_DEFINE_VARIABLE(double, KT_FACTOR)
-
+  KRATOS_DEFINE_VARIABLE(double, INTERNAL_COHESION)
+  
   // *************** Nano-particle only BEGIN *************
   KRATOS_DEFINE_VARIABLE(double, CATION_CONCENTRATION)
   // *************** Nano-particle only END *************
