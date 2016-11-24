@@ -291,7 +291,8 @@ public:
     {
       KRATOS_TRY
 
- 
+      //std::cout<<" Create Cylinder Mesh "<<std::endl;
+	
       //1.-create generatrix
       PointType Axis = (mSecondCenter - mFirstCenter);
       double AxisLength = norm_2(Axis);
@@ -342,7 +343,7 @@ public:
       
       for(int i=0; i<linear_partitions; i++)
 	{
-	  PointType Point =  mFirstCenter + Axis * ( SingleLength );
+	  PointType Point =  mFirstCenter + Axis * ( SingleLength ) * i /(double)linear_partitions;
 
 	  for(int k=0; k<angular_partitions; k++)
 	    {		  
@@ -362,6 +363,8 @@ public:
 	      //add the angular_partitions points number along the circular base of the cylinder
 	      NodeId += 1;
 	      noalias(BasePoint) = Point + mBox.Radius * RotatedDirectionY;
+
+	      //std::cout<<" BasePoint["<<NodeId<<"] "<<BasePoint<<" radius "<<mBox.Radius<<std::endl;
 	      
 	      NodeType::Pointer pNode = this->CreateNode(rModelPart, BasePoint, NodeId);
 
@@ -371,7 +374,8 @@ public:
 	    }
 	}
 
-
+      //std::cout<<" Create Cylinder Mesh NODES "<<std::endl;
+      
       this->CreateQuadrilateralBoundaryMesh(rModelPart, InitialNodeId, angular_partitions);
 
       KRATOS_CATCH( "" )
@@ -533,6 +537,8 @@ protected:
     {
       
       KRATOS_TRY
+
+      //std::cout<<" Create Cylinder Mesh ELEMENTS "<<std::endl;
 	
       // Create surface of the cylinder/tube with quadrilateral shell conditions
       unsigned int ElementId = 0; 
@@ -571,10 +577,12 @@ protected:
 	if( local_counter < angular_partitions ){
 
 	  FaceNodesIds[0] = rInitialNodeId + counter ;
-	  FaceNodesIds[1] = rInitialNodeId + counter + angular_partitions;
+	  FaceNodesIds[1] = rInitialNodeId + counter + 1;
 	  FaceNodesIds[2] = rInitialNodeId + counter + angular_partitions + 1;
-	  FaceNodesIds[3] = rInitialNodeId + counter + 1;
+	  FaceNodesIds[3] = rInitialNodeId + counter + angular_partitions;
 
+	  //std::cout<<" ElementA "<<FaceNodesIds<<std::endl;
+	  
 	  GeometryType::PointsArrayType FaceNodes;
 	  FaceNodes.reserve(4);
 	      
@@ -600,11 +608,10 @@ protected:
 	  FaceNodesIds[2] = rInitialNodeId + counter + 1;
 	  FaceNodesIds[3] = rInitialNodeId + counter + angular_partitions;
 
+	  //std::cout<<" ElementB "<<FaceNodesIds<<std::endl;
+	  
 	  GeometryType::PointsArrayType FaceNodes;
 	  FaceNodes.reserve(4);
-
-	  for(unsigned int j=0; j<4; j++)
-	    FaceNodes.push_back(rModelPart.pGetNode(FaceNodesIds[j]));
 
 	  for(unsigned int j=0; j<4; j++)
 	    FaceNodes.push_back(rModelPart.pGetNode(FaceNodesIds[j]));
@@ -617,9 +624,11 @@ protected:
 	  local_counter = 1;
 	}
 	  
-	Id = rInitialNodeId + counter + angular_partitions + 1;
+	Id = rInitialNodeId + counter + angular_partitions;
       }
 
+
+      //std::cout<<" Create Cylinder Mesh ELEMENTS CREATED "<<std::endl;
       
       KRATOS_CATCH( "" )
 				     

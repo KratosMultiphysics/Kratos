@@ -241,8 +241,8 @@ protected:
       AngularVelocity.clear();
 
       Matrix InitialLocalMatrix = IdentityMatrix(3);
-      InitialLocalQuaternion  = QuaternionType::FromRotationMatrix( InitialLocalMatrix );
-      LocalQuaternion         = QuaternionType::FromRotationMatrix( InitialLocalMatrix );
+      InitialLocalQuaternion = QuaternionType::FromRotationMatrix( InitialLocalMatrix );
+      LocalQuaternion        = QuaternionType::FromRotationMatrix( InitialLocalMatrix );
 
     }
 
@@ -1203,6 +1203,9 @@ protected:
     {
       KRATOS_TRY
 
+      if( rModelPart.NumberOfElements() == 0 )
+	return 0;
+	
       unsigned int max_id = rModelPart.Elements().back().Id();
 
       for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin(); i_elem!= rModelPart.ElementsEnd(); i_elem++)
