@@ -1,11 +1,16 @@
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____ 
+//        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _ 
+//        | |  | | |___ ___) |  _  || || |\  | |_| |
+//        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: anonymous $
-//   Date:                $Date: 2009-01-22 16:37:10 $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License
+//                                       Kratos default license: kratos/license.txt
 //
+//  Main authors:    Nelson Lafontaine
+//                   Jordi Cotela Dalmau
+//                   Riccardo Rossi
 //
-
 
 #if !defined(KRATOS_KRATOS_MESHING_APPLICATION_H_INCLUDED )
 #define  KRATOS_KRATOS_MESHING_APPLICATION_H_INCLUDED
