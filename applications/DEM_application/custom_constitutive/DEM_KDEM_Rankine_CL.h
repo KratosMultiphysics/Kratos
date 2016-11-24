@@ -23,6 +23,8 @@ namespace Kratos {
         }
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
+        
+        void CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
 
         void CalculateNormalForces(double LocalElasticContactForce[3],
                 const double kn_el,

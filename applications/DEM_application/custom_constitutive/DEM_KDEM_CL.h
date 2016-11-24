@@ -68,8 +68,7 @@ namespace Kratos {
                              double &equiv_visco_damp_coeff_normal,
                              double &equiv_visco_damp_coeff_tangential,
                              double LocalRelVel[3],
-                             double ViscoDampingLocalContactForce[3],
-                             int failure_id) override;
+                             double ViscoDampingLocalContactForce[3]) override;
 
 
         void CalculateNormalForces(double LocalElasticContactForce[3],
@@ -140,7 +139,7 @@ namespace Kratos {
                                     double LocalCoordSystem[3][3], 
                                     double& normal_force, 
                                     double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1,
-                                    SphericContinuumParticle* element2, const ProcessInfo& r_process_info) override;
+                                    SphericContinuumParticle* element2, const ProcessInfo& r_process_info, const int i_neighbor_count, const double indentation) override;
 
     private:
 

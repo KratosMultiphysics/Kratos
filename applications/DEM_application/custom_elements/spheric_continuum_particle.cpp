@@ -336,7 +336,9 @@ namespace Kratos {
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel);
 
             if (i < mContinuumInitialNeighborsSize) {
-                int failure_id = mIniNeighbourFailureId[i];
+
+                mContinuumConstitutiveLawArray[i]->CheckFailure(i, this, neighbour_iterator);
+                
                 mContinuumConstitutiveLawArray[i]->CalculateForces(r_process_info,
                                                                    OldLocalElasticContactForce,
                                                                    LocalElasticContactForce,
@@ -363,8 +365,7 @@ namespace Kratos {
                                                                    equiv_visco_damp_coeff_normal,
                                                                    equiv_visco_damp_coeff_tangential,
                                                                    LocalRelVel,
-                                                                   ViscoDampingLocalContactForce,
-                                                                   failure_id);
+                                                                   ViscoDampingLocalContactForce);
 
             } else if (indentation > 0.0) {
                 double cohesive_force =  0.0;
@@ -377,7 +378,7 @@ namespace Kratos {
             double GlobalContactForce[3] = {0.0};
             
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR) && (i < mContinuumInitialNeighborsSize)) { // We leave apart the discontinuum neighbors (the same for the walls). The neighbor would not be able to do the same if we activate it.
-                mContinuumConstitutiveLawArray[i]->AddPoissonContribution(equiv_poisson, LocalCoordSystem, LocalElasticContactForce[2], calculation_area, mSymmStressTensor, this, neighbour_iterator, r_process_info);
+                mContinuumConstitutiveLawArray[i]->AddPoissonContribution(equiv_poisson, LocalCoordSystem, LocalElasticContactForce[2], calculation_area, mSymmStressTensor, this, neighbour_iterator, r_process_info, i, indentation);
             }
 
             array_1d<double, 3> other_ball_to_ball_forces(3,0.0);

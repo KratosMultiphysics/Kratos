@@ -156,8 +156,7 @@ namespace Kratos {
                                     double &equiv_visco_damp_coeff_normal,
                                     double &equiv_visco_damp_coeff_tangential,
                                     double LocalRelVel[3],
-                                    double ViscoDampingLocalContactForce[3],
-                                    int failure_id) {
+                                    double ViscoDampingLocalContactForce[3]) {
 
         KRATOS_TRY
 
@@ -205,7 +204,7 @@ namespace Kratos {
                               equiv_visco_damp_coeff_normal,
                               equiv_visco_damp_coeff_tangential,
                               sliding,
-                              failure_id);
+                              element1->mIniNeighbourFailureId[i_neighbour_count]);
 
         KRATOS_CATCH("")  
     }

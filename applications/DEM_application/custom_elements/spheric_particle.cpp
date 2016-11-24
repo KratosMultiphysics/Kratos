@@ -411,7 +411,7 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(boost::numeric::ublas::
         for (unsigned int j = 0; j < vector_of_ids_of_neighbours.size(); j++) {
             if (int(mTempNeighboursIds[i]) == vector_of_ids_of_neighbours[j] && vector_of_ids_of_neighbours[j] != -1) {
                 noalias(mTempNeighbourElasticContactForces[i]) = mNeighbourElasticContactForces[j];
-                noalias(mTempNeighbourElasticExtraContactForces[i]) = mNeighbourElasticExtraContactForces[j];
+                noalias(mTempNeighbourElasticExtraContactForces[i]) = mNeighbourElasticExtraContactForces[j]; //TODO: remove this from discontinuum!!
                 break;
             }
         }

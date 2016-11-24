@@ -91,8 +91,7 @@ namespace Kratos {
                                     double &equiv_visco_damp_coeff_normal,
                                     double &equiv_visco_damp_coeff_tangential,
                                     double LocalRelVel[3],
-                                    double ViscoDampingLocalContactForce[3],
-                                    int failure_id) override;
+                                    double ViscoDampingLocalContactForce[3]) override;
 
 		void CalculateNormalForcesAfterSintering(double LocalElasticContactForce[3], // HERTZIAN CL
 			const double kn_el,

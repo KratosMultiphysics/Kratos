@@ -54,14 +54,13 @@ void ParticleContactElement::Initialize() {
     mContactSigma = 0.0;
     mContactTau = 0.0;
          
-    this->GetValue(LOCAL_CONTACT_FORCE)[0] = 0.0;
-    this->GetValue(LOCAL_CONTACT_FORCE)[1] = 0.0;
-    this->GetValue(LOCAL_CONTACT_FORCE)[2] = 0.0;
-    this->GetValue(CONTACT_SIGMA)          = 0.0;
-    this->GetValue(CONTACT_TAU)            = 0.0;
-    this->GetValue(CONTACT_FAILURE)        = 0.0;
-    this->GetValue(FAILURE_CRITERION_STATE) = 0.0;
-    this->GetValue(UNIDIMENSIONAL_DAMAGE)  = 0.0; 
+    array_1d<double, 3> vector_of_zeros(3,0.0);
+    this->SetValue(LOCAL_CONTACT_FORCE, vector_of_zeros);        
+    this->SetValue(CONTACT_SIGMA, 0.0);
+    this->SetValue(CONTACT_TAU, 0.0);
+    this->SetValue(CONTACT_FAILURE, 0.0);
+    this->SetValue(FAILURE_CRITERION_STATE, 0.0);
+    this->SetValue(UNIDIMENSIONAL_DAMAGE, 0.0); 
    
     KRATOS_CATCH( "" )
 }
