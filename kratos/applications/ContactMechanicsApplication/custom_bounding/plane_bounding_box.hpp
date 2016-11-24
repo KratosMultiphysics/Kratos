@@ -124,7 +124,8 @@ public:
                    "normal": [0.0, 0.0, 0.0],
                    "convexity": 1
                  }],
-                 "velocity": [0.0, 0.0, 0.0]
+                 "velocity": [0.0, 0.0, 0.0],
+                 "plane_size": 1.0
                 
             }  )" );
 
@@ -156,6 +157,21 @@ public:
       mBox.Velocity[1] = CustomParameters["velocity"][1].GetDouble();
       mBox.Velocity[2] = CustomParameters["velocity"][2].GetDouble();
 
+      mBox.Radius = CustomParameters["plane_size"].GetDouble();
+
+      PointType UpperPoint(3);
+      PointType LowerPoint(3);
+
+      //calculate upper and lower points
+      for(unsigned int i=0; i<3; i++)
+	{
+	  mBox.UpperPoint[i] = mBox.Radius;
+	  mBox.LowerPoint[i] = (-1) * mBox.Radius;
+	}
+      
+      mBox.UpperPoint += mPlane.Point;
+      mBox.LowerPoint += mPlane.Point;
+      
       mBox.Convexity = BoxParameters["convexity"].GetInt();
 
       mBox.SetInitialValues();
@@ -379,7 +395,7 @@ public:
       double alpha = 0;
       QuaternionType Quaternion;      
 
-      if( rModelPart.GetMesh().WorkingSpaceDimension() == 2 )
+      if( rModelPart.GetMesh().WorkingSpaceDimension() == 2 || rModelPart.GetProcessInfo()[DOMAIN_SIZE]==2 )
 	angular_partitions = 2;
       else
 	angular_partitions = 4;
@@ -524,7 +540,7 @@ protected:
 
       while(Id < NodeId){
 
-	counter += 1;
+	counter   += 1;
 	ElementId += 1;
 
 	FaceNodesIds[0] = rInitialNodeId + counter ;
@@ -545,7 +561,7 @@ protected:
 				       
 	rModelPart.AddElement(pElement);
 
-	Id = rInitialNodeId + counter + 1;
+	Id = rInitialNodeId + counter + 2;
 	
       }
 
@@ -603,7 +619,7 @@ protected:
 	//std::cout<<" FaceNodesIds "<<FaceNodesIds<<" element id "<<ElementId<<std::endl;
 	
 	GeometryType::PointsArrayType FaceNodes;
-	FaceNodes.reserve(2);
+	FaceNodes.reserve(4);
 	      
 	//NOTE: when creating a PointsArrayType
 	//important ask for pGetNode, if you ask for GetNode a copy is created

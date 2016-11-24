@@ -345,7 +345,8 @@
 				"convexity": *cond(Wall_Circle,5)
 			      }
 			    ],
-			    "velocity" : [*tcl(JoinByComma *cond(Linear_Velocity))]
+			    "velocity" : [*tcl(JoinByComma *cond(Linear_Velocity))],
+			    "plane_size": *cond(Plane_Size)
 			}
 *elseif(strcmp(cond(Wall_Type),"CIRCLE")==0)
 			"bounding_box_type": "CircleBoundingBox",
@@ -359,6 +360,31 @@
 			    ],
 			    "velocity" : [0.0, 0.0, 0.0]
 			}
+*elseif(strcmp(cond(Wall_Type),"CYLINDER")==0)
+			"bounding_box_type": "CylinderBoundingBox",
+			"bounding_box_parameters":{
+			    "parameters_list":[
+			      {
+				"first_center": [*cond(Wall_Cylinder,1), *cond(Wall_Cylinder,2), *cond(Wall_Cylinder,3)],
+				"second_center": [*cond(Wall_Cylinder,5), *cond(Wall_Cylinder,6), *cond(Wall_Cylinder,7)],	
+				"radius": *cond(Wall_Cylinder,4),
+				"convexity": *cond(Wall_Cylinder,8)
+			      }
+			    ],
+			    "velocity" : [0.0, 0.0, 0.0]
+			}
+*elseif(strcmp(cond(Wall_Type),"SPHERE")==0)
+			"bounding_box_type": "SphereBoundingBox",
+			"bounding_box_parameters":{
+			    "parameters_list":[
+			      {
+				"center": [*cond(Wall_Sphere,1), *cond(Wall_Sphere,2), *cond(Wall_Sphere,3)],
+				"radius": *cond(Wall_Sphere,4),
+				"convexity": *cond(Wall_Sphere,5)
+			      }
+			    ],
+			    "velocity" : [0.0, 0.0, 0.0]
+			}			
 *elseif(strcmp(cond(Wall_Type),"NOSE-WALL")==0)
 			"bounding_box_type": "CompoundNosesBoundingBox",
 			"bounding_box_parameters":{
@@ -377,7 +403,8 @@
 *endif
 *end
 			    ],
-			    "velocity" : [0.0, 0.0, 0.0]
+			    "velocity" : [0.0, 0.0, 0.0],
+			    "plane_size": *cond(Plane_Size)
 			}
 
 *endif

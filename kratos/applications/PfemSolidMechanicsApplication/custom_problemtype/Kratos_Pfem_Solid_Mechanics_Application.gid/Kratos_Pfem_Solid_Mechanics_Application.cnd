@@ -530,22 +530,30 @@ VALUE: TranslatoryRigidBodyElement2D1N
 QUESTION: Parametric_Wall#CB#(False,True)
 VALUE: False
 DEPENDENCIES:(True,RESTORE,Contact_Condition,#CURRENT#,RESTORE,Penalty_Parameter,#CURRENT#,RESTORE,Wall_Type,#CURRENT#,HIDE,Body_Surface,True)
-DEPENDENCIES:(#DEFAULT#,HIDE,Contact_Condition,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#,HIDE,Wall_Type,#CURRENT#,HIDE,Wall_Plane,#CURRENT#,HIDE,Wall_Circle,#CURRENT#,HIDE,Wall_Noses,#CURRENT#,RESTORE,Body_Surface,#CURRENT#)
+DEPENDENCIES:(#DEFAULT#,HIDE,Contact_Condition,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#,HIDE,Wall_Type,#CURRENT#,HIDE,Wall_Plane,#CURRENT#,HIDE,Wall_Circle,#CURRENT#,HIDE,Wall_Noses,#CURRENT#,HIDE,Wall_Cylinder,#CURRENT#,HIDE,Wall_Sphere,#CURRENT#,HIDE,Plane_Size,#CURRENT#,RESTORE,Body_Surface,#CURRENT#)
 QUESTION: Contact_Condition#CB#(PointContactPenaltyCondition2D1N,AxisymPointContactPenaltyCondition2D1N,AxisymPointWaterContactPenaltyCondition2D1N,PointContactPenaltyCondition3D1N)
 VALUE: PointContactPenaltyCondition2D1N
 QUESTION: Penalty_Parameter
 VALUE: 1000
-QUESTION: Wall_Type#CB#(PLANE,CIRCLE,NOSE-WALL)
+QUESTION: Wall_Type#CB#(PLANE,CIRCLE,NOSE-WALL,CYLINDER,SPHERE)
 VALUE: PLANE
-DEPENDENCIES:(PLANE,RESTORE,Wall_Plane,#CURRENT#,HIDE,Wall_Circle,#CURRENT#,HIDE,Wall_Noses,#CURRENT#)
-DEPENDENCIES:(CIRCLE,HIDE,Wall_Plane,#CURRENT#,RESTORE,Wall_Circle,#CURRENT#,HIDE,Wall_Noses,#CURRENT#)
-DEPENDENCIES:(NOSE-WALL,HIDE,Wall_Plane,#CURRENT#,HIDE,Wall_Circle,#CURRENT#,RESTORE,Wall_Noses,#CURRENT#)
+DEPENDENCIES:(PLANE,RESTORE,Wall_Plane,#CURRENT#,HIDE,Wall_Circle,#CURRENT#,HIDE,Wall_Noses,#CURRENT#,HIDE,Wall_Cylinder,#CURRENT#,HIDE,Wall_Sphere,#CURRENT#,RESTORE,Plane_Size,#CURRENT#)
+DEPENDENCIES:(CIRCLE,HIDE,Wall_Plane,#CURRENT#,RESTORE,Wall_Circle,#CURRENT#,HIDE,Wall_Noses,#CURRENT#,HIDE,Wall_Cylinder,#CURRENT#,HIDE,Wall_Sphere,#CURRENT#,HIDE,Plane_Size,#CURRENT#)
+DEPENDENCIES:(NOSE-WALL,HIDE,Wall_Plane,#CURRENT#,HIDE,Wall_Circle,#CURRENT#,RESTORE,Wall_Noses,#CURRENT#,HIDE,Wall_Cylinder,#CURRENT#,HIDE,Wall_Sphere,#CURRENT#,RESTORE,Plane_Size,#CURRENT#)
+DEPENDENCIES:(CYLINDER,HIDE,Wall_Plane,#CURRENT#,HIDE,Wall_Circle,#CURRENT#,HIDE,Wall_Noses,#CURRENT#,RESTORE,Wall_Cylinder,#CURRENT#,HIDE,Wall_Sphere,#CURRENT#,HIDE,Plane_Size,#CURRENT#)
+DEPENDENCIES:(SPHERE,HIDE,Wall_Plane,#CURRENT#,HIDE,Wall_Circle,#CURRENT#,HIDE,Wall_Noses,#CURRENT#,HIDE,Wall_Cylinder,#CURRENT#,RESTORE,Wall_Sphere,#CURRENT#,HIDE,Plane_Size,#CURRENT#)
 QUESTION: Wall_Plane:(Px,Py,Pz,Nx,Ny,Nz,Convexity)
 VALUE: #N# 7 0 0 0 0 0 0 1 
 QUESTION: Wall_Circle:(Cx,Cy,Cz,Radius,Convexity)
 VALUE: #N# 5 0 0 0 0.004 1 
 QUESTION: Wall_Noses:(TipCx,TipCy,TipCz,Tip_Radius,Rake_Angle,Clearance_Angle,Convexity)
-VALUE: #N# 7 0 0 0 0.0004 5 5 1 
+VALUE: #N# 7 0 0 0 0.0004 5 5 1
+QUESTION: Wall_Cylinder:(Cx,Cy,Cz,Radius,C1x,C1y,C1z,Convexity)
+VALUE: #N# 8 0 0 0 0.004 0 0 0 1 
+QUESTION: Wall_Sphere:(Cx,Cy,Cz,Radius,Convexity)
+VALUE: #N# 5 0 0 0 0.004 1 
+QUESTION: Plane_Size
+VALUE: 1.0
 QUESTION: Imposed_Movement#CB#(False,True)
 VALUE: False
 DEPENDENCIES:(True,RESTORE,Linear_Velocity,#CURRENT#,RESTORE,Angular_Velocity,#CURRENT#,RESTORE,Rotation_Center,#CURRENT#)

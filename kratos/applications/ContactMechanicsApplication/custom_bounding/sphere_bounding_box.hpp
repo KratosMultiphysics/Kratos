@@ -16,7 +16,8 @@
 
 // Project includes
 #include "custom_bounding/spatial_bounding_box.hpp"
-
+#include "geometries/triangle_3d_3.h"
+#include "geometries/quadrilateral_3d_4.h"
 
 namespace Kratos
 {
@@ -66,6 +67,9 @@ public:
     typedef ModelPart::NodeType                              NodeType;
     typedef ModelPart::NodesContainerType          NodesContainerType;
     typedef NodesContainerType::Pointer     NodesContainerTypePointer;
+    typedef Quaternion<double>                         QuaternionType;
+    typedef ModelPart::ElementType                        ElementType;
+    typedef ElementType::GeometryType                    GeometryType;
 
     ///@}
     ///@name Life Cycle
@@ -261,10 +265,142 @@ public:
     } 
 
 
+    //************************************************************************************
+    //************************************************************************************
+
+    //Sphere
+    void CreateBoundingBoxBoundaryMesh(ModelPart& rModelPart, int linear_partitions = 4, int angular_partitions = 4 )
+    {
+      KRATOS_TRY
+
+      //std::cout<<" Create Sphere Mesh NODES "<<std::endl;
+      
+      unsigned int NodeId = 0;
+      if( rModelPart.IsSubModelPart() )
+	NodeId = this->GetMaxNodeId( *(rModelPart.GetParentModelPart()) );
+      else
+	NodeId = this->GetMaxNodeId( rModelPart );
+
+      unsigned int InitialNodeId = NodeId;
+
+      //get boundary model parts ( temporary implementation )
+      std::vector<std::string> BoundaryModelPartsName;
+
+      ModelPart* pMainModelPart = &rModelPart;
+      if( rModelPart.IsSubModelPart() )
+	pMainModelPart = rModelPart.GetParentModelPart();
+	
+      for(ModelPart::SubModelPartIterator i_mp= pMainModelPart->SubModelPartsBegin() ; i_mp!=pMainModelPart->SubModelPartsEnd(); i_mp++)
+	{
+	  if( i_mp->Is(BOUNDARY) ){
+	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; i_node++)
+	      {
+		if( i_node->Id() == rModelPart.Nodes().front().Id() ){
+		  BoundaryModelPartsName.push_back(i_mp->Name());
+		  break;
+		}
+	      }
+	  }
+	}     
+      //get boundary model parts ( temporary implementation )
+      
+      PointType DirectionX(3);
+      DirectionX[0] = 0;
+      DirectionX[1] = 0;
+      DirectionX[2] = 1;
+      
+      PointType DirectionY(3);
+      noalias(DirectionY) = ZeroVector(3);
+      PointType DirectionZ(3);
+      noalias(DirectionZ) = ZeroVector(3);
+   
+      this->CalculateOrthonormalBase(DirectionX, DirectionY, DirectionZ);
+
+      PointType BasePoint(3);
+      PointType RotationAxis(3);
+      PointType RotatedDirectionY(3);
+
+      double alpha = 0;
+      QuaternionType Quaternion;
+
+      std::vector<PointType> FacePoints;
+      
+      for(int k=0; k<=angular_partitions; k++)
+	{		  
+	  alpha = (3.14159262 * k)/(double)angular_partitions;
+	      
+	  //vector of rotation
+	  RotationAxis = DirectionX * alpha;
+	  Quaternion   = QuaternionType::FromRotationVector(RotationAxis);
+		  
+	  RotatedDirectionY = DirectionY;
+	  
+	  Quaternion.RotateVector3(RotatedDirectionY);
+
+	  //std::cout<<" Rotated "<<RotatedDirectionY<<" alpha "<<alpha<<std::endl;         
+	  
+	  noalias(BasePoint) = mBox.Center + mBox.Radius * RotatedDirectionY;
+
+	  FacePoints.push_back(BasePoint);  
+	}
+
+      unsigned int size = FacePoints.size();
+      
+      for(int k=1; k<=angular_partitions; k++)
+	{		  
+	  alpha = (2 * 3.14159262 * k)/((double)angular_partitions+1);
+	      
+	  //vector of rotation
+	  RotationAxis = DirectionY * alpha;
+	  Quaternion   = QuaternionType::FromRotationVector(RotationAxis);
+
+	  for(unsigned int j=1; j<size-1; j++)
+	    {		  
+	      RotatedDirectionY = FacePoints[j]-mBox.Center;
+	      
+	      Quaternion.RotateVector3(RotatedDirectionY);
+
+	      //std::cout<<" Rotated "<<RotatedDirectionY<<" alpha "<<alpha<<std::endl;
+	      
+	      noalias(BasePoint) = mBox.Center + RotatedDirectionY;
+	      
+	      FacePoints.push_back(BasePoint);
+	    }
+	  
+	}
+
+        //create modelpart nodes
+        for(unsigned int i=0; i<FacePoints.size(); i++)
+	  {
+	    
+	    NodeId += 1;
+
+	    //std::cout<<" Node["<<NodeId<<"] "<<FacePoints[i]<<std::endl;
+	    
+	    NodeType::Pointer pNode = this->CreateNode(rModelPart, FacePoints[i], NodeId);
+	  
+	    pNode->Set(RIGID,true);
+      
+	    rModelPart.AddNode( pNode );
+
+	    //get boundary model parts ( temporary implementation )
+	    for(unsigned int j=0; j<BoundaryModelPartsName.size(); j++)
+	      (pMainModelPart->GetSubModelPart(BoundaryModelPartsName[j])).AddNode( pNode );
+	    //get boundary model parts ( temporary implementation )
+	  
+	  }
+
+      
+      //std::cout<<" Nodes Added "<<NodeId-InitialNodeId<<std::endl;
+      this->CreateSphereBoundaryMesh(rModelPart, InitialNodeId, angular_partitions);
+
+      KRATOS_CATCH( "" )
+    }
+
+    
     ///@}
     ///@name Access
     ///@{
-
 
 
     ///@}
@@ -406,7 +542,157 @@ protected:
     }
 
 
+    //************************************************************************************
+    //************************************************************************************
 
+    void CreateSphereBoundaryMesh(ModelPart& rModelPart, const unsigned int& rInitialNodeId, const unsigned int& angular_partitions )
+    {
+      
+      KRATOS_TRY
+
+      //std::cout<<" Create Sphere Mesh ELEMENTS "<<std::endl;
+	
+      // Create surface of the cylinder/tube with quadrilateral shell conditions
+      unsigned int ElementId = 0; 
+      if( rModelPart.IsSubModelPart() )
+	ElementId = this->GetMaxElementId( *(rModelPart.GetParentModelPart()) );
+      else
+	ElementId = this->GetMaxElementId( rModelPart );
+
+      
+      //GEOMETRY:      
+      GeometryType::Pointer  pFace;
+      ElementType::Pointer   pElement;
+      
+      //PROPERTIES: 
+      int number_of_properties = rModelPart.NumberOfProperties();
+      Properties::Pointer pProperties = Properties::Pointer(new Properties(number_of_properties));
+
+      //Shere numeration matrix:
+      matrix<int> Connectivities(angular_partitions+2,angular_partitions+1);
+      int counter = 1;
+      for(unsigned int i=0; i<=angular_partitions; i++)
+	{
+	  Connectivities(i,0) = 1;
+	  if( i == 0){
+	    for(unsigned int j=1; j<=angular_partitions; j++)
+	      {
+		counter +=1;
+		Connectivities(i,j) = counter;
+	      }
+	  }
+	  else{
+	    Connectivities(i,angular_partitions) = angular_partitions+1;
+	    for(unsigned int j=1; j<angular_partitions; j++)
+	      {
+		counter +=1;
+		Connectivities(i,j) = counter;
+	      }
+	  }
+
+	}
+      for(unsigned int i=0; i<=angular_partitions; i++)
+	{
+	  Connectivities(angular_partitions+1,i) = Connectivities(0,i);
+	}
+
+      //std::cout<<" Connectivities "<<Connectivities<<std::endl;
+      
+      Vector FaceNodesIds = ZeroVector(4);
+
+      for( unsigned int i=0; i<=angular_partitions; i++ ) 
+	{
+	  ElementId += 1;
+	  
+	  FaceNodesIds[0] = rInitialNodeId + Connectivities(i,0) ;
+	  FaceNodesIds[1] = rInitialNodeId + Connectivities(i,1);
+	  FaceNodesIds[2] = rInitialNodeId + Connectivities(i+1,1);
+
+	  GeometryType::PointsArrayType FaceNodes;
+	  FaceNodes.reserve(3);
+	      
+	  //NOTE: when creating a PointsArrayType
+	  //important ask for pGetNode, if you ask for GetNode a copy is created
+	  //if a copy is created a segmentation fault occurs when the node destructor is called
+
+	  for(unsigned int j=0; j<3; j++)
+	    FaceNodes.push_back(rModelPart.pGetNode(FaceNodesIds[j]));
+
+	  //std::cout<<" ElementA "<<FaceNodesIds<<std::endl;
+	  
+	  pFace    = GeometryType::Pointer(new Triangle3D3<NodeType>( FaceNodes ));      
+	  pElement = ElementType::Pointer(new Element( ElementId, pFace, pProperties));
+				       
+	  rModelPart.AddElement(pElement);
+	}
+
+      counter = 0;
+      for( unsigned int i=1; i<angular_partitions-1; i++)
+	{
+	  for( unsigned int k=0; k<=angular_partitions; k++ ) 
+	    {
+	      ElementId += 1;
+	  
+	      FaceNodesIds[0] = rInitialNodeId + Connectivities(k,i);
+	      FaceNodesIds[1] = rInitialNodeId + Connectivities(k,i+1);
+	      FaceNodesIds[2] = rInitialNodeId + Connectivities(k+1,i+1);
+	      FaceNodesIds[3] = rInitialNodeId + Connectivities(k+1,i);
+
+	      GeometryType::PointsArrayType FaceNodes;
+	      FaceNodes.reserve(4);
+	      
+	      //NOTE: when creating a PointsArrayType
+	      //important ask for pGetNode, if you ask for GetNode a copy is created
+	      //if a copy is created a segmentation fault occurs when the node destructor is called
+
+	      for(unsigned int j=0; j<4; j++)
+		FaceNodes.push_back(rModelPart.pGetNode(FaceNodesIds[j]));
+
+	      //std::cout<<" ElementB "<<FaceNodesIds<<std::endl;
+	      
+	      pFace    = GeometryType::Pointer(new Quadrilateral3D4<NodeType>( FaceNodes ));      
+	      pElement = ElementType::Pointer(new Element( ElementId, pFace, pProperties));
+				       
+	      rModelPart.AddElement(pElement);
+	    }  
+	}
+
+      
+      for( unsigned int i=0; i<=angular_partitions; i++ ) 
+	{
+	  ElementId += 1;
+	  
+	  FaceNodesIds[0] = rInitialNodeId + Connectivities(i,angular_partitions-1);
+	  FaceNodesIds[1] = rInitialNodeId + Connectivities(i,angular_partitions);
+	  FaceNodesIds[2] = rInitialNodeId + Connectivities(i+1,angular_partitions-1);
+
+	  GeometryType::PointsArrayType FaceNodes;
+	  FaceNodes.reserve(3);
+	      
+	  //NOTE: when creating a PointsArrayType
+	  //important ask for pGetNode, if you ask for GetNode a copy is created
+	  //if a copy is created a segmentation fault occurs when the node destructor is called
+
+	  for(unsigned int j=0; j<3; j++)
+	    FaceNodes.push_back(rModelPart.pGetNode(FaceNodesIds[j]));
+
+
+	  //std::cout<<" ElementC "<<FaceNodesIds<<std::endl;
+	  
+	  pFace    = GeometryType::Pointer(new Triangle3D3<NodeType>( FaceNodes ));      
+	  pElement = ElementType::Pointer(new Element( ElementId, pFace, pProperties));
+				       
+	  rModelPart.AddElement(pElement);
+	}
+
+
+      //std::cout<<" Create Sphere Mesh ELEMENTS Created "<<std::endl;
+      
+      KRATOS_CATCH( "" )
+				     
+    }
+
+    
     ///@}
     ///@name Protected  Access
     ///@{

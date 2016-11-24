@@ -16,7 +16,8 @@
 
 // Project includes
 #include "custom_bounding/spatial_bounding_box.hpp"
-
+#include "geometries/line_2d_2.h"
+#include "geometries/quadrilateral_3d_4.h"
 
 namespace Kratos
 {
@@ -67,6 +68,8 @@ public:
   typedef NodesContainerType::Pointer     NodesContainerTypePointer;
   typedef BeamMathUtils<double>                   BeamMathUtilsType;
   typedef Quaternion<double>                         QuaternionType;
+  typedef ModelPart::ElementType                        ElementType;
+  typedef ElementType::GeometryType                    GeometryType;
 
 private:
 
@@ -153,8 +156,7 @@ public:
                 "parameters_list": [],
                 "velocity": [0.0, 0.0, 0.0],
                 "angular_velocity": [0.0, 0.0, 0.0],
-                "upper_point": [0.0, 0.0, 0.0],
-                "lower_point": [0.0, 0.0, 0.0],
+                "plane_size": 1.0,
                 "local_axes":[ [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ]
             }  )" );
 
@@ -202,16 +204,42 @@ public:
       AngularVelocity[1] = CustomParameters["angular_velocity"][1].GetDouble();
       AngularVelocity[2] = CustomParameters["angular_velocity"][2].GetDouble();
 
+      mBox.Radius = CustomParameters["plane_size"].GetDouble();
+      
       Vector UpperPoint(3);
-      UpperPoint[0] = CustomParameters["upper_point"][0].GetDouble();
-      UpperPoint[1] = CustomParameters["upper_point"][1].GetDouble();
-      UpperPoint[2] = CustomParameters["upper_point"][2].GetDouble();
-
       Vector LowerPoint(3);
-      LowerPoint[0] = CustomParameters["lower_point"][0].GetDouble();
-      LowerPoint[1] = CustomParameters["lower_point"][1].GetDouble();
-      LowerPoint[2] = CustomParameters["lower_point"][2].GetDouble();
+            
+      for(unsigned int i=0; i<3; i++)
+	{
+	  UpperPoint[i] = mBox.Radius;
+	  LowerPoint[i] = (-1) * mBox.Radius;
+	}
 
+      //check higher and lower center: (y coordinate as reference)
+      int v_axis = 1;
+      if( list_size == 1 ){
+	for(unsigned int i=0; i<3; i++)
+	  {
+	    UpperPoint[i] += Centers(0,i);
+	    LowerPoint[i] += Centers(0,i);
+	  }
+      }
+      else if( Centers(0, v_axis) > Centers(list_size-1, v_axis) ){
+	for(unsigned int i=0; i<3; i++)
+	  {
+	    UpperPoint[i] += Centers(0,i);
+	    LowerPoint[i] += Centers(list_size-1,i);
+	  }       
+      }
+      else{
+	for(unsigned int i=0; i<3; i++)
+	  {
+	    UpperPoint[i] += Centers(list_size-1,i);
+	    LowerPoint[i] += Centers(0,i);
+	  }	
+      }
+
+      
       Matrix InitialLocalMatrix = IdentityMatrix(3);
 
       unsigned int size = CustomParameters["local_axes"].size();
@@ -464,15 +492,15 @@ public:
 	    rValues.SetContactFace(0);
 	    break;
 	  case RakeSurface:      
-	    is_inside = CalculateRakeSurface(LocalPoint, NoseRadius, rGapNormal, rNormal, rWallNose);
+	    is_inside = CalculateRakeSurface(LocalPoint, rGapNormal, rNormal, rWallNose);
 	    rValues.SetContactFace(1);
 	    break;
 	  case TipSurface:       
-	    is_inside = CalculateTipSurface(LocalPoint, NoseRadius, rGapNormal, rNormal, rWallNose);
+	    is_inside = CalculateTipSurface(LocalPoint, rGapNormal, rNormal, rWallNose);
 	    rValues.SetContactFace(2);
 	    break;
 	  case ClearanceSurface: 
-	    is_inside = CalculateClearanceSurface(LocalPoint, NoseRadius, rGapNormal, rNormal, rWallNose);
+	    is_inside = CalculateClearanceSurface(LocalPoint, rGapNormal, rNormal, rWallNose);
 	    rValues.SetContactFace(3);
 	    break;
 	  default:               
@@ -497,6 +525,248 @@ public:
       
     } 
 
+
+    //************************************************************************************
+    //************************************************************************************
+
+    //Compound Noses
+    void CreateBoundingBoxBoundaryMesh(ModelPart& rModelPart, int linear_partitions = 4, int angular_partitions = 4 )
+    {
+      KRATOS_TRY
+	
+      unsigned int NodeId = 0;
+      if( rModelPart.IsSubModelPart() )
+    	NodeId = this->GetMaxNodeId( *(rModelPart.GetParentModelPart()) );
+      else
+    	NodeId = this->GetMaxNodeId( rModelPart );
+
+      unsigned int InitialNodeId = NodeId;
+
+      //get boundary model parts ( temporary implementation )
+      std::vector<std::string> BoundaryModelPartsName;
+
+      ModelPart* pMainModelPart = &rModelPart;
+      if( rModelPart.IsSubModelPart() )
+    	pMainModelPart = rModelPart.GetParentModelPart();
+	
+      for(ModelPart::SubModelPartIterator i_mp= pMainModelPart->SubModelPartsBegin() ; i_mp!=pMainModelPart->SubModelPartsEnd(); i_mp++)
+    	{
+    	  if( i_mp->Is(BOUNDARY) ){
+    	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; i_node++)
+    	      {
+    		if( i_node->Id() == rModelPart.Nodes().front().Id() ){
+    		  BoundaryModelPartsName.push_back(i_mp->Name());
+    		  break;
+    		}
+    	      }
+    	  }
+    	}     
+      //get boundary model parts ( temporary implementation )
+
+      PointType DirectionX(3);
+      noalias(DirectionX) = ZeroVector(3);
+      DirectionX[0] = 0;
+      DirectionX[1] = 0;
+      DirectionX[2] = 1; //2D only temporary
+      PointType DirectionY(3);
+      noalias(DirectionY) = ZeroVector(3);
+      PointType DirectionZ(3);
+      noalias(DirectionZ) = ZeroVector(3);
+
+      this->CalculateOrthonormalBase(DirectionX, DirectionY, DirectionZ);
+
+      PointType BasePoint(3);
+      PointType RotationAxis(3);
+      PointType RotatedDirectionY(3);
+
+      PointType Normal(3);
+      PointType Tangent(3);
+      PointType TipPoint(3);
+      PointType RakePoint(3);
+      PointType ClearancePoint(3);
+      
+      std::vector<PointType> FacePoints;
+      
+      double alpha = 0;
+      QuaternionType Quaternion;      
+
+      PointType FirstPoint(3);
+      bool order_changed = false;
+      for(unsigned int i=0; i<mBoxNoses.size(); i++)
+	{
+	  this->GetNosePoints(mBoxNoses[i],RakePoint,ClearancePoint,TipPoint);
+
+	  order_changed = false;
+	  
+	  if( i == 0 ){
+
+	    this->GetRakeNormal(mBoxNoses[i],Normal);
+
+	    this->GetPlaneTangent(Normal,RakePoint,TipPoint,Tangent);
+	    
+	    //point 1
+	    noalias(FirstPoint) = RakePoint + mBox.Radius * Tangent;
+	    
+	  }
+	  else{
+	    
+	    if( norm_2(RakePoint-FirstPoint) > norm_2(ClearancePoint-FirstPoint) ){
+	      
+	      //change the Rake and the Clearance Order
+	      order_changed = true;
+	      BasePoint = ClearancePoint; //temporary
+	      ClearancePoint = RakePoint;
+	      RakePoint = BasePoint;
+	      
+	    }
+	  }
+
+	  FacePoints.push_back(FirstPoint);  
+	    
+	  
+	  //next first point
+	  FirstPoint = ClearancePoint;
+ 
+	  
+	  //rake point
+	  FacePoints.push_back(RakePoint);
+
+	  //tip angle:
+	  double tip_alpha = acos(inner_prod( (RakePoint-mBoxNoses[i].Center), (ClearancePoint-mBoxNoses[i].Center) ));
+	  
+	  for(int k=1; k<angular_partitions; k++)
+	    {
+	      
+	      alpha = (tip_alpha * k)/(double)angular_partitions;
+	    
+	      //vector of rotation
+	      RotationAxis = DirectionX * alpha;
+	      Quaternion   = QuaternionType::FromRotationVector(RotationAxis);
+		  
+	      RotatedDirectionY = RakePoint - mBoxNoses[i].Center;
+	  
+	      Quaternion.RotateVector3(RotatedDirectionY);	  
+  
+	      noalias(BasePoint) = mBoxNoses[i].Center + RotatedDirectionY;	 
+
+	      FacePoints.push_back(BasePoint);
+	    }
+
+	  
+	  //clearance point
+	  FacePoints.push_back(ClearancePoint);
+
+
+	  if( i == mBoxNoses.size()-1 ){
+
+	    if(order_changed)
+	      this->GetRakeNormal(mBoxNoses[i],Normal);
+	    else
+	      this->GetClearanceNormal(mBoxNoses[i],Normal);	      
+
+	    
+	    this->GetPlaneTangent(Normal,FirstPoint,TipPoint,Tangent);
+	    
+	    //point n
+	    noalias(BasePoint) = FirstPoint + mBox.Radius * Tangent;
+	    
+	    FacePoints.push_back(BasePoint);
+	    
+	  }
+	  
+	}
+       
+
+      //std::cout<<" Nodes Added "<<NodeId-InitialNodeId<<std::endl;
+      if( rModelPart.GetMesh().WorkingSpaceDimension() == 2 || rModelPart.GetProcessInfo()[DOMAIN_SIZE]==2 ){
+      
+	//create modelpart nodes
+	for(unsigned int i=0; i<FacePoints.size(); i++)
+	  {
+	    
+	    NodeId += 1;
+
+	    NodeType::Pointer pNode = this->CreateNode(rModelPart, FacePoints[i], NodeId);
+	  
+	    pNode->Set(RIGID,true);
+      
+	    rModelPart.AddNode( pNode );
+
+	    //get boundary model parts ( temporary implementation )
+	    for(unsigned int j=0; j<BoundaryModelPartsName.size(); j++)
+	      (pMainModelPart->GetSubModelPart(BoundaryModelPartsName[j])).AddNode( pNode );
+	    //get boundary model parts ( temporary implementation )
+	  
+	  }
+      
+    	this->CreateLinearBoundaryMesh(rModelPart, InitialNodeId);
+      }
+      else{
+
+	//3D case: rotate to local axis 
+	
+	//create modelpart nodes first row
+	for(unsigned int i=0; i<FacePoints.size(); i++)
+	  {
+	    NodeId += 1;
+
+	    Quaternion = QuaternionType::FromRotationVector(RotationAxis);
+	    
+	    mBox.LocalQuaternion.RotateVector3(FacePoints[i]);
+
+	    NodeType::Pointer pNode = this->CreateNode(rModelPart, FacePoints[i], NodeId);
+	  
+	    pNode->Set(RIGID,true);
+      
+	    rModelPart.AddNode( pNode );
+
+	    //get boundary model parts ( temporary implementation )
+	    for(unsigned int j=0; j<BoundaryModelPartsName.size(); j++)
+	      (pMainModelPart->GetSubModelPart(BoundaryModelPartsName[j])).AddNode( pNode );
+	    //get boundary model parts ( temporary implementation )
+	  
+	  }
+
+	double FinalNodeId = NodeId;
+
+	//3D case: translate to axis length
+
+	PointType Axis(3);
+	Matrix RotationMatrix(3,3);
+	mBox.LocalQuaternion.ToRotationMatrix(RotationMatrix); 
+	Axis[0] = RotationMatrix(2,0);
+	Axis[1] = RotationMatrix(2,1);
+	Axis[2] = RotationMatrix(2,2);
+
+	Axis *= mBox.Radius;
+	
+	//create modelpart nodes second row
+	for(unsigned int i=0; i<FacePoints.size(); i++)
+	  {
+	    NodeId += 1;
+
+	    FacePoints[i] += Axis;
+	    
+	    NodeType::Pointer pNode = this->CreateNode(rModelPart, FacePoints[i], NodeId);
+	  
+	    pNode->Set(RIGID,true);
+      
+	    rModelPart.AddNode( pNode );
+
+	    //get boundary model parts ( temporary implementation )
+	    for(unsigned int j=0; j<BoundaryModelPartsName.size(); j++)
+	      (pMainModelPart->GetSubModelPart(BoundaryModelPartsName[j])).AddNode( pNode );
+	    //get boundary model parts ( temporary implementation )
+	  
+	  }
+		
+	this->CreateQuadrilateralBoundaryMesh(rModelPart, InitialNodeId, FinalNodeId);
+
+      }
+      
+      KRATOS_CATCH( "" )
+    }
+    
 
     ///@}
     ///@name Access
@@ -558,7 +828,145 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    //************************************************************************************
+    //************************************************************************************
 
+    void CreateLinearBoundaryMesh(ModelPart& rModelPart, const unsigned int& rInitialNodeId)
+    {
+      
+      KRATOS_TRY
+	
+      // Create surface of the cylinder/tube with quadrilateral shell conditions
+      unsigned int ElementId = 0; 
+      if( rModelPart.IsSubModelPart() )
+	ElementId = this->GetMaxElementId( *(rModelPart.GetParentModelPart()) );
+      else
+	ElementId = this->GetMaxElementId( rModelPart );
+
+      unsigned int NodeId = 0; 
+      if( rModelPart.IsSubModelPart() )
+	NodeId = this->GetMaxNodeId( *(rModelPart.GetParentModelPart()) );
+      else
+	NodeId = this->GetMaxNodeId( rModelPart );
+
+      
+      //GEOMETRY:
+      GeometryType::Pointer pFace;
+      ElementType::Pointer pElement;
+
+      //PROPERTIES: 
+      int number_of_properties = rModelPart.NumberOfProperties();
+      Properties::Pointer pProperties = Properties::Pointer(new Properties(number_of_properties));
+
+      int counter       = 0;
+      unsigned int Id   = rInitialNodeId;
+
+      Vector FaceNodesIds(2);
+      noalias( FaceNodesIds ) = ZeroVector(2);	   
+
+      while(Id < NodeId){
+
+	counter   += 1;
+	ElementId += 1;
+
+	FaceNodesIds[0] = rInitialNodeId + counter ;
+	FaceNodesIds[1] = rInitialNodeId + counter + 1;
+	
+	GeometryType::PointsArrayType FaceNodes;
+	FaceNodes.reserve(2);
+	      
+	//NOTE: when creating a PointsArrayType
+	//important ask for pGetNode, if you ask for GetNode a copy is created
+	//if a copy is created a segmentation fault occurs when the node destructor is called
+
+	for(unsigned int j=0; j<2; j++)
+	  FaceNodes.push_back(rModelPart.pGetNode(FaceNodesIds[j]));
+	  	  
+	pFace    = GeometryType::Pointer(new Line2D2<NodeType>( FaceNodes ));      
+	pElement = ElementType::Pointer(new Element(ElementId, pFace, pProperties));
+				       
+	rModelPart.AddElement(pElement);
+
+	Id = rInitialNodeId + counter + 1;
+	
+      }
+
+      KRATOS_CATCH( "" )
+				     
+    }
+
+
+    //************************************************************************************
+    //************************************************************************************
+
+    void CreateQuadrilateralBoundaryMesh(ModelPart& rModelPart, const unsigned int& rFirstInitialNodeId , const unsigned int& rSecondInitialNodeId)
+    {
+      
+      KRATOS_TRY       
+	
+      // Create surface of the cylinder/tube with quadrilateral shell conditions
+      unsigned int ElementId = 0; 
+      if( rModelPart.IsSubModelPart() )
+	ElementId = this->GetMaxElementId( *(rModelPart.GetParentModelPart()) );
+      else
+	ElementId = this->GetMaxElementId( rModelPart );
+
+      unsigned int NodeId = 0; 
+      if( rModelPart.IsSubModelPart() )
+	NodeId = this->GetMaxNodeId( *(rModelPart.GetParentModelPart()) );
+      else
+	NodeId = this->GetMaxNodeId( rModelPart );
+
+      
+      //GEOMETRY:
+      GeometryType::Pointer pFace;
+      ElementType::Pointer pElement;
+
+      //PROPERTIES: 
+      int number_of_properties = rModelPart.NumberOfProperties();
+      Properties::Pointer pProperties = Properties::Pointer(new Properties(number_of_properties));
+
+      int counter       = 0;
+      unsigned int Id   = rSecondInitialNodeId;
+      
+      Vector FaceNodesIds(4);
+      noalias( FaceNodesIds ) = ZeroVector(4);
+
+      while(Id < NodeId){
+
+	counter += 1;
+	ElementId += 1;
+
+	FaceNodesIds[0] = rFirstInitialNodeId  + counter + 1;
+	FaceNodesIds[1] = rFirstInitialNodeId  + counter;
+	FaceNodesIds[2] = rSecondInitialNodeId + counter;
+	FaceNodesIds[3] = rSecondInitialNodeId + counter + 1;
+		
+	//std::cout<<" FaceNodesIds "<<FaceNodesIds<<" element id "<<ElementId<<std::endl;
+	
+	GeometryType::PointsArrayType FaceNodes;
+	FaceNodes.reserve(4);
+	      
+	//NOTE: when creating a PointsArrayType
+	//important ask for pGetNode, if you ask for GetNode a copy is created
+	//if a copy is created a segmentation fault occurs when the node destructor is called
+
+	for(unsigned int j=0; j<4; j++)
+	  FaceNodes.push_back(rModelPart.pGetNode(FaceNodesIds[j]));
+	  	  
+	pFace    = GeometryType::Pointer(new Quadrilateral3D4<NodeType>( FaceNodes ));      
+	pElement = ElementType::Pointer(new Element(ElementId, pFace, pProperties));
+				       
+	rModelPart.AddElement(pElement);
+
+	Id = rSecondInitialNodeId + counter + 1;
+	
+      }
+
+      KRATOS_CATCH( "" )
+				     
+    }
+    
     ///@}
     ///@name Protected  Access
     ///@{
@@ -731,7 +1139,7 @@ private:
 
       mBox.Center = 0.5 * ( rUpperPoint + rLowerPoint );
       mBox.Radius = 0.5 * norm_2(rUpperPoint-rLowerPoint); 
-
+      
       mBox.Velocity        = rVelocity;
       mBox.AngularVelocity = rAngularVelocity;
       
@@ -835,7 +1243,8 @@ private:
 	  if( NoseDistanceVector[SelectedNoseDistance] > mBoxNoses[SelectedNoseDistance].Radius ){
 
 
-	    PointType TipPoint =  GetTipPoint( mBoxNoses[SelectedNoseRadius] ); //slave point : convexity -
+	    PointType TipPoint(3);
+	    this->GetTipPoint(mBoxNoses[SelectedNoseRadius],TipPoint); //slave point : convexity -
 
 	    double sign = GetOrientation( rPoint, mBoxNoses[SelectedNoseDistance].Center, mBoxNoses[SelectedNoseRadius].Center, TipPoint );
    
@@ -866,8 +1275,9 @@ private:
 
 	  if( mBoxNoses[SelectedNoseDistance].Radius < mBoxNoses[SelectedNoseRadius].Radius ){
 
-  
-	    PointType TipPoint =  GetTipPoint( mBoxNoses[SelectedNoseRadius] ); //slave point : convexity +
+	    
+	    PointType TipPoint(3);
+	    this->GetTipPoint(mBoxNoses[SelectedNoseRadius],TipPoint); //slave point : convexity +
 
 	    double sign = GetOrientation( rPoint, mBoxNoses[SelectedNoseDistance].Center, mBoxNoses[SelectedNoseRadius].Center, TipPoint );
    
@@ -931,48 +1341,6 @@ private:
     }
 
 
-    //************************************************************************************
-    //************************************************************************************
-
-
-    PointType GetTipPoint(const BoxNoseVariables& rWallNose)
-    {
-
-      double pi = 3.141592654;
-
-      //-----------
-	    
-      PointType RakePoint(3);
-	    
-      RakePoint[0] = rWallNose.Center[0] - rWallNose.Radius * sin(rWallNose.RakeAngle);
-      RakePoint[1] = rWallNose.Center[1] + rWallNose.Radius * cos(rWallNose.RakeAngle);
-      RakePoint[2] = 0;
-      
-      PointType ClearancePoint(3);
-	    
-      ClearancePoint[0] = rWallNose.Center[0] - rWallNose.Radius * sin(rWallNose.ClearanceAngle);
-      ClearancePoint[1] = rWallNose.Center[1] + rWallNose.Radius * cos(rWallNose.ClearanceAngle);
-      ClearancePoint[2] = 0;
-      
-      PointType TipPoint(3);
-      
-      TipPoint    = ( RakePoint - rWallNose.Center ) + ( ClearancePoint - rWallNose.Center );
-      TipPoint[2] = 0; //2D
-      TipPoint   *= ( rWallNose.Radius/norm_2(TipPoint) );
-      
-      //open angle to get the correct tip direction
-      double OpenAngle = ( rWallNose.ClearanceAngle - rWallNose.RakeAngle ) * ( 180.0 / pi ) - 90;
-      
-      if( OpenAngle < 90 )
-	TipPoint  = rWallNose.Center + TipPoint;
-      else
-	TipPoint  = rWallNose.Center - TipPoint;
-      
-      TipPoint[2] = 0; //2D
-
-      return TipPoint;
-
-    }
 
     //************************************************************************************
     //************************************************************************************
@@ -1345,26 +1713,152 @@ private:
     //************************************************************************************
     //************************************************************************************
 
+    void GetRakePoint(const BoxNoseVariables& rWallNose, PointType& rRakePoint)
+    {
+      KRATOS_TRY
 
-    bool CalculateRakeSurface(const PointType& rPoint, const double & rRadius, double& rGapNormal, PointType& rNormal, const BoxNoseVariables& rWallNose)
+
+      rRakePoint[0] = rWallNose.Center[0] - rWallNose.Radius * sin(rWallNose.RakeAngle);
+      rRakePoint[1] = rWallNose.Center[1] + rWallNose.Radius * cos(rWallNose.RakeAngle);
+      rRakePoint[2] = 0;
+
+	
+      KRATOS_CATCH(" ")
+    }
+
+
+    //************************************************************************************
+    //************************************************************************************
+
+    void GetClearancePoint(const BoxNoseVariables& rWallNose, PointType& rClearancePoint)
+    {
+      KRATOS_TRY
+	
+      rClearancePoint[0] = rWallNose.Center[0] - rWallNose.Radius * sin(rWallNose.ClearanceAngle);
+      rClearancePoint[1] = rWallNose.Center[1] + rWallNose.Radius * cos(rWallNose.ClearanceAngle);
+      rClearancePoint[2] = 0;
+	
+      KRATOS_CATCH(" ")
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    void GetTipPoint(const BoxNoseVariables& rWallNose, PointType& rTipPoint)
+    {
+      KRATOS_TRY
+	
+      PointType RakePoint(3);
+      PointType ClearancePoint(3);
+
+      this->GetNosePoints(rWallNose, RakePoint, ClearancePoint, rTipPoint);
+	
+      KRATOS_CATCH(" ")
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    
+    void GetNosePoints(const BoxNoseVariables& rWallNose, PointType& rRakePoint, PointType& rClearancePoint, PointType& rTipPoint )
+    {
+
+      KRATOS_TRY
+	
+      double pi = 3.141592654;
+
+      //-----------
+
+      this->GetRakePoint(rWallNose,rRakePoint);
+
+      this->GetClearancePoint(rWallNose,rClearancePoint);
+           
+      rTipPoint    = ( rRakePoint - rWallNose.Center ) + ( rClearancePoint - rWallNose.Center );
+      rTipPoint[2] = 0; //2D
+      rTipPoint   *= ( rWallNose.Radius/norm_2(rTipPoint) );
+      
+      //open angle to get the correct tip direction
+      double OpenAngle = ( rWallNose.ClearanceAngle - rWallNose.RakeAngle ) * ( 180.0 / pi ) - 90;
+      
+      if( OpenAngle < 90 )
+	rTipPoint  = rWallNose.Center + rTipPoint;
+      else
+	rTipPoint  = rWallNose.Center - rTipPoint;
+      
+      rTipPoint[2] = 0; //2D
+
+      KRATOS_CATCH(" ")
+    }
+
+    
+    //************************************************************************************
+    //************************************************************************************
+
+    void GetRakeNormal(const BoxNoseVariables& rWallNose, PointType& rNormal)
+    {
+      KRATOS_TRY
+
+      rNormal[0] = -sin(rWallNose.RakeAngle);
+      rNormal[1] =  cos(rWallNose.RakeAngle);
+      rNormal[2] = 0;
+
+      rNormal   *= rWallNose.Convexity; 
+	
+      KRATOS_CATCH(" ")
+    }
+
+
+    //************************************************************************************
+    //************************************************************************************
+
+    void GetClearanceNormal(const BoxNoseVariables& rWallNose, PointType& rNormal)
+    {
+      KRATOS_TRY
+	
+      rNormal[0] = -sin(rWallNose.ClearanceAngle);
+      rNormal[1] =  cos(rWallNose.ClearanceAngle);
+      rNormal[2] = 0;
+
+      rNormal   *= rWallNose.Convexity; 
+
+      KRATOS_CATCH(" ")
+    }
+
+
+    //************************************************************************************
+    //************************************************************************************
+
+    void GetPlaneTangent(const PointType& rNormal, const PointType& rPoint, const PointType& rTipPoint, PointType& rTangent)
+    {
+      KRATOS_TRY
+
+      rTangent  =  (rTipPoint-rPoint);
+      rTangent -=  inner_prod((rTipPoint-rPoint),rNormal) * rNormal;
+      
+      if( norm_2(rTangent) )
+	rTangent *= (-1.0/norm_2(rTangent));
+      
+      KRATOS_CATCH(" ")
+    }
+    
+    
+    //************************************************************************************
+    //************************************************************************************
+
+
+    bool CalculateRakeSurface(const PointType& rPoint, double& rGapNormal, PointType& rNormal, const BoxNoseVariables& rWallNose)
     {
       KRATOS_TRY
      
       rNormal  = ZeroVector(3);
  
       //1.-compute contact normal
-      rNormal[0] = -sin(rWallNose.RakeAngle);
-      rNormal[1] =  cos(rWallNose.RakeAngle);
-      rNormal[2] = 0;
-
-      rNormal   *= rWallNose.Convexity; 
+      this->GetRakeNormal(rWallNose,rNormal);
 
       //2.-compute point projection
       PointType RakePoint(3);
 
-      RakePoint[0] = rWallNose.Center[0] - rRadius * sin(rWallNose.RakeAngle);
-      RakePoint[1] = rWallNose.Center[1] + rRadius * cos(rWallNose.RakeAngle);
-      RakePoint[2] = 0;
+      this->GetRakePoint(rWallNose,RakePoint);
 
       //3.-compute gap
       rGapNormal = inner_prod((rPoint - RakePoint), rNormal);
@@ -1381,7 +1875,7 @@ private:
     //************************************************************************************
     //************************************************************************************
 
-    bool CalculateTipSurface(const PointType& rPoint, const double& rRadius, double& rGapNormal, PointType& rNormal, const BoxNoseVariables& rWallNose)
+    bool CalculateTipSurface(const PointType& rPoint, double& rGapNormal, PointType& rNormal, const BoxNoseVariables& rWallNose)
     {
       KRATOS_TRY
 
@@ -1389,15 +1883,15 @@ private:
 
       //1.-compute point projection
       PointType Projection(3);
-      Projection = rRadius * ( (rPoint-rWallNose.Center)/ norm_2(rPoint-rWallNose.Center) ) + rWallNose.Center;
+      Projection = rWallNose.Radius * ( (rPoint-rWallNose.Center)/ norm_2(rPoint-rWallNose.Center) ) + rWallNose.Center;
       
       //2.-compute contact normal
-      rNormal = (Projection-rWallNose.Center)/rRadius;
+      rNormal = (Projection-rWallNose.Center)/rWallNose.Radius;
 
-      rNormal   *= rWallNose.Convexity; 
+      rNormal *= rWallNose.Convexity;
 
       //3.-compute gap
-      if( norm_2(rWallNose.Center-rPoint) <= rRadius ){
+      if( norm_2(rWallNose.Center-rPoint) <= rWallNose.Radius ){
 	rGapNormal = (-1) * norm_2(rPoint - Projection);
       }
       else{
@@ -1420,26 +1914,20 @@ private:
     //************************************************************************************
 
 
-    bool CalculateClearanceSurface(const PointType& rPoint, const double& rRadius, double& rGapNormal, PointType& rNormal, const BoxNoseVariables& rWallNose)
+    bool CalculateClearanceSurface(const PointType& rPoint, double& rGapNormal, PointType& rNormal, const BoxNoseVariables& rWallNose)
     {
       KRATOS_TRY
 
       rNormal  = ZeroVector(3);
       
       //1.-compute contact normal
-      rNormal[0] = -sin(rWallNose.ClearanceAngle);
-      rNormal[1] =  cos(rWallNose.ClearanceAngle);
-      rNormal[2] = 0;
-
-      rNormal   *= rWallNose.Convexity; 
+      this->GetClearanceNormal(rWallNose,rNormal);
 
       //2.-compute point projection
       PointType ClearancePoint(3);
 
-      ClearancePoint[0] = rWallNose.Center[0] - rRadius * sin(rWallNose.ClearanceAngle);
-      ClearancePoint[1] = rWallNose.Center[1] + rRadius * cos(rWallNose.ClearanceAngle);
-      ClearancePoint[2] = 0;
- 
+      this->GetClearancePoint(rWallNose,ClearancePoint);
+       
       //3.-compute gap
       rGapNormal = inner_prod((rPoint - ClearancePoint), rNormal);
 

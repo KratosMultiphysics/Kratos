@@ -45,7 +45,8 @@ class ParametricWall(object):
                "bounding_box_type": "SpatialBoundingBox",
                "bounding_box_parameters":{
                    "parameters_list":[],
-                   "velocity" : [0.0, 0.0, 0.0]
+                   "velocity" : [0.0, 0.0, 0.0],
+                   "plane_size": 1.0
                }
             },
             "contact_search_settings":{
@@ -98,54 +99,14 @@ class ParametricWall(object):
         
         #check for the bounding box of a compound wall
         box_settings = self.settings["bounding_box_settings"]["bounding_box_parameters"]
-
-        if( box_type_name == "CompoundNosesBoundingBox" ):
-
-            if( not box_settings.Has("upper_point") ):
-                box_settings.AddEmptyValue("upper_point")
-                box_settings.__setitem__("upper_point", box_settings["velocity"])
-
-            #print(" upper_point ",box_settings["upper_point"] )
-            upper_point = self.GetUpperPoint(self.wall_model_part)
-            counter = 0
-            for i in upper_point:
-                box_settings["upper_point"][counter].SetDouble(i)
-                counter+=1
-
-            if( not box_settings.Has("lower_point") ):
-                box_settings.AddEmptyValue("lower_point")
-                box_settings.__setitem__("lower_point", box_settings["velocity"])
-
-            lower_point = self.GetLowerPoint(self.wall_model_part)
-            counter = 0
-            for i in lower_point:
-                box_settings["lower_point"][counter].SetDouble(i)
-                counter+=1
-
             
         self.wall_bounding_box = BoundingBox(self.settings["bounding_box_settings"]["bounding_box_parameters"])
 
         if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
-                   
-            # construct bounding box mesh of surface elements
-            # Note: new nodes must be inserted in boundary conditions subdomains
-            number_of_linear_partitions  = 10
-            number_of_angular_partitions = 20
-            
-            if( box_type_name == "PlaneBoundingBox" ):
-                upper_point = KratosMultiphysics.Array3()
-                upper = self.GetUpperPoint(self.main_model_part)
-                for i in range(0,len(upper)):
-                    upper_point[i] = upper[i]
-                self.wall_bounding_box.SetUpperPoint(upper_point)
-                lower_point = KratosMultiphysics.Array3()
-                lower = self.GetLowerPoint(self.main_model_part)
-                for i in range(0,len(lower)):
-                    lower_point[i] = lower[i]               
-                self.wall_bounding_box.SetLowerPoint(lower_point)
-            
-            self.wall_bounding_box.CreateBoundingBoxBoundaryMesh(self.wall_model_part, number_of_linear_partitions, number_of_angular_partitions)
 
+            # contruct parametric wall mesh
+            self.CreateBoundingBoxMesh(self.wall_bounding_box, self.wall_model_part)
+            
             # construct rigid element // must pass an array of nodes to the element, create a node (CG) and a rigid element set them in the model_part, set the node CG as the reference node of the wall_bounding_box, BLOCKED, set in the wall_model_part for imposed movements processes.
             creation_utility = KratosContact.RigidBodyCreationUtility()
             creation_utility.CreateRigidBodyElement(self.main_model_part, self.wall_bounding_box, self.settings["rigid_body_settings"])
@@ -194,6 +155,29 @@ class ParametricWall(object):
         
     #### 
 
+    #
+    def CreateBoundingBoxMesh(self, bounding_box, model_part):
+
+        # construct bounding box mesh of surface elements
+        # Note: new nodes must be inserted in boundary conditions subdomains
+        number_of_linear_partitions  = 10
+        number_of_angular_partitions = 20
+            
+        bounding_box.CreateBoundingBoxBoundaryMesh(model_part, number_of_linear_partitions, number_of_angular_partitions)
+
+        # set mesh upper and lower points
+        upper_point = KratosMultiphysics.Array3()
+        upper = self.GetUpperPoint(model_part)
+        for i in range(0,len(upper)):
+            upper_point[i] = upper[i]
+            bounding_box.SetUpperPoint(upper_point)
+                
+        lower_point = KratosMultiphysics.Array3()
+        lower = self.GetLowerPoint(model_part)
+        for i in range(0,len(lower)):
+            lower_point[i] = lower[i]               
+            bounding_box.SetLowerPoint(lower_point)
+    
     # 
     def GetUpperPoint(self, model_part):
         
