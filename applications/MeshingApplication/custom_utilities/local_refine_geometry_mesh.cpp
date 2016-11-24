@@ -1,11 +1,17 @@
-/*
- * File:   LocalRefineMesh.hpp
- * Author: VMataix
- * Co-author: 
- *
- * Created on 2 May 2016, 10:20
- * Last update on 2 May 2016, 10:20
- */
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____ 
+//        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _ 
+//        | |  | | |___ ___) |  _  || || |\  | |_| |
+//        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
+//
+//  License:		 BSD License
+//                                       Kratos default license: kratos/license.txt
+//
+//  Main authors:    Nelson Lafontaine
+//                   Jordi Cotela Dalmau
+//                   Riccardo Rossi
+//    Co-authors:    Vicente Mataix Ferrándiz
+//
 
 // System includes
 
