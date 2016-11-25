@@ -104,20 +104,26 @@ public:
 
             for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
             {
-                const double InvNodalArea = 1.0/(itNode->FastGetSolutionStepValue(NODAL_AREA));
-                Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-                const unsigned int Dim = rNodalStress.size1();
-                for(unsigned int i = 0; i<Dim; i++)
+                const double& NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
+                if (NodalArea>1.0e-20)
                 {
-                    for(unsigned int j = 0; j<Dim; j++)
+                    const double InvNodalArea = 1.0/(NodalArea);
+                    Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
+                    for(unsigned int i = 0; i<Dim; i++)
                     {
-                        rNodalStress(i,j) *= InvNodalArea;
+                        for(unsigned int j = 0; j<Dim; j++)
+                        {
+                            rNodalStress(i,j) *= InvNodalArea;
+                        }
                     }
                 }
-                double& NodalJointWidth = itNode->FastGetSolutionStepValue(NODAL_JOINT_WIDTH);
+
                 const double& NodalJointArea = itNode->FastGetSolutionStepValue(NODAL_JOINT_AREA);
                 if (NodalJointArea>1.0e-20)
+                {
+                    double& NodalJointWidth = itNode->FastGetSolutionStepValue(NODAL_JOINT_WIDTH);
                     NodalJointWidth = NodalJointWidth/NodalJointArea;
+                }
             }
         }
                 
