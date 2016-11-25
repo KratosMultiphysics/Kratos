@@ -72,6 +72,8 @@ public:
     {
         KRATOS_TRY
         
+        unsigned int Dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+        
         // Clear nodal variables
         #pragma omp parallel
         {        
@@ -83,7 +85,9 @@ public:
             {
                 itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
                 Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-                rNodalStress.clear();
+                if(rNodalStress.size1() != Dim)
+                    rNodalStress.resize(Dim,Dim,false);
+                noalias(rNodalStress) = ZeroMatrix(Dim,Dim);
                 itNode->FastGetSolutionStepValue(NODAL_JOINT_AREA) = 0.0;
                 itNode->FastGetSolutionStepValue(NODAL_JOINT_WIDTH) = 0.0;
             }
