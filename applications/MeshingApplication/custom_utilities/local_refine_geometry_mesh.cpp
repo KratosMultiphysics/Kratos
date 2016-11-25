@@ -342,12 +342,14 @@ namespace Kratos
             aux_node_list[pnode->Id()] = pnode;
             //this_model_part.Nodes().push_back(pnode);
         }
-        KRATOS_WATCH(__LINE__)
+        
+        this_model_part.Nodes().clear();
+        this_model_part.Nodes().reserve(aux_node_list.size());
         for(auto it = aux_node_list.begin(); it!=aux_node_list.end(); it++)
             this_model_part.Nodes().push_back(it->second);
         
         
-        this_model_part.Nodes().Unique();
+        this_model_part.Nodes().Sort();
 	
 	KRATOS_CATCH("");
     }
