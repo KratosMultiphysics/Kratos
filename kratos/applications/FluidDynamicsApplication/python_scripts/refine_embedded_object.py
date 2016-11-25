@@ -5,12 +5,36 @@ from KratosMultiphysics import *
 from KratosMultiphysics.MeshingApplication import *
 CheckForPreviousImport()
 
+
+#def RemoveAllInternalElements(model_part):
+    #to_remove = []
+    #for node in model_part.Nodes:
+        #node.Set(TO_ERASE,True)
+        
+    #for elem in model_part.Elements:
+        #internal = 0
+        #for node in elem.GetNodes():
+            #if(node.GetSolutionStepValue(DISTANCE) < 0):
+                #internal += 1
+                
+        #if(internal == 4):
+            #elem.Set(TO_ERASE,True)
+        #else: #here i unmark nodes that belong to an element to be preserved
+            #for node in elem.GetNodes():
+                #node.Set(TO_ERASE, False)
+        
+            
+    #model_part.RemoveElementsFromAllLevels(TO_ERASE)
+    #model_part.RemoveNodesFromAllLevels(TO_ERASE)
+
 class MeshAdaptor:
     def __init__(self,model_part):
         self.model_part = model_part
         
     def DoRefinement(self,target_distance, improve_quality=True):
-        
+ 
+        #RemoveAllInternalElements(self.model_part)
+
         for node in self.model_part.Nodes:
             node.Set(TO_REFINE,False)
             
@@ -37,17 +61,13 @@ class MeshAdaptor:
         Refine = LocalRefineTetrahedraMesh(self.model_part)
         refine_on_reference = False;
         interpolate_internal_variables = False;
-        Refine.LocalRefineMesh(refine_on_reference,interpolate_internal_variables)    
-
+        Refine.LocalRefineMesh(refine_on_reference,interpolate_internal_variables)   
+        
+ 
         ###recompute the neighbours since they changed due to the creation of new nodes
         nodal_neighbour_search.ClearNeighbours()
         nodal_neighbour_search.Execute()
         print("after refinement")
-        ##imporving mesh quality after refining
-        #OptimizeQuality(ModelPart& r_model_part,int simIter, int iterations ,
-                         #bool processByNode, bool processByFace, bool processByEdge,
-                         #bool saveToFile, bool removeFreeVertexes ,
-                         #bool evaluateInParallel , bool reinsertNodes , bool debugMode, int minAngle)
                          
         if improve_quality == True:
             reconnector = TetrahedraReconnectUtility(self.model_part)
@@ -68,4 +88,8 @@ class MeshAdaptor:
             reconnector.OptimizeQuality(self.model_part, simIter, iterations, ProcessByNode, ProcessByFace, ProcessByEdge, saveToFile, removeFreeVertexes, evaluateInParallel, reInsertNodes, debugMode,minAngle)
             meshIsValid = reconnector.EvaluateQuality()
             reconnector.FinalizeOptimization(removeFreeVertexes)
+            print("quality improvement step finished")
+            
+        print("refinement step completed")
+        
                 
