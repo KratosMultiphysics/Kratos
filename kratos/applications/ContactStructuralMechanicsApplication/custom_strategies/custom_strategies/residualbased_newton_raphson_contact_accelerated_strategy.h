@@ -470,12 +470,15 @@ public:
                 }
             }
             
+            // We calculate the norm of b
+            const double normA = SparseSpaceType::TwoNorm(A);
+
             // Calculate the new displacement
             Vector tmp = updated_x;
             mpConvergenceAccelerator->InitializeNonLinearIteration();  
             pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), A, Dx, b);
             is_converged = BaseType::mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
-            mpConvergenceAccelerator->UpdateSolution(b, updated_x);
+            mpConvergenceAccelerator->UpdateSolution(b/normA, updated_x);
             mpConvergenceAccelerator->FinalizeNonLinearIteration();   
             
             // Update residual variables
