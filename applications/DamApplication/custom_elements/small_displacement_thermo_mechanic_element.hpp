@@ -45,9 +45,7 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    void Initialize();
-    
+
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
     void SaveGPStress(Matrix& rStressContainer, const Vector& StressVector, const unsigned int& VoigtSize, const unsigned int& GPoint);

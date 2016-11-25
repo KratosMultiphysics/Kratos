@@ -42,30 +42,6 @@ Element::Pointer SmallDisplacementThermoMechanicElement::Create( IndexType NewId
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void SmallDisplacementThermoMechanicElement::Initialize()
-{
-    KRATOS_TRY
-    
-    SmallDisplacementElement::Initialize();
-    
-    GeometryType& rGeom = this->GetGeometry();
-    const unsigned int& Dim  = rGeom.WorkingSpaceDimension();
-    const unsigned int& NumNodes = rGeom.size();
-    
-    for(unsigned int i = 0; i < NumNodes; i++)
-    {
-        rGeom[i].SetLock(); // So it is safe to write in the node in OpenMP
-        Matrix& rNodalStressMatrix = rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-        if(rNodalStressMatrix.size1() != Dim)
-        {
-            rNodalStressMatrix.resize(Dim,Dim,false);
-        }
-        rGeom[i].UnSetLock(); // Free the node for other threads
-    }
-    
-    KRATOS_CATCH( "" )
-}
-
 void SmallDisplacementThermoMechanicElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {    
     //create and initialize element variables:
