@@ -76,7 +76,8 @@ public:
 
     PointType*        mpNormal;
     PointType*        mpTangent;
-     
+    PointType*        mpRelativeDisplacement;
+    
     double*           mpGapNormal;
     double*           mpGapTangent;
 
@@ -99,6 +100,7 @@ public:
       
       mpNormal=NULL;
       mpTangent=NULL;
+      mpRelativeDisplacement=NULL;
       
       mpGapNormal=NULL;
       mpGapTangent=NULL;
@@ -122,6 +124,8 @@ public:
       
       mpNormal=NULL;
       mpTangent=NULL;
+
+      mpRelativeDisplacement=NULL;
       
       mpGapNormal=NULL;
       mpGapTangent=NULL;
@@ -134,7 +138,7 @@ public:
     /**
      * Constructor with Node and Contact Parameters
      */
-    BoundingBoxParameters(const NodeType& rNode, double& rGapNormal, double& rGapTangent, PointType& rNormal, PointType& rTangent)
+    BoundingBoxParameters(const NodeType& rNode, double& rGapNormal, double& rGapTangent, PointType& rNormal, PointType& rTangent, PointType& rDisplacement)
     {
       mpPoint        = &(rNode.Coordinates());
       mpVelocity     = &(rNode.FastGetSolutionStepValue(VELOCITY));
@@ -144,6 +148,8 @@ public:
       
       mpNormal       = &rNormal;
       mpTangent      = &rTangent;
+
+      mpRelativeDisplacement = &rDisplacement;
       
       mpGapNormal    = &rGapNormal;
       mpGapTangent   = &rGapTangent;
@@ -168,6 +174,7 @@ public:
     
     void SetNormal(PointType& rNormal)   {mpNormal = &rNormal;};
     void SetTangent(PointType& rTangent) {mpTangent = &rTangent;};
+    void SetRelativeDisplacement(PointType& rDisplacement) {mpRelativeDisplacement = &rDisplacement;};
 
     void SetGapNormal(double& rGapNormal)   {mpGapNormal = &rGapNormal;};
     void SetGapTangent(double& rGapTangent) {mpGapTangent = &rGapTangent;};
@@ -185,7 +192,9 @@ public:
 
     PointType& GetNormal()  {return *mpNormal;};
     PointType& GetTangent() {return *mpTangent;};
+    PointType& GetRelativeDisplacement() {return *mpRelativeDisplacement;};
 
+    
     double& GetGapNormal()  {return *mpGapNormal;};
     double& GetGapTangent() {return *mpGapTangent;};
 
@@ -1133,7 +1142,9 @@ protected:
       PointType& rNormal      = rValues.GetNormal();
       PointType& rTangent     = rValues.GetTangent();
       double& rGapTangent     = rValues.GetGapTangent();
-           
+
+      PointType& rRelativeDisplacement = rValues.GetRelativeDisplacement();
+      
       rTangent = ZeroVector(3);
    
       //1.-compute contact tangent (following relative movement)
@@ -1150,15 +1161,19 @@ protected:
       
       //2.-compute tangent direction
       PointType BoxDeltaDisplacement = this->GetBoxDeltaDisplacement(rCurrentProcessInfo[TIME], rCurrentProcessInfo.GetPreviousTimeStepInfo()[TIME]);
-
-
+      
       if( norm_2(UnitTangent) != 0 ){
+
+	rRelativeDisplacement = BoxDeltaDisplacement-PointDeltaDisplacement;
 
 	rTangent = inner_prod(BoxDeltaDisplacement, UnitTangent) * UnitTangent - rTangent;
 	
       }
       else{
 
+	rRelativeDisplacement = (-1) * BoxDeltaDisplacement;
+
+	
 	rTangent = -1.0 * (BoxDeltaDisplacement - inner_prod(BoxDeltaDisplacement, rNormal) * rNormal);
 	
       }

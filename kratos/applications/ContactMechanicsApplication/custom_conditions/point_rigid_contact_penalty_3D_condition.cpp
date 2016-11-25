@@ -92,7 +92,7 @@ namespace Kratos
 
     GeneralVariables ContactVariables;
 
-    SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent);           
+    SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent, ContactVariables.RelativeDisplacement);           
 
     if ( this->mpRigidWall->IsInside( BoxParameters, rCurrentProcessInfo) ) {
 
@@ -204,7 +204,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent);
+    SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent, rVariables.RelativeDisplacement);
 
     if( this->mpRigidWall->IsInside( BoxParameters, rCurrentProcessInfo ) ){
 
@@ -357,6 +357,11 @@ namespace Kratos
 
     double TangentForceModulus = this->CalculateCoulombsFrictionLaw( rVariables.Gap.Tangent, NormalForceModulus, rVariables );
     //std::cout<<" TangentForceModulus "<<TangentForceModulus<<std::endl;
+
+    PointType AbsTangent(3);
+    AbsTangent[0] = fabs(rVariables.Surface.Tangent[0]);
+    AbsTangent[1] = fabs(rVariables.Surface.Tangent[1]);
+    AbsTangent[2] = fabs(rVariables.Surface.Tangent[2]);
     
     if( fabs(TangentForceModulus) >= 1e-25 ){
       
@@ -369,7 +374,13 @@ namespace Kratos
 	rLeftHandSideMatrix += mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) + (rVariables.Gap.Normal/rVariables.Gap.Tangent) *( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) ));
 
 	//added extra term, maybe not necessary
-	rLeftHandSideMatrix += mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal * rVariables.Gap.Tangent) * outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent);
+	//option a:
+	rLeftHandSideMatrix -= mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal/rVariables.Gap.Tangent) * (inner_prod(AbsTangent,rVariables.RelativeDisplacement) * outer_prod(rVariables.Surface.Normal, rVariables.Surface.Tangent) + inner_prod(rVariables.RelativeDisplacement,rVariables.Surface.Normal) * outer_prod(AbsTangent, rVariables.Surface.Tangent) );
+	//only improves somthing in 2D
+	//rLeftHandSideMatrix += mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal/rVariables.Gap.Tangent) * outer_prod(AbsTangent, rVariables.Surface.Tangent);
+	//option b:
+	//rLeftHandSideMatrix += mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal * rVariables.Gap.Tangent) * outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent);
+	
 	
 	
       }
@@ -380,7 +391,13 @@ namespace Kratos
 	rLeftHandSideMatrix += rVariables.Penalty.Tangent * rIntegrationWeight * ( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
 
 	//added extra term, maybe not necessary
-	rLeftHandSideMatrix += rVariables.Penalty.Tangent * rIntegrationWeight * (rVariables.Gap.Tangent * rVariables.Gap.Tangent) * outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent);	
+	//option a:
+	rLeftHandSideMatrix -= rVariables.Penalty.Tangent * rIntegrationWeight * (inner_prod(AbsTangent,rVariables.RelativeDisplacement) * outer_prod(rVariables.Surface.Normal, rVariables.Surface.Tangent) + inner_prod(rVariables.RelativeDisplacement,rVariables.Surface.Normal) *outer_prod(AbsTangent, rVariables.Surface.Tangent) );
+	//only improves somthing in 2D
+	//rLeftHandSideMatrix += rVariables.Penalty.Tangent * rIntegrationWeight * outer_prod(AbsTangent, rVariables.Surface.Tangent);
+	//option b:
+	//rLeftHandSideMatrix += rVariables.Penalty.Tangent * rIntegrationWeight * (rVariables.Gap.Tangent * rVariables.Gap.Tangent) * outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent);	
+
       }
 
     }

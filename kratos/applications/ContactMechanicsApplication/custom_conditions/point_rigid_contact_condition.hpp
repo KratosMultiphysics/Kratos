@@ -102,6 +102,7 @@ protected:
       SurfaceScalar   Gap;                   //normal and tangential gap
 
       //Friction:
+      PointType       RelativeDisplacement;  //relative point displacement
       double          FrictionCoefficient;   //total friction coeffitient mu
 
       SurfaceScalar   Penalty;               //Penalty Parameter normal and tangent
