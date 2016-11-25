@@ -82,7 +82,7 @@ namespace Kratos
        
        GeneralVariables ContactVariables;
 
-       SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent);           
+       SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent, ContactVariables.RelativeDisplacement);           
 
        //to perform contact with a tube radius must be set
        BoxParameters.SetRadius(GetGeometry()[0].GetValue(MEAN_RADIUS));
@@ -159,7 +159,7 @@ namespace Kratos
   {
     KRATOS_TRY
     
-    SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent);
+    SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent, rVariables.RelativeDisplacement);
 
     //to perform contact with a tube radius must be set
     BoxParameters.SetRadius(GetGeometry()[0].GetValue(MEAN_RADIUS));

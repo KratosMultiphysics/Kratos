@@ -103,6 +103,12 @@ class ParametricWall(object):
         self.wall_bounding_box = BoundingBox(self.settings["bounding_box_settings"]["bounding_box_parameters"])
 
         if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
+ 
+            # construct bounding box mesh of surface elements
+            # Note: new nodes must be inserted in boundary conditions subdomains
+            number_of_linear_partitions  = 10
+            number_of_angular_partitions = 20
+            self.wall_bounding_box.CreateBoundingBoxBoundaryMesh(self.wall_model_part, number_of_linear_partitions, number_of_angular_partitions)
 
             # contruct parametric wall mesh
             self.CreateBoundingBoxMesh(self.wall_bounding_box, self.wall_model_part)

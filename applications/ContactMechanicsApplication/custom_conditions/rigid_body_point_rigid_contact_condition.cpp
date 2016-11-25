@@ -261,7 +261,7 @@ void RigidBodyPointRigidContactCondition::InitializeSolutionStep( ProcessInfo& r
 
     GeneralVariables ContactVariables;
 
-    SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent);           
+    SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent, ContactVariables.RelativeDisplacement);           
     
     if ( this->mpRigidWall->IsInside( BoxParameters, rCurrentProcessInfo ) ) {
            
@@ -381,7 +381,7 @@ void RigidBodyPointRigidContactCondition::InitializeGeneralVariables(GeneralVari
 {
     KRATOS_TRY
 
-    SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent);
+    SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent, rVariables.RelativeDisplacement);
 
     if( this->mpRigidWall->IsInside( BoxParameters, rCurrentProcessInfo ) ){
       
