@@ -45,6 +45,9 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
 class BasicCATest(StructuralMechanichsTestFactory):
     file_name = "CA_test/basic_CA_test"
     
+class SolidCATest(StructuralMechanichsTestFactory):
+    file_name = "CA_test/solid_CA_test"
+    
 class SimplePatchTestContact(StructuralMechanichsTestFactory):
     file_name = "contact_test_2D/simple_patch_test"
     

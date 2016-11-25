@@ -6,8 +6,7 @@
 //  License:             BSD License
 //                                       license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Mohamed Khalil
-//                   Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrándiz
 //
 
 #if !defined(KRATOS_RESIDUALBASED_NEWTON_RAPHSON_CONTACT_ACCELERATED_STRATEGY)
@@ -399,11 +398,11 @@ public:
 
                 is_converged =BaseType::mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
             }
+            
+            // Acceleration is applied
+            ResidualIsUpdated = false;
+            ApplyAcceleration( A, Dx, b, BaseType::MoveMeshFlag(), is_converged, ResidualIsUpdated);
         }
-        
-        // Acceleration is applied
-        ResidualIsUpdated = false;
-        ApplyAcceleration( A, Dx, b, BaseType::MoveMeshFlag(), is_converged, ResidualIsUpdated);
 
         //plots a warning if the maximum number of iterations is exceeded
         if (iteration_number >= BaseType::mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
@@ -448,14 +447,14 @@ public:
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = BaseType::GetBuilderAndSolver();
         
 //         unsigned int accel_it = 0;
-//         unsigned int MaxNumberAccel = 50;
+//         unsigned int MaxNumberAccel = 5;
 //         while (is_converged == false && accel_it++ < MaxNumberAccel)
         if (is_converged == false)// && is_iteration == true)
         {
 //             if (accel_it == 0)
             if (this->GetEchoLevel() != 0)
             {
-                std::cout << "Applying the convergence accelerator" << std::endl;
+                std::cout << "  Applying the convergence accelerator" << std::endl;
             }
 //             std::cout << "  CONV_IT: " << accel_it << " RESIDUAL NORM: " << norm_2(b) << std::endl;
            
@@ -475,10 +474,10 @@ public:
             Vector tmp = updated_x;
             mpConvergenceAccelerator->InitializeNonLinearIteration();  
             pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), A, Dx, b);
-//             mpConvergenceAccelerator->UpdateSolution(b, Dx);
+            is_converged = BaseType::mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
             mpConvergenceAccelerator->UpdateSolution(b, updated_x);
             mpConvergenceAccelerator->FinalizeNonLinearIteration();   
-        
+            
             // Update residual variables
             Dx = updated_x - tmp;
             
@@ -490,17 +489,21 @@ public:
 
             if (is_converged == true)
             {
-
                 if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag() == true)
-                {
+                {                    
                     TSparseSpace::SetToZero(b);
-
+                                
                     pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b);
                     ResidualIsUpdated = true;
-                    //std::cout << "mb is calculated" << std::endl;
                 }
-
+                                    
                 is_converged = BaseType::mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
+            }
+            
+            if (this->GetEchoLevel() != 0)
+//             if (is_converged == true || accel_it == MaxNumberAccel)
+            {
+                std::cout << "  Finishing the convergence accelerator" << std::endl;
             }
         }
     }
