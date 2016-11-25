@@ -529,6 +529,7 @@ namespace Kratos {
                                           SphericContinuumParticle* element2, const ProcessInfo& r_process_info, const int i_neighbor_count, const double indentation) {
 
         if (!r_process_info[POISSON_EFFECT_OPTION]) return;
+        if (element1->mIniNeighbourFailureId[i_neighbor_count] > 0  &&  indentation < 0.0) return;
 
         double force[3];
         Matrix average_stress_tensor = ZeroMatrix(3,3);
