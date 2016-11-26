@@ -93,7 +93,7 @@ public:
         KRATOS_TRY
 
         //loop over nodes with neighbours
-        mDofSet = DofsArrayType();
+        mDofSet.clear(); // = DofsArrayType();
         //mDofSet.resize(0);
         mDofSet.reserve(model_part.Nodes().size() );
 
@@ -492,7 +492,7 @@ public:
     void ClearSystem()
     {
         KRATOS_TRY
-        mDofSet = DofsArrayType();
+        mDofSet.clear(); // = DofsArrayType();
         //		mDofSet.resize(0);
         mDx.resize(0,false);
         mb.resize(0,false);
