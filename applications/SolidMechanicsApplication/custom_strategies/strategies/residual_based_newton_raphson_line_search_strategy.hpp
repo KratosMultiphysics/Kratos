@@ -517,7 +517,7 @@ public:
 
 
         //update results
-        rDofSet = pBuilderAndSolver->GetDofSet();
+//        rDofSet = pBuilderAndSolver->GetDofSet();
         pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
         pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
@@ -528,7 +528,7 @@ public:
         if (is_converged == true)
         {
             //initialisation of the convergence criteria
-            rDofSet = pBuilderAndSolver->GetDofSet();
+//            rDofSet = pBuilderAndSolver->GetDofSet();
             mpConvergenceCriteria->InitializeSolutionStep(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
             if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
@@ -616,7 +616,7 @@ public:
 	    }
 
             //Updating the results stored in the database
-            rDofSet = pBuilderAndSolver->GetDofSet();
+//            rDofSet = pBuilderAndSolver->GetDofSet();
 
             pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
