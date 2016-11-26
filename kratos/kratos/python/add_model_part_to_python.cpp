@@ -178,6 +178,12 @@ void ModelPartRemoveNodeFromAllLevels4(ModelPart& rModelPart, ModelPart::NodeTyp
 	rModelPart.RemoveNodeFromAllLevels(pThisNode, ThisIndex);
 }
 
+void ModelPartRemoveNodesFromAllLevels(ModelPart& rModelPart, Flags identifier_flag)
+{
+	rModelPart.RemoveNodesFromAllLevels(identifier_flag);
+}
+
+
 // Properties
 
 ModelPart::SizeType  ModelPartNumberOfProperties1(ModelPart& rModelPart)
@@ -338,6 +344,10 @@ void ModelPartRemoveElementFromAllLevels4(ModelPart& rModelPart, ModelPart::Elem
 	rModelPart.RemoveElementFromAllLevels(pThisElement, ThisIndex);
 }
 
+void ModelPartRemoveElementsFromAllLevels(ModelPart& rModelPart, Flags identifier_flag)
+{
+	rModelPart.RemoveElementsFromAllLevels(identifier_flag);
+}
 // Conditions
 
 ModelPart::SizeType ModelPartNumberOfConditions1(ModelPart& rModelPart)
@@ -613,6 +623,7 @@ void AddModelPartToPython()
 		.def("RemoveNodeFromAllLevels", ModelPartRemoveNodeFromAllLevels2)
 		.def("RemoveNodeFromAllLevels", ModelPartRemoveNodeFromAllLevels3)
 		.def("RemoveNodeFromAllLevels", ModelPartRemoveNodeFromAllLevels4)
+                .def("RemoveNodesFromAllLevels", ModelPartRemoveNodesFromAllLevels)
 		.def("NodesArray", &ModelPart::NodesArray, return_internal_reference<>())
 		.def("NumberOfTables", &ModelPart::NumberOfTables)
 		.def("AddTable", &ModelPart::AddTable)
@@ -649,6 +660,7 @@ void AddModelPartToPython()
 		.def("RemoveElementFromAllLevels", ModelPartRemoveElementFromAllLevels2)
 		.def("RemoveElementFromAllLevels", ModelPartRemoveElementFromAllLevels3)
 		.def("RemoveElementFromAllLevels", ModelPartRemoveElementFromAllLevels4)
+                .def("RemoveElementsFromAllLevels", ModelPartRemoveElementsFromAllLevels)
 		.def("ElementsArray", &ModelPart::ElementsArray, return_internal_reference<>())
 		.add_property("Conditions", ModelPartGetConditions1, ModelPartSetConditions1)
 		.def("GetCondition", ModelPartGetCondition1)
