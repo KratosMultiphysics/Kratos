@@ -1037,7 +1037,7 @@ public:
         ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
 
         DofsArrayType Doftemp;
-        BaseType::mDofSet = DofsArrayType();
+        BaseType::mDofSet.clear(); // = DofsArrayType();
         //mDofSet.clear();
 
         //double StartTime = GetTickCount();
@@ -1310,7 +1310,7 @@ public:
      */
     void Clear()
     {
-        this->mDofSet = DofsArrayType();
+        this->mDofSet.clear(); // = DofsArrayType();
 
         if (this->mpReactionsVector != NULL)
             TSparseSpace::Clear((this->mpReactionsVector));
