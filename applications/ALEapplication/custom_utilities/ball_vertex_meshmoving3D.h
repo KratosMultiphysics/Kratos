@@ -96,7 +96,7 @@ public:
         KRATOS_TRY
 
         //loop over nodes with neighbours
-        mDofSet = DofsArrayType();
+        mDofSet.clear(); // = DofsArrayType();
         //mDofSet.Resize(0);
         //mDofSet.clear();
         mDofSet.reserve(model_part.Nodes().size() );
