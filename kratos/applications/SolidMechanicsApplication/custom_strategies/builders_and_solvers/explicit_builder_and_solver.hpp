@@ -379,7 +379,7 @@ public:
      */
     void Clear()
     {
-        this->mDofSet = DofsArrayType();
+        this->mDofSet.clear(); // = DofsArrayType();
 
         if (this->mpReactionsVector != NULL)
             TSparseSpace::Clear((this->mpReactionsVector));
