@@ -101,7 +101,7 @@ public:
         KRATOS_TRY;
 
         //assigning the nodes to the new model part
-        DestinationModelPart.rProperties()=OriginModelPart.rProperties();
+        DestinationModelPart.rProperties() = OriginModelPart.rProperties();
         DestinationModelPart.Nodes().clear();
         DestinationModelPart.Nodes() = OriginModelPart.Nodes();
 
