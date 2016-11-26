@@ -503,7 +503,7 @@ public:
      */
     virtual void Clear()
     {
-        this->mDofSet = DofsArrayType();
+        this->mDofSet.clear(); // = DofsArrayType();
 
         TSparseSpace::Clear(this->mpReactionsVector);
         // 			this->mReactionsVector = TSystemVectorType();
