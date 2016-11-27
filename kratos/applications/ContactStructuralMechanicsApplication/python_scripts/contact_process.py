@@ -94,7 +94,7 @@ class ContactProcess(KratosMultiphysics.Process):
         #print(self.main_model_part) 
         
         if (self.consider_double_lm  == True):
-            final_string = "DLN"
+            final_string = "DLM"
         else:
             final_string = ""
         
