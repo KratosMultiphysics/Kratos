@@ -36,6 +36,7 @@ class ContactProcess(KratosMultiphysics.Process):
             "max_number_results"          : 1000,
             "augmentation_normal"         : 0.0e0,
             "augmentation_tangent"        : 0.0e0,
+            "double_LM"                   : false,  
             "type_search"                 : "InRadius",
             "integration_order"           : 5
         }
@@ -58,6 +59,7 @@ class ContactProcess(KratosMultiphysics.Process):
         self.max_number_results       = self.params["max_number_results"].GetInt() 
         self.augmentation_normal      = self.params["augmentation_normal"].GetDouble()
         self.augmentation_tangent     = self.params["augmentation_tangent"].GetDouble()
+        self.consider_double_lm       = self.params["double_LM"].GetBool()
         self.integration_order        = self.params["integration_order"].GetInt() 
         if self.params["type_search"].GetString() == "InRadius":
              self.type_search = 0
@@ -91,11 +93,16 @@ class ContactProcess(KratosMultiphysics.Process):
         #print("MODEL PART BEFORE CREATING INTERFACE")
         #print(self.main_model_part) 
         
+        if (self.consider_double_lm  == True):
+            final_string = "DLN"
+        else:
+            final_string = ""
+        
         # It should create the conditions automatically
         initial_id = CalculateLastIdCondition(self.main_model_part)
-        self.Preprocess.GenerateInterfacePart(self.o_model_part, self.o_interface, condition_name, initial_id) 
+        self.Preprocess.GenerateInterfacePart(self.o_model_part, self.o_interface, condition_name, initial_id, final_string) 
         initial_id = CalculateLastIdCondition(self.main_model_part)
-        self.Preprocess.GenerateInterfacePart(self.d_model_part, self.d_interface, condition_name, initial_id) 
+        self.Preprocess.GenerateInterfacePart(self.d_model_part, self.d_interface, condition_name, initial_id, final_string) 
 
         #print("MODEL PART AFTER CREATING INTERFACE")
         #print(self.main_model_part)
