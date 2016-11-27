@@ -428,7 +428,7 @@ public:
      * @return The modelparts with the normal computed
      */
     
-    static inline void ComputeNodesMeanNormalModelPart(ModelPart & rModelPart) // TODO: Consider area to weight!!!!
+    static inline void ComputeNodesMeanNormalModelPart(ModelPart & rModelPart)
     {
         // Tolerance
         const double tol = 1.0e-14;
@@ -443,7 +443,8 @@ public:
         for(unsigned int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
-            noalias(itNode->GetValue(NORMAL))      = ZeroVect; 
+            itNode->GetValue(NODAL_AREA)           = 0.0;
+            noalias(itNode->GetValue(NORMAL))      = ZeroVect;
             noalias(itNode->GetValue(TANGENT_XI))  = ZeroVect; 
             noalias(itNode->GetValue(TANGENT_ETA)) = ZeroVect; 
         }
@@ -460,12 +461,14 @@ public:
             {
                 ConditionNormal(*(itCond.base()));
                 
+                const double & rArea = itCond->GetGeometry().Area();
                 const array_1d<double, 3> & rNormal     = itCond->GetValue(NORMAL);
                 const array_1d<double, 3> & rTangentXi  = itCond->GetValue(TANGENT_XI);
                 const array_1d<double, 3> & rTangentEta = itCond->GetValue(TANGENT_ETA);
                 
                 for (unsigned int i = 0; i < itCond->GetGeometry().PointsNumber(); i++)
                 {
+                    itCond->GetGeometry()[i].GetValue(NODAL_AREA)             += rArea;
                     noalias( itCond->GetGeometry()[i].GetValue(NORMAL) )      += rNormal;
                     noalias( itCond->GetGeometry()[i].GetValue(TANGENT_XI) )  += rTangentXi;
                     noalias( itCond->GetGeometry()[i].GetValue(TANGENT_ETA) ) += rTangentEta;
@@ -481,6 +484,12 @@ public:
         for(unsigned int i = 0; i < numNodes; i++) 
         {
             auto itNode = pNode.begin() + i;
+
+            const double total_area        = itNode->GetValue(NODAL_AREA);
+            itNode->GetValue(NORMAL)      /= total_area;
+            itNode->GetValue(TANGENT_XI)  /= total_area;
+            itNode->GetValue(TANGENT_ETA) /= total_area;
+
             const double norm_normal     = norm_2(itNode->GetValue(NORMAL));
             const double norm_tangentxi  = norm_2(itNode->GetValue(TANGENT_XI));
             const double norm_tangenteta = norm_2(itNode->GetValue(TANGENT_ETA));
