@@ -248,7 +248,7 @@ public:
  * The method has been taken from the Alexander Popps thesis:
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
  */
-template< unsigned int TDim, unsigned int TNumNodes>
+template< unsigned int TDim, unsigned int TNumNodes, bool TDoubleLM>
 class MortarContactCondition:
                 public Condition 
 {
