@@ -93,7 +93,8 @@ public:
             ModelPart& rOriginPart,
             ModelPart& rInterfacePart,
             std::string ConditionName,
-            unsigned int CondId
+            unsigned int CondId,
+            std::string final_string
             )
     {
         KRATOS_TRY;
@@ -148,10 +149,12 @@ public:
                         if (number_points == 2)
                         {
                             EdgeConditionName.append("Condition2D2N");
+                            EdgeConditionName.append(final_string);
                         }
                         else
                         {
                             EdgeConditionName.append("Condition2D3N"); 
+                            EdgeConditionName.append(final_string); 
                         }
                         
                         Condition const & rCondition = KratosComponents<Condition>::Get(EdgeConditionName);
@@ -200,22 +203,27 @@ public:
                         if (number_points == 3)
                         {
                             FaceConditionName.append("Condition3D3N");
+                            FaceConditionName.append(final_string);
                         }
                         else if (number_points == 4)
                         {
                             FaceConditionName.append("Condition3D4N");
+                            FaceConditionName.append(final_string);
                         }
                         else if (number_points == 6)
                         {
                             FaceConditionName.append("Condition3D6N");
+                            FaceConditionName.append(final_string);
                         }
                         else if (number_points == 8)
                         {
                             FaceConditionName.append("Condition3D8N");
+                            FaceConditionName.append(final_string);
                         }
                         else // Assuming it will not be a very weird geometry
                         {
                             FaceConditionName.append("Condition3D9N");
+                            FaceConditionName.append(final_string);
                         }
   
                         Condition const & rCondition = KratosComponents<Condition>::Get(FaceConditionName); 
