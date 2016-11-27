@@ -327,7 +327,7 @@ public:
 
         // Acceleration is applied
         ResidualIsUpdated = false;
-        ApplyAcceleration( A, Dx, b, BaseType::MoveMeshFlag(), is_converged, ResidualIsUpdated);
+        ApplyAcceleration( A, Dx, b, BaseType::MoveMeshFlag(), is_converged, ResidualIsUpdated, 0);
         
         //Iteration Cicle... performed only for NonLinearProblems
         while (is_converged == false &&
@@ -401,7 +401,7 @@ public:
             
             // Acceleration is applied
             ResidualIsUpdated = false;
-            ApplyAcceleration( A, Dx, b, BaseType::MoveMeshFlag(), is_converged, ResidualIsUpdated);
+            ApplyAcceleration( A, Dx, b, BaseType::MoveMeshFlag(), is_converged, ResidualIsUpdated, iteration_number);
         }
 
         //plots a warning if the maximum number of iterations is exceeded
@@ -440,7 +440,8 @@ public:
         TSystemVectorType& b,
         const bool MoveMesh,
         bool& is_converged,
-        bool& ResidualIsUpdated
+        bool& ResidualIsUpdated,
+        const unsigned iteration_number
     )
     {
         typename TSchemeType::Pointer pScheme = BaseType::GetScheme();
@@ -484,6 +485,8 @@ public:
             // Update residual variables
             Dx = updated_x - tmp;
             
+//             const unsigned int it_threshold = 10;
+//             if (iteration_number > it_threshold) // NOTE: think about this, just accelerate when not converging  
             BaseType::UpdateDatabase(A, Dx, b, MoveMesh);
             
             pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), A, Dx, b);
