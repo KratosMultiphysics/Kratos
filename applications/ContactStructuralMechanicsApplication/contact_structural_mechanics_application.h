@@ -213,8 +213,8 @@ private:
 //     const MortarContactCondition<3, 4, false> mMortarContactCondition3D4N;
 //     const MortarContactCondition<3, 8, false> mMortarContactCondition3D8N;
 //     const MortarContactCondition<3, 9, false> mMortarContactCondition3D9N;
-//     const MortarContactCondition<2, 2, true> mMortarContactCondition2D2NDLM;
-//     const MortarContactCondition<2, 3, true> mMortarContactCondition2D3NDLM;
+    const MortarContactCondition<2, 2, true> mMortarContactCondition2D2NDLM;
+    const MortarContactCondition<2, 3, true> mMortarContactCondition2D3NDLM;
 //     const MortarContactCondition<3, 3, true> mMortarContactCondition3D3NDLM;
 //     const MortarContactCondition<3, 6, true> mMortarContactCondition3D6NDLM;
 //     const MortarContactCondition<3, 4, true> mMortarContactCondition3D4NDLM;
