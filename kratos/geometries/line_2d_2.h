@@ -279,8 +279,10 @@ public:
     //lumping factors for the calculation of the lumped mass matrix
     virtual Vector& LumpingFactors( Vector& rResult ) const
     {
-	if(rResult.size() != 2)
-           rResult.resize( 2, false );
+        if(rResult.size() != 2)
+        {
+               rResult.resize( 2, false );
+        }
 
         rResult[0] = 0.5;
         rResult[1] = 0.5;
@@ -815,14 +817,14 @@ public:
     }
 
     /**
-    * Returns whether given arbitrary point is inside the Geometry and the respective
-        * local point for the given global point
-    */
+     * Returns whether given arbitrary point is inside the Geometry and the respective
+     * local point for the given global point
+     */
     virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult )
     {
         PointLocalCoordinates( rResult, rPoint );
 
-        double tol = 1.0e-14;
+        const double tol = 1.0e-14;
 
 //        KRATOS_WATCH( rResult[0]);
 
@@ -830,8 +832,10 @@ public:
         {
             return true;
         }
-
-        return false;
+        else
+        {
+            return false;
+        }
     }
 
 
@@ -849,13 +853,13 @@ public:
         const TPointType& SecondPoint = BaseType::GetPoint(1);
 
         // Project point
-        double tol = 1e-14; // Tolerance
+        const double tol = 1e-14; // Tolerance
         
         // Normal
         array_1d<double,2> Normal = ZeroVector(2);
         Normal[0] = SecondPoint[1] -  FirstPoint[1];
         Normal[1] =  FirstPoint[0] - SecondPoint[0];
-        double norm = std::sqrt(Normal[0] * Normal[0] + Normal[1] * Normal[1]);
+        const double norm = std::sqrt(Normal[0] * Normal[0] + Normal[1] * Normal[1]);
         Normal /= norm;
         
         // Vector point and distance
@@ -870,15 +874,13 @@ public:
 
         if (dist_proy < tol)
         {
-            double L  = Length();
+            const double L  = Length();
             
-            double l1 = (rPoint[0] - FirstPoint[0]) * (rPoint[0] - FirstPoint[0])
-                      + (rPoint[1] - FirstPoint[1]) * (rPoint[1] - FirstPoint[1]);
-            l1 = std::sqrt(l1);
+            const double l1 = std::sqrt((rPoint[0] - FirstPoint[0]) * (rPoint[0] - FirstPoint[0])
+                      + (rPoint[1] - FirstPoint[1]) * (rPoint[1] - FirstPoint[1]));
             
-            double l2 = (rPoint[0] - SecondPoint[0]) * (rPoint[0] - SecondPoint[0])
-                      + (rPoint[1] - SecondPoint[1]) * (rPoint[1] - SecondPoint[1]);
-            l2 = std::sqrt(l2);
+            const double l2 = std::sqrt((rPoint[0] - SecondPoint[0]) * (rPoint[0] - SecondPoint[0])
+                      + (rPoint[1] - SecondPoint[1]) * (rPoint[1] - SecondPoint[1]));
             
 //            std::cout << "L: " << L << " l1: " << l1 << " l2: " << l2 << std::endl;
 
