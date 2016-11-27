@@ -469,9 +469,9 @@ public:
                 for (unsigned int i = 0; i < itCond->GetGeometry().PointsNumber(); i++)
                 {
                     itCond->GetGeometry()[i].GetValue(NODAL_AREA)             += rArea;
-                    noalias( itCond->GetGeometry()[i].GetValue(NORMAL) )      += rNormal;
-                    noalias( itCond->GetGeometry()[i].GetValue(TANGENT_XI) )  += rTangentXi;
-                    noalias( itCond->GetGeometry()[i].GetValue(TANGENT_ETA) ) += rTangentEta;
+                    noalias( itCond->GetGeometry()[i].GetValue(NORMAL) )      += rArea * rNormal;
+                    noalias( itCond->GetGeometry()[i].GetValue(TANGENT_XI) )  += rArea * rTangentXi;
+                    noalias( itCond->GetGeometry()[i].GetValue(TANGENT_ETA) ) += rArea * rTangentEta;
                 }
             }
         }
