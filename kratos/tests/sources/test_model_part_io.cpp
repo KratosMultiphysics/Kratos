@@ -73,11 +73,19 @@ namespace Kratos {
                 2 1 3 4                   
 				End Conditions
 
-				Begin SubModelPart BaseNodes // Note that this would be a sub sub modelpart
+				Begin SubModelPart BasePart // Note that this would be a sub sub modelpart
 				   Begin SubModelPartNodes
 				     1
 				     2
 				   End SubModelPartNodes
+                   Begin SubModelPart inner_part
+                     Begin SubModelPartNodes
+				       1
+				     End SubModelPartNodes
+                     Begin SubModelPartConditions
+				       1
+				     End SubModelPartConditions
+                   End SubModelPart
 				End SubModelPart
 			)input"));
 
@@ -126,12 +134,12 @@ namespace Kratos {
 			KRATOS_CHECK_EQUAL(model_part_0.NumberOfElements(), 1);
 			KRATOS_CHECK_EQUAL(model_part_0.NumberOfConditions(), 1);
 			KRATOS_CHECK_EQUAL(model_part_0.NumberOfSubModelParts(), 1);
-			KRATOS_CHECK(model_part_0.HasSubModelPart("BaseNodes"));
-			KRATOS_CHECK_EQUAL(model_part_0.GetSubModelPart("BaseNodes").NumberOfNodes(), 2);
-			KRATOS_CHECK_EQUAL(model_part_0.GetSubModelPart("BaseNodes").NumberOfElements(), 0);
-			KRATOS_CHECK_EQUAL(model_part_0.GetSubModelPart("BaseNodes").NumberOfConditions(), 0);
+			KRATOS_CHECK(model_part_0.HasSubModelPart("BasePart"));
+			KRATOS_CHECK_EQUAL(model_part_0.GetSubModelPart("BasePart").NumberOfNodes(), 2);
+			KRATOS_CHECK_EQUAL(model_part_0.GetSubModelPart("BasePart").NumberOfElements(), 0);
+			KRATOS_CHECK_EQUAL(model_part_0.GetSubModelPart("BasePart").NumberOfConditions(), 1);
 
-			ModelPart model_part_1("Partition 0");
+			ModelPart model_part_1("Partition 1");
 			model_part_1.AddNodalSolutionStepVariable(DISPLACEMENT);
 			model_part_1.AddNodalSolutionStepVariable(FORCE);
 			model_part_1.AddNodalSolutionStepVariable(PARTITION_INDEX);
@@ -144,10 +152,10 @@ namespace Kratos {
 			KRATOS_CHECK_EQUAL(model_part_1.NumberOfElements(), 1);
 			KRATOS_CHECK_EQUAL(model_part_1.NumberOfConditions(), 1);
 			KRATOS_CHECK_EQUAL(model_part_1.NumberOfSubModelParts(), 1);
-			KRATOS_CHECK(model_part_1.HasSubModelPart("BaseNodes"));
-			KRATOS_CHECK_EQUAL(model_part_1.GetSubModelPart("BaseNodes").NumberOfNodes(), 1);
-			KRATOS_CHECK_EQUAL(model_part_1.GetSubModelPart("BaseNodes").NumberOfElements(), 0);
-			KRATOS_CHECK_EQUAL(model_part_1.GetSubModelPart("BaseNodes").NumberOfConditions(), 0);
+			KRATOS_CHECK(model_part_1.HasSubModelPart("BasePart"));
+			KRATOS_CHECK_EQUAL(model_part_1.GetSubModelPart("BasePart").NumberOfNodes(), 1);
+			KRATOS_CHECK_EQUAL(model_part_1.GetSubModelPart("BasePart").NumberOfElements(), 0);
+			KRATOS_CHECK_EQUAL(model_part_1.GetSubModelPart("BasePart").NumberOfConditions(), 0);
 
 
 //KRATOS_CHECK_STRING_CONTAIN_SUB_STRING(p_output_1->str(), R"/(Begin SubModelPart BaseNodes
