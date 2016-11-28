@@ -1065,24 +1065,24 @@ public:
 
     virtual void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const
     {
-        if(NodesInFaces.size1() != 4 || NodesInFaces.size2() != 3)
-            NodesInFaces.resize(4,3,false);
+        if(NodesInFaces.size1() != 3 || NodesInFaces.size2() != 4)
+            NodesInFaces.resize(3,4,false);
 
         NodesInFaces(0,0)=0;//face or other node
-        NodesInFaces(1,0)=1;
-        NodesInFaces(2,0)=2;
+        NodesInFaces(1,0)=2;
+        NodesInFaces(2,0)=3;
 
         NodesInFaces(0,1)=1;//face or other node 
-        NodesInFaces(1,1)=2;
-        NodesInFaces(2,1)=3;
+        NodesInFaces(1,1)=3;
+        NodesInFaces(2,1)=0;
 
         NodesInFaces(0,2)=2;//face or other node
-        NodesInFaces(1,2)=3;
-        NodesInFaces(2,2)=0;
-
-        NodesInFaces(0,2)=3;//face or other node
         NodesInFaces(1,2)=0;
         NodesInFaces(2,2)=1;
+
+        NodesInFaces(0,3)=3;//face or other node
+        NodesInFaces(1,3)=1;
+        NodesInFaces(2,3)=2;
     }
 
     
