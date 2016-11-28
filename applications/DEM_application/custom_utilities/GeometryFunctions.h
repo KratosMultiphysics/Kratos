@@ -1052,7 +1052,9 @@ namespace Kratos {
         if (DotProduct(PC,N) < 0) //it is assumed that Indentation wont be greater than radius so we can detect contacts on both sides of the FE.
         {
             normal_flag = - 1.0;
-            N = -N;  //TODO: improve this by doing something like -> noalias(N) *= -1.0; not compiling
+            N[0]=-N[0];
+            N[1]=-N[1];
+            N[2]=-N[2];            
         }
         normalize(N); 
      
