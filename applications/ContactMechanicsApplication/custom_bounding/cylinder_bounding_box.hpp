@@ -539,6 +539,22 @@ protected:
       KRATOS_TRY
 
       //std::cout<<" Create Cylinder Mesh ELEMENTS "<<std::endl;
+
+      //add elements to computing model part: (in order to be written)
+      ModelPart* pComputingModelPart = NULL;
+      if( rModelPart.IsSubModelPart() )
+	for(ModelPart::SubModelPartIterator i_mp= rModelPart.GetParentModelPart()->SubModelPartsBegin() ; i_mp!=rModelPart.GetParentModelPart()->SubModelPartsEnd(); i_mp++)
+	  {
+	    if( i_mp->Is(ACTIVE) )  //computing_domain
+	      pComputingModelPart = &rModelPart.GetParentModelPart()->GetSubModelPart(i_mp->Name());
+	  }
+      else{
+	for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
+	  {
+	    if( i_mp->Is(ACTIVE) )  //computing_domain
+	      pComputingModelPart = &rModelPart.GetSubModelPart(i_mp->Name());
+	  }
+      }
 	
       // Create surface of the cylinder/tube with quadrilateral shell conditions
       unsigned int ElementId = 0; 
@@ -597,6 +613,8 @@ protected:
 	  pElement = ElementType::Pointer(new Element( ElementId, pFace, pProperties));
 				       
 	  rModelPart.AddElement(pElement);
+	  pElement->Set(ACTIVE,false);
+	  pComputingModelPart->AddElement(pElement);
 
 	  local_counter++;
 
@@ -620,6 +638,8 @@ protected:
 	  pElement = ElementType::Pointer(new Element( ElementId, pFace, pProperties));
 	  
 	  rModelPart.AddElement(pElement);
+	  pElement->Set(ACTIVE,false);
+	  pComputingModelPart->AddElement(pElement);
 
 	  local_counter = 1;
 	}

@@ -373,7 +373,7 @@ public:
 	  mBoxNoses[i].Center =  mBoxNoses[i].InitialCenter + Displacement;
 	  BeamMathUtilsType::MapToCurrentLocalFrame(mBox.LocalQuaternion, mBoxNoses[i].Center);
 
-	  std::cout<<"   BOX NOSE center position "<<mBoxNoses[i].Center<<std::endl;
+	  //std::cout<<"   BOX NOSE center position "<<mBoxNoses[i].Center<<std::endl;
 	}
     }
 
@@ -388,6 +388,8 @@ public:
 
       bool is_inside = SpatialBoundingBox::IsInside(rPoint);
 
+      //std::cout<< " IS INSIDE "<<is_inside<<std::endl;
+      
       if( is_inside ){
 
 	//std::cout<<" Local Point A "<<rPoint<<std::endl;
@@ -621,7 +623,9 @@ public:
 	    }
 	  }
 
-	  FacePoints.push_back(FirstPoint);  
+	  BasePoint     = FirstPoint;
+	  BasePoint[2] += mBoxNoses[i].Center[2];
+ 	  FacePoints.push_back(BasePoint);
 	    
 	  
 	  //next first point
@@ -629,15 +633,17 @@ public:
  
 	  
 	  //rake point
-	  FacePoints.push_back(RakePoint);
+	  BasePoint     = RakePoint;
+	  BasePoint[2] += mBoxNoses[i].Center[2];
+	  FacePoints.push_back(BasePoint);
 
 	  //tip angle:
 	  double tip_alpha = acos(inner_prod( (RakePoint-mBoxNoses[i].Center), (ClearancePoint-mBoxNoses[i].Center) ));
 	  
-	  for(int k=1; k<angular_partitions; k++)
+	  for(int k=1; k<=angular_partitions; k++)
 	    {
 	      
-	      alpha = (tip_alpha * k)/(double)angular_partitions;
+	      alpha = (tip_alpha * k)/(double)(angular_partitions-1);
 	    
 	      //vector of rotation
 	      RotationAxis = DirectionX * alpha;
@@ -649,12 +655,15 @@ public:
   
 	      noalias(BasePoint) = mBoxNoses[i].Center + RotatedDirectionY;	 
 
+	      BasePoint[2] += mBoxNoses[i].Center[2];
 	      FacePoints.push_back(BasePoint);
 	    }
 
 	  
 	  //clearance point
-	  FacePoints.push_back(ClearancePoint);
+	  BasePoint     = ClearancePoint;
+	  BasePoint[2] += mBoxNoses[i].Center[2];
+	  FacePoints.push_back(BasePoint);
 
 
 	  if( i == mBoxNoses.size()-1 ){
@@ -669,7 +678,8 @@ public:
 	    
 	    //point n
 	    noalias(BasePoint) = FirstPoint + mBox.Radius * Tangent;
-	    
+
+	    BasePoint[2] += mBoxNoses[i].Center[2];
 	    FacePoints.push_back(BasePoint);
 	    
 	  }
@@ -707,7 +717,7 @@ public:
 	
 	//create modelpart nodes first row
 	for(unsigned int i=0; i<FacePoints.size(); i++)
-	  {
+	  {	    
 	    NodeId += 1;
 
 	    Quaternion = QuaternionType::FromRotationVector(RotationAxis);
@@ -836,6 +846,22 @@ protected:
       
       KRATOS_TRY
 	
+      //add elements to computing model part: (in order to be written)
+      ModelPart* pComputingModelPart = NULL;
+      if( rModelPart.IsSubModelPart() )
+	for(ModelPart::SubModelPartIterator i_mp= rModelPart.GetParentModelPart()->SubModelPartsBegin() ; i_mp!=rModelPart.GetParentModelPart()->SubModelPartsEnd(); i_mp++)
+	  {
+	    if( i_mp->Is(ACTIVE) )  //computing_domain
+	      pComputingModelPart = &rModelPart.GetParentModelPart()->GetSubModelPart(i_mp->Name());
+	  }
+      else{
+	for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
+	  {
+	    if( i_mp->Is(ACTIVE) )  //computing_domain
+	      pComputingModelPart = &rModelPart.GetSubModelPart(i_mp->Name());
+	  }
+      }
+      
       // Create surface of the cylinder/tube with quadrilateral shell conditions
       unsigned int ElementId = 0; 
       if( rModelPart.IsSubModelPart() )
@@ -886,6 +912,8 @@ protected:
 	pElement = ElementType::Pointer(new Element(ElementId, pFace, pProperties));
 				       
 	rModelPart.AddElement(pElement);
+	pElement->Set(ACTIVE,false);
+	pComputingModelPart->AddElement(pElement);
 
 	Id = rInitialNodeId + counter + 1;
 	
@@ -903,7 +931,23 @@ protected:
     {
       
       KRATOS_TRY       
-	
+
+      //add elements to computing model part: (in order to be written)
+      ModelPart* pComputingModelPart = NULL;
+      if( rModelPart.IsSubModelPart() )
+	for(ModelPart::SubModelPartIterator i_mp= rModelPart.GetParentModelPart()->SubModelPartsBegin() ; i_mp!=rModelPart.GetParentModelPart()->SubModelPartsEnd(); i_mp++)
+	  {
+	    if( i_mp->Is(ACTIVE) )  //computing_domain
+	      pComputingModelPart = &rModelPart.GetParentModelPart()->GetSubModelPart(i_mp->Name());
+	  }
+      else{
+	for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
+	  {
+	    if( i_mp->Is(ACTIVE) )  //computing_domain
+	      pComputingModelPart = &rModelPart.GetSubModelPart(i_mp->Name());
+	  }
+      }
+      
       // Create surface of the cylinder/tube with quadrilateral shell conditions
       unsigned int ElementId = 0; 
       if( rModelPart.IsSubModelPart() )
@@ -958,6 +1002,8 @@ protected:
 	pElement = ElementType::Pointer(new Element(ElementId, pFace, pProperties));
 				       
 	rModelPart.AddElement(pElement);
+	pElement->Set(ACTIVE,false);
+	pComputingModelPart->AddElement(pElement);
 
 	Id = rSecondInitialNodeId + counter + 1;
 	

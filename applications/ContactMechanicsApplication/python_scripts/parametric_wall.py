@@ -168,12 +168,14 @@ class ParametricWall(object):
         # set mesh upper and lower points
         upper_point = KratosMultiphysics.Array3()
         upper = self.GetUpperPoint(model_part)
+        #print("upper",upper)
         for i in range(0,len(upper)):
             upper_point[i] = upper[i]
             bounding_box.SetUpperPoint(upper_point)
                 
         lower_point = KratosMultiphysics.Array3()
         lower = self.GetLowerPoint(model_part)
+        #print("lower",lower)
         for i in range(0,len(lower)):
             lower_point[i] = lower[i]               
             bounding_box.SetLowerPoint(lower_point)
@@ -214,7 +216,7 @@ class ParametricWall(object):
                 min_x = node.X
             if( node.Y < min_y ):
                 min_y = node.Y
-            if( node.Z > min_z ):
+            if( node.Z < min_z ):
                 min_z = node.Z
                 
         if( domain_size == 2 ):
