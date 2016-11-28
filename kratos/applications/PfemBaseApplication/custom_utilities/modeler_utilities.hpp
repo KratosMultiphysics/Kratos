@@ -1164,12 +1164,12 @@ public:
     {
       double volume = CalculateTetrahedronVolume(x0,y0,z0,x1,y1,z1,x2,y2,z2,x3,y3,z3);
 
-      if(volume < 1e-15)
+      if(volume < 1e-25)
 	{
-	  std::cout<<" ERROR LS: element with zero area found: "<<volume<<" position ("<<x0<<", "<<y0<<", "<<z0<<") ("<<x1<<", "<<y1<<", "<<z1<<") ("<<x2<<", "<<y2<<", "<<z2<<") ("<<x3<<", "<<y3<<", "<<z3<<") "<<std::endl;
+	  std::cout<<" ERROR LS: tetrahedral element with zero area found: "<<volume<<" position ("<<x0<<", "<<y0<<", "<<z0<<") ("<<x1<<", "<<y1<<", "<<z1<<") ("<<x2<<", "<<y2<<", "<<z2<<") ("<<x3<<", "<<y3<<", "<<z3<<") "<<std::endl;
 	}
 
-     if( rShapeFunctionsN.size() != 4 ){
+      if( rShapeFunctionsN.size() != 4 ){
 	rShapeFunctionsN.resize(4);
 	//std::fill( rShapeFunctionsN.begin(), rShapeFunctionsN.end(), 0 );
       }
@@ -1207,7 +1207,7 @@ public:
       if(area < 1e-15)
 	{
 	  //KRATOS_THROW_ERROR( std::logic_error,"element with zero area found", "" );
-	  std::cout<<" ERROR LS: element with zero area found: "<<area<<" position ("<<x0<<", "<<y0<<") ("<<x1<<", "<<y1<<") ("<<x2<<", "<<y2<<") "<<std::endl;
+	  std::cout<<" ERROR LS: triangle element with zero area found: "<<area<<" position ("<<x0<<", "<<y0<<") ("<<x1<<", "<<y1<<") ("<<x2<<", "<<y2<<") "<<std::endl;
 	}
       
       if( rShapeFunctionsN.size() != 3 ){

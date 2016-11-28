@@ -422,7 +422,7 @@
 				"MU_DYNAMIC": *cond(Dynamic_friction_coeffitient),
 				"PENALTY_PARAMETER": *cond(Penalty_Parameter),
 				"TANGENTIAL_PENALTY_RATIO": *cond(Tangent_penalty_ratio),
-				"TAU_STAB": 1			    
+				"TAU_STAB": 1
 			    }
 			}
 		    }
@@ -610,7 +610,7 @@
             "variable_name"   : "*cond(Variable)S_VECTOR",
 *else
             "variable_name"   : "*cond(Variable)",
-*endif	    
+*endif	
 *if(strcmp(cond(Time_Evolution),"INITIAL")==0)
 	    "interval"        : [*GenData(Start_Time), *GenData(Start_Time)],
 *elseif(strcmp(cond(Time_Evolution),"FULL")==0)

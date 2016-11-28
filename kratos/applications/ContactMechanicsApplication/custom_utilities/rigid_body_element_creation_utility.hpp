@@ -369,7 +369,6 @@ private:
       rRigidBodyModelPart.AddNode(NodeCenterOfGravity);
      
       //add rigid body element to computing model part:
-      std::string ComputingModelPartName;
       for(ModelPart::SubModelPartIterator i_mp= rMainModelPart.SubModelPartsBegin() ; i_mp!=rMainModelPart.SubModelPartsEnd(); i_mp++)
 	{
 	  if( (i_mp->Is(ACTIVE)) ){ //computing_domain

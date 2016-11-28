@@ -899,7 +899,8 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddKuugTangent(MatrixType&
   double TangentForceModulus = this->CalculateCoulombsFrictionLaw( rVariables.Gap.Tangent, NormalForceModulus, rVariables );
 
   //Force
-  Matrix ForceMatrix  = ZeroMatrix(3,3);
+  Matrix ForceMatrix(3,3);
+  noalias(ForceMatrix) = ZeroMatrix(3,3);
 
 
   if( fabs(TangentForceModulus) >= 1e-25 ){
@@ -908,10 +909,11 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddKuugTangent(MatrixType&
       //simpler expression:
       noalias(ForceMatrix) = mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) );
 
-      ForceMatrix += mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) + (rVariables.Gap.Normal/rVariables.Gap.Tangent) *( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) ));
+      noalias(ForceMatrix) += mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) + (rVariables.Gap.Normal/rVariables.Gap.Tangent) *( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) ));
 
-      //added extra term, maybe not necessary
-      ForceMatrix += mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal * rVariables.Gap.Tangent) * outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent);
+      //extra term (2D)
+      //if( dimension == 2 )
+	//noalias(ForceMatrix) -= mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal/rVariables.Gap.Tangent) * (outer_prod(rVariables.Surface.Tangent, VectorType( rVariables.Surface.Tangent - ( inner_prod(rVariables.RelativeDisplacement,rVariables.Surface.Normal) * rVariables.Surface.Tangent ) - ( inner_prod(rVariables.Surface.Normal,rVariables.RelativeDisplacement) * rVariables.Surface.Normal) ) ) );
 
 
     }
@@ -919,10 +921,11 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddKuugTangent(MatrixType&
 
       noalias(ForceMatrix) = rVariables.Penalty.Tangent * rIntegrationWeight * outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent);
 
-      ForceMatrix += rVariables.Penalty.Tangent * rIntegrationWeight * ( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
+      noalias(ForceMatrix) += rVariables.Penalty.Tangent * rIntegrationWeight * ( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
 
-      //added extra term, maybe not necessary
-      ForceMatrix += rVariables.Penalty.Tangent * rIntegrationWeight * (rVariables.Gap.Tangent * rVariables.Gap.Tangent) * outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent);
+      //extra term (2D)
+      //if( dimension == 2 )
+        //noalias(ForceMatrix) -= rVariables.Penalty.Tangent * rIntegrationWeight * (outer_prod(rVariables.Surface.Tangent, VectorType( rVariables.Surface.Tangent - ( inner_prod(rVariables.RelativeDisplacement,rVariables.Surface.Normal) * rVariables.Surface.Tangent ) - ( inner_prod(rVariables.Surface.Normal,rVariables.RelativeDisplacement) * rVariables.Surface.Normal) ) ) );
      
     }
 
@@ -943,7 +946,8 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddKuugTangent(MatrixType&
   // std::cout<<" KuuT "<<ForceMatrix<<std::endl;
 
   //Moment
-  Matrix MomentMatrix = ZeroMatrix(3,3);
+  Matrix MomentMatrix(3,3);
+  noalias(MomentMatrix) = ZeroMatrix(3,3);
       
   MomentMatrix = prod(ForceMatrix,rVariables.SkewSymDistance);
       
