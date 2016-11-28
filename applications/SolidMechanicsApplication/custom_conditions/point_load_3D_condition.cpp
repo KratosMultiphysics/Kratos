@@ -113,7 +113,7 @@ Vector& PointLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, General
     if( rVectorForce.size() != dimension )
       rVectorForce.resize(dimension,false);
 
-    rVectorForce = ZeroVector(dimension);
+    noalias(rVectorForce) = ZeroVector(dimension);
    
     //FORCE CONDITION:
     //defined on condition
@@ -192,7 +192,8 @@ void PointLoad3DCondition::CalculateConditionSystem(LocalSystemComponents& rLoca
 
     //force terms
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    Vector VectorForce = ZeroVector(dimension);
+    Vector VectorForce(dimension);
+    noalias(VectorForce) = ZeroVector(dimension);
 
     for ( unsigned int PointNumber = 0; PointNumber < 1; PointNumber++ )
     {

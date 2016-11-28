@@ -407,26 +407,32 @@ void LinearSolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
     if ( rLeftHandSideMatrix.size1() != system_size )
       rLeftHandSideMatrix.resize( system_size, system_size, false );
 
-    noalias( rLeftHandSideMatrix ) = ZeroMatrix( system_size, system_size ); //resetting LHS
+    noalias(rLeftHandSideMatrix) = ZeroMatrix( system_size, system_size ); //resetting LHS
 
     //resizing as needed the RHS
     if ( rRightHandSideVector.size() != system_size )
       rRightHandSideVector.resize( system_size, false );
 
-    rRightHandSideVector = ZeroVector( system_size ); //resetting RHS
+    noalias(rRightHandSideVector) = ZeroVector( system_size ); //resetting RHS
 
     //2.- Initialize local variables
     unsigned int voigt_size   = dimension * (dimension +1) * 0.5;
 
-    Vector StrainVector       = ZeroVector(voigt_size);
-    Vector StressVector       = ZeroVector(voigt_size);
-    Matrix ConstitutiveMatrix = ZeroMatrix(voigt_size, voigt_size);
-    Matrix B                  = ZeroMatrix(voigt_size, dimension*number_of_nodes);
-    Matrix DN_DX              = ZeroMatrix(number_of_nodes, dimension);
+    Vector StrainVector(voigt_size);
+    noalias(StrainVector) = ZeroVector(voigt_size);    
+    Vector StressVector(voigt_size);
+    noalias(StressVector) = ZeroVector(voigt_size);    
+    Matrix ConstitutiveMatrix(voigt_size, voigt_size);
+    noalias(ConstitutiveMatrix) = ZeroMatrix(voigt_size, voigt_size);
+    Matrix B(voigt_size, dimension*number_of_nodes);
+    noalias(B) = ZeroMatrix(voigt_size, dimension*number_of_nodes);
+    Matrix DN_DX(number_of_nodes, dimension);
+    noalias(DN_DX) = ZeroMatrix(number_of_nodes, dimension);
     
     //deffault values for the infinitessimal theory
     double detF = 1;
-    Matrix F    = identity_matrix<double>(dimension);
+    Matrix F(dimension,dimension);
+    noalias(F) = identity_matrix<double>(dimension);
 
     //3.-Calculate elemental system:
 
@@ -440,13 +446,14 @@ void LinearSolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
     const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
 
     //calculate delta position (here coincides with the current displacement)
-    Matrix DeltaPosition = ZeroMatrix( number_of_nodes , dimension);
+    Matrix DeltaPosition( number_of_nodes , dimension);
+    noalias(DeltaPosition) = ZeroMatrix( number_of_nodes , dimension);
     DeltaPosition = this->CalculateDeltaPosition(DeltaPosition);
 
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
     GeometryType::JacobiansType J;
     J.resize(1,false);
-    J[0]= ZeroMatrix(1,1);
+    noalias(J[0])= ZeroMatrix(1,1);
     J = GetGeometry().Jacobian( J, mThisIntegrationMethod, DeltaPosition );
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
@@ -454,7 +461,8 @@ void LinearSolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
 	//a.-compute element kinematics
 
 	//calculating the inverse of the jacobian for this integration point[d£/dx_n]
-	Matrix InvJ = ZeroMatrix(dimension, dimension);
+	Matrix InvJ(dimension, dimension);
+	noalias(InvJ) = ZeroMatrix(dimension, dimension);
 	double detJ = 0;
 	MathUtils<double>::InvertMatrix( J[PointNumber], InvJ, detJ);
 
@@ -462,7 +470,7 @@ void LinearSolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
 	  KRATOS_THROW_ERROR( std::invalid_argument," SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 ) detJ = ", detJ )
 	    
 	//compute cartesian derivatives for this integration point  [dN/dx_n]
-	DN_DX = prod( DN_De[PointNumber] , InvJ );
+	noalias(DN_DX) = prod( DN_De[PointNumber] , InvJ );
 	
 	//set shape functions for this integration point
         Vector N=row( Ncontainer, PointNumber);
@@ -515,7 +523,8 @@ void LinearSolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
 
 
 	//compute and add external forces 
-	Vector VolumeForce = ZeroVector(dimension);
+	Vector VolumeForce(dimension);
+	noalias(VolumeForce) = ZeroVector(dimension);
 	VolumeForce = this->CalculateVolumeForce( VolumeForce, N );
 
 	for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -658,7 +667,10 @@ Matrix& LinearSolidElement::CalculateDeltaPosition(Matrix & rDeltaPosition)
     const unsigned int number_of_nodes = geom.PointsNumber();
     unsigned int dimension = geom.WorkingSpaceDimension();
 
-    rDeltaPosition = ZeroMatrix( number_of_nodes , dimension);
+    if( rDeltaPosition.size1() != number_of_nodes || rDeltaPosition.size2() != dimension )
+      rDeltaPosition.resize( number_of_nodes , dimension, false);
+    
+    noalias(rDeltaPosition) = ZeroMatrix( number_of_nodes , dimension);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -829,7 +841,9 @@ Vector& LinearSolidElement::CalculateVolumeForce( Vector& rVolumeForce, const Ve
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
     if( rVolumeForce.size() != dimension )
-      rVolumeForce = ZeroVector(dimension);
+      rVolumeForce.resize(dimension,false);
+
+    noalias(rVolumeForce) = ZeroVector(dimension);
 
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
     {
@@ -863,13 +877,14 @@ void LinearSolidElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessIn
     if ( rMassMatrix.size1() != system_size )
         rMassMatrix.resize( system_size, system_size, false );
 
-    rMassMatrix = ZeroMatrix( system_size, system_size );
+    noalias(rMassMatrix) = ZeroMatrix( system_size, system_size );
 
     double TotalMass = GetGeometry().DomainSize() * GetProperties()[DENSITY];
 
     if( dimension == 2 ) TotalMass *= GetProperties()[THICKNESS];
 
-    Vector LumpFact = ZeroVector(number_of_nodes);
+    Vector LumpFact(number_of_nodes);
+    noalias(LumpFact) = ZeroVector(number_of_nodes);    
 
     LumpFact = GetGeometry().LumpingFactors( LumpFact );
 
@@ -901,18 +916,21 @@ void LinearSolidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, Pro
     //resizing as needed the LHS
     const unsigned int system_size = number_of_nodes * dimension;
 
-    rDampingMatrix = ZeroMatrix( system_size, system_size );
+    noalias(rDampingMatrix) = ZeroMatrix( system_size, system_size );
 
     //1.-Calculate StiffnessMatrix:
 
-    MatrixType StiffnessMatrix     = ZeroMatrix( system_size, system_size );
-    VectorType RightHandSideVector = ZeroVector( system_size ); 
+    MatrixType StiffnessMatrix( system_size, system_size );
+    noalias(StiffnessMatrix) = ZeroMatrix( system_size, system_size );
+    VectorType RightHandSideVector( system_size );
+    noalias(RightHandSideVector) = ZeroVector( system_size ); 
 
     this->CalculateLocalSystem( StiffnessMatrix, RightHandSideVector, rCurrentProcessInfo );
 
     //2.-Calculate MassMatrix:
 
-    MatrixType MassMatrix  = ZeroMatrix( system_size, system_size );
+    MatrixType MassMatrix( system_size, system_size );
+    noalias(MassMatrix) = ZeroMatrix( system_size, system_size );
 
     this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
     
@@ -973,14 +991,19 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
       //2.- Initialize local variables
       const unsigned int voigt_size = dimension * (dimension +1) * 0.5;
 
-      Vector StrainVector           = ZeroVector(voigt_size);
-      Vector StressVector           = ZeroVector(voigt_size);
-      Matrix ConstitutiveMatrix     = ZeroMatrix(voigt_size,voigt_size);
-      Matrix DN_DX                  = ZeroMatrix(number_of_nodes, dimension);
+      Vector StrainVector(voigt_size);
+      noalias(StrainVector) = ZeroVector(voigt_size);
+      Vector StressVector(voigt_size);
+      noalias(StressVector) = ZeroVector(voigt_size);
+      Matrix ConstitutiveMatrix(voigt_size,voigt_size);
+      noalias(ConstitutiveMatrix) = ZeroMatrix(voigt_size,voigt_size);
+      Matrix DN_DX(number_of_nodes, dimension);
+      noalias(DN_DX) = ZeroMatrix(number_of_nodes, dimension);
     
       //deffault values for the infinitessimal theory
       double detF = 1;
-      Matrix F    = identity_matrix<double>(dimension);
+      Matrix F(dimension,dimension);
+      noalias(F) = identity_matrix<double>(dimension);
 
       //get the shape functions [N] (for the order of the default integration method)
       const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
@@ -989,7 +1012,8 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
       const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
 
       //calculate delta position (here coincides with the current displacement)
-      Matrix DeltaPosition = ZeroMatrix( number_of_nodes , dimension);
+      Matrix DeltaPosition( number_of_nodes , dimension);
+      noalias(DeltaPosition) = ZeroMatrix( number_of_nodes , dimension);
       DeltaPosition = this->CalculateDeltaPosition(DeltaPosition);
 
       //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
@@ -998,7 +1022,7 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
  
       GeometryType::JacobiansType J;
       J.resize(1,false);
-      J[0]= ZeroMatrix(1,1);
+      noalias(J[0])= ZeroMatrix(1,1);
       J = GetGeometry().Jacobian( J, mThisIntegrationMethod, DeltaPosition );
 
       //loop integration points
@@ -1007,7 +1031,8 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
 	  //a.-compute element kinematics
 
 	  //calculating the inverse of the jacobian for this integration point[d£/dx_n]
-	  Matrix InvJ = ZeroMatrix(dimension,dimension);
+	  Matrix InvJ(dimension,dimension);
+	  noalias(InvJ) = ZeroMatrix(dimension,dimension);
 	  double detJ = 0;
 	  MathUtils<double>::InvertMatrix( J[PointNumber], InvJ, detJ);
 	  
@@ -1015,7 +1040,7 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
 	    KRATOS_THROW_ERROR( std::invalid_argument," SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 ) detJ = ", detJ )
 	    
           //compute cartesian derivatives for this integration point  [dN/dx_n]
-	  DN_DX = prod( DN_De[PointNumber], InvJ );
+	  noalias(DN_DX) = prod( DN_De[PointNumber], InvJ );
 	
 	  //set shape functions for this integration point
 	  Vector N=row( Ncontainer, PointNumber);
@@ -1067,7 +1092,8 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
       const unsigned int number_of_nodes = GetGeometry().size();
       
       //2.- Initialize local variables
-      Matrix DN_DX = ZeroMatrix(number_of_nodes, dimension);
+      Matrix DN_DX(number_of_nodes, dimension);
+      noalias(DN_DX) = ZeroMatrix(number_of_nodes, dimension);
    
       //Calculate Strain (in this case the infinitessimal strain vector)
 
@@ -1075,13 +1101,14 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
       const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
       
       //calculate delta position (here coincides with the current displacement)
-      Matrix DeltaPosition = ZeroMatrix( number_of_nodes , dimension);
+      Matrix DeltaPosition( number_of_nodes , dimension);
+      noalias(DeltaPosition) = ZeroMatrix( number_of_nodes , dimension);
       DeltaPosition = this->CalculateDeltaPosition(DeltaPosition);
       
       //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
       GeometryType::JacobiansType J;
       J.resize(1,false);
-      J[0]= ZeroMatrix(1,1);
+      noalias(J[0])= ZeroMatrix(1,1);
       J = GetGeometry().Jacobian( J, mThisIntegrationMethod, DeltaPosition );
 
       //loop integration points
@@ -1091,7 +1118,8 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
 	  //a.-compute element kinematics
 
 	  //calculating the inverse of the jacobian for this integration point[d£/dx_n]
-	  Matrix InvJ = ZeroMatrix(dimension, dimension);
+	  Matrix InvJ(dimension, dimension);
+	  noalias(InvJ) = ZeroMatrix(dimension, dimension);
 	  double detJ = 0;
 	  MathUtils<double>::InvertMatrix( J[ PointNumber], InvJ, detJ);
 
@@ -1100,11 +1128,12 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
 	  
 
 	  //compute cartesian derivatives for this integration point  [dN/dx_n]
-	  DN_DX = prod( DN_De[PointNumber] , InvJ );
+	  noalias(DN_DX) = prod( DN_De[PointNumber] , InvJ );
 	
 	  //b.-compute infinitessimal strain
 	  unsigned int voigt_size = dimension * (dimension +1) * 0.5;
-	  Vector StrainVector = ZeroVector(voigt_size);
+	  Vector StrainVector(voigt_size);
+	  noalias(StrainVector) = ZeroVector(voigt_size);
 	  this->CalculateInfinitesimalStrain(StrainVector, DN_DX);
 
 	  if ( rOutput[PointNumber].size2() != dimension )

@@ -318,7 +318,7 @@ void LargeDisplacementUPElement::InitializeSystemMatrices(MatrixType& rLeftHandS
         if ( rRightHandSideVector.size() != MatSize )
             rRightHandSideVector.resize( MatSize, false );
 
-        rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
+        noalias(rRightHandSideVector) = ZeroVector( MatSize ); //resetting RHS
     }
 }
 
@@ -1044,7 +1044,7 @@ void LargeDisplacementUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, P
     if ( rMassMatrix.size1() != MatSize )
         rMassMatrix.resize( MatSize, MatSize, false );
 
-    rMassMatrix = ZeroMatrix( MatSize, MatSize );
+    noalias(rMassMatrix) = ZeroMatrix( MatSize, MatSize );
 
     // Not Lumped Mass Matrix (numerical integration):
 
@@ -1098,7 +1098,8 @@ void LargeDisplacementUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, P
 
     // if ( dimension == 2 ) TotalMass *= GetProperties()[THICKNESS];
 
-    // Vector LumpFact = ZeroVector(number_of_nodes);
+    // Vector LumpFact(number_of_nodes);
+    // noalias(LumpFact) = ZeroVector(number_of_nodes);
 
     // LumpFact = GetGeometry().LumpingFactors( LumpFact );
 
@@ -1150,7 +1151,7 @@ void LargeDisplacementUPElement::CalculateDampingMatrix( MatrixType& rDampingMat
     if ( StiffnessMatrix.size1() != MatSize )
         StiffnessMatrix.resize( MatSize, MatSize, false );
 
-    StiffnessMatrix = ZeroMatrix( MatSize, MatSize );
+    noalias(StiffnessMatrix) = ZeroMatrix( MatSize, MatSize );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -1223,19 +1224,21 @@ void LargeDisplacementUPElement::CalculateAndAddDynamicRHS(VectorType& rRightHan
   this->CalculateMassMatrix(LeftHandSideMatrix, rCurrentProcessInfo);
 
   //acceleration vector
-  Vector CurrentAccelerationVector = ZeroVector( LeftHandSideMatrix.size1() );
+  Vector CurrentAccelerationVector( LeftHandSideMatrix.size1() );
+  noalias(CurrentAccelerationVector) = ZeroVector( LeftHandSideMatrix.size1() );
   this->GetSecondDerivativesVector(CurrentAccelerationVector, 0);
   
   double AlphaM = 0.0;
   if( rCurrentProcessInfo.Has(BOSSAK_ALPHA) ){
     AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
-    Vector PreviousAccelerationVector  = ZeroVector( LeftHandSideMatrix.size1() );
+    Vector PreviousAccelerationVector(LeftHandSideMatrix.size1());
+    noalias(PreviousAccelerationVector) = ZeroVector( LeftHandSideMatrix.size1() );
     this->GetSecondDerivativesVector(PreviousAccelerationVector, 1);
     CurrentAccelerationVector *= (1.0-AlphaM);
     CurrentAccelerationVector +=  AlphaM * (PreviousAccelerationVector);
   }
    
-  rRightHandSideVector = prod( LeftHandSideMatrix, CurrentAccelerationVector );
+  noalias(rRightHandSideVector) = prod( LeftHandSideMatrix, CurrentAccelerationVector );
   
   //KRATOS_WATCH( rRightHandSideVector )
   

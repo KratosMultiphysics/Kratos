@@ -157,22 +157,33 @@ protected:
 	  detFT = 1;
 	  detJ  = 1;
 	  //vectors
-	  StrainVector = ZeroVector(voigt_size);
-          StressVector = ZeroVector(voigt_size);
-	  N = ZeroVector(number_of_nodes);
+	  StrainVector.resize(voigt_size,false);
+          StressVector.resize(voigt_size,false);
+	  N.resize(number_of_nodes,false);	  
+	  noalias(StrainVector) = ZeroVector(voigt_size);
+	  noalias(StressVector) = ZeroVector(voigt_size);
+	  noalias(N) = ZeroVector(number_of_nodes);
 	  //matrices
-	  B  = ZeroMatrix(voigt_size, dimension*number_of_nodes);
-	  F  = IdentityMatrix(dimension);
-	  F0 = IdentityMatrix(dimension);
-	  FT = IdentityMatrix(dimension);
-	  DN_DX = ZeroMatrix(number_of_nodes, dimension);
-	  ConstitutiveMatrix = ZeroMatrix(voigt_size, voigt_size);
-	  DeltaPosition = ZeroMatrix(number_of_nodes, dimension);
+	  B.resize(voigt_size, dimension*number_of_nodes,false);
+	  F.resize(dimension,dimension,false);
+	  F0.resize(dimension,dimension,false);
+	  FT.resize(dimension,dimension,false);
+	  DN_DX.resize(number_of_nodes, dimension,false);
+	  ConstitutiveMatrix.resize(voigt_size, voigt_size,false);
+	  DeltaPosition.resize(number_of_nodes, dimension,false);
+
+	  noalias(B)  = ZeroMatrix(voigt_size, dimension*number_of_nodes);
+	  noalias(F)  = IdentityMatrix(dimension);
+	  noalias(F0) = IdentityMatrix(dimension);
+	  noalias(FT) = IdentityMatrix(dimension);
+	  noalias(DN_DX) = ZeroMatrix(number_of_nodes, dimension);
+	  noalias(ConstitutiveMatrix) = ZeroMatrix(voigt_size, voigt_size);
+	  noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
 	  //others
 	  J.resize(1,false);
 	  j.resize(1,false);
-	  J[0] = ZeroMatrix(1,1);
-	  j[0] = ZeroMatrix(1,1);
+	  noalias(J[0]) = ZeroMatrix(1,1);
+	  noalias(j[0]) = ZeroMatrix(1,1);
 	  //pointers
 	  pDN_De = NULL;
 	  pNcontainer = NULL;

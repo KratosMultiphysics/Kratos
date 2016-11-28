@@ -109,7 +109,9 @@ void  LinearElasticOrthotropic3DLaw::CalculateMaterialResponsePK2 (Parameters& r
       }
       else {
 
-	Matrix ConstitutiveMatrix = ZeroMatrix( StrainVector.size(), StrainVector.size() );
+	Matrix ConstitutiveMatrix( StrainVector.size(), StrainVector.size() );
+	noalias(ConstitutiveMatrix) = ZeroMatrix( StrainVector.size(), StrainVector.size() );
+
 	this->CalculateLinearElasticMatrix( ConstitutiveMatrix, MaterialProperties );
 	this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
       }
@@ -182,7 +184,8 @@ void LinearElasticOrthotropic3DLaw::CalculateMaterialResponseKirchhoff (Paramete
       }
       else {
 	
-	Matrix ConstitutiveMatrix = ZeroMatrix( StrainVector.size() ,StrainVector.size() );
+	Matrix ConstitutiveMatrix( StrainVector.size() ,StrainVector.size() );
+	noalias(ConstitutiveMatrix) = ZeroMatrix( StrainVector.size() ,StrainVector.size() );
 	
 	this->CalculateLinearElasticMatrix( ConstitutiveMatrix, MaterialProperties );
       
@@ -217,7 +220,10 @@ void LinearElasticOrthotropic3DLaw::CalculateStress( const Vector & rStrainVecto
 {
 
     //1.-2nd Piola Kirchhoff StressVector increment
-    rStressVector = prod(rConstitutiveMatrix,rStrainVector);
+    if( rStressVector.size() != rStrainVector.size() )
+      rStressVector.resize(rStrainVector.size(),false);
+  
+    noalias(rStressVector) = prod(rConstitutiveMatrix,rStrainVector);
 
 
 }

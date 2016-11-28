@@ -142,19 +142,24 @@ public:
     {
         int dim= A.size1();
 
-        Matrix Convergence = ZeroMatrix(2,dim);
+        Matrix Convergence(2,dim);
+	noalias(Convergence) = ZeroMatrix(2,dim);
 
         double delta = 0.0;
 
         double abs   = 0.0;
 
-        Vector Result=ZeroVector(dim);
+        Vector Result(dim);
+	noalias(Result) = ZeroVector(dim);
 
-        Matrix HelpA= ZeroMatrix(dim, dim);
+        Matrix HelpA(dim,dim);
+	noalias(HelpA) = ZeroMatrix(dim, dim);
 
-        Matrix HelpQ= ZeroMatrix(dim, dim);
+        Matrix HelpQ(dim,dim);
+	noalias(HelpQ) = ZeroMatrix(dim, dim);
 
-        Matrix HelpR= ZeroMatrix(dim, dim);
+        Matrix HelpR(dim,dim);
+	noalias(HelpR) = ZeroMatrix(dim, dim);
 
         HelpA=A;
 
@@ -238,7 +243,8 @@ public:
     {
         // Given a real symmetric 3x3 matrix A, compute the eigenvalues
         int dim= A.size1();
-        Vector Result=ZeroVector(dim);
+        Vector Result(dim);
+	noalias(Result) = ZeroVector(dim);
             
         const double p1 = A(0,1)*A(0,1) + A(0,2)*A(0,2) + A(1,2)*A(1,2);
         if (p1 == 0) 
@@ -309,15 +315,17 @@ public:
 
         R.resize(dim,dim,false);
 
-        R=ZeroMatrix(dim,dim);
+        noalias(R)=ZeroMatrix(dim,dim);
 
         Q.resize(dim,dim,false);
 
-        Q=ZeroMatrix(dim,dim);
+        noalias(Q)=ZeroMatrix(dim,dim);
 
-        Matrix Help= A;
+        Matrix Help(A.size1(),A.size2());
+	noalias(Help) = A;
 
-        Matrix unity= ZeroMatrix(dim,dim);
+        Matrix unity(dim,dim);
+	noalias(unity) = ZeroMatrix(dim,dim);
 
         for(int j=0; j<dim; j++)
             unity(j,j)=1.0;
@@ -441,7 +449,8 @@ public:
 
         bool is_converged = false;
 
-        Matrix unity=ZeroMatrix(Help.size1(),Help.size2());
+        Matrix unity(Help.size1(),Help.size2());
+	noalias(unity) = ZeroMatrix(Help.size1(),Help.size2());
 
         for(unsigned int i=0; i< Help.size1(); i++)
             unity(i,i)= 1.0;
@@ -537,9 +546,10 @@ public:
             Rotation(index1,index1)=c;
             Rotation(index2,index2)=c;
 
-//                 Help=ZeroMatrix(A.size1(),A.size1());
+//                 Help.resize(A.size1(),A.size1(),false);
+//                 noalias(Help)=ZeroMatrix(A.size1(),A.size1());	    
 
-            VDummy = ZeroMatrix(Help.size1(), Help.size2());
+            noalias(VDummy) = ZeroMatrix(Help.size1(), Help.size2());
 
             for(unsigned int i=0; i< Help.size1(); i++)
             {
@@ -553,7 +563,8 @@ public:
             }
             V= VDummy;
 
-//                 Matrix VTA= ZeroMatrix(3,3);
+//                 Matrix VTA(3,3);
+//                 noalias(VTA) = ZeroMatrix(3,3);	    
 //                 for(int i=0; i< Help.size1(); i++)
 //                 {
 //                     for(int j=0; j< Help.size1(); j++)
@@ -617,8 +628,9 @@ public:
       if(A.size1()!=3 || A.size2()!=3)
 	std::cout<<" GIVEN MATRIX IS NOT 3x3  eigenvectors calculation "<<std::endl;
 
-      Vector e = ZeroVector(3);
-      V = ZeroMatrix(3,3);
+      Vector e(3);
+      noalias(e) = ZeroVector(3);
+      noalias(V) = ZeroMatrix(3,3);
 
       for (int i = 0; i < 3; i++) {
 	for (int j = 0; j < 3; j++) {
@@ -884,7 +896,9 @@ public:
         TDataType error = 1.0;
         int n = A.size2();
         //setting V to identity matrix
-        V = IdentityMatrix( V.size1() );
+	if( V.size1() != n )
+	  V.resize(n,n,false);
+	noalias(V) = IdentityMatrix(n);
         //calculation loop (as long as there is no convergence)
         //WARNING: iteration never exceeds
         while( error > error_tolerance )
@@ -902,7 +916,8 @@ public:
                         }
                         else theta = 0.25*PI;
                     }
-                    MatrixType T = IdentityMatrix( n );
+                    MatrixType T(n,n);
+		    noalias(T) = IdentityMatrix( n );
 
                     T(i,i) = cos(theta);
                     T(i,j) = -sin(theta);
@@ -963,7 +978,8 @@ public:
      */
     static inline MatrixType IdentityMatrix( SizeType size )
     {
-        MatrixType A = ZeroMatrix( size, size );
+        MatrixType A(size,size);
+        noalias(A) = ZeroMatrix( size, size );
         for( unsigned int i=0; i<size ; i++ )
         {
             A(i,i) = 1.0;
@@ -1043,7 +1059,8 @@ public:
      */
     static inline MatrixType Transpose( MatrixType& A )
     {
-        MatrixType AT = ZeroMatrix(A.size2(),A.size1());
+        MatrixType AT(A.size2(),A.size1());
+	noalias(AT) = ZeroMatrix(A.size2(),A.size1());
         for( unsigned int i=0; i<A.size1(); i++ )
         {
             for( unsigned int j=0; j<A.size2(); j++ )
