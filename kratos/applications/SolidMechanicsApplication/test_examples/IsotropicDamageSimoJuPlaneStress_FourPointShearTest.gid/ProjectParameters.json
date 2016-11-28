@@ -65,7 +65,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_Load_on_lines_Auto1",
             "variable_name"   : "LINE_LOAD",
-            "modulus"         : "150000.0*t",
+            "modulus"         : "15000.0*t",
             "direction"       : [0.0,-1.0,0.0]
         }
     },{
@@ -78,7 +78,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_Load_on_lines_Auto2",
             "variable_name"   : "LINE_LOAD",
-            "modulus"         : "15000.0*t",
+            "modulus"         : "1500.0*t",
             "direction"       : [0.0,-1.0,0.0]
         }
     }],
