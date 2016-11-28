@@ -140,18 +140,24 @@ protected:
 	  Jacobian   = 1;
 	  Pressure   = 0;
 	  //vectors
-	  N        = ZeroVector(number_of_nodes);
- 	  Normal   = ZeroVector(dimension);
-	  Tangent1 = ZeroVector(dimension);
-	  Tangent2 = ZeroVector(dimension);
+	  N.resize(number_of_nodes,false);
+ 	  Normal.resize(dimension,false);
+	  Tangent1.resize(dimension,false);
+	  Tangent2.resize(dimension,false);
+	  noalias(N) = ZeroVector(number_of_nodes);
+ 	  noalias(Normal) = ZeroVector(dimension);
+	  noalias(Tangent1) = ZeroVector(dimension);
+	  noalias(Tangent2) = ZeroVector(dimension);
 	  //matrices
-	  DN_De = ZeroMatrix(number_of_nodes, local_dimension);
-	  DeltaPosition = ZeroMatrix(number_of_nodes, dimension);
+	  DN_De.resize(number_of_nodes, local_dimension,false);
+	  noalias(DN_De) = ZeroMatrix(number_of_nodes, local_dimension);
+	  DeltaPosition.resize(number_of_nodes, dimension,false);
+	  noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
 	  //others
 	  J.resize(1,false);
 	  j.resize(1,false);
-	  J[0] = ZeroMatrix(1,1);
-	  j[0] = ZeroMatrix(1,1);
+	  noalias(J[0]) = ZeroMatrix(1,1);
+	  noalias(j[0]) = ZeroMatrix(1,1);
 	  //pointers
 	  pDN_De = NULL;
 	  pNcontainer = NULL;

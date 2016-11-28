@@ -261,7 +261,7 @@ void UpdatedLagrangianElement::FinalizeStepVariables( GeneralVariables & rVariab
 { 
     //update internal (historical) variables
     mDeterminantF0[rPointNumber]         = rVariables.detF * rVariables.detF0;
-    mDeformationGradientF0[rPointNumber] = prod(rVariables.F, rVariables.F0);
+    noalias(mDeformationGradientF0[rPointNumber]) = prod(rVariables.F, rVariables.F0);
 }
 
 //************* COMPUTING  METHODS
@@ -308,7 +308,7 @@ void UpdatedLagrangianElement::CalculateKinematics(GeneralVariables& rVariables,
     MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ ); //overwrites detJ
 
     //Compute cartesian derivatives [dN/dx_n+1]
-    rVariables.DN_DX = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
+    noalias(rVariables.DN_DX) = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
 
     //Determinant of the Deformation Gradient F0
     //

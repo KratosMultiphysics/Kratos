@@ -594,7 +594,7 @@ void SmallDisplacementElement::InitializeSystemMatrices(MatrixType& rLeftHandSid
         if ( rRightHandSideVector.size() != MatSize )
             rRightHandSideVector.resize( MatSize, false );
 
-        rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
+        noalias(rRightHandSideVector) = ZeroVector( MatSize ); //resetting RHS
     }
 }
 
@@ -626,7 +626,8 @@ void SmallDisplacementElement::CalculateElementalSystem( LocalSystemComponents& 
 
     //auxiliary terms
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    Vector VolumeForce = ZeroVector(dimension);
+    Vector VolumeForce(dimension);
+    noalias(VolumeForce) = ZeroVector(dimension);
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
@@ -834,7 +835,7 @@ void SmallDisplacementElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSi
   if(rLeftHandSideMatrix.size1() != MatSize)
     rLeftHandSideMatrix.resize (MatSize, MatSize, false);
 
-  rLeftHandSideMatrix = ZeroMatrix( MatSize, MatSize );
+  noalias(rLeftHandSideMatrix) = ZeroMatrix( MatSize, MatSize );
 
   double CurrentDensity = GetProperties()[DENSITY];
 
@@ -874,18 +875,21 @@ void SmallDisplacementElement::CalculateAndAddDynamicRHS(VectorType& rRightHandS
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
   unsigned int MatSize = dimension * number_of_nodes;
 
-  MatrixType MassMatrix   = ZeroMatrix( MatSize, MatSize );
+  MatrixType MassMatrix( MatSize, MatSize );
+  noalias(MassMatrix) = ZeroMatrix( MatSize, MatSize );
   
   double CurrentDensity = GetProperties()[DENSITY];
 
   //acceleration vector
-  Vector CurrentAccelerationVector   = ZeroVector( MatSize );
+  Vector CurrentAccelerationVector( MatSize );
+  noalias(CurrentAccelerationVector) = ZeroVector( MatSize );
   this->GetSecondDerivativesVector(CurrentAccelerationVector, 0);
   
   double AlphaM = 0.0;
   if( rCurrentProcessInfo.Has(BOSSAK_ALPHA) ){
     AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
-    Vector PreviousAccelerationVector  = ZeroVector( MatSize );
+    Vector PreviousAccelerationVector( MatSize );
+    noalias(PreviousAccelerationVector) = ZeroVector( MatSize );    
     this->GetSecondDerivativesVector(PreviousAccelerationVector, 1);
     CurrentAccelerationVector *= (1.0-AlphaM);
     CurrentAccelerationVector +=  AlphaM * (PreviousAccelerationVector);
@@ -912,7 +916,7 @@ void SmallDisplacementElement::CalculateAndAddDynamicRHS(VectorType& rRightHandS
     }
 
 
-  rRightHandSideVector = prod( MassMatrix, CurrentAccelerationVector );
+  noalias(rRightHandSideVector) = prod( MassMatrix, CurrentAccelerationVector );
   
   //KRATOS_WATCH( rRightHandSideVector )
   
@@ -1762,8 +1766,11 @@ Vector& SmallDisplacementElement::CalculateVolumeForce( Vector& rVolumeForce, Ge
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
-    rVolumeForce = ZeroVector(dimension);
+    
+    if( rVolumeForce.size() != dimension )
+      rVolumeForce.resize(dimension,false);
+    
+    noalias(rVolumeForce) = ZeroVector(dimension);
 
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
     {
@@ -1798,14 +1805,14 @@ void SmallDisplacementElement::CalculateFirstDerivativesContributions(MatrixType
     if ( rRightHandSideVector.size() != MatSize )
       rRightHandSideVector.resize( MatSize, false );
       
-    rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
+    noalias(rRightHandSideVector) = ZeroVector( MatSize ); //resetting RHS
 
     //acceleration vector
-    Vector CurrentVelocityVector   = ZeroVector( MatSize );
+    Vector CurrentVelocityVector( MatSize );
+    noalias(CurrentVelocityVector) = ZeroVector( MatSize );
     this->GetFirstDerivativesVector(CurrentVelocityVector, 0);
       
-    rRightHandSideVector = prod( rLeftHandSideMatrix, CurrentVelocityVector );
-      
+    noalias(rRightHandSideVector) = prod( rLeftHandSideMatrix, CurrentVelocityVector );      
 
     KRATOS_CATCH( "" )
 }
@@ -1857,22 +1864,24 @@ void SmallDisplacementElement::CalculateSecondDerivativesContributions(MatrixTyp
       if ( rRightHandSideVector.size() != MatSize )
 	rRightHandSideVector.resize( MatSize, false );
       
-      rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
+      noalias(rRightHandSideVector) = ZeroVector( MatSize ); //resetting RHS
 
       //acceleration vector
-      Vector CurrentAccelerationVector   = ZeroVector( MatSize );
+      Vector CurrentAccelerationVector( MatSize );
+      noalias(CurrentAccelerationVector) = ZeroVector( MatSize );
       this->GetSecondDerivativesVector(CurrentAccelerationVector, 0);
       
       double AlphaM = 0.0;
       if( rCurrentProcessInfo.Has(BOSSAK_ALPHA) ){
 	AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
-	Vector PreviousAccelerationVector  = ZeroVector( MatSize );
+	Vector PreviousAccelerationVector( MatSize );
+	noalias(PreviousAccelerationVector) = ZeroVector( MatSize );
 	this->GetSecondDerivativesVector(PreviousAccelerationVector, 1);
 	CurrentAccelerationVector *= (1.0-AlphaM);
 	CurrentAccelerationVector +=  AlphaM * (PreviousAccelerationVector);
       }
 
-      rRightHandSideVector = prod( rLeftHandSideMatrix, CurrentAccelerationVector );
+      noalias(rRightHandSideVector) = prod( rLeftHandSideMatrix, CurrentAccelerationVector );
       
     }
 
@@ -1970,22 +1979,24 @@ void SmallDisplacementElement::CalculateSecondDerivativesRHS(VectorType& rRightH
       if ( rRightHandSideVector.size() != MatSize )
 	rRightHandSideVector.resize( MatSize, false );
       
-      rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
+      noalias(rRightHandSideVector) = ZeroVector( MatSize ); //resetting RHS
       
       //acceleration vector
-      Vector CurrentAccelerationVector   = ZeroVector( MatSize );
+      Vector CurrentAccelerationVector( MatSize );
+      noalias(CurrentAccelerationVector) = ZeroVector( MatSize );
       this->GetSecondDerivativesVector(CurrentAccelerationVector, 0);
       
       double AlphaM = 0.0;
       if( rCurrentProcessInfo.Has(BOSSAK_ALPHA) ){
 	AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
-	Vector PreviousAccelerationVector  = ZeroVector( MatSize );
+	Vector PreviousAccelerationVector( MatSize );
+	noalias(PreviousAccelerationVector) = ZeroVector( MatSize );
 	this->GetSecondDerivativesVector(PreviousAccelerationVector, 1);
 	CurrentAccelerationVector *= (1.0-AlphaM);
 	CurrentAccelerationVector +=  AlphaM * (PreviousAccelerationVector);
       }
       
-      rRightHandSideVector = prod( LeftHandSideMatrix, CurrentAccelerationVector );
+      noalias(rRightHandSideVector) = prod( LeftHandSideMatrix, CurrentAccelerationVector );
       
     }
 
@@ -2037,12 +2048,13 @@ void SmallDisplacementElement::CalculateMassMatrix( MatrixType& rMassMatrix, Pro
       if ( rMassMatrix.size1() != MatSize )
         rMassMatrix.resize( MatSize, MatSize, false );
 
-      rMassMatrix = ZeroMatrix( MatSize, MatSize );
+      noalias(rMassMatrix) = ZeroMatrix( MatSize, MatSize );
 
       double TotalMass = 0;
       TotalMass = this->CalculateTotalMass(TotalMass,rCurrentProcessInfo);
 
-      Vector LumpFact = ZeroVector(number_of_nodes);
+      Vector LumpFact(number_of_nodes);
+      noalias(LumpFact) = ZeroVector(number_of_nodes);      
 
       LumpFact = GetGeometry().LumpingFactors( LumpFact );
 

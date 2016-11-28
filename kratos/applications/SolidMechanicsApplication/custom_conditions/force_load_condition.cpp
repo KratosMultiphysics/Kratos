@@ -374,7 +374,7 @@ void ForceLoadCondition::InitializeSystemMatrices(MatrixType& rLeftHandSideMatri
         if ( rRightHandSideVector.size() != MatSize )
 	    rRightHandSideVector.resize( MatSize, false );
       
-	rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
+	noalias(rRightHandSideVector) = ZeroVector( MatSize ); //resetting RHS
 	  
     }
 }
@@ -449,7 +449,8 @@ void ForceLoadCondition::CalculateConditionSystem(LocalSystemComponents& rLocalS
 
     //force terms
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    Vector VectorForce = ZeroVector(dimension);
+    Vector VectorForce(dimension);
+    noalias(VectorForce) = ZeroVector(dimension);
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
@@ -804,8 +805,10 @@ void ForceLoadCondition::CalculateAndAddExternalForces(VectorType& rRightHandSid
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     // Energy Calculation:
-    Vector CurrentValueVector = ZeroVector(dimension); 
-    Vector Displacements = ZeroVector(dimension);
+    Vector CurrentValueVector(dimension);
+    noalias(CurrentValueVector) = ZeroVector(dimension); 
+    Vector Displacements(dimension);
+    noalias(Displacements) = ZeroVector(dimension);
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
 	//current displacements to compute energy
@@ -815,7 +818,8 @@ void ForceLoadCondition::CalculateAndAddExternalForces(VectorType& rRightHandSid
       }
     //------
 
-    Vector ForceVector = ZeroVector(dimension);
+    Vector ForceVector(dimension);
+    noalias(ForceVector) = ZeroVector(dimension);
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         int index = dimension * i;
@@ -847,12 +851,14 @@ void ForceLoadCondition::GetNodalDeltaMovements(Vector& rValues, const int& rNod
   if( rValues.size() != dimension )
     rValues.resize(dimension);
 
-  rValues = ZeroVector(dimension);
+  noalias(rValues) = ZeroVector(dimension);
   
-  Vector CurrentValueVector = ZeroVector(3);
+  Vector CurrentValueVector(3);
+  noalias(CurrentValueVector) = ZeroVector(3);
   CurrentValueVector = GetCurrentValue( DISPLACEMENT, CurrentValueVector, rNode );
 
-  Vector PreviousValueVector = ZeroVector(3);
+  Vector PreviousValueVector(3);
+  noalias(PreviousValueVector)= ZeroVector(3);
   CurrentValueVector = GetPreviousValue( DISPLACEMENT, CurrentValueVector, rNode );
 
 

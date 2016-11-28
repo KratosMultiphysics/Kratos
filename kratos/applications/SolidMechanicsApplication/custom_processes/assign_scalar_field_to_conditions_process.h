@@ -80,7 +80,8 @@ public:
 	mHasLocalOrigin = false;
 	if( rParameters["local_axes"].Has("origin") ){
 	  mHasLocalOrigin = true;
-	  mLocalOrigin = ZeroVector(3);
+	  mLocalOrigin.resize(3,false);
+	  noalias(mLocalOrigin) = ZeroVector(3);
 	  for( unsigned int i=0; i<3; i++)
 	    mLocalOrigin[i] = rParameters["local_axes"]["origin"][i].GetDouble();
 	}
@@ -88,7 +89,8 @@ public:
 	mHasLocalAxes = false;
 	if( rParameters["local_axes"].Has("axes") ){
 	  mHasLocalAxes = true;
-	  mTransformationMatrix = ZeroMatrix(3,3);
+	  mTransformationMatrix.resize(3,3,false);
+	  noalias(mTransformationMatrix) = ZeroMatrix(3,3);	  
 	  for( unsigned int i=0; i<3; i++)
 	    for( unsigned int j=0; j<3; j++)
 	      mTransformationMatrix(i,j) = rParameters["local_axes"]["axes"][i][j].GetDouble();
@@ -294,7 +296,7 @@ private:
       if( mHasLocalOrigin  || mHasLocalAxes ){
 	      
 	//implement global to local axes transformation
-	Vector GlobalPosition = ZeroVector(3);
+	Vector GlobalPosition(3);
 	GlobalPosition[0] = rX_global;
 	GlobalPosition[1] = rY_global;
 	GlobalPosition[2] = rZ_global;
@@ -302,7 +304,8 @@ private:
 	if( mHasLocalOrigin )
 	  GlobalPosition -= mLocalOrigin;
       
-	Vector LocalPosition = ZeroVector(3);
+	Vector LocalPosition(3);
+	noalias(LocalPosition) = ZeroVector(3);
 
 	if( mHasLocalAxes )
 	  noalias(LocalPosition) = prod(mTransformationMatrix,GlobalPosition);

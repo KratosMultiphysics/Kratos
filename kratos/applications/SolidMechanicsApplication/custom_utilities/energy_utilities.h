@@ -145,7 +145,8 @@ namespace Kratos
 
         array_1d<double, 3> coord;
         double mass = 0.0;
-        Vector VolumeAcceleration = ZeroVector(3);
+        Vector VolumeAcceleration(3);
+	noalias(VolumeAcceleration) = ZeroVector(3);
 
         ModelPart::NodesContainerType& pNodes = rModelPart.Nodes(MeshId);
 

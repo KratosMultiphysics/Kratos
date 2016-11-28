@@ -171,7 +171,7 @@ Vector& LineLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, GeneralV
     if( rVectorForce.size() != dimension )
       rVectorForce.resize(dimension,false);
 
-    rVectorForce = ZeroVector(dimension);
+    noalias(rVectorForce) = ZeroVector(dimension);
     
     //PRESSURE CONDITION:
     rVectorForce = rVariables.Normal;

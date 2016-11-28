@@ -357,7 +357,8 @@ void HyperElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
     ElasticVariables.DeterminantF         = DeterminantF;
 
     //5.-Left Cauchy Green tensor b: (stored in the CauchyGreenMatrix)
-    ElasticVariables.CauchyGreenMatrix    = prod(ElasticVariables.DeformationGradientF,trans(ElasticVariables.DeformationGradientF));
+    ElasticVariables.CauchyGreenMatrix.resize(3,3,false);
+    noalias(ElasticVariables.CauchyGreenMatrix) = prod(ElasticVariables.DeformationGradientF,trans(ElasticVariables.DeformationGradientF));
 
     for( unsigned int i=0; i<3; i++)
     {
@@ -498,7 +499,8 @@ void HyperElastic3DLaw::CalculateGreenLagrangeStrain( const Matrix & rRightCauch
     rStrainVector[4] = rRightCauchyGreen( 1, 2 ); // yz
     rStrainVector[5] = rRightCauchyGreen( 0, 2 ); // xz
 
-    // Matrix StrainMatrix = ZeroMatrix(3,3);
+    // Matrix StrainMatrix(3,3);
+    // noalias(StrainMatrix) = ZeroMatrix(3,3);
     // CalculateAlmansiStrain( rRightCauchyGreen, rStrainMatrix );
     // rStrainVector = MathUtils<double>::StrainTensorToVector( StrainMatrix, rStrainVector.size() );
 
@@ -540,7 +542,8 @@ void HyperElastic3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
     rStrainVector[5] = - InverseLeftCauchyGreen( 0, 2 ); // xz
 
   
-    // Matrix StrainMatrix = ZeroMatrix(3,3);
+    // Matrix StrainMatrix(3,3);
+    // noalias(StrainMatrix) = ZeroMatrix(3,3);
     // CalculateAlmansiStrain( rLeftCauchyGreen, rStrainMatrix );
     // rStrainVector = MathUtils<double>::StrainTensorToVector( StrainMatrix, rStrainVector.size() );
              
@@ -837,7 +840,8 @@ void HyperElastic3DLaw::CalculateVolumetricConstitutiveMatrix ( const MaterialRe
 
     rConstitutiveMatrix.clear();
 
-    Vector Factors = ZeroVector(3);
+    Vector Factors(3);
+    noalias(Factors) = ZeroVector(3);
     Factors = this->CalculateVolumetricPressureFactors( rElasticVariables, Factors );
 
 
@@ -865,7 +869,8 @@ double& HyperElastic3DLaw::ConstitutiveComponent(double & rCabcd,
 {
 
     //1.- Temporary and selected law
-    Vector Factors = ZeroVector(3);
+    Vector Factors(3);
+    noalias(Factors) = ZeroVector(3);
     Factors = this->CalculateVolumetricPressureFactors( rElasticVariables, Factors );
 
     double auxiliar1 = Factors[0];

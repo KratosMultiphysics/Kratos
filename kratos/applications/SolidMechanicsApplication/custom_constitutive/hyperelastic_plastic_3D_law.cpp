@@ -339,7 +339,8 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
     ElasticVariables.DeformationGradientF /= ElasticVariables.J_pow13; //now ElasticVariables.DeformationGradientF is DeformationGradientFbar
 
     //4.-Left Cauchy-Green tensor b_bar to the new configuration
-    ElasticVariables.CauchyGreenMatrix = prod(mElasticLeftCauchyGreen,trans(ElasticVariables.DeformationGradientF));
+    ElasticVariables.CauchyGreenMatrix.resize(3,3,false);
+    noalias(ElasticVariables.CauchyGreenMatrix) = prod(mElasticLeftCauchyGreen,trans(ElasticVariables.DeformationGradientF));
     ElasticVariables.CauchyGreenMatrix = prod(ElasticVariables.DeformationGradientF,ElasticVariables.CauchyGreenMatrix);
 
     //5.-Calculate trace of Left Cauchy-Green tensor b_bar
@@ -363,8 +364,10 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
 
  
     //5.-Calculate Total Kirchhoff stress
-    SplitStressVector.Isochoric  = ZeroVector(voigtsize);
-    Matrix IsochoricStressMatrix = ZeroMatrix(3,3);
+    SplitStressVector.Isochoric.resize(voigtsize,false);
+    noalias(SplitStressVector.Isochoric)  = ZeroVector(voigtsize);
+    Matrix IsochoricStressMatrix(3,3);
+    noalias(IsochoricStressMatrix) = ZeroMatrix(3,3);
 
     if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
       this->CalculatePlasticIsochoricStress( ElasticVariables, ReturnMappingVariables, StressMeasure_Kirchhoff, IsochoricStressMatrix, SplitStressVector.Isochoric );
@@ -372,7 +375,8 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
     {
 
-        SplitStressVector.Volumetric = ZeroVector(voigtsize);
+        SplitStressVector.Volumetric.resize(voigtsize,false);
+        noalias(SplitStressVector.Volumetric) = ZeroVector(voigtsize);
 
         ElasticVariables.CauchyGreenMatrix = ElasticVariables.Identity;
 

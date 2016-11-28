@@ -278,7 +278,7 @@ void AxisymUpdatedLagrangianUPElement::FinalizeStepVariables( GeneralVariables &
 { 
     //update internal (historical) variables
     mDeterminantF0[rPointNumber]         = rVariables.detF * rVariables.detF0;
-    mDeformationGradientF0[rPointNumber] = prod(rVariables.F, rVariables.F0);
+    noalias(mDeformationGradientF0[rPointNumber]) = prod(rVariables.F, rVariables.F0);
 }
 
 
@@ -345,7 +345,8 @@ void AxisymUpdatedLagrangianUPElement::CalculateKinematics(GeneralVariables& rVa
     rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
-    Matrix InvJ = ZeroMatrix(2,2);
+    Matrix InvJ(2,2);
+    noalias(InvJ) = ZeroMatrix(2,2);
     MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
     //std::cout<<" detJ "<<rVariables.detJ<<" Area "<<2*GetGeometry().DomainSize()<<std::endl;  
@@ -366,11 +367,12 @@ void AxisymUpdatedLagrangianUPElement::CalculateKinematics(GeneralVariables& rVa
     rVariables.detF  = MathUtils<double>::Det(rVariables.F);
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
-    Matrix Invj = ZeroMatrix(2,2);
+    Matrix Invj(2,2);
+    noalias(Invj) = ZeroMatrix(2,2);
     MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
 
     //Compute cartesian derivatives [dN/dx_n+1]
-    rVariables.DN_DX = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
+    noalias(rVariables.DN_DX) = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
 
     //Determinant of the Deformation Gradient F0
     rVariables.detF0 = mDeterminantF0[rPointNumber];
@@ -581,7 +583,8 @@ void AxisymUpdatedLagrangianUPElement::CalculateAlmansiStrain(const Matrix& rF,
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     //Left Cauchy-Green Calculation
-    Matrix LeftCauchyGreen = prod( rF, trans( rF ) );
+    Matrix LeftCauchyGreen(rF.size1(), rF.size1());
+    noalias(LeftCauchyGreen) = prod( rF, trans( rF ) );
 
     //Calculating the inverse of the jacobian
     Matrix InverseLeftCauchyGreen ( 3, 3 );
@@ -1121,7 +1124,7 @@ void AxisymUpdatedLagrangianUPElement::CalculateMassMatrix( MatrixType& rMassMat
     if ( rMassMatrix.size1() != MatSize )
         rMassMatrix.resize( MatSize, MatSize, false );
 
-    rMassMatrix = ZeroMatrix( MatSize, MatSize );
+    noalias(rMassMatrix) = ZeroMatrix( MatSize, MatSize );
 
     // Not Lumped Mass Matrix (numerical integration):
 
@@ -1172,8 +1175,9 @@ void AxisymUpdatedLagrangianUPElement::CalculateMassMatrix( MatrixType& rMassMat
     // double TotalMass = 0;
 
     // this->CalculateTotalMass( TotalMass, rCurrentProcessInfo );
-    
-    // Vector LumpFact = ZeroVector(number_of_nodes);
+
+    // Vector LumpFact(number_of_nodes);    
+    // noalias(LumpFact) = ZeroVector(number_of_nodes);
     
     // LumpFact = GetGeometry().LumpingFactors( LumpFact );
     

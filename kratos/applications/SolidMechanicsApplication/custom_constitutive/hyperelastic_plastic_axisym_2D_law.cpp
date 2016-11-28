@@ -142,7 +142,8 @@ void HyperElasticPlasticAxisym2DLaw::CalculateVolumetricConstitutiveMatrix ( con
 
     rConstitutiveMatrix.clear();
 
-    Vector Factors = ZeroVector(3);
+    Vector Factors(3);
+    noalias(Factors) = ZeroVector(3);   
     Factors =this-> CalculateVolumetricPressureFactors( rElasticVariables, Factors );
 
     for(unsigned int i=0; i<3; i++)

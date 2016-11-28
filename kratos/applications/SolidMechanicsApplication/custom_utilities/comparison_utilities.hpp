@@ -81,7 +81,8 @@ public:
 
         Matrix LocalStressTensor  = MathUtils<double>::StressVectorToTensor(StressVector); //reduced dimension stress tensor
 
-	Matrix StressTensor = ZeroMatrix(3,3); //3D stress tensor
+	Matrix StressTensor(3,3); //3D stress tensor
+	noalias(StressTensor) = ZeroMatrix(3,3);
 	for(unsigned int i=0; i<LocalStressTensor.size1(); i++)
 	  {
 	    for(unsigned int j=0; j<LocalStressTensor.size2(); j++)
@@ -112,7 +113,8 @@ public:
 	  
         Matrix LocalStressTensor  = MathUtils<double>::StressVectorToTensor(StressVector); //reduced dimension stress tensor
 
-	Matrix StressTensor = ZeroMatrix(3,3); //3D stress tensor
+	Matrix StressTensor(3,3); //3D stress tensor
+	noalias(StressTensor) = ZeroMatrix(3,3);
 	for(unsigned int i=0; i<LocalStressTensor.size1(); i++)
 	  {
 	    for(unsigned int j=0; j<LocalStressTensor.size2(); j++)
@@ -140,11 +142,13 @@ public:
 
         // CheckZeroDiagonalComponents (StressTensor);
 
-        // Vector PrincipalStress = ZeroVector(3);
+        // Vector PrincipalStress(3);
+	// noalias(PrincipalStress) = ZeroVector(3);
 
         // NormStress =SolidMechanicsMathUtilities<double>::NormTensor(StressTensor);
 
-        // Vector MainStresses = ZeroVector(3);
+        // Vector MainStresses(3);
+        // noalias(MainStresses) = ZeroVector(3);	
 
         // bool main_tensor = CheckPrincipalStresses( StressTensor );
 
@@ -157,13 +161,13 @@ public:
         //     }
         //     else
         //     {
-        //         MainStresses = ZeroVector(3);
+        //         noalias(MainStresses) = ZeroVector(3);
         //     }
 
         // }
         // else
         // {
-        //     MainStresses = ZeroVector(3);
+        //     noalias(MainStresses) = ZeroVector(3);
         //     for(unsigned int i=0; i<StressTensor.size1(); i++)
         //         MainStresses[i]=StressTensor(i,i);
         // }

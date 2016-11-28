@@ -171,7 +171,8 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
         }
         else {
 
-          Matrix ConstitutiveMatrix = ZeroMatrix( StrainVector.size(), StrainVector.size() );
+          Matrix ConstitutiveMatrix(StrainVector.size(),StrainVector.size());
+	  noalias(ConstitutiveMatrix) = ZeroMatrix( StrainVector.size(), StrainVector.size() );
           this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
           this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
         }
@@ -193,9 +194,11 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 
             if(Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ))
             {
-	      Matrix ConstitutiveMatrix = ZeroMatrix( StrainVector.size(), StrainVector.size() );
-               this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
-               this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
+	      Matrix ConstitutiveMatrix( StrainVector.size(), StrainVector.size() );
+	      noalias(ConstitutiveMatrix) = ZeroMatrix( StrainVector.size(), StrainVector.size() );
+
+	      this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+	      this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
             }
             else
             {
@@ -353,8 +356,10 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
 	}
 	else {
 	
-	  Matrix ConstitutiveMatrix = ZeroMatrix( StrainVector.size() ,StrainVector.size());
-	
+	  Matrix ConstitutiveMatrix( StrainVector.size() ,StrainVector.size());
+
+	  noalias(ConstitutiveMatrix) = ZeroMatrix( StrainVector.size() ,StrainVector.size());
+		  
 	  this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
       
 	  this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
@@ -377,7 +382,9 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
 	  if( Options.IsNot( ConstitutiveLaw::COMPUTE_STRESS ) ){
 	    
 	    if(Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )){	    
-	      Matrix ConstitutiveMatrix = ZeroMatrix( StrainVector.size(), StrainVector.size());
+	      Matrix ConstitutiveMatrix( StrainVector.size(), StrainVector.size());
+	      noalias(ConstitutiveMatrix) = ZeroMatrix( StrainVector.size(), StrainVector.size());
+		      
 	      this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
 	      this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
 	    }
@@ -412,7 +419,10 @@ void LinearElastic3DLaw::CalculateStress( const Vector & rStrainVector,
 {
 
     //1.-2nd Piola Kirchhoff StressVector or Cauchy StressVector
-    rStressVector = prod(rConstitutiveMatrix,rStrainVector);
+    if( rStressVector.size() != rStrainVector.size() )
+      rStressVector.resize(rStrainVector.size(),false);
+
+    noalias(rStressVector) = prod(rConstitutiveMatrix,rStrainVector);
 
 
 }

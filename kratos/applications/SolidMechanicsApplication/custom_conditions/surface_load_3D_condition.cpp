@@ -213,7 +213,7 @@ Vector& SurfaceLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, Gener
     if( rVectorForce.size() != dimension )
       rVectorForce.resize(dimension,false);
 
-    rVectorForce = ZeroVector(dimension);
+    noalias(rVectorForce) = ZeroVector(dimension);
     
     //PRESSURE CONDITION:
     rVectorForce = rVariables.Normal;
@@ -299,9 +299,12 @@ void SurfaceLoad3DCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix
     KRATOS_TRY
 
     if( rVariables.Pressure == 0 )
-	{
-		//rLeftHandSideMatrix = ZeroMatrix( 9, 9 ); // This assumes a triangle!!!
-		// no need to do anything. LHS is already set to zero from force_load_condition.InitializeSystemMatrices
+      {
+	//if(rLeftHandSizeMatrix.size1() != 9 )
+	// rLeftHandSideMatrix.resize(9,9,false);
+
+	//noalias(rLeftHandSideMatrix) = ZeroMatrix( 9, 9 ); // This assumes a triangle!!!
+	// no need to do anything. LHS is already set to zero from force_load_condition.InitializeSystemMatrices
 	}
     else
 	{

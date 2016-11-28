@@ -264,7 +264,7 @@ void AxisymUpdatedLagrangianElement::FinalizeStepVariables( GeneralVariables & r
 { 
     //update internal (historical) variables
     mDeterminantF0[rPointNumber]         = rVariables.detF * rVariables.detF0;
-    mDeformationGradientF0[rPointNumber] = prod(rVariables.F, rVariables.F0);
+    noalias(mDeformationGradientF0[rPointNumber]) = prod(rVariables.F, rVariables.F0);
 }
 
 
@@ -383,11 +383,11 @@ void AxisymUpdatedLagrangianElement::CalculateKinematics(GeneralVariables& rVari
     MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
 
     //Compute cartesian derivatives [dN/dx_n+1]
-    rVariables.DN_DX = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
+    noalias(rVariables.DN_DX) = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
 
     //Determinant of the Deformation Gradient F0
     rVariables.detF0 = mDeterminantF0[rPointNumber];
-    rVariables.F0    = mDeformationGradientF0[rPointNumber];
+    noalias(rVariables.F0)  = mDeformationGradientF0[rPointNumber];
 
     //Compute the deformation matrix B
     CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX, rVariables.N, rVariables.CurrentRadius);
@@ -594,10 +594,11 @@ void AxisymUpdatedLagrangianElement::CalculateAlmansiStrain(const Matrix& rF,
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     //Left Cauchy-Green Calculation
-    Matrix LeftCauchyGreen = prod( rF, trans( rF ) );
+    Matrix LeftCauchyGreen(rF.size1(),rF.size1());
+    noalias(LeftCauchyGreen) = prod( rF, trans( rF ) );
 
     //Calculating the inverse of the jacobian
-    Matrix InverseLeftCauchyGreen ( 3, 3 );
+    Matrix InverseLeftCauchyGreen(rF.size1(),rF.size1());
     double det_b=0;
     MathUtils<double>::InvertMatrix( LeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 

@@ -150,7 +150,9 @@ void LineLoad2DCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 
     if( rVariables.Pressure == 0 )
       {
-	rLeftHandSideMatrix = ZeroMatrix( 4, 4 );
+	if(rLeftHandSideMatrix.size1() != 4 )
+	  rLeftHandSideMatrix.resize(4,4,false);
+	noalias(rLeftHandSideMatrix) = ZeroMatrix( 4, 4 );
       }
     else
       {
