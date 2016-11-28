@@ -15,6 +15,9 @@ class TestMPICommunicator(KratosUnittest.TestCase):
 
     def _read_model_part_mpi(self,main_model_part):
         
+        if(KratosMPI.mpi.size == 1):
+            self.skipTest("Test can be run only using more than one mpi process")
+        
         ## Add variables to the model part
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
