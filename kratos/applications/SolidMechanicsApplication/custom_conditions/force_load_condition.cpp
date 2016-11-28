@@ -461,8 +461,6 @@ void ForceLoadCondition::CalculateConditionSystem(LocalSystemComponents& rLocalS
 
         double IntegrationWeight = Variables.Jacobian * integration_points[PointNumber].Weight();
 
-        IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
-
 	//std::cout<<" Variables.Jacobian "<<Variables.Jacobian<<" Weight "<<integration_points[PointNumber].Weight()<<" / "<<std::endl;
 
        
@@ -575,14 +573,6 @@ void ForceLoadCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
     }
     
 
-}
-
-//***********************************************************************************
-//************************************************************************************
-
-double& ForceLoadCondition::CalculateIntegrationWeight(double& rIntegrationWeight)
-{
-    return rIntegrationWeight;
 }
 
 

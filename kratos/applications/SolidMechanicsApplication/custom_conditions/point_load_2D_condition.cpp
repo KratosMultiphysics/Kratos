@@ -82,22 +82,6 @@ PointLoad2DCondition::~PointLoad2DCondition()
 //************************************************************************************
 //************************************************************************************
 
-//***********************************************************************************
-//************************************************************************************
-
-double& PointLoad2DCondition::CalculateIntegrationWeight(double& rIntegrationWeight)
-{
-    if ( this->GetProperties().Has( THICKNESS ) == true )
-      if( GetProperties()[THICKNESS] > 0 )
-	rIntegrationWeight *=  GetProperties()[THICKNESS];
-  
-    return rIntegrationWeight;
-}
-
-
-//***********************************************************************************
-//***********************************************************************************
-
 
 int PointLoad2DCondition::Check( const ProcessInfo& rCurrentProcessInfo )
 {

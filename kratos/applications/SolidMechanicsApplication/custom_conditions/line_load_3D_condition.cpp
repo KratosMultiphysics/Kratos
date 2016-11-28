@@ -250,18 +250,6 @@ Vector& LineLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, GeneralV
 //************************************************************************************
 //************************************************************************************
 
-double& LineLoad3DCondition::CalculateIntegrationWeight(double& rIntegrationWeight)
-{
-    //rIntegrationWeight *= ( 0.5 );
-
-    return rIntegrationWeight;
-}
-
-
-//***********************************************************************************
-//***********************************************************************************
-
-
 int LineLoad3DCondition::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     return 0;

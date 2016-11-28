@@ -137,10 +137,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /**
-     * Calculation of the Integration Weight
-     */
-    virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
 
     ///@}
     ///@name Protected  Access
