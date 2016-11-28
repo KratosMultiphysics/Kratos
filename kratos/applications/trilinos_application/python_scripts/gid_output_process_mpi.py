@@ -6,76 +6,7 @@ CheckForPreviousImport()
 
 import gid_output_process
 
-class GiDOutputProcess(gid_output_process.GiDOutputProcess):
-
-    defaults = Parameters('''{
-        "result_file_configuration": {
-            "gidpost_flags": {
-                "GiDPostMode": "GiD_PostBinary",
-                "WriteDeformedMeshFlag": "WriteUndeformed",
-                "WriteConditionsFlag": "WriteElementsOnly",
-                "MultiFileFlag": "SingleFile"
-            },
-            "file_label": "time",
-            "output_control_type": "step",
-            "output_frequency": 1.0,
-            "body_output": true,
-            "node_output": false,
-            "skin_output": false,
-            "plane_output": [],
-            "nodal_results": [],
-            "nodal_nonhistorical_results": [],
-            "nodal_flags_results": [],
-            "gauss_point_results": [],
-            "additional_list_files": []
-        },
-        "point_data_configuration": []
-    }''')
-
-    default_plane_output_data = Parameters('''{
-        "normal": [0.0, 0.0, 0.0],
-        "point" : [0.0, 0.0, 0.0]
-    }''')
-
-    __post_mode = {
-                    # JSON input
-                    "GiD_PostAscii":        GiDPostMode.GiD_PostAscii,
-                    "GiD_PostAsciiZipped":  GiDPostMode.GiD_PostAsciiZipped,
-                    "GiD_PostBinary":       GiDPostMode.GiD_PostBinary,
-                    "GiD_PostHDF5":         GiDPostMode.GiD_PostHDF5,
-                    # Legacy
-                    "Binary":               GiDPostMode.GiD_PostBinary,
-                    "Ascii":                GiDPostMode.GiD_PostAscii,
-                    "AsciiZipped":          GiDPostMode.GiD_PostAsciiZipped,
-                    }
-
-    __write_deformed_mesh = {
-                    # JSON input
-                    "WriteDeformed":        WriteDeformedMeshFlag.WriteDeformed,
-                    "WriteUndeformed":      WriteDeformedMeshFlag.WriteUndeformed,
-                    # Legacy
-                    True:                   WriteDeformedMeshFlag.WriteDeformed,
-                    False:                  WriteDeformedMeshFlag.WriteUndeformed,
-                    }
-
-    __write_conditions = {
-                    # JSON input
-                    "WriteConditions":      WriteConditionsFlag.WriteConditions,
-                    "WriteElementsOnly":    WriteConditionsFlag.WriteElementsOnly,
-                    "WriteConditionsOnly":  WriteConditionsFlag.WriteConditionsOnly,
-                    # Legacy
-                    True:                   WriteConditionsFlag.WriteConditions,
-                    False:                  WriteConditionsFlag.WriteElementsOnly,
-                    }
-
-    __multi_file_flag = {
-                    # JSON input
-                    "SingleFile":           MultiFileFlag.SingleFile,
-                    "MultipleFiles":        MultiFileFlag.MultipleFiles,
-                    # Legacy
-                    "Multiples":            MultiFileFlag.MultipleFiles,
-                    "Single":               MultiFileFlag.SingleFile,
-                    }
+class GiDOutputProcessMPI(gid_output_process.GiDOutputProcess):
 
     def __init__(self,model_part,file_name,param = None):
 
@@ -111,71 +42,71 @@ class GiDOutputProcess(gid_output_process.GiDOutputProcess):
         self.printed_step_count = 0
         self.next_output = 0.0
 
-    def __initialize_list_files(self,additional_frequencies):
-        '''Set up .post.lst files for global and cut results.
-        If we have only one tipe of output (volume or cut), the
-        list file is called <gid_model_name>.post.lst. When we have
-        both types, call the volume one <gid_model_name>.post.lst and
-        the cut one <gid_model_name>_cuts.post.lst.
-        additional_frequencies should contain an array of ints N representing
-        the frequencies of additional list files. If it is not empty and GidIO
-        is configured to print multiple files, extra list files are written,
-        listing one in every N output files.'''
-        # Get a name for the GiD list file
-        # if the model folder is model.gid, the list file should be called
-        # model.post.lst
-        path, folder_name = os.path.split(os.getcwd())
-        model_name, ext = os.path.splitext(folder_name)
-        name_base = model_name
-        name_ext = ".post.lst"
+    #~ def __initialize_list_files(self,additional_frequencies):
+        #~ '''Set up .post.lst files for global and cut results.
+        #~ If we have only one tipe of output (volume or cut), the
+        #~ list file is called <gid_model_name>.post.lst. When we have
+        #~ both types, call the volume one <gid_model_name>.post.lst and
+        #~ the cut one <gid_model_name>_cuts.post.lst.
+        #~ additional_frequencies should contain an array of ints N representing
+        #~ the frequencies of additional list files. If it is not empty and GidIO
+        #~ is configured to print multiple files, extra list files are written,
+        #~ listing one in every N output files.'''
+        #~ # Get a name for the GiD list file
+        #~ # if the model folder is model.gid, the list file should be called
+        #~ # model.post.lst
+        #~ path, folder_name = os.path.split(os.getcwd())
+        #~ model_name, ext = os.path.splitext(folder_name)
+        #~ name_base = model_name
+        #~ name_ext = ".post.lst"
 
-        # Remove 1 from extra frequencies (and remove duplicates)
-        used_frequencies = [1,]
-        extra_frequencies = []
-        for f in additional_frequencies:
-            if f not in used_frequencies:
-                used_frequencies.append(f)
-                extra_frequencies.append(f)
+        #~ # Remove 1 from extra frequencies (and remove duplicates)
+        #~ used_frequencies = [1,]
+        #~ extra_frequencies = []
+        #~ for f in additional_frequencies:
+            #~ if f not in used_frequencies:
+                #~ used_frequencies.append(f)
+                #~ extra_frequencies.append(f)
 
-        if mpi.rank == 0:
-            if self.body_io is not None:
-                for rank in range(0, mpi.size):
-                    print(rank)
-                    list_file = open(name_base + "_" + str(rank) + name_ext,"w")
+        #~ if mpi.rank == 0:
+            #~ if self.body_io is not None:
+                #~ for rank in range(0, mpi.size):
+                    #~ print(rank)
+                    #~ list_file = open(name_base + "_" + str(rank) + name_ext,"w")
 
-                    if self.multifile_flag == MultiFileFlag.MultipleFiles:
-                        list_file.write("Multiple\n")
-                    elif self.multifile_flag == MultiFileFlag.SingleFile:
-                        list_file.write("Single\n")
+                    #~ if self.multifile_flag == MultiFileFlag.MultipleFiles:
+                        #~ list_file.write("Multiple\n")
+                    #~ elif self.multifile_flag == MultiFileFlag.SingleFile:
+                        #~ list_file.write("Single\n")
 
-                    self.volume_list_files.append( [1,list_file] )
+                    #~ self.volume_list_files.append( [1,list_file] )
 
-                    if self.multifile_flag == MultiFileFlag.MultipleFiles:
-                        for freq in extra_frequencies:
-                            list_file_name = "{0}_list_{1}{2}".format(name_base,freq,name_ext)
-                            list_file = open(list_file_name,"w")
-                            list_file.write("Multiple\n")
+                    #~ if self.multifile_flag == MultiFileFlag.MultipleFiles:
+                        #~ for freq in extra_frequencies:
+                            #~ list_file_name = "{0}_list_{1}{2}".format(name_base,freq,name_ext)
+                            #~ list_file = open(list_file_name,"w")
+                            #~ list_file.write("Multiple\n")
 
-                            self.volume_list_files.append( [freq,list_file] )
+                            #~ self.volume_list_files.append( [freq,list_file] )
 
-            name_base = "{0}_cuts".format(model_name)
+            #~ name_base = "{0}_cuts".format(model_name)
 
-            if self.cut_io is not None:
-                for rank in range(0, mpi.size):
-                    list_file = open(name_base + "_" + str(rank) + name_ext,"w")
+            #~ if self.cut_io is not None:
+                #~ for rank in range(0, mpi.size):
+                    #~ list_file = open(name_base + "_" + str(rank) + name_ext,"w")
 
-                    if self.multifile_flag == MultiFileFlag.MultipleFiles:
-                        list_file.write("Multiple\n")
-                    elif self.multifile_flag == MultiFileFlag.SingleFile:
-                        list_file.write("Single\n")
+                    #~ if self.multifile_flag == MultiFileFlag.MultipleFiles:
+                        #~ list_file.write("Multiple\n")
+                    #~ elif self.multifile_flag == MultiFileFlag.SingleFile:
+                        #~ list_file.write("Single\n")
 
-                    self.cut_list_files.append( [1,list_file] )
+                    #~ self.cut_list_files.append( [1,list_file] )
 
-                    if self.multifile_flag == MultiFileFlag.MultipleFiles:
-                        for freq in extra_frequencies:
-                            list_file_name = "{0}_list_{1}{2}".format(name_base,freq,name_ext)
-                            list_file = open(list_file_name,"w")
-                            list_file.write("Multiple\n")
+                    #~ if self.multifile_flag == MultiFileFlag.MultipleFiles:
+                        #~ for freq in extra_frequencies:
+                            #~ list_file_name = "{0}_list_{1}{2}".format(name_base,freq,name_ext)
+                            #~ list_file = open(list_file_name,"w")
+                            #~ list_file.write("Multiple\n")
 
-                            self.cut_list_files.append( [freq,list_file] )
-        mpi.world.barrier()
+                            #~ self.cut_list_files.append( [freq,list_file] )
+        #~ mpi.world.barrier()
