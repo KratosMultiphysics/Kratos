@@ -1145,44 +1145,20 @@ protected:
 
       PointType& rRelativeDisplacement = rValues.GetRelativeDisplacement();
       
-      rTangent = ZeroVector(3);
+      noalias(rTangent) = ZeroVector(3);
    
       //1.-compute contact tangent (following relative movement)
       PointType PointDeltaDisplacement = rValues.GetDeltaDisplacement();
-
-      rTangent = PointDeltaDisplacement - inner_prod(PointDeltaDisplacement, rNormal) * rNormal;
-
-      PointType UnitTangent = rTangent;
-      if( norm_2(UnitTangent) )
-	UnitTangent /= norm_2(UnitTangent);
-      
-      //std::cout<<" rTangent "<<rTangent<<" PointDelta "<<PointDeltaDisplacement<<std::endl;
-
-      
+          
       //2.-compute tangent direction
       PointType BoxDeltaDisplacement = this->GetBoxDeltaDisplacement(rCurrentProcessInfo[TIME], rCurrentProcessInfo.GetPreviousTimeStepInfo()[TIME]);
-      
-      if( norm_2(UnitTangent) != 0 ){
 
-	rRelativeDisplacement = BoxDeltaDisplacement-PointDeltaDisplacement;
-
-	rTangent = inner_prod(BoxDeltaDisplacement, UnitTangent) * UnitTangent - rTangent;
-	
-      }
-      else{
-
-	rRelativeDisplacement = (-1) * BoxDeltaDisplacement;
-
-	
-	rTangent = -1.0 * (BoxDeltaDisplacement - inner_prod(BoxDeltaDisplacement, rNormal) * rNormal);
-	
-      }
-      
-      //std::cout<<" rTangent "<<rTangent<<" BoxDelta "<<BoxDeltaDisplacement<<" PointDelta "<<PointDeltaDisplacement<<std::endl;
+      rRelativeDisplacement = BoxDeltaDisplacement-PointDeltaDisplacement;
+     
+      rTangent = (rRelativeDisplacement) - inner_prod(rRelativeDisplacement, rNormal) * rNormal;
       
       //3.-compute  normal gap
       rGapTangent = norm_2(rTangent);
-
       
       if(norm_2(rTangent))
 	rTangent/= norm_2(rTangent);
