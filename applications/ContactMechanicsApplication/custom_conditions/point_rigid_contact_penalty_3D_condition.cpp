@@ -351,66 +351,47 @@ namespace Kratos
 
   void PointRigidContactPenalty3DCondition::CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, double& rIntegrationWeight)
   {
-
+    KRATOS_TRY
+      
+    //const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    
     double NormalForceModulus = 0;
     NormalForceModulus = this->CalculateNormalForceModulus( NormalForceModulus, rVariables );
-
     double TangentForceModulus = this->CalculateCoulombsFrictionLaw( rVariables.Gap.Tangent, NormalForceModulus, rVariables );
     //std::cout<<" TangentForceModulus "<<TangentForceModulus<<std::endl;
-
-    PointType AbsTangent(3);
-    AbsTangent[0] = fabs(rVariables.Surface.Tangent[0]);
-    AbsTangent[1] = fabs(rVariables.Surface.Tangent[1]);
-    AbsTangent[2] = fabs(rVariables.Surface.Tangent[2]);
-    
+   
     if( fabs(TangentForceModulus) >= 1e-25 ){
       
       if( mTangentialVariables.Slip ){
 	//simpler expression:
-	Matrix Kuug = rLeftHandSideMatrix;
+	// Matrix Kuug = rLeftHandSideMatrix;	
+	// std::cout<<" Kuug "<<Kuug<<std::endl;
 	
-	rLeftHandSideMatrix += mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) );
+	noalias(rLeftHandSideMatrix) += mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) );
+	
+	noalias(rLeftHandSideMatrix) += mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal/rVariables.Gap.Tangent) * ( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
 
-	rLeftHandSideMatrix += mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) + (rVariables.Gap.Normal/rVariables.Gap.Tangent) *( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) ));
-
-	//added extra term, maybe not necessary
-	//option a:
-	rLeftHandSideMatrix -= mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal/rVariables.Gap.Tangent) * (inner_prod(AbsTangent,rVariables.RelativeDisplacement) * outer_prod(rVariables.Surface.Normal, rVariables.Surface.Tangent) + inner_prod(rVariables.RelativeDisplacement,rVariables.Surface.Normal) * outer_prod(AbsTangent, rVariables.Surface.Tangent) );
-	//only improves somthing in 2D
-	//rLeftHandSideMatrix += mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal/rVariables.Gap.Tangent) * outer_prod(AbsTangent, rVariables.Surface.Tangent);
-	//option b:
-	//rLeftHandSideMatrix += mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal * rVariables.Gap.Tangent) * outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent);
-	
-	
+	//std::cout<<" A:Kuug "<<rLeftHandSideMatrix<<std::endl;
 	
       }
       else {
+
+
+	noalias(rLeftHandSideMatrix) += rVariables.Penalty.Tangent * rIntegrationWeight * outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent);
 	
-	rLeftHandSideMatrix += rVariables.Penalty.Tangent * rIntegrationWeight * outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent);
+	noalias(rLeftHandSideMatrix) += rVariables.Penalty.Tangent * rIntegrationWeight * ( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
 
-	rLeftHandSideMatrix += rVariables.Penalty.Tangent * rIntegrationWeight * ( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
-
-	//added extra term, maybe not necessary
-	//option a:
-	rLeftHandSideMatrix -= rVariables.Penalty.Tangent * rIntegrationWeight * (inner_prod(AbsTangent,rVariables.RelativeDisplacement) * outer_prod(rVariables.Surface.Normal, rVariables.Surface.Tangent) + inner_prod(rVariables.RelativeDisplacement,rVariables.Surface.Normal) *outer_prod(AbsTangent, rVariables.Surface.Tangent) );
-	//only improves somthing in 2D
-	//rLeftHandSideMatrix += rVariables.Penalty.Tangent * rIntegrationWeight * outer_prod(AbsTangent, rVariables.Surface.Tangent);
-	//option b:
-	//rLeftHandSideMatrix += rVariables.Penalty.Tangent * rIntegrationWeight * (rVariables.Gap.Tangent * rVariables.Gap.Tangent) * outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent);	
-
+	//std::cout<<" B:Kuug "<<rLeftHandSideMatrix<<std::endl;
       }
 
     }
-
+    
+    KRATOS_CATCH( "" )
   }
-
-  //***********************************************************************************
-  //***********************************************************************************
 
   void PointRigidContactPenalty3DCondition::CalculateAndAddContactForces(VectorType& rRightHandSideVector,
 									 GeneralVariables& rVariables,
 									 double& rIntegrationWeight)
-
   {
     KRATOS_TRY
 
