@@ -25,7 +25,7 @@
 
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
-#include "custom_strategies/builder_and_solvers/trilinos_residualbased_elimination_builder_and_solver.h"
+#include "custom_strategies/builder_and_solvers/trilinos_elimination_builder_and_solver.h"
 // #include "convection_diffusion_application.h"
 /*#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"*/
 #include "includes/convection_diffusion_settings.h"
