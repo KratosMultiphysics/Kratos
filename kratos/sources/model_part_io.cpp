@@ -608,6 +608,7 @@ namespace Kratos
         KRATOS_TRY
 
         std::string word;
+        int number_of_nested_blocks = 0;
 
         while(!mpStream->eof())
         {
@@ -615,12 +616,16 @@ namespace Kratos
             if(word == "End")
             {
                 ReadWord(word);
-                if(word == BlockName)
-                    break;
+                if(number_of_nested_blocks == 0){
+                        if(CheckStatement(word , BlockName))
+                            break;
+                    }
             }
-
+            else if(word == "Begin")
+            {
+                number_of_nested_blocks++;
+            }
         }
-
 
         KRATOS_CATCH("")
     }
