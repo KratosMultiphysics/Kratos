@@ -335,7 +335,7 @@ VALUE: 1
 DEPENDENCIES: (0,SET,X_Value,0.0,SET,Modify_X,0)(1,RESTORE,X_Value,#CURRENT#,RESTORE,Modify_X,1)
 QUESTION: X_Value
 VALUE: 0.0
-HELP: Units in IS for a 2D case: N/m. Units in IS for a 3D case: N
+HELP: Units in IS for a 2D case: N (in case of plane stress, the load must be introduced already multiplied by th thickness). Units in IS for a 3D case: N
 QUESTION: Modify_X#CB#(1,0)
 VALUE: 1
 HELP: Set if this imposed value can be modified over time.
@@ -344,7 +344,7 @@ VALUE: 1
 DEPENDENCIES: (0,SET,Y_Value,0.0,SET,Modify_Y,0)(1,RESTORE,Y_Value,#CURRENT#,RESTORE,Modify_Y,1)
 QUESTION: Y_Value
 VALUE: 0.0
-HELP: Units in IS for a 2D case: N/m. Units in IS for a 3D case: N
+HELP: Units in IS for a 2D case: N (in case of plane stress, the load must be introduced already multiplied by th thickness). Units in IS for a 3D case: N
 QUESTION: Modify_Y#CB#(1,0)
 VALUE: 1
 HELP: Set if this imposed value can be modified over time.
@@ -353,7 +353,7 @@ VALUE: 1
 DEPENDENCIES: (0,SET,Z_Value,0.0,SET,Modify_Z,0)(1,RESTORE,Z_Value,#CURRENT#,RESTORE,Modify_Z,1)
 QUESTION: Z_Value
 VALUE: 0.0
-HELP: Units in IS for a 2D case: N/m. Units in IS for a 3D case: N
+HELP: Units in IS for a 2D case: N (in case of plane stress, the load must be introduced already multiplied by th thickness). Units in IS for a 3D case: N
 QUESTION: Modify_Z#CB#(1,0)
 VALUE: 1
 HELP: Set if this imposed value can be modified over time. 
@@ -367,7 +367,7 @@ VALUE: 1
 DEPENDENCIES: (0,SET,X_Value,0.0,SET,Modify_X,0)(1,RESTORE,X_Value,#CURRENT#,RESTORE,Modify_X,1)
 QUESTION: X_Value
 VALUE: 0.0
-HELP: Only for 2D cases. Units in IS: N/m2.
+HELP: Only for 2D cases. Units in IS: N/m (in case of plane stress, the load must be introduced already multiplied by th thickness).
 QUESTION: Modify_X#CB#(1,0)
 VALUE: 1
 HELP: Set if this imposed value can be modified over time.
@@ -376,7 +376,7 @@ VALUE: 1
 DEPENDENCIES: (0,SET,Y_Value,0.0,SET,Modify_Y,0)(1,RESTORE,Y_Value,#CURRENT#,RESTORE,Modify_Y,1)
 QUESTION: Y_Value
 VALUE: 0.0
-HELP: Only for 2D cases. Units in IS: N/m2.
+HELP: Only for 2D cases. Units in IS: N/m (in case of plane stress, the load must be introduced already multiplied by th thickness).
 QUESTION: Modify_Y#CB#(1,0)
 VALUE: 1
 HELP: Set if this imposed value can be modified over time.
@@ -385,7 +385,7 @@ VALUE: 1
 DEPENDENCIES: (0,SET,Z_Value,0.0,SET,Modify_Z,0)(1,RESTORE,Z_Value,#CURRENT#,RESTORE,Modify_Z,1)
 QUESTION: Z_Value
 VALUE: 0.0
-HELP: Only for 2D cases. Units in IS: N/m2.
+HELP: Only for 2D cases. Units in IS: N/m (in case of plane stress, the load must be introduced already multiplied by th thickness).
 QUESTION: Modify_Z#CB#(1,0)
 VALUE: 1
 HELP: Set if this imposed value can be modified over time.
@@ -399,7 +399,7 @@ VALUE: Uniform
 DEPENDENCIES: (Uniform,RESTORE,Normal_Value,0.0,HIDE,Gravity_Direction,#CURRENT#,HIDE,Reservoir_Bottom_Coordinate_in_Gravity_Direction,#CURRENT#,HIDE,Specific_Weight,#CURRENT#)(Hydrostatic,HIDE,Normal_Value,#CURRENT#,RESTORE,Gravity_Direction,#CURRENT#,RESTORE,Reservoir_Bottom_Coordinate_in_Gravity_Direction,#CURRENT#,RESTORE,Specific_Weight,#CURRENT#)
 QUESTION: Normal_Value
 VALUE: 0.0
-HELP: Only for 2D cases. Units in IS: N/m2. A positive value corresponds to a compressive load in the direction of the normal.
+HELP: Only for 2D cases. Units in IS: N/m (in case of plane stress, the load must be introduced already multiplied by th thickness). A positive value corresponds to a compressive load in the direction of the normal.
 QUESTION: Gravity_Direction#CB#(X,Y,Z)
 VALUE: Y
 QUESTION: Reservoir_Bottom_Coordinate_in_Gravity_Direction
