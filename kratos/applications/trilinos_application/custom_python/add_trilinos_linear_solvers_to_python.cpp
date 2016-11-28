@@ -100,8 +100,7 @@ void Solve(TrilinosLinearSolverType& solver,
 void  AddLinearSolvers()
 {
     
-
-    class_<TrilinosLinearSolverType, TrilinosLinearSolverType::Pointer > ("TrilinosLinearSolver", init<>())
+    class_<TrilinosLinearSolverType, TrilinosLinearSolverType::Pointer, boost::noncopyable > ("TrilinosLinearSolver", init<>())
     .def("Solve", Solve);
 
     class_<EpetraDefaultSetter, boost::noncopyable>("EpetraDefaultSetter",init<>())
@@ -109,36 +108,32 @@ void  AddLinearSolvers()
 
     typedef AztecSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AztecSolverType;
     class_<AztecSolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
-    ("AztecSolver",
-     init< Teuchos::ParameterList&, std::string, Teuchos::ParameterList&, double, int, int >())
+    ("AztecSolver", init< Teuchos::ParameterList&, std::string, Teuchos::ParameterList&, double, int, int >())
     .def(init<Parameters>())
     .def("SetScalingType", &AztecSolverType::SetScalingType)
     ;
 
     typedef AmesosSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmesosSolverType;
     class_<AmesosSolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
-    ("AmesosSolver",
-     init<const std::string&, Teuchos::ParameterList& >())
+    ("AmesosSolver", init<const std::string&, Teuchos::ParameterList& >())
     .def(init<Parameters>())
     .def(init<Parameters>())
     ;
 
     typedef MultiLevelSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > MLSolverType;
     class_<MLSolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
-    ("MultiLevelSolver",
-     init<Teuchos::ParameterList&, Teuchos::ParameterList&, double, int >())
+    ("MultiLevelSolver", init<Teuchos::ParameterList&, Teuchos::ParameterList&, double, int >())
     .def(init<Parameters>())
-        
-        .def("SetScalingType", &MLSolverType::SetScalingType)
-        .def("SetReformPrecAtEachStep", &MLSolverType::SetReformPrecAtEachStep)
-        ;
+    .def("SetScalingType", &MLSolverType::SetScalingType)
+    .def("SetReformPrecAtEachStep", &MLSolverType::SetReformPrecAtEachStep)
+    ;
 
-        typedef AmgclMPISolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclMPISolverType;
-        class_<AmgclMPISolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
-            ("AmgclMPISolver",init<Parameters>()) //init<double, int,int,bool >())
-            .def("SetDoubleParameter", &AmgclMPISolverType::SetDoubleParameter)
-            .def("SetIntParameter", &AmgclMPISolverType::SetIntParameter)
-            ;
+    typedef AmgclMPISolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclMPISolverType;
+    class_<AmgclMPISolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
+    ("AmgclMPISolver",init<Parameters>()) //init<double, int,int,bool >())
+    .def("SetDoubleParameter", &AmgclMPISolverType::SetDoubleParameter)
+    .def("SetIntParameter", &AmgclMPISolverType::SetIntParameter)
+    ;
     
     enum_<AztecScalingType>("AztecScalingType")
     .value("NoScaling", NoScaling)
@@ -150,6 +145,7 @@ void  AddLinearSolvers()
     .value("NoScaling", MLSolverType::NoScaling)
     .value("LeftScaling", MLSolverType::LeftScaling)
     ;
+    
 }
 
 
