@@ -27,8 +27,8 @@
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
-        "split_factor"						 : 0.0,
-        "max_number_splits"					 : 0,
+        "split_factor"			     : 0.0,
+        "max_number_splits"		     : 0,
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
             "solver_type" : "SuperLUSolver",
@@ -82,10 +82,12 @@
             "destination_model_part_name" : "Parts_parts_hemisphere",            
             "contact_type"                : "MortarMethod",
             "search_factor"               : 1.0,
-            "active_check_factor"		  : 1.45e-2,
+            "active_check_factor"	  : 1.45e-2,
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
-            "augmentation_normal"		  : 200,
+            "augmentation_normal"	  : 200,
+            "augmentation_tangent"	  : 200,
+            "double_LM"                   : false,  
             "integration_order"           : 100
         }
     }],
