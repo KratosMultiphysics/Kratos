@@ -138,7 +138,7 @@ public:
      * all processes that own periodic conditions know the nodes on both ends (either as local or ghost nodes).
      * @param rModelPart The problem's ModelPart
      */
-    virtual void SetUpSystem(ModelPart &rModelPart)
+    virtual void SetUpSystem(ModelPart &rModelPart) override
     {
         KRATOS_TRY;
 

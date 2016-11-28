@@ -199,7 +199,7 @@ public:
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
         TSystemMatrixType& A,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
         if(!pScheme)
@@ -266,7 +266,7 @@ public:
     void BuildLHS(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
-        TSystemMatrixType& A)
+        TSystemMatrixType& A) override
     {
         KRATOS_TRY
 
@@ -390,7 +390,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -444,7 +444,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -459,7 +459,7 @@ public:
     void BuildRHS(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -514,7 +514,7 @@ public:
     void SetUpDofSet(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part
-    )
+    ) override
     {
         KRATOS_TRY
 
@@ -574,7 +574,7 @@ public:
     //**************************************************************************
     void SetUpSystem(
         ModelPart& r_model_part
-    )
+    ) override
     {
 
         // Set equation id for degrees of freedom
@@ -732,7 +732,7 @@ public:
         ElementsArrayType& rElements,
         ConditionsArrayType& rConditions,
         ProcessInfo& CurrentProcessInfo
-    )
+    ) override
     {
         KRATOS_TRY
 
@@ -875,7 +875,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
         KRATOS_CATCH("")
@@ -887,7 +887,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
     }
 
@@ -899,7 +899,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
 
     }
@@ -907,7 +907,7 @@ public:
     void BuildLHS_CompleteOnFreeRows(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
-        TSystemMatrixType& A)
+        TSystemMatrixType& A) override
     {
         KRATOS_THROW_ERROR(std::logic_error,"method BuildLHS_CompleteOnFreeRows not implemented in Trilinos Builder And Solver ","");
     }
@@ -919,7 +919,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
         int rank;
@@ -1163,14 +1163,14 @@ public:
     void ApplyPointLoads(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {}
 
     /**
     this function is intended to be called at the end of the solution step to clean up memory
     storage not needed
     */
-    void Clear()
+    void Clear() override
     {
         this->mDofSet = DofsArrayType();
         //this->mReactionsVector = TSystemVectorType();
