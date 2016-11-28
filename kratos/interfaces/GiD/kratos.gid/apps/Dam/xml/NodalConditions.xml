@@ -27,9 +27,11 @@
 					   analysis_type="Quasi-Static,Dynamic" TypeofProblem="Thermo-Mechanical" ov="[CheckGeometry 1]">
   </NodalConditionItem>
   
+<!--
   <NodalConditionItem  n="REFERENCETEMPERATURE" pn="Reference Temperature" ProcessName="ImposeUniformTemperatureProcess" VariableName="REFERENCE_TEMPERATURE"
 					   analysis_type="Quasi-Static,Dynamic" TypeofProblem="Thermo-Mechanical" ov="[CheckGeometry 1]">
   </NodalConditionItem>
+-->
   
 
 </NodalConditionList>
