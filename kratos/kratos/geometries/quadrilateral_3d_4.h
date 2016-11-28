@@ -1019,6 +1019,15 @@ public:
         return 4;
     }
 
+
+    /** FacesNumber
+    @return SizeType containes number of this geometry edges/faces.
+    */
+    virtual SizeType FacesNumber() const
+    {
+      return EdgesNumber();
+    }
+
     /** This method gives you all edges of this geometry. This
     method will gives you all the edges with one dimension less
     than this geometry. for example a triangle would return
@@ -1041,6 +1050,55 @@ public:
         return edges;
     }
 
+    //Connectivities of faces required
+    virtual void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const
+    {
+        if(NumberNodesInFaces.size() != 4 )
+            NumberNodesInFaces.resize(4,false);
+
+        NumberNodesInFaces[0]=2;
+        NumberNodesInFaces[1]=2;
+        NumberNodesInFaces[2]=2;
+	NumberNodesInFaces[3]=2;
+
+    }
+
+    virtual void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const
+    {
+        if(NodesInFaces.size1() != 4 || NodesInFaces.size2() != 3)
+            NodesInFaces.resize(4,3,false);
+
+        NodesInFaces(0,0)=0;//face or other node
+        NodesInFaces(1,0)=1;
+        NodesInFaces(2,0)=2;
+
+        NodesInFaces(0,1)=1;//face or other node 
+        NodesInFaces(1,1)=2;
+        NodesInFaces(2,1)=3;
+
+        NodesInFaces(0,2)=2;//face or other node
+        NodesInFaces(1,2)=3;
+        NodesInFaces(2,2)=0;
+
+        NodesInFaces(0,2)=3;//face or other node
+        NodesInFaces(1,2)=0;
+        NodesInFaces(2,2)=1;
+    }
+
+    
+    /**
+     * Returns all faces of the current geometry.
+     * This is only implemented for 3D geometries, since 2D geometries
+     * only have edges but no faces
+     * @see EdgesNumber
+     * @see Edges
+     * @see FacesNumber
+    */
+    virtual GeometriesArrayType Faces( void )
+    {
+        return GeometriesArrayType();
+    }
+    
     ///@}
     ///@name Shape Function
     ///@{
