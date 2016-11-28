@@ -32,7 +32,7 @@ def ConstructSolver(configuration):
         raise Exception("not implemented within trilinos")
     #
 
-    elif(solver_type == "SuperLUSolver" or solver_type == "Super LU"):
+    elif(solver_type == "Superludist" or solver_type == "Super LU"):
         linear_solver = AmesosSolver(configuration);
 
     #
@@ -56,7 +56,7 @@ def ConstructSolver(configuration):
         print("Inexisting solver type. Possibilities are:")
         print("............")
         print("*****************************************************************")
-        err
+
     # else:
         # except LogicError:
 
