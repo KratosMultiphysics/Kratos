@@ -99,6 +99,7 @@
             "max_number_results"          : 1000,
             "augmentation_normal"         : 0.0e0,
             "augmentation_tangent"        : 0.0e0,
+            "double_LM"                   : false,  
             "type_search"                 : "InRadius",
             "integration_order"           : 10
         }
