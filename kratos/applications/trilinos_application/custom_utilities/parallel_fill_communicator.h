@@ -24,7 +24,7 @@
 #include "includes/define.h"
 #include "processes/graph_coloring_process.h"
 #include "mpi.h"
-
+#include "includes/mpi_communicator.h"
 
 namespace Kratos
 {
@@ -70,7 +70,7 @@ public:
     /// Default constructor.
 
     ParallelFillCommunicator(ModelPart& r_model_part)
-        : mrModelPart(r_model_part)
+        : mrBaseModelPart(r_model_part)
     {
     }
 
@@ -85,7 +85,7 @@ public:
         KRATOS_TRY
 
         //use epetra to compute the communication plan
-        ComputeCommunicationPlan();
+        ComputeCommunicationPlan(mrBaseModelPart);
 
 
         KRATOS_CATCH("");
@@ -95,12 +95,19 @@ public:
     ///************************************************************************************************
     ///function to print DETAILED mesh information. WARNING: to be used for debugging only as many informations
     ///are plotted
+    
     void PrintDebugInfo()
+    {
+        PrintModelPartDebugInfo(mrBaseModelPart);
+    }
+    
+    void PrintModelPartDebugInfo(ModelPart& rModelPart)
     {
         KRATOS_TRY
 
         std::cout.flush();
         MPI_Barrier(MPI_COMM_WORLD);
+        
 
 
         int rank;
@@ -117,12 +124,12 @@ public:
 
                 std::cout << " *************************************** " << std::endl;
 
-                std::cout << " proc = " << rank << "communication colors " << mrModelPart.GetCommunicator().NeighbourIndices() << std::endl;
+                std::cout << " proc = " << rank << "communication colors " << rModelPart.GetCommunicator().NeighbourIndices() << std::endl;
 
                 //print ghost mesh
                 std::cout << " proc = " << rank << " ghost mesh" << std::endl;
-                for (ModelPart::NodesContainerType::iterator it = mrModelPart.GetCommunicator().GhostMesh().NodesBegin();
-                        it != mrModelPart.GetCommunicator().GhostMesh().NodesEnd();
+                for (ModelPart::NodesContainerType::iterator it = rModelPart.GetCommunicator().GhostMesh().NodesBegin();
+                        it != rModelPart.GetCommunicator().GhostMesh().NodesEnd();
                         it++)
                 {
                     if(it->FastGetSolutionStepValue(PARTITION_INDEX)==rank)
@@ -133,8 +140,8 @@ public:
 
                 //print local mesh
                 std::cout << " proc = " << rank << " local mesh" << std::endl;
-                for (ModelPart::NodesContainerType::iterator it = mrModelPart.GetCommunicator().LocalMesh().NodesBegin();
-                        it != mrModelPart.GetCommunicator().LocalMesh().NodesEnd();
+                for (ModelPart::NodesContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
+                        it != rModelPart.GetCommunicator().LocalMesh().NodesEnd();
                         it++)
                 {
                     if(it->FastGetSolutionStepValue(PARTITION_INDEX)!=rank)
@@ -145,8 +152,8 @@ public:
 
                 //print interface mesh
                 std::cout << " proc = " << rank << " interface mesh" << std::endl;
-                for (ModelPart::NodesContainerType::iterator it = mrModelPart.GetCommunicator().InterfaceMesh().NodesBegin();
-                        it != mrModelPart.GetCommunicator().InterfaceMesh().NodesEnd();
+                for (ModelPart::NodesContainerType::iterator it = rModelPart.GetCommunicator().InterfaceMesh().NodesBegin();
+                        it != rModelPart.GetCommunicator().InterfaceMesh().NodesEnd();
                         it++)
                 {
                     std::cout << it->Id() << " " ;
@@ -157,7 +164,7 @@ public:
 
                 int destination = 0;
                 std::cout << "NeighbourIndices " ;
-                const vector<int>& neighbours_indices = mrModelPart.GetCommunicator().NeighbourIndices();
+                const vector<int>& neighbours_indices = rModelPart.GetCommunicator().NeighbourIndices();
                 for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
                     std::cout << neighbours_indices[i_color] << " " ;
                 std::cout << std::endl;
@@ -167,8 +174,8 @@ public:
                     if ((destination = neighbours_indices[i_color]) >= 0)
                     {
                         std::cout << "ghost mesh for color --> " << i_color << std::endl;
-                        for (ModelPart::NodesContainerType::iterator it = mrModelPart.GetCommunicator().GhostMesh(i_color).NodesBegin();
-                                it != mrModelPart.GetCommunicator().GhostMesh(i_color).NodesEnd();
+                        for (ModelPart::NodesContainerType::iterator it = rModelPart.GetCommunicator().GhostMesh(i_color).NodesBegin();
+                                it != rModelPart.GetCommunicator().GhostMesh(i_color).NodesEnd();
                                 it++)
                         {
                             if(it->FastGetSolutionStepValue(PARTITION_INDEX)==rank)
@@ -179,8 +186,8 @@ public:
                         std::cout << "finished printing ghost mesh for color --> " << i_color<< std::endl;
 
                         std::cout << "local mesh for color --> " << i_color << std::endl;
-                        for (ModelPart::NodesContainerType::iterator it = mrModelPart.GetCommunicator().LocalMesh(i_color).NodesBegin();
-                                it != mrModelPart.GetCommunicator().LocalMesh(i_color).NodesEnd();
+                        for (ModelPart::NodesContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh(i_color).NodesBegin();
+                                it != rModelPart.GetCommunicator().LocalMesh(i_color).NodesEnd();
                                 it++)
                         {
                             if(it->FastGetSolutionStepValue(PARTITION_INDEX)!=rank)
@@ -190,8 +197,8 @@ public:
                         std::cout << "finished printing local mesh for color --> " << i_color<< std::endl;
 
                         std::cout << "interface mesh for color --> " << i_color << std::endl;
-                        for (ModelPart::NodesContainerType::iterator it = mrModelPart.GetCommunicator().InterfaceMesh(i_color).NodesBegin();
-                                it != mrModelPart.GetCommunicator().InterfaceMesh(i_color).NodesEnd();
+                        for (ModelPart::NodesContainerType::iterator it = rModelPart.GetCommunicator().InterfaceMesh(i_color).NodesBegin();
+                                it != rModelPart.GetCommunicator().InterfaceMesh(i_color).NodesEnd();
                                 it++)
                         {
                             std::cout << it->Id() << " " ;
@@ -200,16 +207,16 @@ public:
                     }
                     else
                     {
-                        if(mrModelPart.GetCommunicator().GhostMesh(i_color).Nodes().size()!=0)
+                        if(rModelPart.GetCommunicator().GhostMesh(i_color).Nodes().size()!=0)
                         {
                             std::cout << "rank = " << rank << " color = " << i_color << std::endl;
                             KRATOS_THROW_ERROR(std::logic_error,"nodes found in ghost mesh when communication is not expected","")
                         }
-                        if(mrModelPart.GetCommunicator().LocalMesh(i_color).Nodes().size()!=0)
+                        if(rModelPart.GetCommunicator().LocalMesh(i_color).Nodes().size()!=0)
                         {
                             std::cout << "local mesh for color --> " << i_color << "*********************************" <<  std::endl;
-                            for (ModelPart::NodesContainerType::iterator it = mrModelPart.GetCommunicator().LocalMesh(i_color).NodesBegin();
-                                    it != mrModelPart.GetCommunicator().LocalMesh(i_color).NodesEnd();
+                            for (ModelPart::NodesContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh(i_color).NodesBegin();
+                                    it != rModelPart.GetCommunicator().LocalMesh(i_color).NodesEnd();
                                     it++)
                             {
                                 if(it->FastGetSolutionStepValue(PARTITION_INDEX)!=rank)
@@ -220,7 +227,7 @@ public:
                             std::cout << "nodes found in local mesh when communication is not expected" << std::endl;
                             KRATOS_THROW_ERROR(std::logic_error,"nodes found in local mesh when communication is not expected","")
                         }
-                        if(mrModelPart.GetCommunicator().InterfaceMesh(i_color).Nodes().size()!=0)
+                        if(rModelPart.GetCommunicator().InterfaceMesh(i_color).Nodes().size()!=0)
                             KRATOS_THROW_ERROR(std::logic_error,"nodes found in interface mesh when communication is not expected","")
                         }
                 }
@@ -306,9 +313,12 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    void ComputeCommunicationPlan()
+    void ComputeCommunicationPlan(ModelPart& rModelPart)
     {
         int root_id = 0;
+        
+        Communicator::Pointer pnew_comm = boost::make_shared< MPICommunicator >(&rModelPart.GetNodalSolutionStepVariablesList());
+        rModelPart.SetCommunicator(pnew_comm);
 
 
         //get rank of current processor
@@ -322,7 +332,7 @@ protected:
 
         //generate (on each processor) a list of what the processor needs to receive (initialize it to -1 if no receive is needed)
         vector<int> my_receive_list_full(num_processors, -1);
-        for (ModelPart::NodesContainerType::iterator it = mrModelPart.NodesBegin(); it != mrModelPart.NodesEnd(); it++)
+        for (ModelPart::NodesContainerType::iterator it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); it++)
         {
             int index = it->FastGetSolutionStepValue(PARTITION_INDEX);
 
@@ -538,27 +548,27 @@ protected:
         // 	  }
 
         //allocate space needed in the communicator
-        mrModelPart.GetCommunicator().SetNumberOfColors(max_color_found );
-        mrModelPart.GetCommunicator().NeighbourIndices().resize(max_color_found);
+        rModelPart.GetCommunicator().SetNumberOfColors(max_color_found );
+        rModelPart.GetCommunicator().NeighbourIndices().resize(max_color_found);
 
         for (int i = 0; i<max_color_found; i++)
         {
-            mrModelPart.GetCommunicator().LocalMesh(i).Nodes().clear();
-            mrModelPart.GetCommunicator().GhostMesh(i).Nodes().clear();
-            mrModelPart.GetCommunicator().InterfaceMesh(i).Nodes().clear();
+            rModelPart.GetCommunicator().LocalMesh(i).Nodes().clear();
+            rModelPart.GetCommunicator().GhostMesh(i).Nodes().clear();
+            rModelPart.GetCommunicator().InterfaceMesh(i).Nodes().clear();
         }
 
         //for each color fill the list of ghost and local nodes and the interface mesh
         for (int i = 0; i < max_color_found ; i++)
         {
-            mrModelPart.GetCommunicator().NeighbourIndices()[i] = colors[i];
-            GenerateMeshes(colors[i], my_rank, i);
+            rModelPart.GetCommunicator().NeighbourIndices()[i] = colors[i];
+            GenerateMeshes(colors[i], my_rank, i, rModelPart);
         }
 
         //now fill the list of all of the nodes to be communicated
-        ModelPart::NodesContainerType& r_local_nodes = mrModelPart.GetCommunicator().LocalMesh().Nodes();
-        ModelPart::NodesContainerType& r_ghost_nodes = mrModelPart.GetCommunicator().GhostMesh().Nodes();
-        ModelPart::NodesContainerType& r_interface_nodes = mrModelPart.GetCommunicator().InterfaceMesh().Nodes();
+        ModelPart::NodesContainerType& r_local_nodes = rModelPart.GetCommunicator().LocalMesh().Nodes();
+        ModelPart::NodesContainerType& r_ghost_nodes = rModelPart.GetCommunicator().GhostMesh().Nodes();
+        ModelPart::NodesContainerType& r_interface_nodes = rModelPart.GetCommunicator().InterfaceMesh().Nodes();
 
         r_local_nodes.clear();
         r_ghost_nodes.clear();
@@ -570,16 +580,16 @@ protected:
             // filling all locals and all ghosts (independently of the color)
 //            for (int i = 0; i < max_color_found + 1; i++)
 //            {
-//                 for (ModelPart::NodesContainerType::iterator it =  mrModelPart.GetCommunicator().LocalMesh(i).NodesBegin();
-//                                                              it != mrModelPart.GetCommunicator().LocalMesh(i).NodesEnd(); it++)
+//                 for (ModelPart::NodesContainerType::iterator it =  rModelPart.GetCommunicator().LocalMesh(i).NodesBegin();
+//                                                              it != rModelPart.GetCommunicator().LocalMesh(i).NodesEnd(); it++)
 //                    r_local_nodes.push_back(*(it.base()));
 //
-//                 for (ModelPart::NodesContainerType::iterator it =  mrModelPart.GetCommunicator().GhostMesh(i).NodesBegin();
-//                                                              it != mrModelPart.GetCommunicator().GhostMesh(i).NodesEnd(); it++)
+//                 for (ModelPart::NodesContainerType::iterator it =  rModelPart.GetCommunicator().GhostMesh(i).NodesBegin();
+//                                                              it != rModelPart.GetCommunicator().GhostMesh(i).NodesEnd(); it++)
 //                    r_ghost_nodes.push_back(*(it.base()));
 //            }
 
-            for (ModelPart::NodesContainerType::iterator it = mrModelPart.NodesBegin(); it != mrModelPart.NodesEnd(); it++)
+            for (ModelPart::NodesContainerType::iterator it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); it++)
             {
                 int index = it->FastGetSolutionStepValue(PARTITION_INDEX);
                 if (index == my_rank)
@@ -591,7 +601,7 @@ protected:
         //finally fill the interface - first add all of the local
         for (int i = 0; i < max_color_found ; i++)
         {
-            ModelPart::NodesContainerType& r_interface_nodes_color = mrModelPart.GetCommunicator().InterfaceMesh(i).Nodes();
+            ModelPart::NodesContainerType& r_interface_nodes_color = rModelPart.GetCommunicator().InterfaceMesh(i).Nodes();
 
             for (ModelPart::NodesContainerType::iterator it = r_interface_nodes_color.begin(); it != r_interface_nodes_color.end(); it++)
                 r_interface_nodes.push_back(*(it.base()));
@@ -603,10 +613,10 @@ protected:
         r_ghost_nodes.Unique();
 
         //finally assign elements and conditions
-        mrModelPart.GetCommunicator().LocalMesh().Elements().clear();
-        mrModelPart.GetCommunicator().LocalMesh().Conditions().clear();
-        mrModelPart.GetCommunicator().LocalMesh().Elements() = mrModelPart.Elements();
-        mrModelPart.GetCommunicator().LocalMesh().Conditions() = mrModelPart.Conditions();
+        rModelPart.GetCommunicator().LocalMesh().Elements().clear();
+        rModelPart.GetCommunicator().LocalMesh().Conditions().clear();
+        rModelPart.GetCommunicator().LocalMesh().Elements() = rModelPart.Elements();
+        rModelPart.GetCommunicator().LocalMesh().Conditions() = rModelPart.Conditions();
 
 
 
@@ -626,6 +636,13 @@ protected:
                 delete [] neighbours[i];
             }
             delete [] neighbours;
+        }
+        
+        
+        //now call the submodelpart
+        for (auto i_sub_model_part = rModelPart.SubModelPartsBegin(); i_sub_model_part != rModelPart.SubModelPartsEnd(); i_sub_model_part++)
+        {
+            ComputeCommunicationPlan( *i_sub_model_part );
         }
 
 
@@ -653,7 +670,7 @@ protected:
     ///this function is designed to obtain on each of the processors, and on each of the colors,
     ///the list of ids this processor will need to receive from the "communicate_processor"
     ///and the list of ids it will need to send to that processor
-    void GenerateMeshes(int communicate_processor, int my_rank, int color)
+    void GenerateMeshes(int communicate_processor, int my_rank, int color, ModelPart& rModelPart)
     {
         KRATOS_TRY
 
@@ -668,12 +685,12 @@ protected:
             int* ids_to_receive = NULL;
             int* ids_to_send = NULL;
 
-            ModelPart::NodesContainerType& kratos_nodes_to_receive = mrModelPart.GetCommunicator().GhostMesh(color).Nodes();
+            ModelPart::NodesContainerType& kratos_nodes_to_receive = rModelPart.GetCommunicator().GhostMesh(color).Nodes();
             kratos_nodes_to_receive.clear();
 
             //loop on all the nodes and find how many nodes we need to receive from the other processors
             // 	    ModelPart::NodesContainerType kratos_nodes_to_receive;
-            for (ModelPart::NodesContainerType::iterator it = mrModelPart.NodesBegin(); it != mrModelPart.NodesEnd(); it++)
+            for (ModelPart::NodesContainerType::iterator it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); it++)
             {
                 int index = it->FastGetSolutionStepValue(PARTITION_INDEX);
                 if (index == communicate_processor)
@@ -714,14 +731,14 @@ protected:
 //                    std::cout << ids_to_send[i] << " ";
 //                std::cout << std::endl;
 
-            ModelPart::NodesContainerType& r_local_nodes = mrModelPart.GetCommunicator().LocalMesh(color).Nodes();
+            ModelPart::NodesContainerType& r_local_nodes = rModelPart.GetCommunicator().LocalMesh(color).Nodes();
             r_local_nodes.clear();
 
 //                KRATOS_WATCH("ln111111");
             //fill the list of nodes to be sent
             for (int i = 0; i < nnodes_to_send; i++)
             {
-                r_local_nodes.push_back(mrModelPart.Nodes()(ids_to_send[i]));
+                r_local_nodes.push_back(rModelPart.Nodes()(ids_to_send[i]));
             }
 
             for (ModelPart::NodesContainerType::iterator it = r_local_nodes.begin(); it != r_local_nodes.end(); it++)
@@ -735,7 +752,7 @@ protected:
                 KRATOS_THROW_ERROR(std::logic_error,"impossible situation. Something wrong happend","");
 
             //add local and ghost to the interface mesh
-            ModelPart::NodesContainerType& r_interface_nodes = mrModelPart.GetCommunicator().InterfaceMesh(color).Nodes();
+            ModelPart::NodesContainerType& r_interface_nodes = rModelPart.GetCommunicator().InterfaceMesh(color).Nodes();
             r_interface_nodes.clear();
 
             // 	    for(ModelPart::NodesContainerType::ptr_iterator it = kratos_nodes_to_receive.ptr_begin(); it!=kratos_nodes_to_receive.ptr_end(); it++)
@@ -793,7 +810,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    ModelPart& mrModelPart;
+    ModelPart& mrBaseModelPart;
 
 
     ///@}
@@ -829,9 +846,10 @@ private:
 
     /// Copy constructor.
 
-    ParallelFillCommunicator(ParallelFillCommunicator const& rOther) : mrModelPart(rOther.mrModelPart)
-    {
-    }
+    ParallelFillCommunicator(ParallelFillCommunicator const& rOther) = delete;
+    //: rModelPart(rOther.mrBaseModelPart)
+    //{
+    //}
 
 
     ///@}
