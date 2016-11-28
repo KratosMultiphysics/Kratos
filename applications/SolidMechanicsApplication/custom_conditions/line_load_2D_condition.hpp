@@ -152,12 +152,6 @@ protected:
 
 
     /**
-     * Calculation of the Integration Weight
-     */
-    virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
-
-
-    /**
      * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
      */
     virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,

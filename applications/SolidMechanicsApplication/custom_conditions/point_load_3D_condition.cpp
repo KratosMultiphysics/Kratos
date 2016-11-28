@@ -201,7 +201,6 @@ void PointLoad3DCondition::CalculateConditionSystem(LocalSystemComponents& rLoca
 
         //calculating weights for integration on the "reference configuration"
         double IntegrationWeight = 1;
-        IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
 
         if ( rLocalSystem.CalculationFlags.Is(PointLoad3DCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
         {
@@ -226,20 +225,6 @@ void PointLoad3DCondition::CalculateConditionSystem(LocalSystemComponents& rLoca
 //************* COMPUTING  METHODS
 //************************************************************************************
 //************************************************************************************
-
-//***********************************************************************************
-//************************************************************************************
-
-double& PointLoad3DCondition::CalculateIntegrationWeight(double& rIntegrationWeight)
-{
-
-    return rIntegrationWeight;
-}
-
-
-//***********************************************************************************
-//***********************************************************************************
-
 
 int PointLoad3DCondition::Check( const ProcessInfo& rCurrentProcessInfo )
 {

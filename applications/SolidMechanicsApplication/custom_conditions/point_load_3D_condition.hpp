@@ -181,12 +181,6 @@ protected:
 
 
     /**
-     * Calculation of the Integration Weight
-     */
-    virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
-
-
-    /**
      * Calculates the condition contributions
      */
     virtual void CalculateConditionSystem(LocalSystemComponents& rLocalSystem,

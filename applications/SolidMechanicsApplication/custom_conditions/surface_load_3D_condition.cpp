@@ -291,15 +291,6 @@ Vector& SurfaceLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, Gener
 //************************************************************************************
 //************************************************************************************
 
-double& SurfaceLoad3DCondition::CalculateIntegrationWeight(double& rIntegrationWeight)
-{ 
-    return rIntegrationWeight;
-}
-
-
-//***********************************************************************************
-//***********************************************************************************
-
 void SurfaceLoad3DCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 						 GeneralVariables& rVariables,
 						 double& rIntegrationWeight)
