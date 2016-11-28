@@ -161,22 +161,6 @@ class TestMPICommunicator(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X), 2.0)
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y), 2.0)
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z), 2.0)
-            
-
-    @KratosUnittest.expectedFailure
-    def test_error_on_wrong_input(self):
-        model_part = ModelPart("Main")
-        model_part_io = ModelPartIO(GetFilePath("wrong_properties_input"))
-        
-        #an error shall be thrown while reading the input since the format is not correct
-        try:
-            with self.assertRaisesRegex(RuntimeError, "wrong input format while reading Properties"): #ideally a more specific error message shall be devised
-                pass #the real line shall be the one below but it segfaults badly
-                #model_part_io.ReadModelPart(model_part)
-        except:
-            raise Exception("a segmentation fault is issued!!")
-            self.fail("a segmentation fault is issued!!")
-            
 
 
 
