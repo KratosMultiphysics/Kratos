@@ -33,7 +33,7 @@
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
 
 // Application includes
-#include "custom_strategies/builder_and_solvers/trilinos_residualbased_elimination_builder_and_solver.h"
+#include "custom_strategies/builder_and_solvers/trilinos_elimination_builder_and_solver.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incremental_aitken_static_scheme.h"
 #include "custom_utilities/parallel_fill_communicator.h"
 
