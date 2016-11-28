@@ -120,7 +120,7 @@ public:
 
         // pointer types for solution strategy construcion
         typedef typename Scheme< TSparseSpace, TDenseSpace >::Pointer SchemePointerType;
-        typedef typename ConvergenceCriteria< TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
+        //~ typedef typename ConvergenceCriteria< TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
         typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
 
         // Default, fixed flags
