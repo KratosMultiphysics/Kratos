@@ -736,7 +736,7 @@ public:
     {
         KRATOS_TRY
 
-        std::cout << "entering ResizeAndInitializeVectors" << std::endl;
+        //~ std::cout << "entering ResizeAndInitializeVectors" << std::endl;
 
         //resizing the system vectors and matrix
         if ( pA == NULL || TSparseSpace::Size1(*pA) == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
@@ -862,7 +862,7 @@ public:
             KRATOS_THROW_ERROR(std::logic_error,"calculation of reactions not yet implemented with Trilinos","");
         }
 
-        std::cout << "finished ResizeAndInitializeVectors" << std::endl;
+        //~ std::cout << "finished ResizeAndInitializeVectors" << std::endl;
 
         KRATOS_CATCH("")
 
