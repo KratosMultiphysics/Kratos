@@ -161,6 +161,12 @@ VALUE: False
 DEPENDENCIES: (True,HIDE,Nodal_results_10,Viii_POSITIVE)(False,HIDE,Nodal_results_10,NO_RESULT)
 QUESTION: Nodal_results_10#CB#(Viii_POSITIVE,NO_RESULT)
 VALUE: Viii_POSITIVE
+QUESTION: Write_Nodal_Joint_Width#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,Nodal_results_11,NODAL_JOINT_WIDTH)(False,HIDE,Nodal_results_11,NO_RESULT)
+QUESTION: Nodal_results_11#CB#(NODAL_JOINT_WIDTH,NO_RESULT)
+VALUE: NODAL_JOINT_WIDTH
+
 
 QUESTION: Write_Total_Strain#CB#(True,False)
 VALUE: False
