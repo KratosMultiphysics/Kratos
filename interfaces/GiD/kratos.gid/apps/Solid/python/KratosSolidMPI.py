@@ -143,9 +143,9 @@ problem_path = os.getcwd()
 problem_name = ProjectParameters["problem_data"]["problem_name"].GetString()
 
 # Initialize GiD  I/O (gid outputs, file_lists)
-from gid_output_process_mpi import GiDOutputProcess
+from gid_output_process_mpi import GiDOutputProcessMPI
 output_settings = ProjectParameters["output_configuration"]
-gid_output = GiDOutputProcess(computing_model_part,
+gid_output = GiDOutputProcessMPI(computing_model_part,
                               problem_name,
                               output_settings)
 
