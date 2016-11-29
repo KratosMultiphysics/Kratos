@@ -43,7 +43,7 @@ proc Pfem::write::writeMeshes { } {
         write::writePartMeshes
     }
     # Solo Malla , no en conditions
-    writeNodalConditions "Pfem_NodalConditions"
+    writeNodalConditions "PFEM_NodalConditions"
     
     # A Condition y a meshes-> salvo lo que no tenga topologia
     Solid::write::writeLoads
