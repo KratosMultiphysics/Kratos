@@ -211,10 +211,13 @@ public:
             
       for(unsigned int i=0; i<3; i++)
 	{
-	  UpperPoint[i] = mBox.Radius;
-	  LowerPoint[i] = (-1) * mBox.Radius;
+	  UpperPoint[i] =  1.0;
+	  LowerPoint[i] = -1.0;
 	}
 
+      UpperPoint *= mBox.Radius/sqrt(3.0);
+      LowerPoint *= mBox.Radius/sqrt(3.0);
+      
       //check higher and lower center: (y coordinate as reference)
       int v_axis = 1;
       if( list_size == 1 ){
@@ -520,7 +523,8 @@ public:
 	this->ComputeContactTangent(rValues,rCurrentProcessInfo);
       }
 
-      //std::cout<<" ["<<is_inside<<"][ ContactFace: "<<ContactFace<<"; Normal: "<<rNormal<<"; GapNormal: "<< rGapNormal <<" ] "<<rPoint<<std::endl;
+      //std::cout<<" ["<<is_inside<<"][ ContactFace: "<<rValues.GetContactFace()<<"; Normal: "<<rNormal<<"; GapNormal: "<< rGapNormal <<" ] "<<rPoint<<std::endl;
+      
       return is_inside;
       
       KRATOS_CATCH("")
@@ -1650,7 +1654,9 @@ private:
       PointType NormalLine(3);
 
       //rCenterPoint and rLinePoint define the line:
-      Line  = (rLinePoint - rCenterPoint);
+      Line[0] = (rLinePoint[0] - rCenterPoint[0]);
+      Line[1] = (rLinePoint[1] - rCenterPoint[1]);
+      Line[2] = 0;
       Line *= (1.0/norm_2(Line));
       
       //normal to the line
@@ -1659,8 +1665,14 @@ private:
       NormalLine[2] =  0;
 
       //compare the sense of the direction of Line1 and Line2
-      PointType Line1 = (rReferencePoint - rCenterPoint);
-      PointType Line2 = (rPoint - rCenterPoint);
+      PointType Line1(3);
+      Line1[0] = (rReferencePoint[0] - rCenterPoint[0]);
+      Line1[1] = (rReferencePoint[1] - rCenterPoint[1]);
+      Line1[2] = 0;
+      PointType Line2(3);
+      Line2[0] = (rPoint[0] - rCenterPoint[0]);
+      Line2[1] = (rPoint[1] - rCenterPoint[1]);
+      Line2[2] = 0;
 
       //check the Projection with the Line
       double ReferenceDirection = inner_prod(Line1,NormalLine);
@@ -1705,7 +1717,9 @@ private:
 
       PointType TipPoint(3);
 
-      TipPoint  = ( RakePoint - rWallNose.Center ) + ( ClearancePoint - rWallNose.Center );
+      TipPoint[0]  = ( RakePoint[0] - rWallNose.Center[0] ) + ( ClearancePoint[0] - rWallNose.Center[0] );
+      TipPoint[1]  = ( RakePoint[1] - rWallNose.Center[1] ) + ( ClearancePoint[1] - rWallNose.Center[1] );
+      TipPoint[2]  = 0;
       TipPoint *= ( rRadius/norm_2(TipPoint) );
       
       //open angle to get the correct tip direction
@@ -1716,6 +1730,8 @@ private:
       else
 	TipPoint  = rWallNose.Center - TipPoint;
 
+      TipPoint[2] = 0;
+      
       // std::cout<<" Center "<<rWallNose.Center<<" Radius "<<rRadius<<std::endl;
       // std::cout<<" RakePoint "<<RakePoint<<" x "<<-sin(rWallNose.RakeAngle)<<" y "<<cos(rWallNose.RakeAngle)<<std::endl;
       // std::cout<<" ClearancePoint "<<ClearancePoint<<" x "<<-sin(rWallNose.ClearanceAngle)<<" y "<<cos(rWallNose.ClearanceAngle)<<std::endl;
@@ -1878,8 +1894,8 @@ private:
     {
       KRATOS_TRY
 
-      rTangent  =  (rTipPoint-rPoint);
-      rTangent -=  inner_prod((rTipPoint-rPoint),rNormal) * rNormal;
+      rTangent  = (rTipPoint-rPoint);
+      rTangent -= inner_prod((rTipPoint-rPoint),rNormal) * rNormal;
       
       if( norm_2(rTangent) )
 	rTangent *= (-1.0/norm_2(rTangent));
@@ -1925,19 +1941,32 @@ private:
     {
       KRATOS_TRY
 
-      rNormal  = ZeroVector(3);
+      rNormal = ZeroVector(3);
 
       //1.-compute point projection
       PointType Projection(3);
-      Projection = rWallNose.Radius * ( (rPoint-rWallNose.Center)/ norm_2(rPoint-rWallNose.Center) ) + rWallNose.Center;
+      Projection[0] = (rPoint[0]-rWallNose.Center[0]);
+      Projection[1] = (rPoint[1]-rWallNose.Center[1]);
+      Projection[2] = 0;
+      Projection /= norm_2(Projection);
+      
+      Projection[0] = rWallNose.Radius * Projection[0] + rWallNose.Center[0];
+      Projection[1] = rWallNose.Radius * Projection[1] + rWallNose.Center[1];
+      Projection[2] = 0;
       
       //2.-compute contact normal
-      rNormal = (Projection-rWallNose.Center)/rWallNose.Radius;
+      rNormal[0] = (Projection[0]-rWallNose.Center[0])/rWallNose.Radius;
+      rNormal[1] = (Projection[1]-rWallNose.Center[1])/rWallNose.Radius;
+      rNormal[2] = 0;
 
       rNormal *= rWallNose.Convexity;
 
       //3.-compute gap
-      if( norm_2(rWallNose.Center-rPoint) <= rWallNose.Radius ){
+      PointType Distance(3);
+      Distance[0] = rWallNose.Center[0]-rPoint[0];
+      Distance[1] = rWallNose.Center[1]-rPoint[1];
+      Distance[2] = 0;      
+      if( norm_2(Distance) <= rWallNose.Radius ){
 	rGapNormal = (-1) * norm_2(rPoint - Projection);
       }
       else{
@@ -1953,7 +1982,7 @@ private:
 
     
       KRATOS_CATCH( "" )
-	}
+    }
 
 
     //************************************************************************************

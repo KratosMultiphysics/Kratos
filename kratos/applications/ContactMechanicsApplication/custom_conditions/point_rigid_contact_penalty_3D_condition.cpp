@@ -297,7 +297,9 @@ namespace Kratos
     if( GetProperties().Has(TANGENTIAL_PENALTY_RATIO) )
       PenaltyRatio = GetProperties()[TANGENTIAL_PENALTY_RATIO];
 
-    rVariables.Penalty.Tangent = rVariables.Penalty.Normal * PenaltyRatio ;  
+    rVariables.Penalty.Tangent = rVariables.Penalty.Normal * PenaltyRatio ;
+
+    //std::cout<<" ContactPoint["<<this->Id()<<"]: penalty_n"<<rVariables.Penalty.Normal<<", ElasticModulus: "<<ElasticModulus<<", distance: "<<distance<<std::endl;
 
     //set contact normal
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();

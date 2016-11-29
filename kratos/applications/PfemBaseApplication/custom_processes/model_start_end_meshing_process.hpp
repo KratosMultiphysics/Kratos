@@ -796,17 +796,17 @@ namespace Kratos
 
 	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; i_node++)
 	      {
-		rComputingModelPart.AddNode(*(i_node.base()));
+		(rComputingModelPart.Nodes()).push_back(*(i_node.base()));
 	      }
 
 	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
 	      {
-		rComputingModelPart.AddCondition(*(i_cond.base()));
+		(rComputingModelPart.Conditions()).push_back(*(i_cond.base()));
 	      }
 
 	    for(ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin() ; i_elem != i_mp->ElementsEnd() ; i_elem++)
 	      {
-		rComputingModelPart.AddElement(*(i_elem.base()));	
+		(rComputingModelPart.Elements()).push_back(*(i_elem.base()));	
 	      }
 	  }
 	}
