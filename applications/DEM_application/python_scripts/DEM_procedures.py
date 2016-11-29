@@ -67,6 +67,14 @@ class MdpaCreator(object):
         mdpa.write('End NodalData'+'\n'+'\n')
 
 
+class SetOfModelParts(object):
+    def __init__(self, spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, mapping_model_part):
+        self.spheres_model_part    = spheres_model_part
+        self.rigid_face_model_part = rigid_face_model_part
+        self.cluster_model_part    = cluster_model_part
+        self.DEM_inlet_model_part  = DEM_inlet_model_part
+        self.mapping_model_part    = mapping_model_part
+
 class GranulometryUtils(object):
 
     def __init__(self, domain_volume, model_part):
@@ -121,9 +129,10 @@ class PostUtils(object):
     def Flush(self,a):
         a.flush()
 
-    def ComputeMeanVelocitiesinTrap(self, file_name, time_dem, compute_flow):
+    def ComputeMeanVelocitiesinTrap(self, file_name, time_dem):
 
         if (self.DEM_parameters.VelocityTrapOption):
+            compute_flow = False
 
             self.vel_trap_graph_counter += 1
 
@@ -187,39 +196,44 @@ class DEMEnergyCalculator(object):
     
     def __init__(self, DEM_parameters, spheres_model_part, cluster_model_part, energy_plot):
         
-        self.DEM_parameters = DEM_parameters
-        self.SpheresModelPart = spheres_model_part;
-        self.ClusterModelPart = cluster_model_part;
-        self.energy_plot = open(energy_plot, 'w');
-        self.SpheresEnergyUtil = SphericElementGlobalPhysicsCalculator(spheres_model_part);
-        self.ClusterEnergyUtil = SphericElementGlobalPhysicsCalculator(cluster_model_part);
-        self.PotentialEnergyReferencePoint          = Array3();
-        self.PotentialEnergyReferencePoint[0]       = self.DEM_parameters.PotentialEnergyReferencePointX;
-        self.PotentialEnergyReferencePoint[1]       = self.DEM_parameters.PotentialEnergyReferencePointY;
-        self.PotentialEnergyReferencePoint[2]       = self.DEM_parameters.PotentialEnergyReferencePointZ;
-        self.translational_kinematic_energy         = 0.0;
-        self.rotational_kinematic_energy            = 0.0;
-        self.kinematic_energy                       = 0.0;
-        self.gravitational_energy                   = 0.0;
-        self.elastic_energy                         = 0.0;
-        self.inelastic_frictonal_energy             = 0.0;
-        self.inelastic_viscodamping_energy          = 0.0;
-        self.external_energy                        = 0.0;
-        self.total_energy                           = 0.0;
-        self.graph_frequency                        = int(self.DEM_parameters.GraphExportFreq/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME));
-        self.energy_graph_counter                   = 0;
-        self.energy_plot.write(str("Time").rjust(9)+"   "+str("Trans kinematic energy").rjust(22)+"   "+str("Rot kinematic energy").rjust(20)+"   "+str("Kinematic energy").rjust(16)+"   "+str("Gravitational energy").rjust(20)+"   "+str("Elastic energy").rjust(14)+"   "+str("Frictonal energy").rjust(16)+"   "+str("Viscodamping energy").rjust(19)+"   "+str("Total energy").rjust(12)+"\n")
+        self.calculate_option = False
         
+        if (hasattr(DEM_parameters, "EnergyCalculationOption")):
+            if (DEM_parameters.EnergyCalculationOption):
+                self.calculate_option = True
+                self.DEM_parameters = DEM_parameters
+                self.SpheresModelPart = spheres_model_part;
+                self.ClusterModelPart = cluster_model_part;                
+                self.energy_plot = open(energy_plot, 'w');
+                self.SpheresEnergyUtil = SphericElementGlobalPhysicsCalculator(spheres_model_part);
+                self.ClusterEnergyUtil = SphericElementGlobalPhysicsCalculator(cluster_model_part);
+                self.PotentialEnergyReferencePoint          = Array3();
+                self.PotentialEnergyReferencePoint[0]       = self.DEM_parameters.PotentialEnergyReferencePointX;
+                self.PotentialEnergyReferencePoint[1]       = self.DEM_parameters.PotentialEnergyReferencePointY;
+                self.PotentialEnergyReferencePoint[2]       = self.DEM_parameters.PotentialEnergyReferencePointZ;
+                self.translational_kinematic_energy         = 0.0;
+                self.rotational_kinematic_energy            = 0.0;
+                self.kinematic_energy                       = 0.0;
+                self.gravitational_energy                   = 0.0;
+                self.elastic_energy                         = 0.0;
+                self.inelastic_frictonal_energy             = 0.0;
+                self.inelastic_viscodamping_energy          = 0.0;
+                self.external_energy                        = 0.0;
+                self.total_energy                           = 0.0;
+                self.graph_frequency                        = int(self.DEM_parameters.GraphExportFreq/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME));
+                self.energy_graph_counter                   = 0;
+                self.energy_plot.write(str("Time").rjust(9)+"   "+str("Trans kinematic energy").rjust(22)+"   "+str("Rot kinematic energy").rjust(20)+"   "+str("Kinematic energy").rjust(16)+"   "+str("Gravitational energy").rjust(20)+"   "+str("Elastic energy").rjust(14)+"   "+str("Frictonal energy").rjust(16)+"   "+str("Viscodamping energy").rjust(19)+"   "+str("Total energy").rjust(12)+"\n")
+
     def CalculateEnergyAndPlot(self, time):
-        
-        if not hasattr(self.DEM_parameters, "TestType"):
-            if (self.energy_graph_counter == self.graph_frequency):
-                self.energy_graph_counter = 0
+        if self.calculate_option:
+            if not hasattr(self.DEM_parameters, "TestType"):
+                if (self.energy_graph_counter == self.graph_frequency):
+                    self.energy_graph_counter = 0
 
-                self.CalculateEnergy();
-                self.PlotEnergyGraph(time);
+                    self.CalculateEnergy();
+                    self.PlotEnergyGraph(time);
 
-            self.energy_graph_counter += 1
+                self.energy_graph_counter += 1
 
     def CalculateEnergy(self):
 
@@ -245,9 +259,9 @@ class DEMEnergyCalculator(object):
         self.energy_plot.write( str("%.8g"%time).rjust(9)+"   "+str("%.6g"%plot_translational_kinematic).rjust(22)+"   "+str("%.6g"%plot_rotational_kinematic).rjust(20)+"   "+str("%.6g"%plot_kinematic).rjust(16)+"   "+str("%.6g"%plot_gravitational).rjust(20)+"   "+str("%.6g"%plot_elastic).rjust(14)+"   "+str("%.6g"%plot_inelastic_frictional).rjust(16)+"   "+str("%.6g"%plot_inelastic_viscodamping).rjust(19)+"   "+str("%.6g"%plot_total).rjust(12)+'\n' )
         self.energy_plot.flush()
         
-    def FinilizeEnergyPlot(self):
-
-        self.energy_plot.close
+    def FinalizeEnergyPlot(self):
+        if self.calculate_option:
+            self.energy_plot.close
 
 
 class Procedures(object):
@@ -277,6 +291,22 @@ class Procedures(object):
 
         # MODEL
         self.domain_size = self.DEM_parameters.Dimension
+        
+    def SetScheme(self):
+        if (self.DEM_parameters.IntegrationScheme == 'Forward_Euler'):
+            scheme = ForwardEulerScheme()
+        elif (self.DEM_parameters.IntegrationScheme == 'Symplectic_Euler'):
+            scheme = SymplecticEulerScheme()
+        elif (self.DEM_parameters.IntegrationScheme == 'Taylor_Scheme'):
+            scheme = TaylorScheme()
+        elif (self.DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method'):
+            scheme = NewmarkBetaScheme(0.5, 0.25)
+        elif (self.DEM_parameters.IntegrationScheme == 'Verlet_Velocity'):
+            scheme = VerletVelocityScheme()
+        else:
+            self.KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
+            sys.exit("\nExecution was aborted.\n")
+        return scheme
         
     def AddAllVariablesInAllModelParts(self, solver, scheme, spheres_model_part, cluster_model_part, DEM_inlet_model_part, rigid_face_model_part, DEM_parameters):
         self.solver=solver
@@ -421,8 +451,19 @@ class Procedures(object):
         DEM_inlet_model_part.SetBufferSize(inlet_b_size)
         rigid_face_model_part.SetBufferSize(rigid_b_size)
 
-    def ModelData(self, spheres_model_part, contact_model_part, solver):
+    def FindMaxNodeIdAccrossModelParts(self, creator_destructor, all_model_parts):
+        
+        max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(all_model_parts.spheres_model_part)
+        max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(all_model_parts.spheres_model_part)
+        max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(all_model_parts.rigid_face_model_part)
+        max_cluster_node_Id = creator_destructor.FindMaxNodeIdInModelPart(all_model_parts.cluster_model_part)
+        max_Id = max(max_FEM_node_Id, max_node_Id, max_elem_Id, max_cluster_node_Id)
+        
+        return max_Id
 
+    def ModelData(self, spheres_model_part, solver):
+        
+        contact_model_part = solver.contact_model_part
         # Previous Calculations.
         Model_Data = open('Model_Data.txt', 'w')
 
@@ -468,22 +509,23 @@ class Procedures(object):
 
         Total_Contacts = 0
 
-        Coordination_Number = 0.0
+        if solver.continuum_type:
+            Coordination_Number = 0.0
 
-        if (self.contact_mesh_OPTION):
-            for bar in contact_model_part.Elements:
-                Total_Contacts += 1
-            if (Total_Particles):
-                Coordination_Number = 2.0 * Total_Contacts / Total_Particles
+            if (self.contact_mesh_OPTION):
+                for bar in contact_model_part.Elements:
+                    Total_Contacts += 1
+                if (Total_Particles):
+                    Coordination_Number = 2.0 * Total_Contacts / Total_Particles
 
-        Model_Data.write("Total Number of Particles: " + str(Total_Particles) + '\n')
-        Model_Data.write("Total Number of Contacts: " + str(Total_Contacts) + '\n')
-        Model_Data.write("Coordination Number NC: " + str(Coordination_Number) + '\n')
-        Model_Data.write('\n')
-        #Model_Data.write("Volume Elements: " + str(total_volume) + '\n')
+            Model_Data.write("Total Number of Particles: " + str(Total_Particles) + '\n')
+            Model_Data.write("Total Number of Contacts: " + str(Total_Contacts) + '\n')
+            Model_Data.write("Coordination Number NC: " + str(Coordination_Number) + '\n')
+            Model_Data.write('\n')
+            #Model_Data.write("Volume Elements: " + str(total_volume) + '\n')            
+            self.KRATOSprint ("Coordination Number: " + str(Coordination_Number) + "\n")
+            
         Model_Data.close()
-
-        return Coordination_Number
 
     def MeasureBOT(self, solver):
 
@@ -650,6 +692,14 @@ class Procedures(object):
                 maxid = node.Id
 
         return maxid
+    
+    def SetBoundingBoxLimits(self, all_model_parts, creator_destructor):
+        
+        bounding_box_time_limits = []
+        if (self.DEM_parameters.BoundingBoxOption == "ON"):
+            self.SetBoundingBox(all_model_parts.spheres_model_part, all_model_parts.cluster_model_part, all_model_parts.rigid_face_model_part, creator_destructor)
+            bounding_box_time_limits = [self.solver.bounding_box_start_time, self.solver.bounding_box_stop_time]
+            return bounding_box_time_limits
 
     def SetBoundingBox(self, spheres_model_part, clusters_model_part, rigid_faces_model_part, creator_destructor):
 
@@ -1218,8 +1268,18 @@ class DEMIo(object):
             self.SeaSurfaceX4 = self.DEM_parameters.PostVirtualSeaSurfaceX4
             self.SeaSurfaceY4 = self.DEM_parameters.PostVirtualSeaSurfaceY4
 
+    def KRATOSprint(self,message):
+        print(message)
+        self.Flush(sys.stdout)
+        
     def Flush(self,a):
         a.flush()
+        
+    def ShowPrintingResultsOnScreen(self, all_model_parts):
+        self.KRATOSprint("*******************  PRINTING RESULTS FOR GID  ***************************")
+        self.KRATOSprint("                        ("+ str(all_model_parts.spheres_model_part.NumberOfElements(0)) + " elements)")
+        self.KRATOSprint("                        ("+ str(all_model_parts.spheres_model_part.NumberOfNodes(0)) + " nodes)")
+        self.KRATOSprint("")
         
     def Initialize(self, DEM_parameters):
         self.AddGlobalVariables()

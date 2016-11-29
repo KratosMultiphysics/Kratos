@@ -251,7 +251,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
 
         first_print  = True; index_5 = 1; index_10  = 1; index_50  = 1; control = 0.0
 
-        coordination_number = procedures.ModelData(spheres_model_part, solver.contact_model_part, solver)
+        coordination_number = procedures.ModelData(spheres_model_part, solver)
         KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
 
         materialTest.PrintChart()

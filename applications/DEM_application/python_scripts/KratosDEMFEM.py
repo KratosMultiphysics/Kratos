@@ -305,7 +305,7 @@ report.Prepare(timer, DEM_parameters.ControlTime)
 
 first_print = True; index_5 = 1; index_10 = 1; index_50 = 1; control = 0.0
 
-coordination_number = procedures.ModelData(spheres_model_part, solver.contact_model_part, solver)
+coordination_number = procedures.ModelData(spheres_model_part, solver)
 KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
 
 materialTest.PrintChart()
@@ -385,7 +385,7 @@ while (time < DEM_parameters.FinalTime):
     # measuring mean velocities in a certain control volume (the 'velocity trap')
     if (DEM_parameters.VelocityTrapOption):
         compute_flow = False
-        post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", time, compute_flow)
+        post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", time)
 
     #### MATERIAL TEST GRAPHS ############################
     materialTest.MeasureForcesAndPressure()
