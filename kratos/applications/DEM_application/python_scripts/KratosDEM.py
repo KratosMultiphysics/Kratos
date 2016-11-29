@@ -65,7 +65,6 @@ procedures.CheckInputParameters(DEM_parameters)
 main_path = os.getcwd()
 [post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name))
 
-
 demio         = DEM_procedures.DEMIo(DEM_parameters, post_path)
 report        = DEM_procedures.Report()
 parallelutils = DEM_procedures.ParallelUtils()
@@ -74,39 +73,22 @@ materialTest  = DEM_procedures.MaterialTest()
 # Set the print function TO_DO: do this better...
 KRATOSprint   = procedures.KRATOSprint
 
-# Preprocess the model
-#procedures.PreProcessModel(DEM_parameters)
-
 # Prepare modelparts
 spheres_model_part    = ModelPart("SpheresPart")
 rigid_face_model_part = ModelPart("RigidFace_Part")
 cluster_model_part    = ModelPart("Cluster_Part")
 DEM_inlet_model_part  = ModelPart("DEMInletPart")
 mapping_model_part    = ModelPart("Mappingmodel_part")
+all_model_parts = DEM_procedures.SetOfModelParts(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, mapping_model_part)
 
 # Constructing a utilities objects
 creator_destructor = ParticleCreatorDestructor()
 dem_fem_search = DEM_FEM_Search()
 
-#Getting chosen scheme:
-if (DEM_parameters.IntegrationScheme == 'Forward_Euler'):
-    scheme = ForwardEulerScheme()
-elif (DEM_parameters.IntegrationScheme == 'Symplectic_Euler'):
-    scheme = SymplecticEulerScheme()
-elif (DEM_parameters.IntegrationScheme == 'Taylor_Scheme'):
-    scheme = TaylorScheme()
-elif (DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method'):
-    scheme = NewmarkBetaScheme(0.5, 0.25)
-elif (DEM_parameters.IntegrationScheme == 'Verlet_Velocity'):
-    scheme = VerletVelocityScheme()
-else:
-    KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
-
+scheme = procedures.SetScheme()
 solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
 
 procedures.AddAllVariablesInAllModelParts(solver, scheme, spheres_model_part, cluster_model_part, DEM_inlet_model_part, rigid_face_model_part, DEM_parameters)
-
-
 
 os.chdir(main_path)
 # Reading the model_part
@@ -170,20 +152,12 @@ solver.BeforeInitialize()
 parallelutils.Repart(spheres_model_part)
 
 #Setting up the BoundingBox
-bounding_box_time_limits = []
-if (DEM_parameters.BoundingBoxOption == "ON"):
-    procedures.SetBoundingBox(spheres_model_part, cluster_model_part, rigid_face_model_part, creator_destructor)
-    bounding_box_time_limits = [solver.bounding_box_start_time, solver.bounding_box_stop_time]
+bounding_box_time_limits = procedures.SetBoundingBoxLimits(all_model_parts, creator_destructor)
 
 dt = DEM_parameters.MaxTimeStep
 
-#Finding the max id of the nodes... (it is necessary for anything that will add spheres to the spheres_model_part, for instance, the INLETS and the CLUSTERS read from mdpa file.
-max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
-max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(spheres_model_part)
-max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
-max_cluster_node_Id = creator_destructor.FindMaxNodeIdInModelPart(cluster_model_part)
-
-max_Id = max(max_FEM_node_Id, max_node_Id, max_elem_Id, max_cluster_node_Id)
+#Finding the max id of the nodes... (it is necessary for anything that will add spheres to the spheres_model_part, for instance, the INLETS and the CLUSTERS read from mdpa file.z
+max_Id = procedures.FindMaxNodeIdAccrossModelParts(creator_destructor, all_model_parts)
 creator_destructor.SetMaxNodeId(max_Id)    
 
 #Strategy Initialization
@@ -200,10 +174,8 @@ if (DEM_parameters.dem_inlet_option):
   
 DEMFEMProcedures = DEM_procedures.DEMFEMProcedures(DEM_parameters, graphs_path, spheres_model_part, rigid_face_model_part)
 
-if (hasattr(DEM_parameters, "EnergyCalculationOption")):
-    if (DEM_parameters.EnergyCalculationOption):
-        os.chdir(graphs_path)
-        DEMEnergyCalculator = DEM_procedures.DEMEnergyCalculator(DEM_parameters, spheres_model_part, cluster_model_part, "EnergyPlot.grf")
+os.chdir(graphs_path)
+DEMEnergyCalculator = DEM_procedures.DEMEnergyCalculator(DEM_parameters, spheres_model_part, cluster_model_part, "EnergyPlot.grf")
 
 materialTest.Initialize(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
 
@@ -215,10 +187,7 @@ time_old_print = 0.0
 
 report.Prepare(timer, DEM_parameters.ControlTime)
 
-first_print = True; index_5 = 1; index_10 = 1; index_50 = 1; control = 0.0
-
-coordination_number = procedures.ModelData(spheres_model_part, solver.contact_model_part, solver)
-KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
+procedures.ModelData(spheres_model_part, solver)
 
 materialTest.PrintChart()
 materialTest.PrepareDataForGraph()
@@ -257,9 +226,7 @@ while (time < DEM_parameters.FinalTime):
     
     #### PRINTING GRAPHS ####
     os.chdir(graphs_path)
-    if (DEM_parameters.VelocityTrapOption):
-        compute_flow = False
-        post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", time, compute_flow)
+    post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", time)
 
     materialTest.MeasureForcesAndPressure()
     materialTest.PrintGraph(time)
@@ -267,9 +234,7 @@ while (time < DEM_parameters.FinalTime):
     DEMFEMProcedures.PrintGraph(time)
     DEMFEMProcedures.PrintBallsGraph(time)
 
-    if (hasattr(DEM_parameters, "EnergyCalculationOption")):
-        if (DEM_parameters.EnergyCalculationOption):
-            DEMEnergyCalculator.CalculateEnergyAndPlot(time)
+    DEMEnergyCalculator.CalculateEnergyAndPlot(time)
 
     #### GiD IO ##########################################
     time_to_print = time - time_old_print
@@ -282,10 +247,7 @@ while (time < DEM_parameters.FinalTime):
         if DEM_parameters.PostEulerAngles:
             post_utils.PrintEulerAngles(spheres_model_part, cluster_model_part)
 
-        KRATOSprint("*******************  PRINTING RESULTS FOR GID  ***************************")
-        KRATOSprint("                        ("+ str(spheres_model_part.NumberOfElements(0)) + " elements)")
-        KRATOSprint("                        ("+ str(spheres_model_part.NumberOfNodes(0)) + " nodes)")
-        KRATOSprint("")
+        demio.ShowPrintingResultsOnScreen(all_model_parts)
 
         os.chdir(data_and_results)
         demio.PrintMultifileLists(time, post_path)
@@ -306,9 +268,8 @@ demio.FinalizeMesh()
 materialTest.FinalizeGraphs()
 DEMFEMProcedures.FinalizeGraphs(rigid_face_model_part)
 DEMFEMProcedures.FinalizeBallsGraphs(spheres_model_part)
-if (hasattr(DEM_parameters, "EnergyCalculationOption")):
-    if (DEM_parameters.EnergyCalculationOption):
-        DEMEnergyCalculator.FinilizeEnergyPlot()
+
+DEMEnergyCalculator.FinalizeEnergyPlot()
 
 demio.CloseMultifiles()
 
