@@ -548,7 +548,7 @@ first_print = True; index_5 = 1; index_10 = 1; index_50 = 1; control = 0.0
 if (DEM_parameters.ModelDataInfo == "ON"):
     os.chdir(data_and_results)
     if (DEM_parameters.ContactMeshOption == "ON"):
-        (coordination_number) = procedures.ModelData(spheres_model_part, solver.contact_model_part, solver) # Calculates the mean number of neighbours the mean radius, etc..
+        (coordination_number) = procedures.ModelData(spheres_model_part, solver) # Calculates the mean number of neighbours the mean radius, etc..
         KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
         os.chdir(main_path)
     else:
