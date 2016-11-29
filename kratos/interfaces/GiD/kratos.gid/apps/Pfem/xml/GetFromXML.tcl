@@ -23,8 +23,8 @@ proc Pfem::xml::getUniqueName {name} {
 
 proc Pfem::xml::MultiAppEvent {args} {
     if {$args eq "init"} {
-	spdAux::parseRoutes
-	spdAux::ConvertAllUniqueNames SL PFEM_
+        spdAux::parseRoutes
+        spdAux::ConvertAllUniqueNames SL PFEM_
     }
 }
 
