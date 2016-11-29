@@ -351,6 +351,91 @@ class TestKratosExecuteConvergenceAccelerator(KratosUnittest.TestCase):
         if convergence == True:
             for i in range(0,len(expected_x)):
                 self.assertAlmostEqual(expected_x[i],x_final[i])
+                
+                
+    def test_accelerator_dx(self):
+        
+        settings = KratosMultiphysics.Parameters("""{
+                                                     "solver_type" : "MVQN_recursive",
+                                                     "w_0"         : 0.825
+                                                    }""")
+        print("")
+        print("Testing Newton-Raphson with accelerator: ",settings["solver_type"].GetString(), " version with residual=DX")
+        
+        # Construct the coupling partitioned strategy
+        import convergence_accelerator_factory     
+        self.coupling_utility = convergence_accelerator_factory.CreateConvergenceAccelerator(settings)
+        
+        x_guess = KratosMultiphysics.Vector(2)
+        x_guess[0] = 0.5
+        x_guess[1] = 0.5
+        
+        dx = KratosMultiphysics.Vector(2)
+        dx[0] = 0.0
+        dx[1] = 0.0
+        
+        tol = 1e-14
+        max_it = 20
+        acceleration = True
+        
+        if acceleration == True:
+            self.coupling_utility.Initialize()
+                    
+        nl_it = 1
+        res_norm = 1.0
+        convergence = False
+        
+        if acceleration == True:
+            self.coupling_utility.InitializeSolutionStep()
+        
+        while (nl_it <= max_it):
+            
+            residual = self.ComputeResidual(x_guess)
+            res_norm = math.sqrt(residual[0]**2 + residual[1]**2) 
+            
+            print("Iteration: ", nl_it," residual norm: ", res_norm)
+            
+            K = self.Jacobian(x_guess)
+            Kinv = self.InvertMatrix(K)
+            dx = self.prod(Kinv,residual)
+            
+            if res_norm > tol:
+                #x_guess = x_guess + dx
+                
+                if acceleration == True:
+                    residual = dx #self.ComputeResidual(x_guess)
+                    
+                    self.coupling_utility.InitializeNonLinearIteration()
+                    self.coupling_utility.UpdateSolution(residual, x_guess)
+                    self.coupling_utility.FinalizeNonLinearIteration()
+                
+                    residual = self.ComputeResidual(x_guess)
+                    res_norm = math.sqrt( residual[0]**2 + residual[1]**2) 
+                    print("Iteration: ", nl_it," residual norm after acceleration: ", res_norm)
+                    
+                    if res_norm < tol:
+                        if acceleration == True:
+                            self.coupling_utility.FinalizeSolutionStep()
+                        convergence = True
+                        break
+                
+                nl_it += 1
+            else:
+                if acceleration == True:
+                    self.coupling_utility.FinalizeSolutionStep()
+                convergence = True
+                break
+
+        x_final = x_guess
+        
+        # Check the obtained solution
+        expected_x = KratosMultiphysics.Vector(2)
+        expected_x[0] = math.sqrt(2)/2.0
+        expected_x[1] = math.sqrt(2)/2.0
+
+        if convergence == True:
+            for i in range(0,len(expected_x)):
+                self.assertAlmostEqual(expected_x[i],x_final[i])
     
 if __name__ == '__main__':
     KratosUnittest.main()
