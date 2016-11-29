@@ -120,69 +120,95 @@ proc FSI::examples::TreeAssignationMokChannelFlexibleWall {args} {
     
     set condtype line
     if {$::Model::SpatialDimension eq "3D"} { set condtype surface }
+    
     # Fluid Parts
     set fluidParts {container[@n='FSI']/container[@n='Fluid']/condition[@n='Parts']}
-    gid_groups_conds::addF $fluidParts group {n Fluid}
-    set fluidGroup "$fluidParts/group\[@n='Fluid'\]"
-    gid_groups_conds::addF $fluidGroup value "n Element pn Element dict {\[GetElements\]} actualize_tree 1 values FractionalStep$nd state hidden v FractionalStep$nd"
-    gid_groups_conds::addF $fluidGroup value {n ConstitutiveLaw pn {Fluid type} actualize_tree 1 values Newtonian,HerschelBulkley dict {[GetConstitutiveLaws]} state normal v Newtonian}
-    gid_groups_conds::addF -resolve_parametric 1 $fluidGroup value {n DENSITY pn Density state {[PartParamState]} unit_magnitude Density help {} v 956.0 units kg/m^3}
-    gid_groups_conds::addF -resolve_parametric 1 $fluidGroup value {n VISCOSITY pn {Kinematic viscosity} state {[PartParamState]} unit_magnitude L^2/T help {Fluidized viscosity.} v 0.145 units m^2/s}
-    gid_groups_conds::addF $fluidGroup value {n YIELD_STRESS pn {Yield Stress} state {[PartParamState]} unit_magnitude {} help {} v 0}
-    gid_groups_conds::addF $fluidGroup value {n POWER_LAW_K pn {Consistency index (k)} state {[PartParamState]} unit_magnitude {} help {} v 1}
-    gid_groups_conds::addF $fluidGroup value {n POWER_LAW_N pn {Flow index (n)} state {[PartParamState]} unit_magnitude {} help {} v 1}
+    set fluidNode [spdAux::AddConditionGroupOnXPath $fluidParts Fluid]
+    #gid_groups_conds::addF $fluidParts group {n Fluid}
+    set props [list Element FractionalStep$nd ConstitutiveLaw Newtonian DENSITY 956.0 VISCOSITY 0.145 YIELD_STRESS 0 POWER_LAW_K 1 POWER_LAW_N 1]
+    foreach {prop val} $props {
+        set propnode [$fluidNode selectNodes "./value\[@n = '$prop'\]"]
+        if {$propnode ne "" } {
+            $propnode setAttribute v $val
+        } else {
+            W "Warning - Couldn't find property Fluid $prop"
+        }
+    }
 
     set fluidConditions {container[@n='FSI']/container[@n='Fluid']/container[@n='BoundaryConditions']}
     # Fluid Interface
     set fluidInlet "$fluidConditions/condition\[@n='Inlet$nd'\]"
     
     # Fluid Inlet
-    gid_groups_conds::addF $fluidInlet group "n Inlet ov $condtype"
-    set fluidInletGroup "$fluidInlet/group\[@n='Inlet'\]"
-    gid_groups_conds::addF -resolve_parametric 1 $fluidInletGroup value {n factor pn Modulus unit_magnitude Velocity help {} state {} v 0.6067 units m/s}
-    gid_groups_conds::addF $fluidInletGroup value "n directionX wn {Inlet$nd _X} pn {Direction X} help {} state {} v 1.0"
-    gid_groups_conds::addF $fluidInletGroup value "n directionY wn {Inlet$nd _Y} pn {Direction Y} help {} state {} v 0.0"
-    gid_groups_conds::addF $fluidInletGroup value "n directionZ wn {Inlet$nd _Z} pn {Direction Z} help {} state {\[CheckDimension 3D\]} v 0.0"
-        
+    set inletNode [spdAux::AddConditionGroupOnXPath $fluidInlet Inlet]
+    $inletNode setAttribute ov $condtype
+    set props [list modulus 0.6067 directionX 1.0 directionY 0.0 directionZ 0.0]
+    foreach {prop val} $props {
+         set propnode [$inletNode selectNodes "./value\[@n = '$prop'\]"]
+         if {$propnode ne "" } {
+              $propnode setAttribute v $val
+         } else {
+            W "Warning - Couldn't find property Inlet $prop"
+        }
+    }
+      
     # Fluid Outlet
     set fluidOutlet "$fluidConditions/condition\[@n='Outlet$nd'\]"
-    gid_groups_conds::addF $fluidOutlet group "n Outlet ov $condtype"
-    gid_groups_conds::addF -resolve_parametric 1 "$fluidOutlet/group\[@n='Outlet'\]" value {n value pn Value unit_magnitude P help {} state {} v 0.0 units Pa}
+    set outletNode [spdAux::AddConditionGroupOnXPath $fluidOutlet Outlet]
+    $outletNode setAttribute ov $condtype
+    set props [list value 0.0]
+    foreach {prop val} $props {
+         set propnode [$outletNode selectNodes "./value\[@n = '$prop'\]"]
+         if {$propnode ne "" } {
+              $propnode setAttribute v $val
+         } else {
+            W "Warning - Couldn't find property Outlet $prop"
+        }
+    }
     
     # Fluid Conditions
-    gid_groups_conds::addF "$fluidConditions/condition\[@n='NoSlip$nd'\]" group "n NoSlip ov $condtype"
-    gid_groups_conds::addF "$fluidConditions/condition\[@n='Slip$nd'\]" group "n Slip ov $condtype"
-    gid_groups_conds::addF "$fluidConditions/condition\[@n='FluidNoSlipInterface$nd'\]" group "n FluidInterface ov $condtype"
+    [spdAux::AddConditionGroupOnXPath "$fluidConditions/condition\[@n='NoSlip$nd'\]" NoSlip] setAttribute ov $condtype
+    [spdAux::AddConditionGroupOnXPath "$fluidConditions/condition\[@n='Slip$nd'\]" Slip] setAttribute ov $condtype
+    [spdAux::AddConditionGroupOnXPath "$fluidConditions/condition\[@n='FluidNoSlipInterface$nd'\]" FluidInterface] setAttribute ov $condtype  
     
     # Displacement 3D
     if {$nd eq "3D"} {
         set fluidDisplacement "$fluidConditions/condition\[@n='ALEMeshDisplacementBC3D'\]"
-        gid_groups_conds::addF $fluidDisplacement group {n FluidFixedDisplacement_full ov surface}
-        set fluidDisplacementGroup_full "$fluidDisplacement/group\[@n='FluidFixedDisplacement_full'\]"
-        gid_groups_conds::addF $fluidDisplacementGroup_full value {n FixX pn {X Imposed} values 1,0 help {} state {} v 1}
-        gid_groups_conds::addF $fluidDisplacementGroup_full value {n FixY pn {Y Imposed} values 1,0 help {} state {} v 1}
-        gid_groups_conds::addF $fluidDisplacementGroup_full value {n FixZ pn {Z Imposed} values 1,0 help {} state {[CheckDimension 3D]} v 1}
-        gid_groups_conds::addF $fluidDisplacementGroup_full value {n valueX wn {DISPLACEMENT _X} pn {Value X} help {} state {} v 0.0}
-        gid_groups_conds::addF $fluidDisplacementGroup_full value {n valueY wn {DISPLACEMENT _Y} pn {Value Y} help {} state {} v 0.0}
-        gid_groups_conds::addF $fluidDisplacementGroup_full value {n valueZ wn {DISPLACEMENT _Z} pn {Value Z} help {} state {[CheckDimension 3D]} v 0.0}
-        gid_groups_conds::addF $fluidDisplacement group {n FluidFixedDisplacement_lat ov surface}
-        set fluidDisplacementGroup_lat "$fluidDisplacement/group\[@n='FluidFixedDisplacement_lat'\]"
-        gid_groups_conds::addF $fluidDisplacementGroup_lat value {n FixX pn {X Imposed} values 1,0 help {} state {} v 0}
-        gid_groups_conds::addF $fluidDisplacementGroup_lat value {n FixY pn {Y Imposed} values 1,0 help {} state {} v 0}
-        gid_groups_conds::addF $fluidDisplacementGroup_lat value {n FixZ pn {Z Imposed} values 1,0 help {} state {[CheckDimension 3D]} v 1}
-        gid_groups_conds::addF $fluidDisplacementGroup_lat value {n valueX wn {DISPLACEMENT _X} pn {Value X} help {} state {} v 0.0}
-        gid_groups_conds::addF $fluidDisplacementGroup_lat value {n valueY wn {DISPLACEMENT _Y} pn {Value Y} help {} state {} v 0.0}
-        gid_groups_conds::addF $fluidDisplacementGroup_lat value {n valueZ wn {DISPLACEMENT _Z} pn {Value Z} help {} state {[CheckDimension 3D]} v 0.0}
+        set fluidDisplacementNode [spdAux::AddConditionGroupOnXPath $fluidDisplacement FluidFixedDisplacement_full]
+        $fluidDisplacementNode setAttribute ov surface
+        set props [list is_fixed_X 1 is_fixed_Y 1 is_fixed_Z 1 valueX 0.0 valueY 0.0 valueZ 0.0]
+        foreach {prop val} $props {
+             set propnode [$fluidDisplacementNode selectNodes "./value\[@n = '$prop'\]"]
+             if {$propnode ne "" } {
+                  $propnode setAttribute v $val
+             } else {
+                W "Warning - Couldn't find property FluidFixedDisplacement_full $prop"
+             }
+        }
+        set fluidDisplacementNode [spdAux::AddConditionGroupOnXPath $fluidDisplacement FluidFixedDisplacement_lat]
+        $fluidDisplacementNode setAttribute ov surface
+        set props [list is_fixed_X 0 is_fixed_Y 0 is_fixed_Z 1 valueX 0.0 valueY 0.0 valueZ 0.0]
+        foreach {prop val} $props {
+             set propnode [$fluidDisplacementNode selectNodes "./value\[@n = '$prop'\]"]
+             if {$propnode ne "" } {
+                  $propnode setAttribute v $val
+             } else {
+                W "Warning - Couldn't find property FluidFixedDisplacement_lat $prop"
+             }
+        }
     } {
         set fluidDisplacement "$fluidConditions/condition\[@n='ALEMeshDisplacementBC2D'\]"
-        gid_groups_conds::addF $fluidDisplacement group {n FluidALEMeshBC ov line}
-        set fluidDisplacementGroup "$fluidDisplacement/group\[@n='FluidALEMeshBC'\]"
-        gid_groups_conds::addF $fluidDisplacementGroup value {n FixX pn {X Imposed} values 1,0 help {} state {} v 1}
-        gid_groups_conds::addF $fluidDisplacementGroup value {n FixY pn {Y Imposed} values 1,0 help {} state {} v 1}
-        gid_groups_conds::addF $fluidDisplacementGroup value {n FixZ pn {Z Imposed} values 1,0 help {} state {[CheckDimension 3D]} v 1}
-        gid_groups_conds::addF $fluidDisplacementGroup value {n valueX wn {DISPLACEMENT _X} pn {Value X} help {} state {} v 0.0}
-        gid_groups_conds::addF $fluidDisplacementGroup value {n valueY wn {DISPLACEMENT _Y} pn {Value Y} help {} state {} v 0.0}
-        gid_groups_conds::addF $fluidDisplacementGroup value {n valueZ wn {DISPLACEMENT _Z} pn {Value Z} help {} state {[CheckDimension 3D]} v 0.0}
+        set fluidDisplacementNode [spdAux::AddConditionGroupOnXPath $fluidDisplacement FluidALEMeshBC]
+        $fluidDisplacementNode setAttribute ov line
+        set props [list is_fixed_X 1 is_fixed_Y 1 is_fixed_Z 1 valueX 0.0 valueY 0.0 valueZ 0.0]
+        foreach {prop val} $props {
+             set propnode [$fluidDisplacementNode selectNodes "./value\[@n = '$prop'\]"]
+             if {$propnode ne "" } {
+                  $propnode setAttribute v $val
+             } else {
+                W "Warning - Couldn't find property ALEMeshDisplacementBC3D $prop"
+             }
+        }
     }
 
     # Structural
