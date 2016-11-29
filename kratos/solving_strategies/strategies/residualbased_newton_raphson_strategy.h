@@ -671,14 +671,19 @@ public:
             pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), A, Dx, b);
         }
 
-        if (this->GetEchoLevel() == 3) //if it is needed to print the debug info
+        if (this->GetEchoLevel() == 2) //if it is needed to print the debug info
+        {
+            std::cout << "solution obtained = " << Dx << std::endl;
+            std::cout << "RHS  = " << b << std::endl;
+        }
+        else if (this->GetEchoLevel() == 3) //if it is needed to print the debug info
         {
             // 				std::cout << "After first system solution" << std::endl;
             std::cout << "SystemMatrix = " << A << std::endl;
             std::cout << "solution obtained = " << Dx << std::endl;
             std::cout << "RHS  = " << b << std::endl;
         }
-        if (this->GetEchoLevel() == 4) //print to matrix market file
+        else if (this->GetEchoLevel() == 4) //print to matrix market file
         {
             std::stringstream matrix_market_name;
             matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << iteration_number << ".mm";
