@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="Boundary Conditions" pn="Boundary conditions" un="Pfem_NodalConditions" open_window="0">
+<container n="Boundary Conditions" pn="Boundary conditions" un="PFEM_NodalConditions" open_window="0">
 	  <dynamicnode command="injectNodalConditions" args="App Solid"/>
 	  <container n="BodyDisplacements" pn="Body displacements" icon="shells16">
 			<blockdata n="BodyDisplacement" pn="BodyDisplacement" name="Body Displacement 1" sequence="1" editable_name="unique" sequence_type="non_void_disabled" help="Body Displacement" >
