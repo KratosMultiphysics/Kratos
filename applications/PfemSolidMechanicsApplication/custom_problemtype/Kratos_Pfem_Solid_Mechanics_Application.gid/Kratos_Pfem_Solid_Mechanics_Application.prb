@@ -74,8 +74,8 @@ QUESTION: Linear_Solver_Tolerance
 VALUE: 1E-9
 QUESTION: Linear_Solver_Max_Iteration
 VALUE: 5000
-QUESTION: Convergence_Criteria#CB#(Displacement_criteria,Residual_criteria,And_criteria,Or_criteria,Mixed_criteria)
-VALUE: Displacement_criteria
+QUESTION: Convergence_Criteria#CB#(Displacement_criterion,Residual_criterion,And_criterion,Or_criterion,Mixed_criterion)
+VALUE: Displacement_criterion
 QUESTION: Component_Wise_Criterion#CB#(False,True)
 VALUE: False
 QUESTION: Convergence_Tolerance
