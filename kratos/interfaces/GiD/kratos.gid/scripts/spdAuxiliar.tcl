@@ -460,8 +460,10 @@ proc spdAux::ConvertAllUniqueNames {oldPrefix newPrefix} {
             set newrouteName [string map [list $oldPrefix $newPrefix] $routeName]
             set node [$root selectNodes $route]
             set uns [split [get_domnode_attribute $node un] ","]
-            lappend uns $newrouteName
-            $node setAttribute un [ListToValues $uns]
+            if {$newrouteName ni $uns} {
+                lappend uns $newrouteName
+                $node setAttribute un [ListToValues $uns]
+            }
         }
     }
     
