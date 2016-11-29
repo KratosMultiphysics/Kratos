@@ -615,10 +615,10 @@ class Procedures(object):
             if(y<0.1):
                 element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE,1)
 
-    def CreateDirectories(self, main_path, problem_name):
+    def CreateDirectories(self, main_path, problem_name, run_code = ''):
 
         root             = os.path.join(main_path, problem_name)
-        post_path        = root + '_Post_Files' # + run_code
+        post_path        = root + '_Post_Files' + run_code
         data_and_results = root + '_Results_and_Data'
         graphs_path      = root + '_Graphs'
         MPI_results      = root + '_MPI_results'
