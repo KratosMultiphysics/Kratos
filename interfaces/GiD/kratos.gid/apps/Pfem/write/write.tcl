@@ -43,10 +43,24 @@ proc Pfem::write::writeMeshes { } {
         write::writePartMeshes
     }
     # Solo Malla , no en conditions
-    write::writeNodalConditions "PFEM_NodalConditions"
+    writeNodalConditions "Pfem_NodalConditions"
     
     # A Condition y a meshes-> salvo lo que no tenga topologia
     Solid::write::writeLoads
+}
+
+
+proc Pfem::write::writeNodalConditions { keyword } {
+    write::writeNodalConditions $keyword
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    set xp1 "[spdAux::getRoute $keyword]/container/blockdata"
+    set groups [$root selectNodes $xp1]
+    foreach group $groups {
+        set cid [[$group parent] @n]
+        set groupid [$group @name]
+        ::write::writeGroupMesh $cid $groupid "nodal"
+    }
 }
 
 proc Pfem::write::GetPartsUN { } {

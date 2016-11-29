@@ -102,7 +102,7 @@ proc Pfem::write::GetPFEM_SolverSettingsDict { } {
     }
     dict set solverSettingsDict bodies_list $bodies_list
     dict set solverSettingsDict problem_domain_sub_model_part_list $listsubmodelparts
-    dict set solverSettingsDict processes_sub_model_part_list [write::getSubModelPartNames "PFEM_NodalConditions" "PFEM_Loads"]
+    dict set solverSettingsDict processes_sub_model_part_list [write::getSubModelPartNames "Pfem_NodalConditions" "Pfem_Loads"]
     
     return $solverSettingsDict
 }

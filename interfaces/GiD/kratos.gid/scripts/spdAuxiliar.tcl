@@ -1759,6 +1759,8 @@ proc spdAux::AddConditionGroupOnXPath {xpath groupid} {
     return [AddConditionGroupOnNode $node $groupid]
 }
 proc spdAux::AddConditionGroupOnNode {basenode groupid} {
+    set prev [$basenode selectNodes "./group\[@n='$groupid'\]"]
+    if {$prev ne ""} {return $prev}
     set newNode [gid_groups_conds::addF [$basenode toXPath] group [list n $groupid]]
     foreach val [$basenode getElementsByTagName value] {
         set newChild [$val cloneNode -deep]
