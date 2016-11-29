@@ -117,7 +117,8 @@ proc Dam::write::ChangeFileNameforTableid { processList } {
 proc Dam::write::writeParametersEvent { } {
     set projectParametersDict [getParametersDict]
     write::WriteJSON $projectParametersDict
-    write::SetParallelismConfiguration DamNumThreads ""
+    write::SetEnvironmentVariable OMP_NUM_THREADS [write::getValue DamNumThreads]
+    #write::SetParallelismConfiguration DamNumThreads ""
 }
 
 proc write::GetDefaultOutputDict {} {
