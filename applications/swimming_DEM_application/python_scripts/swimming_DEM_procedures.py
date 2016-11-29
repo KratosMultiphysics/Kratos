@@ -401,6 +401,39 @@ class Counter:
         return self.step_in_cycle
 
 
+class Averager:
+    def __init__(self, steps_in_cycle = 1, beginning_step = 1, is_active = True):
+        self.counter = Counter(steps_in_cycle, beginning_step, is_active)
+        self.min = float('+inf')
+        self.max = float('-inf')
+        self.sum = 0.0
+        self.sum_error = 0.0
+        self.average = 0.0
+        self.average_error = 0.0
+        self.step = 0
+    def Norm(self, v):
+        if self.counter.Tick():
+            self.step += 1
+            value = math.sqrt(sum([entry ** 2 for entry in v]))
+            self.sum += value
+            self.min = min(value, self.min)
+            self.max = max(value, self.max)
+            self.average = self.sum / self.step
+    def RelativeError(self, v_exact, v):
+        if self.counter.Tick():
+            self.step += 1
+            norm_exact = math.sqrt(sum([entry ** 2 for entry in v_exact]))
+            self.sum_exact += norm_exact
+            self.average_exact = self.sum / self.step
+            value = math.sqrt(sum([(v_exact[i] - v[i]) ** 2 / self.average_exact for entry in v]))
+            self.sum += value
+            self.min = min(value, self.min)
+            self.max = max(value, self.max)
+            self.average_error = self.sum_error / self.step
+
+    def GetCurrentData(self):
+        return self.min, self.max, self.average
+
 class PostUtils:
 
     def __init__(self,
