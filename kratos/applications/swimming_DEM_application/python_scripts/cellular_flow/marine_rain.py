@@ -3,13 +3,16 @@
 # It has been conceived by adding the DEM part and the interaction on top of an original fluid-only script (see kratos/applications/FluidDynamicswApplication)
 # Some parts of the original fluid script have been kept practically untouched and are clearly marked.
 # Whenever a minor modification has been made on one of these parts, the corresponding line is indicated with a comment: # MOD.
-# Python imports
+
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
+# Python imports
 import time as timer
 init_time = timer.time()
 import os
 os.system('cls' if os.name == 'nt' else 'clear')
 import sys
+#sys.path.append("/home/gcasas/kratos")
 
 class Logger(object):
     def __init__(self):
@@ -95,7 +98,7 @@ DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi #
 ##############################################################################
 #G
 pp.CFD_DEM = DEM_parameters
-pp.CFD_DEM.recover_gradient_option = True
+pp.CFD_DEM.recover_gradient_option = False
 pp.CFD_DEM.do_search_neighbours = False
 pp.CFD_DEM.faxen_terms_type = 0
 pp.CFD_DEM.material_acceleration_calculation_type = 1
@@ -103,13 +106,13 @@ pp.CFD_DEM.faxen_force_type = 0
 pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
 pp.CFD_DEM.basset_force_type = 0
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
-pp.CFD_DEM.basset_force_integration_type = 1
-pp.CFD_DEM.n_init_basset_steps = 2
+pp.CFD_DEM.basset_force_integration_type = 2
+pp.CFD_DEM.n_init_basset_steps = 0
 pp.CFD_DEM.time_steps_per_quadrature_step = 1
 pp.CFD_DEM.delta_time_quadrature = pp.CFD_DEM.time_steps_per_quadrature_step * pp.CFD_DEM.MaxTimeStep
-pp.CFD_DEM.quadrature_order = 2
-pp.CFD_DEM.time_window = 0.03
-pp.CFD_DEM.number_of_exponentials = 5
+pp.CFD_DEM.quadrature_order = 1
+pp.CFD_DEM.time_window = 0.1
+pp.CFD_DEM.number_of_exponentials = 10
 pp.CFD_DEM.number_of_quadrature_steps_in_window = int(pp.CFD_DEM.time_window / pp.CFD_DEM.delta_time_quadrature)
 pp.CFD_DEM.print_steps_per_plot_step = 1
 pp.CFD_DEM.PostCationConcentration = False
@@ -135,17 +138,23 @@ if pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
     concentration = pp.initial_concentration
 # NANO END
 
-# Import utilities from models
 procedures    = DEM_procedures.Procedures(DEM_parameters)
 
 # Creating necessary directories
 main_path = os.getcwd()
-[post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name))
+
+[post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name), run_code)
+
+# Import utilities from models
 
 demio         = DEM_procedures.DEMIo(DEM_parameters, post_path)
 report        = DEM_procedures.Report()
 parallelutils = DEM_procedures.ParallelUtils()
 materialTest  = DEM_procedures.MaterialTest()
+ 
+# Moving to the recently created folder
+os.chdir(main_path)
+swim_proc.CopyInputFilesIntoFolder(main_path, post_path)
  
 # Set the print function TO_DO: do this better...
 KRATOSprint   = procedures.KRATOSprint
@@ -331,13 +340,6 @@ swim_proc.AddExtraDofs(pp, fluid_model_part, spheres_model_part, cluster_model_p
 for node in fluid_model_part.Nodes:
     y = node.GetSolutionStepValue(Y_WALL, 0)
     node.SetValue(Y_WALL, y)
-
-# Creating necessary directories
-main_path = os.getcwd()
-[post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name), run_code)
-
-os.chdir(main_path)
-swim_proc.CopyInputFilesIntoFolder(main_path, post_path)
 
 KRATOSprint("\nInitializing Problem...")
 
