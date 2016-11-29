@@ -997,8 +997,7 @@ while (time <= final_time):
     os.chdir(graphs_path)
     # measuring mean velocities in a certain control volume (the 'velocity trap')
     if (DEM_parameters.VelocityTrapOption):
-        compute_flow = False
-        post_utils_DEM.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", time, compute_flow)
+        post_utils_DEM.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", time)
 
     os.chdir(post_path)
 
