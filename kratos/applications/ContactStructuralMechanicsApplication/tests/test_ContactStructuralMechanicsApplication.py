@@ -12,6 +12,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 ## SMALL TESTS
 from SmallTests import BasicCATest as TBasicCATest
 from SmallTests import SolidCATest as TSolidCATest
+from SmallTests import HyperSimplePatchTestContact as THyperSimplePatchTestContact
 from SmallTests import SimplePatchTestContact as TSimplePatchTestContact
 from SmallTests import SimplePatchNotMatchingATestContact as TSimplePatchNotMatchingATestContact
 from SmallTests import SimplePatchNotMatchingBTestContact as TSimplePatchNotMatchingBTestContact
@@ -48,6 +49,7 @@ def AssambleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTest(TBasicCATest('test_execution'))
     smallSuite.addTest(TSolidCATest('test_execution'))
+    smallSuite.addTest(THyperSimplePatchTestContact('test_execution'))
     smallSuite.addTest(TSimplePatchTestContact('test_execution'))
     smallSuite.addTest(TSimplePatchNotMatchingATestContact('test_execution'))
     smallSuite.addTest(TSimplePatchNotMatchingBTestContact('test_execution'))
@@ -75,6 +77,7 @@ def AssambleTestSuites():
         KratosUnittest.TestLoader().loadTestsFromTestCases([
             TBasicCATest,
             TSolidCATest,
+            THyperSimplePatchTestContact,
             TSimplePatchTestContact,
             TSimplePatchNotMatchingATestContact,
             TSimplePatchNotMatchingBTestContact,
