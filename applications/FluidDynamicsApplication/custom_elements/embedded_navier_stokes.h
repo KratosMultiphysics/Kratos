@@ -199,7 +199,7 @@ public:
         unsigned int npos=0, nneg=0;
         for (unsigned int i = 0; i<TNumNodes; i++)
         {
-            if(distances[i] > 0)
+            if(distances[i] > 0.0)
                 npos++;
             else
                 nneg++;
@@ -227,94 +227,94 @@ public:
     }
 
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_TRY
+    //~ void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    //~ {
+        //~ KRATOS_TRY
 
-        constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);    // Matrix size
+        //~ constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);    // Matrix size
 
-        if (rRightHandSideVector.size() != MatrixSize)
-            rRightHandSideVector.resize(MatrixSize, false); //false says not to preserve existing storage!!
+        //~ if (rRightHandSideVector.size() != MatrixSize)
+            //~ rRightHandSideVector.resize(MatrixSize, false); //false says not to preserve existing storage!!
 
-        // Struct to pass around the data
-        ElementDataType data;
+        //~ // Struct to pass around the data
+        //~ ElementDataType data;
 
-        // Getting data for the given geometry
-        double Volume;
-        GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, Volume);
+        //~ // Getting data for the given geometry
+        //~ double Volume;
+        //~ GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, Volume);
 
-        // Compute element size
-        data.h = NavierStokes<TDim, TNumNodes>::ComputeH(data.DN_DX, Volume);
+        //~ // Compute element size
+        //~ data.h = NavierStokes<TDim, TNumNodes>::ComputeH(data.DN_DX, Volume);
 
-        // Database access to all of the variables needed
-        const Vector& BDFVector = rCurrentProcessInfo[BDF_COEFFICIENTS];
-        data.bdf0 = BDFVector[0];
-        data.bdf1 = BDFVector[1];
-        data.bdf2 = BDFVector[2];
+        //~ // Database access to all of the variables needed
+        //~ const Vector& BDFVector = rCurrentProcessInfo[BDF_COEFFICIENTS];
+        //~ data.bdf0 = BDFVector[0];
+        //~ data.bdf1 = BDFVector[1];
+        //~ data.bdf2 = BDFVector[2];
 
-        data.dyn_tau_coeff = rCurrentProcessInfo[DYNAMIC_TAU] * data.bdf0; // Only, needed if the temporal dependent term is considered in the subscales
-        data.delta_t = rCurrentProcessInfo[DELTA_TIME];                    // Only, needed if the temporal dependent term is considered in the subscales
+        //~ data.dyn_tau_coeff = rCurrentProcessInfo[DYNAMIC_TAU] * data.bdf0; // Only, needed if the temporal dependent term is considered in the subscales
+        //~ data.delta_t = rCurrentProcessInfo[DELTA_TIME];                    // Only, needed if the temporal dependent term is considered in the subscales
 
-        array_1d<double, TNumNodes> distances;   // Array to store the nodal value of the distance function
+        //~ array_1d<double, TNumNodes> distances;   // Array to store the nodal value of the distance function
 
-        // Data collection
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
+        //~ // Data collection
+        //~ for (unsigned int i = 0; i < TNumNodes; i++)
+        //~ {
 
-            const array_1d<double,3>& body_force = this->GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
-            const array_1d<double,3>& vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-            const array_1d<double,3>& vel_n = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1);
-            const array_1d<double,3>& vel_nn = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,2);
-            const array_1d<double,3>& vel_mesh = this->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY);
-            //~ const array_1d<double,3>& vel_conv = vel - vel_mesh;
+            //~ const array_1d<double,3>& body_force = this->GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
+            //~ const array_1d<double,3>& vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+            //~ const array_1d<double,3>& vel_n = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1);
+            //~ const array_1d<double,3>& vel_nn = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,2);
+            //~ const array_1d<double,3>& vel_mesh = this->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY);
+            //const array_1d<double,3>& vel_conv = vel - vel_mesh;
 
-            for(unsigned int k=0; k<TDim; k++)
-            {
-                data.v(i,k)   = vel[k];
-                data.vn(i,k)  = vel_n[k];
-                data.vnn(i,k) = vel_nn[k];
-                data.vmesh(i,k) = vel_mesh[k];
-                data.f(i,k)   = body_force[k];
-            }
+            //~ for(unsigned int k=0; k<TDim; k++)
+            //~ {
+                //~ data.v(i,k)   = vel[k];
+                //~ data.vn(i,k)  = vel_n[k];
+                //~ data.vnn(i,k) = vel_nn[k];
+                //~ data.vmesh(i,k) = vel_mesh[k];
+                //~ data.f(i,k)   = body_force[k];
+            //~ }
 
-            data.p[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
-            data.rho[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
-            data.nu[i] = this->GetGeometry()[i].FastGetSolutionStepValue(VISCOSITY);
-            distances[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
-        }
+            //~ data.p[i] = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
+            //~ data.rho[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
+            //~ data.nu[i] = this->GetGeometry()[i].FastGetSolutionStepValue(VISCOSITY);
+            //~ distances[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
+        //~ }
 
-        // Allocate memory needed
-        array_1d<double, MatrixSize> rhs_local;
+        //~ // Allocate memory needed
+        //~ array_1d<double, MatrixSize> rhs_local;
 
-        // Number of positive and negative distance function values
-        unsigned int npos=0, nneg=0;
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
-            if(distances[i] > 0)
-                npos++;
-            else
-                nneg++;
-        }
+        //~ // Number of positive and negative distance function values
+        //~ unsigned int npos=0, nneg=0;
+        //~ for (unsigned int i = 0; i < TNumNodes; i++)
+        //~ {
+            //~ if(distances[i] > 0)
+                //~ npos++;
+            //~ else
+                //~ nneg++;
+        //~ }
 
-        noalias(rRightHandSideVector) = ZeroVector(MatrixSize); // RHS initialization
+        //~ noalias(rRightHandSideVector) = ZeroVector(MatrixSize); // RHS initialization
 
-        // Element LHS and RHS contributions computation
-        if(npos == TNumNodes) // All nodes belong to fluid domain
-        {
-            ComputeRHSAsFluid<MatrixSize>(rhs_local, rRightHandSideVector, Volume, data, rCurrentProcessInfo);
-        }
-        if(nneg == TNumNodes) // All nodes belong to structure domain
-        {
-            rRightHandSideVector.clear();
-        }
-        else // Element intersects both fluid and structure domains
-        {
-            ComputeRHSAsMixed<MatrixSize>(rhs_local, rRightHandSideVector, Volume, data, rCurrentProcessInfo, distances);
-        }
+        //~ // Element LHS and RHS contributions computation
+        //~ if(npos == TNumNodes) // All nodes belong to fluid domain
+        //~ {
+            //~ ComputeRHSAsFluid<MatrixSize>(rhs_local, rRightHandSideVector, Volume, data, rCurrentProcessInfo);
+        //~ }
+        //~ if(nneg == TNumNodes) // All nodes belong to structure domain
+        //~ {
+            //~ rRightHandSideVector.clear();
+        //~ }
+        //~ else // Element intersects both fluid and structure domains
+        //~ {
+            //~ ComputeRHSAsMixed<MatrixSize>(rhs_local, rRightHandSideVector, Volume, data, rCurrentProcessInfo, distances);
+        //~ }
 
-        KRATOS_CATCH("")
+        //~ KRATOS_CATCH("")
 
-    }
+    //~ }
 
 
     /// Checks the input and that all required Kratos variables have been registered.
@@ -409,20 +409,9 @@ public:
             for(unsigned int i=0; i<TNumNodes; i++) Ncenter[i]=0.25;
             const double dgauss = inner_prod(distances, Ncenter);
 
-            //~ std::cout << "MIXED ELEMENT COMPUTED WITH 1 DIVISION!!!" << std::endl;
-            //~ std::cout << "Nodes that conform the element: " << this->GetGeometry()[0].Id() << " "
-            //~ << this->GetGeometry()[1].Id() << " "
-            //~ << this->GetGeometry()[2].Id() << " "
-            //~ << this->GetGeometry()[3].Id() << " " << std::endl;
-            //~ std::cout << "Distances: " << this->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) << " "
-            //~ << this->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) << " "
-            //~ << this->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) << " "
-            //~ << this->GetGeometry()[3].FastGetSolutionStepValue(DISTANCE) << " " << std::endl;
-
             // Gauss pt. is FLUID
-            if(dgauss > 0)
+            if(dgauss > 0.0)
             {
-                std::cout << "Mixed element computed with 1 DIVISION" << std::endl;
                 ComputeElementAsFluid<MatrixSize>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, rCurrentProcessInfo);
             }
         }
@@ -458,94 +447,94 @@ public:
     }
 
 
-    template<unsigned int MatrixSize>
-    void ComputeRHSAsFluid(array_1d<double, MatrixSize>& rhs_local,
-                           VectorType& rRightHandSideVector,
-                           const double& Volume,
-                           ElementDataType& data,
-                           ProcessInfo& rCurrentProcessInfo)
-    {
-        // Shape functions Gauss points values
-        bounded_matrix<double, TNumNodes, TNumNodes> Ncontainer; // Container with the evaluation of the 4 shape functions in the 4 Gauss pts.
-        NavierStokes<TDim, TNumNodes>::GetShapeFunctionsOnGauss(Ncontainer);
+    //~ template<unsigned int MatrixSize>
+    //~ void ComputeRHSAsFluid(array_1d<double, MatrixSize>& rhs_local,
+                           //~ VectorType& rRightHandSideVector,
+                           //~ const double& Volume,
+                           //~ ElementDataType& data,
+                           //~ ProcessInfo& rCurrentProcessInfo)
+    //~ {
+        //~ // Shape functions Gauss points values
+        //~ bounded_matrix<double, TNumNodes, TNumNodes> Ncontainer; // Container with the evaluation of the 4 shape functions in the 4 Gauss pts.
+        //~ NavierStokes<TDim, TNumNodes>::GetShapeFunctionsOnGauss(Ncontainer);
 
-        // Loop on gauss point
-        for(unsigned int igauss = 0; igauss<Ncontainer.size2(); igauss++)
-        {
-            noalias(data.N) = row(Ncontainer, igauss);
+        //~ // Loop on gauss point
+        //~ for(unsigned int igauss = 0; igauss<Ncontainer.size2(); igauss++)
+        //~ {
+            //~ noalias(data.N) = row(Ncontainer, igauss);
 
-            BaseType::ComputeConstitutiveResponse(data, rCurrentProcessInfo);
+            //~ BaseType::ComputeConstitutiveResponse(data, rCurrentProcessInfo);
 
-            BaseType::ComputeGaussPointRHSContribution(rhs_local, data);
+            //~ BaseType::ComputeGaussPointRHSContribution(rhs_local, data);
 
-            // All the Gauss pts. have the same weight so the accumulated contributions can be multiplied by volume/n_nodes at the end
-            noalias(rRightHandSideVector) += rhs_local;
-        }
+            //~ // All the Gauss pts. have the same weight so the accumulated contributions can be multiplied by volume/n_nodes at the end
+            //~ noalias(rRightHandSideVector) += rhs_local;
+        //~ }
 
-        rRightHandSideVector *= Volume/static_cast<double>(TNumNodes);;
-    }
+        //~ rRightHandSideVector *= Volume/static_cast<double>(TNumNodes);;
+    //~ }
 
 
-    template<unsigned int MatrixSize>
-    void ComputeRHSAsMixed(array_1d<double, MatrixSize>& rhs_local,
-                           VectorType& rRightHandSideVector,
-                           const double& Volume,
-                           ElementDataType& data,
-                           ProcessInfo& rCurrentProcessInfo,
-                           array_1d<double, TNumNodes>& distances)
-    {
-        constexpr unsigned int nEdges = (TDim-1)*3;                // Edges per element
+    //~ template<unsigned int MatrixSize>
+    //~ void ComputeRHSAsMixed(array_1d<double, MatrixSize>& rhs_local,
+                           //~ VectorType& rRightHandSideVector,
+                           //~ const double& Volume,
+                           //~ ElementDataType& data,
+                           //~ ProcessInfo& rCurrentProcessInfo,
+                           //~ array_1d<double, TNumNodes>& distances)
+    //~ {
+        //~ constexpr unsigned int nEdges = (TDim-1)*3;                // Edges per element
 
-        MatrixType Ncontainer;
-        VectorType gauss_volumes;
-        VectorType signs(nEdges); //ATTENTION: this shall be initialized of size 6
-        VectorType edge_areas(nEdges);
+        //~ MatrixType Ncontainer;
+        //~ VectorType gauss_volumes;
+        //~ VectorType signs(nEdges); //ATTENTION: this shall be initialized of size 6
+        //~ VectorType edge_areas(nEdges);
 
-        // Splitting to determine the new Gauss pts.
-        unsigned int ndivisions = ComputeSplitting(data, Ncontainer, gauss_volumes, signs, distances, edge_areas);
+        //~ // Splitting to determine the new Gauss pts.
+        //~ unsigned int ndivisions = ComputeSplitting(data, Ncontainer, gauss_volumes, signs, distances, edge_areas);
 
-        if(ndivisions == 1)
-        {
-            // Cases exist when the element is like not subdivided due to the characteristics of the provided distance.
-            // Use the distance value at the central Gauss pt. to determine if the element is wether fluid or structure.
-            array_1d<double, TNumNodes> Ncenter;
-            for(unsigned int i=0; i<TNumNodes; i++) Ncenter[i]=0.25;
-            const double dgauss = inner_prod(distances, Ncenter);
+        //~ if(ndivisions == 1)
+        //~ {
+            //~ // Cases exist when the element is like not subdivided due to the characteristics of the provided distance.
+            //~ // Use the distance value at the central Gauss pt. to determine if the element is wether fluid or structure.
+            //~ array_1d<double, TNumNodes> Ncenter;
+            //~ for(unsigned int i=0; i<TNumNodes; i++) Ncenter[i]=0.25;
+            //~ const double dgauss = inner_prod(distances, Ncenter);
 
-            // Gauss pt. is FLUID
-            if(dgauss > 0)
-            {
-                ComputeRHSAsFluid<MatrixSize>(rhs_local, rRightHandSideVector, Volume, data, rCurrentProcessInfo);
-            }
-        }
-        else
-        {
-            // Loop over subdivisions
-            for(unsigned int division = 0; division<ndivisions; division++)
-            {
-                // Loop on gauss points
-                for(unsigned int igauss = 0; igauss<4; igauss++)
-                {
-                    noalias(data.N) = row(Ncontainer, division*4+igauss); // Take the new Gauss pts. shape functions values
+            //~ // Gauss pt. is FLUID
+            //~ if(dgauss > 0)
+            //~ {
+                //~ ComputeRHSAsFluid<MatrixSize>(rhs_local, rRightHandSideVector, Volume, data, rCurrentProcessInfo);
+            //~ }
+        //~ }
+        //~ else
+        //~ {
+            //~ // Loop over subdivisions
+            //~ for(unsigned int division = 0; division<ndivisions; division++)
+            //~ {
+                //~ // Loop on gauss points
+                //~ for(unsigned int igauss = 0; igauss<4; igauss++)
+                //~ {
+                    //~ noalias(data.N) = row(Ncontainer, division*4+igauss); // Take the new Gauss pts. shape functions values
 
-                    const double dgauss = inner_prod(distances, data.N); // Compute the distance on the gauss points
+                    //~ const double dgauss = inner_prod(distances, data.N); // Compute the distance on the gauss points
 
-                    // Gauss pt. is FLUID
-                    if(dgauss > 0)
-                    {
-                        BaseType::ComputeConstitutiveResponse(data, rCurrentProcessInfo);
+                    //~ // Gauss pt. is FLUID
+                    //~ if(dgauss > 0)
+                    //~ {
+                        //~ BaseType::ComputeConstitutiveResponse(data, rCurrentProcessInfo);
 
-                        BaseType::ComputeGaussPointRHSContribution(rhs_local, data);
+                        //~ BaseType::ComputeGaussPointRHSContribution(rhs_local, data);
 
-                        noalias(rRightHandSideVector) += gauss_volumes[division*4+igauss]*rhs_local;
-                    }
-                }
-            }
+                        //~ noalias(rRightHandSideVector) += gauss_volumes[division*4+igauss]*rhs_local;
+                    //~ }
+                //~ }
+            //~ }
 
-            // TODO: ADD THIS FUNCTION (SIMILAR TO AddBoundaryConditionElementContribution)
-            //~ AddBoundaryConditionRHSContribution(rLeftHandSideMatrix, rRightHandSideVector, data, distances, edge_areas);
-        }
-    }
+            //~ // TODO: ADD THIS FUNCTION (SIMILAR TO AddBoundaryConditionElementContribution)
+            //AddBoundaryConditionRHSContribution(rLeftHandSideMatrix, rRightHandSideVector, data, distances, edge_areas);
+        //~ }
+    //~ }
 
     ///@}
     ///@name Access
@@ -1196,7 +1185,6 @@ protected:
             AddBoundaryConditionNitcheContribution(rLeftHandSideMatrix, rRightHandSideVector, data, cut_points, int_vec,
                                                    out_vec, cut_areas, Ncontainer_cut, Ncontainer_int, Ncontainer_out);
         }
-        
         // Add a penalty contribution to enforce the BC imposition at the level set when the distance value is close to 0
         else if (ndivisions == 1)
         {
@@ -1213,16 +1201,15 @@ protected:
                 }
             }
 
-            //~ double tol_d = 1e-2*data.h;
             double tol_d; 
             
             if (TDim == 2)
             {
-                tol_d = 5e-2*pow(data.h, 1/2);
+                tol_d = 1e-2*sqrt(data.h);
             }
             else
             {
-                tol_d = 5e-2*pow(data.h, 1/3);
+                tol_d = 1e-2*pow(data.h, 1.0/3.0);
             }
             
             double pen_coef = std::max((diag_max/(0.1*data.h*data.h)),(1000*data.h*data.h));
@@ -1252,7 +1239,7 @@ protected:
                     {
                         rRightHandSideVector(i*BlockSize+comp) -= pen_coef*data.v(i,comp);
                     }
-                    rRightHandSideVector(i*BlockSize+BlockSize) -= pen_coef*data.p(i);
+                    //~ rRightHandSideVector(i*BlockSize+BlockSize) -= pen_coef*data.p(i);
                 }
             }
         }
