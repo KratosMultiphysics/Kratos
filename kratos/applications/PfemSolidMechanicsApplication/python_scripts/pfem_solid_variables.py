@@ -13,6 +13,10 @@ KratosMultiphysics.CheckForPreviousImport()
 
 def AddVariables(main_model_part):
 
+    main_model_part.ProcessInfo.SetValue(KratosContact.NUMBER_OF_ACTIVE_CONTACTS, 0)
+    main_model_part.ProcessInfo.SetValue(KratosContact.NUMBER_OF_STICK_CONTACTS, 0)
+    main_model_part.ProcessInfo.SetValue(KratosContact.NUMBER_OF_SLIP_CONTACTS, 0)
+    
     main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL);
     main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H);
     
@@ -24,6 +28,8 @@ def AddVariables(main_model_part):
     main_model_part.AddNodalSolutionStepVariable(KratosPfemBase.RIGID_WALL);
        
     main_model_part.AddNodalSolutionStepVariable(KratosContact.CONTACT_STRESS);
+    main_model_part.AddNodalSolutionStepVariable(KratosContact.EFFECTIVE_CONTACT_STRESS);
+    main_model_part.AddNodalSolutionStepVariable(KratosContact.EFFECTIVE_CONTACT_FORCE);
     
     #transfer variables
     main_model_part.AddNodalSolutionStepVariable(KratosSolid.DETERMINANT_F);

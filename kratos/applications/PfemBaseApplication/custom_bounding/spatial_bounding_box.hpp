@@ -434,7 +434,7 @@ public:
       Side[2] = mBox.Radius;
 
       mBox.UpperPoint = mBox.Center + Side;
-      mBox.LowerPoint  = mBox.Center - Side;
+      mBox.LowerPoint = mBox.Center - Side;
 
       //set to local frame
       this->MapToLocalFrame(mBox.InitialLocalQuaternion,mBox);
@@ -616,25 +616,14 @@ public:
       PointType LocalPoint = rPoint;
       BeamMathUtilsType::MapToCurrentLocalFrame(mBox.InitialLocalQuaternion, LocalPoint);
 
-
-      if(norm_2((mBox.Center-LocalPoint)) > 2 * mBox.Radius)
+      if(    (mBox.UpperPoint[0]>=LocalPoint[0] && mBox.LowerPoint[0]<=LocalPoint[0])
+	  && (mBox.UpperPoint[1]>=LocalPoint[1] && mBox.LowerPoint[1]<=LocalPoint[1])
+	  && (mBox.UpperPoint[2]>=LocalPoint[2] && mBox.LowerPoint[2]<=LocalPoint[2]) ){	
+	inside = true;
+      }
+      else{
 	inside = false;
-
-      for(unsigned int i=0; i<mBox.Center.size(); i++)
-	{
-	  if(mBox.UpperPoint[i]<LocalPoint[i]){
-	    inside = false;
-	    break;
-	  }
-	}
-
-      for(unsigned int i=0; i<mBox.Center.size(); i++)
-	{
-	  if(mBox.LowerPoint[i]>LocalPoint[i]){
-	    inside = false;
-	    break;
-	  }
-	}
+      }
 
       QuaternionType LocaQuaternionlConjugate = mBox.LocalQuaternion.conjugate();
       this->MapToLocalFrame(LocaQuaternionlConjugate, mBox);
@@ -679,17 +668,17 @@ public:
 
       // std::cout<<" Local Point "<<LocalPoint<<std::endl;
       // std::cout<<" Upper "<<mBox.UpperPoint<<" Lower "<<mBox.LowerPoint<<std::endl;
-      // if(!(mBox.UpperPoint[0]>LocalPoint[0] && mBox.LowerPoint[0]<LocalPoint[0]) )
+      // if(!(mBox.UpperPoint[0]>=LocalPoint[0] && mBox.LowerPoint[0]<=LocalPoint[0]) )
       // 	std::cout<<" first not fit "<<std::endl;
-      // if(!(mBox.UpperPoint[1]>LocalPoint[1] && mBox.LowerPoint[1]<LocalPoint[1]) )
+      // if(!(mBox.UpperPoint[1]>=LocalPoint[1] && mBox.LowerPoint[1]<=LocalPoint[1]) )
       // 	std::cout<<" second not fit "<<std::endl;
-      // if(!(mBox.UpperPoint[2]>LocalPoint[2] && mBox.LowerPoint[2]<LocalPoint[2]) )
+      // if(!(mBox.UpperPoint[2]>=LocalPoint[2] && mBox.LowerPoint[2]<=LocalPoint[2]) )
       // 	std::cout<<" third not fit "<<std::endl;
       
       
-      if(    (mBox.UpperPoint[0]>LocalPoint[0] && mBox.LowerPoint[0]<LocalPoint[0])
-	  && (mBox.UpperPoint[1]>LocalPoint[1] && mBox.LowerPoint[1]<LocalPoint[1])
-	  && (mBox.UpperPoint[2]>LocalPoint[2] && mBox.LowerPoint[2]<LocalPoint[2]) ){	
+      if(    (mBox.UpperPoint[0]>=LocalPoint[0] && mBox.LowerPoint[0]<=LocalPoint[0])
+	  && (mBox.UpperPoint[1]>=LocalPoint[1] && mBox.LowerPoint[1]<=LocalPoint[1])
+	  && (mBox.UpperPoint[2]>=LocalPoint[2] && mBox.LowerPoint[2]<=LocalPoint[2]) ){	
 	inside = true;
       }
       else{
@@ -1158,13 +1147,18 @@ protected:
       rRelativeDisplacement = BoxDeltaDisplacement-PointDeltaDisplacement;
      
       rTangent = (rRelativeDisplacement) - inner_prod(rRelativeDisplacement, rNormal) * rNormal;
+
+      if( !norm_2(rNormal) )
+	noalias(rTangent) = ZeroVector(3);
       
       //3.-compute  normal gap
       rGapTangent = norm_2(rTangent);
       
       if(norm_2(rTangent))
 	rTangent/= norm_2(rTangent);
-	
+
+      //std::cout<<" Normal "<<rNormal<<" Tangent "<<rTangent<<" gapT "<<rGapTangent<<std::endl;
+      
       KRATOS_CATCH( "" )
 	
     }

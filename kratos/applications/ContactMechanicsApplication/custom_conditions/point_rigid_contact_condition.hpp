@@ -94,7 +94,7 @@ protected:
         	   
     } SurfaceScalar;
 
-    typedef struct
+    struct GeneralVariables
     {
       Flags           Options;               //calculation options
       
@@ -118,8 +118,31 @@ protected:
       double  CurrentRadius;
       double  ReferenceRadius;
 
+      void Initialize()
+      {
+	Gap.Normal  = 0;
+	Gap.Tangent = 0;
 
-    } GeneralVariables;
+	RelativeDisplacement.resize(3);
+	noalias(RelativeDisplacement) = ZeroVector(3);
+
+	FrictionCoefficient = 0;
+	Penalty.Normal  = 0;
+	Penalty.Tangent = 0;
+
+	Surface.Normal.resize(3);
+	noalias(Surface.Normal) = ZeroVector(3);
+	Surface.Tangent.resize(3);
+	noalias(Surface.Tangent) = ZeroVector(3);
+
+	TangentMatrix.Normal = 0;
+	TangentMatrix.Tangent = 0;
+
+	CurrentRadius = 0;
+	ReferenceRadius = 0;
+      }
+
+    };
 
 
     /**
