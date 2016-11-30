@@ -275,7 +275,7 @@ namespace Kratos {
                 AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce, LocalElasticExtraContactForce, element1->mNeighbourElasticExtraContactForces[i_neighbour_count], LocalCoordSystem, kt_el, calculation_area,  element1, element2);
             }
             
-            /*const double mTauZero = 0.5 * 1e6 * (element1->GetFastProperties()->GetContactTauZero() + element2->GetFastProperties()->GetContactTauZero());
+            const double mTauZero = 0.5 * 1e6 * (element1->GetFastProperties()->GetContactTauZero() + element2->GetFastProperties()->GetContactTauZero());
             const double mInternalFriction = 0.5 * (element1->GetFastProperties()->GetContactInternalFricc() + element2->GetFastProperties()->GetContactInternalFricc());
 
             contact_tau = ShearForceNow / calculation_area;
@@ -289,7 +289,7 @@ namespace Kratos {
 
             if (contact_tau > tau_strength) {                                
                 failure_type = 2; // shear
-            }*/
+            }
         }
         else {
             const double equiv_tg_of_fri_ang = 0.5 * (element1->GetTgOfFrictionAngle() + element2->GetTgOfFrictionAngle());  
