@@ -172,9 +172,45 @@ public:
                 max_lenght = l;
         }
 
-        //modify the distances to avoid zeros
-        for(unsigned int i=0; i<4;i++)
-            if(fabs(rDistances[i]) < 1e-4*max_lenght) rDistances[i]=1e-4*max_lenght;
+        //~ //modify the distances to avoid zeros
+        //~ for(unsigned int i=0; i<4;i++)
+        //~ {
+            //~ if(fabs(rDistances[i]) < 1e-4*max_lenght)
+            //~ {
+                //~ std::cout << "Modifying distance to avoid zero, node " << i << " distance " << rDistances[i] << " to " << 1e-4*max_lenght << std::endl;
+                //~ rDistances[i]=1e-4*max_lenght;
+            //~ }
+        //~ }
+
+        //modify the distances to avoid not properly defined element intersections
+        //a not properly defined intersection is understood as a division whose positive distance volume is too small compared against the negative one
+        //~ double max_neg_d = -1e-10;      // maximum negative distance
+        //~ double max_pos_d =  1e-10;      // maximum positive distance
+        
+        //~ //get the maximum negative distance value
+        //~ for (unsigned int i=0; i<4; i++)
+        //~ {
+            //~ max_neg_d = std::min(max_neg_d, rDistances[i]);
+            //~ max_pos_d = std::max(max_pos_d, rDistances[i]);
+        //~ }
+        
+        //~ //modify the positve distance values to avoid undesired cuts
+        //~ double tol_rel_d = 1e-3; // relative tolerance for the max and min distances comparison
+        
+        //~ for (unsigned int i=0; i<4; i++)
+        //~ {
+            //~ //check the positive distance nodes
+            //~ if (rDistances[i] > 0.0)
+            //~ {
+                //~ //modify the distance if it is below the relative treshold
+                //~ if (fabs(rDistances[i]/max_neg_d) < tol_rel_d)
+                //~ {
+                    //~ std::cout << "Distance modified from " << rDistances[i] << " to " << rDistances[i]+0.00001*max_lenght*(max_pos_d - max_neg_d) << std::endl;
+                    //~ std::cout << "max_neg_d = " << max_neg_d << " max_pos_d = " << max_pos_d << std::endl;
+                    //~ rDistances[i] += 0.00001*max_lenght*(max_pos_d - max_neg_d);
+                //~ }
+            //~ }
+        //~ }
 
         for (unsigned int i = 0; i < 4; i++)
             abs_distance[i] = fabs(rDistances[i]);
@@ -572,126 +608,6 @@ private:
                 }
             }
         }
-    }
-
-
-    //2d
-    static inline void CalculateGeometryData(const bounded_matrix<double, 3, 3 > & coordinates,
-                                             boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,
-                                             array_1d<double,3>& N,
-                                             double& Area)
-    {
-        double x10 = coordinates(1,0) - coordinates(0,0);
-        double y10 = coordinates(1,1) - coordinates(0,1);
-
-        double x20 = coordinates(2,0) - coordinates(0,0);
-        double y20 = coordinates(2,1) - coordinates (0,1);
-
-        //Jacobian is calculated:
-        //  |dx/dxi  dx/deta|	|x1-x0   x2-x0|
-        //J=|				|=	|			  |
-        //  |dy/dxi  dy/deta|	|y1-y0   y2-y0|
-
-
-        double detJ = x10 * y20-y10 * x20;
-
-        DN_DX(0,0) = -y20 + y10;
-        DN_DX(0,1) = x20 - x10;
-        DN_DX(1,0) =  y20	   ;
-        DN_DX(1,1) = -x20     ;
-        DN_DX(2,0) = -y10	   ;
-        DN_DX(2,1) = x10	   ;
-
-        DN_DX /= detJ;
-        N[0] = 0.333333333333333;
-        N[1] = 0.333333333333333;
-        N[2] = 0.333333333333333;
-
-        Area = 0.5*detJ;
-    }
-
-    //template<class TMatrixType, class TVectorType, class TGradientType>
-    static inline double CalculateVolume2D(const bounded_matrix<double, 3, 3 > & coordinates)
-    {
-        double x10 = coordinates(1,0) - coordinates(0,0);
-        double y10 = coordinates(1,1) - coordinates(0,1);
-
-        double x20 = coordinates(2,0) - coordinates(0,0);
-        double y20 = coordinates(2,1) - coordinates (0,1);
-        double detJ = x10 * y20-y10 * x20;
-        return 0.5*detJ;
-    }
-
-
-    static inline bool CalculatePosition(const bounded_matrix<double, 3, 3 > & coordinates,
-                                         const double xc, const double yc, const double zc,
-                                         array_1d<double, 3 > & N)
-    {
-        double x0 = coordinates(0,0);
-        double y0 = coordinates(0,1);
-        double x1 = coordinates(1,0);
-        double y1 = coordinates(1,1);
-        double x2 = coordinates(2,0);
-        double y2 = coordinates(2,1);
-
-        double area = CalculateVol(x0, y0, x1, y1, x2, y2);
-        double inv_area = 0.0;
-        if (area == 0.0)
-        {
-            KRATOS_THROW_ERROR(std::logic_error, "element with zero area found", "");
-        }
-        else
-        {
-            inv_area = 1.0 / area;
-        }
-
-        N[0] = CalculateVol(x1, y1, x2, y2, xc, yc) * inv_area;
-        N[1] = CalculateVol(x2, y2, x0, y0, xc, yc) * inv_area;
-        N[2] = CalculateVol(x0, y0, x1, y1, xc, yc) * inv_area;
-
-        if (N[0] >= 0.0 && N[1] >= 0.0 && N[2] >= 0.0 && N[0] <= 1.0 && N[1] <= 1.0 && N[2] <= 1.0) //if the xc yc is inside the triangle return true
-            return true;
-
-        return false;
-    }
-
-
-    static inline double CalculateVol(const double x0, const double y0,
-                                      const double x1, const double y1,
-                                      const double x2, const double y2)
-    {
-        return 0.5 * ((x1 - x0)*(y2 - y0)- (y1 - y0)*(x2 - x0));
-    }
-
-
-    static inline void CalculateGeometryData(const bounded_matrix<double, 3, 3 > & coordinates,
-                                             boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,
-                                             double& Area)
-    {
-        double x10 = coordinates(1,0) - coordinates(0,0);
-        double y10 = coordinates(1,1) - coordinates(0,1);
-
-        double x20 = coordinates(2,0) - coordinates(0,0);
-        double y20 = coordinates(2,1) - coordinates (0,1);
-
-        //Jacobian is calculated:
-        //  |dx/dxi  dx/deta|	|x1-x0   x2-x0|
-        //J=|				|=	|			  |
-        //  |dy/dxi  dy/deta|	|y1-y0   y2-y0|
-
-
-        double detJ = x10 * y20-y10 * x20;
-
-        DN_DX(0,0) = -y20 + y10;
-        DN_DX(0,1) = x20 - x10;
-        DN_DX(1,0) =  y20	   ;
-        DN_DX(1,1) = -x20     ;
-        DN_DX(2,0) = -y10	   ;
-        DN_DX(2,1) = x10	   ;
-
-        DN_DX /= detJ;
-
-        Area = 0.5*detJ;
     }
 
 };
