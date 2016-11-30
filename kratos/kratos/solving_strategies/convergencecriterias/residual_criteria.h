@@ -154,9 +154,6 @@ public:
             TDataType ratio;
             mCurrentResidualNorm = TSparseSpace::TwoNorm(b);
 
-            double b_size = TSparseSpace::Size(b);
-
-
             if(mInitialResidualNorm == 0.00)
             {
                 ratio = 0.00;
@@ -167,18 +164,21 @@ public:
                 ratio = mCurrentResidualNorm/mInitialResidualNorm;
             }
 
+	    double b_size = TSparseSpace::Size(b);
+	    TDataType absolute_norm = (mCurrentResidualNorm/b_size);
+			
             if (r_model_part.GetCommunicator().MyPID() == 0)
             {
                 if (this->GetEchoLevel() >= 1)
                 {
-                    std::cout << "RESIDUAL CRITERION :: Ratio = " << ratio  << ";  Norm   = " << mCurrentResidualNorm/b_size << std::endl;
+                    std::cout << "RESIDUAL CRITERION :: Ratio = "<< ratio  << ";  Norm = " << absolute_norm << std::endl;
                 }
             }
 
             r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
-            r_model_part.GetProcessInfo()[RESIDUAL_NORM] = mCurrentResidualNorm/b_size;
+            r_model_part.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
 
-            if (ratio <= mRatioTolerance || (mCurrentResidualNorm/b_size) <mAlwaysConvergedNorm)
+            if (ratio <= mRatioTolerance || absolute_norm < mAlwaysConvergedNorm)
             {
                 if (r_model_part.GetCommunicator().MyPID() == 0)
                 {
