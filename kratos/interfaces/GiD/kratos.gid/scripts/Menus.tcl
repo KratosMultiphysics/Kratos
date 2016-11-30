@@ -4,7 +4,7 @@ proc Kratos::CreatePreprocessModelTBar { {type "DEFAULT INSIDELEFT"} } {
     variable kratos_private
     set dir [file join $::Kratos::kratos_private(Path) images ]
    
-    set KBitmapsNames(0) "$dir/new_props.gif --- $dir/openrunsim.gif $dir/runsimulation.gif $dir/runsiminfo.gif $dir/stop.gif"
+    set KBitmapsNames(0) "$dir/new_props.gif --- $dir/openrunsim.gif $dir/runsimulation.png $dir/runsiminfo.gif $dir/stop.png"
             
     set KBitmapsCommands(0) [list [list -np- gid_groups_conds::open_conditions menu] "" [list -np- RunWin] {Utilities Calculate} [list -np- PWViewOutput] {Utilities CancelProcess}]
 
