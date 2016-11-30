@@ -876,6 +876,8 @@ public:
     {
         NodesArrayType& pNode = rModelPart.GetSubModelPart("Contact").Nodes();
         
+        const bool DLM = rModelPart.GetSubModelPart("Contact").Is(MODIFIED);
+        
         auto numNodes = pNode.end() - pNode.begin();
         
         #pragma omp parallel for 
@@ -888,6 +890,10 @@ public:
                 if (itNode->Is(ACTIVE) == false)
                 {
                     itNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, 0) = ZeroVector(3);
+                    if (DLM == true)
+                    {
+                        itNode->FastGetSolutionStepValue(DOUBLE_LM, 0) = ZeroVector(3);
+                    }
                 }
                 itNode->GetValue(WEIGHTED_GAP)      = 0.0;
                 itNode->GetValue(WEIGHTED_SLIP)     = 0.0;

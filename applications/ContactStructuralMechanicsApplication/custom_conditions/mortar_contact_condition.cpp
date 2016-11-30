@@ -478,7 +478,6 @@ const array_1d<double, 3> MortarContactCondition<3, 3, true>::LagrangeMultiplier
     return Phi;
 }
 
-
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -1010,6 +1009,9 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::CalculateConditionSyste
 //             std::cout << "--------------------------------------------------" << std::endl;
 //             KRATOS_WATCH(this->Id());
 //             KRATOS_WATCH(PairIndex);
+//             KRATOS_WATCH(rContactData.u1);
+//             KRATOS_WATCH(rContactData.LagrangeMultipliers);
+//             KRATOS_WATCH(rContactData.DoubleLagrangeMultipliers);
 // //             KRATOS_WATCH(LHS_contact_pair);
 //             LOG_MATRIX_PRETTY( LHS_contact_pair );
 // //             KRATOS_WATCH(RHS_contact_pair);
@@ -1056,7 +1058,8 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::InitializeContactData(
     rContactData.Dt = rCurrentProcessInfo[DELTA_TIME];
     
     /* LM */
-    rContactData.LagrangeMultipliers = GetVariableMatrix(GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); // NOTE: Valgrind says there is a problem here
+    rContactData.LagrangeMultipliers = GetVariableMatrix(GetGeometry(), VECTOR_LAGRANGE_MULTIPLIER, 0); 
+    rContactData.DoubleLagrangeMultipliers = GetVariableMatrix(GetGeometry(), DOUBLE_LM, 0); 
     
     /* NORMALS AND TANGENTS */ // TODO: To interpolate it is necessary to consider a smooth function
     const array_1d<double, 3> normal      = this->GetValue(NORMAL);
@@ -1086,6 +1089,14 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::InitializeContactData(
     if (GetProperties().Has(TANGENT_AUGMENTATION_FACTOR) == true)
     {
         rContactData.epsilon_tangent = GetProperties().GetValue(TANGENT_AUGMENTATION_FACTOR);
+    }
+    
+    if (TDoubleLM == true)
+    {
+        if (GetProperties().Has(DOUBLE_LM_FACTOR) == true)
+        {
+            rContactData.epsilon = GetProperties().GetValue(DOUBLE_LM_FACTOR);
+        }
     }
 }
 
@@ -1228,38 +1239,34 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAndAddLHS(
             
             if (TDoubleLM == true)
             {
-                index_1 += TNumNodes * TDim;
+                const unsigned int index_2 = index_1 + TNumNodes * TDim;
 //                 subrange(LHS_contact_pair, 0, number_of_total_nodes * TDim, index_1, index_1 + TDim) = ZeroMatrix(number_of_total_nodes * TDim, TDim); // TODO: Consider or not?
-                subrange(LHS_contact_pair, index_1, index_1 + TDim, 0, number_of_total_nodes * TDim) = ZeroMatrix(TDim, number_of_total_nodes * TDim);
-                subrange(LHS_contact_pair, index_1, index_1 + TDim, index_1, index_1 + TDim)         = IdentityMatrix(TDim, TDim); 
+                subrange(LHS_contact_pair, index_2, index_2 + TDim, 0, number_of_total_nodes * TDim) = ZeroMatrix(TDim, number_of_total_nodes * TDim);
+                subrange(LHS_contact_pair, index_2, index_2 + TDim, index_2, index_2 + TDim)         = IdentityMatrix(TDim, TDim); 
+                subrange(LHS_contact_pair, index_1, index_1 + TDim, index_2, index_2 + TDim)         = ZeroMatrix(TDim, TDim); 
+                subrange(LHS_contact_pair, index_2, index_2 + TDim, index_1, index_1 + TDim)         = ZeroMatrix(TDim, TDim); 
             }
         }
         // And the tangent direction (sliding)
         else
         {            
-            Matrix tangent_matrix;
-            tangent_matrix.resize(TDim - 1, TDim);
-
-            const array_1d<double, 3> tangent1 = GetGeometry()[i_slave].GetValue(TANGENT_XI);
-            const array_1d<double, 3> tangent2 = GetGeometry()[i_slave].GetValue(TANGENT_ETA);
-            for (unsigned int i = 0; i < TDim; i++)
-            {
-                tangent_matrix(0, i) = tangent1[i];
-                if (TDim == 3)
-                {
-                    tangent_matrix(1, i) = tangent2[i];
-                }
-            }
-            
             if (TDoubleLM == false)
             {
+                Matrix tangent_matrix;
+                tangent_matrix.resize(TDim - 1, TDim);
+
+                const array_1d<double, 3> tangent1 = GetGeometry()[i_slave].GetValue(TANGENT_XI);
+                const array_1d<double, 3> tangent2 = GetGeometry()[i_slave].GetValue(TANGENT_ETA);
+                for (unsigned int i = 0; i < TDim; i++)
+                {
+                    tangent_matrix(0, i) = tangent1[i];
+                    if (TDim == 3)
+                    {
+                        tangent_matrix(1, i) = tangent2[i];
+                    }
+                }
+                
                 subrange(LHS_contact_pair, index_1 + 1, index_1 + TDim, index_1 , index_1 + TDim) = tangent_matrix;
-            }
-            else
-            {
-                subrange(LHS_contact_pair, index_1 + 1, index_1 + TDim, index_1 , index_1 + TDim) = prod(subrange(LHS_contact_pair, index_1 + 1, index_1 + TDim, index_1 + 1, index_1 + TDim), tangent_matrix);
-                index_1 += TNumNodes * TDim;
-                subrange(LHS_contact_pair, index_1 + 1, index_1 + TDim, index_1 , index_1 + TDim) = prod(subrange(LHS_contact_pair, index_1 + 1, index_1 + TDim, index_1 + 1, index_1 + TDim), tangent_matrix); // NOTE: Do this in the adjacent matrix??
             }
         }
     }
@@ -1679,7 +1686,7 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::CalculateAndAddRHS(
                 }
             }
         }
-        else
+        else // NOTE: In the tangent direction we impose slip
         {   
             for (unsigned int i = index + 1; i < index + TDim; i++)
             {
@@ -2147,11 +2154,11 @@ void MortarContactCondition<TDim,TNumNodes,TDoubleLM>::EquationIdVector(
             for ( unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++ )
             {
                 NodeType& slave_node = GetGeometry()[ i_slave ];
-                rResult[index++] = slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_X ).EquationId( );
-                rResult[index++] = slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Y ).EquationId( );
+                rResult[index++] = slave_node.GetDof( DOUBLE_LM_X ).EquationId( );
+                rResult[index++] = slave_node.GetDof( DOUBLE_LM_Y ).EquationId( );
                 if (TDim == 3)
                 {
-                    rResult[index++] = slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Z ).EquationId( );
+                    rResult[index++] = slave_node.GetDof( DOUBLE_LM_Z ).EquationId( );
                 }
             }
         }
@@ -2223,18 +2230,18 @@ void MortarContactCondition<TDim, TNumNodes, TDoubleLM>::GetDofList(
                 rConditionalDofList[index++] =slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Z );
             }
         }
-        
+
         if (TDoubleLM == true)
         {
             // Slave Nodes Lambda Equation IDs
             for ( unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++ )
             {
                 NodeType& slave_node = GetGeometry()[ i_slave ];
-                rConditionalDofList[index++] =slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_X );
-                rConditionalDofList[index++] =slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Y );
+                rConditionalDofList[index++] =slave_node.pGetDof( DOUBLE_LM_X );
+                rConditionalDofList[index++] =slave_node.pGetDof( DOUBLE_LM_Y );
                 if (TDim == 3)
                 {
-                    rConditionalDofList[index++] =slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Z );
+                    rConditionalDofList[index++] =slave_node.pGetDof( DOUBLE_LM_Z );
                 }
             }
         }

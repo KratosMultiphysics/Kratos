@@ -17,7 +17,7 @@
             "input_type"     : "mdpa",
             "input_filename" : "CA_test/solid_CA_test"
         },
-        "compute_mortar_contact"             : true,
+        "compute_mortar_contact"             : 1,
         "block_builder"                      : false,
         "line_search"                        : false,
         "clear_storage"                      : false,
