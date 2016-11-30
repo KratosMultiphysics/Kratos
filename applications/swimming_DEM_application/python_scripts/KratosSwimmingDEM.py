@@ -150,10 +150,12 @@ procedures.PreProcessModel(DEM_parameters)
 
 # Prepare modelparts
 spheres_model_part    = ModelPart("SpheresPart")
-rigid_face_model_part = ModelPart("RigidFace_Part")
-cluster_model_part    = ModelPart("Cluster_Part")
+rigid_face_model_part = ModelPart("RigidFacePart")
+cluster_model_part    = ModelPart("ClusterPart")
 DEM_inlet_model_part  = ModelPart("DEMInletPart")
-mapping_model_part    = ModelPart("Mappingmodel_part")
+mapping_model_part    = ModelPart("MappingPart")
+contact_model_part    = ModelPart("ContactPart")
+all_model_parts = DEM_procedures.SetOfModelParts(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, mapping_model_part, contact_model_part)
 
 # defining and adding imposed porosity fields
 pp.fluid_fraction_fields = []
@@ -247,7 +249,7 @@ if DEM_parameters.ElementType == "SwimmingNanoParticle":
     scheme = TerminalVelocityScheme()
 
 # Creating a solver object and set the search strategy
-solver = SolverStrategy.SwimmingStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
+solver = SolverStrategy.SwimmingStrategy(all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
 
 # Add variables
 
@@ -339,11 +341,7 @@ demio.SetOutputName(DEM_parameters.problem_name)
 
 os.chdir(post_path)
 
-demio.InitializeMesh(spheres_model_part,
-                     rigid_face_model_part,
-                     cluster_model_part,
-                     solver.contact_model_part,
-                     mapping_model_part)
+demio.InitializeMesh(all_model_parts)
 
 os.chdir(post_path)
 
