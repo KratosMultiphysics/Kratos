@@ -292,6 +292,7 @@ proc spdAux::SwitchDimAndCreateWindow { ndim } {
         spdAux::TryRefreshTree
         spdAux::OpenTree
     }
+     ::Kratos::CreatePreprocessModelTBar
 }
 
 proc spdAux::ForceExtremeLoad { } {

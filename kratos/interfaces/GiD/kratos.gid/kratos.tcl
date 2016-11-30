@@ -38,6 +38,7 @@ proc EndGIDPostProcess {} {
         gid_groups_conds::open_conditions check_default
         gid_groups_conds::open_conditions menu
     }
+    ::Kratos::EndCreatePreprocessTBar
 }
  
 # Load GiD project files (initialise XML Tdom structure)
@@ -62,8 +63,7 @@ proc SaveGIDProject { filespd } {
 }
 
 proc BeforeTransformProblemType { file oldproblemtype newproblemtype } {
-
-return "-cancel-"
+    return "-cancel-"
 }
 
 proc AfterTransformProblemType { filename oldproblemtype newproblemtype } {
@@ -104,8 +104,9 @@ proc Kratos::InitGIDProject { dir } {
     if { [lsearch -exact $::auto_path [file join $dir scripts]] == -1 } {
         lappend ::auto_path [file join $dir scripts]
     }
+    #source [file join $dir scripts Menus.tcl]
     # JG Sources will be in a different proc
-    foreach filename {Applications.tcl Writing.tcl spdAuxiliar.tcl} {
+    foreach filename {Applications.tcl Writing.tcl spdAuxiliar.tcl Menus.tcl} {
         uplevel 1 [list source [file join $dir scripts $filename]]
     }
 
@@ -143,6 +144,7 @@ proc Kratos::DestroyWindows {} {
     if {$::Kratos::kratos_private(UseWizard)} {
         Wizard::DestroyWindow
     }
+    ::Kratos::EndCreatePreprocessTBar
 }
 
 proc Kratos::LoadWizardFiles { } {
@@ -150,33 +152,6 @@ proc Kratos::LoadWizardFiles { } {
     set dir $::Kratos::kratos_private(Path)
     uplevel #0 [list source [file join $dir scripts Wizard.tcl]]
     Kratos::ChangeMenus
-}
-
-proc Kratos::ChangeMenus { } {
-    set found [GiDMenu::_FindIndex "Kratos" PRE]
-    if {$found > 0} {GiDMenu::Delete "Kratos" PRE}
-    GiDMenu::Create "Kratos" PRE
-    variable kratos_private
-    set tomode "developer mode"
-    set fromode "release mode"
-    if {$kratos_private(DevMode) eq "dev"} {set tomode "release mode";set fromode "developer mode"}
-    GiDMenu::InsertOption "Kratos" [list "Kratos data" ] 0 PRE [list gid_groups_conds::open_conditions menu] "" "" replace =
-    GiDMenu::InsertOption "Kratos" [list "---"] 1 PRE "" "" "" replace =
-    GiDMenu::InsertOption "Kratos" [list "You are in $fromode" ] 2 PRE [list ] "" "" replace =
-    GiDMenu::InsertOption "Kratos" [list "Switch to $tomode" ] 3 PRE [list Kratos::SwitchMode] "" "" replace =
-
-    if {$::Kratos::kratos_private(UseWizard)} {
-        GiDMenu::InsertOption "Kratos" [list "---"] 4 PRE "" "" "" replace =
-        GiDMenu::InsertOption "Kratos" [list "Wizard window" ] 5 PRE [list Wizard::CreateWindow] "" "" replace =
-    }
-    GidChangeDataLabel "Data units" ""
-    GidChangeDataLabel "Interval" ""
-    GidChangeDataLabel "Conditions" ""
-    GidChangeDataLabel "Materials" ""
-    GidChangeDataLabel "Interval Data" ""
-    GidChangeDataLabel "Problem Data" ""
-    GidChangeDataLabel "Local axes" "gid_groups_conds::local_axes_menu %W"
-    GiDMenu::UpdateMenus
 }
 
 proc Kratos::SwitchMode {} {
@@ -310,105 +285,105 @@ proc Kratos::LocalAxesMenu { menu } {
     }
 }
 
-
-#######################################################
-#    Add items to control-1 contextual menu 
-#######################################################
-
-proc Kratos::AddDataItemsToMenu { menu whatuse type entity } {
-
-    set DisableGraphics [.central.s disable graphics]
-    set DisableWarnLine [.central.s disable warnline]
-    
-    .central.s disable graphics 1
-    .central.s disable warnline 1
-
-    switch $type {
-        Points { set cnds point_groups }
-        Lines { set cnds line_groups }
-        Surfaces { set cnds surface_groups }
-        Volumes { set cnds volume_groups }
-        Nodes { set cnds point_groups }
-        Elements { set cnds "line_groups surface_groups volume_groups" }
-    }
-    switch $type Points - Lines - Surfaces - Volumes { set where geometry } Nodes - \
-        Elements { set where mesh }
-
-    set doc $gid_groups_conds::doc
-
-    set submenu ""
-    set needsseparator 0
-    foreach cnd $cnds {
-        set ret [GiD_Info Conditions $cnd $where $entity]
-        foreach i $ret {
-            foreach "num face - group" $i break
-            if { $num == 0 } { continue }
-            if { $num eq "E" } { set num $face }
-            if { $submenu == "" } {
-                set j 1
-                while { [winfo exists $menu.m$j] } { incr j }
-                set submenu [menu $menu.m$j -tearoff 0]
-                set text [_ Groups]
-                $menu add cascade -label $text -menu $submenu
-                set needsseparator 1
-            }
-            set xp [format_xpath {//group[@n=%s and ancestor::condition]} \
-                    $group]
-            set domNodes [$doc selectNodes $xp]
-
-            set txt [_ "Group: %s" $group]
-            if { ![llength $domNodes] } {
-                ContextualEntity::AddToMenu $submenu $txt \
-                    [list Kratos::_AddDataItemsToMenuItem $group]
-            } else {
-                set j 1
-                while { [winfo exists $submenu.m$j] } { incr j }
-                set subsubmenu [menu $submenu.m$j -tearoff 0]
-                $submenu add cascade -label $txt -menu $subsubmenu
-                ContextualEntity::AddToMenu $subsubmenu $txt \
-                    [list Kratos::_AddDataItemsToMenuItem $group]
-                foreach domNode $domNodes {
-                    set cndNode [$domNode selectNodes ancestor::condition]
-                    set blockNode [$domNode selectNodes {ancestor::blockdata[@sequence='1']}]
-                    if { $blockNode ne "" } {
-                        set txt [_ "Condition: %s - %s" [$blockNode @name] [$cndNode @pn]]
-                    } else {
-                        set txt [_ "Condition: %s" [$cndNode @pn]]
-                    }
-                    ContextualEntity::AddToMenu $subsubmenu $txt \
-                        [list Kratos::_AddDataItemsToMenuItemD $group \
-                            $domNode]
-                }
-            }
-        }
-    }
-    if { $needsseparator } { $menu add separator }
-    
-    if { !$DisableGraphics } { .central.s disable graphics 0 }
-    if { !$DisableWarnLine } { .central.s disable warnline 0 }
-
-}
-
-proc Kratos::_AddDataItemsToMenuItem { group } {
-    gid_groups_conds::open_groups .gid window_force window
-    set wg $gid_groups_conds::gid_group_var
-    set tree [$wg givetreectrl]   
-    $tree selection clear
-    foreach item [$tree item children root] {
-        if { [$tree item text $item 0] eq $group } {
-            $tree selection add $item
-            break
-        }
-    }
-}
-
-proc Kratos::_AddDataItemsToMenuItemD { group domNode } {
-    set what [gid_groups_conds::open_conditions window_type]
-    if { $what eq "none" } { set what window }
-    set xpath [gid_groups_conds::nice_xpath $domNode]
-    # W $xpath
-    gid_groups_conds::open_conditions $what -select_xpath $xpath
-}
+#
+########################################################
+##    Add items to control-1 contextual menu 
+########################################################
+#
+#proc Kratos::AddDataItemsToMenu { menu whatuse type entity } {
+#W "$menu $whatuse $type $entity"
+#    set DisableGraphics [.central.s disable graphics]
+#    set DisableWarnLine [.central.s disable warnline]
+#    
+#    .central.s disable graphics 1
+#    .central.s disable warnline 1
+#
+#    switch $type {
+#        Points { set cnds point_groups }
+#        Lines { set cnds line_groups }
+#        Surfaces { set cnds surface_groups }
+#        Volumes { set cnds volume_groups }
+#        Nodes { set cnds point_groups }
+#        Elements { set cnds "line_groups surface_groups volume_groups" }
+#    }
+#    switch $type Points - Lines - Surfaces - Volumes { set where geometry } Nodes - \
+#        Elements { set where mesh }
+#
+#    set doc $gid_groups_conds::doc
+#
+#    set submenu ""
+#    set needsseparator 0
+#    foreach cnd $cnds {
+#        set ret [GiD_Info Conditions $cnd $where $entity]
+#        foreach i $ret {
+#            foreach "num face - group" $i break
+#            if { $num == 0 } { continue }
+#            if { $num eq "E" } { set num $face }
+#            if { $submenu == "" } {
+#                set j 1
+#                while { [winfo exists $menu.m$j] } { incr j }
+#                set submenu [menu $menu.m$j -tearoff 0]
+#                set text [_ Groups]
+#                $menu add cascade -label $text -menu $submenu
+#                set needsseparator 1
+#            }
+#            set xp [format_xpath {//group[@n=%s and ancestor::condition]} \
+#                    $group]
+#            set domNodes [$doc selectNodes $xp]
+#
+#            set txt [_ "Group: %s" $group]
+#            if { ![llength $domNodes] } {
+#                ContextualEntity::AddToMenu $submenu $txt \
+#                    [list Kratos::_AddDataItemsToMenuItem $group]
+#            } else {
+#                set j 1
+#                while { [winfo exists $submenu.m$j] } { incr j }
+#                set subsubmenu [menu $submenu.m$j -tearoff 0]
+#                $submenu add cascade -label $txt -menu $subsubmenu
+#                ContextualEntity::AddToMenu $subsubmenu $txt \
+#                    [list Kratos::_AddDataItemsToMenuItem $group]
+#                foreach domNode $domNodes {
+#                    set cndNode [$domNode selectNodes ancestor::condition]
+#                    set blockNode [$domNode selectNodes {ancestor::blockdata[@sequence='1']}]
+#                    if { $blockNode ne "" } {
+#                        set txt [_ "Condition: %s - %s" [$blockNode @name] [$cndNode @pn]]
+#                    } else {
+#                        set txt [_ "Condition: %s" [$cndNode @pn]]
+#                    }
+#                    ContextualEntity::AddToMenu $subsubmenu $txt \
+#                        [list Kratos::_AddDataItemsToMenuItemD $group \
+#                            $domNode]
+#                }
+#            }
+#        }
+#    }
+#    if { $needsseparator } { $menu add separator }
+#    
+#    if { !$DisableGraphics } { .central.s disable graphics 0 }
+#    if { !$DisableWarnLine } { .central.s disable warnline 0 }
+#
+#}
+#
+#proc Kratos::_AddDataItemsToMenuItem { group } {
+#    gid_groups_conds::open_groups .gid window_force window
+#    set wg $gid_groups_conds::gid_group_var
+#    set tree [$wg givetreectrl]   
+#    $tree selection clear
+#    foreach item [$tree item children root] {
+#        if { [$tree item text $item 0] eq $group } {
+#            $tree selection add $item
+#            break
+#        }
+#    }
+#}
+#
+#proc Kratos::_AddDataItemsToMenuItemD { group domNode } {
+#    set what [gid_groups_conds::open_conditions window_type]
+#    if { $what eq "none" } { set what window }
+#    set xpath [gid_groups_conds::nice_xpath $domNode]
+#    # W $xpath
+#    gid_groups_conds::open_conditions $what -select_xpath $xpath
+#}
 
 proc Kratos::ResetModel { } {
     foreach layer [GiD_Info layers] {
@@ -420,12 +395,10 @@ proc Kratos::ResetModel { } {
 }
 
 proc Kratos::BeforeMeshGeneration {elementsize} {
-    #catch {
-        foreach group [GiD_Groups list] {
-            GiD_Process Mescape Meshing MeshCriteria Mesh Lines {*}[GiD_EntitiesGroups get $group lines] escape escape Mescape
-            GiD_Process Mescape Meshing MeshCriteria Mesh Surfaces {*}[GiD_EntitiesGroups get $group surfaces] escape escape 
-        }
-    #}
+    foreach group [GiD_Groups list] {
+        GiD_Process Mescape Meshing MeshCriteria Mesh Lines {*}[GiD_EntitiesGroups get $group lines] escape escape Mescape
+        GiD_Process Mescape Meshing MeshCriteria Mesh Surfaces {*}[GiD_EntitiesGroups get $group surfaces] escape escape 
+    }
 }
 
 proc Kratos::PrintArray {a {pattern *}} {
