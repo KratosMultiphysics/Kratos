@@ -68,12 +68,13 @@ class MdpaCreator(object):
 
 
 class SetOfModelParts(object):
-    def __init__(self, spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, mapping_model_part):
+    def __init__(self, spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, mapping_model_part, contact_model_part):
         self.spheres_model_part    = spheres_model_part
         self.rigid_face_model_part = rigid_face_model_part
         self.cluster_model_part    = cluster_model_part
         self.DEM_inlet_model_part  = DEM_inlet_model_part
         self.mapping_model_part    = mapping_model_part
+        self.contact_model_part    = contact_model_part
 
 class GranulometryUtils(object):
 
@@ -1180,6 +1181,7 @@ class MultifileList(object):
 class DEMIo(object):
 
     def __init__(self, DEM_parameters, post_path):
+
         self.post_path = post_path
         self.mixed_model_part                                     = ModelPart("Mixed_Part")
         self.mixed_spheres_and_clusters_model_part                = ModelPart("MixedSpheresAndClustersPart")
@@ -1244,7 +1246,7 @@ class DEMIo(object):
         self.b_box_maxY = self.DEM_parameters.BoundingBoxMaxY
         self.b_box_maxZ = self.DEM_parameters.BoundingBoxMaxZ
 
-        self.continuum_element_types = ["SphericContPartDEMElement3D","CylinderContPartDEMElement2D"]
+        self.continuum_element_types = ["SphericContPartDEMElement3D", "CylinderContPartDEMElement2D", "IceContPartDEMElement3D"]
         
         self.multifiles = (
             MultifileList(self.post_path, DEM_parameters.problem_name, 1),
@@ -1439,7 +1441,7 @@ class DEMIo(object):
         for mfilelist in self.multifilelists:
             mfilelist.file.close()
 
-    def InitializeMesh(self, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part): #MIQUEL MAPPING
+    def InitializeMesh(self, all_model_parts): #MIQUEL MAPPING
         if (self.filesystem == MultiFileFlag.SingleFile):
 
             self.post_utility.AddModelPartToModelPart(self.mixed_model_part, spheres_model_part)
@@ -1506,7 +1508,7 @@ class DEMIo(object):
             
             #Compute and print the graphical bounding box if active in time
             if ((getattr(self.DEM_parameters, "BoundingBoxOption", 0) == "ON") and (time >= bounding_box_time_limits[0] and time <= bounding_box_time_limits[1])):
-                self.ComputeAndPrintBoundingBox(spheres_model_part, rigid_face_model_part, creator_destructor)
+                self.ComputeAndPrintBoundingBox(spheres_model_part, rigid_face_model_part, contact_model_part, creator_destructor)
                         
             # Ice. Printing a virtual sea surface
             if (hasattr(self.DEM_parameters, "PostVirtualSeaSurfaceX1")):
@@ -1591,7 +1593,7 @@ class DEMIo(object):
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             self.FinalizeResults()
 
-    def ComputeAndPrintBoundingBox(self, spheres_model_part, rigid_face_model_part, creator_destructor):
+    def ComputeAndPrintBoundingBox(self, spheres_model_part, rigid_face_model_part, contact_model_part, creator_destructor):
 
         bounding_box_model_part = ModelPart("BoundingBoxPart") # Creation of bounding box's model part
 
@@ -1599,12 +1601,16 @@ class DEMIo(object):
         max_FEM_node_Id    = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(rigid_face_model_part)
         max_element_Id     = ParticleCreatorDestructor().FindMaxElementIdInModelPart(spheres_model_part)
         max_FEM_element_Id = ParticleCreatorDestructor().FindMaxElementIdInModelPart(rigid_face_model_part)
+        max_contact_element_Id = ParticleCreatorDestructor().FindMaxElementIdInModelPart(contact_model_part)
 
         if (max_FEM_node_Id > max_node_Id):
             max_node_Id = max_FEM_node_Id
 
         if (max_FEM_element_Id > max_element_Id):
             max_element_Id = max_FEM_element_Id
+        
+        if (max_contact_element_Id > max_element_Id):
+            max_element_Id = max_contact_element_Id
 
         BBMaxX = creator_destructor.GetHighNode()[0]
         BBMaxY = creator_destructor.GetHighNode()[1]
@@ -1662,13 +1668,11 @@ class DEMIo(object):
         node3 = sea_surface_model_part.CreateNewNode(max_node_Id + 11, self.SeaSurfaceX3, self.SeaSurfaceY3, 0.0)
         node4 = sea_surface_model_part.CreateNewNode(max_node_Id + 12, self.SeaSurfaceX4, self.SeaSurfaceY4, 0.0)
 
-        '''
-        Properties colours: 0 -> grey, 1 -> dark blue, 2 -> pink, 3 -> light blue, 4 -> dark red, 5 -> light green
-                           6 -> light brown, 7 -> red-brown, 8 -> dark brown, 9 -> dark green/blue, 10 -> dark purple
-        '''
+        ''' Properties colours: 0 -> grey,        1 -> dark blue, 2 -> pink,       3 -> light blue,       4 -> dark red,    5 -> light green
+                                6 -> light brown, 7 -> red-brown, 8 -> dark brown, 9 -> dark green/blue, 10 -> dark purple'''
 
         # Sea Surface Element, consisting in a quadrilateral. Property 3 corresponds to a light blue for water
-        sea_surface_model_part.CreateNewCondition("RigidFace3D4N", max_element_Id + 13, [node1.Id, node2.Id, node3.Id, node4.Id], Properties(3))
+        sea_surface_model_part.CreateNewCondition("RigidFace3D4N", max_element_Id + 1, [node1.Id, node2.Id, node3.Id, node4.Id], Properties(3))
 
         self.gid_io.WriteMesh(sea_surface_model_part.GetCommunicator().LocalMesh())
 
